@@ -4,7 +4,7 @@
 # Pane 2: dev log slot A  Pane 3: dev log slot B
 set -euo pipefail
 
-AGENTS_ROOT="/Users/gob/projects/Agents"
+AGENTS_ROOT="/Users/gob/Projects/Agents"
 SESSION="agents-watch"
 
 if ! command -v tmux >/dev/null 2>&1; then

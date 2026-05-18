@@ -6,7 +6,7 @@ from pathlib import Path
 
 from lib.config import is_c_level
 
-WIKI_ROOT = Path("/Users/gob/projects/LLMs").resolve()
+WIKI_ROOT = Path("/Users/gob/Projects/LLMs").resolve()
 
 
 class WikiError(Exception):

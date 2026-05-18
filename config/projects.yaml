@@ -4,7 +4,7 @@
 projects:
   - key: mooniex-claudeflow
     name: mooniex-claudeflow
-    path: /Users/gob/projects/mooniex-claudeflow
+    path: /Users/gob/Projects/mooniex-claudeflow
     remote: git@github.com:PASAKON/mooniex-claudeflow.git
     default_branch: main
     stack: [node, typescript]
@@ -16,7 +16,7 @@ projects:
 
   - key: mooniex-webapp
     name: "mooniex-webapp (Desk-A)"
-    path: "/Users/gob/projects/mooniex-webapp (Desk-A)"
+    path: "/Users/gob/Projects/mooniex-webapp (Desk-A)"
     remote: git@github.com:golfmaichai1/mooniex-webapp.git
     default_branch: main
     stack: [next.js, typescript, supabase]
@@ -29,7 +29,7 @@ projects:
 
   - key: LLMs
     name: LLMs (Wiki)
-    path: /Users/gob/projects/LLMs
+    path: /Users/gob/Projects/LLMs
     remote: git@github.com:PASAKON/mooniex-llms-wiki.git
     default_branch: main
     stack: [markdown]

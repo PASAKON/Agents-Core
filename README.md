@@ -1,8 +1,8 @@
-# Agents/ — Virtual Org for /Users/gob/projects/
+# Agents/ — Virtual Org for /Users/gob/Projects/
 
 Multi-agent orchestration. Hierarchical: CEO (you) → CTO → DEVs.
 
-Lives at `/Users/gob/projects/Agents/` — single top-level home for all
+Lives at `/Users/gob/Projects/Agents/` — single top-level home for all
 agent control + infra.
 
 ## Architecture
@@ -18,7 +18,7 @@ CEO (you)
 
 ## Key Concepts
 
-- **Wiki** at `/Users/gob/projects/LLMs/` — read by all, write by C-level only.
+- **Wiki** at `/Users/gob/Projects/LLMs/` — read by all, write by C-level only.
 - **Per-task worktree** — every DEV gets isolated git worktree on a dedicated branch.
 - **CTO is sole merger** — DEVs cannot push to main or delete branches.
 - **SQLite task queue** at `state/tasks.db` — single source of truth.
@@ -35,7 +35,7 @@ Add a project: append to `config/projects.yaml`.
 ## Quick Start
 
 ```bash
-cd /Users/gob/projects/Agents
+cd /Users/gob/Projects/Agents
 source .venv/bin/activate            # one-time: bash scripts/setup.sh
 python main.py --init                # one-time
 python main.py "build /health endpoint for mooniex-claudeflow"
@@ -48,7 +48,7 @@ tail -F state/logs/cto.log           # raw log stream
 
 Optional shell aliases:
 ```bash
-echo 'source /Users/gob/projects/Agents/scripts/aliases.sh' >> ~/.zshrc
+echo 'source /Users/gob/Projects/Agents/scripts/aliases.sh' >> ~/.zshrc
 # then: agents-run "..."  agents-dash  agents-watch  agents-status
 ```
 
@@ -70,7 +70,7 @@ Full matrix: `policies/permissions.md`.
 ## Layout
 
 ```
-/Users/gob/projects/Agents/
+/Users/gob/Projects/Agents/
 ├── runners/             python entrypoints
 │   ├── cto.py             orchestrator
 │   └── dev.py             generic worker
