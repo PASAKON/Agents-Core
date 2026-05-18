@@ -66,8 +66,12 @@ async def t_wiki_write(args):
 
 @tool(
     "create_task",
-    "Create a task in the queue. Returns task_id. depends_on is a JSON array of task_ids.",
-    {"project": str, "role": str, "title": str, "description": str, "depends_on": str},
+    "Create a task. Returns task_id. depends_on=JSON array of task_ids "
+    "(serialize work). touches=JSON array of repo-relative paths the task "
+    "will modify (used for collision detection — delegate is blocked if "
+    "another in-flight task already touches the same path).",
+    {"project": str, "role": str, "title": str, "description": str,
+     "depends_on": str, "touches": str},
 )
 async def t_create_task(args):
     deps = []
@@ -77,15 +81,40 @@ async def t_create_task(args):
             deps = json.loads(raw)
         except Exception:
             deps = [s.strip() for s in raw.split(",") if s.strip()]
+    paths = []
+    raw_t = args.get("touches") or ""
+    if raw_t:
+        try:
+            paths = json.loads(raw_t)
+        except Exception:
+            paths = [s.strip() for s in raw_t.split(",") if s.strip()]
     tid = db.create_task(
         project=args["project"],
         role=args["role"],
         title=args["title"],
         description=args["description"],
         depends_on=deps,
+        touches=paths,
     )
-    info(f"task created {tid} → {args['role']} on {args['project']}")
+    info(f"task created {tid} → {args['role']} on {args['project']} touches={paths}")
     return {"content": [{"type": "text", "text": tid}]}
+
+
+@tool(
+    "check_collisions",
+    "Preview path collisions before creating/delegating. Returns JSON list "
+    "of in-flight tasks whose touches intersect the supplied paths. Empty "
+    "list = safe to delegate.",
+    {"project": str, "touches": str},
+)
+async def t_check_collisions(args):
+    raw = args.get("touches") or ""
+    try:
+        paths = json.loads(raw)
+    except Exception:
+        paths = [s.strip() for s in raw.split(",") if s.strip()]
+    hits = db.find_conflicts(args["project"], paths)
+    return {"content": [{"type": "text", "text": json.dumps(hits, indent=2)}]}
 
 
 @tool(
@@ -186,7 +215,7 @@ async def run(ceo_request: str) -> str:
         version="1.0.0",
         tools=[
             t_wiki_read, t_wiki_list, t_wiki_search, t_wiki_write,
-            t_create_task, t_delegate, t_delegate_parallel,
+            t_create_task, t_check_collisions, t_delegate, t_delegate_parallel,
             t_get_task, t_review_diff, t_merge, t_reopen,
             t_list_projects, t_stats,
         ],
@@ -200,6 +229,7 @@ async def run(ceo_request: str) -> str:
         allowed_tools=[
             "mcp__org__wiki_read", "mcp__org__wiki_list", "mcp__org__wiki_search",
             "mcp__org__wiki_write", "mcp__org__create_task",
+            "mcp__org__check_collisions",
             "mcp__org__delegate_task", "mcp__org__delegate_parallel",
             "mcp__org__get_task", "mcp__org__review_diff",
             "mcp__org__merge_task", "mcp__org__reopen_task",

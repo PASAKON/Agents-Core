@@ -67,10 +67,15 @@ def create_task(
     title: str,
     description: str,
     depends_on: str = "",
+    touches: str = "",
 ) -> str:
     """Create a task in the queue. Returns task_id.
 
     depends_on accepts JSON array string or comma-separated task_ids.
+    touches accepts JSON array string or comma-separated repo-relative paths
+    that this task is expected to modify. Used for collision detection: a
+    delegate_task call with overlapping touches against an in-flight task is
+    blocked and the task is marked status='conflict'.
     """
     deps: list[str] = []
     if depends_on:
@@ -78,15 +83,38 @@ def create_task(
             deps = json.loads(depends_on)
         except Exception:
             deps = [s.strip() for s in depends_on.split(",") if s.strip()]
+    paths: list[str] = []
+    if touches:
+        try:
+            paths = json.loads(touches)
+        except Exception:
+            paths = [s.strip() for s in touches.split(",") if s.strip()]
     tid = db.create_task(
         project=project,
         role=role,
         title=title,
         description=description,
         depends_on=deps,
+        touches=paths,
     )
-    info(f"task created {tid} → {role} on {project}")
+    info(f"task created {tid} → {role} on {project} touches={paths}")
     return tid
+
+
+@mcp.tool()
+def check_collisions(project: str, touches: str) -> str:
+    """Preview path collisions before creating a task.
+
+    touches accepts JSON array string or comma-separated paths. Returns JSON
+    list of in-flight tasks (status pending/in_progress/rate_limited/conflict)
+    whose touches intersect the supplied paths. Empty list = safe to delegate.
+    """
+    try:
+        paths = json.loads(touches)
+    except Exception:
+        paths = [s.strip() for s in touches.split(",") if s.strip()]
+    hits = db.find_conflicts(project, paths)
+    return json.dumps(hits, indent=2)
 
 
 @mcp.tool()
