@@ -70,17 +70,19 @@ agents-chat --resume <session_id>
 Slash commands inside the REPL: `/help /exit /new /list /resume <id> /stats
 /tasks /clear`. Multiline input: end a line with `\`.
 
-**Spawn dedicated iTerm window (3 tabs):**
+**Spawn dedicated iTerm window:**
 ```bash
-agents-spawn             # tab1=CTO chat, tab2=cto.log, tab3=dev logs
+agents-spawn             # single tab = CTO chat (logs on disk; AI reads via hooks)
 agents-spawn --last      # passes --last through to cto_chat
+agents-spawn --with-logs # also open cto.log + dev logs tabs (legacy 3-tab layout)
 ```
 
 The CTO REPL keeps a persistent `ClaudeSDKClient` open across turns and
 auto-persists conversation history via the SDK session store, so `--resume`
 or the picker brings back full context from prior runs. When the CTO
-delegates, DEV reports stream into `state/logs/*_latest.log` (tab 3 of
-`agents-spawn`), and the final summary prints back in the CTO chat tab.
+delegates, DEV reports stream into `state/logs/*_latest.log` (tail with
+`bash scripts/tail-dev-logs.sh` or `--with-logs`), and the final summary
+prints back in the CTO chat tab.
 
 ## Permission Model
 
