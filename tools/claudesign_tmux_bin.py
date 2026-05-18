@@ -98,7 +98,9 @@ def main() -> int:
     mirror_path = MIRROR_DIR / f"mooniex-mirror-{task_id}.log"
     mirror_path.touch(exist_ok=True)
 
-    proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, bufsize=0)
+    # bufsize=-1 → stdout becomes BufferedReader so .read1 is available.
+    # bufsize=0 returns bare FileIO which lacks .read1 (Py 3.x).
+    proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, bufsize=-1)
 
     threading.Thread(target=_pump_stdin, args=(proc,), daemon=True).start()
 
@@ -108,6 +110,8 @@ def main() -> int:
         mirror.flush()
         try:
             while True:
+                # read1 returns as soon as ANY bytes are ready so stream-json
+                # lines flow live instead of batching until 4 KB accumulates.
                 chunk = proc.stdout.read1(4096) if proc.stdout else b""
                 if not chunk:
                     break
