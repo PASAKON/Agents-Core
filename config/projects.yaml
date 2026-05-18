@@ -42,6 +42,33 @@ projects:
       - playbooks/frontend.md
       - playbooks/backend.md
 
+  - key: mooniex-claudesign
+    name: mooniex-claudesign (Web Designer)
+    path: /Users/gob/Projects/mooniex-claudesign
+    # fork ของ nexu-io/open-design — upstream remote = readonly sync source
+    # mooniex remote (push target) = PASAKON/mooniex-claudesign
+    remote: https://github.com/PASAKON/mooniex-claudesign.git
+    upstream: https://github.com/nexu-io/open-design.git
+    default_branch: mooniex-main
+    stack: [next.js, typescript, electron, pnpm]
+    agents_allowed: [web_designer, developer, tester]
+    auto_push: false
+    review_required: true
+    # tmux+ttyd backend — Web UI terminal สามารถ attach ผ่าน browser
+    spawn_backend: tmux
+    web_ui: optional         # true → auto-open browser พร้อม iTerm
+    # content_zone — paths Web Designer agent แก้ได้.
+    # นอก zone นี้ = upstream code, ห้ามแตะ (pre-commit hook enforce)
+    content_zone:
+      - design-systems/**
+      - design-templates/**
+      - skills/**
+      - craft/**
+      - .agents/**
+    wiki_refs:
+      - playbooks/web-designer.md
+      - projects/mooniex-claudesign.md
+
   - key: LLMs
     name: LLMs (Wiki)
     path: /Users/gob/Projects/LLMs
