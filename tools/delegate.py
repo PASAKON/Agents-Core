@@ -1,25 +1,99 @@
-"""CTO delegates to DEV: spawns subprocess running runners.dev module.
+"""CTO delegates to DEV: opens an iTerm tab running a live Claude Code TUI.
 
-Each DEV runs as separate process so logs/stdout don't collide
-and one DEV crashing doesn't kill the CTO loop.
+Replaces the old headless subprocess model. Each DEV becomes its own
+visible tab so the user can watch the work in real time, identical UI to
+the CTO chat. The CTO blocks on a DB poll until the DEV calls the
+`submit_report` MCP tool (status → 'review') or fails.
 """
 from __future__ import annotations
 
 import asyncio
 import subprocess
-import sys
 from pathlib import Path
 
 from lib import db
-from lib.config import get_project, role as get_role
-from lib.notify import info, success, error
+from lib.config import get_project
+from lib.notify import info, success, error, warn
 from tools.worktree import create_worktree
 
 ROOT = Path(__file__).resolve().parent.parent
 
+POLL_INTERVAL_S = 2.0
+DEFAULT_TIMEOUT_S = 30 * 60  # 30 min per DEV task
+TERMINAL_STATUSES = {"review", "done", "failed", "cancelled"}
 
-async def delegate_task(task_id: str) -> dict:
-    """Spawn DEV subprocess for a task. Returns final task row."""
+ROLE_DISPLAY = {
+    "developer": "Developer",
+    "tester": "Tester",
+    "web_designer": "Web Designer",
+    "devops_engineer": "DevOps Engineer",
+    "security_engineer": "Security Engineer",
+    "data_analyst": "Data Analytics",
+    "prompt_engineer": "Prompt Engineer",
+}
+
+
+def _spawn_iterm_tab(role: str, task_id: str) -> None:
+    """Open a new iTerm tab in the frontmost window running dev_init."""
+    display = ROLE_DISPLAY.get(role, role)
+    tab_title = f"{display} ({task_id})"
+    # Print ANSI title escape from inside the shell so zsh's precmd
+    # doesn't immediately overwrite the iTerm session name.
+    # Double-escape: AppleScript string parses `\\` → `\`, leaving
+    # `\033`/`\007` for bash printf to interpret as ESC/BEL.
+    cmd = (
+        f"printf '\\\\033]0;{tab_title}\\\\007' && "
+        f"cd '{ROOT}' && source .venv/bin/activate && "
+        f"python -m runners.dev_init {role} {task_id}"
+    )
+    script = f'''
+tell application "iTerm"
+  activate
+  if (count of windows) = 0 then
+    set newWin to (create window with default profile)
+    tell current session of current tab of newWin
+      write text "{cmd}"
+    end tell
+  else
+    tell current window
+      set newTab to (create tab with default profile)
+      tell current session of newTab
+        write text "{cmd}"
+      end tell
+    end tell
+  end if
+end tell
+'''
+    subprocess.run(["osascript", "-e", script], check=True)
+
+
+async def _wait_for_terminal(task_id: str, timeout_s: float) -> dict:
+    """Poll DB until task reaches a terminal status or times out."""
+    elapsed = 0.0
+    while elapsed < timeout_s:
+        await asyncio.sleep(POLL_INTERVAL_S)
+        elapsed += POLL_INTERVAL_S
+        t = db.get_task(task_id)
+        if not t:
+            raise RuntimeError(f"task {task_id} disappeared")
+        if t["status"] in TERMINAL_STATUSES:
+            return t
+    warn(f"task {task_id} timed out after {timeout_s:.0f}s")
+    db.update_status(
+        task_id, "failed",
+        report=f"DEV timed out after {timeout_s:.0f}s without submit_report",
+        actor="cto",
+    )
+    return db.get_task(task_id)
+
+
+async def delegate_task(task_id: str, *, wait: bool = False,
+                         timeout_s: float = DEFAULT_TIMEOUT_S) -> dict:
+    """Open DEV in a new iTerm tab. Fire-and-forget by default.
+
+    With the Stop-hook relay + cto.log auto-inject + DB poll, the CTO no
+    longer needs to block waiting for the DEV to finish. Pass wait=True
+    to restore the legacy blocking behavior (rarely useful)."""
     task = db.get_task(task_id)
     if not task:
         raise ValueError(f"task not found: {task_id}")
@@ -27,12 +101,10 @@ async def delegate_task(task_id: str) -> dict:
     role_name = task["role"]
     project_key = task["project"]
 
-    # validate role allowed on this project
     proj = get_project(project_key)
     if role_name not in proj["agents_allowed"]:
         raise PermissionError(f"role {role_name} not allowed on project {project_key}")
 
-    # create worktree if not already set
     if not task.get("worktree"):
         wt_info = create_worktree(project_key, role_name, task_id)
         db.update_status(task_id, "pending",
@@ -43,34 +115,34 @@ async def delegate_task(task_id: str) -> dict:
 
     info(f"delegate task={task_id} role={role_name} project={project_key}")
 
-    # spawn DEV subprocess
-    cmd = [sys.executable, "-m", "runners.dev", role_name, task_id]
-    proc = await asyncio.create_subprocess_exec(
-        *cmd,
-        cwd=str(ROOT),
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate()
-    rc = proc.returncode
-
-    if rc != 0:
-        error(f"DEV exited with code {rc} task={task_id}\n{stderr.decode()[:500]}")
+    try:
+        _spawn_iterm_tab(role_name, task_id)
+    except subprocess.CalledProcessError as e:
+        error(f"failed to spawn iTerm tab for {task_id}: {e}")
         db.update_status(task_id, "failed",
-                         report=f"DEV crashed (rc={rc}). stderr:\n{stderr.decode()[:2000]}",
-                         actor="cto")
+                         report=f"iTerm spawn failed: {e}", actor="cto")
+        return db.get_task(task_id)
+
+    if not wait:
+        success(f"DEV spawned task={task_id} (fire-and-forget)")
+        return db.get_task(task_id)
+
+    final = await _wait_for_terminal(task_id, timeout_s)
+    if final["status"] == "failed":
+        error(f"DEV task={task_id} failed")
     else:
-        success(f"DEV done task={task_id}")
+        success(f"DEV done task={task_id} status={final['status']}")
+    return final
 
-    return db.get_task(task_id)
 
-
-async def delegate_parallel(task_ids: list[str], max_concurrent: int = 3) -> list[dict]:
-    """Delegate multiple tasks with concurrency cap."""
+async def delegate_parallel(task_ids: list[str], max_concurrent: int = 3,
+                             *, wait: bool = False) -> list[dict]:
+    """Delegate multiple tasks. Fire-and-forget by default; pass wait=True
+    to block until every task hits a terminal status."""
     sem = asyncio.Semaphore(max_concurrent)
 
     async def _run(tid):
         async with sem:
-            return await delegate_task(tid)
+            return await delegate_task(tid, wait=wait)
 
     return await asyncio.gather(*[_run(t) for t in task_ids])

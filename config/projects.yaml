@@ -1,6 +1,18 @@
 # Project registry. Add new projects here.
 # `path` is absolute. CTO uses this to look up worktree base.
 
+# Note: projects are NOT split by frontend/backend. Each project allows all
+# worker roles; CTO picks the right role per task.
+
+_default_workers: &default_workers
+  - developer
+  - tester
+  - web_designer
+  - devops_engineer
+  - security_engineer
+  - data_analyst
+  - prompt_engineer
+
 projects:
   - key: mooniex-claudeflow
     name: mooniex-claudeflow
@@ -8,9 +20,12 @@ projects:
     remote: git@github.com:PASAKON/mooniex-claudeflow.git
     default_branch: main
     stack: [node, typescript]
-    agents_allowed: [backend_dev, devops, qa]
+    agents_allowed: *default_workers
     auto_push: true
     review_required: true
+    # gate_tests: true → CTO runs test_command in worktree before merge
+    test_command: npm test --silent
+    gate_tests: false
     wiki_refs:
       - playbooks/backend.md
 
@@ -20,7 +35,7 @@ projects:
     remote: git@github.com:golfmaichai1/mooniex-webapp.git
     default_branch: main
     stack: [next.js, typescript, supabase]
-    agents_allowed: [frontend_dev, backend_dev, devops, qa]
+    agents_allowed: *default_workers
     auto_push: true
     review_required: true
     wiki_refs:

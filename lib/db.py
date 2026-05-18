@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS tasks (
     report          TEXT,
     review          TEXT,
     iteration       INTEGER NOT NULL DEFAULT 0,
+    session_id      TEXT,
+    retry_after_ts  TEXT,
+    last_checkpoint TEXT,
     created_at      TEXT NOT NULL,
     updated_at      TEXT NOT NULL
 );
@@ -54,7 +57,16 @@ CREATE TABLE IF NOT EXISTS locks (
 );
 """
 
-VALID_STATUS = {"pending", "in_progress", "review", "done", "failed", "cancelled"}
+VALID_STATUS = {"pending", "in_progress", "review", "done", "failed",
+                "cancelled", "rate_limited", "stalled", "conflict"}
+
+# Columns added after initial release. init() runs idempotent ALTER TABLE
+# ADD COLUMN for each so existing DBs migrate forward without losing data.
+_MIGRATION_COLUMNS = [
+    ("session_id", "TEXT"),
+    ("retry_after_ts", "TEXT"),
+    ("last_checkpoint", "TEXT"),
+]
 
 
 def now_iso() -> str:
@@ -84,9 +96,15 @@ def get_conn():
 
 
 def init():
-    """Create schema. Idempotent."""
+    """Create schema. Idempotent. Also runs forward-only column migrations
+    for tables that predate _MIGRATION_COLUMNS."""
     with get_conn() as conn:
         conn.executescript(SCHEMA)
+        existing = {r["name"] for r in conn.execute(
+            "PRAGMA table_info(tasks)").fetchall()}
+        for col, coltype in _MIGRATION_COLUMNS:
+            if col not in existing:
+                conn.execute(f"ALTER TABLE tasks ADD COLUMN {col} {coltype}")
     print(f"[db] initialized at {DB_PATH}")
 
 
@@ -133,11 +151,15 @@ def claim_task(task_id: str, agent: str) -> bool:
 VALID_COLUMNS = {
     "assigned_agent", "worktree", "branch", "report", "review",
     "iteration", "description", "title",
+    "session_id", "retry_after_ts", "last_checkpoint",
 }
 
 
 def update_status(task_id: str, status: str, *, actor: str = "system", **fields):
-    assert status in VALID_STATUS, f"bad status {status}"
+    if status not in VALID_STATUS:
+        raise ValueError(
+            f"invalid status {status!r}. allowed: {sorted(VALID_STATUS)}"
+        )
     bad = set(fields) - VALID_COLUMNS
     if bad:
         raise ValueError(f"unknown column(s): {bad}")

@@ -9,6 +9,9 @@ state/logs/*.log
 state/logs/*_latest.log
 state/locks/*.lock
 state/reports/*
+state/.cto_log_pos
+state/org.db
+.claude/
 worktrees/
 .env
 .DS_Store

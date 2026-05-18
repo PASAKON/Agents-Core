@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 # Spawn an iTerm2 window with 3 tabs for CTO chat + log streams.
-#   tab 1: interactive CTO chat REPL (python -m runners.cto_chat)
+#   tab 1: Claude Code CLI w/ CTO role (scripts/cto-claude.sh)
 #   tab 2: tail -F state/logs/cto.log
 #   tab 3: tail -F state/logs/*_latest.log  (auto-refreshing)
 #
 # Usage:
-#   bash scripts/spawn-cto.sh           # picker if prior sessions exist
-#   bash scripts/spawn-cto.sh --new     # always fresh
-#   bash scripts/spawn-cto.sh --last    # resume most recent
-#   bash scripts/spawn-cto.sh --resume <id>
+#   bash scripts/spawn-cto.sh           # fresh Claude Code session
+#   bash scripts/spawn-cto.sh --new     # fresh (alias)
+#   bash scripts/spawn-cto.sh --last    # resume most recent (claude -c)
+#   bash scripts/spawn-cto.sh --resume <id>  # claude -r <id>
 set -euo pipefail
 
 ROOT="/Users/gob/Projects/Agents"
-CHAT_ARGS="${*:-}"
+
+# Translate legacy cto_chat args → claude CLI args
+CLAUDE_ARGS=""
+case "${1:-}" in
+  --last) CLAUDE_ARGS="-c" ;;
+  --resume) CLAUDE_ARGS="-r ${2:-}" ;;
+  --new|"") CLAUDE_ARGS="" ;;
+  *) CLAUDE_ARGS="$*" ;;
+esac
 
 if ! [ -d "$ROOT/.venv" ]; then
   echo "venv not found at $ROOT/.venv — run scripts/setup.sh first" >&2
@@ -22,7 +30,7 @@ fi
 mkdir -p "$ROOT/state/logs"
 touch "$ROOT/state/logs/cto.log"
 
-CHAT_CMD="cd '$ROOT' && source .venv/bin/activate && python -m runners.cto_chat $CHAT_ARGS"
+CHAT_CMD="bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS"
 LOG_CMD="cd '$ROOT' && tail -F state/logs/cto.log"
 DEV_CMD="cd '$ROOT' && bash scripts/tail-dev-logs.sh"
 

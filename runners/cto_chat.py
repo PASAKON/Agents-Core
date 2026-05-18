@@ -19,6 +19,8 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import atexit
+import os
 import sys
 from pathlib import Path
 
@@ -35,10 +37,16 @@ from claude_agent_sdk import (
     list_sessions,
 )
 
+from rich.console import Console
+from rich.live import Live
+from rich.markdown import Markdown
+
 from lib import db
 from lib.config import role as get_role
 from lib.logger import get_logger
 from lib.notify import info, success, warn, error, COLORS, RESET
+
+console = Console()
 from runners.cto import (
     t_wiki_read, t_wiki_list, t_wiki_search, t_wiki_write,
     t_create_task, t_delegate, t_delegate_parallel,
@@ -48,7 +56,51 @@ from runners.cto import (
 
 ROOT = Path(__file__).resolve().parent.parent
 ROLE = "cto"
-log = get_logger(ROLE)
+log = get_logger(ROLE, stdout=False)
+
+LOCK_PATH = ROOT / "state" / "locks" / "cto.lock"
+
+
+def _acquire_pid_lock() -> None:
+    """Prevent two CTO chats racing on the same task DB.
+
+    On startup: if state/locks/cto.lock exists and the recorded PID is
+    alive, refuse to start. Otherwise overwrite with our PID and register
+    cleanup so a clean exit removes the lock.
+    """
+    LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    if LOCK_PATH.exists():
+        try:
+            other = int(LOCK_PATH.read_text().strip() or "0")
+        except ValueError:
+            other = 0
+        if other and other != os.getpid():
+            try:
+                os.kill(other, 0)
+                alive = True
+            except ProcessLookupError:
+                alive = False
+            except PermissionError:
+                alive = True
+            if alive:
+                print(
+                    f"  another CTO chat is running (pid {other}). "
+                    f"refuse to start a second one.\n"
+                    f"  lock file: {LOCK_PATH}\n"
+                    f"  if the other process is dead, delete the lock manually.",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+    LOCK_PATH.write_text(f"{os.getpid()}\n", encoding="utf-8")
+    atexit.register(_release_pid_lock)
+
+
+def _release_pid_lock() -> None:
+    try:
+        if LOCK_PATH.exists() and LOCK_PATH.read_text().strip() == str(os.getpid()):
+            LOCK_PATH.unlink()
+    except OSError:
+        pass
 
 
 def _system_prompt() -> str:
@@ -153,25 +205,37 @@ def _pick_session_interactive() -> str | None:
 
 
 async def _stream_response(client: ClaudeSDKClient) -> str | None:
-    """Stream CTO response to stdout. Returns the session_id when done."""
+    """Stream CTO response with live markdown render. Returns the session_id when done."""
     session_id = None
     c = COLORS["cto"]
-    first = True
-    async for msg in client.receive_response():
-        if isinstance(msg, AssistantMessage):
-            for block in msg.content:
-                if isinstance(block, TextBlock):
-                    if first:
-                        print(f"{c}CTO>{RESET} ", end="", flush=True)
-                        first = False
-                    print(block.text, end="", flush=True)
-                    log.info(f"CTO: {block.text[:500]}")
-                elif isinstance(block, ThinkingBlock):
-                    pass  # silent
-        elif isinstance(msg, ResultMessage):
-            session_id = msg.session_id
-    if not first:
-        print()
+    buffer = ""
+    started = False
+    live: Live | None = None
+    try:
+        async for msg in client.receive_response():
+            if isinstance(msg, AssistantMessage):
+                for block in msg.content:
+                    if isinstance(block, TextBlock):
+                        if not started:
+                            print(f"{c}CTO>{RESET}")
+                            live = Live(
+                                Markdown(""),
+                                console=console,
+                                refresh_per_second=12,
+                                vertical_overflow="visible",
+                            )
+                            live.start()
+                            started = True
+                        buffer += block.text
+                        live.update(Markdown(buffer))
+                        log.info(f"CTO: {block.text[:500]}")
+                    elif isinstance(block, ThinkingBlock):
+                        pass  # silent
+            elif isinstance(msg, ResultMessage):
+                session_id = msg.session_id
+    finally:
+        if live is not None:
+            live.stop()
     return session_id
 
 
@@ -296,6 +360,7 @@ def main():
     g.add_argument("--last", action="store_true", help="resume most recent session")
     args = ap.parse_args()
 
+    _acquire_pid_lock()
     db.init()
 
     initial = None

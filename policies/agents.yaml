@@ -22,7 +22,7 @@ roles:
     can_push: true
     can_delete_branch: true
 
-  frontend_dev:
+  developer:
     level: w
     model: claude-sonnet-4-6
     can_write_wiki: false
@@ -31,27 +31,54 @@ roles:
     can_push: false
     workspace_only: true
 
-  backend_dev:
-    level: w
-    model: claude-sonnet-4-6
-    can_write_wiki: false
-    can_create_task: false
-    can_merge: false
-    can_push: false
-    workspace_only: true
-
-  devops:
-    level: w
-    model: claude-sonnet-4-6
-    can_write_wiki: false
-    can_create_task: false
-    can_merge: false
-    can_push: false
-    workspace_only: true
-
-  qa:
+  tester:
     level: w
     model: claude-haiku-4-5
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+  web_designer:
+    level: w
+    model: claude-sonnet-4-6
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+  devops_engineer:
+    level: w
+    model: claude-sonnet-4-6
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+  security_engineer:
+    level: w
+    model: claude-sonnet-4-6
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+  data_analyst:
+    level: w
+    model: claude-sonnet-4-6
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+  prompt_engineer:
+    level: w
+    model: claude-sonnet-4-6
     can_write_wiki: false
     can_create_task: false
     can_merge: false

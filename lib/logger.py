@@ -3,10 +3,14 @@ from __future__ import annotations
 
 import logging
 import sys
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LOG_DIR = ROOT / "state" / "logs"
+
+LOG_MAX_BYTES = 10 * 1024 * 1024
+LOG_BACKUP_COUNT = 5
 
 
 def get_logger(role: str, task_id: str | None = None, stdout: bool = True) -> logging.Logger:
@@ -20,7 +24,10 @@ def get_logger(role: str, task_id: str | None = None, stdout: bool = True) -> lo
     logger.setLevel(logging.INFO)
     logger.propagate = False
 
-    fh = logging.FileHandler(log_path, encoding="utf-8")
+    fh = RotatingFileHandler(
+        log_path, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT,
+        encoding="utf-8",
+    )
     fh.setFormatter(logging.Formatter(
         "[%(asctime)s] %(levelname)s %(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S",
