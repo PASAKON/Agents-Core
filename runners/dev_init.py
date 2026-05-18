@@ -114,6 +114,13 @@ def main() -> None:
     env["DEV_TASK_ID"] = task_id
     env["DEV_ROLE"] = role
 
+    # PID survives os.execvpe — record now so the watchdog can probe the
+    # claude TUI's liveness directly instead of guessing from log mtime.
+    try:
+        db.update_status(task_id, "in_progress", pid=os.getpid(), actor=role)
+    except Exception as e:
+        print(f"warn: could not record pid for {task_id}: {e}", file=sys.stderr)
+
     _write_dev_settings(worktree)
 
     task_md = Path(worktree) / "TASK.md"

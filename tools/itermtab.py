@@ -9,6 +9,20 @@ blocked stay open.
 Tab title set by delegate is `<RoleDisplay> (<full task_id>)`. We match
 the full task_id substring, with a 6-char fallback for tabs spawned
 before the full-id title change.
+
+## Safety: which tabs we will close
+
+close_tab only closes a tab whose title contains the requested `task_id`
+substring AND that task_id starts with `task-`. Tabs we deliberately
+never close:
+  - CTO Chat / CTO Log / Dev Logs (spawn-cto.sh side tabs — no task_id).
+  - User-opened terminals (shells without a task_id in title).
+  - Tabs from a hypothetical interactive `spawn Web Designer` REPL whose
+    title does not carry a task_id.
+
+A tab is therefore only closeable when it was spawned by the delegate
+path (`tools/delegate.py:_spawn_iterm_tab`) or by `tools/resume_dev.py:
+_spawn_resume_tab`. Both set the title `<Role> (task-<id>)`.
 """
 from __future__ import annotations
 
@@ -21,6 +35,11 @@ def close_tab(task_id: str) -> bool:
     Returns True if any tab was closed. Safe to call when no matching
     tab exists (returns False).
     """
+    if not task_id or not task_id.startswith("task-"):
+        # Refuse to operate on inputs that don't look like a real task id.
+        # Protects against accidental empty/garbage matches reaching
+        # iTerm and closing the wrong tab.
+        return False
     fallback = task_id[:6]
     script = f'''
 tell application "iTerm"

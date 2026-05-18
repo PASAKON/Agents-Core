@@ -66,6 +66,7 @@ _MIGRATION_COLUMNS = [
     ("session_id", "TEXT"),
     ("retry_after_ts", "TEXT"),
     ("last_checkpoint", "TEXT"),
+    ("pid", "INTEGER"),
 ]
 
 
@@ -151,7 +152,7 @@ def claim_task(task_id: str, agent: str) -> bool:
 VALID_COLUMNS = {
     "assigned_agent", "worktree", "branch", "report", "review",
     "iteration", "description", "title",
-    "session_id", "retry_after_ts", "last_checkpoint",
+    "session_id", "retry_after_ts", "last_checkpoint", "pid",
 }
 
 
