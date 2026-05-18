@@ -1,0 +1,40 @@
+# Project registry. Add new projects here.
+# `path` is absolute. CTO uses this to look up worktree base.
+
+projects:
+  - key: mooniex-claudeflow
+    name: mooniex-claudeflow
+    path: /Users/gob/projects/mooniex-claudeflow
+    remote: git@github.com:PASAKON/mooniex-claudeflow.git
+    default_branch: main
+    stack: [node, typescript]
+    agents_allowed: [backend_dev, devops, qa]
+    auto_push: true
+    review_required: true
+    wiki_refs:
+      - playbooks/backend.md
+
+  - key: mooniex-webapp
+    name: "mooniex-webapp (Desk-A)"
+    path: "/Users/gob/projects/mooniex-webapp (Desk-A)"
+    remote: git@github.com:golfmaichai1/mooniex-webapp.git
+    default_branch: main
+    stack: [next.js, typescript, supabase]
+    agents_allowed: [frontend_dev, backend_dev, devops, qa]
+    auto_push: true
+    review_required: true
+    wiki_refs:
+      - playbooks/frontend.md
+      - playbooks/backend.md
+
+  - key: LLMs
+    name: LLMs (Wiki)
+    path: /Users/gob/projects/LLMs
+    remote: git@github.com:PASAKON/mooniex-llms-wiki.git
+    default_branch: main
+    stack: [markdown]
+    # C-level only — wiki integrity protected
+    agents_allowed: [cto]
+    auto_push: true
+    review_required: false
+    wiki_refs: []

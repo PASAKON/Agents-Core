@@ -1,0 +1,61 @@
+# Role registry. Level: c (C-level), m (manager), w (worker).
+# Permissions enforced by tools/* gates.
+
+defaults:
+  permission_mode: acceptEdits
+  max_iterations: 3
+
+roles:
+  ceo:
+    level: c
+    model: null            # the user — no LLM
+    can_write_wiki: true
+    can_merge: true
+    can_push: true
+
+  cto:
+    level: c
+    model: claude-opus-4-7
+    can_write_wiki: true
+    can_create_task: true
+    can_merge: true
+    can_push: true
+    can_delete_branch: true
+
+  frontend_dev:
+    level: w
+    model: claude-sonnet-4-6
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+  backend_dev:
+    level: w
+    model: claude-sonnet-4-6
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+  devops:
+    level: w
+    model: claude-sonnet-4-6
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+  qa:
+    level: w
+    model: claude-haiku-4-5
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+c_level: [ceo, cto]
