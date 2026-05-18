@@ -1,11 +1,20 @@
-"""DEV launcher — claims a task, then execs Claude Code CLI in the worktree.
+"""DEV launcher — claims a task, then execs the right viewer for it.
 
 Invoked from inside an iTerm tab spawned by tools/delegate.py:
     python -m runners.dev_init <role> <task_id>
 
-After exec the tab becomes a normal Claude Code TUI scoped to the DEV's
-worktree, with the task description already injected as the first prompt
-and an MCP `submit_report` tool wired so the DEV can hand work back.
+Two modes:
+
+* **Default (developer/tester/devops/…):** exec the Claude Code TUI in
+  the worktree. Tab becomes an interactive claude session with the task
+  description as the first prompt and `submit_report` MCP wired.
+
+* **web_designer on a `spawn_backend: tmux` project:** the agent loop
+  is driven by claudesign daemon (Web UI chat → `mooniex-tmux` adapter
+  → bridge `tools/claudesign_tmux_bin.py` → spawns real claude per
+  message). The tmux pane is a **passive viewer** that tails the bridge
+  mirror file so the iTerm tab + ttyd browser see every stream-json
+  line claude emits. We never spawn the TUI for this role.
 """
 from __future__ import annotations
 
@@ -100,6 +109,30 @@ def main() -> None:
         print(f"worktree missing for task {task_id}", file=sys.stderr)
         sys.exit(4)
 
+    # web_designer is driven by claudesign Web UI via the bridge, not by an
+    # interactive claude TUI. Replace this process with a passive tail so
+    # the tmux pane shows the bridge's mirror stream.
+    if role == "web_designer":
+        try:
+            db.update_status(task_id, "in_progress", pid=os.getpid(), actor=role)
+        except Exception as e:
+            print(f"warn: could not record pid for {task_id}: {e}", file=sys.stderr)
+        mirror = Path("/tmp") / f"mooniex-mirror-{task_id}.log"
+        mirror.touch(exist_ok=True)
+        banner = (
+            f"\\033[1mWeb Designer viewer\\033[0m — task={task_id}\\n"
+            f"worktree: {worktree}\\n"
+            f"mirror:   {mirror}\\n"
+            "Type prompts in the claudesign Web UI. "
+            "Output streams here as JSONL.\\n"
+            f"------------------------------------------------------------\\n"
+        )
+        os.execvp("/bin/zsh", [
+            "/bin/zsh", "-lc",
+            f"printf '{banner}' && tail -F {mirror}",
+        ])
+        return  # unreachable
+
     project = get_project(task["project"])
     role_doc = (ROOT / "roles" / f"{role}.md").read_text()
     prompt = _build_prompt(task, project, worktree)
@@ -129,7 +162,11 @@ def main() -> None:
     # Roles that get the visible-Chrome Auto Browser MCP on top of `org`.
     # Browser MCP requires the auto-browser docker stack to be up at
     # http://127.0.0.1:8000 — see playbooks/browser-agent-handoff.md.
-    BROWSER_ROLES = {"web_designer", "tester"}
+    #
+    # NOTE: web_designer is intentionally NOT here — it's driven through
+    # the claudesign Web UI bridge above (no claude TUI, no MCP wiring).
+    # tester needs Auto Browser for E2E flows incl. captcha/login handoff.
+    BROWSER_ROLES = {"tester"}
     use_browser = role in BROWSER_ROLES
 
     allowed = (
@@ -139,12 +176,10 @@ def main() -> None:
         "Read Write Edit Bash Glob Grep"
     ).split()
     if use_browser:
-        allowed += [
-            "mcp__browser__browser__create_session",
-            "mcp__browser__harness__list_runs",
-            "mcp__browser__harness__get_status",
-            "mcp__browser__harness__get_trace",
-        ]
+        # Wildcard covers all browser.* + harness.* tools the Auto Browser
+        # stdio bridge exposes (30+ tools incl. request_human_takeover,
+        # observe, screenshot, execute_action, wait_for_selector, ...).
+        allowed.append("mcp__browser__*")
 
     mcp_config = ROOT / "config" / (
         "dev-browser.mcp.json" if use_browser else "dev.mcp.json"

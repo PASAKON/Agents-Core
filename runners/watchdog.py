@@ -32,6 +32,12 @@ PING_AFTER_S = 10 * 60
 STALL_AFTER_S = 30 * 60
 INTERVAL_S = 300
 
+# When a DEV files a captcha/login blocker it self-flips status to
+# 'blocked_human'. We do NOT ping these (the CEO needs human time, not
+# pings) but if no human attention arrives within HUMAN_TIMEOUT_S we
+# escalate to 'stalled' + file a GH issue so the task can't sit forever.
+HUMAN_TIMEOUT_S = 24 * 3600
+
 
 def _pid_alive(pid: int | None) -> bool:
     """True if a process with this PID exists and is reachable.
@@ -192,7 +198,39 @@ def scan_once() -> dict:
         if _send_ping(t["id"], msg):
             pinged.append({"task": t["id"], "silent_s": int(silent)})
             info(f"pinged {t['id']} silent={int(silent/60)}min")
-    return {"pinged": pinged, "stalled": stalled, "scanned": len(rows)}
+
+    # Second pass: escalate long-overdue blocked_human tasks. These were
+    # self-flipped by a DEV via mcp__org__file_blocker_issue (captcha,
+    # login, 2FA, etc.). We do NOT ping or stall them on the 30-min
+    # threshold — humans take longer — but after HUMAN_TIMEOUT_S we
+    # treat the CEO as unavailable and escalate to 'stalled' + GH issue.
+    human_rows = db.list_tasks(status="blocked_human", limit=200)
+    for t in human_rows:
+        silent = _silent_seconds(t["updated_at"])
+        if silent < HUMAN_TIMEOUT_S:
+            continue
+        issue = _file_stalled_issue(t, silent)
+        try:
+            review = json.loads(t.get("review") or "{}")
+        except json.JSONDecodeError:
+            review = {}
+        review.update({
+            "watchdog": "stalled",
+            "from_status": "blocked_human",
+            "silent_seconds": int(silent),
+            "issue": issue,
+        })
+        db.update_status(t["id"], "stalled", actor="watchdog",
+                         review=json.dumps(review))
+        stalled.append({"task": t["id"], "silent_s": int(silent),
+                        "issue": issue, "from": "blocked_human"})
+        error(
+            f"STALLED-FROM-BLOCKED-HUMAN {t['id']} "
+            f"silent={int(silent/3600)}h issue={issue}"
+        )
+
+    return {"pinged": pinged, "stalled": stalled,
+            "scanned": len(rows) + len(human_rows)}
 
 
 def main() -> int:
