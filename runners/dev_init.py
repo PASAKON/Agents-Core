@@ -159,31 +159,18 @@ def main() -> None:
     task_md = Path(worktree) / "TASK.md"
     task_md.write_text(prompt, encoding="utf-8")
 
-    # Roles that get the visible-Chrome Auto Browser MCP on top of `org`.
-    # Browser MCP requires the auto-browser docker stack to be up at
-    # http://127.0.0.1:8000 — see playbooks/browser-agent-handoff.md.
-    #
-    # NOTE: web_designer is intentionally NOT here — it's driven through
-    # the claudesign Web UI bridge above (no claude TUI, no MCP wiring).
-    # tester needs Auto Browser for E2E flows incl. captcha/login handoff.
-    BROWSER_ROLES = {"tester"}
-    use_browser = role in BROWSER_ROLES
-
+    # Auto Browser (docker + noVNC) was removed 2026-05-19 in favour of
+    # Claude in Chrome (native messaging extension). Browser-needing DEVs
+    # are expected to run `claude --chrome` themselves when they need it,
+    # or the CTO uses Claude in Chrome from this session. No per-role
+    # MCP config branch is needed — all DEVs share dev.mcp.json.
     allowed = (
         "mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search "
         "mcp__org__submit_report mcp__org__dev_message "
         "mcp__org__file_blocker_issue mcp__org__request_human_handoff "
         "Read Write Edit Bash Glob Grep"
     ).split()
-    if use_browser:
-        # Wildcard covers all browser.* + harness.* tools the Auto Browser
-        # stdio bridge exposes (30+ tools incl. request_human_takeover,
-        # observe, screenshot, execute_action, wait_for_selector, ...).
-        allowed.append("mcp__browser__*")
-
-    mcp_config = ROOT / "config" / (
-        "dev-browser.mcp.json" if use_browser else "dev.mcp.json"
-    )
+    mcp_config = ROOT / "config" / "dev.mcp.json"
 
     os.chdir(worktree)
     os.execvpe(
