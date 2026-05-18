@@ -82,35 +82,45 @@ end tell
     subprocess.run(["osascript", "-e", script], check=True)
 
 
-def main() -> int:
-    if len(sys.argv) < 3:
-        print('usage: python -m tools.send_to_dev <task_id_or_prefix> "<message>"',
-              file=sys.stderr)
-        return 1
-    needle, message = sys.argv[1], sys.argv[2]
+def send(task_id: str, message: str) -> str:
+    """Programmatic send. Resolves tmux vs iTerm, returns one-line summary.
 
+    Used by `tools/delegate.py` for the mandatory kickoff ping (IRON-RULES §29).
+    """
     db.init()
-    task = db.get_task(needle)
+    task = db.get_task(task_id)
     if not task:
         from lib.db import get_conn
         with get_conn() as conn:
             row = conn.execute(
                 "SELECT id FROM tasks WHERE id LIKE ? LIMIT 1",
-                (f"{needle}%",),
+                (f"{task_id}%",),
             ).fetchone()
         if not row:
-            print(f"no task matching {needle}", file=sys.stderr)
-            return 2
+            raise ValueError(f"no task matching {task_id}")
         task = db.get_task(row[0])
 
     tid = task["id"]
     tmux_sess = task.get("tmux_session")
     if tmux_sess and tmux.has_session(tmux_sess):
         _send_tmux(tmux_sess, message)
-        print(f"sent via tmux {tmux_sess}: {PREFIX} {message}")
-    else:
-        _send(tid, message)
-        print(f"sent to tab matching {tid}: {PREFIX} {message}")
+        return f"sent via tmux {tmux_sess}: {PREFIX} {message}"
+    _send(tid, message)
+    return f"sent to tab matching {tid}: {PREFIX} {message}"
+
+
+def main() -> int:
+    if len(sys.argv) < 3:
+        print('usage: python -m tools.send_to_dev <task_id_or_prefix> "<message>"',
+              file=sys.stderr)
+        return 1
+    needle, message = sys.argv[1], sys.argv[2]
+    try:
+        result = send(needle, message)
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        return 2
+    print(result)
     return 0
 
 

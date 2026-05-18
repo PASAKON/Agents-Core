@@ -24,6 +24,14 @@ POLL_INTERVAL_S = 2.0
 DEFAULT_TIMEOUT_S = 30 * 60  # 30 min per DEV task
 TERMINAL_STATUSES = {"review", "done", "failed", "cancelled"}
 
+# IRON-RULES §29: every spawn must ship a visible kickoff ping. Sleep
+# lets the claude TUI in the new tab finish booting before keystrokes
+# land — otherwise the message types into a still-loading shell.
+KICKOFF_DELAY_S = 5.0
+DEFAULT_KICKOFF = (
+    "kickoff — เริ่มได้เลย อ่าน TASK.md + รายงานผ่าน submit_report เมื่อเสร็จ"
+)
+
 
 def _spawn_iterm_tab(role: str, task_id: str, *,
                      tmux_attach: str | None = None) -> None:
@@ -115,13 +123,35 @@ async def _wait_for_terminal(task_id: str, timeout_s: float) -> dict:
     return db.get_task(task_id)
 
 
+async def _auto_kickoff(task_id: str, message: str) -> None:
+    """Fire-and-forget kickoff ping after a spawn. IRON-RULES §29.
+
+    Waits for the new tab's claude TUI to boot, then types `[CTO]: …`
+    via `tools.send_to_dev.send`. Warns on failure but never blocks the
+    delegate path — the spawn already succeeded.
+    """
+    from tools.send_to_dev import send as send_to_dev_send
+
+    try:
+        await asyncio.sleep(KICKOFF_DELAY_S)
+        result = await asyncio.to_thread(send_to_dev_send, task_id, message)
+        info(f"kickoff task={task_id}: {result}")
+    except Exception as e:
+        warn(f"kickoff failed task={task_id}: {e}")
+
+
 async def delegate_task(task_id: str, *, wait: bool = False,
-                         timeout_s: float = DEFAULT_TIMEOUT_S) -> dict:
+                         timeout_s: float = DEFAULT_TIMEOUT_S,
+                         kickoff: str | None = None) -> dict:
     """Open DEV in a new iTerm tab. Fire-and-forget by default.
 
     With the Stop-hook relay + cto.log auto-inject + DB poll, the CTO no
     longer needs to block waiting for the DEV to finish. Pass wait=True
-    to restore the legacy blocking behavior (rarely useful)."""
+    to restore the legacy blocking behavior (rarely useful).
+
+    `kickoff`: text typed into the new tab after spawn (IRON-RULES §29).
+    Defaults to `DEFAULT_KICKOFF`. Pass an explicit string to override,
+    or `""` (empty) to suppress — empty is discouraged outside tests."""
     task = db.get_task(task_id)
     if not task:
         raise ValueError(f"task not found: {task_id}")
@@ -226,6 +256,10 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             db.release_task_locks(task_id, project_key)
         raise
 
+    kickoff_text = DEFAULT_KICKOFF if kickoff is None else kickoff
+    if kickoff_text:
+        asyncio.create_task(_auto_kickoff(task_id, kickoff_text))
+
     if not wait:
         success(f"DEV spawned task={task_id} (fire-and-forget)")
         return db.get_task(task_id)
@@ -239,13 +273,19 @@ async def delegate_task(task_id: str, *, wait: bool = False,
 
 
 async def delegate_parallel(task_ids: list[str], max_concurrent: int = 3,
-                             *, wait: bool = False) -> list[dict]:
+                             *, wait: bool = False,
+                             kickoff: str | None = None) -> list[dict]:
     """Delegate multiple tasks. Fire-and-forget by default; pass wait=True
-    to block until every task hits a terminal status."""
+    to block until every task hits a terminal status.
+
+    `kickoff`: shared kickoff text for every spawn (IRON-RULES §29).
+    Default = `DEFAULT_KICKOFF`. Per-task overrides are not supported
+    here — use `delegate_task` in a loop if you need different text per
+    task."""
     sem = asyncio.Semaphore(max_concurrent)
 
     async def _run(tid):
         async with sem:
-            return await delegate_task(tid, wait=wait)
+            return await delegate_task(tid, wait=wait, kickoff=kickoff)
 
     return await asyncio.gather(*[_run(t) for t in task_ids])
