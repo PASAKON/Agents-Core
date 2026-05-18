@@ -50,7 +50,37 @@ Optional shell aliases:
 ```bash
 echo 'source /Users/gob/Projects/Agents/scripts/aliases.sh' >> ~/.zshrc
 # then: agents-run "..."  agents-dash  agents-watch  agents-status
+#       agents-chat       — interactive CTO REPL in current terminal
+#       agents-spawn      — open iTerm window: CTO chat + 2 log tabs
+#       agents-dev-logs   — tail all *_latest.log dev streams
 ```
+
+## Chat with the CTO
+
+Multi-turn conversation with the CTO instead of one-shot requests.
+
+**Inline (current terminal):**
+```bash
+agents-chat              # picker: resume prior session or start new
+agents-chat --new        # always fresh
+agents-chat --last       # resume most recent
+agents-chat --resume <session_id>
+```
+
+Slash commands inside the REPL: `/help /exit /new /list /resume <id> /stats
+/tasks /clear`. Multiline input: end a line with `\`.
+
+**Spawn dedicated iTerm window (3 tabs):**
+```bash
+agents-spawn             # tab1=CTO chat, tab2=cto.log, tab3=dev logs
+agents-spawn --last      # passes --last through to cto_chat
+```
+
+The CTO REPL keeps a persistent `ClaudeSDKClient` open across turns and
+auto-persists conversation history via the SDK session store, so `--resume`
+or the picker brings back full context from prior runs. When the CTO
+delegates, DEV reports stream into `state/logs/*_latest.log` (tab 3 of
+`agents-spawn`), and the final summary prints back in the CTO chat tab.
 
 ## Permission Model
 
