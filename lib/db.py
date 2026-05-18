@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     worktree        TEXT,
     branch          TEXT,
     depends_on      TEXT NOT NULL DEFAULT '[]',
+    touches         TEXT NOT NULL DEFAULT '[]',
     report          TEXT,
     review          TEXT,
     iteration       INTEGER NOT NULL DEFAULT 0,
@@ -66,8 +67,16 @@ _MIGRATION_COLUMNS = [
     ("session_id", "TEXT"),
     ("retry_after_ts", "TEXT"),
     ("last_checkpoint", "TEXT"),
+    ("touches", "TEXT NOT NULL DEFAULT '[]'"),
     ("pid", "INTEGER"),
+    # tmux+ttyd backend (web_designer on mooniex-claudesign etc.)
+    ("tmux_session", "TEXT"),
+    ("ttyd_port", "INTEGER"),
+    ("ttyd_pid", "INTEGER"),
 ]
+
+# Statuses where touched paths are no longer being modified — release locks.
+RELEASING_STATUSES = {"review", "done", "failed", "cancelled", "stalled"}
 
 
 def now_iso() -> str:
@@ -120,17 +129,19 @@ def create_task(
     description: str,
     parent_task: str | None = None,
     depends_on: list[str] | None = None,
+    touches: list[str] | None = None,
 ) -> str:
     tid = new_task_id()
     ts = now_iso()
     with get_conn() as conn:
         conn.execute(
-            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,created_at,updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?)""",
+            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,created_at,updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
             (tid, project, role, "pending", title, description, parent_task,
-             json.dumps(depends_on or []), ts, ts),
+             json.dumps(depends_on or []), json.dumps(touches or []), ts, ts),
         )
-        log_event(conn, tid, "system", "task_created", {"role": role, "title": title})
+        log_event(conn, tid, "system", "task_created",
+                  {"role": role, "title": title, "touches": touches or []})
     return tid
 
 
@@ -153,6 +164,7 @@ VALID_COLUMNS = {
     "assigned_agent", "worktree", "branch", "report", "review",
     "iteration", "description", "title",
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
+    "tmux_session", "ttyd_port", "ttyd_pid",
 }
 
 
@@ -174,6 +186,13 @@ def update_status(task_id: str, status: str, *, actor: str = "system", **fields)
     with get_conn() as conn:
         conn.execute(f"UPDATE tasks SET {','.join(sets)} WHERE id=?", vals)
         log_event(conn, task_id, actor, f"status_{status}", fields)
+    if status in RELEASING_STATUSES:
+        try:
+            t = get_task(task_id)
+            if t:
+                release_task_locks(task_id, t["project"])
+        except Exception:
+            pass
 
 
 def get_task(task_id: str) -> dict | None:
@@ -259,6 +278,78 @@ def acquire_lock(key: str, owner: str, ttl_seconds: int = 600) -> bool:
 def release_lock(key: str, owner: str):
     with get_conn() as conn:
         conn.execute("DELETE FROM locks WHERE key=? AND owner=?", (key, owner))
+
+
+def _path_lock_key(project: str, path: str) -> str:
+    return f"proj:{project}:path:{path.strip().lstrip('/')}"
+
+
+ACTIVE_STATUSES = ("pending", "in_progress", "rate_limited", "conflict")
+
+
+def find_conflicts(project: str, touches: list[str],
+                   exclude_task: str | None = None) -> list[dict]:
+    """Return active tasks in `project` whose touches intersect `touches`.
+
+    Pure path-set intersection (no glob expansion). Caller is responsible for
+    passing normalised repo-relative paths.
+    """
+    if not touches:
+        return []
+    want = {p.strip().lstrip("/") for p in touches if p and p.strip()}
+    if not want:
+        return []
+    placeholders = ",".join("?" * len(ACTIVE_STATUSES))
+    q = (f"SELECT id,role,status,title,touches FROM tasks "
+         f"WHERE project=? AND status IN ({placeholders})")
+    args = [project, *ACTIVE_STATUSES]
+    if exclude_task:
+        q += " AND id<>?"
+        args.append(exclude_task)
+    hits: list[dict] = []
+    with get_conn() as conn:
+        rows = conn.execute(q, args).fetchall()
+    for r in rows:
+        try:
+            their = {p.strip().lstrip("/") for p in json.loads(r["touches"] or "[]")}
+        except Exception:
+            their = set()
+        overlap = sorted(want & their)
+        if overlap:
+            hits.append({
+                "task_id": r["id"], "role": r["role"], "status": r["status"],
+                "title": r["title"], "overlap": overlap,
+            })
+    return hits
+
+
+def lock_paths(task_id: str, project: str, touches: list[str],
+               ttl_seconds: int = 3600) -> tuple[bool, list[str], list[str]]:
+    """Try to acquire path locks for every path in `touches`.
+
+    Atomic-ish: acquires sequentially, rolls back on first failure.
+    Returns (ok, acquired_keys, blocking_keys). If ok is False, no locks held.
+    """
+    keys = [_path_lock_key(project, p) for p in touches if p and p.strip()]
+    acquired: list[str] = []
+    for k in keys:
+        if acquire_lock(k, owner=task_id, ttl_seconds=ttl_seconds):
+            acquired.append(k)
+        else:
+            for a in acquired:
+                release_lock(a, owner=task_id)
+            return False, [], [k]
+    return True, acquired, []
+
+
+def release_task_locks(task_id: str, project: str) -> int:
+    """Release every path lock owned by task_id within project. Returns count."""
+    with get_conn() as conn:
+        cur = conn.execute(
+            "DELETE FROM locks WHERE owner=? AND key LIKE ?",
+            (task_id, f"proj:{project}:path:%"),
+        )
+        return cur.rowcount or 0
 
 
 def stats() -> dict:

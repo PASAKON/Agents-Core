@@ -62,6 +62,33 @@ def _close_tab(task_id: str) -> bool:
         return False
 
 
+def _cleanup_tmux_ttyd(task: dict) -> dict:
+    """Kill tmux session + ttyd process for tmux-backed tasks.
+
+    Returns a small dict for inclusion in the stalled `review` payload.
+    Idempotent: missing session / pid silently treated as already-cleaned.
+    """
+    out = {"tmux_killed": False, "ttyd_killed": False}
+    try:
+        from tools import tmux_session as tmux
+    except Exception as e:
+        warn(f"tmux_session import failed: {e}")
+        return out
+    sess = task.get("tmux_session")
+    if sess:
+        try:
+            out["tmux_killed"] = tmux.kill(sess)
+        except Exception as e:
+            warn(f"tmux kill failed for {sess}: {e}")
+    ttyd_pid = task.get("ttyd_pid")
+    if ttyd_pid:
+        try:
+            out["ttyd_killed"] = tmux.stop_ttyd(int(ttyd_pid))
+        except Exception as e:
+            warn(f"ttyd stop failed for pid={ttyd_pid}: {e}")
+    return out
+
+
 def _silent_seconds(updated_at: str) -> float:
     try:
         upd = datetime.fromisoformat(updated_at)
@@ -134,6 +161,7 @@ def scan_once() -> dict:
                 tab_closed = False
                 info(f"watchdog: skip tab close for {t['id']} (no pid; "
                      "not delegate-spawned or pre-PID-tracking task)")
+            tmux_cleanup = _cleanup_tmux_ttyd(t)
             try:
                 review = json.loads(t.get("review") or "{}")
             except json.JSONDecodeError:
@@ -145,6 +173,7 @@ def scan_once() -> dict:
                 "pid": pid,
                 "pid_alive": pid_alive,
                 "tab_closed": tab_closed,
+                **tmux_cleanup,
             })
             db.update_status(t["id"], "stalled", actor="watchdog",
                              review=json.dumps(review))

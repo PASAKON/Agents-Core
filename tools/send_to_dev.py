@@ -22,9 +22,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
+from tools import tmux_session as tmux
 
 
 PREFIX = "[CTO]:"
+
+
+def _send_tmux(session: str, message: str) -> None:
+    """Type `[CTO]: <message>\\n` into the tmux session.
+
+    Visible identically in every attached viewer (iTerm + browser ttyd).
+    """
+    text = f"{PREFIX} {message}"
+    tmux.send_keys(session, text, press_enter=True)
 
 
 def _send(full_id: str, message: str) -> None:
@@ -94,8 +104,13 @@ def main() -> int:
         task = db.get_task(row[0])
 
     tid = task["id"]
-    _send(tid, message)
-    print(f"sent to tab matching {tid}: {PREFIX} {message}")
+    tmux_sess = task.get("tmux_session")
+    if tmux_sess and tmux.has_session(tmux_sess):
+        _send_tmux(tmux_sess, message)
+        print(f"sent via tmux {tmux_sess}: {PREFIX} {message}")
+    else:
+        _send(tid, message)
+        print(f"sent to tab matching {tid}: {PREFIX} {message}")
     return 0
 
 

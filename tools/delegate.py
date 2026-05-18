@@ -8,12 +8,14 @@ the CTO chat. The CTO blocks on a DB poll until the DEV calls the
 from __future__ import annotations
 
 import asyncio
+import json
 import subprocess
 from pathlib import Path
 
 from lib import db
 from lib.config import display_for, get_project
 from lib.notify import info, success, error, warn
+from tools import tmux_session as tmux
 from tools.worktree import create_worktree
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -23,19 +25,35 @@ DEFAULT_TIMEOUT_S = 30 * 60  # 30 min per DEV task
 TERMINAL_STATUSES = {"review", "done", "failed", "cancelled"}
 
 
-def _spawn_iterm_tab(role: str, task_id: str) -> None:
-    """Open a new iTerm tab in the frontmost window running dev_init."""
+def _spawn_iterm_tab(role: str, task_id: str, *,
+                     tmux_attach: str | None = None) -> None:
+    """Open a new iTerm tab in the frontmost window.
+
+    Default: runs `python -m runners.dev_init <role> <task_id>` directly
+    (legacy 1-tab-1-pty model).
+
+    With `tmux_attach=<session>`: tab attaches to a pre-existing tmux
+    session that is already running dev_init. The pty lives in tmux —
+    closing the tab does NOT kill the agent, and a browser (ttyd) can
+    attach the same session simultaneously for two-way realtime sync.
+    """
     display = display_for(role)
     tab_title = f"{display} ({task_id})"
-    # Print ANSI title escape from inside the shell so zsh's precmd
-    # doesn't immediately overwrite the iTerm session name.
-    # Double-escape: AppleScript string parses `\\` → `\`, leaving
-    # `\033`/`\007` for bash printf to interpret as ESC/BEL.
-    cmd = (
-        f"printf '\\\\033]0;{tab_title}\\\\007' && "
-        f"cd '{ROOT}' && source .venv/bin/activate && "
-        f"python -m runners.dev_init {role} {task_id}"
-    )
+    if tmux_attach:
+        cmd = (
+            f"printf '\\\\033]0;{tab_title}\\\\007' && "
+            f"tmux attach -t {tmux_attach}"
+        )
+    else:
+        # Print ANSI title escape from inside the shell so zsh's precmd
+        # doesn't immediately overwrite the iTerm session name.
+        # Double-escape: AppleScript string parses `\\` → `\`, leaving
+        # `\033`/`\007` for bash printf to interpret as ESC/BEL.
+        cmd = (
+            f"printf '\\\\033]0;{tab_title}\\\\007' && "
+            f"cd '{ROOT}' && source .venv/bin/activate && "
+            f"python -m runners.dev_init {role} {task_id}"
+        )
     # Prefer the window that owns the CTO chat tab so DEV tabs cluster
     # in the same window as the CTO instead of whichever window happened
     # to be focused. Fall back to current/new window if CTO tab not found.
@@ -115,6 +133,37 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     if role_name not in proj["agents_allowed"]:
         raise PermissionError(f"role {role_name} not allowed on project {project_key}")
 
+    try:
+        touches = json.loads(task.get("touches") or "[]")
+    except Exception:
+        touches = []
+
+    if touches:
+        conflicts = db.find_conflicts(project_key, touches, exclude_task=task_id)
+        if conflicts:
+            summary = "; ".join(
+                f"{c['task_id']}({c['role']},{c['status']}) overlap={c['overlap']}"
+                for c in conflicts
+            )
+            warn(f"collision blocked task={task_id}: {summary}")
+            db.update_status(
+                task_id, "conflict",
+                report=f"path collision with in-flight tasks: {summary}",
+                actor="cto",
+            )
+            return db.get_task(task_id)
+
+        ok, _, blocking = db.lock_paths(task_id, project_key, touches)
+        if not ok:
+            warn(f"lock acquire failed task={task_id} blocking={blocking}")
+            db.update_status(
+                task_id, "conflict",
+                report=f"path locks held by another task: {blocking}",
+                actor="cto",
+            )
+            return db.get_task(task_id)
+        info(f"locked {len(touches)} path(s) for task={task_id}")
+
     if not task.get("worktree"):
         wt_info = create_worktree(project_key, role_name, task_id)
         db.update_status(task_id, "pending",
@@ -125,13 +174,57 @@ async def delegate_task(task_id: str, *, wait: bool = False,
 
     info(f"delegate task={task_id} role={role_name} project={project_key}")
 
+    backend = (proj.get("spawn_backend") or "iterm").lower()
+    tmux_sess: str | None = None
+    ttyd_port: int | None = None
+    ttyd_pid: int | None = None
+
+    if backend == "tmux":
+        tmux_sess = tmux.session_name_for(task_id)
+        dev_cmd = (
+            f"cd '{ROOT}' && source .venv/bin/activate && "
+            f"python -m runners.dev_init {role_name} {task_id}"
+        )
+        try:
+            tmux.create(tmux_sess, cwd=ROOT, cmd=dev_cmd)
+            info(f"tmux session created: {tmux_sess}")
+        except subprocess.CalledProcessError as e:
+            error(f"tmux create failed for {task_id}: {e.stderr or e}")
+            db.update_status(task_id, "failed",
+                             report=f"tmux create failed: {e}", actor="cto")
+            return db.get_task(task_id)
+
+        web_ui = (proj.get("web_ui") or "off").lower()
+        if web_ui in ("true", "auto", "on"):
+            try:
+                ttyd_port = tmux.pick_free_port()
+                ttyd_pid = tmux.start_ttyd(tmux_sess, ttyd_port, writable=True)
+                info(f"ttyd up pid={ttyd_pid} url={tmux.url_for(ttyd_port)}")
+                # Best-effort open in default browser.
+                subprocess.run(["open", tmux.url_for(ttyd_port)], check=False)
+            except Exception as e:
+                warn(f"ttyd start failed (continuing without web UI): {e}")
+                ttyd_port = None
+                ttyd_pid = None
+
+        db.update_status(
+            task_id, "pending", actor="cto",
+            tmux_session=tmux_sess,
+            ttyd_port=ttyd_port,
+            ttyd_pid=ttyd_pid,
+        )
+
     try:
-        _spawn_iterm_tab(role_name, task_id)
+        _spawn_iterm_tab(role_name, task_id, tmux_attach=tmux_sess)
     except subprocess.CalledProcessError as e:
         error(f"failed to spawn iTerm tab for {task_id}: {e}")
         db.update_status(task_id, "failed",
                          report=f"iTerm spawn failed: {e}", actor="cto")
         return db.get_task(task_id)
+    except Exception as e:
+        if touches:
+            db.release_task_locks(task_id, project_key)
+        raise
 
     if not wait:
         success(f"DEV spawned task={task_id} (fire-and-forget)")
