@@ -172,7 +172,7 @@ def main() -> None:
     allowed = (
         "mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search "
         "mcp__org__submit_report mcp__org__dev_message "
-        "mcp__org__file_blocker_issue "
+        "mcp__org__file_blocker_issue mcp__org__request_human_handoff "
         "Read Write Edit Bash Glob Grep"
     ).split()
     if use_browser:
