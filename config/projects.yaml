@@ -65,6 +65,7 @@ projects:
       - skills/**
       - craft/**
       - .agents/**
+      - README.mooniex.md
     wiki_refs:
       - playbooks/web-designer.md
       - projects/mooniex-claudesign.md
