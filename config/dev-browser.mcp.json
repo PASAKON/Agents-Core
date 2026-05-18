@@ -1,0 +1,23 @@
+{
+  "_comment": "DEV MCP config for roles that need a visible Chrome with human-takeover (web_designer, tester). Adds Auto Browser MCP on top of the standard org MCP. Auto Browser exposes its tools over HTTP at 127.0.0.1:8000/mcp; we attach via the stdio bridge that ships with the repo at /Users/gob/Projects/auto-browser/scripts/mcp_stdio_bridge.py.",
+  "mcpServers": {
+    "org": {
+      "command": "/Users/gob/Projects/Agents/.venv/bin/python",
+      "args": ["/Users/gob/Projects/Agents/runners/dev_mcp_server.py"],
+      "cwd": "/Users/gob/Projects/Agents",
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    },
+    "browser": {
+      "command": "/Users/gob/Projects/auto-browser/.venv/bin/python",
+      "args": ["/Users/gob/Projects/auto-browser/scripts/mcp_stdio_bridge.py"],
+      "cwd": "/Users/gob/Projects/auto-browser",
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "AUTO_BROWSER_HTTP_BASE": "http://127.0.0.1:8000",
+        "MCP_TOOL_PROFILE": "curated"
+      }
+    }
+  }
+}

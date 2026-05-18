@@ -126,12 +126,29 @@ def main() -> None:
     task_md = Path(worktree) / "TASK.md"
     task_md.write_text(prompt, encoding="utf-8")
 
+    # Roles that get the visible-Chrome Auto Browser MCP on top of `org`.
+    # Browser MCP requires the auto-browser docker stack to be up at
+    # http://127.0.0.1:8000 — see playbooks/browser-agent-handoff.md.
+    BROWSER_ROLES = {"web_designer", "tester"}
+    use_browser = role in BROWSER_ROLES
+
     allowed = (
         "mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search "
         "mcp__org__submit_report mcp__org__dev_message "
         "mcp__org__file_blocker_issue "
         "Read Write Edit Bash Glob Grep"
     ).split()
+    if use_browser:
+        allowed += [
+            "mcp__browser__browser__create_session",
+            "mcp__browser__harness__list_runs",
+            "mcp__browser__harness__get_status",
+            "mcp__browser__harness__get_trace",
+        ]
+
+    mcp_config = ROOT / "config" / (
+        "dev-browser.mcp.json" if use_browser else "dev.mcp.json"
+    )
 
     os.chdir(worktree)
     os.execvpe(
@@ -142,7 +159,7 @@ def main() -> None:
             "--model", model,
             "--permission-mode", "auto",
             "--append-system-prompt", role_doc,
-            "--mcp-config", str(ROOT / "config" / "dev.mcp.json"),
+            "--mcp-config", str(mcp_config),
             "--strict-mcp-config",
             "--allowed-tools", *allowed,
             prompt,
