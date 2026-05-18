@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+state/tasks.db
+state/tasks.db-journal
+state/tasks.db-wal
+state/tasks.db-shm
+state/logs/*.log
+state/logs/*_latest.log
+state/locks/*.lock
+state/reports/*
+worktrees/
+.env
+.DS_Store
+demo-api/
+utils/
