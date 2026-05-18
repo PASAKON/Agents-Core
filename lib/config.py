@@ -33,6 +33,20 @@ def is_c_level(role_name: str) -> bool:
     return role_name in agents()["c_level"]
 
 
+def display_for(role_name: str) -> str:
+    """Pretty role label used in tab titles, chat prefixes, and logs.
+
+    Falls back to the raw role key if no display name is configured —
+    keeps things working for ad-hoc roles in roles/ without a matching
+    policies/agents.yaml entry.
+    """
+    try:
+        r = role(role_name)
+    except ValueError:
+        return role_name
+    return r.get("display") or role_name
+
+
 def get_project(key: str) -> dict:
     p = projects().get(key)
     if not p:

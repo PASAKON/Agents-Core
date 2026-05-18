@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import get_project, role as get_role
+from lib.config import display_for, get_project, role as get_role
 
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
@@ -131,7 +131,7 @@ def main() -> None:
         "claude",
         [
             "claude",
-            "-n", f"{role}:{task_id}",
+            "-n", f"{display_for(role)} ({task_id})",
             "--model", model,
             "--permission-mode", "auto",
             "--append-system-prompt", role_doc,

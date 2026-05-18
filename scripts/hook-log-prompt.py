@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -21,7 +22,9 @@ ROOT = Path(__file__).resolve().parent.parent
 LOG = ROOT / "state" / "logs" / "cto.log"
 STATE = ROOT / "state" / ".cto_log_pos"
 
-DEV_PREFIX = "] Dev:"
+# Match any DEV reply line. Old format: `] Dev:task-xxx:`.
+# New format: `] <Role Label> task-xxx:` (also `] RateLimit <Role> task-xxx:`).
+DEV_LINE_RE = re.compile(r"\] (?:Dev:|[^:]+ )task-[0-9a-fA-F]+:")
 EVENT_PREFIX = "] CTO-event"
 MAX_LINES = 50
 
@@ -70,7 +73,10 @@ def main() -> int:
 
     offset_before = _read_offset()
     pending = _pending_lines(offset_before)
-    surfaced = [l for l in pending if DEV_PREFIX in l or EVENT_PREFIX in l]
+    surfaced = [
+        l for l in pending
+        if DEV_LINE_RE.search(l) or EVENT_PREFIX in l
+    ]
     if len(surfaced) > MAX_LINES:
         surfaced = surfaced[-MAX_LINES:]
 

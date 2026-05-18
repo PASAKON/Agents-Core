@@ -12,7 +12,7 @@ import subprocess
 from pathlib import Path
 
 from lib import db
-from lib.config import get_project
+from lib.config import display_for, get_project
 from lib.notify import info, success, error, warn
 from tools.worktree import create_worktree
 
@@ -22,20 +22,10 @@ POLL_INTERVAL_S = 2.0
 DEFAULT_TIMEOUT_S = 30 * 60  # 30 min per DEV task
 TERMINAL_STATUSES = {"review", "done", "failed", "cancelled"}
 
-ROLE_DISPLAY = {
-    "developer": "Developer",
-    "tester": "Tester",
-    "web_designer": "Web Designer",
-    "devops_engineer": "DevOps Engineer",
-    "security_engineer": "Security Engineer",
-    "data_analyst": "Data Analytics",
-    "prompt_engineer": "Prompt Engineer",
-}
-
 
 def _spawn_iterm_tab(role: str, task_id: str) -> None:
     """Open a new iTerm tab in the frontmost window running dev_init."""
-    display = ROLE_DISPLAY.get(role, role)
+    display = display_for(role)
     tab_title = f"{display} ({task_id})"
     # Print ANSI title escape from inside the shell so zsh's precmd
     # doesn't immediately overwrite the iTerm session name.
@@ -46,22 +36,42 @@ def _spawn_iterm_tab(role: str, task_id: str) -> None:
         f"cd '{ROOT}' && source .venv/bin/activate && "
         f"python -m runners.dev_init {role} {task_id}"
     )
+    # Prefer the window that owns the CTO chat tab so DEV tabs cluster
+    # in the same window as the CTO instead of whichever window happened
+    # to be focused. Fall back to current/new window if CTO tab not found.
     script = f'''
 tell application "iTerm"
   activate
-  if (count of windows) = 0 then
-    set newWin to (create window with default profile)
-    tell current session of current tab of newWin
-      write text "{cmd}"
-    end tell
-  else
-    tell current window
-      set newTab to (create tab with default profile)
-      tell current session of newTab
+  set targetWin to missing value
+  repeat with w in windows
+    repeat with t in tabs of w
+      try
+        set tabName to name of current session of t
+        if tabName contains "CTO" then
+          set targetWin to w
+          exit repeat
+        end if
+      end try
+    end repeat
+    if targetWin is not missing value then exit repeat
+  end repeat
+  if targetWin is missing value then
+    if (count of windows) = 0 then
+      set targetWin to (create window with default profile)
+      tell current session of current tab of targetWin
         write text "{cmd}"
       end tell
-    end tell
+      return
+    else
+      set targetWin to current window
+    end if
   end if
+  tell targetWin
+    set newTab to (create tab with default profile)
+    tell current session of newTab
+      write text "{cmd}"
+    end tell
+  end tell
 end tell
 '''
     subprocess.run(["osascript", "-e", script], check=True)

@@ -15,22 +15,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
+from lib.config import display_for
 
 ROOT = Path(__file__).resolve().parent.parent
 
-ROLE_DISPLAY = {
-    "developer": "Developer",
-    "tester": "Tester",
-    "web_designer": "Web Designer",
-    "devops_engineer": "DevOps Engineer",
-    "security_engineer": "Security Engineer",
-    "data_analyst": "Data Analytics",
-    "prompt_engineer": "Prompt Engineer",
-}
-
 
 def _spawn_resume_tab(role: str, task_id: str) -> None:
-    display = ROLE_DISPLAY.get(role, role)
+    display = display_for(role)
     tab_title = f"{display} ({task_id}) [RESUMED]"
     cmd = (
         f"printf '\\\\033]0;{tab_title}\\\\007' && "
@@ -40,19 +31,36 @@ def _spawn_resume_tab(role: str, task_id: str) -> None:
     script = f'''
 tell application "iTerm"
   activate
-  if (count of windows) = 0 then
-    set newWin to (create window with default profile)
-    tell current session of current tab of newWin
-      write text "{cmd}"
-    end tell
-  else
-    tell current window
-      set newTab to (create tab with default profile)
-      tell current session of newTab
+  set targetWin to missing value
+  repeat with w in windows
+    repeat with t in tabs of w
+      try
+        set tabName to name of current session of t
+        if tabName contains "CTO" then
+          set targetWin to w
+          exit repeat
+        end if
+      end try
+    end repeat
+    if targetWin is not missing value then exit repeat
+  end repeat
+  if targetWin is missing value then
+    if (count of windows) = 0 then
+      set targetWin to (create window with default profile)
+      tell current session of current tab of targetWin
         write text "{cmd}"
       end tell
-    end tell
+      return
+    else
+      set targetWin to current window
+    end if
   end if
+  tell targetWin
+    set newTab to (create tab with default profile)
+    tell current session of newTab
+      write text "{cmd}"
+    end tell
+  end tell
 end tell
 '''
     subprocess.run(["osascript", "-e", script], check=True)

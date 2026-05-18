@@ -127,10 +127,25 @@ def _persist(task_id: str, session_id: str, rate_limited: bool) -> None:
         pass
 
 
+def _role_label(role: str | None) -> str:
+    """Resolve DEV role key → display label. Lazy import keeps the hook
+    fast and tolerant when sys.path isn't pre-set."""
+    if not role:
+        return "Dev"
+    try:
+        sys.path.insert(0, str(ROOT))
+        from lib.config import display_for
+        return display_for(role)
+    except Exception:
+        return role
+
+
 def main() -> int:
     task_id = os.environ.get("DEV_TASK_ID")
     if not task_id:
         return 0
+    role = os.environ.get("DEV_ROLE")
+    role_label = _role_label(role)
     try:
         payload = json.load(sys.stdin)
     except Exception:
@@ -156,10 +171,10 @@ def main() -> int:
     ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     with LOG.open("a", encoding="utf-8") as f:
         if last_text:
-            f.write(f"[{ts}] Dev:{task_id}: {last_text}\n")
+            f.write(f"[{ts}] {role_label} {task_id}: {last_text}\n")
         if rate_limited:
             f.write(
-                f"[{ts}] RateLimit Dev:{task_id}: status=rate_limited, "
+                f"[{ts}] RateLimit {role_label} {task_id}: status=rate_limited, "
                 f"retry_after={DEFAULT_BACKOFF_S}s, session={session_id}\n"
             )
 
@@ -177,7 +192,7 @@ def main() -> int:
         try:
             sys.path.insert(0, str(ROOT))
             from tools.send_to_cto import send as send_to_cto
-            send_to_cto(task_id, relay)
+            send_to_cto(task_id, relay, role=role)
         except Exception:
             pass
 

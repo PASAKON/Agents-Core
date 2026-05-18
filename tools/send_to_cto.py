@@ -14,14 +14,25 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from lib.config import display_for  # noqa: E402
 
 CTO_TAB_MATCH = "CTO"
 
 
-def send(from_id: str, message: str) -> bool:
-    """Type `[Dev:<from_id>]: <message>` into the CTO tab. Returns True if
-    a matching tab was found."""
-    prefix = f"[Dev:{from_id}]:"
+def send(from_id: str, message: str, role: str | None = None) -> bool:
+    """Type `[<Role> <from_id>]: <message>` into the CTO tab. Returns True
+    if a matching tab was found. `role` is the DEV's role key (e.g.
+    `web_designer`) and renders as the display label (e.g. `Web Designer`).
+    Falls back to `[Dev:<from_id>]:` when role is missing or unknown.
+    """
+    if role:
+        prefix = f"[{display_for(role)} {from_id}]:"
+    else:
+        prefix = f"[Dev:{from_id}]:"
     text = f"{prefix} {message}"
     escaped = text.replace('\\', '\\\\').replace('"', '\\"')
     script = f'''
@@ -54,10 +65,11 @@ end tell
 
 def main() -> int:
     if len(sys.argv) < 3:
-        print('usage: python -m tools.send_to_cto <from_id> "<message>"',
+        print('usage: python -m tools.send_to_cto <from_id> "<message>" [role]',
               file=sys.stderr)
         return 1
-    ok = send(sys.argv[1], sys.argv[2])
+    role = sys.argv[3] if len(sys.argv) > 3 else None
+    ok = send(sys.argv[1], sys.argv[2], role=role)
     print("sent" if ok else "no CTO tab matched")
     return 0
 
