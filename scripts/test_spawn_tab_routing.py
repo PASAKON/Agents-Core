@@ -41,6 +41,21 @@ def test_owner_cto_routing() -> bool:
     )
 
 
+def test_checks_both_title_surfaces() -> bool:
+    """Each lookup must check `name of t` (sticky tab title) AND
+    `name of current session of t` (session badge). Without this the
+    AppleScript can miss the CTO window during a session-name flicker."""
+    script = _build_spawn_applescript(
+        cmd="echo hi", task_id="task-z", owner_cto="ctowxyzab")
+    return (
+        script.count("set tabName to name of t") >= 3
+        and script.count("set sessName to name of current session of t") >= 3
+        and "tabName contains \"(task-z)\"" in script
+        and "sessName contains \"(task-z)\"" in script
+        and "tabName contains \"CTO Chat #ctowxyzab\"" in script
+    )
+
+
 def test_no_owner_falls_through() -> bool:
     script = _build_spawn_applescript(
         cmd="echo hi", task_id="task-1", owner_cto=None)
@@ -176,6 +191,8 @@ def main() -> int:
     fails = 0
     r = test_owner_cto_routing(); fails += not r
     _mark(r, "owner_cto literal embedded in AppleScript")
+    r = test_checks_both_title_surfaces(); fails += not r
+    _mark(r, "AppleScript checks tab name and session name")
     r = test_no_owner_falls_through(); fails += not r
     _mark(r, "absent owner_cto disables exact match branch")
     r = test_reuse_check_comes_first(); fails += not r

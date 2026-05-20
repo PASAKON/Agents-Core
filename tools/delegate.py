@@ -51,13 +51,27 @@ def _build_spawn_applescript(cmd: str, task_id: str,
     invoking osascript.
     """
     owner_match = f"CTO Chat #{owner_cto}" if owner_cto else ""
+    # iTerm has two title surfaces per tab: `name of t` (the tab title,
+    # which holds the OSC-set name stickily) and `name of current
+    # session of t` (the session badge, which flickers to the running
+    # process name e.g. "node" until the next OSC is emitted). We check
+    # both so a flicker during DEV spawn doesn't push the tab into the
+    # wrong CTO window.
     return f'''
 tell application "iTerm"
   activate
   repeat with w in windows
     repeat with t in tabs of w
       try
-        if name of current session of t contains "({task_id})" then
+        set tabName to ""
+        try
+          set tabName to name of t
+        end try
+        set sessName to ""
+        try
+          set sessName to name of current session of t
+        end try
+        if (tabName contains "({task_id})") or (sessName contains "({task_id})") then
           tell w to select
           tell t to select
           return "reused"
@@ -70,7 +84,15 @@ tell application "iTerm"
     repeat with w in windows
       repeat with t in tabs of w
         try
-          if name of current session of t contains "{owner_match}" then
+          set tabName to ""
+          try
+            set tabName to name of t
+          end try
+          set sessName to ""
+          try
+            set sessName to name of current session of t
+          end try
+          if (tabName contains "{owner_match}") or (sessName contains "{owner_match}") then
             set targetWin to w
             exit repeat
           end if
@@ -83,7 +105,15 @@ tell application "iTerm"
     repeat with w in windows
       repeat with t in tabs of w
         try
-          if name of current session of t contains "CTO Chat #" then
+          set tabName to ""
+          try
+            set tabName to name of t
+          end try
+          set sessName to ""
+          try
+            set sessName to name of current session of t
+          end try
+          if (tabName contains "CTO Chat #") or (sessName contains "CTO Chat #") then
             set targetWin to w
             exit repeat
           end if
