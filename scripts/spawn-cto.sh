@@ -39,11 +39,57 @@ if ! [ -d "$ROOT/.venv" ]; then
   exit 1
 fi
 
-mkdir -p "$ROOT/state/logs"
-touch "$ROOT/state/logs/cto.log"
+# Generate a short CTO session ID so DEV reports route only to this CTO.
+# Injected as CTO_SESSION_ID env into cto-claude.sh + MCP server.
+#
+# Collision avoidance: a lock file at state/locks/cto-<ID>.lock means a
+# CTO chat is currently using that ID. If the PID inside is live, pick
+# a different ID — reusing it would mis-route DEV replies. Stale locks
+# (dead PID) are reaped. An explicit CTO_SESSION_ID from the parent env
+# is honored but rejected outright if it collides with a live process.
+LOCKS_DIR="$ROOT/state/locks"
+mkdir -p "$LOCKS_DIR"
 
-CHAT_CMD="bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS"
-LOG_CMD="cd '$ROOT' && tail -F state/logs/cto.log"
+is_id_live() {
+  local lock="$LOCKS_DIR/cto-$1.lock"
+  [ -e "$lock" ] || return 1
+  local pid
+  pid="$(tr -d '[:space:]' <"$lock" 2>/dev/null || true)"
+  [ -n "$pid" ] || return 1
+  if kill -0 "$pid" 2>/dev/null; then
+    return 0
+  fi
+  rm -f "$lock"
+  return 1
+}
+
+if [ -n "${CTO_SESSION_ID:-}" ]; then
+  if is_id_live "$CTO_SESSION_ID"; then
+    echo "CTO id $CTO_SESSION_ID already running (see $LOCKS_DIR/cto-$CTO_SESSION_ID.lock) — refuse to spawn duplicate" >&2
+    exit 1
+  fi
+else
+  for _try in 1 2 3 4 5 6 7 8 9 10; do
+    candidate="$(python3 -c 'import uuid; print(uuid.uuid4().hex[:8])')"
+    if ! is_id_live "$candidate"; then
+      CTO_SESSION_ID="$candidate"
+      break
+    fi
+  done
+  if [ -z "${CTO_SESSION_ID:-}" ]; then
+    echo "could not pick an unused CTO id after 10 tries" >&2
+    exit 1
+  fi
+fi
+
+CTO_TAB_TITLE="CTO Chat #$CTO_SESSION_ID"
+CTO_LOG="$ROOT/state/logs/cto-$CTO_SESSION_ID.log"
+
+mkdir -p "$ROOT/state/logs"
+touch "$CTO_LOG"
+
+CHAT_CMD="export CTO_SESSION_ID='$CTO_SESSION_ID' && bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS"
+LOG_CMD="cd '$ROOT' && tail -F state/logs/cto-$CTO_SESSION_ID.log"
 DEV_CMD="cd '$ROOT' && bash scripts/tail-dev-logs.sh"
 
 EXTRA_TABS=""
@@ -52,7 +98,7 @@ if [ "$WITH_LOGS" = "1" ]; then
 
     set logTab to (create tab with default profile)
     tell current session of logTab
-      set name to "CTO Log"
+      set name to "CTO Log #$CTO_SESSION_ID"
       write text "$LOG_CMD"
     end tell
 
@@ -73,7 +119,7 @@ tell application "iTerm"
   set newWindow to (create window with default profile)
   tell newWindow
     tell current session of current tab
-      set name to "CTO Chat"
+      set name to "$CTO_TAB_TITLE"
       write text "$CHAT_CMD"
     end tell
 $EXTRA_TABS
@@ -82,7 +128,7 @@ end tell
 APPLESCRIPT
 
 if [ "$WITH_LOGS" = "1" ]; then
-  echo "spawned iTerm window with 3 tabs (CTO chat + cto.log + dev logs)."
+  echo "spawned iTerm window id=$CTO_SESSION_ID (CTO chat + log + dev logs)."
 else
-  echo "spawned iTerm window with CTO chat tab. (logs on disk; --with-logs to tail)"
+  echo "spawned iTerm window id=$CTO_SESSION_ID (logs at state/logs/cto-$CTO_SESSION_ID.log)"
 fi

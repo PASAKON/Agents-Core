@@ -33,61 +33,72 @@ DEFAULT_KICKOFF = (
 )
 
 
-def _spawn_iterm_tab(role: str, task_id: str, *,
-                     tmux_attach: str | None = None) -> None:
-    """Open a new iTerm tab in the frontmost window.
+def _build_spawn_applescript(cmd: str, task_id: str,
+                              owner_cto: str | None) -> str:
+    """Compose the AppleScript that picks the right window and tab.
 
-    Default: runs `python -m runners.dev_init <role> <task_id>` directly
-    (legacy 1-tab-1-pty model).
+    Resolution order:
+      1. Any iTerm tab title contains `(<task_id>)` already → select it
+         and emit `reused`. No new tab, no command typed.
+      2. Window owning `CTO Chat #<owner_cto>` exactly → new tab there
+         so DEVs cluster under their spawning CTO (fixes multi-CTO
+         routing).
+      3. Any tab whose title contains `CTO Chat #` — keeps single-CTO
+         setups working when owner_cto is unset.
+      4. Current window, or a fresh window if none exist.
 
-    With `tmux_attach=<session>`: tab attaches to a pre-existing tmux
-    session that is already running dev_init. The pty lives in tmux —
-    closing the tab does NOT kill the agent, and a browser (ttyd) can
-    attach the same session simultaneously for two-way realtime sync.
+    Built in Python so tests can grep the literal strings without
+    invoking osascript.
     """
-    display = display_for(role)
-    tab_title = f"{display} ({task_id})"
-    if tmux_attach:
-        cmd = (
-            f"printf '\\\\033]0;{tab_title}\\\\007' && "
-            f"tmux attach -t {tmux_attach}"
-        )
-    else:
-        # Print ANSI title escape from inside the shell so zsh's precmd
-        # doesn't immediately overwrite the iTerm session name.
-        # Double-escape: AppleScript string parses `\\` → `\`, leaving
-        # `\033`/`\007` for bash printf to interpret as ESC/BEL.
-        cmd = (
-            f"printf '\\\\033]0;{tab_title}\\\\007' && "
-            f"cd '{ROOT}' && source .venv/bin/activate && "
-            f"python -m runners.dev_init {role} {task_id}"
-        )
-    # Prefer the window that owns the CTO chat tab so DEV tabs cluster
-    # in the same window as the CTO instead of whichever window happened
-    # to be focused. Fall back to current/new window if CTO tab not found.
-    script = f'''
+    owner_match = f"CTO Chat #{owner_cto}" if owner_cto else ""
+    return f'''
 tell application "iTerm"
   activate
-  set targetWin to missing value
   repeat with w in windows
     repeat with t in tabs of w
       try
-        set tabName to name of current session of t
-        if tabName contains "CTO" then
-          set targetWin to w
-          exit repeat
+        if name of current session of t contains "({task_id})" then
+          tell w to select
+          tell t to select
+          return "reused"
         end if
       end try
     end repeat
-    if targetWin is not missing value then exit repeat
   end repeat
+  set targetWin to missing value
+  if "{owner_match}" is not "" then
+    repeat with w in windows
+      repeat with t in tabs of w
+        try
+          if name of current session of t contains "{owner_match}" then
+            set targetWin to w
+            exit repeat
+          end if
+        end try
+      end repeat
+      if targetWin is not missing value then exit repeat
+    end repeat
+  end if
+  if targetWin is missing value then
+    repeat with w in windows
+      repeat with t in tabs of w
+        try
+          if name of current session of t contains "CTO Chat #" then
+            set targetWin to w
+            exit repeat
+          end if
+        end try
+      end repeat
+      if targetWin is not missing value then exit repeat
+    end repeat
+  end if
   if targetWin is missing value then
     if (count of windows) = 0 then
       set targetWin to (create window with default profile)
       tell current session of current tab of targetWin
         write text "{cmd}"
       end tell
-      return
+      return "spawned"
     else
       set targetWin to current window
     end if
@@ -98,9 +109,50 @@ tell application "iTerm"
       write text "{cmd}"
     end tell
   end tell
+  return "spawned"
 end tell
 '''
-    subprocess.run(["osascript", "-e", script], check=True)
+
+
+def _spawn_iterm_tab(role: str, task_id: str, *,
+                     tmux_attach: str | None = None,
+                     owner_cto: str | None = None) -> str:
+    """Open or reuse an iTerm tab for this DEV task.
+
+    Returns `"reused"` when an existing tab matching `(<task_id>)` was
+    found (no new tab, no command sent); `"spawned"` otherwise.
+
+    With `tmux_attach=<session>`: tab attaches to a pre-existing tmux
+    session that is already running dev_init. The pty lives in tmux —
+    closing the tab does NOT kill the agent, and a browser (ttyd) can
+    attach the same session simultaneously for two-way realtime sync.
+
+    `owner_cto`: stamped into env DEV_CTO_ID and used to pick the CTO
+    window so DEVs cluster under their spawning CTO. With two CTOs
+    open, this prevents tabs landing in the wrong window.
+    """
+    display = display_for(role)
+    tab_title = f"{display} ({task_id})"
+    cto_env = f"export DEV_CTO_ID='{owner_cto}' && " if owner_cto else ""
+    if tmux_attach:
+        cmd = (
+            f"printf '\\\\033]0;{tab_title}\\\\007' && "
+            f"{cto_env}tmux attach -t {tmux_attach}"
+        )
+    else:
+        # Print ANSI title escape from inside the shell so zsh's precmd
+        # doesn't immediately overwrite the iTerm session name.
+        # Double-escape: AppleScript string parses `\\` → `\`, leaving
+        # `\033`/`\007` for bash printf to interpret as ESC/BEL.
+        cmd = (
+            f"printf '\\\\033]0;{tab_title}\\\\007' && "
+            f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
+            f"python -m runners.dev_init {role} {task_id}"
+        )
+    script = _build_spawn_applescript(cmd, task_id, owner_cto)
+    result = subprocess.run(["osascript", "-e", script],
+                            check=True, capture_output=True, text=True)
+    return (result.stdout or "").strip() or "spawned"
 
 
 async def _wait_for_terminal(task_id: str, timeout_s: float) -> dict:
@@ -209,10 +261,13 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     ttyd_port: int | None = None
     ttyd_pid: int | None = None
 
+    owner_cto = task.get("owner_cto")
+
     if backend == "tmux":
         tmux_sess = tmux.session_name_for(task_id)
+        cto_env = f"export DEV_CTO_ID='{owner_cto}' && " if owner_cto else ""
         dev_cmd = (
-            f"cd '{ROOT}' && source .venv/bin/activate && "
+            f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
             f"python -m runners.dev_init {role_name} {task_id}"
         )
         try:
@@ -245,7 +300,9 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         )
 
     try:
-        _spawn_iterm_tab(role_name, task_id, tmux_attach=tmux_sess)
+        spawn_result = _spawn_iterm_tab(role_name, task_id,
+                                        tmux_attach=tmux_sess,
+                                        owner_cto=owner_cto)
     except subprocess.CalledProcessError as e:
         error(f"failed to spawn iTerm tab for {task_id}: {e}")
         db.update_status(task_id, "failed",
@@ -256,8 +313,12 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             db.release_task_locks(task_id, project_key)
         raise
 
+    if spawn_result == "reused":
+        info(f"reused existing iTerm tab for task={task_id} "
+             f"(skipping kickoff to avoid disturbing a running DEV)")
+
     kickoff_text = DEFAULT_KICKOFF if kickoff is None else kickoff
-    if kickoff_text:
+    if kickoff_text and spawn_result != "reused":
         asyncio.create_task(_auto_kickoff(task_id, kickoff_text))
 
     if not wait:
