@@ -100,10 +100,10 @@ def test_spawn_cto_collision() -> bool:
 
         env = dict(os.environ)
         env["PATH"] = f"{shim}:{env.get('PATH', '')}"
-        env["CTO_SESSION_ID"] = live_id
+        env.pop("CTO_SESSION_ID", None)
 
         proc = subprocess.run(
-            ["bash", str(patched_path)],
+            ["bash", str(patched_path), "--id", live_id],
             env=env, capture_output=True, text=True, timeout=15,
         )
         return (
@@ -111,6 +111,29 @@ def test_spawn_cto_collision() -> bool:
             and "already running" in (proc.stderr or "")
             and live_id in (proc.stderr or "")
         )
+
+
+def test_spawn_cto_drops_inherited_env() -> bool:
+    """spawn-cto.sh must NOT honor an inherited CTO_SESSION_ID. Running
+    it from inside an existing CTO chat would otherwise clone that
+    chat's id into the new tab — the real-world bug that motivated this
+    patch."""
+    with tempfile.TemporaryDirectory() as tmp_s:
+        tmp = Path(tmp_s)
+        (tmp / "state" / "locks").mkdir(parents=True, exist_ok=True)
+        patched_path = _stage_fake_root(tmp)
+        shim = _stage_osascript_shim(tmp)
+
+        env = dict(os.environ)
+        env["PATH"] = f"{shim}:{env.get('PATH', '')}"
+        env["CTO_SESSION_ID"] = "parentcc"
+
+        proc = subprocess.run(
+            ["bash", str(patched_path)],
+            env=env, capture_output=True, text=True, timeout=15,
+        )
+        out = (proc.stdout or "") + (proc.stderr or "")
+        return proc.returncode == 0 and "parentcc" not in out
 
 
 def test_spawn_cto_reaps_stale_lock() -> bool:
@@ -140,10 +163,10 @@ def test_spawn_cto_reaps_stale_lock() -> bool:
 
         env = dict(os.environ)
         env["PATH"] = f"{shim}:{env.get('PATH', '')}"
-        env["CTO_SESSION_ID"] = stale_id
+        env.pop("CTO_SESSION_ID", None)
 
         proc = subprocess.run(
-            ["bash", str(patched_path)],
+            ["bash", str(patched_path), "--id", stale_id],
             env=env, capture_output=True, text=True, timeout=15,
         )
         return proc.returncode == 0
@@ -158,9 +181,11 @@ def main() -> int:
     r = test_reuse_check_comes_first(); fails += not r
     _mark(r, "tab-reuse check precedes owner-window lookup")
     r = test_spawn_cto_collision(); fails += not r
-    _mark(r, "spawn-cto.sh rejects live duplicate CTO_SESSION_ID")
+    _mark(r, "spawn-cto.sh rejects live duplicate via --id")
+    r = test_spawn_cto_drops_inherited_env(); fails += not r
+    _mark(r, "spawn-cto.sh ignores inherited CTO_SESSION_ID")
     r = test_spawn_cto_reaps_stale_lock(); fails += not r
-    _mark(r, "spawn-cto.sh reaps stale lock and reuses id")
+    _mark(r, "spawn-cto.sh reaps stale lock and reuses id via --id")
     return 0 if fails == 0 else 1
 
 

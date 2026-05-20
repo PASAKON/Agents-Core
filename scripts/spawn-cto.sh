@@ -12,18 +12,39 @@
 #   bash scripts/spawn-cto.sh --last         # resume most recent (claude -c)
 #   bash scripts/spawn-cto.sh --resume <id>  # claude -r <id>
 #   bash scripts/spawn-cto.sh --with-logs    # also open cto.log + dev logs tabs
+#   bash scripts/spawn-cto.sh --id <id>      # force a specific CTO id (collision-checked)
+#
+# Inherited CTO_SESSION_ID from the parent shell is intentionally
+# ignored — running this script from inside an existing CTO chat would
+# otherwise duplicate that chat's id into the new tab.
 set -euo pipefail
 
 ROOT="/Users/gob/Projects/Agents"
 
 WITH_LOGS=0
+EXPLICIT_ID=""
 ARGS=()
+prev=""
 for a in "$@"; do
+  if [ "$prev" = "--id" ]; then
+    EXPLICIT_ID="$a"
+    prev=""
+    continue
+  fi
   case "$a" in
     --with-logs) WITH_LOGS=1 ;;
+    --id) prev="--id" ;;
     *) ARGS+=("$a") ;;
   esac
 done
+
+# Never inherit CTO_SESSION_ID from the parent shell. Running spawn-cto.sh
+# from inside an existing CTO chat would otherwise clone the running id
+# into the new tab. Explicit `--id <id>` is the only supported override.
+unset CTO_SESSION_ID
+if [ -n "$EXPLICIT_ID" ]; then
+  CTO_SESSION_ID="$EXPLICIT_ID"
+fi
 
 # Translate legacy cto_chat args → claude CLI args
 CLAUDE_ARGS=""

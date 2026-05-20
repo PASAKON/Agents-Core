@@ -19,8 +19,29 @@ if [ -z "${CTO_SESSION_ID:-}" ]; then
   CTO_SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex[:8])')"
   export CTO_SESSION_ID
 fi
+
+# Per-CTO lock so the claude-CLI path has the same collision defense
+# that runners/cto_chat.py provides for the Python REPL. spawn-cto.sh's
+# is_id_live() check relies on this file existing while a CTO chat is
+# alive.
+LOCKS_DIR="$ROOT/state/locks"
+mkdir -p "$LOCKS_DIR"
+LOCKFILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.lock"
+if [ -e "$LOCKFILE" ]; then
+  existing_pid="$(tr -d '[:space:]' <"$LOCKFILE" 2>/dev/null || true)"
+  if [ -n "$existing_pid" ] && kill -0 "$existing_pid" 2>/dev/null; then
+    echo "CTO id $CTO_SESSION_ID already running as pid $existing_pid — refuse to start a second one." >&2
+    exit 1
+  fi
+  rm -f "$LOCKFILE"
+fi
+echo "$$" >"$LOCKFILE"
+trap 'rm -f "$LOCKFILE"' EXIT INT TERM
+
 printf '\033]0;CTO Chat #%s\007' "$CTO_SESSION_ID"
-exec claude \
+# `exec` would replace the shell and skip the EXIT trap, leaving a
+# stale lock. Run claude as a child instead and propagate its exit code.
+claude \
   -n "CTO Chat #$CTO_SESSION_ID" \
   --model opus \
   --permission-mode auto \
@@ -28,3 +49,4 @@ exec claude \
   --mcp-config "$MCP_CONFIG" \
   --allowed-tools $ALLOWED \
   "$@"
+exit $?
