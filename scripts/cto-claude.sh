@@ -36,7 +36,38 @@ if [ -e "$LOCKFILE" ]; then
   rm -f "$LOCKFILE"
 fi
 echo "$$" >"$LOCKFILE"
-trap 'rm -f "$LOCKFILE"' EXIT INT TERM
+
+# Find the iTerm window id whose session shares our TTY, then record it
+# so tools/delegate.py can target this exact window when spawning DEV
+# tabs. Matching by window id is immune to the session-name flicker
+# that causes name-based lookups to misroute DEVs to the wrong CTO.
+WINID_FILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.winid"
+MY_TTY="$(tty 2>/dev/null || true)"
+if [ -n "$MY_TTY" ]; then
+  WINID="$(osascript 2>/dev/null <<APPLE || true
+tell application "iTerm"
+  repeat with w in windows
+    repeat with t in tabs of w
+      repeat with s in sessions of t
+        try
+          if tty of s is "$MY_TTY" then
+            return (id of w) as string
+          end if
+        end try
+      end repeat
+    end repeat
+  end repeat
+  return ""
+end tell
+APPLE
+)"
+  WINID="$(printf '%s' "$WINID" | tr -d '[:space:]')"
+  if [ -n "$WINID" ]; then
+    echo "$WINID" >"$WINID_FILE"
+  fi
+fi
+
+trap 'rm -f "$LOCKFILE" "$WINID_FILE"' EXIT INT TERM
 
 printf '\033]0;CTO Chat #%s\007' "$CTO_SESSION_ID"
 # `exec` would replace the shell and skip the EXIT trap, leaving a

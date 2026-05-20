@@ -33,8 +33,28 @@ DEFAULT_KICKOFF = (
 )
 
 
+def _owner_window_id(owner_cto: str | None) -> str | None:
+    """Read the iTerm window id that the spawning CTO recorded at boot.
+
+    cto-claude.sh writes `state/locks/cto-<id>.winid` containing the
+    integer window id of the iTerm window owning that CTO's session.
+    Returns the digits as a string, or None if the file is missing or
+    unreadable. Matching by id is immune to the session-name flicker
+    that makes name-based AppleScript matches misroute DEV tabs.
+    """
+    if not owner_cto:
+        return None
+    p = ROOT / "state" / "locks" / f"cto-{owner_cto}.winid"
+    try:
+        raw = p.read_text().strip()
+    except OSError:
+        return None
+    return raw if raw.isdigit() else None
+
+
 def _build_spawn_applescript(cmd: str, task_id: str,
-                              owner_cto: str | None) -> str:
+                              owner_cto: str | None,
+                              owner_winid: str | None = None) -> str:
     """Compose the AppleScript that picks the right window and tab.
 
     Resolution order:
@@ -80,7 +100,14 @@ tell application "iTerm"
     end repeat
   end repeat
   set targetWin to missing value
-  if "{owner_match}" is not "" then
+  -- 1. Prefer matching by iTerm window id (recorded by cto-claude.sh
+  -- at boot). Immune to session-name flicker.
+  if "{owner_winid or ''}" is not "" then
+    try
+      set targetWin to (first window whose id is ({owner_winid or 0}))
+    end try
+  end if
+  if (targetWin is missing value) and "{owner_match}" is not "" then
     repeat with w in windows
       repeat with t in tabs of w
         try
@@ -179,7 +206,8 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
             f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
             f"python -m runners.dev_init {role} {task_id}"
         )
-    script = _build_spawn_applescript(cmd, task_id, owner_cto)
+    owner_winid = _owner_window_id(owner_cto)
+    script = _build_spawn_applescript(cmd, task_id, owner_cto, owner_winid)
     result = subprocess.run(["osascript", "-e", script],
                             check=True, capture_output=True, text=True)
     return (result.stdout or "").strip() or "spawned"

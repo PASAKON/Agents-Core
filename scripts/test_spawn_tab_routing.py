@@ -23,7 +23,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from tools.delegate import _build_spawn_applescript  # noqa: E402
+from tools.delegate import (  # noqa: E402
+    _build_spawn_applescript,
+    _owner_window_id,
+)
 
 
 def _mark(ok: bool, msg: str) -> None:
@@ -39,6 +42,51 @@ def test_owner_cto_routing() -> bool:
         and 'return "reused"' in script
         and 'return "spawned"' in script
     )
+
+
+def test_owner_winid_targets_by_id() -> bool:
+    """When the CTO's .winid file is present, AppleScript must target
+    the iTerm window by id — name matching is unreliable due to session
+    title flicker."""
+    script = _build_spawn_applescript(
+        cmd="echo hi", task_id="task-w", owner_cto="ctoabcd",
+        owner_winid="2354")
+    return (
+        "first window whose id is (2354)" in script
+        and 'targetWin is missing value' in script
+    )
+
+
+def test_owner_winid_absent_falls_back_to_name() -> bool:
+    """With no winid file, the by-id branch must be dead-code (gated by
+    `if "" is not ""`) so the name match is what actually runs."""
+    script = _build_spawn_applescript(
+        cmd="echo hi", task_id="task-w", owner_cto="ctoabcd",
+        owner_winid=None)
+    return (
+        'if "" is not "" then' in script
+        and 'first window whose id is (0)' in script
+        and 'CTO Chat #ctoabcd' in script
+    )
+
+
+def test_owner_window_id_reader(tmp_path_like: Path | None = None) -> bool:
+    """The reader returns the digits when the lock file exists and is
+    well-formed, None otherwise. Uses the real lock dir but a synthetic
+    CTO id so it doesn't collide with anything live."""
+    fake_id = "testwin1"
+    p = ROOT / "state" / "locks" / f"cto-{fake_id}.winid"
+    try:
+        p.write_text("9999\n")
+        ok_present = _owner_window_id(fake_id) == "9999"
+        p.unlink()
+        ok_missing = _owner_window_id(fake_id) is None
+        p.write_text("not-a-number\n")
+        ok_garbage = _owner_window_id(fake_id) is None
+        return ok_present and ok_missing and ok_garbage
+    finally:
+        if p.exists():
+            p.unlink()
 
 
 def test_checks_both_title_surfaces() -> bool:
@@ -191,8 +239,14 @@ def main() -> int:
     fails = 0
     r = test_owner_cto_routing(); fails += not r
     _mark(r, "owner_cto literal embedded in AppleScript")
+    r = test_owner_winid_targets_by_id(); fails += not r
+    _mark(r, "winid present -> AppleScript targets window by id")
+    r = test_owner_winid_absent_falls_back_to_name(); fails += not r
+    _mark(r, "winid absent -> AppleScript falls back to name match")
+    r = test_owner_window_id_reader(); fails += not r
+    _mark(r, "_owner_window_id reads digit content + rejects garbage")
     r = test_checks_both_title_surfaces(); fails += not r
-    _mark(r, "AppleScript checks tab name and session name")
+    _mark(r, "AppleScript still checks tab name and session name")
     r = test_no_owner_falls_through(); fails += not r
     _mark(r, "absent owner_cto disables exact match branch")
     r = test_reuse_check_comes_first(); fails += not r
