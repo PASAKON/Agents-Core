@@ -14,13 +14,37 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib.config import display_for  # noqa: E402
 
+ROOT = Path(__file__).resolve().parent.parent
+LOCKS_DIR = ROOT / "state" / "locks"
+STATE_DIR = ROOT / "state"
 CTO_TAB_FALLBACK_MATCH = "CTO Chat"
+
+
+def _read_winid(cto_id: str) -> str | None:
+    """Return the iTerm window id for `cto_id`, or None if missing/invalid."""
+    p = LOCKS_DIR / f"cto-{cto_id}.winid"
+    try:
+        raw = p.read_text().strip()
+    except OSError:
+        return None
+    return raw if raw.isdigit() else None
+
+
+def _log_orphan(cto_id: str, from_id: str, role: str | None,
+                message: str) -> None:
+    ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    snippet = repr(message[:80])
+    log_path = STATE_DIR / f"orphan-dev-replies-{cto_id}.log"
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    with log_path.open("a", encoding="utf-8") as f:
+        f.write(f"[{ts}] from={from_id} role={role or 'unknown'} msg={snippet}\n")
 
 
 def send(from_id: str, message: str, role: str | None = None,
@@ -32,9 +56,13 @@ def send(from_id: str, message: str, role: str | None = None,
     the display label (e.g. `Web Designer`). Falls back to `[Dev:<from_id>]:`
     when role is missing or unknown.
 
-    `cto_id`: route to the CTO tab named `CTO Chat #<cto_id>` only. Falls
-    back to broadcasting to every tab containing "CTO Chat" when None —
-    used by legacy callers that don't know the owning CTO.
+    `cto_id`: route ONLY to the iTerm window whose id is stored in
+    `state/locks/cto-<cto_id>.winid`. If the file is missing or the window
+    is gone the message is dropped to `state/orphan-dev-replies-<cto_id>.log`
+    and False is returned — no broadcast to other CTO windows.
+
+    When `cto_id` is None (legacy callers): broadcast to every tab whose
+    session name contains "CTO Chat", preserving pre-multi-CTO behaviour.
     """
     if role:
         prefix = f"[{display_for(role)} {from_id}]:"
@@ -42,19 +70,62 @@ def send(from_id: str, message: str, role: str | None = None,
         prefix = f"[Dev:{from_id}]:"
     text = f"{prefix} {message}"
     escaped = text.replace('\\', '\\\\').replace('"', '\\"')
-    # Two-pass routing: exact-match owner_cto first; if that tab is gone
-    # (CTO crashed / respawned with new id), broadcast to any live
-    # `CTO Chat #` tab so the DEV reply isn't lost. Fallback returns "2"
-    # so the caller can log the reroute.
-    primary = f"CTO Chat #{cto_id}" if cto_id else CTO_TAB_FALLBACK_MATCH
-    fallback = CTO_TAB_FALLBACK_MATCH
+
+    if cto_id:
+        winid = _read_winid(cto_id)
+        if winid is None:
+            _log_orphan(cto_id, from_id, role, message)
+            sys.stderr.write(
+                f"[send_to_cto] winid missing for cto={cto_id}; "
+                f"message orphaned to state/orphan-dev-replies-{cto_id}.log\n"
+            )
+            return False
+
+        script = f'''
+tell application "iTerm"
+  set didSend to false
+  try
+    set targetWin to window id {winid}
+    repeat with t in tabs of targetWin
+      try
+        if name of current session of t contains "CTO Chat" then
+          tell current session of t
+            write text "{escaped}" newline NO
+            write text (ASCII character 13) newline NO
+          end tell
+          set didSend to true
+          exit repeat
+        end if
+      end try
+    end repeat
+  end try
+  if didSend then
+    return "1"
+  end if
+  return "0"
+end tell
+'''
+        r = subprocess.run(["osascript", "-e", script],
+                           capture_output=True, text=True)
+        out = r.stdout.strip() if r.returncode == 0 else ""
+        if out != "1":
+            _log_orphan(cto_id, from_id, role, message)
+            sys.stderr.write(
+                f"[send_to_cto] window id={winid} for cto={cto_id} not found; "
+                f"message orphaned\n"
+            )
+            return False
+        return True
+
+    # Legacy path: cto_id=None — broadcast to all "CTO Chat" tabs.
+    # Used by old callers that don't know the owning CTO (single-CTO setups).
     script = f'''
 tell application "iTerm"
   set didSend to false
   repeat with w in windows
     repeat with t in tabs of w
       tell t
-        if name of current session contains "{primary}" then
+        if name of current session contains "{CTO_TAB_FALLBACK_MATCH}" then
           tell current session
             write text "{escaped}" newline NO
             write text (ASCII character 13) newline NO
@@ -67,35 +138,13 @@ tell application "iTerm"
   if didSend then
     return "1"
   end if
-  set didFallback to false
-  repeat with w in windows
-    repeat with t in tabs of w
-      tell t
-        if name of current session contains "{fallback}" then
-          tell current session
-            write text "{escaped}" newline NO
-            write text (ASCII character 13) newline NO
-          end tell
-          set didFallback to true
-        end if
-      end tell
-    end repeat
-  end repeat
-  if didFallback then
-    return "2"
-  end if
   return "0"
 end tell
 '''
     r = subprocess.run(["osascript", "-e", script],
                        capture_output=True, text=True)
     out = r.stdout.strip() if r.returncode == 0 else ""
-    if out == "2":
-        sys.stderr.write(
-            f"[send_to_cto] owner_cto={cto_id} tab missing; "
-            f"broadcast fallback to any CTO Chat # tab\n"
-        )
-    return out in ("1", "2")
+    return out == "1"
 
 
 def main() -> int:

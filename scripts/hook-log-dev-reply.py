@@ -145,6 +145,7 @@ def main() -> int:
     if not task_id:
         return 0
     role = os.environ.get("DEV_ROLE")
+    cto_id = os.environ.get("DEV_CTO_ID")
     role_label = _role_label(role)
     try:
         payload = json.load(sys.stdin)
@@ -192,7 +193,7 @@ def main() -> int:
         try:
             sys.path.insert(0, str(ROOT))
             from tools.send_to_cto import send as send_to_cto
-            send_to_cto(task_id, relay, role=role)
+            send_to_cto(task_id, relay, role=role, cto_id=cto_id)
         except Exception:
             pass
 
