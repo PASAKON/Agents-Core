@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     session_id      TEXT,
     retry_after_ts  TEXT,
     last_checkpoint TEXT,
+    owner_cto       TEXT,
     created_at      TEXT NOT NULL,
     updated_at      TEXT NOT NULL
 );
@@ -74,6 +75,7 @@ _MIGRATION_COLUMNS = [
     ("tmux_session", "TEXT"),
     ("ttyd_port", "INTEGER"),
     ("ttyd_pid", "INTEGER"),
+    ("owner_cto", "TEXT"),
 ]
 
 # Statuses where touched paths are no longer being modified — release locks.
@@ -131,15 +133,16 @@ def create_task(
     parent_task: str | None = None,
     depends_on: list[str] | None = None,
     touches: list[str] | None = None,
+    owner_cto: str | None = None,
 ) -> str:
     tid = new_task_id()
     ts = now_iso()
     with get_conn() as conn:
         conn.execute(
-            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,created_at,updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,created_at,updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
             (tid, project, role, "pending", title, description, parent_task,
-             json.dumps(depends_on or []), json.dumps(touches or []), ts, ts),
+             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, ts, ts),
         )
         log_event(conn, tid, "system", "task_created",
                   {"role": role, "title": title, "touches": touches or []})
@@ -165,7 +168,7 @@ VALID_COLUMNS = {
     "assigned_agent", "worktree", "branch", "report", "review",
     "iteration", "description", "title",
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
-    "tmux_session", "ttyd_port", "ttyd_pid",
+    "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto",
 }
 
 

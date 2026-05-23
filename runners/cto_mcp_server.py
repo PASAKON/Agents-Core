@@ -9,6 +9,7 @@ mcp__org__<tool_name> inside Claude Code.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -96,6 +97,7 @@ def create_task(
         description=description,
         depends_on=deps,
         touches=paths,
+        owner_cto=os.environ.get("CTO_SESSION_ID"),
     )
     info(f"task created {tid} → {role} on {project} touches={paths}")
     return tid
