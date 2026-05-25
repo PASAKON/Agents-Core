@@ -12,6 +12,8 @@ _default_workers: &default_workers
   - security_engineer
   - data_analyst
   - prompt_engineer
+  - ads_manager
+  - content_strategist
 
 projects:
   - key: mooniex-claudeflow
@@ -26,6 +28,8 @@ projects:
     # gate_tests: true → CTO runs test_command in worktree before merge
     test_command: npm test --silent
     gate_tests: false
+    # CEO preference 2026-05-19: iTerm only — no auto ttyd browser
+    # (default backend = iterm, no spawn_backend / web_ui keys)
     wiki_refs:
       - playbooks/backend.md
 
@@ -38,6 +42,7 @@ projects:
     agents_allowed: *default_workers
     auto_push: true
     review_required: true
+    # CEO preference 2026-05-19: iTerm only — no auto ttyd browser
     wiki_refs:
       - playbooks/frontend.md
       - playbooks/backend.md
@@ -54,9 +59,9 @@ projects:
     agents_allowed: [web_designer, developer, tester]
     auto_push: false
     review_required: true
-    # tmux+ttyd backend — Web UI terminal สามารถ attach ผ่าน browser
-    spawn_backend: tmux
-    web_ui: optional         # true → auto-open browser พร้อม iTerm
+    # iTerm backend — web_designer spawns interactive claude TUI in tab
+    # (was tmux+ttyd until 2026-05-23, switched so CTO can use send_to_dev
+    # the same way as other DEV roles; claudesign Web UI stays optional)
     # content_zone — paths Web Designer agent แก้ได้.
     # นอก zone นี้ = upstream code, ห้ามแตะ (pre-commit hook enforce)
     content_zone:
@@ -70,6 +75,19 @@ projects:
       - playbooks/web-designer.md
       - projects/mooniex-claudesign.md
 
+  - key: lungnote-webapp
+    name: LungNote Webapp
+    path: "/Users/gob/LungNote Projects/webapp"
+    remote: https://github.com/PASAKON/LungNote-webapp.git
+    default_branch: main
+    stack: [next.js, typescript, supabase]
+    agents_allowed: *default_workers
+    auto_push: true
+    review_required: true
+    wiki_refs:
+      - playbooks/frontend.md
+      - playbooks/backend.md
+
   - key: LLMs
     name: LLMs (Wiki)
     path: /Users/gob/Projects/LLMs
@@ -81,3 +99,29 @@ projects:
     auto_push: true
     review_required: false
     wiki_refs: []
+
+  - key: mooniex-agents
+    name: Mooniex Agents (meta-repo)
+    path: /Users/gob/Projects/Agents
+    remote: https://github.com/PASAKON/mooniex-agents.git
+    default_branch: main
+    stack: [python]
+    agents_allowed: *default_workers
+    # Self-modifying repo — DEV works in worktree, never pushes direct;
+    # CTO reviews before merge.
+    auto_push: false
+    review_required: true
+    wiki_refs:
+      - playbooks/backend.md
+
+  - key: warpclip-webapp
+    name: WarpClip Webapp
+    path: /Users/gob/WarpClip Projects/webapp
+    remote: https://github.com/PASAKON/WarpClip-webapp.git
+    default_branch: main
+    stack: [next.js, typescript, tailwind]
+    agents_allowed: *default_workers
+    auto_push: false
+    review_required: true
+    wiki_refs:
+      - playbooks/frontend.md
