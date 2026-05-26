@@ -261,6 +261,218 @@ def test_close_session_refuses_missing_lock() -> bool:
         return False
 
 
+def test_send_to_cxo_spawn_flag_off_unchanged() -> bool:
+    """Legacy path (no --spawn) must produce the same AppleScript tab_match
+    as before Phase 2 — matching '<DISPLAY> Chat #<session_id>'."""
+    from tools.send_to_cxo import _send
+    import inspect
+
+    src = inspect.getsource(_send)
+    return (
+        "display} Chat #{session_id}" in src
+        and "tab_match" in src
+        and "didSend" in src
+    )
+
+
+def test_send_to_cxo_spawn_flag_on_calls_cxo_claude() -> bool:
+    """--spawn path must invoke cxo-claude.sh with --session and the initial
+    message embedded in the temp shell script passed to osascript."""
+    import unittest.mock as mock
+    from tools.send_to_cxo import _spawn_new_ephemeral
+
+    written_scripts: list[str] = []
+    as_calls: list = []
+
+    _real_open = open
+
+    class FakeFile:
+        def __init__(self):
+            self.name = "/tmp/fake_test.sh"
+        def write(self, s):
+            written_scripts.append(s)
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+
+    def fake_nm(**kwargs):
+        return FakeFile()
+
+    def fake_run(cmd, **kwargs):
+        as_calls.append(cmd)
+        class R:
+            returncode = 0
+        return R()
+
+    with mock.patch("tools.send_to_cxo.tempfile.NamedTemporaryFile", fake_nm), \
+         mock.patch("tools.send_to_cxo.subprocess.run", side_effect=fake_run), \
+         mock.patch("tools.send_to_cxo.os.chmod"), \
+         mock.patch("tools.send_to_cxo.os.unlink"):
+        _spawn_new_ephemeral(
+            role="cfo",
+            session_id="req-deadbeef",
+            tab_title="CFO <- CTO: budget-review",
+            initial_text="[CTO]: please review budget",
+        )
+
+    script_body = " ".join(written_scripts)
+    return (
+        "cxo-claude.sh" in script_body
+        and "--session" in script_body
+        and "req-deadbeef" in script_body
+        and "--initial-prompt" in script_body
+        and "please review budget" in script_body
+    )
+
+
+def test_send_to_cxo_dedupe_reuses_recent_topic_match() -> bool:
+    """spawn() with an alive lock + matching topic + recent mtime reuses the
+    existing tab and does NOT open a new one."""
+    import unittest.mock as mock
+    from tools.send_to_cxo import spawn, _make_topic_slug
+
+    with tempfile.TemporaryDirectory() as tmp_s:
+        locks = Path(tmp_s) / "locks"
+        locks.mkdir()
+
+        slug = _make_topic_slug("budget review needed")
+        winid = "9001"
+        lock_file = locks / "cfo-req-aabbccdd.winid"
+        lock_file.write_text(winid + "\n")
+        (locks / "cfo-req-aabbccdd.topic").write_text(slug)
+
+        reuse_calls: list = []
+        spawn_calls: list = []
+
+        def fake_send_to_ephemeral(tab_title, text):
+            reuse_calls.append((tab_title, text))
+
+        def fake_spawn_new(role, session_id, tab_title, initial_text):
+            spawn_calls.append((role, session_id))
+
+        def fake_get_live():
+            return {winid}
+
+        with mock.patch("tools.send_to_cxo.LOCKS_DIR", locks), \
+             mock.patch("tools.send_to_cxo.is_c_level", return_value=True), \
+             mock.patch("tools.send_to_cxo.display_for", return_value="CFO"), \
+             mock.patch("tools.send_to_cxo._get_live_winids", fake_get_live), \
+             mock.patch("tools.send_to_cxo._send_to_ephemeral_tab", fake_send_to_ephemeral), \
+             mock.patch("tools.send_to_cxo._spawn_new_ephemeral", fake_spawn_new):
+            result = spawn("cfo", "budget review needed", sender="CTO")
+
+    return (
+        len(reuse_calls) == 1
+        and len(spawn_calls) == 0
+        and "reused" in result
+    )
+
+
+def test_send_to_cxo_dedupe_skips_stale_lock() -> bool:
+    """spawn() with a lock whose winid is not in the live window list ignores
+    the stale lock and opens a new tab."""
+    import unittest.mock as mock
+    from tools.send_to_cxo import spawn, _make_topic_slug
+
+    with tempfile.TemporaryDirectory() as tmp_s:
+        locks = Path(tmp_s) / "locks"
+        locks.mkdir()
+
+        slug = _make_topic_slug("stale test message")
+        lock_file = locks / "cfo-req-deaddddd.winid"
+        lock_file.write_text("9999\n")
+        (locks / "cfo-req-deaddddd.topic").write_text(slug)
+
+        spawn_calls: list = []
+
+        def fake_get_live():
+            return {"1111"}  # 9999 not present → stale
+
+        def fake_spawn_new(role, session_id, tab_title, initial_text):
+            spawn_calls.append((role, session_id))
+
+        def fake_send_to_ephemeral(tab_title, text):
+            raise AssertionError("should not reuse stale tab")
+
+        with mock.patch("tools.send_to_cxo.LOCKS_DIR", locks), \
+             mock.patch("tools.send_to_cxo.is_c_level", return_value=True), \
+             mock.patch("tools.send_to_cxo.display_for", return_value="CFO"), \
+             mock.patch("tools.send_to_cxo._get_live_winids", fake_get_live), \
+             mock.patch("tools.send_to_cxo._send_to_ephemeral_tab", fake_send_to_ephemeral), \
+             mock.patch("tools.send_to_cxo._spawn_new_ephemeral", fake_spawn_new):
+            result = spawn("cfo", "stale test message", sender="CTO")
+
+    return (
+        len(spawn_calls) == 1
+        and spawn_calls[0][0] == "cfo"
+        and "spawned" in result
+    )
+
+
+def test_cxo_claude_initial_prompt_typed_after_spawn() -> bool:
+    """cxo-claude.sh with --initial-prompt must fire an osascript call that
+    includes the prompt text once claude has started."""
+    with tempfile.TemporaryDirectory() as tmp_s:
+        tmp = Path(tmp_s)
+        (tmp / "state" / "locks").mkdir(parents=True, exist_ok=True)
+        (tmp / "roles").mkdir()
+        (tmp / "roles" / "cfo.md").write_text("You are CFO.")
+        (tmp / "config").mkdir()
+        (tmp / "config" / "cto.mcp.json").write_text("{}")
+        venv_bin = tmp / ".venv" / "bin"
+        venv_bin.mkdir(parents=True)
+        (venv_bin / "activate").write_text("# fake activate\n")
+
+        shim = tmp / "bin"
+        shim.mkdir()
+        osascript_log = tmp / "osascript.log"
+
+        # osascript shim: append all args to log
+        osascript_shim = shim / "osascript"
+        osascript_shim.write_text(
+            f'#!/usr/bin/env bash\nprintf "%s\\n" "$@" >> "{osascript_log}"\nexit 0\n'
+        )
+        osascript_shim.chmod(0o755)
+
+        # claude shim: exit immediately so the script completes
+        (shim / "claude").write_text("#!/usr/bin/env bash\nexit 0\n")
+        (shim / "claude").chmod(0o755)
+
+        # python3 shim: return "CFO" for display_for lookup
+        (shim / "python3").write_text("#!/usr/bin/env bash\necho CFO\n")
+        (shim / "python3").chmod(0o755)
+
+        src = (ROOT / "scripts" / "cxo-claude.sh").read_text()
+        patched = src.replace(
+            'ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"',
+            f'ROOT="{tmp}"',
+        )
+        cxo_sh = tmp / "cxo-claude.patched.sh"
+        cxo_sh.write_text(patched)
+        cxo_sh.chmod(0o755)
+
+        env = dict(os.environ)
+        env["PATH"] = f"{shim}:{env.get('PATH', '')}"
+        env.pop("CXO_SESSION_ID", None)
+        env["CXO_INITIAL_PROMPT_DELAY"] = "0"  # no wait in tests
+
+        proc = subprocess.run(
+            [
+                "bash", str(cxo_sh),
+                "--role", "cfo",
+                "--session", "req-testtest",
+                "--tab-title", "CFO <- CTO: test-prompt",
+                "--initial-prompt", "[CTO]: hello world from test",
+            ],
+            env=env, capture_output=True, text=True, timeout=15,
+        )
+
+        # Give background job a moment to write its osascript call
+        import time as _time; _time.sleep(0.5)
+
+        log_content = osascript_log.read_text() if osascript_log.exists() else ""
+        return proc.returncode == 0 and "hello world from test" in log_content
+
+
 def main() -> int:
     fails = 0
     r = test_owner_cto_routing(); fails += not r
@@ -285,6 +497,16 @@ def main() -> int:
     _mark(r, "spawn-cto.sh reaps stale lock and reuses id via --id")
     r = test_close_session_refuses_missing_lock(); fails += not r
     _mark(r, "close_session refuses when lock file missing + writes refusal log")
+    r = test_send_to_cxo_spawn_flag_off_unchanged(); fails += not r
+    _mark(r, "legacy path AppleScript uses '<DISPLAY> Chat #<session_id>' match")
+    r = test_send_to_cxo_spawn_flag_on_calls_cxo_claude(); fails += not r
+    _mark(r, "--spawn writes temp script with cxo-claude.sh + --session + prompt")
+    r = test_send_to_cxo_dedupe_reuses_recent_topic_match(); fails += not r
+    _mark(r, "dedupe: alive lock + matching topic → reuse, no new spawn")
+    r = test_send_to_cxo_dedupe_skips_stale_lock(); fails += not r
+    _mark(r, "dedupe: stale winid → skipped, new tab spawned")
+    r = test_cxo_claude_initial_prompt_typed_after_spawn(); fails += not r
+    _mark(r, "cxo-claude.sh --initial-prompt fires osascript with prompt text")
     return 0 if fails == 0 else 1
 
 
