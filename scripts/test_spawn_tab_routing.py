@@ -14,6 +14,7 @@ Run via:   python scripts/test_spawn_tab_routing.py
 """
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -235,6 +236,31 @@ def test_spawn_cto_reaps_stale_lock() -> bool:
         return proc.returncode == 0
 
 
+def test_close_session_refuses_missing_lock() -> bool:
+    """close_session returns False + writes refusal log when lock file absent."""
+    from tools.itermtab import close_session, _LOCKS
+
+    refusals_log = _LOCKS / "close-refusals.log"
+    before = refusals_log.read_text() if refusals_log.exists() else ""
+
+    result = close_session("fakecxo", "fakesession_unit_test")
+
+    after = refusals_log.read_text() if refusals_log.exists() else ""
+    new_lines = [l for l in (after[len(before):]).splitlines() if l.strip()]
+    if not new_lines:
+        return False
+    try:
+        entry = json.loads(new_lines[-1])
+        return (
+            result is False
+            and entry.get("role") == "fakecxo"
+            and entry.get("session_id") == "fakesession_unit_test"
+            and "lock file missing" in entry.get("reason", "")
+        )
+    except (json.JSONDecodeError, KeyError):
+        return False
+
+
 def main() -> int:
     fails = 0
     r = test_owner_cto_routing(); fails += not r
@@ -257,6 +283,8 @@ def main() -> int:
     _mark(r, "spawn-cto.sh ignores inherited CTO_SESSION_ID")
     r = test_spawn_cto_reaps_stale_lock(); fails += not r
     _mark(r, "spawn-cto.sh reaps stale lock and reuses id via --id")
+    r = test_close_session_refuses_missing_lock(); fails += not r
+    _mark(r, "close_session refuses when lock file missing + writes refusal log")
     return 0 if fails == 0 else 1
 
 

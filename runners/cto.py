@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import subprocess
 from pathlib import Path
 
 from claude_agent_sdk import (
@@ -206,9 +207,21 @@ def _system_prompt() -> str:
     return (ROOT / "roles" / "cto.md").read_text()
 
 
+def _cleanup_zombies() -> None:
+    script = ROOT / "scripts" / "cleanup-zombies.sh"
+    try:
+        r = subprocess.run(
+            ["bash", str(script)], capture_output=True, text=True, timeout=10
+        )
+        log.info(r.stdout.strip() or "cleanup-zombies: no output")
+    except Exception as exc:
+        log.debug(f"cleanup-zombies skipped: {exc}")
+
+
 async def run(ceo_request: str) -> str:
     log.info(f"CEO request: {ceo_request[:200]}")
     info(f"CTO received CEO request")
+    _cleanup_zombies()
 
     server = create_sdk_mcp_server(
         name="org-cto",
