@@ -56,6 +56,17 @@ CREATE TABLE IF NOT EXISTS locks (
     owner       TEXT NOT NULL,
     expires_at  TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS c_level_sessions (
+    role             TEXT NOT NULL,
+    session_id       TEXT NOT NULL,
+    active_task_id   TEXT,
+    spawned_at       TEXT NOT NULL,
+    PRIMARY KEY (role, session_id)
+);
+CREATE INDEX IF NOT EXISTS idx_c_level_sessions_task
+    ON c_level_sessions(active_task_id)
+    WHERE active_task_id IS NOT NULL;
 """
 
 VALID_STATUS = {"pending", "in_progress", "review", "done", "failed",
@@ -357,6 +368,44 @@ def stats() -> dict:
     with get_conn() as conn:
         rows = conn.execute("SELECT status, COUNT(*) c FROM tasks GROUP BY status").fetchall()
     return {r["status"]: r["c"] for r in rows}
+
+
+# Alias for external callers that prefer the db_conn name.
+db_conn = get_conn
+
+
+# ---------------------------------------------------------------------------
+# c_level_sessions helpers
+# ---------------------------------------------------------------------------
+
+def register_cxo_session(role: str, session_id: str) -> None:
+    ts = now_iso()
+    with get_conn() as conn:
+        conn.execute(
+            """INSERT INTO c_level_sessions (role, session_id, spawned_at)
+               VALUES (?, ?, ?)
+               ON CONFLICT(role, session_id) DO UPDATE SET spawned_at=excluded.spawned_at""",
+            (role, session_id, ts),
+        )
+
+
+def bind_session_to_task(role: str, session_id: str, task_id: str | None) -> None:
+    with get_conn() as conn:
+        conn.execute(
+            "UPDATE c_level_sessions SET active_task_id=? WHERE role=? AND session_id=?",
+            (task_id, role, session_id),
+        )
+
+
+def is_session_busy(role: str, session_id: str) -> bool:
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT 1 FROM c_level_sessions "
+            "WHERE role=? AND session_id=? AND active_task_id IS NOT NULL "
+            "AND active_task_id IN (SELECT id FROM tasks WHERE status='in_progress')",
+            (role, session_id),
+        ).fetchone()
+    return row is not None
 
 
 if __name__ == "__main__":

@@ -133,22 +133,20 @@ def close_session(role: str, session_id: str) -> bool:
     if os.environ.get("CXO_ROLE") != role or os.environ.get("CXO_SESSION_ID") != session_id:
         return _refuse("caller env mismatch")
 
-    # Gate 4: no in-progress task bound to this session_id
-    # TODO(Phase 2): extend once c_level_sessions.active_task_id column exists.
-    # Uses tasks table session_id column in state/tasks.db (via lib/db path).
+    # Gate 4: no in-progress task bound to this session via c_level_sessions
     try:
-        import sqlite3
-        db_path = _ROOT / "state" / "tasks.db"
-        if db_path.exists():
-            conn = sqlite3.connect(str(db_path))
-            conn.row_factory = sqlite3.Row
+        import sys as _sys
+        _sys.path.insert(0, str(_ROOT))
+        from lib.db import db_conn
+        with db_conn() as conn:
             row = conn.execute(
-                "SELECT id FROM tasks WHERE session_id=? AND status='in_progress' LIMIT 1",
-                (session_id,),
+                "SELECT 1 FROM c_level_sessions "
+                "WHERE role = ? AND session_id = ? AND active_task_id IS NOT NULL "
+                "AND active_task_id IN (SELECT id FROM tasks WHERE status = 'in_progress')",
+                (role, session_id),
             ).fetchone()
-            conn.close()
-            if row:
-                return _refuse(f"in-progress task {row['id']} bound to session")
+        if row is not None:
+            return _refuse("session has in-progress task")
     except Exception:
         pass
 

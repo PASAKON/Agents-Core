@@ -15,8 +15,11 @@ from claude_agent_sdk import (
     tool,
 )
 
+import os
+
 from lib import db
 from lib.config import get_project, projects, role as get_role
+from lib.db import register_cxo_session
 from lib.logger import get_logger
 from lib.notify import info, success, error, warn
 from tools import wiki as wiki_tools
@@ -222,6 +225,12 @@ async def run(ceo_request: str) -> str:
     log.info(f"CEO request: {ceo_request[:200]}")
     info(f"CTO received CEO request")
     _cleanup_zombies()
+    _sid = os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID", "")
+    if _sid:
+        try:
+            register_cxo_session("cto", _sid)
+        except Exception:
+            pass
 
     server = create_sdk_mcp_server(
         name="org-cto",

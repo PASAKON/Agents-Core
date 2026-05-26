@@ -473,6 +473,171 @@ def test_cxo_claude_initial_prompt_typed_after_spawn() -> bool:
         return proc.returncode == 0 and "hello world from test" in log_content
 
 
+def test_cleanup_zombies_removes_sibling_files() -> bool:
+    """Stale .winid + siblings (.topic/.lock/.watcher-pid) all removed."""
+    with tempfile.TemporaryDirectory() as tmp_s:
+        locks = Path(tmp_s) / "state" / "locks"
+        locks.mkdir(parents=True)
+
+        base = "cfo-req-stale1"
+        (locks / f"{base}.winid").write_text("9999\n")
+        (locks / f"{base}.topic").write_text("test-slug\n")
+        (locks / f"{base}.lock").write_text("12345\n")
+        (locks / f"{base}.watcher-pid").write_text("99999\n")  # dead pid
+
+        shim = Path(tmp_s) / "bin"
+        shim.mkdir()
+        (shim / "osascript").write_text("#!/usr/bin/env bash\necho ''\n")
+        (shim / "osascript").chmod(0o755)
+
+        src = (ROOT / "scripts" / "cleanup-zombies.sh").read_text()
+        patched = src.replace(
+            'ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"',
+            f'ROOT="{Path(tmp_s)}"',
+        )
+        sh = Path(tmp_s) / "cleanup-zombies.patched.sh"
+        sh.write_text(patched)
+        sh.chmod(0o755)
+
+        env = dict(os.environ)
+        env["PATH"] = f"{shim}:{env.get('PATH', '')}"
+        r = subprocess.run(["bash", str(sh)], env=env, capture_output=True, text=True, timeout=10)
+
+        removed = not (locks / f"{base}.winid").exists()
+        no_topic = not (locks / f"{base}.topic").exists()
+        no_lock_f = not (locks / f"{base}.lock").exists()
+        no_pid = not (locks / f"{base}.watcher-pid").exists()
+        return removed and no_topic and no_lock_f and no_pid and "1 stale lock set" in r.stdout
+
+
+def test_cleanup_zombies_does_not_touch_live() -> bool:
+    """Live winid + siblings left untouched."""
+    with tempfile.TemporaryDirectory() as tmp_s:
+        locks = Path(tmp_s) / "state" / "locks"
+        locks.mkdir(parents=True)
+
+        base = "cfo-req-live1"
+        (locks / f"{base}.winid").write_text("8888\n")
+        (locks / f"{base}.topic").write_text("live-slug\n")
+
+        shim = Path(tmp_s) / "bin"
+        shim.mkdir()
+        (shim / "osascript").write_text("#!/usr/bin/env bash\necho '8888'\n")
+        (shim / "osascript").chmod(0o755)
+
+        src = (ROOT / "scripts" / "cleanup-zombies.sh").read_text()
+        patched = src.replace(
+            'ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"',
+            f'ROOT="{Path(tmp_s)}"',
+        )
+        sh = Path(tmp_s) / "cleanup-zombies-live.patched.sh"
+        sh.write_text(patched)
+        sh.chmod(0o755)
+
+        env = dict(os.environ)
+        env["PATH"] = f"{shim}:{env.get('PATH', '')}"
+        r = subprocess.run(["bash", str(sh)], env=env, capture_output=True, text=True, timeout=10)
+
+        still_winid = (locks / f"{base}.winid").exists()
+        still_topic = (locks / f"{base}.topic").exists()
+        return still_winid and still_topic and "0 stale lock set" in r.stdout
+
+
+def test_close_session_refuses_when_session_busy() -> bool:
+    """close_session gate 4 refuses when c_level_sessions has active in-progress task."""
+    import unittest.mock as mock
+    from tools.itermtab import close_session, _LOCKS
+    import lib.db as _db
+
+    with tempfile.TemporaryDirectory() as tmp_s:
+        orig_path = _db.DB_PATH
+        _db.DB_PATH = Path(tmp_s) / "tasks.db"
+        lock_file = _LOCKS / "cfo-sess-busy.winid"
+        try:
+            _db.init()
+            with _db.get_conn() as conn:
+                conn.execute(
+                    "INSERT INTO tasks "
+                    "(id,project,role,status,title,description,depends_on,touches,created_at,updated_at) "
+                    "VALUES ('task-busytest','proj','cfo','in_progress','t','d','[]','[]','2026-01-01','2026-01-01')"
+                )
+                conn.execute(
+                    "INSERT INTO c_level_sessions (role,session_id,active_task_id,spawned_at) "
+                    "VALUES ('cfo','sess-busy','task-busytest','2026-01-01')"
+                )
+            lock_file.write_text("99998\n")
+
+            with mock.patch("tools.itermtab.subprocess.run") as fake_run:
+                fake_run.return_value = type("R", (), {
+                    "returncode": 0, "stdout": "99998\n", "stderr": "",
+                })()
+                with mock.patch.dict(os.environ, {"CXO_ROLE": "cfo", "CXO_SESSION_ID": "sess-busy"}):
+                    result = close_session("cfo", "sess-busy")
+        finally:
+            _db.DB_PATH = orig_path
+            lock_file.unlink(missing_ok=True)
+
+    return result is False
+
+
+def test_register_cxo_session_idempotent() -> bool:
+    """Calling register_cxo_session twice with same (role, sid) yields exactly one row."""
+    import lib.db as _db
+    with tempfile.TemporaryDirectory() as tmp_s:
+        orig_path = _db.DB_PATH
+        _db.DB_PATH = Path(tmp_s) / "tasks.db"
+        try:
+            _db.init()
+            _db.register_cxo_session("cmo", "sess-idm1")
+            _db.register_cxo_session("cmo", "sess-idm1")
+            with _db.get_conn() as conn:
+                count = conn.execute(
+                    "SELECT COUNT(*) FROM c_level_sessions "
+                    "WHERE role='cmo' AND session_id='sess-idm1'"
+                ).fetchone()[0]
+        finally:
+            _db.DB_PATH = orig_path
+    return count == 1
+
+
+def test_bind_session_to_task_clears_with_null() -> bool:
+    """bind_session_to_task sets active_task_id then clears it with None."""
+    import lib.db as _db
+    with tempfile.TemporaryDirectory() as tmp_s:
+        orig_path = _db.DB_PATH
+        _db.DB_PATH = Path(tmp_s) / "tasks.db"
+        try:
+            _db.init()
+            _db.register_cxo_session("cgo", "sess-bind1")
+            _db.bind_session_to_task("cgo", "sess-bind1", "task-abc123")
+            with _db.get_conn() as conn:
+                row = conn.execute(
+                    "SELECT active_task_id FROM c_level_sessions "
+                    "WHERE role='cgo' AND session_id='sess-bind1'"
+                ).fetchone()
+            bound = row[0] == "task-abc123"
+            _db.bind_session_to_task("cgo", "sess-bind1", None)
+            with _db.get_conn() as conn:
+                row2 = conn.execute(
+                    "SELECT active_task_id FROM c_level_sessions "
+                    "WHERE role='cgo' AND session_id='sess-bind1'"
+                ).fetchone()
+            cleared = row2[0] is None
+        finally:
+            _db.DB_PATH = orig_path
+    return bound and cleared
+
+
+def test_idle_ping_watcher_cli_entry() -> bool:
+    """tools/itermtab_close CLI exits 1 when lock file absent (gate 1 fails → False → exit 1)."""
+    r = subprocess.run(
+        [sys.executable, "-m", "tools.itermtab_close",
+         "--role", "cfo", "--session", "no-such-sess-unit"],
+        capture_output=True, text=True, timeout=10, cwd=str(ROOT),
+    )
+    return r.returncode == 1
+
+
 def main() -> int:
     fails = 0
     r = test_owner_cto_routing(); fails += not r
@@ -507,6 +672,18 @@ def main() -> int:
     _mark(r, "dedupe: stale winid → skipped, new tab spawned")
     r = test_cxo_claude_initial_prompt_typed_after_spawn(); fails += not r
     _mark(r, "cxo-claude.sh --initial-prompt fires osascript with prompt text")
+    r = test_cleanup_zombies_removes_sibling_files(); fails += not r
+    _mark(r, "cleanup-zombies removes all 4 sibling files for stale lock set")
+    r = test_cleanup_zombies_does_not_touch_live(); fails += not r
+    _mark(r, "cleanup-zombies leaves live lock set untouched")
+    r = test_close_session_refuses_when_session_busy(); fails += not r
+    _mark(r, "close_session gate 4: refuses when c_level_sessions has in-progress task")
+    r = test_register_cxo_session_idempotent(); fails += not r
+    _mark(r, "register_cxo_session is idempotent (no duplicate rows)")
+    r = test_bind_session_to_task_clears_with_null(); fails += not r
+    _mark(r, "bind_session_to_task sets and clears active_task_id")
+    r = test_idle_ping_watcher_cli_entry(); fails += not r
+    _mark(r, "itermtab_close CLI exits 1 when lock file absent (gate 1)")
     return 0 if fails == 0 else 1
 
 
