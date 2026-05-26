@@ -152,6 +152,15 @@ if [ -z "$SESSION_OVERRIDE" ]; then
   echo "$CXO_SESSION_ID" >"$ACTIVE_FILE"
 fi
 
+# Register session in c_level_sessions DB so gate 4 can query it later.
+(cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
+  python3 -m tools.register_cxo --role "$ROLE" --session "$CXO_SESSION_ID" 2>/dev/null || true) &
+
+# Launch idle-ping watcher in background (one per ephemeral session).
+# PID written to state/locks/<role>-<sid>.watcher-pid for GC tracking.
+bash "$ROOT/scripts/idle-ping-watcher.sh" --role "$ROLE" --session "$CXO_SESSION_ID" &
+disown $!
+
 cleanup() {
   rm -f "$LOCKFILE" "$WINID_FILE"
   # Only clear the active pointer if it still points at us and we wrote it.
