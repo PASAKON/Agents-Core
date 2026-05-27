@@ -37,6 +37,21 @@ def _conflict_files(repo: Path) -> list[str]:
         return []
 
 
+def _is_ancestor(repo: Path, ancestor: str, descendant: str) -> bool:
+    """True if `ancestor` is an ancestor of (or equal to) `descendant`.
+
+    Used to detect a no-op merge: if the task branch is already contained in
+    base, `git merge` reports "Already up to date" and creates no commit.
+    """
+    r = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+        cwd=str(repo), capture_output=True, text=True,
+    )
+    # exit 0 = is ancestor; 1 = not; other = bad ref / error (treat as "not"
+    # so the subsequent merge surfaces the real failure).
+    return r.returncode == 0
+
+
 def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                push: bool | None = None, cleanup: bool = True,
                gate_tests: bool = False) -> dict:
@@ -91,6 +106,26 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
     except GitOpsError:
         pass
 
+    # Capture pre-merge HEAD so we can verify the merge actually advances base.
+    pre_sha = _run(["git", "rev-parse", "HEAD"], cwd=repo)
+
+    # Guard: if the branch is already contained in base, `git merge` is a silent
+    # no-op ("Already up to date", exit 0). Without this guard the no-op was
+    # reported as merged=true (line below hardcoded it) AND triggered destructive
+    # cleanup (delete branch + worktree) while nothing landed — losing the work.
+    # An ancestor branch means it carries no new commits (stale/empty/wrong ref).
+    if _is_ancestor(repo, branch, "HEAD"):
+        msg = (f"branch {branch} is already an ancestor of {base} at "
+               f"{pre_sha[:8]} — nothing to merge (empty/stale branch ref?). "
+               f"Refusing to report success; branch + worktree preserved for retry.")
+        error(f"merge no-op on {task_id}: {msg}")
+        db.update_status(
+            task_id, "review", actor="cto",
+            review=json.dumps({"merge_error": msg, "branch": branch, "base": base}),
+        )
+        return {"merged": False, "no_op": True, "reason": msg,
+                "branch": branch, "base": base, "project": proj["key"]}
+
     merge_args = ["git", "merge", "--no-ff" if strategy == "no-ff" else "--ff",
                   "-m", f"Merge {branch} (task {task_id})", branch]
     try:
@@ -130,11 +165,20 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
         return {"merged": False, "conflict": True, "files": conflicts,
                 "issue": issue_url}
 
-    merge_sha = ""
-    try:
-        merge_sha = _run(["git", "rev-parse", "HEAD"], cwd=repo)
-    except GitOpsError:
-        pass
+    # Verify the merge actually advanced base. A no-ff merge of a branch with
+    # new commits always creates a new commit; if HEAD is unchanged the merge
+    # silently did nothing — fail loudly instead of reporting success + cleaning.
+    merge_sha = _run(["git", "rev-parse", "HEAD"], cwd=repo)
+    if merge_sha == pre_sha:
+        msg = (f"merge of {branch} did not advance {base} (HEAD still "
+               f"{pre_sha[:8]}). Aborting without cleanup; branch preserved.")
+        error(f"merge no-op on {task_id}: {msg}")
+        db.update_status(
+            task_id, "review", actor="cto",
+            review=json.dumps({"merge_error": msg, "branch": branch, "base": base}),
+        )
+        return {"merged": False, "no_op": True, "reason": msg,
+                "branch": branch, "base": base, "project": proj["key"]}
 
     result = {"merged": True, "branch": branch, "base": base, "project": proj["key"],
               "merge_sha": merge_sha}
