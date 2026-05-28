@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS locks (
 
 VALID_STATUS = {"pending", "in_progress", "review", "done", "failed",
                 "cancelled", "rate_limited", "stalled", "conflict",
-                "blocked_human"}
+                "blocked_human", "reverted", "merged"}
 
 # Columns added after initial release. init() runs idempotent ALTER TABLE
 # ADD COLUMN for each so existing DBs migrate forward without losing data.

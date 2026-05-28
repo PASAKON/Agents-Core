@@ -191,6 +191,20 @@ def stats() -> str:
     return json.dumps(db.stats())
 
 
+@mcp.tool()
+async def revert_task_tool(task_id: str, force: bool = False) -> str:
+    """Revert a previously merged task. CTO only.
+
+    Refuses if task status is not merged/done. Refuses if merge SHA is
+    >RVR_DEPTH_LIMIT commits behind HEAD unless force=True.
+
+    Re-fires auto_deploy on success if the project has it enabled and
+    not requires_ceo_ack.
+    """
+    from tools.revert_task import revert_task
+    return json.dumps(revert_task(task_id, force=force), ensure_ascii=False)
+
+
 if __name__ == "__main__":
     db.init()
     mcp.run()
