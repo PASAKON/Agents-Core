@@ -61,11 +61,15 @@ _get_winid() {
 _get_len() {
   local wid
   wid="$(_get_winid)" || { echo -1; return; }
+  # iTerm2's `length of (contents of ...)` raises a type-coercion error
+  # (-1700) on some versions. Bind contents to a variable first, then
+  # `count` it — that form is stable across iTerm builds.
   osascript 2>/dev/null <<EOASLEN || echo -1
 tell application "iTerm2"
   repeat with w in windows
     if id of w is $wid then
-      return length of (contents of current session of current tab of w)
+      set c to contents of current session of current tab of w
+      return count of c
     end if
   end repeat
   return -1
@@ -129,7 +133,16 @@ exit(0 if "เสร็จแล้ว" in c or "done" in c else 1)
 }
 
 baseline="$(_get_len)"
+# If initial read is -1, do not poison the baseline. Retry briefly.
+if [ "$baseline" = "-1" ]; then
+  for _retry in 1 2 3; do
+    sleep 2
+    baseline="$(_get_len)"
+    [ "$baseline" != "-1" ] && break
+  done
+fi
 idle_ts=$SECONDS
+miss_count=0  # consecutive _get_len failures
 
 while true; do
   sleep $POLL
@@ -138,7 +151,16 @@ while true; do
   if [ ! -f "$WINID_FILE" ]; then exit 0; fi
 
   cur="$(_get_len)"
-  if [ "$cur" = "-1" ]; then exit 0; fi  # window gone
+  if [ "$cur" = "-1" ]; then
+    # Transient AppleScript error vs real window gone:
+    # require 3 consecutive failures + lock file gone before exiting.
+    miss_count=$((miss_count + 1))
+    if [ $miss_count -ge 3 ] && [ ! -f "$WINID_FILE" ]; then
+      exit 0
+    fi
+    continue
+  fi
+  miss_count=0
 
   if [ "$cur" != "$baseline" ]; then
     # Activity: reset idle timer
@@ -157,13 +179,19 @@ while true; do
   ping_ts=$SECONDS
 
   # ---- Ping-wait loop ----
+  ping_miss=0
   while true; do
     sleep $POLL
 
     if [ ! -f "$WINID_FILE" ]; then exit 0; fi
 
     post="$(_get_len)"
-    if [ "$post" = "-1" ]; then exit 0; fi
+    if [ "$post" = "-1" ]; then
+      ping_miss=$((ping_miss + 1))
+      if [ $ping_miss -ge 3 ] && [ ! -f "$WINID_FILE" ]; then exit 0; fi
+      continue
+    fi
+    ping_miss=0
 
     if [ "$post" != "$ping_baseline" ]; then
       tail="$(_get_tail)"
