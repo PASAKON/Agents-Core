@@ -227,7 +227,7 @@ async def _wait_for_terminal(task_id: str, timeout_s: float) -> dict:
     warn(f"task {task_id} timed out after {timeout_s:.0f}s")
     db.update_status(
         task_id, "failed",
-        report=f"DEV timed out after {timeout_s:.0f}s without submit_report",
+        delegate_log=f"DEV timed out after {timeout_s:.0f}s without submit_report",
         actor="cto",
     )
     return db.get_task(task_id)
@@ -288,7 +288,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             warn(f"collision blocked task={task_id}: {summary}")
             db.update_status(
                 task_id, "conflict",
-                report=f"path collision with in-flight tasks: {summary}",
+                delegate_log=f"path collision with in-flight tasks: {summary}",
                 actor="cto",
             )
             return db.get_task(task_id)
@@ -298,7 +298,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             warn(f"lock acquire failed task={task_id} blocking={blocking}")
             db.update_status(
                 task_id, "conflict",
-                report=f"path locks held by another task: {blocking}",
+                delegate_log=f"path locks held by another task: {blocking}",
                 actor="cto",
             )
             return db.get_task(task_id)
@@ -334,7 +334,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         except subprocess.CalledProcessError as e:
             error(f"tmux create failed for {task_id}: {e.stderr or e}")
             db.update_status(task_id, "failed",
-                             report=f"tmux create failed: {e}", actor="cto")
+                             delegate_log=f"tmux create failed: {e}", actor="cto")
             return db.get_task(task_id)
 
         web_ui = (proj.get("web_ui") or "off").lower()
@@ -364,7 +364,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     except subprocess.CalledProcessError as e:
         error(f"failed to spawn iTerm tab for {task_id}: {e}")
         db.update_status(task_id, "failed",
-                         report=f"iTerm spawn failed: {e}", actor="cto")
+                         delegate_log=f"iTerm spawn failed: {e}", actor="cto")
         return db.get_task(task_id)
     except Exception as e:
         if touches:

@@ -76,6 +76,9 @@ _MIGRATION_COLUMNS = [
     ("ttyd_port", "INTEGER"),
     ("ttyd_pid", "INTEGER"),
     ("owner_cto", "TEXT"),
+    # Runner-level messages (collision, lock failure, spawn errors) go here;
+    # DEV completion summaries stay in tasks.report. Never mix the two.
+    ("delegate_log", "TEXT"),
 ]
 
 # Statuses where touched paths are no longer being modified — release locks.
@@ -118,6 +121,22 @@ def init():
         for col, coltype in _MIGRATION_COLUMNS:
             if col not in existing:
                 conn.execute(f"ALTER TABLE tasks ADD COLUMN {col} {coltype}")
+        # Backfill: move runner-generated messages out of report into
+        # delegate_log so DEV completion reports are never overwritten.
+        conn.execute("""
+            UPDATE tasks
+               SET delegate_log = report,
+                   report = NULL
+             WHERE report IS NOT NULL
+               AND delegate_log IS NULL
+               AND (   report LIKE 'path collision with%'
+                    OR report LIKE 'kickoff failed%'
+                    OR report LIKE 'lock contested%'
+                    OR report LIKE 'path locks held by%'
+                    OR report LIKE 'tmux create failed%'
+                    OR report LIKE 'iTerm spawn failed%'
+                    OR report LIKE 'DEV timed out%')
+        """)
     print(f"[db] initialized at {DB_PATH}")
 
 
@@ -169,6 +188,7 @@ VALID_COLUMNS = {
     "iteration", "description", "title",
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
     "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto",
+    "delegate_log",
 }
 
 

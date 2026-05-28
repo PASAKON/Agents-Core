@@ -136,7 +136,8 @@ async def delegate_parallel_tasks(task_ids: str) -> str:
 
 @mcp.tool()
 def get_task(task_id: str) -> str:
-    """Read a task row including report."""
+    """Read a task row. Includes both `report` (DEV completion summary) and
+    `delegate_log` (runner-level collision/spawn errors)."""
     t = db.get_task(task_id)
     return json.dumps(t, indent=2, default=str)[:6000]
 
