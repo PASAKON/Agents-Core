@@ -30,9 +30,9 @@ projects:
       - playbooks/backend.md
 
   - key: mooniex-webapp
-    name: "mooniex-webapp (Desk-A)"
-    path: "/Users/gob/Projects/mooniex-webapp (Desk-A)"
-    remote: git@github.com:golfmaichai1/mooniex-webapp.git
+    name: mooniex-webapp
+    path: /Users/gob/Projects/mooniex-webapp
+    remote: git@github.com:PASAKON/mooniex-webapp.git
     default_branch: main
     stack: [next.js, typescript, supabase]
     agents_allowed: *default_workers
