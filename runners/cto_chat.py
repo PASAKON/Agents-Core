@@ -150,7 +150,7 @@ def _print_banner(session_id: str | None, resumed: bool) -> None:
     p = COLORS["ceo"]
     print(f"{c}=========================================================={RESET}")
     print(f"{c}  CTO Chat — Mooniex Virtual Org{RESET}")
-    print(f"{c}  Model: claude-opus-4-7   |   Tools: 13{RESET}")
+    print(f"{c}  Model: claude-opus-4-8   |   Tools: 13{RESET}")
     print(f"{c}=========================================================={RESET}")
     if session_id:
         tag = "resumed" if resumed else "session"

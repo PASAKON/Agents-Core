@@ -227,7 +227,7 @@ fi
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
   -n "$TAB_TITLE" \
-  --model opus \
+  --model claude-opus-4-8 \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \
