@@ -17,7 +17,7 @@ roles:
   cto:
     display: CTO
     level: c
-    model: claude-opus-4-7
+    model: claude-opus-4-8
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -94,4 +94,44 @@ roles:
     can_push: false
     workspace_only: true
 
-c_level: [ceo, cto]
+  cmo:
+    display: CMO
+    level: c
+    model: claude-opus-4-8
+    can_write_wiki: true
+    can_create_task: true
+    can_merge: true
+    can_push: true
+    can_delete_branch: true
+
+  cgo:
+    display: CGO
+    level: c
+    model: claude-opus-4-8
+    can_write_wiki: true
+    can_create_task: true
+    can_merge: true
+    can_push: true
+    can_delete_branch: true
+
+  cfo:
+    display: CFO
+    level: c
+    model: claude-opus-4-8
+    can_write_wiki: true
+    can_create_task: true
+    can_merge: true
+    can_push: true
+    can_delete_branch: true
+
+  ads_manager:
+    display: Ads Manager
+    level: w
+    model: claude-sonnet-4-6
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+c_level: [ceo, cto, cmo, cgo, cfo]

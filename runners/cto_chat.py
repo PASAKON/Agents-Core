@@ -42,6 +42,7 @@ from rich.live import Live
 from rich.markdown import Markdown
 
 from lib import db
+from lib import cto_session
 from lib.config import role as get_role
 from lib.logger import get_logger
 from lib.notify import info, success, warn, error, COLORS, RESET
@@ -58,20 +59,22 @@ ROOT = Path(__file__).resolve().parent.parent
 ROLE = "cto"
 log = get_logger(ROLE, stdout=False)
 
-LOCK_PATH = ROOT / "state" / "locks" / "cto.lock"
+LOCK_DIR = ROOT / "state" / "locks"
 
 
-def _acquire_pid_lock() -> None:
-    """Prevent two CTO chats racing on the same task DB.
+def _lock_path(cto_id: str) -> Path:
+    return LOCK_DIR / f"cto-{cto_id}.lock"
 
-    On startup: if state/locks/cto.lock exists and the recorded PID is
-    alive, refuse to start. Otherwise overwrite with our PID and register
-    cleanup so a clean exit removes the lock.
-    """
-    LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if LOCK_PATH.exists():
+
+def _acquire_pid_lock(cto_id: str) -> None:
+    """Per-CTO PID lock. Two CTO instances with distinct CTO_SESSION_IDs can
+    coexist; the lock just prevents the same ID being reused by a second
+    process (which would mis-route DEV replies)."""
+    LOCK_DIR.mkdir(parents=True, exist_ok=True)
+    p = _lock_path(cto_id)
+    if p.exists():
         try:
-            other = int(LOCK_PATH.read_text().strip() or "0")
+            other = int(p.read_text().strip() or "0")
         except ValueError:
             other = 0
         if other and other != os.getpid():
@@ -84,22 +87,32 @@ def _acquire_pid_lock() -> None:
                 alive = True
             if alive:
                 print(
-                    f"  another CTO chat is running (pid {other}). "
-                    f"refuse to start a second one.\n"
-                    f"  lock file: {LOCK_PATH}\n"
-                    f"  if the other process is dead, delete the lock manually.",
+                    f"  another CTO chat is running with id={cto_id} "
+                    f"(pid {other}). refuse to start a second one.\n"
+                    f"  lock file: {p}\n"
+                    f"  if dead, delete the lock manually.",
                     file=sys.stderr,
                 )
                 sys.exit(1)
-    LOCK_PATH.write_text(f"{os.getpid()}\n", encoding="utf-8")
-    atexit.register(_release_pid_lock)
+    p.write_text(f"{os.getpid()}\n", encoding="utf-8")
+    atexit.register(_release_pid_lock, cto_id)
 
 
-def _release_pid_lock() -> None:
+def _release_pid_lock(cto_id: str) -> None:
     try:
-        if LOCK_PATH.exists() and LOCK_PATH.read_text().strip() == str(os.getpid()):
-            LOCK_PATH.unlink()
+        p = _lock_path(cto_id)
+        if p.exists() and p.read_text().strip() == str(os.getpid()):
+            p.unlink()
     except OSError:
+        pass
+
+
+def _set_iterm_tab_title(title: str) -> None:
+    """Emit ANSI OSC 0 to rename the current iTerm tab."""
+    try:
+        sys.stdout.write(f"\033]0;{title}\007")
+        sys.stdout.flush()
+    except Exception:
         pass
 
 
@@ -148,9 +161,12 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
 def _print_banner(session_id: str | None, resumed: bool) -> None:
     c = COLORS["cto"]
     p = COLORS["ceo"]
+    cto_id = cto_session.current_id()
     print(f"{c}=========================================================={RESET}")
     print(f"{c}  CTO Chat — Mooniex Virtual Org{RESET}")
-    print(f"{c}  Model: claude-opus-4-7   |   Tools: 13{RESET}")
+    print(f"{c}  Model: claude-opus-4-8   |   Tools: 13{RESET}")
+    if cto_id:
+        print(f"{c}  CTO id: #{cto_id}   log: state/logs/cto-{cto_id}.log{RESET}")
     print(f"{c}=========================================================={RESET}")
     if session_id:
         tag = "resumed" if resumed else "session"
@@ -360,7 +376,9 @@ def main():
     g.add_argument("--last", action="store_true", help="resume most recent session")
     args = ap.parse_args()
 
-    _acquire_pid_lock()
+    cto_id = cto_session.ensure_cto_id()
+    _set_iterm_tab_title(cto_session.tab_title(cto_id))
+    _acquire_pid_lock(cto_id)
     db.init()
 
     initial = None
