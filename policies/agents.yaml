@@ -63,7 +63,7 @@ roles:
   developer:
     display: Developer
     level: w
-    model: claude-sonnet-4-6
+    model: claude-opus-4-8
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -73,7 +73,7 @@ roles:
   tester:
     display: Tester
     level: w
-    model: claude-haiku-4-5
+    model: claude-opus-4-8
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -83,7 +83,7 @@ roles:
   web_designer:
     display: Web Designer
     level: w
-    model: claude-sonnet-4-6
+    model: claude-opus-4-8
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -93,7 +93,7 @@ roles:
   devops_engineer:
     display: DevOps Engineer
     level: w
-    model: claude-sonnet-4-6
+    model: claude-opus-4-8
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -103,7 +103,7 @@ roles:
   security_engineer:
     display: Security Engineer
     level: w
-    model: claude-sonnet-4-6
+    model: claude-opus-4-8
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -113,7 +113,7 @@ roles:
   data_analyst:
     display: Data Analytics
     level: w
-    model: claude-sonnet-4-6
+    model: claude-opus-4-8
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -123,7 +123,17 @@ roles:
   prompt_engineer:
     display: Prompt Engineer
     level: w
-    model: claude-sonnet-4-6
+    model: claude-opus-4-8
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+  content_strategist:
+    display: Content Strategist
+    level: w
+    model: claude-opus-4-8
     can_write_wiki: false
     can_create_task: false
     can_merge: false

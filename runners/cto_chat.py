@@ -128,6 +128,7 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
     )
     return ClaudeAgentOptions(
         model=get_role("cto")["model"],
+        effort="max",
         system_prompt=_system_prompt(),
         permission_mode="acceptEdits",
         mcp_servers={"org": server},

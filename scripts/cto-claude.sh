@@ -74,7 +74,8 @@ printf '\033]0;CTO Chat #%s\007' "$CTO_SESSION_ID"
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
   -n "CTO Chat #$CTO_SESSION_ID" \
-  --model opus \
+  --model claude-opus-4-8 \
+  --effort max \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \

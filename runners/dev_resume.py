@@ -60,9 +60,9 @@ def main() -> None:
     project = get_project(task["project"])
     role_doc = (ROOT / "roles" / f"{role}.md").read_text()
     try:
-        model = get_role(role).get("model") or "claude-sonnet-4-6"
+        model = get_role(role).get("model") or "claude-opus-4-8"
     except ValueError:
-        model = "claude-sonnet-4-6"
+        model = "claude-opus-4-8"
 
     env = os.environ.copy()
     env["DEV_TASK_ID"] = task_id
@@ -92,6 +92,7 @@ def main() -> None:
             "-n", f"{role}:{task_id}",
             "--resume", session_id,
             "--model", model,
+            "--effort", "max",
             "--permission-mode", "auto",
             "--append-system-prompt", role_doc,
             "--mcp-config", str(ROOT / "config" / "dev.mcp.json"),

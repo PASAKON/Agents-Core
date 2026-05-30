@@ -228,6 +228,7 @@ fi
 claude \
   -n "$TAB_TITLE" \
   --model claude-opus-4-8 \
+  --effort max \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \

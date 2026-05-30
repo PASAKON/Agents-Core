@@ -112,6 +112,7 @@ Begin.
 
     options = ClaudeAgentOptions(
         model=role_cfg["model"],
+        effort="max",
         system_prompt=_role_prompt(role),
         permission_mode="acceptEdits",
         cwd=worktree,
