@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import sys
 import uuid
@@ -85,6 +86,8 @@ _MIGRATION_COLUMNS = [
     ("tmux_session", "TEXT"),
     ("ttyd_port", "INTEGER"),
     ("ttyd_pid", "INTEGER"),
+    # owning CTO session id — DEV reports route back to this CTO's tab
+    ("owner_cto", "TEXT"),
 ]
 
 # Statuses where touched paths are no longer being modified — release locks.
@@ -142,15 +145,21 @@ def create_task(
     parent_task: str | None = None,
     depends_on: list[str] | None = None,
     touches: list[str] | None = None,
+    owner_cto: str | None = None,
 ) -> str:
+    # Stamp the spawning CTO so DEV reports route back to that CTO's tab
+    # instead of broadcasting to every open CTO chat. Falls back to the
+    # CTO_SESSION_ID in the creating process env when not passed explicitly.
+    if owner_cto is None:
+        owner_cto = os.environ.get("CTO_SESSION_ID")
     tid = new_task_id()
     ts = now_iso()
     with get_conn() as conn:
         conn.execute(
-            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,created_at,updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,created_at,updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
             (tid, project, role, "pending", title, description, parent_task,
-             json.dumps(depends_on or []), json.dumps(touches or []), ts, ts),
+             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, ts, ts),
         )
         log_event(conn, tid, "system", "task_created",
                   {"role": role, "title": title, "touches": touches or []})
@@ -214,7 +223,8 @@ def get_task(task_id: str) -> dict | None:
 
 
 def list_tasks(status: str | None = None, project: str | None = None,
-               role: str | None = None, limit: int = 100) -> list[dict]:
+               role: str | None = None, owner_cto: str | None = None,
+               limit: int = 100) -> list[dict]:
     q = "SELECT * FROM tasks WHERE 1=1"
     args = []
     if status:
@@ -226,6 +236,9 @@ def list_tasks(status: str | None = None, project: str | None = None,
     if role:
         q += " AND role=?"
         args.append(role)
+    if owner_cto:
+        q += " AND owner_cto=?"
+        args.append(owner_cto)
     q += " ORDER BY updated_at DESC LIMIT ?"
     args.append(limit)
     with get_conn() as conn:

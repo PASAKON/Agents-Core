@@ -195,7 +195,8 @@ def request_human_handoff(
             f"  issue: {issue or '(none)'}\n"
             "  Reply `resume` after solving."
         )
-        send_to_cto(TASK_ID, attn, role=ROLE)
+        from lib import cto_session
+        send_to_cto(TASK_ID, attn, role=ROLE, cto_id=cto_session.current_id())
     except Exception as e:
         info(f"request_human_handoff chat relay failed: {e}")
 

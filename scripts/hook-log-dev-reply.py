@@ -192,7 +192,9 @@ def main() -> int:
         try:
             sys.path.insert(0, str(ROOT))
             from tools.send_to_cto import send as send_to_cto
-            send_to_cto(task_id, relay, role=role)
+            from lib import cto_session
+            send_to_cto(task_id, relay, role=role,
+                        cto_id=cto_session.current_id())
         except Exception:
             pass
 

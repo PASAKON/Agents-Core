@@ -53,15 +53,21 @@ tell application "iTerm"
   set didSend to false
   repeat with w in windows
     repeat with t in tabs of w
-      tell t
-        if name of current session contains "{primary}" then
-          tell current session
-            write text "{escaped}" newline NO
-            write text (ASCII character 13) newline NO
-          end tell
-          set didSend to true
-        end if
-      end tell
+      set tabName to ""
+      try
+        set tabName to name of t
+      end try
+      set sessName to ""
+      try
+        set sessName to name of current session of t
+      end try
+      if (tabName contains "{primary}") or (sessName contains "{primary}") then
+        tell current session of t
+          write text "{escaped}" newline NO
+          write text (ASCII character 13) newline NO
+        end tell
+        set didSend to true
+      end if
     end repeat
   end repeat
   if didSend then
@@ -70,15 +76,21 @@ tell application "iTerm"
   set didFallback to false
   repeat with w in windows
     repeat with t in tabs of w
-      tell t
-        if name of current session contains "{fallback}" then
-          tell current session
-            write text "{escaped}" newline NO
-            write text (ASCII character 13) newline NO
-          end tell
-          set didFallback to true
-        end if
-      end tell
+      set tabName to ""
+      try
+        set tabName to name of t
+      end try
+      set sessName to ""
+      try
+        set sessName to name of current session of t
+      end try
+      if (tabName contains "{fallback}") or (sessName contains "{fallback}") then
+        tell current session of t
+          write text "{escaped}" newline NO
+          write text (ASCII character 13) newline NO
+        end tell
+        set didFallback to true
+      end if
     end repeat
   end repeat
   if didFallback then
