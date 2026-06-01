@@ -310,6 +310,15 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                          branch=wt_info["branch"],
                          actor="cto")
         info(f"worktree ready: {wt_info['worktree']}")
+    elif task.get("status") != "pending":
+        # Re-delegate of a task whose worktree already exists. dev_init's
+        # claim_task only fires on status='pending' AND assigned_agent IS
+        # NULL, so without this reset the respawned DEV cannot claim and
+        # dies silently at a bare shell. 'pending' is not a releasing
+        # status, so the path locks acquired just above stay held.
+        db.update_status(task_id, "pending",
+                         assigned_agent=None, pid=None, actor="cto")
+        info(f"re-delegate: reset task={task_id} to pending for re-claim")
 
     info(f"delegate task={task_id} role={role_name} project={project_key}")
 
