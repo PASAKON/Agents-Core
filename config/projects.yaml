@@ -53,12 +53,16 @@ projects:
     auto_deploy:
       enabled: false
       requires_ceo_ack: true
+      # Webhook server runs in Docker (docker-compose.webhook.yml), NOT pm2.
+      # Corrected 2026-06-01 after the P1 LINE-fix deploy: pm2 reload never
+      # touched the webhook container. Rebuild the image so new code lands.
       command: |
         ssh mooniex-vps 'cd /root/projects/mooniex-claudeflow \
           && git fetch origin --quiet \
           && git reset --hard origin/main \
-          && pm2 reload claudeflow --update-env'
-      timeout_seconds: 60
+          && docker compose -f docker-compose.webhook.yml up -d --build'
+      # Docker image rebuild can exceed 60s; give it headroom.
+      timeout_seconds: 300
     wiki_refs:
       - playbooks/backend.md
 
