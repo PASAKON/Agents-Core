@@ -137,11 +137,11 @@ def main() -> None:
     role_doc = (ROOT / "roles" / f"{role}.md").read_text()
     prompt = _build_prompt(task, project, worktree)
     try:
-        model = get_role(role).get("model") or "claude-opus-4-8"
+        model = get_role(role).get("model") or "claude-opus-4-8[1m]"
     except ValueError:
         # role file exists in roles/ but not registered in policies/agents.yaml
         # fall back to worker-tier default
-        model = "claude-opus-4-8"
+        model = "claude-opus-4-8[1m]"
 
     env = os.environ.copy()
     env["DEV_TASK_ID"] = task_id

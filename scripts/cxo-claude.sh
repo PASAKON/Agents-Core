@@ -227,7 +227,7 @@ fi
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
   -n "$TAB_TITLE" \
-  --model claude-opus-4-8 \
+  --model 'claude-opus-4-8[1m]' \
   --effort max \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
