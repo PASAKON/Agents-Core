@@ -4,6 +4,25 @@
 # Note: projects are NOT split by frontend/backend. Each project allows all
 # worker roles; CTO picks the right role per task.
 
+# Optional auto_deploy block (per project):
+#
+#   auto_deploy:
+#     enabled: false                # default false; explicit opt-in required
+#     requires_ceo_ack: true        # if true, merge_task records "awaiting_ceo_ack"
+#                                   # and does NOT run the command; the deploy_task
+#                                   # MCP tool (separate feature) fires it later
+#     command: |
+#       ssh host 'cd /path && git fetch origin --quiet \
+#         && git reset --hard origin/main && pm2 reload app --update-env'
+#     timeout_seconds: 60           # subprocess timeout; default 60
+#
+# Behaviour:
+#   - No auto_deploy block → deploy field in merge result = {deployed: false, reason: "no auto_deploy config"}
+#   - enabled: false → same as no block (no-op)
+#   - enabled: true, requires_ceo_ack: true → deploy field = {deployed: false, reason: "awaiting_ceo_ack", command: ...}
+#   - enabled: true, requires_ceo_ack: false → command runs; stdout/stderr tails + rc captured
+#   - Command failure never rolls back the merge; merge result is always preserved
+
 _default_workers: &default_workers
   - developer
   - tester
@@ -30,6 +49,16 @@ projects:
     gate_tests: false
     # CEO preference 2026-05-19: iTerm only — no auto ttyd browser
     # (default backend = iterm, no spawn_backend / web_ui keys)
+    # Auto-deploy: disabled by default. CEO sets enabled: true to activate.
+    auto_deploy:
+      enabled: false
+      requires_ceo_ack: true
+      command: |
+        ssh mooniex-vps 'cd /root/projects/mooniex-claudeflow \
+          && git fetch origin --quiet \
+          && git reset --hard origin/main \
+          && pm2 reload claudeflow --update-env'
+      timeout_seconds: 60
     wiki_refs:
       - playbooks/backend.md
 

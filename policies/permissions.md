@@ -9,7 +9,7 @@ tool-level checks in `Agents/tools/*`).
 | Role          | Level | Model              | Wiki Write | Create Task | Merge | Push | Delete Branch | Workspace Only |
 |---------------|-------|--------------------|:----------:|:-----------:|:-----:|:----:|:-------------:|:--------------:|
 | ceo           | C     | (human)            | yes        | yes         | yes   | yes  | yes           | no             |
-| cto           | C     | claude-opus-4-7    | yes        | yes         | yes   | yes  | yes           | no             |
+| cto           | C     | claude-opus-4-8    | yes        | yes         | yes   | yes  | yes           | no             |
 | frontend_dev  | W     | claude-sonnet-4-6  | no         | no          | no    | no   | no            | yes            |
 | backend_dev   | W     | claude-sonnet-4-6  | no         | no          | no    | no   | no            | yes            |
 | devops        | W     | claude-sonnet-4-6  | no         | no          | no    | no   | no            | yes            |

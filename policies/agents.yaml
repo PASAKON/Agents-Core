@@ -29,36 +29,30 @@ roles:
     level: c
     model: "claude-opus-4-8[1m]"
     can_write_wiki: true
-    can_create_task: false
-    can_merge: false
-    can_push: false
+    can_create_task: true
+    can_merge: true
+    can_push: true
+    can_delete_branch: true
 
   cgo:
     display: CGO
     level: c
     model: "claude-opus-4-8[1m]"
     can_write_wiki: true
-    can_create_task: false
-    can_merge: false
-    can_push: false
+    can_create_task: true
+    can_merge: true
+    can_push: true
+    can_delete_branch: true
 
   cmo:
     display: CMO
     level: c
     model: "claude-opus-4-8[1m]"
     can_write_wiki: true
-    can_create_task: false
-    can_merge: false
-    can_push: false
-
-  ads_manager:
-    display: Ads Manager
-    level: c
-    model: "claude-opus-4-8[1m]"
-    can_write_wiki: true
-    can_create_task: false
-    can_merge: false
-    can_push: false
+    can_create_task: true
+    can_merge: true
+    can_push: true
+    can_delete_branch: true
 
   developer:
     display: Developer
@@ -130,6 +124,16 @@ roles:
     can_push: false
     workspace_only: true
 
+  ads_manager:
+    display: Ads Manager
+    level: w
+    model: "claude-opus-4-8[1m]"
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
   content_strategist:
     display: Content Strategist
     level: w
@@ -140,4 +144,4 @@ roles:
     can_push: false
     workspace_only: true
 
-c_level: [ceo, cto, cfo, cgo, cmo, ads_manager]
+c_level: [ceo, cto, cmo, cgo, cfo]

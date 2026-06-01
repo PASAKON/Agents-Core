@@ -146,6 +146,8 @@ def main() -> None:
     env = os.environ.copy()
     env["DEV_TASK_ID"] = task_id
     env["DEV_ROLE"] = role
+    if task.get("owner_cto"):
+        env["DEV_CTO_ID"] = task["owner_cto"]
 
     # PID survives os.execvpe — record now so the watchdog can probe the
     # claude TUI's liveness directly instead of guessing from log mtime.

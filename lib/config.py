@@ -1,4 +1,12 @@
-"""Config loader for projects.yaml and agents.yaml."""
+"""Config loader for projects.yaml and agents.yaml.
+
+Project dict optional fields (beyond the required key/name/path/remote/default_branch):
+  auto_deploy (dict | None):
+    enabled (bool)           – must be True to trigger deploy; default False
+    requires_ceo_ack (bool)  – if True, deploy is deferred (awaiting_ceo_ack); no command runs
+    command (str)            – shell command executed via subprocess (shell=True)
+    timeout_seconds (int)    – subprocess timeout; default 60
+"""
 from __future__ import annotations
 
 from functools import lru_cache

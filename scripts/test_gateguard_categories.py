@@ -1,0 +1,231 @@
+"""Tests for the GateGuard category-bypass wrapper.
+
+Run via:  python scripts/test_gateguard_categories.py
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parent.parent
+SCRIPTS = ROOT / "scripts"
+sys.path.insert(0, str(SCRIPTS))
+
+import gateguard_categories as gc
+
+_failures = 0
+
+
+def _mark(ok: bool, msg: str) -> None:
+    global _failures
+    if not ok:
+        _failures += 1
+    print(f"  [{'PASS' if ok else 'FAIL'}] {msg}")
+
+
+def _isolate_state(tmp_root: Path):
+    """Context manager that redirects STATE_DIR and pins the session key."""
+    class _Ctx:
+        def __enter__(self):
+            self.old_dir = gc.STATE_DIR
+            # Use the same path the subprocess will compute: HOME/.claude/state
+            self.state_dir = tmp_root / ".claude" / "state"
+            gc.STATE_DIR = self.state_dir
+            self.backup = {k: os.environ.pop(k, None)
+                           for k in ("CLAUDE_SESSION_ID", "ECC_SESSION_ID", "CLAUDE_PROJECT_DIR")}
+            os.environ["CLAUDE_SESSION_ID"] = "test-session-fixed"
+            return self.state_dir
+
+        def __exit__(self, *_):
+            gc.STATE_DIR = self.old_dir
+            for k, v in self.backup.items():
+                if v is not None:
+                    os.environ[k] = v
+                else:
+                    os.environ.pop(k, None)
+    return _Ctx()
+
+
+# --- Test 1 ---
+def test_fresh_state_returns_false():
+    with tempfile.TemporaryDirectory() as td:
+        with _isolate_state(Path(td)):
+            result = gc.is_category_presented("wiki_edit")
+    _mark(result is False,
+          "fresh state → is_category_presented('wiki_edit') is False")
+
+
+# --- Test 2 ---
+def test_mark_then_check_returns_true():
+    with tempfile.TemporaryDirectory() as td:
+        with _isolate_state(Path(td)):
+            gc.mark_category_presented("wiki_edit")
+            result = gc.is_category_presented("wiki_edit")
+    _mark(result is True,
+          "after mark_category_presented → is_category_presented returns True")
+
+
+# --- Test 3 ---
+def test_expired_state_returns_false():
+    with tempfile.TemporaryDirectory() as td:
+        with _isolate_state(Path(td)):
+            gc.mark_category_presented("wiki_edit")
+            future_time = time.time() + 31 * 60
+            with patch("gateguard_categories.time") as mock_time:
+                mock_time.time.return_value = future_time
+                result = gc.is_category_presented("wiki_edit")
+    _mark(result is False,
+          "state older than 30min → is_category_presented returns False (expired)")
+
+
+# --- Test 4 ---
+def test_category_for_wiki_path():
+    result = gc.category_for("/Users/gob/Projects/LLMs/IRON-RULES.md")
+    _mark(result == "wiki_edit",
+          "category_for('/Users/gob/Projects/LLMs/IRON-RULES.md') == 'wiki_edit'")
+
+
+# --- Test 5 ---
+def test_category_for_unknown_path():
+    result = gc.category_for("/Users/gob/random/file.md")
+    _mark(result is None,
+          "category_for('/Users/gob/random/file.md') is None")
+
+
+# --- Test 6a ---
+def test_session_key_uses_claude_session_id():
+    backup = {k: os.environ.pop(k, None)
+              for k in ("CLAUDE_SESSION_ID", "ECC_SESSION_ID")}
+    os.environ["CLAUDE_SESSION_ID"] = "abc-123"
+    try:
+        key = gc.session_key()
+        _mark(key == "abc-123",
+              "CLAUDE_SESSION_ID='abc-123' → session_key() == 'abc-123'")
+    finally:
+        for k, v in backup.items():
+            if v is not None:
+                os.environ[k] = v
+            else:
+                os.environ.pop(k, None)
+
+
+# --- Test 6b ---
+def test_session_key_proj_hash_fallback():
+    backup = {k: os.environ.pop(k, None)
+              for k in ("CLAUDE_SESSION_ID", "ECC_SESSION_ID", "CLAUDE_PROJECT_DIR")}
+    try:
+        key = gc.session_key()
+        expected_prefix = "proj-"
+        _mark(key.startswith(expected_prefix) and len(key) == len(expected_prefix) + 24,
+              f"no env vars → session_key() has 'proj-<24hex>' shape: {key!r}")
+    finally:
+        for k, v in backup.items():
+            if v is not None:
+                os.environ[k] = v
+            else:
+                os.environ.pop(k, None)
+
+
+def _run_pre_hook(payload: dict, home_dir: str) -> str:
+    """Run the pre-hook script with a given HOME, return stripped stdout."""
+    pre_hook = SCRIPTS / "hook-gateguard-category-pre.py"
+    env = {
+        "CLAUDE_SESSION_ID": "test-session-fixed",
+        "HOME": home_dir,
+        "PATH": os.environ.get("PATH", ""),
+    }
+    result = subprocess.run(
+        [sys.executable, str(pre_hook)],
+        input=json.dumps(payload),
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    return result.stdout.strip()
+
+
+# --- Test 7 ---
+def test_pre_hook_allows_when_category_presented():
+    with tempfile.TemporaryDirectory() as td:
+        home = Path(td)
+        with _isolate_state(home):
+            gc.mark_category_presented("wiki_edit")
+
+        payload = {
+            "tool_name": "Edit",
+            "tool_input": {"file_path": "/Users/gob/Projects/LLMs/IRON-RULES.md"},
+        }
+        stdout = _run_pre_hook(payload, str(home))
+
+    try:
+        data = json.loads(stdout)
+        decision = (data.get("hookSpecificOutput") or {}).get("permissionDecision")
+        _mark(decision == "allow",
+              "pre-hook with presented category → permissionDecision == 'allow'")
+    except Exception:
+        _mark(False, f"pre-hook with presented category → bad stdout: {stdout!r}")
+
+
+# --- Test 8 ---
+def test_pre_hook_passthrough_when_category_not_presented():
+    with tempfile.TemporaryDirectory() as td:
+        home = Path(td)
+        payload = {
+            "tool_name": "Edit",
+            "tool_input": {"file_path": "/Users/gob/Projects/LLMs/IRON-RULES.md"},
+        }
+        stdout = _run_pre_hook(payload, str(home))
+
+    _mark(stdout == "",
+          "pre-hook before marking → empty stdout (pass-through to ECC)")
+
+
+# --- Test 9 ---
+def test_pre_hook_passthrough_mixed_paths():
+    """MultiEdit with one presented wiki path + one unknown-category path → pass-through."""
+    with tempfile.TemporaryDirectory() as td:
+        home = Path(td)
+        with _isolate_state(home):
+            gc.mark_category_presented("wiki_edit")
+
+        payload = {
+            "tool_name": "MultiEdit",
+            "tool_input": {
+                "edits": [
+                    {"file_path": "/Users/gob/Projects/LLMs/IRON-RULES.md"},
+                    {"file_path": "/Users/gob/random/unknown-file.py"},
+                ]
+            },
+        }
+        stdout = _run_pre_hook(payload, str(home))
+
+    _mark(stdout == "",
+          "multi-edit with one unknown-category path → empty stdout (no short-circuit)")
+
+
+def main() -> int:
+    print("Running GateGuard category tests...\n")
+    test_fresh_state_returns_false()
+    test_mark_then_check_returns_true()
+    test_expired_state_returns_false()
+    test_category_for_wiki_path()
+    test_category_for_unknown_path()
+    test_session_key_uses_claude_session_id()
+    test_session_key_proj_hash_fallback()
+    test_pre_hook_allows_when_category_presented()
+    test_pre_hook_passthrough_when_category_not_presented()
+    test_pre_hook_passthrough_mixed_paths()
+
+    total = 10
+    print(f"\n{'ALL PASS' if _failures == 0 else str(_failures) + ' FAILED'} ({total - _failures}/{total})")
+    return 1 if _failures else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

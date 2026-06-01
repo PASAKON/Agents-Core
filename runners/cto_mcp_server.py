@@ -9,6 +9,7 @@ mcp__org__<tool_name> inside Claude Code.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -96,6 +97,7 @@ def create_task(
         description=description,
         depends_on=deps,
         touches=paths,
+        owner_cto=os.environ.get("CTO_SESSION_ID"),
     )
     info(f"task created {tid} → {role} on {project} touches={paths}")
     return tid
@@ -134,7 +136,8 @@ async def delegate_parallel_tasks(task_ids: str) -> str:
 
 @mcp.tool()
 def get_task(task_id: str) -> str:
-    """Read a task row including report."""
+    """Read a task row. Includes both `report` (DEV completion summary) and
+    `delegate_log` (runner-level collision/spawn errors)."""
     t = db.get_task(task_id)
     return json.dumps(t, indent=2, default=str)[:6000]
 
@@ -186,6 +189,20 @@ def list_projects() -> str:
 def stats() -> str:
     """Get task counts by status."""
     return json.dumps(db.stats())
+
+
+@mcp.tool()
+async def revert_task_tool(task_id: str, force: bool = False) -> str:
+    """Revert a previously merged task. CTO only.
+
+    Refuses if task status is not merged/done. Refuses if merge SHA is
+    >RVR_DEPTH_LIMIT commits behind HEAD unless force=True.
+
+    Re-fires auto_deploy on success if the project has it enabled and
+    not requires_ceo_ack.
+    """
+    from tools.revert_task import revert_task
+    return json.dumps(revert_task(task_id, force=force), ensure_ascii=False)
 
 
 if __name__ == "__main__":

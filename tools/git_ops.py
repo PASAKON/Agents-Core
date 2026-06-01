@@ -195,6 +195,40 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
             result["push_error"] = str(e)[:500]
             error(f"push failed: {e}")
 
+    # Auto-deploy: fire-and-capture; never raise — merge result always preserved.
+    auto = proj.get("auto_deploy") or {}
+    deploy_result: dict = {"deployed": False, "reason": "no auto_deploy config"}
+
+    if auto.get("enabled"):
+        if auto.get("requires_ceo_ack"):
+            deploy_result = {"deployed": False, "reason": "awaiting_ceo_ack",
+                             "command": auto.get("command", "")}
+            info(f"auto_deploy: awaiting CEO ack for {proj['key']}")
+        else:
+            cmd = auto.get("command", "")
+            timeout = int(auto.get("timeout_seconds", 60))
+            info(f"auto_deploy: running command for {proj['key']} (timeout={timeout}s)")
+            try:
+                proc = subprocess.run(
+                    cmd, shell=True, capture_output=True, text=True, timeout=timeout
+                )
+                deploy_result = {
+                    "deployed": proc.returncode == 0,
+                    "stdout": proc.stdout[-500:],
+                    "stderr": proc.stderr[-500:],
+                    "rc": proc.returncode,
+                }
+                if proc.returncode == 0:
+                    success(f"auto_deploy: succeeded for {proj['key']}")
+                else:
+                    error(f"auto_deploy: failed rc={proc.returncode} for {proj['key']}")
+            except subprocess.TimeoutExpired:
+                deploy_result = {"deployed": False, "reason": "timeout",
+                                 "timeout_seconds": timeout}
+                error(f"auto_deploy: timeout ({timeout}s) for {proj['key']}")
+
+    result["deploy"] = deploy_result
+
     if cleanup:
         try:
             remove_worktree(task["project"], task["role"], task_id, delete_branch=True)

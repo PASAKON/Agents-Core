@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     session_id      TEXT,
     retry_after_ts  TEXT,
     last_checkpoint TEXT,
+    owner_cto       TEXT,
     created_at      TEXT NOT NULL,
     updated_at      TEXT NOT NULL
 );
@@ -72,7 +73,7 @@ CREATE INDEX IF NOT EXISTS idx_c_level_sessions_task
 
 VALID_STATUS = {"pending", "in_progress", "review", "done", "failed",
                 "cancelled", "rate_limited", "stalled", "conflict",
-                "blocked_human"}
+                "blocked_human", "reverted", "merged"}
 
 # Columns added after initial release. init() runs idempotent ALTER TABLE
 # ADD COLUMN for each so existing DBs migrate forward without losing data.
@@ -88,6 +89,9 @@ _MIGRATION_COLUMNS = [
     ("ttyd_pid", "INTEGER"),
     # owning CTO session id — DEV reports route back to this CTO's tab
     ("owner_cto", "TEXT"),
+    # Runner-level messages (collision, lock failure, spawn errors) go here;
+    # DEV completion summaries stay in tasks.report. Never mix the two.
+    ("delegate_log", "TEXT"),
 ]
 
 # Statuses where touched paths are no longer being modified — release locks.
@@ -130,6 +134,22 @@ def init():
         for col, coltype in _MIGRATION_COLUMNS:
             if col not in existing:
                 conn.execute(f"ALTER TABLE tasks ADD COLUMN {col} {coltype}")
+        # Backfill: move runner-generated messages out of report into
+        # delegate_log so DEV completion reports are never overwritten.
+        conn.execute("""
+            UPDATE tasks
+               SET delegate_log = report,
+                   report = NULL
+             WHERE report IS NOT NULL
+               AND delegate_log IS NULL
+               AND (   report LIKE 'path collision with%'
+                    OR report LIKE 'kickoff failed%'
+                    OR report LIKE 'lock contested%'
+                    OR report LIKE 'path locks held by%'
+                    OR report LIKE 'tmux create failed%'
+                    OR report LIKE 'iTerm spawn failed%'
+                    OR report LIKE 'DEV timed out%')
+        """)
     print(f"[db] initialized at {DB_PATH}")
 
 
@@ -185,7 +205,8 @@ VALID_COLUMNS = {
     "assigned_agent", "worktree", "branch", "report", "review",
     "iteration", "description", "title",
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
-    "tmux_session", "ttyd_port", "ttyd_pid",
+    "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto",
+    "delegate_log",
 }
 
 

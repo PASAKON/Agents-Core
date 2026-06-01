@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.notify import info, success, warn, error
+from tools.gc_stale_tasks import gc_stale_tasks
 
 PING_AFTER_S = 10 * 60
 STALL_AFTER_S = 30 * 60
@@ -229,8 +230,18 @@ def scan_once() -> dict:
             f"silent={int(silent/3600)}h issue={issue}"
         )
 
+    # GC pass: cancel stale pending/conflict/rate_limited tasks and free locks.
+    try:
+        gc_cancelled = gc_stale_tasks()
+        if gc_cancelled:
+            success(f"watchdog gc: cancelled {len(gc_cancelled)} stale task(s)")
+    except Exception as e:
+        warn(f"watchdog gc error: {e}")
+        gc_cancelled = []
+
     return {"pinged": pinged, "stalled": stalled,
-            "scanned": len(rows) + len(human_rows)}
+            "scanned": len(rows) + len(human_rows),
+            "gc_cancelled": len(gc_cancelled)}
 
 
 def main() -> int:
