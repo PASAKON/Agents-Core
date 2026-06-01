@@ -59,7 +59,6 @@ def _send_pointer(tab_substring: str, task_md_path: Path) -> None:
     # append CR (ASCII 13) which claude TUI interprets as Enter/submit.
     script = f'''
 tell application "iTerm"
-  activate
   tell current window
     repeat with t in tabs
       tell t

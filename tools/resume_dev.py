@@ -30,7 +30,6 @@ def _spawn_resume_tab(role: str, task_id: str) -> None:
     )
     script = f'''
 tell application "iTerm"
-  activate
   set targetWin to missing value
   repeat with w in windows
     repeat with t in tabs of w

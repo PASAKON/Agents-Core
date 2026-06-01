@@ -152,7 +152,6 @@ fi
 
 osascript <<APPLESCRIPT
 tell application "iTerm"
-  activate
   set newWindow to (create window with default profile)
   tell newWindow
     tell current session of current tab

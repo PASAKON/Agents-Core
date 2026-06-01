@@ -85,7 +85,6 @@ def _send(role: str, session_id: str, message: str, sender: str) -> None:
     escaped = text.replace("\\", "\\\\").replace('"', '\\"')
     script = f'''
 tell application "iTerm"
-  activate
   set didSend to false
   repeat with w in windows
     repeat with t in tabs of w
@@ -146,7 +145,6 @@ def _send_to_ephemeral_tab(tab_title: str, text: str) -> None:
     escaped_title = tab_title.replace("\\", "\\\\").replace('"', '\\"')
     script = f'''
 tell application "iTerm"
-  activate
   set didSend to false
   repeat with w in windows
     repeat with t in tabs of w
@@ -212,7 +210,6 @@ def _spawn_new_ephemeral(
     title_as = tab_title.replace("\\", "\\\\").replace('"', '\\"')
     script = f'''
 tell application "iTerm"
-  activate
   set newWindow to (create window with default profile)
   tell newWindow
     tell current session of current tab

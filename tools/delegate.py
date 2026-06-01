@@ -79,7 +79,6 @@ def _build_spawn_applescript(cmd: str, task_id: str,
     # wrong CTO window.
     return f'''
 tell application "iTerm"
-  activate
   repeat with w in windows
     repeat with t in tabs of w
       try

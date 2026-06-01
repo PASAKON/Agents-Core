@@ -46,7 +46,6 @@ def _send(full_id: str, message: str) -> None:
     fallback = full_id[:6]
     script = f'''
 tell application "iTerm"
-  activate
   set didSend to false
   repeat with w in windows
     repeat with t in tabs of w
