@@ -66,7 +66,9 @@ projects:
     name: mooniex-webapp
     path: /Users/gob/Projects/mooniex-webapp
     remote: git@github.com:PASAKON/mooniex-webapp.git
-    default_branch: main
+    # Canonical trunk is bootstrap/landing-mvp (IRON-RULES §"shared branch";
+    # GitHub origin/HEAD points here). main is a divergent line — do not target.
+    default_branch: bootstrap/landing-mvp
     stack: [next.js, typescript, supabase]
     agents_allowed: *default_workers
     auto_push: true
