@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sqlite3
 import sys
 import uuid
@@ -157,6 +158,90 @@ def new_task_id() -> str:
     return "task-" + uuid.uuid4().hex[:8]
 
 
+# --- Web Designer spawn guard (CEO 2026-06-04) -----------------------------
+# A web_designer agent works in a git worktree that omits the gitignored
+# claudesign .od/ dir, so it cannot resolve a project ID to its design on its
+# own. Every web_designer task must carry the Project ID + design-source path
+# in its description; the kickoff is then enriched with the resolved
+# name/skill/path. See playbooks/web-designer.md §9 + memory
+# designer-spawn-inputs.
+_DESIGNER_ROLE = "web_designer"
+OD_ROOT = Path("/Users/gob/Projects/mooniex-claudesign/.od")
+UUID_RE = re.compile(
+    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+)
+
+
+def resolve_od_project(project_id: str) -> dict | None:
+    """Resolve a claudesign (open-design) project UUID to name/skill/paths by
+    reading the local, gitignored .od/app.sqlite. Returns None if unavailable
+    (missing file, no matching row, or any read error) — never raises."""
+    db_file = OD_ROOT / "app.sqlite"
+    if not db_file.exists():
+        return None
+    try:
+        con = sqlite3.connect(f"file:{db_file}?mode=ro", uri=True, timeout=5)
+        con.row_factory = sqlite3.Row
+        row = con.execute(
+            "SELECT name, skill_id FROM projects WHERE id=? LIMIT 1",
+            (project_id,),
+        ).fetchone()
+        con.close()
+    except Exception:
+        return None
+    if not row:
+        return None
+    pdir = OD_ROOT / "projects" / project_id
+    skill = row["skill_id"] or ""
+    design = pdir / ".od-skills" / skill / "example.html"
+    return {
+        "id": project_id,
+        "name": row["name"],
+        "skill": skill,
+        "dir": str(pdir),
+        "design_path": str(design if design.exists() else pdir),
+    }
+
+
+def validate_designer_context(role: str, description: str) -> None:
+    """Enforce that a web_designer task carries a Project ID + design-source
+    path so the agent can locate the design. Raises ValueError otherwise.
+    No-op for every other role."""
+    if role != _DESIGNER_ROLE:
+        return
+    desc = description or ""
+    has_id = bool(UUID_RE.search(desc))
+    has_src = ".od/projects/" in desc
+    if has_id and has_src:
+        return
+    missing = []
+    if not has_id:
+        missing.append("Project ID (UUID)")
+    if not has_src:
+        missing.append("design-source path (…/.od/projects/{ID}/)")
+    raise ValueError(
+        "web_designer task description must include "
+        + " + ".join(missing)
+        + ". See playbooks/web-designer.md §9 (designer spawn inputs)."
+    )
+
+
+def designer_kickoff_suffix(description: str) -> str:
+    """Resolved design context to append to a web_designer kickoff, or "" if the
+    description has no UUID or the project can't be resolved on this machine."""
+    m = UUID_RE.search(description or "")
+    if not m:
+        return ""
+    info = resolve_od_project(m.group(0))
+    if not info:
+        return ""
+    return (
+        f"\n[design] Project: {info['name']} ({info['id']}) · skill: {info['skill']}"
+        f"\n[design] ref (READ-ONLY): {info['design_path']}"
+        f"\n[design] อ่านดีไซน์จาก path นี้เป็น reference — ห้ามเขียนทับใน .od/ (gitignored, local)"
+    )
+
+
 def create_task(
     project: str,
     role: str,
@@ -167,6 +252,7 @@ def create_task(
     touches: list[str] | None = None,
     owner_cto: str | None = None,
 ) -> str:
+    validate_designer_context(role, description)
     # Stamp the spawning CTO so DEV reports route back to that CTO's tab
     # instead of broadcasting to every open CTO chat. Falls back to the
     # CTO_SESSION_ID in the creating process env when not passed explicitly.

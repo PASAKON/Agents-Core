@@ -384,6 +384,10 @@ async def delegate_task(task_id: str, *, wait: bool = False,
              f"(skipping kickoff to avoid disturbing a running DEV)")
 
     kickoff_text = DEFAULT_KICKOFF if kickoff is None else kickoff
+    if kickoff_text and role_name == "web_designer":
+        # Worktree omits gitignored .od/; resolve the design ref from the
+        # task description so the agent gets the concrete path. §9 / db guard.
+        kickoff_text += db.designer_kickoff_suffix(task.get("description") or "")
     if kickoff_text and spawn_result != "reused":
         asyncio.create_task(_auto_kickoff(task_id, kickoff_text))
 
