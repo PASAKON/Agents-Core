@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from mcp.server.fastmcp import FastMCP
 
 from lib import db
+from lib import recall as recall_lib
 from lib.config import get_project, projects
 from lib.logger import get_logger
 from lib.notify import info, warn
@@ -189,6 +190,18 @@ def list_projects() -> str:
 def stats() -> str:
     """Get task counts by status."""
     return json.dumps(db.stats())
+
+
+@mcp.tool()
+def recall(query: str, project: str = "", limit: int = 5) -> str:
+    """Recall relevant PAST org work for a free-text query.
+
+    Ranks prior tasks by term overlap and returns a compact digest of each
+    match — final status, merge sha, branch, and a gist of the DEV report —
+    read back from the task/event log (which is otherwise write-only). Call
+    this BEFORE planning or creating tasks to avoid relighting work already
+    done. Read-only. Optionally scope to one project key."""
+    return recall_lib.recall_text(query, project=project or None, limit=limit)
 
 
 @mcp.tool()
