@@ -19,6 +19,7 @@ from mcp.server.fastmcp import FastMCP
 
 from lib import db
 from lib import recall as recall_lib
+from lib import reflect as reflect_lib
 from lib.config import get_project, projects
 from lib.logger import get_logger
 from lib.notify import info, warn
@@ -202,6 +203,16 @@ def recall(query: str, project: str = "", limit: int = 5) -> str:
     this BEFORE planning or creating tasks to avoid relighting work already
     done. Read-only. Optionally scope to one project key."""
     return recall_lib.recall_text(query, project=project or None, limit=limit)
+
+
+@mcp.tool()
+def reflect(days: int = 7, project: str = "") -> str:
+    """Reflect on recent org state — what merged, what's open/stuck, and any
+    recurring failure signal over the last `days`. Read-side companion to
+    recall(): recall answers 'what did we do about X', reflect answers 'where
+    do things stand now'. Call at session start for situational awareness.
+    Read-only; surfaces patterns for you to judge, never auto-acts."""
+    return reflect_lib.reflect_text(days=days, project=project or None)
 
 
 @mcp.tool()
