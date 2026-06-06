@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime, timezone
 
 from . import db
 
@@ -83,6 +84,51 @@ def _outcome(task: dict) -> str:
     return f"ended {task['status']}"
 
 
+def _age_days(updated_at: str | None) -> int | None:
+    """Whole days since `updated_at` (ISO-8601), or None if unparseable."""
+    if not updated_at:
+        return None
+    try:
+        dt = datetime.fromisoformat(updated_at)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return max(0, (datetime.now(timezone.utc) - dt).days)
+
+
+def _touch_set(touches_json: str | None) -> set[str]:
+    try:
+        return {
+            p.strip().lstrip("/")
+            for p in json.loads(touches_json or "[]")
+            if p and p.strip()
+        }
+    except Exception:
+        return set()
+
+
+def _superseded_by(task: dict, rows: list[dict], cap: int = 3) -> list[str]:
+    """IDs of newer done/merged tasks in the same project whose touched paths
+    overlap this task's — i.e. later work that may have changed the same code,
+    so a recalled result might be stale. Empty when the task has no touches."""
+    mine = _touch_set(task.get("touches"))
+    if not mine:
+        return []
+    ts = task.get("updated_at") or ""
+    hits = []
+    for r in rows:
+        if r["id"] == task["id"] or r.get("project") != task.get("project"):
+            continue
+        if r.get("status") not in ("done", "merged"):
+            continue
+        if (r.get("updated_at") or "") <= ts:
+            continue
+        if mine & _touch_set(r.get("touches")):
+            hits.append(r["id"])
+    return hits[:cap]
+
+
 def _score(task: dict, terms: list[str]) -> int:
     if not terms:
         return 0
@@ -104,7 +150,7 @@ def recall(query: str, project: str | None = None, limit: int = 5) -> list[dict]
     terms = _tokens(query)
     sql = (
         "SELECT id,project,role,status,title,description,report,review,"
-        "branch,updated_at FROM tasks"
+        "branch,touches,updated_at FROM tasks"
     )
     args: list = []
     if project:
@@ -127,7 +173,9 @@ def recall(query: str, project: str | None = None, limit: int = 5) -> list[dict]
             "status": r["status"],
             "title": r["title"],
             "updated_at": (r.get("updated_at") or "")[:10],
+            "age_days": _age_days(r.get("updated_at")),
             "outcome": _outcome(r),
+            "superseded_by": _superseded_by(r, rows),
             "gist": _gist(r.get("report")),
             "score": sc,
         })
@@ -142,11 +190,15 @@ def recall_text(query: str, project: str | None = None, limit: int = 5) -> str:
     head = f'recall: "{query}" — {len(hits)} match(es):\n'
     blocks = []
     for i, h in enumerate(hits, 1):
+        age = f" ({h['age_days']}d ago)" if h.get("age_days") is not None else ""
         b = (
-            f"{i}. {h['task_id']}  [{h['project']}]  {h['status']} · {h['updated_at']}\n"
+            f"{i}. {h['task_id']}  [{h['project']}]  {h['status']} · {h['updated_at']}{age}\n"
             f"   {h['title']}\n"
             f"   → {h['outcome']}"
         )
+        if h.get("superseded_by"):
+            b += ("\n   ⚠ newer work touched the same files — verify still current: "
+                  + ", ".join(h["superseded_by"]))
         if h["gist"]:
             b += f"\n   gist: {h['gist']}"
         blocks.append(b)

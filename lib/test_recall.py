@@ -70,6 +70,53 @@ def test_score() -> bool:
     return ok
 
 
+def test_age_days() -> bool:
+    from datetime import datetime, timezone, timedelta
+    ok = True
+    ok &= _check("age None -> None", r._age_days(None) is None)
+    ok &= _check("age bad -> None", r._age_days("not-a-date") is None)
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    ok &= _check("age now -> 0", r._age_days(now) == 0)
+    old = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat(timespec="seconds")
+    ok &= _check("age 10d -> 10", r._age_days(old) == 10)
+    return ok
+
+
+def test_touch_set() -> bool:
+    ok = True
+    ok &= _check("parses + strips slash",
+                 r._touch_set('["/src/a.ts", "src/b.ts"]') == {"src/a.ts", "src/b.ts"})
+    ok &= _check("empty/None -> set()", r._touch_set(None) == set())
+    ok &= _check("bad json -> set()", r._touch_set("{not json") == set())
+    return ok
+
+
+def test_superseded_by() -> bool:
+    older = {"id": "task-old", "project": "p", "status": "done",
+             "updated_at": "2026-06-01T00:00:00+00:00", "touches": '["src/x.ts"]'}
+    newer = {"id": "task-new", "project": "p", "status": "done",
+             "updated_at": "2026-06-05T00:00:00+00:00", "touches": '["src/x.ts"]'}
+    other_proj = {"id": "task-q", "project": "q", "status": "done",
+                  "updated_at": "2026-06-09T00:00:00+00:00", "touches": '["src/x.ts"]'}
+    no_overlap = {"id": "task-z", "project": "p", "status": "done",
+                  "updated_at": "2026-06-09T00:00:00+00:00", "touches": '["src/other.ts"]'}
+    rows = [older, newer, other_proj, no_overlap]
+    ok = True
+    ok &= _check("newer same-file same-proj flagged",
+                 r._superseded_by(older, rows) == ["task-new"])
+    ok &= _check("newest task has no superseder",
+                 r._superseded_by(newer, rows) == [])
+    ok &= _check("cross-project ignored",
+                 "task-q" not in r._superseded_by(older, rows))
+    ok &= _check("non-overlapping ignored",
+                 "task-z" not in r._superseded_by(older, rows))
+    ok &= _check("no touches -> []",
+                 r._superseded_by({"id": "t", "project": "p", "status": "done",
+                                   "updated_at": "2026-06-01T00:00:00+00:00",
+                                   "touches": "[]"}, rows) == [])
+    return ok
+
+
 def test_recall_smoke() -> bool:
     ok = True
     ok &= _check("nonsense query -> []",
@@ -80,7 +127,7 @@ def test_recall_smoke() -> bool:
         h = hits[0]
         ok &= _check("digest has required keys",
                      {"task_id", "project", "status", "title", "outcome",
-                      "score"} <= set(h))
+                      "score", "age_days", "superseded_by"} <= set(h))
         ok &= _check("scores sorted desc",
                      all(hits[i]["score"] >= hits[i + 1]["score"]
                          for i in range(len(hits) - 1)))
@@ -90,7 +137,8 @@ def test_recall_smoke() -> bool:
 
 
 def main() -> int:
-    suites = [test_tokens, test_gist, test_outcome, test_score, test_recall_smoke]
+    suites = [test_tokens, test_gist, test_outcome, test_score,
+              test_age_days, test_touch_set, test_superseded_by, test_recall_smoke]
     all_ok = True
     for s in suites:
         print(f"{s.__name__}:")

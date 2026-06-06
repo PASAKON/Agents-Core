@@ -50,8 +50,12 @@ def main() -> int:
     print("## Recall — relevant past work (auto; verify it's still current before acting)")
     print()
     for i, h in enumerate(hits, 1):
-        print(f"{i}. {h['task_id']} [{h['project']}] {h['status']} · {h['updated_at']} — {h['title']}")
+        age = f" ({h['age_days']}d ago)" if h.get("age_days") is not None else ""
+        print(f"{i}. {h['task_id']} [{h['project']}] {h['status']} · {h['updated_at']}{age} — {h['title']}")
         print(f"   → {h['outcome']}")
+        if h.get("superseded_by"):
+            print("   ⚠ newer work touched same files — verify current: "
+                  + ", ".join(h["superseded_by"]))
     return 0
 
 
