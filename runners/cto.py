@@ -245,6 +245,7 @@ async def run(ceo_request: str) -> str:
 
     options = ClaudeAgentOptions(
         model=get_role("cto")["model"],
+        fallback_model=get_role("cto").get("fallback_model"),
         effort="max",
         system_prompt=_system_prompt(),
         permission_mode="acceptEdits",

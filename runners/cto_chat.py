@@ -141,6 +141,7 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
     )
     return ClaudeAgentOptions(
         model=get_role("cto")["model"],
+        fallback_model=get_role("cto").get("fallback_model"),
         effort="max",
         system_prompt=_system_prompt(),
         permission_mode="acceptEdits",
@@ -165,7 +166,7 @@ def _print_banner(session_id: str | None, resumed: bool) -> None:
     cto_id = cto_session.current_id()
     print(f"{c}=========================================================={RESET}")
     print(f"{c}  CTO Chat — Mooniex Virtual Org{RESET}")
-    print(f"{c}  Model: claude-opus-4-8   |   Tools: 13{RESET}")
+    print(f"{c}  Model: fable-5[1m]   |   Tools: 13{RESET}")
     if cto_id:
         print(f"{c}  CTO id: #{cto_id}   log: state/logs/cto-{cto_id}.log{RESET}")
     print(f"{c}=========================================================={RESET}")
