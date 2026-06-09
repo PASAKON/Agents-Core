@@ -7,7 +7,10 @@ Captured 2026-06-09.
 ## Identity
 - **Name:** MoonieX (Forex trading school / member system; รองรับ **Exness / XM**).
 - **Logo:** gold crescent-moon + pagoda mark (`mooniex-webapp/public/brand/logo-mark.png`)
-  + **MOONIEX** wordmark. Lockups in `Agents/output/personal-brand/lockup-*.png`.
+  + **MOONIEX** wordmark. In-folder logo refs:
+  `images/logo-lockup-vertical-navy.png` (moon over MOONIEX, vertical) ·
+  `images/logo-lockup-moon-wordmark-navy.png` (moon + MOONIEX wordmark, navy bg).
+  Transparent built lockups: `Agents/output/personal-brand/lockup-*.png`.
 - **Channels:** Live Discord · Facebook Page · LINE OA `@mooniex`.
 
 ## Palette (LOCKED — see memory `mooniex-poster-recipe`)
