@@ -30,3 +30,7 @@ worktrees/
 .DS_Store
 demo-api/
 utils/
+
+# TraderMindset: runtime-generated posters + unit-test proof artifacts
+output/trader-mindset/round-*/
+output/trader-mindset/_test/
