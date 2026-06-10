@@ -179,17 +179,23 @@ def lessons_block(lessons_path: str | None) -> str:
 # --------------------------------------------------------------------------- #
 # Prompt builders (pure -- exercised by --dry, no network)
 # --------------------------------------------------------------------------- #
-def build_poster_prompt(topic: dict, idx: int) -> str:
+def build_poster_prompt(topic: dict, idx: int, lessons: str = "") -> str:
     """fal prompt: bake ONLY the short hero word; keep lower band + top-right clean."""
     style = ART_STYLES[idx % len(ART_STYLES)]
     scene = SCENES[idx % len(SCENES)]
-    return (
+    prompt = (
         PRE + scene + " " + style + " '" + topic["hero_word"] +
         "' fills the upper-left with bold textured strokes. "
         "Render ONLY that single Thai word as art -- do NOT draw any other sentence, sub-headline "
         "or small text anywhere. Keep the LOWER THIRD of the image a clean darker navy area with no "
         "text, reserved for a caption overlay added later. Render the hero word accurately and legibly."
     )
+    if lessons:
+        # Prior-round reject reasons steer this round too (wiki learning loop). Marked
+        # non-rendering so the image model treats it as art direction, not text to draw.
+        prompt += (" Internal art-direction guidance (DO NOT render any of this as visible text on "
+                   "the image): " + lessons.replace("\n", " ") + " Keep the poster clean and on-brand.")
+    return prompt
 
 
 def build_caption_messages(topic: dict, lessons: str) -> list[dict]:
@@ -466,7 +472,7 @@ def run_dry(topics_doc: dict, count: int, lessons: str) -> None:
         for m in build_caption_messages(t, lessons):
             print(f"     [{m['role']}] {m['content']}")
         print(f"  -> poster fal prompt ({FAL_IMAGE_SIZE}):")
-        print(f"     {build_poster_prompt(t, i)}")
+        print(f"     {build_poster_prompt(t, i, lessons)}")
         print(f"  -> would write: {os.path.join(round_dir, slug + '.png')}")
     print("=" * 78)
     print(f"[DRY] would also write: {os.path.join(round_dir, 'captions.md')}")
@@ -486,7 +492,7 @@ def run_real(topics_doc: dict, count: int, lessons: str) -> None:
         print(f"[{i+1}/{len(chosen)}] {slug} ...")
         cap = gen_caption(t, lessons)
         dest_png = os.path.join(round_dir, slug + ".png")
-        prompt = build_poster_prompt(t, i)
+        prompt = build_poster_prompt(t, i, lessons)
         render_poster(t, cap["sub_line"], prompt, dest_png)
         t["used_at"] = stamp                       # mark only on full success
         items.append({**t, "caption": cap["caption"], "sub_line": cap["sub_line"],
