@@ -40,7 +40,9 @@ def ensure_cto_id() -> str:
 
 
 def tab_title(sid: str) -> str:
-    return f"CTO Chat #{sid}"
+    # Base prefix only — scripts/tab-title.sh appends a live status glyph +
+    # summary after it (IRON-RULES §32). Routing tools match this prefix.
+    return f"CTO #{sid}"
 
 
 def log_path(sid: str | None) -> Path:

@@ -67,13 +67,44 @@ APPLE
   fi
 fi
 
-trap 'rm -f "$LOCKFILE" "$WINID_FILE"' EXIT INT TERM
+# Save our tty so scripts/tab-title.sh can retitle this tab from inside
+# claude Bash tool calls (those subshells have no controlling tty).
+TTY_FILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.tty"
+if [ -n "$MY_TTY" ]; then
+  echo "$MY_TTY" >"$TTY_FILE"
+fi
 
-printf '\033]0;CTO Chat #%s\007' "$CTO_SESSION_ID"
+trap 'rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE"' EXIT INT TERM
+
+# Initial tab title + base prefix for scripts/tab-title.sh (IRON-RULES §32).
+# The C-level agent rewrites the summary part after every finished job.
+TITLE_BASE="CTO #$CTO_SESSION_ID"
+TITLES_DIR="$ROOT/state/tab-titles"
+mkdir -p "$TITLES_DIR"
+printf '%s\n' "$TITLE_BASE" >"$TITLES_DIR/cto-$CTO_SESSION_ID.base"
+printf '%s ⏳ เริ่ม session\n' "$TITLE_BASE" >"$TITLES_DIR/cto-$CTO_SESSION_ID.title"
+printf '\033]0;%s ⏳ เริ่ม session\007' "$TITLE_BASE"
+
+# Keep claude CLI from overwriting our tab title with its own (no-op on
+# builds without this env). The keeper loop below re-asserts regardless.
+export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
+
+# Title keeper: re-assert the saved title every 60s while this session
+# lives — survives zsh precmd resets + claude CLI title rewrites.
+# stdio detached so callers capturing this script's output don't block
+# on the keeper's inherited pipe (exits ≤60s after the lock disappears).
+(
+  while [ -e "$LOCKFILE" ]; do
+    bash "$ROOT/scripts/tab-title.sh" --reassert >/dev/null 2>&1 || true
+    sleep 60
+  done
+) >/dev/null 2>&1 &
+disown $!
+
 # `exec` would replace the shell and skip the EXIT trap, leaving a
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
-  -n "CTO Chat #$CTO_SESSION_ID" \
+  -n "CTO #$CTO_SESSION_ID" \
   --model 'claude-fable-5' \
   --fallback-model 'claude-opus-4-8[1m]' \
   --effort max \

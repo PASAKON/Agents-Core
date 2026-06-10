@@ -120,7 +120,7 @@ else
   fi
 fi
 
-TAB_TITLE="$DISPLAY Chat #$CXO_SESSION_ID"
+TAB_TITLE="$DISPLAY #$CXO_SESSION_ID"
 LOG_FILE="$ROOT/state/logs/$ROLE-$CXO_SESSION_ID.log"
 mkdir -p "$ROOT/state/logs"
 touch "$LOG_FILE"

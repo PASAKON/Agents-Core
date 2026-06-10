@@ -103,7 +103,7 @@ else
   fi
 fi
 
-CTO_TAB_TITLE="CTO Chat #$CTO_SESSION_ID"
+CTO_TAB_TITLE="CTO #$CTO_SESSION_ID"
 CTO_LOG="$ROOT/state/logs/cto-$CTO_SESSION_ID.log"
 
 mkdir -p "$ROOT/state/logs"

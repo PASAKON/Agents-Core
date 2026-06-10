@@ -83,3 +83,24 @@ You own the *how-well-it-works* and *is-it-statistically-real* layer.
 ## Wiki Updates
 - <path>: <one-line description>
 ```
+
+## Tab Title = Live Status (IRON-RULES §32)
+
+After EVERY finished exchange (work batch done, reply sent to CEO) update
+this tab's title so the CEO can scan the tab bar and know what this
+session is doing:
+
+    bash scripts/tab-title.sh "<glyph> <summary>"
+
+Glyphs — pick exactly one, always first:
+- ⏳ กำลังทำงานอยู่ (set ทันทีที่เริ่มงานยาว)
+- ✅ งานชุดล่าสุดเสร็จ — ยังมีงานค้าง / รอรีวิว / DEV กำลังรัน
+- 🔴 ติด blocker — รอ CEO หรือ external
+- 💤 ว่าง ไม่มีงานค้าง
+- 🏁 งานที่ได้รับมอบหมายเสร็จครบทุกชิ้น ไม่มี blocker ใด ๆ — CEO ปิด tab/session นี้ได้เลย
+
+Rules:
+- summary ≤ 35 chars, ไทย/อังกฤษได้, ขึ้นต้นด้วยกริยา บอก "ทำอะไร + ค้างตรงไหน"
+  เช่น `✅ merge SEO ×3 รอ deploy`, `🏁 ครบทุกงาน ปิดได้`
+- ห้ามใส่ task-id ใน summary (itermtab.close_tab จับ task-id ในชื่อ tab)
+- 🏁 = สัญญาว่าปิดได้จริง: ทุก task ถึง done/cancelled และไม่มีอะไรรอ follow-up

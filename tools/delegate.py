@@ -60,17 +60,19 @@ def _build_spawn_applescript(cmd: str, task_id: str,
     Resolution order:
       1. Any iTerm tab title contains `(<task_id>)` already → select it
          and emit `reused`. No new tab, no command typed.
-      2. Window owning `CTO Chat #<owner_cto>` exactly → new tab there
+      2. Window owning `CTO Chat #<owner_cto>` / `CTO #<owner_cto>` (legacy
+         and live-summary title formats, IRON-RULES §32) → new tab there
          so DEVs cluster under their spawning CTO (fixes multi-CTO
          routing).
-      3. Any tab whose title contains `CTO Chat #` — keeps single-CTO
-         setups working when owner_cto is unset.
+      3. Any tab whose title contains `CTO Chat #` or `CTO #` — keeps
+         single-CTO setups working when owner_cto is unset.
       4. Current window, or a fresh window if none exist.
 
     Built in Python so tests can grep the literal strings without
     invoking osascript.
     """
     owner_match = f"CTO Chat #{owner_cto}" if owner_cto else ""
+    owner_match_new = f"CTO #{owner_cto}" if owner_cto else ""
     # iTerm has two title surfaces per tab: `name of t` (the tab title,
     # which holds the OSC-set name stickily) and `name of current
     # session of t` (the session badge, which flickers to the running
@@ -118,7 +120,7 @@ tell application "iTerm"
           try
             set sessName to name of current session of t
           end try
-          if (tabName contains "{owner_match}") or (sessName contains "{owner_match}") then
+          if (tabName contains "{owner_match}") or (sessName contains "{owner_match}") or (tabName contains "{owner_match_new}") or (sessName contains "{owner_match_new}") then
             set targetWin to w
             exit repeat
           end if
@@ -139,7 +141,7 @@ tell application "iTerm"
           try
             set sessName to name of current session of t
           end try
-          if (tabName contains "CTO Chat #") or (sessName contains "CTO Chat #") then
+          if (tabName contains "CTO Chat #") or (sessName contains "CTO Chat #") or (tabName contains "CTO #") or (sessName contains "CTO #") then
             set targetWin to w
             exit repeat
           end if

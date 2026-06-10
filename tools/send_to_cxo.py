@@ -80,7 +80,10 @@ def _resolve_sender_role() -> str:
 def _send(role: str, session_id: str, message: str, sender: str) -> None:
     """Type `[SENDER]: message\\n` into the C-level tab for (role, session_id)."""
     display = display_for(role)
+    # Match both title generations: legacy "<DISPLAY> Chat #<sid>" and the
+    # live-summary format "<DISPLAY> #<sid> <glyph> <summary>" (IRON-RULES §32).
     tab_match = f"{display} Chat #{session_id}"
+    tab_match_new = f"{display} #{session_id}"
     text = f"[{sender}]: {message}"
     escaped = text.replace("\\", "\\\\").replace('"', '\\"')
     script = f'''
@@ -98,7 +101,7 @@ tell application "iTerm"
           try
             set sessName to name of current session of t
           end try
-          if (tabName contains "{tab_match}") or (sessName contains "{tab_match}") then
+          if (tabName contains "{tab_match}") or (sessName contains "{tab_match}") or (tabName contains "{tab_match_new}") or (sessName contains "{tab_match_new}") then
             tell w to select
             tell t to select
             tell current session

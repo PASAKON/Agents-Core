@@ -48,6 +48,12 @@ def close_tab(task_id: str) -> bool:
         # iTerm and closing the wrong tab.
         return False
     fallback = task_id[:6]
+    # C-level tabs carry a live work summary in the title (IRON-RULES §32,
+    # scripts/tab-title.sh). If a summary ever mentions a task, a naive
+    # task-id match would close the C-level chat itself — so any tab whose
+    # title carries a C-level prefix is excluded from closing.
+    guard = ('and not (nm contains "CTO ") and not (nm contains "CMO ") '
+             'and not (nm contains "CGO ") and not (nm contains "CFO ")')
     script = f'''
 tell application "iTerm"
   set closedAny to false
@@ -55,7 +61,11 @@ tell application "iTerm"
     set tabsList to tabs of w
     repeat with t in tabsList
       tell t
-        if name of current session contains "{task_id}" then
+        set nm to ""
+        try
+          set nm to name of current session
+        end try
+        if (nm contains "{task_id}") {guard} then
           close t
           set closedAny to true
         end if
@@ -67,7 +77,11 @@ tell application "iTerm"
       set tabsList to tabs of w
       repeat with t in tabsList
         tell t
-          if name of current session contains "{fallback}" then
+          set nm to ""
+          try
+            set nm to name of current session
+          end try
+          if (nm contains "{fallback}") {guard} then
             close t
             set closedAny to true
           end if

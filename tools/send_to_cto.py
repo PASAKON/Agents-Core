@@ -1,5 +1,6 @@
 """DEV -> CTO visible chat: type a message directly into the CTO's
-iTerm tab (title "CTO Chat", set by scripts/spawn-cto.sh).
+iTerm tab (title "CTO #<id> ..." live-summary format per IRON-RULES §32,
+or legacy "CTO Chat #<id>" — both matched).
 
 Mirror of tools/send_to_dev.py, opposite direction. Used by the DEV's
 Stop hook so every DEV reply types into the CTO chat as a user prompt
@@ -81,6 +82,8 @@ def send(from_id: str, message: str, role: str | None = None,
             )
             return False
 
+        # Match both title generations: legacy "CTO Chat #<id>" and the
+        # live-summary format "CTO #<id> <glyph> <summary>" (IRON-RULES §32).
         script = f'''
 tell application "iTerm"
   set didSend to false
@@ -88,7 +91,7 @@ tell application "iTerm"
     set targetWin to window id {winid}
     repeat with t in tabs of targetWin
       try
-        if name of current session of t contains "CTO Chat" then
+        if (name of current session of t contains "CTO Chat") or (name of current session of t contains "CTO #{cto_id}") then
           tell current session of t
             write text "{escaped}" newline NO
             write text (ASCII character 13) newline NO
@@ -125,7 +128,7 @@ tell application "iTerm"
   repeat with w in windows
     repeat with t in tabs of w
       tell t
-        if name of current session contains "{CTO_TAB_FALLBACK_MATCH}" then
+        if (name of current session contains "{CTO_TAB_FALLBACK_MATCH}") or (name of current session contains "CTO #") then
           tell current session
             write text "{escaped}" newline NO
             write text (ASCII character 13) newline NO

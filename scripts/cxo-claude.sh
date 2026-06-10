@@ -15,7 +15,7 @@
 #   --initial-prompt <text>   Send this text into the new tab as the first
 #                             user message once claude is running.
 #   --tab-title <title>       Override the default tab title
-#                             ("$DISPLAY Chat #$CXO_SESSION_ID").
+#                             ("$DISPLAY #$CXO_SESSION_ID").
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -144,6 +144,13 @@ APPLE
   fi
 fi
 
+# Save our tty so scripts/tab-title.sh can retitle this tab from inside
+# claude Bash tool calls (those subshells have no controlling tty).
+TTY_FILE="$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.tty"
+if [ -n "$MY_TTY" ]; then
+  echo "$MY_TTY" >"$TTY_FILE"
+fi
+
 # Active-session pointer: only written for non-ephemeral sessions.
 # Ephemeral spawns (--session flag set) must never overwrite this pointer
 # so CEO's direct-chat tab with the C-level stays single-threaded.
@@ -162,7 +169,7 @@ bash "$ROOT/scripts/idle-ping-watcher.sh" --role "$ROLE" --session "$CXO_SESSION
 disown $!
 
 cleanup() {
-  rm -f "$LOCKFILE" "$WINID_FILE"
+  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE"
   # Only clear the active pointer if it still points at us and we wrote it.
   if [ -z "$SESSION_OVERRIDE" ] && [ -e "$ACTIVE_FILE" ]; then
     current="$(tr -d '[:space:]' <"$ACTIVE_FILE" 2>/dev/null || true)"
@@ -177,9 +184,33 @@ trap cleanup EXIT INT TERM
 if [ -n "$TAB_TITLE_OVERRIDE" ]; then
   TAB_TITLE="$TAB_TITLE_OVERRIDE"
 else
-  TAB_TITLE="$DISPLAY Chat #$CXO_SESSION_ID"
+  TAB_TITLE="$DISPLAY #$CXO_SESSION_ID"
 fi
-printf '\033]0;%s\007' "$TAB_TITLE"
+
+# Base prefix + initial title for scripts/tab-title.sh (IRON-RULES §32).
+# The C-level agent rewrites the summary part after every finished job;
+# routing (send_to_cxo / initial-prompt injection) matches the base prefix.
+TITLES_DIR="$ROOT/state/tab-titles"
+mkdir -p "$TITLES_DIR"
+printf '%s\n' "$TAB_TITLE" >"$TITLES_DIR/$ROLE-$CXO_SESSION_ID.base"
+printf '%s ⏳ เริ่ม session\n' "$TAB_TITLE" >"$TITLES_DIR/$ROLE-$CXO_SESSION_ID.title"
+printf '\033]0;%s ⏳ เริ่ม session\007' "$TAB_TITLE"
+
+# Keep claude CLI from overwriting our tab title with its own (no-op on
+# builds without this env). The keeper loop below re-asserts regardless.
+export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
+
+# Title keeper: re-assert the saved title every 60s while this session
+# lives — survives zsh precmd resets + claude CLI title rewrites.
+# stdio detached so callers capturing this script's output don't block
+# on the keeper's inherited pipe (exits ≤60s after the lock disappears).
+(
+  while [ -e "$LOCKFILE" ]; do
+    bash "$ROOT/scripts/tab-title.sh" --reassert >/dev/null 2>&1 || true
+    sleep 60
+  done
+) >/dev/null 2>&1 &
+disown $!
 
 # Initial prompt injection: background job sends prompt into this tab once
 # claude is ready. Uses osascript `on run argv` handler so prompt text is
