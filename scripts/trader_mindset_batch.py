@@ -42,6 +42,11 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 
+# Prompt text lives in versioned files under prompts/trader-mindset/, loaded via
+# the local tm_prompts registry module (no network/key — safe under --dry).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tm_prompts  # noqa: E402  (local module; sys.path set on the line above)
+
 # --------------------------------------------------------------------------- #
 # Paths & constants
 # --------------------------------------------------------------------------- #
@@ -72,44 +77,11 @@ NAVY_DEEP = (10, 22, 34)   # #0a1622
 GOLD = (205, 172, 101)     # #cdac65
 WHITE = (245, 245, 245)
 
-# Poster art treatment rotated per item so a round of 10 is visually varied
-# (same four signature looks proven in week-1 / v9).
-ART_STYLES = [
-    "a HUGE expressive hand-painted INK-BRUSH champagne-gold Thai display headline",
-    "a HUGE bold CHROME METALLIC 3D champagne-gold Thai display headline with glossy bevels",
-    "a HUGE bold rounded CALLIGRAPHY-style champagne-gold Thai display headline with flowing strokes",
-    "a HUGE ENGRAVED EMBOSSED champagne-gold Thai serif display headline with carved metal depth",
-]
-SCENES = [
-    "The man stands three-quarter view, confident, in front of a wall of monitors showing gold "
-    "candlestick charts on deep navy, blurred into warm gold bokeh, gold rim light.",
-    "The man sits at a trading desk, leaning back confidently, a large curved LED screen of gold "
-    "candlestick charts blurred behind, warm gold key light.",
-    "Half-body, the man with arms crossed on a real navy trading floor at golden hour, gold bokeh, "
-    "dramatic side rim light.",
-    "The man stands with hands in pockets by a dark penthouse window at night, city lights and gold "
-    "candlestick reflections blurred into warm gold bokeh.",
-]
-
-# Identity + palette preamble (verbatim intent of v9 PRE, minus the baked sub-line).
-PRE = (
-    "Identity (Critical): strictly reference @image1 -- preserve the exact face, proportions, skin "
-    "tone and hairstyle of the man; keep his black suit and black turtleneck; he must stay clearly "
-    "recognizable. Palette STRICTLY deep navy (#0c1c2b) + warm champagne gold (#cdac65) only -- NO "
-    "cyan, purple, magenta, teal or blue neon. Premium institutional fintech, photorealistic, 8k. "
-    "1:1 bold editorial personal-brand poster. Keep the TOP-RIGHT corner clean and empty for a logo. "
-    "Do NOT add any logo, badge, English wordmark or watermark. "
-)
-
-# Hard content rules for the caption LLM (CEO compliance constraints).
-CAPTION_RULES = (
-    "กฎเหล็ก (ห้ามฝ่าฝืน):\n"
-    "- ห้ามชี้นำการลงทุน ห้ามบอกให้ซื้อ/ขาย/เข้าออเดอร์ใด ๆ\n"
-    "- ห้ามการันตีกำไร ห้ามพูดถึงผลตอบแทนเป็นตัวเลข/เปอร์เซ็นต์\n"
-    "- ห้ามใช้อิโมจิทุกชนิด\n"
-    "- โทนสุภาพ ลงท้าย 'ครับ' เป็นธรรมชาติ เหมือนเทรดเดอร์รุ่นพี่คุยกับรุ่นน้อง\n"
-    "- เป็นข้อคิด/จิตวิทยาการเทรด ไม่ใช่สัญญาณเทรด"
-)
+# Poster art styles + scenes, the identity/palette preamble, and the caption
+# hard-rules were externalized to prompts/trader-mindset/{poster,caption}-v1.md
+# (registry-driven, loaded via tm_prompts). build_poster_prompt /
+# build_caption_messages assemble from the ACTIVE versions. NAVY/GOLD above stay
+# here — they are composite colors, not prompt text.
 
 
 # --------------------------------------------------------------------------- #
@@ -180,50 +152,39 @@ def lessons_block(lessons_path: str | None) -> str:
 # Prompt builders (pure -- exercised by --dry, no network)
 # --------------------------------------------------------------------------- #
 def build_poster_prompt(topic: dict, idx: int, lessons: str = "") -> str:
-    """fal prompt: bake ONLY the short hero word; keep lower band + top-right clean."""
-    style = ART_STYLES[idx % len(ART_STYLES)]
-    scene = SCENES[idx % len(SCENES)]
-    prompt = (
-        PRE + scene + " " + style + " '" + topic["hero_word"] +
-        "' fills the upper-left with bold textured strokes. "
-        "Render ONLY that single Thai word as art -- do NOT draw any other sentence, sub-headline "
-        "or small text anywhere. Keep the LOWER THIRD of the image a clean darker navy area with no "
-        "text, reserved for a caption overlay added later. Render the hero word accurately and legibly."
-    )
+    """fal prompt: bake ONLY the short hero word; keep lower band + top-right clean.
+
+    Assembled from the ACTIVE poster prompt (prompts/trader-mindset/poster-v<N>.md):
+    rotate art_styles[idx] + scenes[idx], fill the template, then append the
+    non-rendering lessons guidance when prior-round rejects are supplied.
+    """
+    p = tm_prompts.load_prompt("poster")
+    styles, scenes = tm_prompts.as_list(p["art_styles"]), tm_prompts.as_list(p["scenes"])
+    prompt = tm_prompts.render(
+        p["template"], preamble=p["preamble"],
+        scene=scenes[idx % len(scenes)], style=styles[idx % len(styles)],
+        hero_word=topic["hero_word"])
     if lessons:
         # Prior-round reject reasons steer this round too (wiki learning loop). Marked
         # non-rendering so the image model treats it as art direction, not text to draw.
-        prompt += (" Internal art-direction guidance (DO NOT render any of this as visible text on "
-                   "the image): " + lessons.replace("\n", " ") + " Keep the poster clean and on-brand.")
+        prompt += " " + tm_prompts.render(p["lessons_guidance"], lessons=lessons.replace("\n", " "))
     return prompt
 
 
 def build_caption_messages(topic: dict, lessons: str) -> list[dict]:
-    """OpenRouter chat messages -> strict JSON {caption, sub_line, tags}."""
-    sys_msg = (
-        "คุณคือก็อปปี้ไรเตอร์เพจเทรดทอง MoonieX เขียนแคปชันสายจิตวิทยาการเทรด ภาษาไทย "
-        "โทนสุภาพอบอุ่นแบบรุ่นพี่ ตามแนว voice เดิมของเพจ\n\n" + CAPTION_RULES
-    )
-    voice = (
-        "รูปแบบแคปชัน (อิงโพสต์ week-1):\n"
-        "- หลายย่อหน้าสั้น ๆ แต่ละบรรทัดสั้น อ่านง่ายบนมือถือ\n"
-        "- คั่นย่อหน้าด้วยอักขระจุด '.' วางบนบรรทัดเดี่ยว (บรรทัดที่มีแค่จุด)\n"
-        "- เน้นคำหลักด้วยอัญประกาศ เช่น \"วินัย\" \"อดทน\"\n"
-        "- ปิดท้ายด้วยคำถามชวนคิด หรือประโยคสั้นที่จุกใจ\n"
-    )
-    user_msg = (
-        f"แกนหัวข้อ (theme={topic['theme']}): hero word = \"{topic['hero_word']}\"\n"
-        f"ไอเดียตั้งต้น: {topic['seed_idea']}\n\n"
-        + voice +
-        (("\n" + lessons + "\n") if lessons else "") +
-        "\nสร้างผลลัพธ์เป็น JSON object เท่านั้น (ไม่มีข้อความอื่นหุ้ม) คีย์:\n"
-        '  "caption": แคปชันเต็มสำหรับโพสต์ Facebook (สตริง ขึ้นบรรทัดใหม่ด้วย \\n, '
-        "ย่อหน้าคั่นด้วยบรรทัดที่มีแค่ \".\"),\n"
-        '  "sub_line": ประโยคเดียวสั้น <= 40 ตัวอักษร สำหรับพาดบนโปสเตอร์ใต้คำใหญ่ '
-        "(คม จำง่าย ไม่มีอิโมจิ),\n"
-        '  "tags": อาเรย์ของแฮชแท็กไทย/อังกฤษ 5-6 ตัว ขึ้นต้นด้วย # (เช่น "#mooniex").'
-    )
-    return [{"role": "system", "content": sys_msg}, {"role": "user", "content": user_msg}]
+    """OpenRouter chat messages -> strict JSON {caption, sub_line, tags}.
+
+    Assembled from the ACTIVE caption prompt (prompts/trader-mindset/caption-v<N>.md):
+    the `system` section carries the persona + hard-rules; the `user` section is the
+    topic framing + voice spec + JSON schema with {{theme}}/{{hero_word}}/{{seed_idea}}
+    filled, and {{lessons}} expanded to the prior-round "do-not-repeat" block (or empty).
+    """
+    p = tm_prompts.load_prompt("caption")
+    lessons_slot = ("\n" + lessons + "\n") if lessons else ""
+    user_msg = tm_prompts.render(
+        p["user"], theme=topic["theme"], hero_word=topic["hero_word"],
+        seed_idea=topic["seed_idea"], lessons=lessons_slot)
+    return [{"role": "system", "content": p["system"]}, {"role": "user", "content": user_msg}]
 
 
 # --------------------------------------------------------------------------- #

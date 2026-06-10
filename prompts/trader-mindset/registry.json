@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "purpose": "Active-version pointer + change history for TraderMindset prompts. The generator (scripts/trader_mindset_batch.py via scripts/tm_prompts.py) loads the ACTIVE version only. Evolver writes draft v(N+1) files but NEVER edits this file; activation is a human/CTO step AFTER the eval gate (scripts/tm_prompt_eval.py) returns a win.",
+    "files": "prompts/trader-mindset/<kind>-<version>.md   (kind in {caption, poster})",
+    "activation_rule": "A new version may be set active ONLY if scripts/tm_prompt_eval.py reports it does NOT lose the A/B vs the current active version on data/tm-golden-set.json."
+  },
+  "active": {
+    "caption": "v1",
+    "poster": "v1"
+  },
+  "history": [
+    {
+      "version": "v1",
+      "kind": "caption",
+      "date": "2026-06-11",
+      "change_reason": "Initial externalization from scripts/trader_mindset_batch.py (build_caption_messages + CAPTION_RULES), verbatim.",
+      "eval_result": "baseline — extracted as-is, no A/B (first version)"
+    },
+    {
+      "version": "v1",
+      "kind": "poster",
+      "date": "2026-06-11",
+      "change_reason": "Initial externalization from scripts/trader_mindset_batch.py (PRE + ART_STYLES + SCENES + build_poster_prompt), verbatim.",
+      "eval_result": "baseline — extracted as-is, no A/B (first version)"
+    }
+  ]
+}
