@@ -42,12 +42,14 @@ from trader_mindset_batch import _EMOJI_RE  # noqa: E402  single source for emoj
 CAPTION_MAX_CHARS = 600      # week-1 longest ~200; "too long" negative ~800+
 SUBLINE_MAX_CHARS = 40       # matches the caption prompt's "<= 40 ตัวอักษร" spec
 
-# Profit-guarantee phrases. Superset of the generator's inline list; these are
-# unambiguous in Thai trading copy and absent from every week-1 post.
+# Profit-GUARANTEE phrases. The CEO rule bans guaranteeing PROFIT, so match the
+# profit-compound forms only — NOT the bare word "การันตี", which appears in
+# compliant negations ("ไม่มีใครการันตีตลาดได้" = no one can guarantee the market).
+# Bare "ผลตอบแทน"/"ได้แน่นอน" are likewise too generic; nuance is left to the judge.
 GUARANTEE_PHRASES = [
-    "การันตีกำไร", "การันตี", "รับรองกำไร", "รับประกันกำไร", "การันตีผลตอบแทน",
-    "รวยแน่", "รวยเร็ว", "ได้แน่นอน", "กำไรแน่นอน", "กำไรแน่", "ไม่มีทางขาดทุน",
-    "คืนทุนแน่", "ผลตอบแทนแน่นอน",
+    "การันตีกำไร", "การันตีผลตอบแทน", "รับรองกำไร", "รับประกันกำไร",
+    "กำไรแน่นอน", "กำไรแน่", "ได้กำไรแน่", "รวยแน่", "รวยเร็ว",
+    "ไม่มีทางขาดทุน", "คืนทุนแน่", "ผลตอบแทนแน่นอน",
 ]
 
 # Directive / signal phrases — SOFT only (see module docstring). Imperative,

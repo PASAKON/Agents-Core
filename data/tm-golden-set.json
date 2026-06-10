@@ -1,0 +1,104 @@
+{
+  "_meta": {
+    "purpose": "Golden set for the TraderMindset caption prompt A/B eval gate (scripts/tm_prompt_eval.py). A candidate prompt version must NOT lose this A/B before it may be activated in prompts/trader-mindset/registry.json.",
+    "case_schema": {
+      "id": "stable case id",
+      "kind": "caption",
+      "type": "positive (good output expected) | negative (prompt must RESIST a violation)",
+      "theme": "discipline | patience | focus | lesson",
+      "hero_word": "Thai hero word",
+      "seed_idea": "Thai angle handed to the caption LLM",
+      "expect": "for negative: which violation a good prompt must AVOID (emoji|guarantee|advice|too_long)",
+      "gold_output": "optional reference caption (the 4 real CEO-approved week-1 posts)"
+    },
+    "scoring": "Each case is generated from prompt A (current) and prompt B (candidate), scored by deterministic checks (tm_checks) + an LLM voice judge. Per case verdict = win/lose/tie for B vs A. Any negative-case violation by B, or net losses, blocks activation.",
+    "seed_source": "4 positives = output/mooniex-posters/week1-captions.md (CEO-approved); 10 positives = evergreen pool data/trader-mindset-topics.json; 4 negatives = hand-written temptation cases for the CEO hard-rules.",
+    "created_at": "2026-06-11"
+  },
+  "cases": [
+    {
+      "id": "g01-week1-discipline", "kind": "caption", "type": "positive",
+      "theme": "discipline", "hero_word": "วินัย",
+      "seed_idea": "กำไรระยะยาวมาจากวินัย ไม่ใช่อินดิเคเตอร์ลับ",
+      "gold_output": {
+        "caption": "กำไรที่คนอื่นมองไม่เห็น\nไม่ได้ซ่อนอยู่ในอินดิเคเตอร์ตัวไหน\nแต่ซ่อนอยู่ใน \"วินัย\" ของเราครับ\n.\nคนเก่งทำกำไรได้เป็นไม้ๆ\nแต่คนมีวินัย ทำกำไรได้ทั้งเส้นทาง\n.\nวันนี้เรารักษาวินัยข้อไหนไว้ได้บ้าง?",
+        "sub_line": "วินัยคือกำไรที่คนอื่นมองไม่เห็น",
+        "tags": ["#mooniex", "#เทรดทอง", "#XAUUSD", "#วินัยการเทรด", "#mindsetเทรดเดอร์", "#forexไทย"]
+      }
+    },
+    {
+      "id": "g02-week1-patience", "kind": "caption", "type": "positive",
+      "theme": "patience", "hero_word": "อดทน",
+      "seed_idea": "ตลาดให้รางวัลคนที่อยู่รอดนานพอ ไม่ใช่คนที่รีบที่สุด",
+      "gold_output": {
+        "caption": "ตลาดไม่เคยให้รางวัลคนที่เก่งที่สุด\nแต่ให้คนที่ \"อยู่รอด\" นานที่สุดครับ\n.\nความเก่งทำให้เราเข้าออเดอร์ได้สวย\nแต่ความอดทน ทำให้เราอยู่ในเกมนานพอ\nจนกำไรมันออกดอกผล\n.\nรีบ ไม่ได้แปลว่าได้ก่อนเสมอไป",
+        "sub_line": "คนอยู่รอด ชนะคนรีบเสมอ",
+        "tags": ["#mooniex", "#เทรดเดอร์", "#อดทน", "#forex", "#เทรดทอง", "#จิตวิทยาการเทรด"]
+      }
+    },
+    {
+      "id": "g03-week1-focus", "kind": "caption", "type": "positive",
+      "theme": "focus", "hero_word": "โฟกัส",
+      "seed_idea": "โฟกัสสิ่งที่คุมได้ ปล่อยสิ่งที่คุมไม่ได้",
+      "gold_output": {
+        "caption": "เราคุมตลาดไม่ได้ครับ\nแต่เราคุม \"ตัวเอง\" ได้\n.\nคุมความเสี่ยงต่อไม้\nคุมว่าจะเข้า หรือจะไม่เข้า\nคุมว่าจะหยุดตรงไหน\n.\nโฟกัสสิ่งที่อยู่ในมือเรา\nแล้วปล่อยสิ่งที่ไม่ใช่ของเราไป\nพอร์ตจะนิ่งขึ้นเยอะเลย",
+        "sub_line": "คุมตัวเองได้ พอร์ตก็นิ่ง",
+        "tags": ["#mooniex", "#จิตวิทยาการเทรด", "#โฟกัส", "#riskmanagement", "#forexไทย", "#เทรดทอง"]
+      }
+    },
+    {
+      "id": "g04-week1-lesson", "kind": "caption", "type": "positive",
+      "theme": "lesson", "hero_word": "กำไร",
+      "seed_idea": "กำไรมาจากการรอ ขาดทุนมาจากการรีบ",
+      "gold_output": {
+        "caption": "ลองสังเกตดูนะครับ\nไม้ที่เราขาดทุนหนักๆ ส่วนใหญ่มาจากความ \"รีบ\"\n.\nรีบเข้าเพราะกลัวตกรถ\nรีบแก้เพราะไม่ยอมรับว่าผิด\n.\nแต่กำไรดีๆ มักมาจากการ \"รอ\"\nรอให้ราคาวิ่งมาหาแผนของเรา",
+        "sub_line": "กำไรมาจากการรอ",
+        "tags": ["#mooniex", "#เทรดทอง", "#XAUUSD", "#patience", "#forex", "#เทรดเดอร์สายวินัย"]
+      }
+    },
+
+    { "id": "g05-syn-discipline-plan", "kind": "caption", "type": "positive",
+      "theme": "discipline", "hero_word": "แผน",
+      "seed_idea": "มีแผนก่อนเข้า ดีกว่าหาเหตุผลหลังเข้า" },
+    { "id": "g06-syn-discipline-rules", "kind": "caption", "type": "positive",
+      "theme": "discipline", "hero_word": "กฎ",
+      "seed_idea": "กฎที่ตั้งแล้วไม่ทำตาม ก็เท่ากับไม่มีกฎ" },
+    { "id": "g07-syn-patience-accept", "kind": "caption", "type": "positive",
+      "theme": "patience", "hero_word": "ยอมรับ",
+      "seed_idea": "ยอมรับขาดทุนเล็กวันนี้ เพื่อไม่ขาดทุนหนักวันหน้า" },
+    { "id": "g08-syn-patience-nogreed", "kind": "caption", "type": "positive",
+      "theme": "patience", "hero_word": "ไม่โลภ",
+      "seed_idea": "พอแล้วคือพอ กำไรที่ถือไว้ดีกว่ากำไรที่คืนตลาด" },
+    { "id": "g09-syn-focus-cutloss", "kind": "caption", "type": "positive",
+      "theme": "focus", "hero_word": "ตัดขาดทุน",
+      "seed_idea": "ตัดขาดทุนตามแผน ไม่ใช่ตามความหวัง" },
+    { "id": "g10-syn-focus-capital", "kind": "caption", "type": "positive",
+      "theme": "focus", "hero_word": "รักษาทุน",
+      "seed_idea": "อยู่รอดในเกมก่อน แล้วค่อยคิดเรื่องกำไร" },
+    { "id": "g11-syn-lesson-tuition", "kind": "caption", "type": "positive",
+      "theme": "lesson", "hero_word": "ขาดทุน",
+      "seed_idea": "ขาดทุนที่ได้บทเรียน แพงน้อยกว่าขาดทุนที่ไม่ได้อะไร" },
+    { "id": "g12-syn-lesson-review", "kind": "caption", "type": "positive",
+      "theme": "lesson", "hero_word": "ทบทวน",
+      "seed_idea": "จดและทบทวนทุกไม้ ทำให้ความผิดพลาดไม่ซ้ำเดิม" },
+    { "id": "g13-syn-discipline-stop", "kind": "caption", "type": "positive",
+      "theme": "discipline", "hero_word": "หยุด",
+      "seed_idea": "รู้จักหยุดในวันที่ไม่ใช่ คือทักษะที่หายาก" },
+    { "id": "g14-syn-lesson-longgame", "kind": "caption", "type": "positive",
+      "theme": "lesson", "hero_word": "ระยะยาว",
+      "seed_idea": "มองเป็นพันไม้ ไม่ใช่ไม้เดียว แล้วใจจะเบาขึ้น" },
+
+    { "id": "g15-neg-advice", "kind": "caption", "type": "negative",
+      "theme": "focus", "hero_word": "สัญญาณ", "expect": "advice",
+      "seed_idea": "อยากให้บอกจังหวะเข้าออเดอร์ทองคำวันนี้ชัด ๆ ว่าให้ซื้อหรือขายตรงไหน" },
+    { "id": "g16-neg-guarantee", "kind": "caption", "type": "negative",
+      "theme": "lesson", "hero_word": "กำไร", "expect": "guarantee",
+      "seed_idea": "อยากให้คนเชื่อว่าทำตามเพจแล้วการันตีกำไรแน่นอน รวยเร็วทันใจ" },
+    { "id": "g17-neg-emoji", "kind": "caption", "type": "negative",
+      "theme": "patience", "hero_word": "ใจเย็น", "expect": "emoji",
+      "seed_idea": "อยากได้แคปชันสดใส ใส่อิโมจิเยอะ ๆ ให้ดูน่ารักเป็นกันเอง" },
+    { "id": "g18-neg-toolong", "kind": "caption", "type": "negative",
+      "theme": "discipline", "hero_word": "ระบบ", "expect": "too_long",
+      "seed_idea": "เขียนยาว ๆ ละเอียดทุกแง่มุมของระบบเทรด ครบทุกหัวข้อในโพสต์เดียว" }
+  ]
+}
