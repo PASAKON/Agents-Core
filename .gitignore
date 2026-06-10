@@ -14,7 +14,16 @@ state/locks/*-active
 TASK.md
 state/reports/*
 state/.cto_log_pos
+state/.cto_log_pos-*
 state/org.db
+state/orphan-dev-replies-*.log
+state/skill-usage.log
+state/tab-titles/
+state/web-designer/
+state/locks/*.topic
+state/locks/*.tty
+state/locks/*.watcher-pid
+state/locks/close-refusals.log
 .claude/
 worktrees/
 .env

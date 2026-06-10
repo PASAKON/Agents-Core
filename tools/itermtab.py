@@ -48,44 +48,54 @@ def close_tab(task_id: str) -> bool:
         # iTerm and closing the wrong tab.
         return False
     fallback = task_id[:6]
+    # Both title surfaces are checked (sticky tab name + session badge,
+    # same as delegate's spawn matcher) — the session badge flickers to
+    # the running process name, which made session-name-only closes miss.
+    #
     # C-level tabs carry a live work summary in the title (IRON-RULES §32,
     # scripts/tab-title.sh). If a summary ever mentions a task, a naive
     # task-id match would close the C-level chat itself — so any tab whose
     # title carries a C-level prefix is excluded from closing.
     guard = ('and not (nm contains "CTO ") and not (nm contains "CMO ") '
-             'and not (nm contains "CGO ") and not (nm contains "CFO ")')
+             'and not (nm contains "CGO ") and not (nm contains "CFO ") '
+             'and not (tn contains "CTO ") and not (tn contains "CMO ") '
+             'and not (tn contains "CGO ") and not (tn contains "CFO ")')
     script = f'''
 tell application "iTerm"
   set closedAny to false
   repeat with w in windows
     set tabsList to tabs of w
     repeat with t in tabsList
-      tell t
-        set nm to ""
-        try
-          set nm to name of current session
-        end try
-        if (nm contains "{task_id}") {guard} then
-          close t
-          set closedAny to true
-        end if
-      end tell
+      set nm to ""
+      try
+        set nm to name of current session of t
+      end try
+      set tn to ""
+      try
+        set tn to name of t
+      end try
+      if ((nm contains "{task_id}") or (tn contains "{task_id}")) {guard} then
+        close t
+        set closedAny to true
+      end if
     end repeat
   end repeat
   if not closedAny then
     repeat with w in windows
       set tabsList to tabs of w
       repeat with t in tabsList
-        tell t
-          set nm to ""
-          try
-            set nm to name of current session
-          end try
-          if (nm contains "{fallback}") {guard} then
-            close t
-            set closedAny to true
-          end if
-        end tell
+        set nm to ""
+        try
+          set nm to name of current session of t
+        end try
+        set tn to ""
+        try
+          set tn to name of t
+        end try
+        if ((nm contains "{fallback}") or (tn contains "{fallback}")) {guard} then
+          close t
+          set closedAny to true
+        end if
       end repeat
     end repeat
   end if

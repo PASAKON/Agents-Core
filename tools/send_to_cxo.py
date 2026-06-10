@@ -26,6 +26,7 @@ reuses an alive tab with same topic-slug if created within 10 minutes.
 """
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 import secrets
@@ -125,10 +126,18 @@ end tell
 # ---------------------------------------------------------------------------
 
 def _make_topic_slug(message: str) -> str:
-    """First 30 chars of message lowercased → kebab slug, ≤30 chars."""
+    """First 30 chars of message lowercased → kebab slug, ≤30 chars.
+
+    Non-Latin messages (Thai is the org's working language) strip to an
+    empty slug — every such request would then dedupe-collide with every
+    other one for the same role within 10 minutes and get typed into the
+    wrong tab. Fall back to a content hash so distinct topics stay distinct."""
     raw = message[:30].lower()
-    slug = re.sub(r"[^a-z0-9]+", "-", raw).strip("-")
-    return slug[:30]
+    slug = re.sub(r"[^a-z0-9]+", "-", raw).strip("-")[:30]
+    if not slug:
+        digest = hashlib.sha1(message.strip().encode("utf-8")).hexdigest()[:8]
+        slug = f"t-{digest}"
+    return slug
 
 
 def _get_live_winids() -> set[str]:
@@ -142,10 +151,23 @@ def _get_live_winids() -> set[str]:
     return set(r.stdout.strip().replace(" ", "").split(","))
 
 
-def _send_to_ephemeral_tab(tab_title: str, text: str) -> None:
-    """Type `text` into an existing ephemeral tab matched by its full title."""
+def _send_to_ephemeral_tab(tab_title: str, text: str,
+                           slug: str | None = None) -> None:
+    """Type `text` into an existing ephemeral tab.
+
+    Match: full `tab_title` OR (when `slug` given) any tab carrying the
+    same role prefix + topic slug — covers reuse when the original tab
+    was spawned by a different sender ("CFO <- CMO: x" vs "CFO <- CTO: x")."""
     escaped = text.replace("\\", "\\\\").replace('"', '\\"')
     escaped_title = tab_title.replace("\\", "\\\\").replace('"', '\\"')
+    prefix = tab_title.split("<-")[0].strip()  # e.g. "CFO"
+    escaped_prefix = prefix.replace("\\", "\\\\").replace('"', '\\"')
+    escaped_slug = (slug or "").replace("\\", "\\\\").replace('"', '\\"')
+    slug_clause = (
+        f' or ((tabName contains "{escaped_prefix} <-") and (tabName contains ": {escaped_slug}"))'
+        f' or ((sessName contains "{escaped_prefix} <-") and (sessName contains ": {escaped_slug}"))'
+        if slug else ""
+    )
     script = f'''
 tell application "iTerm"
   set didSend to false
@@ -161,7 +183,7 @@ tell application "iTerm"
           try
             set sessName to name of current session of t
           end try
-          if (tabName contains "{escaped_title}") or (sessName contains "{escaped_title}") then
+          if (tabName contains "{escaped_title}") or (sessName contains "{escaped_title}"){slug_clause} then
             tell w to select
             tell t to select
             tell current session
@@ -246,7 +268,8 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
     label = sender or _resolve_sender_role()
     display = display_for(role)
     topic_slug = _make_topic_slug(message)
-    tab_title = f"{display.upper()} <- CTO: {topic_slug}"
+    # Attribute the actual sender — a CMO→CFO request must not read "<- CTO".
+    tab_title = f"{display.upper()} <- {label}: {topic_slug}"
     full_text = f"[{label}]: {message}"
 
     # Dedupe: scan existing ephemeral lock files for this role
@@ -270,7 +293,7 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
             if topic_file.read_text().strip() != topic_slug:
                 continue
             # Match: reuse this alive ephemeral tab
-            _send_to_ephemeral_tab(tab_title, full_text)
+            _send_to_ephemeral_tab(tab_title, full_text, slug=topic_slug)
             return f"reused {display} ephemeral tab {lock_file.stem}: {full_text}"
         except OSError:
             continue

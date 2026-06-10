@@ -35,7 +35,9 @@ tell application "iTerm"
     repeat with t in tabs of w
       try
         set tabName to name of current session of t
-        if tabName contains "CTO" then
+        -- "CTO Chat #"/"CTO #" only: a bare "CTO" would also match
+        -- ephemeral cross-talk tabs titled "CFO <- CTO: ...".
+        if (tabName contains "CTO Chat #") or (tabName contains "CTO #") then
           set targetWin to w
           exit repeat
         end if

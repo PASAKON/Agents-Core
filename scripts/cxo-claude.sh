@@ -75,8 +75,9 @@ ROLE_PROMPT="$(cat "$ROLE_DOC")"
 MCP_CONFIG="$ROOT/config/cto.mcp.json"
 
 # All C-levels get the same tool whitelist for now (same powers in
-# agents.yaml). Per-role pruning can come later if needed.
-ALLOWED="mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search mcp__org__wiki_write mcp__org__create_task mcp__org__check_collisions mcp__org__delegate_task mcp__org__delegate_parallel_tasks mcp__org__get_task mcp__org__list_my_tasks mcp__org__review_diff mcp__org__merge_task mcp__org__reopen_task mcp__org__list_projects mcp__org__stats mcp__org__notify_cxo Read Grep Glob Bash"
+# agents.yaml). Keep in sync with runners/cto_mcp_server.py and with
+# cto-claude.sh ALLOWED — the two launchers must not drift.
+ALLOWED="mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search mcp__org__wiki_write mcp__org__create_task mcp__org__check_collisions mcp__org__delegate_task mcp__org__delegate_parallel_tasks mcp__org__get_task mcp__org__review_diff mcp__org__merge_task mcp__org__reopen_task mcp__org__list_projects mcp__org__stats mcp__org__recall mcp__org__reflect mcp__org__revert_task_tool Read Grep Glob Bash"
 
 cd "$ROOT"
 
@@ -160,13 +161,20 @@ if [ -z "$SESSION_OVERRIDE" ]; then
 fi
 
 # Register session in c_level_sessions DB so gate 4 can query it later.
+# stdio detached: a backgrounded child holding our stdout/stderr pipes
+# makes programmatic callers (tests, capture_output) hang until it exits.
 (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
-  python3 -m tools.register_cxo --role "$ROLE" --session "$CXO_SESSION_ID" 2>/dev/null || true) &
+  python3 -m tools.register_cxo --role "$ROLE" --session "$CXO_SESSION_ID" 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
 
-# Launch idle-ping watcher in background (one per ephemeral session).
+# Launch idle-ping watcher — EPHEMERAL sessions only (--session set by
+# send_to_cxo --spawn). Primary CEO<->CXO tabs must never be idle-pinged:
+# each ping is a user message the model answers (token burn on idle) and
+# a non-reply would auto-close the CEO's own chat tab.
 # PID written to state/locks/<role>-<sid>.watcher-pid for GC tracking.
-bash "$ROOT/scripts/idle-ping-watcher.sh" --role "$ROLE" --session "$CXO_SESSION_ID" &
-disown $!
+if [ -n "$SESSION_OVERRIDE" ]; then
+  bash "$ROOT/scripts/idle-ping-watcher.sh" --role "$ROLE" --session "$CXO_SESSION_ID" >/dev/null 2>&1 </dev/null &
+  disown $!
+fi
 
 cleanup() {
   rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE"
@@ -209,7 +217,7 @@ export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
     bash "$ROOT/scripts/tab-title.sh" --reassert >/dev/null 2>&1 || true
     sleep 60
   done
-) >/dev/null 2>&1 &
+) >/dev/null 2>&1 </dev/null &
 disown $!
 
 # Initial prompt injection: background job sends prompt into this tab once
@@ -252,7 +260,7 @@ on run argv
   end tell
 end run
 APPLEEOF
-  ) &
+  ) >/dev/null 2>&1 </dev/null &
 fi
 
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.

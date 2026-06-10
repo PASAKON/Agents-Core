@@ -343,7 +343,7 @@ def test_send_to_cxo_dedupe_reuses_recent_topic_match() -> bool:
         reuse_calls: list = []
         spawn_calls: list = []
 
-        def fake_send_to_ephemeral(tab_title, text):
+        def fake_send_to_ephemeral(tab_title, text, slug=None):
             reuse_calls.append((tab_title, text))
 
         def fake_spawn_new(role, session_id, tab_title, initial_text):
@@ -390,7 +390,7 @@ def test_send_to_cxo_dedupe_skips_stale_lock() -> bool:
         def fake_spawn_new(role, session_id, tab_title, initial_text):
             spawn_calls.append((role, session_id))
 
-        def fake_send_to_ephemeral(tab_title, text):
+        def fake_send_to_ephemeral(tab_title, text, slug=None):
             raise AssertionError("should not reuse stale tab")
 
         with mock.patch("tools.send_to_cxo.LOCKS_DIR", locks), \

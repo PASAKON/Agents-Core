@@ -7,8 +7,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROLE_PROMPT="$(cat "$ROOT/roles/cto.md")"
 MCP_CONFIG="$ROOT/config/cto.mcp.json"
 
-# CTO-only tool whitelist. mcp__org__* covers every tool from the stdio server.
-ALLOWED="mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search mcp__org__wiki_write mcp__org__create_task mcp__org__check_collisions mcp__org__delegate_task mcp__org__delegate_parallel_tasks mcp__org__get_task mcp__org__list_my_tasks mcp__org__review_diff mcp__org__merge_task mcp__org__reopen_task mcp__org__list_projects mcp__org__stats Read Grep Glob Bash"
+# CTO-only tool whitelist — keep in sync with runners/cto_mcp_server.py
+# (and with cxo-claude.sh ALLOWED; the two launchers must not drift).
+ALLOWED="mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search mcp__org__wiki_write mcp__org__create_task mcp__org__check_collisions mcp__org__delegate_task mcp__org__delegate_parallel_tasks mcp__org__get_task mcp__org__review_diff mcp__org__merge_task mcp__org__reopen_task mcp__org__list_projects mcp__org__stats mcp__org__recall mcp__org__reflect mcp__org__revert_task_tool Read Grep Glob Bash"
 
 cd "$ROOT"
 export CTO_SESSION=1
@@ -98,7 +99,7 @@ export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
     bash "$ROOT/scripts/tab-title.sh" --reassert >/dev/null 2>&1 || true
     sleep 60
   done
-) >/dev/null 2>&1 &
+) >/dev/null 2>&1 </dev/null &
 disown $!
 
 # `exec` would replace the shell and skip the EXIT trap, leaving a

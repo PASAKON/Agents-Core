@@ -27,27 +27,53 @@ def _detect_source(level: str) -> str | None:
     Returns the prefix string when the calling process is part of the org
     (CTO MCP server or DEV session). Returns None otherwise — caller skips
     the cto.log write so unrelated processes don't pollute the shared log.
+
+    CTO-event lines carry the session id (`CTO-event[INFO][a1b2c3d4]`) so
+    hook-log-prompt can drop other sessions' events in multi-CTO setups.
     """
     task_id = os.environ.get("DEV_TASK_ID")
     if task_id:
         role = os.environ.get("DEV_ROLE", "dev")
         return f"Dev:{role}:{task_id[:10]}"
     if os.environ.get("CTO_SESSION") == "1":
-        return f"CTO-event[{level.upper()}]"
+        sid = os.environ.get("CTO_SESSION_ID")
+        tag = f"[{sid}]" if sid else ""
+        return f"CTO-event[{level.upper()}]{tag}"
     return None
+
+
+def _per_session_log() -> Path | None:
+    """Per-CTO log file (state/logs/cto-<id>.log) for the owning session.
+
+    CTO processes use their own id; DEV processes use the spawning CTO's
+    id (DEV_CTO_ID). This is the file `spawn-cto.sh --with-logs` tails."""
+    sid = None
+    if os.environ.get("CTO_SESSION") == "1":
+        sid = os.environ.get("CTO_SESSION_ID")
+    elif os.environ.get("DEV_TASK_ID"):
+        sid = os.environ.get("DEV_CTO_ID")
+    if not sid:
+        return None
+    return _ROOT / "state" / "logs" / f"cto-{sid}.log"
 
 
 def _append_cto_log(level: str, msg: str) -> None:
     source = _detect_source(level)
     if source is None:
         return
-    try:
-        _CTO_LOG.parent.mkdir(parents=True, exist_ok=True)
-        ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        with _CTO_LOG.open("a", encoding="utf-8") as f:
-            f.write(f"[{ts}] {source}: {msg}\n")
-    except OSError:
-        pass
+    ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    line = f"[{ts}] {source}: {msg}\n"
+    targets = [_CTO_LOG]
+    per = _per_session_log()
+    if per is not None:
+        targets.append(per)
+    for target in targets:
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with target.open("a", encoding="utf-8") as f:
+                f.write(line)
+        except OSError:
+            pass
 
 
 def notify(level: str, msg: str, *, mac: bool = False, title: str = "Org") -> None:

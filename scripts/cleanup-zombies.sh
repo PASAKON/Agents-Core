@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # scripts/cleanup-zombies.sh — remove stale lock sets (*.winid + siblings).
 # A lock set is stale when its winid is not in iTerm's live window list.
-# Siblings removed per stale set: .topic  .lock  .watcher-pid (kills watcher too).
+# Siblings removed per stale set: .topic .lock .tty .watcher-pid (kills
+# the watcher process too).
+#
+# Second pass: orphan siblings that never got a .winid (spawn died before
+# the launcher booted, or the winid lookup failed) are removed once they
+# are older than 24h and — for .lock/.watcher-pid — their pid is dead.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOCKS="$ROOT/state/locks"
@@ -24,9 +29,31 @@ for f in "$LOCKS"/*.winid; do
         fi
       fi
 
-      rm -f "$f" "$LOCKS/$base.topic" "$LOCKS/$base.lock" "$LOCKS/$base.watcher-pid"
+      rm -f "$f" "$LOCKS/$base.topic" "$LOCKS/$base.lock" "$LOCKS/$base.tty" "$LOCKS/$base.watcher-pid"
       removed=$((removed+1))
       ;;
   esac
 done
-echo "cleanup-zombies: removed $removed stale lock set(s)"
+
+orphans=0
+now="$(date +%s)"
+for f in "$LOCKS"/*.topic "$LOCKS"/*.lock "$LOCKS"/*.tty "$LOCKS"/*.watcher-pid; do
+  [ -e "$f" ] || continue
+  base="${f%.*}"
+  [ -e "$base.winid" ] && continue  # has a lock set — pass 1 territory
+  mtime="$(stat -f %m "$f" 2>/dev/null || echo "$now")"
+  age=$(( now - mtime ))
+  [ "$age" -ge 86400 ] || continue
+  case "$f" in
+    *.lock|*.watcher-pid)
+      pid="$(tr -d '[:space:]' < "$f" 2>/dev/null || true)"
+      if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+        continue  # process still alive — not an orphan
+      fi
+      ;;
+  esac
+  rm -f "$f"
+  orphans=$((orphans+1))
+done
+
+echo "cleanup-zombies: removed $removed stale lock set(s), $orphans orphan file(s)"

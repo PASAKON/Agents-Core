@@ -34,6 +34,30 @@ log = get_logger(ROLE, stdout=False)
 mcp = FastMCP("org")
 
 
+def _my_cto_id() -> str | None:
+    return os.environ.get("CTO_SESSION_ID") or None
+
+
+def _is_mine(task: dict | None) -> bool:
+    """May this CTO session mutate the task?
+
+    Unrestricted when the session has no id (legacy/single-CTO) or the
+    task has no owner (pre-owner_cto rows, CXO-created tasks)."""
+    if not task:
+        return True
+    mine = _my_cto_id()
+    owner = task.get("owner_cto")
+    return not mine or not owner or owner == mine
+
+
+def _foreign_msg(task: dict) -> str:
+    return (
+        f"Refusing cross-CTO mutation: task {task.get('id')} belongs to "
+        f"CTO #{task.get('owner_cto')} (you are CTO #{_my_cto_id() or 'unset'}). "
+        f"Coordinate via tools.send_to_cxo or let the owning CTO act."
+    )
+
+
 @mcp.tool()
 def wiki_read(path: str) -> str:
     """Read a wiki page from /Users/gob/Projects/LLMs/."""
@@ -124,6 +148,9 @@ def check_collisions(project: str, touches: str) -> str:
 @mcp.tool()
 async def delegate_task(task_id: str) -> str:
     """Spawn a DEV subprocess to execute a task. Blocks until DEV reports back."""
+    t = db.get_task(task_id)
+    if t and not _is_mine(t):
+        return _foreign_msg(t)
     result = await do_delegate(task_id)
     return json.dumps(result, indent=2, default=str)[:6000]
 
@@ -158,6 +185,9 @@ def review_diff(task_id: str, full: bool = False) -> str:
 @mcp.tool()
 def merge_task(task_id: str) -> str:
     """Merge a task's branch into project default branch + push. CTO only."""
+    t = db.get_task(task_id)
+    if t and not _is_mine(t):
+        return _foreign_msg(t)
     result = do_merge(task_id, role=ROLE)
     return json.dumps(result, indent=2, default=str)
 
@@ -168,6 +198,8 @@ def reopen_task(task_id: str, feedback: str) -> str:
     t = db.get_task(task_id)
     if not t:
         return "not found"
+    if not _is_mine(t):
+        return _foreign_msg(t)
     new_desc = f"{t['description']}\n\n## CTO Feedback (iter {t['iteration']+1})\n{feedback}"
     db.update_status(
         task_id,
@@ -225,6 +257,9 @@ async def revert_task_tool(task_id: str, force: bool = False) -> str:
     Re-fires auto_deploy on success if the project has it enabled and
     not requires_ceo_ack.
     """
+    t = db.get_task(task_id)
+    if t and not _is_mine(t):
+        return _foreign_msg(t)
     from tools.revert_task import revert_task
     return json.dumps(revert_task(task_id, force=force), ensure_ascii=False)
 

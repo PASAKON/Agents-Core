@@ -323,6 +323,29 @@ def update_status(task_id: str, status: str, *, actor: str = "system", **fields)
             pass
 
 
+def set_fields(task_id: str, *, actor: str = "system", **fields) -> None:
+    """Update task columns WITHOUT touching status.
+
+    delegate.py needs this after tmux/ttyd boot: by then the DEV inside the
+    tmux session may already have claimed the task (pending → in_progress),
+    and an update_status(..., 'pending') here would silently regress it."""
+    if not fields:
+        return
+    bad = set(fields) - VALID_COLUMNS
+    if bad:
+        raise ValueError(f"unknown column(s): {bad}")
+    ts = now_iso()
+    sets = ["updated_at=?"]
+    vals: list = [ts]
+    for k, v in fields.items():
+        sets.append(f"{k}=?")
+        vals.append(v)
+    vals.append(task_id)
+    with get_conn() as conn:
+        conn.execute(f"UPDATE tasks SET {','.join(sets)} WHERE id=?", vals)
+        log_event(conn, task_id, actor, "fields_set", fields)
+
+
 def get_task(task_id: str) -> dict | None:
     with get_conn() as conn:
         row = conn.execute("SELECT * FROM tasks WHERE id=?", (task_id,)).fetchone()

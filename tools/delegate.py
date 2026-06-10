@@ -251,6 +251,55 @@ async def _auto_kickoff(task_id: str, message: str) -> None:
         warn(f"kickoff failed task={task_id}: {e}")
 
 
+# How long a spawned DEV gets to claim its task before we treat the tab
+# as dead. dev_init claims within ~2-3s of shell start (venv + import +
+# one UPDATE), so 25s of pending+unclaimed means the process never ran
+# (0-byte-log silent death) or the "reused" tab was a leftover dead shell.
+CLAIM_VERIFY_DELAY_S = 25.0
+
+
+async def _verify_claimed(task_id: str, role_name: str,
+                          owner_cto: str | None, *,
+                          kickoff_text: str, attempt: int = 1) -> None:
+    """Watchdog for the iTerm backend's two silent-death modes: the DEV
+    process dies before claiming, or the tab-reuse path selected a dead
+    tab. One automatic close+respawn, then a loud error for the CTO."""
+    await asyncio.sleep(CLAIM_VERIFY_DELAY_S)
+    t = db.get_task(task_id)
+    if not t or t["status"] != "pending" or t.get("assigned_agent"):
+        return  # claimed (or moved on) — the normal path
+    if attempt > 1:
+        error(f"task {task_id} still unclaimed after respawn — "
+              f"DEV never started; investigate tab / dev_init manually")
+        return
+    warn(f"task {task_id} unclaimed {CLAIM_VERIFY_DELAY_S:.0f}s after spawn "
+         f"— closing stale tab and respawning once")
+    try:
+        from tools.itermtab import close_tab
+        # Re-check right before closing: a claim landing in this window
+        # would make the tab live and the close wrong.
+        t = db.get_task(task_id)
+        if not t or t["status"] != "pending" or t.get("assigned_agent"):
+            return
+        await asyncio.to_thread(close_tab, task_id)
+    except Exception as e:
+        warn(f"stale-tab close failed for {task_id}: {e}")
+    try:
+        await asyncio.to_thread(_spawn_iterm_tab, role_name, task_id,
+                                owner_cto=owner_cto)
+    except Exception as e:
+        error(f"respawn failed for {task_id}: {e}")
+        db.update_status(task_id, "failed",
+                         delegate_log=f"respawn after unclaimed spawn failed: {e}",
+                         actor="cto")
+        return
+    if kickoff_text:
+        asyncio.create_task(_auto_kickoff(task_id, kickoff_text))
+    asyncio.create_task(_verify_claimed(task_id, role_name, owner_cto,
+                                        kickoff_text=kickoff_text,
+                                        attempt=attempt + 1))
+
+
 async def delegate_task(task_id: str, *, wait: bool = False,
                          timeout_s: float = DEFAULT_TIMEOUT_S,
                          kickoff: str | None = None) -> dict:
@@ -333,6 +382,10 @@ async def delegate_task(task_id: str, *, wait: bool = False,
 
     if backend == "tmux":
         tmux_sess = tmux.session_name_for(task_id)
+        # Record the tmux session BEFORE the DEV process exists. The DEV
+        # claims (pending → in_progress) within seconds of tmux.create; a
+        # status write after that point would silently regress the claim.
+        db.set_fields(task_id, tmux_session=tmux_sess, actor="cto")
         cto_env = f"export DEV_CTO_ID='{owner_cto}' && " if owner_cto else ""
         dev_cmd = (
             f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
@@ -360,12 +413,9 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                 ttyd_port = None
                 ttyd_pid = None
 
-        db.update_status(
-            task_id, "pending", actor="cto",
-            tmux_session=tmux_sess,
-            ttyd_port=ttyd_port,
-            ttyd_pid=ttyd_pid,
-        )
+        if ttyd_port or ttyd_pid:
+            db.set_fields(task_id, ttyd_port=ttyd_port, ttyd_pid=ttyd_pid,
+                          actor="cto")
 
     try:
         spawn_result = _spawn_iterm_tab(role_name, task_id,
@@ -392,6 +442,12 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         kickoff_text += db.designer_kickoff_suffix(task.get("description") or "")
     if kickoff_text and spawn_result != "reused":
         asyncio.create_task(_auto_kickoff(task_id, kickoff_text))
+
+    if backend != "tmux":
+        # Catch both silent-death modes (dead reused tab / dev_init that
+        # never claimed) — tmux backend is covered by runners.watchdog.
+        asyncio.create_task(_verify_claimed(task_id, role_name, owner_cto,
+                                            kickoff_text=kickoff_text))
 
     if not wait:
         success(f"DEV spawned task={task_id} (fire-and-forget)")

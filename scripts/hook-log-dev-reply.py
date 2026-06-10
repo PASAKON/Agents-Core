@@ -33,6 +33,13 @@ from pathlib import Path
 ROOT = Path("/Users/gob/Projects/Agents")
 LOG = ROOT / "state" / "logs" / "cto.log"
 DB_PATH = ROOT / "state" / "tasks.db"
+
+
+def _log_for(cto_id: str | None) -> Path:
+    """Per-CTO log path when the spawning CTO is known, else the global log."""
+    if cto_id:
+        return ROOT / "state" / "logs" / f"cto-{cto_id}.log"
+    return LOG
 MAX_CHARS = 4000
 RELAY_MAX_CHARS = 1500
 DEFAULT_BACKOFF_S = 300
@@ -168,16 +175,26 @@ def main() -> int:
     if len(last_text) > MAX_CHARS:
         last_text = last_text[:MAX_CHARS] + " ...[truncated]"
 
-    LOG.parent.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    with LOG.open("a", encoding="utf-8") as f:
-        if last_text:
-            f.write(f"[{ts}] {role_label} {task_id}: {last_text}\n")
-        if rate_limited:
-            f.write(
-                f"[{ts}] RateLimit {role_label} {task_id}: status=rate_limited, "
-                f"retry_after={DEFAULT_BACKOFF_S}s, session={session_id}\n"
-            )
+    # Dual-write: global cto.log (legacy consumers) + the spawning CTO's
+    # per-session log so multi-CTO setups don't cross feeds.
+    targets = [LOG]
+    per = _log_for(cto_id)
+    if per != LOG:
+        targets.append(per)
+    for target in targets:
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with target.open("a", encoding="utf-8") as f:
+                if last_text:
+                    f.write(f"[{ts}] {role_label} {task_id}: {last_text}\n")
+                if rate_limited:
+                    f.write(
+                        f"[{ts}] RateLimit {role_label} {task_id}: status=rate_limited, "
+                        f"retry_after={DEFAULT_BACKOFF_S}s, session={session_id}\n"
+                    )
+        except OSError:
+            pass
 
     # Bidirectional visible chat: type the DEV's reply into the CTO tab
     # so the CEO can watch the conversation in real time.
