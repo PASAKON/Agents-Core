@@ -166,7 +166,7 @@ def _print_banner(session_id: str | None, resumed: bool) -> None:
     cto_id = cto_session.current_id()
     print(f"{c}=========================================================={RESET}")
     print(f"{c}  CTO Chat — Mooniex Virtual Org{RESET}")
-    print(f"{c}  Model: fable-5[1m]   |   Tools: 13{RESET}")
+    print(f"{c}  Model: claude-fable-5   |   Tools: 13{RESET}")
     if cto_id:
         print(f"{c}  CTO id: #{cto_id}   log: state/logs/cto-{cto_id}.log{RESET}")
     print(f"{c}=========================================================={RESET}")

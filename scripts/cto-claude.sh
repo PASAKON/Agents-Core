@@ -74,7 +74,7 @@ printf '\033]0;CTO Chat #%s\007' "$CTO_SESSION_ID"
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
   -n "CTO Chat #$CTO_SESSION_ID" \
-  --model 'fable-5[1m]' \
+  --model 'claude-fable-5' \
   --fallback-model 'claude-opus-4-8[1m]' \
   --effort max \
   --permission-mode auto \

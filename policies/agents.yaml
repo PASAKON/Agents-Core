@@ -17,7 +17,7 @@ roles:
   cto:
     display: CTO
     level: c
-    model: "fable-5[1m]"
+    model: "claude-fable-5"
     fallback_model: "claude-opus-4-8[1m]"
     can_write_wiki: true
     can_create_task: true
@@ -28,7 +28,7 @@ roles:
   cfo:
     display: CFO
     level: c
-    model: "fable-5[1m]"
+    model: "claude-fable-5"
     fallback_model: "claude-opus-4-8[1m]"
     can_write_wiki: true
     can_create_task: true
@@ -39,7 +39,7 @@ roles:
   cgo:
     display: CGO
     level: c
-    model: "fable-5[1m]"
+    model: "claude-fable-5"
     fallback_model: "claude-opus-4-8[1m]"
     can_write_wiki: true
     can_create_task: true
@@ -50,7 +50,7 @@ roles:
   cmo:
     display: CMO
     level: c
-    model: "fable-5[1m]"
+    model: "claude-fable-5"
     fallback_model: "claude-opus-4-8[1m]"
     can_write_wiki: true
     can_create_task: true
