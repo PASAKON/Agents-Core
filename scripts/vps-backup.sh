@@ -52,10 +52,13 @@ SSH_OPTS="-o ConnectTimeout=20 -o BatchMode=yes"
 EXPECTED_ENV_VARS=163   # informational target (item 9); real count printed at run
 
 # Reconstructable dirs excluded from full-dir pulls (documented, not silent).
+# NOTE: joined --exclude=PATTERN form only. macOS system rsync 2.6.9 does NOT
+# consume separate-argument option values ("--exclude PAT" / -e "ssh ...") —
+# it silently treats the values as local source paths (verified 2026-06-11).
 RSYNC_EXCLUDES=(
-  --exclude 'node_modules' --exclude 'venv' --exclude '.venv'
-  --exclude '__pycache__'  --exclude '.pytest_cache'
-  --exclude '*.pyc'        --exclude '*.egg-info'
+  --exclude=node_modules --exclude=venv --exclude=.venv
+  --exclude=__pycache__  --exclude=.pytest_cache
+  '--exclude=*.pyc'      '--exclude=*.egg-info'
 )
 
 # The 5 .env files (label|remote-path). The 5th lives outside /root (item 4 dir).
@@ -166,10 +169,10 @@ do_rsync() {
     log "  would pull $src  ($(rsize "$src"))  -> $rel"
     return 0
   fi
-  local args=(-aH --partial -e "ssh $SSH_OPTS")
+  local args=(-aH --partial "--rsh=ssh $SSH_OPTS")
   [ -t 1 ] && args+=(--progress)
   if [ "$DELTA" -eq 1 ] && [ -n "${PREV_RUN:-}" ] && [ -e "$PREV_RUN/$rel" ]; then
-    args+=(--link-dest "$PREV_RUN/$rel")
+    args+=("--link-dest=$PREV_RUN/$rel")
   fi
   args+=("$@")
   mkdir -p "$(dirname "$dest")"
@@ -286,7 +289,10 @@ pull_env_bundle() {
     fi
     if do_rsync "$rel/$label.env" "$path" 2>/dev/null && [ -s "$dest/$label.env" ]; then
       chmod 600 "$dest/$label.env" 2>/dev/null || true
-      n=$(grep -cE '^[[:space:]]*[^#[:space:]]' "$dest/$label.env" 2>/dev/null || echo 0)
+      # grep -c prints the count even when it exits 1 (zero matches) — never
+      # append a fallback echo or the var gets two lines ("0\n0")
+      n=$(grep -cE '^[[:space:]]*[^#[:space:]]' "$dest/$label.env" 2>/dev/null || true)
+      n=${n:-0}
       printf '%4d  %s.env\n' "$n" "$label" >>"$dest/env-counts.txt"
     else
       printf '%4s  %s.env (%s)\n' "MISS" "$label" "$path" >>"$dest/env-counts.txt"
@@ -297,7 +303,8 @@ EOF
   if [ "$DRY_RUN" -eq 1 ]; then ITEM_DETAIL="would collect 5 .env (expect ~$EXPECTED_ENV_VARS vars)"; return 0; fi
   # tally outside the while-subshell from the counts file
   total=$(awk '/\.env$/{s+=$1} END{print s+0}' "$dest/env-counts.txt")
-  missing=$(grep -c 'MISS' "$dest/env-counts.txt" 2>/dev/null || echo 0)
+  missing=$(grep -c 'MISS' "$dest/env-counts.txt" 2>/dev/null || true)
+  missing=${missing:-0}
   printf 'TOTAL %d vars across 5 .env (expected ~%d)\n' "$total" "$EXPECTED_ENV_VARS" >>"$dest/env-counts.txt"
   ITEM_DETAIL="$total vars / 5 files; missing=$missing"
   [ "$missing" -eq 0 ] || return 1
@@ -383,7 +390,7 @@ do_backup() {
   do_discover --quiet
   : >"$RUN_DIR/MANIFEST.txt"
 
-  local key class secs status
+  local key class secs status fails=0
   for key in $ORDERED_KEYS; do
     class="$(mf_class "$key")"
     if ! selected "$key"; then
@@ -394,13 +401,15 @@ do_backup() {
     ITEM_DETAIL=""; secs=$SECONDS
     log "item $(mf_field "$key" 2) [$key] — $(mf_desc "$key")"
     if dispatch_pull "$key"; then status="OK"; ok "$key — $ITEM_DETAIL"
-    else status="FAIL"; err "$key — ${ITEM_DETAIL:-failed}"; fi
+    else status="FAIL"; fails=$((fails+1)); err "$key — ${ITEM_DETAIL:-failed}"; fi
     record "$key" "$status" "$ITEM_DETAIL" "$((SECONDS - secs))"
     printf '%-16s %-4s  %s\n' "$key" "$status" "${ITEM_DETAIL:-$(mf_desc "$key")}" >>"$RUN_DIR/MANIFEST.txt"
   done
 
   write_summary
   if [ "$DRY_RUN" -eq 0 ] && [ -n "$MIRROR_DST" ]; then do_mirror "$RUN_DIR" "$MIRROR_DST"; fi
+  if [ "$fails" -gt 0 ]; then err "BACKUP: $fails item(s) FAILED — fix and re-run with --only"; return 1; fi
+  return 0
 }
 
 # ---------------------------------------------------------------------------
