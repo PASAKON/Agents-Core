@@ -70,7 +70,7 @@ ENV_PATH = os.environ.get("TM_ENV_PATH", "/Users/gob/Projects/mooniex-claudeflow
 FAL_ENDPOINT = "https://fal.run/openai/gpt-image-2/edit"
 FAL_IMAGE_SIZE = "square_hd"          # match v9 (1:1). Composite adapts to any size.
 OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
-CAPTION_MODEL = os.environ.get("TM_CAPTION_MODEL", "anthropic/claude-3.5-sonnet")
+CAPTION_MODEL = os.environ.get("TM_CAPTION_MODEL", "anthropic/claude-sonnet-4-6")
 
 NAVY = (12, 28, 43)        # #0c1c2b
 NAVY_DEEP = (10, 22, 34)   # #0a1622
