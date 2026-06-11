@@ -6,7 +6,7 @@
   },
   "active": {
     "caption": "v1",
-    "poster": "v1"
+    "poster": "v2"
   },
   "history": [
     {
@@ -22,6 +22,13 @@
       "date": "2026-06-11",
       "change_reason": "Initial externalization from scripts/trader_mindset_batch.py (PRE + ART_STYLES + SCENES + build_poster_prompt), verbatim.",
       "eval_result": "baseline — extracted as-is, no A/B (first version)"
+    },
+    {
+      "version": "v2",
+      "kind": "poster",
+      "date": "2026-06-12",
+      "change_reason": "CEO order 2026-06-12 (round-003, 5-piece): hero art style + scene must not repeat within a round — added 5th ART-DECO GEOMETRIC style + 5th cuff-portrait scene. Additive only; template/preamble unchanged.",
+      "eval_result": "A/B N/A — additive art-direction under CEO mandate; caption prompt untouched. PE to ratify in next eval round."
     }
   ]
 }
