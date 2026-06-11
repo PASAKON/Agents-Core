@@ -25,6 +25,10 @@ const db = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
 let cachedUserId = null;
 export async function resolveUserId() {
   if (cachedUserId) return cachedUserId;
+  // Prefer explicit id — LungNote auth has shadow email-users that never sign in
+  // (see LungNote-webapp issue: email user pass.gob1 ≠ real LINE-login account),
+  // so email lookup is NOT trustworthy for this product.
+  if (process.env.LUNGNOTE_USER_ID) return (cachedUserId = process.env.LUNGNOTE_USER_ID);
   let page = 1;
   // paginate auth users until the Google-login email matches
   for (;;) {
@@ -67,12 +71,25 @@ export const api = {
       .eq("note_id", noteId).order("position");
     return { ...note, todos: todos ?? [] };
   },
+  async ensureClaudeTag(uid) {
+    const { data: tag } = await db
+      .from("lungnote_tags").select("id").eq("user_id", uid).ilike("name", "claude").maybeSingle();
+    if (tag) return tag.id;
+    const { data: created, error } = await db
+      .from("lungnote_tags").insert({ user_id: uid, name: "Claude", color: "#cdac65" })
+      .select("id").single();
+    if (error) throw error;
+    return created.id;
+  },
   async createNote(title, body = "") {
     const uid = await resolveUserId();
     const { data, error } = await db
       .from("lungnote_notes").insert({ user_id: uid, title, body })
       .select("id,title").single();
     if (error) throw error;
+    // Gmail-label style: everything Claude writes carries the "Claude" tag (CEO 2026-06-11)
+    const tagId = await this.ensureClaudeTag(uid);
+    await db.from("lungnote_notes_tags").upsert({ note_id: data.id, tag_id: tagId });
     return data;
   },
   async appendNote(noteId, text) {
