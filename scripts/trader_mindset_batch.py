@@ -222,12 +222,14 @@ def _parse_json_object(content: str) -> dict:
     if content.startswith("```"):
         content = re.sub(r"^```[a-zA-Z]*\n?|\n?```$", "", content).strip()
     try:
-        return json.loads(content)
+        # strict=False: tolerate literal newlines/control chars inside strings
+        # (Sonnet sometimes emits real newlines in caption values — round-003).
+        return json.loads(content, strict=False)
     except json.JSONDecodeError:
         m = re.search(r"\{.*\}", content, re.S)
         if not m:
             raise
-        return json.loads(m.group(0))
+        return json.loads(m.group(0), strict=False)
 
 
 _EMOJI_RE = re.compile(
