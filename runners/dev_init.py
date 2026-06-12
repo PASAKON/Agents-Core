@@ -148,6 +148,10 @@ def main() -> None:
     env["DEV_ROLE"] = role
     if task.get("owner_cto"):
         env["DEV_CTO_ID"] = task["owner_cto"]
+        # owner_role picks which <role>-<id>.winid lock send_to_cto reads so
+        # CFO/CMO-spawned reports route to the CXO tab, not a CTO tab. Pre-
+        # migration rows have owner_cto but NULL owner_role → default cto.
+        env["DEV_CTO_ROLE"] = task.get("owner_role") or "cto"
 
     # PID survives os.execvpe — record now so the watchdog can probe the
     # claude TUI's liveness directly instead of guessing from log mtime.

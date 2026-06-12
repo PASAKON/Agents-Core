@@ -2,6 +2,7 @@
 
 Verifies:
   1. owner_cto column exists + is settable on create_task.
+  1b. create_task falls back to CXO_SESSION_ID+CXO_ROLE env (issue #15).
   2. list_tasks(owner_cto=) filter works.
   3. _is_mine / _foreign_msg gate cross-CTO mutations in cto_mcp_server.
   4. send_to_cto accepts cto_id kwarg without raising.
@@ -68,6 +69,34 @@ def test_create_and_filter() -> tuple[bool, list[str]]:
     return ok, tids
 
 
+def test_create_with_cxo_env() -> bool:
+    """A non-CTO C-level session exports only CXO_SESSION_ID + CXO_ROLE.
+    create_task must fall back to those and stamp owner_cto + owner_role so
+    CFO/CMO-spawned tasks are no longer ownerless (issue #15)."""
+    saved = {k: os.environ.get(k) for k in
+             ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE")}
+    os.environ.pop("CTO_SESSION_ID", None)  # CXO session has no CTO_SESSION_ID
+    os.environ["CXO_SESSION_ID"] = "cfo01234"
+    os.environ["CXO_ROLE"] = "cfo"
+    tid = None
+    try:
+        tid = db.create_task("mooniex-claudeflow", "data_analyst",
+                             "cxo-env smoke", "test")
+        row = db.get_task(tid)
+        ok = (row is not None
+              and row["owner_cto"] == "cfo01234"
+              and row["owner_role"] == "cfo")
+    finally:
+        if tid:
+            _cleanup([tid])
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    return ok
+
+
 def test_cross_cto_gate(tids: list[str]) -> bool:
     os.environ["CTO_SESSION_ID"] = "ctoaaaaa"
     from runners import cto_mcp_server as srv  # noqa: WPS433
@@ -125,6 +154,9 @@ def main() -> int:
 
         r, created = test_create_and_filter(); fails += not r
         _mark(r, "list_tasks(owner_cto=) filters")
+
+        r = test_create_with_cxo_env(); fails += not r
+        _mark(r, "create_task stamps owner_cto+owner_role from CXO_* env")
 
         r = test_cross_cto_gate(created); fails += not r
         _mark(r, "_is_mine + _foreign_msg gate cross-CTO mutation")
