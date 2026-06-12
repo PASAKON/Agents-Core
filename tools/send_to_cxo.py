@@ -39,6 +39,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib.config import display_for, is_c_level
+from lib.iterm_type import type_submit_fragment
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCKS_DIR = ROOT / "state" / "locks"
@@ -87,6 +88,7 @@ def _send(role: str, session_id: str, message: str, sender: str) -> None:
     tab_match_new = f"{display} #{session_id}"
     text = f"[{sender}]: {message}"
     escaped = text.replace("\\", "\\\\").replace('"', '\\"')
+    submit = type_submit_fragment(escaped)
     script = f'''
 tell application "iTerm"
   set didSend to false
@@ -106,8 +108,7 @@ tell application "iTerm"
             tell w to select
             tell t to select
             tell current session
-              write text "{escaped}" newline NO
-              write text (ASCII character 13) newline NO
+              {submit}
             end tell
             set didSend to true
           end if
@@ -159,6 +160,7 @@ def _send_to_ephemeral_tab(tab_title: str, text: str,
     same role prefix + topic slug — covers reuse when the original tab
     was spawned by a different sender ("CFO <- CMO: x" vs "CFO <- CTO: x")."""
     escaped = text.replace("\\", "\\\\").replace('"', '\\"')
+    submit = type_submit_fragment(escaped)
     escaped_title = tab_title.replace("\\", "\\\\").replace('"', '\\"')
     prefix = tab_title.split("<-")[0].strip()  # e.g. "CFO"
     escaped_prefix = prefix.replace("\\", "\\\\").replace('"', '\\"')
@@ -187,8 +189,7 @@ tell application "iTerm"
             tell w to select
             tell t to select
             tell current session
-              write text "{escaped}" newline NO
-              write text (ASCII character 13) newline NO
+              {submit}
             end tell
             set didSend to true
           end if

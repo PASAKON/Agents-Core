@@ -22,6 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
+from lib.iterm_type import type_submit_fragment
 from tools import tmux_session as tmux
 
 
@@ -43,6 +44,7 @@ def _send(full_id: str, message: str) -> None:
     full-id title change."""
     text = f"{PREFIX} {message}"
     escaped = text.replace('\\', '\\\\').replace('"', '\\"')
+    submit = type_submit_fragment(escaped)
     fallback = full_id[:6]
     script = f'''
 tell application "iTerm"
@@ -53,8 +55,7 @@ tell application "iTerm"
         if name of current session contains "{full_id}" then
           select t
           tell current session
-            write text "{escaped}" newline NO
-            write text (ASCII character 13) newline NO
+            {submit}
           end tell
           set didSend to true
         end if
@@ -68,8 +69,7 @@ tell application "iTerm"
           if name of current session contains "{fallback}" then
             select t
             tell current session
-              write text "{escaped}" newline NO
-              write text (ASCII character 13) newline NO
+              {submit}
             end tell
           end if
         end tell

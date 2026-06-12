@@ -32,6 +32,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib.config import display_for  # noqa: E402
+from lib.iterm_type import type_submit_fragment  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCKS_DIR = ROOT / "state" / "locks"
@@ -97,6 +98,7 @@ def send(from_id: str, message: str, role: str | None = None,
         prefix = f"[Dev:{from_id}]:"
     text = f"{prefix} {message}"
     escaped = text.replace('\\', '\\\\').replace('"', '\\"')
+    submit = type_submit_fragment(escaped)
 
     if cto_id:
         winid = _read_winid(cto_id, owner_role)
@@ -121,8 +123,7 @@ tell application "iTerm"
       try
         if (name of current session of t contains "CTO Chat") or (name of current session of t contains "#{cto_id}") then
           tell current session of t
-            write text "{escaped}" newline NO
-            write text (ASCII character 13) newline NO
+            {submit}
           end tell
           set didSend to true
           exit repeat
@@ -170,8 +171,7 @@ tell application "iTerm"
       tell t
         if (name of current session contains "{CTO_TAB_FALLBACK_MATCH}") or (name of current session contains "CTO #") then
           tell current session
-            write text "{escaped}" newline NO
-            write text (ASCII character 13) newline NO
+            {submit}
           end tell
           set didSend to true
         end if
