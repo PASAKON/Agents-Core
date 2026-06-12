@@ -21,6 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
+from lib.iterm_type import type_submit_fragment
 
 
 def _build_task_md(task) -> str:
@@ -55,8 +56,11 @@ def _send_pointer(tab_substring: str, task_md_path: Path) -> None:
         "After completing, call mcp__org__submit_report."
     )
     pointer_escaped = pointer.replace('\\', '\\\\').replace('"', '\\"')
-    # `newline NO` suppresses iTerm's default trailing LF. Then we
-    # append CR (ASCII 13) which claude TUI interprets as Enter/submit.
+    # `newline NO` suppresses iTerm's default trailing LF. The shared helper
+    # then settles (delay) before the CR so a multi-line prompt isn't left
+    # stuck in the claude TUI composer, and sends a rescue CR. See
+    # lib/iterm_type.type_submit_fragment.
+    submit = type_submit_fragment(pointer_escaped)
     script = f'''
 tell application "iTerm"
   tell current window
@@ -65,8 +69,7 @@ tell application "iTerm"
         if name of current session contains "{tab_substring}" then
           select t
           tell current session
-            write text "{pointer_escaped}" newline NO
-            write text (ASCII character 13) newline NO
+            {submit}
           end tell
         end if
       end tell

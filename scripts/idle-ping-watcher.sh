@@ -108,6 +108,9 @@ tell application "iTerm2"
     if id of w is $wid then
       tell current session of current tab of w
         write text "[from $sender]: ยังทำงานต่ออยู่ไหม? ไม่ตอบใน 5 นาที = close session." newline NO
+        delay 0.4
+        write text (ASCII character 13) newline NO
+        delay 0.3
         write text (ASCII character 13) newline NO
       end tell
       return

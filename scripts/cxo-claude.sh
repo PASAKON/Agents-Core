@@ -250,6 +250,9 @@ on run argv
             if (tabName contains tabMatch) or (sessName contains tabMatch) then
               tell current session
                 write text promptText newline NO
+                delay 0.4
+                write text (ASCII character 13) newline NO
+                delay 0.3
                 write text (ASCII character 13) newline NO
               end tell
             end if
