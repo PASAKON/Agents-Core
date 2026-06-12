@@ -2,6 +2,11 @@
 // LungNote MCP server — stdio. Wraps the LungNote Supabase (notes + todos)
 // scoped to one user (LUNGNOTE_USER_EMAIL, resolved via auth.admin at boot).
 // Register: claude mcp add --scope user lungnote -- node <abs path>/index.js
+//
+// RULE (CEO 2026-06-12, บังคับทุก user): ทุกการ "ใส่" ผ่าน Claude MCP —
+// create_note / append_note / add_todo — โน้ตปลายทางต้องถูก tag "Claude" เสมอ
+// (find-or-create ต่อ user + upsert idempotent) เพื่อให้รู้ว่ารายการนั้น
+// Claude เป็นคนเพิ่ม. เพิ่ม write-path ใหม่เมื่อไหร่ ต้องเรียก tagNoteClaude ด้วย.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createClient } from "@supabase/supabase-js";
@@ -81,15 +86,22 @@ export const api = {
     if (error) throw error;
     return created.id;
   },
+  // RULE enforcement point — every MCP write path MUST route note-marking
+  // through here so any user's note added/extended by Claude carries the tag.
+  async tagNoteClaude(uid, noteId) {
+    const tagId = await this.ensureClaudeTag(uid);
+    const { error } = await db
+      .from("lungnote_notes_tags").upsert({ note_id: noteId, tag_id: tagId });
+    if (error) throw error;
+    return tagId;
+  },
   async createNote(title, body = "") {
     const uid = await resolveUserId();
     const { data, error } = await db
       .from("lungnote_notes").insert({ user_id: uid, title, body })
       .select("id,title").single();
     if (error) throw error;
-    // Gmail-label style: everything Claude writes carries the "Claude" tag (CEO 2026-06-11)
-    const tagId = await this.ensureClaudeTag(uid);
-    await db.from("lungnote_notes_tags").upsert({ note_id: data.id, tag_id: tagId });
+    await this.tagNoteClaude(uid, data.id);
     return data;
   },
   async appendNote(noteId, text) {
@@ -100,6 +112,7 @@ export const api = {
     const body = note.body ? `${note.body}\n${text}` : text;
     const { error: e2 } = await db.from("lungnote_notes").update({ body }).eq("id", noteId);
     if (e2) throw e2;
+    await this.tagNoteClaude(uid, noteId);
     return { id: noteId, appended: text.length };
   },
   async listRecent(limit = 10) {
@@ -130,6 +143,8 @@ export const api = {
       })
       .select("id,text,due_at").single();
     if (error) throw error;
+    // todo ที่ Claude ใส่ → โน้ตแม่ต้องติด tag Claude เสมอ (RULE header)
+    await this.tagNoteClaude(uid, nid);
     return data;
   },
   async listTodos(includeDone = false, limit = 50) {
@@ -155,7 +170,7 @@ export const api = {
   },
 };
 
-const server = new McpServer({ name: "lungnote", version: "1.0.0" });
+const server = new McpServer({ name: "lungnote", version: "1.1.0" });
 
 server.tool("search_notes", "ค้นหาโน้ตใน LungNote (title+body)", { query: z.string(), limit: z.number().optional() },
   async ({ query, limit }) => api.searchNotes(query, limit ?? 10).then(ok).catch(fail));
