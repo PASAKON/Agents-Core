@@ -90,6 +90,10 @@ _MIGRATION_COLUMNS = [
     ("ttyd_pid", "INTEGER"),
     # owning CTO session id — DEV reports route back to this CTO's tab
     ("owner_cto", "TEXT"),
+    # owning C-level role (cto/cfo/cmo/cgo) — picks which <role>-<id>.winid
+    # lock send_to_cto reads so CXO-spawned reports land in the CXO's tab,
+    # not a CTO tab. NULL on pre-migration rows (routing falls back to cto).
+    ("owner_role", "TEXT"),
     # Runner-level messages (collision, lock failure, spawn errors) go here;
     # DEV completion summaries stay in tasks.report. Never mix the two.
     ("delegate_log", "TEXT"),
@@ -251,21 +255,37 @@ def create_task(
     depends_on: list[str] | None = None,
     touches: list[str] | None = None,
     owner_cto: str | None = None,
+    owner_role: str | None = None,
 ) -> str:
     validate_designer_context(role, description)
-    # Stamp the spawning CTO so DEV reports route back to that CTO's tab
-    # instead of broadcasting to every open CTO chat. Falls back to the
-    # CTO_SESSION_ID in the creating process env when not passed explicitly.
+    # Stamp the spawning C-level session so DEV reports route back to that
+    # session's tab instead of broadcasting to every open CTO chat. When not
+    # passed explicitly, fall back to the creating process env:
+    #   owner_cto  = CTO_SESSION_ID (cto sessions) or CXO_SESSION_ID (cfo/cmo/…)
+    #   owner_role = CXO_ROLE, else 'cto' when CTO_SESSION_ID is present
+    # so a CFO-spawned task routes to the CFO tab (cfo-<id>.winid), not a CTO.
     if owner_cto is None:
-        owner_cto = os.environ.get("CTO_SESSION_ID")
+        owner_cto = os.environ.get("CTO_SESSION_ID") or os.environ.get("CXO_SESSION_ID")
+    if owner_role is None:
+        owner_role = os.environ.get("CXO_ROLE") or (
+            "cto" if os.environ.get("CTO_SESSION_ID") else None
+        )
     tid = new_task_id()
+    if not owner_cto:
+        # Don't hard-fail (tests + ad-hoc rows create ownerless tasks), but make
+        # the orphaned-report consequence loud so it isn't silently shipped.
+        print(
+            f"[db] WARNING: creating ownerless task {tid} — reports will be "
+            f"orphaned (no CTO_SESSION_ID/CXO_SESSION_ID in env, no explicit owner)",
+            file=sys.stderr,
+        )
     ts = now_iso()
     with get_conn() as conn:
         conn.execute(
-            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,created_at,updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,owner_role,created_at,updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (tid, project, role, "pending", title, description, parent_task,
-             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, ts, ts),
+             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, owner_role, ts, ts),
         )
         log_event(conn, tid, "system", "task_created",
                   {"role": role, "title": title, "touches": touches or []})
@@ -291,7 +311,7 @@ VALID_COLUMNS = {
     "assigned_agent", "worktree", "branch", "report", "review",
     "iteration", "description", "title",
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
-    "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto",
+    "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto", "owner_role",
     "delegate_log",
 }
 
