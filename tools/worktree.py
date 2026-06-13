@@ -61,7 +61,20 @@ def create_worktree(project_key: str, role: str, task_id: str) -> dict:
     except GitError:
         pass
 
-    _run(["git", "worktree", "add", "-b", branch, str(wt), base], cwd=repo)
+    # Branch from the freshly-fetched remote tip (origin/<base>) rather than
+    # the local <base> ref. Local <base> is never fast-forwarded here, so it
+    # drifts behind / diverges from origin — which made DEV branches build on
+    # a stale lineage and every resulting PR unmergeable (modify/delete
+    # conflicts vs the real remote main). Fall back to local <base> only when
+    # there is no remote-tracking ref (e.g. a repo with no origin yet).
+    start_point = base
+    try:
+        _run(["git", "rev-parse", "--verify", f"origin/{base}"], cwd=repo)
+        start_point = f"origin/{base}"
+    except GitError:
+        pass
+
+    _run(["git", "worktree", "add", "-b", branch, str(wt), start_point], cwd=repo)
 
     return {
         "project": project_key,

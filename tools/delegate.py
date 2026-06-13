@@ -81,6 +81,16 @@ def _build_spawn_applescript(cmd: str, task_id: str,
     # wrong CTO window.
     return f'''
 tell application "iTerm"
+  -- Record where the user's focus currently sits so spawning a DEV tab
+  -- does NOT yank the cursor away mid-keystroke. A freshly created tab
+  -- steals foreground by default, which dropped CEO keystrokes into the
+  -- DEV shell and killed dev_init before it could claim. Restored below.
+  set priorWin to missing value
+  set priorTab to missing value
+  try
+    set priorWin to current window
+    set priorTab to current tab of priorWin
+  end try
   repeat with w in windows
     repeat with t in tabs of w
       try
@@ -167,6 +177,16 @@ tell application "iTerm"
       write text "{cmd}"
     end tell
   end tell
+  -- Restore the user's prior focus so the DEV tab lands in the background
+  -- instead of stealing the foreground (the keystroke-eating bug).
+  try
+    if priorWin is not missing value then
+      tell priorWin to select
+      if priorTab is not missing value then
+        tell priorTab to select
+      end if
+    end if
+  end try
   return "spawned"
 end tell
 '''
