@@ -80,11 +80,19 @@ def _build_spawn_applescript(cmd: str, task_id: str,
     # both so a flicker during DEV spawn doesn't push the tab into the
     # wrong CTO window.
     return f'''
+set frontApp to ""
+try
+  tell application "System Events" to set frontApp to name of first application process whose frontmost is true
+end try
 tell application "iTerm"
   -- Record where the user's focus currently sits so spawning a DEV tab
   -- does NOT yank the cursor away mid-keystroke. A freshly created tab
   -- steals foreground by default, which dropped CEO keystrokes into the
   -- DEV shell and killed dev_init before it could claim. Restored below.
+  -- priorWin/priorTab restore iTerm's own window order; frontApp (captured
+  -- above via System Events) restores the frontmost *application* — the
+  -- iTerm-internal restore alone never returned focus to a different app
+  -- (e.g. the CEO's chat window), which is why the steal kept recurring.
   set priorWin to missing value
   set priorTab to missing value
   try
@@ -164,6 +172,7 @@ tell application "iTerm"
     if (count of windows) = 0 then
       set targetWin to (create window with default profile)
       tell current session of current tab of targetWin
+        write text (ASCII character 21) newline NO
         write text "{cmd}"
       end tell
       return "spawned"
@@ -174,6 +183,11 @@ tell application "iTerm"
   tell targetWin
     set newTab to (create tab with default profile)
     tell current session of newTab
+      -- Ctrl-U (ASCII 21) clears any stray keystrokes the CEO leaked into
+      -- this tab while it briefly held focus, so the kickoff command runs
+      -- on a clean prompt instead of becoming e.g. "ทดprintf: not found"
+      -- (which silently killed dev_init — CEO report 2026-06-14).
+      write text (ASCII character 21) newline NO
       write text "{cmd}"
     end tell
   end tell
@@ -185,6 +199,14 @@ tell application "iTerm"
       if priorTab is not missing value then
         tell priorTab to select
       end if
+    end if
+  end try
+  -- App-level focus restore: bring the CEO's prior application back to the
+  -- front so the DEV tab lands in the background. Best-effort: if System
+  -- Events automation is unauthorized, frontApp is "" and this no-ops.
+  try
+    if frontApp is not "" and frontApp is not "iTerm" and frontApp is not "iTerm2" then
+      tell application frontApp to activate
     end if
   end try
   return "spawned"
