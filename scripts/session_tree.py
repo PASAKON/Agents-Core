@@ -169,6 +169,46 @@ def build_mermaid(tasks: list[sqlite3.Row], title_note: str) -> str:
     return "\n".join(lines)
 
 
+# ASCII / ANSI output — CTO chat is a terminal REPL, so a coloured text tree is
+# what the human actually sees (no inline image rendering in iTerm2).
+ANSI = {"done": "32", "wip": "33", "todo": "34", "fail": "31", "cancel": "90"}
+GLYPH = {"done": "✓", "wip": "◔", "todo": "○", "fail": "✗", "cancel": "·"}
+
+
+def build_ascii(tasks: list[sqlite3.Row], title_note: str, color: bool = True) -> str:
+    def paint(code: str, text: str) -> str:
+        return f"\033[{code}m{text}\033[0m" if color else text
+
+    if not tasks:
+        return f"(no tasks match filter)\n{title_note}"
+
+    by_project: dict[str, list[sqlite3.Row]] = {}
+    for t in tasks:
+        by_project.setdefault(t["project"], []).append(t)
+
+    order = {"wip": 0, "fail": 1, "todo": 2, "done": 3, "cancel": 4}
+    lines = [paint("1", f"WORK TREE · {title_note}")]
+    projects = sorted(by_project)
+    for pi, proj in enumerate(projects):
+        rows = sorted(by_project[proj],
+                      key=lambda r: order.get(STATUS_CLASS.get(r["status"], "todo"), 9))
+        p_last = pi == len(projects) - 1
+        lines.append(f"{'└─' if p_last else '├─'} {paint('1', proj)} · {len(rows)}")
+        pipe = "   " if p_last else "│  "
+        for ri, r in enumerate(rows):
+            cls = STATUS_CLASS.get(r["status"], "todo")
+            r_last = ri == len(rows) - 1
+            short = r["id"].replace("task-", "")
+            title = (r["title"] or "").replace("\n", " ")[:46]
+            node = paint(ANSI.get(cls, "0"),
+                         f"{GLYPH.get(cls, '○')} {title} · {r['status']}")
+            lines.append(f"{pipe}{'└─' if r_last else '├─'} {node}  {paint('90', short)}")
+    legend = "  ".join(paint(ANSI[k], f"{GLYPH[k]} {k}")
+                        for k in ("done", "wip", "todo", "fail", "cancel"))
+    lines += ["", f"legend: {legend}"]
+    return "\n".join(lines)
+
+
 def render_png(mmd_path: Path, png_path: Path) -> bool:
     try:
         subprocess.run(
@@ -191,7 +231,12 @@ def main() -> int:
     ap.add_argument("--project", help="filter to one project key")
     ap.add_argument("--session", help="filter to one session_id")
     ap.add_argument("--out", type=Path, default=Path("/tmp/session_tree.mmd"))
-    ap.add_argument("--render", action="store_true", help="also render PNG via npx mmdc")
+    ap.add_argument("--mermaid", action="store_true",
+                    help="emit a Mermaid .mmd file instead of the default ASCII tree")
+    ap.add_argument("--render", action="store_true",
+                    help="render the Mermaid to PNG via npx mmdc (implies --mermaid)")
+    ap.add_argument("--no-open", action="store_true", help="do not auto-open the PNG")
+    ap.add_argument("--no-color", action="store_true", help="plain ASCII, no ANSI colour")
     args = ap.parse_args()
 
     if not DB_PATH.exists():
@@ -206,16 +251,22 @@ def main() -> int:
 
     note = (f"status={args.status} days={args.days} "
             f"project={args.project or 'all'} -> {len(tasks)} tasks")
-    mmd = build_mermaid(tasks, note)
-    args.out.write_text(mmd, encoding="utf-8")
-    print(f"[mmd] {len(tasks)} tasks -> {args.out}")
 
-    if args.render:
-        png = args.out.with_suffix(".png")
-        if render_png(args.out, png):
-            print(f"[png] {png}")
-        else:
-            return 2
+    if args.render or args.mermaid:
+        mmd = build_mermaid(tasks, note)
+        args.out.write_text(mmd, encoding="utf-8")
+        print(f"[mmd] {len(tasks)} tasks -> {args.out}")
+        if args.render:
+            png = args.out.with_suffix(".png")
+            if render_png(args.out, png):
+                print(f"[png] {png}")
+                if not args.no_open and sys.platform == "darwin":
+                    subprocess.run(["open", str(png)], check=False)
+            else:
+                return 2
+    else:
+        # default: coloured ASCII tree straight to the terminal (what CEO sees)
+        print(build_ascii(tasks, note, color=not args.no_color))
     return 0
 
 
