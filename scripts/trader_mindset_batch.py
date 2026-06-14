@@ -320,12 +320,15 @@ def composite_subline(img, sub_line: str):
     img = img.convert("RGBA")
     W, H = img.size
 
-    # lower-band scrim: transparent -> deep navy, bottom ~34% of the poster
-    band_top = int(H * 0.66)
+    # lower-band scrim: transparent -> deep navy, bottom ~30% of the poster.
+    # poster-v3 fills the whole frame with the real scene (no baked navy band),
+    # so this scrim is now the ONLY darkening — keep it soft (peak ~150) so the
+    # cinematic scene stays visible behind the gold sub-line (CEO C2 look).
+    band_top = int(H * 0.70)
     scrim = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     sdraw = ImageDraw.Draw(scrim)
     for y in range(band_top, H):
-        a = int(210 * (y - band_top) / max(1, H - band_top))
+        a = int(150 * (y - band_top) / max(1, H - band_top))
         sdraw.line([(0, y), (W, y)], fill=(NAVY_DEEP[0], NAVY_DEEP[1], NAVY_DEEP[2], a))
     img.alpha_composite(scrim)
 

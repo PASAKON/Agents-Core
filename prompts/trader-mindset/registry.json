@@ -6,7 +6,7 @@
   },
   "active": {
     "caption": "v1",
-    "poster": "v2"
+    "poster": "v3"
   },
   "history": [
     {
@@ -29,6 +29,13 @@
       "date": "2026-06-12",
       "change_reason": "CEO order 2026-06-12 (round-003, 5-piece): hero art style + scene must not repeat within a round — added 5th ART-DECO GEOMETRIC style + 5th cuff-portrait scene. Additive only; template/preamble unchanged.",
       "eval_result": "A/B N/A — additive art-direction under CEO mandate; caption prompt untouched. PE to ratify in next eval round."
+    },
+    {
+      "version": "v3",
+      "kind": "poster",
+      "date": "2026-06-15",
+      "change_reason": "CEO 2026-06-15 (round-005 reject 'ภาพพื้นหลังต้องเต็ม' + ชอบ C2 full-bleed): remove reserved navy band → scene fills entire frame; scrim softened (210→150, band 0.66→0.70) so sub-line stays legible over the real scene. hero still baked, sub-line still composited (Thai guaranteed crisp).",
+      "eval_result": "visual A/B vs C2 pending — CEO approved $0.15 single-sample gen"
     }
   ]
 }
