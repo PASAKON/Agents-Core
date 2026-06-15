@@ -109,10 +109,18 @@ def main() -> None:
         print(f"worktree missing for task {task_id}", file=sys.stderr)
         sys.exit(4)
 
-    # web_designer is driven by claudesign Web UI via the bridge, not by an
-    # interactive claude TUI. Replace this process with a passive tail so
-    # the tmux pane shows the bridge's mirror stream.
-    if role == "web_designer":
+    project = get_project(task["project"])
+    backend = (project.get("spawn_backend") or "iterm").lower()
+
+    # web_designer on a tmux/Web-UI-bridge project is driven by the
+    # claudesign daemon (Web UI chat → bridge → real claude per message),
+    # so the pane is just a passive tail of the bridge mirror. On the
+    # default iTerm backend it instead runs as an autonomous claude TUI
+    # exactly like any other DEV — so the CTO's `delegate_task` behaves the
+    # same as for `developer`, only with the web_designer role doc + the
+    # design source resolved from the project UUID (CEO 2026-06-15). The
+    # CEO-driven Web UI flow is a separate path (scripts/spawn-web-designer.sh).
+    if role == "web_designer" and backend == "tmux":
         try:
             db.update_status(task_id, "in_progress", pid=os.getpid(), actor=role)
         except Exception as e:
@@ -133,9 +141,14 @@ def main() -> None:
         ])
         return  # unreachable
 
-    project = get_project(task["project"])
     role_doc = (ROOT / "roles" / f"{role}.md").read_text()
     prompt = _build_prompt(task, project, worktree)
+    # web_designer's worktree omits the gitignored .od/, so resolve the
+    # design source (project UUID → absolute read-only path + skill) from
+    # the task description and append it so the autonomous agent knows which
+    # brand/theme to match — the same context the CEO's Web UI flow has.
+    if role == "web_designer":
+        prompt += db.designer_kickoff_suffix(task.get("description") or "")
     try:
         model = get_role(role).get("model") or "claude-opus-4-8[1m]"
     except ValueError:
@@ -176,6 +189,10 @@ def main() -> None:
         "mcp__org__file_blocker_issue mcp__org__request_human_handoff "
         "Read Write Edit Bash Glob Grep"
     ).split()
+    if role == "web_designer":
+        # design skills (frontend-design / mooniex-tool-builder) are
+        # invocable so the agent can lean on the org's UI craft skill.
+        allowed.append("Skill")
     mcp_config = ROOT / "config" / "dev.mcp.json"
 
     os.chdir(worktree)
