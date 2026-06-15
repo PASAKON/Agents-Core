@@ -112,7 +112,9 @@ def main():
         glyph = next((g for g in GLYPH_ORDER if g in content), "")
         state = GLYPHS.get(glyph, "?")
         summary = content.split(glyph, 1)[1].strip() if glyph else content
-        if glyph == "🔴":
+        if glyph == "🏁":
+            blocker = "—"                       # closed → no live blocker
+        elif glyph == "🔴":
             blocker = summary or "(unspecified)"
         elif "รอ" in summary:
             blocker = "รอ" + summary.split("รอ", 1)[1]
