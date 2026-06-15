@@ -357,6 +357,13 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     task = db.get_task(task_id)
     if not task:
         raise ValueError(f"task not found: {task_id}")
+    if task["status"] in ("done", "merged"):
+        # Re-delegating merged work would reset it toward an active status and
+        # re-create the phantom-lock class fixed in issue #13. Reopen first.
+        raise ValueError(
+            f"task {task_id} already {task['status']} — refusing to re-delegate "
+            f"merged work (use reopen_task if a redo is intended)"
+        )
 
     role_name = task["role"]
     project_key = task["project"]

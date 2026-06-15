@@ -208,6 +208,7 @@ def reopen_task(task_id: str, feedback: str) -> str:
         iteration=t["iteration"] + 1,
         assigned_agent=None,
         actor="cto",
+        force=True,  # reopen is an intentional resurrection (may target done)
     )
     warn(f"reopened {task_id} (iter {t['iteration']+1})")
     return "reopened"

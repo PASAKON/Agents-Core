@@ -316,7 +316,26 @@ VALID_COLUMNS = {
 }
 
 
-def update_status(task_id: str, status: str, *, actor: str = "system", **fields):
+# Terminal "work landed" statuses that must not be silently resurrected into
+# an active (lock-holding) status. Resurrecting one is what left phantom path
+# locks after a successful merge — see issue #13. The active set is
+# ACTIVE_STATUSES (pending/in_progress/rate_limited/conflict).
+_TERMINAL_MERGED = ("done", "merged")
+
+
+def update_status(task_id: str, status: str, *, actor: str = "system",
+                  force: bool = False, **fields) -> bool:
+    """Set a task's status (+ optional columns). Returns True if a row changed.
+
+    Terminal-guard (issue #13): a task already in 'done'/'merged' is NOT
+    resurrected into an active status (pending/in_progress/conflict/
+    rate_limited) by a racing or duplicate op — that flipped an already-merged
+    task to 'conflict' (a git-conflict re-merge or a re-delegate), and because
+    'conflict' is active, find_conflicts then reported a phantom self-collision
+    that blocked every future task on the same paths. Pass force=True for an
+    intentional resurrection (reopen_task / revert_task). Returns False when the
+    guard refuses the transition.
+    """
     if status not in VALID_STATUS:
         raise ValueError(
             f"invalid status {status!r}. allowed: {sorted(VALID_STATUS)}"
@@ -331,8 +350,34 @@ def update_status(task_id: str, status: str, *, actor: str = "system", **fields)
         sets.append(f"{k}=?")
         vals.append(v)
     vals.append(task_id)
+
+    # Atomic terminal-guard: fold the "don't resurrect done/merged" check into
+    # the UPDATE's WHERE so two concurrent CTOs can't both pass a read-then-write
+    # gate. Only active (lock-holding) target statuses are guarded.
+    guard_sql = ""
+    guard_vals: list = []
+    if not force and status in ACTIVE_STATUSES:
+        placeholders = ",".join("?" * len(_TERMINAL_MERGED))
+        guard_sql = f" AND status NOT IN ({placeholders})"
+        guard_vals = list(_TERMINAL_MERGED)
+
     with get_conn() as conn:
-        conn.execute(f"UPDATE tasks SET {','.join(sets)} WHERE id=?", vals)
+        cur = conn.execute(
+            f"UPDATE tasks SET {','.join(sets)} WHERE id=?{guard_sql}",
+            vals + guard_vals,
+        )
+        if cur.rowcount == 0 and guard_sql:
+            row = conn.execute(
+                "SELECT status FROM tasks WHERE id=?", (task_id,)
+            ).fetchone()
+            if row is not None:
+                log_event(conn, task_id, actor, "status_transition_refused",
+                          {"from": row["status"], "to": status,
+                           "guard": "terminal_merged"})
+                print(f"[db] refused {task_id}: {row['status']} -> {status} "
+                      f"(terminal-merged guard; pass force=True to override)",
+                      file=sys.stderr)
+                return False
         log_event(conn, task_id, actor, f"status_{status}", fields)
     if status in RELEASING_STATUSES:
         try:
@@ -341,6 +386,7 @@ def update_status(task_id: str, status: str, *, actor: str = "system", **fields)
                 release_task_locks(task_id, t["project"])
         except Exception:
             pass
+    return True
 
 
 def set_fields(task_id: str, *, actor: str = "system", **fields) -> None:

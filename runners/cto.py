@@ -189,7 +189,8 @@ async def t_reopen(args):
                      description=new_desc,
                      iteration=t["iteration"] + 1,
                      assigned_agent=None,
-                     actor="cto")
+                     actor="cto",
+                     force=True)  # intentional resurrection (may target done)
     warn(f"reopened {args['task_id']} (iter {t['iteration']+1})")
     return {"content": [{"type": "text", "text": "reopened"}]}
 
