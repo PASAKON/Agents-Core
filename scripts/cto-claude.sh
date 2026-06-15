@@ -106,8 +106,8 @@ disown $!
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
   -n "CTO #$CTO_SESSION_ID" \
-  --model 'claude-fable-5' \
-  --fallback-model 'claude-opus-4-8[1m]' \
+  --model 'claude-opus-4-8[1m]' \
+  --fallback-model 'claude-fable-5' \
   --effort max \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \

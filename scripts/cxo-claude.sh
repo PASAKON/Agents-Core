@@ -269,8 +269,8 @@ fi
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
   -n "$TAB_TITLE" \
-  --model 'claude-fable-5' \
-  --fallback-model 'claude-opus-4-8[1m]' \
+  --model 'claude-opus-4-8[1m]' \
+  --fallback-model 'claude-fable-5' \
   --effort max \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
