@@ -10,8 +10,8 @@ Companion to session_tree.py (which lists DB *tasks* across projects). This one
 lists *chat sessions* and their close-state.
 
 Usage:
-  python3 scripts/session_list.py          # all non-live sessions (incl 🏁 closed)
-  python3 scripts/session_list.py --open    # only sessions NOT yet 🏁-closed
+  python3 scripts/session_list.py          # default: NOT-yet-closed only (closed are done)
+  python3 scripts/session_list.py --all     # include 🏁 closed sessions too
 """
 import os
 import re
@@ -86,7 +86,7 @@ def birth(path):
 
 
 def main():
-    open_only = "--open" in sys.argv
+    show_all = "--all" in sys.argv          # include 🏁 closed too (default hides them)
     now = datetime.now().timestamp()
     live, live_ok = live_ids()
 
@@ -147,13 +147,13 @@ def main():
         })
 
     out = [r for r in rows if not r["live"]]
-    if open_only:
-        out = [r for r in out if r["glyph"] != "🏁"]
+    if not show_all:
+        out = [r for r in out if r["glyph"] != "🏁"]   # default: closed are done, drop them
     out.sort(key=lambda r: r["last_active"], reverse=True)
 
     n_live = sum(1 for r in rows if r["live"])
     note = "" if live_ok else "  ⚠ iTerm query failed — live tabs NOT excluded"
-    scope = "not-yet-closed" if open_only else "all"
+    scope = "all incl closed" if show_all else "not-yet-closed"
     print(f"# Past sessions ({scope}, excluding {n_live} live iTerm tab(s)){note}\n")
 
     if not out:
