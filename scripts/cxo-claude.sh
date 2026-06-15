@@ -77,7 +77,7 @@ MCP_CONFIG="$ROOT/config/cto.mcp.json"
 # All C-levels get the same tool whitelist for now (same powers in
 # agents.yaml). Keep in sync with runners/cto_mcp_server.py and with
 # cto-claude.sh ALLOWED — the two launchers must not drift.
-ALLOWED="mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search mcp__org__wiki_write mcp__org__create_task mcp__org__check_collisions mcp__org__delegate_task mcp__org__delegate_parallel_tasks mcp__org__get_task mcp__org__review_diff mcp__org__merge_task mcp__org__reopen_task mcp__org__list_projects mcp__org__stats mcp__org__recall mcp__org__reflect mcp__org__revert_task_tool Read Grep Glob Bash"
+ALLOWED="mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search mcp__org__wiki_write mcp__org__create_task mcp__org__check_collisions mcp__org__delegate_task mcp__org__delegate_parallel_tasks mcp__org__get_task mcp__org__review_diff mcp__org__merge_task mcp__org__reopen_task mcp__org__list_projects mcp__org__stats mcp__org__recall mcp__org__reflect mcp__org__revert_task_tool mcp__lungnote__list_todos mcp__lungnote__add_todo mcp__lungnote__complete_todo mcp__lungnote__list_recent mcp__lungnote__read_note mcp__lungnote__create_note mcp__lungnote__append_note mcp__lungnote__search_notes Read Grep Glob Bash"
 
 cd "$ROOT"
 
