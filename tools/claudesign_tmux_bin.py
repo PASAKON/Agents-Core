@@ -31,7 +31,32 @@ from subprocess import PIPE, Popen
 ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "state" / "tasks.db"
 MIRROR_DIR = Path("/tmp")
-CLAUDE_BIN = shutil.which("claude") or "/opt/homebrew/bin/claude"
+def _resolve_claude_bin() -> str:
+    """Locate the real `claude` CLI.
+
+    The claudesign daemon is launched from a GUI/nohup context whose PATH is
+    stripped to the system default (no `~/.local/bin`), so `shutil.which`
+    alone misses a native-installer claude. Walk the common install
+    locations explicitly before giving up. Order matters: native installer
+    (`~/.local/bin`, claude 2.x) wins over a stale homebrew shim.
+    """
+    found = shutil.which("claude")
+    if found:
+        return found
+    home = Path.home()
+    candidates = [
+        home / ".local/bin/claude",        # native installer (2.x)
+        home / ".claude/local/claude",     # legacy local install
+        Path("/opt/homebrew/bin/claude"),  # apple-silicon homebrew
+        Path("/usr/local/bin/claude"),     # intel homebrew / manual
+    ]
+    for c in candidates:
+        if c.exists():
+            return str(c)
+    return "claude"  # last resort — let exec surface a clear PATH error
+
+
+CLAUDE_BIN = _resolve_claude_bin()
 
 
 def _resolve_task(cwd: Path) -> tuple[str | None, str | None]:
