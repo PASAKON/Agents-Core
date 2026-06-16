@@ -26,11 +26,22 @@ _spawn_resume_tab`. Both set the title `<Role> (task-<id>)`.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
+
+# iTerm2 Python API — used only by the arrange / attention helpers at the
+# bottom of this module (AppleScript cannot reorder tabs or set tab
+# color/badge, so those features need the API). Optional: if the package is
+# absent or the API is disabled, every API helper degrades to a no-op so the
+# close_tab / close_session osascript path keeps working everywhere.
+try:
+    import iterm2 as _iterm2
+except ImportError:  # pragma: no cover - depends on host setup
+    _iterm2 = None
 
 _ROOT = Path(__file__).resolve().parent.parent
 _LOCKS = _ROOT / "state" / "locks"
@@ -196,10 +207,220 @@ end tell
     return _refuse("iTerm close failed or window not found")
 
 
+# ---------------------------------------------------------------------------
+# iTerm2 Python API helpers (idea 1: arrange-by-status, idea 2: attention)
+#
+# Two features pulled from the open-source iTerm2 ecosystem
+# (iterm2.com Sort-Tabs example + JasperSui/claude-code-iterm2-tab-status):
+#
+#   1. arrange_tabs()    — reorder a window's tabs by the IRON-RULES §32
+#                          status glyph so the CEO's eye lands on blockers
+#                          first (🔴) and finished sessions last (🏁).
+#   2. mark_attention()  — make a blocked tab shout: red tab color + badge
+#                          (+ optional macOS notification), cleared on unblock.
+#
+# AppleScript can do neither (no tab `index`, no tab color/badge), so both
+# go through the iTerm2 Python API. All of it degrades to a no-op returning
+# False/0 when `iterm2` is missing or the API is disabled — see _run_api.
+# ---------------------------------------------------------------------------
+
+# Status glyph -> sort rank (IRON-RULES §32). Lower sorts nearer the front of
+# the tab bar: blocker first (needs CEO), then active work, done-with-queue,
+# idle, fully-finished last. Tabs with no status glyph (user shells, the
+# "CTO Log" / "Dev Logs" side tabs) get _NO_GLYPH_RANK and keep their
+# relative order at the end.
+_GLYPH_RANK = {"🔴": 0, "⏳": 1, "✅": 2, "💤": 3, "🏁": 4}
+_NO_GLYPH_RANK = 99
+
+# Default attention color — a strong red (solarized-ish #D6402F).
+_ATTENTION_RGB = (214, 64, 47)
+
+
+def _title_rank(title: str) -> int:
+    """Sort rank for a tab title, by the first status glyph it contains."""
+    for glyph, rank in _GLYPH_RANK.items():
+        if glyph in title:
+            return rank
+    return _NO_GLYPH_RANK
+
+
+def _run_api(coro_factory, timeout: float = 8.0):
+    """Run an iTerm2 API coroutine and return its result, or None.
+
+    coro_factory: callable(connection) -> awaitable. Returns None when the
+    `iterm2` package is absent, the API is disabled, no event loop can be
+    started, or anything times out. Callers treat None as "API unavailable"
+    and degrade to a no-op — this module must never raise into the org's
+    merge / spawn paths.
+    """
+    if _iterm2 is None:
+        return None
+
+    async def _guarded():
+        conn = await asyncio.wait_for(
+            _iterm2.Connection.async_create(), timeout=timeout)
+        return await asyncio.wait_for(coro_factory(conn), timeout=timeout)
+
+    try:
+        return asyncio.run(_guarded())
+    except Exception:
+        # RuntimeError (already-running loop), connection refused (API off),
+        # asyncio.TimeoutError, etc. — all mean "can't, no-op".
+        return None
+
+
+async def _session_title(session) -> str:
+    """Best-effort tab title for a session (the name we set via OSC-0)."""
+    try:
+        return (await session.async_get_variable("autoName")) or ""
+    except Exception:
+        return ""
+
+
+async def _arrange_window(window) -> bool:
+    """Reorder one window's tabs by status-glyph rank. True if order changed."""
+    tabs = list(window.tabs)
+    if len(tabs) < 2:
+        return False
+    ranked = []
+    for orig_index, tab in enumerate(tabs):
+        title = await _session_title(tab.current_session)
+        # (rank, orig_index) keeps the sort stable: same-rank tabs stay in
+        # their current left-to-right order instead of shuffling.
+        ranked.append(((_title_rank(title), orig_index), tab))
+    ranked.sort(key=lambda pair: pair[0])
+    new_order = [tab for _, tab in ranked]
+    if new_order == tabs:
+        return False  # already sorted — skip the churn / focus flicker
+    await window.async_set_tabs(new_order)
+    return True
+
+
+def arrange_tabs(window_id: str | None = None) -> bool:
+    """Reorder tabs by status-glyph priority (🔴 ⏳ ✅ 💤 🏁, others last).
+
+    window_id=None reorders the current terminal window; otherwise the
+    window whose id matches. Returns True if any tab order changed, False
+    on no-op (already sorted, single tab, or API unavailable).
+    """
+    async def factory(conn):
+        app = await _iterm2.async_get_app(conn)
+        if window_id is None:
+            w = app.current_terminal_window
+            return await _arrange_window(w) if w is not None else False
+        for w in app.windows:
+            if str(w.window_id) == str(window_id):
+                return await _arrange_window(w)
+        return False
+
+    return bool(_run_api(factory))
+
+
+def _attention_profile(color_rgb, badge):
+    """A write-only profile that turns a tab loud: tab color + badge text."""
+    profile = _iterm2.LocalWriteOnlyProfile()
+    profile.set_use_tab_color(True)
+    profile.set_tab_color(_iterm2.Color(*color_rgb))
+    if badge is not None:
+        profile.set_badge_text(badge)
+    return profile
+
+
+def _clear_profile():
+    """A write-only profile that restores a tab to normal (no color/badge)."""
+    profile = _iterm2.LocalWriteOnlyProfile()
+    profile.set_use_tab_color(False)
+    profile.set_badge_text("")
+    return profile
+
+
+async def _apply_to_matching(app, match, profile) -> int:
+    """Apply a profile to every session whose title contains `match`."""
+    hits = 0
+    for window in app.windows:
+        for tab in window.tabs:
+            for session in tab.sessions:
+                title = await _session_title(session)
+                if match in title:
+                    try:
+                        await session.async_set_profile_properties(profile)
+                        hits += 1
+                    except Exception:
+                        pass
+    return hits
+
+
+def _post_notification(title: str, message: str) -> None:
+    """Fire a macOS notification (best-effort, never raises)."""
+    try:
+        subprocess.run(
+            ["osascript", "-e",
+             f"display notification {json.dumps(message)} "
+             f"with title {json.dumps(title)} sound name \"Glass\""],
+            capture_output=True, text=True, timeout=5)
+    except Exception:
+        pass
+
+
+def mark_attention(match: str, *, color=_ATTENTION_RGB, badge: str = "🔴 รอ CEO",
+                   notify_title: str | None = None,
+                   notify_msg: str | None = None) -> bool:
+    """Make every tab whose title contains `match` shout for attention.
+
+    Sets a red tab color + a badge on each matching tab, and — only when
+    `notify_msg` is given — fires one macOS notification. `match` is a title
+    substring: a task-id, a role+session base prefix, or even a glyph.
+    Returns True if at least one tab was marked.
+    """
+    if not match:
+        return False
+
+    async def factory(conn):
+        app = await _iterm2.async_get_app(conn)
+        return await _apply_to_matching(app, match, _attention_profile(color, badge))
+
+    hits = _run_api(factory) or 0
+    if hits and notify_msg:
+        _post_notification(notify_title or "mooniex org", notify_msg)
+    return bool(hits)
+
+
+def clear_attention(match: str) -> bool:
+    """Undo mark_attention for tabs whose title contains `match`."""
+    if not match:
+        return False
+
+    async def factory(conn):
+        app = await _iterm2.async_get_app(conn)
+        return await _apply_to_matching(app, match, _clear_profile())
+
+    return bool(_run_api(factory))
+
+
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) < 2:
-        print("usage: python -m tools.itermtab <task_id>")
+
+    argv = sys.argv[1:]
+    usage = ("usage: python -m tools.itermtab "
+             "<task_id> | arrange [window_id] | mark <match> [badge] | "
+             "clear <match>")
+    if not argv:
+        print(usage)
         sys.exit(1)
-    ok = close_tab(sys.argv[1])
-    print(f"closed: {ok}")
+
+    cmd = argv[0]
+    if cmd == "arrange":
+        print(f"arranged: {arrange_tabs(argv[1] if len(argv) > 1 else None)}")
+    elif cmd == "mark":
+        if len(argv) < 2:
+            print(usage)
+            sys.exit(1)
+        badge = argv[2] if len(argv) > 2 else "🔴 รอ CEO"
+        print(f"marked: {mark_attention(argv[1], badge=badge)}")
+    elif cmd == "clear":
+        if len(argv) < 2:
+            print(usage)
+            sys.exit(1)
+        print(f"cleared: {clear_attention(argv[1])}")
+    else:
+        print(f"closed: {close_tab(cmd)}")

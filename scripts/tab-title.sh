@@ -75,6 +75,22 @@ PYEOF
   printf '%s\n' "$TITLE" >"$TITLE_FILE"
 fi
 
+# Loud-attention hook (idea from JasperSui/claude-code-iterm2-tab-status):
+# when the status glyph is 🔴 (blocked — needs CEO) make this tab shout via
+# the iTerm2 Python API — red tab color + badge — so the CEO spots it in the
+# tab bar without reading titles. Any other glyph clears it. Backgrounded
+# (with the venv) so it never slows the title set; match is "$BASE", this
+# tab's stable prefix, so it only ever touches this one tab.
+case "$TITLE" in
+  *🔴*) _ATTN=mark ;;
+  *)    _ATTN=clear ;;
+esac
+(
+  cd "$ROOT" || exit 0
+  [ -d .venv ] && . .venv/bin/activate 2>/dev/null
+  python3 -m tools.itermtab "$_ATTN" "$BASE" >/dev/null 2>&1
+) &
+
 # 1) Direct escape to the saved tty.
 if [ -f "$TTY_FILE" ]; then
   TTY_DEV="$(tr -d '[:space:]' <"$TTY_FILE" 2>/dev/null || true)"
