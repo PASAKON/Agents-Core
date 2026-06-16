@@ -85,10 +85,20 @@ case "$TITLE" in
   *🔴*) _ATTN=mark ;;
   *)    _ATTN=clear ;;
 esac
+_WINID=""
+[ -f "$WINID_FILE" ] && _WINID="$(tr -d '[:space:]' <"$WINID_FILE" 2>/dev/null || true)"
 (
   cd "$ROOT" || exit 0
   [ -d .venv ] && . .venv/bin/activate 2>/dev/null
   python3 -m tools.itermtab "$_ATTN" "$BASE" >/dev/null 2>&1
+  # Auto-arrange (trial opened 2026-06-16, review 2026-06-23): reorder THIS
+  # window's tabs by status glyph so a 🔴 C-level chat jumps ahead of its DEV
+  # tabs. Own window only (via saved winid) so it stays cheap, and a no-op on
+  # single-tab windows. Verified harmless: async_set_tabs keeps the selected
+  # tab + window focus, so the CEO can keep typing while tabs reorder.
+  if [ -n "$_WINID" ] && [ "$_WINID" != "0" ]; then
+    python3 -m tools.itermtab arrange "$_WINID" >/dev/null 2>&1
+  fi
 ) &
 
 # 1) Direct escape to the saved tty.
