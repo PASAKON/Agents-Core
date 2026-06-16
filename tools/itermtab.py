@@ -397,13 +397,43 @@ def clear_attention(match: str) -> bool:
     return bool(_run_api(factory))
 
 
+def tab_status_update(match: str, window_id: str | None, action: str) -> bool:
+    """Combined attention + arrange in ONE iTerm API connection.
+
+    The tab-title.sh hook fires on every status change across every C-level
+    session, so it must be cheap: this does the mark/clear AND the
+    arrange-by-glyph in a single connection instead of two, halving the
+    connection churn that was causing API timeouts under burst.
+
+    action: "mark" -> red tab + badge on tabs matching `match`;
+            anything else -> clear them. Then reorder window `window_id`
+            (skipped if falsy/"0"). All best-effort, no-op if API is down.
+    """
+    if not match:
+        return False
+
+    async def factory(conn):
+        app = await _iterm2.async_get_app(conn)
+        profile = (_attention_profile(_ATTENTION_RGB, "🔴 รอ CEO")
+                   if action == "mark" else _clear_profile())
+        await _apply_to_matching(app, match, profile)
+        if window_id and str(window_id) != "0":
+            for w in app.windows:
+                if str(w.window_id) == str(window_id):
+                    await _arrange_window(w)
+                    break
+        return True
+
+    return bool(_run_api(factory))
+
+
 if __name__ == "__main__":
     import sys
 
     argv = sys.argv[1:]
     usage = ("usage: python -m tools.itermtab "
              "<task_id> | arrange [window_id] | mark <match> [badge] | "
-             "clear <match>")
+             "clear <match> | status <match> <window_id> <mark|clear>")
     if not argv:
         print(usage)
         sys.exit(1)
@@ -422,5 +452,10 @@ if __name__ == "__main__":
             print(usage)
             sys.exit(1)
         print(f"cleared: {clear_attention(argv[1])}")
+    elif cmd == "status":
+        if len(argv) < 4:
+            print(usage)
+            sys.exit(1)
+        print(f"status: {tab_status_update(argv[1], argv[2], argv[3])}")
     else:
         print(f"closed: {close_tab(cmd)}")

@@ -75,45 +75,25 @@ PYEOF
   printf '%s\n' "$TITLE" >"$TITLE_FILE"
 fi
 
-# Loud-attention hook (idea from JasperSui/claude-code-iterm2-tab-status):
-# when the status glyph is 🔴 (blocked — needs CEO) make this tab shout via
-# the iTerm2 Python API — red tab color + badge — so the CEO spots it in the
-# tab bar without reading titles. Any other glyph clears it. Backgrounded
-# (with the venv) so it never slows the title set; match is "$BASE", this
-# tab's stable prefix, so it only ever touches this one tab.
-case "$TITLE" in
-  *🔴*) _ATTN=mark ;;
-  *)    _ATTN=clear ;;
-esac
-_WINID=""
-[ -f "$WINID_FILE" ] && _WINID="$(tr -d '[:space:]' <"$WINID_FILE" 2>/dev/null || true)"
-(
-  cd "$ROOT" || exit 0
-  [ -d .venv ] && . .venv/bin/activate 2>/dev/null
-  python3 -m tools.itermtab "$_ATTN" "$BASE" >/dev/null 2>&1
-  # Auto-arrange (trial opened 2026-06-16, review 2026-06-23): reorder THIS
-  # window's tabs by status glyph so a 🔴 C-level chat jumps ahead of its DEV
-  # tabs. Own window only (via saved winid) so it stays cheap, and a no-op on
-  # single-tab windows. Verified harmless: async_set_tabs keeps the selected
-  # tab + window focus, so the CEO can keep typing while tabs reorder.
-  if [ -n "$_WINID" ] && [ "$_WINID" != "0" ]; then
-    python3 -m tools.itermtab arrange "$_WINID" >/dev/null 2>&1
-  fi
-) &
+# Set the title via tty OSC first, AppleScript fallback second; THEN run the
+# attention + arrange hook (section 3) so it reads the new glyph, not the old.
+_TITLE_SET=0
+WINID=""
+[ -f "$WINID_FILE" ] && WINID="$(tr -d '[:space:]' <"$WINID_FILE" 2>/dev/null || true)"
 
 # 1) Direct escape to the saved tty.
 if [ -f "$TTY_FILE" ]; then
   TTY_DEV="$(tr -d '[:space:]' <"$TTY_FILE" 2>/dev/null || true)"
   if [ -n "$TTY_DEV" ] && [ -w "$TTY_DEV" ]; then
     if printf '\033]0;%s\007' "$TITLE" >"$TTY_DEV" 2>/dev/null; then
-      exit 0
+      _TITLE_SET=1
     fi
   fi
 fi
 
-# 2) AppleScript fallback by window id + title-substring match.
-WINID=""
-[ -f "$WINID_FILE" ] && WINID="$(tr -d '[:space:]' <"$WINID_FILE" 2>/dev/null || true)"
+# 2) AppleScript fallback by window id + title-substring match (only if the
+#    direct tty write didn't land).
+if [ "$_TITLE_SET" != "1" ]; then
 osascript - "$TITLE" "$BASE" "#$SID" "${WINID:-0}" <<'APPLEEOF' >/dev/null 2>&1 || true
 on run argv
   set newTitle to item 1 of argv
@@ -163,4 +143,23 @@ on run argv
   end tell
 end run
 APPLEEOF
+fi
+
+# 3) Loud-attention + auto-arrange hook — runs AFTER the title is set so it
+#    reads the NEW glyph. One combined iTerm API connection (status = mark/
+#    clear attention on $BASE + arrange this window) keeps connection churn
+#    low; the earlier two-calls-per-update burst was timing the API out.
+#    Backgrounded so it never slows the title set; own window only (saved
+#    winid), no-op on single-tab windows / when the API is down.
+#    Trial opened 2026-06-16, review 2026-06-23.
+case "$TITLE" in
+  *🔴*) _ATTN=mark ;;
+  *)    _ATTN=clear ;;
+esac
+(
+  cd "$ROOT" || exit 0
+  [ -d .venv ] && . .venv/bin/activate 2>/dev/null
+  python3 -m tools.itermtab status "$BASE" "${WINID:-0}" "$_ATTN" >/dev/null 2>&1
+) &
+
 exit 0
