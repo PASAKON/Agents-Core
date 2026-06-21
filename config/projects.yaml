@@ -160,3 +160,17 @@ projects:
     review_required: true
     wiki_refs:
       - playbooks/frontend.md
+
+  - key: mooniex-video-engine
+    name: Mooniex Video Engine
+    path: /Users/gob/Projects/mooniex-video-engine
+    # Local-only POC (2026-06-21): data-driven 3D video via Godot 4.7 + ffmpeg.
+    # No GitHub repo created yet — remote is the intended URL but auto_push is
+    # false, so merge_task merges to local main only (push once POC approved).
+    remote: git@github.com:PASAKON/mooniex-video-engine.git
+    default_branch: main
+    stack: [godot, gdscript]
+    agents_allowed: *default_workers
+    auto_push: false
+    review_required: true
+    wiki_refs: []
