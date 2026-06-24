@@ -1,24 +1,28 @@
-// Claude Usage — Session(5h) / Weekly % widget (Liquid Glass style)
-// อ่าน claude-usage.json ที่ Mac sync เข้าโฟลเดอร์ Scriptable (scripts/claude-usage-sync.sh)
-// bar เปลี่ยนสี: เขียว <50, เหลือง 50-79, แดง >=80 · ⚠ ถ้าข้อมูลเก่ากว่า 45 นาที
+// Claude Usage — minimal widget
+// Session(5h) + Weekly(7d) utilization %, each with a "reset in ..." countdown.
+// Data: VPS over HTTPS (fresh even when the Mac is off) -> Mac's iCloud file ->
+// on-device last-good cache (so it never falls back to a blank "no data").
+// The little orange Claude mark is drawn in code (crisp at any size, no asset).
+// Bar colour: green <50, amber 50-79, red >=80.  Last-update time top-right.
+//
+// NOTE: home-screen widgets are static snapshots — the countdown is accurate at
+// render time and refreshes when iOS repaints (~every few min), it does not tick
+// live. refreshAfterDate below is a hint (~5 min).
 
-const FILE = "claude-usage.json"
+const FILE      = "claude-usage.json"        // iCloud fallback (written by the Mac feed)
+const LOCAL     = "claude-usage-last.json"    // on-device last-good cache
 const STALE_MIN = 45
-// Phase B: fetch live usage from the always-on VPS first (fresh even when the
-// Mac is off), then fall back to the Mac's iCloud file. Token injected on deploy.
 const USAGE_URL = "https://webhook.mooniex.com/claude-usage?k=__USAGE_TOKEN__"
 
-// ---------- palette (glass + Claude terracotta) ----------
-const CLAY = new Color("#E07B53")
-const WHITE = Color.white()
-const FROST = new Color("#FFFFFF", 0.10)
-const FROST2 = new Color("#FFFFFF", 0.15)
-const RIM = new Color("#FFFFFF", 0.30)
-const MUTE = new Color("#C9B8AE", 0.95)
-const FAINT = new Color("#B0A29A", 0.6)
-const GREEN = new Color("#5EEAA0")
-const AMBER = new Color("#FFC95E")
-const RED = new Color("#FF7A7A")
+// ---------- palette (minimal, Claude clay on warm black) ----------
+const CLAUDE = new Color("#D97757")
+const WHITE  = new Color("#F5F0EC")
+const MUTE   = new Color("#9B8C82")
+const FAINT  = new Color("#6E635B")
+const GREEN  = new Color("#5EEAA0")
+const AMBER  = new Color("#FFC95E")
+const RED    = new Color("#FF7A7A")
+const TRACK  = new Color("#FFFFFF", 0.08)
 
 function pctColor(p) {
   if (p == null) return FAINT
@@ -27,209 +31,141 @@ function pctColor(p) {
   return RED
 }
 
-// ---------- data ----------
-async function loadData() {
-  // 1) always-on VPS over HTTPS — fresh even when the Mac is asleep / off / dead
-  if (USAGE_URL.indexOf("__USAGE_TOKEN__") === -1) {
-    try {
-      const r = new Request(USAGE_URL)
-      r.timeoutInterval = 8
-      const j = await r.loadJSON()
-      if (j && j.five_hour) return j
-    } catch (e) {}
-  }
-  // 2) fallback: the Mac's iCloud file (works while the Mac is awake)
+// ---------- data: URL -> iCloud -> local last-good (never blank) ----------
+async function fromURL() {
+  if (USAGE_URL.indexOf("__USAGE_TOKEN__") !== -1) return null   // token not injected
+  try {
+    const r = new Request(USAGE_URL); r.timeoutInterval = 8
+    const j = await r.loadJSON()
+    return (j && j.five_hour) ? j : null
+  } catch (e) { return null }
+}
+async function fromICloud() {
   try {
     const f = FileManager.iCloud()
     const p = f.joinPath(f.documentsDirectory(), FILE)
     if (!f.fileExists(p)) return null
     if (!f.isFileDownloaded(p)) await f.downloadFileFromiCloud(p)
-    return JSON.parse(f.readString(p))
+    const j = JSON.parse(f.readString(p))
+    return (j && j.five_hour) ? j : null
   } catch (e) { return null }
 }
-
-// ---------- background ----------
-function hex2(n) { return Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0") }
-function rgb(c) { return "#" + hex2(c[0]) + hex2(c[1]) + hex2(c[2]) }
-
-function glow(ctx, cx, cy, r, c, a) {
-  const L = 22
-  for (let i = L; i >= 1; i--) {
-    const rr = r * i / L
-    ctx.setFillColor(new Color(rgb(c), a))
-    ctx.fillEllipse(new Rect(cx - rr, cy - rr, rr * 2, rr * 2))
-  }
+function localFile() { const f = FileManager.local(); return f.joinPath(f.cacheDirectory(), LOCAL) }
+function saveLocal(d) { try { FileManager.local().writeString(localFile(), JSON.stringify(d)) } catch (e) {} }
+function loadLocal() {
+  try { const f = FileManager.local(); return f.fileExists(localFile()) ? JSON.parse(f.readString(localFile())) : null }
+  catch (e) { return null }
 }
-
-function bgImage(W, H) {
-  const ctx = new DrawContext()
-  ctx.size = new Size(W, H)
-  ctx.opaque = false
-  ctx.respectScreenScale = true
-  const top = [22, 14, 12], bot = [44, 24, 20]  // dark espresso → warm brown
-  const N = 70
-  for (let i = 0; i < N; i++) {
-    const t = i / (N - 1)
-    ctx.setFillColor(new Color(rgb([
-      top[0] + (bot[0] - top[0]) * t,
-      top[1] + (bot[1] - top[1]) * t,
-      top[2] + (bot[2] - top[2]) * t
-    ]), 1))
-    ctx.fillRect(new Rect(0, H * i / N, W, H / N + 1))
-  }
-  glow(ctx, W * 0.9, H * 0.05, W * 0.3, [224, 123, 83], 0.05)   // terracotta
-  glow(ctx, W * 0.08, H * 1.0, W * 0.33, [255, 201, 94], 0.035) // amber
-  return ctx.getImage()
-}
-
-// progress bar เป็นภาพ (โค้งมน + track กระจก)
-function barImage(pct, w, h, color) {
-  const ctx = new DrawContext()
-  ctx.size = new Size(w, h)
-  ctx.opaque = false
-  ctx.respectScreenScale = true
-  const track = new Path()
-  track.addRoundedRect(new Rect(0, 0, w, h), h / 2, h / 2)
-  ctx.addPath(track)
-  ctx.setFillColor(new Color("#FFFFFF", 0.13))
-  ctx.fillPath()
-  if (pct != null && pct > 0) {
-    const fw = Math.max(h, w * Math.min(pct, 100) / 100)
-    const fill = new Path()
-    fill.addRoundedRect(new Rect(0, 0, fw, h), h / 2, h / 2)
-    ctx.addPath(fill)
-    ctx.setFillColor(color)
-    ctx.fillPath()
-  }
-  return ctx.getImage()
+async function loadData() {
+  let d = await fromURL()
+  if (!d) d = await fromICloud()
+  if (d) { saveLocal(d); return d }
+  return loadLocal()   // last-good rather than blank
 }
 
 // ---------- helpers ----------
-function fmtReset(iso, mode) {
-  if (!iso) return ""
-  const d = new Date(iso)
-  if (mode === "time") {
-    const ms = d - new Date()
-    if (ms > 0 && ms < 86400000) {
-      const hrs = Math.floor(ms / 3600000), min = Math.floor((ms % 3600000) / 60000)
-      return hrs > 0 ? `รีเซ็ตใน ${hrs} ชม. ${min} น.` : `รีเซ็ตใน ${min} นาที`
-    }
-    return "รีเซ็ต " + d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
+function hex2(n) { return Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0") }
+function rgb(c) { return "#" + hex2(c[0]) + hex2(c[1]) + hex2(c[2]) }
+
+function countdown(iso) {
+  if (!iso) return null
+  const ms = new Date(iso) - new Date()
+  if (ms <= 0) return "พร้อมใช้"
+  const d = Math.floor(ms / 864e5), h = Math.floor((ms % 864e5) / 36e5), m = Math.floor((ms % 36e5) / 6e4)
+  if (d > 0) return `${d} วัน ${h} ชม.`
+  if (h > 0) return `${h} ชม. ${m} น.`
+  return `${m} นาที`
+}
+
+// little orange Claude pixel mark, drawn from a bitmap
+function claudeMark(px) {
+  const P = ["..XXXXX..", "..X.X.X..", "XXXXXXXXX", "..XXXXX..", "..X.X.X.."]
+  const w = P[0].length, h = P.length
+  const c = new DrawContext()
+  c.size = new Size(w * px, h * px); c.opaque = false; c.respectScreenScale = true
+  c.setFillColor(CLAUDE)
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++)
+    if (P[y][x] === "X") c.fillRect(new Rect(x * px, y * px, px, px))
+  return c.getImage()
+}
+
+function bgImage(W, H) {
+  const c = new DrawContext()
+  c.size = new Size(W, H); c.opaque = false; c.respectScreenScale = true
+  const top = [26, 21, 18], bot = [17, 13, 9], N = 64
+  for (let i = 0; i < N; i++) {
+    const t = i / (N - 1)
+    c.setFillColor(new Color(rgb([top[0] + (bot[0] - top[0]) * t, top[1] + (bot[1] - top[1]) * t, top[2] + (bot[2] - top[2]) * t]), 1))
+    c.fillRect(new Rect(0, H * i / N, W, H / N + 1))
   }
-  return "รีเซ็ต " + d.toLocaleDateString("th-TH", { weekday: "short", day: "numeric", month: "short" })
+  return c.getImage()
 }
 
-function glassStack(parent, radius, fill) {
-  const s = parent.addStack()
-  s.backgroundColor = fill || FROST
-  s.cornerRadius = radius
-  s.borderWidth = 1
-  s.borderColor = RIM
-  s.centerAlignContent()
-  return s
+function barImage(pct, w, h, color) {
+  const c = new DrawContext()
+  c.size = new Size(w, h); c.opaque = false; c.respectScreenScale = true
+  const track = new Path(); track.addRoundedRect(new Rect(0, 0, w, h), h / 2, h / 2)
+  c.addPath(track); c.setFillColor(TRACK); c.fillPath()
+  if (pct != null && pct > 0) {
+    const fw = Math.max(h, w * Math.min(pct, 100) / 100)
+    const fill = new Path(); fill.addRoundedRect(new Rect(0, 0, fw, h), h / 2, h / 2)
+    c.addPath(fill); c.setFillColor(color); c.fillPath()
+  }
+  return c.getImage()
 }
 
-function usageRow(parent, label, pct, sub, barW) {
-  const head = parent.addStack()
-  head.layoutHorizontally()
-  head.centerAlignContent()
-  const l = head.addText(label)
-  l.font = Font.semiboldRoundedSystemFont(10)
-  l.textColor = MUTE
+// ---------- pieces ----------
+function header(w, d, compact) {
+  const row = w.addStack(); row.layoutHorizontally(); row.centerAlignContent()
+  const ic = row.addImage(claudeMark(compact ? 2 : 3))
+  ic.imageSize = compact ? new Size(18, 10) : new Size(27, 15)
+  row.addSpacer(compact ? 5 : 7)
+  const t = row.addText(compact ? "Usage" : "Claude Usage")
+  t.font = Font.semiboldRoundedSystemFont(compact ? 11 : 13); t.textColor = WHITE
+  row.addSpacer()
+  const gen = d && d.generated_at ? new Date(d.generated_at) : null
+  const stale = !gen || (new Date() - gen) > STALE_MIN * 6e4
+  const tt = row.addText((stale ? "⚠ " : "") + (gen
+    ? gen.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) : "—"))
+  tt.font = Font.mediumSystemFont(compact ? 9 : 10); tt.textColor = stale ? RED : FAINT
+}
+
+function metricRow(w, label, block, barW, showCountdown) {
+  const pct = block && block.utilization != null ? block.utilization : null
+  const head = w.addStack(); head.layoutHorizontally(); head.centerAlignContent()
+  const l = head.addText(label); l.font = Font.mediumSystemFont(10); l.textColor = MUTE
   head.addSpacer()
   const v = head.addText(pct == null ? "—" : Math.round(pct) + "%")
-  v.font = Font.boldMonospacedSystemFont(13)
-  v.textColor = pctColor(pct)
-  parent.addSpacer(3)
-  const bar = parent.addImage(barImage(pct, barW, 5, pctColor(pct)))
-  bar.imageSize = new Size(barW, 5)
-  if (sub) {
-    parent.addSpacer(2)
-    const s = parent.addText(sub)
-    s.font = Font.mediumSystemFont(8)
-    s.textColor = FAINT
+  v.font = Font.boldMonospacedSystemFont(15); v.textColor = pctColor(pct)
+  w.addSpacer(5)
+  const bar = w.addImage(barImage(pct, barW, 6, pctColor(pct))); bar.imageSize = new Size(barW, 6)
+  if (showCountdown) {
+    w.addSpacer(4)
+    const cd = countdown(block && block.resets_at)
+    const s = w.addText(cd ? "รีเซ็ตใน " + cd : " ")
+    s.font = Font.mediumSystemFont(9); s.textColor = FAINT
   }
 }
 
 // ---------- layouts ----------
-function buildHeader(w, d) {
-  const row = w.addStack()
-  row.layoutHorizontally()
-  row.centerAlignContent()
-  const pill = glassStack(row, 12, FROST2)
-  pill.setPadding(3, 9, 3, 10)
-  const sf = SFSymbol.named("sparkle")
-  const ic = pill.addImage(sf.image)
-  ic.imageSize = new Size(11, 11)
-  ic.tintColor = CLAY
-  pill.addSpacer(5)
-  const t = pill.addText("Claude Usage")
-  t.font = Font.boldRoundedSystemFont(11)
-  t.textColor = CLAY
-  row.addSpacer()
-
-  // เวลาอัปเดต + เตือนข้อมูลเก่า
-  const gen = d && d.generated_at ? new Date(d.generated_at) : null
-  const stale = !gen || (new Date() - gen) > STALE_MIN * 60000
-  const tp = glassStack(row, 10, FROST)
-  tp.setPadding(2, 8, 2, 8)
-  const tt = tp.addText((stale ? "⚠ " : "") + (gen
-    ? gen.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
-    : "ไม่มีข้อมูล"))
-  tt.font = Font.mediumSystemFont(9)
-  tt.textColor = stale ? RED : MUTE
-}
-
 function buildMedium(w, d) {
-  w.setPadding(12, 14, 10, 14)
-  buildHeader(w, d)
+  w.setPadding(14, 16, 14, 16)
+  header(w, d, false)
   w.addSpacer()
-
-  const row = w.addStack()
-  row.layoutHorizontally()
-
-  const cardW = 137, barW = cardW - 24
-  const c1 = glassStack(row, 16, FROST)
-  c1.layoutVertically()
-  c1.setPadding(9, 12, 9, 12)
-  usageRow(c1, "SESSION · 5 ชม.", d?.five_hour?.utilization, fmtReset(d?.five_hour?.resets_at, "time"), barW)
-
-  row.addSpacer(8)
-
-  const c2 = glassStack(row, 16, FROST)
-  c2.layoutVertically()
-  c2.setPadding(9, 12, 9, 12)
-  usageRow(c2, "WEEKLY · 7 วัน", d?.seven_day?.utilization, fmtReset(d?.seven_day?.resets_at, "date"), barW)
-
-  w.addSpacer()
-
-  // แถวล่าง: sonnet/opus weekly + extra usage
-  const foot = w.addStack()
-  foot.layoutHorizontally()
-  foot.centerAlignContent()
-  const bits = []
-  if (d?.seven_day_sonnet?.utilization != null) bits.push("Sonnet " + Math.round(d.seven_day_sonnet.utilization) + "%")
-  if (d?.seven_day_opus?.utilization != null) bits.push("Opus " + Math.round(d.seven_day_opus.utilization) + "%")
-  if (d?.extra_usage?.is_enabled && d?.extra_usage?.used_credits != null) {
-    bits.push("Extra $" + (d.extra_usage.used_credits / 100).toFixed(2) + " (" + (d.extra_usage.utilization ?? 0).toFixed(1) + "%)")
-  }
-  const f1 = foot.addText(bits.join(" · ") || "Max plan")
-  f1.font = Font.mediumSystemFont(8)
-  f1.textColor = FAINT
-  foot.addSpacer()
+  const barW = 297
+  metricRow(w, "SESSION · 5 ชม.", d && d.five_hour, barW, true)
+  w.addSpacer(12)
+  metricRow(w, "WEEKLY · 7 วัน", d && d.seven_day, barW, true)
 }
 
 function buildSmall(w, d) {
-  w.setPadding(11, 12, 10, 12)
-  buildHeader(w, d)
+  w.setPadding(12, 13, 12, 13)
+  header(w, d, true)
   w.addSpacer()
-  const card = glassStack(w, 14, FROST)
-  card.layoutVertically()
-  card.setPadding(8, 10, 8, 10)
-  const barW = 111
-  usageRow(card, "SESSION", d?.five_hour?.utilization, null, barW)
-  card.addSpacer(7)
-  usageRow(card, "WEEKLY", d?.seven_day?.utilization, null, barW)
+  const barW = 129
+  metricRow(w, "SESSION", d && d.five_hour, barW, false)
+  w.addSpacer(9)
+  metricRow(w, "WEEKLY", d && d.seven_day, barW, false)
 }
 
 // ---------- main ----------
@@ -243,13 +179,9 @@ if (fam === "small") {
   w.backgroundImage = bgImage(329, 155)
   buildMedium(w, data)
 }
-w.refreshAfterDate = new Date(Date.now() + 10 * 60 * 1000)
+w.refreshAfterDate = new Date(Date.now() + 5 * 60 * 1000)
 
-if (config.runsInWidget) {
-  Script.setWidget(w)
-} else if (fam === "small") {
-  w.presentSmall()
-} else {
-  w.presentMedium()
-}
+if (config.runsInWidget) Script.setWidget(w)
+else if (fam === "small") w.presentSmall()
+else w.presentMedium()
 Script.complete()
