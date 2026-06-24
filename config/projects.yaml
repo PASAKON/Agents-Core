@@ -174,3 +174,19 @@ projects:
     auto_push: false
     review_required: true
     wiki_refs: []
+
+  - key: mooniex-scriptable
+    name: Mooniex Scriptable (iOS widgets)
+    path: /Users/gob/Projects/mooniex-scriptable
+    remote: https://github.com/PASAKON/mooniex-scriptable.git
+    default_branch: main
+    stack: [scriptable, javascript, python]
+    agents_allowed: *default_workers
+    # CEO's Scriptable (iOS) widgets + their Mac/VPS feeders. Widget SOURCE lives
+    # here; the DEPLOYED copy is the iCloud Scriptable folder (repo CLAUDE.md).
+    # Code migrates from mooniex-agents in a reviewed Phase 2 (docs/MIGRATION.md).
+    # DB: none — RESERVED table prefix `scriptable_` if persistence is ever needed.
+    auto_push: false
+    review_required: true
+    wiki_refs:
+      - projects/mooniex-scriptable.md
