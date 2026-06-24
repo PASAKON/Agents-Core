@@ -31,7 +31,10 @@ RESP=$(curl -sf --max-time 20 "https://api.anthropic.com/api/oauth/usage" \
 BODY=$(echo "$RESP" | "$JQ" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   '{generated_at: $ts, five_hour, seven_day, seven_day_opus, seven_day_sonnet, extra_usage}')
 [ -n "$BODY" ] || exit 1
-rm -f "$OUT" "$OUT.tmp" 2>/dev/null || true
+# Overwrite in place — do NOT rm+recreate. A fresh inode every 10min makes iCloud
+# treat each cycle as delete+create, so the upload never settles (sig stays
+# <file-pending>) and the iPhone widget never receives a stable version. Truncate-
+# and-write keeps the file id stable → clean incremental upload → the phone syncs.
 # subshell isolates the redirect-open error so a TCC denial is reported, not raw
 if ( printf '%s\n' "$BODY" > "$OUT" ) 2>/dev/null; then
   printf '%s claude-usage-sync: wrote %s (5h=%s%% 7d=%s%%)\n' \
