@@ -79,7 +79,16 @@ server (`serve/serve.py`) exposes the cache behind the existing traefik:
 - The widget (`output/iphone-shortcuts/Claude Usage.js`) fetches that URL first,
   falling back to the Mac's iCloud file. The repo keeps a `__USAGE_TOKEN__`
   placeholder; the real token is injected only into the iCloud copy on deploy:
-  `sed "s/__USAGE_TOKEN__/$TOK/" "<repo>/Claude Usage.js" > "<iCloud>/Claude Usage.js"`.
+  `sed "s|k=__USAGE_TOKEN__|k=$TOK|" "<repo>/Claude Usage.js" > "<iCloud>/Claude Usage.js"`.
+  **Scope the sed to `k=__USAGE_TOKEN__` (the URL), NOT a global `s/__USAGE_TOKEN__/$TOK/`.**
+  `fromURL()` guards on the bare `__USAGE_TOKEN__` literal to detect an un-deployed
+  copy; a global sed rewrites that guard to match the real token, so `fromURL()`
+  returns null every time and VPS-fetch silently dies (widget falls back to
+  iCloud-only — Mac-off freshness lost).
+  **Re-run this deploy after EVERY widget redesign** — the `.js` is NOT synced by
+  `claude-usage-sync.sh` (that writes only `claude-usage.json`). Forgetting to
+  re-deploy leaves iCloud on the OLD design while the repo moves on (this is exactly
+  how the pixel-art redesign "reverted" to glass on 2026-06-24).
 
 Deploy / teardown the server:
 ```bash
