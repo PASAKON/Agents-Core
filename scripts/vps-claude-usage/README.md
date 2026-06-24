@@ -67,6 +67,26 @@ ssh mooniex-vps 'python3 /opt/claude-usage-monitor/monitor.py --dry-run'     # w
 ssh mooniex-vps 'python3 /opt/claude-usage-monitor/monitor.py --test-email'  # send a test
 ```
 
+## Phase B — widget fetches over HTTPS (live)
+
+So the iPhone widget stays fresh even when the Mac is off, a tiny read-only
+server (`serve/serve.py`) exposes the cache behind the existing traefik:
+
+- `serve/docker-compose.yml` → container `claude-usage-serve` on the `n8n_default`
+  network, additive traefik router `Host(webhook.mooniex.com) && PathPrefix(/claude-usage)`
+  (does NOT disturb the existing claudeflow-webhook router; auto-TLS via `mytlschallenge`).
+- Gated by `USAGE_TOKEN` (in `serve/.env` on the VPS, **never committed**): `GET https://webhook.mooniex.com/claude-usage?k=<token>`.
+- The widget (`output/iphone-shortcuts/Claude Usage.js`) fetches that URL first,
+  falling back to the Mac's iCloud file. The repo keeps a `__USAGE_TOKEN__`
+  placeholder; the real token is injected only into the iCloud copy on deploy:
+  `sed "s/__USAGE_TOKEN__/$TOK/" "<repo>/Claude Usage.js" > "<iCloud>/Claude Usage.js"`.
+
+Deploy / teardown the server:
+```bash
+ssh mooniex-vps 'cd /opt/claude-usage-monitor/serve && docker compose up -d'   # up
+ssh mooniex-vps 'cd /opt/claude-usage-monitor/serve && docker compose down'    # remove (reversible)
+```
+
 ## Files
 
 - `monitor.py` — the service (poll + refresh + cache + reminders)
