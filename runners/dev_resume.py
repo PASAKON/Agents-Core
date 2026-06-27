@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import get_project, role as get_role
+from lib.config import get_project, role as get_role, dev_provider_overrides
 from runners.dev_init import _write_dev_settings  # type: ignore
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -84,6 +84,16 @@ def main() -> None:
         "skim TASK.md, then continue. Submit report when finished."
     )
 
+    # DEV model provider override (flag-gated) — mirror dev_init so a
+    # resumed worker DEV keeps the same model/endpoint it was spawned on.
+    _ov = dev_provider_overrides(role)
+    effort_args = ["--effort", "max"]
+    if _ov:
+        model = _ov["model"]
+        env.update(_ov["env"])
+        if _ov["effort"] is None:
+            effort_args = []
+
     os.chdir(worktree)
     os.execvpe(
         "claude",
@@ -92,7 +102,7 @@ def main() -> None:
             "-n", f"{role}:{task_id}",
             "--resume", session_id,
             "--model", model,
-            "--effort", "max",
+            *effort_args,
             "--permission-mode", "auto",
             "--append-system-prompt", role_doc,
             "--mcp-config", str(ROOT / "config" / "dev.mcp.json"),

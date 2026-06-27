@@ -26,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import display_for, get_project, role as get_role
+from lib.config import display_for, get_project, role as get_role, dev_provider_overrides
 
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
@@ -195,6 +195,18 @@ def main() -> None:
         allowed.append("Skill")
     mcp_config = ROOT / "config" / "dev.mcp.json"
 
+    # DEV model provider override (flag-gated, reversible). When
+    # DEV_MODEL_PROVIDER is set, worker DEVs run on a cheaper Anthropic-
+    # compatible endpoint (BytePlus ModelArk -> GLM-5.1) instead of Claude;
+    # C-level orchestration is unaffected. Unset -> original behaviour.
+    _ov = dev_provider_overrides(role)
+    effort_args = ["--effort", "max"]
+    if _ov:
+        model = _ov["model"]
+        env.update(_ov["env"])
+        if _ov["effort"] is None:
+            effort_args = []
+
     os.chdir(worktree)
     os.execvpe(
         "claude",
@@ -202,7 +214,7 @@ def main() -> None:
             "claude",
             "-n", f"{display_for(role)} ({task_id})",
             "--model", model,
-            "--effort", "max",
+            *effort_args,
             "--permission-mode", "auto",
             "--append-system-prompt", role_doc,
             "--mcp-config", str(mcp_config),
