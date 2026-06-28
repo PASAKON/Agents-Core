@@ -104,9 +104,10 @@ disown $!
 
 # Flag-gated GLM offload (CXO_MODEL_PROVIDER, set by spawn-cto.sh --glm).
 # Default OFF -> Claude path unchanged. When set, lib.config
-# cxo_provider_overrides injects the BytePlus env + swaps the model; the GLM
+# cxo_provider_overrides injects the provider env + swaps the model; the GLM
 # endpoint rejects the Claude-only fallback id and --effort, so both are
-# dropped. Every request then hits BytePlus -> Claude weekly limit untouched.
+# dropped. Every request then hits the GLM provider -> Claude weekly limit untouched.
+# Supported providers: "zai" (Z.ai direct), "byteplus" (BytePlus ModelArk).
 PROVIDER_EXPORTS="$(source "$ROOT/.venv/bin/activate" 2>/dev/null; python3 -c '
 import shlex
 from lib.config import cxo_provider_overrides
@@ -121,7 +122,7 @@ eval "${PROVIDER_EXPORTS:-}"
 
 if [ "${GLM_ACTIVE:-0}" = "1" ]; then
   MODEL_ARGS=(--model "$GLM_MODEL")
-  echo "CTO launching on GLM provider (BytePlus) — Claude weekly limit untouched." >&2
+  echo "CTO launching on GLM provider (${CXO_MODEL_PROVIDER:-byteplus}) — Claude weekly limit untouched." >&2
 else
   MODEL_ARGS=(--model 'claude-opus-4-8[1m]' --fallback-model 'claude-fable-5' --effort max)
 fi

@@ -245,7 +245,7 @@ async def run(ceo_request: str) -> str:
     )
 
     # Flag-gated GLM offload (CXO_MODEL_PROVIDER). Default OFF -> Claude path.
-    # When set, inject the BytePlus env + swap model; drop the Claude-only
+    # When set, inject the provider env + swap model; drop the Claude-only
     # fallback id + --effort (the GLM endpoint rejects both).
     _ov = cxo_provider_overrides("cto")
     _model = get_role("cto")["model"]

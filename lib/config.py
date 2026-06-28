@@ -66,8 +66,9 @@ def get_project(key: str) -> dict:
 # --- DEV model provider override (flag-gated, reversible) -----------------
 # When DEV_MODEL_PROVIDER is set, worker DEVs spawn against an alternative
 # Anthropic-compatible endpoint instead of Claude, to offload grunt coding
-# work to a cheaper model (BytePlus ModelArk -> GLM-5.1) while C-level
-# orchestration stays on Claude. Flag unset -> 100% original behaviour.
+# work to a cheaper model while C-level orchestration stays on Claude.
+# Supported providers: "zai" (Z.ai direct), "byteplus" (BytePlus ModelArk).
+# Flag unset -> 100% original Claude behaviour.
 
 def _read_dotenv_var(name: str) -> str | None:
     """Read a single KEY=value from the gitignored repo-root .env.
@@ -88,16 +89,20 @@ def _read_dotenv_var(name: str) -> str | None:
     return None
 
 
-# Anthropic-compatible coding endpoints per provider. IMPORTANT: the
-# BytePlus base URL MUST be /api/coding — the /api/v3 base bypasses the
-# Coding Plan quota and incurs separate postpaid charges (BytePlus docs).
+# Anthropic-compatible coding endpoints per provider.
+#   zai:       Z.ai direct — https://api.z.ai/api/anthropic (Coding Plan quota)
+#   byteplus:  BytePlus ModelArk — MUST use /api/coding; /api/v3 bypasses the
+#              Coding Plan quota and incurs separate postpaid charges.
 _PROVIDER_ENDPOINTS = {
+    "zai": "https://api.z.ai/api/anthropic",
     "byteplus": "https://ark.ap-southeast.bytepluses.com/api/coding",
 }
 _PROVIDER_KEY_VAR = {
+    "zai": "ZAI_API_KEY",
     "byteplus": "BYTEPLUS_API_KEY",
 }
 _PROVIDER_DEFAULT_MODEL = {
+    "zai": "glm-5.1",
     "byteplus": "glm-5.1",
 }
 
@@ -111,7 +116,7 @@ def _provider_overrides(
     model_var: str,
 ) -> dict | None:
     """Shared spawn-override resolver for the cheaper Anthropic-compatible
-    provider path (BytePlus ModelArk -> GLM-5.1).
+    provider path (Z.ai or BytePlus ModelArk -> GLM-5.1).
 
     Returns {"model": str, "env": dict, "effort": str | None} or None to
     use the default Claude path. Fails safe to None (Claude) when the

@@ -113,10 +113,12 @@ touch "$CTO_LOG"
 
 # --glm: flip the flag-gated GLM offload ON for this launch only. cto-claude.sh
 # reads CXO_MODEL_PROVIDER via lib.config.cxo_provider_overrides and routes the
-# whole session to BytePlus GLM-5.1 — zero Claude weekly-limit consumption.
+# whole session to the chosen GLM provider — zero Claude weekly-limit consumption.
+# Supports: "zai" (Z.ai direct), "byteplus" (BytePlus ModelArk).
 GLM_PREFIX=""
 if [ "$USE_GLM" = "1" ]; then
-  GLM_PREFIX="export CXO_MODEL_PROVIDER=byteplus && "
+  GLM_PROVIDER="${GLM_PROVIDER:-byteplus}"
+  GLM_PREFIX="export CXO_MODEL_PROVIDER=$GLM_PROVIDER && "
 fi
 CHAT_CMD="${GLM_PREFIX}export CTO_SESSION_ID='$CTO_SESSION_ID' && bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS"
 LOG_CMD="cd '$ROOT' && tail -F state/logs/cto-$CTO_SESSION_ID.log"
@@ -158,7 +160,7 @@ APPLESCRIPT
 
 PROVIDER_NOTE=""
 if [ "$USE_GLM" = "1" ]; then
-  PROVIDER_NOTE=" [GLM/BytePlus — no Claude quota]"
+  PROVIDER_NOTE=" [GLM/${GLM_PROVIDER:-byteplus} — no Claude quota]"
 fi
 if [ "$WITH_LOGS" = "1" ]; then
   echo "spawned iTerm window id=$CTO_SESSION_ID (CTO chat + log + dev logs).$PROVIDER_NOTE"
