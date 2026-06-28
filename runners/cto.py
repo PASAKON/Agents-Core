@@ -18,7 +18,7 @@ from claude_agent_sdk import (
 import os
 
 from lib import db
-from lib.config import get_project, projects, role as get_role
+from lib.config import get_project, projects, role as get_role, cxo_provider_overrides
 from lib.db import register_cxo_session
 from lib.logger import get_logger
 from lib.notify import info, success, error, warn
@@ -244,10 +244,21 @@ async def run(ceo_request: str) -> str:
         ],
     )
 
-    options = ClaudeAgentOptions(
-        model=get_role("cto")["model"],
-        fallback_model=get_role("cto").get("fallback_model"),
-        effort="max",
+    # Flag-gated GLM offload (CXO_MODEL_PROVIDER). Default OFF -> Claude path.
+    # When set, inject the BytePlus env + swap model; drop the Claude-only
+    # fallback id + --effort (the GLM endpoint rejects both).
+    _ov = cxo_provider_overrides("cto")
+    _model = get_role("cto")["model"]
+    _fallback = get_role("cto").get("fallback_model")
+    _effort: str | None = "max"
+    if _ov:
+        os.environ.update(_ov["env"])
+        _model = _ov["model"]
+        _fallback = None
+        _effort = _ov["effort"]
+
+    opts = dict(
+        model=_model,
         system_prompt=_system_prompt(),
         permission_mode="acceptEdits",
         mcp_servers={"org": server},
@@ -263,6 +274,11 @@ async def run(ceo_request: str) -> str:
         ],
         cwd=str(ROOT),
     )
+    if _fallback:
+        opts["fallback_model"] = _fallback
+    if _effort:
+        opts["effort"] = _effort
+    options = ClaudeAgentOptions(**opts)
 
     final = []
     async with ClaudeSDKClient(options=options) as client:

@@ -22,6 +22,7 @@ set -euo pipefail
 ROOT="/Users/gob/Projects/Agents"
 
 WITH_LOGS=0
+USE_GLM=0
 EXPLICIT_ID=""
 ARGS=()
 prev=""
@@ -33,6 +34,7 @@ for a in "$@"; do
   fi
   case "$a" in
     --with-logs) WITH_LOGS=1 ;;
+    --glm) USE_GLM=1 ;;
     --id) prev="--id" ;;
     *) ARGS+=("$a") ;;
   esac
@@ -109,7 +111,14 @@ CTO_LOG="$ROOT/state/logs/cto-$CTO_SESSION_ID.log"
 mkdir -p "$ROOT/state/logs"
 touch "$CTO_LOG"
 
-CHAT_CMD="export CTO_SESSION_ID='$CTO_SESSION_ID' && bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS"
+# --glm: flip the flag-gated GLM offload ON for this launch only. cto-claude.sh
+# reads CXO_MODEL_PROVIDER via lib.config.cxo_provider_overrides and routes the
+# whole session to BytePlus GLM-5.1 — zero Claude weekly-limit consumption.
+GLM_PREFIX=""
+if [ "$USE_GLM" = "1" ]; then
+  GLM_PREFIX="export CXO_MODEL_PROVIDER=byteplus && "
+fi
+CHAT_CMD="${GLM_PREFIX}export CTO_SESSION_ID='$CTO_SESSION_ID' && bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS"
 LOG_CMD="cd '$ROOT' && tail -F state/logs/cto-$CTO_SESSION_ID.log"
 DEV_CMD="cd '$ROOT' && bash scripts/tail-dev-logs.sh"
 
@@ -147,8 +156,12 @@ $EXTRA_TABS
 end tell
 APPLESCRIPT
 
+PROVIDER_NOTE=""
+if [ "$USE_GLM" = "1" ]; then
+  PROVIDER_NOTE=" [GLM/BytePlus — no Claude quota]"
+fi
 if [ "$WITH_LOGS" = "1" ]; then
-  echo "spawned iTerm window id=$CTO_SESSION_ID (CTO chat + log + dev logs)."
+  echo "spawned iTerm window id=$CTO_SESSION_ID (CTO chat + log + dev logs).$PROVIDER_NOTE"
 else
-  echo "spawned iTerm window id=$CTO_SESSION_ID (logs at state/logs/cto-$CTO_SESSION_ID.log)"
+  echo "spawned iTerm window id=$CTO_SESSION_ID (logs at state/logs/cto-$CTO_SESSION_ID.log)$PROVIDER_NOTE"
 fi

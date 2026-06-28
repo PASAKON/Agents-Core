@@ -43,7 +43,7 @@ from rich.markdown import Markdown
 
 from lib import db
 from lib import cto_session
-from lib.config import role as get_role
+from lib.config import role as get_role, cxo_provider_overrides
 from lib.logger import get_logger
 from lib.notify import info, success, warn, error, COLORS, RESET
 
@@ -139,10 +139,21 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
             t_list_projects, t_stats,
         ],
     )
-    return ClaudeAgentOptions(
-        model=get_role("cto")["model"],
-        fallback_model=get_role("cto").get("fallback_model"),
-        effort="max",
+    # Flag-gated GLM offload (CXO_MODEL_PROVIDER). Default OFF -> Claude path.
+    # When set, inject the BytePlus env + swap model; drop the Claude-only
+    # fallback id + --effort (the GLM endpoint rejects both).
+    _ov = cxo_provider_overrides("cto")
+    _model = get_role("cto")["model"]
+    _fallback = get_role("cto").get("fallback_model")
+    _effort: str | None = "max"
+    if _ov:
+        os.environ.update(_ov["env"])
+        _model = _ov["model"]
+        _fallback = None
+        _effort = _ov["effort"]
+
+    opts = dict(
+        model=_model,
         system_prompt=_system_prompt(),
         permission_mode="acceptEdits",
         mcp_servers={"org": server},
@@ -158,6 +169,11 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
         cwd=str(ROOT),
         resume=resume,
     )
+    if _fallback:
+        opts["fallback_model"] = _fallback
+    if _effort:
+        opts["effort"] = _effort
+    return ClaudeAgentOptions(**opts)
 
 
 def _print_banner(session_id: str | None, resumed: bool) -> None:

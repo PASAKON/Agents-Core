@@ -102,20 +102,28 @@ _PROVIDER_DEFAULT_MODEL = {
 }
 
 
-def dev_provider_overrides(role_name: str) -> dict | None:
-    """Spawn overrides for a worker DEV when DEV_MODEL_PROVIDER is set.
+def _provider_overrides(
+    role_name: str,
+    *,
+    flag_var: str,
+    roles_var: str,
+    default_roles: str,
+    model_var: str,
+) -> dict | None:
+    """Shared spawn-override resolver for the cheaper Anthropic-compatible
+    provider path (BytePlus ModelArk -> GLM-5.1).
 
     Returns {"model": str, "env": dict, "effort": str | None} or None to
     use the default Claude path. Fails safe to None (Claude) when the
     provider is unknown, the role is outside the pilot scope, or the API
-    key is missing — never spawns a DEV against a broken/unauthed endpoint.
+    key is missing — never spawns against a broken/unauthed endpoint.
     """
-    provider = (os.environ.get("DEV_MODEL_PROVIDER")
-                or _read_dotenv_var("DEV_MODEL_PROVIDER") or "").strip().lower()
+    provider = (os.environ.get(flag_var)
+                or _read_dotenv_var(flag_var) or "").strip().lower()
     if not provider or provider not in _PROVIDER_ENDPOINTS:
         return None
-    # Pilot scope: only these roles offload; web_designer etc. stay on Claude.
-    pilot = os.environ.get("DEV_PROVIDER_ROLES", "developer,tester")
+    # Pilot scope: only these roles offload; others stay on Claude.
+    pilot = os.environ.get(roles_var, default_roles)
     allowed_roles = {r.strip() for r in pilot.split(",") if r.strip()}
     if role_name not in allowed_roles:
         return None
@@ -123,7 +131,7 @@ def dev_provider_overrides(role_name: str) -> dict | None:
            or _read_dotenv_var(_PROVIDER_KEY_VAR[provider]))
     if not key:
         return None  # no key -> fall back to Claude rather than spawn broken
-    model = os.environ.get("DEV_PROVIDER_MODEL") or _PROVIDER_DEFAULT_MODEL[provider]
+    model = os.environ.get(model_var) or _PROVIDER_DEFAULT_MODEL[provider]
     return {
         "model": model,
         "env": {
@@ -133,3 +141,34 @@ def dev_provider_overrides(role_name: str) -> dict | None:
         },
         "effort": None,  # GLM/ModelArk endpoints don't accept Claude --effort
     }
+
+
+def dev_provider_overrides(role_name: str) -> dict | None:
+    """Spawn overrides for a worker DEV when DEV_MODEL_PROVIDER is set.
+
+    Flag-gated + reversible: unset DEV_MODEL_PROVIDER -> original Claude path.
+    """
+    return _provider_overrides(
+        role_name,
+        flag_var="DEV_MODEL_PROVIDER",
+        roles_var="DEV_PROVIDER_ROLES",
+        default_roles="developer,tester",
+        model_var="DEV_PROVIDER_MODEL",
+    )
+
+
+def cxo_provider_overrides(role_name: str) -> dict | None:
+    """Spawn overrides for a C-level (cto/cmo/cgo/cfo) when CXO_MODEL_PROVIDER
+    is set. Independent flag from worker DEVs so C-level orchestration can be
+    offloaded to GLM (to dodge the Claude weekly cap) separately.
+
+    Flag-gated + reversible: unset CXO_MODEL_PROVIDER -> original Claude path.
+    Default pilot scope is "cto" only; widen via CXO_PROVIDER_ROLES.
+    """
+    return _provider_overrides(
+        role_name,
+        flag_var="CXO_MODEL_PROVIDER",
+        roles_var="CXO_PROVIDER_ROLES",
+        default_roles="cto",
+        model_var="CXO_PROVIDER_MODEL",
+    )

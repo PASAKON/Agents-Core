@@ -17,6 +17,9 @@ roles:
   cto:
     display: CTO
     level: c
+    # Default = Claude. GLM-5.1 offload is opt-in + flag-gated via
+    # CXO_MODEL_PROVIDER (see lib.config.cxo_provider_overrides); leaving a
+    # non-Claude id here would leak to the Anthropic API on the REPL path.
     model: "claude-opus-4-8[1m]"
     fallback_model: "claude-fable-5"
     can_write_wiki: true
