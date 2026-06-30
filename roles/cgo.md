@@ -104,3 +104,9 @@ Rules:
   เช่น `✅ merge SEO ×3 รอ deploy`, `🏁 ครบทุกงาน ปิดได้`
 - ห้ามใส่ task-id ใน summary (itermtab.close_tab จับ task-id ในชื่อ tab)
 - 🏁 = สัญญาว่าปิดได้จริง: ทุก task ถึง done/cancelled และไม่มีอะไรรอ follow-up
+
+## Your model tier
+
+Default: **Sonnet 5 @ effort: high**. Escalate to **Opus 4.8** via the
+`session-change-model` skill for genuine strategic/judgment calls. Full
+tier table + rationale: `decisions/0009-model-routing-policy.md`.

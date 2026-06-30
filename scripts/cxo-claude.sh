@@ -59,15 +59,19 @@ if [ ! -f "$ROLE_DOC" ]; then
   exit 2
 fi
 
-# Resolve display name from policies/agents.yaml so the tab title +
-# log lines match the canonical label (CTO / CMO / CGO / CFO).
-DISPLAY="$(cd "$ROOT" && source .venv/bin/activate && python3 -c "
-from lib.config import display_for, is_c_level
+# Resolve display name + model + effort from policies/agents.yaml so the
+# tab title/log lines and the spawned model match the canonical config —
+# per-role, not hardcoded (decisions/0009-model-routing-policy.md).
+IFS=' ' read -r DISPLAY MODEL EFFORT <<<"$(cd "$ROOT" && source .venv/bin/activate && python3 -c "
+from lib.config import display_for, is_c_level, role as get_role
 import sys
 if not is_c_level('$ROLE'):
     print(f'role $ROLE is not a C-level role', file=sys.stderr)
     sys.exit(2)
-print(display_for('$ROLE'))
+r = get_role('$ROLE')
+model = r.get('model') or 'claude-opus-4-8[1m]'
+effort = r.get('effort') or 'high'
+print(display_for('$ROLE'), model, effort)
 ")"
 [ -n "$DISPLAY" ] || exit 2
 
@@ -269,9 +273,9 @@ fi
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
   -n "$TAB_TITLE" \
-  --model 'claude-opus-4-8[1m]' \
+  --model "$MODEL" \
   --fallback-model 'claude-fable-5' \
-  --effort max \
+  --effort "$EFFORT" \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \

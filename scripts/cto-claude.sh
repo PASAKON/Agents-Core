@@ -124,7 +124,7 @@ if [ "${GLM_ACTIVE:-0}" = "1" ]; then
   MODEL_ARGS=(--model "$GLM_MODEL")
   echo "CTO launching on GLM provider (${CXO_MODEL_PROVIDER:-byteplus}) — Claude weekly limit untouched." >&2
 else
-  MODEL_ARGS=(--model 'claude-opus-4-8[1m]' --fallback-model 'claude-fable-5' --effort max)
+  MODEL_ARGS=(--model 'claude-sonnet-5' --fallback-model 'claude-fable-5' --effort xhigh)
 fi
 
 # `exec` would replace the shell and skip the EXIT trap, leaving a

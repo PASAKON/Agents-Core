@@ -20,8 +20,11 @@ roles:
     # Default = Claude. GLM-5.1 offload is opt-in + flag-gated via
     # CXO_MODEL_PROVIDER (see lib.config.cxo_provider_overrides); leaving a
     # non-Claude id here would leak to the Anthropic API on the REPL path.
-    model: "claude-opus-4-8[1m]"
+    # Sonnet 5 default + Opus 4.8 escalation via the session-change-model
+    # skill (decisions/0009-model-routing-policy.md).
+    model: "claude-sonnet-5"
     fallback_model: "claude-fable-5"
+    effort: "xhigh"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -31,8 +34,9 @@ roles:
   cfo:
     display: CFO
     level: c
-    model: "claude-opus-4-8[1m]"
+    model: "claude-sonnet-5"
     fallback_model: "claude-fable-5"
+    effort: "high"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -42,8 +46,9 @@ roles:
   cgo:
     display: CGO
     level: c
-    model: "claude-opus-4-8[1m]"
+    model: "claude-sonnet-5"
     fallback_model: "claude-fable-5"
+    effort: "high"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -53,8 +58,9 @@ roles:
   cmo:
     display: CMO
     level: c
-    model: "claude-opus-4-8[1m]"
+    model: "claude-sonnet-5"
     fallback_model: "claude-fable-5"
+    effort: "high"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -64,7 +70,8 @@ roles:
   developer:
     display: Developer
     level: w
-    model: "claude-opus-4-8[1m]"
+    model: "claude-sonnet-5"
+    effort: "xhigh"
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -74,7 +81,8 @@ roles:
   tester:
     display: Tester
     level: w
-    model: "claude-opus-4-8[1m]"
+    model: "claude-sonnet-5"
+    effort: "high"
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -84,7 +92,8 @@ roles:
   web_designer:
     display: Web Designer
     level: w
-    model: "claude-opus-4-8[1m]"
+    model: "claude-sonnet-5"
+    effort: "high"
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -95,6 +104,7 @@ roles:
     display: DevOps Engineer
     level: w
     model: "claude-opus-4-8[1m]"
+    effort: "high"
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -105,6 +115,7 @@ roles:
     display: Security Engineer
     level: w
     model: "claude-opus-4-8[1m]"
+    effort: "xhigh"
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -114,7 +125,8 @@ roles:
   data_analyst:
     display: Data Analytics
     level: w
-    model: "claude-opus-4-8[1m]"
+    model: "claude-sonnet-5"
+    effort: "medium"
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -124,7 +136,8 @@ roles:
   prompt_engineer:
     display: Prompt Engineer
     level: w
-    model: "claude-opus-4-8[1m]"
+    model: "claude-sonnet-5"
+    effort: "high"
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -134,7 +147,8 @@ roles:
   ads_manager:
     display: Ads Manager
     level: w
-    model: "claude-opus-4-8[1m]"
+    model: "claude-sonnet-5"
+    effort: "medium"
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -144,7 +158,8 @@ roles:
   content_strategist:
     display: Content Strategist
     level: w
-    model: "claude-opus-4-8[1m]"
+    model: "claude-sonnet-5"
+    effort: "medium"
     can_write_wiki: false
     can_create_task: false
     can_merge: false

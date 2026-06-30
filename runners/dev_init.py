@@ -141,7 +141,8 @@ def main() -> None:
         ])
         return  # unreachable
 
-    role_doc = (ROOT / "roles" / f"{role}.md").read_text()
+    shared_doc = (ROOT / "roles" / "_dev_shared.md").read_text()
+    role_doc = shared_doc + "\n\n" + (ROOT / "roles" / f"{role}.md").read_text()
     prompt = _build_prompt(task, project, worktree)
     # web_designer's worktree omits the gitignored .od/, so resolve the
     # design source (project UUID → absolute read-only path + skill) from
@@ -200,7 +201,7 @@ def main() -> None:
     # compatible endpoint (Z.ai or BytePlus ModelArk -> GLM-5.1) instead of
     # C-level orchestration is unaffected. Unset -> original behaviour.
     _ov = dev_provider_overrides(role)
-    effort_args = ["--effort", "max"]
+    effort_args = ["--effort", get_role(role).get("effort") or "high"]
     if _ov:
         model = _ov["model"]
         env.update(_ov["env"])
