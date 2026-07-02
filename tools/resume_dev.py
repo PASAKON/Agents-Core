@@ -16,11 +16,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.config import display_for
+from tools.delegate import _owner_window_id
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def _spawn_resume_tab(role: str, task_id: str) -> None:
+def _spawn_resume_tab(role: str, task_id: str,
+                      owner_cto: str | None = None,
+                      owner_role: str | None = None) -> None:
     display = display_for(role)
     tab_title = f"{display} ({task_id}) [RESUMED]"
     cmd = (
@@ -28,16 +31,29 @@ def _spawn_resume_tab(role: str, task_id: str) -> None:
         f"cd '{ROOT}' && source .venv/bin/activate && "
         f"python -m runners.dev_resume {role} {task_id}"
     )
+    # Route back into the owning C-level's window (CTO/CFO/CMO/CGO, per
+    # owner_role) instead of always assuming CTO — same fix as
+    # tools.delegate._build_spawn_applescript. Falls back to a generic
+    # "CTO" match only when owner_role is unknown (legacy rows).
+    owner_display = display_for(owner_role) if owner_role else "CTO"
+    owner_winid = _owner_window_id(owner_cto, owner_role)
     script = f'''
 tell application "iTerm"
   set targetWin to missing value
+  if "{owner_winid or ''}" is not "" then
+    try
+      set targetWin to (first window whose id is ({owner_winid or 0}))
+    end try
+  end if
+  if targetWin is missing value then
   repeat with w in windows
     repeat with t in tabs of w
       try
         set tabName to name of current session of t
-        -- "CTO Chat #"/"CTO #" only: a bare "CTO" would also match
-        -- ephemeral cross-talk tabs titled "CFO <- CTO: ...".
-        if (tabName contains "CTO Chat #") or (tabName contains "CTO #") then
+        -- "<DISPLAY> Chat #"/"<DISPLAY> #" only: a bare "{owner_display}"
+        -- would also match ephemeral cross-talk tabs titled
+        -- "CFO <- CTO: ...".
+        if (tabName contains "{owner_display} Chat #") or (tabName contains "{owner_display} #") then
           set targetWin to w
           exit repeat
         end if
@@ -45,6 +61,7 @@ tell application "iTerm"
     end repeat
     if targetWin is not missing value then exit repeat
   end repeat
+  end if
   if targetWin is missing value then
     if (count of windows) = 0 then
       set targetWin to (create window with default profile)
@@ -75,7 +92,9 @@ def resume(task_id: str) -> str:
     if task["status"] == "done":
         return f"ERROR: task {task_id} already done; nothing to resume"
     role = task["role"]
-    _spawn_resume_tab(role, task_id)
+    owner_cto = task.get("owner_cto")
+    owner_role = task.get("owner_role") or "cto"
+    _spawn_resume_tab(role, task_id, owner_cto, owner_role)
     mode = "soft" if task.get("session_id") else "hard"
     return f"OK: resume tab opened for {task_id} (mode={mode})"
 

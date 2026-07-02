@@ -114,6 +114,130 @@ def test_no_owner_falls_through() -> bool:
     )
 
 
+def test_cfo_owner_routing() -> bool:
+    """CFO-owned tasks must match 'CFO Chat #<id>' / 'CFO #<id>' tabs —
+    NOT 'CTO ...' — so a CFO's DEV spawns cluster into the CFO's own
+    window instead of falling through to whatever CTO window is open."""
+    script = _build_spawn_applescript(
+        cmd="echo hi", task_id="task-cfo1", owner_cto="cfo01234",
+        owner_role="cfo")
+    return (
+        'contains "CFO Chat #cfo01234"' in script
+        and 'contains "CFO #cfo01234"' in script
+        and 'contains "CTO Chat #cfo01234"' not in script
+        and 'contains "CTO #cfo01234"' not in script
+    )
+
+
+def test_cmo_and_cgo_owner_routing() -> bool:
+    """Same check for CMO and CGO — the fix is role-generic, not a
+    CFO-only special case."""
+    ok = True
+    for role, display in (("cmo", "CMO"), ("cgo", "CGO")):
+        script = _build_spawn_applescript(
+            cmd="echo hi", task_id=f"task-{role}", owner_cto=f"{role}9999a",
+            owner_role=role)
+        ok = ok and (
+            f'contains "{display} Chat #{role}9999a"' in script
+            and f'contains "{display} #{role}9999a"' in script
+            and 'contains "CTO' not in script
+        )
+    return ok
+
+
+def test_owner_window_id_role_aware() -> bool:
+    """Same session id, different owner_role, must resolve to different
+    lock files — proves the role prefix (not just the id) selects the
+    window, so a CFO and a CTO never accidentally share one winid file."""
+    shared_id = "shareid1"
+    cto_p = ROOT / "state" / "locks" / f"cto-{shared_id}.winid"
+    cfo_p = ROOT / "state" / "locks" / f"cfo-{shared_id}.winid"
+    try:
+        cto_p.write_text("1111\n")
+        cfo_p.write_text("2222\n")
+        ok = (
+            _owner_window_id(shared_id, "cto") == "1111"
+            and _owner_window_id(shared_id, "cfo") == "2222"
+            and _owner_window_id(shared_id) == "1111"  # no role → legacy "cto" default
+        )
+        return ok
+    finally:
+        cto_p.unlink(missing_ok=True)
+        cfo_p.unlink(missing_ok=True)
+
+
+def test_multi_cto_concurrent_ids_isolated() -> bool:
+    """Two CTO sessions open at once must never cross-match: each id's
+    winid lookup and AppleScript owner_match stays scoped to its own
+    session id, even though both share the 'cto' role prefix."""
+    id_a, id_b = "ctoAAAA1", "ctoBBBB2"
+    p_a = ROOT / "state" / "locks" / f"cto-{id_a}.winid"
+    p_b = ROOT / "state" / "locks" / f"cto-{id_b}.winid"
+    try:
+        p_a.write_text("3001\n")
+        p_b.write_text("3002\n")
+        win_a = _owner_window_id(id_a, "cto")
+        win_b = _owner_window_id(id_b, "cto")
+        script_a = _build_spawn_applescript(
+            cmd="echo a", task_id="task-multi-a", owner_cto=id_a,
+            owner_role="cto", owner_winid=win_a)
+        script_b = _build_spawn_applescript(
+            cmd="echo b", task_id="task-multi-b", owner_cto=id_b,
+            owner_role="cto", owner_winid=win_b)
+        return (
+            win_a == "3001" and win_b == "3002"
+            and "first window whose id is (3001)" in script_a
+            and "first window whose id is (3002)" in script_b
+            and f"CTO #{id_a}" in script_a and id_b not in script_a
+            and f"CTO #{id_b}" in script_b and id_a not in script_b
+        )
+    finally:
+        p_a.unlink(missing_ok=True)
+        p_b.unlink(missing_ok=True)
+
+
+def test_delegate_task_threads_owner_role() -> bool:
+    """delegate_task must read task.owner_role from the DB and pass it
+    through to _spawn_iterm_tab / _verify_claimed — the actual wiring
+    that was missing before this fix (owner_cto alone isn't enough to
+    pick the right window; the role prefix is required too)."""
+    import inspect
+    from tools import delegate as _d
+
+    src = inspect.getsource(_d.delegate_task)
+    return (
+        'task.get("owner_role")' in src
+        and "owner_role=owner_role" in src
+        and "_verify_claimed(task_id, role_name, owner_cto, owner_role" in src
+    )
+
+
+def test_resume_dev_owner_routing() -> bool:
+    """tools.resume_dev must route resumed tabs to the owning C-level's
+    window too — same bug class as delegate.py, same fix shape."""
+    import unittest.mock as mock
+    from tools.resume_dev import _spawn_resume_tab
+
+    captured: list[str] = []
+
+    def fake_run(cmd, **kwargs):
+        captured.append(cmd[-1] if isinstance(cmd, list) else str(cmd))
+        class R:
+            returncode = 0
+        return R()
+
+    with mock.patch("tools.resume_dev.subprocess.run", side_effect=fake_run):
+        _spawn_resume_tab("developer", "task-resume1",
+                          owner_cto="cfo55555", owner_role="cfo")
+
+    script = captured[-1] if captured else ""
+    return (
+        'contains "CFO Chat #"' in script
+        and 'contains "CFO #"' in script
+        and 'contains "CTO Chat #"' not in script
+    )
+
+
 def test_reuse_check_comes_first() -> bool:
     script = _build_spawn_applescript(
         cmd="echo hi", task_id="task-xyz", owner_cto="ctobbbbb")
@@ -652,6 +776,18 @@ def main() -> int:
     _mark(r, "AppleScript still checks tab name and session name")
     r = test_no_owner_falls_through(); fails += not r
     _mark(r, "absent owner_cto disables exact match branch")
+    r = test_cfo_owner_routing(); fails += not r
+    _mark(r, "CFO-owned task matches 'CFO ...' tabs, not 'CTO ...'")
+    r = test_cmo_and_cgo_owner_routing(); fails += not r
+    _mark(r, "CMO/CGO-owned tasks match their own display, not 'CTO'")
+    r = test_owner_window_id_role_aware(); fails += not r
+    _mark(r, "same session id + different owner_role -> different winid file")
+    r = test_multi_cto_concurrent_ids_isolated(); fails += not r
+    _mark(r, "two concurrent CTO sessions never cross-match each other's window")
+    r = test_delegate_task_threads_owner_role(); fails += not r
+    _mark(r, "delegate_task reads owner_role from DB and threads it through")
+    r = test_resume_dev_owner_routing(); fails += not r
+    _mark(r, "resume_dev routes resumed tab to owning C-level's window")
     r = test_reuse_check_comes_first(); fails += not r
     _mark(r, "tab-reuse check precedes owner-window lookup")
     r = test_spawn_cto_collision(); fails += not r

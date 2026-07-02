@@ -33,18 +33,27 @@ DEFAULT_KICKOFF = (
 )
 
 
-def _owner_window_id(owner_cto: str | None) -> str | None:
-    """Read the iTerm window id that the spawning CTO recorded at boot.
+def _owner_window_id(owner_cto: str | None,
+                     owner_role: str | None = None) -> str | None:
+    """Read the iTerm window id that the spawning C-level recorded at boot.
 
-    cto-claude.sh writes `state/locks/cto-<id>.winid` containing the
-    integer window id of the iTerm window owning that CTO's session.
+    cto-claude.sh / cxo-claude.sh write `state/locks/<role>-<id>.winid`
+    containing the integer window id of the iTerm window owning that
+    session — `cto-<id>.winid` for a CTO session, `cfo-<id>.winid` for a
+    CFO session, etc. `owner_role` selects the prefix; defaults to "cto"
+    for legacy rows created before `owner_role` was stamped (previously
+    this always assumed "cto", so CFO/CMO/CGO delegates never found their
+    own window and fell through to the generic fallback).
     Returns the digits as a string, or None if the file is missing or
     unreadable. Matching by id is immune to the session-name flicker
-    that makes name-based AppleScript matches misroute DEV tabs.
+    that makes name-based AppleScript matches misroute DEV tabs, and
+    (since the id is a unique uuid4-hex8 per session) works correctly
+    with multiple CTO — or multiple CFO/CMO/CGO — sessions open at once.
     """
     if not owner_cto:
         return None
-    p = ROOT / "state" / "locks" / f"cto-{owner_cto}.winid"
+    role_prefix = owner_role or "cto"
+    p = ROOT / "state" / "locks" / f"{role_prefix}-{owner_cto}.winid"
     try:
         raw = p.read_text().strip()
     except OSError:
@@ -54,25 +63,33 @@ def _owner_window_id(owner_cto: str | None) -> str | None:
 
 def _build_spawn_applescript(cmd: str, task_id: str,
                               owner_cto: str | None,
+                              owner_role: str | None = None,
                               owner_winid: str | None = None) -> str:
     """Compose the AppleScript that picks the right window and tab.
 
     Resolution order:
       1. Any iTerm tab title contains `(<task_id>)` already → select it
          and emit `reused`. No new tab, no command typed.
-      2. Window owning `CTO Chat #<owner_cto>` / `CTO #<owner_cto>` (legacy
-         and live-summary title formats, IRON-RULES §32) → new tab there
-         so DEVs cluster under their spawning CTO (fixes multi-CTO
-         routing).
-      3. Any tab whose title contains `CTO Chat #` or `CTO #` — keeps
-         single-CTO setups working when owner_cto is unset.
-      4. Current window, or a fresh window if none exist.
+      2. Window whose id matches `owner_winid` (recorded at boot by
+         cto-claude.sh / cxo-claude.sh) → immune to title flicker.
+      3. Window owning `<DISPLAY> Chat #<owner_cto>` / `<DISPLAY> #<owner_cto>`
+         (legacy and live-summary title formats, IRON-RULES §32), where
+         `<DISPLAY>` is CTO/CFO/CMO/CGO per `owner_role` — every C-level's
+         spawns (any worker role: dev/qa/devops/designer/...) cluster
+         under ITS OWN window, not just CTO's. The session id in the
+         match is what keeps multiple concurrent sessions of the same
+         role (e.g. two CTOs open at once) from crossing into each
+         other's window.
+      4. Any tab whose title contains `<DISPLAY> Chat #` or `<DISPLAY> #`
+         — keeps single-session setups working when owner_cto is unset.
+      5. Current window, or a fresh window if none exist.
 
     Built in Python so tests can grep the literal strings without
     invoking osascript.
     """
-    owner_match = f"CTO Chat #{owner_cto}" if owner_cto else ""
-    owner_match_new = f"CTO #{owner_cto}" if owner_cto else ""
+    display = display_for(owner_role) if owner_role else "CTO"
+    owner_match = f"{display} Chat #{owner_cto}" if owner_cto else ""
+    owner_match_new = f"{display} #{owner_cto}" if owner_cto else ""
     # iTerm has two title surfaces per tab: `name of t` (the tab title,
     # which holds the OSC-set name stickily) and `name of current
     # session of t` (the session badge, which flickers to the running
@@ -159,7 +176,7 @@ tell application "iTerm"
           try
             set sessName to name of current session of t
           end try
-          if (tabName contains "CTO Chat #") or (sessName contains "CTO Chat #") or (tabName contains "CTO #") or (sessName contains "CTO #") then
+          if (tabName contains "{display} Chat #") or (sessName contains "{display} Chat #") or (tabName contains "{display} #") or (sessName contains "{display} #") then
             set targetWin to w
             exit repeat
           end if
@@ -216,7 +233,8 @@ end tell
 
 def _spawn_iterm_tab(role: str, task_id: str, *,
                      tmux_attach: str | None = None,
-                     owner_cto: str | None = None) -> str:
+                     owner_cto: str | None = None,
+                     owner_role: str | None = None) -> str:
     """Open or reuse an iTerm tab for this DEV task.
 
     Returns `"reused"` when an existing tab matching `(<task_id>)` was
@@ -227,9 +245,12 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
     closing the tab does NOT kill the agent, and a browser (ttyd) can
     attach the same session simultaneously for two-way realtime sync.
 
-    `owner_cto`: stamped into env DEV_CTO_ID and used to pick the CTO
-    window so DEVs cluster under their spawning CTO. With two CTOs
-    open, this prevents tabs landing in the wrong window.
+    `owner_cto` + `owner_role`: stamped into env DEV_CTO_ID and used to
+    pick the owning C-level's window (CTO/CFO/CMO/CGO, per `owner_role`)
+    so spawns of ANY worker role cluster under their spawning session,
+    not just under CTO. With multiple sessions of the same role open
+    (e.g. two CTOs), the session id prevents tabs landing in the wrong
+    window.
     """
     display = display_for(role)
     tab_title = f"{display} ({task_id})"
@@ -249,8 +270,10 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
             f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
             f"python -m runners.dev_init {role} {task_id}"
         )
-    owner_winid = _owner_window_id(owner_cto)
-    script = _build_spawn_applescript(cmd, task_id, owner_cto, owner_winid)
+    owner_winid = _owner_window_id(owner_cto, owner_role)
+    script = _build_spawn_applescript(cmd, task_id, owner_cto,
+                                      owner_role=owner_role,
+                                      owner_winid=owner_winid)
     result = subprocess.run(["osascript", "-e", script],
                             check=True, capture_output=True, text=True)
     return (result.stdout or "").strip() or "spawned"
@@ -301,7 +324,8 @@ CLAIM_VERIFY_DELAY_S = 25.0
 
 
 async def _verify_claimed(task_id: str, role_name: str,
-                          owner_cto: str | None, *,
+                          owner_cto: str | None,
+                          owner_role: str | None = None, *,
                           kickoff_text: str, attempt: int = 1) -> None:
     """Watchdog for the iTerm backend's two silent-death modes: the DEV
     process dies before claiming, or the tab-reuse path selected a dead
@@ -328,7 +352,7 @@ async def _verify_claimed(task_id: str, role_name: str,
         warn(f"stale-tab close failed for {task_id}: {e}")
     try:
         await asyncio.to_thread(_spawn_iterm_tab, role_name, task_id,
-                                owner_cto=owner_cto)
+                                owner_cto=owner_cto, owner_role=owner_role)
     except Exception as e:
         error(f"respawn failed for {task_id}: {e}")
         db.update_status(task_id, "failed",
@@ -337,7 +361,7 @@ async def _verify_claimed(task_id: str, role_name: str,
         return
     if kickoff_text:
         asyncio.create_task(_auto_kickoff(task_id, kickoff_text))
-    asyncio.create_task(_verify_claimed(task_id, role_name, owner_cto,
+    asyncio.create_task(_verify_claimed(task_id, role_name, owner_cto, owner_role,
                                         kickoff_text=kickoff_text,
                                         attempt=attempt + 1))
 
@@ -428,6 +452,9 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     ttyd_pid: int | None = None
 
     owner_cto = task.get("owner_cto")
+    # Pre-migration rows have owner_cto but NULL owner_role → default "cto"
+    # (mirrors runners/dev_init.py's DEV_CTO_ROLE fallback for the same rows).
+    owner_role = task.get("owner_role") or "cto"
 
     if backend == "tmux":
         tmux_sess = tmux.session_name_for(task_id)
@@ -469,7 +496,8 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     try:
         spawn_result = _spawn_iterm_tab(role_name, task_id,
                                         tmux_attach=tmux_sess,
-                                        owner_cto=owner_cto)
+                                        owner_cto=owner_cto,
+                                        owner_role=owner_role)
     except subprocess.CalledProcessError as e:
         error(f"failed to spawn iTerm tab for {task_id}: {e}")
         db.update_status(task_id, "failed",
@@ -495,7 +523,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     if backend != "tmux":
         # Catch both silent-death modes (dead reused tab / dev_init that
         # never claimed) — tmux backend is covered by runners.watchdog.
-        asyncio.create_task(_verify_claimed(task_id, role_name, owner_cto,
+        asyncio.create_task(_verify_claimed(task_id, role_name, owner_cto, owner_role,
                                             kickoff_text=kickoff_text))
 
     if not wait:
