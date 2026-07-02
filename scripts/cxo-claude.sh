@@ -108,6 +108,23 @@ if [ "$ROLE" = "cto" ]; then
   export CTO_SESSION_ID="$CXO_SESSION_ID"
 fi
 
+# Full RFC4122-shaped UUID whose trailing 8 hex chars equal $CXO_SESSION_ID
+# (rest random). Persisted so spawn-cxo.sh's --resume <id> can look up the
+# real Claude Code session UUID from the org's short id — the two id spaces
+# are otherwise disconnected (LungNote note 85155c87-6654-4126-9f16-7f9be194ddb2).
+# Written unconditionally (ephemeral --session spawns included) — separate
+# bookkeeping from the ACTIVE_FILE pointer below, which exists for
+# CEO-tab routing, not identity.
+CXO_UUID="$(python3 -c "
+import uuid, sys
+suffix = sys.argv[1]
+full = uuid.uuid4().hex[:-8] + suffix
+print(uuid.UUID(hex=full))
+" "$CXO_SESSION_ID")"
+mkdir -p "$ROOT/state/locks"
+UUID_FILE="$ROOT/state/locks/$ROLE-$CXO_SESSION_ID.uuid"
+printf '%s\n' "$CXO_UUID" >"$UUID_FILE"
+
 LOCKS_DIR="$ROOT/state/locks"
 mkdir -p "$LOCKS_DIR"
 LOCKFILE="$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.lock"
@@ -181,7 +198,7 @@ if [ -n "$SESSION_OVERRIDE" ]; then
 fi
 
 cleanup() {
-  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE"
+  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE"
   # Only clear the active pointer if it still points at us and we wrote it.
   if [ -z "$SESSION_OVERRIDE" ] && [ -e "$ACTIVE_FILE" ]; then
     current="$(tr -d '[:space:]' <"$ACTIVE_FILE" 2>/dev/null || true)"
@@ -280,5 +297,6 @@ claude \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \
   --allowed-tools $ALLOWED \
+  --session-id "$CXO_UUID" \
   ${ARGS[@]+"${ARGS[@]}"}
 exit $?

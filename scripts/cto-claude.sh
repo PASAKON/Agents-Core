@@ -21,6 +21,20 @@ if [ -z "${CTO_SESSION_ID:-}" ]; then
   export CTO_SESSION_ID
 fi
 
+# Full RFC4122-shaped UUID whose trailing 8 hex chars equal $CTO_SESSION_ID
+# (rest random). Persisted so spawn-cto.sh's --resume <id> can look up the
+# real Claude Code session UUID from the org's short id — the two id spaces
+# are otherwise disconnected (LungNote note 85155c87-6654-4126-9f16-7f9be194ddb2).
+CTO_UUID="$(python3 -c "
+import uuid, sys
+suffix = sys.argv[1]
+full = uuid.uuid4().hex[:-8] + suffix
+print(uuid.UUID(hex=full))
+" "$CTO_SESSION_ID")"
+mkdir -p "$ROOT/state/locks"
+UUID_FILE="$ROOT/state/locks/cto-$CTO_SESSION_ID.uuid"
+printf '%s\n' "$CTO_UUID" >"$UUID_FILE"
+
 # Per-CTO lock so the claude-CLI path has the same collision defense
 # that runners/cto_chat.py provides for the Python REPL. spawn-cto.sh's
 # is_id_live() check relies on this file existing while a CTO chat is
@@ -75,7 +89,7 @@ if [ -n "$MY_TTY" ]; then
   echo "$MY_TTY" >"$TTY_FILE"
 fi
 
-trap 'rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE"' EXIT INT TERM
+trap 'rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE"' EXIT INT TERM
 
 # Initial tab title + base prefix for scripts/tab-title.sh (IRON-RULES §32).
 # The C-level agent rewrites the summary part after every finished job.
@@ -136,5 +150,6 @@ claude \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \
   --allowed-tools $ALLOWED \
+  --session-id "$CTO_UUID" \
   "$@"
 exit $?

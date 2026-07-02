@@ -65,7 +65,20 @@ fi
 CLAUDE_ARGS=""
 case "${ARGS[0]:-}" in
   --last) CLAUDE_ARGS="-c" ;;
-  --resume) CLAUDE_ARGS="-r ${ARGS[1]:-}" ;;
+  --resume)
+    # `claude -r/--resume` needs an exact session-ID match (or falls into
+    # picker mode) — the org's short id is only the trailing 8 hex chars
+    # of the real UUID, so look up the full UUID written by cxo-claude.sh.
+    # Falls back to the short id for pre-rollout sessions with no .uuid file.
+    RESUME_ID="${ARGS[1]:-}"
+    RESUME_UUID_FILE="$ROOT/state/locks/$ROLE-$RESUME_ID.uuid"
+    if [ -f "$RESUME_UUID_FILE" ]; then
+      RESUME_TARGET="$(tr -d '[:space:]' <"$RESUME_UUID_FILE")"
+    else
+      RESUME_TARGET="$RESUME_ID"
+    fi
+    CLAUDE_ARGS="-r $RESUME_TARGET"
+    ;;
   --new|"") CLAUDE_ARGS="" ;;
   *) CLAUDE_ARGS="${ARGS[*]}" ;;
 esac
