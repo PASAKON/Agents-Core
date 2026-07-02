@@ -108,6 +108,35 @@ if [ "$ROLE" = "cto" ]; then
   export CTO_SESSION_ID="$CXO_SESSION_ID"
 fi
 
+# Full RFC4122-shaped UUID whose trailing 8 hex chars equal $CXO_SESSION_ID
+# (rest random). Persisted so spawn-cxo.sh's --resume <id> can look up the
+# real Claude Code session UUID from the org's short id — the two id spaces
+# are otherwise disconnected (LungNote note 85155c87-6654-4126-9f16-7f9be194ddb2).
+# Written unconditionally (ephemeral --session spawns included) — separate
+# bookkeeping from the ACTIVE_FILE pointer below, which exists for
+# CEO-tab routing, not identity.
+# Only ids shaped like the standard uuid4().hex[:8] (8 lowercase hex chars)
+# support the deterministic-suffix construction. Ephemeral spawns from
+# send_to_cxo.py --spawn set CXO_SESSION_ID to "req-xxxxxxxx" (see
+# send_to_cxo.py ~line 303/223) — non-hex, so it (and any future non-hex
+# custom --id) falls back to a fully random UUID instead of crashing
+# uuid.UUID(hex=...). Resume-by-short-id then degrades to spawn-cxo.sh's
+# existing picker-mode fallback, same as a pre-rollout session with no
+# .uuid file.
+if [[ "$CXO_SESSION_ID" =~ ^[0-9a-f]{8}$ ]]; then
+  CXO_UUID="$(python3 -c "
+import uuid, sys
+suffix = sys.argv[1]
+full = uuid.uuid4().hex[:-8] + suffix
+print(uuid.UUID(hex=full))
+" "$CXO_SESSION_ID")"
+else
+  CXO_UUID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+fi
+mkdir -p "$ROOT/state/locks"
+UUID_FILE="$ROOT/state/locks/$ROLE-$CXO_SESSION_ID.uuid"
+printf '%s\n' "$CXO_UUID" >"$UUID_FILE"
+
 LOCKS_DIR="$ROOT/state/locks"
 mkdir -p "$LOCKS_DIR"
 LOCKFILE="$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.lock"
@@ -181,7 +210,7 @@ if [ -n "$SESSION_OVERRIDE" ]; then
 fi
 
 cleanup() {
-  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE"
+  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE"
   # Only clear the active pointer if it still points at us and we wrote it.
   if [ -z "$SESSION_OVERRIDE" ] && [ -e "$ACTIVE_FILE" ]; then
     current="$(tr -d '[:space:]' <"$ACTIVE_FILE" 2>/dev/null || true)"
@@ -280,5 +309,6 @@ claude \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \
   --allowed-tools $ALLOWED \
+  --session-id "$CXO_UUID" \
   ${ARGS[@]+"${ARGS[@]}"}
 exit $?
