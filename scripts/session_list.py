@@ -25,13 +25,15 @@ LOG_DIR = os.path.join(REPO, "state", "logs")
 
 GLYPHS = {
     "🏁": "closed",
+    "🔗": "merged",
     "💤": "idle/parked",
     "🔴": "blocked",
     "✅": "pending",
     "⏳": "working",
 }
-# check order: a 🏁 wins over a stray ✅ in the same string
-GLYPH_ORDER = ["🏁", "💤", "🔴", "✅", "⏳"]
+# check order: a 🏁 wins over a stray ✅ in the same string; 🔗 (also terminal)
+# checked right after 🏁 so it doesn't get shadowed by an active-state glyph
+GLYPH_ORDER = ["🏁", "🔗", "💤", "🔴", "✅", "⏳"]
 ID_RE = re.compile(r"#([0-9a-fA-F]{6,})")
 
 
@@ -148,7 +150,8 @@ def main():
 
     out = [r for r in rows if not r["live"]]
     if not show_all:
-        out = [r for r in out if r["glyph"] != "🏁"]   # default: closed are done, drop them
+        # default: closed and merged-away are both done, drop them
+        out = [r for r in out if r["glyph"] not in ("🏁", "🔗")]
     out.sort(key=lambda r: r["last_active"], reverse=True)
 
     n_live = sum(1 for r in rows if r["live"])
