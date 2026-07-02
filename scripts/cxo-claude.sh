@@ -115,12 +115,24 @@ fi
 # Written unconditionally (ephemeral --session spawns included) — separate
 # bookkeeping from the ACTIVE_FILE pointer below, which exists for
 # CEO-tab routing, not identity.
-CXO_UUID="$(python3 -c "
+# Only ids shaped like the standard uuid4().hex[:8] (8 lowercase hex chars)
+# support the deterministic-suffix construction. Ephemeral spawns from
+# send_to_cxo.py --spawn set CXO_SESSION_ID to "req-xxxxxxxx" (see
+# send_to_cxo.py ~line 303/223) — non-hex, so it (and any future non-hex
+# custom --id) falls back to a fully random UUID instead of crashing
+# uuid.UUID(hex=...). Resume-by-short-id then degrades to spawn-cxo.sh's
+# existing picker-mode fallback, same as a pre-rollout session with no
+# .uuid file.
+if [[ "$CXO_SESSION_ID" =~ ^[0-9a-f]{8}$ ]]; then
+  CXO_UUID="$(python3 -c "
 import uuid, sys
 suffix = sys.argv[1]
 full = uuid.uuid4().hex[:-8] + suffix
 print(uuid.UUID(hex=full))
 " "$CXO_SESSION_ID")"
+else
+  CXO_UUID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+fi
 mkdir -p "$ROOT/state/locks"
 UUID_FILE="$ROOT/state/locks/$ROLE-$CXO_SESSION_ID.uuid"
 printf '%s\n' "$CXO_UUID" >"$UUID_FILE"

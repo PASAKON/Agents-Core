@@ -25,12 +25,23 @@ fi
 # (rest random). Persisted so spawn-cto.sh's --resume <id> can look up the
 # real Claude Code session UUID from the org's short id — the two id spaces
 # are otherwise disconnected (LungNote note 85155c87-6654-4126-9f16-7f9be194ddb2).
-CTO_UUID="$(python3 -c "
+# Only ids shaped like the standard uuid4().hex[:8] (8 lowercase hex chars)
+# support the deterministic-suffix construction. A non-hex custom --id (or
+# CTO_SESSION_ID inherited from something like send_to_cxo.py's ephemeral
+# "req-xxxxxxxx" ids) falls back to a fully random UUID instead of crashing
+# uuid.UUID(hex=...) — resume-by-short-id then degrades to spawn-cto.sh's
+# existing picker-mode fallback, same as a pre-rollout session with no
+# .uuid file.
+if [[ "$CTO_SESSION_ID" =~ ^[0-9a-f]{8}$ ]]; then
+  CTO_UUID="$(python3 -c "
 import uuid, sys
 suffix = sys.argv[1]
 full = uuid.uuid4().hex[:-8] + suffix
 print(uuid.UUID(hex=full))
 " "$CTO_SESSION_ID")"
+else
+  CTO_UUID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+fi
 mkdir -p "$ROOT/state/locks"
 UUID_FILE="$ROOT/state/locks/cto-$CTO_SESSION_ID.uuid"
 printf '%s\n' "$CTO_UUID" >"$UUID_FILE"
