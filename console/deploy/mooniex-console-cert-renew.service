@@ -1,0 +1,20 @@
+# Reference copy — generated on the box by scripts/console-deploy.sh (`cert`
+# stage). Installed at /etc/systemd/system/mooniex-console-cert-renew.service.
+#
+# Reissues the tailscale Let's Encrypt cert (~90-day validity) and restarts
+# the console so it picks up the new cert. Driven by the paired .timer.
+[Unit]
+Description=Renew MoonieX Console tailscale TLS cert and restart the service
+After=network-online.target tailscaled.service
+Requires=tailscaled.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/mooniex-console/certs
+# tailscale cert is a no-op reissue when the existing cert is still fresh,
+# and writes new cert/key files when it's near expiry.
+ExecStart=/usr/bin/tailscale cert \
+  --cert-file /opt/mooniex-console/certs/mooniex-contabo.tail400676.ts.net.crt \
+  --key-file  /opt/mooniex-console/certs/mooniex-contabo.tail400676.ts.net.key \
+  mooniex-contabo.tail400676.ts.net
+ExecStartPost=/usr/bin/systemctl restart mooniex-console.service

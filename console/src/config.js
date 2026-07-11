@@ -20,6 +20,16 @@ const orgRoot = path.resolve(CONSOLE_ROOT, process.env.ORG_ROOT || '..');
 
 export const config = {
   port,
+  // Interface to bind to. Unset => Node's default (all interfaces / 0.0.0.0),
+  // preserving the original local-dev behaviour. Deploys set this to a
+  // specific interface IP (e.g. the tailnet IP) so nothing listens on the
+  // public interface at all — see console/deploy + scripts/console-deploy.sh.
+  host: process.env.HOST || undefined,
+  // Optional TLS. When both files are set the server boots as HTTPS
+  // (required by WebAuthn for a non-localhost origin); otherwise plain HTTP
+  // for local dev. Paths point at a tailscale-issued cert/key on the box.
+  tlsCertFile: process.env.TLS_CERT_FILE || '',
+  tlsKeyFile: process.env.TLS_KEY_FILE || '',
   rpId: process.env.WEBAUTHN_RP_ID || 'localhost',
   rpName: process.env.WEBAUTHN_RP_NAME || 'MoonieX Console',
   origin: process.env.WEBAUTHN_ORIGIN || `http://localhost:${port}`,
