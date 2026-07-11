@@ -7,8 +7,8 @@ Dark Background look, xterm.js terminal, WebAuthn passkey login.
 Design spec: wiki `projects/mooniex-console.md`. Approved mockup:
 `Agents/output/console-design/iterm-mobile-console.html`.
 
-This is the **P1 local MVP** — deployment (Contabo, traefik, Tailscale, DNS)
-is a separate devops task. Everything here runs locally via `npm run dev`.
+Local dev runs via `npm run dev`. Production deployment (Contabo, Tailscale,
+TLS) is scripted — see **Deployment** below.
 
 ## Setup
 
@@ -96,6 +96,79 @@ npm test
 Covers session-list parsing (`tmux ls` output → role/slug objects) and the
 auth-guard middleware (unauthenticated `/` and `/agent/*` redirect to
 `/login`; unauthenticated API calls get 401 JSON instead).
+
+## Deployment (Contabo, Tailscale-only)
+
+The console is deployed to the Contabo VPS reachable **only over the tailnet** —
+it is intentionally unreachable from the public internet. The Node server binds
+directly to the tailnet interface IP (`100.118.171.23`), never `0.0.0.0`, so the
+public interface (`194.233.80.26`) simply has nothing listening. No public ufw
+port is opened.
+
+Deploy is scripted and idempotent — `scripts/console-deploy.sh` (run from the
+Mac, which is on the same tailnet):
+
+```bash
+scripts/console-deploy.sh all      # node -> sync -> install -> cert -> env -> service
+scripts/console-deploy.sh verify   # acceptance checks
+```
+
+Stages (`node|sync|install|cert|env|service|verify`) can also be run one at a
+time. What each does:
+
+- **node** — installs an isolated Node 22 at `/opt/node-v22`. The box's system
+  Node is 20.x, too old for the app's `node:sqlite` (needs ≥ 22.5). System Node
+  is left untouched; the systemd unit points at the isolated one.
+- **sync** — `rsync`es `console/` to `/opt/mooniex-console` (excludes
+  `node_modules`, `.env`, `data/`, `certs/`).
+- **install** — `npm ci` on the box; the `ensure-node-pty.js` postinstall guard
+  rebuilds node-pty from source if no prebuild matches the box's Node ABI.
+- **cert** — issues a tailscale Let's Encrypt cert for the MagicDNS name and
+  installs the renewal timer (below).
+- **env** — writes `/opt/mooniex-console/.env` (see keys below); the
+  `SESSION_SECRET` is generated once on the box and preserved on redeploys.
+- **service** — installs, enables, and starts `mooniex-console.service`.
+
+### Bookmark
+
+**`https://mooniex-contabo.tail400676.ts.net:8443/`** — open on any device on
+the tailnet (iPhone with the Tailscale app connected). Port `8443` because
+`443` on the box is already taken by the webapp's docker-proxy. The cert is a
+real, publicly-trusted Let's Encrypt cert (no browser warning).
+
+### TLS cert renewal
+
+Tailscale certs are valid ~90 days. A systemd timer
+(`mooniex-console-cert-renew.timer`, weekly) runs `tailscale cert` again — a
+cheap no-op until the cert is near expiry — then restarts the console so it
+reloads the new cert. Reference unit files live in `console/deploy/`; the
+authoritative copies are generated on the box by the deploy script's `cert`
+and `service` stages.
+
+### Production `.env` keys
+
+Set by the `env` stage (values are box-specific; secret is never committed):
+
+| key | value |
+| --- | --- |
+| `PORT` | `8443` |
+| `HOST` | `100.118.171.23` (tailnet IP — bind target) |
+| `TLS_CERT_FILE` / `TLS_KEY_FILE` | tailscale cert/key under `certs/` |
+| `WEBAUTHN_RP_ID` | `mooniex-contabo.tail400676.ts.net` |
+| `WEBAUTHN_ORIGIN` | `https://mooniex-contabo.tail400676.ts.net:8443` |
+| `SESSION_SECRET` | random 32-byte hex, generated once on the box |
+| `COOKIE_SECURE` | `true` (served over HTTPS) |
+
+`HOST`, `TLS_CERT_FILE`, `TLS_KEY_FILE` are new deploy-only env knobs read by
+`src/config.js` / `src/server.js`. When unset (local dev) the server keeps its
+original behaviour: plain HTTP on all interfaces.
+
+### `console.mooniex.com` (deferred)
+
+The prettier custom domain is **not** set up — it needs a DNS-01 ACME challenge
+(GoDaddy API) because the A record points at a private tailnet IP that public
+HTTP-01 validators can't reach. The MagicDNS URL above already satisfies "open
+it from the iPhone", so this is a lower-priority follow-up.
 
 ## Project layout
 
