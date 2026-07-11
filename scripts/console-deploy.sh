@@ -175,7 +175,7 @@ Requires=tailscaled.service
 [Service]
 Type=simple
 WorkingDirectory=$REMOTE_DIR
-ExecStart=$NODE_BIN src/server.js
+ExecStart=$NODE_BIN --experimental-sqlite src/server.js
 Restart=on-failure
 RestartSec=3
 ExecStartPre=/bin/sh -c 'until /usr/bin/tailscale ip -4 >/dev/null 2>&1; do sleep 1; done'
