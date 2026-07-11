@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>MoonieX Console — sign in</title>
+<link rel="stylesheet" href="/css/console.css" />
+<script src="/vendor/simplewebauthn-browser/index.umd.min.js"></script>
+</head>
+<body>
+<div class="win page">
+  <div class="titlebar">
+    <div class="lights"><span class="light r"></span><span class="light y"></span><span class="light g"></span></div>
+    <div class="title">mooniex console — login</div>
+  </div>
+  <div class="body">
+    <div class="bold login-brand">MoonieX Console</div>
+    <div class="dim login-sub">operator sign-in<br />agent session control</div>
+
+    <div class="field-row">
+      <label for="username">operator</label>
+      <input id="username" type="text" autocomplete="username webauthn" placeholder="gob" autocapitalize="none" autocorrect="off" spellcheck="false" />
+    </div>
+
+    <button id="btn-passkey" class="btn">🔑 <span id="passkey-label">Sign in with Face ID / Passkey</span></button>
+
+    <div class="divider">────────────────────────────<br />fallback: TOTP 6-digit</div>
+
+    <div class="field-row">
+      <input id="totp-token" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="[ _ _ _ _ _ _ ]" class="green" style="text-align:center;letter-spacing:6px;" />
+    </div>
+    <button id="btn-totp" class="btn secondary">Verify TOTP code</button>
+
+    <div id="status" class="status-line"></div>
+
+    <div class="divider" id="bootstrap-note" hidden>
+      ──────────────────────────── <br />
+      no operator provisioned yet — first sign-in here registers this device as the console operator.
+      <button id="btn-setup-totp" class="btn small secondary">Show TOTP QR text instead</button>
+    </div>
+
+    <div class="dim" style="font-size:10.5px;margin-top:18px;line-height:1.6;">
+      ──────────────────────────── <br />
+      login ของ console เอง — แยกขาด<br />
+      จาก mooniex-webapp /admin และ<br />
+      user ของ webapp (คนละ DB คนละ<br />
+      cookie). console = เครื่องมือของ<br />
+      developer/operator ล้วน
+    </div>
+
+    <div class="green" style="margin-top:16px;">auth % <span class="cursor"></span></div>
+  </div>
+</div>
+<script src="/js/login.js"></script>
+</body>
+</html>
