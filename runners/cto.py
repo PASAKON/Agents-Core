@@ -45,14 +45,20 @@ async def t_wiki_read(args):
 
 @tool("wiki_list", "List wiki pages under an optional prefix.", {"prefix": str})
 async def t_wiki_list(args):
-    pages = wiki_tools.wiki_list(args.get("prefix", ""))
-    return {"content": [{"type": "text", "text": "\n".join(pages[:200])}]}
+    try:
+        pages = wiki_tools.wiki_list(args.get("prefix", ""))
+        return {"content": [{"type": "text", "text": "\n".join(pages[:200])}]}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
 
 
 @tool("wiki_search", "Grep wiki for a query string.", {"query": str})
 async def t_wiki_search(args):
-    hits = wiki_tools.wiki_search(args["query"])
-    return {"content": [{"type": "text", "text": json.dumps(hits, indent=2)}]}
+    try:
+        hits = wiki_tools.wiki_search(args["query"])
+        return {"content": [{"type": "text", "text": json.dumps(hits, indent=2)}]}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
 
 
 @tool(
@@ -61,11 +67,14 @@ async def t_wiki_search(args):
     {"path": str, "content": str, "message": str},
 )
 async def t_wiki_write(args):
-    result = wiki_tools.wiki_write(
-        args["path"], args["content"],
-        role=ROLE, message=args.get("message") or None,
-    )
-    return {"content": [{"type": "text", "text": result}]}
+    try:
+        result = wiki_tools.wiki_write(
+            args["path"], args["content"],
+            role=ROLE, message=args.get("message") or None,
+        )
+        return {"content": [{"type": "text", "text": result}]}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
 
 
 @tool(

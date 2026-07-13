@@ -70,21 +70,30 @@ def wiki_read(path: str) -> str:
 @mcp.tool()
 def wiki_list(prefix: str = "") -> str:
     """List wiki pages under an optional prefix."""
-    pages = wiki_tools.wiki_list(prefix)
-    return "\n".join(pages[:200])
+    try:
+        pages = wiki_tools.wiki_list(prefix)
+        return "\n".join(pages[:200])
+    except Exception as e:
+        return f"ERROR: {e}"
 
 
 @mcp.tool()
 def wiki_search(query: str) -> str:
     """Grep wiki for a query string."""
-    hits = wiki_tools.wiki_search(query)
-    return json.dumps(hits, indent=2)
+    try:
+        hits = wiki_tools.wiki_search(query)
+        return json.dumps(hits, indent=2)
+    except Exception as e:
+        return f"ERROR: {e}"
 
 
 @mcp.tool()
 def wiki_write(path: str, content: str, message: str = "") -> str:
     """Create or update a wiki page. CTO only. Auto-commits to wiki git repo."""
-    return wiki_tools.wiki_write(path, content, role=ROLE, message=message or None)
+    try:
+        return wiki_tools.wiki_write(path, content, role=ROLE, message=message or None)
+    except Exception as e:
+        return f"ERROR: {e}"
 
 
 @mcp.tool()
