@@ -42,13 +42,19 @@ def wiki_read(path: str) -> str:
 @mcp.tool()
 def wiki_list(prefix: str = "") -> str:
     """List wiki pages under an optional prefix."""
-    return "\n".join(wiki_tools.wiki_list(prefix)[:200])
+    try:
+        return "\n".join(wiki_tools.wiki_list(prefix)[:200])
+    except Exception as e:
+        return f"ERROR: {e}"
 
 
 @mcp.tool()
 def wiki_search(query: str) -> str:
     """Grep wiki for a query string."""
-    return json.dumps(wiki_tools.wiki_search(query), indent=2)
+    try:
+        return json.dumps(wiki_tools.wiki_search(query), indent=2)
+    except Exception as e:
+        return f"ERROR: {e}"
 
 
 @mcp.tool()

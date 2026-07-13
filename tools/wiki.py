@@ -1,16 +1,22 @@
 """Wiki tools. Read = all roles. Write = C-level only. Auto-commits on write."""
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
 from lib.config import is_c_level
 
-WIKI_ROOT = Path("/Users/gob/Projects/LLMs").resolve()
+WIKI_ROOT = Path(os.environ.get("WIKI_ROOT", "/Users/gob/Projects/LLMs")).resolve()
 
 
 class WikiError(Exception):
     pass
+
+
+def _wiki_root_exists() -> None:
+    if not WIKI_ROOT.exists():
+        raise WikiError("wiki not available in this environment")
 
 
 def _safe_path(rel: str) -> Path:
@@ -23,6 +29,7 @@ def _safe_path(rel: str) -> Path:
 
 def wiki_read(path: str) -> str:
     """Read a wiki page. All roles allowed."""
+    _wiki_root_exists()
     full = _safe_path(path)
     if not full.exists():
         raise WikiError(f"wiki page not found: {path}")
@@ -32,6 +39,7 @@ def wiki_read(path: str) -> str:
 
 
 def wiki_list(prefix: str = "") -> list[str]:
+    _wiki_root_exists()
     base = _safe_path(prefix) if prefix else WIKI_ROOT
     out = []
     for p in base.rglob("*.md"):
@@ -41,6 +49,7 @@ def wiki_list(prefix: str = "") -> list[str]:
 
 def wiki_write(path: str, content: str, *, role: str, message: str | None = None) -> str:
     """Write a wiki page. C-level only. Auto-commits."""
+    _wiki_root_exists()
     if not is_c_level(role):
         raise PermissionError(f"role '{role}' cannot write wiki. C-level only.")
     full = _safe_path(path)
@@ -55,6 +64,7 @@ def wiki_write(path: str, content: str, *, role: str, message: str | None = None
 
 def wiki_search(query: str, limit: int = 20) -> list[dict]:
     """Grep wiki for matches."""
+    _wiki_root_exists()
     try:
         result = subprocess.run(
             ["grep", "-rn", "-i", "--include=*.md", query, str(WIKI_ROOT)],
