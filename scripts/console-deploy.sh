@@ -175,6 +175,11 @@ Requires=tailscaled.service
 [Service]
 Type=simple
 WorkingDirectory=$REMOTE_DIR
+# Claude Code OAuth token (Phase B, claude setup-token) — read from its one
+# canonical file, never duplicated into console/.env. Leading '-' = optional
+# (service still starts if the file is briefly absent; session-spawn just
+# won't have a working Claude auth until it exists).
+EnvironmentFile=-/root/.claude_code_oauth_token
 ExecStart=$NODE_BIN --experimental-sqlite src/server.js
 Restart=on-failure
 RestartSec=3

@@ -16,6 +16,9 @@ Requires=tailscaled.service
 [Service]
 Type=simple
 WorkingDirectory=/opt/mooniex-console
+# Claude Code OAuth token (Phase B, claude setup-token) — read from its one
+# canonical file, never duplicated into console/.env.
+EnvironmentFile=-/root/.claude_code_oauth_token
 # Isolated Node 22 (system node is 20.x, too old for node:sqlite >= 22.5).
 ExecStart=/opt/node-v22/bin/node src/server.js
 # App loads its own /opt/mooniex-console/.env via node's process.loadEnvFile.
