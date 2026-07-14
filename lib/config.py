@@ -85,7 +85,14 @@ def _read_dotenv_var(name: str) -> str | None:
             continue
         k, _, v = line.partition("=")
         if k.strip() == name:
-            return v.strip().strip('"').strip("'")
+            v = v.strip()
+            # Strip a trailing inline comment (`value   # note`) — only
+            # outside quotes, so quoted values may contain literal '#'.
+            if v and v[0] not in "\"'":
+                hash_idx = v.find(" #")
+                if hash_idx != -1:
+                    v = v[:hash_idx].strip()
+            return v.strip('"').strip("'")
     return None
 
 
