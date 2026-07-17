@@ -31,6 +31,33 @@ from lib.config import display_for, get_project, role as get_role, dev_provider_
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
 
+# Role → relative knowledge-bank path under knowledge/.  Roles without an
+# entry (developer, tester, devops_engineer, etc.) get nothing — no error.
+KNOWLEDGE_MAP: dict[str, str] = {
+    "ads_manager": "knowledge/ads-knowledge",
+    "content_strategist": "knowledge/content-knowledge",
+    "data_analyst": "knowledge/data-knowledge",
+    "cfo": "knowledge/finance-knowledge",
+    "finance": "knowledge/finance-knowledge",
+}
+
+
+def _symlink_knowledge(worktree: str, role: str) -> None:
+    """Create a read-only-intent symlink from the worktree into the shared
+    knowledge bank for this role.  No-op if role has no mapped bank or if
+    the bank dir doesn't exist on disk (scaffolded-but-empty is fine)."""
+    rel = KNOWLEDGE_MAP.get(role)
+    if not rel:
+        return
+    src = ROOT / rel
+    if not src.is_dir():
+        return
+    dst = Path(worktree) / "knowledge" / src.name
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    if dst.exists() or dst.is_symlink():
+        dst.unlink()  # stale link from a prior run
+    dst.symlink_to(src)
+
 
 def _write_dev_settings(worktree: str) -> None:
     """Drop .claude/settings.local.json into the worktree so claude wires
@@ -175,6 +202,7 @@ def main() -> None:
         print(f"warn: could not record pid for {task_id}: {e}", file=sys.stderr)
 
     _write_dev_settings(worktree)
+    _symlink_knowledge(worktree, role)
 
     task_md = Path(worktree) / "TASK.md"
     task_md.write_text(prompt, encoding="utf-8")
