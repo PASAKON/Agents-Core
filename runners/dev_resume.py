@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.config import get_project, role as get_role, dev_provider_overrides
-from runners.dev_init import _write_dev_settings  # type: ignore
+from runners.dev_init import _write_dev_settings, _symlink_knowledge  # type: ignore
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -69,6 +69,7 @@ def main() -> None:
     env["DEV_ROLE"] = role
 
     _write_dev_settings(worktree)
+    _symlink_knowledge(worktree, role)
 
     allowed = (
         "mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search "
