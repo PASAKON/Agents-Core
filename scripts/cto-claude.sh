@@ -5,7 +5,34 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROLE_PROMPT="$(cat "$ROOT/roles/cto.md")"
-MCP_CONFIG="$ROOT/config/cto.mcp.json"
+
+# Generate the MCP config with THIS machine's real absolute paths instead of
+# reading the committed config/cto.mcp.json, which bakes in the Mac dev path
+# (/Users/gob/Projects/Agents) — that breaks when this same launcher runs on
+# a different box (e.g. Contabo, ROOT=/opt/mooniex-agents) via the MoonieX
+# Console tmux bridge. Regenerated fresh per launch; cleaned up in the EXIT
+# trap below.
+MCP_CONFIG="$(mktemp "${TMPDIR:-/tmp}/cto-mcp-XXXXXX")"
+mv "$MCP_CONFIG" "$MCP_CONFIG.json"
+MCP_CONFIG="$MCP_CONFIG.json"
+cat > "$MCP_CONFIG" <<JSON
+{
+  "mcpServers": {
+    "org": {
+      "command": "$ROOT/.venv/bin/python",
+      "args": ["-m", "runners.cto_mcp_server"],
+      "cwd": "$ROOT",
+      "env": { "PYTHONUNBUFFERED": "1" }
+    },
+    "lungnote": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["$ROOT/mcp/lungnote-mcp/index.js"],
+      "env": {}
+    }
+  }
+}
+JSON
 
 # CTO-only tool whitelist — keep in sync with runners/cto_mcp_server.py
 # (and with cxo-claude.sh ALLOWED; the two launchers must not drift).
@@ -100,7 +127,7 @@ if [ -n "$MY_TTY" ]; then
   echo "$MY_TTY" >"$TTY_FILE"
 fi
 
-trap 'rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE"' EXIT INT TERM
+trap 'rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE" "$MCP_CONFIG"' EXIT INT TERM
 
 # Initial tab title + base prefix for scripts/tab-title.sh (IRON-RULES §32).
 # The C-level agent rewrites the summary part after every finished job.
