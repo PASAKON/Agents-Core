@@ -47,8 +47,71 @@ _ROOT = Path(__file__).resolve().parent.parent
 _LOCKS = _ROOT / "state" / "locks"
 
 
+def _task_pid(task_id: str) -> int | None:
+    """Look up the pid recorded for a task in state/tasks.db.
+
+    Returns None on any failure (task not found, no pid recorded, DB
+    unreadable, `lib` not importable from this cwd) so callers fall back
+    to the title-match path below — never raises into close_tab.
+    """
+    try:
+        from lib import db
+    except ImportError:
+        return None
+    try:
+        task = db.get_task(task_id)
+    except Exception:
+        return None
+    if not task:
+        return None
+    pid = task.get("pid")
+    try:
+        return int(pid) if pid else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _close_tab_by_pid(pid: int) -> bool:
+    """Close the tab whose current session's job pid matches `pid`.
+
+    GH mooniex-agents#27: title-substring matching (the fallback below)
+    is fragile — once a spawned process exits (crash, manual `kill`, or
+    `dev_init.py` failing before claiming), the tab's title reverts to a
+    plain shell name and can no longer be found by substring, leaving a
+    zombie tab open forever. `jobPid` is a real iTerm2 session variable
+    (confirmed live against this machine's running tabs) and stays valid
+    regardless of title state, so this is tried first. Same C-level
+    exclusion as the title-match path below.
+    """
+    async def factory(conn):
+        app = await _iterm2.async_get_app(conn)
+        for window in app.windows:
+            for tab in window.tabs:
+                session = tab.current_session
+                if session is None:
+                    continue
+                try:
+                    job_pid = await session.async_get_variable("jobPid")
+                except Exception:
+                    continue
+                try:
+                    if job_pid is None or int(job_pid) != pid:
+                        continue
+                except (TypeError, ValueError):
+                    continue
+                title = await _session_title(session)
+                if any(f"{p} " in title for p in ("CTO", "CMO", "CGO", "CFO")):
+                    continue
+                await tab.async_close()
+                return True
+        return False
+
+    return bool(_run_api(factory))
+
+
 def close_tab(task_id: str) -> bool:
-    """Close the iTerm tab whose title contains the given task id.
+    """Close the iTerm tab running the given task, by pid first, falling
+    back to a title-substring match.
 
     Returns True if any tab was closed. Safe to call when no matching
     tab exists (returns False).
@@ -58,6 +121,11 @@ def close_tab(task_id: str) -> bool:
         # Protects against accidental empty/garbage matches reaching
         # iTerm and closing the wrong tab.
         return False
+
+    pid = _task_pid(task_id)
+    if pid is not None and _close_tab_by_pid(pid):
+        return True
+
     fallback = task_id[:6]
     # Both title surfaces are checked (sticky tab name + session badge,
     # same as delegate's spawn matcher) — the session badge flickers to

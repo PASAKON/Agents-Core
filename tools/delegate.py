@@ -265,10 +265,18 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
         # doesn't immediately overwrite the iTerm session name.
         # Double-escape: AppleScript string parses `\\` → `\`, leaving
         # `\033`/`\007` for bash printf to interpret as ESC/BEL.
+        #
+        # Trailing `; exit $?` (GH mooniex-agents#27): no-op on the happy
+        # path — dev_init.py's os.execvpe replaces this shell with claude
+        # before ever reaching here. Only fires when dev_init.py exits
+        # early (claim failed, task not found, worktree missing), so the
+        # shell/tab closes immediately instead of falling to an idle
+        # prompt whose title a zsh precmd hook can silently repaint,
+        # leaving an untraceable zombie tab.
         cmd = (
             f"printf '\\\\033]0;{tab_title}\\\\007' && "
             f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
-            f"python -m runners.dev_init {role} {task_id}"
+            f"python -m runners.dev_init {role} {task_id}; exit $?"
         )
     owner_winid = _owner_window_id(owner_cto, owner_role)
     script = _build_spawn_applescript(cmd, task_id, owner_cto,
