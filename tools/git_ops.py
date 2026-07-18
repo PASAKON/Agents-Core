@@ -1,6 +1,7 @@
 """Git operations restricted to CTO. Merge worktree branch → default, then push."""
 from __future__ import annotations
 
+import fnmatch
 import json
 import subprocess
 from pathlib import Path
@@ -37,6 +38,30 @@ def _conflict_files(repo: Path) -> list[str]:
         return []
 
 
+def _touches_violation(worktree: str, base: str, touches: list[str]) -> list[str]:
+    """Return files the branch changed (vs base) that fall outside `touches`.
+
+    A file is "covered" if it exactly matches a declared path, sits under a
+    declared directory prefix, or matches a declared glob. Only called when
+    `touches` is non-empty — an empty declaration means the task made no
+    scope claim and is not gated (matches check_collisions semantics).
+    """
+    try:
+        out = _run(["git", "diff", "--name-only", f"{base}...HEAD"], cwd=worktree)
+    except GitOpsError:
+        return []
+    changed = [line for line in out.splitlines() if line.strip()]
+    extra = []
+    for f in changed:
+        covered = any(
+            f == t or f.startswith(t.rstrip("/") + "/") or fnmatch.fnmatch(f, t)
+            for t in touches
+        )
+        if not covered:
+            extra.append(f)
+    return extra
+
+
 def _is_ancestor(repo: Path, ancestor: str, descendant: str) -> bool:
     """True if `ancestor` is an ancestor of (or equal to) `descendant`.
 
@@ -54,11 +79,20 @@ def _is_ancestor(repo: Path, ancestor: str, descendant: str) -> bool:
 
 def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                push: bool | None = None, cleanup: bool = True,
-               gate_tests: bool = False) -> dict:
+               gate_tests: bool = False, override_touches_check: bool = False) -> dict:
     """Merge agent branch into project default branch. CTO only.
 
     With gate_tests=True (or proj.gate_tests=true), run proj.test_command
     in the worktree before merging — failure reopens the task with output.
+
+    If the task declared `touches`, the branch's actual changed files (vs
+    base) are checked against that declaration before anything else runs.
+    A file outside the declaration blocks the merge (status→review, branch
+    and worktree preserved) instead of merging silently — this is what
+    would have caught the git-add-A/stale-worktree incident (issue #29)
+    automatically instead of relying on a human running `git diff --stat`
+    by habit. Pass override_touches_check=True after manually reviewing
+    the diff (review_diff tool) to force through a legitimate over-touch.
 
     On merge conflict: abort, set status=conflict, file a gh issue with
     the conflict files so the human can resolve.
@@ -77,6 +111,30 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
     base = proj["default_branch"]
     branch = task["branch"] or branch_name(task["role"], task_id)
     worktree = task.get("worktree")
+
+    if worktree and not override_touches_check:
+        try:
+            declared_touches = json.loads(task.get("touches") or "[]")
+        except (TypeError, json.JSONDecodeError):
+            declared_touches = []
+        if declared_touches:
+            extra = _touches_violation(worktree, base, declared_touches)
+            if extra:
+                shown = extra[:20]
+                msg = (f"branch {branch} changed {len(extra)} file(s) outside declared "
+                       f"touches {declared_touches}: {shown}"
+                       + (f" ... (+{len(extra) - 20} more)" if len(extra) > 20 else "") +
+                       ". Refusing to merge — review with review_diff, then either "
+                       "narrow the branch or retry merge_task with override_touches_check=True.")
+                warn(f"touches violation on {task_id}: {msg}")
+                db.update_status(
+                    task_id, "review", actor="cto",
+                    review=json.dumps({"touches_violation": True, "extra_files": extra,
+                                       "declared_touches": declared_touches}),
+                )
+                return {"merged": False, "touches_violation": True, "extra_files": extra,
+                        "declared_touches": declared_touches, "branch": branch, "base": base,
+                        "project": proj["key"]}
 
     gate = gate_tests or bool(proj.get("gate_tests"))
     test_cmd = proj.get("test_command")

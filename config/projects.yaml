@@ -44,9 +44,10 @@ projects:
     agents_allowed: *default_workers
     auto_push: true
     review_required: true
-    # gate_tests: true → CTO runs test_command in worktree before merge
+    # gate_tests: true → CTO runs test_command in worktree before merge.
+    # Enabled 2026-07-19 after verifying: 709/710 pass (1 skipped), 8.4s.
     test_command: npm test --silent
-    gate_tests: false
+    gate_tests: true
     # CEO preference 2026-05-19: iTerm only — no auto ttyd browser
     # (default backend = iterm, no spawn_backend / web_ui keys)
     # Auto-deploy: disabled by default. CEO sets enabled: true to activate.
@@ -77,6 +78,10 @@ projects:
     agents_allowed: *default_workers
     auto_push: true
     review_required: true
+    # gate_tests: true → CTO runs test_command in worktree before merge.
+    # Enabled 2026-07-19 after verifying: 418/418 pass, ~5s (npx vitest run).
+    test_command: npx vitest run
+    gate_tests: true
     # CEO preference 2026-05-19: iTerm only — no auto ttyd browser
     wiki_refs:
       - playbooks/frontend.md
