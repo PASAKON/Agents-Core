@@ -192,12 +192,19 @@ def review_diff(task_id: str, full: bool = False) -> str:
 
 
 @mcp.tool()
-def merge_task(task_id: str) -> str:
-    """Merge a task's branch into project default branch + push. CTO only."""
+def merge_task(task_id: str, override_touches_check: bool = False) -> str:
+    """Merge a task's branch into project default branch + push. CTO only.
+
+    If the task declared `touches`, files changed outside that declaration
+    block the merge (result.touches_violation=true, branch/worktree kept,
+    status set back to review) — inspect with review_diff, then retry with
+    override_touches_check=True once you've confirmed the extra files are
+    legitimate.
+    """
     t = db.get_task(task_id)
     if t and not _is_mine(t):
         return _foreign_msg(t)
-    result = do_merge(task_id, role=ROLE)
+    result = do_merge(task_id, role=ROLE, override_touches_check=override_touches_check)
     return json.dumps(result, indent=2, default=str)
 
 
