@@ -10,7 +10,7 @@ from lib import db
 from lib.config import get_project, is_c_level
 from lib.notify import info, success, error, warn
 from tools.itermtab import close_tab
-from tools.worktree import branch_name, remove_worktree
+from tools.worktree import branch_name, provision_worktree, remove_worktree
 
 
 class GitOpsError(Exception):
@@ -139,6 +139,12 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
     gate = gate_tests or bool(proj.get("gate_tests"))
     test_cmd = proj.get("test_command")
     if gate and test_cmd and worktree:
+        # Safety net: a bare worktree (no gitignored node_modules/.env) would
+        # false-fail every dep/env-dependent test. Normally provisioned at
+        # worktree creation; re-ensure here for pre-existing worktrees. Idempotent.
+        provisioned = provision_worktree(repo, Path(worktree))
+        if provisioned:
+            info(f"gate_tests: provisioned {provisioned} into worktree")
         info(f"gate_tests: running `{test_cmd}` in {worktree}")
         rc, out = _run_shell(test_cmd, cwd=worktree)
         if rc != 0:

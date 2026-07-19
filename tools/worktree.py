@@ -32,6 +32,31 @@ def branch_name(role: str, task_id: str) -> str:
     return f"agent/{role}-{task_id}"
 
 
+def provision_worktree(repo: Path, wt: Path) -> list[str]:
+    """Symlink gitignored runtime deps from the canonical repo into a worktree.
+
+    A worktree only contains git-tracked files. `node_modules` and `.env` are
+    gitignored, so a bare worktree fails every dependency/env-dependent command
+    — including `merge_task`'s gate_tests, which runs the project test_command
+    with cwd=worktree (confirmed 2026-07-19: a valid single-file SQL branch was
+    false-failed because its worktree had neither node_modules nor .env). Symlink
+    rather than copy → no secret duplication, stays consistent with the source,
+    and is discarded automatically when the worktree is removed. Idempotent;
+    silently skips whatever the canonical repo does not have.
+    """
+    linked: list[str] = []
+    for name in ("node_modules", ".env"):
+        src = repo / name
+        dst = wt / name
+        if src.exists() and not dst.exists():
+            try:
+                dst.symlink_to(src)
+                linked.append(name)
+            except OSError:
+                pass
+    return linked
+
+
 def create_worktree(project_key: str, role: str, task_id: str) -> dict:
     """Create isolated worktree on new branch from default branch."""
     proj = get_project(project_key)
@@ -76,6 +101,11 @@ def create_worktree(project_key: str, role: str, task_id: str) -> dict:
 
     _run(["git", "worktree", "add", "-b", branch, str(wt), start_point], cwd=repo)
 
+    # Bare worktrees lack gitignored runtime deps (node_modules/.env) so the DEV
+    # — and the merge gate_tests — can't run anything env/dep-dependent. Symlink
+    # them in from the canonical repo.
+    provisioned = provision_worktree(repo, wt)
+
     return {
         "project": project_key,
         "task_id": task_id,
@@ -84,6 +114,7 @@ def create_worktree(project_key: str, role: str, task_id: str) -> dict:
         "worktree": str(wt),
         "base": base,
         "repo": str(repo),
+        "provisioned": provisioned,
     }
 
 
