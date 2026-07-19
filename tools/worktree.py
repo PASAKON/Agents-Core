@@ -44,8 +44,9 @@ def provision_worktree(repo: Path, wt: Path) -> list[str]:
     and is discarded automatically when the worktree is removed. Idempotent;
     silently skips whatever the canonical repo does not have.
     """
+    names = ("node_modules", ".env")
     linked: list[str] = []
-    for name in ("node_modules", ".env"):
+    for name in names:
         src = repo / name
         dst = wt / name
         if src.exists() and not dst.exists():
@@ -54,7 +55,41 @@ def provision_worktree(repo: Path, wt: Path) -> list[str]:
                 linked.append(name)
             except OSError:
                 pass
+    # A repo whose .gitignore uses a dir-only pattern (`node_modules/`) does NOT
+    # ignore a *symlink* named node_modules, so a DEV's mandatory `git add -A`
+    # would commit the provisioning symlink (an absolute host path) into the
+    # branch. Anchor both names in the worktree's own git exclude so they can
+    # never be staged, regardless of the repo's .gitignore style.
+    _exclude_in_worktree(wt, names)
     return linked
+
+
+def _exclude_in_worktree(wt: Path, names: tuple[str, ...]) -> None:
+    """Append anchored ignore entries to this worktree's git exclude file.
+
+    Uses `git rev-parse --git-path info/exclude` so it resolves correctly for a
+    linked worktree. Idempotent; best-effort (silently skips if git can't
+    resolve the path, e.g. a non-git temp dir in tests)."""
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(wt), "rev-parse", "--git-path", "info/exclude"],
+            capture_output=True, text=True,
+        )
+        if r.returncode != 0:
+            return
+        exclude = Path(r.stdout.strip())
+        if not exclude.is_absolute():
+            exclude = wt / exclude
+        exclude.parent.mkdir(parents=True, exist_ok=True)
+        existing = exclude.read_text() if exclude.exists() else ""
+        add = [f"/{n}" for n in names if f"/{n}" not in existing.split()]
+        if add:
+            with exclude.open("a") as f:
+                if existing and not existing.endswith("\n"):
+                    f.write("\n")
+                f.write("\n".join(add) + "\n")
+    except OSError:
+        pass
 
 
 def create_worktree(project_key: str, role: str, task_id: str) -> dict:
