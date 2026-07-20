@@ -1,10 +1,21 @@
 #!/usr/bin/env bash
-# tab-title.sh — set this C-level session's iTerm tab title to a live work
-# summary so the CEO can scan the tab bar and see what each session is doing.
+# tab-title.sh — set this C-level session's iTerm tab title (Header) + an
+# optional background badge (Subtitle) so the CEO can scan the tab bar/desktop
+# and see what each session needs from them, without opening it.
 #
 # Usage (from inside a C-level claude session — env carries role + id):
-#   bash scripts/tab-title.sh "<glyph> <summary>"   # set + persist
-#   bash scripts/tab-title.sh --reassert            # re-apply saved title
+#   bash scripts/tab-title.sh "<glyph> <summary>"              # Header only (unchanged, existing callers)
+#   bash scripts/tab-title.sh "<glyph> <summary>" "<subtitle>" # + free-text Badge detail (2026-07-20)
+#   bash scripts/tab-title.sh --reassert                       # re-apply saved title
+#
+# Header vs Subtitle (2026-07-20, CEO-designed): Header = tab title, short,
+# always visible even when the tab column is narrow. Subtitle = the iTerm
+# background badge, one line, free text — says what the CEO specifically
+# needs to do right now ("ขอ key", "รออนุมัติงบ", "รอคำตอบ: ...", etc), not a
+# fixed enum. Badge font is a single auto-sized size (iTerm limitation,
+# verified against docs) — Header stays visually prominent because tab-bar
+# text and badge text are different rendering surfaces, not because of a
+# font-size difference within one surface.
 #
 # Status glyphs (IRON-RULES §32) — pick exactly one, always first:
 #   ⏳ working on something now
@@ -50,14 +61,19 @@ BASE=""
 # Pre-rollout sessions have no .base file — synthesize the standard prefix.
 [ -n "$BASE" ] || BASE="$ROLE_UPPER #$SID"
 
+SUBTITLE_FILE="$TITLE_DIR/$ROLE-$SID.subtitle"
+SUBTITLE=""
+
 if [ "${1:-}" = "--reassert" ]; then
   [ -f "$TITLE_FILE" ] || exit 0
   TITLE="$(head -1 "$TITLE_FILE" 2>/dev/null || true)"
   [ -n "$TITLE" ] || exit 0
+  [ -f "$SUBTITLE_FILE" ] && SUBTITLE="$(head -1 "$SUBTITLE_FILE" 2>/dev/null || true)"
 else
   SUMMARY="${1:-}"
+  SUBTITLE="${2:-}"
   if [ -z "$SUMMARY" ]; then
-    echo "usage: tab-title.sh \"<glyph> <summary>\" | --reassert" >&2
+    echo "usage: tab-title.sh \"<glyph> <summary>\" [\"<subtitle>\"] | --reassert" >&2
     exit 2
   fi
   TITLE="$(python3 - "$BASE" "$SUMMARY" <<'PYEOF'
@@ -73,6 +89,14 @@ PYEOF
 )"
   mkdir -p "$TITLE_DIR"
   printf '%s\n' "$TITLE" >"$TITLE_FILE"
+  # Subtitle (Badge) is saved separately from Header so /session-list and
+  # other tools can still read Header without parsing badge text out of it.
+  if [ -n "$SUBTITLE" ]; then
+    SUBTITLE="$(printf '%s' "$SUBTITLE" | tr '\n' ' ')"
+    printf '%s\n' "$SUBTITLE" >"$SUBTITLE_FILE"
+  else
+    rm -f "$SUBTITLE_FILE"
+  fi
 fi
 
 # Set the title via tty OSC first, AppleScript fallback second; THEN run the
@@ -159,7 +183,16 @@ esac
 (
   cd "$ROOT" || exit 0
   [ -d .venv ] && . .venv/bin/activate 2>/dev/null
-  python3 -m tools.itermtab status "$BASE" "${WINID:-0}" "$_ATTN" >/dev/null 2>&1
+  if [ "$_ATTN" = "mark" ] && [ -n "$SUBTITLE" ]; then
+    # Subtitle (free text, e.g. "🎨 ขอ design เรื่อง storage") drives the
+    # badge instead of the fixed "🔴 รอ CEO" fallback — see tools/itermtab.py
+    # mark_attention(badge=...). Falls back to the old fixed badge when no
+    # subtitle was given (existing single-arg callers, unaffected).
+    python3 -m tools.itermtab mark "$BASE" "$SUBTITLE" "${TTY_DEV:-}" "$TITLE" >/dev/null 2>&1
+    [ -n "${WINID:-}" ] && [ "${WINID:-0}" != "0" ] && python3 -m tools.itermtab arrange "$WINID" >/dev/null 2>&1 || true
+  else
+    python3 -m tools.itermtab status "$BASE" "${WINID:-0}" "$_ATTN" "${TTY_DEV:-}" "$TITLE" >/dev/null 2>&1
+  fi
 ) &
 
 exit 0

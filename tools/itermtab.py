@@ -402,6 +402,27 @@ def _clear_profile():
     return profile
 
 
+def _reassert_title(tty_path: str | None, title: str | None) -> None:
+    """Re-send the OSC-0 Header title after a profile write.
+
+    async_set_profile_properties() (badge/tab-color) resets whatever title
+    was showing while that profile is active — confirmed live 2026-07-20:
+    a title set right before mark()/clear() reverts to the bare job name
+    ("<base> (node)") even seconds later, with no in-between write. The
+    profile and the Header title are two independent iTerm mechanisms that
+    don't compose; re-sending the title AFTER the profile write is the fix,
+    not a race — order alone (title-then-profile) was tested and still lost.
+    Best-effort: swallow errors, never let this break the mark/clear call.
+    """
+    if not tty_path or not title:
+        return
+    try:
+        with open(tty_path, "w") as f:
+            f.write(f"\033]0;{title}\007")
+    except OSError:
+        pass
+
+
 async def _apply_to_matching(app, match, profile) -> int:
     """Apply a profile to every session whose title contains `match`."""
     hits = 0
@@ -432,20 +453,26 @@ def _post_notification(title: str, message: str) -> None:
 
 def mark_attention(match: str, *, color=_ATTENTION_RGB, badge: str = "🔴 รอ CEO",
                    notify_title: str | None = None,
-                   notify_msg: str | None = None) -> bool:
+                   notify_msg: str | None = None,
+                   tty_path: str | None = None,
+                   title: str | None = None) -> bool:
     """Make every tab whose title contains `match` shout for attention.
 
     Sets a red tab color + a badge on each matching tab, and — only when
     `notify_msg` is given — fires one macOS notification. `match` is a title
     substring: a task-id, a role+session base prefix, or even a glyph.
-    Returns True if at least one tab was marked.
+    `tty_path`/`title`, when both given, re-send the Header title right
+    after the profile write (see _reassert_title — the profile write alone
+    resets it). Returns True if at least one tab was marked.
     """
     if not match:
         return False
 
     async def factory(conn):
         app = await _iterm2.async_get_app(conn)
-        return await _apply_to_matching(app, match, _attention_profile(color, badge))
+        hits = await _apply_to_matching(app, match, _attention_profile(color, badge))
+        _reassert_title(tty_path, title)
+        return hits
 
     hits = _run_api(factory) or 0
     if hits and notify_msg:
@@ -453,19 +480,27 @@ def mark_attention(match: str, *, color=_ATTENTION_RGB, badge: str = "🔴 ร�
     return bool(hits)
 
 
-def clear_attention(match: str) -> bool:
-    """Undo mark_attention for tabs whose title contains `match`."""
+def clear_attention(match: str, *, tty_path: str | None = None,
+                     title: str | None = None) -> bool:
+    """Undo mark_attention for tabs whose title contains `match`.
+
+    `tty_path`/`title`: see mark_attention — same title-reassert need.
+    """
     if not match:
         return False
 
     async def factory(conn):
         app = await _iterm2.async_get_app(conn)
-        return await _apply_to_matching(app, match, _clear_profile())
+        hits = await _apply_to_matching(app, match, _clear_profile())
+        _reassert_title(tty_path, title)
+        return hits
 
     return bool(_run_api(factory))
 
 
-def tab_status_update(match: str, window_id: str | None, action: str) -> bool:
+def tab_status_update(match: str, window_id: str | None, action: str,
+                       tty_path: str | None = None,
+                       title: str | None = None) -> bool:
     """Combined attention + arrange in ONE iTerm API connection.
 
     The tab-title.sh hook fires on every status change across every C-level
@@ -475,7 +510,9 @@ def tab_status_update(match: str, window_id: str | None, action: str) -> bool:
 
     action: "mark" -> red tab + badge on tabs matching `match`;
             anything else -> clear them. Then reorder window `window_id`
-            (skipped if falsy/"0"). All best-effort, no-op if API is down.
+            (skipped if falsy/"0"). `tty_path`/`title` re-assert the Header
+            after the profile write (mark/clear otherwise resets it — see
+            _reassert_title). All best-effort, no-op if API is down.
     """
     if not match:
         return False
@@ -485,6 +522,7 @@ def tab_status_update(match: str, window_id: str | None, action: str) -> bool:
         profile = (_attention_profile(_ATTENTION_RGB, "🔴 รอ CEO")
                    if action == "mark" else _clear_profile())
         await _apply_to_matching(app, match, profile)
+        _reassert_title(tty_path, title)
         if window_id and str(window_id) != "0":
             for w in app.windows:
                 if str(w.window_id) == str(window_id):
@@ -500,8 +538,9 @@ if __name__ == "__main__":
 
     argv = sys.argv[1:]
     usage = ("usage: python -m tools.itermtab "
-             "<task_id> | arrange [window_id] | mark <match> [badge] | "
-             "clear <match> | status <match> <window_id> <mark|clear>")
+             "<task_id> | arrange [window_id] | mark <match> [badge] [tty_path] [title] | "
+             "clear <match> [tty_path] [title] | "
+             "status <match> <window_id> <mark|clear> [tty_path] [title]")
     if not argv:
         print(usage)
         sys.exit(1)
@@ -514,16 +553,22 @@ if __name__ == "__main__":
             print(usage)
             sys.exit(1)
         badge = argv[2] if len(argv) > 2 else "🔴 รอ CEO"
-        print(f"marked: {mark_attention(argv[1], badge=badge)}")
+        tty_path = argv[3] if len(argv) > 3 else None
+        title = argv[4] if len(argv) > 4 else None
+        print(f"marked: {mark_attention(argv[1], badge=badge, tty_path=tty_path, title=title)}")
     elif cmd == "clear":
         if len(argv) < 2:
             print(usage)
             sys.exit(1)
-        print(f"cleared: {clear_attention(argv[1])}")
+        tty_path = argv[2] if len(argv) > 2 else None
+        title = argv[3] if len(argv) > 3 else None
+        print(f"cleared: {clear_attention(argv[1], tty_path=tty_path, title=title)}")
     elif cmd == "status":
         if len(argv) < 4:
             print(usage)
             sys.exit(1)
-        print(f"status: {tab_status_update(argv[1], argv[2], argv[3])}")
+        tty_path = argv[4] if len(argv) > 4 else None
+        title = argv[5] if len(argv) > 5 else None
+        print(f"status: {tab_status_update(argv[1], argv[2], argv[3], tty_path=tty_path, title=title)}")
     else:
         print(f"closed: {close_tab(cmd)}")
