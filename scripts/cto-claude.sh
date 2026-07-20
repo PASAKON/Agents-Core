@@ -154,6 +154,16 @@ export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
 ) >/dev/null 2>&1 </dev/null &
 disown $!
 
+# Model + fallback + effort resolved from policies/agents.yaml — same
+# accessor cxo-claude.sh uses (decisions/0009-model-routing-policy.md).
+# Previously hardcoded here independently of the yaml; the two only stayed
+# in sync by someone remembering to edit both files on every policy change.
+IFS=' ' read -r CTO_MODEL CTO_FALLBACK CTO_EFFORT <<<"$(source "$ROOT/.venv/bin/activate" 2>/dev/null && python3 -c "
+from lib.config import role as get_role
+r = get_role('cto')
+print(r.get('model') or 'claude-sonnet-5', r.get('fallback_model') or 'claude-fable-5', r.get('effort') or 'xhigh')
+")"
+
 # Flag-gated GLM offload (CXO_MODEL_PROVIDER, set by spawn-cto.sh --glm).
 # Default OFF -> Claude path unchanged. When set, lib.config
 # cxo_provider_overrides injects the provider env + swaps the model; the GLM
@@ -176,7 +186,7 @@ if [ "${GLM_ACTIVE:-0}" = "1" ]; then
   MODEL_ARGS=(--model "$GLM_MODEL")
   echo "CTO launching on GLM provider (${CXO_MODEL_PROVIDER:-byteplus}) — Claude weekly limit untouched." >&2
 else
-  MODEL_ARGS=(--model 'claude-sonnet-5' --fallback-model 'claude-fable-5' --effort xhigh)
+  MODEL_ARGS=(--model "$CTO_MODEL" --fallback-model "$CTO_FALLBACK" --effort "$CTO_EFFORT")
 fi
 
 # `exec` would replace the shell and skip the EXIT trap, leaving a
