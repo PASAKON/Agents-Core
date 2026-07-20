@@ -145,7 +145,10 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
     _ov = cxo_provider_overrides("cto")
     _model = get_role("cto")["model"]
     _fallback = get_role("cto").get("fallback_model")
-    _effort: str | None = "max"
+    # Was hardcoded "max" — silently diverged from policies/agents.yaml's
+    # "xhigh" for cto (decisions/0009-model-routing-policy.md), so the REPL
+    # path ran at a different effort than the shell-launcher path.
+    _effort: str | None = get_role("cto").get("effort") or "high"
     if _ov:
         os.environ.update(_ov["env"])
         _model = _ov["model"]
