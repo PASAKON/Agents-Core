@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>BrandPrompt TH — Prompt ธรรมดา vs JSON Prompt</title>
+<style>
+  @font-face {
+    font-family: "IBM Plex Sans Thai";
+    src: url("../../../fonts/IBMPlexSansThai-Regular.ttf") format("truetype");
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: "IBM Plex Sans Thai";
+    src: url("../../../fonts/IBMPlexSansThai-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+  }
+
+  :root {
+    --ink: #241e1a;
+    --ink-panel: #2c2620;
+    --paper: #f7f0e2;
+    --clay: #c1502c;
+    --clay-light: #d4693f;
+    --clay-dark: #9c3d22;
+    --sand: #e7d9bf;
+    --taupe: #8b7e6a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 1080px;
+    height: 1080px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans Thai", "Noto Sans Thai", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+
+  .card {
+    width: 1080px;
+    height: 1080px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  /* ---------- header ---------- */
+  .header {
+    flex: 0 0 auto;
+    height: 128px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-stamp {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    width: 60px;
+    height: 60px;
+    display: block;
+  }
+
+  .brandmark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brandmark .wordmark {
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--ink);
+  }
+
+  .brandmark .wordmark .brace {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    color: var(--clay);
+  }
+
+  .brandmark .th-badge {
+    background: linear-gradient(135deg, var(--clay-light), var(--clay-dark));
+    color: var(--paper);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 4px 11px;
+    border-radius: 40px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ---------- vs row ---------- */
+  .vs-row {
+    flex: 1;
+    display: flex;
+    position: relative;
+    min-height: 0;
+  }
+
+  .panel {
+    flex: 1;
+    padding: 40px 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .panel-bad {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .panel-good {
+    background: linear-gradient(160deg, var(--clay-light) 0%, var(--clay) 55%, var(--clay-dark) 100%);
+    color: var(--paper);
+  }
+
+  .panel-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .icon-badge {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon-badge.bad { background: rgba(247, 240, 226, 0.12); }
+  .icon-badge.good { background: rgba(247, 240, 226, 0.92); }
+
+  .panel-label .label-text {
+    font-size: 30px;
+    font-weight: 600;
+  }
+
+  /* mockup boxes */
+  .mockup-box {
+    border-radius: 10px;
+    padding: 18px 20px;
+    height: 258px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 26px;
+  }
+
+  .mockup-box .tag {
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    margin-bottom: 10px;
+    display: inline-block;
+  }
+
+  .mockup-box.prompt-blob {
+    background: rgba(247, 240, 226, 0.07);
+    border: 1px solid rgba(247, 240, 226, 0.16);
+  }
+
+  .mockup-box.prompt-blob .tag {
+    color: var(--taupe);
+  }
+
+  .mockup-box.prompt-blob .blob-text {
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--taupe);
+  }
+
+  .mockup-box.json-clean {
+    background: var(--paper);
+    border: 1px solid rgba(36, 30, 26, 0.08);
+  }
+
+  .mockup-box.json-clean .tag {
+    color: var(--clay-dark);
+    font-weight: 600;
+  }
+
+  .json-block {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+
+  .json-block .k { color: var(--clay-dark); font-weight: 600; }
+  .json-block .v { color: var(--ink); }
+  .json-block .punct { color: var(--taupe); }
+
+  /* bullet list */
+  .points {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .point {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .point .mark {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  .panel-bad .point .mark { background: rgba(247, 240, 226, 0.1); }
+  .panel-good .point .mark { background: rgba(247, 240, 226, 0.92); }
+
+  .point .text {
+    font-size: 21px;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  .panel-bad .point .text { color: rgba(247, 240, 226, 0.88); }
+  .panel-good .point .text { color: var(--paper); font-weight: 500; }
+
+  /* VS divider badge */
+  .vs-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 5px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    box-shadow: 0 4px 0 rgba(36, 30, 26, 0.15);
+  }
+
+  .vs-badge span {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink);
+    font-style: italic;
+    letter-spacing: -0.5px;
+  }
+
+  /* ---------- footer ---------- */
+  .footer {
+    flex: 0 0 auto;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid var(--sand);
+  }
+
+  .footer .cta {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--clay-dark);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="header">
+    <img class="logo-stamp" src="../images/logo-mark.png" alt="BrandPrompt TH logo" />
+    <div class="brandmark">
+      <div class="wordmark">Brand<span class="brace">{Prompt}</span></div>
+      <div class="th-badge">TH</div>
+    </div>
+  </div>
+
+  <div class="vs-row">
+
+    <div class="panel panel-bad">
+      <div class="panel-label">
+        <div class="icon-badge bad">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M5 5L19 19M19 5L5 19" stroke="#F7F0E2" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="label-text">Prompt ธรรมดา</div>
+      </div>
+
+      <div class="mockup-box prompt-blob">
+        <span class="tag mono">prompt.txt</span>
+        <div class="blob-text">ช่วยทำโปสเตอร์ร้านกาแฟให้หน่อยนะ อยากได้สีน้ำตาลอมส้มแบบอบอุ่นๆ มีรูปแก้วกาแฟลอยกลางภาพเอียงนิดหน่อย ตัวหนังสือใหญ่ๆหนาๆเขียนว่าเปิดร้านใหม่วันนี้ ด้านล่างใส่ชื่อร้านคุณ อยากได้โลโก้มุมนึงด้วยแบบดูพรีเมียมหน่อยนะ แสงสวยๆแบบสตูดิโอ พื้นหลังไล่สีสวยๆ ฟอนต์อ่านง่ายแบบไทยด้วย แล้วก็อยากได้ปุ่มกดเขียนว่าแวะมาชมสีขาวๆกลมๆ แล้วก็...</div>
+      </div>
+
+      <div class="points">
+        <div class="point">
+          <div class="mark">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 5L19 19M19 5L5 19" stroke="#F7F0E2" stroke-width="3.4" stroke-linecap="round"/></svg>
+          </div>
+          <div class="text">เขียนยาวเป็นพรืด</div>
+        </div>
+        <div class="point">
+          <div class="mark">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 5L19 19M19 5L5 19" stroke="#F7F0E2" stroke-width="3.4" stroke-linecap="round"/></svg>
+          </div>
+          <div class="text">แก้ยาก เสี่ยงพัง</div>
+        </div>
+        <div class="point">
+          <div class="mark">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 5L19 19M19 5L5 19" stroke="#F7F0E2" stroke-width="3.4" stroke-linecap="round"/></svg>
+          </div>
+          <div class="text">ใช้ซ้ำกับธุรกิจอื่นไม่ได้ ต้องเขียนใหม่ทุกครั้ง</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-good">
+      <div class="panel-label">
+        <div class="icon-badge good">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M4 12.5L9.5 18L20 6" stroke="#C1502C" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="label-text">JSON Prompt</div>
+      </div>
+
+      <div class="mockup-box json-clean">
+        <span class="tag mono">brand.json</span>
+        <div class="json-block mono">{
+  <span class="k">"หัวข้อหลัก"</span><span class="punct">:</span> <span class="v">"เปิดร้านใหม่วันนี้!"</span>,
+  <span class="k">"ชื่อแบรนด์"</span><span class="punct">:</span> <span class="v">"ร้านคุณ"</span>,
+  <span class="k">"โทนสี"</span><span class="punct">:</span> <span class="v">"#C1502C"</span>,
+  <span class="k">"หัวข้อรอง"</span><span class="punct">:</span> <span class="v">"แวะมาชม"</span>
+}</div>
+      </div>
+
+      <div class="points">
+        <div class="point">
+          <div class="mark">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6" stroke="#C1502C" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="text">แก้แค่ field ที่ต้องการ</div>
+        </div>
+        <div class="point">
+          <div class="mark">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6" stroke="#C1502C" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="text">ไม่มีวันพัง</div>
+        </div>
+        <div class="point">
+          <div class="mark">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6" stroke="#C1502C" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="text">ใช้ซ้ำได้ทุกธุรกิจ แค่เปลี่ยนค่า</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vs-badge"><span>VS</span></div>
+
+  </div>
+
+  <div class="footer">
+    <div class="cta">BrandPrompt TH — 100 Prompt + 300 ตัวอย่างรูป · 500 บาท</div>
+  </div>
+
+</div>
+</body>
+</html>
