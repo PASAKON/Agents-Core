@@ -100,6 +100,22 @@ a {
   pointer-events: none;
 }
 
+.back-btn {
+  position: relative;
+  z-index: 1;
+  color: var(--chrome-text);
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1;
+  text-decoration: none;
+  margin-right: 8px;
+  transition: color 0.15s;
+}
+.back-btn:hover,
+.back-btn:active {
+  color: #fff;
+}
+
 .body {
   flex: 1;
   min-height: 0;

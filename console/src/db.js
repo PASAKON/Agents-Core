@@ -40,6 +40,13 @@ export function openDb(dbPath = config.dbPath) {
       secret TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS session_devices (
+      tmux_session_name TEXT NOT NULL,
+      device_label TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (tmux_session_name)
+    );
   `);
   return conn;
 }
@@ -104,4 +111,17 @@ export function setTotpSecret(operatorId, secret) {
 
 export function getTotpSecret(operatorId) {
   return getDb().prepare('SELECT * FROM totp_secrets WHERE operator_id = ?').get(operatorId) || null;
+}
+
+export function setSessionDevice(tmuxSessionName, deviceLabel) {
+  getDb()
+    .prepare(
+      `INSERT INTO session_devices (tmux_session_name, device_label) VALUES (?, ?)
+       ON CONFLICT(tmux_session_name) DO UPDATE SET device_label = excluded.device_label`
+    )
+    .run(tmuxSessionName, deviceLabel);
+}
+
+export function getSessionDevices() {
+  return getDb().prepare('SELECT * FROM session_devices').all();
 }
