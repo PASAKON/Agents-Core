@@ -1,6 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { parseSessionListOutput } from '../src/tmux/sessions.js';
 import { buildSessionName, parseSessionName, slugify } from '../src/tmux/names.js';
+import { openDb, setDb, setSessionDevice, getSessionDevices } from '../src/db.js';
+
+beforeAll(() => {
+  setDb(openDb(':memory:'));
+});
 
 describe('parseSessionListOutput', () => {
   it('parses tmux ls -F output into role/slug objects', () => {
@@ -61,5 +66,43 @@ describe('slugify', () => {
   it('falls back to a generated slug for empty input', () => {
     expect(slugify('')).toMatch(/^session-/);
     expect(slugify(undefined)).toMatch(/^session-/);
+  });
+});
+
+describe('session_devices', () => {
+  it('persists a device label for a session', () => {
+    setSessionDevice('cto-migration', 'iPhone #KS87U');
+    const devices = getSessionDevices();
+    const found = devices.find((d) => d.tmux_session_name === 'cto-migration');
+    expect(found).toBeDefined();
+    expect(found.device_label).toBe('iPhone #KS87U');
+  });
+
+  it('updates device label on upsert (same session name)', () => {
+    setSessionDevice('cto-migration', 'iPhone #KS87U');
+    setSessionDevice('cto-migration', 'Mac #ABC12');
+    const devices = getSessionDevices();
+    const rows = devices.filter((d) => d.tmux_session_name === 'cto-migration');
+    expect(rows).toHaveLength(1);
+    expect(rows[0].device_label).toBe('Mac #ABC12');
+  });
+
+  it('stores multiple sessions with different labels', () => {
+    setSessionDevice('cto-alpha', 'iPhone #KS87U');
+    setSessionDevice('cmo-beta', 'Mac #ABC12');
+    const devices = getSessionDevices();
+    expect(devices.length).toBeGreaterThanOrEqual(2);
+    expect(devices.find((d) => d.tmux_session_name === 'cto-alpha').device_label).toBe('iPhone #KS87U');
+    expect(devices.find((d) => d.tmux_session_name === 'cmo-beta').device_label).toBe('Mac #ABC12');
+  });
+
+  it('returns empty array when no devices stored', () => {
+    // Fresh in-memory DB for this check
+    const freshDb = openDb(':memory:');
+    setDb(freshDb);
+    const devices = getSessionDevices();
+    expect(devices).toEqual([]);
+    // Restore original for other tests
+    setDb(openDb(':memory:'));
   });
 });

@@ -3,6 +3,7 @@ import { promisify } from 'node:util';
 import { buildSessionName, parseSessionName, ROLES } from './names.js';
 import { roleCommand } from './command.js';
 import { config } from '../config.js';
+import { setSessionDevice, getSessionDevices } from '../db.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -42,7 +43,15 @@ export async function listSessions() {
     if (err.code === 1) return [];
     throw err;
   }
-  return parseSessionListOutput(stdout);
+  const sessions = parseSessionListOutput(stdout);
+  // Enrich with device labels from DB
+  const deviceMap = Object.fromEntries(
+    getSessionDevices().map((d) => [d.tmux_session_name, d.device_label]),
+  );
+  for (const s of sessions) {
+    s.deviceLabel = deviceMap[s.name] || null;
+  }
+  return sessions;
 }
 
 export async function sessionExists(name) {
@@ -54,12 +63,15 @@ export async function sessionExists(name) {
   }
 }
 
-export async function createSession(role, slug) {
+export async function createSession(role, slug, deviceLabel) {
   const name = buildSessionName(role, slug);
   if (await sessionExists(name)) {
     return { name, role, slug, created: false };
   }
   const command = roleCommand(role);
   await execFileAsync('tmux', ['new-session', '-d', '-s', name, '-c', config.orgRoot, command]);
-  return { name, role, slug, created: true };
+  if (deviceLabel) {
+    setSessionDevice(name, deviceLabel);
+  }
+  return { name, role, slug, created: true, deviceLabel: deviceLabel || null };
 }
