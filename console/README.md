@@ -63,8 +63,10 @@ See `.env.example`. Key ones:
 then:
 
 1. `POST /api/sessions` slugifies the name and runs
-   `tmux new-session -d -s {role}-{slug} '<python> -m runners.cto_chat'`
-   with cwd = `ORG_ROOT` (no-op if that session name already exists).
+   `tmux new-session -d -s {role}-{slug} 'bash <ORG_ROOT>/scripts/cto-claude.sh'`
+   with cwd = `ORG_ROOT` (no-op if that session name already exists). This is
+   the same launcher a real Mac iTerm CTO tab uses — the actual `claude` CLI
+   with the CTO system prompt + MCP tools appended, not a custom REPL.
 2. Browser redirects to `/agent/{role}/{slug}`, which opens a WebSocket to
    `/ws/agent/{role}/{slug}`.
 3. The server keeps **one** `node-pty` process per tmux session name
@@ -80,12 +82,13 @@ its process exits or someone kills it with `tmux kill-session`.
 
 ## Known P1 simplification
 
-TASK.md's backend spec says every agent session runs
-`python -m runners.cto_chat` regardless of which role was picked — only
-`runners/cto_chat.py` exists today (see `src/tmux/command.js`). Role still
-drives the session name / badge / list grouping; only the runtime command
-is shared for now. When `runners/cmo_chat.py` etc. ship, add them to the
-`ROLE_MODULES` map in `src/tmux/command.js` — one line each.
+Every agent session runs `scripts/cto-claude.sh` (the real `claude` CLI,
+CTO system prompt + MCP tools) regardless of which role was picked — no
+role-specific launcher (`cmo-claude.sh` etc.) exists yet (see
+`src/tmux/command.js`). Role still drives the session name / badge / list
+grouping; only the runtime command is shared for now. When per-role
+launchers ship, add them to the `ROLE_SCRIPTS` map in `src/tmux/command.js`
+— one line each.
 
 ## Tests
 

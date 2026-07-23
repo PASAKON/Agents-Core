@@ -28,6 +28,13 @@
 html,
 body {
   height: 100%;
+  /* iOS Safari rubber-bands the whole page on any touch scroll unless the
+     outer document is pinned — without this, a swipe inside the terminal
+     scrolls the page instead of xterm.js's own internal viewport. */
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  overscroll-behavior: none;
 }
 
 body {

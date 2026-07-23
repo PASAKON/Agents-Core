@@ -52,7 +52,14 @@ EXCLUDES=(
   --exclude '__pycache__/'
   --exclude '*.pyc'
   --exclude '.DS_Store'
-  --exclude '.claude/'         # local Claude Code settings/secrets — not runtime
+  # .claude/ is excluded wholesale EXCEPT .claude/skills/ — those are shared
+  # project skills (session-open, session-worktree, cto-merge-checklist, …),
+  # not secrets, and a Console session on Contabo needs them same as Mac.
+  # Order matters: these includes must precede the blanket exclude below.
+  --include '.claude/'
+  --include '.claude/skills/'
+  --include '.claude/skills/**'
+  --exclude '.claude/*'        # everything else directly under .claude/ (settings*.json, etc.)
   --exclude 'TASK.md'          # per-task worker file, not runtime
 )
 
