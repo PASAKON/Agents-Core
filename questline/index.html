@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Questline</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0e1420; color: #e8ecf4; font-family: -apple-system, "Segoe UI", sans-serif; }
+  #wrap { display: flex; flex-direction: column; height: 100%; }
+  header { padding: 10px 16px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #232b3d; }
+  header h1 { font-size: 15px; margin: 0; letter-spacing: 0.5px; color: #9fd8ff; }
+  header .meta { font-size: 11px; color: #6b7690; }
+  #stage { flex: 1; display: flex; align-items: center; justify-content: center; }
+  canvas { background: linear-gradient(#182338, #0e1420); border-radius: 8px; }
+  #err { padding: 24px; font-size: 13px; color: #ff9a8a; max-width: 480px; line-height: 1.5; }
+  #err code { background: #232b3d; padding: 2px 5px; border-radius: 4px; }
+  footer { padding: 6px 16px; font-size: 10px; color: #4a5470; border-top: 1px solid #232b3d; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <h1>QUESTLINE</h1>
+    <span class="meta" id="meta">loading…</span>
+  </header>
+  <div id="stage"><canvas id="c" width="900" height="540"></canvas></div>
+  <footer>dev = org build work · growth = marketing/content/ads · life = personal (LungNote) · HQ = real org KPIs (pending wire-up)</footer>
+</div>
+<script>
+const DISTRICTS = [
+  { key: "dev",    label: "DEV",    x: 60,  color: "#f2a154", glow: "#ffcf94" },
+  { key: "growth", label: "GROWTH", x: 620, color: "#5aa9ff", glow: "#a9d3ff" },
+  { key: "life",   label: "LIFE",   x: 340, color: "#59d9a0", glow: "#a6f0cd", y: 360 },
+];
+
+let belts = []; // animated particles
+
+async function load() {
+  const meta = document.getElementById("meta");
+  try {
+    const res = await fetch("state.json?_=" + Date.now());
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const state = await res.json();
+    meta.textContent = "generated " + new Date(state.generated_at).toLocaleString();
+    draw(state);
+  } catch (e) {
+    meta.textContent = "load failed";
+    document.getElementById("stage").innerHTML =
+      '<div id="err"><b>Could not load state.json</b><br><br>' +
+      "Most browsers block <code>fetch()</code> of local files opened via <code>file://</code>.<br><br>" +
+      "Run from this folder:<br><code>python3 export_state.py && python3 -m http.server 8642</code><br>" +
+      "then open <code>http://localhost:8642</code>.<br><br>" +
+      "<span style='color:#4a5470'>" + e.message + "</span></div>";
+  }
+}
+
+function buildingColumn(ctx, x, baseY, tier, color, glow) {
+  const w = 46, gap = 10;
+  const n = tier; // 1..5 buildings, increasing height
+  for (let i = 0; i < n; i++) {
+    const h = 22 + i * 16;
+    const bx = x + i * (w + gap);
+    const by = baseY - h;
+    const grad = ctx.createLinearGradient(0, by, 0, baseY);
+    grad.addColorStop(0, glow);
+    grad.addColorStop(1, color);
+    ctx.fillStyle = grad;
+    ctx.fillRect(bx, by, w, h);
+    ctx.strokeStyle = "rgba(0,0,0,0.25)";
+    ctx.strokeRect(bx, by, w, h);
+    // windows
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    for (let wy = by + 6; wy < baseY - 6; wy += 10) {
+      ctx.fillRect(bx + 6, wy, 4, 4);
+      ctx.fillRect(bx + w - 10, wy, 4, 4);
+    }
+  }
+}
+
+function crates(ctx, x, y, count) {
+  const n = Math.min(count, 20);
+  for (let i = 0; i < n; i++) {
+    const cx = x + (i % 10) * 14;
+    const cy = y - Math.floor(i / 10) * 12;
+    ctx.fillStyle = "#8a6a3f";
+    ctx.fillRect(cx, cy, 11, 11);
+    ctx.strokeStyle = "#5c452a";
+    ctx.strokeRect(cx, cy, 11, 11);
+  }
+}
+
+function drawDistrict(ctx, d, stats) {
+  const baseY = (d.y || 260);
+  const label = d.label + "  ·  tier " + stats.tier + "  ·  built " + stats.completed;
+  ctx.fillStyle = "#aab4cc";
+  ctx.font = "12px monospace";
+  ctx.fillText(label, d.x, baseY + 18);
+  ctx.fillStyle = "#333c52";
+  ctx.fillRect(d.x - 10, baseY, 260, 4);
+  buildingColumn(ctx, d.x, baseY, stats.tier, d.color, d.glow);
+  if (stats.backlog > 0) {
+    ctx.fillStyle = "#6b7690";
+    ctx.font = "10px monospace";
+    ctx.fillText("backlog " + stats.backlog, d.x, baseY + 34);
+    crates(ctx, d.x, baseY + 46, stats.backlog);
+  }
+}
+
+function drawHQ(ctx, hq) {
+  const cx = 450, baseY = 250;
+  const h = 70 + hq.level * 20;
+  const grad = ctx.createLinearGradient(0, baseY - h, 0, baseY);
+  grad.addColorStop(0, "#e9c86a");
+  grad.addColorStop(1, "#b8903c");
+  ctx.fillStyle = grad;
+  ctx.fillRect(cx - 24, baseY - h, 48, h);
+  ctx.strokeStyle = "rgba(0,0,0,0.3)";
+  ctx.strokeRect(cx - 24, baseY - h, 48, h);
+  ctx.fillStyle = "#fff3d0";
+  ctx.font = "11px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("HQ  Lv" + hq.level, cx, baseY - h - 8);
+  ctx.fillStyle = "#4a5470";
+  ctx.font = "9px monospace";
+  ctx.fillText(hq.kpis ? "" : "(KPI wiring pending)", cx, baseY + 14);
+  ctx.textAlign = "left";
+  return { x: cx, y: baseY - h / 2 };
+}
+
+function setupBelts(state, hqPoint) {
+  belts = [];
+  for (const d of DISTRICTS) {
+    const stats = state.districts[d.key];
+    const speed = stats.belt_speed;
+    if (!speed) continue; // no data, or truly idle (0 completions in 7d) — no particles either way
+    const n = Math.max(1, Math.round(speed * 4));
+    for (let i = 0; i < n; i++) {
+      belts.push({
+        fromX: d.x + 120, fromY: (d.y || 260) - 10,
+        toX: hqPoint.x, toY: hqPoint.y,
+        t: Math.random(),
+        speed: 0.003 + speed * 0.01,
+        color: d.color,
+      });
+    }
+  }
+}
+
+function tick(ctx) {
+  ctx.clearRect(0, 0, 900, 540);
+  // ground
+  ctx.fillStyle = "#141c2c";
+  ctx.fillRect(0, 0, 900, 540);
+  for (const p of belts) {
+    p.t += p.speed;
+    if (p.t > 1) p.t = 0;
+    const x = p.fromX + (p.toX - p.fromX) * p.t;
+    const y = p.fromY + (p.toY - p.fromY) * p.t;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function draw(state) {
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+
+  function frame() {
+    tick(ctx);
+    const hqPoint = drawHQ(ctx, state.hq);
+    for (const d of DISTRICTS) {
+      const stats = state.districts[d.key];
+      drawDistrict(ctx, d, stats);
+      const fromX = d.x + 120, fromY = (d.y || 260) - 10;
+      const idle = stats.belt_speed === 0; // real data, zero completions in 7d
+      ctx.save();
+      if (idle) {
+        ctx.strokeStyle = "rgba(255,120,110,0.25)";
+        ctx.setLineDash([4, 6]);
+      } else {
+        ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      }
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(hqPoint.x, hqPoint.y);
+      ctx.stroke();
+      ctx.restore();
+      if (idle) {
+        ctx.fillStyle = "rgba(255,120,110,0.6)";
+        ctx.font = "9px monospace";
+        ctx.fillText("idle 7d", fromX + 10, fromY - 6);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  setupBelts(state, { x: 450, y: 250 - (70 + state.hq.level * 20) / 2 });
+  frame();
+}
+
+load();
+</script>
+</body>
+</html>
