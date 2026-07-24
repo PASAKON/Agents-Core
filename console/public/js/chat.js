@@ -75,10 +75,23 @@ function connect() {
 
 term.onData((data) => sendInput(data));
 
-window.addEventListener('resize', () => {
+// iOS Safari's on-screen keyboard doesn't shrink `100dvh` reliably, and
+// plain `window resize` doesn't fire consistently when the keyboard opens —
+// visualViewport does, and gives the actual visible height so the composer
+// stays above the keyboard instead of hiding behind it.
+const chatWin = document.querySelector('.chat-win');
+function applyViewportHeight() {
+  const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  if (chatWin) chatWin.style.height = `${vh}px`;
   fitAddon.fit();
   sendResize();
-});
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', applyViewportHeight);
+} else {
+  window.addEventListener('resize', applyViewportHeight);
+}
+applyViewportHeight();
 
 // bottom composer bar — sends a full line + Enter, since iPhone soft
 // keyboards don't have a convenient way to send raw keystrokes as you type.
