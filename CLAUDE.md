@@ -1,0 +1,50 @@
+# Agents Org Runtime — Environment Context
+
+This file auto-loads into every Claude Code session whose working directory
+is this repo — on the Mac (full dev machine) **and** on the Contabo VPS (via
+MoonieX Console mobile chat, launched through `scripts/cto-claude.sh`).
+Read it to know which machine you're on and which projects you can actually touch.
+
+## Which machine am I on?
+- **Mac**: repo lives at `/Users/gob/Projects/Agents`. Every project under
+  `/Users/gob/Projects/` is reachable — no restriction.
+- **Contabo VPS** (mobile Console sessions): repo lives at
+  `/opt/mooniex-agents`. Only repos actually cloned onto this box are
+  reachable — everything else needs `git clone` onto the box first.
+  Confirm with `hostname` / `pwd` if unsure.
+
+## Project availability on Contabo (mobile Console)
+
+| Project | Path on Contabo |
+|---|---|
+| mooniex-agents (this org repo) | `/opt/mooniex-agents` |
+| mooniex-console (the Console app itself) | `/opt/mooniex-console` |
+| mooniex-claudeflow | `/root/projects/mooniex-claudeflow` |
+| mooniex-option | `/root/projects/mooniex-option` |
+| mooniex-alphatrader | `/root/projects/mooniex-alphatrader` |
+| mooniex-line-automation | `/root/projects/mooniex-line-automation` |
+| mooniex-line-poster | `/root/projects/mooniex-line-poster` |
+| claude-usage-monitor (scriptable widget backend) | `/opt/claude-usage-monitor` |
+
+**NOT on Contabo yet** — a mobile/Console session cannot edit these until someone
+clones them onto the box: `mooniex-webapp`, `mooniex-genui`, `mooniex-moonx`,
+`mooniex-remotion`, `mooniex-wa-system`, `mooniex-company`, `mooniex-nohuman`,
+`mooniex-website-templete`, `mooniex-hyperframes`, `mooniex-claudesign`,
+`mooniex-controller-system`, `mooniex-scriptable` (the iOS-side source).
+
+If a task needs one of the "NOT on Contabo" repos from a mobile session, say so
+explicitly and tell the CEO it needs cloning onto Contabo first — don't silently
+attempt it or assume GitHub presence is enough.
+
+## Wiki access
+
+Wiki tools (`wiki_read`/`wiki_write`/etc.) only work from **Mac** sessions —
+`WIKI_ROOT` (the LLMs wiki repo) is not present on Contabo by design (see wiki
+`projects/mooniex-console.md`, ADR Phase C). A Contabo/mobile session cannot
+read or update the wiki directly.
+
+## Maintenance
+
+Whenever a repo is cloned onto (or removed from) the Contabo box, update BOTH:
+1. The table above.
+2. Wiki `projects/mooniex-console.md` §"Project availability" (Mac session only).
