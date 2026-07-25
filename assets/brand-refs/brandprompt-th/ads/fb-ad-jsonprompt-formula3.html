@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>BrandPrompt TH — FB Ad: Real A/B Poster Proof + Price (4:5)</title>
+<style>
+  @font-face {
+    font-family: "IBM Plex Sans Thai";
+    src: url("../../../fonts/IBMPlexSansThai-Regular.ttf") format("truetype");
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: "IBM Plex Sans Thai";
+    src: url("../../../fonts/IBMPlexSansThai-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+  }
+
+  :root {
+    --ink: #241e1a;
+    --paper: #f7f0e2;
+    --clay: #c1502c;
+    --clay-light: #d4693f;
+    --clay-dark: #9c3d22;
+    --sand: #e7d9bf;
+    --taupe: #8b7e6a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 1080px;
+    height: 1350px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans Thai", "Noto Sans Thai", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono { font-family: "SFMono-Regular", Menlo, Consolas, monospace; }
+
+  .ad {
+    width: 1080px;
+    height: 1350px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ---------- header (ink strip) ---------- */
+  .header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 124px;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+  }
+  .logo-stamp {
+    width: 56px;
+    height: 56px;
+    border-radius: 13px;
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+  .logo-stamp img { width: 100%; height: 100%; display: block; }
+  .brand-word {
+    margin-left: 18px;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--paper);
+  }
+  .brand-word .accent { color: var(--clay-light); }
+  .header .tag {
+    margin-left: auto;
+    font-size: 22px;
+    color: var(--sand);
+    font-weight: 400;
+  }
+
+  /* ---------- hero: two real posters ---------- */
+  .hero {
+    position: absolute;
+    top: 124px;
+    left: 0; right: 0;
+    height: 706px;
+    padding: 30px 40px 0 40px;
+  }
+  .hero-row {
+    display: flex;
+    gap: 24px;
+    height: 610px;
+  }
+  .shot {
+    position: relative;
+    width: 488px;
+    height: 610px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+    background: var(--sand);
+  }
+  .shot img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+  .shot-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--clay);
+    color: var(--paper);
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+    z-index: 5;
+  }
+  .hero-caps {
+    display: flex;
+    gap: 24px;
+    margin-top: 18px;
+    height: 66px;
+  }
+  .cap {
+    width: 488px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .cap .accent { color: var(--clay); }
+
+  /* ---------- price block ---------- */
+  .price-wrap {
+    position: absolute;
+    top: 862px;
+    left: 64px;
+    right: 64px;
+    height: 320px;
+  }
+  .price-card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: var(--sand);
+    border-radius: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 22px;
+  }
+  .price-old {
+    font-size: 46px;
+    font-weight: 400;
+    color: var(--taupe);
+    text-decoration: line-through;
+    text-decoration-color: var(--taupe);
+    text-decoration-thickness: 3px;
+  }
+  .price-arrow {
+    font-size: 44px;
+    color: var(--ink);
+  }
+  .price-new {
+    font-size: 160px;
+    font-weight: 600;
+    color: var(--clay);
+    line-height: 1;
+  }
+  .price-unit {
+    font-size: 46px;
+    font-weight: 600;
+    color: var(--ink);
+    align-self: flex-end;
+    margin-bottom: 24px;
+  }
+  .scarcity-badge {
+    position: absolute;
+    top: -26px;
+    right: 54px;
+    background: linear-gradient(135deg, var(--clay-light), var(--clay-dark));
+    color: var(--paper);
+    font-weight: 600;
+    font-size: 27px;
+    padding: 14px 32px;
+    border-radius: 999px;
+    transform: rotate(-5deg);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.28);
+    white-space: nowrap;
+  }
+  .trust-line {
+    margin-top: 18px;
+    font-size: 21px;
+    font-weight: 400;
+    color: var(--taupe);
+  }
+
+  /* ---------- value math strip ---------- */
+  .value-strip {
+    position: absolute;
+    top: 1234px;
+    left: 0; right: 0;
+    text-align: center;
+    padding: 0 90px;
+  }
+  .value-strip p {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--taupe);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div class="ad">
+
+  <div class="header">
+    <div class="logo-stamp"><img src="../images/logo-mark.png" alt="BrandPrompt TH logo mark" /></div>
+    <div class="brand-word">Brand<span class="accent">Prompt</span> TH</div>
+    <div class="tag">JSON Prompt Pack</div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-row">
+      <div class="shot">
+        <div class="shot-badge">A</div>
+        <img src="formula3-src/poster-a-grand-opening.png" alt="โปสเตอร์ A เปิดร้านใหม่วันนี้ — ตัวอย่างงานจริงจาก BrandPrompt TH" />
+      </div>
+      <div class="shot">
+        <div class="shot-badge">B</div>
+        <img src="formula3-src/poster-b-flash-sale.png" alt="โปสเตอร์ B ลดพิเศษ 20% — เปลี่ยนแค่หัวข้อหลักจากภาพ A" />
+      </div>
+    </div>
+    <div class="hero-caps">
+      <div class="cap">JSON Prompt A&nbsp;<span class="accent">→</span>&nbsp;ภาพนี้</div>
+      <div class="cap">แก้แค่&nbsp;<span class="accent">1 บรรทัด</span>&nbsp;(หัวข้อหลัก) → ภาพนี้</div>
+    </div>
+  </div>
+
+  <div class="price-wrap">
+    <div class="price-card">
+      <div class="scarcity-badge">เพียง 30 สิทธิ์แรก</div>
+      <div class="price-row">
+        <span class="price-old">990</span>
+        <span class="price-arrow">→</span>
+        <span class="price-new">500</span>
+        <span class="price-unit">บาท</span>
+      </div>
+      <div class="trust-line">ไม่พอใจคืนเงินภายใน 7 วัน</div>
+    </div>
+  </div>
+
+  <div class="value-strip">
+    <p>500 ÷ 100 = ไม่ถึง 5 บาท/พรอมต์ &nbsp;·&nbsp; สร้างซ้ำได้ไม่จำกัด &nbsp;·&nbsp; ใช้ได้ดีสุดกับ GPT Image Gen 2</p>
+  </div>
+
+</div>
+</body>
+</html>
