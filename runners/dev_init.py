@@ -178,11 +178,11 @@ def main() -> None:
     if role == "web_designer":
         prompt += db.designer_kickoff_suffix(task.get("description") or "")
     try:
-        model = get_role(role).get("model") or "claude-opus-4-8[1m]"
+        model = get_role(role).get("model") or "claude-opus-5"
     except ValueError:
         # role file exists in roles/ but not registered in policies/agents.yaml
         # fall back to worker-tier default
-        model = "claude-opus-4-8[1m]"
+        model = "claude-opus-5"
 
     env = os.environ.copy()
     env["DEV_TASK_ID"] = task_id

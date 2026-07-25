@@ -107,6 +107,6 @@ Rules:
 
 ## Your model tier
 
-Default: **Sonnet 5 @ effort: high**. Escalate to **Opus 4.8** via the
+Default: **Sonnet 5 @ effort: high**. Escalate to **Opus 5** via the
 `session-change-model` skill for genuine strategic/judgment calls. Full
 tier table + rationale: `decisions/0009-model-routing-policy.md`.

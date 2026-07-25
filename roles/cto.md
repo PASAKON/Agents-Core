@@ -122,7 +122,7 @@ Rules:
 
 ## Your model tier
 
-Default: **Sonnet 5 @ effort: xhigh**. Escalate to **Opus 4.8 @ effort:
+Default: **Sonnet 5 @ effort: xhigh**. Escalate to **Opus 5 @ effort:
 xhigh** via the `session-change-model` skill when a task matches:
 architecture/system-design calls, security-sensitive code,
 prod-deploy-adjacent work, final merge review, cross-project

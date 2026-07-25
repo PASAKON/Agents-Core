@@ -51,7 +51,7 @@ CTO will parse this. Missing sections = your work fails review automatically.
 
 | Tier | Used by | Best for | Weak at |
 |---|---|---|---|
-| **Opus 4.8** | security_engineer, devops_engineer (always); C-level when escalated | architecture, security review, prod-deploy, ambiguous judgment | nothing notable — strongest tier, costs the most quota |
+| **Opus 5** | security_engineer, devops_engineer (always); C-level when escalated | architecture, security review, prod-deploy, ambiguous judgment | nothing notable — strongest tier, costs the most quota |
 | **Sonnet 5** | developer, tester, web_designer, data_analyst, prompt_engineer, ads_manager, content_strategist (default) | routine coding/testing/content — "near-Opus on coding" per Anthropic | open-ended ambiguous judgment, adversarial/security reasoning, very long multi-step planning |
 | **GLM-5.1** | any role, opt-in for bulk/templated tasks only | high-volume repetitive work, zero Claude-quota impact | no image input (text-only); avoid for anything needing real judgment |
 

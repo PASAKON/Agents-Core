@@ -20,7 +20,7 @@ roles:
     # Default = Claude. GLM-5.1 offload is opt-in + flag-gated via
     # CXO_MODEL_PROVIDER (see lib.config.cxo_provider_overrides); leaving a
     # non-Claude id here would leak to the Anthropic API on the REPL path.
-    # Sonnet 5 default + Opus 4.8 escalation via the session-change-model
+    # Sonnet 5 default + Opus 5 escalation via the session-change-model
     # skill (decisions/0009-model-routing-policy.md).
     model: "claude-sonnet-5"
     fallback_model: "claude-fable-5"
@@ -103,7 +103,7 @@ roles:
   devops_engineer:
     display: DevOps Engineer
     level: w
-    model: "claude-opus-4-8[1m]"
+    model: "claude-opus-5"
     effort: "high"
     can_write_wiki: false
     can_create_task: false
@@ -114,7 +114,7 @@ roles:
   security_engineer:
     display: Security Engineer
     level: w
-    model: "claude-opus-4-8[1m]"
+    model: "claude-opus-5"
     effort: "xhigh"
     can_write_wiki: false
     can_create_task: false
