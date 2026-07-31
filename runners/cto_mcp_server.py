@@ -20,6 +20,7 @@ from mcp.server.fastmcp import FastMCP
 from lib import db
 from lib import recall as recall_lib
 from lib import reflect as reflect_lib
+from lib import toon
 from lib.config import get_project, projects
 from lib.logger import get_logger
 from lib.notify import info, warn
@@ -72,7 +73,7 @@ def wiki_list(prefix: str = "") -> str:
     """List wiki pages under an optional prefix."""
     try:
         pages = wiki_tools.wiki_list(prefix)
-        return "\n".join(pages[:200])
+        return toon.encode(pages[:200])
     except Exception as e:
         return f"ERROR: {e}"
 
@@ -82,7 +83,7 @@ def wiki_search(query: str) -> str:
     """Grep wiki for a query string."""
     try:
         hits = wiki_tools.wiki_search(query)
-        return json.dumps(hits, indent=2)
+        return toon.encode(hits)
     except Exception as e:
         return f"ERROR: {e}"
 
@@ -151,7 +152,7 @@ def check_collisions(project: str, touches: str) -> str:
     except Exception:
         paths = [s.strip() for s in touches.split(",") if s.strip()]
     hits = db.find_conflicts(project, paths)
-    return json.dumps(hits, indent=2)
+    return toon.encode(hits)
 
 
 @mcp.tool()
@@ -161,7 +162,7 @@ async def delegate_task(task_id: str) -> str:
     if t and not _is_mine(t):
         return _foreign_msg(t)
     result = await do_delegate(task_id)
-    return json.dumps(result, indent=2, default=str)[:6000]
+    return toon.encode(result)[:6000]
 
 
 @mcp.tool()
@@ -169,7 +170,7 @@ async def delegate_parallel_tasks(task_ids: str) -> str:
     """Delegate multiple tasks concurrently (max 3 at once). task_ids is JSON array."""
     ids = json.loads(task_ids)
     results = await delegate_parallel(ids, max_concurrent=3)
-    return json.dumps(results, indent=2, default=str)[:8000]
+    return toon.encode(results)[:8000]
 
 
 @mcp.tool()
@@ -177,7 +178,7 @@ def get_task(task_id: str) -> str:
     """Read a task row. Includes both `report` (DEV completion summary) and
     `delegate_log` (runner-level collision/spawn errors)."""
     t = db.get_task(task_id)
-    return json.dumps(t, indent=2, default=str)[:6000]
+    return toon.encode(t)[:6000]
 
 
 @mcp.tool()
@@ -233,13 +234,13 @@ def reopen_task(task_id: str, feedback: str) -> str:
 @mcp.tool()
 def list_projects() -> str:
     """List all known projects from config."""
-    return json.dumps(list(projects().values()), indent=2)
+    return toon.encode(list(projects().values()))
 
 
 @mcp.tool()
 def stats() -> str:
     """Get task counts by status."""
-    return json.dumps(db.stats())
+    return toon.encode(db.stats())
 
 
 @mcp.tool()
