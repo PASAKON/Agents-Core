@@ -109,7 +109,7 @@ _PROVIDER_KEY_VAR = {
     "byteplus": "BYTEPLUS_API_KEY",
 }
 _PROVIDER_DEFAULT_MODEL = {
-    "zai": "glm-5.1",
+    "zai": "glm-5.2",
     "byteplus": "glm-5.1",
 }
 
@@ -164,7 +164,7 @@ def dev_provider_overrides(role_name: str) -> dict | None:
         role_name,
         flag_var="DEV_MODEL_PROVIDER",
         roles_var="DEV_PROVIDER_ROLES",
-        default_roles="developer,tester",
+        default_roles="developer,tester,web_designer,data_analyst,prompt_engineer,ads_manager,content_strategist",
         model_var="DEV_PROVIDER_MODEL",
     )
 
@@ -175,12 +175,12 @@ def cxo_provider_overrides(role_name: str) -> dict | None:
     offloaded to GLM (to dodge the Claude weekly cap) separately.
 
     Flag-gated + reversible: unset CXO_MODEL_PROVIDER -> original Claude path.
-    Default pilot scope is "cto" only; widen via CXO_PROVIDER_ROLES.
+    Default pilot scope is all four C-levels; narrow via CXO_PROVIDER_ROLES.
     """
     return _provider_overrides(
         role_name,
         flag_var="CXO_MODEL_PROVIDER",
         roles_var="CXO_PROVIDER_ROLES",
-        default_roles="cto",
+        default_roles="cto,cmo,cgo,cfo",
         model_var="CXO_PROVIDER_MODEL",
     )

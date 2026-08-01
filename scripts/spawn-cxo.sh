@@ -26,6 +26,7 @@ ROOT="/Users/gob/Projects/Agents"
 
 ROLE=""
 WITH_LOGS=0
+USE_GLM=0
 EXPLICIT_ID=""
 ARGS=()
 prev=""
@@ -40,6 +41,7 @@ for a in "$@"; do
     --role) prev="--role" ;;
     --id)   prev="--id" ;;
     --with-logs) WITH_LOGS=1 ;;
+    --glm) USE_GLM=1 ;;
     *) ARGS+=("$a") ;;
   esac
 done
@@ -138,7 +140,14 @@ LOG_FILE="$ROOT/state/logs/$ROLE-$CXO_SESSION_ID.log"
 mkdir -p "$ROOT/state/logs"
 touch "$LOG_FILE"
 
-CHAT_CMD="export CXO_SESSION_ID='$CXO_SESSION_ID' && bash '$ROOT/scripts/cxo-claude.sh' --role $ROLE $CLAUDE_ARGS"
+# --glm: flip the flag-gated GLM offload ON for this launch only (same
+# mechanism as spawn-cto.sh --glm, generalized to all four C-levels).
+GLM_PREFIX=""
+if [ "$USE_GLM" = "1" ]; then
+  GLM_PROVIDER="${GLM_PROVIDER:-zai}"
+  GLM_PREFIX="export CXO_MODEL_PROVIDER=$GLM_PROVIDER && "
+fi
+CHAT_CMD="${GLM_PREFIX}export CXO_SESSION_ID='$CXO_SESSION_ID' && bash '$ROOT/scripts/cxo-claude.sh' --role $ROLE $CLAUDE_ARGS"
 LOG_CMD="cd '$ROOT' && tail -F state/logs/$ROLE-$CXO_SESSION_ID.log"
 DEV_CMD="cd '$ROOT' && bash scripts/tail-dev-logs.sh"
 
@@ -176,8 +185,13 @@ $EXTRA_TABS
 end tell
 APPLESCRIPT
 
+PROVIDER_NOTE=""
+if [ "$USE_GLM" = "1" ]; then
+  PROVIDER_NOTE=" [GLM/${GLM_PROVIDER:-zai} — no Claude quota]"
+fi
+
 if [ "$WITH_LOGS" = "1" ]; then
-  echo "spawned iTerm window id=$CXO_SESSION_ID ($DISPLAY chat + log + dev logs)."
+  echo "spawned iTerm window id=$CXO_SESSION_ID ($DISPLAY chat + log + dev logs).$PROVIDER_NOTE"
 else
-  echo "spawned iTerm window id=$CXO_SESSION_ID (logs at state/logs/$ROLE-$CXO_SESSION_ID.log)"
+  echo "spawned iTerm window id=$CXO_SESSION_ID (logs at state/logs/$ROLE-$CXO_SESSION_ID.log)$PROVIDER_NOTE"
 fi

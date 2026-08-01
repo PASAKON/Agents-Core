@@ -180,7 +180,7 @@ if ov:
     for k, v in ov["env"].items():
         print("export " + k + "=" + shlex.quote(v))
 ' 2>/dev/null || true)"
-eval "${PROVIDER_EXPORTS:-}"
+eval "${PROVIDER_EXPORTS:-}" 2>/dev/null || true
 
 if [ "${GLM_ACTIVE:-0}" = "1" ]; then
   MODEL_ARGS=(--model "$GLM_MODEL")

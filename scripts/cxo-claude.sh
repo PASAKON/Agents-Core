@@ -299,12 +299,35 @@ APPLEEOF
   ) >/dev/null 2>&1 </dev/null &
 fi
 
+# Flag-gated GLM offload (CXO_MODEL_PROVIDER, set by spawn-cxo.sh --glm).
+# Default OFF -> Claude path unchanged. When set, lib.config
+# cxo_provider_overrides injects the provider env + swaps the model; the GLM
+# endpoint rejects the Claude-only fallback id and --effort, so both are
+# dropped. Every request then hits the GLM provider -> Claude weekly limit untouched.
+# Supported providers: "zai" (Z.ai direct), "byteplus" (BytePlus ModelArk).
+PROVIDER_EXPORTS="$(source "$ROOT/.venv/bin/activate" 2>/dev/null; python3 -c '
+import shlex, sys
+from lib.config import cxo_provider_overrides
+ov = cxo_provider_overrides(sys.argv[1])
+if ov:
+    print("GLM_ACTIVE=1")
+    print("GLM_MODEL=" + shlex.quote(ov["model"]))
+    for k, v in ov["env"].items():
+        print("export " + k + "=" + shlex.quote(v))
+' "$ROLE" 2>/dev/null || true)"
+eval "${PROVIDER_EXPORTS:-}" 2>/dev/null || true
+
+if [ "${GLM_ACTIVE:-0}" = "1" ]; then
+  MODEL_ARGS=(--model "$GLM_MODEL")
+  echo "$DISPLAY launching on GLM provider (${CXO_MODEL_PROVIDER:-zai}) — Claude weekly limit untouched." >&2
+else
+  MODEL_ARGS=(--model "$MODEL" --fallback-model 'claude-fable-5' --effort "$EFFORT")
+fi
+
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
   -n "$TAB_TITLE" \
-  --model "$MODEL" \
-  --fallback-model 'claude-fable-5' \
-  --effort "$EFFORT" \
+  "${MODEL_ARGS[@]}" \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \

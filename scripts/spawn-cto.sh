@@ -130,7 +130,7 @@ touch "$CTO_LOG"
 # Supports: "zai" (Z.ai direct), "byteplus" (BytePlus ModelArk).
 GLM_PREFIX=""
 if [ "$USE_GLM" = "1" ]; then
-  GLM_PROVIDER="${GLM_PROVIDER:-byteplus}"
+  GLM_PROVIDER="${GLM_PROVIDER:-zai}"
   GLM_PREFIX="export CXO_MODEL_PROVIDER=$GLM_PROVIDER && "
 fi
 CHAT_CMD="${GLM_PREFIX}export CTO_SESSION_ID='$CTO_SESSION_ID' && bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS"
