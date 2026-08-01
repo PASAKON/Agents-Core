@@ -226,7 +226,7 @@ def main() -> None:
 
     # DEV model provider override (flag-gated, reversible). When
     # DEV_MODEL_PROVIDER is set, worker DEVs run on a cheaper Anthropic-
-    # compatible endpoint (Z.ai or BytePlus ModelArk -> GLM-5.1) instead of
+    # compatible endpoint (Z.ai -> GLM-5.2) instead of
     # C-level orchestration is unaffected. Unset -> original behaviour.
     _ov = dev_provider_overrides(role)
     effort_args = ["--effort", get_role(role).get("effort") or "high"]

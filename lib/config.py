@@ -67,7 +67,7 @@ def get_project(key: str) -> dict:
 # When DEV_MODEL_PROVIDER is set, worker DEVs spawn against an alternative
 # Anthropic-compatible endpoint instead of Claude, to offload grunt coding
 # work to a cheaper model while C-level orchestration stays on Claude.
-# Supported providers: "zai" (Z.ai direct), "byteplus" (BytePlus ModelArk).
+# Provider: "zai" (Z.ai direct).
 # Flag unset -> 100% original Claude behaviour.
 
 def _read_dotenv_var(name: str) -> str | None:
@@ -96,21 +96,16 @@ def _read_dotenv_var(name: str) -> str | None:
     return None
 
 
-# Anthropic-compatible coding endpoints per provider.
-#   zai:       Z.ai direct — https://api.z.ai/api/anthropic (Coding Plan quota)
-#   byteplus:  BytePlus ModelArk — MUST use /api/coding; /api/v3 bypasses the
-#              Coding Plan quota and incurs separate postpaid charges.
+# Anthropic-compatible coding endpoint (Z.ai Coding Plan quota).
+# BytePlus ModelArk removed 2026-08-01 — org now on Z.ai only.
 _PROVIDER_ENDPOINTS = {
     "zai": "https://api.z.ai/api/anthropic",
-    "byteplus": "https://ark.ap-southeast.bytepluses.com/api/coding",
 }
 _PROVIDER_KEY_VAR = {
     "zai": "ZAI_API_KEY",
-    "byteplus": "BYTEPLUS_API_KEY",
 }
 _PROVIDER_DEFAULT_MODEL = {
     "zai": "glm-5.2",
-    "byteplus": "glm-5.1",
 }
 
 
@@ -123,7 +118,7 @@ def _provider_overrides(
     model_var: str,
 ) -> dict | None:
     """Shared spawn-override resolver for the cheaper Anthropic-compatible
-    provider path (Z.ai or BytePlus ModelArk -> GLM-5.1).
+    provider path (Z.ai -> GLM-5.2).
 
     Returns {"model": str, "env": dict, "effort": str | None} or None to
     use the default Claude path. Fails safe to None (Claude) when the
@@ -151,7 +146,7 @@ def _provider_overrides(
             "ANTHROPIC_AUTH_TOKEN": key,
             "ANTHROPIC_MODEL": model,
         },
-        "effort": None,  # GLM/ModelArk endpoints don't accept Claude --effort
+        "effort": None,  # Z.ai GLM endpoint doesn't accept Claude --effort
     }
 
 

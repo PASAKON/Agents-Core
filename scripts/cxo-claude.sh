@@ -304,7 +304,7 @@ fi
 # cxo_provider_overrides injects the provider env + swaps the model; the GLM
 # endpoint rejects the Claude-only fallback id and --effort, so both are
 # dropped. Every request then hits the GLM provider -> Claude weekly limit untouched.
-# Supported providers: "zai" (Z.ai direct), "byteplus" (BytePlus ModelArk).
+# Provider: "zai" (Z.ai direct).
 PROVIDER_EXPORTS="$(source "$ROOT/.venv/bin/activate" 2>/dev/null; python3 -c '
 import shlex, sys
 from lib.config import cxo_provider_overrides

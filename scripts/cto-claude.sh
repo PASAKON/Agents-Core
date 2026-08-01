@@ -169,7 +169,7 @@ print(r.get('model') or 'claude-sonnet-5', r.get('fallback_model') or 'claude-fa
 # cxo_provider_overrides injects the provider env + swaps the model; the GLM
 # endpoint rejects the Claude-only fallback id and --effort, so both are
 # dropped. Every request then hits the GLM provider -> Claude weekly limit untouched.
-# Supported providers: "zai" (Z.ai direct), "byteplus" (BytePlus ModelArk).
+# Provider: "zai" (Z.ai direct).
 PROVIDER_EXPORTS="$(source "$ROOT/.venv/bin/activate" 2>/dev/null; python3 -c '
 import shlex
 from lib.config import cxo_provider_overrides
@@ -184,7 +184,7 @@ eval "${PROVIDER_EXPORTS:-}" 2>/dev/null || true
 
 if [ "${GLM_ACTIVE:-0}" = "1" ]; then
   MODEL_ARGS=(--model "$GLM_MODEL")
-  echo "CTO launching on GLM provider (${CXO_MODEL_PROVIDER:-byteplus}) — Claude weekly limit untouched." >&2
+  echo "CTO launching on GLM provider (${CXO_MODEL_PROVIDER:-zai}) — Claude weekly limit untouched." >&2
 else
   MODEL_ARGS=(--model "$CTO_MODEL" --fallback-model "$CTO_FALLBACK" --effort "$CTO_EFFORT")
 fi
