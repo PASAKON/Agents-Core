@@ -72,7 +72,7 @@ export const api = {
       .eq("user_id", uid).eq("id", noteId).single();
     if (error) throw error;
     const { data: todos } = await db
-      .from("lungnote_todos").select("id,text,done,due_at,due_text,position")
+      .from("lungnote_todos").select("id,text,done,status,due_at,due_text,position")
       .eq("note_id", noteId).order("position");
     return { ...note, todos: todos ?? [] };
   },
@@ -139,9 +139,9 @@ export const api = {
       .from("lungnote_todos")
       .insert({
         user_id: uid, note_id: nid, text, due_at: dueAt, due_text: dueText,
-        position: (last?.position ?? -1) + 1, source: "web",
+        position: (last?.position ?? -1) + 1, source: "web", status: "open",
       })
-      .select("id,text,due_at").single();
+      .select("id,text,due_at,status").single();
     if (error) throw error;
     // todo ที่ Claude ใส่ → โน้ตแม่ต้องติด tag Claude เสมอ (RULE header)
     await this.tagNoteClaude(uid, nid);
@@ -151,7 +151,7 @@ export const api = {
     const uid = await resolveUserId();
     let q = db
       .from("lungnote_todos")
-      .select("id,text,done,due_at,due_text,note_id,updated_at")
+      .select("id,text,done,status,due_at,due_text,note_id,updated_at")
       .eq("user_id", uid)
       .order("due_at", { ascending: true, nullsFirst: false })
       .limit(limit);
@@ -160,17 +160,41 @@ export const api = {
     if (error) throw error;
     return data;
   },
-  async completeTodo(todoId) {
+  // Lifecycle terminal verbs. Setting `status` is authoritative — the DB
+  // trigger (see migrations/20260803000000_lungnote_todos_status.sql) mirrors
+  // `done` to (status != 'open'), so every `done` consumer (webapp checkbox,
+  // scripts/session-deadline-check.py, list_todos) stays correct with no drift.
+  // If `note` is given it is appended to the parent note as a human-readable
+  // WHY — org practice was "append_note the reason on non-literal closes"; the
+  // status field now formalises it, but we keep the prose trail too.
+  async setTodoStatus(todoId, status, note = null) {
     const uid = await resolveUserId();
     const { data, error } = await db
-      .from("lungnote_todos").update({ done: true })
-      .eq("user_id", uid).eq("id", todoId).select("id,text,done").single();
+      .from("lungnote_todos").update({ status })
+      .eq("user_id", uid).eq("id", todoId)
+      .select("id,text,done,status,note_id").single();
     if (error) throw error;
+    if (note) {
+      const label = { complete: "เสร็จ", cancel: "ยกเลิก", delete: "ลบ" }[status] || status;
+      const snippet = (data.text || "").slice(0, 60);
+      // Non-fatal: the status write above already succeeded, so a note-append
+      // failure must NOT fail the call (a retry would duplicate the status flip
+      // AND the note line). Surface it as a flag instead of throwing.
+      try {
+        await this.appendNote(data.note_id, `— todo "${snippet}" → [${label}] ${note}`);
+      } catch (e) {
+        data.note_appended = false;
+        data.note_error = e.message || String(e);
+      }
+    }
     return data;
   },
+  async completeTodo(todoId, note = null) { return this.setTodoStatus(todoId, "complete", note); },
+  async cancelTodo(todoId, note = null)   { return this.setTodoStatus(todoId, "cancel", note); },
+  async deleteTodo(todoId, note = null)   { return this.setTodoStatus(todoId, "delete", note); },
 };
 
-const server = new McpServer({ name: "lungnote", version: "1.1.0" });
+const server = new McpServer({ name: "lungnote", version: "1.2.0" });
 
 server.tool("search_notes", "ค้นหาโน้ตใน LungNote (title+body)", { query: z.string(), limit: z.number().optional() },
   async ({ query, limit }) => api.searchNotes(query, limit ?? 10).then(ok).catch(fail));
@@ -182,14 +206,21 @@ server.tool("append_note", "ต่อท้ายข้อความลงโ�
   async ({ note_id, text }) => api.appendNote(note_id, text).then(ok).catch(fail));
 server.tool("list_recent", "ลิสต์โน้ตล่าสุด", { limit: z.number().optional() },
   async ({ limit }) => api.listRecent(limit ?? 10).then(ok).catch(fail));
-server.tool("add_todo", "เพิ่มงาน (มี due_at ISO-8601 ได้) ลงโน้ต — ไม่ระบุโน้ตจะลง 'Inbox จาก Claude'",
+server.tool("add_todo", "เพิ่มงาน (มี due_at ISO-8601 ได้) ลงโน้ต — ไม่ระบุโน้ตจะลง 'Inbox จาก Claude' (เริ่มต้น status=open)",
   { text: z.string().max(2000), due_at: z.string().datetime({ offset: true }).optional(), due_text: z.string().optional(), note_id: z.string().uuid().optional(), note_title: z.string().optional() },
   async ({ text, due_at, due_text, note_id, note_title }) =>
     api.addTodo(text, { dueAt: due_at ?? null, dueText: due_text ?? null, noteId: note_id ?? null, ...(note_title ? { noteTitle: note_title } : {}) }).then(ok).catch(fail));
-server.tool("list_todos", "ลิสต์งานค้าง (เรียงตาม due_at)", { include_done: z.boolean().optional(), limit: z.number().optional() },
+server.tool("list_todos", "ลิสต์งานค้าง (เรียงตาม due_at) — คืน status ด้วย (open|complete|cancel|delete)", { include_done: z.boolean().optional(), limit: z.number().optional() },
   async ({ include_done, limit }) => api.listTodos(include_done ?? false, limit ?? 50).then(ok).catch(fail));
-server.tool("complete_todo", "ติ๊กงานเสร็จ", { todo_id: z.string().uuid() },
-  async ({ todo_id }) => api.completeTodo(todo_id).then(ok).catch(fail));
+server.tool("complete_todo", "ติ๊กงานเสร็จ (status=complete) — note=เหตุผลจะถูกบันทึกต่อท้ายโน้ตแม่",
+  { todo_id: z.string().uuid(), note: z.string().max(2000).optional() },
+  async ({ todo_id, note }) => api.completeTodo(todo_id, note ?? null).then(ok).catch(fail));
+server.tool("cancel_todo", "ยกเลิกงาน — ไม่ได้ทำ/ไม่เกี่ยวข้องแล้ว (status=cancel) — note=เหตุผลจะถูกบันทึกต่อท้ายโน้ตแม่",
+  { todo_id: z.string().uuid(), note: z.string().max(2000).optional() },
+  async ({ todo_id, note }) => api.cancelTodo(todo_id, note ?? null).then(ok).catch(fail));
+server.tool("delete_todo", "ถอดงานออกจากรายการ — เพิ่มโดยผิด/ซ้ำ (soft delete, status=delete, ยังอยู่ใน DB) — note=เหตุผลจะถูกบันทึกต่อท้ายโน้ตแม่",
+  { todo_id: z.string().uuid(), note: z.string().max(2000).optional() },
+  async ({ todo_id, note }) => api.deleteTodo(todo_id, note ?? null).then(ok).catch(fail));
 
 // Start only when executed directly (so seed/test scripts can import { api }).
 import { pathToFileURL } from "node:url";
