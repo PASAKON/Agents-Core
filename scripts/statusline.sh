@@ -37,13 +37,22 @@ if [ -n "$SID_FULL" ] && [ -d "$CONFIG_DIR" ]; then
 fi
 
 # --- render the caveman badge (plugin script; reads its flag file, ignores stdin) ---
+# Capture it so we can join badge + SID with a space (avoid [CAVEMAN][SID] touching).
 CAVEMAN_SCRIPT="$CONFIG_DIR/hooks/caveman-statusline.sh"
+BADGE=""
 if [ -f "$CAVEMAN_SCRIPT" ]; then
-  bash "$CAVEMAN_SCRIPT"
+  BADGE="$(bash "$CAVEMAN_SCRIPT" 2>/dev/null || true)"
 fi
 
-# --- append a short session-id tag (last 8 chars) ---
+# --- join non-empty badge + short session-id tag with a single space ---
 if [ -n "$SID_FULL" ]; then
   SID_SHORT="${SID_FULL: -8}"
-  printf '\033[38;5;60m[SID:%s]\033[0m' "$SID_SHORT"
+  SID_TAG="$(printf '\033[38;5;60m[SID:%s]\033[0m' "$SID_SHORT")"
+  if [ -n "$BADGE" ]; then
+    printf '%s %s' "$BADGE" "$SID_TAG"   # [CAVEMAN:LITE] [SID:xxxxxxxx]
+  else
+    printf '%s' "$SID_TAG"               # [SID:xxxxxxxx]
+  fi
+else
+  printf '%s' "$BADGE"                    # [CAVEMAN:LITE] only
 fi
