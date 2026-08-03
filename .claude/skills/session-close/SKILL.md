@@ -1,0 +1,121 @@
+---
+name: session-close
+description: Close a working session by verifying its Entry Problem is actually solved before flipping the tab to 🏁 (worktree-style focus discipline) in the Mooniex virtual org. Refuses to close until every Definition-of-Done item is checked and any external side-effect is verified; auto-parks anything still open to LungNote. Trigger on /session-close and proactively whenever the session is wrapping up — CEO says "ปิด session", "จบงาน", "close out", "done for now", "พอแค่นี้", or the CTO loop is about to set the 🏁 tab glyph. Enforces IRON-RULES §35.
+---
+
+# Session Close — exit gate tied to the entry problem
+
+A session closes only when its **one entry problem** is solved. "We talked a lot"
+is not closed. This skill runs the exit gate from [IRON-RULES §35](../../../../LLMs/IRON-RULES.md)
+and refuses 🏁 if the entry Definition of Done isn't verifiably met.
+
+## Gates — refuse 🏁 if any fails
+
+### 1. Recall the charter
+- [ ] State the session's **Entry Problem** (one sentence) and its **DoD list**
+      as pinned at open. If no charter was set, reconstruct it now from the
+      session's actual work, then judge against it.
+
+### 2. Every DoD item passes — with evidence
+- [ ] Walk each DoD item; mark `[x]` only with concrete proof (sha, test count,
+      query result, CEO "approve"). Quote the evidence inline.
+- [ ] No item marked done by narration ("should be working") — that's a FAIL.
+
+### 3. External-state verified (side-effect work)
+Applies if the entry problem touched anything outside the repo — DB write, social
+post, deploy, email, payment, upload.
+- [ ] Query the external system for evidence the effect actually landed. **A commit
+      proves authorship, never execution.** Paste the result.
+- [ ] If it can't be queried (no creds/access) → the session does **not** 🏁-close;
+      report it as HOLD pending verification.
+
+### 4. Capture every CEO action-item + park open work → LungNote (สำคัญมาก)
+Two things land in LungNote here. Anything that lives only in the chat is lost
+the moment the tab closes — so save it now, with dates.
+
+**4a. CEO action-items + reminders — capture every one (written after the CEO OKs, see 4c), with dates.**
+Walk the WHOLE session for anything **the CEO personally must do** — not just
+code: reply to an email, send a doc, decide A/B, pay an invoice, migrate X→Y,
+follow up with a person, renew a key. For EACH:
+- `mcp__lungnote__add_todo` with a clear one-line `text`.
+- **If it has a date/deadline → set `due_at` (ISO-8601, e.g. `2026-06-18T00:00:00Z`)**
+  so LungNote shows the countdown ("ขึ้นแจ้งเตือนกี่วัน / ลงวันไหน"). Convert
+  relative dates ("ก่อนศุกร์", "ภายใน 3 วัน", "พรุ่งนี้") to an absolute ISO date
+  FIRST (today is known from context). If genuinely no date, save without
+  `due_at` but say so in the report.
+- These are **reminders, not necessarily ClaudeCode work** — "รอตอบ email จาก
+  ___", "ส่ง KYC ก่อน ___", "migrate A→B ก่อน 2026-06-18" all count, even though
+  the CEO (not an agent) does them.
+
+**4b. Park unfinished / off-topic work — backlog.**
+Anything raised but **not** part of the entry problem → `add_todo` one line each
+(with `due_at` if dated), so it's a real backlog item, not a loose thread.
+
+- [ ] If the entry problem itself is **unfinished**: do NOT 🏁. Set the tab to
+      `✅` (work pending) or `🔴` (blocked), and say plainly it's abandoned/partial
+      — per §35, an unsolved entry problem is not a close.
+
+**4c. Verify, then get the CEO's OK before touching the todo list (สำคัญมาก).**
+The todos are the CEO's — never silently add or complete one. 4a/4b only DRAFT
+the changes; 4c is where they get written.
+- **Completing / deleting a todo** (`complete_todo`): FIRST verify the task is
+  REALLY done with real evidence (prod query / merged sha / live check) — same
+  bar as gate 2. A todo from a past session can LOOK done but isn't
+  ([[orphan_recovery_verify_external_state]]). Never tick something off on a hunch.
+- **Propose, don't apply.** Show the CEO the exact diff —
+  `✅ เสร็จ→ลบ: <todo> (หลักฐาน: …)` and `➕ เพิ่ม: <todo> · due <date>` — and
+  **wait for an explicit "approve"**.
+- Only AFTER the CEO approves: call `complete_todo` / `add_todo`, THEN flip the
+  tab (gate 5). The CEO may OK all, some, or none — never mutate a todo the CEO
+  did not approve.
+
+List every applied change — and its due date — in the report.
+
+**4d. Surface still-open work so the next session inherits it.**
+The loop only closes cleanly if what's unfinished is visible at the next open.
+- [ ] **Open GitHub issues** — list any this session opened or touched that are
+      still open (`gh issue list` on the relevant repo(s), or just the issue #s
+      you know about). Name them in the report so `/session-open` re-surfaces
+      them next time. A blocker parked as an issue (e.g. GH mooniex-webapp#85)
+      belongs here, not silently in the chat log.
+- [ ] **Deadline to-dos** — confirm every dated item from 4a/4b actually carries
+      a `due_at` (not just prose). The `SessionStart` deadline hook only re-
+      surfaces items that have a real `due_at` — an undated "remember later" is
+      invisible to the loop. If it has a date, it MUST have `due_at`.
+
+### 5. Flip BOTH tab layers + final report
+Only after gates 1–4 pass — including the CEO's explicit OK on the todo changes (4c):
+```bash
+bash scripts/tab-title.sh "🏁 <entry problem solved, ≤35 chars>"
+bash scripts/tab-main.sh "" <N>/<N>          # every DoD item done -> a full bar
+```
+Both, always. A 🏁 sub tab above a half-empty progress bar is the tab bar
+contradicting itself, and the CEO reads the bar first.
+
+## Output format
+
+```
+🏁 SESSION CLOSE — <entry problem>
+DoD:
+  [x] <item 1> — evidence: <sha / test / query>
+  [x] <item 2> — evidence: <...>
+External state : VERIFIED — <query result>  /  N/A repo-only  /  HOLD <reason>
+Saved → LungNote (todo · due):
+  CEO action-items / reminders:
+    - <thing CEO must do> · due <ISO date or "—">
+  Backlog (off-topic / unfinished):
+    - <item> · due <date or "—">
+Open issues    : <#NN title — repo>  /  none   (re-surfaced by next /session-open)
+Verdict        : CLOSE 🏁  /  STAY OPEN (entry unsolved)  /  HOLD <reason>
+```
+
+## Operating rules
+
+- **The entry problem is the only close condition.** Side quests done ≠ session
+  done. Side quests undone ≠ session blocked. Judge against the charter only.
+- **Verify, don't assume, external effects** — same discipline as
+  cto-merge-checklist gate 7 (born from the 2026-06-10 double-post near-miss).
+- **🏁 is a promise** (§32): every DoD met, nothing waiting. If unsure, it's `✅`,
+  not 🏁.
+- **Parking is mandatory, not optional.** An off-topic idea that's only in the
+  chat log is lost; in LungNote it's a job for a future session.
