@@ -107,6 +107,33 @@ def test_bare_namespace_prefix_lists_that_root():
           'wiki_list("org") and wiki_list("org:") agree')
 
 
+# --- Test 1c: WIKI_ROOT_<NS> overrides any namespace's path ---
+# config/wikis.yaml carries Mac absolute paths. Contabo needs to point the org
+# root at its own checkout, and the legacy WIKI_ROOT only ever covered the
+# default namespace. Added for ADR 0013 Phase 5.
+def test_per_namespace_env_override():
+    import os
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+        with _FakeWiki(tmp):
+            elsewhere = tmp / "org-elsewhere"
+            _git_init(elsewhere)
+            (elsewhere / "playbooks").mkdir(parents=True)
+            (elsewhere / "playbooks" / "x.md").write_text("relocated org content\n")
+            os.environ["WIKI_ROOT_ORG"] = str(elsewhere)
+            wiki._roots.cache_clear()
+            try:
+                moved = wiki.wiki_read("org:playbooks/x.md")
+                default_untouched = wiki.wiki_read("IRON-RULES.md")
+            finally:
+                del os.environ["WIKI_ROOT_ORG"]
+                wiki._roots.cache_clear()
+    _mark(moved.strip() == "relocated org content",
+          "WIKI_ROOT_ORG repoints the org root away from config/wikis.yaml")
+    _mark(default_untouched.strip() == "mooniex iron rules content",
+          "WIKI_ROOT_ORG leaves the default namespace alone")
+
+
 # --- Test 2: unprefixed read hits the default namespace ---
 def test_unprefixed_read_hits_default_ns():
     with tempfile.TemporaryDirectory() as td:
@@ -197,6 +224,7 @@ def main() -> int:
     print("Running wiki multi-root tests...\n")
     test_namespaced_read()
     test_bare_namespace_prefix_lists_that_root()
+    test_per_namespace_env_override()
     test_unprefixed_read_hits_default_ns()
     test_missing_root_skipped_by_list_and_search()
     test_all_roots_missing_raises_generic_error()
@@ -204,7 +232,7 @@ def main() -> int:
     test_path_traversal_blocked()
     test_search_round_trips_into_read()
 
-    total = 11
+    total = 13
     print(f"\n{'ALL PASS' if _failures == 0 else str(_failures) + ' FAILED'} ({total - _failures}/{total})")
     return 1 if _failures else 0
 

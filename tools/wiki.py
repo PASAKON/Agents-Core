@@ -21,12 +21,13 @@ Path addressing:
     a registered `ns`; anything else is treated as a literal unprefixed
     path against the default namespace.
 
-`WIKI_ROOT` env var precedence (highest wins) for the DEFAULT namespace's
-path only — every other namespace's path comes solely from
-config/wikis.yaml:
-  1. WIKI_ROOT env var           (existing override; keeps prod/Contabo deploys
-                                   and the systemd unit working unchanged)
-  2. config/wikis.yaml `path:` entry for the `default` ns
+Root-path precedence, per namespace (highest wins):
+  1. WIKI_ROOT_<NS>  e.g. WIKI_ROOT_ORG. Any namespace. config/wikis.yaml
+                     carries Mac absolute paths, so this is how a non-Mac box
+                     (Contabo) points a root at its own checkout.
+  2. WIKI_ROOT       legacy var, DEFAULT namespace only — kept so existing
+                     deploys and the systemd unit keep working unchanged.
+  3. config/wikis.yaml `path:` entry for that ns
 
 Missing roots (Contabo has none by design; `Agents-Wikis` doesn't exist
 until Phase 2 of the split) are not fatal by themselves:
@@ -41,6 +42,7 @@ until Phase 2 of the split) are not fatal by themselves:
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from functools import lru_cache
 from pathlib import Path
@@ -66,17 +68,35 @@ def _default_ns() -> str:
     return _registry()["default"]
 
 
+def _env_root_var(ns: str) -> str:
+    """Per-namespace override var name: `org` -> WIKI_ROOT_ORG."""
+    return "WIKI_ROOT_" + re.sub(r"[^A-Za-z0-9]", "_", ns).upper()
+
+
 @lru_cache(maxsize=1)
 def _roots() -> dict[str, Path]:
-    """ns -> resolved root Path, honoring WIKI_ROOT for the default ns."""
+    """ns -> resolved root Path.
+
+    Precedence per namespace (highest first):
+      1. WIKI_ROOT_<NS>   e.g. WIKI_ROOT_ORG. Works for ANY namespace, which is
+                          what lets a non-Mac box (Contabo) point a root at its
+                          own checkout path — config/wikis.yaml carries Mac
+                          absolute paths.
+      2. WIKI_ROOT        legacy var, DEFAULT namespace only. Kept so existing
+                          deploys and the systemd unit keep working unchanged.
+      3. config/wikis.yaml `path:`
+    """
     reg = _registry()
     default_ns = reg["default"]
-    env_override = os.environ.get("WIKI_ROOT")
+    legacy = os.environ.get("WIKI_ROOT")
     out: dict[str, Path] = {}
     for w in reg["wikis"]:
         ns = w["ns"]
-        if ns == default_ns and env_override:
-            out[ns] = Path(env_override).resolve()
+        per_ns = os.environ.get(_env_root_var(ns))
+        if per_ns:
+            out[ns] = Path(per_ns).resolve()
+        elif ns == default_ns and legacy:
+            out[ns] = Path(legacy).resolve()
         else:
             out[ns] = Path(w["path"]).resolve()
     return out
