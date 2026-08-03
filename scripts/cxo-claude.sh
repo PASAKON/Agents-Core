@@ -241,6 +241,13 @@ printf '\033]0;%s ⏳ เริ่ม session\007' "$TAB_TITLE"
 # builds without this env). The keeper loop below re-asserts regardless.
 export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
 
+# ADR 0013 Phase 5 — org wiki root on a non-Mac box.
+# config/wikis.yaml carries Mac absolute paths; Contabo keeps its checkout at
+# /opt/agents-wikis. No-op on the Mac, where that path does not exist.
+if [ -z "${WIKI_ROOT_ORG:-}" ] && [ -d /opt/agents-wikis ]; then
+  export WIKI_ROOT_ORG=/opt/agents-wikis
+fi
+
 # Title keeper: re-assert the saved title every 60s while this session
 # lives — survives zsh precmd resets + claude CLI title rewrites.
 # stdio detached so callers capturing this script's output don't block
