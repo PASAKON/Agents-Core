@@ -33,6 +33,8 @@ _default_workers: &default_workers
   - prompt_engineer
   - ads_manager
   - content_strategist
+  - video_editor
+  - script_writer
 
 projects:
   - key: mooniex-claudeflow
