@@ -108,9 +108,9 @@ def _release_pid_lock(cto_id: str) -> None:
 
 
 def _set_iterm_tab_title(title: str) -> None:
-    """Emit ANSI OSC 0 to rename the current iTerm tab."""
+    """Emit ANSI OSC 1 to rename the current iTerm tab."""
     try:
-        sys.stdout.write(f"\033]0;{title}\007")
+        sys.stdout.write(f"\033]1;{title}\007")
         sys.stdout.flush()
     except Exception:
         pass
