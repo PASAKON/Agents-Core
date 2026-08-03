@@ -1,0 +1,212 @@
+# Wiki content-split manifest — ADR 0013 §"Rollout" Phase 4.
+#
+# Consumed by scripts/wiki_split.py (--plan / --apply / --verify). This file
+# is the move list; it does NOT replace config/wikis.yaml, which stays the
+# registry the wiki tools (tools/wiki.py) actually serve.
+#
+# `moves`: each entry is one page moving from one wiki repo to another.
+#   `from` / `to` are namespaces. `org` and `mooniex` are the two namespaces
+#   registered in config/wikis.yaml — their on-disk paths come from there,
+#   never hardcoded here. `lungnote` is NOT a wiki-tools namespace (see
+#   `destinations.lungnote` below and TASK.md: "add it to the manifest as a
+#   destination, NOT to config/wikis.yaml — that registry is for namespaces
+#   the wiki tools serve; LungNote is not one").
+#
+# `destinations`: on-disk path (and link-rewrite metadata) for any `to`
+# namespace that is NOT in config/wikis.yaml.
+#
+# `out_of_scope`: pages wiki_split.py must NEVER move (split by SECTION by
+# the CTO in a later stage), but whose crossing links it MUST still rewrite
+# in place — 85 of the 323 known cross-links point at IRON-RULES.md alone.
+
+moves:
+  # --- Root (7) ---
+  - path: CONTRIBUTING.md
+    from: mooniex
+    to: org
+  - path: MAINTAINERS.md
+    from: mooniex
+    to: org
+  - path: CLAUDE.md
+    from: mooniex
+    to: org
+  - path: GOAL.md
+    from: mooniex
+    to: org
+  - path: DEV-PROMPT.md
+    from: mooniex
+    to: org
+  - path: DEV-PROMPT-INLINE.md
+    from: mooniex
+    to: org
+  - path: skills-registry.md
+    from: mooniex
+    to: org
+
+  # --- playbooks/ (22) ---
+  - path: playbooks/agent-listener.md
+    from: mooniex
+    to: org
+  - path: playbooks/agent-messaging.md
+    from: mooniex
+    to: org
+  - path: playbooks/before-cross-folder-edit.md
+    from: mooniex
+    to: org
+  - path: playbooks/browser-agent-handoff.md
+    from: mooniex
+    to: org
+  - path: playbooks/claude-in-chrome.md
+    from: mooniex
+    to: org
+  - path: playbooks/claudeflow-mesh.md
+    from: mooniex
+    to: org
+  - path: playbooks/cto-dev-orchestration.md
+    from: mooniex
+    to: org
+  - path: playbooks/cxo-tab-lifecycle.md
+    from: mooniex
+    to: org
+  - path: playbooks/github-push-coordination.md
+    from: mooniex
+    to: org
+  - path: playbooks/knowledge-structure.md
+    from: mooniex
+    to: org
+  - path: playbooks/office-claim-api.md
+    from: mooniex
+    to: org
+  - path: playbooks/office-coordination.md
+    from: mooniex
+    to: org
+  - path: playbooks/onboarding.md
+    from: mooniex
+    to: org
+  - path: playbooks/org-operating-model.md
+    from: mooniex
+    to: org
+  - path: playbooks/projects-tasks.md
+    from: mooniex
+    to: org
+  - path: playbooks/secrets-rotation.md
+    from: mooniex
+    to: org
+  - path: playbooks/skill-maintenance.md
+    from: mooniex
+    to: org
+  - path: playbooks/web-designer.md
+    from: mooniex
+    to: org
+  - path: playbooks/worktree-and-concurrent-sessions.md
+    from: mooniex
+    to: org
+  - path: playbooks/marketing.md
+    from: mooniex
+    to: org
+  - path: playbooks/cron-rules.md
+    from: mooniex
+    to: org
+  - path: playbooks/brand-truth.md
+    from: mooniex
+    to: org
+
+  # --- decisions/ (14) ---
+  - path: decisions/0007-deprecate-desk-pattern.md
+    from: mooniex
+    to: org
+  - path: decisions/0008-database-table-governance.md
+    from: mooniex
+    to: org
+  - path: decisions/0009-model-routing-policy.md
+    from: mooniex
+    to: org
+  - path: decisions/0010-toon-encoding-adoption.md
+    from: mooniex
+    to: org
+  - path: decisions/0011-glm-5-2-zai-migration.md
+    from: mooniex
+    to: org
+  - path: decisions/0012-github-repo-naming-convention.md
+    from: mooniex
+    to: org
+  - path: decisions/2026-05-26-cxo-tab-id-locked-close.md
+    from: mooniex
+    to: org
+  - path: decisions/2026-06-10-spawn-chain-hardening.md
+    from: mooniex
+    to: org
+  - path: decisions/2026-06-10-tab-title-live-summary.md
+    from: mooniex
+    to: org
+  - path: decisions/2026-06-13-mockup-before-image-gen.md
+    from: mooniex
+    to: org
+  - path: decisions/2026-06-15-web-designer-autonomous-spawn.md
+    from: mooniex
+    to: org
+  - path: decisions/2026-07-12-org-runtime-to-contabo.md
+    from: mooniex
+    to: org
+  - path: decisions/2026-05-26-approval-gate.md
+    from: mooniex
+    to: org
+  - path: decisions/2026-05-25-marketing-budget-authority.md
+    from: mooniex
+    to: org
+
+  # --- other (8) ---
+  - path: roles/cfo.md
+    from: mooniex
+    to: org
+  - path: policies/ceo-permission-policy.md
+    from: mooniex
+    to: org
+  - path: company/ceo-information.md
+    from: mooniex
+    to: org
+  - path: company/org-map.md
+    from: mooniex
+    to: org
+  - path: projects/mooniex-agents.md
+    from: mooniex
+    to: org
+  - path: projects/mooniex-console.md
+    from: mooniex
+    to: org
+  - path: reference/llm-model-capabilities.md
+    from: mooniex
+    to: org
+  - path: reference/supabase-project-registry.md
+    from: mooniex
+    to: org
+
+  # --- MoonieX-Wikis -> LungNote-Wikis (1) ---
+  - path: playbooks/lungnote-mcp.md
+    from: mooniex
+    to: lungnote
+
+# Namespaces used above that are NOT in config/wikis.yaml. wiki_split.py
+# resolves `org` and `mooniex` paths from config/wikis.yaml at runtime (never
+# hardcoded); it resolves any `to:` namespace listed here from this section
+# instead.
+destinations:
+  lungnote:
+    path: /Users/gob/LungNote Projects/wikis
+    # LungNote is not served by wiki_read()/wiki_write() (not a registered
+    # wiki-tools namespace), so a crossing link INTO it omits the backticked
+    # `ns:path` segment entirely — URL only. ADR 0013 §"Cross-wiki link
+    # format": "LungNote-Wikis -> ... -> (no namespace; omit the backticked
+    # part, the wiki tools do not serve it)".
+    github_url_base: "https://github.com/PASAKON/LungNote-Wikis/blob/main/"
+    namespace: null
+
+# Pages that stay exactly where they are — split by SECTION by the CTO in a
+# later stage, not by this tool. wiki_split.py must never move these, but
+# MUST still rewrite crossing links found inside them (85 of the 323 known
+# cross-links point at IRON-RULES.md alone).
+out_of_scope:
+  - IRON-RULES.md
+  - CHEATSHEET.md
+  - playbooks/ads.md
+  - playbooks/balance-precheck.md
