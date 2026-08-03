@@ -1,0 +1,21 @@
+# Wiki root registry (ADR 0013 — wiki scope boundary).
+#
+# Namespace -> absolute path on disk. tools/wiki.py resolves every
+# wiki_read/wiki_write/wiki_list/wiki_search call against this file.
+#
+# `default` names the namespace used when a path carries no "ns:" prefix
+# (backwards compatibility for every pre-multiroot caller). Its `path` can
+# still be overridden at runtime by the WIKI_ROOT env var — see the
+# precedence note in tools/wiki.py's module docstring.
+#
+# `org` (Agents-Wikis) does not exist on disk yet — that's expected until
+# Phase 2 of the split creates it. Missing roots are skipped by wiki_list/
+# wiki_search and raise a named WikiError from wiki_read/wiki_write.
+default: mooniex
+wikis:
+  - ns: org
+    name: Agents Wikis
+    path: /Users/gob/Projects/Agents-Wikis
+  - ns: mooniex
+    name: MoonieX Wikis
+    path: /Users/gob/Projects/LLMs

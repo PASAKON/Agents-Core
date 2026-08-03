@@ -34,7 +34,7 @@ log = get_logger(ROLE)
 
 # --- Tool definitions (Claude SDK MCP) ---
 
-@tool("wiki_read", "Read a wiki page from /Users/gob/Projects/LLMs/", {"path": str})
+@tool("wiki_read", "Read a wiki page. Namespaced (\"org:x.md\") or unprefixed (default namespace).", {"path": str})
 async def t_wiki_read(args):
     try:
         text = wiki_tools.wiki_read(args["path"])

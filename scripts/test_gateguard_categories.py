@@ -13,11 +13,21 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
+import yaml
+
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 import gateguard_categories as gc
+
+# Sample path under a real registered wiki root, read from config/wikis.yaml
+# rather than hardcoded — this test must keep working no matter which repo
+# backs the default namespace.
+_wiki_registry = yaml.safe_load((ROOT / "config" / "wikis.yaml").read_text())
+_default_ns = _wiki_registry["default"]
+_MOONIEX_WIKI_ROOT = next(w["path"] for w in _wiki_registry["wikis"] if w["ns"] == _default_ns)
+_SAMPLE_WIKI_FILE = f"{_MOONIEX_WIKI_ROOT}/IRON-RULES.md"
 
 _failures = 0
 
@@ -86,9 +96,9 @@ def test_expired_state_returns_false():
 
 # --- Test 4 ---
 def test_category_for_wiki_path():
-    result = gc.category_for("/Users/gob/Projects/LLMs/IRON-RULES.md")
+    result = gc.category_for(_SAMPLE_WIKI_FILE)
     _mark(result == "wiki_edit",
-          "category_for('/Users/gob/Projects/LLMs/IRON-RULES.md') == 'wiki_edit'")
+          f"category_for({_SAMPLE_WIKI_FILE!r}) == 'wiki_edit'")
 
 
 # --- Test 5 ---
@@ -159,7 +169,7 @@ def test_pre_hook_allows_when_category_presented():
 
         payload = {
             "tool_name": "Edit",
-            "tool_input": {"file_path": "/Users/gob/Projects/LLMs/IRON-RULES.md"},
+            "tool_input": {"file_path": _SAMPLE_WIKI_FILE},
         }
         stdout = _run_pre_hook(payload, str(home))
 
@@ -178,7 +188,7 @@ def test_pre_hook_passthrough_when_category_not_presented():
         home = Path(td)
         payload = {
             "tool_name": "Edit",
-            "tool_input": {"file_path": "/Users/gob/Projects/LLMs/IRON-RULES.md"},
+            "tool_input": {"file_path": _SAMPLE_WIKI_FILE},
         }
         stdout = _run_pre_hook(payload, str(home))
 
@@ -198,7 +208,7 @@ def test_pre_hook_passthrough_mixed_paths():
             "tool_name": "MultiEdit",
             "tool_input": {
                 "edits": [
-                    {"file_path": "/Users/gob/Projects/LLMs/IRON-RULES.md"},
+                    {"file_path": _SAMPLE_WIKI_FILE},
                     {"file_path": "/Users/gob/random/unknown-file.py"},
                 ]
             },
