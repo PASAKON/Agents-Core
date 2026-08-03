@@ -50,6 +50,8 @@ try:  # POSIX only; the daemon degrades to a pidfile-only guard without it.
 except ImportError:  # pragma: no cover - not reachable on mac/linux
     fcntl = None  # type: ignore[assignment]
 
+from tools.itermtab import sync_dev_tab_colors
+
 _ROOT = Path(__file__).resolve().parent.parent
 _TITLE_DIR = _ROOT / "state" / "tab-titles"
 _LOCKS = _ROOT / "state" / "locks"
@@ -516,6 +518,10 @@ def run_daemon(interval: float = DEFAULT_INTERVAL,
     try:
         while True:
             pushed = sum(push(role, sid) for role, sid in live_sessions())
+            # DEV tab color sync (task-0942febc): one call, degrades to a
+            # no-op internally on any failure — never counted in `idle`,
+            # since the Main Tab exit condition above is unrelated to it.
+            sync_dev_tab_colors()
             idle = 0 if pushed else idle + 1
             if idle >= _IDLE_TICKS_BEFORE_EXIT:
                 return 0  # nothing left to update; don't linger
