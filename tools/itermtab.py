@@ -303,6 +303,17 @@ _NO_GLYPH_RANK = 99
 # Default attention color — a strong red (solarized-ish #D6402F).
 _ATTENTION_RGB = (214, 64, 47)
 
+# Status glyph -> tab color + badge (IRON-RULES §32). Same glyph set as
+# _GLYPH_RANK. rgb=None means "no color" (idle / unrecognized) — the profile
+# turns tab color off rather than picking a color for it.
+_STATUS_STYLE = {
+    "🔴": {"rgb": _ATTENTION_RGB,   "badge": "🔴 รอ CEO"},  # blocked
+    "⏳": {"rgb": (219, 173, 33),   "badge": None},          # working
+    "✅": {"rgb": (46, 160, 90),    "badge": None},          # batch done, queued
+    "🏁": {"rgb": (32, 160, 190),   "badge": None},          # all done, closeable
+    "💤": {"rgb": None,             "badge": None},          # idle
+}
+
 
 def _title_rank(title: str) -> int:
     """Sort rank for a tab title, by the first status glyph it contains."""
@@ -385,10 +396,24 @@ def arrange_tabs(window_id: str | None = None) -> bool:
 
 
 def _attention_profile(color_rgb, badge):
-    """A write-only profile that turns a tab loud: tab color + badge text."""
+    """A write-only profile that turns a tab loud: tab color + badge text.
+
+    Sets the unified AND the light/dark-mode tab-color keys. Profiles with
+    "Use separate colors for light and dark mode" enabled (Preferences >
+    Profiles > Colors) ignore the plain `Tab Color`/`Use Tab Color` keys
+    for rendering — the API call still succeeds silently, the tab just
+    never repaints. Setting all three pairs makes this work regardless of
+    that per-profile toggle (confirmed against gnachman/iTerm2
+    api/library/python/iterm2/iterm2/profile.py, 2026-08-03).
+    """
+    color = _iterm2.Color(*color_rgb)
     profile = _iterm2.LocalWriteOnlyProfile()
     profile.set_use_tab_color(True)
-    profile.set_tab_color(_iterm2.Color(*color_rgb))
+    profile.set_tab_color(color)
+    profile.set_use_tab_color_light(True)
+    profile.set_tab_color_light(color)
+    profile.set_use_tab_color_dark(True)
+    profile.set_tab_color_dark(color)
     if badge is not None:
         profile.set_badge_text(badge)
     return profile
@@ -398,6 +423,8 @@ def _clear_profile():
     """A write-only profile that restores a tab to normal (no color/badge)."""
     profile = _iterm2.LocalWriteOnlyProfile()
     profile.set_use_tab_color(False)
+    profile.set_use_tab_color_light(False)
+    profile.set_use_tab_color_dark(False)
     profile.set_badge_text("")
     return profile
 
@@ -501,34 +528,43 @@ def clear_attention(match: str, *, tty_path: str | None = None,
 def tab_status_update(match: str, window_id: str | None, action: str,
                        tty_path: str | None = None,
                        title: str | None = None) -> bool:
-    """Combined attention + arrange in ONE iTerm API connection.
+    """Combined tab-color/badge + arrange in ONE iTerm API connection.
 
     The tab-title.sh hook fires on every status change across every C-level
-    session, so it must be cheap: this does the mark/clear AND the
+    session, so it must be cheap: this does the color/badge update AND the
     arrange-by-glyph in a single connection instead of two, halving the
     connection churn that was causing API timeouts under burst.
 
-    action: "mark" -> red tab + badge on tabs matching `match`;
-            anything else -> clear them. Then reorder window `window_id`
-            (skipped if falsy/"0"). `tty_path`/`title` re-assert the Header
-            after the profile write (mark/clear otherwise resets it — see
-            _reassert_title). All best-effort, no-op if API is down.
+    action: a status glyph (🔴/⏳/✅/🏁/💤) — looked up in _STATUS_STYLE for
+            its tab color + badge. Unrecognized glyph or a style with
+            rgb=None (💤) clears the tab color. Then reorders window
+            `window_id` (skipped if falsy/"0"). `tty_path`/`title` re-assert
+            the Header after the profile write (a profile write otherwise
+            resets it — see _reassert_title). All best-effort, no-op if API
+            is down.
+
+    Returns True only when at least one session actually matched `match`.
+    This used to `return True` unconditionally, which made both callers and
+    manual `python -m tools.itermtab status ...` checks report success even
+    when the title match found nothing — it masked a real bug for an entire
+    debugging session (2026-08-03). Keep it reporting real hits.
     """
     if not match:
         return False
 
     async def factory(conn):
         app = await _iterm2.async_get_app(conn)
-        profile = (_attention_profile(_ATTENTION_RGB, "🔴 รอ CEO")
-                   if action == "mark" else _clear_profile())
-        await _apply_to_matching(app, match, profile)
+        style = _STATUS_STYLE.get(action)
+        profile = (_attention_profile(style["rgb"], style["badge"])
+                   if style and style["rgb"] is not None else _clear_profile())
+        hits = await _apply_to_matching(app, match, profile)
         _reassert_title(tty_path, title)
         if window_id and str(window_id) != "0":
             for w in app.windows:
                 if str(w.window_id) == str(window_id):
                     await _arrange_window(w)
                     break
-        return True
+        return hits
 
     return bool(_run_api(factory))
 

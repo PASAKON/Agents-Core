@@ -169,21 +169,27 @@ end run
 APPLEEOF
 fi
 
-# 3) Loud-attention + auto-arrange hook — runs AFTER the title is set so it
-#    reads the NEW glyph. One combined iTerm API connection (status = mark/
-#    clear attention on $BASE + arrange this window) keeps connection churn
+# 3) Tab color/badge + auto-arrange hook — runs AFTER the title is set so it
+#    reads the NEW glyph. One combined iTerm API connection (color/badge on
+#    $BASE by status glyph + arrange this window) keeps connection churn
 #    low; the earlier two-calls-per-update burst was timing the API out.
 #    Backgrounded so it never slows the title set; own window only (saved
 #    winid), no-op on single-tab windows / when the API is down.
-#    Trial opened 2026-06-16, review 2026-06-23.
+#    Trial opened 2026-06-16, review 2026-06-23. Extended to full glyph->color
+#    table (was 🔴-only mark/clear) 2026-08-03 — see tools/itermtab.py
+#    _STATUS_STYLE for the ⏳/✅/🔴/💤/🏁 -> RGB mapping.
 case "$TITLE" in
-  *🔴*) _ATTN=mark ;;
-  *)    _ATTN=clear ;;
+  *🔴*) _GLYPH="🔴" ;;
+  *⏳*) _GLYPH="⏳" ;;
+  *✅*) _GLYPH="✅" ;;
+  *🏁*) _GLYPH="🏁" ;;
+  *💤*) _GLYPH="💤" ;;
+  *)    _GLYPH=""   ;;
 esac
 (
   cd "$ROOT" || exit 0
   [ -d .venv ] && . .venv/bin/activate 2>/dev/null
-  if [ "$_ATTN" = "mark" ] && [ -n "$SUBTITLE" ]; then
+  if [ "$_GLYPH" = "🔴" ] && [ -n "$SUBTITLE" ]; then
     # Subtitle (free text, e.g. "🎨 ขอ design เรื่อง storage") drives the
     # badge instead of the fixed "🔴 รอ CEO" fallback — see tools/itermtab.py
     # mark_attention(badge=...). Falls back to the old fixed badge when no
@@ -191,7 +197,7 @@ esac
     python3 -m tools.itermtab mark "$BASE" "$SUBTITLE" "${TTY_DEV:-}" "$TITLE" >/dev/null 2>&1
     [ -n "${WINID:-}" ] && [ "${WINID:-0}" != "0" ] && python3 -m tools.itermtab arrange "$WINID" >/dev/null 2>&1 || true
   else
-    python3 -m tools.itermtab status "$BASE" "${WINID:-0}" "$_ATTN" "${TTY_DEV:-}" "$TITLE" >/dev/null 2>&1
+    python3 -m tools.itermtab status "$BASE" "${WINID:-0}" "$_GLYPH" "${TTY_DEV:-}" "$TITLE" >/dev/null 2>&1
   fi
 ) &
 
