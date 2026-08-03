@@ -184,6 +184,24 @@ projects:
     review_required: true
     wiki_refs: []
 
+  - key: mooniex-console
+    name: MoonieX Console (mobile web console)
+    path: /Users/gob/Projects/mooniex-console
+    remote: https://github.com/PASAKON/MoonieX-Console.git
+    default_branch: main
+    stack: [node, express, xterm.js, webauthn, sqlite]
+    agents_allowed: *default_workers
+    # Split out of this repo 2026-08-03 (cut point tag split/console-2026-08-03).
+    # Drives this repo one-way: it spawns scripts/cto-claude.sh from whatever
+    # ORG_ROOT points at, and nothing here depends on the console. ORG_ROOT is
+    # required — the console refuses to boot without it.
+    # Deploy: scripts/console-deploy.sh in ITS repo, rsync -> /opt/mooniex-console
+    # on Contabo, tailnet-only. Deploy is NOT automatic on merge.
+    auto_push: false
+    review_required: true
+    wiki_refs:
+      - projects/mooniex-console.md
+
   - key: mooniex-scriptable
     name: Mooniex Scriptable (iOS widgets)
     path: /Users/gob/Projects/mooniex-scriptable
