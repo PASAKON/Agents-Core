@@ -100,6 +100,19 @@ roles:
     can_push: false
     workspace_only: true
 
+  video_editor:
+    display: Video Editor
+    level: w
+    # Owned by CMO (content production execution) -- CTO keeps maintaining
+    # the underlying reel-editor-th tool itself (decided 2026-08-03).
+    model: "claude-sonnet-5"
+    effort: "high"
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
   devops_engineer:
     display: DevOps Engineer
     level: w
@@ -160,6 +173,20 @@ roles:
     level: w
     model: "claude-sonnet-5"
     effort: "medium"
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+
+  script_writer:
+    display: Script Writer
+    level: w
+    # Owned by CMO (content production, same pipeline as content_strategist
+    # + video_editor: script_writer -> voice actor -> video_editor) --
+    # decided 2026-08-03.
+    model: "claude-sonnet-5"
+    effort: "high"
     can_write_wiki: false
     can_create_task: false
     can_merge: false
