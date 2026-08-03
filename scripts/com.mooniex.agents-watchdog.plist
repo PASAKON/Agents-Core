@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mooniex.agents-watchdog</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/gob/Projects/Agents/.venv/bin/python</string>
+    <string>-m</string>
+    <string>runners.watchdog</string>
+    <string>--loop</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/gob/Projects/Agents</string>
+
+  <!-- Long-running daemon (was: nohup python -m runners.watchdog --loop,
+       which dies on reboot — LungNote todo b16487b0). RunAtLoad starts it
+       immediately on login; KeepAlive respawns it if it ever exits/crashes. -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gob/Projects/Agents/state/watchdog.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/gob/Projects/Agents/state/watchdog.log</string>
+</dict>
+</plist>
