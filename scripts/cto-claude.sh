@@ -136,7 +136,25 @@ TITLES_DIR="$ROOT/state/tab-titles"
 mkdir -p "$TITLES_DIR"
 printf '%s\n' "$TITLE_BASE" >"$TITLES_DIR/cto-$CTO_SESSION_ID.base"
 printf '%s ⏳ เริ่ม session\n' "$TITLE_BASE" >"$TITLES_DIR/cto-$CTO_SESSION_ID.title"
-printf '\033]0;%s ⏳ เริ่ม session\007' "$TITLE_BASE"
+# OSC 1 = tab strip only. NOT OSC 0, which also rewrites the window titlebar
+# and would wipe the Main Tab (goal + progress + clock) — see tools/maintab.py.
+printf '\033]1;%s ⏳ เริ่ม session\007' "$TITLE_BASE"
+
+# Tab color needs a tab bar to paint on, and iTerm hides that bar by default
+# when a window holds a single tab — exactly how C-level sessions spawn. The
+# status colors then get written successfully and render nowhere (cost: one
+# full debugging session, 2026-08-03). Re-assert the pref if it drifted back.
+# It is a local iTerm preference, so it cannot travel in the repo; setting it
+# through the API (not `defaults write`) applies live and survives iTerm's
+# write-prefs-on-quit. No-op when the API is off or `iterm2` isn't installed.
+python3 - <<'HIDETAB' >/dev/null 2>&1 || true
+import iterm2
+KEY = iterm2.PreferenceKey.HIDE_TAB_BAR_WHEN_ONLY_ONE_TAB
+async def main(conn):
+    if await iterm2.async_get_preference(conn, KEY):
+        await iterm2.async_set_preference(conn, KEY, False)
+iterm2.run_until_complete(main)
+HIDETAB
 
 # Keep claude CLI from overwriting our tab title with its own (no-op on
 # builds without this env). The keeper loop below re-asserts regardless.
