@@ -29,6 +29,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -571,6 +572,158 @@ def tab_status_update(match: str, window_id: str | None, action: str,
         return hits
 
     return bool(_run_api(factory))
+
+
+# ---------------------------------------------------------------------------
+# DEV tab color sync (task-0942febc)
+#
+# CEO ask: the tab bar should use ONE color vocabulary for C-level AND DEV
+# tabs. Both halves already exist — a DEV tab title already carries its task
+# id (tools/delegate.py:_spawn_iterm_tab / tools/resume_dev.py) and
+# authoritative status already lives in state/tasks.db — so this is a read
+# of existing state applied to existing tabs, driven once per tick from the
+# maintab daemon loop (tools/maintab.py:run_daemon). No DEV-side plumbing.
+#
+# task status -> _STATUS_STYLE glyph. Anything not listed here (pending,
+# done, merged, cancelled, reverted, or a status not yet invented) falls
+# through to "no color" in _status_style below — the same outcome an
+# idle/unrecognized glyph gets elsewhere in this module. Colors themselves
+# stay derived from _STATUS_STYLE so a future palette change stays in one
+# place, not two.
+# ---------------------------------------------------------------------------
+_TASK_STATUS_GLYPH = {
+    "in_progress":   "⏳",
+    "review":        "✅",
+    "blocked_human": "🔴",
+    "failed":        "🔴",
+    "conflict":      "🔴",
+    "stalled":       "🔴",
+    "rate_limited":  "🔴",
+}
+
+_CLEVEL_PREFIXES = ("CTO ", "CMO ", "CGO ", "CFO ")
+_TASK_ID_RE = re.compile(r"task-[0-9a-fA-F]+")
+
+
+def _status_style(status: str | None) -> dict | None:
+    """A task status -> its _STATUS_STYLE entry, or None for "no color"."""
+    glyph = _TASK_STATUS_GLYPH.get(status or "")
+    return _STATUS_STYLE.get(glyph) if glyph else None
+
+
+def _dev_task_id(title: str) -> str | None:
+    """The task id in a DEV tab title, or None.
+
+    Never matches a C-level title — same exclusion close_tab uses above: a
+    C-level tab's color is owned by scripts/tab-title.sh, and its live work
+    summary (IRON-RULES §32) can legitimately mention a task id without
+    that tab being that task's DEV tab.
+    """
+    if any(p in title for p in _CLEVEL_PREFIXES):
+        return None
+    m = _TASK_ID_RE.search(title)
+    return m.group(0) if m else None
+
+
+def _in_flight_dev_statuses() -> dict[str, str]:
+    """task_id -> status, for every task whose status maps to a tab color.
+
+    The ONE DB read per tick (HARD REQUIREMENT 1), scoped to the handful of
+    colored statuses rather than the full table (HARD REQUIREMENT 3 — never
+    scan the 250+ done/merged backlog every minute). Any failure — locked
+    DB, missing file, `lib` unimportable from this cwd — degrades to an
+    empty dict rather than raising (HARD REQUIREMENT 4); an empty dict also
+    lets sync_dev_tab_colors() below skip opening an iTerm connection at
+    all when there is nothing in-flight.
+    """
+    try:
+        from lib import db
+    except ImportError:
+        return {}
+    statuses = tuple(_TASK_STATUS_GLYPH)
+    placeholders = ",".join("?" * len(statuses))
+    try:
+        with db.get_conn() as conn:
+            rows = conn.execute(
+                f"SELECT id, status FROM tasks WHERE status IN ({placeholders})",
+                statuses,
+            ).fetchall()
+        return {row["id"]: row["status"] for row in rows}
+    except Exception:
+        return {}
+
+
+async def _reassert_session_title(session, title: str) -> None:
+    """Re-send a DEV tab's OSC-1 title after the color profile write.
+
+    async_set_profile_properties() resets whatever title the tab was
+    showing (see _reassert_title's note above) — a DEV tab's title carries
+    its task id and must survive every color tick. Uses the session's own
+    async_inject rather than a stored tty path: unlike CXO sessions, a DEV
+    tab has no state/locks/<role>-<sid>.tty file to read. OSC 1 only, never
+    OSC 0 (scripts/test_osc_surface_boundary.py enforces this repo-wide) —
+    OSC 0 would also stomp the owning CTO's OSC-2 window title when this
+    DEV tab lives inside that CTO's window (HARD REQUIREMENT 6).
+    """
+    if not title:
+        return
+    try:
+        await session.async_inject(f"\033]1;{title}\007".encode())
+    except Exception:
+        pass
+
+
+def sync_dev_tab_colors() -> int:
+    """Color every DEV tab by its task's live status (IRON-RULES §32 vocabulary).
+
+    Called once per tick from tools/maintab.py:run_daemon, alongside the
+    existing Main Tab push — no second daemon, no second process. Writes
+    the SUB tab only (tab color + the OSC-1 title reassert above): never
+    OSC 2, so a DEV tab living inside its owning CTO's window never
+    touches that CTO's goal/progress line.
+
+    HARD REQUIREMENT 1: at most one iTerm API connection here, and it is
+    skipped entirely when nothing is in-flight — the DB read always runs
+    first specifically to make that skip possible without touching iTerm.
+
+    Returns the number of tabs (re-)colored. Degrades to 0 on any failure
+    (DB, iTerm API down, a session that vanished mid-tick) — never raises
+    into the daemon loop (HARD REQUIREMENT 4).
+    """
+    statuses = _in_flight_dev_statuses()
+    if not statuses:
+        return 0
+
+    async def factory(conn):
+        app = await _iterm2.async_get_app(conn)
+        hits = 0
+        for window in app.windows:
+            for tab in window.tabs:
+                for session in tab.sessions:
+                    title = await _session_title(session)
+                    task_id = _dev_task_id(title)
+                    if task_id is None or task_id not in statuses:
+                        # No task id, or a task id this tick's DB read never
+                        # fetched — the latter means its status isn't one of
+                        # the colored ones (HARD REQUIREMENT 3: that read is
+                        # scoped to colored statuses only). Leave the tab
+                        # alone rather than writing a "clear" nobody asked
+                        # for; a terminal task's tab is normally closed by
+                        # tools/git_ops.py:close_tab shortly after anyway.
+                        continue
+                    style = _status_style(statuses[task_id])
+                    profile = (_attention_profile(style["rgb"], style["badge"])
+                               if style and style["rgb"] is not None
+                               else _clear_profile())
+                    try:
+                        await session.async_set_profile_properties(profile)
+                    except Exception:
+                        continue
+                    await _reassert_session_title(session, title)
+                    hits += 1
+        return hits
+
+    return _run_api(factory) or 0
 
 
 if __name__ == "__main__":
