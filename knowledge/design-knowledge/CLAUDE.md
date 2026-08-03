@@ -13,17 +13,32 @@ pixel, `brand-knowledge/brands/<brand>/BRAND.md` wins.
 1. **`../brand-knowledge/brands/<brand>/BRAND.md`** — first, always. Palette,
    lockups, and any must-pass checklist are gates, not suggestions. For
    MoonieX that means the Poster Build Must-Pass Checklist before any render.
-2. **`craft/`** — universal don'ts. Skim all files; a rule here can reject the
-   task before work starts.
-3. **`system/`** — the design system actually in use: tokens, components,
-   spacing, email and LINE Flex templates. Match existing tokens; do not
-   invent a colour or spacing value when a token exists.
-4. **`skills/<format>/SKILL.md`** — the artifact shape the task asks for
-   (poster, fb-ad, thumbnail, landing). Read the SKILL plus the `example.*`
-   beside it.
+2. **`craft/`** — universal don'ts. Start at `craft/README.md`, then read the
+   files your task touches. A rule here can reject the task before work
+   starts. Thirteen sections, including `anti-ai-slop`, `color`, `typography`,
+   `typography-hierarchy` (+ `-editorial`), `laws-of-ux`,
+   `accessibility-baseline`, `form-validation`, `rtl-and-bidi`,
+   `animation-discipline`, `state-coverage`.
+3. **`design-templates/<shape>/`** — the artifact shape the task asks for.
+   115 of them; the ones this org reaches for most:
+   `trading-analysis-dashboard-template`, `dashboard`, `live-dashboard`,
+   `finance-report`, `invoice`, `image-poster`, `magazine-poster`,
+   `social-carousel`, `email-marketing`, `saas-landing`, `pricing-page`,
+   `waitlist-page`, `blog-post`, `docs-page`, `mobile-app`,
+   `mobile-onboarding`, `video-shortform`, and `wireframe-{annotated,
+   greybox,mobile-flow,sketch}`.
+4. **The MoonieX design system** — tokens, components, and the email / LINE
+   Flex handoff specs. Lives in the `MoonieX-Design` repo (see below), not in
+   this bank. Match existing tokens; do not invent a colour or spacing value
+   when a token exists.
 
-If several skills apply, take the most specific. Skills do not stack — one
-task, one primary skill.
+If several templates fit, take the most specific. They do not stack — one
+task, one primary shape.
+
+`craft/` and `design-templates/` are a **verbatim copy of upstream
+open-design** — do not hand-edit them, the next refresh overwrites the change
+and the upstream diff stops being readable. See `PROVENANCE.md` for the pinned
+commit and the refresh procedure.
 
 ## Where the design system actually lives
 
@@ -49,12 +64,16 @@ it does not fork the design system.
 
 ## Status (2026-08-03)
 
-Created when `assets/brand-refs/` moved into `brand-knowledge/brands/`.
-`craft/`, `system/` and `skills/` are **not yet populated**. The audit that day
-found design knowledge spread across nine places — this repo, the design-system
-repo, `mooniex-claudesign`, two skill scopes, the ECC plugin, and four wiki
-playbooks. Consolidating them is separate work; until it lands, a designer
-still has to reach for the wiki playbooks below.
+Created when `assets/brand-refs/` moved into `brand-knowledge/brands/`, then
+filled the same day from open-design v0.16.1: `craft/` (13 sections) and
+`design-templates/` (115 shapes, ~38 MB).
+
+Still outstanding from that day's audit, which found design knowledge spread
+across nine places: the MoonieX design system itself stays in the
+`MoonieX-Design` repo, `mooniex-claudesign` holds a fifth `BRAND.md`
+(`design-templates/chatudo/`) plus the org's own two templates, and the ECC
+plugin ships twelve overlapping design skills. Deciding which of those this
+bank absorbs is separate work.
 
 ## See also
 

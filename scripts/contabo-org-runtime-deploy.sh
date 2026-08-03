@@ -58,6 +58,12 @@ EXCLUDES=(
   --exclude 'knowledge/brand-knowledge/brands/*/templates/'
   --exclude 'knowledge/brand-knowledge/brands/mooniex-indicators/'
   --exclude 'knowledge/brand-knowledge/brands/mooniex-rebate-posters/'
+  # Same call for the design bank's template library (copied from open-design
+  # 2026-08-03): 221 markdown files carry the knowledge at ~1 MB, while 77 PNG
+  # previews account for ~29 MB. The box gets the text.
+  --exclude 'knowledge/design-knowledge/design-templates/**/*.png'
+  --exclude 'knowledge/design-knowledge/design-templates/**/*.jpg'
+  --exclude 'knowledge/design-knowledge/design-templates/**/assets/'
   --exclude '__pycache__/'
   --exclude '*.pyc'
   --exclude '.DS_Store'
