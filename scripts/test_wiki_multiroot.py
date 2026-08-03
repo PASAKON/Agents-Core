@@ -91,6 +91,22 @@ def test_namespaced_read():
           'wiki_read("org:playbooks/x.md") reads from the org root')
 
 
+# --- Test 1b: a BARE namespace prefix scopes to that root ---
+# Regression: "org" carries no ":", so _split_ns fell through to the default
+# namespace and looked for a directory literally named "org" inside it —
+# returning [] instead of the org root's pages. Silent wrong answer, and the
+# docstring already promised `"ns" or "ns:subpath" -> that root only`.
+def test_bare_namespace_prefix_lists_that_root():
+    with tempfile.TemporaryDirectory() as td:
+        with _FakeWiki(Path(td)):
+            bare = wiki.wiki_list("org")
+            colon = wiki.wiki_list("org:")
+    _mark(bare == ["org:playbooks/x.md"],
+          f'wiki_list("org") (bare ns) lists the org root, got {bare}')
+    _mark(bare == colon,
+          'wiki_list("org") and wiki_list("org:") agree')
+
+
 # --- Test 2: unprefixed read hits the default namespace ---
 def test_unprefixed_read_hits_default_ns():
     with tempfile.TemporaryDirectory() as td:
@@ -180,6 +196,7 @@ def test_search_round_trips_into_read():
 def main() -> int:
     print("Running wiki multi-root tests...\n")
     test_namespaced_read()
+    test_bare_namespace_prefix_lists_that_root()
     test_unprefixed_read_hits_default_ns()
     test_missing_root_skipped_by_list_and_search()
     test_all_roots_missing_raises_generic_error()
@@ -187,7 +204,7 @@ def main() -> int:
     test_path_traversal_blocked()
     test_search_round_trips_into_read()
 
-    total = 9
+    total = 11
     print(f"\n{'ALL PASS' if _failures == 0 else str(_failures) + ' FAILED'} ({total - _failures}/{total})")
     return 1 if _failures else 0
 

@@ -147,7 +147,13 @@ def wiki_list(prefix: str = "") -> list[str]:
             out.extend(f"{ns}:{p.relative_to(root)}" for p in root.rglob("*.md"))
         return sorted(out)
 
-    ns, rel = _split_ns(prefix)
+    # A bare namespace ("org") carries no ":", so _split_ns would fall through
+    # to the default ns and quietly look for a directory named "org" inside it
+    # — returning [] instead of that root's pages. Match it explicitly first.
+    if prefix in _roots():
+        ns, rel = prefix, ""
+    else:
+        ns, rel = _split_ns(prefix)
     root = _require_root(ns)
     base = _safe_path(root, rel) if rel else root
     return sorted(f"{ns}:{p.relative_to(root)}" for p in base.rglob("*.md"))
