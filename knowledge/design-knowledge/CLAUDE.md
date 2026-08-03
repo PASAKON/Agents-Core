@@ -19,14 +19,10 @@ pixel, `brand-knowledge/brands/<brand>/BRAND.md` wins.
    `typography-hierarchy` (+ `-editorial`), `laws-of-ux`,
    `accessibility-baseline`, `form-validation`, `rtl-and-bidi`,
    `animation-discipline`, `state-coverage`.
-3. **`design-templates/<shape>/`** — the artifact shape the task asks for.
-   115 of them; the ones this org reaches for most:
-   `trading-analysis-dashboard-template`, `dashboard`, `live-dashboard`,
-   `finance-report`, `invoice`, `image-poster`, `magazine-poster`,
-   `social-carousel`, `email-marketing`, `saas-landing`, `pricing-page`,
-   `waitlist-page`, `blog-post`, `docs-page`, `mobile-app`,
-   `mobile-onboarding`, `video-shortform`, and `wireframe-{annotated,
-   greybox,mobile-flow,sketch}`.
+3. **`TEMPLATE-INDEX.md` → `design-templates/<shape>/`** — the artifact shape
+   the task asks for. There are 115 of them; the index maps job to shape so
+   nobody has to scan the directory. Each shape is `SKILL.md` (how to build
+   it) plus `example.html` (a working reference) — read both.
 4. **The MoonieX design system** — tokens, components, and the email / LINE
    Flex handoff specs. Lives in the `MoonieX-Design` repo (see below), not in
    this bank. Match existing tokens; do not invent a colour or spacing value
