@@ -41,13 +41,22 @@ import os
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+
+try:  # POSIX only; the daemon degrades to a pidfile-only guard without it.
+    import fcntl
+except ImportError:  # pragma: no cover - not reachable on mac/linux
+    fcntl = None  # type: ignore[assignment]
 
 _ROOT = Path(__file__).resolve().parent.parent
 _TITLE_DIR = _ROOT / "state" / "tab-titles"
 _LOCKS = _ROOT / "state" / "locks"
 _PIDFILE = _LOCKS / "maintab-daemon.pid"
+# The pidfile a daemon started with no --pidfile is understood to own. Used to
+# recognise legacy / hand-started daemons in the process table.
+_DEFAULT_PIDFILE = _PIDFILE
 _DAEMON_LOG = _LOCKS / "maintab-daemon.log"
 
 DEFAULT_INTERVAL = 60.0
@@ -234,57 +243,275 @@ def live_sessions() -> list[tuple[str, str]]:
 # ---------------------------------------------------------------------------
 # daemon
 # ---------------------------------------------------------------------------
+# `ensure-daemon` fires on every status update of every C-level session, so two
+# callers racing each other is the NORMAL case, not an exotic one. Two locks,
+# two jobs (2026-08-03, fixing a double-daemon TOCTOU):
+#
+#   <pidfile>.spawnlock  held for milliseconds by ensure_daemon() while it
+#                        decides whether to spawn, so two concurrent callers
+#                        cannot both read "not running" and both spawn.
+#   <pidfile>.lock       held for its whole life by the daemon that won
+#                        run_daemon(). The kernel drops it on exit — including
+#                        kill -9 — so unlike a pidfile it can never go stale.
+#
+# flock rather than an O_EXCL pidfile precisely because of that: an O_EXCL
+# claim outlives the process that made it, so one hard-killed daemon would
+# lock out every future one until someone deleted the file by hand.
+_DAEMON_MARKER = "tools.maintab"
+# The exact argv[1:4] of a daemon: `python -m tools.maintab daemon ...`.
+_DAEMON_ARGV = ("-m", _DAEMON_MARKER, "daemon")
+
+
+def _run_lock_path() -> Path:
+    return _PIDFILE.with_name(_PIDFILE.name + ".lock")
+
+
+def _spawn_lock_path() -> Path:
+    return _PIDFILE.with_name(_PIDFILE.name + ".spawnlock")
+
+
+def _try_lock(path: Path) -> tuple[str, int | None]:
+    """Non-blocking exclusive flock. ('won', fd) | ('busy', None) | ('unsupported', None)."""
+    if fcntl is None:
+        return "unsupported", None
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(str(path), os.O_CREAT | os.O_RDWR, 0o644)
+    except OSError:
+        return "unsupported", None
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        _close(fd)
+        return "busy", None
+    return "won", fd
+
+
+def _close(fd: int | None) -> None:
+    if fd is None:
+        return
+    try:
+        os.close(fd)  # also releases the flock
+    except OSError:
+        pass
+
+
+@contextmanager
+def _spawn_gate(timeout: float = 5.0):
+    """Serialise the check-then-spawn decision. Proceeds ungated on timeout.
+
+    A status update must never hang on a wedged lock holder, so waiting past
+    `timeout` degrades to the old racy path rather than blocking — the run lock
+    is what actually guarantees one daemon.
+    """
+    deadline = time.monotonic() + timeout
+    fd = None
+    while True:
+        status, fd = _try_lock(_spawn_lock_path())
+        if status != "busy" or time.monotonic() >= deadline:
+            break
+        time.sleep(0.02)
+    try:
+        yield
+    finally:
+        _close(fd)
+
+
+def _pid_running(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    return True
+
+
+def _ps(args: list[str]) -> str:
+    try:
+        out = subprocess.run(["ps", *args], capture_output=True, text=True,
+                             timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return out.stdout
+
+
+def _is_our_daemon(cmd: str) -> bool:
+    """Does this command line belong to a maintab daemon owning OUR pidfile?
+
+    Two independent guards: the argv shape (a recycled pid held by an
+    unrelated process won't have it) and the pidfile it owns (a daemon of a
+    different state dir points elsewhere — which is also what keeps the tests
+    off the CEO's real daemon).
+
+    The argv match is anchored at argv[1:4] deliberately. A loose "contains
+    tools.maintab and daemon" match also hits any agent session whose prompt
+    quotes the command — observed live 2026-08-03, where a DEV agent's own
+    argv carried this task's text — and stop_daemon kills what it matches.
+    """
+    tokens = cmd.split()
+    if tuple(tokens[1:4]) != _DAEMON_ARGV:
+        return False
+    return _pidfile_of(tokens) == _resolve(_PIDFILE)
+
+
+def _pidfile_of(tokens: list[str]) -> Path | None:
+    if "--pidfile" in tokens:
+        idx = tokens.index("--pidfile")
+        return _resolve(Path(tokens[idx + 1])) if idx + 1 < len(tokens) else None
+    return _resolve(_DEFAULT_PIDFILE)  # no flag -> the default pidfile
+
+
+def _resolve(path: Path) -> Path | None:
+    try:
+        return Path(path).resolve()
+    except OSError:
+        return None
+
+
 def _daemon_alive() -> int | None:
-    """Pid of the running daemon, or None."""
+    """Pid of the running daemon, or None.
+
+    A pidfile alone proves nothing: the pid may be dead, or recycled by an
+    unrelated process, which would otherwise block startup forever. The pid
+    must still be running AND still look like our daemon.
+    """
     try:
         pid = int(_PIDFILE.read_text().strip())
     except (OSError, ValueError):
         return None
-    try:
-        os.kill(pid, 0)
-    except OSError:
+    if pid <= 0 or not _pid_running(pid):
         return None
+    if not _is_our_daemon(_ps(["-p", str(pid), "-ww", "-o", "command="]).strip()):
+        return None  # stale / foreign pidfile — treat as not running
     return pid
+
+
+def _daemon_pids() -> list[int]:
+    """Every maintab daemon owning our pidfile, tracked or not."""
+    pids = []
+    me = os.getpid()
+    for line in _ps(["-A", "-ww", "-o", "pid=,command="]).splitlines():
+        pid_s, _, cmd = line.strip().partition(" ")
+        try:
+            pid = int(pid_s)
+        except ValueError:
+            continue
+        if pid != me and _is_our_daemon(cmd):
+            pids.append(pid)
+    return pids
+
+
+def _write_pidfile(pid: int) -> None:
+    try:
+        _PIDFILE.parent.mkdir(parents=True, exist_ok=True)
+        _PIDFILE.write_text(str(pid))
+    except OSError:
+        pass
 
 
 def ensure_daemon(interval: float = DEFAULT_INTERVAL) -> int | None:
     """Start the daemon if it isn't already running. Returns its pid."""
-    pid = _daemon_alive()
-    if pid:
-        return pid
-    _LOCKS.mkdir(parents=True, exist_ok=True)
     try:
-        log = open(_DAEMON_LOG, "a")
+        _LOCKS.mkdir(parents=True, exist_ok=True)
     except OSError:
-        log = subprocess.DEVNULL
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "tools.maintab", "daemon",
-         "--interval", str(interval)],
-        cwd=str(_ROOT), stdout=log, stderr=log,
-        stdin=subprocess.DEVNULL, start_new_session=True,
-    )
-    return proc.pid
+        pass
+    with _spawn_gate():
+        pid = _daemon_alive()
+        if pid:
+            return pid
+        try:
+            log = open(_LOCKS / _DAEMON_LOG.name, "a")
+        except OSError:
+            log = subprocess.DEVNULL
+        try:
+            proc = subprocess.Popen(
+                [sys.executable, "-m", "tools.maintab", "daemon",
+                 "--interval", str(interval), "--pidfile", str(_PIDFILE)],
+                cwd=str(_ROOT), stdout=log, stderr=log,
+                stdin=subprocess.DEVNULL, start_new_session=True,
+            )
+        except OSError:
+            return None
+        # Record the pid here, inside the gate: the child needs a moment to
+        # exec and claim the run lock, and until then the next ensure-daemon
+        # call would otherwise see an empty pidfile and spawn a second one.
+        _write_pidfile(proc.pid)
+        return proc.pid
 
 
 def stop_daemon() -> bool:
-    pid = _daemon_alive()
-    if not pid:
-        return False
+    """Stop every running daemon, tracked by the pidfile or not.
+
+    Signalling only the recorded pid orphans any duplicate — from an old race
+    or a hand-started `tools.maintab daemon` — and an orphan keeps writing
+    titlebars with nothing tracking it.
+    """
+    targets = set(_daemon_pids())
     try:
-        os.kill(pid, 15)
-    except OSError:
+        pid = int(_PIDFILE.read_text().strip())
+    except (OSError, ValueError):
+        pid = 0
+    if pid > 0 and pid != os.getpid() and _pid_running(pid):
+        targets.add(pid)
+    targets.discard(os.getpid())
+    if not targets:
+        _unlink_pidfile()
         return False
-    _PIDFILE.unlink(missing_ok=True)
+
+    for pid in targets:
+        _signal(pid, 15)
+    deadline = time.monotonic() + 2.0
+    while time.monotonic() < deadline:
+        targets = {pid for pid in targets if _pid_running(pid)}
+        if not targets:
+            break
+        time.sleep(0.05)
+    for pid in targets:  # ignored SIGTERM / wedged in a syscall
+        _signal(pid, 9)
+    _unlink_pidfile()
     return True
 
 
-def run_daemon(interval: float = DEFAULT_INTERVAL) -> int:
-    """Tick every `interval` seconds, refreshing every live session."""
-    if _daemon_alive():
-        print("maintab: daemon already running", file=sys.stderr)
-        return 1
-    _LOCKS.mkdir(parents=True, exist_ok=True)
-    _PIDFILE.write_text(str(os.getpid()))
+def _signal(pid: int, sig: int) -> None:
+    try:
+        os.kill(pid, sig)
+    except OSError:
+        pass
+
+
+def _unlink_pidfile() -> None:
+    try:
+        _PIDFILE.unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
+def run_daemon(interval: float = DEFAULT_INTERVAL,
+               pidfile: str | None = None) -> int:
+    """Tick every `interval` seconds, refreshing every live session.
+
+    Exactly one daemon per pidfile survives: the run lock is claimed here, and
+    losing that claim is the expected outcome of a concurrent ensure-daemon, so
+    the loser exits 0 in silence rather than treating it as an error.
+    """
+    global _PIDFILE
+    if pidfile:
+        _PIDFILE = Path(pidfile)
+    try:
+        _LOCKS.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
+
+    status, lock_fd = _try_lock(_run_lock_path())
+    if status == "busy":
+        return 0  # another daemon owns the tick
+    if status == "unsupported":
+        # No flock available: fall back to the pidfile, ignoring an entry that
+        # names us (ensure_daemon writes our pid before we get here).
+        running = _daemon_alive()
+        if running and running != os.getpid():
+            return 0
+
+    _write_pidfile(os.getpid())
     idle = 0
     try:
         while True:
@@ -298,9 +525,10 @@ def run_daemon(interval: float = DEFAULT_INTERVAL) -> int:
     finally:
         try:
             if _PIDFILE.read_text().strip() == str(os.getpid()):
-                _PIDFILE.unlink(missing_ok=True)
+                _unlink_pidfile()
         except OSError:
             pass
+        _close(lock_fd)
 
 
 # ---------------------------------------------------------------------------
@@ -312,7 +540,8 @@ _USAGE = """usage: python -m tools.maintab <command>
                         update this session's goal and/or progress, then push
   push                  redraw this session's Main Tab once
   render                print the line without writing it (debug/tests)
-  daemon [--interval S] run the refresh loop in the foreground
+  daemon [--interval S] [--pidfile PATH]
+                        run the refresh loop in the foreground
   ensure-daemon         start the daemon if not already running
   stop-daemon           stop it
   status                show daemon pid + every live session's line
@@ -363,7 +592,8 @@ def main(argv: list[str]) -> int:
 
     if cmd == "daemon":
         interval = opt("--interval")
-        return run_daemon(float(interval) if interval else DEFAULT_INTERVAL)
+        return run_daemon(float(interval) if interval else DEFAULT_INTERVAL,
+                          pidfile=opt("--pidfile"))
 
     if cmd == "ensure-daemon":
         print(f"daemon pid: {ensure_daemon()}")
