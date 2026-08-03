@@ -67,7 +67,8 @@ Options, in order of how much they reuse existing infra:
 
 **Phase 4 — Live personal-todo sync**
 Either give `export_state.py` its own Supabase client (reuses the LungNote
-service key already in `mcp/lungnote-mcp/.env` — same key, no new secret), or
+service key already in the LungNote-MCP checkout's `.env` — same key, no new
+secret), or
 add a `questline sync` command that just calls the MCP tool and overwrites the
 snapshot. Needed before Life district can get a real streak/belt_speed.
 

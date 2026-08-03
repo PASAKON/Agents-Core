@@ -27,7 +27,7 @@ cat > "$MCP_CONFIG" <<JSON
     "lungnote": {
       "type": "stdio",
       "command": "node",
-      "args": ["$ROOT/mcp/lungnote-mcp/index.js"],
+      "args": ["/Users/gob/LungNote Projects/mcp/index.js"],
       "env": {}
     }
   }

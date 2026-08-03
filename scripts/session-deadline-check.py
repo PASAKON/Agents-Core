@@ -20,8 +20,8 @@ Design
 - LungNote is backed by its OWN Supabase project (qkaxvockysyazmtormvf),
   SEPARATE from the mooniex app project (tlokhyqpthvxabweekps). So this keeps
   working even while the mooniex project is quota-restricted (402).
-- Reads creds from mcp/lungnote-mcp/.env (SUPABASE_URL, SUPABASE_SECRET_KEY,
-  LUNGNOTE_USER_ID). Never prints them.
+- Reads creds from the LungNote-MCP checkout's .env (SUPABASE_URL,
+  SUPABASE_SECRET_KEY, LUNGNOTE_USER_ID). Never prints them.
 - Fails OPEN and quiet: any error prints one short line and exits 0, so a
   LungNote outage never blocks a session from starting.
 - Surfacing is NOT acting. It lists deadlines; whether to work a deadline is
@@ -34,8 +34,13 @@ import urllib.request
 import urllib.parse
 from datetime import datetime, timezone, timedelta
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ENV_PATH = os.path.join(ROOT, "mcp", "lungnote-mcp", ".env")
+# lungnote-mcp was split out to its own repo (PASAKON/LungNote-MCP) on
+# 2026-08-03, so its .env now sits beside that checkout instead of inside this
+# repo. Override with LUNGNOTE_MCP_DIR when the checkout lives elsewhere.
+LUNGNOTE_MCP_DIR = os.environ.get(
+    "LUNGNOTE_MCP_DIR", "/Users/gob/LungNote Projects/mcp"
+)
+ENV_PATH = os.path.join(LUNGNOTE_MCP_DIR, ".env")
 WINDOW_DAYS = int(os.environ.get("DEADLINE_WINDOW_DAYS", "7"))
 
 
