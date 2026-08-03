@@ -156,6 +156,16 @@ async def main(conn):
 iterm2.run_until_complete(main)
 HIDETAB
 
+# Seed the Main Tab (window titlebar) so it exists from the first second.
+# Without this the titlebar stays blank until the agent happens to run
+# scripts/tab-main.sh, and the refresh daemon never even sees this session:
+# it discovers sessions by globbing state/tab-titles/*.main.json, so no state
+# file meant no clock and no progress bar, forever (CEO hit exactly that on a
+# fresh spawn, 2026-08-03). With no goal set yet the line renders as
+# "🎯 CTO #<sid> · ⏱ 0m" — honest, and already ticking; the agent replaces the
+# goal at /session-open. Also starts the shared refresh daemon.
+(cd "$ROOT" && python3 -m tools.maintab set) >/dev/null 2>&1 || true
+
 # Keep claude CLI from overwriting our tab title with its own (no-op on
 # builds without this env). The keeper loop below re-asserts regardless.
 export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
