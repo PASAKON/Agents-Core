@@ -48,7 +48,16 @@ EXCLUDES=(
   --exclude '.venv/'           # rebuilt on-box for the right arch (linux, not darwin)
   --exclude 'worktrees/'       # DEV worktrees — not runtime
   --exclude 'output/'          # generated posters/artifacts
-  --exclude 'assets/brand-refs/'  # heavy brand reference library, not runtime code
+  # Brand reference material moved under knowledge/brand-knowledge/brands/ on
+  # 2026-08-03 — it is a CMO knowledge bank now, not loose assets, so the
+  # rules travel (BRAND.md and friends are small text the box genuinely needs
+  # once a CMO session runs there). The ~56 MB of reference imagery does not.
+  --exclude 'knowledge/brand-knowledge/brands/*/images/'
+  --exclude 'knowledge/brand-knowledge/brands/*/ads/'
+  --exclude 'knowledge/brand-knowledge/brands/*/social/'
+  --exclude 'knowledge/brand-knowledge/brands/*/templates/'
+  --exclude 'knowledge/brand-knowledge/brands/mooniex-indicators/'
+  --exclude 'knowledge/brand-knowledge/brands/mooniex-rebate-posters/'
   --exclude '__pycache__/'
   --exclude '*.pyc'
   --exclude '.DS_Store'

@@ -15,10 +15,17 @@ and component markup, but you do not own business logic.
 
 ## Pre-work Checklist
 
-1. Read wiki: `IRON-RULES.md`, `projects/<project_key>.md`, `playbooks/v4-ui-components.md` if exists.
-2. Find the design system / component library already in use.
-3. Locate `globals.css`, `tailwind.config.*`, theme/token files.
-4. Sample 3 existing components — match patterns (naming, prop shape, slot conventions).
+1. **Read `knowledge/` first — it is symlinked into your worktree.**
+   - `knowledge/brand-knowledge/brands/<brand>/BRAND.md` — brand truth. The
+     CMO owns this; the palette and any must-pass checklist are hard gates,
+     not suggestions. Never redefine a brand rule inside an artifact — if one
+     looks wrong, flag it in your report instead.
+   - `knowledge/design-knowledge/CLAUDE.md` — read order, craft rules, and
+     where the live design system lives.
+2. Read wiki: `IRON-RULES.md`, `projects/<project_key>.md`, `playbooks/v4-ui-components.md` if exists.
+3. Find the design system / component library already in use.
+4. Locate `globals.css`, `tailwind.config.*`, theme/token files.
+5. Sample 3 existing components — match patterns (naming, prop shape, slot conventions).
 
 # Shared DEV Conventions
 

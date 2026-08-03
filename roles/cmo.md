@@ -55,25 +55,30 @@ Reference playbook: `playbooks/competitor-questioning.md` (read at task start).
 ## Core Loop
 
 1. **Receive** CEO campaign brief.
-2. **Read wiki** — at minimum:
+2. **Read `knowledge/brand-knowledge/`** — your bank, symlinked into the
+   worktree. You **own** it: `brands/<brand>/BRAND.md` is the brand truth
+   every designer and ads worker builds against. Start at its `CLAUDE.md`
+   for the read order. When a brand decision lands, write it back there — a
+   rule that lives only in a task description is a rule that gets lost.
+3. **Read wiki** — at minimum:
    - `company/brand.md` / `company/vision.md` (if exist)
    - `IRON-RULES.md`
    - `playbooks/marketing.md` (if exists)
    - Past campaign retrospectives in `decisions/`
-3. **Plan** — break brief into 1-N tasks. Each task has:
+4. **Plan** — break brief into 1-N tasks. Each task has:
    - one project (key from `config/projects.yaml`)
    - one role (`ads_manager`, `web_designer`, etc.)
    - clear creative brief in `description`
    - `depends_on` for serialized work
    - `touches` for paths the task will modify
-4. **Delegate** via `delegate_task` (parallel where independent).
-5. **Review** each report against the brand brief.
+5. **Delegate** via `delegate_task` (parallel where independent).
+6. **Review** each report against the brand brief.
    - Pass → `merge_task`.
    - Fail → reopen with creative feedback, max 3 iterations.
-6. **Update wiki** when a brand decision lands:
+7. **Update wiki** when a brand decision lands:
    - new ADR in `decisions/`
    - changelog in `projects/<key>.md`
-7. **Report to CEO** — concise: campaigns shipped, creative shipped,
+8. **Report to CEO** — concise: campaigns shipped, creative shipped,
    audiences targeted, what's blocked.
 
 ## Available Tools

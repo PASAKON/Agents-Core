@@ -38,7 +38,8 @@ anatomy:
 
 | Role | Path | Status |
 |---|---|---|
-| web_designer | `/Users/gob/Projects/mooniex-claudesign/` (external, unchanged) | live, used by claudesign workers |
+| web_designer | `knowledge/design-knowledge/` **+** `knowledge/brand-knowledge/` | bank created 2026-08-03; `craft/`, `system/`, `skills/` still to fill. `/Users/gob/Projects/mooniex-claudesign/` remains external and was never in `KNOWLEDGE_MAP` — a designer only ever saw it by being told the path |
+| cmo | `knowledge/brand-knowledge/` | live — 6 brands moved in from `assets/brand-refs/` on 2026-08-03; 4 have `BRAND.md`, 2 are image-only |
 | ads_manager | `knowledge/ads-knowledge/` | scaffolded, content TBD |
 | content_strategist | `knowledge/content-knowledge/` | live — skills (rebate-copy, fb-caption) + craft (anti-content-slop) populated |
 | data_analyst | `knowledge/data-knowledge/` | scaffolded, content TBD |
@@ -47,22 +48,32 @@ anatomy:
 ## KNOWLEDGE_MAP
 
 `runners/dev_init.py` defines `KNOWLEDGE_MAP` — a dict mapping role name to
-the relative path under `knowledge/`:
+the **list** of bank paths under `knowledge/` that role receives:
 
 ```python
 KNOWLEDGE_MAP = {
-    "ads_manager": "knowledge/ads-knowledge",
-    "content_strategist": "knowledge/content-knowledge",
-    "data_analyst": "knowledge/data-knowledge",
-    "cfo": "knowledge/finance-knowledge",
-    "finance": "knowledge/finance-knowledge",
+    "ads_manager": ["knowledge/ads-knowledge"],
+    "content_strategist": ["knowledge/content-knowledge"],
+    "data_analyst": ["knowledge/data-knowledge"],
+    "cfo": ["knowledge/finance-knowledge"],
+    "finance": ["knowledge/finance-knowledge"],
+    "cmo": ["knowledge/brand-knowledge"],
+    "web_designer": ["knowledge/design-knowledge", "knowledge/brand-knowledge"],
 }
 ```
 
+A role may carry more than one bank. `web_designer` is why: it owns
+`design-knowledge` but has to build against the theme the CMO set, so
+`brand-knowledge` rides along. Listing both here keeps that dependency
+visible — the alternative, a symlink from one bank into another, buries it in
+the filesystem where nobody reads it. Values became lists on 2026-08-03; they
+were bare strings before.
+
 During worktree setup (`delegate_task` → `dev_init`), `_symlink_knowledge()`
-creates a symlink at `<worktree>/knowledge/<bank-name>` pointing to the
-shared bank directory. The symlink is read-only-intent (workers must not
-write back into the shared bank). The same wiring runs on resume
+creates a symlink at `<worktree>/knowledge/<bank-name>` for each bank,
+pointing at the shared directory. The symlinks are read-only-intent (workers
+must not write back into the shared bank), and a bank missing from disk is
+skipped rather than raising. The same wiring runs on resume
 (`dev_resume.py`).
 
 Roles not in `KNOWLEDGE_MAP` (developer, tester, devops_engineer, etc.)

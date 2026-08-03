@@ -31,37 +31,68 @@ from lib.config import display_for, get_project, role as get_role, dev_provider_
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
 
-# Role → relative knowledge-bank path under knowledge/.  Roles without an
-# entry (developer, tester, devops_engineer, etc.) get nothing — no error.
-KNOWLEDGE_MAP: dict[str, str] = {
-    "ads_manager": "knowledge/ads-knowledge",
-    "content_strategist": "knowledge/content-knowledge",
-    "data_analyst": "knowledge/data-knowledge",
-    "cfo": "knowledge/finance-knowledge",
-    "finance": "knowledge/finance-knowledge",
+# Role → the knowledge banks (paths under knowledge/) symlinked into that
+# role's DEV worktree.  A role may carry more than one bank: web_designer
+# owns the design bank but has to execute against the theme the CMO set, so
+# it also gets brand-knowledge — read it, don't redefine it.  Listing both
+# here keeps that dependency visible instead of hiding it behind a symlink
+# buried inside a bank.  Roles without an entry (developer, tester,
+# devops_engineer, …) get nothing — no error.
+KNOWLEDGE_MAP: dict[str, list[str]] = {
+    "ads_manager": ["knowledge/ads-knowledge"],
+    "content_strategist": ["knowledge/content-knowledge"],
+    "data_analyst": ["knowledge/data-knowledge"],
+    "cfo": ["knowledge/finance-knowledge"],
+    "finance": ["knowledge/finance-knowledge"],
+    # CMO owns the brand: positioning, theme, voice, and the brief that goes
+    # to the designer.
+    "cmo": ["knowledge/brand-knowledge"],
+    # Designer owns craft and the design system; brand-knowledge rides along
+    # so the theme and brand gates are at hand without a second lookup.
+    "web_designer": ["knowledge/design-knowledge", "knowledge/brand-knowledge"],
 }
 
 
 def _symlink_knowledge(worktree: str, role: str) -> None:
-    """Create a read-only-intent symlink from the worktree into the shared
-    knowledge bank for this role.  No-op if role has no mapped bank or if
-    the bank dir doesn't exist on disk (scaffolded-but-empty is fine)."""
-    rel = KNOWLEDGE_MAP.get(role)
-    if not rel:
-        return
-    src = ROOT / rel
-    if not src.is_dir():
-        return
-    dst = Path(worktree) / "knowledge" / src.name
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    if dst.exists() or dst.is_symlink():
-        dst.unlink()  # stale link from a prior run
-    dst.symlink_to(src)
+    """Symlink every knowledge bank mapped to this role into the worktree,
+    read-only by intent.  No-op for an unmapped role, and any bank missing
+    from disk is skipped (scaffolded-but-empty is fine).  knowledge/ is only
+    created once a real bank is about to land in it."""
+    for rel in KNOWLEDGE_MAP.get(role, ()):
+        src = ROOT / rel
+        if not src.is_dir():
+            continue
+        dst = Path(worktree) / "knowledge" / src.name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if dst.exists() or dst.is_symlink():
+            dst.unlink()  # stale link from a prior run
+        dst.symlink_to(src)
+
+
+def _root_mcp_server_names() -> list[str]:
+    """Server names declared in Agents/.mcp.json (CTO-only servers, e.g.
+    Supabase). DEV worktrees live physically under Agents/worktrees/, so
+    Claude Code discovers this ancestor .mcp.json and shows an interactive
+    trust/approval TUI screen before the chat even starts — which blocks
+    the automated kickoff ping (it types into a chat prompt that doesn't
+    exist yet). Returns [] if the file is missing or malformed."""
+    root_mcp = ROOT / ".mcp.json"
+    if not root_mcp.is_file():
+        return []
+    try:
+        data = json.loads(root_mcp.read_text(encoding="utf-8"))
+        return list((data.get("mcpServers") or {}).keys())
+    except (json.JSONDecodeError, OSError):
+        return []
 
 
 def _write_dev_settings(worktree: str) -> None:
     """Drop .claude/settings.local.json into the worktree so claude wires
-    the Stop hook that relays DEV replies into cto.log."""
+    the Stop hook that relays DEV replies into cto.log, and explicitly
+    disables any project-scoped MCP servers inherited from Agents/.mcp.json
+    (see _root_mcp_server_names) so DEV spawns never hit the interactive
+    approval screen for servers they were never meant to use — DEVs get
+    MCP access only via --mcp-config config/dev.mcp.json."""
     settings_dir = Path(worktree) / ".claude"
     settings_dir.mkdir(parents=True, exist_ok=True)
     cfg = {
@@ -79,6 +110,9 @@ def _write_dev_settings(worktree: str) -> None:
             ]
         },
     }
+    inherited = _root_mcp_server_names()
+    if inherited:
+        cfg["disabledMcpjsonServers"] = inherited
     (settings_dir / "settings.local.json").write_text(
         json.dumps(cfg, indent=2), encoding="utf-8"
     )
