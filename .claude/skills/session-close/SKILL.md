@@ -33,7 +33,7 @@ post, deploy, email, payment, upload.
 Two things land in LungNote here. Anything that lives only in the chat is lost
 the moment the tab closes — so save it now, with dates.
 
-**4a. CEO action-items + reminders — capture every one (written after the CEO OKs, see 4c), with dates.**
+**4a. CEO action-items + reminders — capture every one, with dates.**
 Walk the WHOLE session for anything **the CEO personally must do** — not just
 code: reply to an email, send a doc, decide A/B, pay an invoice, migrate X→Y,
 follow up with a person, renew a key. For EACH:
@@ -55,21 +55,23 @@ Anything raised but **not** part of the entry problem → `add_todo` one line ea
       `✅` (work pending) or `🔴` (blocked), and say plainly it's abandoned/partial
       — per §35, an unsolved entry problem is not a close.
 
-**4c. Verify, then get the CEO's OK before touching the todo list (สำคัญมาก).**
-The todos are the CEO's — never silently add or complete one. 4a/4b only DRAFT
-the changes; 4c is where they get written.
-- **Completing / deleting a todo** (`complete_todo`): FIRST verify the task is
-  REALLY done with real evidence (prod query / merged sha / live check) — same
-  bar as gate 2. A todo from a past session can LOOK done but isn't
+**4c. Apply directly — verify first, then just do it (no approval round-trip).**
+The todos are the CEO's backlog, but this skill auto-applies once evidence clears
+the same bar as gate 2 — no "propose and wait for approve" step (retired
+2026-08-04; the LungNote backend's status field ships complete/cancel/delete
+natively now, so there's nothing left to gate).
+- **Before `complete_todo` / `cancel_todo` / `delete_todo`**: FIRST verify with
+  real evidence (prod query / merged sha / live check) — same bar as gate 2. A
+  todo from a past session can LOOK done but isn't
   ([[orphan_recovery_verify_external_state]]). Never tick something off on a hunch.
-- **Propose, don't apply.** Show the CEO the exact diff —
-  `✅ เสร็จ→ลบ: <todo> (หลักฐาน: …)` and `➕ เพิ่ม: <todo> · due <date>` — and
-  **wait for an explicit "approve"**.
-- Only AFTER the CEO approves: call `complete_todo` / `add_todo`, THEN flip the
-  tab (gate 5). The CEO may OK all, some, or none — never mutate a todo the CEO
-  did not approve.
+- Call the tool directly, then log it with its marker:
+  - `➕` `add_todo` — new backlog item
+  - `✅` `complete_todo` — verified done, evidence inline
+  - `❌` `cancel_todo` — no longer relevant / superseded, reason inline
+  - `🗑️` `delete_todo` — added by mistake or a duplicate
+- Then flip the tab (gate 5) — no separate wait step in between.
 
-List every applied change — and its due date — in the report.
+List every applied change — marker, text, evidence/reason, and due date — in the report.
 
 **4d. Surface still-open work so the next session inherits it.**
 The loop only closes cleanly if what's unfinished is visible at the next open.
@@ -84,7 +86,7 @@ The loop only closes cleanly if what's unfinished is visible at the next open.
       invisible to the loop. If it has a date, it MUST have `due_at`.
 
 ### 5. Flip BOTH tab layers + final report
-Only after gates 1–4 pass — including the CEO's explicit OK on the todo changes (4c):
+Only after gates 1–4 pass:
 ```bash
 bash scripts/tab-title.sh "🏁 <entry problem solved, ≤35 chars>"
 bash scripts/tab-main.sh "" <N>/<N>          # every DoD item done -> a full bar
