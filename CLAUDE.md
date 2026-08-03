@@ -44,12 +44,27 @@ attempt it or assume GitHub presence is enough.
 
 ## Wiki access
 
-Wiki tools (`wiki_read`/`wiki_write`/etc.) are multi-root and namespaced —
-roots are declared in `config/wikis.yaml` (ADR 0013: `org:` = Agents-Wikis,
-`mooniex:` = MoonieX Wikis, the default namespace). On Contabo none of those
-roots are checked out by design (see wiki `projects/mooniex-console.md`, ADR
-Phase C), so a missing root there is expected, not a bug. A Contabo/mobile
-session cannot read or update the wiki directly.
+Wiki tools (`wiki_read`/`wiki_write`/etc.) are multi-root and namespaced. Roots
+are declared in `config/wikis.yaml` (ADR 0013): **`org:`** = `Agents-Wikis`, the
+org runtime rules that bind every agent on every project; **`mooniex:`** =
+`MoonieX-Wikis`, MoonieX product facts, and the default namespace when a path
+carries no prefix.
+
+| | Mac | Contabo |
+|---|---|---|
+| `org:` | ✅ `/Users/gob/Projects/Agents-Wikis` | ✅ `/opt/agents-wikis` |
+| `mooniex:` | ✅ `/Users/gob/Projects/LLMs` | ❌ not checked out (ADR Phase C) |
+
+**On Contabo you CAN read the org rules** as of 2026-08-03 (`org:IRON-RULES.md`,
+`org:playbooks/*`) — that is the point of the ADR-0013 split. A `mooniex:` read
+raises `wiki 'mooniex' not available in this environment`, and so does an
+unprefixed path, because `mooniex` is the default namespace. **Prefix with
+`org:` on that box.**
+
+`config/wikis.yaml` carries Mac absolute paths; `cto-claude.sh` /
+`cxo-claude.sh` export `WIKI_ROOT_ORG=/opt/agents-wikis` when that directory
+exists, which is how Contabo resolves it. Any namespace can be repointed the
+same way with `WIKI_ROOT_<NS>`.
 
 ## Maintenance
 
