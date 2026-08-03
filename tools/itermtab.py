@@ -604,11 +604,50 @@ _TASK_STATUS_GLYPH = {
 _CLEVEL_PREFIXES = ("CTO ", "CMO ", "CGO ", "CFO ")
 _TASK_ID_RE = re.compile(r"task-[0-9a-fA-F]+")
 
+# DEV tabs coloured on the last tick, so the next one can clear a tab whose
+# task has since left the coloured statuses. Without this, a task going
+# failed -> done keeps its red forever whenever the tab outlives the task
+# (CEO spotted exactly that, 2026-08-03): merging closes the DEV tab, but a
+# task closed any other way leaves the tab open and stale-red. Only tabs we
+# actually coloured get cleared, so this never fights tab-title.sh and never
+# writes to a tab nobody asked us to touch.
+_COLORED_DEV_TABS: set[str] = set()
+
 
 def _status_style(status: str | None) -> dict | None:
     """A task status -> its _STATUS_STYLE entry, or None for "no color"."""
     glyph = _TASK_STATUS_GLYPH.get(status or "")
     return _STATUS_STYLE.get(glyph) if glyph else None
+
+
+def _blocker_badge(status: str, owner_role: str) -> str | None:
+    """The badge for a stuck DEV task — naming who has to act.
+
+    A blocker is a request for a decision, so it has to name the person the
+    decision belongs to: whoever ORDERED the work. The org already routes
+    this way — `owner_role` + `owner_cto` pick the window that DEV reports,
+    `send_to_cto`, and delegate's spawn all target — but the tab badge was
+    the one signal still hardcoded to "รอ CEO", which told the CEO a DEV
+    task delegated by the CTO was waiting on them (CEO caught it,
+    2026-08-03). Now a CTO-ordered task reads "รอ CTO", a CMO-ordered one
+    "รอ CMO", and so on. C-level tabs keep "รอ CEO" — for those the CEO
+    genuinely is the one who ordered the work.
+
+    Only red/stuck statuses get a badge at all. Working and finished tabs
+    carry their colour and nothing else; a watermark across a DEV's output
+    should mean "someone must act", not "this tab exists".
+    """
+    if _TASK_STATUS_GLYPH.get(status) != "🔴":
+        return None
+    role = owner_role or "cto"
+    try:
+        from lib.config import display_for
+        return f"🔴 รอ {display_for(role)}"
+    except Exception:
+        # Imported lazily and defensively: this module is imported by
+        # git_ops/delegate/watchdog, and a config problem must not take the
+        # merge path down with it. The uppercased role is a fine fallback.
+        return f"🔴 รอ {role.upper()}"
 
 
 def _dev_task_id(title: str) -> str | None:
@@ -625,8 +664,13 @@ def _dev_task_id(title: str) -> str | None:
     return m.group(0) if m else None
 
 
-def _in_flight_dev_statuses() -> dict[str, str]:
-    """task_id -> status, for every task whose status maps to a tab color.
+def _in_flight_dev_statuses() -> dict[str, tuple[str, str]]:
+    """task_id -> (status, owner_role), for tasks whose status maps to a color.
+
+    `owner_role` comes along because a blocker has to name whoever ORDERED
+    the work — see _blocker_badge. Legacy rows predate the column and carry
+    NULL; they default to "cto", the same fallback tools/delegate.py and
+    runners/dev_init.py already use.
 
     The ONE DB read per tick (HARD REQUIREMENT 1), scoped to the handful of
     colored statuses rather than the full table (HARD REQUIREMENT 3 — never
@@ -645,10 +689,12 @@ def _in_flight_dev_statuses() -> dict[str, str]:
     try:
         with db.get_conn() as conn:
             rows = conn.execute(
-                f"SELECT id, status FROM tasks WHERE status IN ({placeholders})",
+                f"SELECT id, status, owner_role FROM tasks "
+                f"WHERE status IN ({placeholders})",
                 statuses,
             ).fetchall()
-        return {row["id"]: row["status"] for row in rows}
+        return {row["id"]: (row["status"], row["owner_role"] or "cto")
+                for row in rows}
     except Exception:
         return {}
 
@@ -682,45 +728,63 @@ def sync_dev_tab_colors() -> int:
     OSC 2, so a DEV tab living inside its owning CTO's window never
     touches that CTO's goal/progress line.
 
-    HARD REQUIREMENT 1: at most one iTerm API connection here, and it is
-    skipped entirely when nothing is in-flight — the DB read always runs
-    first specifically to make that skip possible without touching iTerm.
+    Badges name whoever ordered the work — see _blocker_badge. Only stuck
+    (red) tasks get one; working and finished tabs carry colour alone.
 
-    Returns the number of tabs (re-)colored. Degrades to 0 on any failure
-    (DB, iTerm API down, a session that vanished mid-tick) — never raises
-    into the daemon loop (HARD REQUIREMENT 4).
+    HARD REQUIREMENT 1: at most one iTerm API connection here, and it is
+    skipped entirely when there is nothing to colour AND nothing left over
+    to clear — the DB read always runs first specifically to make that skip
+    possible without touching iTerm.
+
+    Returns the number of tabs (re-)colored or cleared. Degrades to 0 on any
+    failure (DB, iTerm API down, a session that vanished mid-tick) — never
+    raises into the daemon loop (HARD REQUIREMENT 4).
     """
     statuses = _in_flight_dev_statuses()
-    if not statuses:
+    if not statuses and not _COLORED_DEV_TABS:
         return 0
 
     async def factory(conn):
         app = await _iterm2.async_get_app(conn)
         hits = 0
+        seen: set[str] = set()
         for window in app.windows:
             for tab in window.tabs:
                 for session in tab.sessions:
                     title = await _session_title(session)
                     task_id = _dev_task_id(title)
-                    if task_id is None or task_id not in statuses:
-                        # No task id, or a task id this tick's DB read never
-                        # fetched — the latter means its status isn't one of
-                        # the colored ones (HARD REQUIREMENT 3: that read is
-                        # scoped to colored statuses only). Leave the tab
-                        # alone rather than writing a "clear" nobody asked
-                        # for; a terminal task's tab is normally closed by
-                        # tools/git_ops.py:close_tab shortly after anyway.
+                    if task_id is None:
                         continue
-                    style = _status_style(statuses[task_id])
-                    profile = (_attention_profile(style["rgb"], style["badge"])
-                               if style and style["rgb"] is not None
-                               else _clear_profile())
+                    if task_id in statuses:
+                        status, owner_role = statuses[task_id]
+                        style = _status_style(status)
+                        profile = (
+                            _attention_profile(
+                                style["rgb"], _blocker_badge(status, owner_role))
+                            if style and style["rgb"] is not None
+                            else _clear_profile())
+                    elif task_id in _COLORED_DEV_TABS:
+                        # We coloured this tab on an earlier tick and its task
+                        # has since left the coloured statuses (merged, done,
+                        # cancelled). Clear it, or the old colour outlives the
+                        # work it described.
+                        profile = _clear_profile()
+                    else:
+                        # A tab we never coloured, for a task that isn't in a
+                        # coloured status. Not ours to touch.
+                        continue
                     try:
                         await session.async_set_profile_properties(profile)
                     except Exception:
                         continue
                     await _reassert_session_title(session, title)
+                    if task_id in statuses:
+                        seen.add(task_id)
                     hits += 1
+        # Rebuild from what we actually painted this tick, so a tab that has
+        # closed drops out instead of leaking into the set forever.
+        _COLORED_DEV_TABS.clear()
+        _COLORED_DEV_TABS.update(seen)
         return hits
 
     return _run_api(factory) or 0

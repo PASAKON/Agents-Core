@@ -141,16 +141,20 @@ def _with_fake(mod, fn):
 # --------------------------------------------------------------------------
 # scratch DB helpers
 # --------------------------------------------------------------------------
-def _seed_tasks(statuses: dict[str, str]) -> None:
-    """Create one task row per {task_id: status}."""
+def _seed_tasks(statuses: dict[str, str], owner_role: str | None = None) -> None:
+    """Create one task row per {task_id: status}, all owned by `owner_role`.
+
+    owner_role=None leaves the column NULL — what pre-ownership rows look
+    like, which is the "defaults to cto" path.
+    """
     with db.get_conn() as conn:
         now = db.now_iso()
         for task_id, status in statuses.items():
             conn.execute(
                 "INSERT INTO tasks (id, project, role, status, title, "
-                "description, created_at, updated_at) "
-                "VALUES (?, 'p', 'developer', ?, 't', 'd', ?, ?)",
-                (task_id, status, now, now),
+                "description, created_at, updated_at, owner_role) "
+                "VALUES (?, 'p', 'developer', ?, 't', 'd', ?, ?, ?)",
+                (task_id, status, now, now, owner_role),
             )
 
 
@@ -305,6 +309,103 @@ def test_sync_colors_matching_dev_tabs_only() -> bool:
     return bool(ok_working and ok_blocked and ok_title)
 
 
+def test_blocker_badge_names_whoever_ordered_the_work() -> bool:
+    """A blocker must name the C-level who ORDERED the task, not the CEO.
+
+    The badge was hardcoded "🔴 รอ CEO" — a C-level message — so a DEV task
+    the CTO delegated told the CEO it was waiting on them (CEO caught it
+    2026-08-03). The org already routes reports by owner_role; the badge now
+    follows the same owner.
+    """
+    b = itermtab._blocker_badge
+    return (
+        b("failed", "cto") == "🔴 รอ CTO"
+        and b("blocked_human", "cmo") == "🔴 รอ CMO"
+        and b("stalled", "cgo") == "🔴 รอ CGO"
+        and b("conflict", "cfo") == "🔴 รอ CFO"
+        # legacy rows predate owner_role -> the same "cto" default the rest
+        # of the org uses (tools/delegate.py, runners/dev_init.py)
+        and b("rate_limited", None) == "🔴 รอ CTO"
+        # never says CEO for a DEV task, whoever owns it
+        and all("CEO" not in (b(s, o) or "")
+                for s in ("failed", "stalled", "blocked_human")
+                for o in ("cto", "cmo", "cgo", "cfo", None))
+    )
+
+
+def test_only_stuck_tasks_get_a_badge() -> bool:
+    """Working/finished tabs carry colour alone — no watermark over output."""
+    b = itermtab._blocker_badge
+    return b("in_progress", "cto") is None and b("review", "cto") is None
+
+
+def test_badge_reaches_the_tab_with_the_right_owner() -> bool:
+    """End-to-end: a CMO-owned failed task paints 'รอ CMO' on its tab."""
+    dev = FakeSession("Developer (task-44444444)")
+    app = FakeApp([FakeWindow([FakeTab([dev])])])
+
+    def with_db():
+        _seed_tasks({"task-44444444": "failed"}, owner_role="cmo")
+        return _with_fake(_fake_module(app), itermtab.sync_dev_tab_colors)
+
+    itermtab._COLORED_DEV_TABS.clear()
+    _with_scratch_db(with_db)
+    if not dev.applied:
+        return False
+    return dev.applied[0].calls.get("set_badge_text") == "🔴 รอ CMO"
+
+
+def test_stale_color_is_cleared_when_task_leaves_flight() -> bool:
+    """A tab we coloured must lose it once its task is no longer in flight.
+
+    Merging closes the DEV tab, but a task closed any other way leaves the
+    tab open — and it kept its old colour forever, so a finished task still
+    showed red (CEO caught it 2026-08-03).
+    """
+    dev = FakeSession("Developer (task-55555555)")
+    app = FakeApp([FakeWindow([FakeTab([dev])])])
+
+    def tick_failed():
+        _seed_tasks({"task-55555555": "failed"}, owner_role="cto")
+        return _with_fake(_fake_module(app), itermtab.sync_dev_tab_colors)
+
+    def tick_done():
+        _seed_tasks({"task-55555555": "done"}, owner_role="cto")
+        return _with_fake(_fake_module(app), itermtab.sync_dev_tab_colors)
+
+    itermtab._COLORED_DEV_TABS.clear()
+    _with_scratch_db(tick_failed)
+    if not dev.applied or dev.applied[0].calls.get("set_use_tab_color") is not True:
+        return False          # first tick must actually colour it
+    if "task-55555555" not in itermtab._COLORED_DEV_TABS:
+        return False          # and remember that it did
+
+    _with_scratch_db(tick_done)
+    if len(dev.applied) != 2:
+        return False          # second tick must write again, to clear
+    cleared = dev.applied[1].calls
+    return (
+        cleared.get("set_use_tab_color") is False
+        and cleared.get("set_use_tab_color_light") is False
+        and cleared.get("set_use_tab_color_dark") is False
+        and "task-55555555" not in itermtab._COLORED_DEV_TABS
+    )
+
+
+def test_untouched_tabs_are_never_cleared() -> bool:
+    """Clearing is scoped to tabs WE coloured — never a stranger's tab."""
+    dev = FakeSession("Developer (task-66666666)")
+    app = FakeApp([FakeWindow([FakeTab([dev])])])
+
+    def with_db():
+        _seed_tasks({"task-66666666": "done"}, owner_role="cto")
+        return _with_fake(_fake_module(app), itermtab.sync_dev_tab_colors)
+
+    itermtab._COLORED_DEV_TABS.clear()
+    _with_scratch_db(with_db)
+    return dev.applied == []
+
+
 def main() -> int:
     tests = [
         (test_each_status_maps_to_expected_color,
@@ -325,6 +426,16 @@ def main() -> int:
         (test_sync_colors_matching_dev_tabs_only,
          "sync colors only in-flight DEV tabs, skips C-level + done tasks, "
          "reasserts the DEV tab's title"),
+        (test_blocker_badge_names_whoever_ordered_the_work,
+         "blocker badge names the C-level who ordered the task, never the CEO"),
+        (test_only_stuck_tasks_get_a_badge,
+         "only stuck tasks get a badge; working/finished carry colour alone"),
+        (test_badge_reaches_the_tab_with_the_right_owner,
+         "a CMO-owned failed task paints 'รอ CMO' on its tab end-to-end"),
+        (test_stale_color_is_cleared_when_task_leaves_flight,
+         "a coloured tab is cleared once its task leaves the in-flight set"),
+        (test_untouched_tabs_are_never_cleared,
+         "clearing is scoped to tabs we coloured — a stranger's tab is untouched"),
     ]
     fails = 0
     for fn, desc in tests:
