@@ -27,8 +27,46 @@ import re
 import time
 from pathlib import Path
 
+import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
+WIKIS_CONFIG = ROOT / "config" / "wikis.yaml"
+
+
+def _wiki_root_paths() -> list[str]:
+    """Absolute paths of every registered wiki root (config/wikis.yaml),
+    honoring WIKI_ROOT as an override for the default namespace's path —
+    same precedence tools/wiki.py uses. Never raises: an unreadable/missing
+    registry just yields no wiki paths (category never matches)."""
+    try:
+        data = yaml.safe_load(WIKIS_CONFIG.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    default_ns = data.get("default")
+    env_override = os.environ.get("WIKI_ROOT")
+    paths = []
+    for w in data.get("wikis", []):
+        if env_override and w.get("ns") == default_ns:
+            paths.append(env_override)
+        elif w.get("path"):
+            paths.append(w["path"])
+    return paths
+
+
+def _wiki_edit_pattern() -> re.Pattern:
+    """Matches ANY registered wiki root, not one literal path — so the
+    fact-gate category-cache covers org: and mooniex: (and future) roots
+    alike. Falls back to a pattern that never matches if the registry is
+    unreadable, rather than crashing the hook."""
+    paths = [p.rstrip("/") for p in _wiki_root_paths() if p]
+    if not paths:
+        return re.compile(r"(?!)")
+    alternation = "|".join(re.escape(p) for p in paths)
+    return re.compile(rf"^(?:{alternation})/")
+
+
 CATEGORIES = [
-    ("wiki_edit",     re.compile(r"^/Users/gob/Projects/LLMs/")),
+    ("wiki_edit",     _wiki_edit_pattern()),
     ("agents_config", re.compile(r"^/Users/gob/Projects/Agents/config/")),
     ("agents_roles",  re.compile(r"^/Users/gob/Projects/Agents/roles/")),
     ("memory",        re.compile(r"/\.claude/projects/.*/memory/")),

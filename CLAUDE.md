@@ -38,10 +38,12 @@ attempt it or assume GitHub presence is enough.
 
 ## Wiki access
 
-Wiki tools (`wiki_read`/`wiki_write`/etc.) only work from **Mac** sessions —
-`WIKI_ROOT` (the LLMs wiki repo) is not present on Contabo by design (see wiki
-`projects/mooniex-console.md`, ADR Phase C). A Contabo/mobile session cannot
-read or update the wiki directly.
+Wiki tools (`wiki_read`/`wiki_write`/etc.) are multi-root and namespaced —
+roots are declared in `config/wikis.yaml` (ADR 0013: `org:` = Agents-Wikis,
+`mooniex:` = MoonieX Wikis, the default namespace). On Contabo none of those
+roots are checked out by design (see wiki `projects/mooniex-console.md`, ADR
+Phase C), so a missing root there is expected, not a bug. A Contabo/mobile
+session cannot read or update the wiki directly.
 
 ## Maintenance
 

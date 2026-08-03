@@ -18,7 +18,7 @@ CEO (you)
 
 ## Key Concepts
 
-- **Wiki** at `/Users/gob/Projects/LLMs/` — read by all, write by C-level only.
+- **Wiki** — multi-root, namespaced (ADR 0013). Roots declared in `config/wikis.yaml` (`org:` = Agents-Wikis, `mooniex:` = MoonieX Wikis, default). Read by all, write by C-level only.
 - **Per-task worktree** — every DEV gets isolated git worktree on a dedicated branch.
 - **CTO is sole merger** — DEVs cannot push to main or delete branches.
 - **SQLite task queue** at `state/tasks.db` — single source of truth.

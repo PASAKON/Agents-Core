@@ -130,7 +130,10 @@ projects:
 
   - key: LLMs
     name: LLMs (Wiki)
-    path: /Users/gob/Projects/LLMs
+    # path omitted here on purpose — config/wikis.yaml is the single source
+    # of truth for wiki roots (ADR 0013). lib/config.py:projects() fills
+    # this in from the `mooniex` namespace's path at load time.
+    path: null
     remote: git@github.com:PASAKON/mooniex-llms-wiki.git
     default_branch: main
     stack: [markdown]

@@ -32,7 +32,7 @@ mcp = FastMCP("org")
 
 @mcp.tool()
 def wiki_read(path: str) -> str:
-    """Read a wiki page from /Users/gob/Projects/LLMs/."""
+    """Read a wiki page. Namespaced ("org:x.md") or unprefixed (default namespace)."""
     try:
         return wiki_tools.wiki_read(path)[:8000]
     except Exception as e:

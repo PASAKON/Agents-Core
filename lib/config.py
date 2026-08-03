@@ -18,12 +18,31 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 PROJECTS_CONFIG = ROOT / "config" / "projects.yaml"
 AGENTS_CONFIG = ROOT / "policies" / "agents.yaml"
+WIKIS_CONFIG = ROOT / "config" / "wikis.yaml"
+
+
+@lru_cache(maxsize=1)
+def _wiki_registry() -> dict:
+    return yaml.safe_load(WIKIS_CONFIG.read_text())
+
+
+def _wiki_root_path(ns: str) -> str | None:
+    for w in _wiki_registry().get("wikis", []):
+        if w.get("ns") == ns:
+            return w.get("path")
+    return None
 
 
 @lru_cache(maxsize=1)
 def projects() -> dict[str, dict]:
     data = yaml.safe_load(PROJECTS_CONFIG.read_text())
-    return {p["key"]: p for p in data["projects"]}
+    out = {p["key"]: p for p in data["projects"]}
+    # The `LLMs` project's path is not duplicated in projects.yaml — it's
+    # derived from config/wikis.yaml, the single source of truth for wiki
+    # roots (ADR 0013).
+    if "LLMs" in out and out["LLMs"].get("path") is None:
+        out["LLMs"]["path"] = _wiki_root_path("mooniex")
+    return out
 
 
 @lru_cache(maxsize=1)
