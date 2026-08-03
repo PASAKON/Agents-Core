@@ -18,7 +18,7 @@ Read it to know which machine you're on and which projects you can actually touc
 | Project | Path on Contabo |
 |---|---|
 | mooniex-agents (this org repo) | `/opt/mooniex-agents` |
-| mooniex-console (the Console app itself) | `/opt/mooniex-console` |
+| mooniex-console (own repo since 2026-08-03: `PASAKON/MoonieX-Console`) | `/opt/mooniex-console` |
 | mooniex-claudeflow | `/root/projects/mooniex-claudeflow` |
 | mooniex-option | `/root/projects/mooniex-option` |
 | mooniex-alphatrader | `/root/projects/mooniex-alphatrader` |
