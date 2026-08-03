@@ -75,6 +75,7 @@ def main() -> None:
         "mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search "
         "mcp__org__submit_report mcp__org__dev_message "
         "mcp__org__file_blocker_issue "
+        "mcp__lungnote__list_todos mcp__lungnote__add_todo "
         "Read Write Edit Bash Glob Grep"
     ).split()
 

@@ -170,6 +170,25 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
     except GitOpsError:
         pass
 
+    # Pre-flight: a dirty base worktree (another concurrent session mid-edit)
+    # makes `git merge` fail with "local changes would be overwritten" — a
+    # transient, local, self-resolving condition, not a real content conflict.
+    # Catching it here (issue #42) means we never even attempt the merge, so
+    # there's nothing to misreport as conflict:true with an empty file list.
+    dirty = _run(["git", "status", "--porcelain"], cwd=repo)
+    if dirty:
+        dirty_files = [line[3:] for line in dirty.splitlines() if line.strip()]
+        msg = (f"base repo working tree is dirty ({len(dirty_files)} file(s)) — "
+               f"refusing to attempt merge. Likely a concurrent session mid-edit; "
+               f"wait for it to finish, then retry merge_task.")
+        warn(f"merge pre-flight on {task_id}: {msg}")
+        db.update_status(
+            task_id, "review", actor="cto",
+            review=json.dumps({"base_dirty": True, "files": dirty_files}),
+        )
+        return {"merged": False, "base_dirty": True, "files": dirty_files,
+                "branch": branch, "base": base, "project": proj["key"]}
+
     # Capture pre-merge HEAD so we can verify the merge actually advances base.
     pre_sha = _run(["git", "rev-parse", "HEAD"], cwd=repo)
 
@@ -200,6 +219,25 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
             _run(["git", "merge", "--abort"], cwd=repo)
         except GitOpsError:
             pass
+
+        # conflicts empty = git aborted before creating any unmerged (U)
+        # entries — NOT a real content conflict (e.g. a race that slipped
+        # past the pre-flight dirty check above). Reporting conflict:true
+        # with files:[] sent reviewers hunting for conflicts that don't
+        # exist (issue #42) and auto-filed a noise issue for a transient,
+        # self-resolving condition. Surface the raw git error instead; no
+        # issue, status back to review (not conflict) so a plain retry works.
+        if not conflicts:
+            msg = str(merge_err)[:1500]
+            warn(f"merge failed on {task_id} with no conflict markers "
+                 f"(not a content conflict): {msg}")
+            db.update_status(
+                task_id, "review", actor="cto",
+                review=json.dumps({"merge_error": msg}),
+            )
+            return {"merged": False, "conflict": False, "merge_error": msg,
+                    "branch": branch, "base": base, "project": proj["key"]}
+
         body = (
             f"Merge of `{branch}` into `{base}` for task `{task_id}` "
             f"failed with conflicts.\n\n"

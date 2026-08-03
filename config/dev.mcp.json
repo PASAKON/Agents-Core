@@ -7,6 +7,12 @@
       "env": {
         "PYTHONUNBUFFERED": "1"
       }
+    },
+    "lungnote": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/Users/gob/LungNote Projects/mcp/index.js"],
+      "env": {}
     }
   }
 }
