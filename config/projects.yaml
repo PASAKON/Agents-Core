@@ -170,12 +170,13 @@ projects:
       - playbooks/frontend.md
 
   - key: mooniex-video-engine
-    name: Mooniex Video Engine
-    path: /Users/gob/Projects/mooniex-video-engine
-    # Local-only POC (2026-06-21): data-driven 3D video via Godot 4.7 + ffmpeg.
-    # No GitHub repo created yet — remote is the intended URL but auto_push is
-    # false, so merge_task merges to local main only (push once POC approved).
-    remote: git@github.com:PASAKON/mooniex-video-engine.git
+    name: Mooniex Video Engine (PARKED)
+    path: /Users/gob/Projects/PARKED-mooniex-video-engine
+    # PARKED 2026-08-03 (CEO). Was a local-only POC (2026-06-21): data-driven 3D
+    # video via Godot 4.7 + ffmpeg; closed 2026-06-23 in favour of the web-2D
+    # Workflow Monitor. Now pushed to GitHub and archived so it is not Mac-only.
+    # The GitHub repo is ARCHIVED (read-only) — unarchive before any push.
+    remote: git@github.com:PASAKON/PARKED-MoonieX-VideoEngine.git
     default_branch: main
     stack: [godot, gdscript]
     agents_allowed: *default_workers

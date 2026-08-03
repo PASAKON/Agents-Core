@@ -27,10 +27,16 @@ Read it to know which machine you're on and which projects you can actually touc
 | claude-usage-monitor (scriptable widget backend) | `/opt/claude-usage-monitor` |
 
 **NOT on Contabo yet** — a mobile/Console session cannot edit these until someone
-clones them onto the box: `mooniex-webapp`, `mooniex-genui`, `mooniex-moonx`,
+clones them onto the box: `mooniex-webapp`,
 `mooniex-remotion`, `mooniex-wa-system`, `mooniex-company`, `mooniex-nohuman`,
 `mooniex-website-templete`, `mooniex-hyperframes`, `mooniex-claudesign`,
 `mooniex-controller-system`, `mooniex-scriptable` (the iOS-side source).
+
+**PARKED 2026-08-03** — pushed to GitHub and archived (read-only); the local
+folders carry a `PARKED-` prefix. Do not start work in these without CEO
+sign-off: `PARKED-mooniex-video-engine`, `PARKED-mooniex-moonx`. Retired the
+same day: `mooniex-genui` (GitHub repo renamed `DELETE-MoonieX-Website`,
+superseded by `MoonieX-Design`).
 
 If a task needs one of the "NOT on Contabo" repos from a mobile session, say so
 explicitly and tell the CEO it needs cloning onto Contabo first — don't silently
