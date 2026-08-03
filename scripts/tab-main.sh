@@ -40,14 +40,18 @@ case "${1:-}" in
   --status) exec python3 -m tools.maintab status ;;
   --stop)   exec python3 -m tools.maintab stop-daemon ;;
   --push)   exec python3 -m tools.maintab push ;;
-  "")
-    echo 'usage: tab-main.sh "<goal>" [DONE/TOTAL] | --status | --stop' >&2
-    exit 2
-    ;;
 esac
 
-GOAL="$1"
+GOAL="${1:-}"
 PROGRESS="${2:-}"
+
+# An EMPTY goal is legal and means "keep the current goal, update progress"
+# (`tab-main.sh "" 12/13`) — so emptiness alone must not trigger usage. Only
+# a call that would change nothing does.
+if [ -z "$GOAL" ] && [ -z "$PROGRESS" ]; then
+  echo 'usage: tab-main.sh "<goal>" [DONE/TOTAL] | "" DONE/TOTAL | --status | --stop' >&2
+  exit 2
+fi
 
 set -- set
 [ -n "$GOAL" ] && set -- "$@" --goal "$GOAL"
