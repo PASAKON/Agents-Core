@@ -27,7 +27,7 @@ def _spawn_resume_tab(role: str, task_id: str,
     display = display_for(role)
     tab_title = f"{display} ({task_id}) [RESUMED]"
     cmd = (
-        f"printf '\\\\033]0;{tab_title}\\\\007' && "
+        f"printf '\\\\033]1;{tab_title}\\\\007' && "
         f"cd '{ROOT}' && source .venv/bin/activate && "
         f"python -m runners.dev_resume {role} {task_id}"
     )

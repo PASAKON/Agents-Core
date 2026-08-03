@@ -257,7 +257,7 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
     cto_env = f"export DEV_CTO_ID='{owner_cto}' && " if owner_cto else ""
     if tmux_attach:
         cmd = (
-            f"printf '\\\\033]0;{tab_title}\\\\007' && "
+            f"printf '\\\\033]1;{tab_title}\\\\007' && "
             f"{cto_env}tmux attach -t {tmux_attach}"
         )
     else:
@@ -274,7 +274,7 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
         # prompt whose title a zsh precmd hook can silently repaint,
         # leaving an untraceable zombie tab.
         cmd = (
-            f"printf '\\\\033]0;{tab_title}\\\\007' && "
+            f"printf '\\\\033]1;{tab_title}\\\\007' && "
             f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
             f"python -m runners.dev_init {role} {task_id}; exit $?"
         )
