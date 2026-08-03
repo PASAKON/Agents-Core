@@ -239,10 +239,18 @@ def scan_file(
     root: Path,
     moves_idx: dict[tuple[str, str], str],
     manifest: dict,
+    all_roots: dict[str, Path],
 ) -> tuple[str, list[Dangling], list[Crossing]]:
     """Pure — no filesystem writes. Returns (rewritten_text, dangling,
     crossing). rewritten_text == text unless at least one crossing link was
-    found."""
+    found.
+
+    `all_roots` (every registered + destination-only namespace -> Path) is
+    needed for the existence check below: a link can legitimately resolve
+    to a page that a PRIOR --apply run already relocated out of `root` into
+    a different namespace's root. Checking only `root` made such links look
+    dangling instead of already-crossed (blind spot flagged during ADR 0013
+    phase 4)."""
     file_label = f"{ns}:{rel_path}"
     file_rel_dir = str(PurePosixPath(rel_path).parent)
     if file_rel_dir == ".":
@@ -271,12 +279,20 @@ def scan_file(
         pieces: list[str] = []
         cursor = 0
         for kind, m, resolved, anchor, caption in _link_targets(content, file_rel_dir, root):
-            exists = resolved is not None and (root / resolved).is_file()
-            if not exists:
+            if resolved is None:
                 all_dangling.append(Dangling(file_label, i, m.group(0)))
                 continue
 
             target_dest_ns = dest_ns_of(ns, resolved, moves_idx)
+            target_root = all_roots.get(target_dest_ns)
+            exists = (
+                (target_root is not None and (target_root / resolved).is_file())
+                or (root / resolved).is_file()  # not yet moved — still at its current root
+            )
+            if not exists:
+                all_dangling.append(Dangling(file_label, i, m.group(0)))
+                continue
+
             if target_dest_ns == dest_ns_file:
                 continue  # same side after the move — leave unchanged
 
@@ -297,6 +313,28 @@ def scan_file(
         pieces.append(content[cursor:])
         out_lines.append("".join(pieces) + ending)
 
+    # Detection-only pass: a markdown/wiki link whose `[...]` or `(...)` got
+    # split by a line break is invisible to the per-line scan above (it
+    # can't match on either half alone) — undercounting the true dangling
+    # total (blind spot flagged during ADR 0013 phase 4). Never rewritten —
+    # only per-line output is trusted for writes — just surfaced so a human
+    # can fix the two physical lines by hand.
+    for i in range(len(raw_lines) - 1):
+        if fence_mask[i] or fence_mask[i + 1]:
+            continue
+        line_a = raw_lines[i].rstrip("\r\n")
+        line_b = raw_lines[i + 1].rstrip("\r\n")
+        boundary = len(line_a) + 1
+        joined = line_a + " " + line_b
+        already_seen = {mm.group(0) for _, mm, *_ in _link_targets(line_a, file_rel_dir, root)}
+        already_seen |= {mm.group(0) for _, mm, *_ in _link_targets(line_b, file_rel_dir, root)}
+        for kind, m, resolved, anchor, caption in _link_targets(joined, file_rel_dir, root):
+            if not (m.start() < boundary <= m.end()):
+                continue  # doesn't actually straddle the break
+            if m.group(0) in already_seen:
+                continue
+            all_dangling.append(Dangling(file_label, i + 1, f"[multi-line] {m.group(0)}"))
+
     return "".join(out_lines), all_dangling, all_crossing
 
 
@@ -311,24 +349,40 @@ class ScanResult:
     rewrites: dict[tuple[str, str], str]  # (ns, rel_path) -> new_text (only entries that changed)
 
 
-def scan_wiki(registry: dict[str, Path], manifest: dict) -> ScanResult:
+def scan_wiki(registry: dict[str, Path], manifest: dict, roots: dict[str, Path] | None = None) -> ScanResult:
     """Read-only pass over every .md file in every REGISTERED wiki root
     (org, mooniex — never lungnote, which isn't wiki-tools-served and has
     no content to scan pre-move). Used by both --plan and --verify, and as
-    phase 1 of --apply. Never writes anything."""
+    phase 1 of --apply. Never writes anything.
+
+    `roots` (defaults to `registry` if omitted) is the FULL repo_roots dict
+    including destination-only namespaces (e.g. lungnote) — needed so
+    scan_file can correctly check existence of a link target that already
+    lives in a destination namespace from a prior --apply run."""
+    if roots is None:
+        roots = registry
     moves_idx = moves_index(manifest)
+    dest_only_ns = set(manifest.get("destinations", {}).keys())
     dangling: list[Dangling] = []
     crossing: list[Crossing] = []
     rewrites: dict[tuple[str, str], str] = {}
 
     for ns, root in registry.items():
+        # Destination-only namespaces (lungnote) may now also be registered
+        # in config/wikis.yaml for unrelated wiki_read/write CLI access —
+        # that must not pull them into THIS migration tool's source-side
+        # scan (never content to migrate FROM; scanning them here would
+        # surface their own internal links, e.g. template placeholders, as
+        # noise unrelated to this split).
+        if ns in dest_only_ns:
+            continue
         if not root.exists():
             continue
         for md_file in iter_markdown_files(root):
             rel_path = md_file.relative_to(root).as_posix()
             text = md_file.read_text(encoding="utf-8")
             new_text, file_dangling, file_crossing = scan_file(
-                text, ns, rel_path, root, moves_idx, manifest
+                text, ns, rel_path, root, moves_idx, manifest, roots
             )
             dangling.extend(file_dangling)
             crossing.extend(file_crossing)
@@ -395,7 +449,7 @@ def cmd_plan(registry: dict[str, Path], manifest: dict, *, out=sys.stdout) -> in
         print(f"  {p}", file=out)
 
     print("\nScanning for links...", file=out)
-    result = scan_wiki(registry, manifest)
+    result = scan_wiki(registry, manifest, repo_roots(registry, manifest))
     print(f"Crossing links found: {len(result.crossing)} (would be rewritten by --apply)", file=out)
     print(f"Dangling links found: {len(result.dangling)} (left untouched; run --verify for the full list)", file=out)
 
@@ -415,7 +469,7 @@ def cmd_plan(registry: dict[str, Path], manifest: dict, *, out=sys.stdout) -> in
 
 
 def cmd_verify(registry: dict[str, Path], manifest: dict, *, out=sys.stdout) -> int:
-    result = scan_wiki(registry, manifest)
+    result = scan_wiki(registry, manifest, repo_roots(registry, manifest))
     for d in result.dangling:
         print(f"{d.file}:{d.line} -> {d.target}", file=out)
     print(f"\n{len(result.dangling)} dangling link(s)", file=out)
@@ -447,7 +501,7 @@ def cmd_apply(registry: dict[str, Path], manifest: dict, *, out=sys.stdout) -> i
     # against where files live NOW, not where they're about to land, or a
     # moved file's link to something that stays put would wrongly resolve
     # against its new root and get reported as dangling.
-    result = scan_wiki(registry, manifest)
+    result = scan_wiki(registry, manifest, roots)
 
     move_keys = {(m["from"], m["path"]) for m in manifest.get("moves", [])}
 
