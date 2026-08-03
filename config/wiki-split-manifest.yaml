@@ -181,10 +181,17 @@ moves:
     from: mooniex
     to: org
 
-  # --- MoonieX-Wikis -> LungNote-Wikis (1) ---
-  - path: playbooks/lungnote-mcp.md
-    from: mooniex
-    to: lungnote
+  # --- MoonieX-Wikis -> LungNote-Wikis (1) — DEFERRED ---
+  # Deferred 2026-08-03 by CTO, before the first --apply run.
+  # LungNote-Wikis was on branch `wiki/cfo-budget-workflow` (HEAD bc12e0c),
+  # not `main` (e6cb7b0), with an open PR and its own unrelated dirty state
+  # (1 modified + 2 untracked). Moving a page in would have landed it on the
+  # wrong branch and entangled this split with that PR.
+  # Re-enable once that repo is back on a clean `main`, then run --apply again
+  # — it is idempotent, so the 51 org moves replay as no-ops.
+  # - path: playbooks/lungnote-mcp.md
+  #   from: mooniex
+  #   to: lungnote
 
 # Namespaces used above that are NOT in config/wikis.yaml. wiki_split.py
 # resolves `org` and `mooniex` paths from config/wikis.yaml at runtime (never
