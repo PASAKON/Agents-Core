@@ -159,7 +159,18 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
         model=_model,
         system_prompt=_system_prompt(),
         permission_mode="acceptEdits",
-        mcp_servers={"org": server},
+        mcp_servers={
+            "org": server,
+            # Same stdio config as config/cto.mcp.json / ~/.claude.json's
+            # working entry — the CLI path (cto-claude.sh) already has this;
+            # the Python REPL path didn't (GH mooniex-agents#17 follow-up).
+            "lungnote": {
+                "type": "stdio",
+                "command": "node",
+                "args": ["/Users/gob/LungNote Projects/mcp/index.js"],
+                "env": {},
+            },
+        },
         allowed_tools=[
             "mcp__org__wiki_read", "mcp__org__wiki_list", "mcp__org__wiki_search",
             "mcp__org__wiki_write", "mcp__org__create_task",
@@ -167,6 +178,11 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
             "mcp__org__get_task", "mcp__org__review_diff",
             "mcp__org__merge_task", "mcp__org__reopen_task",
             "mcp__org__list_projects", "mcp__org__stats",
+            "mcp__lungnote__list_todos", "mcp__lungnote__add_todo",
+            "mcp__lungnote__complete_todo", "mcp__lungnote__cancel_todo",
+            "mcp__lungnote__delete_todo", "mcp__lungnote__list_recent",
+            "mcp__lungnote__read_note", "mcp__lungnote__create_note",
+            "mcp__lungnote__append_note", "mcp__lungnote__search_notes",
             "Read", "Grep", "Glob",
         ],
         cwd=str(ROOT),
