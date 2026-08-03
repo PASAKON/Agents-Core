@@ -206,7 +206,7 @@ def merge_task(task_id: str, override_touches_check: bool = False) -> str:
     if t and not _is_mine(t):
         return _foreign_msg(t)
     result = do_merge(task_id, role=ROLE, override_touches_check=override_touches_check)
-    return json.dumps(result, indent=2, default=str)
+    return toon.encode(result)
 
 
 @mcp.tool()
@@ -279,7 +279,7 @@ async def revert_task_tool(task_id: str, force: bool = False) -> str:
     if t and not _is_mine(t):
         return _foreign_msg(t)
     from tools.revert_task import revert_task
-    return json.dumps(revert_task(task_id, force=force), ensure_ascii=False)
+    return toon.encode(revert_task(task_id, force=force))
 
 
 if __name__ == "__main__":

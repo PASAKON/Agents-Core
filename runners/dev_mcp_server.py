@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from mcp.server.fastmcp import FastMCP
 
 from lib import db
+from lib import toon
 from lib.logger import get_logger
 from lib.notify import info
 from tools import wiki as wiki_tools
@@ -52,7 +53,7 @@ def wiki_list(prefix: str = "") -> str:
 def wiki_search(query: str) -> str:
     """Grep wiki for a query string."""
     try:
-        return json.dumps(wiki_tools.wiki_search(query), indent=2)
+        return toon.encode(wiki_tools.wiki_search(query))
     except Exception as e:
         return f"ERROR: {e}"
 
