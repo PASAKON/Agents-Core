@@ -146,12 +146,25 @@ def _provider_overrides(
     """
     provider = (os.environ.get(flag_var)
                 or _read_dotenv_var(flag_var) or "").strip().lower()
-    if not provider or provider not in _PROVIDER_ENDPOINTS:
+    if not provider:
         return None
     # Pilot scope: only these roles offload; others stay on Claude.
     pilot = os.environ.get(roles_var, default_roles)
     allowed_roles = {r.strip() for r in pilot.split(",") if r.strip()}
     if role_name not in allowed_roles:
+        return None
+    if provider == "auto":
+        # Quota-aware routing (GH mooniex-agents#38) — checks live headroom
+        # instead of a human toggling this flag by hand. Local import keeps
+        # the SSH/network dependency out of the hot path for every spawn
+        # that isn't using "auto".
+        from lib.quota_router import pick_provider
+        zai_usage_token = (os.environ.get("ZAI_USAGE_TOKEN")
+                           or _read_dotenv_var("ZAI_USAGE_TOKEN"))
+        provider = pick_provider(zai_usage_token)
+        if provider != "zai":
+            return None  # quota check picked Claude
+    if provider not in _PROVIDER_ENDPOINTS:
         return None
     key = (os.environ.get(_PROVIDER_KEY_VAR[provider])
            or _read_dotenv_var(_PROVIDER_KEY_VAR[provider]))
@@ -173,6 +186,9 @@ def dev_provider_overrides(role_name: str) -> dict | None:
     """Spawn overrides for a worker DEV when DEV_MODEL_PROVIDER is set.
 
     Flag-gated + reversible: unset DEV_MODEL_PROVIDER -> original Claude path.
+    DEV_MODEL_PROVIDER=zai -> always Z.ai. DEV_MODEL_PROVIDER=auto -> live
+    quota check (lib.quota_router) picks whichever provider has more
+    headroom right now (GH mooniex-agents#38).
     """
     return _provider_overrides(
         role_name,
