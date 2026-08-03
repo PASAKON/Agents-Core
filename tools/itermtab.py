@@ -440,12 +440,16 @@ def _reassert_title(tty_path: str | None, title: str | None) -> None:
     don't compose; re-sending the title AFTER the profile write is the fix,
     not a race — order alone (title-then-profile) was tested and still lost.
     Best-effort: swallow errors, never let this break the mark/clear call.
+
+    Uses OSC 1 (icon/tab name), not OSC 0: OSC 0 also rewrites the window
+    title, which would wipe the Main Tab that tools/maintab.py owns via
+    OSC 2 (changed 2026-08-03 with the two-layer tab).
     """
     if not tty_path or not title:
         return
     try:
         with open(tty_path, "w") as f:
-            f.write(f"\033]0;{title}\007")
+            f.write(f"\033]1;{title}\007")
     except OSError:
         pass
 

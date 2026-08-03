@@ -3,7 +3,7 @@
 Covers:
   1. set-mode writes state/tab-titles/<role>-<sid>.title = "<base> <summary>"
   2. truncation to 60 chars with trailing ellipsis
-  3. OSC-0 escape written to the saved tty (faked as a regular file)
+  3. OSC-1 escape written to the saved tty (faked as a regular file)
   4. --reassert re-emits the saved title without recomputing
   5. missing session env -> exit 2
   6. missing .base file falls back to "<ROLE> #<sid>" prefix
@@ -20,7 +20,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-OSC_PREFIX = "\x1b]0;"
+# OSC 1 = icon/tab name only. Deliberately NOT OSC 0, which would also rewrite
+# the window title and wipe the Main Tab (goal + progress + clock) owned by
+# tools/maintab.py via OSC 2. Asserting the exact code guards that regression.
+OSC_PREFIX = "\x1b]1;"
 OSC_SUFFIX = "\x07"
 
 
@@ -142,7 +145,7 @@ def main() -> int:
         script = _stage(tmp)
 
         r = test_set_writes_title_and_tty(tmp, script); fails += not r
-        _mark(r, "set-mode persists title + writes OSC-0 escape to saved tty")
+        _mark(r, "set-mode persists title + writes OSC-1 escape to saved tty")
         r = test_truncation(tmp, script); fails += not r
         _mark(r, "long summary truncated to 60 chars with ellipsis")
         r = test_reassert(tmp, script); fails += not r

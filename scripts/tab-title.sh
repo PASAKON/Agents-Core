@@ -106,10 +106,14 @@ WINID=""
 [ -f "$WINID_FILE" ] && WINID="$(tr -d '[:space:]' <"$WINID_FILE" 2>/dev/null || true)"
 
 # 1) Direct escape to the saved tty.
+#    OSC 1 (icon/tab name), NOT OSC 0. OSC 0 sets the tab name AND the window
+#    title, which would wipe the Main Tab (goal + progress + clock) that
+#    scripts/tab-main.sh owns via OSC 2 — see tools/maintab.py "Ownership
+#    rule". Changed 2026-08-03 when the two-layer tab landed.
 if [ -f "$TTY_FILE" ]; then
   TTY_DEV="$(tr -d '[:space:]' <"$TTY_FILE" 2>/dev/null || true)"
   if [ -n "$TTY_DEV" ] && [ -w "$TTY_DEV" ]; then
-    if printf '\033]0;%s\007' "$TITLE" >"$TTY_DEV" 2>/dev/null; then
+    if printf '\033]1;%s\007' "$TITLE" >"$TTY_DEV" 2>/dev/null; then
       _TITLE_SET=1
     fi
   fi
@@ -199,6 +203,10 @@ esac
   else
     python3 -m tools.itermtab status "$BASE" "${WINID:-0}" "$_GLYPH" "${TTY_DEV:-}" "$TITLE" >/dev/null 2>&1
   fi
+  # Keep the Main Tab clock alive without touching the spawn scripts: this is
+  # a pidfile check that no-ops when the daemon is already up (the normal
+  # case), so it costs nothing per status update. See tools/maintab.py.
+  python3 -m tools.maintab ensure-daemon >/dev/null 2>&1 || true
 ) &
 
 exit 0

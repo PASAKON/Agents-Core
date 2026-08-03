@@ -115,6 +115,24 @@ Rules:
 - ห้ามใส่ task-id ใน summary (itermtab.close_tab จับ task-id ในชื่อ tab)
 - 🏁 = สัญญาว่าปิดได้จริง: ทุก task ถึง done/cancelled และไม่มีอะไรรอ follow-up
 
+### Main Tab = เป้า + Progress (2026-08-03)
+
+แท็บมี 2 ชั้น แยกกันจริง คนละหน้าที่ — อย่าเขียนซ้ำกัน:
+
+| ชั้น | คำสั่ง | เนื้อหา | สี |
+|---|---|---|---|
+| Main (titlebar บนสุด) | `scripts/tab-main.sh` | เป้าของ session + progress + เวลาที่ใช้ | ❌ |
+| Sub (แถบแท็บ) | `scripts/tab-title.sh` | ตอนนี้กำลังทำอะไร | ✅ ตาม glyph |
+
+    bash scripts/tab-main.sh "<เป้าของ session>" <done>/<total>
+
+ตั้งเป้าครั้งเดียวตอน `/session-open` แล้วอัปเดตเลข progress ทุกครั้งที่งานชุดหนึ่งจบ
+คู่กับ `tab-title.sh` — ใช้ done/total ชุดเดียวกับที่ `/session-worktree` นับ
+(นับได้จริง ไม่ใช่เดา %) นาฬิกาเดินเองด้วย daemon ตัวเดียว tick 60 วิ ไม่ต้องสั่ง
+
+ห้ามยิง OSC 0 ตั้ง title เอง — มันเซ็ตทั้งสองชั้นพร้อมกัน Main จะโดนทับหาย
+(Sub ใช้ OSC 1, Main ใช้ OSC 2 — ดู `tools/maintab.py`)
+
 ## Your model tier
 
 Default: **Sonnet 5 @ effort: high**. Escalate to **Opus 5** via the
