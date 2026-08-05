@@ -33,3 +33,23 @@ https://www.pexels.com/video/person-using-stock-market-app-7578628/ · https://w
 
 ## Open items
 - **Decide $TRUMP logo treatment (category 1) — blocks nothing else, but pick before editor locks the coin-cutaway**
+
+## DOWNLOADED — real news clips (MP4, on Desktop)
+
+Location: `~/Desktop/TRADER-UNCUT-footage/EP3-pinto/news-clips/`
+Naming: `<topic>_<SourceChannel>_<youtubeID>.mp4` — source credit is in the filename.
+Editor must show the source name on screen per the news-desk citation rule.
+
+| Source | Clip | Watch |
+|---|---|---|
+| Reuters | crypto weekly dinner with the president | https://www.youtube.com/watch?v=TI83PmbwPwc |
+| JJTimes | meme coin dinner 148m crypto party | https://www.youtube.com/watch?v=lijvvVHUhm8 |
+| UpNow360s | memecoin investors lost 3.8bn he made 636m | https://www.youtube.com/watch?v=YIWslbaTLGQ |
+| StraightArrow | memecoin private dinner top investors | https://www.youtube.com/watch?v=9kSOW-AdiBw |
+| FortuneMagazine | prediction market scandals trump memecoin dinner | https://www.youtube.com/watch?v=_9CJwFDS0xo |
+| HiddenRecord | trump crypto coin 3.8bn lost who benefited | https://www.youtube.com/watch?v=BiupEsgjtjY |
+| CNN | trump hosts lavish dinner memecoin investors | https://www.youtube.com/watch?v=DT7G-AbuSQw |
+| DigitalAssetNews | trump launches memecoin on solana | https://www.youtube.com/watch?v=1ddwEDmlzrg |
+| TheMarketsStory | trump meme coin 1.4bn him 3.8bn lost everyone | https://www.youtube.com/watch?v=1xQkm_nxMys |
+| BloombergTelevision | trump to host memecoin dinner crypto may2025 | https://www.youtube.com/watch?v=jeXdPiGMBy8 |
+| CryptoWorldDaily | warren blasts 220 investor memecoin dinner | https://www.youtube.com/watch?v=b6d5WKptv5k |

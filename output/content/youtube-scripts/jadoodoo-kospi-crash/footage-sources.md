@@ -41,3 +41,23 @@ No safe generic Korean broadcast footage exists. Build as in-house graphic, cite
 ## Open items
 - KRX building Wikimedia file — verify license before use
 - KRW banknote — only 1 real source found, may need a licensed still or in-house shot
+
+## DOWNLOADED — real news clips (MP4, on Desktop)
+
+Location: `~/Desktop/TRADER-UNCUT-footage/EP1-jadoodoo/news-clips/`
+Naming: `<topic>_<SourceChannel>_<youtubeID>.mp4` — source credit is in the filename.
+Editor must show the source name on screen per the news-desk citation rule.
+
+| Source | Clip | Watch |
+|---|---|---|
+| SeoulEconomicDaily | kospi 7.89pct plunge sidecars skhynix | https://www.youtube.com/watch?v=ZDVQeDTFpQs |
+| KBSNews | kospi 8pct plunge circuit breaker jul28 | https://www.youtube.com/watch?v=ybwnc6CXHOM |
+| BusinessToday | kospi crash explained AI stocks | https://www.youtube.com/watch?v=qxX4PB5_68U |
+| ArirangNews | kospi drops 10pct close 6000 AI selloff | https://www.youtube.com/watch?v=eX0AnwN7vh8 |
+| ArirangNews | kospi plunges top10 stocks all fall | https://www.youtube.com/watch?v=XLrDiicviQM |
+| YTN | kospi two consecutive circuit breakers | https://www.youtube.com/watch?v=k3gEyij6Ndo |
+| SeoulEconomicDaily | kospi worst month since 2008 jul29 | https://www.youtube.com/watch?v=h96wjwkYN-U |
+| SeoulEconomicDaily | leverage etfs behind crash 8.95pct | https://www.youtube.com/watch?v=rQqttkgKrmc |
+| WION | market panic hits south korea | https://www.youtube.com/watch?v=wVx-q9Aidyg |
+| BloombergTelevision | samsung earnings chip stocks kospi circuit breaker | https://www.youtube.com/watch?v=Dro-H3QmuBQ |
+| ArirangNews | sell side sidecars kospi kosdaq | https://www.youtube.com/watch?v=5rvC9-Clrmc |

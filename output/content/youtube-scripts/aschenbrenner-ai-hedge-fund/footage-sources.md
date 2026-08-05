@@ -34,3 +34,22 @@ $45B→$10B AUM chart and 100→400→-25%→0 leverage example are original des
 ## Open items
 - Verify CNBC headline wording manually (fetch blocked)
 - Confirm each logo's individual Wikimedia license before final use
+
+## DOWNLOADED — real news clips (MP4, on Desktop)
+
+Location: `~/Desktop/TRADER-UNCUT-footage/EP2-aschenbrenner/news-clips/`
+Naming: `<topic>_<SourceChannel>_<youtubeID>.mp4` — source credit is in the filename.
+Editor must show the source name on screen per the news-desk citation rule.
+
+| Source | Clip | Watch |
+|---|---|---|
+| YawnFinance | 20bn AI fund that lost right to wait | https://www.youtube.com/watch?v=XccVADY4lBU |
+| StocksBackgrounderUSGlobal | 24yo 20bn AI hedge fund blows up citadel pounces | https://www.youtube.com/watch?v=x2I1u4L7VSw |
+| BloombergPodcasts | AI hedge fund collapses earnings hit tech jul31 | https://www.youtube.com/watch?v=XFziXPiNsCg |
+| MichaelFisher | AI trade unwind inside aschenbrenner fund selloff | https://www.youtube.com/watch?v=AjfIKA3l7HM |
+| ProfGMarkets | aschenbrenner AI fund collapse just beginning | https://www.youtube.com/watch?v=wNmRneaiH7I |
+| PivotToAI | aschenbrenner bet everything on AI and lost | https://www.youtube.com/watch?v=EA9xQT2cPhE |
+| BloombergTelevision | big tech AI divide widens open interest jul31 | https://www.youtube.com/watch?v=rfVsh89SlPs |
+| TheWallStreetSkinny | biggest hedge fund blowup 2026 explained | https://www.youtube.com/watch?v=5B4JoeoktSE |
+| TheEconomist | protect investments from AI bubble | https://www.youtube.com/watch?v=4P8maClKIcY |
+| BloombergPodcasts | situational awareness hit by AI selloff | https://www.youtube.com/watch?v=x6QZoizvnwM |
