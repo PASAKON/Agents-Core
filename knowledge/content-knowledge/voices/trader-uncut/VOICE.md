@@ -15,6 +15,57 @@ scripts (320–450 words). The gap isn't padding for its own sake — the
 benchmark videos earn their length through specific, repeatable techniques
 below. Use them; don't just write more sentences per beat.
 
+## News-desk posture (added 2026-08-05, CEO direction)
+
+TRADER UNCUT positions itself as a **financial news operation**, not a
+reaction/commentary channel — closer to a documentary financial-news desk
+than a "let's watch this streamer" format. This is a deliberate choice
+with two purposes at once: it raises the credibility bar, and it gives
+the channel materially stronger editorial/fair-use footing for using real
+news photos, footage, and figures than a pure entertainment framing would
+— genuine news reporting on real public events is one of the classic
+fair-use categories; a casual reaction channel is a weaker position.
+This does not relax any hedging/verification discipline below — if
+anything it raises the bar, the same way a real financial news desk would
+never state an unconfirmed figure as fact.
+
+Concrete requirements this adds on top of the 8-beat recipe:
+
+- **On-screen source citations.** Any stated fact that traces to a named
+  outlet in the research brief's VERIFIED section should get a citation
+  card cutaway at the moment it's spoken (e.g. "ที่มา: CNBC, 31 ก.ค. 2026")
+  — not just narrated, shown. Flag these explicitly in the Cutaway/B-roll
+  Notes section as a distinct cutaway *type* (citation card), separate
+  from generic b-roll/animation/kinetic-typography beats.
+- **Dateline/breaking-news framing**, not casual intro. Episodes should
+  read like a news desk opening a segment, not a creator saying "hey
+  guys" — this is mostly already true of the cold-open hook beat, keep it
+  that way deliberately rather than drifting casual.
+- **Hedges get a visual treatment too, not just narration.** Every item in
+  the Verification Flags section that's spoken with hedge language
+  ("ตามที่มีการแชร์กันไวรัล", "ยังไม่มีการยืนยัน", etc.) should have a
+  matching on-screen cue (a question-mark overlay, an "unconfirmed"/
+  "ยังไม่ยืนยัน" lower-third, or similar) at that moment — audio hedge and
+  visual hedge should always travel together. This was already implicit
+  in EP1-EP3 (e.g. the KRW-icon-with-question-mark cutaway) — now make it
+  a standing rule, not a one-off choice.
+- **Real footage/photos of real people are allowed under this posture**
+  (news organizations use real footage of real public figures/events
+  under editorial fair use) but still follow the risk tiers CTO laid out
+  separately: company logos/charts/generic stock are safe; a real news
+  outlet's own photo/footage of a public figure has fair-use cover but
+  isn't risk-free; a private/semi-public individual's own personal
+  content (e.g. a streamer's own clip) paired with an unconfirmed
+  financial claim carries real privacy/defamation-adjacent risk even
+  under a news-desk framing — where real footage of an identifiable
+  private individual is used, obscure identifying features (eye bar, per
+  standard news-broadcast convention) and credit the source under the
+  video description. Credit is a *courtesy and a fair-use-supporting
+  factor*, not a copyright license — it does not eliminate takedown/claim
+  risk, and script_writer should still default to generic/stock/animated
+  cutaways unless CTO has specifically sourced and cleared real footage
+  for that beat.
+
 ## Do NOT copy verbatim
 
 - Uhas Trader's own brand jingle ("you have ดอทคอมเราคือเพื่อนแท้นักเทรด")
