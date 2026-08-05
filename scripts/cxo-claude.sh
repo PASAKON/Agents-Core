@@ -76,7 +76,16 @@ print(display_for('$ROLE'), model, effort)
 [ -n "$DISPLAY" ] || exit 2
 
 ROLE_PROMPT="$(cat "$ROLE_DOC")"
-MCP_CONFIG="$ROOT/config/cto.mcp.json"
+
+# Per-role MCP set, generated fresh per launch (removed in cleanup below).
+# Replaces the committed config/cto.mcp.json, which hardcoded the Mac dev
+# path and so broke on Contabo (ROOT=/opt/mooniex-agents) — the same bug
+# cto-claude.sh already worked around. Shared generator keeps the two
+# launchers from drifting.
+MCP_CONFIG="$(mktemp "${TMPDIR:-/tmp}/cxo-mcp-XXXXXX")"
+mv "$MCP_CONFIG" "$MCP_CONFIG.json"
+MCP_CONFIG="$MCP_CONFIG.json"
+python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role "$ROLE" --root "$ROOT" --out "$MCP_CONFIG"
 
 # All C-levels get the same tool whitelist for now (same powers in
 # agents.yaml). Keep in sync with runners/cto_mcp_server.py and with
@@ -210,7 +219,7 @@ if [ -n "$SESSION_OVERRIDE" ]; then
 fi
 
 cleanup() {
-  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE"
+  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE" "$MCP_CONFIG"
   # Only clear the active pointer if it still points at us and we wrote it.
   if [ -z "$SESSION_OVERRIDE" ] && [ -e "$ACTIVE_FILE" ]; then
     current="$(tr -d '[:space:]' <"$ACTIVE_FILE" 2>/dev/null || true)"
@@ -359,6 +368,18 @@ else
   MODEL_ARGS=(--model "$MODEL" --fallback-model 'claude-fable-5' --effort "$EFFORT")
 fi
 
+# Without --strict-mcp-config the session ALSO loads Agents/.mcp.json,
+# ~/.claude.json and every enabled plugin's servers — ~13 servers and
+# ~1.5 GB of phys_footprint on the 8 GB M1, for a role whose ALLOWED list
+# only covers org + lungnote. Worse, enabledMcpjsonServers is listed in both
+# ~/.claude.json and .claude/settings.local.json, so the overlapping names
+# spawn twice. Strict mode makes MCP_CONFIG the only source.
+# Set CXO_STRICT_MCP=0 to fall back to the old inherit-everything behaviour.
+STRICT_ARGS=()
+if [ "${CXO_STRICT_MCP:-1}" = "1" ]; then
+  STRICT_ARGS=(--strict-mcp-config)
+fi
+
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
   -n "$TAB_TITLE" \
@@ -366,6 +387,7 @@ claude \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \
+  ${STRICT_ARGS[@]+"${STRICT_ARGS[@]}"} \
   --allowed-tools $ALLOWED \
   --session-id "$CXO_UUID" \
   ${ARGS[@]+"${ARGS[@]}"}

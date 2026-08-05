@@ -118,6 +118,41 @@ else
   fi
 fi
 
+# Advisory only. A second live CTO chat costs roughly another 1 GB of
+# phys_footprint on the 8 GB M1 (measured 2026-08-06: claude core ~340 MB
+# plus its MCP subtree), and the box already sits at ~150 MB unused. Warn,
+# never kill: a chat sitting quiet is often waiting on a DEV, and reaping on
+# idleness alone has silently killed live work before.
+# Set CXO_NO_SESSION_WARN=1 to silence; skipped automatically when stdin is
+# not a terminal so scripted spawns never stall.
+warn_existing_sessions() {
+  [ "${CXO_NO_SESSION_WARN:-0}" = "1" ] && return 0
+  [ -t 0 ] || return 0
+  local lock pid sid found=0
+  for lock in "$LOCKS_DIR"/cto-*.lock; do
+    [ -e "$lock" ] || continue
+    pid="$(tr -d '[:space:]' <"$lock" 2>/dev/null || true)"
+    [ -n "$pid" ] || continue
+    kill -0 "$pid" 2>/dev/null || continue
+    sid="$(basename "$lock" .lock)"; sid="${sid#cto-}"
+    [ "$sid" = "$CTO_SESSION_ID" ] && continue
+    if [ "$found" -eq 0 ]; then
+      echo "" >&2
+      echo "⚠  CTO chat already running:" >&2
+      found=1
+    fi
+    printf '     #%s  up %s\n' "$sid" \
+      "$(ps -o etime= -p "$pid" 2>/dev/null | tr -d ' ' || echo '?')" >&2
+  done
+  [ "$found" -eq 1 ] || return 0
+  echo "   Each live chat holds ~1 GB on this 8 GB box." >&2
+  echo "   Resume it instead:  bash scripts/spawn-cto.sh --last" >&2
+  echo "   Spawning a NEW session in 3s — Ctrl-C to abort." >&2
+  echo "" >&2
+  sleep 3
+}
+warn_existing_sessions
+
 CTO_TAB_TITLE="CTO #$CTO_SESSION_ID"
 CTO_LOG="$ROOT/state/logs/cto-$CTO_SESSION_ID.log"
 

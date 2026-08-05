@@ -11,28 +11,12 @@ ROLE_PROMPT="$(cat "$ROOT/roles/cto.md")"
 # (/Users/gob/Projects/Agents) — that breaks when this same launcher runs on
 # a different box (e.g. Contabo, ROOT=/opt/mooniex-agents) via the MoonieX
 # Console tmux bridge. Regenerated fresh per launch; cleaned up in the EXIT
-# trap below.
+# trap below. scripts/lib/cxo_mcp_config.py is shared with cxo-claude.sh so
+# the per-role server set cannot drift between the two launchers.
 MCP_CONFIG="$(mktemp "${TMPDIR:-/tmp}/cto-mcp-XXXXXX")"
 mv "$MCP_CONFIG" "$MCP_CONFIG.json"
 MCP_CONFIG="$MCP_CONFIG.json"
-cat > "$MCP_CONFIG" <<JSON
-{
-  "mcpServers": {
-    "org": {
-      "command": "$ROOT/.venv/bin/python",
-      "args": ["-m", "runners.cto_mcp_server"],
-      "cwd": "$ROOT",
-      "env": { "PYTHONUNBUFFERED": "1" }
-    },
-    "lungnote": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["/Users/gob/LungNote Projects/mcp/index.js"],
-      "env": {}
-    }
-  }
-}
-JSON
+python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role cto --root "$ROOT" --out "$MCP_CONFIG"
 
 # CTO-only tool whitelist — keep in sync with runners/cto_mcp_server.py
 # (and with cxo-claude.sh ALLOWED; the two launchers must not drift).
@@ -224,6 +208,18 @@ else
   MODEL_ARGS=(--model "$CTO_MODEL" --fallback-model "$CTO_FALLBACK" --effort "$CTO_EFFORT")
 fi
 
+# Without --strict-mcp-config the session ALSO loads Agents/.mcp.json,
+# ~/.claude.json and every enabled plugin's servers — ~13 servers and
+# ~1.5 GB of phys_footprint on the 8 GB M1, for a role whose ALLOWED list
+# only covers org + lungnote. Worse, enabledMcpjsonServers is listed in both
+# ~/.claude.json and .claude/settings.local.json, so the overlapping names
+# spawn twice. Strict mode makes MCP_CONFIG the only source.
+# Set CXO_STRICT_MCP=0 to fall back to the old inherit-everything behaviour.
+STRICT_ARGS=()
+if [ "${CXO_STRICT_MCP:-1}" = "1" ]; then
+  STRICT_ARGS=(--strict-mcp-config)
+fi
+
 # `exec` would replace the shell and skip the EXIT trap, leaving a
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
@@ -232,6 +228,7 @@ claude \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \
+  ${STRICT_ARGS[@]+"${STRICT_ARGS[@]}"} \
   --allowed-tools $ALLOWED \
   --session-id "$CTO_UUID" \
   "$@"
