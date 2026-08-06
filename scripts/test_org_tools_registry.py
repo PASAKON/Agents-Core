@@ -262,18 +262,16 @@ def test_merge_task_format_equivalence() -> bool:
 
 
 def test_merge_task_not_found_now_caught() -> bool:
-    """Do-3: cto_mcp_server.py's merge_task has NO try/except — calling it
-    for a nonexistent task raises ValueError uncaught today (safe to prove
-    with the REAL business logic: it raises before any subprocess call).
-    dispatch() catches it uniformly."""
+    """Do-3, now wired into cto_mcp_server.py too (task-724cff99):
+    merge_task's real business logic still raises ValueError for a
+    nonexistent task_id before any subprocess call (safe to prove
+    unmocked) — but srv.merge_task is now a thin stub over
+    dispatch_sync(), so BOTH sides catch it uniformly and return the same
+    ERROR string. Neither raises anymore."""
     with mock.patch.dict(os.environ, {"CTO_SESSION_ID": CTO_A}):
         got = _dispatch("merge_task", task_id="task-doesnotexist")
-        raised = False
-        try:
-            srv.merge_task("task-doesnotexist")
-        except ValueError:
-            raised = True
-    return got.startswith("ERROR:") and "not found" in got and raised
+        expected = srv.merge_task("task-doesnotexist")
+    return got == expected and got.startswith("ERROR:") and "not found" in got
 
 
 def test_delegate_task_foreign_gate() -> bool:
@@ -300,16 +298,14 @@ def test_delegate_task_format_equivalence() -> bool:
 
 
 def test_delegate_task_not_found_now_caught() -> bool:
-    """Do-3: cto_mcp_server.py's delegate_task has NO try/except either —
-    real (unpatched) business logic raises ValueError before any subprocess
-    call for a nonexistent task, so this is safe to run un-mocked."""
+    """Do-3, now wired into cto_mcp_server.py too (task-724cff99): real
+    (unpatched) business logic still raises ValueError before any
+    subprocess call for a nonexistent task, so this is safe to run
+    un-mocked — but srv.delegate_task is now a thin stub over dispatch(),
+    so BOTH sides catch it uniformly. Neither raises anymore."""
     got = _dispatch("delegate_task", task_id="task-doesnotexist")
-    raised = False
-    try:
-        _run(srv.delegate_task("task-doesnotexist"))
-    except ValueError:
-        raised = True
-    return got.startswith("ERROR:") and raised
+    expected = _run(srv.delegate_task("task-doesnotexist"))
+    return got == expected and got.startswith("ERROR:")
 
 
 def test_delegate_parallel_tasks_equivalence() -> bool:
@@ -351,20 +347,17 @@ def test_revert_task_format_equivalence() -> bool:
 # ---------------------------------------------------------------------------
 
 def test_error_wrapper_catches_previously_uncaught() -> bool:
-    """get_task also has no try/except in cto_mcp_server.py. Same proof
-    shape as the merge_task/delegate_task not-found tests, but via an
-    injected fault so it's independent of any particular business-logic
-    branch."""
+    """get_task's business logic (db.get_task, shared by both sides) is
+    patched to raise a generic fault. Same proof shape as the
+    merge_task/delegate_task not-found tests, but via an injected fault so
+    it's independent of any particular business-logic branch. Since
+    task-724cff99 wired srv.get_task into dispatch_sync(), BOTH sides now
+    catch it uniformly and return the identical ERROR string."""
     boom = mock.Mock(side_effect=RuntimeError("boom"))
     with mock.patch.object(db, "get_task", boom):
         got = _dispatch("get_task", task_id="task-anything")
-        reg_ok = got == "ERROR: boom"
-        raised = False
-        try:
-            srv.get_task("task-anything")
-        except RuntimeError:
-            raised = True
-    return reg_ok and raised
+        expected = srv.get_task("task-anything")
+    return got == expected == "ERROR: boom"
 
 
 def test_error_wrapper_format_matches_already_guarded_tool() -> bool:
@@ -416,16 +409,16 @@ def main() -> int:
     print("== side-effecting tools: leaf patched, both sides compared ==")
     _mark(test_merge_task_foreign_gate(), "merge_task cross-CTO gate matches")
     _mark(test_merge_task_format_equivalence(), "merge_task format matches (toon)")
-    _mark(test_merge_task_not_found_now_caught(), "merge_task not-found: dispatch catches, srv still raises (Do-3)")
+    _mark(test_merge_task_not_found_now_caught(), "merge_task not-found: dispatch() and srv.merge_task both catch uniformly (Do-3)")
     _mark(test_delegate_task_foreign_gate(), "delegate_task cross-CTO gate matches")
     _mark(test_delegate_task_format_equivalence(), "delegate_task format matches (toon, 6000-cap)")
-    _mark(test_delegate_task_not_found_now_caught(), "delegate_task not-found: dispatch catches, srv still raises (Do-3)")
+    _mark(test_delegate_task_not_found_now_caught(), "delegate_task not-found: dispatch() and srv.delegate_task both catch uniformly (Do-3)")
     _mark(test_delegate_parallel_tasks_equivalence(), "delegate_parallel_tasks format matches (toon, 8000-cap)")
     _mark(test_revert_task_foreign_gate(), "revert_task_tool cross-CTO gate matches")
     _mark(test_revert_task_format_equivalence(), "revert_task_tool format matches (toon)")
 
     print("== uniform error wrapper (Do-3) ==")
-    _mark(test_error_wrapper_catches_previously_uncaught(), "get_task fault: dispatch catches, srv still raises")
+    _mark(test_error_wrapper_catches_previously_uncaught(), "get_task fault: dispatch() and srv.get_task both catch uniformly")
     _mark(test_error_wrapper_format_matches_already_guarded_tool(), "wiki_read fault: format unchanged from existing try/except")
 
     print(f"\n{'ALL PASS' if _failures == 0 else f'{_failures} FAILURE(S)'}")
