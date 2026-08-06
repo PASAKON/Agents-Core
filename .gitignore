@@ -23,7 +23,12 @@ state/web-designer/
 state/locks/*.topic
 state/locks/*.tty
 state/locks/*.watcher-pid
+state/locks/*.pid
+state/locks/*.pid.spawnlock
+state/locks/*.uuid
 state/locks/close-refusals.log
+state/watchdog.log
+state/*.db
 .claude/
 worktrees/
 .env
