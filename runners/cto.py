@@ -2,33 +2,26 @@
 from __future__ import annotations
 
 import asyncio
-import json
+import os
 import subprocess
 from pathlib import Path
+from typing import Any
 
 from claude_agent_sdk import (
     AssistantMessage,
     ClaudeAgentOptions,
     ClaudeSDKClient,
+    SdkMcpTool,
     TextBlock,
     create_sdk_mcp_server,
     tool,
 )
 
-import os
-
-from lib import db
-from lib import recall as recall_lib
-from lib import reflect as reflect_lib
-from lib.config import get_project, projects, role as get_role, cxo_provider_overrides
+from lib import org_tools_registry as registry
+from lib.config import role as get_role, cxo_provider_overrides
 from lib.db import register_cxo_session
 from lib.logger import get_logger
-from lib.notify import info, success, error, warn
-from lib.task_ownership import is_mine, foreign_msg
-from tools import wiki as wiki_tools
-from tools.delegate import delegate_task as do_delegate, delegate_parallel
-from tools.git_ops import merge_task as do_merge
-from tools.worktree import diff_summary, diff_full
+from lib.notify import info, success
 
 ROOT = Path(__file__).resolve().parent.parent
 ROLE = "cto"
@@ -36,255 +29,40 @@ log = get_logger(ROLE)
 
 
 # --- Tool definitions (Claude SDK MCP) ---
+#
+# One generic wrapper per lib/org_tools_registry.py spec — arg parsing,
+# response formatting, the cross-CTO ownership gate and error handling all
+# live once in registry.dispatch(). This only bridges claude_agent_sdk's
+# dict-in/dict-out @tool() protocol to it; unlike FastMCP (see
+# runners/cto_mcp_server.py), @tool()'s input_schema is an explicit dict
+# passed at decoration time, not introspected from a function signature,
+# so no per-tool function body is needed at all.
 
-@tool("wiki_read", "Read a wiki page. Namespaced (\"org:x.md\") or unprefixed (default namespace).", {"path": str})
-async def t_wiki_read(args):
-    try:
-        text = wiki_tools.wiki_read(args["path"])
-        return {"content": [{"type": "text", "text": text[:8000]}]}
-    except Exception as e:
-        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
+def _build_tool(spec: registry.ToolSpec) -> "SdkMcpTool[Any]":
+    input_schema = {p.name: p.type for p in spec.params}
 
+    async def handler(args: dict[str, Any]) -> dict[str, Any]:
+        kwargs = {p.name: args[p.name] for p in spec.params if p.name in args}
+        text = await registry.dispatch(spec.name, **kwargs)
+        result: dict[str, Any] = {"content": [{"type": "text", "text": text}]}
+        if text.startswith("ERROR:"):
+            result["isError"] = True
+        return result
 
-@tool("wiki_list", "List wiki pages under an optional prefix.", {"prefix": str})
-async def t_wiki_list(args):
-    try:
-        pages = wiki_tools.wiki_list(args.get("prefix", ""))
-        return {"content": [{"type": "text", "text": "\n".join(pages[:200])}]}
-    except Exception as e:
-        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
-
-
-@tool("wiki_search", "Grep wiki for a query string.", {"query": str})
-async def t_wiki_search(args):
-    try:
-        hits = wiki_tools.wiki_search(args["query"])
-        return {"content": [{"type": "text", "text": json.dumps(hits, indent=2)}]}
-    except Exception as e:
-        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
+    handler.__name__ = f"t_{spec.name}"
+    return tool(spec.name, spec.description, input_schema)(handler)
 
 
-@tool(
-    "wiki_write",
-    "Create or update a wiki page. CTO only. Auto-commits to wiki git repo.",
-    {"path": str, "content": str, "message": str},
-)
-async def t_wiki_write(args):
-    try:
-        result = wiki_tools.wiki_write(
-            args["path"], args["content"],
-            role=ROLE, message=args.get("message") or None,
-        )
-        return {"content": [{"type": "text", "text": result}]}
-    except Exception as e:
-        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
+ALL_TOOLS: dict[str, "SdkMcpTool[Any]"] = {
+    spec.name: _build_tool(spec) for spec in registry.REGISTRY
+}
 
-
-@tool(
-    "create_task",
-    "Create a task. Returns task_id. depends_on=JSON array of task_ids "
-    "(serialize work). touches=JSON array of repo-relative paths the task "
-    "will modify (used for collision detection — delegate is blocked if "
-    "another in-flight task already touches the same path).",
-    {"project": str, "role": str, "title": str, "description": str,
-     "depends_on": str, "touches": str},
-)
-async def t_create_task(args):
-    deps = []
-    raw = args.get("depends_on") or ""
-    if raw:
-        try:
-            deps = json.loads(raw)
-        except Exception:
-            deps = [s.strip() for s in raw.split(",") if s.strip()]
-    paths = []
-    raw_t = args.get("touches") or ""
-    if raw_t:
-        try:
-            paths = json.loads(raw_t)
-        except Exception:
-            paths = [s.strip() for s in raw_t.split(",") if s.strip()]
-    tid = db.create_task(
-        project=args["project"],
-        role=args["role"],
-        title=args["title"],
-        description=args["description"],
-        depends_on=deps,
-        touches=paths,
-    )
-    info(f"task created {tid} → {args['role']} on {args['project']} touches={paths}")
-    return {"content": [{"type": "text", "text": tid}]}
-
-
-@tool(
-    "check_collisions",
-    "Preview path collisions before creating/delegating. Returns JSON list "
-    "of in-flight tasks whose touches intersect the supplied paths. Empty "
-    "list = safe to delegate.",
-    {"project": str, "touches": str},
-)
-async def t_check_collisions(args):
-    raw = args.get("touches") or ""
-    try:
-        paths = json.loads(raw)
-    except Exception:
-        paths = [s.strip() for s in raw.split(",") if s.strip()]
-    hits = db.find_conflicts(args["project"], paths)
-    return {"content": [{"type": "text", "text": json.dumps(hits, indent=2)}]}
-
-
-@tool(
-    "delegate_task",
-    "Spawn a DEV subprocess to execute a task. Blocks until DEV reports back. Returns final task state JSON.",
-    {"task_id": str},
-)
-async def t_delegate(args):
-    t = db.get_task(args["task_id"])
-    if t and not is_mine(t):
-        return {"content": [{"type": "text", "text": foreign_msg(t)}]}
-    result = await do_delegate(args["task_id"])
-    return {"content": [{"type": "text", "text": json.dumps(result, indent=2, default=str)[:6000]}]}
-
-
-@tool(
-    "delegate_parallel",
-    "Delegate multiple tasks concurrently (max 3 at once). task_ids is JSON array.",
-    {"task_ids": str},
-)
-async def t_delegate_parallel(args):
-    ids = json.loads(args["task_ids"])
-    results = await delegate_parallel(ids, max_concurrent=3)
-    return {"content": [{"type": "text", "text": json.dumps(results, indent=2, default=str)[:8000]}]}
-
-
-@tool("get_task", "Read a task row including report.", {"task_id": str})
-async def t_get_task(args):
-    t = db.get_task(args["task_id"])
-    return {"content": [{"type": "text", "text": json.dumps(t, indent=2, default=str)[:6000]}]}
-
-
-@tool(
-    "review_diff",
-    "Get the diff of a task's worktree branch vs project default branch.",
-    {"task_id": str, "full": bool},
-)
-async def t_review_diff(args):
-    t = db.get_task(args["task_id"])
-    if not t or not t.get("worktree"):
-        return {"content": [{"type": "text", "text": "no worktree"}], "isError": True}
-    base = get_project(t["project"])["default_branch"]
-    if args.get("full"):
-        out = diff_full(t["worktree"], base)
-    else:
-        out = diff_summary(t["worktree"], base)
-    return {"content": [{"type": "text", "text": out[:8000]}]}
-
-
-@tool(
-    "merge_task",
-    "Merge a task's branch into project default branch + push (if project.auto_push). CTO only.",
-    {"task_id": str},
-)
-async def t_merge(args):
-    t = db.get_task(args["task_id"])
-    if t and not is_mine(t):
-        return {"content": [{"type": "text", "text": foreign_msg(t)}]}
-    result = do_merge(args["task_id"], role=ROLE)
-    return {"content": [{"type": "text", "text": json.dumps(result, indent=2, default=str)}]}
-
-
-@tool(
-    "reopen_task",
-    "Mark a task as pending again with feedback for the DEV. Increments iteration counter.",
-    {"task_id": str, "feedback": str},
-)
-async def t_reopen(args):
-    t = db.get_task(args["task_id"])
-    if not t:
-        return {"content": [{"type": "text", "text": "not found"}], "isError": True}
-    if not is_mine(t):
-        return {"content": [{"type": "text", "text": foreign_msg(t)}]}
-    new_desc = f"{t['description']}\n\n## CTO Feedback (iter {t['iteration']+1})\n{args['feedback']}"
-    db.update_status(args["task_id"], "pending",
-                     description=new_desc,
-                     iteration=t["iteration"] + 1,
-                     assigned_agent=None,
-                     actor="cto",
-                     force=True)  # intentional resurrection (may target done)
-    warn(f"reopened {args['task_id']} (iter {t['iteration']+1})")
-    return {"content": [{"type": "text", "text": "reopened"}]}
-
-
-@tool("list_projects", "List all known projects from config.", {})
-async def t_list_projects(args):
-    return {"content": [{"type": "text", "text": json.dumps(list(projects().values()), indent=2)}]}
-
-
-@tool("stats", "Get task counts by status.", {})
-async def t_stats(args):
-    return {"content": [{"type": "text", "text": json.dumps(db.stats())}]}
-
-
-@tool(
-    "recall",
-    "Recall relevant PAST org work for a free-text query. Ranks prior tasks "
-    "by term overlap and returns a compact digest of each match — final "
-    "status, merge sha, branch, and a gist of the DEV report — read back "
-    "from the task/event log (which is otherwise write-only). Call this "
-    "BEFORE planning or creating tasks to avoid relighting work already "
-    "done. Read-only. Optionally scope to one project key.",
-    {"query": str, "project": str, "limit": int},
-)
-async def t_recall(args):
-    try:
-        text = recall_lib.recall_text(
-            args["query"],
-            project=args.get("project") or None,
-            limit=args.get("limit") or 5,
-        )
-        return {"content": [{"type": "text", "text": text[:8000]}]}
-    except Exception as e:
-        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
-
-
-@tool(
-    "reflect",
-    "Reflect on recent org state — what merged, what's open/stuck, and any "
-    "recurring failure signal over the last `days`. Read-side companion to "
-    "recall(): recall answers 'what did we do about X', reflect answers "
-    "'where do things stand now'. Call at session start for situational "
-    "awareness. Read-only; surfaces patterns for you to judge, never auto-acts.",
-    {"days": int, "project": str},
-)
-async def t_reflect(args):
-    try:
-        text = reflect_lib.reflect_text(
-            days=args.get("days") or 7,
-            project=args.get("project") or None,
-        )
-        return {"content": [{"type": "text", "text": text[:8000]}]}
-    except Exception as e:
-        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
-
-
-@tool(
-    "revert_task_tool",
-    "Revert a previously merged task. CTO only. Refuses if task status is "
-    "not merged/done. Refuses if merge SHA is >RVR_DEPTH_LIMIT commits "
-    "behind HEAD unless force=True. Re-fires auto_deploy on success if the "
-    "project has it enabled and not requires_ceo_ack.",
-    {"task_id": str, "force": bool},
-)
-async def t_revert_task(args):
-    t = db.get_task(args["task_id"])
-    if t and not is_mine(t):
-        return {"content": [{"type": "text", "text": foreign_msg(t)}]}
-    from tools.revert_task import revert_task as do_revert
-    try:
-        result = do_revert(args["task_id"], force=bool(args.get("force")))
-        return {"content": [{"type": "text", "text": json.dumps(result, indent=2, default=str)}]}
-    except Exception as e:
-        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
+# scripts/test_owner_cto_routing.py drives the ownership gate directly
+# through these three tools by their historical attribute names — kept as
+# aliases into ALL_TOOLS (same objects, no separate logic).
+t_delegate = ALL_TOOLS["delegate_task"]
+t_merge = ALL_TOOLS["merge_task"]
+t_reopen = ALL_TOOLS["reopen_task"]
 
 
 # --- CTO entrypoint ---
@@ -318,12 +96,7 @@ async def run(ceo_request: str) -> str:
     server = create_sdk_mcp_server(
         name="org-cto",
         version="1.0.0",
-        tools=[
-            t_wiki_read, t_wiki_list, t_wiki_search, t_wiki_write,
-            t_create_task, t_check_collisions, t_delegate, t_delegate_parallel,
-            t_get_task, t_review_diff, t_merge, t_reopen,
-            t_list_projects, t_stats,
-        ],
+        tools=list(ALL_TOOLS.values()),
     )
 
     # Flag-gated GLM offload (CXO_MODEL_PROVIDER). Default OFF -> Claude path.
@@ -344,16 +117,7 @@ async def run(ceo_request: str) -> str:
         system_prompt=_system_prompt(),
         permission_mode="acceptEdits",
         mcp_servers={"org": server},
-        allowed_tools=[
-            "mcp__org__wiki_read", "mcp__org__wiki_list", "mcp__org__wiki_search",
-            "mcp__org__wiki_write", "mcp__org__create_task",
-            "mcp__org__check_collisions",
-            "mcp__org__delegate_task", "mcp__org__delegate_parallel",
-            "mcp__org__get_task", "mcp__org__review_diff",
-            "mcp__org__merge_task", "mcp__org__reopen_task",
-            "mcp__org__list_projects", "mcp__org__stats",
-            "Read", "Grep", "Glob",
-        ],
+        allowed_tools=[f"mcp__org__{name}" for name in ALL_TOOLS] + ["Read", "Grep", "Glob"],
         cwd=str(ROOT),
     )
     if _fallback:
