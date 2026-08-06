@@ -442,6 +442,31 @@ def _format(spec: ToolSpec, result: Any) -> str:
     return out
 
 
+def _prepare(spec: ToolSpec, kwargs: dict) -> tuple[str | None, dict]:
+    """Arg-merge + ownership gate, shared by dispatch() and dispatch_sync().
+
+    Returns (short_circuit, merged). If the ownership gate fires,
+    short_circuit is the final string the caller must return immediately
+    (handler never runs); otherwise it's None and `merged` is the resolved
+    handler kwargs.
+    """
+    merged = {
+        p.name: kwargs[p.name] if p.name in kwargs else p.default
+        for p in spec.params
+        if p.name in kwargs or not p.required
+    }
+
+    if spec.needs_ownership_check:
+        task_id = merged.get("task_id") or kwargs.get("task_id")
+        t = db.get_task(task_id)
+        if spec.ownership_not_found_message is not None and not t:
+            return spec.ownership_not_found_message, merged
+        if t and not is_mine(t):
+            return foreign_msg(t), merged
+
+    return None, merged
+
+
 async def dispatch(name: str, **kwargs: Any) -> str:
     """Registry-driven dispatch: resolve args -> ownership gate -> call the
     handler -> format -> truncate, all behind ONE error-handling wrapper.
@@ -461,21 +486,33 @@ async def dispatch(name: str, **kwargs: Any) -> str:
     """
     spec = BY_NAME[name]
     try:
-        merged = {
-            p.name: kwargs[p.name] if p.name in kwargs else p.default
-            for p in spec.params
-            if p.name in kwargs or not p.required
-        }
-
-        if spec.needs_ownership_check:
-            task_id = merged.get("task_id") or kwargs.get("task_id")
-            t = db.get_task(task_id)
-            if spec.ownership_not_found_message is not None and not t:
-                return spec.ownership_not_found_message
-            if t and not is_mine(t):
-                return foreign_msg(t)
-
+        short_circuit, merged = _prepare(spec, kwargs)
+        if short_circuit is not None:
+            return short_circuit
         result = await spec.handler(**merged) if spec.is_async else spec.handler(**merged)
+        return _format(spec, result)
+    except Exception as e:  # noqa: BLE001 - intentional catch-all, see docstring
+        return f"ERROR: {e}"
+
+
+def dispatch_sync(name: str, **kwargs: Any) -> str:
+    """Synchronous sibling of dispatch(), for tools whose handler is never
+    async. Same pipeline (arg-merge -> ownership gate -> handler -> format
+    -> truncate -> error wrap) minus the `await`.
+
+    Exists because runners/cto_mcp_server.py's FastMCP tool stubs for the
+    14 sync tools run inside FastMCP's OWN already-running asyncio event
+    loop — `asyncio.run(dispatch(...))` there would raise "cannot run
+    event loop while another loop is running". A plain sync call has no
+    such constraint.
+    """
+    spec = BY_NAME[name]
+    assert not spec.is_async, f"{name} handler is async — use dispatch() instead"
+    try:
+        short_circuit, merged = _prepare(spec, kwargs)
+        if short_circuit is not None:
+            return short_circuit
+        result = spec.handler(**merged)
         return _format(spec, result)
     except Exception as e:  # noqa: BLE001 - intentional catch-all, see docstring
         return f"ERROR: {e}"
