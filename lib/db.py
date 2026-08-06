@@ -606,17 +606,6 @@ def bind_session_to_task(role: str, session_id: str, task_id: str | None) -> Non
         )
 
 
-def is_session_busy(role: str, session_id: str) -> bool:
-    with get_conn() as conn:
-        row = conn.execute(
-            "SELECT 1 FROM c_level_sessions "
-            "WHERE role=? AND session_id=? AND active_task_id IS NOT NULL "
-            "AND active_task_id IN (SELECT id FROM tasks WHERE status='in_progress')",
-            (role, session_id),
-        ).fetchone()
-    return row is not None
-
-
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "help"
     if cmd == "init":
