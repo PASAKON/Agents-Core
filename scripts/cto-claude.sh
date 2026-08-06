@@ -220,6 +220,16 @@ if [ "${CXO_STRICT_MCP:-1}" = "1" ]; then
   STRICT_ARGS=(--strict-mcp-config)
 fi
 
+# --session-id + --resume/--continue is only legal combined with
+# --fork-session (claude CLI refuses otherwise) — "$@" carries -r/-c
+# whenever spawn-cto.sh translated --resume/--last. Detect and add it.
+FORK_ARGS=()
+for a in "$@"; do
+  case "$a" in
+    -r|--resume|-c|--continue) FORK_ARGS=(--fork-session) ;;
+  esac
+done
+
 # `exec` would replace the shell and skip the EXIT trap, leaving a
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
@@ -231,5 +241,6 @@ claude \
   ${STRICT_ARGS[@]+"${STRICT_ARGS[@]}"} \
   --allowed-tools $ALLOWED \
   --session-id "$CTO_UUID" \
+  ${FORK_ARGS[@]+"${FORK_ARGS[@]}"} \
   "$@"
 exit $?
