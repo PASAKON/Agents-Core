@@ -18,10 +18,13 @@ from claude_agent_sdk import (
 import os
 
 from lib import db
+from lib import recall as recall_lib
+from lib import reflect as reflect_lib
 from lib.config import get_project, projects, role as get_role, cxo_provider_overrides
 from lib.db import register_cxo_session
 from lib.logger import get_logger
 from lib.notify import info, success, error, warn
+from lib.task_ownership import is_mine, foreign_msg
 from tools import wiki as wiki_tools
 from tools.delegate import delegate_task as do_delegate, delegate_parallel
 from tools.git_ops import merge_task as do_merge
@@ -136,6 +139,9 @@ async def t_check_collisions(args):
     {"task_id": str},
 )
 async def t_delegate(args):
+    t = db.get_task(args["task_id"])
+    if t and not is_mine(t):
+        return {"content": [{"type": "text", "text": foreign_msg(t)}]}
     result = await do_delegate(args["task_id"])
     return {"content": [{"type": "text", "text": json.dumps(result, indent=2, default=str)[:6000]}]}
 
@@ -180,6 +186,9 @@ async def t_review_diff(args):
     {"task_id": str},
 )
 async def t_merge(args):
+    t = db.get_task(args["task_id"])
+    if t and not is_mine(t):
+        return {"content": [{"type": "text", "text": foreign_msg(t)}]}
     result = do_merge(args["task_id"], role=ROLE)
     return {"content": [{"type": "text", "text": json.dumps(result, indent=2, default=str)}]}
 
@@ -193,6 +202,8 @@ async def t_reopen(args):
     t = db.get_task(args["task_id"])
     if not t:
         return {"content": [{"type": "text", "text": "not found"}], "isError": True}
+    if not is_mine(t):
+        return {"content": [{"type": "text", "text": foreign_msg(t)}]}
     new_desc = f"{t['description']}\n\n## CTO Feedback (iter {t['iteration']+1})\n{args['feedback']}"
     db.update_status(args["task_id"], "pending",
                      description=new_desc,
@@ -212,6 +223,68 @@ async def t_list_projects(args):
 @tool("stats", "Get task counts by status.", {})
 async def t_stats(args):
     return {"content": [{"type": "text", "text": json.dumps(db.stats())}]}
+
+
+@tool(
+    "recall",
+    "Recall relevant PAST org work for a free-text query. Ranks prior tasks "
+    "by term overlap and returns a compact digest of each match — final "
+    "status, merge sha, branch, and a gist of the DEV report — read back "
+    "from the task/event log (which is otherwise write-only). Call this "
+    "BEFORE planning or creating tasks to avoid relighting work already "
+    "done. Read-only. Optionally scope to one project key.",
+    {"query": str, "project": str, "limit": int},
+)
+async def t_recall(args):
+    try:
+        text = recall_lib.recall_text(
+            args["query"],
+            project=args.get("project") or None,
+            limit=args.get("limit") or 5,
+        )
+        return {"content": [{"type": "text", "text": text[:8000]}]}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
+
+
+@tool(
+    "reflect",
+    "Reflect on recent org state — what merged, what's open/stuck, and any "
+    "recurring failure signal over the last `days`. Read-side companion to "
+    "recall(): recall answers 'what did we do about X', reflect answers "
+    "'where do things stand now'. Call at session start for situational "
+    "awareness. Read-only; surfaces patterns for you to judge, never auto-acts.",
+    {"days": int, "project": str},
+)
+async def t_reflect(args):
+    try:
+        text = reflect_lib.reflect_text(
+            days=args.get("days") or 7,
+            project=args.get("project") or None,
+        )
+        return {"content": [{"type": "text", "text": text[:8000]}]}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
+
+
+@tool(
+    "revert_task_tool",
+    "Revert a previously merged task. CTO only. Refuses if task status is "
+    "not merged/done. Refuses if merge SHA is >RVR_DEPTH_LIMIT commits "
+    "behind HEAD unless force=True. Re-fires auto_deploy on success if the "
+    "project has it enabled and not requires_ceo_ack.",
+    {"task_id": str, "force": bool},
+)
+async def t_revert_task(args):
+    t = db.get_task(args["task_id"])
+    if t and not is_mine(t):
+        return {"content": [{"type": "text", "text": foreign_msg(t)}]}
+    from tools.revert_task import revert_task as do_revert
+    try:
+        result = do_revert(args["task_id"], force=bool(args.get("force")))
+        return {"content": [{"type": "text", "text": json.dumps(result, indent=2, default=str)}]}
+    except Exception as e:
+        return {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
 
 
 # --- CTO entrypoint ---
