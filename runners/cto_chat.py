@@ -43,17 +43,13 @@ from rich.markdown import Markdown
 
 from lib import db
 from lib import cto_session
+from lib import org_tools_registry as registry
 from lib.config import role as get_role, cxo_provider_overrides
 from lib.logger import get_logger
 from lib.notify import info, success, warn, error, COLORS, RESET
 
 console = Console()
-from runners.cto import (
-    t_wiki_read, t_wiki_list, t_wiki_search, t_wiki_write,
-    t_create_task, t_check_collisions, t_delegate, t_delegate_parallel,
-    t_get_task, t_review_diff, t_merge, t_reopen,
-    t_list_projects, t_stats, t_recall, t_reflect, t_revert_task,
-)
+from runners.cto import ALL_TOOLS
 
 ROOT = Path(__file__).resolve().parent.parent
 ROLE = "cto"
@@ -132,12 +128,7 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
     server = create_sdk_mcp_server(
         name="org-cto",
         version="1.0.0",
-        tools=[
-            t_wiki_read, t_wiki_list, t_wiki_search, t_wiki_write,
-            t_create_task, t_check_collisions, t_delegate, t_delegate_parallel,
-            t_get_task, t_review_diff, t_merge, t_reopen,
-            t_list_projects, t_stats, t_recall, t_reflect, t_revert_task,
-        ],
+        tools=list(ALL_TOOLS.values()),
     )
     # Flag-gated GLM offload (CXO_MODEL_PROVIDER). Default OFF -> Claude path.
     # When set, inject the provider env + swap model; drop the Claude-only
@@ -171,22 +162,17 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
                 "env": {},
             },
         },
-        allowed_tools=[
-            "mcp__org__wiki_read", "mcp__org__wiki_list", "mcp__org__wiki_search",
-            "mcp__org__wiki_write", "mcp__org__create_task",
-            "mcp__org__check_collisions",
-            "mcp__org__delegate_task", "mcp__org__delegate_parallel",
-            "mcp__org__get_task", "mcp__org__review_diff",
-            "mcp__org__merge_task", "mcp__org__reopen_task",
-            "mcp__org__list_projects", "mcp__org__stats",
-            "mcp__org__recall", "mcp__org__reflect", "mcp__org__revert_task_tool",
-            "mcp__lungnote__list_todos", "mcp__lungnote__add_todo",
-            "mcp__lungnote__complete_todo", "mcp__lungnote__cancel_todo",
-            "mcp__lungnote__delete_todo", "mcp__lungnote__list_recent",
-            "mcp__lungnote__read_note", "mcp__lungnote__create_note",
-            "mcp__lungnote__append_note", "mcp__lungnote__search_notes",
-            "Read", "Grep", "Glob",
-        ],
+        allowed_tools=(
+            [f"mcp__org__{spec.name}" for spec in registry.REGISTRY]
+            + [
+                "mcp__lungnote__list_todos", "mcp__lungnote__add_todo",
+                "mcp__lungnote__complete_todo", "mcp__lungnote__cancel_todo",
+                "mcp__lungnote__delete_todo", "mcp__lungnote__list_recent",
+                "mcp__lungnote__read_note", "mcp__lungnote__create_note",
+                "mcp__lungnote__append_note", "mcp__lungnote__search_notes",
+                "Read", "Grep", "Glob",
+            ]
+        ),
         cwd=str(ROOT),
         resume=resume,
     )
@@ -203,7 +189,7 @@ def _print_banner(session_id: str | None, resumed: bool) -> None:
     cto_id = cto_session.current_id()
     print(f"{c}=========================================================={RESET}")
     print(f"{c}  CTO Chat — Mooniex Virtual Org{RESET}")
-    print(f"{c}  Model: {get_role('cto')['model']}   |   Tools: 17{RESET}")
+    print(f"{c}  Model: {get_role('cto')['model']}   |   Tools: {len(registry.REGISTRY)}{RESET}")
     if cto_id:
         print(f"{c}  CTO id: #{cto_id}   log: state/logs/cto-{cto_id}.log{RESET}")
     print(f"{c}=========================================================={RESET}")
