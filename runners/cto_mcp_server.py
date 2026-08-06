@@ -24,6 +24,7 @@ from lib import toon
 from lib.config import get_project, projects
 from lib.logger import get_logger
 from lib.notify import info, warn
+from lib.task_ownership import is_mine as _is_mine, foreign_msg as _foreign_msg
 from tools import wiki as wiki_tools
 from tools.delegate import delegate_task as do_delegate, delegate_parallel
 from tools.git_ops import merge_task as do_merge
@@ -33,30 +34,6 @@ ROLE = "cto"
 log = get_logger(ROLE, stdout=False)
 
 mcp = FastMCP("org")
-
-
-def _my_cto_id() -> str | None:
-    return os.environ.get("CTO_SESSION_ID") or None
-
-
-def _is_mine(task: dict | None) -> bool:
-    """May this CTO session mutate the task?
-
-    Unrestricted when the session has no id (legacy/single-CTO) or the
-    task has no owner (pre-owner_cto rows, CXO-created tasks)."""
-    if not task:
-        return True
-    mine = _my_cto_id()
-    owner = task.get("owner_cto")
-    return not mine or not owner or owner == mine
-
-
-def _foreign_msg(task: dict) -> str:
-    return (
-        f"Refusing cross-CTO mutation: task {task.get('id')} belongs to "
-        f"CTO #{task.get('owner_cto')} (you are CTO #{_my_cto_id() or 'unset'}). "
-        f"Coordinate via tools.send_to_cxo or let the owning CTO act."
-    )
 
 
 @mcp.tool()

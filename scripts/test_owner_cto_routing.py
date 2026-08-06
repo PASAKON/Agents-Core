@@ -110,6 +110,45 @@ def test_cross_cto_gate(tids: list[str]) -> bool:
     return ok
 
 
+def test_cto_py_delegate_merge_reopen_gate(tids: list[str]) -> bool:
+    """W2: cto.py's t_delegate/t_merge/t_reopen previously called the
+    underlying mutation ops with no ownership check at all (unlike
+    cto_mcp_server.py's delegate_task/merge_task/reopen_task). Same
+    ownership-violation setup as test_cross_cto_gate, but drives the
+    actual tool handlers cto_chat.py's REPL (and main.py's one-shot mode)
+    wire up, and confirms the foreign task was left untouched."""
+    import asyncio
+    from runners import cto  # noqa: WPS433
+
+    os.environ["CTO_SESSION_ID"] = "ctoaaaaa"
+    t_b_id = tids[2]  # owned by ctobbbbb
+    before = db.get_task(t_b_id)
+
+    async def _run():
+        d = await cto.t_delegate.handler({"task_id": t_b_id})
+        m = await cto.t_merge.handler({"task_id": t_b_id})
+        r = await cto.t_reopen.handler({"task_id": t_b_id, "feedback": "x"})
+        return d, m, r
+
+    try:
+        d_res, m_res, r_res = asyncio.run(_run())
+    finally:
+        del os.environ["CTO_SESSION_ID"]
+
+    after = db.get_task(t_b_id)
+
+    def _text(res: dict) -> str:
+        return res["content"][0]["text"]
+
+    return (
+        "Refusing cross-CTO" in _text(d_res)
+        and "Refusing cross-CTO" in _text(m_res)
+        and "Refusing cross-CTO" in _text(r_res)
+        and after["status"] == before["status"]
+        and after["iteration"] == before["iteration"]
+    )
+
+
 def test_send_to_cto_kwarg() -> bool:
     from tools import send_to_cto
     # No iTerm in test env — just confirm signature + constant.
@@ -160,6 +199,9 @@ def main() -> int:
 
         r = test_cross_cto_gate(created); fails += not r
         _mark(r, "_is_mine + _foreign_msg gate cross-CTO mutation")
+
+        r = test_cto_py_delegate_merge_reopen_gate(created); fails += not r
+        _mark(r, "cto.py t_delegate/t_merge/t_reopen gate cross-CTO mutation")
 
         r = test_send_to_cto_kwarg(); fails += not r
         _mark(r, "send_to_cto.send accepts cto_id kwarg")
