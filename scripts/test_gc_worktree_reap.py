@@ -18,6 +18,10 @@ Tests:
   5. review status + fresh mtime -> NOT flagged.
   6. dry_run=True (the default) touches nothing on disk, even for an
      otherwise-removable candidate.
+  7. Terminal status (merged) + clean worktree exists -> removed (dir gone).
+     Regression guard for W6 (org:reference/2026-08-06-agents-system-audit.md):
+     'merged' rows were previously excluded from TERMINAL_STATUSES and never
+     reaped even after the worktree was clean and dead weight.
 
 Run via: python scripts/test_gc_worktree_reap.py
 """
@@ -150,6 +154,14 @@ def run_tests(tmp_db: Path, tmp_worktrees: Path, fake_repo: Path) -> None:
             _insert_task(conn, tid=tid6, project="test-proj", role=role6,
                         status="cancelled", worktree=str(wt6))
 
+        # --- Test 7: terminal (merged) + clean worktree -> removed ---
+        role7, tid7 = "developer", "task-reap0007"
+        wt7 = worktree_mod.worktree_path("test-proj", role7, tid7)
+        _make_worktree(wt7, dirty=False)
+        with db_mod.get_conn() as conn:
+            _insert_task(conn, tid=tid7, project="test-proj", role=role7,
+                        status="merged", worktree=str(wt7))
+
         # ---- Run 1: dry_run=True (the default) ----
         dry = reap_worktrees(dry_run=True)
         removed_ids_dry = {r["task_id"] for r in dry["removed"]}
@@ -160,6 +172,10 @@ def run_tests(tmp_db: Path, tmp_worktrees: Path, fake_repo: Path) -> None:
               f"[6a] dry-run reports clean terminal worktrees as candidates — got {removed_ids_dry}")
         _mark(wt1.exists() and wt6.exists(),
               "[6b] dry-run (default) did NOT delete anything on disk")
+        _mark(tid7 in removed_ids_dry,
+              f"[7a] dry-run reports 'merged'+clean worktree as a removal candidate — got {removed_ids_dry}")
+        _mark(wt7.exists(),
+              "[7b] dry-run (default) did NOT delete the 'merged' worktree on disk")
         _mark(tid2 in skipped_ids_dry,
               f"[dry] dirty terminal worktree reported as skip candidate — got {skipped_ids_dry}")
         _mark(tid4 in flagged_ids_dry,
@@ -204,10 +220,17 @@ def run_tests(tmp_db: Path, tmp_worktrees: Path, fake_repo: Path) -> None:
         _mark(rem1 is not None and "size_human" in rem1 and "last_commit" in rem1,
               f"[7] removed entries carry size_human + last_commit — got {rem1}")
 
-        # Idempotent: running again finds nothing left to remove for tid1/tid6
+        # [9] terminal(merged)+clean -> removed on --go (the W6 fix itself)
+        _mark(tid7 in removed_ids, f"[9] terminal(merged)+clean worktree removed on --go — got {removed_ids}")
+        _mark(not wt7.exists(), "[9b] worktree dir for tid7 is gone from disk after --go")
+        rem7 = next((r for r in result["removed"] if r["task_id"] == tid7), None)
+        _mark(rem7 is not None and rem7.get("status") == "merged",
+              f"[9c] removed entry for tid7 records status='merged' — got {rem7}")
+
+        # Idempotent: running again finds nothing left to remove for tid1/tid6/tid7
         result2 = reap_worktrees(dry_run=False)
         removed_ids2 = {r["task_id"] for r in result2["removed"]}
-        _mark(tid1 not in removed_ids2 and tid6 not in removed_ids2,
+        _mark(tid1 not in removed_ids2 and tid6 not in removed_ids2 and tid7 not in removed_ids2,
               "[8] idempotent: already-removed worktrees not re-reported")
 
     finally:
