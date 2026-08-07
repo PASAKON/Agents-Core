@@ -182,7 +182,55 @@ for v in CXO_EXTRA_MCP CXO_SKIP_MCP CXO_STRICT_MCP CXO_SUPABASE_PROJECT_REF \
   [ -n "${!v:-}" ] || continue
   ENV_PREFIX="${ENV_PREFIX}export $v=$(printf '%q' "${!v}") && "
 done
-CHAT_CMD="${ENV_PREFIX}${GLM_PREFIX}export CTO_SESSION_ID='$CTO_SESSION_ID' && bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS"
+# The chat runs inside a tmux session instead of straight in the iTerm tab, so
+# the pty can have more than one client: iTerm attaches here, and MoonieX
+# Console attaches the same session over the tailnet from the phone
+# (`tmux attach-session -t cto-<id>`, mooniex-console src/tmux/bridge.js). Both
+# clients see the same stream and both can type — that is the whole mirror, and
+# tmux, not us, is what makes it real. The session name MUST stay
+# `<role>-<slug>` or the console's list filters it out (src/tmux/names.js).
+TMUX_SESSION="cto-$CTO_SESSION_ID"
+
+# The command goes through a file rather than being nested inside both the tmux
+# argv and the AppleScript string literal below — two layers of quoting over a
+# command that already contains quoted paths and `&&`.
+RUN_FILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.run"
+printf '#!/usr/bin/env bash\n%s\n' \
+  "${ENV_PREFIX}${GLM_PREFIX}export CTO_SESSION_ID='$CTO_SESSION_ID' && exec bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS" \
+  >"$RUN_FILE"
+chmod +x "$RUN_FILE"
+
+# A tmux server with no UTF-8 locale silently rewrites non-ASCII — and TABs —
+# in its own output into underscores, which breaks both Thai text in the pane
+# and the console's tab-separated `list-sessions` parse (cost: one debugging
+# session, 2026-08-07). The server keeps whatever environment it was first
+# started with, and that may well be this shell.
+case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in
+  *[Uu][Tt][Ff]*8*) ;;
+  *) export LANG=en_US.UTF-8 ;;
+esac
+
+# Server-wide options need a running server, and the server would otherwise
+# first come into existence inside the iTerm tab, after the session is built.
+tmux start-server 2>/dev/null || true
+
+# Size the window to whichever client interacted last, not to the smallest one
+# attached: on the default `smallest` the Mac window collapses to phone width
+# the moment the phone attaches, and stays there. CEO decision 2026-08-07.
+tmux set-option -g window-size latest 2>/dev/null || true
+
+# tmux is plumbing here, not a UI. Its status bar is pure regression on both
+# surfaces: it steals a row from the Claude chat, and it re-states what both
+# clients already show anyway — the iTerm tab title on the Mac, the session
+# header in the console on the phone. The CEO's tab has to keep looking like
+# the iTerm tab it has always been.
+tmux set-option -g status off 2>/dev/null || true
+
+# -A attaches if the session already exists and creates it otherwise. Creating
+# it from INSIDE the iTerm tab, rather than detached here, guarantees a client
+# is attached from the very first moment — which is what cto-claude.sh's
+# client_tty lookup needs in order to resolve the real iTerm tty.
+CHAT_CMD="tmux new-session -A -s '$TMUX_SESSION' -c '$ROOT' bash '$RUN_FILE'"
 LOG_CMD="cd '$ROOT' && tail -F state/logs/cto-$CTO_SESSION_ID.log"
 DEV_CMD="cd '$ROOT' && bash scripts/tail-dev-logs.sh"
 

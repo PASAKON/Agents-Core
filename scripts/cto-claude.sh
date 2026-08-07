@@ -85,6 +85,27 @@ echo "$$" >"$LOCKFILE"
 # that causes name-based lookups to misroute DEVs to the wrong CTO.
 WINID_FILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.winid"
 MY_TTY="$(tty 2>/dev/null || true)"
+
+# Inside tmux, `tty` is the pane's own pty — not the terminal emulator's. Both
+# consumers of MY_TTY need the REAL iTerm tty: the winid lookup below matches on
+# `tty of s`, and scripts/tab-title.sh writes OSC escapes straight to the saved
+# tty. Hand either one a pane pty and the escapes go back into tmux, which eats
+# them: tab titles stop updating and delegate.py loses the window it routes DEV
+# tabs to, both silently. `client_tty` is the attached client's tty, i.e. the
+# iTerm tab. spawn-cto.sh attaches from iTerm in the same breath as it creates
+# the session, so poll briefly for that client rather than giving up on the
+# first read.
+if [ -n "${TMUX:-}" ]; then
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    CLIENT_TTY="$(tmux display-message -p '#{client_tty}' 2>/dev/null | tr -d '[:space:]')"
+    if [ -n "$CLIENT_TTY" ]; then
+      MY_TTY="$CLIENT_TTY"
+      break
+    fi
+    sleep 0.2
+  done
+fi
+
 if [ -n "$MY_TTY" ]; then
   WINID="$(osascript 2>/dev/null <<APPLE || true
 tell application "iTerm"
@@ -116,7 +137,10 @@ if [ -n "$MY_TTY" ]; then
   echo "$MY_TTY" >"$TTY_FILE"
 fi
 
-trap 'rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE" "$MCP_CONFIG"' EXIT INT TERM
+# .run is the launcher tmux exec'd us from (written by spawn-cto.sh); it has no
+# reason to outlive the session it started.
+RUN_FILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.run"
+trap 'rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE" "$MCP_CONFIG" "$RUN_FILE"' EXIT INT TERM
 
 # Initial tab title + base prefix for scripts/tab-title.sh (IRON-RULES §32).
 # The C-level agent rewrites the summary part after every finished job.
