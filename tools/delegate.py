@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 
 from lib import db
@@ -331,6 +333,37 @@ async def _auto_kickoff(task_id: str, message: str) -> None:
 CLAIM_VERIFY_DELAY_S = 25.0
 
 
+def _pid_alive(pid: int | None) -> bool:
+    """True if `pid` names a live OS process. `dev_init.py` stamps its own
+    pid the instant it claims a task (before os.execvpe replaces it with
+    claude), so a live pid on an in_progress row means a DEV is genuinely
+    running — used by the W4 re-delegate guard to avoid resetting/clobbering
+    it. os.kill(pid, 0) sends no signal, just probes existence."""
+    if not pid:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True  # exists but owned by another user — still alive
+    return True
+
+
+def _seconds_since(iso_ts: str | None) -> float | None:
+    """Seconds elapsed since an `updated_at`-style ISO timestamp, or None
+    if unparseable/absent."""
+    if not iso_ts:
+        return None
+    try:
+        then = datetime.fromisoformat(iso_ts)
+    except ValueError:
+        return None
+    if then.tzinfo is None:
+        then = then.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - then).total_seconds()
+
+
 async def _verify_claimed(task_id: str, role_name: str,
                           owner_cto: str | None,
                           owner_role: str | None = None, *,
@@ -404,6 +437,35 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     if role_name not in proj["agents_allowed"]:
         raise PermissionError(f"role {role_name} not allowed on project {project_key}")
 
+    # W3 (audit 2026-08-06): depends_on was invisible to this pre-flight —
+    # only a touches overlap with an ACTIVE task ever blocked a delegate, and
+    # that overlap-based block silently evaporates the moment the dependency
+    # reaches 'review' (locks release there) even though it isn't merged yet,
+    # so the dependent started on a stale base. This check is independent of
+    # touches and fires even when the two tasks don't share a single path.
+    try:
+        deps = json.loads(task.get("depends_on") or "[]")
+    except Exception:
+        deps = []
+    if deps:
+        unmet = db.unmet_dependencies(deps)
+        if unmet:
+            summary = "; ".join(f"{u['id']}({u['status']})" for u in unmet)
+            warn(f"dependency blocked task={task_id}: {summary}")
+            # Deliberately does NOT touch status (stays whatever it already
+            # was, typically 'pending') — reusing 'conflict' here would make
+            # this indistinguishable from a touches-collision at a glance.
+            # delegate_log is the established channel for "why was this
+            # refused" (same pattern as the collision/lock-failure messages
+            # below); a caller can tell the two apart by status alone
+            # ('pending' vs 'conflict') as well as by this text.
+            db.set_fields(
+                task_id,
+                delegate_log=f"blocked by unfinished dependency: {summary}",
+                actor="cto",
+            )
+            return db.get_task(task_id)
+
     try:
         touches = json.loads(task.get("touches") or "[]")
     except Exception:
@@ -442,12 +504,64 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                          branch=wt_info["branch"],
                          actor="cto")
         info(f"worktree ready: {wt_info['worktree']}")
+    elif task.get("status") == "pending" and not task.get("assigned_agent"):
+        # W4 (audit 2026-08-06): worktree exists, never claimed. This combo
+        # is reached both by a fresh spawn's own first pass through this
+        # function (fine — falls through to spawn below) AND by a second,
+        # wasted delegate_task call on the SAME task while the first spawn
+        # is still booting (dev_init hasn't reached claim_task yet, so
+        # pid/assigned_agent are still NULL and no branch above resets
+        # anything). `pid` can't distinguish these two cases — it isn't
+        # stamped until claim — so use `updated_at` instead: the row was
+        # only touched by the worktree-creation write above, which happens
+        # once per genuine spawn. A duplicate call inside the same grace
+        # period `_verify_claimed` watches (CLAIM_VERIFY_DELAY_S) means a
+        # spawn is already in flight; refuse instead of opening a second
+        # tab. Past that window the watchdog has already given up (or this
+        # is a deliberate manual re-delegate), so fall through and spawn.
+        since = _seconds_since(task.get("updated_at"))
+        if since is not None and since < CLAIM_VERIFY_DELAY_S:
+            info(f"skip duplicate spawn task={task_id}: spawned {since:.0f}s "
+                 f"ago, still within the {CLAIM_VERIFY_DELAY_S:.0f}s claim "
+                 f"grace period")
+            db.set_fields(
+                task_id,
+                delegate_log=(
+                    f"duplicate delegate refused: spawn already issued "
+                    f"{since:.0f}s ago, not yet claimed (grace period "
+                    f"{CLAIM_VERIFY_DELAY_S:.0f}s) — wait for claim or the "
+                    f"watchdog's automatic retry"
+                ),
+                actor="cto",
+            )
+            return db.get_task(task_id)
     elif task.get("status") != "pending":
-        # Re-delegate of a task whose worktree already exists. dev_init's
-        # claim_task only fires on status='pending' AND assigned_agent IS
-        # NULL, so without this reset the respawned DEV cannot claim and
-        # dies silently at a bare shell. 'pending' is not a releasing
-        # status, so the path locks acquired just above stay held.
+        # Re-delegate of a task whose worktree already exists and which is
+        # NOT sitting unclaimed-pending (e.g. in_progress, conflict, failed,
+        # rate_limited). Before resetting — which would clear assigned_agent
+        # and spawn a brand-new tab — check whether the pid dev_init stamped
+        # at claim time is still alive. A live pid means a DEV is genuinely
+        # running right now; resetting would orphan it from the row it's
+        # using and spawn a redundant duplicate. A dead/absent pid means the
+        # prior run crashed or never claimed, so the reset below is safe —
+        # unchanged from the original behavior.
+        pid = task.get("pid")
+        if pid and _pid_alive(pid):
+            warn(f"refusing re-delegate task={task_id}: pid={pid} still "
+                 f"alive (status={task['status']})")
+            db.set_fields(
+                task_id,
+                delegate_log=(
+                    f"duplicate delegate refused: task already running "
+                    f"under live pid={pid} (status={task['status']})"
+                ),
+                actor="cto",
+            )
+            return db.get_task(task_id)
+        # dev_init's claim_task only fires on status='pending' AND
+        # assigned_agent IS NULL, so without this reset the respawned DEV
+        # cannot claim and dies silently at a bare shell. 'pending' is not a
+        # releasing status, so the path locks acquired just above stay held.
         db.update_status(task_id, "pending",
                          assigned_agent=None, pid=None, actor="cto")
         info(f"re-delegate: reset task={task_id} to pending for re-claim")
