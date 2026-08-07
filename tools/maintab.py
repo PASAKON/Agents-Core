@@ -216,6 +216,15 @@ def render(role: str, sid: str, now: datetime | None = None) -> str:
 # ---------------------------------------------------------------------------
 def push(role: str, sid: str, now: datetime | None = None) -> bool:
     """Write this session's Main Tab via OSC 2. False if the tty is gone."""
+    rendered = render(role, sid, now)
+    # Plain-text mirror of the same line, read by mooniex-console's bridge to
+    # push an equivalent OSC 2 into its own (separate) tmux-attach client —
+    # the direct tty write below only ever reaches iTerm's specific client_tty.
+    try:
+        _TITLE_DIR.mkdir(parents=True, exist_ok=True)
+        (_TITLE_DIR / f"{role}-{sid}.main.txt").write_text(rendered)
+    except OSError:
+        pass
     try:
         tty = _tty_path(role, sid).read_text().strip()
     except OSError:
@@ -224,7 +233,7 @@ def push(role: str, sid: str, now: datetime | None = None) -> bool:
         return False
     try:
         with open(tty, "w") as fh:
-            fh.write(f"\033]2;{render(role, sid, now)}\007")
+            fh.write(f"\033]2;{rendered}\007")
         return True
     except OSError:
         # Session closed, or its pty is no longer writable — not an error.
