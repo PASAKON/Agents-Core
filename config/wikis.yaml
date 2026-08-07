@@ -8,9 +8,12 @@
 # still be overridden at runtime by the WIKI_ROOT env var — see the
 # precedence note in tools/wiki.py's module docstring.
 #
-# `org` (Agents-Wikis) does not exist on disk yet — that's expected until
-# Phase 2 of the split creates it. Missing roots are skipped by wiki_list/
-# wiki_search and raise a named WikiError from wiki_read/wiki_write.
+# `org` (Agents-Wikis) is live — its own git repo, checked out on the Mac at
+# the path below and on Contabo at /opt/agents-wikis (cto-claude.sh /
+# cxo-claude.sh export WIKI_ROOT_ORG there). `mooniex` is NOT checked out on
+# Contabo, so an unprefixed path fails on that box — prefix `org:` there.
+# Any root that is genuinely missing is skipped by wiki_list/wiki_search and
+# raises a named WikiError from wiki_read/wiki_write.
 default: mooniex
 wikis:
   - ns: org
