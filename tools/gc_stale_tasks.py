@@ -34,10 +34,19 @@ STALE_PENDING_MINUTES   = 30
 STALE_CONFLICT_MINUTES  = 60
 STALE_RATELIMIT_MINUTES = 30
 
-# Statuses whose worktree is dead weight and can be reclaimed. Deliberately
-# excludes 'merged' (merge_task already cleans that one up on success) and
-# 'reverted'/'blocked_human' (still needs a human look).
-TERMINAL_STATUSES = {"done", "cancelled", "stalled", "failed"}
+# Statuses whose worktree is dead weight and can be reclaimed. Includes
+# 'merged': audited 2026-08-07 (W6, org:reference/2026-08-06-agents-system-
+# audit.md) — merge_task()'s success path has only ever written 'done'
+# (tools/git_ops.py:342-347, true since the original commit), and no other
+# call site in the repo or its full git history writes status='merged' via
+# update_status(). It is a legacy value declared in db.VALID_STATUS and
+# treated as done-equivalent by several read-only checks (lib/reflect.py,
+# lib/recall.py, tools/delegate.py, tools/revert_task.py) but produced by no
+# code path — the one live example (task-df93e0ed) has no status_* event for
+# the transition, meaning it was hand-set directly in the DB outside any
+# tool, not written by the app. Safe to treat as terminal like 'done'.
+# Still excludes 'reverted'/'blocked_human' (still needs a human look).
+TERMINAL_STATUSES = {"done", "cancelled", "stalled", "failed", "merged"}
 
 # 'review' worktrees older than this are flagged (print-only) — never
 # auto-removed, since a human may still be about to look at them.
