@@ -158,7 +158,38 @@ for v in CXO_EXTRA_MCP CXO_SKIP_MCP CXO_STRICT_MCP CXO_SUPABASE_PROJECT_REF \
   [ -n "${!v:-}" ] || continue
   ENV_PREFIX="${ENV_PREFIX}export $v=$(printf '%q' "${!v}") && "
 done
-CHAT_CMD="${ENV_PREFIX}${GLM_PREFIX}export CXO_SESSION_ID='$CXO_SESSION_ID' && bash '$ROOT/scripts/cxo-claude.sh' --role $ROLE $CLAUDE_ARGS"
+# Same tmux wrapping as spawn-cto.sh, for the same reason: the CEO's phone has
+# to be able to attach the very session this tab is showing. `<role>-<slug>` is
+# the shape MoonieX Console's list filter requires, and cmo/cfo/cxo are all
+# already in its ROLES (mooniex-console src/tmux/names.js) — so every C-level
+# spawned here shows up on the phone, not just the CTO.
+TMUX_SESSION="$ROLE-$CXO_SESSION_ID"
+
+# Through a file, to avoid nesting quotes inside both the tmux argv and the
+# AppleScript string literal further down.
+RUN_FILE="$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.run"
+printf '#!/usr/bin/env bash\n%s\n' \
+  "${ENV_PREFIX}${GLM_PREFIX}export CXO_SESSION_ID='$CXO_SESSION_ID' && exec bash '$ROOT/scripts/cxo-claude.sh' --role $ROLE $CLAUDE_ARGS" \
+  >"$RUN_FILE"
+chmod +x "$RUN_FILE"
+
+# A tmux server started without a UTF-8 locale rewrites non-ASCII and TABs in
+# its own output to underscores, which corrupts Thai in the pane and breaks the
+# console's tab-separated `list-sessions` parse. The server keeps the first
+# environment it ever saw, which may be this shell's.
+case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in
+  *[Uu][Tt][Ff]*8*) ;;
+  *) export LANG=en_US.UTF-8 ;;
+esac
+
+tmux start-server 2>/dev/null || true
+# `latest`, not the default `smallest` — otherwise the Mac window shrinks to
+# phone width the moment the phone attaches. Status bar off: tmux is plumbing
+# here and the row is worth more to the chat. CEO decision 2026-08-07.
+tmux set-option -g window-size latest 2>/dev/null || true
+tmux set-option -g status off 2>/dev/null || true
+
+CHAT_CMD="tmux new-session -A -s '$TMUX_SESSION' -c '$ROOT' bash '$RUN_FILE'"
 LOG_CMD="cd '$ROOT' && tail -F state/logs/$ROLE-$CXO_SESSION_ID.log"
 DEV_CMD="cd '$ROOT' && bash scripts/tail-dev-logs.sh"
 

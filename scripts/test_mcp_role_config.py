@@ -137,9 +137,18 @@ def test_g3_spawn_forwards_env() -> None:
     for rel in SPAWNERS:
         text = (ROOT / rel).read_text()
         _mark("ENV_PREFIX" in text, f"{rel}: builds ENV_PREFIX")
+        # What G3 protects is that the overrides reach the process at all,
+        # given that osascript starts a fresh login shell inheriting none of
+        # the caller's exports. WHERE they are re-exported is free: the
+        # original fix inlined them in CHAT_CMD; since the tmux mirror landed
+        # (2026-08-07) the tab runs `tmux new-session ... bash <run file>` and
+        # the exports live in that run file. Both put them in front of the
+        # launcher inside the new shell, so accept either shape instead of
+        # pinning one and failing the next refactor for a reason that has
+        # nothing to do with the gap.
         _mark(
-            re.search(r'CHAT_CMD="\$\{ENV_PREFIX\}', text) is not None,
-            f"{rel}: ENV_PREFIX is prepended to CHAT_CMD",
+            re.search(r'\$\{ENV_PREFIX\}\$\{GLM_PREFIX\}export', text) is not None,
+            f"{rel}: ENV_PREFIX is re-exported into the command the new shell runs",
         )
         for var in ("CXO_EXTRA_MCP", "CXO_SKIP_MCP", "CXO_STRICT_MCP"):
             _mark(var in text, f"{rel}: forwards {var}")

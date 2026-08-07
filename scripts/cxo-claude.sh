@@ -165,6 +165,26 @@ echo "$$" >"$LOCKFILE"
 # this exact window. Matching by id is immune to title-flicker mishaps.
 WINID_FILE="$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.winid"
 MY_TTY="$(tty 2>/dev/null || true)"
+
+# Under tmux, `tty` is the pane's own pty, not the terminal emulator's. The
+# winid lookup below matches on `tty of s`, and tab-title.sh writes OSC escapes
+# straight to the saved tty — hand either one a pane pty and the escapes go
+# back into tmux, which swallows them: tab titles freeze and delegate.py loses
+# the window it routes DEV tabs to, both without an error anywhere.
+# `client_tty` is the attached client, i.e. the iTerm tab; spawn-cxo.sh
+# attaches from iTerm as the session is created, so poll briefly rather than
+# giving up on the first read.
+if [ -n "${TMUX:-}" ]; then
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    CLIENT_TTY="$(tmux display-message -p '#{client_tty}' 2>/dev/null | tr -d '[:space:]')"
+    if [ -n "$CLIENT_TTY" ]; then
+      MY_TTY="$CLIENT_TTY"
+      break
+    fi
+    sleep 0.2
+  done
+fi
+
 if [ -n "$MY_TTY" ]; then
   WINID="$(osascript 2>/dev/null <<APPLE || true
 tell application "iTerm"
@@ -221,7 +241,10 @@ if [ -n "$SESSION_OVERRIDE" ]; then
 fi
 
 cleanup() {
-  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE" "$MCP_CONFIG"
+  # .run is the launcher tmux exec'd us from (written by spawn-cxo.sh); it has
+  # no reason to outlive the session it started.
+  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE" "$MCP_CONFIG" \
+        "$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.run"
   # Only clear the active pointer if it still points at us and we wrote it.
   if [ -z "$SESSION_OVERRIDE" ] && [ -e "$ACTIVE_FILE" ]; then
     current="$(tr -d '[:space:]' <"$ACTIVE_FILE" 2>/dev/null || true)"
