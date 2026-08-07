@@ -1,0 +1,55 @@
+{
+  "permissionMode": "auto",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/gob/Projects/Agents/scripts/session-deadline-check.py",
+            "timeout": 8
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-log-prompt.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-recall.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-skill-suggest.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-skill-log.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-log-reply.py"
+          }
+        ]
+      }
+    ]
+  }
+}

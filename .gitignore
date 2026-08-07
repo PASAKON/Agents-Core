@@ -32,9 +32,18 @@ state/*.db
 state/fomo-scanner.db-journal
 state/fomo-scanner.db-wal
 state/fomo-scanner.db-shm
-.claude/
-# `npx skills add` install target — vendored skill copies, not source
-.agents/
+# Claude Code project config: skills/ and settings.json are shared, trackable.
+# Only local/secret state is ignored (see .agents/README.md for the .agents/ note).
+.claude/settings.local.json
+.claude/settings.local.json.bak-*
+.claude/scheduled_tasks.lock
+
+# `npx skills add` install target — vendored skill copies, not source.
+# Ignore contents but keep the provenance note trackable (a bare `.agents/`
+# would exclude the directory itself, and git can't re-include a file whose
+# parent directory is excluded).
+.agents/*
+!.agents/README.md
 worktrees/
 .env
 .DS_Store
