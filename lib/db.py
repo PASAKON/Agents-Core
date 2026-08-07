@@ -139,6 +139,15 @@ def init():
         for col, coltype in _MIGRATION_COLUMNS:
             if col not in existing:
                 conn.execute(f"ALTER TABLE tasks ADD COLUMN {col} {coltype}")
+        # W8 (audit 2026-08-06, reference/2026-08-06-agents-system-audit.md):
+        # claudesign_project_id was added out-of-band, was never wired into
+        # _MIGRATION_COLUMNS/VALID_COLUMNS, has zero code references and zero
+        # non-null values across every row. Drop it. Guarded by the same
+        # existence check the ADD-COLUMN loop uses above, so this is
+        # idempotent — safe to run twice, and safe on a DB where the column
+        # is already gone (fresh db.init() never had it to begin with).
+        if "claudesign_project_id" in existing:
+            conn.execute("ALTER TABLE tasks DROP COLUMN claudesign_project_id")
         # Backfill: move runner-generated messages out of report into
         # delegate_log so DEV completion reports are never overwritten.
         conn.execute("""
@@ -441,27 +450,24 @@ def list_tasks(status: str | None = None, project: str | None = None,
         return [dict(r) for r in conn.execute(q, args).fetchall()]
 
 
-def pending_tasks_for(role: str, project: str | None = None) -> list[dict]:
-    q = """SELECT * FROM tasks
-           WHERE role=? AND status='pending' AND assigned_agent IS NULL"""
-    args = [role]
-    if project:
-        q += " AND project=?"
-        args.append(project)
-    q += " ORDER BY created_at ASC"
-    with get_conn() as conn:
-        rows = [dict(r) for r in conn.execute(q, args).fetchall()]
-    out = []
-    for r in rows:
-        deps = json.loads(r["depends_on"] or "[]")
-        if not deps or all(_is_done(d) for d in deps):
-            out.append(r)
-    return out
+def unmet_dependencies(depends_on: list[str]) -> list[dict]:
+    """Return the subset of `depends_on` task ids that have not reached a
+    terminal-merged state (W3, audit 2026-08-06). "Finished" means
+    status in _TERMINAL_MERGED ("done" or "merged") — matching every other
+    terminal-state check in this module (update_status's guard, revert_task,
+    reflect.py), not just "done" alone.
 
-
-def _is_done(task_id: str) -> bool:
-    t = get_task(task_id)
-    return bool(t and t["status"] == "done")
+    A dependency id that no longer resolves to a row is reported as unmet
+    ("missing") rather than silently treated as satisfied — a typo'd or
+    deleted dependency id must not silently unblock the dependent task.
+    """
+    unmet = []
+    for dep_id in depends_on:
+        t = get_task(dep_id)
+        status = t["status"] if t else "missing"
+        if status not in _TERMINAL_MERGED:
+            unmet.append({"id": dep_id, "status": status})
+    return unmet
 
 
 def log_event(conn, task_id, actor, kind, payload):
