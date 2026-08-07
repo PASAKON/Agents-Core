@@ -1,6 +1,13 @@
 ---
 name: session-worktree
-description: Show the CURRENT session as an emoji work-breakdown tree — what's done, in-progress, blocked, and left — with every node tagged by WORK TYPE (READ / BUILD / FIX / DESIGN / TEST / SHIP …, not just "fix"), THEN append a plain-language, zero-jargon business summary for the CEO. Use on /session-worktree and proactively when the CEO asks "ทำถึงไหนแล้ว", "ถึงไหนแล้ว", "session status", "progress", "เหลืออะไร", "ติด blocker ตรงไหน", "what's done", "where are we". Also fires on the old /session-summary triggers — "สรุป session", "สรุปงานวันนี้", "สรุปให้ฟังหน่อย", "วันนี้ทำอะไรไปบ้าง", "อธิบายแบบบ้านๆ", "อธิบายแบบเข้าใจง่าย", "สรุปสั้นๆ", "summarize the session", "recap", "what did we do today", "explain it simply" — session-summary is now MERGED into this skill. Prints text+emoji (no image — CTO chat renders no inline images). Companion to /session-open (charter) and /session-close (exit gate); enforces the §35 one-session-one-problem view.
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Prints the current session as an emoji work-breakdown tree, each node tagged by
+  work type (READ / BUILD / FIX / DESIGN / TEST / SHIP), then a plain-language
+  summary for the CEO. Text and emoji only — CTO chat renders no inline images.
+  Absorbed the former /session-summary. Enforces the §35 one-problem view.
+description: Show what this session has done, is doing, is blocked on, and has left. Trigger on /session-worktree and when the CEO asks "ทำถึงไหนแล้ว", "เหลืออะไร", "ติด blocker ตรงไหน", "สรุป session", "อธิบายแบบบ้านๆ", "progress", "where are we", "recap".
 ---
 
 # Session Worktree — what's done / doing / blocked / left (+ plain recap)

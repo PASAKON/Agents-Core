@@ -1,6 +1,13 @@
 ---
 name: session-open
-description: Open a working session under one bound problem (worktree-style focus discipline) in the Mooniex virtual org. Pins an Entry Problem + Definition of Done, sets the tab glyph, and refuses a vague/multi-topic charter. Trigger on /session-open and proactively at the very start of a session when the CEO states a goal or problem to work on — "let's work on", "start", "เปิดงาน", "วันนี้ทำ", "ปัญหาคือ", "อยากแก้" — before doing the work. Enforces IRON-RULES §35.
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Charters a session — pins one Entry Problem plus Definition of Done, surfaces
+  LungNote deadlines and open GitHub issues, sets both tab layers. Refuses a vague
+  or multi-topic charter. Enforces IRON-RULES §35. Does not close or resume a
+  session — see session-close and session-merge.
+description: Charter a session under one bound problem before work starts. Trigger on /session-open and at the start of a session when the CEO states a goal — "เปิดงาน", "วันนี้ทำ", "ปัญหาคือ", "อยากแก้", "let's work on", "start".
 ---
 
 # Session Open — charter the session

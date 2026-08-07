@@ -1,6 +1,13 @@
 ---
 name: session-change-model
-description: Propose a live model upgrade (e.g. Sonnet 5 → Opus 5) mid-conversation in a Mooniex CTO/CXO session, when the task crosses an escalation threshold. States the target model + effort and why, waits for explicit CEO confirmation, then hands over the exact command to run — Claude Code's /model switches the live session and keeps full history, but only the human can type it; no tool lets the assistant trigger it directly. Trigger on /session-change-model and proactively whenever a CTO/CXO session running on a lighter-tier model (Sonnet 5) hits a task matching the escalation criteria below — architecture/security/prod-deploy decisions, final merge judgment, cross-project orchestration, or two consecutive under-deliveries on the current tier. Companion to decisions/0009-model-routing-policy.md (the tier table this skill enforces). Shared across CTO/CFO/CGO/CMO — all four default to Sonnet 5 with Opus escalation per that ADR.
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Proposes an escalation and hands the human the exact /model command to type — no
+  tool lets the assistant switch models directly, and /model preserves full session
+  history. Enforces the tier table in decisions/0009-model-routing-policy.md.
+  Shared by CTO/CFO/CGO/CMO, all defaulting to Sonnet 5.
+description: Propose a mid-session model escalation (Sonnet 5 → Opus 5) and wait for CEO confirmation. Trigger on /session-change-model and when a session on a lighter tier hits architecture, security, prod-deploy, final-merge, or cross-project work, or under-delivers twice.
 ---
 
 # Session Change Model — propose, confirm, hand off the exact command

@@ -1,6 +1,13 @@
 ---
 name: session-merge
-description: Carry a not-yet-closed session A's context into the CURRENT session (B) as a synthesized "carried forward from #A" recap, then mark A 🔗 merged→#B so it stops showing up as an open loose end. Trigger on /session-merge and when the CEO says "merge session", "รวม session", "เอา session A มารวมกับอันนี้", "ย้ายมาทำที่นี่แทน", or describes having a session A in progress (saved, not resumed) that they want folded into the session they're in right now instead of continuing A directly. Read-mostly: pulls A's context from disk, writes exactly one file (A's `.title`). Companion to [[session-list]] (finds candidate A's), [[session-worktree]] (recap shape this borrows), and [[session-close]] (confirm-before-mutate pattern).
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Folds another session's context into the current one as a synthesized recap, then
+  marks the source 🔗 merged. Writes exactly one file (the source's .title).
+  Synthesis, not verbatim transcript splicing — to continue that session itself, use
+  spawn-cto --resume instead.
+description: Carry another session's context into this one, then mark it merged. Trigger on /session-merge and when the CEO says "merge session", "รวม session", "เอา session A มารวมกับอันนี้", "ย้ายมาทำที่นี่แทน".
 ---
 
 # Session Merge — fold session A's context into session B (this one)

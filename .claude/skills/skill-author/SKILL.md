@@ -1,6 +1,12 @@
 ---
 name: skill-author
-description: Author a new Claude Code skill with discoverable description, concrete triggers, and operating rules. Enforces 9arm-style description format so the skill actually fires when expected. Trigger on /skill-author and proactively whenever the user asks to "create a skill", "write a skill", "make a SKILL.md", "add a new skill", "scaffold a skill", or describes a recurring task pattern they want codified ("I keep doing X — turn it into a skill").
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Scaffolds a new SKILL.md whose description actually fires — 9arm-style trigger
+  format, refusal conditions, required body sections, naming and location rules.
+  Authoring only; does not install, register, or route the resulting skill.
+description: Author a new Claude Code skill whose description reliably triggers. Trigger on /skill-author and when the user asks to "create a skill", "write a skill", "make a SKILL.md", "scaffold a skill", or wants a recurring pattern codified.
 ---
 
 # Skill Author

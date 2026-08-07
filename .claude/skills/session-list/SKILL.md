@@ -1,6 +1,13 @@
 ---
 name: session-list
-description: List PAST CTO/CXO chat sessions that are NOT yet 🏁-closed, as a table — what state each reached (⏳/✅/🔴/💤), what blocker it's stuck on, when it was created, and how long since last active — EXCLUDING the iTerm2 tabs open right now (those are live/working). Closed sessions are hidden by default (add --all to include them). Add --verify to cross-check a stuck-placeholder title against its real log/transcript — catches title-sync bugs (real work done but title never flipped) and flags true ghost spawns. Trigger on /session-list and when the CEO asks "ดู session เก่า", "session ที่ค้าง", "list sessions", "session ไหนยังไม่ปิด", "เหลือ session ไหนบ้าง", "what sessions are still open", "เช็คละเอียด", "session ไหน ghost บ้าง". Read-only inventory; companion to /session-worktree (this conversation) and /session-close (the close gate).
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Read-only inventory of PAST sessions not yet 🏁-closed, excluding iTerm tabs open
+  right now. --all includes closed ones; --verify cross-checks a stuck title against
+  its real log to catch title-sync bugs and true ghost spawns. Does not close or
+  resume anything.
+description: List past CTO/CXO sessions still open, with state, blocker, and age. Trigger on /session-list and when the CEO asks "ดู session เก่า", "session ที่ค้าง", "session ไหนยังไม่ปิด", "list sessions", "what sessions are still open".
 ---
 
 # Session List — inventory past sessions, minus the live tabs

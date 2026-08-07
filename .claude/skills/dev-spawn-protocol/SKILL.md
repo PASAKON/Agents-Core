@@ -1,6 +1,12 @@
 ---
 name: dev-spawn-protocol
-description: Required protocol when CTO spawns a DEV agent in the Mooniex virtual org. Enforces visible iTerm tab, full task-id title, kickoff ping, touches lock, and auto-close on done. Trigger on /dev-spawn-protocol and proactively whenever CTO is about to call delegate_task, create_task with touches, or spawn a DEV agent in the Agents repo, when the user says "spawn dev", "delegate", "kick off the dev", "start the developer", or anything that creates a DEV subprocess.
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Spawn-time checklist only — visible iTerm tab, full task-id title, kickoff ping,
+  touches lock, auto-close on done. Does not create the task or review DEV output.
+  Enforces IRON-RULES §29.
+description: Required steps when CTO spawns a DEV agent. Trigger on /dev-spawn-protocol and before any delegate_task or DEV spawn, or when the user says "spawn dev", "delegate", "kick off the dev", "start the developer".
 ---
 
 # DEV Spawn Protocol

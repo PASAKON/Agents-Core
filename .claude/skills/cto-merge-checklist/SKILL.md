@@ -1,6 +1,12 @@
 ---
 name: cto-merge-checklist
-description: Pre-merge verification checklist for CTO before calling merge_task in the Mooniex virtual org. Refuses to merge if any gate fails. Trigger on /cto-merge-checklist and proactively whenever the user (CEO) or the CTO loop is about to invoke merge_task, when the user asks to "merge", "ship", "land", "approve", "close out" a task in the Agents repo, or when reviewing a DEV completion report and deciding whether to merge.
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Pre-merge gate only. Verifies a DEV branch before merge_task and refuses if any
+  gate fails. Does not perform the merge, review code line-by-line, or resolve
+  conflicts.
+description: Pre-merge verification gate — refuses merge_task if any check fails. Trigger on /cto-merge-checklist and whenever about to call merge_task, or the user says "merge", "ship", "land", "approve", "close out" a task.
 ---
 
 # CTO Merge Checklist

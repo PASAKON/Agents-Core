@@ -1,6 +1,12 @@
 ---
 name: spawn-web-designer
-description: Spawn the Web Designer design surface (open-design app at localhost:3000) for the CEO to do hands-on design work alone. Boots the open-design daemon + web UI via scripts/spawn-web-designer.sh and opens the browser. Trigger on /spawn-web-designer and when the CEO says "spawn web designer", "เปิด web designer", "เปิดหน้าออกแบบ", "open the designer", or wants to design something themselves in the claudesign Web UI. This is the CEO-driven path — NOT the CTO autonomous delegate (that is delegate_task web_designer).
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Boots the open-design daemon and web UI at localhost:3000 via
+  scripts/spawn-web-designer.sh so the CEO can design hands-on. This is the
+  CEO-driven path — the CTO autonomous route is delegate_task web_designer.
+description: Open the Web Designer surface for the CEO to design directly. Trigger on /spawn-web-designer and when the CEO says "spawn web designer", "เปิด web designer", "เปิดหน้าออกแบบ", "open the designer".
 ---
 
 # Spawn Web Designer — CEO hands-on design surface

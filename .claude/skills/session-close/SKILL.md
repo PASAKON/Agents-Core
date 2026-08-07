@@ -1,6 +1,12 @@
 ---
 name: session-close
-description: Close a working session by verifying its Entry Problem is actually solved before flipping the tab to 🏁 (worktree-style focus discipline) in the Mooniex virtual org. Refuses to close until every Definition-of-Done item is checked and any external side-effect is verified; auto-parks anything still open to LungNote. Trigger on /session-close and proactively whenever the session is wrapping up — CEO says "ปิด session", "จบงาน", "close out", "done for now", "พอแค่นี้", or the CTO loop is about to set the 🏁 tab glyph. Enforces IRON-RULES §35.
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Exit gate only. Verifies the Entry Problem is solved and every Definition-of-Done
+  item checked before allowing the 🏁 glyph, and parks leftovers to LungNote.
+  Refuses to close otherwise. Enforces IRON-RULES §35. Companion to session-open.
+description: Verify a session's Entry Problem is actually solved before closing it 🏁. Trigger on /session-close and when the CEO says "ปิด session", "จบงาน", "พอแค่นี้", "close out", "done for now".
 ---
 
 # Session Close — exit gate tied to the entry problem
