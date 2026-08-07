@@ -190,6 +190,14 @@ if [ -z "${WIKI_ROOT_ORG:-}" ] && [ -d /opt/agents-wikis ]; then
   export WIKI_ROOT_ORG=/opt/agents-wikis
 fi
 
+# lungnote-mcp needs Node's native WebSocket (added in 22) for
+# @supabase/realtime-js; Contabo's system `node` is 20, hence the dedicated
+# /opt/node-v22 build mooniex-console already uses. Mac's system node is 26+,
+# so this is a no-op there. See scripts/lib/cxo_mcp_config.py.
+if [ -z "${LUNGNOTE_MCP_NODE:-}" ] && [ -x /opt/node-v22/bin/node ]; then
+  export LUNGNOTE_MCP_NODE=/opt/node-v22/bin/node
+fi
+
 # Title keeper: re-assert the saved title every 60s while this session
 # lives — survives zsh precmd resets + claude CLI title rewrites.
 # stdio detached so callers capturing this script's output don't block

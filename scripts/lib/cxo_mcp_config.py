@@ -52,6 +52,13 @@ from pathlib import Path
 LUNGNOTE_MCP_JS = os.environ.get(
     "LUNGNOTE_MCP_JS", "/Users/gob/LungNote Projects/mcp/index.js"
 )
+# @supabase/realtime-js needs a native `WebSocket` global, which Node gained in
+# 22. The Mac's system `node` is already 26+ (Homebrew), so this is invisible
+# there; Contabo's system `node` is 20 (confirmed 2026-08-07 — the server
+# throws ERR_WEBSOCKET_NOT_SUPPORTED on boot), so that box has to name its
+# /opt/node-v22 build explicitly. See cto-claude.sh / cxo-claude.sh for where
+# this gets set on a non-Mac box.
+LUNGNOTE_MCP_NODE = os.environ.get("LUNGNOTE_MCP_NODE", "node")
 MOONIEX_COORD_MCP_JS = os.environ.get(
     "MOONIEX_COORD_MCP_JS",
     str(Path.home() / ".claude" / "mcp" / "mooniex-coord" / "index.mjs"),
@@ -186,7 +193,7 @@ def _build(name: str, root: str) -> dict | None:
             return None
         return {
             "type": "stdio",
-            "command": "node",
+            "command": LUNGNOTE_MCP_NODE,
             "args": [LUNGNOTE_MCP_JS],
             "env": {},
         }
