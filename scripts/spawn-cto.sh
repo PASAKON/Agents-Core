@@ -125,7 +125,34 @@ fi
 # idleness alone has silently killed live work before.
 # Set CXO_NO_SESSION_WARN=1 to silence; skipped automatically when stdin is
 # not a terminal so scripted spawns never stall.
-warn_existing_sessions() {
+enforce_session_cap() {
+  # Hard gate first, and it is NOT suppressible: a session is roughly a
+  # gigabyte once it has a day of conversation behind it, and the box running
+  # these also runs production. tools/session_cap.py holds the number and the
+  # reasoning; keeping it there means spawn-cto.sh, spawn-cxo.sh and the Main
+  # Tab banner cannot drift to three different answers.
+  local rc=0
+  (cd "$ROOT" && python3 -m tools.session_cap --check-spawn \
+      --locks-dir "$LOCKS_DIR") || rc=$?
+  # Only exit 2 means "over the cap". Anything else means the checker itself
+  # could not run — a relocated ROOT with no tools/ package, a broken python.
+  # Fail OPEN there: a capacity guard that blocks the CEO's work because its
+  # own tooling is missing is worse than no guard.
+  if [ "$rc" -eq 2 ]; then
+    echo "" >&2
+    echo "   Live now:" >&2
+    (cd "$ROOT" && python3 -m tools.session_cap --list \
+        --locks-dir "$LOCKS_DIR" 2>/dev/null) | sed 's/^/     /' >&2
+    echo "" >&2
+    echo "   Close one (its work is what the cap is really counting), then retry." >&2
+    echo "" >&2
+    exit 1
+  elif [ "$rc" -ne 0 ]; then
+    echo "session-cap check unavailable (exit $rc) — spawning anyway." >&2
+  fi
+
+  # Advisory listing below. This part stays silenceable — it is a courtesy,
+  # not the limit.
   [ "${CXO_NO_SESSION_WARN:-0}" = "1" ] && return 0
   [ -t 0 ] || return 0
   local lock pid sid found=0
@@ -151,7 +178,7 @@ warn_existing_sessions() {
   echo "" >&2
   sleep 3
 }
-warn_existing_sessions
+enforce_session_cap
 
 CTO_TAB_TITLE="CTO #$CTO_SESSION_ID"
 CTO_LOG="$ROOT/state/logs/cto-$CTO_SESSION_ID.log"

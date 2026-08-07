@@ -135,6 +135,31 @@ else
   fi
 fi
 
+# Same cap as spawn-cto.sh, and the same reasoning — a session is roughly a
+# gigabyte once it carries a day of conversation, and the box running these
+# also runs production. The number and the rationale live in
+# tools/session_cap.py so the two launchers and the Main Tab banner cannot
+# drift to three different answers. Not suppressible: this is a capacity
+# limit, not a nag.
+CAP_RC=0
+(cd "$ROOT" && python3 -m tools.session_cap --check-spawn \
+    --locks-dir "$LOCKS_DIR") || CAP_RC=$?
+# Only exit 2 means "over the cap". Anything else means the checker itself
+# could not run — fail OPEN there rather than blocking the CEO's work over a
+# broken guard.
+if [ "$CAP_RC" -eq 2 ]; then
+  echo "" >&2
+  echo "   Live now:" >&2
+  (cd "$ROOT" && python3 -m tools.session_cap --list \
+      --locks-dir "$LOCKS_DIR" 2>/dev/null) | sed 's/^/     /' >&2
+  echo "" >&2
+  echo "   Close one (its work is what the cap is really counting), then retry." >&2
+  echo "" >&2
+  exit 1
+elif [ "$CAP_RC" -ne 0 ]; then
+  echo "session-cap check unavailable (exit $CAP_RC) — spawning anyway." >&2
+fi
+
 TAB_TITLE="$DISPLAY #$CXO_SESSION_ID"
 LOG_FILE="$ROOT/state/logs/$ROLE-$CXO_SESSION_ID.log"
 mkdir -p "$ROOT/state/logs"

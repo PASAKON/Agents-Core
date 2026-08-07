@@ -51,6 +51,7 @@ except ImportError:  # pragma: no cover - not reachable on mac/linux
     fcntl = None  # type: ignore[assignment]
 
 from tools.itermtab import sync_dev_tab_colors
+from tools import session_cap
 
 _ROOT = Path(__file__).resolve().parent.parent
 _TITLE_DIR = _ROOT / "state" / "tab-titles"
@@ -207,8 +208,25 @@ def render(role: str, sid: str, now: datetime | None = None) -> str:
 
     pct = progress_percent(state)
     if pct is None:
-        return f"🎯 {goal} · ⏱ {elapsed}"
-    return f"🎯 {goal} {render_bar(pct)} {pct}% · ⏱ {elapsed}"
+        line = f"🎯 {goal} · ⏱ {elapsed}"
+    else:
+        line = f"🎯 {goal} {render_bar(pct)} {pct}% · ⏱ {elapsed}"
+
+    # Over-cap banner, on EVERY session rather than only whichever one pushed
+    # the count over (CEO 2026-08-07). Whoever is looking at any titlebar is
+    # the person who can close something, and the session spawned last is not
+    # necessarily the one that should go. It leads the line because terminals
+    # truncate the tail, and this specifically has to survive that.
+    #
+    # render() is the only place the Main Tab line is composed, and push()
+    # writes the result to both the tty and the .main.txt mirror the console
+    # reads — so this one edit reaches iTerm on the Mac and the phone alike.
+    # Count against _LOCKS, not session_cap's own default, so this counts the
+    # root maintab is actually managing — the tests redirect _LOCKS at a
+    # throwaway dir, and reading the real one would make their result depend
+    # on how many sessions this machine happens to be running.
+    banner = session_cap.warning(locks_dir=_LOCKS)
+    return f"{banner} {line}" if banner else line
 
 
 # ---------------------------------------------------------------------------
