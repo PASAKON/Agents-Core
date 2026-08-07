@@ -213,6 +213,10 @@ tmux start-server 2>/dev/null || true
 # here and the row is worth more to the chat. CEO decision 2026-08-07.
 tmux set-option -g window-size latest 2>/dev/null || true
 tmux set-option -g status off 2>/dev/null || true
+# extended-keys off (tmux 3.2+ default) swallows Shift+Enter's CSI-u sequence
+# from iTerm2 — Claude Code then sees plain Enter and submits instead of
+# inserting a newline. CEO-reported bug 2026-08-07.
+tmux set-option -g extended-keys on 2>/dev/null || true
 
 CHAT_CMD="tmux new-session -A -s '$TMUX_SESSION' -c '$ROOT' bash '$RUN_FILE'"
 LOG_CMD="cd '$ROOT' && tail -F state/logs/$ROLE-$CXO_SESSION_ID.log"

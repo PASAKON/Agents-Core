@@ -253,6 +253,11 @@ tmux set-option -g window-size latest 2>/dev/null || true
 # the iTerm tab it has always been.
 tmux set-option -g status off 2>/dev/null || true
 
+# tmux 3.2+ defaults extended-keys to off, which swallows the CSI-u sequence
+# iTerm2 sends for Shift+Enter — Claude Code then sees plain Enter and submits
+# instead of inserting a newline. CEO-reported bug 2026-08-07.
+tmux set-option -g extended-keys on 2>/dev/null || true
+
 # -A attaches if the session already exists and creates it otherwise. Creating
 # it from INSIDE the iTerm tab, rather than detached here, guarantees a client
 # is attached from the very first moment — which is what cto-claude.sh's
