@@ -29,7 +29,12 @@ state/locks/*.uuid
 state/locks/close-refusals.log
 state/watchdog.log
 state/*.db
+state/fomo-scanner.db-journal
+state/fomo-scanner.db-wal
+state/fomo-scanner.db-shm
 .claude/
+# `npx skills add` install target — vendored skill copies, not source
+.agents/
 worktrees/
 .env
 .DS_Store
