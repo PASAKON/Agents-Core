@@ -147,7 +147,18 @@ if [ "$USE_GLM" = "1" ]; then
   GLM_PROVIDER="${GLM_PROVIDER:-zai}"
   GLM_PREFIX="export CXO_MODEL_PROVIDER=$GLM_PROVIDER && "
 fi
-CHAT_CMD="${GLM_PREFIX}export CXO_SESSION_ID='$CXO_SESSION_ID' && bash '$ROOT/scripts/cxo-claude.sh' --role $ROLE $CLAUDE_ARGS"
+
+# Same fresh-login-shell problem as spawn-cto.sh: osascript `write text` drops
+# the caller's exports, so CXO_EXTRA_MCP / CXO_SKIP_MCP were no-ops through
+# this launcher. Re-export them inside the command string; --glm stays last so
+# it still overrides an inherited CXO_MODEL_PROVIDER.
+ENV_PREFIX=""
+for v in CXO_EXTRA_MCP CXO_SKIP_MCP CXO_STRICT_MCP CXO_SUPABASE_PROJECT_REF \
+         CXO_SUPABASE_WRITE CXO_MODEL_PROVIDER; do
+  [ -n "${!v:-}" ] || continue
+  ENV_PREFIX="${ENV_PREFIX}export $v=$(printf '%q' "${!v}") && "
+done
+CHAT_CMD="${ENV_PREFIX}${GLM_PREFIX}export CXO_SESSION_ID='$CXO_SESSION_ID' && bash '$ROOT/scripts/cxo-claude.sh' --role $ROLE $CLAUDE_ARGS"
 LOG_CMD="cd '$ROOT' && tail -F state/logs/$ROLE-$CXO_SESSION_ID.log"
 DEV_CMD="cd '$ROOT' && bash scripts/tail-dev-logs.sh"
 

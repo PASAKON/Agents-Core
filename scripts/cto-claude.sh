@@ -18,9 +18,14 @@ mv "$MCP_CONFIG" "$MCP_CONFIG.json"
 MCP_CONFIG="$MCP_CONFIG.json"
 python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role cto --root "$ROOT" --out "$MCP_CONFIG"
 
-# CTO-only tool whitelist — keep in sync with runners/cto_mcp_server.py
-# (and with cxo-claude.sh ALLOWED; the two launchers must not drift).
-ALLOWED="mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search mcp__org__wiki_write mcp__org__create_task mcp__org__check_collisions mcp__org__delegate_task mcp__org__delegate_parallel_tasks mcp__org__get_task mcp__org__review_diff mcp__org__merge_task mcp__org__reopen_task mcp__org__list_projects mcp__org__stats mcp__org__recall mcp__org__reflect mcp__org__revert_task_tool mcp__lungnote__list_todos mcp__lungnote__add_todo mcp__lungnote__complete_todo mcp__lungnote__list_recent mcp__lungnote__read_note mcp__lungnote__create_note mcp__lungnote__append_note mcp__lungnote__search_notes Read Grep Glob Bash"
+# Tool whitelist, derived from the SAME generator that just emitted the server
+# set — never hand-copied. The hardcoded list that used to live here drifted
+# from the servers above (it named org + lungnote only, while the role also
+# loaded supabase, so those tools paid the schema cost then prompted on every
+# call). Deriving both from one source makes that desync impossible, and the
+# org entries come from lib/org_tools_registry.py so a new org tool lands here
+# automatically instead of becoming a 4th list to forget.
+ALLOWED="$(python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role cto --root "$ROOT" --print-allowed)"
 
 cd "$ROOT"
 export CTO_SESSION=1
