@@ -23,7 +23,8 @@
 #   --no-chrome                 the Chrome connector is built-in and survives
 #                               --strict-mcp-config, so it must be named to go
 #   --no-session-persistence    no transcript on disk for a one-shot
-#   --model haiku (default)     see --bench for the evidence behind that default
+#   --model sonnet-5 (default)  CEO call 2026-08-07 on the bench evidence below:
+#                               haiku's savings are not worth a wrong answer
 #
 # PREFER --raw FOR DATA. --raw skips the model entirely and speaks MCP over
 # stdio, so it costs zero tokens and returns exactly what the tool returned.
@@ -32,6 +33,12 @@
 # answer was 193, and --raw gets it in ~2s. A model in the loop is worth it
 # only when the task needs judgment (pick the best reference, summarize a
 # thread), not when it needs a number.
+#
+# The mechanism behind that flakiness, measured: a large tool result never
+# reaches the model. list_todos with limit=500 returns ~91k characters, which
+# Claude Code spills to a file and replaces with "exceeds maximum allowed
+# tokens" — so a model-mediated borrow over a big payload is unreliable by
+# construction, not merely imprecise. --raw has no such ceiling.
 #
 # Usage:
 #   # zero-token data fetch (preferred)
@@ -49,8 +56,9 @@
 #   --list          list the tools that server exposes, then exit
 #   --tools LIST    space/comma list of mcp__ tool names the model may call;
 #                   default = every tool that server contributes per SERVER_TOOLS
-#   --model M       default claude-haiku-4-5-20251001. Do NOT trust haiku to
-#                   count or aggregate over a payload — see --bench.
+#   --model M       default claude-sonnet-5. Pass haiku only for a passthrough
+#                   you will eyeball — it cannot be trusted to count or
+#                   aggregate over a payload (see --bench).
 #   --json          emit the raw result JSON (usage + cost) instead of the answer
 #   --bench         run the SAME prompt on haiku and sonnet, print a comparison
 #   --keep-config   leave the temp MCP config on disk (debugging)
@@ -64,7 +72,11 @@ SONNET="claude-sonnet-5"
 
 SERVER=""
 TOOLS=""
-MODEL="$HAIKU"
+# Sonnet 5, not haiku: the bench that shipped with this script had haiku answer
+# 7 to a question whose answer was 193. A borrow that needs a model at all is a
+# borrow that needs the answer right, and the cheap path for plain data is
+# --raw (no model), not a weaker model. CEO decision 2026-08-07.
+MODEL="$SONNET"
 FMT="text"
 BENCH=0
 KEEP=0
