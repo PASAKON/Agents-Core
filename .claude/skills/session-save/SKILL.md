@@ -104,3 +104,12 @@ existing `text` field.
   path from step 1 to actually pull the context back in.
 - Saving ≠ closing. `/session-save` preserves context; [[session-close]] is the
   exit gate that flips the tab to 🏁. Often you save, then close.
+- **This skill never kills the tmux session** — mid-session checkpoints are a
+  primary use, and ending the session would defeat that. Ending it is
+  [[session-close]]'s gate 6, which runs only on a verified 🏁. When the CEO
+  saves *because* they're walking away, offer the command rather than assuming:
+  ```bash
+  bash scripts/session-kill.sh
+  ```
+  Worth offering explicitly, because closing the iTerm tab does NOT do this —
+  it only detaches from tmux and leaves the session running.

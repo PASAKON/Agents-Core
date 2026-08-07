@@ -100,6 +100,25 @@ bash scripts/tab-main.sh "" <N>/<N>          # every DoD item done -> a full bar
 Both, always. A 🏁 sub tab above a half-empty progress bar is the tab bar
 contradicting itself, and the CEO reads the bar first.
 
+### 6. End the tmux session — LAST, and only on 🏁
+Print the report first (below), then as the final action of the whole skill:
+```bash
+bash scripts/session-kill.sh
+```
+Since the tmux migration an iTerm tab is only a *viewer*: closing it detaches
+and leaves this Claude process running — still burning quota, still counting
+against the 5-session cap, still listed on the phone. 🏁 means done, so the
+session should actually end rather than linger as a zombie for the CEO to hunt
+down later (CEO 2026-08-07).
+
+- **Only on `CLOSE 🏁`.** On `STAY OPEN` or `HOLD` the session must keep
+  running — that is the whole point of those verdicts. Never kill on them.
+- **Report first, kill last.** The script defers a self-kill a few seconds so
+  the final output flushes, but nothing after this line will be seen.
+- Irreversible for in-memory context: gate 4 must already have parked
+  everything to LungNote. If unsure whether something was captured, the
+  verdict isn't 🏁 yet.
+
 ## Output format
 
 ```
