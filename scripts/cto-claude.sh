@@ -190,6 +190,14 @@ if [ -z "${WIKI_ROOT_ORG:-}" ] && [ -d /opt/agents-wikis ]; then
   export WIKI_ROOT_ORG=/opt/agents-wikis
 fi
 
+# MoonieX product wiki on Contabo (CEO 2026-08-09). Previously Mac-only, which
+# made `mooniex:` fail on that box — and with it every UNPREFIXED path, since
+# mooniex is the default namespace. Same rsync-not-clone shape as agents-wikis,
+# so reads work and there is no git remote to push back to. No-op on the Mac.
+if [ -z "${WIKI_ROOT_MOONIEX:-}" ] && [ -d /opt/mooniex-wikis ]; then
+  export WIKI_ROOT_MOONIEX=/opt/mooniex-wikis
+fi
+
 # lungnote-mcp needs Node's native WebSocket (added in 22) for
 # @supabase/realtime-js; Contabo's system `node` is 20, hence the dedicated
 # /opt/node-v22 build mooniex-console already uses. Mac's system node is 26+,

@@ -53,18 +53,30 @@ carries no prefix.
 | | Mac | Contabo |
 |---|---|---|
 | `org:` | ✅ `/Users/gob/Projects/Agents-Wikis` | ✅ `/opt/agents-wikis` |
-| `mooniex:` | ✅ `/Users/gob/Projects/LLMs` | ❌ not checked out (ADR Phase C) |
+| `mooniex:` | ✅ `/Users/gob/Projects/LLMs` | ✅ `/opt/mooniex-wikis` (CEO 2026-08-09) |
 
-**On Contabo you CAN read the org rules** as of 2026-08-03 (`org:IRON-RULES.md`,
-`org:playbooks/*`) — that is the point of the ADR-0013 split. A `mooniex:` read
-raises `wiki 'mooniex' not available in this environment`, and so does an
-unprefixed path, because `mooniex` is the default namespace. **Prefix with
-`org:` on that box.**
+**Both namespaces resolve on Contabo.** `org:` landed 2026-08-03 with the
+ADR-0013 split; `mooniex:` followed on 2026-08-09, which also fixed every
+UNPREFIXED path on that box — those had been failing because `mooniex` is the
+default namespace, so `wiki_read('INDEX.md')` resolved to a root that was not
+there. Prefixing with `org:` is no longer required.
 
 `config/wikis.yaml` carries Mac absolute paths; `cto-claude.sh` /
-`cxo-claude.sh` export `WIKI_ROOT_ORG=/opt/agents-wikis` when that directory
-exists, which is how Contabo resolves it. Any namespace can be repointed the
-same way with `WIKI_ROOT_<NS>`.
+`cxo-claude.sh` export `WIKI_ROOT_ORG=/opt/agents-wikis` and
+`WIKI_ROOT_MOONIEX=/opt/mooniex-wikis` when those directories exist, which is
+how Contabo resolves them. Any namespace can be repointed the same way with
+`WIKI_ROOT_<NS>`.
+
+⚠️ **Contabo's copies are rsync snapshots, not git checkouts** — neither has a
+`.git`, so there is nothing to pull and nothing to push. They go stale as soon
+as the Mac's wiki changes, and a `wiki_write` on that box edits a copy the next
+sync silently overwrites. Treat Contabo wikis as **read-only** and refresh after
+any significant wiki change (run from the Mac):
+
+```bash
+rsync -aH --delete --exclude '.git/' /Users/gob/Projects/LLMs/         mooniex-vps:/opt/mooniex-wikis/
+rsync -aH --delete --exclude '.git/' /Users/gob/Projects/Agents-Wikis/ mooniex-vps:/opt/agents-wikis/
+```
 
 ## Maintenance
 
