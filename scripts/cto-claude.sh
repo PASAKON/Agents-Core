@@ -30,10 +30,23 @@ ALLOWED="$(python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role cto --root "$ROO
 cd "$ROOT"
 export CTO_SESSION=1
 # Generate CTO ID if not inherited from spawn-cto.sh (e.g. when running
-# cto-claude.sh standalone). Re-emit tab title in case the parent shell
-# precmd reset it.
+# cto-claude.sh standalone). When standalone INSIDE a tmux session — the
+# console's launch path — adopt the id from the enclosing tmux session name
+# so the lock basename matches the session the phone already shows. Two names
+# for one session is what made the Aug-10 orphan invisible (lock
+# cto-4020c182 vs tmux cto-session-mslldjt6). Only a name shaped cto-<id> is
+# adopted; anything else falls back to a fresh uuid. Mirrors
+# tools.session_name.id_from_tmux_session(_, "cto").
 if [ -z "${CTO_SESSION_ID:-}" ]; then
-  CTO_SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex[:8])')"
+  if [ -n "${TMUX:-}" ]; then
+    _SESS="$(tmux display-message -p '#S' 2>/dev/null | tr -d '[:space:]')"
+    case "$_SESS" in
+      cto-*) CTO_SESSION_ID="${_SESS#cto-}" ;;
+    esac
+  fi
+  if [ -z "${CTO_SESSION_ID:-}" ]; then
+    CTO_SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex[:8])')"
+  fi
   export CTO_SESSION_ID
 fi
 

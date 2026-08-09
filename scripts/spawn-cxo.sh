@@ -135,6 +135,14 @@ else
   fi
 fi
 
+# Surface lock/tmux drift now, while someone is looking — lock_only (dead pid
+# or no tmux), tmux_only (tmux with no lock), or an orphan (live pid, no tmux).
+# --quiet prints nothing on a clean box so this can run every spawn without
+# spam; drift is what the CEO needs to see here, not 9h later. Read-only and
+# non-fatal — fail-open, same reasoning as the cap check below.
+( cd "$ROOT" && python3 -m tools.session_gc --report --quiet \
+      --locks-dir "$LOCKS_DIR" ) >&2 || true
+
 # Same cap as spawn-cto.sh, and the same reasoning — a session is roughly a
 # gigabyte once it carries a day of conversation, and the box running these
 # also runs production. The number and the rationale live in

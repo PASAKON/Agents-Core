@@ -118,6 +118,15 @@ else
   fi
 fi
 
+# Surface lock/tmux drift now, while someone is looking — a lock whose pid is
+# dead or whose tmux is gone (lock_only), a tmux session with no lock
+# (tmux_only), or worse an orphan (live pid, no tmux). --quiet prints nothing
+# on a clean box, so this can run every spawn without spam; drift is what the
+# CEO needs to see here, not 9h later. Read-only and non-fatal — a reconcile
+# that cannot run never blocks a spawn (fail-open, same reasoning as the cap).
+( cd "$ROOT" && python3 -m tools.session_gc --report --quiet \
+      --locks-dir "$LOCKS_DIR" ) >&2 || true
+
 # Advisory only. A second live CTO chat costs roughly another 1 GB of
 # phys_footprint on the 8 GB M1 (measured 2026-08-06: claude core ~340 MB
 # plus its MCP subtree), and the box already sits at ~150 MB unused. Warn,

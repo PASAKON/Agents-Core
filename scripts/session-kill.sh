@@ -17,6 +17,22 @@
 # HUPed on teardown) and delayed long enough for the final report to flush.
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOCKS_DIR="$ROOT/state/locks"
+
+# The launcher's EXIT trap normally removes these, but the trap never fires
+# when the process was orphaned — the Aug-10 case ran for 9h with no tmux to
+# attach to, its trap never reached. Killing the tmux session is what finally
+# ends that process, so sweeping the lock family here is the backstop that
+# leaves state/locks/<name>.* behind for nobody. The extension list mirrors
+# tools/session_name.LOCK_SUFFIXES; keep them in sync.
+reap_locks() {
+  rm -f "$LOCKS_DIR/$NAME".lock "$LOCKS_DIR/$NAME".run \
+        "$LOCKS_DIR/$NAME".tty "$LOCKS_DIR/$NAME".uuid \
+        "$LOCKS_DIR/$NAME".winid "$LOCKS_DIR/$NAME".watcher-pid \
+        "$LOCKS_DIR/$NAME".topic 2>/dev/null || true
+}
+
 DELAY=4
 ARGS=()
 while [ $# -gt 0 ]; do
@@ -39,6 +55,21 @@ if [ -z "$NAME" ]; then
 fi
 
 if ! tmux has-session -t "$NAME" 2>/dev/null; then
+  # No tmux to kill, but the lock family may have outlived it (the launcher's
+  # EXIT trap does not always fire). Reap it so state/locks/<name>.* is not
+  # left behind — but only when the lock's pid is dead. A LIVE pid here is the
+  # orphan (a process burning quota with no tmux); deleting its lock would
+  # hide it from the cap, so surface it instead and leave the deciding to a
+  # human (or `python3 -m tools.session_gc --reap`).
+  _LOCK="$LOCKS_DIR/$NAME.lock"
+  if [ -e "$_LOCK" ]; then
+    _PID="$(tr -d '[:space:]' <"$_LOCK" 2>/dev/null || true)"
+    if [ -n "$_PID" ] && kill -0 "$_PID" 2>/dev/null; then
+      echo "session-kill: no tmux session '$NAME', but pid $_PID still alive — ORPHAN, lock left in place" >&2
+    else
+      reap_locks
+    fi
+  fi
   echo "session-kill: no tmux session '$NAME' (already gone)"
   exit 0
 fi
@@ -49,9 +80,15 @@ CURRENT=""
 
 if [ "$CURRENT" = "$NAME" ]; then
   echo "session-kill: ending '$NAME' (this session) in ${DELAY}s"
-  nohup bash -c "sleep $DELAY; tmux kill-session -t '$NAME'" >/dev/null 2>&1 &
+  # Kill first, then sweep the lock family — after kill-session the process is
+  # gone and the sweep is just catching whatever the EXIT trap missed. The rm
+  # is inlined (not reap_locks) because the detached bash -c is a fresh shell
+  # with no access to this function; keep its extension list in sync with
+  # reap_locks / tools/session_name.LOCK_SUFFIXES.
+  nohup bash -c "sleep $DELAY; tmux kill-session -t '$NAME'; rm -f '$LOCKS_DIR/$NAME'.lock '$LOCKS_DIR/$NAME'.run '$LOCKS_DIR/$NAME'.tty '$LOCKS_DIR/$NAME'.uuid '$LOCKS_DIR/$NAME'.winid '$LOCKS_DIR/$NAME'.watcher-pid '$LOCKS_DIR/$NAME'.topic" >/dev/null 2>&1 &
   disown 2>/dev/null || true
 else
   tmux kill-session -t "$NAME"
+  reap_locks
   echo "session-kill: ended '$NAME'"
 fi
