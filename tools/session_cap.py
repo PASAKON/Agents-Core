@@ -35,12 +35,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 LOCKS = ROOT / "state" / "locks"
 
-# CEO 2026-08-07. Raising this is a capacity decision, not a preference — check
-# free memory on the box that actually runs the sessions first.
-CAP = 5
-# One over is tolerated so a session is never blocked at the exact moment the
-# CEO needs one; two over is not.
-GRACE = 1
+# Raising this is a capacity decision, not a preference — check free memory on
+# the box that actually runs the sessions first.
+#
+# Per-box since 2026-08-09 (CEO). One global number stopped making sense the
+# moment the boxes diverged: measured that day, the Mac had 1.3 GB free with 7
+# of its 8 GB of swap already consumed, while Contabo sat at 5 GB free running
+# zero sessions. The same "5" was simultaneously too generous for one box and
+# too mean for the other. SESSION_CAP / SESSION_CAP_GRACE let each box carry
+# its own figure; the defaults below are the original Contabo-derived numbers,
+# so a box that sets neither behaves exactly as before.
+#
+# Do not read RSS as "cost" on a swapping box: the Mac's six sessions showed
+# only ~0.8 GB resident precisely because the rest had been paged out. The
+# honest signals are free memory and swap pressure.
+CAP = int(os.environ.get("SESSION_CAP") or 6)
+# Grace is the band where a spawn still succeeds but every Main Tab carries a
+# warning. Widened to 3 alongside the cap (CEO 2026-08-09) so the nudge to
+# finish something lasts longer before turning into a refusal at 9.
+GRACE = int(os.environ.get("SESSION_CAP_GRACE") or 3)
 
 ROLES = ("cto", "cmo", "cfo", "cxo")
 _LOCK_RE = re.compile(rf"^({'|'.join(ROLES)})-(.+)$")
