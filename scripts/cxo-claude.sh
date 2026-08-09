@@ -109,7 +109,21 @@ if [ -n "$SESSION_OVERRIDE" ]; then
   CXO_SESSION_ID="$SESSION_OVERRIDE"
 else
   if [ -z "${CXO_SESSION_ID:-}" ]; then
-    CXO_SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex[:8])')"
+    # Standalone launch INSIDE a tmux session (the console's path): adopt the
+    # id from the enclosing tmux session name so the lock basename matches the
+    # session the phone shows. Two names for one session is what made the
+    # Aug-10 orphan invisible (lock cto-4020c182 vs tmux cto-session-mslldjt6).
+    # Only <role>-<id> names are adopted; anything else falls back to a fresh
+    # uuid. Mirrors tools.session_name.id_from_tmux_session(_, role).
+    if [ -n "${TMUX:-}" ]; then
+      _SESS="$(tmux display-message -p '#S' 2>/dev/null | tr -d '[:space:]')"
+      case "$_SESS" in
+        "$ROLE"-*) CXO_SESSION_ID="${_SESS#"$ROLE"-}" ;;
+      esac
+    fi
+    if [ -z "${CXO_SESSION_ID:-}" ]; then
+      CXO_SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex[:8])')"
+    fi
   fi
 fi
 export CXO_SESSION_ID
