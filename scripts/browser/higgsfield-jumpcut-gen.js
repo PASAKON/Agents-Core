@@ -37,6 +37,51 @@
  * on human-legible confirmation (tooltip text, toggle state, zoomed screenshot)
  * — collapsing them into unsupervised JS would defeat the safeguards that
  * exist because Wave 1 burned 130 real credits on an unconfirmed click.
+ *
+ * Wave 3 findings (task-76d3ce0d, 2026-08-11):
+ *
+ * 1. The Unlimited-mode switch (and, by extension, other Radix-style
+ *    switch/button controls on this page) does NOT respond to a JS
+ *    `dispatchEvent(new MouseEvent('click', ...))` sequence — aria-checked
+ *    stays false no matter how many synthetic pointerdown/mousedown/
+ *    pointerup/mouseup/click events are dispatched. Only a real click via
+ *    the driving tool (ref-based, e.g. `computer` action left_click on a
+ *    `find`-returned ref) actually flips it. Same is true of the Generate
+ *    button itself in practice — always click these two via the driving
+ *    tool, never via JS, even though hfGetGenerateButton()/
+ *    hfGetUnlimitedToggle() are fine for *reading* state.
+ *
+ * 2. The prompt editor's draft content survives a full page reload
+ *    (localStorage-backed autosave) — a stale/misloaded prompt does NOT
+ *    reset itself on reload, so don't assume a reload gives you a clean
+ *    slate for the prompt. The Unlimited-mode toggle does NOT survive a
+ *    reload (resets off, consistent with the existing Recreate-reload
+ *    finding below) — re-check and re-toggle after every reload, not just
+ *    every Recreate.
+ *
+ * 3. Server-side concurrency cap: clicking Generate can return the toast
+ *    "You can generate 1 unlimited video, image & audio generation at a
+ *    time. To use full concurrency, switch to credit-based generations."
+ *    This is NOT caused by anything this tab did — reproduced 4x across a
+ *    full page reload, with zero prior successful Generate in the session,
+ *    and zero Processing/Generating text or spinner anywhere in History
+ *    (List or Grid view) that would explain what's occupying the slot.
+ *    Conclusion: this is a real account-level lock, most likely another
+ *    browser session on the same Higgsfield account holding the 1
+ *    concurrent unlimited-mode job. Retrying Generate in this tab cannot
+ *    fix it. Do not switch to credit-based generation to route around it
+ *    without explicit authorization — that spends real credits. Report the
+ *    blocker and wait instead.
+ *
+ * 4. The History list container is virtualized top-to-bottom: `innerText`
+ *    of the container only reflects whatever range of items is currently
+ *    mounted near the current scrollTop, and jumping scrollTop directly to
+ *    a large value (skipping the intermediate range) can land in a range
+ *    that is still an unhydrated skeleton (0 chars of text) even after a
+ *    multi-second wait — the lazy-load trigger needs to actually pass
+ *    through the intermediate scroll positions, not just land on the
+ *    target one. Scroll there in several smaller steps (~700-1200px, a few
+ *    hundred ms apart) rather than one big jump.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
