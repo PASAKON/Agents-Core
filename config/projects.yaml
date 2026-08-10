@@ -27,6 +27,7 @@ _default_workers: &default_workers
   - developer
   - tester
   - web_designer
+  - browser_operator
   - devops_engineer
   - security_engineer
   - data_analyst

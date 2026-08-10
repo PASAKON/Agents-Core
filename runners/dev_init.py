@@ -31,6 +31,66 @@ from lib.config import display_for, get_project, role as get_role, dev_provider_
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
 
+# Tools every worker DEV may call, regardless of role.
+_BASE_DEV_TOOLS = (
+    "mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search "
+    "mcp__org__submit_report mcp__org__dev_message "
+    "mcp__org__file_blocker_issue mcp__org__request_human_handoff "
+    "mcp__lungnote__list_todos mcp__lungnote__add_todo "
+    "Read Write Edit Bash Glob Grep"
+).split()
+
+# browser_operator only. Deliberately narrower than the full Chrome surface:
+# no file_upload / upload_image (a worker should never push local files into a
+# logged-in site), no gif_creator, no shortcuts_execute, no browser switching.
+# resize_window is load-bearing, not optional — an image costs
+# ceil(w/28) * ceil(h/28) visual tokens with no client-side cap (measured
+# 2026-08-10: neither MAX_MCP_OUTPUT_TOKENS nor
+# CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS truncates an image result), so
+# shrinking the window is the only lever that bounds screenshot cost.
+_CHROME_TOOLS = (
+    "mcp__claude-in-chrome__tabs_context_mcp "
+    "mcp__claude-in-chrome__tabs_create_mcp "
+    "mcp__claude-in-chrome__tabs_close_mcp "
+    "mcp__claude-in-chrome__navigate "
+    "mcp__claude-in-chrome__read_page "
+    "mcp__claude-in-chrome__get_page_text "
+    "mcp__claude-in-chrome__find "
+    "mcp__claude-in-chrome__resize_window "
+    "mcp__claude-in-chrome__computer "
+    "mcp__claude-in-chrome__form_input "
+    "mcp__claude-in-chrome__javascript_tool "
+    "mcp__claude-in-chrome__browser_batch "
+    "mcp__claude-in-chrome__read_console_messages "
+    "mcp__claude-in-chrome__read_network_requests"
+).split()
+
+
+def dev_tool_grants(role: str) -> tuple[list[str], list[str]]:
+    """Return (allowed_tools, extra_claude_flags) for a worker role.
+
+    Single source of truth because runners/dev_resume.py rebuilds the same
+    argv: when the two lists drift, a resumed DEV silently loses capabilities
+    its task depends on and the failure looks like the model being lazy.
+
+    Chrome is gated on the `--chrome` flag, not on MCP config — Claude in
+    Chrome is a built-in CLI integration, not an entry in dev.mcp.json.
+    Verified 2026-08-10: with `--strict-mcp-config` and no `--chrome`, the
+    Chrome tools are absent ("tool not found in available deferred tools");
+    adding `--chrome` makes them resolve while strict MCP stays on.
+    """
+    allowed = list(_BASE_DEV_TOOLS)
+    flags: list[str] = []
+    if role == "web_designer":
+        # design skills (frontend-design / mooniex-tool-builder) are
+        # invocable so the agent can lean on the org's UI craft skill.
+        allowed.append("Skill")
+    if role == "browser_operator":
+        allowed.extend(_CHROME_TOOLS)
+        allowed.append("Skill")  # loads the browser-operator skill
+        flags.append("--chrome")
+    return allowed, flags
+
 # Role → the knowledge banks (paths under knowledge/) symlinked into that
 # role's DEV worktree.  A role may carry more than one bank: web_designer
 # owns the design bank but has to execute against the theme the CMO set, so
@@ -242,21 +302,12 @@ def main() -> None:
     task_md.write_text(prompt, encoding="utf-8")
 
     # Auto Browser (docker + noVNC) was removed 2026-05-19 in favour of
-    # Claude in Chrome (native messaging extension). Browser-needing DEVs
-    # are expected to run `claude --chrome` themselves when they need it,
-    # or the CTO uses Claude in Chrome from this session. No per-role
-    # MCP config branch is needed — all DEVs share dev.mcp.json.
-    allowed = (
-        "mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search "
-        "mcp__org__submit_report mcp__org__dev_message "
-        "mcp__org__file_blocker_issue mcp__org__request_human_handoff "
-        "mcp__lungnote__list_todos mcp__lungnote__add_todo "
-        "Read Write Edit Bash Glob Grep"
-    ).split()
-    if role == "web_designer":
-        # design skills (frontend-design / mooniex-tool-builder) are
-        # invocable so the agent can lean on the org's UI craft skill.
-        allowed.append("Skill")
+    # Claude in Chrome (native messaging extension). Until 2026-08-10 that
+    # left browser work with nowhere to run but a C-level tab; the
+    # browser_operator role now carries it, and dev_tool_grants() decides
+    # which roles get the Chrome surface + the --chrome flag. Still no
+    # per-role MCP config branch — all DEVs share dev.mcp.json.
+    allowed, chrome_args = dev_tool_grants(role)
     mcp_config = ROOT / "config" / "dev.mcp.json"
 
     # DEV model provider override (flag-gated, reversible). When
@@ -283,6 +334,7 @@ def main() -> None:
             "--append-system-prompt", role_doc,
             "--mcp-config", str(mcp_config),
             "--strict-mcp-config",
+            *chrome_args,
             "--allowed-tools", *allowed,
             prompt,
         ],
