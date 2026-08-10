@@ -124,6 +124,7 @@ alone. Three cases, and you must decide which one you are in before acting:
 - <facts read off the page, in plain sentences>
 
 ## Browser Actions
+- route: <which rung of the skill's ladder you started at, and why>
 - steps_used: N / N_budget
 - screenshots_taken: N (window size WxH, ~T visual tokens each)
 - pages_visited: <urls>

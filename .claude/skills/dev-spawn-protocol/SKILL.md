@@ -63,6 +63,39 @@ When role is `web_designer`, the kickoff brief MUST include all four, or the age
 4. **Deliverable** — what to build.
 Full spec + template line: `playbooks/web-designer.md §9`.
 
+### 3c. Browser Operator spawns — the brief is where the cost is (CEO 2026-08-10)
+
+A browser task's token cost is set by **how you wrote it**, not by how clever the
+agent is. Do not tell it to "find the cheapest way" — it will write a paragraph
+of cost analysis before every task and you pay for that paragraph. The
+`browser-operator` skill already carries the cheap-path ladder; your job is to
+remove the reasons it has to climb.
+
+Measured on the first real run (task-e1c48798): 29 steps, 8 screenshots. The
+brief said "on higgsfield.ai" instead of the deep link, so the agent spent steps
+navigating to a URL the CTO already knew.
+
+Every browser brief carries these:
+
+1. **The deep link, not the site.** `https://site/app/page?model=x`, never "go to
+   site and find the page".
+2. **The goal as the fact you want back**, not the activity — "report the exact
+   text on the Generate button", not "check the settings panel".
+3. **What you already know** — where the controls are, what the page looked like
+   last time, which selectors worked. Prior knowledge is free; rediscovery is not.
+4. **The stopping condition** — "stop as soon as you can answer X". Without one
+   it keeps looking.
+5. **What NOT to verify** — "don't wait for it to finish", "don't check History".
+   Agents over-verify by default; naming the non-goals is cheaper than paying for
+   them.
+6. **Budgets** — steps and screenshots, explicitly. 40/5 is the skill's default;
+   set lower when you know the task is small.
+7. **Answer in text.** Asking to "see" or "show" invites screenshots.
+8. **If it repeats, ask for the script, not the answer.** One paid run, then zero.
+
+Costly signs in a draft brief: no URL, "check whether…", "make sure everything
+looks right", "explore", "and report anything interesting".
+
 ## Spawn
 
 ### 4. Visible iTerm tab

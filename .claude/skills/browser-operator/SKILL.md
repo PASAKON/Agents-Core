@@ -41,6 +41,17 @@ re-sent ten times.
 
 ## Step order — do not skip ahead
 
+This ladder *is* the cost plan. Do not write your own — a paragraph of
+"let me think about the cheapest approach" costs more than it saves on a short
+task, every time. What you owe instead is **one line, before your first browser
+call**, naming the rung you are starting at and why:
+
+> `route: step 5 (text) — task gives the deep link and wants one label read off the page; no API documented`
+
+That line is ~15 tokens, it forces you to actually check steps 1-2 rather than
+reflexively opening a browser, and it lets the CTO audit the choice afterwards.
+Repeat it in your report under Browser Actions.
+
 1. **Is there an API?** If the site exposes one, use `Bash` + `curl`. A
    browser you never open costs nothing. Say so in your report and stop here.
 2. **Is there already a script?** Look under `scripts/browser/`. If a prior
