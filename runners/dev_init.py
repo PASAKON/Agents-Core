@@ -325,7 +325,10 @@ def main() -> None:
     # DEV_MODEL_PROVIDER is set, worker DEVs run on a cheaper Anthropic-
     # compatible endpoint (Z.ai -> GLM-5.2) instead of
     # C-level orchestration is unaffected. Unset -> original behaviour.
-    _ov = dev_provider_overrides(role)
+    # tasks.model_hint='claude' overrides the quota router for this one task —
+    # see lib.config.dev_provider_overrides. Set by the CTO when a cheap miss
+    # would be expensive (reviewing/repairing someone else's work, security).
+    _ov = dev_provider_overrides(role, task.get("model_hint"))
     effort_args = ["--effort", get_role(role).get("effort") or "high"]
     if _ov:
         model = _ov["model"]

@@ -97,7 +97,7 @@ def main() -> None:
 
     # DEV model provider override (flag-gated) — mirror dev_init so a
     # resumed worker DEV keeps the same model/endpoint it was spawned on.
-    _ov = dev_provider_overrides(role)
+    _ov = dev_provider_overrides(role, task.get("model_hint"))
     effort_args = ["--effort", "max"]
     if _ov:
         model = _ov["model"]

@@ -15,6 +15,31 @@ Required steps every time CTO spawns a DEV. Memory rule (CEO 2026-05-19, IRON-RU
 
 ## Pre-spawn
 
+### 0. Force Claude when a cheap miss is expensive (CEO 2026-08-10)
+`DEV_MODEL_PROVIDER=auto` routes on **quota headroom alone** — it cannot see how
+costly a mistake on this particular task would be. Before delegating, set the
+per-task override when the work is any of:
+
+- **reviewing, finishing, or repairing someone else's code** (including a DEV
+  that died mid-task)
+- **security-sensitive** — auth, secrets, tokens, permissions
+- **anything where a silent wrong answer ships**
+
+```bash
+sqlite3 state/tasks.db "UPDATE tasks SET model_hint='claude' WHERE id='task-XXXX';"
+```
+
+Everything else: leave it NULL and let the router pick on quota. An unrecognised
+value falls back to normal routing (`lib.config.dev_provider_overrides`).
+
+Why this exists: on 2026-08-10 a DEV finished a feature with all 96 existing
+tests green — and the feature did not work at all. It never wired the new data
+into the render call and shipped zero CSS for the new UI. No existing test
+touched the new code, so green meant nothing. A second DEV on Claude, pointed at
+the same branch, found both in one pass. Reviewing another agent's work is
+exactly the job where a cheaper model's misses stay invisible until a human
+hits them.
+
 ### 1. Pick role by deliverable, not title
 - Writing **test infra / harness / fixtures** → `developer`, not `tester`.
 - Writing **assertions on existing system** → `tester`.

@@ -182,14 +182,24 @@ def _provider_overrides(
     }
 
 
-def dev_provider_overrides(role_name: str) -> dict | None:
+def dev_provider_overrides(role_name: str, model_hint: str | None = None) -> dict | None:
     """Spawn overrides for a worker DEV when DEV_MODEL_PROVIDER is set.
 
     Flag-gated + reversible: unset DEV_MODEL_PROVIDER -> original Claude path.
     DEV_MODEL_PROVIDER=zai -> always Z.ai. DEV_MODEL_PROVIDER=auto -> live
     quota check (lib.quota_router) picks whichever provider has more
     headroom right now (GH mooniex-agents#38).
+
+    `model_hint` is the per-task escape hatch (tasks.model_hint). The auto
+    router sees quota headroom and nothing else — it cannot know that a given
+    task is one where a cheap miss is expensive. 'claude' forces the original
+    Claude path regardless of quota; the CTO sets it for work that reviews or
+    repairs someone else's code, or touches security. Any other value is
+    ignored, so an unrecognised hint degrades to normal routing rather than to
+    a provider nobody chose (CEO 2026-08-10).
     """
+    if (model_hint or "").strip().lower() == "claude":
+        return None
     return _provider_overrides(
         role_name,
         flag_var="DEV_MODEL_PROVIDER",
