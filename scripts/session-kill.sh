@@ -7,9 +7,18 @@
 # and keeps showing up on the phone console. This is the other half — it ends
 # the session itself.
 #
-#   bash scripts/session-kill.sh                 # this session (from its env)
-#   bash scripts/session-kill.sh cto-a1b2c3d4    # some other session, by name
+#   bash scripts/session-kill.sh                        # this session, status=closed
+#   bash scripts/session-kill.sh --status saved          # park it (resumable)
+#   bash scripts/session-kill.sh cto-a1b2c3d4            # some other session, by name
 #   bash scripts/session-kill.sh --delay 0 <name>
+#   bash scripts/session-kill.sh --status force_saved --note "tests red" cto-a1b2c3d4
+#
+# --status records WHY the session ended in c_level_sessions (closed|saved|
+# force_saved, default closed) via tools/session_status.record_close, BEFORE
+# the kill, so the row exists even if the process dies mid-teardown. The resume
+# UUID is copied out of <name>.uuid at that moment — that file is deliberately
+# preserved on close (tools/session_name.KEEP_SUFFIXES), so this never competes
+# with the reaper.
 #
 # Killing the session you are *inside* also kills the process running this
 # script, which would truncate whatever the agent is still printing. So a
@@ -37,15 +46,44 @@ reap_locks() {
         "$LOCKS_DIR/$NAME".topic 2>/dev/null || true
 }
 
+# Record WHY this session ended in c_level_sessions, BEFORE the teardown that
+# follows. Run synchronously (not in the deferred self-kill) so the row lands
+# even if the process dies mid-teardown. Best-effort: a failure here must not
+# block the kill — the record is recoverable, a zombie session is not — so the
+# python traceback is let through to stderr and a one-line WARNING follows.
+# Skipped when NAME is not <role>-<id> shaped (nothing to key the row on).
+record_status() {
+  case "$NAME" in
+    *-*) : ;;
+    *) return 0 ;;
+  esac
+  local role="${NAME%%-*}"          # split on the FIRST hyphen only — the id
+  local sid="${NAME#*-}"            # may itself hold one (console fallback slug)
+  local -a note=()
+  [ -n "${NOTE:-}" ] && note=(--note "$NOTE")
+  ( cd "$ROOT" && python3 -m tools.session_status close \
+      --role "$role" --session-id "$sid" \
+      --status "$STATUS" --locks-dir "$LOCKS_DIR" "${note[@]}" ) >/dev/null \
+    || echo "session-kill: WARNING: could not record status='$STATUS' for '$NAME' (see traceback above) — kill still proceeds" >&2
+}
+
 DELAY=4
+STATUS="closed"   # why the session ended — closed|saved|force_saved (task-728e4741)
+NOTE=""
 ARGS=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --delay) DELAY="${2:?--delay needs a number}"; shift 2 ;;
-    -h|--help) sed -n '2,18p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    --status) STATUS="${2:?--status needs closed|saved|force_saved}"; shift 2 ;;
+    --note) NOTE="${2:?--note needs text}"; shift 2 ;;
+    -h|--help) sed -n '2,20p' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) ARGS+=("$1"); shift ;;
   esac
 done
+case "$STATUS" in
+  closed|saved|force_saved) : ;;
+  *) echo "session-kill: invalid --status '$STATUS' (want closed|saved|force_saved)" >&2; exit 2 ;;
+esac
 
 NAME="${ARGS[0]:-}"
 if [ -z "$NAME" ]; then
@@ -71,6 +109,7 @@ if ! tmux has-session -t "$NAME" 2>/dev/null; then
     if [ -n "$_PID" ] && kill -0 "$_PID" 2>/dev/null; then
       echo "session-kill: no tmux session '$NAME', but pid $_PID still alive — ORPHAN, lock left in place" >&2
     else
+      record_status
       reap_locks
     fi
   fi
@@ -84,6 +123,8 @@ CURRENT=""
 
 if [ "$CURRENT" = "$NAME" ]; then
   echo "session-kill: ending '$NAME' (this session) in ${DELAY}s"
+  record_status   # before the deferred kill — the row must land even if this
+                  # process dies the instant `tmux kill-session` runs
   # Kill first, then sweep the lock family — after kill-session the process is
   # gone and the sweep is just catching whatever the EXIT trap missed. The rm
   # is inlined (not reap_locks) because the detached bash -c is a fresh shell
@@ -92,6 +133,7 @@ if [ "$CURRENT" = "$NAME" ]; then
   nohup bash -c "sleep $DELAY; tmux kill-session -t '$NAME'; rm -f '$LOCKS_DIR/$NAME'.lock '$LOCKS_DIR/$NAME'.run '$LOCKS_DIR/$NAME'.tty '$LOCKS_DIR/$NAME'.winid '$LOCKS_DIR/$NAME'.watcher-pid '$LOCKS_DIR/$NAME'.topic" >/dev/null 2>&1 &
   disown 2>/dev/null || true
 else
+  record_status
   tmux kill-session -t "$NAME"
   reap_locks
   echo "session-kill: ended '$NAME'"

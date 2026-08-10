@@ -4,18 +4,23 @@ owner: CTO
 origin: mooniex-org
 scope: >-
   Exit gate only. Verifies the Entry Problem is solved and every Definition-of-Done
-  item checked before allowing the 🏁 glyph, and parks leftovers to LungNote.
-  Refuses to close otherwise. Enforces IRON-RULES §35. Companion to session-open.
+  item checked before allowing the 🏁 glyph, and parks leftovers to LungNote. On an
+  unmet DoD it records force_saved (closed unfinished, flagged loud) instead of
+  refusing — STAY OPEN is the CEO's explicit "still working" choice. Enforces
+  IRON-RULES §35. Companion to session-open.
 description: Verify a session's Entry Problem is actually solved before closing it 🏁. Trigger on /session-close and when the CEO says "ปิด session", "จบงาน", "พอแค่นี้", "close out", "done for now".
 ---
 
 # Session Close — exit gate tied to the entry problem
 
-A session closes only when its **one entry problem** is solved. "We talked a lot"
-is not closed. This skill runs the exit gate from [IRON-RULES §35](../../../../LLMs/IRON-RULES.md)
-and refuses 🏁 if the entry Definition of Done isn't verifiably met.
+A session closes cleanly (🏁) only when its **one entry problem** is solved. "We
+talked a lot" is not 🏁. This skill runs the exit gate from [IRON-RULES §35](../../../../LLMs/IRON-RULES.md):
+if the Definition of Done isn't verifiably met it no longer refuses — it records
+**force_saved** (closed unfinished, flagged loud) so the session ends and frees
+RAM, and the unfinished work stays findable later. `STAY OPEN` remains for the
+CEO's explicit "I'm still working."
 
-## Gates — refuse 🏁 if any fails
+## Gates — 🏁 only if every one passes; else force_saved
 
 ### 1. Recall the charter
 - [ ] State the session's **Entry Problem** (one sentence) and its **DoD list**
@@ -33,7 +38,8 @@ post, deploy, email, payment, upload.
 - [ ] Query the external system for evidence the effect actually landed. **A commit
       proves authorship, never execution.** Paste the result.
 - [ ] If it can't be queried (no creds/access) → the session does **not** 🏁-close;
-      report it as HOLD pending verification.
+      report it as HOLD (not 🏁). If the CEO closes anyway it lands as **force_saved**
+      with that unverified item named in the note — it is not left running by default.
 
 ### 4. Capture every CEO action-item + park open work → LungNote (สำคัญมาก)
 Two things land in LungNote here. Anything that lives only in the chat is lost
@@ -57,9 +63,13 @@ follow up with a person, renew a key. For EACH:
 Anything raised but **not** part of the entry problem → `add_todo` one line each
 (with `due_at` if dated), so it's a real backlog item, not a loose thread.
 
-- [ ] If the entry problem itself is **unfinished**: do NOT 🏁. Set the tab to
-      `✅` (work pending) or `🔴` (blocked), and say plainly it's abandoned/partial
-      — per §35, an unsolved entry problem is not a close.
+- [ ] If the entry problem itself is **unfinished**: this close is not 🏁 — it's
+      a **force_saved** park. Name what's unfinished in one line; that note is what
+      `session-kill.sh --status force_saved --note …` records so the session is
+      findable again. Per §35 an unsolved entry problem is not a 🏁; under this
+      gate it closes anyway as force_saved rather than lingering as a live session
+      burning RAM. `STAY OPEN` stays available only when the CEO decides mid-gate
+      they are still working.
 
 **4c. Apply directly — verify first, then just do it (no approval round-trip).**
 The todos are the CEO's backlog, but this skill auto-applies once evidence clears
@@ -100,24 +110,32 @@ bash scripts/tab-main.sh "" <N>/<N>          # every DoD item done -> a full bar
 Both, always. A 🏁 sub tab above a half-empty progress bar is the tab bar
 contradicting itself, and the CEO reads the bar first.
 
-### 6. End the tmux session — LAST, and only on 🏁
+### 6. End the tmux session — LAST, on 🏁 or force_saved
 Print the report first (below), then as the final action of the whole skill:
 ```bash
-bash scripts/session-kill.sh
+bash scripts/session-kill.sh --status closed                                       # on a verified 🏁
+bash scripts/session-kill.sh --status force_saved --note "<one line of what's unfinished>"
 ```
 Since the tmux migration an iTerm tab is only a *viewer*: closing it detaches
 and leaves this Claude process running — still burning quota, still counting
-against the 5-session cap, still listed on the phone. 🏁 means done, so the
-session should actually end rather than linger as a zombie for the CEO to hunt
-down later (CEO 2026-08-07).
+against the 5-session cap, still listed on the phone. Both 🏁 (done) and
+force_saved (unfinished, parked) mean the live session should end rather than
+linger as a zombie burning RAM for the CEO to hunt down later (CEO 2026-08-07).
+The `--status` flag records WHY it ended so [[session-list]] can tell a finished
+close from a flagged one months later.
 
-- **Only on `CLOSE 🏁`.** On `STAY OPEN` or `HOLD` the session must keep
-  running — that is the whole point of those verdicts. Never kill on them.
+- **Kill on `CLOSE 🏁` (→ closed) and on `FORCE-SAVED` (→ force_saved).** Both
+  end the session; the status is the only difference.
+- **Never kill on `STAY OPEN`** — that verdict is the CEO deciding they are
+  still working, so the session keeps running. This is the one refusal that
+  remains, and it is the CEO's explicit choice, not the gate refusing to
+  record-and-park.
 - **Report first, kill last.** The script defers a self-kill a few seconds so
   the final output flushes, but nothing after this line will be seen.
 - Irreversible for in-memory context: gate 4 must already have parked
-  everything to LungNote. If unsure whether something was captured, the
-  verdict isn't 🏁 yet.
+  everything to LungNote. force_saved especially — its whole point is that the
+  unfinished work is recoverable from LungNote + the recorded note, so capture
+  it before the kill.
 
 ## Output format
 
@@ -133,16 +151,23 @@ Saved → LungNote (todo · due):
   Backlog (off-topic / unfinished):
     - <item> · due <date or "—">
 Open issues    : <#NN title — repo>  /  none   (re-surfaced by next /session-open)
-Verdict        : CLOSE 🏁  /  STAY OPEN (entry unsolved)  /  HOLD <reason>
+Verdict        : CLOSE 🏁 (status=closed)
+               / FORCE-SAVED (entry unfinished, status=force_saved) — <one line of what's unfinished>
+               / STAY OPEN (still working — session keeps running)
 ```
 
 ## Operating rules
 
-- **The entry problem is the only close condition.** Side quests done ≠ session
+- **The entry problem is the only 🏁 condition.** Side quests done ≠ session
   done. Side quests undone ≠ session blocked. Judge against the charter only.
+- **Unfinished ≠ refused.** An unmet DoD no longer holds the session open by
+  default — running `/session-close` on unfinished work force-saves it: ends the
+  session, flags it `force_saved` with the unfinished bit named in the note. Only
+  `STAY OPEN` keeps it running, and only when the CEO means "I'm still working."
+  A live session burning RAM is exactly the cost this avoids.
 - **Verify, don't assume, external effects** — same discipline as
   cto-merge-checklist gate 7 (born from the 2026-06-10 double-post near-miss).
-- **🏁 is a promise** (§32): every DoD met, nothing waiting. If unsure, it's `✅`,
-  not 🏁.
+- **🏁 is a promise** (§32): every DoD met, nothing waiting. If unsure, it's
+  force_saved (closed unfinished), not 🏁.
 - **Parking is mandatory, not optional.** An off-topic idea that's only in the
   chat log is lost; in LungNote it's a job for a future session.

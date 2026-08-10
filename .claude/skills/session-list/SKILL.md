@@ -41,8 +41,8 @@ Default `/session-list` → run with **no flag** — shows only sessions that ar
 | column | meaning |
 |---|---|
 | session | `ROLE #id` (CTO/CFO/CMO/CGO + 8-hex session id) |
-| state | glyph + word — ⏳ working · ✅ pending · 🔴 blocked · 💤 idle/parked · 🏁 closed |
-| blocker | for 🔴, the wait; else the `รอ …` clause from the summary; else `—` (or `(title stale)` under `--verify` once a placeholder title is flagged) |
+| state | glyph + word — ⏳ working · ✅ pending · 🔴 blocked · 💤 idle/parked · 🏁 closed — **overlaid with the DB lifecycle** (task-728e4741): a parked session shows `· saved`, and a `force_saved` one shows `🚨 FORCE_SAVED` regardless of its (possibly stale) tab glyph |
+| blocker | for 🔴, the wait; for `saved`/`force_saved`, the one-line **note** recorded at close (the entry problem, so the list is readable months later); else the `รอ …` clause; else `—` |
 | created | spawn time (earliest birth of the session's title/base/log) `YYYY-MM-DD HH:MM` |
 | last active (ago) | latest title/log mtime + age as `Xd Yh Zm` |
 | evidence *(--verify only)* | what backs the state: `title-only` (trusted as-is) · `log NL[, merge event]` · `transcript SIZE[, saved: FILE]` · `no log/transcript found` |
@@ -88,6 +88,13 @@ pretend the exclusion happened.
   their title just never got flipped (see above).
 - **🔴 / ✅ / 💤-with-`รอ`** = genuinely un-closed — has pending work or a
   blocker. These are what `/session-close` should eventually resolve.
+- **`· saved`** = parked on purpose (`/session-save`) to free RAM — resumable;
+  the blocker cell carries the one-line note. Shown by default.
+- **`🚨 FORCE_SAVED`** = closed while the work was NOT done — the one to find
+  again. Loud on purpose, **never hidden** (even with a stale 🏁 glyph), and
+  counted in the footer's `**parked**` tally. Resume it with the UUID in
+  `c_level_sessions.resume_uuid` (or `scripts/session-kill.sh` left the
+  `.uuid` file in place).
 - **🏁** = already closed; hidden by default, shown only with `--all`.
 
 Don't mutate anything here — this is a read. To actually close one, that

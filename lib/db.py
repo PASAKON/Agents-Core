@@ -65,6 +65,14 @@ CREATE TABLE IF NOT EXISTS c_level_sessions (
     session_id       TEXT NOT NULL,
     active_task_id   TEXT,
     spawned_at       TEXT NOT NULL,
+    -- Lifecycle (task-728e4741): one of open|closed|saved|force_saved. A row
+    -- starts 'open' at spawn; tools/session_status.record_close is the only
+    -- writer that flips it. closed = done; saved = parked unfinished to free
+    -- RAM; force_saved = closed while work was NOT done (flagged, resumable).
+    status           TEXT NOT NULL DEFAULT 'open',
+    closed_at        TEXT,   -- ISO 8601, NULL while open
+    note             TEXT,   -- one line of why (the entry problem, for saved/force_saved)
+    resume_uuid      TEXT,   -- full Claude UUID copied from state/locks/<role>-<id>.uuid at close
     PRIMARY KEY (role, session_id)
 );
 CREATE INDEX IF NOT EXISTS idx_c_level_sessions_task
@@ -97,6 +105,18 @@ _MIGRATION_COLUMNS = [
     # Runner-level messages (collision, lock failure, spawn errors) go here;
     # DEV completion summaries stay in tasks.report. Never mix the two.
     ("delegate_log", "TEXT"),
+]
+
+# c_level_sessions lifecycle columns (task-728e4741). Same forward-only
+# ALTER-TABLE pattern as _MIGRATION_COLUMNS above, applied in init() so the
+# existing 76-row DB migrates without a migration framework. `status` carries
+# a constant DEFAULT so SQLite backfills every existing row with 'open'
+# the moment the column is added — no row-by-row fixup needed.
+_C_LEVEL_SESSION_MIGRATION = [
+    ("status", "TEXT NOT NULL DEFAULT 'open'"),
+    ("closed_at", "TEXT"),
+    ("note", "TEXT"),
+    ("resume_uuid", "TEXT"),
 ]
 
 # Statuses where touched paths are no longer being modified — release locks.
@@ -148,6 +168,17 @@ def init():
         # is already gone (fresh db.init() never had it to begin with).
         if "claudesign_project_id" in existing:
             conn.execute("ALTER TABLE tasks DROP COLUMN claudesign_project_id")
+        # c_level_sessions lifecycle (task-728e4741): idempotent ADD COLUMN so
+        # the existing 76-row DB gains status/closed_at/note/resume_uuid on the
+        # next init(). CREATE TABLE IF NOT EXISTS above is a no-op against a
+        # pre-existing table, so the ALTERs are what actually carry an old DB
+        # forward. status's DEFAULT 'open' backfills every existing row.
+        cls_existing = {r["name"] for r in conn.execute(
+            "PRAGMA table_info(c_level_sessions)").fetchall()}
+        for col, coltype in _C_LEVEL_SESSION_MIGRATION:
+            if col not in cls_existing:
+                conn.execute(
+                    f"ALTER TABLE c_level_sessions ADD COLUMN {col} {coltype}")
         # Backfill: move runner-generated messages out of report into
         # delegate_log so DEV completion reports are never overwritten.
         conn.execute("""
