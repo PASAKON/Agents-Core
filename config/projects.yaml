@@ -219,3 +219,18 @@ projects:
     review_required: true
     wiki_refs:
       - projects/mooniex-scriptable.md
+
+  - key: linkreed-webapp
+    name: LinkReed.com webapp
+    path: /Users/gob/Projects/LinkReed-Webapp
+    remote: https://github.com/PASAKON/LinkReed-Webapp.git
+    default_branch: main
+    stack: [static]
+    agents_allowed: *default_workers
+    # New product, not Mooniex. AI-agentic link-in-bio builder, spun off from
+    # MoonieX-Webapp's internal /links engine (2026-08-03 spin-off, repo still
+    # empty scaffold as of 2026-08-04). Brand truth:
+    # knowledge/brand-knowledge/brands/linkreed/BRAND.md (CMO-owned, locked).
+    # Sibling repos: PASAKON/LinkReed-Design, PASAKON/LinkReed-Wikis.
+    auto_push: false
+    review_required: true
