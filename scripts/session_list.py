@@ -24,6 +24,7 @@ import sys
 from datetime import datetime
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, REPO)   # so `from tools import session_status` resolves
 TAB_DIR = os.path.join(REPO, "state", "tab-titles")
 LOG_DIR = os.path.join(REPO, "state", "logs")
 CLAUDE_PROJECTS_DIR = os.path.expanduser("~/.claude/projects")
@@ -174,11 +175,45 @@ def verify_row(r):
     return "no log/transcript found", "🗑 ghost-candidate"
 
 
+def db_statuses():
+    """Lifecycle rows from c_level_sessions, keyed by (role, session_id).
+
+    task-728e4741: a session's close status (closed|saved|force_saved) + note,
+    recorded by tools/session_status at kill time. Returns {} when the DB or
+    the status column is unavailable (pre-rollout, not yet init'd) so the list
+    degrades to glyph-only — its pre-feature behavior — instead of crashing.
+    """
+    try:
+        from tools import session_status
+        rows = session_status.list_sessions()
+    except Exception:
+        return {}
+    return {(r["role"].lower(), r["session_id"].lower()): r for r in rows}
+
+
+def _overlay_db(glyph, state, blocker, db_status, db_note):
+    """Fold the DB lifecycle status into the display state + blocker cells.
+
+    force_saved is made loud and glyph-agnostic — it is the one the CEO needs to
+    find again, so it gets its own `🚨 FORCE_SAVED` cell regardless of the stale
+    tab glyph. saved is appended so a parked session reads as parked. closed and
+    open fall through to the glyph-derived cells. Returns (state_cell, blocker).
+    """
+    if db_status == "force_saved":
+        note = db_note or "(unfinished — no note recorded)"
+        return "🚨 FORCE_SAVED", f"⚠ {note}"
+    if db_status == "saved":
+        cell = f"{glyph} {state}".strip() + " · saved"
+        return cell, (f"saved: {db_note}" if db_note else blocker)
+    return f"{glyph} {state}".strip(), blocker
+
+
 def main():
     show_all = "--all" in sys.argv          # include 🏁 closed too (default hides them)
     verify = "--verify" in sys.argv         # cross-check title vs log/transcript
     now = datetime.now().timestamp()
     live, live_ok = live_ids()
+    db = db_statuses()                       # task-728e4741 lifecycle overlay
 
     if not os.path.isdir(TAB_DIR):
         print(f"no tab-titles dir at {TAB_DIR}")
@@ -230,16 +265,23 @@ def main():
             pass
         last_active = max(la)
 
+        dbrow = db.get((role.lower(), sid)) if db else None
         rows.append({
             "role": role.upper(), "id": sid, "glyph": glyph, "state": state,
             "summary": summary, "blocker": blocker, "created": created,
             "last_active": last_active, "live": sid in live,
+            "db_status": dbrow["status"] if dbrow else None,
+            "db_note": dbrow["note"] if dbrow else None,
         })
 
     out = [r for r in rows if not r["live"]]
     if not show_all:
-        # default: closed and merged-away are both done, drop them
-        out = [r for r in out if r["glyph"] not in ("🏁", "🔗")]
+        # default: closed and merged-away are done, drop them — BUT a parked
+        # session (saved/force_saved) is never dropped; force_saved especially is
+        # the one the CEO needs to find again, even if its tab glyph is stale.
+        out = [r for r in out
+               if r["db_status"] in ("saved", "force_saved")
+               or (r["db_status"] != "closed" and r["glyph"] not in ("🏁", "🔗"))]
     out.sort(key=lambda r: r["last_active"], reverse=True)
 
     n_live = sum(1 for r in rows if r["live"])
@@ -270,9 +312,11 @@ def main():
         c = datetime.fromtimestamp(r["created"]).strftime("%Y-%m-%d %H:%M")
         la = datetime.fromtimestamp(r["last_active"]).strftime("%m-%d %H:%M")
         age = fmt_age(now - r["last_active"])
-        b = r["blocker"].replace("|", "/")
-        row = (f"| {r['role']} #{r['id']} | {r['glyph']} {r['state']} "
-               f"| {b} | {c} | {la} ({age}) |")
+        disp_state, disp_blocker = _overlay_db(
+            r["glyph"], r["state"], r["blocker"],
+            r.get("db_status"), r.get("db_note"))
+        b = disp_blocker.replace("|", "/")
+        row = f"| {r['role']} #{r['id']} | {disp_state} | {b} | {c} | {la} ({age}) |"
         if verify:
             row += f" {r['evidence']} | {r['flag']} |"
         print(row)
@@ -284,6 +328,18 @@ def main():
     tally = " · ".join(f"{g} {n}" for g, n in
                        sorted(counts.items(), key=lambda kv: -kv[1]))
     print(f"\n**{len(out)} session(s)** — {tally}")
+
+    # parked tally (task-728e4741): surface saved/force_saved separately so the
+    # loud force_saved count is impossible to miss even at a glance.
+    fs = sum(1 for r in out if r.get("db_status") == "force_saved")
+    sv = sum(1 for r in out if r.get("db_status") == "saved")
+    if fs or sv:
+        parts = []
+        if fs:
+            parts.append(f"🚨 {fs} force_saved")
+        if sv:
+            parts.append(f"💤 {sv} saved")
+        print(f"**parked (resumable)** — " + " · ".join(parts))
 
     if verify:
         fcounts = {}
