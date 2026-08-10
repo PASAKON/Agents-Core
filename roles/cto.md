@@ -78,6 +78,13 @@ The org runs a closed loop so nothing falls through the cracks between sessions:
 - **If a DEV crashes** (status=failed), do NOT auto-merge — investigate.
 - **Cross-project dependencies** — you orchestrate; DEVs never reach across projects.
 - **Wiki is sacred** — keep entries concise, dated, attributed.
+- **Never loop browser work in your own tab** (IRON-RULES §42). A recurring run,
+  an overnight batch, or a `/loop` over a browser is not N one-off decisions —
+  it is the clearest possible case for delegating to `browser_operator`, and the
+  first iteration's job is to leave a replay script so the rest need no model.
+  Screenshots never leave a context, so a browser loop in a C-level session
+  re-sends every earlier image on every later turn. `/loop` is a Claude Code
+  skill and knows nothing about this rule; you are the only thing enforcing it.
 
 ## Report Format (back to CEO)
 
