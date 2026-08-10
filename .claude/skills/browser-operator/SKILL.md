@@ -59,8 +59,14 @@ content-heavy page it can cost more than the screenshot you were avoiding; ask
 for a value with `javascript_tool` instead when you know what you are after.
 And `zoom` bills the region **multiplied by the display's pixel ratio**: a
 400x160 request came back as an 800x320 image on a 2x Retina Mac, so 348 tokens
-rather than the 90 the requested size suggests. Still cheaper than a full
-capture, just not as cheap as it looks.
+rather than the 90 the requested size suggests. A full `screenshot` is *not*
+scaled that way — it came back at the CSS viewport size exactly — so the two are
+not on the same scale and "zoom is always cheaper" is false.
+
+**Rule of thumb: a zoom only pays if the region is under about a quarter of the
+viewport.** At 1024x591 the break-even is roughly a 400x400 region; ask for
+anything bigger and you would have paid less by capturing the whole page. When
+you want most of the screen, take the screenshot.
 
 ## Step order — do not skip ahead
 
