@@ -20,6 +20,7 @@ state/orphan-dev-replies-*.log
 state/skill-usage.log
 state/tab-titles/
 state/web-designer/
+state/browser-guard/
 state/locks/*.topic
 state/locks/*.tty
 state/locks/*.watcher-pid
