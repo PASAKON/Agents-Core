@@ -39,6 +39,29 @@ And every screenshot stays in context for the rest of the session, re-sent on
 every later turn. Ten screenshots in one session is not 10k tokens, it is 10k
 re-sent ten times.
 
+## What each way of "looking" actually costs
+
+All measured 2026-08-10 against the same real page at a 1024x591 viewport.
+**Reach for the cheapest one that can answer your question** — the gap between
+the top and bottom of this table is two orders of magnitude, which is far more
+than any window-resizing will ever buy you.
+
+| how you look | cost | when |
+|---|---|---|
+| `javascript_tool` returning one value | **~15** | you know what you want: a label, a count, a state, an attribute |
+| `find` | tens | locating one element and getting its `ref` |
+| `zoom` on a 400x160 region | **348** | one small area, visually |
+| `get_page_text` | hundreds to **thousands** | reading real prose. On a page with a long history feed this dumped everything and was one of the most expensive calls of the run |
+| full `screenshot` at 1024x591 | **814** | layout, or something with no DOM representation |
+
+Two traps in that table. `get_page_text` is *not* automatically cheap — on a
+content-heavy page it can cost more than the screenshot you were avoiding; ask
+for a value with `javascript_tool` instead when you know what you are after.
+And `zoom` bills the region **multiplied by the display's pixel ratio**: a
+400x160 request came back as an 800x320 image on a 2x Retina Mac, so 348 tokens
+rather than the 90 the requested size suggests. Still cheaper than a full
+capture, just not as cheap as it looks.
+
 ## Step order — do not skip ahead
 
 This ladder *is* the cost plan. Do not write your own — a paragraph of
@@ -66,11 +89,15 @@ Repeat it in your report under Browser Actions.
    window this works and the screenshot comes back at exactly those inner
    dimensions (measured 2026-08-10: resize to 1024x768 → 1024x591 screenshot →
    814 tokens instead of 1,300). If the numbers did not move, say so in your
-   report and switch to `zoom` on regions — a `zoom` bills only the region, so
-   it is the fallback when you cannot shrink the window.
-5. **Read as text.** `get_page_text` for content, `read_page` for structure
-   and element refs, `find` to locate one thing. Text results are truncated by
-   the harness if they get huge — images are not. Text is the protected path.
+   report and switch to `zoom` on regions — see the cost table below for what a
+   zoom actually costs, which is less than a full capture but more than the
+   region you asked for.
+5. **Read as text, cheapest tool first.** `javascript_tool` when you know what
+   you want (a label, a state, a count) — it returns that value and nothing
+   else. `find` to locate one element. `read_page` for structure and refs.
+   `get_page_text` only when you actually need the prose, because on a busy
+   page it returns the whole thing. Text is also the protected path: the
+   harness truncates huge text results, and never truncates an image.
 6. **Act via refs, not pixels.** `read_page` / `find` return `ref_N`; pass
    `ref` to `computer` instead of hunting coordinates in a screenshot.
 7. **Screenshot only when stuck** or when the task genuinely needs a visual
@@ -100,13 +127,22 @@ exists. This is the whole point of the role: **make yourself unnecessary.**
 
 ## Money — the price is on the button, and it moves
 
-Whether an action is about to spend the org's credits is almost never in the
-accessibility tree. It is rendered *on the button* — "Generate" versus
-"Generate ✦ 130" — so `read_page` and `get_page_text` will happily tell you the
-button exists while telling you nothing about what it costs. **This is the case
-the skill's "screenshot only when stuck" rule is not meant to block.** Spend a
-screenshot or a `zoom` on the button. It is the cheapest thing you will do all
-task compared to getting it wrong.
+**Read the button with `javascript_tool`.** The price is rendered as text inside
+the button element, so it is in the DOM and you do not need pixels for it:
+
+```js
+[...document.querySelectorAll('button')]
+  .find(b => /generate|submit|confirm/i.test(b.innerText))?.innerText
+// -> "Generate 150 130"   (a credit cost)
+// -> "Generate Unlimited" (free)
+```
+
+Measured 2026-08-10 on the real page: that call cost ~15 tokens and answered the
+question exactly. A full screenshot of the same page was 814. An earlier version
+of this skill claimed the price was visible only as an image and told you to
+spend a screenshot on it — that was wrong, and it was costing a screenshot per
+run for nothing. Screenshot the button only if the text genuinely comes back
+empty or ambiguous.
 
 Two habits:
 
