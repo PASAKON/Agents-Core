@@ -39,8 +39,18 @@ ROLE_RE = re.compile(rf"^({'|'.join(ROLES)})-(.+)$")
 # so a new extension lands everywhere at once instead of becoming a 4th list
 # to forget.
 LOCK_SUFFIXES = (
-    ".lock", ".run", ".tty", ".uuid", ".winid", ".watcher-pid", ".topic",
+    ".lock", ".run", ".tty", ".winid", ".watcher-pid", ".topic",
 )
+
+# NOT reapable, and deliberately absent from LOCK_SUFFIXES above.
+#
+# `.uuid` holds the full Claude session UUID (e.g. 7ad3ec9f-…-c3560e9d1eaa);
+# the org's short id is only its last 8 hex. `spawn-cto.sh --resume <id>` reads
+# this file to recover the real UUID, because `claude -r` needs an exact match
+# and drops into picker mode without one. It is the resume KEY, not runtime
+# state — deleting it on close means that session can never be resumed again,
+# which is the opposite of what closing should mean. Removed only by hand.
+KEEP_SUFFIXES = (".uuid",)
 
 
 def lock_basename(role: str, session_id: str) -> str:

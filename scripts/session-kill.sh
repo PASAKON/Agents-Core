@@ -27,8 +27,12 @@ LOCKS_DIR="$ROOT/state/locks"
 # leaves state/locks/<name>.* behind for nobody. The extension list mirrors
 # tools/session_name.LOCK_SUFFIXES; keep them in sync.
 reap_locks() {
+  # .uuid is deliberately NOT here — see tools/session_name.KEEP_SUFFIXES. It
+  # holds the full Claude UUID that `spawn-cto.sh --resume <id>` needs; the org's
+  # short id is only its last 8 hex. Reaping it on close would leave the session
+  # permanently unresumable, which is the opposite of what closing should mean.
   rm -f "$LOCKS_DIR/$NAME".lock "$LOCKS_DIR/$NAME".run \
-        "$LOCKS_DIR/$NAME".tty "$LOCKS_DIR/$NAME".uuid \
+        "$LOCKS_DIR/$NAME".tty \
         "$LOCKS_DIR/$NAME".winid "$LOCKS_DIR/$NAME".watcher-pid \
         "$LOCKS_DIR/$NAME".topic 2>/dev/null || true
 }
@@ -85,7 +89,7 @@ if [ "$CURRENT" = "$NAME" ]; then
   # is inlined (not reap_locks) because the detached bash -c is a fresh shell
   # with no access to this function; keep its extension list in sync with
   # reap_locks / tools/session_name.LOCK_SUFFIXES.
-  nohup bash -c "sleep $DELAY; tmux kill-session -t '$NAME'; rm -f '$LOCKS_DIR/$NAME'.lock '$LOCKS_DIR/$NAME'.run '$LOCKS_DIR/$NAME'.tty '$LOCKS_DIR/$NAME'.uuid '$LOCKS_DIR/$NAME'.winid '$LOCKS_DIR/$NAME'.watcher-pid '$LOCKS_DIR/$NAME'.topic" >/dev/null 2>&1 &
+  nohup bash -c "sleep $DELAY; tmux kill-session -t '$NAME'; rm -f '$LOCKS_DIR/$NAME'.lock '$LOCKS_DIR/$NAME'.run '$LOCKS_DIR/$NAME'.tty '$LOCKS_DIR/$NAME'.winid '$LOCKS_DIR/$NAME'.watcher-pid '$LOCKS_DIR/$NAME'.topic" >/dev/null 2>&1 &
   disown 2>/dev/null || true
 else
   tmux kill-session -t "$NAME"
