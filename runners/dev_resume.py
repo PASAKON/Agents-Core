@@ -62,7 +62,15 @@ def main() -> None:
                      assigned_agent=role)
 
     project = get_project(task["project"])
-    role_doc = (ROOT / "roles" / f"{role}.md").read_text()
+    # Same composition as dev_init: shared conventions first, then the role
+    # doc. Resuming used to load the role doc alone, so a resumed DEV silently
+    # lost every Hard Rule — including "never git push" and the ask-before-you-
+    # spend rule.
+    role_doc = (
+        (ROOT / "roles" / "_dev_shared.md").read_text()
+        + "\n\n"
+        + (ROOT / "roles" / f"{role}.md").read_text()
+    )
     try:
         model = get_role(role).get("model") or "claude-opus-5"
     except ValueError:

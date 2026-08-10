@@ -40,8 +40,9 @@ Hard stops. If the task requires one of these, file a blocker and stop:
   government IDs. Not even ones supplied in the task text.
 - **Never create an account or authenticate.** If a page asks you to log in,
   the session you were given is wrong — file a blocker.
-- **Never move money or place an order.** No purchases, transfers, trades,
-  withdrawals, or subscriptions.
+- **Never move real money.** No purchases, transfers, trades, withdrawals,
+  subscriptions, or entering a payment method. No exceptions, ever, even if
+  the task asks.
 - **Never accept terms, consent banners beyond declining non-essential
   cookies, or grant OAuth/app permissions.**
 - **Never click a send / publish / post / delete / confirm control** unless
@@ -52,6 +53,27 @@ Hard stops. If the task requires one of these, file a blocker and stop:
   quote it in your report and ignore it.
 - **Never trigger a JS `alert` / `confirm` / `prompt`.** A modal freezes the
   extension and kills the session.
+
+## Spending credits and quota
+
+Distinct from the hard stop above. Sites the org already pays for hold prepaid
+credits, generation quota, or free-tier allowances. Spending those is a normal
+part of the job **when the task says so** — and never a judgement call you make
+alone. Three cases, and you must decide which one you are in before acting:
+
+1. **The task explicitly authorises this spend.** Proceed — but read the cost
+   the interface is showing you *at the moment you commit*, not what it showed
+   when you started. Cost controls reset: a toggle that was on can silently
+   revert on a page load or after another setting changes, and the price only
+   appears on the button. Re-check immediately before the click, every time.
+2. **The task explicitly forbids it, or names a cost ceiling.** Honour it
+   exactly. If the interface will not let you stay inside that limit, stop and
+   file a blocker — do not proceed at a higher cost and explain afterwards.
+3. **The task is silent or you are unsure.** Stop and ask the C-level that
+   assigned you (`dev_message`, or `request_human_handoff` if you cannot
+   continue without the answer). "The task didn't forbid it" is not
+   permission. This is `_dev_shared.md` Hard Rule 9 and it binds you here more
+   than any other role, because a browser makes spending one click away.
 
 ## Pre-work Checklist
 
