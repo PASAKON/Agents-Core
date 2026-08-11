@@ -82,6 +82,33 @@
  *    through the intermediate scroll positions, not just land on the
  *    target one. Scroll there in several smaller steps (~700-1200px, a few
  *    hundred ms apart) rather than one big jump.
+ *
+ * 5. Once the concurrency lock from finding 3 above clears, generation
+ *    reliably follows a two-phase status text at the top of the History
+ *    list: "Processing / Cancel" for the first several minutes, then
+ *    "Generating" for a final stretch, then the status text disappears and
+ *    full metadata (720p/20.0s/21:9/date/Rerun) appears — that's the real
+ *    completion signal, not the Processing→Generating transition. Measured
+ *    across 5 back-to-back generations in one session: total time per
+ *    generation ranged ~1-13.5 minutes, so a long wait alone is not
+ *    evidence of a problem — the concurrency-lock toast (finding 3) is the
+ *    actual failure signal, not elapsed time.
+ *
+ * 6. The Copy/Recreate icon's button index inside a card is NOT fixed (it
+ *    shifts with how many @Image reference thumbnails the card has), but
+ *    its on-screen x-coordinate is: consistently x≈946 in a 1024-wide
+ *    viewport (the Rerun icon sits at x≈976, just right of it). Cheapest
+ *    reliable way to find the right button: collect the small (w<40,h<40)
+ *    buttons in the card div and take the one at x≈946 — don't assume a
+ *    fixed array index across cards with different reference-image counts.
+ *
+ * 7. A Recreate click can silently no-op (composer keeps showing whatever
+ *    was loaded before) even when the target card div reference passes
+ *    `document.contains()`. Always verify by reading the composer's actual
+ *    text back and checking it matches the intended card's distinctive
+ *    phrase; if it still shows the previous content, re-run
+ *    `card.scrollIntoView()` and retry the same click dispatch once before
+ *    concluding something is actually wrong.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
