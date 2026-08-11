@@ -206,6 +206,101 @@
  *    (`indexOf('congee')`) turning up content that didn't match any assigned
  *    name — that's a good trip-wire to run once per batch as a sanity check
  *    even after doing the careful scan.
+ *
+ * Wave 6 findings (task-6acde95c, 2026-08-11, fresh-composer generation,
+ * no Recreate — 2 new generations from a blank References picker):
+ *
+ * 1. **The composer can arrive with a STALE prompt already loaded, from a
+ *    completely different, unrelated scene** — confirmed via localStorage
+ *    autosave (see Wave 3 finding 2) persisting across sessions, not just
+ *    reloads. On a brand-new tab navigation to `/ai/video` with zero prior
+ *    action this session, the prompt editor already contained a different
+ *    scene's full prompt (a "Bathroom-sounds" jump-cut from an earlier
+ *    wave), and the Generate button already showed a real credit number
+ *    (130) with Unlimited mode OFF. **Never trust the composer's starting
+ *    state for a "fresh composer, no Recreate" task** — always read the
+ *    prompt editor's full text first and confirm/deny it matches your
+ *    target scene before doing anything else. In this case the stale
+ *    References thumbnails (Nam + dorm room) turned out to be exactly the
+ *    two references the new task also needed, since the project reuses the
+ *    same character/room refs across scenes — worth checking via a small
+ *    `zoom` on the References thumbnails (they need a couple seconds to
+ *    load past a shimmer placeholder) before assuming a re-upload is
+ *    needed.
+ *
+ * 2. **Both `computer` `screenshot` and `zoom` can hang for a full 30s CDP
+ *    timeout ("Page.captureScreenshot timed out... renderer may be frozen")
+ *    on a tab that has been open a while, while `javascript_tool`, `find`,
+ *    and `read_page` on the SAME tab keep working normally throughout.**
+ *    Per the skill, treat this as a "tool error on the Higgsfield page" and
+ *    check Usage History immediately — but note this specific failure mode
+ *    is CDP/harness-side (matches Wave 4 finding 3's suspicion), not a sign
+ *    of an actual spend. The reliable fix: open a **new tab** via
+ *    `tabs_create_mcp` and re-navigate — screenshots worked immediately on
+ *    the fresh tab. Do not burn retries re-screenshotting the same stuck
+ *    tab.
+ *
+ * 3. **`resize_window` can silently orphan the MCP tab group** — after
+ *    calling it, the very next `tabs_context_mcp` (or any tool needing an
+ *    implicit tab) returns "No tab group exists for this session." This
+ *    reproduced twice in one wave. Fix: `tabs_context_mcp{createIfEmpty:
+ *    true}` immediately to get a fresh group + tab, re-navigate, and don't
+ *    call `resize_window` again that session — work at whatever size the
+ *    window opens at instead (it was already ~1024x591 without an explicit
+ *    resize in this run) and lean harder on `javascript_tool`/`find` over
+ *    screenshots to control cost.
+ *
+ * 4. **A generation can fail outright on a fully clean, non-explicit prompt**
+ *    — observed twice in this wave: the long-take failed with "Rejected due
+ *    to copyright restrictions" and the jump-cut failed with an "NSFW" flag,
+ *    both on prompts describing a sick character sleeping/waking, no IP
+ *    references, no explicit content. Both were refunded (confirmed via
+ *    Usage History: `Unlimited | Seedance 2.5 | Refunded`) and both
+ *    succeeded on a single same-prompt, same-refs retry (re-verify
+ *    Unlimited-ON + zero-digit Generate again before the retry click, since
+ *    neither reset from the failure). Treat a single failure of either kind
+ *    as a retry-once case, matching the task brief's "NSFW twice" stop
+ *    threshold — stop and message the C-level only on a second consecutive
+ *    failure of the same generation.
+ *
+ * 5. **The Unlimited-mode toggle and the Generate button's credit-number
+ *    reset to OFF/priced on EVERY prompt-clear + re-paste cycle within the
+ *    same session**, not just after a full page reload or a Recreate click
+ *    (Wave 3 finding 2 already covered reload; this extends it to manual
+ *    clear+paste too). Re-check and re-toggle Unlimited before every single
+ *    Generate click, no matter how recently it was already turned on.
+ *
+ * 6. **A `find`-returned ref for the prompt editor can silently fail to
+ *    focus it** (`document.activeElement` stays `BODY` after a `computer`
+ *    `left_click` on the ref) after switching between List/Grid history
+ *    view or after a detail modal has opened and closed — the ref still
+ *    resolves to *an* element without erroring, but the click doesn't
+ *    register as a real focus event. Always verify
+ *    `document.activeElement === document.querySelector('[contenteditable="true"]')`
+ *    right after the click, before sending Cmd+A. If unfocused, click raw
+ *    coordinates from the editor's own `getBoundingClientRect()` instead —
+ *    that worked every time this stale-ref click didn't.
+ *
+ * 7. **There is no working per-card download control in List view** — the
+ *    enlarged video player only exposes native HTML5 controls (play, mute,
+ *    scrubber, fullscreen); clicking near where a download icon might be
+ *    expected just plays/pauses or seeks the video. **Switch to Grid view**
+ *    (`List`/`Grid` toggle, top-right of the History panel) and hover the
+ *    target card — a small icon column appears at the thumbnail's top-right
+ *    (heart, copy/duplicate, a download-tray icon, "..."). Clicking the
+ *    download-tray icon sometimes fires the download directly, and
+ *    sometimes instead opens a full detail modal (`[role="dialog"]`, tabs
+ *    Info/Tools/Comments) that has its own "Download" button. **The
+ *    reliable trigger in both cases was a direct JS `.click()` on the
+ *    located button element** (`[...dlg.querySelectorAll('button')]
+ *    .find(b => b.innerText.trim() === 'Download').click()`), not a
+ *    `computer` coordinate click — a coordinate click on the same button at
+ *    the same computed center point silently did nothing twice in a row
+ *    (confirmed via `read_network_requests` showing no `/track` or asset
+ *    fetch fired), while the JS `.click()` immediately produced a real file
+ *    in `~/Downloads` named `hf_<UTC-timestamp>_<job-uuid>.mp4`. Verify by
+ *    polling `ls -lat ~/Downloads/*.mp4` a few seconds after the click
+ *    rather than trusting the click "succeeded" silently.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
