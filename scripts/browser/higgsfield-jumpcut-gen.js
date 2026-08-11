@@ -144,6 +144,68 @@
  *    workaround that worked every time was to drop the in-script wait
  *    entirely and let the natural round-trip latency between two separate
  *    tool calls serve as the delay instead.
+ *
+ * Wave 5 findings (task-939d45ba, 2026-08-11, bulk DOWNLOAD not generation):
+ *
+ * 1. **Grid view's date-section header has a checkbox that select-all's every
+ *    card in that section, and a bottom toolbar (12/22/45 selected → Download
+ *    /Publish all/Add to/heart/trash/X) appears with a real "Download" button
+ *    that zips the whole selection server-side** (`~/Downloads/archive.zip`,
+ *    `archive (1).zip`, etc. — Chrome auto-numbers repeats). This is drastically
+ *    cheaper than clicking each card's own download icon one at a time — one
+ *    click zips 12-45 files. Switch to Grid view (`List`/`Grid` toggle top-right
+ *    of the History panel) to get section checkboxes; List view's cards don't
+ *    have this. Large zips (45 files, ~210MB) took ~15s to prepare server-side
+ *    before landing in Downloads — poll `ls -lat ~/Downloads/*.zip` and check
+ *    file size stability (two `stat` calls a few seconds apart) rather than a
+ *    fixed sleep.
+ *
+ * 2. **Never reuse a generic filename across separate bulk-extract passes**
+ *    (e.g. `<scene>_jumpcut.mp4`) without checking whether an earlier pass
+ *    already claimed it — `cp` silently overwrites, no warning, no error. Two
+ *    separate zips both containing a "door-bag-reveal jumpcut"-sounding card
+ *    (one from a "Today" section, one from "Yesterday") got the same
+ *    destination filename and the second `cp` silently clobbered the first,
+ *    losing that file until re-extracted from the original zip (kept in
+ *    Downloads — don't delete source zips until the whole sort is verified
+ *    committed to disk). `find ~/Desktop/<dest> -name "*.mp4" | wc -l` against
+ *    the expected sum (sum of each section's "N selected" count) catches this
+ *    immediately — a silent overwrite makes the total come up short.
+ *
+ * 3. **A card's own inline date label (the "August N, 2026" text printed on
+ *    the card itself) and the Grid section header it's bucketed under
+ *    ("Today"/"Yesterday"/"August N, 2026") are NOT the same clock/timezone**
+ *    — e.g. cards inline-labeled "August 9" were bucketed under the
+ *    "Yesterday" section header alongside "August 10"-labeled cards. Filename
+ *    timestamps (`hf_YYYYMMDD_HHMMSS_...`) are UTC; the section header groups
+ *    by a different (Bangkok, UTC+7) calendar day. Don't infer a card's
+ *    section from its own inline date text — use the section header's own
+ *    checkbox selection as ground truth for what's actually in a given bulk
+ *    zip.
+ *
+ * 4. **The card-splitting regex must anchor on "Seedance 2.5" occurrences
+ *    directly (`t.matchAll(/Seedance 2\.5/g)`), not on "\nSeedance 2\.5\n"`**
+ *    — a leading/trailing newline can be missing at a text-node boundary and
+ *    silently drops that one card from the split, undercounting by exactly 1
+ *    with no error.
+ *
+ * 5. **Do not trust a content-position mapping built from stale/earlier scan
+ *    notes for a *different* bulk batch, even when the prose descriptions
+ *    sound like they match.** The safe method is a *fresh*, single, ordered
+ *    top-to-bottom scan of the exact section immediately before assigning
+ *    filenames — done this way for one 45-card batch here and it held up:
+ *    scan in overlapping windows (each `javascript_tool` call scrolls+reads
+ *    in the SAME call — see Wave 4 finding 2), splitting by `Seedance 2.5`,
+ *    keep the local index `i` label per-snapshot only (it renumbers from 0
+ *    in each virtualized window, NOT a stable global index — align separate
+ *    snapshots by CONTENT overlap, never by raw `i`), then map newest-first
+ *    scan order directly onto the newest-first (filename-timestamp-descending)
+ *    file list. Skipping this and reusing an earlier ad-hoc scan's memory for
+ *    a second batch produced a fully-scrambled mapping (every single one of
+ *    21 files wrong) that only surfaced via a targeted keyword search
+ *    (`indexOf('congee')`) turning up content that didn't match any assigned
+ *    name — that's a good trip-wire to run once per batch as a sanity check
+ *    even after doing the careful scan.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
