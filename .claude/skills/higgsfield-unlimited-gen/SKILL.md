@@ -36,18 +36,48 @@ render wait.
   org's normal mode) — if a task genuinely intends to spend credits, that's
   an `feedback_ask_before_paid_api` conversation with the CEO, not this skill.
 
-## The incident this is built from
+## The incidents this is built from
 
-A DEV clicked **"Rerun"** on a History card, intending only to load its
-references into the composer for editing. Rerun does two things at once with
-**zero confirmation step**: loads the prompt into the composer, AND
-immediately fires a new generation of the unmodified original prompt — at
-whatever pricing is currently showing, completely independent of the
-Generate button or the Unlimited Mode toggle. It cost **130 real credits**,
-confirmed via Higgsfield's own Usage History log (Account Settings → Usage):
-one entry that day read `130 credits · Seedance 2.5 · Spent`, every other
-entry that day read `Unlimited Seedance 2.5 · Spent` ($0). Reference:
-mooniex-agents task-eed61860, GH issue #45.
+**Incident 1 — Rerun auto-fire.** A DEV clicked **"Rerun"** on a History
+card, intending only to load its references into the composer for editing.
+Rerun does two things at once with **zero confirmation step**: loads the
+prompt into the composer, AND immediately fires a new generation of the
+unmodified original prompt — at whatever pricing is currently showing,
+completely independent of the Generate button or the Unlimited Mode toggle.
+It cost **130 real credits**, confirmed via Higgsfield's own Usage History
+log (Account Settings → Usage): one entry that day read `130 credits ·
+Seedance 2.5 · Spent`, every other entry that day read `Unlimited Seedance
+2.5 · Spent` ($0). Reference: mooniex-agents task-eed61860, GH issue #45.
+
+**Incident 2 — keystroke-type timeout auto-fired a paid generation with no
+click at all.** A DEV entered a long multi-paragraph prompt (with blank
+lines between paragraphs) using a keystroke-simulating "type" action instead
+of the mandated synthetic-paste technique (see Editor gotchas). The type
+call errored out (`CDP sendCommand Input.dispatchKeyEvent timed out after
+30000ms`). No Generate click ever happened — but when the DEV checked the
+page immediately after the timeout, a generation was already in flight:
+Unlimited toggle already reset to OFF (from an earlier page reload, as
+documented below), Generate button already reading a credit number, spinner
+card already active. Best-available explanation: a stray Enter/keydown
+leaked out of the failed keystroke dispatch queue, and the composer treats
+Enter-in-composer as submit. Cost **1 real credit**, auto-refunded by
+Higgsfield the same minute (`1 credit · Seedream 4.5 · Spent` then `+1
+credit · Seedream 4.5 · Refunded`, both timestamped same minute — net $0,
+but a real paid generation fired with zero deliberate action to gate
+against it, which the existing hard rules did not anticipate).
+
+**Root cause, confirmed** (superseding the original stray-Enter hypothesis):
+`type()` truncated the prompt to its first sentence in three separate
+generations that session (8:03 PM, 8:05 PM, and again at 9:16 PM even
+after switching to a shorter prompt) — confirmed each time by reading the
+generated card's own Info/Prompt panel, which showed only the opening
+line, not the full character description. The mechanism is `type()`
+itself, not a downstream Enter/submit side effect: a keystroke-simulating
+type action against this Lexical editor is not reliable for multi-paragraph
+text, full stop. **Validated fix**: switch to synthetic `ClipboardEvent`
+paste only (see hard rule 6) — confirmed clean in the same session (source
+781 chars; three independent reads at 790/787/775, correct first/last 80
+chars, no truncation). Reference: mooniex-agents task-7b4402d4.
 
 ## Hard rules — non-negotiable, no exceptions
 
@@ -73,6 +103,36 @@ mooniex-agents task-eed61860, GH issue #45.
    a "1 unlimited generation at a time" toast and nothing in your own
    History is actually generating, don't force through it or guess a
    workaround. Message the C-level and wait.
+6. **Never enter prompt text with a keystroke-simulating "type" action.**
+   Confirmed 3-for-3 failure rate in one session (task-7b4402d4): every
+   `type()`-entered multi-paragraph prompt silently truncated to a
+   fragment, which then got submitted as a real generation with wrong
+   subject matter. Synthetic-paste is the fix, not a style preference — see
+   Incident 2. Use `ClipboardEvent` paste **only**, every prompt, no
+   exceptions, especially prompts with blank lines between paragraphs
+   (most of ours).
+   - **Do NOT also dispatch a synthetic `input` event after the paste.**
+     Tested and confirmed harmful: Lexical's own paste handler already
+     inserts the text, and a follow-up synthetic `input` event causes a
+     **second** insertion — the text appears duplicated in the editor.
+     Paste alone is sufficient and binds correctly to the framework's real
+     state.
+   - **Verify via three independent reads before every Generate click**:
+     `element.innerText`, `element.__lexicalTextContent` (or equivalent
+     Lexical-exposed text property), and — the authoritative one —
+     `editor.getEditorState().toJSON()` if you can reach the editor
+     instance. Compare all three against the source prompt's length and
+     first/last ~60-80 characters. `innerText` alone is not enough — it
+     can show complete text while the framework's real bound state (what
+     actually gets serialized into the Generate API call) is empty or
+     truncated. This is the actual mechanism behind Incident 2, not a
+     stray-Enter theory (that was an earlier, superseded hypothesis).
+7. **Any browser-tool error or timeout while on a Higgsfield generation
+   page — of any kind, not just during text entry — means your next action
+   is checking Usage History, before anything else.** A timeout does not
+   mean nothing happened; the underlying page action may have partially or
+   fully completed regardless of what the tool call reported back. Don't
+   assume a failed call = no side effect.
 
 ## Editor gotchas (Higgsfield's prompt box is Lexical/contenteditable)
 
@@ -143,21 +203,24 @@ looks indistinguishable from a crash.
 
 When writing a `create_task` description for a Higgsfield `browser_operator`
 task, include:
-- [ ] The 5 hard rules above, verbatim or paraphrased — especially the
-      Rerun ban and the zero-digit Generate check.
+- [ ] The 7 hard rules above, verbatim or paraphrased — especially the
+      Rerun ban, the zero-digit Generate check, paste-only text entry, and
+      the check-Usage-History-after-any-error rule.
 - [ ] The editor gotchas if the task involves writing new prompt text.
 - [ ] The 10min → 5min → 3min-repeating poll schedule for any render wait.
 - [ ] Explicit scope boundaries — what NOT to touch (other scenes, other
       projects mixed into the same History, the tracking artifact).
 - [ ] Stop-and-ask conditions: any number on the Generate button, an NSFW
       flag repeating, a result needing creative/brand judgment, anything
-      about the page behaving unexpectedly.
+      about the page behaving unexpectedly, any browser-tool error while on
+      a Higgsfield page.
 - [ ] Pointer to the existing replay script if one exists for this project.
 
 ## Reference
 
 - Incident + full fix history: mooniex-agents task-eed61860 (Wave 1, credit
   incident), task-1ecf3dd2 (Wave 2), task-76d3ce0d (Wave 3), task-036de9ea
-  (Wave 4, silent-death incident). GH issue #45.
+  (Wave 4, silent-death incident), task-7b4402d4 (keystroke-timeout
+  auto-fire, Incident 2 above). GH issue #45, #47.
 - Related skills: `browser-operator` (generic browser cost-discipline),
   `dev-spawn-protocol` (generic DEV spawn steps).
