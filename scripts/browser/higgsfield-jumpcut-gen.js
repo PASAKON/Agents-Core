@@ -109,6 +109,41 @@
  *    phrase; if it still shows the previous content, re-run
  *    `card.scrollIntoView()` and retry the same click dispatch once before
  *    concluding something is actually wrong.
+ *
+ * Wave 4 findings (task-036de9ea, 2026-08-11):
+ *
+ * 1. **Always keyword-scan for the target scene's jump-cut BEFORE generating
+ *    anything, even when the task brief says it's "the last one remaining".**
+ *    This wave was briefed to do the last core scene needing a jump-cut
+ *    ("Bathroom-sounds": off-frame toothbrush/rinse/splash sounds while Nam
+ *    sleeps). A scan turned up that scene already had a completed jump-cut
+ *    (Cut 1-5, 720p/20.0s/21:9, dated the same day) sitting a bit further up
+ *    the list than expected — evidently done in an earlier wave whose Scene
+ *    Tracker update never landed, or a mis-tracked slot count. Generating
+ *    again would have been an unrecoverable duplicate spend. Use
+ *    `hfFindCardByKeyword()` below to check before every Recreate.
+ *
+ * 2. **`hfScrollHistory`'s `c.scrollTop = N` assignment does NOT stick
+ *    across separate `javascript_tool` calls.** Measured repeatedly: set
+ *    scrollTop in one call, read it back in the very next call with no
+ *    scrolling in between, and it had silently jumped to an unrelated value
+ *    (900 → 13300 with nothing in between touching it). The container
+ *    element itself was confirmed stable/unique (only one el matches the
+ *    scrollHeight+overflow-y-auto heuristic), so this isn't a wrong-element
+ *    bug — the list's own virtualizer appears to re-settle scrollTop on its
+ *    own between renders. **Fix: scroll and read-back must happen inside the
+ *    SAME `javascript_tool` call**, never split across two calls with the
+ *    assumption that position holds in between.
+ *
+ * 3. **`await new Promise(r => setTimeout(r, N))` inside a `javascript_tool`
+ *    call intermittently hung the whole call for the full 45s CDP timeout**
+ *    in this session, with the page confirmed still responsive immediately
+ *    before and after (a bare `document.title` read succeeded both times).
+ *    Synchronous-only calls (scroll+dispatch, or a plain read) never hung.
+ *    Root cause unclear (CDP/harness-side, not page-side) — but the
+ *    workaround that worked every time was to drop the in-script wait
+ *    entirely and let the natural round-trip latency between two separate
+ *    tool calls serve as the delay instead.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
@@ -146,6 +181,23 @@ function hfFingerprintCards() {
     const snippet = card.slice(vIdx + 7, vIdx + 7 + 90).replace(/\n/g, ' ').trim();
     return (dateMatch ? dateMatch[1] : '?') + ' | ' + snippet;
   }).filter(Boolean);
+}
+
+// Scan currently-mounted cards for ones matching a keyword regex, and report
+// whether each match already has a jump-cut (Cut 1:) or is still a long-take.
+// MUST be called in one shot (scroll, if needed, in the SAME call) — see
+// Wave 4 finding 2 above on why scrollTop doesn't survive across calls.
+function hfFindCardByKeyword(regex) {
+  const c = hfGetHistoryContainer();
+  const t = c.innerText;
+  const cards = t.split(/\nSeedance 2\.5\n/);
+  return cards
+    .filter(card => regex.test(card))
+    .map(card => ({
+      isJumpCut: /Cut 1:/.test(card),
+      date: (card.match(/(August \d+, 2026)/) || [null, '?'])[1],
+      snippet: card.slice(0, 250).replace(/\n+/g, ' '),
+    }));
 }
 
 // --- 2. The prompt editor (Lexical, contenteditable) ---
@@ -233,6 +285,7 @@ function hfPollStatus() {
 if (typeof module !== 'undefined') {
   module.exports = {
     hfGetHistoryContainer, hfScrollHistory, hfFingerprintCards,
+    hfFindCardByKeyword,
     hfPromptEditor, hfPromptIsEmpty, hfSetPromptText,
     hfGetGenerateButton, hfVerifyGenerateReady,
     hfGetUnlimitedToggle, hfIsUnlimitedOn, hfPollStatus,
