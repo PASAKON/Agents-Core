@@ -106,6 +106,52 @@ def test_recycled_pid_not_signalled_but_tab_closed() -> bool:
            and r["closed_tab"] is True)
 
 
+def test_recycled_pid_closes_by_title_not_by_pid() -> bool:
+    """The tab must be closed WITHOUT the pid path when the pid mismatches.
+
+    The case above only asserts that a tab was closed — not *how*. That gap
+    is what let the first version through review: `close_tab` starts with
+    `_task_pid()` -> `_close_tab_by_pid()`, so it reached for the very pid
+    `close_dev` had just refused to trust, and would have closed whichever
+    tab now holds it. Assert the seam itself: allow_pid False on the
+    unverified path, True on the verified one.
+    """
+    calls: list = []
+
+    def spy(task_id, *, allow_pid=True):
+        calls.append(allow_pid)
+        return True
+
+    tid = _insert_task(status="review", pid=99998)
+    with mock.patch.object(dev_reap, "_pid_matches_task", mock.Mock(return_value=False)), \
+         mock.patch.object(dev_reap, "_terminate_pid", mock.Mock(return_value="SIGTERM")), \
+         mock.patch.object(dev_reap, "close_tab", spy):
+        dev_reap.close_dev(tid, reason="test")
+
+    tid2 = _insert_task(status="review", pid=99997)
+    with mock.patch.object(dev_reap, "_pid_matches_task", mock.Mock(return_value=True)), \
+         mock.patch.object(dev_reap, "_terminate_pid", mock.Mock(return_value="SIGTERM")), \
+         mock.patch.object(dev_reap, "close_tab", spy):
+        dev_reap.close_dev(tid2, reason="test")
+
+    return calls == [False, True]
+
+
+def test_close_tab_allow_pid_false_skips_pid_lookup() -> bool:
+    """`close_tab(..., allow_pid=False)` must not consult the pid at all."""
+    from tools import itermtab
+    by_pid = mock.Mock(return_value=True)
+    task_pid = mock.Mock(return_value=4242)
+    with mock.patch.object(itermtab, "_task_pid", task_pid), \
+         mock.patch.object(itermtab, "_close_tab_by_pid", by_pid), \
+         mock.patch.object(itermtab, "_run_api", mock.Mock(return_value=False)):
+        itermtab.close_tab("task-deadbeef", allow_pid=False)
+        skipped = task_pid.call_count == 0 and by_pid.call_count == 0
+        itermtab.close_tab("task-deadbeef", allow_pid=True)
+        used = task_pid.call_count == 1 and by_pid.call_count == 1
+    return skipped and used
+
+
 # ---------------------------------------------------------------------------
 # close_dev: happy path + idempotency (5, 8)
 # ---------------------------------------------------------------------------
@@ -181,6 +227,10 @@ def main() -> int:
     print("== close_dev: recycled-pid safety ==")
     _mark(test_recycled_pid_not_signalled_but_tab_closed(),
           "does not signal a recycled pid, still closes the tab")
+    _mark(test_recycled_pid_closes_by_title_not_by_pid(),
+          "recycled pid: tab closed by title only, pid path never reached")
+    _mark(test_close_tab_allow_pid_false_skips_pid_lookup(),
+          "close_tab(allow_pid=False) skips the pid lookup entirely")
 
     print("== close_dev: happy path + idempotency ==")
     _mark(test_reaps_matching_review(), "reaps a review task whose pid matches")

@@ -164,7 +164,11 @@ def close_dev(task_id: str, *, reason: str) -> dict:
         info(f"dev_reap: {task_id} pid={pid} did not match this task's "
              "command line (dead or recycled) — not signalling")
 
-    result["closed_tab"] = close_tab(task_id)
+    # The pid may only be used for anything at all if it was verified. When it
+    # was not, the tab still gets closed — but by title only. Reaching the pid
+    # path here would close whichever tab now holds a pid we just refused to
+    # trust: the same harm as killing it, moved to the other half of the job.
+    result["closed_tab"] = close_tab(task_id, allow_pid=matched)
     result.update(_cleanup_tmux_ttyd(task))
     return result
 
