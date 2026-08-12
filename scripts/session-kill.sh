@@ -35,6 +35,37 @@ LOCKS_DIR="$ROOT/state/locks"
 # ends that process, so sweeping the lock family here is the backstop that
 # leaves state/locks/<name>.* behind for nobody. The extension list mirrors
 # tools/session_name.LOCK_SUFFIXES; keep them in sync.
+# Close the session's OWN iTerm tab once its tmux is gone.
+#
+# Without this the tab survives as a husk: `write text` starts the tmux client
+# from a login shell, so when tmux dies the shell is still there, iTerm sees a
+# live session, and "Close Sessions On End" never fires. Three of those piled
+# up in one night (2026-08-13) before anyone noticed.
+#
+# Deliberately NOT tools.itermtab.close_session: that closes the whole WINDOW,
+# and a C-level's window also holds the DEV tabs it spawned (verified live —
+# window 19304 held both `CTO #8172e36d` and `Developer (task-b0b3f602)`), so
+# closing the window would take running DEVs down with it. Match the one tab
+# whose title carries this session's id and close only that.
+close_own_tab() {
+  local sid="${NAME#*-}"
+  [ -n "$sid" ] || return 0
+  osascript >/dev/null 2>&1 <<OSA || true
+tell application "iTerm2"
+  repeat with w in windows
+    repeat with t in tabs of w
+      repeat with s in sessions of t
+        if (name of s) contains "$sid" then
+          close t
+          return
+        end if
+      end repeat
+    end repeat
+  end repeat
+end tell
+OSA
+}
+
 reap_locks() {
   # .uuid is deliberately NOT here — see tools/session_name.KEEP_SUFFIXES. It
   # holds the full Claude UUID that `spawn-cto.sh --resume <id>` needs; the org's
@@ -61,10 +92,17 @@ record_status() {
   local sid="${NAME#*-}"            # may itself hold one (console fallback slug)
   local -a note=()
   [ -n "${NOTE:-}" ] && note=(--note "$NOTE")
+  # `${note[@]+...}` guard rather than a bare `"${note[@]}"`: macOS ships bash
+  # 3.2, where expanding an EMPTY array under `set -u` is an "unbound variable"
+  # error. NOTE is empty on every normal close — /session-close and
+  # /session-save both pass none — so this line blew up exactly when it
+  # mattered and the status was never recorded, silently, behind a warning
+  # that blamed a python traceback which was never there. Same idiom as
+  # spawn-cto.sh:302.
   ( cd "$ROOT" && python3 -m tools.session_status close \
       --role "$role" --session-id "$sid" \
-      --status "$STATUS" --locks-dir "$LOCKS_DIR" "${note[@]}" ) >/dev/null \
-    || echo "session-kill: WARNING: could not record status='$STATUS' for '$NAME' (see traceback above) — kill still proceeds" >&2
+      --status "$STATUS" --locks-dir "$LOCKS_DIR" ${note[@]+"${note[@]}"} ) >/dev/null \
+    || echo "session-kill: WARNING: could not record status='$STATUS' for '$NAME' (see the error above) — kill still proceeds" >&2
 }
 
 DELAY=4
@@ -125,16 +163,37 @@ if [ "$CURRENT" = "$NAME" ]; then
   echo "session-kill: ending '$NAME' (this session) in ${DELAY}s"
   record_status   # before the deferred kill — the row must land even if this
                   # process dies the instant `tmux kill-session` runs
-  # Kill first, then sweep the lock family — after kill-session the process is
-  # gone and the sweep is just catching whatever the EXIT trap missed. The rm
-  # is inlined (not reap_locks) because the detached bash -c is a fresh shell
-  # with no access to this function; keep its extension list in sync with
-  # reap_locks / tools/session_name.LOCK_SUFFIXES.
-  nohup bash -c "sleep $DELAY; tmux kill-session -t '$NAME'; rm -f '$LOCKS_DIR/$NAME'.lock '$LOCKS_DIR/$NAME'.run '$LOCKS_DIR/$NAME'.tty '$LOCKS_DIR/$NAME'.winid '$LOCKS_DIR/$NAME'.watcher-pid '$LOCKS_DIR/$NAME'.topic" >/dev/null 2>&1 &
+  # Kill first, then close our own tab, then sweep the lock family — after
+  # kill-session the process is gone and the sweep is just catching whatever
+  # the EXIT trap missed. The rm is inlined (not reap_locks) because the
+  # detached bash -c is a fresh shell with no access to this function; keep
+  # its extension list in sync with reap_locks / session_name.LOCK_SUFFIXES.
+  #
+  # close_own_tab cannot be called there either, so its AppleScript goes to a
+  # temp file the detached shell runs and deletes. Same rule as the function:
+  # close the TAB carrying this session's id, never the window — the window
+  # also holds the DEV tabs this C-level spawned.
+  _TABCLOSE="$(mktemp "${TMPDIR:-/tmp}/session-kill-tab-XXXXXX")"
+  cat >"$_TABCLOSE" <<OSA
+tell application "iTerm2"
+  repeat with w in windows
+    repeat with t in tabs of w
+      repeat with s in sessions of t
+        if (name of s) contains "${NAME#*-}" then
+          close t
+          return
+        end if
+      end repeat
+    end repeat
+  end repeat
+end tell
+OSA
+  nohup bash -c "sleep $DELAY; tmux kill-session -t '$NAME'; osascript '$_TABCLOSE' >/dev/null 2>&1; rm -f '$_TABCLOSE' '$LOCKS_DIR/$NAME'.lock '$LOCKS_DIR/$NAME'.run '$LOCKS_DIR/$NAME'.tty '$LOCKS_DIR/$NAME'.winid '$LOCKS_DIR/$NAME'.watcher-pid '$LOCKS_DIR/$NAME'.topic" >/dev/null 2>&1 &
   disown 2>/dev/null || true
 else
   record_status
   tmux kill-session -t "$NAME"
+  close_own_tab
   reap_locks
   echo "session-kill: ended '$NAME'"
 fi
