@@ -9,7 +9,7 @@ from pathlib import Path
 from lib import db
 from lib.config import get_project, is_c_level
 from lib.notify import info, success, error, warn
-from tools.itermtab import close_tab
+from tools.dev_reap import close_dev
 from tools.worktree import branch_name, provision_worktree, remove_worktree
 
 
@@ -347,8 +347,11 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
     )
 
     try:
-        result["tab_closed"] = close_tab(task_id)
+        reap = close_dev(task_id, reason="merge_task")
+        result["tab_closed"] = reap["closed_tab"]
+        result["dev_reap"] = reap
     except Exception as e:
+        # A reap problem must never fail the merge — it already landed.
         result["tab_closed"] = False
         result["tab_close_error"] = str(e)[:300]
 

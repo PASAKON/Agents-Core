@@ -75,6 +75,13 @@ def _task_pid(task_id: str) -> int | None:
 def _close_tab_by_pid(pid: int) -> bool:
     """Close the tab whose current session's job pid matches `pid`.
 
+    TRUST BOUNDARY: this function believes the pid it is given. It matches
+    on `jobPid` alone and its only guard excludes C-level tabs by title —
+    nothing here checks that the process actually belongs to the task the
+    caller has in mind. Verifying that is the caller's job (see
+    `tools/dev_reap._pid_matches_task`); callers who cannot verify must
+    pass `allow_pid=False` to `close_tab` instead of reaching this path.
+
     GH mooniex-agents#27: title-substring matching (the fallback below)
     is fragile — once a spawned process exits (crash, manual `kill`, or
     `dev_init.py` failing before claiming), the tab's title reverts to a
@@ -110,12 +117,19 @@ def _close_tab_by_pid(pid: int) -> bool:
     return bool(_run_api(factory))
 
 
-def close_tab(task_id: str) -> bool:
+def close_tab(task_id: str, *, allow_pid: bool = True) -> bool:
     """Close the iTerm tab running the given task, by pid first, falling
     back to a title-substring match.
 
     Returns True if any tab was closed. Safe to call when no matching
     tab exists (returns False).
+
+    `allow_pid=False` skips the pid path and closes by title only. Pass it
+    whenever the caller has reason to doubt that the recorded pid is still
+    this task's process: `_close_tab_by_pid` trusts the pid it is handed,
+    so an unverified one closes whichever tab happens to hold it now —
+    which, after any delay long enough for the OS to recycle pids, may
+    belong to something entirely unrelated.
     """
     if not task_id or not task_id.startswith("task-"):
         # Refuse to operate on inputs that don't look like a real task id.
@@ -123,7 +137,7 @@ def close_tab(task_id: str) -> bool:
         # iTerm and closing the wrong tab.
         return False
 
-    pid = _task_pid(task_id)
+    pid = _task_pid(task_id) if allow_pid else None
     if pid is not None and _close_tab_by_pid(pid):
         return True
 
