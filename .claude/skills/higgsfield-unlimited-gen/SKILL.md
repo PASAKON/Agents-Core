@@ -103,6 +103,27 @@ chars, no truncation). Reference: mooniex-agents task-7b4402d4.
    a "1 unlimited generation at a time" toast and nothing in your own
    History is actually generating, don't force through it or guess a
    workaround. Message the C-level and wait.
+
+   **What actually causes it** (measured 2026-08-12, task-cda4f469): the
+   slot is **account-wide, not project-wide**, and a generation survives the
+   death of the agent that started it. Killing a DEV does not cancel its
+   in-flight render — that job keeps running server-side and keeps holding
+   the slot until it finishes on its own, roughly 20 minutes for a
+   20-second Seedance clip. So the toast is the normal, expected state for
+   ~20 minutes after any operator is killed mid-render, and it resolves
+   itself with no action.
+
+   Two checks resolve it, both read-only:
+   - Look at the **account-level** generations feed, not just the current
+     project's History. A job in any other project on the account holds the
+     same single slot and is invisible from inside one project.
+   - Find the most recent Usage entry and work out whether it is still
+     running. If its timestamp is under ~20 minutes old, that is the
+     holder; wait it out.
+
+   The toast costs nothing — the click that triggers it does not generate
+   and does not move credits, confirmed. A retry after the wait is safe;
+   forcing it or hunting workarounds is what is banned.
 6. **Never enter prompt text with a keystroke-simulating "type" action.**
    Confirmed 3-for-3 failure rate in one session (task-7b4402d4): every
    `type()`-entered multi-paragraph prompt silently truncated to a
@@ -168,15 +189,44 @@ not reliably fire for a spawned DEV subprocess, so it sat silent until an
 external watchdog killed it, invisible to the C-level the whole time.
 Reference: task-036de9ea.
 
-**Fix — bake this into every Higgsfield task brief:** never rely on a
-scheduled-wake/timer/notification for the render-wait step. Use an active
-sleep-and-check loop instead:
-- First check after **10 minutes**.
-- Second check **5 minutes** after that.
-- Every **3 minutes** after that until the card shows completion.
+**Root cause, confirmed 2026-08-12 (task-cda4f469): a spawned DEV's shell
+blocks standalone `sleep`.** This is the whole reason the failure keeps
+happening. The DEV is told to "wait 10 minutes", discovers it cannot sleep,
+and falls back to the one mechanism left to it — a scheduled wake or
+background timer — which does not reliably fire for a spawned subprocess. It
+then sits announcing its intention instead of doing anything. Two operators
+were killed on one wave for this before the cause was found; both had been
+reporting "Pacing N minutes, then checking directly" every few minutes
+without ever once reading a card. Do not diagnose this as laziness or
+insubordination — it is an environment constraint, and the operator usually
+cannot see it either.
 
-This produces periodic visible activity instead of one long silent gap that
-looks indistinguishable from a crash.
+**Fix — bake all of this into every Higgsfield task brief:**
+
+1. **Never rely on a scheduled wake, background timer, or notification.**
+2. **The poll loop IS the wait.** Each cycle, actually re-read the card, the
+   Usage page and the target folder. Those page reads take real wall-clock
+   time and produce evidence instead of silence. Pacing is a by-product of
+   doing the checks, not a thing to arrange before doing them.
+3. If a hard delay is genuinely needed, `sleep` alone will be refused — use
+   `.venv/bin/python -c "import time; time.sleep(180)"` from the worktree.
+4. Rough cadence, when the reads themselves do not already supply it: first
+   check ~**10 minutes** after clicking, then every **5 minutes**.
+
+**Order of operations matters more than the interval: CHECK → REPORT →
+WAIT.** Both dead operators inverted it (announce → wait → wake → announce)
+and therefore never checked anything.
+
+**Make the reporting contract mechanical, not adjectival.** "Report concrete
+state, not intent" is too vague — an operator will read "Pacing 6 minutes,
+then re-checking" as concrete. Instead require three literal values in every
+message, including when nothing has changed:
+- the literal text on the card being watched,
+- minutes elapsed since the Generate click,
+- the current Usage total, as a number, against a stated baseline.
+
+A message that lacks those three is a failed report regardless of how
+detailed it otherwise looks.
 
 ## Operating pattern for multi-generation jobs
 
