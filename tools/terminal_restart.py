@@ -413,7 +413,12 @@ def main(argv: list[str] | None = None) -> int:
     cap.add_argument("--dest", required=True, type=Path)
 
     args = ap.parse_args(argv)
-    db.init()
+    # No db.init() here: it prints "[db] initialized at ..." to stdout, which
+    # would corrupt every bash `$(...)` capture of this CLI's output (the
+    # run-file path, the check message). The real tasks.db this always runs
+    # against in practice is already initialized; tests that need a fresh
+    # schema call db.init() themselves before touching tr.* functions
+    # directly, bypassing this CLI entirely.
 
     return {
         "check": _cmd_check,

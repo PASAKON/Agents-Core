@@ -52,7 +52,7 @@ FORCE_ARGS=()
 [ "$FORCE" = "1" ] && FORCE_ARGS=(--force)
 CHECK_RC=0
 CHECK_MSG="$(cd "$ROOT" && python3 -m tools.terminal_restart check \
-    --name "$NAME" --locks-dir "$LOCKS_DIR" "${FORCE_ARGS[@]}")" || CHECK_RC=$?
+    --name "$NAME" --locks-dir "$LOCKS_DIR" ${FORCE_ARGS[@]+"${FORCE_ARGS[@]}"})" || CHECK_RC=$?
 if [ -n "$CHECK_MSG" ]; then
   echo "terminal-restart: $CHECK_MSG" >&2
 fi
