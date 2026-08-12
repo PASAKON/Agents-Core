@@ -410,6 +410,35 @@ rewrites TABs and any tab-separated parse breaks without an error.
 2026-08-12T20:40:11+07:00 | CEO | ADD | FILE | S3-A_take8.mp4 | https://drive.google.com/file/d/<id>/view | All Scene/S3-A | 8 | 8th take of S3-A
 ```
 
+### Nothing in here gets deleted (CEO 2026-08-12)
+
+The CEO does not delete files from this branch. The only exceptions are a true
+duplicate, or a generation that is genuinely broken or malformed. **A superseded
+take is not a candidate for deletion** — regenerating a shot never retires the
+old one, because the discarded takes *are* the generation history and the
+festival requires that history be producible on request.
+
+Consequences that bind every agent:
+
+- Never delete, trash, or overwrite anything in this branch. If something looks
+  redundant, say so and let the CEO decide.
+- A file that disappears is an anomaly worth raising, not drift to absorb.
+- Do not "tidy up" a scene folder that has accumulated many takes. Many takes is
+  the expected steady state, not a mess.
+
+### Still undefined — ask, do not invent (as of 2026-08-12)
+
+Written down so the next agent knows these are open questions rather than
+oversights. Rule 7 applies: get the CEO's answer, do not guess one.
+
+| open question | why it matters |
+|---|---|
+| File naming inside `Element/` | Plates currently mix conventions: `Prop/` files carry a `Prop-` prefix (`Prop-Ring.webp`) while `Character/` and `Location/` do not (`Mother.webp`, `Motel-Lobby.webp`). Prompts reference plates by name (`@Motel-Front`), so drift here breaks prompt lookups. |
+| File naming inside `Soundtrack/` | Empty so far. Nothing says how to tell music from SFX from voice once it fills up. |
+| Where the finished cut lives | The project is a handoff package to an editor, but no folder is defined for what the editor hands back. |
+| Whether a split scene keeps its bare `S<n>` | The "split replaces the bare folder" line in *Scene folder naming* is the CTO's inference from the CEO's wording, **not** something the CEO confirmed. Confirm before relying on it. |
+| Whether the scene prompts belong in Drive | They live in a DEV worktree (`PROMPTS.md`) today, so the editor's handoff package does not include the prompts that produced the footage. |
+
 ### Rules for any agent entering a YT: ILAG project folder
 
 1. **Reconcile before you work.** `list` the project recursively, diff it
@@ -464,9 +493,9 @@ StoryBoard      Doc · last edited 12-08-2026
 | `ALL DRAFT/LUNGNOTE` | `1luO-_NW1eKmT7gfbQbKMDSrcpoG9iyKG` | Video project folder for LungNote (real Mooniex project name — was misspelled `LUNENOTE`, fixed 2026-08-04). Same name as `PROJECT/LUNGNOTE` on purpose: that one holds LungNote's non-video docs/images/billing, this one holds its video/footage — same split pattern as MOONIEX. Confirmed 2026-08-05 — same per-clip / production-stage pattern as `BLACK LIQUIDITY`; `DAY0/` already shows the Audio/Finals structure. |
 | `ALL DRAFT/TRADE TO THE MOON` | `11YGzdDAtKyJVSS9VkKyX9on8_AmQ6A18` | Confirmed 2026-08-05 — same pattern as `BLACK LIQUIDITY`: one sub-folder per clip (TTTM-titled), production-stage sub-folders inside each. |
 | `ALL DRAFT/YT: ILAG` | `1Pczc2QfRilB2DoGUVl7ZPPSwy-cbF6KN` | Defined 2026-08-12. YouTube channel of **AI-generated short films**, ILAG Studio brand. "ILAG" is not an acronym. Does NOT use the per-clip production-stage layout of the other channels — see the "YT: ILAG" section above for its own layout, `S<n>` scene naming, and the mandatory per-project `logs.txt`. |
-| `YT: ILAG/Do Not Disturb` | `1GT_h_D6pMMpPuspoP7d_lXz9dzZQAt6w` | Defined 2026-08-12. One **project** = one film/episode; `Do Not Disturb` is the episode title (horror short for the Higgsfield Global Film Festival, deadline 2026-09-03). Holds everything needed to hand the film to an editor: `All Scene/`, `Soundtrack/`, the `StoryBoard` doc, and its own `logs.txt`. |
+| `YT: ILAG/Do Not Disturb` | `1GT_h_D6pMMpPuspoP7d_lXz9dzZQAt6w` | Defined 2026-08-12. One **project** = one film/episode; `Do Not Disturb` is the episode title (horror short for the Higgsfield Global Film Festival, deadline 2026-09-03). Holds everything needed to hand the film to an editor: `All Scene/`, `Element/`, `Soundtrack/`, the `StoryBoard` doc, and its own `logs.txt`. |
 | `Do Not Disturb/All Scene` | `159zXCuZ3AJylUQdgQu5O6fvzclXa4KHa` | Defined 2026-08-12. AI-generated footage for this film, **one sub-folder per scene**. Renamed from the misspelled `All Sence` on 2026-08-12 (CEO approved). |
-| `All Scene/S1` … `All Scene/S8` | `1h6mB9hyrpWqEJ4OnneBY5R1BpGb3CMRr` (S1), `1ca-56TDlBa9UiKVIlwi3Wmk7X-spaFQ5` (S2), `1z-lE7kh1fQVwZGw9W6mSnST1ftPAt6RT` (S3), `11YIz4-mByH5qj0jAhl8st2bLoFTOkjZX` (S4), `1jHvoTrzrR0hywHVop0YubQuzUIUpbWWL` (S5), `1Bkm4vVYe4SAK1IjpWo7ciba8oWe5-TI6` (S6), `1xu3FF6CNOLUEjxALAJVo5lUf_lruL8so` (S7), `16W65_TjjmSDxJfQfO1kqh-RRJ9rH0h1e` (S8) | One folder per generated scene. Renamed from bare numbers `1`–`6` to `S1`–`S6` on 2026-08-12 so future `S1-A`/`S1-B` sub-shots read unambiguously; `S7` and `S8` created empty the same day (the film runs to Scene 8 — the Higgsfield project already has `Sence 7`/`Sence 8`). As of that date: S1 held 3 clips, S2 held 1, S3–S8 empty. Clips carry raw Higgsfield names (`hf_<timestamp>_<uuid>.mp4`); the `AI Assets` renaming convention does **not** apply here. |
+| `All Scene/S1` … `All Scene/S16` | S1 `1h6mB9hyrpWqEJ4OnneBY5R1BpGb3CMRr` · S2 `1ca-56TDlBa9UiKVIlwi3Wmk7X-spaFQ5` · S3 `1z-lE7kh1fQVwZGw9W6mSnST1ftPAt6RT` · S4 `11YIz4-mByH5qj0jAhl8st2bLoFTOkjZX` · S5 `1jHvoTrzrR0hywHVop0YubQuzUIUpbWWL` · S6 `1Bkm4vVYe4SAK1IjpWo7ciba8oWe5-TI6` · S7 `1xu3FF6CNOLUEjxALAJVo5lUf_lruL8so` · S8 `16W65_TjjmSDxJfQfO1kqh-RRJ9rH0h1e` · S9 `1C46LZWjVgimtPEBobFzuPHnifHNlxqMl` · S10 `1JhIOGMNiWERLAI8NNqYYD9Ktg8itulcZ` · S11 `1UUr-xoemX6WAFVF-ziIkU2Qwlvbamb8P` · S12 `1Vxsi_fJPHJjGeWvz32orHjYQTxP2St7I` · S13 `1ajLMdhz0UovCONTX45gxmP3hsekGj7dr` · S14 `1cFrb9DsVK5eCZoti3Kvd_cyaKR3oov7x` · S15 `1YaN2Wrr_3BScYxj5EIZr5bkvYbVxzsNz` · S16 `1dDHOHkxojnvfJYPg6DWt7aOFYd7trWqu` | One folder per generated scene; the film runs to **16 scenes**. Renamed from bare numbers `1`–`6` to `S1`–`S6` on 2026-08-12 so `S1-A`/`S1-B` sub-shots read unambiguously; S7–S16 created the same day. Counts at 2026-08-12: S1 3, S2 7, S3 5, S4 9, S5 5, S6 4, S7–S16 empty. Clips keep their raw Higgsfield names (`hf_<timestamp>_<uuid>.mp4`) — the `AI Assets` renaming convention does **not** apply here. **Note:** S9 was originally a duplicate `S7` created by a retry after a 404 that had already succeeded; it was repurposed rather than deleted, so its id looks out of sequence. |
 | `Do Not Disturb/Element` | `1PcujKkvTageWpoF-k8yY2jV7T_jLIX3i` | Created 2026-08-12. Reference plates fed to the generator, split into `Character` (`1R5GbLTEsUYFHWuageqoPON0rCP5LJhx1`), `Location` (`1zsNiTRunPKJloU8U8BLwzx-KEwk3qgTI`) and `Prop` (`1rQ736mfLQUYsY8KUul29AVPjMWHb0spa`). Spellings are the CEO's corrected ones — the local mirror says `Charactor`, which `ilag_sync.py` aliases. |
 | `Do Not Disturb/logs.txt` | `1GVmc1Cqg-97YMcCd303_1EbNFhaiIfiO` | The project log. Append-only, 9 pipe-separated fields — see the YT: ILAG section above for the contract and the reconcile-on-entry rule. |
 | `Do Not Disturb/StoryBoard` | `18nykJSEtNPstN7-gB1VmGTjs8HAovFcivhBhAVgqdRw` | Google Doc. Short synopsis, the locked story facts, the festival constraints, and a link to the director's-notebook artifact where the volatile detail lives. |
