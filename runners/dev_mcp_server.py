@@ -229,7 +229,21 @@ def dev_message(text: str) -> str:
     """
     if not TASK_ID:
         return "ERROR: DEV_TASK_ID env var not set"
-    info(text.strip().splitlines()[0][:300] if text.strip() else "(empty)")
+    line = text.strip().splitlines()[0][:300] if text.strip() else "(empty)"
+    info(line)
+    # Reporting IS the liveness signal. runners/watchdog.py measures silence
+    # as `now - tasks.updated_at` and reaps anything past its threshold — but
+    # nothing here ever wrote to the DB, so updated_at stayed frozen at spawn
+    # time no matter how diligently a DEV reported, and every long-running DEV
+    # was guaranteed to be reaped eventually. Measured 2026-08-13 on
+    # task-cda4f469: four dev_message calls between 03:36 and 04:25, and the
+    # watchdog still saw 5518s of "silence", counted from its 03:04 spawn.
+    # Four operators died this way in one night. Touching the row here is what
+    # makes the watchdog's silence measure mean what it claims to mean.
+    try:
+        db.set_fields(TASK_ID, actor="dev", last_checkpoint=line)
+    except Exception as e:  # bookkeeping must never break the DEV's report
+        info(f"(dev_message: could not touch task row: {e})")
     return "ack"
 
 
