@@ -390,10 +390,29 @@ and storyboard in one place, nothing else needed to start cutting.
 - `S<n>-<A|B|C…>` — a sub-shot of that scene: either a long scene split up for
   storytelling, or a repair/re-generated take. It sits **beside** `S<n>`, at
   the same level, so the two sort next to each other and depth stays flat.
-- Once a scene is split, the bare `S<n>` folder does not also linger alongside
-  its own `S<n>-A`/`-B` — the split replaces it.
 - The letter carries no meaning by itself. *Why* a sub-shot exists belongs in
   the `note` column of `logs.txt`, not in the folder name.
+
+**Default: the split replaces the bare folder.** `S3-A`/`S3-B`/`S3-C` with no
+`S3` beside them. That is what you get when the split was planned before the
+scene was generated.
+
+**But `S3` + `S3-A`/`-B`/`-C` side by side is not an error.** It is what
+naturally happens when `S3` was made first and the sub-shots were added later.
+The two shapes record two different histories, and neither is wrong.
+
+So when you find a bare `S<n>` living alongside its own `S<n>-A`:
+
+1. **Read `logs.txt` first.** If a `DECIDE` line already records the CEO's
+   answer for that scene, honour it and say nothing. **Ask once, never twice** —
+   re-asking a settled question is the failure mode this protocol exists to
+   prevent.
+2. If nothing is recorded, **ask the CEO: rename to the flat form, or keep both?**
+   Do not decide it yourself either way.
+3. Record the answer as a `DECIDE` line with the reason, so the next agent
+   inherits it instead of re-deriving it.
+4. The CEO may change their mind later. When they do, follow the new answer and
+   append a new `DECIDE` line superseding the old one — never edit the old line.
 
 ### logs.txt — what it is for
 
@@ -419,7 +438,7 @@ rewrites TABs and any tab-separated parse breaks without an error.
 |---|---|---|
 | 1 | `ts` | ISO-8601 with offset — `2026-08-12T20:40:11+07:00` |
 | 2 | `actor` | `AI:<role>-<sid>` · `CEO` · `EDITOR` · `HUMAN` (unattributable) |
-| 3 | `action` | `ADD` `DELETE` `MOVE` `RENAME` `RESTORE` — these five only |
+| 3 | `action` | State changes: `ADD` `DELETE` `MOVE` `RENAME` `RESTORE`. Plus `ALERT` (something anomalous found, nothing changed) and `DECIDE` (a CEO ruling recorded so it is never re-asked). No other verbs — invent one and the log stops being greppable. |
 | 4 | `type` | `FILE` · `FOLDER` |
 | 5 | `name` | the file/folder name at that moment |
 | 6 | `link` | full Drive URL, clickable. The ID is recoverable from it |
@@ -435,6 +454,26 @@ rewrites TABs and any tab-separated parse breaks without an error.
 2026-08-12T09:12:00+07:00 | EDITOR | DELETE | FILE | S3-A_take4.mp4 | https://drive.google.com/file/d/<id>/view | All Scene/S3-A | 7 | backfill 12-08-2026 · found missing during reconcile
 2026-08-12T20:40:11+07:00 | CEO | ADD | FILE | S3-A_take8.mp4 | https://drive.google.com/file/d/<id>/view | All Scene/S3-A | 8 | 8th take of S3-A
 ```
+
+### The rules bend — but never silently (CEO 2026-08-12)
+
+Nothing in this section is absolute. A project runs the way the person running
+it wants it to run, and these rules describe the normal case, not the only legal
+one. What is **not** negotiable is that a departure leaves a trace:
+
+- **Warn when you see something that contradicts a rule here.** Do not quietly
+  normalise it, and do not quietly obey it either. Say what you found.
+- **When a rule is knowingly broken, `logs.txt` must say so** — the note begins
+  `EXCEPTION:` and gives the reason. Someone reading this branch in six months
+  has to be able to tell a deliberate special case from an accident, and the log
+  is the only thing that can tell them.
+- **Ask once, then honour the record.** Before raising a question about this
+  branch, grep `logs.txt` for a `DECIDE` line covering it. If the CEO has already
+  ruled, follow the ruling silently. Re-asking a settled question is its own kind
+  of failure.
+- **A ruling can be revisited.** If the CEO changes their mind, follow the new
+  answer and append a new `DECIDE` line that supersedes the old one. Never edit
+  or delete the old line — append-only means the reversal is part of the record.
 
 ### Nothing in here gets deleted (CEO 2026-08-12)
 
@@ -457,11 +496,8 @@ Consequences that bind every agent:
 Written down so the next agent knows these are open questions rather than
 oversights. Rule 7 applies: get the CEO's answer, do not guess one.
 
-| open question | why it matters |
-|---|---|
-| Whether a split scene keeps its bare `S<n>` | The "split replaces the bare folder" line in *Scene folder naming* is the CTO's inference from the CEO's wording, **not** something the CEO confirmed. Until it is, do not assume a scene's footage lives in only one of `S3` / `S3-A`+`S3-B` — check both. |
-
-Answered 2026-08-12, kept here so the reasoning is not lost:
+No open questions as of 2026-08-12. Answered that day, kept here so the
+reasoning is not lost:
 
 - **Naming inside `Element/` and `Soundtrack/`** — not ours to define. See "Who
   names things here" above.
@@ -469,6 +505,10 @@ Answered 2026-08-12, kept here so the reasoning is not lost:
 - **Whether the scene prompts belong in Drive** — **no.** The editor receives
   footage that is already generated and generates nothing themselves, so the
   prompts are not part of their handoff package. They stay in the DEV worktree.
+- **Whether a split scene keeps its bare `S<n>`** — the flat form is the default,
+  but both shapes are legal because they record different histories. Ask once
+  when you meet one, honour the `DECIDE` line thereafter. See *Scene folder
+  naming*.
 
 ### Rules for any agent entering a YT: ILAG project folder
 
