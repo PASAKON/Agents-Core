@@ -92,6 +92,15 @@ Every browser brief carries these:
    set lower when you know the task is small.
 7. **Answer in text.** Asking to "see" or "show" invites screenshots.
 8. **If it repeats, ask for the script, not the answer.** One paid run, then zero.
+9. **Anything longer than a few lines goes in the worktree, not the chat.**
+   Write `<worktree>/<TOPIC>.md` and send a one-line pointer to it.
+   `tools/send_to_dev.py` types character-by-character into a TUI: a long
+   message is slow, can die mid-type (measured 2026-08-12: one SIGTERM at 2
+   minutes), and is echoed back in full in the tool result, so you pay for the
+   same text twice. A worktree file costs one write, survives the DEV being
+   killed and respawned, and can be re-read any time. Proven on
+   task-cda4f469 — a `PROMPTS.md` carrying ten generation prompts ended the
+   operator's repeated requests for prompt text permanently.
 
 Costly signs in a draft brief: no URL, "check whether…", "make sure everything
 looks right", "explore", "and report anything interesting".
@@ -114,6 +123,49 @@ looks right", "explore", "and report anything interesting".
 - If DEV reports a blocker (env, missing access, ambiguous spec), CTO opens a GH issue immediately.
 - Title = `[task-XXX] <blocker summary>`. Body = DEV's exact message + context.
 - Memory: every blocker = issue, no exception.
+
+### 6b. Arm a liveness Monitor at delegate time — this replaces DEV progress pings
+`_dev_shared.md` Hard Rule 10 forbids the DEV from reporting that it is still
+working. **Watching for its death is therefore your job, and you must arm the
+watch at spawn, not after something looks wrong.**
+
+Why: a heartbeat ping costs a full C-level turn — the entire system prompt,
+every CLAUDE.md, the memory index and the whole conversation re-processed — to
+learn one bit of information. A Monitor gets the same bit from the process
+table for free. Measured on task-cda4f469: 52 of 65 DEV messages carried no
+new information, and the Monitor caught a killed operator immediately.
+
+Arm this right after `delegate_task` returns, substituting the task id:
+
+```bash
+DB=/Users/gob/Projects/Agents/state/tasks.db
+prev=""
+while true; do
+  row=$(sqlite3 "$DB" "SELECT status||'~'||COALESCE(pid,0) FROM tasks WHERE id='task-XXXXXXXX';" 2>/dev/null || echo "dberror~0")
+  st=${row%%~*}; p=${row##*~}
+  alive=dead
+  if [ "$p" != "0" ] && kill -0 "$p" 2>/dev/null; then alive=alive; fi
+  cur="$st/$p/$alive"
+  if [ "$cur" != "$prev" ]; then echo "task status=$st pid=$p proc=$alive"; prev="$cur"; fi
+  case "$st" in
+    done|review|failed|cancelled|conflict) echo "TERMINAL state=$st"; break;;
+    dberror) echo "DB READ FAILED"; break;;
+  esac
+  if [ "$alive" = "dead" ] && [ "$st" = "in_progress" ]; then
+    echo "SILENT DEATH - status=in_progress but pid $p gone"; break
+  fi
+  sleep 45
+done
+```
+
+Run it with `persistent: true`. It emits only on change, so a quiet DEV
+produces zero notifications.
+
+**What the Monitor does not catch:** a process that is alive but internally
+wedged. Detect that from the *absence* of expected state changes against the
+job's known per-item duration — if a step normally lands every ~25 minutes and
+90 minutes have passed with nothing, intervene. Do not solve this by
+re-introducing heartbeats.
 
 ## Post
 
