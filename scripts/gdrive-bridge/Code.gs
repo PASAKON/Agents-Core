@@ -70,7 +70,14 @@ function doGet(e) {
 
 function moveFile(fileId, newParentId) {
   var file = Drive.Files.get(fileId, { fields: 'parents,name' });
-  var previousParents = (file.parents || []).map(function (p) { return p.id; }).join(',');
+  // Drive v2 returns parents as objects ({id: ...}); v3 returns plain id
+  // strings. This deployment is on v3 (confirmed 2026-08-12 from the live
+  // manifest), where the old `p.id` yielded undefined for every parent and
+  // removeParents was sent the literal string "undefined" — so a move added
+  // the new parent without ever detaching the old one. Handle both shapes.
+  var previousParents = (file.parents || []).map(function (p) {
+    return (typeof p === 'string') ? p : p.id;
+  }).filter(function (id) { return !!id; }).join(',');
   return Drive.Files.update({}, fileId, null, {
     addParents: newParentId,
     removeParents: previousParents,
