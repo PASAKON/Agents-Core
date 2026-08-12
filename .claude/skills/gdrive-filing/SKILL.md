@@ -354,11 +354,43 @@ The one place we *did* pick a spelling — `Element/Character` where the local
 mirror says `Charactor` — was an explicit CEO decision on 2026-08-12, not a
 tidy-up. Nothing since then licenses another one.
 
-### The local mirror and `ilag_sync.py`
+### Drive is the only home — the Desktop mirror is retired (CEO 2026-08-12, 22:20)
 
-The CEO keeps a mirror of one project on the Desktop and drops renders into it
-as they land, so the two trees drift by design rather than by accident. Reconcile
-them with `scripts/gdrive-bridge/ilag_sync.py` — never by eye:
+> *"เปลื่ยนใหม่ๆ ให้ทำขึ้น Gdrive ไปเลย Desktop Folder ไม่ต้องทำแล้ว เพราะเปือง
+> พื้นที่ … หลังจากเอาลง Gdrive แล้ว ก็ลบ ไฟล์ในเครื่องนี้ได้เลย (ไฟล์ที่โหลดมา
+> เท่านั้นห้ามลบมั่ว)"*
+
+The permanent local mirror is gone. It held 513.8 MB on a machine whose swap was
+already 90% full. **Local disk is now a staging area, not a copy.** The loop for
+every batch of new renders:
+
+1. Download from the generator to this machine — one clip or many, whichever is
+   cheapest. A multi-file download arrives as a zip; unzip it locally, there is
+   no password.
+2. Upload to the right `S<n>` folder under
+   `ALL DRAFT/YT: ILAG/<film>/All Scene/`.
+3. Append the `logs.txt` line for each file, in the same turn as the upload.
+4. **Verify the file is on Drive**, then delete the local copy to reclaim space.
+
+**The delete is narrow, and it is the one dangerous step here.** Only files this
+loop itself downloaded, only after Drive has confirmed them. Never a glob, never
+a whole directory, never anything the loop did not put there. When in doubt,
+leave it — disk is cheaper than a lost render.
+
+**"Nothing in here gets deleted" still holds and is not weakened by this.** That
+rule governs the Drive branch. Removing a redundant local staging copy is not
+deleting from the branch; deleting anything *in Drive* remains forbidden.
+
+`ilag_sync.py diff` is how you prove a file landed before removing it. A clean
+run — `ONLY LOCAL (0)`, `size-mismatch: 0` — means every local file exists on
+Drive at a matching size, so the local copies are safe to drop. Verified in that
+state 2026-08-12 22:20: 61 local files / 513.8 MB, all present on Drive.
+
+### The old local mirror and `ilag_sync.py`
+
+Kept because the tooling and its traps still govern the staging loop above, and
+because a mirror may still exist on disk from before this change. Reconcile with
+`scripts/gdrive-bridge/ilag_sync.py` — never by eye:
 
 ```bash
 python3 scripts/gdrive-bridge/ilag_sync.py diff          # read-only report
