@@ -217,14 +217,17 @@ Google Drive (root) — pass.gob1@gmail.com
 │       │                          other channels use — see the "YT: ILAG"
 │       │                          section below; this branch has its own rules.
 │       └── Do Not Disturb/        one PROJECT = one film/episode
-│           ├── logs.txt           MANDATORY, one per project — ⚠ NOT CREATED
-│           │                      YET, blocked on the Apps Script redeploy
+│           ├── logs.txt           MANDATORY, one per project. See below.
 │           ├── All Scene/         AI-generated footage, one folder per scene
-│           │   ├── S1/ … S8/      renamed from "1".."6" on 2026-08-12;
-│           │   │                  S7 + S8 created empty the same day
+│           │   ├── S1/ … S16/     renamed from "1".."6" on 2026-08-12;
+│           │   │                  S7–S16 created the same day (16 scenes)
 │           │   └── (S1-A, S1-B…)  sub-shots / repair takes, siblings of S1
+│           ├── Element/           reference plates fed to the generator
+│           │   ├── Character/     one plate per character
+│           │   ├── Location/      one plate per location
+│           │   └── Prop/          one plate per prop
 │           ├── Soundtrack/        music + SFX + voice for this film
-│           └── StoryBoard (Doc)   ⚠ NOT CREATED YET — same redeploy blocker
+│           └── StoryBoard (Doc)   synopsis + link to the director's notebook
 ├── BACKUP/                       NEW 2026-08-04. Important data that doesn't
 │   │                             fit any other folder / can't be categorized,
 │   │                             or redundant copies the CEO wants kept in
@@ -317,9 +320,40 @@ YT: ILAG/
     ├── All Scene/         ← AI-generated footage, one sub-folder per scene
     │   ├── S1/ S2/ S3/ …
     │   └── S3-A/ S3-B/ …  ← sub-shots, SIBLINGS of S3 (not inside it)
+    ├── Element/           ← reference plates fed to the generator
+    │   ├── Character/
+    │   ├── Location/
+    │   └── Prop/
     ├── Soundtrack/        ← music + SFX + voice for this film
     └── StoryBoard         ← Google Doc: whole film's storyboard, one doc
 ```
+
+### The local mirror and `ilag_sync.py`
+
+The CEO keeps a mirror of one project on the Desktop and drops renders into it
+as they land, so the two trees drift by design rather than by accident. Reconcile
+them with `scripts/gdrive-bridge/ilag_sync.py` — never by eye:
+
+```bash
+python3 scripts/gdrive-bridge/ilag_sync.py diff          # read-only report
+python3 scripts/gdrive-bridge/ilag_sync.py diff --log    # report + append to logs.txt
+python3 scripts/gdrive-bridge/ilag_sync.py upload        # upload what is only-local
+```
+
+- **The mirror's folder names are misspelled and Drive's are not** (`All Screne`
+  → `All Scene`, `SoudTrack` → `Soundtrack`, `Charactor` → `Character`). The
+  tool maps them in `FOLDER_ALIASES`. **Fix the alias, never the CEO's folder** —
+  renaming their local directories is not yours to do.
+- Uploads go through the Drive REST API, not this bridge: the bridge creates
+  text files only, and the mirror is ~500 MB of mp4/webp. Auth reuses the OAuth
+  refresh token in `mooniex-claudeflow/.env` for this same Drive.
+- **`--create-folders` is off by default** and stays that way until the CEO
+  approves the folder names, per Rule 3.
+- **A file on Drive but missing locally is an ALERT, not drift.** The CEO deletes
+  nothing except true duplicates and broken generations, and keeps superseded
+  takes as generation history — so a disappearance means something went wrong.
+  The tool never deletes anything, anywhere, and the answer to an alert is never
+  to delete the Drive copy.
 
 The project folder is the **handoff package to the editor** — footage, sound,
 and storyboard in one place, nothing else needed to start cutting.
@@ -433,6 +467,9 @@ StoryBoard      Doc · last edited 12-08-2026
 | `YT: ILAG/Do Not Disturb` | `1GT_h_D6pMMpPuspoP7d_lXz9dzZQAt6w` | Defined 2026-08-12. One **project** = one film/episode; `Do Not Disturb` is the episode title (horror short for the Higgsfield Global Film Festival, deadline 2026-09-03). Holds everything needed to hand the film to an editor: `All Scene/`, `Soundtrack/`, the `StoryBoard` doc, and its own `logs.txt`. |
 | `Do Not Disturb/All Scene` | `159zXCuZ3AJylUQdgQu5O6fvzclXa4KHa` | Defined 2026-08-12. AI-generated footage for this film, **one sub-folder per scene**. Renamed from the misspelled `All Sence` on 2026-08-12 (CEO approved). |
 | `All Scene/S1` … `All Scene/S8` | `1h6mB9hyrpWqEJ4OnneBY5R1BpGb3CMRr` (S1), `1ca-56TDlBa9UiKVIlwi3Wmk7X-spaFQ5` (S2), `1z-lE7kh1fQVwZGw9W6mSnST1ftPAt6RT` (S3), `11YIz4-mByH5qj0jAhl8st2bLoFTOkjZX` (S4), `1jHvoTrzrR0hywHVop0YubQuzUIUpbWWL` (S5), `1Bkm4vVYe4SAK1IjpWo7ciba8oWe5-TI6` (S6), `1xu3FF6CNOLUEjxALAJVo5lUf_lruL8so` (S7), `16W65_TjjmSDxJfQfO1kqh-RRJ9rH0h1e` (S8) | One folder per generated scene. Renamed from bare numbers `1`–`6` to `S1`–`S6` on 2026-08-12 so future `S1-A`/`S1-B` sub-shots read unambiguously; `S7` and `S8` created empty the same day (the film runs to Scene 8 — the Higgsfield project already has `Sence 7`/`Sence 8`). As of that date: S1 held 3 clips, S2 held 1, S3–S8 empty. Clips carry raw Higgsfield names (`hf_<timestamp>_<uuid>.mp4`); the `AI Assets` renaming convention does **not** apply here. |
+| `Do Not Disturb/Element` | `1PcujKkvTageWpoF-k8yY2jV7T_jLIX3i` | Created 2026-08-12. Reference plates fed to the generator, split into `Character` (`1R5GbLTEsUYFHWuageqoPON0rCP5LJhx1`), `Location` (`1zsNiTRunPKJloU8U8BLwzx-KEwk3qgTI`) and `Prop` (`1rQ736mfLQUYsY8KUul29AVPjMWHb0spa`). Spellings are the CEO's corrected ones — the local mirror says `Charactor`, which `ilag_sync.py` aliases. |
+| `Do Not Disturb/logs.txt` | `1GVmc1Cqg-97YMcCd303_1EbNFhaiIfiO` | The project log. Append-only, 9 pipe-separated fields — see the YT: ILAG section above for the contract and the reconcile-on-entry rule. |
+| `Do Not Disturb/StoryBoard` | `18nykJSEtNPstN7-gB1VmGTjs8HAovFcivhBhAVgqdRw` | Google Doc. Short synopsis, the locked story facts, the festival constraints, and a link to the director's-notebook artifact where the volatile detail lives. |
 | `Do Not Disturb/Soundtrack` | `1BcwtvPSSGN4kQwuYnerWYyPrLF3iAwjQ` | Defined 2026-08-12 — music **plus SFX and voice** for this film (CEO confirmed when asked "music only, or music + SFX + voice too"). Empty as of the 2026-08-12 survey. |
 | `BACKUP` (root) | `1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq` | NEW 2026-08-04. Important data that doesn't belong to / can't be categorized into any other folder, specifically related to backing up or redundantly storing data in 2-3 places. Can be temporary or permanent. |
 | `BACKUP/FaceBook Backup` | `1cNHt6bg7-ggXf8ec6DChzouUrw3nUGig` | Meta "Download Your Information" auto-export bundles — rarely actually used. Moved here from Drive root 2026-08-04 (was a root-level folder). Meta's export flow has no destination-folder setting, so new `meta-*` exports will keep landing at Drive root — move each one into this folder manually/by AI when found. The old stray `meta-2026-Jun-18-22-41-35` was merged in here 2026-08-04. |

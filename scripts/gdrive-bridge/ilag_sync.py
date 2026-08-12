@@ -44,6 +44,7 @@ LOGS_FILE_ID = "1GVmc1Cqg-97YMcCd303_1EbNFhaiIfiO"    # its logs.txt
 FOLDER_ALIASES = {
     "All Screne": "All Scene",
     "SoudTrack": "Soundtrack",
+    "Charactor": "Character",
 }
 
 IGNORE_NAMES = {".DS_Store", "Thumbs.db"}
