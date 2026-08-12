@@ -68,6 +68,40 @@ viewport.** At 1024x591 the break-even is roughly a 400x400 region; ask for
 anything bigger and you would have paid less by capturing the whole page. When
 you want most of the screen, take the screenshot.
 
+### Matching page items against records you already hold — diff by id, never by eye
+
+The most expensive thing an operator can do is *recognise* things visually. It
+costs a screenshot per candidate, and it is least reliable exactly when it
+matters most — when many items look alike.
+
+**Look for a stable id in the DOM first.** Found 2026-08-12 (task-7d4b567b): on
+Higgsfield the thumbnail's image URL embeds the same `hf_<timestamp>_<uuid>`
+string that becomes the downloaded filename, so the page and the filesystem can
+be diffed as two sets of ids in a single `javascript_tool` call, with no
+screenshots at all. That operator had been scrolling and comparing frames
+because the same "room 214 with a door hanger" framing recurs across many
+different scenes — something no amount of looking can separate. It went well
+past its screenshot budget before switching.
+
+Generalise it: whenever the job is *"which of these page items do I already
+have"*, check `src`, `href`, `data-*` and `id` for a value that also appears in
+the records you hold. Pull both sets, diff them in one call, and spend pixels
+only on the handful that differ. Reach for this **first**, not after the visual
+approach has already failed.
+
+**But confirm you are reading the authoritative list before you diff it.** The
+same operator ran a rigorous, position-verified id scan and concluded a file the
+C-level had reported was simply not there — because the scan ran against the
+`/ai/video` **History panel**, while the number came from the Cinema Studio
+**project-folder sidebar**. Two different views of the same account, and only
+one of them is the folder. A precise method pointed at the wrong data set
+produces a confident wrong answer, which is worse than an obviously shaky one.
+
+So before an id diff: name the list you are diffing, say where it lives, and
+sanity-check it against something already known — this operator's own check
+(other folders' counts matching known-good numbers exactly) is what proved which
+tree was authoritative. Do that in one call, before spending the budget.
+
 ## Step order — do not skip ahead
 
 This ladder *is* the cost plan. Do not write your own — a paragraph of
