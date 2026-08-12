@@ -162,8 +162,31 @@ def _h_check_collisions(*, project: str, touches: str) -> list[dict]:
     return db.find_conflicts(project, paths)
 
 
+_SLIM_KEYS = (
+    "id", "project", "role", "status", "title", "pid", "branch",
+    "worktree", "iteration", "depends_on", "report", "review",
+    "delegate_log",
+)
+
+
+def _slim_task(t: dict | None) -> dict | None:
+    """Drop `description` from a task row before it crosses the MCP surface.
+
+    The description is the brief the C-level wrote itself — often thousands of
+    words — and every delegate/get call was echoing the whole thing straight
+    back into its context. Measured on task-cda4f469 (2026-08-12): five
+    delegate calls, five full copies. Internal callers keep using
+    db.get_task() and still get the full row; only what the model sees is
+    trimmed. Pass include_description=True on get_task when the text is
+    genuinely needed.
+    """
+    if not t:
+        return t
+    return {k: t[k] for k in _SLIM_KEYS if k in t}
+
+
 async def _h_delegate_task(*, task_id: str) -> dict:
-    return await do_delegate(task_id)
+    return _slim_task(await do_delegate(task_id))
 
 
 async def _h_delegate_parallel_tasks(*, task_ids: str) -> list[dict]:
@@ -171,8 +194,9 @@ async def _h_delegate_parallel_tasks(*, task_ids: str) -> list[dict]:
     return await delegate_parallel(ids, max_concurrent=3)
 
 
-def _h_get_task(*, task_id: str) -> dict | None:
-    return db.get_task(task_id)
+def _h_get_task(*, task_id: str, include_description: bool = False) -> dict | None:
+    t = db.get_task(task_id)
+    return t if include_description else _slim_task(t)
 
 
 def _h_review_diff(*, task_id: str, full: bool = False) -> str:
@@ -189,7 +213,15 @@ def _h_merge_task(*, task_id: str, override_touches_check: bool = False) -> dict
 
 def _h_reopen_task(*, task_id: str, feedback: str) -> str:
     t = db.get_task(task_id)
-    new_desc = f"{t['description']}\n\n## CTO Feedback (iter {t['iteration']+1})\n{feedback}"
+    # Newest instruction first. Appending stacked contradictory versions:
+    # task-cda4f469 (2026-08-12) reached iteration 3 with the original rule,
+    # then two corrections to it, all live in one document, read top-down by
+    # each respawned DEV — which acted on the stale rules twice before
+    # reaching the current one.
+    new_desc = (
+        f"## CTO Feedback (iter {t['iteration']+1}) — supersedes everything below\n"
+        f"{feedback}\n\n---\n\n{t['description']}"
+    )
     db.update_status(
         task_id, "pending",
         description=new_desc,
@@ -321,9 +353,11 @@ REGISTRY: tuple[ToolSpec, ...] = (
         description=(
             "Read a task row. Includes both `report` (DEV completion "
             "summary) and `delegate_log` (runner-level collision/spawn "
-            "errors)."
+            "errors). The task `description` is omitted by default — it is "
+            "the brief you wrote yourself and is often thousands of words; "
+            "pass include_description=True only when you actually need it."
         ),
-        params=(Param("task_id", str),),
+        params=(Param("task_id", str), Param("include_description", bool, False)),
         handler=_h_get_task,
         response_format="toon",
         limit=6000,
