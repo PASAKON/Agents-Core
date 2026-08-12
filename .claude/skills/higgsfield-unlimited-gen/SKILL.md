@@ -138,11 +138,29 @@ chars, no truncation). Reference: mooniex-agents task-7b4402d4.
      **second** insertion — the text appears duplicated in the editor.
      Paste alone is sufficient and binds correctly to the framework's real
      state.
+   - **FIRST pick the right node — there is a decoy editor.** Measured
+     2026-08-12 (task-cda4f469): the composer renders **two overlapping
+     `contenteditable` elements**, and a paste aimed at the wrong one lands
+     silently with no error and no visible text. The reliable tell is
+     **`getComputedStyle(el).visibility === 'hidden'` on the decoy**. Nothing
+     cheaper works: bounding rect, offset position, and the presence of
+     `__lexicalTextContent` are **identical on both nodes**, so every naive
+     "find the contenteditable" selector has a coin-flip chance of hitting
+     the dead one. Filter candidates by computed visibility before touching
+     anything.
+
+     This very likely explains the earlier incident where a card's saved
+     prompt contained only its first line — at the time it was blamed on
+     keystroke truncation. Treat a mysteriously empty or partial saved
+     prompt as decoy-editor first, `type()` second.
    - **Verify via three independent reads before every Generate click**:
      `element.innerText`, `element.__lexicalTextContent` (or equivalent
      Lexical-exposed text property), and — the authoritative one —
      `editor.getEditorState().toJSON()` if you can reach the editor
-     instance. Compare all three against the source prompt's length and
+     instance. **These three do not save you from the decoy** — run them on
+     the decoy and they agree with each other perfectly, on empty content.
+     They only mean something once the visibility check above has selected
+     the real node. Compare all three against the source prompt's length and
      first/last ~60-80 characters. `innerText` alone is not enough — it
      can show complete text while the framework's real bound state (what
      actually gets serialized into the Generate API call) is empty or
