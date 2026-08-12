@@ -31,6 +31,11 @@ from tools.gc_stale_tasks import gc_stale_tasks
 
 PING_AFTER_S = 10 * 60
 STALL_AFTER_S = 30 * 60
+# Ceiling for a task whose pid is still ALIVE. Silence alone does not mean
+# dead, and jobs whose unit of work outlasts STALL_AFTER_S (a Higgsfield
+# render is 26-30min) are silent by design. A live process gets this long
+# before it is reaped anyway, so a wedged one is still collected.
+STALL_ALIVE_AFTER_S = 90 * 60
 INTERVAL_S = 300
 
 # Layer 2 floor (task-78ab64ba): a DEV whose task reached review/done but
@@ -118,9 +123,25 @@ def scan_once() -> dict:
         if silent < PING_AFTER_S:
             continue
         if silent >= STALL_AFTER_S:
-            issue = _file_stalled_issue(t, silent)
             pid = t.get("pid")
             pid_alive = _pid_alive(pid)
+            # A live process is not a stalled task. Silence is a proxy for
+            # death and a bad one for any job whose unit of work is longer
+            # than STALL_AFTER_S — a Higgsfield render takes 26-30 minutes
+            # against a 30-minute threshold, so a DEV doing exactly what it
+            # was told got reaped three times on 2026-08-12/13
+            # (task-cda4f469). The pid was already being computed here and
+            # written into `review`; it simply was never consulted.
+            #
+            # Dead pid -> reap immediately, unchanged. Alive -> tolerate up
+            # to a hard ceiling, so a genuinely wedged process is still
+            # collected rather than sitting forever.
+            if pid_alive and silent < STALL_ALIVE_AFTER_S:
+                info(f"watchdog: {t['id']} silent {int(silent/60)}min but "
+                     f"pid={pid} is alive — not stalling "
+                     f"(ceiling {int(STALL_ALIVE_AFTER_S/60)}min)")
+                continue
+            issue = _file_stalled_issue(t, silent)
             # SAFETY: only close the tab when `pid` is recorded. PID is
             # written by runners/dev_init.py right before `os.execvpe`,
             # which only runs when the CTO delegate path spawned this
