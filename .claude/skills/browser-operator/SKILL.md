@@ -196,6 +196,27 @@ whether.
 - **Stop after 2-3 failed attempts at the same action.** Report what you tried
   and what the page did. Grinding on a stuck element is how a 40-step budget
   disappears into one button.
+- **Restart Chrome. It is free and it is yours.** Chrome is the org's browser,
+  not the CEO's — he works in Safari (confirmed 2026-08-12). No window in it
+  belongs to him, so closing tabs, hard-reloading and quitting Chrome outright
+  are ordinary repair moves that need no permission. What *is* his are the
+  logged-in sessions inside it, and those survive a restart.
+
+  Reach for it when a control will not respond to a correct click, when page
+  state looks impossible, or when CDP calls time out on one page while others
+  work. Measured on task-cda4f469: an Unlimited toggle refused four separate
+  click methods and stayed `data-state="off"`, two fresh *tabs* inherited the
+  fault, and a full **browser** restart fixed it on the first try. Escalate in
+  that order — hard-reload the page, then a new tab, then quit and reopen
+  Chrome. **A new tab is not a substitute for a new browser.**
+
+  Two operators sat blocked for roughly half an hour that night because both
+  they and the C-level believed the browser was the CEO's and treated
+  restarting it as destructive. It is not.
+
+  **After any restart the composer resets to defaults.** Rebuild the whole
+  state before touching content: mode, then model, then every setting, then
+  the cost toggle, then read the toggle back — and only then paste.
 - `save_to_disk` on a screenshot saves the file — it does not reduce the token
   cost of that screenshot.
 
