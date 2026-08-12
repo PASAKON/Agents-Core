@@ -193,7 +193,8 @@ def wiki_write(path: str, content: str, *, role: str, message: str | None = None
     msg = message or f"[{role}] update {path}"
     _git(root, ["add", str(full)])
     rc, out = _git(root, ["commit", "-m", msg], allow_empty=True)
-    return f"wrote {path} ({rc}: {out.strip()[:80]})"
+    pushed = _git_push(root)
+    return f"wrote {path} ({rc}: {out.strip()[:80]}){pushed}"
 
 
 def wiki_search(query: str, limit: int = 20) -> list[dict]:
@@ -234,3 +235,35 @@ def _git(root: Path, args: list[str], allow_empty: bool = False) -> tuple[int, s
     if r.returncode != 0 and not allow_empty:
         raise WikiError(f"git failed: {' '.join(cmd)}\n{r.stderr}")
     return r.returncode, r.stdout + r.stderr
+
+
+def _git_push(root: Path) -> str:
+    """Push what we just committed, and report the outcome in the return string.
+
+    A wiki that commits but never pushes is invisible to every other reader of
+    that repo. Contabo serves ``org:`` and ``mooniex:`` from rsync snapshots of
+    these roots, so an unpushed commit silently leaves that box reading a stale
+    wiki (this went unnoticed for 14 commits / 4 days, 2026-08-03..08-07).
+
+    Never raises. A push that fails — offline, no remote, non-fast-forward —
+    must not turn a successful local write into an error; the write already
+    happened and the commit is safe on disk. The reason travels back in the
+    string so the caller can see it instead of assuming a silent success.
+    """
+    if not (root / ".git").exists():
+        return ""
+    rc, remotes = _git(root, ["remote"], allow_empty=True)
+    if rc != 0 or not remotes.strip():
+        return " [no remote — commit is local only]"
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(root), "push"],
+            capture_output=True, text=True, timeout=30,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return " [push timed out — commit is local only]"
+    if r.returncode != 0:
+        lines = (r.stderr or r.stdout).strip().splitlines()
+        why = lines[-1].strip()[:120] if lines else "unknown error"
+        return f" [push FAILED: {why} — commit is local only]"
+    return " [pushed]"
