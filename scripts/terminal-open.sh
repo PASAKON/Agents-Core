@@ -11,15 +11,15 @@
 # attached to the same session.
 #
 # Typed from the PHONE it still works: the C-level agent executes it on the
-# Mac, which is where iTerm lives — so `/show-terminal` on the phone makes the
+# Mac, which is where iTerm lives — so `/terminal-open` on the phone makes the
 # Mac window reappear on the session you are chatting in.
 #
 # Usage:
-#   bash scripts/show-terminal.sh              # THIS session (the one you're chatting in)
-#   bash scripts/show-terminal.sh --list       # every live C-level session
-#   bash scripts/show-terminal.sh 8172e36d     # a specific id
-#   bash scripts/show-terminal.sh cmo-4f2a11bc # role-qualified name also accepted
-#   bash scripts/show-terminal.sh --orphan     # most recent session with NO client attached
+#   bash scripts/terminal-open.sh              # THIS session (the one you're chatting in)
+#   bash scripts/terminal-open.sh --list       # every live C-level session
+#   bash scripts/terminal-open.sh 8172e36d     # a specific id
+#   bash scripts/terminal-open.sh cmo-4f2a11bc # role-qualified name also accepted
+#   bash scripts/terminal-open.sh --orphan     # most recent session with NO client attached
 set -euo pipefail
 
 ROLES_RE='^(cto|cmo|cgo|cfo)-'
@@ -47,7 +47,7 @@ case "${1:-}" in
     SESSION="$(live_sessions | awk '$3 == 0 {print $2; exit}')"
     if [ -z "$SESSION" ]; then
       echo "no detached C-level session — every live one already has a client attached." >&2
-      echo "see: bash scripts/show-terminal.sh --list" >&2
+      echo "see: bash scripts/terminal-open.sh --list" >&2
       exit 1
     fi
     ;;
@@ -55,7 +55,7 @@ case "${1:-}" in
   "")
     # Default: whichever session this script is being run from. Inside a
     # C-level chat that is the tmux session wrapping it, which is exactly the
-    # session the phone is showing when the CEO types /show-terminal there.
+    # session the phone is showing when the CEO types /terminal-open there.
     SESSION="$(tmux display-message -p '#S' 2>/dev/null || true)"
     if ! printf '%s' "$SESSION" | grep -qE "$ROLES_RE"; then
       echo "not inside a C-level tmux session — name an id, or use --orphan / --list" >&2
@@ -73,7 +73,7 @@ case "${1:-}" in
         ;;
     esac
     if ! tmux has-session -t "$SESSION" 2>/dev/null; then
-      echo "no live tmux session named $SESSION — see: bash scripts/show-terminal.sh --list" >&2
+      echo "no live tmux session named $SESSION — see: bash scripts/terminal-open.sh --list" >&2
       exit 1
     fi
     ;;

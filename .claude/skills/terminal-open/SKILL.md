@@ -1,5 +1,5 @@
 ---
-name: show-terminal
+name: terminal-open
 owner: CTO
 origin: mooniex-org
 scope: >-
@@ -7,7 +7,7 @@ scope: >-
   in tmux — the closed-tab recovery. Never spawns a new chat, never resumes a
   transcript, never kills anything. Works when typed from the phone: the agent runs
   on the Mac, so the Mac window reappears.
-description: Bring back the Mac iTerm window for a C-level chat whose tab was closed — same session, same scrollback. Trigger on /show-terminal and when the CEO says "เปิด terminal กลับมา", "ปิด tab ไปแล้วเอากลับ", "show the terminal", "reattach", "กลับเข้า session เดิม", "open iTerm back".
+description: Bring back the Mac iTerm window for a C-level chat whose tab was closed — same session, same scrollback. Trigger on /terminal-open and when the CEO says "เปิด terminal กลับมา", "ปิด tab ไปแล้วเอากลับ", "เอา terminal คืนมา", "show the terminal", "reattach", "กลับเข้า session เดิม", "open iTerm back".
 ---
 
 # Show Terminal — put the closed iTerm tab back
@@ -33,13 +33,13 @@ attach` gives the CEO the process that is still executing.
 ## Run it
 
 ```bash
-bash /Users/gob/Projects/Agents/scripts/show-terminal.sh            # THIS session
-bash /Users/gob/Projects/Agents/scripts/show-terminal.sh --orphan   # newest one with no client
-bash /Users/gob/Projects/Agents/scripts/show-terminal.sh --list     # inventory
-bash /Users/gob/Projects/Agents/scripts/show-terminal.sh 8172e36d   # a specific id
+bash /Users/gob/Projects/Agents/scripts/terminal-open.sh            # THIS session
+bash /Users/gob/Projects/Agents/scripts/terminal-open.sh --orphan   # newest one with no client
+bash /Users/gob/Projects/Agents/scripts/terminal-open.sh --list     # inventory
+bash /Users/gob/Projects/Agents/scripts/terminal-open.sh 8172e36d   # a specific id
 ```
 
-Bare `/show-terminal` → **no flag**. That attaches the session the command was
+Bare `/terminal-open` → **no flag**. That attaches the session the command was
 typed in, which is the whole point when the CEO is on the phone: they are
 looking at the chat and want the Mac window back on *that* one.
 
