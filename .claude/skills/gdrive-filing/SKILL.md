@@ -261,12 +261,21 @@ python3 scripts/gdrive-bridge/gdrive_move.py read_file <fileId>
 python3 scripts/gdrive-bridge/gdrive_move.py append_log <fileId> <line> [line ...]
 ```
 
-⚠️ **The five actions added 2026-08-12 require a redeploy** of the Apps Script
-web app before they exist server-side — the code is in `Code.gs`, but a
-deployment serves the version that was published, not the file on disk. Until
-the CEO redeploys, calling them returns `unknown_action`. `create_doc` also
-uses `DocumentApp`, a scope the old deployment never requested, so the
-redeploy will re-prompt for authorization — that is expected, not a fault.
+⚠️ **Any change to `Code.gs` needs a redeploy before it exists server-side** —
+a deployment serves the version that was published, not the file on disk, so a
+saved-but-undeployed action returns `unknown_action`. Redeploy via
+**Deploy → Manage deployments → ✏️ → Version: New version**. Never
+**New deployment**: that mints a fresh URL while `~/.config/mooniex/gdrive-bridge.json`
+still points at the old one, so the bridge goes dead while the UI reports success.
+Confirm afterwards that the deployment id still starts with the same 8 characters.
+
+⚠️ **Deploying does not grant new OAuth scopes.** Apps Script asks for scopes at
+*run* time, not at deploy time, so a redeploy raises no consent screen and any
+call needing a new scope fails at runtime instead. Learned 2026-08-12: a
+`create_doc` built on `DocumentApp` deployed cleanly and then failed with
+"ไม่ได้รับอนุญาตให้เรียกใช้ DocumentApp.create". **Prefer building on services the
+bridge already holds** (`Drive`, `DriveApp`) over adding a scope — the fix was to
+create the doc as a Drive file with the Docs mimeType.
 
 - Config (URL + secret token) lives at `~/.config/mooniex/gdrive-bridge.json`
   — outside git, never commit it.

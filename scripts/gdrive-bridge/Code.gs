@@ -156,16 +156,28 @@ function createTextFile(name, parentId, content) {
   };
 }
 
-/** Create an empty Google Doc inside parentId (e.g. the StoryBoard doc). */
+/**
+ * Create an empty Google Doc inside parentId (e.g. the StoryBoard doc).
+ *
+ * Uses Drive.Files.create with the Docs mimeType rather than
+ * DocumentApp.create: DocumentApp needs the auth/documents scope, which this
+ * deployment has never been granted. Deploying does not re-prompt for new
+ * scopes (Apps Script asks at run time, not at deploy time), so the
+ * DocumentApp version failed at runtime on 2026-08-12 with "คุณไม่ได้รับ
+ * อนุญาตให้เรียกใช้ DocumentApp.create". Creating the doc as a Drive file
+ * needs no scope the bridge does not already hold.
+ */
 function createDoc(name, parentId) {
-  var doc = DocumentApp.create(name);
-  var file = DriveApp.getFileById(doc.getId());
-  DriveApp.getFolderById(parentId).addFile(file);
-  DriveApp.getRootFolder().removeFile(file);
-  return {
-    id: doc.getId(),
+  var resource = {
     name: name,
-    link: 'https://docs.google.com/document/d/' + doc.getId() + '/edit'
+    mimeType: 'application/vnd.google-apps.document',
+    parents: parentId ? [parentId] : []
+  };
+  var created = Drive.Files.create(resource, null, { fields: 'id,name' });
+  return {
+    id: created.id,
+    name: created.name,
+    link: 'https://docs.google.com/document/d/' + created.id + '/edit'
   };
 }
 
