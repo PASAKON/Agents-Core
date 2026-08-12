@@ -79,6 +79,70 @@ paste only (see hard rule 6) — confirmed clean in the same session (source
 781 chars; three independent reads at 790/787/775, correct first/last 80
 chars, no truncation). Reference: mooniex-agents task-7b4402d4.
 
+## Reading the credit ledger — screen by magnitude, not by model name
+
+The account total is **cumulative and shared**, so it rises for reasons that
+have nothing to do with the video pipeline. Chasing it as a single number
+produces false alarms: on 2026-08-13 it read 339.2 credits / $13.568 against
+a 21.8 / $0.872 baseline confirmed the day before — a 15x jump that looked
+alarming and was entirely benign.
+
+**Unlimited covers Seedance video only. Images are always charged.** Every
+reference plate the CEO builds is a paid image create, and plates are made by
+the dozen with retries.
+
+Known price points (CEO, 2026-08-13):
+
+| What | Cost |
+|---|---|
+| Image create, GPT Gen2 | **0.2 – 2 credits** |
+| Seedance 2.5 video, Unlimited Mode | **0** (entry reads `Unlimited`, no digit) |
+| Seedance 2.5 video, accidental Rerun | **130 credits** |
+| Credit rate | $0.04 / credit |
+
+That table is the audit's first filter: **a video charge is 65x the ceiling
+of an image create, so it is unmistakable by size alone.** Do not try to
+identify charges by model name — names in the ledger are ambiguous and
+paginating for completeness is expensive. Scan for entries of **5 credits or
+more**.
+
+**Then apply the second filter, which is the one that actually decides:
+compare each hit's DATE against the window your own wave has been running.**
+Size tells you an entry is a video charge; only the date tells you whether it
+is *yours*. Skipping this step makes the audit useless, because the ledger
+permanently contains historical video charges and always will:
+
+| Entry | Date | Verdict |
+|---|---|---|
+| 130 credits · Seedance 2.5 | 2026-08-10 22:18 | Known Rerun incident — task-eed61860, GH #45 |
+| 72 credits · Seedance 2.0 | 2026-08-05 15:44 | Refunded +72 at 15:49, net 0 |
+| 72 credits · Seedance 2.0 | 2026-08-05 | Same day, same class |
+
+An operator running the size filter alone will find those three every single
+time, conclude "not clean", and halt a wave that has spent nothing. That
+happened on 2026-08-13 and cost a full stop plus a round trip. **A charge is
+only an incident if its timestamp falls inside a window when an operator
+clicked Generate.** Give the DEV the wave's start date and let it clear
+historical hits on its own instead of escalating them.
+
+Sizing sanity check from the same day: ~317 credits of image spend over 35
+plates is ~9 image creates per plate at ~1 credit each — the total reconciles
+with zero video charges of our own.
+
+**The baseline is not necessarily cumulative.** The 21.8 credits / $0.872
+figure carried as "the baseline" through this wave could not have been a
+cumulative spent total, since a 130-credit charge two days earlier would
+already exceed it. It was a different view — a period or page subtotal — and
+treating it as the same metric as a 339.2 cumulative reading produced a
+phantom "15x jump". Before comparing two ledger numbers, confirm they are the
+same view.
+
+**What still matters when the total moves:** not the total, but (a) every
+Seedance 2.5 entry still reading `Unlimited` with zero digits, checked
+immediately before each Generate click, and (b) no charged entry landing
+inside a window when an operator clicked Generate. Re-baseline freely; the
+baseline is a reference point, not a budget.
+
 ## Hard rules — non-negotiable, no exceptions
 
 1. **Never click "Rerun"** (↻ icon, bottom-left row on a History/generation
