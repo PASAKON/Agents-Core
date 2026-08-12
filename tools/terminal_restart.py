@@ -155,7 +155,9 @@ def build_resume_run_file_text(original_text: str, uuid: str) -> str:
     inserted = False
     for line in lines:
         if not inserted and "exec bash" in line:
-            out.append(f"{line.rstrip()} -r {shlex.quote(uuid)}")
+            # Strip first: the template may already be a resume run-file from
+            # an earlier restart, and two `-r` flags is two conflicting ids.
+            out.append(f"{strip_resume_args(line.rstrip())} -r {shlex.quote(uuid)}")
             inserted = True
         else:
             out.append(line)
@@ -164,22 +166,138 @@ def build_resume_run_file_text(original_text: str, uuid: str) -> str:
     return "\n".join(out) + "\n"
 
 
-def write_resume_run_file(locks_dir: Path | str, name: str, uuid: str) -> Path:
-    """Rewrite `<name>.run` in place to resume into `uuid`. Returns its path.
+TRANSCRIPTS = Path.home() / ".claude" / "projects"
 
-    Same path the original launcher wrote (`<locks_dir>/<name>.run`) — that
-    launcher's own EXIT trap removes exactly that path on exit, and
-    `respawn-pane` needs a real file to hand to the fresh `bash` it starts.
+
+def transcript_exists(uuid: str) -> bool:
+    """True if claude has a stored transcript for `uuid` to resume from."""
+    if not uuid:
+        return False
+    return any(TRANSCRIPTS.glob(f"*/{uuid}.jsonl"))
+
+
+def newest_transcript_uuid(name: str) -> str | None:
+    """Newest transcript uuid belonging to session `name`, or None.
+
+    The org mints session uuids ending in the short session id (spawn-cto.sh
+    builds them that way), so a session's transcripts are exactly
+    `*<sid>.jsonl`. Used as the fallback when `.uuid` points at a session
+    that never produced one.
     """
+    _, _, sid = name.partition("-")
+    if not sid:
+        return None
+    files = sorted(TRANSCRIPTS.glob(f"*/*{sid}.jsonl"),
+                   key=lambda p: p.stat().st_mtime, reverse=True)
+    return files[0].stem if files else None
+
+
+def resolve_resume_uuid(locks_dir: Path | str, name: str) -> tuple[str | None, str]:
+    """Pick a uuid that can actually be resumed. Returns (uuid, note).
+
+    `.uuid` records the id a session was *launched with*, not one that has a
+    transcript behind it. `--fork-session` mints a fresh id at boot and claude
+    only writes its `.jsonl` once the session takes a turn — so a session that
+    is restarted and then never spoken to leaves `.uuid` pointing at a file
+    that does not exist. Resuming into it kills the pane, which kills tmux,
+    which fires the launcher's cleanup trap and reaps the whole lock family
+    including `.uuid` — an unrecoverable session from one bad resume.
+
+    That is not hypothetical: it happened to cto-0b4d93b9 on the third
+    consecutive restart, 2026-08-13. So verify the transcript exists, and fall
+    back to the newest one this session actually has.
+    """
+    recorded = read_uuid(locks_dir, name)
+    if recorded and transcript_exists(recorded):
+        return recorded, ""
+    fallback = newest_transcript_uuid(name)
+    if fallback:
+        return fallback, (
+            f"recorded uuid {recorded or '(none)'} has no transcript on disk — "
+            f"falling back to the newest one for this session ({fallback})"
+        )
+    return None, (
+        f"no resumable transcript for '{name}' (recorded uuid: {recorded or 'none'}) — "
+        "refusing: a resume into a missing transcript kills the pane, and with it "
+        "the tmux session and its locks"
+    )
+
+
+def default_run_file_text(name: str, root: Path | str) -> str:
+    """Reconstruct a launcher run-file from scratch for a `<role>-<id>` name.
+
+    The original `.run` is not durable: the launcher's EXIT trap deletes
+    exactly that path, so the *old* process removes it while the *new* one is
+    still starting from it. After one restart there is nothing left to copy,
+    which made restart a once-per-session operation (measured live against
+    cto-0b4d93b9, 2026-08-13). Its content is fully determined by role, id and
+    repo root, so rebuild it rather than depend on the file surviving.
+
+    Mirrors what `spawn-cto.sh` / `spawn-cxo.sh` write. It does NOT carry any
+    ENV_PREFIX / GLM_PREFIX / extra CLAUDE_ARGS the original spawn may have
+    had, so a session launched with e.g. `--glm` comes back without it —
+    callers that fall back to this must say so rather than restart silently.
+    """
+    role, _, sid = name.partition("-")
+    root = Path(root)
+    if role == "cto":
+        launch = (f"export CTO_SESSION_ID='{sid}' && "
+                  f"exec bash '{root}/scripts/cto-claude.sh'")
+    else:
+        launch = (f"export CXO_SESSION_ID='{sid}' && "
+                  f"exec bash '{root}/scripts/cxo-claude.sh' --role {role}")
+    return f"#!/usr/bin/env bash\n{launch}\n"
+
+
+def strip_resume_args(line: str) -> str:
+    """Drop any existing `-r <uuid>` / `--resume <uuid>` pair from a line.
+
+    A resume run-file is itself the best template for the *next* restart, but
+    it already carries the previous target. Appending a second `-r` would hand
+    claude two conflicting resume ids.
+    """
+    parts = line.split()
+    out: list[str] = []
+    skip = False
+    for part in parts:
+        if skip:
+            skip = False
+            continue
+        if part in ("-r", "--resume"):
+            skip = True
+            continue
+        out.append(part)
+    return " ".join(out)
+
+
+def write_resume_run_file(locks_dir: Path | str, name: str, uuid: str,
+                          root: Path | str = ROOT) -> tuple[Path, bool]:
+    """Write a resume run-file for `name`. Returns (path, rebuilt_from_scratch).
+
+    Written to `<name>.resume.run`, never to `<name>.run`: the launcher's EXIT
+    trap deletes `<name>.run`, and because the old process's trap fires while
+    the new one is booting, writing there is a race we would keep losing. This
+    path belongs to nobody else.
+
+    Template preference, highest fidelity first: the live `.run` (it carries
+    whatever env and args the original spawn used), then a previous
+    `.resume.run`, then a reconstruction. `rebuilt_from_scratch` reports the
+    last case so the caller can warn that spawn-time extras were dropped.
+    """
+    resume_run = Path(locks_dir) / f"{name}.resume.run"
     original = read_run_file(locks_dir, name)
     if original is None:
-        raise FileNotFoundError(
-            f"no run-file at {run_file_path(locks_dir, name)} to base the resume on"
-        )
-    path = run_file_path(locks_dir, name)
-    path.write_text(build_resume_run_file_text(original, uuid))
-    path.chmod(0o755)
-    return path
+        try:
+            original = resume_run.read_text()
+        except OSError:
+            original = None
+    rebuilt = original is None
+    if rebuilt:
+        original = default_run_file_text(name, root)
+
+    resume_run.write_text(build_resume_run_file_text(original, uuid))
+    resume_run.chmod(0o755)
+    return resume_run, rebuilt
 
 
 def respawn_pane(name: str, run_file: Path | str) -> subprocess.CompletedProcess:
@@ -341,15 +459,21 @@ def _cmd_check(args: argparse.Namespace) -> int:
 
 
 def _cmd_build_run_file(args: argparse.Namespace) -> int:
-    uuid = read_uuid(args.locks_dir, args.name)
+    uuid, note = resolve_resume_uuid(args.locks_dir, args.name)
+    if note:
+        print(f"terminal-restart: {note}", file=sys.stderr)
     if not uuid:
-        print(f"no resume UUID for '{args.name}' at {args.locks_dir}", file=sys.stderr)
         return 1
     try:
-        path = write_resume_run_file(args.locks_dir, args.name, uuid)
+        path, rebuilt = write_resume_run_file(args.locks_dir, args.name, uuid)
     except (FileNotFoundError, ValueError) as e:
         print(str(e), file=sys.stderr)
         return 1
+    if rebuilt:
+        # stderr, not stdout — the caller captures stdout as the path.
+        print(f"terminal-restart: no launcher run-file left for '{args.name}' — "
+              "rebuilt from defaults. Any spawn-time extras (e.g. --glm, extra "
+              "env) are NOT carried over.", file=sys.stderr)
     print(str(path))
     return 0
 

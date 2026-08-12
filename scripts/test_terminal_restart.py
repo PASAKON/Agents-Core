@@ -21,6 +21,7 @@ Run via: python scripts/test_terminal_restart.py
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 import uuid as uuid_mod
@@ -136,20 +137,101 @@ def test_build_run_file_has_uuid_and_env() -> bool:
     (locks_dir / f"{name}.run").write_text(original)
     u = _write_uuid(locks_dir, name)
 
-    path = tr.write_resume_run_file(locks_dir, name, u)
+    path, rebuilt = tr.write_resume_run_file(locks_dir, name, u)
     text = path.read_text()
     return (f"-r {u}" in text
            and "export CTO_SESSION_ID='runfile1'" in text
-           and "cto-claude.sh" in text)
+           and "cto-claude.sh" in text
+           and rebuilt is False
+           # never clobber .run — the launcher's EXIT trap owns that path
+           and path.name.endswith(".resume.run"))
 
 
-def test_build_run_file_missing_original_raises() -> bool:
+def test_build_run_file_rebuilds_when_original_gone() -> bool:
+    """The launcher deletes .run on exit, so restart #2 has nothing to copy.
+
+    Measured live on cto-0b4d93b9 (2026-08-13): the first restart succeeded and
+    the second refused with "no run-file ... to base the resume on", making
+    restart a once-per-session operation. Rebuild instead of failing.
+    """
     locks_dir = _fresh_locks_dir()
-    try:
-        tr.write_resume_run_file(locks_dir, "cto-gone", "fake-uuid")
-    except FileNotFoundError:
-        return True
-    return False
+    name = "cto-rebuild1"
+    u = _write_uuid(locks_dir, name)          # uuid present, .run absent
+    path, rebuilt = tr.write_resume_run_file(locks_dir, name, u, root="/fake/root")
+    text = path.read_text()
+    return (rebuilt is True
+           and f"-r {u}" in text
+           and "export CTO_SESSION_ID='rebuild1'" in text
+           and "/fake/root/scripts/cto-claude.sh" in text)
+
+
+def test_build_run_file_second_restart_has_one_resume_flag() -> bool:
+    """Restarting twice must not stack two conflicting `-r` ids."""
+    locks_dir = _fresh_locks_dir()
+    name = "cto-twice1"
+    u1 = _write_uuid(locks_dir, name)
+    tr.write_resume_run_file(locks_dir, name, u1, root="/fake/root")
+    u2 = "second-uuid-aaaa-bbbb-twice1"
+    path, _ = tr.write_resume_run_file(locks_dir, name, u2, root="/fake/root")
+    text = path.read_text()
+    return text.count(" -r ") == 1 and u2 in text and u1 not in text
+
+
+def _fake_transcripts(tmpdir: Path, uuids: list[str]) -> Path:
+    """Build a fake ~/.claude/projects tree holding `uuids` as .jsonl files."""
+    proj = tmpdir / "projects" / "-fake-slug"
+    proj.mkdir(parents=True, exist_ok=True)
+    for i, u in enumerate(uuids):
+        f = proj / f"{u}.jsonl"
+        f.write_text("{}\n")
+        os.utime(f, (1000 + i, 1000 + i))     # ascending mtime: last = newest
+    return tmpdir / "projects"
+
+
+def test_resolve_uuid_uses_recorded_when_transcript_exists() -> bool:
+    locks_dir = _fresh_locks_dir()
+    name = "cto-good111"
+    u = _write_uuid(locks_dir, name)
+    with mock.patch.object(tr, "TRANSCRIPTS", _fake_transcripts(Path(tempfile.mkdtemp()), [u])):
+        got, note = tr.resolve_resume_uuid(locks_dir, name)
+    return got == u and note == ""
+
+
+def test_resolve_uuid_falls_back_when_transcript_missing() -> bool:
+    """The .uuid can name a session that never wrote a transcript.
+
+    `--fork-session` mints a new id at boot; claude only writes the .jsonl once
+    the session takes a turn. Restart-then-never-speak leaves .uuid pointing at
+    nothing, and resuming into nothing killed cto-0b4d93b9 outright on
+    2026-08-13. Fall back to the newest transcript this session really has.
+    """
+    locks_dir = _fresh_locks_dir()
+    name = "cto-fall111"
+    real_old = "aaaaaaaa-0000-0000-0000-00000fall111"
+    real_new = "bbbbbbbb-0000-0000-0000-00000fall111"
+    (locks_dir / f"{name}.uuid").write_text("never-written-uuid-fall111")
+    with mock.patch.object(tr, "TRANSCRIPTS",
+                           _fake_transcripts(Path(tempfile.mkdtemp()), [real_old, real_new])):
+        got, note = tr.resolve_resume_uuid(locks_dir, name)
+    return got == real_new and "falling back" in note
+
+
+def test_resolve_uuid_refuses_when_no_transcript_at_all() -> bool:
+    """No transcript anywhere: refuse rather than kill the pane by resuming."""
+    locks_dir = _fresh_locks_dir()
+    name = "cto-none111"
+    (locks_dir / f"{name}.uuid").write_text("ghost-uuid-none111")
+    with mock.patch.object(tr, "TRANSCRIPTS", _fake_transcripts(Path(tempfile.mkdtemp()), [])):
+        got, note = tr.resolve_resume_uuid(locks_dir, name)
+    return got is None and "refusing" in note
+
+
+def test_default_run_file_text_cxo_shape() -> bool:
+    """A non-cto role rebuilds through cxo-claude.sh with --role."""
+    t = tr.default_run_file_text("cmo-abc123", "/fake/root")
+    return ("export CXO_SESSION_ID='abc123'" in t
+           and "/fake/root/scripts/cxo-claude.sh" in t
+           and "--role cmo" in t)
 
 
 # ---------------------------------------------------------------------------
@@ -233,8 +315,20 @@ def main() -> int:
     print("== run-file: -r <uuid> + original env ==")
     _mark(test_build_run_file_has_uuid_and_env(),
           "run-file contains -r <uuid> and the original env export")
-    _mark(test_build_run_file_missing_original_raises(),
-          "raises when there is no original run-file to base the resume on")
+    _mark(test_build_run_file_rebuilds_when_original_gone(),
+          "rebuilds from defaults when the launcher already deleted .run")
+    _mark(test_build_run_file_second_restart_has_one_resume_flag(),
+          "a second restart carries exactly one -r, pointing at the new uuid")
+    _mark(test_default_run_file_text_cxo_shape(),
+          "non-cto roles rebuild through cxo-claude.sh --role")
+
+    print("== resume uuid must have a transcript behind it ==")
+    _mark(test_resolve_uuid_uses_recorded_when_transcript_exists(),
+          "uses the recorded uuid when its transcript exists")
+    _mark(test_resolve_uuid_falls_back_when_transcript_missing(),
+          "falls back to the newest real transcript when .uuid names none")
+    _mark(test_resolve_uuid_refuses_when_no_transcript_at_all(),
+          "refuses when no transcript exists at all (never resume into nothing)")
 
     print("== respawn: right target, never kill-session ==")
     _mark(test_respawn_issues_respawn_pane_not_kill_session(),
