@@ -74,7 +74,8 @@ def main():
         result = call("create_file", name=name, parentId=parent_id, content=content)
     elif action == "create_doc":
         name, parent_id = args[0], args[1]
-        result = call("create_doc", name=name, parentId=parent_id)
+        content = args[2] if len(args) > 2 else ""
+        result = call("create_doc", name=name, parentId=parent_id, content=content)
     elif action == "read_file":
         (file_id,) = args
         result = call("read_file", fileId=file_id)

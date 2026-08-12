@@ -47,7 +47,7 @@ function doPost(e) {
         result = createTextFile(body.name, body.parentId, body.content);
         break;
       case 'create_doc':
-        result = createDoc(body.name, body.parentId);
+        result = createDoc(body.name, body.parentId, body.content);
         break;
       case 'read_file':
         result = readTextFile(body.fileId);
@@ -167,13 +167,17 @@ function createTextFile(name, parentId, content) {
  * อนุญาตให้เรียกใช้ DocumentApp.create". Creating the doc as a Drive file
  * needs no scope the bridge does not already hold.
  */
-function createDoc(name, parentId) {
+function createDoc(name, parentId, content) {
   var resource = {
     name: name,
     mimeType: 'application/vnd.google-apps.document',
     parents: parentId ? [parentId] : []
   };
-  var created = Drive.Files.create(resource, null, { fields: 'id,name' });
+  // Uploading an HTML blob against the Docs mimeType makes Drive convert it on
+  // the way in, so the doc arrives with its content already formatted — no
+  // second call and no DocumentApp scope to write the body.
+  var media = content ? Utilities.newBlob(content, 'text/html', name + '.html') : null;
+  var created = Drive.Files.create(resource, media, { fields: 'id,name' });
   return {
     id: created.id,
     name: created.name,
