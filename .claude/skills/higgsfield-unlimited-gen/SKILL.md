@@ -182,6 +182,25 @@ chars, no truncation). Reference: mooniex-agents task-7b4402d4.
   `DataTransfer.setData('text/plain', ...)` **only**. Also setting
   `text/html` causes a double-paste bug (content inserted twice). Verify the
   resulting text length before ever touching Generate.
+- **A correct paste can still fail to reach the app's form state.** Measured
+  2026-08-12 (task-cda4f469): Generate was refused four times in a row with
+  the literal error **"Prompt > Instruction: Prompt is required"** while the
+  editor demonstrably held the text — read-back gave `innerText` 2216 chars
+  and `__lexicalTextContent` 2417 chars, correct content, right node, decoy
+  already filtered out. The paste reaches Lexical but never binds to the
+  React state Higgsfield validates against, so the app believes the field is
+  empty. **Do not read this error as a content rejection or a bad prompt** —
+  the identical text had generated successfully minutes earlier. It showed up
+  specifically on the *second consecutive submission of the same prompt*.
+- **For any repeat of a prompt that already generated once — a spare, a
+  retry, a second variant — do not paste at all. Use Recreate.** Hover the
+  successful card's thumbnail, confirm the tooltip reads Recreate (never
+  Rerun), and click it. Higgsfield loads its own prompt and references through
+  its own code path, which fills the form state correctly by construction: no
+  paste, no decoy, no desync. Confirmed working immediately after four paste
+  failures on the same shot. It is also faster than pasting. If Recreate is
+  genuinely unavailable, reload the page fully and paste into a clean
+  composer.
 - **Recreate button reliability**: its on-screen position shifts with
   thumbnail width (cards with different reference-image counts render
   different thumbnail widths), and it only mounts in the DOM on real hover,
