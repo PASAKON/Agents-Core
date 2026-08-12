@@ -217,12 +217,14 @@ Google Drive (root) — pass.gob1@gmail.com
 │       │                          other channels use — see the "YT: ILAG"
 │       │                          section below; this branch has its own rules.
 │       └── Do Not Disturb/        one PROJECT = one film/episode
-│           ├── logs.txt           MANDATORY, one per project. See below.
-│           ├── All Sence/         AI-generated footage, one folder per scene
-│           │   ├── S1/ … S6/      currently named "1".."6" — rename pending
+│           ├── logs.txt           MANDATORY, one per project — ⚠ NOT CREATED
+│           │                      YET, blocked on the Apps Script redeploy
+│           ├── All Scene/         AI-generated footage, one folder per scene
+│           │   ├── S1/ … S8/      renamed from "1".."6" on 2026-08-12;
+│           │   │                  S7 + S8 created empty the same day
 │           │   └── (S1-A, S1-B…)  sub-shots / repair takes, siblings of S1
 │           ├── Soundtrack/        music + SFX + voice for this film
-│           └── StoryBoard (Doc)   whole film's storyboard in one doc
+│           └── StoryBoard (Doc)   ⚠ NOT CREATED YET — same redeploy blocker
 ├── BACKUP/                       NEW 2026-08-04. Important data that doesn't
 │   │                             fit any other folder / can't be categorized,
 │   │                             or redundant copies the CEO wants kept in
@@ -303,7 +305,7 @@ channel — they keep the ordinary per-clip production-stage layout.
 YT: ILAG/
 └── <film title>/          ← one PROJECT = one film/episode
     ├── logs.txt           ← mandatory, one per project, never shared
-    ├── All Sence/         ← AI-generated footage, one sub-folder per scene
+    ├── All Scene/         ← AI-generated footage, one sub-folder per scene
     │   ├── S1/ S2/ S3/ …
     │   └── S3-A/ S3-B/ …  ← sub-shots, SIBLINGS of S3 (not inside it)
     ├── Soundtrack/        ← music + SFX + voice for this film
@@ -352,7 +354,7 @@ rewrites TABs and any tab-separated parse breaks without an error.
 | 4 | `type` | `FILE` · `FOLDER` |
 | 5 | `name` | the file/folder name at that moment |
 | 6 | `link` | full Drive URL, clickable. The ID is recoverable from it |
-| 7 | `where` | path under the project root, e.g. `All Sence/S3-A` |
+| 7 | `where` | path under the project root, e.g. `All Scene/S3-A` |
 | 8 | `n` | how many items that folder holds **after** this action (`-` if N/A) |
 | 9 | `note` | reason, previous name, or `backfill <D-M-YYYY>` |
 
@@ -360,9 +362,9 @@ rewrites TABs and any tab-separated parse breaks without an error.
 # logs.txt — Do Not Disturb (ILAG Studio)
 # APPEND-ONLY. Never edit or delete an existing line.
 # ts | actor | action | type | name | link | where | n | note
-2026-08-11T18:03:10+07:00 | AI:browser_operator-task-cda4f469 | ADD | FILE | hf_20260811_180310_<uuid>.mp4 | https://drive.google.com/file/d/<id>/view | All Sence/S1 | 3 | Higgsfield Seedance 2.5 · take 2
-2026-08-12T09:12:00+07:00 | EDITOR | DELETE | FILE | S3-A_take4.mp4 | https://drive.google.com/file/d/<id>/view | All Sence/S3-A | 7 | backfill 12-08-2026 · found missing during reconcile
-2026-08-12T20:40:11+07:00 | CEO | ADD | FILE | S3-A_take8.mp4 | https://drive.google.com/file/d/<id>/view | All Sence/S3-A | 8 | 8th take of S3-A
+2026-08-11T18:03:10+07:00 | AI:browser_operator-task-cda4f469 | ADD | FILE | hf_20260811_180310_<uuid>.mp4 | https://drive.google.com/file/d/<id>/view | All Scene/S1 | 3 | Higgsfield Seedance 2.5 · take 2
+2026-08-12T09:12:00+07:00 | EDITOR | DELETE | FILE | S3-A_take4.mp4 | https://drive.google.com/file/d/<id>/view | All Scene/S3-A | 7 | backfill 12-08-2026 · found missing during reconcile
+2026-08-12T20:40:11+07:00 | CEO | ADD | FILE | S3-A_take8.mp4 | https://drive.google.com/file/d/<id>/view | All Scene/S3-A | 8 | 8th take of S3-A
 ```
 
 ### Rules for any agent entering a YT: ILAG project folder
@@ -389,8 +391,8 @@ rewrites TABs and any tab-separated parse breaks without an error.
 
 ```
 --- SNAPSHOT 2026-08-12T21:00+07:00 by AI:cto-<sid> ---
-All Sence/S1    3 files
-All Sence/S3-A  8 files
+All Scene/S1    3 files
+All Scene/S3-A  8 files
 Soundtrack      0 files
 StoryBoard      Doc · last edited 12-08-2026
 --- END ---
@@ -419,9 +421,9 @@ StoryBoard      Doc · last edited 12-08-2026
 | `ALL DRAFT/LUNGNOTE` | `1luO-_NW1eKmT7gfbQbKMDSrcpoG9iyKG` | Video project folder for LungNote (real Mooniex project name — was misspelled `LUNENOTE`, fixed 2026-08-04). Same name as `PROJECT/LUNGNOTE` on purpose: that one holds LungNote's non-video docs/images/billing, this one holds its video/footage — same split pattern as MOONIEX. Confirmed 2026-08-05 — same per-clip / production-stage pattern as `BLACK LIQUIDITY`; `DAY0/` already shows the Audio/Finals structure. |
 | `ALL DRAFT/TRADE TO THE MOON` | `11YGzdDAtKyJVSS9VkKyX9on8_AmQ6A18` | Confirmed 2026-08-05 — same pattern as `BLACK LIQUIDITY`: one sub-folder per clip (TTTM-titled), production-stage sub-folders inside each. |
 | `ALL DRAFT/YT: ILAG` | `1Pczc2QfRilB2DoGUVl7ZPPSwy-cbF6KN` | Defined 2026-08-12. YouTube channel of **AI-generated short films**, ILAG Studio brand. "ILAG" is not an acronym. Does NOT use the per-clip production-stage layout of the other channels — see the "YT: ILAG" section above for its own layout, `S<n>` scene naming, and the mandatory per-project `logs.txt`. |
-| `YT: ILAG/Do Not Disturb` | `1GT_h_D6pMMpPuspoP7d_lXz9dzZQAt6w` | Defined 2026-08-12. One **project** = one film/episode; `Do Not Disturb` is the episode title (horror short for the Higgsfield Global Film Festival, deadline 2026-09-03). Holds everything needed to hand the film to an editor: `All Sence/`, `Soundtrack/`, the `StoryBoard` doc, and its own `logs.txt`. |
-| `Do Not Disturb/All Sence` | `159zXCuZ3AJylUQdgQu5O6fvzclXa4KHa` | Defined 2026-08-12. AI-generated footage for this film, **one sub-folder per scene**. Name as recorded — CEO has not yet ruled on correcting the "Sence" spelling to "Scene", so do not rename it unprompted. |
-| `All Sence/1` … `All Sence/6` | `1h6mB9hyrpWqEJ4OnneBY5R1BpGb3CMRr` (1), `1ca-56TDlBa9UiKVIlwi3Wmk7X-spaFQ5` (2), `1z-lE7kh1fQVwZGw9W6mSnST1ftPAt6RT` (3), `11YIz4-mByH5qj0jAhl8st2bLoFTOkjZX` (4), `1jHvoTrzrR0hywHVop0YubQuzUIUpbWWL` (5), `1Bkm4vVYe4SAK1IjpWo7ciba8oWe5-TI6` (6) | One folder per generated scene. **Names are pending a rename to `S1`–`S6`** — the CEO set `S<n>` as the standard 2026-08-12 so future `S1-A`/`S1-B` sub-shots read unambiguously. As of the 2026-08-12 survey: scene 1 held 3 clips, scene 2 held 1, scenes 3–6 were empty. Clips carry raw Higgsfield names (`hf_<timestamp>_<uuid>.mp4`); the `AI Assets` renaming convention does **not** apply here. |
+| `YT: ILAG/Do Not Disturb` | `1GT_h_D6pMMpPuspoP7d_lXz9dzZQAt6w` | Defined 2026-08-12. One **project** = one film/episode; `Do Not Disturb` is the episode title (horror short for the Higgsfield Global Film Festival, deadline 2026-09-03). Holds everything needed to hand the film to an editor: `All Scene/`, `Soundtrack/`, the `StoryBoard` doc, and its own `logs.txt`. |
+| `Do Not Disturb/All Scene` | `159zXCuZ3AJylUQdgQu5O6fvzclXa4KHa` | Defined 2026-08-12. AI-generated footage for this film, **one sub-folder per scene**. Renamed from the misspelled `All Sence` on 2026-08-12 (CEO approved). |
+| `All Scene/S1` … `All Scene/S8` | `1h6mB9hyrpWqEJ4OnneBY5R1BpGb3CMRr` (S1), `1ca-56TDlBa9UiKVIlwi3Wmk7X-spaFQ5` (S2), `1z-lE7kh1fQVwZGw9W6mSnST1ftPAt6RT` (S3), `11YIz4-mByH5qj0jAhl8st2bLoFTOkjZX` (S4), `1jHvoTrzrR0hywHVop0YubQuzUIUpbWWL` (S5), `1Bkm4vVYe4SAK1IjpWo7ciba8oWe5-TI6` (S6), `1xu3FF6CNOLUEjxALAJVo5lUf_lruL8so` (S7), `16W65_TjjmSDxJfQfO1kqh-RRJ9rH0h1e` (S8) | One folder per generated scene. Renamed from bare numbers `1`–`6` to `S1`–`S6` on 2026-08-12 so future `S1-A`/`S1-B` sub-shots read unambiguously; `S7` and `S8` created empty the same day (the film runs to Scene 8 — the Higgsfield project already has `Sence 7`/`Sence 8`). As of that date: S1 held 3 clips, S2 held 1, S3–S8 empty. Clips carry raw Higgsfield names (`hf_<timestamp>_<uuid>.mp4`); the `AI Assets` renaming convention does **not** apply here. |
 | `Do Not Disturb/Soundtrack` | `1BcwtvPSSGN4kQwuYnerWYyPrLF3iAwjQ` | Defined 2026-08-12 — music **plus SFX and voice** for this film (CEO confirmed when asked "music only, or music + SFX + voice too"). Empty as of the 2026-08-12 survey. |
 | `BACKUP` (root) | `1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq` | NEW 2026-08-04. Important data that doesn't belong to / can't be categorized into any other folder, specifically related to backing up or redundantly storing data in 2-3 places. Can be temporary or permanent. |
 | `BACKUP/FaceBook Backup` | `1cNHt6bg7-ggXf8ec6DChzouUrw3nUGig` | Meta "Download Your Information" auto-export bundles — rarely actually used. Moved here from Drive root 2026-08-04 (was a root-level folder). Meta's export flow has no destination-folder setting, so new `meta-*` exports will keep landing at Drive root — move each one into this folder manually/by AI when found. The old stray `meta-2026-Jun-18-22-41-35` was merged in here 2026-08-04. |
