@@ -237,6 +237,37 @@ baseline is a reference point, not a budget.
    fully completed regardless of what the tool call reported back. Don't
    assume a failed call = no side effect.
 
+## The composer silently resets its settings — check the spec, not just the price
+
+Hard rule 3 covers the Unlimited toggle resetting to OFF. **It is not the only
+control that drifts.** Observed 2026-08-13 on Scene 9C: the resolution had
+silently reverted to **480p** between generations, caught only because the
+operator re-read the settings before clicking rather than trusting them.
+
+This is a different class of failure from the credit rules, and more
+insidious, because nothing stops it:
+
+- A 480p clip **completes normally**, shows a normal card, downloads normally,
+  and mirrors to Drive normally.
+- It costs nothing, so no money check catches it.
+- It is off-spec footage that surfaces at **edit time**, after the account's
+  one-at-a-time serial slot has already been spent producing it.
+
+**Re-verify the full spec immediately before every Generate click**, the same
+way the zero-digit price check is done — not just the Unlimited toggle. For
+this project the locked spec is **20s / 720p / Seedance 2.5 / High / Sound ON**
+(CEO: *"ปรับ ค่าเป็น 20s 720p Seedance 2.5 High 1/4 SOund ON Seedance 2.5 เสมอ"*).
+
+Also read it back on **completed** cards, which display their real resolution
+and duration: a clip generated off-spec earlier is invisible until someone
+looks for it.
+
+**What Unlimited is actually saving:** on the same day, the toggle struck a
+20s/720p Seedance 2.5 generation from **450 credits to 0** — $18 a clip at the
+$0.04 rate. That is the concrete stake behind the zero-digit check, and a
+useful "before" value: 450 struck through means the toggle is working; 450
+*not* struck through is $18 about to leave the account.
+
 ## Editor gotchas (Higgsfield's prompt box is Lexical/contenteditable)
 
 - **Clearing**: use a real Cmd/Ctrl+A + Delete keypress via the driving
