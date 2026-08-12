@@ -226,6 +226,25 @@ def test_resolve_uuid_refuses_when_no_transcript_at_all() -> bool:
     return got is None and "refusing" in note
 
 
+def test_capture_refuses_without_resumable_transcript() -> bool:
+    """session-restart must refuse BEFORE the teardown, not after.
+
+    terminal-restart survives a bad uuid because tmux is still standing.
+    session-restart kills tmux first, so the same mistake there is a destroyed
+    session — the refusal has to land while it is still cheap.
+    """
+    locks_dir = _fresh_locks_dir()
+    name = "cto-ghost11"
+    (locks_dir / f"{name}.uuid").write_text("ghost-uuid-ghost11")
+    dest = Path(tempfile.mkdtemp()) / f"{name}.json"
+    with mock.patch.object(tr, "TRANSCRIPTS", _fake_transcripts(Path(tempfile.mkdtemp()), [])):
+        try:
+            tr.capture_identity(locks_dir, name, dest)
+        except FileNotFoundError:
+            return not dest.exists()
+    return False
+
+
 def test_default_run_file_text_cxo_shape() -> bool:
     """A non-cto role rebuilds through cxo-claude.sh with --role."""
     t = tr.default_run_file_text("cmo-abc123", "/fake/root")
@@ -264,7 +283,12 @@ def test_capture_survives_reap_locks() -> bool:
 
     dest_dir = Path(tempfile.mkdtemp(prefix="terminal-restart-capture-"))
     dest = dest_dir / f"{name}.json"
-    tr.capture_identity(locks_dir, name, dest)
+    # capture_identity now resolves rather than reads, so the uuid needs a
+    # transcript behind it — session-restart tears the stack down before it
+    # rebuilds, and a uuid that cannot be resumed there costs the session.
+    with mock.patch.object(tr, "TRANSCRIPTS",
+                           _fake_transcripts(Path(tempfile.mkdtemp()), [u])):
+        tr.capture_identity(locks_dir, name, dest)
 
     # Simulate session-kill.sh's reap_locks: delete every LOCK_SUFFIXES file
     # (mirrors tools.session_name.KEEP_SUFFIXES leaving .uuid alone, but the
@@ -329,6 +353,8 @@ def main() -> int:
           "falls back to the newest real transcript when .uuid names none")
     _mark(test_resolve_uuid_refuses_when_no_transcript_at_all(),
           "refuses when no transcript exists at all (never resume into nothing)")
+    _mark(test_capture_refuses_without_resumable_transcript(),
+          "session-restart refuses BEFORE teardown when nothing is resumable")
 
     print("== respawn: right target, never kill-session ==")
     _mark(test_respawn_issues_respawn_pane_not_kill_session(),

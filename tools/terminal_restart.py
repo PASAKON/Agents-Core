@@ -425,10 +425,18 @@ def capture_identity(locks_dir: Path | str, name: str, dest: Path | str) -> Path
     for, so session-restart.sh still has the id even if `.uuid` were ever
     hand-deleted between the capture and the rebuild.
     """
-    uuid = read_uuid(locks_dir, name)
+    # Resolve, don't just read: session-restart tears the stack down BEFORE it
+    # rebuilds, so a uuid with no transcript behind it is not a failed restart,
+    # it is a destroyed session. Refusing here is the last moment it is still
+    # cheap. (terminal-restart survives the same mistake because tmux is still
+    # standing; this one does not.)
+    uuid, note = resolve_resume_uuid(locks_dir, name)
+    if note:
+        print(f"session-restart: {note}", file=sys.stderr)
     if not uuid:
         raise FileNotFoundError(
-            f"no .uuid for '{name}' at {locks_dir} — cannot capture, nothing to resume"
+            f"no resumable transcript for '{name}' — refusing to tear down a "
+            "session we could not bring back"
         )
     role = session_name.parse_role(name)
     session_id = session_name.id_from_tmux_session(name)

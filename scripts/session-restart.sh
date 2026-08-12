@@ -78,10 +78,15 @@ echo "  worktrees are untouched — only the tmux+claude stack is torn down." >&
 VERIFY_DELAY=25
 DELAY=4
 
+# Resume by the FULL uuid the capture resolved, never by the short id.
+# `--resume <sid>` makes spawn-cto.sh re-read state/locks/<name>.uuid itself —
+# exactly the unverified value this script just went to the trouble of
+# resolving — and by this point the old session is already torn down, so a
+# resume into a missing transcript has nothing left to fall back to.
 if [ "$ROLE" = "cto" ]; then
-  SPAWN_CMD="bash '$ROOT/scripts/spawn-cto.sh' --id '$SID' --resume '$SID'"
+  SPAWN_CMD="bash '$ROOT/scripts/spawn-cto.sh' --id '$SID' --resume '$UUID'"
 else
-  SPAWN_CMD="bash '$ROOT/scripts/spawn-cxo.sh' --role '$ROLE' --id '$SID' --resume '$SID'"
+  SPAWN_CMD="bash '$ROOT/scripts/spawn-cxo.sh' --role '$ROLE' --id '$SID' --resume '$UUID'"
 fi
 
 CURRENT=""
