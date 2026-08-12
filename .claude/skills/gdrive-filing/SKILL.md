@@ -320,13 +320,39 @@ YT: ILAG/
     ├── All Scene/         ← AI-generated footage, one sub-folder per scene
     │   ├── S1/ S2/ S3/ …
     │   └── S3-A/ S3-B/ …  ← sub-shots, SIBLINGS of S3 (not inside it)
-    ├── Element/           ← reference plates fed to the generator
-    │   ├── Character/
-    │   ├── Location/
-    │   └── Prop/
-    ├── Soundtrack/        ← music + SFX + voice for this film
+    ├── Element/           ← the @Element plates. EXACTLY ONE per project.
+    │   └── <anything>/    ← sub-folders named by the director, not by us
+    ├── Soundtrack/        ← everything audio
+    │   └── <anything>/    ← SFX / Ambient / Audio / … director's call
+    ├── Final Draft/       ← what the editor hands back, finished
     └── StoryBoard         ← Google Doc: whole film's storyboard, one doc
 ```
+
+### Who names things here — not us (CEO 2026-08-12)
+
+`Element/` holds the `@Element` plates that the **video generator, the script
+writer and the director** reference by name. Naming them is *their* call, not
+ours:
+
+> "สิทธ์ในการตั้งชื่อขึ้นอยู่กับเขา ไม่ใช่เรา เรามีหน้าที่แค่บันทึกลงไป"
+
+So:
+
+- **Never rename a plate or an `Element` sub-folder to make it consistent.** A
+  name that looks wrong to us may be the exact string a prompt resolves against
+  (`@Motel-Front`). Record what is there; do not tidy it.
+- **Every project has exactly one `Element/` folder.** Inside it, sub-folders may
+  be called anything the director likes; the real plates live one level down and
+  get reused from there.
+- The same applies to `Soundtrack/`: it holds **everything audio** for the film,
+  split into whatever sub-folders make it easy for the editor to grab — `SFX`,
+  `Ambient`, `Audio`, any name that serves them.
+- `Final Draft/` is where the editor returns the finished cut, matching the
+  `Final Draft` stage folder the MYPASAKON project already uses.
+
+The one place we *did* pick a spelling — `Element/Character` where the local
+mirror says `Charactor` — was an explicit CEO decision on 2026-08-12, not a
+tidy-up. Nothing since then licenses another one.
 
 ### The local mirror and `ilag_sync.py`
 
@@ -433,11 +459,16 @@ oversights. Rule 7 applies: get the CEO's answer, do not guess one.
 
 | open question | why it matters |
 |---|---|
-| File naming inside `Element/` | Plates currently mix conventions: `Prop/` files carry a `Prop-` prefix (`Prop-Ring.webp`) while `Character/` and `Location/` do not (`Mother.webp`, `Motel-Lobby.webp`). Prompts reference plates by name (`@Motel-Front`), so drift here breaks prompt lookups. |
-| File naming inside `Soundtrack/` | Empty so far. Nothing says how to tell music from SFX from voice once it fills up. |
-| Where the finished cut lives | The project is a handoff package to an editor, but no folder is defined for what the editor hands back. |
-| Whether a split scene keeps its bare `S<n>` | The "split replaces the bare folder" line in *Scene folder naming* is the CTO's inference from the CEO's wording, **not** something the CEO confirmed. Confirm before relying on it. |
-| Whether the scene prompts belong in Drive | They live in a DEV worktree (`PROMPTS.md`) today, so the editor's handoff package does not include the prompts that produced the footage. |
+| Whether a split scene keeps its bare `S<n>` | The "split replaces the bare folder" line in *Scene folder naming* is the CTO's inference from the CEO's wording, **not** something the CEO confirmed. Until it is, do not assume a scene's footage lives in only one of `S3` / `S3-A`+`S3-B` — check both. |
+
+Answered 2026-08-12, kept here so the reasoning is not lost:
+
+- **Naming inside `Element/` and `Soundtrack/`** — not ours to define. See "Who
+  names things here" above.
+- **Where the finished cut lives** — `Final Draft/`, same as MYPASAKON.
+- **Whether the scene prompts belong in Drive** — **no.** The editor receives
+  footage that is already generated and generates nothing themselves, so the
+  prompts are not part of their handoff package. They stay in the DEV worktree.
 
 ### Rules for any agent entering a YT: ILAG project folder
 
@@ -496,10 +527,11 @@ StoryBoard      Doc · last edited 12-08-2026
 | `YT: ILAG/Do Not Disturb` | `1GT_h_D6pMMpPuspoP7d_lXz9dzZQAt6w` | Defined 2026-08-12. One **project** = one film/episode; `Do Not Disturb` is the episode title (horror short for the Higgsfield Global Film Festival, deadline 2026-09-03). Holds everything needed to hand the film to an editor: `All Scene/`, `Element/`, `Soundtrack/`, the `StoryBoard` doc, and its own `logs.txt`. |
 | `Do Not Disturb/All Scene` | `159zXCuZ3AJylUQdgQu5O6fvzclXa4KHa` | Defined 2026-08-12. AI-generated footage for this film, **one sub-folder per scene**. Renamed from the misspelled `All Sence` on 2026-08-12 (CEO approved). |
 | `All Scene/S1` … `All Scene/S16` | S1 `1h6mB9hyrpWqEJ4OnneBY5R1BpGb3CMRr` · S2 `1ca-56TDlBa9UiKVIlwi3Wmk7X-spaFQ5` · S3 `1z-lE7kh1fQVwZGw9W6mSnST1ftPAt6RT` · S4 `11YIz4-mByH5qj0jAhl8st2bLoFTOkjZX` · S5 `1jHvoTrzrR0hywHVop0YubQuzUIUpbWWL` · S6 `1Bkm4vVYe4SAK1IjpWo7ciba8oWe5-TI6` · S7 `1xu3FF6CNOLUEjxALAJVo5lUf_lruL8so` · S8 `16W65_TjjmSDxJfQfO1kqh-RRJ9rH0h1e` · S9 `1C46LZWjVgimtPEBobFzuPHnifHNlxqMl` · S10 `1JhIOGMNiWERLAI8NNqYYD9Ktg8itulcZ` · S11 `1UUr-xoemX6WAFVF-ziIkU2Qwlvbamb8P` · S12 `1Vxsi_fJPHJjGeWvz32orHjYQTxP2St7I` · S13 `1ajLMdhz0UovCONTX45gxmP3hsekGj7dr` · S14 `1cFrb9DsVK5eCZoti3Kvd_cyaKR3oov7x` · S15 `1YaN2Wrr_3BScYxj5EIZr5bkvYbVxzsNz` · S16 `1dDHOHkxojnvfJYPg6DWt7aOFYd7trWqu` | One folder per generated scene; the film runs to **16 scenes**. Renamed from bare numbers `1`–`6` to `S1`–`S6` on 2026-08-12 so `S1-A`/`S1-B` sub-shots read unambiguously; S7–S16 created the same day. Counts at 2026-08-12: S1 3, S2 7, S3 5, S4 9, S5 5, S6 4, S7–S16 empty. Clips keep their raw Higgsfield names (`hf_<timestamp>_<uuid>.mp4`) — the `AI Assets` renaming convention does **not** apply here. **Note:** S9 was originally a duplicate `S7` created by a retry after a 404 that had already succeeded; it was repurposed rather than deleted, so its id looks out of sequence. |
-| `Do Not Disturb/Element` | `1PcujKkvTageWpoF-k8yY2jV7T_jLIX3i` | Created 2026-08-12. Reference plates fed to the generator, split into `Character` (`1R5GbLTEsUYFHWuageqoPON0rCP5LJhx1`), `Location` (`1zsNiTRunPKJloU8U8BLwzx-KEwk3qgTI`) and `Prop` (`1rQ736mfLQUYsY8KUul29AVPjMWHb0spa`). Spellings are the CEO's corrected ones — the local mirror says `Charactor`, which `ilag_sync.py` aliases. |
+| `Do Not Disturb/Element` | `1PcujKkvTageWpoF-k8yY2jV7T_jLIX3i` | Created 2026-08-12. The `@Element` plates the generator, script writer and director reference by name. **Exactly one `Element` folder per project**; its sub-folders are named by the director, not by us — currently `Character` (`1R5GbLTEsUYFHWuageqoPON0rCP5LJhx1`), `Location` (`1zsNiTRunPKJloU8U8BLwzx-KEwk3qgTI`), `Prop` (`1rQ736mfLQUYsY8KUul29AVPjMWHb0spa`). Never rename a plate or a sub-folder here for consistency; a prompt may resolve against that exact string. |
+| `Do Not Disturb/Final Draft` | `1LReMlLCM2KhSjjQ1PDWCBatt9Tba_pao` | Created 2026-08-12. Where the editor returns the finished cut, matching the `Final Draft` production-stage folder the MYPASAKON project already uses. Empty until the first cut comes back. |
 | `Do Not Disturb/logs.txt` | `1GVmc1Cqg-97YMcCd303_1EbNFhaiIfiO` | The project log. Append-only, 9 pipe-separated fields — see the YT: ILAG section above for the contract and the reconcile-on-entry rule. |
 | `Do Not Disturb/StoryBoard` | `18nykJSEtNPstN7-gB1VmGTjs8HAovFcivhBhAVgqdRw` | Google Doc. Short synopsis, the locked story facts, the festival constraints, and a link to the director's-notebook artifact where the volatile detail lives. |
-| `Do Not Disturb/Soundtrack` | `1BcwtvPSSGN4kQwuYnerWYyPrLF3iAwjQ` | Defined 2026-08-12 — music **plus SFX and voice** for this film (CEO confirmed when asked "music only, or music + SFX + voice too"). Empty as of the 2026-08-12 survey. |
+| `Do Not Disturb/Soundtrack` | `1BcwtvPSSGN4kQwuYnerWYyPrLF3iAwjQ` | Defined 2026-08-12 — **everything audio** for this film — music, SFX, ambience, voice. Sub-folders are split by whatever kind makes it easy for the editor to grab (`SFX`, `Ambient`, `Audio`, …), named by the director rather than by us (CEO 2026-08-12). Empty as of that date. |
 | `BACKUP` (root) | `1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq` | NEW 2026-08-04. Important data that doesn't belong to / can't be categorized into any other folder, specifically related to backing up or redundantly storing data in 2-3 places. Can be temporary or permanent. |
 | `BACKUP/FaceBook Backup` | `1cNHt6bg7-ggXf8ec6DChzouUrw3nUGig` | Meta "Download Your Information" auto-export bundles — rarely actually used. Moved here from Drive root 2026-08-04 (was a root-level folder). Meta's export flow has no destination-folder setting, so new `meta-*` exports will keep landing at Drive root — move each one into this folder manually/by AI when found. The old stray `meta-2026-Jun-18-22-41-35` was merged in here 2026-08-04. |
 | `Desktop Cloud` (root) | `115w-UxOvdmPIc5X8nq_oV42EEsrVMRtR` | Cross-device sync (Desktop/Windows/Drive). Expect duplicates and off-taxonomy files — that's normal. **AI never auto-files in or out.** Search/read is fine anytime; delete only on direct CEO command. |
