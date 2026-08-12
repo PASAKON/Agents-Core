@@ -52,6 +52,7 @@ from lib.notify import info, warn
 from lib.task_ownership import is_mine, foreign_msg
 from tools import wiki as wiki_tools
 from tools.delegate import delegate_task as do_delegate, delegate_parallel
+from tools.dev_reap import close_dev as do_close_dev
 from tools.git_ops import merge_task as do_merge
 from tools.worktree import diff_summary, diff_full
 
@@ -209,6 +210,10 @@ def _h_review_diff(*, task_id: str, full: bool = False) -> str:
 
 def _h_merge_task(*, task_id: str, override_touches_check: bool = False) -> dict:
     return do_merge(task_id, role=ROLE, override_touches_check=override_touches_check)
+
+
+def _h_close_dev(*, task_id: str, reason: str = "cto: manual close") -> dict:
+    return do_close_dev(task_id, reason=reason)
 
 
 def _h_reopen_task(*, task_id: str, feedback: str) -> str:
@@ -390,6 +395,25 @@ REGISTRY: tuple[ToolSpec, ...] = (
         response_format="toon",
     ),
     ToolSpec(
+        name="close_dev",
+        description=(
+            "End a DEV whose task has reached review/done: terminate its "
+            "process and close its iTerm tab. CTO only.\n\n"
+            "This is the layer-1 decision path — normally merge_task calls "
+            "this for you; call it directly when you're closing a task out "
+            "without merging (e.g. rejected work). Refuses (without "
+            "raising) unless status is review/done and a pid is recorded — "
+            "never touches an in-progress or blocked task. Verifies the "
+            "pid still belongs to this task before signalling it (a "
+            "recycled pid is never signalled, only its tab is closed). "
+            "Idempotent — safe to call twice on the same task."
+        ),
+        params=(Param("task_id", str), Param("reason", str, "cto: manual close")),
+        handler=_h_close_dev,
+        needs_ownership_check=True,
+        response_format="toon",
+    ),
+    ToolSpec(
         name="reopen_task",
         description=(
             "Mark a task pending again with feedback. Increments iteration "
@@ -463,7 +487,7 @@ REGISTRY: tuple[ToolSpec, ...] = (
 
 BY_NAME: dict[str, ToolSpec] = {s.name: s for s in REGISTRY}
 
-assert len(REGISTRY) == 17, f"expected 17 tools, got {len(REGISTRY)}"
+assert len(REGISTRY) == 18, f"expected 18 tools, got {len(REGISTRY)}"
 
 
 def _format(spec: ToolSpec, result: Any) -> str:

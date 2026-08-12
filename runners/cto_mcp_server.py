@@ -33,6 +33,7 @@ from lib.logger import get_logger
 # (registry.py owns the real calls into them).
 from lib.task_ownership import is_mine as _is_mine, foreign_msg as _foreign_msg  # noqa: F401
 from tools.delegate import delegate_task as do_delegate, delegate_parallel  # noqa: F401
+from tools.dev_reap import close_dev as do_close_dev  # noqa: F401
 from tools.git_ops import merge_task as do_merge  # noqa: F401
 
 ROLE = "cto"
@@ -106,6 +107,11 @@ def merge_task(task_id: str, override_touches_check: bool = False) -> str:
     return reg.dispatch_sync(
         "merge_task", task_id=task_id, override_touches_check=override_touches_check,
     )
+
+
+@mcp.tool(description=reg.BY_NAME["close_dev"].description)
+def close_dev(task_id: str, reason: str = "cto: manual close") -> str:
+    return reg.dispatch_sync("close_dev", task_id=task_id, reason=reason)
 
 
 @mcp.tool(description=reg.BY_NAME["reopen_task"].description)

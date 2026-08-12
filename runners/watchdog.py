@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 import time
@@ -27,32 +26,25 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.notify import info, success, warn, error
+from tools.dev_reap import _cleanup_tmux_ttyd, _pid_alive, close_dev
 from tools.gc_stale_tasks import gc_stale_tasks
 
 PING_AFTER_S = 10 * 60
 STALL_AFTER_S = 30 * 60
 INTERVAL_S = 300
 
+# Layer 2 floor (task-78ab64ba): a DEV whose task reached review/done but
+# whose process is still alive gets reaped after this long with no C-level
+# decision (merge_task, which itself calls close_dev). This is a floor, not
+# a decider — see tools/dev_reap.py's module docstring for the two-layer
+# design the CEO ruled on 2026-08-12.
+FINISHED_REAP_AFTER_S = 60 * 60
+
 # When a DEV files a captcha/login blocker it self-flips status to
 # 'blocked_human'. We do NOT ping these (the CEO needs human time, not
 # pings) but if no human attention arrives within HUMAN_TIMEOUT_S we
 # escalate to 'stalled' + file a GH issue so the task can't sit forever.
 HUMAN_TIMEOUT_S = 24 * 3600
-
-
-def _pid_alive(pid: int | None) -> bool:
-    """True if a process with this PID exists and is reachable.
-
-    Uses kill(pid, 0) — sends no signal, just probes existence + permission.
-    Returns False for None, 0, or any error.
-    """
-    if not pid or pid <= 0:
-        return False
-    try:
-        os.kill(pid, 0)
-        return True
-    except (ProcessLookupError, PermissionError, OSError):
-        return False
 
 
 def _close_tab(task_id: str) -> bool:
@@ -67,33 +59,6 @@ def _close_tab(task_id: str) -> bool:
     except Exception as e:
         warn(f"close_tab failed for {task_id}: {e}")
         return False
-
-
-def _cleanup_tmux_ttyd(task: dict) -> dict:
-    """Kill tmux session + ttyd process for tmux-backed tasks.
-
-    Returns a small dict for inclusion in the stalled `review` payload.
-    Idempotent: missing session / pid silently treated as already-cleaned.
-    """
-    out = {"tmux_killed": False, "ttyd_killed": False}
-    try:
-        from tools import tmux_session as tmux
-    except Exception as e:
-        warn(f"tmux_session import failed: {e}")
-        return out
-    sess = task.get("tmux_session")
-    if sess:
-        try:
-            out["tmux_killed"] = tmux.kill(sess)
-        except Exception as e:
-            warn(f"tmux kill failed for {sess}: {e}")
-    ttyd_pid = task.get("ttyd_pid")
-    if ttyd_pid:
-        try:
-            out["ttyd_killed"] = tmux.stop_ttyd(int(ttyd_pid))
-        except Exception as e:
-            warn(f"ttyd stop failed for pid={ttyd_pid}: {e}")
-    return out
 
 
 def _silent_seconds(updated_at: str) -> float:
@@ -230,6 +195,31 @@ def scan_once() -> dict:
             f"silent={int(silent/3600)}h issue={issue}"
         )
 
+    # Third pass — layer 2 floor (task-78ab64ba): a DEV whose task reached
+    # review/done but whose process is still alive with no C-level decision
+    # in FINISHED_REAP_AFTER_S. Layer 1 (merge_task -> close_dev) is the
+    # normal path; this only fires when that never happened at all. Does
+    # NOT touch task status — the task is already terminal, the reap is
+    # recorded here and in the log, not in tasks.db.
+    reaped = []
+    finished_rows = (db.list_tasks(status="review", limit=200)
+                     + db.list_tasks(status="done", limit=200))
+    for t in finished_rows:
+        pid = t.get("pid")
+        if not pid or not _pid_alive(pid):
+            continue
+        silent = _silent_seconds(t["updated_at"])
+        if silent < FINISHED_REAP_AFTER_S:
+            continue
+        reap = close_dev(t["id"], reason="watchdog: no C-level decision in 60 min")
+        reaped.append({"task": t["id"], "status": t["status"],
+                       "silent_s": int(silent), **reap})
+        error(
+            f"REAPED {t['id']} status={t['status']} silent={int(silent/60)}min "
+            f"pid={pid} pid_matched={reap.get('pid_matched')} "
+            f"signal={reap.get('signal')} tab_closed={reap.get('closed_tab')}"
+        )
+
     # GC pass: cancel stale pending/conflict/rate_limited tasks and free locks.
     try:
         gc_cancelled = gc_stale_tasks()
@@ -239,7 +229,7 @@ def scan_once() -> dict:
         warn(f"watchdog gc error: {e}")
         gc_cancelled = []
 
-    return {"pinged": pinged, "stalled": stalled,
+    return {"pinged": pinged, "stalled": stalled, "reaped": reaped,
             "scanned": len(rows) + len(human_rows),
             "gc_cancelled": len(gc_cancelled)}
 
@@ -263,8 +253,9 @@ def main() -> int:
     while True:
         try:
             out = scan_once()
-            if out["pinged"] or out["stalled"]:
-                success(f"watchdog: pinged={len(out['pinged'])} stalled={len(out['stalled'])}")
+            if out["pinged"] or out["stalled"] or out["reaped"]:
+                success(f"watchdog: pinged={len(out['pinged'])} stalled={len(out['stalled'])} "
+                       f"reaped={len(out['reaped'])}")
         except KeyboardInterrupt:
             return 0
         except Exception as e:
