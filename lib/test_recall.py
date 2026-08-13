@@ -1,12 +1,35 @@
-"""Tests for lib.recall. Plain-script style (no pytest dependency).
+"""Tests for lib.recall.
 
-Run:  python -m lib.test_recall
-Pure-function tests use synthetic task dicts (deterministic); one smoke test
-exercises recall() against the live tasks.db read-only.
+Run:  pytest lib/test_recall.py   (or: python -m lib.test_recall)
+Pure-function tests use synthetic task dicts (deterministic). The smoke test
+exercises recall() against a throwaway tmp_path DB seeded with one
+deterministic task — not the real state/tasks.db (GH #56): that file is
+gitignored, so a worktree or fresh CI checkout has none, and even where one
+exists its content is machine-dependent, which is exactly what ADR 0021 bans.
+Under plain `python -m lib.test_recall` (no pytest fixtures), this smoke test
+still reads whatever real DB is on this machine, unchanged from before.
 """
 from __future__ import annotations
 
+import pytest
+
+from . import db as db_mod
 from . import recall as r
+
+
+@pytest.fixture(autouse=True)
+def _isolated_db(monkeypatch, tmp_path):
+    monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
+    db_mod.init()
+    tid = db_mod.create_task(
+        project="test-proj", role="developer",
+        title="leaderboard event compute", description="ticket work",
+        owner_cto="test",
+    )
+    db_mod.update_status(
+        tid, "done", branch="agent/x",
+        report="## Summary\nBuilt the leaderboard compute with dedup and rank.\n",
+    )
 
 
 def _check(name: str, cond: bool) -> bool:

@@ -22,14 +22,17 @@ so the shell launchers cannot fall behind the registry the way test_tool_parity'
 three Python surfaces cannot.
 
 Run via:  python scripts/test_mcp_role_config.py
+     or:  pytest scripts/test_mcp_role_config.py
 """
 
 from __future__ import annotations
 
+import functools
 import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -44,6 +47,53 @@ SPAWNERS = ("scripts/spawn-cto.sh", "scripts/spawn-cxo.sh")
 _failures = 0
 
 
+@functools.lru_cache(maxsize=1)
+def _effective_root() -> Path:
+    """--root to hand cxo_mcp_config.py: real ROOT on a dev Mac that already
+    has a `.venv` there, else a throwaway stand-in (GH #57 — a worktree or a
+    fresh CI checkout has none, and cxo_mcp_config.py correctly *refuses* a
+    role launch without org's venv python, so every --print-allowed call
+    would fail here for real). The stand-in mirrors ROOT one level deep via
+    symlinks (so lib.org_tools_registry and everything it transitively
+    imports still resolve to the real files), plus a stub `.venv` built from
+    sys.prefix — the interpreter already running this test, which has this
+    same requirements.txt installed, in CI same as here.
+
+    Symlinking straight to sys.executable is NOT enough: CPython resolves
+    that symlink fully before searching for pyvenv.cfg, lands on the real
+    install (e.g. Homebrew's), finds no pyvenv.cfg next to it, and silently
+    falls back to that install's OWN site-packages — so the subprocess
+    "succeeds" but can't import anything this project's requirements.txt put
+    in the venv (measured: `ModuleNotFoundError: No module named 'yaml'`).
+    Mirroring bin/*python*, pyvenv.cfg and lib/ one level under a directory
+    literally named `.venv` is what makes CPython's own pyvenv.cfg lookup
+    (one directory above whichever `bin/python*` got invoked) land on the
+    real config, so sys.prefix — and therefore site-packages — resolves
+    correctly. Never writes into the real venv, only reads it to symlink."""
+    if (ROOT / ".venv" / "bin" / "python").exists():
+        return ROOT
+    stub = Path(tempfile.mkdtemp(prefix="cxo-mcp-root-"))
+    for entry in ROOT.iterdir():
+        if entry.name in (".venv", ".git"):
+            continue
+        (stub / entry.name).symlink_to(entry)
+    prefix = Path(sys.prefix)
+    venv_dir = stub / ".venv"
+    venv_bin = venv_dir / "bin"
+    venv_bin.mkdir(parents=True)
+    for exe in (prefix / "bin").glob("python*"):
+        (venv_bin / exe.name).symlink_to(exe)
+    if not (venv_bin / "python").exists():
+        (venv_bin / "python").symlink_to(sys.executable)
+    cfg_file = prefix / "pyvenv.cfg"
+    if cfg_file.exists():
+        (venv_dir / "pyvenv.cfg").symlink_to(cfg_file)
+    lib_dir = prefix / "lib"
+    if lib_dir.exists():
+        (venv_dir / "lib").symlink_to(lib_dir)
+    return stub
+
+
 def _mark(ok: bool, msg: str) -> None:
     global _failures
     if not ok:
@@ -54,7 +104,7 @@ def _mark(ok: bool, msg: str) -> None:
 def _gen(*args: str, env: dict | None = None) -> subprocess.CompletedProcess:
     """Run the generator with the system python3, exactly as the launchers do."""
     return subprocess.run(
-        ["python3", GEN, "--root", str(ROOT), *args],
+        ["python3", GEN, "--root", str(_effective_root()), *args],
         capture_output=True,
         text=True,
         env={**os.environ, **(env or {})},
@@ -90,7 +140,7 @@ def test_g1_allowed_matches_servers() -> None:
         allowed = _allowed(role)
         # A server whose binary is missing on this box is skipped, and its
         # tools must be skipped with it.
-        emitted = [n for n in cfg._names_for(role) if cfg._build(n, str(ROOT))]
+        emitted = [n for n in cfg._names_for(role) if cfg._build(n, str(_effective_root()))]
         named = {t.split("__")[1] for t in allowed if t.startswith("mcp__")}
         _mark(
             named == set(emitted),
@@ -175,7 +225,7 @@ def test_g3_spawn_forwards_env() -> None:
 
 def test_supabase_read_only_by_default() -> None:
     print("supabase is read-only unless explicitly told otherwise")
-    entry = cfg._build("supabase", str(ROOT))
+    entry = cfg._build("supabase", str(_effective_root()))
     if entry is None:
         _mark(True, "supabase CLI not installed here — skipped")
         return
