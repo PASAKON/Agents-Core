@@ -237,6 +237,46 @@ baseline is a reference point, not a budget.
    fully completed regardless of what the tool call reported back. Don't
    assume a failed call = no side effect.
 
+## A long-lived tab lies about the concurrency slot — open a fresh one every 3-4 generations
+
+The single largest time sink measured on this project, and it looks exactly
+like a server-side problem while being purely client-side.
+
+Observed 2026-08-13 across a four-hour session: Generate kept returning the
+"1 unlimited generation at a time" toast, with a card apparently stuck on
+`Processing` that survived hard reloads. It read as a zombie generation holding
+the account slot. **It was not.** A brand-new tab showed every card already
+finished, no `Processing` badge anywhere, and the ledger confirmed nothing had
+billed. The render had completed long before; the aging tab was holding stale
+state for both the badge render and whatever the client consults to decide the
+slot is busy.
+
+The same staleness produces two other symptoms that look unrelated:
+
+- **The Unlimited toggle stops registering clicks** — coordinate click, ref
+  click and double ref click all leave it at `aria-checked=false`. More clicks
+  never help. A fresh tab fixes it immediately.
+- **A processing-text check returns "none" and Generate still toasts.** The DOM
+  and the true server-side slot state have drifted apart, so the page's own
+  evidence is worthless.
+
+**Do not treat any of these as things to wait out.** Waiting cost roughly ten
+minutes per clip across a 26-clip queue before the cause was found, and it
+corrupted the pace estimate reported upward — what looked like 20-minute
+renders was mostly waiting on a slot that was already free.
+
+Rules:
+
+- **Open a fresh tab every 3-4 generations, proactively, before anything looks
+  wrong.** Close the old one. This is routine hygiene, not troubleshooting.
+- **Never accept these as evidence the slot is free:** the `Processing` badge,
+  the absence of processing text, or any cached element reference. A freshly
+  loaded tab is the only reliable check.
+- **If the toggle reads `aria-checked=false` after a click, go straight to a new
+  tab** rather than clicking again.
+- Escalation order stays: hard reload → new tab → quit and reopen Chrome.
+  Chrome belongs to the org, so restarting it needs no permission.
+
 ## The composer silently resets its settings — check the spec, not just the price
 
 Hard rule 3 covers the Unlimited toggle resetting to OFF. **It is not the only
