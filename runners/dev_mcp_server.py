@@ -216,6 +216,17 @@ def request_human_handoff(
     )
 
 
+# One-line console/cto.log cap for dev_message (GH #54). The old 300 was
+# under two sentences and silently ate everything past it; observed useful
+# reports run 400-900 chars. 700 covers the bulk of those single-paragraph
+# reports without letting one dev_message call dominate the CTO's scrolling
+# log -- the console constraint is deliberate, so raise generously but keep
+# a cap. Nothing is actually lost at this cap anymore: the FULL text always
+# lands in tasks.last_checkpoint (see below), and any overflow past 700 is
+# marked, not silently dropped.
+DEV_MESSAGE_LOG_CAP = 700
+
+
 @mcp.tool()
 def dev_message(text: str) -> str:
     """Broadcast a short progress message to the CTO log (one line).
@@ -224,12 +235,41 @@ def dev_message(text: str) -> str:
     "found N test failures", "blocker: missing API key". Each call appends
     one prefixed line to cto.log which the CTO surfaces in chat.
 
+    The full text is always persisted (see tasks.last_checkpoint); only the
+    one-line console/log rendering is capped. If the console line had to be
+    trimmed (extra lines dropped and/or the first line cut), both the log
+    line and the returned ack carry a truncation marker (GH #54) — nothing
+    is silently lost, only the console rendering is short.
+
     NOT a replacement for submit_report — final hand-off must still use
     submit_report.
     """
     if not TASK_ID:
         return "ERROR: DEV_TASK_ID env var not set"
-    line = text.strip().splitlines()[0][:300] if text.strip() else "(empty)"
+    stripped = text.strip()
+    if not stripped:
+        line = "(empty)"
+        ack = "ack"
+    else:
+        lines = stripped.splitlines()
+        first_line = lines[0]
+        extra_lines = len(lines) - 1
+        char_over = len(first_line) > DEV_MESSAGE_LOG_CAP
+        console_line = first_line[:DEV_MESSAGE_LOG_CAP]
+        if extra_lines > 0 or char_over:
+            bits = []
+            if extra_lines > 0:
+                bits.append(f"+{extra_lines} lines")
+            if char_over:
+                bits.append(f"{len(first_line)}→{DEV_MESSAGE_LOG_CAP} chars")
+            line = f"{console_line} […{', '.join(bits)}, truncated]"
+            ack = (
+                f"ack (truncated: {len(lines)} lines, {len(stripped)} chars "
+                f"→ {DEV_MESSAGE_LOG_CAP})"
+            )
+        else:
+            line = console_line
+            ack = "ack"
     info(line)
     # Reporting IS the liveness signal. runners/watchdog.py measures silence
     # as `now - tasks.updated_at` and reaps anything past its threshold — but
@@ -240,11 +280,17 @@ def dev_message(text: str) -> str:
     # watchdog still saw 5518s of "silence", counted from its 03:04 spawn.
     # Four operators died this way in one night. Touching the row here is what
     # makes the watchdog's silence measure mean what it claims to mean.
+    #
+    # Persist the FULL text (GH #54) -- not the capped console `line`. Before
+    # this fix, last_checkpoint stored the same truncated-to-300 single line
+    # the log got, so a re-send or a "what did the DEV last say" lookup hit
+    # the same data loss twice. last_checkpoint already exists (no schema
+    # change, IRON §30) and is already written on this path since 80f002e.
     try:
-        db.set_fields(TASK_ID, actor="dev", last_checkpoint=line)
+        db.set_fields(TASK_ID, actor="dev", last_checkpoint=stripped or "(empty)")
     except Exception as e:  # bookkeeping must never break the DEV's report
         info(f"(dev_message: could not touch task row: {e})")
-    return "ack"
+    return ack
 
 
 if __name__ == "__main__":
