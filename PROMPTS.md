@@ -1,0 +1,845 @@
+# Prompts for task-cda4f469 — supplied by the CTO
+
+**REVISED by the CEO, 12 Aug 10:40. This supersedes the earlier version of this
+file and anything in TASK.md about Scene 4A / 4B.**
+
+Copy these VERBATIM into Higgsfield. Do not edit, shorten, or paraphrase them.
+Paste with a synthetic `ClipboardEvent` (text/plain only) — never keystroke
+simulation, which silently truncates and has already produced unusable footage.
+Verify the pasted length matches the source before touching Generate.
+
+## The rule for every shot
+
+Every scene gets exactly **two prompts**, and **each prompt is generated twice** —
+once for real, once as a spare in case the first comes out unusable. Same prompt
+text both times, no edits between runs.
+
+| Scene | Prompt | Runs |
+|---|---|---|
+| 4 | Long Take 20s | ×2 |
+| 4 | Jump Cut 20s | ×2 |
+| 5 | Long Take 20s | ×2 |
+| 5 | Jump Cut 20s | ×2 |
+| 6 | Long Take 20s | ×2 |
+| 6 | Jump Cut 20s | ×2 |
+| 7 | Long Take 20s | ×2 |
+| 7 | Jump Cut 20s | ×2 |
+| 8 | Long Take 20s | ×2 |
+| 8 | Jump Cut 20s | ×2 |
+
+**20 generations total.** One at a time. Settings every time: Seedance 2.5 ·
+**20s** · 720p · High · Sound ON · **Unlimited Mode ON**. Re-verify the toggle
+before every single click — it silently resets on page reload, and it was
+showing a live "130" earlier today.
+
+## Scene 4 is being REPLACED
+
+The four existing Scene 4 clips (the old 4A/4B interior and exterior 9-second
+splits) are **retired**. The CEO is replacing all four with the two 20-second
+prompts below, which merge the interior and exterior beats into one shot each.
+**Generate them fresh. Ignore every earlier instruction about never regenerating
+4A.** Leave the old clips in the folder; do not delete anything.
+
+Save each finished clip into the folder matching its scene in the left sidebar
+(`Sence 4`, `Sence 5`, `Sence 6`, `Sence 7`, `Sence 8`); create the folder if absent.
+
+---
+
+## Scene 4 — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. @Mother's face is never seen clearly at any point. Use @Room-Guest for the room interior and @Motel-Walkway for the exterior walkway.
+
+0–6s: Inside guest room 209. Camera behind @Mother at shoulder height. She stands at the dresser beside @Prop-Lamp, adjusting the dry stems in @Prop-Vase, then wipes the mirror with a cloth. Warm lamp light, everything calm and ordinary.
+6–10s: One hard percussive BANG from outside, close but muffled through the wall. Her hands stop. She straightens slowly and looks toward the door. A second BANG, louder and flatter. She sets the cloth down.
+10–14s: She crosses to the room door. The camera follows her in the same unbroken move, staying behind her shoulder.
+14–20s: She opens the door a hand's width and leans her head and one shoulder out into the amber sconce light of the open-air walkway, the rest of her still inside the dark room. She looks off to the RIGHT along the walkway. Several doors down, two people in their late twenties stand outside their own door, both in plain black — one in a black leather jacket, the other in a dark hooded top and heavy boots. They are mid-conversation, one gesturing while the other turns half away. Neither ever looks toward her. She withdraws and the door closes quietly.
+
+CRITICAL — the two people must NEVER look toward @Mother, never glance down the walkway, never pause, never react to her door opening or closing. They behave exactly as if that doorway were empty. There is a clear gap of several rooms between them.
+
+WARDROBE — no printed logos, no band graphics, no brand marks, no slogans, no text of any kind on any clothing. Plain black garments only.
+
+NEGATIVE — strictly avoid: no interior corridor, no doors facing across a passage, no ceiling panels, no fluorescent light. The walkway is OPEN-AIR against black night.
+
+Grounded real-camera look, no lens flare, no haze, no whip pans. Warm amber bare-bulb sconces and the room's table lamp are the only light sources. Muted and desaturated.
+
+AUDIO-SFX
+Ceramic scraping softly on wood. Dry stems rustling. Cloth squeaking on glass. Then one hard percussive BANG — a heavy door slammed outside, close but wall-muffled, no sting or riser. Room tone. A second BANG, louder and flatter. A door hinge. Two raised voices overlapping outside, clipped, words never intelligible. A door closing quietly underneath them. No music. No dialogue from @Mother.
+```
+
+## Scene 4 — JUMP CUT (20s)
+
+```
+VISUAL
+Five cuts across 20 seconds. @Mother's face is never seen clearly in any cut.
+
+Cut 1 (0–5s): Inside guest room 209, tight on @Mother's hands adjusting the dry stems in @Prop-Vase on the dresser beside @Prop-Lamp.
+Cut 2 (5–9s): Close on a cloth wiping the mirror. A hard BANG lands and the hand stops dead against the glass.
+Cut 3 (9–13s): Exterior. From the parking lot of @Motel-Front, low and wide on wet asphalt and the lit ground-floor office window. Still. A second BANG, flatter.
+Cut 4 (13–17s): Same position, now tilted up to the second-floor walkway. On the LEFT, a room door open a hand's width, @Mother's head and one shoulder leaning out into the amber light, the rest of her hidden inside. She looks off RIGHT.
+Cut 5 (17–20s): Tighter on the RIGHT end of the walkway: two people in their late twenties outside their own door, both in plain black — one in a black leather jacket, the other in a dark hooded top and heavy boots. Mid-conversation, one gesturing while the other turns half away. They never look left, never react. At the far edge of frame, @Mother's door closes.
+
+CRITICAL — the two people must NEVER look toward @Mother, never glance down the walkway, never pause, never react to her door.
+
+WARDROBE — no printed logos, no band graphics, no brand marks, no slogans, no text of any kind on any clothing. Plain black garments only.
+
+NEGATIVE — strictly avoid: no interior corridor, no facing doors, no ceiling panels, no fluorescent light. OPEN-AIR walkway only.
+
+Grounded real-camera look, no whip pans, no lens flare, no haze. Warm amber bulbs and the lit office window are the only light against black night. Muted and desaturated.
+
+AUDIO-SFX
+Ceramic scraping on wood, dry stems rustling, cloth squeaking on glass. One hard percussive BANG, close but wall-muffled, no sting or riser. Ringing silence over distant road noise and dripping water. A second BANG, louder and flatter. A soft door hinge. Two raised voices overlapping, clipped, words never intelligible. A door closing quietly. Cuts land on the bangs. No music. No dialogue from @Mother.
+```
+
+> **Content-flag history for Scene 4 — read before retrying.** The old 4B was
+> rejected twice. Two causes, both already fixed above: conflict language
+> ("arguing", "fighting") read as domestic violence, and "band tee" / rock-band
+> clothing is an IP violation under the festival's Section 5. If it flags again,
+> soften the two people further — describe posture and gesture only, and drop
+> "clipped" and "raised" from the audio line. Retry ONCE, then skip and log it.
+
+---
+
+## Scene 5 — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Camera sits on the exterior walkway of @Motel-Walkway, framed on two adjacent doors: room 213 on the LEFT and room 214 on the RIGHT with @Prop-DNDTag hanging on its handle. Both doors stay in frame the entire shot. The camera never moves. @Mother's face is never seen clearly.
+
+0–6s: @Mother walks in from the LEFT carrying @Prop-Caddy, stops at door 213, unlocks it and pushes it open. Warm lamp light spills out onto the concrete.
+6–10s: @Mother steps inside 213 and is gone from frame for a beat. Then a slow, deliberate KNOCK sounds from inside 214 — three spaced beats, unhurried.
+10–15s: @Mother backs out of 213 onto the walkway, still holding @Prop-Caddy, and turns to face door 214. She stands looking at it, at a clear distance of at least an arm's length, never closer. @Prop-DNDTag hangs still on the handle.
+15–20s: She holds there, weight shifting once as if about to step forward, then does not. She turns away, steps back into 213 and pulls that door closed behind her. The walkway is left empty, both doors shut.
+
+NEGATIVE — strictly avoid: @Mother must NEVER touch, brush against, bump or make contact with door 214, its handle, @Prop-DNDTag, the doorframe or the guardrail. @Prop-DNDTag does not move at all in this shot. No other people anywhere in frame. This is an OPEN-AIR walkway — no interior corridor, no doors facing across a passage, no ceiling panels, no fluorescent light.
+
+Grounded real-camera look, locked-off, no lens flare, no haze. Warm amber bare-bulb sconces against black night. Muted and desaturated.
+
+AUDIO-SFX
+Bottles shifting in the caddy. A key in a lock, a door opening. Her footsteps stopping. Then THREE slow knocks from behind door 214 — dry, wooden, evenly spaced, coming from inside the room. Dead silence after them. Her shoes turning on concrete. A door pulled shut. Very distant road noise underneath. No music. No dialogue.
+```
+
+## Scene 5 — JUMP CUT (20s)
+
+```
+VISUAL
+Handheld, five cuts across 20 seconds. @Mother's face is never seen clearly at any point.
+
+Cut 1 (0–5s): Close on @Mother's hand turning a key in the lock of door 213 on the walkway of @Motel-Walkway, @Prop-Caddy hanging from her other hand.
+Cut 2 (5–8s): From inside room 213 looking back at its open doorway as @Mother steps through into the room.
+Cut 3 (8–12s): Tight on @Mother's shoes on the carpet, stopping mid-step. Held. Three slow knocks land off-screen — the sound is coming through the wall to her right.
+Cut 4 (12–16s): Out on the walkway of @Motel-Walkway: @Mother stands facing door 214, seen from behind at a clear arm's length distance. @Prop-DNDTag hangs perfectly still on the handle. She does not move.
+Cut 5 (16–20s): Close on her shoes turning away on the concrete, then the door of 213 pulled closed. Hold a beat on the two shut doors.
+
+NEGATIVE — strictly avoid: @Mother must NEVER touch, brush against, bump or make contact with door 214, its handle, @Prop-DNDTag, the doorframe or the guardrail. @Prop-DNDTag does not move at all in this scene. No other people in any frame. OPEN-AIR walkway only — no interior corridor, no facing doors, no ceiling panels, no fluorescent light.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze. Warm amber sconces against black night. Muted and desaturated.
+
+AUDIO-SFX
+A key in a lock. A door opening. Footsteps on carpet stopping dead. THREE slow dry knocks through a wall — evenly spaced, unhurried, unmistakably from the next room. Long silence. Shoes turning on concrete. A door pulled shut. Cuts land on the knocks, never before them. No music. No dialogue.
+```
+
+---
+
+## Scene 6 — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. @Mother's face is never seen clearly. Spoken dialogue is heard but her mouth is never in clear view.
+
+0–7s: Inside room 213, camera behind @Mother at shoulder height as she works at the bed. A heavy BANG hits the wall to her right — the wall she shares with 214. She flinches, a small sharp jolt of the shoulders, not a scream. She straightens and looks at that wall.
+7–12s: @Mother sets what she is holding down and walks out of frame toward the door. The shot continues without cutting as the camera follows her out onto the exterior walkway of @Motel-Walkway and settles behind her, framing her from the back as she stands facing door 214 with @Prop-DNDTag on its handle.
+12–20s: @Mother raises a hand and knocks twice on door 214, then speaks. She waits. Nothing answers — no sound, no movement, @Prop-DNDTag does not stir. She stands in the silence until the shot ends on her back and the closed door.
+
+DIALOGUE (spoken by @Mother, calm and professional, slightly raised so it carries through a door):
+"Housekeeping."
+(pause)
+"Everything okay in there?"
+
+NEGATIVE — strictly avoid: apart from her two knocks, @Mother must NEVER touch, push, lean on or make contact with door 214, its handle, @Prop-DNDTag or the doorframe. She does not try the handle. She does not press her ear to the door. No other people in frame. OPEN-AIR walkway — no interior corridor, no doors facing across a passage, no ceiling panels, no fluorescent light.
+
+Grounded real-camera look, no lens flare, no haze. Warm amber sconces against black night. Muted and desaturated.
+
+AUDIO-SFX
+Quiet work sounds. Then one heavy dull BANG against a shared wall — percussive, close, no sting or riser before it. Her sharp intake of breath. Footsteps to the door, hinge, shoes onto concrete. Two firm knuckle knocks on a hollow door. Her line, then room tone. Absolute silence in reply — no shuffle, no breath, nothing. Distant road noise far underneath. No music.
+```
+
+## Scene 6 — JUMP CUT (20s)
+
+```
+VISUAL
+Handheld, five cuts across 20 seconds. @Mother's face is never seen clearly; her mouth is never in clear view when she speaks.
+
+Cut 1 (0–4s): Tight on @Mother's hands working at the bed inside room 213. A heavy BANG lands and her hands jolt.
+Cut 2 (4–8s): Close on the bare wall to her right — the wall shared with 214 — still faintly trembling, a picture frame on it settling.
+Cut 3 (8–12s): Low on her shoes crossing the carpet fast and stepping out onto the concrete of @Motel-Walkway.
+Cut 4 (12–16s): From behind @Mother, framed on door 214 with @Prop-DNDTag on the handle. Her hand comes up and knocks twice. She speaks.
+Cut 5 (16–20s): Hold on the closed door and @Prop-DNDTag, perfectly still, no answer. Her shoulder sits at the edge of frame, unmoving.
+
+DIALOGUE (spoken by @Mother, calm and professional, slightly raised so it carries through a door):
+"Housekeeping."
+(pause)
+"Everything okay in there?"
+
+NEGATIVE — strictly avoid: apart from her two knocks, @Mother must NEVER touch, push, lean on or make contact with door 214, its handle, @Prop-DNDTag or the doorframe. She does not try the handle. @Prop-DNDTag never moves in this scene. No other people in any frame. OPEN-AIR walkway only — no interior corridor, no facing doors, no ceiling panels, no fluorescent light.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze. Warm amber sconces against black night. Muted and desaturated.
+
+AUDIO-SFX
+Work sounds, then one heavy dull BANG against a shared wall — percussive, close, no sting or riser. A frame rattling on the wall. Fast footsteps, carpet to concrete. Two firm knuckle knocks on a hollow door. Her line. Then absolute silence in reply — no shuffle, no breath, nothing at all. Cuts land on the impacts and the knocks. No music.
+```
+
+---
+
+## Scene 7 — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. On the open-air walkway of @Motel-Walkway outside room 214. @Mother's face is never seen clearly — for most of the shot it is pressed toward the glass and away from camera. @Prop-DNDTag hangs on the door handle throughout and never moves.
+
+0–8s: Camera sits low and to the side, framing @Mother from behind and slightly below as she steps to the WINDOW beside door 214 — not the door itself. She cups both hands against the glass to block the sconce glare and leans in, trying to see through a narrow gap in the drawn curtains. She holds there, very still, shoulders tight.
+8–12s: From inside the room, a sharp CRASH of breaking glass. She jerks back hard, one full step, hands coming off the window. The curtains do not move. Nothing else changes.
+12–20s: Knocking begins from inside the room — slow at first, then faster and more insistent, building steadily through the rest of the shot. @Mother turns toward the door. Her hand rises and hovers a few inches above the handle, trembling slightly, and never touches it. Hold on the hovering hand and the still @Prop-DNDTag as the knocking keeps building.
+
+NEGATIVE — strictly avoid: there is NO peephole and she never uses one. She must NEVER touch the door, the handle, @Prop-DNDTag or the doorframe in this shot — the hand only hovers. @Prop-DNDTag does not move or swing at any point. No other people in frame. No face at the window from the inside, nothing visible through the curtain gap. OPEN-AIR walkway — no interior corridor, no doors facing across a passage, no ceiling panels, no fluorescent light.
+
+Grounded real-camera look, no lens flare, no haze, no whip pans. Warm amber bare-bulb sconces against black night. Muted and desaturated.
+
+AUDIO-SFX
+Shoes on concrete. Palms settling on glass. Her breathing, shallow and close. Then a sharp CRASH of a glass breaking on a hard floor inside the room — no sting, no riser, no music under it. Her sharp intake of breath and a scuff as she steps back. Silence. Then knuckles on a hollow door from the inside — slow, then quickening, then hammering, louder through to the end. Distant road noise far underneath. No music. No dialogue.
+```
+
+## Scene 7 — JUMP CUT (20s)
+
+```
+VISUAL
+Handheld, five cuts across 20 seconds. @Mother's face is never seen clearly in any cut. @Prop-DNDTag never moves.
+
+Cut 1 (0–5s): Close on @Mother's cupped hands pressed against the window glass beside door 214, blocking the sconce glare. Her reflection is broken and unreadable.
+Cut 2 (5–8s): Reverse, from just behind her shoulder — the narrow gap in the drawn curtains, dark and giving nothing away.
+Cut 3 (8–12s): A sharp CRASH inside. Tight on her hands snapping back off the glass, one full step of retreat.
+Cut 4 (12–16s): Low on the door of 214 with @Prop-DNDTag hanging perfectly still, as knocking starts from inside — slow, then quickening.
+Cut 5 (16–20s): Tight on her hand hovering a few inches above the door handle, trembling, never touching it. The knocking hammers on to the end of the shot.
+
+NEGATIVE — strictly avoid: there is NO peephole and she never uses one. She must NEVER touch the door, the handle, @Prop-DNDTag or the doorframe — the hand only hovers. @Prop-DNDTag does not move or swing. No other people in any frame. Nothing visible through the curtain gap, no face at the window. OPEN-AIR walkway only — no interior corridor, no facing doors, no ceiling panels, no fluorescent light.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze. Warm amber sconces against black night. Muted and desaturated.
+
+AUDIO-SFX
+Palms settling on glass. Shallow close breathing. A sharp CRASH of a glass breaking on a hard floor inside the room — no sting, no riser. Her intake of breath, a scuff of retreat, silence. Then knuckles on a hollow door from the inside, slow then quickening then hammering. Cuts land on the crash and on the knocks. No music. No dialogue.
+```
+
+---
+
+## Scene 8 — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. On the open-air walkway of @Motel-Walkway outside room 214. @Mother's face is never seen clearly — the camera stays behind and slightly below her throughout. @Prop-DNDTag hangs on the handle and must still be hanging there at the end of the shot.
+
+0–6s: Tight on @Mother's hand hovering a few inches above the door handle. Knocking hammers from inside the room, fast and insistent. She does not move.
+6–10s: The knocking stops dead, mid-beat. Complete silence. Her hand stays where it is. Her shoulders rise and fall once.
+10–15s: Her hand closes on the handle and turns it slowly. The latch gives. The door swings inward away from camera into darkness. Warm amber light from the walkway falls in a widening wedge across the floor just inside.
+15–20s: The camera follows her from behind as she steps up to the threshold and stops there, framed in the doorway with the dark room ahead of her. Hold on her back and the open door. The interior stays dark and unresolved — we never see what she is looking at.
+
+NEGATIVE — strictly avoid: do NOT reveal the room interior, do not light it, do not show furniture, a bed, a body, or any person inside. Everything past the threshold stays in darkness. @Prop-DNDTag must remain hanging on the handle and must not fall off or be removed. No other people in frame. No peephole. OPEN-AIR walkway — no interior corridor, no doors facing across a passage, no ceiling panels, no fluorescent light.
+
+Grounded real-camera look, no lens flare, no haze, no whip pans, no push-in past the threshold. Warm amber bare-bulb sconces against black night. Muted and desaturated.
+
+AUDIO-SFX
+Knuckles hammering on a hollow door from the inside, fast and insistent — then stopping dead mid-beat. Absolute silence. Her breathing, close and unsteady. A latch turning, slow and mechanical. A door hinge opening long and dry. Then nothing at all from inside the room — no shuffle, no breath, no movement. Her shoes on the concrete as she steps to the threshold. Distant road noise far underneath. No music. No dialogue.
+```
+
+## Scene 8 — JUMP CUT (20s)
+
+```
+VISUAL
+Handheld, five cuts across 20 seconds. @Mother's face is never seen clearly in any cut. @Prop-DNDTag stays on the handle throughout.
+
+Cut 1 (0–5s): Tight on @Mother's hand hovering above the door handle of 214, trembling, as knocking hammers from inside.
+Cut 2 (5–8s): Close on @Prop-DNDTag hanging on the handle, perfectly still. The knocking stops dead mid-beat. Silence.
+Cut 3 (8–12s): Her hand closes on the handle and turns it. Tight on the latch giving.
+Cut 4 (12–16s): Low and behind her, the door swinging inward into darkness, warm walkway light spreading in a wedge across the floor just inside.
+Cut 5 (16–20s): From behind, @Mother stopped at the threshold, framed in the open doorway with the dark room ahead. Hold on her back. The interior stays dark.
+
+NEGATIVE — strictly avoid: do NOT reveal the room interior, do not light it, do not show furniture, a bed, a body, or any person inside. Everything past the threshold stays in darkness. @Prop-DNDTag must remain hanging on the handle. No other people in any frame. No peephole. OPEN-AIR walkway only — no interior corridor, no facing doors, no ceiling panels, no fluorescent light.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze, no push past the threshold. Warm amber sconces against black night. Muted and desaturated.
+
+AUDIO-SFX
+Knuckles hammering on a hollow door from the inside — then stopping dead mid-beat. Absolute silence. Close unsteady breathing. A latch turning slowly. A long dry hinge. Nothing at all from inside the room. Shoes on concrete. Cuts land on the silence and on the latch. No music. No dialogue.
+```
+
+---
+
+# SCENE 9 — NEW, added by the CEO 2026-08-12 23:20
+
+Scene 9 is split into sub-shots `S9-A`, `S9-B`, `S9-C`, `S9-D` — siblings, with
+no bare `S9`. 9D itself has three variants, 9D-A / 9D-B / 9D-C, all generated.
+
+Same rule as everything above: **each prompt runs twice**, real plus spare, same
+text both times, Recreate for the second run.
+
+## SHE TOUCHES NOTHING — hard rule, governs every shot in Scene 9 (CEO 2026-08-13)
+
+**Why she is in the room at all: she heard a loud noise from 214 and came to
+check what it was.** She is a housekeeper and she is a decent person. She would
+not handle a guest's belongings, and the film must never give an audience a
+reason to wonder whether she might.
+
+So, without exception, across 9A, 9B, 9C and every 9D variant:
+
+- **She never picks up, lifts, holds, opens, turns over, moves or pockets
+  anything that belongs to the guest.** Not the ring, not the phone, not the
+  wallet, not the photograph, not the handbag. Her hand may come near an object
+  and withdraw. That is the entire vocabulary.
+- **Every object that moves, moves by itself.** The wallet tips off the
+  nightstand on its own. The photograph slides across the carpet on its own.
+  Nothing visible pushes any of it — no hand, no arm, no sleeve, no wind, no
+  curtain, no shadow, no tilt of the furniture.
+- **The handbag stays closed and untouched** for the whole scene.
+
+A generator will reach for the object on its own, because a hand picking
+something up is the shot it has seen a thousand times. Every 9-series NEGATIVE
+block states this explicitly for that reason. **A clip in which she touches any
+guest property is wrong and needs a regen, however good it looks.**
+
+## She is investigating, not cleaning — governs Scenes 7, 8 and 9 (CEO 2026-08-13)
+
+From the moment she goes to the window in Scene 7, **she has stopped working.**
+She is not servicing room 214 and never was — she is checking on a sound. Every
+shot from 7 onward must read that way.
+
+Concretely, and this is the part a generator gets wrong on its own:
+
+- **@Prop-Caddy is not in her hands.** She carried it in Scene 5; by Scene 7 she
+  has set it down. No caddy, no cloth, no bin bag, no towels, no cart anywhere in
+  frame for the rest of the film.
+- **She never cleans, tidies, straightens or services anything** in 214. She
+  looks and she listens. She does not handle what she finds.
+- Her hands move like someone checking a room, not working one.
+
+The 9A dialogue is still right — announcing yourself is what a housekeeper does
+before entering any room, including one she is worried about. The words sell the
+professionalism; her hands have to sell that the job has stopped.
+
+## The one rule that governs all three
+
+**Scene 9 must not reveal the wreckage or the body.** The room reads as an
+ordinary occupied guest room: lived-in, personal things lying about, nothing
+violent. No blood, no corpse, no broken glass, no overturned furniture, no
+disturbed bedding. All of that is Scene 10's reveal, and showing it early
+destroys the ending the same way revealing the interior would have destroyed
+Scene 8.
+
+The horror here is **sound and absence**, never a visible threat. Nothing
+supernatural appears on camera at any point — no figure, no face, no shadow that
+moves on its own.
+
+## Scene 9A — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Interior of guest room 214, entered from the open-air walkway of @Motel-Walkway. @Mother's face is never seen clearly — the camera stays behind her shoulder throughout.
+
+0–5s: The room is pitch dark. @Mother is a silhouette in the doorway, lit only from behind by the amber walkway sconce. She reaches to the wall switch and presses it. Nothing happens.
+5–10s: She presses again. The ceiling light stutters — three false starts, each flash showing a fragment of an ordinary occupied guest room before dropping back to black. On the fourth it holds, weak and warm and uneven.
+10–15s: She takes two slow steps in and stops, scanning the room. She speaks.
+15–20s: She stands still, listening. The room is lived-in and quiet: a woman's handbag on the armchair, a phone lying face-down on the nightstand, a jacket over the chairback. Hold on her back and the still room.
+
+DIALOGUE (spoken by @Mother, calm and professional — the standard announce a hotel housekeeper uses before entering):
+"Housekeeping. I'm coming in."
+(pause)
+"Hello? Anybody in here?"
+(pause)
+"Sorry to disturb."
+
+NEGATIVE — strictly avoid: no blood, no body, no person other than @Mother, no broken glass, no overturned furniture, no disturbed or bloodied bedding, no signs of a struggle of any kind. The room is tidy and ordinary. Nothing supernatural is visible — no figure, no face, no shadow moving by itself. Do not show the bathroom interior. No mirror reflection of anyone.
+
+Grounded real-camera look, no lens flare, no haze, no whip pans. The only light sources are the amber walkway sconce behind her and the weak ceiling light once it holds. Muted and desaturated.
+
+AUDIO-SFX
+A door swinging wide on a dry hinge. Her shoes on carpet. A wall switch clicking — once, twice, a third time. Electrical ticking and a low hum as the light stutters, then settles to a faint buzz. Her line, spoken into an empty room. Room tone. Absolute silence in reply. Distant road noise far underneath. No music.
+```
+
+## Scene 9A — JUMP CUT (20s)
+
+```
+VISUAL
+Five cuts across 20 seconds. Interior of guest room 214. @Mother's face is never seen clearly in any cut.
+
+Cut 1 (0–4s): A black frame with a thin amber edge — her silhouette filling the doorway, walkway light behind her.
+Cut 2 (4–8s): Tight on her hand at the wall switch. Press. Nothing. Press again.
+Cut 3 (8–12s): The ceiling light stuttering — three hard flashes, each showing a slice of an ordinary occupied guest room, black between them. On the last it holds.
+Cut 4 (12–16s): From behind her shoulder as she takes two steps in and stops. She speaks.
+Cut 5 (16–20s): Slow hold on the quiet room past her — a handbag on the armchair, a phone face-down on the nightstand. Nothing moves.
+
+DIALOGUE (spoken by @Mother, calm and professional — the standard announce a hotel housekeeper uses before entering):
+"Housekeeping. I'm coming in."
+(pause)
+"Hello? Anybody in here?"
+(pause)
+"Sorry to disturb."
+
+NEGATIVE — strictly avoid: no blood, no body, no person other than @Mother, no broken glass, no overturned furniture, no disturbed bedding, no signs of a struggle. Nothing supernatural visible — no figure, no face, no self-moving shadow. Do not show the bathroom interior. No mirror reflection of anyone.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze. Amber walkway sconce and a weak ceiling light only. Muted and desaturated.
+
+AUDIO-SFX
+A dry hinge. Shoes on carpet. A wall switch clicking three times. Electrical ticking and hum as the light stutters, settling to a faint buzz. Her line into an empty room. Room tone, then silence. Cuts land on the switch clicks and on the flashes. No music.
+```
+
+## Scene 9B — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Interior of guest room 214, lit by one weak warm ceiling light. Use @Room-Bathroom as the reference for the ensuite bathroom behind the door — same tile, same fittings, same layout. @Mother's face is never seen clearly.
+
+0–6s: Camera behind @Mother at shoulder height as she moves slowly through the room, looking rather than cleaning. She has not touched anything yet.
+6–9s: From the bathroom, a sudden hard CLATTER — something small and solid dropping into a basin, followed by a slap of water on tile. She freezes mid-step, shoulders jolting once.
+9–14s: She turns and crosses to the bathroom door, which stands ajar on a black gap. The camera follows her in the same unbroken move and settles behind her at the threshold.
+14–20s: She pushes the door wide. The bathroom is empty, dry, everything in its place — nothing running, nothing fallen, nothing out of order. She holds there. A single slow drip falls from the tap. Hold on her back framed in the doorway.
+
+NEGATIVE — strictly avoid: nothing is in the bathroom — no person, no figure, no face, no reflection of anyone in the mirror, no shape behind the shower curtain, no hand, no movement. The bathroom is completely ordinary and completely empty. No blood, no body, no broken glass anywhere in this shot. No sign of a struggle in the main room behind her. Nothing supernatural is ever visible on camera.
+
+Grounded real-camera look, no lens flare, no haze, no whip pans, no sudden zoom. One weak warm ceiling light in the room, one cold tile-light in the bathroom. Muted and desaturated.
+
+AUDIO-SFX
+Quiet footsteps on carpet, her breathing steady. Then from the bathroom one sharp CLATTER of a hard small object landing in a ceramic basin and a slap of water on tile — sudden, close, loud, with no sting, no riser and no music before or after it. Her sharp intake of breath. Footsteps to the door, a hinge. Then nothing at all, until one single slow drop lands at the very end. Room tone. Distant road noise far underneath. No music. No dialogue.
+```
+
+## Scene 9B — JUMP CUT (20s)
+
+```
+VISUAL
+Five cuts across 20 seconds. Interior of guest room 214 and its bathroom — use @Room-Bathroom as the reference for the bathroom, same tile, same fittings, same layout. @Mother's face is never seen clearly in any cut.
+
+Cut 1 (0–5s): From behind her shoulder as she moves slowly through the lit room, looking rather than working.
+Cut 2 (5–8s): A hard CLATTER off-screen. Tight on her hands stopping dead mid-air, then her shoulder turning toward the bathroom.
+Cut 3 (8–12s): Low on her shoes crossing the carpet fast toward the ajar bathroom door and its black gap.
+Cut 4 (12–16s): From behind her as she pushes the door wide. The bathroom is empty, dry, undisturbed.
+Cut 5 (16–20s): Hold on the empty bathroom past her shoulder. One slow drop falls from the tap into the basin.
+
+NEGATIVE — strictly avoid: nothing is in the bathroom — no person, no figure, no face, no reflection of anyone in the mirror, no shape behind the shower curtain, no hand, no movement of any kind. No blood, no body, no broken glass anywhere. No sign of a struggle in the room behind her. Nothing supernatural is ever visible on camera.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze. Weak warm room light, cold tile-light in the bathroom. Muted and desaturated.
+
+AUDIO-SFX
+Quiet footsteps on carpet, steady breathing. One sharp CLATTER of a hard small object into a ceramic basin plus a slap of water on tile — sudden, close, loud, no sting, no riser, no music. Her sharp intake of breath. Fast footsteps, a hinge. Then complete silence, until one slow drop lands at the very end. Cuts land on the clatter and on the door opening. No music. No dialogue.
+```
+
+## Scene 9C — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Interior of @Room-Guest, room 214, at night. @Prop-Lamp stands unlit on the nightstand; the only light is one weak warm ceiling bulb. @Prop-Vase sits on the dresser with its dry stems. @Mother's face is never seen clearly — the shot stays low and close on her hands and the objects.
+
+0–6s: Her hands move slowly across the surfaces of @Room-Guest, taking things in rather than tidying them. A plain gold ring sits alone on the nightstand beside @Prop-Lamp. She does not pick the ring up; her hand hovers over it and moves on.
+6–11s: A phone lies face-down on the nightstand. Her hand comes near it, hesitates, and withdraws without turning it over. It stays exactly as it was.
+11–15s: @Prop-Wallet lies out in the open on the nightstand, beside a woman's handbag that stays closed. Her hand comes near it, stops short, and withdraws without touching it. She straightens slightly and begins to turn away.
+15–20s: With nothing near it, @Prop-Wallet tips off the edge of the nightstand on its own and drops straight down — heavy, dead weight, one short fall, landing flat on the carpet by her feet and falling open. @Prop-OldPhoto is thrown loose in the air as it opens, and falls completely differently: thin paper catching the air, tipping onto one edge, gliding sideways, stalling, turning over once slowly, drifting the way a dry leaf comes off a branch. It touches the carpet face-down and slides on a little further, toward the dark gap beneath the bed, and stops there. Hold on the fallen photograph as the shot ends.
+
+NEGATIVE — strictly avoid: no blood, no body, no person other than @Mother, no broken glass, no overturned furniture, no disturbed bedding, no signs of a struggle. She never touches, lifts, holds or opens @Prop-Wallet at any point, and never reaches into the handbag — the handbag stays closed and untouched for the whole shot. Nothing visible causes the wallet to fall: no hand, no arm, no sleeve, no wind, no moving curtain, no shadow crossing it, no tilt of the furniture. No eyeglasses, reading glasses or spectacles anywhere in frame, on any surface or on anyone. Do not show @Mother's face, and do not make her recognisable as the young woman in the photograph — the audience must be able to wonder. Nothing supernatural is visible. No mirror reflection of anyone. The photograph shows exactly two people, an adult woman and a small girl, and no one else.
+
+Grounded real-camera look, locked and low, no lens flare, no haze, no whip pans. One weak warm ceiling light, deep shadow at the edges. Muted and desaturated — except the photograph, which carries the faded warm colour of an old print.
+
+AUDIO-SFX
+Fabric and leather moving under her hands. A phone lifted and set back down on wood. Then a small soft leather object tipping off wood and landing flat on carpet, dull and close. A single sheet of old photographic paper sliding free and settling, almost too quiet to hear. Her breathing stops for a beat. Room tone. Distant road noise far underneath. No music. No dialogue.
+```
+
+## Scene 9C — JUMP CUT (20s)
+
+```
+VISUAL
+Five cuts across 20 seconds. Interior of guest room 214. @Mother's face is never seen clearly in any cut — every frame stays on hands and objects.
+
+Cut 1 (0–4s): Macro on a plain gold ring sitting alone on the nightstand. Her hand enters, hovers over it, withdraws without touching.
+Cut 2 (4–8s): A face-down phone on the nightstand. Her hand enters, stops short of it, withdraws. The phone is never turned over.
+Cut 3 (8–12s): @Prop-Wallet lying out in the open on the nightstand, beside a closed woman's handbag. Her hand enters frame, stops short of it, and withdraws.
+Cut 4 (12–16s): @Prop-Wallet alone in frame, still, no hands anywhere near it. It tips on its own and falls out of the bottom of frame. Hold a beat on the empty nightstand.
+Cut 5 (16–20s): Low on the carpet by her feet — @Prop-Wallet lying where it landed, fallen open, and @Prop-OldPhoto settling face-up against her shoe: the small faded snapshot of a young woman with a small girl. Hold on it.
+
+NEGATIVE — strictly avoid: no blood, no body, no person other than @Mother, no broken glass, no overturned furniture, no disturbed bedding, no signs of a struggle. She never touches, lifts, holds or opens @Prop-Wallet in any cut, and never reaches into the handbag — the handbag stays closed and untouched throughout. Nothing visible causes the wallet to fall: no hand, no arm, no sleeve, no wind, no moving curtain, no shadow crossing it, no tilt of the furniture. No eyeglasses, reading glasses or spectacles anywhere in frame, on any surface or on anyone. Do not show @Mother's face, and do not make her recognisable as the young woman in the photograph. Nothing supernatural visible. No mirror reflection of anyone. The photograph shows exactly two people, an adult woman and a small girl, and no one else.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze. One weak warm ceiling light, deep shadow at the edges. Muted and desaturated — except the photograph, which keeps the faded warm colour of an old print.
+
+AUDIO-SFX
+Fabric and leather under her hands. A phone lifted and set back on wood. Then a small soft leather object tipping off wood and landing flat on carpet, dull and close. A sheet of old photographic paper sliding free and settling, almost inaudible. Her breathing stopping for a beat. Cuts land on the wallet leaving frame and on the photograph settling. No music. No dialogue.
+```
+
+## Scene 9D — three variants, all generated, best one chosen in the edit
+
+Scene 9 now ends on **recognition**: she understands the photograph is her and
+her daughter. Her face has been withheld for the entire film up to this point,
+so 9D-B and 9D-C spend that withheld face here, at the exact moment she knows.
+9D-A is the quieter version that never shows it. Generate all three, real plus
+spare each. The edit picks.
+
+## Scene 9D-A — LONG TAKE (20s) — the under-bed hold
+
+Built on one idea: the camera is already under the bed when the shot begins, so
+the audience is placed as whatever is in there, and she comes down toward them.
+Nothing is ever actually under the bed — the dread is entirely the audience's
+own projection, and putting anything there would collapse it.
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Interior of @Room-Guest, room 214, at night. @Prop-Lamp stands unlit on the nightstand above; one weak warm ceiling bulb somewhere above and behind camera is the only light. The camera sits ON THE FLOOR, lens at carpet height, tilted a few degrees up — the angle you only get by putting your cheek against the ground. The underside edge of the bed frame cuts across the upper third of frame, and behind it the gap beneath the bed is a solid horizontal band of black running the full width of the shot. Everything is composed so the audience is looking OUT from under the bed, never at it.
+
+0–5s: Nothing moves at all. @Prop-Wallet lies open on the carpet in the near foreground, exactly where it fell. @Prop-OldPhoto lies FACE-DOWN a little beyond it, right at the edge of the darkness, half in the weak warm light and half swallowed by the black — only its blank back is visible. Past them both, the band of black under the bed. The frame is completely still. Room tone only.
+
+5–11s: @Mother's shoes enter at the far edge of frame. She lowers herself slowly — one knee down onto the carpet, then a hand planted flat beside the photograph to take her weight. The movement is careful and tired, not frightened: she is only picking up what fell. Her body fills the right of frame, but the black band behind her stays unbroken and visible across the whole width.
+
+11–16s: She lowers her head toward the fallen wallet to look at it, without reaching for it and without touching it — and at that level her eyeline lands square on the dark under the bed. She stops. Her hand, still flat on the carpet, stops. She does not recoil, does not flinch, does not look away. She simply goes still — far too still — looking into the black.
+
+16–20s: Hold. The camera does not move, does not push in, does not rack focus, does not cut. The black band under the bed fills the back of frame and stays perfectly uniform: no shape resolves out of it, nothing emerges, nothing catches light. Only fine carpet dust drifting in the light at the very edge of the gap. Her breathing has stopped. The shot ends on the darkness, not on her.
+
+NEGATIVE — strictly avoid: nothing whatsoever is under the bed. No creature, no face, no eyes, no eyeshine, no hand, no fingers, no silhouette, no reflection, no glint, no movement, no shape emerging or receding. The gap must read as ordinary empty darkness for the entire 20 seconds — the moment anything is visible there, the shot is worthless. No jump scare, no sudden motion, no camera push-in, no zoom, no rack focus, no music sting, no bass drop. No blood, no body, no broken glass, no overturned furniture, no disturbed bedding, no signs of a struggle. No person other than @Mother. She never opens @Prop-Wallet. No eyeglasses, reading glasses or spectacles anywhere in frame, on any surface or on anyone. Do not show @Mother's face clearly, and do not make her recognisable as the young woman in the photograph. No mirror, no reflection of anyone. Nothing supernatural is visible. The photograph shows exactly two people, an adult woman and a small girl, and no one else.
+
+Grounded real-camera look, locked off on the floor, no handheld drift, no lens flare, no haze, no vignette added. One weak warm ceiling light from behind camera, deep true black under the bed with no lift and no detail recovered in it. Muted and desaturated — except the photograph, which keeps the faded warm colour of an old print.
+
+AUDIO-SFX
+Room tone, close and dry, carrying the whole shot. A knee settling onto carpet. A palm pressing flat into carpet pile. Her breathing, audible and steady, then stopping mid-cycle and not resuming. Distant road noise far underneath. Deliberately NO sound from under the bed at any point — no breath, no shift, no scrape, no low tone, no rumble. The silence where a sound belongs is the effect. No music, no sting, no riser, no dialogue.
+```
+
+## Scene 9D-B — LONG TAKE (20s) — the photograph, the dark, and her face
+
+The photograph slides toward the dark on its own, something builds under the
+bed as if it is finally coming out, the dark takes it and then gives it back to
+her, and the camera turns to her face for the first time in the film. **Her face
+is deliberately revealed here** — this shot inverts the rule every earlier scene
+obeyed. She never touches the photograph.
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Interior of @Room-Guest, room 214, at night. @Prop-Lamp stands unlit on the nightstand; the only light is one weak warm ceiling bulb. The camera begins low, at carpet height, and does not cut at any point.
+
+0–4s: THE FALL, in full. @Prop-OldPhoto comes off the edge of the nightstand and does not drop. It is thin old paper and it behaves like thin old paper: it tips onto one corner, catches the air, and swings out flat. It glides sideways for a moment, stalls, tips the other way, and turns over once, slowly, showing its blank back and then its face and then its back again. It sinks in small stages rather than a single fall, the way a dry leaf comes off a branch and takes its time about reaching the ground.
+
+4–9s: It touches the carpet at last, edge first, and skids. It does not stop where it lands. It slides on across the pile, still moving, toward the band of solid black beneath the bed that runs across the back of frame. As it travels, the room tone thins away and a low sound rises out from under the bed — not a growl, not a voice, something felt in the chest more than heard, building steadily and getting closer.
+
+9–13s: The photograph slides into the dark and comes to rest there FACE-DOWN, half in the weak warm light and half swallowed by the black. The sound stops dead the same instant — total silence, no decay, no tail. Nothing comes out of the gap. Nothing moves in it.
+
+13–17s: @Mother lowers herself onto the carpet, one knee then a flat palm. She reaches into the dark under the bed — her hand and forearm are the only part of her that enters the black — finds the photograph, closes on it, and draws it back out into the light. She turns it face-up in her fingers.
+
+17–20s: The camera rises and turns, for the first time in the film, to find her FACE, lit only by the weak ceiling bulb, looking down at what she is holding. She is the young woman in the picture, older now, unmistakably the same person. Her expression changes — no scream, no tears, just a slow arrival of understanding and then something worse behind it. End on her face.
+
+NEGATIVE — strictly avoid: nothing is ever visible under the bed. No creature, no face, no eyes, no eyeshine, no silhouette, no shape emerging, no movement in the dark. Her own hand and forearm reaching in at 13-17s are the ONLY things that ever enter or leave that gap — nothing else, and nothing reaches back, touches her, or follows her hand out. The gap reads as ordinary empty blackness for the whole shot. During the fall itself nothing visible moves the photograph: no hand, no arm, no wind, no curtain, no shadow crossing it, no tilt of the floor — it falls and slides entirely on its own. She does not touch @Prop-Wallet or any other guest property at any point; the photograph is the one thing she picks up. The room stays completely ordinary — no blood, no body, no wreckage, no broken glass, no disturbed bedding, no signs of a struggle. No person other than @Mother. Nothing glows, nothing is translucent, no ghost, no double exposure. No jump scare, no sting, no flash, no camera shake. The photograph shows exactly two people, an adult woman and a small girl, and no one else.
+
+DELIBERATE EXCEPTION TO THE FILM'S USUAL RULE: in this shot her face IS shown, clearly lit and clearly readable, and she MUST be recognisable as the same woman as the young woman in the photograph. Do not hide, shadow, blur or crop her face in the final beats.
+
+Grounded real-camera look, no lens flare, no haze, no whip pans. One weak warm ceiling light, deep true black under the bed with no detail recovered in it. Muted and desaturated — except the photograph, which keeps the faded warm colour of an old print.
+
+AUDIO-SFX
+Room tone, close and dry. The photograph in the air makes almost nothing — a faint dry flutter of old paper turning over, twice, barely there. Then its edge touching carpet, and a longer papery slide across the pile. Under all of it a low tone rising from beneath the bed — building, felt in the chest, no melody, no growl, no voice, no words. It cuts to complete silence the instant the photograph comes to rest in the dark, with no tail and no reverb, and it never returns at any point after. Then only her: a knee settling onto carpet, a palm pressing flat, the small dry scrape of her hand finding paper in the dark, and her breathing, close, stopping once when she turns it face-up. No music, no sting, no riser, no dialogue.
+```
+
+## Scene 9D-C — JUMP CUT (20s) — same beat, harder
+
+```
+VISUAL
+Five cuts across 20 seconds. Interior of guest room 214, one weak warm ceiling light.
+
+Cut 1 (0–4s): Macro, carpet height. @Prop-OldPhoto face-up on the carpet — a young woman with a small girl. It begins to slide away from camera on its own.
+Cut 2 (4–8s): The gap under the bed filling the frame, a wall of solid black. The photograph enters at the bottom edge, still sliding toward it.
+Cut 3 (8–12s): The photograph stopped at the very lip of the darkness, half lit, half black. Held. Nothing comes out.
+Cut 4 (12–16s): The photograph sliding back OUT of the darkness on its own, face-up, coming to rest on the carpet in front of her feet. No hand in frame.
+Cut 5 (16–20s): Her FACE, close, lit by the weak ceiling light, looking down at the photograph on the floor then up into the empty room. She never touches it. She is unmistakably the woman in the picture, older. Hold on her.
+
+NEGATIVE — strictly avoid: nothing visible under the bed at any point — no creature, face, eyes, eyeshine, hand, silhouette or movement; the gap is ordinary empty blackness. Nothing visible moves the photograph. The room stays ordinary — no blood, no body, no wreckage, no broken glass, no disturbed bedding. No person other than @Mother. Nothing glows, nothing translucent, no ghost, no double exposure. No sting, no flash, no camera shake. The photograph shows exactly two people and no one else.
+
+DELIBERATE EXCEPTION: her face IS shown in Cut 5, clearly lit and clearly readable, and she MUST be recognisable as the same woman as in the photograph.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze. Deep true black under the bed with no detail recovered. Muted and desaturated except the photograph.
+
+AUDIO-SFX
+Room tone. Paper sliding on carpet. A low tone rising from under the bed across cuts 1 to 3, building, felt more than heard, no growl and no voice. Dead silence from the moment the photograph disappears into the black, and it never returns. Only her breathing over Cut 5. Cuts land on the silence, never on the sound. No music, no sting, no riser, no dialogue.
+```
+
+---
+
+# SCENE 10 and SCENE 11 — the two-layer reveal
+
+Scene numbering does not change: **10 is the mirror**, **11 is the daughter**,
+exactly as the original outline had them. Scene 11 is now split into `S11-A`,
+`S11-B`, `S11-C` as siblings, no bare `S11`.
+
+**Order matters and it is the whole design.** She learns the truth in 10, alone,
+before anyone else arrives. The audience gets it with her. Then 11 shows the
+world confirming it. Reversing these turns the film from something the viewer
+reasons alongside into a surprise ending.
+
+**Scene 10 is the first frame in the film allowed to show the wreckage.**
+Everything before it — including all of Scene 9 — keeps the room ordinary.
+
+## Scene 10-A — LONG TAKE (20s) — the mirror (she learns alone)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Interior of guest room 214. @Mother's face is never seen clearly, including in reflection — the mirror shows her from behind and to the side, her features soft and unreadable.
+
+0–5s: @Mother straightens from the carpet where the photograph fell. She turns slowly toward a tall full-length mirror on the wall. The room behind her is the ordinary occupied room of Scene 9 — tidy bed, the closed handbag on the nightstand, everything in place.
+5–10s: She stops in front of the mirror and stands very still, looking at her own reflection. Her shoulders drop. She has understood something.
+10–16s: Still in the same unbroken shot, the room reflected in the mirror CHANGES around her, gradually and without any cut or flash: the bedding pulls into a violent tangle, the armchair goes over onto its side, a drinking glass lies shattered across the carpet, the suitcase gapes open with clothes spilling out. The reflection becomes the room as it truly is.
+16–20s: The camera holds as the real room behind her catches up to match its own reflection. She does not move. Hold on her back, the wrecked room, and her unreadable reflection.
+
+NEGATIVE — strictly avoid: no body, no corpse, no person other than @Mother anywhere in frame or in the reflection. No blood. Her face is never clearly readable, in the room or in the mirror. The change must be a continuous physical transformation of the set — no cut, no flash, no dissolve, no ghost, no double exposure, no second figure appearing. Nothing glows.
+
+Grounded real-camera look, locked off, no lens flare, no haze, no whip pans. One weak warm ceiling light. Muted and desaturated.
+
+AUDIO-SFX
+Her clothes shifting as she straightens. Slow footsteps on carpet, stopping. A long silence with only room tone. Then, under the transformation, fabric dragging, wood tipping and settling, glass fragments ticking against each other on the floor — quiet, close, physical, arriving as if these sounds had always been in the room and are only now audible. No sting, no riser, no music. Her breathing, once, at the end.
+```
+
+## Scene 10-A — JUMP CUT (20s) — the mirror (she learns alone)
+
+```
+VISUAL
+Five cuts across 20 seconds. Interior of guest room 214. @Mother's face is never seen clearly in any cut, including in reflection.
+
+Cut 1 (0–4s): Low, the photograph face-up on the carpet. Her shoes enter frame and stop beside it.
+Cut 2 (4–8s): From behind her as she turns toward a tall full-length mirror. In the reflection the room is ordinary — tidy bed, the closed handbag on the nightstand.
+Cut 3 (8–12s): Closer on the mirror. Her reflection stands still, features soft and unreadable. Her shoulders drop.
+Cut 4 (12–16s): The same mirror framing — the reflected room now WRECKED: bedding tangled, armchair on its side, a shattered glass across the carpet, the suitcase open and spilling.
+Cut 5 (16–20s): The real room behind her, matching its reflection. She has not moved. Hold.
+
+NEGATIVE — strictly avoid: no body, no corpse, no person other than @Mother in frame or in the reflection. No blood. Her face is never clearly readable. No ghost, no double exposure, no second figure, no glow. The change is a change of set state between cuts, nothing more.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze. One weak warm ceiling light. Muted and desaturated.
+
+AUDIO-SFX
+Shoes stopping on carpet. Long room tone. Then fabric dragging, wood tipping, glass ticking on the floor — quiet, close, physical, no sting, no riser, no music. Cuts land on the silence, never on the sounds. Her breathing once at the end.
+```
+
+## Scene 10-A — JUMP CUT (rev) (20s) — same beat, different visual grammar
+
+**Use this only if the original 10-A Jump Cut keeps failing.** That block was
+rejected once for copyright at 24 minutes and then overran past 107 minutes on
+its retry, while the 10-A Long Take — same scene, same elements, same mirror,
+same wreckage — rendered clean twice at 20-25 minutes. So the mirror and the
+wrecked room are NOT the problem; something about the Jump Cut's specific
+framing is.
+
+What changed here: the original repeated an identical mirror framing before and
+after the change, which is an extremely recognisable horror device and the most
+likely thing an output-side copyright check would match. This version never
+repeats a composition, comes at the mirror obliquely and in pieces rather than
+head-on, and carries the reveal on different parts of the room instead of one
+hero shot. The story beat is untouched.
+
+```
+VISUAL
+Five cuts across 20 seconds. Interior of guest room 214. @Mother's face is never clearly readable in any cut, including in reflection. No two cuts share a camera position or focal length.
+
+Cut 1 (0–4s): Very low and close on the carpet, the fallen photograph face-up at the edge of frame. Her shoes enter, stop, and she begins to straighten — we follow only to her knees.
+Cut 2 (4–8s): Behind her shoulder, tight, as she turns. A mirror edge cuts into the right of frame at an angle; we see a sliver of reflected room, not a full reflection. The room reads ordinary — made bed, a closed handbag on the nightstand.
+Cut 3 (8–12s): Her hands hanging at her sides, framed at waist height. They open slowly, then still. Behind her, out of focus, the sliver of mirror. Nothing has changed yet.
+Cut 4 (12–16s): A different corner of the real room entirely — the armchair, now on its side, and a drinking glass in pieces across the carpet, shot from floor level. No mirror in this frame at all.
+Cut 5 (16–20s): Wide and high, the whole room wrecked and settled: bedding pulled into a tangle, suitcase open and spilling, @Mother standing small in the middle of it with her back to camera. Hold.
+
+NEGATIVE — strictly avoid: no body, no corpse, no person other than @Mother anywhere in frame or in any reflection. No blood, no stain, no wound. Her face is never clearly readable. No ghost, no double exposure, no second figure, no transparency, nothing glowing. Never show the same framing twice, and never show a full head-on view of a full-length mirror with a figure centred in it. No cut, flash or dissolve used to depict the change itself — the room simply IS wrecked from Cut 4 onward. No jump scare, no camera push-in, no zoom, no whip pan, no lens flare, no haze.
+
+Grounded real-camera look, natural handheld weight, varied angles. One weak warm ceiling light, deep shadow at the edges. Muted and desaturated.
+
+AUDIO-SFX
+Her clothes shifting as she straightens. Slow footsteps on carpet, stopping. A long silence carried on room tone alone. From Cut 4, fabric dragging, wood settling, glass fragments ticking against each other on the floor — quiet, close, physical, arriving as if these sounds had always been in the room and are only now audible. Cuts land in the silence, never on a sound. No sting, no riser, no music. Her breathing, once, at the end.
+```
+
+## Scene 10-B — LONG TAKE (20s) — police burst in, GROUNDED (nothing supernatural)
+
+The reveal delivered from outside instead of by the mirror. The jump scare is
+the door; everything after it is slow motion in total silence. **In this variant
+@Mother is photographed as an ordinary solid person** and the daughter simply
+never sees her — no glow, no transparency. 10-D is the opposite treatment of
+this same beat; generate both and choose.
+
+```
+VISUAL
+Single continuous take, 20 seconds. Interior of guest room 214, one weak warm ceiling light.
+
+0–3s: Close on @Mother's face, the photograph still in her hands, exactly where Scene 9D left her. Behind her the room is ordinary — tidy bed, closed handbag on the nightstand. Three hard impacts land on the door and a muffled shout comes through it. Real time, real sound.
+
+3–5s: The door bursts inward. At the exact frame it opens the image drops into SLOW MOTION and every sound falls away to nothing.
+
+5–10s: Two police officers come through the doorway first, moving slowly, faces NEVER visible — framed from behind, or from the chest down, or with the head cropped out of frame. Corridor light throws hard shapes past them and dust turns slowly in it.
+
+10–14s: Her daughter enters behind them — a young woman now, not the small girl in the photograph, her face streaming with tears. She runs forward toward @Mother, arms already opening to take hold of her.
+
+14–17s: She passes @Mother without touching her and drops onto the bed — and the room is no longer the room. The bedding is torn and tangled, the armchair is over on its side, a drinking glass lies shattered across the carpet, the suitcase gapes open with clothes spilling out. @Mother's body lies on the bed, and the white sheet beneath it carries a wide dark rust-brown stain, long dried into the weave and stiff at its edges — old, not recent. The daughter takes hold of the body and holds it.
+
+17–20s: Hold, still in slow motion and still in total silence, on the daughter holding the body, with @Mother standing untouched in the same frame, the photograph still in her hand, watching.
+
+NEGATIVE — strictly avoid: no police officer's face is ever visible, in any framing, at any moment. No wounds, no injury detail, no gore of any kind. The stain on the sheet is OLD and DRY — rust-brown, matte, absorbed into the fabric, with nothing wet, glossy, red, fresh, pooling or spreading anywhere in frame. She has been dead more than a day and the image must read that way. No weapon in frame. The daughter never touches, bumps, acknowledges or looks at @Mother standing. @Mother does NOT glow, is NOT translucent, does NOT blur, does NOT scatter and casts a normal shadow — she is photographed as an ordinary solid person and nothing in the image marks her as a ghost. No double exposure, no lens flare, no light rays, no particles, no floating dust motes treated as magic. No sound at all after the door opens. No music, no sting, no riser. No camera shake, no whip pan, no zoom.
+
+Grounded real-camera look, locked or on a slow steady move, no handheld shake. Weak warm ceiling light plus hard cold light spilling from the corridor. Muted and desaturated — except the blood on the sheet and the faded warm colour of the photograph.
+
+AUDIO-SFX
+Three hard impacts on the door, a muffled shout, wood splitting and the lock giving — close, real, loud. Then, from the exact frame the door opens, ABSOLUTE SILENCE for the remaining seventeen seconds: no footsteps, no crying, no cloth, no room tone, no breath, no music, no sting. The silence is the effect and it must be complete.
+```
+
+## Scene 10-C — JUMP CUT (20s) — police burst in, five cuts
+
+```
+VISUAL
+Five cuts across 20 seconds. Interior of guest room 214.
+
+Cut 1 (0–3s): Close on @Mother's face, photograph in her hands, ordinary room behind her. Three hard impacts on the door. Real time, real sound.
+Cut 2 (3–7s): The door bursting inward, shot from inside the room. From this frame on everything is SLOW MOTION and silent.
+Cut 3 (7–11s): Two police officers moving through the doorway, faces never visible — cropped, backlit or shot from behind. Dust turning in corridor light.
+Cut 4 (11–16s): Her daughter running forward in tears, arms opening — then past @Mother entirely, dropping onto the bed and taking hold of a body. The room in this cut is WRECKED: bedding torn, armchair over, glass shattered across the carpet, suitcase spilling. The white sheet under the body carries a wide dark rust-brown stain, dried into the weave and stiff at its edges.
+Cut 5 (16–20s): Wide, held. The daughter holding the body. @Mother standing in the same frame, untouched, unlooked-at, the photograph still in her hand.
+
+NEGATIVE — strictly avoid: no police face visible in any cut. No wounds, no injury detail, no gore of any kind. The stain on the sheet is OLD and DRY — rust-brown, matte, absorbed into the fabric, with nothing wet, glossy, red, fresh, pooling or spreading anywhere in frame. She has been dead more than a day and the image must read that way. No weapon. The daughter never touches or acknowledges @Mother standing. @Mother does NOT glow, is NOT translucent and does NOT scatter — she is an ordinary solid person in the image. No double exposure, no light rays, no particles. No sound after Cut 2 begins. No music, no sting, no riser.
+
+Grounded real-camera look, natural weight, no whip pans, no zoom. Weak warm ceiling light plus hard cold corridor light. Muted and desaturated except the blood and the photograph.
+
+AUDIO-SFX
+Impacts on the door, a muffled shout, the lock giving — real and close over Cut 1 and the start of Cut 2. Then absolute silence for Cuts 3, 4 and 5: no footsteps, no crying, no room tone, no breath. Cuts land inside the silence. No music, no sting, no dialogue.
+```
+
+## Scene 10-D — LONG TAKE (20s) — the daughter passes THROUGH her, glowing
+
+Same beat as 10-B, opposite treatment. Here the film says it out loud: @Mother
+is visibly not solid, and the daughter runs straight through her. **This variant
+deliberately breaks the no-glow rule that every other shot in the film obeys.**
+
+```
+VISUAL
+Single continuous take, 20 seconds. Interior of guest room 214, one weak warm ceiling light.
+
+0–3s: Close on @Mother's face, the photograph in her hands. Behind her the room is ordinary. Three hard impacts land on the door and a muffled shout comes through. Real time, real sound.
+
+3–5s: The door bursts inward. At the exact frame it opens the image drops into SLOW MOTION and all sound falls away to nothing.
+
+5–9s: Two police officers move through the doorway first, faces NEVER visible — cropped, backlit, or shot from behind. As the corridor light crosses @Mother she is revealed to be faintly translucent: a soft cool luminance under her skin and clothes, and the wrecked room dimly readable straight through her body.
+
+9–14s: Her daughter enters behind them in tears, a young woman now, and runs forward with her arms opening to take hold of her mother.
+
+14–17s: She runs straight THROUGH @Mother. At the moment of contact @Mother comes apart into slow drifting motes of pale light and fine grey dust, which hang in the air and turn in the corridor light. The daughter does not stop, does not feel it, and drops onto the bed beyond — where the room is now wrecked: bedding torn, armchair over, glass shattered across the carpet, suitcase spilling open. @Mother's body lies on the bed, the white sheet beneath it carrying a wide dark rust-brown stain, long dried into the weave and stiff at its edges. The daughter takes hold of the body and holds it.
+
+17–20s: Hold, still slow, still silent. The daughter holding the body. The drifting motes settle slowly through the frame around them and go out one by one. The photograph lies on the carpet where @Mother was standing.
+
+NEGATIVE — strictly avoid: no police officer's face is ever visible. No wounds, no injury detail, no gore of any kind. The stain on the sheet is OLD and DRY — rust-brown, matte, absorbed into the fabric, with nothing wet, glossy, red, fresh, pooling or spreading anywhere in frame. She has been dead more than a day and the image must read that way. No weapon. The daughter never stops, never reacts and never acknowledges @Mother — she does not see her and does not feel the contact. The glow stays FAINT and cool: no bright halo, no beam, no god rays, no lens flare, no sparkle, no glitter, no fire, no embers, no CG energy effect, no colour shift into blue or green. @Mother's face stays recognisable as the woman in the photograph right up to the moment she comes apart. No music, no sting, no riser, no sound of any kind after the door opens. No camera shake, no whip pan, no zoom.
+
+Grounded real-camera look, locked or slow steady move. Weak warm ceiling light plus hard cold corridor light. Muted and desaturated — except the blood, the faded warm colour of the photograph, and the pale motes.
+
+AUDIO-SFX
+Three hard impacts on the door, a muffled shout, wood splitting and the lock giving — close, real, loud. Then, from the exact frame the door opens, ABSOLUTE SILENCE for the remaining seventeen seconds. No footsteps, no crying, no room tone, no breath, and specifically NO sound for the moment she comes apart — no whoosh, no chime, no shimmer. The silence is the effect and it must be complete.
+```
+
+## Scene 11A — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Interior of wrecked guest room 214. @Mother stands in the middle of the room facing the door, her back three-quarters to camera; her face is never seen clearly. @Daughter is a woman in her twenties.
+
+0–6s: The room is still and wrecked. @Mother stands motionless facing the closed door. Nothing moves.
+6–12s: The door bursts inward. A hard white torch beam sweeps in from outside and rakes across the room, throwing the wreckage into sharp relief — the tangled bed, the overturned chair, the broken glass. Police radio chatter crackles from the walkway. No officer's face is ever seen: only the beam, moving shadows across the doorframe, and a shoulder passing at the edge of frame.
+12–20s: @Daughter comes through the doorway ahead of them and stops dead. She scans the room, and her eyes pass across @Mother without stopping — as though the space @Mother occupies were empty. Hold there: @Mother facing her daughter, @Daughter looking straight through her.
+
+NEGATIVE — strictly avoid: do not show any police officer's face — torch beam, shadow, radio and a shoulder at frame edge only. Do not show a body in this shot. No blood. @Mother's face is never clearly readable. @Daughter must NEVER make eye contact with @Mother and must never react to her. @Mother is completely solid and ordinary here — no transparency, no glow, no smoke, nothing supernatural yet.
+
+Grounded real-camera look, no lens flare, no haze, no whip pans. Hard white torch light cutting through a weak warm room light. Muted and desaturated.
+
+AUDIO-SFX
+Dead room tone. Then a door striking the wall hard, boots on concrete, a police radio squawking with clipped unintelligible traffic. Fast breathing from @Daughter. Under it all, nothing at all from @Mother — no footsteps, no breath, no cloth. Silence where her sounds should be. No music.
+```
+
+## Scene 11A — JUMP CUT (20s)
+
+```
+VISUAL
+Five cuts across 20 seconds. Interior of wrecked guest room 214. @Mother's face is never seen clearly. @Daughter is a woman in her twenties.
+
+Cut 1 (0–4s): @Mother from behind, motionless, facing the closed door of the wrecked room.
+Cut 2 (4–8s): The door bursting inward, a hard white torch beam raking across broken glass on the carpet.
+Cut 3 (8–12s): Shadows crossing the doorframe, a shoulder passing at frame edge, a police radio unit on a belt. No faces.
+Cut 4 (12–16s): @Daughter stopping dead just inside the door, scanning the room.
+Cut 5 (16–20s): Over @Mother's shoulder toward @Daughter — @Daughter's eyes travel across the space @Mother occupies and keep going, with no flicker of recognition. Hold.
+
+NEGATIVE — strictly avoid: no police officer's face at any point. No body in this shot. No blood. @Mother's face is never clearly readable. @Daughter must NEVER make eye contact with @Mother or react to her presence. @Mother is completely solid here — no transparency, no glow, no smoke.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze. Hard white torch light against weak warm room light. Muted and desaturated.
+
+AUDIO-SFX
+Dead room tone. A door striking a wall. Boots on concrete. A police radio squawking, words never intelligible. @Daughter's fast breathing. Nothing at all from @Mother — no footstep, no breath, no cloth. Cuts land on the door and on the torch beam. No music.
+```
+
+## Scene 11B — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Camera locked off and completely still for the whole shot. Interior of wrecked guest room 214. @Mother stands centre frame, solid, seen from behind and slightly to the side; her face is never clearly readable. @Daughter is a woman in her twenties.
+
+0–6s: @Daughter's face changes — she has seen something past @Mother. She starts forward at a run, straight toward @Mother.
+6–11s: @Mother slowly opens her arms to receive her, calm, her expression unreadable. She does not brace or flinch. She is waiting to be held.
+11–15s: @Daughter runs THROUGH her without slowing and without touching her, continuing past camera. At the instant of contact @Mother's body loses its solidity: it becomes translucent, like drifting smoke and fine dust hanging in the air, and the wrecked room behind her — the overturned chair, the broken glass — is clearly visible straight through her body.
+15–20s: @Mother's translucent form stays exactly where it was, arms still open, drifting very slightly like smoke in still air. She does not turn. Hold on her, transparent, alone in frame.
+
+NEGATIVE — strictly avoid: @Daughter must NEVER slow down, flinch, look at @Mother, or react to her in any way — she passes through as though the space were empty. There must be NO collision, no impact, no push. No glow, no light rays, no lens flare, no particles that sparkle, no digital shimmer, no ghost double, no motion blur trails. The transparency is dry and physical, like smoke and dust, not luminous. The camera never moves. No body is shown in this shot.
+
+Grounded real-camera look, locked off, no lens flare, no haze. Hard white torch light crossing a weak warm room light. Muted and desaturated.
+
+AUDIO-SFX
+Running footsteps on carpet, closing fast, then continuing past and away without any impact sound at all — the absence where a collision should be is the point. @Daughter's breathing, ragged, receding. Police radio far off. From @Mother: nothing. No whoosh, no chime, no sting, no riser, no music at the moment she becomes transparent — silence carries it.
+```
+
+## Scene 11B — JUMP CUT (20s)
+
+```
+VISUAL
+Five cuts across 20 seconds. Interior of wrecked guest room 214. @Mother's face is never clearly readable. @Daughter is a woman in her twenties.
+
+Cut 1 (0–4s): Tight on @Daughter's face as it changes — she has seen something past @Mother — and she starts to run.
+Cut 2 (4–8s): From behind @Mother, her arms slowly opening to receive her daughter, calm and unhurried.
+Cut 3 (8–12s): Locked wide. @Daughter runs THROUGH @Mother without slowing and continues past camera. At the moment of contact @Mother turns translucent — smoke and fine dust — and the overturned chair and broken glass behind her show clearly through her body.
+Cut 4 (12–16s): Close on @Mother's translucent arm and shoulder, still open, the wrecked room legible straight through them.
+Cut 5 (16–20s): Wide again. @Mother transparent, arms still open, alone in frame, drifting very slightly. Hold.
+
+NEGATIVE — strictly avoid: @Daughter must NEVER slow, flinch, look at @Mother or react to her. No collision, no impact, no push. No glow, no light rays, no lens flare, no sparkling particles, no digital shimmer, no ghost double, no motion trails. The transparency is dry, like smoke and dust, never luminous. No body shown in this shot.
+
+Grounded real-camera look, no whip pans, no lens flare, no haze. Hard white torch light against weak warm room light. Muted and desaturated.
+
+AUDIO-SFX
+Running footsteps closing fast, then continuing past and away with no impact sound whatsoever. @Daughter's ragged breathing receding. Police radio far off. From @Mother, nothing at all. No whoosh, no chime, no sting, no riser, no music. Cuts land on the run and on the pass-through.
+```
+
+## Scene 11C — LONG TAKE (20s)
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Interior of wrecked guest room 214. A slow, steady mechanical pan, one direction only, never reversing.
+
+0–5s: Start on @Mother's translucent form, arms still open, the wrecked room visible through her. She is motionless.
+5–11s: The camera begins a slow pan away from her, left to right across the room, and she drifts out of frame. It travels over the evidence of what happened here: the overturned armchair, a shattered drinking glass across the carpet, the suitcase open and spilling clothes, a lamp knocked askew, a smear of disturbed bedding.
+11–17s: The pan continues and reaches the bed. A woman lies on it, still, fully clothed in the same housekeeping uniform, turned away from camera so her face is not visible. @Daughter is collapsed over her, holding her, shoulders shaking.
+17–20s: The pan stops there and holds. On the floor beside the bed, the small old photograph lies face-up where it fell.
+
+NEGATIVE — strictly avoid: no blood anywhere, no wound, no injury, no violence on screen. The woman on the bed is turned away and her face is never visible. Do not show a police officer's face. Nothing glows. No ghost, no double exposure, no second translucent figure once @Mother has left frame — after the pan passes her she is simply gone from the shot. The camera pans once, steadily, in one direction, and never reverses or returns to her.
+
+Grounded real-camera look, slow mechanical pan, no lens flare, no haze, no handheld shake. Hard white torch light crossing a weak warm room light. Muted and desaturated, except the old photograph on the floor, which keeps the faded warm colour of an old print.
+
+AUDIO-SFX
+Room tone. The pan carries no sound of its own. @Daughter crying, close and unguarded, growing as the camera reaches the bed. A police radio in the doorway, clipped, unintelligible. No sound at all from @Mother — the silence she leaves behind is the loudest thing in the shot. No music.
+```
+
+## Scene 11C — JUMP CUT (20s)
+
+```
+VISUAL
+Five cuts across 20 seconds. Interior of wrecked guest room 214.
+
+Cut 1 (0–4s): @Mother's translucent form, arms still open, the wrecked room visible through her. Motionless.
+Cut 2 (4–8s): The overturned armchair and a shattered drinking glass across the carpet.
+Cut 3 (8–12s): The suitcase open and spilling clothes, a lamp knocked askew.
+Cut 4 (12–17s): The bed. A woman lies on it, still, in a housekeeping uniform, turned away so her face is not visible. @Daughter collapsed over her, holding her, shoulders shaking.
+Cut 5 (17–20s): Low on the carpet beside the bed — the small old photograph, face-up where it fell. Hold.
+
+NEGATIVE — strictly avoid: no blood, no wound, no injury, no violence on screen. The woman on the bed is turned away and her face is never visible. No police officer's face. Nothing glows. No ghost, no double exposure, no translucent figure in any cut after the first.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare, no haze. Hard white torch light against weak warm room light. Muted and desaturated, except the photograph, which keeps the faded warm colour of an old print.
+
+AUDIO-SFX
+Room tone. @Daughter crying, close and unguarded, growing across the cuts. A police radio in the doorway, clipped and unintelligible. No sound at all from @Mother. Cuts land in the silences, never on the crying. No music.
+```
