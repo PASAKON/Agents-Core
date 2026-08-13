@@ -55,7 +55,11 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: google/osv-scanner-action@v2
+      # google/osv-scanner-action is a MONOREPO holding two sub-actions
+      # (osv-scanner-action, osv-reporter-action), so the path repeats and a
+      # bare `@v2` does not resolve — the first CI run failed with
+      # "unable to find version `v2`". Pin a real released tag.
+      - uses: google/osv-scanner-action/osv-scanner-action@v2.5.0
         with:
           scan-args: |-
             --recursive
