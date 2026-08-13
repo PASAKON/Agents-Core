@@ -35,6 +35,33 @@ Every Scene 9 and Scene 10 shot happens in **214**, so they take
 `@Room-DoorOut-Down` (use `@Room-DoorOut`), `@Prop-Glasses` (the CEO removed
 reading glasses from the film entirely).
 
+### HARD CAP — Seedance 2.0 accepts a maximum of 10 DISTINCT elements per generation
+
+Counted against every written block, nothing exceeds it, but two scenes are at
+the edge:
+
+| Scene | Distinct elements | Headroom |
+|---|---|---|
+| 10-D | **10** | **zero — nothing can be added without dropping something** |
+| 9C, 10-B, 10-C | 9 | one slot |
+| everything else | 1-5 | plenty |
+
+**The cap is on elements ATTACHED to the composer, not on mentions in the
+text.** A composer carrying leftover chips from an earlier scene will blow past
+ten as soon as the new scene's set is attached, and the platform then reports
+it sees no usable prompt at all. **Clear every existing chip before attaching a
+new scene's set.**
+
+If a scene ever needs more than ten, drop in this order — last dropped first:
+
+1. **Characters** — never drop. They must match across the whole film.
+2. **Location** — never drop. It defines the entire frame.
+3. **Props the shot turns on** — the photograph, the wallet, the thing the
+   story is about. Never drop.
+4. **Props that are set dressing** — drop these first and describe them in
+   plain words instead. `@Prop-Lamp` and `@Prop-Vase` are the usual candidates:
+   they establish the room but the shot does not depend on them.
+
 ### Scene → element map
 
 | Scene | Location | Characters | Props |
