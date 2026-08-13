@@ -162,3 +162,70 @@ def test_prunes_deleted_file(tmp_path: Path) -> None:
     r = ss.reindex(corpus, idx, now=NOW)
     assert r["pruned"] == 1, r
     assert ss.search("ghostterm", corpus_dir=corpus, index_path=idx, now=NOW) == []
+
+
+def test_rebuild_rereads_every_eligible_file(tmp_path: Path) -> None:
+    """full=True rebuild re-reads files the index already holds — indexed > 0,
+    unchanged == 0 — instead of no-op'ing the way an incremental pass does on an
+    already-current index (the bug: ``--rebuild`` used to print ``indexed: 0``)."""
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    idx = tmp_path / "idx.db"
+    _age(_write(corpus, "a.jsonl", [_msg("user", "user", "alpha higgsfield")]), 10_000)
+    _age(_write(corpus, "b.jsonl", [_msg("user", "user", "beta higgsfield")]), 10_000)
+
+    first = ss.reindex(corpus, idx, now=NOW)
+    assert first["indexed"] == 2, first
+
+    rebuilt = ss.reindex(corpus, idx, now=NOW, full=True)
+    assert rebuilt["scanned"] == 2, rebuilt
+    assert rebuilt["indexed"] == 2, rebuilt       # re-read, not 0
+    assert rebuilt["unchanged"] == 0, rebuilt      # a rebuild never claims "unchanged"
+
+    # An incremental pass over the freshly rebuilt index now does no work.
+    again = ss.reindex(corpus, idx, now=NOW)
+    assert again["indexed"] == 0, again
+    assert again["unchanged"] == 2, again
+
+    hits = ss.search("higgsfield", corpus_dir=corpus, index_path=idx, now=NOW)
+    assert hits, "rebuilt index must still find known terms"
+
+
+def test_rebuild_skips_live_file(tmp_path: Path) -> None:
+    """The live-write guard applies on a full rebuild too — a file inside the
+    grace window is skipped even when we are dropping and re-reading everything
+    (never read a half-flushed live transcript; 2026-08-06 ~20 GB miss)."""
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    idx = tmp_path / "idx.db"
+    live = _write(corpus, "live.jsonl", [_msg("user", "user", "uniqueliveterm rebuild")])
+    cold = _write(corpus, "cold.jsonl", [_msg("user", "user", "coldterm rebuild")])
+    _age(live, 10)        # 10s ago -> within 120s grace -> skipped even on rebuild
+    _age(cold, 10_000)    # cold -> re-read
+
+    r = ss.reindex(corpus, idx, now=NOW, full=True)
+    assert r["skipped_live"] == 1, r
+    assert r["indexed"] == 1, r
+    # The live file's unique term is NOT findable (it was skipped).
+    assert ss.search("uniqueliveterm", corpus_dir=corpus, index_path=idx, now=NOW) == []
+    # The cold file's term IS findable.
+    hits = ss.search("coldterm", corpus_dir=corpus, index_path=idx, now=NOW)
+    assert hits and "coldterm" in hits[0]["snippet"].lower()
+
+
+def test_rebuild_recovers_from_corrupt_index(tmp_path: Path) -> None:
+    """A full rebuild over a corrupt index file recovers rather than raising —
+    the bad derived artifact is replaced with a fresh one rebuilt from the
+    corpus. An incremental reindex cannot: it would have to keep querying the
+    corrupt DB."""
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    idx = tmp_path / "idx.db"
+    _age(_write(corpus, "good.jsonl", [_msg("user", "user", "recoverableterm here")]), 10_000)
+    # Deliberately corrupt the index: garbage where the SQLite header should be.
+    idx.write_bytes(b"not a sqlite database" * 64)
+
+    r = ss.reindex(corpus, idx, now=NOW, full=True)   # must not raise
+    assert r["indexed"] == 1, r
+    hits = ss.search("recoverableterm", corpus_dir=corpus, index_path=idx, now=NOW)
+    assert hits and "recoverableterm" in hits[0]["snippet"].lower()

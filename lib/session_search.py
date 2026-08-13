@@ -111,6 +111,20 @@ def _open(index_path: Path) -> sqlite3.Connection:
     return conn
 
 
+def _drop_index(index_path: Path) -> None:
+    """Remove the derived index so the next ``reindex(full=True)`` rebuilds it
+    from scratch. The index is a build product — a delete loses nothing because
+    the corpus is the source of truth (module docstring) — and this is also the
+    recovery path for a corrupt DB: ``unlink`` removes the file regardless of
+    its contents, after which ``_open`` + the schema script recreate it empty.
+    No WAL pragma is set, so there are no ``-wal``/``-shm`` sidecars to chase.
+    """
+    try:
+        Path(index_path).unlink()
+    except FileNotFoundError:
+        pass
+
+
 def _iter_message_text(jsonl_path: Path):
     """Yield ``(timestamp, session_id, text)`` for each user/assistant TEXT part
     in a transcript file. Corrupt/truncated JSON lines are skipped silently — a
@@ -155,23 +169,45 @@ def reindex(
     *,
     now: float | None = None,
     live_grace_seconds: int = LIVE_WRITE_GRACE_SECONDS,
+    full: bool = False,
 ) -> dict:
-    """Bring the index up to date with the corpus, incrementally.
+    """Bring the index up to date with the corpus.
+
+    By default this is incremental: each file's ``(mtime, size)`` is tracked in
+    the ``files`` side table and only changed files are re-parsed.
+
+    With ``full=True`` it rebuilds from scratch — the existing index is dropped
+    first and every eligible file is re-read, so ``indexed`` reflects the files
+    actually read rather than reporting 0 work on an already-current index. A
+    rebuild is also the recovery path for a corrupt or schema-mismatched DB: the
+    bad derived artifact is replaced with a fresh one (a delete loses nothing —
+    the corpus is the source of truth; see module docstring). An incremental
+    reindex cannot recover that way; it would keep reading the bad file.
+
+    The live-write guard applies either way: a file whose mtime is within
+    ``live_grace_seconds`` of ``now`` is skipped even on a full rebuild, so a
+    half-flushed live transcript is never read (the 2026-08-06 ~20 GB dedup miss
+    was exactly that mistake).
 
     Scans ``corpus_dir`` for ``*.jsonl``, and for each file:
       - skips it if its mtime is within ``live_grace_seconds`` of ``now`` (the
         live session is still writing it);
-      - skips it if ``(mtime, size)`` matches what is already indexed (no work);
+      - skips it if ``(mtime, size)`` matches what is already indexed (no work —
+        unless ``full`` dropped the index, in which case nothing matches);
       - otherwise deletes that file's rows and re-parses it.
 
     Files that no longer exist on disk are pruned from the index. Returns a
     counts dict so callers (and tests) can prove what actually happened rather
-    than trust silence — "no work" is ``indexed == 0`` on a second call.
+    than trust silence — "no work" is ``indexed == 0`` on a second incremental
+    call.
     """
     corpus_dir = Path(corpus_dir or DEFAULT_CORPUS)
     index_path = Path(index_path or DEFAULT_INDEX)
     now = time.time() if now is None else float(now)
     live_cutoff = now - live_grace_seconds
+
+    if full:
+        _drop_index(index_path)
 
     conn = _open(index_path)
     try:
@@ -309,24 +345,34 @@ def search(
 
 def _cli() -> int:
     """``python -m lib.session_search <query> [--limit N]`` builds the index
-    (incremental) and prints results. ``--rebuild`` prints only the reindex
-    report (used for the ADR 0019 acceptance run: time the build, report size).
+    (incrementally) and prints results.
+
+    ``--rebuild`` drops the index and re-indexes the whole corpus from scratch,
+    then prints the report — the path to run when the FTS5 schema changed or the
+    index is corrupt. ``--reindex`` runs the incremental path and prints its
+    report. The flags do what they say: a rebuild shows ``indexed`` equal to the
+    files it actually read (not 0), while an incremental reindex over an
+    already-current corpus shows ``indexed: 0``.
     """
     import sys
 
     args = sys.argv[1:]
     if not args or args[0] in ("-h", "--help"):
-        print("usage: python -m lib.session_search <query> [--limit N] [--rebuild]")
+        print("usage: python -m lib.session_search <query> [--limit N]")
+        print("       python -m lib.session_search --rebuild    # drop + re-index all")
+        print("       python -m lib.session_search --reindex    # incremental only")
         print("       index: " + str(DEFAULT_INDEX))
         print("       corpus: " + str(DEFAULT_CORPUS))
         return 0
 
-    if args[0] == "--rebuild":
+    if args[0] in ("--rebuild", "--reindex"):
+        full = args[0] == "--rebuild"
+        label = "rebuild" if full else "reindex"
         t0 = time.time()
-        report = reindex()
+        report = reindex(full=full)
         dt = time.time() - t0
         size = DEFAULT_INDEX.stat().st_size if DEFAULT_INDEX.exists() else 0
-        print(f"reindex: {report} in {dt:.1f}s; index {size} bytes")
+        print(f"{label}: {report} in {dt:.1f}s; index {size} bytes")
         return 0
 
     limit = 5
