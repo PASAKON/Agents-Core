@@ -165,6 +165,10 @@ SECRETARY_SYSTEM_PROMPT = (
     "(เพิ่ม/แก้/ปิด/ลบ พร้อม id หรือชื่อ) เป็นบรรทัดสั้นๆ "
     "ถ้าบางส่วนล้มเหลวให้บอกว่าส่วนไหนล้มเหลว\n"
     "การอ่าน (list_todos, read_note, search_notes, list_recent) ไม่ต้องขอยืนยันก่อน\n"
+    "\n"
+    "เวลานับจำนวน to-do ต้องส่ง limit=200 ให้ list_todos เสมอ "
+    "ค่า default ของมันคือ 50 ถ้าไม่ส่ง จะได้แค่ 50 แถวแรกแล้วรายงานเลขผิด "
+    "(ของจริงตอนวัด 13 ส.ค. คือ 127 แต่ตอบไป 50)\n"
 )
 
 _LOGGER: object | None = None
@@ -255,6 +259,14 @@ def _build_claude_cmd(prompt: str, session_id: str | None) -> list[str]:
         CLAUDE_BIN, "-p", prompt,
         "--output-format", "json",
         "--permission-mode", "dontAsk",
+        # Skips hooks, LSP and plugin discovery — none of which a chat turn
+        # uses, all of which it was paying for. Measured on Contabo, same
+        # prompt with a tool call, 2 runs each: 8.3-10.7s with --bare vs
+        # 15.6-17.4s without. Auth is unaffected — we reach Z.ai through
+        # ANTHROPIC_BASE_URL + ANTHROPIC_AUTH_TOKEN, verified live under
+        # --bare (glm-5.2 billed, is_error false). --bare restricting auth to
+        # ANTHROPIC_API_KEY was the documented risk; it did not materialise.
+        "--bare",
         "--allowed-tools", ",".join(ALLOWED_TOOLS),
         "--system-prompt", SECRETARY_SYSTEM_PROMPT,
         "--mcp-config", str(MCP_CONFIG_PATH),
