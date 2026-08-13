@@ -11,3 +11,14 @@ pandas>=3.0.5
 requests>=2.31,<3
 # Test runner — ADR 0021 standardises on pytest (added 2026-08-13).
 pytest>=8,<9
+
+# Security floors on transitive dependencies (ADR 0020 osv_check, 2026-08-13).
+# We do not import these directly — idna arrives via requests/httpx/anyio and
+# python-multipart via mcp. osv-scanner resolves the LOWEST version our
+# constraints permit, and that floor carried 9 known CVEs (worst CVSS 8.7).
+# Raising the floor is not an upgrade of anything we run: idna was already at
+# 3.15 locally. python-multipart was at 0.0.29, still short of the 0.0.30/0.0.31
+# three of those advisories require. Remove these lines once the upstream
+# packages raise their own floors past these versions.
+idna>=3.15
+python-multipart>=0.0.31
