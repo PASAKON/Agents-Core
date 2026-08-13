@@ -26,6 +26,10 @@
           {
             "type": "command",
             "command": "python3 /Users/gob/Projects/Agents/scripts/hook-skill-suggest.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-memory-nudge.py"
           }
         ]
       }
@@ -36,6 +40,16 @@
           {
             "type": "command",
             "command": "python3 /Users/gob/Projects/Agents/scripts/hook-browser-guard.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-self-repo-guard.py",
+            "timeout": 10
           }
         ]
       }

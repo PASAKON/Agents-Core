@@ -42,6 +42,8 @@ state/fomo-scanner.db-shm
 # Only local/secret state is ignored (see .agents/README.md for the .agents/ note).
 .claude/settings.local.json
 .claude/settings.local.json.bak-*
+# Timestamped backups written before a hook-registration change.
+.claude/settings.json.bak-*
 .claude/scheduled_tasks.lock
 
 # `npx skills add` install target — vendored skill copies, not source.
