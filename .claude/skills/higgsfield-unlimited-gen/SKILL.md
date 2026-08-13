@@ -256,8 +256,26 @@ started at 06:57 UTC and nothing recovered after that.
 
 Practical consequences:
 
-- **Schedule long waves for roughly 00:00–08:00 ICT**, i.e. avoid 07:00–16:00
-  UTC. The same queue costs 2–5x more wall-clock outside that window.
+**The window is 01:00–07:00 UTC and nothing else.** Work it out from all three
+user bases, not just the one that happened to break the wave:
+
+| UTC | Europe | US East | US West | Load |
+|---|---|---|---|---|
+| 07:00–16:00 | **working** | morning→afternoon | morning | stacked peak |
+| 16:00–01:00 | evening→night | **working** | **working** | US peak |
+| **01:00–07:00** | **asleep** | **asleep** | **asleep** | **the window** |
+
+`01:00–07:00 UTC` is **08:00–14:00 ICT** — six hours, about 14 clips at 25
+minutes each.
+
+- **Schedule long waves for 08:00–14:00 ICT.** Spawn the operator ~07:30 so the
+  first prompt is staged and verified before the window opens.
+- **Thai overnight is the WRONG answer** even though it feels like the natural
+  time to run an unattended job. 00:00–08:00 ICT is 17:00–01:00 UTC, which is
+  US East afternoon plus US West full working day — their peak, not a lull.
+  Recorded because that was the first conclusion drawn from this data and it
+  was wrong: it fitted the European evidence and ignored America entirely.
+- The same queue costs 2–5x more wall-clock outside the window.
 - **A slow render is not a bug.** Before investigating anything client-side,
   check the clock. On 2026-08-13 an afternoon went into changing the polling
   method, pipelining prompt setup and restarting Chrome twice, all chasing a
