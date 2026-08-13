@@ -35,6 +35,7 @@ import argparse
 import importlib.util
 import json
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -192,6 +193,55 @@ def _aggregate_usage(entries: list[tuple[datetime, str, str]]) -> dict[str, dict
     return agg
 
 
+def _git_added_at(path: Path) -> Optional[datetime]:
+    """When this file first entered git history, or None if unknowable.
+
+    mtime cannot answer "how long has this skill existed": git rewrites it on
+    every checkout, worktree creation, and rebase. Measured 2026-08-13 — the
+    same SKILL.md read 17:33 in a fresh worktree and 03:54 in the main
+    checkout, neither being when the skill was written. The first-commit date
+    survives all of that.
+    """
+    try:
+        proc = subprocess.run(
+            ["git", "log", "--diff-filter=A", "--format=%aI", "-1", "--", str(path)],
+            cwd=str(path.parent), capture_output=True, text=True, timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if proc.returncode != 0:
+        return None
+    lines = (proc.stdout or "").strip().splitlines()
+    if not lines:
+        return None
+    try:
+        ts = datetime.fromisoformat(lines[0].strip())
+    except ValueError:
+        return None
+    return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+
+
+def _idle_since_unused(
+    skill_md: Path, observation_start: Optional[datetime]
+) -> Optional[datetime]:
+    """Idle clock for a skill the telemetry log has never seen fire.
+
+    "Idle since" is the LATER of two facts, because either alone can call a
+    skill stale when it is not:
+
+      - when we started watching (`observation_start`, the log's earliest
+        entry) — a skill cannot be judged over a period we were not recording
+      - when the skill first existed (`_git_added_at`) — one added yesterday is
+        not stale merely because the log is older than it
+
+    None means "no basis to judge", and the caller then proposes nothing.
+    """
+    candidates = [
+        c for c in (observation_start, _git_added_at(skill_md)) if c is not None
+    ]
+    return max(candidates) if candidates else None
+
+
 def _scan_skill_dir(d: Path) -> set[str]:
     if not d.is_dir():
         return set()
@@ -248,6 +298,10 @@ def build_portfolio(paths: CuratorPaths) -> dict[str, dict]:
         entries = _load_log_tsv(paths.log_path)
 
     usage = _aggregate_usage(entries)
+    # Earliest entry in the whole log = when telemetry started. A skill with
+    # zero uses has been idle at least since then, and cannot be judged over
+    # any period before it.
+    observation_start = min((ts for ts, _s, _x in entries), default=None)
     existing_state = _load_state(paths.state_path)
     names |= set(existing_state.keys())
 
@@ -275,9 +329,13 @@ def build_portfolio(paths: CuratorPaths) -> dict[str, dict]:
             last_used_at = None
             first_seen_at = None
             if skill_dir is not None and (skill_dir / "SKILL.md").is_file():
-                # Never invoked — fall back to file mtime as the idle clock.
-                mtime = (skill_dir / "SKILL.md").stat().st_mtime
-                first_seen_at = datetime.fromtimestamp(mtime, tz=timezone.utc)
+                # Never invoked. mtime is NOT the idle clock — git rewrites it
+                # on checkout/worktree/rebase, so every skill looks brand new
+                # in a fresh worktree and nothing is ever proposed. See
+                # _idle_since_unused for what replaces it.
+                first_seen_at = _idle_since_unused(
+                    skill_dir / "SKILL.md", observation_start
+                )
 
         # The filesystem is ground truth for archived vs active; a stored
         # lifecycle only matters when it disagrees with what's on disk (e.g.

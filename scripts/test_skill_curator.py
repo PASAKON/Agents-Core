@@ -57,8 +57,34 @@ def _write_skill(base: Path, name: str, *, created_by: "str | None" = "agent",
 
 
 def _backdate(skill_md: Path, days: int) -> None:
-    old = (datetime.now(timezone.utc) - timedelta(days=days)).timestamp()
-    os.utime(skill_md, (old, old))
+    """Make a never-invoked fixture skill look `days` old to the curator.
+
+    mtime alone no longer does this. The curator stopped trusting mtime because
+    git rewrites it on every checkout, worktree creation, and rebase — in a
+    fresh worktree every skill looked brand new and `propose` could never
+    surface anything (measured 2026-08-13). For a skill with zero uses the idle
+    clock is now "the later of: when telemetry started, and when the skill
+    first entered git", so the fixture has to state when telemetry started.
+
+    Under `tmp_path` there is no git, so `_git_added_at` returns None and the
+    log's earliest entry decides. Seed one sentinel line at `now - days` for a
+    skill that exists nowhere else: that sets `observation_start` without
+    giving any fixture skill a use count.
+
+    The `os.utime` call is kept — harmless, and it keeps the fixture honest if
+    the clock ever consults mtime again.
+    """
+    old_dt = datetime.now(timezone.utc) - timedelta(days=days)
+    os.utime(skill_md, (old_dt.timestamp(), old_dt.timestamp()))
+
+    # <tmp_path>/owned-skills/<name>/SKILL.md -> <tmp_path>/state/skill-usage.log,
+    # matching the layout _make_paths builds.
+    log_path = skill_md.parent.parent.parent / "state" / "skill-usage.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    sentinel = f"{old_dt.isoformat()}\t_fixture-observation-start\tfixture\n"
+    existing = log_path.read_text(encoding="utf-8") if log_path.exists() else ""
+    if sentinel not in existing:
+        log_path.write_text(sentinel + existing, encoding="utf-8")
 
 
 def _make_paths(tmp_path: Path) -> "curator.CuratorPaths":
