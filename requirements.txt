@@ -3,3 +3,5 @@ anyio>=4.0
 pyyaml>=6.0
 textual>=0.80
 rich>=13.0
+# Test runner — ADR 0021 standardises on pytest (added 2026-08-13).
+pytest>=8,<9
