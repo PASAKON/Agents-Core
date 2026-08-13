@@ -1,0 +1,271 @@
+"""Tests for scripts/skill-curator.py (ADR 0018).
+
+Proves the five curator invariants:
+  1. Never deletes — archive is restorable via restore.
+  2. Only touches created_by: agent — human-authored (incl. absent field,
+     which defaults to human) skills are read-only.
+  3. Refuses any path that resolves through a symlink escaping the owned
+     skills dir.
+  4. Pinned skills are exempt from every transition, and from archive.
+  5. Backs up before any mutation.
+
+Every fixture lives under tmp_path via CuratorPaths(merge_external=False),
+which skips the ~/.claude/skills + plugin-marketplace merge entirely and
+reads only the log_path/state_path handed to it. This module never opens
+state/skill-usage.log, state/skill-usage.json, ~/.claude/skills/, or
+anything under output/ (ADR 0021 §"tests must not write to real state").
+
+Run standalone:   python scripts/test_skill_curator.py
+Or under pytest:  pytest scripts/test_skill_curator.py
+"""
+from __future__ import annotations
+
+import importlib.util
+import json
+import os
+import sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parent.parent
+_SPEC = importlib.util.spec_from_file_location(
+    "skill_curator", ROOT / "scripts" / "skill-curator.py"
+)
+assert _SPEC is not None and _SPEC.loader is not None
+curator = importlib.util.module_from_spec(_SPEC)
+sys.modules[_SPEC.name] = curator  # dataclass needs this in sys.modules to resolve annotations
+_SPEC.loader.exec_module(curator)
+
+
+# --------------------------------------------------------------------------
+# fixtures — everything lives under tmp_path.
+# --------------------------------------------------------------------------
+
+def _write_skill(base: Path, name: str, *, created_by: "str | None" = "agent",
+                  body: str = "content") -> Path:
+    d = base / name
+    d.mkdir(parents=True, exist_ok=True)
+    fm_lines = ["---", f"name: {name}"]
+    if created_by is not None:
+        fm_lines.append(f"created_by: {created_by}")
+    fm_lines += ["description: fixture skill for skill-curator tests", "---", "",
+                 f"# {name}", "", body, ""]
+    (d / "SKILL.md").write_text("\n".join(fm_lines), encoding="utf-8")
+    return d
+
+
+def _backdate(skill_md: Path, days: int) -> None:
+    old = (datetime.now(timezone.utc) - timedelta(days=days)).timestamp()
+    os.utime(skill_md, (old, old))
+
+
+def _make_paths(tmp_path: Path) -> "curator.CuratorPaths":
+    owned = tmp_path / "owned-skills"
+    owned.mkdir()
+    return curator.CuratorPaths(
+        owned_skills_dir=owned,
+        log_path=tmp_path / "state" / "skill-usage.log",
+        state_path=tmp_path / "state" / "skill-usage.json",
+        archive_dir=tmp_path / "skills-archive",
+        backup_dir=tmp_path / "backups",
+        merge_external=False,
+    )
+
+
+def _snapshot(d: Path) -> dict:
+    """name -> content for every regular file under d. Used to assert 'unchanged'."""
+    if not d.exists():
+        return {}
+    return {
+        str(p.relative_to(d)): p.read_bytes()
+        for p in sorted(d.rglob("*"))
+        if p.is_file()
+    }
+
+
+# --------------------------------------------------------------------------
+# invariant 3 — symlink escape refusal
+# --------------------------------------------------------------------------
+
+def test_archive_refuses_symlinked_skill_even_if_stale_and_agent(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    external_dir = tmp_path / "external-repo"
+    external_dir.mkdir()
+    real_skill = _write_skill(external_dir, "real-skill", created_by="agent")
+    _backdate(real_skill / "SKILL.md", days=200)  # well past the archive threshold
+
+    (paths.owned_skills_dir / "sym-skill").symlink_to(real_skill, target_is_directory=True)
+
+    with pytest.raises(curator.CuratorError, match="symlink"):
+        curator.archive_skill(paths, "sym-skill")
+
+    assert (paths.owned_skills_dir / "sym-skill").is_symlink()
+    assert real_skill.is_dir()  # untouched at its real location
+    assert not paths.archive_dir.exists()
+    assert not paths.backup_dir.exists()
+
+
+# --------------------------------------------------------------------------
+# invariant 2 — only created_by: agent is mutable
+# --------------------------------------------------------------------------
+
+def test_archive_refuses_human_authored_skill(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    _write_skill(paths.owned_skills_dir, "human-skill", created_by="human")
+
+    with pytest.raises(curator.CuratorError, match="human-authored"):
+        curator.archive_skill(paths, "human-skill")
+
+    assert (paths.owned_skills_dir / "human-skill").is_dir()
+
+
+def test_archive_refuses_when_created_by_absent(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    _write_skill(paths.owned_skills_dir, "legacy-skill", created_by=None)
+
+    with pytest.raises(curator.CuratorError, match="human-authored"):
+        curator.archive_skill(paths, "legacy-skill")
+
+    assert (paths.owned_skills_dir / "legacy-skill").is_dir()
+
+
+def test_human_authored_stale_skill_is_informational_not_actionable(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    skill = _write_skill(paths.owned_skills_dir, "old-human-skill", created_by=None)
+    _backdate(skill / "SKILL.md", days=200)
+
+    proposals = curator.compute_proposals(paths)
+    match = [p for p in proposals if p.name == "old-human-skill"]
+    assert len(match) == 1
+    assert match[0].actionable is False  # curator computes it, but cannot act
+
+
+# --------------------------------------------------------------------------
+# invariant 4 — pinned is exempt
+# --------------------------------------------------------------------------
+
+def test_pinned_skill_exempt_from_proposed_transition(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    pinned = _write_skill(paths.owned_skills_dir, "pinned-agent-skill", created_by="agent")
+    _backdate(pinned / "SKILL.md", days=200)
+    unpinned = _write_skill(paths.owned_skills_dir, "unpinned-agent-skill", created_by="agent")
+    _backdate(unpinned / "SKILL.md", days=200)
+
+    curator.pin_skill(paths, "pinned-agent-skill")
+
+    names = {p.name for p in curator.compute_proposals(paths)}
+    assert "pinned-agent-skill" not in names
+    assert "unpinned-agent-skill" in names  # proves the harness would propose without the pin
+
+
+def test_unpin_restores_transition_eligibility(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    skill = _write_skill(paths.owned_skills_dir, "toggle-skill", created_by="agent")
+    _backdate(skill / "SKILL.md", days=200)
+
+    curator.pin_skill(paths, "toggle-skill")
+    assert "toggle-skill" not in {p.name for p in curator.compute_proposals(paths)}
+
+    curator.unpin_skill(paths, "toggle-skill")
+    assert "toggle-skill" in {p.name for p in curator.compute_proposals(paths)}
+
+
+def test_archive_refuses_pinned_skill(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    _write_skill(paths.owned_skills_dir, "pinned-skill", created_by="agent")
+    curator.pin_skill(paths, "pinned-skill")
+
+    with pytest.raises(curator.CuratorError, match="pinned"):
+        curator.archive_skill(paths, "pinned-skill")
+
+    assert (paths.owned_skills_dir / "pinned-skill").is_dir()
+
+
+# --------------------------------------------------------------------------
+# invariant 1 — never deletes, archive/restore round-trip
+# --------------------------------------------------------------------------
+
+def test_archive_then_restore_round_trips_file_intact(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    skill_dir = _write_skill(paths.owned_skills_dir, "roundtrip-skill",
+                              created_by="agent", body="unique body xyz")
+    original = (skill_dir / "SKILL.md").read_bytes()
+
+    curator.archive_skill(paths, "roundtrip-skill")
+    assert not (paths.owned_skills_dir / "roundtrip-skill").exists()
+    assert (paths.archive_dir / "roundtrip-skill" / "SKILL.md").is_file()
+
+    curator.restore_skill(paths, "roundtrip-skill")
+    assert not (paths.archive_dir / "roundtrip-skill").exists()
+    restored = (paths.owned_skills_dir / "roundtrip-skill" / "SKILL.md").read_bytes()
+    assert restored == original
+
+    state = json.loads(paths.state_path.read_text(encoding="utf-8"))
+    assert state["roundtrip-skill"]["lifecycle"] == "active"
+
+
+def test_restore_missing_name_refuses(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    with pytest.raises(curator.CuratorError, match="not found"):
+        curator.restore_skill(paths, "does-not-exist")
+
+
+def test_archive_missing_name_refuses(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    with pytest.raises(curator.CuratorError, match="not found"):
+        curator.archive_skill(paths, "does-not-exist")
+
+
+def test_archive_rejects_path_traversal_name(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    with pytest.raises(curator.CuratorError, match="invalid skill name"):
+        curator.archive_skill(paths, "../evil")
+
+
+# --------------------------------------------------------------------------
+# invariant 5 — backs up before any mutation
+# --------------------------------------------------------------------------
+
+def test_archive_creates_backup_before_moving(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    _write_skill(paths.owned_skills_dir, "backed-up-skill", created_by="agent", body="backup me")
+
+    curator.archive_skill(paths, "backed-up-skill")
+
+    snapshots = list((paths.backup_dir / "backed-up-skill").iterdir())
+    assert len(snapshots) == 1
+    backup_skill_md = snapshots[0] / "SKILL.md"
+    assert backup_skill_md.is_file()
+    assert "backup me" in backup_skill_md.read_text(encoding="utf-8")
+
+
+# --------------------------------------------------------------------------
+# propose is read-only
+# --------------------------------------------------------------------------
+
+def test_propose_mutates_nothing(tmp_path: Path) -> None:
+    paths = _make_paths(tmp_path)
+    agent_skill = _write_skill(paths.owned_skills_dir, "agent-skill", created_by="agent")
+    human_skill = _write_skill(paths.owned_skills_dir, "human-skill", created_by="human")
+    _backdate(agent_skill / "SKILL.md", days=200)
+    _backdate(human_skill / "SKILL.md", days=200)
+
+    before = _snapshot(paths.owned_skills_dir)
+    assert not paths.state_path.exists()
+    assert not paths.archive_dir.exists()
+    assert not paths.backup_dir.exists()
+
+    proposals = curator.compute_proposals(paths)
+    assert proposals, "sanity: the fixture should produce at least one proposal"
+
+    after = _snapshot(paths.owned_skills_dir)
+    assert before == after
+    assert not paths.state_path.exists()
+    assert not paths.archive_dir.exists()
+    assert not paths.backup_dir.exists()
+
+
+if __name__ == "__main__":
+    raise SystemExit(pytest.main([__file__, "-v"]))
