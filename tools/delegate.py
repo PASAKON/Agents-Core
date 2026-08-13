@@ -332,6 +332,27 @@ async def _auto_kickoff(task_id: str, message: str) -> None:
 # (0-byte-log silent death) or the "reused" tab was a leftover dead shell.
 CLAIM_VERIFY_DELAY_S = 25.0
 
+# Strong references to fire-and-forget background coroutines.
+#
+# The event loop only holds a *weak* reference to what create_task() returns,
+# so a task nothing else references can be garbage-collected mid-await. That
+# is what silenced _verify_claimed (GH #64): it sleeps 25s before it checks
+# anything, so it was collected long before it could fire and its
+# warn/respawn/error path never ran once. Symptom: delegate logs "DEV
+# spawned", the row stays pending forever, and no error appears anywhere —
+# observed 4 times in a row on task-08c30235.
+#
+# Discarding on completion keeps the set from growing without bound.
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
+
+def _spawn_background(coro) -> asyncio.Task:
+    """create_task() + hold a strong reference until the task finishes."""
+    t = asyncio.create_task(coro)
+    _BACKGROUND_TASKS.add(t)
+    t.add_done_callback(_BACKGROUND_TASKS.discard)
+    return t
+
 
 def _pid_alive(pid: int | None) -> bool:
     """True if `pid` names a live OS process. `dev_init.py` stamps its own
@@ -401,8 +422,8 @@ async def _verify_claimed(task_id: str, role_name: str,
                          actor="cto")
         return
     if kickoff_text:
-        asyncio.create_task(_auto_kickoff(task_id, kickoff_text))
-    asyncio.create_task(_verify_claimed(task_id, role_name, owner_cto, owner_role,
+        _spawn_background(_auto_kickoff(task_id, kickoff_text))
+    _spawn_background(_verify_claimed(task_id, role_name, owner_cto, owner_role,
                                         kickoff_text=kickoff_text,
                                         attempt=attempt + 1))
 
@@ -661,12 +682,12 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         # task description so the agent gets the concrete path. §9 / db guard.
         kickoff_text += db.designer_kickoff_suffix(task.get("description") or "")
     if kickoff_text and spawn_result != "reused":
-        asyncio.create_task(_auto_kickoff(task_id, kickoff_text))
+        _spawn_background(_auto_kickoff(task_id, kickoff_text))
 
     if backend != "tmux":
         # Catch both silent-death modes (dead reused tab / dev_init that
         # never claimed) — tmux backend is covered by runners.watchdog.
-        asyncio.create_task(_verify_claimed(task_id, role_name, owner_cto, owner_role,
+        _spawn_background(_verify_claimed(task_id, role_name, owner_cto, owner_role,
                                             kickoff_text=kickoff_text))
 
     if not wait:
