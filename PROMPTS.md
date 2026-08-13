@@ -720,12 +720,12 @@ Everything before it — including all of Scene 9 — keeps the room ordinary.
 
 ```
 VISUAL
-Single continuous take, 20 seconds, no cuts. Interior of guest room 214. @Mother's face is never seen clearly, including in reflection — the mirror shows her from behind and to the side, her features soft and unreadable.
+Single continuous take, 20 seconds, no cuts. Interior of room 214 — it begins as @Room-Clean and ends as @Room-Wreck. @Prop-Lamp stands unlit on the nightstand. @Mother's face is never seen clearly, including in reflection — the mirror shows her from behind and to the side, her features soft and unreadable.
 
-0–5s: @Mother straightens from the carpet where the photograph fell. She turns slowly toward a tall full-length mirror on the wall. The room behind her is the ordinary occupied room of Scene 9 — tidy bed, the closed handbag on the nightstand, everything in place.
+0–5s: @Mother straightens from the carpet where @Prop-OldPhoto fell. She turns slowly toward a tall full-length mirror on the wall. Behind her is @Room-Clean, ordinary and occupied — tidy bed, @Prop-Handbag closed on the nightstand, everything in place.
 5–10s: She stops in front of the mirror and stands very still, looking at her own reflection. Her shoulders drop. She has understood something.
-10–16s: Still in the same unbroken shot, the room reflected in the mirror CHANGES around her, gradually and without any cut or flash: the bedding pulls into a violent tangle, the armchair goes over onto its side, a drinking glass lies shattered across the carpet, the suitcase gapes open with clothes spilling out. The reflection becomes the room as it truly is.
-16–20s: The camera holds as the real room behind her catches up to match its own reflection. She does not move. Hold on her back, the wrecked room, and her unreadable reflection.
+10–16s: Still in the same unbroken shot, the room reflected in the mirror changes from @Room-Clean into @Room-Wreck around her, gradually and without any cut or flash: the bedding pulls into a violent tangle, the armchair goes over onto its side, @Prop-Glass lies shattered across the carpet, the suitcase gapes open with clothes spilling out. The reflection becomes the room as it truly is.
+16–20s: The camera holds as the real room behind her catches up to match its own reflection and becomes @Room-Wreck too. She does not move. Hold on her back, the wrecked room, and her unreadable reflection.
 
 NEGATIVE — strictly avoid: no body, no corpse, no person other than @Mother anywhere in frame or in the reflection. No blood. Her face is never clearly readable, in the room or in the mirror. The change must be a continuous physical transformation of the set — no cut, no flash, no dissolve, no ghost, no double exposure, no second figure appearing. Nothing glows.
 
@@ -773,13 +773,13 @@ hero shot. The story beat is untouched.
 
 ```
 VISUAL
-Five cuts across 20 seconds. Interior of guest room 214. @Mother's face is never clearly readable in any cut, including in reflection. No two cuts share a camera position or focal length.
+Five cuts across 20 seconds. Interior of room 214 — it begins as @Room-Clean and ends as @Room-Wreck. @Prop-Lamp stands unlit on the nightstand. @Mother's face is never clearly readable in any cut, including in reflection. No two cuts share a camera position or focal length.
 
-Cut 1 (0–4s): Very low and close on the carpet, the fallen photograph face-up at the edge of frame. Her shoes enter, stop, and she begins to straighten — we follow only to her knees.
-Cut 2 (4–8s): Behind her shoulder, tight, as she turns. A mirror edge cuts into the right of frame at an angle; we see a sliver of reflected room, not a full reflection. The room reads ordinary — made bed, a closed handbag on the nightstand.
+Cut 1 (0–4s): Very low and close on the carpet, @Prop-OldPhoto face-up at the edge of frame. Her shoes enter, stop, and she begins to straighten — we follow only to her knees.
+Cut 2 (4–8s): Behind her shoulder, tight, as she turns. A mirror edge cuts into the right of frame at an angle; we see a sliver of reflected room, not a full reflection. It reads as @Room-Clean and ordinary — made bed, @Prop-Handbag closed on the nightstand.
 Cut 3 (8–12s): Her hands hanging at her sides, framed at waist height. They open slowly, then still. Behind her, out of focus, the sliver of mirror. Nothing has changed yet.
-Cut 4 (12–16s): A different corner of the real room entirely — the armchair, now on its side, and a drinking glass in pieces across the carpet, shot from floor level. No mirror in this frame at all.
-Cut 5 (16–20s): Wide and high, the whole room wrecked and settled: bedding pulled into a tangle, suitcase open and spilling, @Mother standing small in the middle of it with her back to camera. Hold.
+Cut 4 (12–16s): A different corner of the real room entirely, now @Room-Wreck — the armchair on its side and @Prop-Glass in pieces across the carpet, shot from floor level. No mirror in this frame at all.
+Cut 5 (16–20s): Wide and high, the whole of @Room-Wreck settled: bedding pulled into a tangle, suitcase open and spilling, @Mother standing small in the middle of it with her back to camera. Hold.
 
 NEGATIVE — strictly avoid: no body, no corpse, no person other than @Mother anywhere in frame or in any reflection. No blood, no stain, no wound. Her face is never clearly readable. No ghost, no double exposure, no second figure, no transparency, nothing glowing. Never show the same framing twice, and never show a full head-on view of a full-length mirror with a figure centred in it. No cut, flash or dissolve used to depict the change itself — the room simply IS wrecked from Cut 4 onward. No jump scare, no camera push-in, no zoom, no whip pan, no lens flare, no haze.
 
