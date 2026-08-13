@@ -45,14 +45,18 @@ consistent with each other. If the CEO ever wants one re-rendered, the walkway
 gets described in plain words the way Scene 9A now does, and he should expect
 the exterior to look different from the existing takes.
 
-### HARD CAP — Seedance 2.0 accepts a maximum of 10 DISTINCT elements per generation
+### HARD CAP — Seedance 2.0's real working maximum is 9 DISTINCT elements, not 10
 
-Counted against every written block, nothing exceeds it, but two scenes are at
-the edge:
+**Confirmed 2026-08-14 (task-0ee4a20a).** 10-D sat at exactly 10 and failed
+3/3 with `Something went wrong. Please try again, or change your input files
+or prompt.` — a generic error Higgsfield never attributes to the count, and
+which reads identically to a content rejection. Dropping one element (same
+beat, same plates, same NEGATIVE section) generated first try. **Treat 9 as
+the ceiling. Never write or attach 10.**
 
 | Scene | Distinct elements | Headroom |
 |---|---|---|
-| 9C, 10-B, 10-C, 10-D | 9 | one slot |
+| 9C, 10-B, 10-C, 10-D | 9 | zero — at the real ceiling |
 | everything else | 1-5 | plenty |
 
 **The cap is on elements ATTACHED to the composer, not on mentions in the

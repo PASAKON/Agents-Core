@@ -29,7 +29,9 @@ FORBIDDEN = [
 # go fix. Nothing in this range may be queued without the CEO.
 QUARANTINED = ('4', '5', '6', '7', '8')
 
-MAX_ELEMENTS = 10  # Seedance 2.0 hard cap, on ATTACHED elements
+MAX_ELEMENTS = 9  # Confirmed 2026-08-14 (task-0ee4a20a): 10 fails 3/3 with a
+# generic Higgsfield error indistinguishable from a content rejection; 9
+# generates first try, same beat, same plates. Treat 10 as unusable.
 
 TAG = re.compile(r'@[A-Za-z][A-Za-z0-9-]*')
 
