@@ -94,12 +94,24 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 11A | `@Room-Wreck` `@Room-DoorOut` | `@Mother` `@Daughter` | `@Prop-Glass` |
 | 11B | `@Room-Wreck` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-Glass` |
 | 11C | `@Room-Wreck` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-OldPhoto` `@Prop-Glass` `@Prop-Lamp` |
+| 11D | `@Room-Wreck` | `@Mother` | — |
+| 12-A | `@Stop-Work` | `@Mother` `@Father` | — |
+| 12-B | `@Bus-Interior` `@House-Night` | `@Mother` | `@Prop-BusCord` |
+| 12-C1 | `@Motel-Front` | `@Mother` `@Father` | — |
+| 12-C2 | `@Motel-Lobby` | `@Mother` `@Father` | — |
+| 12-D | `@Room-DoorOut` `@Room-Clean` | `@Mother` `@Father` | `@Prop-RoomKey` |
+| 12-E | `@Room-Clean` → `@Room-Wreck` | `@Father` | `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
 
-`@Motel-Front` `@Motel-Lobby` `@Motel-Stairs` `@Motel-Utility` `@House-Day`
-`@House-Night` `@Bus-Interior` `@Prop-BusCord` `@Prop-DinnerPlates` `@Father`
-`@Stop-Motel` `@Stop-Work` `@Prop-Checklist` `@Prop-PhonePhoto`
+`@Motel-Stairs` `@Motel-Utility` `@House-Day` `@Prop-DinnerPlates`
+`@Stop-Motel` `@Prop-Checklist` `@Prop-PhonePhoto`
+
+(`@Motel-Front`, `@Motel-Lobby`, `@House-Night`, `@Bus-Interior`,
+`@Prop-BusCord`, `@Father`, `@Stop-Work` are now used, by 12-A through 12-E
+above. `@House-Day` and `@Prop-DinnerPlates` are used by Scene 13, already
+written earlier in this file — not re-listed here since that block predates
+this map row and wasn't captured when the map was first built.)
 
 These read like her journey to work and a home/family thread — Scenes 1-3 and
 possibly 12-16, none of which have prompts written. **Do not guess where they
@@ -1012,4 +1024,157 @@ Grounded real-camera look, natural handheld weight, no whip pans, no lens flare,
 
 AUDIO-SFX
 Room tone. @Daughter crying, close and unguarded, growing across the cuts. A police radio in the doorway, clipped and unintelligible. No sound at all from @Mother. Cuts land in the silences, never on the crying. No music.
+```
+
+---
+
+# SCENE 11D and SCENE 12 — the flashback act (added 2026-08-14, CEO)
+
+**11D is the bridge.** It picks up the instant 11C ends and pushes into
+@Mother's eye until the frame goes black; that black resolves directly into
+12-A. Nothing sits between them — no title card, no fade, the push itself is
+the transition. **Nested inside 12 is Scene 13**, already written above,
+triggered when she sees her own house lit up from the bus. Order on screen:
+11D → 12-A → 12-B → [13, unedited] → 12-C1 → 12-C2 → 12-D → 12-E.
+
+**11D deliberately breaks the never-see-her-face rule that every Scene 9-11
+block has followed until now.** It has to — the device only works if the
+audience finally sees her eyes. Treat this as the one and only exception,
+same as 10-D's deliberate glow.
+
+**12's colour is a third, distinct grade — do not confuse it with 13's.**
+The muted present (1-11) stays muted. 13 is warm and golden, the happiest
+memory in the film. 12 sits between them: real streetlight sodium-orange at
+night, harder and colder than 13, more saturated than the present — this is
+true memory, not delusion, but it is a frightening night, not a happy one.
+
+**12-E is the most sensitive shot in the film — write and generate it with
+care.** Scene 4's original cut was rejected twice for "conflict language"
+reading as literal domestic-violence description. Every beat of struggle in
+12-D and 12-E stays off-screen by design: shadows, sound, objects breaking,
+never a shown blow. This is not a softening choice, it is the same
+negative-space horror grammar the whole film already uses for its violence.
+
+## Scene 11D — LONG TAKE (15s) — push into her eye
+
+No jump-cut variant — this is a single continuous camera move by nature; a
+cut would break the transition it exists to perform.
+
+```
+VISUAL
+Single continuous take. Interior of @Room-Wreck, continuing directly from the end of 11C — @Daughter still holding the body, torch light, police radio in the doorway.
+
+0–4s: The camera moves slowly around from the angle 11C held (her face turned away) to find @Mother's face directly for the first time in the film. Her eyes are open, glassy, unseeing. No visible mark or injury anywhere on her face.
+
+4–10s: A slow, steady push toward one eye. Nothing else moves. The pupil grows to fill more and more of the frame.
+
+10–15s: The pupil fills the entire frame and goes to pure black. Hold on the black for the last beat — this black is the cut point into Scene 12-A.
+
+NEGATIVE — strictly avoid: no wound, no mark, no discolouration anywhere on her face. No CGI eye effect, no twitch, no flash, no glow, no reflection of anything in the eye. The push is slow and continuous — no speed ramp, no whip, no cut within the take. No music, no sting at the moment it goes black.
+
+Grounded real-camera look, no lens flare, no haze. Hard white torch light and weak warm room light, both fading to nothing as the black takes over. Muted and desaturated until the frame is pure black.
+
+AUDIO-SFX
+@Daughter's crying and the police radio continue from 11C, both fading steadily as the push continues. By the moment the frame goes black, there is total silence — that silence carries straight into 12-A's first sound. No music, no sting, no whoosh.
+```
+
+## Scene 12-A — LONG TAKE (15s) — the bus stop
+
+```
+VISUAL
+Single continuous take. Night, @Stop-Work — the bus stop outside her real workplace. @Father stands beside a black sedan parked at the curb. The bus has not arrived yet.
+
+0–5s: @Mother walks up from her shift, sees him, stops short. He steps toward her, hand out — asking for money.
+5–9s: She refuses. He steps in closer, his voice rising, and grabs her arm, not letting go.
+9–12s: The bus pulls in right behind them, brakes hissing, doors opening.
+12–15s: She pulls free and steps straight onto the bus. Doors close behind her.
+
+NEGATIVE — strictly avoid: no strike, no punch, no shove, no fall. The arm-grab is firm, held, not a blow. No visible mark on her arm. No text or logo readable on the sedan or anywhere in frame. No printed logos or brand text on either character's clothing.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare. Hard sodium-orange streetlight at night — harder and more saturated than the muted present, colder than Scene 13's gold. 
+
+AUDIO-SFX
+Distant traffic, a car engine idling. His voice, low and demanding, hers clipped and refusing. Bus air brakes, door hydraulics. No music.
+```
+
+## Scene 12-B — LONG TAKE (15s) — the lit house
+
+```
+VISUAL
+Single continuous take. Interior of @Bus-Interior at night, moving. @Mother sits, breathing hard.
+
+0–5s: Through the rear window, the black sedan follows at a steady distance in traffic.
+5–10s: The bus nears her stop. Through the side window she sees @House-Night — every window lit warm, the porch light on. Her hand rises toward @Prop-BusCord, hovering near the pull.
+10–15s: She does not pull it. Her hand drops. The bus continues past the stop without slowing.
+
+NEGATIVE — strictly avoid: the sedan stays at a steady following distance — no overtaking, no near-collision, no horn. Quiet dread, not a chase. @Prop-BusCord never actually pulled — her hand stops short of it.
+
+Grounded real-camera look, natural handheld weight from the bus's motion, no whip pans, no lens flare. Interior bus light, cold sodium streetlight passing outside, the house's warm windows the only soft light in the shot.
+
+AUDIO-SFX
+Bus engine hum, her breathing, distant traffic. Near-silence as she watches the house — only the faint chain-tick of @Prop-BusCord swinging, untouched. No music.
+```
+
+> **13 sits here, unedited, exactly as written above** — triggered by the lit
+> house in 12-B. Cut back to 12-C1 when 13 ends.
+
+## Scene 12-C1 — LONG TAKE (15s) — running to the motel
+
+```
+VISUAL
+Single continuous take. Exterior, night, @Motel-Front. @Mother runs across the street toward the motel entrance, glancing back once. Behind her, the black sedan pulls up and parks; @Father gets out but stays near the entrance, does not follow her in yet.
+
+NEGATIVE — strictly avoid: no sprint-tackle choreography, no physical contact in this shot. Urgency in her running only. He does not run after her here — he stays back, deliberate and unhurried, which is its own kind of threat.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare. Hard sodium-orange streetlight, the motel's own sign and entrance light warmer and closer.
+
+AUDIO-SFX
+Her footsteps running on pavement, breathing hard. A car door closing behind her, unhurried. Distant traffic. No music.
+```
+
+## Scene 12-C2 — LONG TAKE (15s) — the front desk
+
+```
+VISUAL
+Single continuous take. Interior of @Motel-Lobby. @Mother at the front counter, breathless, talking with the hotel clerk — a woman in her forties or fifties, plain uniform, ordinary and unremarkable, no plate, single scene only, invented by the model. Through the glass entrance behind @Mother, @Father is visible standing outside, unmoving, not entering.
+
+NEGATIVE — strictly avoid: no readable hotel name or logo anywhere in frame — no name tag close-up, no signage close-up. @Father stays outside the glass the entire shot, never crosses the threshold.
+
+Grounded real-camera look, no lens flare, no haze. Warm interior lobby light against the cold streetlight visible through the glass behind her.
+
+AUDIO-SFX
+Her breathing, still fast. The clerk's voice, calm and routine, words not fully intelligible. A key card printer. Distant traffic through the glass. No music.
+```
+
+## Scene 12-D — LONG TAKE (15s) — the door
+
+```
+VISUAL
+Single continuous take. @Room-DoorOut, then @Room-Clean. @Mother hurries down the corridor, unlocks the door with @Prop-RoomKey, steps inside and begins pushing it shut — @Father's hand catches it from outside and forces it open. He steps in. A sharp verbal argument begins between them.
+
+NEGATIVE — strictly avoid: no physical strike in this shot — contact is limited to his hand catching and forcing the door. The argument is voices only, no shove, no grab beyond the door itself.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare. Weak warm room light against the cold corridor light behind them.
+
+AUDIO-SFX
+The key in the lock, the door opening and starting to close. His hand slapping the door, forcing it back. Two raised voices overlapping, words not fully intelligible. The door shutting behind them, cutting off the corridor sound. No music.
+```
+
+## Scene 12-E — LONG TAKE (15s) — the room comes apart
+
+```
+VISUAL
+Single continuous take. Interior, starting as @Room-Clean, ending as @Room-Wreck. The struggle itself stays off-camera throughout — the camera holds on the room, not on contact between them.
+
+0–5s: @Prop-Lamp knocked off the nightstand. A shadow crosses the wall, fast and wrong. Raised voices, no words distinguishable.
+5–10s: @Prop-Glass tips and shatters on the floor. The bed sheets pull loose and tangle. A chair goes over.
+10–13s: The room holds still — it is now @Room-Wreck. Silence.
+13–15s: @Father steps back into frame, breathing hard, and leaves. At the door he pauses to hang @Prop-DNDTag on the outside handle, then walks away. A car door, an engine, driving off.
+
+NEGATIVE — strictly avoid: absolutely no physical blow, no visible wound, no blood shown anywhere in this shot. The violence is entirely implied through the room, shadow and sound — never shown directly. No face-on shot of contact between the two of them at any point.
+
+Grounded real-camera look, no lens flare, no haze, no whip pans — the camera stays still or moves only to follow the room, never the struggle. Weak warm room light, harsh and uneven once the lamp falls.
+
+AUDIO-SFX
+The lamp hitting the floor. Fast movement, cloth and breath, no words. Glass shattering. Furniture scraping and falling. Then dead silence. His breathing, slower now. Footsteps to the door. The DND tag swinging once as he hangs it. A car door, an engine starting, driving away into distance. No music, no score, at any point in this shot.
 ```
