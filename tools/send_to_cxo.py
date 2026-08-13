@@ -23,6 +23,24 @@ C-level chat tab; falls back to "CEO" when nothing is set.
 --spawn (default OFF for Phase 2): open a new ephemeral iTerm tab for
 the request instead of typing into the primary tab. Dedupe-checked:
 reuses an alive tab with same topic-slug if created within 10 minutes.
+
+Routing guard (CEO 2026-08-14):
+  a) Max 3 delegation hops, originator counted as level 1.
+  b) A session may reply ONLY to whoever spawned it -- "ตัวที่ Spawn
+     อะไรมา เป็นเจ้าของคนๆ นั้น Reply ได้เฉพาะเจ้าของ". Stated once: a
+     session may send only to its OWNER, or to a session it spawned
+     ITSELF. Everything else is refused.
+  c) The ORIGINATOR of a chain owns the outcome. If you ask another
+     C-level to do something and it goes wrong, YOU are accountable --
+     delegating a request never transfers responsibility for it.
+  d) Every hop is logged (lib.notify -> state/logs/cto*.log) so the CEO
+     can see the whole chain. No approval gate, but never invisible.
+
+Ownership is RECORDED at spawn time and resolved from that record, never
+from the message envelope -- a lost or edited envelope must not be able
+to unlock a direct reply. See `authorize()` below for the two stores this
+reuses (tasks.owner_cto/owner_role for DEVs, a state/locks/ sidecar file
+for ephemeral C-level sessions) and why neither needed a new DB column.
 """
 from __future__ import annotations
 
@@ -34,10 +52,13 @@ import subprocess
 import sys
 import tempfile
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from lib import db
+from lib import notify
 from lib.config import display_for, is_c_level
 from lib.iterm_type import type_submit_fragment
 
@@ -79,8 +100,209 @@ def _resolve_sender_role() -> str:
     return "CEO"
 
 
-def _send(role: str, session_id: str, message: str, sender: str) -> None:
-    """Type `[SENDER]: message\\n` into the C-level tab for (role, session_id)."""
+# ---------------------------------------------------------------------------
+# Ownership + routing guard (Gap 3)
+# ---------------------------------------------------------------------------
+#
+# Two independent, already-existing stores are reused -- neither needed a
+# new DB column (IRON §30 / ADR 0008 "extend before create"):
+#
+#   * DEV ownership: `tasks.owner_role` / `tasks.owner_cto` (lib/db.py).
+#     Stamped by create_task for every DEV task regardless of which
+#     C-level created it. Untouched here, just read.
+#
+#   * C-level session ownership: `c_level_sessions` has no spawner-of
+#     column and may not gain one, so an ephemeral C-level tab's spawner
+#     is recorded as a plain sidecar file next to that session's existing
+#     .lock/.winid/.tty/.uuid/.topic files in state/locks/ --
+#     `<role>-<session_id>.spawned_by`, written once, at spawn time, by
+#     the spawning call itself (`record_spawn`, called from `spawn()`).
+#
+# A PRIMARY session -- one launched directly (cto-claude.sh / cxo-claude.sh
+# with no --session override), never reached through `spawn()` -- has no
+# such file. That absence IS the root case: "no recorded owner" means
+# "reports directly to the CEO", and any two root C-levels may message
+# each other freely as peers -- the routine "CTO asks CFO for budget
+# approval" case `send()` exists for. The 3-hop cap and reply-to-owner-only
+# rule bite once a hop has actually gone through `spawn()`.
+#
+# Depth is NEVER trusted from an inbound envelope's own hop counter --
+# `authorize()` takes no envelope/message argument at all. It recomputes
+# depth by walking the recorded-ownership chain each time, so a forged or
+# stripped envelope cannot buy a deeper reach than the real chain allows.
+# The chain string in a refusal/log line exists purely for a human to read.
+
+MAX_HOPS = 3
+
+
+@dataclass(frozen=True)
+class Identity:
+    """A node in the ownership graph: a C-level session or a DEV task."""
+
+    kind: str  # "cxo" | "dev" | "ceo"
+    role: str  # cto/cmo/cgo/cfo for "cxo"; the DEV role key for "dev"
+    session_id: str | None  # session id ("cxo") or task_id ("dev"); None for "ceo"
+
+    def label(self) -> str:
+        if self.kind == "ceo":
+            return "CEO"
+        disp = display_for(self.role) if self.kind == "cxo" else self.role
+        return f"{disp}#{self.session_id}" if self.session_id else disp
+
+
+CEO_IDENTITY = Identity("ceo", "CEO", None)
+
+
+def _spawn_record_path(role: str, session_id: str) -> Path:
+    return LOCKS_DIR / f"{role}-{session_id}.spawned_by"
+
+
+def record_spawn(spawner: Identity, target_role: str, target_session_id: str) -> None:
+    """Persist that `spawner` spawned the ephemeral C-level session
+    (target_role, target_session_id). Called exactly once, at spawn time,
+    by `spawn()` -- never inferred later from a message."""
+    LOCKS_DIR.mkdir(parents=True, exist_ok=True)
+    _spawn_record_path(target_role, target_session_id).write_text(
+        f"{spawner.kind}:{spawner.role}:{spawner.session_id or ''}"
+    )
+
+
+def _owner_of(identity: Identity) -> Identity | None:
+    """Recorded owner of `identity`, or None if it is a root (CEO-owned)
+    identity: a primary C-level session never reached through `spawn()`,
+    or a DEV task with no owner_cto on record."""
+    if identity.kind == "ceo":
+        return None
+    if identity.kind == "dev":
+        t = db.get_task(identity.session_id) if identity.session_id else None
+        if not t or not t.get("owner_cto"):
+            return None
+        return Identity("cxo", t.get("owner_role") or "cto", t["owner_cto"])
+    # kind == "cxo"
+    if not identity.session_id:
+        return None
+    p = _spawn_record_path(identity.role, identity.session_id)
+    if not p.exists():
+        return None
+    parts = p.read_text().strip().split(":", 2)
+    if len(parts) != 3:
+        return None
+    kind, role, sid = parts
+    return Identity(kind, role, sid or None)
+
+
+def _chain(identity: Identity) -> list[Identity]:
+    """[root, ..., identity] by walking recorded ownership upward. Always
+    terminates: spawning mints a fresh session/task id every time, so the
+    ownership graph is a DAG -- the cycle guard is defensive only."""
+    chain = [identity]
+    seen = {(identity.kind, identity.role, identity.session_id)}
+    cur = identity
+    while True:
+        owner = _owner_of(cur)
+        if owner is None:
+            break
+        key = (owner.kind, owner.role, owner.session_id)
+        if key in seen:
+            break
+        seen.add(key)
+        chain.append(owner)
+        cur = owner
+    chain.reverse()
+    return chain
+
+
+def _chain_str(identity: Identity) -> str:
+    return " -> ".join(i.label() for i in _chain(identity))
+
+
+def current_identity() -> Identity:
+    """Who is calling send_to_cxo right now, resolved from process env --
+    never from anything the caller passes in."""
+    r = os.environ.get("CXO_ROLE")
+    if r and is_c_level(r):
+        sid = os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID")
+        if sid:
+            return Identity("cxo", r, sid)
+    task_id = os.environ.get("DEV_TASK_ID")
+    if task_id:
+        return Identity("dev", os.environ.get("DEV_ROLE", "dev"), task_id)
+    cto_sid = os.environ.get("CTO_SESSION_ID")
+    if cto_sid:
+        return Identity("cxo", "cto", cto_sid)
+    return CEO_IDENTITY
+
+
+def authorize(sender: Identity, target_role: str, target_session_id: str | None,
+              *, spawning: bool) -> None:
+    """Raise PermissionError if `sender` may not reach (target_role,
+    target_session_id). Silent return means allowed.
+
+    Rule, stated once: a session may send only to its OWNER, or to a
+    session it spawned ITSELF. A root sender (no recorded owner -- a
+    primary session, never reached through `spawn()`) additionally gets
+    the peer exception: any primary C-level may reach any other C-level's
+    primary session -- level 1 talking to level 1, not a delegation chain.
+    """
+    owner = _owner_of(sender)
+    if owner is None:
+        return  # root: free peer messaging, and free to spawn a level-2 child
+    if spawning:
+        depth = len(_chain(sender)) + 1
+        if depth > MAX_HOPS:
+            raise PermissionError(
+                f"refused: hop {depth} exceeds max {MAX_HOPS} delegation "
+                f"levels. Chain: {_chain_str(sender)} -> <new {target_role}>"
+            )
+        return
+    target_label = (
+        f"{display_for(target_role) if is_c_level(target_role) else target_role}"
+        + (f"#{target_session_id}" if target_session_id else "")
+    )
+    if not (owner.role == target_role
+            and (target_session_id is None or owner.session_id == target_session_id)):
+        raise PermissionError(
+            f"refused: {sender.label()} may reply only to its owner "
+            f"{owner.label()}, not {target_label}. Chain: {_chain_str(sender)}"
+        )
+
+
+def _log_hop(sender: Identity, target_role: str, target_session_id: str | None) -> None:
+    """One line per hop so the CEO can see the whole chain (rule d).
+    Best-effort: a logging failure must never block a delivered message."""
+    target_label = (
+        f"{display_for(target_role) if is_c_level(target_role) else target_role}"
+        + (f"#{target_session_id}" if target_session_id else "")
+    )
+    try:
+        notify.info(f"[send_to_cxo] {_chain_str(sender)} -> {target_label}")
+    except Exception:
+        pass
+
+
+def _run_osascript(script: str) -> subprocess.CompletedProcess:
+    """Execute `script` via osascript, capturing rather than trusting exit
+    code. Isolated as its own function (mirrors tools/send_to_dev.py's
+    GH #60 fix) so tests can substitute a fake runner and simulate
+    matched / unmatched / failed osascript without iTerm or a real
+    `osascript` binary."""
+    return subprocess.run(
+        ["osascript", "-e", script], capture_output=True, text=True, check=False,
+    )
+
+
+def _send(role: str, session_id: str, message: str, sender: str, *, runner=None) -> bool:
+    """Type `[SENDER]: message\\n` into the C-level tab for (role, session_id).
+    Returns True iff a tab actually matched and was typed into -- never True
+    on a zero-iteration loop (GH #60 shape).
+
+    `runner` defaults to `_run_osascript` looked up dynamically (not bound
+    as a default-arg value) so a test can monkeypatch the module-level
+    `_run_osascript` name and have that take effect even for callers --
+    like `send()` -- that don't pass `runner` explicitly.
+    """
+    if runner is None:
+        runner = _run_osascript
     display = display_for(role)
     # Match both title generations: legacy "<DISPLAY> Chat #<sid>" and the
     # live-summary format "<DISPLAY> #<sid> <glyph> <summary>" (IRON-RULES §32).
@@ -116,10 +338,16 @@ tell application "iTerm"
       end tell
     end repeat
   end repeat
-  if not didSend then error "no iTerm tab matched {tab_match}"
+  if didSend then
+    return "1"
+  end if
+  return "0"
 end tell
 '''
-    subprocess.run(["osascript", "-e", script], check=True)
+    result = runner(script)
+    if result.returncode != 0:
+        return False
+    return result.stdout.strip() == "1"
 
 
 # ---------------------------------------------------------------------------
@@ -266,6 +494,8 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
         raise ValueError(
             f"{role} is not a C-level role. Known C-level: cto, cmo, cgo, cfo"
         )
+    sender_identity = current_identity()
+    authorize(sender_identity, role, None, spawning=True)
     label = sender or _resolve_sender_role()
     display = display_for(role)
     topic_slug = _make_topic_slug(message)
@@ -293,8 +523,14 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
                 continue
             if topic_file.read_text().strip() != topic_slug:
                 continue
-            # Match: reuse this alive ephemeral tab
+            # Match: reuse this alive ephemeral tab. Ownership was recorded
+            # when it was first created (by whoever spawned it, possibly a
+            # different sender) — reuse never re-records or transfers it.
+            # lock_file.stem is "<role>-req-XXXXXXXX"; strip the role prefix
+            # to recover the session id for the hop-log line.
+            reused_sid = lock_file.stem[len(role) + 1:]
             _send_to_ephemeral_tab(tab_title, full_text, slug=topic_slug)
+            _log_hop(sender_identity, role, reused_sid)
             return f"reused {display} ephemeral tab {lock_file.stem}: {full_text}"
         except OSError:
             continue
@@ -311,11 +547,22 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
         topic_path.unlink(missing_ok=True)
         raise
 
+    record_spawn(sender_identity, role, session_id)
+    _log_hop(sender_identity, role, session_id)
     return f"spawned new {display} tab [{session_id}]: {full_text}"
 
 
 def send(role: str, message: str, sender: str | None = None) -> str:
-    """Programmatic API (legacy path). Returns one-line summary string."""
+    """Programmatic API (legacy path). Returns one-line summary string.
+
+    Contract: delivered or raised, never "probably" (GH #60 shape, same
+    fix as tools/send_to_dev.py). Raises RuntimeError when no iTerm tab
+    (full display+session-id string; there is no shortened-prefix fallback
+    here, so send_to_cxo does not share send_to_dev's GH #65 collision
+    flaw) matched — it never returns a success string for a send that went
+    nowhere. Raises PermissionError when the routing guard refuses the
+    hop (see `authorize()`).
+    """
     if not is_c_level(role):
         raise ValueError(
             f"{role} is not a C-level role. Known C-level: cto, cmo, cgo, cfo"
@@ -326,8 +573,15 @@ def send(role: str, message: str, sender: str | None = None) -> str:
             f"no active {display_for(role)} session found. "
             f"Spawn one first: bash scripts/spawn-cxo.sh --role {role}"
         )
+    sender_identity = current_identity()
+    authorize(sender_identity, role, sid, spawning=False)
     label = sender or _resolve_sender_role()
-    _send(role, sid, message, label)
+    _log_hop(sender_identity, role, sid)
+    if not _send(role, sid, message, label):
+        raise RuntimeError(
+            f"send_to_cxo: no iTerm tab matched {display_for(role)} #{sid} -- "
+            f"message NOT delivered: [{label}]: {message}"
+        )
     return f"sent to {display_for(role)} #{sid}: [{label}]: {message}"
 
 
@@ -369,6 +623,12 @@ def main() -> int:
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2
+    except PermissionError as e:
+        print(str(e), file=sys.stderr)
+        return 4
+    except RuntimeError as e:
+        print(str(e), file=sys.stderr)
+        return 3
     except subprocess.CalledProcessError as e:
         stderr = (e.stderr or b"").decode("utf-8", errors="replace") if hasattr(e, "stderr") else ""
         print(f"AppleScript failed: {stderr or e}", file=sys.stderr)
