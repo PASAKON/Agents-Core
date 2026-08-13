@@ -372,15 +372,57 @@
  *    the earlier finding that only "Seedance 2.5 Edit" carries audio. Worth a
  *    C-level decision on whether AUDIO-SFX sections are still inert.
  *
- * 11. **Scene 10-D fails reproducibly (3/3) with a generic, unattributed
- *    error** — "Something went wrong. Please try again, or change your input
- *    files or prompt." — on a composer verified correct in every respect
- *    (10/10 chips, verbatim 3517-char prompt, full spec, Unlimited, $0). All
- *    three refunded, ledger never moved. No policy or NSFW category was ever
- *    named. Cause still unknown; it is NOT the dried-stain wording (10-B/10-C
- *    share the same element set and vocabulary and succeed) and NOT a missing
- *    chip. 10-D is the only queue item at the full 10-element cap, which is the
- *    one variable not yet ruled out.
+ * 11. **The 10-element cap is a hard ceiling that fails as a generic error.**
+ *    RESOLVED. Scene 10-D failed 3/3 with "Something went wrong. Please try
+ *    again, or change your input files or prompt." on a composer verified
+ *    correct in every respect (10/10 chips, verbatim prompt, full spec,
+ *    Unlimited, $0, all three refunded). Dropping ONE element — `@Prop-Handbag`,
+ *    rewritten as plain words — took the block from 10 distinct elements to 9
+ *    and it generated first try, same beat, same plates, same NEGATIVE section.
+ *    **Treat 10 attached elements as unusable and 9 as the working maximum.**
+ *    Higgsfield reports the ceiling as an unattributed generic failure, never
+ *    as a limit message, so it is indistinguishable from a content rejection
+ *    unless you count elements. Rule out the count BEFORE suspecting wording or
+ *    a broken plate: both were investigated at length here and both were
+ *    innocent (the `@Mother-Soul` plate rendered a complete character sheet and
+ *    subsequently generated fine).
+ *
+ * 12. **"Prompt is required when no media is provided" means the paste never
+ *    bound to React state — the prompt is fine.** The tell is unmistakable and
+ *    worth checking directly: the composer shows its placeholder
+ *    ("Describe the scene you imagine...") AT THE SAME TIME as holding
+ *    thousands of characters and correctly-bound mention chips. A full page
+ *    reload does NOT clear it. The fix that worked, and which preserves the
+ *    prompt byte-for-byte:
+ *      1. `ed.scrollIntoView({block:'center'})` — the editor can sit far above
+ *         the viewport, so a click lands on nothing.
+ *      2. A real click into the editor.
+ *      3. A real Space keypress, then a real BackSpace keypress.
+ *    Net content change is zero and no Enter is involved, but the pair emits a
+ *    genuine input event that forces Lexical to bind. The placeholder vanishes
+ *    the instant it works; verify that, plus unchanged length, before clicking
+ *    Generate. Do NOT type any part of the prompt itself (hard rule 6 stands).
+ *
+ * 13. **Chrome allows exactly ONE automatic download per browser session per
+ *    origin, then blocks the rest silently.** No error, no console entry, no
+ *    file — and the block survives a page reload, a new tab, and both the
+ *    card-tray icon and the detail modal's own Download button (JS `.click()`
+ *    and real coordinate click alike). The only thing that resets it is
+ *    quitting and reopening Chrome, after which the next download succeeds
+ *    immediately. So a multi-clip mirror is: restart Chrome, download one,
+ *    upload it, repeat. Budget a browser restart per file, or use the Grid-view
+ *    bulk zip (Wave 5 finding 1) which is a single download for the whole
+ *    selection and therefore only costs one allowance.
+ *
+ * 14. **`resize_window` cannot help when the screen itself is the limit.** On a
+ *    1440x900 display Chrome's UI leaves innerHeight 754, and the composer's
+ *    Image/Video tab strip renders at css y≈773-825 — permanently below the
+ *    fold. `resize_window`, AppleScript `set bounds`, page zoom and macOS
+ *    fullscreen all failed to raise it. What works: switch the composer to
+ *    Video mode from a folder whose composer is already reachable (or via a
+ *    Recreate on any existing video card), then navigate to the target folder —
+ *    **the Image/Video mode persists across navigation**, while the prompt
+ *    persists via localStorage and Unlimited does not.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
@@ -578,6 +620,18 @@ function hfRevealUnlimitedToggle() {
   };
 }
 
+// The paste-desync tell: the placeholder is visible while the editor holds
+// text. If this returns true, Generate will be refused with "Prompt is
+// required when no media is provided" — see Wave 7 finding 12 for the fix
+// (scrollIntoView, real click, real Space then BackSpace).
+function hfPromptDesynced() {
+  const ed = hfVisibleEditor();
+  if (!ed) return null;
+  const hasText = ed.innerText.trim().length > 0;
+  const placeholder = /Describe the (scene|video) you (imagine|want to create)/.test(document.body.innerText);
+  return hasText && placeholder;
+}
+
 // Every gate that must pass in the same breath as the Generate click.
 function hfPreflight(expectedLen, expectedElements) {
   const ed = hfVisibleEditor();
@@ -591,13 +645,17 @@ function hfPreflight(expectedLen, expectedElements) {
     unlimitedOn: sw ? sw.getAttribute('aria-checked') === 'true' : null,
     elements: els,
     elementsOk: els && els.distinct === expectedElements,
+    elementsUnderCap: !!(els && els.distinct <= 9),   // 10 = hard fail, see finding 11
     promptChars: text.length,
     startsUndefined: /^undefined/.test(text),
+    desynced: hfPromptDesynced(),                     // true => Generate will be refused
     price,
     GO: !!(sw && sw.getAttribute('aria-checked') === 'true'
            && els && els.distinct === expectedElements
+           && els.distinct <= 9
            && price.found && price.free && !price.disabled
-           && !/^undefined/.test(text)),
+           && !/^undefined/.test(text)
+           && !hfPromptDesynced()),
   };
 }
 
@@ -609,6 +667,6 @@ if (typeof module !== 'undefined') {
     hfGetGenerateButton, hfVerifyGenerateReady,
     hfGetUnlimitedToggle, hfIsUnlimitedOn, hfPollStatus,
     hfVisibleEditor, hfAttachedElements, hfReadPriceButton,
-    hfRevealUnlimitedToggle, hfPreflight,
+    hfRevealUnlimitedToggle, hfPromptDesynced, hfPreflight,
   };
 }
