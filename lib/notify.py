@@ -57,7 +57,33 @@ def _per_session_log() -> Path | None:
     return _ROOT / "state" / "logs" / f"cto-{sid}.log"
 
 
+def _under_test() -> bool:
+    """True when this process is a test run rather than real org work.
+
+    The suites drive real production code — `test_watchdog_reap.py` calls
+    `dev_reap`, which calls `warn()` — so without this guard their synthetic
+    values land in the same `state/logs/cto.log` a C-level reads for live
+    status. Observed 2026-08-13: lines like
+    `dev_reap: task-7d6fe27d pid=99999 did not match` and
+    `REAPED task-d0a9b673 ... pid=22222` surfaced in the CTO event feed
+    mid-session, for tasks that do not exist.
+
+    Keyed on the entry script's name rather than an env var so it covers
+    every existing `scripts/test_*.py` and every future one with nothing to
+    remember. `ORG_NOTIFY_SILENT=1` is the explicit override for a test
+    driven some other way.
+    """
+    if os.environ.get("ORG_NOTIFY_SILENT") == "1":
+        return True
+    entry = os.path.basename(sys.argv[0] or "")
+    return entry.startswith("test_") or entry == "pytest"
+
+
 def _append_cto_log(level: str, msg: str) -> None:
+    # stderr still prints, so a test's own output is unaffected. Only the
+    # shared, human-watched log files are protected.
+    if _under_test():
+        return
     source = _detect_source(level)
     if source is None:
         return
