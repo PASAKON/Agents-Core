@@ -2,12 +2,17 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-LOG_DIR = ROOT / "state" / "logs"
+# Overridable so a service running under its own account can log outside the
+# checkout. state/ also holds tasks.db and the rest of the org's runtime data,
+# so granting a service user write access to it just to open a log file would
+# be far too broad. Unset ⇒ unchanged behaviour.
+LOG_DIR = Path(os.environ.get("ORG_LOG_DIR") or ROOT / "state" / "logs")
 
 LOG_MAX_BYTES = 10 * 1024 * 1024
 LOG_BACKUP_COUNT = 5
