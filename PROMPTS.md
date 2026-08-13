@@ -8,6 +8,122 @@ Paste with a synthetic `ClipboardEvent` (text/plain only) — never keystroke
 simulation, which silently truncates and has already produced unusable footage.
 Verify the pasted length matches the source before touching Generate.
 
+## ELEMENT MAP — read this before writing or pasting any prompt
+
+**32 `@Element` plates exist. Prompts referenced only 12 of them until 2026-08-13.**
+Twenty plates the CEO built were never referenced by any prompt, so the model
+invented those objects and locations from the text instead of using the real
+plate. That is the single biggest cause of wasted re-renders on this project.
+
+**Write every prompt from this table, never from memory.** If a scene contains
+a thing that has a plate, the plate must be tagged. "อันไหนที่จำเป็นต้องใส่ มันต้องใส่."
+
+### The room distinction that has already caused errors
+
+| Element | What it actually is |
+|---|---|
+| `@Room-Guest` | The rooms she goes in to **work** — 209, 213. Clean, serviced. |
+| `@Room-Clean` | **Room 214, her own room**, before. Never cleaned by her. **Not the same room as `@Room-Guest`.** |
+| `@Room-Wreck` | **Room 214 after** — torn bedding, chair over, glass shattered, suitcase spilling. |
+
+Every Scene 9 and Scene 10 shot happens in **214**, so they take
+`@Room-Clean` or `@Room-Wreck` — never `@Room-Guest`.
+
+### Cancelled plates — never reference these
+
+`@Room-Clean-Rev`, `@Room-Wreck-Rev` (use `@Room-Clean` / `@Room-Wreck`),
+`@Room-DoorOut-Down` (use `@Room-DoorOut`), `@Prop-Glasses` (the CEO removed
+reading glasses from the film entirely).
+
+### Scene → element map
+
+| Scene | Location | Characters | Props |
+|---|---|---|---|
+| 4 | `@Room-Guest` | `@Mother` | `@Prop-Caddy` `@Prop-Vase` `@Prop-Lamp` |
+| 5 | `@Motel-Walkway` | `@Mother` | `@Prop-Caddy` `@Prop-RoomKey` |
+| 6 | `@Room-Guest` | `@Mother` | `@Prop-Caddy` `@Prop-Towels` |
+| 7 | `@Motel-Walkway` `@Room-Window214` | `@Mother` | `@Prop-DNDTag` |
+| 8 | `@Motel-Walkway` `@Room-DoorOut` | `@Mother` | `@Prop-DNDTag` |
+| 9A | `@Room-Clean` `@Room-DoorOut` | `@Mother` | `@Prop-DNDTag` |
+| 9B | `@Room-Bathroom` | `@Mother` | — |
+| 9C | `@Room-Clean` | `@Mother` | `@Prop-Ring` `@Prop-Phone` `@Prop-Handbag` `@Prop-Wallet` `@Prop-OldPhoto` `@Prop-Lamp` `@Prop-Vase` |
+| 9D-A/B/C | `@Room-Clean` | `@Mother` | `@Prop-Wallet` `@Prop-OldPhoto` `@Prop-Lamp` |
+| 10-A | `@Room-Clean` → `@Room-Wreck` | `@Mother` | `@Prop-OldPhoto` `@Prop-Glass` `@Prop-Handbag` |
+| 10-B/C | `@Room-Clean` → `@Room-Wreck` `@Room-DoorOut` | `@Mother` `@Daughter` | `@Prop-OldPhoto` `@Prop-Glass` `@Prop-Handbag` `@Prop-Lamp` |
+| 10-D | `@Room-Clean` → `@Room-Wreck` `@Room-DoorOut` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-OldPhoto` `@Prop-Glass` `@Prop-Handbag` |
+| 11A | `@Room-Wreck` `@Room-DoorOut` | `@Mother` `@Daughter` | `@Prop-Glass` |
+| 11B | `@Room-Wreck` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-Glass` |
+| 11C | `@Room-Wreck` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-OldPhoto` `@Prop-Glass` |
+
+### Plates that exist but no written scene uses yet — CEO to confirm
+
+`@Motel-Front` `@Motel-Lobby` `@Motel-Stairs` `@Motel-Utility` `@House-Day`
+`@House-Night` `@Bus-Interior` `@Prop-BusCord` `@Prop-DinnerPlates` `@Father`
+`@Stop-Motel` `@Stop-Work` `@Prop-Checklist` `@Prop-PhonePhoto`
+
+These read like her journey to work and a home/family thread — Scenes 1-3 and
+possibly 12-16, none of which have prompts written. **Do not guess where they
+belong.** They are listed here so nobody forgets they exist.
+
+### The trap in Scene 9
+
+In the Scene 9 blocks the daughter appears **only as the child inside
+`@Prop-OldPhoto`**, never as a person in the room. **Do not tag `@Daughter`
+in any Scene 9 prompt** — it would put the actual character into room 214 and
+destroy the whole premise, which is that she is alone.
+
+## HOW TO WRITE A PROMPT — the rules, in order
+
+Every rule below exists because breaking it cost us a re-render or a wasted
+day. Follow them in this order.
+
+**1. Start from the ELEMENT MAP above, never from memory.** Look up the scene,
+read what is in it, and tag every one of those elements. Writing from memory is
+what produced prompts referencing 12 of 32 plates.
+
+**2. If a thing has a plate, it must be tagged.** Not "a plain gold ring" —
+`@Prop-Ring`. Not "guest room 214" — `@Room-Clean`. Not "her daughter" —
+`@Daughter`. An untagged thing is a thing the model invents from scratch, and
+it will invent a different one every take.
+
+**3. Tag the LOCATION in the opening line of every prompt.** It is the single
+most-forgotten tag and the most expensive one to get wrong.
+
+**4. Check the room.** `@Room-Guest` is where she works (209, 213).
+`@Room-Clean` / `@Room-Wreck` is room 214, her own. Scenes 9 and 10 are all 214.
+
+**5. Never reference a cancelled plate**: `@Room-Clean-Rev`, `@Room-Wreck-Rev`,
+`@Room-DoorOut-Down`, `@Prop-Glasses`.
+
+**6. Never reference `@Motel-Walkway`.** It is flagged for copyright and blocks
+generation outright — it killed Scenes 7 and 8. Describe walkway light as
+"the open doorway" or "corridor light" in plain words instead.
+
+**7. Structure, always in this order:** `VISUAL` with timecoded beats →
+`NEGATIVE — strictly avoid:` → the grounded-camera / lighting / grade line →
+`AUDIO-SFX`.
+
+**8. Write NEGATIVE against what the model will add on its own,** not against
+what you already said. The model reaches for the shot it has seen a thousand
+times, so forbid it by name: a hand pushing an object that should move by
+itself, a face where the film hides faces, a glow on a character who must read
+solid, eyes in a darkness that must stay empty, a push-in during a held beat.
+
+**9. Put the reason in the prompt when it changes the image.** "She has been
+dead more than a day and the image must read that way" does more work than any
+adjective about the stain.
+
+**10. Say what must NOT repeat.** Two identical framings before and after a
+change is the most recognisable horror device there is, and it is what tripped
+the copyright filter on the original Scene 10-A Jump Cut.
+
+**11. Contradictions between variants are deliberate.** 10-B forbids any glow;
+10-D requires it. 9D-A hides her face; 9D-B reveals it. Never "harmonise" them.
+
+**12. The operator pastes VERBATIM.** No appended lines, no timecode
+adjustments, no fixing anything that reads oddly. Only settings change. If a
+prompt is wrong, it is fixed here, in this file, by the CTO or the CEO.
+
 ## The rule for every shot
 
 Every scene gets exactly **two prompts**, and **each prompt is generated twice** —
@@ -433,11 +549,11 @@ Quiet footsteps on carpet, steady breathing. One sharp CLATTER of a hard small o
 
 ```
 VISUAL
-Single continuous take, 20 seconds, no cuts. Interior of @Room-Guest, room 214, at night. @Prop-Lamp stands unlit on the nightstand; the only light is one weak warm ceiling bulb. @Prop-Vase sits on the dresser with its dry stems. @Mother's face is never seen clearly — the shot stays low and close on her hands and the objects.
+Single continuous take, 20 seconds, no cuts. Interior of @Room-Clean — room 214, her own room, never serviced. @Prop-Lamp stands unlit on the nightstand; the only light is one weak warm ceiling bulb. @Prop-Vase sits on the dresser with its dry stems. @Mother's face is never seen clearly — the shot stays low and close on her hands and the objects.
 
-0–6s: Her hands move slowly across the surfaces of @Room-Guest, taking things in rather than tidying them. A plain gold ring sits alone on the nightstand beside @Prop-Lamp. She does not pick the ring up; her hand hovers over it and moves on.
-6–11s: A phone lies face-down on the nightstand. Her hand comes near it, hesitates, and withdraws without turning it over. It stays exactly as it was.
-11–15s: @Prop-Wallet lies out in the open on the nightstand, beside a woman's handbag that stays closed. Her hand comes near it, stops short, and withdraws without touching it. She straightens slightly and begins to turn away.
+0–6s: Her hands move slowly across the surfaces of @Room-Clean, taking things in rather than tidying them. @Prop-Ring sits alone on the nightstand beside @Prop-Lamp. She does not pick @Prop-Ring up; her hand hovers over it and moves on.
+6–11s: @Prop-Phone lies face-down on the nightstand. Her hand comes near it, hesitates, and withdraws without turning it over. It stays exactly as it was.
+11–15s: @Prop-Wallet lies out in the open on the nightstand, beside @Prop-Handbag, which stays closed. Her hand comes near @Prop-Wallet, stops short, and withdraws without touching it. She straightens slightly and begins to turn away.
 15–20s: With nothing near it, @Prop-Wallet tips off the edge of the nightstand on its own and drops straight down — heavy, dead weight, one short fall, landing flat on the carpet by her feet and falling open. @Prop-OldPhoto is thrown loose in the air as it opens, and falls completely differently: thin paper catching the air, tipping onto one edge, gliding sideways, stalling, turning over once slowly, drifting the way a dry leaf comes off a branch. It touches the carpet face-down and slides on a little further, toward the dark gap beneath the bed, and stops there. Hold on the fallen photograph as the shot ends.
 
 NEGATIVE — strictly avoid: no blood, no body, no person other than @Mother, no broken glass, no overturned furniture, no disturbed bedding, no signs of a struggle. She never touches, lifts, holds or opens @Prop-Wallet at any point, and never reaches into the handbag — the handbag stays closed and untouched for the whole shot. Nothing visible causes the wallet to fall: no hand, no arm, no sleeve, no wind, no moving curtain, no shadow crossing it, no tilt of the furniture. No eyeglasses, reading glasses or spectacles anywhere in frame, on any surface or on anyone. Do not show @Mother's face, and do not make her recognisable as the young woman in the photograph — the audience must be able to wonder. Nothing supernatural is visible. No mirror reflection of anyone. The photograph shows exactly two people, an adult woman and a small girl, and no one else.
@@ -485,7 +601,7 @@ own projection, and putting anything there would collapse it.
 
 ```
 VISUAL
-Single continuous take, 20 seconds, no cuts. Interior of @Room-Guest, room 214, at night. @Prop-Lamp stands unlit on the nightstand above; one weak warm ceiling bulb somewhere above and behind camera is the only light. The camera sits ON THE FLOOR, lens at carpet height, tilted a few degrees up — the angle you only get by putting your cheek against the ground. The underside edge of the bed frame cuts across the upper third of frame, and behind it the gap beneath the bed is a solid horizontal band of black running the full width of the shot. Everything is composed so the audience is looking OUT from under the bed, never at it.
+Single continuous take, 20 seconds, no cuts. Interior of @Room-Clean — room 214, her own room, never serviced. @Prop-Lamp stands unlit on the nightstand above; one weak warm ceiling bulb somewhere above and behind camera is the only light. The camera sits ON THE FLOOR, lens at carpet height, tilted a few degrees up — the angle you only get by putting your cheek against the ground. The underside edge of the bed frame cuts across the upper third of frame, and behind it the gap beneath the bed is a solid horizontal band of black running the full width of the shot. Everything is composed so the audience is looking OUT from under the bed, never at it.
 
 0–5s: Nothing moves at all. @Prop-Wallet lies open on the carpet in the near foreground, exactly where it fell. @Prop-OldPhoto lies FACE-DOWN a little beyond it, right at the edge of the darkness, half in the weak warm light and half swallowed by the black — only its blank back is visible. Past them both, the band of black under the bed. The frame is completely still. Room tone only.
 
@@ -513,7 +629,7 @@ obeyed. She never touches the photograph.
 
 ```
 VISUAL
-Single continuous take, 20 seconds, no cuts. Interior of @Room-Guest, room 214, at night. @Prop-Lamp stands unlit on the nightstand; the only light is one weak warm ceiling bulb. The camera begins low, at carpet height, and does not cut at any point.
+Single continuous take, 20 seconds, no cuts. Interior of @Room-Clean — room 214, her own room, never serviced. @Prop-Lamp stands unlit on the nightstand; the only light is one weak warm ceiling bulb. The camera begins low, at carpet height, and does not cut at any point.
 
 0–4s: THE FALL, in full. @Prop-OldPhoto comes off the edge of the nightstand and does not drop. It is thin old paper and it behaves like thin old paper: it tips onto one corner, catches the air, and swings out flat. It glides sideways for a moment, stalls, tips the other way, and turns over once, slowly, showing its blank back and then its face and then its back again. It sinks in small stages rather than a single fall, the way a dry leaf comes off a branch and takes its time about reaching the ground.
 
@@ -656,17 +772,17 @@ this same beat; generate both and choose.
 
 ```
 VISUAL
-Single continuous take, 20 seconds. Interior of @Room-Guest, room 214, at night. @Prop-Lamp stands unlit on the nightstand; the only light is one weak warm ceiling bulb.
+Single continuous take, 20 seconds. Interior of room 214, at night — it begins as @Room-Clean and ends as @Room-Wreck. @Prop-Lamp stands unlit on the nightstand; the only light is one weak warm ceiling bulb until the door opens.
 
-0–3s: Behind @Mother, tight on the back of her head and shoulders — we look past her at what she is looking at, and her face is not in frame at all. @Prop-OldPhoto is held low in her hands and readable over her shoulder. Beyond her the room is ordinary — tidy bed, closed handbag on the nightstand. Three hard impacts land on the door and a muffled shout comes through it. Real time, real sound.
+0–3s: Behind @Mother, tight on the back of her head and shoulders — we look past her at what she is looking at, and her face is not in frame at all. @Prop-OldPhoto is held low in her hands and readable over her shoulder. Beyond her the room is @Room-Clean and ordinary — tidy bed, @Prop-Handbag closed on the nightstand. Three hard impacts land on @Room-DoorOut and a muffled shout comes through it. Real time, real sound.
 
-3–5s: The door bursts inward. At the exact frame it opens the image drops into SLOW MOTION and every sound falls away to nothing.
+3–5s: @Room-DoorOut bursts inward. At the exact frame it opens the image drops into SLOW MOTION and every sound falls away to nothing.
 
 5–10s: Two police officers come through the doorway first, moving slowly, faces NEVER visible — framed from behind, or from the chest down, or with the head cropped out of frame. Corridor light throws hard shapes past them and dust turns slowly in it.
 
 10–14s: @Daughter enters behind them — a young woman now, not the small girl in @Prop-OldPhoto, her face streaming with tears. She runs forward toward @Mother, arms already opening to take hold of her.
 
-14–17s: @Daughter passes @Mother without touching her and drops onto the bed — and the room is no longer the room. The bedding is torn and tangled, the armchair is over on its side, a drinking glass lies shattered across the carpet, the suitcase gapes open with clothes spilling out. @Mother's body lies on the bed, and the white sheet beneath it carries a wide dark rust-brown stain, long dried into the weave and stiff at its edges — old, not recent. @Daughter takes hold of the body and holds it.
+14–17s: @Daughter passes @Mother without touching her and drops onto the bed — and the room is no longer @Room-Clean, it is @Room-Wreck. The bedding is torn and tangled, the armchair is over on its side, @Prop-Glass lies shattered across the carpet, the suitcase gapes open with clothes spilling out. @Mother's body lies on the bed, and the white sheet beneath it carries a wide dark rust-brown stain, long dried into the weave and stiff at its edges — old, not recent. @Daughter takes hold of the body and holds it.
 
 17–20s: Hold, still in slow motion and still in total silence, on @Daughter holding the body, with @Mother standing untouched in the same frame, @Prop-OldPhoto still in her hand, watching.
 
