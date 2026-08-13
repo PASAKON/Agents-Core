@@ -29,6 +29,10 @@ state/locks/*.pid.spawnlock
 state/locks/*.uuid
 state/locks/close-refusals.log
 state/locks/*.run
+# Ownership sidecar written by tools/send_to_cxo.record_spawn() — records which
+# session spawned a C-level, so reply routing resolves from recorded ownership
+# rather than from a forgeable message envelope. Runtime state, per-session.
+state/locks/*.spawned_by
 state/backups/
 # Per-session turn counter for scripts/hook-memory-nudge.py (ADR 0019 §1).
 # Runtime state; state/*.db already covers the search index beside it.
