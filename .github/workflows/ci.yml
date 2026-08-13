@@ -1,0 +1,62 @@
+name: CI
+
+# ADR 0021 §5 + ADR 0020 §2 — one workflow, three report jobs.
+# Green is the precondition before merge_task on this repo.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # 1. The test suite from pytest.ini (evals are --ignored there, so this is
+  #    side-effect-free by construction).
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14" # repo's Python (ADR 0021: "use the repo's existing Python version")
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run pytest
+        run: pytest
+
+  # 2. gitleaks — mirrors the repo's pre-commit guard
+  #    (.git/hooks/pre-commit: `gitleaks protect --staged --redact --no-banner`,
+  #    added 2026-07-23). The repo ships no tracked .gitleaks.toml, so the
+  #    action scans with gitleaks' built-in default ruleset. Fails the job on
+  #    any finding, the same way the hook blocks the commit.
+  gitleaks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 3. osv-scanner — ADR 0020 §2. Scans requirements.txt AND any package.json
+  #    via --recursive (e.g. knowledge/.../bird-search/package.json). Report
+  #    only: NO --upgrade / `osv fix` (upgrading a dependency is a human
+  #    decision).
+  osv-scanner:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google/osv-scanner-action@v2
+        with:
+          scan-args: |-
+            --recursive
+            ./

@@ -5,3 +5,9 @@ textual>=0.80
 rich>=13.0
 yfinance>=1.5.2
 pandas>=3.0.5
+# Runtime HTTP dep for scripts/supabase_storage_quota_check.py + fusion_query.py.
+# Pinned now that pytest collects their mocked unit tests (ADR 0021); previously
+# installed ad hoc only in shells that ran those scripts.
+requests>=2.31,<3
+# Test runner — ADR 0021 standardises on pytest (added 2026-08-13).
+pytest>=8,<9
