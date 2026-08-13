@@ -52,8 +52,7 @@ the edge:
 
 | Scene | Distinct elements | Headroom |
 |---|---|---|
-| 10-D | **10** | **zero — nothing can be added without dropping something** |
-| 9C, 10-B, 10-C | 9 | one slot |
+| 9C, 10-B, 10-C, 10-D | 9 | one slot |
 | everything else | 1-5 | plenty |
 
 **The cap is on elements ATTACHED to the composer, not on mentions in the
@@ -87,7 +86,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 9D-A/B/C | `@Room-Clean` | `@Mother` | `@Prop-Wallet` `@Prop-OldPhoto` `@Prop-Lamp` |
 | 10-A | `@Room-Clean` → `@Room-Wreck` | `@Mother` | `@Prop-OldPhoto` `@Prop-Glass` `@Prop-Handbag` |
 | 10-B/C | `@Room-Clean` → `@Room-Wreck` `@Room-DoorOut` | `@Mother` `@Daughter` | `@Prop-OldPhoto` `@Prop-Glass` `@Prop-Handbag` `@Prop-Lamp` |
-| 10-D | `@Room-Clean` → `@Room-Wreck` `@Room-DoorOut` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-OldPhoto` `@Prop-Glass` `@Prop-Handbag` |
+| 10-D | `@Room-Clean` → `@Room-Wreck` `@Room-DoorOut` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-OldPhoto` `@Prop-Glass` |
 | 11A | `@Room-Wreck` `@Room-DoorOut` | `@Mother` `@Daughter` | `@Prop-Glass` |
 | 11B | `@Room-Wreck` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-Glass` |
 | 11C | `@Room-Wreck` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-OldPhoto` `@Prop-Glass` `@Prop-Lamp` |
@@ -857,11 +856,21 @@ Same beat as 10-B, opposite treatment. Here the film says it out loud: @Mother
 is visibly not solid, and the daughter runs straight through her. **This variant
 deliberately breaks the no-glow rule that every other shot in the film obeys.**
 
+**Diagnostic edit, 2026-08-14 (CTO):** this block failed 3/3 with an
+unattributed generic Higgsfield error while sitting at exactly 10 distinct
+elements — the only queue item at the hard cap, and the only block tonight
+using the untested `@Mother-Soul` plate. Dropped `@Prop-Handbag` (background
+dressing only in this shot, described in plain words below) to bring it to
+**9 elements** as a test of the count-ceiling theory, per the CEO's direct
+go-ahead. If this succeeds, the drop stays. If it still fails identically,
+the cause is elsewhere (most likely the `@Mother-Soul` plate itself) and this
+note should be updated rather than removed.
+
 ```
 VISUAL
 Single continuous take, 20 seconds. Interior of room 214 — it begins as @Room-Clean and ends as @Room-Wreck. @Prop-Lamp stands unlit on the nightstand; one weak warm ceiling bulb is the only light until the door opens.
 
-0–3s: Behind @Mother, tight on the back of her head and shoulders, her face not in frame — we look past her at @Prop-OldPhoto held low in her hands. Beyond her @Room-Clean is ordinary, @Prop-Handbag closed on the nightstand. Three hard impacts land on @Room-DoorOut and a muffled shout comes through. Real time, real sound.
+0–3s: Behind @Mother, tight on the back of her head and shoulders, her face not in frame — we look past her at @Prop-OldPhoto held low in her hands. Beyond her @Room-Clean is ordinary, a closed handbag sits undisturbed on the nightstand. Three hard impacts land on @Room-DoorOut and a muffled shout comes through. Real time, real sound.
 
 3–5s: @Room-DoorOut bursts inward. At the exact frame it opens the image drops into SLOW MOTION and all sound falls away to nothing.
 
