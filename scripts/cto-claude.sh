@@ -4,6 +4,27 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# --session <id>: mirrors cxo-claude.sh's SESSION_OVERRIDE exactly (task
+# task-f4c64dc6, gap 2 — until now only cxo-claude.sh registered a session
+# at all). When set, this is an ephemeral spawn: CTO_SESSION_ID is forced to
+# the given id and the `cto-active` pointer below is intentionally NOT
+# written, so an ephemeral tab can never clobber the CEO's primary CTO tab
+# (ADR 2026-05-26, Decision 2). Every other arg passes through to `claude`
+# unchanged via ARGS, same as cxo-claude.sh's own loop.
+SESSION_OVERRIDE=""
+ARGS=()
+prev=""
+for a in "$@"; do
+  if [ "$prev" = "--session" ]; then
+    SESSION_OVERRIDE="$a"; prev=""; continue
+  fi
+  case "$a" in
+    --session) prev="--session" ;;
+    *)         ARGS+=("$a") ;;
+  esac
+done
+
 ROLE_PROMPT="$(cat "$ROOT/roles/cto.md")"
 
 # Generate the MCP config with THIS machine's real absolute paths instead of
@@ -37,7 +58,9 @@ export CTO_SESSION=1
 # cto-4020c182 vs tmux cto-session-mslldjt6). Only a name shaped cto-<id> is
 # adopted; anything else falls back to a fresh uuid. Mirrors
 # tools.session_name.id_from_tmux_session(_, "cto").
-if [ -z "${CTO_SESSION_ID:-}" ]; then
+if [ -n "$SESSION_OVERRIDE" ]; then
+  CTO_SESSION_ID="$SESSION_OVERRIDE"
+elif [ -z "${CTO_SESSION_ID:-}" ]; then
   if [ -n "${TMUX:-}" ]; then
     _SESS="$(tmux display-message -p '#S' 2>/dev/null | tr -d '[:space:]')"
     case "$_SESS" in
@@ -47,8 +70,8 @@ if [ -z "${CTO_SESSION_ID:-}" ]; then
   if [ -z "${CTO_SESSION_ID:-}" ]; then
     CTO_SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex[:8])')"
   fi
-  export CTO_SESSION_ID
 fi
+export CTO_SESSION_ID
 
 # Full RFC4122-shaped UUID whose trailing 8 hex chars equal $CTO_SESSION_ID
 # (rest random). Persisted so spawn-cto.sh's --resume <id> can look up the
@@ -71,16 +94,18 @@ print(uuid.UUID(hex=full))
 else
   CTO_UUID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
 fi
-mkdir -p "$ROOT/state/locks"
-UUID_FILE="$ROOT/state/locks/cto-$CTO_SESSION_ID.uuid"
-printf '%s\n' "$CTO_UUID" >"$UUID_FILE"
 
 # Per-CTO lock so the claude-CLI path has the same collision defense
 # that runners/cto_chat.py provides for the Python REPL. spawn-cto.sh's
 # is_id_live() check relies on this file existing while a CTO chat is
-# alive.
-LOCKS_DIR="$ROOT/state/locks"
+# alive. CTO_CLAUDE_LOCKS_DIR is a test-only override (scripts/test_cxo_
+# crosstalk.py) so a test can prove the registration behavior below
+# without ever writing to the real state/locks/ (ADR 0021).
+LOCKS_DIR="${CTO_CLAUDE_LOCKS_DIR:-$ROOT/state/locks}"
 mkdir -p "$LOCKS_DIR"
+UUID_FILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.uuid"
+printf '%s\n' "$CTO_UUID" >"$UUID_FILE"
+
 LOCKFILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.lock"
 if [ -e "$LOCKFILE" ]; then
   existing_pid="$(tr -d '[:space:]' <"$LOCKFILE" 2>/dev/null || true)"
@@ -153,7 +178,58 @@ fi
 # .run is the launcher tmux exec'd us from (written by spawn-cto.sh); it has no
 # reason to outlive the session it started.
 RUN_FILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.run"
-trap 'rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE" "$MCP_CONFIG" "$RUN_FILE"' EXIT INT TERM
+
+# CXO_ROLE/CXO_SESSION: same env every cxo-claude.sh session exports, so
+# tools/send_to_cxo.py's _resolve_sender_role() correctly labels a message
+# from here "[CTO]" instead of falling back to "[CEO]" (task task-f4c64dc6,
+# gap 2 — CXO_ROLE was never set inside a cto-claude.sh session before this).
+export CXO_ROLE="cto"
+export CXO_SESSION=1
+
+# Active-session pointer: only written for a PRIMARY (non-ephemeral) launch.
+# Mirrors cxo-claude.sh's own ACTIVE_FILE guard verbatim — an ephemeral spawn
+# (--session set) must never overwrite this pointer, so the CEO's primary
+# CTO tab stays the single target `send()` resolves to (ADR 2026-05-26,
+# Decision 2).
+ACTIVE_FILE="$LOCKS_DIR/cto-active"
+if [ -z "$SESSION_OVERRIDE" ]; then
+  echo "$CTO_SESSION_ID" >"$ACTIVE_FILE"
+fi
+
+# Register this session in c_level_sessions so send_to_cxo has a target to
+# resolve (gap 2). Backgrounded + stdio-detached exactly like cxo-claude.sh's
+# own call, for the same reason: a held stdout/stderr pipe would hang any
+# programmatic caller capturing this script's output.
+# Skipped under CTO_CLAUDE_TEST_MODE (scripts/test_cxo_crosstalk.py) so a
+# test never writes to the real state/tasks.db (ADR 0021) — that DB write is
+# not what this guard is about; it belongs to register_cxo.py's own coverage.
+if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ]; then
+  (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
+    python3 -m tools.register_cxo --role cto --session "$CTO_SESSION_ID" 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
+fi
+
+# Test-only early exit: everything above (lock/uuid/winid/tty files, the
+# active pointer, register_cxo) has already run by this point, so a test can
+# assert on it without going anywhere near maintab, tab-title OSC writes,
+# the title-keeper background loop, model resolution, or a real `claude`
+# launch. Not reachable in a real launch (the env var is never set there).
+if [ "${CTO_CLAUDE_TEST_MODE:-0}" = "1" ]; then
+  rm -f "$MCP_CONFIG"
+  echo "CTO_CLAUDE_TEST_MODE: stopping after registration (session=$CTO_SESSION_ID override=${SESSION_OVERRIDE:-<none>})"
+  exit 0
+fi
+
+cleanup() {
+  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE" "$MCP_CONFIG" "$RUN_FILE"
+  # Only clear the active pointer if it still points at us and we wrote it.
+  if [ -z "$SESSION_OVERRIDE" ] && [ -e "$ACTIVE_FILE" ]; then
+    current="$(tr -d '[:space:]' <"$ACTIVE_FILE" 2>/dev/null || true)"
+    if [ "$current" = "$CTO_SESSION_ID" ]; then
+      rm -f "$ACTIVE_FILE"
+    fi
+  fi
+}
+trap cleanup EXIT INT TERM
 
 # Initial tab title + base prefix for scripts/tab-title.sh (IRON-RULES §32).
 # The C-level agent rewrites the summary part after every finished job.
@@ -279,10 +355,11 @@ if [ "${CXO_STRICT_MCP:-1}" = "1" ]; then
 fi
 
 # --session-id + --resume/--continue is only legal combined with
-# --fork-session (claude CLI refuses otherwise) — "$@" carries -r/-c
+# --fork-session (claude CLI refuses otherwise) — ARGS carries -r/-c
 # whenever spawn-cto.sh translated --resume/--last. Detect and add it.
+# ARGS (not "$@") because --session was already stripped out above.
 FORK_ARGS=()
-for a in "$@"; do
+for a in ${ARGS[@]+"${ARGS[@]}"}; do
   case "$a" in
     -r|--resume|-c|--continue) FORK_ARGS=(--fork-session) ;;
   esac
@@ -300,5 +377,5 @@ claude \
   --allowed-tools $ALLOWED \
   --session-id "$CTO_UUID" \
   ${FORK_ARGS[@]+"${FORK_ARGS[@]}"} \
-  "$@"
+  ${ARGS[@]+"${ARGS[@]}"}
 exit $?

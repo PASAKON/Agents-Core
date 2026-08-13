@@ -55,6 +55,7 @@ from tools.delegate import delegate_task as do_delegate, delegate_parallel
 from tools.dev_reap import close_dev as do_close_dev
 from tools.git_ops import merge_task as do_merge
 from tools.worktree import diff_summary, diff_full
+from tools import send_to_cxo as send_to_cxo_mod
 
 ROLE = "cto"
 
@@ -573,4 +574,89 @@ def dispatch_sync(name: str, **kwargs: Any) -> str:
         result = spec.handler(**merged)
         return _format(spec, result)
     except Exception as e:  # noqa: BLE001 - intentional catch-all, see docstring
+        return f"ERROR: {e}"
+
+
+# ---------------------------------------------------------------------------
+# send_to_cxo — registered SEPARATELY from REGISTRY/BY_NAME above (task
+# task-f4c64dc6, 2026-08-14 CEO directive "make C-level -> C-level messaging
+# actually work").
+#
+# REGISTRY is the CTO-specific 18-tool set that scripts/test_tool_parity.py
+# asserts is IDENTICAL across the 3 hand-registration surfaces
+# (runners/cto_mcp_server.py, runners/cto.py, runners/cto_chat.py). Adding a
+# 19th name there would fail that parity check the moment those 3 files
+# don't ALSO register it — and they are not in this task's touches
+# (lib/org_tools_registry.py, tools/send_to_cxo.py, scripts/cto-claude.sh,
+# scripts/test_cxo_crosstalk.py only). send_to_cxo is also not a CTO-only
+# tool by nature — every C-level (cto/cmo/cgo/cfo) needs to call it — so
+# folding it into the CTO-scoped REGISTRY would be the wrong shape even
+# without the parity constraint.
+#
+# This follows the SAME staged-rollout precedent this module already set
+# for the 18 CTO tools ("STEP 1 OF 2" in the module docstring above): the
+# ToolSpec is defined and dispatchable here; wiring it into a live MCP
+# surface (runners/cto_mcp_server.py, which every C-level's "org" server
+# actually runs — see scripts/lib/cxo_mcp_config.py) is a follow-up task.
+# Until then a C-level reaches it the way it already can today: Bash is a
+# builtin every C-level session gets (scripts/lib/cxo_mcp_config.py
+# BUILTIN_TOOLS), so `python -m tools.send_to_cxo <role> "<message>"`
+# already works from inside any CTO/CMO/CGO/CFO chat right now — this
+# registry entry is the spec for turning that into a first-class tool call
+# next, not the only way to reach it.
+
+def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False) -> str:
+    if spawn:
+        return send_to_cxo_mod.spawn(role, message)
+    return send_to_cxo_mod.send(role, message)
+
+
+CXO_REGISTRY: tuple[ToolSpec, ...] = (
+    ToolSpec(
+        name="send_to_cxo",
+        description=(
+            "Send a message into another C-level's (cto/cmo/cgo/cfo) live "
+            "chat tab -- e.g. CTO asking CFO for a budget approval, or CMO "
+            "asking CGO for an attribution check. Sender is auto-detected "
+            "from this session's role; a role-mismatched call is rejected. "
+            "spawn=True opens a new ephemeral tab for that role instead of "
+            "typing into its primary tab, when no session is running.\n\n"
+            "Routing is ownership-gated, not free-form broadcast: you may "
+            "message only the session that spawned you, or a session you "
+            "spawned yourself (max 3 delegation hops counting the "
+            "originator as level 1) -- refused otherwise, loudly, naming "
+            "the whole chain. A primary (non-spawned) C-level session may "
+            "always reach another primary C-level as a peer -- that is the "
+            "routine cross-role request this tool exists for.\n\n"
+            "You OWN the outcome of what you delegate here: if the C-level "
+            "you ask gets it wrong, that is on you, not them -- asking "
+            "someone else to do it never transfers accountability for it."
+        ),
+        params=(
+            Param("role", str),
+            Param("message", str),
+            Param("spawn", bool, False),
+        ),
+        handler=_h_send_to_cxo,
+        response_format="text",
+    ),
+)
+
+CXO_BY_NAME: dict[str, ToolSpec] = {s.name: s for s in CXO_REGISTRY}
+
+
+def dispatch_cxo_sync(name: str, **kwargs: Any) -> str:
+    """dispatch_sync()'s sibling for CXO_REGISTRY instead of REGISTRY. Same
+    pipeline (arg-merge -> handler -> format -> uniform error wrap), kept
+    as a separate function rather than a `registry=` param on dispatch_sync
+    so that function's existing call sites/signature stay untouched."""
+    spec = CXO_BY_NAME[name]
+    assert not spec.is_async, f"{name} handler is async — use an async dispatcher instead"
+    try:
+        short_circuit, merged = _prepare(spec, kwargs)
+        if short_circuit is not None:
+            return short_circuit
+        result = spec.handler(**merged)
+        return _format(spec, result)
+    except Exception as e:  # noqa: BLE001 - intentional catch-all, matches dispatch_sync
         return f"ERROR: {e}"
