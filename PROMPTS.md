@@ -656,23 +656,23 @@ this same beat; generate both and choose.
 
 ```
 VISUAL
-Single continuous take, 20 seconds. Interior of guest room 214, one weak warm ceiling light.
+Single continuous take, 20 seconds. Interior of @Room-Guest, room 214, at night. @Prop-Lamp stands unlit on the nightstand; the only light is one weak warm ceiling bulb.
 
-0–3s: Close on @Mother's face, the photograph still in her hands, exactly where Scene 9D left her. Behind her the room is ordinary — tidy bed, closed handbag on the nightstand. Three hard impacts land on the door and a muffled shout comes through it. Real time, real sound.
+0–3s: Behind @Mother, tight on the back of her head and shoulders — we look past her at what she is looking at, and her face is not in frame at all. @Prop-OldPhoto is held low in her hands and readable over her shoulder. Beyond her the room is ordinary — tidy bed, closed handbag on the nightstand. Three hard impacts land on the door and a muffled shout comes through it. Real time, real sound.
 
 3–5s: The door bursts inward. At the exact frame it opens the image drops into SLOW MOTION and every sound falls away to nothing.
 
 5–10s: Two police officers come through the doorway first, moving slowly, faces NEVER visible — framed from behind, or from the chest down, or with the head cropped out of frame. Corridor light throws hard shapes past them and dust turns slowly in it.
 
-10–14s: Her daughter enters behind them — a young woman now, not the small girl in the photograph, her face streaming with tears. She runs forward toward @Mother, arms already opening to take hold of her.
+10–14s: @Daughter enters behind them — a young woman now, not the small girl in @Prop-OldPhoto, her face streaming with tears. She runs forward toward @Mother, arms already opening to take hold of her.
 
-14–17s: She passes @Mother without touching her and drops onto the bed — and the room is no longer the room. The bedding is torn and tangled, the armchair is over on its side, a drinking glass lies shattered across the carpet, the suitcase gapes open with clothes spilling out. @Mother's body lies on the bed, and the white sheet beneath it carries a wide dark rust-brown stain, long dried into the weave and stiff at its edges — old, not recent. The daughter takes hold of the body and holds it.
+14–17s: @Daughter passes @Mother without touching her and drops onto the bed — and the room is no longer the room. The bedding is torn and tangled, the armchair is over on its side, a drinking glass lies shattered across the carpet, the suitcase gapes open with clothes spilling out. @Mother's body lies on the bed, and the white sheet beneath it carries a wide dark rust-brown stain, long dried into the weave and stiff at its edges — old, not recent. @Daughter takes hold of the body and holds it.
 
-17–20s: Hold, still in slow motion and still in total silence, on the daughter holding the body, with @Mother standing untouched in the same frame, the photograph still in her hand, watching.
+17–20s: Hold, still in slow motion and still in total silence, on @Daughter holding the body, with @Mother standing untouched in the same frame, @Prop-OldPhoto still in her hand, watching.
 
-NEGATIVE — strictly avoid: no police officer's face is ever visible, in any framing, at any moment. No wounds, no injury detail, no gore of any kind. The stain on the sheet is OLD and DRY — rust-brown, matte, absorbed into the fabric, with nothing wet, glossy, red, fresh, pooling or spreading anywhere in frame. She has been dead more than a day and the image must read that way. No weapon in frame. The daughter never touches, bumps, acknowledges or looks at @Mother standing. @Mother does NOT glow, is NOT translucent, does NOT blur, does NOT scatter and casts a normal shadow — she is photographed as an ordinary solid person and nothing in the image marks her as a ghost. No double exposure, no lens flare, no light rays, no particles, no floating dust motes treated as magic. No sound at all after the door opens. No music, no sting, no riser. No camera shake, no whip pan, no zoom.
+NEGATIVE — strictly avoid: no police officer's face is ever visible, in any framing, at any moment. No wounds, no injury detail, no gore of any kind. The stain on the sheet is OLD and DRY — rust-brown, matte, absorbed into the fabric, with nothing wet, glossy, red, fresh, pooling or spreading anywhere in frame. She has been dead more than a day and the image must read that way. No weapon in frame. @Daughter never touches, bumps, acknowledges or looks at @Mother standing. @Mother does NOT glow, is NOT translucent, does NOT blur, does NOT scatter and casts a normal shadow — she is photographed as an ordinary solid person and nothing in the image marks her as a ghost. No double exposure, no lens flare, no light rays, no particles, no floating dust motes treated as magic. No sound at all after the door opens. No music, no sting, no riser. No camera shake, no whip pan, no zoom.
 
-Grounded real-camera look, locked or on a slow steady move, no handheld shake. Weak warm ceiling light plus hard cold light spilling from the corridor. Muted and desaturated — except the blood on the sheet and the faded warm colour of the photograph.
+Grounded real-camera look, locked or on a slow steady move, no handheld shake. Weak warm ceiling light plus hard cold light spilling in from the open doorway. Muted and desaturated — except the dried stain on the sheet and the faded warm colour of @Prop-OldPhoto.
 
 AUDIO-SFX
 Three hard impacts on the door, a muffled shout, wood splitting and the lock giving — close, real, loud. Then, from the exact frame the door opens, ABSOLUTE SILENCE for the remaining seventeen seconds: no footsteps, no crying, no cloth, no room tone, no breath, no music, no sting. The silence is the effect and it must be complete.
