@@ -42,9 +42,17 @@ No safe generic Korean broadcast footage exists. Build as in-house graphic, cite
 - KRX building Wikimedia file — verify license before use
 - KRW banknote — only 1 real source found, may need a licensed still or in-house shot
 
-## DOWNLOADED — real news clips (MP4, on Desktop)
+## DOWNLOADED 2026-08-09 — real news clips + real page screenshots
 
-Location: `~/Desktop/TRADER-UNCUT-footage/EP1-jadoodoo/news-clips/`
+Location: `~/Desktop/TRADER-UNCUT-footage/EP1-jadoodoo/`
+- `news-clips/` — all 11 clips below, downloaded, trimmed to ≤150s excerpts
+  (full-length originals kept in `news-clips/_full-length-originals/`)
+- `screenshots/` — 2 TradingView KOSPI charts (current + 6M crash view),
+  Yahoo Finance historical table (Jul 28/29 close confirmed: 6,023.66 /
+  5,663.24, matches script exactly), UPI headline, Seoul Economic Daily headline
+- `CREDITS.md` — full source/URL/excerpt-timestamp table for every file, per-EP
+  credit doc
+
 Naming: `<topic>_<SourceChannel>_<youtubeID>.mp4` — source credit is in the filename.
 Editor must show the source name on screen per the news-desk citation rule.
 
@@ -61,3 +69,7 @@ Editor must show the source name on screen per the news-desk citation rule.
 | WION | market panic hits south korea | https://www.youtube.com/watch?v=wVx-q9Aidyg |
 | BloombergTelevision | samsung earnings chip stocks kospi circuit breaker | https://www.youtube.com/watch?v=Dro-H3QmuBQ |
 | ArirangNews | sell side sidecars kospi kosdaq | https://www.youtube.com/watch?v=5rvC9-Clrmc |
+
+Still NOT sourced: generic b-roll (#2-4, #6 above — Seoul skyline, streaming
+setup, KRW banknote, boom-bust chart) and any Jadoodoo likeness (deliberately
+excluded, unlicensed). No `video_editor` task created yet for this episode.

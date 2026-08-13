@@ -1,0 +1,51 @@
+{
+  "male": {
+    "character_id": "black_liquidity_avatar_male_v2",
+    "source": "real production reference photo, mooniex-claudeflow BL_CHARACTER_IMAGE_ID (Drive), cross-checked against src/video/videolib.js characterPrompt. v2 revision per CEO feedback 2026-08-04: lowered age to 18, removed facial hair, fresher/cleaner face.",
+    "locked_description": {
+      "age_range": "18 years old, still visibly teenage/youthful, not adult-looking",
+      "ethnicity_skin": "Caucasian, fair skin, smooth clean-shaven face, no stubble, no facial hair of any kind",
+      "build": "slim build, medium height",
+      "hair": "short dark hair, mostly hidden under beanie, only small amount visible at the temples",
+      "headwear": {
+        "type": "black ribbed knit beanie, fitted, worn straight (not slouchy)",
+        "patch": {
+          "shape": "rectangular fabric patch centered on the front of the beanie",
+          "text": "RICH",
+          "text_color": "white",
+          "font_style": "bold sans-serif, all caps, condensed/impact-style",
+          "patch_background": "black, same as beanie"
+        }
+      },
+      "eyewear": "black rectangular Wayfarer-style sunglasses, fully opaque dark lenses, black frame",
+      "outfit": {
+        "outer": "black tailored suit blazer, structured shoulders",
+        "inner": "white button-down polo shirt, collar visible, top button open"
+      },
+      "expression": "serious, calm, confident, closed-mouth, direct posture",
+      "signature_lighting": "neon red LED rim light tracing the body/beanie/shoulders against a dark background",
+      "signature_environment_cues": "dark home-office / trading-desk setting, multiple monitors glowing with abstract candlestick charts, occasional bookshelf and plants at the edges of frame"
+    }
+  },
+  "female": {
+    "character_id": "black_liquidity_avatar_female_v1",
+    "source": "NEW — first draft, no real production reference exists yet. Designed to sit in the same visual world as the male avatar (same lighting/environment signature, same brand-hero styling) while being visually distinct at a glance. NEEDS CEO REVIEW before treating as locked.",
+    "locked_description": {
+      "age_range": "young adult female, early 20s",
+      "ethnicity_skin": "Caucasian, fair skin, smooth clean face, natural makeup",
+      "build": "slim build, medium height",
+      "hair": "sleek dark hair pulled back into a low ponytail, no headwear",
+      "eyewear": "none (bare face, direct eye contact with camera — contrast to the male avatar's sunglasses)",
+      "outfit": {
+        "outer": "black tailored blazer, structured shoulders, same fabric/cut language as the male avatar's blazer",
+        "inner": "black fitted turtleneck (instead of white polo, to differentiate silhouette from the male avatar while keeping the black/white brand contrast inverted)"
+      },
+      "expression": "serious, calm, confident, closed-mouth, direct posture — matches the male avatar's energy exactly",
+      "signature_lighting": "neon red LED rim light tracing the body/hair/shoulders against a dark background",
+      "signature_environment_cues": "same dark home-office / trading-desk setting as the male avatar, multiple monitors glowing with abstract candlestick charts"
+    }
+  },
+  "joint_scene_note": "When both appear together: keep both character blocks fully intact (do not blend/merge their descriptions), place them side-by-side or across-desk in the same locked environment, and explicitly state relative position in the scene sentence (e.g. 'standing beside him' / 'seated across the desk from her') so the model doesn't default to only rendering one clearly.",
+  "render_style_locked": "Realistic 4K, dark moody, neon red accents, cinematic, high contrast, photorealistic, no text overlay, no logo, no brand, no readable chart data",
+  "usage_note": "Keep every locked_description field IDENTICAL across every clip featuring that character. Only the 'scene' (setting/action/camera-move/mood) changes per clip. Higgsfield's Seedance prompt box takes plain text, not literal JSON — this file is the canonical locked spec; each clip's submitted prompt is this spec flattened into prose + the scene-specific sentence appended."
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0c1c2b; --navy2:#0a1622;
+    --gold1:#f7ecd2; --gold2:#e9cd84; --gold3:#cfa961;
+    --line:rgba(233,205,132,.26);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Prompt',sans-serif;}
+  body{width:1080px;height:1080px;overflow:hidden;}
+  .poster{position:relative;width:1080px;height:1080px;
+    background:radial-gradient(120% 90% at 50% 16%, #143049 0%, var(--navy) 46%, var(--navy2) 100%);
+    color:#fff;overflow:hidden;display:flex;flex-direction:column;}
+  .bars{position:absolute;inset:0;opacity:.10;pointer-events:none;}
+  .bars i{position:absolute;bottom:120px;width:14px;border-radius:3px;
+    background:linear-gradient(var(--gold1),var(--gold3));}
+  .hud{position:absolute;width:120px;height:120px;border:2px solid var(--line);}
+  .hud.tl{top:34px;left:34px;border-right:0;border-bottom:0;}
+  .hud.br{bottom:150px;right:34px;border-left:0;border-top:0;}
+  .gold{background:linear-gradient(100deg,var(--gold1),var(--gold2) 48%,var(--gold3));
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  .head{display:flex;align-items:flex-start;justify-content:space-between;padding:42px 56px 0;z-index:2;}
+  .kicker{font-weight:700;letter-spacing:6px;font-size:24px;color:var(--gold2);}
+  .kicker small{display:block;letter-spacing:3px;font-size:15px;color:#9fb2c4;font-weight:500;margin-top:2px;}
+  .brand{position:absolute;top:34px;right:48px;z-index:3;}
+  .brand img{width:112px;height:auto;filter:drop-shadow(0 3px 5px rgba(0,0,0,.55));}
+  .hero{padding:30px 60px 0;text-align:center;z-index:2;}
+  .h1{font-weight:600;font-size:58px;color:#cdd8e3;line-height:1.12;}
+  .h1 .strike{position:relative;color:#8696a8;}
+  .h1 .strike::after{content:"";position:absolute;left:-4px;right:-4px;top:54%;height:5px;
+    background:#d98a8a;transform:rotate(-4deg);border-radius:4px;}
+  .h2{font-weight:900;font-size:94px;line-height:1.05;margin-top:6px;
+    filter:drop-shadow(0 6px 26px rgba(233,205,132,.4));}
+  .sub{margin-top:22px;font-weight:500;font-size:30px;color:#dfe8f0;}
+  .sub b{font-weight:800;color:#fff;}
+  .cards{display:flex;gap:30px;justify-content:center;padding:34px 60px 0;z-index:2;}
+  .card{flex:1;max-width:400px;background:linear-gradient(180deg,#14304a,#0e2031);
+    border:2px solid var(--line);border-radius:26px;padding:24px 22px 20px;
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    box-shadow:0 18px 40px rgba(0,0,0,.35);}
+  .card .logo{width:92px;height:92px;border-radius:22px;background:#fff;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.35);}
+  .card .logo img{width:100%;height:100%;object-fit:cover;}
+  .card .bname{font-weight:600;font-size:25px;color:#b9c7d4;letter-spacing:1px;}
+  .card .amt{font-weight:900;font-size:94px;line-height:.88;
+    background:linear-gradient(175deg,#fffbe9 0%,#fbe7a8 28%,#f4d885 44%,#e3bd5f 56%,#cDA23f 70%,#a87c22 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 2px 0 #7a5a16) drop-shadow(0 4px 1px #574008) drop-shadow(0 9px 14px rgba(0,0,0,.6));}
+  .card .amt span{font-size:46px;font-weight:800;}
+  .card .per{font-weight:600;font-size:23px;color:var(--gold2);margin-top:-2px;}
+  .rec{display:inline-flex;align-items:center;gap:8px;margin-top:6px;
+    font-weight:700;font-size:19px;color:var(--gold2);
+    border:1.5px solid var(--line);border-radius:999px;padding:5px 16px;}
+  .vs{display:flex;align-items:center;justify-content:center;gap:16px;
+    margin:28px 60px 0;padding:15px 22px;border-radius:16px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);font-size:22px;z-index:2;}
+  .vs .bad{color:#9aa7b4;}.vs .bad s{color:#7d8893;}
+  .vs .good{color:#fff;font-weight:700;}
+  .vs .x{color:#e08a8a;font-weight:800;}.vs .ok{color:var(--gold2);font-weight:800;}
+  .vs .arrow{color:var(--gold3);font-size:25px;}
+  .cta{display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 60px 0;z-index:2;}
+  .btn{background:linear-gradient(180deg,var(--gold1),var(--gold3));color:#1c1404;
+    font-weight:800;font-size:35px;padding:19px 54px;border-radius:999px;
+    box-shadow:0 12px 30px rgba(233,205,132,.42);letter-spacing:.5px;}
+  .url{font-weight:600;font-size:22px;color:var(--gold2);letter-spacing:2px;}
+  .risk{margin-top:auto;background:rgba(0,0,0,.5);border-top:1px solid var(--line);
+    text-align:center;font-size:18px;font-weight:500;color:#aebccb;padding:15px 40px;z-index:2;}
+  .risk b{color:#cdd8e3;}
+</style>
+</head>
+<body>
+  <div class="poster">
+    <div class="bars">
+      <i style="left:90px;height:160px"></i><i style="left:130px;height:90px;bottom:200px"></i>
+      <i style="left:930px;height:200px"></i><i style="left:975px;height:120px;bottom:230px"></i>
+      <i style="left:1010px;height:70px;bottom:190px"></i>
+    </div>
+    <div class="hud tl"></div><div class="hud br"></div>
+
+    <div class="head">
+      <div class="kicker">MOONIEX REBATE<small>เงินคืนค่าเทรดทองคำ</small></div>
+      <div class="brand"><img src="./logo-lockup.png" alt="MOONIEX"></div>
+    </div>
+
+    <div class="hero">
+      <div class="h1">โบนัส<span class="strike">หมดอายุ</span></div>
+      <div class="h2 gold">เงินคืนไม่มีวันหมด</div>
+      <div class="sub">เทรดทองคำเท่าเดิม — รับ<b>เงินคืนทุกล็อต</b> ไม่มีหมดอายุ</div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="logo"><img src="./xm.png" alt="XM"></div>
+        <div class="bname">XM</div>
+        <div class="amt">15<span>$</span></div>
+        <div class="per">/ ล็อต · ทองคำ</div>
+        <div class="rec">↻ คืนทุกล็อต</div>
+      </div>
+      <div class="card">
+        <div class="logo"><img src="./exness.png" alt="Exness"></div>
+        <div class="bname">Exness</div>
+        <div class="amt">8<span>$</span></div>
+        <div class="per">/ ล็อต · ทองคำ</div>
+        <div class="rec">↻ คืนทุกล็อต</div>
+      </div>
+    </div>
+
+    <div class="vs">
+      <span class="bad">โบนัสโบรก <s>$30 ครั้งเดียว</s> <span class="x">✗</span></span>
+      <span class="arrow">→</span>
+      <span class="good">เงินคืน MoonieX ทุกล็อต ไม่มีหมดอายุ <span class="ok">✓</span></span>
+    </div>
+
+    <div class="cta">
+      <div class="btn">คำนวณเงินคืนของคุณ →</div>
+      <div class="url">MOONIEX.COM/TOOLS</div>
+    </div>
+
+    <div class="risk">
+      <b>การเทรด CFD มีความเสี่ยงสูง</b> อาจสูญเสียเงินลงทุน โปรดศึกษาก่อนตัดสินใจ · รองรับ Exness / XM · เงินคืนเข้าบัญชีจริง
+    </div>
+  </div>
+<script>
+  var q=new URLSearchParams(location.search);
+  var v=(q.get('v')||'a').toLowerCase();
+  if(v==='b'){
+    document.querySelector('.h1').innerHTML='เทรดทองคำอยู่แล้ว?';
+    document.querySelector('.h2').textContent='ทวงเงินคืนทุกล็อต';
+  }
+  // optional gen'd scene background (scene-only; text stays crisp HTML overlay)
+  var bg=q.get('bg');
+  if(bg){
+    var p=document.querySelector('.poster');
+    p.style.backgroundImage="linear-gradient(rgba(12,28,43,.80),rgba(10,22,34,.93)), url('"+bg+"')";
+    p.style.backgroundSize='cover';
+    p.style.backgroundPosition='center';
+  }
+</script>
+</body>
+</html>

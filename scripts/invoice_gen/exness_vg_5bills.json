@@ -1,0 +1,62 @@
+[
+  {
+    "doc_type": "invoice", "lang": "en",
+    "doc_no": "INV2026060001", "date": "14/06/2026", "due_date": "14/06/2026",
+    "seller": {"name": "PASAKON RACHCHAKOT", "address": "114/447 Theparak Road, Bang Sao Thong Subdistrict, Bang Sao Thong District 10540 Village No. 2, Kanlaprit View Village, Samut Prakan Province"},
+    "customer": {"name": "EXNESS (VG) LIMITED", "lines": ["Trinity Chambers, PO Box 4301, Road Town, Tortola,", "British Virgin Islands"]},
+    "items": [
+      {"desc": "Videos Tiktok", "sub": ["TTTM October 2025 (10) - 3 Videos", "https://vt.tiktok.com/ZSP1rYJEH/", "https://vt.tiktok.com/ZSP1MvfBq/", "https://vt.tiktok.com/ZSP1MvhcV/"], "qty": 3, "unit": 10000, "amount": 30000}
+    ],
+    "currency": "THB", "total": 30000, "amount_words": "(Thirty Thousand Baht)",
+    "notes": ["Service Period: October 2025", "Name: PASAKON RACHCHAKOT", "Exness Wallet Account: 1076642734510546315", "Email: pass.gob@hotmail.com"],
+    "customer_sign_name": "EXNESS (VG) LIMITED", "seller_sign_date": "15/06/2026"
+  },
+  {
+    "doc_type": "invoice", "lang": "en",
+    "doc_no": "INV2026060002", "date": "14/06/2026", "due_date": "14/06/2026",
+    "seller": {"name": "PASAKON RACHCHAKOT", "address": "114/447 Theparak Road, Bang Sao Thong Subdistrict, Bang Sao Thong District 10540 Village No. 2, Kanlaprit View Village, Samut Prakan Province"},
+    "customer": {"name": "EXNESS (VG) LIMITED", "lines": ["Trinity Chambers, PO Box 4301, Road Town, Tortola,", "British Virgin Islands"]},
+    "items": [
+      {"desc": "Videos Tiktok", "sub": ["TTTM November 2025 (11) - 2 Videos", "https://vt.tiktok.com/ZSP1rd9VD/", "https://vt.tiktok.com/ZSP1MW1vn/"], "qty": 2, "unit": 10000, "amount": 20000}
+    ],
+    "currency": "THB", "total": 20000, "amount_words": "(Twenty Thousand Baht)",
+    "notes": ["Service Period: November 2025", "Name: PASAKON RACHCHAKOT", "Exness Wallet Account: 1076642734510546315", "Email: pass.gob@hotmail.com"],
+    "customer_sign_name": "EXNESS (VG) LIMITED", "seller_sign_date": "15/06/2026"
+  },
+  {
+    "doc_type": "invoice", "lang": "en",
+    "doc_no": "INV2026060003", "date": "14/06/2026", "due_date": "14/06/2026",
+    "seller": {"name": "PASAKON RACHCHAKOT", "address": "114/447 Theparak Road, Bang Sao Thong Subdistrict, Bang Sao Thong District 10540 Village No. 2, Kanlaprit View Village, Samut Prakan Province"},
+    "customer": {"name": "EXNESS (VG) LIMITED", "lines": ["Trinity Chambers, PO Box 4301, Road Town, Tortola,", "British Virgin Islands"]},
+    "items": [
+      {"desc": "Videos Tiktok", "sub": ["TTTM May 2026 (5) - 2 Videos", "https://vt.tiktok.com/ZSQQmxGnj/", "https://vt.tiktok.com/ZSQQmpWGM/"], "qty": 2, "unit": 10000, "amount": 20000}
+    ],
+    "currency": "THB", "total": 20000, "amount_words": "(Twenty Thousand Baht)",
+    "notes": ["Service Period: May 2026", "Name: PASAKON RACHCHAKOT", "Exness Wallet Account: 1076642734510546315", "Email: pass.gob@hotmail.com"],
+    "customer_sign_name": "EXNESS (VG) LIMITED", "seller_sign_date": "15/06/2026"
+  },
+  {
+    "doc_type": "invoice", "lang": "en",
+    "doc_no": "INV2026060004", "date": "14/06/2026", "due_date": "14/06/2026",
+    "seller": {"name": "PASAKON RACHCHAKOT", "address": "114/447 Theparak Road, Bang Sao Thong Subdistrict, Bang Sao Thong District 10540 Village No. 2, Kanlaprit View Village, Samut Prakan Province"},
+    "customer": {"name": "EXNESS (VG) LIMITED", "lines": ["Trinity Chambers, PO Box 4301, Road Town, Tortola,", "British Virgin Islands"]},
+    "items": [
+      {"desc": "Videos Tiktok", "sub": ["MYPASAKON November 2025 (11) - 2 Videos", "https://vt.tiktok.com/ZSP1MoqWQ/", "https://vt.tiktok.com/ZSP1rh5kk/"], "qty": 2, "unit": 10000, "amount": 20000}
+    ],
+    "currency": "THB", "total": 20000, "amount_words": "(Twenty Thousand Baht)",
+    "notes": ["Service Period: November 2025", "Name: PASAKON RACHCHAKOT", "Exness Wallet Account: 1076642734510546315", "Email: pass.gob@hotmail.com"],
+    "customer_sign_name": "EXNESS (VG) LIMITED", "seller_sign_date": "15/06/2026"
+  },
+  {
+    "doc_type": "invoice", "lang": "en",
+    "doc_no": "INV2026060005", "date": "14/06/2026", "due_date": "14/06/2026",
+    "seller": {"name": "PASAKON RACHCHAKOT", "address": "114/447 Theparak Road, Bang Sao Thong Subdistrict, Bang Sao Thong District 10540 Village No. 2, Kanlaprit View Village, Samut Prakan Province"},
+    "customer": {"name": "EXNESS (VG) LIMITED", "lines": ["Trinity Chambers, PO Box 4301, Road Town, Tortola,", "British Virgin Islands"]},
+    "items": [
+      {"desc": "Videos Tiktok", "sub": ["MYPASAKON May 2026 (5) - 2 Videos", "https://vt.tiktok.com/ZSQQmaBPg/", "https://vt.tiktok.com/ZSQQmX7Hw/"], "qty": 2, "unit": 10000, "amount": 20000}
+    ],
+    "currency": "THB", "total": 20000, "amount_words": "(Twenty Thousand Baht)",
+    "notes": ["Service Period: May 2026", "Name: PASAKON RACHCHAKOT", "Exness Wallet Account: 1076642734510546315", "Email: pass.gob@hotmail.com"],
+    "customer_sign_name": "EXNESS (VG) LIMITED", "seller_sign_date": "15/06/2026"
+  }
+]

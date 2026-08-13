@@ -1,0 +1,15 @@
+{
+  "a_tag": "cafe-1",
+  "a_file": "../round1/cafe-1.png",
+  "b_tag": "cafe-1b",
+  "b_file": "cafe-1b.png",
+  "changed_field": "หัวข้อหลัก",
+  "a_value": "เปิดร้านใหม่วันนี้!",
+  "b_value": "ลดพิเศษ 20% วันนี้เท่านั้น!",
+  "unchanged": {
+    "product_category": "specialty coffee",
+    "brand_name": "ร้านกาแฟดอยหลวง",
+    "subheadline": "กาแฟสดคั่วใหม่ทุกวัน",
+    "color_palette": "ส้มดินเผา + ครีม + น้ำตาลกาแฟ"
+  }
+}

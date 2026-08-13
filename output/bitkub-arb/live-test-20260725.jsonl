@@ -1,0 +1,3 @@
+{"ts": "2026-07-25T03:45:47Z", "mode": "dry", "symbol": "BTC_USDT", "side": "bid", "my_price": 64000.1, "notional_usdt": 6.0, "spread_bps": 28.0, "touch_before": [64000.0, 64179.7], "undercut_after_sec": null, "filled": true, "elapsed_sec": 0.3}
+{"ts": "2026-07-25T03:46:14Z", "mode": "dry", "symbol": "BTC_USDT", "side": "bid", "my_price": 64000.1, "notional_usdt": 6.0, "spread_bps": 28.0, "touch_before": [64000.0, 64179.7], "undercut_after_sec": null, "filled": true, "elapsed_sec": 1.8}
+{"ts": "2026-07-25T03:47:16Z", "mode": "dry", "symbol": "ETH_USDT", "side": "ask", "my_price": 1861.5, "notional_usdt": 6.0, "spread_bps": 28.1, "touch_before": [1856.28, 1861.51], "undercut_after_sec": 3.2, "filled": true, "elapsed_sec": 29.6}

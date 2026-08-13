@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0c1c2b; --navy2:#0a1420; --gold:#cdac65; --gold-hi:#e6d0a3; --gold-lo:#766540;
+  --green:#36d399; --red:#f0506e; --white:#f6f3ec;
+}
+html,body{width:1080px;height:1080px}
+.poster{
+  position:relative;width:1080px;height:1080px;overflow:hidden;
+  font-family:'Prompt',sans-serif;color:var(--white);
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(205,172,101,.20) 0%, rgba(205,172,101,0) 45%),
+    radial-gradient(90% 70% at 50% 115%, rgba(205,172,101,.10) 0%, rgba(205,172,101,0) 50%),
+    linear-gradient(160deg, #102536 0%, var(--navy) 42%, var(--navy2) 100%);
+}
+/* faint candlestick / grid texture */
+.grid{position:absolute;inset:0;opacity:.06;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(205,172,101,.6) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(0deg, rgba(205,172,101,.45) 0 1px, transparent 1px 72px);
+  mask-image:radial-gradient(80% 80% at 50% 40%, #000 30%, transparent 85%);}
+.candles{position:absolute;inset:0;opacity:.10;pointer-events:none}
+.candles span{position:absolute;bottom:0;width:10px;border-radius:2px;background:linear-gradient(var(--gold),transparent)}
+
+.pad{position:relative;z-index:2;padding:64px 72px;height:100%;display:flex;flex-direction:column}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between}
+.lock{display:flex;align-items:center;gap:14px}
+.lock img{height:52px;display:block}
+.datechip{font-size:21px;font-weight:600;color:var(--gold);
+  border:1.5px solid rgba(205,172,101,.55);border-radius:999px;padding:9px 20px;letter-spacing:.5px;
+  background:rgba(205,172,101,.06)}
+
+/* breaking-news badge (vivid red, high-emphasis) */
+.hook{margin-top:30px;align-self:flex-start;display:inline-flex;align-items:center;gap:14px;
+  background:linear-gradient(100deg,#ff2424,#ec0000 55%,#cc0000);
+  color:#fff;font-weight:800;font-size:33px;padding:15px 30px;border-radius:14px;letter-spacing:.3px;
+  text-shadow:0 1px 2px rgba(0,0,0,.3);box-shadow:0 12px 36px rgba(255,0,0,.55),0 0 0 1px rgba(255,255,255,.14) inset}
+.hook .live{font-size:22px;font-weight:900;background:#fff;color:#ec0000;border-radius:6px;
+  padding:4px 12px;letter-spacing:1.5px;display:inline-flex;align-items:center;gap:8px}
+.hook .live::before{content:"";width:11px;height:11px;border-radius:50%;background:#ec0000;
+  box-shadow:0 0 0 4px rgba(236,0,0,.22)}
+
+/* headline */
+.h1{margin-top:30px;font-weight:800;font-size:96px;line-height:.98;letter-spacing:-1px}
+.h1 .g{background:linear-gradient(180deg,#fff,var(--gold-hi) 40%,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{margin-top:14px;font-size:38px;font-weight:600;color:#d8e4ee}
+.sub b{color:var(--gold);white-space:nowrap}
+/* person portrait chip */
+.person{margin-top:20px;display:inline-flex;align-items:center;gap:20px}
+.person .pic{width:140px;height:140px;border-radius:50%;object-fit:cover;object-position:50% 22%;
+  border:3px solid var(--gold);box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 0 6px rgba(205,172,101,.14)}
+.person .who{display:flex;flex-direction:column;line-height:1.18}
+.person .who .nm{font-size:40px;font-weight:800;color:#fff}
+.person .who .ro{font-size:25px;font-weight:600;color:var(--gold)}
+
+/* scenario ladder */
+.ladder{margin-top:26px;margin-bottom:6px;display:flex;flex-direction:column;gap:20px}
+.row{display:flex;align-items:center;gap:24px;
+  border:1.5px solid rgba(255,255,255,.08);border-radius:20px;padding:22px 28px;
+  background:linear-gradient(100deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+  backdrop-filter:blur(2px)}
+.row .ico{font-size:46px;width:56px;text-align:center;flex:0 0 auto}
+.cond{font-size:39px;font-weight:700;flex:0 0 320px}
+.arrow{font-size:40px;font-weight:800;flex:0 0 auto;opacity:.85}
+.out{font-size:39px;font-weight:800;margin-left:auto;text-align:right}
+.up    {border-color:rgba(54,211,153,.5);  box-shadow:inset 0 0 40px rgba(54,211,153,.08)}
+.up .out, .up .arrow{color:var(--green)}
+.flat  {border-color:rgba(205,172,101,.5); box-shadow:inset 0 0 40px rgba(205,172,101,.08)}
+.flat .out,.flat .arrow{color:var(--gold)}
+.down  {border-color:rgba(240,80,110,.55); box-shadow:inset 0 0 40px rgba(240,80,110,.10)}
+.down .out,.down .arrow{color:var(--red)}
+.cond{color:#eef3f8}
+
+/* news/tools CTA link */
+.cta{margin-top:6px;align-self:center;display:inline-flex;align-items:center;gap:16px;
+  background:linear-gradient(100deg, rgba(205,172,101,.16), rgba(205,172,101,.05));
+  border:1.5px solid rgba(205,172,101,.55);border-radius:18px;padding:16px 26px}
+.cta .ic{font-size:30px}
+.cta .lbl{font-size:27px;font-weight:600;color:#e7eef4}
+.cta .url{font-size:30px;font-weight:800;color:#0c1c2b;
+  background:linear-gradient(180deg,#e6d0a3,#cdac65);padding:8px 20px;border-radius:10px;letter-spacing:.3px}
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="grid"></div>
+  <div class="candles" id="candles"></div>
+  <div class="pad">
+
+    <div class="top">
+      <div class="lock">
+        <img src="file:///Users/gob/Projects/Agents/output/personal-brand/lockup-moon-text.png" alt="MOONIEX">
+      </div>
+      <div class="datechip">⏰ 18 มิ.ย. • 01:00 น. (ไทย)</div>
+    </div>
+
+    <div class="hook"><span class="live">LIVE</span>ข่าวด่วน · คืนนี้ตี 1 · ผลประชุมเฟด (FED)</div>
+
+    <div class="h1">ดอกเบี้ยเฟดตัดสิน<br><span class="g">ทิศทางตลาดทั้งคืน</span></div>
+    <div class="person">
+      <img class="pic" src="file:///Users/gob/Projects/Agents/output/mooniex-posters/fed-warsh/warsh.jpg" alt="Kevin Warsh">
+      <div class="who"><span class="nm">Kevin Warsh</span><span class="ro">ประธานเฟดคนใหม่ · ประชุม FOMC ครั้งแรก</span></div>
+    </div>
+
+    <div class="ladder">
+      <div class="row up">
+        <div class="ico">🟢</div>
+        <div class="cond">ถ้า “ลด” ดอกเบี้ย</div>
+        <div class="arrow">▲</div>
+        <div class="out">ตลาดพุ่งแรง</div>
+      </div>
+      <div class="row flat">
+        <div class="ico">🟡</div>
+        <div class="cond">ถ้า “คง” ดอกเบี้ย</div>
+        <div class="arrow">▬</div>
+        <div class="out">ตลาดอาจนิ่ง</div>
+      </div>
+      <div class="row down">
+        <div class="ico">🔴</div>
+        <div class="cond">ถ้า “ขึ้น” ดอกเบี้ย</div>
+        <div class="arrow">▼</div>
+        <div class="out">ตลาดพังแน่!</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+// sparse gold candlesticks across the bottom band — pure decoration
+var c=document.getElementById('candles'),h='';
+var hs=[120,80,160,60,210,90,140,70,180,110,150,95,200,130,75,165];
+for(var i=0;i<hs.length;i++){var x=40+i*64;h+='<span style="left:'+x+'px;height:'+hs[i]+'px"></span>';}
+c.innerHTML=h;
+</script>
+</body>
+</html>

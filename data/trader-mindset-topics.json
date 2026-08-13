@@ -19,52 +19,357 @@
     "created_at": "2026-06-11T00:00:00Z"
   },
   "topics": [
-    { "id": "t001", "slug": "t001-discipline-core", "theme": "discipline", "hero_word": "วินัย", "seed_idea": "กำไรระยะยาวมาจากวินัย ไม่ใช่อินดิเคเตอร์ลับ", "used_at": null },
-    { "id": "t002", "slug": "t002-trading-plan", "theme": "discipline", "hero_word": "แผน", "seed_idea": "มีแผนก่อนเข้า ดีกว่าหาเหตุผลหลังเข้า", "used_at": null },
-    { "id": "t003", "slug": "t003-system-over-feeling", "theme": "discipline", "hero_word": "ระบบ", "seed_idea": "เชื่อระบบที่ทดสอบแล้ว มากกว่าอารมณ์ตอนนั้น", "used_at": null },
-    { "id": "t004", "slug": "t004-rules-you-keep", "theme": "discipline", "hero_word": "กฎ", "seed_idea": "กฎที่ตั้งแล้วไม่ทำตาม ก็เท่ากับไม่มีกฎ", "used_at": null },
-    { "id": "t005", "slug": "t005-know-when-to-stop", "theme": "discipline", "hero_word": "หยุด", "seed_idea": "รู้จักหยุดในวันที่ไม่ใช่ คือทักษะที่หายาก", "used_at": null },
-    { "id": "t006", "slug": "t006-wait-for-setup", "theme": "discipline", "hero_word": "รอคอย", "seed_idea": "ไม่เข้าทุกจังหวะ รอเฉพาะจังหวะที่ใช่", "used_at": null },
-    { "id": "t007", "slug": "t007-stay-calm-mid-trade", "theme": "discipline", "hero_word": "นิ่ง", "seed_idea": "พอร์ตนิ่งได้ เพราะใจคนเทรดนิ่งก่อน", "used_at": null },
-    { "id": "t008", "slug": "t008-consistency", "theme": "discipline", "hero_word": "สม่ำเสมอ", "seed_idea": "ทำสิ่งเดิมที่ถูกต้องซ้ำ ๆ จนกลายเป็นนิสัย", "used_at": null },
-    { "id": "t009", "slug": "t009-resist-the-urge", "theme": "discipline", "hero_word": "อดกลั้น", "seed_idea": "อดกลั้นไม่กดออเดอร์ตามอารมณ์ คือกำไรที่มองไม่เห็น", "used_at": null },
-    { "id": "t010", "slug": "t010-repeat-the-edge", "theme": "discipline", "hero_word": "ทำซ้ำ", "seed_idea": "edge เล็ก ๆ ที่ทำซ้ำได้ ชนะไม้ใหญ่ที่ทำครั้งเดียว", "used_at": null },
-    { "id": "t011", "slug": "t011-close-the-screen", "theme": "discipline", "hero_word": "ปิดจอ", "seed_idea": "บางวันการปิดจอ คือการบริหารความเสี่ยงที่ดีที่สุด", "used_at": null },
-
-    { "id": "t012", "slug": "t012-patience-core", "theme": "patience", "hero_word": "อดทน", "seed_idea": "ตลาดให้รางวัลคนที่อยู่รอดนานพอ ไม่ใช่คนที่รีบที่สุด", "used_at": null },
-    { "id": "t013", "slug": "t013-stay-cool", "theme": "patience", "hero_word": "ใจเย็น", "seed_idea": "ใจเย็นตอนกราฟวิ่งสวน คือบทสอบจริงของเทรดเดอร์", "used_at": null },
-    { "id": "t014", "slug": "t014-mindfulness", "theme": "patience", "hero_word": "สติ", "seed_idea": "มีสติรู้ว่ากำลังกลัวหรือโลภ ก่อนมือจะกดออเดอร์", "used_at": null },
-    { "id": "t015", "slug": "t015-accept-the-loss", "theme": "patience", "hero_word": "ยอมรับ", "seed_idea": "ยอมรับขาดทุนเล็กวันนี้ เพื่อไม่ขาดทุนหนักวันหน้า", "used_at": null },
-    { "id": "t016", "slug": "t016-let-it-go", "theme": "patience", "hero_word": "ปล่อยวาง", "seed_idea": "ไม้ที่ปิดไปแล้วปล่อยมันไป อย่าลากอารมณ์เข้าไม้ถัดไป", "used_at": null },
-    { "id": "t017", "slug": "t017-calm-mind", "theme": "patience", "hero_word": "สงบ", "seed_idea": "พอร์ตโตจากใจที่สงบ ไม่ใช่จากการไล่ราคา", "used_at": null },
-    { "id": "t018", "slug": "t018-endure-drawdown", "theme": "patience", "hero_word": "ทน", "seed_idea": "ทนถือแผนที่ถูก ยากกว่าการหาแผนใหม่ทุกวัน", "used_at": null },
-    { "id": "t019", "slug": "t019-breathe-before-entry", "theme": "patience", "hero_word": "ลมหายใจ", "seed_idea": "หายใจเข้าออกหนึ่งครั้ง ก่อนตัดสินใจเข้าไม้", "used_at": null },
-    { "id": "t020", "slug": "t020-no-greed", "theme": "patience", "hero_word": "ไม่โลภ", "seed_idea": "พอแล้วคือพอ กำไรที่ถือไว้ดีกว่ากำไรที่คืนตลาด", "used_at": null },
-    { "id": "t021", "slug": "t021-no-fear", "theme": "patience", "hero_word": "ไม่กลัว", "seed_idea": "ไม่กลัวพลาดจังหวะ เพราะตลาดมีจังหวะใหม่ทุกวัน", "used_at": null },
-    { "id": "t022", "slug": "t022-wait-the-moment", "theme": "patience", "hero_word": "จังหวะ", "seed_idea": "รอให้ราคามาหาเรา อย่าวิ่งตามราคาไป", "used_at": null },
-
-    { "id": "t023", "slug": "t023-focus-core", "theme": "focus", "hero_word": "โฟกัส", "seed_idea": "โฟกัสสิ่งที่คุมได้ ปล่อยสิ่งที่คุมไม่ได้", "used_at": null },
-    { "id": "t024", "slug": "t024-manage-risk", "theme": "focus", "hero_word": "เสี่ยง", "seed_idea": "กำหนดความเสี่ยงต่อไม้ก่อนเสมอ ไม่ใช่หลังติดดอย", "used_at": null },
-    { "id": "t025", "slug": "t025-cut-loss", "theme": "focus", "hero_word": "ตัดขาดทุน", "seed_idea": "ตัดขาดทุนตามแผน ไม่ใช่ตามความหวัง", "used_at": null },
-    { "id": "t026", "slug": "t026-protect-capital", "theme": "focus", "hero_word": "รักษาทุน", "seed_idea": "อยู่รอดในเกมก่อน แล้วค่อยคิดเรื่องกำไร", "used_at": null },
-    { "id": "t027", "slug": "t027-one-trade-at-a-time", "theme": "focus", "hero_word": "ทีละไม้", "seed_idea": "คิดทีละไม้ อย่าเอาผลรวมทั้งวันมากดดันไม้ตรงหน้า", "used_at": null },
-    { "id": "t028", "slug": "t028-clear-target", "theme": "focus", "hero_word": "เป้าหมาย", "seed_idea": "รู้เป้าและจุดออกก่อนเข้า ทำให้ไม่ลังเลกลางทาง", "used_at": null },
-    { "id": "t029", "slug": "t029-know-your-limit", "theme": "focus", "hero_word": "ขอบเขต", "seed_idea": "รู้ขอบเขตของตัวเอง เทรดเท่าที่รับความเสี่ยงไหว", "used_at": null },
-    { "id": "t030", "slug": "t030-position-size", "theme": "focus", "hero_word": "ทุน", "seed_idea": "ขนาดไม้ที่เหมาะกับทุน สำคัญกว่าจุดเข้าเป๊ะ ๆ", "used_at": null },
-    { "id": "t031", "slug": "t031-one-plan", "theme": "focus", "hero_word": "แผนเดียว", "seed_idea": "ทำแผนเดียวให้เก่ง ดีกว่าเปลี่ยนระบบทุกสัปดาห์", "used_at": null },
-    { "id": "t032", "slug": "t032-concentration", "theme": "focus", "hero_word": "สมาธิ", "seed_idea": "สมาธิอยู่กับกระบวนการ ไม่ใช่อยู่กับตัวเลขกำไรขาดทุน", "used_at": null },
-    { "id": "t033", "slug": "t033-control-yourself", "theme": "focus", "hero_word": "คุมตัวเอง", "seed_idea": "เราคุมตลาดไม่ได้ แต่คุมการตัดสินใจของตัวเองได้", "used_at": null },
-
-    { "id": "t034", "slug": "t034-profit-core", "theme": "lesson", "hero_word": "กำไร", "seed_idea": "กำไรมาจากการรอ ขาดทุนมาจากการรีบ", "used_at": null },
-    { "id": "t035", "slug": "t035-loss-as-tuition", "theme": "lesson", "hero_word": "ขาดทุน", "seed_idea": "ขาดทุนที่ได้บทเรียน แพงน้อยกว่าขาดทุนที่ไม่ได้อะไร", "used_at": null },
-    { "id": "t036", "slug": "t036-lesson-learned", "theme": "lesson", "hero_word": "บทเรียน", "seed_idea": "ทุกไม้ที่เสีย มีบทเรียนซ่อนอยู่ ถ้าเรายอมมองมัน", "used_at": null },
-    { "id": "t037", "slug": "t037-review-journal", "theme": "lesson", "hero_word": "ทบทวน", "seed_idea": "จดและทบทวนทุกไม้ ทำให้ความผิดพลาดไม่ซ้ำเดิม", "used_at": null },
-    { "id": "t038", "slug": "t038-wait-for-result", "theme": "lesson", "hero_word": "รอผล", "seed_idea": "ให้เวลาแผนได้ทำงาน อย่าตัดสินระบบจากไม้เดียว", "used_at": null },
-    { "id": "t039", "slug": "t039-admit-mistake", "theme": "lesson", "hero_word": "ยอมรับผิด", "seed_idea": "ยอมรับว่าผิดเร็ว ช่วยให้แก้ตัวได้เร็ว", "used_at": null },
-    { "id": "t040", "slug": "t040-long-game", "theme": "lesson", "hero_word": "ระยะยาว", "seed_idea": "มองเป็นพันไม้ ไม่ใช่ไม้เดียว แล้วใจจะเบาขึ้น", "used_at": null },
-    { "id": "t041", "slug": "t041-mind-the-cost", "theme": "lesson", "hero_word": "ต้นทุน", "seed_idea": "ต้นทุนทุกไม้สำคัญ กำไรที่ดีเริ่มจากการคุมต้นทุน", "used_at": null },
-    { "id": "t042", "slug": "t042-save-the-gains", "theme": "lesson", "hero_word": "อดออม", "seed_idea": "ถอนกำไรบางส่วนเก็บไว้ เป็นวินัยที่หลายคนลืม", "used_at": null },
-    { "id": "t043", "slug": "t043-bounce-back", "theme": "lesson", "hero_word": "ความพ่ายแพ้", "seed_idea": "แพ้ในไม้ ไม่เท่ากับแพ้ในเกม ถ้ายังอยู่ในเกม", "used_at": null },
-    { "id": "t044", "slug": "t044-keep-growing", "theme": "lesson", "hero_word": "เติบโต", "seed_idea": "เก่งขึ้นทีละนิดทุกสัปดาห์ คือกำไรที่ทบต้นที่สุด", "used_at": null }
+    {
+      "id": "t001",
+      "slug": "t001-discipline-core",
+      "theme": "discipline",
+      "hero_word": "วินัย",
+      "seed_idea": "กำไรระยะยาวมาจากวินัย ไม่ใช่อินดิเคเตอร์ลับ",
+      "used_at": "2026-06-11T00:11:12Z"
+    },
+    {
+      "id": "t002",
+      "slug": "t002-trading-plan",
+      "theme": "discipline",
+      "hero_word": "แผน",
+      "seed_idea": "มีแผนก่อนเข้า ดีกว่าหาเหตุผลหลังเข้า",
+      "used_at": "2026-06-11T00:11:12Z"
+    },
+    {
+      "id": "t003",
+      "slug": "t003-system-over-feeling",
+      "theme": "discipline",
+      "hero_word": "ระบบ",
+      "seed_idea": "เชื่อระบบที่ทดสอบแล้ว มากกว่าอารมณ์ตอนนั้น",
+      "used_at": "2026-06-11T00:11:12Z"
+    },
+    {
+      "id": "t004",
+      "slug": "t004-rules-you-keep",
+      "theme": "discipline",
+      "hero_word": "กฎ",
+      "seed_idea": "กฎที่ตั้งแล้วไม่ทำตาม ก็เท่ากับไม่มีกฎ",
+      "used_at": "2026-06-11T20:54:09Z"
+    },
+    {
+      "id": "t005",
+      "slug": "t005-know-when-to-stop",
+      "theme": "discipline",
+      "hero_word": "หยุด",
+      "seed_idea": "รู้จักหยุดในวันที่ไม่ใช่ คือทักษะที่หายาก",
+      "used_at": "2026-06-11T21:01:21Z"
+    },
+    {
+      "id": "t006",
+      "slug": "t006-wait-for-setup",
+      "theme": "discipline",
+      "hero_word": "รอคอย",
+      "seed_idea": "ไม่เข้าทุกจังหวะ รอเฉพาะจังหวะที่ใช่",
+      "used_at": "2026-06-11T21:01:21Z"
+    },
+    {
+      "id": "t007",
+      "slug": "t007-stay-calm-mid-trade",
+      "theme": "discipline",
+      "hero_word": "นิ่ง",
+      "seed_idea": "พอร์ตนิ่งได้ เพราะใจคนเทรดนิ่งก่อน",
+      "used_at": "2026-06-11T21:01:21Z"
+    },
+    {
+      "id": "t008",
+      "slug": "t008-consistency",
+      "theme": "discipline",
+      "hero_word": "สม่ำเสมอ",
+      "seed_idea": "ทำสิ่งเดิมที่ถูกต้องซ้ำ ๆ จนกลายเป็นนิสัย",
+      "used_at": "2026-06-11T21:01:21Z"
+    },
+    {
+      "id": "t009",
+      "slug": "t009-resist-the-urge",
+      "theme": "discipline",
+      "hero_word": "อดกลั้น",
+      "seed_idea": "อดกลั้นไม่กดออเดอร์ตามอารมณ์ คือกำไรที่มองไม่เห็น",
+      "used_at": "2026-06-13T22:05:22Z"
+    },
+    {
+      "id": "t010",
+      "slug": "t010-repeat-the-edge",
+      "theme": "discipline",
+      "hero_word": "ทำซ้ำ",
+      "seed_idea": "edge เล็ก ๆ ที่ทำซ้ำได้ ชนะไม้ใหญ่ที่ทำครั้งเดียว",
+      "used_at": "2026-06-13T22:05:22Z"
+    },
+    {
+      "id": "t011",
+      "slug": "t011-close-the-screen",
+      "theme": "discipline",
+      "hero_word": "ปิดจอ",
+      "seed_idea": "บางวันการปิดจอ คือการบริหารความเสี่ยงที่ดีที่สุด",
+      "used_at": "2026-06-13T22:05:22Z"
+    },
+    {
+      "id": "t012",
+      "slug": "t012-patience-core",
+      "theme": "patience",
+      "hero_word": "อดทน",
+      "seed_idea": "ตลาดให้รางวัลคนที่อยู่รอดนานพอ ไม่ใช่คนที่รีบที่สุด",
+      "used_at": null
+    },
+    {
+      "id": "t013",
+      "slug": "t013-stay-cool",
+      "theme": "patience",
+      "hero_word": "ใจเย็น",
+      "seed_idea": "ใจเย็นตอนกราฟวิ่งสวน คือบทสอบจริงของเทรดเดอร์",
+      "used_at": null
+    },
+    {
+      "id": "t014",
+      "slug": "t014-mindfulness",
+      "theme": "patience",
+      "hero_word": "สติ",
+      "seed_idea": "มีสติรู้ว่ากำลังกลัวหรือโลภ ก่อนมือจะกดออเดอร์",
+      "used_at": null
+    },
+    {
+      "id": "t015",
+      "slug": "t015-accept-the-loss",
+      "theme": "patience",
+      "hero_word": "ยอมรับ",
+      "seed_idea": "ยอมรับขาดทุนเล็กวันนี้ เพื่อไม่ขาดทุนหนักวันหน้า",
+      "used_at": null
+    },
+    {
+      "id": "t016",
+      "slug": "t016-let-it-go",
+      "theme": "patience",
+      "hero_word": "ปล่อยวาง",
+      "seed_idea": "ไม้ที่ปิดไปแล้วปล่อยมันไป อย่าลากอารมณ์เข้าไม้ถัดไป",
+      "used_at": null
+    },
+    {
+      "id": "t017",
+      "slug": "t017-calm-mind",
+      "theme": "patience",
+      "hero_word": "สงบ",
+      "seed_idea": "พอร์ตโตจากใจที่สงบ ไม่ใช่จากการไล่ราคา",
+      "used_at": null
+    },
+    {
+      "id": "t018",
+      "slug": "t018-endure-drawdown",
+      "theme": "patience",
+      "hero_word": "ทน",
+      "seed_idea": "ทนถือแผนที่ถูก ยากกว่าการหาแผนใหม่ทุกวัน",
+      "used_at": null
+    },
+    {
+      "id": "t019",
+      "slug": "t019-breathe-before-entry",
+      "theme": "patience",
+      "hero_word": "ลมหายใจ",
+      "seed_idea": "หายใจเข้าออกหนึ่งครั้ง ก่อนตัดสินใจเข้าไม้",
+      "used_at": null
+    },
+    {
+      "id": "t020",
+      "slug": "t020-no-greed",
+      "theme": "patience",
+      "hero_word": "ไม่โลภ",
+      "seed_idea": "พอแล้วคือพอ กำไรที่ถือไว้ดีกว่ากำไรที่คืนตลาด",
+      "used_at": null
+    },
+    {
+      "id": "t021",
+      "slug": "t021-no-fear",
+      "theme": "patience",
+      "hero_word": "ไม่กลัว",
+      "seed_idea": "ไม่กลัวพลาดจังหวะ เพราะตลาดมีจังหวะใหม่ทุกวัน",
+      "used_at": null
+    },
+    {
+      "id": "t022",
+      "slug": "t022-wait-the-moment",
+      "theme": "patience",
+      "hero_word": "จังหวะ",
+      "seed_idea": "รอให้ราคามาหาเรา อย่าวิ่งตามราคาไป",
+      "used_at": null
+    },
+    {
+      "id": "t023",
+      "slug": "t023-focus-core",
+      "theme": "focus",
+      "hero_word": "โฟกัส",
+      "seed_idea": "โฟกัสสิ่งที่คุมได้ ปล่อยสิ่งที่คุมไม่ได้",
+      "used_at": null
+    },
+    {
+      "id": "t024",
+      "slug": "t024-manage-risk",
+      "theme": "focus",
+      "hero_word": "เสี่ยง",
+      "seed_idea": "กำหนดความเสี่ยงต่อไม้ก่อนเสมอ ไม่ใช่หลังติดดอย",
+      "used_at": null
+    },
+    {
+      "id": "t025",
+      "slug": "t025-cut-loss",
+      "theme": "focus",
+      "hero_word": "ตัดขาดทุน",
+      "seed_idea": "ตัดขาดทุนตามแผน ไม่ใช่ตามความหวัง",
+      "used_at": null
+    },
+    {
+      "id": "t026",
+      "slug": "t026-protect-capital",
+      "theme": "focus",
+      "hero_word": "รักษาทุน",
+      "seed_idea": "อยู่รอดในเกมก่อน แล้วค่อยคิดเรื่องกำไร",
+      "used_at": null
+    },
+    {
+      "id": "t027",
+      "slug": "t027-one-trade-at-a-time",
+      "theme": "focus",
+      "hero_word": "ทีละไม้",
+      "seed_idea": "คิดทีละไม้ อย่าเอาผลรวมทั้งวันมากดดันไม้ตรงหน้า",
+      "used_at": null
+    },
+    {
+      "id": "t028",
+      "slug": "t028-clear-target",
+      "theme": "focus",
+      "hero_word": "เป้าหมาย",
+      "seed_idea": "รู้เป้าและจุดออกก่อนเข้า ทำให้ไม่ลังเลกลางทาง",
+      "used_at": null
+    },
+    {
+      "id": "t029",
+      "slug": "t029-know-your-limit",
+      "theme": "focus",
+      "hero_word": "ขอบเขต",
+      "seed_idea": "รู้ขอบเขตของตัวเอง เทรดเท่าที่รับความเสี่ยงไหว",
+      "used_at": null
+    },
+    {
+      "id": "t030",
+      "slug": "t030-position-size",
+      "theme": "focus",
+      "hero_word": "ทุน",
+      "seed_idea": "ขนาดไม้ที่เหมาะกับทุน สำคัญกว่าจุดเข้าเป๊ะ ๆ",
+      "used_at": null
+    },
+    {
+      "id": "t031",
+      "slug": "t031-one-plan",
+      "theme": "focus",
+      "hero_word": "แผนเดียว",
+      "seed_idea": "ทำแผนเดียวให้เก่ง ดีกว่าเปลี่ยนระบบทุกสัปดาห์",
+      "used_at": null
+    },
+    {
+      "id": "t032",
+      "slug": "t032-concentration",
+      "theme": "focus",
+      "hero_word": "สมาธิ",
+      "seed_idea": "สมาธิอยู่กับกระบวนการ ไม่ใช่อยู่กับตัวเลขกำไรขาดทุน",
+      "used_at": null
+    },
+    {
+      "id": "t033",
+      "slug": "t033-control-yourself",
+      "theme": "focus",
+      "hero_word": "คุมตัวเอง",
+      "seed_idea": "เราคุมตลาดไม่ได้ แต่คุมการตัดสินใจของตัวเองได้",
+      "used_at": null
+    },
+    {
+      "id": "t034",
+      "slug": "t034-profit-core",
+      "theme": "lesson",
+      "hero_word": "กำไร",
+      "seed_idea": "กำไรมาจากการรอ ขาดทุนมาจากการรีบ",
+      "used_at": null
+    },
+    {
+      "id": "t035",
+      "slug": "t035-loss-as-tuition",
+      "theme": "lesson",
+      "hero_word": "ขาดทุน",
+      "seed_idea": "ขาดทุนที่ได้บทเรียน แพงน้อยกว่าขาดทุนที่ไม่ได้อะไร",
+      "used_at": null
+    },
+    {
+      "id": "t036",
+      "slug": "t036-lesson-learned",
+      "theme": "lesson",
+      "hero_word": "บทเรียน",
+      "seed_idea": "ทุกไม้ที่เสีย มีบทเรียนซ่อนอยู่ ถ้าเรายอมมองมัน",
+      "used_at": null
+    },
+    {
+      "id": "t037",
+      "slug": "t037-review-journal",
+      "theme": "lesson",
+      "hero_word": "ทบทวน",
+      "seed_idea": "จดและทบทวนทุกไม้ ทำให้ความผิดพลาดไม่ซ้ำเดิม",
+      "used_at": null
+    },
+    {
+      "id": "t038",
+      "slug": "t038-wait-for-result",
+      "theme": "lesson",
+      "hero_word": "รอผล",
+      "seed_idea": "ให้เวลาแผนได้ทำงาน อย่าตัดสินระบบจากไม้เดียว",
+      "used_at": null
+    },
+    {
+      "id": "t039",
+      "slug": "t039-admit-mistake",
+      "theme": "lesson",
+      "hero_word": "ยอมรับผิด",
+      "seed_idea": "ยอมรับว่าผิดเร็ว ช่วยให้แก้ตัวได้เร็ว",
+      "used_at": null
+    },
+    {
+      "id": "t040",
+      "slug": "t040-long-game",
+      "theme": "lesson",
+      "hero_word": "ระยะยาว",
+      "seed_idea": "มองเป็นพันไม้ ไม่ใช่ไม้เดียว แล้วใจจะเบาขึ้น",
+      "used_at": null
+    },
+    {
+      "id": "t041",
+      "slug": "t041-mind-the-cost",
+      "theme": "lesson",
+      "hero_word": "ต้นทุน",
+      "seed_idea": "ต้นทุนทุกไม้สำคัญ กำไรที่ดีเริ่มจากการคุมต้นทุน",
+      "used_at": null
+    },
+    {
+      "id": "t042",
+      "slug": "t042-save-the-gains",
+      "theme": "lesson",
+      "hero_word": "อดออม",
+      "seed_idea": "ถอนกำไรบางส่วนเก็บไว้ เป็นวินัยที่หลายคนลืม",
+      "used_at": null
+    },
+    {
+      "id": "t043",
+      "slug": "t043-bounce-back",
+      "theme": "lesson",
+      "hero_word": "ความพ่ายแพ้",
+      "seed_idea": "แพ้ในไม้ ไม่เท่ากับแพ้ในเกม ถ้ายังอยู่ในเกม",
+      "used_at": null
+    },
+    {
+      "id": "t044",
+      "slug": "t044-keep-growing",
+      "theme": "lesson",
+      "hero_word": "เติบโต",
+      "seed_idea": "เก่งขึ้นทีละนิดทุกสัปดาห์ คือกำไรที่ทบต้นที่สุด",
+      "used_at": null
+    }
   ]
 }

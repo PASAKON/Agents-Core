@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "purpose": "Locked canonical fact-sheet for rebate/cashback copy. JSON pilot (2026-07-18): this file is the source of truth for numeric claims — content_strategist reads it BEFORE writing prose caption, does not paraphrase or recompute the numbers.",
+    "locked": true,
+    "do_not_recompute": "Never derive figures from DB max values (BTC inflates them). See wiki ADR for source.",
+    "updated_at": "2026-07-18"
+  },
+  "brokers": [
+    {
+      "name": "XM",
+      "rate_usd_per_lot": 15,
+      "basis": "gold-standard lot",
+      "ib_share_pct": 80,
+      "note": "80% IB share to user"
+    },
+    {
+      "name": "Exness",
+      "rate_usd_per_lot": 8,
+      "basis": "gold-based, per closed standard lot",
+      "ib_share_pct": 80,
+      "note": "80% IB share to user"
+    }
+  ],
+  "forbidden_claims": [
+    "percentage-based rebate figure",
+    "unlimited rebate",
+    "infinite rebate"
+  ],
+  "required_disclaimer": "รีเบทขึ้นกับปริมาณการเทรดจริง",
+  "line_cta_id": "@mooniebox"
+}

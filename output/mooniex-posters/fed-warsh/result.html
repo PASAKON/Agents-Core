@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0c1c2b; --navy2:#0a1420; --gold:#cdac65; --gold-hi:#e6d0a3; --gold-lo:#766540;
+  --green:#36d399; --red:#f0506e; --white:#f6f3ec;
+}
+html,body{width:1080px;height:1080px}
+.poster{
+  position:relative;width:1080px;height:1080px;overflow:hidden;
+  font-family:'Prompt',sans-serif;color:var(--white);
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(205,172,101,.20) 0%, rgba(205,172,101,0) 45%),
+    radial-gradient(90% 70% at 50% 115%, rgba(240,80,110,.10) 0%, rgba(240,80,110,0) 50%),
+    linear-gradient(160deg, #102536 0%, var(--navy) 42%, var(--navy2) 100%);
+}
+.grid{position:absolute;inset:0;opacity:.06;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(205,172,101,.6) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(0deg, rgba(205,172,101,.45) 0 1px, transparent 1px 72px);
+  mask-image:radial-gradient(80% 80% at 50% 40%, #000 30%, transparent 85%);}
+.candles{position:absolute;inset:0;opacity:.10;pointer-events:none}
+.candles span{position:absolute;bottom:0;width:10px;border-radius:2px;background:linear-gradient(var(--gold),transparent)}
+
+.pad{position:relative;z-index:2;padding:48px 64px;height:100%;display:flex;flex-direction:column}
+
+.top{display:flex;align-items:center;justify-content:space-between}
+.lock{display:flex;align-items:center;gap:14px}
+.lock img{height:50px;display:block}
+.datechip{font-size:20px;font-weight:600;color:var(--gold);
+  border:1.5px solid rgba(205,172,101,.55);border-radius:999px;padding:8px 18px;letter-spacing:.5px;
+  background:rgba(205,172,101,.06)}
+
+/* result badge (gold = summary) */
+.hook{margin-top:18px;align-self:flex-start;display:inline-flex;align-items:center;gap:14px;
+  background:linear-gradient(100deg,var(--gold-hi),var(--gold) 55%,var(--gold-lo));
+  color:#1a1206;font-weight:800;font-size:29px;padding:12px 26px;border-radius:13px;letter-spacing:.3px;
+  box-shadow:0 10px 30px rgba(205,172,101,.30)}
+.hook .tag{font-size:21px;font-weight:900;background:#13301f;color:#46e0a0;border-radius:6px;
+  padding:4px 12px;letter-spacing:1px;display:inline-flex;align-items:center;gap:8px}
+
+.h1{margin-top:16px;font-weight:800;font-size:78px;line-height:1.0;letter-spacing:-1px}
+.h1 .g{background:linear-gradient(180deg,#fff,var(--gold-hi) 40%,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* person chip */
+.person{margin-top:14px;display:inline-flex;align-items:center;gap:18px}
+.person .pic{width:104px;height:104px;border-radius:50%;object-fit:cover;object-position:50% 22%;
+  border:3px solid var(--gold);box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 0 5px rgba(205,172,101,.14)}
+.person .who{display:flex;flex-direction:column;line-height:1.16}
+.person .who .nm{font-size:34px;font-weight:800;color:#fff}
+.person .who .ro{font-size:23px;font-weight:600;color:var(--gold)}
+
+/* verdict band */
+.verdict{margin-top:14px;display:flex;align-items:center;gap:16px;
+  border:1.5px solid rgba(205,172,101,.5);border-radius:15px;padding:13px 22px;
+  background:linear-gradient(100deg, rgba(205,172,101,.14), rgba(205,172,101,.04))}
+.verdict .k{font-size:22px;font-weight:800;color:#1a1206;background:linear-gradient(180deg,#e6d0a3,#cdac65);
+  padding:6px 15px;border-radius:9px;flex:0 0 auto}
+.verdict .v{font-size:25px;font-weight:700;color:#eef3f8}
+.verdict .v b{color:var(--gold)}
+
+.lbl{margin-top:14px;font-size:23px;font-weight:700;color:#cdd7e0}
+.lbl b{color:var(--red)}
+
+/* market reaction ladder */
+.ladder{margin-top:11px;display:flex;flex-direction:column;gap:13px}
+.row{display:flex;align-items:center;gap:22px;
+  border:1.5px solid rgba(255,255,255,.08);border-radius:17px;padding:16px 26px;
+  background:linear-gradient(100deg, rgba(255,255,255,.05), rgba(255,255,255,.015))}
+.row .ico{font-size:38px;width:50px;text-align:center;flex:0 0 auto}
+.cond{font-size:34px;font-weight:700;flex:0 0 280px;color:#eef3f8}
+.arrow{font-size:35px;font-weight:800;flex:0 0 auto}
+.out{font-size:32px;font-weight:800;margin-left:auto;text-align:right}
+.up   {border-color:rgba(54,211,153,.5);  box-shadow:inset 0 0 40px rgba(54,211,153,.08)}
+.up .out, .up .arrow{color:var(--green)}
+.down {border-color:rgba(240,80,110,.55); box-shadow:inset 0 0 40px rgba(240,80,110,.10)}
+.down .out,.down .arrow{color:var(--red)}
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="grid"></div>
+  <div class="candles" id="candles"></div>
+  <div class="pad">
+
+    <div class="top">
+      <div class="lock">
+        <img src="file:///Users/gob/Projects/Agents/output/personal-brand/lockup-moon-text.png" alt="MOONIEX">
+      </div>
+      <div class="datechip">📊 18 มิ.ย. • ผลออกแล้ว</div>
+    </div>
+
+    <div class="hook"><span class="tag">✓ ผลออกแล้ว</span>สรุปประชุมเฟด · FOMC มิ.ย.</div>
+
+    <div class="h1">เฟด “คง” ดอกเบี้ย<br><span class="g">แต่ตลาดไม่นิ่ง!</span></div>
+
+    <div class="person">
+      <img class="pic" src="file:///Users/gob/Projects/Agents/output/mooniex-posters/fed-warsh/warsh.jpg" alt="Kevin Warsh">
+      <div class="who"><span class="nm">Kevin Warsh</span><span class="ro">ประชุมแรก พลิกสายเหยี่ยว 🦅</span></div>
+    </div>
+
+    <div class="verdict">
+      <span class="k">มติ</span>
+      <span class="v">คงดอกเบี้ย <b>3.50–3.75%</b> (ครั้งที่ 4) · Dot plot ส่งสัญญาณ <b>“ขึ้น”</b> ปีนี้</span>
+    </div>
+
+    <div class="lbl">ตลาดตอบรับทันที <b>(เหยี่ยวกดสินทรัพย์เสี่ยง)</b></div>
+    <div class="ladder">
+      <div class="row down">
+        <div class="ico">🥇</div>
+        <div class="cond">ทองคำ (XAU)</div>
+        <div class="arrow">▼</div>
+        <div class="out">ดิ่ง จ่อหลุด $4,000</div>
+      </div>
+      <div class="row down">
+        <div class="ico">📉</div>
+        <div class="cond">หุ้นสหรัฐ</div>
+        <div class="arrow">▼</div>
+        <div class="out">S&amp;P −0.5% · Nasdaq −0.4%</div>
+      </div>
+      <div class="row up">
+        <div class="ico">💵</div>
+        <div class="cond">ดอลลาร์ / ยีลด์</div>
+        <div class="arrow">▲</div>
+        <div class="out">แข็งค่าขึ้น</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var c=document.getElementById('candles'),h='';
+var hs=[120,80,160,60,210,90,140,70,180,110,150,95,200,130,75,165];
+for(var i=0;i<hs.length;i++){var x=40+i*64;h+='<span style="left:'+x+'px;height:'+hs[i]+'px"></span>';}
+c.innerHTML=h;
+</script>
+</body>
+</html>

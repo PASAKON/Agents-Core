@@ -31,6 +31,7 @@ the CMO; it does not get quietly overridden inside an artifact.
 | `brandprompt-th` | ✅ | Also has `PLAYBOOK.md`, `templates/`, `ads/`, `social/`, and a competitor teardown. |
 | `mooniex-indicators` | ❌ | Images only — **gap**, needs a `BRAND.md`. |
 | `mooniex-rebate-posters` | ❌ | Images only — **gap**, needs a `BRAND.md`. |
+| `linkreed` | ✅ | New product (not Mooniex). AI link-in-bio builder. Warm ink/watercolor editorial mood, minimal mobile-first product UI. Palette LOCKED. |
 
 ## Hard rules
 
