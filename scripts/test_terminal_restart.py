@@ -17,6 +17,7 @@ Tests:
   8. the verify step reports failure when no claude is found afterwards
 
 Run via: python scripts/test_terminal_restart.py
+Or:      pytest scripts/test_terminal_restart.py
 """
 from __future__ import annotations
 
@@ -28,6 +29,8 @@ import uuid as uuid_mod
 from pathlib import Path
 from unittest import mock
 
+import pytest
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
@@ -36,6 +39,16 @@ import tools.terminal_restart as tr  # noqa: E402
 from tools import session_name  # noqa: E402
 
 _failures = 0
+
+
+@pytest.fixture(autouse=True)
+def _isolated_db(monkeypatch, tmp_path):
+    """pytest collects the bare `test_*` functions below directly — it never
+    runs main(), which is where the original tmp-DB swap lived. Without this,
+    every test hits state/tasks.db at its real (gitignored) path and fails
+    with "no such table" in a worktree or fresh CI checkout (GH #56)."""
+    monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
+    db_mod.init()
 
 
 def _mark(ok: bool, msg: str) -> None:

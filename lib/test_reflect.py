@@ -1,11 +1,33 @@
-"""Tests for lib.reflect. Plain-script style (no pytest dependency).
+"""Tests for lib.reflect.
 
-Run:  python -m lib.test_reflect
-Read-only smoke tests over the live tasks.db plus shape/contract checks.
+Run:  pytest lib/test_reflect.py   (or: python -m lib.test_reflect)
+Smoke tests over a throwaway tmp_path DB (see lib/test_recall.py — same
+GH #56 isolation fix) seeded with one merged task and one failed task, plus
+shape/contract checks. Under plain `python -m lib.test_reflect` (no pytest
+fixtures) this still reads whatever real DB is on this machine, unchanged.
 """
 from __future__ import annotations
 
+import pytest
+
+from . import db as db_mod
 from . import reflect as rf
+
+
+@pytest.fixture(autouse=True)
+def _isolated_db(monkeypatch, tmp_path):
+    monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
+    db_mod.init()
+    done_id = db_mod.create_task(
+        project="test-proj", role="developer",
+        title="ship the leaderboard", description="d", owner_cto="test",
+    )
+    db_mod.update_status(done_id, "done", branch="agent/x", report="shipped")
+    open_id = db_mod.create_task(
+        project="test-proj", role="developer",
+        title="fix the flaky deploy", description="d", owner_cto="test",
+    )
+    db_mod.update_status(open_id, "failed")
 
 
 def _check(name: str, cond: bool) -> bool:
