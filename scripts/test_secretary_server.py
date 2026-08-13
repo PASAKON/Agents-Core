@@ -91,6 +91,21 @@ def test_build_claude_cmd_includes_resume_flag_when_session_id_given() -> None:
     assert cmd[-2:] == ["--resume", "sess-abc-123"]
 
 
+def test_build_claude_cmd_keeps_bare_flag() -> None:
+    """--bare roughly halves turn latency (measured on Contabo: 8.3-10.7s with
+    it vs 15.6-17.4s without, same prompt with a tool call). Dropping it is a
+    silent 2x regression — the reply text looks identical — so pin it."""
+    assert "--bare" in ss._build_claude_cmd("hello", None)
+
+
+def test_system_prompt_tells_the_model_to_page_past_the_default_limit() -> None:
+    """list_todos defaults to 50 rows. With no explicit limit the secretary
+    answered "50" when the CEO actually had 127 open to-dos: a status bot
+    under-reporting by 2.5x while sounding certain. This instruction is the
+    only thing preventing it, so assert it survives prompt edits."""
+    assert "limit=200" in ss.SECRETARY_SYSTEM_PROMPT
+
+
 # ---------------------------------------------------------------------------
 # fixtures
 # ---------------------------------------------------------------------------
