@@ -237,6 +237,41 @@ baseline is a reference point, not a budget.
    fully completed regardless of what the tool call reported back. Don't
    assume a failed call = no side effect.
 
+## Render time is a function of WHEN you generate — schedule the wave for Europe's night
+
+Measured across a single 14-hour wave on 2026-08-13. Render time is not a
+constant and it is not degrading equipment; it tracks the platform's queue
+depth, which tracks European waking hours.
+
+| Local (ICT, UTC+7) | UTC | Europe (CEST) | Render |
+|---|---|---|---|
+| 08:36 – 13:33 | 01:36 – 06:33 | 03:36 – 08:33, night | **20–25 min** |
+| 13:57 | 06:57 | 08:57, waking | **137 min, never finished — cancelled** |
+| 16:26 | 09:26 | 11:26 | **50+ min** |
+| 18:33 | 11:33 | 13:33, midday | worst |
+
+**It does not degrade gradually — it changes at the hour Europe wakes up.**
+Every fast clip landed while Europe was asleep; the first pathological render
+started at 06:57 UTC and nothing recovered after that.
+
+Practical consequences:
+
+- **Schedule long waves for roughly 00:00–08:00 ICT**, i.e. avoid 07:00–16:00
+  UTC. The same queue costs 2–5x more wall-clock outside that window.
+- **A slow render is not a bug.** Before investigating anything client-side,
+  check the clock. On 2026-08-13 an afternoon went into changing the polling
+  method, pipelining prompt setup and restarting Chrome twice, all chasing a
+  variable that lived on the platform's side.
+- **The 90-minute cancel rule still applies**, but expect to use it far more
+  often during European daytime, and expect a normal render to take 50+ minutes
+  rather than 25. Do not read that as a stuck card.
+- The account's one-generation-at-a-time slot makes this compound: at 25 min a
+  20-clip queue is ~9 hours, at 50 min it is ~18, and a single 137-minute
+  zombie blocks everything queued behind it.
+
+Credit safety is unaffected — the ledger stayed flat at $0 throughout, and a
+slow render costs nothing. This is purely throughput and scheduling.
+
 ## A long-lived tab lies about the concurrency slot — open a fresh one every 3-4 generations
 
 The single largest time sink measured on this project, and it looks exactly
