@@ -96,11 +96,21 @@ SECRETARY_MAX_CONCURRENT = int(os.environ.get("SECRETARY_MAX_CONCURRENT", "1"))
 CLAUDE_BIN = os.environ.get("SECRETARY_CLAUDE_BIN", "claude")
 
 # Mac path is the fallback default; ensure_mcp_config() re-resolves this
-# (env LUNGNOTE_MCP_PATH first) and rewrites MCP_CONFIG_PATH at server
-# startup so the same committed file works unmodified on Contabo too.
+# (env LUNGNOTE_MCP_PATH first) and rewrites the generated config at startup.
 DEFAULT_LUNGNOTE_MCP_PATH = "/Users/gob/LungNote Projects/mcp/index.js"
-MCP_CONFIG_PATH = ROOT / "config" / "secretary.mcp.json"
-SESSION_DB_PATH = ROOT / "state" / "secretary_sessions.db"
+
+# Both of these are rewritten at runtime, so a deployment must be able to put
+# them outside the checkout. Under systemd the server runs as a service user
+# with no write access to a root-owned repo — that is exactly how this first
+# crashed on Contabo (PermissionError on config/secretary.mcp.json). Writing
+# into the repo would also leave it permanently dirty, because the resolved
+# lungnote path differs per host.
+MCP_CONFIG_PATH = Path(
+    os.environ.get("SECRETARY_MCP_CONFIG") or ROOT / "config" / "secretary.mcp.json"
+)
+SESSION_DB_PATH = Path(
+    os.environ.get("SECRETARY_SESSION_DB") or ROOT / "state" / "secretary_sessions.db"
+)
 
 ERROR_PREFIX = "⚠️ เลขาขัดข้อง: "
 
