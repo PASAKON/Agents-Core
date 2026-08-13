@@ -301,6 +301,128 @@
  *    in `~/Downloads` named `hf_<UTC-timestamp>_<job-uuid>.mp4`. Verify by
  *    polling `ls -lat ~/Downloads/*.mp4` a few seconds after the click
  *    rather than trusting the click "succeeded" silently.
+ *
+ * Wave 7 findings (task-0ee4a20a, 2026-08-14, Cinema Studio project-folder
+ * composer — NOT /ai/video; Seedance 2.0 / 1080p / 15s / 21:9):
+ *
+ * 1. **A FAILED card exposes only "Copy prompt" and "Delete" — there is no
+ *    Recreate.** The skill's "for any repeat of a prompt, use Recreate" advice
+ *    silently does not apply to a scene whose every take failed. The composer
+ *    must be rebuilt by hand in that case. Check the card's button set before
+ *    planning a Recreate-based flow.
+ *
+ * 2. **Pasting the prompt auto-converts `@Name` tokens into real element
+ *    chips.** The Lexical build here uses `data-beautiful-mention`; a
+ *    text/plain synthetic paste of "... @Room-Clean ..." produces a bound
+ *    mention node with the element's reference plate attached. No manual chip
+ *    picking is needed, which removes the main risk at the 10-element cap.
+ *    Count attached elements with:
+ *      new Set([...ed.querySelectorAll('[data-beautiful-mention]')]
+ *        .map(m => m.getAttribute('data-beautiful-mention'))).size
+ *    Count the ATTRIBUTE (a uuid), not the visible label — see finding 3.
+ *
+ * 3. **A chip can render its raw uuid instead of its name and still be
+ *    correctly attached.** `@Prop-Glass` displayed as
+ *    `@396c8cda-4098-46b5-8bf6-2bb6385772db` with no inline thumbnail, which
+ *    looks exactly like a dangling reference. It is not: the reference tray
+ *    above the composer showed its plate, and Scenes 10-B and 10-C both carry
+ *    `@Prop-Glass` and both generated successfully. Counting distinct visible
+ *    LABELS gives 9 and triggers a false "chip missing" alarm; counting
+ *    distinct `data-beautiful-mention` values gives the true 10.
+ *
+ * 4. **With Unlimited ON the action button is relabelled "Unlimited", not
+ *    "Generate".** Every `/generate/i` matcher in this file returns nothing at
+ *    the exact moment the zero-digit check matters most. Match
+ *    `/generate|unlimited/i`. The price is two sibling spans: the original with
+ *    `text-decoration-line: line-through`, then the effective one. Free reads
+ *    as struck-through original + "0".
+ *
+ * 5. **Do not read the price off a screenshot.** The rendered button looked
+ *    like "480" at 1456x840; the DOM said "180". Same misread class the brief
+ *    warns about. `getComputedStyle(span).textDecorationLine === 'line-through'`
+ *    is the authoritative discriminator.
+ *
+ * 6. **The composer settings row scrolls horizontally and the Unlimited toggle
+ *    starts underneath / right of the Generate button.** At a 1024-wide
+ *    viewport the switch sat at css x≈1110 (off-screen) and, after collapsing
+ *    the sidebar, at x≈972 — ~15px from the Generate button's edge, i.e. one
+ *    sloppy click from an unintended fire. Scroll its container
+ *    (`overflow-x:auto`, 4 levels up from `[role="switch"]`) to
+ *    `scrollWidth` first; that moves the toggle ~164px left, clear of Generate.
+ *    Collapse the sidebar too. Never click blind near that corner.
+ *
+ * 7. **Screenshot pixels are NOT css pixels.** Screenshots came back 1456x840
+ *    for a 1024x591 viewport — a 1.4219x factor that must be applied to every
+ *    `getBoundingClientRect()` value before passing it to `computer` as a
+ *    coordinate. Clicking raw css coordinates lands high and left, which is how
+ *    an operator misses a control and hits its neighbour.
+ *
+ * 8. **`resize_window` reports success while changing nothing** when the window
+ *    is in macOS fullscreen (innerHeight stayed 591 for both 768 and 900
+ *    requests), and it still orphans the MCP tab group (Wave 6 finding 3
+ *    reproduced twice). Verify with `[innerWidth, innerHeight]` and recover via
+ *    `tabs_context_mcp{createIfEmpty:true}` + re-navigate.
+ *
+ * 9. **`navigator.clipboard.readText()` froze the renderer for the full 45s CDP
+ *    timeout** (permission prompt with no visible UI). Do not call it. Read
+ *    prompts out of the DOM instead.
+ *
+ * 10. **Seedance 2.0 now shows an audio control** (speaker icon reading "On")
+ *    in the settings row, alongside a "High" bitrate control. This contradicts
+ *    the earlier finding that only "Seedance 2.5 Edit" carries audio. Worth a
+ *    C-level decision on whether AUDIO-SFX sections are still inert.
+ *
+ * 11. **The 10-element cap is a hard ceiling that fails as a generic error.**
+ *    RESOLVED. Scene 10-D failed 3/3 with "Something went wrong. Please try
+ *    again, or change your input files or prompt." on a composer verified
+ *    correct in every respect (10/10 chips, verbatim prompt, full spec,
+ *    Unlimited, $0, all three refunded). Dropping ONE element — `@Prop-Handbag`,
+ *    rewritten as plain words — took the block from 10 distinct elements to 9
+ *    and it generated first try, same beat, same plates, same NEGATIVE section.
+ *    **Treat 10 attached elements as unusable and 9 as the working maximum.**
+ *    Higgsfield reports the ceiling as an unattributed generic failure, never
+ *    as a limit message, so it is indistinguishable from a content rejection
+ *    unless you count elements. Rule out the count BEFORE suspecting wording or
+ *    a broken plate: both were investigated at length here and both were
+ *    innocent (the `@Mother-Soul` plate rendered a complete character sheet and
+ *    subsequently generated fine).
+ *
+ * 12. **"Prompt is required when no media is provided" means the paste never
+ *    bound to React state — the prompt is fine.** The tell is unmistakable and
+ *    worth checking directly: the composer shows its placeholder
+ *    ("Describe the scene you imagine...") AT THE SAME TIME as holding
+ *    thousands of characters and correctly-bound mention chips. A full page
+ *    reload does NOT clear it. The fix that worked, and which preserves the
+ *    prompt byte-for-byte:
+ *      1. `ed.scrollIntoView({block:'center'})` — the editor can sit far above
+ *         the viewport, so a click lands on nothing.
+ *      2. A real click into the editor.
+ *      3. A real Space keypress, then a real BackSpace keypress.
+ *    Net content change is zero and no Enter is involved, but the pair emits a
+ *    genuine input event that forces Lexical to bind. The placeholder vanishes
+ *    the instant it works; verify that, plus unchanged length, before clicking
+ *    Generate. Do NOT type any part of the prompt itself (hard rule 6 stands).
+ *
+ * 13. **Chrome allows exactly ONE automatic download per browser session per
+ *    origin, then blocks the rest silently.** No error, no console entry, no
+ *    file — and the block survives a page reload, a new tab, and both the
+ *    card-tray icon and the detail modal's own Download button (JS `.click()`
+ *    and real coordinate click alike). The only thing that resets it is
+ *    quitting and reopening Chrome, after which the next download succeeds
+ *    immediately. So a multi-clip mirror is: restart Chrome, download one,
+ *    upload it, repeat. Budget a browser restart per file, or use the Grid-view
+ *    bulk zip (Wave 5 finding 1) which is a single download for the whole
+ *    selection and therefore only costs one allowance.
+ *
+ * 14. **`resize_window` cannot help when the screen itself is the limit.** On a
+ *    1440x900 display Chrome's UI leaves innerHeight 754, and the composer's
+ *    Image/Video tab strip renders at css y≈773-825 — permanently below the
+ *    fold. `resize_window`, AppleScript `set bounds`, page zoom and macOS
+ *    fullscreen all failed to raise it. What works: switch the composer to
+ *    Video mode from a folder whose composer is already reachable (or via a
+ *    Recreate on any existing video card), then navigate to the target folder —
+ *    **the Image/Video mode persists across navigation**, while the prompt
+ *    persists via localStorage and Unlimited does not.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
@@ -439,6 +561,104 @@ function hfPollStatus() {
   return /Processing|Generating/i.test(document.body.innerText) ? 'processing' : 'done-or-idle';
 }
 
+// --- 7. Cinema Studio composer helpers (Wave 7) ---
+
+// The real editor, with the invisible decoy filtered out.
+function hfVisibleEditor() {
+  return [...document.querySelectorAll('[contenteditable="true"]')]
+    .filter(e => getComputedStyle(e).visibility !== 'hidden')[0];
+}
+
+// Distinct attached elements, counted by uuid attribute rather than by the
+// visible label — a chip may render its uuid and still be properly attached.
+function hfAttachedElements() {
+  const ed = hfVisibleEditor();
+  if (!ed) return null;
+  const nodes = [...ed.querySelectorAll('[data-beautiful-mention]')];
+  return {
+    total: nodes.length,
+    distinct: new Set(nodes.map(m => m.getAttribute('data-beautiful-mention'))).size,
+    labels: [...new Set(nodes.map(m => m.textContent.trim()))],
+  };
+}
+
+// Reads the action button whether it says Generate or Unlimited, and reports
+// the effective (non-struck) price. free === true is the only safe state.
+function hfReadPriceButton() {
+  const btn = [...document.querySelectorAll('button')]
+    .find(b => /generate|unlimited/i.test(b.textContent) && b.getBoundingClientRect().width > 100);
+  if (!btn) return { found: false };
+  const leaves = [...btn.querySelectorAll('*')].filter(s => !s.children.length && s.textContent.trim());
+  const struck = leaves.filter(s => /line-through/.test(getComputedStyle(s).textDecorationLine || ''));
+  const effective = leaves.filter(s => !struck.includes(s) && /\d/.test(s.textContent));
+  const effText = effective.map(s => s.textContent.trim()).join('');
+  return {
+    found: true,
+    label: btn.textContent.trim(),
+    struckThrough: struck.map(s => s.textContent.trim()),
+    effective: effText,
+    free: effText === '' || Number(effText) === 0,
+    disabled: btn.disabled,
+  };
+}
+
+// The Unlimited switch starts off-screen / adjacent to Generate. Scroll its
+// own container fully right so a real click cannot stray onto Generate.
+// Returns viewport-relative css center; multiply by the screenshot scale
+// factor (screenshotWidth / window.innerWidth) before clicking.
+function hfRevealUnlimitedToggle() {
+  const sw = document.querySelector('[role="switch"]');
+  if (!sw) return null;
+  let c = sw;
+  for (let i = 0; i < 4 && c; i++) c = c.parentElement;
+  if (c) c.scrollLeft = c.scrollWidth;
+  const r = sw.getBoundingClientRect();
+  return {
+    checked: sw.getAttribute('aria-checked'),
+    cssCenter: [Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2)],
+    scale: 'multiply by screenshotWidth / window.innerWidth',
+  };
+}
+
+// The paste-desync tell: the placeholder is visible while the editor holds
+// text. If this returns true, Generate will be refused with "Prompt is
+// required when no media is provided" — see Wave 7 finding 12 for the fix
+// (scrollIntoView, real click, real Space then BackSpace).
+function hfPromptDesynced() {
+  const ed = hfVisibleEditor();
+  if (!ed) return null;
+  const hasText = ed.innerText.trim().length > 0;
+  const placeholder = /Describe the (scene|video) you (imagine|want to create)/.test(document.body.innerText);
+  return hasText && placeholder;
+}
+
+// Every gate that must pass in the same breath as the Generate click.
+function hfPreflight(expectedLen, expectedElements) {
+  const ed = hfVisibleEditor();
+  const els = hfAttachedElements();
+  const price = hfReadPriceButton();
+  const sw = document.querySelector('[role="switch"]');
+  const row = sw && sw.closest('.mt-auto');
+  const text = ed ? ed.innerText : '';
+  return {
+    settings: row ? row.innerText.replace(/\n+/g, ' | ') : null,
+    unlimitedOn: sw ? sw.getAttribute('aria-checked') === 'true' : null,
+    elements: els,
+    elementsOk: els && els.distinct === expectedElements,
+    elementsUnderCap: !!(els && els.distinct <= 9),   // 10 = hard fail, see finding 11
+    promptChars: text.length,
+    startsUndefined: /^undefined/.test(text),
+    desynced: hfPromptDesynced(),                     // true => Generate will be refused
+    price,
+    GO: !!(sw && sw.getAttribute('aria-checked') === 'true'
+           && els && els.distinct === expectedElements
+           && els.distinct <= 9
+           && price.found && price.free && !price.disabled
+           && !/^undefined/.test(text)
+           && !hfPromptDesynced()),
+  };
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     hfGetHistoryContainer, hfScrollHistory, hfFingerprintCards,
@@ -446,5 +666,7 @@ if (typeof module !== 'undefined') {
     hfPromptEditor, hfPromptIsEmpty, hfSetPromptText,
     hfGetGenerateButton, hfVerifyGenerateReady,
     hfGetUnlimitedToggle, hfIsUnlimitedOn, hfPollStatus,
+    hfVisibleEditor, hfAttachedElements, hfReadPriceButton,
+    hfRevealUnlimitedToggle, hfPromptDesynced, hfPreflight,
   };
 }
