@@ -30,6 +30,9 @@ state/locks/*.uuid
 state/locks/close-refusals.log
 state/locks/*.run
 state/backups/
+# Per-session turn counter for scripts/hook-memory-nudge.py (ADR 0019 §1).
+# Runtime state; state/*.db already covers the search index beside it.
+state/session-nudge-counters.json
 state/watchdog.log
 state/*.db
 state/fomo-scanner.db-journal
