@@ -28,6 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
+from tools.dev_reap import _pid_alive
 from tools.worktree import remove_worktree
 
 STALE_PENDING_MINUTES   = 30
@@ -146,7 +147,28 @@ def gc_stale_tasks(
     for t in db.list_tasks(status="pending", limit=500):
         if t.get("assigned_agent") is not None:
             continue
-        age = _age_minutes(t.get("created_at"))
+        # Never reap a task whose DEV is still running. A task stays
+        # 'pending' for the whole spawn window — dev_init flips it to
+        # in_progress only once it claims — so a live spawn sits squarely
+        # inside this sweep's kill zone. Cancelling it is bad enough;
+        # _reclaim_worktree below then deletes the worktree out from under
+        # a process still working in it, and its only guard is `git status`
+        # being non-empty, which a DEV that has not committed yet fails.
+        #
+        # Measured 2026-08-13 00:26: task-7d4b567b, pid 47128 observed in
+        # state R+ (running, consuming CPU), cancelled ~30s after delegate.
+        # See GH #52.
+        if _pid_alive(t.get("pid")):
+            continue
+        # Measure from the spawn, not from row creation. `created_at` is
+        # when create_task ran, which says nothing about how long the task
+        # has been abandoned: a task created at 23:50 and delegated at
+        # 00:25 was already 35 minutes "stale" the instant its DEV started.
+        #
+        # spawned_at is NULL for a task that genuinely was never delegated
+        # — exactly what this category exists to catch — so fall back to
+        # created_at only in that case.
+        age = _age_minutes(t.get("spawned_at") or t.get("created_at"))
         if age is None or age <= pending_minutes:
             continue
         print(f"[gc] cancelled {t['id']} (stale pending >{pending_minutes}min)",

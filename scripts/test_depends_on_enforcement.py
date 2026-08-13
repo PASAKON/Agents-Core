@@ -263,12 +263,20 @@ def test_redelegate_after_grace_period_proceeds() -> bool:
     with patches[0], patches[1], patches[2], patches[3], patches[4]:
         _run(delegate.delegate_task(task_id))  # spawn #1, sets worktree
 
+        # Age the SPAWN clock, and deliberately leave `updated_at` fresh.
+        # The guard used to read `updated_at`, which meant any unrelated
+        # write — reopen_task, a watchdog ping, or the refusal's own
+        # delegate_log — looked like a spawn and blocked the retry (GH #51,
+        # #53). Backdating only `spawned_at` asserts both halves: the real
+        # spawn clock is what opens the window, and a fresh `updated_at`
+        # no longer holds it shut.
         stale_ts = (datetime.now(timezone.utc)
                     - timedelta(seconds=delegate.CLAIM_VERIFY_DELAY_S + 5)
                     ).isoformat(timespec="seconds")
+        fresh_ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
         with db.get_conn() as c:
-            c.execute("UPDATE tasks SET updated_at=? WHERE id=?",
-                      (stale_ts, task_id))
+            c.execute("UPDATE tasks SET spawned_at=?, updated_at=? WHERE id=?",
+                      (stale_ts, fresh_ts, task_id))
 
         second = _run(delegate.delegate_task(task_id))  # spawn #2, allowed
 

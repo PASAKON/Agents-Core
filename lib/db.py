@@ -113,6 +113,19 @@ _MIGRATION_COLUMNS = [
     # Runner-level messages (collision, lock failure, spawn errors) go here;
     # DEV completion summaries stay in tasks.report. Never mix the two.
     ("delegate_log", "TEXT"),
+    # When a DEV was last actually spawned for this task. Written by
+    # delegate_task at the worktree-creation step, and by nothing else.
+    #
+    # This exists because `updated_at` cannot answer it. `updated_at` means
+    # only "something wrote to this row", and at least three paths write it
+    # without spawning anything: reopen_task, the watchdog flipping a task
+    # to stalled, and delegate_task's own duplicate-spawn refusal writing
+    # delegate_log — which reset the very clock it was about to read, so
+    # each retry pushed the lockout further out (GH #51, #53).
+    #
+    # NULL on pre-migration rows and on any task never delegated. Readers
+    # must treat NULL as "no spawn on record", never as "spawned long ago".
+    ("spawned_at", "TEXT"),
 ]
 
 # c_level_sessions lifecycle columns (task-728e4741). Same forward-only
@@ -360,7 +373,7 @@ VALID_COLUMNS = {
     "iteration", "description", "title",
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
     "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto", "owner_role",
-    "delegate_log",
+    "delegate_log", "spawned_at",
 }
 
 

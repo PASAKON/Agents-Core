@@ -512,14 +512,27 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         # is still booting (dev_init hasn't reached claim_task yet, so
         # pid/assigned_agent are still NULL and no branch above resets
         # anything). `pid` can't distinguish these two cases — it isn't
-        # stamped until claim — so use `updated_at` instead: the row was
-        # only touched by the worktree-creation write above, which happens
-        # once per genuine spawn. A duplicate call inside the same grace
-        # period `_verify_claimed` watches (CLAIM_VERIFY_DELAY_S) means a
-        # spawn is already in flight; refuse instead of opening a second
-        # tab. Past that window the watchdog has already given up (or this
-        # is a deliberate manual re-delegate), so fall through and spawn.
-        since = _seconds_since(task.get("updated_at"))
+        # stamped until claim — so ask `spawned_at`, which is written at
+        # exactly one place: the commit point of a genuine spawn, below.
+        # A duplicate call inside the grace period `_verify_claimed`
+        # watches (CLAIM_VERIFY_DELAY_S) means a spawn is already in
+        # flight; refuse instead of opening a second tab. Past that window
+        # the watchdog has given up (or this is a deliberate manual
+        # re-delegate), so fall through and spawn.
+        #
+        # This used to read `updated_at`, on the stated assumption that the
+        # row "was only touched by the worktree-creation write above, which
+        # happens once per genuine spawn". That assumption was false and
+        # cost six minutes of lockout on task-cda4f469 (2026-08-13 01:07).
+        # reopen_task writes status+description; the watchdog writes
+        # 'stalled'; and worst of all the refusal below writes delegate_log,
+        # so every refusal reset the very clock it had just read and each
+        # retry pushed the deadline further out. The normal recovery flow is
+        # reopen → delegate, which therefore could never succeed on the
+        # first try. See GH #51 and #53.
+        #
+        # NULL means no spawn on record — never read it as "long ago".
+        since = _seconds_since(task.get("spawned_at"))
         if since is not None and since < CLAIM_VERIFY_DELAY_S:
             info(f"skip duplicate spawn task={task_id}: spawned {since:.0f}s "
                  f"ago, still within the {CLAIM_VERIFY_DELAY_S:.0f}s claim "
@@ -567,6 +580,14 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         info(f"re-delegate: reset task={task_id} to pending for re-claim")
 
     info(f"delegate task={task_id} role={role_name} project={project_key}")
+
+    # The commit point of a genuine spawn: every refusal above has returned,
+    # so from here a DEV process is going to be started. This is the ONLY
+    # write to `spawned_at` in the codebase — that is what makes it able to
+    # answer "how long ago was a DEV spawned", which `updated_at` never
+    # could (GH #51, #53). Stamped before the spawn rather than after, so a
+    # spawn that hangs partway still blocks a duplicate.
+    db.set_fields(task_id, spawned_at=db.now_iso(), actor="cto")
 
     backend = (proj.get("spawn_backend") or "iterm").lower()
     tmux_sess: str | None = None
