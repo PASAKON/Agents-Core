@@ -1,0 +1,551 @@
+{
+  "version": 1,
+  "skills": {
+    "account-maintenance": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/client-operations/skills/account-maintenance/SKILL.md",
+      "computedHash": "cac555795e7d6b55b50d13b5772fd20648caa11f841fcf4ce26d330cf3970826"
+    },
+    "account-opening-compliance": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/client-operations/skills/account-opening-compliance/SKILL.md",
+      "computedHash": "588b9ff881cf6e0bcdcea161de24188d177b9f990c51f04503528bb8b2c8a8cf"
+    },
+    "account-opening-workflow": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/client-operations/skills/account-opening-workflow/SKILL.md",
+      "computedHash": "798d869c9cad3e657c4479acd508e7a566f5e3beec3356327674e3cef91c5c84"
+    },
+    "account-transfers": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/client-operations/skills/account-transfers/SKILL.md",
+      "computedHash": "63f739ce8799212d0ab6395af0b21423e80893f828c1fee719f289ae49f426f5"
+    },
+    "advertising-compliance": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/advertising-compliance/SKILL.md",
+      "computedHash": "dcabed437c623c9a94daa0ee0e302a58c2ba30390d24c8864a05d0feb8859600"
+    },
+    "advice-standards": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/advice-standards/SKILL.md",
+      "computedHash": "1555aae742b7c5777c09e256b97e50d1a383f40f544fa805f3bdda4f649cc057"
+    },
+    "advisor-dashboards": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/advisor-dashboards/SKILL.md",
+      "computedHash": "e48eda2cb14cbaa79c02c1c01bba3a99d67da971350c95de9552b8d1ff70ce76"
+    },
+    "alternatives": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/alternatives/SKILL.md",
+      "computedHash": "e9ac9f2b6f71623b77b56d96fca97c09467a81e2de8b3bf7e131026e0177f7fd"
+    },
+    "anti-money-laundering": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/anti-money-laundering/SKILL.md",
+      "computedHash": "0d4e3f107db7b7ffb901459955a83e8e14f5cd3329e29fd3c56c6d6d742a0a70"
+    },
+    "asset-allocation": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/asset-allocation/SKILL.md",
+      "computedHash": "cf0053051648bc85d65b0509b7646cde3a543d8ebfa5746117abc52a97e52fbb"
+    },
+    "bet-sizing": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/bet-sizing/SKILL.md",
+      "computedHash": "6218416713904b17d78f5e1047b195fbd5a2d9d39f76b51ec9849737e2c79642"
+    },
+    "books-and-records": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/books-and-records/SKILL.md",
+      "computedHash": "ff45a385b518c00db73e17435fa59d7cb18c8c09e1cf330a6d1902816fb0933d"
+    },
+    "client-disclosures": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/client-disclosures/SKILL.md",
+      "computedHash": "abe1e68e840eadc318245c3b164d44b53082d3515cdb6647c0046fbfc08ee5ad"
+    },
+    "client-onboarding": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/client-onboarding/SKILL.md",
+      "computedHash": "f4e1bbee6e1eed014d3700a939121024169b528240d844a6af9a156180b733fc"
+    },
+    "client-reporting-delivery": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/client-reporting-delivery/SKILL.md",
+      "computedHash": "fffddfa600457a441cff2de213b684561cd9fc2c17482be9d8c996295358332a"
+    },
+    "client-review-prep": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/client-review-prep/SKILL.md",
+      "computedHash": "ddd1c7f37fe48f960e038e592474dc61c00a5bbe813fa88dcfa397603d1f6c26"
+    },
+    "commodities": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/commodities/SKILL.md",
+      "computedHash": "92930aaf7fdb87fa607bc3249f5bd057d3b47dd50a982878c56914a705bcf0eb"
+    },
+    "conflicts-of-interest": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/conflicts-of-interest/SKILL.md",
+      "computedHash": "b4b8107b11c2b1f8a62b27bb3b80fadfd3ae0c9fadfbae9bae7b1ed0e65e2c36"
+    },
+    "corporate-actions": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/client-operations/skills/corporate-actions/SKILL.md",
+      "computedHash": "2b57a0151b6c6a6f19374f581aa2ddfe2baeac406f23c756ee173c7dc908d849"
+    },
+    "counterparty-risk": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/trading-operations/skills/counterparty-risk/SKILL.md",
+      "computedHash": "9d3ef9bf27576f1851116cb039a6da24d6b5b648327150b15779026ba38e6c3a"
+    },
+    "crm-client-lifecycle": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/crm-client-lifecycle/SKILL.md",
+      "computedHash": "308dfcd967225f5d0c2701b56a37aebc42974cd4423809db5aa32ce935a1cbb8"
+    },
+    "currencies-and-fx": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/currencies-and-fx/SKILL.md",
+      "computedHash": "15762b676dd9adc1527affb17b4aa705a8ccbc8c04fdf87aa15300c57274b1c2"
+    },
+    "data-quality": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/data-integration/skills/data-quality/SKILL.md",
+      "computedHash": "2999473d8b11a5e1831e6970ee8d1284748c6b215f1ef9257ed692f0b8006e6a"
+    },
+    "debt-management": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/debt-management/SKILL.md",
+      "computedHash": "a9242648134878a935c9f90ecb3dea259b9173a4635038be2fa3450da236fce5"
+    },
+    "digital-assets": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/digital-assets/SKILL.md",
+      "computedHash": "0f67f035ce98e3ad28986887812339c7c1c3d646c7a762053dc2e708f1395604"
+    },
+    "diversification": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/diversification/SKILL.md",
+      "computedHash": "13950e5e4c21d25b53b7434afad66e7173dc1ec82dfd1c2bb61d7600b5ba1434"
+    },
+    "emergency-fund": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/emergency-fund/SKILL.md",
+      "computedHash": "ac1ec532ce101d21f4ae4666561fdd198bbba490779b536d9269d760d32ab897"
+    },
+    "equities": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/equities/SKILL.md",
+      "computedHash": "29038fb70ff1dc258a6261f32f3e233b0f5ae01b9ef364cd761b5b2300ea6c24"
+    },
+    "equity-compensation": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/equity-compensation/SKILL.md",
+      "computedHash": "7cd74ee18615de0bd4c8cfc4da5ae6d7e6ca9cf3dc02ed7257765276f2e0f799"
+    },
+    "estate-gifting": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/estate-gifting/SKILL.md",
+      "computedHash": "cfa093ee85247ac877428068be715d8422d20e515516f9ea65a37c22298834a1"
+    },
+    "examination-readiness": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/examination-readiness/SKILL.md",
+      "computedHash": "4004e0e11fdb332d52da5dca8b011ab0c3565fd14e251fe3884db6afcc3c22ab"
+    },
+    "exchange-connectivity": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/trading-operations/skills/exchange-connectivity/SKILL.md",
+      "computedHash": "17e27145027846b7735b3b2ca3d7ec3ab452b3d54efcdd6c06c5042844e19192"
+    },
+    "factor-investing": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/factor-investing/SKILL.md",
+      "computedHash": "b49b62466d589538a294f532fc47c4db26488b2b0750e6dd7e4691f7051c38e3"
+    },
+    "fee-billing": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/fee-billing/SKILL.md",
+      "computedHash": "eb45aae3d5530ddbbe323a4792b04bde55b6cd50ff35ee3769c74d0b3e581903"
+    },
+    "fee-disclosure": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/fee-disclosure/SKILL.md",
+      "computedHash": "b3345c60e3f08c172928debb84df25d2dcec222f0742b695df9726a5e68b8c21"
+    },
+    "fiduciary-standards": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/fiduciary-standards/SKILL.md",
+      "computedHash": "0f8fac96729a90b73fe0616dc3898e465c5e39ea64b994b458e1ff75771fff99"
+    },
+    "finance-psychology": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/finance-psychology/SKILL.md",
+      "computedHash": "e2e23f8bfee7671f1268e8453433ccc655aea221ad5c67c3ff7944ee5d2e7918"
+    },
+    "financial-planning-integration": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/financial-planning-integration/SKILL.md",
+      "computedHash": "2a8b5207561d8dbaa7a9fcee8def54ac2aefd894e3e399a7f110d2393cf730cc"
+    },
+    "financial-planning-workflow": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/financial-planning-workflow/SKILL.md",
+      "computedHash": "634b9fbbce68943834d53243e0beef13eabe9aefafbd6f0d2e5b2558ffcf44e2"
+    },
+    "financial-statements": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/financial-statements/SKILL.md",
+      "computedHash": "ac050b2caaf198babf5d06eda41b69d81968695408a83f8713453ef3e657e526"
+    },
+    "fixed-income-corporate": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/fixed-income-corporate/SKILL.md",
+      "computedHash": "0d5afb8b00f0a2b6567453d10b1da13fd733f0ba36cf9cbbe0a32c06d3141dda"
+    },
+    "fixed-income-municipal": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/fixed-income-municipal/SKILL.md",
+      "computedHash": "f49862ca35c3d578d4cebcffaadad17cb287c39ad68fb9df2066f5e1822936f7"
+    },
+    "fixed-income-sovereign": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/fixed-income-sovereign/SKILL.md",
+      "computedHash": "da415ffd55b855f9667732d0d89841b397d74e9e33c5d82aaf7fd6ca12e04d40"
+    },
+    "fixed-income-structured": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/fixed-income-structured/SKILL.md",
+      "computedHash": "5cdee17abcd3d9831e171c1cec19cc063aef92bb94b6b5418d67787d93543aa0"
+    },
+    "forward-risk": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/forward-risk/SKILL.md",
+      "computedHash": "a7381147a9529b33adaf474bfc009e0ff383ec8afb2b92157daaf91bb316b18d"
+    },
+    "fund-vehicles": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/fund-vehicles/SKILL.md",
+      "computedHash": "ba2507c69308b616cfdbbb064d285c4ab27729067be3bc90ca0dd6a16b0442e1"
+    },
+    "gips-compliance": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/gips-compliance/SKILL.md",
+      "computedHash": "1837ceb629de20ad38e5de1a3e98bb8b7a62bb5430f5ce487e23acd3e36256b4"
+    },
+    "historical-risk": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/historical-risk/SKILL.md",
+      "computedHash": "dfa5a661276becfa0964623c33eb28f549bb66e569104609d61a64bb37994c5b"
+    },
+    "insurance-planning": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/insurance-planning/SKILL.md",
+      "computedHash": "c20ec2288721a6acdcdf2076534e1c4d4c555a447be6fca7dbcdd51fdeb8fd63"
+    },
+    "integration-patterns": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/data-integration/skills/integration-patterns/SKILL.md",
+      "computedHash": "7bb19e6e6ee7e883e953c263bd7d4be6eeb0404f7fb1de8eecd1cc8e590b5563"
+    },
+    "investment-policy": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/investment-policy/SKILL.md",
+      "computedHash": "b4bcd121a31865570719fb54a4bae256eaa4696af09968f29f856f5ed20b855a"
+    },
+    "investment-suitability": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/investment-suitability/SKILL.md",
+      "computedHash": "2d284c7cb8252e433073b15eb951604a8d073ec4cf476384adc2e355f39e42dc"
+    },
+    "know-your-customer": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/know-your-customer/SKILL.md",
+      "computedHash": "041217c48c6af7aa33fbfbcd0680b286ef7b5990a41f6564823fcf0725b14529"
+    },
+    "lending": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/lending/SKILL.md",
+      "computedHash": "4d5ac64b59b49bc1eb3b5dc001172e4ef726f4994ad3960014d40c570c08b97d"
+    },
+    "liquidity-management": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/liquidity-management/SKILL.md",
+      "computedHash": "fcbd89f82e2833003506e3c670303592f2a77b35dc228c67e3deac0db2d31c89"
+    },
+    "margin-operations": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/trading-operations/skills/margin-operations/SKILL.md",
+      "computedHash": "fc4b9394c0b37b0995f9bfa3d5456d2d66bdc6c43c91a9dbd7364af483e07144"
+    },
+    "market-data": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/data-integration/skills/market-data/SKILL.md",
+      "computedHash": "c0d8a3423f911e99598425f4f9813f91809d7687f3fbeb539d37da19decc1e91"
+    },
+    "next-best-action": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/next-best-action/SKILL.md",
+      "computedHash": "2631db5b06294bf779a1bc93ac2c74eb5dcfcff9a57e49b2709ef05696b2a77a"
+    },
+    "operational-risk": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/trading-operations/skills/operational-risk/SKILL.md",
+      "computedHash": "82f24e180dbeb8d121be52c8e8dcb5321b775b3abe62f020e8dadce6a6d01264"
+    },
+    "order-lifecycle": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/trading-operations/skills/order-lifecycle/SKILL.md",
+      "computedHash": "89e8393061a74080abb871c4165a5037e4d372994f8800ba321815fbde4e53f5"
+    },
+    "order-management-advisor": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/order-management-advisor/SKILL.md",
+      "computedHash": "953de9701c8d745ad7339c51b4de88ab32a895ff99a8db584efa89edfa6c30c2"
+    },
+    "performance-attribution": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/performance-attribution/SKILL.md",
+      "computedHash": "95f54b6b25b1f19b2a53d7bfb3d329e53b2baf8ab5e3f2a5dde72c4473f8e23e"
+    },
+    "performance-metrics": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/performance-metrics/SKILL.md",
+      "computedHash": "87c2d0c1d2f56e7e6d466d07b642188f958b49be8fadaa86c7cf372c0176aa3f"
+    },
+    "performance-reporting": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/performance-reporting/SKILL.md",
+      "computedHash": "b5bb7b54365bc9fbadf615eaadd5daf1a3a5d6678eb5e4af4871dc0c46744de4"
+    },
+    "portfolio-management-systems": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/portfolio-management-systems/SKILL.md",
+      "computedHash": "8bbdb7a9348b0a28edd7c9cf0fa62954b9f7cb3f617aad7439ea2f7152070a9f"
+    },
+    "post-trade-compliance": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/trading-operations/skills/post-trade-compliance/SKILL.md",
+      "computedHash": "ddb62ed58a63725fc53e032dbafac363f67e6b3cc34da10d51a058ae52077544"
+    },
+    "pre-trade-compliance": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/trading-operations/skills/pre-trade-compliance/SKILL.md",
+      "computedHash": "cfd3b65eaf3dcf75db7fb635a59e823593576c7d014e2161b8ace1f76553b23f"
+    },
+    "privacy-data-security": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/privacy-data-security/SKILL.md",
+      "computedHash": "648ec1cd92bcab487ddd3ab457410dfd62f4e6f6d94f556e1a5392719790d6dd"
+    },
+    "private-placements": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/private-placements/SKILL.md",
+      "computedHash": "84ff9ae86c79220fa6537b1c4a0c9a39768900a68666da76e698e5a10357f36b"
+    },
+    "proposal-generation": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/advisory-practice/skills/proposal-generation/SKILL.md",
+      "computedHash": "fcc0f400c284a796c5c2ef3470cd5a86fd38ff55ea3c33cdc199207fc09b4045"
+    },
+    "qualitative-valuation": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/qualitative-valuation/SKILL.md",
+      "computedHash": "24ac5950de7cb3759e8bb3c034e32a945a284cb90855738daa6c235d4119a8df"
+    },
+    "quantitative-valuation": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/quantitative-valuation/SKILL.md",
+      "computedHash": "dabcdf95fb0ff56e58e2f9c0e475b2f6b3facf51e6bf2258dcc198ebdf54f312"
+    },
+    "real-assets": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/real-assets/SKILL.md",
+      "computedHash": "e544df5d6ac8747cfd28bf5ece17e0783a12e7ec02da99d793a1e3eaa94a8c08"
+    },
+    "rebalancing": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/rebalancing/SKILL.md",
+      "computedHash": "383e797056936c49a927f537a8bf457e6e7bfc0dec777c1ef34fe1a3ce8146ab"
+    },
+    "reconciliation": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/client-operations/skills/reconciliation/SKILL.md",
+      "computedHash": "2d9dd6c6dec130cbc8a527ebd6bc974e52c6d2ec1a4d9c41a660aed981df8919"
+    },
+    "reference-data": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/data-integration/skills/reference-data/SKILL.md",
+      "computedHash": "307b8f46198108272e139de4bc825705d0466f7d55bc79cd32a36c5209f954af"
+    },
+    "reg-bi": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/reg-bi/SKILL.md",
+      "computedHash": "60ca004b1793ff51e5bc97378c281464034cea6eb38110fa4900137547fba5d2"
+    },
+    "regulatory-reporting": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/regulatory-reporting/SKILL.md",
+      "computedHash": "12fb3f98a4a6dfe534b7b215b13ec911b8950b03deb40ee7076e58fe041acf42"
+    },
+    "retirement-decumulation": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/retirement-decumulation/SKILL.md",
+      "computedHash": "0fd250f63085c74d08b6ab30fd103ec5306426026c5c6db405700f2cd1cdde27"
+    },
+    "return-calculations": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/core/skills/return-calculations/SKILL.md",
+      "computedHash": "d776d9be9295cfe6acf2a46bbf781f0b12bfd68d14eae66a2b8f76c76f7301df"
+    },
+    "sales-practices": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/compliance/skills/sales-practices/SKILL.md",
+      "computedHash": "c4cffa07d1b672b32a64b4b2ca1fe42bd6acc1b70ed8b1372607e25d5f6aae90"
+    },
+    "savings-goals": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/savings-goals/SKILL.md",
+      "computedHash": "0c8720594d7d707d6b3cfcd28767a35f663abf5a29329be338bb9c0d45674838"
+    },
+    "settlement-clearing": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/trading-operations/skills/settlement-clearing/SKILL.md",
+      "computedHash": "11ae5ad27eee1af28dd3009b43c0fe523eb61cb50ccb336c60b73148624c24f8"
+    },
+    "statistics-fundamentals": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/core/skills/statistics-fundamentals/SKILL.md",
+      "computedHash": "90a4d6610839d2b613810b9f2c3e112651563ebc875f590fc8287e2ef421a71b"
+    },
+    "stp-automation": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/client-operations/skills/stp-automation/SKILL.md",
+      "computedHash": "a3da6d63707b2e87d2dc565e62dd18343842e902695eaad58a6b1048cebc2a0b"
+    },
+    "tax-efficiency": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/tax-efficiency/SKILL.md",
+      "computedHash": "6bd5e209b9ef6b48223a842bfca1d488f52c001cd0c2e4738864dc0e975e7505"
+    },
+    "tax-loss-harvesting": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/tax-loss-harvesting/SKILL.md",
+      "computedHash": "60293da2b6197c9bc540600944526fe2d50ab0993eaaf79788dd9ea6e74bc51c"
+    },
+    "time-value-of-money": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/core/skills/time-value-of-money/SKILL.md",
+      "computedHash": "d5e6f78b424cd8423292ae0edcb34946a11c11927f830c3afc163df0e893b77d"
+    },
+    "trade-execution": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/trading-operations/skills/trade-execution/SKILL.md",
+      "computedHash": "f97799bd79e6189d44efb5e7aa1fff96bc9e24611f3ddccf71080d7907f6ea3b"
+    },
+    "volatility-modeling": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/wealth-management/skills/volatility-modeling/SKILL.md",
+      "computedHash": "2f451280f49e52bf0aebb3cd9572edea2551085b90ae7ab2ccf00a4e069d0579"
+    },
+    "workflow-automation": {
+      "source": "JoelLewis/finance_skills",
+      "sourceType": "github",
+      "skillPath": "plugins/client-operations/skills/workflow-automation/SKILL.md",
+      "computedHash": "3c52d48ed5bd38077fb8a1e2f991b1b1004dca3643a9828fa10acca8ed61678e"
+    }
+  }
+}

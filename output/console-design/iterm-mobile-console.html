@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoonieX Console — iTerm2 Mobile Design</title>
+<style>
+  :root{
+    --term-bg:#000000; --term-fg:#c7c7c7;
+    --ansi-red:#c91b00; --ansi-green:#00c200; --ansi-yellow:#c7c400;
+    --ansi-blue:#6871ff; --ansi-magenta:#ca30c7; --ansi-cyan:#00c5c7;
+    --ansi-dim:#686868;
+    --chrome-titlebar:#2a2a2c; --chrome-tabbar:#161617; --chrome-tab-active:#000000;
+    --chrome-text:#9a9a9e; --key-bg:#2a2a2c; --key-fg:#d0d0d4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:#1c1c1f; color:#8e8e93;
+    font-family:Menlo,Monaco,'SF Mono',monospace;
+    display:flex; gap:48px; justify-content:center; align-items:flex-start;
+    padding:40px; min-height:100vh; flex-wrap:wrap;
+  }
+  .col{display:flex;flex-direction:column;gap:14px;align-items:center;}
+  .col h2{font-size:13px;color:#d0d0d4;font-weight:normal;}
+  .col .url-label{font-size:11px;color:var(--ansi-green);}
+  .note{font-size:10.5px;color:#7c7c82;max-width:390px;line-height:1.6;}
+
+  .phone{
+    width:390px;height:844px;background:#000;border-radius:48px;
+    border:5px solid #2c2c2e; overflow:hidden; position:relative;
+    display:flex;flex-direction:column; box-shadow:0 24px 60px rgba(0,0,0,.55);
+  }
+  .statusbar{height:46px;flex:none;display:flex;justify-content:space-between;align-items:center;
+    padding:14px 28px 0;color:#fff;font-size:13px;font-weight:bold;background:#000;}
+  .safari{flex:none;background:#0d0d0e;padding:7px 12px;border-bottom:1px solid #1f1f21;display:flex;justify-content:center;}
+  .safari .pill{background:#1f1f21;border-radius:10px;padding:7px 14px;font-size:12px;color:#d0d0d4;
+    width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .safari .pill .lock{color:#8e8e93;margin-right:6px;}
+  .safari .pill .path{color:var(--ansi-green);}
+
+  .iterm{flex:1;display:flex;flex-direction:column;min-height:0;background:var(--term-bg);}
+  .titlebar{flex:none;height:34px;background:var(--chrome-titlebar);display:flex;align-items:center;
+    padding:0 12px;position:relative;border-bottom:1px solid #1a1a1c;}
+  .lights{display:flex;gap:8px;}
+  .light{width:12px;height:12px;border-radius:50%;}
+  .light.r{background:#ff5f57;} .light.y{background:#febc2e;} .light.g{background:#28c840;}
+  .titlebar .title{position:absolute;left:0;right:0;text-align:center;font-size:12px;color:var(--chrome-text);pointer-events:none;}
+
+  .term{flex:1;overflow:hidden;padding:12px 14px;font-size:12.5px;line-height:1.55;
+    color:var(--term-fg);white-space:pre-wrap;word-break:break-word;}
+  .green{color:var(--ansi-green);} .yellow{color:var(--ansi-yellow);} .red{color:var(--ansi-red);}
+  .blue{color:var(--ansi-blue);} .cyan{color:var(--ansi-cyan);} .magenta{color:var(--ansi-magenta);}
+  .dim{color:var(--ansi-dim);} .bold{font-weight:bold;color:#fff;} .sel{background:#21376b;}
+  .cursor{display:inline-block;width:8px;height:15px;background:var(--term-fg);vertical-align:-2px;animation:blink 1.1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  /* session list rows */
+  .srow{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid #232325;border-radius:8px;margin:6px 0;background:#0e0e10;}
+  .srow.sel{border-color:var(--ansi-cyan);background:#0b1a1b;}
+  .badge{font-size:10px;font-weight:bold;padding:2px 7px;border-radius:4px;letter-spacing:.5px;}
+  .b-cto{background:#10233f;color:#7aa2ff;} .b-cmo{background:#3a1130;color:#ff8ad4;}
+  .b-cfo{background:#0f2a16;color:#7CFC8a;} .b-cxo{background:#2e2410;color:#e8c14a;}
+  .srow .slug{color:#e8e8ea;font-size:12.5px;flex:1;}
+  .srow .meta{font-size:10.5px;color:#7c7c82;}
+  .createbtn{display:flex;align-items:center;justify-content:center;gap:8px;background:#0f2a10;
+    border:1px solid var(--ansi-green);color:#7CFC8a;border-radius:9px;padding:11px;font-size:13px;margin:10px 0 6px;font-weight:bold;}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px;}
+  .chip{font-size:11.5px;padding:6px 12px;border-radius:7px;border:1px solid #353538;background:#1a1a1c;color:#d0d0d4;}
+  .chip.on{border-color:var(--ansi-cyan);background:#10233f;color:#9ec1ff;}
+
+  .btn-passkey{display:flex;align-items:center;justify-content:center;gap:8px;background:#0f2a10;
+    border:1px solid var(--ansi-green);color:#7CFC8a;border-radius:9px;padding:12px;font-size:13.5px;margin-top:12px;font-family:inherit;}
+
+  .composer{flex:none;background:#0d0d0e;border-top:1px solid #232325;padding:8px 10px 6px;}
+  .inputline{display:flex;align-items:center;gap:8px;background:#1a1a1c;border:1px solid #2e2e31;border-radius:8px;padding:9px 12px;font-size:13px;}
+  .inputline .prompt{color:var(--ansi-green);} .inputline .ph{color:#5a5a5e;} .inputline .send{margin-left:auto;color:var(--ansi-cyan);font-size:15px;}
+  .keys{display:flex;gap:6px;margin-top:8px;}
+  .key{flex:1;text-align:center;background:var(--key-bg);color:var(--key-fg);border-radius:6px;padding:7px 0;font-size:11.5px;border:1px solid #353538;}
+  .homebar{flex:none;height:22px;display:flex;justify-content:center;align-items:center;background:#0d0d0e;}
+  .homebar i{width:130px;height:5px;border-radius:3px;background:#3a3a3c;display:block;}
+</style>
+</head>
+<body>
+
+<!-- (1) /login — console operator login (standalone, NOT webapp admin) -->
+<div class="col">
+  <h2>① เปิด console.mooniex.com → เด้ง <span style="color:#00c5c7">/login</span></h2>
+  <div class="url-label">console.mooniex.com/login</div>
+  <div class="phone">
+    <div class="statusbar"><span>21:47</span><span>●●●  ᯤ  ▮88%</span></div>
+    <div class="safari"><div class="pill"><span class="lock">🔒</span>console.mooniex.com<span class="path">/login</span></div></div>
+    <div class="iterm">
+      <div class="titlebar">
+        <div class="lights"><span class="light r"></span><span class="light y"></span><span class="light g"></span></div>
+        <div class="title">mooniex console — login</div>
+      </div>
+      <div class="term">
+<span class="bold">MoonieX Console</span>
+<span class="dim">operator sign-in
+agent session control</span>
+
+<span class="dim">operator:</span> <span class="cyan">gob</span>
+
+<button class="btn-passkey">🔑  Sign in with Face ID / Passkey</button>
+
+<span class="dim">fallback:</span> TOTP 6-digit
+<span class="green">[ _ _ _ _ _ _ ]</span>
+
+<span class="dim">────────────────────────────
+login ของ console เอง — แยกขาด
+จาก mooniex-webapp /admin และ
+user ของ webapp (คนละ DB คนละ
+cookie). console = เครื่องมือของ
+developer/operator ล้วน</span>
+
+<span class="green">auth %</span> <span class="cursor"></span></div>
+      <div class="homebar"><i></i></div>
+    </div>
+  </div>
+  <div class="note">ชั้น 1 = Tailscale (คนนอก tailnet ไม่เห็น) · ชั้น 2 = passkey นี้ · ไม่เกี่ยวกับ webapp admin (CFO dashboard ฯลฯ) เลย</div>
+</div>
+
+<!-- (2) / — session list (ทุก role) + Create New Session (role picker) -->
+<div class="col">
+  <h2>② หลัง login → list ทุก session + Create</h2>
+  <div class="url-label">console.mooniex.com</div>
+  <div class="phone">
+    <div class="statusbar"><span>21:48</span><span>●●●  ᯤ  ▮88%</span></div>
+    <div class="safari"><div class="pill"><span class="lock">🔒</span>console.mooniex.com</div></div>
+    <div class="iterm">
+      <div class="titlebar">
+        <div class="lights"><span class="light r"></span><span class="light y"></span><span class="light g"></span></div>
+        <div class="title">sessions — 4 active</div>
+      </div>
+      <div class="term"><span class="yellow bold">ACTIVE SESSIONS</span> <span class="dim">(tmux ls)</span>
+
+<div class="srow sel"><span class="badge b-cto">CTO</span><span class="slug">contabo-migration</span><span class="meta"><span class="yellow">⏳</span> 2m</span></div>
+<div class="srow"><span class="badge b-cto">CTO</span><span class="slug">trader-mindset</span><span class="meta"><span class="green">✅</span> 4h</span></div>
+<div class="srow"><span class="badge b-cmo">CMO</span><span class="slug">geo-wave2</span><span class="meta"><span class="dim">💤</span> 2d</span></div>
+<div class="srow"><span class="badge b-cfo">CFO</span><span class="slug">billing-audit</span><span class="meta"><span class="green">✅</span> 1d</span></div>
+
+<button class="createbtn">＋  Create New Session</button>
+<span class="dim">เลือก role:</span>
+<div class="chips"><span class="chip on">CTO</span><span class="chip">CMO</span><span class="chip">CFO</span><span class="chip">CXO</span><span class="chip">…</span></div>
+
+<span class="dim">─ แตะ session = เข้า chat · เลือก role + ตั้งชื่อ = เปิดใหม่ ─</span></div>
+      <div class="homebar"><i></i></div>
+    </div>
+  </div>
+  <div class="note">หน้าเดียวเห็นทุก role (CTO/CMO/CFO/CXO) · ปุ่ม Create → เลือก role → ตั้งชื่อ → เข้า chat ทันที · แตะ session เดิม = continue</div>
+</div>
+
+<!-- (3) /agent/{role}/{slug} — live chat -->
+<div class="col">
+  <h2>③ เลือก session → หน้า chat ทันที</h2>
+  <div class="url-label">console.mooniex.com/agent/cto/contabo-migration</div>
+  <div class="phone">
+    <div class="statusbar"><span>21:49</span><span>●●●  ᯤ  ▮88%</span></div>
+    <div class="safari"><div class="pill"><span class="lock">🔒</span>…<span class="path">/agent/cto/contabo-migration</span></div></div>
+    <div class="iterm">
+      <div class="titlebar">
+        <div class="lights"><span class="light r"></span><span class="light y"></span><span class="light g"></span></div>
+        <div class="title">cto/contabo-migration</div>
+      </div>
+      <div class="term"><span class="dim">── resumed · session มีชีวิตใน tmux ──</span>
+
+<span class="green">&gt;</span> <span class="bold">migration ถึงไหนแล้ว</span>
+
+<span class="magenta">⏺</span> รอ Contabo merge บัญชี →
+  provision VPS → ได้ IP
+<span class="magenta">⏺</span> prep ครบ: provision.sh +
+  backup 2.4G + tailscale key
+
+<span class="green">cto %</span> <span class="cursor"></span></div>
+      <div class="composer">
+        <div class="inputline"><span class="prompt">&gt;</span><span class="ph">พิมพ์ถึง CTO…</span><span class="send">⏎</span></div>
+        <div class="keys"><span class="key">esc</span><span class="key">tab</span><span class="key">⌃C</span><span class="key">↑</span><span class="key">↓</span><span class="key">⏎</span></div>
+      </div>
+      <div class="homebar"><i></i></div>
+    </div>
+  </div>
+  <div class="note">ปิด Safari/จอดับ → tmux ไม่ตาย → เปิด bookmark เดิม = ต่อทันที · 2 iPhone เปิด session เดียวกันพร้อมกันได้ (mirror)</div>
+</div>
+
+</body>
+</html>

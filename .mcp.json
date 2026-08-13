@@ -1,0 +1,61 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "mcp-server-supabase",
+      "args": [
+        "--project-ref=tlokhyqpthvxabweekps",
+        "--features=database"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      }
+    },
+    "supabase-lungnote": {
+      "command": "mcp-server-supabase",
+      "args": [
+        "--project-ref=qkaxvockysyazmtormvf",
+        "--features=database"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      }
+    },
+    "supabase-chatudo": {
+      "command": "mcp-server-supabase",
+      "args": [
+        "--project-ref=gcjdirrtvybhvghjtscf",
+        "--features=database"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN_GOB2}"
+      }
+    },
+    "supabase-linkreed": {
+      "command": "mcp-server-supabase",
+      "args": [
+        "--project-ref=tlkujtschyhzuwumddej",
+        "--features=database"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN_GOB2}"
+      }
+    },
+    "mooniex-coord": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/Users/gob/.claude/mcp/mooniex-coord/index.mjs"
+      ],
+      "env": {}
+    },
+    "meta-ads-135": {
+      "type": "stdio",
+      "command": "meta-ads-mcp",
+      "args": [],
+      "env": {
+        "META_ADS_ACCESS_TOKEN": "__SET_BY_CEO__",
+        "META_AD_ACCOUNT_ID": "1374787969502492"
+      }
+    }
+  }
+}

@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="th"><head><meta charset="utf-8">
+<style>:root{--accent:#E8821E;}
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+* { box-sizing: border-box; }
+@page { size: A4; margin: 0; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Sarabun','Noto Sans Thai','Thonburi',sans-serif;
+  font-size: 13px; color: #2b2b2b; -webkit-print-color-adjust: exact;
+}
+.page { position: relative; width: 210mm; min-height: 297mm; padding: 16mm 14mm; }
+.corner { position: absolute; top: 0; right: 0; width: 0; height: 0;
+  border-top: 64px solid var(--accent); border-left: 64px solid transparent; }
+.title { text-align: right; color: var(--accent); }
+.title h1 { margin: 0; font-size: 26px; font-weight: 700; }
+.title .sub { font-size: 13px; color: var(--accent); }
+.head { display: flex; justify-content: space-between; margin-top: 6px; }
+.seller .name { font-weight: 600; }
+.seller .addr { color: #555; max-width: 78mm; line-height: 1.45; margin-top: 2px; }
+.meta { border-collapse: collapse; min-width: 70mm; }
+.meta td { padding: 2px 6px; vertical-align: top; }
+.meta td:first-child { color: var(--accent); white-space: nowrap; }
+.cust { margin-top: 14px; }
+.cust .lbl { color: var(--accent); }
+.cust .name { font-weight: 600; }
+.cust .ln { color: #555; line-height: 1.4; }
+table.items { width: 100%; border-collapse: collapse; margin-top: 16px; }
+table.items thead td { border-bottom: 1.5px solid #888; color: #555;
+  padding: 6px 8px; font-weight: 400; }
+table.items tbody td { padding: 6px 8px; vertical-align: top;
+  border-bottom: 1px solid #e5e5e5; }
+.c { text-align: center; } .r { text-align: right; white-space: nowrap; }
+td .desc { font-weight: 400; }
+td .sub { color: #666; font-size: 12px; line-height: 1.5; }
+.totals { display: flex; justify-content: flex-end; margin-top: 10px; }
+.totals table { border-collapse: collapse; min-width: 80mm; }
+.totals td { padding: 4px 8px; }
+.totals td.k { color: var(--accent); text-align: right; }
+.totals td.v { text-align: right; white-space: nowrap; }
+.fx { color: var(--accent); margin-top: 8px; }
+.words { margin-top: 6px; }
+.notes { margin-top: 16px; }
+.notes .lbl { color: var(--accent); }
+.notes div { line-height: 1.5; }
+.signs { display: flex; justify-content: space-between; margin-top: 32px; gap: 24px;
+  page-break-inside: avoid; }
+.signs .col { width: 48%; }
+.signs .inname { margin-bottom: 42px; }
+.sigrow { display: flex; gap: 16px; }
+.sigcell { flex: 1; text-align: center; }
+.sigline { border-bottom: 1px solid #333; height: 0; margin-bottom: 4px; }
+.sigval { height: 1.4em; text-align: center; color: #2b2b2b; font-size: 13px; }
+.siglabel { color: #555; font-size: 12px; }
+.foot { text-align: center; color: #aaa; font-size: 11px; margin-top: 24px; }
+</style></head>
+<body><div class="page">
+  <div class="corner"></div>
+  <div class="title"><h1>ใบเสนอราคา</h1><div class="sub"></div></div>
+  <div class="head">
+    <div class="seller"><div class="name">PASAKON RACHCHAKOT</div>
+      <div class="addr">114/447 Theparak Road, Bang Sao Thong Subdistrict, Bang Sao Thong District 10540 Village No. 2, Kanlaprit View Village, Samut Prakan Province</div></div>
+    <table class="meta"><tr><td>เลขที่</td><td>QT2026030001</td></tr><tr><td>วันที่</td><td>15/06/2026</td></tr><tr><td>ผู้ขาย</td><td>PASAKON RACHCHAKOT</td></tr><tr><td>ผู้ติดต่อ</td><td>Vipavee N.</td></tr></table>
+  </div>
+  <div class="cust"><div class="lbl">ลูกค้า</div>
+    <div class="name">Axi (สำนักงานใหญ่)</div><div class="ln">AxiTrader Limited</div><div class="ln">Suite 305, Griffith CorporateCentre, PO Box 1510, Beachmont</div><div class="ln">Kingstown, St Vincent and the Grenadines</div></div>
+  <table class="items">
+    <thead><tr><td class="c">#</td><td>รายละเอียด</td><td class="r">จำนวน</td>
+      <td class="r">ราคาต่อหน่วย</td><td class="r">ยอดรวม</td></tr></thead>
+    <tbody><tr><td class="c">1</td><td><div class="desc">Videos Tiktok</div><div class="sub">Create content for TikTok Chanel https://www.tiktok.com/@mypasakon (@mypasakon)</div><div class="sub">1 Videos for June</div></td><td class="r">1</td><td class="r">284.00</td><td class="r">284.00</td></tr></tbody>
+  </table>
+  <div class="totals"><table>
+    <tr><td class="k">รวมเป็นเงิน</td><td class="v">284.00 USD</td></tr>
+    <tr><td class="k">จำนวนเงินรวมทั้งสิ้น</td><td class="v">284.00 USD</td></tr>
+  </table></div>
+  <div class="fx">อัตราแลกเปลี่ยน&nbsp;&nbsp;1 USD = 30.939 บาท</div><div class="notes"><div class="lbl">หมายเหตุ</div><div>284$ USD payment at 4733664 Account</div></div>
+  <div class="signs">
+    <div class="col"><div class="inname">ในนาม Axi</div>
+      <div class="sigrow">
+        <div class="sigcell"><div class="sigval"></div><div class="sigline"></div><div class="siglabel">ผู้สั่งซื้อสินค้า</div></div>
+        <div class="sigcell"><div class="sigval"></div><div class="sigline"></div><div class="siglabel">วันที่</div></div>
+      </div></div>
+    <div class="col"><div class="inname">ในนาม PASAKON RACHCHAKOT</div>
+      <div class="sigrow">
+        <div class="sigcell"><div class="sigval"></div><div class="sigline"></div><div class="siglabel">ผู้อนุมัติ</div></div>
+        <div class="sigcell"><div class="sigval">15/06/2026</div><div class="sigline"></div><div class="siglabel">วันที่</div></div>
+      </div></div>
+  </div>
+  <div class="foot">Mooniex Co., Ltd.  ·  Corporate Registration 0115567021738</div>
+</div></body></html>

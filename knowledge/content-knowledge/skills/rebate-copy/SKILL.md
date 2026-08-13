@@ -27,6 +27,12 @@ Produce short-form rebate/cashback copy for MoonieX brokers.
 
 ## Key facts (LOCKED — do not recompute from DB)
 
+**Canonical source (JSON pilot, 2026-07-18): `facts.json` in this directory.**
+Read it first — every $/lot figure, disclaimer string, and forbidden-claim
+in the copy must trace back to that file verbatim, not be re-typed from
+memory or paraphrased. The table below is the human-readable mirror of
+the same data, kept for quick reference only.
+
 | Broker | Rate | Basis | Note |
 |--------|------|-------|------|
 | XM | $15/lot | Gold-standard lot | 80% IB share to user |
@@ -37,6 +43,10 @@ These numbers are fixed. **Never** derive them from database max values
 
 ## Workflow
 
+0. **Read `facts.json`** in this directory. Pull broker rates, the
+   disclaimer text, and `forbidden_claims` from it — do not recompute or
+   restate from memory. If `facts.json` and the table above ever disagree,
+   `facts.json` wins (it's the canonical, machine-checkable copy).
 1. **Read the brand voice** from `voices/mooniex/VOICE.md` (if present;
    otherwise use defaults: casual Thai, no crude pronouns, one trailing 🙏).
 2. **Pick the format** from the brief:

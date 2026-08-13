@@ -1,0 +1,39 @@
+{
+  "doc_type": "quotation",
+  "doc_no": "QT2026030001",
+  "date": "15/06/2026",
+  "seller": {
+    "name": "PASAKON RACHCHAKOT",
+    "address": "114/447 Theparak Road, Bang Sao Thong Subdistrict, Bang Sao Thong District 10540 Village No. 2, Kanlaprit View Village, Samut Prakan Province"
+  },
+  "contact": "Vipavee N.",
+  "customer": {
+    "name": "Axi (สำนักงานใหญ่)",
+    "lines": [
+      "AxiTrader Limited",
+      "Suite 305, Griffith CorporateCentre, PO Box 1510, Beachmont",
+      "Kingstown, St Vincent and the Grenadines"
+    ]
+  },
+  "items": [
+    {
+      "desc": "Videos Tiktok",
+      "sub": [
+        "Create content for TikTok Chanel https://www.tiktok.com/@mypasakon (@mypasakon)",
+        "1 Videos for June"
+      ],
+      "qty": 1,
+      "unit": 284.00,
+      "amount": 284.00
+    }
+  ],
+  "currency": "USD",
+  "fx_rate": "1 USD = 30.939 บาท",
+  "notes": [
+    "284$ USD payment at 4733664 Account"
+  ],
+  "sign_left_label": "ผู้สั่งซื้อสินค้า",
+  "customer_sign_name": "Axi",
+  "seller_sign_date": "15/06/2026",
+  "footer": "Mooniex Co., Ltd.  ·  Corporate Registration 0115567021738"
+}
