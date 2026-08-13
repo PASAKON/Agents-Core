@@ -435,8 +435,39 @@ cannot see it either.
    doing the checks, not a thing to arrange before doing them.
 3. If a hard delay is genuinely needed, `sleep` alone will be refused — use
    `.venv/bin/python -c "import time; time.sleep(180)"` from the worktree.
+   **Cap any single sleep at ~90 seconds and repeat it, never one long block.**
 4. Rough cadence, when the reads themselves do not already supply it: first
    check ~**10 minutes** after clicking, then every **5 minutes**.
+
+**A long sleep makes the operator unreachable, and that is indistinguishable
+from a hang.** A foreground sleep blocks the agent's whole turn; messages the
+C-level types into the tab sit unread in the input buffer until it ends.
+Measured 2026-08-14 (task-0ee4a20a): the operator fired Scene 10-D correctly —
+zero-digit check passed, all 10 chips intact — then entered a single
+`time.sleep(600)`. Three CTO questions went unanswered across 83 minutes while
+the pid stayed alive and the DB heartbeat kept moving. Reaching the same 10
+minutes as seven 90-second sleeps would have let it surface and answer between
+each one.
+
+**Before treating a silent operator as stalled, read its tab.** It is
+non-invasive, costs nothing, and shows exactly what the agent is doing —
+including a sleep in progress and how far through it is:
+
+```bash
+osascript -e 'tell application "iTerm2"
+ repeat with w in windows
+  repeat with t in tabs of w
+   set s to current session of t
+   if (name of s) contains "<task-id>" then return (contents of s)
+  end repeat
+ end repeat
+end tell' | tail -35
+```
+
+Do this BEFORE pinging again and long before killing. In the case above it
+immediately showed a correct Generate click and a running sleep; the C-level
+had already sent three unnecessary messages and was one step from killing an
+operator that was working perfectly.
 
 **Order of operations matters more than the interval: CHECK → REPORT →
 WAIT.** Both dead operators inverted it (announce → wait → wake → announce)
