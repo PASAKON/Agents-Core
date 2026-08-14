@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/session-deadline-check.py",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/session-deadline-check.py",
             "timeout": 8
           }
         ]
@@ -17,23 +17,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-log-prompt.py"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-log-prompt.py"
           },
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-recall.py"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-recall.py"
           },
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-skill-suggest.py"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-skill-suggest.py"
           },
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-memory-nudge.py"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-memory-nudge.py"
           },
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-inbox.py"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-inbox.py"
           }
         ]
       }
@@ -43,7 +43,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-browser-guard.py"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-browser-guard.py"
           }
         ]
       },
@@ -52,7 +52,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-self-repo-guard.py",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-self-repo-guard.py",
             "timeout": 10
           }
         ]
@@ -64,7 +64,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-skill-log.py"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-skill-log.py"
           }
         ]
       }
@@ -74,7 +74,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-log-reply.py"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-log-reply.py"
           }
         ]
       }

@@ -6,6 +6,7 @@ simultaneously and see/type the exact same stream — true two-way realtime
 sync, not a log mirror.
 
 API:
+    tmux_bin() -> str                         — resolve the tmux binary path
     create(session, cwd, cmd)                 — start detached tmux session
     send_keys(session, text)                  — type text + Enter
     has_session(session) -> bool
@@ -19,12 +20,71 @@ project whose config sets `spawn_backend: tmux`.
 """
 from __future__ import annotations
 
+import os
+import shutil
 import socket
 import subprocess
 from pathlib import Path
 
 DEFAULT_TTYD_BIND = "127.0.0.1"
 DEFAULT_TTYD_PORT_BASE = 8700
+
+_TMUX_BIN: str | None = None
+
+
+def _reset_tmux_bin_cache() -> None:
+    """Test-only: clear the cached resolution so the next tmux_bin() call
+    re-resolves. Production code never calls this -- the answer cannot
+    change inside one process."""
+    global _TMUX_BIN
+    _TMUX_BIN = None
+
+
+def tmux_bin() -> str:
+    """Absolute path to the tmux binary, resolved once per process.
+
+    launchd hands a process a bare PATH (/usr/bin:/bin:/usr/sbin:/sbin) -- it
+    does NOT inherit the login shell's. Homebrew installs tmux in
+    /opt/homebrew/bin, so a plain "tmux" argv[0] resolves to nothing under
+    launchd and every tmux call fails. The dangerous part is what that
+    failure looked like in practice: sessions that plainly existed were
+    reported as "no live session" -- a confident, wrong, plausible-looking
+    answer, not a clean "command not found".
+
+    Resolution order:
+      1. TMUX_BIN env override -- operator escape hatch, also what tests use.
+      2. shutil.which("tmux") -- correct whenever PATH is sane, and picks up
+         non-standard installs the hardcoded candidates below would miss.
+      3. /opt/homebrew/bin/tmux, /usr/local/bin/tmux, /usr/bin/tmux, by
+         existence -- covers the launchd case, where `which` finds nothing
+         because PATH was stripped, but the binary is still on disk.
+      4. bare "tmux" as the last resort. This keeps today's behaviour on any
+         box not accounted for above, and lets a truly missing tmux surface
+         as a real OSError from the caller's subprocess call instead of
+         silently pretending nothing is running.
+
+    Cached in a module global -- this runs on every tmux operation and the
+    answer cannot change mid-process -- but the cache is resettable via
+    `_reset_tmux_bin_cache()` so tests can exercise more than one resolution
+    path in a single run.
+    """
+    global _TMUX_BIN
+    if _TMUX_BIN is not None:
+        return _TMUX_BIN
+    override = os.environ.get("TMUX_BIN")
+    if override:
+        _TMUX_BIN = override
+        return _TMUX_BIN
+    found = shutil.which("tmux")
+    if found:
+        _TMUX_BIN = found
+        return _TMUX_BIN
+    for candidate in ("/opt/homebrew/bin/tmux", "/usr/local/bin/tmux", "/usr/bin/tmux"):
+        if Path(candidate).exists():
+            _TMUX_BIN = candidate
+            return _TMUX_BIN
+    _TMUX_BIN = "tmux"  # last resort; surfaces as a real error, not a silent miss
+    return _TMUX_BIN
 
 
 def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
@@ -33,25 +93,55 @@ def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
 
 def has_session(session: str) -> bool:
     r = subprocess.run(
-        ["tmux", "has-session", "-t", session],
+        [tmux_bin(), "has-session", "-t", session],
         capture_output=True, text=True, check=False,
     )
     return r.returncode == 0
+
+
+def login_shell() -> str:
+    """Absolute path to a login shell that exists on THIS machine.
+
+    `/bin/zsh` used to be hardcoded here. That is right on the Mac and absent
+    on Contabo (Debian), and the failure was silent in the worst possible way:
+    `tmux new-session -d ... /bin/zsh -l -c '...'` exits **0** even when the
+    shell does not exist. tmux creates the session, the command dies
+    instantly, the session dies with it, the server shuts down -- and
+    `create()` returns cleanly, so `spawn_c_level` told the CEO "spawned" for
+    a session that never existed.
+
+    $SHELL first (honours whatever the invoking user actually runs), then the
+    old candidate order, so the Mac resolves to zsh exactly as before.
+    """
+    for candidate in (os.environ.get("SHELL"), "/bin/zsh", "/bin/bash", "/bin/sh"):
+        if candidate and Path(candidate).exists():
+            return candidate
+    return "/bin/sh"  # POSIX guarantees this one
 
 
 def create(session: str, cwd: str | Path, cmd: str) -> None:
     """Start a detached tmux session that runs `cmd` in `cwd`.
 
     Idempotent: if session already exists, returns without error.
+
+    Raises RuntimeError when the session is not alive afterwards. tmux reports
+    success for a command it could not run (see `login_shell`), so its exit
+    code proves nothing -- only the session existing does.
     """
     if has_session(session):
         return
     cwd = str(Path(cwd).expanduser())
+    shell = login_shell()
     _run([
-        "tmux", "new-session", "-d", "-s", session, "-c", cwd,
+        tmux_bin(), "new-session", "-d", "-s", session, "-c", cwd,
         # Wrap cmd in a login shell so user PATH (claude, pnpm, etc.) resolves.
-        "/bin/zsh", "-l", "-c", cmd,
+        shell, "-l", "-c", cmd,
     ])
+    if not has_session(session):
+        raise RuntimeError(
+            f"tmux session {session!r} was not alive after new-session — its "
+            f"command exited immediately (shell={shell}, cwd={cwd})"
+        )
 
 
 def send_keys(session: str, text: str, *, press_enter: bool = True) -> None:
@@ -62,9 +152,9 @@ def send_keys(session: str, text: str, *, press_enter: bool = True) -> None:
     """
     if not has_session(session):
         raise RuntimeError(f"tmux session not found: {session}")
-    _run(["tmux", "send-keys", "-t", session, "-l", text])
+    _run([tmux_bin(), "send-keys", "-t", session, "-l", text])
     if press_enter:
-        _run(["tmux", "send-keys", "-t", session, "C-m"])
+        _run([tmux_bin(), "send-keys", "-t", session, "C-m"])
 
 
 def kill(session: str) -> bool:
@@ -72,7 +162,7 @@ def kill(session: str) -> bool:
     if not has_session(session):
         return False
     subprocess.run(
-        ["tmux", "kill-session", "-t", session],
+        [tmux_bin(), "kill-session", "-t", session],
         capture_output=True, text=True, check=False,
     )
     return True
@@ -108,7 +198,7 @@ def start_ttyd(session: str, port: int, *, writable: bool = True,
     args = ["ttyd", "-p", str(port), "-i", bind]
     if writable:
         args.append("--writable")
-    args += ["tmux", "attach", "-t", session]
+    args += [tmux_bin(), "attach", "-t", session]
     p = subprocess.Popen(
         args,
         stdout=subprocess.DEVNULL,

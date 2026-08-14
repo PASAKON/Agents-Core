@@ -61,6 +61,27 @@ def is_c_level(role_name: str) -> bool:
     return role_name in agents()["c_level"]
 
 
+def live_c_level_roles() -> tuple[str, ...]:
+    """C-level roles that can own a real agent session, in config order.
+
+    `agents()["c_level"]` includes ``ceo`` because the CEO *is* C-level for
+    authority purposes (`is_c_level` must keep saying yes). But the CEO is a
+    human at a terminal, never a spawned session with a lock, a tmux pane, or
+    a mailbox -- so anything that iterates *sessions* (broadcast delivery,
+    GC, session listing) wants this list, not the raw config key. Iterating
+    the raw key would try to deliver to a "ceo" session that cannot exist,
+    and would create an empty `state/inbox/ceo-*` box as a side effect.
+
+    Exists so the roster stops being copy-pasted. Three hardcoded tuples had
+    already drifted: `tools/session_name.py` (deliberately wider -- it also
+    carries the generic `cxo` prefix and is NOT a C-level roster), and
+    `runners/relay_mcp_server.py` / `runners/mac_agent.py` (same members,
+    different order). Adding a C-level should be one `policies/agents.yaml`
+    edit, not a hunt for tuples (CEO 2026-08-14).
+    """
+    return tuple(r for r in agents()["c_level"] if r != "ceo")
+
+
 def display_for(role_name: str) -> str:
     """Pretty role label used in tab titles, chat prefixes, and logs.
 

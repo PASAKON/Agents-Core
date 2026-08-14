@@ -77,6 +77,10 @@ def main() -> None:
         model = "claude-opus-5"
 
     env = os.environ.copy()
+    # Mirror dev_init: an update prompt is a startup interrupt that no
+    # --permission-mode or --allowed-tools setting can reach, and it would
+    # block a resumed worker nobody is watching (IRON-RULES §45).
+    env["DISABLE_AUTOUPDATER"] = "1"
     env["DEV_TASK_ID"] = task_id
     env["DEV_ROLE"] = role
 

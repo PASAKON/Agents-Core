@@ -8,19 +8,31 @@ CR plus a second rescue CR — see lib/iterm_type.type_submit_fragment.
 
 Verifies:
   (a) the shared helper fragment carries both delays and two CRs, in order;
-  (b) 3 of the 4 Python senders that still type into a terminal
-      (send_to_cto / send_to_dev / inject_prompt) bake the new sequence
-      into their generated AppleScript, using a genuinely multi-line
-      message (the trigger condition). `send_to_cxo` is the 4th sender
-      historically covered here, but task task-de2cdc15 (CEO 2026-08-14
-      option A) replaced its typed-message send path with a file-based
-      mailbox (`lib/mailbox.py`) — it no longer types anything, so
-      `test_send_to_cxo_sequence` below now proves the opposite: no
-      osascript call, no leftover typing helper, a real letter in the box;
+  (b) of the original 4 Python senders that used to type into a terminal
+      (send_to_cto / send_to_dev / inject_prompt / send_to_cxo), only
+      `inject_prompt` still does, and its generated AppleScript bakes the
+      settle-delay+2CR sequence, using a genuinely multi-line message (the
+      trigger condition). The other 3 were migrated off typing entirely by
+      the mailbox+wake pattern: `send_to_cxo` first (task-de2cdc15, CEO
+      2026-08-14 option A), then `send_to_cto` + `send_to_dev` together
+      (task-2f04a8ca, CEO 2026-08-14, same-day org-wide extension —
+      "ยกเลิกการส่งแบบที่ต้องใช้ Keyboard ถาวรได้เลย ... ทุกๆ ตำแหน่งในองกรณ์เลย").
+      `test_send_to_cxo_sequence` / `test_send_to_cto_sequence` /
+      `test_send_to_dev_sequence` below each prove the same shape for
+      their sender: no osascript call, no leftover typing helper, a real
+      letter in the mailbox instead. Full delivery-contract coverage
+      (wake attempt/skip/fail isolation, GH #65 closure, etc.) lives in
+      `scripts/test_send_to_cto.py` / `scripts/test_send_to_dev.py` — the
+      three sequence tests here exist only to keep this file's own
+      "did the typing get removed, not just moved" story honest;
   (c) the 2 shell sites (idle-ping-watcher.sh, cxo-claude.sh) inline the same
       delay / CR / delay / CR sequence.
 
 subprocess.run is mocked everywhere — no real iTerm window is ever opened.
+Every mailbox/DB write in the 3 non-typing sender tests below is redirected
+to `tmp_path` (never `state/inbox/` or `state/tasks.db`), restored in a
+`finally` block so this file's dual pytest/`python scripts/...` execution
+mode (see `main()`) stays intact without a `monkeypatch` fixture.
 
 Run via:   python scripts/test_iterm_typewriter.py
 """
@@ -29,6 +41,7 @@ from __future__ import annotations
 import sys
 import tempfile
 import unittest.mock as mock
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -129,21 +142,77 @@ def _capture_osascript(fn) -> str | None:
 
 
 def test_send_to_cto_sequence(tmp_path: Path) -> bool:
+    """Supersedes the old assertion (task-2f04a8ca, 2026-08-14): send_to_cto
+    no longer types anything, so there is no AppleScript sequence to check
+    here anymore -- full delivery-contract coverage moved to
+    scripts/test_send_to_cto.py. Proves the same two things
+    test_send_to_cxo_sequence already proved for its sender: send() writes
+    the mailbox, not osascript; and the removed typing/window-lookup
+    helper (`_read_winid`) is gone."""
+    import lib.mailbox as mailbox
     import tools.send_to_cto as m
-    m.LOCKS_DIR = tmp_path
+
+    if hasattr(m, "_read_winid") or hasattr(m, "_run_osascript"):
+        return False  # the removed typing/winid-lookup helpers must not exist
+
+    orig_state, orig_inbox = m.STATE_DIR, mailbox.INBOX_ROOT
     m.STATE_DIR = tmp_path
-    (tmp_path / "cto-seq01.winid").write_text("4321\n")
+    mailbox.INBOX_ROOT = tmp_path / "inbox"
+    try:
+        script = _capture_osascript(
+            lambda: m.send("task-x", MULTI, role="developer", cto_id="seq01")
+        )
+        letters = mailbox.peek("cto", "seq01", root=mailbox.INBOX_ROOT)
+        return (
+            script is None                # zero osascript calls
+            and len(letters) == 1
+            and letters[0]["body"] == MULTI
+        )
+    finally:
+        m.STATE_DIR, mailbox.INBOX_ROOT = orig_state, orig_inbox
 
-    script = _capture_osascript(
-        lambda: m.send("task-x", MULTI, role="developer", cto_id="seq01")
-    )
-    return script is not None and _has_fix(script)
 
+def test_send_to_dev_sequence(tmp_path: Path) -> bool:
+    """Supersedes the old assertion (task-2f04a8ca, 2026-08-14): send_to_dev
+    no longer types anything -- the `_send` helper this test used to import
+    is deleted, not renamed. Full delivery-contract coverage (wake
+    attempt/skip/fail isolation, GH #65 closure) moved to
+    scripts/test_send_to_dev.py; this proves the same shape as the other
+    two sequence tests above: no osascript call, no leftover typing
+    helper, a real letter in the mailbox instead."""
+    import lib.db as db_mod
+    import lib.mailbox as mailbox
+    import tools.send_to_dev as sd
 
-def test_send_to_dev_sequence() -> bool:
-    from tools.send_to_dev import _send
-    script = _capture_osascript(lambda: _send("task-abcdef12", MULTI))
-    return script is not None and _has_fix(script)
+    if hasattr(sd, "_send") or hasattr(sd, "_run_osascript"):
+        return False  # the removed typing helper must not exist at all
+
+    orig_db_path, orig_inbox = db_mod.DB_PATH, mailbox.INBOX_ROOT
+    db_mod.DB_PATH = tmp_path / "tasks.db"
+    mailbox.INBOX_ROOT = tmp_path / "inbox"
+    db_mod.init()
+    try:
+        ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        with db_mod.get_conn() as conn:
+            conn.execute(
+                """INSERT INTO tasks
+                   (id, project, role, status, title, description,
+                    depends_on, touches, tmux_session, owner_role, owner_cto,
+                    created_at, updated_at)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                ("task-seqdev01", "test-proj", "developer", "in_progress",
+                 "t", "d", "[]", "[]", None, None, None, ts, ts),
+            )
+            conn.commit()
+        script = _capture_osascript(lambda: sd.send("task-seqdev01", MULTI))
+        letters = mailbox.peek("developer", "task-seqdev01", root=mailbox.INBOX_ROOT)
+        return (
+            script is None
+            and len(letters) == 1
+            and letters[0]["body"] == MULTI
+        )
+    finally:
+        db_mod.DB_PATH, mailbox.INBOX_ROOT = orig_db_path, orig_inbox
 
 
 def test_send_to_cxo_sequence(tmp_path: Path) -> bool:
@@ -215,9 +284,9 @@ def main() -> int:
         _mark(r, "helper drops caller-escaped body inside quotes verbatim")
 
         r = test_send_to_cto_sequence(tmp); fails += not r
-        _mark(r, "send_to_cto generated AppleScript carries the delay+2CR fix")
-        r = test_send_to_dev_sequence(); fails += not r
-        _mark(r, "send_to_dev generated AppleScript carries the delay+2CR fix")
+        _mark(r, "send_to_cto writes the mailbox, calls no osascript, has no typing helper left")
+        r = test_send_to_dev_sequence(tmp); fails += not r
+        _mark(r, "send_to_dev writes the mailbox, calls no osascript, has no typing helper left")
         r = test_send_to_cxo_sequence(tmp); fails += not r
         _mark(r, "send_to_cxo writes the mailbox, calls no osascript, has no typing helper left")
         r = test_inject_prompt_sequence(tmp); fails += not r

@@ -479,6 +479,85 @@
  *    twice a few seconds apart for stability before unzipping, same as
  *    Wave 5.
  *
+ * Wave 9 findings (task-9ea647f6, 2026-08-14, Cinema Studio PROJECT FOLDER
+ * — `/generate/@<org>/<project>/folders/<uuid>`, NOT `/ai/video` History —
+ * small download-only pull, 5 cards total):
+ *
+ * 1. **A Cinema Studio project folder's card grid is a different DOM tree
+ *    from the `/ai/video` History panel** — do not reuse
+ *    `hfGetHistoryContainer()` (matches on `scrollHeight > clientHeight +
+ *    5000`, tuned for a huge virtualized list) here. This folder's grid
+ *    container is small and only barely scrollable even with content
+ *    (measured: `scrollHeight` 515 vs `clientHeight` 500 for 5 cards).
+ *    Locate it instead by class fingerprint:
+ *    `(el.className+'').includes('flex-1') && includes('overflow-y-auto')
+ *    && includes('hide-scrollbar')` — a sibling element with classes
+ *    `overflow-y-auto hide-scrollbar` but no `flex-1` also exists (the left
+ *    Folders nav list) and has zero images in it; the `flex-1` term is what
+ *    disambiguates the two.
+ *
+ * 2. **The id-diff recipe (Wave 8 finding 4) transfers cleanly**: scope the
+ *    `img,video` query to the grid container found above, regex out
+ *    `hf_\d{8}_\d{6}_[a-f0-9-]+` from `.src`, diff against
+ *    `gdrive_move.py list <folderId>` output. Zero screenshots needed for
+ *    the inventory step; only 2 small zooms were spent confirming the
+ *    per-card icon strip layout, well under the 5-screenshot budget flag.
+ *
+ * 3. **Verify a task-supplied Drive folder id before trusting it — it can be
+ *    stale.** The task brief's own text said as much ("verify by listing
+ *    `All Scene`... don't trust this pasted id blindly") and it caught a
+ *    real mismatch: the brief's `S11` id (`1CSvSnzTLTLKovtjaFn_Ck0RZ3E3PN7Ip`)
+ *    did not match the real `S11` folder id found by listing `All Scene`
+ *    fresh (`1UUr-xoemX6WAFVF-ziIkU2Qwlvbamb8P`). The `S11-1080P` id in the
+ *    brief matched. One `gdrive_move.py list` on the parent before touching
+ *    anything downstream would have caught this either way — do that list
+ *    first, every time, regardless of how confident the brief sounds.
+ *
+ * 4. **Per-card hover-revealed icon strip (heart / download-tray / copy /
+ *    image, left-to-right) only mounts in the DOM after a REAL hover event**
+ *    — same quirk as Wave 8 finding 1's checkboxes, but for a completely
+ *    different UI (this is a project folder, not History Grid-view
+ *    multi-select). A `javascript_tool` walk that skips the hover finds the
+ *    card's ancestor with `querySelectorAll('svg').length >= 4` returning 0
+ *    matching buttons (`btns[1]` is `undefined`) even though the icons are
+ *    visibly present in a screenshot taken moments earlier in the SAME
+ *    session on a DIFFERENT card — the mount state is genuinely per-card,
+ *    not global. Fix: `computer` `hover` at the card's on-screen coordinate
+ *    FIRST (a bare synthetic hover via JS does not reliably fire it either,
+ *    consistent with Wave 8 finding 2's warning about `left_click`'s
+ *    synthetic move not firing React's `mouseenter`), THEN run the
+ *    `javascript_tool` query in a separate call. The 2nd button (`btns[1]`,
+ *    i.e. 0-indexed position 1 of the 4 unlabeled `button.button-tertiary`
+ *    icons) is the download-tray icon; button 0's outerHTML read as
+ *    `[BLOCKED: Cookie/query string data]` (an inline SVG sprite href with a
+ *    query string, tripped the extension's own redaction — harmless, just
+ *    don't rely on reading its content, index-count around it instead). A
+ *    direct JS `.click()` on `btns[1]` triggered an immediate real download
+ *    every time it was tried on a freshly-hovered card — matches Wave 6
+ *    finding 7's "JS `.click()` beats coordinate click" for the analogous
+ *    History-panel download control.
+ *
+ * 5. **The one-download-per-session-per-origin cap (Wave 7 finding 13)
+ *    reproduced exactly** on this surface too: file 1 downloaded cleanly,
+ *    file 2's identical click produced no error, no console entry, and no
+ *    file in `~/Downloads` after a few seconds' wait. `osascript -e 'quit
+ *    app "Google Chrome"'` + `open -a "Google Chrome"`, then a fresh
+ *    `tabs_context_mcp{createIfEmpty:true}` + re-navigate, unblocked it
+ *    immediately — file 2 downloaded on the very next click, no retries
+ *    needed. Budget one Chrome restart per file beyond the first when doing
+ *    per-card downloads outside the Grid-view bulk-zip path; the zip path
+ *    (Wave 5 finding 1) sidesteps this entirely by still counting as one
+ *    origin download for N files, so prefer it whenever selecting >2 cards.
+ *
+ * 6. **Screenshot-pixel vs CSS-pixel ratio was exactly 1.0 in this session**
+ *    (1024 window request → 1024x591 screenshot, matching `[innerWidth,
+ *    innerHeight]` read via JS) — a useful data point against Wave 7/8's
+ *    1.42x and 1.11x on other displays/window states: this ratio is NOT a
+ *    per-machine constant, it's per-window-state, and must be re-measured
+ *    every session exactly as those findings already said. Recorded here
+ *    only because a 1.0 ratio (no correction needed at all) is itself worth
+ *    knowing was observed, not just the two skewed cases.
+ *
  * Wave 10 findings (task-110cf390, 2026-08-14, negative-result verification —
  * confirming 5 empty Drive scene folders (S11, S13-S16) had genuinely no
  * matching Higgsfield footage anywhere, no generation, read-only both

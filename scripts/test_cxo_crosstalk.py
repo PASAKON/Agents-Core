@@ -485,3 +485,61 @@ def test_wake_tmux_send_uses_settle_delay_rescue_sequence_not_send_keys(monkeypa
         ["tmux", "send-keys", "-t", "cfo-sess1234", "Enter"],
     ]
     assert sleeps == [0.4, 0.3]
+
+
+def test_attempt_wake_public_with_private_alias_same_function():
+    """task-18241f1d: the wake was promoted to public `attempt_wake` (the
+    org's ONE implementation, imported by runners/relay_mcp_server.py).
+    The old private name stays as an alias to the SAME function object, so
+    every existing caller and every monkeypatch on either name observes
+    the other too."""
+    assert sc._attempt_wake is sc.attempt_wake
+
+
+def test_secretary_is_explicit_ceo_proxy_in_authorize(isolated_locks):
+    """task-18241f1d: the secretary (SomPong) is the CEO's Telegram-side
+    proxy, not a C-level. authorize() must carry it as its own explicit
+    entry -- allowed to reach any C-level primary session -- rather than
+    letting it pass incidentally as a root peer."""
+    sompong = sc.Identity("secretary", "secretary", "sompong")
+    assert sc._owner_of(sompong) is None  # root-tier by definition
+    sc.authorize(sompong, "cto", "ctosess1", spawning=False)  # no raise
+    sc.authorize(sompong, "cfo", "cfosess9", spawning=False)  # any C-level
+
+
+def test_secretary_entry_beats_a_forged_spawn_record(isolated_locks):
+    """The allow must be the explicit secretary branch, not the root-peer
+    fallback: plant a forged `secretary-sompong.spawned_by` claiming a
+    C-level spawned the secretary. A kind=="cxo" identity with that record
+    would be owned and refused cross-peer sends -- the secretary must
+    still pass, proving it never walks the C-level ownership path at all
+    (never dressed up as a C-level to satisfy the gate)."""
+    (isolated_locks / "secretary-sompong.spawned_by").write_text("cxo:cto:ctoroot1")
+    sompong = sc.Identity("secretary", "secretary", "sompong")
+    sc.authorize(sompong, "cmo", "cmosess1", spawning=False)  # no raise
+
+    # Contrast: the SAME record on a C-level-shaped identity does bind.
+    disguised = sc.Identity("cxo", "secretary", "sompong")
+    with pytest.raises(PermissionError):
+        sc.authorize(disguised, "cmo", "cmosess1", spawning=False)
+
+
+def test_secretary_to_non_c_level_target_is_refused(isolated_locks):
+    """task-02d0e863 D2: the docstring promises the secretary 'may reach any
+    C-level primary session' — the branch must enforce exactly that, not
+    'anything'. Nothing exploits the gap today (the only secretary Identity
+    constructor validates first), but authorize() is reachable from Telegram
+    and a docstring/enforcement gap is the kind that gets discovered later
+    by something going wrong. Refusal uses the same PermissionError the
+    rest of authorize() raises."""
+    sompong = sc.Identity("secretary", "secretary", "sompong")
+
+    with pytest.raises(PermissionError, match="C-level"):
+        sc.authorize(sompong, "dev", "task-abcdef12", spawning=False)
+
+    with pytest.raises(PermissionError, match="C-level"):
+        sc.authorize(sompong, "", None, spawning=False)  # no target at all
+
+    # And the allowed side stays allowed: any C-level target passes.
+    for role in ("cto", "cfo", "cmo", "cgo"):
+        sc.authorize(sompong, role, f"{role}sess1", spawning=False)

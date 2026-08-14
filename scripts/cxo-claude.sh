@@ -445,6 +445,13 @@ for a in ${ARGS[@]+"${ARGS[@]}"}; do
   esac
 done
 
+# An "update available" prompt is a startup-level interrupt, not a tool
+# permission check, so neither --permission-mode nor --allowed-tools reaches
+# it -- it can block an unattended session on a keypress nobody is there to
+# press (IRON-RULES §45). Verified 2026-08-14 by grepping the installed
+# binary's own strings for the var name rather than assuming it.
+export DISABLE_AUTOUPDATER=1
+
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
   -n "$TAB_TITLE" \

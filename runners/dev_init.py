@@ -7,14 +7,30 @@ Two modes:
 
 * **Default (developer/tester/devops/…):** exec the Claude Code TUI in
   the worktree. Tab becomes an interactive claude session with the task
-  description as the first prompt and `submit_report` MCP wired.
+  description as the first prompt and `submit_report` MCP wired. This is
+  the same TUI regardless of backend — on a `spawn_backend: iterm`
+  project (`config/projects.yaml`) it runs directly in the iTerm tab's
+  shell; on `spawn_backend: tmux` (task-2f04a8ca, CEO 2026-08-14 — most
+  projects as of this task) it runs inside a tmux pane that the iTerm tab
+  attaches to (`tmux attach -t <session>`, wired by
+  `tools/delegate.py:_spawn_iterm_tab`) instead. IRON-RULES §29 holds
+  either way: the tab is still visibly attached. tmux backend exists so
+  `tools.send_to_dev`'s wake has something to type into — a wake only
+  fires against `task["tmux_session"]`, which only a tmux-backend project
+  ever sets; on iterm backend the wake silently no-ops (mailbox delivery
+  still succeeds, but nothing prompts the DEV to read it before its next
+  turn).
 
 * **web_designer on a `spawn_backend: tmux` project:** the agent loop
   is driven by claudesign daemon (Web UI chat → `mooniex-tmux` adapter
   → bridge `tools/claudesign_tmux_bin.py` → spawns real claude per
   message). The tmux pane is a **passive viewer** that tails the bridge
   mirror file so the iTerm tab + ttyd browser see every stream-json
-  line claude emits. We never spawn the TUI for this role.
+  line claude emits. We never spawn the TUI for this role. Unchanged by
+  task-2f04a8ca — this is the claudesign Web-UI path, not the general
+  tmux-backend rollout above; `config/projects.yaml` deliberately leaves
+  mooniex-claudesign on `spawn_backend: iterm` so this branch stays dead
+  there (see that file's comment on the `mooniex-claudesign` entry).
 """
 from __future__ import annotations
 
@@ -246,12 +262,15 @@ def main() -> None:
 
     # web_designer on a tmux/Web-UI-bridge project is driven by the
     # claudesign daemon (Web UI chat → bridge → real claude per message),
-    # so the pane is just a passive tail of the bridge mirror. On the
-    # default iTerm backend it instead runs as an autonomous claude TUI
-    # exactly like any other DEV — so the CTO's `delegate_task` behaves the
-    # same as for `developer`, only with the web_designer role doc + the
-    # design source resolved from the project UUID (CEO 2026-06-15). The
-    # CEO-driven Web UI flow is a separate path (scripts/spawn-web-designer.sh).
+    # so the pane is just a passive tail of the bridge mirror. Every other
+    # role+backend combination instead runs as an autonomous claude TUI
+    # exactly like any other DEV — whether that TUI lives directly in the
+    # iTerm tab (spawn_backend: iterm) or inside a tmux pane the tab
+    # attaches to (spawn_backend: tmux, task-2f04a8ca) makes no difference
+    # here — so the CTO's `delegate_task` behaves the same as for
+    # `developer`, only with the web_designer role doc + the design source
+    # resolved from the project UUID (CEO 2026-06-15). The CEO-driven Web
+    # UI flow is a separate path (scripts/spawn-web-designer.sh).
     if role == "web_designer" and backend == "tmux":
         try:
             db.update_status(task_id, "in_progress", pid=os.getpid(), actor=role)
@@ -290,6 +309,12 @@ def main() -> None:
         model = "claude-opus-5"
 
     env = os.environ.copy()
+    # An "update available" prompt is a startup-level interrupt, not a tool
+    # permission check, so neither --permission-mode nor --allowed-tools
+    # reaches it -- it would block a worker nobody is watching on a keypress
+    # nobody is there to press (IRON-RULES §45). Verified 2026-08-14 by
+    # grepping the installed binary's strings for the name, not assuming it.
+    env["DISABLE_AUTOUPDATER"] = "1"
     env["DEV_TASK_ID"] = task_id
     env["DEV_ROLE"] = role
     if task.get("owner_cto"):
