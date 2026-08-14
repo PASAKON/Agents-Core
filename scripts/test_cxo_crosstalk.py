@@ -210,6 +210,15 @@ def test_send_to_cxo_has_no_iterm_typing_helpers():
     assert not hasattr(sc, "_run_osascript")
 
 
+def test_spawn_reuse_path_has_no_ephemeral_tab_typing_helper():
+    """task-093a3939 (CEO 2026-08-15): spawn()'s dedupe/reuse branch used to
+    type into an already-alive ephemeral tab via `_send_to_ephemeral_tab` +
+    `lib.iterm_type.type_submit_fragment`. Both are gone -- reuse now
+    delivers via mailbox+wake, the same transport `send()` uses."""
+    assert not hasattr(sc, "_send_to_ephemeral_tab")
+    assert not hasattr(sc, "type_submit_fragment")
+
+
 def test_send_refused_by_guard_writes_nothing_to_mailbox(
     isolated_locks, isolated_mailbox_root, monkeypatch,
 ):

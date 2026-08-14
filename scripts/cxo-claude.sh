@@ -12,8 +12,10 @@
 #   --session <id>            Override auto-generated session id. When set,
 #                             the <role>-active pointer is NOT written so the
 #                             primary CEO<->CXO tab remains untouched.
-#   --initial-prompt <text>   Send this text into the new tab as the first
-#                             user message once claude is running.
+#   --initial-prompt <text>   Passed to `claude` as its final positional
+#                             argv -- auto-submitted the instant the process
+#                             starts (task-093a3939), same mechanism
+#                             runners/dev_init.py's kickoff uses. Never typed.
 #   --tab-title <title>       Override the default tab title
 #                             ("$DISPLAY #$CXO_SESSION_ID").
 set -euo pipefail
@@ -352,52 +354,6 @@ fi
 ) >/dev/null 2>&1 </dev/null &
 disown $!
 
-# Initial prompt injection: background job sends prompt into this tab once
-# claude is ready. Uses osascript `on run argv` handler so prompt text is
-# passed as a CLI arg — no shell escaping needed inside the AppleScript string.
-# Delay is configurable for tests via CXO_INITIAL_PROMPT_DELAY (default 5s).
-if [ -n "${INITIAL_PROMPT:-}" ]; then
-  _DELAY="${CXO_INITIAL_PROMPT_DELAY:-5}"
-  _TAB_TITLE="$TAB_TITLE"
-  _PROMPT="$INITIAL_PROMPT"
-  (
-    sleep "$_DELAY"
-    osascript - "$_TAB_TITLE" "$_PROMPT" <<'APPLEEOF'
-on run argv
-  set tabMatch to item 1 of argv
-  set promptText to item 2 of argv
-  tell application "iTerm"
-    repeat with w in windows
-      repeat with t in tabs of w
-        tell t
-          try
-            set tabName to ""
-            try
-              set tabName to name of t
-            end try
-            set sessName to ""
-            try
-              set sessName to name of current session of t
-            end try
-            if (tabName contains tabMatch) or (sessName contains tabMatch) then
-              tell current session
-                write text promptText newline NO
-                delay 0.4
-                write text (ASCII character 13) newline NO
-                delay 0.3
-                write text (ASCII character 13) newline NO
-              end tell
-            end if
-          end try
-        end tell
-      end repeat
-    end repeat
-  end tell
-end run
-APPLEEOF
-  ) >/dev/null 2>&1 </dev/null &
-fi
-
 # Flag-gated GLM offload (CXO_MODEL_PROVIDER, set by spawn-cxo.sh --glm).
 # Default OFF -> Claude path unchanged. When set, lib.config
 # cxo_provider_overrides injects the provider env + swaps the model; the GLM
@@ -452,6 +408,19 @@ done
 # binary's own strings for the var name rather than assuming it.
 export DISABLE_AUTOUPDATER=1
 
+# INITIAL_PROMPT (ephemeral --spawn from tools/send_to_cxo.py) rides in as
+# claude's final positional argv, same as ARGS above -- a `claude` process
+# started with a positional prompt auto-submits it instantly, zero
+# keypresses (measured, not inferred -- see runners/dev_init.py's kickoff
+# and its docstring correction in tools/send_to_dev.py). No osascript, no
+# delay, no tab-name search: task-093a3939 replaces the former
+# sleep-then-type background job (a 5s guess that raced the tab's own
+# readiness) with this.
+CLAUDE_POSITIONAL=(${ARGS[@]+"${ARGS[@]}"})
+if [ -n "${INITIAL_PROMPT:-}" ]; then
+  CLAUDE_POSITIONAL+=("$INITIAL_PROMPT")
+fi
+
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
   -n "$TAB_TITLE" \
@@ -463,5 +432,5 @@ claude \
   --allowed-tools $ALLOWED \
   --session-id "$CXO_UUID" \
   ${FORK_ARGS[@]+"${FORK_ARGS[@]}"} \
-  ${ARGS[@]+"${ARGS[@]}"}
+  ${CLAUDE_POSITIONAL[@]+"${CLAUDE_POSITIONAL[@]}"}
 exit $?

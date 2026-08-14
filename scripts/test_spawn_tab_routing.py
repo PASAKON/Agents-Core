@@ -385,30 +385,30 @@ def test_close_session_refuses_missing_lock() -> bool:
         return False
 
 
-def test_send_to_cxo_spawn_flag_off_unchanged() -> bool:
-    """Legacy path (no --spawn) must produce the same AppleScript tab_match
-    as before Phase 2 — matching '<DISPLAY> Chat #<session_id>'."""
-    from tools.send_to_cxo import _send
-    import inspect
-
-    src = inspect.getsource(_send)
-    return (
-        "display} Chat #{session_id}" in src
-        and "tab_match" in src
-        and "didSend" in src
-    )
+def test_send_to_cxo_legacy_path_has_no_typing_helper() -> bool:
+    """Pre-existing dead test replaced (task-093a3939): the old
+    `_send`/tab_match/AppleScript-typing legacy path this used to check was
+    already removed by task-de2cdc15 (CEO 2026-08-14, mailbox+wake) --
+    `_send` hasn't existed since, so the old assertion here has been
+    silently import-erroring (this file is pytest.ini-ignored, so nothing
+    caught it). `send()` is the current legacy (no --spawn) path; its
+    mailbox-not-AppleScript contract is already covered in depth by
+    scripts/test_cxo_crosstalk.py. This just proves the dead name stays
+    dead."""
+    from tools import send_to_cxo as sc
+    return not hasattr(sc, "_send")
 
 
 def test_send_to_cxo_spawn_flag_on_calls_cxo_claude() -> bool:
-    """--spawn path must invoke cxo-claude.sh with --session and the initial
-    message embedded in the temp shell script passed to osascript."""
+    """--spawn path must start a REAL tmux-backed cxo-claude.sh session
+    (mirrors scripts/spawn-cxo.sh's `tmux new-session -A` shape, task-093a3939)
+    with --session and the initial message passed through as --initial-prompt
+    -- embedded in the temp RUN_FILE, never typed via AppleScript."""
     import unittest.mock as mock
     from tools.send_to_cxo import _spawn_new_ephemeral
 
     written_scripts: list[str] = []
     as_calls: list = []
-
-    _real_open = open
 
     class FakeFile:
         def __init__(self):
@@ -439,18 +439,24 @@ def test_send_to_cxo_spawn_flag_on_calls_cxo_claude() -> bool:
         )
 
     script_body = " ".join(written_scripts)
+    osascript_body = " ".join(str(c) for c in as_calls)
     return (
         "cxo-claude.sh" in script_body
         and "--session" in script_body
         and "req-deadbeef" in script_body
         and "--initial-prompt" in script_body
         and "please review budget" in script_body
+        and "type_submit_fragment" not in script_body
+        and "tmux" in osascript_body
+        and "new-session" in osascript_body
+        and "cfo-req-deadbeef" in osascript_body
     )
 
 
 def test_send_to_cxo_dedupe_reuses_recent_topic_match() -> bool:
     """spawn() with an alive lock + matching topic + recent mtime reuses the
-    existing tab and does NOT open a new one."""
+    existing tab via mailbox+wake (task-093a3939) -- not typing -- and does
+    NOT open a new one."""
     import unittest.mock as mock
     from tools.send_to_cxo import spawn, _make_topic_slug
 
@@ -464,11 +470,15 @@ def test_send_to_cxo_dedupe_reuses_recent_topic_match() -> bool:
         lock_file.write_text(winid + "\n")
         (locks / "cfo-req-aabbccdd.topic").write_text(slug)
 
-        reuse_calls: list = []
+        mailbox_calls: list = []
+        wake_calls: list = []
         spawn_calls: list = []
 
-        def fake_send_to_ephemeral(tab_title, text, slug=None):
-            reuse_calls.append((tab_title, text))
+        def fake_mailbox_send(to_role, to_sid, body, from_role, from_sid, **kwargs):
+            mailbox_calls.append((to_role, to_sid, body))
+
+        def fake_attempt_wake(role, sid, label):
+            wake_calls.append((role, sid, label))
 
         def fake_spawn_new(role, session_id, tab_title, initial_text):
             spawn_calls.append((role, session_id))
@@ -480,12 +490,19 @@ def test_send_to_cxo_dedupe_reuses_recent_topic_match() -> bool:
              mock.patch("tools.send_to_cxo.is_c_level", return_value=True), \
              mock.patch("tools.send_to_cxo.display_for", return_value="CFO"), \
              mock.patch("tools.send_to_cxo._get_live_winids", fake_get_live), \
-             mock.patch("tools.send_to_cxo._send_to_ephemeral_tab", fake_send_to_ephemeral), \
+             mock.patch("tools.send_to_cxo.mailbox.send", side_effect=fake_mailbox_send), \
+             mock.patch("tools.send_to_cxo._attempt_wake", side_effect=fake_attempt_wake), \
              mock.patch("tools.send_to_cxo._spawn_new_ephemeral", fake_spawn_new):
             result = spawn("cfo", "budget review needed", sender="CTO")
 
     return (
-        len(reuse_calls) == 1
+        len(mailbox_calls) == 1
+        and mailbox_calls[0][0] == "cfo"
+        and mailbox_calls[0][1] == "req-aabbccdd"
+        and mailbox_calls[0][2] == "budget review needed"
+        and len(wake_calls) == 1
+        and wake_calls[0][0] == "cfo"
+        and wake_calls[0][1] == "req-aabbccdd"
         and len(spawn_calls) == 0
         and "reused" in result
     )
@@ -493,7 +510,8 @@ def test_send_to_cxo_dedupe_reuses_recent_topic_match() -> bool:
 
 def test_send_to_cxo_dedupe_skips_stale_lock() -> bool:
     """spawn() with a lock whose winid is not in the live window list ignores
-    the stale lock and opens a new tab."""
+    the stale lock and opens a new (real tmux-backed) tab -- never falls back
+    to a mailbox reuse for a tab that isn't actually alive."""
     import unittest.mock as mock
     from tools.send_to_cxo import spawn, _make_topic_slug
 
@@ -514,14 +532,14 @@ def test_send_to_cxo_dedupe_skips_stale_lock() -> bool:
         def fake_spawn_new(role, session_id, tab_title, initial_text):
             spawn_calls.append((role, session_id))
 
-        def fake_send_to_ephemeral(tab_title, text, slug=None):
+        def fake_mailbox_send(*a, **kw):
             raise AssertionError("should not reuse stale tab")
 
         with mock.patch("tools.send_to_cxo.LOCKS_DIR", locks), \
              mock.patch("tools.send_to_cxo.is_c_level", return_value=True), \
              mock.patch("tools.send_to_cxo.display_for", return_value="CFO"), \
              mock.patch("tools.send_to_cxo._get_live_winids", fake_get_live), \
-             mock.patch("tools.send_to_cxo._send_to_ephemeral_tab", fake_send_to_ephemeral), \
+             mock.patch("tools.send_to_cxo.mailbox.send", side_effect=fake_mailbox_send), \
              mock.patch("tools.send_to_cxo._spawn_new_ephemeral", fake_spawn_new):
             result = spawn("cfo", "stale test message", sender="CTO")
 
@@ -532,9 +550,10 @@ def test_send_to_cxo_dedupe_skips_stale_lock() -> bool:
     )
 
 
-def test_cxo_claude_initial_prompt_typed_after_spawn() -> bool:
-    """cxo-claude.sh with --initial-prompt must fire an osascript call that
-    includes the prompt text once claude has started."""
+def test_cxo_claude_passes_initial_prompt_as_positional_arg() -> bool:
+    """cxo-claude.sh with --initial-prompt must pass the prompt straight
+    through to `claude` as the final positional argv (auto-submitted on
+    start, task-093a3939) -- never typed via a backgrounded osascript call."""
     with tempfile.TemporaryDirectory() as tmp_s:
         tmp = Path(tmp_s)
         (tmp / "state" / "locks").mkdir(parents=True, exist_ok=True)
@@ -549,16 +568,20 @@ def test_cxo_claude_initial_prompt_typed_after_spawn() -> bool:
         shim = tmp / "bin"
         shim.mkdir()
         osascript_log = tmp / "osascript.log"
+        claude_log = tmp / "claude_argv.log"
 
-        # osascript shim: append all args to log
+        # osascript shim: append all args to log (still called for the
+        # winid lookup / HIDETAB pref, never for prompt text now)
         osascript_shim = shim / "osascript"
         osascript_shim.write_text(
             f'#!/usr/bin/env bash\nprintf "%s\\n" "$@" >> "{osascript_log}"\nexit 0\n'
         )
         osascript_shim.chmod(0o755)
 
-        # claude shim: exit immediately so the script completes
-        (shim / "claude").write_text("#!/usr/bin/env bash\nexit 0\n")
+        # claude shim: record its argv (one per line), exit immediately.
+        (shim / "claude").write_text(
+            f'#!/usr/bin/env bash\nprintf "%s\\n" "$@" >> "{claude_log}"\nexit 0\n'
+        )
         (shim / "claude").chmod(0o755)
 
         # python3 shim: return "CFO" for display_for lookup
@@ -577,7 +600,6 @@ def test_cxo_claude_initial_prompt_typed_after_spawn() -> bool:
         env = dict(os.environ)
         env["PATH"] = f"{shim}:{env.get('PATH', '')}"
         env.pop("CXO_SESSION_ID", None)
-        env["CXO_INITIAL_PROMPT_DELAY"] = "0"  # no wait in tests
 
         proc = subprocess.run(
             [
@@ -590,11 +612,15 @@ def test_cxo_claude_initial_prompt_typed_after_spawn() -> bool:
             env=env, capture_output=True, text=True, timeout=15,
         )
 
-        # Give background job a moment to write its osascript call
-        import time as _time; _time.sleep(0.5)
-
-        log_content = osascript_log.read_text() if osascript_log.exists() else ""
-        return proc.returncode == 0 and "hello world from test" in log_content
+        claude_argv = claude_log.read_text() if claude_log.exists() else ""
+        osascript_content = osascript_log.read_text() if osascript_log.exists() else ""
+        argv_lines = [l for l in claude_argv.splitlines() if l.strip()]
+        last_arg = argv_lines[-1] if argv_lines else ""
+        return (
+            proc.returncode == 0
+            and last_arg == "[CTO]: hello world from test"
+            and "hello world from test" not in osascript_content
+        )
 
 
 def test_cleanup_zombies_removes_sibling_files() -> bool:
@@ -798,16 +824,16 @@ def main() -> int:
     _mark(r, "spawn-cto.sh reaps stale lock and reuses id via --id")
     r = test_close_session_refuses_missing_lock(); fails += not r
     _mark(r, "close_session refuses when lock file missing + writes refusal log")
-    r = test_send_to_cxo_spawn_flag_off_unchanged(); fails += not r
-    _mark(r, "legacy path AppleScript uses '<DISPLAY> Chat #<session_id>' match")
+    r = test_send_to_cxo_legacy_path_has_no_typing_helper(); fails += not r
+    _mark(r, "legacy _send typing helper stays gone (dead test replaced)")
     r = test_send_to_cxo_spawn_flag_on_calls_cxo_claude(); fails += not r
     _mark(r, "--spawn writes temp script with cxo-claude.sh + --session + prompt")
     r = test_send_to_cxo_dedupe_reuses_recent_topic_match(); fails += not r
     _mark(r, "dedupe: alive lock + matching topic → reuse, no new spawn")
     r = test_send_to_cxo_dedupe_skips_stale_lock(); fails += not r
     _mark(r, "dedupe: stale winid → skipped, new tab spawned")
-    r = test_cxo_claude_initial_prompt_typed_after_spawn(); fails += not r
-    _mark(r, "cxo-claude.sh --initial-prompt fires osascript with prompt text")
+    r = test_cxo_claude_passes_initial_prompt_as_positional_arg(); fails += not r
+    _mark(r, "cxo-claude.sh --initial-prompt passed to claude as positional argv, never typed")
     r = test_cleanup_zombies_removes_sibling_files(); fails += not r
     _mark(r, "cleanup-zombies removes all 4 sibling files for stale lock set")
     r = test_cleanup_zombies_does_not_touch_live(); fails += not r
