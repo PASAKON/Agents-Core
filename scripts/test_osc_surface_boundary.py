@@ -9,7 +9,7 @@ indirect assertions (scripts/test_tab_title.py asserts OSC 1,
 scripts/test_maintab.py asserts OSC 2). Nothing stopped a future change — or
 a new spawn path — from reintroducing OSC 0. It already happened once: six
 callers were missed on the first pass (scripts/cto-claude.sh,
-scripts/cxo-claude.sh, tools/delegate.py x2, tools/resume_dev.py,
+scripts/cxo-claude.sh, tools/delegate.py x2, tools/resume_worker.py,
 runners/cto_chat.py — all fixed alongside this guard).
 
 This test:
@@ -46,7 +46,7 @@ SKIP_DIRS = {".venv", ".git", "node_modules", "state", "output", ".agents",
 #   \x1b]0;    python hex-escape form
 #   \e]0;      bash $'...'-style escape form
 #   \\033]0;   AppleScript-embedded double-escape form (tools/delegate.py,
-#              tools/resume_dev.py build `write text "printf '\\033]0;...'"`)
+#              tools/resume_worker.py build `write text "printf '\\033]0;...'"`)
 # The last variant is a superset of the first (it contains "\033]0;" as a
 # substring) so it is already caught, but it's listed explicitly since it's
 # the shape that actually slipped through on the first pass.

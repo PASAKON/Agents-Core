@@ -2,7 +2,7 @@
 
 At DEV-spawn time, compares live remaining headroom on both providers and
 picks whichever has more room, instead of a human flipping the static
-DEV_MODEL_PROVIDER flag by hand whenever one pool runs low (the exact
+WORKER_MODEL_PROVIDER flag by hand whenever one pool runs low (the exact
 manual toggle in .env as of 2026-08-03, disabled that day because Z.ai's
 7-day window hit 100% utilization).
 

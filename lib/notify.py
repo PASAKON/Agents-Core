@@ -31,9 +31,9 @@ def _detect_source(level: str) -> str | None:
     CTO-event lines carry the session id (`CTO-event[INFO][a1b2c3d4]`) so
     hook-log-prompt can drop other sessions' events in multi-CTO setups.
     """
-    task_id = os.environ.get("DEV_TASK_ID")
+    task_id = os.environ.get("WORKER_TASK_ID")
     if task_id:
-        role = os.environ.get("DEV_ROLE", "dev")
+        role = os.environ.get("WORKER_ROLE", "dev")
         return f"Dev:{role}:{task_id[:10]}"
     if os.environ.get("CTO_SESSION") == "1":
         sid = os.environ.get("CTO_SESSION_ID")
@@ -46,12 +46,12 @@ def _per_session_log() -> Path | None:
     """Per-CTO log file (state/logs/cto-<id>.log) for the owning session.
 
     CTO processes use their own id; DEV processes use the spawning CTO's
-    id (DEV_CTO_ID). This is the file `spawn-cto.sh --with-logs` tails."""
+    id (WORKER_CTO_ID). This is the file `spawn-cto.sh --with-logs` tails."""
     sid = None
     if os.environ.get("CTO_SESSION") == "1":
         sid = os.environ.get("CTO_SESSION_ID")
-    elif os.environ.get("DEV_TASK_ID"):
-        sid = os.environ.get("DEV_CTO_ID")
+    elif os.environ.get("WORKER_TASK_ID"):
+        sid = os.environ.get("WORKER_CTO_ID")
     if not sid:
         return None
     return _ROOT / "state" / "logs" / f"cto-{sid}.log"
@@ -61,10 +61,10 @@ def _under_test() -> bool:
     """True when this process is a test run rather than real org work.
 
     The suites drive real production code — `test_watchdog_reap.py` calls
-    `dev_reap`, which calls `warn()` — so without this guard their synthetic
+    `worker_reap`, which calls `warn()` — so without this guard their synthetic
     values land in the same `state/logs/cto.log` a C-level reads for live
     status. Observed 2026-08-13: lines like
-    `dev_reap: task-7d6fe27d pid=99999 did not match` and
+    `worker_reap: task-7d6fe27d pid=99999 did not match` and
     `REAPED task-d0a9b673 ... pid=22222` surfaced in the CTO event feed
     mid-session, for tasks that do not exist.
 

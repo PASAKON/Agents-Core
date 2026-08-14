@@ -98,7 +98,7 @@ _MIGRATION_COLUMNS = [
     ("ttyd_pid", "INTEGER"),
     # owning CTO session id — DEV reports route back to this CTO's tab
     ("owner_cto", "TEXT"),
-    # Per-task provider override. NULL = follow DEV_MODEL_PROVIDER (auto picks
+    # Per-task provider override. NULL = follow WORKER_MODEL_PROVIDER (auto picks
     # whichever pool has more quota headroom). 'claude' = force the Claude path
     # regardless of quota, for work where a cheap miss is expensive: reviewing
     # or repairing someone else's code, and anything touching security or

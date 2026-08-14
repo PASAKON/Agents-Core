@@ -1,4 +1,4 @@
-"""Tests for tools/send_to_dev.py's mailbox+wake delivery contract.
+"""Tests for tools/send_to_worker.py's mailbox+wake delivery contract.
 
 Task task-2f04a8ca (CEO directive 2026-08-14): mirrors the fixture/
 injection style `scripts/test_cxo_crosstalk.py` established for
@@ -8,7 +8,7 @@ real `state/tasks.db` or `state/inbox/`. `tmux_session.has_session` is
 monkeypatched on `tools.agent_transport` (task task-eb0d9863 moved the
 shared wake implementation there -- `_attempt_wake()` in this file's
 module now delegates to `agent_transport.attempt_wake()`). `_wake_tmux_send`
-is still monkeypatched on `sd` (this file's `tools.send_to_dev` alias) --
+is still monkeypatched on `sd` (this file's `tools.send_to_worker` alias) --
 `sd._attempt_wake()` passes its OWN imported `_wake_tmux_send` reference
 as `send_fn=`, resolved fresh from `sd`'s globals on every call, so a
 patch on `sd`'s copy (not agent_transport's) is what actually takes
@@ -41,7 +41,7 @@ sys.path.insert(0, str(ROOT))
 import lib.db as db_mod  # noqa: E402
 import lib.mailbox as mailbox  # noqa: E402
 import tools.agent_transport as agent_transport  # noqa: E402
-import tools.send_to_dev as sd  # noqa: E402
+import tools.send_to_worker as sd  # noqa: E402
 
 
 @pytest.fixture()
@@ -67,10 +67,10 @@ def isolated_mailbox_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Pa
 @pytest.fixture(autouse=True)
 def clean_identity_env(monkeypatch: pytest.MonkeyPatch):
     """current_identity()/_resolve_sender_role() read process env -- start
-    every test from a blank slate so a stray CXO_ROLE/DEV_TASK_ID left over
+    every test from a blank slate so a stray CXO_ROLE/WORKER_TASK_ID left over
     from this DEV's own harness process can never leak into a test."""
     for var in ("CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID",
-                "DEV_TASK_ID", "DEV_ROLE"):
+                "WORKER_TASK_ID", "WORKER_ROLE"):
         monkeypatch.delenv(var, raising=False)
 
 

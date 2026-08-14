@@ -63,7 +63,7 @@ def clean_identity_env(monkeypatch: pytest.MonkeyPatch):
     test from a blank slate so nothing leaks in from this DEV's own
     harness process or a previous test."""
     for var in ("CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID",
-                "DEV_TASK_ID", "DEV_ROLE"):
+                "WORKER_TASK_ID", "WORKER_ROLE"):
         monkeypatch.delenv(var, raising=False)
 
 
@@ -434,7 +434,7 @@ def test_hook_prints_nothing_on_empty_box(
 
 
 def test_hook_no_identity_in_env_prints_nothing(monkeypatch, capsys):
-    """A bare shell with no CXO_ROLE and no DEV_TASK_ID has no box of its
+    """A bare shell with no CXO_ROLE and no WORKER_TASK_ID has no box of its
     own -- the hook must not guess one."""
     monkeypatch.setattr(sys, "stdin", io.StringIO("{}"))
     rc = hook_inbox.main()
@@ -461,8 +461,8 @@ def test_hook_drains_and_prints_then_box_is_empty(
 
 
 def test_hook_resolves_dev_identity_from_env(isolated_mailbox_root, monkeypatch, capsys):
-    monkeypatch.setenv("DEV_TASK_ID", "task-abcdef01")
-    monkeypatch.setenv("DEV_ROLE", "developer")
+    monkeypatch.setenv("WORKER_TASK_ID", "task-abcdef01")
+    monkeypatch.setenv("WORKER_ROLE", "developer")
     mailbox.send("developer", "task-abcdef01", "fyi", "cto", "031a9e4f",
                  root=isolated_mailbox_root)
     monkeypatch.setattr(sys, "stdin", io.StringIO("{}"))

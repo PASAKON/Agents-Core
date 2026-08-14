@@ -9,7 +9,7 @@ shape: read the event JSON on stdin, print to stdout, fail silent with
 Drains the CURRENT session's own box and prints the letters as context.
 The box is resolved from env only -- `CXO_ROLE` + `CXO_SESSION_ID`
 (`CTO_SESSION_ID` for a plain `cto-claude.sh` launch, which exports that
-instead) for a C-level session, or `DEV_TASK_ID`/`DEV_ROLE` for a DEV
+instead) for a C-level session, or `WORKER_TASK_ID`/`WORKER_ROLE` for a DEV
 worktree -- the same resolution `tools/send_to_cxo.py`'s
 `current_identity()` uses. Never from anything a caller passes: a prompt
 cannot ask this hook to open somebody else's box.
@@ -37,9 +37,9 @@ def _current_box() -> tuple[str, str] | None:
     if role:
         sid = os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID")
         return (role, sid) if sid else None
-    task_id = os.environ.get("DEV_TASK_ID")
+    task_id = os.environ.get("WORKER_TASK_ID")
     if task_id:
-        return os.environ.get("DEV_ROLE", "dev"), task_id
+        return os.environ.get("WORKER_ROLE", "dev"), task_id
     return None
 
 

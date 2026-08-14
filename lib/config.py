@@ -104,7 +104,7 @@ def get_project(key: str) -> dict:
 
 
 # --- DEV model provider override (flag-gated, reversible) -----------------
-# When DEV_MODEL_PROVIDER is set, worker DEVs spawn against an alternative
+# When WORKER_MODEL_PROVIDER is set, worker DEVs spawn against an alternative
 # Anthropic-compatible endpoint instead of Claude, to offload grunt coding
 # work to a cheaper model while C-level orchestration stays on Claude.
 # Provider: "zai" (Z.ai direct).
@@ -203,11 +203,11 @@ def _provider_overrides(
     }
 
 
-def dev_provider_overrides(role_name: str, model_hint: str | None = None) -> dict | None:
-    """Spawn overrides for a worker DEV when DEV_MODEL_PROVIDER is set.
+def worker_provider_overrides(role_name: str, model_hint: str | None = None) -> dict | None:
+    """Spawn overrides for a worker DEV when WORKER_MODEL_PROVIDER is set.
 
-    Flag-gated + reversible: unset DEV_MODEL_PROVIDER -> original Claude path.
-    DEV_MODEL_PROVIDER=zai -> always Z.ai. DEV_MODEL_PROVIDER=auto -> live
+    Flag-gated + reversible: unset WORKER_MODEL_PROVIDER -> original Claude path.
+    WORKER_MODEL_PROVIDER=zai -> always Z.ai. WORKER_MODEL_PROVIDER=auto -> live
     quota check (lib.quota_router) picks whichever provider has more
     headroom right now (GH mooniex-agents#38).
 
@@ -223,10 +223,10 @@ def dev_provider_overrides(role_name: str, model_hint: str | None = None) -> dic
         return None
     return _provider_overrides(
         role_name,
-        flag_var="DEV_MODEL_PROVIDER",
-        roles_var="DEV_PROVIDER_ROLES",
+        flag_var="WORKER_MODEL_PROVIDER",
+        roles_var="WORKER_PROVIDER_ROLES",
         default_roles="developer,tester,web_designer,data_analyst,prompt_engineer,ads_manager,content_strategist",
-        model_var="DEV_PROVIDER_MODEL",
+        model_var="WORKER_PROVIDER_MODEL",
     )
 
 

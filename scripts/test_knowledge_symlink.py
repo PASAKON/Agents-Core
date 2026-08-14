@@ -17,7 +17,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from runners.dev_init import KNOWLEDGE_MAP, _symlink_knowledge
+from runners.worker_init import KNOWLEDGE_MAP, _symlink_knowledge
 
 ROOT = Path(__file__).resolve().parent.parent
 

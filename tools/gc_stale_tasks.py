@@ -28,7 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from tools.dev_reap import _pid_alive
+from tools.worker_reap import _pid_alive
 from tools.worktree import remove_worktree
 
 STALE_PENDING_MINUTES   = 30

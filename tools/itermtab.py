@@ -21,7 +21,7 @@ never close:
     title does not carry a task_id.
 
 A tab is therefore only closeable when it was spawned by the delegate
-path (`tools/delegate.py:_spawn_iterm_tab`) or by `tools/resume_dev.py:
+path (`tools/delegate.py:_spawn_iterm_tab`) or by `tools/resume_worker.py:
 _spawn_resume_tab`. Both set the title `<Role> (task-<id>)`.
 """
 from __future__ import annotations
@@ -79,12 +79,12 @@ def _close_tab_by_pid(pid: int) -> bool:
     on `jobPid` alone and its only guard excludes C-level tabs by title —
     nothing here checks that the process actually belongs to the task the
     caller has in mind. Verifying that is the caller's job (see
-    `tools/dev_reap._pid_matches_task`); callers who cannot verify must
+    `tools/worker_reap._pid_matches_task`); callers who cannot verify must
     pass `allow_pid=False` to `close_tab` instead of reaching this path.
 
     GH mooniex-agents#27: title-substring matching (the fallback below)
     is fragile — once a spawned process exits (crash, manual `kill`, or
-    `dev_init.py` failing before claiming), the tab's title reverts to a
+    `worker_init.py` failing before claiming), the tab's title reverts to a
     plain shell name and can no longer be found by substring, leaving a
     zombie tab open forever. `jobPid` is a real iTerm2 session variable
     (confirmed live against this machine's running tabs) and stays valid
@@ -593,7 +593,7 @@ def tab_status_update(match: str, window_id: str | None, action: str,
 #
 # CEO ask: the tab bar should use ONE color vocabulary for C-level AND DEV
 # tabs. Both halves already exist — a DEV tab title already carries its task
-# id (tools/delegate.py:_spawn_iterm_tab / tools/resume_dev.py) and
+# id (tools/delegate.py:_spawn_iterm_tab / tools/resume_worker.py) and
 # authoritative status already lives in state/tasks.db — so this is a read
 # of existing state applied to existing tabs, driven once per tick from the
 # maintab daemon loop (tools/maintab.py:run_daemon). No DEV-side plumbing.
@@ -684,7 +684,7 @@ def _in_flight_dev_statuses() -> dict[str, tuple[str, str]]:
     `owner_role` comes along because a blocker has to name whoever ORDERED
     the work — see _blocker_badge. Legacy rows predate the column and carry
     NULL; they default to "cto", the same fallback tools/delegate.py and
-    runners/dev_init.py already use.
+    runners/worker_init.py already use.
 
     The ONE DB read per tick (HARD REQUIREMENT 1), scoped to the handful of
     colored statuses rather than the full table (HARD REQUIREMENT 3 — never

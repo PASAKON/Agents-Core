@@ -1,8 +1,8 @@
-"""Direction-agnostic transport primitives shared by tools/send_to_dev.py,
+"""Direction-agnostic transport primitives shared by tools/send_to_worker.py,
 tools/send_to_cto.py, and tools/send_to_cxo.py.
 
 Task task-eb0d9863 (CEO asked why the 3 send_to_*.py files aren't one file).
-Real answer: they already shared code, but wrongly -- send_to_dev.py and
+Real answer: they already shared code, but wrongly -- send_to_worker.py and
 send_to_cto.py both imported underscore-prefixed private names
 (`current_identity`, `_resolve_sender_role`, `_active_session_id`,
 `_wake_tmux_send`, `_WAKE_MARKER_TEMPLATE`) straight out of send_to_cxo.py,
@@ -16,7 +16,7 @@ shared, direction-agnostic pieces; each send_to_*.py file keeps its own
 logic for RESOLVING which session name/id to act on -- see each file's own
 `attempt_wake`/`_attempt_wake` wrapper.
 
-No external caller's import path changes: `tools.send_to_dev` /
+No external caller's import path changes: `tools.send_to_worker` /
 `tools.send_to_cto` / `tools.send_to_cxo` still expose every name they did
 before this task, either by defining it locally (unchanged) or re-exporting
 it from here.
@@ -98,16 +98,16 @@ CEO_IDENTITY = Identity("ceo", "CEO", None)
 
 
 def current_identity() -> Identity:
-    """Who is calling send_to_cxo/send_to_dev/send_to_cto right now,
+    """Who is calling send_to_cxo/send_to_worker/send_to_cto right now,
     resolved from process env -- never from anything the caller passes in."""
     r = os.environ.get("CXO_ROLE")
     if r and is_c_level(r):
         sid = os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID")
         if sid:
             return Identity("cxo", r, sid)
-    task_id = os.environ.get("DEV_TASK_ID")
+    task_id = os.environ.get("WORKER_TASK_ID")
     if task_id:
-        return Identity("dev", os.environ.get("DEV_ROLE", "dev"), task_id)
+        return Identity("dev", os.environ.get("WORKER_ROLE", "dev"), task_id)
     cto_sid = os.environ.get("CTO_SESSION_ID")
     if cto_sid:
         return Identity("cxo", "cto", cto_sid)
@@ -118,7 +118,7 @@ def current_identity() -> Identity:
 # Wake nudge -- the org's ONE low-level tmux-send-keys primitive
 # (`_wake_tmux_send`) plus the ONE generic wrap/log/never-raise wrapper
 # (`attempt_wake`), replacing the 3 near-identical copy-pasted versions that
-# used to live one in each of send_to_cxo.py, send_to_dev.py, send_to_cto.py.
+# used to live one in each of send_to_cxo.py, send_to_worker.py, send_to_cto.py.
 # Each direction file keeps its OWN logic for resolving which session name
 # to wake -- it just passes the resolved name in here.
 # ---------------------------------------------------------------------------
@@ -182,7 +182,7 @@ def attempt_wake(session: str | None, label: str, log_prefix: str, *,
     (`send_fn=_wake_tmux_send`, resolved in the CALLER's own module
     globals) -- Python resolves a bare name via the *defining* module's
     globals, never the caller's, so without this indirection a test that
-    monkeypatches e.g. `tools.send_to_dev._wake_tmux_send` would silently
+    monkeypatches e.g. `tools.send_to_worker._wake_tmux_send` would silently
     have no effect on what actually runs.
     """
     if not session:

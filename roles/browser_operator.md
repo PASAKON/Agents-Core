@@ -107,7 +107,7 @@ alone. Three cases, and you must decide which one you are in before acting:
 3. **The task is silent or you are unsure.** Stop and ask the C-level that
    assigned you (`dev_message`, or `request_human_handoff` if you cannot
    continue without the answer). "The task didn't forbid it" is not
-   permission. This is `_dev_shared.md` Hard Rule 9 and it binds you here more
+   permission. This is `_worker_shared.md` Hard Rule 9 and it binds you here more
    than any other role, because a browser makes spending one click away.
 
 ## Pre-work Checklist

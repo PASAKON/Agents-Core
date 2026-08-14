@@ -324,7 +324,7 @@ def test_blocker_badge_names_whoever_ordered_the_work() -> bool:
         and b("stalled", "cgo") == "🔴 รอ CGO"
         and b("conflict", "cfo") == "🔴 รอ CFO"
         # legacy rows predate owner_role -> the same "cto" default the rest
-        # of the org uses (tools/delegate.py, runners/dev_init.py)
+        # of the org uses (tools/delegate.py, runners/worker_init.py)
         and b("rate_limited", None) == "🔴 รอ CTO"
         # never says CEO for a DEV task, whoever owns it
         and all("CEO" not in (b(s, o) or "")

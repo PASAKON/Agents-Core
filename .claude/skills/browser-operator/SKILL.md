@@ -193,7 +193,7 @@ Two habits:
   load, and the button silently went back to charging credits. Check the
   button's actual current text in the seconds before you click it, not once at
   the start.
-- **When the task is silent, ask.** `_dev_shared.md` Hard Rule 9 — if the task
+- **When the task is silent, ask.** `_worker_shared.md` Hard Rule 9 — if the task
   did not clearly authorise *this* spend, `dev_message` the C-level and wait.
   Do not reason your way to "they probably meant yes."
 

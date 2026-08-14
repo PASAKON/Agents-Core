@@ -1,9 +1,9 @@
 """Stdio MCP server for DEV sessions running inside Claude Code TUI.
 
-Reads DEV_TASK_ID + DEV_ROLE env to know which task it belongs to.
+Reads WORKER_TASK_ID + WORKER_ROLE env to know which task it belongs to.
 Exposes read-only wiki tools + submit_report (writes back to DB).
 
-Registered in config/dev.mcp.json as server "org" — tools become
+Registered in config/worker.mcp.json as server "org" — tools become
 mcp__org__<tool_name> inside Claude Code.
 """
 from __future__ import annotations
@@ -24,8 +24,8 @@ from lib.notify import info
 from tools import wiki as wiki_tools
 from tools.gh_issue import create_issue as gh_create_issue
 
-TASK_ID = os.environ.get("DEV_TASK_ID", "")
-ROLE = os.environ.get("DEV_ROLE", "dev")
+TASK_ID = os.environ.get("WORKER_TASK_ID", "")
+ROLE = os.environ.get("WORKER_ROLE", "dev")
 log = get_logger(ROLE, TASK_ID or None, stdout=False)
 
 mcp = FastMCP("org")
@@ -67,7 +67,7 @@ def submit_report(report: str) -> str:
     run, blockers). After calling this the DEV session can be closed.
     """
     if not TASK_ID:
-        return "ERROR: DEV_TASK_ID env var not set"
+        return "ERROR: WORKER_TASK_ID env var not set"
     db.update_status(TASK_ID, "review", report=report, actor=ROLE)
     summary_line = report.strip().splitlines()[0][:200] if report.strip() else "(empty)"
     info(f"submitted report — {summary_line}")
@@ -89,7 +89,7 @@ def file_blocker_issue(title: str, body: str) -> str:
     sees it.
     """
     if not TASK_ID:
-        return "ERROR: DEV_TASK_ID env var not set"
+        return "ERROR: WORKER_TASK_ID env var not set"
     task = db.get_task(TASK_ID)
     if not task:
         return f"ERROR: task {TASK_ID} not found"
@@ -144,7 +144,7 @@ def request_human_handoff(
       session_id: Auto Browser session id, for log correlation
     """
     if not TASK_ID:
-        return "ERROR: DEV_TASK_ID env var not set"
+        return "ERROR: WORKER_TASK_ID env var not set"
     task = db.get_task(TASK_ID)
     if not task:
         return f"ERROR: task {TASK_ID} not found"
@@ -204,7 +204,7 @@ def request_human_handoff(
         )
         from lib import cto_session
         send_to_cto(TASK_ID, attn, role=ROLE, cto_id=cto_session.current_id(),
-                    owner_role=os.environ.get("DEV_CTO_ROLE", "cto"))
+                    owner_role=os.environ.get("WORKER_CTO_ROLE", "cto"))
     except Exception as e:
         info(f"request_human_handoff chat relay failed: {e}")
 
@@ -245,7 +245,7 @@ def dev_message(text: str) -> str:
     submit_report.
     """
     if not TASK_ID:
-        return "ERROR: DEV_TASK_ID env var not set"
+        return "ERROR: WORKER_TASK_ID env var not set"
     stripped = text.strip()
     if not stripped:
         line = "(empty)"

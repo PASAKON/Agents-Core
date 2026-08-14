@@ -1,4 +1,4 @@
-"""Tests for tools/dev_reap.py's close_dev() and runners/watchdog.py's
+"""Tests for tools/worker_reap.py's close_dev() and runners/watchdog.py's
 finished-DEV reap pass (task-78ab64ba).
 
 No live processes and no real iTerm: `close_tab`, `_terminate_pid` and
@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import lib.db as db_mod  # noqa: E402
-import tools.dev_reap as dev_reap  # noqa: E402
+import tools.worker_reap as worker_reap  # noqa: E402
 import runners.watchdog as watchdog  # noqa: E402
 
 _failures = 0
@@ -71,21 +71,21 @@ def _insert_task(*, status: str, age_minutes: float = 0,
 
 def test_refuses_in_progress() -> bool:
     tid = _insert_task(status="in_progress", pid=12345)
-    with mock.patch.object(dev_reap, "close_tab", mock.Mock(return_value=True)) as ct:
-        r = dev_reap.close_dev(tid, reason="test")
+    with mock.patch.object(worker_reap, "close_tab", mock.Mock(return_value=True)) as ct:
+        r = worker_reap.close_dev(tid, reason="test")
     return (r["refused"] is not None and r["closed_tab"] is False
            and r["signal"] is None and ct.call_count == 0)
 
 
 def test_refuses_blocked_human() -> bool:
     tid = _insert_task(status="blocked_human", pid=12345)
-    r = dev_reap.close_dev(tid, reason="test")
+    r = worker_reap.close_dev(tid, reason="test")
     return r["refused"] is not None and r["closed_tab"] is False
 
 
 def test_refuses_null_pid() -> bool:
     tid = _insert_task(status="review", pid=None)
-    r = dev_reap.close_dev(tid, reason="test")
+    r = worker_reap.close_dev(tid, reason="test")
     return (r["refused"] is not None and "pid" in r["refused"].lower()
            and r["closed_tab"] is False)
 
@@ -97,10 +97,10 @@ def test_refuses_null_pid() -> bool:
 def test_recycled_pid_not_signalled_but_tab_closed() -> bool:
     tid = _insert_task(status="review", pid=99999)
     fake_terminate = mock.Mock(return_value="SIGTERM")
-    with mock.patch.object(dev_reap, "_pid_matches_task", mock.Mock(return_value=False)), \
-         mock.patch.object(dev_reap, "_terminate_pid", fake_terminate), \
-         mock.patch.object(dev_reap, "close_tab", mock.Mock(return_value=True)):
-        r = dev_reap.close_dev(tid, reason="test")
+    with mock.patch.object(worker_reap, "_pid_matches_task", mock.Mock(return_value=False)), \
+         mock.patch.object(worker_reap, "_terminate_pid", fake_terminate), \
+         mock.patch.object(worker_reap, "close_tab", mock.Mock(return_value=True)):
+        r = worker_reap.close_dev(tid, reason="test")
     return (r["refused"] is None and r["pid_matched"] is False
            and r["signal"] is None and fake_terminate.call_count == 0
            and r["closed_tab"] is True)
@@ -123,16 +123,16 @@ def test_recycled_pid_closes_by_title_not_by_pid() -> bool:
         return True
 
     tid = _insert_task(status="review", pid=99998)
-    with mock.patch.object(dev_reap, "_pid_matches_task", mock.Mock(return_value=False)), \
-         mock.patch.object(dev_reap, "_terminate_pid", mock.Mock(return_value="SIGTERM")), \
-         mock.patch.object(dev_reap, "close_tab", spy):
-        dev_reap.close_dev(tid, reason="test")
+    with mock.patch.object(worker_reap, "_pid_matches_task", mock.Mock(return_value=False)), \
+         mock.patch.object(worker_reap, "_terminate_pid", mock.Mock(return_value="SIGTERM")), \
+         mock.patch.object(worker_reap, "close_tab", spy):
+        worker_reap.close_dev(tid, reason="test")
 
     tid2 = _insert_task(status="review", pid=99997)
-    with mock.patch.object(dev_reap, "_pid_matches_task", mock.Mock(return_value=True)), \
-         mock.patch.object(dev_reap, "_terminate_pid", mock.Mock(return_value="SIGTERM")), \
-         mock.patch.object(dev_reap, "close_tab", spy):
-        dev_reap.close_dev(tid2, reason="test")
+    with mock.patch.object(worker_reap, "_pid_matches_task", mock.Mock(return_value=True)), \
+         mock.patch.object(worker_reap, "_terminate_pid", mock.Mock(return_value="SIGTERM")), \
+         mock.patch.object(worker_reap, "close_tab", spy):
+        worker_reap.close_dev(tid2, reason="test")
 
     return calls == [False, True]
 
@@ -158,26 +158,26 @@ def test_close_tab_allow_pid_false_skips_pid_lookup() -> bool:
 
 def test_reaps_matching_review() -> bool:
     tid = _insert_task(status="review", pid=54321)
-    with mock.patch.object(dev_reap, "_pid_matches_task", mock.Mock(return_value=True)), \
-         mock.patch.object(dev_reap, "_terminate_pid", mock.Mock(return_value="SIGTERM")), \
-         mock.patch.object(dev_reap, "close_tab", mock.Mock(return_value=True)):
-        r = dev_reap.close_dev(tid, reason="test")
+    with mock.patch.object(worker_reap, "_pid_matches_task", mock.Mock(return_value=True)), \
+         mock.patch.object(worker_reap, "_terminate_pid", mock.Mock(return_value="SIGTERM")), \
+         mock.patch.object(worker_reap, "close_tab", mock.Mock(return_value=True)):
+        r = worker_reap.close_dev(tid, reason="test")
     return (r["refused"] is None and r["pid_matched"] is True
            and r["signal"] == "SIGTERM" and r["closed_tab"] is True)
 
 
 def test_idempotent_second_call() -> bool:
     tid = _insert_task(status="done", pid=54321)
-    with mock.patch.object(dev_reap, "_pid_matches_task", mock.Mock(return_value=True)), \
-         mock.patch.object(dev_reap, "_terminate_pid", mock.Mock(return_value="SIGTERM")), \
-         mock.patch.object(dev_reap, "close_tab", mock.Mock(return_value=True)):
-        r1 = dev_reap.close_dev(tid, reason="first")
+    with mock.patch.object(worker_reap, "_pid_matches_task", mock.Mock(return_value=True)), \
+         mock.patch.object(worker_reap, "_terminate_pid", mock.Mock(return_value="SIGTERM")), \
+         mock.patch.object(worker_reap, "close_tab", mock.Mock(return_value=True)):
+        r1 = worker_reap.close_dev(tid, reason="first")
     # Second call: process is now gone (or recycled) and the tab is already
     # closed — the natural post-reap state. Must not raise.
-    with mock.patch.object(dev_reap, "_pid_matches_task", mock.Mock(return_value=False)), \
-         mock.patch.object(dev_reap, "close_tab", mock.Mock(return_value=False)):
+    with mock.patch.object(worker_reap, "_pid_matches_task", mock.Mock(return_value=False)), \
+         mock.patch.object(worker_reap, "close_tab", mock.Mock(return_value=False)):
         try:
-            r2 = dev_reap.close_dev(tid, reason="second")
+            r2 = worker_reap.close_dev(tid, reason="second")
         except Exception:
             return False
     return r1["refused"] is None and r2["refused"] is None and r2["signal"] is None

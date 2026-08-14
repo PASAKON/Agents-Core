@@ -1,7 +1,7 @@
 """Tests for tools/send_to_cto.py's mailbox+wake delivery contract.
 
 Task task-2f04a8ca (CEO directive 2026-08-14): same fixture/injection
-style as scripts/test_send_to_dev.py and scripts/test_cxo_crosstalk.py --
+style as scripts/test_send_to_worker.py and scripts/test_cxo_crosstalk.py --
 pytest, tmp_path only (ADR 0021 §1), never the real state/tasks.db,
 state/locks/, or state/inbox/. `_active_session_id` and
 `tmux_session.has_session` live in `tools.agent_transport` (task
@@ -75,20 +75,20 @@ def clean_broadcast_env(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture(autouse=True)
 def clean_identity_env(monkeypatch: pytest.MonkeyPatch):
-    """`_attempt_wake()` calls `lib.notify.info()`, which reads `DEV_TASK_ID`
+    """`_attempt_wake()` calls `lib.notify.info()`, which reads `WORKER_TASK_ID`
     straight off the real process env (`lib.notify._detect_source()`) to
     label `state/logs/cto.log` lines -- independent of anything this file's
     own send() calls pass in. Without this, this DEV harness's own ambient
-    `DEV_TASK_ID`/`DEV_ROLE` leaked real log lines into the real
+    `WORKER_TASK_ID`/`WORKER_ROLE` leaked real log lines into the real
     `state/logs/cto.log` during test runs (found via a state/ byte-identical
     check -- `lib.notify._under_test()`'s `sys.argv[0] == "pytest"` guard
     does not match a `python -m pytest` invocation, whose `sys.argv[0]`
     basename is `__main__.py`; every sibling test file masks this by
-    clearing `DEV_TASK_ID` for its own identity-isolation reasons, which
+    clearing `WORKER_TASK_ID` for its own identity-isolation reasons, which
     this file didn't otherwise need). Same var list as
-    `scripts/test_cxo_crosstalk.py` / `scripts/test_send_to_dev.py`."""
+    `scripts/test_cxo_crosstalk.py` / `scripts/test_send_to_worker.py`."""
     for var in ("CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID",
-                "DEV_TASK_ID", "DEV_ROLE"):
+                "WORKER_TASK_ID", "WORKER_ROLE"):
         monkeypatch.delenv(var, raising=False)
 
 

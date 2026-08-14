@@ -106,9 +106,9 @@ roles:
     # Drives a real browser for work that has no API. Sonnet 5 (CEO
     # 2026-08-10) -- vision-capable and cheaper than C-level Opus, which is
     # where every browser task used to run. Deliberately absent from
-    # DEV_PROVIDER_ROLES (lib/config.py) so the quota router never swaps it
+    # WORKER_PROVIDER_ROLES (lib/config.py) so the quota router never swaps it
     # onto GLM: this role's work is screenshot-driven and needs vision.
-    # Chrome access is gated on the --chrome flag in runners/dev_init.py.
+    # Chrome access is gated on the --chrome flag in runners/worker_init.py.
     model: "claude-sonnet-5"
     effort: "high"
     can_write_wiki: false
