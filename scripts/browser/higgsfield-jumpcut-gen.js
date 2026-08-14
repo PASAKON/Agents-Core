@@ -423,6 +423,61 @@
  *    Recreate on any existing video card), then navigate to the target folder —
  *    **the Image/Video mode persists across navigation**, while the prompt
  *    persists via localStorage and Unlimited does not.
+ *
+ * Wave 8 findings (task-989d4a38, 2026-08-14, /ai/video History — bulk
+ * multi-scene download, no generation):
+ *
+ * 1. **Per-card checkboxes for Grid-view multi-select don't exist in the DOM
+ *    until that specific card is hovered** — `document.querySelectorAll(
+ *    'button.checkbox')` inside the History container returns only the 1-2
+ *    section-header checkboxes at rest. The header checkbox's own click
+ *    behaves as a global "select all currently mounted, growing as more
+ *    scroll into view" toggle, NOT a clean select-all/deselect-all pair —
+ *    two clicks on it went 0→23→25 selected, never back to 0. Use the
+ *    toolbar's own "Unselect all" (X) button to reset to zero instead of
+ *    re-clicking the header.
+ *
+ * 2. **Reliable per-card selection recipe**: `computer` `hover` at the card's
+ *    coordinate, immediately followed by `computer` `left_click` at the same
+ *    coordinate (checkbox sits ~20px screenshot-px in from the card's
+ *    top-left corner, which coincides with the thumbnail `<img>`'s own
+ *    top-left — no separate icon-strip offset). A bare `left_click` with no
+ *    preceding `hover` on that exact spot silently missed 4 of 5 attempts in
+ *    this run (the synthetic move component of `left_click` didn't reliably
+ *    fire the React mouseenter the hover-reveal listens for) — always pair
+ *    them. Verify progress cheaply after each card via
+ *    `document.body.innerText.match(/\d+\s*selected/i)`, not a screenshot.
+ *
+ * 3. **Screenshot-pixel vs CSS-pixel ratio must be measured per session, not
+ *    assumed.** This run's window reported `innerWidth`/`innerHeight` of
+ *    1280x754 (not the 1024x768 `resize_window` was asked for — silently
+ *    ignored again, consistent with Wave 7 finding 8) while screenshots came
+ *    back 1426x840 — ratio 1.114, not the 1.4219 recorded in Wave 7 on a
+ *    different display/window size. Compute `screenshot_w / innerWidth`
+ *    fresh each session before converting any `getBoundingClientRect()`
+ *    value into a `computer` click coordinate.
+ *
+ * 4. **Diffing "which History cards are new" against Drive by id, done
+ *    entirely in JS, avoided all visual recognition.** Query only inside the
+ *    History scroll container (`hfGetHistoryContainer()` above) for
+ *    `img,video` elements, regex out `hf_\d{8}_\d{6}_[a-f0-9-]+` from `.src`
+ *    (raw `.src` itself is blocked as "Cookie/query string data" by the
+ *    extension — extract just the id substring, never return the full URL),
+ *    and diff that set against filenames already listed via
+ *    `gdrive_move.py list` on the target Drive folder. **Querying
+ *    `document.querySelectorAll('img')` unscoped is contaminated** — a
+ *    left-hand References/element-picker panel reuses the same `hf_` URL
+ *    pattern for unrelated small thumbnails and will pollute the id list;
+ *    always scope the query to the History container element.
+ *
+ * 5. **Grid-view bulk zip (Wave 5 finding 1) is still the right tool for a
+ *    same-origin multi-file pull inside the Chrome-one-download-per-session
+ *    cap (Wave 5 finding 13)** — selecting exactly 8 non-contiguous target
+ *    cards (skipping ones already confirmed present on Drive) and clicking
+ *    the toolbar's Download produced one `archive (N).zip` containing
+ *    exactly those 8 files, filenames intact. Poll `~/Downloads/*.zip` size
+ *    twice a few seconds apart for stability before unzipping, same as
+ *    Wave 5.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
