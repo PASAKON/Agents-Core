@@ -478,6 +478,69 @@
  *    exactly those 8 files, filenames intact. Poll `~/Downloads/*.zip` size
  *    twice a few seconds apart for stability before unzipping, same as
  *    Wave 5.
+ *
+ * Wave 10 findings (task-110cf390, 2026-08-14, negative-result verification —
+ * confirming 5 empty Drive scene folders (S11, S13-S16) had genuinely no
+ * matching Higgsfield footage anywhere, no generation, read-only both
+ * surfaces):
+ *
+ * 1. **This project splits footage by resolution into sibling Drive folders,
+ *    `SX` (720p) and `SX-1080P` (1080p) — a bare `SX` folder showing 0 files
+ *    does NOT mean the scene has no footage** if all of it happens to be
+ *    1080p. Confirmed: Drive's bare `S11` was empty while `S11-1080P` held
+ *    all 5 existing clips (the 11D/11D-B family). Always check both siblings
+ *    before concluding a scene is genuinely footage-less — a bare `SX`
+ *    folder can be legitimately empty by the routing convention and still
+ *    correct to delete once confirmed 0 files, since the real content lives
+ *    in `SX-1080P` instead.
+ *
+ * 2. **The Cinema Studio project folder index (left sidebar under a project's
+ *    Folders panel) is a cheap first-pass census.** A single
+ *    `javascript_tool` read of the "Folders" list gave every scene's folder
+ *    name + item count in one call (~15-token-class read, no screenshot):
+ *    query for leaf elements matching `/^Sence \d+/` and read `parentText`
+ *    (label + count are concatenated with no separator, e.g. "Sence 1212"
+ *    means Sence 12 → 12 items). Confirmed this project's index has NO
+ *    `Sence 13`/`14`/`15`/`16` folders at all — matches PROMPTS.md stating no
+ *    prompt was ever written for those scenes (folded into Scene 12-FB) and
+ *    is a fast corroborating check before trusting a brief's claim like that.
+ *
+ * 3. **A full `/ai/video` History sweep for "does X exist anywhere" needs the
+ *    scroll-to-true-end loop repeated in bursts, not run once.**
+ *    `scrollHeight` did not just grow smoothly to one final value — it
+ *    plateaued twice (at ~17k, then ~46k) before a further jump revealed
+ *    more content (final true end ~84k px, spanning from an in-flight
+ *    "Generating" card down to content dated 2026-08-06, i.e. the account's
+ *    entire history, well before this festival project started). A
+ *    stable-for-one-check `scrollHeight` is NOT reliable proof of the true
+ *    end; loop `scrollTop = <huge number>` + re-check `scrollHeight` until
+ *    it repeats on TWO consecutive iterations, and re-run any keyword/phrase
+ *    scan across the newly revealed range too — a scan that stopped at the
+ *    first plateau would have silently missed roughly half the history.
+ *
+ * 4. **For a "does this specific sub-scene exist" negative-result check,
+ *    search List-view `innerText` for the prompt's own distinctive VERBATIM
+ *    phrases (5-8 words, copied straight from PROMPTS.md), not a scene-label
+ *    regex.** Scene sub-labels like "11A"/"11B"/"11C" never appear literally
+ *    in the generated prompt text itself (Higgsfield cards show only
+ *    VISUAL/AUDIO-SFX prose, no scene-number metadata), so regex-matching
+ *    "11A" finds nothing whether or not the content exists. A loose keyword
+ *    (e.g. "room 214", "bursts inward") produced false-positive hits against
+ *    an unrelated scene that happens to share vocabulary — always read the
+ *    matched card's actual surrounding text before concluding a hit is real;
+ *    a hit that shows unrelated words ("SLOW MOTION" where the target prompt
+ *    never mentions slow motion) is a different scene, not the one you're
+ *    checking for. Tight, near-verbatim phrase matches (7+ consecutive words
+ *    unique to one prompt) produced zero false positives across the whole
+ *    account history in this run.
+ *
+ * 5. **Grid view renders card thumbnails only — no prompt text in the DOM at
+ *    all** (`innerText` of the History container returns just section
+ *    headers like "Today", 5 chars total). Any text-based keyword/phrase scan
+ *    of History MUST be done in **List view** (click the "List" tab next to
+ *    "Grid", top-right of the History panel) — Grid view is for visual
+ *    browsing and bulk-select/download only (Wave 5/8), never for content
+ *    search.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
