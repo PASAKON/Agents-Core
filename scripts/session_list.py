@@ -44,6 +44,28 @@ GLYPH_ORDER = ["🏁", "🔗", "💤", "🔴", "✅", "⏳"]
 ID_RE = re.compile(r"#([0-9a-fA-F]{6,})")
 
 
+def parse_title(content: str) -> tuple[str, str, str, str | None]:
+    """Split a .title file's content into (glyph, state, summary, blocker).
+
+    blocker = the 🔴 glyph's summary, or a `รอ…` fragment inside any summary;
+    None otherwise (also for 🏁 — closed means no live blocker). Shared with
+    tools/org_inspector.py (task-05ae76f3) so the tab-title grammar exists
+    once, not as two drifting copies.
+    """
+    glyph = next((g for g in GLYPH_ORDER if g in content), "")
+    state = GLYPHS.get(glyph, "?")
+    summary = content.split(glyph, 1)[1].strip() if glyph else content.strip()
+    if glyph == "🏁":
+        blocker = None
+    elif glyph == "🔴":
+        blocker = summary or "(unspecified)"
+    elif "รอ" in summary:
+        blocker = "รอ" + summary.split("รอ", 1)[1]
+    else:
+        blocker = None
+    return glyph, state, summary, blocker
+
+
 def live_ids():
     """Session ids of iTerm2 tabs open right now (these get excluded).
 
@@ -234,17 +256,9 @@ def main():
         except Exception:
             continue
 
-        glyph = next((g for g in GLYPH_ORDER if g in content), "")
-        state = GLYPHS.get(glyph, "?")
-        summary = content.split(glyph, 1)[1].strip() if glyph else content
-        if glyph == "🏁":
-            blocker = "—"                       # closed → no live blocker
-        elif glyph == "🔴":
-            blocker = summary or "(unspecified)"
-        elif "รอ" in summary:
-            blocker = "รอ" + summary.split("รอ", 1)[1]
-        else:
-            blocker = "—"
+        glyph, state, summary, blocker = parse_title(content)
+        if blocker is None:
+            blocker = "—"                       # closed / none → no live blocker
 
         # created = earliest birth across title/base/log (≈ spawn time)
         cands = []

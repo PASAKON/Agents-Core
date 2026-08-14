@@ -34,6 +34,12 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from lib.logger import get_logger  # noqa: E402
+from tools.org_inspector import (  # noqa: E402
+    detect_host,
+    history_index,
+    history_read,
+    list_sessions,
+)
 
 # ---------------------------------------------------------------------------
 # Config
@@ -59,6 +65,23 @@ C_LEVEL_ROLES = ("cto", "cfo", "cmo", "cgo")
 # Cap on a `read` capture. A pane holds thousands of lines and every one of them
 # is paid for twice — across the wire, then into the model reading it back.
 MAX_READ_LINES = int(os.environ.get("MAC_AGENT_MAX_READ_LINES", "200"))
+
+# Cap on one entry's `result` TEXT. The Contabo side reads this column back to
+# the secretary, so it has to carry whole JSON payloads (a 50-row `terminals`
+# snapshot is ~15 KB), not just one-line acks. It was previously hard-coded at
+# 500 chars, which silently destroyed every payload longer than an ack — and
+# also most of a `read` pane tail. Env-overridable for tighter boxes.
+MAX_RESULT_CHARS = int(os.environ.get("MAC_AGENT_MAX_RESULT_CHARS", "20000"))
+
+# Row cap for `terminals`. Dozens of .title files on the Mac make a long list;
+# 50 newest-first rows is what fits a phone screen and the queue row. When
+# rows fall off the end the result must SAY so — silent truncation would have
+# the secretary tell the CEO a session does not exist when it simply dropped.
+MAX_TERMINAL_ROWS = int(os.environ.get("MAC_AGENT_MAX_TERMINAL_ROWS", "50"))
+
+# Enumerated `history` modes — an unknown mode fails the entry, exactly like
+# an unknown kind. Dispatch here is a list, not a shell.
+HISTORY_MODES = ("index", "read")
 
 
 def _tmux_bin() -> str:
@@ -157,7 +180,7 @@ def fetch_pending() -> list[dict]:
 def mark(entry_id: int, status: str, result: str) -> bool:
     """Close a queue entry. Every entry ends 'done' or 'failed' WITH a reason —
     one left pending forever is invisible work nobody will chase."""
-    safe = result.replace("'", "''")[:500]
+    safe = result.replace("'", "''")[:MAX_RESULT_CHARS]
     sql = (
         f"UPDATE relay_queue SET status = '{status}', "
         f"done_at = datetime('now'), result = '{safe}' WHERE id = {int(entry_id)};"
@@ -274,10 +297,76 @@ def do_read(role: str, payload: dict) -> tuple[bool, str]:
     return True, f"[{target}] " + "\n".join(kept[-lines:])
 
 
+def do_terminals(role: str, payload: dict) -> tuple[bool, str]:
+    """kind=terminals — read-only snapshot of THIS Mac's C-level sessions.
+
+    `role` is ignored: the question is host-wide ("what is open on the Mac"),
+    not per-role. Payload {"include_closed": bool}. Result is JSON for the
+    Contabo side to render, rows capped at MAX_TERMINAL_ROWS, newest first,
+    with dropped rows said out loud.
+    """
+    include_closed = payload.get("include_closed", False)
+    if not isinstance(include_closed, bool):
+        return False, "include_closed must be a boolean"
+    rows = list_sessions(include_closed=include_closed)
+    kept = rows[:MAX_TERMINAL_ROWS]
+    dropped = len(rows) - len(kept)
+    out = {
+        "host": detect_host(),
+        "total_sessions": len(rows),
+        "returned": len(kept),
+        "dropped": dropped,
+        "sessions": kept,
+    }
+    if dropped:
+        out["note"] = f"{dropped} older session(s) not returned (row cap " \
+                      f"{MAX_TERMINAL_ROWS}) — ask with a narrower filter"
+    return True, json.dumps(out, ensure_ascii=False)
+
+
+def do_history(role: str, payload: dict) -> tuple[bool, str]:
+    """kind=history — index what saved history exists, or read one file's
+    tail. Read-only (tools/org_inspector.py enforces the allowlists).
+
+      mode=index → {"session_id": str|None}
+      mode=read  → {"path": str, "tail_lines": int}
+
+    An unknown mode fails the entry, same contract as an unknown kind. A
+    history_read refusal (outside ALLOWED_HISTORY_ROOTS, bad extension, …)
+    also fails the entry — the Contabo side must see a rejection as a
+    rejection, never as success-with-a-body.
+    """
+    mode = payload.get("mode")
+    if mode not in HISTORY_MODES:
+        return False, f"unknown mode {mode!r}. Known: {', '.join(HISTORY_MODES)}"
+    if mode == "index":
+        sid = payload.get("session_id")
+        if sid is not None and not isinstance(sid, str):
+            return False, "session_id must be a string when given"
+        return True, json.dumps(history_index(sid), ensure_ascii=False)
+
+    path = payload.get("path")
+    if not isinstance(path, str) or not path.strip():
+        return False, "path is required for mode=read"
+    tail_lines = payload.get("tail_lines", 80)
+    if isinstance(tail_lines, bool) or not isinstance(tail_lines, int) or tail_lines < 1:
+        return False, "tail_lines must be a positive integer"
+    out = history_read(path, tail_lines=tail_lines)
+    if out.get("status") == "rejected":
+        return False, f"read rejected: {out.get('reason')}"
+    return True, json.dumps(out, ensure_ascii=False)
+
+
 # Explicit dispatch table. An unknown kind is a failure, never a fallback
 # execution — that is the whole difference between an enumerated action list
 # and a remote shell.
-HANDLERS = {"relay": do_relay, "spawn": do_spawn, "read": do_read}
+HANDLERS = {
+    "relay": do_relay,
+    "spawn": do_spawn,
+    "read": do_read,
+    "terminals": do_terminals,
+    "history": do_history,
+}
 
 
 def process(entry: dict) -> tuple[bool, str]:
