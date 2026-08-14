@@ -4,12 +4,15 @@ Task task-2f04a8ca (CEO directive 2026-08-14): mirrors the fixture/
 injection style `scripts/test_cxo_crosstalk.py` established for
 `tools/send_to_cxo.py`'s own mailbox+wake migration (task-de2cdc15,
 task-cf325742) -- pytest, `tmp_path` fixtures only (ADR 0021 §1), never the
-real `state/tasks.db` or `state/inbox/`. `_wake_tmux_send` and
-`tmux_session.has_session` are monkeypatched directly on the
-`send_to_dev` module (they are name-imports from `tools.send_to_cxo` /
-`tools.tmux_session`, so patching the *importing* module's bound name --
-not the origin module -- is what `_attempt_wake()` actually reads at call
-time), no real tmux binary anywhere.
+real `state/tasks.db` or `state/inbox/`. `tmux_session.has_session` is
+monkeypatched on `tools.agent_transport` (task task-eb0d9863 moved the
+shared wake implementation there -- `_attempt_wake()` in this file's
+module now delegates to `agent_transport.attempt_wake()`). `_wake_tmux_send`
+is still monkeypatched on `sd` (this file's `tools.send_to_dev` alias) --
+`sd._attempt_wake()` passes its OWN imported `_wake_tmux_send` reference
+as `send_fn=`, resolved fresh from `sd`'s globals on every call, so a
+patch on `sd`'s copy (not agent_transport's) is what actually takes
+effect. No real tmux binary anywhere.
 
 Covers (task's required list, mapped to this file):
   * delivery succeeds via the mailbox write alone
@@ -37,6 +40,7 @@ sys.path.insert(0, str(ROOT))
 
 import lib.db as db_mod  # noqa: E402
 import lib.mailbox as mailbox  # noqa: E402
+import tools.agent_transport as agent_transport  # noqa: E402
 import tools.send_to_dev as sd  # noqa: E402
 
 
@@ -129,7 +133,7 @@ def test_wake_attempted_when_live_tmux_session_on_task_row(
     with isolated_db.get_conn() as conn:
         tid = _insert_task(conn, role="web_designer", tmux_session="wd-abc12345")
 
-    monkeypatch.setattr(sd.tmux_session, "has_session", lambda s: s == "wd-abc12345")
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: s == "wd-abc12345")
     calls = []
     monkeypatch.setattr(sd, "_wake_tmux_send",
                         lambda session, text: calls.append((session, text)))
@@ -147,7 +151,7 @@ def test_wake_skipped_silently_when_no_live_session(
     with isolated_db.get_conn() as conn:
         tid = _insert_task(conn, tmux_session="wd-deadsession")
 
-    monkeypatch.setattr(sd.tmux_session, "has_session", lambda s: False)
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: False)
 
     def _should_not_run(*a, **kw):
         raise AssertionError("must not attempt a tmux send when no session is live")
@@ -164,7 +168,7 @@ def test_wake_failure_does_not_propagate_or_change_return(
     with isolated_db.get_conn() as conn:
         tid = _insert_task(conn, tmux_session="wd-livesession")
 
-    monkeypatch.setattr(sd.tmux_session, "has_session", lambda s: True)
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: True)
 
     def boom(*a, **kw):
         raise RuntimeError("tmux send-keys exploded")
@@ -186,7 +190,7 @@ def test_send_return_string_identical_wake_success_fail_skip(
         tid2 = _insert_task(conn, tmux_session="wd-b")
         tid3 = _insert_task(conn, tmux_session="wd-c")
 
-    monkeypatch.setattr(sd.tmux_session, "has_session", lambda s: True)
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: True)
     monkeypatch.setattr(sd, "_wake_tmux_send", lambda session, text: None)
     ok_result = sd.send(tid1, "hi").replace(tid1, "TID")
 
@@ -195,7 +199,7 @@ def test_send_return_string_identical_wake_success_fail_skip(
     monkeypatch.setattr(sd, "_wake_tmux_send", boom)
     fail_result = sd.send(tid2, "hi").replace(tid2, "TID")
 
-    monkeypatch.setattr(sd.tmux_session, "has_session", lambda s: False)
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: False)
     skip_result = sd.send(tid3, "hi").replace(tid3, "TID")
 
     assert ok_result == fail_result == skip_result
@@ -207,7 +211,7 @@ def test_wake_nudge_never_contains_message_body(
     with isolated_db.get_conn() as conn:
         tid = _insert_task(conn, tmux_session="wd-livesession")
 
-    monkeypatch.setattr(sd.tmux_session, "has_session", lambda s: True)
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: True)
     calls = []
     monkeypatch.setattr(sd, "_wake_tmux_send", lambda session, text: calls.append(text))
 

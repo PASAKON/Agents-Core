@@ -75,14 +75,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib import mailbox
-from lib import notify
 from lib.config import display_for
-from tools import tmux_session
-from tools.send_to_cxo import (
-    current_identity,
+from tools import agent_transport
+from tools.agent_transport import (
     _resolve_sender_role,
     _wake_tmux_send,
-    _WAKE_MARKER_TEMPLATE,
+    current_identity,
 )
 
 
@@ -101,31 +99,14 @@ def _attempt_wake(tmux_sess: str | None, label: str) -> None:
     no-op only for a project still left on `spawn_backend: iterm`
     (currently just `mooniex-claudesign`, to keep its unrelated
     `web_designer` passive-mirror path undisturbed).
+
+    Delegates the actual wrap/log/never-raise nudge to
+    `tools.agent_transport.attempt_wake()` (task task-eb0d9863) --
+    `send_fn=_wake_tmux_send` is this module's own imported reference,
+    resolved in THIS module's globals, so a test that monkeypatches
+    `tools.send_to_dev._wake_tmux_send` is still honored.
     """
-    if not tmux_sess:
-        return
-    try:
-        if not tmux_session.has_session(tmux_sess):
-            try:
-                notify.info(f"[send_to_dev] wake skipped (no live session): {tmux_sess}")
-            except Exception:
-                pass
-            return
-        try:
-            notify.info(f"[send_to_dev] wake attempted: {tmux_sess}")
-        except Exception:
-            pass
-        marker = _WAKE_MARKER_TEMPLATE.format(label=label)
-        _wake_tmux_send(tmux_sess, marker)
-        try:
-            notify.info(f"[send_to_dev] wake succeeded: {tmux_sess}")
-        except Exception:
-            pass
-    except Exception as e:
-        try:
-            notify.info(f"[send_to_dev] wake failed: {tmux_sess}: {e}")
-        except Exception:
-            pass
+    agent_transport.attempt_wake(tmux_sess, label, "send_to_dev", send_fn=_wake_tmux_send)
 
 
 def send(task_id: str, message: str) -> str:

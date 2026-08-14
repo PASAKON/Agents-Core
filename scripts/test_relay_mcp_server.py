@@ -882,9 +882,13 @@ def test_open_terminal_session_id_defaults_to_none(queue_env):
 def test_exactly_one_tmux_wake_sequence_repo_wide():
     """The settle-delay + rescue-Enter wake sequence (type -l text, sleep,
     Enter, sleep, Enter) must exist in exactly one module:
-    tools/send_to_cxo.py, imported by everyone. Detected by its source
-    shape -- a `send-keys` argv built together with literal `-l` typing AND
-    a literal `Enter` keyname -- which only the wake implementation carries.
+    tools/agent_transport.py, imported by everyone (task task-eb0d9863
+    moved it there from tools/send_to_cxo.py -- the ONE shared
+    implementation the 3 send_to_*.py files now import instead of
+    send_to_cxo.py accidentally being "the shared library" for the other
+    two). Detected by its source shape -- a `send-keys` argv built
+    together with literal `-l` typing AND a literal `Enter` keyname --
+    which only the wake implementation carries.
 
     Deliberately excluded:
       * runners/mac_agent.py -- locked by a parallel task migrating it off
@@ -907,7 +911,7 @@ def test_exactly_one_tmux_wake_sequence_repo_wide():
             text = p.read_text(encoding="utf-8", errors="replace")
             if "send-keys" in text and '"-l"' in text and '"Enter"' in text:
                 shape_owners.append(str(p.relative_to(ROOT)))
-    assert shape_owners == ["tools/send_to_cxo.py"], (
+    assert shape_owners == ["tools/agent_transport.py"], (
         f"settle-delay wake sequence duplicated in: {shape_owners}")
 
 

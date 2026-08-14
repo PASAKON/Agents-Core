@@ -3,13 +3,15 @@
 Task task-2f04a8ca (CEO directive 2026-08-14): same fixture/injection
 style as scripts/test_send_to_dev.py and scripts/test_cxo_crosstalk.py --
 pytest, tmp_path only (ADR 0021 §1), never the real state/tasks.db,
-state/locks/, or state/inbox/. `_active_session_id` and `_wake_tmux_send`
-are imported by name from `tools.send_to_cxo` into this module, so tests
-patch the *importing* module's bound name (`sc._wake_tmux_send`) the same
-way `_attempt_wake()` resolves it at call time; `_active_session_id`
-reads `tools.send_to_cxo.LOCKS_DIR` directly (it's defined there), so the
-isolated_locks fixture below patches that module's LOCKS_DIR, not this
-one's.
+state/locks/, or state/inbox/. `_active_session_id` and
+`tmux_session.has_session` live in `tools.agent_transport` (task
+task-eb0d9863 moved the shared implementation there), so tests patch
+`agent_transport` directly for those. `_wake_tmux_send` is still patched
+on `sc` (this file's `tools.send_to_cto` alias) -- `sc._attempt_wake()`
+passes its OWN imported `_wake_tmux_send` reference to
+`agent_transport.attempt_wake(..., send_fn=_wake_tmux_send)`, resolved
+fresh from `sc`'s globals on every call, so a monkeypatch on `sc`'s copy
+(not agent_transport's) is what actually takes effect.
 
 Covers (task's required list, mapped to this file):
   * delivery succeeds via the mailbox write alone (owned task, cto_id given)
@@ -35,8 +37,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import lib.mailbox as mailbox  # noqa: E402
+import tools.agent_transport as agent_transport  # noqa: E402
 import tools.send_to_cto as sc  # noqa: E402
-import tools.send_to_cxo as send_to_cxo_mod  # noqa: E402
 
 
 @pytest.fixture()
@@ -49,11 +51,12 @@ def isolated_mailbox_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Pa
 @pytest.fixture()
 def isolated_locks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """`_active_session_id()` (used by the broadcast path) is defined in
-    `tools.send_to_cxo` and reads that module's own `LOCKS_DIR` global --
-    patch it there, not on `sc` (this file's `tools.send_to_cto` alias)."""
+    `tools.agent_transport` and reads that module's own `LOCKS_DIR` global
+    -- patch it there, not on `sc` (this file's `tools.send_to_cto`
+    alias)."""
     locks = tmp_path / "locks"
     locks.mkdir()
-    monkeypatch.setattr(send_to_cxo_mod, "LOCKS_DIR", locks)
+    monkeypatch.setattr(agent_transport, "LOCKS_DIR", locks)
     return locks
 
 
@@ -125,7 +128,7 @@ def test_send_owned_task_routes_by_owner_role_not_always_cto(
 def test_wake_attempted_when_live_tmux_session_exists(
     isolated_mailbox_root, monkeypatch,
 ):
-    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: s == "cto-ctosess01")
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: s == "cto-ctosess01")
     calls = []
     monkeypatch.setattr(sc, "_wake_tmux_send",
                         lambda session, text: calls.append((session, text)))
@@ -139,7 +142,7 @@ def test_wake_attempted_when_live_tmux_session_exists(
 def test_wake_skipped_silently_when_no_live_session(
     isolated_mailbox_root, monkeypatch,
 ):
-    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: False)
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: False)
 
     def _should_not_run(*a, **kw):
         raise AssertionError("must not attempt a tmux send when no session is live")
@@ -154,7 +157,7 @@ def test_wake_skipped_silently_when_no_live_session(
 def test_wake_failure_does_not_propagate_or_change_return(
     isolated_mailbox_root, monkeypatch,
 ):
-    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: True)
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: True)
 
     def boom(*a, **kw):
         raise RuntimeError("tmux send-keys exploded")
@@ -170,7 +173,7 @@ def test_wake_failure_does_not_propagate_or_change_return(
 def test_wake_nudge_never_contains_message_body(
     isolated_mailbox_root, monkeypatch,
 ):
-    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: True)
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: True)
     calls = []
     monkeypatch.setattr(sc, "_wake_tmux_send", lambda session, text: calls.append(text))
 
@@ -197,7 +200,7 @@ def test_known_owner_always_succeeds_even_if_no_window_ever_existed(
     orphan-logged, return False. Mailbox delivery has no such dependency
     -- a known owner (cto_id given) always succeeds regardless of whether
     any window/lock file for it has ever existed."""
-    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: False)  # no live session at all
+    monkeypatch.setattr(agent_transport.tmux_session, "has_session", lambda s: False)  # no live session at all
 
     ok = sc.send("task-abc12345", "hello", role="developer",
                  cto_id="neverspawnedsess", owner_role="cto")
