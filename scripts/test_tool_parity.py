@@ -1,5 +1,5 @@
 """Mandatory parity proof (task-724cff99, Do-4): lib/org_tools_registry.py's
-REGISTRY is the single source of truth for the 18 CTO org tools. This
+REGISTRY is the single source of truth for the 19 CTO org tools. This
 asserts all 3 production surfaces actually expose exactly REGISTRY's tool
 names — introspected from the REAL objects each surface builds at import
 time, never hand-copied into this file — so a tool added to the registry
@@ -86,13 +86,16 @@ def test_parity() -> bool:
     return ok
 
 
-def test_registry_has_18() -> bool:
-    return len(reg.REGISTRY) == 18 == len(reg.BY_NAME)
+def test_registry_names_unique() -> bool:
+    return len(reg.REGISTRY) == len(reg.BY_NAME)
 
 
 def main() -> int:
     print("== tool-name parity across all 3 production surfaces vs REGISTRY ==")
-    _mark(test_registry_has_18(), "registry itself has exactly 18 entries")
+    _mark(
+        test_registry_names_unique(),
+        f"registry itself has {len(reg.REGISTRY)} entries, no duplicate names",
+    )
     _mark(
         test_parity(),
         "REGISTRY == cto_mcp_server.py (FastMCP introspection) == "

@@ -144,6 +144,11 @@ async def revert_task_tool(task_id: str, force: bool = False) -> str:
     return await reg.dispatch("revert_task_tool", task_id=task_id, force=force)
 
 
+@mcp.tool(description=reg.BY_NAME["send_to_cxo"].description)
+def send_to_cxo(role: str, message: str, spawn: bool = False) -> str:
+    return reg.dispatch_sync("send_to_cxo", role=role, message=message, spawn=spawn)
+
+
 if __name__ == "__main__":
     db.init()
     mcp.run()
