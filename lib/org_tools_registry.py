@@ -43,6 +43,7 @@ import os
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from lib import ceo_report
 from lib import db
 from lib import recall as recall_lib
 from lib import reflect as reflect_lib
@@ -265,6 +266,10 @@ def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False) -> str:
     if spawn:
         return send_to_cxo_mod.spawn(role, message)
     return send_to_cxo_mod.send(role, message)
+
+
+def _h_report_to_ceo(*, order_id: int, status: str, detail: str) -> str:
+    return ceo_report.report_to_ceo(order_id, status, detail)
 
 
 REGISTRY: tuple[ToolSpec, ...] = (
@@ -516,6 +521,31 @@ REGISTRY: tuple[ToolSpec, ...] = (
             Param("spawn", bool, False),
         ),
         handler=_h_send_to_cxo,
+        response_format="text",
+    ),
+    ToolSpec(
+        name="report_to_ceo",
+        description=(
+            "Close out a CEO order relayed via SomPong (task-df6de4d4). Call "
+            "this the moment a `[CEO via SomPong ... order #N]` letter's work "
+            "is done, has failed, or is genuinely blocked -- and ALWAYS "
+            "before leaving it unanswered. `order_id` is the number from "
+            "that letter's own footer. `status` must be exactly one of "
+            "done/failed/blocked -- anything else writes nothing at all, "
+            "not even a partial update.\n\n"
+            "Writes a reply letter into SomPong's mailbox (so the CEO's own "
+            "wording survives, not just a status enum) and then closes the "
+            "obligation ledger row. Closing an unknown or already-closed "
+            "order_id is reported honestly as a failure, never silently "
+            "treated as success -- if this tool doesn't say 'closed', the "
+            "CEO has not been told."
+        ),
+        params=(
+            Param("order_id", int),
+            Param("status", str),
+            Param("detail", str),
+        ),
+        handler=_h_report_to_ceo,
         response_format="text",
     ),
 )
