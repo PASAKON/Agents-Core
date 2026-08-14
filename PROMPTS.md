@@ -1231,9 +1231,9 @@ Cut 4 (4.7–6.0s): The bus brakes hiss right behind them. She wrenches free and
 
 Cut 5 (6.0–7.3s): Interior @Bus-Interior, in motion. Through the rear window, the black sedan holds a steady distance in the traffic behind.
 
-Cut 6 (7.3–8.6s): Through the side glass, @House-Night passes — every window lit warm, the porch light on. Her face changes, softens.
+Cut 6 (7.3–8.6s): Through the side glass, @House-Night passes as it is right now, present-day — every window lit warm, the porch light on, seen from the moving bus, before anything else changes. Her face changes, softens.
 
-Cut 7 (8.6–10.6s): Memory, warm and slightly soft-focus, like an old photograph stirring — @House-Day, golden afternoon light. @Father, healthy and unworn, spins @Daughter as a small child in the front yard; her laugh carries.
+Cut 7 (8.6–10.6s): The image shifts — same house, but memory now, not present: warm and slightly soft-focus, like an old photograph stirring — @House-Day, golden afternoon light. @Father, healthy and unworn, spins @Daughter as a small child in the front yard; her laugh carries.
 
 Cut 8 (10.6–12.6s): The impression shifts, overlapping — @Mother on the porch, watching, an open, unguarded smile. The three of them kneeling together, planting a tree, dirt on small hands.
 
@@ -1251,13 +1251,13 @@ Cut 14 (20.5–21.8s): @Room-DoorOut, then @Room-Clean. Key in the lock, door op
 
 Cut 15 (21.8–23.1s): The argument breaks open, voices overlapping, words lost to the volume of it. Both of them moving now, not standing still.
 
-Cut 16 (23.1–25.9s): His arm rises — cut immediately to a different angle at the instant it lands: over his shoulder, or the wall, or her face taking the impact off-frame. In the same motion his arm or her stumbling body catches the nightstand — @Prop-Lamp and @Prop-Glass go with it, knocked off by the collision, not falling on their own.
+Cut 16 (23.1–25.9s): His arm rises — cut immediately to a different angle at the instant it lands: over his shoulder, or the wall, or her face taking the impact off-frame. In the same motion his arm or her stumbling body catches the nightstand — @Prop-Lamp and @Prop-Glass go with it, knocked off by the collision, not falling on their own. This cut alone carries a harsh, chaotic filter — heavy motion blur, desaturated toward grey, contrast pushed hard — the image itself is disorienting, deliberately harder to read clearly than any other cut in the piece.
 
 Cut 17 (25.9–27.4s): The room holds still. It is now @Room-Wreck. Dead silence.
 
 Cut 18 (27.4–30.0s): @Father steps back, breathing hard, straightens his collar. At the door he hangs @Prop-DNDTag on the outside handle, then walks to the sedan and drives off into the dark.
 
-NEGATIVE — strictly avoid: cuts 2-3 stay at a grabbed arm, not a blow — no punch, no fall, no visible mark yet. No printed logos or brand text anywhere. Cuts 7-10 read distinctly warmer, softer-focus and more saturated than every other cut in the piece — never let that grade bleed into the present-tense cuts. @Father in the memory is healthy, never gaunt or unwell. @Prop-BusCord never actually pulled. No readable hotel name or logo in cut 13; @Father never crosses the lobby threshold. Cut 16 is the one exception to the film's usual rule and stays exactly as written — no second angle, no additional blow, no blood, no wound, nothing beyond the single motion described. Cuts 17-18: no dialogue, no second confrontation.
+NEGATIVE — strictly avoid: cuts 2-3 stay at a grabbed arm, not a blow — no punch, no fall, no visible mark yet. No printed logos or brand text anywhere. Cuts 7-10 read distinctly warmer, softer-focus and more saturated than every other cut in the piece — never let that grade bleed into the present-tense cuts. @Father in the memory is healthy, never gaunt or unwell. @Prop-BusCord never actually pulled. No readable hotel name or logo in cut 13; @Father never crosses the lobby threshold. Cut 16 is the one exception to the film's usual rule and stays exactly as written — no second angle, no additional blow, no blood, no wound, nothing beyond the single motion described. The harsh filter belongs to Cut 16 alone — no blur or desaturation bleeding into cuts 15 or 17, both stay clean. Cuts 17-18: no dialogue, no second confrontation.
 
 Grounded real-camera look, natural handheld weight, no whip pans, no lens flare except the intentional cut-away on Cut 16. Present-tense cuts: hard sodium-orange streetlight, cold bus interior light, warm interior lobby/room light once inside. Memory cuts (7-10): warm golden-hour light, soft-focus, an old photograph's palette, slight overlap between them as if one is still fading as the next arrives. Cuts land hard on every grade change elsewhere — no dissolve, no cross-fade anywhere except that deliberate overlap inside the memory montage itself.
 
