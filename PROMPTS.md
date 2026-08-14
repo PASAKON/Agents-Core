@@ -94,7 +94,8 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 11A | `@Room-Wreck` `@Room-DoorOut` | `@Mother` `@Daughter` | `@Prop-Glass` |
 | 11B | `@Room-Wreck` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-Glass` |
 | 11C | `@Room-Wreck` | `@Mother` `@Mother-Soul` `@Daughter` | `@Prop-OldPhoto` `@Prop-Glass` `@Prop-Lamp` |
-| 11D | `@Room-Wreck` | `@Mother` | — |
+| 11D | `@Room-Wreck` | `@Mother-Soul` `@Daughter` | — |
+| 11D-B | `@Room-Wreck` | `@Mother-Soul` `@Daughter` | — |
 | 12-A | `@Stop-Work` | `@Mother` `@Father` | — |
 | 12-B | `@Bus-Interior` `@House-Night` | `@Mother` | `@Prop-BusCord` |
 | 12-C1 | `@Motel-Front` | `@Mother` `@Father` | — |
@@ -1060,22 +1061,52 @@ negative-space horror grammar the whole film already uses for its violence.
 No jump-cut variant — this is a single continuous camera move by nature; a
 cut would break the transition it exists to perform.
 
+**Corrected 2026-08-14 (CEO): the eye is @Mother-Soul's, not @Mother's** —
+this is the spirit form, dry and unlit exactly as established in 11B/11C
+(never luminous — that treatment belongs only to 10-D). Two police officers
+are now visible in the background, faces never shown, per the house rule
+every other scene already follows.
+
 ```
 VISUAL
-Single continuous take. Interior of @Room-Wreck, continuing directly from the end of 11C — @Daughter still holding the body, torch light, police radio in the doorway.
+Single continuous take. Interior of @Room-Wreck, continuing directly from the end of 11C — @Daughter still holding the body. In the background near the doorway, two police officers move through the room, torch beams sweeping, radios crackling — their faces are never seen, only silhouettes and beams at the edge of frame.
 
-0–4s: The camera moves slowly around from the angle 11C held (her face turned away) to find @Mother's face directly for the first time in the film. Her eyes are open, glassy, unseeing. No visible mark or injury anywhere on her face.
+0–4s: The camera moves slowly around from the angle 11C held (her face turned away) to find @Mother-Soul's face directly for the first time in the film — her translucent spirit form, dry and unlit. Her eyes are open, glassy, unseeing. No visible mark or injury anywhere on her face.
 
 4–10s: A slow, steady push toward one eye. Nothing else moves. The pupil grows to fill more and more of the frame.
 
 10–15s: The pupil fills the entire frame and goes to pure black. Hold on the black for the last beat — this black is the cut point into Scene 12-A.
 
-NEGATIVE — strictly avoid: no wound, no mark, no discolouration anywhere on her face. No CGI eye effect, no twitch, no flash, no glow, no reflection of anything in the eye. The push is slow and continuous — no speed ramp, no whip, no cut within the take. No music, no sting at the moment it goes black.
+NEGATIVE — strictly avoid: no wound, no mark, no discolouration anywhere on her face. No CGI eye effect, no twitch, no flash, no reflection of anything in the eye. No officer's face ever visible — silhouette, beam and shoulder only, and both officers stay peripheral, never crossing into the main frame. The push is slow and continuous — no speed ramp, no whip, no cut within the take. No music, no sting at the moment it goes black.
 
-Grounded real-camera look, no lens flare, no haze. Hard white torch light and weak warm room light, both fading to nothing as the black takes over. Muted and desaturated until the frame is pure black.
+Grounded real-camera look, no lens flare, no haze. Hard white torch light (from the two officers' beams) and weak warm room light, both fading to nothing as the black takes over. Muted and desaturated until the frame is pure black.
 
 AUDIO-SFX
 @Daughter's crying and the police radio continue from 11C, both fading steadily as the push continues. By the moment the frame goes black, there is total silence — that silence carries straight into 12-A's first sound. No music, no sting, no whoosh.
+```
+
+## Scene 11D-B — LONG TAKE (15s) — just her, close and quiet
+
+**Added 2026-08-14 (CEO).** A second, intimate treatment of the same
+transition — no police, no wider room, just @Mother-Soul and @Daughter.
+Same cut point into 12-A; the CEO/editor chooses between this and 11D.
+
+```
+VISUAL
+Single continuous take. Interior of @Room-Wreck, continuing directly from the end of 11C. @Daughter holds @Mother-Soul, face buried against her, shoulders shaking. No police anywhere in frame — this version stays entirely on the two of them.
+
+0–4s: The camera finds @Mother-Soul's face directly — her translucent spirit form, dry and unlit. Her hands are empty; @Prop-OldPhoto already fell from them and lies on the carpet, out of frame. Her eyes are open, glassy, unseeing. No visible mark or injury anywhere on her face.
+
+4–10s: A slow, steady push toward one eye. Nothing else moves. The pupil grows to fill more and more of the frame.
+
+10–15s: The pupil fills the entire frame and goes to pure black. Hold on the black for the last beat — this black is the cut point into Scene 12-A.
+
+NEGATIVE — strictly avoid: no wound, no mark, no discolouration anywhere on her face. No CGI eye effect, no twitch, no flash, no reflection of anything in the eye. No police, no torch beam, no radio chatter — this shot is quieter than 11D on purpose. Nothing in her hands. The push is slow and continuous — no speed ramp, no whip, no cut within the take. No music, no sting at the moment it goes black.
+
+Grounded real-camera look, no lens flare, no haze. Weak warm room light only, fading to nothing as the black takes over. Muted and desaturated until the frame is pure black.
+
+AUDIO-SFX
+@Daughter's crying, close and unguarded, fading steadily as the push continues — no distant police radio in this version. By the moment the frame goes black, there is total silence — that silence carries straight into 12-A's first sound. No music, no sting, no whoosh.
 ```
 
 ## Scene 12-A — LONG TAKE (15s) — the bus stop
