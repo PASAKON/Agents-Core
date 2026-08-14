@@ -56,6 +56,10 @@ RELAY_PREFIX = "[CEO via SomPong]"
 
 C_LEVEL_ROLES = ("cto", "cfo", "cmo", "cgo")
 
+# Cap on a `read` capture. A pane holds thousands of lines and every one of them
+# is paid for twice — across the wire, then into the model reading it back.
+MAX_READ_LINES = int(os.environ.get("MAC_AGENT_MAX_READ_LINES", "200"))
+
 _LOGGER = None
 
 
@@ -218,10 +222,43 @@ def do_spawn(role: str, payload: dict) -> tuple[bool, str]:
     return True, f"spawned {role} on mac"
 
 
+def do_read(role: str, payload: dict) -> tuple[bool, str]:
+    """Capture the tail of a Mac C-level pane and hand it back as the entry's
+    result, so read_session(host="mac") on Contabo can return it.
+
+    Read-only: nothing is typed into the session. What comes back is a pane
+    snapshot, not a reply — the Contabo side labels it that way, and must keep
+    doing so.
+    """
+    if not _valid_role(role):
+        return False, f"unknown role {role!r}"
+    lines = payload.get("lines", 40)
+    if not isinstance(lines, int) or lines < 1:
+        return False, "lines must be a positive integer"
+    lines = min(lines, MAX_READ_LINES)
+
+    target = find_session_for_role(role)
+    if not target:
+        return False, f"no live {role} session on this Mac"
+
+    try:
+        r = subprocess.run(["tmux", "capture-pane", "-p", "-t", target],
+                           capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError) as e:
+        return False, f"capture failed: {e}"
+    if r.returncode != 0:
+        return False, f"capture exit {r.returncode}"
+
+    kept = r.stdout.splitlines()
+    while kept and not kept[-1].strip():
+        kept.pop()
+    return True, f"[{target}] " + "\n".join(kept[-lines:])
+
+
 # Explicit dispatch table. An unknown kind is a failure, never a fallback
 # execution — that is the whole difference between an enumerated action list
 # and a remote shell.
-HANDLERS = {"relay": do_relay, "spawn": do_spawn}
+HANDLERS = {"relay": do_relay, "spawn": do_spawn, "read": do_read}
 
 
 def process(entry: dict) -> tuple[bool, str]:

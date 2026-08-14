@@ -131,6 +131,46 @@ def test_security_relay_without_attribution_is_refused(monkeypatch):
     assert fake.calls == [], "an unattributed order must not reach tmux"
 
 
+def test_read_returns_the_pane_tail_and_never_types_anything(monkeypatch):
+    """`read` is read-only. It must capture and return, never send-keys —
+    otherwise a "show me the screen" request could act on the session."""
+    fake = FakeRun(stdout="line1\nline2\nline3\n\n\n")
+    monkeypatch.setattr(ma.subprocess, "run", fake)
+    monkeypatch.setattr(ma, "find_session_for_role", lambda r: "cto-abc123")
+
+    ok, out = ma.do_read("cto", {"lines": 2})
+
+    assert ok
+    assert "line2" in out and "line3" in out
+    assert "line1" not in out, "should return only the requested tail"
+    assert out.startswith("[cto-abc123]"), "must say which session it came from"
+    argv = fake.calls[-1]
+    assert argv[:2] == ["tmux", "capture-pane"]
+    assert "send-keys" not in argv, "read must never type into the session"
+
+
+def test_read_caps_the_line_count(monkeypatch):
+    """An uncapped read is both a cost problem and a way to pull a lot at
+    once."""
+    fake = FakeRun(stdout="\n".join(f"l{i}" for i in range(5000)))
+    monkeypatch.setattr(ma.subprocess, "run", fake)
+    monkeypatch.setattr(ma, "find_session_for_role", lambda r: "cto-abc123")
+
+    ok, out = ma.do_read("cto", {"lines": 99999})
+
+    assert ok
+    assert len(out.splitlines()) <= ma.MAX_READ_LINES
+
+
+def test_read_rejects_bad_input(monkeypatch):
+    monkeypatch.setattr(ma, "find_session_for_role", lambda r: "cto-abc123")
+    ok, detail = ma.do_read("root", {"lines": 10})
+    assert not ok and "unknown role" in detail
+
+    ok, detail = ma.do_read("cto", {"lines": "; rm -rf ~"})
+    assert not ok and "positive integer" in detail
+
+
 def test_security_unknown_role_is_refused_for_both_kinds():
     ok, detail = ma.do_relay("root", {"message": f"{PREFIX} hi"})
     assert not ok and "unknown role" in detail

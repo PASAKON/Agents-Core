@@ -229,7 +229,16 @@ def test_spawn_c_level_contabo_host_creates_tmux_session(queue_env, monkeypatch)
         created["session"] = session
         created["cmd"] = cmd
 
+    sent = []
+
     monkeypatch.setattr(rms.tmux_session, "create", fake_create)
+    # The spawn path now dismisses Claude Code's first-run MCP prompt with an
+    # Escape after a boot delay. Stub both — an unstubbed sleep would make this
+    # test take 12 seconds for nothing.
+    monkeypatch.setattr(rms, "SPAWN_PROMPT_DELAY_S", 0)
+    monkeypatch.setattr(rms.subprocess, "run",
+                        lambda argv, *a, **k: sent.append(list(argv)))
+
     result = json.loads(rms.spawn_c_level("cmo", "contabo"))
     assert result["status"] == "spawned"
     assert created["session"] == result["tmux_session"]
@@ -237,6 +246,9 @@ def test_spawn_c_level_contabo_host_creates_tmux_session(queue_env, monkeypatch)
     assert "--role cmo" in created["cmd"]
     # Never queued -- delivered immediately.
     assert rms._queue_list_pending() == []
+    # And the first-run prompt was answered, or the session would sit there
+    # forever with nobody at the pane to press a key.
+    assert sent[-1] == ["tmux", "send-keys", "-t", result["tmux_session"], "Escape"]
 
 
 # ---------------------------------------------------------------------------
@@ -380,13 +392,49 @@ def test_read_session_lines_above_cap_is_clamped(queue_env, monkeypatch, fake_su
     assert returned_lines[-1] == "line4999"
 
 
-def test_read_session_host_mac_is_not_available_and_nothing_enqueued(queue_env):
+def test_read_session_host_mac_waits_then_reports_pending_not_a_stale_answer(
+        queue_env, monkeypatch):
+    """The Mac agent (runners/mac_agent.py) now drains this queue, so a mac
+    read is enqueued rather than refused outright.
+
+    The original concern still holds and still shapes the design: a read is
+    only worth answering while it is current. So the wait is BOUNDED, and an
+    unanswered request comes back as `pending` — never parked to be answered
+    minutes later and presented as "now".
+    """
+    monkeypatch.setattr(rms, "MAC_READ_WAIT_S", 0.05)
+    monkeypatch.setattr(rms, "MAC_READ_POLL_S", 0.01)
+
     result = json.loads(rms.read_session("cto", 40, host="mac"))
-    assert result["status"] == "unavailable"
+
+    assert result["status"] == "pending"
     assert result["host"] == "mac"
-    # Deliberately NOT queued -- a queued read that resolves minutes later
-    # would present stale pane text as current.
-    assert rms._queue_list_pending() == []
+    assert "queue_id" in result
+    # It IS queued now -- that is the change. The agent will pick it up.
+    assert [e["kind"] for e in rms._queue_list_pending()] == ["read"]
+
+
+def test_read_session_host_mac_returns_the_pane_once_the_agent_answers(
+        queue_env, monkeypatch):
+    """Happy path: the agent writes the captured pane into the row's result,
+    and the caller gets it back labelled as pane contents, not as speech."""
+    monkeypatch.setattr(rms, "MAC_READ_WAIT_S", 5)
+    monkeypatch.setattr(rms, "MAC_READ_POLL_S", 0.01)
+
+    real_get = rms._queue_get
+
+    def answer_on_first_poll(entry_id):
+        rms._queue_mark_done(entry_id, "[cto-abc123] hello from the mac")
+        return real_get(entry_id)
+
+    monkeypatch.setattr(rms, "_queue_get", answer_on_first_poll)
+
+    result = json.loads(rms.read_session("cto", 40, host="mac"))
+
+    assert result["status"] == "ok"
+    assert "hello from the mac" in result["pane"]
+    assert "not a reply" in result["note"], (
+        "pane text must never be presented as something the session said")
 
 
 def test_read_session_constructs_fixed_argv_only(queue_env, monkeypatch):

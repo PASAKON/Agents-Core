@@ -67,6 +67,17 @@ mcp = FastMCP("relay")
 C_LEVEL_ROLES = ("cto", "cmo", "cgo", "cfo")
 HOSTS = ("contabo", "mac")
 
+# How long to let a freshly spawned Claude Code session boot before dismissing
+# its first-run MCP prompt. Too short and the keystroke lands in a shell that is
+# still loading and is lost; too long and the caller waits for nothing.
+SPAWN_PROMPT_DELAY_S = float(os.environ.get("RELAY_SPAWN_PROMPT_DELAY_S", "12"))
+
+# How long read_session(host="mac") waits for the Mac agent to answer before
+# giving up and telling the caller to ask again. Bounded on purpose: a stale
+# pane presented as "now" is worse than an honest "not yet".
+MAC_READ_WAIT_S = float(os.environ.get("RELAY_MAC_READ_WAIT_S", "45"))
+MAC_READ_POLL_S = float(os.environ.get("RELAY_MAC_READ_POLL_S", "2"))
+
 # Design point 2 -- applied here, unconditionally, so the caller can never
 # omit or spoof it (see relay_to_session).
 RELAY_PREFIX = "[CEO via SomPong] "
@@ -194,6 +205,20 @@ def _queue_list_pending() -> list[dict]:
         }
         for r in rows
     ]
+
+
+def _queue_get(entry_id: int) -> dict | None:
+    """One row by id, or None. Used by read_session(host="mac") to poll for the
+    answer the Mac agent writes back into `result`."""
+    with _queue_conn() as conn:
+        row = conn.execute(
+            "SELECT id, kind, target_role, status, result FROM relay_queue "
+            "WHERE id = ?", (entry_id,),
+        ).fetchone()
+    if not row:
+        return None
+    return {"id": row[0], "kind": row[1], "target_role": row[2],
+            "status": row[3], "result": row[4]}
 
 
 def _queue_mark_done(entry_id: int, result: str) -> bool:
@@ -590,6 +615,25 @@ def spawn_c_level(role: str, host: str) -> str:
         return json.dumps({
             "status": "error", "role": role, "host": "contabo", "detail": str(e),
         }, ensure_ascii=False)
+    # Claude Code opens with an interactive "N new MCP servers found in this
+    # project" screen. Nobody is sitting at this pane, so an unanswered prompt
+    # means the session hangs there forever — the CEO sees a spawn that
+    # reported success and then never does anything.
+    #
+    # Escape (reject all) is also the CORRECT answer here, not just the
+    # convenient one: cxo-claude.sh passes --strict-mcp-config, so its own
+    # --mcp-config is the only source of servers and the ones being offered
+    # were never going to load. Answering this way grants nothing.
+    #
+    # Best-effort: a session sitting at a prompt still beats no session, so a
+    # failure here is recorded, not fatal.
+    try:
+        time.sleep(SPAWN_PROMPT_DELAY_S)
+        subprocess.run(["tmux", "send-keys", "-t", tmux_name, "Escape"],
+                       capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError) as e:
+        _audit("spawn_c_level", role, "prompt_dismiss_failed", str(e))
+
     _audit("spawn_c_level", role, "spawned", f"host=contabo tmux={tmux_name}")
     return json.dumps({
         "status": "spawned", "role": role, "host": "contabo",
@@ -649,10 +693,42 @@ def read_session(target_role: str, lines: int, host: str = "contabo") -> str:
     capped_lines = max(1, min(lines, READ_SESSION_MAX_LINES))
 
     if host == "mac":
-        _audit("read_session", target_role, "unavailable", "host=mac not built")
+        # The Mac agent (runners/mac_agent.py) polls this queue and writes the
+        # captured pane back into the row's `result`. We enqueue, then wait a
+        # bounded time for that to land.
+        #
+        # A read is only worth answering while it is still current, so this
+        # never parks the request the way a `relay` or `spawn` does: if the
+        # agent has not answered inside the window, say so and let the caller
+        # ask again. Handing back a pane captured minutes ago as if it were
+        # "now" is the failure mode worth avoiding here.
+        queue_id = _queue_enqueue("read", target_role, {"lines": capped_lines})
+        deadline = time.time() + MAC_READ_WAIT_S
+        while time.time() < deadline:
+            time.sleep(MAC_READ_POLL_S)
+            row = _queue_get(queue_id)
+            if not row or row["status"] == "pending":
+                continue
+            if row["status"] == "done":
+                _audit("read_session", target_role, "done", f"host=mac q={queue_id}")
+                return json.dumps({
+                    "status": "ok", "target_role": target_role, "host": "mac",
+                    "queue_id": queue_id,
+                    "pane": row["result"] or "",
+                    "note": "pane contents captured on the Mac, not a reply",
+                }, ensure_ascii=False)
+            _audit("read_session", target_role, "failed", f"host=mac q={queue_id}")
+            return json.dumps({
+                "status": "failed", "target_role": target_role, "host": "mac",
+                "queue_id": queue_id, "reason": row["result"] or "unknown",
+            }, ensure_ascii=False)
+
+        _audit("read_session", target_role, "pending", f"host=mac q={queue_id}")
         return json.dumps({
-            "status": "unavailable", "target_role": target_role, "host": "mac",
-            "reason": "not available yet -- the Mac agent is not built",
+            "status": "pending", "target_role": target_role, "host": "mac",
+            "queue_id": queue_id,
+            "reason": (f"the Mac agent has not answered within {MAC_READ_WAIT_S:.0f}s "
+                       "-- the Mac may be asleep or offline. Ask again shortly."),
         }, ensure_ascii=False)
 
     tmux_name = _active_contabo_tmux_session(target_role)
