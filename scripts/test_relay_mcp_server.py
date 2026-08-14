@@ -16,6 +16,14 @@ LETTER EXISTS, not that something was typed:
   * the delivery path carries no keystroke-transport literal, and the
     settle-delay wake sequence exists in exactly one module repo-wide
 
+task-df6de4d4 D1/D2 adds the CEO-orders obligation ledger: every successful
+relay_to_session call (delivered live OR queued for the Mac) now opens a
+'awaiting_reply' row in ceo_orders and appends a server-side footer to the
+letter carrying that row's id, so `rms.RELAY_PREFIX + message` alone is no
+longer the full letter body -- tests below reconstruct the expected body as
+`rms.RELAY_PREFIX + message + rms._order_footer(order_id)`, reading
+`order_id` back from the tool's own JSON result.
+
 Run standalone: python scripts/test_relay_mcp_server.py
 Or under pytest:  pytest scripts/test_relay_mcp_server.py
 """
@@ -87,6 +95,20 @@ def queue_env(tmp_path, monkeypatch, fake_subprocess):
     monkeypatch.setattr(mailbox, "INBOX_ROOT", tmp_path / "inbox")
     fake_subprocess.setdefault("tailscale", FileNotFoundError())
     return tmp_path
+
+
+def _ceo_orders_rows() -> list[tuple]:
+    """Every ceo_orders row, id ascending -- raw tuples straight off
+    rms.QUEUE_DB_PATH (already isolated to tmp_path by queue_env). Opening
+    a connection also lazily creates the table (same _orders_conn()
+    pattern the module itself uses), so this is safe to call even before
+    any order has ever been opened."""
+    with rms._orders_conn() as conn:
+        return conn.execute(
+            "SELECT id, target_role, target_session_id, host, order_text, "
+            "sent_at, status, replied_at, reply_detail "
+            "FROM ceo_orders ORDER BY id"
+        ).fetchall()
 
 
 def _peer(hostname: str, online: bool, last_seen: str = "2026-08-13T10:00:00Z") -> dict:
@@ -182,7 +204,10 @@ def test_relay_to_session_rejects_unknown_role(queue_env):
 def test_relay_to_session_queued_message_carries_prefix(queue_env):
     result = json.loads(rms.relay_to_session("cto", "check the deploy"))
     assert result["status"] == "queued"
-    assert result["message"] == rms.RELAY_PREFIX + "check the deploy"
+    order_id = result["order_id"]
+    assert result["message"] == (
+        rms.RELAY_PREFIX + "check the deploy" + rms._order_footer(order_id)
+    )
     pending = rms._queue_list_pending()
     assert len(pending) == 1
     assert pending[0]["payload"]["message"] == result["message"]
@@ -196,7 +221,8 @@ def test_relay_to_session_prefix_survives_caller_supplying_their_own(queue_env):
     assert result["message"].startswith(rms.RELAY_PREFIX)
     # Applied unconditionally server-side -- the caller's own attempt does
     # not get stripped or deduped, it just can never be the ONLY marker.
-    assert result["message"] == rms.RELAY_PREFIX + spoofed
+    order_id = result["order_id"]
+    assert result["message"] == rms.RELAY_PREFIX + spoofed + rms._order_footer(order_id)
 
 
 def test_relay_to_session_delivers_by_letter_when_contabo_session_live(queue_env, monkeypatch):
@@ -224,13 +250,29 @@ def test_relay_to_session_delivers_by_letter_when_contabo_session_live(queue_env
     letter_file = Path(result["letter_path"])
     assert letter_file.is_file(), "delivered requires the letter to exist on disk"
     letter = json.loads(letter_file.read_text(encoding="utf-8"))
-    assert letter["body"] == rms.RELAY_PREFIX + "status update please"
+    order_id = result["order_id"]
+    assert letter["body"] == (
+        rms.RELAY_PREFIX + "status update please" + rms._order_footer(order_id)
+    )
     assert letter["from"] == {"role": "secretary", "session_id": "sompong"}
     assert letter["to"] == {"role": "cto", "session_id": "abc123"}
     # Wake got the secretary's own label, never a C-level name.
     assert wakes == [("cto", "abc123", "SomPong")]
     # Delivered, not queued.
     assert rms._queue_list_pending() == []
+
+    # task-df6de4d4 D1/D6: a delivered order creates exactly one
+    # awaiting_reply row, addressed to the resolved (role, session_id),
+    # and the footer's id is the same row that gets created.
+    rows = _ceo_orders_rows()
+    assert len(rows) == 1
+    (oid, role, sid, host, order_text, sent_at, status, replied_at, reply_detail) = rows[0]
+    assert oid == order_id
+    assert (role, sid, host) == ("cto", "abc123", "contabo")
+    assert order_text == "status update please"
+    assert status == "awaiting_reply"
+    assert replied_at is None and reply_detail is None
+    assert sent_at  # non-empty timestamp
 
 
 def test_relay_delivered_even_when_wake_raises(queue_env, monkeypatch):
@@ -268,6 +310,9 @@ def test_relay_failed_mailbox_write_never_reports_delivered(queue_env, monkeypat
     assert "disk full" in result["detail"]
     # Nothing queued either -- an error is an error, not a fallback.
     assert rms._queue_list_pending() == []
+    # task-df6de4d4 D1/D6: a failed delivery must create NO ceo_orders row
+    # -- the row _order_open() created to build the footer is discarded.
+    assert _ceo_orders_rows() == []
 
 
 def test_relay_letter_missing_after_write_is_error_not_delivered(queue_env, monkeypatch):
@@ -290,6 +335,7 @@ def test_relay_letter_missing_after_write_is_error_not_delivered(queue_env, monk
     assert result["status"] == "error"
     assert str(ghost) in result["detail"]
     assert rms._queue_list_pending() == []
+    assert _ceo_orders_rows() == []
 
 
 def test_relay_no_keystroke_carries_the_body(queue_env, monkeypatch):
@@ -460,16 +506,19 @@ def test_no_tool_accepts_a_free_form_command_argument():
         rms.spawn_c_level, rms.read_session,
         # task-2a135187 D1-D3
         rms.list_terminals, rms.session_history, rms.open_terminal,
+        # task-df6de4d4 D4
+        rms.list_ceo_orders,
     ]
     for tool in tools:
         params = set(inspect.signature(tool).parameters)
         overlap = params & forbidden_param_names
         assert not overlap, f"{tool.__name__} accepts free-form-looking arg(s): {overlap}"
-    # And the full set of tools is exactly these eight -- no ninth escape
+    # And the full set of tools is exactly these nine -- no tenth escape
     # hatch snuck in.
     assert {t.__name__ for t in tools} == {
         "mac_status", "org_snapshot", "relay_to_session", "spawn_c_level",
         "read_session", "list_terminals", "session_history", "open_terminal",
+        "list_ceo_orders",
     }
 
 
@@ -616,12 +665,15 @@ def test_relay_to_session_wait_disabled_is_unchanged(queue_env, monkeypatch):
 
     result = json.loads(rms.relay_to_session("cto", "status update please"))
     letter_path = result.pop("letter_path")
+    order_id = result.pop("order_id")
     assert letter_path.endswith(".json")
     assert Path(letter_path).is_file()
     assert result == {
         "status": "delivered", "target_role": "cto",
         "tmux_session": "cto-abc123",
-        "message": rms.RELAY_PREFIX + "status update please",
+        "message": (
+            rms.RELAY_PREFIX + "status update please" + rms._order_footer(order_id)
+        ),
     }
 
 
@@ -913,6 +965,83 @@ def test_exactly_one_tmux_wake_sequence_repo_wide():
                 shape_owners.append(str(p.relative_to(ROOT)))
     assert shape_owners == ["tools/agent_transport.py"], (
         f"settle-delay wake sequence duplicated in: {shape_owners}")
+
+
+# ---------------------------------------------------------------------------
+# 13. CEO-orders obligation ledger (task-df6de4d4 D1/D2/D4)
+# ---------------------------------------------------------------------------
+
+def test_relay_footer_order_id_matches_the_row_that_was_opened(queue_env, monkeypatch):
+    """D6: the id IN the footer text is the same id that opened the row --
+    parsed back out of the actual letter body independently, not just two
+    call sites sharing one variable."""
+    import re
+
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("abc123")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
+    monkeypatch.setattr(rms, "attempt_wake", lambda *a: None)
+
+    result = json.loads(rms.relay_to_session("cto", "please check X"))
+    letter = json.loads(Path(result["letter_path"]).read_text(encoding="utf-8"))
+    m = re.search(r"order #(\d+)", letter["body"])
+    assert m, "footer must contain 'order #<id>'"
+    footer_id = int(m.group(1))
+
+    rows = _ceo_orders_rows()
+    assert len(rows) == 1
+    assert rows[0][0] == footer_id == result["order_id"]
+
+
+def test_relay_queued_creates_awaiting_reply_row_host_mac(queue_env):
+    """Queued-for-Mac deliveries DO get a ledger row (D1: 'the letter will
+    land'), host='mac', with no known session id yet."""
+    result = json.loads(rms.relay_to_session("cfo", "ping the mac"))
+    assert result["status"] == "queued"
+    order_id = result["order_id"]
+
+    rows = _ceo_orders_rows()
+    assert len(rows) == 1
+    (oid, role, sid, host, order_text, sent_at, status, replied_at, reply_detail) = rows[0]
+    assert oid == order_id
+    assert (role, sid, host) == ("cfo", None, "mac")
+    assert order_text == "ping the mac"
+    assert status == "awaiting_reply"
+
+
+def test_list_ceo_orders_hides_closed_by_default_shows_with_flag(queue_env):
+    """D4/D6: default view is awaiting_reply only; include_closed=True adds
+    the rest. Newest-first, and every row carries age_seconds."""
+    now = rms.datetime.now(rms.timezone.utc).isoformat(timespec="seconds")
+    with rms._orders_conn() as conn:
+        conn.execute(
+            "INSERT INTO ceo_orders "
+            "(target_role, target_session_id, host, order_text, sent_at, status) "
+            "VALUES ('cto', 'a1', 'contabo', 'open one', ?, 'awaiting_reply')",
+            (now,),
+        )
+        conn.execute(
+            "INSERT INTO ceo_orders "
+            "(target_role, target_session_id, host, order_text, sent_at, status, "
+            "replied_at, reply_detail) "
+            "VALUES ('cmo', 'a2', 'contabo', 'closed one', ?, 'done', ?, 'shipped it')",
+            (now, now),
+        )
+        conn.commit()
+
+    open_only = json.loads(rms.list_ceo_orders())
+    assert len(open_only) == 1
+    assert open_only[0]["order_text"] == "open one"
+    assert open_only[0]["status"] == "awaiting_reply"
+    assert open_only[0]["age_seconds"] is not None
+
+    everything = json.loads(rms.list_ceo_orders(include_closed=True))
+    assert len(everything) == 2
+    assert everything[0]["order_text"] == "closed one"  # id DESC = newest first
+    assert everything[0]["status"] == "done"
+    assert everything[0]["reply_detail"] == "shipped it"
+    assert everything[1]["order_text"] == "open one"
+    assert everything[1]["status"] == "awaiting_reply"
 
 
 if __name__ == "__main__":
