@@ -51,7 +51,8 @@ def test_relay_entry_reaches_tmux_with_the_right_session_and_text(monkeypatch):
 
     assert ok, detail
     argv = fake.calls[-1]
-    assert argv[:4] == ["tmux", "send-keys", "-t", "cto-abc123"]
+    assert Path(argv[0]).name == "tmux"
+    assert argv[1:4] == ["send-keys", "-t", "cto-abc123"]
     assert PREFIX in argv[4]
 
 
@@ -145,7 +146,8 @@ def test_read_returns_the_pane_tail_and_never_types_anything(monkeypatch):
     assert "line1" not in out, "should return only the requested tail"
     assert out.startswith("[cto-abc123]"), "must say which session it came from"
     argv = fake.calls[-1]
-    assert argv[:2] == ["tmux", "capture-pane"]
+    assert Path(argv[0]).name == "tmux"
+    assert argv[1] == "capture-pane"
     assert "send-keys" not in argv, "read must never type into the session"
 
 

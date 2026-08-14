@@ -60,6 +60,25 @@ C_LEVEL_ROLES = ("cto", "cfo", "cmo", "cgo")
 # is paid for twice — across the wire, then into the model reading it back.
 MAX_READ_LINES = int(os.environ.get("MAC_AGENT_MAX_READ_LINES", "200"))
 
+
+def _tmux_bin() -> str:
+    """Absolute path to tmux.
+
+    launchd hands a process a bare PATH (/usr/bin:/bin:/usr/sbin:/sbin) — it
+    does NOT inherit the login shell's. Homebrew installs tmux in
+    /opt/homebrew/bin, so a plain "tmux" resolves to nothing under launchd and
+    every lookup fails. The dangerous part is what that looked like: sessions
+    that plainly existed were reported as "no live cto session on this Mac" —
+    a confident wrong answer rather than a missing-tool error.
+    """
+    override = os.environ.get("MAC_AGENT_TMUX_BIN")
+    if override:
+        return override
+    for candidate in ("/opt/homebrew/bin/tmux", "/usr/local/bin/tmux", "/usr/bin/tmux"):
+        if Path(candidate).exists():
+            return candidate
+    return "tmux"  # last resort; surfaces as a real error rather than a silent miss
+
 _LOGGER = None
 
 
@@ -167,7 +186,7 @@ def _valid_role(role) -> bool:
 def find_session_for_role(role: str) -> str | None:
     """First live tmux session named <role>-<something>."""
     try:
-        r = subprocess.run(["tmux", "ls", "-F", "#{session_name}"],
+        r = subprocess.run([_tmux_bin(), "ls", "-F", "#{session_name}"],
                            capture_output=True, text=True, timeout=15)
     except (OSError, subprocess.SubprocessError):
         return None
@@ -197,7 +216,7 @@ def do_relay(role: str, payload: dict) -> tuple[bool, str]:
         # Fixed argv. `message` is ONE argument — never part of a command
         # string — so shell metacharacters in it are inert text.
         subprocess.run(
-            ["tmux", "send-keys", "-t", target, message, "Enter"],
+            [_tmux_bin(), "send-keys", "-t", target, message, "Enter"],
             check=True, capture_output=True, text=True, timeout=20,
         )
     except (OSError, subprocess.SubprocessError) as e:
@@ -242,7 +261,7 @@ def do_read(role: str, payload: dict) -> tuple[bool, str]:
         return False, f"no live {role} session on this Mac"
 
     try:
-        r = subprocess.run(["tmux", "capture-pane", "-p", "-t", target],
+        r = subprocess.run([_tmux_bin(), "capture-pane", "-p", "-t", target],
                            capture_output=True, text=True, timeout=20)
     except (OSError, subprocess.SubprocessError) as e:
         return False, f"capture failed: {e}"
