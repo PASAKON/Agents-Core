@@ -283,6 +283,18 @@ def authorize(sender: Identity, target_role: str, target_session_id: str | None,
     the one thing this guard exists to prevent.
     """
     if sender.kind == "secretary":
+        # Enforce exactly what the docstring above promises: the CEO's
+        # proxy may reach a C-level target, and nothing else — not a DEV
+        # task, not a level-2 child, no target at all. The only current
+        # constructor of a secretary Identity (relay_to_session, on either
+        # host) validates target_role first, but "the only caller checks"
+        # is one refactor away from false, and this is the authorization
+        # function, reachable from Telegram.
+        if not is_c_level(target_role):
+            raise PermissionError(
+                f"refused: the secretary (CEO proxy) may reach C-level "
+                f"sessions only, not {target_role!r}"
+            )
         return
     owner = _owner_of(sender)
     if owner is None:

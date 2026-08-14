@@ -15,7 +15,13 @@ do not redesign it here):
 
     relay_queue(id, kind, target_role, payload TEXT/JSON, status,
                 created_at, done_at, result)
-    kind: 'relay' | 'spawn'      status: 'pending' | 'done' | 'failed'
+    kind: 'relay' | 'spawn' | 'read' | 'terminals' | 'history'
+                                 status: 'pending' | 'done' | 'failed'
+
+`relay` delivers by MAILBOX LETTER (state/inbox/<role>-<sid>/, via
+lib.mailbox) and reports done only once the letter file exists on disk —
+never by typing the body into a pane (GH #70). Same contract as Contabo's
+relay_to_session (task-18241f1d).
 
 Run:  python -m runners.mac_agent          (loop)
       python -m runners.mac_agent --once   (single tick, for testing)
@@ -33,12 +39,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from lib import mailbox  # noqa: E402
 from lib.logger import get_logger  # noqa: E402
 from tools.org_inspector import (  # noqa: E402
     detect_host,
     history_index,
     history_read,
     list_sessions,
+)
+from tools.send_to_cxo import (  # noqa: E402
+    Identity,
+    _active_session_id,
+    attempt_wake,
+    authorize,
 )
 
 # ---------------------------------------------------------------------------
@@ -59,6 +72,19 @@ MAX_BATCH = int(os.environ.get("MAC_AGENT_MAX_BATCH", "10"))
 # and not from the CEO's own hands. Silently adding it here would destroy the
 # exact signal it exists to carry.
 RELAY_PREFIX = "[CEO via SomPong]"
+
+# The secretary's own mailbox identity — SAME values as Contabo's
+# runners/relay_mcp_server.py (task-18241f1d), so a letter looks identical
+# whichever host relayed it. Two attributions, both non-optional: the body
+# prefix above for the human reading the pane, the structured from below for
+# the machine. Sender is always the secretary itself — never a C-level role
+# (impersonation) and never the CEO (the CEO did not write this letter;
+# their secretary did, on their behalf).
+SECRETARY_FROM_ROLE = "secretary"
+SECRETARY_FROM_SESSION_ID = "sompong"
+# Label the wake marker carries: the pane reads "[New message from SomPong]"
+# — the secretary's own name, not a C-level's (same rule).
+SECRETARY_WAKE_LABEL = "SomPong"
 
 C_LEVEL_ROLES = ("cto", "cfo", "cmo", "cgo")
 
@@ -207,7 +233,16 @@ def _valid_role(role) -> bool:
 
 
 def find_session_for_role(role: str) -> str | None:
-    """First live tmux session named <role>-<something>."""
+    """First live tmux session named <role>-<something>.
+
+    READ path only (task-02d0e863): reading an arbitrary pane of the role
+    is a harmless, read-only act, so "whichever cto-* pane" is an
+    acceptable answer there. Sending is not harmless — do_relay addresses
+    the PRIMARY session via the <role>-active pointer instead (see
+    _live_session), because first-match on this Mac picks whichever of
+    the several live cto-* sessions tmux happens to list first. The
+    asymmetry is deliberate; do not "simplify" them back together.
+    """
     try:
         r = subprocess.run([_tmux_bin(), "ls", "-F", "#{session_name}"],
                            capture_output=True, text=True, timeout=15)
@@ -222,6 +257,23 @@ def find_session_for_role(role: str) -> str | None:
     return None
 
 
+def _live_session(name: str) -> bool:
+    """Is tmux session `name` live right now?
+
+    Uses the absolute-path _tmux_bin(), not tools/tmux_session.py's plain
+    "tmux": this agent runs under launchd, whose bare PATH does not carry
+    Homebrew, and a liveness check that cannot find tmux must not turn
+    into "no live session" — the confident-wrong-answer failure
+    _tmux_bin() itself documents.
+    """
+    try:
+        r = subprocess.run([_tmux_bin(), "has-session", "-t", name],
+                           capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return r.returncode == 0
+
+
 def do_relay(role: str, payload: dict) -> tuple[bool, str]:
     if not _valid_role(role):
         return False, f"unknown role {role!r}"
@@ -230,21 +282,72 @@ def do_relay(role: str, payload: dict) -> tuple[bool, str]:
         return False, "empty or non-string message"
     if RELAY_PREFIX not in message:
         return False, f"missing {RELAY_PREFIX} attribution; refusing to deliver"
+    role = role.lower()
 
-    target = find_session_for_role(role)
-    if not target:
-        return False, f"no live {role} session on this Mac"
+    # Address the PRIMARY <role> session — the one state/locks/<role>-active
+    # names (same resolution tools/send_to_cxo.py uses for its own sends,
+    # with the .winid fallback) — never "the first tmux session whose name
+    # starts with <role>-". This Mac runs several cto-* sessions at once
+    # and first-match is whichever tmux lists first, so a CEO order could
+    # land in a session the CEO was not talking to (task-02d0e863 D1a).
+    # Mirrors Contabo's relay_to_session, including the race cross-check:
+    # if the pointer moved between the two reads, neither id is
+    # trustworthy — fail the entry rather than guess.
+    session_id = _active_session_id(role)
+    if not session_id:
+        return False, (f"no active {role} session on this Mac "
+                       f"(state/locks/{role}-active absent or empty)")
+    expected = f"{role}-{session_id}"
+    if not _live_session(expected):
+        return False, (f"{role}-active names {expected} but that tmux session "
+                       f"is not live -- pointer and tmux disagree; refusing "
+                       f"to guess which session the CEO means")
+    if _active_session_id(role) != session_id:
+        return False, (f"{role}-active moved mid-relay (was {session_id}); "
+                       f"refusing to guess which session the CEO means")
 
+    # Authorization: the secretary is not a C-level, so the C-level
+    # identity chain is the wrong gate. authorize() carries an explicit
+    # secretary CEO-proxy entry (tools/send_to_cxo.py) — SomPong is never
+    # dressed up as a C-level to pass it; impersonation is the one thing
+    # that guard exists to prevent. A PermissionError propagates to
+    # tick()'s catch and fails the entry with its reason.
+    authorize(
+        Identity("secretary", SECRETARY_FROM_ROLE, SECRETARY_FROM_SESSION_ID),
+        role, session_id, spawning=False,
+    )
+
+    # Delivery IS a letter on disk, in the recipient's mailbox. The body
+    # never travels by keystroke: tmux send-keys' Enter can be swallowed
+    # (GH #70), leaving the order unsubmitted in the recipient's composer
+    # while the queue entry said done — SomPong telling the CEO "ส่งแล้วครับ"
+    # for a message nobody received. Mirrors Contabo exactly
+    # (task-18241f1d), same mailbox, same secretary identity.
     try:
-        # Fixed argv. `message` is ONE argument — never part of a command
-        # string — so shell metacharacters in it are inert text.
-        subprocess.run(
-            [_tmux_bin(), "send-keys", "-t", target, message, "Enter"],
-            check=True, capture_output=True, text=True, timeout=20,
+        letter_path = mailbox.send(
+            role, session_id, message,
+            SECRETARY_FROM_ROLE, SECRETARY_FROM_SESSION_ID,
         )
-    except (OSError, subprocess.SubprocessError) as e:
-        return False, f"tmux send failed: {e}"
-    return True, f"delivered to {target}"
+        letter_on_disk = letter_path.is_file()
+    except Exception as e:
+        return False, f"mailbox write failed: {e}"
+    if not letter_on_disk:
+        # The write "succeeded" but there is nothing on disk — report the
+        # effect, not the act. Never "delivered".
+        return False, f"letter not on disk after write: {letter_path}"
+    # Best-effort wake only: types the short content-free marker via the
+    # org's ONE wake implementation (tools/send_to_cxo.py), never the
+    # body. attempt_wake swallows every failure internally; this
+    # caller-side wrap is the other half of the same rule — even a wake
+    # that somehow raises can never turn a written letter into a failed
+    # entry, because the letter is drained on the recipient's next prompt
+    # either way.
+    try:
+        attempt_wake(role, session_id, SECRETARY_WAKE_LABEL)
+    except Exception as e:
+        _log().warning("wake failed for %s (letter already on disk): %s",
+                       expected, e)
+    return True, f"delivered to {expected}: letter {letter_path}"
 
 
 def do_spawn(role: str, payload: dict) -> tuple[bool, str]:
@@ -396,6 +499,17 @@ def tick() -> int:
 
 def main() -> None:
     once = "--once" in sys.argv
+    # attempt_wake (tools/send_to_cxo.py) types the wake marker with a bare
+    # "tmux"; under launchd that resolves to nothing on the bare PATH, and
+    # the wake would be silently skipped every tick. _tmux_bin() knows
+    # where tmux really lives — put its directory on OUR path so the nudge
+    # can fire. Delivery never depends on this (a failed wake cannot fail
+    # an entry); it just keeps the wake working in the launchd deployment.
+    bin_path = Path(_tmux_bin())
+    if bin_path.is_absolute() and bin_path.parent.is_dir():
+        current = os.environ.get("PATH", "")
+        if str(bin_path.parent) not in current.split(":"):
+            os.environ["PATH"] = f"{bin_path.parent}:{current}"
     _log().info("mac_agent starting (host=%s db=%s poll=%ss once=%s)",
                 SSH_HOST, REMOTE_DB, POLL_SECONDS, once)
     while True:

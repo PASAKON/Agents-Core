@@ -261,6 +261,38 @@ def test_history_index_without_session_id_counts_everything(layout):
     out = oi.history_index()
     assert out["session_id"] is None
     assert out["counts"]["session_saves"] == 3
+    # Event logs are NOT enumerated without a session_id — and must never
+    # read as "there are none" (task-02d0e863 D3).
+    assert out["counts"]["event_logs"] == "not_enumerated"
+
+
+def test_history_index_no_session_id_cannot_be_read_as_zero_event_logs(layout):
+    """task-02d0e863 D3: without a session_id the event logs are skipped
+    (line-counting every log on the host is slow), but SomPong reads the
+    counts back to the CEO over Telegram — an int 0 would be repeated as
+    'ไม่มี log เลย'. The omission must be unmistakable from every angle:
+    the list, the flag, the counts entry; while the cheap bare file count
+    stays truthful."""
+    for i in range(3):
+        (layout["logs"] / f"cfo-a{i}b1c2d.log").write_text("x\n" * (i + 1),
+                                                           encoding="utf-8")
+    out = oi.history_index()
+    assert out["event_logs"] is None, "not enumerated must not be a list"
+    assert out["event_logs_enumerated"] is False
+    assert out["counts"]["event_logs"] == "not_enumerated"
+    assert out["event_log_files"] == 3, "the bare file count is cheap and true"
+
+
+def test_history_index_zero_still_means_looked_and_found_none(layout):
+    """0 keeps its honest meaning when we DID look: a named session with
+    no logs / an invalid id that can match nothing."""
+    out = oi.history_index("0a1b2c")  # valid hex, nothing on disk
+    assert out["event_logs"] == []
+    assert out["event_logs_enumerated"] is True
+    assert out["counts"]["event_logs"] == 0
+
+    out = oi.history_index("not-hex!")  # invalid -> looked, matched nothing
+    assert out["event_logs"] == []
     assert out["counts"]["event_logs"] == 0
 
 

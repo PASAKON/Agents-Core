@@ -522,3 +522,24 @@ def test_secretary_entry_beats_a_forged_spawn_record(isolated_locks):
     disguised = sc.Identity("cxo", "secretary", "sompong")
     with pytest.raises(PermissionError):
         sc.authorize(disguised, "cmo", "cmosess1", spawning=False)
+
+
+def test_secretary_to_non_c_level_target_is_refused(isolated_locks):
+    """task-02d0e863 D2: the docstring promises the secretary 'may reach any
+    C-level primary session' — the branch must enforce exactly that, not
+    'anything'. Nothing exploits the gap today (the only secretary Identity
+    constructor validates first), but authorize() is reachable from Telegram
+    and a docstring/enforcement gap is the kind that gets discovered later
+    by something going wrong. Refusal uses the same PermissionError the
+    rest of authorize() raises."""
+    sompong = sc.Identity("secretary", "secretary", "sompong")
+
+    with pytest.raises(PermissionError, match="C-level"):
+        sc.authorize(sompong, "dev", "task-abcdef12", spawning=False)
+
+    with pytest.raises(PermissionError, match="C-level"):
+        sc.authorize(sompong, "", None, spawning=False)  # no target at all
+
+    # And the allowed side stays allowed: any C-level target passes.
+    for role in ("cto", "cfo", "cmo", "cgo"):
+        sc.authorize(sompong, role, f"{role}sess1", spawning=False)
