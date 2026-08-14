@@ -16,6 +16,13 @@ unreachable regardless of the allowlist. The safety net for the widened
 LungNote surface is behavioural, not code: the system prompt below enforces
 confirm-before-write / report-after-write (SPEC-CHANGE.md Change 3).
 
+task-b293ef6c added a second widened surface: the `relay` MCP server
+(runners/relay_mcp_server.py), four named typed actions (mac_status,
+org_snapshot, relay_to_session, spawn_c_level) — never a shell, never raw
+keystrokes. relay_to_session/spawn_c_level get the same confirm-before-write
+contract as LungNote writes, made explicit in the prompt below as more
+consequential (they act on another session or start one), not less.
+
 Endpoint:  POST /v1/chat/completions   (OpenAI chat-completion shape)
 Auth:      Authorization: Bearer $SECRETARY_API_KEY  (required — refuses to
            start if unset)
@@ -139,6 +146,15 @@ ALLOWED_TOOLS: tuple[str, ...] = (
     "mcp__lungnote__delete_todo",
     "mcp__lungnote__create_note",
     "mcp__lungnote__append_note",
+    # task-b293ef6c Deliverable 4 — exactly the four named proxy actions
+    # from runners/relay_mcp_server.py. No Bash/Write/Edit/NotebookEdit,
+    # no mcp__org__* name — test_allowlist_never_contains_a_mutating_or_
+    # org_tool below still enforces that; these four are a distinct,
+    # named, typed surface, not a relaxation of that boundary.
+    "mcp__relay__mac_status",
+    "mcp__relay__org_snapshot",
+    "mcp__relay__relay_to_session",
+    "mcp__relay__spawn_c_level",
 )
 
 # Deliverable 5 + SPEC-CHANGE.md Change 3 — the secretary's own identity and
@@ -169,6 +185,31 @@ SECRETARY_SYSTEM_PROMPT = (
     "เวลานับจำนวน to-do ต้องส่ง limit=200 ให้ list_todos เสมอ "
     "ค่า default ของมันคือ 50 ถ้าไม่ส่ง จะได้แค่ 50 แถวแรกแล้วรายงานเลขผิด "
     "(ของจริงตอนวัด 13 ส.ค. คือ 127 แต่ตอบไป 50)\n"
+    "\n"
+    "ความสามารถอื่นที่คุณมี (task-b293ef6c):\n"
+    "- mac_status: เช็คว่า Mac ตื่นอยู่ไหม เรียกได้ทันทีไม่ต้องขอยืนยัน "
+    "ถ้า Mac ไม่ได้ state=up (หลับ หรือไม่ทราบสถานะ) ให้บอก CEO ตรงๆ เป็นภาษาไทย "
+    "แบบ summary_th ที่ tool ส่งกลับมา แล้วเสนอว่าย้ายไปทำงานที่ Contabo แทนไหม "
+    "ห้ามเดาว่า Mac หลับหรือไม่หลับเองถ้า tool ตอบว่า unknown\n"
+    "- org_snapshot: ดูว่า org กำลังทำอะไรอยู่ (เฉพาะส่วนที่เห็นจาก Contabo) "
+    "เรียกได้ทันทีไม่ต้องขอยืนยัน อย่านับ to-do ซ้ำจาก tool นี้ ใช้ list_todos แทน\n"
+    "- relay_to_session (ส่งคำสั่งไปหา C-level session) และ spawn_c_level "
+    "(เปิด C-level session ใหม่) เป็นการสั่งงานจริงหรือเปิด session จริงแทน CEO "
+    "สำคัญกว่าการเขียน LungNote เพราะมีคนหรือ session อื่นได้รับผลจริง "
+    "ใช้กฎเดียวกับการเขียน LungNote ข้างบนแต่เข้มกว่า:\n"
+    "  1. ห้ามเรียกทันทีตอนที่ CEO พูดถึงครั้งแรก ให้พูดย้ำก่อนว่ากำลังจะสั่งอะไร "
+    "(ส่งข้อความอะไรไปหา role ไหน หรือจะเปิด role ไหนที่ host ไหน) แล้วถามยืนยัน "
+    "แล้วหยุดรอคำตอบ\n"
+    "  2. เรียกได้เฉพาะเมื่อ CEO ยืนยันชัดเจนในข้อความถัดมาเท่านั้น "
+    "คำตอบกำกวมไม่นับเป็นการยืนยัน ให้ถามใหม่\n"
+    "  3. หลังเรียกเสร็จ ให้รายงานผลจริงที่เกิดขึ้นเป็นบรรทัดสั้นๆ "
+    "(ส่งถึงแล้ว หรือเข้าคิวรอ Mac พร้อมเลขคิว) ถ้า Mac หลับอยู่ตอนที่เข้าคิว ให้บอกด้วย\n"
+    "\n"
+    "คุณไม่มี Bash และรันคำสั่งเชลล์ใดๆ ไม่ได้เลย ความสามารถของคุณมีแค่เครื่องมือที่ระบุไว้ทั้งหมดนี้ "
+    "(LungNote อ่าน/เขียน, mac_status, org_snapshot, relay_to_session, spawn_c_level) "
+    "ห้ามบอก CEO ว่าคุณรันคำสั่งเชลล์หรือทำสิ่งที่ไม่มี tool รองรับได้ "
+    "ถ้า CEO ขอสิ่งที่ไม่มี tool รองรับ ให้บอกตรงๆ ว่าทำไม่ได้ "
+    "ห้ามอ้างว่าทำได้แล้วค่อยปฏิเสธทีหลังตอนถูกขอจริง\n"
 )
 
 _LOGGER: object | None = None
@@ -200,7 +241,19 @@ def ensure_mcp_config() -> Path:
                 "command": "node",
                 "args": [resolve_lungnote_path()],
                 "env": {},
-            }
+            },
+            # task-b293ef6c Deliverable 4 — the secretary's four named proxy
+            # actions (mac_status/org_snapshot/relay_to_session/
+            # spawn_c_level). ROOT-relative, unlike the Mac-only literal
+            # paths above/below, so this resolves correctly whether ROOT is
+            # the Mac checkout or Contabo's /opt/mooniex-agents.
+            "relay": {
+                "type": "stdio",
+                "command": str(ROOT / ".venv" / "bin" / "python"),
+                "args": ["-m", "runners.relay_mcp_server"],
+                "cwd": str(ROOT),
+                "env": {"PYTHONUNBUFFERED": "1"},
+            },
         }
     }
     MCP_CONFIG_PATH.write_text(json.dumps(config, indent=2) + "\n")
