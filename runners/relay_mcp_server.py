@@ -12,6 +12,17 @@ is the alternative: five named, typed actions instead of a shell.
   read_session(target_role, lines, host="contabo")
                                          -- read back the tail of a C-level
                                             session's live tmux pane (task-da873c76)
+  list_terminals(include_closed=False)  -- every C-level session on BOTH
+                                            hosts, degraded not silently
+                                            partial (task-2a135187 D1)
+  session_history(mode, session_id=None, path=None, tail_lines=80,
+                   host="mac")          -- pass-through to org_inspector's
+                                            history_index/history_read
+                                            (task-2a135187 D2)
+  open_terminal(role, session_id=None)  -- reattach an iTerm window on the
+                                            Mac to an already-running
+                                            session, /terminal-open
+                                            (task-2a135187 D3)
 
 Design points this server exists to enforce (see TASK.md task-b293ef6c):
   1. Enumerated actions, never raw keystrokes -- no tool here takes a
@@ -60,7 +71,7 @@ from mcp.server.fastmcp import FastMCP
 
 from lib import mailbox
 from lib.logger import get_logger
-from tools import tmux_session
+from tools import org_inspector, tmux_session
 from tools.send_to_cxo import Identity, _active_session_id, attempt_wake, authorize
 
 log = get_logger("relay", stdout=False)
@@ -138,6 +149,14 @@ RELAY_WAIT_SECONDS = 3
 QUEUE_DB_PATH = Path(
     os.environ.get("SECRETARY_RELAY_QUEUE_DB") or ROOT / "state" / "relay_queue.db"
 )
+
+# task-2a135187 D2 -- enumerated history modes, same contract as
+# runners/mac_agent.py's HISTORY_MODES (kept as a second copy, not an
+# import: this file is Contabo's own surface and mac_agent.py is the
+# Mac-side consumer of the queue this file writes into -- C_LEVEL_ROLES
+# above is already duplicated the same way for the same reason). An
+# unknown mode fails the call, never falls through to org_inspector.
+HISTORY_MODES = ("index", "read")
 
 
 # ---------------------------------------------------------------------------
@@ -715,6 +734,45 @@ def spawn_c_level(role: str, host: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# _mac_queue_wait -- task-2a135187 D1/D2. read_session(host="mac") (task-
+# da873c76) built the bounded-wait poller inline; list_terminals and
+# session_history need the exact same shape (enqueue, poll up to
+# MAC_READ_WAIT_S, distinguish ok/failed/pending), so it is pulled out here
+# once rather than grown a second or third time (TASK.md D1: "reuse that
+# polling helper, do not write a second one").
+# ---------------------------------------------------------------------------
+
+def _mac_queue_wait(kind: str, target_role: str, payload: dict) -> dict:
+    """Enqueue one entry for the Mac-side draining agent and wait up to
+    MAC_READ_WAIT_S for it to answer, polling every MAC_READ_POLL_S.
+
+    Returns exactly one of:
+      {"status": "ok", "queue_id": int, "result": str}       -- agent marked it done
+      {"status": "failed", "queue_id": int, "reason": str}   -- agent marked it failed
+      {"status": "pending", "queue_id": int, "reason": str}  -- no answer in time
+
+    The wait is bounded on purpose, same reasoning as read_session's
+    original comment: a read that resolves minutes later and gets presented
+    as "now" is worse than an honest "not yet, ask again".
+    """
+    queue_id = _queue_enqueue(kind, target_role, payload)
+    deadline = time.time() + MAC_READ_WAIT_S
+    while time.time() < deadline:
+        time.sleep(MAC_READ_POLL_S)
+        row = _queue_get(queue_id)
+        if not row or row["status"] == "pending":
+            continue
+        if row["status"] == "done":
+            return {"status": "ok", "queue_id": queue_id, "result": row["result"] or ""}
+        return {"status": "failed", "queue_id": queue_id, "reason": row["result"] or "unknown"}
+    return {
+        "status": "pending", "queue_id": queue_id,
+        "reason": (f"the Mac agent has not answered within {MAC_READ_WAIT_S:.0f}s "
+                   "-- the Mac may be asleep or offline. Ask again shortly."),
+    }
+
+
+# ---------------------------------------------------------------------------
 # read_session -- task-da873c76 Deliverable 1. The read-back the other four
 # tools were missing (see module docstring): the CEO can tell SomPong to
 # relay/spawn and get "delivered", but with no way to see what the target
@@ -767,41 +825,37 @@ def read_session(target_role: str, lines: int, host: str = "contabo") -> str:
 
     if host == "mac":
         # The Mac agent (runners/mac_agent.py) polls this queue and writes the
-        # captured pane back into the row's `result`. We enqueue, then wait a
-        # bounded time for that to land.
+        # captured pane back into the row's `result`. _mac_queue_wait enqueues
+        # and waits a bounded time for that to land -- the same poller
+        # list_terminals/session_history reuse (task-2a135187), not a second
+        # implementation.
         #
         # A read is only worth answering while it is still current, so this
         # never parks the request the way a `relay` or `spawn` does: if the
         # agent has not answered inside the window, say so and let the caller
         # ask again. Handing back a pane captured minutes ago as if it were
         # "now" is the failure mode worth avoiding here.
-        queue_id = _queue_enqueue("read", target_role, {"lines": capped_lines})
-        deadline = time.time() + MAC_READ_WAIT_S
-        while time.time() < deadline:
-            time.sleep(MAC_READ_POLL_S)
-            row = _queue_get(queue_id)
-            if not row or row["status"] == "pending":
-                continue
-            if row["status"] == "done":
-                _audit("read_session", target_role, "done", f"host=mac q={queue_id}")
-                return json.dumps({
-                    "status": "ok", "target_role": target_role, "host": "mac",
-                    "queue_id": queue_id,
-                    "pane": row["result"] or "",
-                    "note": "pane contents captured on the Mac, not a reply",
-                }, ensure_ascii=False)
+        outcome = _mac_queue_wait("read", target_role, {"lines": capped_lines})
+        queue_id = outcome["queue_id"]
+        if outcome["status"] == "ok":
+            _audit("read_session", target_role, "done", f"host=mac q={queue_id}")
+            return json.dumps({
+                "status": "ok", "target_role": target_role, "host": "mac",
+                "queue_id": queue_id,
+                "pane": outcome["result"],
+                "note": "pane contents captured on the Mac, not a reply",
+            }, ensure_ascii=False)
+        if outcome["status"] == "failed":
             _audit("read_session", target_role, "failed", f"host=mac q={queue_id}")
             return json.dumps({
                 "status": "failed", "target_role": target_role, "host": "mac",
-                "queue_id": queue_id, "reason": row["result"] or "unknown",
+                "queue_id": queue_id, "reason": outcome["reason"],
             }, ensure_ascii=False)
 
         _audit("read_session", target_role, "pending", f"host=mac q={queue_id}")
         return json.dumps({
             "status": "pending", "target_role": target_role, "host": "mac",
-            "queue_id": queue_id,
-            "reason": (f"the Mac agent has not answered within {MAC_READ_WAIT_S:.0f}s "
-                       "-- the Mac may be asleep or offline. Ask again shortly."),
+            "queue_id": queue_id, "reason": outcome["reason"],
         }, ensure_ascii=False)
 
     tmux_name = _active_contabo_tmux_session(target_role)
@@ -829,6 +883,221 @@ def read_session(target_role: str, lines: int, host: str = "contabo") -> str:
         "tmux_session": tmux_name,
         "lines_requested": lines, "lines_returned": lines_returned,
         "text": text,
+    }, ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
+# list_terminals -- task-2a135187 D1. "SomPong จะรู้ทุก Terminal ที่เปิดอยู่ และมี ID
+# อะไรบ้าง อยู่บน MAC หรือ Contabo" -- the CEO's own framing. Covers
+# /session-list and every "what is running / how far along / who is
+# blocked" question straight from files, no session needs asking.
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def list_terminals(include_closed: bool = False) -> str:
+    """Every C-level session on BOTH hosts, right now.
+
+    No arguments beyond `include_closed` (default False -- hides
+    finished/handed-off rows the CEO does not want 95% of the time).
+
+    Contabo's rows come from tools/org_inspector.py's list_sessions()
+    called in-process (this server runs on Contabo). The Mac's come from
+    the `terminals` queue kind the Mac-side draining agent
+    (runners/mac_agent.py) already answers, via the same bounded-wait
+    poller read_session(host="mac") uses (_mac_queue_wait) -- not a
+    second one.
+
+    The failure mode this exists to prevent: the Mac is asleep and the
+    result silently looks like "the whole org has zero sessions". Each
+    host gets its OWN status ("ok" or "unreachable") and its OWN
+    `sessions` list -- an unreachable host's rows are never folded into
+    the other host's, and `complete` is false whenever either host did
+    not answer:
+
+        {"hosts": {"contabo": {"status": "ok", "sessions": [...]},
+                   "mac": {"status": "unreachable", "reason": "...",
+                            "sessions": []}},
+         "complete": false}
+
+    When the Mac is the unreachable one, `hosts.mac.summary_th` carries
+    mac_status()'s ready-to-repeat Thai sentence, so the secretary can say
+    why without a second tool call.
+    """
+    try:
+        contabo_sessions = org_inspector.list_sessions(include_closed=include_closed)
+        contabo: dict = {"status": "ok", "sessions": contabo_sessions}
+    except Exception as e:
+        contabo = {"status": "unreachable", "reason": str(e), "sessions": []}
+
+    outcome = _mac_queue_wait("terminals", "", {"include_closed": include_closed})
+    if outcome["status"] == "ok":
+        try:
+            mac_payload = json.loads(outcome["result"])
+        except (TypeError, json.JSONDecodeError):
+            mac_payload = None
+        if isinstance(mac_payload, dict) and isinstance(mac_payload.get("sessions"), list):
+            mac: dict = {"status": "ok", "sessions": mac_payload["sessions"]}
+            for key in ("total_sessions", "returned", "dropped", "note"):
+                if key in mac_payload:
+                    mac[key] = mac_payload[key]
+        else:
+            mac = {"status": "unreachable",
+                   "reason": "unparseable response from the Mac agent",
+                   "sessions": []}
+    else:
+        mac_state = _mac_status_dict()
+        mac = {"status": "unreachable", "reason": outcome["reason"], "sessions": [],
+               "summary_th": mac_state.get("summary_th")}
+
+    complete = contabo["status"] == "ok" and mac["status"] == "ok"
+    result = {"hosts": {"contabo": contabo, "mac": mac}, "complete": complete}
+    _audit("list_terminals", "-", "ok" if complete else "partial",
+           f"contabo_status={contabo['status']} mac_status={mac['status']}")
+    return json.dumps(result, ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
+# session_history -- task-2a135187 D2. Thin pass-through to
+# tools/org_inspector.py's history_index / history_read, which own the
+# whole security burden (path containment under ALLOWED_HISTORY_ROOTS, an
+# extension allowlist, a line/byte cap, and the deliberate exclusion of raw
+# Claude Code transcripts). This tool adds no bypass, no root override, and
+# no "just this once" parameter.
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def session_history(mode: str, session_id: str | None = None, path: str | None = None,
+                     tail_lines: int = 80, host: str = "mac") -> str:
+    """What saved history exists (mode="index"), or the tail of one history
+    file (mode="read").
+
+    `mode` must be "index" or "read" -- anything else is rejected before
+    touching org_inspector at all. `host` must be "contabo" or "mac"
+    (default "mac": per org_inspector.py's own docstring the Mac carries
+    "hundreds of saved sessions" and Contabo carries essentially none, so
+    that is the useful default here -- deliberately different from
+    read_session's default of "contabo", which is about LIVE panes, not
+    saved history).
+
+    mode="index": `session_id` optional -- narrows to one session's saved
+    history (event logs + /session-save files), or lists everything on the
+    host when omitted. Never enumerates every event log's line count
+    without a session_id (org_inspector.history_index says so explicitly
+    rather than reporting a fake zero).
+
+    mode="read": `path` is required -- the file to tail. `tail_lines`
+    (default 80) how much of the tail. org_inspector enforces the actual
+    allowlist (state/logs, state/tab-titles, ~/.claude/session-data; an
+    extension allowlist; a line/byte cap) -- raw Claude Code transcripts
+    (~/.claude/projects/**/*.jsonl) are deliberately excluded forever (a
+    secret was pasted into a CTO chat on 7 Aug and lives in one of those
+    files permanently). A rejection there comes back nested under
+    `data.status == "rejected"` with a reason, never file content and
+    never a bypass.
+
+    host="contabo" calls org_inspector in-process (this server runs on
+    Contabo). host="mac" enqueues a `history` entry for the Mac-side
+    draining agent (runners/mac_agent.py) and waits via the same bounded
+    poller read_session/list_terminals use (_mac_queue_wait) -- an
+    unanswered window comes back status="pending", never a stale answer
+    presented as current. A rejection on the Mac side (do_history routing
+    a `history_read` refusal back as a failed queue entry) surfaces here as
+    status="failed", never as success-with-a-body.
+    """
+    if mode not in HISTORY_MODES:
+        _audit("session_history", host, "rejected", f"unknown mode {mode!r}")
+        return json.dumps({
+            "status": "rejected",
+            "reason": f"unknown mode {mode!r}. Known: {', '.join(HISTORY_MODES)}",
+        }, ensure_ascii=False)
+    if host not in HOSTS:
+        _audit("session_history", host, "rejected", f"unknown host {host!r}")
+        return json.dumps({
+            "status": "rejected",
+            "reason": f"unknown host {host!r}. Known: {', '.join(HOSTS)}",
+        }, ensure_ascii=False)
+    if mode == "read" and not (isinstance(path, str) and path.strip()):
+        _audit("session_history", host, "rejected", "path required for mode=read")
+        return json.dumps({
+            "status": "rejected", "reason": "path is required for mode=read",
+        }, ensure_ascii=False)
+
+    if host == "contabo":
+        if mode == "index":
+            data = org_inspector.history_index(session_id)
+        else:
+            data = org_inspector.history_read(path, tail_lines=tail_lines)
+        _audit("session_history", host, "ok",
+               f"mode={mode} data_status={data.get('status', 'n/a')}")
+        return json.dumps({"status": "ok", "host": host, "mode": mode, "data": data},
+                           ensure_ascii=False)
+
+    payload = {"mode": mode}
+    if mode == "index":
+        payload["session_id"] = session_id
+    else:
+        payload["path"] = path
+        payload["tail_lines"] = tail_lines
+    outcome = _mac_queue_wait("history", "", payload)
+    if outcome["status"] == "ok":
+        try:
+            data = json.loads(outcome["result"])
+        except (TypeError, json.JSONDecodeError):
+            data = {"status": "error", "reason": "unparseable response from the Mac agent"}
+        _audit("session_history", host, "ok", f"mode={mode}")
+        return json.dumps({"status": "ok", "host": host, "mode": mode, "data": data},
+                           ensure_ascii=False)
+    if outcome["status"] == "failed":
+        _audit("session_history", host, "failed", outcome["reason"])
+        return json.dumps({"status": "failed", "host": host, "reason": outcome["reason"]},
+                           ensure_ascii=False)
+    _audit("session_history", host, "pending", outcome["reason"])
+    return json.dumps({"status": "pending", "host": host, "reason": outcome["reason"]},
+                       ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
+# open_terminal -- task-2a135187 D3, /terminal-open. scripts/terminal-open.sh
+# reattaches an iTerm window to an already-running tmux session -- Mac-only,
+# spawns nothing. Nothing else from the /terminal-* or /session-* families
+# gets a tool: /session-open, /session-close, /session-save,
+# /session-worktree, /session-change-model reconstruct their answer from a
+# live conversation inside one session, so SomPong relays those to the
+# session with relay_to_session instead of executing them here;
+# /session-list is covered by list_terminals.
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def open_terminal(role: str, session_id: str | None = None) -> str:
+    """Reattach an iTerm window on the Mac to an already-running C-level
+    tmux session -- the fix for a closed tab, triggerable from the phone.
+
+    `role` must be one of cto/cmo/cgo/cfo. `session_id` optional -- when
+    omitted, the Mac resolves the <role>-active pointer (the same
+    primary-session resolution do_relay uses) and refuses rather than
+    guessing if the pointer and tmux disagree. When given explicitly, that
+    exact session is targeted and checked live directly.
+
+    Always enqueued for the Mac-side draining agent (runners/mac_agent.py)
+    -- terminal-open.sh only makes sense on the Mac, where iTerm lives, so
+    there is no host parameter and no Contabo branch. This never starts a
+    new session (that is spawn_c_level's job); it only opens a window onto
+    one that already exists. Reports queued together with whether the Mac
+    is currently reachable, same shape as relay_to_session/spawn_c_level's
+    mac branch.
+    """
+    rejection = _reject_unknown_role("open_terminal", role)
+    if rejection:
+        return rejection
+    queue_id = _queue_enqueue("terminal_open", role, {"session_id": session_id})
+    mac = _mac_status_dict()
+    _audit("open_terminal", role, "queued",
+           f"queue_id={queue_id} session_id={session_id!r} mac_state={mac['state']}")
+    return json.dumps({
+        "status": "queued", "role": role, "queue_id": queue_id,
+        "session_id": session_id,
+        "mac_reachable": mac["reachable"], "mac_state": mac["state"],
+        "mac_summary_th": mac["summary_th"],
     }, ensure_ascii=False)
 
 

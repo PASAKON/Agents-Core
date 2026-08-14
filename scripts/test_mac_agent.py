@@ -625,4 +625,138 @@ def test_history_validates_payload_shapes(monkeypatch):
 def test_terminals_and_history_are_registered_kinds():
     assert ma.HANDLERS["terminals"] is ma.do_terminals
     assert ma.HANDLERS["history"] is ma.do_history
-    assert set(ma.HANDLERS) == {"relay", "spawn", "read", "terminals", "history"}
+    assert ma.HANDLERS["terminal_open"] is ma.do_terminal_open
+    assert set(ma.HANDLERS) == {
+        "relay", "spawn", "read", "terminals", "history", "terminal_open"}
+
+
+# ---------------------------------------------------------------------------
+# terminal_open (task-2a135187 D3) -- /terminal-open, reattach an iTerm
+# window to an already-running session. Mac-only, spawns nothing.
+# ---------------------------------------------------------------------------
+
+def _stub_terminal_open_script(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(ma, "ROOT", tmp_path)
+    scripts = tmp_path / "scripts"
+    scripts.mkdir(exist_ok=True)
+    (scripts / "terminal-open.sh").write_text("#!/bin/bash\n")
+
+
+def test_terminal_open_no_session_id_resolves_the_active_pointer(
+        relay_env, monkeypatch, tmp_path):
+    """D5: open_terminal with no session_id resolves the <role>-active
+    pointer, the same primary-session resolution do_relay uses."""
+    _point_at(monkeypatch, relay_env, "cto", "abc123")
+    _stub_terminal_open_script(monkeypatch, tmp_path)
+    fake = FakeRun()  # returncode 0 for every call: liveness AND the script
+    monkeypatch.setattr(ma.subprocess, "run", fake)
+
+    ok, detail = ma.do_terminal_open("cto", {})
+
+    assert ok, detail
+    assert "cto-abc123" in detail
+    script_calls = [c for c in fake.calls if c[0] == "bash"]
+    assert script_calls, "expected terminal-open.sh to be invoked"
+    assert script_calls[-1][1].endswith("terminal-open.sh")
+    assert script_calls[-1][2] == "cto-abc123"
+
+
+def test_terminal_open_refuses_when_pointer_and_tmux_disagree(
+        relay_env, monkeypatch, tmp_path):
+    """Same race guard do_relay uses -- a stale pointer must never be
+    guessed at, not even for a read-ish action like opening a window."""
+    _point_at(monkeypatch, relay_env, "cto", "deadbee")
+
+    def run(argv, *a, **kw):
+        argv = [str(c) for c in argv]
+        if argv[1:3] == ["has-session", "-t"]:
+            return subprocess.CompletedProcess(argv, 1, "", "")
+        raise AssertionError(
+            f"terminal-open.sh must not run on a disagreeing pointer: {argv!r}")
+
+    monkeypatch.setattr(ma.subprocess, "run", run)
+
+    ok, detail = ma.do_terminal_open("cto", {})
+
+    assert not ok
+    assert "disagree" in detail
+
+
+def test_terminal_open_explicit_session_id_is_checked_directly(
+        relay_env, monkeypatch, tmp_path):
+    """An explicit session_id is targeted as given -- no pointer lookup, no
+    redirect to whatever <role>-active currently names."""
+    _stub_terminal_open_script(monkeypatch, tmp_path)
+    fake = FakeRun()
+    monkeypatch.setattr(ma.subprocess, "run", fake)
+    monkeypatch.setattr(ma, "_live_session", lambda name: name == "cmo-xyz789")
+
+    ok, detail = ma.do_terminal_open("cmo", {"session_id": "xyz789"})
+
+    assert ok, detail
+    assert "cmo-xyz789" in detail
+    script_calls = [c for c in fake.calls if c[0] == "bash"]
+    assert script_calls[-1][2] == "cmo-xyz789"
+
+
+def test_terminal_open_explicit_session_id_not_live_is_refused(monkeypatch):
+    monkeypatch.setattr(ma, "_live_session", lambda name: False)
+    ok, detail = ma.do_terminal_open("cmo", {"session_id": "ghost99"})
+    assert not ok
+    assert "no live tmux session" in detail
+
+
+def test_terminal_open_rejects_unknown_role():
+    ok, detail = ma.do_terminal_open("root", {})
+    assert not ok and "unknown role" in detail
+
+
+def test_terminal_open_rejects_non_string_session_id():
+    ok, detail = ma.do_terminal_open("cto", {"session_id": 123})
+    assert not ok and "string" in detail
+
+
+def test_terminal_open_missing_script_fails_cleanly(relay_env, monkeypatch, tmp_path):
+    _point_at(monkeypatch, relay_env, "cto", "abc123")
+    monkeypatch.setattr(ma, "ROOT", tmp_path)  # scripts/terminal-open.sh absent
+    monkeypatch.setattr(ma, "_live_session", lambda name: True)
+
+    ok, detail = ma.do_terminal_open("cto", {})
+
+    assert not ok
+    assert "missing" in detail and "terminal-open.sh" in detail
+
+
+def test_terminal_open_nonzero_exit_is_reported_not_swallowed(
+        relay_env, monkeypatch, tmp_path):
+    """The script call's own failure must surface distinctly from the
+    liveness check that ran just before it."""
+    _point_at(monkeypatch, relay_env, "cto", "abc123")
+    _stub_terminal_open_script(monkeypatch, tmp_path)
+
+    def run(argv, *a, **kw):
+        argv = [str(c) for c in argv]
+        if argv[0] == "bash":
+            return subprocess.CompletedProcess(argv, 2, "", "no such tmux session")
+        return subprocess.CompletedProcess(argv, 0, "", "")  # liveness check: live
+
+    monkeypatch.setattr(ma.subprocess, "run", run)
+
+    ok, detail = ma.do_terminal_open("cto", {})
+
+    assert not ok
+    assert "exit 2" in detail
+    assert "no such tmux session" in detail
+
+
+def test_terminal_open_entry_flows_through_process(relay_env, monkeypatch, tmp_path):
+    _point_at(monkeypatch, relay_env, "cto", "abc123")
+    _stub_terminal_open_script(monkeypatch, tmp_path)
+    fake = FakeRun()
+    monkeypatch.setattr(ma.subprocess, "run", fake)
+
+    ok, result = ma.process(
+        {"id": 1, "kind": "terminal_open", "target_role": "cto", "payload": {}})
+
+    assert ok
+    assert "cto-abc123" in result
