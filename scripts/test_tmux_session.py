@@ -235,7 +235,15 @@ def test_no_other_module_defines_its_own_tmux_candidate_list():
     canonical = ts.__file__ and Path(ts.__file__).resolve()
     offenders = []
     for path in sorted(ROOT.rglob("*.py")):
-        if any(part.startswith(".") or part == "__pycache__"
+        # worktrees/ holds other tasks' in-flight checkouts of this same repo,
+        # each a full copy at whatever commit that task branched from. They are
+        # not this tree's source and are not ours to police — one still carrying
+        # the old private list is a stale copy, not a new violation. Skipping
+        # them is also what makes this test mean the same thing in a DEV
+        # worktree (where the directory does not exist) and on main (where it
+        # does): without it, the guard passed for the DEV who wrote it and
+        # failed the moment it landed.
+        if any(part.startswith(".") or part in ("__pycache__", "worktrees")
                for part in path.relative_to(ROOT).parts):
             continue
         if path.resolve() == canonical:
