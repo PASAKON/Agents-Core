@@ -37,6 +37,7 @@ if str(ROOT) not in sys.path:
 
 from lib import db  # noqa: E402
 from tools import session_name  # noqa: E402
+from tools.tmux_session import tmux_bin  # noqa: E402
 
 LOCKS_DIR = ROOT / "state" / "locks"
 
@@ -306,7 +307,7 @@ def respawn_pane(name: str, run_file: Path | str) -> subprocess.CompletedProcess
     stay up, which is the entire reason this is preferred over a rebuild.
     """
     return subprocess.run(
-        ["tmux", "respawn-pane", "-k", "-t", name, f"bash {run_file}"],
+        [tmux_bin(), "respawn-pane", "-k", "-t", name, f"bash {run_file}"],
         capture_output=True, text=True,
     )
 
@@ -317,7 +318,7 @@ def respawn_pane(name: str, run_file: Path | str) -> subprocess.CompletedProcess
 
 def _pane_pid(name: str) -> int | None:
     r = subprocess.run(
-        ["tmux", "list-panes", "-t", name, "-F", "#{pane_pid}"],
+        [tmux_bin(), "list-panes", "-t", name, "-F", "#{pane_pid}"],
         capture_output=True, text=True,
     )
     if r.returncode != 0:

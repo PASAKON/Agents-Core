@@ -374,18 +374,19 @@ def _wake_tmux_send(session: str, text: str) -> None:
     zero-delay path GH #70 flagged. `tools.tmux_session.send_keys()` is
     untouched -- fixing it is GH #70's job, out of scope here.
     """
+    tmux = tmux_session.tmux_bin()
     subprocess.run(
-        ["tmux", "send-keys", "-t", session, "-l", text],
+        [tmux, "send-keys", "-t", session, "-l", text],
         capture_output=True, text=True, check=True, timeout=5,
     )
     time.sleep(0.4)
     subprocess.run(
-        ["tmux", "send-keys", "-t", session, "Enter"],
+        [tmux, "send-keys", "-t", session, "Enter"],
         capture_output=True, text=True, check=True, timeout=5,
     )
     time.sleep(0.3)
     subprocess.run(
-        ["tmux", "send-keys", "-t", session, "Enter"],
+        [tmux, "send-keys", "-t", session, "Enter"],
         capture_output=True, text=True, check=True, timeout=5,
     )
 

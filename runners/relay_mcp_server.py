@@ -369,7 +369,7 @@ def _tmux_sessions() -> list[str]:
     (Contabo currently has zero C-level tmux sessions, per TASK.md)."""
     try:
         result = subprocess.run(
-            ["tmux", "ls"], capture_output=True, text=True, timeout=10,
+            [tmux_session.tmux_bin(), "ls"], capture_output=True, text=True, timeout=10,
         )
     except (OSError, subprocess.SubprocessError):
         return []
@@ -499,7 +499,7 @@ def _capture_pane(tmux_name: str) -> str | None:
     turn None into an explicit error/empty state, never a guess."""
     try:
         result = subprocess.run(
-            ["tmux", "capture-pane", "-p", "-t", tmux_name],
+            [tmux_session.tmux_bin(), "capture-pane", "-p", "-t", tmux_name],
             capture_output=True, text=True, timeout=10,
         )
     except (OSError, subprocess.SubprocessError):
@@ -721,7 +721,7 @@ def spawn_c_level(role: str, host: str) -> str:
     # failure here is recorded, not fatal.
     try:
         time.sleep(SPAWN_PROMPT_DELAY_S)
-        subprocess.run(["tmux", "send-keys", "-t", tmux_name, "Escape"],
+        subprocess.run([tmux_session.tmux_bin(), "send-keys", "-t", tmux_name, "Escape"],
                        capture_output=True, text=True, timeout=10)
     except (OSError, subprocess.SubprocessError) as e:
         _audit("spawn_c_level", role, "prompt_dismiss_failed", str(e))

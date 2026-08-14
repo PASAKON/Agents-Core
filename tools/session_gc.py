@@ -39,6 +39,7 @@ ROOT = Path(__file__).resolve().parent.parent
 LOCKS = ROOT / "state" / "locks"
 
 from tools.session_name import LOCK_SUFFIXES, ROLE_RE  # noqa: E402
+from tools.tmux_session import tmux_bin  # noqa: E402
 # Signal-0 liveness is the canonical check the cap already uses; reuse it so
 # the GC and the cap cannot disagree on what "alive" means.
 from tools.session_cap import _alive  # noqa: E402
@@ -177,7 +178,7 @@ def _detect_tmux_sessions() -> list[str]:
     """
     try:
         out = subprocess.run(
-            ["tmux", "list-sessions", "-F", "#{session_name}"],
+            [tmux_bin(), "list-sessions", "-F", "#{session_name}"],
             capture_output=True, text=True, timeout=5,
         )
     except (OSError, subprocess.SubprocessError):
