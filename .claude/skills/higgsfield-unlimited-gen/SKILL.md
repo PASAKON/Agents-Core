@@ -168,6 +168,28 @@ baseline is a reference point, not a budget.
    History is actually generating, don't force through it or guess a
    workaround. Message the C-level and wait.
 
+6. **If the Unlimited toggle won't respond, stop after the FIRST clean
+   attempt — do not escalate through more click techniques.** Real incident,
+   2026-08-14 (task-f693a4ee, GH #67): the toggle was stuck off, so the
+   Generate button stayed priced (`Generate180135`) for the whole session.
+   The operator never intended to click it and correctly never clicked it
+   on purpose — but while troubleshooting the toggle it tried seven
+   different techniques in succession (ref click, raw-coordinate click,
+   keyboard focus+Space+Enter, click-drag, hover, double-click, zoom+click),
+   and **two real 135-credit charges landed anyway**, $10.80 total, most
+   likely because one of those techniques — probably the keyboard Enter
+   press — landed on the adjacent Generate button instead of the switch
+   (the two sit 40–50px apart). Every click technique tried near a priced
+   Generate button is itself a money risk, independent of what you're
+   aiming at.
+
+   **The fix:** one ref-based click attempt on the exact toggle element via
+   `find()`. If `data-state` doesn't flip, **stop entirely and message the
+   C-level** — do not try a second technique, do not try raw coordinates,
+   do not try keyboard input near the composer. A stuck toggle is a
+   blocker to report, not a puzzle to solve by trying more input methods
+   next to a live priced button.
+
    **What actually causes it** (measured 2026-08-12, task-cda4f469): the
    slot is **account-wide, not project-wide**, and a generation survives the
    death of the agent that started it. Killing a DEV does not cancel its
