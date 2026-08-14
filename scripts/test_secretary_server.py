@@ -56,6 +56,15 @@ REQUIRED_LUNGNOTE_TOOLS = (
     "mcp__lungnote__create_note", "mcp__lungnote__append_note",
 )
 
+# Named proxy actions added by task-b293ef6c so the secretary can act for the
+# CEO without a shell. Each is a fixed action with typed arguments — none
+# accepts a command, shell string, or caller-supplied path. Adding a name here
+# grants a real capability; it is meant to require a deliberate edit.
+RELAY_TOOLS = (
+    "mcp__relay__mac_status", "mcp__relay__org_snapshot",
+    "mcp__relay__relay_to_session", "mcp__relay__spawn_c_level",
+)
+
 
 # ---------------------------------------------------------------------------
 # 1. Allowlist guard — the security boundary itself.
@@ -77,8 +86,17 @@ def test_allowlist_never_contains_a_mutating_or_org_tool() -> None:
             f"{required!r} is part of LungNote's full surface "
             "(SPEC-CHANGE.md Change 1) and must be present")
 
-    # And nothing sneaked in beyond exactly the LungNote surface.
-    assert set(ss.ALLOWED_TOOLS) == set(REQUIRED_LUNGNOTE_TOOLS)
+    # And nothing sneaked in beyond the reviewed surface. Deliberately kept as
+    # exact equality: an "allowlist" that only screens for known-bad names
+    # stops being an allowlist the moment someone adds a name nobody thought
+    # to forbid. Widening this set is the act of granting the secretary a new
+    # capability, and should be as visible in review as one.
+    #
+    # RELAY_TOOLS arrived with task-b293ef6c: four *named* proxy actions (Mac
+    # liveness, org snapshot, relay an order to a C-level session, spawn one).
+    # None of them takes a shell string, a command, or a caller-supplied path
+    # — that property is enforced in scripts/test_relay_mcp_server.py.
+    assert set(ss.ALLOWED_TOOLS) == set(REQUIRED_LUNGNOTE_TOOLS) | set(RELAY_TOOLS)
 
 
 def test_build_claude_cmd_omits_resume_when_session_id_none() -> None:
