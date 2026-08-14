@@ -281,17 +281,30 @@ def history_index(session_id: str | None = None) -> dict:
     """What saved history exists — sizes and counts, never content.
 
     With session_id, only that session's event log and /session-save files;
-    without it, every session-save file on the host."""
+    without it, every session-save file on the host.
+
+    Event logs are enumerated ONLY for a named session: line-counting every
+    log on the host is slow (777 files on this Mac), so without a session_id
+    they are deliberately skipped — and the skip is SAID, never reported as
+    a zero (`event_logs: None`, `counts.event_logs: "not_enumerated"`,
+    `event_logs_enumerated: False`). SomPong reads this back to the CEO over
+    Telegram; a 0 there means "ไม่มี log เลย", which would be a lie — 0 must
+    stay reserved for "we looked and there are none". The bare file count
+    (`event_log_files`) is cheap even when line counts are not, so it is
+    always included.
+    """
     sid = None
-    if session_id is not None:
+    asked = session_id is not None
+    if asked:
         if not SID_RE.fullmatch(session_id):
             # Non-hex id can only come from a caller. Match nothing rather
             # than interpolate it into a glob pattern.
             session_id = ""
         sid = session_id.lower() or None
 
-    event_logs = []
+    event_logs = None
     if sid and LOG_DIR.is_dir():
+        event_logs = []
         for p in sorted(LOG_DIR.glob(f"*-{sid}.log")):
             try:
                 info = _file_info(p)
@@ -306,6 +319,20 @@ def history_index(session_id: str | None = None) -> dict:
             except OSError:
                 lines = None
             event_logs.append({**info, "role": role, "lines": lines})
+    elif asked:
+        # A (possibly invalid) session that matches nothing: we LOOKED, so
+        # an empty list is a genuine zero, not an omission.
+        event_logs = []
+
+    # Cheap even when line counts are not: one iterdir, no file opens.
+    event_log_files = None
+    if LOG_DIR.is_dir():
+        try:
+            event_log_files = sum(
+                1 for p in LOG_DIR.iterdir()
+                if p.name.endswith(".log"))
+        except OSError:
+            pass
 
     saves = []
     if SAVE_DIR.is_dir():
@@ -321,9 +348,12 @@ def history_index(session_id: str | None = None) -> dict:
         "host": detect_host(),
         "session_id": sid,
         "event_logs": event_logs,
+        "event_logs_enumerated": event_logs is not None,
+        "event_log_files": event_log_files,
         "session_saves": saves,
         "counts": {
-            "event_logs": len(event_logs),
+            "event_logs": len(event_logs) if event_logs is not None
+                          else "not_enumerated",
             "session_saves": len(saves),
         },
     }

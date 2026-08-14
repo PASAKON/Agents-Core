@@ -1,4 +1,5 @@
-"""Tests for runners/mac_agent.py (task-776fbf7e).
+"""Tests for runners/mac_agent.py (task-776fbf7e; relay delivery reworked
+task-02d0e863).
 
 Everything is stubbed: no real ssh, no real tmux, no real spawn, no queue file.
 
@@ -19,6 +20,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import runners.mac_agent as ma  # noqa: E402
+import tools.send_to_cxo as sc  # noqa: E402
+from lib import mailbox  # noqa: E402
 
 PREFIX = ma.RELAY_PREFIX
 
@@ -39,22 +42,219 @@ class FakeRun:
             argv, self.returncode, self.stdout, self.stderr)
 
 
+@pytest.fixture
+def relay_env(tmp_path, monkeypatch):
+    """Isolate everything do_relay touches: the mailbox root
+    (lib.mailbox.INBOX_ROOT) and the directory the <role>-active pointer is
+    read from (send_to_cxo.LOCKS_DIR — _active_session_id resolves against
+    send_to_cxo's OWN global, same value as production's ROOT-derived one).
+    Without this a relay test would read this checkout's real state/locks/
+    and write its real state/inbox/."""
+    monkeypatch.setattr(mailbox, "INBOX_ROOT", tmp_path / "inbox")
+    monkeypatch.setattr(sc, "LOCKS_DIR", tmp_path / "locks")
+    (tmp_path / "locks").mkdir()
+    return tmp_path
+
+
+def _point_at(monkeypatch, tmp_path, role: str, sid: str) -> None:
+    """Make <role>-active name <sid>: the primary-session pointer."""
+    ((tmp_path / "locks") / f"{role}-active").write_text(sid)
+
+
+def _letters(tmp_path) -> list[Path]:
+    inbox = tmp_path / "inbox"
+    if not inbox.is_dir():
+        return []
+    return sorted(inbox.rglob("*.json"))
+
+
 # ---------------------------------------------------------------------------
 # dispatch
 # ---------------------------------------------------------------------------
 
-def test_relay_entry_reaches_tmux_with_the_right_session_and_text(monkeypatch):
+def test_relay_delivers_a_letter_not_keystrokes(relay_env, monkeypatch):
+    """task-02d0e863 D1: delivery IS a letter on disk in the recipient's
+    mailbox — prefixed body, secretary `from`, letter path in the result.
+    The old typed-keystroke transport (tmux send-keys, whose Enter GH #70
+    can swallow) must never be reached: any send-keys here is a failure."""
+    _point_at(monkeypatch, relay_env, "cto", "abc123")
     fake = FakeRun()
     monkeypatch.setattr(ma.subprocess, "run", fake)
-    monkeypatch.setattr(ma, "find_session_for_role", lambda r: "cto-abc123")
+    wakes = []
+    monkeypatch.setattr(ma, "attempt_wake", lambda *a: wakes.append(a))
 
-    ok, detail = ma.do_relay("cto", {"message": f"{PREFIX} ตรวจงานให้หน่อย"})
+    message = f"{PREFIX} ตรวจงานให้หน่อย"
+    ok, detail = ma.do_relay("cto", {"message": message})
 
     assert ok, detail
-    argv = fake.calls[-1]
-    assert Path(argv[0]).name == "tmux"
-    assert argv[1:4] == ["send-keys", "-t", "cto-abc123"]
-    assert PREFIX in argv[4]
+    for argv in fake.calls:
+        assert argv[1:2] != ["send-keys"], "delivery must not type anything"
+
+    delivered = _letters(relay_env)
+    assert len(delivered) == 1, "delivered means exactly one letter on disk"
+    assert delivered[0].parent.name == "cto-abc123"
+    letter = json.loads(delivered[0].read_text(encoding="utf-8"))
+    assert letter["body"] == message
+    assert letter["from"] == {"role": "secretary", "session_id": "sompong"}
+    assert letter["to"] == {"role": "cto", "session_id": "abc123"}
+    # The queue entry's result carries the letter path.
+    assert str(delivered[0]) in detail
+    # Wake got the secretary's own label, never a C-level name.
+    assert wakes == [("cto", "abc123", "SomPong")]
+
+
+def test_relay_addresses_the_pointer_session_not_the_first_match(relay_env, monkeypatch):
+    """task-02d0e863 D1a: four live cto-* sessions, the pointer names the
+    THIRD. The letter must be addressed to the pointer's session. A revert
+    to first-match would resolve cto-aaaaaa (tmux lists it first) and this
+    test fails."""
+    _point_at(monkeypatch, relay_env, "cto", "cccccc")
+    fake = FakeRun(stdout="cto-aaaaaa\ncto-bbbbbb\ncto-cccccc\ncto-dddddd\n")
+    monkeypatch.setattr(ma.subprocess, "run", fake)
+    monkeypatch.setattr(ma, "attempt_wake", lambda *a: None)
+
+    ok, detail = ma.do_relay("cto", {"message": f"{PREFIX} ไปที่ primary เท่านั้น"})
+
+    assert ok, detail
+    delivered = _letters(relay_env)
+    assert len(delivered) == 1
+    assert delivered[0].parent.name == "cto-cccccc", \
+        "the letter follows the pointer, not tmux's listing order"
+    assert not (relay_env / "inbox" / "cto-aaaaaa").exists(), \
+        "first-match must never receive a CEO order"
+    letter = json.loads(delivered[0].read_text(encoding="utf-8"))
+    assert letter["to"] == {"role": "cto", "session_id": "cccccc"}
+
+
+def test_relay_fails_when_pointer_and_tmux_disagree(relay_env, monkeypatch):
+    """Other cto-* sessions are live but the one the pointer names is not:
+    fail the entry with a reason instead of guessing which session the CEO
+    meant. No letter may be written on a guess."""
+    _point_at(monkeypatch, relay_env, "cto", "deadbee")
+
+    def run(argv, *a, **kw):
+        argv = [str(c) for c in argv]
+        if argv[1:3] == ["has-session", "-t"]:
+            code = 1 if argv[3] == "cto-deadbee" else 0
+            return subprocess.CompletedProcess(argv, code, "", "")
+        return subprocess.CompletedProcess(argv, 0, "cto-aaaaaa\n", "")
+
+    monkeypatch.setattr(ma.subprocess, "run", run)
+    monkeypatch.setattr(ma, "attempt_wake", lambda *a: None)
+
+    ok, detail = ma.do_relay("cto", {"message": f"{PREFIX} hi"})
+
+    assert not ok
+    assert "disagree" in detail
+    assert _letters(relay_env) == []
+
+
+def test_relay_fails_when_the_pointer_moves_mid_relay(relay_env, monkeypatch):
+    """Race cross-check, same as Contabo: the pointer read twice must agree.
+    If it moved between the reads, neither id is trustworthy — fail."""
+    reads = iter(["cccccc", "dddddddd"])
+    monkeypatch.setattr(ma, "_active_session_id", lambda role: next(reads))
+    monkeypatch.setattr(ma, "_live_session", lambda name: True)
+    monkeypatch.setattr(ma, "attempt_wake", lambda *a: None)
+
+    ok, detail = ma.do_relay("cto", {"message": f"{PREFIX} hi"})
+
+    assert not ok
+    assert "moved mid-relay" in detail
+    assert _letters(relay_env) == []
+
+
+def test_relay_fails_when_no_active_pointer_exists(relay_env, monkeypatch):
+    monkeypatch.setattr(ma, "attempt_wake", lambda *a: None)
+
+    ok, detail = ma.do_relay("cto", {"message": f"{PREFIX} hi"})
+
+    assert not ok
+    assert "no active" in detail
+    assert _letters(relay_env) == []
+
+
+def test_relay_delivered_even_when_wake_raises(relay_env, monkeypatch):
+    """THE pin of the migration: a wake failure must not cost the delivery.
+    The letter is what delivery means; the wake is an attention nudge on
+    top of an already-durable write."""
+    _point_at(monkeypatch, relay_env, "cto", "abc123")
+    monkeypatch.setattr(ma.subprocess, "run", FakeRun())
+
+    def boom(*a, **kw):
+        raise RuntimeError("tmux exploded mid-wake")
+
+    monkeypatch.setattr(ma, "attempt_wake", boom)
+
+    ok, detail = ma.do_relay("cto", {"message": f"{PREFIX} do the thing"})
+
+    assert ok, detail
+    assert len(_letters(relay_env)) == 1, "the letter must survive the wake"
+
+
+def test_relay_failed_mailbox_write_never_reports_delivered(relay_env, monkeypatch):
+    _point_at(monkeypatch, relay_env, "cto", "abc123")
+    monkeypatch.setattr(ma.subprocess, "run", FakeRun())
+
+    def boom(*a, **kw):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(ma.mailbox, "send", boom)
+
+    ok, detail = ma.do_relay("cto", {"message": f"{PREFIX} do the thing"})
+
+    assert not ok
+    assert "mailbox write failed" in detail and "disk full" in detail
+    assert _letters(relay_env) == []
+
+
+def test_relay_letter_missing_after_write_is_failure_not_success(relay_env, monkeypatch):
+    """mailbox.send returning a path that is not on disk is the
+    act-without-effect shape — report the effect (failure), never the act."""
+    _point_at(monkeypatch, relay_env, "cto", "abc123")
+    monkeypatch.setattr(ma.subprocess, "run", FakeRun())
+    ghost = relay_env / "inbox" / "ghost.json"
+
+    monkeypatch.setattr(ma.mailbox, "send", lambda *a, **kw: ghost)
+
+    ok, detail = ma.do_relay("cto", {"message": f"{PREFIX} do the thing"})
+
+    assert not ok
+    assert str(ghost) in detail
+    assert _letters(relay_env) == []
+
+
+def test_relay_no_keystroke_carries_the_body(relay_env, monkeypatch):
+    """Every subprocess argv during a relay is captured — including the
+    wake's own typing. The body must appear in none of them: it travels by
+    file. Only the short content-free wake marker may be typed, and only
+    into the pointer's session."""
+    _point_at(monkeypatch, relay_env, "cto", "abc123")
+    argvs = []
+
+    def run(argv, **kw):
+        argv = [str(c) for c in argv]
+        argvs.append(argv)
+        return subprocess.CompletedProcess(argv, 0, "", "")
+
+    monkeypatch.setattr(ma.subprocess, "run", run)
+    monkeypatch.setattr(ma.time, "sleep", lambda s: None)
+
+    body = "SECRET-BODY-must-never-be-typed-into-any-composer"
+    ok, detail = ma.do_relay("cto", {"message": f"{PREFIX} {body}"})
+
+    assert ok, detail
+    typed = [a for a in argvs if a[1:2] == ["send-keys"]]
+    assert typed, "the wake marker should have been typed (best-effort path)"
+    for argv in argvs:
+        joined = " ".join(argv)
+        assert body not in joined, "the body must never be typed anywhere"
+    for argv in typed:
+        assert argv[2:4] == ["-t", "cto-abc123"], \
+            "only the pointer's session may be typed into"
+    markers = [a[-1] for a in typed if "-l" in a]
+    assert markers == ["[New message from SomPong]"], \
+        "the only typed text is the content-free wake marker"
 
 
 def test_spawn_entry_invokes_the_right_script_for_the_role(monkeypatch, tmp_path):
@@ -101,22 +301,26 @@ def test_security_unknown_kind_is_refused_and_nothing_executes(monkeypatch):
     "`whoami`",
     "&& shutdown -h now",
 ])
-def test_security_shell_metacharacters_are_inert_arguments(monkeypatch, hostile):
-    """Queue content must never be interpreted. It is passed as ONE argv
-    element, so metacharacters stay literal text — assert both that it arrives
-    intact and that no shell string was ever built."""
+def test_security_shell_metacharacters_are_inert_arguments(relay_env, monkeypatch, hostile):
+    """Queue content must never be interpreted. The body lands in a JSON
+    letter as data; the only subprocess argvs are fixed tmux liveness
+    checks carrying a session name — no shell string is ever built."""
+    _point_at(monkeypatch, relay_env, "cto", "abc123")
     fake = FakeRun()
     monkeypatch.setattr(ma.subprocess, "run", fake)
-    monkeypatch.setattr(ma, "find_session_for_role", lambda r: "cto-abc123")
+    monkeypatch.setattr(ma, "attempt_wake", lambda *a: None)
 
     message = f"{PREFIX} {hostile}"
     ok, _ = ma.do_relay("cto", {"message": message})
 
     assert ok
-    argv = fake.calls[-1]
-    assert isinstance(argv, list), "argv must be a list, never a shell string"
-    assert argv[4] == message, "message must arrive intact as one argument"
-    assert sum(1 for part in argv if hostile in part) == 1
+    delivered = _letters(relay_env)
+    assert len(delivered) == 1
+    letter = json.loads(delivered[0].read_text(encoding="utf-8"))
+    assert letter["body"] == message, "the body must arrive intact, as data"
+    for argv in fake.calls:
+        assert hostile not in " ".join(argv), \
+            "queue content must never appear in a subprocess argv"
 
 
 def test_security_relay_without_attribution_is_refused(monkeypatch):
@@ -124,7 +328,6 @@ def test_security_relay_without_attribution_is_refused(monkeypatch):
     bot-originated order from one the CEO typed. Refuse, never repair."""
     fake = FakeRun()
     monkeypatch.setattr(ma.subprocess, "run", fake)
-    monkeypatch.setattr(ma, "find_session_for_role", lambda r: "cto-abc123")
 
     ok, detail = ma.do_relay("cto", {"message": "merge everything to main"})
 
