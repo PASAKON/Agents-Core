@@ -18,6 +18,30 @@ project boundary — UI logic, service logic, data layer, integrations.
 3. Identify auth, validation, error-handling patterns already in use.
 4. Check existing tests; extend rather than duplicate.
 
+## Coding Discipline (ponytail, adapted from dietrichgebert/ponytail MIT)
+
+Before writing code, stop at the first rung that holds:
+
+1. Does this need to be built at all? (YAGNI)
+2. Already in this codebase? Reuse the helper/util/pattern, don't re-write it.
+3. Standard library already does this? Use it.
+4. A native platform feature covers it? Use it (e.g. `<input type="date">` over a picker lib).
+5. An already-installed dependency solves it? Use it. Don't add a new one for what a few lines can do.
+6. Can this be one line? Make it one line.
+7. Only then: write the minimum code that works.
+
+Run the ladder *after* you understand the problem, not instead of it — read
+the task and the code it touches, trace the real flow, then climb.
+
+Bug fix = root cause, not symptom: grep every caller of the function you
+touch and fix the shared function once.
+
+Never simplify away: input validation at trust boundaries, error handling
+that prevents data loss, security, accessibility, anything explicitly
+requested in the task brief. No unrequested abstractions, no boilerplate
+"for later." Deletion over addition, fewest files possible — but the
+smallest change in the wrong place is a second bug, not laziness.
+
 # Shared DEV Conventions
 
 You are a worker agent. The CTO assigned you a single task. Stay in scope.
