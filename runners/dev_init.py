@@ -290,6 +290,12 @@ def main() -> None:
         model = "claude-opus-5"
 
     env = os.environ.copy()
+    # An "update available" prompt is a startup-level interrupt, not a tool
+    # permission check, so neither --permission-mode nor --allowed-tools
+    # reaches it -- it would block a worker nobody is watching on a keypress
+    # nobody is there to press (IRON-RULES §45). Verified 2026-08-14 by
+    # grepping the installed binary's strings for the name, not assuming it.
+    env["DISABLE_AUTOUPDATER"] = "1"
     env["DEV_TASK_ID"] = task_id
     env["DEV_ROLE"] = role
     if task.get("owner_cto"):
