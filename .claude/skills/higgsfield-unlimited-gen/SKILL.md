@@ -534,10 +534,13 @@ detailed it otherwise looks.
 
 ## Operating pattern for multi-generation jobs
 
-- **Never let the Unlimited slot sit idle — CEO rule, 2026-08-14.** The
-  moment a card finishes, fire the next one immediately. Unlimited
-  generation costs nothing, so an idle slot is pure wasted time, not saved
-  money. If the *next scripted item's* prompt isn't ready yet — the CTO is
+- **Never let the Unlimited slot sit idle — CEO rule, 2026-08-14.** Seedance
+  2.0 / 1080p / 15s runs **~30 minutes per clip on average** — the CEO's own
+  figure, stated as the reason every idle minute is expensive even though
+  the credits are free. The moment a card finishes, fire the next one
+  immediately. Unlimited generation costs nothing, so an idle slot is pure
+  wasted time, not saved money. If the *next scripted item's* prompt isn't
+  ready yet — the CTO is
   still writing it — **do not wait idle for it.** Generate whatever *is*
   already written and ready instead (a spare take of a scene already
   generated, or any other queued item that has real prompt text), then
