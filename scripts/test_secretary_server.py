@@ -387,6 +387,75 @@ def test_stale_resume_falls_back_to_fresh_session(running_server) -> None:
     assert ss.get_session_id(conv) == "brand-new-session"
 
 
+def test_api_error_skips_the_useless_resume_retry(running_server) -> None:
+    """Live-verified 2026-08-14: a Z.ai 5h-quota rejection produces rc=1,
+    empty stderr, and an `api_error_status` on the stdout JSON. Retrying with
+    a fresh session cannot help a rate limit -- it is per-account, not
+    per-session -- so the fix must call the stub exactly ONCE (not twice,
+    like the stale-resume path above) and surface the CLI's own message,
+    which already names the reset time.
+    """
+    url, set_stub = running_server
+    calls: list = []
+
+    def fn(prompt, session_id):
+        calls.append(session_id)
+        return (1, json.dumps({
+            "is_error": True, "api_error_status": 429,
+            "result": "API Error: Request rejected (429) - Usage limit "
+                      "reached for 5 hour. Your limit will reset at "
+                      "2026-08-15 05:30:02",
+        }), "", False)
+
+    set_stub(fn)
+    conv = "conv-ratelimited"
+    ss.set_session_id(conv, "some-existing-session")
+
+    status, payload = _post(url, _chat_body("ping", conv))
+    assert status == 200
+    content = payload["choices"][0]["message"]["content"]
+    assert content.startswith(ss.ERROR_PREFIX)
+    assert "05:30:02" in content, "the CLI's own reset time must reach the CEO"
+    assert calls == ["some-existing-session"], (
+        "a rate limit must not trigger the fresh-session retry -- it would "
+        "just burn another ~180s hitting the same limit again"
+    )
+    # A dead session id from a rate-limited turn is still worth keeping --
+    # unlike the stale-resume case, nothing here proved the session itself
+    # is bad, so overwriting it would be a guess.
+    assert ss.get_session_id(conv) == "some-existing-session"
+
+
+def test_api_error_on_the_fresh_retry_is_also_recognized(running_server) -> None:
+    """The same check applies after the stale-resume fallback fires: if the
+    ORIGINAL failure was a genuine stale session (not a rate limit), but the
+    fresh retry then hits a rate limit, that must be reported honestly too
+    instead of falling through to the generic exit-code message."""
+    url, set_stub = running_server
+    calls: list = []
+
+    def fn(prompt, session_id):
+        calls.append(session_id)
+        if session_id is not None:
+            return (1, "", "No conversation found with session ID: " + session_id, False)
+        return (1, json.dumps({
+            "is_error": True, "api_error_status": 429,
+            "result": "Usage limit reached for 5 hour. Your limit will "
+                      "reset at 2026-08-15 05:30:02",
+        }), "", False)
+
+    set_stub(fn)
+    conv = "conv-stale-then-ratelimited"
+    ss.set_session_id(conv, "dead-session-id")
+
+    status, payload = _post(url, _chat_body("continue please", conv))
+    assert status == 200
+    content = payload["choices"][0]["message"]["content"]
+    assert content.startswith(ss.ERROR_PREFIX)
+    assert "05:30:02" in content
+    assert calls == ["dead-session-id", None]
+
+
 # ---------------------------------------------------------------------------
 # 5. Session mapping
 # ---------------------------------------------------------------------------

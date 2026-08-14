@@ -467,10 +467,32 @@ def _friendly_error(reason: str) -> str:
     return f"{ERROR_PREFIX}{reason}"
 
 
+def _extract_api_error(stdout: str) -> str | None:
+    """If `stdout` is a claude CLI JSON result carrying an upstream API error
+    (rate limit, outage, etc.), return the CLI's own human message; else None.
+
+    Verified live 2026-08-14: a Z.ai Coding Plan 5h-quota rejection produces
+    exit code 1, EMPTY stderr, and a normal-looking JSON body on stdout with
+    `api_error_status: 429` and a `result` string that already names the
+    reset time ("Usage limit reached for 5 hour. Your limit will reset at
+    ..."). Nothing before this check inspected stdout when rc != 0, so this
+    always fell through to the generic "exit code ผิดปกติ" message -- true,
+    but useless, since the CLI had already told us exactly what happened.
+    """
+    try:
+        data = json.loads(stdout)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if not isinstance(data, dict) or not data.get("api_error_status"):
+        return None
+    return str(data.get("result") or "").strip() or None
+
+
 def run_secretary_turn(prompt: str, conversation_id: str) -> str:
     """Run one turn for conversation_id. Never raises — every failure mode
-    (bad exit code, unparseable output, timeout, stale --resume) becomes a
-    friendly Thai error string instead of a 5xx or a hang (deliverable 2).
+    (bad exit code, unparseable output, timeout, stale --resume, upstream API
+    error) becomes a friendly Thai error string instead of a 5xx or a hang
+    (deliverable 2).
     """
     logger = _log()
     session_id = get_session_id(conversation_id)
@@ -485,6 +507,20 @@ def run_secretary_turn(prompt: str, conversation_id: str) -> str:
         logger.error("secretary: timed out after %ss (conversation=%s)",
                      SECRETARY_TIMEOUT_SECONDS, conversation_id)
         return _friendly_error(f"หมดเวลา ({SECRETARY_TIMEOUT_SECONDS}s) ไม่ตอบสนอง")
+
+    # An upstream API error (rate limit, outage) is checked BEFORE the
+    # stale-resume fallback below, and short-circuits it: retrying with a
+    # fresh session cannot help a rate limit, which is per-account, not
+    # per-session id -- without this check, one rate-limited message doubles
+    # its own wall-clock cost (a doomed resume attempt, then a doomed fresh
+    # retry) before surfacing a generic error that hides the real, already-
+    # known reason and reset time.
+    if rc != 0:
+        api_error = _extract_api_error(stdout)
+        if api_error:
+            logger.error("secretary: upstream API error (conversation=%s): %s",
+                         conversation_id, api_error[:300])
+            return _friendly_error(f"โมเดลขัดข้องชั่วคราว — {api_error}")
 
     # A stale/deleted --resume session id fails fast (verified live: exit 1,
     # "No conversation found with session ID: ..." on stderr, nothing on
@@ -501,6 +537,12 @@ def run_secretary_turn(prompt: str, conversation_id: str) -> str:
         if timed_out:
             logger.error("secretary: retry timed out (conversation=%s)", conversation_id)
             return _friendly_error(f"หมดเวลา ({SECRETARY_TIMEOUT_SECONDS}s) ไม่ตอบสนอง")
+        if rc != 0:
+            api_error = _extract_api_error(stdout)
+            if api_error:
+                logger.error("secretary: upstream API error on retry (conversation=%s): %s",
+                             conversation_id, api_error[:300])
+                return _friendly_error(f"โมเดลขัดข้องชั่วคราว — {api_error}")
 
     if rc != 0:
         logger.error("secretary: claude exited %s (conversation=%s) stderr=%s",
