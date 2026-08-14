@@ -208,6 +208,21 @@ def test_known_owner_always_succeeds_even_if_no_window_ever_existed(
 
 # --- ownerless-task fallback preserved (log + opt-in broadcast) ------------
 
+def test_log_orphan_writes_expected_fields(isolated_state_dir):
+    """`_log_orphan` itself is untouched by this migration (still the same
+    from=/role=/msg= line format) -- ported from the now-deleted
+    scripts/test_send_to_cto_routing.py (task-2f04a8ca) rather than losing
+    this format assertion when that file's winid/AppleScript-only tests
+    were removed."""
+    sc._log_orphan("cto1", "task-abc", "developer", "hello world")
+    log = isolated_state_dir / "orphan-dev-replies-cto1.log"
+    assert log.exists()
+    content = log.read_text()
+    assert "from=task-abc" in content
+    assert "role=developer" in content
+    assert "hello world" in content
+
+
 def test_ownerless_task_logs_orphan_and_returns_false_by_default(
     isolated_mailbox_root, isolated_state_dir,
 ):

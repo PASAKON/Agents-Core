@@ -37,27 +37,34 @@ display name, else "CEO") rather than the old hardcoded "[CTO]:" --
 a CFO-delegated kickoff now correctly reads "[CFO]:" instead of lying
 "[CTO]:" like it used to.
 
-**Known gap, reported per this task's brief rather than worked around**:
-the wake nudge below is tmux-only, exactly mirroring
-`send_to_cxo._wake_tmux_send()` -- it types into `task["tmux_session"]`
-if that tmux session is live. `task["tmux_session"]` is only ever set by
-`tools/delegate.py` when the owning project's `spawn_backend: tmux`
-(`tools/tmux_session.session_name_for()`). As of this task, ZERO entries
-in `config/projects.yaml` set `spawn_backend: tmux` -- every project spawns
-DEVs on the plain iTerm backend (`runners/dev_init.py` execs `claude`
-straight into a new iTerm tab, no tmux). That means, for every DEV spawn
-in the org today, `task.get("tmux_session")` is `None` and the wake below
-always silently no-ops -- the mailbox letter queues correctly (delivery,
-by this file's own definition, has already happened), but nothing then
-drains it, because nothing ever fires the DEV's `UserPromptSubmit` hook.
-See this task's submitted report for the live-spawn proof and the
-consequence: **this migration, exactly as specified, leaves iTerm-backend
-DEV kickoffs with no working wake path** -- not a wording/signal problem,
-a reachability one. Fixing it needs either `spawn_backend: tmux` rolled
-out org-wide (`config/projects.yaml`, out of my touches) or a non-tmux
-wake mechanism for DEV tabs (also out of scope: re-adding iTerm typing
-here is exactly what this task exists to remove). Flagged, not silently
-worked around.
+**Correction (CTO iter-2 review, measured not inferred)**: an earlier
+draft of this docstring claimed kickoff depends on the wake pressing
+Enter into a composer that `runners/dev_init.py`'s `os.execvpe` had
+merely "pre-loaded" with the prompt. That was wrong, and the CTO measured
+it directly rather than trusting the inference: a `claude` process
+spawned with a positional prompt argv **auto-submits it** -- the composer
+is never left waiting for a keypress. Consequence: **DEV kickoff never
+depended on the wake/typing step at all** -- a spawned DEV starts working
+from argv alone, `_auto_kickoff` (`tools/delegate.py`, not in this
+file's touches) is a mid-task nudge layered on top of an already-running
+turn, not the thing that starts the first one.
+
+The reachability gap that *is* real sits one caller over: `_send_ping`
+in `runners/watchdog.py`, which sends a silent DEV a "status check" at
+`PING_AFTER_S` (10 min). Unlike kickoff, that ping has no argv to fall
+back on -- if `_attempt_wake()` below can't reach the DEV's pane, the
+letter queues (delivery, by this file's own definition, has already
+happened) but nothing prompts the DEV to read it before its next turn,
+which may be much later or never for an otherwise-idle task. The wake
+below reaches a pane only via `task["tmux_session"]`, set by
+`tools/delegate.py` exclusively when the owning project's
+`spawn_backend: tmux` (`tools/tmux_session.session_name_for()`) --
+`config/projects.yaml` now sets that for every default-worker project
+except `mooniex-claudesign` (task-2f04a8ca, same iteration; that project
+keeps the pre-existing `web_designer`-only tmux/passive-mirror path
+documented in `runners/dev_init.py` unchanged, so it stays on
+`spawn_backend: iterm`). Before that config change every project spawned
+DEVs on the plain iTerm backend and this wake always silently no-op'd.
 """
 from __future__ import annotations
 
@@ -88,9 +95,12 @@ def _attempt_wake(tmux_sess: str | None, label: str) -> None:
     task row (`task["tmux_session"]`, set by `tools/delegate.py` only for
     `spawn_backend: tmux` projects) rather than derived from
     `session_name.lock_basename()` -- DEV tmux sessions are not named
-    `<role>-<task_id>` the way C-level sessions are (see module docstring:
-    this is `None` for every project today, so this is a no-op in practice
-    until a project opts into the tmux backend).
+    `<role>-<task_id>` the way C-level sessions are. As of task-2f04a8ca
+    (see module docstring) most projects in `config/projects.yaml` set
+    `spawn_backend: tmux`, so this fires for real on those; it stays a
+    no-op only for a project still left on `spawn_backend: iterm`
+    (currently just `mooniex-claudesign`, to keep its unrelated
+    `web_designer` passive-mirror path undisturbed).
     """
     if not tmux_sess:
         return
