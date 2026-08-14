@@ -190,6 +190,19 @@ baseline is a reference point, not a budget.
    blocker to report, not a puzzle to solve by trying more input methods
    next to a live priced button.
 
+   **Standing escalation policy, CEO-set 2026-08-14: any control an
+   operator cannot reliably click goes to the CTO, not back into more
+   operator retries.** The CTO asks the CEO to fix it by hand in the real
+   Chrome window. The operator's job at that point is to **leave the
+   browser open exactly as it is** — no navigate, no refresh, no retry, no
+   close — and report the composer's exact current state (text present,
+   element chips attached, toggle state) so the CEO knows what he's
+   looking at before he touches anything. **The CEO clicks Generate
+   himself in this scenario, not the operator** — the final money-
+   committing click moves to a human hand whenever the automated path has
+   already failed once. This generalizes past the Unlimited toggle to any
+   stuck control on a priced surface.
+
    **What actually causes it** (measured 2026-08-12, task-cda4f469): the
    slot is **account-wide, not project-wide**, and a generation survives the
    death of the agent that started it. Killing a DEV does not cancel its
