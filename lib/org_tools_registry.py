@@ -52,7 +52,7 @@ from lib.notify import info, warn
 from lib.task_ownership import is_mine, foreign_msg
 from tools import wiki as wiki_tools
 from tools.delegate import delegate_task as do_delegate, delegate_parallel
-from tools.dev_reap import close_dev as do_close_dev
+from tools.worker_reap import close_dev as do_close_dev
 from tools.git_ops import merge_task as do_merge
 from tools.worktree import diff_summary, diff_full
 from tools import send_to_cxo as send_to_cxo_mod

@@ -27,8 +27,8 @@ uses. GH #65 was specifically about the iTerm tab-title fallback, which no
 longer exists.
 
 Usage:
-    python -m tools.send_to_dev <task_id_or_prefix> "<message>"
-    python -m tools.send_to_dev task-161dbcf7 "status check please"
+    python -m tools.send_to_worker <task_id_or_prefix> "<message>"
+    python -m tools.send_to_worker task-161dbcf7 "status check please"
 
 Sender label: resolved from the calling process's env the same way
 `send_to_cxo._resolve_sender_role()` does (`CXO_ROLE` -> that C-level's
@@ -39,7 +39,7 @@ a CFO-delegated kickoff now correctly reads "[CFO]:" instead of lying
 
 **Correction (CTO iter-2 review, measured not inferred)**: an earlier
 draft of this docstring claimed kickoff depends on the wake pressing
-Enter into a composer that `runners/dev_init.py`'s `os.execvpe` had
+Enter into a composer that `runners/worker_init.py`'s `os.execvpe` had
 merely "pre-loaded" with the prompt. That was wrong, and the CTO measured
 it directly rather than trusting the inference: a `claude` process
 spawned with a positional prompt argv **auto-submits it** -- the composer
@@ -62,7 +62,7 @@ below reaches a pane only via `task["tmux_session"]`, set by
 `config/projects.yaml` now sets that for every default-worker project
 except `mooniex-claudesign` (task-2f04a8ca, same iteration; that project
 keeps the pre-existing `web_designer`-only tmux/passive-mirror path
-documented in `runners/dev_init.py` unchanged, so it stays on
+documented in `runners/worker_init.py` unchanged, so it stays on
 `spawn_backend: iterm`). Before that config change every project spawned
 DEVs on the plain iTerm backend and this wake always silently no-op'd.
 """
@@ -104,9 +104,9 @@ def _attempt_wake(tmux_sess: str | None, label: str) -> None:
     `tools.agent_transport.attempt_wake()` (task task-eb0d9863) --
     `send_fn=_wake_tmux_send` is this module's own imported reference,
     resolved in THIS module's globals, so a test that monkeypatches
-    `tools.send_to_dev._wake_tmux_send` is still honored.
+    `tools.send_to_worker._wake_tmux_send` is still honored.
     """
-    agent_transport.attempt_wake(tmux_sess, label, "send_to_dev", send_fn=_wake_tmux_send)
+    agent_transport.attempt_wake(tmux_sess, label, "send_to_worker", send_fn=_wake_tmux_send)
 
 
 def send(task_id: str, message: str) -> str:
@@ -153,7 +153,7 @@ def send(task_id: str, message: str) -> str:
 
 def main() -> int:
     if len(sys.argv) < 3:
-        print('usage: python -m tools.send_to_dev <task_id_or_prefix> "<message>"',
+        print('usage: python -m tools.send_to_worker <task_id_or_prefix> "<message>"',
               file=sys.stderr)
         return 1
     needle, message = sys.argv[1], sys.argv[2]

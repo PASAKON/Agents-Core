@@ -1,7 +1,7 @@
 """DEV launcher — claims a task, then execs the right viewer for it.
 
 Invoked from inside an iTerm tab spawned by tools/delegate.py:
-    python -m runners.dev_init <role> <task_id>
+    python -m runners.worker_init <role> <task_id>
 
 Two modes:
 
@@ -15,7 +15,7 @@ Two modes:
   attaches to (`tmux attach -t <session>`, wired by
   `tools/delegate.py:_spawn_iterm_tab`) instead. IRON-RULES §29 holds
   either way: the tab is still visibly attached. tmux backend exists so
-  `tools.send_to_dev`'s wake has something to type into — a wake only
+  `tools.send_to_worker`'s wake has something to type into — a wake only
   fires against `task["tmux_session"]`, which only a tmux-backend project
   ever sets; on iterm backend the wake silently no-ops (mailbox delivery
   still succeeds, but nothing prompts the DEV to read it before its next
@@ -42,13 +42,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import display_for, get_project, role as get_role, dev_provider_overrides
+from lib.config import display_for, get_project, role as get_role, worker_provider_overrides
 
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
 
 # Tools every worker DEV may call, regardless of role.
-_BASE_DEV_TOOLS = (
+_BASE_WORKER_TOOLS = (
     "mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search "
     "mcp__org__submit_report mcp__org__dev_message "
     "mcp__org__file_blocker_issue mcp__org__request_human_handoff "
@@ -93,20 +93,20 @@ _CHROME_TOOLS = (
 ).split()
 
 
-def dev_tool_grants(role: str) -> tuple[list[str], list[str]]:
+def worker_tool_grants(role: str) -> tuple[list[str], list[str]]:
     """Return (allowed_tools, extra_claude_flags) for a worker role.
 
-    Single source of truth because runners/dev_resume.py rebuilds the same
+    Single source of truth because runners/worker_resume.py rebuilds the same
     argv: when the two lists drift, a resumed DEV silently loses capabilities
     its task depends on and the failure looks like the model being lazy.
 
     Chrome is gated on the `--chrome` flag, not on MCP config — Claude in
-    Chrome is a built-in CLI integration, not an entry in dev.mcp.json.
+    Chrome is a built-in CLI integration, not an entry in worker.mcp.json.
     Verified 2026-08-10: with `--strict-mcp-config` and no `--chrome`, the
     Chrome tools are absent ("tool not found in available deferred tools");
     adding `--chrome` makes them resolve while strict MCP stays on.
     """
-    allowed = list(_BASE_DEV_TOOLS)
+    allowed = list(_BASE_WORKER_TOOLS)
     flags: list[str] = []
     if role == "web_designer":
         # design skills (frontend-design / mooniex-tool-builder) are
@@ -179,7 +179,7 @@ def _write_dev_settings(worktree: str) -> None:
     disables any project-scoped MCP servers inherited from Agents/.mcp.json
     (see _root_mcp_server_names) so DEV spawns never hit the interactive
     approval screen for servers they were never meant to use — DEVs get
-    MCP access only via --mcp-config config/dev.mcp.json."""
+    MCP access only via --mcp-config config/worker.mcp.json."""
     settings_dir = Path(worktree) / ".claude"
     settings_dir.mkdir(parents=True, exist_ok=True)
     cfg = {
@@ -237,7 +237,7 @@ Begin.
 
 def main() -> None:
     if len(sys.argv) < 3:
-        print("usage: python -m runners.dev_init <role> <task_id>", file=sys.stderr)
+        print("usage: python -m runners.worker_init <role> <task_id>", file=sys.stderr)
         sys.exit(1)
     role = sys.argv[1]
     task_id = sys.argv[2]
@@ -292,7 +292,7 @@ def main() -> None:
         ])
         return  # unreachable
 
-    shared_doc = (ROOT / "roles" / "_dev_shared.md").read_text()
+    shared_doc = (ROOT / "roles" / "_worker_shared.md").read_text()
     role_doc = shared_doc + "\n\n" + (ROOT / "roles" / f"{role}.md").read_text()
     prompt = _build_prompt(task, project, worktree)
     # web_designer's worktree omits the gitignored .od/, so resolve the
@@ -315,14 +315,14 @@ def main() -> None:
     # nobody is there to press (IRON-RULES §45). Verified 2026-08-14 by
     # grepping the installed binary's strings for the name, not assuming it.
     env["DISABLE_AUTOUPDATER"] = "1"
-    env["DEV_TASK_ID"] = task_id
-    env["DEV_ROLE"] = role
+    env["WORKER_TASK_ID"] = task_id
+    env["WORKER_ROLE"] = role
     if task.get("owner_cto"):
-        env["DEV_CTO_ID"] = task["owner_cto"]
+        env["WORKER_CTO_ID"] = task["owner_cto"]
         # owner_role picks which <role>-<id>.winid lock send_to_cto reads so
         # CFO/CMO-spawned reports route to the CXO tab, not a CTO tab. Pre-
         # migration rows have owner_cto but NULL owner_role → default cto.
-        env["DEV_CTO_ROLE"] = task.get("owner_role") or "cto"
+        env["WORKER_CTO_ROLE"] = task.get("owner_role") or "cto"
 
     # PID survives os.execvpe — record now so the watchdog can probe the
     # claude TUI's liveness directly instead of guessing from log mtime.
@@ -340,20 +340,20 @@ def main() -> None:
     # Auto Browser (docker + noVNC) was removed 2026-05-19 in favour of
     # Claude in Chrome (native messaging extension). Until 2026-08-10 that
     # left browser work with nowhere to run but a C-level tab; the
-    # browser_operator role now carries it, and dev_tool_grants() decides
+    # browser_operator role now carries it, and worker_tool_grants() decides
     # which roles get the Chrome surface + the --chrome flag. Still no
-    # per-role MCP config branch — all DEVs share dev.mcp.json.
-    allowed, chrome_args = dev_tool_grants(role)
-    mcp_config = ROOT / "config" / "dev.mcp.json"
+    # per-role MCP config branch — all DEVs share worker.mcp.json.
+    allowed, chrome_args = worker_tool_grants(role)
+    mcp_config = ROOT / "config" / "worker.mcp.json"
 
     # DEV model provider override (flag-gated, reversible). When
-    # DEV_MODEL_PROVIDER is set, worker DEVs run on a cheaper Anthropic-
+    # WORKER_MODEL_PROVIDER is set, worker DEVs run on a cheaper Anthropic-
     # compatible endpoint (Z.ai -> GLM-5.2) instead of
     # C-level orchestration is unaffected. Unset -> original behaviour.
     # tasks.model_hint='claude' overrides the quota router for this one task —
-    # see lib.config.dev_provider_overrides. Set by the CTO when a cheap miss
+    # see lib.config.worker_provider_overrides. Set by the CTO when a cheap miss
     # would be expensive (reviewing/repairing someone else's work, security).
-    _ov = dev_provider_overrides(role, task.get("model_hint"))
+    _ov = worker_provider_overrides(role, task.get("model_hint"))
     effort_args = ["--effort", get_role(role).get("effort") or "high"]
     if _ov:
         model = _ov["model"]

@@ -9,7 +9,7 @@ from pathlib import Path
 from lib import db
 from lib.config import get_project, is_c_level
 from lib.notify import info, success, error, warn
-from tools.dev_reap import close_dev
+from tools.worker_reap import close_dev
 from tools.worktree import branch_name, provision_worktree, remove_worktree
 
 

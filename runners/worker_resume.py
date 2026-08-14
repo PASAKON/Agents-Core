@@ -1,14 +1,14 @@
 """DEV resume launcher — re-attaches to a previous DEV session after a
 rate-limit interruption.
 
-Invoked from tools/resume_dev.py inside an iTerm tab. Mirrors dev_init
+Invoked from tools/resume_worker.py inside an iTerm tab. Mirrors worker_init
 but execs `claude --resume <session_id>` instead of spawning fresh, so
 the DEV continues exactly where it left off with full chat history.
 
 Usage:
-    python -m runners.dev_resume <role> <task_id>
+    python -m runners.worker_resume <role> <task_id>
 
-Falls back to a hard resume (delegating to runners.dev_init) if the
+Falls back to a hard resume (delegating to runners.worker_init) if the
 task has no session_id recorded yet.
 """
 from __future__ import annotations
@@ -20,11 +20,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import get_project, role as get_role, dev_provider_overrides
-from runners.dev_init import (  # type: ignore
+from lib.config import get_project, role as get_role, worker_provider_overrides
+from runners.worker_init import (  # type: ignore
     _write_dev_settings,
     _symlink_knowledge,
-    dev_tool_grants,
+    worker_tool_grants,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def main() -> None:
     if len(sys.argv) < 3:
-        print("usage: python -m runners.dev_resume <role> <task_id>",
+        print("usage: python -m runners.worker_resume <role> <task_id>",
               file=sys.stderr)
         sys.exit(1)
     role = sys.argv[1]
@@ -47,8 +47,8 @@ def main() -> None:
     session_id = task.get("session_id")
     if not session_id:
         print(f"no session_id on {task_id} - falling back to hard resume "
-              "via dev_init", file=sys.stderr)
-        os.execvp("python", ["python", "-m", "runners.dev_init", role, task_id])
+              "via worker_init", file=sys.stderr)
+        os.execvp("python", ["python", "-m", "runners.worker_init", role, task_id])
         return
 
     worktree = task.get("worktree")
@@ -62,12 +62,12 @@ def main() -> None:
                      assigned_agent=role)
 
     project = get_project(task["project"])
-    # Same composition as dev_init: shared conventions first, then the role
+    # Same composition as worker_init: shared conventions first, then the role
     # doc. Resuming used to load the role doc alone, so a resumed DEV silently
     # lost every Hard Rule — including "never git push" and the ask-before-you-
     # spend rule.
     role_doc = (
-        (ROOT / "roles" / "_dev_shared.md").read_text()
+        (ROOT / "roles" / "_worker_shared.md").read_text()
         + "\n\n"
         + (ROOT / "roles" / f"{role}.md").read_text()
     )
@@ -77,20 +77,20 @@ def main() -> None:
         model = "claude-opus-5"
 
     env = os.environ.copy()
-    # Mirror dev_init: an update prompt is a startup interrupt that no
+    # Mirror worker_init: an update prompt is a startup interrupt that no
     # --permission-mode or --allowed-tools setting can reach, and it would
     # block a resumed worker nobody is watching (IRON-RULES §45).
     env["DISABLE_AUTOUPDATER"] = "1"
-    env["DEV_TASK_ID"] = task_id
-    env["DEV_ROLE"] = role
+    env["WORKER_TASK_ID"] = task_id
+    env["WORKER_ROLE"] = role
 
     _write_dev_settings(worktree)
     _symlink_knowledge(worktree, role)
 
-    # Shared with dev_init so a resumed DEV keeps exactly the tools it was
+    # Shared with worker_init so a resumed DEV keeps exactly the tools it was
     # spawned with. This list used to be a hand-copied duplicate and had
     # already drifted (no request_human_handoff, no Skill for web_designer).
-    allowed, chrome_args = dev_tool_grants(role)
+    allowed, chrome_args = worker_tool_grants(role)
 
     resume_nudge = (
         f"[RESUMED after rate-limit cooldown] Task {task_id} on project "
@@ -99,9 +99,9 @@ def main() -> None:
         "skim TASK.md, then continue. Submit report when finished."
     )
 
-    # DEV model provider override (flag-gated) — mirror dev_init so a
+    # DEV model provider override (flag-gated) — mirror worker_init so a
     # resumed worker DEV keeps the same model/endpoint it was spawned on.
-    _ov = dev_provider_overrides(role, task.get("model_hint"))
+    _ov = worker_provider_overrides(role, task.get("model_hint"))
     effort_args = ["--effort", "max"]
     if _ov:
         model = _ov["model"]
@@ -120,7 +120,7 @@ def main() -> None:
             *effort_args,
             "--permission-mode", "auto",
             "--append-system-prompt", role_doc,
-            "--mcp-config", str(ROOT / "config" / "dev.mcp.json"),
+            "--mcp-config", str(ROOT / "config" / "worker.mcp.json"),
             "--strict-mcp-config",
             *chrome_args,
             "--allowed-tools", *allowed,

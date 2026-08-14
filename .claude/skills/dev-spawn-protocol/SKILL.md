@@ -16,7 +16,7 @@ Required steps every time CTO spawns a DEV. Memory rule (CEO 2026-05-19, IRON-RU
 ## Pre-spawn
 
 ### 0. Force Claude when a cheap miss is expensive (CEO 2026-08-10)
-`DEV_MODEL_PROVIDER=auto` routes on **quota headroom alone** — it cannot see how
+`WORKER_MODEL_PROVIDER=auto` routes on **quota headroom alone** — it cannot see how
 costly a mistake on this particular task would be. Before delegating, set the
 per-task override when the work is any of:
 
@@ -30,7 +30,7 @@ sqlite3 state/tasks.db "UPDATE tasks SET model_hint='claude' WHERE id='task-XXXX
 ```
 
 Everything else: leave it NULL and let the router pick on quota. An unrecognised
-value falls back to normal routing (`lib.config.dev_provider_overrides`).
+value falls back to normal routing (`lib.config.worker_provider_overrides`).
 
 Why this exists: on 2026-08-10 a DEV finished a feature with all 96 existing
 tests green — and the feature did not work at all. It never wired the new data
@@ -94,7 +94,7 @@ Every browser brief carries these:
 8. **If it repeats, ask for the script, not the answer.** One paid run, then zero.
 9. **Anything longer than a few lines goes in the worktree, not the chat.**
    Write `<worktree>/<TOPIC>.md` and send a one-line pointer to it.
-   `tools/send_to_dev.py` types character-by-character into a TUI: a long
+   `tools/send_to_worker.py` types character-by-character into a TUI: a long
    message is slow, can die mid-type (measured 2026-08-12: one SIGTERM at 2
    minutes), and is echoed back in full in the tool result, so you pay for the
    same text twice. A worktree file costs one write, survives the DEV being
@@ -125,7 +125,7 @@ looks right", "explore", "and report anything interesting".
 - Memory: every blocker = issue, no exception.
 
 ### 6b. Arm a liveness Monitor at delegate time — this replaces DEV progress pings
-`_dev_shared.md` Hard Rule 10 forbids the DEV from reporting that it is still
+`_worker_shared.md` Hard Rule 10 forbids the DEV from reporting that it is still
 working. **Watching for its death is therefore your job, and you must arm the
 watch at spawn, not after something looks wrong.**
 

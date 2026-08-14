@@ -247,7 +247,7 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
     closing the tab does NOT kill the agent, and a browser (ttyd) can
     attach the same session simultaneously for two-way realtime sync.
 
-    `owner_cto` + `owner_role`: stamped into env DEV_CTO_ID and used to
+    `owner_cto` + `owner_role`: stamped into env WORKER_CTO_ID and used to
     pick the owning C-level's window (CTO/CFO/CMO/CGO, per `owner_role`)
     so spawns of ANY worker role cluster under their spawning session,
     not just under CTO. With multiple sessions of the same role open
@@ -256,7 +256,7 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
     """
     display = display_for(role)
     tab_title = f"{display} ({task_id})"
-    cto_env = f"export DEV_CTO_ID='{owner_cto}' && " if owner_cto else ""
+    cto_env = f"export WORKER_CTO_ID='{owner_cto}' && " if owner_cto else ""
     if tmux_attach:
         cmd = (
             f"printf '\\\\033]1;{tab_title}\\\\007' && "
@@ -278,7 +278,7 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
         cmd = (
             f"printf '\\\\033]1;{tab_title}\\\\007' && "
             f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
-            f"python -m runners.dev_init {role} {task_id}; exit $?"
+            f"python -m runners.worker_init {role} {task_id}; exit $?"
         )
     owner_winid = _owner_window_id(owner_cto, owner_role)
     script = _build_spawn_applescript(cmd, task_id, owner_cto,
@@ -313,14 +313,14 @@ async def _auto_kickoff(task_id: str, message: str) -> None:
     """Fire-and-forget kickoff ping after a spawn. IRON-RULES §29.
 
     Waits for the new tab's claude TUI to boot, then types `[CTO]: …`
-    via `tools.send_to_dev.send`. Warns on failure but never blocks the
+    via `tools.send_to_worker.send`. Warns on failure but never blocks the
     delegate path — the spawn already succeeded.
     """
-    from tools.send_to_dev import send as send_to_dev_send
+    from tools.send_to_worker import send as send_to_worker_send
 
     try:
         await asyncio.sleep(KICKOFF_DELAY_S)
-        result = await asyncio.to_thread(send_to_dev_send, task_id, message)
+        result = await asyncio.to_thread(send_to_worker_send, task_id, message)
         info(f"kickoff task={task_id}: {result}")
     except Exception as e:
         warn(f"kickoff failed task={task_id}: {e}")
@@ -617,7 +617,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
 
     owner_cto = task.get("owner_cto")
     # Pre-migration rows have owner_cto but NULL owner_role → default "cto"
-    # (mirrors runners/dev_init.py's DEV_CTO_ROLE fallback for the same rows).
+    # (mirrors runners/worker_init.py's WORKER_CTO_ROLE fallback for the same rows).
     owner_role = task.get("owner_role") or "cto"
 
     if backend == "tmux":
@@ -626,10 +626,10 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         # claims (pending → in_progress) within seconds of tmux.create; a
         # status write after that point would silently regress the claim.
         db.set_fields(task_id, tmux_session=tmux_sess, actor="cto")
-        cto_env = f"export DEV_CTO_ID='{owner_cto}' && " if owner_cto else ""
+        cto_env = f"export WORKER_CTO_ID='{owner_cto}' && " if owner_cto else ""
         dev_cmd = (
             f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
-            f"python -m runners.dev_init {role_name} {task_id}"
+            f"python -m runners.worker_init {role_name} {task_id}"
         )
         try:
             tmux.create(tmux_sess, cwd=ROOT, cmd=dev_cmd)

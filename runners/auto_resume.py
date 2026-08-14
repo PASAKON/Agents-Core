@@ -2,7 +2,7 @@
 
 Long-running poller that wakes every POLL_INTERVAL_S, looks for tasks
 that are stuck in `rate_limited` with `retry_after_ts` already in the
-past, and re-opens each one via tools.resume_dev. Every action is
+past, and re-opens each one via tools.resume_worker. Every action is
 logged through lib.notify so it surfaces in the CTO chat via the
 existing UserPromptSubmit hook.
 
@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.notify import info, warn
-from tools.resume_dev import resume
+from tools.resume_worker import resume
 
 POLL_INTERVAL_S = 60
 

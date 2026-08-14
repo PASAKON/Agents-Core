@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.notify import info, success, warn, error
-from tools.dev_reap import _cleanup_tmux_ttyd, _pid_alive, close_dev
+from tools.worker_reap import _cleanup_tmux_ttyd, _pid_alive, close_dev
 from tools.gc_stale_tasks import gc_stale_tasks
 
 PING_AFTER_S = 10 * 60
@@ -41,7 +41,7 @@ INTERVAL_S = 300
 # Layer 2 floor (task-78ab64ba): a DEV whose task reached review/done but
 # whose process is still alive gets reaped after this long with no C-level
 # decision (merge_task, which itself calls close_dev). This is a floor, not
-# a decider — see tools/dev_reap.py's module docstring for the two-layer
+# a decider — see tools/worker_reap.py's module docstring for the two-layer
 # design the CEO ruled on 2026-08-12.
 FINISHED_REAP_AFTER_S = 60 * 60
 
@@ -79,7 +79,7 @@ def _silent_seconds(updated_at: str) -> float:
 def _send_ping(task_id: str, message: str) -> bool:
     try:
         r = subprocess.run(
-            [sys.executable, "-m", "tools.send_to_dev", task_id, message],
+            [sys.executable, "-m", "tools.send_to_worker", task_id, message],
             capture_output=True, text=True, timeout=15,
         )
         return r.returncode == 0
@@ -143,7 +143,7 @@ def scan_once() -> dict:
                 continue
             issue = _file_stalled_issue(t, silent)
             # SAFETY: only close the tab when `pid` is recorded. PID is
-            # written by runners/dev_init.py right before `os.execvpe`,
+            # written by runners/worker_init.py right before `os.execvpe`,
             # which only runs when the CTO delegate path spawned this
             # task. Legacy tasks and tabs the user opened or attached
             # interactively (e.g. a `spawn Web Designer` REPL) have

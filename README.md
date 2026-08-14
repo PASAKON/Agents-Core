@@ -112,7 +112,7 @@ Full matrix: `policies/permissions.md`.
 │   ├── backend_dev.md
 │   ├── devops.md
 │   ├── qa.md
-│   └── _dev_shared.md     shared DEV report format
+│   └── _worker_shared.md  shared DEV report format
 ├── tools/               MCP tools agents can call
 │   ├── wiki.py            read=all, write=C-level
 │   ├── worktree.py        git worktree per task

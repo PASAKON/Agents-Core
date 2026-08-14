@@ -1,10 +1,10 @@
 """Open a new iTerm tab and resume a DEV that was paused by a
 rate-limit. Soft-resumes via `claude --resume <session_id>` if the
 hook captured a session id, otherwise hard-resumes through
-runners.dev_init (the DEV reads TASK.md + git status and continues).
+runners.worker_init (the DEV reads TASK.md + git status and continues).
 
 Usage:
-    python -m tools.resume_dev <task_id>
+    python -m tools.resume_worker <task_id>
 """
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ def _spawn_resume_tab(role: str, task_id: str,
     cmd = (
         f"printf '\\\\033]1;{tab_title}\\\\007' && "
         f"cd '{ROOT}' && source .venv/bin/activate && "
-        f"python -m runners.dev_resume {role} {task_id}"
+        f"python -m runners.worker_resume {role} {task_id}"
     )
     # Route back into the owning C-level's window (CTO/CFO/CMO/CGO, per
     # owner_role) instead of always assuming CTO — same fix as
@@ -101,7 +101,7 @@ def resume(task_id: str) -> str:
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print("usage: python -m tools.resume_dev <task_id>", file=sys.stderr)
+        print("usage: python -m tools.resume_worker <task_id>", file=sys.stderr)
         return 1
     print(resume(sys.argv[1]))
     return 0

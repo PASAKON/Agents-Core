@@ -22,7 +22,7 @@ Verifies:
       their sender: no osascript call, no leftover typing helper, a real
       letter in the mailbox instead. Full delivery-contract coverage
       (wake attempt/skip/fail isolation, GH #65 closure, etc.) lives in
-      `scripts/test_send_to_cto.py` / `scripts/test_send_to_dev.py` — the
+      `scripts/test_send_to_cto.py` / `scripts/test_send_to_worker.py` — the
       three sequence tests here exist only to keep this file's own
       "did the typing get removed, not just moved" story honest;
   (c) idle-ping-watcher.sh (the one remaining shell site) still inlines the
@@ -31,7 +31,7 @@ Verifies:
       keyboard-based message delivery org-wide): it now passes the prompt
       straight through to `claude` as its final positional argv --
       auto-submitted on start, zero keypresses, same mechanism
-      runners/dev_init.py's kickoff uses. `test_cxo_claude_shell_sequence`
+      runners/worker_init.py's kickoff uses. `test_cxo_claude_shell_sequence`
       below proves the sequence is gone, not present.
 
 subprocess.run is mocked everywhere — no real iTerm window is ever opened.
@@ -183,12 +183,12 @@ def test_send_to_dev_sequence(tmp_path: Path) -> bool:
     no longer types anything -- the `_send` helper this test used to import
     is deleted, not renamed. Full delivery-contract coverage (wake
     attempt/skip/fail isolation, GH #65 closure) moved to
-    scripts/test_send_to_dev.py; this proves the same shape as the other
+    scripts/test_send_to_worker.py; this proves the same shape as the other
     two sequence tests above: no osascript call, no leftover typing
     helper, a real letter in the mailbox instead."""
     import lib.db as db_mod
     import lib.mailbox as mailbox
-    import tools.send_to_dev as sd
+    import tools.send_to_worker as sd
 
     if hasattr(sd, "_send") or hasattr(sd, "_run_osascript"):
         return False  # the removed typing helper must not exist at all
@@ -240,7 +240,7 @@ def test_send_to_cxo_sequence(tmp_path: Path) -> bool:
     mailbox.INBOX_ROOT = inbox
     (locks / "cfo-active").write_text("sess1234")
 
-    # current_identity() reads real process env (DEV_TASK_ID etc, set for
+    # current_identity() reads real process env (WORKER_TASK_ID etc, set for
     # THIS harness's own DEV session) -- pin it to CEO-root so authorize()
     # takes its free-peer-messaging path without touching the real DB,
     # regardless of what env this file happens to run under.

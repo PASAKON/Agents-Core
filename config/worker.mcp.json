@@ -2,7 +2,7 @@
   "mcpServers": {
     "org": {
       "command": "/Users/gob/Projects/Agents/.venv/bin/python",
-      "args": ["/Users/gob/Projects/Agents/runners/dev_mcp_server.py"],
+      "args": ["/Users/gob/Projects/Agents/runners/worker_mcp_server.py"],
       "cwd": "/Users/gob/Projects/Agents",
       "env": {
         "PYTHONUNBUFFERED": "1"

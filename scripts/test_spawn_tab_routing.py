@@ -213,10 +213,10 @@ def test_delegate_task_threads_owner_role() -> bool:
 
 
 def test_resume_dev_owner_routing() -> bool:
-    """tools.resume_dev must route resumed tabs to the owning C-level's
+    """tools.resume_worker must route resumed tabs to the owning C-level's
     window too — same bug class as delegate.py, same fix shape."""
     import unittest.mock as mock
-    from tools.resume_dev import _spawn_resume_tab
+    from tools.resume_worker import _spawn_resume_tab
 
     captured: list[str] = []
 
@@ -226,7 +226,7 @@ def test_resume_dev_owner_routing() -> bool:
             returncode = 0
         return R()
 
-    with mock.patch("tools.resume_dev.subprocess.run", side_effect=fake_run):
+    with mock.patch("tools.resume_worker.subprocess.run", side_effect=fake_run):
         _spawn_resume_tab("developer", "task-resume1",
                           owner_cto="cfo55555", owner_role="cfo")
 
@@ -813,7 +813,7 @@ def main() -> int:
     r = test_delegate_task_threads_owner_role(); fails += not r
     _mark(r, "delegate_task reads owner_role from DB and threads it through")
     r = test_resume_dev_owner_routing(); fails += not r
-    _mark(r, "resume_dev routes resumed tab to owning C-level's window")
+    _mark(r, "resume_worker routes resumed tab to owning C-level's window")
     r = test_reuse_check_comes_first(); fails += not r
     _mark(r, "tab-reuse check precedes owner-window lookup")
     r = test_spawn_cto_collision(); fails += not r

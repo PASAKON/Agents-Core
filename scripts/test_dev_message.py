@@ -1,4 +1,4 @@
-"""Tests for runners/dev_mcp_server.py `dev_message` (GH #54).
+"""Tests for runners/worker_mcp_server.py `dev_message` (GH #54).
 
 Two independent silent losses existed on every call:
   1. `.splitlines()[0]` -- only the first line of a multi-line report
@@ -35,7 +35,7 @@ sys.path.insert(0, str(ROOT))
 os.environ.setdefault("ORG_NOTIFY_SILENT", "1")
 
 import lib.db as db_mod  # noqa: E402
-import runners.dev_mcp_server as dm  # noqa: E402
+import runners.worker_mcp_server as dm  # noqa: E402
 
 
 def _insert_task(conn) -> str:
@@ -123,4 +123,4 @@ def test_no_task_id_returns_error_without_touching_db(tmp_path, monkeypatch):
     monkeypatch.setattr(dm, "TASK_ID", "")
 
     ack = dm.dev_message("hello")
-    assert ack == "ERROR: DEV_TASK_ID env var not set"
+    assert ack == "ERROR: WORKER_TASK_ID env var not set"

@@ -33,7 +33,7 @@ from lib.logger import get_logger
 # (registry.py owns the real calls into them).
 from lib.task_ownership import is_mine as _is_mine, foreign_msg as _foreign_msg  # noqa: F401
 from tools.delegate import delegate_task as do_delegate, delegate_parallel  # noqa: F401
-from tools.dev_reap import close_dev as do_close_dev  # noqa: F401
+from tools.worker_reap import close_dev as do_close_dev  # noqa: F401
 from tools.git_ops import merge_task as do_merge  # noqa: F401
 
 ROLE = "cto"

@@ -17,8 +17,8 @@ recorded in the returned dict, not an exception, and a second call on an
 already-reaped task returns cleanly too.
 
 Usage:
-    python3 -m tools.dev_reap <task_id> [--reason TEXT]   # reap one task
-    python3 -m tools.dev_reap --list                      # DEVs alive now
+    python3 -m tools.worker_reap <task_id> [--reason TEXT]   # reap one task
+    python3 -m tools.worker_reap --list                      # DEVs alive now
 """
 from __future__ import annotations
 
@@ -240,7 +240,7 @@ def _print_alive(rows: list[dict]) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description="End a finished DEV's process + tab")
     ap.add_argument("task_id", nargs="?", help="task to reap")
-    ap.add_argument("--reason", default="manual: python3 -m tools.dev_reap",
+    ap.add_argument("--reason", default="manual: python3 -m tools.worker_reap",
                     help="why (recorded in the result)")
     ap.add_argument("--list", action="store_true",
                     help="list DEVs alive right now, with why")
