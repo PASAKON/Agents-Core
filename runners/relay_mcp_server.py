@@ -586,9 +586,15 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
             }, ensure_ascii=False)
         # Best-effort wake only: types the short content-free marker via the
         # org's single wake implementation (tools/send_to_cxo.py), never the
-        # body. A failure here changes nothing -- the letter is already on
-        # disk and is drained on the recipient's next prompt either way.
-        attempt_wake(target_role, session_id, SECRETARY_WAKE_LABEL)
+        # body. attempt_wake swallows every failure internally; the guard
+        # here is the caller-side half of the same rule -- even a wake that
+        # somehow raises can never turn a delivered letter into an error,
+        # because the letter is already on disk and is drained on the
+        # recipient's next prompt either way.
+        try:
+            attempt_wake(target_role, session_id, SECRETARY_WAKE_LABEL)
+        except Exception as e:
+            _audit("relay_to_session", target_role, "wake_failed", str(e))
         _audit("relay_to_session", target_role, "delivered",
                f"tmux={tmux_name} letter={letter_path} message={full_message!r}")
         result = {
