@@ -203,6 +203,15 @@ baseline is a reference point, not a budget.
    already failed once. This generalizes past the Unlimited toggle to any
    stuck control on a priced surface.
 
+   **Once the CEO has fixed the toggle by hand, that composer tab becomes
+   protected — proceed on it, but never navigate it away, refresh it, or
+   close it, for the rest of the session.** A page reload silently resets
+   Unlimited back to off (already documented above as the cause of the
+   original incident), so leaving this exact tab would force the CEO to
+   walk over and click it by hand a second time — an avoidable ask. Need
+   to check Usage, History, or anything else mid-queue? **Open a separate
+   tab for that** and leave the composer tab exactly as the CEO left it.
+
    **What actually causes it** (measured 2026-08-12, task-cda4f469): the
    slot is **account-wide, not project-wide**, and a generation survives the
    death of the agent that started it. Killing a DEV does not cancel its
