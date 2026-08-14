@@ -41,6 +41,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import lib.db as db_mod  # noqa: E402
+import lib.mailbox as mailbox  # noqa: E402
 import tools.send_to_cxo as sc  # noqa: E402
 
 
@@ -65,6 +66,19 @@ def isolated_locks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     locks.mkdir()
     monkeypatch.setattr(sc, "LOCKS_DIR", locks)
     return locks
+
+
+@pytest.fixture()
+def isolated_mailbox_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Point lib.mailbox's default inbox root at a throwaway dir -- never
+    the real state/inbox/. sc.send() calls mailbox.send() with no explicit
+    `root=`, so it picks up whatever mailbox.INBOX_ROOT is at call time
+    (task-de2cdc15, 2026-08-14: the mailbox replaced send()'s old
+    tmux/iTerm typing path -- this is that path's test-isolation
+    equivalent of isolated_locks above)."""
+    root = tmp_path / "inbox"
+    monkeypatch.setattr(mailbox, "INBOX_ROOT", root)
+    return root
 
 
 @pytest.fixture(autouse=True)
@@ -102,114 +116,111 @@ def test_send_no_active_session_raises_no_success_string(isolated_locks):
     assert "no active" in str(exc_info.value)
 
 
-def test_send_target_registered_delivered(isolated_locks, monkeypatch):
+def test_send_target_registered_writes_mailbox_no_osascript(
+    isolated_locks, isolated_mailbox_root, monkeypatch,
+):
+    """Task task-de2cdc15 (2026-08-14, CEO option A): registered target ->
+    delivered now means the letter exists in the mailbox, not that some
+    tab got typed into. osascript is monkeypatched to explode if called at
+    all, proving send() never even tries the old transport."""
     (isolated_locks / "cfo-active").write_text("sess1234")
-    monkeypatch.setattr(sc, "_run_osascript", lambda script: _fake_result(0, "1"))
+
+    def _osascript_should_not_run(script):
+        raise AssertionError("send() must not call osascript at all -- the mailbox replaced it")
+
+    monkeypatch.setattr(sc, "_run_osascript", _osascript_should_not_run, raising=False)
+
     result = sc.send("cfo", "hello")
-    assert "sent to" in result
+    assert "queued to" in result
     assert "sess1234" in result
 
+    letters = mailbox.peek("cfo", "sess1234", root=isolated_mailbox_root)
+    assert len(letters) == 1
+    assert letters[0]["body"] == "hello"
 
-def test_send_registered_but_no_tab_match_raises_no_success_string(
-    isolated_locks, monkeypatch,
+
+def test_send_mailbox_write_failure_propagates_no_success_string(
+    isolated_locks, isolated_mailbox_root, monkeypatch,
 ):
-    """Target IS registered (active pointer exists) but the tab itself is
-    gone/stale -- must still raise, never return a false 'sent' string
-    (GH #60 shape, the exact bug send_to_dev.py was fixed for today)."""
+    """A mailbox write failure (disk full, permission denied, ...) must
+    still surface as a raised exception -- never a false success string.
+    Same GH #60 contract the old tab-mismatch test proved before the
+    mailbox replaced the typed-message send path."""
     (isolated_locks / "cfo-active").write_text("sess1234")
-    monkeypatch.setattr(sc, "_run_osascript", lambda script: _fake_result(0, "0"))
-    with pytest.raises(RuntimeError) as exc_info:
+
+    def boom(*a, **kw):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(mailbox, "send", boom)
+    with pytest.raises(OSError):
         result = sc.send("cfo", "hello")
-        assert "sent" not in result
-    assert "NOT delivered" in str(exc_info.value)
+        assert "queued" not in result
 
 
-def test_send_osascript_crash_raises(isolated_locks, monkeypatch):
+def test_send_never_touches_osascript_even_on_mailbox_failure(
+    isolated_locks, isolated_mailbox_root, monkeypatch,
+):
+    """No fallback: when the mailbox write fails, send() must not reach
+    for osascript/tmux as a rescue -- that fallback-that-can-misdeliver is
+    exactly what task-de2cdc15 removed (GH #69)."""
     (isolated_locks / "cfo-active").write_text("sess1234")
-    monkeypatch.setattr(sc, "_run_osascript", lambda script: _fake_result(1, ""))
-    with pytest.raises(RuntimeError):
+
+    def boom(*a, **kw):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(mailbox, "send", boom)
+
+    def _osascript_should_not_run(script):
+        raise AssertionError("no osascript fallback must ever run")
+
+    monkeypatch.setattr(sc, "_run_osascript", _osascript_should_not_run, raising=False)
+    with pytest.raises(OSError):
         sc.send("cfo", "hello")
 
 
-# --- tmux-first delivery (GH #69) -------------------------------------------
+# --- typed-message transport is GONE (task-de2cdc15, 2026-08-14) -----------
 #
-# `sc.tmux` is `tools.tmux_session` imported into this module's namespace
-# (`from tools import tmux_session as tmux`) -- monkeypatching attributes on
-# `sc.tmux` is the same technique scripts/test_send_to_dev.py uses for
-# `sd.tmux` (`monkeypatch.setattr(sd.tmux, "has_session", ...)`). Never
-# touches a real `tmux` binary or real iTerm.
+# Delivery used to be tmux-first / iTerm-fallback (GH #69). That whole
+# transport -- `_send_tmux`, `_send`, `_run_osascript`, and the
+# `tools.tmux_session` import (`sc.tmux`) -- was removed, not kept as a
+# fallback: "a fallback that can silently misdeliver is worse than no
+# fallback." The tests below now prove absence instead of behavior.
 
-def test_send_prefers_tmux_when_session_alive(isolated_locks, monkeypatch):
-    """tmux session exists -> tmux path taken, iTerm/osascript never called."""
-    (isolated_locks / "cfo-active").write_text("sess1234")
-    monkeypatch.setattr(sc.tmux, "has_session", lambda s: s == "cfo-sess1234")
-    sent = []
-    monkeypatch.setattr(
-        sc.tmux, "send_keys",
-        lambda session, text, press_enter=True: sent.append((session, text, press_enter)),
-    )
-
-    def _osascript_should_not_run(script):
-        raise AssertionError("iTerm/osascript path must not run when tmux session exists")
-
-    monkeypatch.setattr(sc, "_run_osascript", _osascript_should_not_run)
-
-    result = sc.send("cfo", "hello via tmux")
-    assert "sent via tmux cfo-sess1234" in result
-    assert sent == [("cfo-sess1234", "[CEO]: hello via tmux", True)]
+def test_send_to_cxo_has_no_tmux_transport():
+    assert not hasattr(sc, "tmux")
+    assert not hasattr(sc, "_send_tmux")
 
 
-def test_send_falls_back_to_iterm_when_no_tmux_session(isolated_locks, monkeypatch):
-    """no tmux session for the target -> falls back to the iTerm path."""
-    (isolated_locks / "cfo-active").write_text("sess1234")
-    monkeypatch.setattr(sc.tmux, "has_session", lambda s: False)
-    tmux_send_called = []
-    monkeypatch.setattr(
-        sc.tmux, "send_keys",
-        lambda *a, **kw: tmux_send_called.append((a, kw)),
-    )
-    monkeypatch.setattr(sc, "_run_osascript", lambda script: _fake_result(0, "1"))
-
-    result = sc.send("cfo", "hello via iterm")
-    assert tmux_send_called == []
-    assert "sent via tmux" not in result
-    assert "sent to" in result
-    assert "sess1234" in result
+def test_send_to_cxo_has_no_iterm_typing_helpers():
+    assert not hasattr(sc, "_send")
+    assert not hasattr(sc, "_run_osascript")
 
 
-def test_send_neither_tmux_nor_iterm_raises_no_success_string(
-    isolated_locks, monkeypatch,
+def test_send_refused_by_guard_writes_nothing_to_mailbox(
+    isolated_locks, isolated_mailbox_root, monkeypatch,
 ):
-    """neither transport reaches the target -> raises, no success string."""
+    """A routing-guard refusal must leave the mailbox untouched -- the
+    write happens strictly after authorize() passes, never before/instead."""
+    root = sc.Identity("cxo", "cto", "ctoroot1")
+    sc.record_spawn(root, "cmo", "cmoreq01")
+    level2 = sc.Identity("cxo", "cmo", "cmoreq01")
+    monkeypatch.setattr(sc, "current_identity", lambda: level2)
+    (isolated_locks / "cgo-active").write_text("cgosess1")  # target exists...
+
+    with pytest.raises(PermissionError):  # ...but cgo isn't level2's owner
+        sc.send("cgo", "trying to reach past my owner")
+    assert mailbox.peek("cgo", "cgosess1", root=isolated_mailbox_root) == []
+
+
+def test_send_return_string_says_queued_not_a_transport(isolated_locks, isolated_mailbox_root):
+    """The returned string names the mailbox contract ("queued to"), not a
+    transport that no longer exists -- a caller reading a log must not see
+    stale "sent via tmux" / "sent to" phrasing implying a tab got typed."""
     (isolated_locks / "cfo-active").write_text("sess1234")
-    monkeypatch.setattr(sc.tmux, "has_session", lambda s: False)
-    monkeypatch.setattr(sc, "_run_osascript", lambda script: _fake_result(0, "0"))
-
-    with pytest.raises(RuntimeError) as exc_info:
-        result = sc.send("cfo", "hello nowhere")
-        assert "sent" not in result
-    msg = str(exc_info.value)
-    assert "NOT delivered" in msg
-    assert "cfo-sess1234" in msg
-
-
-def test_send_return_string_names_the_transport(isolated_locks, monkeypatch):
-    """The returned string must name which path ran -- tmux vs iTerm form,
-    so a caller reading a log can tell which transport delivered it."""
-    (isolated_locks / "cfo-active").write_text("sess1234")
-
-    # tmux path
-    monkeypatch.setattr(sc.tmux, "has_session", lambda s: True)
-    monkeypatch.setattr(sc.tmux, "send_keys", lambda *a, **kw: None)
-    tmux_result = sc.send("cfo", "hi")
-    assert tmux_result.startswith("sent via tmux cfo-sess1234:")
-
-    # iTerm path
-    monkeypatch.setattr(sc.tmux, "has_session", lambda s: False)
-    monkeypatch.setattr(sc, "_run_osascript", lambda script: _fake_result(0, "1"))
-    iterm_result = sc.send("cfo", "hi")
-    assert iterm_result.startswith("sent to CFO #sess1234:")
-    assert "via tmux" not in iterm_result
+    result = sc.send("cfo", "hi")
+    assert result.startswith("queued to CFO #sess1234:")
+    assert "tmux" not in result
+    assert "via" not in result
 
 
 # --- routing guard: depth cap -----------------------------------------------

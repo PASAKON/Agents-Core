@@ -8,9 +8,15 @@ CR plus a second rescue CR — see lib/iterm_type.type_submit_fragment.
 
 Verifies:
   (a) the shared helper fragment carries both delays and two CRs, in order;
-  (b) each of the 4 Python senders (send_to_cto / send_to_dev / send_to_cxo /
-      inject_prompt) bakes the new sequence into its generated AppleScript,
-      using a genuinely multi-line message (the trigger condition);
+  (b) 3 of the 4 Python senders that still type into a terminal
+      (send_to_cto / send_to_dev / inject_prompt) bake the new sequence
+      into their generated AppleScript, using a genuinely multi-line
+      message (the trigger condition). `send_to_cxo` is the 4th sender
+      historically covered here, but task task-de2cdc15 (CEO 2026-08-14
+      option A) replaced its typed-message send path with a file-based
+      mailbox (`lib/mailbox.py`) — it no longer types anything, so
+      `test_send_to_cxo_sequence` below now proves the opposite: no
+      osascript call, no leftover typing helper, a real letter in the box;
   (c) the 2 shell sites (idle-ping-watcher.sh, cxo-claude.sh) inline the same
       delay / CR / delay / CR sequence.
 
@@ -140,12 +146,42 @@ def test_send_to_dev_sequence() -> bool:
     return script is not None and _has_fix(script)
 
 
-def test_send_to_cxo_sequence() -> bool:
-    from tools.send_to_cxo import _send
-    script = _capture_osascript(
-        lambda: _send("cfo", "sess1234", MULTI, "CTO")
+def test_send_to_cxo_sequence(tmp_path: Path) -> bool:
+    """Supersedes the old assertion (task-de2cdc15, 2026-08-14): send_to_cxo
+    no longer types anything, so there is no AppleScript sequence to check
+    here anymore. Proves the opposite instead -- the exact two things CTO
+    review round 1 asked for: send() writes the mailbox, not osascript; and
+    the iTerm-typing helper this test used to import (`_send`) is gone."""
+    import lib.mailbox as mailbox
+    import tools.send_to_cxo as sc
+
+    if hasattr(sc, "_send") or hasattr(sc, "_send_tmux") or hasattr(sc, "tmux"):
+        return False  # the removed typing/tmux helpers must not exist at all
+
+    locks = tmp_path / "locks"
+    locks.mkdir()
+    inbox = tmp_path / "inbox"
+    sc.LOCKS_DIR = locks
+    mailbox.INBOX_ROOT = inbox
+    (locks / "cfo-active").write_text("sess1234")
+
+    # current_identity() reads real process env (DEV_TASK_ID etc, set for
+    # THIS harness's own DEV session) -- pin it to CEO-root so authorize()
+    # takes its free-peer-messaging path without touching the real DB,
+    # regardless of what env this file happens to run under.
+    orig_identity = sc.current_identity
+    sc.current_identity = lambda: sc.CEO_IDENTITY
+    try:
+        script = _capture_osascript(lambda: sc.send("cfo", MULTI, "CTO"))
+    finally:
+        sc.current_identity = orig_identity
+
+    letters = mailbox.peek("cfo", "sess1234", root=inbox)
+    return (
+        script is None                # zero osascript calls, not even attempted
+        and len(letters) == 1
+        and letters[0]["body"] == MULTI
     )
-    return script is not None and _has_fix(script)
 
 
 def test_inject_prompt_sequence(tmp_path: Path) -> bool:
@@ -182,8 +218,8 @@ def main() -> int:
         _mark(r, "send_to_cto generated AppleScript carries the delay+2CR fix")
         r = test_send_to_dev_sequence(); fails += not r
         _mark(r, "send_to_dev generated AppleScript carries the delay+2CR fix")
-        r = test_send_to_cxo_sequence(); fails += not r
-        _mark(r, "send_to_cxo generated AppleScript carries the delay+2CR fix")
+        r = test_send_to_cxo_sequence(tmp); fails += not r
+        _mark(r, "send_to_cxo writes the mailbox, calls no osascript, has no typing helper left")
         r = test_inject_prompt_sequence(tmp); fails += not r
         _mark(r, "inject_prompt generated AppleScript carries the delay+2CR fix")
 
