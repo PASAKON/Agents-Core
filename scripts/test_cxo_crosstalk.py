@@ -24,6 +24,20 @@ Covers (task's required list):
   * sender role resolves from CXO_ROLE, not "CEO"
   * an ephemeral cto-claude.sh launch (--session) does not overwrite
     state/locks/cto-active
+
+Task task-cf325742 (same-day "Option B" wake nudge) adds, same file, same
+injection style -- `sc.tmux_session.has_session` and `sc._wake_tmux_send`
+monkeypatched directly, no real tmux:
+  * wake attempted when a live tmux session exists for the target
+  * wake skipped silently (no exception, no return-value change) when no
+    session exists
+  * wake failure (fake raises) does not propagate and does not change
+    send()'s return value
+  * the wake nudge contains no part of the actual message body
+  * send()'s return string is byte-identical whether the wake succeeds,
+    fails, or is skipped, given the same mailbox write
+  * _wake_tmux_send() itself uses a type/delay/Enter/delay/Enter sequence
+    (GH #70), never tools.tmux_session.send_keys()'s zero-delay path
 """
 from __future__ import annotations
 
@@ -354,3 +368,120 @@ def test_send_to_cxo_registered_in_main_registry():
     assert "send_to_cxo" in {s.name for s in reg.REGISTRY}
     assert "send_to_cxo" in reg.BY_NAME
     assert not hasattr(reg, "CXO_REGISTRY")
+
+
+# --- wake nudge (task-cf325742, CEO 2026-08-14 "Option B") -----------------
+#
+# Same injection style as the osascript fakes above: `sc.tmux_session` and
+# `sc._wake_tmux_send` are monkeypatched directly (module attributes looked
+# up at call time, same idiom as `_run_osascript`) -- no real tmux binary,
+# no real subprocess, no real delay.
+
+def test_wake_attempted_when_live_tmux_session_exists(
+    isolated_locks, isolated_mailbox_root, monkeypatch,
+):
+    (isolated_locks / "cfo-active").write_text("sess1234")
+    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: s == "cfo-sess1234")
+    calls = []
+    monkeypatch.setattr(sc, "_wake_tmux_send",
+                        lambda session, text: calls.append((session, text)))
+
+    result = sc.send("cfo", "hello")
+
+    assert calls == [("cfo-sess1234", sc._WAKE_MARKER)]
+    assert result.startswith("queued to CFO #sess1234:")
+
+
+def test_wake_skipped_silently_when_no_session(
+    isolated_locks, isolated_mailbox_root, monkeypatch,
+):
+    (isolated_locks / "cfo-active").write_text("sess1234")
+    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: False)
+
+    def _should_not_run(*a, **kw):
+        raise AssertionError("must not attempt a tmux send when no session is live")
+
+    monkeypatch.setattr(sc, "_wake_tmux_send", _should_not_run)
+
+    result = sc.send("cfo", "hello")
+    assert result == "queued to CFO #sess1234: [CEO] : hello"
+
+
+def test_wake_failure_does_not_propagate_or_change_return(
+    isolated_locks, isolated_mailbox_root, monkeypatch,
+):
+    (isolated_locks / "cfo-active").write_text("sess1234")
+    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: True)
+
+    def boom(*a, **kw):
+        raise RuntimeError("tmux send-keys exploded")
+
+    monkeypatch.setattr(sc, "_wake_tmux_send", boom)
+
+    result = sc.send("cfo", "hello")  # must not raise
+    assert result == "queued to CFO #sess1234: [CEO] : hello"
+
+
+def test_wake_nudge_never_contains_message_body(
+    isolated_locks, isolated_mailbox_root, monkeypatch,
+):
+    (isolated_locks / "cfo-active").write_text("sess1234")
+    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: True)
+    calls = []
+    monkeypatch.setattr(sc, "_wake_tmux_send", lambda session, text: calls.append(text))
+
+    secret_body = "the actual message body must never be retyped into any composer"
+    sc.send("cfo", secret_body)
+
+    assert calls == [sc._WAKE_MARKER]
+    assert secret_body not in calls[0]
+
+
+def test_send_return_string_identical_wake_success_fail_skip(
+    isolated_locks, isolated_mailbox_root, monkeypatch,
+):
+    """Same mailbox write (same role/session/message/sender) -> byte-
+    identical return string no matter what the wake attempt does."""
+    (isolated_locks / "cfo-active").write_text("sess1234")
+
+    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: True)
+    monkeypatch.setattr(sc, "_wake_tmux_send", lambda session, text: None)
+    ok_result = sc.send("cfo", "hi", "CEO")
+
+    def boom(*a, **kw):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(sc, "_wake_tmux_send", boom)
+    fail_result = sc.send("cfo", "hi", "CEO")
+
+    monkeypatch.setattr(sc.tmux_session, "has_session", lambda s: False)
+    skip_result = sc.send("cfo", "hi", "CEO")
+
+    assert ok_result == fail_result == skip_result
+
+
+def test_wake_tmux_send_uses_settle_delay_rescue_sequence_not_send_keys(monkeypatch):
+    """GH #70: `tools.tmux_session.send_keys()` sends typed text then `C-m`
+    back-to-back with zero settle delay, suspected of hitting the same
+    bracketed-paste Enter-swallow `lib.iterm_type` already fixed for iTerm.
+    `_wake_tmux_send` must NOT call `send_keys()` -- it builds its own
+    type / delay 0.4 / Enter / delay 0.3 / Enter (rescue) sequence,
+    mirroring `lib.iterm_type.type_submit_fragment`'s proven pattern."""
+    calls = []
+
+    def fake_run(cmd, **kw):
+        calls.append(cmd)
+        return types.SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    sleeps = []
+    monkeypatch.setattr(sc.subprocess, "run", fake_run)
+    monkeypatch.setattr(sc.time, "sleep", lambda s: sleeps.append(s))
+
+    sc._wake_tmux_send("cfo-sess1234", ".")
+
+    assert calls == [
+        ["tmux", "send-keys", "-t", "cfo-sess1234", "-l", "."],
+        ["tmux", "send-keys", "-t", "cfo-sess1234", "Enter"],
+        ["tmux", "send-keys", "-t", "cfo-sess1234", "Enter"],
+    ]
+    assert sleeps == [0.4, 0.3]
