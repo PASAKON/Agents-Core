@@ -534,6 +534,17 @@ detailed it otherwise looks.
 
 ## Operating pattern for multi-generation jobs
 
+- **Never let the Unlimited slot sit idle — CEO rule, 2026-08-14.** The
+  moment a card finishes, fire the next one immediately. Unlimited
+  generation costs nothing, so an idle slot is pure wasted time, not saved
+  money. If the *next scripted item's* prompt isn't ready yet — the CTO is
+  still writing it — **do not wait idle for it.** Generate whatever *is*
+  already written and ready instead (a spare take of a scene already
+  generated, or any other queued item that has real prompt text), then
+  come back to the scripted order once the CTO catches up. Example the CEO
+  gave: the CTO is still writing Scene 12, but a spare take of Scene 11 is
+  ready to fire — fire that, don't sit waiting on 12. Only stop firing
+  entirely when nothing anywhere is ready to generate.
 - **Split into waves capped at ~5 generations each — this is a hard cap, not
   a suggestion.** Spawn a separate task/DEV session per wave rather than one
   long-running session. Screenshots stay in context for the rest of a session
