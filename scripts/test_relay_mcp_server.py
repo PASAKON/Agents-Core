@@ -1,9 +1,20 @@
-"""Tests for runners/relay_mcp_server.py (task-b293ef6c).
+"""Tests for runners/relay_mcp_server.py (task-b293ef6c, task-18241f1d).
 
 Every test stubs subprocess (`tailscale`, `tmux`) and `tools.tmux_session` --
-no real tailscale, tmux, or network. QUEUE_DB_PATH and LOCKS_DIR are always
-monkeypatched to tmp_path so real repo state (state/relay_queue.db,
-state/locks/) is never touched.
+no real tailscale, tmux, or network. QUEUE_DB_PATH, LOCKS_DIR (both this
+module's and tools/send_to_cxo.py's -- same pointer, two module globals),
+and lib.mailbox's INBOX_ROOT are always monkeypatched to tmp_path so real
+repo state (state/relay_queue.db, state/locks/, state/inbox/) is never
+touched.
+
+task-18241f1d pins the mailbox migration's core claim -- delivery means the
+LETTER EXISTS, not that something was typed:
+  * a letter actually lands (body prefix + secretary `from`)
+  * a failed wake still reports delivered (the single most important test)
+  * a failed mailbox write never says delivered
+  * no keystroke ever carries the message body
+  * the delivery path carries no keystroke-transport literal, and the
+    settle-delay wake sequence exists in exactly one module repo-wide
 
 Run standalone: python scripts/test_relay_mcp_server.py
 Or under pytest:  pytest scripts/test_relay_mcp_server.py
@@ -22,6 +33,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import runners.relay_mcp_server as rms  # noqa: E402
+import tools.send_to_cxo as sc  # noqa: E402
+from lib import mailbox  # noqa: E402
 
 
 class FakeCompleted:
@@ -60,9 +73,18 @@ def queue_env(tmp_path, monkeypatch, fake_subprocess):
     """Isolate the queue DB + the <role>-active lock pointer dir, and give
     mac_status a harmless default (missing-binary -> unknown) so any
     incidental internal mac_status() call inside relay_to_session /
-    spawn_c_level doesn't hit a real subprocess."""
+    spawn_c_level doesn't hit a real subprocess.
+
+    task-18241f1d: relay_to_session now also resolves the target id via
+    tools/send_to_cxo.py::_active_session_id, which reads send_to_cxo's OWN
+    LOCKS_DIR global (same value as rms.LOCKS_DIR in production, both
+    ROOT-derived), and writes letters via lib.mailbox -- so both of those
+    are isolated to tmp_path here too, or a relay test would read this
+    checkout's real state/locks/ and write its real state/inbox/."""
     monkeypatch.setattr(rms, "QUEUE_DB_PATH", tmp_path / "relay_queue.db")
     monkeypatch.setattr(rms, "LOCKS_DIR", tmp_path / "locks")
+    monkeypatch.setattr(sc, "LOCKS_DIR", tmp_path / "locks")
+    monkeypatch.setattr(mailbox, "INBOX_ROOT", tmp_path / "inbox")
     fake_subprocess.setdefault("tailscale", FileNotFoundError())
     return tmp_path
 
@@ -177,26 +199,140 @@ def test_relay_to_session_prefix_survives_caller_supplying_their_own(queue_env):
     assert result["message"] == rms.RELAY_PREFIX + spoofed
 
 
-def test_relay_to_session_delivers_via_tmux_when_contabo_session_live(queue_env, monkeypatch):
+def test_relay_to_session_delivers_by_letter_when_contabo_session_live(queue_env, monkeypatch):
+    """task-18241f1d: the live branch's delivery IS a letter on disk --
+    prefixed body, secretary `from`, letter_path in the response. The old
+    typed-keystroke transport (GH #70's silent-Enter-swallow) must never
+    be reached: tmux_session.send_keys is a tripwire here."""
     (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
     (rms.LOCKS_DIR / "cto-active").write_text("abc123")
-    sent = {}
 
     monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
 
-    def fake_send_keys(session, text, **kw):
-        sent["session"] = session
-        sent["text"] = text
+    def no_send_keys(session, text, **kw):
+        raise AssertionError("delivery must not type the message into any pane")
 
-    monkeypatch.setattr(rms.tmux_session, "send_keys", fake_send_keys)
+    monkeypatch.setattr(rms.tmux_session, "send_keys", no_send_keys)
+    wakes = []
+    monkeypatch.setattr(rms, "attempt_wake", lambda *a: wakes.append(a))
 
     result = json.loads(rms.relay_to_session("cto", "status update please"))
     assert result["status"] == "delivered"
     assert result["tmux_session"] == "cto-abc123"
-    assert sent["session"] == "cto-abc123"
-    assert sent["text"] == rms.RELAY_PREFIX + "status update please"
+    assert result["letter_path"].endswith(".json")
+
+    letter_file = Path(result["letter_path"])
+    assert letter_file.is_file(), "delivered requires the letter to exist on disk"
+    letter = json.loads(letter_file.read_text(encoding="utf-8"))
+    assert letter["body"] == rms.RELAY_PREFIX + "status update please"
+    assert letter["from"] == {"role": "secretary", "session_id": "sompong"}
+    assert letter["to"] == {"role": "cto", "session_id": "abc123"}
+    # Wake got the secretary's own label, never a C-level name.
+    assert wakes == [("cto", "abc123", "SomPong")]
     # Delivered, not queued.
     assert rms._queue_list_pending() == []
+
+
+def test_relay_delivered_even_when_wake_raises(queue_env, monkeypatch):
+    """THE pin test of the migration (task-18241f1d): a wake failure must
+    not cost the delivery. The letter is what delivery means now -- the
+    wake is only an attention nudge on top of an already-durable write."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("abc123")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
+
+    def boom(*a, **kw):
+        raise RuntimeError("tmux exploded mid-wake")
+
+    monkeypatch.setattr(rms, "attempt_wake", boom)
+
+    result = json.loads(rms.relay_to_session("cto", "do the thing"))
+    assert result["status"] == "delivered"
+    assert Path(result["letter_path"]).is_file()
+
+
+def test_relay_failed_mailbox_write_never_reports_delivered(queue_env, monkeypatch):
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("abc123")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
+
+    def boom(*a, **kw):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(rms.mailbox, "send", boom)
+
+    raw = rms.relay_to_session("cto", "do the thing")
+    assert "delivered" not in raw
+    result = json.loads(raw)
+    assert result["status"] == "error"
+    assert "disk full" in result["detail"]
+    # Nothing queued either -- an error is an error, not a fallback.
+    assert rms._queue_list_pending() == []
+
+
+def test_relay_letter_missing_after_write_is_error_not_delivered(queue_env, monkeypatch):
+    """mailbox.send returning a path that is not actually on disk is the
+    act-without-effect shape -- report the effect (error), never the act."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("abc123")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
+
+    ghost = queue_env / "inbox" / "ghost.json"
+
+    def ghost_send(*a, **kw):
+        return ghost
+
+    monkeypatch.setattr(rms.mailbox, "send", ghost_send)
+
+    raw = rms.relay_to_session("cto", "do the thing")
+    assert "delivered" not in raw
+    result = json.loads(raw)
+    assert result["status"] == "error"
+    assert str(ghost) in result["detail"]
+    assert rms._queue_list_pending() == []
+
+
+def test_relay_no_keystroke_carries_the_body(queue_env, monkeypatch):
+    """Every subprocess argv during a live relay is captured; the message
+    body must appear in none of them. The body travels by file -- only the
+    short content-free wake marker may be typed (task-18241f1d)."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("abc123")
+
+    argvs = []
+
+    def _run(cmd, **kwargs):
+        argvs.append([str(c) for c in cmd])
+        if cmd[:2] == ["tmux", "has-session"]:
+            return FakeCompleted(0 if cmd[3] == "cto-abc123" else 1)
+        return FakeCompleted(0, stdout="")
+
+    monkeypatch.setattr(rms.subprocess, "run", _run)
+    monkeypatch.setattr(rms.time, "sleep", lambda s: None)
+
+    body = "SECRET-BODY-must-never-be-typed-into-any-composer"
+    result = json.loads(rms.relay_to_session("cto", body))
+    assert result["status"] == "delivered"
+    assert Path(result["letter_path"]).is_file()
+
+    assert argvs, "expected at least the liveness check + wake marker argvs"
+    for argv in argvs:
+        assert not any(body in part for part in argv), (
+            f"body leaked into subprocess argv: {argv!r}")
+    # The wake itself DID run through the shared implementation -- the only
+    # typed text is the short marker naming the secretary.
+    marker_argv = [a for a in argvs
+                   if any("New message from SomPong" in part for part in a)]
+    assert marker_argv, "expected the content-free wake marker to be typed"
+
+
+def test_relay_tool_takes_no_sender_argument():
+    """The from-field equivalent of the prefix-spoofing guard: a caller
+    cannot pass (or omit) a sender identity -- the secretary's own
+    secretary/sompong identity is pinned server-side (see the letter test
+    above), and no parameter exists to influence it."""
+    params = inspect.signature(rms.relay_to_session).parameters
+    assert set(params) == {"target_role", "message", "wait"}
 
 
 # ---------------------------------------------------------------------------
@@ -467,14 +603,19 @@ def test_relay_to_session_wait_disabled_is_unchanged(queue_env, monkeypatch):
     (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
     (rms.LOCKS_DIR / "cto-active").write_text("abc123")
     monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
-    monkeypatch.setattr(rms.tmux_session, "send_keys", lambda s, t, **kw: None)
+    monkeypatch.setattr(rms, "attempt_wake", lambda *a: None)
 
     def _run(cmd, **kwargs):
         raise AssertionError(f"unexpected subprocess.run call: {cmd!r}")
 
     monkeypatch.setattr(rms.subprocess, "run", _run)
+    monkeypatch.setattr(rms.time, "sleep",
+                        lambda s: (_ for _ in ()).throw(AssertionError("no sleep expected")))
 
     result = json.loads(rms.relay_to_session("cto", "status update please"))
+    letter_path = result.pop("letter_path")
+    assert letter_path.endswith(".json")
+    assert Path(letter_path).is_file()
     assert result == {
         "status": "delivered", "target_role": "cto",
         "tmux_session": "cto-abc123",
@@ -486,7 +627,7 @@ def test_relay_to_session_wait_enabled_labels_pane_not_reply(queue_env, monkeypa
     (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
     (rms.LOCKS_DIR / "cto-active").write_text("abc123")
     monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
-    monkeypatch.setattr(rms.tmux_session, "send_keys", lambda s, t, **kw: None)
+    monkeypatch.setattr(rms, "attempt_wake", lambda *a: None)
 
     slept = {}
     monkeypatch.setattr(rms.time, "sleep", lambda s: slept.setdefault("seconds", s))
@@ -500,6 +641,53 @@ def test_relay_to_session_wait_enabled_labels_pane_not_reply(queue_env, monkeypa
     assert pane["seconds_after_send"] == rms.RELAY_WAIT_SECONDS
     # Must NOT claim this is confirmed to be a reply.
     assert "not confirmed to be a reply" in pane["note"]
+
+
+# ---------------------------------------------------------------------------
+# 10. Guard -- one wake implementation org-wide (task-18241f1d Deliverable 2)
+# ---------------------------------------------------------------------------
+
+def test_relay_delivery_path_has_no_keystroke_transport_literal():
+    """The delivery path must not regain its own keystroke transport: this
+    file previously typed the message body into the recipient's pane, and a
+    copy-paste back would resurrect the exact act-not-effect bug (GH #70
+    class) this migration removed. Source-level on purpose -- the point is
+    to catch a future paste, not to test behaviour."""
+    src = inspect.getsource(rms.relay_to_session)
+    assert "send-keys" not in src
+    assert "send_keys" not in src
+
+
+def test_exactly_one_tmux_wake_sequence_repo_wide():
+    """The settle-delay + rescue-Enter wake sequence (type -l text, sleep,
+    Enter, sleep, Enter) must exist in exactly one module:
+    tools/send_to_cxo.py, imported by everyone. Detected by its source
+    shape -- a `send-keys` argv built together with literal `-l` typing AND
+    a literal `Enter` keyname -- which only the wake implementation carries.
+
+    Deliberately excluded:
+      * runners/mac_agent.py -- locked by a parallel task migrating it off
+        keystrokes itself; not this task's lane to police.
+      * tools/tmux_session.py -- the send_keys PRIMITIVE GH #70 tracks (it
+        types with -l but submits with C-m, no Enter keyname, no sleeps);
+        fixing it is GH #70's job, not a second wake.
+      * test files -- they assert on the sequence, they don't implement it.
+    """
+    shape_owners = []
+    for part in ("runners", "tools", "lib", "scripts", "mcp"):
+        base = ROOT / part
+        if not base.is_dir():
+            continue
+        for p in base.rglob("*.py"):
+            if p.name.startswith("test_") or p.name == "mac_agent.py":
+                continue
+            if p == ROOT / "tools" / "tmux_session.py":
+                continue
+            text = p.read_text(encoding="utf-8", errors="replace")
+            if "send-keys" in text and '"-l"' in text and '"Enter"' in text:
+                shape_owners.append(str(p.relative_to(ROOT)))
+    assert shape_owners == ["tools/send_to_cxo.py"], (
+        f"settle-delay wake sequence duplicated in: {shape_owners}")
 
 
 if __name__ == "__main__":

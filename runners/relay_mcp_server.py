@@ -19,7 +19,11 @@ Design points this server exists to enforce (see TASK.md task-b293ef6c):
      scripts/test_relay_mcp_server.py).
   2. Proxy with attribution, never impersonation -- every message
      `relay_to_session` hands off is prefixed "[CEO via SomPong] "
-     server-side; the caller cannot omit or spoof that marker.
+     server-side; the caller cannot omit or spoof that marker. Since
+     task-18241f1d the letter's structured `from` is likewise pinned to
+     the secretary's own identity (secretary/sompong), never a C-level
+     role and never the CEO -- prefix for the human, `from` for the
+     machine, both non-optional.
   3. Read-only actions (mac_status, org_snapshot, read_session) execute
      immediately -- read_session's host="mac" case is the one exception:
      it reports "not available yet" rather than queuing, because a queued
@@ -54,8 +58,10 @@ sys.path.insert(0, str(ROOT))
 import requests
 from mcp.server.fastmcp import FastMCP
 
+from lib import mailbox
 from lib.logger import get_logger
 from tools import tmux_session
+from tools.send_to_cxo import Identity, _active_session_id, attempt_wake, authorize
 
 log = get_logger("relay", stdout=False)
 mcp = FastMCP("relay")
@@ -81,6 +87,19 @@ MAC_READ_POLL_S = float(os.environ.get("RELAY_MAC_READ_POLL_S", "2"))
 # Design point 2 -- applied here, unconditionally, so the caller can never
 # omit or spoof it (see relay_to_session).
 RELAY_PREFIX = "[CEO via SomPong] "
+
+# task-18241f1d -- the secretary's own mailbox identity. Two attributions,
+# both non-optional, and they are NOT interchangeable:
+#   * the body prefix above -- for the human reading the pane;
+#   * the structured from_role/from_session_id below -- for the machine.
+#     A letter's sender is always the secretary itself, never a C-level
+#     role (that would be impersonation) and never the CEO (the CEO did
+#     not write this letter; their secretary did, on their behalf).
+SECRETARY_FROM_ROLE = "secretary"
+SECRETARY_FROM_SESSION_ID = "sompong"
+# Label the wake marker carries: the pane reads "[New message from
+# SomPong]" -- the secretary's own name, not a C-level's (same rule).
+SECRETARY_WAKE_LABEL = "SomPong"
 
 # state/locks/<role>-active is the same pointer scripts/cxo-claude.sh writes
 # for a live primary C-level session (also read by tools/send_to_cxo.py's
@@ -492,12 +511,23 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
     to tell a bot-relayed order from something the CEO typed directly).
 
     If a live Contabo tmux session for `target_role` exists, delivers now
-    via tmux send-keys and reports delivered. Otherwise the target is
-    assumed to live on the Mac: the message is enqueued for the separate,
-    not-yet-built Mac-side draining agent, and the response reports
-    queued together with whether the Mac is currently reachable -- so the
-    secretary can offer moving the request to Contabo instead of silently
-    parking it.
+    by writing a letter into the recipient's mailbox
+    (state/inbox/<role>-<session_id>/, via lib.mailbox) and reports
+    "delivered" only once that file is confirmed to exist on disk -- the
+    letter IS the delivery. The recipient's UserPromptSubmit hook
+    (scripts/hook-inbox.py) drains its box exactly once on its next
+    prompt. A short content-free wake marker may be typed to trigger that
+    next prompt, but the message body never travels by keystroke: the old
+    typed-keystroke path reported success the moment tmux accepted the
+    keys, while a swallowed Enter (GH #70) could leave the order
+    unsubmitted in the composer -- SomPong telling the CEO "ส่งแล้วครับ"
+    for a message nobody received.
+
+    Otherwise the target is assumed to live on the Mac: the message is
+    enqueued for the separate Mac-side draining agent, and the response
+    reports queued together with whether the Mac is currently reachable --
+    so the secretary can offer moving the request to Contabo instead of
+    silently parking it.
 
     `wait` (default False -- byte-identical to the pre-task-da873c76
     behaviour when omitted): only applies when delivered live. If true,
@@ -506,7 +536,7 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
     "pane_after_wait". This is NOT proof of a reply -- a C-level agent can
     think for minutes and this tool does not block on that -- so the field
     is always labelled as a snapshot ("pane contents N seconds after
-    sending"), never claimed to be the reply.
+    delivering"), never claimed to be the reply.
     """
     rejection = _reject_unknown_role("relay_to_session", target_role)
     if rejection:
@@ -515,30 +545,73 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
     full_message = f"{RELAY_PREFIX}{message}"
 
     tmux_name = _active_contabo_tmux_session(target_role)
-    if tmux_name:
+    # The letter is addressed by (role, session_id), so resolve the id from
+    # the same state/locks/<role>-active pointer the liveness check read --
+    # tools/send_to_cxo.py::_active_session_id, not a string-split of the
+    # tmux name. The cross-check below is the race guard: if the pointer
+    # moved between the two reads, neither id is trustworthy and we fall
+    # through to the queue branch instead of writing a letter a live
+    # session will never drain.
+    session_id = _active_session_id(target_role) if tmux_name else None
+    if tmux_name and session_id and f"{target_role}-{session_id}" == tmux_name:
+        # Authorization: the secretary is not a C-level, so the C-level
+        # identity chain is the wrong gate. authorize() carries an explicit
+        # secretary CEO-proxy entry (tools/send_to_cxo.py) -- SomPong is
+        # never dressed up as a C-level to pass it; impersonation is the
+        # one thing that guard exists to prevent.
+        authorize(
+            Identity("secretary", SECRETARY_FROM_ROLE, SECRETARY_FROM_SESSION_ID),
+            target_role, session_id, spawning=False,
+        )
         try:
-            tmux_session.send_keys(tmux_name, full_message)
-        except RuntimeError as e:
+            letter_path = mailbox.send(
+                target_role, session_id, full_message,
+                SECRETARY_FROM_ROLE, SECRETARY_FROM_SESSION_ID,
+            )
+            letter_on_disk = letter_path.is_file()
+        except Exception as e:
             _audit("relay_to_session", target_role, "delivery_failed", str(e))
             return json.dumps({
-                "status": "error", "target_role": target_role, "detail": str(e),
+                "status": "error", "target_role": target_role,
+                "detail": f"mailbox write failed: {e}",
             }, ensure_ascii=False)
+        if not letter_on_disk:
+            # The write "succeeded" but there is nothing on disk -- report
+            # the effect, not the act. Never "delivered".
+            _audit("relay_to_session", target_role, "delivery_failed",
+                   f"letter missing after write: {letter_path}")
+            return json.dumps({
+                "status": "error", "target_role": target_role,
+                "detail": f"letter not on disk after write: {letter_path}",
+            }, ensure_ascii=False)
+        # Best-effort wake only: types the short content-free marker via the
+        # org's single wake implementation (tools/send_to_cxo.py), never the
+        # body. attempt_wake swallows every failure internally; the guard
+        # here is the caller-side half of the same rule -- even a wake that
+        # somehow raises can never turn a delivered letter into an error,
+        # because the letter is already on disk and is drained on the
+        # recipient's next prompt either way.
+        try:
+            attempt_wake(target_role, session_id, SECRETARY_WAKE_LABEL)
+        except Exception as e:
+            _audit("relay_to_session", target_role, "wake_failed", str(e))
         _audit("relay_to_session", target_role, "delivered",
-               f"tmux={tmux_name} message={full_message!r}")
+               f"tmux={tmux_name} letter={letter_path} message={full_message!r}")
         result = {
             "status": "delivered", "target_role": target_role,
             "tmux_session": tmux_name, "message": full_message,
+            "letter_path": str(letter_path),
         }
         if wait:
             time.sleep(RELAY_WAIT_SECONDS)
             raw = _capture_pane(tmux_name)
             if raw is None:
                 pane_text = ""
-                note = "tmux capture-pane failed after sending -- pane text unavailable"
+                note = "tmux capture-pane failed after delivering -- pane text unavailable"
             else:
                 pane_text = _tail_pane_text(raw, READ_SESSION_MAX_LINES)
                 note = (
-                    f"pane contents {RELAY_WAIT_SECONDS}s after sending -- "
+                    f"pane contents {RELAY_WAIT_SECONDS}s after delivering -- "
                     "not confirmed to be a reply, just whatever is on screen now"
                 )
             result["pane_after_wait"] = {
