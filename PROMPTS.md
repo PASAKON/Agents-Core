@@ -1233,9 +1233,9 @@ Cut 5 (6.0–7.3s): Interior @Bus-Interior, in motion. Through the rear window, 
 
 Cut 6 (7.3–8.6s): Through the side glass, @House-Night passes as it is right now, present-day — every window lit warm, the porch light on, seen from the moving bus, before anything else changes. Her face changes, softens.
 
-Cut 7 (8.6–10.6s): The image shifts — same house, but memory now, not present: warm and slightly soft-focus, like an old photograph stirring — @House-Day, golden afternoon light. Both parents read visibly younger here than anywhere else in the film — this is years earlier. @Father wears a plain casual shirt, open-collared, sleeves rolled — nothing like his clothing in the present-day cuts — clean, healthy, unworn, no gauntness in his face. He spins @Daughter as a small child in the front yard; her laugh carries.
+Cut 7 (8.6–10.6s): The image shifts — same house, but memory now, not present: warm and slightly soft-focus, like an old photograph stirring — @House-Day, golden afternoon light. Both parents read visibly younger here than anywhere else in the film — this is years earlier. @Father wears a plain casual shirt, open-collared, sleeves rolled, clean, healthy, unworn, no gauntness in his face. He spins @Daughter as a small child in the front yard; her laugh carries.
 
-Cut 8 (10.6–12.6s): The impression shifts, overlapping — @Mother on the porch, watching, an open, unguarded smile. She wears a simple everyday dress, not her housekeeping uniform — ordinary home clothes, younger and lighter than her present-day self. The three of them kneeling together, planting a tree, dirt on small hands.
+Cut 8 (10.6–12.6s): The impression shifts, overlapping — @Mother on the porch, watching, an open, unguarded smile. She wears a simple everyday home dress, younger and lighter than her present-day self. The three of them kneeling together, planting a tree, dirt on small hands.
 
 Cut 9 (12.6–14.6s): Another impression — the three of them on the porch steps at dusk, plates on their laps, eating together, laughing at something none of them will remember later. Same younger versions of @Mother and @Father, same casual home clothes as the cuts before this one.
 
