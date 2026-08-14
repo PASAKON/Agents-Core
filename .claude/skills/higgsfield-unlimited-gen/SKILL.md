@@ -436,8 +436,12 @@ cannot see it either.
 3. If a hard delay is genuinely needed, `sleep` alone will be refused — use
    `.venv/bin/python -c "import time; time.sleep(180)"` from the worktree.
    **Cap any single sleep at ~90 seconds and repeat it, never one long block.**
-4. Rough cadence, when the reads themselves do not already supply it: first
-   check ~**10 minutes** after clicking, then every **5 minutes**.
+4. **Cadence, CEO-set 2026-08-14: first check ~20 minutes after clicking**
+   (a render never finishes before ~20 min, so checking at 10 wastes a turn
+   for nothing), **then every 5 minutes.** This governs how often you *look*
+   at the render status — the 90s sleep-chunking above is unrelated and
+   still applies underneath it, so you stay reachable to messages between
+   checks without checking the page itself any more often than this.
 
 **A long sleep makes the operator unreachable, and that is indistinguishable
 from a hang.** A foreground sleep blocks the agent's whole turn; messages the
@@ -486,10 +490,16 @@ detailed it otherwise looks.
 
 ## Operating pattern for multi-generation jobs
 
-- **Split into waves capped at ~5 generations each**, spawned as separate
-  tasks/DEV sessions rather than one long-running session. Screenshots stay
-  in context for the rest of a session and get re-sent every later turn —
-  capping wave size caps that growth.
+- **Split into waves capped at ~5 generations each — this is a hard cap, not
+  a suggestion.** Spawn a separate task/DEV session per wave rather than one
+  long-running session. Screenshots stay in context for the rest of a session
+  and get re-sent every later turn — capping wave size caps that growth, and
+  every extra turn a long-lived DEV takes costs more than the last one because
+  its own history keeps growing. **Missed 2026-08-14**: a 14-clip / 7-scene
+  queue was handed to one task instead of split into three ~5-clip waves; the
+  CEO caught it live and had it split mid-flight. When writing a task brief,
+  count the clips before delegating — if it's more than ~5, split it before
+  spawning, not after.
 - **Maintain a reusable replay-helper script**
   (e.g. `scripts/browser/higgsfield-jumpcut-gen.js`) covering the mechanical
   flow: locate card → clear+paste prompt → verify zero-digit Generate
