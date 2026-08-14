@@ -1233,19 +1233,19 @@ Cut 5 (6.0–7.3s): Interior @Bus-Interior, in motion. Through the rear window, 
 
 Cut 6 (7.3–8.6s): Through the side glass, @House-Night passes as it is right now, present-day — every window lit warm, the porch light on, seen from the moving bus, before anything else changes. Her face changes, softens.
 
-Cut 7 (8.6–10.6s): The image shifts — same house, but memory now, not present: warm and slightly soft-focus, like an old photograph stirring — @House-Day, golden afternoon light. @Father, healthy and unworn, spins @Daughter as a small child in the front yard; her laugh carries.
+Cut 7 (8.6–10.6s): The image shifts — same house, but memory now, not present: warm and slightly soft-focus, like an old photograph stirring — @House-Day, golden afternoon light. Both parents read visibly younger here than anywhere else in the film — this is years earlier. @Father wears a plain casual shirt, open-collared, sleeves rolled — nothing like his clothing in the present-day cuts — clean, healthy, unworn, no gauntness in his face. He spins @Daughter as a small child in the front yard; her laugh carries.
 
-Cut 8 (10.6–12.6s): The impression shifts, overlapping — @Mother on the porch, watching, an open, unguarded smile. The three of them kneeling together, planting a tree, dirt on small hands.
+Cut 8 (10.6–12.6s): The impression shifts, overlapping — @Mother on the porch, watching, an open, unguarded smile. She wears a simple everyday dress, not her housekeeping uniform — ordinary home clothes, younger and lighter than her present-day self. The three of them kneeling together, planting a tree, dirt on small hands.
 
-Cut 9 (12.6–14.6s): Another impression — the three of them on the porch steps at dusk, plates on their laps, eating together, laughing at something none of them will remember later.
+Cut 9 (12.6–14.6s): Another impression — the three of them on the porch steps at dusk, plates on their laps, eating together, laughing at something none of them will remember later. Same younger versions of @Mother and @Father, same casual home clothes as the cuts before this one.
 
-Cut 10 (14.6–16.6s): Close and slow — @Mother's and @Father's hands finding each other, @Prop-Ring catching the light. The same ring that will still be sitting on the nightstand in Scene 9.
+Cut 10 (14.6–16.6s): Close and slow — @Mother's and @Father's hands finding each other, still in their casual home clothes, both younger, @Prop-Ring catching the light. The same ring that will still be sitting on the nightstand in Scene 9.
 
 Cut 11 (16.6–17.9s): Hard cut back to the dark bus. Her hand rises toward @Prop-BusCord, hesitates, drops. She doesn't pull it. The bus carries her past her stop.
 
 Cut 12 (17.9–19.2s): She runs across the empty street toward @Motel-Front, breath visible, glancing back once. The sedan pulls up behind her; @Father gets out but holds back, unhurried.
 
-Cut 13 (19.2–20.5s): Interior @Motel-Lobby. She's breathless at the counter, talking fast and low to the clerk (unremarkable, invented by the model, no plate). Through the glass behind her, @Father stands outside, watching, not entering.
+Cut 13 (19.2–20.5s): Interior @Motel-Lobby. She's breathless at the counter, talking fast and low to the hotel clerk — a woman in her fifties, greying hair pulled back in a low bun, reading glasses pushed up on her head, wearing a plain navy uniform vest over a white blouse, no name tag readable. This is a new character, invented by the model, no plate — she must not resemble @Mother, @Daughter or any other established character in the film. Through the glass behind @Mother, @Father stands outside, watching, not entering.
 
 Cut 14 (20.5–21.8s): @Room-DoorOut, then @Room-Clean. Key in the lock, door open, she starts to swing it shut — his hand catches the edge and forces it back. He's inside.
 
