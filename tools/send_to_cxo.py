@@ -18,9 +18,17 @@ on screen" was being read as "the message arrived" -- it is not the same
 claim, and no fallback chain fixes that, because a fallback that can
 silently misdeliver is worse than no fallback. `send()` now writes the
 message into the recipient's `lib.mailbox` box and returns success on
-that write alone; it no longer depends on tmux or iTerm succeeding, and
-it does not attempt to wake the recipient (that is `spawn()`'s job, a
-separate code path this task did not touch).
+that write alone; it no longer depends on tmux or iTerm succeeding.
+
+Task task-cf325742 (CEO directive 2026-08-14, "Option B" layered on top
+of the queue-only mailbox that same day) adds a best-effort wake nudge
+after the mailbox write: if the target has a live tmux session, `send()`
+sends a short content-free marker + Enter so its `UserPromptSubmit` hook
+fires and drains the letter on its own, instead of the sender polling or
+retyping the message. The nudge never carries the message body, never
+raises, and never changes `send()`'s return value -- see `_attempt_wake()`
+below. `spawn()` is untouched; it already types into a brand-new tab by
+necessity and is a separate code path this task did not touch.
 
 The message is prefixed with `[<SENDER-ROLE>]:` so the receiving
 C-level (and any onlooking human) can tell who is talking.
@@ -77,6 +85,7 @@ from lib import mailbox
 from lib import notify
 from lib.config import display_for, is_c_level
 from lib.iterm_type import type_submit_fragment
+from tools import session_name, tmux_session
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCKS_DIR = ROOT / "state" / "locks"
@@ -294,6 +303,105 @@ def _log_hop(sender: Identity, target_role: str, target_session_id: str | None) 
         notify.info(f"[send_to_cxo] {_chain_str(sender)} -> {target_label}")
     except Exception:
         pass
+
+
+# ---------------------------------------------------------------------------
+# Wake nudge (task-cf325742, CEO 2026-08-14, "Option B" layered on the
+# queue-only mailbox task-de2cdc15 shipped earlier the same day)
+# ---------------------------------------------------------------------------
+#
+# The letter is already durable the instant mailbox.send() returns -- that
+# happens before any of this runs. Everything below is strictly an
+# attention-getter for a live recipient process; its only job is to make
+# that process take its next turn on its own instead of the sender sitting
+# there polling/nudging. `send()`'s success is unconditional on any of this
+# working -- see `_attempt_wake()`.
+#
+# The nudge is a single fixed, content-free marker -- never the message
+# body. The body already reached the recipient via the mailbox letter;
+# retyping it here would resurrect exactly the "type it and hope" failure
+# mode this whole file replaced (GH #69, GH #65). The marker's only job is
+# to constitute a valid, non-empty prompt so the recipient's
+# UserPromptSubmit hook fires and scripts/hook-inbox.py drains the letter
+# into context.
+_WAKE_MARKER = "."
+
+
+def _wake_tmux_send(session: str, text: str) -> None:
+    """Type `text` into tmux `session` and submit it with a settle-delay +
+    rescue Enter -- NOT via `tools.tmux_session.send_keys()`.
+
+    GH #70 (filed immediately before this task): `send_keys()` sends typed
+    text then `C-m` back-to-back with zero settle delay, suspected of
+    hitting the same bracketed-paste Enter-swallow `lib.iterm_type`
+    already documents and fixed for iTerm -- found live when a message
+    typed via that exact function sat unsubmitted in a CMO composer, and a
+    later bare `Enter` (tmux keyname, not `C-m`), sent as its own separate
+    command after the composer had settled, worked. This function is this
+    task's own settle-delay+rescue sequence, mirroring
+    `lib.iterm_type.type_submit_fragment`'s pattern (type, delay 0.4, key,
+    delay 0.3, key again as rescue) rather than trusting the unproven
+    zero-delay path GH #70 flagged. `tools.tmux_session.send_keys()` is
+    untouched -- fixing it is GH #70's job, out of scope here.
+    """
+    subprocess.run(
+        ["tmux", "send-keys", "-t", session, "-l", text],
+        capture_output=True, text=True, check=True, timeout=5,
+    )
+    time.sleep(0.4)
+    subprocess.run(
+        ["tmux", "send-keys", "-t", session, "Enter"],
+        capture_output=True, text=True, check=True, timeout=5,
+    )
+    time.sleep(0.3)
+    subprocess.run(
+        ["tmux", "send-keys", "-t", session, "Enter"],
+        capture_output=True, text=True, check=True, timeout=5,
+    )
+
+
+def _wake(role: str, session_id: str) -> None:
+    """Resolve (role, session_id) to its tmux session and nudge it if
+    live. Does nothing (silently) if no live session exists -- the letter
+    is already queued; there's just no live process to poke right now, and
+    it will see the letter on its own next turn.
+
+    Logged at the same visibility level `_log_hop` uses (best-effort
+    `notify.info`, never allowed to raise) so a human watching the CTO log
+    can tell what happened, without it affecting anything programmatic.
+    """
+    session = session_name.lock_basename(role, session_id)
+    if not tmux_session.has_session(session):
+        try:
+            notify.info(f"[send_to_cxo] wake skipped (no live session): {session}")
+        except Exception:
+            pass
+        return
+    try:
+        notify.info(f"[send_to_cxo] wake attempted: {session}")
+    except Exception:
+        pass
+    _wake_tmux_send(session, _WAKE_MARKER)
+    try:
+        notify.info(f"[send_to_cxo] wake succeeded: {session}")
+    except Exception:
+        pass
+
+
+def _attempt_wake(role: str, session_id: str) -> None:
+    """Best-effort attention nudge for the just-delivered letter's
+    recipient. The one hard rule (task-cf325742): NOTHING from this step
+    may propagate or change `send()`'s return value -- no tmux session, a
+    tmux error, a timeout, anything. The mailbox write already succeeded
+    before this is ever called; this is strictly on top of it.
+    """
+    try:
+        _wake(role, session_id)
+    except Exception as e:
+        try:
+            notify.info(f"[send_to_cxo] wake failed: {role}-{session_id}: {e}")
+        except Exception:
+            pass
 
 
 # ---------------------------------------------------------------------------
@@ -522,10 +630,15 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     Task task-de2cdc15 (CEO directive 2026-08-14, option A): queues the
     message into the recipient's `lib.mailbox` box and returns once that
     write succeeds -- it no longer types into a terminal, so it no longer
-    depends on tmux or iTerm succeeding, and it does not attempt to wake
-    the recipient. See the module docstring for why the old typed-message
-    path (GH #69, tmux-first/iTerm-fallback) was removed rather than kept
-    as a fallback.
+    depends on tmux or iTerm succeeding. See the module docstring for why
+    the old typed-message path (GH #69, tmux-first/iTerm-fallback) was
+    removed rather than kept as a fallback.
+
+    Task task-cf325742 (same-day "Option B"): after the mailbox write
+    succeeds, attempts a best-effort wake nudge via `_attempt_wake()`.
+    That attempt can never raise and never changes the return value below
+    -- the return string is byte-identical whether the wake succeeds,
+    fails, or is skipped for lack of a live session.
 
     Contract: queued or raised, never "probably". Raises ValueError when
     the target role has no registered session (unchanged failure mode --
@@ -549,6 +662,7 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     from_role, from_sid = _mailbox_identity(sender_identity)
     chain = _chain_ids(sender_identity) + [f"{role}:{sid}"]
     mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
+    _attempt_wake(role, sid)
     return f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
 
 
