@@ -407,19 +407,48 @@ def set_session_id(conversation_id: str, session_id: str) -> None:
 # Deliverable 2 — the claude invocation.
 # ---------------------------------------------------------------------------
 
+def _bare_is_safe() -> bool:
+    """Whether `--bare` can be used with this process's auth method.
+
+    `--bare` skips hooks, LSP and plugin discovery — a real latency win
+    (measured on Contabo, same prompt with a tool call, 2 runs each:
+    8.3-10.7s with vs 15.6-17.4s without). It ALSO skips reading
+    ~/.claude/.credentials.json, so it only works when auth arrives through
+    the environment.
+
+    The comment that used to sit here concluded "--bare restricting auth to
+    ANTHROPIC_API_KEY was the documented risk; it did not materialise". That
+    conclusion came from testing the Z.ai path only, which authenticates via
+    ANTHROPIC_AUTH_TOKEN and so could never have exposed the problem. The
+    risk was real. Proven by A/B on Contabo 2026-08-14, the moment the
+    secretary was switched to the Claude OAuth subscription:
+
+        with    --bare -> is_error=true,  "Not logged in · Please run /login"
+        without --bare -> is_error=false, "OK"
+
+    So the flag is derived from the auth method instead of hardcoded: an env
+    token (Z.ai, or any ANTHROPIC_API_KEY setup) keeps the fast path, while
+    OAuth credential-file auth pays the extra ~7s rather than failing
+    outright. SECRETARY_BARE=on|off forces it either way.
+    """
+    override = (os.environ.get("SECRETARY_BARE") or "").strip().lower()
+    if override in ("on", "1", "true", "yes"):
+        return True
+    if override in ("off", "0", "false", "no"):
+        return False
+    return bool(os.environ.get("ANTHROPIC_AUTH_TOKEN")
+                or os.environ.get("ANTHROPIC_API_KEY"))
+
+
 def _build_claude_cmd(prompt: str, session_id: str | None) -> list[str]:
     cmd = [
         CLAUDE_BIN, "-p", prompt,
         "--output-format", "json",
         "--permission-mode", "dontAsk",
-        # Skips hooks, LSP and plugin discovery — none of which a chat turn
-        # uses, all of which it was paying for. Measured on Contabo, same
-        # prompt with a tool call, 2 runs each: 8.3-10.7s with --bare vs
-        # 15.6-17.4s without. Auth is unaffected — we reach Z.ai through
-        # ANTHROPIC_BASE_URL + ANTHROPIC_AUTH_TOKEN, verified live under
-        # --bare (glm-5.2 billed, is_error false). --bare restricting auth to
-        # ANTHROPIC_API_KEY was the documented risk; it did not materialise.
-        "--bare",
+    ]
+    if _bare_is_safe():
+        cmd.append("--bare")
+    cmd += [
         "--allowed-tools", ",".join(ALLOWED_TOOLS),
         "--system-prompt", SECRETARY_SYSTEM_PROMPT,
         "--mcp-config", str(MCP_CONFIG_PATH),

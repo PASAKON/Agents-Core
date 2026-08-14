@@ -148,11 +148,66 @@ def test_build_claude_cmd_includes_resume_flag_when_session_id_given() -> None:
     assert cmd[-2:] == ["--resume", "sess-abc-123"]
 
 
-def test_build_claude_cmd_keeps_bare_flag() -> None:
+def test_bare_kept_when_auth_comes_from_an_env_token(monkeypatch) -> None:
     """--bare roughly halves turn latency (measured on Contabo: 8.3-10.7s with
-    it vs 15.6-17.4s without, same prompt with a tool call). Dropping it is a
-    silent 2x regression — the reply text looks identical — so pin it."""
+    it vs 15.6-17.4s without, same prompt with a tool call). Dropping it when
+    it WOULD have worked is a silent 2x regression — the reply text looks
+    identical — so pin it for the env-token path (Z.ai and any
+    ANTHROPIC_API_KEY setup)."""
+    monkeypatch.delenv("SECRETARY_BARE", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", "tok-from-env")
     assert "--bare" in ss._build_claude_cmd("hello", None)
+
+    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "key-from-env")
+    assert "--bare" in ss._build_claude_cmd("hello", None)
+
+
+def test_bare_dropped_when_auth_is_the_oauth_credential_file(monkeypatch) -> None:
+    """THE regression this guards. --bare also skips reading
+    ~/.claude/.credentials.json, so on the Claude OAuth subscription it does
+    not merely slow the turn down — it breaks it outright. Proven by A/B on
+    Contabo 2026-08-14: with --bare the CLI answered "Not logged in · Please
+    run /login" (is_error=true) while the identical command without it
+    answered normally. No env token means OAuth, which means no --bare."""
+    monkeypatch.delenv("SECRETARY_BARE", raising=False)
+    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    assert "--bare" not in ss._build_claude_cmd("hello", None)
+
+
+def test_bare_can_be_forced_either_way(monkeypatch) -> None:
+    """An operator escape hatch for a setup the heuristic does not know
+    about — in both directions, so it can also be turned OFF on an env-token
+    setup (e.g. to debug whether --bare is implicated in something)."""
+    monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", "tok-from-env")
+    monkeypatch.setenv("SECRETARY_BARE", "off")
+    assert "--bare" not in ss._build_claude_cmd("hello", None)
+
+    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setenv("SECRETARY_BARE", "on")
+    assert "--bare" in ss._build_claude_cmd("hello", None)
+
+
+def test_flags_after_bare_are_present_regardless_of_the_bare_decision(monkeypatch) -> None:
+    """The refactor that made --bare conditional split one flat list into
+    two concatenated halves. A slip there would silently drop the allowlist
+    or the system prompt — i.e. hand the Telegram-reachable secretary its
+    DEFAULT tool set. Assert the tail survives on both branches."""
+    monkeypatch.delenv("SECRETARY_BARE", raising=False)
+    for token, expect_bare in (("tok", True), (None, False)):
+        if token:
+            monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", token)
+        else:
+            monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+            monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        cmd = ss._build_claude_cmd("hello", None)
+        assert ("--bare" in cmd) is expect_bare
+        for flag in ("--allowed-tools", "--system-prompt",
+                     "--mcp-config", "--strict-mcp-config"):
+            assert flag in cmd, f"{flag} lost when bare={expect_bare}"
 
 
 def test_system_prompt_tells_the_model_to_page_past_the_default_limit() -> None:
