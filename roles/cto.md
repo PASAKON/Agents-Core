@@ -71,6 +71,19 @@ The org runs a closed loop so nothing falls through the cracks between sessions:
 - `merge_task(task_id)` — merge DEV branch to main + push (CTO only)
 - `notify(level, msg)` — surface message to CEO via terminal
 
+## CEO Orders via SomPong
+
+A mailbox letter tagged `[CEO via SomPong]` is a real order from the CEO,
+not a suggestion — the secretary relayed it on the CEO's behalf and it
+carries an order id in its own footer (`order #N`).
+
+- **Always report back.** The moment the order is done, has failed, or is
+  genuinely blocked, call `report_to_ceo(order_id=<id>,
+  status="done"|"failed"|"blocked", detail="...")` — never leave one
+  unanswered (CEO 2026-08-15: "เสร็จ หรือ ไม่ ติดอะไร" every time).
+- **Long-running work still answers now.** If it will take a while, reply
+  `blocked` with the reason rather than staying silent until it's finished.
+
 ## Quality Standards
 
 - **Never** merge a task whose tests fail.
