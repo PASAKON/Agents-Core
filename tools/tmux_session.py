@@ -19,6 +19,7 @@ project whose config sets `spawn_backend: tmux`.
 """
 from __future__ import annotations
 
+import os
 import socket
 import subprocess
 from pathlib import Path
@@ -39,19 +40,49 @@ def has_session(session: str) -> bool:
     return r.returncode == 0
 
 
+def login_shell() -> str:
+    """Absolute path to a login shell that exists on THIS machine.
+
+    `/bin/zsh` used to be hardcoded here. That is right on the Mac and absent
+    on Contabo (Debian), and the failure was silent in the worst possible way:
+    `tmux new-session -d ... /bin/zsh -l -c '...'` exits **0** even when the
+    shell does not exist. tmux creates the session, the command dies
+    instantly, the session dies with it, the server shuts down -- and
+    `create()` returns cleanly, so `spawn_c_level` told the CEO "spawned" for
+    a session that never existed.
+
+    $SHELL first (honours whatever the invoking user actually runs), then the
+    old candidate order, so the Mac resolves to zsh exactly as before.
+    """
+    for candidate in (os.environ.get("SHELL"), "/bin/zsh", "/bin/bash", "/bin/sh"):
+        if candidate and Path(candidate).exists():
+            return candidate
+    return "/bin/sh"  # POSIX guarantees this one
+
+
 def create(session: str, cwd: str | Path, cmd: str) -> None:
     """Start a detached tmux session that runs `cmd` in `cwd`.
 
     Idempotent: if session already exists, returns without error.
+
+    Raises RuntimeError when the session is not alive afterwards. tmux reports
+    success for a command it could not run (see `login_shell`), so its exit
+    code proves nothing -- only the session existing does.
     """
     if has_session(session):
         return
     cwd = str(Path(cwd).expanduser())
+    shell = login_shell()
     _run([
         "tmux", "new-session", "-d", "-s", session, "-c", cwd,
         # Wrap cmd in a login shell so user PATH (claude, pnpm, etc.) resolves.
-        "/bin/zsh", "-l", "-c", cmd,
+        shell, "-l", "-c", cmd,
     ])
+    if not has_session(session):
+        raise RuntimeError(
+            f"tmux session {session!r} was not alive after new-session — its "
+            f"command exited immediately (shell={shell}, cwd={cwd})"
+        )
 
 
 def send_keys(session: str, text: str, *, press_enter: bool = True) -> None:
