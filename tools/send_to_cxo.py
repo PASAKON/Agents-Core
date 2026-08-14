@@ -323,8 +323,11 @@ def _log_hop(sender: Identity, target_role: str, target_session_id: str | None) 
 # mode this whole file replaced (GH #69, GH #65). The marker's only job is
 # to constitute a valid, non-empty prompt so the recipient's
 # UserPromptSubmit hook fires and scripts/hook-inbox.py drains the letter
-# into context.
-_WAKE_MARKER = "."
+# into context. Readable rather than a bare "." (CEO 2026-08-14) so a human
+# glancing at the pane knows why a turn just started -- {label} is filled
+# with the sender's display name (CTO/CMO/CGO/CFO) at call time in _wake(),
+# never hardcoded, since any C-level can wake any other.
+_WAKE_MARKER_TEMPLATE = "[New message from {label}]"
 
 
 def _wake_tmux_send(session: str, text: str) -> None:
@@ -360,11 +363,19 @@ def _wake_tmux_send(session: str, text: str) -> None:
     )
 
 
-def _wake(role: str, session_id: str) -> None:
+def _wake(role: str, session_id: str, label: str) -> None:
     """Resolve (role, session_id) to its tmux session and nudge it if
     live. Does nothing (silently) if no live session exists -- the letter
     is already queued; there's just no live process to poke right now, and
     it will see the letter on its own next turn.
+
+    `label` is the sender's display name (e.g. "CTO", "CFO") -- already
+    resolved by the caller (`send()` already computes it for the return
+    string). The marker names the sender so a human glancing at the pane
+    knows why a turn just started, without leaking the message body -- the
+    body reaches the recipient exclusively via the mailbox letter, never
+    via anything typed here (CEO 2026-08-14: readable marker, not a bare
+    "." -- must not hardcode "CTO", since any C-level can wake any other).
 
     Logged at the same visibility level `_log_hop` uses (best-effort
     `notify.info`, never allowed to raise) so a human watching the CTO log
@@ -381,14 +392,15 @@ def _wake(role: str, session_id: str) -> None:
         notify.info(f"[send_to_cxo] wake attempted: {session}")
     except Exception:
         pass
-    _wake_tmux_send(session, _WAKE_MARKER)
+    marker = _WAKE_MARKER_TEMPLATE.format(label=label)
+    _wake_tmux_send(session, marker)
     try:
         notify.info(f"[send_to_cxo] wake succeeded: {session}")
     except Exception:
         pass
 
 
-def _attempt_wake(role: str, session_id: str) -> None:
+def _attempt_wake(role: str, session_id: str, label: str) -> None:
     """Best-effort attention nudge for the just-delivered letter's
     recipient. The one hard rule (task-cf325742): NOTHING from this step
     may propagate or change `send()`'s return value -- no tmux session, a
@@ -396,7 +408,7 @@ def _attempt_wake(role: str, session_id: str) -> None:
     before this is ever called; this is strictly on top of it.
     """
     try:
-        _wake(role, session_id)
+        _wake(role, session_id, label)
     except Exception as e:
         try:
             notify.info(f"[send_to_cxo] wake failed: {role}-{session_id}: {e}")
@@ -662,7 +674,7 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     from_role, from_sid = _mailbox_identity(sender_identity)
     chain = _chain_ids(sender_identity) + [f"{role}:{sid}"]
     mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
-    _attempt_wake(role, sid)
+    _attempt_wake(role, sid, label)
     return f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
 
 

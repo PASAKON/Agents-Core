@@ -388,7 +388,7 @@ def test_wake_attempted_when_live_tmux_session_exists(
 
     result = sc.send("cfo", "hello")
 
-    assert calls == [("cfo-sess1234", sc._WAKE_MARKER)]
+    assert calls == [("cfo-sess1234", "[New message from CEO]")]
     assert result.startswith("queued to CFO #sess1234:")
 
 
@@ -433,7 +433,7 @@ def test_wake_nudge_never_contains_message_body(
     secret_body = "the actual message body must never be retyped into any composer"
     sc.send("cfo", secret_body)
 
-    assert calls == [sc._WAKE_MARKER]
+    assert calls == ["[New message from CEO]"]
     assert secret_body not in calls[0]
 
 
