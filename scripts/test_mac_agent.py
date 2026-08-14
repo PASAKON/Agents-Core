@@ -8,6 +8,7 @@ allowlist is the first wall; this file pins the second one.
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -237,3 +238,188 @@ def test_malformed_queue_rows_are_skipped_not_fatal(monkeypatch):
     ])))
     rows = ma.fetch_pending()
     assert [r["id"] for r in rows] == [1]
+
+
+# ---------------------------------------------------------------------------
+# terminals / history (task-05ae76f3) — read-only org inspection
+# ---------------------------------------------------------------------------
+
+def _fake_row(i: int) -> dict:
+    return {
+        "host": "mac", "role": "cto", "id": f"{i:06x}", "tmux_name": None,
+        "live": i == 0, "attached": False, "glyph": "✅", "state": "pending",
+        "summary": f"งานตัวอย่าง {i}", "goal": None, "done": None, "total": None,
+        "percent": None, "blocker": None, "created": None,
+        "last_active": 1755100000.0 - i, "idle_seconds": 0,
+    }
+
+
+def _inspect_stub(monkeypatch, rows):
+    monkeypatch.setattr(ma, "list_sessions", lambda include_closed: list(rows))
+    monkeypatch.setattr(ma, "detect_host", lambda: "mac")
+
+
+def test_terminals_caps_rows_and_says_when_dropped(monkeypatch):
+    _inspect_stub(monkeypatch, [_fake_row(i) for i in range(60)])
+
+    ok, result = ma.do_terminals("", {"include_closed": False})
+
+    assert ok
+    out = json.loads(result)
+    assert out["host"] == "mac"
+    assert out["total_sessions"] == 60
+    assert len(out["sessions"]) == 50 == ma.MAX_TERMINAL_ROWS
+    assert out["dropped"] == 10
+    assert "10" in out["note"], "dropped rows must be said out loud"
+
+
+def test_terminals_no_note_when_nothing_dropped(monkeypatch):
+    _inspect_stub(monkeypatch, [_fake_row(i) for i in range(3)])
+
+    ok, result = ma.do_terminals("", {})
+
+    assert ok
+    out = json.loads(result)
+    assert out["dropped"] == 0
+    assert "note" not in out
+
+
+def test_terminals_passes_include_closed_through_and_validates_it(monkeypatch):
+    seen = {}
+
+    def recorder(include_closed):
+        seen["ic"] = include_closed
+        return []
+
+    monkeypatch.setattr(ma, "list_sessions", recorder)
+    monkeypatch.setattr(ma, "detect_host", lambda: "mac")
+
+    ma.do_terminals("", {"include_closed": True})
+    assert seen["ic"] is True
+
+    ma.do_terminals("", {})
+    assert seen["ic"] is False, "default must be False (what is happening NOW)"
+
+    ok, detail = ma.do_terminals("", {"include_closed": "yes please"})
+    assert not ok and "boolean" in detail
+
+
+def test_terminals_payload_survives_the_result_column(monkeypatch):
+    """mark() used to cut `result` at 500 chars, which would have silently
+    destroyed every terminals payload (a 50-row snapshot is ~12 KB). Pin the
+    fix: the full JSON fits MAX_RESULT_CHARS and lands in the UPDATE."""
+    _inspect_stub(monkeypatch, [_fake_row(i) for i in range(50)])
+
+    ok, result = ma.do_terminals("", {})
+    assert ok
+    assert len(result) > 500, "a real snapshot must be far bigger than the old cap"
+    assert json.loads(result)["returned"] == 50, "payload must still be valid JSON"
+
+    sqls = []
+
+    def fake_ssh(sql):
+        sqls.append(sql)
+        return True, ""
+
+    monkeypatch.setattr(ma, "_ssh_sqlite", fake_ssh)
+    assert ma.mark(1, "done", result)
+    assert result in sqls[0], "the whole payload must reach the queue row"
+
+
+def test_mark_still_bounds_a_hostile_giant_result(monkeypatch):
+    sqls = []
+
+    def fake_ssh(sql):
+        sqls.append(sql)
+        return True, ""
+
+    monkeypatch.setattr(ma, "_ssh_sqlite", fake_ssh)
+    ma.mark(2, "done", "x" * 100_000)
+    assert len(sqls[0]) <= len("x" * ma.MAX_RESULT_CHARS) + 200, \
+        "the cap is a bound, not a suggestion"
+
+
+def test_terminals_entry_flows_through_process(monkeypatch):
+    _inspect_stub(monkeypatch, [_fake_row(0)])
+    ok, result = ma.process(
+        {"id": 1, "kind": "terminals", "target_role": "", "payload": {}})
+    assert ok
+    assert json.loads(result)["returned"] == 1
+
+
+def test_history_index_mode_returns_json(monkeypatch):
+    monkeypatch.setattr(ma, "history_index",
+                        lambda sid: {"host": "mac", "session_id": sid, "counts": {}})
+
+    ok, result = ma.do_history("", {"mode": "index", "session_id": "624111c5"})
+
+    assert ok
+    out = json.loads(result)
+    assert out["session_id"] == "624111c5"
+
+    ok, result = ma.do_history("", {"mode": "index"})
+    assert ok and json.loads(result)["session_id"] is None
+
+
+def test_history_read_mode_happy_path(monkeypatch):
+    monkeypatch.setattr(
+        ma, "history_read",
+        lambda p, tail_lines: {"status": "ok", "path": p, "text": "tail"})
+
+    ok, result = ma.do_history("", {"mode": "read", "path": "/somewhere/x.log",
+                                    "tail_lines": 5})
+    assert ok
+    out = json.loads(result)
+    assert out["status"] == "ok" and out["path"] == "/somewhere/x.log"
+
+
+def test_history_read_rejection_fails_the_entry(monkeypatch):
+    """A refusal is the security boundary doing its job — the queue entry must
+    read as failed, never as success-with-a-body."""
+    monkeypatch.setattr(
+        ma, "history_read",
+        lambda p, tail_lines: {"status": "rejected",
+                               "reason": "outside ALLOWED_HISTORY_ROOTS"})
+
+    ok, detail = ma.do_history("", {"mode": "read", "path": "/etc/passwd",
+                                    "tail_lines": 5})
+    assert not ok
+    assert "rejected" in detail and "ALLOWED_HISTORY_ROOTS" in detail
+
+
+def test_history_unknown_mode_fails_and_executes_nothing(monkeypatch):
+    calls = []
+    monkeypatch.setattr(ma, "history_index",
+                        lambda sid: calls.append(("index", sid)) or {})
+    monkeypatch.setattr(ma, "history_read",
+                        lambda p, tail_lines: calls.append(("read", p)) or {})
+
+    ok, detail = ma.do_history("", {"mode": "delete", "path": "/etc/passwd"})
+
+    assert not ok
+    assert "unknown mode" in detail
+    assert calls == [], "an unknown mode must dispatch nowhere"
+
+
+def test_history_validates_payload_shapes(monkeypatch):
+    monkeypatch.setattr(ma, "history_index", lambda sid: {"counts": {}})
+    monkeypatch.setattr(ma, "history_read",
+                        lambda p, tail_lines: {"status": "ok"})
+
+    ok, d = ma.do_history("", {"mode": "read", "tail_lines": 5})
+    assert not ok and "path" in d
+
+    ok, d = ma.do_history("", {"mode": "read", "path": "x.log", "tail_lines": 0})
+    assert not ok and "positive integer" in d
+
+    ok, d = ma.do_history("", {"mode": "read", "path": "x.log", "tail_lines": True})
+    assert not ok and "positive integer" in d
+
+    ok, d = ma.do_history("", {"mode": "index", "session_id": 42})
+    assert not ok and "string" in d
+
+
+def test_terminals_and_history_are_registered_kinds():
+    assert ma.HANDLERS["terminals"] is ma.do_terminals
+    assert ma.HANDLERS["history"] is ma.do_history
+    assert set(ma.HANDLERS) == {"relay", "spawn", "read", "terminals", "history"}
