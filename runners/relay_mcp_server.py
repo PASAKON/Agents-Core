@@ -23,6 +23,10 @@ is the alternative: five named, typed actions instead of a shell.
                                             Mac to an already-running
                                             session, /terminal-open
                                             (task-2a135187 D3)
+  list_ceo_orders(include_closed=False) -- the obligation ledger: which
+                                            relayed CEO orders are still
+                                            unanswered, and since when
+                                            (task-df6de4d4 D4)
 
 Design points this server exists to enforce (see TASK.md task-b293ef6c):
   1. Enumerated actions, never raw keystrokes -- no tool here takes a
@@ -271,6 +275,153 @@ def _queue_mark_done(entry_id: int, result: str) -> bool:
         )
         conn.commit()
         return cur.rowcount > 0
+
+
+# ---------------------------------------------------------------------------
+# task-df6de4d4 D1/D2 -- the CEO-orders obligation ledger. Same DB file as
+# relay_queue above (QUEUE_DB_PATH / SECRETARY_RELAY_QUEUE_DB) -- the one
+# store both hosts already reach. "เสมอ" (always) cannot be delivered by a
+# prompt rule alone -- an agent forgets, crashes, or gets killed mid-task --
+# so the obligation is recorded as DATA at delivery time (here) and closed
+# as data at reply time (lib/ceo_report.py::report_to_ceo, D3).
+# ---------------------------------------------------------------------------
+
+ORDER_STATUSES = ("awaiting_reply", "done", "failed", "blocked")
+
+
+def _orders_conn() -> sqlite3.Connection:
+    QUEUE_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(QUEUE_DB_PATH)
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS ceo_orders (
+            id                INTEGER PRIMARY KEY AUTOINCREMENT,
+            target_role       TEXT NOT NULL,
+            target_session_id TEXT,
+            host              TEXT NOT NULL,
+            order_text        TEXT NOT NULL,
+            sent_at           TEXT NOT NULL,
+            status            TEXT NOT NULL DEFAULT 'awaiting_reply'
+                              CHECK(status IN ('awaiting_reply','done','failed','blocked')),
+            replied_at        TEXT,
+            reply_detail      TEXT
+        )"""
+    )
+    return conn
+
+
+def _order_open(target_role: str, target_session_id: str | None, host: str,
+                 order_text: str) -> int:
+    """Insert one 'awaiting_reply' row. Returns its id.
+
+    Called BEFORE the letter is actually sent -- deliberately, not an
+    oversight. This is the chicken-and-egg D2 calls out: the footer that
+    goes INTO the letter body must carry this row's own id, so the id has
+    to exist before the body can be finalized, which means the row has to
+    exist before delivery is even attempted. The cost of that ordering is
+    that a send which then fails has already created a row -- so every
+    caller of this function MUST call `_order_discard(order_id)` on that
+    path. The alternative (send first, insert after, using the delivered
+    letter's own text to backfill the footer) would need a two-pass
+    write -- rewrite a letter already confirmed on disk -- to inject an id
+    that only exists after that same disk write. Insert-first is the
+    simpler failure mode: one extra DELETE on the rarer, already-slow-path
+    (an error) instead of a rewrite on every single successful send.
+    """
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    with _orders_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO ceo_orders "
+            "(target_role, target_session_id, host, order_text, sent_at, status) "
+            "VALUES (?, ?, ?, ?, ?, 'awaiting_reply')",
+            (target_role, target_session_id, host, order_text, now),
+        )
+        conn.commit()
+        return cur.lastrowid
+
+
+def _order_discard(order_id: int) -> None:
+    """Undo `_order_open` after a failed send -- see its docstring. An
+    'awaiting_reply' row for a letter nobody received would sit forever as
+    a phantom obligation, which the task brief calls worse than not
+    tracking it at all."""
+    with _orders_conn() as conn:
+        conn.execute("DELETE FROM ceo_orders WHERE id = ?", (order_id,))
+        conn.commit()
+
+
+def _order_footer(order_id: int) -> str:
+    """Server-side footer -- built here, appended in `relay_to_session`,
+    the caller cannot omit or alter it, same discipline as RELAY_PREFIX.
+    Carries the row's own id so a role holding two open orders can close
+    the right one."""
+    return (
+        f"\n\n[งานนี้มาจาก CEO ผ่าน SomPong · order #{order_id}]\n"
+        "เสร็จแล้วหรือทำไม่ได้ ให้รายงานกลับเสมอ:\n"
+        f'report_to_ceo(order_id={order_id}, status="done"|"failed"|"blocked", detail="…")'
+    )
+
+
+def _orders_list(include_closed: bool = False) -> list[dict]:
+    """Rows newest-first, each with an `age_seconds` computed from
+    `sent_at`. `include_closed=False` (the default) filters to
+    status='awaiting_reply' in SQL, not in Python, so a large closed
+    history never has to be fetched just to be thrown away."""
+    cols = (
+        "id, target_role, target_session_id, host, order_text, "
+        "sent_at, status, replied_at, reply_detail"
+    )
+    with _orders_conn() as conn:
+        if include_closed:
+            rows = conn.execute(
+                f"SELECT {cols} FROM ceo_orders ORDER BY id DESC"
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                f"SELECT {cols} FROM ceo_orders "
+                "WHERE status = 'awaiting_reply' ORDER BY id DESC"
+            ).fetchall()
+    now = datetime.now(timezone.utc)
+    out = []
+    for oid, role, sid, host, text, sent_at, status, replied_at, reply_detail in rows:
+        age_seconds = None
+        try:
+            age_seconds = int((now - datetime.fromisoformat(sent_at)).total_seconds())
+        except (TypeError, ValueError):
+            pass  # malformed sent_at reads as "age unknown", never a crash
+        out.append({
+            "id": oid, "target_role": role, "target_session_id": sid,
+            "host": host, "order_text": text, "sent_at": sent_at,
+            "status": status, "replied_at": replied_at,
+            "reply_detail": reply_detail, "age_seconds": age_seconds,
+        })
+    return out
+
+
+@mcp.tool()
+def list_ceo_orders(include_closed: bool = False) -> str:
+    """Which CEO orders relayed via SomPong are still unanswered, and
+    since when -- the obligation ledger D1/D2 write into on every
+    `relay_to_session` delivery.
+
+    No arguments beyond `include_closed` (default False -- shows only
+    status='awaiting_reply' rows, the question the CEO actually asks:
+    "สั่งไปแล้วเงียบ มีอะไรค้าง"). Pass include_closed=True to also see
+    done/failed/blocked rows.
+
+    Rows are newest-first, each carrying `age_seconds` since it was sent.
+    Read-only -- this tool never closes a row; that's `report_to_ceo`
+    (lib/ceo_report.py), called by the C-level session the order was
+    addressed to, not by the secretary.
+
+    NOT YET on runners/secretary_server.py's ALLOWED_TOOLS -- that file is
+    out of touches for task-df6de4d4 (owner's own note: "I will handle
+    it"). Registering here alone means the tool exists but SomPong cannot
+    call it until that allowlist entry lands.
+    """
+    rows = _orders_list(include_closed=include_closed)
+    _audit("list_ceo_orders", "-", "ok",
+           f"rows={len(rows)} include_closed={include_closed}")
+    return json.dumps(rows, ensure_ascii=False)
 
 
 # ---------------------------------------------------------------------------
@@ -556,12 +707,19 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
     think for minutes and this tool does not block on that -- so the field
     is always labelled as a snapshot ("pane contents N seconds after
     delivering"), never claimed to be the reply.
+
+    task-df6de4d4 D1/D2: every successful delivery (live or queued for the
+    Mac) opens one 'awaiting_reply' row in the ceo_orders ledger and
+    appends a server-side footer to the letter carrying that row's own id
+    -- the recipient calls `report_to_ceo(order_id=..., status=...)` to
+    close it. A delivery that fails (mailbox write raises, or the queue
+    write raises) discards the row it opened -- an order nobody received
+    must never sit as "awaiting reply" forever. The result carries
+    `order_id` either way it succeeds.
     """
     rejection = _reject_unknown_role("relay_to_session", target_role)
     if rejection:
         return rejection
-
-    full_message = f"{RELAY_PREFIX}{message}"
 
     tmux_name = _active_contabo_tmux_session(target_role)
     # The letter is addressed by (role, session_id), so resolve the id from
@@ -582,6 +740,11 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
             Identity("secretary", SECRETARY_FROM_ROLE, SECRETARY_FROM_SESSION_ID),
             target_role, session_id, spawning=False,
         )
+        # D2's chicken-and-egg, resolved: open the ledger row FIRST (to get
+        # an id), build the footer from that id, THEN send -- see
+        # _order_open's docstring for why insert-first beats send-first.
+        order_id = _order_open(target_role, session_id, "contabo", message)
+        full_message = f"{RELAY_PREFIX}{message}{_order_footer(order_id)}"
         try:
             letter_path = mailbox.send(
                 target_role, session_id, full_message,
@@ -589,6 +752,7 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
             )
             letter_on_disk = letter_path.is_file()
         except Exception as e:
+            _order_discard(order_id)
             _audit("relay_to_session", target_role, "delivery_failed", str(e))
             return json.dumps({
                 "status": "error", "target_role": target_role,
@@ -597,6 +761,7 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
         if not letter_on_disk:
             # The write "succeeded" but there is nothing on disk -- report
             # the effect, not the act. Never "delivered".
+            _order_discard(order_id)
             _audit("relay_to_session", target_role, "delivery_failed",
                    f"letter missing after write: {letter_path}")
             return json.dumps({
@@ -615,11 +780,13 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
         except Exception as e:
             _audit("relay_to_session", target_role, "wake_failed", str(e))
         _audit("relay_to_session", target_role, "delivered",
-               f"tmux={tmux_name} letter={letter_path} message={full_message!r}")
+               f"tmux={tmux_name} letter={letter_path} order_id={order_id} "
+               f"message={full_message!r}")
         result = {
             "status": "delivered", "target_role": target_role,
             "tmux_session": tmux_name, "message": full_message,
             "letter_path": str(letter_path),
+            "order_id": order_id,
         }
         if wait:
             time.sleep(RELAY_WAIT_SECONDS)
@@ -640,15 +807,34 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
             }
         return json.dumps(result, ensure_ascii=False)
 
-    queue_id = _queue_enqueue("relay", target_role, {"message": full_message})
+    # host="mac": the letter itself does not exist yet (mac_agent.py writes
+    # it once it drains this row), but the queue write below is what makes
+    # delivery certain enough to open an obligation for -- "the letter WILL
+    # land" per D1. session_id is unknown at queue time (host="mac" here is
+    # never the live-Contabo-tmux branch above), so target_session_id is
+    # left NULL, same nullable column report_to_ceo's lookup already
+    # tolerates.
+    order_id = _order_open(target_role, None, "mac", message)
+    full_message = f"{RELAY_PREFIX}{message}{_order_footer(order_id)}"
+    try:
+        queue_id = _queue_enqueue("relay", target_role, {"message": full_message})
+    except Exception as e:
+        _order_discard(order_id)
+        _audit("relay_to_session", target_role, "queue_failed", str(e))
+        return json.dumps({
+            "status": "error", "target_role": target_role,
+            "detail": f"queue write failed: {e}",
+        }, ensure_ascii=False)
     mac = _mac_status_dict()
     _audit("relay_to_session", target_role, "queued",
-           f"queue_id={queue_id} mac_state={mac['state']} message={full_message!r}")
+           f"queue_id={queue_id} order_id={order_id} mac_state={mac['state']} "
+           f"message={full_message!r}")
     return json.dumps({
         "status": "queued", "target_role": target_role, "queue_id": queue_id,
         "message": full_message,
         "mac_reachable": mac["reachable"], "mac_state": mac["state"],
         "mac_summary_th": mac["summary_th"],
+        "order_id": order_id,
     }, ensure_ascii=False)
 
 
