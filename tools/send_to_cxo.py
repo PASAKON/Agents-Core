@@ -549,7 +549,7 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     from_role, from_sid = _mailbox_identity(sender_identity)
     chain = _chain_ids(sender_identity) + [f"{role}:{sid}"]
     mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
-    return f"queued to {display_for(role)} #{sid}: [{label}]: {message}"
+    return f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
 
 
 def main() -> int:

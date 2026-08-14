@@ -66,8 +66,9 @@ def main() -> int:
     print()
     for letter in letters:
         frm = letter.get("from") or {}
-        print(f"[{frm.get('role', '?')}#{frm.get('session_id', '?')}] {letter.get('sent_at', '')}")
-        print(letter.get("body", ""))
+        role_label = str(frm.get("role") or "?").upper()
+        print(f"[{role_label}] : {letter.get('body', '')}")
+        print(f"    ({frm.get('session_id', '?')} · {letter.get('sent_at', '')})")
         print()
     return 0
 

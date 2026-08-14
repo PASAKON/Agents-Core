@@ -455,7 +455,8 @@ def test_hook_drains_and_prints_then_box_is_empty(
     out = capsys.readouterr().out
     assert rc == 0
     assert "budget approved" in out
-    assert "cto#031a9e4f" in out
+    assert "[CTO] :" in out
+    assert "031a9e4f" in out
     assert mailbox.peek("cmo", "c1f1dd67", root=isolated_mailbox_root) == []
 
 
