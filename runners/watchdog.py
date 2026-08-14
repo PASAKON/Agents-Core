@@ -2,7 +2,7 @@
 
 Scans tasks WHERE status='in_progress'. For each:
   - silent < PING_AFTER_S          → leave alone
-  - PING_AFTER_S <= silent < STALL_AFTER_S → send_to_dev "status check"
+  - PING_AFTER_S <= silent < STALL_AFTER_S → send_to_worker "status check"
   - silent >= STALL_AFTER_S        → status=stalled + file gh issue
 
 "Silent" = seconds since tasks.updated_at (Stop-hook relay touches this).
@@ -84,7 +84,7 @@ def _send_ping(task_id: str, message: str) -> bool:
         )
         return r.returncode == 0
     except Exception as e:
-        warn(f"send_to_dev failed for {task_id}: {e}")
+        warn(f"send_to_worker failed for {task_id}: {e}")
         return False
 
 

@@ -161,7 +161,7 @@ def close_dev(task_id: str, *, reason: str) -> dict:
     if matched:
         result["signal"] = _terminate_pid(pid)
     else:
-        info(f"dev_reap: {task_id} pid={pid} did not match this task's "
+        info(f"worker_reap: {task_id} pid={pid} did not match this task's "
              "command line (dead or recycled) — not signalling")
 
     # The pid may only be used for anything at all if it was verified. When it

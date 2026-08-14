@@ -12,8 +12,8 @@ are re-sent on every later turn — so the guard counts, stays silent while the
 count is small, and blocks once the session has clearly stopped verifying and
 started working.
 
-Discriminator: a DEV process carries DEV_ROLE in its environment (set by
-runners/dev_init.py before exec). Anything without it is a C-level or a plain
+Discriminator: a DEV process carries WORKER_ROLE in its environment (set by
+runners/worker_init.py before exec). Anything without it is a C-level or a plain
 session, and is subject to the caps.
 
 Reads the Claude Code hook event from stdin:
@@ -68,7 +68,7 @@ def main() -> int:
     if os.environ.get("BROWSER_GUARD", "").lower() in {"off", "0", "false"}:
         return 0
     # DEVs are exactly who this work is supposed to run on.
-    if os.environ.get("DEV_ROLE"):
+    if os.environ.get("WORKER_ROLE"):
         return 0
 
     try:

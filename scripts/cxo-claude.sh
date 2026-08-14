@@ -15,7 +15,7 @@
 #   --initial-prompt <text>   Passed to `claude` as its final positional
 #                             argv -- auto-submitted the instant the process
 #                             starts (task-093a3939), same mechanism
-#                             runners/dev_init.py's kickoff uses. Never typed.
+#                             runners/worker_init.py's kickoff uses. Never typed.
 #   --tab-title <title>       Override the default tab title
 #                             ("$DISPLAY #$CXO_SESSION_ID").
 set -euo pipefail
@@ -411,8 +411,8 @@ export DISABLE_AUTOUPDATER=1
 # INITIAL_PROMPT (ephemeral --spawn from tools/send_to_cxo.py) rides in as
 # claude's final positional argv, same as ARGS above -- a `claude` process
 # started with a positional prompt auto-submits it instantly, zero
-# keypresses (measured, not inferred -- see runners/dev_init.py's kickoff
-# and its docstring correction in tools/send_to_dev.py). No osascript, no
+# keypresses (measured, not inferred -- see runners/worker_init.py's kickoff
+# and its docstring correction in tools/send_to_worker.py). No osascript, no
 # delay, no tab-name search: task-093a3939 replaces the former
 # sleep-then-type background job (a 5s guess that raced the tab's own
 # readiness) with this.

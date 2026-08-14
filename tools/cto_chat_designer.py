@@ -8,9 +8,9 @@ opening the claudesign Web UI, and the designer keeps full conversation
 context via `claude --continue`.
 
 Why this exists:
-  - `tools/send_to_dev.py` only types into a visible iTerm tab. The
+  - `tools/send_to_worker.py` only types into a visible iTerm tab. The
     web_designer pane is a `tail -F mirror.log` viewer (see
-    `runners/dev_init.py` line ~115), not a claude TUI — typing into it
+    `runners/worker_init.py` line ~115), not a claude TUI — typing into it
     is a no-op.
   - `claudesign_tmux_bin.py` is the bridge claudesign daemon spawns
     when the Web UI fires a prompt. This module is the CTO-side

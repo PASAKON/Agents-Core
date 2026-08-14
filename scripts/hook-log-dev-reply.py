@@ -3,8 +3,8 @@
 persist session-id + rate-limit signal back to the tasks DB so the
 auto-resume scheduler can recover the work later.
 
-Mirrors hook-log-reply.py but for DEV sessions. Gated by DEV_TASK_ID env
-(set by runners/dev_init.py before exec). Writes:
+Mirrors hook-log-reply.py but for DEV sessions. Gated by WORKER_TASK_ID env
+(set by runners/worker_init.py before exec). Writes:
 
     [<ts>] Dev:<task_id>: <reply text>
 
@@ -148,12 +148,12 @@ def _role_label(role: str | None) -> str:
 
 
 def main() -> int:
-    task_id = os.environ.get("DEV_TASK_ID")
+    task_id = os.environ.get("WORKER_TASK_ID")
     if not task_id:
         return 0
-    role = os.environ.get("DEV_ROLE")
-    cto_id = os.environ.get("DEV_CTO_ID")
-    owner_role = os.environ.get("DEV_CTO_ROLE", "cto")
+    role = os.environ.get("WORKER_ROLE")
+    cto_id = os.environ.get("WORKER_CTO_ID")
+    owner_role = os.environ.get("WORKER_CTO_ROLE", "cto")
     role_label = _role_label(role)
     try:
         payload = json.load(sys.stdin)

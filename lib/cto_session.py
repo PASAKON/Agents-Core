@@ -3,7 +3,7 @@ reports route back to the spawning CTO instead of broadcasting to every
 open CTO tab.
 
 The ID is exported as CTO_SESSION_ID in the CTO process env. DEV
-processes inherit DEV_CTO_ID at spawn time (via tools/delegate.py).
+processes inherit WORKER_CTO_ID at spawn time (via tools/delegate.py).
 """
 from __future__ import annotations
 
@@ -25,9 +25,9 @@ def current_id() -> str | None:
 
     Resolution order:
       1. CTO_SESSION_ID  — set by cto_chat at startup
-      2. DEV_CTO_ID      — set by delegate_task on DEV spawn
+      2. WORKER_CTO_ID      — set by delegate_task on DEV spawn
     """
-    sid = os.environ.get("CTO_SESSION_ID") or os.environ.get("DEV_CTO_ID")
+    sid = os.environ.get("CTO_SESSION_ID") or os.environ.get("WORKER_CTO_ID")
     return sid or None
 
 

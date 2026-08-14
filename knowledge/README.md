@@ -7,7 +7,7 @@ web_designer's knowledge bank that lives at
 
 These directories are **dual-access**:
 - **Workers** read via symlink injected into their worktree on
-  `delegate_task` (see `runners/dev_init.py::KNOWLEDGE_MAP` and
+  `delegate_task` (see `runners/worker_init.py::KNOWLEDGE_MAP` and
   `_symlink_knowledge()`).
 - **C-level** (CTO/CMO/CGO/CFO) read directly from this path during
   planning, task brief authoring, or review.
@@ -47,7 +47,7 @@ anatomy:
 
 ## KNOWLEDGE_MAP
 
-`runners/dev_init.py` defines `KNOWLEDGE_MAP` — a dict mapping role name to
+`runners/worker_init.py` defines `KNOWLEDGE_MAP` — a dict mapping role name to
 the **list** of bank paths under `knowledge/` that role receives:
 
 ```python
@@ -69,12 +69,12 @@ visible — the alternative, a symlink from one bank into another, buries it in
 the filesystem where nobody reads it. Values became lists on 2026-08-03; they
 were bare strings before.
 
-During worktree setup (`delegate_task` → `dev_init`), `_symlink_knowledge()`
+During worktree setup (`delegate_task` → `worker_init`), `_symlink_knowledge()`
 creates a symlink at `<worktree>/knowledge/<bank-name>` for each bank,
 pointing at the shared directory. The symlinks are read-only-intent (workers
 must not write back into the shared bank), and a bank missing from disk is
 skipped rather than raising. The same wiring runs on resume
-(`dev_resume.py`).
+(`worker_resume.py`).
 
 Roles not in `KNOWLEDGE_MAP` (developer, tester, devops_engineer, etc.)
 are silently skipped — no error.

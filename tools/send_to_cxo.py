@@ -3,7 +3,7 @@
 The sender (typically CTO/CMO/CGO/CFO acting on a request from CEO)
 needs to ask a sibling C-level to do something (e.g. CTO → CFO for a
 budget approval, CMO → CGO for an attribution check). This mirrors
-`tools/send_to_dev.py` but targets C-level boxes identified by role +
+`tools/send_to_worker.py` but targets C-level boxes identified by role +
 session id (recorded by `scripts/cxo-claude.sh` in
 `state/locks/<role>-active`).
 
@@ -390,7 +390,7 @@ def _spawn_new_ephemeral(
     scripts/cxo-claude.sh now passes straight through to `claude` as its
     final positional argv -- auto-submitted the instant the process
     starts, zero keypresses (task-093a3939), the same mechanism
-    runners/dev_init.py's kickoff already uses. It travels as a literal
+    runners/worker_init.py's kickoff already uses. It travels as a literal
     line in the temp RUN_FILE below, never as an AppleScript string, so
     Unicode / special chars in it need no AppleScript escaping -- only the
     one shell-quoting layer `_sh_sq` protects.

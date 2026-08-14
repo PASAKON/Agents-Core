@@ -4,7 +4,7 @@ actually work").
 
 pytest style, tmp_path fixtures only (ADR 0021 §1) -- never touches the real
 state/tasks.db or state/locks/. `_send()` takes osascript execution as an
-injectable `runner`, the same approach GH #60 made `tools/send_to_dev.py`
+injectable `runner`, the same approach GH #60 made `tools/send_to_worker.py`
 testable with: tests pass a fake runner directly, or monkeypatch the
 module-level `_run_osascript` name so `send()` (which doesn't pass `runner`
 explicitly) picks up the fake too.
@@ -99,10 +99,10 @@ def isolated_mailbox_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Pa
 @pytest.fixture(autouse=True)
 def clean_identity_env(monkeypatch: pytest.MonkeyPatch):
     """current_identity()/_resolve_sender_role() read process env -- start
-    every test from a blank slate so a stray CXO_ROLE/DEV_TASK_ID left over
+    every test from a blank slate so a stray CXO_ROLE/WORKER_TASK_ID left over
     from this DEV's own harness process can never leak into a test."""
     for var in ("CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID",
-                "DEV_TASK_ID", "DEV_ROLE"):
+                "WORKER_TASK_ID", "WORKER_ROLE"):
         monkeypatch.delenv(var, raising=False)
 
 

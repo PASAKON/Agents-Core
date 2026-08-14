@@ -1,9 +1,9 @@
 """DEV -> owning C-level mailbox: queue a message into the owner's inbox,
-then attempt a best-effort wake. Mirror of `tools/send_to_dev.py`, opposite
+then attempt a best-effort wake. Mirror of `tools/send_to_worker.py`, opposite
 direction.
 
 Task task-2f04a8ca (CEO directive 2026-08-14, same migration as
-`send_to_dev.py` -- see that file's docstring for the full CEO quote and
+`send_to_worker.py` -- see that file's docstring for the full CEO quote and
 the day's history it traces to). Used by the DEV's Stop hook
 (`scripts/hook-log-dev-reply.py`) so every DEV reply reaches the owning
 C-level's mailbox instead of being typed into that C-level's iTerm tab.
@@ -79,7 +79,7 @@ def _attempt_wake(role: str, session_id: str, label: str) -> None:
     recipient. Same isolation guarantee as `send_to_cxo._attempt_wake()`:
     nothing here may raise or change `send()`'s return value.
 
-    Unlike `send_to_dev.py`'s DEV-side wake, the target here is always a
+    Unlike `send_to_worker.py`'s DEV-side wake, the target here is always a
     C-level session -- `cto-claude.sh` / `cxo-claude.sh` always launch
     inside `tmux new-session -A -s <role>-<id>`, so
     `session_name.lock_basename(role, session_id)` reliably names a live

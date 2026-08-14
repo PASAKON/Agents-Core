@@ -37,12 +37,12 @@ Level: C = C-level (`config.agents()["c_level"]`), W = Worker.
 in deploy-adjacent or secrets-adjacent work is expensive — see
 `decisions/0009-model-routing-policy.md`. Per-task overrides live in
 `tasks.model_hint`, and `lib/quota_router.py` may route a worker to GLM-5.2
-when `DEV_MODEL_PROVIDER=auto` and Claude quota is short.
+when `WORKER_MODEL_PROVIDER=auto` and Claude quota is short.
 
 ## Tool → Role Allow
 
 A worker's entire tool surface is the seven rows marked yes below —
-enumerated by `runners/dev_mcp_server.py`, not by this prose. There is no
+enumerated by `runners/worker_mcp_server.py`, not by this prose. There is no
 partially-privileged worker tier: every W role above gets exactly this set.
 
 | Tool                     | C-level | Worker |
