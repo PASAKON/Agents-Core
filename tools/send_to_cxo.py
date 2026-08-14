@@ -164,7 +164,7 @@ MAX_HOPS = 3
 class Identity:
     """A node in the ownership graph: a C-level session or a DEV task."""
 
-    kind: str  # "cxo" | "dev" | "ceo"
+    kind: str  # "cxo" | "dev" | "ceo" | "secretary"
     role: str  # cto/cmo/cgo/cfo for "cxo"; the DEV role key for "dev"
     session_id: str | None  # session id ("cxo") or task_id ("dev"); None for "ceo"
 
@@ -195,8 +195,12 @@ def record_spawn(spawner: Identity, target_role: str, target_session_id: str) ->
 def _owner_of(identity: Identity) -> Identity | None:
     """Recorded owner of `identity`, or None if it is a root (CEO-owned)
     identity: a primary C-level session never reached through `spawn()`,
-    or a DEV task with no owner_cto on record."""
-    if identity.kind == "ceo":
+    or a DEV task with no owner_cto on record. The secretary is root-tier
+    by definition (task-18241f1d): it is the CEO's proxy, so it must never
+    fall through to the C-level `.spawned_by` lookup below -- an identity
+    that merely *behaves like* a root C-level is exactly the impersonation
+    shape this guard exists to prevent."""
+    if identity.kind in ("ceo", "secretary"):
         return None
     if identity.kind == "dev":
         t = db.get_task(identity.session_id) if identity.session_id else None
@@ -268,7 +272,18 @@ def authorize(sender: Identity, target_role: str, target_session_id: str | None,
     primary session, never reached through `spawn()`) additionally gets
     the peer exception: any primary C-level may reach any other C-level's
     primary session -- level 1 talking to level 1, not a delegation chain.
+
+    The secretary (SomPong) is NOT a C-level and has its own explicit
+    entry here (task-18241f1d): it is the CEO's designated proxy -- the
+    Telegram channel that relays orders the CEO typed, via
+    runners/relay_mcp_server.py. It may reach any C-level primary session,
+    and every such send is attributed secretary/sompong in the letter's
+    structured `from` plus "[CEO via SomPong] " in the body. Deliberately
+    its own branch, never a dressed-up C-level identity: impersonation is
+    the one thing this guard exists to prevent.
     """
+    if sender.kind == "secretary":
+        return
     owner = _owner_of(sender)
     if owner is None:
         return  # root: free peer messaging, and free to spawn a level-2 child
@@ -400,12 +415,18 @@ def _wake(role: str, session_id: str, label: str) -> None:
         pass
 
 
-def _attempt_wake(role: str, session_id: str, label: str) -> None:
+def attempt_wake(role: str, session_id: str, label: str) -> None:
     """Best-effort attention nudge for the just-delivered letter's
     recipient. The one hard rule (task-cf325742): NOTHING from this step
-    may propagate or change `send()`'s return value -- no tmux session, a
-    tmux error, a timeout, anything. The mailbox write already succeeded
-    before this is ever called; this is strictly on top of it.
+    may propagate or change the caller's notion of success -- no tmux
+    session, a tmux error, a timeout, anything. The mailbox write already
+    succeeded before this is ever called; this is strictly on top of it.
+
+    Public since task-18241f1d: this is the org's ONE wake implementation
+    (settle delay + rescue Enter, the GH #70 workaround).
+    runners/relay_mcp_server.py imports it instead of copying the
+    sequence -- a second copy would drift the moment GH #70 gets a real
+    resolution.
     """
     try:
         _wake(role, session_id, label)
@@ -414,6 +435,12 @@ def _attempt_wake(role: str, session_id: str, label: str) -> None:
             notify.info(f"[send_to_cxo] wake failed: {role}-{session_id}: {e}")
         except Exception:
             pass
+
+
+# Back-compat alias (task-18241f1d): existing callers and tests reference
+# the old private name; both names must stay the SAME function object so a
+# monkeypatch on either is observed by every caller.
+_attempt_wake = attempt_wake
 
 
 # ---------------------------------------------------------------------------
