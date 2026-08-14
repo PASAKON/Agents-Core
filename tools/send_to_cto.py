@@ -56,14 +56,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import mailbox  # noqa: E402
-from lib import notify  # noqa: E402
 from lib.config import display_for, live_c_level_roles  # noqa: E402
-from tools import session_name, tmux_session  # noqa: E402
-from tools.send_to_cxo import (  # noqa: E402
-    _active_session_id,
-    _wake_tmux_send,
-    _WAKE_MARKER_TEMPLATE,
-)
+from tools import agent_transport, session_name  # noqa: E402
+from tools.agent_transport import _wake_tmux_send  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 STATE_DIR = ROOT / "state"
@@ -90,30 +85,15 @@ def _attempt_wake(role: str, session_id: str, label: str) -> None:
     `session_name.lock_basename(role, session_id)` reliably names a live
     tmux session whenever that C-level's tab is actually open. This is the
     direction the wake mechanism was originally proven for.
+
+    Delegates the actual wrap/log/never-raise nudge to
+    `tools.agent_transport.attempt_wake()` (task task-eb0d9863) --
+    `send_fn=_wake_tmux_send` is this module's own imported reference,
+    resolved in THIS module's globals, so a test that monkeypatches
+    `tools.send_to_cto._wake_tmux_send` is still honored.
     """
     session = session_name.lock_basename(role, session_id)
-    try:
-        if not tmux_session.has_session(session):
-            try:
-                notify.info(f"[send_to_cto] wake skipped (no live session): {session}")
-            except Exception:
-                pass
-            return
-        try:
-            notify.info(f"[send_to_cto] wake attempted: {session}")
-        except Exception:
-            pass
-        marker = _WAKE_MARKER_TEMPLATE.format(label=label)
-        _wake_tmux_send(session, marker)
-        try:
-            notify.info(f"[send_to_cto] wake succeeded: {session}")
-        except Exception:
-            pass
-    except Exception as e:
-        try:
-            notify.info(f"[send_to_cto] wake failed: {role}-{session_id}: {e}")
-        except Exception:
-            pass
+    agent_transport.attempt_wake(session, label, "send_to_cto", send_fn=_wake_tmux_send)
 
 
 def send(from_id: str, message: str, role: str | None = None,
@@ -157,7 +137,7 @@ def send(from_id: str, message: str, role: str | None = None,
 
     delivered_any = False
     for r in live_c_level_roles():
-        sid = _active_session_id(r)
+        sid = agent_transport._active_session_id(r)
         if not sid:
             continue
         mailbox.send(r, sid, message, from_role, from_id)

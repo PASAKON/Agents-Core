@@ -56,6 +56,7 @@ sys.path.insert(0, str(ROOT))
 
 import lib.db as db_mod  # noqa: E402
 import lib.mailbox as mailbox  # noqa: E402
+import tools.agent_transport as agent_transport  # noqa: E402
 import tools.send_to_cxo as sc  # noqa: E402
 
 
@@ -475,7 +476,12 @@ def test_wake_tmux_send_uses_settle_delay_rescue_sequence_not_send_keys(monkeypa
     bracketed-paste Enter-swallow `lib.iterm_type` already fixed for iTerm.
     `_wake_tmux_send` must NOT call `send_keys()` -- it builds its own
     type / delay 0.4 / Enter / delay 0.3 / Enter (rescue) sequence,
-    mirroring `lib.iterm_type.type_submit_fragment`'s proven pattern."""
+    mirroring `lib.iterm_type.type_submit_fragment`'s proven pattern.
+
+    `_wake_tmux_send`'s real implementation lives in `tools.agent_transport`
+    (task task-eb0d9863 moved it there, out of send_to_cxo.py) -- this
+    calls it directly (not through `sc.send()`'s wrapper), so the
+    `subprocess`/`time` patches target that module, not `sc`."""
     calls = []
 
     def fake_run(cmd, **kw):
@@ -483,10 +489,10 @@ def test_wake_tmux_send_uses_settle_delay_rescue_sequence_not_send_keys(monkeypa
         return types.SimpleNamespace(returncode=0, stdout="", stderr="")
 
     sleeps = []
-    monkeypatch.setattr(sc.subprocess, "run", fake_run)
-    monkeypatch.setattr(sc.time, "sleep", lambda s: sleeps.append(s))
+    monkeypatch.setattr(agent_transport.subprocess, "run", fake_run)
+    monkeypatch.setattr(agent_transport.time, "sleep", lambda s: sleeps.append(s))
 
-    sc._wake_tmux_send("cfo-sess1234", ".")
+    agent_transport._wake_tmux_send("cfo-sess1234", ".")
 
     assert calls == [
         ["tmux", "send-keys", "-t", "cfo-sess1234", "-l", "."],

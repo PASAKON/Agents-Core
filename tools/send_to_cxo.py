@@ -75,7 +75,6 @@ import subprocess
 import sys
 import tempfile
 import time
-from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -84,7 +83,14 @@ from lib import db
 from lib import mailbox
 from lib import notify
 from lib.config import display_for, is_c_level
-from tools import session_name, tmux_session
+from tools import agent_transport, session_name, tmux_session
+from tools.agent_transport import (
+    CEO_IDENTITY,
+    Identity,
+    _resolve_sender_role,
+    _wake_tmux_send,
+    current_identity,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCKS_DIR = ROOT / "state" / "locks"
@@ -93,35 +99,13 @@ LOCKS_DIR = ROOT / "state" / "locks"
 def _active_session_id(role: str) -> str | None:
     """Return the most-recent C-level session id for `role`, or None.
 
-    Looks first at the `<role>-active` pointer that cxo-claude.sh writes
-    on boot. Falls back to the newest matching `.winid` file so we still
-    work for sessions started before this helper existed.
+    Thin wrapper around `tools.agent_transport._active_session_id` --
+    passes this module's own `LOCKS_DIR` explicitly (rather than letting
+    the shared function fall back to its own) so tests that isolate this
+    module's `LOCKS_DIR` (several do -- e.g. `runners/mac_agent.py`'s
+    relay tests) keep working unchanged.
     """
-    pointer = LOCKS_DIR / f"{role}-active"
-    if pointer.exists():
-        sid = pointer.read_text().strip()
-        if sid:
-            return sid
-    candidates = sorted(
-        LOCKS_DIR.glob(f"{role}-*.winid"),
-        key=lambda p: p.stat().st_mtime,
-        reverse=True,
-    )
-    for p in candidates:
-        sid = p.stem.split("-", 1)[1]
-        if sid != "active":
-            return sid
-    return None
-
-
-def _resolve_sender_role() -> str:
-    """Best-effort sender label. CEO when no C-level env is set."""
-    r = os.environ.get("CXO_ROLE")
-    if r and is_c_level(r):
-        return display_for(r)
-    if os.environ.get("CTO_SESSION_ID"):
-        return display_for("cto")
-    return "CEO"
+    return agent_transport._active_session_id(role, LOCKS_DIR)
 
 
 # ---------------------------------------------------------------------------
@@ -158,23 +142,10 @@ def _resolve_sender_role() -> str:
 
 MAX_HOPS = 3
 
-
-@dataclass(frozen=True)
-class Identity:
-    """A node in the ownership graph: a C-level session or a DEV task."""
-
-    kind: str  # "cxo" | "dev" | "ceo" | "secretary"
-    role: str  # cto/cmo/cgo/cfo for "cxo"; the DEV role key for "dev"
-    session_id: str | None  # session id ("cxo") or task_id ("dev"); None for "ceo"
-
-    def label(self) -> str:
-        if self.kind == "ceo":
-            return "CEO"
-        disp = display_for(self.role) if self.kind == "cxo" else self.role
-        return f"{disp}#{self.session_id}" if self.session_id else disp
-
-
-CEO_IDENTITY = Identity("ceo", "CEO", None)
+# Identity, CEO_IDENTITY -- moved to tools/agent_transport.py (task
+# task-eb0d9863), imported above. Kept accessible as `tools.send_to_cxo.
+# Identity` / `.CEO_IDENTITY` via that import for external callers
+# (runners/relay_mcp_server.py imports `Identity` from here).
 
 
 def _spawn_record_path(role: str, session_id: str) -> Path:
@@ -244,21 +215,8 @@ def _chain_str(identity: Identity) -> str:
     return " -> ".join(i.label() for i in _chain(identity))
 
 
-def current_identity() -> Identity:
-    """Who is calling send_to_cxo right now, resolved from process env --
-    never from anything the caller passes in."""
-    r = os.environ.get("CXO_ROLE")
-    if r and is_c_level(r):
-        sid = os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID")
-        if sid:
-            return Identity("cxo", r, sid)
-    task_id = os.environ.get("DEV_TASK_ID")
-    if task_id:
-        return Identity("dev", os.environ.get("DEV_ROLE", "dev"), task_id)
-    cto_sid = os.environ.get("CTO_SESSION_ID")
-    if cto_sid:
-        return Identity("cxo", "cto", cto_sid)
-    return CEO_IDENTITY
+# current_identity() -- moved to tools/agent_transport.py (task
+# task-eb0d9863), imported above.
 
 
 def authorize(sender: Identity, target_role: str, target_session_id: str | None,
@@ -343,88 +301,12 @@ def _log_hop(sender: Identity, target_role: str, target_session_id: str | None) 
 # there polling/nudging. `send()`'s success is unconditional on any of this
 # working -- see `_attempt_wake()`.
 #
-# The nudge is a single fixed, content-free marker -- never the message
-# body. The body already reached the recipient via the mailbox letter;
-# retyping it here would resurrect exactly the "type it and hope" failure
-# mode this whole file replaced (GH #69, GH #65). The marker's only job is
-# to constitute a valid, non-empty prompt so the recipient's
-# UserPromptSubmit hook fires and scripts/hook-inbox.py drains the letter
-# into context. Readable rather than a bare "." (CEO 2026-08-14) so a human
-# glancing at the pane knows why a turn just started -- {label} is filled
-# with the sender's display name (CTO/CMO/CGO/CFO) at call time in _wake(),
-# never hardcoded, since any C-level can wake any other.
-_WAKE_MARKER_TEMPLATE = "[New message from {label}]"
-
-
-def _wake_tmux_send(session: str, text: str) -> None:
-    """Type `text` into tmux `session` and submit it with a settle-delay +
-    rescue Enter -- NOT via `tools.tmux_session.send_keys()`.
-
-    GH #70 (filed immediately before this task): `send_keys()` sends typed
-    text then `C-m` back-to-back with zero settle delay, suspected of
-    hitting the same bracketed-paste Enter-swallow `lib.iterm_type`
-    already documents and fixed for iTerm -- found live when a message
-    typed via that exact function sat unsubmitted in a CMO composer, and a
-    later bare `Enter` (tmux keyname, not `C-m`), sent as its own separate
-    command after the composer had settled, worked. This function is this
-    task's own settle-delay+rescue sequence, mirroring
-    `lib.iterm_type.type_submit_fragment`'s pattern (type, delay 0.4, key,
-    delay 0.3, key again as rescue) rather than trusting the unproven
-    zero-delay path GH #70 flagged. `tools.tmux_session.send_keys()` is
-    untouched -- fixing it is GH #70's job, out of scope here.
-    """
-    tmux = tmux_session.tmux_bin()
-    subprocess.run(
-        [tmux, "send-keys", "-t", session, "-l", text],
-        capture_output=True, text=True, check=True, timeout=5,
-    )
-    time.sleep(0.4)
-    subprocess.run(
-        [tmux, "send-keys", "-t", session, "Enter"],
-        capture_output=True, text=True, check=True, timeout=5,
-    )
-    time.sleep(0.3)
-    subprocess.run(
-        [tmux, "send-keys", "-t", session, "Enter"],
-        capture_output=True, text=True, check=True, timeout=5,
-    )
-
-
-def _wake(role: str, session_id: str, label: str) -> None:
-    """Resolve (role, session_id) to its tmux session and nudge it if
-    live. Does nothing (silently) if no live session exists -- the letter
-    is already queued; there's just no live process to poke right now, and
-    it will see the letter on its own next turn.
-
-    `label` is the sender's display name (e.g. "CTO", "CFO") -- already
-    resolved by the caller (`send()` already computes it for the return
-    string). The marker names the sender so a human glancing at the pane
-    knows why a turn just started, without leaking the message body -- the
-    body reaches the recipient exclusively via the mailbox letter, never
-    via anything typed here (CEO 2026-08-14: readable marker, not a bare
-    "." -- must not hardcode "CTO", since any C-level can wake any other).
-
-    Logged at the same visibility level `_log_hop` uses (best-effort
-    `notify.info`, never allowed to raise) so a human watching the CTO log
-    can tell what happened, without it affecting anything programmatic.
-    """
-    session = session_name.lock_basename(role, session_id)
-    if not tmux_session.has_session(session):
-        try:
-            notify.info(f"[send_to_cxo] wake skipped (no live session): {session}")
-        except Exception:
-            pass
-        return
-    try:
-        notify.info(f"[send_to_cxo] wake attempted: {session}")
-    except Exception:
-        pass
-    marker = _WAKE_MARKER_TEMPLATE.format(label=label)
-    _wake_tmux_send(session, marker)
-    try:
-        notify.info(f"[send_to_cxo] wake succeeded: {session}")
-    except Exception:
-        pass
+# `_WAKE_MARKER_TEMPLATE`, `_wake_tmux_send()`, and the generic wrap/log/
+# never-raise logic all moved to tools/agent_transport.py's `attempt_wake()`
+# (task task-eb0d9863) -- it's the ONE shared implementation now, used by
+# all 3 send_to_*.py files. `attempt_wake()` below just resolves (role,
+# session_id) to a tmux session name (this direction's own logic) and
+# delegates the nudge itself.
 
 
 def attempt_wake(role: str, session_id: str, label: str) -> None:
@@ -439,14 +321,18 @@ def attempt_wake(role: str, session_id: str, label: str) -> None:
     runners/relay_mcp_server.py imports it instead of copying the
     sequence -- a second copy would drift the moment GH #70 gets a real
     resolution.
+
+    Resolves (role, session_id) to its tmux session name via
+    `tools.session_name.lock_basename()` and delegates the actual nudge to
+    `tools.agent_transport.attempt_wake()`. `send_fn=_wake_tmux_send` is
+    passed explicitly -- this module's own imported reference, resolved in
+    THIS module's globals -- so a test that monkeypatches
+    `tools.send_to_cxo._wake_tmux_send` is still honored (see
+    `agent_transport.attempt_wake`'s docstring for why that indirection is
+    needed).
     """
-    try:
-        _wake(role, session_id, label)
-    except Exception as e:
-        try:
-            notify.info(f"[send_to_cxo] wake failed: {role}-{session_id}: {e}")
-        except Exception:
-            pass
+    session = session_name.lock_basename(role, session_id)
+    agent_transport.attempt_wake(session, label, "send_to_cxo", send_fn=_wake_tmux_send)
 
 
 # Back-compat alias (task-18241f1d): existing callers and tests reference
