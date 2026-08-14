@@ -30,6 +30,10 @@
           {
             "type": "command",
             "command": "python3 /Users/gob/Projects/Agents/scripts/hook-memory-nudge.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 /Users/gob/Projects/Agents/scripts/hook-inbox.py"
           }
         ]
       }
