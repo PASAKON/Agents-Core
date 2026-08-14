@@ -57,7 +57,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import mailbox  # noqa: E402
 from lib import notify  # noqa: E402
-from lib.config import display_for  # noqa: E402
+from lib.config import display_for, live_c_level_roles  # noqa: E402
 from tools import session_name, tmux_session  # noqa: E402
 from tools.send_to_cxo import (  # noqa: E402
     _active_session_id,
@@ -67,11 +67,6 @@ from tools.send_to_cxo import (  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 STATE_DIR = ROOT / "state"
-
-# Roles the legacy opt-in broadcast fans out to. Mirrors
-# `lib.config.agents()["c_level"]` minus "ceo" (the CEO has no spawned
-# session / mailbox of its own to queue into).
-_C_LEVEL_ROLES = ("cto", "cmo", "cgo", "cfo")
 
 
 def _log_orphan(cto_id: str, from_id: str, role: str | None,
@@ -161,7 +156,7 @@ def send(from_id: str, message: str, role: str | None = None,
         return False
 
     delivered_any = False
-    for r in _C_LEVEL_ROLES:
+    for r in live_c_level_roles():
         sid = _active_session_id(r)
         if not sid:
             continue
