@@ -70,6 +70,25 @@ def clean_broadcast_env(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv("SEND_TO_CTO_BROADCAST", raising=False)
 
 
+@pytest.fixture(autouse=True)
+def clean_identity_env(monkeypatch: pytest.MonkeyPatch):
+    """`_attempt_wake()` calls `lib.notify.info()`, which reads `DEV_TASK_ID`
+    straight off the real process env (`lib.notify._detect_source()`) to
+    label `state/logs/cto.log` lines -- independent of anything this file's
+    own send() calls pass in. Without this, this DEV harness's own ambient
+    `DEV_TASK_ID`/`DEV_ROLE` leaked real log lines into the real
+    `state/logs/cto.log` during test runs (found via a state/ byte-identical
+    check -- `lib.notify._under_test()`'s `sys.argv[0] == "pytest"` guard
+    does not match a `python -m pytest` invocation, whose `sys.argv[0]`
+    basename is `__main__.py`; every sibling test file masks this by
+    clearing `DEV_TASK_ID` for its own identity-isolation reasons, which
+    this file didn't otherwise need). Same var list as
+    `scripts/test_cxo_crosstalk.py` / `scripts/test_send_to_dev.py`."""
+    for var in ("CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID",
+                "DEV_TASK_ID", "DEV_ROLE"):
+        monkeypatch.delenv(var, raising=False)
+
+
 # --- delivery succeeds via mailbox write alone (owned task) -----------------
 
 def test_send_owned_task_delivers_via_mailbox(
