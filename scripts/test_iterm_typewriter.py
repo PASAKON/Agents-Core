@@ -25,8 +25,14 @@ Verifies:
       `scripts/test_send_to_cto.py` / `scripts/test_send_to_dev.py` — the
       three sequence tests here exist only to keep this file's own
       "did the typing get removed, not just moved" story honest;
-  (c) the 2 shell sites (idle-ping-watcher.sh, cxo-claude.sh) inline the same
-      delay / CR / delay / CR sequence.
+  (c) idle-ping-watcher.sh (the one remaining shell site) still inlines the
+      delay / CR / delay / CR sequence. cxo-claude.sh's own initial-prompt
+      typing block is GONE (task-093a3939, 2026-08-15, CEO order to retire
+      keyboard-based message delivery org-wide): it now passes the prompt
+      straight through to `claude` as its final positional argv --
+      auto-submitted on start, zero keypresses, same mechanism
+      runners/dev_init.py's kickoff uses. `test_cxo_claude_shell_sequence`
+      below proves the sequence is gone, not present.
 
 subprocess.run is mocked everywhere — no real iTerm window is ever opened.
 Every mailbox/DB write in the 3 non-typing sender tests below is redirected
@@ -269,8 +275,17 @@ def test_idle_ping_shell_sequence() -> bool:
 
 
 def test_cxo_claude_shell_sequence() -> bool:
+    """Supersedes the old assertion (task-093a3939, 2026-08-15): the
+    initial-prompt osascript block is gone -- cxo-claude.sh now passes
+    INITIAL_PROMPT straight through as claude's final positional argv, so
+    there is no delay+2CR sequence left to find."""
     body = (ROOT / "scripts" / "cxo-claude.sh").read_text()
-    return _contains_in_order(body, SEQUENCE)
+    return (
+        not _contains_in_order(body, SEQUENCE)
+        and "write text promptText" not in body
+        and "INITIAL_PROMPT" in body  # the flag itself still exists
+        and "CLAUDE_POSITIONAL" in body  # just no longer typed
+    )
 
 
 def main() -> int:
@@ -295,7 +310,7 @@ def main() -> int:
         r = test_idle_ping_shell_sequence(); fails += not r
         _mark(r, "idle-ping-watcher.sh inlines the delay+2CR sequence")
         r = test_cxo_claude_shell_sequence(); fails += not r
-        _mark(r, "cxo-claude.sh inlines the delay+2CR sequence")
+        _mark(r, "cxo-claude.sh no longer inlines the delay+2CR sequence (positional argv instead)")
 
     return 0 if fails == 0 else 1
 

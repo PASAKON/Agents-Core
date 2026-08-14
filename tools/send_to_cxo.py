@@ -84,7 +84,6 @@ from lib import db
 from lib import mailbox
 from lib import notify
 from lib.config import display_for, is_c_level
-from lib.iterm_type import type_submit_fragment
 from tools import session_name, tmux_session
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -486,73 +485,39 @@ def _get_live_winids() -> set[str]:
     return set(r.stdout.strip().replace(" ", "").split(","))
 
 
-def _send_to_ephemeral_tab(tab_title: str, text: str,
-                           slug: str | None = None) -> None:
-    """Type `text` into an existing ephemeral tab.
-
-    Match: full `tab_title` OR (when `slug` given) any tab carrying the
-    same role prefix + topic slug — covers reuse when the original tab
-    was spawned by a different sender ("CFO <- CMO: x" vs "CFO <- CTO: x")."""
-    escaped = text.replace("\\", "\\\\").replace('"', '\\"')
-    submit = type_submit_fragment(escaped)
-    escaped_title = tab_title.replace("\\", "\\\\").replace('"', '\\"')
-    prefix = tab_title.split("<-")[0].strip()  # e.g. "CFO"
-    escaped_prefix = prefix.replace("\\", "\\\\").replace('"', '\\"')
-    escaped_slug = (slug or "").replace("\\", "\\\\").replace('"', '\\"')
-    slug_clause = (
-        f' or ((tabName contains "{escaped_prefix} <-") and (tabName contains ": {escaped_slug}"))'
-        f' or ((sessName contains "{escaped_prefix} <-") and (sessName contains ": {escaped_slug}"))'
-        if slug else ""
-    )
-    script = f'''
-tell application "iTerm"
-  set didSend to false
-  repeat with w in windows
-    repeat with t in tabs of w
-      tell t
-        try
-          set tabName to ""
-          try
-            set tabName to name of t
-          end try
-          set sessName to ""
-          try
-            set sessName to name of current session of t
-          end try
-          if (tabName contains "{escaped_title}") or (sessName contains "{escaped_title}"){slug_clause} then
-            tell w to select
-            tell t to select
-            tell current session
-              {submit}
-            end tell
-            set didSend to true
-          end if
-        end try
-      end tell
-    end repeat
-  end repeat
-  if not didSend then error "no iTerm tab matched {escaped_title}"
-end tell
-'''
-    subprocess.run(["osascript", "-e", script], check=True)
-
-
 def _spawn_new_ephemeral(
     role: str, session_id: str, tab_title: str, initial_text: str
 ) -> None:
-    """Open a new iTerm window running cxo-claude.sh for role/session.
+    """Open a new iTerm window running a REAL tmux-backed cxo-claude.sh
+    session for role/session -- mirrors scripts/spawn-cxo.sh's own spawn
+    shape (`tmux new-session -A` run directly as the fresh tab's foreground
+    command, so the pty is tmux-attached from the first second, exactly
+    like every other C-level session) instead of the old bare, iTerm-only,
+    phone-unreachable process this replaces (task-093a3939). Running
+    `tmux new-session -A` as the tab's own command -- not a separate
+    detached-create-then-attach step -- also avoids reintroducing a race:
+    cxo-claude.sh's own winid capture (~line 191) polls `#{client_tty}`
+    expecting a client already attached, which only holds true if the pty
+    the launcher script is running is itself the attached client.
 
-    Writes a temp shell script so Unicode / special chars in initial_text
-    never need escaping inside an AppleScript string literal.
+    `initial_text` reaches the new session via `--initial-prompt`, which
+    scripts/cxo-claude.sh now passes straight through to `claude` as its
+    final positional argv -- auto-submitted the instant the process
+    starts, zero keypresses (task-093a3939), the same mechanism
+    runners/dev_init.py's kickoff already uses. It travels as a literal
+    line in the temp RUN_FILE below, never as an AppleScript string, so
+    Unicode / special chars in it need no AppleScript escaping -- only the
+    one shell-quoting layer `_sh_sq` protects.
     """
     def _sh_sq(s: str) -> str:
         return "'" + s.replace("'", "'\"'\"'") + "'"
 
     cxo_sh = str(ROOT / "scripts" / "cxo-claude.sh")
-    shell_cmd = " ".join([
+    tmux_name = session_name.lock_basename(role, session_id)
+    run_cmd = " ".join([
         f"export CXO_SESSION_ID={_sh_sq(session_id)}",
         "&&",
-        "bash", _sh_sq(cxo_sh),
+        "exec", "bash", _sh_sq(cxo_sh),
         "--role", role,
         "--session", _sh_sq(session_id),
         "--tab-title", _sh_sq(tab_title),
@@ -563,9 +528,14 @@ def _spawn_new_ephemeral(
         mode="w", suffix=".sh", delete=False, dir="/tmp"
     ) as tmp:
         tmp.write("#!/usr/bin/env bash\n")
-        tmp.write(shell_cmd + "\n")
-        tmp_path = tmp.name
-    os.chmod(tmp_path, 0o755)
+        tmp.write(run_cmd + "\n")
+        run_file = tmp.name
+    os.chmod(run_file, 0o755)
+
+    chat_cmd = (
+        f"{tmux_session.tmux_bin()} new-session -A -s {_sh_sq(tmux_name)} "
+        f"-c {_sh_sq(str(ROOT))} bash {_sh_sq(run_file)}"
+    )
 
     title_as = tab_title.replace("\\", "\\\\").replace('"', '\\"')
     script = f'''
@@ -574,7 +544,7 @@ tell application "iTerm"
   tell newWindow
     tell current session of current tab
       set name to "{title_as}"
-      write text "bash {tmp_path}"
+      write text "{chat_cmd}"
     end tell
   end tell
 end tell
@@ -583,7 +553,7 @@ end tell
         subprocess.run(["osascript", "-e", script], check=True)
     except Exception:
         try:
-            os.unlink(tmp_path)
+            os.unlink(run_file)
         except OSError:
             pass
         raise
@@ -634,8 +604,17 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
             # different sender) — reuse never re-records or transfers it.
             # lock_file.stem is "<role>-req-XXXXXXXX"; strip the role prefix
             # to recover the session id for the hop-log line.
+            #
+            # Delivery is mailbox+wake (task-093a3939) -- the same transport
+            # `send()` uses for a primary session -- not typing into the
+            # tab's composer. The reused session is alive and tmux-backed
+            # (`_spawn_new_ephemeral` below), so `_attempt_wake()` reaches it
+            # for real via `tools.session_name.lock_basename`.
             reused_sid = lock_file.stem[len(role) + 1:]
-            _send_to_ephemeral_tab(tab_title, full_text, slug=topic_slug)
+            from_role, from_sid = _mailbox_identity(sender_identity)
+            chain = _chain_ids(sender_identity) + [f"{role}:{reused_sid}"]
+            mailbox.send(role, reused_sid, message, from_role, from_sid, chain=chain)
+            _attempt_wake(role, reused_sid, label)
             _log_hop(sender_identity, role, reused_sid)
             return f"reused {display} ephemeral tab {lock_file.stem}: {full_text}"
         except OSError:
