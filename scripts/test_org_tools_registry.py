@@ -76,6 +76,11 @@ def test_registry_names_match_prod() -> bool:
         "check_collisions", "delegate_task", "delegate_parallel_tasks",
         "get_task", "review_diff", "merge_task", "close_dev", "reopen_task",
         "list_projects", "stats", "recall", "reflect", "revert_task_tool",
+        # Added after this suite's original 18 (task-78ef13b0): both are
+        # thin registry-only tools with no hand-duplicated cto_mcp_server.py
+        # logic to diff against, so they're covered by name-set equality
+        # here rather than a dedicated byte-parity test like the 18 above.
+        "send_to_cxo", "report_to_ceo",
     }
     names = set(reg.BY_NAME)
     return names == expected and all(callable(getattr(srv, n, None)) for n in names)
@@ -376,7 +381,7 @@ def main() -> int:
     db.init()
 
     print("== registry shape ==")
-    _mark(test_registry_names_match_prod(), "registry has exactly the 18 cto_mcp_server.py tool names")
+    _mark(test_registry_names_match_prod(), "registry has exactly the 20 cto_mcp_server.py tool names")
 
     print("== owner_cto regression (point 1) ==")
     ok, seed_tid = test_owner_cto_regression()
