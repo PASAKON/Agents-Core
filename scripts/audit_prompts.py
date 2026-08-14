@@ -15,7 +15,10 @@ PROMPTS = '/Users/gob/Projects/Agents/PROMPTS.md'
 
 # Plates that block generation or were cancelled by the CEO.
 FORBIDDEN = [
-    '@Motel-Walkway',      # copyright-flagged, blocks the render outright
+    # '@Motel-Walkway' — UNBLOCKED 2026-08-14 (CEO): replaced the reference
+    # image, plate now renders. Was copyright-flagged, blocked the render
+    # outright in Scenes 4/6/7/8/9A before the fix. Left this line as a
+    # marker in case the new image ever regresses.
     '@Room-Clean-Rev',
     '@Room-Wreck-Rev',
     '@Room-DoorOut-Down',

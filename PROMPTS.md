@@ -99,7 +99,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 12-A | `@Stop-Work` | `@Mother` `@Father` | — |
 | 12-FB1 (Seedance 2.5) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` |
 | 12-FB2 (Seedance 2.5) | `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` | `@Mother` `@Father` | `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
-| 12-FB (Seedance 2.5, alternate to FB1+FB2) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
+| 12-FB (Seedance 2.5, alternate to FB1+FB2) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` `@Motel-Walkway` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
 
@@ -1204,7 +1204,7 @@ requested directly:
 quick, slightly overlapping impressions, like photographs coming alive one
 after another, rather than fully separate scenes.
 
-**Cut 16 now shows the moment of contact, not just its aftermath.** Every
+**Cut 17 now shows the moment of contact, not just its aftermath.** Every
 other violence beat in this film cuts away entirely; this one shows his arm
 moving and her reaction, then the camera immediately breaks to another
 angle at the instant of contact — an object, a shadow, a different part of
@@ -1217,9 +1217,22 @@ closer to that line than anything else in the film. If it gets rejected,
 work down toward the fully-implied version (the original 20s cut, still
 above this block in git history) rather than escalating language further.
 
+**Added 2026-08-14 (CEO): the handbag is now a through-line, not a static
+prop.** She carries it protectively from the moment she leaves work through
+the bus, the run to the motel, the lobby, and the door (cuts 1, 4-6, 11-14).
+Cut 16 makes that protectiveness explicit — he grabs for the bag itself
+before the violence starts, and she resists — reframing the confrontation:
+part of what he wants from her tonight is the money in that bag, not just
+an argument. Cut 19, after the killing, pays that off — he takes the cash
+out of it. **`@Motel-Walkway` is tagged in Cut 20** — previously forbidden
+(copyright-flagged reference image, blocked the render outright in Scenes
+4/6/7/8/9A) but the CEO replaced the reference image 2026-08-14 and
+confirmed it renders now; unblocked in `scripts/audit_prompts.py` the same
+day.
+
 ```
 VISUAL
-Eighteen cuts across 30 seconds. Night.
+Twenty cuts across 30 seconds. Night.
 
 Cut 1 (0.0–1.7s): @Mother steps out of @Stop-Work at the end of a long shift, @Prop-Handbag heavy on her shoulder, her uniform creased, exhaustion in how she carries herself.
 
@@ -1241,26 +1254,30 @@ Cut 9 (12.6–14.6s): Another impression — the three of them on the porch step
 
 Cut 10 (14.6–16.6s): Close and slow — @Mother's and @Father's hands finding each other, still in their casual home clothes, both younger, @Prop-Ring catching the light. The same ring that will still be sitting on the nightstand in Scene 9.
 
-Cut 11 (16.6–17.9s): Hard cut back to the dark bus. Her hand rises toward @Prop-BusCord, hesitates, drops. She doesn't pull it. The bus carries her past her stop.
+Cut 11 (14.2–15.4s): Hard cut back to the dark bus. Her hand rises toward @Prop-BusCord, hesitates, drops. She doesn't pull it. @Prop-Handbag sits clutched in her lap, both arms crossed over it. The bus carries her past her stop.
 
-Cut 12 (17.9–19.2s): She runs across the empty street toward @Motel-Front, breath visible, glancing back once. The sedan pulls up behind her; @Father gets out but holds back, unhurried.
+Cut 12 (15.4–16.6s): She runs across the empty street toward @Motel-Front, @Prop-Handbag held tight against her side with both hands, breath visible, glancing back once. The sedan pulls up behind her; @Father gets out but holds back, unhurried.
 
-Cut 13 (19.2–20.5s): Interior @Motel-Lobby. She's breathless at the counter, talking fast and low to the hotel clerk — a woman in her fifties, greying hair pulled back in a low bun, reading glasses pushed up on her head, wearing a plain navy uniform vest over a white blouse, no name tag readable. This is a new character, invented by the model, no plate — she must not resemble @Mother, @Daughter or any other established character in the film. Through the glass behind @Mother, @Father stands outside, watching, not entering.
+Cut 13 (16.6–17.6s): Interior @Motel-Lobby. She's breathless at the counter, @Prop-Handbag still gripped in both arms, talking fast and low to the hotel clerk — a woman in her fifties, greying hair pulled back in a low bun, reading glasses pushed up on her head, wearing a plain navy uniform vest over a white blouse, no name tag readable. This is a new character, invented by the model, no plate — she must not resemble @Mother, @Daughter or any other established character in the film. Through the glass behind @Mother, @Father stands outside, watching, not entering.
 
-Cut 14 (20.5–21.8s): @Room-DoorOut, then @Room-Clean. Key in the lock, door open, she starts to swing it shut — his hand catches the edge and forces it back. He's inside.
+Cut 14 (17.6–18.6s): @Room-DoorOut, then @Room-Clean. Key in the lock, door open, @Prop-Handbag still slung across her body, she starts to swing the door shut — his hand catches the edge and forces it back. He's inside.
 
-Cut 15 (21.8–23.1s): The argument breaks open, voices overlapping, words lost to the volume of it. Both of them moving now, not standing still.
+Cut 15 (18.6–19.4s): The argument breaks open, voices overlapping, words lost to the volume of it. Both of them moving now, not standing still.
 
-Cut 16 (23.1–25.9s): His arm rises — cut immediately to a different angle at the instant it lands: over his shoulder, or the wall, or her face taking the impact off-frame. In the same motion his arm or her stumbling body catches the nightstand — @Prop-Lamp and @Prop-Glass go with it, knocked off by the collision, not falling on their own. This cut alone carries a harsh, chaotic filter — heavy motion blur, desaturated toward grey, contrast pushed hard — the image itself is disorienting, deliberately harder to read clearly than any other cut in the piece.
+Cut 16 (19.4–21.2s): His hand shoots out and closes on the strap of @Prop-Handbag. She grabs it back with both hands, refusing to let go — a short, ugly tug-of-war over the bag itself, both of them wrenched off balance, neither saying anything now, just breathing and pulling.
 
-Cut 17 (25.9–27.4s): The room holds still. It is now @Room-Wreck. Dead silence.
+Cut 17 (21.2–23.7s): His arm rises — cut immediately to a different angle at the instant it lands: over his shoulder, or the wall, or her face taking the impact off-frame. In the same motion his arm or her stumbling body catches the nightstand — @Prop-Lamp and @Prop-Glass go with it, knocked off by the collision, not falling on their own. This cut alone carries a harsh, chaotic filter — heavy motion blur, desaturated toward grey, contrast pushed hard — the image itself is disorienting, deliberately harder to read clearly than any other cut in the piece.
 
-Cut 18 (27.4–30.0s): @Father steps back, breathing hard, straightens his collar. At the door he hangs @Prop-DNDTag on the outside handle, then walks to the sedan and drives off into the dark.
+Cut 18 (23.7–24.9s): The room holds still. It is now @Room-Wreck. Dead silence. @Prop-Handbag lies open on the floor near her, spilled slightly where it fell in the struggle.
 
-NEGATIVE — strictly avoid: cuts 2-3 stay at a grabbed arm, not a blow — no punch, no fall, no visible mark yet. No printed logos or brand text anywhere. Cuts 7-10 read distinctly warmer, softer-focus and more saturated than every other cut in the piece — never let that grade bleed into the present-tense cuts. @Father in the memory is healthy, never gaunt or unwell. @Prop-BusCord never actually pulled. No readable hotel name or logo in cut 13; @Father never crosses the lobby threshold. Cut 16 is the one exception to the film's usual rule and stays exactly as written — no second angle, no additional blow, no blood, no wound, nothing beyond the single motion described. The harsh filter belongs to Cut 16 alone — no blur or desaturation bleeding into cuts 15 or 17, both stay clean. Cuts 17-18: no dialogue, no second confrontation.
+Cut 19 (24.9–26.7s): @Father kneels beside @Prop-Handbag, opens it the rest of the way, and pulls the folded cash out — the same money she refused him at the start. He counts it once, cold and quick, and pockets it. No plain readable currency detail, no dialogue.
 
-Grounded real-camera look, natural handheld weight, no whip pans, no lens flare except the intentional cut-away on Cut 16. Present-tense cuts: hard sodium-orange streetlight, cold bus interior light, warm interior lobby/room light once inside. Memory cuts (7-10): warm golden-hour light, soft-focus, an old photograph's palette, slight overlap between them as if one is still fading as the next arrives. Cuts land hard on every grade change elsewhere — no dissolve, no cross-fade anywhere except that deliberate overlap inside the memory montage itself.
+Cut 20 (26.7–30.0s): @Father steps back, breathing hard, straightens his collar. At the door he hangs @Prop-DNDTag on the outside handle, then walks out along @Motel-Walkway — open-air, bare concrete, a metal rail, one flickering light overhead — to the sedan, and drives off into the dark.
+
+NEGATIVE — strictly avoid: cuts 2-3 stay at a grabbed arm, not a blow — no punch, no fall, no visible mark yet. No printed logos or brand text anywhere. Cuts 7-10 read distinctly warmer, softer-focus and more saturated than every other cut in the piece — never let that grade bleed into the present-tense cuts. @Father in the memory is healthy, never gaunt or unwell. @Prop-BusCord never actually pulled. No readable hotel name or logo in cut 13; @Father never crosses the lobby threshold. Cut 16 (the bag struggle) stays hands-only — no blow, no fall, no injury, just the pull over the strap. Cut 17 is the one exception to the film's usual violence rule and stays exactly as written — no second angle, no additional blow, no blood, no wound, nothing beyond the single motion described. The harsh filter belongs to Cut 17 alone — no blur or desaturation bleeding into cuts 16 or 18, both stay clean. Cut 19: no visible reaction beyond cold and quick, no dialogue, no close-up on individual bills. Cuts 18-20: no dialogue, no second confrontation.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare except the intentional cut-away on Cut 17. Present-tense cuts: hard sodium-orange streetlight, cold bus interior light, warm interior lobby/room light once inside. Memory cuts (7-10): warm golden-hour light, soft-focus, an old photograph's palette, slight overlap between them as if one is still fading as the next arrives. Cuts land hard on every grade change elsewhere — no dissolve, no cross-fade anywhere except that deliberate overlap inside the memory montage itself.
 
 AUDIO-SFX
-Distant traffic, engine idle, his voice low and demanding, her clipped refusal, bus air brakes and door hydraulics. The memory cuts carry no dialogue, only muffled, warm, distant ambient sound — wind, faint laughter, no clear words, like a memory heard through glass, one impression's sound bleeding softly into the next. Cut back to the bus: near-silence, the faint chain-tick of @Prop-BusCord. Footsteps running, breathing hard, a car door. The clerk's voice, calm and routine, not fully intelligible, a key card printer. The key in the lock, the door forced open, voices rising and overlapping. On cut 16: a single sharp sound of contact, then the lamp and glass hitting the floor in the same motion — no music, no sting, no riser over it, the sound itself is the only impact allowed. Then dead silence. His slower breathing, footsteps, the DND tag swinging once, a car door, an engine driving away. No music, no score, anywhere in this piece.
+Distant traffic, engine idle, his voice low and demanding, her clipped refusal, bus air brakes and door hydraulics. The memory cuts carry no dialogue, only muffled, warm, distant ambient sound — wind, faint laughter, no clear words, like a memory heard through glass, one impression's sound bleeding softly into the next. Cut back to the bus: near-silence, the faint chain-tick of @Prop-BusCord. Footsteps running, breathing hard, a car door. The clerk's voice, calm and routine, not fully intelligible, a key card printer. The key in the lock, the door forced open, voices rising and overlapping. On cut 16: fabric and strap strain, quick scuffling breath, no words. On cut 17: a single sharp sound of contact, then the lamp and glass hitting the floor in the same motion — no music, no sting, no riser over it, the sound itself is the only impact allowed. Then dead silence. The soft rustle of the bag opening, paper notes counted once. His slower breathing, footsteps, the DND tag swinging once, a car door, an engine driving away. No music, no score, anywhere in this piece.
 ```
