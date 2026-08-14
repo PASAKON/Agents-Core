@@ -1,21 +1,46 @@
-"""DEV -> owning C-level visible chat: type a message directly into the
-owner's iTerm tab (title "CTO #<id> ..." live-summary format per
-IRON-RULES §32, legacy "CTO Chat #<id>", or a CXO tab "CFO #<id> ..." —
-all matched).
+"""DEV -> owning C-level mailbox: queue a message into the owner's inbox,
+then attempt a best-effort wake. Mirror of `tools/send_to_dev.py`, opposite
+direction.
 
-Mirror of tools/send_to_dev.py, opposite direction. Used by the DEV's
-Stop hook so every DEV reply types into the owner's chat as a user prompt
-- the CEO can watch the conversation flow in real time, and the owner's
-claude TUI processes the DEV message as fresh input.
+Task task-2f04a8ca (CEO directive 2026-08-14, same migration as
+`send_to_dev.py` -- see that file's docstring for the full CEO quote and
+the day's history it traces to). Used by the DEV's Stop hook
+(`scripts/hook-log-dev-reply.py`) so every DEV reply reaches the owning
+C-level's mailbox instead of being typed into that C-level's iTerm tab.
 
-Routing (issue #15):
-  * `cto_id` + `owner_role` pick the winid lock `state/locks/<role>-<id>.winid`
-    (`_read_winid` falls back to the legacy `cto-<id>.winid` for non-cto
-    roles). The message types ONLY into that one window — never broadcast.
-  * `cto_id=None` (ownerless task) no longer broadcasts to every CTO tab.
-    By default the message is dropped to `state/orphan-dev-replies-unowned.log`
-    and False is returned. Single-CTO setups that want the old broadcast
-    opt in via env `SEND_TO_CTO_BROADCAST=1`.
+Routing (issue #15, preserved as-is -- this task only swaps the transport):
+  * `cto_id` + `owner_role` identify the owning C-level session
+    (`tasks.owner_cto` / `tasks.owner_role`). The letter is queued ONLY
+    into that one session's box -- never broadcast.
+  * `cto_id=None` (ownerless task) does not broadcast either. By default
+    the message is dropped to `state/orphan-dev-replies-unowned.log` and
+    `False` is returned -- unchanged from before this task, per the brief
+    ("that safety net is unrelated to the transport"). Single-CTO setups
+    that want the legacy broadcast still opt in via
+    `SEND_TO_CTO_BROADCAST=1`; the broadcast itself now queues+wakes every
+    live C-level session's mailbox instead of typing into every "CTO Chat"
+    tab -- same opt-in gate, same log-file safety net, new transport
+    underneath, per the same "delete the typing path, don't keep it as a
+    fallback" rule this whole migration follows (GH #69's lesson).
+
+What changed vs. the old `send()`: it used to resolve `<owner_role>-<cto_id>
+.winid` and type into that iTerm window via AppleScript, logging to
+`state/orphan-dev-replies-<cto_id>.log` and returning `False` whenever the
+winid file was missing or the window couldn't be found -- "delivered" was
+defined as "a window matched". `lib.mailbox` redefines delivery as "the
+letter exists in the recipient's box", which has no dependency on any
+window/winid existing at all, so that whole reachability check (and its
+`_read_winid` legacy-fallback-filename logic) is gone: a known owner
+(`cto_id` given) now always succeeds -- the write either lands or raises,
+matching every other file in this migration's "queued or raised, never
+probably" contract. The only remaining case that can return `False`
+without raising is the ownerless-task safety net above, which this task
+was told to leave alone.
+
+The message is prefixed via the wake marker's `label` (e.g. "Developer
+task-2f04a8ca") so a human glancing at the owner's pane, and the letter's
+`from` field itself, both show who's talking -- never a typed
+`[<Role> <id>]:` string in a terminal composer.
 
 Usage:
     python -m tools.send_to_cto <from_id> "<message>" [role] [cto_id] [owner_role]
@@ -24,42 +49,24 @@ Usage:
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from lib.config import display_for  # noqa: E402
-from lib.iterm_type import type_submit_fragment  # noqa: E402
+from lib import mailbox  # noqa: E402
+from lib import notify  # noqa: E402
+from lib.config import display_for, live_c_level_roles  # noqa: E402
+from tools import session_name, tmux_session  # noqa: E402
+from tools.send_to_cxo import (  # noqa: E402
+    _active_session_id,
+    _wake_tmux_send,
+    _WAKE_MARKER_TEMPLATE,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
-LOCKS_DIR = ROOT / "state" / "locks"
 STATE_DIR = ROOT / "state"
-CTO_TAB_FALLBACK_MATCH = "CTO Chat"
-
-
-def _read_winid(cto_id: str, role: str = "cto") -> str | None:
-    """Return the iTerm window id for the owning session, or None.
-
-    Reads `state/locks/<role>-<cto_id>.winid` (cxo-claude.sh writes the lock
-    as `<role>-<session>.winid`). When that file is missing and `role` is not
-    "cto", falls back to the legacy `cto-<cto_id>.winid` name so older locks
-    still resolve. Returns None if neither file exists or the content is not
-    all digits.
-    """
-    candidates = [LOCKS_DIR / f"{role}-{cto_id}.winid"]
-    if role != "cto":
-        candidates.append(LOCKS_DIR / f"cto-{cto_id}.winid")
-    for p in candidates:
-        try:
-            raw = p.read_text().strip()
-        except OSError:
-            continue
-        if raw.isdigit():
-            return raw
-    return None
 
 
 def _log_orphan(cto_id: str, from_id: str, role: str | None,
@@ -72,122 +79,91 @@ def _log_orphan(cto_id: str, from_id: str, role: str | None,
         f.write(f"[{ts}] from={from_id} role={role or 'unknown'} msg={snippet}\n")
 
 
+def _attempt_wake(role: str, session_id: str, label: str) -> None:
+    """Best-effort attention nudge for the just-delivered letter's C-level
+    recipient. Same isolation guarantee as `send_to_cxo._attempt_wake()`:
+    nothing here may raise or change `send()`'s return value.
+
+    Unlike `send_to_dev.py`'s DEV-side wake, the target here is always a
+    C-level session -- `cto-claude.sh` / `cxo-claude.sh` always launch
+    inside `tmux new-session -A -s <role>-<id>`, so
+    `session_name.lock_basename(role, session_id)` reliably names a live
+    tmux session whenever that C-level's tab is actually open. This is the
+    direction the wake mechanism was originally proven for.
+    """
+    session = session_name.lock_basename(role, session_id)
+    try:
+        if not tmux_session.has_session(session):
+            try:
+                notify.info(f"[send_to_cto] wake skipped (no live session): {session}")
+            except Exception:
+                pass
+            return
+        try:
+            notify.info(f"[send_to_cto] wake attempted: {session}")
+        except Exception:
+            pass
+        marker = _WAKE_MARKER_TEMPLATE.format(label=label)
+        _wake_tmux_send(session, marker)
+        try:
+            notify.info(f"[send_to_cto] wake succeeded: {session}")
+        except Exception:
+            pass
+    except Exception as e:
+        try:
+            notify.info(f"[send_to_cto] wake failed: {role}-{session_id}: {e}")
+        except Exception:
+            pass
+
+
 def send(from_id: str, message: str, role: str | None = None,
          cto_id: str | None = None, owner_role: str = "cto") -> bool:
-    """Type `[<Role> <from_id>]: <message>` into the owning session's tab.
-    Returns True if a matching tab was found.
+    """Queue `message` into the owning C-level's mailbox, then attempt a
+    wake. Returns `True` once the letter is queued.
 
-    `role` is the DEV's role key (e.g. `web_designer`) and renders as
-    the display label (e.g. `Web Designer`). Falls back to `[Dev:<from_id>]:`
-    when role is missing or unknown.
+    `role` is the DEV's role key (e.g. `web_designer`); its display label
+    (e.g. `Web Designer`) names the sender in the wake marker. Falls back
+    to `Dev` when role is missing or unknown.
 
-    `cto_id` + `owner_role`: route ONLY to the iTerm window whose id is stored
-    in `state/locks/<owner_role>-<cto_id>.winid` (legacy `cto-<cto_id>.winid`
-    fallback for non-cto roles). If the file is missing or the window is gone
-    the message is dropped to `state/orphan-dev-replies-<cto_id>.log` and False
-    is returned — no broadcast to other windows.
+    `cto_id` + `owner_role`: the owning session identifies the mailbox box
+    directly (`(owner_role, cto_id)`) -- no window/winid lookup, so a known
+    owner always succeeds; this call either returns `True` or raises
+    whatever `lib.mailbox.send()` raises (disk full, permission denied --
+    no silent partial failure).
 
-    When `cto_id` is None (ownerless task): the message is dropped to
-    `state/orphan-dev-replies-unowned.log` and False is returned — NO broadcast.
-    Set env `SEND_TO_CTO_BROADCAST=1` to restore the legacy broadcast to every
-    "CTO Chat" / "CTO #" tab (single-CTO setups only).
+    `cto_id=None` (ownerless task): unchanged from before this task -- the
+    message is dropped to `state/orphan-dev-replies-unowned.log` and
+    `False` is returned, no broadcast, unless `SEND_TO_CTO_BROADCAST=1` is
+    set, in which case it queues+wakes every live C-level session instead
+    of the old broadcast-by-typing.
     """
-    if role:
-        prefix = f"[{display_for(role)} {from_id}]:"
-    else:
-        prefix = f"[Dev:{from_id}]:"
-    text = f"{prefix} {message}"
-    escaped = text.replace('\\', '\\\\').replace('"', '\\"')
-    submit = type_submit_fragment(escaped)
+    label = display_for(role) if role else "Dev"
+    from_role = role or "dev"
+    wake_label = f"{label} {from_id}"
 
     if cto_id:
-        winid = _read_winid(cto_id, owner_role)
-        if winid is None:
-            _log_orphan(cto_id, from_id, role, message)
-            sys.stderr.write(
-                f"[send_to_cto] winid missing for cto={cto_id}; "
-                f"message orphaned to state/orphan-dev-replies-{cto_id}.log\n"
-            )
-            return False
-
-        # Match every title generation: legacy "CTO Chat #<id>", the
-        # live-summary format "CTO #<id> <glyph> <summary>" (IRON-RULES §32),
-        # and CXO tabs "CFO #<id> ..." (cxo-claude.sh TAB_TITLE). Session ids
-        # are uuid4-hex8, so a bare "#<id>" contains-match is unique enough.
-        script = f'''
-tell application "iTerm"
-  set didSend to false
-  try
-    set targetWin to window id {winid}
-    repeat with t in tabs of targetWin
-      try
-        if (name of current session of t contains "CTO Chat") or (name of current session of t contains "#{cto_id}") then
-          tell current session of t
-            {submit}
-          end tell
-          set didSend to true
-          exit repeat
-        end if
-      end try
-    end repeat
-  end try
-  if didSend then
-    return "1"
-  end if
-  return "0"
-end tell
-'''
-        r = subprocess.run(["osascript", "-e", script],
-                           capture_output=True, text=True)
-        out = r.stdout.strip() if r.returncode == 0 else ""
-        if out != "1":
-            _log_orphan(cto_id, from_id, role, message)
-            sys.stderr.write(
-                f"[send_to_cto] window id={winid} for cto={cto_id} not found; "
-                f"message orphaned\n"
-            )
-            return False
+        mailbox.send(owner_role, cto_id, message, from_role, from_id)
+        _attempt_wake(owner_role, cto_id, wake_label)
         return True
 
-    # Ownerless task (cto_id=None). The legacy broadcast typed the report into
-    # EVERY CTO/CXO tab — cross-session pollution (issue #15). Default now: drop
-    # to a shared unowned log and return False. Opt back in to the broadcast
-    # only for single-CTO setups via SEND_TO_CTO_BROADCAST=1.
     if os.environ.get("SEND_TO_CTO_BROADCAST") != "1":
         _log_orphan("unowned", from_id, role, message)
         sys.stderr.write(
             f"[send_to_cto] ownerless message from {from_id} dropped to "
             f"state/orphan-dev-replies-unowned.log "
-            f"(set SEND_TO_CTO_BROADCAST=1 to broadcast to all CTO tabs)\n"
+            f"(set SEND_TO_CTO_BROADCAST=1 to broadcast to all live C-level sessions)\n"
         )
         return False
 
-    # Legacy opt-in broadcast: type into every "CTO Chat" / "CTO #" tab.
-    script = f'''
-tell application "iTerm"
-  set didSend to false
-  repeat with w in windows
-    repeat with t in tabs of w
-      tell t
-        if (name of current session contains "{CTO_TAB_FALLBACK_MATCH}") or (name of current session contains "CTO #") then
-          tell current session
-            {submit}
-          end tell
-          set didSend to true
-        end if
-      end tell
-    end repeat
-  end repeat
-  if didSend then
-    return "1"
-  end if
-  return "0"
-end tell
-'''
-    r = subprocess.run(["osascript", "-e", script],
-                       capture_output=True, text=True)
-    out = r.stdout.strip() if r.returncode == 0 else ""
-    return out == "1"
+    delivered_any = False
+    for r in live_c_level_roles():
+        sid = _active_session_id(r)
+        if not sid:
+            continue
+        mailbox.send(r, sid, message, from_role, from_id)
+        _attempt_wake(r, sid, wake_label)
+        delivered_any = True
+    return delivered_any
 
 
 def main() -> int:
@@ -200,7 +176,7 @@ def main() -> int:
     owner_role = sys.argv[5] if len(sys.argv) > 5 else "cto"
     ok = send(sys.argv[1], sys.argv[2], role=role, cto_id=cto_id,
               owner_role=owner_role)
-    print("sent" if ok else "no CTO tab matched")
+    print("queued" if ok else "orphaned (see state/orphan-dev-replies-*.log)")
     return 0
 
 
