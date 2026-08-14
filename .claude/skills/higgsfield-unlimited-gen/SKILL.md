@@ -487,6 +487,27 @@ cannot see it either.
    still applies underneath it, so you stay reachable to messages between
    checks without checking the page itself any more often than this.
 
+### Pre-stage the next prompt during the wait — CEO rule, 2026-08-14
+
+Loop, per clip: **click Generate on clip A → immediately paste clip B's
+prompt into the composer, staged and ready, while A renders → sleep on the
+20-then-5min cadence above → when A's card completes, click Generate on the
+already-staged clip B prompt right away → repeat, staging clip C during B's
+render.**
+
+The point is to spend the render's dead time on next-prompt prep instead of
+doing that work cold after waking. Editing the composer text box does not
+touch the in-flight render (A is already committed server-side) and does
+not touch the Unlimited toggle, so this is safe to do inside the protected
+composer tab.
+
+**Staging early does not relax the checks that happen at the actual click.**
+Re-verify the zero-digit Generate button and the element count fresh at the
+moment you click B, exactly as if it had just been pasted — do not treat
+"I already checked this when I staged it" as sufficient. The checks exist
+because state can change silently; a prompt sitting staged for 20+ minutes
+gets no exemption from that.
+
 **A long sleep makes the operator unreachable, and that is indistinguishable
 from a hang.** A foreground sleep blocks the agent's whole turn; messages the
 C-level types into the tab sit unread in the input buffer until it ends.
