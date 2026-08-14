@@ -22,6 +22,9 @@ org_snapshot, relay_to_session, spawn_c_level) — never a shell, never raw
 keystrokes. relay_to_session/spawn_c_level get the same confirm-before-write
 contract as LungNote writes, made explicit in the prompt below as more
 consequential (they act on another session or start one), not less.
+task-da873c76 added a fifth: read_session, read-only (no confirm needed),
+which reads back the tail of a C-level session's live tmux pane — the
+round-trip the first four tools were missing.
 
 Endpoint:  POST /v1/chat/completions   (OpenAI chat-completion shape)
 Auth:      Authorization: Bearer $SECRETARY_API_KEY  (required — refuses to
@@ -155,6 +158,10 @@ ALLOWED_TOOLS: tuple[str, ...] = (
     "mcp__relay__org_snapshot",
     "mcp__relay__relay_to_session",
     "mcp__relay__spawn_c_level",
+    # task-da873c76 Deliverable 3 -- read-only (no confirm-before-write
+    # needed), the fifth relay tool that closes the read-back gap
+    # (runners/relay_mcp_server.py's read_session).
+    "mcp__relay__read_session",
 )
 
 # Deliverable 5 + SPEC-CHANGE.md Change 3 — the secretary's own identity and
@@ -205,8 +212,21 @@ SECRETARY_SYSTEM_PROMPT = (
     "  3. หลังเรียกเสร็จ ให้รายงานผลจริงที่เกิดขึ้นเป็นบรรทัดสั้นๆ "
     "(ส่งถึงแล้ว หรือเข้าคิวรอ Mac พร้อมเลขคิว) ถ้า Mac หลับอยู่ตอนที่เข้าคิว ให้บอกด้วย\n"
     "\n"
+    "- read_session (task-da873c76): อ่านหน้าจอ (tmux pane) ของ C-level session "
+    "ย้อนหลัง N บรรทัด เป็นการอ่านอย่างเดียว ไม่เปลี่ยนอะไร เรียกได้ทันทีไม่ต้องขอยืนยัน\n"
+    "  ทุกครั้งที่เอาผลลัพธ์มาตอบ CEO ต้องระบุแหล่งที่มาให้ชัดเสมอ เช่น "
+    "\"หน้าจอของ CTO#abc ตอนนี้\" ห้ามพูดหรือทำท่าราวกับว่า C-level เพิ่งพูดกับคุณ "
+    "หรือนี่คือคำตอบของมัน — สิ่งที่เห็นเป็นแค่ข้อความที่ค้างอยู่บนจอ ณ ตอนที่อ่าน "
+    "อาจเป็นของเก่าก็ได้ ไม่ใช่คำพูดสดๆ\n"
+    "  ถ้า status เป็น not_found (ไม่มี session ที่ยังทำงานอยู่) หรือ unavailable "
+    "(host=mac ยังใช้งานไม่ได้เพราะ Mac agent ยังไม่ได้สร้าง) หรือหน้าจอไม่มีอะไรใหม่ "
+    "จากที่เคยอ่านไปแล้ว ให้บอก CEO ตรงๆ ว่าไม่มีอะไรใหม่ ห้ามเดาหรือแต่งคำตอบแทน\n"
+    "  relay_to_session รับ wait ได้ด้วย (ค่า default ปิด) ถ้าเปิดจะรอไม่กี่วินาทีหลังส่งข้อความ "
+    "แล้วแนบหน้าจอ ณ ตอนนั้นมาด้วย — แต่นั่นก็ยังเป็นแค่ \"หน้าจอตอนนั้น\" ไม่ใช่คำตอบที่ยืนยันแล้ว "
+    "ให้อธิบาย CEO ตามนั้น ห้ามสรุปว่า C-level ตอบแล้ว\n"
+    "\n"
     "คุณไม่มี Bash และรันคำสั่งเชลล์ใดๆ ไม่ได้เลย ความสามารถของคุณมีแค่เครื่องมือที่ระบุไว้ทั้งหมดนี้ "
-    "(LungNote อ่าน/เขียน, mac_status, org_snapshot, relay_to_session, spawn_c_level) "
+    "(LungNote อ่าน/เขียน, mac_status, org_snapshot, relay_to_session, spawn_c_level, read_session) "
     "ห้ามบอก CEO ว่าคุณรันคำสั่งเชลล์หรือทำสิ่งที่ไม่มี tool รองรับได้ "
     "ถ้า CEO ขอสิ่งที่ไม่มี tool รองรับ ให้บอกตรงๆ ว่าทำไม่ได้ "
     "ห้ามอ้างว่าทำได้แล้วค่อยปฏิเสธทีหลังตอนถูกขอจริง\n"

@@ -60,9 +60,15 @@ REQUIRED_LUNGNOTE_TOOLS = (
 # CEO without a shell. Each is a fixed action with typed arguments — none
 # accepts a command, shell string, or caller-supplied path. Adding a name here
 # grants a real capability; it is meant to require a deliberate edit.
+#
+# mcp__relay__read_session arrived with task-da873c76 (read-only, closes the
+# round-trip gap: relay_to_session/spawn_c_level could act but nothing could
+# read a session back). No confirm-before-write needed since it changes
+# nothing; still deliberately listed here rather than inferred.
 RELAY_TOOLS = (
     "mcp__relay__mac_status", "mcp__relay__org_snapshot",
     "mcp__relay__relay_to_session", "mcp__relay__spawn_c_level",
+    "mcp__relay__read_session",
 )
 
 

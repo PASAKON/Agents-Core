@@ -303,17 +303,155 @@ def test_no_tool_accepts_a_free_form_command_argument():
     forbidden_param_names = {
         "cmd", "command", "shell", "keys", "keystrokes",
         "args", "argv", "script", "code",
+        # task-da873c76: read_session's own escape-hatch shapes -- no
+        # session name, pane id, or flag from the caller either.
+        "session", "session_name", "pane", "pane_id", "flag", "flags",
     }
-    tools = [rms.mac_status, rms.org_snapshot, rms.relay_to_session, rms.spawn_c_level]
+    tools = [
+        rms.mac_status, rms.org_snapshot, rms.relay_to_session,
+        rms.spawn_c_level, rms.read_session,
+    ]
     for tool in tools:
         params = set(inspect.signature(tool).parameters)
         overlap = params & forbidden_param_names
         assert not overlap, f"{tool.__name__} accepts free-form-looking arg(s): {overlap}"
-    # And the full set of tools is exactly these four -- no fifth escape
+    # And the full set of tools is exactly these five -- no sixth escape
     # hatch snuck in.
     assert {t.__name__ for t in tools} == {
         "mac_status", "org_snapshot", "relay_to_session", "spawn_c_level",
+        "read_session",
     }
+
+
+# ---------------------------------------------------------------------------
+# 8. read_session (task-da873c76 Deliverable 1)
+# ---------------------------------------------------------------------------
+
+def test_read_session_returns_pane_text_for_live_session(queue_env, monkeypatch, fake_subprocess):
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("abc123")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
+    # Trailing blank lines must be stripped so a mostly-empty pane does not
+    # come back as a page of nothing.
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="line1\nline2\nline3\n\n\n")
+
+    result = json.loads(rms.read_session("cto", 40))
+    assert result["status"] == "ok"
+    assert result["target_role"] == "cto"
+    assert result["tmux_session"] == "cto-abc123"
+    assert result["text"] == "line1\nline2\nline3"
+    assert result["lines_returned"] == 3
+
+
+def test_read_session_rejects_unknown_role(queue_env):
+    result = json.loads(rms.read_session("ceo", 40))
+    assert result["status"] == "rejected"
+
+
+def test_read_session_no_live_session_is_not_found_not_an_exception(queue_env):
+    """No <role>-active pointer at all -- must not raise."""
+    result = json.loads(rms.read_session("cfo", 40))
+    assert result["status"] == "not_found"
+    assert result["target_role"] == "cfo"
+
+
+def test_read_session_stale_pointer_is_not_found(queue_env, monkeypatch):
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cgo-active").write_text("dead99")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: False)
+    result = json.loads(rms.read_session("cgo", 40))
+    assert result["status"] == "not_found"
+
+
+def test_read_session_lines_above_cap_is_clamped(queue_env, monkeypatch, fake_subprocess):
+    """A pane can hold thousands of lines -- a huge request must not come
+    back unbounded."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cmo-active").write_text("xyz789")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cmo-xyz789")
+    huge_pane = "\n".join(f"line{i}" for i in range(5000))
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout=huge_pane)
+
+    result = json.loads(rms.read_session("cmo", 999_999))
+    assert result["lines_returned"] == rms.READ_SESSION_MAX_LINES
+    returned_lines = result["text"].splitlines()
+    assert len(returned_lines) == rms.READ_SESSION_MAX_LINES
+    assert returned_lines[0] == f"line{5000 - rms.READ_SESSION_MAX_LINES}"
+    assert returned_lines[-1] == "line4999"
+
+
+def test_read_session_host_mac_is_not_available_and_nothing_enqueued(queue_env):
+    result = json.loads(rms.read_session("cto", 40, host="mac"))
+    assert result["status"] == "unavailable"
+    assert result["host"] == "mac"
+    # Deliberately NOT queued -- a queued read that resolves minutes later
+    # would present stale pane text as current.
+    assert rms._queue_list_pending() == []
+
+
+def test_read_session_constructs_fixed_argv_only(queue_env, monkeypatch):
+    """SECURITY BOUNDARY: read_session accepts no session name, pane id, or
+    flag from the caller -- the tmux command is a fixed argv built only
+    from the resolved session name."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cgo-active").write_text("sess1")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cgo-sess1")
+
+    captured = {}
+
+    def _run(cmd, **kwargs):
+        captured["cmd"] = cmd
+        return FakeCompleted(0, stdout="hi\n")
+
+    monkeypatch.setattr(rms.subprocess, "run", _run)
+
+    rms.read_session("cgo", 5)
+    assert captured["cmd"] == ["tmux", "capture-pane", "-p", "-t", "cgo-sess1"]
+
+
+# ---------------------------------------------------------------------------
+# 9. relay_to_session wait (task-da873c76 Deliverable 2)
+# ---------------------------------------------------------------------------
+
+def test_relay_to_session_wait_disabled_is_unchanged(queue_env, monkeypatch):
+    """Regression: omitting `wait` must behave exactly as before -- no
+    pane_after_wait key, no sleep, no tmux capture-pane call."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("abc123")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
+    monkeypatch.setattr(rms.tmux_session, "send_keys", lambda s, t, **kw: None)
+
+    def _run(cmd, **kwargs):
+        raise AssertionError(f"unexpected subprocess.run call: {cmd!r}")
+
+    monkeypatch.setattr(rms.subprocess, "run", _run)
+
+    result = json.loads(rms.relay_to_session("cto", "status update please"))
+    assert result == {
+        "status": "delivered", "target_role": "cto",
+        "tmux_session": "cto-abc123",
+        "message": rms.RELAY_PREFIX + "status update please",
+    }
+
+
+def test_relay_to_session_wait_enabled_labels_pane_not_reply(queue_env, monkeypatch, fake_subprocess):
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("abc123")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-abc123")
+    monkeypatch.setattr(rms.tmux_session, "send_keys", lambda s, t, **kw: None)
+
+    slept = {}
+    monkeypatch.setattr(rms.time, "sleep", lambda s: slept.setdefault("seconds", s))
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="ok done\n")
+
+    result = json.loads(rms.relay_to_session("cto", "status update please", wait=True))
+    assert result["status"] == "delivered"
+    assert slept["seconds"] == rms.RELAY_WAIT_SECONDS
+    pane = result["pane_after_wait"]
+    assert pane["text"] == "ok done"
+    assert pane["seconds_after_send"] == rms.RELAY_WAIT_SECONDS
+    # Must NOT claim this is confirmed to be a reply.
+    assert "not confirmed to be a reply" in pane["note"]
 
 
 if __name__ == "__main__":
