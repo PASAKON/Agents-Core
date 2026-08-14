@@ -1,129 +1,139 @@
-"""CTO -> DEV visible chat: type a message directly into the DEV's iTerm tab.
+"""CTO (or any owning C-level) -> DEV mailbox: queue a message into the
+DEV's inbox, then attempt a best-effort wake.
 
-The message is prefixed with `[CTO]:` so the user (and the DEV's claude TUI)
-can tell who is talking. Unlike MCP-based delegation, this leaves the work
-fully visible -- every keystroke appears in the DEV's tab and the DEV's
-response streams in real time.
+Task task-2f04a8ca (CEO directive 2026-08-14, "ยกเลิกการส่งแบบที่ต้องใช้
+Keyboard ถาวรได้เลย ... ทุกๆ ตำแหน่งในองกรณ์เลย" -- extend the mailbox+wake
+pattern `tools/send_to_cxo.py` already proved twice tonight (task-de2cdc15,
+task-cf325742) to every worker role's kickoff + mid-task channel, not just
+C-level cross-talk). `send()` used to resolve `task["tmux_session"]` and
+type into it, falling back to an iTerm AppleScript search that matched a
+tab by title substring -- `full_id[:6]` when the full id didn't match
+(GH #65: two tasks sharing that 6-char prefix collide, and a message can
+land in the WRONG DEV's tab while reporting success to the sender). That
+whole tab-matching code path is deleted here, not kept as a fallback --
+mirrors `send_to_cxo.py`'s "a fallback that can silently misdeliver is
+worse than no fallback" (GH #69's lesson). `send()` now writes the
+message into the recipient's `lib.mailbox` box, keyed by (task["role"],
+task["id"]) -- the exact, already-unique DB row id, never a name/prefix
+match against anything typed into a terminal. Two tasks sharing a 6-char
+prefix now resolve to two structurally distinct boxes; GH #65's whole bug
+class is gone by construction, not patched.
+
+GH #65 was never actually in the DB-prefix convenience lookup below (the
+`task_id LIKE '<prefix>%'` query that lets a human type a short id on the
+CLI) -- that's a separate, pre-existing DB-row resolution step that always
+terminates in one canonical `task["id"]`, which is what the mailbox key
+uses. GH #65 was specifically about the iTerm tab-title fallback, which no
+longer exists.
 
 Usage:
     python -m tools.send_to_dev <task_id_or_prefix> "<message>"
     python -m tools.send_to_dev task-161dbcf7 "status check please"
 
-Tab matching: the spawn helper sets the iTerm tab title to
-`<RoleDisplay> (<full_task_id>)` via an ANSI title escape. We match on the
-full task id.
+Sender label: resolved from the calling process's env the same way
+`send_to_cxo._resolve_sender_role()` does (`CXO_ROLE` -> that C-level's
+display name, else "CEO") rather than the old hardcoded "[CTO]:" --
+`tasks.owner_role` already lets a CFO/CMO/CGO own a DEV task directly, so
+a CFO-delegated kickoff now correctly reads "[CFO]:" instead of lying
+"[CTO]:" like it used to.
+
+**Known gap, reported per this task's brief rather than worked around**:
+the wake nudge below is tmux-only, exactly mirroring
+`send_to_cxo._wake_tmux_send()` -- it types into `task["tmux_session"]`
+if that tmux session is live. `task["tmux_session"]` is only ever set by
+`tools/delegate.py` when the owning project's `spawn_backend: tmux`
+(`tools/tmux_session.session_name_for()`). As of this task, ZERO entries
+in `config/projects.yaml` set `spawn_backend: tmux` -- every project spawns
+DEVs on the plain iTerm backend (`runners/dev_init.py` execs `claude`
+straight into a new iTerm tab, no tmux). That means, for every DEV spawn
+in the org today, `task.get("tmux_session")` is `None` and the wake below
+always silently no-ops -- the mailbox letter queues correctly (delivery,
+by this file's own definition, has already happened), but nothing then
+drains it, because nothing ever fires the DEV's `UserPromptSubmit` hook.
+See this task's submitted report for the live-spawn proof and the
+consequence: **this migration, exactly as specified, leaves iTerm-backend
+DEV kickoffs with no working wake path** -- not a wording/signal problem,
+a reachability one. Fixing it needs either `spawn_backend: tmux` rolled
+out org-wide (`config/projects.yaml`, out of my touches) or a non-tmux
+wake mechanism for DEV tabs (also out of scope: re-adding iTerm typing
+here is exactly what this task exists to remove). Flagged, not silently
+worked around.
 """
 from __future__ import annotations
 
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.iterm_type import type_submit_fragment
-from tools import tmux_session as tmux
+from lib import mailbox
+from lib import notify
+from lib.config import display_for
+from tools import tmux_session
+from tools.send_to_cxo import (
+    current_identity,
+    _resolve_sender_role,
+    _wake_tmux_send,
+    _WAKE_MARKER_TEMPLATE,
+)
 
 
-PREFIX = "[CTO]:"
+def _attempt_wake(tmux_sess: str | None, label: str) -> None:
+    """Best-effort attention nudge for the just-delivered letter's DEV.
 
-
-def _send_tmux(session: str, message: str) -> None:
-    """Type `[CTO]: <message>\\n` into the tmux session.
-
-    Visible identically in every attached viewer (iTerm + browser ttyd).
+    Mirrors `send_to_cxo._attempt_wake()`'s isolation guarantee exactly:
+    nothing here may raise or change `send()`'s return value. Unlike
+    `send_to_cxo`, the target tmux session name is read straight off the
+    task row (`task["tmux_session"]`, set by `tools/delegate.py` only for
+    `spawn_backend: tmux` projects) rather than derived from
+    `session_name.lock_basename()` -- DEV tmux sessions are not named
+    `<role>-<task_id>` the way C-level sessions are (see module docstring:
+    this is `None` for every project today, so this is a no-op in practice
+    until a project opts into the tmux backend).
     """
-    text = f"{PREFIX} {message}"
-    tmux.send_keys(session, text, press_enter=True)
-
-
-def _run_osascript(script: str) -> subprocess.CompletedProcess:
-    """Execute `script` via osascript, capturing rather than trusting exit
-    code -- osascript exits 0 whether it matched an iTerm tab or looped over
-    zero windows (GH #60). Isolated as its own function (rather than an
-    inline `subprocess.run` call inside `_send`) so tests can substitute a
-    fake runner -- callable that takes the assembled script and returns an
-    object with `.returncode` / `.stdout`, matching `CompletedProcess` -- and
-    simulate matched / unmatched / failed osascript without iTerm or a real
-    `osascript` binary."""
-    return subprocess.run(
-        ["osascript", "-e", script], capture_output=True, text=True, check=False,
-    )
-
-
-def _send(full_id: str, message: str, *, runner=None) -> bool:
-    """Type message into the tab whose title contains the full task id, or
-    fall back to a 6-char slice match for tabs spawned before the full-id
-    title change. Returns True iff a tab actually matched and was typed
-    into -- never True on a zero-iteration loop (GH #60).
-
-    `runner` defaults to `_run_osascript` looked up dynamically (not bound
-    as a default-arg value) so a test can monkeypatch the module-level
-    `_run_osascript` name and have that take effect even for callers -- like
-    `send()` -- that don't pass `runner` explicitly.
-    """
-    if runner is None:
-        runner = _run_osascript
-    text = f"{PREFIX} {message}"
-    escaped = text.replace('\\', '\\\\').replace('"', '\\"')
-    submit = type_submit_fragment(escaped)
-    fallback = full_id[:6]
-    script = f'''
-tell application "iTerm"
-  set didSend to false
-  repeat with w in windows
-    repeat with t in tabs of w
-      tell t
-        if name of current session contains "{full_id}" then
-          select t
-          tell current session
-            {submit}
-          end tell
-          set didSend to true
-        end if
-      end tell
-    end repeat
-  end repeat
-  if not didSend then
-    repeat with w in windows
-      repeat with t in tabs of w
-        tell t
-          if name of current session contains "{fallback}" then
-            select t
-            tell current session
-              {submit}
-            end tell
-            set didSend to true
-          end if
-        end tell
-      end repeat
-    end repeat
-  end if
-  if didSend then
-    return "1"
-  end if
-  return "0"
-end tell
-'''
-    result = runner(script)
-    if result.returncode != 0:
-        return False
-    return result.stdout.strip() == "1"
+    if not tmux_sess:
+        return
+    try:
+        if not tmux_session.has_session(tmux_sess):
+            try:
+                notify.info(f"[send_to_dev] wake skipped (no live session): {tmux_sess}")
+            except Exception:
+                pass
+            return
+        try:
+            notify.info(f"[send_to_dev] wake attempted: {tmux_sess}")
+        except Exception:
+            pass
+        marker = _WAKE_MARKER_TEMPLATE.format(label=label)
+        _wake_tmux_send(tmux_sess, marker)
+        try:
+            notify.info(f"[send_to_dev] wake succeeded: {tmux_sess}")
+        except Exception:
+            pass
+    except Exception as e:
+        try:
+            notify.info(f"[send_to_dev] wake failed: {tmux_sess}: {e}")
+        except Exception:
+            pass
 
 
 def send(task_id: str, message: str) -> str:
-    """Programmatic send. Resolves tmux vs iTerm, returns one-line summary.
+    """Queue `message` into the DEV's mailbox, then attempt a wake.
 
-    Contract: delivered or raised, never "probably" (GH #60). Raises
-    RuntimeError when no tmux session and no iTerm tab (full id or 6-char
-    fallback) matched -- it never returns a success string for a send that
-    went nowhere.
+    Contract: queued or raised, never "probably" (GH #60's contract on this
+    function, kept across the transport swap). Raises `ValueError` when
+    `task_id` (or its prefix) matches no row -- the one failure mode that
+    still makes sense once "delivered" no longer depends on any terminal
+    existing. A mailbox write failure (disk full, permission denied) raises
+    whatever `lib.mailbox.send()` raises; there is no fallback transport to
+    catch it and retry.
 
-    Used by `tools/delegate.py` for the mandatory kickoff ping (IRON-RULES
-    §29); `_auto_kickoff` there already wraps this call in try/except and
-    warns rather than propagating, so a raise here surfaces loudly without
-    blocking the spawn or leaving the task row half-written.
+    Used by `tools/delegate.py`'s `_auto_kickoff` for the mandatory kickoff
+    ping (IRON-RULES §29) and for mid-task review messages. `_auto_kickoff`
+    already wraps this call in try/except and warns rather than propagating
+    (untouched here -- not in this task's touches), so a raise surfaces
+    loudly without blocking the spawn.
     """
     db.init()
     task = db.get_task(task_id)
@@ -139,17 +149,15 @@ def send(task_id: str, message: str) -> str:
         task = db.get_task(row[0])
 
     tid = task["id"]
-    tmux_sess = task.get("tmux_session")
-    if tmux_sess and tmux.has_session(tmux_sess):
-        _send_tmux(tmux_sess, message)
-        return f"sent via tmux {tmux_sess}: {PREFIX} {message}"
-    if not _send(tid, message):
-        raise RuntimeError(
-            f"send_to_dev: no iTerm tab matched task {tid} "
-            f"(full id or 6-char fallback {tid[:6]}) -- message NOT "
-            f"delivered: {PREFIX} {message}"
-        )
-    return f"sent to tab matching {tid}: {PREFIX} {message}"
+    role = task["role"]
+    sender_identity = current_identity()
+    label = _resolve_sender_role()
+    from_role = sender_identity.role.lower()
+    from_sid = sender_identity.session_id or "ceo"
+
+    mailbox.send(role, tid, message, from_role, from_sid)
+    _attempt_wake(task.get("tmux_session"), label)
+    return f"queued to {display_for(role)} ({tid}): [{label}] : {message}"
 
 
 def main() -> int:
@@ -163,9 +171,6 @@ def main() -> int:
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2
-    except RuntimeError as e:
-        print(str(e), file=sys.stderr)
-        return 3
     print(result)
     return 0
 
