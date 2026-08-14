@@ -1,18 +1,26 @@
-"""C-level cross-talk: type a message into another C-level's session.
+"""C-level cross-talk: queue a message into another C-level's mailbox.
 
 The sender (typically CTO/CMO/CGO/CFO acting on a request from CEO)
 needs to ask a sibling C-level to do something (e.g. CTO → CFO for a
 budget approval, CMO → CGO for an attribution check). This mirrors
-`tools/send_to_dev.py` but targets C-level tabs identified by role +
+`tools/send_to_dev.py` but targets C-level boxes identified by role +
 session id (recorded by `scripts/cxo-claude.sh` in
 `state/locks/<role>-active`).
 
-Delivery is tmux-first, iTerm-fallback (GH #69). Every C-level chat runs
-inside a `<role>-<session_id>` tmux session; the iTerm tab is only a
-viewer attached to it. `send()` checks `tmux.has_session()` and, when it
-exists, types directly into the pty via `tmux send-keys` -- the same fix
-`tools/send_to_dev.py` already had. iTerm's AppleScript path (`_send()`)
-is the fallback for sessions with no tmux backing.
+Task task-de2cdc15 (CEO directive 2026-08-14, option A: queue only, no
+wake attempt). `send()` used to type the message into a live terminal --
+tmux-first, iTerm-fallback (GH #69) -- and that typing path is exactly
+what failed silently three different ways in one day: GH #69 itself
+(bytes landed in the *sender's own* session, `didSend` still true), a
+swallowed Enter that left messages sitting unsubmitted in the composer,
+and key-encoding differences that did nothing without raising. "Text is
+on screen" was being read as "the message arrived" -- it is not the same
+claim, and no fallback chain fixes that, because a fallback that can
+silently misdeliver is worse than no fallback. `send()` now writes the
+message into the recipient's `lib.mailbox` box and returns success on
+that write alone; it no longer depends on tmux or iTerm succeeding, and
+it does not attempt to wake the recipient (that is `spawn()`'s job, a
+separate code path this task did not touch).
 
 The message is prefixed with `[<SENDER-ROLE>]:` so the receiving
 C-level (and any onlooking human) can tell who is talking.
@@ -65,10 +73,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
+from lib import mailbox
 from lib import notify
 from lib.config import display_for, is_c_level
 from lib.iterm_type import type_submit_fragment
-from tools import tmux_session as tmux
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCKS_DIR = ROOT / "state" / "locks"
@@ -288,102 +296,6 @@ def _log_hop(sender: Identity, target_role: str, target_session_id: str | None) 
         pass
 
 
-def _run_osascript(script: str) -> subprocess.CompletedProcess:
-    """Execute `script` via osascript, capturing rather than trusting exit
-    code. Isolated as its own function (mirrors tools/send_to_dev.py's
-    GH #60 fix) so tests can substitute a fake runner and simulate
-    matched / unmatched / failed osascript without iTerm or a real
-    `osascript` binary."""
-    return subprocess.run(
-        ["osascript", "-e", script], capture_output=True, text=True, check=False,
-    )
-
-
-def _send_tmux(session: str, message: str, sender: str) -> None:
-    """Type `[SENDER]: <message>\\n` straight into the tmux session backing
-    a C-level's tab (GH #69).
-
-    Every C-level chat runs inside tmux; the iTerm tab is only a viewer
-    attached to it via `tmux attach`. Typing at the iTerm/AppleScript layer
-    can land nowhere useful once the frontmost pane is a tmux client -- the
-    exact failure mode GH #69 reproduced live (`didSend` came back true,
-    the bytes landed in the *sender's own* session instead). This path goes
-    straight to the pty tmux owns, bypassing iTerm entirely.
-
-    What this proves and what it does not: `tmux.has_session(session)` is a
-    direct query against the real target, not a guess derived from a tab
-    title -- if it returns True, a session by this exact name exists right
-    now, and `send_keys` (`tmux send-keys -t <session>`) writes into that
-    same session's pty, so the bytes are provably in the intended
-    recipient's terminal. It does NOT prove a human is watching, that the
-    recipient's `claude` process is not busy/crashed, or that no other
-    writer interleaves. It is still strictly stronger than the iTerm path's
-    `didSend`, which only proves "some tab whose title matched was typed
-    into" -- never that the title match was unique or correct (see GH #69).
-    """
-    text = f"[{sender}]: {message}"
-    tmux.send_keys(session, text, press_enter=True)
-
-
-def _send(role: str, session_id: str, message: str, sender: str, *, runner=None) -> bool:
-    """Type `[SENDER]: message\\n` into the C-level tab for (role, session_id).
-    Returns True iff a tab actually matched and was typed into -- never True
-    on a zero-iteration loop (GH #60 shape).
-
-    `runner` defaults to `_run_osascript` looked up dynamically (not bound
-    as a default-arg value) so a test can monkeypatch the module-level
-    `_run_osascript` name and have that take effect even for callers --
-    like `send()` -- that don't pass `runner` explicitly.
-    """
-    if runner is None:
-        runner = _run_osascript
-    display = display_for(role)
-    # Match both title generations: legacy "<DISPLAY> Chat #<sid>" and the
-    # live-summary format "<DISPLAY> #<sid> <glyph> <summary>" (IRON-RULES §32).
-    tab_match = f"{display} Chat #{session_id}"
-    tab_match_new = f"{display} #{session_id}"
-    text = f"[{sender}]: {message}"
-    escaped = text.replace("\\", "\\\\").replace('"', '\\"')
-    submit = type_submit_fragment(escaped)
-    script = f'''
-tell application "iTerm"
-  set didSend to false
-  repeat with w in windows
-    repeat with t in tabs of w
-      tell t
-        try
-          set tabName to ""
-          try
-            set tabName to name of t
-          end try
-          set sessName to ""
-          try
-            set sessName to name of current session of t
-          end try
-          if (tabName contains "{tab_match}") or (sessName contains "{tab_match}") or (tabName contains "{tab_match_new}") or (sessName contains "{tab_match_new}") then
-            tell w to select
-            tell t to select
-            tell current session
-              {submit}
-            end tell
-            set didSend to true
-          end if
-        end try
-      end tell
-    end repeat
-  end repeat
-  if didSend then
-    return "1"
-  end if
-  return "0"
-end tell
-'''
-    result = runner(script)
-    if result.returncode != 0:
-        return False
-    return result.stdout.strip() == "1"
-
-
 # ---------------------------------------------------------------------------
 # Spawn-path helpers (--spawn flag, Phase 2)
 # ---------------------------------------------------------------------------
@@ -586,27 +498,39 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
     return f"spawned new {display} tab [{session_id}]: {full_text}"
 
 
+def _mailbox_identity(identity: Identity) -> tuple[str, str]:
+    """(role, session_id) pair for a letter's `from` field / filename.
+
+    CEO has no session id of its own -- fall back to the literal "ceo"
+    placeholder, which can never collide with a real hex session id."""
+    role = identity.role.lower()
+    return (role, identity.session_id) if identity.session_id else (role, "ceo")
+
+
+def _chain_ids(identity: Identity) -> list[str]:
+    """The recorded-ownership chain as `role:session_id` strings, oldest
+    (root) first -- for the letter's `chain` audit field only. Built from
+    `_chain()`, the same recorded-ownership walk `authorize()` uses, never
+    from anything a caller passes."""
+    return [f"{i.role.lower()}:{i.session_id}" if i.session_id else i.role.lower()
+            for i in _chain(identity)]
+
+
 def send(role: str, message: str, sender: str | None = None) -> str:
     """Programmatic API (legacy path). Returns one-line summary string.
 
-    Tmux-first, iTerm-fallback (GH #69, mirrors tools/send_to_dev.py's GH
-    #60 fix): every C-level chat runs inside a `<role>-<session_id>` tmux
-    session, and the iTerm tab is only an attached viewer on it. Typing at
-    the iTerm layer when the front pane is a tmux client does not reliably
-    reach the session the tab displays -- GH #69 reproduced this live,
-    `didSend` true, message delivered to the *sender's own* session. The
-    tmux path is checked first with `tmux.has_session()`, a direct check
-    against the real target rather than a tab-title guess; iTerm's
-    AppleScript path is only reached when no such tmux session exists
-    (pre-tmux / non-standard sessions).
+    Task task-de2cdc15 (CEO directive 2026-08-14, option A): queues the
+    message into the recipient's `lib.mailbox` box and returns once that
+    write succeeds -- it no longer types into a terminal, so it no longer
+    depends on tmux or iTerm succeeding, and it does not attempt to wake
+    the recipient. See the module docstring for why the old typed-message
+    path (GH #69, tmux-first/iTerm-fallback) was removed rather than kept
+    as a fallback.
 
-    Contract: delivered or raised, never "probably" (GH #60 shape, same
-    fix as tools/send_to_dev.py). Raises RuntimeError when neither the
-    tmux session nor an iTerm tab (full display+session-id string; there
-    is no shortened-prefix fallback here, so send_to_cxo does not share
-    send_to_dev's GH #65 collision flaw) matched — it never returns a
-    success string for a send that went nowhere. Raises PermissionError
-    when the routing guard refuses the hop (see `authorize()`).
+    Contract: queued or raised, never "probably". Raises ValueError when
+    the target role has no registered session (unchanged failure mode --
+    see `_active_session_id()`). Raises PermissionError when the routing
+    guard refuses the hop (see `authorize()`); a refusal writes nothing.
     """
     if not is_c_level(role):
         raise ValueError(
@@ -622,17 +546,10 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     authorize(sender_identity, role, sid, spawning=False)
     label = sender or _resolve_sender_role()
     _log_hop(sender_identity, role, sid)
-    tmux_sess = f"{role}-{sid}"
-    if tmux.has_session(tmux_sess):
-        _send_tmux(tmux_sess, message, label)
-        return f"sent via tmux {tmux_sess}: [{label}]: {message}"
-    if not _send(role, sid, message, label):
-        raise RuntimeError(
-            f"send_to_cxo: no tmux session {tmux_sess} and no iTerm tab "
-            f"matched {display_for(role)} #{sid} -- message NOT delivered: "
-            f"[{label}]: {message}"
-        )
-    return f"sent to {display_for(role)} #{sid}: [{label}]: {message}"
+    from_role, from_sid = _mailbox_identity(sender_identity)
+    chain = _chain_ids(sender_identity) + [f"{role}:{sid}"]
+    mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
+    return f"queued to {display_for(role)} #{sid}: [{label}]: {message}"
 
 
 def main() -> int:
