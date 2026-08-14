@@ -47,6 +47,7 @@ from tools.org_inspector import (  # noqa: E402
     history_read,
     list_sessions,
 )
+from tools import tmux_session  # noqa: E402
 from tools.send_to_cxo import (  # noqa: E402
     Identity,
     _active_session_id,
@@ -111,22 +112,15 @@ HISTORY_MODES = ("index", "read")
 
 
 def _tmux_bin() -> str:
-    """Absolute path to tmux.
-
-    launchd hands a process a bare PATH (/usr/bin:/bin:/usr/sbin:/sbin) — it
-    does NOT inherit the login shell's. Homebrew installs tmux in
-    /opt/homebrew/bin, so a plain "tmux" resolves to nothing under launchd and
-    every lookup fails. The dangerous part is what that looked like: sessions
-    that plainly existed were reported as "no live cto session on this Mac" —
-    a confident wrong answer rather than a missing-tool error.
-    """
+    """Absolute path to tmux. See tools.tmux_session.tmux_bin() for the
+    resolution order and the launchd rationale (moved there so the org has
+    one resolver, not one per module). Kept as a thin delegate here because
+    MAC_AGENT_TMUX_BIN is documented override behaviour for this module's
+    own callers and must keep working on its own."""
     override = os.environ.get("MAC_AGENT_TMUX_BIN")
     if override:
         return override
-    for candidate in ("/opt/homebrew/bin/tmux", "/usr/local/bin/tmux", "/usr/bin/tmux"):
-        if Path(candidate).exists():
-            return candidate
-    return "tmux"  # last resort; surfaces as a real error rather than a silent miss
+    return tmux_session.tmux_bin()
 
 _LOGGER = None
 
@@ -260,11 +254,10 @@ def find_session_for_role(role: str) -> str | None:
 def _live_session(name: str) -> bool:
     """Is tmux session `name` live right now?
 
-    Uses the absolute-path _tmux_bin(), not tools/tmux_session.py's plain
-    "tmux": this agent runs under launchd, whose bare PATH does not carry
-    Homebrew, and a liveness check that cannot find tmux must not turn
-    into "no live session" — the confident-wrong-answer failure
-    _tmux_bin() itself documents.
+    Goes through _tmux_bin() (-> tools.tmux_session.tmux_bin()): this agent
+    runs under launchd, whose bare PATH does not carry Homebrew, and a
+    liveness check that cannot find tmux must not turn into "no live
+    session" — the confident-wrong-answer failure tmux_bin() documents.
     """
     try:
         r = subprocess.run([_tmux_bin(), "has-session", "-t", name],
@@ -561,12 +554,11 @@ def tick() -> int:
 
 def main() -> None:
     once = "--once" in sys.argv
-    # attempt_wake (tools/send_to_cxo.py) types the wake marker with a bare
-    # "tmux"; under launchd that resolves to nothing on the bare PATH, and
-    # the wake would be silently skipped every tick. _tmux_bin() knows
-    # where tmux really lives — put its directory on OUR path so the nudge
-    # can fire. Delivery never depends on this (a failed wake cannot fail
-    # an entry); it just keeps the wake working in the launchd deployment.
+    # Every direct tmux call in this process now resolves its own argv[0]
+    # via _tmux_bin() -> tools.tmux_session.tmux_bin(), so this no longer
+    # gates whether attempt_wake or anything else here can find tmux. Kept
+    # as cheap defense-in-depth for anything this process spawns that shells
+    # out to a bare "tmux" and relies on PATH under launchd's stripped one.
     bin_path = Path(_tmux_bin())
     if bin_path.is_absolute() and bin_path.parent.is_dir():
         current = os.environ.get("PATH", "")

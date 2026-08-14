@@ -40,6 +40,7 @@ sys.path.insert(0, str(ROOT))
 # scripts/session_list.py; we import it rather than grow a second, drifting
 # copy. session_list is import-safe: everything side-effecting sits in main().
 from scripts.session_list import GLYPHS, birth, parse_title  # noqa: E402
+from tools import tmux_session  # noqa: E402
 
 TAB_DIR = Path(os.environ.get("ORG_INSPECTOR_TAB_DIR", ROOT / "state" / "tab-titles"))
 LOG_DIR = Path(os.environ.get("ORG_INSPECTOR_LOG_DIR", ROOT / "state" / "logs"))
@@ -102,18 +103,17 @@ def detect_host() -> str:
 
 
 def _tmux_bin() -> str:
-    """Absolute path to tmux. Same rationale as mac_agent._tmux_bin(): under
-    launchd/systemd the process gets a bare PATH and Homebrew's /opt/homebrew
-    is not on it; a plain "tmux" then resolves to nothing and live sessions
-    get misreported as absent. Kept local (not imported) so this tool never
-    pulls in runners.* and its heavier module-level config."""
+    """Absolute path to tmux. See tools.tmux_session.tmux_bin() for the
+    resolution order and the launchd rationale (moved there so the org has
+    one resolver, not one per module). Kept as a thin delegate here because
+    ORG_INSPECTOR_TMUX_BIN is documented override behaviour for this
+    module's own callers and must keep working on its own. tools.tmux_session
+    is a plain stdlib-only module (os/shutil/socket/subprocess/pathlib), so
+    importing it does not pull in runners.* or its module-level config."""
     override = os.environ.get("ORG_INSPECTOR_TMUX_BIN")
     if override:
         return override
-    for candidate in ("/opt/homebrew/bin/tmux", "/usr/local/bin/tmux", "/usr/bin/tmux"):
-        if Path(candidate).exists():
-            return candidate
-    return "tmux"  # last resort; surfaces as a real error, not a silent miss
+    return tmux_session.tmux_bin()
 
 
 def _tmux_ls() -> dict[str, dict]:
