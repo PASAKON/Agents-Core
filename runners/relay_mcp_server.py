@@ -2,12 +2,16 @@
 
 The secretary (`runners/secretary_server.py`) is reachable from Telegram, so
 it must never get `Bash` or any general-purpose escape hatch. This server
-is the alternative: four named, typed actions instead of a shell.
+is the alternative: five named, typed actions instead of a shell.
 
   mac_status()                          -- is the Mac up, via Tailscale?
   org_snapshot()                        -- what's running, Contabo-only view
-  relay_to_session(target_role, message) -- queue/deliver an order to a C-level
+  relay_to_session(target_role, message, wait=False)
+                                         -- queue/deliver an order to a C-level
   spawn_c_level(role, host)             -- start a C-level session
+  read_session(target_role, lines, host="contabo")
+                                         -- read back the tail of a C-level
+                                            session's live tmux pane (task-da873c76)
 
 Design points this server exists to enforce (see TASK.md task-b293ef6c):
   1. Enumerated actions, never raw keystrokes -- no tool here takes a
@@ -16,11 +20,15 @@ Design points this server exists to enforce (see TASK.md task-b293ef6c):
   2. Proxy with attribution, never impersonation -- every message
      `relay_to_session` hands off is prefixed "[CEO via SomPong] "
      server-side; the caller cannot omit or spoof that marker.
-  3. Read-only actions (mac_status, org_snapshot) execute immediately.
-     Write actions that would reach the Mac (relay_to_session,
-     spawn_c_level when their target has no live Contabo session) are
-     queued for a separate, not-yet-built Mac-side draining agent -- see
-     the queue helpers below for the contract that agent must honour.
+  3. Read-only actions (mac_status, org_snapshot, read_session) execute
+     immediately -- read_session's host="mac" case is the one exception:
+     it reports "not available yet" rather than queuing, because a queued
+     read that resolves minutes later would present stale pane text as
+     current (task-da873c76). Write actions that would reach the Mac
+     (relay_to_session, spawn_c_level when their target has no live
+     Contabo session) are queued for a separate, not-yet-built Mac-side
+     draining agent -- see the queue helpers below for the contract that
+     agent must honour.
 
 Registered in config/secretary.mcp.json as server "relay" -- tools become
 mcp__relay__<tool_name> inside the secretary's Claude Code CLI invocation.
@@ -35,6 +43,7 @@ import os
 import sqlite3
 import subprocess
 import sys
+import time
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -77,6 +86,20 @@ MAC_HOSTNAME_MATCH = os.environ.get("RELAY_MAC_HOSTNAME", "MacBook Pro ของ
 SUPABASE_TABLE = "claudeflow_agent_runs"
 AGENT_RUNS_WINDOW_HOURS = 24
 AGENT_RUNS_LIMIT = 20
+
+# task-da873c76 Deliverable 1 -- a tmux pane can hold thousands of
+# scrollback lines and every one of them is paid for on the way back into
+# the model. 200 matches the other generous-but-bounded cap already in this
+# codebase (SECRETARY_SYSTEM_PROMPT's `limit=200` for list_todos): enough
+# for a real status update, not enough to smuggle a whole session
+# transcript back through the secretary.
+READ_SESSION_MAX_LINES = 200
+
+# task-da873c76 Deliverable 2 -- relay_to_session's optional wait. A few
+# seconds is enough to catch a fast echo/ack on the pane without turning
+# this tool into a blocking wait for a C-level agent's actual response,
+# which can legitimately take minutes.
+RELAY_WAIT_SECONDS = 3
 
 # Deliverable 3 -- the Mac-bound work queue. Same SECRETARY_* env-override
 # pattern as runners/secretary_server.py's SESSION_DB_PATH: default lives
@@ -357,6 +380,27 @@ def org_snapshot() -> str:
 
 
 # ---------------------------------------------------------------------------
+# Shared role validation -- task-da873c76 pulls this out of relay_to_session/
+# spawn_c_level (which used to each inline their own `if role not in
+# C_LEVEL_ROLES` check) so read_session can reuse it instead of writing a
+# third copy, per TASK.md Deliverable 1.
+# ---------------------------------------------------------------------------
+
+def _reject_unknown_role(tool: str, role: str, *, host: str | None = None) -> str | None:
+    """None if `role` is a known C-level role. Otherwise logs the rejection
+    and returns the ready-to-return JSON string every tool here uses for an
+    unknown-role response."""
+    if role in C_LEVEL_ROLES:
+        return None
+    detail = f"unknown role, host={host}" if host is not None else "unknown role"
+    _audit(tool, role, "rejected", detail)
+    return json.dumps({
+        "status": "rejected",
+        "reason": f"unknown role {role!r}. Known: {', '.join(C_LEVEL_ROLES)}",
+    }, ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
 # relay_to_session
 # ---------------------------------------------------------------------------
 
@@ -378,8 +422,41 @@ def _active_contabo_tmux_session(role: str) -> str | None:
     return tmux_name if tmux_session.has_session(tmux_name) else None
 
 
+# ---------------------------------------------------------------------------
+# Pane capture -- shared by relay_to_session's optional `wait` and by
+# read_session below. Fixed `tmux capture-pane -p -t <tmux_name>` only: no
+# other argument from a caller ever reaches this subprocess (task-da873c76
+# Deliverable 1 security note, guarded by
+# test_read_session_constructs_fixed_argv_only).
+# ---------------------------------------------------------------------------
+
+def _capture_pane(tmux_name: str) -> str | None:
+    """Raw pane text, or None for any failure (missing tmux, non-zero exit,
+    session raced away between the liveness check and this call) -- callers
+    turn None into an explicit error/empty state, never a guess."""
+    try:
+        result = subprocess.run(
+            ["tmux", "capture-pane", "-p", "-t", tmux_name],
+            capture_output=True, text=True, timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode != 0:
+        return None
+    return result.stdout
+
+
+def _tail_pane_text(raw: str, cap: int) -> str:
+    """Strip trailing blank lines (so a mostly-empty pane does not return
+    N blank lines), then keep at most `cap` lines from the tail."""
+    all_lines = raw.splitlines()
+    while all_lines and not all_lines[-1].strip():
+        all_lines.pop()
+    return "\n".join(all_lines[-cap:])
+
+
 @mcp.tool()
-def relay_to_session(target_role: str, message: str) -> str:
+def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
     """Queue or deliver an order to a C-level session, on the CEO's behalf.
 
     `target_role` must be one of cto/cmo/cgo/cfo -- anything else is
@@ -396,13 +473,19 @@ def relay_to_session(target_role: str, message: str) -> str:
     queued together with whether the Mac is currently reachable -- so the
     secretary can offer moving the request to Contabo instead of silently
     parking it.
+
+    `wait` (default False -- byte-identical to the pre-task-da873c76
+    behaviour when omitted): only applies when delivered live. If true,
+    sleeps RELAY_WAIT_SECONDS then captures the pane once (the same fixed
+    `tmux capture-pane` read_session uses) and includes it in the result as
+    "pane_after_wait". This is NOT proof of a reply -- a C-level agent can
+    think for minutes and this tool does not block on that -- so the field
+    is always labelled as a snapshot ("pane contents N seconds after
+    sending"), never claimed to be the reply.
     """
-    if target_role not in C_LEVEL_ROLES:
-        _audit("relay_to_session", target_role, "rejected", "unknown target_role")
-        return json.dumps({
-            "status": "rejected",
-            "reason": f"unknown role {target_role!r}. Known: {', '.join(C_LEVEL_ROLES)}",
-        }, ensure_ascii=False)
+    rejection = _reject_unknown_role("relay_to_session", target_role)
+    if rejection:
+        return rejection
 
     full_message = f"{RELAY_PREFIX}{message}"
 
@@ -417,10 +500,28 @@ def relay_to_session(target_role: str, message: str) -> str:
             }, ensure_ascii=False)
         _audit("relay_to_session", target_role, "delivered",
                f"tmux={tmux_name} message={full_message!r}")
-        return json.dumps({
+        result = {
             "status": "delivered", "target_role": target_role,
             "tmux_session": tmux_name, "message": full_message,
-        }, ensure_ascii=False)
+        }
+        if wait:
+            time.sleep(RELAY_WAIT_SECONDS)
+            raw = _capture_pane(tmux_name)
+            if raw is None:
+                pane_text = ""
+                note = "tmux capture-pane failed after sending -- pane text unavailable"
+            else:
+                pane_text = _tail_pane_text(raw, READ_SESSION_MAX_LINES)
+                note = (
+                    f"pane contents {RELAY_WAIT_SECONDS}s after sending -- "
+                    "not confirmed to be a reply, just whatever is on screen now"
+                )
+            result["pane_after_wait"] = {
+                "text": pane_text,
+                "seconds_after_send": RELAY_WAIT_SECONDS,
+                "note": note,
+            }
+        return json.dumps(result, ensure_ascii=False)
 
     queue_id = _queue_enqueue("relay", target_role, {"message": full_message})
     mac = _mac_status_dict()
@@ -454,12 +555,9 @@ def spawn_c_level(role: str, host: str) -> str:
     host="mac": enqueued for the separate, not-yet-built Mac-side
     draining agent (same queue relay_to_session uses).
     """
-    if role not in C_LEVEL_ROLES:
-        _audit("spawn_c_level", role, "rejected", f"unknown role, host={host}")
-        return json.dumps({
-            "status": "rejected",
-            "reason": f"unknown role {role!r}. Known: {', '.join(C_LEVEL_ROLES)}",
-        }, ensure_ascii=False)
+    rejection = _reject_unknown_role("spawn_c_level", role, host=host)
+    if rejection:
+        return rejection
     if host not in HOSTS:
         _audit("spawn_c_level", role, "rejected", f"unknown host {host!r}")
         return json.dumps({
@@ -496,6 +594,92 @@ def spawn_c_level(role: str, host: str) -> str:
     return json.dumps({
         "status": "spawned", "role": role, "host": "contabo",
         "tmux_session": tmux_name, "session_id": session_id,
+    }, ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
+# read_session -- task-da873c76 Deliverable 1. The read-back the other four
+# tools were missing (see module docstring): the CEO can tell SomPong to
+# relay/spawn and get "delivered", but with no way to see what the target
+# session actually did with it -- "โต้ตอบกันไม่ได้". This closes that gap
+# with the same discipline as the rest of this file: a named, typed action,
+# never a shell.
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def read_session(target_role: str, lines: int, host: str = "contabo") -> str:
+    """Read back the tail of a C-level session's live tmux pane.
+
+    `target_role` must be one of cto/cmo/cgo/cfo -- same validation every
+    other tool here uses. `lines` is how much of the tail to return,
+    clamped to READ_SESSION_MAX_LINES (currently 200) -- a pane can hold
+    thousands of scrollback lines and every one is paid for on the way back
+    into the model. `host` must be "contabo" or "mac".
+
+    Fixed `tmux capture-pane -p -t <resolved-session>` only -- the caller
+    supplies a role and a line count, never a session name, pane id, or
+    flag (see test_read_session_constructs_fixed_argv_only). Trailing blank
+    lines are stripped so a mostly-empty pane does not return a page of
+    nothing.
+
+    host="mac" always reports not-available -- the Mac-side agent is not
+    built yet (see the module docstring). This is never queued: a queued
+    read that resolves minutes later would be worse than an honest no here,
+    because the secretary would end up presenting stale pane text as
+    current.
+
+    A "not_found" status (no live Contabo session for that role right now)
+    is a normal, expected outcome -- not an error and not raised.
+
+    The returned text is a snapshot of the pane, not proof anything replied
+    to anything in particular -- callers must attribute it as "pane
+    contents", never as speech (the same rule relay_to_session's optional
+    `wait` follows).
+    """
+    rejection = _reject_unknown_role("read_session", target_role, host=host)
+    if rejection:
+        return rejection
+    if host not in HOSTS:
+        _audit("read_session", target_role, "rejected", f"unknown host {host!r}")
+        return json.dumps({
+            "status": "rejected",
+            "reason": f"unknown host {host!r}. Known: {', '.join(HOSTS)}",
+        }, ensure_ascii=False)
+
+    capped_lines = max(1, min(lines, READ_SESSION_MAX_LINES))
+
+    if host == "mac":
+        _audit("read_session", target_role, "unavailable", "host=mac not built")
+        return json.dumps({
+            "status": "unavailable", "target_role": target_role, "host": "mac",
+            "reason": "not available yet -- the Mac agent is not built",
+        }, ensure_ascii=False)
+
+    tmux_name = _active_contabo_tmux_session(target_role)
+    if not tmux_name:
+        _audit("read_session", target_role, "not_found", "host=contabo")
+        return json.dumps({
+            "status": "not_found", "target_role": target_role, "host": "contabo",
+        }, ensure_ascii=False)
+
+    raw = _capture_pane(tmux_name)
+    if raw is None:
+        _audit("read_session", target_role, "error", f"tmux={tmux_name} capture failed")
+        return json.dumps({
+            "status": "error", "target_role": target_role,
+            "tmux_session": tmux_name, "detail": "tmux capture-pane failed",
+        }, ensure_ascii=False)
+
+    text = _tail_pane_text(raw, capped_lines)
+    lines_returned = len(text.splitlines()) if text else 0
+
+    _audit("read_session", target_role, "ok",
+           f"tmux={tmux_name} lines_returned={lines_returned}")
+    return json.dumps({
+        "status": "ok", "target_role": target_role, "host": "contabo",
+        "tmux_session": tmux_name,
+        "lines_requested": lines, "lines_returned": lines_returned,
+        "text": text,
     }, ensure_ascii=False)
 
 
