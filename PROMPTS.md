@@ -99,6 +99,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 12-A | `@Stop-Work` | `@Mother` `@Father` | — |
 | 12-FB1 (Seedance 2.5) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` |
 | 12-FB2 (Seedance 2.5) | `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` | `@Mother` `@Father` | `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
+| 12-FB (Seedance 2.5, alternate to FB1+FB2) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
 
@@ -1189,4 +1190,45 @@ Grounded real-camera look, natural handheld weight, no whip pans, no lens flare.
 
 AUDIO-SFX
 Footsteps running on pavement, breathing hard, a car door closing unhurried. The clerk's voice, calm and routine, not fully intelligible, a key card printer. The key in the lock, the door forced open, two raised voices overlapping. The lamp hitting the floor, glass shattering, furniture scraping and falling — then dead silence. His slower breathing, footsteps to the door, the DND tag swinging once, a car door, an engine driving away into distance. No music, no score, anywhere in this block.
+```
+
+## Scene 12-FB — JUMP CUT (20s, Seedance 2.5) — everything in one
+
+**Added 2026-08-14 (CEO).** All 18 beats from 12-FB1 and 12-FB2, compressed
+into a single 20-second block instead of two. **Alternate to FB1+FB2, not
+additional footage** — the CEO/editor picks whichever single version cuts
+the whole flashback act, this one or the 40-second two-block version, not
+both. At 18 cuts in 20 seconds several beats run under 1 second — expect
+the model to drift on exact timing at this density; the cut order and
+content matter more than hitting these marks precisely.
+
+```
+VISUAL
+Eighteen cuts across 20 seconds. Night.
+
+Cut 1 (0.0–1.0s): @Mother leaves work, carrying @Prop-Handbag, tired. Exterior @Stop-Work.
+Cut 2 (1.0–2.0s): @Father stands beside a black sedan at the curb, hand out, asking for money.
+Cut 3 (2.0–3.0s): She refuses. He steps in close and grabs her arm, holding on.
+Cut 4 (3.0–4.0s): The bus pulls in right behind them; she pulls free and boards, @Prop-Handbag still in hand.
+Cut 5 (4.0–5.0s): Interior @Bus-Interior. Through the rear window, the black sedan follows at a steady distance in traffic.
+Cut 6 (5.0–6.0s): Through the side window she sees @House-Night, every window lit warm, porch light on.
+Cut 7 (6.0–7.5s): Flash of memory — warm golden afternoon, @House-Day. @Father, healthy, spins @Daughter as a small child in the front yard; she laughs.
+Cut 8 (7.5–9.0s): @Mother watches from the porch, smiling, open-hearted. The three of them plant a tree together, dirt on small hands.
+Cut 9 (9.0–10.5s): The three of them eat dinner on the porch steps, laughing together.
+Cut 10 (10.5–12.0s): Close-up: @Mother's and @Father's hands joined, wearing @Prop-Ring — the same ring seen on the nightstand in Scene 9.
+Cut 11 (12.0–13.0s): Cut back hard to the dark bus interior. Her hand hovers near @Prop-BusCord, then drops — she does not pull it. The bus continues past her stop.
+Cut 12 (13.0–14.0s): @Mother runs across the street toward @Motel-Front. The black sedan pulls up behind her; @Father gets out but stays back.
+Cut 13 (14.0–15.0s): Interior @Motel-Lobby. Breathless at the front counter with the hotel clerk (unremarkable, no plate, invented by the model). @Father visible through the glass, not entering.
+Cut 14 (15.0–16.0s): @Room-DoorOut, then @Room-Clean. She unlocks the door with @Prop-RoomKey, starts to shut it — his hand forces it open. He steps in.
+Cut 15 (16.0–16.7s): A sharp argument, voices overlapping, words not intelligible. Shadows cross the wall.
+Cut 16 (16.7–18.2s): @Prop-Lamp knocked from the nightstand, @Prop-Glass shatters, furniture goes over. The struggle stays off-camera — the camera holds on the room, never on contact between them.
+Cut 17 (18.2–19.0s): The room holds still. It is now @Room-Wreck. Silence.
+Cut 18 (19.0–20.0s): @Father hangs @Prop-DNDTag on the outside handle and walks away. A car door, an engine, driving off.
+
+NEGATIVE — strictly avoid: no strike, no punch, no shove, no fall in cuts 2-3 — the arm-grab is firm and held, not a blow, no visible mark on her arm. No printed logos or brand text anywhere. The memory cuts (7-10) read distinctly warmer and more saturated than every other cut — never blend the two grades. @Father in the memory is healthy, not gaunt or unwell. @Prop-BusCord never actually pulled. No readable hotel name or logo in cut 13. @Father stays outside the glass in cut 13, never crosses the threshold. Cuts 15-16: absolutely no physical blow, no visible wound, no blood shown anywhere — the violence is entirely implied through the room, shadow and sound, never shown directly. No face-on shot of contact between the two of them at any point in the whole piece.
+
+Grounded real-camera look, natural handheld weight, no whip pans, no lens flare. Present-tense cuts: hard sodium-orange streetlight, cold bus interior light, warm interior lobby/room light once inside. Memory cuts (7-10): warm golden-hour light, slightly softer focus, matching an old photograph's palette. Cuts land hard on every grade change — no dissolve, no cross-fade, anywhere in the piece.
+
+AUDIO-SFX
+Distant traffic, engine idle, his voice low and demanding, her clipped refusal, bus air brakes and door hydraulics. The memory cuts carry no dialogue, only muffled, distant, warm ambient sound — wind, faint laughter, no clear words, like a memory heard through glass. Cut back to the bus: near-silence, the faint chain-tick of @Prop-BusCord. Footsteps running, breathing hard, a car door. The clerk's voice, calm and routine, not fully intelligible, a key card printer. The key in the lock, the door forced open, raised voices. The lamp hitting the floor, glass shattering, furniture falling — then dead silence. His slower breathing, footsteps, the DND tag swinging once, a car door, an engine driving away. No music, no score, anywhere in this piece.
 ```
