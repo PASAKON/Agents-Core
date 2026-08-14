@@ -545,6 +545,13 @@ detailed it otherwise looks.
   gave: the CTO is still writing Scene 12, but a spare take of Scene 11 is
   ready to fire — fire that, don't sit waiting on 12. Only stop firing
   entirely when nothing anywhere is ready to generate.
+  **No permission needed for this, and it isn't capped at one extra take
+  either** (CEO, same instruction, elaborated): while waiting on the next
+  scripted prompt, re-generate an already-written scene as many times as
+  useful, past the normal real+spare pair, since Unlimited costs nothing.
+  If that scene needs 2 footage variants, generating more than that during
+  idle wait time is fine too — more usable footage for the editor, at zero
+  cost, is never wasted. Keep every extra take, same as always.
 - **Split into waves capped at ~5 generations each — this is a hard cap, not
   a suggestion.** Spawn a separate task/DEV session per wave rather than one
   long-running session. Screenshots stay in context for the rest of a session
