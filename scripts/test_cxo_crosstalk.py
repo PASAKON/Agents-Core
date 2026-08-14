@@ -131,6 +131,87 @@ def test_send_osascript_crash_raises(isolated_locks, monkeypatch):
         sc.send("cfo", "hello")
 
 
+# --- tmux-first delivery (GH #69) -------------------------------------------
+#
+# `sc.tmux` is `tools.tmux_session` imported into this module's namespace
+# (`from tools import tmux_session as tmux`) -- monkeypatching attributes on
+# `sc.tmux` is the same technique scripts/test_send_to_dev.py uses for
+# `sd.tmux` (`monkeypatch.setattr(sd.tmux, "has_session", ...)`). Never
+# touches a real `tmux` binary or real iTerm.
+
+def test_send_prefers_tmux_when_session_alive(isolated_locks, monkeypatch):
+    """tmux session exists -> tmux path taken, iTerm/osascript never called."""
+    (isolated_locks / "cfo-active").write_text("sess1234")
+    monkeypatch.setattr(sc.tmux, "has_session", lambda s: s == "cfo-sess1234")
+    sent = []
+    monkeypatch.setattr(
+        sc.tmux, "send_keys",
+        lambda session, text, press_enter=True: sent.append((session, text, press_enter)),
+    )
+
+    def _osascript_should_not_run(script):
+        raise AssertionError("iTerm/osascript path must not run when tmux session exists")
+
+    monkeypatch.setattr(sc, "_run_osascript", _osascript_should_not_run)
+
+    result = sc.send("cfo", "hello via tmux")
+    assert "sent via tmux cfo-sess1234" in result
+    assert sent == [("cfo-sess1234", "[CEO]: hello via tmux", True)]
+
+
+def test_send_falls_back_to_iterm_when_no_tmux_session(isolated_locks, monkeypatch):
+    """no tmux session for the target -> falls back to the iTerm path."""
+    (isolated_locks / "cfo-active").write_text("sess1234")
+    monkeypatch.setattr(sc.tmux, "has_session", lambda s: False)
+    tmux_send_called = []
+    monkeypatch.setattr(
+        sc.tmux, "send_keys",
+        lambda *a, **kw: tmux_send_called.append((a, kw)),
+    )
+    monkeypatch.setattr(sc, "_run_osascript", lambda script: _fake_result(0, "1"))
+
+    result = sc.send("cfo", "hello via iterm")
+    assert tmux_send_called == []
+    assert "sent via tmux" not in result
+    assert "sent to" in result
+    assert "sess1234" in result
+
+
+def test_send_neither_tmux_nor_iterm_raises_no_success_string(
+    isolated_locks, monkeypatch,
+):
+    """neither transport reaches the target -> raises, no success string."""
+    (isolated_locks / "cfo-active").write_text("sess1234")
+    monkeypatch.setattr(sc.tmux, "has_session", lambda s: False)
+    monkeypatch.setattr(sc, "_run_osascript", lambda script: _fake_result(0, "0"))
+
+    with pytest.raises(RuntimeError) as exc_info:
+        result = sc.send("cfo", "hello nowhere")
+        assert "sent" not in result
+    msg = str(exc_info.value)
+    assert "NOT delivered" in msg
+    assert "cfo-sess1234" in msg
+
+
+def test_send_return_string_names_the_transport(isolated_locks, monkeypatch):
+    """The returned string must name which path ran -- tmux vs iTerm form,
+    so a caller reading a log can tell which transport delivered it."""
+    (isolated_locks / "cfo-active").write_text("sess1234")
+
+    # tmux path
+    monkeypatch.setattr(sc.tmux, "has_session", lambda s: True)
+    monkeypatch.setattr(sc.tmux, "send_keys", lambda *a, **kw: None)
+    tmux_result = sc.send("cfo", "hi")
+    assert tmux_result.startswith("sent via tmux cfo-sess1234:")
+
+    # iTerm path
+    monkeypatch.setattr(sc.tmux, "has_session", lambda s: False)
+    monkeypatch.setattr(sc, "_run_osascript", lambda script: _fake_result(0, "1"))
+    iterm_result = sc.send("cfo", "hi")
+    assert iterm_result.startswith("sent to CFO #sess1234:")
+    assert "via tmux" not in iterm_result
+
+
 # --- routing guard: depth cap -----------------------------------------------
 
 def test_three_link_chain_allowed(isolated_locks):
