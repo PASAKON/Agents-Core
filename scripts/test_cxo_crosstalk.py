@@ -257,7 +257,8 @@ def test_ephemeral_cto_claude_does_not_overwrite_active_pointer(tmp_path: Path):
 
 # --- registration sanity (light, own-regression net — no count assertions) -
 
-def test_send_to_cxo_registered_separately_from_cto_registry():
+def test_send_to_cxo_registered_in_main_registry():
     from lib import org_tools_registry as reg
-    assert "send_to_cxo" in {s.name for s in reg.CXO_REGISTRY}
-    assert "send_to_cxo" not in {s.name for s in reg.REGISTRY}
+    assert "send_to_cxo" in {s.name for s in reg.REGISTRY}
+    assert "send_to_cxo" in reg.BY_NAME
+    assert not hasattr(reg, "CXO_REGISTRY")
