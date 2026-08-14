@@ -247,11 +247,18 @@ def ensure_mcp_config() -> Path:
             # spawn_c_level). ROOT-relative, unlike the Mac-only literal
             # paths above/below, so this resolves correctly whether ROOT is
             # the Mac checkout or Contabo's /opt/mooniex-agents.
+            # Launched by absolute file path, NOT `-m` plus `cwd`. Claude Code
+            # silently drops an mcpServers entry that carries a `cwd` key: the
+            # server still starts by hand, `initialize` and `tools/list` both
+            # answer correctly, and yet the tools never reach the session —
+            # nothing is logged on either side. Verified on Contabo by running
+            # the identical config minus `cwd`, where they appear immediately.
+            # The module puts its own repo root on sys.path from __file__, so
+            # it does not need a working directory.
             "relay": {
                 "type": "stdio",
                 "command": str(ROOT / ".venv" / "bin" / "python"),
-                "args": ["-m", "runners.relay_mcp_server"],
-                "cwd": str(ROOT),
+                "args": [str(ROOT / "runners" / "relay_mcp_server.py")],
                 "env": {"PYTHONUNBUFFERED": "1"},
             },
         }

@@ -99,6 +99,32 @@ def test_allowlist_never_contains_a_mutating_or_org_tool() -> None:
     assert set(ss.ALLOWED_TOOLS) == set(REQUIRED_LUNGNOTE_TOOLS) | set(RELAY_TOOLS)
 
 
+def test_generated_mcp_config_never_carries_a_cwd_key(tmp_path, monkeypatch) -> None:
+    """Claude Code silently drops an mcpServers entry carrying a `cwd` key.
+
+    Nothing surfaces the failure. The server still starts by hand, its
+    `initialize` and `tools/list` both answer correctly, and the tools simply
+    never reach the session — no error on either side. It cost a deploy to
+    find on Contabo, and the only symptom the CEO saw was the secretary
+    saying it had no such tool.
+
+    Launch by absolute path instead: the module puts its own repo root on
+    sys.path from __file__, so it needs no working directory.
+    """
+    monkeypatch.setattr(ss, "MCP_CONFIG_PATH", tmp_path / "secretary.mcp.json")
+    written = json.loads(ss.ensure_mcp_config().read_text())
+
+    for name, entry in written["mcpServers"].items():
+        assert "cwd" not in entry, (
+            f"mcpServers[{name!r}] carries a 'cwd' key — Claude Code drops the "
+            "whole server without logging anything")
+        assert entry["args"], f"mcpServers[{name!r}] has no args"
+
+    relay = written["mcpServers"]["relay"]
+    assert "-m" not in relay["args"], "`-m` needs a cwd; use an absolute path"
+    assert relay["args"][0].endswith("relay_mcp_server.py")
+
+
 def test_build_claude_cmd_omits_resume_when_session_id_none() -> None:
     cmd = ss._build_claude_cmd("hello", None)
     assert "--resume" not in cmd
