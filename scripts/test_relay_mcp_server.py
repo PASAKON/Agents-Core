@@ -458,16 +458,18 @@ def test_no_tool_accepts_a_free_form_command_argument():
     tools = [
         rms.mac_status, rms.org_snapshot, rms.relay_to_session,
         rms.spawn_c_level, rms.read_session,
+        # task-2a135187 D1-D3
+        rms.list_terminals, rms.session_history, rms.open_terminal,
     ]
     for tool in tools:
         params = set(inspect.signature(tool).parameters)
         overlap = params & forbidden_param_names
         assert not overlap, f"{tool.__name__} accepts free-form-looking arg(s): {overlap}"
-    # And the full set of tools is exactly these five -- no sixth escape
+    # And the full set of tools is exactly these eight -- no ninth escape
     # hatch snuck in.
     assert {t.__name__ for t in tools} == {
         "mac_status", "org_snapshot", "relay_to_session", "spawn_c_level",
-        "read_session",
+        "read_session", "list_terminals", "session_history", "open_terminal",
     }
 
 
@@ -656,6 +658,225 @@ def test_relay_delivery_path_has_no_keystroke_transport_literal():
     src = inspect.getsource(rms.relay_to_session)
     assert "send-keys" not in src
     assert "send_keys" not in src
+
+
+# ---------------------------------------------------------------------------
+# 11. list_terminals (task-2a135187 D1)
+# ---------------------------------------------------------------------------
+
+def test_list_terminals_both_hosts_ok_is_complete(queue_env, monkeypatch):
+    contabo_rows = [{"host": "contabo", "role": "cfo", "id": "abc123"}]
+    monkeypatch.setattr(rms.org_inspector, "list_sessions",
+                        lambda include_closed: contabo_rows)
+    mac_rows = [{"host": "mac", "role": "cto", "id": "def456"}]
+    mac_json = json.dumps({"host": "mac", "total_sessions": 1, "returned": 1,
+                           "dropped": 0, "sessions": mac_rows})
+    monkeypatch.setattr(
+        rms, "_mac_queue_wait",
+        lambda kind, role, payload: {"status": "ok", "queue_id": 1, "result": mac_json})
+
+    result = json.loads(rms.list_terminals())
+    assert result["complete"] is True
+    assert result["hosts"]["contabo"] == {"status": "ok", "sessions": contabo_rows}
+    assert result["hosts"]["mac"]["status"] == "ok"
+    assert result["hosts"]["mac"]["sessions"] == mac_rows
+
+
+def test_list_terminals_mac_unreachable_is_degraded_not_silent(queue_env, monkeypatch):
+    """D5: an unreachable Mac produces complete: false with the Mac's own
+    status, and the Contabo rows are still returned (degraded, not failed,
+    and not silently presented as complete)."""
+    contabo_rows = [{"host": "contabo", "role": "cfo", "id": "abc123"}]
+    monkeypatch.setattr(rms.org_inspector, "list_sessions",
+                        lambda include_closed: contabo_rows)
+    monkeypatch.setattr(
+        rms, "_mac_queue_wait",
+        lambda kind, role, payload: {
+            "status": "pending", "queue_id": 2,
+            "reason": "the Mac agent has not answered within 45s -- ask again"})
+
+    result = json.loads(rms.list_terminals())
+    assert result["complete"] is False
+    assert result["hosts"]["contabo"] == {"status": "ok", "sessions": contabo_rows}
+    mac = result["hosts"]["mac"]
+    assert mac["status"] == "unreachable"
+    assert mac["sessions"] == []
+    assert "45s" in mac["reason"]
+    assert "summary_th" in mac  # mac_status()'s ready-to-repeat Thai sentence
+
+
+def test_list_terminals_mac_failed_entry_is_also_unreachable(queue_env, monkeypatch):
+    monkeypatch.setattr(rms.org_inspector, "list_sessions", lambda include_closed: [])
+    monkeypatch.setattr(
+        rms, "_mac_queue_wait",
+        lambda kind, role, payload: {"status": "failed", "queue_id": 3,
+                                      "reason": "capture failed"})
+    result = json.loads(rms.list_terminals())
+    assert result["complete"] is False
+    assert result["hosts"]["mac"]["status"] == "unreachable"
+    assert result["hosts"]["mac"]["reason"] == "capture failed"
+
+
+def test_list_terminals_contabo_exception_is_unreachable_not_a_crash(queue_env, monkeypatch):
+    def boom(include_closed):
+        raise OSError("disk error")
+
+    monkeypatch.setattr(rms.org_inspector, "list_sessions", boom)
+    monkeypatch.setattr(
+        rms, "_mac_queue_wait",
+        lambda kind, role, payload: {"status": "ok", "queue_id": 1,
+                                      "result": json.dumps({"sessions": []})})
+
+    result = json.loads(rms.list_terminals())  # must not raise
+    assert result["hosts"]["contabo"]["status"] == "unreachable"
+    assert "disk error" in result["hosts"]["contabo"]["reason"]
+    assert result["hosts"]["mac"]["status"] == "ok"
+    assert result["complete"] is False
+
+
+def test_list_terminals_passes_include_closed_to_mac_queue(queue_env, monkeypatch):
+    monkeypatch.setattr(rms.org_inspector, "list_sessions", lambda include_closed: [])
+    captured = {}
+
+    def fake_wait(kind, role, payload):
+        captured.update(kind=kind, role=role, payload=payload)
+        return {"status": "ok", "queue_id": 1, "result": json.dumps({"sessions": []})}
+
+    monkeypatch.setattr(rms, "_mac_queue_wait", fake_wait)
+    rms.list_terminals(include_closed=True)
+    assert captured == {"kind": "terminals", "role": "", "payload": {"include_closed": True}}
+
+
+# ---------------------------------------------------------------------------
+# 12. session_history (task-2a135187 D2)
+# ---------------------------------------------------------------------------
+
+def test_session_history_unknown_mode_is_rejected_and_executes_nothing(queue_env, monkeypatch):
+    calls = []
+    monkeypatch.setattr(rms.org_inspector, "history_index",
+                        lambda sid: calls.append(("index", sid)) or {})
+    monkeypatch.setattr(rms.org_inspector, "history_read",
+                        lambda p, tail_lines: calls.append(("read", p)) or {})
+
+    result = json.loads(rms.session_history("delete", host="contabo"))
+    assert result["status"] == "rejected"
+    assert calls == []
+
+
+def test_session_history_unknown_host_is_rejected_and_executes_nothing(queue_env, monkeypatch):
+    calls = []
+    monkeypatch.setattr(rms.org_inspector, "history_index",
+                        lambda sid: calls.append(sid) or {})
+
+    result = json.loads(rms.session_history("index", host="moon"))
+    assert result["status"] == "rejected"
+    assert calls == []
+
+
+def test_session_history_read_requires_path(queue_env):
+    result = json.loads(rms.session_history("read", host="contabo"))
+    assert result["status"] == "rejected"
+    assert "path" in result["reason"]
+
+
+def test_session_history_contabo_index_pass_through(queue_env, monkeypatch):
+    monkeypatch.setattr(rms.org_inspector, "history_index",
+                        lambda sid: {"host": "contabo", "session_id": sid, "counts": {}})
+    result = json.loads(rms.session_history("index", session_id="abc123", host="contabo"))
+    assert result["status"] == "ok"
+    assert result["host"] == "contabo"
+    assert result["data"]["session_id"] == "abc123"
+
+
+def test_session_history_refuses_jsonl_transcript_path_through_the_tool_surface(queue_env):
+    """D5: session_history refuses a .jsonl transcript path through the tool
+    surface, not merely inside org_inspector -- this calls session_history()
+    itself (the real org_inspector.history_read, unmocked), the way a caller
+    actually would."""
+    result = json.loads(rms.session_history("read", path="/tmp/whatever.jsonl", host="contabo"))
+    assert result["status"] == "ok"  # the call itself executed
+    assert result["data"]["status"] == "rejected"
+    assert ".jsonl" in result["data"]["reason"]
+    assert "text" not in result["data"]  # never any file content
+
+
+def test_session_history_mac_ok_pass_through(queue_env, monkeypatch):
+    monkeypatch.setattr(
+        rms, "_mac_queue_wait",
+        lambda kind, role, payload: {
+            "status": "ok", "queue_id": 3,
+            "result": json.dumps({"status": "ok", "text": "tail"})})
+    result = json.loads(rms.session_history("read", path="x.log", host="mac"))
+    assert result["status"] == "ok"
+    assert result["host"] == "mac"
+    assert result["data"]["text"] == "tail"
+
+
+def test_session_history_mac_failed_is_failed_not_ok(queue_env, monkeypatch):
+    monkeypatch.setattr(
+        rms, "_mac_queue_wait",
+        lambda kind, role, payload: {
+            "status": "failed", "queue_id": 4,
+            "reason": "read rejected: outside ALLOWED_HISTORY_ROOTS"})
+    result = json.loads(rms.session_history("read", path="/etc/passwd", host="mac"))
+    assert result["status"] == "failed"
+    assert "ALLOWED_HISTORY_ROOTS" in result["reason"]
+
+
+def test_session_history_mac_pending_when_agent_silent(queue_env, monkeypatch):
+    monkeypatch.setattr(
+        rms, "_mac_queue_wait",
+        lambda kind, role, payload: {"status": "pending", "queue_id": 5,
+                                      "reason": "not answered"})
+    result = json.loads(rms.session_history("index", host="mac"))
+    assert result["status"] == "pending"
+
+
+def test_session_history_default_host_is_mac(queue_env, monkeypatch):
+    """Deliberately different default from read_session's host="contabo":
+    org_inspector.py's own docstring says the Mac carries the history and
+    Contabo carries essentially none."""
+    captured = {}
+
+    def fake_wait(kind, role, payload):
+        captured["kind"] = kind
+        return {"status": "ok", "queue_id": 1, "result": json.dumps({"counts": {}})}
+
+    monkeypatch.setattr(rms, "_mac_queue_wait", fake_wait)
+    result = json.loads(rms.session_history("index"))
+    assert result["host"] == "mac"
+    assert captured["kind"] == "history"
+
+
+# ---------------------------------------------------------------------------
+# 13. open_terminal (task-2a135187 D3)
+# ---------------------------------------------------------------------------
+
+def test_open_terminal_rejects_unknown_role(queue_env):
+    result = json.loads(rms.open_terminal("ceo"))
+    assert result["status"] == "rejected"
+    assert rms._queue_list_pending() == []
+
+
+def test_open_terminal_queues_with_session_id_and_mac_status(queue_env):
+    result = json.loads(rms.open_terminal("cto", session_id="abc123"))
+    assert result["status"] == "queued"
+    assert result["role"] == "cto"
+    assert result["session_id"] == "abc123"
+    pending = rms._queue_list_pending()
+    assert len(pending) == 1
+    assert pending[0]["kind"] == "terminal_open"
+    assert pending[0]["target_role"] == "cto"
+    assert pending[0]["payload"] == {"session_id": "abc123"}
+    assert {"mac_reachable", "mac_state", "mac_summary_th"} <= result.keys()
+
+
+def test_open_terminal_session_id_defaults_to_none(queue_env):
+    result = json.loads(rms.open_terminal("cfo"))
+    assert result["status"] == "queued"
+    assert result["session_id"] is None
+    pending = rms._queue_list_pending()
+    assert pending[0]["payload"] == {"session_id": None}
 
 
 def test_exactly_one_tmux_wake_sequence_repo_wide():

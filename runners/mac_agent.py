@@ -15,7 +15,7 @@ do not redesign it here):
 
     relay_queue(id, kind, target_role, payload TEXT/JSON, status,
                 created_at, done_at, result)
-    kind: 'relay' | 'spawn' | 'read' | 'terminals' | 'history'
+    kind: 'relay' | 'spawn' | 'read' | 'terminals' | 'history' | 'terminal_open'
                                  status: 'pending' | 'done' | 'failed'
 
 `relay` delivers by MAILBOX LETTER (state/inbox/<role>-<sid>/, via
@@ -274,6 +274,35 @@ def _live_session(name: str) -> bool:
     return r.returncode == 0
 
 
+def _resolve_pointer_session(role: str) -> tuple[str | None, str | None]:
+    """Resolve the PRIMARY <role> session — the one state/locks/<role>-active
+    names (same resolution tools/send_to_cxo.py uses for its own sends, with
+    the .winid fallback) — never "the first tmux session whose name starts
+    with <role>-". This Mac runs several cto-* sessions at once and
+    first-match is whichever tmux lists first, so a CEO order could land in
+    a session the CEO was not talking to (task-02d0e863 D1a).
+
+    Returns (session_id, None) on success, or (None, reason) on failure.
+    Includes the race cross-check: if the pointer moved between the two
+    reads, neither id is trustworthy — fail rather than guess. Shared by
+    do_relay and do_terminal_open (task-2a135187 D3) — one resolution, not
+    two copies that could drift.
+    """
+    session_id = _active_session_id(role)
+    if not session_id:
+        return None, (f"no active {role} session on this Mac "
+                       f"(state/locks/{role}-active absent or empty)")
+    expected = f"{role}-{session_id}"
+    if not _live_session(expected):
+        return None, (f"{role}-active names {expected} but that tmux session "
+                       f"is not live -- pointer and tmux disagree; refusing "
+                       f"to guess which session the CEO means")
+    if _active_session_id(role) != session_id:
+        return None, (f"{role}-active moved mid-relay (was {session_id}); "
+                       f"refusing to guess which session the CEO means")
+    return session_id, None
+
+
 def do_relay(role: str, payload: dict) -> tuple[bool, str]:
     if not _valid_role(role):
         return False, f"unknown role {role!r}"
@@ -284,27 +313,14 @@ def do_relay(role: str, payload: dict) -> tuple[bool, str]:
         return False, f"missing {RELAY_PREFIX} attribution; refusing to deliver"
     role = role.lower()
 
-    # Address the PRIMARY <role> session — the one state/locks/<role>-active
-    # names (same resolution tools/send_to_cxo.py uses for its own sends,
-    # with the .winid fallback) — never "the first tmux session whose name
-    # starts with <role>-". This Mac runs several cto-* sessions at once
-    # and first-match is whichever tmux lists first, so a CEO order could
-    # land in a session the CEO was not talking to (task-02d0e863 D1a).
-    # Mirrors Contabo's relay_to_session, including the race cross-check:
-    # if the pointer moved between the two reads, neither id is
-    # trustworthy — fail the entry rather than guess.
-    session_id = _active_session_id(role)
-    if not session_id:
-        return False, (f"no active {role} session on this Mac "
-                       f"(state/locks/{role}-active absent or empty)")
+    # Mirrors Contabo's relay_to_session: address the PRIMARY <role>
+    # session via the same pointer resolution + race cross-check
+    # _resolve_pointer_session documents, never "the first tmux session
+    # whose name starts with <role>-".
+    session_id, err = _resolve_pointer_session(role)
+    if err:
+        return False, err
     expected = f"{role}-{session_id}"
-    if not _live_session(expected):
-        return False, (f"{role}-active names {expected} but that tmux session "
-                       f"is not live -- pointer and tmux disagree; refusing "
-                       f"to guess which session the CEO means")
-    if _active_session_id(role) != session_id:
-        return False, (f"{role}-active moved mid-relay (was {session_id}); "
-                       f"refusing to guess which session the CEO means")
 
     # Authorization: the secretary is not a C-level, so the C-level
     # identity chain is the wrong gate. authorize() carries an explicit
@@ -460,6 +476,51 @@ def do_history(role: str, payload: dict) -> tuple[bool, str]:
     return True, json.dumps(out, ensure_ascii=False)
 
 
+def do_terminal_open(role: str, payload: dict) -> tuple[bool, str]:
+    """kind=terminal_open -- reattach an iTerm window on this Mac to an
+    already-running C-level tmux session, via scripts/terminal-open.sh
+    (task-2a135187 D3). Mac-only and spawns nothing (see that script's own
+    header) -- this never starts a new session, only opens a window onto
+    one that already exists.
+
+    payload: {"session_id": str | None}. When session_id is omitted,
+    resolve the <role>-active pointer via the SAME primary-session
+    resolution do_relay uses (_resolve_pointer_session), including its
+    race guard -- a pointer that disagrees with tmux is refused, never
+    guessed. When session_id IS given, it names an explicit session
+    directly: checked live, never redirected to the primary.
+    """
+    if not _valid_role(role):
+        return False, f"unknown role {role!r}"
+    role = role.lower()
+    session_id = payload.get("session_id")
+    if session_id is not None and not isinstance(session_id, str):
+        return False, "session_id must be a string when given"
+
+    if session_id:
+        target = f"{role}-{session_id}"
+        if not _live_session(target):
+            return False, f"no live tmux session named {target}"
+    else:
+        session_id, err = _resolve_pointer_session(role)
+        if err:
+            return False, err
+        target = f"{role}-{session_id}"
+
+    script = ROOT / "scripts" / "terminal-open.sh"
+    if not script.exists():
+        return False, f"missing {script.name}"
+    try:
+        r = subprocess.run(["bash", str(script), target],
+                           capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as e:
+        return False, f"terminal-open failed: {e}"
+    if r.returncode != 0:
+        detail = (r.stderr or r.stdout or "").strip()[:300]
+        return False, f"terminal-open exit {r.returncode}: {detail}"
+    return True, f"opened iTerm window -> {target}"
+
+
 # Explicit dispatch table. An unknown kind is a failure, never a fallback
 # execution — that is the whole difference between an enumerated action list
 # and a remote shell.
@@ -469,6 +530,7 @@ HANDLERS = {
     "read": do_read,
     "terminals": do_terminals,
     "history": do_history,
+    "terminal_open": do_terminal_open,
 }
 
 

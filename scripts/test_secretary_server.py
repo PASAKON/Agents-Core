@@ -65,10 +65,17 @@ REQUIRED_LUNGNOTE_TOOLS = (
 # round-trip gap: relay_to_session/spawn_c_level could act but nothing could
 # read a session back). No confirm-before-write needed since it changes
 # nothing; still deliberately listed here rather than inferred.
+#
+# task-2a135187 D1-D3 add three more: list_terminals/session_history are
+# pure reads like read_session; open_terminal opens a real iTerm window on
+# the Mac (not a pure read), and gets the confirm-before-call contract in
+# SECRETARY_SYSTEM_PROMPT instead.
 RELAY_TOOLS = (
     "mcp__relay__mac_status", "mcp__relay__org_snapshot",
     "mcp__relay__relay_to_session", "mcp__relay__spawn_c_level",
     "mcp__relay__read_session",
+    "mcp__relay__list_terminals", "mcp__relay__session_history",
+    "mcp__relay__open_terminal",
 )
 
 
@@ -154,6 +161,58 @@ def test_system_prompt_tells_the_model_to_page_past_the_default_limit() -> None:
     under-reporting by 2.5x while sounding certain. This instruction is the
     only thing preventing it, so assert it survives prompt edits."""
     assert "limit=200" in ss.SECRETARY_SYSTEM_PROMPT
+
+
+# ---------------------------------------------------------------------------
+# task-2a135187 D4 -- the six explicit rules TASK.md requires, each pinned
+# because it has already gone wrong once for real.
+# ---------------------------------------------------------------------------
+
+def test_system_prompt_states_middleman_only_rule() -> None:
+    """Rule 1: never do the work, never fix a problem, never edit anything
+    -- the CEO's own constraint, outranks being helpful."""
+    assert "ตัวกลาง" in ss.SECRETARY_SYSTEM_PROMPT
+    assert "ห้ามเริ่มลงมือทำงานเอง" in ss.SECRETARY_SYSTEM_PROMPT
+
+
+def test_system_prompt_states_ceo_instruction_only_rule() -> None:
+    """Rule 2: only on the CEO's own instruction -- never spawn/relay/open
+    a terminal on the secretary's own initiative."""
+    assert "โดยจากการสั่งของ CEO เท่านั้น" in ss.SECRETARY_SYSTEM_PROMPT
+
+
+def test_system_prompt_states_never_claim_unused_capability_rule() -> None:
+    """Rule 3: never claim a capability not actually used -- SomPong once
+    told the CEO it could run shell commands, then refused when asked."""
+    assert "รันคำสั่งเชลล์ได้" in ss.SECRETARY_SYSTEM_PROMPT
+    assert "ห้ามเดาว่าทำได้" in ss.SECRETARY_SYSTEM_PROMPT
+
+
+def test_system_prompt_states_partial_answer_must_be_labelled_rule() -> None:
+    """Rule 4: complete=false must be said, never silently merged into a
+    Contabo-only picture presented as the whole org."""
+    assert "complete=false" in ss.SECRETARY_SYSTEM_PROMPT
+
+
+def test_system_prompt_states_percent_null_means_unknown_rule() -> None:
+    """Rule 6: percent: null means unknown, never round down to 0%, never
+    estimate from session age."""
+    assert "percent" in ss.SECRETARY_SYSTEM_PROMPT
+    assert "ยังไม่รู้ %" in ss.SECRETARY_SYSTEM_PROMPT
+    assert "ห้ามปัดเป็น 0%" in ss.SECRETARY_SYSTEM_PROMPT
+
+
+def test_system_prompt_covers_the_three_new_relay_tools_by_name() -> None:
+    for name in ("list_terminals", "session_history", "open_terminal"):
+        assert name in ss.SECRETARY_SYSTEM_PROMPT, f"{name} missing from the prompt"
+
+
+def test_system_prompt_splits_session_star_family() -> None:
+    """/session-open etc. must be relayed to the live session, not executed
+    directly; /session-list must be answered from list_terminals."""
+    assert "relay_to_session" in ss.SECRETARY_SYSTEM_PROMPT
+    assert "/session-open" in ss.SECRETARY_SYSTEM_PROMPT
+    assert "list_terminals" in ss.SECRETARY_SYSTEM_PROMPT
 
 
 # ---------------------------------------------------------------------------
