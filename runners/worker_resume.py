@@ -115,8 +115,11 @@ def main() -> None:
         [
             "claude",
             "-n", f"{role}:{task_id}",
+            # Positional FIRST, --allowed-tools LAST -- see the full note at
+            # the matching site in runners/worker_init.py. That variadic flag
+            # eats any argv element that follows it.
+            resume_nudge,
             "--resume", session_id,
-            "-p", resume_nudge,
             "--model", model,
             *effort_args,
             "--permission-mode", "auto",
@@ -124,7 +127,7 @@ def main() -> None:
             "--mcp-config", str(ROOT / "config" / "worker.mcp.json"),
             "--strict-mcp-config",
             *chrome_args,
-            "--allowed-tools", *allowed,
+            "--allowed-tools", ",".join(allowed),
         ],
         env,
     )
