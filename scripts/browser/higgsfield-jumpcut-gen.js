@@ -650,6 +650,95 @@
  *    do the Drive leg first regardless of order in the brief — if Higgsfield
  *    turns out blocked, the Drive numbers are still a complete, useful partial
  *    result instead of nothing.
+ * Wave 12 findings (task-072ebf30, 2026-08-15, resume of task-fa856c1d —
+ * Higgsfield session now live, full S1-S8 Drive/Higgsfield reconcile,
+ * collection-only, no generation):
+ *
+ * 1. **`[data-asset-id]` is the reliable per-clip identifier inside a Cinema
+ *    Studio project folder — far more reliable than parsing thumbnail `src`
+ *    for the `hf_<timestamp>_<uuid>` string.** The extension redacts any
+ *    returned string containing "Cookie/query string data" (many thumbnail
+ *    `src` values hit this and come back as `[BLOCKED: ...]` in
+ *    `javascript_tool` output, non-deterministically — some cards' `src`
+ *    passed through clean, others on the same page didn't). `[data-asset-id]`
+ *    holds the bare uuid directly as an HTML attribute, never blocked, and
+ *    also carries `data-asset-status` ("completed" vs a failed/NSFW state)
+ *    and `data-tour-asset-kind` ("video") for free in the same query.
+ *
+ * 2. **The Folders sidebar's item-count badge can be off by ±1 from the true
+ *    card count, in both directions, for two different reasons — always
+ *    verify against the actual rendered `[data-asset-id]` list, never trust
+ *    the badge as final.** Confirmed twice this wave:
+ *    - Sence 4 badge read 11, but only 9 cards had `kind:"video"` — the other
+ *      2 had `kind:null, status:null` and their `textContent` read
+ *      `"NSFW,,,Credits refundedOutput may contain sensitive content..."`.
+ *      These are real failed generations (credits auto-refunded, no video
+ *      output) that the badge counts but that produce nothing to collect.
+ *    - Sence 2 badge read 11, Sence 8 badge read 6, but both folders' actual
+ *      card grids — fully scrolled to a stable `scrollHeight`, confirmed
+ *      twice — held only 10 and 5 completed video cards respectively, with
+ *      no NSFW/failed card anywhere accounting for the gap. This is simple
+ *      badge staleness, not a hidden item; the card grid is ground truth.
+ *
+ * 3. **A project-folder URL
+ *    (`.../folders/<folder-uuid>`) loaded via a full `navigate()` call takes
+ *    3-4x longer to hydrate its card grid than the initial project page
+ *    load** — `[data-asset-id]` queried immediately after `navigate()`
+ *    returns 0 consistently; a first wait of ~4.5s then a second wait of
+ *    ~2.5s (~7s total) was reliably enough across 6 different folders this
+ *    wave, a single ~3s wait was not. `history.pushState` + a synthetic
+ *    `popstate` event does NOT trigger this app's client-side router at
+ *    all (URL bar changes, content never does) — always use a real
+ *    `navigate()` call to move between folders, one per folder.
+ *
+ * 4. **Folder ids are static per scene and can be read once, then reused
+ *    directly as navigation targets** — `[data-project-folder-row]` in the
+ *    sidebar carries `data-folder-id`, giving every Sence-N folder's uuid in
+ *    a single query on the project root page. No need to click through the
+ *    sidebar per scene; construct
+ *    `.../generate/@<org>/<project>/folders/<folder-id>` directly and
+ *    `navigate()` straight to it.
+ *
+ * 5. **Per-card resolution is not exposed as page text or a simple DOM
+ *    attribute** — `videoWidth`/`videoHeight` on the `<video>` element stay
+ *    at 0 even after a real `mouseover`+`mousemove`+wait, because the video
+ *    doesn't actually start loading/playing from a synthetic hover alone.
+ *    Cheapest reliable read: right-click (or click a card's hover-revealed
+ *    "..." button) → **Download** from the context menu (present, safe,
+ *    completely separate from Rerun/Generate — confirmed on every card this
+ *    wave), then `ffprobe -show_entries stream=width,height,duration` on the
+ *    file that lands in `~/Downloads`. This also naturally fits the
+ *    existing "download the gap, then file it" step, so it costs nothing
+ *    extra when a gap clip needs downloading anyway.
+ *
+ * 6. **This project's "1080p" and "720p" filing tiers are NOT literal
+ *    1920x1080 / 1280x720 — they're a widescreen ~2.33:1 crop, and the tier
+ *    is decided by total pixel AREA, not either dimension alone.** Measured
+ *    this wave: 1080p-tier clips read exactly 2206x946 (area 2,086,876 ≈
+ *    1920x1080's 2,073,600); a 720p-tier clip read 1470x630 (area 926,100 ≈
+ *    1280x720's 921,600). Both are close enough to their standard tier's
+ *    area to classify confidently; use area-vs-standard-tier as the
+ *    discriminator, not raw width/height matching.
+ *
+ * 7. **A card can be `1440x1440` (perfect square) sitting in an otherwise
+ *    all-widescreen scene folder, at 1080p-tier file size (64MB).** This is
+ *    a real anomaly, not a heuristic edge case — every other clip in the
+ *    entire S1-S8 span this wave and every prior wave was ~2.33:1
+ *    widescreen. Filed the other 3 gap clips found this wave straight
+ *    through (matches established SX/SX-1080P routing), but held this one
+ *    back locally and flagged it for the CTO/CEO rather than silently
+ *    filing it as ordinary b-roll — square-aspect output in a cinema project
+ *    is exactly the kind of scope surprise the skill says stays a C-level
+ *    call, not an operator guess.
+ *
+ * 8. **A missing sibling `SX-1080P` Drive folder is not itself proof no
+ *    1080p footage exists for that scene** — it may just mean nothing has
+ *    been reconciled from Higgsfield into it yet. Confirmed this wave: S2
+ *    had no `S2-1080P` folder at all going in (per the known-state table),
+ *    but Higgsfield held two genuinely-1080p-tier S2 clips Drive had never
+ *    received. Created `S2-1080P` fresh via `gdrive_move.py create_folder`,
+ *    matching the exact naming convention of the pre-existing `S1-1080P`,
+ *    before filing into it.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
