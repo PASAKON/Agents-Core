@@ -257,6 +257,91 @@ def test_relay_no_keystroke_carries_the_body(relay_env, monkeypatch):
         "the only typed text is the content-free wake marker"
 
 
+# ---------------------------------------------------------------------------
+# do_relay -- explicit target_session_id (task-689fc721 D2)
+#
+# Contabo's relay_to_session carries an explicit target_session_id through
+# the queue payload; do_relay must honour it exactly, with the identical
+# no-fallback rule as the Contabo side: never redirect to <role>-active.
+# ---------------------------------------------------------------------------
+
+def test_relay_explicit_target_session_id_delivers_to_named_session_not_pointer(
+        relay_env, monkeypatch):
+    """Four live cto-* sessions, the pointer names one, an explicit
+    target_session_id in the payload names a DIFFERENT one -- the letter
+    must follow the explicit id, never the pointer, and never through
+    _resolve_pointer_session at all."""
+    _point_at(monkeypatch, relay_env, "cto", "aaaaaa")
+    fake = FakeRun(stdout="cto-aaaaaa\ncto-bbbbbb\ncto-cccccc\ncto-dddddd\n")
+    monkeypatch.setattr(ma.subprocess, "run", fake)
+    monkeypatch.setattr(ma, "attempt_wake", lambda *a: None)
+
+    ok, detail = ma.do_relay("cto", {
+        "message": f"{PREFIX} ไปที่ session ที่ระบุเท่านั้น",
+        "target_session_id": "cccccc",
+    })
+
+    assert ok, detail
+    delivered = _letters(relay_env)
+    assert len(delivered) == 1
+    assert delivered[0].parent.name == "cto-cccccc"
+    assert not (relay_env / "inbox" / "cto-aaaaaa").exists(), \
+        "the pointer's box must never receive this order"
+    letter = json.loads(delivered[0].read_text(encoding="utf-8"))
+    assert letter["to"] == {"role": "cto", "session_id": "cccccc"}
+
+
+def test_relay_explicit_target_session_id_not_live_is_refused_with_live_ids(
+        relay_env, monkeypatch):
+    """A target_session_id that names no live session on this Mac is
+    refused -- never redirected to the pointer's session -- and the
+    refusal names the live ids that DO exist, so the caller can pick a
+    real one instead of guessing again."""
+    def run(argv, *a, **kw):
+        argv = [str(c) for c in argv]
+        if argv[1:3] == ["has-session", "-t"]:
+            return subprocess.CompletedProcess(argv, 1, "", "")  # never live
+        return subprocess.CompletedProcess(argv, 0, "cto-aaaaaa\ncto-bbbbbb\n", "")
+
+    monkeypatch.setattr(ma.subprocess, "run", run)
+
+    ok, detail = ma.do_relay("cto", {
+        "message": f"{PREFIX} hi",
+        "target_session_id": "dddddd",
+    })
+
+    assert not ok
+    assert "dddddd" in detail
+    assert "aaaaaa" in detail and "bbbbbb" in detail
+    assert _letters(relay_env) == []
+
+
+def test_relay_explicit_target_session_id_malformed_is_rejected(relay_env, monkeypatch):
+    """Hex, 6-64 characters, nothing else -- rejected before any tmux call
+    is even made, never sanitised."""
+    def run(argv, *a, **kw):
+        raise AssertionError(f"malformed id must be rejected before any tmux call: {argv!r}")
+
+    monkeypatch.setattr(ma.subprocess, "run", run)
+
+    ok, detail = ma.do_relay("cto", {
+        "message": f"{PREFIX} hi",
+        "target_session_id": "../../etc",
+    })
+
+    assert not ok
+    assert "malformed" in detail
+    assert _letters(relay_env) == []
+
+
+def test_relay_target_session_id_must_be_a_string():
+    ok, detail = ma.do_relay("cto", {
+        "message": f"{PREFIX} hi", "target_session_id": 123,
+    })
+    assert not ok
+    assert "string" in detail
+
+
 def test_spawn_entry_invokes_the_right_script_for_the_role(monkeypatch, tmp_path):
     fake = FakeRun()
     monkeypatch.setattr(ma.subprocess, "run", fake)
