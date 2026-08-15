@@ -423,7 +423,7 @@ Knuckles hammering on a hollow door from the inside, fast and insistent — then
 
 ```
 VISUAL
-Handheld, five cuts across 20 seconds. @Mother's face is never seen clearly in any cut. @Prop-DNDTag stays on the handle throughout.
+On the open-air walkway of @Motel-Walkway outside room 214. Handheld, five cuts across 20 seconds. @Mother's face is never seen clearly in any cut. @Prop-DNDTag stays on the handle throughout.
 
 Cut 1 (0–5s): Tight on @Mother's hand hovering above the door handle of 214, trembling, as knocking hammers from inside.
 Cut 2 (5–8s): Close on @Prop-DNDTag hanging on the handle, perfectly still. The knocking stops dead mid-beat. Silence.
