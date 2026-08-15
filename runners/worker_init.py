@@ -367,6 +367,7 @@ def main() -> None:
         [
             "claude",
             "-n", f"{display_for(role)} ({task_id})",
+            "-p", prompt,
             "--model", model,
             *effort_args,
             "--permission-mode", "auto",
@@ -375,7 +376,6 @@ def main() -> None:
             "--strict-mcp-config",
             *chrome_args,
             "--allowed-tools", *allowed,
-            prompt,
         ],
         env,
     )

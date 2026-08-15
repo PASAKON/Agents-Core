@@ -116,6 +116,7 @@ def main() -> None:
             "claude",
             "-n", f"{role}:{task_id}",
             "--resume", session_id,
+            "-p", resume_nudge,
             "--model", model,
             *effort_args,
             "--permission-mode", "auto",
@@ -124,7 +125,6 @@ def main() -> None:
             "--strict-mcp-config",
             *chrome_args,
             "--allowed-tools", *allowed,
-            resume_nudge,
         ],
         env,
     )
