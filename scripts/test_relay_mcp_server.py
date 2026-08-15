@@ -378,7 +378,7 @@ def test_relay_tool_takes_no_sender_argument():
     secretary/sompong identity is pinned server-side (see the letter test
     above), and no parameter exists to influence it."""
     params = inspect.signature(rms.relay_to_session).parameters
-    assert set(params) == {"target_role", "message", "wait"}
+    assert set(params) == {"target_role", "message", "wait", "target_session_id"}
 
 
 # ---------------------------------------------------------------------------
@@ -481,6 +481,141 @@ def test_relay_to_session_stale_pointer_falls_back_to_queue(queue_env, monkeypat
     monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: False)
     result = json.loads(rms.relay_to_session("cgo", "ping"))
     assert result["status"] == "queued"
+
+
+# ---------------------------------------------------------------------------
+# 6b. relay_to_session -- explicit target_session_id (task-689fc721)
+#
+# The bug this closes: the CEO addressed "CTO session #d51f7b9b" by id, and
+# the order was delivered to a DIFFERENT live cto session instead, because
+# relay_to_session had no way to express a session id at all. "Never fall
+# back to the active session when the requested one is not found" is the
+# rule every test below pins.
+# ---------------------------------------------------------------------------
+
+def test_relay_to_session_explicit_target_session_id_delivers_to_named_session_not_pointer(
+        queue_env, monkeypatch):
+    """The pinned test: several live cto-* sessions, the active pointer
+    names a DIFFERENT one than target_session_id. The letter must land in
+    the NAMED session's box, never the pointer's."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("aaaaaa")
+    live = {"cto-aaaaaa", "cto-bbbbbb", "cto-cccccc"}
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name in live)
+    monkeypatch.setattr(rms, "attempt_wake", lambda *a: None)
+
+    result = json.loads(
+        rms.relay_to_session("cto", "check the deploy", target_session_id="bbbbbb"))
+
+    assert result["status"] == "delivered"
+    assert result["tmux_session"] == "cto-bbbbbb"
+    letter_file = Path(result["letter_path"])
+    assert letter_file.is_file()
+    letter = json.loads(letter_file.read_text(encoding="utf-8"))
+    assert letter["to"] == {"role": "cto", "session_id": "bbbbbb"}
+    # The pointer's own box (aaaaaa) must never receive this order.
+    assert not (queue_env / "inbox" / "cto-aaaaaa").exists()
+    assert rms._queue_list_pending() == []
+
+
+def test_relay_to_session_unknown_target_session_id_is_refused_with_live_ids(
+        queue_env, monkeypatch, fake_subprocess):
+    """Contabo demonstrably has live cto sessions, but none match the given
+    id -- refused, not queued on a guess: no letter anywhere, no ceo_orders
+    row opened, and the refusal names the live ids so the caller can pick a
+    real one."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("aaaaaa")
+    live = {"cto-aaaaaa", "cto-bbbbbb"}
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name in live)
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="cto-aaaaaa\ncto-bbbbbb\n")
+
+    result = json.loads(
+        rms.relay_to_session("cto", "check X", target_session_id="dddddd"))
+
+    assert result["status"] == "rejected"
+    assert "dddddd" in result["reason"]
+    assert "aaaaaa" in result["reason"]
+    assert "bbbbbb" in result["reason"]
+    assert rms._queue_list_pending() == []
+    assert _ceo_orders_rows() == []
+    assert not (queue_env / "inbox").exists(), "no letter may be written on a refused id"
+
+
+def test_relay_to_session_queued_for_mac_carries_target_session_id(
+        queue_env, monkeypatch, fake_subprocess):
+    """task-689fc721 D2: Contabo has nothing live for the role at all
+    (empty `tmux ls`) -- same 'assumed to live on the Mac' heuristic the
+    omitted-id path already uses -- but the caller's explicit id is carried
+    into the queue payload so runners/mac_agent.py::do_relay can honour it
+    there too, instead of being dropped and re-falling into the pointer bug
+    on the Mac side."""
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: False)
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="")
+    result = json.loads(
+        rms.relay_to_session("cto", "ping", target_session_id="d51f7b9b"))
+
+    assert result["status"] == "queued"
+    pending = rms._queue_list_pending()
+    assert len(pending) == 1
+    assert pending[0]["payload"]["target_session_id"] == "d51f7b9b"
+
+    rows = _ceo_orders_rows()
+    assert len(rows) == 1
+    (oid, role, sid, host, order_text, sent_at, status, replied_at, reply_detail) = rows[0]
+    assert (role, sid, host) == ("cto", "d51f7b9b", "mac")
+
+
+@pytest.mark.parametrize("bad_id", ["../../etc", "", "a" * 100, "zzzzzz", "1234"])
+def test_relay_to_session_malformed_target_session_id_rejected_before_any_path_built(
+        queue_env, bad_id):
+    """Hex, 6-64 characters, nothing else -- rejected outright before a
+    mailbox path or tmux name is ever built, never sanitised."""
+    result = json.loads(
+        rms.relay_to_session("cto", "hi", target_session_id=bad_id))
+
+    assert result["status"] == "rejected"
+    assert rms._queue_list_pending() == []
+    assert _ceo_orders_rows() == []
+    assert not (queue_env / "inbox").exists()
+
+
+def test_read_session_explicit_target_session_id_reads_named_session_not_pointer(
+        queue_env, monkeypatch, fake_subprocess):
+    """Same rule as relay_to_session's: an explicit id is checked directly
+    against tmux and read from there, never redirected to the pointer's
+    session."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("aaaaaa")
+    live = {"cto-aaaaaa", "cto-bbbbbb"}
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name in live)
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="pane of bbbbbb\n")
+
+    result = json.loads(rms.read_session("cto", 40, target_session_id="bbbbbb"))
+
+    assert result["status"] == "ok"
+    assert result["tmux_session"] == "cto-bbbbbb"
+    assert result["text"] == "pane of bbbbbb"
+
+
+def test_read_session_unknown_target_session_id_is_not_found_with_live_ids(
+        queue_env, monkeypatch, fake_subprocess):
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("aaaaaa")
+    live = {"cto-aaaaaa", "cto-bbbbbb"}
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name in live)
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="cto-aaaaaa\ncto-bbbbbb\n")
+
+    result = json.loads(rms.read_session("cto", 40, target_session_id="dddddd"))
+
+    assert result["status"] == "not_found"
+    assert result["target_session_id"] == "dddddd"
+    assert set(result["live_session_ids"]) == {"aaaaaa", "bbbbbb"}
+
+
+def test_read_session_malformed_target_session_id_is_rejected(queue_env):
+    result = json.loads(rms.read_session("cto", 40, target_session_id="../../etc"))
+    assert result["status"] == "rejected"
 
 
 # ---------------------------------------------------------------------------

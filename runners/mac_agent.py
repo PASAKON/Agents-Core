@@ -21,7 +21,11 @@ do not redesign it here):
 `relay` delivers by MAILBOX LETTER (state/inbox/<role>-<sid>/, via
 lib.mailbox) and reports done only once the letter file exists on disk —
 never by typing the body into a pane (GH #70). Same contract as Contabo's
-relay_to_session (task-18241f1d).
+relay_to_session (task-18241f1d). `relay`'s payload optionally carries
+`target_session_id` (task-689fc721): when present, do_relay addresses
+exactly that session, checked directly against tmux, and refuses rather
+than falling back to the <role>-active pointer if it is not live; when
+absent, the pointer + race-cross-check resolution stands unchanged.
 
 Run:  python -m runners.mac_agent          (loop)
       python -m runners.mac_agent --once   (single tick, for testing)
@@ -30,6 +34,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -88,6 +93,14 @@ SECRETARY_FROM_SESSION_ID = "sompong"
 SECRETARY_WAKE_LABEL = "SomPong"
 
 C_LEVEL_ROLES = ("cto", "cfo", "cmo", "cgo")
+
+# Same validation as Contabo's runners/relay_mcp_server.py
+# (task-689fc721): an explicit target_session_id in the queue payload lands
+# directly in a tmux session name here too, so it is checked before that
+# name is built -- hex, bounded length, nothing else. Duplicated rather
+# than imported, same reasoning as C_LEVEL_ROLES above: this file is the
+# Mac-side consumer of a queue Contabo writes into, not a shared module.
+TARGET_SESSION_ID_RE = re.compile(r"^[0-9a-fA-F]{6,64}$")
 
 # Cap on a `read` capture. A pane holds thousands of lines and every one of them
 # is paid for twice — across the wire, then into the model reading it back.
@@ -251,6 +264,27 @@ def find_session_for_role(role: str) -> str | None:
     return None
 
 
+def _live_session_ids_for_role(role: str) -> list[str]:
+    """Every live tmux session id for `role` on THIS Mac -- for a refusal
+    message that lets the caller pick a real one instead of guessing
+    (task-689fc721), never to choose a delivery target itself. Same tmux
+    listing find_session_for_role uses above, collecting every match
+    instead of the first. Any failure reads as "none known", not a crash of
+    the refusal path it backs."""
+    try:
+        r = subprocess.run([_tmux_bin(), "ls", "-F", "#{session_name}"],
+                           capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if r.returncode != 0:
+        return []
+    prefix = role.lower() + "-"
+    return sorted(
+        name[len(prefix):] for name in r.stdout.split()
+        if name.lower().startswith(prefix)
+    )
+
+
 def _live_session(name: str) -> bool:
     """Is tmux session `name` live right now?
 
@@ -306,14 +340,38 @@ def do_relay(role: str, payload: dict) -> tuple[bool, str]:
         return False, f"missing {RELAY_PREFIX} attribution; refusing to deliver"
     role = role.lower()
 
-    # Mirrors Contabo's relay_to_session: address the PRIMARY <role>
-    # session via the same pointer resolution + race cross-check
-    # _resolve_pointer_session documents, never "the first tmux session
-    # whose name starts with <role>-".
-    session_id, err = _resolve_pointer_session(role)
-    if err:
-        return False, err
-    expected = f"{role}-{session_id}"
+    target_session_id = payload.get("target_session_id")
+    if target_session_id is not None and not isinstance(target_session_id, str):
+        return False, "target_session_id must be a string when given"
+
+    if target_session_id is not None:
+        # An explicit id is already unambiguous -- checked directly against
+        # tmux, never through _resolve_pointer_session below (task-689fc721:
+        # that pointer resolution, and its race-cross-check, exist only to
+        # arbitrate the omitted case's ambiguity; an explicit id has none to
+        # arbitrate, and routing through the pointer at all is exactly the
+        # fallback this branch must never take). Mirrors Contabo's
+        # relay_to_session explicit-id branch.
+        if not TARGET_SESSION_ID_RE.fullmatch(target_session_id):
+            return False, f"malformed target_session_id {target_session_id!r}"
+        session_id = target_session_id
+        expected = f"{role}-{session_id}"
+        if not _live_session(expected):
+            live_ids = _live_session_ids_for_role(role)
+            return False, (
+                f"no live {role} session {target_session_id!r} on this Mac. "
+                f"Live {role} session ids here: "
+                f"{', '.join(live_ids) if live_ids else '(none)'}"
+            )
+    else:
+        # Mirrors Contabo's relay_to_session: address the PRIMARY <role>
+        # session via the same pointer resolution + race cross-check
+        # _resolve_pointer_session documents, never "the first tmux session
+        # whose name starts with <role>-".
+        session_id, err = _resolve_pointer_session(role)
+        if err:
+            return False, err
+        expected = f"{role}-{session_id}"
 
     # Authorization: the secretary is not a C-level, so the C-level
     # identity chain is the wrong gate. authorize() carries an explicit

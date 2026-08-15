@@ -59,6 +59,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sqlite3
 import subprocess
 import sys
@@ -153,6 +154,17 @@ RELAY_WAIT_SECONDS = 3
 QUEUE_DB_PATH = Path(
     os.environ.get("SECRETARY_RELAY_QUEUE_DB") or ROOT / "state" / "relay_queue.db"
 )
+
+# task-689fc721 -- an explicit target_session_id lands directly in a
+# mailbox directory name (state/inbox/<role>-<id>/) and a tmux session
+# name, so it is validated BEFORE either is built: hex, bounded length,
+# nothing else. Same character class as tools/org_inspector.py's SID_RE
+# (session ids are hex by construction -- scripts/session_list.py ID_RE),
+# with an explicit upper bound added since that module's copy only ever
+# feeds a glob filter, while this one feeds a path/tmux name directly.
+# Malformed input is rejected outright here, never sanitised into
+# something that happens to be safe.
+TARGET_SESSION_ID_RE = re.compile(r"^[0-9a-fA-F]{6,64}$")
 
 # task-2a135187 D2 -- enumerated history modes, same contract as
 # runners/mac_agent.py's HISTORY_MODES (kept as a second copy, not an
@@ -615,6 +627,53 @@ def _reject_unknown_role(tool: str, role: str, *, host: str | None = None) -> st
 
 
 # ---------------------------------------------------------------------------
+# task-689fc721 -- an optional target_session_id for relay_to_session and
+# read_session: "that session and only that session", never a silent
+# fallback to whatever <role>-active currently names. These two helpers are
+# shared by both tools.
+# ---------------------------------------------------------------------------
+
+def _reject_bad_session_id(tool: str, target_role: str, target_session_id: str) -> str | None:
+    """None if `target_session_id` is a well-formed hex id. Otherwise logs
+    the rejection and returns the ready-to-return JSON string -- checked
+    BEFORE the id ever reaches a mailbox path or a tmux name, same
+    discipline as `_reject_unknown_role`."""
+    if isinstance(target_session_id, str) and TARGET_SESSION_ID_RE.fullmatch(target_session_id):
+        return None
+    _audit(tool, target_role, "rejected",
+           f"malformed target_session_id={target_session_id!r}")
+    return json.dumps({
+        "status": "rejected",
+        "reason": (f"malformed target_session_id {target_session_id!r} -- "
+                   "must be hex, 6-64 characters"),
+    }, ensure_ascii=False)
+
+
+def _live_session_ids_for_role(role: str) -> list[str]:
+    """Every live Contabo tmux session id for `role`, sorted -- for a
+    refusal message that lets the caller pick a real one instead of
+    guessing, never to choose a delivery target itself. Fixed
+    `tmux ls -F "#{session_name}"` argv, same shape as
+    runners/mac_agent.py's find_session_for_role, just collecting every
+    match instead of the first. Any failure (missing tmux, non-zero exit)
+    reads as "none known", not a crash of the refusal path it backs."""
+    try:
+        result = subprocess.run(
+            [tmux_session.tmux_bin(), "ls", "-F", "#{session_name}"],
+            capture_output=True, text=True, timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if result.returncode != 0:
+        return []
+    prefix = f"{role}-"
+    return sorted(
+        name[len(prefix):] for name in result.stdout.split()
+        if name.lower().startswith(prefix)
+    )
+
+
+# ---------------------------------------------------------------------------
 # relay_to_session
 # ---------------------------------------------------------------------------
 
@@ -670,7 +729,8 @@ def _tail_pane_text(raw: str, cap: int) -> str:
 
 
 @mcp.tool()
-def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
+def relay_to_session(target_role: str, message: str, wait: bool = False,
+                      target_session_id: str | None = None) -> str:
     """Queue or deliver an order to a C-level session, on the CEO's behalf.
 
     `target_role` must be one of cto/cmo/cgo/cfo -- anything else is
@@ -716,21 +776,69 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
     write raises) discards the row it opened -- an order nobody received
     must never sit as "awaiting reply" forever. The result carries
     `order_id` either way it succeeds.
+
+    `target_session_id` (task-689fc721): optional, addresses ONE specific
+    session instead of "whichever session <role>-active currently names".
+    This is the fix for a real incident: the CEO addressed "CTO session
+    #d51f7b9b" by id, and the message was delivered to a DIFFERENT live cto
+    session instead, because relay_to_session had no way to express a
+    session id at all -- naming it inside the message body cannot help,
+    since the routing decision is already made by the time a session reads
+    its own mailbox.
+
+    Omitted (default): byte-identical to today's behaviour -- resolves the
+    <role>-active pointer with its existing race-cross-check, exactly as
+    before this task.
+
+    Given: validated as hex, 6-64 characters (same "before it reaches a
+    path or a tmux name" rule read_session and mailbox.send's callers rely
+    on elsewhere) and then checked DIRECTLY against tmux -- never through
+    the pointer, and never with the pointer's race-cross-check, which
+    exists only to arbitrate the omitted case's ambiguity; an explicit id
+    has none to arbitrate. If it names a live Contabo session, delivery
+    goes there and only there. If Contabo has other live sessions for
+    `target_role` but none match, the call is REJECTED -- never silently
+    redirected to one of those others, and never queued for the Mac on a
+    guess -- naming the live ids so the caller can pick a real one instead
+    of guessing again. Only when Contabo has NO live session for
+    `target_role` at all does the call fall through to the existing
+    Mac-queue path below, now carrying `target_session_id` in the queued
+    payload so `runners/mac_agent.py::do_relay` (task-689fc721 D2) can
+    honour it there too, with the identical no-fallback rule.
     """
     rejection = _reject_unknown_role("relay_to_session", target_role)
     if rejection:
         return rejection
 
-    tmux_name = _active_contabo_tmux_session(target_role)
-    # The letter is addressed by (role, session_id), so resolve the id from
-    # the same state/locks/<role>-active pointer the liveness check read --
-    # tools/send_to_cxo.py::_active_session_id, not a string-split of the
-    # tmux name. The cross-check below is the race guard: if the pointer
-    # moved between the two reads, neither id is trustworthy and we fall
-    # through to the queue branch instead of writing a letter a live
-    # session will never drain.
-    session_id = _active_session_id(target_role) if tmux_name else None
-    if tmux_name and session_id and f"{target_role}-{session_id}" == tmux_name:
+    if target_session_id is not None:
+        rejection = _reject_bad_session_id("relay_to_session", target_role, target_session_id)
+        if rejection:
+            return rejection
+        # An explicit id is already unambiguous -- checked directly against
+        # tmux, bypassing the pointer and its race-cross-check entirely
+        # (task-689fc721: routing through the pointer at all is exactly the
+        # fallback this branch must never take).
+        tmux_name = f"{target_role}-{target_session_id}"
+        session_id = target_session_id if tmux_session.has_session(tmux_name) else None
+        if session_id is None:
+            tmux_name = None
+    else:
+        tmux_name = _active_contabo_tmux_session(target_role)
+        # The letter is addressed by (role, session_id), so resolve the id from
+        # the same state/locks/<role>-active pointer the liveness check read --
+        # tools/send_to_cxo.py::_active_session_id, not a string-split of the
+        # tmux name. The cross-check below is the race guard: if the pointer
+        # moved between the two reads, neither id is trustworthy and we fall
+        # through to the queue branch instead of writing a letter a live
+        # session will never drain.
+        resolved_id = _active_session_id(target_role) if tmux_name else None
+        if tmux_name and resolved_id and f"{target_role}-{resolved_id}" == tmux_name:
+            session_id = resolved_id
+        else:
+            tmux_name = None
+            session_id = None
+
+    if tmux_name and session_id:
         # Authorization: the secretary is not a C-level, so the C-level
         # identity chain is the wrong gate. authorize() carries an explicit
         # secretary CEO-proxy entry (tools/send_to_cxo.py) -- SomPong is
@@ -807,17 +915,48 @@ def relay_to_session(target_role: str, message: str, wait: bool = False) -> str:
             }
         return json.dumps(result, ensure_ascii=False)
 
+    # No live Contabo session addressed this call.
+    if target_session_id is not None:
+        live_ids = _live_session_ids_for_role(target_role)
+        if live_ids:
+            # Contabo demonstrably has live session(s) for this role -- a
+            # mismatched id here is a WRONG id, not "must be on the Mac".
+            # Refuse rather than guess (task-689fc721's core rule): never
+            # fall back to one of these others, and never open a ledger row
+            # for a letter that will not be sent.
+            _audit("relay_to_session", target_role, "rejected",
+                   f"target_session_id={target_session_id!r} not live; "
+                   f"live_ids={live_ids}")
+            return json.dumps({
+                "status": "rejected", "target_role": target_role,
+                "target_session_id": target_session_id,
+                "reason": (
+                    f"no live {target_role} session {target_session_id!r} on "
+                    f"Contabo. Live {target_role} session ids here: "
+                    f"{', '.join(live_ids)}"
+                ),
+            }, ensure_ascii=False)
+        # Contabo has nothing live for this role at all -- same "assumed to
+        # live on the Mac" heuristic the omitted-id path already uses below.
+
     # host="mac": the letter itself does not exist yet (mac_agent.py writes
     # it once it drains this row), but the queue write below is what makes
     # delivery certain enough to open an obligation for -- "the letter WILL
     # land" per D1. session_id is unknown at queue time (host="mac" here is
-    # never the live-Contabo-tmux branch above), so target_session_id is
-    # left NULL, same nullable column report_to_ceo's lookup already
-    # tolerates.
-    order_id = _order_open(target_role, None, "mac", message)
+    # never the live-Contabo-tmux branch above) UNLESS the caller already
+    # named one via target_session_id -- that value is recorded even though
+    # it is not yet confirmed live anywhere, same nullable column
+    # report_to_ceo's lookup already tolerates when it stays NULL.
+    order_id = _order_open(target_role, target_session_id, "mac", message)
     full_message = f"{RELAY_PREFIX}{message}{_order_footer(order_id)}"
+    payload = {"message": full_message}
+    if target_session_id is not None:
+        # Carried through so runners/mac_agent.py::do_relay (task-689fc721
+        # D2) can address exactly that session there too, with the
+        # identical no-fallback rule -- never dropped silently here.
+        payload["target_session_id"] = target_session_id
     try:
-        queue_id = _queue_enqueue("relay", target_role, {"message": full_message})
+        queue_id = _queue_enqueue("relay", target_role, payload)
     except Exception as e:
         _order_discard(order_id)
         _audit("relay_to_session", target_role, "queue_failed", str(e))
@@ -968,7 +1107,8 @@ def _mac_queue_wait(kind: str, target_role: str, payload: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 @mcp.tool()
-def read_session(target_role: str, lines: int, host: str = "contabo") -> str:
+def read_session(target_role: str, lines: int, host: str = "contabo",
+                  target_session_id: str | None = None) -> str:
     """Read back the tail of a C-level session's live tmux pane.
 
     `target_role` must be one of cto/cmo/cgo/cfo -- same validation every
@@ -983,11 +1123,11 @@ def read_session(target_role: str, lines: int, host: str = "contabo") -> str:
     lines are stripped so a mostly-empty pane does not return a page of
     nothing.
 
-    host="mac" always reports not-available -- the Mac-side agent is not
-    built yet (see the module docstring). This is never queued: a queued
-    read that resolves minutes later would be worse than an honest no here,
-    because the secretary would end up presenting stale pane text as
-    current.
+    host="mac" enqueues a `read` entry for the Mac-side draining agent
+    (runners/mac_agent.py) and waits via the same bounded poller
+    list_terminals/session_history use (_mac_queue_wait) -- an unanswered
+    window comes back status="pending", never a stale answer presented as
+    current (task-2a135187).
 
     A "not_found" status (no live Contabo session for that role right now)
     is a normal, expected outcome -- not an error and not raised.
@@ -996,6 +1136,20 @@ def read_session(target_role: str, lines: int, host: str = "contabo") -> str:
     to anything in particular -- callers must attribute it as "pane
     contents", never as speech (the same rule relay_to_session's optional
     `wait` follows).
+
+    `target_session_id` (task-689fc721): optional, same rule as
+    relay_to_session's -- omitted resolves the <role>-active pointer
+    exactly as before; given, validated as hex/6-64 chars and checked
+    DIRECTLY against tmux (bypassing the pointer entirely), reading that
+    session's pane and only that session's. A given id that names no live
+    Contabo session comes back "not_found" listing the live ids for the
+    role, never silently substituting the pointer's session.
+
+    Only wired for host="contabo": host="mac" reads still answer "whichever
+    live session for the role" per task-02d0e863's deliberate design
+    (documented below) -- do_read on the Mac side is not in this task's
+    touches (only do_relay is, per task-689fc721 D2), so target_session_id
+    has no effect when host="mac".
     """
     rejection = _reject_unknown_role("read_session", target_role, host=host)
     if rejection:
@@ -1006,6 +1160,10 @@ def read_session(target_role: str, lines: int, host: str = "contabo") -> str:
             "status": "rejected",
             "reason": f"unknown host {host!r}. Known: {', '.join(HOSTS)}",
         }, ensure_ascii=False)
+    if target_session_id is not None:
+        rejection = _reject_bad_session_id("read_session", target_role, target_session_id)
+        if rejection:
+            return rejection
 
     capped_lines = max(1, min(lines, READ_SESSION_MAX_LINES))
 
@@ -1044,12 +1202,27 @@ def read_session(target_role: str, lines: int, host: str = "contabo") -> str:
             "queue_id": queue_id, "reason": outcome["reason"],
         }, ensure_ascii=False)
 
-    tmux_name = _active_contabo_tmux_session(target_role)
-    if not tmux_name:
-        _audit("read_session", target_role, "not_found", "host=contabo")
-        return json.dumps({
-            "status": "not_found", "target_role": target_role, "host": "contabo",
-        }, ensure_ascii=False)
+    if target_session_id is not None:
+        # Checked directly against tmux -- bypassing the pointer entirely,
+        # same as relay_to_session's explicit-id branch (task-689fc721).
+        tmux_name = f"{target_role}-{target_session_id}"
+        if not tmux_session.has_session(tmux_name):
+            live_ids = _live_session_ids_for_role(target_role)
+            _audit("read_session", target_role, "not_found",
+                   f"host=contabo target_session_id={target_session_id!r} "
+                   f"live_ids={live_ids}")
+            return json.dumps({
+                "status": "not_found", "target_role": target_role, "host": "contabo",
+                "target_session_id": target_session_id,
+                "live_session_ids": live_ids,
+            }, ensure_ascii=False)
+    else:
+        tmux_name = _active_contabo_tmux_session(target_role)
+        if not tmux_name:
+            _audit("read_session", target_role, "not_found", "host=contabo")
+            return json.dumps({
+                "status": "not_found", "target_role": target_role, "host": "contabo",
+            }, ensure_ascii=False)
 
     raw = _capture_pane(tmux_name)
     if raw is None:
