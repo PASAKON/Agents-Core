@@ -95,6 +95,7 @@ Run:  python -m runners.secretary_server
 """
 from __future__ import annotations
 
+import concurrent.futures
 import json
 import os
 import signal
@@ -111,7 +112,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from lib.config import (  # noqa: E402
+    _PROVIDER_DEFAULT_MODEL,
+    _PROVIDER_ENDPOINTS,
+    _PROVIDER_KEY_VAR,
+    _read_dotenv_var,
+)
 from lib.logger import get_logger  # noqa: E402
+from lib.quota_router import pick_provider  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Config — all env-overridable, defaults per TASK.md deliverables 1-2.
@@ -122,6 +130,13 @@ SECRETARY_API_KEY = os.environ.get("SECRETARY_API_KEY", "")
 SECRETARY_WORKDIR = os.environ.get("SECRETARY_WORKDIR", str(ROOT))
 SECRETARY_TIMEOUT_SECONDS = int(os.environ.get("SECRETARY_TIMEOUT_SECONDS", "180"))
 SECRETARY_MAX_CONCURRENT = int(os.environ.get("SECRETARY_MAX_CONCURRENT", "1"))
+# GH mooniex-agents#38 D2 (task-870f70f8) -- bound on the per-turn quota
+# check (lib.quota_router.pick_provider does one SSH call + one HTTP call,
+# each with their own 8s internal timeout -- ~16s worst case). Generous
+# headroom over that so a normal check never trips it; exists purely so a
+# violation of pick_provider's own "never blocks" contract cannot also hang
+# the secretary.
+SECRETARY_QUOTA_TIMEOUT_SECONDS = float(os.environ.get("SECRETARY_QUOTA_TIMEOUT_SECONDS", "20"))
 
 CLAUDE_BIN = os.environ.get("SECRETARY_CLAUDE_BIN", "claude")
 
@@ -143,6 +158,11 @@ SESSION_DB_PATH = Path(
 )
 
 ERROR_PREFIX = "⚠️ เลขาขัดข้อง: "
+
+# D1 (task-870f70f8) -- `result` on a failed run is model-adjacent text
+# forwarded straight to Telegram. Cap so a runaway multi-KB blob can never
+# become the whole error message.
+API_ERROR_MAX_CHARS = 500
 
 # task-67ba0c4f D3 -- the fixed marker runners/secretary_waker.py prefixes a
 # digest turn's prompt with. A user message starting with this is NOT the CEO
@@ -442,8 +462,16 @@ def set_session_id(conversation_id: str, session_id: str) -> None:
 # Deliverable 2 — the claude invocation.
 # ---------------------------------------------------------------------------
 
-def _bare_is_safe() -> bool:
+def _bare_is_safe(env: dict[str, str] | None = None) -> bool:
     """Whether `--bare` can be used with this process's auth method.
+
+    `env` is the ACTUAL env the subprocess will run with (defaults to
+    `os.environ` when omitted, e.g. from a direct test call). This must be
+    the resolved per-turn env, not the parent process's env, once D2
+    (task-870f70f8) can switch provider between turns -- otherwise the
+    provider changes but the OAuth-vs-token heuristic below keeps judging
+    the OLD env, and `--bare` can go stale in the same turn it should have
+    flipped (an OAuth turn that keeps `--bare` fails outright).
 
     `--bare` skips hooks, LSP and plugin discovery — a real latency win
     (measured on Contabo, same prompt with a tool call, 2 runs each:
@@ -466,22 +494,87 @@ def _bare_is_safe() -> bool:
     OAuth credential-file auth pays the extra ~7s rather than failing
     outright. SECRETARY_BARE=on|off forces it either way.
     """
-    override = (os.environ.get("SECRETARY_BARE") or "").strip().lower()
+    if env is None:
+        env = os.environ
+    override = (env.get("SECRETARY_BARE") or "").strip().lower()
     if override in ("on", "1", "true", "yes"):
         return True
     if override in ("off", "0", "false", "no"):
         return False
-    return bool(os.environ.get("ANTHROPIC_AUTH_TOKEN")
-                or os.environ.get("ANTHROPIC_API_KEY"))
+    return bool(env.get("ANTHROPIC_AUTH_TOKEN") or env.get("ANTHROPIC_API_KEY"))
 
 
-def _build_claude_cmd(prompt: str, session_id: str | None) -> list[str]:
+def _resolve_provider_env() -> tuple[dict[str, str], str]:
+    """Resolve which provider THIS turn should use, fresh every call, via
+    lib.quota_router.pick_provider (GH mooniex-agents#38 D2, task-870f70f8)
+    — instead of trusting whatever ANTHROPIC_BASE_URL / ANTHROPIC_AUTH_TOKEN
+    / ANTHROPIC_MODEL happen to be pinned in /home/secretary/.secretary.env
+    at service-start time. Both failure directions have hit for real, hours
+    apart: pinned to Z.ai while its window was exhausted and Claude sat
+    idle, then pinned to Claude while its OAuth credential was expired and
+    Z.ai's window had long since reset.
+
+    Returns (env, reason): env is a NEW dict built on top of a full copy of
+    os.environ (nothing outside the 3 provider keys is touched, so this
+    stays a computed override on top of the inherited env, not a filtered
+    one) with those 3 keys either set (zai) or cleared (claude, so a stale
+    Z.ai pin from the service file cannot win); reason is a one-line note
+    for the info-level log the caller writes once per turn.
+
+    Never blocks the turn: pick_provider reaches out over SSH and HTTP, so
+    it runs on a background thread bounded by SECRETARY_QUOTA_TIMEOUT_SECONDS.
+    Raising, timing out, or landing on a provider this file doesn't know how
+    to build env for all fall back to the inherited env unchanged — a
+    secretary that cannot answer because it could not measure quota is worse
+    than one on a suboptimal provider.
+    """
+    # Everything below is one try/except on purpose: a raise from the dotenv
+    # fallback reads (disk/permission hiccup) must fail safe exactly like a
+    # raise from pick_provider itself -- both are "the quota check didn't
+    # work", and both must fall through to the inherited env, not propagate
+    # and turn into a hard failure of the whole turn.
+    base_env = dict(os.environ)
+    try:
+        zai_usage_token = os.environ.get("ZAI_USAGE_TOKEN") or _read_dotenv_var("ZAI_USAGE_TOKEN")
+
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        try:
+            future = executor.submit(pick_provider, zai_usage_token)
+            provider = future.result(timeout=SECRETARY_QUOTA_TIMEOUT_SECONDS)
+        finally:
+            executor.shutdown(wait=False)
+
+        if provider == "zai":
+            key = (os.environ.get(_PROVIDER_KEY_VAR["zai"])
+                   or _read_dotenv_var(_PROVIDER_KEY_VAR["zai"]))
+            if not key:
+                return base_env, "quota picked zai but no ZAI_API_KEY on this box — kept inherited env"
+            env = dict(base_env)
+            env["ANTHROPIC_BASE_URL"] = _PROVIDER_ENDPOINTS["zai"]
+            env["ANTHROPIC_AUTH_TOKEN"] = key
+            env["ANTHROPIC_MODEL"] = _PROVIDER_DEFAULT_MODEL["zai"]
+            return env, "quota picked zai (more headroom)"
+
+        if provider == "claude":
+            env = dict(base_env)
+            env.pop("ANTHROPIC_BASE_URL", None)
+            env.pop("ANTHROPIC_AUTH_TOKEN", None)
+            env.pop("ANTHROPIC_MODEL", None)
+            return env, "quota picked claude (more headroom)"
+
+        return base_env, f"quota check returned unrecognised provider {provider!r} — kept inherited env"
+    except Exception as exc:
+        return base_env, f"quota check unavailable ({exc!r}) — kept inherited env"
+
+
+def _build_claude_cmd(prompt: str, session_id: str | None,
+                       env: dict[str, str] | None = None) -> list[str]:
     cmd = [
         CLAUDE_BIN, "-p", prompt,
         "--output-format", "json",
         "--permission-mode", "dontAsk",
     ]
-    if _bare_is_safe():
+    if _bare_is_safe(env):
         cmd.append("--bare")
     cmd += [
         "--allowed-tools", ",".join(ALLOWED_TOOLS),
@@ -499,18 +592,23 @@ def _run_claude_once(prompt: str, session_id: str | None) -> tuple[int, str, str
     timed_out). Never raises for a subprocess-level failure — only for
     something like the binary not existing at all, which the caller catches.
 
-    cwd is always SECRETARY_WORKDIR — never caller-controlled. env is
-    inherited (not copied/filtered) on purpose: Contabo's ANTHROPIC_BASE_URL
-    / ANTHROPIC_AUTH_TOKEN (Z.ai GLM) must reach the subprocess without this
-    file hardcoding a provider.
+    cwd is always SECRETARY_WORKDIR — never caller-controlled. The base env
+    is still inherited (not copied/filtered) on purpose — see
+    _resolve_provider_env, which builds a full copy of os.environ and only
+    ever touches the 3 provider-selection keys on top of it, once per call,
+    logged at info level so a reviewer can answer "which provider did this
+    turn use, and why" from the log.
     """
+    env, reason = _resolve_provider_env()
+    _log().info("secretary: provider for this turn — %s", reason)
     proc = subprocess.Popen(
-        _build_claude_cmd(prompt, session_id),
+        _build_claude_cmd(prompt, session_id, env),
         cwd=SECRETARY_WORKDIR,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
         start_new_session=True,  # own process group, so a timeout can kill the whole tree
+        env=env,
     )
     try:
         stdout, stderr = proc.communicate(timeout=SECRETARY_TIMEOUT_SECONDS)
@@ -532,8 +630,10 @@ def _friendly_error(reason: str) -> str:
 
 
 def _extract_api_error(stdout: str) -> str | None:
-    """If `stdout` is a claude CLI JSON result carrying an upstream API error
-    (rate limit, outage, etc.), return the CLI's own human message; else None.
+    """If `stdout` is a claude CLI JSON result for a FAILED run carrying a
+    usable failure explanation, return it; else None. The caller only ever
+    invokes this after rc != 0 — that is what makes it safe to trust
+    `result` here at all (see below).
 
     Verified live 2026-08-14: a Z.ai Coding Plan 5h-quota rejection produces
     exit code 1, EMPTY stderr, and a normal-looking JSON body on stdout with
@@ -542,14 +642,39 @@ def _extract_api_error(stdout: str) -> str | None:
     ..."). Nothing before this check inspected stdout when rc != 0, so this
     always fell through to the generic "exit code ผิดปกติ" message -- true,
     but useless, since the CLI had already told us exactly what happened.
+
+    Widened 2026-08-15 (task-870f70f8): an OAuth-expired turn slipped past
+    the check above because its `api_error_status` was null --
+
+        {"is_error": true, "api_error_status": null,
+         "terminal_reason": "api_error",
+         "result": "Failed to authenticate: OAuth session expired and "
+                    "could not be refreshed"}
+
+    -- even though `terminal_reason` and `result` both said exactly what
+    happened. `api_error_status` / `terminal_reason` are signals that a
+    reason exists, not the only shape one can take, so this now trusts
+    `result` itself whenever it is present and non-empty, on any failed
+    run, regardless of which (if any) of those two fields are set. This is
+    only safe BECAUSE the caller gates every call on rc != 0 first: a
+    successful run also has a `result` (the actual answer), but rc == 0
+    short-circuits before this function is ever called, so a good answer
+    can never be turned into an error string here.
+
+    `result` is model-adjacent text and goes straight to Telegram, so it is
+    capped at API_ERROR_MAX_CHARS -- a runaway multi-KB blob must not
+    become the CEO's entire error message.
     """
     try:
         data = json.loads(stdout)
     except (json.JSONDecodeError, TypeError):
         return None
-    if not isinstance(data, dict) or not data.get("api_error_status"):
+    if not isinstance(data, dict):
         return None
-    return str(data.get("result") or "").strip() or None
+    result = str(data.get("result") or "").strip()
+    if not result:
+        return None
+    return result[:API_ERROR_MAX_CHARS]
 
 
 def run_secretary_turn(prompt: str, conversation_id: str) -> str:

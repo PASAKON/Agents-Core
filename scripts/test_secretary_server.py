@@ -20,7 +20,10 @@ Or under pytest:  pytest scripts/test_secretary_server.py
 from __future__ import annotations
 
 import json
+import logging
+import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -568,6 +571,184 @@ def test_different_conversation_does_not_reuse_session(running_server) -> None:
     assert calls == [("convA-msg", None), ("convB-msg", None)]
     assert ss.get_session_id("conv-A2") == "sess-convA-msg"
     assert ss.get_session_id("conv-B2") == "sess-convB-msg"
+
+
+# ---------------------------------------------------------------------------
+# 6. D1 (task-870f70f8) — _extract_api_error widened past api_error_status
+# ---------------------------------------------------------------------------
+
+def test_extract_api_error_still_recognizes_the_429_shape() -> None:
+    """The original narrow gate this widened from — must stay green."""
+    stdout = json.dumps({
+        "is_error": True, "api_error_status": 429,
+        "result": "Usage limit reached for 5 hour. Your limit will reset "
+                  "at 2026-08-15 05:30:02",
+    })
+    assert ss._extract_api_error(stdout) == (
+        "Usage limit reached for 5 hour. Your limit will reset at "
+        "2026-08-15 05:30:02"
+    )
+
+
+def test_extract_api_error_recognizes_oauth_expired_with_null_api_error_status() -> None:
+    """Live shape from 2026-08-15: api_error_status is null, but
+    terminal_reason and result both explain exactly what happened. The
+    original api_error_status-only gate missed this; the widened one must
+    not."""
+    stdout = json.dumps({
+        "is_error": True, "api_error_status": None,
+        "terminal_reason": "api_error",
+        "result": "Failed to authenticate: OAuth session expired and "
+                  "could not be refreshed",
+    })
+    assert ss._extract_api_error(stdout) == (
+        "Failed to authenticate: OAuth session expired and could not be refreshed"
+    )
+
+
+def test_extract_api_error_returns_none_for_a_failed_run_with_no_usable_text() -> None:
+    assert ss._extract_api_error(json.dumps({
+        "is_error": True, "api_error_status": None,
+        "terminal_reason": None, "result": "",
+    })) is None
+    assert ss._extract_api_error(json.dumps({"is_error": True})) is None
+    assert ss._extract_api_error("") is None
+
+
+def test_extract_api_error_caps_a_multi_kb_result() -> None:
+    huge = "x" * 5000
+    result = ss._extract_api_error(json.dumps({
+        "is_error": True, "api_error_status": 500, "result": huge,
+    }))
+    assert result is not None
+    assert len(result) == ss.API_ERROR_MAX_CHARS
+
+
+def test_a_successful_run_never_routes_through_the_error_path(running_server) -> None:
+    """A successful run also has a `result` (the actual answer). This must
+    only ever surface via _extract_api_error on a FAILED run -- enforced by
+    rc == 0 short-circuiting before _extract_api_error is ever called in
+    run_secretary_turn, not by anything inside _extract_api_error itself."""
+    url, set_stub = running_server
+    set_stub(lambda prompt, session_id: (
+        0, json.dumps({"session_id": "s1", "is_error": False,
+                       "result": "the actual answer"}), "", False))
+    status, payload = _post(url, _chat_body("ping"))
+    assert status == 200
+    content = payload["choices"][0]["message"]["content"]
+    assert content == "the actual answer"
+    assert not content.startswith(ss.ERROR_PREFIX)
+
+
+# ---------------------------------------------------------------------------
+# 7. D2 (task-870f70f8) — per-turn provider resolution via pick_provider
+# ---------------------------------------------------------------------------
+
+def test_resolve_provider_env_picks_zai_and_sets_child_env(monkeypatch) -> None:
+    monkeypatch.setattr(ss, "pick_provider", lambda token: "zai")
+    monkeypatch.setenv("ZAI_API_KEY", "test-zai-key")
+    env, reason = ss._resolve_provider_env()
+    assert env["ANTHROPIC_BASE_URL"] == ss._PROVIDER_ENDPOINTS["zai"]
+    assert env["ANTHROPIC_AUTH_TOKEN"] == "test-zai-key"
+    assert env["ANTHROPIC_MODEL"] == ss._PROVIDER_DEFAULT_MODEL["zai"]
+    assert "zai" in reason
+    # --bare must follow the resolved provider in the SAME call, not
+    # whatever the parent process's os.environ happens to say.
+    assert ss._bare_is_safe(env) is True
+
+
+def test_resolve_provider_env_picks_claude_and_clears_any_stale_zai_pin(monkeypatch) -> None:
+    """The exact failure this D2 fixes: the service file pinned Z.ai, but
+    quota picked Claude for this turn -- the child env must not still carry
+    the Z.ai vars, or it would silently keep talking to Z.ai anyway."""
+    monkeypatch.setattr(ss, "pick_provider", lambda token: "claude")
+    monkeypatch.setenv("ANTHROPIC_BASE_URL", "https://api.z.ai/api/anthropic")
+    monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", "stale-zai-token")
+    monkeypatch.setenv("ANTHROPIC_MODEL", "glm-5.2")
+    env, reason = ss._resolve_provider_env()
+    assert "ANTHROPIC_BASE_URL" not in env
+    assert "ANTHROPIC_AUTH_TOKEN" not in env
+    assert "ANTHROPIC_MODEL" not in env
+    assert "claude" in reason
+    # No token left in env -> OAuth path -> --bare must follow, in this SAME call.
+    assert ss._bare_is_safe(env) is False
+
+
+def test_resolve_provider_env_falls_back_when_zai_key_missing(monkeypatch) -> None:
+    monkeypatch.setattr(ss, "pick_provider", lambda token: "zai")
+    # Also stub the .env fallback -- a real ZAI_API_KEY in this box's actual
+    # repo-root .env must not leak into the test regardless of the env var.
+    monkeypatch.setattr(ss, "_read_dotenv_var", lambda name: None)
+    monkeypatch.delenv("ZAI_API_KEY", raising=False)
+    monkeypatch.setenv("SOME_MARKER_VAR", "keep-me")
+    env, reason = ss._resolve_provider_env()
+    assert env == dict(os.environ)
+    assert env["SOME_MARKER_VAR"] == "keep-me"
+    assert "no ZAI_API_KEY" in reason
+
+
+def test_resolve_provider_env_falls_back_when_pick_provider_raises(monkeypatch) -> None:
+    def boom(token):
+        raise RuntimeError("ssh unreachable")
+    monkeypatch.setattr(ss, "pick_provider", boom)
+    env, reason = ss._resolve_provider_env()
+    assert env == dict(os.environ)
+    assert "unavailable" in reason
+
+
+def test_resolve_provider_env_falls_back_on_unrecognised_provider(monkeypatch) -> None:
+    monkeypatch.setattr(ss, "pick_provider", lambda token: "bogus-provider")
+    env, reason = ss._resolve_provider_env()
+    assert env == dict(os.environ)
+    assert "unrecognised" in reason
+
+
+def test_resolve_provider_env_does_not_block_the_turn_when_pick_provider_hangs(monkeypatch) -> None:
+    """Never block a turn on the quota check: pick_provider running long past
+    SECRETARY_QUOTA_TIMEOUT_SECONDS must not stall the caller past that bound.
+    No real SSH/HTTP here -- pick_provider itself is stubbed."""
+    monkeypatch.setattr(ss, "SECRETARY_QUOTA_TIMEOUT_SECONDS", 0.05)
+
+    def hangs(token):
+        time.sleep(0.4)
+        return "claude"
+
+    monkeypatch.setattr(ss, "pick_provider", hangs)
+    start = time.monotonic()
+    env, reason = ss._resolve_provider_env()
+    elapsed = time.monotonic() - start
+    assert elapsed < 0.3, "must not block the turn waiting for a slow quota check"
+    assert env == dict(os.environ)
+    assert "unavailable" in reason
+
+
+def test_run_claude_once_logs_which_provider_and_why(monkeypatch) -> None:
+    """A reviewer must be able to answer 'which provider did this turn use,
+    and why' from the log alone. Attaches a handler directly to the
+    "secretary" logger rather than using caplog -- that logger sets
+    propagate=False (lib/logger.py), so records never reach caplog's
+    root-logger handler."""
+    monkeypatch.setattr(ss, "pick_provider", lambda token: "claude")
+
+    class _FakeProc:
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            return json.dumps({"result": "ok", "is_error": False}), ""
+
+    monkeypatch.setattr(ss.subprocess, "Popen", lambda *a, **k: _FakeProc())
+
+    messages: list[str] = []
+    handler = logging.Handler()
+    handler.emit = lambda record: messages.append(record.getMessage())
+    secretary_logger = logging.getLogger("secretary")
+    secretary_logger.addHandler(handler)
+    try:
+        ss._run_claude_once("hi", None)
+    finally:
+        secretary_logger.removeHandler(handler)
+
+    assert any("provider for this turn" in m and "claude" in m for m in messages)
 
 
 if __name__ == "__main__":
