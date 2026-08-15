@@ -739,6 +739,108 @@
  *    received. Created `S2-1080P` fresh via `gdrive_move.py create_folder`,
  *    matching the exact naming convention of the pre-existing `S1-1080P`,
  *    before filing into it.
+ *
+ * Wave 13 findings (task-aa979737, 2026-08-15, single 10-element Seedance 2.5
+ * generation for Scene 10-D — the CEO's own `Sence 10-D` project-folder
+ * composer, `.../folders/e6664811-871d-4c18-b344-37e0a8c5e47f`):
+ *
+ * 1. **The Cinema Studio composer can be sitting in Image mode on page load
+ *    even when arriving straight at a Video-history folder** — this folder's
+ *    composer loaded with `GPT Image 2 | Auto | Medium | 1K | 4/4 | Unlimited`
+ *    as the settings row, i.e. the Image tab was selected, not Video. Always
+ *    read the settings row text before touching anything; if it shows an
+ *    image model, click the Video tab (see finding 2) before proceeding —
+ *    don't assume Video is the default just because the folder is full of
+ *    video cards.
+ *
+ * 2. **The visible Image/Video mode-tab pair is stacked VERTICALLY** at the
+ *    bottom-left of the composer (`Image` above `Video`, each a 64x52 css-px
+ *    button), not side by side — and there is a second, invisible/zero-size
+ *    Image/Video pair elsewhere in the DOM with an *opposite* aria-selected
+ *    state to the real one. Filter to `getBoundingClientRect().width > 0`
+ *    before trusting any aria-selected read, exactly as Wave 7 finding 3
+ *    already established for the decoy prompt editor — this is the same
+ *    "two lookalike elements, only one real" trap recurring on a different
+ *    control.
+ *
+ * 3. **`computer` click coordinates are in SCREENSHOT-pixel space, not CSS
+ *    pixel space, confirmed directly this wave** — Wave 7 finding 7 said to
+ *    apply the scale factor before clicking, but two clicks aimed straight at
+ *    a `getBoundingClientRect()`-derived CSS coordinate (244,618 then
+ *    276,644) both missed the Video tab entirely and did nothing, twice in a
+ *    row. A screenshot was taken purely to visually locate the same button,
+ *    and its raw pixel coordinates from the image (370,722) worked on the
+ *    first attempt. Lesson: never pass a raw `getBoundingClientRect()` value
+ *    straight to `computer` — always multiply by
+ *    `screenshotWidth / window.innerWidth` first, or read the coordinate off
+ *    an actual screenshot instead of trusting the math.
+ *
+ * 4. **A same-content-length paste can still desync on the FIRST submission
+ *    of a scene, not only on a repeat** — Wave 7 finding 12 documented this
+ *    failure mode ("Prompt > Instruction: Prompt is required" while the
+ *    editor visibly holds full correct text) as showing up on a *second*
+ *    consecutive submission specifically. Here it fired on the very first
+ *    Generate click of a fresh paste into a fresh Video-mode composer, with
+ *    `hfPromptDesynced()`'s placeholder-visible tell reading FALSE the whole
+ *    time (not the usual tell). The only reliable signal was the real
+ *    Toastify DOM node itself
+ *    (`.Toastify__toast-container` containing "Prompt is required") — treat
+ *    that toast as authoritative over the placeholder-visibility heuristic,
+ *    which did not fire here. The documented fix (scrollIntoView, real
+ *    click, real Space, real BackSpace) worked immediately: length went from
+ *    3546→3547 raw chars (Lexical's own paragraph-newline rendering noise,
+ *    confirmed byte-identical to the source prompt after
+ *    `.replace(/\s+/g,' ')` normalization on both sides), and the retry
+ *    Generate click produced a real "Generation started" toast with a new
+ *    card immediately. Budget one retry for this exact sequence before
+ *    treating a "Prompt is required" toast as anything worse than a form
+ *    desync.
+ *
+ * 5. **10 distinct elements generated successfully on Seedance 2.5 with no
+ *    ceiling error**, confirming the task brief's claim that Wave 7 finding
+ *    11's "9-element working maximum" is a Seedance 2.0-only ceiling. Full
+ *    10-chip prompt (`@Room-Clean @Room-Wreck @Room-DoorOut @Mother
+ *    @Mother-Soul @Daughter @Prop-OldPhoto @Prop-Glass @Prop-Lamp
+ *    @Prop-Handbag`) pasted clean into an editor with zero leftover chips,
+ *    verified via `data-beautiful-mention` distinct-uuid count exactly as
+ *    Wave 7 finding 2 recommends, and rendered on the first successful
+ *    Generate click with no error of any kind.
+ *
+ * 6. **This project-folder composer's Generate button, once Unlimited is ON,
+ *    relabels to a literal `UNLIMITED` all-caps button reading
+ *    "UNLIMITED ✦ ~~140~~ 0"** — confirms Wave 7 finding 4's
+ *    struck-through-plus-zero pattern exactly, and confirms it is the
+ *    expected FREE state, not a rule violation, despite having visible
+ *    digits on it. The task brief's literal "zero digits anywhere" wording
+ *    predates this discovery; treat "original price struck through + 0
+ *    effective" as the pass condition on this button, same as
+ *    `hfReadPriceButton()` already encodes.
+ *
+ * 7. **A card's "..." (More actions) menu on this project-folder grid does
+ *    NOT contain Download directly** — its full item list this wave was
+ *    Open / Select / Extract start frame / Extract last frame / Recreate /
+ *    Translate / Change voice / Virality predictor / Change Color Palette /
+ *    Relight. Click **Open** to get the `[role="dialog"]` detail modal
+ *    (Info/Edit/Comments tabs, Copy/Recreate/Reference/**Download** buttons)
+ *    — same modal Wave 6 already documented reaching via the download-tray
+ *    icon; "..." → Open is a second, equally reliable path to it. The detail
+ *    modal's Info tab also has the resolution/duration/model text
+ *    (`"720p"`, `"Seedance 2.5"`, `"20s"` markers) needed to confirm spec
+ *    before downloading, so Open serves both checks in one click.
+ *
+ * 8. **Render time for this single generation: ~26.8 minutes** (Generate
+ *    clicked 2026-08-15 15:27:02 UTC, card confirmed `data-asset-status:
+ *    "completed"` at 15:53:51 UTC) — clicked during 15:27-15:54 UTC,
+ *    outside the documented 01:00-07:00 UTC low-queue window, consistent
+ *    with the render-time-tracks-Europe's-waking-hours finding (this run
+ *    landed in the "stacked peak" 07:00-16:00 UTC band).
+ *
+ * 9. **Output measured 1470x630** (area 926,100, ≈720p standard area
+ *    921,600 per Wave 12 finding 6's area-based classifier) — confirms the
+ *    task brief's prediction that a 20s Seedance 2.5 render on this project
+ *    comes out 720p-tier, routing to `S10` (not `S10-1080P`). ffprobe
+ *    duration read 20.04s video / 20.06s audio, both audio+video streams
+ *    present (Sound On setting held).
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
