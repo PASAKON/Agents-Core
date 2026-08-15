@@ -157,6 +157,28 @@ def send_keys(session: str, text: str, *, press_enter: bool = True) -> None:
         _run([tmux_bin(), "send-keys", "-t", session, "C-m"])
 
 
+def capture(session: str, lines: int = 200) -> str:
+    """Best-effort text of a session's pane, including scrollback.
+
+    Exists so a spawn that dies can still say why. A tmux session whose only
+    command exits is torn down immediately, taking the error message with it
+    -- which is exactly how a 100%-reproducible spawn failure once looked
+    like total silence for an hour (2026-08-15). Callers use this on the
+    failure path to put the real stderr into `tasks.delegate_log` instead of
+    guessing.
+
+    Returns "" when the session is already gone or tmux errors; the caller is
+    reporting a failure either way and must not fail again on the report.
+    """
+    r = subprocess.run(
+        [tmux_bin(), "capture-pane", "-t", session, "-p", "-S", f"-{lines}"],
+        capture_output=True, text=True, check=False,
+    )
+    if r.returncode != 0:
+        return ""
+    return "\n".join(ln for ln in (r.stdout or "").splitlines() if ln.strip())
+
+
 def kill(session: str) -> bool:
     """Kill tmux session. Returns True iff a session was killed."""
     if not has_session(session):
