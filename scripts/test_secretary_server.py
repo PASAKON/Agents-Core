@@ -662,6 +662,9 @@ def test_resolve_provider_env_picks_claude_and_clears_any_stale_zai_pin(monkeypa
     quota picked Claude for this turn -- the child env must not still carry
     the Z.ai vars, or it would silently keep talking to Z.ai anyway."""
     monkeypatch.setattr(ss, "pick_provider", lambda token: "claude")
+    # Pinned, not inherited from the box: whether this machine happens to hold
+    # a live Claude credential must not decide whether this test passes.
+    monkeypatch.setattr(ss, "_claude_auth_available", lambda: True)
     monkeypatch.setenv("ANTHROPIC_BASE_URL", "https://api.z.ai/api/anthropic")
     monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", "stale-zai-token")
     monkeypatch.setenv("ANTHROPIC_MODEL", "glm-5.2")
@@ -672,6 +675,60 @@ def test_resolve_provider_env_picks_claude_and_clears_any_stale_zai_pin(monkeypa
     assert "claude" in reason
     # No token left in env -> OAuth path -> --bare must follow, in this SAME call.
     assert ss._bare_is_safe(env) is False
+
+
+def test_claude_with_dead_oauth_falls_back_to_zai(monkeypatch) -> None:
+    """THE regression this guards, hit in production within hours of shipping
+    the quota router: pick_provider measures HEADROOM, never usability. Claude
+    had the most headroom on the secretary box so it was picked every turn, and
+    every turn died on "OAuth session expired and could not be refreshed" while
+    Z.ai sat idle with a working key. Headroom is not usability."""
+    monkeypatch.setattr(ss, "pick_provider", lambda token: "claude")
+    monkeypatch.setattr(ss, "_claude_auth_available", lambda: False)
+    monkeypatch.setenv(ss._PROVIDER_KEY_VAR["zai"], "live-zai-key")
+
+    env, reason = ss._resolve_provider_env()
+
+    assert env["ANTHROPIC_BASE_URL"] == ss._PROVIDER_ENDPOINTS["zai"]
+    assert env["ANTHROPIC_AUTH_TOKEN"] == "live-zai-key"
+    assert "fell back to zai" in reason
+    # An env token is present -> --bare is safe again, decided in this same call.
+    assert ss._bare_is_safe(env) is True
+
+
+def test_claude_dead_and_no_zai_key_keeps_inherited_env(monkeypatch) -> None:
+    """Both providers unusable is not a reason to invent one. Keep the
+    inherited env and say so — the turn may still fail, but it fails with the
+    real upstream error rather than one this function manufactured."""
+    monkeypatch.setattr(ss, "pick_provider", lambda token: "claude")
+    monkeypatch.setattr(ss, "_claude_auth_available", lambda: False)
+    monkeypatch.setattr(ss, "_read_dotenv_var", lambda name: None)
+    monkeypatch.delenv(ss._PROVIDER_KEY_VAR["zai"], raising=False)
+
+    _env, reason = ss._resolve_provider_env()
+
+    assert "no ZAI_API_KEY" in reason
+    assert "kept inherited env" in reason
+
+
+def test_claude_auth_available_is_false_for_an_expired_credential(monkeypatch, tmp_path) -> None:
+    """Existence is not validity. The file that caused the outage was present
+    and well formed; only its expiry gave it away."""
+    cred = tmp_path / "creds.json"
+    monkeypatch.setenv("CLAUDE_CREDENTIALS_PATH", str(cred))
+
+    cred.write_text(json.dumps({"claudeAiOauth": {"expiresAt": 1_000}}))  # 1970
+    assert ss._claude_auth_available() is False
+
+    far_future_ms = (time.time() + 86_400) * 1000
+    cred.write_text(json.dumps({"claudeAiOauth": {"expiresAt": far_future_ms}}))
+    assert ss._claude_auth_available() is True
+
+    cred.write_text("not json at all")
+    assert ss._claude_auth_available() is False
+
+    cred.unlink()
+    assert ss._claude_auth_available() is False
 
 
 def test_resolve_provider_env_falls_back_when_zai_key_missing(monkeypatch) -> None:

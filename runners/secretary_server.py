@@ -516,6 +516,33 @@ def _bare_is_safe(env: dict[str, str] | None = None) -> bool:
     return bool(env.get("ANTHROPIC_AUTH_TOKEN") or env.get("ANTHROPIC_API_KEY"))
 
 
+def _claude_auth_available() -> bool:
+    """Whether Claude's OAuth credential on this box is present and unexpired.
+
+    Deliberately checks the expiry, not just the file's existence: the failure
+    that made this necessary was a credential file sitting right there, well
+    formed, holding a token that had already expired and whose refresh was
+    rejected (the copy's refresh token had been rotated out from under it by
+    the account it was copied from).
+
+    Conservative on purpose. Any doubt -- unreadable file, unparseable JSON,
+    missing field -- answers False, because the cost of a wrong False is a
+    turn served by the other provider, while the cost of a wrong True is a
+    turn the CEO does not get an answer to at all.
+    """
+    path = Path(os.environ.get("CLAUDE_CREDENTIALS_PATH")
+                or Path.home() / ".claude" / ".credentials.json")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        expires_at = data["claudeAiOauth"]["expiresAt"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+    try:
+        return float(expires_at) > time.time() * 1000
+    except (TypeError, ValueError):
+        return False
+
+
 def _resolve_provider_env() -> tuple[dict[str, str], str]:
     """Resolve which provider THIS turn should use, fresh every call, via
     lib.quota_router.pick_provider (GH mooniex-agents#38 D2, task-870f70f8)
@@ -568,6 +595,34 @@ def _resolve_provider_env() -> tuple[dict[str, str], str]:
             return env, "quota picked zai (more headroom)"
 
         if provider == "claude":
+            # Headroom is not usability. pick_provider only measures how much
+            # quota each provider has left; it never asks whether this box can
+            # authenticate to it. On the secretary box those are different
+            # questions, and the gap bit within hours of shipping this router
+            # (2026-08-16): Claude had the most headroom, so it was picked
+            # every turn, and every turn died on
+            #   "Failed to authenticate: OAuth session expired and could not
+            #    be refreshed"
+            # while Z.ai sat idle with a working key. The claude branch was the
+            # only one without a usability check — the zai branch above has had
+            # one since it was written.
+            #
+            # Claude Code's OAuth credential cannot be maintained here: it was
+            # copied from another user's home, and refresh tokens rotate, so
+            # the copy dies the moment the original refreshes.
+            if not _claude_auth_available():
+                key = (os.environ.get(_PROVIDER_KEY_VAR["zai"])
+                       or _read_dotenv_var(_PROVIDER_KEY_VAR["zai"]))
+                if key:
+                    env = dict(base_env)
+                    env["ANTHROPIC_BASE_URL"] = _PROVIDER_ENDPOINTS["zai"]
+                    env["ANTHROPIC_AUTH_TOKEN"] = key
+                    env["ANTHROPIC_MODEL"] = _PROVIDER_DEFAULT_MODEL["zai"]
+                    return env, ("quota picked claude but its OAuth is missing/"
+                                 "expired on this box — fell back to zai")
+                return base_env, ("quota picked claude but its OAuth is missing/"
+                                  "expired and no ZAI_API_KEY either — kept "
+                                  "inherited env")
             env = dict(base_env)
             env.pop("ANTHROPIC_BASE_URL", None)
             env.pop("ANTHROPIC_AUTH_TOKEN", None)
