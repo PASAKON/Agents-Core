@@ -366,8 +366,20 @@ def main() -> None:
         "claude",
         [
             "claude",
+            # Prompt goes FIRST, before any flag, and --allowed-tools goes
+            # LAST with nothing after it. Both halves are load-bearing:
+            # --allowed-tools is variadic, so it consumes every following
+            # argv element until the next flag -- a trailing positional
+            # prompt gets eaten whole and the worker launches with its brief
+            # parsed as ~1200 bogus tool names and no prompt at all.
+            # Comma-joining the tool list does NOT fix this on its own
+            # (measured 2026-08-15: the swallow still happens, because the
+            # flag takes the *next element* regardless of the first one's
+            # shape). Do not "fix" it with `-p` either -- that turns claude
+            # headless (print-and-exit) and kills the interactive TUI that
+            # kickoff pings, ttyd attach and dev_message all depend on.
+            prompt,
             "-n", f"{display_for(role)} ({task_id})",
-            "-p", prompt,
             "--model", model,
             *effort_args,
             "--permission-mode", "auto",
@@ -375,7 +387,9 @@ def main() -> None:
             "--mcp-config", str(mcp_config),
             "--strict-mcp-config",
             *chrome_args,
-            "--allowed-tools", *allowed,
+            # Joined into one element (matches runners/secretary_server.py)
+            # and kept LAST in the argv -- see the note above the prompt.
+            "--allowed-tools", ",".join(allowed),
         ],
         env,
     )

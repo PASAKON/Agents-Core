@@ -11,6 +11,7 @@ import asyncio
 import json
 import os
 import subprocess
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -327,10 +328,40 @@ async def _auto_kickoff(task_id: str, message: str) -> None:
 
 
 # How long a spawned DEV gets to claim its task before we treat the tab
-# as dead. dev_init claims within ~2-3s of shell start (venv + import +
+# as dead. worker_init claims within ~2-3s of shell start (venv + import +
 # one UPDATE), so 25s of pending+unclaimed means the process never ran
 # (0-byte-log silent death) or the "reused" tab was a leftover dead shell.
 CLAIM_VERIFY_DELAY_S = 25.0
+
+# Everything the spawn path executes. A C-level session imports these ONCE,
+# at startup; a later commit changes them on disk but not in the running
+# process, and the session cannot reload itself. That gap is invisible and
+# total: on 2026-08-15 a rename (runners/dev_init -> runners/worker_init)
+# landed 3h into a session, and every delegate after it spawned a module
+# that no longer existed -- dying in under a second while the org log
+# printed "DEV spawned" each time.
+_SPAWN_PATH_FILES = (
+    Path(__file__),
+    ROOT / "runners" / "worker_init.py",
+    ROOT / "runners" / "worker_resume.py",
+    ROOT / "tools" / "tmux_session.py",
+)
+_IMPORTED_AT = time.time()
+
+
+def _warn_if_stale_code() -> None:
+    """Warn when a spawn-path file changed after this process imported it.
+
+    Cheap mtime check, no git. The session keeps working -- this is advice,
+    not a gate -- but it turns "delegate mysteriously fails forever" into
+    one line telling the operator to restart.
+    """
+    stale = [p.name for p in _SPAWN_PATH_FILES
+             if p.is_file() and p.stat().st_mtime > _IMPORTED_AT]
+    if stale:
+        warn(f"this session imported {', '.join(stale)} before it changed on "
+             f"disk — it is still running the OLD code and cannot reload "
+             f"itself. Restart the session to pick the change up.")
 
 # Strong references to fire-and-forget background coroutines.
 #
@@ -388,14 +419,40 @@ def _seconds_since(iso_ts: str | None) -> float | None:
 async def _verify_claimed(task_id: str, role_name: str,
                           owner_cto: str | None,
                           owner_role: str | None = None, *,
-                          kickoff_text: str, attempt: int = 1) -> None:
-    """Watchdog for the iTerm backend's two silent-death modes: the DEV
-    process dies before claiming, or the tab-reuse path selected a dead
-    tab. One automatic close+respawn, then a loud error for the CTO."""
+                          kickoff_text: str, attempt: int = 1,
+                          tmux_sess: str | None = None) -> None:
+    """Watchdog for the silent-death modes: the worker process dies before
+    claiming, or the tab-reuse path selected a dead tab. One automatic
+    close+respawn on the iTerm backend, then a loud error for the CTO.
+
+    On the tmux backend there is no respawn: a worker that died before
+    claiming means the spawn path itself is broken, and respawning into a
+    broken path just loops. It captures the dead pane instead and fails the
+    task with the real error text -- that text is the only thing naming the
+    cause, and tmux discards it the instant the session's command exits."""
     await asyncio.sleep(CLAIM_VERIFY_DELAY_S)
     t = db.get_task(task_id)
     if not t or t["status"] != "pending" or t.get("assigned_agent"):
         return  # claimed (or moved on) — the normal path
+
+    if tmux_sess:
+        pane = ""
+        try:
+            pane = await asyncio.to_thread(tmux.capture, tmux_sess)
+        except Exception as e:  # never fail while reporting a failure
+            warn(f"pane capture failed for {task_id}: {e}")
+        detail = pane.strip().splitlines()[-12:] if pane.strip() else []
+        why = "\n".join(detail) if detail else (
+            "no pane output — session already torn down. Reproduce with "
+            "`tmux set-option -g remain-on-exit on` to retain it."
+        )
+        error(f"task {task_id} never claimed {CLAIM_VERIFY_DELAY_S:.0f}s after "
+              f"spawn — the worker died before claiming. Pane said:\n{why}")
+        db.update_status(
+            task_id, "failed",
+            delegate_log=f"worker died before claiming (tmux {tmux_sess}):\n{why}",
+            actor="cto")
+        return
     if attempt > 1:
         error(f"task {task_id} still unclaimed after respawn — "
               f"DEV never started; investigate tab / dev_init manually")
@@ -600,6 +657,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                          assigned_agent=None, pid=None, actor="cto")
         info(f"re-delegate: reset task={task_id} to pending for re-claim")
 
+    _warn_if_stale_code()
     info(f"delegate task={task_id} role={role_name} project={project_key}")
 
     # The commit point of a genuine spawn: every refusal above has returned,
@@ -684,11 +742,19 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     if kickoff_text and spawn_result != "reused":
         _spawn_background(_auto_kickoff(task_id, kickoff_text))
 
-    if backend != "tmux":
-        # Catch both silent-death modes (dead reused tab / dev_init that
-        # never claimed) — tmux backend is covered by runners.watchdog.
-        _spawn_background(_verify_claimed(task_id, role_name, owner_cto, owner_role,
-                                            kickoff_text=kickoff_text))
+    # Catch the silent-death modes (dead reused tab / a worker that never
+    # claimed). This used to be skipped for the tmux backend, on the theory
+    # that runners.watchdog covered it. It does not cover it in time: the
+    # watchdog reports minutes-to-half-an-hour later and to nobody in this
+    # session, so a 100%-reproducible spawn failure read as success here and
+    # stayed invisible for an hour (2026-08-15, `No module named
+    # runners.dev_init` after a rename the running session had not loaded).
+    # Verifying the CLAIM is what makes any spawn breakage self-reporting --
+    # stale in-process code, a bad venv, a renamed module, an exhausted
+    # quota all look identical from the outside and all surface here.
+    _spawn_background(_verify_claimed(task_id, role_name, owner_cto, owner_role,
+                                        kickoff_text=kickoff_text,
+                                        tmux_sess=tmux_sess))
 
     if not wait:
         success(f"DEV spawned task={task_id} (fire-and-forget)")

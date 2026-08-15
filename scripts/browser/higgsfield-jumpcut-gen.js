@@ -621,6 +621,35 @@
  *    browsing and bulk-select/download only (Wave 5/8), never for content
  *    search.
  *
+ * Wave 11 findings (task-fa856c1d, 2026-08-15, S1-S8 Drive/Higgsfield
+ * reconcile — blocked before any Higgsfield page load):
+ *
+ * 1. **A fresh MCP tab can have zero authenticated Higgsfield session even
+ *    though auth-shaped cookies are present.** `document.cookie` listed
+ *    `__session`, `__client_uat`, `__client_uat_FQWayshe` (Clerk-style names)
+ *    but `/ai/video`, `/generate`, and `/generate/@ilag-studio/ai-film-festival`
+ *    all rendered the logged-out nav (`Login`/`Sign up` top-right); the last
+ *    one 404'd outright, consistent with an unauthenticated request to a
+ *    project route. Reloading once did not change the result. `document.cookie`
+ *    having the right-looking keys is NOT proof of a live session — read the
+ *    actual rendered nav (or a project route's success/404) before assuming
+ *    login is intact, especially at the start of a wave that opens a brand
+ *    new tab.
+ *
+ * 2. **`list_connected_browsers` is a fast way to confirm there's no second,
+ *    already-authenticated browser/profile to fall back to** before filing an
+ *    auth blocker — one call, ~10 tokens, returned exactly one `isLocal:true`
+ *    entry here, ruling out a "wrong browser selected" explanation in one
+ *    shot instead of guessing.
+ *
+ * 3. **Drive-side work does not need to wait on Higgsfield access** — the
+ *    `gdrive_move.py list` census (this wave: all 16 `All Scene` subfolder
+ *    ids, then all 9 relevant S1-S8 folders' file names/sizes) is pure
+ *    `Bash`, zero browser cost, and completed fully before the auth problem
+ *    was even discovered. When a task has both a Drive and a Higgsfield leg,
+ *    do the Drive leg first regardless of order in the brief — if Higgsfield
+ *    turns out blocked, the Drive numbers are still a complete, useful partial
+ *    result instead of nothing.
  * Wave 12 findings (task-072ebf30, 2026-08-15, resume of task-fa856c1d —
  * Higgsfield session now live, full S1-S8 Drive/Higgsfield reconcile,
  * collection-only, no generation):
