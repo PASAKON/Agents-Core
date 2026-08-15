@@ -611,6 +611,33 @@ def test_read_session_unknown_target_session_id_is_not_found_with_live_ids(
     assert result["status"] == "not_found"
     assert result["target_session_id"] == "dddddd"
     assert set(result["live_session_ids"]) == {"aaaaaa", "bbbbbb"}
+    # Contabo demonstrably HAS sessions of this role — the id is simply wrong,
+    # so the wrong-host hint would be misleading here.
+    assert result["hint"] is None
+
+
+def test_read_session_on_a_host_with_no_sessions_says_it_is_the_wrong_host(
+        queue_env, monkeypatch, fake_subprocess):
+    """CEO-reported (order #9, 2026-08-16): host defaults to contabo, which
+    normally has NO C-level sessions — they run on the Mac. The bare
+    `not_found` plus an empty list read as "the session is closed", and SomPong
+    told the CEO exactly that about a session that was running fine; its own
+    retry with host="mac" succeeded 24s later. Empty-because-you-asked-the-
+    wrong-box must not look like empty-because-nothing-exists."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: False)
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="")
+
+    with_id = json.loads(rms.read_session("cto", 40, target_session_id="624111c5"))
+    assert with_id["status"] == "not_found"
+    assert with_id["live_session_ids"] == []
+    assert 'host="mac"' in with_id["hint"]
+    assert "does NOT mean the session is closed" in with_id["hint"]
+
+    # Same for the no-id path, which returns before live ids are even gathered.
+    without_id = json.loads(rms.read_session("cto", 40))
+    assert without_id["status"] == "not_found"
+    assert 'host="mac"' in without_id["hint"]
 
 
 def test_read_session_malformed_target_session_id_is_rejected(queue_env):

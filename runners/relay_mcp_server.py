@@ -104,6 +104,23 @@ MAC_READ_POLL_S = float(os.environ.get("RELAY_MAC_READ_POLL_S", "2"))
 # omit or spoof it (see relay_to_session).
 RELAY_PREFIX = "[CEO via SomPong] "
 
+# `host` defaults to "contabo", but in practice every C-level session the CEO
+# works with runs on the Mac -- Contabo usually has none at all. So the common
+# mistake is asking the right question of the wrong machine, and the honest
+# answer to that is not "not found".
+#
+# CEO-reported 2026-08-16 (order #9): SomPong called read_session with the
+# default host, got `not_found` with `live_session_ids: []`, and told the CEO
+# this session had probably closed. It had not -- it was running on the Mac the
+# whole time, and SomPong's own retry with host="mac" succeeded 24 seconds
+# later. An empty list from the host that never has sessions reads as "there
+# are none anywhere", which is a confident wrong answer, not a neutral one.
+_WRONG_HOST_HINT = (
+    "no session of this role is live on contabo -- C-level sessions normally "
+    "run on the Mac. Retry with host=\"mac\", or call list_terminals to see "
+    "which host each id is on. This result does NOT mean the session is closed."
+)
+
 # task-18241f1d -- the secretary's own mailbox identity. Two attributions,
 # both non-optional, and they are NOT interchangeable:
 #   * the body prefix above -- for the human reading the pane;
@@ -1215,6 +1232,7 @@ def read_session(target_role: str, lines: int, host: str = "contabo",
                 "status": "not_found", "target_role": target_role, "host": "contabo",
                 "target_session_id": target_session_id,
                 "live_session_ids": live_ids,
+                "hint": _WRONG_HOST_HINT if not live_ids else None,
             }, ensure_ascii=False)
     else:
         tmux_name = _active_contabo_tmux_session(target_role)
@@ -1222,6 +1240,7 @@ def read_session(target_role: str, lines: int, host: str = "contabo",
             _audit("read_session", target_role, "not_found", "host=contabo")
             return json.dumps({
                 "status": "not_found", "target_role": target_role, "host": "contabo",
+                "hint": _WRONG_HOST_HINT,
             }, ensure_ascii=False)
 
     raw = _capture_pane(tmux_name)
