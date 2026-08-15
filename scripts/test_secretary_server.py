@@ -76,6 +76,9 @@ RELAY_TOOLS = (
     "mcp__relay__read_session",
     "mcp__relay__list_terminals", "mcp__relay__session_history",
     "mcp__relay__open_terminal",
+    # task-df6de4d4 D4: read side of the CEO-order obligation ledger. Read-only
+    # — it lists rows, and takes no path, command, or role from the caller.
+    "mcp__relay__list_ceo_orders",
 )
 
 

@@ -149,6 +149,12 @@ def send_to_cxo(role: str, message: str, spawn: bool = False) -> str:
     return reg.dispatch_sync("send_to_cxo", role=role, message=message, spawn=spawn)
 
 
+@mcp.tool(description=reg.BY_NAME["report_to_ceo"].description)
+def report_to_ceo(order_id: int, status: str, detail: str) -> str:
+    return reg.dispatch_sync("report_to_ceo", order_id=order_id,
+                             status=status, detail=detail)
+
+
 if __name__ == "__main__":
     db.init()
     mcp.run()

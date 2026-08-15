@@ -191,6 +191,11 @@ ALLOWED_TOOLS: tuple[str, ...] = (
     "mcp__relay__list_terminals",
     "mcp__relay__session_history",
     "mcp__relay__open_terminal",
+    # task-df6de4d4 D4 -- the obligation ledger's read side. Every order
+    # relayed by relay_to_session opens a row; the receiving C-level closes
+    # it with report_to_ceo. This is how the secretary answers "สั่งไปแล้ว
+    # เงียบ มีอะไรค้าง" without guessing. Pure read, no confirm needed.
+    "mcp__relay__list_ceo_orders",
 )
 
 # Deliverable 5 + SPEC-CHANGE.md Change 3 — the secretary's own identity and

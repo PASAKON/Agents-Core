@@ -71,7 +71,17 @@ def _cto_chat_org_names() -> set[str]:
     }
 
 
-def test_parity() -> bool:
+# The `_*_ok` helpers return bools for main()'s hand-run report. The `test_*`
+# wrappers below ASSERT, because pytest treats a test function that *returns* a
+# value as passing no matter what that value is — it only warns
+# (PytestReturnNotNoneWarning), and the default run silences warnings. This
+# guard therefore reported green under pytest for every drift it exists to
+# catch. Proven 2026-08-15: `report_to_ceo` was in REGISTRY with no FastMCP
+# stub in cto_mcp_server.py; standalone printed "1 FAILURE(S)" and exited 1,
+# while the same check under pytest passed.
+
+
+def _parity_ok() -> bool:
     expected = _expected()
     mcp_names = _cto_mcp_server_names()
     cto_names = _cto_py_names()
@@ -86,18 +96,39 @@ def test_parity() -> bool:
     return ok
 
 
-def test_registry_names_unique() -> bool:
+def _names_unique() -> bool:
     return len(reg.REGISTRY) == len(reg.BY_NAME)
+
+
+def test_parity() -> None:
+    expected = _expected()
+    mcp_names = _cto_mcp_server_names()
+    cto_names = _cto_py_names()
+    chat_names = _cto_chat_org_names()
+    assert expected == mcp_names, (
+        "cto_mcp_server.py (FastMCP) is missing a stub for: "
+        f"{sorted(expected ^ mcp_names)}"
+    )
+    assert expected == cto_names, (
+        f"cto.py ALL_TOOLS drift: {sorted(expected ^ cto_names)}"
+    )
+    assert expected == chat_names, (
+        f"cto_chat.py allowed_tools drift: {sorted(expected ^ chat_names)}"
+    )
+
+
+def test_registry_names_unique() -> None:
+    assert _names_unique(), "duplicate tool name in REGISTRY"
 
 
 def main() -> int:
     print("== tool-name parity across all 3 production surfaces vs REGISTRY ==")
     _mark(
-        test_registry_names_unique(),
+        _names_unique(),
         f"registry itself has {len(reg.REGISTRY)} entries, no duplicate names",
     )
     _mark(
-        test_parity(),
+        _parity_ok(),
         "REGISTRY == cto_mcp_server.py (FastMCP introspection) == "
         "cto.py (ALL_TOOLS) == cto_chat.py (allowed_tools org names)",
     )
