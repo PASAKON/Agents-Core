@@ -606,7 +606,8 @@ def test_read_session_unknown_target_session_id_is_not_found_with_live_ids(
     monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name in live)
     fake_subprocess["tmux"] = FakeCompleted(0, stdout="cto-aaaaaa\ncto-bbbbbb\n")
 
-    result = json.loads(rms.read_session("cto", 40, target_session_id="dddddd"))
+    result = json.loads(
+        rms.read_session("cto", 40, host="contabo", target_session_id="dddddd"))
 
     assert result["status"] == "not_found"
     assert result["target_session_id"] == "dddddd"
@@ -614,6 +615,78 @@ def test_read_session_unknown_target_session_id_is_not_found_with_live_ids(
     # Contabo demonstrably HAS sessions of this role — the id is simply wrong,
     # so the wrong-host hint would be misleading here.
     assert result["hint"] is None
+
+
+def test_read_session_auto_uses_contabo_when_it_answers_and_never_touches_the_queue(
+        queue_env, monkeypatch, fake_subprocess):
+    """auto must not pay the Mac's queued round-trip when the cheap local
+    check already answered (CEO order #10)."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    (rms.LOCKS_DIR / "cto-active").write_text("aaaaaa")
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: name == "cto-aaaaaa")
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="hello from contabo\n")
+
+    result = json.loads(rms.read_session("cto", 40))
+
+    assert result["status"] == "ok"
+    assert result["host"] == "contabo"
+    assert result["searched_hosts"] == ["contabo"]
+    assert rms._queue_list_pending() == [], "the Mac leg must not have been queued"
+
+
+def test_read_session_auto_falls_through_to_mac_when_contabo_is_empty(
+        queue_env, monkeypatch, fake_subprocess):
+    """THE order-#10 fix: Contabo normally has nothing, so auto has to keep
+    going rather than reporting not_found from the one host that never has
+    sessions."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: False)
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="")
+    monkeypatch.setattr(rms, "_mac_queue_wait", lambda kind, role, payload: {
+        "queue_id": 7, "status": "ok", "result": "hello from the mac"})
+
+    result = json.loads(rms.read_session("cto", 40))
+
+    assert result["status"] == "ok"
+    assert result["host"] == "mac"
+    assert result["searched_hosts"] == ["contabo", "mac"]
+
+
+def test_read_session_auto_reports_both_legs_when_neither_answers(
+        queue_env, monkeypatch, fake_subprocess):
+    """A silent Mac agent and an empty Contabo are different facts. Collapsing
+    them into one status is how a temporarily unreachable Mac gets reported to
+    the CEO as a closed session — the exact misreading order #9 came from."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: False)
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="")
+    monkeypatch.setattr(rms, "_mac_queue_wait", lambda kind, role, payload: {
+        "queue_id": 8, "status": "pending", "reason": "mac agent did not answer"})
+
+    result = json.loads(rms.read_session("cto", 40))
+
+    assert result["searched_hosts"] == ["contabo", "mac"]
+    assert result["contabo_status"] == "not_found"
+    assert result["status"] == "pending"
+    assert "not the same as the session being closed" in result["hint"]
+
+
+def test_read_session_explicit_host_is_never_widened_to_auto(
+        queue_env, monkeypatch, fake_subprocess):
+    """A caller who names a host has decided. auto is a better default, not a
+    licence to search somewhere they did not ask about."""
+    (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: False)
+    fake_subprocess["tmux"] = FakeCompleted(0, stdout="")
+    called = []
+    monkeypatch.setattr(rms, "_mac_queue_wait",
+                        lambda *a: called.append(a) or {"queue_id": 9, "status": "pending"})
+
+    result = json.loads(rms.read_session("cto", 40, host="contabo"))
+
+    assert result["status"] == "not_found"
+    assert "searched_hosts" not in result
+    assert called == [], "explicit host=contabo must never reach the Mac leg"
 
 
 def test_read_session_on_a_host_with_no_sessions_says_it_is_the_wrong_host(
@@ -628,14 +701,15 @@ def test_read_session_on_a_host_with_no_sessions_says_it_is_the_wrong_host(
     monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: False)
     fake_subprocess["tmux"] = FakeCompleted(0, stdout="")
 
-    with_id = json.loads(rms.read_session("cto", 40, target_session_id="624111c5"))
+    with_id = json.loads(
+        rms.read_session("cto", 40, host="contabo", target_session_id="624111c5"))
     assert with_id["status"] == "not_found"
     assert with_id["live_session_ids"] == []
     assert 'host="mac"' in with_id["hint"]
     assert "does NOT mean the session is closed" in with_id["hint"]
 
     # Same for the no-id path, which returns before live ids are even gathered.
-    without_id = json.loads(rms.read_session("cto", 40))
+    without_id = json.loads(rms.read_session("cto", 40, host="contabo"))
     assert without_id["status"] == "not_found"
     assert 'host="mac"' in without_id["hint"]
 
@@ -710,8 +784,10 @@ def test_read_session_rejects_unknown_role(queue_env):
 
 
 def test_read_session_no_live_session_is_not_found_not_an_exception(queue_env):
-    """No <role>-active pointer at all -- must not raise."""
-    result = json.loads(rms.read_session("cfo", 40))
+    """No <role>-active pointer at all -- must not raise. Scoped to contabo:
+    the auto search would go on to poll the Mac, which is a different case
+    (covered by the auto tests above)."""
+    result = json.loads(rms.read_session("cfo", 40, host="contabo"))
     assert result["status"] == "not_found"
     assert result["target_role"] == "cfo"
 
@@ -720,7 +796,9 @@ def test_read_session_stale_pointer_is_not_found(queue_env, monkeypatch):
     (rms.LOCKS_DIR).mkdir(parents=True, exist_ok=True)
     (rms.LOCKS_DIR / "cgo-active").write_text("dead99")
     monkeypatch.setattr(rms.tmux_session, "has_session", lambda name: False)
-    result = json.loads(rms.read_session("cgo", 40))
+    # host named explicitly: this is about Contabo's stale-pointer resolution,
+    # not about the auto search, which would go on to poll the Mac.
+    result = json.loads(rms.read_session("cgo", 40, host="contabo"))
     assert result["status"] == "not_found"
 
 

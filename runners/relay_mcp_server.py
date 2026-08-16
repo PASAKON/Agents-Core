@@ -121,6 +121,20 @@ _WRONG_HOST_HINT = (
     "which host each id is on. This result does NOT mean the session is closed."
 )
 
+# Returned only when BOTH hosts were searched and neither answered (host="auto").
+# Still not the same claim as "the session is closed": the Mac leg can come back
+# `pending` simply because the Mac agent was asleep or the box was offline.
+_BOTH_HOSTS_HINT = (
+    "searched contabo AND mac; neither returned a live pane. Check "
+    "contabo_status and status for which leg failed how -- a pending Mac leg "
+    "means the Mac agent did not answer in time (asleep/offline), which is not "
+    "the same as the session being closed. list_terminals shows what is live."
+)
+
+# read_session accepts "auto" on top of the real hosts; the other tools do not
+# (spawn and relay must land on a machine the caller chose deliberately).
+READ_HOSTS = ("auto",) + HOSTS
+
 # task-18241f1d -- the secretary's own mailbox identity. Two attributions,
 # both non-optional, and they are NOT interchangeable:
 #   * the body prefix above -- for the human reading the pane;
@@ -1124,9 +1138,21 @@ def _mac_queue_wait(kind: str, target_role: str, payload: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 @mcp.tool()
-def read_session(target_role: str, lines: int, host: str = "contabo",
+def read_session(target_role: str, lines: int, host: str = "auto",
                   target_session_id: str | None = None) -> str:
     """Read back the tail of a C-level session's live tmux pane.
+
+    `host` defaults to "auto": look on Contabo first (a local, instant tmux
+    check) and fall through to the Mac (queued, bounded wait) when Contabo has
+    nothing. That order is deliberate — the cheap check runs first, and the
+    slow one is only paid for when it is the one that can answer.
+
+    CEO order #10, 2026-08-16: the old default was "contabo", which in practice
+    is the host with no C-level sessions on it — they run on the Mac. Every
+    default-host call therefore searched the one machine guaranteed to come
+    back empty, and its honest `not_found` was read as "the session closed".
+    Naming a host explicitly still means exactly that host and nothing else:
+    "auto" is a better default, not an override of a caller who has decided.
 
     `target_role` must be one of cto/cmo/cgo/cfo -- same validation every
     other tool here uses. `lines` is how much of the tail to return,
@@ -1171,16 +1197,42 @@ def read_session(target_role: str, lines: int, host: str = "contabo",
     rejection = _reject_unknown_role("read_session", target_role, host=host)
     if rejection:
         return rejection
-    if host not in HOSTS:
+    if host not in READ_HOSTS:
         _audit("read_session", target_role, "rejected", f"unknown host {host!r}")
         return json.dumps({
             "status": "rejected",
-            "reason": f"unknown host {host!r}. Known: {', '.join(HOSTS)}",
+            "reason": f"unknown host {host!r}. Known: {', '.join(READ_HOSTS)}",
         }, ensure_ascii=False)
     if target_session_id is not None:
         rejection = _reject_bad_session_id("read_session", target_role, target_session_id)
         if rejection:
             return rejection
+
+    if host == "auto":
+        # Contabo first: a local tmux check costs milliseconds, while the Mac
+        # leg goes through the queue and can wait tens of seconds. Recursion is
+        # bounded — both inner calls name a concrete host, so neither can route
+        # back here.
+        contabo = json.loads(read_session(target_role, lines, "contabo",
+                                          target_session_id))
+        if contabo.get("status") == "ok":
+            contabo["searched_hosts"] = ["contabo"]
+            return json.dumps(contabo, ensure_ascii=False)
+
+        mac = json.loads(read_session(target_role, lines, "mac", target_session_id))
+        mac["searched_hosts"] = ["contabo", "mac"]
+        if mac.get("status") == "ok":
+            return json.dumps(mac, ensure_ascii=False)
+
+        # Neither host answered. Say that plainly, and carry BOTH outcomes:
+        # "the Mac agent did not answer in time" and "Contabo has no such
+        # session" are different facts, and collapsing them into one status is
+        # how a temporary silence gets reported as a closed session.
+        mac["contabo_status"] = contabo.get("status")
+        mac["hint"] = _BOTH_HOSTS_HINT
+        _audit("read_session", target_role, "not_found_both",
+               f"contabo={contabo.get('status')} mac={mac.get('status')}")
+        return json.dumps(mac, ensure_ascii=False)
 
     capped_lines = max(1, min(lines, READ_SESSION_MAX_LINES))
 
