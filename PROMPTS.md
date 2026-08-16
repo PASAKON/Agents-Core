@@ -101,6 +101,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 12-FB1 (Seedance 2.5) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` |
 | 12-FB2 (Seedance 2.5) | `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` | `@Mother` `@Father` | `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
 | 12-FB (Seedance 2.5, alternate to FB1+FB2) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` `@Motel-Walkway` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
+| 16 (Seedance 2.5) | `@Motel-Stairs` | `@Mother-Soul` `@Daughter` | — (body bag, gurney and vehicles stay plain words; `@Mother` deliberately untagged — see the block's duplicate-human note) |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
 
@@ -1337,4 +1338,56 @@ Grounded real-camera look, natural handheld weight, no whip pans, no lens flare 
 
 AUDIO-SFX
 Distant traffic, engine idle, his voice low and demanding, her clipped refusal, bus air brakes and door hydraulics. The memory cuts carry no dialogue, only muffled, warm, distant ambient sound — wind, faint laughter, no clear words, like a memory heard through glass, one impression's sound bleeding softly into the next. Cut back to the bus: near-silence, the faint chain-tick of @Prop-BusCord. Footsteps running, breathing hard, a car door. The clerk's voice, calm and routine, not fully intelligible, a key card printer. The key in the lock, the door forced open, voices rising and overlapping. On cut 16: fabric and strap strain, quick scuffling breath, no words. On cut 17: a single sharp sound of contact, then the lamp and glass hitting the floor in the same motion — no music, no sting, no riser over it, the sound itself is the only impact allowed. Then dead silence. The soft rustle of the bag opening, paper notes counted once. His slower breathing, footsteps, the DND tag swinging once, a car door, an engine driving away. No music, no score, anywhere in this piece.
+```
+
+---
+
+# SCENE 16 — THE ENDING (Coda), added by the CEO 2026-08-16
+
+**This supersedes the Sheet's earlier Scene 16 sketch on one point.** The Sheet
+had her appear in ordinary clothes, so that the uniform mystery paid off by her
+finally putting the role down. The CEO's call for the shot as filmed: she stays
+in the **housekeeper uniform**, and the change is that she is now visibly
+**not solid** — translucent, readable through, breaking into fine clear motes.
+The reveal moves from "what she wears" to "what she is". Told, not asked: if
+the ordinary-clothes version is wanted back, it is a rewrite of this block, not
+a variant to shoot alongside it.
+
+**Model: Seedance 2.5** — the ghost-transparency work is the locked reason 2.5
+exists in this film (see the Sheet's locked decisions), and 2.5's element cap
+is 50, so nothing here needs to be economised. Long take, **slow motion**, 20s.
+
+**`@Motel-Stairs` is used here for the first time in the film.** It was on the
+"plates that exist but no written scene uses yet" list until now.
+
+**The duplicate-human rule is the hardest constraint in this block.** A wide
+night shot with six people, rain and vehicles is exactly where this model
+clones a figure into the background. The body is therefore fully covered and
+zipped on the gurney and `@Mother` is deliberately NOT tagged — tagging her
+would put her face in frame twice, once as the spirit and once as the corpse,
+which is both the duplicate-human failure and a gore/content-filter risk in
+one. Covered body solves both at once.
+
+## Scene 16 — LONG TAKE (20s, Seedance 2.5, SLOW MOTION) — the coda
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts, entirely in SLOW MOTION. Wide establishing shot of @Motel-Stairs at night in light rain — the full two-storey exterior stair and landing in frame, ground level to upper walkway, so every figure is visible at once. The camera is locked off or drifts very slightly; it never pushes in, never pans to follow anyone.
+
+Upper level, second floor, standing just outside her own door: @Mother-Soul, still in the housekeeper uniform she wore all film. She is TRANSLUCENT — the wet railing, the door and the wall behind her are clearly readable straight through her body, and her edges continually break away into fine clear motes that drift and vanish in the rain. A faint cool luminance sits under the fabric, no brighter than the walkway lights. Tears run down her face. She does not move from the spot. She only watches what is happening below.
+
+Ground level, at the foot of the stairs: two police officers in rain gear wheel a gurney toward the open rear doors of a coroner's van. On the gurney is a fully zipped opaque body bag, strapped down, nothing of the person visible. They move slowly and carefully, the way people do at the end of a long night, not urgently.
+
+Also at ground level, a few steps clear of the gurney: @Daughter, soaked, standing still and watching the gurney go. Beside her, one female detective in a plain rain jacket stands close, one hand on @Daughter's shoulder, speaking quietly to her. @Daughter does not look up at any point.
+
+Around them: one marked police car and one coroner's van, both parked with their lights turning slowly, throwing intermittent colour across the wet concrete. Two of the figures on the ground hold umbrellas. Rain falls lightly and steadily through every light source in frame.
+
+Across the whole 20 seconds the only changes are: the gurney is loaded into the van, @Mother-Soul keeps breaking gently into motes, and nobody ever looks up at her. Hold to the end. CUT TO BLACK on the last frame — a hard cut, not a fade.
+
+NEGATIVE — strictly avoid: EXACTLY six people in frame and no more — two police officers, one female detective, @Daughter, @Mother-Soul, and the covered body. Do NOT duplicate, clone, mirror or repeat any person anywhere in the frame or in the background; no extra officers, no bystanders, no crowd, no reflections that read as another figure, no second version of any character. @Mother's living face must NEVER appear — the body stays fully zipped inside an opaque bag at all times, no face, no hand, no hair, no skin, no wound, no blood, no gore of any kind. Nobody ever looks up at @Mother-Soul, points at her, reacts to her, or acknowledges her in any way — @Daughter especially never raises her eyes to the second floor. @Mother-Soul never descends the stairs, never moves toward anyone, never reaches out. Her glow stays FAINT and cool: no halo, no beam, no god rays, no lens flare, no sparkle, no glitter, no fire, no embers, no CG energy effect, no colour shift to blue or green. Her face stays fully recognisable as the woman from earlier in the film even while translucent — she is see-through, not smoke, not a silhouette, not faceless. No readable hotel name, no printed logos, no brand text, no readable licence plates, no legible text on any vehicle or uniform. No lightning, no storm, no heavy downpour — the rain is light and steady. No music. No dialogue that is intelligible. No fade out, no dissolve, no slow fade — the film ends on a hard cut to black.
+
+Grounded real-camera look, locked or almost-still wide framing, slow motion throughout with real weight to the rain and the movement. Night. Practical light only: motel walkway lights, the vehicles' slowly turning emergency lights, wet reflective concrete. Muted and desaturated overall, except the turning vehicle lights and the pale cool motes coming off @Mother-Soul.
+
+AUDIO-SFX
+Light rain on concrete, metal railing and vehicle roofs, constant and close. The gurney's wheels rolling and its legs folding as it goes into the van. Van doors. Low radio chatter from the police car, clipped and unintelligible. The detective's voice, low and steady, words never clear enough to make out. No sound at all from @Mother-Soul — no breath, no crying aloud, no footsteps, no cloth, and specifically NO sound for the motes coming off her: no whoosh, no chime, no shimmer. Her silence against the rain is the effect. No music, no score, no sting, no riser anywhere. The audio cuts dead with the picture on the final frame.
 ```
