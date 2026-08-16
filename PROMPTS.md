@@ -101,7 +101,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 12-FB1 (Seedance 2.5) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` |
 | 12-FB2 (Seedance 2.5) | `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` | `@Mother` `@Father` | `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
 | 12-FB (Seedance 2.5, alternate to FB1+FB2) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` `@Motel-Walkway` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
-| 16 (Seedance 2.5) | `@Motel-Stairs` | `@Mother-Soul` `@Daughter` | — (body bag, gurney and vehicles stay plain words; `@Mother` deliberately untagged — see the block's duplicate-human note) |
+| 16 (Seedance 2.5) | `@Motel-Stairs` | `@Mother-Soul` `@Daughter` | — (vehicles, tape, markers, body bag all stay plain words; `@Mother` and every `@Room-*` deliberately untagged — exterior only, interior never seen) |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
 
@@ -1341,53 +1341,61 @@ Distant traffic, engine idle, his voice low and demanding, her clipped refusal, 
 ```
 
 ---
+---
 
 # SCENE 16 — THE ENDING (Coda), added by the CEO 2026-08-16
 
+**Written from a 12-question interview with the CEO, 2026-08-16.** Every choice
+below is his answer, not a guess. Recorded here because the next person to touch
+this block needs to know which parts are load-bearing.
+
+**Fully exterior. No room interior anywhere.** Door 214 stays shut for the whole
+shot — the CEO's explicit instruction after the earlier draft drifted back
+toward the bedroom.
+
 **This supersedes the Sheet's earlier Scene 16 sketch on one point.** The Sheet
-had her appear in ordinary clothes, so that the uniform mystery paid off by her
-finally putting the role down. The CEO's call for the shot as filmed: she stays
-in the **housekeeper uniform**, and the change is that she is now visibly
-**not solid** — translucent, readable through, breaking into fine clear motes.
-The reveal moves from "what she wears" to "what she is". Told, not asked: if
-the ordinary-clothes version is wanted back, it is a rewrite of this block, not
-a variant to shoot alongside it.
+had her in ordinary clothes, so the uniform mystery paid off by her putting the
+role down. The CEO's call: she stays in the **housekeeper uniform**, and what
+changed is that she is now visibly **not solid**. The reveal moves from what she
+wears to what she is. If the ordinary-clothes version is ever wanted back, it is
+a rewrite of this block, not a variant to shoot alongside it.
 
-**Model: Seedance 2.5** — the ghost-transparency work is the locked reason 2.5
-exists in this film (see the Sheet's locked decisions), and 2.5's element cap
-is 50, so nothing here needs to be economised. Long take, **slow motion**, 20s.
+**The body is already gone before the shot begins.** Earlier drafts had officers
+carrying her out. The CEO cut that: the van doors are closing as we open. It is
+safer for the content filter, it removes any chance of her face appearing twice,
+and it is the more painful version — the daughter arrived too late to see her.
 
-**`@Motel-Stairs` is used here for the first time in the film.** It was on the
-"plates that exist but no written scene uses yet" list until now.
+**Model: Seedance 2.5 / 720p / 20s.** The Sheet's locked 30s/1080p spec was put
+to the CEO directly and he chose 20s at 720p for this shot, matching Scene 10-D.
 
-**The duplicate-human rule is the hardest constraint in this block.** A wide
-night shot with six people, rain and vehicles is exactly where this model
-clones a figure into the background. The body is therefore fully covered and
-zipped on the gurney and `@Mother` is deliberately NOT tagged — tagging her
-would put her face in frame twice, once as the spirit and once as the corpse,
-which is both the duplicate-human failure and a gore/content-filter risk in
-one. Covered body solves both at once.
+**Duplicate humans are the single biggest risk here.** Thirteen figures, night,
+rain, vehicles — the exact conditions where this model invents extra people in
+the background. Mitigation is baked into the block: every role has its own
+uniform, its own task and its own position, the totals are stated per role, and
+the NEGATIVE closes the door on anyone else appearing at all.
 
 ## Scene 16 — LONG TAKE (20s, Seedance 2.5, SLOW MOTION) — the coda
 
 ```
 VISUAL
-Single continuous take, 20 seconds, no cuts, entirely in SLOW MOTION. Wide establishing shot of @Motel-Stairs at night in light rain — the full two-storey exterior stair and landing in frame, ground level to upper walkway, so every figure is visible at once. The camera is locked off or drifts very slightly; it never pushes in, never pans to follow anyone.
+Single continuous take, 20 seconds, no cuts, entirely in SLOW MOTION. Wide shot of @Motel-Stairs at night in light rain — the full two-storey exterior stair, landing and upper walkway in frame together with the parking area below, so every figure is visible at once. The camera creeps forward almost imperceptibly across the whole shot; it never pans, never tilts, never cuts.
 
-Upper level, second floor, standing just outside her own door: @Mother-Soul, still in the housekeeper uniform she wore all film. She is TRANSLUCENT — the wet railing, the door and the wall behind her are clearly readable straight through her body, and her edges continually break away into fine clear motes that drift and vanish in the rain. A faint cool luminance sits under the fabric, no brighter than the walkway lights. Tears run down her face. She does not move from the spot. She only watches what is happening below.
+Deep night. The only light is practical: the motel's own weak walkway bulbs, and the emergency lights of the parked vehicles turning steadily and sweeping bands of colour across the wet wall, the stair rail and the standing water. Between sweeps the frame falls back to near-black.
 
-Ground level, at the foot of the stairs: two police officers in rain gear wheel a gurney toward the open rear doors of a coroner's van. On the gurney is a fully zipped opaque body bag, strapped down, nothing of the person visible. They move slowly and carefully, the way people do at the end of a long night, not urgently.
+UPPER LEVEL — @Mother-Soul stands on the second-floor walkway directly outside her own closed door, in the housekeeper uniform she wore all film. She is TRANSLUCENT: the door, the wall and the railing behind her are clearly readable straight through her body, and her edges break continually into fine clear motes that drift off and vanish. A faint cool luminance sits under the fabric, never brighter than the walkway bulbs. THE RAIN FALLS STRAIGHT THROUGH HER — drops pass through her head, shoulders and arms without landing on her, without wetting the uniform, and strike the concrete behind her where her shadow should be. She is completely dry in the middle of the rain. Tears run down her face without stopping for the entire shot. She never moves from that spot, and she watches ONE thing only: her daughter, below.
 
-Also at ground level, a few steps clear of the gurney: @Daughter, soaked, standing still and watching the gurney go. Beside her, one female detective in a plain rain jacket stands close, one hand on @Daughter's shoulder, speaking quietly to her. @Daughter does not look up at any point.
+GROUND LEVEL — @Daughter, soaked, buckles at the knees and goes down, crying. One female detective in a plain dark rain jacket catches her under the arms and holds her up, speaking close to her ear. @Daughter never looks up.
 
-Around them: one marked police car and one coroner's van, both parked with their lights turning slowly, throwing intermittent colour across the wet concrete. Two of the figures on the ground hold umbrellas. Rain falls lightly and steadily through every light source in frame.
+The coroner's van stands with its rear doors open at the start of the shot. One coroner technician in a dark work jacket pushes both doors shut, walks around and gets in. The van pulls away slowly and leaves frame entirely before the shot ends. Nothing of what it carries is ever visible.
 
-Across the whole 20 seconds the only changes are: the gurney is loaded into the van, @Mother-Soul keeps breaking gently into motes, and nobody ever looks up at her. Hold to the end. CUT TO BLACK on the last frame — a hard cut, not a fade.
+The rest of the scene, each person doing one distinct job, each in different clothing, each in a different part of the frame: one uniformed officer stands at the yellow tape line holding a clipboard and logging who crosses; a second uniformed officer stands beside the marked patrol car with a radio at his mouth; a third uniformed officer stands at the foot of the stairs facing out; one male detective in a long dark overcoat stands near the empty parking bay the van has left; one forensic technician in a white coverall works on the upper walkway with a stills camera, its flash firing at intervals; a second forensic technician in a white coverall crouches on the ground floor beside small numbered evidence markers. Behind the tape, at the far edge of frame, three motel guests in ordinary night clothes stand under umbrellas and watch.
 
-NEGATIVE — strictly avoid: EXACTLY six people in frame and no more — two police officers, one female detective, @Daughter, @Mother-Soul, and the covered body. Do NOT duplicate, clone, mirror or repeat any person anywhere in the frame or in the background; no extra officers, no bystanders, no crowd, no reflections that read as another figure, no second version of any character. @Mother's living face must NEVER appear — the body stays fully zipped inside an opaque bag at all times, no face, no hand, no hair, no skin, no wound, no blood, no gore of any kind. Nobody ever looks up at @Mother-Soul, points at her, reacts to her, or acknowledges her in any way — @Daughter especially never raises her eyes to the second floor. @Mother-Soul never descends the stairs, never moves toward anyone, never reaches out. Her glow stays FAINT and cool: no halo, no beam, no god rays, no lens flare, no sparkle, no glitter, no fire, no embers, no CG energy effect, no colour shift to blue or green. Her face stays fully recognisable as the woman from earlier in the film even while translucent — she is see-through, not smoke, not a silhouette, not faceless. No readable hotel name, no printed logos, no brand text, no readable licence plates, no legible text on any vehicle or uniform. No lightning, no storm, no heavy downpour — the rain is light and steady. No music. No dialogue that is intelligible. No fade out, no dissolve, no slow fade — the film ends on a hard cut to black.
+Through the last stretch of the shot everyone else keeps working, the van is gone, and the frame settles on @Mother-Soul alone on the upper walkway — still translucent, still coming apart into motes, still crying, still watching her daughter. HOLD there. CUT TO BLACK on the final frame — a hard cut, not a fade.
 
-Grounded real-camera look, locked or almost-still wide framing, slow motion throughout with real weight to the rain and the movement. Night. Practical light only: motel walkway lights, the vehicles' slowly turning emergency lights, wet reflective concrete. Muted and desaturated overall, except the turning vehicle lights and the pale cool motes coming off @Mother-Soul.
+NEGATIVE — strictly avoid: the interior behind her door is NEVER seen — the door stays fully closed for the entire shot, no gap, no light from inside, no glimpse of a bed or any furniture. This is an exterior shot only. EXACT headcount, and no one else anywhere in frame or background: three uniformed officers, two forensic technicians in white coveralls, one female detective, one male detective, one coroner technician, three motel guests behind the tape, @Daughter, and @Mother-Soul. Do NOT duplicate, clone, mirror or repeat any person; no extra officers, no second detective in the same clothing, no crowd, no half-figures at the edges, no reflection or shadow that reads as another person. No body, no gurney, no stretcher, no body bag, no covered shape is EVER visible — the van is already loaded and closing when the shot begins. No blood, no wound, no injury, no gore of any kind anywhere. Nobody looks up at @Mother-Soul, points at her, reacts to her or acknowledges her — @Daughter especially never raises her eyes to the second floor. @Mother-Soul never moves from her spot, never descends, never reaches out, and never looks anywhere except at her daughter. Rain must never land on her, never wet her uniform, never bead on her skin, never run down her face as water — only her tears do that. Her glow stays FAINT and cool: no halo, no beam, no god rays, no lens flare, no sparkle, no glitter, no fire, no embers, no CG energy effect, no colour shift to blue or green. Her face stays fully recognisable as the woman from earlier in the film even while translucent — see-through, not smoke, not a silhouette, not faceless, never a skull. No ambulance and no paramedics — she has been dead more than a day and no one is being saved here. No readable hotel name, no printed logos, no brand text, no legible licence plates, no readable text on any vehicle, uniform or sign. No lightning, no thunder, no storm, no heavy downpour — the rain stays light and steady. No daylight, no dawn, no moonlight — the only light is the walkway bulbs and the vehicles' emergency lights. No music of any kind. No intelligible dialogue. No fade, no dissolve, no slow fade to black — the film ends on a hard cut.
+
+Grounded real-camera look, wide, locked framing with an almost imperceptible forward creep, slow motion throughout with real weight in the falling rain. Deep night, heavily underexposed between light sweeps. Muted and desaturated, near-monochrome in the dark, broken only by the turning emergency lights and the pale cool motes coming off @Mother-Soul.
 
 AUDIO-SFX
-Light rain on concrete, metal railing and vehicle roofs, constant and close. The gurney's wheels rolling and its legs folding as it goes into the van. Van doors. Low radio chatter from the police car, clipped and unintelligible. The detective's voice, low and steady, words never clear enough to make out. No sound at all from @Mother-Soul — no breath, no crying aloud, no footsteps, no cloth, and specifically NO sound for the motes coming off her: no whoosh, no chime, no shimmer. Her silence against the rain is the effect. No music, no score, no sting, no riser anywhere. The audio cuts dead with the picture on the final frame.
+Light rain on concrete, metal railing and vehicle roofs, close and constant. Van doors closing, an engine starting, tyres moving off slowly over wet ground. Low unintelligible radio chatter from the patrol car. The camera flash recharging in short whines up on the walkway. The female detective's voice low and steady beside @Daughter, words never clear enough to make out. @Daughter's crying, muffled against the detective's shoulder. NOTHING at all from @Mother-Soul — no breath, no sob, no footsteps, no cloth, and specifically NO sound for the motes coming off her: no whoosh, no chime, no shimmer. Then, for the FINAL THREE SECONDS, every sound stops at once and completely — no rain, no engine, no voices, no room tone, nothing — and the shot plays out in absolute silence until the picture cuts to black. No music, no score, no sting, no riser anywhere in this piece.
 ```
