@@ -841,6 +841,107 @@
  *    comes out 720p-tier, routing to `S10` (not `S10-1080P`). ffprobe
  *    duration read 20.04s video / 20.06s audio, both audio+video streams
  *    present (Sound On setting held).
+ *
+ * Wave 14 findings (task-8b4212e8, 2026-08-16, "All assets" grid + Video type
+ * filter — a THIRD DOM tree, distinct from `/ai/video` History and from a
+ * Cinema Studio project-folder's card grid; collection/hash-audit only, no
+ * generation):
+ *
+ * 1. **The project sidebar's "All assets" entry (`.../generate/@<org>/<project>`
+ *    root, click the "All assets NNN" button under Folders) opens a grid whose
+ *    scroll container is `hide-scrollbar min-h-0 min-w-0 flex-1
+ *    overflow-x-hidden overflow-y-auto` — yet a third class fingerprint,
+ *    distinct from both Wave 9's `flex-1 overflow-y-auto hide-scrollbar`
+ *    project-folder grid and Wave 4's History container. Don't reuse either
+ *    prior locator; match on this exact class string (or re-derive via the
+ *    `scrollHeight>clientHeight` fallback both priors already use).
+ *
+ * 2. **This grid was NOT virtualized at 65 items** — `[data-asset-id]` count
+ *    stayed at 65 across repeated `scrollTop = scrollHeight` calls (with a
+ *    real `scroll` event dispatched), scrollHeight itself never grew, and
+ *    `scrollTop` genuinely reached max (`scrollHeight - clientHeight`). All 65
+ *    cards were already mounted on initial load. Contrast with Wave 9's
+ *    History panel, which IS server-paginated and grows on scroll — check
+ *    empirically per view rather than assuming either behavior.
+ *
+ * 3. **Type filter is under Filter → "All types" (a submenu, not a flat list)**
+ *    — click Filter, then click the "All types" row itself (not a chevron) to
+ *    expand Image/Video/PDF/TXT/MD/HTML/DOCX/PPTX checkboxes, then check
+ *    Video. The result shows as a removable chip (`Video ✕`) in a second row
+ *    below the toolbar, plus "Filter 1" on the button itself — both are cheap
+ *    text/attribute reads to confirm the filter actually applied, no
+ *    screenshot needed.
+ *
+ * 4. **Per-card checkbox selector on this grid**:
+ *    `card.querySelector('button[role="checkbox"]')` — a `<button
+ *    role="checkbox" class="peer checkbox checkbox-md ...">` nested inside
+ *    each `[data-asset-id]` card. Real `.click()` on this exact element (not
+ *    a generic `card.querySelector('button')`, which hits a different button —
+ *    confirmed: that selector only ever selected 6/65 correctly, hitting
+ *    whichever button happened to be first in DOM order per card) reliably
+ *    toggled selection for all 65 cards in one JS loop, no hover-pairing
+ *    needed (unlike Wave 8 finding 2's per-card hover-then-click recipe for
+ *    the `/ai/video` History Grid view) — this grid's checkboxes are always in
+ *    the DOM, just visually hidden until hover/selection-mode, and `.click()`
+ *    fires their real handler regardless of visibility.
+ *
+ * 5. **One card can be genuinely un-selectable (no checkbox in its DOM at
+ *    all) while several others render a checkbox but correspond to no
+ *    downloadable file** — two different "nothing to collect" states, don't
+ *    conflate them. This wave: 65 `[data-asset-id]` cards total, 59 with
+ *    `data-asset-status="completed" data-tour-asset-kind="video"` (real,
+ *    downloadable), 6 with `data-asset-status=null data-tour-asset-kind=null`.
+ *    Of those 6, exactly 1 (the one showing a live spinner + Cancel button
+ *    on-screen — genuinely still generating) had NO checkbox and so was
+ *    naturally excluded from selection. The other 5 null-status cards DID
+ *    still have a clickable checkbox and got selected along with the 59 real
+ *    ones (64 selected total) — these are Wave 12 finding 2's "NSFW/failed,
+ *    credits refunded, no video output" pattern recurring on a different
+ *    view. Higgsfield's own bulk-download endpoint silently drops them:
+ *    toolbar showed "64 selected" but the zip progress read "Zipping N/59
+ *    files" from the start, and the finished zip had exactly 59 files whose
+ *    embedded uuids matched the 59 `completed`-status cards 1:1. **This is
+ *    not a broken/incomplete zip** (the task brief's stop condition for a
+ *    "count mismatch") — it's the server correctly filtering non-existent
+ *    files out of a selection that included some. Verify by comparing the
+ *    zip's file count against the `data-asset-status==="completed"` count,
+ *    not against the raw "N selected" toolbar number, before treating any
+ *    gap as an incident.
+ *
+ * 6. **The bottom-toolbar "Download" button must be located by exact
+ *    innerText match and `.click()`'d directly** —
+ *    `[...document.querySelectorAll('button')].find(b => b.innerText.trim()
+ *    === 'Download')` — same reliable-JS-click lesson as Wave 6 finding 7,
+ *    now confirmed on this third UI too. A `find()`-tool ref for "Download
+ *    button in bottom selection toolbar" resolved to the wrong element this
+ *    wave (it landed on a per-card status-tag control instead — clicking it
+ *    opened an unrelated "In progress / Needs review / Approved" status
+ *    dropdown and silently cleared the whole selection). Don't trust a
+ *    natural-language `find()` ref for a toolbar button when several
+ *    similar-sounding controls exist on the same page; resolve by exact text
+ *    match in JS instead, every time.
+ *
+ * 7. **Zip prep time scales with byte size, not just file count** — 59 files
+ *    / ~1.94GB took ~50s server-side (two progress polls: "Zipping 6/59" at
+ *    ~5s in, "Zipping 42/59" at ~25s in, "Download complete / 59 files
+ *    zipped" by ~50s), well past Wave 5's "~15s for 45 files/~210MB"
+ *    baseline — that batch was 1080p/20s clips at higher compression, this
+ *    one mixed many 720p and a few 1080p-tier files at ~5-68MB each. Poll
+ *    stable-file-size on `~/Downloads/*.zip` as documented; don't assume a
+ *    fixed prep time from file count alone.
+ *
+ * 8. **`md5Checksum` IS available from `list`-style Drive reads, just not
+ *    through this bridge's existing `listFolder` action** (that uses
+ *    `DriveApp`, which has no md5Checksum getter). The task's own suggested
+ *    fallback — call the Drive API directly with the same OAuth credentials
+ *    `ilag_sync.py` already uses (`mooniex-claudeflow/.env`
+ *    `GOOGLE_OAUTH_*` triple, refreshed via `oauth2.googleapis.com/token`) —
+ *    worked cleanly: `files.list` with `fields=files(id,name,mimeType,size,
+ *    md5Checksum)` returned a real md5 for all 105 files across all 17
+ *    `All Scene/*` folders, zero missing. No fallback-to-size+name was
+ *    needed this run. This is pure `Bash`/Python, zero browser cost — do it
+ *    before or in parallel with any Higgsfield browser work, same as Wave 11
+ *    finding 3's "Drive leg first" advice.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
