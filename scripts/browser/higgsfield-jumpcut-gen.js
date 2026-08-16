@@ -1049,6 +1049,82 @@
  *    `api()`'s actual signature, which takes `data: bytes` not `json:
  *    dict` — `ensure_folder` already handles the correct request shape
  *    and should be preferred over hand-rolling folder creation).
+ *
+ * Wave 16 findings (task-8a5be04d, 2026-08-16, Scene 11A/11B/11C LONG TAKE —
+ * 3 clips generated back-to-back in the `Sence 11` project-folder composer,
+ * Seedance 2.5/20s/Unlimited, pre-stage-next-prompt-during-render pattern
+ * followed throughout):
+ *
+ * 1. **A base64 prompt string manually retyped into a `javascript_tool` call
+ *    can silently drop trailing bytes even when the string itself is
+ *    correct.** The 11B prompt's b64 (verified byte-for-byte identical to the
+ *    source file via `diff`) decoded to only 2379 chars in the browser
+ *    instead of the true 2400 — missing exactly the tail clause "— silence
+ *    carries it." — when decoded via the old `decodeURIComponent(escape(atob(
+ *    b64)))` idiom. **Root cause: `escape()` encodes any codepoint above 0xFF
+ *    as `%uXXXX`, which `decodeURIComponent` does not understand (it only
+ *    parses `%XX`), and this project's prompts are full of multi-byte
+ *    em-dashes right where paragraphs end** — the exact spot most likely to
+ *    get silently truncated instead of throwing. **Fix: decode with
+ *    `new TextDecoder('utf-8').decode(Uint8Array.from(atob(b64), c =>
+ *    c.charCodeAt(0)))` instead — confirmed clean (full 2400 chars, correct
+ *    tail) on the immediate retry with the identical b64 string.** Retire the
+ *    escape/decodeURIComponent pattern from any future wave; it is not just
+ *    slower; it is wrong for this project's text.
+ * 2. **After a Generate click, the just-submitted card pushes the composer
+ *    down/right and the OLD screenshot's button coordinates go stale
+ *    immediately** — a click at the previously-correct pixel for the
+ *    Unlimited/Generate button landed on a grid card underneath instead
+ *    (opened an unrelated card's preview modal, twice in a row, confirmed via
+ *    `document.elementFromPoint` returning a `<video>` inside the card grid,
+ *    not the button). **Fix that worked on the first try: `find()` the
+ *    button by natural-language query ("UNLIMITED generate button with price
+ *    140 struck through, 0") and click by `ref`, not by coordinate,
+ *    immediately after any layout-shifting event** (a Generate click, a
+ *    modal open/close, a new card landing). Coordinates read off a screenshot
+ *    are only trustworthy until the very next DOM mutation on this page.
+ * 3. **Clicking a card thumbnail directly (not hover → "..." → Open) also
+ *    reliably opens the same `[role="dialog"]` detail modal**, one click,
+ *    URL gains `?preview=<uuid>`. Faster than the hover-then-menu path from
+ *    Wave 13 finding 7 when the goal is just to confirm spec + Download —
+ *    reserve the "..." → Open path for when the direct click doesn't land
+ *    (e.g. immediately after the card was still hovered from an unrelated
+ *    action).
+ * 4. **Clearing the composer (Cmd+A + Delete) also went stale after the
+ *    layout shift in finding 2** — a click at the pre-shift editor
+ *    coordinate selected page-wide content (highlighted the sidebar/nav text
+ *    too, visible in a screenshot) instead of focusing the Lexical editor,
+ *    and Delete was a no-op. Re-screenshot and re-locate the editor's visible
+ *    text region fresh after every Generate click, same rule as finding 2.
+ * 5. **All 3 generations this wave landed at exactly 1470x630** (area
+ *    926,100 ≈ 720p-standard 921,600, Wave 12's area classifier) despite the
+ *    UI's own Info panel reporting 1344x576 for all three — confirms Wave
+ *    15 finding 7's "trust ffprobe over the panel" finding is not a one-off;
+ *    it reproduced identically on 3/3 clips in one session. Both numbers are
+ *    720p-tier so the filing decision doesn't change, but don't expect the
+ *    panel's Size field to ever match ffprobe's raw stream dimensions on
+ *    this project.
+ * 6. **Render times this wave: 11A ~26 min (11:40→~12:06 UTC), 11B ~30 min
+ *    (12:12→~12:42 UTC), 11C ~30 min (12:44→~13:14 UTC)** — all three fell
+ *    inside the documented 07:00-16:00 UTC "stacked peak" window (not the
+ *    01:00-07:00 UTC low-queue window), consistent with the render-time-
+ *    tracks-Europe's-waking-hours finding; none were pathological (no
+ *    50min+/137min reading), just steadily on the slower end of the 20-31min
+ *    range this project has shown historically.
+ * 7. **Element auto-chip resolution via paste continues to work perfectly
+ *    for repeat scenes reusing an already-established `@Tag` vocabulary** —
+ *    zero manual chip-picking needed across all three prompts (5/5/7
+ *    elements matched exactly), confirming Wave 7 finding 2 generalizes past
+ *    a single project and well past 10+ waves of use.
+ * 8. **This project has no bare `S11` Drive folder and only `S11-1080P`
+ *    exists** (13 files pre-run, verified fresh via `gdrive_move.py list`
+ *    before touching anything) — matches the pattern already logged for S16
+ *    in Wave 15 and for S1/S2 in Wave 12/13: a scene can have its `-1080P`
+ *    sibling long before anyone creates the bare 720p one. Per this task's
+ *    explicit instruction, all three 720p-tier outputs were staged to
+ *    `~/Desktop` and logged with `where = "~/Desktop (awaiting CEO filing)"`
+ *    rather than inventing the missing folder — same convention task-8b4212e8
+ *    used.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
