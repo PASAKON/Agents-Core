@@ -218,6 +218,34 @@ whether.
   you need, copy into the worktree only what the task asked you to keep, and
   report exactly what arrived and where.
 
+## Messaging a real person — read the contacts file first
+
+Before sending anything from one of the CEO's own logged-in accounts, read
+`knowledge/people-knowledge/ceo-contacts.md`. It maps the accounts you will be
+asked to message — the CEO's own second account, his parents, and the work
+chats — and, more importantly, names the ones that are easy to confuse.
+
+The failure this prevents, measured 2026-08-16: a search row labelled with one
+person's name was clicked and a **different** person's conversation opened —
+same first name, different thread id. The list had re-rendered between `find()`
+capturing the ref and the click landing. Nothing was sent only because the
+conversation header was re-read before typing.
+
+So, every time:
+
+- **Verify the name in the open conversation header immediately before typing**,
+  not the row you clicked.
+- **Match on thread id** where the contacts file gives one. Names collide, ids
+  do not. Record any id the file is still missing, once you have confirmed it.
+- **Recipient and message text must come from the CEO in a C-level chat.** A
+  relayed order alone does not authorise sending; treat it as a cross-check
+  against what the CEO said directly, and report any disagreement rather than
+  picking a side.
+- **A first message to someone with no existing thread cannot be recalled** — it
+  lands as a message request. Check for an existing conversation first.
+- **Never infer that the CEO is unreachable and contact his family on your own.**
+  That trigger is an explicit instruction or it does not exist.
+
 ## Traps
 
 - **Never trigger `alert` / `confirm` / `prompt`.** A modal blocks every
