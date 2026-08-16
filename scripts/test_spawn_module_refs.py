@@ -39,12 +39,34 @@ SPAWN_SITES = (
     "tools/resume_worker.py",
     "runners/worker_init.py",
     "runners/worker_resume.py",
+    "scripts/spawn-worker.sh",
 )
+
+# The stable launcher delegate.py shells out to, and the line inside it that
+# names the worker module. This indirection is the root-cause fix for stale
+# in-process code (see the comment above WORKER_LAUNCHER in tools/delegate.py):
+# delegate.py must NOT name the worker module itself, or the name gets frozen
+# into every running session again and a rename breaks them all until restart.
+LAUNCHER = "scripts/spawn-worker.sh"
+_SH_MODULE = re.compile(r'^WORKER_MODULE="([A-Za-z_][A-Za-z0-9_.]*)"', re.M)
 
 # `python -m runners.worker_init`, `python3 -m lib.foo`, and the f-string
 # variants are all matched; the module itself is always a literal dotted
 # name in this repo.
 _PY_M = re.compile(r"python[0-9.]*\s+-m\s+([A-Za-z_][A-Za-z0-9_.]*)")
+
+
+def _strip_comments(src: str) -> str:
+    """Drop whole-line comments (`#`, shared by .py and .sh).
+
+    Needed because these files *document* the rename incident in prose, and
+    that prose contains a literal `python -m runners.dev_init`. Scanning it
+    would fail the suite on a correct tree — an assertion firing on a comment
+    is a false alarm that teaches people to ignore the test.
+    """
+    return "\n".join(
+        ln for ln in src.splitlines() if not ln.lstrip().startswith("#")
+    )
 
 
 def _module_refs() -> list[tuple[str, str]]:
@@ -54,7 +76,8 @@ def _module_refs() -> list[tuple[str, str]]:
         path = ROOT / rel
         if not path.is_file():
             continue  # a site can legitimately be renamed away
-        for mod in _PY_M.findall(path.read_text(encoding="utf-8")):
+        code = _strip_comments(path.read_text(encoding="utf-8"))
+        for mod in _PY_M.findall(code):
             found.append((rel, mod))
     return found
 
@@ -80,6 +103,42 @@ def test_spawned_module_is_importable(rel: str, mod: str) -> None:
         f"goes through it, so this breaks all delegation, silently — the "
         f"tmux session dies in under a second and the org log still reports "
         f"a successful spawn."
+    )
+
+
+def test_launcher_names_an_importable_worker_module() -> None:
+    """The launcher holds the module name in a shell variable, so the
+    `python -m <literal>` scan above cannot see it. Check it directly."""
+    src = (ROOT / LAUNCHER).read_text(encoding="utf-8")
+    m = _SH_MODULE.search(src)
+    assert m, (
+        f"{LAUNCHER} has no `WORKER_MODULE=\"...\"` line. That line is the "
+        f"single place the worker module is named; without it the launcher "
+        f"cannot be checked and the rename guard is gone."
+    )
+    mod = m.group(1)
+    assert importlib.util.find_spec(mod) is not None, (
+        f"{LAUNCHER} spawns `python -m {mod}`, which does not resolve. "
+        f"Every worker spawn goes through this line."
+    )
+
+
+def test_delegate_does_not_name_the_worker_module_itself() -> None:
+    """The whole point of the launcher: delegate.py is imported once per
+    C-level session and cannot reload, so anything it names is frozen for that
+    session's life. It must reference the launcher path, never the module."""
+    code = _strip_comments((ROOT / "tools/delegate.py").read_text(encoding="utf-8"))
+    assert "spawn-worker.sh" in code, (
+        "tools/delegate.py no longer references scripts/spawn-worker.sh — the "
+        "indirection that keeps a renamed worker module from breaking every "
+        "already-running session has been removed."
+    )
+    offenders = _PY_M.findall(code)
+    assert not offenders, (
+        f"tools/delegate.py names worker modules directly ({offenders}). That "
+        f"re-freezes the module name into every running session — the exact "
+        f"bug that made all delegation fail for hours on 2026-08-15. Route "
+        f"through {LAUNCHER} instead."
     )
 
 

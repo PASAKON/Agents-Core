@@ -23,6 +23,23 @@ from tools.worktree import create_worktree
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# How a worker is started, held as a STABLE path rather than as the command
+# itself. This is the root-cause fix for a failure that recurred across
+# several sessions: the MCP server runs in-process with a C-level session and
+# imports this module once, so every literal here is frozen for that session's
+# entire life and the session cannot reload itself. When
+# `runners/dev_init.py` became `runners/worker_init.py` (df01c33), sessions
+# older than the rename went on spawning a module that no longer existed --
+# dying in under a second, invisibly, with the org log still reporting
+# success, and only a restart could fix it.
+#
+# Keeping only this path in memory moves the volatile part (which module, which
+# interpreter, which venv) onto disk, where it is read fresh at spawn time. A
+# future rename inside runners/ is then picked up immediately by every running
+# session, stale or not, with no restart. Keep the script's path and argument
+# contract stable and let the churn live inside the script.
+WORKER_LAUNCHER = f"bash '{ROOT / 'scripts' / 'spawn-worker.sh'}'"
+
 POLL_INTERVAL_S = 2.0
 DEFAULT_TIMEOUT_S = 30 * 60  # 30 min per DEV task
 TERMINAL_STATUSES = {"review", "done", "failed", "cancelled"}
@@ -278,8 +295,7 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
         # leaving an untraceable zombie tab.
         cmd = (
             f"printf '\\\\033]1;{tab_title}\\\\007' && "
-            f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
-            f"python -m runners.worker_init {role} {task_id}; exit $?"
+            f"{cto_env}{WORKER_LAUNCHER} {role} {task_id}; exit $?"
         )
     owner_winid = _owner_window_id(owner_cto, owner_role)
     script = _build_spawn_applescript(cmd, task_id, owner_cto,
@@ -685,10 +701,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         # status write after that point would silently regress the claim.
         db.set_fields(task_id, tmux_session=tmux_sess, actor="cto")
         cto_env = f"export WORKER_CTO_ID='{owner_cto}' && " if owner_cto else ""
-        dev_cmd = (
-            f"{cto_env}cd '{ROOT}' && source .venv/bin/activate && "
-            f"python -m runners.worker_init {role_name} {task_id}"
-        )
+        dev_cmd = f"{cto_env}{WORKER_LAUNCHER} {role_name} {task_id}"
         try:
             tmux.create(tmux_sess, cwd=ROOT, cmd=dev_cmd)
             info(f"tmux session created: {tmux_sess}")
