@@ -942,6 +942,113 @@
  *    needed this run. This is pure `Bash`/Python, zero browser cost — do it
  *    before or in parallel with any Higgsfield browser work, same as Wave 11
  *    finding 3's "Drive leg first" advice.
+ *
+ * Wave 15 findings (task-fa96e85e, 2026-08-16, Scene 16 coda generation —
+ * this project's 4th iteration on this exact task after two prior runs
+ * (GH #79 busy slot, GH #80 504 outage) and a third that timed out on a
+ * 40min busy-slot wait plus a mid-wait tab hijack (GH #81); this run's job
+ * was purely "check the slot is free and generate", no waiting needed):
+ *
+ * 1. **Generate from the Cinema Studio composer
+ *    (`/generate/@<org>/<project>`), not `/ai/video`, hides the real
+ *    Unlimited-mode toggle and Generate button behind an `overflow-x-auto`
+ *    row that is narrower than its content** — the video-mode composer bar
+ *    (`Seedance 2.5 | References | 21:9 | 720p | 20s | 1/4 | High | On |
+ *    Unlimited [toggle]`) does not fit in the visible ~436px-wide flex
+ *    container even at a maximized ~1440px window; the toggle and price sit
+ *    ~280px past the clipped edge, `visibility: visible` in computed style
+ *    but literally outside the scrollable ancestor's viewport, so a
+ *    coordinate click or ref click on the DOM-reported rect silently
+ *    no-ops (rect coords land behind an unrelated History thumbnail).
+ *    **Fix**: walk up from the toggle to find the ancestor with
+ *    `getComputedStyle(el).overflowX === 'auto'` and set its `scrollLeft =
+ *    scrollWidth` before clicking; scroll back to 0 afterward to re-read
+ *    the earlier fields (model/aspect/resolution/duration) for the
+ *    pre-Generate spec check. This is a NEW decoy-shaped trap, distinct
+ *    from the Lexical decoy-editor and decoy-Generate-button patterns
+ *    already documented — same root cause class (an off-screen but
+ *    "visible" element) but a horizontal-scroll clip this time, not a
+ *    zero-size/portal decoy.
+ *
+ * 2. **The Video/Image mode switcher inside the composer is ALSO
+ *    duplicated** — one pair of tabs at viewport (0,0) with
+ *    `visibility:hidden` (a decoy, always mid-toggle-state garbage), a
+ *    second real pair rendered inside the floating composer bar itself
+ *    (bottom-left, small icon-label buttons literally captioned "Image" /
+ *    "Video", not text tabs). `find()` for "Video tab" matched the decoy
+ *    first attempt; the real switch only worked via a direct coordinate
+ *    click on the visible icon-pair once the composer bar was actually
+ *    screenshotted and located. When `[role="tab"]` queries return >2
+ *    matches with duplicate text, screenshot once to find the *visually
+ *    rendered* icon-button pair rather than iterating find()/ref clicks —
+ *    cheaper than the 3-4 failed attempts this wave took.
+ *
+ * 3. **The Generate button's price text is genuinely absent from a plain
+ *    `document.querySelectorAll('button')` sweep when the real button is
+ *    mid-hydration or briefly detached** — `[data-tour-anchor=
+ *    "tour-cinema-generate"]` matched only a zero-rect decoy
+ *    (`GENERATE8045`, garbage concatenated digits, `visibility:hidden`)
+ *    on two separate checks seconds apart. The reliable read was always a
+ *    fresh `screenshot` + `zoom` on the button's own coordinates — for
+ *    this specific control, visual confirmation beat every DOM-query
+ *    variant tried (leaf-text search, `data-tour-anchor` selector,
+ *    innerText regex). Budget a zoom for this every time; don't keep
+ *    retrying JS selectors on it.
+ *
+ * 4. **Sidebar folder item counts (e.g. "Sence 16 1") do NOT live-update
+ *    after a generation completes** — the count stayed frozen at the
+ *    pre-generation value even after the new clip was confirmed complete
+ *    (fresh tab, `All assets` 240→241, matching prompt/model/resolution in
+ *    the card's own Info panel). Don't use the sidebar folder count as a
+ *    completion signal; it's cosmetic/cached. `All assets NNN` at the top
+ *    of the sidebar DID increment correctly and is the reliable proxy if a
+ *    numeric check is wanted before opening the card itself.
+ *
+ * 5. **`@Tag` chip resolution confirmed working exactly as documented**:
+ *    hand-typed first `@Motel-Stairs` → platform dropdown → click the
+ *    "Locations" match → thumbnail chip appears above composer. Then
+ *    Cmd+A/Delete clear → synthetic `ClipboardEvent` paste (text/plain
+ *    only) of the full verbatim prompt (fetched byte-exact via a
+ *    `base64`-encoded `Bash` extraction of the source markdown into the
+ *    page via `atob()`, avoiding any manual retyping/transcription risk)
+ *    → the two remaining inline `@Mother-Soul` / `@Daughter` tags
+ *    auto-converted to chips with zero extra action. Final state: 3/3
+ *    thumbnails attached, verified by screenshot per the task's explicit
+ *    budget carve-out for this exact check. `innerText.length` after paste
+ *    (6640) did not match the source string length (6611) — fully
+ *    explained by Lexical inserting an extra `\n` per paragraph-boundary
+ *    `<p>` block; per-tag occurrence counts (`@Motel-Stairs` x1,
+ *    `@Mother-Soul` x7, `@Daughter` x6) and both `first80`/`last80`
+ *    substrings matched the source exactly, confirming no truncation —
+ *    don't treat a length mismatch alone as truncation evidence without
+ *    checking whether it's just block-newline inflation.
+ *
+ * 6. **Render took ~31 minutes this run** (Generate clicked 08:21:23 UTC
+ *    per the completed card's own `hf_<timestamp>` filename; spinner
+ *    confirmed gone at 08:53:35 UTC on a fresh-tab re-check) — clicked at
+ *    08:21 UTC, inside the documented 01:00-07:00 UTC low-queue window's
+ *    tail edge but past its close, consistent with the render-time-tracks-
+ *    Europe's-waking-hours finding (slightly slower than the 20-27min
+ *    in-window baseline, nowhere near the 50min+/137min pathological
+ *    readings from mid-day Europe).
+ *
+ * 7. **Output measured 1470x630 via ffprobe** (UI's own Info panel showed
+ *    1344x576 for the "same" field — two different numbers for what the
+ *    product surfaces as one "Size" value; trust ffprobe on the actual
+ *    downloaded file, not the panel, when they disagree) — both are
+ *    720p-tier by Wave 12's area classifier (1470×630=926,100 vs the
+ *    720p-standard 921,600 reference area), confirming the task brief's
+ *    prediction and routing to `S16` (not `S16-1080P`). 20.04s duration,
+ *    24fps, h264, matches spec.
+ *
+ * 8. **`All Scene/S16` did not exist prior to this run** (confirmed via a
+ *    fresh `files.list` query on the parent folder before creating
+ *    anything, per the task's explicit "verify fresh" instruction) —
+ *    created via `ilag_sync.ensure_folder('S16', folders, create=True)`
+ *    rather than a raw Drive API POST (the raw POST attempt failed on
+ *    `api()`'s actual signature, which takes `data: bytes` not `json:
+ *    dict` — `ensure_folder` already handles the correct request shape
+ *    and should be preferred over hand-rolling folder creation).
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
