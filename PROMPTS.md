@@ -102,7 +102,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 12-FB2 (Seedance 2.5) | `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` | `@Mother` `@Father` | `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
 | 12-FB (Seedance 2.5, alternate to FB1+FB2) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` `@Motel-Walkway` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
 | 8B (insert) | `@Motel-Walkway` `@Room-DoorOut` `@Room-Clean` | `@Mother` | `@Prop-DNDTag` |
-| 8C (insert, after 8B) | `@Motel-Walkway` `@Room-Clean` | `@Mother` | `@Prop-DNDTag` · plus `@8B` (prior clip, attached by the CEO) |
+| 8C (insert, after 8B) | `@Motel-Walkway` `@Room-Clean` | `@Mother` | — (DND tag described in plain words; comes with the motel plate) · plus `@8B` (prior clip, attached by the CEO) |
 | 16 (Seedance 2.5) | `@Motel-Stairs` | `@Mother-Soul` `@Daughter` | — (vehicles, tape, markers, body bag all stay plain words; `@Mother` and every `@Room-*` deliberately untagged — exterior only, interior never seen) |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
@@ -507,73 +507,62 @@ Her heartbeat, close and internal — this is inside her head, not in the room, 
 
 ## Scene 8C — LONG TAKE (20s) — the door closes on her
 
-**Added 2026-08-17 (CEO), from a 12-question interview. Runs directly after
+**Added 2026-08-17 (CEO), from a 14-question interview. Runs directly after
 Scene 8B**, and the CEO attaches the finished 8B clip himself as `@8B` — write
-that tag, do not substitute a description of it.
+that tag, do not substitute a description of the previous shot.
 
 **The camera never enters the room.** It sits outside on the walkway, locked
-off, looking in through the open door. She goes in without it. That is the
-whole idea of the shot and the reason it is not just another survey beat:
-Scenes 9A and 9B both ride her shoulder, so the audience has been *with* her
-until now. Here they are left outside, and then the door shuts.
+off, looking at the open doorway. She walks in without it. That is the whole
+idea: Scenes 9A and 9B both ride her shoulder, so the audience has been *with*
+her until now. Here they are left outside, and then the door shuts.
+
+**Exactly three plates are tagged** — `@Motel-Walkway`, `@Room-Clean`,
+`@Mother` — plus the CEO's own `@8B`. **`@Prop-DNDTag` is deliberately NOT
+tagged** (CEO, 2026-08-17): the motel plate already carries a Do Not Disturb
+tag on the door, so the tag is described in plain words and comes from the
+location plate instead of competing with it. `@Room-DoorOut` is also NOT
+tagged — that plate is the doorway seen from *inside* looking out, and this
+shot is the exact reverse.
 
 **Decisions the CEO made, recorded so a later reader does not undo them:**
+- **She starts OUTSIDE**, standing at the already-open doorway, and walks in.
+  Her back is to camera the whole way, which keeps the film's face rule.
 - **The door closes by itself** — fast and hard, no hand, no push, no figure.
-- **The banging is NOT the knocking heard in Scenes 7 and 8.** He was asked
-  directly and said a different event. Do not stage it as a time-loop reveal
-  and do not match it to that earlier sound.
-- **It does not have to cut cleanly into 9B.** He explicitly left that to the
-  editor, so this block does not bend itself to set 9B up.
-- She is seen inside **only in flickers** — never a clean look at her in the
-  room, and her face is never resolved.
-- Ends on the closed door, the room number and the swinging `@Prop-DNDTag`.
-  The tag is the last thing moving in the film's title shot.
-
-**Four plates are tagged** — `@Motel-Walkway`, `@Room-Clean`, `@Mother`,
-`@Prop-DNDTag` — plus the CEO's own `@8B`. He specified Walkway + Room-Clean
-+ Mother; `@Prop-DNDTag` is the fourth because the shot he asked for ends on
-that tag swinging and settling, and only the plate keeps it the same tag it
-has been all film.
-
-`@Room-DoorOut` is deliberately NOT tagged even though a door is the subject:
-that plate is the doorway seen from *inside* looking out, and this shot is the
-exact reverse — outside looking in. Tagging it would hand the model the wrong
-side of the same door.
-
-**She never leaves the room.** An earlier draft had her walk past the lens and
-out behind the camera, which quietly broke the shot: if she is outside, the
-door cannot trap her, yet she bangs on it from within. The CEO caught it. She
-stays inside for all 20 seconds and only moves in and out of the narrow strip
-the doorway reveals — and she is stepping back INTO that strip at the exact
-moment the door slams.
+- **The slam lands on her return**: she is stepping back into the visible
+  strip at the exact moment it shuts, cutting her off mid-stride.
+- **The banging is NOT the knocking heard in Scenes 7 and 8.** Asked directly;
+  he said a different event. Do not stage it as a time-loop reveal.
+- **It does not have to cut cleanly into 9B** — he left that to the editor.
+- She is only ever glimpsed inside in flickers; her face is never resolved.
+- Ends on the closed door, the room number, and the tag swinging to rest.
 
 ```
 VISUAL
-Single continuous take, 20 seconds, no cuts. This is the direct continuation of @8B — same night, same door, the same woman, moments later. The camera stands OUTSIDE on the open-air walkway of @Motel-Walkway, locked off on a tripod, framed on the open doorway of room 214. It never moves, never pans, never tilts, and never goes inside. @Mother is already in the middle of @Room-Clean beyond the doorway. @Prop-DNDTag hangs on the outside handle throughout.
+Single continuous take, 20 seconds, no cuts. This is the direct continuation of @8B — same night, same door, the same woman, moments later. The camera stands OUTSIDE on the open-air walkway of @Motel-Walkway, locked off on a tripod, framed on the doorway of room 214, which already stands open. It never moves, never pans, never tilts, and never goes inside. A Do Not Disturb tag hangs on the outside handle for the whole shot. @Mother's face is never seen clearly — she is seen from behind throughout.
 
-0–5s: Through the doorway, @Room-Clean is only intermittently visible — the ceiling light is flickering, so the room arrives in stutters of weak warm light separated by darkness. @Mother is a figure mid-room, seen only in those flickers, turning slowly on the spot as she looks around. Between flickers the doorway is a black rectangle. The walkway around the camera stays steadily lit by its own amber bulb.
+0–4s: @Mother stands just outside the open doorway with her back to camera, lit by the steady warm amber walkway bulb. Beyond her, @Room-Clean is dark and unstable — its ceiling light is flickering, so the interior arrives in stutters of weak warm light separated by black. She steps forward and crosses the threshold into the room.
 
-5–10s: She keeps surveying, unhurried, and speaks into the room. She drifts LEFT and walks out of the left edge of the doorway frame, out of sight. The camera does not follow. For a moment the visible slice of @Room-Clean is empty, still flickering.
+4–9s: She is inside now, a few steps in, and speaks into the room. She turns slowly on the spot, surveying, unhurried — seen only in the flickers, in fragments, never cleanly. Between flickers the doorway is a black rectangle. The walkway around the camera stays steadily lit.
 
-10–14s: She walks out of the visible strip on the other side, deeper into @Room-Clean, into a part of the room the doorway does not reveal. She never approaches the threshold and never leaves the room. The visible strip sits empty, still flickering, while her footsteps continue off to one side.
+9–13s: She drifts LEFT and walks out of the narrow strip of @Room-Clean that the doorway reveals, deeper into a part of the room the camera cannot see. She never approaches the threshold and never leaves the room. The visible strip sits empty, still flickering, while her footsteps continue off to one side.
 
-14–16s: She comes back into the visible strip from that side — and in the same instant the door of 214 SLAMS shut, hard and fast, by itself, cutting her off mid-stride. No hand, no arm, no push, no figure behind it. She is inside; the last thing seen of her is that partial return before the door closes across the frame. @Prop-DNDTag swings violently on the handle.
+13–16s: She comes back into the visible strip from that side — and in the same instant the door of 214 SLAMS shut, hard and fast, by itself, cutting her off mid-stride. No hand, no arm, no push, no figure behind it. She is inside; that partial return is the last thing seen of her. The tag swings violently on the handle.
 
-16–20s: Locked on the closed door. From behind it: fists hammering, and her voice, muffled, calling out. The door does not open. @Prop-DNDTag slows and comes to rest. Final frame holds on the closed door, the room number 214, and the hanging tag — still, while the banging continues. CUT TO BLACK on the last frame, a hard cut.
+16–20s: Locked on the closed door. From behind it: fists hammering, and her voice, muffled, calling out. The door does not open. The tag slows and comes to rest. Final frame holds on the closed door, the room number 214, and the hanging tag — still, while the banging continues. CUT TO BLACK on the last frame, a hard cut.
 
 DIALOGUE
-(5–10s, @Mother inside the room, calm and professional, the unhurried sing-song a housekeeper uses to an empty room — English only:)
+(4–9s, @Mother inside the room, calm and professional, the unhurried sing-song a housekeeper uses to an empty room — English only:)
 "Hello....? Housekeeping."
 
 (16–20s, @Mother from behind the closed door, muffled, alarmed but not screaming:)
 "Hey! I'm in here! The door's stuck!"
 
-NEGATIVE — strictly avoid: the camera NEVER enters the room, never pushes in, never follows her, never moves at all — it is locked off on the walkway for all 20 seconds. Do not cut. Nobody closes the door — no hand, no arm, no shoulder, no figure, no shadow, nothing visible pushing it; it moves on its own. @Mother NEVER leaves the room, never reaches or crosses the threshold, and never passes the camera — she stays inside @Room-Clean for the whole shot and simply moves in and out of the narrow strip the doorway reveals. She must be inside when the door shuts. No other person anywhere in frame or in the room. Nothing supernatural is visible — no figure, no face, no silhouette, no shape in the doorway, nothing in a mirror, no shadow that moves by itself. @Mother is never clearly resolved inside the room and her face is never readable — only fragments caught between flickers. No blood, no body, no broken glass, no overturned furniture, no signs of a struggle; the room is ordinary. @Prop-DNDTag must stay on the handle and must not fall off. After the door shuts it is NEVER reopened and she is never seen again in this shot. OPEN-AIR walkway — no interior corridor, no facing doors across a passage, no ceiling panels, no fluorescent light. No text or readable signage other than the room number on the door itself. No printed logos, no brand names. No lens flare, no haze, no volumetric god rays through the doorway. No music, no sting, no riser.
+NEGATIVE — strictly avoid: the camera NEVER enters the room, never pushes in, never follows her, never moves at all — it is locked off on the walkway for all 20 seconds. Do not cut. Nobody closes the door — no hand, no arm, no shoulder, no figure, no shadow, nothing visible pushing it; it moves on its own. After she steps inside, @Mother NEVER comes back out, never re-crosses the threshold, and never passes the camera — she stays inside @Room-Clean and only moves in and out of the narrow strip the doorway reveals. She must be inside when the door shuts. No other person anywhere in frame or in the room. Nothing supernatural is visible — no figure, no face, no silhouette, no shape in the doorway, nothing in a mirror, no shadow that moves by itself. @Mother's face is never readable — she is seen from behind outside, and only in fragments between flickers once inside. No blood, no body, no broken glass, no overturned furniture, no signs of a struggle; the room is ordinary. The Do Not Disturb tag must stay on the handle for the whole shot and must never fall off. After the door shuts it is NEVER reopened and she is never seen again in this shot. OPEN-AIR walkway — no interior corridor, no facing doors across a passage, no ceiling panels, no fluorescent light. No text or readable signage other than the room number on the door itself. No printed logos, no brand names. No lens flare, no haze, no volumetric god rays through the doorway. No music, no sting, no riser.
 
 Grounded real-camera look, locked tripod framing, no handheld drift. Two light zones that must stay distinct: the walkway outside is steady warm amber; the room beyond the doorway is unstable, flickering weak warm light against black. Muted and desaturated throughout.
 
 AUDIO-SFX
-Steady night air on the walkway — distant road noise, the faint buzz of the walkway bulb, insects. From inside the room, the electrical tick and hum of the failing ceiling light, and her unhurried footsteps on carpet moving away and back. Her voice from inside, easy and routine. Her footsteps stay inside the room throughout — carpet, never concrete — moving off to one side out of view and coming back. Then the SLAM — one hard, heavy, final impact of a solid door in its frame, with the flat crack of the latch catching. The tag rattles against the wood and settles. Then fists on the door from the inside, muffled and insistent, and her voice through it, close but blocked, alarmed and getting louder. The banging keeps going right up to the cut and stops dead with the picture. No music, no score, no sting, no riser anywhere.
+Steady night air on the walkway — distant road noise, the faint buzz of the walkway bulb, insects. Her shoes on concrete for the first few steps, then changing to carpet as she crosses the threshold — after that her footsteps stay inside the room, carpet only, never concrete again. From inside, the electrical tick and hum of the failing ceiling light, and her unhurried steps moving off to one side out of view and coming back. Her voice from inside, easy and routine. Then the SLAM — one hard, heavy, final impact of a solid door in its frame, with the flat crack of the latch catching. The tag rattles against the wood and settles. Then fists on the door from the inside, muffled and insistent, and her voice through it, close but blocked, alarmed and getting louder. The banging keeps going right up to the cut and stops dead with the picture. No music, no score, no sting, no riser anywhere.
 ```
 
 # SCENE 9 — NEW, added by the CEO 2026-08-12 23:20
