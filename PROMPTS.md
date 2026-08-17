@@ -104,7 +104,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 8B (insert) | `@Motel-Walkway` `@Room-DoorOut` `@Room-Clean` | `@Mother` | `@Prop-DNDTag` |
 | 8C (insert, after 8B) | `@Motel-Walkway` `@Room-Clean` | `@Mother` | — (DND tag described in plain words; comes with the motel plate) · plus `@8B` (prior clip, attached by the CEO) |
 | 8D (insert, after 8C) | `@Room-Clean-Rev` (0-4s) → cut → `@Room-Clean` → `@Room-Wreck` | `@Mother` | — · plus `@Video1` (8C clip, attached by the CEO) |
-| 8E (insert, after 8D) | `@Room-Wreck` | `@Mother` | `@Prop-Phone` `@Prop-PhonePhoto` `@Prop-Lamp` · plus `@Video1` (8D clip, attached by the CEO) |
+| 8E (insert, after 8D) | `@Room-Wreck` | `@Mother` | `@Prop-Phone` `@Prop-PhonePhoto` (lamp already in the room plate, untagged) · plus `@Video1` (8D clip, attached by the CEO) |
 | 16 (Seedance 2.5) | `@Motel-Stairs` | `@Mother-Soul` `@Daughter` | — (vehicles, tape, markers, body bag all stay plain words; `@Mother` and every `@Room-*` deliberately untagged — exterior only, interior never seen) |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
@@ -674,7 +674,7 @@ Single continuous take, 20 seconds, no cuts. One location: interior of room 214,
 
 0–4s: Total black. Nothing is visible. Only her breathing, fast and uneven, close in the dark. The ceiling light gutters back on partway through — weak, warm, unstable — and reveals @Mother where she is, still crouched or just rising, in the middle of @Room-Wreck. The room is destroyed around her. The light keeps stuttering.
 
-4–8s: A phone RINGS. @Prop-Phone lies face-down on the nightstand beside @Prop-Lamp, and its screen throws a hard cold glow up the wall each time the ring pulses — the only cold light in a warm, failing room. She startles hard, turning toward it. She does not move yet.
+4–8s: A phone RINGS. @Prop-Phone lies face-down on the nightstand beside the lamp, and its screen throws a hard cold glow up the wall each time the ring pulses — the only cold light in a warm, failing room. She startles hard, turning toward it. She does not move yet.
 
 8–14s: She rises and crosses slowly toward the nightstand, eyes fixed on @Prop-Phone. The camera moves with her eyeline, closing in on the phone as she approaches — a slow push toward the nightstand. She stops beside it and looks down at it. She does NOT pick it up, does not touch it, does not turn it over. The camera continues past her, in closer, until the screen fills a good part of the frame: an incoming call, her daughter's name on it, ringing — and behind the call UI, filling the screen as the phone's wallpaper, @Prop-PhonePhoto: the photograph of her and her daughter together. The caller and the woman in the wallpaper are the same person. A fine crack runs across the screen glass from one corner, catching the light.
 
