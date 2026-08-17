@@ -104,6 +104,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 8B (insert) | `@Motel-Walkway` `@Room-DoorOut` `@Room-Clean` | `@Mother` | `@Prop-DNDTag` |
 | 8C (insert, after 8B) | `@Motel-Walkway` `@Room-Clean` | `@Mother` | — (DND tag described in plain words; comes with the motel plate) · plus `@8B` (prior clip, attached by the CEO) |
 | 8D (insert, after 8C) | `@Room-Clean-Rev` (0-4s) → cut → `@Room-Clean` → `@Room-Wreck` | `@Mother` | — · plus `@Video1` (8C clip, attached by the CEO) |
+| 8E (insert, after 8D) | `@Room-Wreck` | `@Mother` | `@Prop-Phone` `@Prop-Lamp` · plus `@Video1` (8D clip, attached by the CEO) |
 | 16 (Seedance 2.5) | `@Motel-Stairs` | `@Mother-Soul` `@Daughter` | — (vehicles, tape, markers, body bag all stay plain words; `@Mother` and every `@Room-*` deliberately untagged — exterior only, interior never seen) |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
@@ -636,6 +637,57 @@ Grounded real-camera look, full-body framing on @Mother with the room around her
 
 AUDIO-SFX
 Her hand working the locked handle — metal, dry, refusing. Knuckles on the door, and her voice between the knocks, close and real. Her breathing throughout, getting faster and shallower. The cut at 4s does not break the sound: her breathing and the room tone carry straight across it. As the shaking begins, a heartbeat enters — hers, internal, mixed close, staying under everything and speeding up as the room turns. Under that a deep structural rumble, felt more than heard, rising with the shake, with the timber and window frames rattling. Then the room itself: a drawer running open, fabric dragging, wood tipping and hitting carpet, a suitcase going over, small hard things rolling. These sounds are dry and physical, real objects in a real room — no whoosh, no chime, no shimmer, no reversed reverb, nothing musical. Her voice stops once the room starts moving; after that only breath. At 26s the ceiling light dies with a filament tick and EVERYTHING stops at once — heartbeat gone, rumble gone, room gone. The last four seconds are her breathing alone in complete silence and complete darkness. No music, no score, no sting, no riser anywhere.
+```
+
+## Scene 8E — LONG TAKE (20s, Seedance 2.5) — the phone rings
+
+**Added 2026-08-17 (CEO), from a 23-question interview. Runs directly after
+Scene 8D**, which ended in full black with only her breathing. The CEO
+attaches the 8D clip himself as `@Video1`. One location, one take, no cuts.
+
+**She never touches the phone, and that is the whole point of how it is
+staged.** The Sheet's hard rule — *"SHE TOUCHES NOTHING"*, governing every
+Scene 9 shot — names `@Prop-Phone` outright: never lifted, never turned over,
+never off the nightstand. The CEO kept that rule here. So the camera does the
+reaching instead: it follows her eyeline in and reads the screen for her. She
+only ever looks.
+
+**The screen is the one place text is allowed.** Everywhere else in this film
+readable text is banned; here the caller name and the missed-call count ARE
+the shot, so the NEGATIVE carves out that single exception and keeps the ban
+everywhere else.
+
+**Decisions the CEO made:**
+- **The caller is her daughter, by name on screen.** Not "Unknown".
+- **41 missed calls** reads as *someone has been trying desperately to reach
+  her* — that is the intended audience thought.
+- **Ends on her face** as she sees the number, not on the screen.
+- Her face is visible in this scene, as in 8D.
+
+**Note on what 41 quietly does.** Nobody in the film says how long she has
+been in this room. A count that high is the first hard evidence that far more
+time has passed than she believes. It is left as a fact on a screen, unspoken.
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. One location: interior of room 214, now @Room-Wreck. This is the direct continuation of @Video1 — it begins in the same full darkness that shot ended in. @Mother's face IS visible in this scene.
+
+0–4s: Total black. Nothing is visible. Only her breathing, fast and uneven, close in the dark. The ceiling light gutters back on partway through — weak, warm, unstable — and reveals @Mother where she is, still crouched or just rising, in the middle of @Room-Wreck. The room is destroyed around her. The light keeps stuttering.
+
+4–8s: A phone RINGS. @Prop-Phone lies face-down on the nightstand beside @Prop-Lamp, and its screen throws a hard cold glow up the wall each time the ring pulses — the only cold light in a warm, failing room. She startles hard, turning toward it. She does not move yet.
+
+8–14s: She rises and crosses slowly toward the nightstand, eyes fixed on @Prop-Phone. The camera moves with her eyeline, closing in on the phone as she approaches — a slow push toward the nightstand. She stops beside it and looks down at it. She does NOT pick it up, does not touch it, does not turn it over. The camera continues past her, in closer, until the screen fills a good part of the frame: it reads as an incoming call, her daughter's name on it, ringing.
+
+14–17s: The ringing stops mid-pulse — the call ends by itself. The screen changes to a missed-call notification: her daughter's name, and the count 41.
+
+17–20s: The camera pulls back off the screen to @Mother's face, close, lit by the phone's cold glow from below and the failing warm bulb above. She reads the number. Her expression changes — not a scream, not a jolt, but something quieter and worse settling in. Hold on her face. CUT on the last frame.
+
+NEGATIVE — strictly avoid: @Mother NEVER touches @Prop-Phone — she does not lift it, hold it, turn it over, tap it, answer it, or move it; it stays exactly where it lies on the nightstand for the entire shot. No hand ever enters frame to touch it. She never speaks in this scene. Do not cut — one continuous take. The ONLY readable text anywhere in frame is what is on the phone screen: the caller name and the missed-call count. No other text, no signage, no room numbers, no printed logos, no brand names, no visible phone manufacturer marks, no readable app names or status-bar detail beyond what a call screen needs. No other person, no figure, no face, no silhouette, no hands, no shadow that moves by itself, nothing reflected in the screen or in any mirror. No blood, no body, no wound, no gore. The room does not shake in this scene and nothing moves on its own — the disorder is already there and stays still. The door never opens. No lens flare, no haze, no god rays, no smoke, no CG glow beyond the phone's own screen light. No music, no score, no sting, no riser — the ring itself is the scare and must not be reinforced by score.
+
+Grounded real-camera look. Two light sources that must stay distinct: the failing warm ceiling bulb, and the phone screen's hard cold light. Muted and desaturated apart from the screen. Slow deliberate camera move following her eyeline; no whip pans, no handheld chaos.
+
+AUDIO-SFX
+Opens in darkness on her breathing alone — fast, uneven, close. The ceiling light returns with a filament tick and a faint electrical hum that keeps stuttering. Her heartbeat is under everything from the first frame, internal and close, and it jumps hard when the phone rings. The ringtone is an ordinary mobile ring, real and unremarkable, loud in a silent room — no reverb tail, no processing, nothing musical layered on it. Her breath catches at the first ring. Her footsteps on the wrecked carpet as she crosses, slow and uneven, small debris shifting underfoot. The ring keeps going, closer as the camera nears the nightstand. It stops mid-pulse — not tapering, cut off — and the room drops into silence with only her breathing and the light's hum. No notification chime when the missed-call screen appears; it changes in silence. Hold on her breathing to the end. No music, no score, no sting, no riser anywhere.
 ```
 
 # SCENE 9 — NEW, added by the CEO 2026-08-12 23:20
