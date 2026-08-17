@@ -103,7 +103,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 12-FB (Seedance 2.5, alternate to FB1+FB2) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` `@Motel-Walkway` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
 | 8B (insert) | `@Motel-Walkway` `@Room-DoorOut` `@Room-Clean` | `@Mother` | `@Prop-DNDTag` |
 | 8C (insert, after 8B) | `@Motel-Walkway` `@Room-Clean` | `@Mother` | — (DND tag described in plain words; comes with the motel plate) · plus `@8B` (prior clip, attached by the CEO) |
-| 8D (insert, after 8C) | `@Room-Clean-Rev` `@Room-Clean` → `@Room-Wreck` | `@Mother` | — · plus `@Video1` (8C clip, attached by the CEO) |
+| 8D (insert, after 8C) | `@Room-Clean-Rev` (0-4s) → cut → `@Room-Clean` → `@Room-Wreck` | `@Mother` | — · plus `@Video1` (8C clip, attached by the CEO) |
 | 16 (Seedance 2.5) | `@Motel-Stairs` | `@Mother-Soul` `@Daughter` | — (vehicles, tape, markers, body bag all stay plain words; `@Mother` and every `@Room-*` deliberately untagged — exterior only, interior never seen) |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
@@ -568,66 +568,74 @@ AUDIO-SFX
 Steady night air on the walkway — distant road noise, the faint buzz of the walkway bulb, insects. Her shoes on concrete for the first few steps, then changing to carpet as she moves inside — after that her footsteps stay inside the room, carpet only, never concrete again. From inside, the electrical tick and hum of the failing ceiling light, and her unhurried steps moving off to one side out of view and coming back. Her voice from inside, easy and routine. Then the SLAM — one hard, heavy, final impact of a solid door in its frame, with the flat crack of the latch catching. The tag rattles against the wood and settles. What follows is in beats, not one continuous wall of noise: fists on the door from the inside, muffled and insistent — her voice through it, close but blocked — then a gap filled by the dry mechanical rattle of the handle being worked and the door knocking against its latch — then her voice again, louder. The sounds interlock; her lines land in the spaces between the banging, never over it. The banging keeps going right up to the cut and stops dead with the picture. No music, no score, no sting, no riser anywhere.
 ```
 
-## Scene 8D — LONG TAKE (30s, Seedance 2.5) — the room turns against her
+## Scene 8D — ONE JUMP CUT then LONG TAKE (30s, Seedance 2.5) — the room turns against her
 
-**Added 2026-08-17 (CEO), from a 16-question interview. Runs directly after
-Scene 8C**, from the reverse side: 8C watched the door shut from the walkway,
-this is the same moment from INSIDE. The CEO attaches the 8C clip himself as
-`@Video1` — write that tag.
+**Added 2026-08-17 (CEO), from a 19-question interview. Runs directly after
+Scene 8C**, which watched the door shut from the walkway; this is the same
+moment from INSIDE. The CEO attaches the 8C clip himself as `@Video1`.
 
-**THIS SCENE BREAKS A LOCKED DECISION ON PURPOSE. Read before touching it.**
-The Sheet locks `@Room-Clean → @Room-Wreck` as Scene 10's "ช็อตปิดบัญชี" — the
-single shot where the audience learns the room she has been tidying is really
-a wreck — and locks a matching constraint that Act 1-2 carries no objective
-shot proving anything. This block reveals it early, on purpose. The CEO was
-shown both, asked directly, and chose: *"เอาตามที่สั่ง — เฉลยตรงนี้เลย ยอม
-กระทบ Scene 10"*. **Scene 10 now needs re-planning; do not treat it as still
-holding an unspent reveal.** That is a decision, not drift.
+**The two room plates are two ANGLES of the same room, and the shot uses one
+cut to change between them.** `@Room-Clean-Rev` faces back toward the door she
+came in by — that is the angle that continues 8C. `@Room-Clean` is the other
+direction. An earlier draft set the whole shot in `-Rev` while still naming
+`@Room-Clean` in the action, which is two camera positions in one unbroken
+take: impossible. The CEO corrected it into a deliberate structure:
 
-**`@Room-Clean-Rev` is live again.** It was cancelled 2026-08-13 as redundant
-and sat in `audit_prompts.py`'s FORBIDDEN list; the CEO rebuilt the plate for
-this shot and it has been unblocked in the same commit.
+- **0–4s on `@Room-Clean-Rev`** — at the door, handle locked.
+- **ONE jump cut at 4s** — to `@Room-Clean`, her already mid-room.
+- **4–30s unbroken on `@Room-Clean`** as it becomes `@Room-Wreck`.
+
+**It never returns to the `-Rev` angle. Exactly one cut in the whole shot.**
+
+**THIS SCENE SPENDS SCENE 10'S REVEAL ON PURPOSE.** The Sheet locks
+`@Room-Clean → @Room-Wreck` as Scene 10's "ช็อตปิดบัญชี", plus a constraint
+that Act 1-2 carries no objective shot proving anything. Both were put to the
+CEO with the consequence stated and he chose: *"เอาตามที่สั่ง — เฉลยตรงนี้เลย
+ยอมกระทบ Scene 10"*. **Scene 10 needs re-planning; it no longer holds an
+unspent reveal.** A decision, not drift — do not "fix" it back.
 
 **Decisions the CEO made:**
-- **Her face IS visible here** — the film's usual "never seen clearly" rule is
-  deliberately suspended for this one shot, because the fear has to read.
-  This is the first time the audience sees it.
-- **Camera shake is a build, not a constant** — barely there, growing, then
-  gone. Not an earthquake for 22 seconds.
-- **The room changes both ways**: some objects move in plain sight, others are
-  simply different after a blackout. The mix is the point — a blackout swap is
-  clean and cheap, and in-frame movement is what sells that it is real.
-- **She stops talking once the room starts changing.** Sound carries the rest.
-- **Full body framing**, so the room around her is visible changing with her.
-- **Ends in total black** — picture black, only her breathing.
+- **The room shakes too**, not just the camera — walls and structure, a real
+  earthquake, not a wobbling lens.
+- **Her face IS visible here.** The film's "never seen clearly" rule is
+  suspended for this one shot so the fear reads. First time the audience sees
+  it.
+- Shake **builds then stops**; never violent enough to make the image unreadable.
+- The room changes **both ways** — some objects move in plain sight, others are
+  simply already different after a blackout.
+- **She stops talking** once the room starts changing.
+- **Full body framing**, room always visible around her.
+- **Ends in true black**, only her breathing.
 
 ```
 VISUAL
-Single continuous take, 30 seconds, no cuts. This is the direct continuation of @Video1, from the INSIDE: the same moment, the same door, the reverse angle. Interior of room 214, shot on @Room-Clean-Rev — the reverse view of the room, facing back toward the door she came in by. The camera holds @Mother in full body for the whole shot, with the room around her always visible. The ceiling light is failing throughout: weak warm light stuttering against black.
+30 seconds total. Exactly ONE cut, at 4s. This is the direct continuation of @Video1 — the same moment from inside room 214.
 
-0–4s: @Mother stands close to the door with one hand on the handle, working it. It does not turn. She pulls, twists, pushes — locked. She calls out and knocks with her free hand. The room behind her is @Room-Clean: ordinary, tidy, occupied.
+0–4s — shot on @Room-Clean-Rev, the reverse angle facing back toward the door she came in by: @Mother stands close to that door with one hand on the handle, working it. It does not turn. She pulls, twists, pushes — locked. She knocks with her free hand and calls out. The room behind her is ordinary, tidy, occupied. The ceiling light is already unstable, stuttering weak warm light against black.
 
-4–14s: She keeps knocking and calling, turning to look back into the room between attempts. The camera begins to TREMBLE — barely perceptible at first, a low vibration, building slowly. Her breathing is audible and getting faster. She stops knocking. She walks away from the door toward the middle of the room, turning slowly on the spot, scanning.
+JUMP CUT at 4s to @Room-Clean — the opposite angle of the same room, from across it. @Mother is already standing in the middle of the room, facing roughly toward camera. Nothing else about the room has changed yet. From this cut to the end there are NO further cuts: 4s to 30s is one continuous take.
 
-14–24s: The room changes around her while she watches. It is not a cut and not a dissolve — it happens as movement and as substitution. In plain sight: a drawer slides itself open, the bedding drags and twists as if pulled, the armchair tips and goes over, a suitcase spills. In the blackouts between flickers: things are simply already different when the light returns — the bed stripped and disordered, the lamp down, the floor scattered. Piece by piece @Room-Clean becomes @Room-Wreck. NOTHING touches her, nothing is thrown at her, nothing comes near her body. She hugs herself, backs a half-step, then sinks into a crouch, hands over her head, eyes shut, refusing to look at what is happening around her. The camera shake peaks here.
+4–14s: She turns slowly on the spot, scanning, breathing hard. The ceiling light keeps stuttering. Then the room begins to SHAKE — walls, doorframe and furniture vibrating together like a real earthquake, starting almost imperceptibly and building. Dust drifts from the ceiling. The camera shakes with the room because it is in the room, not instead of it. She braces, unsteady on her feet.
 
-24–26s: The shake falls away. The last few objects settle. The room is now fully @Room-Wreck, with @Mother crouched small in the middle of it.
+14–24s: The room changes around her while she watches. Not a cut, not a dissolve — it happens as physical movement and as substitution. In plain sight: a drawer slides itself open, the bedding drags and twists as if pulled, the armchair tips and goes over, a suitcase spills. In the blackouts between flickers: things are simply already different when the light returns — the bed stripped and disordered, the lamp down, the floor scattered. Piece by piece @Room-Clean becomes @Room-Wreck. NOTHING touches her, nothing is thrown at her, nothing comes near her body. She hugs herself, backs a half-step, then sinks into a crouch, hands over her head, eyes shut, refusing to look. The shaking peaks here.
 
-26–30s: The ceiling light dies completely. The frame goes to FULL BLACK and stays black. Nothing is visible for the rest of the shot. Only her breathing continues in the dark, shaking, slowing. Hold on black to the end. CUT on the last frame.
+24–26s: The shaking stops. The last few objects settle. The room is now fully @Room-Wreck, with @Mother crouched small in the middle of it.
 
-DIALOGUE (@Mother, English only, muffled by the closed door, alarmed but not screaming. Spoken in the 0-14s stretch ONLY, in separate bursts between knocks — never over the knocking, and she STOPS completely once the room begins to change:)
+26–30s: The ceiling light dies completely. The frame goes to FULL BLACK and stays black. Nothing is visible for the rest of the shot. Only her breathing continues in the dark, shaking, slowing. Hold on black to the end.
+
+DIALOGUE (@Mother, English only, alarmed but not screaming. Spoken in the 0–14s stretch ONLY, in separate bursts between knocks — never over the knocking — and she STOPS completely once the room begins to change:)
 "Hey! Help me —"
 (knocking)
 "I'm stuck in here!"
 (knocking)
 "Hey! Somebody —"
 
-NEGATIVE — strictly avoid: nothing supernatural ever touches, strikes, grabs, drags or comes near @Mother — objects move and change only in the room around her, never at her body and never thrown toward her. No figure, no person, no face, no silhouette, no hands, no shadow that moves by itself — the room changes with nobody there to change it. No blood, no body, no wound, no gore. No broken glass in her path and nothing shattering near her. The door NEVER opens and she never gets out. Do not cut — one continuous take. The camera shake must BUILD and then STOP; it is never violent enough to make the image unreadable, no whip pans, no spinning, no handheld chaos, no zoom. The transformation is never a cross-dissolve, never a match-cut, never a time-lapse — it is physical movement plus substitution in the dark. No lens flare, no haze, no god rays, no smoke, no mist, no CG energy. Nothing outside the room is visible — no walkway, no corridor, no window view. No text, no printed logos, no brand names, no readable signage. The final black is TRUE black — no silhouette, no rim light, no shape, no glow, nothing visible at all. No music, no score, no sting, no riser at any point.
+NEGATIVE — strictly avoid: exactly ONE cut, at 4s, and no others — 4s to 30s must be unbroken, and the shot never returns to the reverse angle after that cut. Nothing supernatural ever touches, strikes, grabs, drags or comes near @Mother — objects move and change only in the room around her, never at her body and never thrown toward her. No figure, no person, no face, no silhouette, no hands, no shadow that moves by itself — the room changes with nobody there to change it. No blood, no body, no wound, no gore. No broken glass in her path and nothing shattering near her. The door NEVER opens and she never gets out. The shaking must BUILD and then STOP; it is never violent enough to make the image unreadable, no whip pans, no spinning, no handheld chaos, no zoom. Do not show the ceiling or walls collapsing, no structural destruction, no falling debris, no cracks opening — the room shakes and its contents move, but the building does not come apart. The transformation is never a cross-dissolve, never a match-cut, never a time-lapse — it is physical movement plus substitution in the dark. No lens flare, no haze, no god rays, no smoke, no mist, no CG energy. Nothing outside the room is visible — no walkway, no corridor, no window view. No text, no printed logos, no brand names, no readable signage. The final black is TRUE black — no silhouette, no rim light, no shape, no glow, nothing visible at all. No music, no score, no sting, no riser at any point.
 
-Grounded real-camera look, full-body framing on @Mother with the room around her in shot, slow steady move or near-locked. The only light is the failing ceiling bulb — weak, warm, uneven, stuttering. Muted and desaturated throughout.
+Grounded real-camera look, full-body framing on @Mother with the room around her in shot. The only light is the failing ceiling bulb — weak, warm, uneven, stuttering. Muted and desaturated throughout.
 
 AUDIO-SFX
-Her hand working the locked handle — metal, dry, refusing. Knuckles on the door, and her voice between the knocks, close and real. Her breathing throughout, getting faster and shallower. As the shake begins, a heartbeat enters — hers, internal, mixed close, and it stays under everything from here, speeding up as the room turns. Under that a low structural rumble, felt more than heard, rising with the shake. Then the room itself: a drawer running open, fabric dragging, wood tipping and hitting carpet, a suitcase going over, small hard things rolling. These sounds are dry and physical, real objects in a real room — no whoosh, no chime, no shimmer, no reversed reverb, nothing musical. Her voice stops once the room starts moving; after that only breath. At 26s the ceiling light dies with a filament tick and EVERYTHING stops at once — heartbeat gone, rumble gone, room gone. The last four seconds are her breathing alone in complete silence and complete darkness. No music, no score, no sting, no riser anywhere.
+Her hand working the locked handle — metal, dry, refusing. Knuckles on the door, and her voice between the knocks, close and real. Her breathing throughout, getting faster and shallower. The cut at 4s does not break the sound: her breathing and the room tone carry straight across it. As the shaking begins, a heartbeat enters — hers, internal, mixed close, staying under everything and speeding up as the room turns. Under that a deep structural rumble, felt more than heard, rising with the shake, with the timber and window frames rattling. Then the room itself: a drawer running open, fabric dragging, wood tipping and hitting carpet, a suitcase going over, small hard things rolling. These sounds are dry and physical, real objects in a real room — no whoosh, no chime, no shimmer, no reversed reverb, nothing musical. Her voice stops once the room starts moving; after that only breath. At 26s the ceiling light dies with a filament tick and EVERYTHING stops at once — heartbeat gone, rumble gone, room gone. The last four seconds are her breathing alone in complete silence and complete darkness. No music, no score, no sting, no riser anywhere.
 ```
 
 # SCENE 9 — NEW, added by the CEO 2026-08-12 23:20
