@@ -107,6 +107,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 8E (insert, after 8D) | `@Room-Wreck` | `@Mother` | `@Prop-Phone` `@Prop-PhonePhoto` (lamp already in the room plate, untagged) · plus `@Video1` (8D clip, attached by the CEO) |
 | 8F (insert, after 8E) | `@Room-Wreck-Rev` | `@Mother` `@Mother-Soul` `@Daughter` | — · plus `@Video1` (8E clip, attached by the CEO) |
 | 8F (30s variant) | `@Room-Wreck-Rev` | `@Mother` `@Mother-Soul` `@Daughter` | — · plus `@Video1` (8E clip, attached by the CEO) |
+| 8G (after 8F) | `@House-Day` — overridden to early morning | `@Mother` `@Daughter` | `@Prop-Handbag` (folded cash, suitcase and backpack stay plain words) · attach NO prior clip |
 | 16 (Seedance 2.5) | `@Motel-Stairs` | `@Mother-Soul` `@Daughter` | — (vehicles, tape, markers, body bag all stay plain words; `@Mother` and every `@Room-*` deliberately untagged — exterior only, interior never seen) |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
@@ -116,9 +117,15 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 
 (`@Motel-Front`, `@Motel-Lobby`, `@House-Night`, `@Bus-Interior`,
 `@Prop-BusCord`, `@Father`, `@Stop-Work` are now used, by 12-A through 12-E
-above. `@House-Day` and `@Prop-DinnerPlates` are used by Scene 13, already
-written earlier in this file — not re-listed here since that block predates
-this map row and wasn't captured when the map was first built.)
+above. `@House-Day` is used by 12-FB1, 12-FB and — added 2026-08-17 — Scene 8G.)
+
+**Correction, 2026-08-17.** This note previously claimed `@House-Day` and
+`@Prop-DinnerPlates` were "used by Scene 13, already written earlier in this
+file." **There is no Scene 13 block in this file and there never was** — `grep
+'^## Scene'` returns nothing between 12-FB and 16. `@Prop-DinnerPlates` is
+therefore still unused by any written prompt and stays in the list above. The
+claim was left standing long enough that it could have been read as coverage
+for a scene that does not exist.
 
 These read like her journey to work and a home/family thread — Scenes 1-3 and
 possibly 12-16, none of which have prompts written. **Do not guess where they
@@ -793,6 +800,103 @@ Grounded real-camera look, slow steady move or near-locked, slow motion from 8s 
 
 AUDIO-SFX
 Her breathing, still unsteady from the previous shot. Three hard knocks on the door, a muffled shout through it — real, close, urgent. A second round of knocking, harder. The filament tick of the ceiling light dying. Then the door giving: wood splitting and the lock tearing out. From the frame the police come through, the sound drops away almost entirely — thinned and distant, as if heard from underwater: muffled radio chatter, boots on carpet, @Daughter's crying all present but far off and slowed. No sound at all accompanies @Mother-Soul coming apart — no whoosh, no chime, no shimmer; the motes are silent. @Daughter's crying stays distant and slowed under the embrace. As the zoom closes on the eye the remaining sound thins further and further until, at the cut, there is nothing. No music, no score, no sting, no riser anywhere.
+```
+
+## Scene 8G — LONG TAKE (10s, Seedance 2.5) — the morning she left for university
+
+**Follows Scene 8F directly, out of black.** The 30s cut of 8F ends inside the
+dead woman's open pupil and cuts hard to black; this is what the black opens
+onto. If the editor picks the 20s cut of 8F instead, this still cuts in
+cleanly — the black is a frame, not a dependency.
+
+**Attach NO prior clip.** There is nothing visual to carry across a black
+frame, and feeding 8F in would drag the wrecked room's walls and grade into a
+shot that must look nothing like it.
+
+**CEO asked for 6 seconds; this is 10.** Higgsfield's duration ladder is
+5/10/15/20/30 — there is no 6. 10s was his call over 5s, and it is the right
+one here: 5s fits the wave and nothing else, and the money beat is what makes
+the wave mean anything. Trim to 6s in the edit if he still wants 6 — cutting
+down from long is free, cutting up from short is a re-render.
+
+**This is a DIFFERENT memory from 12-FB's, and must not resemble it.** 12-FB's
+memory cuts are the childhood: `@House-Day` in golden afternoon, warm,
+soft-focus, old-photograph palette, the daughter a small child. This one is
+recent — the same house, a real morning, sharp and clean, the daughter grown.
+**Two memories that look identical are one memory to an audience.** The grade
+is the only thing telling them these are years apart, so it carries real
+weight and gets stated twice below.
+
+**The plate fights this shot and has to be overruled in writing.**
+`@House-Day` is a golden-afternoon reference image. Every lighting line in
+VISUAL and NEGATIVE exists to hold it at dawn. The house itself — the
+architecture, the yard, the street — must stay exactly as the plate has it;
+only the hour changes. Reusing the plate rather than building a morning one
+is deliberate: the audience has already seen this house in the childhood
+memory, and it has to be recognisably the same house.
+
+**Both characters are re-costumed, per the CEO.** `@Mother` is in her motel
+housekeeping uniform, already dressed for the shift she leaves for the second
+this shot ends — the same uniform she wears through the entire present-day
+film. That is the whole point of the costume: the audience has watched her
+clean other people's rooms in it for eight minutes, and now they see what the
+cleaning was for. `@Daughter` is in ordinary American college-student
+clothes — no uniform of any kind.
+
+**`@Prop-Handbag` is tagged on purpose.** The folded cash comes out of the same
+handbag `@Father` grabs for in 12-FB, and the same one sitting in room 214 in
+Scenes 9A and 9C. Nothing in the shot points at it. It just has to be the
+same bag.
+
+**No hug — my call, not the CEO's, so override it freely.** He gave the beats
+as money → refuse → closed fist → walk → one wave, and never mentioned an
+embrace. A generator will add one unprompted, so it is in the NEGATIVE. Three
+reasons to leave it out: at this camera distance a hug reads as a small
+indistinct shape; it costs about two of the ten seconds; and the hand held
+shut around the money already *is* the embrace, which is colder and better.
+Say the word and it goes back in.
+
+**She does not cry here.** She is dry-eyed and composed while her only child
+walks away — and in 8F, one shot earlier, the daughter comes apart over her
+body. The contrast is the reason both shots work. Tears in this one flatten
+it.
+
+```
+VISUAL
+One continuous locked-off wide shot, 10 seconds, no cuts. Early morning.
+
+The image comes up on a hard cut from black.
+
+Wide and completely static, from across the street: @House-Day fills the left of frame, and the sidewalk in front of it runs away diagonally into the distance toward frame right. Both women stay inside this single frame for the whole shot — the camera never moves, never zooms, never reframes, never follows.
+
+Early morning, just after sunrise. @Mother stands at the front of the house in her motel housekeeping uniform — the same uniform she wears throughout the film — fully dressed and ready to leave for work, @Prop-Handbag on her shoulder. @Daughter stands facing her: a grown young woman in ordinary everyday American college-student clothes, a worn wheeled suitcase upright beside her and a backpack over one shoulder.
+
+0–3s: @Mother takes a small fold of banknotes out of @Prop-Handbag and presses it into @Daughter's hand.
+
+3–5s: @Daughter tries to give it back, pushing the money toward her mother. @Mother takes her daughter's hand in both of her own and closes the fingers over it, holding them shut until @Daughter stops resisting.
+
+5–7.5s: @Daughter takes the suitcase handle and walks away down the sidewalk, away from the house and away from the camera, getting smaller in the frame. @Mother stays exactly where she is and watches her go.
+
+7.5–10s: Well down the street, @Daughter stops, turns back, and raises one hand — a single wave. @Mother raises hers. @Daughter turns away again and keeps walking. @Mother's hand stays up. Hold on the wide, both of them still in frame, to the last frame. CUT.
+
+NEGATIVE — strictly avoid: this is EARLY MORNING and nothing else. Low cool sunlight raking in from a low angle, long soft shadows, a pale sky, air that reads cold. NO golden-hour light, no orange or amber wash, no warm late-afternoon sun, no midday sun, no dusk, no night. The house, the yard, the street and every structure stay exactly as the reference image has them — only the hour of the day changes.
+
+This shot is SHARP and CLEAN and reads present-tense. It must NOT look like the childhood memory: no soft focus, no diffusion, no haze, no bloom, no vignette, no sepia or old-photograph palette, no added film grain, no colour wash, no dreamlike treatment of any kind, no slow motion. Nothing marks it as a memory from inside the frame.
+
+@Daughter is a GROWN YOUNG WOMAN here, the same age she appears in Scenes 10 and 11 — never the small child from the earlier memory at this same house. She wears ordinary casual American college-student clothing: no school uniform, no formal wear, no white-blouse-and-dark-skirt uniform of any kind, no graduation gown, no cap, no academic dress.
+
+Only TWO people exist in this shot. No father, no third figure, no neighbour, no passer-by, no jogger, no dog walker, no child, no face at any window, no silhouette in any doorway, nobody anywhere on the street or in any yard. No vehicle moves, arrives, departs or waits: no car, no taxi, no rideshare, no bus, no van at the kerb, no parked car with anyone in it.
+
+No embrace, no hug, no kiss, no arms around each other at any point — the only contact is the two hands closing over the money. Neither of them cries: no tears, no sobbing, no wiping of eyes, no trembling mouth. @Mother stays composed the entire time. She does not follow, does not step off toward her, does not walk after her, does not call out. @Daughter turns back exactly ONCE and waves exactly ONCE; she does not stop again, does not turn a second time, does not run back, does not drop the suitcase. The suitcase rolls on its wheels and is never carried or lifted.
+
+Neither of them speaks. No dialogue, no words, no calling out, no mouth movement that reads as speech at any point.
+
+No readable text anywhere in frame: no printed logos, no brand names, no street signs, no house numbers, no university name on any garment or bag. The banknotes are a plain small fold — no readable denomination, no readable printing, no currency detail, nothing that reads as a transaction, a payment, a tip or an exchange.
+
+Grounded real-camera look. Absolutely no camera movement of any kind: no pan, no tilt, no push, no pull, no zoom, no dolly, no crane, no handheld drift, no shake, no rack focus, no lens flare. Do not cut — one continuous take. No music, no score, no sting, no riser, no swell.
+
+AUDIO-SFX
+A street before it is awake: birdsong, the general hush of early morning, a single distant car somewhere well off-screen. Cloth and a shoulder strap shifting as the handbag is opened and closed. The suitcase wheels starting up on concrete and rolling steadily away, getting fainter as she goes, still faintly audible at the last frame. No voices at any point — nobody speaks, nobody calls out. No music, no score, no sting, no riser anywhere.
 ```
 
 # SCENE 9 — NEW, added by the CEO 2026-08-12 23:20
