@@ -105,6 +105,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 8C (insert, after 8B) | `@Motel-Walkway` `@Room-Clean` | `@Mother` | — (DND tag described in plain words; comes with the motel plate) · plus `@8B` (prior clip, attached by the CEO) |
 | 8D (insert, after 8C) | `@Room-Clean-Rev` (0-4s) → cut → `@Room-Clean` → `@Room-Wreck` | `@Mother` | — · plus `@Video1` (8C clip, attached by the CEO) |
 | 8E (insert, after 8D) | `@Room-Wreck` | `@Mother` | `@Prop-Phone` `@Prop-PhonePhoto` (lamp already in the room plate, untagged) · plus `@Video1` (8D clip, attached by the CEO) |
+| 8F (insert, after 8E) | `@Room-Wreck-Rev` | `@Mother` `@Mother-Soul` `@Daughter` | — · plus `@Video1` (8E clip, attached by the CEO) |
 | 16 (Seedance 2.5) | `@Motel-Stairs` | `@Mother-Soul` `@Daughter` | — (vehicles, tape, markers, body bag all stay plain words; `@Mother` and every `@Room-*` deliberately untagged — exterior only, interior never seen) |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
@@ -688,6 +689,62 @@ Grounded real-camera look. Two light sources that must stay distinct: the failin
 
 AUDIO-SFX
 Opens in darkness on her breathing alone — fast, uneven, close. The ceiling light returns with a filament tick and a faint electrical hum that keeps stuttering. Her heartbeat is under everything from the first frame, internal and close, and it jumps hard when the phone rings. The ringtone is an ordinary mobile ring, real and unremarkable, loud in a silent room — no reverb tail, no processing, nothing musical layered on it. Her breath catches at the first ring. Her footsteps on the wrecked carpet as she crosses, slow and uneven, small debris shifting underfoot. The ring keeps going, closer as the camera nears the nightstand. It stops mid-pulse — not tapering, cut off — and the room drops into silence with only her breathing and the light's hum. No notification chime when the missed-call screen appears; it changes in silence. Hold on her breathing to the end. No music, no score, no sting, no riser anywhere.
+```
+
+## Scene 8F — LONG TAKE (20s, Seedance 2.5) — they find her
+
+**Added 2026-08-17 (CEO), from a 27-question interview. Runs directly after
+Scene 8E**, which ended on her face as she read "41 missed calls". The CEO
+attaches the 8E clip as `@Video1`. Shot entirely on `@Room-Wreck-Rev`.
+
+**This is the same story beat as Scene 10-D, and that is deliberate.** 10-D
+already covers police entering, the daughter running in, the spirit coming
+apart and the body being revealed — it is generated and on Drive. Asked
+directly whether this replaces it, the CEO said **keep both: different
+angles, the editor picks.** So this is not a correction of 10-D and 10-D is
+not dead; treat them as two coverages of one moment.
+
+**`@Room-Wreck-Rev` is live again**, rebuilt by the CEO alongside
+`@Room-Clean-Rev` and unblocked in `audit_prompts.py` in the same commit.
+
+**Decisions the CEO made:**
+- **She walks in from behind the camera** to reach her mark — no need to show
+  her getting up from the phone; 8E's cut covers that.
+- **The knock startles her but does not frighten her** — she has been through
+  worse in the last minute.
+- **The lights die exactly as the door opens** — the jump-scare lands on the
+  blackout, not on the door. They never come back on; from that point the only
+  light is what the police bring.
+- **Police carry guns held DOWN, never aimed at anyone**, plus flashlights.
+- **The doorway light is white/blue, hard, like a spotlight** — the first cold
+  light in a film lit warm all the way through.
+- **Slow motion begins the moment they come through** and holds to the end.
+- **She dissolves BEFORE the daughter reaches her** — the daughter is left
+  grabbing at nothing.
+- **`@Mother-Soul`** is used for the translucent form.
+- **Officers' faces are never visible** — the film's standing rule holds.
+- **The body matches 10-D**: dried rust-brown stain, no wound, no fresh blood.
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. One location: interior of room 214, shot on @Room-Wreck-Rev — the reverse angle of the wrecked room, facing the door she came in by. This is the direct continuation of @Video1. The ceiling light is still failing, stuttering weak warm light.
+
+0–4s: @Mother walks INTO frame from behind the camera, crossing to the middle of the room with her back to us, and stops facing the door. Three hard knocks land on that door from outside, with a muffled shout. Her shoulders jump once — startled, but she does not flinch away or panic. She stays where she is, looking at the door.
+
+4–6s: A second round of knocking, harder. She does not move. Then the ceiling light DIES completely — the room drops to near-total black in the same instant the door bursts inward.
+
+6–11s: Hard white-blue light floods through the open doorway like a spotlight, cutting a sharp cold shaft across @Room-Wreck-Rev — the first cold light in the film. SLOW MOTION begins here and holds to the end of the shot. Two police officers come through, faces NEVER visible — backlit, cropped by frame edge, or seen from behind. Each carries a handgun held DOWN at low ready, pointed at the floor, never raised and never aimed at anyone. Their flashlight beams swing through the dark room, crossing the wreckage. As the light crosses @Mother she becomes @Mother-Soul: faintly translucent, a soft cool luminance under her skin and clothes, the ruined room dimly readable straight through her body. She does not move.
+
+11–16s: @Daughter comes through the doorway behind the officers, in tears, and runs toward @Mother-Soul with her arms opening. Before @Daughter can reach her — while there is still clear space between them — @Mother-Soul comes apart, dissolving into slow drifting motes of pale light and fine grey dust that hang and turn in the flashlight beams. @Daughter runs on through the empty air where she was standing, catching nothing, and drops onto the bed beyond.
+
+16–20s: On the bed lies @Mother's body, where it has been the whole time — the white sheet beneath it carrying a wide dark rust-brown stain, long dried into the weave and stiff at its edges. HER EYES ARE OPEN — fixed, unfocused, not looking at anything and not closed — and her skin is noticeably paler and greyer than the living woman we have been following all film. @Daughter takes hold of the body and holds it. The motes settle through the beams around them and go out one by one. Hold, still slow, still near-silent. CUT on the last frame.
+
+NEGATIVE — strictly avoid: no police officer's face is EVER visible — backlit, cropped or from behind only. The guns stay pointed DOWN at the floor at all times: never raised, never aimed at @Mother, @Mother-Soul, @Daughter or the camera, never fired, no muzzle flash, no shooting stance. No wounds, no injury detail, no gore, no weapon near the body. The body's eyes stay OPEN — do not close them, do not cover the face, do not turn the head away, and do not have them blink, track, focus or move in any way; the gaze is fixed and empty. The skin reads pale and grey-toned, clearly different from the living woman, but never blue, never green, never mottled, never decayed, no visible lividity or discolouration beyond simple pallor. The stain on the sheet is OLD and DRY — rust-brown, matte, absorbed into the fabric, with nothing wet, glossy, red, fresh, pooling or spreading anywhere in frame. She has been dead more than a day and the image must read that way. @Daughter NEVER touches @Mother-Soul and never reaches her — the dissolve completes while there is still space between them, and @Daughter shows no reaction to passing through anything. She does not see the spirit at any point. The ceiling light NEVER comes back on after it dies; from that moment the only light in the room is the doorway shaft and the flashlight beams. The glow on @Mother-Soul stays FAINT and cool: no halo, no beam from her, no god rays, no sparkle, no glitter, no fire, no embers, no CG energy, no colour shift to blue or green on her body. Her face stays recognisable as the same woman right up to the moment she comes apart. No other people beyond the two officers, @Daughter, @Mother-Soul and the body — no crowd, no third officer, no bystander, no figure in the doorway. Do not cut — one continuous take. No camera shake, no whip pan, no zoom. No text, no printed logos, no brand names, no readable signage or room number inside the room. No music, no score, no sting, no riser.
+
+Grounded real-camera look, slow steady move or near-locked, slow motion from 6s to the end. Light: a failing warm ceiling bulb for the first six seconds only, then hard white-blue spotlight through the doorway plus moving flashlight beams against black. Muted and desaturated except the dried stain and the pale motes.
+
+AUDIO-SFX
+Her breathing, still unsteady from the previous shot. Three hard knocks on the door, a muffled shout through it — real, close, urgent. A second round of knocking, harder. The filament tick of the ceiling light dying. Then the door giving: wood splitting and the lock tearing out. From the frame the police come through, the sound drops away almost entirely — thinned and distant, as if heard from underwater: muffled radio chatter, boots on carpet, @Daughter's crying all present but far off and slowed. No sound at all accompanies @Mother-Soul coming apart — no whoosh, no chime, no shimmer; the motes are silent. The last four seconds are almost pure silence with only the faint, slowed remains of the daughter's crying underneath. No music, no score, no sting, no riser anywhere.
 ```
 
 # SCENE 9 — NEW, added by the CEO 2026-08-12 23:20
