@@ -540,7 +540,7 @@ shot is the exact reverse.
 VISUAL
 Single continuous take, 20 seconds, no cuts. This is the direct continuation of @8B — same night, same door, the same woman, moments later. The camera stands OUTSIDE on the open-air walkway of @Motel-Walkway, locked off on a tripod, framed on the doorway of room 214, which already stands open. It never moves, never pans, never tilts, and never goes inside. A Do Not Disturb tag hangs on the outside handle for the whole shot. @Mother's face is never seen clearly — she is seen from behind throughout.
 
-0–4s: @Mother stands just outside the open doorway with her back to camera, lit by the steady warm amber walkway bulb. Beyond her, @Room-Clean is dark and unstable — its ceiling light is flickering, so the interior arrives in stutters of weak warm light separated by black. She steps forward and crosses the threshold into the room.
+0–4s: @Mother stands just outside the open doorway with her back to camera, lit by the steady warm amber walkway bulb. Beyond her, @Room-Clean is dark and unstable — its ceiling light is flickering, so the interior arrives in stutters of weak warm light separated by black. She steps forward.
 
 4–9s: She is inside now, a few steps in, and speaks into the room. She turns slowly on the spot, surveying, unhurried — seen only in the flickers, in fragments, never cleanly. Between flickers the doorway is a black rectangle. The walkway around the camera stays steadily lit.
 
@@ -548,21 +548,23 @@ Single continuous take, 20 seconds, no cuts. This is the direct continuation of 
 
 13–16s: She comes back into the visible strip from that side — and in the same instant the door of 214 SLAMS shut, hard and fast, by itself, cutting her off mid-stride. No hand, no arm, no push, no figure behind it. She is inside; that partial return is the last thing seen of her. The tag swings violently on the handle.
 
-16–20s: Locked on the closed door. From behind it: fists hammering, and her voice, muffled, calling out. The door does not open. The tag slows and comes to rest. Final frame holds on the closed door, the room number 214, and the hanging tag — still, while the banging continues. CUT TO BLACK on the last frame, a hard cut.
+16–20s: Locked on the closed door. It comes in beats, not one continuous burst. First: fists hammering from behind it, and her voice, muffled, calling out. Then a pause — and the door and its handle physically MOVE: the handle jerks and turns back and forth, the door shudders in its frame, rattling against the latch in rhythm with her pulling from inside. It does not open. Then her voice again, after that rattling. The tag slows and comes to rest. Final frame holds on the closed door, the room number 214, and the hanging tag — still, while the banging continues. CUT TO BLACK on the last frame, a hard cut.
 
 DIALOGUE
 (4–9s, @Mother inside the room, calm and professional, the unhurried sing-song a housekeeper uses to an empty room — English only:)
 "Hello....? Housekeeping."
 
-(16–20s, @Mother from behind the closed door, muffled, alarmed but not screaming:)
-"Hey! I'm in here! The door's stuck!"
+(16–20s, @Mother from behind the closed door, muffled, alarmed but not screaming. The two halves are SEPARATE — do not run them together; the door rattling happens in the gap between them:)
+"Hey! I'm in here!"
+(fists on the door, then the handle jerking and the door shuddering against the latch)
+"The door's stuck!"
 
 NEGATIVE — strictly avoid: the camera NEVER enters the room, never pushes in, never follows her, never moves at all — it is locked off on the walkway for all 20 seconds. Do not cut. Nobody closes the door — no hand, no arm, no shoulder, no figure, no shadow, nothing visible pushing it; it moves on its own. After she steps inside, @Mother NEVER comes back out, never re-crosses the threshold, and never passes the camera — she stays inside @Room-Clean and only moves in and out of the narrow strip the doorway reveals. She must be inside when the door shuts. No other person anywhere in frame or in the room. Nothing supernatural is visible — no figure, no face, no silhouette, no shape in the doorway, nothing in a mirror, no shadow that moves by itself. @Mother's face is never readable — she is seen from behind outside, and only in fragments between flickers once inside. No blood, no body, no broken glass, no overturned furniture, no signs of a struggle; the room is ordinary. The Do Not Disturb tag must stay on the handle for the whole shot and must never fall off. After the door shuts it is NEVER reopened and she is never seen again in this shot. OPEN-AIR walkway — no interior corridor, no facing doors across a passage, no ceiling panels, no fluorescent light. No text or readable signage other than the room number on the door itself. No printed logos, no brand names. No lens flare, no haze, no volumetric god rays through the doorway. No music, no sting, no riser.
 
 Grounded real-camera look, locked tripod framing, no handheld drift. Two light zones that must stay distinct: the walkway outside is steady warm amber; the room beyond the doorway is unstable, flickering weak warm light against black. Muted and desaturated throughout.
 
 AUDIO-SFX
-Steady night air on the walkway — distant road noise, the faint buzz of the walkway bulb, insects. Her shoes on concrete for the first few steps, then changing to carpet as she crosses the threshold — after that her footsteps stay inside the room, carpet only, never concrete again. From inside, the electrical tick and hum of the failing ceiling light, and her unhurried steps moving off to one side out of view and coming back. Her voice from inside, easy and routine. Then the SLAM — one hard, heavy, final impact of a solid door in its frame, with the flat crack of the latch catching. The tag rattles against the wood and settles. Then fists on the door from the inside, muffled and insistent, and her voice through it, close but blocked, alarmed and getting louder. The banging keeps going right up to the cut and stops dead with the picture. No music, no score, no sting, no riser anywhere.
+Steady night air on the walkway — distant road noise, the faint buzz of the walkway bulb, insects. Her shoes on concrete for the first few steps, then changing to carpet as she moves inside — after that her footsteps stay inside the room, carpet only, never concrete again. From inside, the electrical tick and hum of the failing ceiling light, and her unhurried steps moving off to one side out of view and coming back. Her voice from inside, easy and routine. Then the SLAM — one hard, heavy, final impact of a solid door in its frame, with the flat crack of the latch catching. The tag rattles against the wood and settles. What follows is in beats, not one continuous wall of noise: fists on the door from the inside, muffled and insistent — her voice through it, close but blocked — then a gap filled by the dry mechanical rattle of the handle being worked and the door knocking against its latch — then her voice again, louder. The sounds interlock; her lines land in the spaces between the banging, never over it. The banging keeps going right up to the cut and stops dead with the picture. No music, no score, no sting, no riser anywhere.
 ```
 
 # SCENE 9 — NEW, added by the CEO 2026-08-12 23:20
