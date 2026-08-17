@@ -19,7 +19,10 @@ FORBIDDEN = [
     # image, plate now renders. Was copyright-flagged, blocked the render
     # outright in Scenes 4/6/7/8/9A before the fix. Left this line as a
     # marker in case the new image ever regresses.
-    '@Room-Clean-Rev',
+    # '@Room-Clean-Rev' — UNBLOCKED 2026-08-17 (CEO): he rebuilt the plate.
+    # It was cancelled 08-13 as redundant with @Room-Clean; Scene 8D needs the
+    # reverse angle of the room, so it is live again. Left as a marker in case
+    # the new plate ever regresses, same as @Motel-Walkway above.
     '@Room-Wreck-Rev',
     '@Room-DoorOut-Down',
     '@Prop-Glasses',       # CEO removed reading glasses from the film
