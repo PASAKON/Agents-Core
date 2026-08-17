@@ -63,7 +63,12 @@ def main():
 
         scene = scene_of(title)
         tags = sorted(set(TAG.findall(code)))
-        frozen = scene.startswith(QUARANTINED)
+        # Exact match, not startswith. Every delivered block in this range is
+        # labelled with a bare digit ("4".."8"), but a prefix test also swept
+        # in any NEW scene whose label merely starts with one -- Scene 8B, a
+        # fresh insert, came out FROZEN on its first audit and would have been
+        # silently excluded from generation while still reporting PROBLEMS: 0.
+        frozen = scene in QUARANTINED
         flags = []
 
         if frozen:

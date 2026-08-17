@@ -101,6 +101,7 @@ If a scene ever needs more than ten, drop in this order — last dropped first:
 | 12-FB1 (Seedance 2.5) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` |
 | 12-FB2 (Seedance 2.5) | `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` | `@Mother` `@Father` | `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
 | 12-FB (Seedance 2.5, alternate to FB1+FB2) | `@Stop-Work` `@Bus-Interior` `@House-Night` `@House-Day` `@Motel-Front` `@Motel-Lobby` `@Room-DoorOut` `@Room-Clean` → `@Room-Wreck` `@Motel-Walkway` | `@Mother` `@Father` `@Daughter` | `@Prop-Handbag` `@Prop-BusCord` `@Prop-Ring` `@Prop-RoomKey` `@Prop-Lamp` `@Prop-Glass` `@Prop-DNDTag` |
+| 8B (insert) | `@Motel-Walkway` `@Room-DoorOut` `@Room-Clean` `@Room-Bathroom` | `@Mother` | `@Prop-DNDTag` |
 | 16 (Seedance 2.5) | `@Motel-Stairs` | `@Mother-Soul` `@Daughter` | — (vehicles, tape, markers, body bag all stay plain words; `@Mother` and every `@Room-*` deliberately untagged — exterior only, interior never seen) |
 
 ### Plates that exist but no written scene uses yet — CEO to confirm
@@ -441,6 +442,61 @@ Knuckles hammering on a hollow door from the inside — then stopping dead mid-b
 ```
 
 ---
+## Scene 8B — LONG TAKE (20s) — INSERT between Scene 8 and Scene 9A
+
+**Added 2026-08-17 (CEO), written from a 10-question interview.** A bridge shot:
+Scene 8 ends with her stopped at the threshold looking into the dark; Scene 9A
+begins with her already inside pressing the light switch. This fills the gap —
+the crossing itself.
+
+**It deliberately overlaps both neighbours and that is the point.** It re-covers
+Scene 8's hand-on-handle and Scene 9A's light-stutter so the three read as one
+continuous move. Scene 8 is FROZEN and already delivered — nothing here
+replaces it, and it must not be regenerated.
+
+**Decisions the CEO made, so a later reader does not mistake them for drift:**
+- The heartbeat is **inside her head**, mixed louder than the real room — the
+  first subjective sound in the film.
+- **No glass.** Scene 9A's NEGATIVE forbids broken glass and that stands; the
+  jump-scare is a metallic bang from the bathroom pipes instead. `@Prop-Glass`
+  is deliberately NOT used here.
+- Her line changes the *motivation* from Scene 9A's routine "Housekeeping, I'm
+  coming in" to a welfare check — she heard the noise from this room while she
+  was working next door. She is a housekeeper and speaks English only.
+- Her face is glimpsed **once**, in a single flicker, and still not clearly —
+  the film's face rule bends here rather than breaking.
+- It ends mid-room with the light still flickering, which is exactly where
+  Scene 9A picks her up.
+
+```
+VISUAL
+Single continuous take, 20 seconds, no cuts. Begins outside on the open-air walkway of @Motel-Walkway at door 214, then crosses through @Room-DoorOut into @Room-Clean. @Mother's face is never seen clearly — the camera stays behind and slightly below her, except for one deliberate flicker-glimpse noted below. @Prop-DNDTag hangs on the outside handle and stays hanging for the whole shot. Both her hands are empty.
+
+0–6s: Tight, low and close behind her on @Mother's bare hand as it hovers just short of the door handle of 214, not touching it yet. @Prop-DNDTag hangs a few inches away, perfectly still. Her fingers tense and open once. She does not move otherwise. The frame is almost static.
+
+6–9s: Her hand closes on the handle and turns it. @Room-DoorOut swings slowly inward away from camera. Beyond the threshold @Room-Clean is pitch black — a flat wall of darkness that the warm amber walkway light does not penetrate; it lands only on the carpet just inside the door and stops there.
+
+9–12s: She reaches in to the wall switch and presses it. The ceiling light of @Room-Clean catches once, weak and warm, then drops out. It catches again, then drops out and stays dark for about three full seconds — long enough to feel wrong. Then it comes back and holds, uneven and dim. In the exact frame it returns, a hard metallic BANG sounds from the direction of @Room-Bathroom. Nothing in frame moves or falls.
+
+12–16s: She stays in the doorway, one step in, and speaks toward the dark room. On one of the light's flickers her face is briefly readable — a fraction of a second, half-lit and side-on, then gone. It is never clearly resolved.
+
+16–20s: She takes two slow steps to the middle of @Room-Clean and stops, listening, her back to camera. The room around her reads as an ordinary occupied guest room. The ceiling light keeps flickering gently. Hold on her back and the flickering room as the shot ends.
+
+DIALOGUE (spoken by @Mother in English, the calm professional register of a hotel housekeeper doing a welfare check — she does not speak Thai):
+"Housekeeping. Hello? Is anyone in here?"
+(pause)
+"I heard a loud noise from this room while I was next door."
+(pause)
+"Is everything alright? Do you need any help?"
+
+NEGATIVE — strictly avoid: no glass, no broken glass, no falling or shattering objects of any kind — the bang is a sound from off-screen only and nothing in frame moves. No blood, no body, no person other than @Mother, no overturned furniture, no signs of a struggle. The room is tidy and ordinary. Nothing supernatural is visible — no figure, no face, no silhouette, no shadow that moves by itself, nothing in a doorway or mirror. Do not show the interior of @Room-Bathroom — the bang comes from that direction, unseen. @Prop-DNDTag must stay hanging on the outside handle and must never fall or be removed. @Mother's face is readable in ONE brief flicker only and never clearly — no clean front-on close-up, no lingering. Do not cut — this is one continuous take. No camera shake, no whip pan, no zoom, no push past her into the room. No lens flare, no haze, no volumetric god rays from the doorway. OPEN-AIR walkway outside — no interior corridor, no facing doors, no ceiling panels, no fluorescent light. No text, no readable room number beyond the door itself, no printed logos, no brand names.
+
+Grounded real-camera look, handheld with natural weight, locked framing during the hover. Light sources are only: warm amber bare-bulb walkway light behind her, and the weak uneven ceiling light inside once it holds. Muted and desaturated throughout.
+
+AUDIO-SFX
+Her heartbeat, close and internal — this is inside her head, not in the room, and it is mixed LOUDER than everything else in the first six seconds. Slow, heavy, and speeding up slightly as her hand tenses. Under it, thin: distant road noise, her own unsteady breathing. A latch turning. Then a long dry hinge — an old door, drawn out, complaining, but not theatrical. As the door opens the heartbeat drops back and the room's dead silence comes forward. The switch clicks: once, nothing; again, nothing; then three seconds of total silence in the dark before the light returns. On the exact frame it returns, a single hard metallic BANG from the direction of the bathroom — pipes, close and real, no reverb tail, no musical sting, no riser. Then her voice, and after each line, silence with no answer. Underneath, the faint electrical buzz and tick of the failing ceiling light. No music, no score anywhere in this piece.
+```
+
 
 # SCENE 9 — NEW, added by the CEO 2026-08-12 23:20
 
