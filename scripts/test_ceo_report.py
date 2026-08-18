@@ -86,6 +86,69 @@ def test_report_to_ceo_success_writes_letter_and_closes_row(report_env):
 
 
 # ---------------------------------------------------------------------------
+# 1b. A failed-over SomPong: the Mac holds the open order, so the reply must
+#     land here, not over SSH.
+#
+# On 2026-08-16 SomPong moved to the Mac and began writing orders into the
+# Mac's own relay_queue.db. report_to_ceo still routed by hostname, so it SSH'd
+# to Contabo, closed unrelated rows that happened to share an id, shipped the
+# letter into a mailbox no live process was reading -- and returned "closed as
+# done" for all of it. Four real answers never reached the CEO while every call
+# reported success. These two tests pin the rule that replaced hostname
+# routing: reply to the ledger that holds this order OPEN.
+# ---------------------------------------------------------------------------
+
+def test_mac_with_locally_open_order_replies_locally_and_never_ssh(report_env,
+                                                                   monkeypatch):
+    monkeypatch.setattr(cr, "detect_host", lambda: "mac")
+
+    def _boom(*a, **k):  # any SSH here means the fix regressed
+        raise AssertionError("went to Contabo for an order open on this machine")
+
+    monkeypatch.setattr(cr, "_ssh_sqlite", _boom)
+    monkeypatch.setattr(cr, "_ssh_exec", _boom)
+
+    order_id = _insert_order(host="mac")
+    assert cr.report_to_ceo(order_id, "done", "answered locally") == \
+        f"order #{order_id} closed as done"
+
+    letters = _reply_letters(report_env / "inbox")
+    assert len(letters) == 1, "the reply must be readable by the SomPong running here"
+    assert "answered locally" in letters[0]["body"]
+
+    with cr._local_conn() as conn:
+        status = conn.execute(
+            "SELECT status FROM ceo_orders WHERE id = ?", (order_id,)
+        ).fetchone()[0]
+    assert status == "done"
+
+
+def test_mac_still_uses_contabo_when_the_local_row_is_not_open(report_env,
+                                                              monkeypatch):
+    """Ownership is an OPEN row, not a matching id.
+
+    Both ledgers number from 1, so a closed local row carrying the same id is a
+    collision, not this order -- it must not capture a Contabo-owned reply.
+    """
+    monkeypatch.setattr(cr, "detect_host", lambda: "mac")
+    order_id = _insert_order(status="done")  # same id, already closed here
+
+    calls = []
+
+    def _fake_ssh_sqlite(sql):
+        calls.append(sql)
+        return True, "awaiting_reply|"
+
+    monkeypatch.setattr(cr, "_ssh_sqlite", _fake_ssh_sqlite)
+    # _ssh_exec returns (ok, output), not a dict -- getting this wrong makes the
+    # test fail inside the code under test and look like a real regression.
+    monkeypatch.setattr(cr, "_ssh_exec", lambda *a, **k: (True, ""))
+
+    cr.report_to_ceo(order_id, "done", "belongs to Contabo")
+    assert calls, "a Contabo-owned order must still be reported over SSH"
+
+
+# ---------------------------------------------------------------------------
 # 2. Bad status -- writes NOTHING (row untouched, no letter)
 # ---------------------------------------------------------------------------
 

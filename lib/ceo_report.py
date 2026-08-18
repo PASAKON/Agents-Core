@@ -148,8 +148,45 @@ def _ssh_sqlite(sql: str) -> tuple[bool, str]:
 # must never claim success for an order it couldn't actually verify.
 # ---------------------------------------------------------------------------
 
+def _order_open_in_local_ledger(order_id: int) -> bool:
+    """True when THIS machine's ledger holds the order, still open.
+
+    Ownership follows where SomPong is running, not which machine the
+    C-level is on. When SomPong failed over to the Mac on 2026-08-16 it
+    began writing orders into the Mac's own state/relay_queue.db while this
+    module kept reporting over SSH to Contabo — so four real orders sat
+    awaiting_reply on the Mac while the reports closed unrelated Contabo
+    rows that happened to share an id, and the reply letters landed in a
+    mailbox no live process was reading. Both halves reported success.
+
+    Restricted to `awaiting_reply` on purpose: the two ledgers have
+    overlapping ids, so mere existence is not ownership. An open row is.
+    """
+    if not QUEUE_DB_PATH.exists():
+        return False
+    try:
+        with _local_conn() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM ceo_orders WHERE id = ? AND status = 'awaiting_reply'",
+                (order_id,),
+            ).fetchone()
+    except sqlite3.Error:
+        return False
+    return row is not None
+
+
+def _is_local(host: str) -> bool:
+    """Whether this order's ledger and mailbox are on this filesystem.
+
+    "contabo" means the process IS the Contabo checkout; "local" is the Mac
+    holding a failed-over SomPong. Both read and write here rather than over
+    SSH — one code path, reached for two different reasons.
+    """
+    return host in ("contabo", "local")
+
+
 def _lookup_order(order_id: int, host: str) -> dict:
-    if host == "contabo":
+    if _is_local(host):
         with _local_conn() as conn:
             row = conn.execute(
                 "SELECT status, replied_at FROM ceo_orders WHERE id = ?",
@@ -179,7 +216,7 @@ def _close_order(order_id: int, status: str, detail: str, now: str, host: str) -
     race guard: if the row was closed by someone else between the lookup
     above and this call, zero rows change and that is reported as a
     failure, not silently treated as success."""
-    if host == "contabo":
+    if _is_local(host):
         with _local_conn() as conn:
             cur = conn.execute(
                 "UPDATE ceo_orders SET status = ?, replied_at = ?, reply_detail = ? "
@@ -223,8 +260,14 @@ def _deliver_reply_letter(host: str, body: str, from_role: str,
     Contabo's real inbox directory. The JSON body travels over stdin
     (`_ssh_exec`'s `input_text`), never shell-interpolated -- arbitrary
     reply text can never break out of the remote command line.
+
+    Since 2026-08-16 the Mac can also be the local case: a failed-over
+    SomPong reads THIS machine's state/inbox/, so a local mailbox.send is
+    what reaches it and the SSH shipment is what would sit nowhere. That is
+    the same rule as before, just no longer decided by hostname — see
+    _order_open_in_local_ledger.
     """
-    if host == "contabo":
+    if _is_local(host):
         try:
             mailbox.send(
                 SECRETARY_TO_ROLE, SECRETARY_TO_SESSION_ID, body,
@@ -302,6 +345,11 @@ def report_to_ceo(order_id: int, status: str, detail: str) -> str:
         )
 
     host = detect_host()
+    # A failed-over SomPong owns the order even though this is not Contabo.
+    # Checked before the lookup, so the reply is verified against, written
+    # into, and closed in the one ledger that actually holds it.
+    if host != "contabo" and _order_open_in_local_ledger(order_id):
+        host = "local"
 
     lookup = _lookup_order(order_id, host)
     if not lookup["ok"]:

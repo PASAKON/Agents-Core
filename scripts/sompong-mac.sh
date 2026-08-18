@@ -24,12 +24,31 @@ KEY_FILE="$ROOT/state/secretary-api-key"
 SERVER_LOG="$ROOT/state/secretary-server.out"
 POLL_LOG="$ROOT/state/secretary-telegram.out"
 
+WAKER_LOG="$ROOT/state/secretary-waker.out"
+ENV_FILE="${CLAUDEFLOW_ENV:-/Users/gob/Projects/mooniex-claudeflow/.env}"
+
 if [[ "${1:-start}" == "stop" ]]; then
   pkill -f "runners.secretary_telegram_poll" 2>/dev/null || true
+  pkill -f "runners.secretary_waker" 2>/dev/null || true
   pkill -f "runners.secretary_server" 2>/dev/null || true
   echo "stopped"
   exit 0
 fi
+
+# The waker carries replies the other way: report_to_ceo writes a letter into
+# state/inbox/secretary-sompong/, the waker has SomPong read it, think, and
+# message the CEO. Without it the inbound half works and every answer sits on
+# disk — which is exactly what happened to four orders on 2026-08-16.
+#
+# lib/telegram_out reads TELEGRAM_BOT_TOKEN, and claudeflow's .env points that
+# name at @MoonieXBot: nine bots share that file. Sending SomPong's replies
+# with it returns ok:true and delivers them into a different bot's chat, so map
+# the names explicitly here rather than inheriting.
+_env_from_file() { grep -hE "^$1=" "$ENV_FILE" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'"' \r'; }
+export TELEGRAM_BOT_TOKEN="${SECRETARY_BOT_TOKEN:-$(_env_from_file SECRETARY_BOT_TOKEN)}"
+export TELEGRAM_CEO_CHAT_ID="${TELEGRAM_CEO_CHAT_ID:-$(_env_from_file SECRETARY_ADMIN_CHAT_ID)}"
+[[ -n "$TELEGRAM_BOT_TOKEN" && -n "$TELEGRAM_CEO_CHAT_ID" ]] \
+  || { echo "SECRETARY_BOT_TOKEN / SECRETARY_ADMIN_CHAT_ID missing from $ENV_FILE"; exit 1; }
 
 # The API key only ever guards 127.0.0.1:8643, but secretary_server refuses to
 # start without one. Generate once and keep it, so a restart does not orphan a
@@ -58,6 +77,14 @@ else
   nohup "$PY" -m runners.secretary_telegram_poll >> "$POLL_LOG" 2>&1 &
   echo "telegram poller: started (pid $!)"
   sleep 4
+fi
+
+if pgrep -f "runners.secretary_waker" >/dev/null 2>&1; then
+  echo "reply waker:    already running"
+else
+  nohup "$PY" -m runners.secretary_waker >> "$WAKER_LOG" 2>&1 &
+  echo "reply waker:    started (pid $!)"
+  sleep 3
 fi
 
 echo
