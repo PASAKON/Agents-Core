@@ -87,9 +87,16 @@ produces false alarms: on 2026-08-13 it read 339.2 credits / $13.568 against
 a 21.8 / $0.872 baseline confirmed the day before — a 15x jump that looked
 alarming and was entirely benign.
 
-**Unlimited covers Seedance video only. Images are always charged.** Every
-reference plate the CEO builds is a paid image create, and plates are made by
-the dozen with retries.
+**Unlimited covers IMAGES too — corrected 2026-08-19.** The older claim here was
+that Unlimited applied to Seedance video only and that every reference plate was
+a paid image create. That is wrong: with Unlimited active, an image generate
+shows the `UNLIMITED` button with no price and costs nothing, confirmed from the
+live composer. Do not tell an operator to expect a charge on plates.
+
+When Unlimited is genuinely unavailable and the CEO authorises paying, the cheap
+fallback is **GPT Image 2 at 1K + Medium ≈ 2 credits per image** — measured
+2026-08-19 at exactly 16 credits for 8 images. 2K + High costs materially more,
+so name 1K/Medium explicitly in the brief or the operator uses composer defaults.
 
 Known price points (CEO, 2026-08-13):
 
@@ -626,3 +633,108 @@ task, include:
   auto-fire, Incident 2 above). GH issue #45, #47.
 - Related skills: `browser-operator` (generic browser cost-discipline),
   `dev-spawn-protocol` (generic DEV spawn steps).
+
+## Findings from the Valder wave, 2026-08-19 — every one of these cost a live blocker
+
+An overnight wave on `ai-film-festival-3` (project `project_valder_*`) stalled
+five separate times on UI behaviour that no brief anticipated. Each item below
+is the fix, already paid for.
+
+### The video Generate button shows a struck-through price. That is correct.
+
+**Do not carry the "zero digits" rule over from image tasks.** On a Seedance
+video generation with Unlimited active, the button reads
+`Unlimited · ~~140~~ · 0`. The struck-through number is the price you are *not*
+paying and the `0` is what is charged. A struck-through price is positive
+evidence the toggle is working.
+
+| Button reads | Meaning |
+|---|---|
+| struck-through price then `0` | Unlimited working — **click** |
+| bare `Generate`, nothing else | fine — **click** |
+| live price, NO strike-through | Unlimited OFF — **do not click** |
+
+**The distinction is the strike-through, not the presence of digits.** A brief
+that says "zero digits anywhere" will stop a correct operator dead; one that says
+"any number means stop" is worse, because it trains the operator to ignore the
+real signal. Write the table.
+
+### Elements from another folder do NOT appear in the composer's @ dropdown
+
+The single biggest time sink of the wave. Typing `@project_valder_char_son` in
+the Scene-1 folder composer silently returned nothing, even though that Element
+existed and resolved fine in its own folder. The composer's `@` autocomplete is
+**folder-scoped**.
+
+Attach a cross-folder element this way instead:
+1. Open the Elements panel.
+2. Find the element's card (switch tabs — Characters / Locations / Props).
+3. **Right-click the card → "Use".**
+
+A small warning icon may appear on the reference thumbnail immediately after
+attaching. It is transient and clears itself — re-check before treating it as a
+failure.
+
+Related: the folder-scoped Elements picker also **under-reports what exists.**
+To see everything on the account, open the project root with `?elements=1`.
+
+### Creating an Element: use the detail-modal path, never the grid hover menu
+
+The folder-grid hover `...` menu is unreliable — the composer's floating
+prompt-preview panel overlaps it and swallows the click. What works every time:
+
+click the card → it opens `?preview=<uuid>` → the `...` at the **bottom-right of
+that modal** → Create Element.
+
+And the New Element dialog's **Name / Element ID inputs do not accept coordinate
+clicks.** Set them with a native value setter plus an `input` event dispatch via
+JS. That is a single atomic set, not char-by-char, so it is not a `type()` risk
+and it is approved.
+
+### Element IDs are GLOBAL across the account
+
+A short name like `@Mother` resolves to whichever element on the whole account
+owns that name — usually one from an older project — and the clip renders with
+the wrong face while looking completely normal. Nothing errors.
+
+Every element needs a **Name** (human label) and an **ID** (what goes in the
+prompt, all lowercase). Prompts always reference the ID. Convention adopted
+2026-08-18: `project_<slug>_char_*` / `_loc_*` / `_prop_*`.
+
+When renaming an existing sheet, replace suffixed tags first (`@Father-Scarf`
+before `@Father`) or the shorter token eats the longer one.
+
+### The worker mailbox delivers notifications with no body
+
+Hit repeatedly across five operators in one night: the agent sees
+`[New message from CTO]`, reports "no visible content to act on", and goes back
+to sleep. Two operators burned 30–45 minutes each waiting on replies that had
+already been sent.
+
+**Reply through channels the operator actually reads:**
+- **Append to its `TASK.md`** in the worktree. This worked every single time.
+- **Comment on the GH blocker issue** it filed — operators poll their own issue.
+- Send the mailbox ping too, but only as a pointer: "read the end of TASK.md".
+
+Write this into the brief itself so the operator knows to re-read TASK.md when it
+gets an empty notification.
+
+### Do not let a non-generating task hold the queue
+
+An Element-registration task ran 30 minutes without touching the generate slot
+while the account sat idle. Registration, verification and reporting are all
+free — schedule them *during* a render, never instead of one. If a task's
+remaining work does not generate, and something generatable is ready, stop it and
+fire the generation.
+
+### Treat "Unlimited is broken" from an operator as unconfirmed
+
+One operator reported the toggle stuck in both its original tab and a fresh tab,
+which triggered a switch to paid generation. The CEO checked personally minutes
+later: the account was fine the whole time. It was client-side state in that
+operator's browser.
+
+Before accepting a broken-toggle report and changing the cost model, get a human
+to confirm on the real screen. The recovery ladder stays: one ref click → one
+fresh tab → stop and escalate. But escalate as "this operator cannot flip it",
+never as "the account is broken".
