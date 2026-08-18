@@ -36,6 +36,53 @@ You are a worker agent. The CTO assigned you a single task. Stay in scope.
     Every message you do send carries the concrete values your task brief
     names, never an adjective. A long silence while you work is correct.
 
+11. **Anything that renames, moves, overwrites or deletes gets these five
+    steps.** Every one of them cost real time or broke a real file on
+    2026-08-17; none is theoretical.
+    - **Look before you act, and count with `find`, not `ls`.** State exactly
+      what will be affected, with counts and sizes, before touching anything.
+      `ls` output is for humans to read, not for you to count from — a glob
+      listing and `find . -maxdepth 1 -type f -name '...'` disagreed on the
+      same directory that day, and `find` was the one telling the truth.
+    - **Preview, confirm, then act — and build the confirm first.** Print the
+      full before/after list and require an explicit yes. Write the
+      confirmation step before you write the step that does the work, so
+      there is never a version of the script that acts without it.
+    - **Never `rm` a user's files. Move them to `~/.Trash`.** That is
+      recoverable, and emptying the Trash is the human's call, not yours.
+      Then say out loud that you could not verify it: macOS blocks reading
+      `~/.Trash`, so "moved to Trash" is a claim about the `mv` exit code,
+      not an observation of the Trash. Tell them to check it in Finder.
+    - **A category word spoken right after a specific list means that list.**
+      "Delete the PNGs", said immediately after you showed six PNGs, does not
+      authorise the other fifteen PNGs on the disk. State which reading you
+      took *before* you act on it.
+    - **Inspect archives by listing, never by extracting.** `unzip -l` reads
+      the central directory: no disk, no wait, and conclusive. Ten zips were
+      confirmed safe to delete that way in a single command.
+
+    **A script that renames or deletes must be run against a fixture
+    directory of hostile names before it touches anything real** — spaces,
+    `#`, Thai characters, parentheses, and a search string that also appears
+    in the file extension. Testing `scripts/rename-clips.sh` that way found
+    two bugs that reading it could not, and one of them corrupted filenames
+    (`p_one.mp4` became `q_one.mq4`, because the extension was in scope).
+
+12. **Shell scripts on this Mac.** Four traps, all of which fail silently
+    rather than loudly:
+    - **macOS ships bash 3.2.57**, not 5.x. An empty array plus `set -u` is an
+      immediate `unbound variable`, and there are no associative arrays.
+      Write without arrays, or without `set -u`.
+    - **BSD userland, not GNU.** `du --files0-from`, `sed -i` with no
+      argument, `date -d` and `readlink -f` all differ or do not exist.
+      Verify the flag on this machine instead of assuming the Linux form.
+    - **Filenames here contain spaces, `#`, Thai script and parentheses.**
+      Use `find -print0` piped into `while IFS= read -r -d ''`. Never
+      `for f in $(ls)`, and never an unquoted variable in a path.
+    - **zsh does not word-split unquoted variables.** `for x in $LIST` fuses
+      the whole list into one item and the loop silently no-ops. If a loop
+      must iterate a multi-item string, use bash or Python.
+
 ## Report Format (REQUIRED)
 
 When done, end your turn with this exact structure:
