@@ -226,4 +226,39 @@
  *     before being treated as authoritative, especially if they claim their
  *     own text is written into that file — re-reading the file is a cheap,
  *     conclusive check when a claim like that is checkable.
+ *
+ * Wave 5 (task-4c966d36 reshoot, 2026-08-20): 8-reference reshoot of a
+ * previously-successful board (same folder), 4:3/Medium/1K, 1 image, 2
+ * credits SPENT even though the generation was safety-flagged (balance
+ * 3,037 -> 3,035, no refund observed).
+ *   - A flagged/rejected generation is NOT visually obvious from a plain
+ *     screenshot at rest — the card shows a solid near-black thumbnail with
+ *     a subtle reddish top-edge glow and a small eye-slash + (i) icon pair
+ *     that, unlike every other card's hover-only action stack, stays
+ *     rendered even when the mouse is elsewhere on the page. That
+ *     persistence (icons visible with cursor hovered somewhere else
+ *     entirely) is the tell that distinguishes "still rendering" (plain
+ *     dark placeholder + spinner, no icons) from "flagged" (dark
+ *     placeholder + persistent eye-slash/info icons, no spinner).
+ *   - Cheapest conclusive check, no screenshots needed: query the card's
+ *     subtree for any element whose `title` attribute matches the flag
+ *     text. Confirmed exact string on this run:
+ *       [...card.querySelectorAll('[title]')].map(e=>e.title)
+ *       // -> "Content was flagged by the safety system. Try different
+ *       //     prompts or inputs." (on an <h2> inside the card, not on the
+ *       //     eye-slash icon itself)
+ *     `card.querySelector('img,video')` also flips from absent to present
+ *     once ANY terminal state (success OR flag) is reached, so `hasImg`
+ *     alone can't distinguish flagged-with-placeholder from rendered — the
+ *     title-text check is the reliable one.
+ *   - Clicking near a card's top-left corner to inspect it (same trap noted
+ *     in Wave 3) toggled its selection checkbox on this flagged card too —
+ *     confirm the checkbox is unchecked again before navigating away, since
+ *     a lingering multi-select changes what a later bulk action would hit.
+ *   - Per this project's TASK.md STOP conditions, a flagged card is a stop-
+ *     and-report situation, not a re-roll situation — re-rolling is only
+ *     authorised for objective visual defects in a rendered image, and this
+ *     never rendered at all. Did not click the eye-slash "reveal" toggle or
+ *     attempt a same-prompt retry; reported the exact flag string and the
+ *     credit spend to the CTO and stopped.
  */
