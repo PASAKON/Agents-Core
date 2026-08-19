@@ -1372,3 +1372,79 @@ if (typeof module !== 'undefined') {
     hfRevealUnlimitedToggle, hfPromptDesynced, hfPreflight,
   };
 }
+
+/**
+ * Findings from task-c7845ce8, 2026-08-19 (Storyboard-Element wave, Cinema
+ * Studio project-folder composer at /generate/@org/project/folders/<uuid>,
+ * NOT the /ai/video History page the rest of this file targets — but every
+ * finding below transfers directly since it's the same composer widget).
+ *
+ * 1. A NEWLY-CREATED Element can be flagged "needs an eligibility check
+ *    before it can be used" the very first time it's attached as a
+ *    reference, even though it created successfully and shows up fine under
+ *    Elements. The tell: its thumbnail in the reference tray carries a
+ *    persistent (not transient) warning-triangle icon whose tooltip reads
+ *    exactly that string. Clicking Generate with a flagged reference
+ *    attached does NOT charge credits and does NOT start a render — it
+ *    surfaces a banner instead: "Some reference elements may contain
+ *    protected content. Check eligibility or remove them to proceed." This
+ *    is a genuine stop-and-ask: don't click "Check eligibility" (unknown
+ *    flow, may require accepting content-policy terms) and don't strip the
+ *    reference just to get Generate to fire — both are decisions above a
+ *    browser_operator's authority. Confirm via a `[data-beautiful-mention]`
+ *    scan cross-checked against the reference tray's own warning icons by
+ *    y-position which specific element is flagged, then report the specific
+ *    @tag, not just "generation failed."
+ *
+ * 2. The New Element dialog's Category dropdown (Auto/Character/Location/
+ *    Prop) does NOT grow a new option just because a new asset folder with
+ *    that name (e.g. "Storyboard") was created in the folder tree. Folder
+ *    and Category are two independent taxonomies in this UI — an asset can
+ *    live in a folder called Storyboard while its Element registration is
+ *    still forced into one of the four fixed categories. If a brief asks
+ *    for a category that doesn't exist in this dropdown, that's a stop-and-
+ *    ask, not a guess — the four options are load-bearing for which
+ *    Elements-panel tab (Characters/Locations/Props) the asset resolves
+ *    under project-wide.
+ *
+ * 3. `resize_window` reporting "Successfully resized" is not evidence it
+ *    worked — on this session's window it silently stayed pinned at
+ *    1024x647 through two different resize attempts (1400x800, then
+ *    1440x875, screen was 1440x900). Always verify with
+ *    `[window.innerWidth, window.innerHeight]` before trusting any
+ *    coordinate math derived from a requested size.
+ *
+ * 4. When the viewport is narrower than the composer's settings row (common
+ *    at the stuck 1024px width above), several pills — quality, sound,
+ *    Unlimited toggle — render past the right edge of the visible page and
+ *    a screenshot simply won't show them, even though they're live and
+ *    clickable. Don't conclude a control doesn't exist from a screenshot
+ *    alone: query `document.querySelectorAll('button')` filtered to the
+ *    composer's y-band and read `getBoundingClientRect()` / `aria-label`
+ *    directly, then click via `find()`-returned ref (which scrolls into
+ *    view) rather than computer-tool raw coordinates converted from CSS px
+ *    (the screenshot-vs-CSS-px scale factor, ~1.342 on this Mac, is easy to
+ *    apply backwards and click the wrong thing).
+ *
+ * 5. The duration control in this composer is a custom `role="slider"`
+ *    span, not an `<input type=range>` — `document.querySelectorAll(
+ *    'input[type=range], [role=slider]')` finds it either way. Set it by
+ *    clicking to focus, then real `ArrowRight`/`ArrowLeft` keypresses (step
+ *    = 1s here, min 4 / max 30 observed on Seedance 2.5) — read back via
+ *    `document.activeElement.getAttribute('aria-valuenow')` to confirm the
+ *    exact value landed, since a slider has no text field to diff against.
+ *
+ * 6. A `find()`-returned ref for the Generate button became stale and
+ *    mis-clicked (opened an unrelated Discord-invite link in a new tab)
+ *    after an intervening account-menu overlay was opened and closed with
+ *    Escape in between locating the ref and clicking it. No error was
+ *    thrown — the click just landed on whatever was at the old coordinates
+ *    once the overlay closed and the page reflowed. Fix: re-locate the
+ *    target (re-run `find()` or re-query the DOM for the live button's
+ *    `getBoundingClientRect()`) immediately before every click that follows
+ *    ANY intervening UI state change (opening/closing a menu, a toast
+ *    appearing/dismissing, a panel resize) — don't reuse a ref or
+ *    coordinate captured before that change. Close any stray tab this opens
+ *    immediately; it did not add itself to the MCP tab group's context list
+ *    automatically.
+ */
