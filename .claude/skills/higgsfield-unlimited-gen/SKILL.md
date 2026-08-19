@@ -757,3 +757,53 @@ Before accepting a broken-toggle report and changing the cost model, get a human
 to confirm on the real screen. The recovery ladder stays: one ref click → one
 fresh tab → stop and escalate. But escalate as "this operator cannot flip it",
 never as "the account is broken".
+
+## Two brief-writing rules learned 2026-08-19 — both cost real time
+
+### Never make a worker sit and watch a render
+
+A generation runs server-side whether or not anyone watches it. A worker parked in
+a 90-second sleep loop for 25 minutes produces nothing, burns context, holds a tmux
+session, and loses everything it knows if it dies. **A worker's job ends the moment
+the generation is confirmed fired.** Checking the finished clip is a separate, cheap
+action the C-level does later on a timer.
+
+One exception: if the fire is *not* confirmable, the worker stays until it knows one
+way or the other. An unconfirmed fire is the one state nobody can reconstruct after
+the fact.
+
+**Better still — warm up the next job during the render** (CEO's idea, and the
+sharper version of the same insight). Setup is what costs wall-clock: opening a tab,
+setting model/duration/resolution/quality/aspect/sound/Unlimited, pasting a
+7,000-character prompt, waiting for mentions to resolve, counting thumbnails,
+verifying every field. All of that can happen while the previous clip renders, so
+the actual order collapses to *read the price, click*. If there is an approved next
+job, stage it; if there isn't, report and exit.
+
+This also names the real bottleneck: warm-up only has something to chew on if
+approved prompts are queued ahead of the render slot. Run the storyboard pipeline
+ahead of the video pipeline, always.
+
+### Prune the safety gates, or they compound into an hour
+
+Every gate in this skill was bought with a real incident, and the natural instinct
+is to add one each time and never remove any. On 2026-08-19 that instinct turned a
+single Generate click into **50 minutes**: verify four settings fresh, re-find the
+button rather than reuse a ref, open a separate tab to check for stale state, walk a
+two-branch decision tree, reapply the desync fix. Every one of those was individually
+justified. Stacked unconditionally, they were absurd, and the generate queue sat idle
+the whole time.
+
+Split them, and run only the first group every time:
+
+- **Money gates — always, no exceptions.** Read the price on the button immediately
+  before the click. Confirm the reference thumbnail count. Confirm the quantity
+  stepper. These prevent spending, and spending is not recoverable.
+- **Diagnostic gates — only when something already looks wrong.** Fresh-tab
+  stale-state checks, decision trees for branch cases, re-verifying settings that
+  were verified two minutes ago and nothing has touched since. These are for
+  debugging a symptom, not a preflight ritual.
+
+When a brief grows past roughly a screen of checks, that is the signal to prune,
+not to add. And say in the brief which gates are mandatory and which are
+conditional — a worker given a flat list will run all of them, correctly, forever.
