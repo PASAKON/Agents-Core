@@ -659,14 +659,28 @@ that says "zero digits anywhere" will stop a correct operator dead; one that say
 "any number means stop" is worse, because it trains the operator to ignore the
 real signal. Write the table.
 
-### Elements from another folder do NOT appear in the composer's @ dropdown
+### The @ dropdown is folder-scoped — but PASTE is not. Paste the whole prompt.
 
-The single biggest time sink of the wave. Typing `@project_valder_char_son` in
-the Scene-1 folder composer silently returned nothing, even though that Element
-existed and resolved fine in its own folder. The composer's `@` autocomplete is
-**folder-scoped**.
+Typing `@project_valder_char_son` in the Scene-1 folder composer silently
+returned nothing, even though that Element existed and resolved fine in its own
+folder. The composer's `@` autocomplete is **folder-scoped**.
 
-Attach a cross-folder element this way instead:
+That finding is real, and for most of one wave it was read as "cross-folder
+elements must be attached through the Elements panel." **That conclusion was
+wrong, and acting on it cost more time than the original problem.** Measured
+2026-08-19 across three consecutive clips: a plain-text paste whose body already
+contains the literal `@project_valder_*` strings **auto-resolves every one of
+them into real attached reference thumbnails, across folders**, with no Elements
+panel involved. Reference counts came out 9 / 8 / 8, matching each source card
+exactly.
+
+**Default flow — use this:**
+1. Clear the composer (real Cmd+A then Delete, including leftover mention chips).
+2. Paste the entire prompt in one synthetic `ClipboardEvent`, tags included.
+3. Count the reference thumbnails.
+4. Generate.
+
+**Fallback, only when the tag text is genuinely absent from the prompt:**
 1. Open the Elements panel.
 2. Find the element's card (switch tabs — Characters / Locations / Props).
 3. **Right-click the card → "Use".**
@@ -674,6 +688,11 @@ Attach a cross-folder element this way instead:
 A small warning icon may appear on the reference thumbnail immediately after
 attaching. It is transient and clears itself — re-check before treating it as a
 failure.
+
+**Do not build a prompt by inserting elements first and typing text around
+them.** It attaches the references in an order that does not match the source
+text, and on 2026-08-19 a whole composer had to be torn down and re-pasted
+because of it. Text first, always; the tags carry themselves.
 
 Related: the folder-scoped Elements picker also **under-reports what exists.**
 To see everything on the account, open the project root with `?elements=1`.
