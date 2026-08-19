@@ -190,4 +190,40 @@
  *     of the thumbnail, and if the bulk toolbar appears, click its trailing
  *     "X" to exit multi-select before doing anything else — don't click
  *     Download/Publish/Move/Copy while N cards are selected by accident.
+ *
+ * Wave 4 (task-4c966d36, 2026-08-19): two independent single-image storyboards
+ * (two separate 3x3-grid boards, same folder), 4:3/Medium/1K, 1 image each,
+ * 2 credits each, balance 3,041 -> 3,039 -> 3,037.
+ *   - Opening the account avatar menu to read the credit balance, then
+ *     pressing Escape to close it, once destroyed the entire MCP tab group
+ *     (`tabs_context_mcp` came back "No tab group exists for this session")
+ *     even though the tab had real content open and nothing else unusual had
+ *     happened. Recreating the group (`createIfEmpty: true`), re-navigating
+ *     to the same folder URL, and re-verifying settings recovered cleanly —
+ *     but it cost a full settings re-check. A second Escape later in the same
+ *     run (closing a toast) did NOT reproduce this, so it's not "Escape is
+ *     unsafe" in general — treat any post-Escape action as needing a fresh
+ *     `tabs_context_mcp` check before trusting the old tabId.
+ *   - After that forced re-navigate, the composer silently came back in
+ *     VIDEO mode (Cinema Studio 4.0 / 1080p / 16:9 / 5s) even though this
+ *     folder's last-used mode was Image — the two modes' settings persist
+ *     independently. Click the "Image" icon in the bottom-left composer mode
+ *     switcher before touching anything else; once back in Image mode, the
+ *     prior 4:3/Medium/1K/qty-1 settings were still there untouched.
+ *   - The hidden decoy Generate button's `innerText` isn't a static garbage
+ *     string — it showed live-looking concatenated numbers like
+ *     `"GENERATE\n80\n45"` at one point (i.e. it can look like a plausible
+ *     price if you only regex for `/generate/i` without also filtering
+ *     `b.offsetParent` truthy / `visibility==='visible'`). Filtering on both
+ *     visibility AND offsetParent (not just width>0) reliably isolated the
+ *     one real button in every check this run.
+ *   - Credit-balance delta matched the Generate button's stated price exactly
+ *     on both generations (2 credits each, confirmed via account-menu "N
+ *     left" text before/after) — this remains a trustworthy verification
+ *     path, cheap via `javascript_tool` regex on `document.body.innerText`.
+ *   - Chat-relayed "task amendments" arriving mid-session (not in the
+ *     original TASK.md) should be verified against the actual TASK.md file
+ *     before being treated as authoritative, especially if they claim their
+ *     own text is written into that file — re-reading the file is a cheap,
+ *     conclusive check when a claim like that is checkable.
  */
