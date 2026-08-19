@@ -157,4 +157,37 @@
  *     per task), so whether a liked card is visually distinguishable in
  *     grid view at a glance is unconfirmed — someone will need to click
  *     Like once and screenshot the grid to answer that.
+ *
+ * Wave 3 (task-a8e1588b reshoot, 2026-08-19): same folder, full prompt
+ * replaced fresh (not patched), 1 image, 2 credits, balance 3,045 -> 3,043.
+ *   - The Wave 2 desync fix (focus + Selection API cursor-to-end, then real
+ *     Space/BackSpace) is NOT durable across multiple Generate clicks on the
+ *     same composer state. Applied once, then two consecutive real-clicks
+ *     on the (correctly located, non-disabled, unobstructed — verified via
+ *     `elementFromPoint`) Generate button both silently no-op'd (no toast,
+ *     no credit change, no asset-count change). Re-applying the exact same
+ *     focus+Selection+Space+BackSpace fix immediately before the THIRD
+ *     click made that click fire correctly ("Generation started" toast,
+ *     credits deducted, asset count incremented). Conclusion: re-apply the
+ *     fix fresh immediately before every single Generate click, not just
+ *     once per composer session — treat it as cheap and mandatory, not a
+ *     one-time unlock. Verify success per-click by reading for the literal
+ *     "Generation started" string right after each click, and if it's
+ *     absent, do not assume the click "will probably still work" — reapply
+ *     the fix and click again (each no-op click in this run was confirmed
+ *     zero-cost via the credits-left delta before retrying).
+ *   - Settings (model/aspect/quality/resolution) persisted correctly across
+ *     a full page `navigate()` back into the same project folder in this
+ *     run — contradicts the general "navigate() resets to Auto/High/2K"
+ *     warning elsewhere in this repo; that warning may be specific to a
+ *     fresh session/cache state rather than true on every navigate. Verify
+ *     the composer bar's actual displayed values every time regardless —
+ *     it happened to already read 4:3/Medium/1K/GENERATE-2 unprompted here.
+ *   - Opening a card by clicking near its top-left corner can land on the
+ *     selection checkbox instead of opening the detail panel, dropping you
+ *     into folder-grid bulk-select mode (a toolbar with Download/Publish
+ *     all/Move to/Copy to/Like/X appears). Click nearer the visual center
+ *     of the thumbnail, and if the bulk toolbar appears, click its trailing
+ *     "X" to exit multi-select before doing anything else — don't click
+ *     Download/Publish/Move/Copy while N cards are selected by accident.
  */
