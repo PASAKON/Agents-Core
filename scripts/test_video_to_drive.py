@@ -152,6 +152,36 @@ def test_verify_miss_is_failure_and_keeps_local_file(monkeypatch, tmp_path):
     assert local.exists()  # kept, not deleted
 
 
+def test_verify_listing_that_raises_fails_one_url_not_the_whole_batch(monkeypatch, tmp_path):
+    """A blip during verification must cost one URL, not the run.
+
+    The pre-upload listing was guarded and the post-upload one was not, so a
+    transient error there escaped process_url, killed the loop mid-batch and
+    skipped the summary -- losing every later URL right after an upload that
+    had actually succeeded.
+    """
+    local = _make_local_file(tmp_path, "clip.mp4", 2048)
+    monkeypatch.setattr(vtd, "download", lambda url, dest_dir, **kw: local)
+    monkeypatch.setattr(vtd, "probe_resolution", lambda p: "720x1280")
+
+    calls = {"n": 0}
+
+    def flaky_list(folder_id):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return {}                       # pre-upload: not there yet
+        raise OSError("connection reset")   # post-upload: verification blows up
+
+    monkeypatch.setattr(vtd, "list_folder", flaky_list)
+    monkeypatch.setattr(vtd, "upload", lambda path, name, folder_id: {"id": "x"})
+
+    ok = vtd.process_url("https://example.com/v", folder_id="F", stage_dir=tmp_path,
+                         log_path=tmp_path / "log.txt")
+
+    assert ok is False
+    assert local.exists(), "unverified upload must keep the local copy"
+
+
 def test_size_mismatch_at_destination_is_failure(monkeypatch, tmp_path):
     local = _make_local_file(tmp_path, "clip.mp4", 2048)
     monkeypatch.setattr(vtd, "download", lambda url, dest_dir, **kw: local)

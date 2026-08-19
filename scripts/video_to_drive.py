@@ -193,7 +193,15 @@ def process_url(url: str, *, folder_id: str, stage_dir: Path, log_path: Path,
         print(f"  FAIL  upload: {e}  (kept: {local_path})")
         return False
 
-    fresh = list_folder(folder_id)
+    # Same guard as the pre-upload listing above. Without it a transient blip
+    # here escapes process_url, kills the whole batch mid-run, and skips the
+    # summary — one flaky call losing every later URL, right after the upload
+    # that did succeed.
+    try:
+        fresh = list_folder(folder_id)
+    except Exception as e:  # noqa: BLE001
+        print(f"  FAIL  uploaded but could not verify (list failed: {e})  (kept: {local_path})")
+        return False
     drive_size = fresh.get(name)
     if drive_size is None or drive_size != size:
         reason = ("not found in a fresh folder listing" if drive_size is None
