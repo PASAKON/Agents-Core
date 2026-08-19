@@ -113,4 +113,48 @@
  *   - /account/usage and /settings both 404 on this account — there is no
  *     direct URL to a itemized usage-history page from outside the app UI;
  *     use the credits-left delta instead of trying to find a ledger page.
+ *
+ * Wave 2 (task-a8e1588b, 2026-08-19): single storyboard image (3x3 grid, 9
+ * panels), same folder/project, 4:3/Medium/1K, 1 image, 2 credits, balance
+ * 3,047 -> 3,045.
+ *   - The FIRST TWO Generate clicks (both a `find`-ref click and a verified
+ *     coordinate click landing exactly on the button via elementFromPoint)
+ *     silently did nothing: no toast, no credit deduction, no asset-count
+ *     change, button stayed enabled and un-disabled. This happened even
+ *     though the preemptive desync fix (per the "Prompt is required" note
+ *     above) had already been applied once, BEFORE those clicks.
+ *   - Root cause: the fix's own click-to-focus step is unsafe when the
+ *     prompt text contains resolved @mention chips — clicking inside the
+ *     text at a fixed coordinate can land ON a mention chip instead of
+ *     plain text, which opens a reference-preview overlay (URL gains
+ *     `?preview=<uuid>`) instead of placing a cursor. The subsequent
+ *     Space/BackSpace then applies to the wrong context and the desync
+ *     fix never actually reaches the editor. No error surfaces — Generate
+ *     just no-ops.
+ *   - Fix: focus the editor via `el.focus()` and use the Selection API
+ *     (`range.selectNodeContents(target); range.collapse(false)`) to place
+ *     the cursor at the very end, instead of a coordinate click. Verify
+ *     `document.activeElement === target` before sending the real
+ *     Space/BackSpace key presses. This landed on the first attempt.
+ *   - Verify a Generate click actually fired by reading for the literal
+ *     "Generation started" toast text in `document.body.innerText`
+ *     immediately (same call) after the click — cheaper and faster than
+ *     polling the "All assets" counter, which lagged ~20s behind the
+ *     toast in this run.
+ *   - Reference tray: with 8 unique `@project_*` mentions in the prompt,
+ *     the composer showed exactly 8 small thumbnail chips above the text
+ *     box once populated (not visible on an empty composer) — cross-check
+ *     `[...editor.querySelectorAll('[data-beautiful-mention]')]` unique
+ *     values against this tray for a double confirmation of reference
+ *     count, since the task brief calls this out as a stop-and-ask gate.
+ *   - Card marking affordances (hover icons on a folder-grid thumbnail,
+ *     top-right corner, top to bottom): heart = "Like", down-arrow =
+ *     "Download", the copy-style icon = **"Recreate"** (the icon shape
+ *     alone gives no hint it's the banned action — always hover for the
+ *     tooltip text before clicking any icon in that stack), image icon =
+ *     "Reference", "..." = more options (no tooltip observed, opens a
+ *     menu). Never used the Like affordance in this run (observe-only
+ *     per task), so whether a liked card is visually distinguishable in
+ *     grid view at a glance is unconfirmed — someone will need to click
+ *     Like once and screenshot the grid to answer that.
  */
