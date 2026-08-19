@@ -1125,6 +1125,61 @@
  *    `~/Desktop` and logged with `where = "~/Desktop (awaiting CEO filing)"`
  *    rather than inventing the missing folder — same convention task-8b4212e8
  *    used.
+ *
+ * Wave 17 findings (task-ce59ba8f, 2026-08-20, STAGE-ONLY generation for
+ * Scene 1 — a new task pattern: build the composer to a one-click-fires-a-
+ * correct-generation state, verify, then STOP and hold; no Generate click
+ * this wave, the CTO sends the go signal separately):
+ *
+ * 1. **`scrollLeft = scrollWidth` on the settings row's own overflow-x:auto
+ *    ancestor is far faster than clicking the row's ">" arrow repeatedly.**
+ *    Locate it by walking up from any known pill (e.g. the element whose
+ *    `innerText.trim() === '720p'`) until `getComputedStyle(el).overflowX
+ *    === 'auto'`; set `scrollLeft = scrollWidth` in one `javascript_tool`
+ *    call. This revealed the Unlimited toggle and price in a single step —
+ *    the ">" arrow only inches the row a little per click and would have
+ *    taken many clicks to reach the same point. Two arrow-clicks were tried
+ *    first this run and moved the row only ~15-20px each; switching to the
+ *    JS scroll immediately after was the fix. Set `scrollLeft = 0` the same
+ *    way to read the row's start (model/mode/aspect/resolution) again.
+ * 2. **The composer can default to 20s duration already** — this run's fresh
+ *    Cinema Studio project-folder composer (Video mode, Seedance 2.5, just
+ *    switched from the Image-mode default) opened with duration already
+ *    reading `20s`, quality already `High`, sound already `On`. The
+ *    ArrowRight-slider technique the task brief described (for the case
+ *    where duration sits at a non-20s default and must be stepped up) was
+ *    not needed this run — always read the settings row first before
+ *    assuming the slider dance is required; it may already be correct.
+ * 3. **The Video/Image mode-tab pair is duplicated exactly as Wave 15 finding
+ *    2 documented, confirmed again on a different project/folder**: `find()`
+ *    for "Video tab" matched a hidden decoy and the click silently no-opped
+ *    (settings row still showed the Image-mode model afterward). The real
+ *    pair is the small stacked icon buttons at the bottom-left of the
+ *    composer bar (Image above Video); a screenshot to locate them and a
+ *    direct coordinate click worked on the first attempt. Don't trust a
+ *    `find()` match for this control — screenshot and click the visible
+ *    icon pair instead, every time.
+ * 4. **A fresh Cinema Studio folder composer can open in Image mode with the
+ *    Video-mode price/settings entirely absent from the DOM** — before
+ *    switching to Video, `document.querySelectorAll('button')` showed only
+ *    "Higgsfield Soul Cinema" / "16:9" / "2k" / "GENERATE\n5,000 free gens
+ *    left", nothing resembling the target spec. This is consistent with
+ *    Wave 13 finding 1 (composer can load in Image mode even in a
+ *    video-history folder) — always click Video first, then re-read the
+ *    settings row, never assume the pre-Video-switch button text describes
+ *    the video generation you're about to configure.
+ * 5. **Full staged-state verification, all via DOM reads, zero screenshots
+ *    spent on the money-relevant checks**: prompt length/first80/last80
+ *    matched source, 8 unique `data-beautiful-mention` chip UUIDs matched 8
+ *    reference thumbnails in the tray, settings row read
+ *    `References | 21:9 | 720p | 20s | 1/4 | High | On | Unlimited`, mode
+ *    dropdown (opened read-only, closed with Escape, re-verified nothing
+ *    changed afterward) listed References/Sequel/Prequel/Edit video with
+ *    References the active pill, and the Generate button's own span-level
+ *    `textDecorationLine` read `140` = `line-through`, `0` = `none` — the
+ *    correct free-generation pattern per Wave 7 finding 4. Only 4 screenshots
+ *    used the whole run, all to locate a control before a click, never to
+ *    read a price or count.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
