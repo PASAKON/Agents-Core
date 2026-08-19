@@ -1180,6 +1180,43 @@
  *    correct free-generation pattern per Wave 7 finding 4. Only 4 screenshots
  *    used the whole run, all to locate a control before a click, never to
  *    read a price or count.
+ *
+ * 6. **Follow-up (same task, same session) — the actual go-signal click, after
+ *    a one-sentence prompt correction relayed via TASK.md's own end-of-file
+ *    edit convention:** clearing+re-pasting the corrected prompt caused the
+ *    very first post-paste click into the editor to land on an `@mention`
+ *    chip instead of plain text (opened a "Replace @X with:" element picker,
+ *    confirmed via `[role="dialog"]`-adjacent overlay, no `document.contains`
+ *    dialog role but visually present) — closed cleanly with Escape, zero
+ *    content change, and a retry click on a genuinely plain-text region
+ *    (start of the "NEGATIVE:" line, deliberately far from any `@tag`)
+ *    focused correctly. **When a prompt is full of `@tags`, don't click
+ *    anywhere near visible highlighted mention text — pick a stretch of
+ *    plain prose instead**, every time you need to click into the editor for
+ *    any reason (focus-check, desync fix, or otherwise).
+ * 7. **The FIRST Generate click after the desync fix silently no-op'd**
+ *    (button stayed enabled, no toast, `All assets` counter unchanged after
+ *    a 6s wait) — reproducing Wave 3's higgsfield-image-gen.js finding
+ *    exactly, but on the VIDEO composer this time, not the image one, so
+ *    that finding generalizes across composers. Re-applying the identical
+ *    fix (scrollIntoView, real click on plain text, real Space, real
+ *    BackSpace) and re-finding the button fresh made the SECOND click fire.
+ * 8. **A "1 unlimited generation at a time" concurrency toast can appear on
+ *    the very click that actually succeeds, not just on a click that fails**
+ *    — this run's second (successful) click produced both the toast AND the
+ *    `All assets` counter incrementing 77→78 in the same check. Read this
+ *    correctly: the toast fired because the FIRST (no-op-looking) click had
+ *    in fact already occupied the account's one Unlimited slot moments
+ *    earlier — the second click was the one that got server-side rejected
+ *    for concurrency, while the first click's job is what shows up as the
+ *    new card. **Never treat a concurrency toast alone as proof nothing
+ *    fired** — it is equally consistent with "something already fired and
+ *    is now running." Confirm via `[data-asset-id]` cards with a null/absent
+ *    `data-asset-status` (exactly one such card = exactly one job in flight)
+ *    and the `All assets` counter delta, per this task's own instruction to
+ *    trust the counter over any toast. In this run exactly one null-status
+ *    card existed afterward — confirmed no duplicate generation despite two
+ *    Generate clicks being sent.
  */
 
 // --- 1. Locate the History scroll container (right-hand panel, list view) ---
