@@ -209,6 +209,7 @@ def test_successful_upload_verifies_logs_and_deletes_local(monkeypatch, tmp_path
 # --------------------------------------------------------------------------- main() exit code
 
 def test_main_exit_code_nonzero_when_any_url_fails(monkeypatch, tmp_path):
+    monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
     monkeypatch.setattr(vtd, "load_parent_folder_id", lambda: "parent-id")
     monkeypatch.setattr(vtd, "find_or_create_folder", lambda name, parent_id: "folder-id")
     outcomes = {"https://a": True, "https://b": False}
@@ -220,6 +221,7 @@ def test_main_exit_code_nonzero_when_any_url_fails(monkeypatch, tmp_path):
 
 
 def test_main_exit_code_zero_when_all_succeed(monkeypatch, tmp_path):
+    monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
     monkeypatch.setattr(vtd, "load_parent_folder_id", lambda: "parent-id")
     monkeypatch.setattr(vtd, "find_or_create_folder", lambda name, parent_id: "folder-id")
     monkeypatch.setattr(vtd, "process_url", lambda url, **kw: True)
@@ -227,3 +229,14 @@ def test_main_exit_code_zero_when_all_succeed(monkeypatch, tmp_path):
     rc = vtd.main(["https://a", "https://b", "--log-file", str(tmp_path / "log.txt")])
 
     assert rc == 0
+
+
+def test_main_fails_fast_when_yt_dlp_missing(monkeypatch, tmp_path):
+    monkeypatch.setattr(vtd.shutil, "which", lambda tool: None)
+    called = {}
+    monkeypatch.setattr(vtd, "load_parent_folder_id", lambda: called.setdefault("hit", True))
+
+    rc = vtd.main(["https://a", "--log-file", str(tmp_path / "log.txt")])
+
+    assert rc == 1
+    assert "hit" not in called  # never got as far as touching Drive/env

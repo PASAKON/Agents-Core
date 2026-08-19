@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -215,6 +216,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--actor", default=ACTOR_DEFAULT)
     ap.add_argument("--log-file", type=Path, default=DEFAULT_LOG_PATH)
     args = ap.parse_args(argv)
+
+    missing_tools = [t for t in ("yt-dlp", "ffprobe") if shutil.which(t) is None]
+    if missing_tools:
+        print(f"missing required tool(s): {', '.join(missing_tools)} "
+              "(brew install yt-dlp ffmpeg)", file=sys.stderr)
+        return 1
 
     parent_id = load_parent_folder_id()
     folder_id = find_or_create_folder(FOLDER_NAME, parent_id)
