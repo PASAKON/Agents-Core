@@ -20,6 +20,13 @@ state/orphan-dev-replies-*.log
 state/skill-usage.log
 state/tab-titles/
 state/web-designer/
+# SomPong runtime, written whenever the secretary runs on this machine
+# (scripts/sompong-mac.sh). The api-key file is a secret and must never be
+# committed; the rest is per-machine state that could only ever conflict.
+state/secretary-api-key
+state/secretary-*.out
+state/secretary-telegram-offset.json
+state/secretary_waker/
 state/browser-guard/
 state/locks/*.topic
 state/locks/*.tty
