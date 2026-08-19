@@ -190,4 +190,57 @@
  *     of the thumbnail, and if the bulk toolbar appears, click its trailing
  *     "X" to exit multi-select before doing anything else — don't click
  *     Download/Publish/Move/Copy while N cards are selected by accident.
+ *
+ * Wave 4 (task-6ec7fbdd, 2026-08-20): same folder, single storyboard image
+ * (3x3 grid, 9 panels, revised camera/planting brief), 4:3/Medium/1K, 1
+ * image, 2 credits, balance 3,037 -> 3,035.
+ *   - Composer loaded in VIDEO mode by default (1080p/16:9/5s/Cinema Studio
+ *     4.0), not Image mode — this project folder's composer does not persist
+ *     the Image/Video toggle the way it persists model/quality/res/aspect
+ *     within a mode. The top-nav "Image" tab (`find` matched a `tab` role
+ *     element) did NOT switch modes when clicked — the composer bar kept
+ *     showing video settings after that click. What worked: click the
+ *     bottom-left composer icon pair (small "Image"/"Video" stacked buttons
+ *     directly above the settings pills, not the top-nav text tabs) —
+ *     confirmed by the button list flipping from
+ *     {Cinema Studio 4.0, 1080p, 16:9, 5s, On} to {GPT Image 2, Auto, High,
+ *     2K}. Always verify by re-reading the button list after clicking,
+ *     don't trust the click succeeded from intent alone.
+ *   - Quality/Resolution dropdown pills (`find` by text) intermittently
+ *     failed to locate the currently-showing pill by natural-language query
+ *     even though the same text was present in a direct
+ *     `querySelectorAll('button')` scan seconds earlier — `find`'s
+ *     accessibility-tree snapshot can lag a live re-render. When `find`
+ *     returns "no matching element" for something you can see in a JS
+ *     button-text dump, fall back to a direct coordinate click on the pill
+ *     (read its rect from the JS scan first) rather than retrying `find`.
+ *   - The desync fix (focus + Selection API cursor-to-end + real
+ *     Space/BackSpace, applied once immediately before the click) was
+ *     sufficient on the FIRST Generate click this run — no repeat-click
+ *     no-op cycle like Wave 2/3. Re-verify per-run rather than assuming
+ *     Wave 2/3's "always needs 2-3 tries" — this one didn't.
+ *   - Reference-count double-check done two ways: (a) unique
+ *     `data-beautiful-mention` values in the editor (8), (b) reference tray
+ *     thumbnail chip count read via `zoom` on the composer's chip row (8,
+ *     visually counted) — both agreed with the task's stated "Expected
+ *     reference thumbnails: 8".
+ *   - Identifying the just-generated card: `[data-asset-id]` is
+ *     viewport-virtualized — only ~7 cards exist in the DOM at once
+ *     regardless of "All assets" total. Scrolling the folder-grid
+ *     scroll-container to `scrollTop = 0` (found via `scrollHeight >
+ *     clientHeight` heuristic) brought the new card into the DOM at index 0.
+ *     A second "new-looking" id at index 1 was NOT a second generation — it
+ *     was a pre-existing hidden/eye-off asset that had already been sitting
+ *     in slot 0 before this run and got pushed to slot 1. Don't assume N
+ *     unfamiliar ids after one Generate means N new assets; cross-check
+ *     against the "All assets" delta (74 -> 75, i.e. exactly one) before
+ *     concluding which id is actually new.
+ *   - The card thumbnail in the grid renders small enough that
+ *     panel-by-panel judgment (boy/photographer/guard placement, panel-6
+ *     wall-of-arms coverage) is not reliable at grid scale. Opening the
+ *     card (click center of thumbnail, not its top-left corner) and then
+ *     clicking the fullscreen/expand icon (bottom-right of the detail
+ *     panel, distinct from "Turn to video", "Recreate" and "Reference" —
+ *     do not click those) gives a large enough render to judge each of the
+ *     9 panels individually via `zoom` on sub-quadrants.
  */
