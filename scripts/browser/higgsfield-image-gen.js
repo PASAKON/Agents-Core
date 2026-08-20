@@ -313,4 +313,107 @@
  *     never rendered at all. Did not click the eye-slash "reveal" toggle or
  *     attempt a same-prompt retry; reported the exact flag string and the
  *     credit spend to the CTO and stopped.
+ *
+ * Wave 6 (task-7266495c, 2026-08-20): The Valder Collection No.7 project
+ * TOP-LEVEL page (https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3,
+ * no /folders/<uuid> segment) rather than a specific folder composer, then
+ * clicked into the Location folder from there. Blocked before any credit
+ * spend — two Generate clicks, both silent no-ops.
+ *   - The Image/Video mode toggle on this composer did NOT respond to a real
+ *     `computer` left_click at the button's own on-screen center coordinates
+ *     (verified correct via `elementFromPoint` at that exact point) — tried
+ *     twice, `data-state` stayed "inactive" on Image / "active" on Video both
+ *     times. A raw `el.click()` via JS also did nothing. What worked: a full
+ *     synthetic PointerEvent sequence (pointerdown, mousedown, pointerup,
+ *     mouseup, click, in that order, all bubbles:true/cancelable:true, with
+ *     clientX/clientY at the button's rect center) dispatched via
+ *     `javascript_tool`. This toggle is a plain UI mode switch (not a
+ *     money-committing control), so a JS-dispatched event sequence here does
+ *     not conflict with the "real driving click on Generate" rule — reserve
+ *     that rule for the priced button itself.
+ *   - Once in Image mode, composer settings had already persisted from a
+ *     prior session as GPT Image 2 / 4:3 / Medium / 1K / GENERATE-2 with zero
+ *     manual pill changes needed — confirms Wave 4's "settings persist
+ *     independently per mode" finding again.
+ *   - Paste + normalized-length verification (whitespace collapsed, trailing
+ *     `\n` from Lexical's per-blank-line empty `<p>` elements ignored) matched
+ *     the source exactly (3081 chars, first/last 80 identical) both before
+ *     and after the desync fix, on both attempts.
+ *   - THE NEW FAILURE MODE: two consecutive real `computer` left_clicks on
+ *     the verified (elementFromPoint-confirmed, non-disabled, width>0)
+ *     Generate button, each preceded by a freshly re-applied desync fix
+ *     (focus + Selection-API cursor-to-end + real Space + real BackSpace,
+ *     exactly per the Wave 2/3 recipe), both silently no-op'd: no
+ *     "Generation started" toast, "All assets" stayed at 99 both times,
+ *     button never disabled. This is a full escalation beyond Wave 3's
+ *     "worked on the 3rd try" case — 2/2 clean attempts failed here. Credit
+ *     balance read afterward via the account-avatar menu was 2,700 (closed
+ *     the menu with a click elsewhere on the page, NOT Escape, per the Wave 4
+ *     tab-group-destruction warning) — no way to confirm a pre-click
+ *     baseline, but zero visible side effects on both clicks is consistent
+ *     with zero-cost no-ops, not a race against a delayed toast.
+ *   - Per this task's explicit STOP rule ("more than one clean attempt...
+ *     do not retry with a different click technique near a priced Generate
+ *     button"), stopped after the 2nd no-op rather than trying a 3rd
+ *     variation (e.g. `find`-ref click, coordinate offset, longer wait
+ *     between desync-fix and click). Composer state was left untouched:
+ *     prompt still pasted and verified, settings still GPT Image
+ *     2/4:3/Medium/1K/2-credits, tab group still alive. Whoever resumes this
+ *     should re-verify the button price and re-apply the desync fix
+ *     immediately before their own first click — do not assume this run's
+ *     verification is still valid after any delay.
+ *
+ * Wave 7 (task-7266495c continued, 2026-08-20): CEO/CTO said "restart Chrome
+ * and try one more time" after Wave 6's blocker. Did a full `osascript quit
+ * app "Google Chrome"` + `open -a "Google Chrome"`, waited for the extension
+ * to reconnect (took ~15s total), opened a brand-new tab, navigated fresh to
+ * the same project URL, clicked into Location folder again (this time it DID
+ * produce a real `/folders/<uuid>` URL, unlike Wave 6 where the same click
+ * left the URL unchanged — inconsistent SPA routing behavior on this
+ * composer, note for future runs). Composer defaulted to Video mode again on
+ * this fresh folder load (Wave 4's per-mode-independent-persistence finding
+ * holds), AND this time Image mode's own settings had NOT persisted either
+ * (came up Auto/High/2K/GENERATE-7, not the previously-seen Medium/1K/2 —
+ * contradicts earlier waves' "settings persist" finding; a full Chrome
+ * restart apparently does reset them, unlike an in-app navigate()).
+ *   - Manually rebuilt all four settings via the aspect/quality/resolution
+ *     pills (Auto->4:3, High->Medium, 2K->1K), landing back on GENERATE-2.
+ *     Each pill required the same synthetic PointerEvent sequence as the
+ *     mode toggle — a plain `computer` click opened nothing for the Auto
+ *     pill on the first attempt (dropdown never appeared), the PointerEvent
+ *     sequence via `javascript_tool` worked every time it was tried. Given
+ *     Wave 6 also needed this for the mode toggle, this composer may
+ *     categorically not respond to whatever click delivery `computer`
+ *     produces on this account/machine right now — worth testing a plain
+ *     `computer` click against something innocuous (not Generate) at the
+ *     start of a future run to characterize this before touching the
+ *     composer at all.
+ *   - Pasted + verified the prompt fresh (normalized 3081 chars, exact match,
+ *     0 mentions), re-applied the desync fix (focus + Selection API +
+ *     real Space/BackSpace via `computer`), confirmed button text
+ *     "GENERATE\n2", not disabled, `elementFromPoint` confirmed unobstructed.
+ *   - Clicked Generate via `computer` left_click (a REAL click, not a
+ *     JS-dispatched one) at the verified coordinate. Silent no-op again:
+ *     "All assets" stayed 99, no toast, button unchanged. This is the same
+ *     failure as Wave 6, now reproduced on a genuinely fresh browser
+ *     process, fresh tab, fresh navigation, fresh paste, fresh settings
+ *     rebuild — rules out "stale session/tab" as the cause.
+ *   - Stopped WITHOUT a second click this time (Wave 6 had already spent
+ *     its "one more clean attempt" budget across both waves combined — 3
+ *     real clicks total on a priced Generate button with zero effect).
+ *     Attached temporary click/pointerdown listeners to the button as a
+ *     read-only diagnostic (to check whether a real click even dispatches
+ *     to the button at all) but deliberately did NOT click again to trigger
+ *     them, since that click would itself be a 4th attempt on the priced
+ *     button — removed the listeners unused rather than risk it.
+ *   - CONCLUSION for next operator: this looks like a genuine site-side
+ *     issue (event handlers not binding, or some other backend-side gate)
+ *     rather than anything fixable by browser-side technique — two
+ *     different browser processes, on two different composer instances
+ *     (top-level-page-then-folder-click vs fresh-folder-URL-load), both
+ *     with correctly verified text/settings/price, produced the identical
+ *     silent no-op. Recommend a human (CEO/CTO) drive this exact button by
+ *     hand once to see whether it fires for a real mouse, or check
+ *     Higgsfield's own status/support channel, before spending further
+ *     agent attempts here.
  */
