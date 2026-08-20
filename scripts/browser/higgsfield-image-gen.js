@@ -313,4 +313,53 @@
  *     never rendered at all. Did not click the eye-slash "reveal" toggle or
  *     attempt a same-prompt retry; reported the exact flag string and the
  *     credit spend to the CTO and stopped.
+ *
+ * Wave 6 (task-7266495c, 2026-08-20): The Valder Collection No.7 project
+ * TOP-LEVEL page (https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3,
+ * no /folders/<uuid> segment) rather than a specific folder composer, then
+ * clicked into the Location folder from there. Blocked before any credit
+ * spend — two Generate clicks, both silent no-ops.
+ *   - The Image/Video mode toggle on this composer did NOT respond to a real
+ *     `computer` left_click at the button's own on-screen center coordinates
+ *     (verified correct via `elementFromPoint` at that exact point) — tried
+ *     twice, `data-state` stayed "inactive" on Image / "active" on Video both
+ *     times. A raw `el.click()` via JS also did nothing. What worked: a full
+ *     synthetic PointerEvent sequence (pointerdown, mousedown, pointerup,
+ *     mouseup, click, in that order, all bubbles:true/cancelable:true, with
+ *     clientX/clientY at the button's rect center) dispatched via
+ *     `javascript_tool`. This toggle is a plain UI mode switch (not a
+ *     money-committing control), so a JS-dispatched event sequence here does
+ *     not conflict with the "real driving click on Generate" rule — reserve
+ *     that rule for the priced button itself.
+ *   - Once in Image mode, composer settings had already persisted from a
+ *     prior session as GPT Image 2 / 4:3 / Medium / 1K / GENERATE-2 with zero
+ *     manual pill changes needed — confirms Wave 4's "settings persist
+ *     independently per mode" finding again.
+ *   - Paste + normalized-length verification (whitespace collapsed, trailing
+ *     `\n` from Lexical's per-blank-line empty `<p>` elements ignored) matched
+ *     the source exactly (3081 chars, first/last 80 identical) both before
+ *     and after the desync fix, on both attempts.
+ *   - THE NEW FAILURE MODE: two consecutive real `computer` left_clicks on
+ *     the verified (elementFromPoint-confirmed, non-disabled, width>0)
+ *     Generate button, each preceded by a freshly re-applied desync fix
+ *     (focus + Selection-API cursor-to-end + real Space + real BackSpace,
+ *     exactly per the Wave 2/3 recipe), both silently no-op'd: no
+ *     "Generation started" toast, "All assets" stayed at 99 both times,
+ *     button never disabled. This is a full escalation beyond Wave 3's
+ *     "worked on the 3rd try" case — 2/2 clean attempts failed here. Credit
+ *     balance read afterward via the account-avatar menu was 2,700 (closed
+ *     the menu with a click elsewhere on the page, NOT Escape, per the Wave 4
+ *     tab-group-destruction warning) — no way to confirm a pre-click
+ *     baseline, but zero visible side effects on both clicks is consistent
+ *     with zero-cost no-ops, not a race against a delayed toast.
+ *   - Per this task's explicit STOP rule ("more than one clean attempt...
+ *     do not retry with a different click technique near a priced Generate
+ *     button"), stopped after the 2nd no-op rather than trying a 3rd
+ *     variation (e.g. `find`-ref click, coordinate offset, longer wait
+ *     between desync-fix and click). Composer state was left untouched:
+ *     prompt still pasted and verified, settings still GPT Image
+ *     2/4:3/Medium/1K/2-credits, tab group still alive. Whoever resumes this
+ *     should re-verify the button price and re-apply the desync fix
+ *     immediately before their own first click — do not assume this run's
+ *     verification is still valid after any delay.
  */
