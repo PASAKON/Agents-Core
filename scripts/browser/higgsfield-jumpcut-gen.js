@@ -1453,6 +1453,69 @@ function hfPreflight(expectedLen, expectedElements) {
   };
 }
 
+ *
+ * Wave 15 findings (task-25a72958, 2026-08-20, Scene 1 first fire — Cinema
+ * Studio "Sence 2" project folder, `.../folders/a0deb5ca-6aa8-45c0-90f2-...`,
+ * fresh composer, no Recreate):
+ *
+ * 1. **This folder's composer defaults to Image mode AND the wrong video
+ *    model on load** — settings row read `Cinema Studio 4.0 | 1080p | 16:9 |
+ *    5s` even though Video tab was already selected. Opening the model
+ *    dropdown (click the model-name pill) and picking "Seedance 2.5" from the
+ *    "Featured models" section reset every downstream setting to the correct
+ *    defaults for that model in one click: 720p / 21:9 / 20s all landed
+ *    correctly with zero further clicks needed. Always read the settings row
+ *    text before assuming any composer default is right, even when Video mode
+ *    is already active.
+ *
+ * 2. **OS-clipboard paste (Bash `pbcopy` + a real `cmd+v` keypress via the
+ *    driving tool) is a clean substitute for the synthetic-ClipboardEvent
+ *    recipe** and avoids ever loading a large prompt into the model's own
+ *    context. Tested on a 19,857-byte / 3,586-word prompt: landed at 19,841
+ *    chars in the editor (Lexical paragraph-newline noise, same class as Wave
+ *    13 finding 4), first/last 80 chars byte-identical to source, no desync
+ *    (`hfPromptDesynced()` false), no "Prompt is required" toast. Real
+ *    Cmd+A+Delete first to clear, exactly as the synthetic-paste recipe
+ *    already requires.
+ *
+ * 3. **A literal `@Video 1` (or `@Video`) in prompt text auto-converts into a
+ *    styled mention chip, but — unlike a real `@project_*` element — its
+ *    `data-beautiful-mention` attribute is the literal string `@Video`, not a
+ *    uuid.** Real attached elements read `@<uuid>` (confirmed:
+ *    `@29a66cee-18d6-4073-9327-500498fea9fa` for
+ *    `@project_valder_char_son`). A non-uuid mention attribute means nothing
+ *    is actually attached/referenced — it's cosmetic highlighting only, safe
+ *    to leave as-is when the prompt intentionally uses `@Video N` as forward-
+ *    referencing prose (no prior clip exists yet to attach). Distinguish real
+ *    vs decorative mentions with
+ *    `/^@[0-9a-f-]{20,}$/.test(el.getAttribute('data-beautiful-mention'))`
+ *    before trusting any mention-count-based element-cap check — a decorative
+ *    mention should NOT count toward the 9/10-element ceiling.
+ *
+ * 4. **Confirming the account-wide generation slot is free without touching
+ *    the composer tab**: open a second tab, navigate to `/ai/video`, wait
+ *    ~5s for hydration, and regex the body text for `Processing|Generating`.
+ *    Empty match plus no toast on the composer tab was sufficient signal to
+ *    proceed to Generate. Close the check tab immediately after — never leave
+ *    it open once done, and never navigate the composer tab itself to check
+ *    this.
+ *
+ * 5. **Post-click confirmation via "All assets" counter is a clean, cheap
+ *    fire-confirmation signal**: read the sidebar "All assets NNN" text
+ *    before and after the click (`117` → `118`), plus the real
+ *    `.Toastify__toast-container` text (`"Generation started"`), plus the
+ *    newest `[data-asset-id]` card's uuid (first element in the grid — this
+ *    grid orders newest-first). All three agreed. A body-wide regex for
+ *    failure strings (`Rejected|NSFW|copyright|Something went wrong|Prompt is
+ *    required`) threw a false positive here — it matched an unrelated
+ *    pre-existing "Failed / Credits refunded" card sitting elsewhere in the
+ *    same grid from an earlier session. Always read the actual surrounding
+ *    text around a regex hit (`t.slice(idx-60, idx+80)`) before treating it
+ *    as this generation's own failure — the same discipline as Wave 10
+ *    finding 4's phrase-match false-positive warning, now confirmed for
+ *    failure-string scanning too, not just content search.
+ */
+
 if (typeof module !== 'undefined') {
   module.exports = {
     hfGetHistoryContainer, hfScrollHistory, hfFingerprintCards,
