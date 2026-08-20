@@ -1539,4 +1539,75 @@ if (typeof module !== 'undefined') {
  *    coordinate captured before that change. Close any stray tab this opens
  *    immediately; it did not add itself to the MCP tab group's context list
  *    automatically.
+ *
+ * Wave findings, task-ed7fc962 (2026-08-20), Cinema Studio composer
+ * (https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3), NOT the
+ * /ai/video composer this file otherwise documents — same underlying
+ * controls, different container:
+ *
+ * 7. First paste into a freshly-focused-but-never-cleared contenteditable
+ *    can prepend the literal string "undefined" before the pasted text,
+ *    even though the field showed only placeholder text and looked empty.
+ *    Confirmed reproducible once, fixed every time by doing the real
+ *    Cmd/Ctrl+A + Delete clear pass FIRST regardless of whether the field
+ *    looks empty, then pasting into the now-verified-empty field. Don't
+ *    skip the clear step as an "optimization" just because a placeholder is
+ *    showing — verify via `el.innerText.length === 0` (or `1` for a lone
+ *    `\n`) before trusting the field is actually clear.
+ *
+ * 8. innerText length on a multi-paragraph paste will legitimately run ~35
+ *    chars higher than the source file's UTF-8 char count (e.g. source
+ *    8987 chars including trailing newline -> innerText 9022) because
+ *    Lexical renders each blank-line paragraph break as its own block with
+ *    extra newlines. This is NOT truncation or duplication — confirm
+ *    against first-80/last-80-char exact match and an occurrence count of
+ *    the prompt's own `@tag` markers (regex count) instead of relying on
+ *    exact length equality.
+ *
+ * 9. On this Cinema Studio composer, a raw DOM query
+ *    (`querySelectorAll('button')` + `getBoundingClientRect()`) for the
+ *    Generate button intermittently returns a DIFFERENT, stale-looking
+ *    button reporting a different price (e.g. "140" when the live one
+ *    reads "440" struck through -> "0") at different on-page coordinates
+ *    than what the current screenshot shows. `find()` + its returned ref
+ *    consistently resolved to the real, currently-rendered button;
+ *    raw-DOM-rect math did not, most likely because `getBoundingClientRect`
+ *    CSS-px space and the screenshot/computer-tool pixel space are not 1:1
+ *    on this window (`window.innerWidth` read 1440 mid-session despite
+ *    `resize_window(1024,768)` reporting success — same known-stale-resize
+ *    issue as finding #3, and it also skews any coordinate arithmetic
+ *    derived from `getBoundingClientRect`). ALWAYS do the final
+ *    money-gate zoom screenshot on the visually-identified button
+ *    location, and click via a fresh `find()` ref, not raw rect math.
+ *
+ * 10. Confirmed: on a Seedance VIDEO generation (not image), Unlimited
+ *     showing correctly looks like "UNLIMITED / [struck-through price] /
+ *     0" -- a struck-through non-zero number is present and expected, it
+ *     is not a red flag. Only an UNSTRUCK live price (no strikethrough) is
+ *     the "do not click" signal. Don't apply an image-task "zero digits
+ *     anywhere" rule to a video Generate button.
+ *
+ * 11. A card's own Info panel "Filed in" chip can disagree with the plain-
+ *     English scene name used in a task brief (e.g. a card described as
+ *     "Valder Scene 1" by brief text was actually filed in the "Sence 2"
+ *     folder, not "Sence 1" — likely an earlier misfile, not this session's
+ *     doing). The card UUID is the only reliable identifier — verify by
+ *     UUID via `document.querySelector('[data-asset-id="..."]')`, never by
+ *     folder location or by the brief's plain-English scene label alone.
+ *
+ * 12. The Duration slider popup can eat a `Cmd/Ctrl+A` + digit-key sequence
+ *     typed while focus is ambiguous (e.g. right after clicking near, but
+ *     not precisely landing on, the slider's ~4px-wide thumb) — the
+ *     select-all silently promotes to the WHOLE PAGE (visible as every
+ *     sidebar label highlighting) instead of the popup's own display text,
+ *     and the typed digits get consumed as something other than a direct
+ *     value-set (observed value jumped 5s -> 17s from typing "20", not to
+ *     20s). Recovery: `document.activeElement.tagName` immediately after a
+ *     click confirms whether real focus landed where intended (a `DIALOG`
+ *     wrapper, not a `role=slider` element, means it didn't); `Tab` from
+ *     that dialog focus reliably lands on the slider thumb, after which
+ *     real `ArrowRight`/`ArrowLeft` presses (see finding #5) work exactly
+ *     as documented. Never trust a screenshot alone to confirm keyboard
+ *     focus landed on a specific tiny control — check `document.
+ *     activeElement` after every click on a small target.
  */
