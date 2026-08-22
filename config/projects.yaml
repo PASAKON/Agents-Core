@@ -265,3 +265,19 @@ projects:
     # task-2f04a8ca (CEO 2026-08-14): tmux-backed, see mooniex-claudeflow's
     # comment above for why.
     spawn_backend: tmux
+
+  - key: comfy-runpod-worker
+    name: ComfyUI RunPod worker + Studio (MiniMax H3)
+    path: /Users/gob/Projects/comfy-runpod-worker
+    default_branch: main
+    stack: [python, typescript, next]
+    agents_allowed: *default_workers
+    # LOCAL-ONLY ON PURPOSE: no `remote:` key, and auto_push must stay false.
+    # This repo is deliberately isolated from every MoonieX repo and must never
+    # gain a GitHub remote. Infra for a self-hosted MiniMax H3 pipeline; the
+    # network volume is the seam, so no model weights and no generated content
+    # are ever committed here (`studio/data/` is gitignored).
+    auto_push: false
+    review_required: true
+    # tmux-backed so send_to_worker's mailbox+wake can reach a spawned worker.
+    spawn_backend: tmux
