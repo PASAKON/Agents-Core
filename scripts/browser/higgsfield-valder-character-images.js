@@ -101,4 +101,139 @@
  *    programmatic scroll, reload rather than trying to scroll it back.
  *    Prefer real `computer` wheel-scroll (`scroll` action) for grid
  *    navigation; it never broke the grid, only `scrollTop` assignment did.
+ *
+ * Wave 2 (task-0c59dcaf, 2026-08-25): 2-plate reshoot/retry in the same
+ * folder -- Plate 1 (project_valder_char_valder, full restyle to a
+ * 5-colour asymmetric coat) and Plate 2 (project_valder_char_press,
+ * shoulder-asymmetry fix retry). Both succeeded on attempt 1/3.
+ * 4 credits total (GPT Image 2 / Medium / 1K / 2:3, 2 credits each),
+ * balance 2,014 -> 2,010.
+ *
+ *   - The claude-in-chrome extension did not auto-connect to an
+ *     already-running Chrome at session start (`tabs_context_mcp` returned
+ *     "Browser extension is not connected" 4 times over ~25s of retries,
+ *     including one full `osascript quit + open -a "Google Chrome"`
+ *     restart that also failed to reconnect). Root cause: Chrome had
+ *     relaunched with ZERO windows open (confirmed via a read-only
+ *     computer-use screenshot -- menu bar showed "Chrome" frontmost but the
+ *     desktop behind it was empty). The extension needs an actual window/tab
+ *     to attach to. Fix: `mcp__computer-use__open_application` on "Google
+ *     Chrome" again (after `request_access`) opened a real window, and
+ *     `tabs_context_mcp` connected on the very next call. If Chrome is
+ *     "running" per `pgrep` but the extension still won't connect, check
+ *     for a windowless state before escalating further -- don't assume the
+ *     extension itself is broken.
+ *
+ *   - On first navigating into the Character folder, the Image/Video mode
+ *     toggle's Image side did NOT land on the plain photo composer
+ *     (GPT Image 2 with a "Describe your scene" box) -- it landed on a
+ *     "CHARACTER" template pill running the "Higgsfield Soul Cinema" model,
+ *     which opens straight into a "MAKE YOUR OWN CHARACTER / Create
+ *     character" panel (an Element-training flow) when that pill is
+ *     clicked. This is a DIFFERENT default from every prior wave in this
+ *     project and is NOT what the task wants -- it would create a new
+ *     Element if driven through, which is explicitly banned. Recognized it
+ *     immediately from the "MAKE YOUR OWN CHARACTER" heading and backed out
+ *     without creating anything. Fix: click the model pill (shows
+ *     "Higgsfield Soul Cinema" or whatever the CHARACTER default is) to
+ *     open the model dropdown, and explicitly select "GPT Image 2" from the
+ *     "Featured models" list -- this swaps the whole composer back to the
+ *     plain scene-description box with the familiar Auto/High/2K pills.
+ *     This CHARACTER-pill default reappeared on every fresh page load
+ *     during this run (after each forced re-navigate), so re-check the
+ *     model pill's text every single time the composer is rebuilt, not
+ *     just once per session.
+ *
+ *   - Once on GPT Image 2, building the settings row in order (model ->
+ *     quality High->Medium -> resolution 2K->1K -> aspect Auto->2:3) worked
+ *     cleanly with plain `computer` left_click on each pill/dropdown-option,
+ *     no PointerEvent-sequence workaround needed this run (contrast with
+ *     Waves 6/7 of higgsfield-image-gen.js, which needed synthetic
+ *     PointerEvents for a stuck toggle -- that was NOT needed here). Don't
+ *     assume the harder workaround is required by default; try a plain
+ *     click first each time.
+ *
+ *   - `resize_window` to 1024x768 silently did not take effect on the FIRST
+ *     tab of the session (`window.innerWidth/innerHeight` stayed 1440x754
+ *     after two separate resize calls) but DID take effect on a later tab
+ *     opened after a tab-group teardown/rebuild (innerWidth 1024, but the
+ *     screenshot came back 1456x840 -- i.e. screenshot-px = css-px * ~1.42
+ *     on this Retina display, not the 1.05 ratio seen on the first tab).
+ *     **The screenshot/CSS pixel ratio is not a constant across tabs in the
+ *     same session** -- recompute it (`window.innerWidth` vs a screenshot's
+ *     reported dimensions, or the actual screenshot width) before doing any
+ *     coordinate-based click, every time a new tab is created. Using a
+ *     stale ratio silently misses small targets.
+ *
+ *   - `computer` `screenshot` failed 3 times in a row with "CDP sendCommand
+ *     Page.captureScreenshot timed out after 30000ms" on one tab, while
+ *     `javascript_tool` calls against the SAME tab succeeded instantly the
+ *     whole time (`document.readyState` was "complete", no dialog open,
+ *     `location.href` unchanged). This is a CDP-screenshot-pipeline-only
+ *     stall, not a frozen renderer in the Wave-1 keystroke-freeze sense --
+ *     JS execution and DOM state stayed fully live and readable throughout.
+ *     Per the browser-operator skill's restart ladder, opened a fresh tab
+ *     (`tabs_create_mcp`) and navigated it to the same folder URL rather
+ *     than doing a full Chrome restart -- the fresh tab's screenshot worked
+ *     on the very first try. Closed the stalled tab afterward. **Closing
+ *     the stalled tab (the group's only OTHER tab at the time) once
+ *     destroyed the tab group entirely** ("No tab group exists for this
+ *     session") even though a second tab was still nominally open when the
+ *     close was issued -- matches higgsfield-image-gen.js's existing note
+ *     that some ordinary actions can tear down the MCP tab group
+ *     unpredictably. Recreate with `tabs_context_mcp({createIfEmpty:true})`
+ *     and re-navigate; don't treat it as a sign anything is actually wrong
+ *     with the page itself.
+ *
+ *   - Opening a card's full detail+fullscreen view (click near center of
+ *     the thumbnail -> URL gains `?preview=<uuid>` -> click the
+ *     bottom-right fullscreen/expand icon) reliably showed the ENTIRE
+ *     figure including the head, whereas the folder-grid thumbnail view
+ *     crops the top of tall full-length portraits (the head was cut off
+ *     above the "New" badge in-grid on both plates this run). **Always
+ *     open the fullscreen view before judging a checklist item that
+ *     depends on the face (open/closed eyes, expression) -- the grid
+ *     thumbnail alone is not sufficient evidence for that, even though it
+ *     was enough to confirm the coat/colours/gloves/brooch.**
+ *
+ *   - Two mid-task chat notifications ("[New message from CEO]") arrived
+ *     with literally no body text attached, matching the
+ *     higgsfield-unlimited-gen skill's documented "mailbox delivers
+ *     notifications with no body" issue. Checked the worktree's `TASK.md`
+ *     both times per that skill's guidance (append-to-TASK.md is the
+ *     channel that actually reaches the operator) -- file was unchanged
+ *     both times (confirmed via `tail` and mtime, which predated the
+ *     notifications). Treated both as unactionable noise and continued the
+ *     original brief rather than pausing to guess at content. If this
+ *     keeps happening, the underlying mailbox bug from the Higgsfield
+ *     skill's incident log has not been fixed and is not scoped to
+ *     Higgsfield-specific tasks -- it reproduced here on a completely
+ *     ordinary two-plate reshoot with no History/Rerun involved.
+ *
+ *   - Both plates rendered correctly and passed their full checklist on
+ *     attempt 1/3 -- no retries were needed, so the "retry with the failing
+ *     item stated more forcefully" branch of the procedure was not
+ *     exercised this run. For Plate 2 specifically (the shoulder-asymmetry
+ *     fix), naming BOTH the structural cause ("permanently and severely
+ *     hunched... spine visibly curved") AND the visible mechanism ("the
+ *     high shoulder is the one bearing the camera's weight") in the same
+ *     paragraph, plus repeating "dramatically higher... first thing anyone
+ *     notices" language, produced an unambiguous, obvious-at-a-glance
+ *     asymmetry on the very first attempt where the prior wave's prompt
+ *     had only produced something "too subtle to read".
+ *
+ *   - This worktree's branch had been cut before task-0ab55432's commit
+ *     (which added this very file) had landed on `main`, so this file was
+ *     absent from the branch at session start even though the task brief
+ *     told the operator to read it. Recovered the content via
+ *     `git show <sha>:scripts/browser/higgsfield-valder-character-images.js`
+ *     against the commit `git log --all` found, confirmed it was already an
+ *     ancestor of `main`, and rewrote this file here with that content plus
+ *     this Wave-2 section appended -- rather than skipping the read or
+ *     guessing at the prior findings. Also NOTE for the report writer: the
+ *     task brief's own `state/reports/valder-restyle-v2.md` deliverable
+ *     path is gitignored on this repo (`state/reports/*` in `.gitignore`) --
+ *     a merge would silently discard it. Wrote the actual report to
+ *     `docs/reports/valder-restyle-v2.md` instead and inlined the full
+ *     content into `submit_report` so the data survives either way.
  */
