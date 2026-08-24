@@ -68,6 +68,32 @@ def test_no_reference_to_drive_video_parent_folder_id_anywhere_in_module():
     assert not hasattr(vtd, "find_or_create_folder")
 
 
+def test_main_never_uploads_to_drive_video_parent_folder_id_even_if_set_in_env(monkeypatch, tmp_path):
+    """REVIEW-1 nit: the guard above catches the obvious regression by
+    matching source text, but any other spelling (reading it via a
+    renamed constant, env.get(name), ...) would sail straight through
+    while still breaking mooniex-claudeflow/videodrive.js and
+    scripts/higgsfield/gen_loop.py. This asserts on the actual BEHAVIOUR
+    instead: even with DRIVE_VIDEO_PARENT_FOLDER_ID set in the real
+    environment to some other real folder id, main() must never pass it
+    anywhere -- only DRIVE_SOMPONG_GRAB_FOLDER_ID is ever used."""
+    monkeypatch.setenv("DRIVE_VIDEO_PARENT_FOLDER_ID", "BLACK-LIQUIDITY-FOLDER-ID-must-never-appear")
+    monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
+    monkeypatch.setattr(vtd, "apply_oauth_env_override", lambda: None)
+    seen_folder_ids = []
+
+    def fake_process_url(url, *, folder_id, **kw):
+        seen_folder_ids.append(folder_id)
+        return True
+
+    monkeypatch.setattr(vtd, "process_url", fake_process_url)
+
+    vtd.main(["https://a", "--log-file", str(tmp_path / "log.txt")])
+
+    assert "BLACK-LIQUIDITY-FOLDER-ID-must-never-appear" not in seen_folder_ids
+    assert seen_folder_ids == [vtd.DRIVE_SOMPONG_GRAB_FOLDER_ID]
+
+
 def test_main_uploads_directly_into_the_sompong_grab_folder_no_subfolder(monkeypatch, tmp_path):
     monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
     monkeypatch.setattr(vtd, "apply_oauth_env_override", lambda: None)

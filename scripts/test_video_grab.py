@@ -32,6 +32,7 @@ Or under pytest:  pytest scripts/test_video_grab.py
 """
 from __future__ import annotations
 
+import json
 import socket
 import sys
 import time
@@ -241,7 +242,12 @@ def test_grab_video_rejects_media_redirect_to_private_address(fake_dns, fake_htt
 # 2. Caption anchoring (D8 required)
 # ---------------------------------------------------------------------------
 
-def test_caption_anchoring_returns_post_caption_not_the_first_match_in_document_order():
+def test_proximity_fallback_returns_nearest_match_not_the_first_in_document_order():
+    """_extract_threads_video (the proximity FALLBACK, never the primary
+    path any more -- REVIEW-1 B2) still does what it claims: nearest wins
+    over first-in-document-order, when it is the only signal available
+    (no parseable structural data at all -- raw text fragment here, no
+    <script> block for the structural path to even attempt)."""
     html = _threads_html(
         leading_reply="Hi DM",                              # first in doc order, far from video
         post_caption="อยากจีบแต่วาสนาไม่ถึง😭",              # nearest to video_versions
@@ -250,6 +256,7 @@ def test_caption_anchoring_returns_post_caption_not_the_first_match_in_document_
     extracted = vg._extract_threads_video(html)
     assert extracted["caption"] == "อยากจีบแต่วาสนาไม่ถึง😭"
     assert extracted["caption"] != "Hi DM"
+    assert extracted["anchor"] == "proximity"
 
 
 def test_video_versions_type_ascending_wins_regardless_of_document_order():
@@ -271,6 +278,135 @@ def test_extract_threads_video_no_post_data_at_all():
     extracted = vg._extract_threads_video(html)
     assert "error" in extracted
     assert "login wall" in extracted["error"]
+
+
+# ---------------------------------------------------------------------------
+# 2b. Structural caption anchoring (REVIEW-1 B2, required test).
+#
+# Real reconnaissance against a real threads.com post (2026-08-24) proved
+# textual proximity actively wrong, not just imprecise: the ACTUAL post
+# (code matching the URL, video_versions populated) carried
+# `"caption": null` -- every non-null caption text near it in the raw page
+# belonged to a reply. These tests build the same shape Meta actually
+# serves: a self-contained JSON document inside a single
+# <script type="application/json"> block, where every post/reply is its
+# own object carrying its OWN `code`/`video_versions`/`caption`/`user` as
+# direct siblings -- and prove structural resolution reads the right
+# object's own fields regardless of which caption sits closer in raw text.
+# ---------------------------------------------------------------------------
+
+def _script_page(body_obj: dict) -> str:
+    return f'<html><body><script type="application/json">{json.dumps(body_obj)}</script></body></html>'
+
+
+def _post_reply_payload(*, post_code="POSTCODE", post_caption, reply_code="REPLYCODE",
+                         reply_caption="a reply, textually closer", pad_before_reply=50,
+                         pad_after_reply=30000,
+                         video_urls=(("101", "https://scontent.cdn/v.mp4"),)) -> str:
+    """A JSON document, wrapped in a real <script> tag, shaped like the
+    real payload: an object carrying `video_versions` (the post) and a
+    SEPARATE object with a different `code` (a reply) placed physically
+    CLOSER to `video_versions` in the serialized text than the post's own
+    caption is. `post_caption=None` reproduces the exact real-world case
+    (a genuinely caption-less video post)."""
+    post_caption_field = None if post_caption is None else {"text": post_caption}
+    body = {
+        "post": {
+            "code": post_code,
+            "video_versions": [{"type": int(t), "url": u} for t, u in video_urls],
+            "pad_before_reply": "x" * pad_before_reply,
+            "nearby_reply": {
+                "code": reply_code, "video_versions": None,
+                "caption": {"text": reply_caption},
+                "user": {"username": "replier"},
+            },
+            "pad_after_reply": "x" * pad_after_reply,
+            "caption": post_caption_field,
+            "user": {"username": "poster"},
+        }
+    }
+    return _script_page(body)
+
+
+def test_structural_lookup_ignores_a_reply_caption_that_sits_closer_in_raw_text():
+    """The exact test REVIEW-1 requires: a reply's caption sits CLOSER to
+    video_versions than the post's own caption does. Proximity must fail
+    this (return the reply's text); structural must pass it (return the
+    post's own text)."""
+    html = _post_reply_payload(post_caption="the real post caption",
+                                reply_caption="a reply, textually closer")
+
+    # Prove proximity actually fails here -- not a hypothetical, a fact
+    # about this exact payload.
+    proximity = vg._extract_threads_video(html)
+    assert proximity["caption"] == "a reply, textually closer"
+    assert proximity["caption"] != "the real post caption"
+
+    structural = vg._extract_threads_video_structural(html, "POSTCODE")
+    assert structural is not None
+    assert structural["caption"] == "the real post caption"
+    assert structural["anchor"] == "structural"
+
+
+def test_structural_lookup_reports_no_caption_when_the_real_post_has_none(
+        fake_dns, fake_http, fake_run, tmp_path):
+    """The exact real-world case found live: the actual post has
+    `caption: null`; a reply sitting near video_versions has real text.
+    Structural must report NO caption -- never the reply's words dressed
+    up as the post's own. Exercised through the full grab_video() pipeline
+    (not just the extractor) so the caption a caller actually receives is
+    proven, not just an internal helper's return value."""
+    html = _post_reply_payload(post_code="DcXdxp7kjHj", post_caption=None,
+                                reply_caption="ทักมาหน่อยค้าบบ")
+    fake_run.queues["yt-dlp"].append(FakeProc(1, stderr="ERROR: Unsupported URL"))
+    fake_run.queues["ffprobe"].append(PROBE_OK)
+    _install_public_dns(fake_dns, ["www.threads.com", "scontent.cdn"])
+    url = "https://www.threads.com/@uusanr/post/DcXdxp7kjHj"
+    fake_http[url] = FakeResponse(200, content=html)
+    fake_http["https://scontent.cdn/v.mp4"] = FakeResponse(200, content=b"real video bytes" * 5)
+
+    result = vg.grab_video(url, tmp_path)
+
+    assert result["status"] == "ok"
+    assert result["caption"] is None
+    assert result["anchor"] == "structural"
+
+
+def test_structural_lookup_requires_matching_post_code_not_just_any_video():
+    """A dict with real video content but the WRONG code (e.g. a repost/
+    quoted video elsewhere in the thread) must never be mistaken for the
+    URL's own post."""
+    html = _post_reply_payload(post_code="SOME-OTHER-CODE", post_caption="not this one")
+    structural = vg._extract_threads_video_structural(html, "POSTCODE")
+    assert structural is None
+
+
+def test_structural_lookup_returns_none_when_script_block_is_not_valid_json():
+    html = '<script type="application/json">{"video_versions": [truncated, not valid json</script>'
+    structural = vg._extract_threads_video_structural(html, "POSTCODE")
+    assert structural is None
+
+
+def test_with_anchor_falls_back_to_proximity_when_structural_cannot_resolve():
+    """No <script> block at all (the old raw-fragment shape) -> structural
+    finds nothing -> falls back to proximity, and says so via `anchor`."""
+    html = _threads_html(post_caption="only proximity can find this")
+    result = vg._extract_threads_video_with_anchor(
+        html, "https://www.threads.com/@u/post/whatever")
+    assert result["anchor"] == "proximity"
+    assert result["caption"] == "only proximity can find this"
+
+
+def test_with_anchor_prefers_structural_over_proximity_when_both_could_answer():
+    """Even when the raw text ALSO happens to carry a proximity-findable
+    caption, a successful structural result wins outright -- proximity is
+    never consulted once structural has already answered."""
+    html = _post_reply_payload(post_caption="structural's answer",
+                                reply_caption="proximity would have picked this")
+    result = vg._extract_threads_video_with_anchor(
+        html, "https://www.threads.com/@u/post/POSTCODE")
+    assert result["anchor"] == "structural"
+    assert result["caption"] == "structural's answer"
 
 
 # ---------------------------------------------------------------------------

@@ -41,12 +41,34 @@ CURL_MAX_TIME="${CURL_MAX_TIME:-300}"
 FETCH_TIMEOUT="${FETCH_TIMEOUT:-30}"
 
 [[ $# -ge 1 ]] || { echo "usage: $(basename "$0") <url> [url...]"; exit 2; }
-command -v python3 >/dev/null || { echo "python3 not found"; exit 1; }
-mkdir -p "$DEST"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(dirname "$SCRIPT_DIR")"
 GRAB_PY="$ROOT/lib/video_grab.py"
+
+# lib/video_grab.py imports `requests` -- a bare `python3` on PATH may not
+# have it (measured, task-c7d455aa REVIEW-1 B1: the Mac's /usr/bin/python3
+# does not, Contabo's does -- the script silently only worked on one
+# machine). Prefer this repo's own venv (where requirements.txt is actually
+# installed), but don't just trust it exists -- an empty/stale worktree
+# venv would fail the exact same way a bare python3 does, just later and
+# with a worse error. Actually probe for `import requests`, in that
+# preference order, and fail with one clear, actionable line if neither
+# interpreter has it -- never a bare Python traceback for the CEO to read.
+# Never make the caller activate anything first.
+PYBIN=""
+for _candidate in "$ROOT/.venv/bin/python" python3; do
+  if command -v "$_candidate" >/dev/null 2>&1 && "$_candidate" -c "import requests" >/dev/null 2>&1; then
+    PYBIN="$_candidate"
+    break
+  fi
+done
+[[ -n "$PYBIN" ]] || {
+  echo "no python interpreter with the 'requests' package found" \
+       "(tried $ROOT/.venv/bin/python and python3) -- pip install -r requirements.txt"
+  exit 1
+}
+mkdir -p "$DEST"
 
 # lib/video_grab.py needs `ROOT` on sys.path for its own `from lib.link_reader
 # import ...` — running it by absolute file path only puts lib/ itself
@@ -59,7 +81,7 @@ export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
 # count -- the caller reads lines 1-5 with `sed -n Np` and everything from
 # line 6 on (`tail -n +6`) is the probe block, verbatim.
 _parse_result() {
-  python3 -c '
+  "$PYBIN" -c '
 import json, sys
 try:
     d = json.loads(sys.argv[1])
@@ -77,7 +99,7 @@ for url in "$@"; do
   echo "──────────────────────────────────────────────────"
   echo "$url"
 
-  out_json="$(python3 "$GRAB_PY" "$url" "$DEST" "$ATTEMPTS" "$CURL_MAX_TIME" "$FETCH_TIMEOUT" 2>>"$LOG")"
+  out_json="$("$PYBIN" "$GRAB_PY" "$url" "$DEST" "$ATTEMPTS" "$CURL_MAX_TIME" "$FETCH_TIMEOUT" 2>>"$LOG")"
   { echo "── $url"; echo "${out_json:-(no output)}"; } >>"$LOG"
   [[ -n "$out_json" ]] || out_json='{}'
 

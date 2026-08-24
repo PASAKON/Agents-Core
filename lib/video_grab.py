@@ -18,14 +18,45 @@ redesign):
       real failure, surfaced on the first attempt.
   (b) Threads path: fetch the page with the Googlebot UA (reusing
       lib.link_reader._fetch -- SSRF-guarded per redirect hop already),
-      pull the video URL out of the embedded `"video_versions"` JSON
-      (lower `type` = better quality), and the caption CLOSEST to
-      `"video_versions"` in the page text (measured 2026-08-24: the first
-      `"caption"` match on a Threads post page is as likely to be a
-      REPLY's text as the post's own -- see threads-grab.sh's header for
-      the exact byte-offset measurements). Download the media itself with
-      a browser UA and `Referer: https://www.threads.com/` -- fbcdn
-      refuses some requests without it.
+      pull the video URL and caption out of the embedded JSON. Download
+      the media itself with a browser UA and
+      `Referer: https://www.threads.com/` -- fbcdn refuses some requests
+      without it.
+
+Caption anchoring (task-c7d455aa REVIEW-1 B2 -- this replaced an earlier,
+wrong approach, see git history for the "closest by byte distance" version
+this superseded): the caption reported is the one belonging to the SAME
+JSON object as the `video_versions` array actually selected -- structural,
+not textual proximity. Live reconnaissance against a real threads.com post
+(2026-08-24) confirmed the page embeds one self-contained JSON document per
+`<script type="application/json" data-sjs>` block; every post AND every
+reply in the thread sits at `...edges[N].node.thread_items[0].post`, each
+carrying its OWN `video_versions` and `caption` keys as direct siblings.
+`_extract_threads_video_structural` parses that block with the real `json`
+module and returns the `post` object whose `code` matches the URL's own
+post code -- never "whichever caption text happens to be nearby".
+
+That same reconnaissance is *why* the earlier "closest by distance"
+approach was wrong, not just imprecise: on the actual URL this module is
+tested against, the real post (code matching the URL, `video_versions`
+populated) carries `"caption": null` -- it is a caption-less video post.
+Every non-null caption text living near it in the raw HTML belongs to a
+REPLY, and which reply's text sits closest is not even stable between
+fetches (replies reorder). Textual proximity does not degrade gracefully
+here; it fabricates plausible-looking, wrong attribution. Structural
+lookup instead correctly reports "no caption" for this post -- honest
+about what the data says, never a stranger's words presented as the
+post's own.
+
+Textual proximity is kept ONLY as a last-resort fallback
+(_extract_threads_video, unchanged from before), used solely when the
+structural lookup cannot run at all (the JSON script block is missing,
+truncated, or does not parse, or the URL's post code cannot be matched
+inside it) -- never silently preferred over a successful structural
+result, including a structural result of "no caption". Every Threads
+result carries an `"anchor"` field: `"structural"` or `"proximity"`, so a
+reason to distrust a caption is visible in the data, not just in a
+comment.
 
 check_url_safe() (lib.link_reader, already unit-tested) gates every fetch:
 the input URL up front, and the extracted CDN media URL again before it is
@@ -42,7 +73,7 @@ timeout) so one hung stage cannot silently eat the whole budget.
 
 Every outcome is one of:
   {"status": "ok", "url", "via", "path" (Path), "caption", "uploader",
-   "probe", "size"}
+   "probe", "size", "anchor" (Threads only: "structural" | "proximity")}
   {"status": "error", "url", "reason_kind", "reason"}
 `reason_kind` is one of: blocked, unsupported_site, no_video, login_wall,
 download_failed, not_a_video, too_large, timeout -- so a caller (the MCP
@@ -62,6 +93,7 @@ import shutil
 import subprocess
 import time
 import uuid
+from collections import deque
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -92,9 +124,17 @@ MEDIA_CHUNK_SIZE = 65536
 THREADS_REFERER = "https://www.threads.com/"
 FFPROBE_BIN = "ffprobe"
 
-# task-c7d455aa fact 4/5 -- the window past "video_versions" to search for
-# the type/url pairs, and the byte-offset caption-anchoring rule. Verified
-# live 2026-08-24 against a real threads.com post (see threads-grab.sh).
+# Structural extraction (primary, REVIEW-1 B2): the `<script
+# type="application/json" data-sjs>...</script>` block(s) Meta embeds a
+# self-contained JSON document in. Matched non-greedily since a page can
+# carry several such blocks and only one of them holds this post's data.
+_SCRIPT_BLOCK_RE = re.compile(r"<script\b[^>]*>(.*?)</script>", re.DOTALL | re.IGNORECASE)
+
+# Proximity extraction (LAST-RESORT FALLBACK ONLY, see module docstring) --
+# the window past "video_versions" to search for the type/url pairs when no
+# script block parsed as JSON at all. Verified live 2026-08-24 against a
+# real threads.com post (see git history for the byte-offset measurements
+# that showed this heuristic's actual failure mode).
 _VIDEO_VERSIONS_KEY = '"video_versions"'
 _VIDEO_VERSIONS_WINDOW = 20000
 _VIDEO_PAIR_RE = re.compile(r'"type"\s*:\s*(\d+)\s*,\s*"url"\s*:\s*"([^"]+)"')
@@ -224,9 +264,77 @@ def _ytdlp_download(url: str, dest_dir: Path, *, attempts: int, deadline: float)
 # (b) Threads: page JSON extraction + guarded media download.
 # ---------------------------------------------------------------------------
 
+def _find_post_with_video(obj, post_code: str) -> dict | None:
+    """BFS the parsed JSON tree for the dict that is BOTH: carries a
+    non-empty `video_versions` list, AND has `code == post_code`. Requires
+    the code match on purpose -- a dict with real video content but the
+    WRONG code is a different post/reply in the same thread (a repost or
+    quoted video), and returning it would recreate exactly the
+    misattribution bug this replaces. No match -> None, which tells the
+    caller to fall back to proximity, never to guess."""
+    queue = deque([obj])
+    while queue:
+        cur = queue.popleft()
+        if isinstance(cur, dict):
+            vv = cur.get("video_versions")
+            if isinstance(vv, list) and vv and cur.get("code") == post_code:
+                return cur
+            queue.extend(cur.values())
+        elif isinstance(cur, list):
+            queue.extend(cur)
+    return None
+
+
+def _extract_threads_video_structural(html_text: str, post_code: str) -> dict | None:
+    """The primary path (REVIEW-1 B2): parse each embedded JSON script
+    block for real with the `json` module, find the ONE post object whose
+    own `code` matches the URL and whose own `video_versions` is populated,
+    and read that SAME object's OWN `caption`/`user` fields -- never a
+    nearby object's.
+
+    Returns {"video_url", "username", "caption" (str or None -- None means
+    the post genuinely has no caption, a successful result, NOT a failure),
+    "anchor": "structural"}, or None if no script block parses as JSON and
+    yields a code-matching post with video content at all (caller falls
+    back to _extract_threads_video's proximity heuristic in that case).
+    """
+    for m in _SCRIPT_BLOCK_RE.finditer(html_text):
+        content = m.group(1)
+        if "video_versions" not in content:
+            continue
+        try:
+            data = json.loads(content)
+        except (json.JSONDecodeError, ValueError):
+            continue
+        post = _find_post_with_video(data, post_code)
+        if post is None:
+            continue
+        pairs = [(v.get("type"), v.get("url")) for v in post["video_versions"]
+                 if isinstance(v, dict) and v.get("url")]
+        if not pairs:
+            continue
+        pairs.sort(key=lambda p: (p[0] if isinstance(p[0], int) else 0))
+        video_url = pairs[0][1]
+        username = ((post.get("user") or {}).get("username")) or ""
+        caption_obj = post.get("caption")
+        caption_text = caption_obj.get("text") if isinstance(caption_obj, dict) else None
+        caption = caption_text.replace("\n", " ") if caption_text else None
+        return {"video_url": video_url, "username": username,
+                "caption": caption, "anchor": "structural"}
+    return None
+
+
 def _extract_threads_video(html_text: str) -> dict:
-    """{"video_url", "username", "caption"} on success, else
-    {"error": str, "error_kind": "no_video" | "no_post_data" | "malformed"}.
+    """LAST-RESORT FALLBACK ONLY (see module docstring / REVIEW-1 B2) --
+    used when _extract_threads_video_structural above could not run at all
+    (no script block parsed, or none held a code-matching post). Picks the
+    caption CLOSEST to `"video_versions"` in the raw page text, which is
+    frequently wrong (it can return a reply's words, and which reply is
+    closest is not even stable between fetches) -- never preferred over a
+    successful structural result.
+
+    {"video_url", "username", "caption", "anchor": "proximity"} on success,
+    else {"error": str, "error_kind": "no_video" | "no_post_data" | "malformed"}.
 
     `error_kind` is a distinct field, not text a caller has to substring-match
     -- "no_post_data" is deliberately NOT resolved to login_wall/unsupported
@@ -249,12 +357,26 @@ def _extract_threads_video(html_text: str) -> dict:
     m = _USERNAME_RE.search(html_text)
     username = _unescape_json_string(m.group(1)) if m else ""
 
-    # Anchored to the video, not "the first caption on the page" -- see
-    # module docstring / threads-grab.sh for the measured reason.
     caps = [(abs(cm.start() - start), cm.group(1)) for cm in _CAPTION_RE.finditer(html_text)]
     caption = _unescape_json_string(min(caps)[1]).replace("\n", " ") if caps else ""
 
-    return {"video_url": video_url, "username": username, "caption": caption}
+    return {"video_url": video_url, "username": username, "caption": caption, "anchor": "proximity"}
+
+
+def _extract_threads_video_with_anchor(html_text: str, url: str) -> dict:
+    """The one entry point _threads_grab calls: try the structural lookup
+    first (needs the URL's own post code), fall back to proximity only when
+    structural genuinely could not resolve anything -- never when it
+    resolved successfully to an empty caption, which is a different, valid
+    outcome (see module docstring)."""
+    m = _POST_CODE_RE.search(url)
+    post_code = m.group(1) if m else None
+    if post_code:
+        structural = _extract_threads_video_structural(html_text, post_code)
+        if structural is not None:
+            return structural
+    fallback = _extract_threads_video(html_text)
+    return fallback
 
 
 def _download_media(url: str, dest_path: Path, *, referer: str, user_agent: str,
@@ -346,7 +468,7 @@ def _threads_grab(url: str, dest_dir: Path, *, max_bytes: int, deadline: float,
     if info["status_code"] >= 400:
         return _fail(url, "download_failed", f"HTTP {info['status_code']}")
 
-    extracted = _extract_threads_video(info["text"])
+    extracted = _extract_threads_video_with_anchor(info["text"], url)
     if "error" in extracted:
         error_kind = extracted["error_kind"]
         if error_kind == "no_post_data":
@@ -383,7 +505,7 @@ def _threads_grab(url: str, dest_dir: Path, *, max_bytes: int, deadline: float,
     return {
         "status": "ok", "url": url, "via": "threads (embedded JSON, Googlebot UA)",
         "path": dest_path, "caption": extracted["caption"] or None,
-        "uploader": username or None,
+        "uploader": username or None, "anchor": extracted["anchor"],
     }
 
 

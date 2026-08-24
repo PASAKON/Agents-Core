@@ -1663,7 +1663,11 @@ def grab_video(url: str) -> str:
     `reason`. NEVER a success with no link. On success, returns the real
     Drive link SomPong got back from Drive (never invented), the caption/
     filename, and the size -- SomPong must report exactly this, not a
-    guess.
+    guess. For a Threads video, `caption` may legitimately be null --
+    that means the post itself carries no caption text, not that one
+    failed to be found; `caption_anchor` ("structural" or "proximity")
+    says how it was resolved -- "proximity" is a last-resort fallback and
+    less trustworthy than "structural".
     """
     stage_dir = Path(tempfile.mkdtemp(prefix=GRAB_VIDEO_STAGE_PREFIX))
     try:
@@ -1722,6 +1726,10 @@ def grab_video(url: str) -> str:
         result = {
             "status": "ok", "url": url, "via": dl.get("via"),
             "drive_link": drive_link, "name": name, "caption": dl.get("caption"),
+            # "structural" | "proximity" | absent (yt-dlp path carries no
+            # caption at all) -- REVIEW-1 B2: the caption's provenance is
+            # part of the result, not just a code comment.
+            "caption_anchor": dl.get("anchor"),
             "size": size,
         }
         _audit("grab_video", url, "ok", f"drive_link={drive_link} name={name} size={size}")
