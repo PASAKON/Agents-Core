@@ -1444,5 +1444,210 @@ def test_grab_video_verify_listing_that_raises_is_verify_failed_keeps_local_copy
     assert dl["path"].exists()
 
 
+# ---------------------------------------------------------------------------
+# grab_video broker mode (task-4405b24a, D4 of task-e713c4e2). Mocked only --
+# no real unix socket, no real runners/drive_upload_broker.py process.
+# rms.video_to_drive.broker_upload/BrokerUploadError are patched directly,
+# same idiom the direct-path tests above use for upload/list_folder.
+# ---------------------------------------------------------------------------
+
+def _no_direct_calls_allowed(monkeypatch):
+    """Wire apply_oauth_env_override/upload/list_folder to fail the test
+    loudly if broker mode calls any of them -- D2's whole point."""
+    calls = []
+
+    def _boom(which):
+        def _inner(*a, **kw):
+            calls.append(which)
+            raise AssertionError(f"{which} must never be called in broker mode")
+        return _inner
+
+    monkeypatch.setattr(rms.video_to_drive, "apply_oauth_env_override",
+                        _boom("apply_oauth_env_override"))
+    monkeypatch.setattr(rms.video_to_drive, "upload", _boom("upload"))
+    monkeypatch.setattr(rms.video_to_drive, "list_folder", _boom("list_folder"))
+    return calls
+
+
+def test_grab_video_broker_mode_uses_broker_client_never_touches_direct_drive(monkeypatch, tmp_path):
+    """D1/D2: DRIVE_UPLOAD_SOCKET set -> upload goes through
+    video_to_drive.broker_upload() (the existing, already-tested client --
+    not a second socket implementation), and
+    apply_oauth_env_override/upload/list_folder are never called."""
+    staging_root = tmp_path / "staging"
+    staging_root.mkdir()
+    monkeypatch.setenv(rms.video_to_drive.DRIVE_UPLOAD_SOCKET_VAR, "/tmp/fake-broker.sock")
+    monkeypatch.setenv(rms.SOMPONG_STAGING_DIR_VAR, str(staging_root))
+
+    dl = _dl_ok(tmp_path)
+    monkeypatch.setattr(rms.video_grab, "grab_video", lambda url, dest_dir, **kw: dl)
+    direct_calls = _no_direct_calls_allowed(monkeypatch)
+
+    broker_calls = []
+
+    def fake_broker_upload(sock_path, local_path, name):
+        broker_calls.append((sock_path, local_path, name))
+        return {"id": "broker-file-id", "name": name}
+    monkeypatch.setattr(rms.video_to_drive, "broker_upload", fake_broker_upload)
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "ok"
+    assert result["drive_link"] == "https://drive.google.com/file/d/broker-file-id/view"
+    assert result["caption"] == dl["caption"]
+    assert result["size"] == dl["size"]
+    assert direct_calls == [], "broker mode must never call the direct-credential path"
+    assert broker_calls == [("/tmp/fake-broker.sock", dl["path"], dl["path"].name)]
+    assert not dl["path"].exists(), "verified broker upload must delete the local staging copy"
+
+
+def test_grab_video_without_broker_env_runs_direct_path_broker_client_never_called(monkeypatch, tmp_path):
+    """D3: DRIVE_UPLOAD_SOCKET unset -> today's direct path runs exactly as
+    before; broker_upload must never be called."""
+    monkeypatch.delenv(rms.video_to_drive.DRIVE_UPLOAD_SOCKET_VAR, raising=False)
+
+    dl = _dl_ok(tmp_path)
+    monkeypatch.setattr(rms.video_grab, "grab_video", lambda url, dest_dir, **kw: dl)
+    monkeypatch.setattr(rms.video_to_drive, "apply_oauth_env_override", lambda: None)
+    monkeypatch.setattr(rms.video_to_drive, "upload",
+                        lambda path, name, folder_id: {"id": "file-id-1", "name": name})
+    monkeypatch.setattr(rms.video_to_drive, "list_folder",
+                        lambda folder_id: {dl["path"].name: dl["size"]})
+
+    def _boom(*a, **kw):
+        raise AssertionError("broker_upload must never be called when DRIVE_UPLOAD_SOCKET is unset")
+    monkeypatch.setattr(rms.video_to_drive, "broker_upload", _boom)
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "ok"
+    assert result["drive_link"] == "https://drive.google.com/file/d/file-id-1/view"
+
+
+def test_grab_video_broker_refuses_reports_failure_naming_reason_no_direct_fallback(monkeypatch, tmp_path):
+    """D4: broker down/unreachable/refuses -> a clear failure naming the
+    reason, NEVER a fallback to a direct Drive call, and the local staged
+    file is kept for a human to inspect (same upload_failed rule as the
+    direct path)."""
+    staging_root = tmp_path / "staging"
+    staging_root.mkdir()
+    monkeypatch.setenv(rms.video_to_drive.DRIVE_UPLOAD_SOCKET_VAR, "/tmp/fake-broker.sock")
+    monkeypatch.setenv(rms.SOMPONG_STAGING_DIR_VAR, str(staging_root))
+
+    dl = _dl_ok(tmp_path)
+    monkeypatch.setattr(rms.video_grab, "grab_video", lambda url, dest_dir, **kw: dl)
+    direct_calls = _no_direct_calls_allowed(monkeypatch)
+
+    def refusing_broker(sock_path, local_path, name):
+        raise rms.video_to_drive.BrokerUploadError("broker refused the upload: wrong uid")
+    monkeypatch.setattr(rms.video_to_drive, "broker_upload", refusing_broker)
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "upload_failed"
+    assert "wrong uid" in result["reason"]
+    assert direct_calls == []
+    assert dl["path"].exists(), "a broker failure must keep the local file for a human to inspect"
+
+
+def test_grab_video_broker_unreachable_socket_reports_failure_no_direct_fallback(monkeypatch, tmp_path):
+    """D4, unreachable variant: the broker client itself raises
+    BrokerUploadError for a connect failure -- same contract as refusal."""
+    staging_root = tmp_path / "staging"
+    staging_root.mkdir()
+    monkeypatch.setenv(rms.video_to_drive.DRIVE_UPLOAD_SOCKET_VAR, "/tmp/no-such-broker.sock")
+    monkeypatch.setenv(rms.SOMPONG_STAGING_DIR_VAR, str(staging_root))
+
+    dl = _dl_ok(tmp_path)
+    monkeypatch.setattr(rms.video_grab, "grab_video", lambda url, dest_dir, **kw: dl)
+    direct_calls = _no_direct_calls_allowed(monkeypatch)
+
+    def unreachable_broker(sock_path, local_path, name):
+        raise rms.video_to_drive.BrokerUploadError(
+            f"could not reach upload broker at {sock_path}: [Errno 2] No such file or directory")
+    monkeypatch.setattr(rms.video_to_drive, "broker_upload", unreachable_broker)
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "upload_failed"
+    assert "could not reach upload broker" in result["reason"]
+    assert direct_calls == []
+    assert dl["path"].exists()
+
+
+def test_grab_video_broker_mode_without_staging_dir_env_is_clear_failure_no_download_attempted(
+        monkeypatch, tmp_path):
+    """D5 misconfiguration guard: DRIVE_UPLOAD_SOCKET set but
+    SOMPONG_STAGING_DIR is not -> a clear, named failure -- never a crash,
+    never a download attempt, never a fallback to the direct path."""
+    monkeypatch.setenv(rms.video_to_drive.DRIVE_UPLOAD_SOCKET_VAR, "/tmp/fake-broker.sock")
+    monkeypatch.delenv(rms.SOMPONG_STAGING_DIR_VAR, raising=False)
+
+    called = []
+    monkeypatch.setattr(rms.video_grab, "grab_video",
+                        lambda *a, **kw: called.append("download") or {})
+    _no_direct_calls_allowed(monkeypatch)
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "upload_failed"
+    assert rms.SOMPONG_STAGING_DIR_VAR in result["reason"]
+    assert called == [], "misconfigured broker mode must never attempt a download"
+
+
+def test_grab_video_broker_mode_stages_download_inside_configured_staging_dir(monkeypatch, tmp_path):
+    """D5: in broker mode the download must be staged under
+    SOMPONG_STAGING_DIR (the tree the broker actually resolves paths
+    into), never a private tempfile.mkdtemp() elsewhere."""
+    staging_root = tmp_path / "staging"
+    staging_root.mkdir()
+    monkeypatch.setenv(rms.video_to_drive.DRIVE_UPLOAD_SOCKET_VAR, "/tmp/fake-broker.sock")
+    monkeypatch.setenv(rms.SOMPONG_STAGING_DIR_VAR, str(staging_root))
+
+    seen_dest_dirs = []
+    handed_to_broker = []
+
+    def fake_grab(url, dest_dir, **kw):
+        seen_dest_dirs.append(dest_dir)
+        p = dest_dir / "clip.mp4"
+        p.write_bytes(b"x" * 2048)
+        return {"status": "ok", "url": url, "via": "yt-dlp", "path": p,
+                "caption": None, "size": 2048}
+    monkeypatch.setattr(rms.video_grab, "grab_video", fake_grab)
+
+    def fake_broker_upload(sock_path, local_path, name):
+        handed_to_broker.append(local_path)
+        return {"id": "broker-file-id", "name": name}
+    monkeypatch.setattr(rms.video_to_drive, "broker_upload", fake_broker_upload)
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "ok"
+    assert len(seen_dest_dirs) == 1
+    assert seen_dest_dirs[0].resolve().is_relative_to(staging_root.resolve())
+    assert len(handed_to_broker) == 1
+    assert handed_to_broker[0].resolve().is_relative_to(staging_root.resolve())
+
+
+def test_grab_video_broker_mode_still_honours_the_no_escape_hatch_guard_and_allowlist():
+    """Confirms adding broker mode did not change grab_video's signature or
+    the server's tool allowlist -- the two guard assertions this task must
+    not disturb, re-checked here so a broker-mode regression trips this
+    file's own tests, not just the ones in section 7."""
+    params = set(inspect.signature(rms.grab_video).parameters)
+    assert params == {"url"}
+    tools = [
+        rms.mac_status, rms.org_snapshot, rms.relay_to_session,
+        rms.spawn_c_level, rms.read_session, rms.list_terminals,
+        rms.session_history, rms.open_terminal, rms.list_ceo_orders,
+        rms.read_link, rms.grab_video,
+    ]
+    assert {t.__name__ for t in tools} == {
+        "mac_status", "org_snapshot", "relay_to_session", "spawn_c_level",
+        "read_session", "list_terminals", "session_history", "open_terminal",
+        "list_ceo_orders", "read_link", "grab_video",
+    }
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-v"]))

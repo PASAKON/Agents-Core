@@ -1624,6 +1624,18 @@ def read_link(url: str) -> str:
 # scripts/video_to_drive.py already follows.
 GRAB_VIDEO_STAGE_PREFIX = "grab_video_"
 
+# task-4405b24a (D4 of task-e713c4e2) -- broker mode. When
+# video_to_drive.DRIVE_UPLOAD_SOCKET_VAR is set, this tool never touches a
+# Drive credential itself: it stages the download under SOMPONG_STAGING_DIR
+# (this new var) instead of a private tempfile.mkdtemp(), because
+# runners/drive_upload_broker.py only accepts paths that resolve inside its
+# own DRIVE_BROKER_STAGING_ROOT -- a private temp dir elsewhere would be
+# invisible to it. The CTO must point SOMPONG_STAGING_DIR at the same real
+# directory drive_upload_broker.py is configured with (DRIVE_BROKER_STAGING_ROOT)
+# when provisioning. Unset (today, the Mac): behaviour is completely
+# unchanged from before this task.
+SOMPONG_STAGING_DIR_VAR = "SOMPONG_STAGING_DIR"
+
 
 @mcp.tool()
 def grab_video(url: str) -> str:
@@ -1657,6 +1669,18 @@ def grab_video(url: str) -> str:
     uses) -- the local temp file is deleted ONLY once that fresh listing
     confirms the file is really there at the right size.
 
+    Broker mode (task-4405b24a, D4 of task-e713c4e2): when
+    DRIVE_UPLOAD_SOCKET is set, this tool never calls
+    apply_oauth_env_override()/upload()/list_folder() at all -- upload goes
+    through video_to_drive.broker_upload() instead (the same client
+    scripts/video_to_drive.py's CLI uses), and the download is staged under
+    SOMPONG_STAGING_DIR rather than a private temp dir, because the broker
+    only accepts paths inside its own DRIVE_BROKER_STAGING_ROOT. If the
+    broker is down, unreachable, refuses, or fails its own verify, this
+    reports a normal failure (status upload_failed) with the reason --
+    NEVER a silent fallback to a direct credential this process must not
+    hold. Unset (today, the Mac): behaviour is unchanged.
+
     On any failure, `status` names what actually failed -- one of: blocked,
     unsupported_site, no_video, login_wall, download_failed, not_a_video,
     too_large, timeout, upload_failed, verify_failed -- with a human-readable
@@ -1669,7 +1693,26 @@ def grab_video(url: str) -> str:
     says how it was resolved -- "proximity" is a last-resort fallback and
     less trustworthy than "structural".
     """
-    stage_dir = Path(tempfile.mkdtemp(prefix=GRAB_VIDEO_STAGE_PREFIX))
+    broker_socket = os.environ.get(video_to_drive.DRIVE_UPLOAD_SOCKET_VAR) or None
+    if broker_socket:
+        staging_root = os.environ.get(SOMPONG_STAGING_DIR_VAR)
+        if not staging_root:
+            reason = (f"{video_to_drive.DRIVE_UPLOAD_SOCKET_VAR} is set but "
+                      f"{SOMPONG_STAGING_DIR_VAR} is not -- broker mode misconfigured")
+            _audit("grab_video", url, "upload_failed", reason)
+            return json.dumps({"status": "upload_failed", "url": url, "reason": reason},
+                               ensure_ascii=False)
+        try:
+            Path(staging_root).mkdir(parents=True, exist_ok=True)
+            stage_dir = Path(tempfile.mkdtemp(prefix=GRAB_VIDEO_STAGE_PREFIX, dir=staging_root))
+        except OSError as e:
+            reason = f"could not prepare broker staging directory {staging_root}: {e}"
+            _audit("grab_video", url, "upload_failed", reason)
+            return json.dumps({"status": "upload_failed", "url": url, "reason": reason},
+                               ensure_ascii=False)
+    else:
+        stage_dir = Path(tempfile.mkdtemp(prefix=GRAB_VIDEO_STAGE_PREFIX))
+
     try:
         dl = video_grab.grab_video(url, stage_dir)
         if dl.get("status") != "ok":
@@ -1682,6 +1725,47 @@ def grab_video(url: str) -> str:
         local_path: Path = dl["path"]
         name = local_path.name
         size = dl.get("size", local_path.stat().st_size)
+
+        if broker_socket:
+            # task-4405b24a D1/D2 -- the broker client that
+            # scripts/video_to_drive.py already provides, mirroring the
+            # CLI's call shape exactly (process_url()'s broker branch). No
+            # second socket client, no apply_oauth_env_override()/upload()/
+            # list_folder() call anywhere in this branch -- this process
+            # never touches a Drive credential in broker mode.
+            try:
+                uploaded = video_to_drive.broker_upload(broker_socket, local_path, name)
+            except video_to_drive.BrokerUploadError as e:
+                _audit("grab_video", url, "upload_failed",
+                       f"broker upload failed: {e} (kept: {local_path})")
+                return json.dumps({"status": "upload_failed", "url": url,
+                                   "reason": f"upload to Drive via broker failed: {e}"},
+                                   ensure_ascii=False)
+
+            file_id = uploaded.get("id")
+            if not file_id:
+                # Broker answered ok but carried no usable id -- never invent
+                # a link; keep the local bytes, same rule as verify_failed.
+                _audit("grab_video", url, "verify_failed",
+                       f"broker upload response carried no file id (kept: {local_path})")
+                return json.dumps({"status": "verify_failed", "url": url,
+                                   "reason": "upload succeeded but broker returned no file id"},
+                                   ensure_ascii=False)
+
+            # The broker already verified by a fresh Drive listing server-
+            # side before it ever answered ok -- only now is the local copy
+            # deleted (same D5 ordering as the direct path below).
+            local_path.unlink(missing_ok=True)
+            drive_link = f"https://drive.google.com/file/d/{file_id}/view"
+            result = {
+                "status": "ok", "url": url, "via": dl.get("via"),
+                "drive_link": drive_link, "name": name, "caption": dl.get("caption"),
+                "caption_anchor": dl.get("anchor"),
+                "size": size,
+            }
+            _audit("grab_video", url, "ok",
+                   f"drive_link={drive_link} name={name} size={size} (via broker)")
+            return json.dumps(result, ensure_ascii=False)
 
         video_to_drive.apply_oauth_env_override()
         folder_id = video_to_drive.DRIVE_SOMPONG_GRAB_FOLDER_ID
