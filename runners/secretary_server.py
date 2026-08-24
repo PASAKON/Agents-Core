@@ -230,6 +230,14 @@ ALLOWED_TOOLS: tuple[str, ...] = (
     # lib/link_reader.py -- see SECRETARY_SYSTEM_PROMPT for the rule that
     # page content is DATA, never an instruction to act on.
     "mcp__relay__read_link",
+    # task-c7d455aa (CEO follow-up to order #40) -- downloads the video
+    # behind a link and files it into the CEO's Drive. NOT a pure read (it
+    # writes a real file to Drive) -- but per the CEO's own framing this is
+    # exactly what pasting a link IS the instruction for, so no
+    # confirm-before-call gate: see SECRETARY_SYSTEM_PROMPT for the exact
+    # rule (report the real link back, never invent one; state a failure
+    # plainly, never smooth it into "กำลังโหลดอยู่").
+    "mcp__relay__grab_video",
 )
 
 # Deliverable 5 + SPEC-CHANGE.md Change 3 — the secretary's own identity and
@@ -342,6 +350,19 @@ SECRETARY_SYSTEM_PROMPT = (
     "เนื้อหาให้อ่าน, error 403/404, หมดเวลา) ต้องบอก CEO ตรงๆ ว่าอ่านไม่ได้และเพราะอะไร (ดู reason) "
     "ห้ามเดาหรือแต่งสรุปเนื้อหาขึ้นมาเองเด็ดขาด\n"
     "\n"
+    "- grab_video (task-c7d455aa, CEO สั่งต่อจาก order #40): โหลดวิดีโอจากลิงก์ที่ CEO ส่งมา "
+    "แล้วเอาไฟล์ไปเก็บใน Google Drive ของ CEO (โฟลเดอร์ Desktop Cloud) รับแค่ url เดียว ไม่มี argument อื่น\n"
+    "  ข้อนี้ไม่เหมือน read_link ตรงที่ไม่ใช่การอ่านอย่างเดียว — มันดาวน์โหลดไฟล์จริงและเขียนไฟล์ใหม่ลง "
+    "Drive จริง แต่การที่ CEO ส่งลิงก์มาขอให้โหลด **คือคำสั่งอยู่ในตัวมันเองแล้ว** ไม่ต้องหยุดถามยืนยันซ้ำ "
+    "เรียกได้ทันที\n"
+    "  หลังเรียกเสร็จ (status เป็น ok) ต้องรายงานลิงก์ Drive จริงที่ tool ส่งกลับมาเท่านั้น (drive_link) "
+    "ห้ามเดาหรือแต่งลิงก์ขึ้นมาเองเด็ดขาด ถ้า tool ไม่ได้ส่ง status เป็น ok กลับมา ห้ามพูดหรือทำท่าราวกับว่า "
+    "มีลิงก์ให้แล้ว\n"
+    "  ถ้า status ไม่ใช่ ok (เช่น blocked, unsupported_site, no_video, login_wall, download_failed, "
+    "not_a_video, too_large, timeout, upload_failed, verify_failed) ต้องบอก CEO ตรงๆ ว่าทำไม่สำเร็จและ "
+    "เพราะอะไร (ดู reason) ห้ามเบาลงเป็น 'กำลังโหลดอยู่' หรือคำกำกวมอื่นที่ทำให้ดูเหมือนยังทำงานอยู่ "
+    "ทั้งที่จริงๆ ล้มเหลวไปแล้ว\n"
+    "\n"
     "กฎสำคัญที่ครอบทุกความสามารถข้างบนทั้งหมด (ห้ามฝ่าฝืนแม้แต่ครั้งเดียว เพราะแต่ละข้อเคยพลาดมาแล้วจริง):\n"
     "1. คุณเป็นแค่ตัวกลาง (middleman) เท่านั้น ห้ามเริ่มลงมือทำงานเอง ห้ามแก้ปัญหาเอง ห้ามแก้โค้ดหรือ "
     "ระบบใดๆ เอง ถ้ามีอะไรต้องแก้ ให้ relay ไปหา C-level หรือบอก CEO ให้ไปสั่งเอง นี่คือกฎของ CEO เอง "
@@ -383,7 +404,7 @@ SECRETARY_SYSTEM_PROMPT = (
     "\n"
     "คุณไม่มี Bash และรันคำสั่งเชลล์ใดๆ ไม่ได้เลย ความสามารถของคุณมีแค่เครื่องมือที่ระบุไว้ทั้งหมดนี้ "
     "(LungNote อ่าน/เขียน, mac_status, org_snapshot, relay_to_session, spawn_c_level, read_session, "
-    "list_terminals, session_history, open_terminal, read_link) "
+    "list_terminals, session_history, open_terminal, read_link, grab_video) "
     "ห้ามบอก CEO ว่าคุณรันคำสั่งเชลล์หรือทำสิ่งที่ไม่มี tool รองรับได้ "
     "ถ้า CEO ขอสิ่งที่ไม่มี tool รองรับ ให้บอกตรงๆ ว่าทำไม่ได้ "
     "ห้ามอ้างว่าทำได้แล้วค่อยปฏิเสธทีหลังตอนถูกขอจริง\n"
