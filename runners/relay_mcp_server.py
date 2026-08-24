@@ -78,6 +78,7 @@ import re
 import sqlite3
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -85,14 +86,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+# task-c7d455aa D5 -- video_to_drive.py lives in scripts/, which is not a
+# python package (no __init__.py); this is the same sys.path idiom that
+# file's own tests (scripts/test_video_to_drive.py) already use to import it.
+sys.path.insert(0, str(ROOT / "scripts"))
 
 import requests
 from mcp.server.fastmcp import FastMCP
 
-from lib import link_reader, mailbox
+from lib import link_reader, mailbox, video_grab
 from lib.logger import get_logger
 from tools import org_inspector, tmux_session
 from tools.send_to_cxo import Identity, _active_session_id, attempt_wake, authorize
+import video_to_drive  # noqa: E402 -- task-c7d455aa D5, see sys.path insert above
 
 log = get_logger("relay", stdout=False)
 mcp = FastMCP("relay")
@@ -1594,6 +1600,142 @@ def read_link(url: str) -> str:
     _audit("read_link", url, result.get("status", "error"),
            f"source={result.get('source')} reason={result.get('reason')}")
     return json.dumps(result, ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
+# grab_video -- task-c7d455aa, CEO follow-up to order #40: the CEO pastes a
+# video link to SomPong; SomPong downloads it and files it into the CEO's
+# Google Drive (Desktop Cloud root), then reports the link back. Chosen by
+# the CEO over Telegram-send and over a new Drive folder. Logic lives in
+# lib.video_grab (D1, pure, unit-tested there) and scripts/video_to_drive.py
+# (D3/D4's upload/verify helpers) -- this is the thin wrapper the rest of
+# this file's tools all use: call the logic, audit, json.dumps.
+# ---------------------------------------------------------------------------
+
+# D6 caps, restated here for the docstring below (the real numbers live once,
+# in lib.video_grab, as the source of truth this tool just calls into):
+#   - max file size:        500 MiB   (lib.video_grab.MAX_VIDEO_BYTES)
+#   - overall wall-clock:   900s / 15 min (lib.video_grab.OVERALL_TIMEOUT_S)
+# A temp directory is used for staging -- never the repo, never a user's
+# Desktop -- and is removed on every exit path EXCEPT the two narrow,
+# deliberate cases where the local bytes are the only evidence of a Drive
+# discrepancy worth a human looking at (upload_failed / verify_failed): the
+# same "never delete before Drive confirms it" rule
+# scripts/video_to_drive.py already follows.
+GRAB_VIDEO_STAGE_PREFIX = "grab_video_"
+
+
+@mcp.tool()
+def grab_video(url: str) -> str:
+    """Download the video behind `url` and file it into the CEO's Google
+    Drive Desktop Cloud root, on the CEO's behalf via SomPong.
+
+    `url` is the only argument -- no destination, no filename, no shell.
+    This is NOT a pure read like read_link: it downloads real bytes and
+    writes a new file into the CEO's Drive. The CEO asking SomPong for a
+    link IS the instruction, so no extra confirmation round-trip is needed
+    here -- see the system prompt for the exact rule.
+
+    SSRF-guarded before any fetch (lib.link_reader.check_url_safe, the same
+    guard read_link uses -- re-checked again before the extracted media URL
+    itself is streamed, since a URL pulled out of page content is still
+    attacker-influenced). Downloads to a TEMP directory, never the repo and
+    never a user's Desktop.
+
+    Layered download strategy (lib.video_grab, D1 -- the SAME implementation
+    scripts/threads-grab.sh uses, so the two surfaces cannot drift): yt-dlp
+    for the ~1800 sites it actually supports, then a Threads path (Googlebot
+    UA, embedded `"video_versions"` JSON, the caption closest to the video --
+    never just the first caption on the page) for the hosts yt-dlp refuses.
+    Every download is ffprobe-verified before it is ever called a success --
+    a CDN error page saved with a .mp4 name is deleted and reported as a
+    failure, never a success. Capped at 500 MiB and a 900s (15 minute)
+    overall wall-clock budget -- this runs unattended on a 4-CPU VPS.
+
+    Upload verified by a FRESH Drive folder listing, never by trusting the
+    upload call's 200 (the same pattern scripts/video_to_drive.py already
+    uses) -- the local temp file is deleted ONLY once that fresh listing
+    confirms the file is really there at the right size.
+
+    On any failure, `status` names what actually failed -- one of: blocked,
+    unsupported_site, no_video, login_wall, download_failed, not_a_video,
+    too_large, timeout, upload_failed, verify_failed -- with a human-readable
+    `reason`. NEVER a success with no link. On success, returns the real
+    Drive link SomPong got back from Drive (never invented), the caption/
+    filename, and the size -- SomPong must report exactly this, not a
+    guess.
+    """
+    stage_dir = Path(tempfile.mkdtemp(prefix=GRAB_VIDEO_STAGE_PREFIX))
+    try:
+        dl = video_grab.grab_video(url, stage_dir)
+        if dl.get("status") != "ok":
+            reason_kind = dl.get("reason_kind", "download_failed")
+            reason = dl.get("reason", "download failed")
+            _audit("grab_video", url, reason_kind, reason)
+            return json.dumps({"status": reason_kind, "url": url, "reason": reason},
+                               ensure_ascii=False)
+
+        local_path: Path = dl["path"]
+        name = local_path.name
+        size = dl.get("size", local_path.stat().st_size)
+
+        video_to_drive.apply_oauth_env_override()
+        folder_id = video_to_drive.DRIVE_SOMPONG_GRAB_FOLDER_ID
+
+        try:
+            uploaded = video_to_drive.upload(local_path, name, folder_id)
+        except Exception as e:  # noqa: BLE001 -- Drive/network failure, not a bug here
+            _audit("grab_video", url, "upload_failed",
+                   f"upload raised: {e} (kept: {local_path})")
+            return json.dumps({"status": "upload_failed", "url": url,
+                               "reason": f"upload to Drive failed: {e}"}, ensure_ascii=False)
+
+        try:
+            fresh = video_to_drive.list_folder(folder_id)
+        except Exception as e:  # noqa: BLE001
+            _audit("grab_video", url, "verify_failed",
+                   f"post-upload listing failed: {e} (kept: {local_path})")
+            return json.dumps({"status": "verify_failed", "url": url,
+                               "reason": f"uploaded but could not verify (listing failed: {e})"},
+                               ensure_ascii=False)
+
+        drive_size = fresh.get(name)
+        if drive_size is None or drive_size != size:
+            detail = ("not found in a fresh folder listing" if drive_size is None
+                      else f"size mismatch (local {size} vs drive {drive_size})")
+            _audit("grab_video", url, "verify_failed", f"{detail} (kept: {local_path})")
+            return json.dumps({"status": "verify_failed", "url": url,
+                               "reason": f"upload could not be verified: {detail}"},
+                               ensure_ascii=False)
+
+        # Verified -- only now is the local copy deleted (D5's ordering).
+        local_path.unlink(missing_ok=True)
+        file_id = uploaded.get("id")
+        drive_link = f"https://drive.google.com/file/d/{file_id}/view" if file_id else None
+        if not drive_link:
+            # Drive's own response carried no usable id -- never invent a link.
+            _audit("grab_video", url, "verify_failed", "upload response carried no file id")
+            return json.dumps({"status": "verify_failed", "url": url,
+                               "reason": "upload succeeded but Drive returned no file id"},
+                               ensure_ascii=False)
+
+        result = {
+            "status": "ok", "url": url, "via": dl.get("via"),
+            "drive_link": drive_link, "name": name, "caption": dl.get("caption"),
+            "size": size,
+        }
+        _audit("grab_video", url, "ok", f"drive_link={drive_link} name={name} size={size}")
+        return json.dumps(result, ensure_ascii=False)
+    finally:
+        # Every exit path removes the (now-empty) staging dir, EXCEPT the two
+        # branches above that deliberately kept the local file for manual
+        # recovery -- those already `return`ed by the time this runs, and
+        # the dir is non-empty, so this is a no-op for exactly those two
+        # cases and a real cleanup for every other exit path (download
+        # failure -- lib.video_grab never leaves a file behind on failure --
+        # or the success path, which already unlinked its own file above).
+        if stage_dir.exists() and not any(stage_dir.iterdir()):
+            stage_dir.rmdir()
 
 
 if __name__ == "__main__":

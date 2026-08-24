@@ -747,17 +747,20 @@ def test_no_tool_accepts_a_free_form_command_argument():
         # task-166dfbe8 -- takes only `url`; no header/method/raw-HTML
         # passthrough either, covered by the same forbidden-name set.
         rms.read_link,
+        # task-c7d455aa D5 -- takes only `url`; no destination, no filename,
+        # no shell, same forbidden-name set.
+        rms.grab_video,
     ]
     for tool in tools:
         params = set(inspect.signature(tool).parameters)
         overlap = params & forbidden_param_names
         assert not overlap, f"{tool.__name__} accepts free-form-looking arg(s): {overlap}"
-    # And the full set of tools is exactly these ten -- no eleventh escape
+    # And the full set of tools is exactly these eleven -- no twelfth escape
     # hatch snuck in.
     assert {t.__name__ for t in tools} == {
         "mac_status", "org_snapshot", "relay_to_session", "spawn_c_level",
         "read_session", "list_terminals", "session_history", "open_terminal",
-        "list_ceo_orders", "read_link",
+        "list_ceo_orders", "read_link", "grab_video",
     }
 
 
@@ -1285,6 +1288,160 @@ def test_list_ceo_orders_hides_closed_by_default_shows_with_flag(queue_env):
     assert everything[0]["reply_detail"] == "shipped it"
     assert everything[1]["order_text"] == "open one"
     assert everything[1]["status"] == "awaiting_reply"
+
+
+# ---------------------------------------------------------------------------
+# grab_video (task-c7d455aa D5). video_grab.grab_video and video_to_drive's
+# upload/list_folder/apply_oauth_env_override are module-level names looked
+# up at call time inside rms.grab_video -- patched directly, same idiom
+# queue_env's fake_subprocess and every other fixture in this file uses.
+# ---------------------------------------------------------------------------
+
+def _dl_ok(tmp_path, name="uusanr-abc.mp4", size=2048, via="threads (embedded JSON, Googlebot UA)",
+           caption="อยากจีบแต่วาสนาไม่ถึง😭"):
+    p = tmp_path / name
+    p.write_bytes(b"x" * size)
+    return {"status": "ok", "url": "https://www.threads.com/@uusanr/post/abc",
+            "via": via, "path": p, "caption": caption, "uploader": "uusanr",
+            "probe": "codec_name=h264", "size": size}
+
+
+def test_grab_video_success_returns_drive_link_caption_size_and_deletes_local_file(monkeypatch, tmp_path):
+    dl = _dl_ok(tmp_path)
+    monkeypatch.setattr(rms.video_grab, "grab_video", lambda url, dest_dir, **kw: dl)
+    monkeypatch.setattr(rms.video_to_drive, "apply_oauth_env_override", lambda: None)
+    monkeypatch.setattr(rms.video_to_drive, "upload",
+                        lambda path, name, folder_id: {"id": "file-id-1", "name": name})
+    monkeypatch.setattr(rms.video_to_drive, "list_folder",
+                        lambda folder_id: {dl["path"].name: dl["size"]})
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "ok"
+    assert result["drive_link"] == "https://drive.google.com/file/d/file-id-1/view"
+    assert result["caption"] == "อยากจีบแต่วาสนาไม่ถึง😭"
+    assert result["size"] == dl["size"]
+    assert result["via"] == dl["via"]
+    assert not dl["path"].exists(), "verified upload must delete the local staging copy"
+
+
+def test_grab_video_uses_the_sompong_grab_folder_id_never_the_blackliquidity_one(monkeypatch, tmp_path):
+    """D3/D8 guard, at the call-site level: grab_video must upload/verify
+    against DRIVE_SOMPONG_GRAB_FOLDER_ID, never DRIVE_VIDEO_PARENT_FOLDER_ID
+    (that id is load-bearing for two other production systems)."""
+    dl = _dl_ok(tmp_path)
+    monkeypatch.setattr(rms.video_grab, "grab_video", lambda url, dest_dir, **kw: dl)
+    monkeypatch.setattr(rms.video_to_drive, "apply_oauth_env_override", lambda: None)
+    seen_folder_ids = []
+
+    def fake_upload(path, name, folder_id):
+        seen_folder_ids.append(folder_id)
+        return {"id": "file-id-1", "name": name}
+
+    monkeypatch.setattr(rms.video_to_drive, "upload", fake_upload)
+
+    def fake_list_folder(folder_id):
+        seen_folder_ids.append(folder_id)
+        return {dl["path"].name: dl["size"]}
+
+    monkeypatch.setattr(rms.video_to_drive, "list_folder", fake_list_folder)
+
+    rms.grab_video("https://www.threads.com/@uusanr/post/abc")
+
+    assert seen_folder_ids == [rms.video_to_drive.DRIVE_SOMPONG_GRAB_FOLDER_ID,
+                               rms.video_to_drive.DRIVE_SOMPONG_GRAB_FOLDER_ID]
+
+
+def test_grab_video_download_failure_names_what_failed_never_a_success_with_no_link(monkeypatch, tmp_path):
+    monkeypatch.setattr(rms.video_grab, "grab_video",
+                        lambda url, dest_dir, **kw: {"status": "error", "url": url,
+                                                      "reason_kind": "no_video",
+                                                      "reason": "no video in this post"})
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@u/post/text-only"))
+
+    assert result["status"] == "no_video"
+    assert "reason" in result
+    assert "drive_link" not in result
+
+
+def test_grab_video_blocked_url_never_touches_drive(monkeypatch, tmp_path):
+    called = []
+    monkeypatch.setattr(rms.video_grab, "grab_video",
+                        lambda url, dest_dir, **kw: {"status": "error", "url": url,
+                                                      "reason_kind": "blocked",
+                                                      "reason": "blocked: unsupported scheme"})
+    monkeypatch.setattr(rms.video_to_drive, "upload", lambda *a, **kw: called.append("upload"))
+    monkeypatch.setattr(rms.video_to_drive, "list_folder", lambda *a, **kw: called.append("list"))
+
+    result = json.loads(rms.grab_video("file:///etc/passwd"))
+
+    assert result["status"] == "blocked"
+    assert called == []
+
+
+def test_grab_video_upload_failed_keeps_local_file_and_reports_upload_failed(monkeypatch, tmp_path):
+    dl = _dl_ok(tmp_path)
+    monkeypatch.setattr(rms.video_grab, "grab_video", lambda url, dest_dir, **kw: dl)
+    monkeypatch.setattr(rms.video_to_drive, "apply_oauth_env_override", lambda: None)
+
+    def fail_upload(*a, **kw):
+        raise RuntimeError("connection reset")
+    monkeypatch.setattr(rms.video_to_drive, "upload", fail_upload)
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "upload_failed"
+    assert dl["path"].exists(), "an upload failure must keep the local file, not delete it"
+
+
+def test_grab_video_verify_failed_when_listing_does_not_show_the_file_keeps_local_copy(monkeypatch, tmp_path):
+    """D8 required: upload 'succeeded' but the verification listing does not
+    show the file -> reported as failure, local file NOT deleted."""
+    dl = _dl_ok(tmp_path)
+    monkeypatch.setattr(rms.video_grab, "grab_video", lambda url, dest_dir, **kw: dl)
+    monkeypatch.setattr(rms.video_to_drive, "apply_oauth_env_override", lambda: None)
+    monkeypatch.setattr(rms.video_to_drive, "upload",
+                        lambda path, name, folder_id: {"id": "file-id-1", "name": name})
+    monkeypatch.setattr(rms.video_to_drive, "list_folder", lambda folder_id: {})  # file absent
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "verify_failed"
+    assert "drive_link" not in result
+    assert dl["path"].exists(), "an unverified upload must NEVER delete the local file"
+
+
+def test_grab_video_verify_failed_on_size_mismatch_keeps_local_copy(monkeypatch, tmp_path):
+    dl = _dl_ok(tmp_path, size=2048)
+    monkeypatch.setattr(rms.video_grab, "grab_video", lambda url, dest_dir, **kw: dl)
+    monkeypatch.setattr(rms.video_to_drive, "apply_oauth_env_override", lambda: None)
+    monkeypatch.setattr(rms.video_to_drive, "upload",
+                        lambda path, name, folder_id: {"id": "file-id-1", "name": name})
+    monkeypatch.setattr(rms.video_to_drive, "list_folder",
+                        lambda folder_id: {dl["path"].name: 999})  # wrong size
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "verify_failed"
+    assert dl["path"].exists()
+
+
+def test_grab_video_verify_listing_that_raises_is_verify_failed_keeps_local_copy(monkeypatch, tmp_path):
+    dl = _dl_ok(tmp_path)
+    monkeypatch.setattr(rms.video_grab, "grab_video", lambda url, dest_dir, **kw: dl)
+    monkeypatch.setattr(rms.video_to_drive, "apply_oauth_env_override", lambda: None)
+    monkeypatch.setattr(rms.video_to_drive, "upload",
+                        lambda path, name, folder_id: {"id": "file-id-1", "name": name})
+
+    def raising_list(folder_id):
+        raise OSError("connection reset")
+    monkeypatch.setattr(rms.video_to_drive, "list_folder", raising_list)
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "verify_failed"
+    assert dl["path"].exists()
 
 
 if __name__ == "__main__":
