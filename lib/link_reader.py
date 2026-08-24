@@ -361,6 +361,43 @@ def _extract_embedded_caption(html_text: str) -> str | None:
     return decoded or None
 
 
+# task-bce6ae7c (D1) -- the FIRST-MATCH-ANYWHERE regex above is exactly the
+# live bug: a Threads post page embeds the post itself, its replies, AND
+# unrelated recommended posts in the identical `"caption":{"text":...}`
+# shape, so `_extract_embedded_caption` can (and did, in production) report
+# a stranger's words as the requested post's caption. `lib/video_grab.py`
+# (task-c7d455aa REVIEW-1 B2) already fixed this exact defect for its own
+# caption field via STRUCTURAL anchoring -- parse the embedded JSON for
+# real, find the ONE post object whose own `code` matches the URL's post
+# code, read that SAME object's own `caption` -- never a nearby object's.
+# Reused here via import, not reimplemented, so the two tools cannot drift
+# apart on this rule again. `caption: null` on the matched post is a VALID,
+# FINAL answer (D2) -- a video-only post genuinely has no caption -- and is
+# reported as "structural" too, not silently swapped for a guess.
+#
+# Import is LAZY (inside the function, not at module load) on purpose:
+# lib.video_grab imports BROWSER_UA/GOOGLEBOT_UA/check_url_safe/_fetch FROM
+# this module at ITS top level, so a module-level import here would be a
+# circular import whose success depends on which module happens to load
+# first. Deferring to call time sidesteps that entirely -- by the time this
+# function actually runs, both modules are already fully loaded.
+def _extract_threads_caption(html_text: str, url: str) -> tuple[str | None, str]:
+    """(caption, anchor). anchor is "structural" when lib.video_grab's
+    code-matched post lookup resolved (caption may legitimately be None
+    there -- D2), else "proximity" -- the old first-match regex above, used
+    ONLY as a last resort when the structural lookup could not resolve the
+    URL's own post at all (D1's fallback rule)."""
+    from lib.video_grab import _extract_threads_video_structural, _POST_CODE_RE
+
+    m = _POST_CODE_RE.search(url)
+    post_code = m.group(1) if m else None
+    if post_code:
+        structural = _extract_threads_video_structural(html_text, post_code)
+        if structural is not None:
+            return structural["caption"], "structural"
+    return _extract_embedded_caption(html_text), "proximity"
+
+
 # ---------------------------------------------------------------------------
 # D1(a) -- yt-dlp, only for hosts it actually supports for video (fact 4:
 # it errors "Unsupported URL" for Threads, so gating on a host list also
@@ -478,8 +515,16 @@ def _read_link_impl(url: str) -> dict:
     extracted = _extract_html(info["text"])
     source = "http"
     is_threads_ig = _host_matches(hostname, THREADS_IG_HOST_SUFFIXES)
-    caption = _extract_embedded_caption(info["text"]) if is_threads_ig else None
+    caption, anchor = (_extract_threads_caption(info["text"], url) if is_threads_ig
+                        else (None, None))
     got_content = not _looks_like_js_shell(extracted)
+
+    def _caption_settled() -> bool:
+        # D2: a structural lookup that resolved to "no caption" IS the
+        # settled answer -- stop retrying, never keep hunting for a
+        # stranger's text to fill the gap. Otherwise settled only once
+        # proximity (last resort) has actually found some text.
+        return anchor == "structural" or caption is not None
 
     # (c)+(d) walk the crawler-UA ladder (CRAWLER_UA_LADDER's comment above
     # has the measurement behind the order). Two independent goals share one
@@ -492,19 +537,19 @@ def _read_link_impl(url: str) -> dict:
     #     but never carries the caption JSON at all). Giving up the moment
     #     (c) is satisfied is exactly the "partial dressed up as complete"
     #     outcome this tool exists to avoid.
-    if not got_content or (is_threads_ig and caption is None):
+    if not got_content or (is_threads_ig and not _caption_settled()):
         for ua in CRAWLER_UA_LADDER:
             crawler_info, _reason = _fetch(url, ua)
             if crawler_info is None or crawler_info["status_code"] >= 400:
                 continue
-            if is_threads_ig and caption is None:
-                caption = _extract_embedded_caption(crawler_info["text"])
+            if is_threads_ig and not _caption_settled():
+                caption, anchor = _extract_threads_caption(crawler_info["text"], url)
             if not got_content:
                 crawler_extracted = _extract_html(crawler_info["text"])
                 if not _looks_like_js_shell(crawler_extracted):
                     info, extracted, source = crawler_info, crawler_extracted, "http_crawler_ua"
                     got_content = True
-            if got_content and (not is_threads_ig or caption is not None):
+            if got_content and (not is_threads_ig or _caption_settled()):
                 break
 
     title = extracted.get("title") or extracted.get("og_title")
@@ -529,8 +574,15 @@ def _read_link_impl(url: str) -> dict:
         return {"status": "no_content", "url": url, "final_url": info["final_url"],
                 "reason": reason}
 
-    return {
+    result = {
         "status": "ok", "url": url, "final_url": info["final_url"],
         "source": source, "title": title,
         "content": _fence(content),
     }
+    if is_threads_ig:
+        # D3 -- same provenance discipline as lib.video_grab's own "anchor"
+        # field: which path produced the caption is DATA, not just a
+        # comment, so a wrong attribution can never hide behind a
+        # good-looking result again.
+        result["anchor"] = anchor
+    return result
