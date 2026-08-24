@@ -1705,6 +1705,19 @@ def grab_video(url: str) -> str:
         try:
             Path(staging_root).mkdir(parents=True, exist_ok=True)
             stage_dir = Path(tempfile.mkdtemp(prefix=GRAB_VIDEO_STAGE_PREFIX, dir=staging_root))
+            # D1 (task-140f60aa) -- tempfile.mkdtemp() hardcodes mode 0700,
+            # so even though staging_root's setgid bit gives this subdir
+            # group `driveup`, the group has no traverse (x) bit and the
+            # broker (running as `driveup`) cannot enter to reach the file
+            # inside -- measured on Contabo as "Permission denied" despite
+            # the downloaded file itself being 644. 0o2750: owner rwx,
+            # group r-x (list + traverse, no write), others nothing -- still
+            # not world-readable (staging_root is deliberately 2770). The
+            # setgid bit is set explicitly rather than relied upon, so any
+            # file video_grab writes into this dir next still inherits
+            # group=driveup even if this chmod call is ever changed to not
+            # ride on the kernel's automatic setgid-on-mkdir inheritance.
+            os.chmod(stage_dir, 0o2750)
         except OSError as e:
             reason = f"could not prepare broker staging directory {staging_root}: {e}"
             _audit("grab_video", url, "upload_failed", reason)
@@ -1733,6 +1746,16 @@ def grab_video(url: str) -> str:
             # second socket client, no apply_oauth_env_override()/upload()/
             # list_folder() call anywhere in this branch -- this process
             # never touches a Drive credential in broker mode.
+            #
+            # D2 (task-140f60aa) -- the file lands group-readable today only
+            # as a side effect of the process umask (observed 644 on
+            # Contabo); that is an accident, not a guarantee, so set the
+            # mode explicitly here rather than rely on it -- a stricter
+            # umask on some future run must not silently reintroduce the
+            # same "broker cannot read this" failure D1 just fixed for the
+            # directory. 0o640: owner rw, group r (all the broker needs to
+            # stream the bytes), no world access.
+            local_path.chmod(0o640)
             try:
                 uploaded = video_to_drive.broker_upload(broker_socket, local_path, name)
             except video_to_drive.BrokerUploadError as e:
