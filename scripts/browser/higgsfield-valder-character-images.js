@@ -236,4 +236,135 @@
  *     a merge would silently discard it. Wrote the actual report to
  *     `docs/reports/valder-restyle-v2.md` instead and inlined the full
  *     content into `submit_report` so the data survives either way.
+ *
+ * Wave 3 (task-64083ed9, 2026-08-25): zero-cost Location/Prop Element
+ * enumeration (JOB 1) + 4 new location/prop plates in the Location and Prop
+ * folders (project_valder_loc_studio, _loc_fountain_hall, _loc_home_interior,
+ * _prop_magazine), 3:2/Medium/1K, 1 image each, 2 credits each, 8 credits
+ * total, balance 2,010 -> 2,002. All 4 passed on attempt 1/3.
+ *
+ *   - Enumerating Element UUIDs without opening each card's detail dialog:
+ *     paste ALL the `@slug` mentions you need, newline-separated, into the
+ *     composer's contenteditable in ONE synthetic-paste call (same
+ *     ClipboardEvent recipe as normal prompt text). Every `@project_valder_*`
+ *     substring that matches a real Element auto-resolves into a bound
+ *     mention chip, and `[...editor.querySelectorAll('[data-beautiful-
+ *     mention]')].map(m => ({text: m.textContent, uuid: m.getAttribute(
+ *     'data-beautiful-mention')}))` reads back the full slug->UUID map in
+ *     one call. Confirmed against two independent sources this run: the
+ *     resolved UUID for `project_valder_prop_signature` matched the
+ *     hardcoded value in this same file's header comment exactly, and the
+ *     resolved UUID for `project_valder_prop_magazine` matched a UUID
+ *     independently found inside an opened detail dialog's raw HTML. This
+ *     is strictly cheaper and more reliable than opening each Element's
+ *     detail dialog and hunting its React-fiber props for a UUID (tried
+ *     first this run via `fiber.memoizedProps`/`memoizedState` walks --
+ *     works but is slow, ambiguous between multiple UUIDs per node
+ *     (asset id vs folder id vs element id), and burns far more tool calls
+ *     than the batch-paste trick). Reach for the paste trick first whenever
+ *     the task needs several Element UUIDs and a composer is available.
+ *     IMPORTANT: this only confirms an Element's UUID is *live and
+ *     resolvable* -- it says nothing about re-pointing history. Do not
+ *     conflate "paste resolves to a chip" with "the UUID survived a
+ *     re-point"; those are the same test only when the prior UUID is known
+ *     and compared, as in the CTO's one-off crowd_b check earlier in this
+ *     run.
+ *
+ *   - Elements can be filed under the "wrong" tab: `project_valder_loc_
+ *     house_new` (a `loc_` prefixed ID) showed up in the Elements panel's
+ *     **Props** tab, not Locations, sitting alongside genuine `prop_*`
+ *     entries. Enumerating by ID-prefix regex over each tab's full
+ *     `innerText` (not by trusting which tab a card visually sits in)
+ *     caught this; a scan that only checked the Locations tab for `loc_`
+ *     IDs would have under-counted by one.
+ *
+ *   - The `computer` tool's screenshot-derived pixel ratio
+ *     (screenshotWidth/innerWidth, ~1.34-1.42 this session, recomputed
+ *     fresh per tab per this repo's existing convention) is USELESS for
+ *     `computer.left_click` coordinate targeting on this project's Image
+ *     composer -- confirmed on two separate tabs this run that a `computer
+ *     left_click` at a coordinate computed from a fresh
+ *     `getBoundingClientRect()` (converted by the measured ratio, or even
+ *     tried as raw CSS px) reliably MISSED the real GENERATE button:
+ *     `document.elementFromPoint()` at the exact same CSS coordinates the
+ *     rect reported did not return the button or any descendant of it, even
+ *     immediately after re-reading the rect fresh. This is a DIFFERENT
+ *     failure mode from the known hidden-decoy-button trap (the button
+ *     found via the visibility/offsetParent/width>0 filter was confirmed
+ *     real: `disabled:false`, correct `"GENERATE\n2"` text, non-zero rect) --
+ *     something about this composer's layout/stacking makes the button not
+ *     hit-testable at its own reported rect via `elementFromPoint`, and by
+ *     extension not reliably clickable via `computer left_click`'s
+ *     coordinate dispatch either. A `find`-based ref click on the same
+ *     button also silently no-op'd (no toast, no asset-count change,
+ *     0 credits deducted both times -- verified before retrying, so this
+ *     cost nothing). FIX THAT WORKED, first try, both times: dispatch a
+ *     full synthetic pointer sequence directly on the JS-referenced button
+ *     element itself (not through screen/CSS coordinates at all):
+ *       const opts = {bubbles:true, cancelable:true, view:window,
+ *         clientX:cx, clientY:cy, button:0}; // cx/cy cosmetic only here
+ *       b.dispatchEvent(new PointerEvent('pointerdown', opts));
+ *       b.dispatchEvent(new MouseEvent('mousedown', opts));
+ *       b.dispatchEvent(new PointerEvent('pointerup', opts));
+ *       b.dispatchEvent(new MouseEvent('mouseup', opts));
+ *       b.dispatchEvent(new MouseEvent('click', opts));
+ *     This produced the "Generation started" toast and a correct credit
+ *     deduction on the very first attempt after the coordinate-based
+ *     methods failed, on both of the two occasions this happened. Given two
+ *     coordinate-based methods (`computer left_click` and `find`+ref click)
+ *     both failed silently and for free on this composer, consider trying
+ *     the direct-dispatch method FIRST on Generate clicks in this specific
+ *     project/composer rather than after two failed attempts, to save
+ *     round-trips -- though always verify the toast/asset-count either way
+ *     before assuming a click landed.
+ *
+ *   - Reconfirmed from Wave 1: a `computer screenshot` call can time out
+ *     ("Page.captureScreenshot timed out after 30000ms... renderer may be
+ *     frozen") while `javascript_tool` calls against the same tab keep
+ *     working instantly (`document.readyState` stays "complete", DOM state
+ *     stays live) -- this happened here shortly after a long (~4900-char)
+ *     paste + a real-key Space/BackSpace desync-fix pair, i.e. NOT from a
+ *     `computer type` action (Wave 1's trigger) but from a similar
+ *     high-load moment. Treat any long-paste-plus-real-keys sequence as a
+ *     moment to expect this, not just `type`. Fix used successfully again:
+ *     open a fresh tab (`tabs_create_mcp`), navigate to the same folder URL,
+ *     verify `window.innerWidth/innerHeight`, and continue there; do NOT
+ *     restart the whole browser for this specific symptom.
+ *
+ *   - Reconfirmed from Wave 4 of higgsfield-image-gen.js: closing the
+ *     stalled tab (the group's only other tab) tore down the MCP tab group
+ *     entirely (`tabs_context_mcp` -> "No tab group exists for this
+ *     session") even though a fresh replacement tab had already been
+ *     created and was still open when the stale one was closed. Recreate
+ *     with `tabs_context_mcp({createIfEmpty:true})` and re-navigate; this is
+ *     now confirmed across two separate waves in two different scripts, not
+ *     a one-off.
+ *
+ *   - Verifying a just-fired Generate actually landed a NEW card in a
+ *     *specific* folder (as opposed to the project's "All assets" total,
+ *     which increments immediately) can lag well behind the toast --
+ *     20-28s observed this run for the folder-grid's own DOM to include the
+ *     new `[data-asset-id]` card, even after forcing `scrollTop = 0` on
+ *     every scrollable ancestor. Budget at least two 10s waits (the
+ *     `computer wait` action caps a single call at 10s) before concluding a
+ *     folder-scoped card is missing; don't jump to "did it land in the
+ *     wrong folder" or "did it silently fail" on the first empty check when
+ *     the toast and the global asset-count delta both already confirmed
+ *     success.
+ *
+ *   - The virtualized grid can render the SAME `data-asset-id` element
+ *     twice in the live DOM at once in this project's Prop folder (28 card
+ *     nodes returned for what should be at most ~14 unique ids) without any
+ *     scroll action in between -- deduping by id (`new Map(info.map(i=>
+ *     [i.id,i])).values()`) before sorting by timestamp is necessary, not
+ *     optional, or a genuinely-new card can be masked by a duplicate stale
+ *     node sorting ahead of it.
+ *
+ *   - `[data-asset-id]` card `<img>` `src` values in this project can be
+ *     signed URLs whose query string trips the harness's generic
+ *     credential/cookie-leak guard on `javascript_tool` results
+ *     (`[BLOCKED: Cookie/query string data]`) if you return the raw `src`
+ *     string in your result. Never return the full `src`; extract only what
+ *     you need (e.g. the `hf_YYYYMMDD_HHMMSS_` timestamp via regex) inside
+ *     the page-side JS and return just that.
  */
