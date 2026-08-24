@@ -31,7 +31,9 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 import sqlite3
+import stat
 import sys
 from pathlib import Path
 
@@ -1627,6 +1629,57 @@ def test_grab_video_broker_mode_stages_download_inside_configured_staging_dir(mo
     assert seen_dest_dirs[0].resolve().is_relative_to(staging_root.resolve())
     assert len(handed_to_broker) == 1
     assert handed_to_broker[0].resolve().is_relative_to(staging_root.resolve())
+
+
+def test_grab_video_broker_mode_stage_dir_and_file_are_group_readable_traversable(
+        monkeypatch, tmp_path):
+    """D3 (task-140f60aa) -- reproduces the real Contabo bug: a setgid
+    staging root whose per-call subdirectory tempfile.mkdtemp() creates at
+    mode 0700 blocks the broker (a different uid, same `driveup` group)
+    from even entering the directory -- "Permission denied" despite the
+    downloaded file itself already being 644. No mocks for the permission
+    part: staging_root is a real directory with the setgid bit actually
+    set, and the assertions read back real os.stat() bits of what
+    grab_video's broker branch actually created on disk."""
+    staging_root = tmp_path / "staging"
+    staging_root.mkdir()
+    # Mirrors Contabo's real staging root -- TASK.md's
+    # "2770 secretary:driveup /srv/driveup-staging".
+    os.chmod(staging_root, 0o2770)
+    monkeypatch.setenv(rms.video_to_drive.DRIVE_UPLOAD_SOCKET_VAR, "/tmp/fake-broker.sock")
+    monkeypatch.setenv(rms.SOMPONG_STAGING_DIR_VAR, str(staging_root))
+
+    def fake_grab(url, dest_dir, **kw):
+        p = dest_dir / "clip.mp4"
+        p.write_bytes(b"x" * 2048)
+        return {"status": "ok", "url": url, "via": "yt-dlp", "path": p,
+                "caption": None, "size": 2048}
+    monkeypatch.setattr(rms.video_grab, "grab_video", fake_grab)
+
+    captured = {}
+
+    def fake_broker_upload(sock_path, local_path, name):
+        # Snapshot the real stat() bits BEFORE grab_video's success path
+        # unlinks the file and its `finally` rmdir's the now-empty stage
+        # dir -- both are gone by the time the tool call returns.
+        captured["dir_mode"] = stat.S_IMODE(os.stat(local_path.parent).st_mode)
+        captured["file_mode"] = stat.S_IMODE(os.stat(local_path).st_mode)
+        return {"id": "broker-file-id", "name": name}
+    monkeypatch.setattr(rms.video_to_drive, "broker_upload", fake_broker_upload)
+
+    result = json.loads(rms.grab_video("https://www.threads.com/@uusanr/post/abc"))
+
+    assert result["status"] == "ok"
+    dir_mode = captured["dir_mode"]
+    file_mode = captured["file_mode"]
+    assert dir_mode & stat.S_IRGRP, f"stage dir not group-readable: {oct(dir_mode)}"
+    assert dir_mode & stat.S_IXGRP, f"stage dir not group-traversable: {oct(dir_mode)}"
+    assert file_mode & stat.S_IRGRP, f"staged file not group-readable: {oct(file_mode)}"
+    # Never world-readable -- staging_root is deliberately non-public (2770).
+    assert not (dir_mode & (stat.S_IROTH | stat.S_IXOTH)), \
+        f"stage dir must not be world-readable/traversable: {oct(dir_mode)}"
+    assert not (file_mode & stat.S_IROTH), \
+        f"staged file must not be world-readable: {oct(file_mode)}"
 
 
 def test_grab_video_broker_mode_still_honours_the_no_escape_hatch_guard_and_allowlist():
