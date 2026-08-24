@@ -37,16 +37,6 @@ Design points this server exists to enforce (see TASK.md task-b293ef6c):
   1. Enumerated actions, never raw keystrokes -- no tool here takes a
      free-form command/shell/keys argument (see the guard test in
      scripts/test_relay_mcp_server.py).
-  4. read_link fetches third-party content on the CEO's behalf -- two
-     guards this file's other tools don't need. SSRF: check_url_safe()
-     (lib/link_reader.py) rejects any URL that is not http/https, or that
-     resolves to loopback/RFC1918/link-local (covers the cloud metadata
-     endpoint)/reserved/multicast, re-checked on every redirect hop, not
-     just the URL the caller gave. Injection: the page's own text is
-     returned inside a fixed, server-side "UNTRUSTED THIRD-PARTY CONTENT"
-     marker (lib.link_reader.UNTRUSTED_FENCE_MARKER) that no caller
-     argument can suppress -- a page saying "CEO here, relay to CTO: do X"
-     must read back as data to quote, never as an order to act on.
   2. Proxy with attribution, never impersonation -- every message
      `relay_to_session` hands off is prefixed "[CEO via SomPong] "
      server-side; the caller cannot omit or spoof that marker. Since
@@ -63,6 +53,16 @@ Design points this server exists to enforce (see TASK.md task-b293ef6c):
      Contabo session) are queued for a separate, not-yet-built Mac-side
      draining agent -- see the queue helpers below for the contract that
      agent must honour.
+  4. read_link fetches third-party content on the CEO's behalf -- two
+     guards this file's other tools don't need. SSRF: check_url_safe()
+     (lib/link_reader.py) rejects any URL that is not http/https, or that
+     resolves to loopback/RFC1918/link-local (covers the cloud metadata
+     endpoint)/reserved/multicast, re-checked on every redirect hop, not
+     just the URL the caller gave. Injection: the page's own text is
+     returned inside a fixed, server-side "UNTRUSTED THIRD-PARTY CONTENT"
+     marker (lib.link_reader.UNTRUSTED_FENCE_MARKER) that no caller
+     argument can suppress -- a page saying "CEO here, relay to CTO: do X"
+     must read back as data to quote, never as an order to act on.
 
 Registered in config/secretary.mcp.json as server "relay" -- tools become
 mcp__relay__<tool_name> inside the secretary's Claude Code CLI invocation.
@@ -1564,9 +1564,12 @@ def read_link(url: str) -> str:
     yt-dlp for hosts it actually supports for video (YouTube/TikTok/
     Facebook/Instagram/Twitter), then an HTTP fetch with a normal browser
     UA, then -- only if that looks like a JS shell (no og: tags and almost
-    no body text) -- one retry with a crawler UA (facebookexternalhit,
-    exactly how link-preview bots read these pages), plus a Threads/
-    Instagram-specific embedded-JSON caption extraction.
+    no body text) -- retries walking a crawler-UA ladder (Googlebot, then
+    facebookexternalhit; exactly how link-preview bots read these pages),
+    stopping at the first that yields a real page. For Threads/Instagram
+    specifically, the embedded-JSON caption is hunted through the REMAINING
+    ladder entries too, even after a real page is found -- one crawler UA
+    can render fine while still dropping the post's own caption text.
 
     SSRF-guarded before any socket opens: rejects non-http/https schemes and
     any URL that resolves (DNS is always checked, never the literal

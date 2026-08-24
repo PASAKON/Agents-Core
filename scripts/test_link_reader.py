@@ -463,6 +463,78 @@ def test_read_link_threads_uses_embedded_caption_when_og_description_missing(
 
 
 # ---------------------------------------------------------------------------
+# 5b. Crawler-UA ladder (task-166dfbe8 REVIEW-1 F1/F3) -- the fix for a real
+# bug: a single hardcoded crawler UA (facebookexternalhit) parsed Threads
+# pages fine but silently never carried the post's own caption text.
+# CRAWLER_UA_LADDER walks Googlebot first, then facebookexternalhit; these
+# tests prove the walk actually continues past a UA that fails each of the
+# two independent goals (real content, and -- for Threads/Instagram --  the
+# caption), rather than stopping at the first UA tried.
+# ---------------------------------------------------------------------------
+
+def test_read_link_ladder_falls_through_to_second_ua_for_content(fake_dns, fake_http, no_ytdlp):
+    """Not every JS-shell page necessarily flips on the FIRST ladder entry.
+    Prove the walk continues to the second UA rather than giving up after
+    only trying Googlebot."""
+    fake_dns["stubborn.example.com"] = "8.8.8.8"
+    shell = "<html><head></head><body><script>x=1</script></body></html>"
+    real_page = (
+        '<html><head><title>Finally a real page</title>'
+        '<meta property="og:type" content="article"></head>'
+        '<body><p>' + ("real content here " * 20) + '</p></body></html>'
+    )
+    url = "http://stubborn.example.com/"
+    fake_http[url] = [
+        FakeResponse(200, text=shell),      # (b) browser UA -- shell
+        FakeResponse(200, text=shell),      # (c) Googlebot -- still a shell
+        FakeResponse(200, text=real_page),  # (c) facebookexternalhit -- real page
+    ]
+
+    result = lr.read_link(url)
+
+    assert result["status"] == "ok"
+    assert result["source"] == "http_crawler_ua"
+    assert "Finally a real page" in result["content"]
+    assert fake_http.calls == [url, url, url]
+
+
+def test_read_link_threads_keeps_walking_ladder_for_caption_after_content_found(
+        fake_dns, fake_http, no_ytdlp):
+    """The REVIEW-1 bug, reproduced directly: the UA that satisfies (c) --
+    a real, non-JS-shell page -- is NOT guaranteed to carry the caption.
+    Googlebot (first in the ladder) here yields a real page with no caption;
+    facebookexternalhit (second) carries the caption but nothing else useful.
+    The walk must not stop the moment (c) is satisfied -- it must keep going
+    for (d) specifically."""
+    fake_dns["www.instagram.com"] = "8.8.8.8"
+    browser_shell = "<html><head></head><body></body></html>"
+    real_no_caption = (
+        '<html><head><title>Real page, no caption</title>'
+        '<meta property="og:type" content="article"></head>'
+        '<body><p>' + ("some text " * 20) + '</p></body></html>'
+    )
+    has_caption_only = (
+        '<html><body><script>window.x = '
+        '{"caption":{"__typename":"X","text":"Second hop caption"},"id":"1"};'
+        '</script></body></html>'
+    )
+    url = "https://www.instagram.com/p/abc123/"
+    fake_http[url] = [
+        FakeResponse(200, text=browser_shell),    # (b)
+        FakeResponse(200, text=real_no_caption),  # (c) Googlebot -- real page, no caption
+        FakeResponse(200, text=has_caption_only),  # (d) facebookexternalhit -- has caption
+    ]
+
+    result = lr.read_link(url)
+
+    assert result["status"] == "ok"
+    assert result["source"] == "http_crawler_ua"  # content came from the 2nd hop (Googlebot)
+    assert "Real page, no caption" in result["content"]
+    assert "Caption: Second hop caption" in result["content"]  # caption came from the 3rd hop
+    assert fake_http.calls == [url, url, url]
+
+
+# ---------------------------------------------------------------------------
 # 6. yt-dlp layer
 # ---------------------------------------------------------------------------
 

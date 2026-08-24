@@ -14,12 +14,15 @@ Layered strategy (first layer that yields real content wins):
   (b) HTTP fetch with a normal browser UA -- <title>, og:*, twitter:*,
       JSON-LD, and readable body text.
   (c) If (b) looks like a JS shell (no og: tags AND body text under
-      JS_SHELL_BODY_CHARS), retry ONCE with a crawler UA
-      (facebookexternalhit) -- exactly how link-preview bots read these
-      pages (measured live against threads.com: 260KB/no-og with a browser
-      UA vs 626KB/full-og with a crawler UA).
-  (d) Threads/Instagram: also try the embedded-JSON caption regex (measured
-      live: yields the post caption when og:description is absent).
+      JS_SHELL_BODY_CHARS), retry walking CRAWLER_UA_LADDER (Googlebot, then
+      facebookexternalhit) -- exactly how link-preview bots read these
+      pages -- stopping at the first UA that yields a real page.
+  (d) Threads/Instagram: also try the embedded-JSON caption regex against
+      every ladder entry in (c), continuing past the UA that satisfied (c)
+      if it did not carry a caption -- REVIEW-1 measured live that
+      facebookexternalhit's Threads page parses fine (flips the JS-shell
+      heuristic) but never carries the caption JSON at all, while Googlebot
+      carries both. See CRAWLER_UA_LADDER's comment for the numbers.
 
 Every outcome is one of:
   status="ok"          -- content non-empty; "content" carries the fenced
@@ -151,12 +154,23 @@ BROWSER_UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
-# facebookexternalhit -- measured live (task-166dfbe8 facts): this is what
-# flips threads.com from a 260KB JS shell with zero og: tags to a 626KB page
-# with full og:title/og:type/og:url/og:image. Also the honest description of
-# what this is: exactly how a link-preview bot reads the page, not a spoof
-# of a real browser.
-CRAWLER_UA = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
+# Meta serves MATERIALLY DIFFERENT HTML per crawler UA -- measured live
+# (task-166dfbe8 REVIEW-1 re-measurement) against the same threads.com post:
+#   Googlebot/2.1           -> 627,533 chars, 9 `"caption"` occurrences, the
+#                               embedded-caption regex (D1d) matches.
+#   facebookexternalhit/1.1 -> 547,292 chars, 0 `"caption"` occurrences, the
+#                               regex never matches -- this UA alone parses
+#                               fine (flips the JS-shell heuristic) but
+#                               silently drops the post's own text.
+# So this is an ORDERED LADDER, not one fixed UA: Googlebot first (measured
+# strictly better here -- everything facebookexternalhit returns, plus the
+# caption), facebookexternalhit second as a fallback for sites that treat
+# Googlebot differently. Both are an honest description of what this is:
+# exactly how a link-preview bot reads these pages, not a spoof of a real
+# browser.
+GOOGLEBOT_UA = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+FACEBOOK_UA = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
+CRAWLER_UA_LADDER = (GOOGLEBOT_UA, FACEBOOK_UA)
 
 
 def _fetch(url: str, user_agent: str, *, timeout_s: float = DEFAULT_TIMEOUT_S,
@@ -463,21 +477,35 @@ def _read_link_impl(url: str) -> dict:
 
     extracted = _extract_html(info["text"])
     source = "http"
+    is_threads_ig = _host_matches(hostname, THREADS_IG_HOST_SUFFIXES)
+    caption = _extract_embedded_caption(info["text"]) if is_threads_ig else None
+    got_content = not _looks_like_js_shell(extracted)
 
-    # (c) JS-shell retry with a crawler UA
-    if _looks_like_js_shell(extracted):
-        crawler_info, _crawler_reason = _fetch(url, CRAWLER_UA)
-        if crawler_info is not None and crawler_info["status_code"] < 400:
-            crawler_extracted = _extract_html(crawler_info["text"])
-            if not _looks_like_js_shell(crawler_extracted):
-                info, extracted, source = crawler_info, crawler_extracted, "http_crawler_ua"
-
-    # (d) Threads/Instagram embedded caption -- tried regardless of whether
-    # (c) already ran, since og:description can be absent even with the
-    # crawler UA (fact 3).
-    caption = None
-    if _host_matches(hostname, THREADS_IG_HOST_SUFFIXES):
-        caption = _extract_embedded_caption(info["text"])
+    # (c)+(d) walk the crawler-UA ladder (CRAWLER_UA_LADDER's comment above
+    # has the measurement behind the order). Two independent goals share one
+    # walk so a host is never fetched twice for the same UA:
+    #   - CONTENT (c): stop at the first UA whose page is not a JS shell.
+    #   - CAPTION (d), Threads/Instagram only: keep walking the REMAINING
+    #     ladder entries even after content is found -- a UA can render a
+    #     real page while still silently dropping the post's own text (the
+    #     REVIEW-1 finding: facebookexternalhit's Threads page parses fine
+    #     but never carries the caption JSON at all). Giving up the moment
+    #     (c) is satisfied is exactly the "partial dressed up as complete"
+    #     outcome this tool exists to avoid.
+    if not got_content or (is_threads_ig and caption is None):
+        for ua in CRAWLER_UA_LADDER:
+            crawler_info, _reason = _fetch(url, ua)
+            if crawler_info is None or crawler_info["status_code"] >= 400:
+                continue
+            if is_threads_ig and caption is None:
+                caption = _extract_embedded_caption(crawler_info["text"])
+            if not got_content:
+                crawler_extracted = _extract_html(crawler_info["text"])
+                if not _looks_like_js_shell(crawler_extracted):
+                    info, extracted, source = crawler_info, crawler_extracted, "http_crawler_ua"
+                    got_content = True
+            if got_content and (not is_threads_ig or caption is not None):
+                break
 
     title = extracted.get("title") or extracted.get("og_title")
     description = extracted.get("og_description") or extracted.get("twitter_description")
