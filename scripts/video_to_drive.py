@@ -35,12 +35,30 @@ SomPong runs on Contabo as user `secretary`, and
 (/root is drwx------). See resolve_oauth_env_candidates(). Falling back to
 today's claudeflow candidates unchanged keeps the Mac working with no new
 env var. Values are never printed.
+
+task-e713c4e2 -- broker mode. `secretary` no longer holds the Drive OAuth
+credential at all (runners/drive_upload_broker.py D1 owns it exclusively);
+when DRIVE_UPLOAD_SOCKET is set, every upload goes through that unix-socket
+broker instead of calling ilag_sync.upload()/apply_oauth_env_override()
+directly -- this process never even attempts to read a credential file in
+that mode. If the socket is unset (the Mac, today), the direct path below
+is completely unchanged -- same functions, same tests, same behaviour.
+If the broker is down, unreachable, or refuses (wrong uid, bad path, failed
+Drive verify, ...), broker_upload() raises BrokerUploadError and
+process_url() reports a normal FAIL -- never a silent fallback to a direct
+credential SomPong must not have (D4: honest failure, not a quiet bypass).
+Broker mode does not do the pre-upload "already there, skip" listing the
+direct path does below -- that listing needs Drive read access, which is
+exactly what `secretary` no longer has; a same-name re-upload in broker
+mode lands as a second Drive file rather than being deduped.
 """
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -82,6 +100,19 @@ class DownloadError(RuntimeError):
     pass
 
 
+# task-e713c4e2 D2 -- when set, names the unix socket
+# runners/drive_upload_broker.py is listening on; every upload goes through
+# broker_upload() instead of the direct ilag_sync path below. See module
+# docstring "broker mode" section.
+DRIVE_UPLOAD_SOCKET_VAR = "DRIVE_UPLOAD_SOCKET"
+BROKER_CONNECT_TIMEOUT = 10.0     # seconds -- just opening the socket + sending one JSON line
+BROKER_MAX_RESPONSE_BYTES = 64 * 1024
+
+
+class BrokerUploadError(RuntimeError):
+    pass
+
+
 # --------------------------------------------------------------------------- env
 
 def resolve_oauth_env_candidates() -> list[Path]:
@@ -106,6 +137,68 @@ def apply_oauth_env_override() -> None:
     a second OAuth loader. Call once, before the first upload()/list_folder().
     """
     ilag_sync.ENV_CANDIDATES = resolve_oauth_env_candidates()
+
+
+# --------------------------------------------------------------------------- broker mode (task-e713c4e2 D2)
+
+def _connect_broker_socket(sock_path: str, timeout: float) -> socket.socket:
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.settimeout(timeout)
+    sock.connect(sock_path)
+    return sock
+
+
+def _recv_line(sock: socket.socket, max_bytes: int) -> bytes:
+    buf = bytearray()
+    while True:
+        chunk = sock.recv(4096)
+        if not chunk:
+            break
+        buf.extend(chunk)
+        if len(buf) > max_bytes:
+            raise BrokerUploadError(f"broker response exceeds {max_bytes} bytes")
+        newline = buf.find(b"\n")
+        if newline != -1:
+            return bytes(buf[:newline])
+    raise BrokerUploadError("broker closed the connection with no response")
+
+
+def broker_upload(sock_path: str, local_path: Path, name: str, *,
+                   timeout: float = BROKER_CONNECT_TIMEOUT, connect=None) -> dict:
+    """Ask runners/drive_upload_broker.py to upload local_path over its unix
+    socket -- the only Drive credential SomPong is ever near. Never sends a
+    folder id: the broker's destination is fixed server-side. Raises
+    BrokerUploadError on ANY failure (unreachable socket, timeout, malformed
+    response, ok:false) -- D4: a broker problem is a reportable failure,
+    never a silent fallback to a direct credential SomPong must not hold.
+    """
+    connect = connect or _connect_broker_socket
+    try:
+        sock = connect(sock_path, timeout)
+    except OSError as e:
+        raise BrokerUploadError(f"could not reach upload broker at {sock_path}: {e}") from e
+
+    try:
+        request = json.dumps({"op": "upload", "path": str(local_path), "name": name}) + "\n"
+        try:
+            sock.sendall(request.encode("utf-8"))
+        except OSError as e:
+            raise BrokerUploadError(f"could not send request to broker: {e}") from e
+        try:
+            raw = _recv_line(sock, BROKER_MAX_RESPONSE_BYTES)
+        except OSError as e:
+            raise BrokerUploadError(f"broker did not respond: {e}") from e
+    finally:
+        sock.close()
+
+    try:
+        res = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as e:
+        raise BrokerUploadError(f"broker returned an unparseable response: {e}") from e
+    if not isinstance(res, dict) or not res.get("ok"):
+        reason = res.get("error", "unknown error") if isinstance(res, dict) else "malformed response"
+        raise BrokerUploadError(f"broker refused the upload: {reason}")
+    return res
 
 
 # --------------------------------------------------------------------------- download
@@ -175,7 +268,7 @@ def _log_line(actor: str, action: str, name: str, resolution: str, size: int,
 # --------------------------------------------------------------------------- per-url
 
 def process_url(url: str, *, folder_id: str, stage_dir: Path, log_path: Path,
-                 actor: str = ACTOR_DEFAULT) -> bool:
+                 actor: str = ACTOR_DEFAULT, broker_socket: str | None = None) -> bool:
     print(f"── {url}")
     try:
         local_path = download(url, stage_dir)
@@ -186,6 +279,24 @@ def process_url(url: str, *, folder_id: str, stage_dir: Path, log_path: Path,
     size = local_path.stat().st_size
     resolution = probe_resolution(local_path)
     name = local_path.name
+
+    if broker_socket:
+        # task-e713c4e2 D2/D4 -- no direct Drive credential access here at
+        # all: no pre-upload listing (that needs Drive read, which
+        # `secretary` no longer has), just ask the broker and trust nothing
+        # but its own answer. Any failure (unreachable, refused, broker's
+        # own verify-by-listing came back empty) is BrokerUploadError --
+        # reported as a normal FAIL, never a silent fallback to upload()/
+        # list_folder() below.
+        try:
+            res = broker_upload(broker_socket, local_path, name)
+        except BrokerUploadError as e:
+            print(f"  FAIL  broker upload: {e}  (kept: {local_path})")
+            return False
+        print(f"  OK    {name}  {resolution}  {mb(size)}  -> {res.get('id', '?')}  (via broker)")
+        append_local_log(log_path, [_log_line(actor, "ADD", name, resolution, size, url, res.get("id"))])
+        local_path.unlink()
+        return True
 
     try:
         existing = list_folder(folder_id)
@@ -243,14 +354,17 @@ def main(argv: list[str] | None = None) -> int:
               "(brew install yt-dlp ffmpeg)", file=sys.stderr)
         return 1
 
-    apply_oauth_env_override()
+    broker_socket = os.environ.get(DRIVE_UPLOAD_SOCKET_VAR) or None
+    if not broker_socket:
+        apply_oauth_env_override()
     folder_id = DRIVE_SOMPONG_GRAB_FOLDER_ID
 
     stage_dir = Path(tempfile.mkdtemp(prefix="video_to_drive_"))
     ok = 0
     for url in args.urls:
         if process_url(url, folder_id=folder_id, stage_dir=stage_dir,
-                       log_path=args.log_file, actor=args.actor):
+                       log_path=args.log_file, actor=args.actor,
+                       broker_socket=broker_socket):
             ok += 1
 
     total = len(args.urls)

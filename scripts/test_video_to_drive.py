@@ -27,11 +27,20 @@ Covers (task's required list):
      upload is never called, nothing is deleted remotely (the module never
      calls any Drive delete/trash function at all).
   8. main(): exit code is non-zero when any URL fails, 0 when all succeed.
+  9. (task-e713c4e2 D2) broker mode: when DRIVE_UPLOAD_SOCKET is set,
+     process_url() uploads via broker_upload() and never calls upload()/
+     list_folder() directly; a broker failure is a normal FAIL (D4 honest
+     failure), never a silent fallback to the direct-credential path;
+     main() skips apply_oauth_env_override() entirely in broker mode.
+     broker_upload() itself: request shape (op/path/name only, no folder id
+     ever sent), ok:false / unreachable-socket / malformed-response all
+     raise BrokerUploadError.
 
 pytest style, tmp_path + monkeypatched module globals only (ADR 0021 §1).
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -334,3 +343,151 @@ def test_main_fails_fast_when_yt_dlp_missing(monkeypatch, tmp_path):
 
     assert rc == 1
     assert "hit" not in called  # never got as far as touching Drive/env
+
+
+# --------------------------------------------------------------------------- broker mode (task-e713c4e2 D2)
+
+def test_process_url_broker_mode_uploads_via_broker_never_calls_direct_drive_functions(monkeypatch, tmp_path):
+    local = _make_local_file(tmp_path, "clip.mp4", 2048)
+    monkeypatch.setattr(vtd, "download", lambda url, dest_dir, **kw: local)
+    monkeypatch.setattr(vtd, "probe_resolution", lambda p: "720x1280")
+
+    def fail_direct(*a, **kw):
+        raise AssertionError("broker mode must never call the direct Drive path")
+    monkeypatch.setattr(vtd, "upload", fail_direct)
+    monkeypatch.setattr(vtd, "list_folder", fail_direct)
+
+    seen = {}
+
+    def fake_broker_upload(sock_path, path, name, **kw):
+        seen["sock_path"] = sock_path
+        seen["path"] = path
+        seen["name"] = name
+        return {"ok": True, "id": "broker-id-1", "name": name, "size": path.stat().st_size}
+
+    monkeypatch.setattr(vtd, "broker_upload", fake_broker_upload)
+
+    log_path = tmp_path / "log.txt"
+    ok = vtd.process_url("https://example.com/v", folder_id="F", stage_dir=tmp_path,
+                         log_path=log_path, broker_socket="/tmp/whatever.sock")
+
+    assert ok is True
+    assert seen == {"sock_path": "/tmp/whatever.sock", "path": local, "name": "clip.mp4"}
+    assert not local.exists()
+    log_text = log_path.read_text()
+    assert "ADD" in log_text and "broker-id-1" in log_text
+
+
+def test_process_url_broker_mode_failure_is_reported_never_a_silent_direct_fallback(monkeypatch, tmp_path):
+    local = _make_local_file(tmp_path, "clip.mp4", 2048)
+    monkeypatch.setattr(vtd, "download", lambda url, dest_dir, **kw: local)
+    monkeypatch.setattr(vtd, "probe_resolution", lambda p: "720x1280")
+
+    def fail_direct(*a, **kw):
+        raise AssertionError("a broker failure must never fall back to the direct Drive path")
+    monkeypatch.setattr(vtd, "upload", fail_direct)
+    monkeypatch.setattr(vtd, "list_folder", fail_direct)
+
+    def raise_broker_error(sock_path, path, name, **kw):
+        raise vtd.BrokerUploadError("could not reach upload broker at /tmp/x.sock: [Errno 2] No such file or directory")
+
+    monkeypatch.setattr(vtd, "broker_upload", raise_broker_error)
+
+    ok = vtd.process_url("https://example.com/v", folder_id="F", stage_dir=tmp_path,
+                         log_path=tmp_path / "log.txt", broker_socket="/tmp/x.sock")
+
+    assert ok is False
+    assert local.exists()  # kept, not deleted -- D4 honest failure
+
+
+def test_main_uses_broker_socket_from_env_and_skips_oauth_override(monkeypatch, tmp_path):
+    monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
+    monkeypatch.setenv(vtd.DRIVE_UPLOAD_SOCKET_VAR, "/run/driveup/drive-broker.sock")
+
+    def fail_override():
+        raise AssertionError("broker mode must never call apply_oauth_env_override()")
+    monkeypatch.setattr(vtd, "apply_oauth_env_override", fail_override)
+
+    seen_broker_sockets = []
+
+    def fake_process_url(url, *, broker_socket=None, **kw):
+        seen_broker_sockets.append(broker_socket)
+        return True
+
+    monkeypatch.setattr(vtd, "process_url", fake_process_url)
+
+    rc = vtd.main(["https://a", "--log-file", str(tmp_path / "log.txt")])
+
+    assert rc == 0
+    assert seen_broker_sockets == ["/run/driveup/drive-broker.sock"]
+
+
+def test_main_calls_apply_oauth_env_override_when_broker_socket_unset(monkeypatch, tmp_path):
+    monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
+    monkeypatch.delenv(vtd.DRIVE_UPLOAD_SOCKET_VAR, raising=False)
+    called = {}
+    monkeypatch.setattr(vtd, "apply_oauth_env_override", lambda: called.setdefault("hit", True))
+    monkeypatch.setattr(vtd, "process_url", lambda url, **kw: True)
+
+    rc = vtd.main(["https://a", "--log-file", str(tmp_path / "log.txt")])
+
+    assert rc == 0
+    assert "hit" in called
+
+
+# --------------------------------------------------------------------------- broker_upload() client
+
+class _FakeBrokerSocket:
+    """In-memory double for the unix socket broker_upload() talks over --
+    no real socket, no real broker process."""
+
+    def __init__(self, response_bytes: bytes):
+        self.response_bytes = response_bytes
+        self.sent = None
+        self.closed = False
+        self._served = False
+
+    def sendall(self, data: bytes) -> None:
+        self.sent = data
+
+    def recv(self, n: int) -> bytes:
+        if self._served:
+            return b""
+        self._served = True
+        return self.response_bytes
+
+    def close(self) -> None:
+        self.closed = True
+
+
+def test_broker_upload_sends_only_op_path_name_no_folder_id_ever(tmp_path):
+    fake = _FakeBrokerSocket(json.dumps({"ok": True, "id": "x", "name": "clip.mp4", "size": 10}).encode() + b"\n")
+    local = tmp_path / "clip.mp4"
+    local.write_bytes(b"x" * 10)
+
+    res = vtd.broker_upload("/tmp/sock", local, "clip.mp4", connect=lambda p, t: fake)
+
+    assert res["ok"] is True
+    sent = json.loads(fake.sent.decode())
+    assert sent == {"op": "upload", "path": str(local), "name": "clip.mp4"}
+    assert fake.closed is True
+
+
+def test_broker_upload_raises_on_connect_failure(tmp_path):
+    def raising_connect(sock_path, timeout):
+        raise OSError("No such file or directory")
+
+    with pytest.raises(vtd.BrokerUploadError, match="could not reach upload broker"):
+        vtd.broker_upload("/tmp/gone.sock", tmp_path / "x.mp4", "x.mp4", connect=raising_connect)
+
+
+def test_broker_upload_raises_on_ok_false_response(tmp_path):
+    fake = _FakeBrokerSocket(json.dumps({"ok": False, "error": "path is outside the staging root"}).encode() + b"\n")
+    with pytest.raises(vtd.BrokerUploadError, match="path is outside the staging root"):
+        vtd.broker_upload("/tmp/sock", tmp_path / "x.mp4", "x.mp4", connect=lambda p, t: fake)
+
+
+def test_broker_upload_raises_on_malformed_response(tmp_path):
+    fake = _FakeBrokerSocket(b"not json at all\n")
+    with pytest.raises(vtd.BrokerUploadError, match="unparseable"):
+        vtd.broker_upload("/tmp/sock", tmp_path / "x.mp4", "x.mp4", connect=lambda p, t: fake)
