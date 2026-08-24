@@ -82,6 +82,10 @@ RELAY_TOOLS = (
     # task-df6de4d4 D4: read side of the CEO-order obligation ledger. Read-only
     # — it lists rows, and takes no path, command, or role from the caller.
     "mcp__relay__list_ceo_orders",
+    # task-166dfbe8 (CEO order #40): fetch a URL, report what it says. Read-only
+    # — takes only `url`, no header/method/raw-HTML passthrough — SSRF-guarded
+    # and its content is fenced against prompt injection in lib/link_reader.py.
+    "mcp__relay__read_link",
 )
 
 

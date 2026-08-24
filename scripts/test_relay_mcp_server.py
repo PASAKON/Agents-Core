@@ -744,17 +744,20 @@ def test_no_tool_accepts_a_free_form_command_argument():
         rms.list_terminals, rms.session_history, rms.open_terminal,
         # task-df6de4d4 D4
         rms.list_ceo_orders,
+        # task-166dfbe8 -- takes only `url`; no header/method/raw-HTML
+        # passthrough either, covered by the same forbidden-name set.
+        rms.read_link,
     ]
     for tool in tools:
         params = set(inspect.signature(tool).parameters)
         overlap = params & forbidden_param_names
         assert not overlap, f"{tool.__name__} accepts free-form-looking arg(s): {overlap}"
-    # And the full set of tools is exactly these nine -- no tenth escape
+    # And the full set of tools is exactly these ten -- no eleventh escape
     # hatch snuck in.
     assert {t.__name__ for t in tools} == {
         "mac_status", "org_snapshot", "relay_to_session", "spawn_c_level",
         "read_session", "list_terminals", "session_history", "open_terminal",
-        "list_ceo_orders",
+        "list_ceo_orders", "read_link",
     }
 
 
