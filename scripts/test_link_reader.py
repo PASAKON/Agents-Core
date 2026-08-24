@@ -22,6 +22,7 @@ Or under pytest:  pytest scripts/test_link_reader.py
 from __future__ import annotations
 
 import inspect
+import json
 import socket
 import sys
 from pathlib import Path
@@ -460,6 +461,116 @@ def test_read_link_threads_uses_embedded_caption_when_og_description_missing(
     assert result["status"] == "ok"
     assert result["source"] == "http_crawler_ua"
     assert "Caption: Hi DM" in result["content"]
+
+
+# ---------------------------------------------------------------------------
+# 5a. Structural caption anchoring (task-bce6ae7c D1-D3) -- the LIVE bug:
+# _extract_embedded_caption above takes the FIRST "caption.text" anywhere in
+# the document, which on a real Threads page can belong to a reply or an
+# unrelated recommended post, not the requested post. lib/video_grab.py
+# (task-c7d455aa REVIEW-1 B2) already fixed this exact defect via structural
+# anchoring (match the post object whose OWN `code` equals the URL's post
+# code); these tests prove lib/link_reader.py now reuses that same fix
+# (imported, not reimplemented) instead of drifting with its own copy.
+# ---------------------------------------------------------------------------
+
+def _threads_script_page(post_json: dict, *, title: str = "uusanr on Threads") -> str:
+    return (
+        f'<html><head><title>{title}</title>'
+        '<meta property="og:type" content="video.other"></head>'
+        '<body><script type="application/json">' + json.dumps(post_json) + '</script>'
+        '</body></html>'
+    )
+
+
+def test_read_link_threads_structural_anchor_prefers_requested_post_over_unrelated_reply(
+        fake_dns, fake_http, no_ytdlp):
+    """D1/D4 case 1: an UNRELATED post's caption sits FIRST in the document;
+    the requested post's own caption sits later. The old first-match regex
+    would have returned the unrelated one -- structural anchoring (code
+    match) must return the requested post's own text instead."""
+    fake_dns["www.threads.com"] = "8.8.8.8"
+    browser_shell = "<html><head></head><body></body></html>"
+    post_json = {"data": {"edges": [
+        {"node": {"thread_items": [{"post": {
+            "code": "UNRELATED1", "caption": {"text": "a stranger's unrelated caption"},
+            "video_versions": [{"type": 101, "url": "https://cdn.example/unrelated.mp4"}],
+            "user": {"username": "stranger"},
+        }}]}},
+        {"node": {"thread_items": [{"post": {
+            "code": "DcXdxp7kjHj", "caption": {"text": "the requested post's own caption"},
+            "video_versions": [{"type": 101, "url": "https://cdn.example/real.mp4"}],
+            "user": {"username": "uusanr"},
+        }}]}},
+    ]}}
+    url = "https://www.threads.com/@uusanr/post/DcXdxp7kjHj"
+    fake_http[url] = [FakeResponse(200, text=browser_shell),
+                       FakeResponse(200, text=_threads_script_page(post_json))]
+
+    result = lr.read_link(url)
+
+    assert result["status"] == "ok"
+    assert result["anchor"] == "structural"
+    assert "Caption: the requested post's own caption" in result["content"]
+    assert "stranger's unrelated caption" not in result["content"]
+
+
+def test_read_link_threads_structural_null_caption_is_success_not_a_strangers_words(
+        fake_dns, fake_http, no_ytdlp):
+    """D1/D4 case 2 -- the EXACT live bug (task-bce6ae7c), proven by the CTO
+    on the real https://www.threads.com/@uusanr/post/DcXdxp7kjHj: the
+    requested post genuinely has caption: null (a caption-less video post),
+    while a DIFFERENT post on the same page (a reply) carries real caption
+    text. Must come back "ok" with NO caption -- never the reply's words."""
+    fake_dns["www.threads.com"] = "8.8.8.8"
+    browser_shell = "<html><head></head><body></body></html>"
+    post_json = {"data": {"edges": [
+        {"node": {"thread_items": [{"post": {
+            "code": "DcZIMrsj37_", "caption": {"text": "อยากจีบแต่วาสนาไม่ถึง😭"},
+            "user": {"username": "poonnawich_13y"},
+        }}]}},
+        {"node": {"thread_items": [{"post": {
+            "code": "DcXdxp7kjHj", "caption": None,
+            "video_versions": [{"type": 101, "url": "https://cdn.example/real.mp4"}],
+            "user": {"username": "uusanr"},
+        }}]}},
+    ]}}
+    url = "https://www.threads.com/@uusanr/post/DcXdxp7kjHj"
+    fake_http[url] = [FakeResponse(200, text=browser_shell),
+                       FakeResponse(200, text=_threads_script_page(post_json))]
+
+    result = lr.read_link(url)
+
+    assert result["status"] == "ok"
+    assert result["anchor"] == "structural"
+    assert "Caption:" not in result["content"]
+    assert "อยากจีบ" not in result["content"]
+    assert "Title: uusanr on Threads" in result["content"]
+
+
+def test_read_link_threads_falls_back_to_proximity_when_structural_json_absent(
+        fake_dns, fake_http, no_ytdlp):
+    """D1/D4 case 3: no script block parses as real JSON at all (malformed/
+    absent) -- structural cannot resolve, so the result must fall back to
+    proximity AND the anchor field must say so, never silently claim
+    structural for a guess."""
+    fake_dns["www.threads.com"] = "8.8.8.8"
+    browser_shell = "<html><head></head><body></body></html>"
+    crawler_page = (
+        '<html><head><title>uusanr on Threads</title>'
+        '<meta property="og:type" content="video.other"></head>'
+        '<body><script>window.__data = '
+        '{"caption":{"__typename":"X","text":"only a proximity guess"},"id":"1"};'
+        '</script></body></html>'
+    )
+    url = "https://www.threads.com/@uusanr/post/DcXdxp7kjHj"
+    fake_http[url] = [FakeResponse(200, text=browser_shell), FakeResponse(200, text=crawler_page)]
+
+    result = lr.read_link(url)
+
+    assert result["status"] == "ok"
+    assert result["anchor"] == "proximity"
+    assert "Caption: only a proximity guess" in result["content"]
 
 
 # ---------------------------------------------------------------------------
