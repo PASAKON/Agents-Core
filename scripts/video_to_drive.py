@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """Download short video links (TikTok, YouTube Shorts, game clips, book
-reels) and land them in the CEO's Google Drive, in a folder named exactly
-`desktop cloud` under `DRIVE_VIDEO_PARENT_FOLDER_ID`.
+reels) and land them directly in the CEO's Google Drive `Desktop Cloud`
+root (task-c7d455aa D3 -- CEO follow-up to order #40, chosen today over
+Telegram-send and over a new sub-folder).
 
     python scripts/video_to_drive.py <url> [url ...]
 
 Per URL: download the best quality the post actually offers (staged under a
-temp dir, never the CEO's Desktop), upload it into `desktop cloud`, verify by
-re-listing the destination folder (an upload API 200 is not evidence the file
-is there), log it locally, then delete the local staging copy. On any
+temp dir, never the CEO's Desktop), upload it straight into
+`DRIVE_SOMPONG_GRAB_FOLDER_ID` -- no sub-folder, no find-or-create -- verify
+by re-listing the destination folder (an upload API 200 is not evidence the
+file is there), log it locally, then delete the local staging copy. On any
 failure the local copy is kept and its path printed -- nothing is ever
 deleted from Drive.
 
@@ -17,14 +19,27 @@ This is assembly, not new Drive plumbing -- it reuses:
   - scripts/gdrive-bridge/ilag_mirror.py  -- list_folder() verify-by-listing
   - scripts/tiktok-grab.sh                -- the flaky-extractor retry shape
 
-Auth (GOOGLE_OAUTH_CLIENT_ID/SECRET/REFRESH_TOKEN, DRIVE_VIDEO_PARENT_FOLDER_ID)
-is read from mooniex-claudeflow's .env, same as scripts/higgsfield/gen_loop.py.
-Values are never printed.
+DRIVE_SOMPONG_GRAB_FOLDER_ID is a NEW, separate constant from
+DRIVE_VIDEO_PARENT_FOLDER_ID -- the latter resolves to `ALL DRAFT/BLACK
+LIQUIDITY` and is load-bearing for mooniex-claudeflow/src/video/videodrive.js
+and scripts/higgsfield/gen_loop.py. This module never reads that variable at
+all (see the guard test in scripts/test_video_to_drive.py) -- repointing or
+widening it here would silently break those two other production paths.
+Per the CEO's exception (recorded in .claude/skills/gdrive-filing/SKILL.md,
+"Desktop Cloud... AI never auto-files here"): uploads only, no deletes, no
+reorganising, and never anywhere else on Drive.
+
+D4 -- the OAuth env-file location is configurable (SOMPONG_DRIVE_ENV), because
+SomPong runs on Contabo as user `secretary`, and
+/root/projects/mooniex-claudeflow/.env is not readable by that user
+(/root is drwx------). See resolve_oauth_env_candidates(). Falling back to
+today's claudeflow candidates unchanged keeps the Mac working with no new
+env var. Values are never printed.
 """
 from __future__ import annotations
 
 import argparse
-import json
+import os
 import shutil
 import subprocess
 import sys
@@ -34,7 +49,8 @@ import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "gdrive-bridge"))
-from ilag_sync import upload, api, ts, mb, DRIVE_FILES, ACTOR_DEFAULT  # noqa: E402
+import ilag_sync  # noqa: E402 -- module object, so its ENV_CANDIDATES can be overridden (D4)
+from ilag_sync import upload, ts, mb, ACTOR_DEFAULT  # noqa: E402
 from ilag_mirror import list_folder  # noqa: E402
 
 CF_ENV_CANDIDATES = [
@@ -42,7 +58,18 @@ CF_ENV_CANDIDATES = [
     Path("/Users/gob/Projects/mooniex-claudeflow/.env.local"),
 ]
 
-FOLDER_NAME = "desktop cloud"
+# task-c7d455aa D4 -- where GOOGLE_OAUTH_CLIENT_ID/SECRET/REFRESH_TOKEN come
+# from. Set by the CTO at deploy time on Contabo (never by this code, and
+# never pointed at a file this code writes); unset on the Mac, where the
+# claudeflow candidates above keep working exactly as before.
+SOMPONG_DRIVE_ENV_VAR = "SOMPONG_DRIVE_ENV"
+
+# task-c7d455aa D3 -- the CEO's Desktop Cloud root. A NEW variable, deliberately
+# not DRIVE_VIDEO_PARENT_FOLDER_ID -- see the module docstring above.
+DRIVE_SOMPONG_GRAB_FOLDER_ID = os.environ.get(
+    "DRIVE_SOMPONG_GRAB_FOLDER_ID", "115w-UxOvdmPIc5X8nq_oV42EEsrVMRtR"
+)
+
 # TikTok intermittently fails extraction and succeeds on an identical retry
 # (hit 3 of 5 clips on 2026-08-18, per scripts/tiktok-grab.sh). Only this
 # error is worth retrying -- anything else is a real failure, first try.
@@ -57,43 +84,28 @@ class DownloadError(RuntimeError):
 
 # --------------------------------------------------------------------------- env
 
-def load_parent_folder_id(candidates: list[Path] = CF_ENV_CANDIDATES) -> str:
-    for path in candidates:
-        if not path.exists():
-            continue
-        for line in path.read_text().splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, _, value = line.partition("=")
-            if key.strip() == "DRIVE_VIDEO_PARENT_FOLDER_ID":
-                val = value.strip().strip('"').strip("'")
-                if val:
-                    return val
-    raise SystemExit("missing DRIVE_VIDEO_PARENT_FOLDER_ID in claudeflow .env")
+def resolve_oauth_env_candidates() -> list[Path]:
+    """Where to read GOOGLE_OAUTH_CLIENT_ID/SECRET/REFRESH_TOKEN from.
 
-
-# --------------------------------------------------------------------------- folder
-
-def find_or_create_folder(name: str, parent_id: str) -> str:
-    """Search `parent_id` for a sub-folder named `name`; create only if absent.
-
-    Drive allows duplicate names, so a create-without-searching is a real
-    bug -- the search always runs first, and creation only happens on a
-    genuine miss. Callers should call this once per run and cache the id.
+    SOMPONG_DRIVE_ENV, if set, names exactly one file -- the CTO provisions
+    it at deploy time (this code never touches it). Falls back to today's
+    CF_ENV_CANDIDATES unchanged, so the Mac needs no new env var at all.
     """
-    safe_name = name.replace("'", "\\'")
-    q = (f"name = '{safe_name}' and '{parent_id}' in parents and trashed = false "
-         "and mimeType = 'application/vnd.google-apps.folder'")
-    res = api(DRIVE_FILES, params={"q": q, "fields": "files(id,name)", "pageSize": "10"}, timeout=60)
-    files = res.get("files", [])
-    if files:
-        return files[0]["id"]
-    made = api(DRIVE_FILES, method="POST", params={"fields": "id,name"},
-               data=json.dumps({"name": name, "parents": [parent_id],
-                                "mimeType": "application/vnd.google-apps.folder"}).encode(),
-               headers={"Content-Type": "application/json"})
-    return made["id"]
+    override = os.environ.get(SOMPONG_DRIVE_ENV_VAR)
+    if override:
+        return [Path(override)]
+    return CF_ENV_CANDIDATES
+
+
+def apply_oauth_env_override() -> None:
+    """Point ilag_sync's OAuth loader at resolve_oauth_env_candidates().
+
+    ilag_sync.py is shared, general-purpose Drive plumbing (also used by the
+    unrelated Do Not Disturb mirror sweep) and hardcodes the Mac-only claudeflow
+    paths -- this overrides its module-level ENV_CANDIDATES rather than forking
+    a second OAuth loader. Call once, before the first upload()/list_folder().
+    """
+    ilag_sync.ENV_CANDIDATES = resolve_oauth_env_candidates()
 
 
 # --------------------------------------------------------------------------- download
@@ -231,8 +243,8 @@ def main(argv: list[str] | None = None) -> int:
               "(brew install yt-dlp ffmpeg)", file=sys.stderr)
         return 1
 
-    parent_id = load_parent_folder_id()
-    folder_id = find_or_create_folder(FOLDER_NAME, parent_id)
+    apply_oauth_env_override()
+    folder_id = DRIVE_SOMPONG_GRAB_FOLDER_ID
 
     stage_dir = Path(tempfile.mkdtemp(prefix="video_to_drive_"))
     ok = 0
