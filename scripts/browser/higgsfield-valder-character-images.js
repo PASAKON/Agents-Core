@@ -236,4 +236,82 @@
  *     a merge would silently discard it. Wrote the actual report to
  *     `docs/reports/valder-restyle-v2.md` instead and inlined the full
  *     content into `submit_report` so the data survives either way.
+ *
+ * Wave 4 (task-45f57723, 2026-08-25): 2-plate colour-saturation reshoot in
+ * the same Location folder (project_valder_loc_studio and
+ * project_valder_loc_fountain_hall) -- both prior versions were rejected for
+ * being muted/chalky/washed; this wave's whole brief was "make the colour
+ * louder". GPT Image 2 / Medium / 1K / 3:2, 1 image each, 2 credits each,
+ * 4 credits total, balance 2,002 -> 1,998. Both passed on attempt 1/3.
+ *
+ *   - The synthetic ClipboardEvent paste (same recipe as Wave 1-3: focus the
+ *     Lexical contenteditable, dispatch `new ClipboardEvent('paste', {...,
+ *     clipboardData: dt})`) reads back as `innerText.length === 0`
+ *     IMMEDIATELY after the dispatch call returns, even though the paste
+ *     genuinely lands. This is a reconciliation-timing gap, not a failure --
+ *     confirmed by reading `innerText` again after a real, unrelated
+ *     keyboard action (`execCommand('insertText', ...)` used as an
+ *     incidental probe) and finding the full pasted text already present.
+ *     Reading the length in the exact same `javascript_tool` call as the
+ *     dispatch is measuring too early. Fix: dispatch the paste, then a
+ *     SEPARATE `javascript_tool` call after at least a ~1s wait (a
+ *     `computer wait` in between is enough) to check
+ *     `document.activeElement.innerText.length` against the source string's
+ *     `.length` -- don't trust a same-call read of 0 as "the paste failed".
+ *
+ *   - The normalized `innerText.length` on a successful, clean paste is
+ *     consistently ~24 characters LONGER than the source string's raw
+ *     `.length` for a prompt with several blank-line-separated paragraphs
+ *     (confirmed on two independent prompts this run, both landing at
+ *     source+24 exactly). This matches earlier waves' "normalized length"
+ *     caveat but is worth a concrete number: a diff in the small
+ *     tens-of-characters range from paragraph-break normalization is
+ *     expected and is NOT evidence of a doubled/duplicate paste (which
+ *     would show as source_len*2 or more) -- don't retry-clear-and-repaste
+ *     on a small positive diff alone.
+ *
+ *   - Reconfirmed the Wave 3 finding that coordinate-based clicks are
+ *     unreliable on this composer's Generate button; used the direct
+ *     PointerEvent/MouseEvent dispatch-on-the-button-element method
+ *     (pointerdown -> mousedown -> pointerup -> mouseup -> click, all with
+ *     `bubbles:true, cancelable:true`) as the FIRST attempt both times this
+ *     run (per Wave 3's own recommendation to not wait for two failures
+ *     first) -- worked on the very first try both times, "Generation
+ *     started" toast and asset-count increment confirmed each time.
+ *
+ *   - A full page reload (via `navigate` to the same URL, used once this run
+ *     to get a clean non-overlaid view of a generated asset by re-opening
+ *     its `?preview=<uuid>` URL directly) reset the settings pills to
+ *     Auto/High/2K, exactly as documented in Wave 2 -- but the composer's
+ *     PROMPT TEXT was NOT cleared by the same reload (the just-generated
+ *     Plate 1 prompt was still sitting there, requiring an explicit
+ *     select-all-delete before pasting Plate 2). Reload resets settings
+ *     pills but does NOT reset composer text -- don't assume a fresh
+ *     reload gives you a blank composer for free, still clear it
+ *     explicitly.
+ *
+ *   - `resize_window` to 1024x768 took effect correctly and immediately on
+ *     the FIRST tab this run (innerWidth/innerHeight came back 1024x647,
+ *     screenshot 1374x868, ratio ~1.342) -- contrast with Wave 2 where the
+ *     first tab's resize silently failed. No fixed rule for which tabs will
+ *     take a resize; always verify with `javascript_tool`
+ *     `[window.innerWidth, window.innerHeight]` rather than trusting the
+ *     "Successfully resized" return text, every single time, on every tab.
+ *     Separately, later in the run a `computer screenshot` came back at
+ *     1024x591 (a smaller height than the same tab's earlier 1374x868
+ *     capture) with no resize call in between -- the viewport/toolbar
+ *     height can drift within a single tab's lifetime (e.g. a
+ *     notification banner or dropdown affecting layout momentarily), so
+ *     re-derive the ratio from each screenshot's actual returned
+ *     dimensions if doing coordinate math, don't cache one ratio value for
+ *     the whole session.
+ *
+ *   - Credit balance is not printed anywhere in the main page's visible
+ *     text/DOM by default (a `document.body.innerText` regex scan for a
+ *     bare `2,002`-style number found only the unrelated "194" asset
+ *     count) -- it only renders once the Account-menu dropdown (top-right
+ *     avatar, `find`-locatable as "Account menu") is opened, as
+ *     "`<N> left`" next to a "Credits" label. Open that menu once at the
+ *     start and once at the end of any credit-tracked run; don't assume a
+ *     page-wide text scan will find it.
  */
