@@ -86,6 +86,11 @@ RELAY_TOOLS = (
     # — takes only `url`, no header/method/raw-HTML passthrough — SSRF-guarded
     # and its content is fenced against prompt injection in lib/link_reader.py.
     "mcp__relay__read_link",
+    # task-c7d455aa (CEO follow-up to order #40): download the video behind a
+    # link and file it into the CEO's Drive. NOT a pure read (writes a file to
+    # Drive) but no confirm gate — the CEO's own link IS the instruction, per
+    # SECRETARY_SYSTEM_PROMPT's grab_video rule.
+    "mcp__relay__grab_video",
 )
 
 
@@ -270,6 +275,17 @@ def test_system_prompt_states_percent_null_means_unknown_rule() -> None:
 def test_system_prompt_covers_the_three_new_relay_tools_by_name() -> None:
     for name in ("list_terminals", "session_history", "open_terminal"):
         assert name in ss.SECRETARY_SYSTEM_PROMPT, f"{name} missing from the prompt"
+
+
+def test_system_prompt_covers_grab_video_by_name_and_its_key_rules() -> None:
+    """D7 -- what it does, that it's not a pure read but needs no extra
+    confirmation, that the reported link must be real (never invented),
+    and that a failure must be stated plainly (never smoothed into
+    'กำลังโหลดอยู่')."""
+    assert "grab_video" in ss.SECRETARY_SYSTEM_PROMPT
+    assert "drive_link" in ss.SECRETARY_SYSTEM_PROMPT
+    assert "ห้ามเดาหรือแต่งลิงก์ขึ้นมาเองเด็ดขาด" in ss.SECRETARY_SYSTEM_PROMPT
+    assert "กำลังโหลดอยู่" in ss.SECRETARY_SYSTEM_PROMPT
 
 
 def test_system_prompt_splits_session_star_family() -> None:

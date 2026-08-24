@@ -1,24 +1,32 @@
-"""Tests for scripts/video_to_drive.py (task-4133eb30).
+"""Tests for scripts/video_to_drive.py (task-4133eb30, task-c7d455aa D3/D4).
 
 Stubs every Drive/network/subprocess boundary -- no real yt-dlp, no real
 Drive calls, no network. video_to_drive's own module-level names
-(api/upload/list_folder/download/probe_resolution) are patched directly --
-the same idiom scripts/test_mailbox.py and scripts/test_cxo_crosstalk.py use
+(upload/list_folder/download/probe_resolution) are patched directly -- the
+same idiom scripts/test_mailbox.py and scripts/test_cxo_crosstalk.py use
 for looked-up-at-call-time module globals.
 
 Covers (task's required list):
-  1. find_or_create_folder reuses an existing "desktop cloud" folder --
-     create (POST) is never called.
-  2. find_or_create_folder creates it exactly once when absent.
-  3. process_url: a verification miss (file not listed at destination) is a
+  1. resolve_oauth_env_candidates: SOMPONG_DRIVE_ENV, when set, names exactly
+     one file; unset falls back to CF_ENV_CANDIDATES unchanged (D4).
+  2. apply_oauth_env_override actually rewrites ilag_sync's module-level
+     ENV_CANDIDATES -- the thing that makes the OAuth loader itself
+     configurable, not just the resolver function.
+  3. main() targets DRIVE_SOMPONG_GRAB_FOLDER_ID directly -- no
+     find-or-create call, no sub-folder -- and DRIVE_VIDEO_PARENT_FOLDER_ID
+     is never read anywhere in this module (D3 guard test -- this is the
+     one that protects mooniex-claudeflow/src/video/videodrive.js and
+     scripts/higgsfield/gen_loop.py, which both depend on that variable
+     meaning something else).
+  4. process_url: a verification miss (file not listed at destination) is a
      FAILURE and the local file is kept, not deleted.
-  4. process_url: a size mismatch at the destination is a failure too.
-  5. download(): the flaky "universal data for rehydration" TikTok error
+  5. process_url: a size mismatch at the destination is a failure too.
+  6. download(): the flaky "universal data for rehydration" TikTok error
      retries; any other yt-dlp error surfaces on the first attempt.
-  6. process_url: an existing same-name-same-size remote file is SKIPped --
+  7. process_url: an existing same-name-same-size remote file is SKIPped --
      upload is never called, nothing is deleted remotely (the module never
      calls any Drive delete/trash function at all).
-  7. main(): exit code is non-zero when any URL fails, 0 when all succeed.
+  8. main(): exit code is non-zero when any URL fails, 0 when all succeed.
 
 pytest style, tmp_path + monkeypatched module globals only (ADR 0021 §1).
 """
@@ -32,6 +40,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import video_to_drive as vtd  # noqa: E402
+import ilag_sync  # noqa: E402 -- same module vtd.apply_oauth_env_override() mutates
 
 
 def _make_local_file(tmp_path: Path, name: str = "clip.mp4", size: int = 2048) -> Path:
@@ -40,41 +49,98 @@ def _make_local_file(tmp_path: Path, name: str = "clip.mp4", size: int = 2048) -
     return p
 
 
-# --------------------------------------------------------------------------- find_or_create_folder
+# --------------------------------------------------------------------------- D3/D4: folder + env config
 
-def test_folder_reused_when_already_exists(monkeypatch):
-    calls = []
+def test_no_reference_to_drive_video_parent_folder_id_anywhere_in_module():
+    """D3 guard test: this module must never read DRIVE_VIDEO_PARENT_FOLDER_ID
+    -- that variable resolves to ALL DRAFT/BLACK LIQUIDITY and is load-bearing
+    for mooniex-claudeflow/src/video/videodrive.js and
+    scripts/higgsfield/gen_loop.py. Source-level check, not a call-tracking
+    mock, so it also catches a re-introduction that never gets exercised by
+    another test. The module docstring is allowed to MENTION the variable's
+    name (explaining why it is deliberately absent) -- what must never appear
+    is code that actually reads it."""
+    source = Path(vtd.__file__).read_text()
+    assert 'os.environ.get("DRIVE_VIDEO_PARENT_FOLDER_ID"' not in source
+    assert "== 'DRIVE_VIDEO_PARENT_FOLDER_ID'" not in source
+    assert '== "DRIVE_VIDEO_PARENT_FOLDER_ID"' not in source
+    assert not hasattr(vtd, "load_parent_folder_id")
+    assert not hasattr(vtd, "find_or_create_folder")
 
-    def fake_api(url, *, method="GET", params=None, data=None, headers=None, timeout=300):
-        calls.append(method)
-        assert method == "GET", "must never POST (create) when the folder already exists"
-        return {"files": [{"id": "existing-folder-id", "name": "desktop cloud"}]}
 
-    monkeypatch.setattr(vtd, "api", fake_api)
+def test_main_never_uploads_to_drive_video_parent_folder_id_even_if_set_in_env(monkeypatch, tmp_path):
+    """REVIEW-1 nit: the guard above catches the obvious regression by
+    matching source text, but any other spelling (reading it via a
+    renamed constant, env.get(name), ...) would sail straight through
+    while still breaking mooniex-claudeflow/videodrive.js and
+    scripts/higgsfield/gen_loop.py. This asserts on the actual BEHAVIOUR
+    instead: even with DRIVE_VIDEO_PARENT_FOLDER_ID set in the real
+    environment to some other real folder id, main() must never pass it
+    anywhere -- only DRIVE_SOMPONG_GRAB_FOLDER_ID is ever used."""
+    monkeypatch.setenv("DRIVE_VIDEO_PARENT_FOLDER_ID", "BLACK-LIQUIDITY-FOLDER-ID-must-never-appear")
+    monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
+    monkeypatch.setattr(vtd, "apply_oauth_env_override", lambda: None)
+    seen_folder_ids = []
 
-    folder_id = vtd.find_or_create_folder("desktop cloud", "parent-id")
+    def fake_process_url(url, *, folder_id, **kw):
+        seen_folder_ids.append(folder_id)
+        return True
 
-    assert folder_id == "existing-folder-id"
-    assert calls == ["GET"]
+    monkeypatch.setattr(vtd, "process_url", fake_process_url)
+
+    vtd.main(["https://a", "--log-file", str(tmp_path / "log.txt")])
+
+    assert "BLACK-LIQUIDITY-FOLDER-ID-must-never-appear" not in seen_folder_ids
+    assert seen_folder_ids == [vtd.DRIVE_SOMPONG_GRAB_FOLDER_ID]
 
 
-def test_folder_created_exactly_once_when_absent(monkeypatch):
-    calls = []
+def test_main_uploads_directly_into_the_sompong_grab_folder_no_subfolder(monkeypatch, tmp_path):
+    monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
+    monkeypatch.setattr(vtd, "apply_oauth_env_override", lambda: None)
+    seen_folder_ids = []
 
-    def fake_api(url, *, method="GET", params=None, data=None, headers=None, timeout=300):
-        calls.append(method)
-        if method == "GET":
-            return {"files": []}
-        assert data is not None
-        return {"id": "new-folder-id", "name": "desktop cloud"}
+    def fake_process_url(url, *, folder_id, **kw):
+        seen_folder_ids.append(folder_id)
+        return True
 
-    monkeypatch.setattr(vtd, "api", fake_api)
+    monkeypatch.setattr(vtd, "process_url", fake_process_url)
 
-    folder_id = vtd.find_or_create_folder("desktop cloud", "parent-id")
+    rc = vtd.main(["https://a", "--log-file", str(tmp_path / "log.txt")])
 
-    assert folder_id == "new-folder-id"
-    assert calls == ["GET", "POST"]
-    assert calls.count("POST") == 1
+    assert rc == 0
+    assert seen_folder_ids == [vtd.DRIVE_SOMPONG_GRAB_FOLDER_ID]
+    assert vtd.DRIVE_SOMPONG_GRAB_FOLDER_ID == "115w-UxOvdmPIc5X8nq_oV42EEsrVMRtR"
+
+
+def test_main_calls_apply_oauth_env_override_before_any_upload(monkeypatch, tmp_path):
+    monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
+    order = []
+    monkeypatch.setattr(vtd, "apply_oauth_env_override", lambda: order.append("env"))
+    monkeypatch.setattr(vtd, "process_url", lambda url, **kw: order.append("upload") or True)
+
+    vtd.main(["https://a", "--log-file", str(tmp_path / "log.txt")])
+
+    assert order == ["env", "upload"]
+
+
+def test_resolve_oauth_env_candidates_uses_sompong_drive_env_when_set(monkeypatch):
+    monkeypatch.setenv("SOMPONG_DRIVE_ENV", "/opt/mooniex-secrets/drive.env")
+    assert vtd.resolve_oauth_env_candidates() == [Path("/opt/mooniex-secrets/drive.env")]
+
+
+def test_resolve_oauth_env_candidates_falls_back_to_claudeflow_candidates_when_unset(monkeypatch):
+    monkeypatch.delenv("SOMPONG_DRIVE_ENV", raising=False)
+    assert vtd.resolve_oauth_env_candidates() == vtd.CF_ENV_CANDIDATES
+
+
+def test_apply_oauth_env_override_rewrites_ilag_sync_env_candidates(monkeypatch):
+    monkeypatch.setenv("SOMPONG_DRIVE_ENV", "/opt/mooniex-secrets/drive.env")
+    original = list(ilag_sync.ENV_CANDIDATES)
+    try:
+        vtd.apply_oauth_env_override()
+        assert ilag_sync.ENV_CANDIDATES == [Path("/opt/mooniex-secrets/drive.env")]
+    finally:
+        ilag_sync.ENV_CANDIDATES = original
 
 
 # --------------------------------------------------------------------------- download() retry
@@ -240,8 +306,7 @@ def test_successful_upload_verifies_logs_and_deletes_local(monkeypatch, tmp_path
 
 def test_main_exit_code_nonzero_when_any_url_fails(monkeypatch, tmp_path):
     monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
-    monkeypatch.setattr(vtd, "load_parent_folder_id", lambda: "parent-id")
-    monkeypatch.setattr(vtd, "find_or_create_folder", lambda name, parent_id: "folder-id")
+    monkeypatch.setattr(vtd, "apply_oauth_env_override", lambda: None)
     outcomes = {"https://a": True, "https://b": False}
     monkeypatch.setattr(vtd, "process_url", lambda url, **kw: outcomes[url])
 
@@ -252,8 +317,7 @@ def test_main_exit_code_nonzero_when_any_url_fails(monkeypatch, tmp_path):
 
 def test_main_exit_code_zero_when_all_succeed(monkeypatch, tmp_path):
     monkeypatch.setattr(vtd.shutil, "which", lambda tool: f"/usr/bin/{tool}")
-    monkeypatch.setattr(vtd, "load_parent_folder_id", lambda: "parent-id")
-    monkeypatch.setattr(vtd, "find_or_create_folder", lambda name, parent_id: "folder-id")
+    monkeypatch.setattr(vtd, "apply_oauth_env_override", lambda: None)
     monkeypatch.setattr(vtd, "process_url", lambda url, **kw: True)
 
     rc = vtd.main(["https://a", "https://b", "--log-file", str(tmp_path / "log.txt")])
@@ -264,7 +328,7 @@ def test_main_exit_code_zero_when_all_succeed(monkeypatch, tmp_path):
 def test_main_fails_fast_when_yt_dlp_missing(monkeypatch, tmp_path):
     monkeypatch.setattr(vtd.shutil, "which", lambda tool: None)
     called = {}
-    monkeypatch.setattr(vtd, "load_parent_folder_id", lambda: called.setdefault("hit", True))
+    monkeypatch.setattr(vtd, "apply_oauth_env_override", lambda: called.setdefault("hit", True))
 
     rc = vtd.main(["https://a", "--log-file", str(tmp_path / "log.txt")])
 
