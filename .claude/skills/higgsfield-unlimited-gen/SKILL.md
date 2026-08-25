@@ -807,3 +807,17 @@ Split them, and run only the first group every time:
 When a brief grows past roughly a screen of checks, that is the signal to prune,
 not to add. And say in the brief which gates are mandatory and which are
 conditional — a worker given a flat list will run all of them, correctly, forever.
+
+## Hard caps — count before delegating, not after
+
+Folded in from the org memory index 2026-08-25 (the rest of that note was
+already covered above; these three numbers were not).
+
+- **Element cap on Seedance 2.0 is 9, not 10.** Confirmed 2026-08-14. A tenth
+  element is silently refused, not warned about.
+- **Wave cap is ~5 generations, and it is a hard cap, not a suggestion.**
+  CEO-enforced 2026-08-14 after a 14-clip / 7-scene queue was handed to a
+  single task and had to be split mid-flight. Count the clips before
+  delegating, not once the worker is already running.
+- **Cap any single `sleep()` at ~90s.** A longer one blocks the poll loop past
+  the point where a finished render can be noticed promptly.

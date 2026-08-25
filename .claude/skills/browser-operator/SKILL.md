@@ -288,3 +288,34 @@ Credentials, account creation, real-money payments, accepting terms, granting
 OAuth, irreversible clicks not named in the task, uploading a file the task did
 not name. These are in the role doc and they are not a matter of judgement —
 file a blocker.
+
+## A click-blocked control: stop after ONE clean attempt, then hands off
+
+Standing CEO policy, born on Higgsfield's Unlimited-mode toggle (GH
+mooniex-agents#67, 2026-08-14) but written to apply to **any** site. Moved here
+from the org memory index 2026-08-25.
+
+When a control silently refuses every automated click / keyboard / drag
+technique: stop retrying, file a blocker via `mcp__org__file_blocker_issue`,
+report to the CTO, and then **leave Chrome open exactly as it is** — no
+navigate, no refresh, no further clicks, nothing closed. The CEO will walk up
+to the real window, flip the setting by hand, and click the priced or gated
+action himself.
+
+**Why one attempt and not several.** Two rounds of automated retries on that
+stuck toggle — including a full Chrome quit-and-relaunch and one maximally
+clean single ref-click — both failed, and the techniques tried in between
+fired **two real 135-credit charges**: a stray Enter/Space meant for the toggle
+landed on the adjacent Generate button. Retrying a stuck control that sits near
+a priced action is itself a source of real spend, not merely wasted time.
+
+**While you are waiting for the CEO:** read-only DOM inspection is allowed
+(`javascript_tool` reads) so you can describe what is on screen. No `navigate`,
+no `click`, no `key` — even read-only navigation can reload and destroy staged
+state. Do not re-test the control later "to check whether it works now": that
+determination is the CEO's to make in person.
+
+**Afterwards:** once the CEO has set it up by hand, the operator may click
+Generate itself (having confirmed Unlimited is on) as soon as the queue is
+free. Do not ask the CEO to click Generate too, and do not ask for help again
+while a render is still in flight — the queue clears on its own.
