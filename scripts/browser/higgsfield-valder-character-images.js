@@ -444,4 +444,158 @@
  *     "`<N> left`" next to a "Credits" label. Open that menu once at the
  *     start and once at the end of any credit-tracked run; don't assume a
  *     page-wide text scan will find it.
+ *
+ * Wave 5 (task-1b9835bf, 2026-08-25): 9 brand-new location/prop plates
+ * (project_valder_loc_house_old, _house_new, _street_row, _aerial,
+ * _office_ext, _museum, and project_valder_prop_plan, _siteplan,
+ * _signature) across the Location and Prop folders. GPT Image 2 / Medium /
+ * 1K / 3:2, 1 image each, 2 credits each, 18 credits total, balance
+ * 1,998 -> 1,980. All 9 passed on attempt 1/3 -- no retries needed.
+ *
+ *   - Page-injected JS state (a `window.__editor` reference to the Lexical
+ *     contenteditable, plus `window.__pasteInto`/`window.__clickGenerate`
+ *     helper functions defined once via `javascript_tool`) SURVIVES an
+ *     in-app folder switch (clicking "Location" -> "Prop" in the left
+ *     sidebar, which changes the URL to a new `/folders/<uuid>` path via
+ *     client-side routing, no full reload). Confirmed by re-reading
+ *     `typeof window.__pasteInto` immediately after the folder switch --
+ *     still `"function"`. This is a genuinely different case from a page
+ *     `navigate`/reload (which Wave 4 confirmed resets the settings pills)
+ *     -- an in-app SPA route change resets neither the settings pills NOR
+ *     injected globals. Only `document.activeElement` needs re-capturing
+ *     into `window.__editor` after the switch (the DOM node itself is
+ *     replaced even though the app state persists), which a fresh
+ *     `document.activeElement` read confirmed instantly. Defining the
+ *     paste/generate helpers ONCE at the start of a run and reusing them
+ *     across every folder switch and every one of the 9 plates avoided
+ *     re-sending the ~40-line helper definitions 9 times.
+ *
+ *   - The synthetic-paste + real-key-clear recipe from Waves 1-4 worked
+ *     cleanly on every one of the 9 plates this run with NO paste
+ *     failures, NO doubled text, and no `computer screenshot` stalls --
+ *     the normalized length diff was consistently a small positive number
+ *     (12-15 chars) matching Wave 4's "paragraph-break normalization"
+ *     range every single time, never the ~2x-source-length signature of a
+ *     failed clear. Two real-key clear passes (`cmd+a`, `Delete`, twice)
+ *     before every paste, with an `innerText.length <= 1` check after,
+ *     continues to be sufficient and was not skipped once.
+ *
+ *   - The direct-dispatch PointerEvent/MouseEvent sequence on the
+ *     JS-referenced Generate button (per Wave 3's finding that
+ *     coordinate-based clicks are unreliable on this composer) fired
+ *     correctly and produced the "Generation started" toast on the FIRST
+ *     attempt for all 9 plates, with no coordinate-based method tried or
+ *     needed at all this run. Reading the button's own `innerText`
+ *     (`"GENERATE\n2"`) via `javascript_tool` immediately before every
+ *     click reliably confirmed the 2-credit cost matched the Medium/1K/
+ *     qty-1 settings before committing -- worth doing every time even
+ *     though the pills were never observed to silently drift mid-run.
+ *
+ *   - New card detection in `[data-asset-id]` count lagged the "Generation
+ *     started" toast by roughly 18-28s across all 9 generations (a first
+ *     10s wait consistently found either an unchanged count or a
+ *     newest-card `img.alt` still reading "Generating"/"image generation"
+ *     placeholder text; a second 8-10s wait was enough every time). Budget
+ *     two waits, not one, as Wave 3 already found.
+ *
+ *   - The `[data-asset-id]` total count is NOT monotonically increasing
+ *     across generations in a way you can rely on for a delta check --
+ *     it went 21 -> 22 -> 24 -> 24 -> 24 -> 21 -> 24 in the Location folder
+ *     across 6 generations this run (the virtualizer's dedupe/mount
+ *     behaviour churns the live DOM node count independently of how many
+ *     real assets exist). The only reliable per-generation check is: (a)
+ *     the newest card's `data-asset-id` differs from the previous
+ *     generation's newest id, and (b) that card's `img.alt` is no longer
+ *     "Generating"/"image generation" placeholder text. Don't gate on the
+ *     raw count matching an expected arithmetic progression.
+ *
+ *   - `getImageData()` on a `<canvas>` the just-generated `<img>` was drawn
+ *     into throws `SecurityError: The canvas has been tainted by
+ *     cross-origin data` -- the asset CDN does not serve
+ *     `Access-Control-Allow-Origin`, so there is no way to pull an
+ *     objective RGB/saturation sample via JS for the "colour vivid vs
+ *     muted" judgement call this task required. Fell back to the
+ *     documented `zoom` tool on the new card's thumbnail region
+ *     (`[333,125,673,351]`, i.e. the top-left grid cell where a fresh
+ *     generation always lands first) for every saturation verdict instead
+ *     -- this worked fine, just note that a pixel-exact check is not
+ *     available on this project's asset host.
+ *
+ *   - Switching folders (Location -> Prop) via the sidebar preserved the
+ *     model (GPT Image 2) and every pill (3:2 / Medium / 1K / qty 1)
+ *     with no re-selection needed -- confirms and extends Wave 2's
+ *     "in-app folder navigation preserves the model" finding to cover the
+ *     full settings row, not just the model pill.
+ *
+ * Wave 6 (task-5993f785, 2026-08-25): single-plate replate + eligibility-check
+ * flow for project_valder_char_press, which was failing Higgsfield's own
+ * Face/IP moderation (blocked a Scene 1 video fire, GH #93). GPT Image 2 /
+ * Medium / 1K / 3:2, 1 image per attempt, 2 credits each, 4 credits total,
+ * balance 1,978 -> 1,974. Attempt 1 failed eligibility, attempt 2 passed.
+ * Full narrative in docs/reports/valder-press-ipsafe.md.
+ *
+ *   - Confirmed the exact per-reference eligibility-check UI, first
+ *     documented as a "genuine stop-and-ask" in higgsfield-jumpcut-gen.js's
+ *     task-c7845ce8 finding #1 -- this task explicitly authorized clicking
+ *     it. Flow: paste `@[project_valder_char_press](<mention-uuid>)` (a
+ *     THIRD id namespace, distinct from asset-image ids and CDN-filename
+ *     ids -- see valder-element-repoint-test.md and valder-s1-fire.md) via
+ *     synthetic ClipboardEvent into the Cinema Studio VIDEO composer (not
+ *     the Image composer -- References panel with the per-reference check
+ *     only exists on the video side), confirm it attached (References
+ *     N/50), hover the reference thumbnail to reveal a Radix tooltip
+ *     reading "This asset needs an eligibility check before it can be
+ *     used." with a "Check eligibility" button, click it.
+ *
+ *   - The `@[name](uuid)` bracket-paste syntax renders the mention chip as
+ *     the RAW UUID in red/error-styled text (`text-font-error` class)
+ *     immediately after paste, even though the underlying reference is
+ *     already correctly bound to the target Element -- confirmed via the
+ *     reference thumbnail's `img.alt` matching the target asset id the
+ *     whole time. Don't read the raw-UUID red-text display as a binding
+ *     failure. In this run the chip's display text self-corrected to the
+ *     proper `@project_valder_char_press` name only AFTER the eligibility
+ *     check completed, not before -- so a red/raw-UUID chip is expected and
+ *     harmless at this syntax's paste-time, not a signal to redo the paste.
+ *
+ *   - The reference thumbnail's small badge changes shape with the check
+ *     result and is a fast, free visual tell -- FAILED: a persistent "🚫"
+ *     (circle-slash) icon overlaid on the "@" corner badge, which survives
+ *     mouse-away (i.e. it's a status icon, not a hover cursor artifact).
+ *     PASSED: a plain "@" badge with no overlay. Cheap to `zoom` on the
+ *     thumbnail region ([443,515]-[583,595] at 1024x647 viewport, ~40px
+ *     square) to check this before spending a hover+screenshot round trip
+ *     on the tooltip text -- though the tooltip text is what this report
+ *     actually cites as the authoritative PASS/FAIL signal, since the badge
+ *     shape was reverse-engineered empirically this run, not documented
+ *     anywhere first-party.
+ *
+ *   - The FAILED tooltip text, verbatim: "Face/IP failed -- A face or
+ *     protected content was detected, so this asset cannot be used. Try
+ *     another." Matches valder-s1-fire.md's finding exactly (same string,
+ *     different asset) -- confirms this is a fixed, generic moderation
+ *     message, not asset-specific detail.
+ *
+ *   - The PASSED state has NO positive tooltip at all -- hovering a clean
+ *     reference produces nothing (no "Eligible" or checkmark message).
+ *     Absence of the FAILED tooltip, absence of the "needs an eligibility
+ *     check" pre-check tooltip, AND a full-page
+ *     `document.body.innerText.match(/Face\/IP failed|protected
+ *     content|eligibility check before/i)` returning no match together are
+ *     what this run relied on to call PASS -- no single one of those three
+ *     alone is as strong as the FAILED case's explicit string.
+ *
+ *   - Retried with the SAME locked silhouette/wardrobe/prop language both
+ *     attempts (per the task's own instruction those are settled and must
+ *     be preserved) and only reinforced the FACE section's ordinariness
+ *     language between attempts 1 and 2 -- explicitly framing it as a
+ *     "generic, computer-generated composite with zero basis in any real
+ *     individual's likeness", calling out "not based on any well-known
+ *     character-actor type", and adding matching NEGATIVES entries (no
+ *     character-actor typecast face, no distinctive or memorable face, no
+ *     impression of a real person). This flipped attempt 2 from FAILED to
+ *     PASSED on the very next try -- worth reaching for this specific
+ *     framing (composite/generic/no-basis-in-real-individual) before trying
+ *     unrelated changes like swapping out the specific physical features,
+ *     which the task explicitly locks as "already settled."
  */
