@@ -526,4 +526,76 @@
  *     with no re-selection needed -- confirms and extends Wave 2's
  *     "in-app folder navigation preserves the model" finding to cover the
  *     full settings row, not just the model pill.
+ *
+ * Wave 6 (task-5993f785, 2026-08-25): single-plate replate + eligibility-check
+ * flow for project_valder_char_press, which was failing Higgsfield's own
+ * Face/IP moderation (blocked a Scene 1 video fire, GH #93). GPT Image 2 /
+ * Medium / 1K / 3:2, 1 image per attempt, 2 credits each, 4 credits total,
+ * balance 1,978 -> 1,974. Attempt 1 failed eligibility, attempt 2 passed.
+ * Full narrative in docs/reports/valder-press-ipsafe.md.
+ *
+ *   - Confirmed the exact per-reference eligibility-check UI, first
+ *     documented as a "genuine stop-and-ask" in higgsfield-jumpcut-gen.js's
+ *     task-c7845ce8 finding #1 -- this task explicitly authorized clicking
+ *     it. Flow: paste `@[project_valder_char_press](<mention-uuid>)` (a
+ *     THIRD id namespace, distinct from asset-image ids and CDN-filename
+ *     ids -- see valder-element-repoint-test.md and valder-s1-fire.md) via
+ *     synthetic ClipboardEvent into the Cinema Studio VIDEO composer (not
+ *     the Image composer -- References panel with the per-reference check
+ *     only exists on the video side), confirm it attached (References
+ *     N/50), hover the reference thumbnail to reveal a Radix tooltip
+ *     reading "This asset needs an eligibility check before it can be
+ *     used." with a "Check eligibility" button, click it.
+ *
+ *   - The `@[name](uuid)` bracket-paste syntax renders the mention chip as
+ *     the RAW UUID in red/error-styled text (`text-font-error` class)
+ *     immediately after paste, even though the underlying reference is
+ *     already correctly bound to the target Element -- confirmed via the
+ *     reference thumbnail's `img.alt` matching the target asset id the
+ *     whole time. Don't read the raw-UUID red-text display as a binding
+ *     failure. In this run the chip's display text self-corrected to the
+ *     proper `@project_valder_char_press` name only AFTER the eligibility
+ *     check completed, not before -- so a red/raw-UUID chip is expected and
+ *     harmless at this syntax's paste-time, not a signal to redo the paste.
+ *
+ *   - The reference thumbnail's small badge changes shape with the check
+ *     result and is a fast, free visual tell -- FAILED: a persistent "🚫"
+ *     (circle-slash) icon overlaid on the "@" corner badge, which survives
+ *     mouse-away (i.e. it's a status icon, not a hover cursor artifact).
+ *     PASSED: a plain "@" badge with no overlay. Cheap to `zoom` on the
+ *     thumbnail region ([443,515]-[583,595] at 1024x647 viewport, ~40px
+ *     square) to check this before spending a hover+screenshot round trip
+ *     on the tooltip text -- though the tooltip text is what this report
+ *     actually cites as the authoritative PASS/FAIL signal, since the badge
+ *     shape was reverse-engineered empirically this run, not documented
+ *     anywhere first-party.
+ *
+ *   - The FAILED tooltip text, verbatim: "Face/IP failed -- A face or
+ *     protected content was detected, so this asset cannot be used. Try
+ *     another." Matches valder-s1-fire.md's finding exactly (same string,
+ *     different asset) -- confirms this is a fixed, generic moderation
+ *     message, not asset-specific detail.
+ *
+ *   - The PASSED state has NO positive tooltip at all -- hovering a clean
+ *     reference produces nothing (no "Eligible" or checkmark message).
+ *     Absence of the FAILED tooltip, absence of the "needs an eligibility
+ *     check" pre-check tooltip, AND a full-page
+ *     `document.body.innerText.match(/Face\/IP failed|protected
+ *     content|eligibility check before/i)` returning no match together are
+ *     what this run relied on to call PASS -- no single one of those three
+ *     alone is as strong as the FAILED case's explicit string.
+ *
+ *   - Retried with the SAME locked silhouette/wardrobe/prop language both
+ *     attempts (per the task's own instruction those are settled and must
+ *     be preserved) and only reinforced the FACE section's ordinariness
+ *     language between attempts 1 and 2 -- explicitly framing it as a
+ *     "generic, computer-generated composite with zero basis in any real
+ *     individual's likeness", calling out "not based on any well-known
+ *     character-actor type", and adding matching NEGATIVES entries (no
+ *     character-actor typecast face, no distinctive or memorable face, no
+ *     impression of a real person). This flipped attempt 2 from FAILED to
+ *     PASSED on the very next try -- worth reaching for this specific
+ *     framing (composite/generic/no-basis-in-real-individual) before trying
+ *     unrelated changes like swapping out the specific physical features,
+ *     which the task explicitly locks as "already settled."
  */
