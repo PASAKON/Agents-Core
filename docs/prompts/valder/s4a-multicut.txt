@@ -8,11 +8,11 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_char_mother — THE MOTHER. A woman in her forties. She stands very straight, hands habitually clasped in front of her. Her clothes are her own best: a plain dress she altered herself, and if you look closely the seams have been sewn twice. The colours are PALE — washed out, thin, the same hues everyone else wears but drained. Her clothes are CLEAN, PRESSED and CAREFULLY MENDED. Her skin is WARM and slightly ruddy — she is not one of the pale people yet. SHE IS ONE PERSON. She appears in every shot of this film scene.
 
-@project_valder_char_neighbour — THE NEIGHBOUR. A woman in her forties who lives on this street and has lived the wealthy life for years. She wears TWO OR THREE deeply saturated colours in large flat blocks, worn with complete confidence. Her face is composed, pleasant, and completely closed — she is not sneering and not cruel, she is simply not interested. Her skin is PALE in the ordinary indoor human way. SHE IS ONE PERSON. She is never seen fully — only a vertical slice of her, through a door that never opens more than a hand's width.
+@project_valder_char_neighbor — THE NEIGHBOUR. A woman in her forties who lives on this street and has lived the wealthy life for years. She wears TWO OR THREE deeply saturated colours in large flat blocks, worn with complete confidence. Her face is composed, pleasant, and completely closed — she is not sneering and not cruel, she is simply not interested. Her skin is PALE in the ordinary indoor human way. SHE IS ONE PERSON. She is never seen fully — only a vertical slice of her, through a door that never opens more than a hand's width.
 
 @project_valder_loc_street_row — THE STREET. A row of houses that are all EXACTLY THE SAME SHAPE and differ only in colour. Swept rooflines, cantilevered carports, huge empty lawns mown flat. Deeply saturated colour on every facade. No cars. No people except the ones this scene puts there.
 
-@project_valder_loc_neighbour_door — THE NEIGHBOUR'S FRONT DOOR. A single door set into an enormous flat plane of deeply saturated colour, with almost nothing else on the wall. Chromium door furniture. Immaculate. It is the most expensive-looking empty space imaginable.
+@project_valder_loc_neighbor_door — THE NEIGHBOUR'S FRONT DOOR. A single door set into an enormous flat plane of deeply saturated colour, with almost nothing else on the wall. Chromium door furniture. Immaculate. It is the most expensive-looking empty space imaginable.
 
 @project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered and narrowing to a sharp point at the bottom. It is stamped into everything Valder designs and worn by everyone who belongs. IT IS THE SAME SHAPE AT EVERY SIZE — no simplified version exists.
 
@@ -84,7 +84,7 @@ She walks the way a person walks toward something they have rehearsed.
 
 Close. Camera at chest height, locked.
 
-@project_valder_char_mother's hand rises into frame and knocks on @project_valder_loc_neighbour_door. Three knocks, evenly spaced, not loud.
+@project_valder_char_mother's hand rises into frame and knocks on @project_valder_loc_neighbor_door. Three knocks, evenly spaced, not loud.
 
 The shot holds long enough to see the cuff of her sleeve: pale fabric, clean, pressed, and MENDED — a line of careful stitching where it was repaired.
 
@@ -100,7 +100,7 @@ Medium. Camera at chest height, locked.
 
 The door opens — AND STOPS. It opens only A HAND'S WIDTH and goes no further. It does not swing wide. Nobody steps out.
 
-Through that narrow vertical gap: a single vertical slice of @project_valder_char_neighbour — one eye, part of her mouth, one shoulder. Behind her, a hard edge of intense saturated interior colour.
+Through that narrow vertical gap: a single vertical slice of @project_valder_char_neighbor — one eye, part of her mouth, one shoulder. Behind her, a hard edge of intense saturated interior colour.
 
 @project_valder_char_mother stands facing the gap, still holding the parcel in both hands, and lifts it very slightly.
 
@@ -110,7 +110,7 @@ Through that narrow vertical gap: a single vertical slice of @project_valder_cha
 
 Very close, inside the narrow gap. Camera locked.
 
-@project_valder_prop_mark — the gold V — pinned at @project_valder_char_neighbour's collar, catching the light. It fills a large part of the frame. Polished warm gold against deep saturated fabric. It is the brightest object anywhere in this scene.
+@project_valder_prop_mark — the gold V — pinned at @project_valder_char_neighbor's collar, catching the light. It fills a large part of the frame. Polished warm gold against deep saturated fabric. It is the brightest object anywhere in this scene.
 
 Then the framing includes her eye, just above it. Her expression does not change at all.
 
@@ -118,7 +118,7 @@ Then the framing includes her eye, just above it. Her expression does not change
 
 === SHOT 5 — 0:12 to 0:15 — THE LOOK, AND THE LINE ===
 
-Medium, favouring @project_valder_char_mother, with the narrow gap and the slice of @project_valder_char_neighbour at the edge of frame. Camera locked.
+Medium, favouring @project_valder_char_mother, with the narrow gap and the slice of @project_valder_char_neighbor at the edge of frame. Camera locked.
 
 THE NEIGHBOUR'S EYES TRAVEL SLOWLY DOWN THE MOTHER'S CLOTHES AND BACK UP AGAIN. This is a deliberate, unhurried movement, and it is the only thing that happens in the shot. Her face stays completely pleasant throughout. She is not sneering. She is pricing.
 

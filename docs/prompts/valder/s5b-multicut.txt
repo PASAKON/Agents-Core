@@ -8,11 +8,11 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_char_mother — THE MOTHER. A woman in her forties who stands and sits very straight, hands habitually clasped. SHE HAS ARRIVED: she wears a second Valder garment, deeply saturated, with the gold V at her collar. Her skin is now PALE — she has crossed over. Same face throughout the film. SHE IS ONE PERSON.
 
-@project_valder_char_neighbour — THE NEIGHBOUR. The woman who refused her at the door twice. Two or three deeply saturated colours, composed, pleasant, completely closed. PALE. The gold V at her collar. SHE IS ONE PERSON.
+@project_valder_char_neighbor — THE NEIGHBOUR. The woman who refused her at the door twice. Two or three deeply saturated colours, composed, pleasant, completely closed. PALE. The gold V at her collar. SHE IS ONE PERSON.
 
 @project_valder_char_tea_circle — THE TEA CIRCLE. FOUR wealthy women seated together, each in a DIFFERENT two-or-three-colour saturated combination, each in a different Valder garment, all composed and still, all with the same pleasant closed expression. Different builds, different faces, no two alike. THIS REFERENCE IS A GROUP OF FOUR PEOPLE, NOT ONE PERSON.
 
-@project_valder_loc_neighbour_parlour — THE NEIGHBOUR'S RECEIVING ROOM. Rich means EMPTY: one enormous plane of saturated colour on the main wall, a polished floor, three or four sculptural retrofuturist pieces and nothing else. A low table set for tea. Vast empty floor.
+@project_valder_loc_neighbor_parlour — THE NEIGHBOUR'S RECEIVING ROOM. Rich means EMPTY: one enormous plane of saturated colour on the main wall, a polished floor, three or four sculptural retrofuturist pieces and nothing else. A low table set for tea. Vast empty floor.
 
 @project_valder_prop_dress_c2 — THE SECOND VALDER GARMENT. Same designer, unmistakably — flat geometric panels, hard edges, asymmetric — but a DIFFERENT colour set and a different asymmetry from the first one. Slightly more extreme. The gold V at the collar.
 
@@ -92,11 +92,11 @@ The door stands WIDE OPEN. It was open before she got here.
 
 === SHOT 2 — 0:03 to 0:06 — THE CIRCLE ===
 
-Wide. @project_valder_loc_neighbour_parlour. Camera at chest height, locked.
+Wide. @project_valder_loc_neighbor_parlour. Camera at chest height, locked.
 
 @project_valder_char_tea_circle — four women seated around a low table in an enormous nearly-empty saturated room. Four completely different colour combinations. Four different builds and faces. All composed, all still.
 
-@project_valder_char_neighbour is with them.
+@project_valder_char_neighbor is with them.
 
 There is an empty chair.
 
