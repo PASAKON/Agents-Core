@@ -15,9 +15,9 @@ report). CEO logged the account back in by hand before this task started.
 
 | Scene | Take | Clip asset id | Settings confirmed | Elements | Generate button text at fire | Render minutes |
 |---|---|---|---|---|---|---|
-| S1 | B | `43762082-cc8c-4325-b9fa-d5b337c81d46` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 8/8, 0 errors | `UNLIMITED / ~~440~~ / 0` (zoom-confirmed struck-through) | pending |
-| S1B | A | pending | staged, same settings | 6/6, 0 errors | pending | pending |
-| S1B | B | pending | — | — | — | — |
+| S1 | B | `43762082-cc8c-4325-b9fa-d5b337c81d46` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 8/8, 0 errors | `UNLIMITED / ~~440~~ / 0` (zoom-confirmed struck-through) | ~15 (fresh-tab confirmed complete) |
+| S1B | A | `423b2b6f-99c4-4fb4-acaf-43207294e999` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~440~~ / 0` (zoom-confirmed struck-through) | pending |
+| S1B | B | pending (staged) | staged, same settings | 6/6, 0 errors | pending | pending |
 | S1 | C | pending | — | — | — | — |
 | S1B | C | pending | — | — | — | — |
 
@@ -105,13 +105,34 @@ text in `document.body.innerText`, `All assets` sidebar counter incrementing
 DOM subtree (narrowed ancestor-by-ancestor until only one UUID remained,
 distinct from S1 take A's already-known id which was correctly excluded).
 
-## S1B take A staging (during S1 take B's render)
+## S1 take B completion check
 
-Per the "warm up the next job during the render" rule: composer cleared
-(real Cmd+A + Delete — `execCommand` was not used, matching the documented
-"append not replace" trap), S1B prompt pasted (18,503 JS chars, matching
-source), 6/6 unique mentions bound with 0 errors, desync fix re-applied.
-Generate NOT yet clicked — waiting for S1 take B to complete per the
-one-generation-at-a-time rule.
+First check at ~15 min showed the composer tab's own "Processing" text gone.
+Per the skill's warning about long-lived tabs lying about state, this was
+NOT trusted alone — a fresh scratch tab was opened, navigated to the same
+project URL, and independently confirmed: no "Processing" text anywhere,
+and S1 take B's asset id (`43762082-...`) present in that fresh tab's own
+DOM. Credits read 1,950 in the fresh tab (down from 1,956) — a 6-credit
+drop, consistent with the concurrent image operator's (`task-598b6088`)
+normal per-image spend (0.2-2 credits/image per the project's own cost
+table), not a video-scale charge (which would be 130-440 credits). Scratch
+tab closed without touching anything else.
+
+## S1B take A fire
+
+Returned to the composer tab (untouched throughout the wait). Re-verified
+staged state fresh (6/6 mentions, 0 errors, Unlimited still `aria-checked:
+true`), re-applied the desync fix, zoom-confirmed `UNLIMITED / ~~440~~ / 0`,
+clicked Generate. Confirmed via `"Generation started"` toast and sidebar
+counter 236→237. Asset id `423b2b6f-99c4-4fb4-acaf-43207294e999` isolated
+via the same Processing-card ancestor-walk technique (isolated at the same
+relative DOM depth as S1 take B's card).
+
+## S1B take B staging (during S1B take A's render)
+
+Composer cleared, `window.__PROMPT_S1B` (still cached from take A, no
+re-encode needed since it's the same source file) pasted again, 6/6 unique
+mentions bound with 0 errors, desync fix re-applied. Generate NOT yet
+clicked — waiting for S1B take A to complete.
 
 (Continued below as the wave progresses.)
