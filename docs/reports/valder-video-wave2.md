@@ -17,8 +17,8 @@ report). CEO logged the account back in by hand before this task started.
 |---|---|---|---|---|---|---|
 | S1 | B | `43762082-cc8c-4325-b9fa-d5b337c81d46` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 8/8, 0 errors | `UNLIMITED / ~~440~~ / 0` (zoom-confirmed struck-through) | ~15 (fresh-tab confirmed complete) |
 | S1B | A | `423b2b6f-99c4-4fb4-acaf-43207294e999` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~440~~ / 0` (zoom-confirmed struck-through) | pending |
-| S1B | B | pending (staged) | staged, same settings | 6/6, 0 errors | pending | pending |
-| S1 | C | pending | — | — | — | — |
+| S1B | B | `35dbf2d6-3586-4faf-b6e3-9c06ed9a5edf` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~440~~ / 0` (zoom-confirmed struck-through) | pending |
+| S1 | C | pending (staged) | staged, same settings | 8/8, 0 errors | pending | pending |
 | S1B | C | pending | — | — | — | — |
 
 (S1 take A — `57453ca1-2a4a-438f-8f10-def379c01ad1` — already fired in the
@@ -128,11 +128,51 @@ counter 236→237. Asset id `423b2b6f-99c4-4fb4-acaf-43207294e999` isolated
 via the same Processing-card ancestor-walk technique (isolated at the same
 relative DOM depth as S1 take B's card).
 
-## S1B take B staging (during S1B take A's render)
+## S1B take B staging (during S1B take A's render) and a false-start
 
 Composer cleared, `window.__PROMPT_S1B` (still cached from take A, no
 re-encode needed since it's the same source file) pasted again, 6/6 unique
-mentions bound with 0 errors, desync fix re-applied. Generate NOT yet
-clicked — waiting for S1B take A to complete.
+mentions bound with 0 errors, desync fix re-applied.
+
+**A completion-check false negative caused one premature Generate click.**
+The first "is take A done?" check only searched for the literal string
+"Processing" (the label used by S1 take B's card). S1B take A's own
+in-progress card used a DIFFERENT label, "Generating" — the check found
+neither on a fresh scratch tab and concluded (wrongly) that take A had
+finished. Generate was clicked on the staged take B prompt while take A was
+still genuinely rendering.
+
+The platform's own account-wide "1 unlimited video, image & audio generation
+at a time" concurrency guard correctly rejected the click (toast shown, no
+"Generation started" text, no asset-count increment). Zero credits spent,
+zero side effect confirmed (Credits: 1,946 flat before and after; staged
+prompt in the composer was untouched — still 6/6 mentions, 0 errors,
+verified straight after dismissing the toast). This is the platform's safety
+net working exactly as documented, not damage — but the underlying check was
+still wrong and worth fixing for next time: **check for "Processing" OR
+"Generating" (or more robustly, any of Processing/Generating/Queued/
+Rendering) — the in-progress label is not consistent across cards**, and a
+premature Generate click next to this exact composer corner is the kind of
+near-miss the project's incident history says to take seriously even when it
+resolves at zero cost.
+
+Waited properly (checking the broader label set) until no in-progress
+indicator remained, confirmed via a second fresh scratch tab, then re-verified
+the staged prompt (still 6/6, 0 errors), re-applied the desync fix, zoom-
+confirmed `UNLIMITED / ~~440~~ / 0`, and fired for real.
+
+## S1B take B fire
+
+Confirmed via `"Generation started"` toast (and absence of the concurrency
+toast this time), sidebar counter 240→241. Asset id
+`35dbf2d6-3586-4faf-b6e3-9c06ed9a5edf` isolated via the Processing-card
+ancestor-walk (this card's own label was back to "Processing").
+
+## S1 take C staging (during S1B take B's render)
+
+Composer cleared, `window.__PROMPT_S1` (cached from S1 take B, same source
+file) pasted again, 8/8 unique mentions bound with 0 errors, desync fix
+re-applied. Generate NOT yet clicked — waiting for S1B take B to complete,
+checking the broader in-progress label set this time.
 
 (Continued below as the wave progresses.)

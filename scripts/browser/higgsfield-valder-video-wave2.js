@@ -174,6 +174,29 @@
  *
  * ---
  *
+ * THE IN-PROGRESS CARD LABEL IS NOT CONSISTENT -- "Processing" AND
+ * "Generating" BOTH OCCUR
+ *
+ * Checking only for the literal string "Processing" to decide whether the
+ * previous render is done is NOT SAFE -- this run, one card's in-progress
+ * label read "Processing" and a different card (same composer, same
+ * project, fired minutes apart) read "Generating" instead. A check that
+ * only searched for "Processing" returned a false "nothing in progress"
+ * while the "Generating" card was still genuinely rendering, and the
+ * subsequent premature Generate click was only saved by the platform's own
+ * account-wide concurrency guard (a toast, zero cost, zero side effect --
+ * but still a near-miss next to a priced composer corner).
+ *
+ * Always check for the union of labels, e.g.:
+ *
+ *   const cand = [...document.querySelectorAll('*')]
+ *     .find(el => el.children.length===0
+ *              && /processing|generating|queued|rendering/i.test(el.textContent.trim()));
+ *
+ * and treat ANY match as "still in progress", not just an exact string.
+ *
+ * ---
+ *
  * STAGING THE NEXT PROMPT DURING A RENDER IS SAFE AND CHEAP
  *
  * Confirmed again: editing the composer's prompt text (clear via real
