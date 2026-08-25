@@ -270,4 +270,92 @@
  * query on this project, not just for the contenteditable editor and the
  * Generate button as previously documented -- the whole settings-pill row
  * is subject to the same duplication.
+ *
+ * ---
+ *
+ * Wave 4 (task-8a163030, 2026-08-25): first successful fire. RESULT: THE
+ * DESYNC FIX IS THE ANSWER. Take 1 fired clean on the first Generate click
+ * after applying it; Take 2 was blocked separately by a stuck Unlimited
+ * toggle (new, unrelated failure -- see below), never by "Prompt is
+ * required" again. See docs/reports/valder-s2-desync.md for the full
+ * writeup.
+ *
+ * THE FIX, confirmed end-to-end: after the synthetic-paste (per this
+ * file's own established recipe), before EVERY Generate click:
+ *   1. `el.focus()` on the visibility-filtered editor node.
+ *   2. Selection API cursor-to-end (`range.selectNodeContents(el);
+ *      range.collapse(false)`, then apply via `window.getSelection()`) --
+ *      NOT a coordinate click, per Wave 2's mention-chip-click hazard.
+ *   3. A REAL `space` keypress via the driving tool, then a REAL
+ *      `BackSpace` keypress via the driving tool. Net text change zero.
+ * Applied once right after paste, then RE-applied a second time
+ * immediately before the Generate click (composer state can drift between
+ * the two, per this file's Wave-1 "re-apply immediately before every
+ * click" note) -- both applications used in this run, click fired clean on
+ * attempt 1/1 both times the fix was correctly applied.
+ *
+ * VERIFICATION THAT ACTUALLY MEANS SOMETHING: `innerText` and raw mention
+ * count are necessary but not sufficient -- they read the DOM, not the
+ * bound form state Higgsfield validates against (this is the whole
+ * mechanism behind "Prompt is required" firing on text that visibly looks
+ * correct). The authoritative read is the Lexical editor's OWN state:
+ *
+ *   const key = Object.keys(editorEl).find(k => k.startsWith('__lexicalEditor'));
+ *   const json = editorEl[key].getEditorState().toJSON();
+ *   JSON.stringify(json).length  // this run: 39,769, opening with the exact prompt text
+ *
+ * This is reachable directly off the contenteditable DOM node -- no need
+ * to hunt for a React fiber or a page-level `window.lexicalEditor` global,
+ * `__lexicalEditor<random-suffix>` is a property Lexical attaches straight
+ * to the root element it manages. Confirmed clean both times this run
+ * (post-paste and post-re-applied-fix-before-click), always cross-checked
+ * against `innerText.length` (14,277 both times, matching prior waves'
+ * expected +117-char Lexical block-break drift over the 14,160-char
+ * source) and the mention-chip `hasError` scan (0 of 19 raw / 7 unique
+ * mentions ever errored).
+ *
+ * TAKE 1 FIRE, confirmed via three independent signals: the literal
+ * "Generation started" toast text in `document.body.innerText`
+ * immediately after the click, the "All assets" sidebar counter
+ * incrementing 210 -> 211, and the account-menu credit balance staying
+ * flat at 1,974 (Unlimited paid nothing). New card's asset id:
+ * `01225e5b-0dcc-45d4-8fd8-85b5c4f438a0` (identified as the newest by
+ * empty thumbnail src = still rendering, at the top of the folder grid
+ * immediately after firing -- no need to wait for the render to confirm
+ * the fire itself).
+ *
+ * NEW, SEPARATE BLOCKER (Take 2 only): after a full clean rebuild in a
+ * brand-new tab -- fresh navigate, all settings (Seedance 2.5, References,
+ * 16:9, 720p, 20s, High, On) carried over correctly from account state, a
+ * clean re-paste (7/7 unique mentions, 0 errors, correct length) and the
+ * desync fix correctly applied -- the Unlimited toggle would not flip.
+ * TWO separate `find()`-then-ref-click attempts both left
+ * `[role="switch"][aria-label="Unlimited mode"]` at `data-state="off"`,
+ * confirmed both by the DOM attribute and by a zoomed screenshot of the
+ * physical switch (grey track, dot on the left -- visually off, not a
+ * stale-read false negative). This is the SAME failure class as GH issue
+ * #67 (task-f693a4ee, 2026-08-14) but a fresh occurrence, not the same
+ * incident recurring identically.
+ *
+ * Per this project's hard rule ("If the Unlimited toggle will not flip:
+ * ONE clean ref-based click, then STOP and report" -- task brief, and the
+ * `higgsfield-unlimited-gen` skill's stronger "one ref-based click
+ * attempt... if it doesn't flip, stop entirely, do not try a second
+ * technique, do not try raw coordinates, do not try keyboard input near
+ * the composer"), NO further click techniques were attempted after the
+ * toggle failed to flip a second time. Specifically NOT tried: raw
+ * coordinate click, keyboard focus+Space/Enter, a fresh third tab, or a
+ * full Chrome restart -- any of those near a composer showing a live
+ * struck price is exactly the pattern that produced two real 135-credit
+ * charges on 2026-08-14 (GH #67). The Take-2 composer tab was left open
+ * and untouched (no navigate, no further click) with the full prompt
+ * still pasted, 7/7 bound, desync fix already applied, Unlimited still
+ * off, Generate still reading the live `GENERATE 140 130` price (NOT
+ * struck through -- correctly never clicked).
+ *
+ * Credits confirmed flat at 1,974 both before Take 1 and after the
+ * blocked Take-2 attempt (checked in a separate scratch tab, without
+ * touching the blocked composer tab), via the account-menu Credits panel.
+ * Zero credits spent on the blocked toggle attempts -- confirmed no
+ * Generate click was ever made on Take 2's un-struck price.
  */
