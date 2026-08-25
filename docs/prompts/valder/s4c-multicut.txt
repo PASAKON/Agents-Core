@@ -1,0 +1,189 @@
+SEEDANCE 2.5 — 20 SECONDS — 720p — 16:9
+
+THIS IS NOT ONE CONTINUOUS SHOT. It is SEVEN SEPARATE SHOTS joined by SIX HARD CUTS. Every cut is instant. There is NO dissolve, NO fade, NO wipe, NO whip pan, NO morph, NO camera move that carries across a cut. Each shot is its own framing and the change between them is abrupt.
+
+================================================================
+WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
+================================================================
+
+@project_valder_char_mother — THE MOTHER. A woman in her forties who stands very straight, hands habitually clasped. SHE CHANGES COMPLETELY DURING THIS SCENE. In shots 1 to 4 she wears her old clothes: PALE, washed out, CLEAN, PRESSED and CAREFULLY MENDED, and her skin is WARM and slightly ruddy. In shots 5 to 7 she wears a Valder garment in deeply saturated colour, and her skin has begun to go PALE. She is the same woman and must be recognisably the same face throughout. SHE IS ONE PERSON.
+
+@project_valder_loc_shop_ext — THE VALDER SHOP, FROM OUTSIDE. An enormous retail building: one vast flat plane of deeply saturated colour, almost no windows, a queue of people waiting along its front. There is no shop name and no writing on it anywhere.
+
+@project_valder_loc_shop_int — INSIDE THE VALDER SHOP. Nearly empty. An enormous saturated colour plane, a polished terrazzo floor, and only three or four garments in the entire space, each on its own stand, spaced far apart like sculptures in a gallery. One long low chromium and moulded-plastic counter. No racks, no price tags, no writing.
+
+@project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered to a sharp point at the bottom. It is stamped into everything Valder designs and worn by everyone who belongs. IT IS THE SAME SHAPE AT EVERY SIZE — no simplified version exists.
+
+@project_valder_prop_dress_c1 — THE VALDER GARMENT. A woman's garment built from flat geometric panels of three or four intensely saturated colours meeting at hard edges, deliberately asymmetric — one sleeve longer than the other. The gold V at the collar, and again as a belt buckle.
+
+@project_valder_prop_shopping_bags — THE VALDER SHOP BAGS. Three or four rigid structured carrier bags in one deeply saturated colour with flat ribbon handles. The gold V is the only thing printed on them — centred and large. NO shop name, NO words, NO text at all.
+
+@project_valder_prop_market_bag — THE MARKET BAG. A woven cloth bag from the family's old life: pale, faded, clean, visibly mended at one handle, FULL of ordinary cheap food — a paper sack of rice, vegetables, a wrapped parcel. NO MARKING OF ANY KIND ON IT. It is the one object in this film that Valder never touched.
+
+THERE IS EXACTLY ONE MOTHER IN THIS ENTIRE FILM SCENE. Never two, never a copy, never a double in the background, never a mirror or window reflection that produces a second woman. NO DUPLICATE CHARACTER.
+
+================================================================
+WHAT THIS SCENE IS ABOUT — READ THIS, IT DECIDES EVERY CHOICE
+================================================================
+
+The mother queues, goes into the Valder shop, and comes out transformed.
+
+THE WHOLE JOKE IS HOW LITTLE TIME IT TAKES. Crossing from one class to another costs exactly one hard cut. Nobody sees the money change hands. Nobody sees her decide. She goes in one person and comes out another, and the film does not dignify it with a process.
+
+THE ONE IMAGE THIS SCENE MUST DELIVER: inside the shop, SHE PUTS THE BAG OF FOOD DOWN ON THE FLOOR so that her hands are free to hold the clothes. That is the trade, made literal, without a word.
+
+When she comes out she walks straight past the people still queueing and DOES NOT LOOK AT ANY OF THEM — the same way the neighbour did not look at her.
+
+NOBODY SPEAKS IN THIS SCENE. Not one word.
+
+THE QUEUE IS A QUEUE OF SHOPPERS, NOT A CROWD AT A RALLY. People stand in loose ones and twos, some bored, some checking the door, some talking quietly. NOBODY faces a leader or a speaker. There are NO guards holding anyone back, NO banners, NO signs, NO raised hands, NO uniform formation.
+
+================================================================
+POOR IS NOT DIRTY — THIS IS THE MOST MISREAD INSTRUCTION IN THIS FILM
+================================================================
+
+In her old clothes the mother is not shabby and NOT DIRTY. Clean, pressed, neatly mended. Hair combed. Face washed. Shoes old but polished. Her poverty reads through the AGE of her things and through careful visible repairs — a seam sewn twice, a cuff turned, a button that does not quite match. It NEVER reads through stains, grime, grease, dust, tears or messiness.
+
+NO dirt. NO stains. NO grime. NO smudges. NO greasy hair. NO torn fabric. NO dust. NO mud. NO sweat. NO unwashed skin.
+
+================================================================
+WHAT PALE MEANS HERE
+================================================================
+
+The people in the queue are PALE, and by the end of this scene the mother has started to be. Pale means ORDINARY HUMAN INDOOR PALLOR — the skin of people who live indoors and do not see the sun. IT IS NEVER GREEN, NEVER GREY, NEVER BLUE, NEVER SILVER. Normal warm undertone, visible pores, real human skin texture. Think of a clerk at the end of a long winter. NOT a creature, NOT a corpse, NOT anything from science fiction or horror.
+
+Everyone must read as REAL PHOTOGRAPHED HUMAN BEINGS.
+
+================================================================
+STYLE — APPLIES TO EVERY SHOT
+================================================================
+
+ERA: a retrofuturist world — the future as people in the past imagined it. Swept aerodynamic curves, cantilevers, moulded plastic, chromium, terrazzo, formica, starburst motifs, boomerang shapes, tapered splayed legs. THERE IS NOTHING DIGITAL ANYWHERE. No screens, no LEDs, no digital numerals, no cables, no card machines. An invented place — no country and no year is identifiable.
+
+COLOUR IS THE CLASS SYSTEM: wealth is DEEP SATURATED COLOUR IN LARGE FLAT PLANES, and emptiness. Poverty is the SAME HUES BUT PALE AND WASHED OUT. Inside the shop, the emptiness IS the luxury — three garments in an enormous room.
+
+THE CAMERA IS ALWAYS LEVEL. No dutch angles, no tilting, ever.
+
+LIGHTING IS FLAT AND FRONTAL, like a property brochure — minimal shadow, everything legible.
+
+PHOTOGRAPHED, NOT RENDERED: fine film grain, halation around bright highlights, faint gate weave, softness and slight colour fringing at the edges of the lens. The grain must NOT desaturate the colour. NO HDR, NO digital glossiness, NO CGI sheen.
+
+PERFORMANCE IS FLAT AND CEREMONIAL: nobody smiles broadly, nobody laughs, nobody grimaces. Movements precise, slow and formal. Total sincerity delivered completely deadpan.
+
+NOBODY LOOKS AT THE CAMERA. Every gaze is aimed at a person or an object inside the frame.
+
+ALL SPOKEN DIALOGUE IN THIS FILM IS IN ENGLISH. THERE IS NO DIALOGUE AT ALL IN THIS PARTICULAR SCENE.
+
+================================================================
+
+=== SHOT 1 — 0:00 to 0:03 — IN THE QUEUE ===
+
+Medium. @project_valder_loc_shop_ext. Camera at chest height, locked, does not move.
+
+@project_valder_char_mother stands in the queue in her old pale mended clothes, holding @project_valder_prop_market_bag in both arms against her chest.
+
+The people ahead of her and behind her wear two and three deeply saturated colours, and at their collars, small and repeated: @project_valder_prop_mark. THE SAME GOLD V ON ALL OF THEM.
+
+Her own collar is bare. She is the only pale thing in the line.
+
+She shuffles forward one place.
+
+=== HARD CUT ===
+
+=== SHOT 2 — 0:03 to 0:06 — THE DOOR ===
+
+Medium. Camera at chest height, locked.
+
+She reaches the entrance. The door is set into an enormous flat plane of deeply saturated colour and above it, at architectural scale, @project_valder_prop_mark — the gold V, the size of a wall, the only marking on the entire building.
+
+She stops for a moment on the threshold, still holding the bag of food.
+
+Then she steps inside.
+
+=== HARD CUT ===
+
+=== SHOT 3 — 0:06 to 0:09 — INSIDE ===
+
+Very wide. @project_valder_loc_shop_int. Camera at chest height, locked.
+
+An enormous nearly-empty room. A vast plane of saturated colour. Polished terrazzo floor. THREE GARMENTS in the entire space, each alone on its own stand, spaced far apart like sculptures in a gallery. A long low chromium counter.
+
+@project_valder_prop_mark is inlaid into the floor, smaller than the one outside, same shape exactly.
+
+@project_valder_char_mother stands just inside the door, very small in all that emptiness, still holding the bag of food against her chest.
+
+=== HARD CUT ===
+
+=== SHOT 4 — 0:09 to 0:12 — SHE PUTS THE FOOD DOWN ===
+
+Medium, low. Camera at chest height, locked.
+
+@project_valder_char_mother reaches toward @project_valder_prop_dress_c1 on its stand — and stops, because both her arms are full.
+
+SHE BENDS AND SETS @project_valder_prop_market_bag DOWN ON THE POLISHED FLOOR. The rice sack settles. A vegetable top tips against the rim.
+
+Then, with her hands now free, she touches the garment: the saturated panels, and @project_valder_prop_mark at its collar.
+
+THE BAG OF FOOD SITS ON THE FLOOR AT HER FEET, FORGOTTEN, WHILE SHE HOLDS THE CLOTHES. Hold on that arrangement long enough to read it.
+
+=== HARD CUT ===
+
+=== SHOT 5 — 0:12 to 0:15 — THE DOOR, FROM OUTSIDE ===
+
+Medium. @project_valder_loc_shop_ext. Camera at chest height, locked, exactly the framing of shot 2.
+
+The door opens.
+
+=== HARD CUT ===
+
+=== SHOT 6 — 0:15 to 0:18 — SHE COMES OUT ===
+
+Medium. Camera at chest height, locked, and it does not move.
+
+@project_valder_char_mother walks out. SHE IS COMPLETELY CHANGED.
+
+She now wears @project_valder_prop_dress_c1 — flat geometric panels of intensely saturated colour, one sleeve longer than the other. @project_valder_prop_mark at her collar. @project_valder_prop_mark again as her belt buckle. Her skin has gone noticeably PALER than it was three shots ago.
+
+Her arms are full of @project_valder_prop_shopping_bags — rigid, structured, one saturated colour, the gold V large and centred on each.
+
+Hooked awkwardly on one finger, tilted, half-crushed between two of the shopping bags: @project_valder_prop_market_bag, with the vegetable tops spilling loose.
+
+She walks straight past the people still queueing and DOES NOT LOOK AT A SINGLE ONE OF THEM.
+
+=== HARD CUT ===
+
+=== SHOT 7 — 0:18 to 0:20 — AWAY ===
+
+Very wide. Camera at chest height, locked.
+
+@project_valder_char_mother walks away down the street, small in the frame, saturated and bright against the pavement, the shopping bags swinging.
+
+The queue is still there behind her. It has not got any shorter.
+
+Hold on that.
+
+================================================================
+SOUND
+================================================================
+
+THERE IS NO MUSIC OF ANY KIND IN THIS FILM. No score, no underscore, no ambient pad, no drone, no strings, no piano, no synthesiser. NOT ONE NOTE.
+
+THERE IS NO SOUND AT THE START OF THE CLIP AND NO SOUND AT THE END OF THE CLIP. No whoosh, no riser, no impact, no sting, no chord, no reverse cymbal, no bass drop, no swell to mark the beginning or the ending.
+
+THE ONLY SOUNDS ARE THE ONES PHYSICALLY MADE BY THINGS VISIBLE IN THE SHOT:
+
+- shoes shuffling forward on pavement, and the low indistinct murmur of the queue — no words intelligible
+- the shop door mechanism, heavy and well-made
+- her single set of footsteps on polished terrazzo, echoing slightly in a large empty room
+- the paper rice sack settling as she sets the market bag on the floor
+- fabric moving as she handles the garment
+- the stiff rustle and knock of rigid carrier bags against each other as she walks out
+- her footsteps receding
+
+THERE IS NO DIALOGUE IN THIS SCENE. Nobody speaks. Not one word. No till, no transaction sound, no money handled on screen.
+
+================================================================
+NEGATIVE
+================================================================
+
+no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no dialogue, no spoken words, no voiceover, no narration, no non-English dialogue, NO DUPLICATE CHARACTER, no two mothers, no cloned face, no double in the background, no mirror reflection producing a second woman, no window reflection producing a second woman, no dirt, no stains, no grime, no smudges, no grease, no dust, no mud, no sweat, no torn clothing, no ragged clothing, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no rally, no protest, no political gathering, no religious gathering, no crowd facing a leader, no crowd facing a speaker, no guards holding people back, no security line, no barriers, no banners, no signs, no placards, no raised hands, no uniform crowd formation, no flags, no religious symbols, no readable text, no lettering, no words, no shop name, no signage, no price tags, no receipts, no money on screen, no cash register, no card machine, no logos of real brands, no watermark, no subtitles, no captions, no clothing racks, no crowded shop interior, no shop assistants, no other customers inside the shop, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no montage of trying on clothes, no changing-room sequence, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no screens, no LED, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no cars, no anyone looking at the camera, no smiling broadly, no laughing, no delight, no celebration, no shouting, no rain, no snow, no fog, no night, no darkness

@@ -1,0 +1,191 @@
+SEEDANCE 2.5 — 20 SECONDS — 720p — 16:9
+
+THIS IS NOT ONE CONTINUOUS SHOT. It is SEVEN SEPARATE SHOTS joined by SIX HARD CUTS. Every cut is instant. There is NO dissolve, NO fade, NO wipe, NO whip pan, NO morph, NO camera move that carries across a cut. Each shot is its own framing and the change between them is abrupt.
+
+THIS SCENE USES REPEATED IDENTICAL FRAMINGS TO SHOW TIME PASSING. Shots 1, 3 and 5 are THE SAME CAMERA POSITION ON THE SAME OBJECT, and shots 2, 4 and 6 are THE SAME CAMERA POSITION ON THE SAME ROOM. What changes between them is what is inside the frame. Getting these framings to match is the single most important technical requirement of this scene — if they drift, the scene does not work at all.
+
+================================================================
+WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
+================================================================
+
+@project_valder_char_mother — THE MOTHER. A woman in her forties who holds herself very straight. She wears deeply saturated Valder clothing and the gold V at her collar. Her skin is PALE now. Her face does not change expression at any point in this scene. SHE IS ONE PERSON.
+
+@project_valder_char_grandma — THE GRANDMOTHER. A small stooped woman in several layers of faded knitwear, carrying an enormous handbag. Her skin is still WARM — she never crossed over. She wears no gold V. SHE IS ONE PERSON.
+
+@project_valder_loc_new_interior — THE FAMILY'S VALDER HOUSE, INSIDE. One enormous plane of deeply saturated colour, a polished floor, mostly bare. The ceiling comes down noticeably low over one end of the room. A doorway is very slightly out of square. THE BUILDING IS SUBTLY WRONG AND THE CAMERA IS PERFECTLY LEVEL.
+
+@project_valder_prop_cashbox — THE SAVINGS TIN. A small metal cash box with a hinged lid, from the family's old life: pale enamel, chipped at the corners, clean and cared for. Inside, banknotes of an invented design lying flat. NO READABLE TEXT, no real currency, no numerals that read as a real denomination.
+
+@project_valder_prop_radio — THE GRANDMOTHER'S VALVE RADIO. A retrofuturist valve radio in a wooden cabinet: fabric speaker grille, a large round tuning dial with a needle, two or three chunky bakelite knobs, short splayed tapered legs. Pale, worn, warm, decades old, polished. NOTHING DIGITAL.
+
+@project_valder_prop_market_bag — THE MARKET BAG. A woven cloth bag from the family's old life: pale, faded, clean, visibly mended at one handle. NO MARKING OF ANY KIND ON IT.
+
+@project_valder_prop_shopping_bags — THE VALDER SHOP BAGS. Rigid structured carrier bags in one deeply saturated colour with flat ribbon handles. The gold V is the only thing printed on them — centred and large. NO shop name, NO words, NO text.
+
+@project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered to a sharp point at the bottom. IT IS THE SAME SHAPE AT EVERY SIZE.
+
+THERE IS EXACTLY ONE MOTHER AND EXACTLY ONE GRANDMOTHER IN THIS ENTIRE FILM SCENE. Never two of either, never a copy, never a double in the background. NO DUPLICATE CHARACTER.
+
+================================================================
+WHAT THIS SCENE IS ABOUT — READ THIS, IT DECIDES EVERY CHOICE
+================================================================
+
+The money is running out, and the film shows it instead of saying it.
+
+THE MECHANISM IS THE REPEATED FRAME. The same cash tin, shot from directly above, three times. Each time there is less in it. The same room, shot from the same place, three times. Each time there is one less thing from their old life in it — and one more Valder shopping bag.
+
+THE ONE JOKE THAT MUST LAND: THE HOUSE EMPTIES WHILE THE WARDROBE FILLS. They are selling their home, one object at a time, to buy clothes. Nobody says this out loud and nobody appears to notice it happening.
+
+THE GRANDMOTHER'S BEAT: her radio is gone. She stands where it used to be and holds her hand out at the height the dial used to be. She says four words. NOBODY ANSWERS HER — exactly the way nobody ever answers the daughter. That silence is a rhyme and it should feel like one.
+
+NOBODY IS UPSET. Nobody argues. Nobody counts out loud. The mother's face never changes. The horror is entirely in the arithmetic the audience does for themselves.
+
+================================================================
+WHAT PALE MEANS HERE
+================================================================
+
+The mother is PALE — but pale means ORDINARY HUMAN INDOOR PALLOR, the skin of a person who lives indoors and does not see the sun. IT IS NEVER GREEN, NEVER GREY, NEVER BLUE, NEVER SILVER. Normal warm undertone, visible pores, real human skin texture. Think of a clerk at the end of a long winter. NOT a creature, NOT a corpse, NOT anything from science fiction or horror.
+
+The grandmother is WARM — she never changed. That contrast is the point of her.
+
+Both must read as REAL PHOTOGRAPHED HUMAN BEINGS.
+
+================================================================
+NOBODY IN THIS FILM IS DIRTY
+================================================================
+
+Everything is clean and cared for, including the old objects being sold. The cash tin is chipped but polished. The radio is worn but dusted. The market bag is faded but washed. Age and repair, never grime.
+
+NO dirt. NO stains. NO grime. NO dust. NO cobwebs. NO squalor. NO mess.
+
+================================================================
+STYLE — APPLIES TO EVERY SHOT
+================================================================
+
+ERA: a retrofuturist world — the future as people in the past imagined it. Swept aerodynamic curves, cantilevers, moulded plastic, chromium, terrazzo, formica, starburst motifs, boomerang shapes, tapered splayed legs. THERE IS NOTHING DIGITAL ANYWHERE. No screens, no LEDs, no digital numerals, no cables. An invented place — no country and no year is identifiable.
+
+COLOUR IS THE CLASS SYSTEM: wealth is DEEP SATURATED COLOUR IN LARGE FLAT PLANES, and emptiness. Poverty is the same hues but PALE and washed out. In this scene the pale old objects disappear one by one and the saturated new ones multiply.
+
+THE CAMERA IS ALWAYS LEVEL. No dutch angles, no tilting, ever.
+
+LIGHTING IS FLAT AND FRONTAL, like a property brochure — minimal shadow, everything legible, objects square to camera.
+
+PHOTOGRAPHED, NOT RENDERED: fine film grain, halation around bright highlights, faint gate weave, softness and slight colour fringing at the edges of the lens. The grain must NOT desaturate the colour. NO HDR, NO digital glossiness, NO CGI sheen.
+
+PERFORMANCE IS FLAT AND CEREMONIAL: nobody smiles, nobody laughs, nobody grimaces, nobody weeps. Movements precise, slow and formal. Total sincerity delivered completely deadpan.
+
+NOBODY LOOKS AT THE CAMERA.
+
+ALL SPOKEN DIALOGUE IN THIS FILM IS IN ENGLISH.
+
+================================================================
+
+=== SHOT 1 — 0:00 to 0:03 — THE TIN, FULL ===
+
+Directly overhead, looking straight down. Camera locked. REMEMBER THIS EXACT FRAMING — it returns twice.
+
+@project_valder_prop_cashbox open on a plain surface, seen from above. It is FULL: a thick flat stack of invented banknotes filling it.
+
+Two hands come into frame — @project_valder_char_mother's, pale, with the gold V visible at the edge of her sleeve — and lift out a small number of notes. The lid closes.
+
+=== HARD CUT ===
+
+=== SHOT 2 — 0:03 to 0:06 — THE ROOM, STILL THEIRS ===
+
+Wide. @project_valder_loc_new_interior. Camera at chest height, locked. REMEMBER THIS EXACT FRAMING — it returns twice.
+
+The big saturated room. In it, arranged against the far wall: @project_valder_prop_radio in its wooden cabinet, a worn upright chair, and a few other pale old things from a smaller life. They do not belong here and that is why they are visible.
+
+In the corner: TWO of @project_valder_prop_shopping_bags, stacked.
+
+The low ceiling presses down over one end of the room. The camera stays level.
+
+=== HARD CUT ===
+
+=== SHOT 3 — 0:06 to 0:09 — THE TIN, THINNER ===
+
+EXACTLY the overhead framing of shot 1. Camera locked, identical position.
+
+@project_valder_prop_cashbox open again. The stack of notes is VISIBLY THINNER — perhaps half of what it was.
+
+The same pale hands lift out another few notes. The lid closes.
+
+=== HARD CUT ===
+
+=== SHOT 4 — 0:09 to 0:12 — THE RADIO IS GONE ===
+
+EXACTLY the wide framing of shot 2. Camera at chest height, locked, identical position.
+
+THE RADIO IS NOT THERE ANY MORE. There is a clean pale rectangle on the floor where it stood.
+
+@project_valder_char_grandma stands in front of that empty rectangle. SHE HOLDS ONE HAND OUT IN THE AIR AT THE HEIGHT THE TUNING DIAL USED TO BE, fingers slightly curled, as if to turn something that is not there.
+
+She says four words, flatly, to nobody in particular:
+
+"It was here yesterday."
+
+NOBODY ANSWERS HER. Nobody is even in the frame to answer.
+
+In the corner: now FOUR shopping bags.
+
+=== HARD CUT ===
+
+=== SHOT 5 — 0:12 to 0:15 — THE TIN, NEARLY EMPTY ===
+
+EXACTLY the overhead framing of shots 1 and 3. Camera locked, identical position.
+
+@project_valder_prop_cashbox open. THREE OR FOUR LOOSE NOTES lying flat on the bottom of the tin. You can see the bare metal underneath them.
+
+The same pale hands take two of them. The lid closes.
+
+=== HARD CUT ===
+
+=== SHOT 6 — 0:15 to 0:18 — THE ROOM, EMPTY, AND THE WARDROBE, FULL ===
+
+EXACTLY the wide framing of shots 2 and 4. Camera at chest height, locked, identical position.
+
+Every old object is gone. The chair, the radio, all of it. The floor is bare, with faint clean rectangles where things used to stand.
+
+But a wardrobe stands open on one side of the frame and it is PACKED SOLID with deeply saturated Valder garments, crammed shoulder to shoulder, more than a person could wear.
+
+In the corner: SIX or SEVEN shopping bags now, and @project_valder_prop_mark is large and gold on every one of them.
+
+=== HARD CUT ===
+
+=== SHOT 7 — 0:18 to 0:20 — WHAT IS LEFT TO EAT ===
+
+Close. Camera at chest height, locked.
+
+@project_valder_prop_market_bag standing on a counter. It is NEARLY EMPTY — slumped, sagging inward, holding one small paper packet and nothing else. Its mended handle hangs loose.
+
+Beside it, @project_valder_char_mother's pale hand closes the lid of @project_valder_prop_cashbox and rests flat on top of it.
+
+Her face is not in the frame. Hold on the hand and the empty bag.
+
+================================================================
+SOUND
+================================================================
+
+THERE IS NO MUSIC OF ANY KIND IN THIS FILM. No score, no underscore, no ambient pad, no drone, no strings, no piano, no synthesiser. NOT ONE NOTE.
+
+THERE IS NO SOUND AT THE START OF THE CLIP AND NO SOUND AT THE END OF THE CLIP. No whoosh, no riser, no impact, no sting, no chord, no reverse cymbal, no bass drop, no swell to mark the beginning or the ending.
+
+THE ONLY SOUNDS ARE THE ONES PHYSICALLY MADE BY THINGS VISIBLE IN THE SHOT:
+
+- paper banknotes being lifted off a stack — a dry, thin sound, and it gets THINNER each time there is less in the tin
+- the metal lid of the cash box closing, three times, the same small hinge sound
+- the grandmother's shoes on a hard floor, and the small sound of her knitwear as she raises her arm
+- one spoken line, ENGLISH, flat and quiet: "It was here yesterday."
+- the stiff knock of rigid carrier bags against each other in the corner
+- the empty market bag creaking as it settles on the counter
+- an obvious ROOM ECHO that grows across the scene — the emptier the room gets, the more each sound rings
+
+THERE IS EXACTLY ONE SPOKEN LINE IN THIS ENTIRE FILM SCENE and the grandmother says it. Nobody replies. There is no other dialogue.
+
+THERE IS NO RADIO SOUND ANYWHERE IN THIS SCENE, including before the radio disappears. The house is silent.
+
+================================================================
+NEGATIVE
+================================================================
+
+no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no radio music, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no non-English dialogue, no more than one spoken line, no reply to the grandmother, no voiceover, no narration, no counting out loud, NO DUPLICATE CHARACTER, no two mothers, no two grandmothers, no cloned face, no double in the background, no reflection producing a second person, no dirt, no stains, no grime, no dust, no cobwebs, no squalor, no mess, no hoarding, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no readable text, no lettering, no words, no real currency, no recognisable banknotes, no real money, no numerals that read as a denomination, no price tags, no receipts, no bills, no invoices, no logos of real brands, no watermark, no subtitles, no captions, no screens, no LED, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no computers, no calculator, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no time-lapse, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no changing camera position between the repeated shots, no different angle on the cash tin, no different angle on the room, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no anyone looking at the camera, no smiling, no laughing, no crying, no weeping, no shouting, no arguing, no distress on any face, no comforting, no embracing, no removal men, no buyers, no strangers in the house, no children, no pets, no rain, no snow, no fog, no night, no darkness
