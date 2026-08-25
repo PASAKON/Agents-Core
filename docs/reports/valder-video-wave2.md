@@ -18,8 +18,10 @@ report). CEO logged the account back in by hand before this task started.
 | S1 | B | `43762082-cc8c-4325-b9fa-d5b337c81d46` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 8/8, 0 errors | `UNLIMITED / ~~440~~ / 0` (zoom-confirmed struck-through) | ~15 (fresh-tab confirmed complete) |
 | S1B | A | `423b2b6f-99c4-4fb4-acaf-43207294e999` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~440~~ / 0` (zoom-confirmed struck-through) | pending |
 | S1B | B | `35dbf2d6-3586-4faf-b6e3-9c06ed9a5edf` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~440~~ / 0` (zoom-confirmed struck-through) | pending |
-| S1 | C | pending (staged) | staged, same settings | 8/8, 0 errors | pending | pending |
-| S1B | C | pending | — | — | — | — |
+| S1 | C | `8195c8b3-316f-490e-9c78-ac3bb39952bc` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 8/8, 0 errors | `UNLIMITED / ~~140~~ / 0` (line-through confirmed via `text-decoration` DOM read; a CDP screenshot timeout blocked the usual zoom check right at click time) | fired+complete, exact minutes unmeasured (confirmation delayed by the CDP stall) |
+| S1B | C | `22cc1930-6fd7-4038-b7c4-9cb83c041818` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~440~~ / 0` (zoom-confirmed struck-through) | pending |
+
+**All 5 clips fired. This is the full wave.**
 
 (S1 take A — `57453ca1-2a4a-438f-8f10-def379c01ad1` — already fired in the
 prior task, not refired here.)
@@ -172,7 +174,80 @@ ancestor-walk (this card's own label was back to "Processing").
 
 Composer cleared, `window.__PROMPT_S1` (cached from S1 take B, same source
 file) pasted again, 8/8 unique mentions bound with 0 errors, desync fix
-re-applied. Generate NOT yet clicked — waiting for S1B take B to complete,
-checking the broader in-progress label set this time.
+re-applied. Waited (checking the broader in-progress label set this time)
+until no in-progress card remained.
 
-(Continued below as the wave progresses.)
+## S1 take C fire — a renderer stall (CDP screenshot timeout) at the exact
+## moment of the click, and how it was confirmed anyway
+
+Re-verified staged state fresh (8/8 mentions, 0 errors, Unlimited still on),
+re-applied the desync fix. The zoom screenshot meant to be the pre-click
+price tiebreaker **timed out**: `Page.captureScreenshot` failed twice in a
+row with "The renderer may be frozen or unresponsive" — the same failure
+class task-6b6bae3a's incident report documents (CDP-unresponsive tab,
+recovered on its own). Per the skill's rule ("any browser-tool error or
+timeout on a Higgsfield page means check state before anything else, don't
+assume nothing happened"), the click was **not** made yet at this point — a
+trivial `1+1` eval confirmed the tab was JS-responsive again, the URL and
+login state were re-verified clean, and the full composer state (8/8
+mentions, 0 errors, `aria-checked:"true"`/`data-state:"on"` on the Unlimited
+switch) was re-read fresh, all before proceeding.
+
+Screenshots kept timing out even after JS calls worked again, so the
+price-tiebreaker check was done via `getComputedStyle(span).textDecorationLine`
+on the button's own DOM text nodes instead of a zoom image — confirmed
+`"140"` carried `line-through`, `"0"` did not: the same signal a screenshot
+would show, read directly from the DOM. Generate was clicked only after that
+confirmation.
+
+**Confirming the fire was messy** because the "Generation started" toast
+window was missed (my first post-click check landed ~1.5s after the click,
+past whatever the toast's own visible duration was) and the in-progress card
+briefly showed then disappeared between two checks moments apart — plausibly
+because the render was unusually fast, or because the stall had already
+eaten some of its visible window. What actually confirmed the fire, in order:
+(1) `read_network_requests` showed exactly one `GET /fnf/jobs/<uuid>` call
+for a specific id not in any known-ids list, meaning the page's own client
+was actively polling status for a real job; (2) a fresh scratch tab
+independently confirmed no in-progress label anywhere AND that exact id
+present in the DOM. Credits were not re-checked at this specific step (the
+account-menu click didn't open in the scratch tab used for this check) —
+covered by the next credit check instead, which stayed within the
+established small-drift pattern.
+
+## S1B take C staging, a stale-tab viewport failure, and firing from a
+## fresh tab
+
+Staged S1B take C the same way in the same tab. The tab's viewport had, at
+some point since the last screenshot, collapsed to **127x79 CSS pixels**
+(`window.innerWidth/innerHeight`) — `resize_window` reported success but did
+not actually change it, matching this skill's own documented caveat that the
+call's success message doesn't guarantee the OS honoured it. This left the
+composer effectively unusable (0 visible `[contenteditable]` nodes found;
+the page had silently swapped to a "Mobile access coming soon" layout,
+presumably a responsive breakpoint firing off the collapsed viewport).
+
+Per the skill's own guidance ("a long-lived tab lies about the concurrency
+slot... open a fresh tab every 3-4 generations, proactively" — this tab had
+just done 4: S1 take B, S1B take A, S1B take B, S1 take C), rather than
+fighting the broken tab further: **left it exactly as is (no navigate, no
+reload — per the task's explicit rule) and opened a brand-new tab instead**,
+resized it cleanly to 1024x768 (confirmed 1024x591 CSS, healthy), and
+rebuilt the full composer from scratch (model → Seedance 2.5, 720p, 20s,
+16:9 already correct, Quality already High, Sound already On, Unlimited
+toggle — one clean `.click()` via the same precise-selector technique,
+another 300ms-vs-later-read discrepancy resolved the same way as the S1 take
+B toggle scare: trust a fresh read-only re-query and the Generate button's
+own struck-through price over an immediate post-click read). `window.__PROMPT_S1B`
+had to be re-set in the new tab (page globals don't persist across tabs) —
+re-embedded from the same verified JSON-escaped source, length re-confirmed
+(18,503) before pasting.
+
+Fired clean: `"Generation started"` toast caught this time, counter
+incremented 247→248, asset id `22cc1930-6fd7-4038-b7c4-9cb83c041818` isolated
+via the standard ancestor-walk.
+
+**All 5 clips in this wave are now fired.** S1 take B and S1B take A/B
+confirmed complete during the wave; S1 take C confirmed complete via the
+network+fresh-tab cross-check above; S1B take C's completion is the only one
+still pending as of this writing.

@@ -197,6 +197,82 @@
  *
  * ---
  *
+ * resize_window CAN REPORT SUCCESS WHILE THE VIEWPORT STAYS BROKEN -- AND A
+ * COLLAPSED VIEWPORT SILENTLY SWAPS THE PAGE TO A MOBILE LAYOUT
+ *
+ * After 4 generations in one tab (matching this project's own documented
+ * "open a fresh tab every 3-4 generations" threshold), that tab's
+ * `window.innerWidth/innerHeight` was found at **127x79** -- not the
+ * requested 1024x768/1024x591. `resize_window` reported "Successfully
+ * resized" when re-run against the same tab, but the dimensions never
+ * changed. The page had silently responded to the collapsed viewport by
+ * swapping to an entirely different, near-empty "Mobile access coming soon"
+ * layout -- zero `[contenteditable]` nodes, no composer, nothing usable.
+ *
+ * Do not fight a tab in this state. Per this project's own hygiene rule,
+ * open a brand-new tab (leaving the broken one untouched -- no navigate, no
+ * reload, since the task forbids touching the composer tab that way),
+ * resize the NEW tab, verify `innerWidth/innerHeight` actually match before
+ * doing anything else, and rebuild the full composer from scratch there.
+ * `window.__PROMPT_*` globals do not survive the tab switch -- re-embed the
+ * prompt text (from the same already-verified JSON-escaped source) in the
+ * new tab before pasting.
+ *
+ * ---
+ *
+ * A CDP SCREENSHOT/ZOOM TIMEOUT RIGHT BEFORE A GENERATE CLICK IS NOT A
+ * REASON TO SKIP THE PRICE CHECK -- FALL BACK TO A DOM TEXT-DECORATION READ
+ *
+ * `Page.captureScreenshot` (both full `screenshot` and `zoom`) timed out
+ * twice in a row ("the renderer may be frozen or unresponsive") at the exact
+ * moment a price-tiebreaker zoom was needed before a Generate click -- same
+ * failure class as the CDP-unresponsive stall in this project's prior
+ * incident (task-6b6bae3a). `javascript_tool` calls kept working the whole
+ * time (confirmed with a trivial `1+1` eval), so the renderer wasn't
+ * actually dead, just the screenshot pipeline specifically.
+ *
+ * Do NOT proceed to Generate without SOME form of the price check just
+ * because the visual tiebreaker is unavailable. The struck-through/live
+ * distinction is also readable straight from the DOM, per-span:
+ *
+ *   const btn = [...document.querySelectorAll('button')]
+ *     .find(b => /generate|unlimited/i.test(b.innerText||'')
+ *             && getComputedStyle(b).visibility !== 'hidden'
+ *             && b.getBoundingClientRect().width > 0);
+ *   const spans = [...btn.querySelectorAll('*')]
+ *     .filter(el => el.children.length===0 && el.textContent.trim());
+ *   spans.map(s => ({text: s.textContent.trim(),
+ *                     deco: getComputedStyle(s).textDecorationLine}));
+ *   // -> [{text:"Unlimited",deco:"none"},{text:"140",deco:"line-through"},{text:"0",deco:"none"}]
+ *
+ * `line-through` on the crossed-out number is the same signal a screenshot
+ * shows, read directly and unambiguously from computed style -- no pixels
+ * needed. Confirmed this run: matched the expected struck-140-to-0 pattern
+ * exactly, and the subsequent Generate click fired clean.
+ *
+ * ---
+ *
+ * CONFIRMING A FIRE WHEN THE TOAST WINDOW IS MISSED
+ *
+ * If the "Generation started" toast isn't caught (checked too late, or a
+ * stall ate part of its visible window) and the in-progress card label
+ * flickers in and out between two checks moments apart, two independent
+ * signals confirm a real fire without needing the toast or a stable label:
+ *
+ * 1. `read_network_requests` (already tracking since first called this
+ *    session) shows a `GET /fnf/jobs/<uuid>` call for an id that isn't in
+ *    your own known-ids list -- the page's own client only polls status for
+ *    a job it just created or that is genuinely in flight.
+ * 2. A FRESH scratch tab (not the composer tab, whose DOM may be stale)
+ *    independently shows no in-progress label anywhere AND that same id
+ *    present somewhere in its DOM.
+ *
+ * Both together is strong enough to report the asset id and move on --
+ * don't burn further budget chasing a definitive completion timestamp if
+ * these two agree.
+ *
+ * ---
+ *
  * STAGING THE NEXT PROMPT DURING A RENDER IS SAFE AND CHEAP
  *
  * Confirmed again: editing the composer's prompt text (clear via real
