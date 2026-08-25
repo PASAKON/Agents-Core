@@ -1,6 +1,8 @@
 # Valder Scene 1 — Audit, Re-point, Fire Attempt (task-8ea73ebb, 2026-08-25)
 
-## Result: BLOCKED before Generate — no video fired, zero credits spent.
+## Result (updated): FIRED successfully on the second attempt, after CTO direction. See "UPDATE — fired" section at the bottom. Original first-attempt narrative below is preserved as-is.
+
+## Result (first attempt, superseded): BLOCKED before Generate — no video fired, zero credits spent.
 
 ## JOB 1 — Audit of the nine Elements
 
@@ -58,3 +60,29 @@ Composer still holds: Seedance 2.5 / References / 20s / 720p / 16:9 / High / Sou
 ## Recommendation for the CTO
 
 `project_valder_char_press`'s current reference image (asset `8df3858b-4bc0-4f7a-b69e-a12a94c9959a`) needs a new generation or a different existing asset that doesn't trip Higgsfield's face/IP detector — this is outside this task's scope (JOB 1 only authorized re-pointing to existing, already-generated assets for the 9 listed elements when wrong; it did not authorize generating a replacement). Re-pointing `char_press` was correctly **not** attempted here since the audit showed it was already pointing at the specified target asset — the failure is with that asset's content itself, not with which Element it's attached to.
+
+---
+
+## UPDATE — fired successfully (same session, CTO direction)
+
+CTO confirmed the diagnosis and supplied a revised prompt (`s1-multicut.txt`) that drops `project_valder_char_press` entirely — the two press photographers are now handled as plain description ("TWO NEWSPAPER PHOTOGRAPHERS, seen only from behind... THEIR FACES ARE NEVER SEEN"), no `@` reference, no face ever generated for them, sidestepping the Face/IP detector without needing a new plate.
+
+Followed CTO's exact 7-step sequence:
+
+1. **Composer cleared and verified empty** (`innerText.length` = 1) before pasting.
+2. **New prompt pasted via synthetic `ClipboardEvent`** — decoded from base64 to safely transfer the ~18.8k-char file through the tool chain without escaping errors; no `type()` action used. First/last 80 chars verified exact match to source (`s1-multicut.txt`).
+3. **Reference thumbnail count: 8** (not 9) — confirmed via `img[alt]` scan, exactly the 8 elements in the new prompt, `char_press` absent.
+4. **Eligibility re-check**: no warning icons or "eligibility"/"protected content" text found anywhere on the page for any of the 8 references — they had already cleared in the prior (blocked) attempt and that state persisted (eligibility appears to be tracked per-asset server-side, not per composer-paste). Confirmed via full-page text scan returning no matches for `eligibility|protected content|face/ip`.
+5. **Settings re-verified** immediately before Generate (pills can reset): Seedance 2.5, References mode, 20s, 720p, 16:9, Quality High, Sound On, Unlimited **ON** (`aria-checked="true"`, `data-state="on"`).
+6. **Generate button read `Unlimited / ~~140~~ / 0`** — struck-through positive price, `0` actual charge. Safe to click.
+7. **Clicked Generate once** via the direct-dispatch `PointerEvent`/`MouseEvent` sequence. **Did not touch Rerun.**
+
+**Note:** `mcp__claude-in-chrome` screenshot capture (`Page.captureScreenshot`) stalled/timed out after the long paste in this attempt, matching a previously-documented symptom (long paste + high DOM load). `javascript_tool` calls kept working instantly throughout (`document.readyState` stayed `"complete"`) — did not restart the tab or browser (would have risked losing the pasted draft), completed every remaining verification and the fire itself through `javascript_tool` only, per the documented fix for this exact symptom.
+
+### Result: fired
+
+- Toast confirmed: **"Generation started"**.
+- New card appeared in the project asset grid with `data-asset-id="53576bfe-1fff-40d2-950d-e960b9f5c939"` and status text **"Processing"** — this is the clip.
+- **Credit balance after firing: 1,980** (re-checked via Account menu) — unchanged from before. Unlimited genuinely charged 0.
+
+**Clip asset ID: `53576bfe-1fff-40d2-950d-e960b9f5c939`.** Reported immediately per instruction, without waiting for the render to complete.
