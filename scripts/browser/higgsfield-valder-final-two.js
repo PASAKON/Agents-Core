@@ -89,4 +89,56 @@
  * re-verify the zero-digit/struck-through price immediately before B's
  * actual click. Saved the entire settings-rebuild + re-paste sequence from
  * B's critical path.
+ *
+ * Scene 1 v3 reshoot (task-be7868a5, 2026-08-26): two takes of the SAME
+ * ~23,600-char multi-cut prompt (7 hard-cut shots, 8 Elements), folder
+ * "Sence 1" (project's own typo, not ours). Result: SUCCESS, both takes
+ * fired and completed, 0 credits (1,974 -> 1,974). Take A:
+ * 825450f4-8eef-4d3f-b12c-3d4f27319aa2 (~28.5 min: queued 0-19.5min,
+ * in_progress 19.5-28.5min). Take B:
+ * 13c82d2d-4dca-4063-bbf6-1a843aa23dd5 (~33 min: queued 0-24min,
+ * in_progress 24-33min -- both notably longer than the prior wave's
+ * ~21-24min, still well inside the 90-min cancel threshold, no action
+ * needed).
+ *
+ * NEW FINDING: composer settings and folder navigation survived from a
+ * PRIOR SESSION, not just within-run. On fresh folder load this run, the
+ * pill row already read Seedance 2.5 / References / 16:9 / 720p / 20s /
+ * High / Sound On with ZERO manual pill changes needed (only Unlimited
+ * itself needed toggling, since that one resets on reload per the
+ * documented hard rule). This contradicts the general "in-app navigate
+ * resets duration/quality to 5s/1080p" folklore -- treat every pill as
+ * needing FRESH verification via a visibility-filtered button-text scan
+ * regardless of what folklore predicts, since it can go either way.
+ *
+ * QUOTE-ESCAPING TRAP when embedding a long prompt (with its own embedded
+ * "quoted dialogue") into a javascript_tool call: `JSON.parse("...")` with
+ * manually-escaped `\"` inside the call text broke -- the transport layer
+ * apparently unescapes `\"` -> `"` once before the JS ever sees it, so
+ * `JSON.parse("Seedance...)` lost its opening quote and threw
+ * `SyntaxError: Unexpected token 'S'`. FIX: use a raw JS template literal
+ * (backticks) instead and paste the prompt text completely unescaped --
+ * real double/single quotes inside backticks need no escaping at all.
+ * Only check first: the prompt must contain no literal backtick or `${`
+ * sequence (true of every prompt seen on this project so far). Verified
+ * clean: sourceLen after paste matched the source file's exact character
+ * count (23613) before this trap was even hit, then editor
+ * innerText/mentions matched post-fix.
+ *
+ * Editor focus does NOT survive a Generate click. After Take A's Generate
+ * click, a same-tab `cmd+a`/`Delete` clear silently no-op'd (editor
+ * innerText stayed at its post-paste length) because focus had moved off
+ * the editor onto the button. Fix: re-run the visible-editor lookup and
+ * `el.focus()` via JS immediately before ANY subsequent clear/paste in the
+ * same composer session, don't assume focus persists from an earlier step
+ * even seconds prior.
+ *
+ * The "All assets" folder counter lags behind the actual new-card
+ * insertion by a few seconds after a Generate click (stayed at the
+ * pre-click count immediately after the toast, still correct after a 3s
+ * wait once re-read). The `[data-asset-id]` grid's own card ORDER (newest
+ * first) updated correctly before the counter did -- when correlating a
+ * fresh Generate to its asset id, prefer reading the top card id and
+ * verifying it via the `GET /fnf/jobs/{id}` API over trusting the counter
+ * delta alone if they disagree.
  */
