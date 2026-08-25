@@ -676,4 +676,73 @@
  *     strip above the composer showed exactly 8 images, confirmed both
  *     visually and via `document.querySelectorAll('img')` filtered on
  *     `project_valder` alt text.
+ *
+ * Wave 7 (task-5e0dbf26, 2026-08-26): crowd-plate + pallor reshoot -- 5
+ * plates (project_valder_char_crowd_a REVISED mid-task by the CEO to exact
+ * accessory counts, _char_crowd_b, _char_guard, _char_valder, _char_press),
+ * GPT Image 2 / Medium / 1K / qty 1, 3:2 for the 3 group/wide plates and 2:3
+ * for the 2 single-figure plates. 10 credits total (6 generations -- one
+ * safety-flagged attempt cost 0), balance 1,974 -> 1,964. All 5 passed
+ * within 2 attempts; only Plate 5 (char_press) needed a retry.
+ *
+ *   - **Two DIFFERENT id namespaces exist for the same asset, and they
+ *     disagree.** The `?preview=<uuid>` URL param a thumbnail click adds is
+ *     NOT the same id as the `img.alt` / `data-asset-id` value the
+ *     Generations media-picker (used for Element re-pointing) exposes for
+ *     the identical image -- confirmed on 2 of 5 plates this run (Plate 4:
+ *     preview id `4e2a3995-...` vs media-picker id `9451b1b9-...`; Plate 5:
+ *     preview id `ccc30c7b-...` vs media-picker id `2b60c244-...`). Visual
+ *     match (the picker's first/newest card showing the exact image just
+ *     generated) was the only reliable cross-check, since neither id
+ *     appeared in the other view. Report BOTH ids if in doubt about which
+ *     one a reader needs; never assume the preview-URL id will work when
+ *     later searching the media picker by alt text.
+ *
+ *   - Confirmed the known "Prompt: Prompt is required" paste-to-app-state
+ *     desync (first documented in the higgsfield-unlimited-gen skill) can
+ *     hit a FIRST-EVER submission of a prompt, not only a resubmission of
+ *     one that already generated once -- happened on Plate 1's very first
+ *     Generate click this run. The general fix worked unchanged: click into
+ *     the editor, press End, type one space, press Backspace, re-verify the
+ *     text length is unchanged, then re-click Generate (no re-paste
+ *     needed). Cost one extra round-trip, no wasted credits (the failed
+ *     click never fires a generation).
+ *
+ *   - Elements panel search-by-substring can silently return an unfiltered
+ *     "All" listing instead of the filtered result, with the typed text
+ *     still visibly sitting in the box -- happened searching "char_valder"
+ *     this run (six clearly-unrelated cards stayed on screen: Guards 12,
+ *     Villagers Rich/Poor, Chase Group, Grandma, Son). The match WAS present
+ *     in the DOM the whole time (`document.body.innerText.includes(...)`
+ *     confirmed true) -- it was off-screen/unrendered by the virtualizer,
+ *     not actually missing. Fix: use `find()` with a natural-language query
+ *     for the target card text and `scroll_to` its ref, rather than trusting
+ *     that whatever's in the visible viewport after a search is the
+ *     complete filtered result.
+ *
+ *   - Re-confirmed Wave 6's finding, one level more explicitly: a
+ *     Face/IP-sensitive single-portrait plate can still be flagged even
+ *     when the prompt already states the face's plain ordinariness (this
+ *     run's attempt 1 used language very close to Wave 6's successful
+ *     framing and was still flagged by the safety system -- NOT the
+ *     per-reference "Face/IP failed" eligibility-check string, but a
+ *     DIFFERENT string, "Content was flagged by the safety system. Try
+ *     different prompts or inputs.", shown as a `[title]` attribute on a
+ *     blank, eye-slash-icon card with 0 credits deducted). What flipped
+ *     attempt 2 to a clean pass: reinforcing the "synthetic/invented/
+ *     assembled from no real photograph/zero basis in any real
+ *     individual's likeness/no connection whatsoever to a real person"
+ *     language even further than the already-strong base prompt, plus
+ *     matching negatives (no basis in a real photograph, no celebrity
+ *     likeness, no public figure). Read the flagged card's own `[title]`
+ *     text to tell these two failure modes apart before deciding whether to
+ *     retry the prompt (safety-flag) or try Recreate/other diagnostics
+ *     (a genuine render that then fails its post-hoc eligibility check).
+ *
+ *   - A safety-flagged generation (the blank/hidden-eye card) costs 0
+ *     credits -- confirmed via the account balance dropdown before and
+ *     after: this run ended at exactly 1,964 (1,974 - 10), matching 5 PASSING
+ *     generations at 2 credits each, with the flagged attempt-1 for Plate 5
+ *     contributing nothing to the total despite counting as a real
+ *     Generate click and a real wait for the result.
  */
