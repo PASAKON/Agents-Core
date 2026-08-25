@@ -116,4 +116,75 @@
  *   exact match to source) and first/last 80 chars after decode, before
  *   ever touching the composer. Recommended default for any prompt this
  *   long or with non-ASCII punctuation.
+ *
+ * ---
+ *
+ * Wave 2 (task-1cbe84c8, 2026-08-25): retry with the prompt file rewritten
+ * to plain `@project_valder_*` mentions (no bracket, no explicit UUID) for
+ * all 7 Elements, per this file's own "live options if this recurs" note
+ * above. Result: BLOCKED again, but for a DIFFERENT reason. 0 credits
+ * spent, 0 generations fired. See docs/reports/valder-s2-fire-retry.md.
+ *
+ * CONFIRMED: the plain-tag format fixes the binding problem. All 7 mentions
+ * resolved with `hasError: false` and correct thumbnails, UUIDs matching
+ * this file's Wave 1 findings exactly. Use plain `@name` mentions for every
+ * future prompt in this project -- the markdown-link form is no longer
+ * needed or recommended.
+ *
+ * NEW TRAP: two overlapping reference-thumbnail strips can coexist in the
+ * DOM at once -- a stale one and a live one. Immediately after the first
+ * paste (before any reload), the visible thumbnail strip showed warning
+ * triangles on 5 of 7 cards even though the mention-chip `hasError` check
+ * said all 7 were clean. This is the SAME family of bug as the documented
+ * "hidden decoy editor" (this file's sibling doc) and "hidden duplicate
+ * Generate button" (Wave 1 above) -- just a third UI element with the same
+ * failure shape. Distinguish the live strip from the stale one by
+ * `getComputedStyle(stripEl).opacity === '1'` (the stale one sits at
+ * opacity 0 in the same DOM position, both as direct siblings under a
+ * shared `relative size-full select-none` composer wrapper):
+ *
+ *   const labels = [...document.querySelectorAll('span,div')]
+ *     .filter(el => el.children.length===0 && /^@project_valder_/.test(el.textContent||''));
+ *   const uniq = []; const seen = new Set();
+ *   for (const l of labels) { if(!seen.has(l.textContent)) { seen.add(l.textContent); uniq.push(l); } }
+ *   function ancestors(el){ const a=[]; let n=el; while(n){a.push(n); n=n.parentElement;} return a; }
+ *   let common = ancestors(uniq[0]);
+ *   for (const u of uniq.slice(1)) { const as = new Set(ancestors(u)); common = common.filter(x => as.has(x)); }
+ *   const visibleStrip = [...common[0].children].find(k => getComputedStyle(k).opacity === '1');
+ *
+ * A full page reload cleared the stale strip cleanly (and did NOT reset
+ * model/mode/duration/resolution/quality/aspect/sound this time -- only
+ * Unlimited reverted to off, contradicting this file's Wave-1 note that
+ * those settings survived a run without ever reloading; reloading appears
+ * to behave differently from a same-session drift). After reload, the
+ * thumbnail strip and the mention-chip check agreed. **When a thumbnail
+ * strip and the chip-level `hasError` check disagree, trust neither purely
+ * by inspection -- reload the page and recheck cleanly, since one of the
+ * two elements is very likely a stale DOM duplicate, not real information.**
+ *
+ * NEW, SEPARATE BLOCKER: a genuine Higgsfield content-policy gate. After
+ * confirming 7/7 clean chips, all settings verified, and Unlimited
+ * confirmed on (`UNLIMITED / ~~140~~ / 0`), clicking Generate did NOT fire
+ * a generation. Instead a banner appeared: "Some reference elements may
+ * contain protected content. Check eligibility or remove them to proceed."
+ * The thumbnail strip simultaneously re-rendered warning icons on 5 of 7
+ * cards -- the exact same 5 that failed to bind in Wave 1 under the OLD
+ * markdown-link format (mother, daughter, grandma, loc_home_interior,
+ * prop_plan). Confirmed NOT transient: still present after a 5-second wait,
+ * and the mention chips in the editor text kept reading `hasError: false`
+ * throughout -- this gate lives on the bound-asset/rights layer, not the
+ * paste-parser layer Wave 1 diagnosed. Per the task's explicit instruction,
+ * no "I confirm"/"Cancel"/dismiss interaction was made with this banner;
+ * Chrome was left exactly as it appeared and the task was reported blocked.
+ *
+ * HYPOTHESIS (unconfirmed, flagged for whoever has Elements-panel/rights
+ * authority): this protected-content gate may be the ACTUAL root cause
+ * behind Wave 1's binding failure too, not the markdown-link paste format
+ * per se. The same 5 Elements failed under two completely different paste
+ * formats, at two different points in the flow (paste-time chip error vs.
+ * Generate-time banner) -- consistent with a content-policy flag on the
+ * underlying assets that different UI paths surface differently. Checking
+ * eligibility on these 5 Elements directly in the Elements panel (the
+ * banner's own suggested action) is the next step, and it is out of an
+ * operator's scope to do blind.
  */
