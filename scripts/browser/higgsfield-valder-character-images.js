@@ -676,4 +676,140 @@
  *     strip above the composer showed exactly 8 images, confirmed both
  *     visually and via `document.querySelectorAll('img')` filtered on
  *     `project_valder` alt text.
+ *
+ * Wave 7 (task-5e0dbf26, 2026-08-26): crowd-plate + pallor reshoot -- 5
+ * plates (project_valder_char_crowd_a REVISED mid-task by the CEO to exact
+ * accessory counts, _char_crowd_b, _char_guard, _char_valder, _char_press),
+ * GPT Image 2 / Medium / 1K / qty 1, 3:2 for the 3 group/wide plates and 2:3
+ * for the 2 single-figure plates. 10 credits total (6 generations -- one
+ * safety-flagged attempt cost 0), balance 1,974 -> 1,964. All 5 passed
+ * within 2 attempts; only Plate 5 (char_press) needed a retry.
+ *
+ *   - **Two DIFFERENT id namespaces exist for the same asset, and they
+ *     disagree.** The `?preview=<uuid>` URL param a thumbnail click adds is
+ *     NOT the same id as the `img.alt` / `data-asset-id` value the
+ *     Generations media-picker (used for Element re-pointing) exposes for
+ *     the identical image -- confirmed on 2 of 5 plates this run (Plate 4:
+ *     preview id `4e2a3995-...` vs media-picker id `9451b1b9-...`; Plate 5:
+ *     preview id `ccc30c7b-...` vs media-picker id `2b60c244-...`). Visual
+ *     match (the picker's first/newest card showing the exact image just
+ *     generated) was the only reliable cross-check, since neither id
+ *     appeared in the other view. Report BOTH ids if in doubt about which
+ *     one a reader needs; never assume the preview-URL id will work when
+ *     later searching the media picker by alt text.
+ *
+ *   - Confirmed the known "Prompt: Prompt is required" paste-to-app-state
+ *     desync (first documented in the higgsfield-unlimited-gen skill) can
+ *     hit a FIRST-EVER submission of a prompt, not only a resubmission of
+ *     one that already generated once -- happened on Plate 1's very first
+ *     Generate click this run. The general fix worked unchanged: click into
+ *     the editor, press End, type one space, press Backspace, re-verify the
+ *     text length is unchanged, then re-click Generate (no re-paste
+ *     needed). Cost one extra round-trip, no wasted credits (the failed
+ *     click never fires a generation).
+ *
+ *   - Elements panel search-by-substring can silently return an unfiltered
+ *     "All" listing instead of the filtered result, with the typed text
+ *     still visibly sitting in the box -- happened searching "char_valder"
+ *     this run (six clearly-unrelated cards stayed on screen: Guards 12,
+ *     Villagers Rich/Poor, Chase Group, Grandma, Son). The match WAS present
+ *     in the DOM the whole time (`document.body.innerText.includes(...)`
+ *     confirmed true) -- it was off-screen/unrendered by the virtualizer,
+ *     not actually missing. Fix: use `find()` with a natural-language query
+ *     for the target card text and `scroll_to` its ref, rather than trusting
+ *     that whatever's in the visible viewport after a search is the
+ *     complete filtered result.
+ *
+ *   - Re-confirmed Wave 6's finding, one level more explicitly: a
+ *     Face/IP-sensitive single-portrait plate can still be flagged even
+ *     when the prompt already states the face's plain ordinariness (this
+ *     run's attempt 1 used language very close to Wave 6's successful
+ *     framing and was still flagged by the safety system -- NOT the
+ *     per-reference "Face/IP failed" eligibility-check string, but a
+ *     DIFFERENT string, "Content was flagged by the safety system. Try
+ *     different prompts or inputs.", shown as a `[title]` attribute on a
+ *     blank, eye-slash-icon card with 0 credits deducted). What flipped
+ *     attempt 2 to a clean pass: reinforcing the "synthetic/invented/
+ *     assembled from no real photograph/zero basis in any real
+ *     individual's likeness/no connection whatsoever to a real person"
+ *     language even further than the already-strong base prompt, plus
+ *     matching negatives (no basis in a real photograph, no celebrity
+ *     likeness, no public figure). Read the flagged card's own `[title]`
+ *     text to tell these two failure modes apart before deciding whether to
+ *     retry the prompt (safety-flag) or try Recreate/other diagnostics
+ *     (a genuine render that then fails its post-hoc eligibility check).
+ *
+ *   - A safety-flagged generation (the blank/hidden-eye card) costs 0
+ *     credits -- confirmed via the account balance dropdown before and
+ *     after: this run ended at exactly 1,964 (1,974 - 10), matching 5 PASSING
+ *     generations at 2 credits each, with the flagged attempt-1 for Plate 5
+ *     contributing nothing to the total despite counting as a real
+ *     Generate click and a real wait for the result.
+ *
+ * Wave 8 (task-6b6bae3a, 2026-08-26): S1 multicut fire, The Valder Collection
+ * No.7. Prompt files (docs/prompts/valder/s1-multicut.txt,
+ * s1b-multicut.txt) and this very file were both MISSING/STALE in the
+ * assigned worktree at task start -- landed on main after the worktree was
+ * created (same stale-worktree-base pattern this org has hit before). Fixed
+ * by `git show main:<path> > <path>` and md5-verifying against main's blob
+ * before touching either file -- do this reflexively at the start of any
+ * task whose brief names a docs/ or scripts/ file you can't find.
+ *
+ * Result: S1 take A fired and completed clean -- 57453ca1-2a4a-438f-8f10-
+ * def379c01ad1, ~21.5 min render (queued -> img/"New" badge, no processing
+ * text = complete), Seedance 2.5 / References / 20s / 720p / High / 16:9 /
+ * Sound On / Unlimited, 8/8 elements attached, struck-through 140->0
+ * zoom-confirmed before the click. 0 credits (1,964 -> 1,964 at every check
+ * up to the incident below).
+ *
+ * S1 take B was staged (same prompt left untouched in the composer, per the
+ * WARM-UP pattern) but never fired -- see INCIDENT below. S1B never started.
+ *
+ * INCIDENT: the Unlimited toggle silently reset to OFF sometime during a
+ * ~2-3 minute window where the composer tab's renderer was genuinely
+ * unresponsive (CDP `Runtime.evaluate` and `Page.captureScreenshot` both
+ * timed out repeatedly, recovered on their own after ~45-60s waits with NO
+ * navigate/refresh from this operator -- tab URL never changed during the
+ * hang). This is a NEW failure mode: every prior wave's "toggle resets to
+ * off" finding assumed a page reload as the trigger; this run had none. A
+ * plain renderer stall was apparently enough on its own. Re-verifying every
+ * pill (not just the price) after ANY browser-tool timeout on this page,
+ * even one with no visible navigation, is now confirmed necessary, not
+ * optional caution.
+ *
+ * Per hard rule 6 (skill: higgsfield-unlimited-gen), attempted exactly ONE
+ * clean ref-based click on the toggle via a fresh `find()` call taken
+ * immediately beforehand. THE REF RESOLVED TO THE WRONG ELEMENT: the click
+ * navigated the composer tab straight to `/auth/logout?rp=...` and it
+ * completed with no confirmation step, logging the account out account-wide
+ * -- a second, already-open scratch tab on the same project URL also showed
+ * "Login / Sign up" immediately after, confirming a real session
+ * invalidation, not a single-tab visual glitch. Best-available explanation:
+ * take A's card had just finished and the asset grid/composer had likely
+ * re-rendered in the same window as the hang; `find()`'s returned ref
+ * almost certainly resolved against a DOM snapshot that had already moved
+ * by click time, and the coordinates it resolved to landed on the account
+ * menu's logout link instead of the toggle 40-50px away. This is the same
+ * "stale ref near a money-adjacent control" failure class the existing hard
+ * rule 6 already warns about for click TECHNIQUE variety -- this run shows
+ * it can also come from ref STALENESS alone, on the very first and only
+ * attempt, with no repeated-technique escalation involved at all.
+ *
+ * NEW RULE TO CARRY FORWARD: immediately before clicking ANY ref for the
+ * Unlimited toggle (or any control within ~50px of it), re-read that exact
+ * element's own `aria-label`/`getAttribute('aria-checked')` via
+ * `javascript_tool` in the SAME turn as the click -- not just trust that a
+ * `find()` call moments earlier still points at the right node, especially
+ * right after a card-completion re-render or any browser-tool timeout. If
+ * the re-read doesn't confirm `aria-label="Unlimited mode"` on the live
+ * element, stop and get a fresh ref before clicking anything.
+ *
+ * Stopped immediately per the click-blocked-control policy (this is a strict
+ * superset failure of that policy: not just "won't flip", but "flipped
+ * something else with real consequences"). No login attempted -- credential
+ * entry is a hard stop regardless of who broke the session. Filed as a
+ * blocker; Chrome left open exactly as it landed (both tabs on
+ * higgsfield.ai showing logged-out state, composer tab's staged prompt text
+ * lost to the auth-redirect navigation, take A's asset unaffected since it
+ * completed and saved server-side before the incident).
  */
