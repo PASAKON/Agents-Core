@@ -598,4 +598,82 @@
  *     framing (composite/generic/no-basis-in-real-individual) before trying
  *     unrelated changes like swapping out the specific physical features,
  *     which the task explicitly locks as "already settled."
+ *
+ * Wave N (task-62759c51, 2026-08-25): S1 multicut review (clip
+ * 53576bfe-1fff-40d2-950d-e960b9f5c939) + Take 2 fire (new clip
+ * e784e1c2-79bf-424e-842e-9d5dc5bdeb46), Seedance 2.5 / References / 20s /
+ * 720p / High / 16:9 / Sound On / Unlimited. 0 credits (balance 1,974 ->
+ * 1,974 -- first VIDEO generation in this file's history, not an image
+ * plate; the price shown is a struck-through positive number resolving to
+ * 0, e.g. "UNLIMITED / ~~440~~ / 0", NOT the zero-digit rule this file's
+ * earlier waves use for GPT Image 2 -- see higgsfield-unlimited-gen skill's
+ * "video Generate button shows a struck-through price" table).
+ *
+ *   - The Duration pill (Seedance 2.5, range 4s-30s) is an ARIA
+ *     `role="slider"` element, NOT a text `<input>`. Clicking the pill
+ *     ("5s") opens a small panel containing a focused `<span
+ *     role="slider" tabindex="0" aria-valuemin aria-valuemax
+ *     aria-valuenow>`. Typing digits, Backspace, or cmd+a *inside* it does
+ *     nothing (cmd+a in fact selected the whole page's text, since the
+ *     slider span never actually took a text-edit focus despite being
+ *     `document.activeElement`) -- a triple-click before that even landed
+ *     on a bare decorative `<span>`, not the slider, and silently changed
+ *     the value to something else entirely (17 -> 9) via what looked like
+ *     click-position scrubbing. What worked, first try: read
+ *     `aria-valuenow` via `document.querySelector('[role="slider"]')`,
+ *     then dispatch ArrowRight/ArrowLeft key presses (one per unit) via the
+ *     `computer` `key` action with `repeat` set to the exact delta needed
+ *     (e.g. 9 -> 20 = 11x ArrowRight), then re-read `aria-valuenow` to
+ *     confirm. This is a duration/settings control, not Generate/Unlimited,
+ *     so it isn't covered by the click-blocked-control escalation rule --
+ *     but treat any small numeric "pill that opens a panel" on this
+ *     composer as a slider-not-input by default and go straight to
+ *     arrow-key stepping rather than trying to type into it.
+ *
+ *   - `document.querySelectorAll('button')` filtered on
+ *     `/generate|unlimited/i` can return a STALE, DUPLICATE hidden button
+ *     alongside the real one -- one had `visibility:hidden`,
+ *     `getBoundingClientRect()` all zeros, and stale/wrong text
+ *     ("GENERATE8045" vs the real button's "UNLIMITED\n440\n0" that same
+ *     moment). A second, unrelated read of the *same* live button also
+ *     returned a different price ("140" via `innerText`) than a zoomed
+ *     screenshot of the identical on-screen button taken seconds later
+ *     ("440", struck through, resolving to 0) -- `innerText` on this
+ *     button is not fully reliable even after filtering out the hidden
+ *     decoy. **Always filter by `getComputedStyle(b).visibility !==
+ *     'hidden'` before reading a button's text, and when a money-critical
+ *     read looks even slightly ambiguous, zoom-screenshot the exact button
+ *     region as the tiebreaker** -- it is unambiguous where `innerText`
+ *     was not, and it is what this run actually trusted before clicking.
+ *
+ *   - The in-page `<video>` element can get permanently stuck at
+ *     `readyState: 0` / `networkState: 2` (NETWORK_LOADING) with `duration:
+ *     null` indefinitely, across a full page reload, `v.load()`, and a
+ *     brand-new tab -- while a plain `fetch(v.currentSrc, {method:'HEAD'})`
+ *     on the exact same URL returns `200, video/mp4,` a normal
+ *     content-length. This is a player/extension-context issue, not a
+ *     broken or missing asset. **Fix that actually worked**: click the
+ *     card's hover download icon (not Rerun, not Recreate -- the plain
+ *     download/cloud icon that appears on thumbnail hover), read the file
+ *     off `~/Downloads` (named `hf_<timestamp>_<asset-id>.mp4`, confirming
+ *     the asset id independently of the URL/UUID param), and use local
+ *     `ffprobe`/`ffmpeg` (`select='gt(scene,N)',showinfo` for hard-cut
+ *     timestamps, `-ss <t> -frames:v 1` for still frames at any point) to
+ *     do the actual review. This is also strictly cheaper than N
+ *     screenshots of an in-browser scrub -- one `ffmpeg` scene-detect call
+ *     plus a handful of frame extractions read via the `Read` tool covered
+ *     a full 7-shot/6-cut structural review for near-zero browser-tool
+ *     cost.
+ *
+ *   - The synthetic-paste recipe (visibility-filtered contenteditable,
+ *     `ClipboardEvent('paste', {clipboardData: dt})`, no follow-up `input`
+ *     event, verify first/last 80 chars + length after a short wait) that
+ *     earlier waves validated for Element/character prompts worked
+ *     unchanged for a much longer (~18.8k char) full-scene multicut prompt
+ *     with 8 `@[name](uuid)` mentions -- all 8 resolved to chips
+ *     (`[data-beautiful-mention]`, 21 total mentions across the body,
+ *     mapping to exactly 8 unique elements), and the reference-thumbnail
+ *     strip above the composer showed exactly 8 images, confirmed both
+ *     visually and via `document.querySelectorAll('img')` filtered on
+ *     `project_valder` alt text.
  */
