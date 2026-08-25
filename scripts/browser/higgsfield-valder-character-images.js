@@ -745,4 +745,71 @@
  *     generations at 2 credits each, with the flagged attempt-1 for Plate 5
  *     contributing nothing to the total despite counting as a real
  *     Generate click and a real wait for the result.
+ *
+ * Wave 8 (task-6b6bae3a, 2026-08-26): S1 multicut fire, The Valder Collection
+ * No.7. Prompt files (docs/prompts/valder/s1-multicut.txt,
+ * s1b-multicut.txt) and this very file were both MISSING/STALE in the
+ * assigned worktree at task start -- landed on main after the worktree was
+ * created (same stale-worktree-base pattern this org has hit before). Fixed
+ * by `git show main:<path> > <path>` and md5-verifying against main's blob
+ * before touching either file -- do this reflexively at the start of any
+ * task whose brief names a docs/ or scripts/ file you can't find.
+ *
+ * Result: S1 take A fired and completed clean -- 57453ca1-2a4a-438f-8f10-
+ * def379c01ad1, ~21.5 min render (queued -> img/"New" badge, no processing
+ * text = complete), Seedance 2.5 / References / 20s / 720p / High / 16:9 /
+ * Sound On / Unlimited, 8/8 elements attached, struck-through 140->0
+ * zoom-confirmed before the click. 0 credits (1,964 -> 1,964 at every check
+ * up to the incident below).
+ *
+ * S1 take B was staged (same prompt left untouched in the composer, per the
+ * WARM-UP pattern) but never fired -- see INCIDENT below. S1B never started.
+ *
+ * INCIDENT: the Unlimited toggle silently reset to OFF sometime during a
+ * ~2-3 minute window where the composer tab's renderer was genuinely
+ * unresponsive (CDP `Runtime.evaluate` and `Page.captureScreenshot` both
+ * timed out repeatedly, recovered on their own after ~45-60s waits with NO
+ * navigate/refresh from this operator -- tab URL never changed during the
+ * hang). This is a NEW failure mode: every prior wave's "toggle resets to
+ * off" finding assumed a page reload as the trigger; this run had none. A
+ * plain renderer stall was apparently enough on its own. Re-verifying every
+ * pill (not just the price) after ANY browser-tool timeout on this page,
+ * even one with no visible navigation, is now confirmed necessary, not
+ * optional caution.
+ *
+ * Per hard rule 6 (skill: higgsfield-unlimited-gen), attempted exactly ONE
+ * clean ref-based click on the toggle via a fresh `find()` call taken
+ * immediately beforehand. THE REF RESOLVED TO THE WRONG ELEMENT: the click
+ * navigated the composer tab straight to `/auth/logout?rp=...` and it
+ * completed with no confirmation step, logging the account out account-wide
+ * -- a second, already-open scratch tab on the same project URL also showed
+ * "Login / Sign up" immediately after, confirming a real session
+ * invalidation, not a single-tab visual glitch. Best-available explanation:
+ * take A's card had just finished and the asset grid/composer had likely
+ * re-rendered in the same window as the hang; `find()`'s returned ref
+ * almost certainly resolved against a DOM snapshot that had already moved
+ * by click time, and the coordinates it resolved to landed on the account
+ * menu's logout link instead of the toggle 40-50px away. This is the same
+ * "stale ref near a money-adjacent control" failure class the existing hard
+ * rule 6 already warns about for click TECHNIQUE variety -- this run shows
+ * it can also come from ref STALENESS alone, on the very first and only
+ * attempt, with no repeated-technique escalation involved at all.
+ *
+ * NEW RULE TO CARRY FORWARD: immediately before clicking ANY ref for the
+ * Unlimited toggle (or any control within ~50px of it), re-read that exact
+ * element's own `aria-label`/`getAttribute('aria-checked')` via
+ * `javascript_tool` in the SAME turn as the click -- not just trust that a
+ * `find()` call moments earlier still points at the right node, especially
+ * right after a card-completion re-render or any browser-tool timeout. If
+ * the re-read doesn't confirm `aria-label="Unlimited mode"` on the live
+ * element, stop and get a fresh ref before clicking anything.
+ *
+ * Stopped immediately per the click-blocked-control policy (this is a strict
+ * superset failure of that policy: not just "won't flip", but "flipped
+ * something else with real consequences"). No login attempted -- credential
+ * entry is a hard stop regardless of who broke the session. Filed as a
+ * blocker; Chrome left open exactly as it landed (both tabs on
+ * higgsfield.ai showing logged-out state, composer tab's staged prompt text
+ * lost to the auth-redirect navigation, take A's asset unaffected since it
+ * completed and saved server-side before the incident).
  */
