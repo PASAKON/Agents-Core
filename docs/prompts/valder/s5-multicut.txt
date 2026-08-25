@@ -1,0 +1,183 @@
+SEEDANCE 2.5 — 20 SECONDS — 720p — 16:9
+
+THIS IS NOT ONE CONTINUOUS SHOT. It is SEVEN SEPARATE SHOTS joined by SIX HARD CUTS. Every cut is instant. There is NO dissolve, NO fade, NO wipe, NO whip pan, NO morph, NO camera move that carries across a cut. Each shot is its own framing and the change between them is abrupt.
+
+================================================================
+WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
+================================================================
+
+@project_valder_char_mother — THE MOTHER. A woman in her forties who stands very straight, hands habitually clasped. SHE IS NOW WEARING VALDER. Her garment is built from flat geometric panels of intensely saturated colour, and the gold V sits at her collar. Her skin has begun to go PALE — noticeably less warm than it was, but still unmistakably the same face. SHE IS ONE PERSON.
+
+@project_valder_char_neighbour — THE NEIGHBOUR. A woman in her forties who has lived the wealthy life for years. Two or three deeply saturated colours in large flat blocks, worn with total confidence. Her face is composed, pleasant, and completely closed. PALE in the ordinary indoor human way. The gold V at her collar. SHE IS ONE PERSON.
+
+@project_valder_loc_neighbour_door — THE NEIGHBOUR'S FRONT DOOR. A single door set into an enormous flat plane of deeply saturated colour, almost nothing else on the wall, chromium door furniture, immaculate.
+
+@project_valder_loc_neighbour_parlour — THE NEIGHBOUR'S RECEIVING ROOM. Rich means EMPTY: one enormous plane of saturated colour on the main wall, a polished floor, three or four exquisite sculptural retrofuturist pieces and nothing else. A low table for tea. Vast empty floor.
+
+@project_valder_prop_dress_c1 — THE VALDER GARMENT. Flat geometric panels of three or four intensely saturated colours meeting at hard edges, deliberately asymmetric — one sleeve longer than the other. The gold V at the collar and again as a belt buckle.
+
+@project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered to a sharp point at the bottom. IT IS THE SAME SHAPE AT EVERY SIZE — no simplified version exists.
+
+THERE IS EXACTLY ONE MOTHER AND EXACTLY ONE NEIGHBOUR IN THIS ENTIRE FILM SCENE. Never two of either, never a copy, never a double in the background, never a reflection that produces a second person. NO DUPLICATE CHARACTER.
+
+================================================================
+WHAT THIS SCENE IS ABOUT — READ THIS, IT DECIDES EVERY CHOICE
+================================================================
+
+This is the SECOND time the mother knocks on this door. The first time she came in her own old clothes and the door opened a hand's width and closed again.
+
+THIS TIME SHE IS WEARING VALDER, AND THE DOOR OPENS HALF WAY.
+
+Half way. Not all the way. She gets to step inside and stand in the receiving room — and NOBODY ASKS HER TO SIT DOWN. She stands, holding herself very straight, in an enormous empty expensive room, while the neighbour walks around her.
+
+THE ONE GESTURE THIS SCENE TURNS ON: the neighbour reaches out and TOUCHES THE FABRIC OF THE MOTHER'S SLEEVE WITH ONE FINGERTIP, the way you would check the quality of a thing in a shop. Then she says one flat line — and the line is about the garment, not about the woman wearing it.
+
+THE POINT: the mother has not been accepted. HER CLOTHES HAVE BEEN ACCEPTED. She is a stand for a garment. And it worked, which is what makes it unbearable — it means she has to keep buying.
+
+THE DOOR IS THE MEASURING DEVICE OF THIS FILM. Visit one: a hand's width. Visit two: half open. Visit three: open before she knocks. Shoot this so the audience can feel the door doing that work.
+
+NOBODY IS CRUEL. The neighbour is pleasant throughout. There is no sneering, no contempt, no raised voice.
+
+================================================================
+WHAT PALE MEANS HERE
+================================================================
+
+Both women are PALE — but pale means ORDINARY HUMAN INDOOR PALLOR, the skin of a person who spends life indoors and does not see the sun. IT IS NEVER GREEN, NEVER GREY, NEVER BLUE, NEVER SILVER. Normal warm undertone, visible pores, real human skin texture. Think of a clerk at the end of a long winter. NOT a creature, NOT a corpse, NOT anything from science fiction or horror.
+
+The neighbour is paler. The mother is on her way there — a little less warm than she was, not yet all the way. The audience should feel that she is changing, without being told.
+
+Both women must read as REAL PHOTOGRAPHED HUMAN BEINGS.
+
+================================================================
+NOBODY IN THIS FILM IS DIRTY
+================================================================
+
+Clothes are clean, pressed, well kept. Hair combed. Faces washed. Nothing in this film ever reads through dirt, stains, grime, dust, sweat or messiness.
+
+NO dirt. NO stains. NO grime. NO smudges. NO greasy hair. NO torn fabric. NO dust. NO sweat.
+
+================================================================
+STYLE — APPLIES TO EVERY SHOT
+================================================================
+
+ERA: a retrofuturist world — the future as people in the past imagined it. Swept aerodynamic curves, cantilevers, moulded plastic, chromium, terrazzo, formica, starburst motifs, boomerang shapes, tapered splayed legs. THERE IS NOTHING DIGITAL ANYWHERE. No screens, no LEDs, no digital numerals, no cables. An invented place — no country and no year is identifiable.
+
+COLOUR IS THE CLASS SYSTEM: wealth is DEEP SATURATED COLOUR IN LARGE FLAT PLANES, and EMPTINESS. The parlour is drenched in colour and almost bare of objects. That emptiness is the luxury.
+
+THE CAMERA IS ALWAYS LEVEL. No dutch angles, no tilting, ever.
+
+LIGHTING IS FLAT AND FRONTAL, like a property brochure — minimal shadow, everything legible, objects square to camera.
+
+PHOTOGRAPHED, NOT RENDERED: fine film grain, halation around bright highlights, faint gate weave, softness and slight colour fringing at the edges of the lens. The grain must NOT desaturate the colour. NO HDR, NO digital glossiness, NO CGI sheen.
+
+PERFORMANCE IS FLAT AND CEREMONIAL: nobody smiles broadly, nobody laughs, nobody grimaces. Movements precise, slow and formal, as though rehearsed. Total sincerity delivered completely deadpan.
+
+NOBODY LOOKS AT THE CAMERA. Every gaze is aimed at a person or an object inside the frame.
+
+ALL SPOKEN DIALOGUE IN THIS FILM IS IN ENGLISH.
+
+================================================================
+
+=== SHOT 1 — 0:00 to 0:03 — SHE KNOCKS AGAIN ===
+
+Medium. @project_valder_loc_neighbour_door. Camera at chest height, locked, does not move — the same framing as her first visit.
+
+@project_valder_char_mother stands at the door in @project_valder_prop_dress_c1: flat panels of intensely saturated colour, asymmetric sleeves. She raises her hand and knocks three times, evenly spaced.
+
+Her hands are empty. She has not brought a gift this time.
+
+=== HARD CUT ===
+
+=== SHOT 2 — 0:03 to 0:06 — HALF OPEN ===
+
+Medium. Camera at chest height, locked.
+
+The door opens — and this time it swings HALF WAY and stops there. Not a hand's width. Not all the way. Half.
+
+@project_valder_char_neighbour stands in the opening, fully visible for the first time in this film, composed and pleasant. @project_valder_prop_mark sits at her collar.
+
+Her eyes go straight to the mother's garment. NOT to her face.
+
+=== HARD CUT ===
+
+=== SHOT 3 — 0:06 to 0:09 — THE TWO MARKS ===
+
+Close, framing both collars at once. Camera at chest height, locked.
+
+@project_valder_prop_mark at the neighbour's collar, and @project_valder_prop_mark at the mother's collar. THE SAME GOLD V, TWICE, IDENTICAL, side by side in one frame.
+
+Neither woman moves. This is the shot where the audience understands what just changed.
+
+=== HARD CUT ===
+
+=== SHOT 4 — 0:09 to 0:12 — INSIDE, AND STANDING ===
+
+Very wide. @project_valder_loc_neighbour_parlour. Camera at chest height, locked.
+
+An enormous nearly-empty room drenched in saturated colour. Three or four sculptural pieces of furniture, far apart. A low table set for tea.
+
+@project_valder_char_mother STANDS just inside the room, holding herself very straight, hands clasped. NOBODY HAS ASKED HER TO SIT.
+
+@project_valder_char_neighbour walks slowly around her, unhurried, looking at the garment from different angles.
+
+The chairs are visible and they are empty.
+
+=== HARD CUT ===
+
+=== SHOT 5 — 0:12 to 0:15 — ONE FINGERTIP ===
+
+Close on the mother's sleeve. Camera at chest height, locked.
+
+@project_valder_char_neighbour's hand comes into frame and TOUCHES THE FABRIC OF THE SLEEVE WITH ONE FINGERTIP — a small, precise, evaluating movement, exactly the way a person tests cloth in a shop.
+
+She rubs it once between finger and thumb. Then her hand withdraws.
+
+=== HARD CUT ===
+
+=== SHOT 6 — 0:15 to 0:18 — THE LINE ===
+
+Medium two-shot. Camera at chest height, locked.
+
+@project_valder_char_neighbour says one short flat line, pleasantly, and it is addressed to the garment and not to the woman:
+
+"This is the new one."
+
+@project_valder_char_mother does not answer. Her expression does not change. She is still standing. Her hands are still clasped.
+
+=== HARD CUT ===
+
+=== SHOT 7 — 0:18 to 0:20 — STILL STANDING ===
+
+Wide. Camera at chest height, locked.
+
+@project_valder_char_mother alone in the middle of the enormous empty room, standing perfectly straight in her saturated Valder garment.
+
+The tea table is set. The chairs are empty. Nobody is sitting down.
+
+Hold on that.
+
+================================================================
+SOUND
+================================================================
+
+THERE IS NO MUSIC OF ANY KIND IN THIS FILM. No score, no underscore, no ambient pad, no drone, no strings, no piano, no synthesiser. NOT ONE NOTE.
+
+THERE IS NO SOUND AT THE START OF THE CLIP AND NO SOUND AT THE END OF THE CLIP. No whoosh, no riser, no impact, no sting, no chord, no reverse cymbal, no bass drop, no swell to mark the beginning or the ending.
+
+THE ONLY SOUNDS ARE THE ONES PHYSICALLY MADE BY THINGS VISIBLE IN THE SHOT:
+
+- three knuckle knocks on a solid door
+- the door mechanism and the movement of a heavy door on good hinges
+- two sets of footsteps on a hard polished floor, in an obviously large room — the neighbour's walking, the mother's not moving at all
+- the small dry sound of a fingertip and thumb rubbing a piece of stiff fabric
+- one single line of spoken dialogue, ENGLISH, delivered flat and pleasant: "This is the new one."
+
+THERE IS EXACTLY ONE SPOKEN LINE IN THIS ENTIRE FILM SCENE and the neighbour says it. The mother does not speak at all, in this scene or in the previous visit.
+
+The house is otherwise completely silent. No clocks, no radio, no other people, no sound from outside.
+
+================================================================
+NEGATIVE
+================================================================
+
+no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no non-English dialogue, no more than one spoken line, no voiceover, no narration, NO DUPLICATE CHARACTER, no two mothers, no two neighbours, no cloned face, no double in the background, no reflection producing a second person, no dirt, no stains, no grime, no smudges, no grease, no dust, no sweat, no torn clothing, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no screens, no LED, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no cars, no flags, no religious symbols, no political imagery, no readable text, no lettering, no words, no logos of real brands, no watermark, no subtitles, no captions, no clutter, no crowded room, no full bookshelves, no many objects, no third person in the room, no servants, no children, no pets, no anyone looking at the camera, no smiling broadly, no laughing, no shouting, no anger, no sneering, no contempt on the face, no embracing, no handshake, no mother sitting down, no mother being offered a seat, no tea being poured, no door opening fully, no door slamming, no rain, no snow, no fog, no night, no darkness
