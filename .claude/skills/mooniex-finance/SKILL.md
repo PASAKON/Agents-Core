@@ -210,3 +210,54 @@ balance," check `/admin/api-health` before doing anything else.
 | `mooniex-webapp/src/lib/cfo/report.ts` | The actual burn/runway/subscription computation code |
 | `mooniex-webapp/src/app/admin/finance/FinanceClient.tsx` | The actual dashboard rendering + flag-derivation logic |
 | `mooniex-webapp/supabase/migrations/2026060*__webapp_cfo_subscriptions_*.sql` | Migration history for the subscriptions table — read recent ones before writing a new one, to match the established idempotent-hint pattern the migrations runner lints for |
+
+## 9. Invoice / quotation generator
+
+Moved here from the org memory index 2026-08-25.
+
+`scripts/invoice_gen/generate_invoice.py` renders FlowAccount-style Thai QT/INV
+PDFs from a JSON data file via headless Chrome:
+`python3 generate_invoice.py <data.json> [out.pdf]`. Output defaults to
+`output/invoices/<doc_no>.{pdf,html}`. A JSON list is a batch.
+
+Fields: `doc_type` (quotation|invoice), `doc_no`, `date` (DD/MM/YYYY),
+`seller{name,address}`, `contact`, `customer{name,lines[]}`,
+`items[{desc,sub[],qty,unit,amount}]`, `currency`, `fx_rate`, `notes[]`.
+Signature-block pre-fill: `seller_sign_date` / `customer_sign_date`.
+
+**`sample_axi.json` is a STALE sample (April/$569) — not live data.** The real
+Axi document is `axi_qt2026030001.json` (June/$284, QT2026030001, 15/06/2026).
+
+**Drive backup of finance documents.** The CEO's finance docs live at
+`~/Library/CloudStorage/GoogleDrive-pass.gob1@gmail.com/ไดรฟ์ของฉัน/Mooniex Finance/`
+— the Drive is Thai-locale, so "My Drive" is `ไดรฟ์ของฉัน`. Six category folders:
+Invoices, Quotations, Contracts, **Company Docs** (registration / หนังสือรับรอง —
+irreplaceable), Payslips, Marketing. Backup means COPY; the local Desktop copy
+stays. No `gdrive` or `rclone` CLI is installed — use the CloudStorage sync
+folder. Thai accounting-document retention is 5 years.
+
+## 10. Subscription inventory — what each SaaS line actually pays for
+
+Moved here from the org memory index 2026-08-25. From the CFO billing audit of
+2026-06-19 (Gmail). **Mastercard •2587 was RETIRED by the CEO** — every "payment
+failed" notice since about May is intentional, not an incident. Each
+subscription is a migrate-to-new-card vs kill decision.
+
+Code-verified and non-obvious:
+
+- **ElevenLabs** ($6/mo Starter) is **not used by any pipeline.** Video TTS runs
+  on fal.ai (`claudeflow/src/video/videotts.js`: primary `fal-ai/gemini-tts`
+  th-TH, fallback `fal-ai/playai/tts/v3`). The name `elevenlabs` survives only
+  as a stale cost-ledger label (`cost-ledger.js`, `cost:0.00006/char`) plus a
+  balance pre-check; it does not call the ElevenLabs API. Cancelling it on
+  06-18 was a pure save. **Open cleanup:** rename that ledger label
+  `elevenlabs` → `fal_tts`, or the CFO dashboard keeps mislabelling fal TTS spend.
+- **SendPulse** ($12/mo Chatbots, 500-sub) is the **TikTok DM auto-reply chatbot**
+  (LuNar) — `claudeflow/src/integrations/sendpulseApi.js` + `src/webhook/tiktok.js`.
+  Expired since ~May on the dead card, so **the TikTok DM channel is DOWN**. Not
+  dead weight: renew-vs-kill is a CGO decision. Env: `SENDPULSE_CLIENT_ID` /
+  `SENDPULSE_CLIENT_SECRET`.
+- **Vercel** $20/mo (webapp host) — recovered 06-08, on a working card.
+- **Notion** — the CEO's 2026-05-20 cancellation email did **not** cancel it.
+  Notion requires an in-app downgrade (Settings → Billing → Change plan → Free →
+  Downgrade). The ticket auto-closed while dunning kept firing.
