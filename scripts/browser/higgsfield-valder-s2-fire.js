@@ -187,4 +187,87 @@
  * eligibility on these 5 Elements directly in the Elements panel (the
  * banner's own suggested action) is the next step, and it is out of an
  * operator's scope to do blind.
+ *
+ * ---
+ *
+ * Wave 3 (task-5c05dc3c, 2026-08-25): Wave 2's hypothesis CONFIRMED --
+ * running the per-reference "Check eligibility" control (task explicitly
+ * authorized it this run) cleared all 5 flagged Elements
+ * (mother/daughter/grandma/loc_home_interior/prop_plan), matching
+ * task-8ea73ebb's precedent of 8/9 clearing this way. Confirmed PASS for
+ * each via three independent signals: reference-thumbnail badge svg count
+ * dropping from 3 (badge+warning) to 2 (badge only, matching never-flagged
+ * father/son), a full-page text scan for "needs an eligibility check" /
+ * "Face/IP failed" / "may contain protected content" returning nothing,
+ * and (for char_mother specifically) watching the tooltip+button vanish
+ * from its own Element detail modal after the click. See
+ * docs/reports/valder-s2-eligibility.md for the full per-element table.
+ *
+ * NEW, SEPARATE BLOCKER (Job 1 succeeded; Job 2 hit something new): even
+ * with all 5 Elements cleared, clicking Generate STILL produced the exact
+ * same "Some reference elements may contain protected content" banner --
+ * reproduced 3 times in a row, each with a full fresh re-verification
+ * (7/7 refs bound 0 errors, all settings correct, Generate button
+ * confirmed `UNLIMITED / ~~140~~ / 0` via zoomed-screenshot tiebreaker
+ * immediately before each click). Zero credits spent across all 3 attempts
+ * -- confirmed via `read_network_requests`, which showed NO `generat`-
+ * pattern call fired by any of the 3 clicks (only background
+ * `GET /fnf/reference-elements/<uuid>` polling and `GET /fnf/folders/
+ * <id>/publish` calls, neither a generation request), and via Account
+ * menu balance staying flat at 1,974 before and after.
+ *
+ * ROOT CAUSE (working hypothesis, not fully confirmed): switching the
+ * composer's model from the default "Cinema Studio 4.0" template to
+ * "Seedance 2.5" appears to fully reset the composer and mint a NEW
+ * reference-element binding instance per pasted `@tag` on the subsequent
+ * paste, separate from whatever instance the per-Element "Check
+ * eligibility" control (run under the ORIGINAL Cinema-Studio-4.0 composer,
+ * per this project's established Job-1 flow) actually cleared. Partial
+ * supporting evidence: after the first Generate-blocked click under
+ * Seedance 2.5, re-hovering all 7 reference chips found that ONLY
+ * char_mother -- and only char_mother -- still showed the "needs an
+ * eligibility check" tooltip DESPITE its badge showing clean. Running
+ * Check eligibility on it again (in THIS Seedance-2.5 composer instance)
+ * made the tooltip disappear -- but Generate still refused on the very
+ * next click, and a subsequent re-hover of all 7 chips (including mother)
+ * showed zero tooltips anywhere. So the per-reference control clearly does
+ * something real and instance-scoped, but Generate's own validation check
+ * is either scoped even more narrowly (per literal generation-request, not
+ * per composer-instance) or checking something else entirely that no
+ * per-reference UI surfaces.
+ *
+ * WHAT WASN'T TRIED (out of operator scope per "scope discoveries are a
+ * C-level decision"): (a) firing Generate WITHOUT ever switching away from
+ * whatever model the composer defaults to on load, to see if avoiding the
+ * model-switch-triggered reset sidesteps this entirely -- Wave 2 never hit
+ * this specific blocker under the default model, only after the task
+ * explicitly required Seedance 2.5; (b) Elements-panel-level
+ * investigation of whether there's a composer-instance-scoped or
+ * generation-request-scoped eligibility flag distinct from the per-Element
+ * one Job 1's control clears.
+ *
+ * DURATION CONTROL CORRECTION: earlier waves' notes did not test this
+ * carefully, but this run confirmed the duration control is a real text
+ * INPUT inside a small popover (click the "5s" pill -> "Duration" label +
+ * editable field appears), not purely a hidden ARIA slider. Typing digits
+ * directly into it (e.g. "20s") does NOT reliably set the value as plain
+ * text entry -- it produced "16s" from typing "20s" after a triple-click
+ * select-all, suggesting each keystroke is interpreted as an increment/
+ * decrement nudge rather than literal text replacement. The reliable
+ * method: triple-click the field to focus it, then press ArrowRight the
+ * exact number of times needed to reach the target from whatever value is
+ * currently showing (confirmed after each press via zoomed screenshot on
+ * the popover, not by trusting a single read).
+ *
+ * DECOY/DUPLICATE-DOM CONFIRMED AGAIN: switching models produced a second
+ * confirmation of the hidden-duplicate-element bug family. A plain
+ * (non-visibility-filtered) query for pill button text like "Seedance 2.5"
+ * matched TWO buttons simultaneously (one from a stale pre-switch render,
+ * one live) -- e.g. `["1080p","16:9","5s","On", ...stale... "Seedance
+ * 2.5","References","16:9","720p","20s","High","On" ...live...]`. Always
+ * filter by `getComputedStyle(el).visibility !== 'hidden'` (or check
+ * `getBoundingClientRect().width > 0`) before trusting any pill-text
+ * query on this project, not just for the contenteditable editor and the
+ * Generate button as previously documented -- the whole settings-pill row
+ * is subject to the same duplication.
  */
