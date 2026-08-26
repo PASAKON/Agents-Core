@@ -219,6 +219,24 @@ attaches them.
 |---|---|---|---|---|
 | S4C | — | BLOCKED (2 attempts this wave) | 7/7, 0 errors | protected-content gate, 4/7 references flagged (`loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags`, `prop_market_bag`); 0 cost both times |
 
+## S5B — blocked, same pattern
+
+S5B staged cleanly (6/6 elements, 0 errors). Generate hit the gate with 2/6
+references flagged: `loc_neighbor_parlour` and `prop_dress_c2` (visually
+confirmed, warning-triangle overlays on tray thumbnails 4 and 5). One retry
+per policy, gated again identically. Credits unchanged (1,932) both times.
+Skipping S5B — moving to S6.
+
+Flagged-Element tally so far this wave: `prop_frame`, `loc_new_interior`,
+`prop_market_bag`, `loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags`,
+`loc_neighbor_parlour`, `prop_dress_c2` — 8 distinct newly-created Elements,
+all still gated. Only `prop_mark` (also newly-created) has cleared every time
+it's appeared.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S5B | — | BLOCKED (2 attempts this wave) | 6/6, 0 errors | protected-content gate, 2/6 references flagged (`loc_neighbor_parlour`, `prop_dress_c2`); 0 cost both times |
+
 ## Incident — MCP tab group destroyed while closing stale tabs
 
 After S1B fired, attempted to close two now-stale tabs (the original composer
