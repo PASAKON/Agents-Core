@@ -136,17 +136,45 @@ too-large crack from attempt 1, since it was generated before the size fix.
 Not re-generated in this session because no correction was requested on the
 hall specifically — surfacing this now rather than assuming it's fine.
 
+**Wall-crack, attempt 3 — done, then session HELD by CEO before a verdict.**
+`/Users/gob/Desktop/absence-01-wall-crack.png` (overwrote attempt 2; asset id
+`a2c2af3f-6fe3-4275-b7a2-eb86f4d83956`). CTO relayed a further CEO note: the
+accepted small crack (attempt 2) had lost the hall's room — wood parquet
+floor instead of terrazzo, a white skirting board, no ceiling, flat
+directionless light — so it would not intercut with the accepted hall sheet.
+Regenerated with **three references attached and verified GREEN**:
+`@project_absence_loc_hall_big`, `@project_absence_prop_painting`,
+`@project_absence_prop_tag`. Kept the crack and plaque exactly as attempt 2;
+changed only the room to inherit the hall's terrazzo floor, checkered rug
+motif, warm directional lighting and decor. Re-filed to the Element via
+Assign to element, re-verified GREEN with the correct (terrazzo) thumbnail.
+
+**Then CEO put this specific plate on HOLD** before confirming attempt 3 —
+he now prefers the original colourful-room look over the terrazzo gallery
+look and is sending updated direction. Per CTO instruction: stopped
+generating, left the browser exactly as it was (no further navigation/clicks
+past this point), and committed this report. **`absence-01-wall-crack.png`
+on disk right now is attempt 3 (terrazzo room) — this is NOT yet CEO-confirmed
+and may be replaced again once the new spec lands.** Do not treat this file
+as final without checking for a follow-up report.
+
 ## JOB 3 — corridor generation
 
-Not started — ran out of scope/time this session after the two location
-correction rounds. Hall and wall-crack are both confirmed accepted; corridor
-is next up whenever picked back up.
+Not started — put on hold before reaching this. Hall (accepted) and the
+wall-crack Element (attempt 3, unconfirmed) are the current state; corridor is
+next once the wall-crack question is resolved.
 
 ## Credits
 
-- Paid balance: 1,838 left (was 1,844 at task start; 6 credits spent across
-  three GPT Image 2 generations — 2 wall-crack attempts + 1 hall sheet, 2
-  credits each at Medium/1K). Well inside the 10-credit cap.
+- Paid balance: 1,830 left (was 1,844 at task start). My own spend this
+  session: 8 credits across four generations (wall-crack attempts 1/2/3 + the
+  hall sheet, 2 credits each at Medium/1K/GPT Image 2) — well inside the
+  10-credit cap. The further drop from 1,838 to 1,830 (4 credits) was NOT my
+  action: two additional four-panel gallery-hall-style assets appeared in the
+  project mid-session that I never generated (different composition from
+  anything in my prompts) — almost certainly the other operator's concurrent
+  work on this same shared project, per the task brief's warning that another
+  operator's tab was open on it. Flagging rather than assuming.
 - Soul free allowance: not touched this session (stayed on GPT Image 2 per
   CEO ruling), so still ~4,995 per the original brief.
 
@@ -156,9 +184,18 @@ is next up whenever picked back up.
 |---|---|---|
 | project_absence_prop_painting | GREEN | unchanged |
 | project_absence_prop_tag | GREEN | unchanged |
-| project_absence_loc_wall_crack | GREEN | re-filed to the corrected small-crack asset |
-| project_absence_loc_hall_big | GREEN | re-filed to the new four-panel asset (via regeneration, same Element) |
+| project_absence_loc_wall_crack | GREEN | re-filed to attempt-3 (terrazzo room) asset; **unconfirmed, on hold** |
+| project_absence_loc_hall_big | GREEN | re-filed to the new four-panel asset (via regeneration, same Element); accepted |
 | project_absence_loc_corridor | RED | not generated — JOB 3 not started |
+
+## HOLD — session paused here
+
+CTO instruction received mid-session: CEO prefers the original colourful-room
+look over the terrazzo-gallery look for the wall-crack plate and is sending
+new direction. Stopped all browser actions at this point, left the tab open
+and untouched (last state: composer cleared, sitting on the project's asset
+grid), and committed this report. Awaiting the new spec before doing anything
+further.
 
 ## Tab
 
