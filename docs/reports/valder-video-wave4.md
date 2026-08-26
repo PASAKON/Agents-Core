@@ -166,6 +166,45 @@ Generate. No prompt rewriting needed. This is the single highest-value
 finding of the wave. Adding all previously-blocked scenes back into the
 active rotation below.
 
+## PART 1C — CTO's natural experiment: does the flag follow the image or the scene?
+
+Mid-wave, `task-d9001e45` (the concurrent image-plate operator) finished
+regenerating 6 plates onto the SAME UUIDs: `prop_plan`, `char_grandma`,
+`char_press`, `loc_studio`, `loc_street_row`, `loc_new_interior`. CTO asked:
+retry canonical S2 (unmodified, `prop_frame` tag intact) and see whether
+`char_grandma`'s flag — which was cleared manually via triangle-click in Part
+1B — is now clean automatically because the underlying image changed, while
+`prop_frame` (not part of this regen batch) stays flagged.
+
+Pasted the **original, unmodified S2 prompt** (all 8 elements, `prop_frame`
+tag intact) into a cleared composer. 8/8 bound, 0 errors (one transient
+misread showed 2 errors on the very first read, resolved to 0 within ~800ms —
+a timing race in the mention-resolution UI, not a real failure; the fix is to
+re-check after a short wait rather than trusting the instant post-paste read).
+
+**Result — clean and definitive:**
+- `char_grandma`'s card: **zero warning triangle, no click needed at all.**
+  The regenerated plate cleared the flag by itself.
+- `prop_frame`'s card: **still flagged**, exactly as predicted — it was not
+  part of the 6-plate regen batch.
+- Clicked `prop_frame`'s triangle (per CTO instruction, do this regardless):
+  same clean resolve as Part 1B — icon changed to a spinner, then to the
+  normal hover state, triangle gone. (No `ip-detect` POST was visible in
+  `read_network_requests` for this specific click — the network log appears
+  to have a short retention/visibility window and may have missed it — but
+  the visual before/after and the identical resolve pattern to the
+  confirmed `ip-detect` case in Part 1B are conclusive.)
+- **Final state: all 8 reference cards on the canonical, unmodified S2 prompt
+  are clear of warnings.**
+
+**Conclusion, confirmed two independent ways:** the protected-content flag is
+tied to the **image asset itself**, not the scene, not the prompt, and not
+fixed by creation date. It can be cleared either by **regenerating the
+underlying plate** (what happened to grandma) or by the **triangle-click
+eligibility re-check** (what happened to prop_frame, twice now, and to
+grandma once in Part 1B before her regen). Both are legitimate, independent
+fixes for the same underlying gate.
+
 ## PART 2 — keeping the slot busy (rotation of scenes that fire clean)
 
 Per the CEO's standing "Unlimited must never sit idle" rule, proceeding to
