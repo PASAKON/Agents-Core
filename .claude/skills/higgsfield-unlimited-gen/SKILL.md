@@ -659,6 +659,47 @@ that says "zero digits anywhere" will stop a correct operator dead; one that say
 "any number means stop" is worse, because it trains the operator to ignore the
 real signal. Write the table.
 
+### RED tag text in the composer = the Element does not exist. Look at the colour.
+
+Spotted by the CEO from a screenshot, 2026-08-27, after an operator spent a
+whole cycle generating against references that were never attached.
+
+**A resolved tag renders as a mention chip. An unresolved tag stays as plain
+text in RED.** That colour is the fastest, cheapest check available and it is
+visible without zooming:
+
+| What you see | What it means |
+|---|---|
+| Tag rendered as a chip / thumbnail appears in the reference strip | Bound. Good. |
+| **Tag still plain text, coloured RED** | **Not bound. The Element does not exist under that name.** |
+
+**Check the tag colour before every Generate.** A red tag means the model never
+sees that reference — it silently generates from the prose alone, produces
+something plausible, and the failure is invisible in the output.
+
+#### The cause is almost always this: generating an image is NOT creating an Element
+
+These are two separate steps in Higgsfield and it is easy to do the first and
+believe you have done the second:
+
+1. **Generate an image.** It lands in the project's asset grid. At this point it
+   has an asset id — and **no Element name at all.** `@your_name` will not
+   resolve to it, because there is nothing to resolve.
+2. **Create an Element from that image and NAME it.** Only now does the plain
+   `@name` tag bind.
+
+An operator that generates ten plates and never does step 2 has ten images and
+zero usable references. Every prompt tagging them comes out red.
+
+**So: after generating any plate that a later prompt will tag, create the
+Element and name it immediately, then verify by typing the tag and watching it
+become a chip.** Do not batch the naming for later — the whole point of a
+chain-of-reference build is that each plate is attachable by the time the next
+one is generated.
+
+See also the Element-creation path below: use the detail-modal route, never the
+grid hover menu.
+
 ### The @ dropdown is folder-scoped — but PASTE is not. Paste the whole prompt.
 
 Typing `@project_valder_char_son` in the Scene-1 folder composer silently
