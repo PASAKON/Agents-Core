@@ -80,3 +80,47 @@ for s in s4a s4 s4b s4c s5 s5b s6 s7a s7b smu; do
 done
 ls docs/plates/*.webp | xargs -n1 basename | sed 's/^project_valder_//; s/\.webp$//' | sort -u > /tmp/have.txt
 ```
+
+## Known runtime defect — `loc_neighbor_door` will not bind
+
+Found by the wave5 operator on S4A, 2026-08-26 ~16:20, after four independent
+attempts including a full page navigate and a byte-exact re-paste. The element
+**exists** in the project (Elements panel, Locations tab, exact name match), so
+this is a Lexical mention-plugin parse failure at runtime, not a prompt typo —
+the CTO had already pre-verified all 26 tags resolve to real plates.
+
+The operator's DOM inspection: the `@` character sat in a **separate text node**
+from the tag body, unlike the four tags that resolved normally.
+
+### Two hypotheses, neither yet distinguished
+
+1. **Substring collision.** `loc_neighbor_door` contains `neighbor`, and
+   `char_neighbor` appears in the same prompt. Both S4A and S5 carry both tags.
+2. **Name length.** At 32 characters it is the longest element name in the
+   scene (next is `loc_street_row` at 29).
+
+Both predict the observed failure. **S5B is unaffected** — it does not use the
+door.
+
+### The decisive test, one attempt, for whoever reaches S5
+
+Paste `@project_valder_loc_neighbor_door` into an **empty** composer with no
+other elements attached.
+
+- Binds alone → collision. Fix by renaming the element to something that shares
+  no substring with another tag in the scene, then update `s4a` and `s5`.
+- Still fails alone → the element itself is broken. Fix by re-saving or
+  re-uploading it in the Elements panel, which preserves the UUID.
+
+Do not spend more than that one attempt. **If it fails, fire the scene with the
+door unbound and move on** — this is covered by the CEO's skip authority.
+
+### Why firing without it is acceptable
+
+CTO judgment, 2026-08-26. The neighbour's door is the meter of the arc the CEO
+asked for: the door opens further each visit as the mother acquires Valder
+clothes. **That arc reads through the door's opening ANGLE, not the door's
+identity.** The prompts already describe the door in specific prose ("a single
+door set into an enormous flat plane of deeply saturated colour"), so the three
+scenes will render a similar door even unbound. The arc survives; only
+pixel-level continuity is lost. Losing the scene entirely would be worse.
