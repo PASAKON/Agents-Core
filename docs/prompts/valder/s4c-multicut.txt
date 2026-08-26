@@ -95,9 +95,7 @@ Medium. @project_valder_loc_shop_ext. Camera at chest height, locked, does not m
 
 @project_valder_char_mother stands in the queue in her old pale mended clothes, holding @project_valder_prop_market_bag in both arms against her chest.
 
-The people ahead of her and behind her wear two and three deeply saturated colours, and at their collars, small and repeated: @project_valder_prop_mark. THE SAME GOLD V ON ALL OF THEM.
-
-Her own collar is bare. She is the only pale thing in the line.
+**THE PEOPLE AHEAD OF HER AND BEHIND HER ARE DRESSED EXACTLY LIKE HER** — plain everyday coats in drab, muted, washed-out colours, clean and carefully kept. Nobody in this queue owns anything Valder made yet. **SHE BLENDS INTO IT COMPLETELY AND THAT IS THE POINT:** right now she is indistinguishable from every other person waiting, and the only thing that will separate her from them is what happens on the other side of that door.
 
 She shuffles forward one place.
 

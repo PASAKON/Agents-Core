@@ -16,9 +16,9 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_char_grandma — THE GRANDMOTHER. A small stooped woman in several layers of faded knitwear, carrying an enormous handbag. Warm skin. SHE IS ONE PERSON.
 
-@project_valder_loc_shop_ext — THE VALDER SHOP, FROM OUTSIDE. An enormous retail building: one vast flat plane of deeply saturated colour, almost no windows, and a queue of people waiting along its front. There is no shop name and no writing on it anywhere.
+@project_valder_loc_shop_ext — THE VALDER SHOP, FROM OUTSIDE. An enormous windowless building faced in one vast flat plane of deep brick-red, with a colossal GOLD V mounted on it at architectural scale — the only marking, no shop name, no writing anywhere. One small display window near the corner holds a SINGLE garment on a mannequin and nothing else. **A queue of ordinary people in drab everyday clothes waits along the front — they have not bought anything yet, and they are dressed accordingly.**
 
-@project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered to a sharp point at the bottom. It is stamped into everything Valder designs and worn by everyone who belongs. IT IS THE SAME SHAPE AT EVERY SIZE — no simplified version exists. HERE IT APPEARS TWICE: enormous on the building, and tiny on the collars of the people queueing.
+@project_valder_prop_mark — THE GOLD V. Valder's trademark: a capital letter V in BRUSHED MATTE WARM GOLD, flat, with thick strokes that are WIDE AT THE TOP and taper to a sharp point at the bottom — a wide-shouldered, aggressive taper, no bevel, no crossbar, no 3D extrusion. IT IS THE SAME SHAPE AT EVERY SIZE. **HERE IT APPEARS ONCE ONLY: enormous, mounted on the shop's brick-red facade. It is NOT on anyone's clothing in this scene.**
 
 @project_valder_prop_market_bag — THE MARKET BAG. A woven cloth bag from the family's old life: pale, faded, clean, visibly mended at one handle. It is FULL of ordinary cheap food — a paper sack of rice, vegetables, a wrapped parcel, the tops showing above the rim. THERE IS NO MARKING OF ANY KIND ON IT. It is the one object in this film that Valder never touched.
 
@@ -121,7 +121,7 @@ The full building: an enormous flat plane of deeply saturated colour, almost no 
 
 One small display window holds EXACTLY ONE GARMENT and nothing else.
 
-The queue runs the length of the facade and around the corner — TEN TO FIFTEEN PEOPLE visible at once, at different distances, standing in loose ones and twos.
+The queue runs the length of the facade — TEN TO FIFTEEN PEOPLE visible at once, standing in loose ones and twos at different distances and different angles, in plain drab everyday clothes.
 
 The family is small at the bottom of the frame, still walking.
 
@@ -143,9 +143,11 @@ The rest of the family keeps walking at exactly the same pace and passes out of 
 
 Medium, the queue. Camera at chest height, locked.
 
-Not the building — THE PEOPLE. A stretch of the queue seen close: their coats in two and three deeply saturated colours, their gloves, their structured bags, their composed closed faces.
+Not the building — THE PEOPLE. A stretch of the queue seen close.
 
-And at their collars, small and unmistakable: @project_valder_prop_mark. THE SAME GOLD V, on person after person after person.
+**AND THEY LOOK EXACTLY LIKE HER.** Plain everyday coats in drab, muted, washed-out colours — beige raincoats, grey suits, brown check, plain dresses, a headscarf. Clean, pressed, carefully kept, and completely ordinary. **NOT ONE PERSON IN THIS QUEUE IS WEARING A SATURATED VALDER COAT.** They have not bought anything yet. That is why they are standing here.
+
+She is not looking at rich people. **She is looking at people in her own position, queueing for the thing that would change it**, and the shot must make that legible.
 
 === HARD CUT ===
 
