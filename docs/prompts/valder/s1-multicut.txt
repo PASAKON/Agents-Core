@@ -14,11 +14,11 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW. Each of these i
 
 @project_valder_char_crowd_a — THE CROWD. Well-off members of the public in coats of deep single saturated colours, no pattern. Pale indoor skin. THIS REFERENCE SHOWS THE TYPE OF PERSON, NOT A HEAD COUNT — the crowd in this film is always MANY such people, never one. EVERY ONE OF THEM HAS A DIFFERENT FACE, A DIFFERENT BUILD, DIFFERENT HAIR AND A DIFFERENT COAT COLOUR.
 
-@project_valder_loc_fountain_hall — THE PUBLIC CONCOURSE. A large bright civic space in vivid saturated colour with a circular fountain at its centre. Correct, square architecture.
+@project_valder_loc_fountain_hall — THE PUBLIC CONCOURSE. **ITS PLATE CONTAINS A READABLE ENGLISH DIRECTION SIGNBOARD. KEEP THAT SIGN OUT OF FRAME IN EVERY SHOT** — frame away from it, or let a person or the fountain block it. No readable signage may appear anywhere in this film. A large bright civic space in vivid saturated colour with a circular fountain at its centre. Correct, square architecture.
 
 @project_valder_loc_studio — VALDER'S STUDIO HALL. A long hall with both long walls in one enormous unbroken plane of FULL-STRENGTH BRIGHT PILLAR-BOX RED — a hot, pure, high-saturation red, NOT a dark oxblood or wine red, a colossal window down one side.
 
-@project_valder_prop_magazine — THE NEWSPAPER PAGE. A full-page property advertisement: an aerial photograph of a housing estate above three house types in a row with a price beside each. No human face is printed on it anywhere.
+@project_valder_prop_magazine — THE NEWSPAPER PAGE. **HOLD IT SO THE LAYOUT READS BUT THE WORDS DO NOT.** The audience must clearly see: an aerial photograph of a housing estate across the top, and beneath it THREE HOUSE TYPES IN A ROW EACH WITH A PRICE — that is the joke, a product line with tiers. But the body text, the headline and the small print must be too angled, too soft or too far to actually read. **NO CURRENCY SYMBOL, NO TELEPHONE NUMBER AND NO PLACE NAME MAY BE LEGIBLE.** A full-page property advertisement: an aerial photograph of a housing estate above three house types in a row with a price beside each. No human face is printed on it anywhere.
 
 NO FACE IS EVER REPEATED IN THIS FILM. Every person who appears is a different individual. There is exactly one mother, exactly one father, exactly one boy, and exactly one Valder — never two of any of them, never a copy, never a double in the background.
 
