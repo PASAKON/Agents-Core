@@ -307,7 +307,8 @@ the banner text alone).
 
 | Scene | Take | Clip asset id | Settings confirmed | Elements | Generate button text at fire | Render minutes | Notes |
 |---|---|---|---|---|---|---|---|
-| S-V | 1 | `3e0252ef-be34-4852-ba0a-0dc83cecbdde` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~140~~ / 0` | fired, render in progress | **Needs visual review for: (a) genuinely zero cuts, one continuous shot; (b) crowd reads as scattered/loose, NOT a rally/congregation formation** |
+| S-V | 1 | `3e0252ef-be34-4852-ba0a-0dc83cecbdde` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~140~~ / 0` | complete (~20 min) | **Needs visual review for: (a) genuinely zero cuts, one continuous shot; (b) crowd reads as scattered/loose, NOT a rally/congregation formation** |
+| S-V | 2 | `77b6a8af-fc94-4329-89a2-12a32ecdfa04` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~140~~ / 0` | complete (~20 min) | Same review flags as take 1 |
 
 Credits after S-V take 1: **1,932** (unchanged).
 
@@ -320,17 +321,19 @@ Re-verified staged state fresh (6/6, 0 errors, Unlimited on), re-applied
 desync fix, zoom-confirmed `UNLIMITED / ~~140~~ / 0`, clicked Generate.
 Confirmed via `"Generation started"` toast and assets 252→253.
 
-**Asset id isolation was inconclusive.** The standard ancestor-walk
-technique against the "Generating"/"Processing" label resolved to
-`3e0252ef-...` (take 1's own id) on three separate attempts across two tabs,
-even after take 1's card had visibly completed (confirmed via screenshot —
-its thumbnail shows the finished red-hall frame, separate from the still-
-"Generating" card next to it). This looks like the ancestor-walk picking up
-a stale/shared id from adjacent DOM rather than the true new card's id — a
-new failure mode not previously documented for this technique. Not
-resolved at time of writing; will re-check via a clean fresh-tab read once
-take 2 fully completes and its own thumbnail is visible, and correct the id
-here once confirmed.
+**Asset id confirmed: `77b6a8af-fc94-4329-89a2-12a32ecdfa04`.** The
+ancestor-walk technique (searching up from the "Generating"/"Processing"
+text node for the first ancestor with exactly one UUID) resolved to
+`3e0252ef-...` (take 1's own id) on three separate attempts across two
+tabs, even after take 1's card had visibly completed — a genuine new
+failure mode for that technique, not previously documented. **Found a more
+reliable method instead: `document.querySelectorAll('[data-asset-id]')`
+returns cards in recency order, first = newest.** That first card's own
+`data-asset-id` attribute gave the correct, unambiguous id directly, with
+no ancestor-walk guessing needed. Confirmed complete (no in-progress label,
+has a video element) once isolated this way. **Recommend this method
+replace the ancestor-walk in the next replay script** — it's simpler and
+didn't fail in this run.
 
 **Credit drift flagged to CTO.** Immediately after take 2's fire, credits
 read **1,930** — a 2-credit drop from the 1,932 baseline that had held flat
