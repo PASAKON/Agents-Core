@@ -148,3 +148,24 @@ prompts during wave5.
 image plate `prop_dress_c2`. **That claim does not reproduce** — the id appears
 nowhere in `docs/plates/PLATES.md` and nowhere in any prompt file. Left flagged
 rather than chased: the take is obsolete anyway, and S1 has other takes.
+
+### Resolved 2026-08-26 18:40 — the element itself is broken
+
+The wave5 operator ran the isolated test before firing S5: pasted
+`@project_valder_loc_neighbor_door` **alone into an empty composer**, nothing
+else attached. **It still failed to bind.**
+
+That rules out the substring-collision hypothesis — `char_neighbor` was not
+present. The failure is not prompt-context-dependent, so it is the element
+record itself (or something backend-side), consistent with the operator's
+original DOM finding.
+
+**The fix is to re-save or re-upload `loc_neighbor_door` in the Elements
+panel**, which preserves the UUID and therefore needs no prompt edits.
+
+**Sequenced deliberately for after the coverage push, not now.** Two scenes
+already exist without the door bound (S4A at 4/5, S5 at 5/6) and both would
+need re-firing to benefit, which is second-take work. Going into the Elements
+panel mid-queue also risks disturbing a composer flow that is currently firing
+a scene every ~41 minutes. Order: finish coverage → fix the element → re-fire
+S4A and S5 as second takes with the door bound.
