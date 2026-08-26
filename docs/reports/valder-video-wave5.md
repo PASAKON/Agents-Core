@@ -65,3 +65,80 @@ is broken. One attempt only either way, then fire S5 with it unbound if
 needed and move on — the door arc reads through the opening-angle progression
 across the three visits, not pixel identity, and the prose already describes
 it specifically.
+
+## Wrap-up (per CTO instruction at 194k tokens — stopping after S6, handing S7A/S7B to wave6)
+
+**S6 confirmed COMPLETE** — no flag, closing credit balance re-verified.
+
+### Credits
+
+Opening: **1,918**. Closing: **1,918**. Zero credits spent across the entire
+wave (9 clips, all Unlimited).
+
+### Scene coverage after this wave
+
+Uncovered-scene priority list (CTO's mid-wave directive) — **9 of 10 done**:
+
+| Scene | Status |
+|---|---|
+| S4A | ✅ 1 clip (`ecc5f10a`) — 4/5 elements, door unbound |
+| S4 | ✅ 1 clip (`608fe914`) |
+| S4B | ✅ 1 clip (`fe43795d`) |
+| S4C | ✅ 1 clip (`fc5bd050`) |
+| S5 | ✅ 1 clip (`e502bd5f`) — 5/6 elements, door unbound |
+| S5B | ✅ 1 clip (`cce6e442`) |
+| S6 | ✅ 1 clip (`d9b5be7b`) |
+| S-MU | ✅ 1 clip (`3834bd4f`) |
+| **S7A** | ❌ **NOT covered — next priority for wave6** |
+| **S7B** | ❌ **NOT covered — next priority for wave6, now 8 shots (loc_aerial final shot)** |
+
+Also fired this wave (already-covered scenes, extra takes): S1 take1
+(`05261d07`), S1B take1 (`272e635e`).
+
+Full per-project coverage after this wave: S1 (7 takes total across waves),
+S1B (5 takes), S2 (2 takes, wave4), S3 (from wave3, untouched this wave),
+S4A/S4/S4B/S4C/S5/S5B/S6/S-MU (1 take each, this wave), S-V (1 take, wave4).
+**S7A and S7B remain at zero footage.**
+
+### Known issue for wave6 to inherit
+
+`@project_valder_loc_neighbor_door` does not resolve to a bound reference —
+confirmed via 5+ independent attempts across S4A and S5, including an
+isolated empty-composer test that ruled out substring collision with
+`char_neighbor`. The element exists in the project (Elements panel, exact
+name match) but the Lexical mention plugin will not bind it. Needs a human
+with Elements-panel access to re-save or re-upload the element. Does not
+block firing — the door stays in the prose as plain text, just not attached
+as an image reference. Check if any S7A/S7B prompts also reference this tag.
+
+### Exact browser state left behind
+
+- **One tab open**, tabId `53464737`, URL
+  `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3` (no
+  `/folders/` or `?elements=1` suffix — the project-root composer).
+- **Composer holds S6's prompt text** (18,064 raw chars incl. Lexical
+  paragraph breaks; 17,643 normalized). This is stale/already-fired content —
+  **clear it before staging the next scene**, don't assume it's usable.
+- **Settings**: Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On.
+- **Unlimited toggle: ON** (`aria-checked=true`), confirmed in the same read
+  as the settings above — but per the money rules, re-verify fresh (zoom the
+  Generate button for the struck-through price) before any click; it has been
+  seen resetting to OFF silently multiple times this wave after tab-group
+  teardowns and full-page reloads.
+- **No reference elements attached** in the sense that matters — the 8 chips
+  bound to S6 are stale and will be replaced by the next scene's paste.
+- Two environmental hazards hit this wave, both now documented with fixes:
+  (1) the Chrome MCP tab group can be destroyed by closing a non-last tab in
+  it (not just Escape, as previously documented) — recreate via
+  `tabs_context_mcp{createIfEmpty:true}` and re-navigate; (2) the real macOS
+  clipboard on this shared Mac gets overwritten by another process — always
+  re-run `pbcopy` immediately before the paste keystroke, with zero other
+  tool calls in between, and verify post-paste content before trusting it.
+
+### All clip ids fired this wave (chronological)
+
+`05261d07-4547-479e-97f7-a9fc14703ba0` (S1), `272e635e-bfca-4e22-9856-df0479674eac` (S1B),
+`3834bd4f-4fc6-4846-98c3-43b7eef07c3a` (S-MU), `ecc5f10a-b6d3-4350-ab0a-6c5eaf94ceef` (S4A),
+`608fe914-62a0-48a6-985b-2f0b71f332b4` (S4), `fe43795d-4fe7-4bda-b693-27e031949e23` (S4B),
+`fc5bd050-2680-4edc-bb5d-0dcdfb514af9` (S4C), `e502bd5f-0a19-47bd-ac99-f79c4a3643a7` (S5),
+`cce6e442-626b-4deb-a9a8-6423de3758f3` (S5B), `d9b5be7b-df13-4f66-809e-845b8dd60c08` (S6).
