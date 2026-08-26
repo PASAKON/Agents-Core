@@ -16,7 +16,7 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW. Each of these i
 
 @project_valder_loc_fountain_hall — THE PUBLIC CONCOURSE. A large bright civic space in vivid saturated colour with a circular fountain at its centre. Correct, square architecture.
 
-@project_valder_loc_studio — VALDER'S STUDIO HALL. A long hall with both long walls in one enormous unbroken plane of full-strength oxblood red, a colossal window down one side.
+@project_valder_loc_studio — VALDER'S STUDIO HALL. A long hall with both long walls in one enormous unbroken plane of FULL-STRENGTH BRIGHT PILLAR-BOX RED — a hot, pure, high-saturation red, NOT a dark oxblood or wine red, a colossal window down one side.
 
 @project_valder_prop_magazine — THE NEWSPAPER PAGE. A full-page property advertisement: an aerial photograph of a housing estate above three house types in a row with a price beside each. No human face is printed on it anywhere.
 

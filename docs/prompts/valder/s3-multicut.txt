@@ -8,19 +8,19 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_char_mother — THE MOTHER. A woman in her forties, very straight, hands habitually clasped. PALE washed-out clothes, CLEAN, PRESSED, CAREFULLY MENDED. Skin still WARM. **SHE LEADS THIS MOVE.** She walks in front. She is the one looking at the neighbouring houses rather than at her own. SHE IS ONE PERSON.
 
-@project_valder_char_father — THE FATHER. A heavy-set man with a thick neck, coat cut for a thinner man. Pale clothes, clean, mended. Warm skin. Hands behind his back. HE IS ONE PERSON.
+@project_valder_char_father — THE FATHER. A heavy-set man with a thick neck, coat cut for a thinner man. A dusty-rose dress with a SMALL FADED FLORAL PRINT, a collar and cap sleeves — clean, pressed, mended. Warm skin. Hands behind his back. HE IS ONE PERSON.
 
-@project_valder_char_son — THE SON. A boy, small for his age, sleeves over his hands, one sock down. Pale clothes, clean, mended. Warm skin. HE IS ONE PERSON.
+@project_valder_char_son — THE SON. A boy, small for his age, sleeves over his hands, one sock down. A dusty-rose dress with a SMALL FADED FLORAL PRINT, a collar and cap sleeves — clean, pressed, mended. Warm skin. HE IS ONE PERSON.
 
-@project_valder_char_daughter — THE DAUGHTER. A small girl, wide unblinking eyes, fringe cut slightly crooked. Pale clothes, clean, mended. Warm skin. SHE IS THE ONLY ONE WHO ACTUALLY LOOKS AT THINGS. SHE IS ONE PERSON.
+@project_valder_char_daughter — THE DAUGHTER. A small girl, wide unblinking eyes, fringe cut slightly crooked. A dusty-rose dress with a SMALL FADED FLORAL PRINT, a collar and cap sleeves — clean, pressed, mended. Warm skin. SHE IS THE ONLY ONE WHO ACTUALLY LOOKS AT THINGS. SHE IS ONE PERSON.
 
 @project_valder_char_grandma — THE GRANDMOTHER. A small stooped woman in layers of faded knitwear, enormous handbag. Warm skin. SHE IS ONE PERSON.
 
 @project_valder_loc_house_old — THE OLD HOUSE. An ordinary small dwelling. Pale, cluttered yard, a leaning wooden fence with boards missing, a door standing open. THE ONLY BUILDING IN THIS FILM WITH NO RETROFUTURIST FEATURES AT ALL — it is simply a plain old house, and that is what makes it read as the past.
 
-@project_valder_loc_street_row — THE NEW STREET. A row of houses ALL EXACTLY THE SAME SHAPE, differing ONLY IN COLOUR. Swept rooflines, cantilevered carports with no visible supports, huge empty lawns mown flat, deeply saturated colour on every facade. No cars. No people.
+@project_valder_loc_street_row — THE NEW STREET. A row of houses ALL EXACTLY THE SAME SHAPE, differing ONLY IN COLOUR. FLAT-ROOFED BOXES with a cantilevered carport canopy carried on a single tapered swept fin, huge empty lawns mown flat, deeply saturated colour on every facade. No cars. No people.
 
-@project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered to a sharp point at the bottom. It is stamped into EVERYTHING Valder designs, INCLUDING THE HOUSES — one gold V set into each facade, identical on every house on the street. IT IS THE SAME SHAPE AT EVERY SIZE.
+@project_valder_prop_mark — THE GOLD V. Valder's trademark: a capital letter V in brushed matte warm gold, flat, wide at the top and tapering to a sharp point. **THE HOUSES THEMSELVES CARRY NO VISIBLE MARK — the street is bare of it.** The V appears in this scene only if it is small and on an object, never mounted on a facade.
 
 THERE IS EXACTLY ONE OF EACH FAMILY MEMBER — one mother, one father, one son, one daughter, one grandmother. Never two of any of them, never a copy, never a double in the background. NO DUPLICATE CHARACTER.
 
@@ -109,8 +109,6 @@ Very wide. @project_valder_loc_street_row. Camera at chest height, locked.
 
 The row of houses: EVERY ONE THE SAME SHAPE, every one a different intense saturated colour. Flat empty lawns. Cantilevered carports floating with no visible support. No cars, no people.
 
-@project_valder_prop_mark — the gold V — is set into EACH facade, one per house, IDENTICAL on every one.
-
 The family walks up the middle of the road, small in the frame. @project_valder_char_mother is IN FRONT. The others follow behind her in a loose line.
 
 They are the only pale things anywhere in the shot.
@@ -122,8 +120,6 @@ They are the only pale things anywhere in the shot.
 Wide. Camera at chest height, locked.
 
 They stop in front of one house. A single unbroken plane of deep saturated colour, an enormous empty lawn, a carport reaching out over nothing.
-
-@project_valder_prop_mark sits on the facade, gold and clean.
 
 The family stands looking at it in a line, in the same arrangement they used in front of the gilt frame.
 

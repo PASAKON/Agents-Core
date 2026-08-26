@@ -10,9 +10,11 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW. Each of these i
 
 @project_valder_char_press — THE NEWSPAPER PHOTOGRAPHERS. Permanently and severely hunched, one shoulder dramatically higher than the other, a leather bandolier of flashbulbs across the chest, thick heavy spectacles, carrying an enormous retrofuturist press camera with a separate chrome flash unit on a bracket. Pale indoor skin. THERE ARE SEVERAL OF THEM AND EVERY FACE IS DIFFERENT.
 
+@project_valder_char_chase_group — THE PEOPLE WHO RUN. A dedicated running reference: four people mid-stride at full pelt — a press photographer in a belted trench and brown fedora STILL PHOTOGRAPHING AS HE RUNS with the camera up at his eye, an attendant in a pale blue uniform with a gold stripe down the trouser and white gloves, a woman in a pink cardigan and long skirt with one arm stretched out ahead of her reaching for something, and a man in a dark jacket and flat cap with a satchel. **USE THIS FOR EVERY SHOT IN WHICH ANYONE IS RUNNING** — the standing crowd reference will fight the action and produce stiff, planted poses.
+
 @project_valder_char_crowd_a — THE CROWD. Well-off members of the public, fashionably dressed in saturated colours. Pale indoor skin. THIS REFERENCE SHOWS THE TYPE OF PERSON, NOT A HEAD COUNT — the crowd in this film is always MANY such people, never one. EVERY ONE OF THEM HAS A DIFFERENT FACE, A DIFFERENT BUILD, DIFFERENT HAIR AND DIFFERENT CLOTHES.
 
-@project_valder_loc_studio — VALDER'S STUDIO HALL. A long hall with both long walls in one enormous unbroken plane of full-strength oxblood red, a pale terrazzo floor, a colossal window down one side, and a low black cantilevered platform at the far end.
+@project_valder_loc_studio — VALDER'S STUDIO HALL. A long hall with both long walls in one enormous unbroken plane of FULL-STRENGTH BRIGHT PILLAR-BOX RED — a hot, pure, high-saturation red, NOT a dark oxblood or wine red, a pale terrazzo floor, a colossal window down one side, and a low black cantilevered platform at the far end.
 
 NO FACE IS EVER REPEATED IN THIS FILM. Every person who appears is a different individual. There is exactly one boy and exactly one Valder — never two of either, never a copy, never a double in the background.
 
@@ -56,7 +58,7 @@ A Valder coat is unmistakable on sight — floor-length or near it, built from l
 **THE CHROME STARBURST BELONGS TO VALDER HIMSELF AND TO HIS STAFF.** Valder wears an enormous chrome starburst at his throat; his guards carry a small chrome starburst on their cap badges. Customers do not wear it. The founder does not wear his own product mark and his customers do not wear his personal emblem — that separation is deliberate and it is part of the joke.
 
 === SHOT 1 — 0:00 to 0:03 — HE LOOKS AT HIS OWN WORK, ONCE ===
-A LEVEL SHOT at the far end of @project_valder_loc_studio, closer on @project_valder_char_valder than we have ever been — he sits at his drafting desk on the low black cantilevered platform, the vast oxblood wall behind him, drawing with his EYES CLOSED as always.
+A LEVEL SHOT at the far end of @project_valder_loc_studio, closer on @project_valder_char_valder than we have ever been — he sits at his drafting desk on the low black cantilevered platform, the vast bright red wall behind him, drawing with his EYES CLOSED as always.
 
 Then HIS PENCIL STOPS. HE OPENS HIS EYES AND LOOKS DOWN AT THE SHEET IN FRONT OF HIM. This is the only time in the entire film he looks at his own work. His face does not change — no frown, no disappointment played, nothing performed. He simply looks at it for a held beat, the way a man checks something he has already decided about.
 
@@ -119,6 +121,8 @@ THE BOY STANDS ABSOLUTELY STILL IN THE MIDDLE OF IT, the crumpled ball clutched 
 === HARD CUT ===
 
 === SHOT 7 — 0:15.5 to 0:18 — HE RUNS ===
+
+**THE PURSUERS IN THIS SHOT ARE @project_valder_char_chase_group — the running reference, not the standing crowd.** They are already at full stride: the photographer still shooting as he runs, the pale-blue-uniformed attendant, the woman with her arm outstretched, the man with the satchel.
 A LEVEL SHOT at the boy's head height. HE TURNS AND RUNS. Not a dramatic sprint — a small boy running flat out the only way he knows how, both arms wrapped around the crumpled ball, head down, shoulders working, threading between the legs and coats of the adults toward the far door.
 
 BEHIND HIM THE WHOLE ROOM COMES AFTER HIM. Not a stampede and not a riot — **AN ORDERLY, DEADPAN, ABSOLUTELY DETERMINED PURSUIT.** The crowd turn and set off together, coats swinging, still not speaking, faces still blank, walking very fast and then breaking into a run. The photographers come too, cameras swinging on their straps. Even the guards' line breaks for the first time in the film and joins them.

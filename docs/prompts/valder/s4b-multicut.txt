@@ -10,9 +10,9 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_char_father — THE FATHER. A heavy-set man with a thick neck, wearing a coat cut for a thinner man. Pale, washed-out colours, clean and mended. Warm skin. He walks slightly ahead of everyone, hands behind his back. HE IS ONE PERSON.
 
-@project_valder_char_daughter — THE DAUGHTER. A small girl with wide unblinking eyes and a fringe cut slightly crooked. Pale clothes, clean, mended. Warm skin. SHE IS THE ONLY PERSON IN THIS FAMILY WHO ACTUALLY LOOKS AT THINGS. SHE IS ONE PERSON.
+@project_valder_char_daughter — THE DAUGHTER. A small girl with wide unblinking eyes and a fringe cut slightly crooked. A dusty-rose dress with a SMALL FADED FLORAL PRINT, a collar and cap sleeves — clean, pressed, mended. Warm skin. SHE IS THE ONLY PERSON IN THIS FAMILY WHO ACTUALLY LOOKS AT THINGS. SHE IS ONE PERSON.
 
-@project_valder_char_son — THE SON. A boy, small for his age, sleeves covering his hands, one sock fallen down. Pale clothes, clean, mended. Warm skin. HE IS ONE PERSON.
+@project_valder_char_son — THE SON. A boy, small for his age, sleeves covering his hands, one sock fallen down. A dusty-rose dress with a SMALL FADED FLORAL PRINT, a collar and cap sleeves — clean, pressed, mended. Warm skin. HE IS ONE PERSON.
 
 @project_valder_char_grandma — THE GRANDMOTHER. A small stooped woman in several layers of faded knitwear, carrying an enormous handbag. Warm skin. SHE IS ONE PERSON.
 

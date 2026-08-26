@@ -10,9 +10,9 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_char_father — THE FATHER. A heavy-set man with a thick neck, in a coat cut for a thinner man. Pale washed-out clothes, clean and mended. Warm skin. Seated and eating. He is pleased because SHE is pleased, and for no other reason. HE IS ONE PERSON.
 
-@project_valder_char_son — THE SON. A boy, small for his age, sleeves covering his hands, one sock fallen down. Pale clothes, clean, mended. Warm skin. He does not speak. **HE IS THE ONE WHO BROUGHT THE DRAWING HOME, AND HE IS QUIETLY PROUD OF IT** — tonight his parents are happy because of him. HE IS ONE PERSON.
+@project_valder_char_son — THE SON. A boy, small for his age, sleeves covering his hands, one sock fallen down. A dusty-rose dress with a SMALL FADED FLORAL PRINT, a collar and cap sleeves — clean, pressed, mended. Warm skin. He does not speak. **HE IS THE ONE WHO BROUGHT THE DRAWING HOME, AND HE IS QUIETLY PROUD OF IT** — tonight his parents are happy because of him. HE IS ONE PERSON.
 
-@project_valder_char_daughter — THE DAUGHTER. A small girl with wide unblinking eyes and a fringe cut slightly crooked. Pale clothes, clean, mended. Warm skin. SHE IS THE ONLY PERSON HERE WHO ACTUALLY LOOKS AT THINGS. SHE IS ONE PERSON.
+@project_valder_char_daughter — THE DAUGHTER. A small girl with wide unblinking eyes and a fringe cut slightly crooked. A dusty-rose dress with a SMALL FADED FLORAL PRINT, a collar and cap sleeves — clean, pressed, mended. Warm skin. SHE IS THE ONLY PERSON HERE WHO ACTUALLY LOOKS AT THINGS. SHE IS ONE PERSON.
 
 @project_valder_char_grandma — THE GRANDMOTHER. A small stooped woman in several layers of faded knitwear, enormous handbag. Warm skin. She is the only one who feels anything genuinely. SHE IS ONE PERSON.
 

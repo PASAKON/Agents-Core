@@ -18,9 +18,9 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE THE SHOT BELOW.
 
 @project_valder_char_crowd_a — THE ONLOOKERS. Wealthy members of the public. **They wear unmistakable Valder coats: long, built from large flat panels of several intensely saturated colours meeting at hard edges, with MATCHING COLOURED GLOVES and MATCHING COLOURED SHOES and a scarf at the throat, each person in a completely different colour combination from every other.** Some wear round dark glasses. Ordinary healthy skin — they are NOT pale, NOT tinted, NOT sickly. **Some of them are accompanied by attendants in plain black suits, and those attendants stay slightly behind them.** Every single face, build, age and colour combination is different.
 
-@project_valder_loc_studio — VALDER'S STUDIO HALL. A long hall with both long walls in one enormous unbroken plane of full-strength oxblood red, a pale terrazzo floor, a colossal window running down one side, and a low black cantilevered platform at the far end.
+@project_valder_loc_studio — VALDER'S STUDIO HALL. A long hall with both long walls in one enormous unbroken plane of FULL-STRENGTH BRIGHT PILLAR-BOX RED — a hot, pure, high-saturation red, NOT a dark oxblood or wine red, a pale terrazzo floor, a colossal window running down one side, and a low black cantilevered platform at the far end.
 
-@project_valder_prop_mark — THE GOLD V. Valder's trademark: a capital letter V in polished warm gold, thick even strokes, tapered and narrowing to a sharp point at the bottom. Here it appears ONCE, set into the oxblood wall behind the platform. Same shape at every size.
+@project_valder_prop_mark — THE GOLD V. Valder's trademark: a capital letter V in polished warm gold, thick even strokes, tapered and narrowing to a sharp point at the bottom. **IT DOES NOT APPEAR ON THE WALLS OF THIS HALL AT ALL — they are unbroken planes of red and nothing else.** If it appears anywhere here it is small and on an object, never mounted architecturally.
 
 THERE IS EXACTLY ONE VALDER. Never two, never a copy, never a double in the background, never a reflection that produces a second one. NO DUPLICATE CHARACTER. Every other person in the frame is a different individual and NO FACE IS EVER REPEATED.
 
