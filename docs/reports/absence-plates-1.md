@@ -1,6 +1,20 @@
 # Absence of Meaning — location plates, Wave 1 (Soul cost verification)
 
-Status: **BLOCKED before any generation fired.** GH issue: https://github.com/PASAKON/MoonieX-Agents/issues/108
+Status: **BLOCKED, still 0/5 plates.** Two separate blockers hit, in order:
+- GH #108 (resolved — accidental logout, CEO logged back in): https://github.com/PASAKON/MoonieX-Agents/issues/108
+- GH #110 (current — Generate button silent no-op): https://github.com/PASAKON/MoonieX-Agents/issues/110
+
+## Update — resumed after login, hit a second blocker (Generate no-op)
+
+After the CEO logged back in, re-verified everything fresh (per instruction — re-query all refs, don't trust anything from before the login):
+- Re-checked paid balance: still **1,848** — confirms the earlier logout cost nothing.
+- Re-selected Image mode + Higgsfield Soul Cinema (composer resets to Video/Cinema-Studio-4.0 on every fresh folder navigation — confirmed again, matches existing project notes).
+- Checked the Camera panel: it only exposes film-stock/lens *style* presets (35mm Film / 8mm Film / DV Camcorder / Auto / Modern for camera; Vintage Anamorphic / Warm Vintage / Halation Vintage / Auto / Clean Sharp / Anamorphic for lens) via a scroll-wheel picker UI — no angle/tilt/height sliders exist. Left both on Auto rather than force the wheel-picker (a click doesn't select it, it needs a drag/scroll gesture) — encoded "eye level, straight and level, no tilt, no dutch angle, a normal not-wide-angle lens" directly into the prompt text instead, which is the deliberate camera-control decision for every plate in this set.
+- Pasted the `project_absence_loc_gallery` prompt (989 chars, verified exact-length match), applied the standard desync fix, verified the Generate button read "GENERATE / 4,999 free gens left" with no paid digit, and clicked.
+- **Generate silently no-op'd three times in a row** (one clean click, a reload + re-verify + re-click, and a third clean click) — no toast, "All assets" counter stayed at 274, no new/spinner card in the grid, and the free-gens counter stayed at exactly 4,999 throughout, ruling out a delayed/queued success. Full details and the matching Wave 6/7 precedent for this exact composer are in GH #110.
+- Stopped after the third attempt per the click-blocked-control rule. Composer left as-is (prompt still staged) for a human to try Generate once, or to confirm/deny a Higgsfield-side outage.
+
+Also hit one unrelated renderer freeze (CDP `Runtime.evaluate` timed out twice in a row) on an earlier tab mid-session — recovered by opening a fresh tab and closing the frozen one, no generation was in flight at the time so no Usage-History check was needed per the "any error → check Usage" rule (confirmed nothing to check: zero clicks had happened on that frozen tab).
 
 ## Step 1 — Soul cost verification (incomplete)
 
