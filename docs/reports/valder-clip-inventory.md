@@ -124,3 +124,27 @@ identity.** The prompts already describe the door in specific prose ("a single
 door set into an enormous flat plane of deeply saturated colour"), so the three
 scenes will render a similar door even unbound. The arc survives; only
 pixel-level continuity is lost. Losing the scene entirely would be worse.
+
+## Six takes are obsolete — fired against superseded prompts
+
+Marked `OLD prompt` by the operators who fired them. They pre-date the CEO's
+S1 rewrite (family walking as a chain, mother leading with the newspaper) and
+the S1B slow-motion shot 3. **They cannot be cut into the film.**
+
+```
+S1    43762082-cc8c-4325-b9fa-d5b337c81d46
+S1    57453ca1-2a4a-438f-8f10-def379c01ad1
+S1    8195c8b3-316f-490e-9c78-ac3bb39952bc   (also flagged UNVERIFIED, see below)
+S1B   22cc1930-6fd7-4038-b7c4-9cb83c041818
+S1B   35dbf2d6-3586-4faf-b6e3-9c06ed9a5edf
+S1B   423b2b6f-99c4-4fb4-acaf-43207294e999
+```
+
+So of the 16 clips counted at 15:00, **10 are usable**. S1 and S1B look
+well-covered by raw take count and are not. Both were re-fired against current
+prompts during wave5.
+
+`8195c8b3` carries a separate wave2/wave3 note claiming the UUID is also the
+image plate `prop_dress_c2`. **That claim does not reproduce** — the id appears
+nowhere in `docs/plates/PLATES.md` and nowhere in any prompt file. Left flagged
+rather than chased: the take is obsolete anyway, and S1 has other takes.
