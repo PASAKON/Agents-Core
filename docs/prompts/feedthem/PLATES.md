@@ -208,3 +208,89 @@ view) shows the hood up over the cap from behind — consistent silhouette, thou
 two sheets the wetness is not strongly legible from behind. Overall the darkest, most
 uniform-toned sheet of the three, which matches the "duller clothing" identity requirement for
 this character.
+
+---
+
+## project_feedthem_char_fish_a
+
+Asset id: `d5ef94bb-e856-4514-a5ea-724abc0b0745`
+
+Prompt:
+```
+A small school of ordinary tropical aquarium fish swimming together in clear, shallow, sunlit
+water, photographed from just above or at the waterline looking down and across the surface. The
+fish are small, rounded, and completely harmless-looking -- the friendly common kind people keep
+in a home aquarium or see at a tourist feeding spot -- silver bodies with soft yellow and pale
+blue accents, smooth rounded fins, no teeth, no sharp spines, no predator features, nothing
+menacing or aggressive. Bright natural daylight, dappled light patterns through the water
+surface, pale sandy bottom faintly visible below. Natural documentary-style water photography,
+pretty and ordinary, not stylized, no film grain, no found-footage look, no text overlay, no
+people, no hands.
+```
+
+What it actually shows: a school of about a dozen silvery fish with yellow horizontal
+stripe/fin markings and a faint pale-blue sheen, swimming in beautifully clear shallow water with
+visible light rays and a sandy bottom. Completely harmless and pretty — no teeth, no aggression,
+reads exactly like a calm snorkeling-spot photo. Genuinely the strongest and prettiest of the
+three fish plates.
+
+---
+
+## project_feedthem_char_fish_b
+
+Asset id: `f70f398e-0aec-4090-9583-30587ac9bcc6`
+
+Prompt:
+```
+A small school of ordinary tropical aquarium fish swimming together in clear, shallow, sunlit
+water, photographed from just above or at the waterline looking down and across the surface. The
+fish are small, rounded, and completely harmless-looking -- the friendly common kind people keep
+in a home aquarium or see at a tourist feeding spot -- pale silver bodies with faint dark vertical
+stripes and soft orange-tinted fins, gentle rounded shapes, no teeth, no sharp spines, no predator
+features, nothing menacing or aggressive. Bright natural daylight, dappled light patterns through
+the water surface, pale sandy bottom faintly visible below. Natural documentary-style water
+photography, pretty and ordinary, not stylized, no film grain, no found-footage look, no text
+overlay, no people, no hands.
+```
+
+What it actually shows: a tight school of grey-silver fish with clear dark vertical stripes and
+orange-yellow fins/tails — reads as a real, specific, common reef/aquarium species (sergeant
+major-type), not a generic blob. Rounded harmless bodies, no teeth or menace, clear shallow water
+with sandy bottom. Matches the brief precisely.
+
+---
+
+## project_feedthem_char_fish_c
+
+Asset id: `8083ad0b-efaa-4eaa-822f-420484535e03`
+(second render, same prompt: `11d6e8fa-1db9-47a0-b667-c4d36e946a92` — see note below)
+
+Prompt:
+```
+A small school of ordinary tropical aquarium fish swimming together in clear, shallow, sunlit
+water, photographed from just above or at the waterline looking down and across the surface. The
+fish are small, rounded, and completely harmless-looking -- the friendly common kind people keep
+in a home aquarium or see at a tourist feeding spot -- pale yellow and white bodies with a soft
+rounded shape, loosely schooling rather than tightly packed, no teeth, no sharp spines, no
+predator features, nothing menacing or aggressive. Bright natural daylight, dappled light
+patterns through the water surface, pale sandy bottom faintly visible below. Natural
+documentary-style water photography, pretty and ordinary, not stylized, no film grain, no
+found-footage look, no text overlay, no people, no hands.
+```
+
+**Note on the duplicate**: a browser-automation double-click race accidentally fired this exact
+prompt twice in a row (the first click's result was delayed and looked like a no-op, so a second
+click was sent before the first had actually landed — confirmed via the "All assets" counter
+jumping by 2 and the credit ledger showing exactly 18 credits spent across 9 real generations).
+This was not an authorized 4th fish variant and not a quality-driven regenerate — it is reported
+here transparently per the task's honesty requirement. Both renders are kept, undeleted, for the
+CEO to pick from; extra cost was 2 credits.
+
+What `8083ad0b...` actually shows: loosely schooling yellow-and-white fish, rounder disc-like
+bodies with yellow-tipped fins and heads, in the same clear shallow sunlit water. Pretty, gentle,
+no menace.
+
+What `11d6e8fa...` (the duplicate) actually shows: a different composition of the same species —
+smaller, tighter cluster, more silver-yellow mixed than white-and-yellow, otherwise the same
+water, lighting, and harmless character. A usable second take of the same variant, not a
+meaningfully different design.

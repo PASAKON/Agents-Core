@@ -25,9 +25,10 @@ sheet (amendment landed before a single-pose Ash was made).
 | project_feedthem_char_nadia (single) | `18ae64b1-bbcb-4b08-bddf-ba8d80cde965` | Character |
 | project_feedthem_char_nadia (sheet) | `a2625c7a-8fde-48f3-9b46-902677e41a1d` | Character |
 | project_feedthem_char_ash (sheet only) | `3ba5f963-4b38-493d-8ee5-494b4815526e` | Character |
-| project_feedthem_char_fish_a | TBD | Character |
-| project_feedthem_char_fish_b | TBD | Character |
-| project_feedthem_char_fish_c | TBD | Character |
+| project_feedthem_char_fish_a | `d5ef94bb-e856-4514-a5ea-724abc0b0745` | Character |
+| project_feedthem_char_fish_b | `f70f398e-0aec-4090-9583-30587ac9bcc6` | Character |
+| project_feedthem_char_fish_c | `8083ad0b-efaa-4eaa-822f-420484535e03` | Character |
+| project_feedthem_char_fish_c (accidental duplicate — same prompt, browser-operator double-click race, not an authorized 4th variant; kept per no-judgment rule, CEO can discard) | `11d6e8fa-1db9-47a0-b667-c4d36e946a92` | Character |
 
 ## Prop
 
