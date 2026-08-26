@@ -92,33 +92,73 @@ each, so the location set stays internally consistent for intercutting.
 
 ## Location plate redos (GPT Image 2)
 
-**Wall-crack redo — done.** `/Users/gob/Desktop/absence-01-wall-crack.png`
-(overwrote the rejected version). Model: GPT Image 2, Medium quality, 1K, 2
-credits. `@project_absence_prop_tag` verified GREEN (`text-font-brand`) in the
-composer immediately before generating. New prompt fixes both CEO-flagged
-problems: (1) plaque is now referenced correctly by name instead of a stray
-raw uuid pointing at the wrong element, (2) crack rewritten as a long,
-diagonal, clearly-visible fracture with chipped plaster at the edges — result
-confirmed visually as a strong, legible crack running most of the wall's
-width, not a hairline.
+**Wall-crack, attempt 1 — done, then rejected again by CEO for crack size.**
+Model: GPT Image 2, Medium, 1K, 2 credits. `@project_absence_prop_tag` verified
+GREEN before generating. Fixed the wrong-plaque problem, but the crack itself
+was drawn as a long diagonal fracture spanning most of the wall with visible
+floor debris — the CEO's brief had said "visible from across a room," which
+this took too literally. CEO verdict: reads as earthquake damage, not an
+accident; his own fault for the wording, not the operator's.
 
-**Hall four-panel sheet — generating.** Prompt: one wide image, four panels
-(hero wall w/ crack+tag, left side, right side, high overhead), Valder's seat
-placed in the right-side panel with sightline to the hero wall, white walls +
-other real framed art + sculptures/installations, saturated retrofuturist
-colour in floor/ceiling/architecture, no people. `@project_absence_loc_wall_crack`
-verified GREEN before generating (ties panel 1 to the already-fixed crack
-plate). Model: GPT Image 2, Medium, 1K, 2 credits. Awaiting completion.
+**Wall-crack, attempt 2 — done, accepted.**
+`/Users/gob/Desktop/absence-01-wall-crack.png` (overwrote attempt 1). Same
+model/settings/plaque reference, crack rewritten to CEO's corrected spec: a
+small, LOCAL crack roughly the size of a spread hand, near painting height, a
+little chipped plaster right at the impact point, **zero rubble on the
+floor**. Confirmed visually against the CEO's own test ("could one man with a
+ladder have done this by accident") — result is a short, thin, hand-scale
+crack with one hairline branch, clean floor. `@project_absence_prop_tag`
+re-verified GREEN before this generation too.
+
+**Element re-filed.** Used the asset's `...` menu → **Assign to element** →
+searched `wall_crack` → selected the existing `project_absence_loc_wall_crack`
+Element → Assign. This points the Element at the NEW (small-crack) asset
+instead of creating a duplicate Element. Re-verified by pasting
+`@project_absence_loc_wall_crack` fresh: renders GREEN (`text-font-brand`)
+with a reference thumbnail that visually shows the new small-crack
+composition, not the old big-crack one.
+
+**Hall four-panel sheet — done, accepted (no correction requested on this
+one).** `/Users/gob/Desktop/absence-02-hall.png` (overwrote the rejected
+single-view hall). One wide image, four panels: hero wall (referencing
+`@project_absence_loc_wall_crack`, so it inherits whichever crack version was
+current at generation time — this was generated using the FIRST wall-crack
+attempt, before the CEO's size correction landed; the hero-wall panel's crack
+has not been individually re-checked against the corrected small-crack spec),
+left side, right side (a distinctive red/maroon chair visible — candidate for
+Valder's seat, sightline toward hero wall), high overhead (full floor plan
+readable, same chair visible from above). White walls with other framed art
+and sculptures, retrofuturist terrazzo floor and starburst ceiling motifs, no
+people. Model: GPT Image 2, Medium, 1K, 2 credits.
+
+**Flag for CTO/CEO:** the hall's hero-wall panel likely still shows the
+too-large crack from attempt 1, since it was generated before the size fix.
+Not re-generated in this session because no correction was requested on the
+hall specifically — surfacing this now rather than assuming it's fine.
 
 ## JOB 3 — corridor generation
 
-Not started — corridor generation is scheduled after both location redos are
-confirmed on disk, per the updated CEO priority.
+Not started — ran out of scope/time this session after the two location
+correction rounds. Hall and wall-crack are both confirmed accepted; corridor
+is next up whenever picked back up.
 
 ## Credits
 
-- Paid balance: 1,844 (confirmed via Account menu → Credits, mid-JOB-1)
-- Soul free allowance: not yet checked
+- Paid balance: 1,838 left (was 1,844 at task start; 6 credits spent across
+  three GPT Image 2 generations — 2 wall-crack attempts + 1 hall sheet, 2
+  credits each at Medium/1K). Well inside the 10-credit cap.
+- Soul free allowance: not touched this session (stayed on GPT Image 2 per
+  CEO ruling), so still ~4,995 per the original brief.
+
+## Green/red table (final state, this session)
+
+| Element | Color | Notes |
+|---|---|---|
+| project_absence_prop_painting | GREEN | unchanged |
+| project_absence_prop_tag | GREEN | unchanged |
+| project_absence_loc_wall_crack | GREEN | re-filed to the corrected small-crack asset |
+| project_absence_loc_hall_big | GREEN | re-filed to the new four-panel asset (via regeneration, same Element) |
+| project_absence_loc_corridor | RED | not generated — JOB 3 not started |
 
 ## Tab
 
