@@ -1,0 +1,447 @@
+# Valder video wave 3 (task-80379c92)
+
+## HANDOFF — 2026-08-26 ~10:38, operator stopped here on CTO instruction (context length)
+
+**Every clip asset id fired this wave, one line each, all with the current
+rewritten prompts unless noted:**
+
+- S1 take 1: `e4c958ae-7249-4fc6-ab83-8b17b13a86f3` (fired, complete — confirmed via fresh-tab check)
+- S1 take 2: `b2e27617-43c6-496b-9b51-e7499f1fc515` (fired ~10:26, **render in progress at handoff** — not yet confirmed complete)
+- S1B take 1: `4dc7f9b3-94f9-474c-8f83-b22ae92d2e12` (fired, complete — confirmed via fresh-tab check)
+- S1B take 2: **STAGED, NOT FIRED.** Prompt pasted in composer, 6/6 elements bound, 0 errors, Unlimited confirmed ON (`aria-checked: true`) as of the last read before stopping. Was waiting for S1 take 2 to clear the render slot before firing — **did not fire it**, per the instruction to start no new generation.
+- S3 take 1: `6d01ad10-572e-41d1-876f-58093c0f5b56` (carried from the prior task/wave, fired with the current rewritten S3 prompt, complete)
+- S-V take 1: `3e0252ef-be34-4852-ba0a-0dc83cecbdde` (fired, complete — needs visual review, see below)
+- S-V take 2: `77b6a8af-fc94-4329-89a2-12a32ecdfa04` (fired, complete — needs visual review, see below)
+
+**Carried forward from wave2 (task-b7224c38), OLD pre-rewrite prompt versions — real footage but do NOT count as satisfying this task's S1/S1B requirement:**
+- S1 take A: `57453ca1-2a4a-438f-8f10-def379c01ad1` (complete, old 8-element prompt)
+- S1 take B: `43762082-cc8c-4325-b9fa-d5b337c81d46` (complete, old prompt)
+- S1 take C: `8195c8b3-316f-490e-9c78-ac3bb39952bc` — **BAD DATA, do not trust.** This UUID is also recorded elsewhere as the image-plate asset `project_valder_prop_dress_c2`; two assets cannot share a UUID. Old prompt regardless — not chased further, per the task brief's own instruction.
+- S1B take A: `423b2b6f-99c4-4fb4-acaf-43207294e999` (complete, old prompt)
+- S1B take B: `35dbf2d6-3586-4faf-b6e3-9c06ed9a5edf` (complete, old prompt)
+- S1B take C: `22cc1930-6fd7-4038-b7c4-9cb83c041818` (complete, old prompt)
+
+**Every other scene in the 13-scene brief — pending, blocked, not this operator's ability to clear:**
+- S2, S4, S4B, S4C, S5B, S6, S7A, S7B: **BLOCKED**, protected-content gate on newly-created Elements (`prop_frame`, `loc_new_interior`, `prop_market_bag`, `loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags`, `loc_neighbor_parlour`, `prop_dress_c2` — 8 distinct Elements). Each tried once or twice this wave (one plain retry per the CTO's instruction), gated identically both times, 0 cost. This needs someone with platform/Element-admin access to check the Elements' moderation status directly — no amount of operator retrying clears it.
+- S4A, S5: **BLOCKED**, non-transient. `@project_valder_loc_neighbor_door`'s real bound mention-ID is `@loc_project_valder_loc_neighbor_door` (malformed double `loc_` prefix) — confirmed via the Elements panel this wave. The prompt files use the standard `@project_valder_loc_neighbor_door` form, which never binds. Fix is either renaming the Element's ID to match convention, or updating the two prompt files to use the literal malformed string. Reported to CTO mid-wave.
+
+**Credit drift, flagged and unresolved:** credits read **1,932** for the entire first half of this wave (every check before and after S1/S2/S4/S4B/S4C/S5B/S6/S7A/S7B/S-V-take-1), then read **1,930** starting right after S-V take 2's fire and stayed there through the rest of the session. Both S-V clicks were zoom-confirmed `UNLIMITED / ~~140~~ / 0` (struck-through, free) immediately before firing, so this is not a charge from my own video generations. 2 credits matches wave2's documented "small drift" pattern (attributed there to a concurrent image-plate operator on the account) rather than a video-scale charge (130-440cr). Flagged to CTO via `dev_message` at the time; no response received before this handoff. **Someone should confirm nothing else is spending on this account.**
+
+**Current browser state, left exactly as-is per instruction — do not close, refresh, or navigate:**
+- **One tab open**, tabId `53464603` (Chrome-internal id, not meaningful to a human), URL
+  `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3`, logged in.
+- This tab **is** the composer, currently holding **S1B's prompt (take 2)**, staged and verified but **NOT fired**.
+- Settings confirmed on this tab as of the last read before stopping: Seedance 2.5, References, 16:9, 720p, 20s, High, Sound On, **Unlimited ON** (`aria-checked: true`, re-verified in the same call as this handoff note, not stale).
+- No other tabs were left open. All scratch tabs created during this session were closed after use.
+
+**Recommended next steps for whoever resumes:**
+1. Get the 8 gated Elements' moderation status checked/cleared, and get the `loc_neighbor_door` Element's ID fixed (or the 2 prompt files updated to match its actual malformed ID) — both need platform-level access this operator role doesn't have.
+2. Once cleared, resume the queue: S1B take 2 is already staged and ready to fire the instant the render slot clears (check S1 take 2's completion first).
+3. Confirm the 2-credit drift is explained (another operator's image-plate work, most likely) or is a genuine anomaly worth investigating further.
+4. Continue firing extra takes of the scenes that already work clean (S1, S1B, S3, S-V) while the blocked scenes get sorted, per the CEO's standing "never let Unlimited sit idle" order.
+
+---
+
+Project: The Valder Collection No.7
+`https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3/`
+
+Takes over from `task-b7224c38`, whose handoff report lives ONLY on the
+unmerged branch `agent/browser_operator-task-b7224c38` at
+`docs/reports/valder-video-wave2.md` (NOT on `main` — the task brief's stated
+path was wrong; found it by inspecting the still-live worktree/branch).
+
+## Correction to the task brief's own claims
+
+- The brief's stated path `docs/reports/valder-video-wave2.md` on `main` does
+  not exist on `main`. It exists only on the unmerged branch
+  `agent/browser_operator-task-b7224c38`. Read directly from that worktree.
+- The brief's suspicion about S1 take C's id colliding with an image-plate
+  asset (`8195c8b3-316f-490e-9c78-ac3bb39952bc`) is corroborated by wave2's own
+  handoff note, which independently flagged the exact same collision and could
+  never re-verify it before running out of time. Treating it as bad data per
+  the brief's instruction — not chasing it further. It belongs to the
+  pre-rewrite S1 anyway, which is being refired regardless.
+
+## Carried over from wave2 (task-b7224c38) — OLD PROMPT VERSIONS, do not count as done
+
+These clips exist and are real footage for the editor's pile, but they used
+the S1/S1B prompt files from BEFORE the CEO's rewrite (9-element opening chain
++ slow-motion shot 3). Per this task's brief, S1 and S1B must be refired
+regardless of this table:
+
+| Scene | Take | Clip asset id | Status |
+|---|---|---|---|
+| S1 | A | `57453ca1-2a4a-438f-8f10-def379c01ad1` | complete, OLD prompt (8 elements) |
+| S1 | B | `43762082-cc8c-4325-b9fa-d5b337c81d46` | complete, OLD prompt |
+| S1 | C | `8195c8b3-316f-490e-9c78-ac3bb39952bc` | **UNVERIFIED/bad data** — this UUID is also recorded elsewhere as the image-plate asset `project_valder_prop_dress_c2`. Two assets cannot share a UUID. Not chasing further per brief; OLD prompt regardless. |
+| S1B | A | `423b2b6f-99c4-4fb4-acaf-43207294e999` | complete, OLD prompt (pre slow-motion-shot-3 version) |
+| S1B | B | `35dbf2d6-3586-4faf-b6e3-9c06ed9a5edf` | complete, OLD prompt |
+| S1B | C | `22cc1930-6fd7-4038-b7c4-9cb83c041818` | complete, OLD prompt |
+
+## Carried over from wave2 — CURRENT prompt version, counts as done
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S3 | 1 | `6d01ad10-572e-41d1-876f-58093c0f5b56` | 8/8, 0 errors | Fired with the rewritten S3 file (post-thesis-rewrite). CTO confirmed via chat this counts as S3 take 1 — dropped from this wave's first pass. |
+
+## Blocked in wave2, still blocked (per CTO diagnosis mid-session)
+
+- **S2**: protected-content gate on `prop_frame` + `prop_mark`, hit TWICE
+  (once with old S2 file, once with rewritten S2 file after the 07:05 sync).
+  0 cost both times. S3 fired clean with the same `prop_mark` minutes after
+  one of the S2 blocks, so CTO believes it's transient — will retry once when
+  reached, skip if it gates again.
+- **S4A / S5**: blocked on `@project_valder_loc_neighbor_door` — 4/4 bind
+  failures in wave2, non-transient. **Root cause found this wave** (see
+  below): the Element's real bound mention-ID is
+  `@loc_project_valder_loc_neighbor_door` (malformed double `loc_` prefix),
+  not `@project_valder_loc_neighbor_door` like every other tag and like the
+  prompt files use. The Element's thumbnail IS a real photo (a teal door) —
+  not empty/broken as one hypothesis suggested. Reported to CTO; skipping
+  S4A/S5 until the Element ID is fixed or the prompt files are updated to use
+  the literal malformed string.
+
+## This wave's queue order (per task brief + CTO amendment mid-session)
+
+CTO amendment received during this session: drop S3 from the first pass
+(already fired with current prompt, see above), and skip S4A/S5 pending the
+Element-ID fix. Revised order: S1, S2, S4, S1B, S4B, S4C, S5B, S6, S7A, S7B.
+
+## Setup
+
+All 13 prompt files synced fresh from `main` via `git show main:<path>` and
+byte-verified against `git cat-file -s` (all matched exactly — sizes 27,382 /
+19,904 / 17,456 / 14,386 / 15,522 / 14,600 / 14,532 / 14,495 / 13,048 / 13,213
+/ 14,238 / 14,133 / 13,163 bytes for s1/s1b/s2/s3/s4/s4a/s4b/s4c/s5/s5b/s6/s7a/s7b).
+
+Credits before wave: **1,932** (matches task brief exactly).
+
+## Per-clip table (this wave)
+
+| Scene | Take | Clip asset id | Settings confirmed | Elements | Generate button text at fire | Render minutes |
+|---|---|---|---|---|---|---|
+| S1 | 1 | `e4c958ae-7249-4fc6-ab83-8b17b13a86f3` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 9/9, 0 errors | `UNLIMITED / ~~140~~ / 0` (zoom-confirmed struck-through) | fired, render in progress |
+
+Credits after S1 fire: **1,932** (unchanged, confirmed via account menu).
+
+### Note on S1's first fire attempt
+
+The very first Generate click on S1 (on the original composer tab, `53464554`)
+was correctly blocked by the platform's "1 unlimited generation at a time"
+toast while S3 (`6d01ad10-...`) was still finishing — 0 cost, 0 side effect.
+That tab then started giving inconsistent concurrency-toast readings even
+after fresh-tab checks showed the slot was free (matches the skill's
+documented "long-lived tab lies about the concurrency slot" finding). Per
+that guidance, opened a brand-new tab (`53464577`), left the original
+untouched, rebuilt the full composer from scratch there, re-pasted S1,
+and fired successfully once S3 genuinely finished. S3's card also flickered
+between "Processing"/"Generating"/complete several times right at the tail
+of its render — matches the wave2 script's documented inconsistent-label
+finding, not a new bug.
+
+## Live browser state
+
+- Two tabs open in the group:
+  - `53464554` (original composer tab) — left untouched since the stale-toast
+    symptom appeared. Still holds an earlier staged S1 prompt (now stale/
+    irrelevant). Not touched further; will let it sit or repurpose later.
+  - `53464577` (active composer tab, current) — logged in, Seedance 2.5 /
+    720p / 20s / 16:9 / High / Sound On / Unlimited ON confirmed. S1 fire
+    confirmed via toast + asset-count delta. This is now the primary working
+    tab going forward.
+- Next: stage S2 (`docs/prompts/valder/s2-multicut.txt`, 8 elements) while
+  S1 renders.
+
+## S2 — blocked again, skipped per CTO instruction
+
+S2 staged cleanly (8/8 elements, 0 errors) once S1 finished. Generate hit the
+protected-content banner ("Some reference elements may contain protected
+content. Check eligibility or remove them to proceed.") — 0 cost. Identified
+the flagged reference visually: `@project_valder_prop_frame` (the gilt frame)
+shows a warning-triangle overlay in the reference tray; `@project_valder_prop_mark`
+(the gold V) does not. Per CTO's mid-session instruction ("give S2 one plain
+retry when you reach it; if it gates again, skip and move on"), dismissed the
+banner, re-verified 8/8 with 0 errors, re-applied the desync fix, re-confirmed
+`UNLIMITED / ~~140~~ / 0`, and retried Generate once. Gated again, identical
+banner. Credits unchanged (1,932) both times. Skipping S2 per instruction —
+moving to S4.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S2 | — | BLOCKED (2 attempts this wave) | 8/8, 0 errors | protected-content gate on `@project_valder_prop_frame`; 0 cost both times; CTO-authorized skip |
+
+## S4 — also blocked on the protected-content gate (new finding)
+
+S4 staged cleanly (7/7 elements, 0 errors — the `loc_new_interior` chip-binding
+issue documented in wave2's handoff did NOT recur). Generate hit the identical
+"Some reference elements may contain protected content" banner — 0 cost.
+Visually confirmed the flagged reference this time: `@project_valder_loc_new_interior`
+(the house interior) shows the warning-triangle overlay in the reference tray.
+Applied the same one-plain-retry-then-skip policy CTO set for S2: dismissed
+the banner, re-verified 7/7 with 0 errors, re-applied the desync fix,
+re-confirmed `UNLIMITED / ~~140~~ / 0`, retried once. Gated again, identical
+banner. Credits unchanged (1,932) both times. Skipping S4 — moving to S1B.
+
+**Pattern emerging**: both gates hit this wave (S2's `prop_frame`, S4's
+`loc_new_interior`) are on Elements that were part of the "15 newly-created
+Elements" batch mentioned in wave2's handoff (the concurrent image-plate task
+that unblocked S2/S3/S4/etc.). `prop_mark`, also newly-created, fired clean in
+both S2 and S4's composers (no warning icon). Worth flagging to CTO: this may
+not be per-scene-transient the way S3's clean fire suggested — it may be
+per-Element, with some newly-created Elements (frame, new_interior) still
+carrying a moderation flag and others (mark) already cleared. S4A/S5's
+`loc_neighbor_door` (a different, non-transient bind failure — see above) is
+a third, unrelated failure mode on yet another newly-created Element.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S4 | — | BLOCKED (2 attempts this wave) | 7/7, 0 errors | protected-content gate on `@project_valder_loc_new_interior`; 0 cost both times; same one-retry-then-skip policy applied |
+
+## S1B — fired clean (after a tab-group loss and rebuild)
+
+S1B staged cleanly (6/6 elements, 0 errors). First fire attempt on the
+(already-flagged-as-stale) working tab returned an ambiguous read
+(`concurrencyToast: true` AND `gateBanner: true`) — screenshot showed this was
+just S4's old undismissed gate banner sitting behind a genuine "1 unlimited
+generation at a time" toast, not a new S1B-specific gate. A fresh scratch tab
+confirmed the account slot was genuinely free. Rebuilt the full composer from
+scratch in a brand-new tab (model, 720p, 20s, Unlimited-toggle-with-read-race
+pattern again, same as S1's rebuild) and re-pasted S1B fresh.
+
+Fired clean: `UNLIMITED / ~~140~~ / 0` zoom-confirmed, "Generation started"
+toast caught, assets 250→251.
+
+**S1 take 1 confirmed complete** during this rebuild (its card now shows the
+finished property-advertisement thumbnail with a "New" badge, not Processing).
+
+| Scene | Take | Clip asset id | Settings confirmed | Elements | Generate button text at fire | Render minutes |
+|---|---|---|---|---|---|---|
+| S1B | 1 | `4dc7f9b3-94f9-474c-8f83-b22ae92d2e12` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~140~~ / 0` (zoom-confirmed struck-through) | fired, render in progress |
+
+Credits after S1B fire: **1,932** (unchanged).
+
+## S4B — blocked on the protected-content gate (matches wave2's original finding)
+
+S4B staged cleanly (8/8 elements, 0 errors — no chip-binding issue this time
+either). Generate hit the identical protected-content banner — flagged
+reference this time: `@project_valder_prop_market_bag` (confirmed visually,
+warning-triangle overlay on the 8th tray thumbnail). This matches wave2's own
+original note ("S4B hit protected content... no operator-side unblock found").
+One plain retry per policy: dismissed banner, re-verified 8/8 with 0 errors,
+re-applied desync fix, re-confirmed `UNLIMITED / ~~140~~ / 0`, retried. Gated
+again, identical banner. Credits unchanged (1,932) both times. Skipping S4B —
+moving to S4C.
+
+Running tally of protected-content gates this wave: S2 (`prop_frame`), S4
+(`loc_new_interior`), S4B (`prop_market_bag`) — three different newly-created
+Elements, three gates, 0 cost each time.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S4B | — | BLOCKED (2 attempts this wave) | 8/8, 0 errors | protected-content gate on `@project_valder_prop_market_bag`; 0 cost both times; same one-retry-then-skip policy applied |
+
+## S4C — blocked, MULTIPLE references flagged (broader gate than the others)
+
+S4C staged cleanly (7/7 elements, 0 errors). This scene shares `prop_market_bag`
+with S4B (already known-flagged) plus three more newly-created elements
+(`loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags`). Generate hit the
+protected-content banner with **4 of the 7 reference thumbnails showing the
+warning-triangle overlay simultaneously** — a materially broader block than
+the single-element gates seen on S2/S4/S4B. One plain retry per policy:
+dismissed banner, re-verified 7/7 with 0 errors, re-applied desync fix,
+re-confirmed `UNLIMITED / ~~140~~ / 0`, retried. Gated again, identical
+banner. Credits unchanged (1,932) both times. Skipping S4C — moving to S5B.
+
+This strengthens the per-Element-moderation-flag theory over per-scene:
+`loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags` and `prop_market_bag`
+all appear to carry a standing flag from creation, independent of which scene
+attaches them.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S4C | — | BLOCKED (2 attempts this wave) | 7/7, 0 errors | protected-content gate, 4/7 references flagged (`loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags`, `prop_market_bag`); 0 cost both times |
+
+## S5B — blocked, same pattern
+
+S5B staged cleanly (6/6 elements, 0 errors). Generate hit the gate with 2/6
+references flagged: `loc_neighbor_parlour` and `prop_dress_c2` (visually
+confirmed, warning-triangle overlays on tray thumbnails 4 and 5). One retry
+per policy, gated again identically. Credits unchanged (1,932) both times.
+Skipping S5B — moving to S6.
+
+Flagged-Element tally so far this wave: `prop_frame`, `loc_new_interior`,
+`prop_market_bag`, `loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags`,
+`loc_neighbor_parlour`, `prop_dress_c2` — 8 distinct newly-created Elements,
+all still gated. Only `prop_mark` (also newly-created) has cleared every time
+it's appeared.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S5B | — | BLOCKED (2 attempts this wave) | 6/6, 0 errors | protected-content gate, 2/6 references flagged (`loc_neighbor_parlour`, `prop_dress_c2`); 0 cost both times |
+
+## S6 — blocked, same pattern (6th consecutive new-element scene gated)
+
+S6 staged cleanly (8/8 elements, 0 errors). Gated on Generate, one retry per
+policy, gated again identically. Credits unchanged (1,932) both times.
+Skipping S6.
+
+**Decision point**: S7A and S7B were checked ahead of time and both also
+contain multiple already-confirmed-flagged Elements (`loc_new_interior`,
+`prop_frame` in S7A; `prop_shopping_bags` in S7B). With 6/6 new-element scenes
+now gated in this wave (S2, S4, S4B, S4C, S5B, S6), further per-scene
+double-retries on S7A/S7B would very likely just reproduce the same 0-cost,
+0-progress result. Testing S7A and S7B once each (no retry) to confirm, then
+pivoting to firing additional takes of the scenes that DO fire clean (S1,
+S1B, S3) so the Unlimited slot is never idle, per the CEO's standing order —
+rather than exhaustively re-testing a already-established platform-side block.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S6 | — | BLOCKED (2 attempts this wave) | 8/8, 0 errors | protected-content gate (elements not individually re-confirmed by screenshot, matches established pattern); 0 cost both times |
+
+## S7A and S7B — single-attempt confirmation, both gated as predicted
+
+Per the pivot decision above, tested S7A and S7B once each (no retry — the
+pattern was already established 6/6). Both staged cleanly (8/8 and 5/5
+elements respectively, 0 errors) and both gated on the first Generate click,
+0 cost. This makes it 8/8 new-element scenes gated this wave: S2, S4, S4B,
+S4C, S5B, S6, S7A, S7B.
+
+A CDP timeout occurred during S7B's prompt paste (`Runtime.evaluate` timed
+out after 45s — same failure class documented in prior waves). Per the
+skill's rule, checked state before proceeding rather than assuming nothing
+happened: a trivial `1+1` eval confirmed the tab was responsive again, the
+prompt text had landed correctly (5/5 mentions, exact first/last-80 match),
+and credits were unchanged (1,932). Proceeded only after that confirmation.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S7A | — | BLOCKED (1 attempt, no retry) | 8/8, 0 errors | protected-content gate; 0 cost |
+| S7B | — | BLOCKED (1 attempt, no retry) | 5/5, 0 errors | protected-content gate; 0 cost; CDP timeout during paste, recovered clean |
+
+## CTO amendment mid-session: new scene S-V, fired ahead of the rest of the queue
+
+CTO sent scene S-V mid-session (CEO's direct request). Synced from `main` via
+`git show main:docs/prompts/valder/sv-multicut.txt` and byte-verified against
+`git cat-file -s` (15,097 bytes / 15,023 chars — the 74-byte gap is expected
+multi-byte UTF-8 encoding of em-dashes, not a mismatch). 6 elements, all
+pre-existing (not from the flagged batch): `char_valder`, `char_guard`,
+`char_press`, `char_crowd_a`, `loc_studio`, `prop_mark`.
+
+Two things make this scene different from every other one fired this wave,
+per the CTO's brief: (1) it is ONE CONTINUOUS 20-SECOND SHOT WITH NO CUTS AT
+ALL — the only uncut scene in the film; a take with hard cuts in it is wrong.
+(2) the crowd must NOT be orderly — no rows/lines/semicircle, no security
+cordon, guards scattered among onlookers not in a line; a take that reads as
+a rally or congregation is unusable (festival bans political statements).
+Both constraints will need visual review once the take completes — noting
+here so the next reviewer knows what to check for.
+
+Staged cleanly (6/6 elements, 0 errors). A CDP timeout occurred during the
+paste (`Runtime.evaluate` timed out after 45s, same class as before) —
+checked state before proceeding: `1+1` eval confirmed responsive, prompt text
+had landed correctly (exact first/last-80 match), credits unchanged. Fired
+clean: `UNLIMITED / ~~140~~ / 0` zoom-confirmed, "Generation started" +
+assets 251→252 confirmed the fire (a stale leftover gate banner from S7B was
+still on-screen and read as `true` by the banner-text check, but did not
+block this fire — the toast/asset-count signals are authoritative here, not
+the banner text alone).
+
+| Scene | Take | Clip asset id | Settings confirmed | Elements | Generate button text at fire | Render minutes | Notes |
+|---|---|---|---|---|---|---|---|
+| S-V | 1 | `3e0252ef-be34-4852-ba0a-0dc83cecbdde` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~140~~ / 0` | complete (~20 min) | **Needs visual review for: (a) genuinely zero cuts, one continuous shot; (b) crowd reads as scattered/loose, NOT a rally/congregation formation** |
+| S-V | 2 | `77b6a8af-fc94-4329-89a2-12a32ecdfa04` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~140~~ / 0` | complete (~20 min) | Same review flags as take 1 |
+
+Credits after S-V take 1: **1,932** (unchanged).
+
+Per CTO instruction, firing S-V take 2 next, then continuing with S4A + extra
+takes of clean scenes.
+
+## S-V take 2 — fired, exact asset id ambiguous at time of writing
+
+Re-verified staged state fresh (6/6, 0 errors, Unlimited on), re-applied
+desync fix, zoom-confirmed `UNLIMITED / ~~140~~ / 0`, clicked Generate.
+Confirmed via `"Generation started"` toast and assets 252→253.
+
+**Asset id confirmed: `77b6a8af-fc94-4329-89a2-12a32ecdfa04`.** The
+ancestor-walk technique (searching up from the "Generating"/"Processing"
+text node for the first ancestor with exactly one UUID) resolved to
+`3e0252ef-...` (take 1's own id) on three separate attempts across two
+tabs, even after take 1's card had visibly completed — a genuine new
+failure mode for that technique, not previously documented. **Found a more
+reliable method instead: `document.querySelectorAll('[data-asset-id]')`
+returns cards in recency order, first = newest.** That first card's own
+`data-asset-id` attribute gave the correct, unambiguous id directly, with
+no ancestor-walk guessing needed. Confirmed complete (no in-progress label,
+has a video element) once isolated this way. **Recommend this method
+replace the ancestor-walk in the next replay script** — it's simpler and
+didn't fail in this run.
+
+**Credit drift flagged to CTO.** Immediately after take 2's fire, credits
+read **1,930** — a 2-credit drop from the 1,932 baseline that had held flat
+through every single check this entire session (S1, S2×2, S4×2, S4B×2,
+S4C×2, S5B×2, S6×2, S7A, S7B, S-V take 1 all confirmed 1,932 before/after).
+Both S-V clicks showed `UNLIMITED / ~~140~~ / 0` struck-through immediately
+before firing, so this is not a video-scale charge from my own actions — 2
+credits matches wave2's documented "small drift" pattern (attributed there
+to a concurrent image-plate operator on the same account), not the
+130-440cr scale a video charge would show. Flagged to CTO for confirmation
+of whether another task is active on this account; not pausing the queue
+since Unlimited is confirmed working correctly on every fire this operator
+has made.
+
+## S4A — tried once, confirmed blocked exactly as predicted, skipped per brief
+
+Pasted S4A (5/5 unique mentions bound, but **2 error chips** — `@project_valder_loc_neighbor_door`
+appears twice in the prompt text and both instances failed to bind).
+Confirms wave2's finding and the root cause already reported to CTO earlier
+this wave: the Element's real bound mention-ID is
+`@loc_project_valder_loc_neighbor_door` (malformed double `loc_` prefix),
+not `@project_valder_loc_neighbor_door`. Did not click Generate — the error
+chips are conclusive proof of the exact same non-transient failure, and per
+the brief's own instruction ("if it blocks again, skip it, write down
+exactly what the block was") a Generate click would only waste a round trip
+on a prompt already known to have 2 unbound references. Credits unchanged
+(1,930) — no cost, no click made. Skipping S4A.
+
+A CDP timeout occurred during this scene's prompt paste too (same class as
+the two before it) — checked state before proceeding: `1+1` eval confirmed
+responsive, prompt text had landed correctly (exact first/last-80 match).
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S4A | — | NOT FIRED (1 attempt, confirmed non-transient) | 5/5 mentions, 2 error chips | `@project_valder_loc_neighbor_door` fails to bind both occurrences; same root cause as wave2 (malformed Element ID `@loc_project_valder_loc_neighbor_door`); 0 cost, Generate not clicked |
+
+## Pivoting to extra takes of clean scenes
+
+All 13 scenes from the original queue plus S-V have now been attempted at
+least once this wave. Final tally: **fired clean** — S1, S1B, S3 (carried
+from wave2), S-V (×2 this wave); **blocked on protected-content gate** — S2,
+S4, S4B, S4C, S5B, S6, S7A, S7B (8 scenes, all newly-created Elements);
+**blocked on malformed Element ID** — S4A, S5 (2 scenes, same root cause,
+reported to CTO). Per the CEO's standing order, firing additional takes of
+the scenes that DO work (S1, S1B, S3, S-V) so the Unlimited slot is never
+idle while the platform-side Element issues get resolved elsewhere.
+
+## Second-pass takes
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S1 | 2 | `b2e27617-43c6-496b-9b51-e7499f1fc515` | 9/9, 0 errors | fired clean, `UNLIMITED / ~~140~~ / 0`, assets 253→254, credits 1,930 unchanged (isolated via `data-asset-id`, first entry) |
+
+## Incident — MCP tab group destroyed while closing stale tabs
+
+After S1B fired, attempted to close two now-stale tabs (the original composer
+tab and the S4-blocked tab) as hygiene cleanup. The FIRST close succeeded, but
+the SECOND `tabs_close_mcp` call errored: "This session's tab group no longer
+exists." Matches a documented finding elsewhere in this project (closing a tab
+after certain menu/Escape interactions can destroy the whole MCP tab group,
+even with tabs remaining). Recovered cleanly: `tabs_context_mcp{createIfEmpty:
+true}` created a fresh group with one new tab; navigated it to the project URL
+and confirmed **S1B's render was unaffected and still genuinely in-flight
+server-side** (`hasS1B: true`, `inProgress: true` on a totally fresh page
+load) — matches this skill's documented finding that a generation survives
+the death of whatever fired it. Credits reconfirmed unchanged (1,932). No
+further action needed beyond the fresh tab; composer defaults were lost (as
+expected after any fresh load) and were rebuilt from scratch for the next
+scene.
