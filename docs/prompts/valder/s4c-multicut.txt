@@ -14,7 +14,7 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered to a sharp point at the bottom. It is stamped into everything Valder designs and worn by everyone who belongs. IT IS THE SAME SHAPE AT EVERY SIZE — no simplified version exists.
 
-@project_valder_prop_dress_c1 — THE VALDER GARMENT. A woman's garment built from flat geometric panels of three or four intensely saturated colours meeting at hard edges, deliberately asymmetric — one sleeve longer than the other. The gold V at the collar, and again as a belt buckle.
+@project_valder_prop_dress_c1 — THE VALDER GARMENT. A woman's garment built from flat geometric panels of three or four intensely saturated colours meeting at hard edges, deliberately asymmetric — one sleeve longer than the other. the gold V as a belt buckle — on the garment's hardware, never pinned to the chest.
 
 @project_valder_prop_shopping_bags — THE VALDER SHOP BAGS. Three or four rigid structured carrier bags in one deeply saturated colour with flat ribbon handles. The gold V is the only thing printed on them — centred and large. NO shop name, NO words, NO text at all.
 
@@ -75,6 +75,19 @@ NOBODY LOOKS AT THE CAMERA. Every gaze is aimed at a person or an object inside 
 ALL SPOKEN DIALOGUE IN THIS FILM IS IN ENGLISH. THERE IS NO DIALOGUE AT ALL IN THIS PARTICULAR SCENE.
 
 ================================================================
+
+
+================================================================
+WHAT MARKS A PERSON AS ONE OF THEM — READ THIS, IT REPLACES AN EARLIER RULE
+================================================================
+
+**THE GARMENT IS THE BADGE. NOBODY IN THIS FILM WEARS A LAPEL PIN OR A BROOCH BEARING THE GOLD V. NOT ONE PERSON, IN ANY SCENE.**
+
+A Valder coat is unmistakable on sight — floor-length or near it, built from large flat panels of several intensely saturated colours meeting at hard edges, deliberately asymmetric, worn with matching coloured gloves and matching coloured shoes and a scarf at the throat. **Wearing one is what says you belong.** That is the whole signalling system and it needs no extra emblem.
+
+**THE GOLD V IS A MAKER'S MARK ON OBJECTS, NOT A BADGE ON PEOPLE.** It appears stamped, cast, embossed or printed on things Valder made and sold: the shopfront, the shopping bags, a belt buckle, a door, a wall, a plan, a frame. It never appears pinned to a chest.
+
+**THE CHROME STARBURST BELONGS TO VALDER HIMSELF AND TO HIS STAFF.** Valder wears an enormous chrome starburst at his throat; his guards carry a small chrome starburst on their cap badges. Customers do not wear it. The founder does not wear his own product mark and his customers do not wear his personal emblem — that separation is deliberate and it is part of the joke.
 
 === SHOT 1 — 0:00 to 0:03 — IN THE QUEUE ===
 
@@ -142,7 +155,7 @@ Medium. Camera at chest height, locked, and it does not move.
 
 @project_valder_char_mother walks out. SHE IS COMPLETELY CHANGED.
 
-She now wears @project_valder_prop_dress_c1 — flat geometric panels of intensely saturated colour, one sleeve longer than the other. @project_valder_prop_mark at her collar. @project_valder_prop_mark again as her belt buckle. Her skin has gone noticeably PALER than it was three shots ago.
+She now wears @project_valder_prop_dress_c1 — flat geometric panels of intensely saturated colour, one sleeve longer than the other. the unmistakable Valder garment @project_valder_prop_mark again as her belt buckle. Her skin has gone noticeably PALER than it was three shots ago.
 
 Her arms are full of @project_valder_prop_shopping_bags — rigid, structured, one saturated colour, the gold V large and centred on each.
 
@@ -186,4 +199,4 @@ THERE IS NO DIALOGUE IN THIS SCENE. Nobody speaks. Not one word. No till, no tra
 NEGATIVE
 ================================================================
 
-no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no dialogue, no spoken words, no voiceover, no narration, no non-English dialogue, NO DUPLICATE CHARACTER, no two mothers, no cloned face, no double in the background, no mirror reflection producing a second woman, no window reflection producing a second woman, no dirt, no stains, no grime, no smudges, no grease, no dust, no mud, no sweat, no torn clothing, no ragged clothing, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no rally, no protest, no political gathering, no religious gathering, no crowd facing a leader, no crowd facing a speaker, no guards holding people back, no security line, no barriers, no banners, no signs, no placards, no raised hands, no uniform crowd formation, no flags, no religious symbols, no readable text, no lettering, no words, no shop name, no signage, no price tags, no receipts, no money on screen, no cash register, no card machine, no logos of real brands, no watermark, no subtitles, no captions, no clothing racks, no crowded shop interior, no shop assistants, no other customers inside the shop, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no montage of trying on clothes, no changing-room sequence, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no screens, no LED, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no cars, no anyone looking at the camera, no smiling broadly, no laughing, no delight, no celebration, no shouting, no rain, no snow, no fog, no night, no darkness
+no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no dialogue, no spoken words, no voiceover, no narration, no non-English dialogue, NO DUPLICATE CHARACTER, no two mothers, no cloned face, no double in the background, no mirror reflection producing a second woman, no window reflection producing a second woman, no dirt, no stains, no grime, no smudges, no grease, no dust, no mud, no sweat, no torn clothing, no ragged clothing, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no rally, no protest, no political gathering, no religious gathering, no crowd facing a leader, no crowd facing a speaker, no guards holding people back, no security line, no barriers, no banners, no signs, no placards, no raised hands, no uniform crowd formation, no flags, no religious symbols, no readable text, no lettering, no words, no shop name, no signage, no price tags, no receipts, no money on screen, no cash register, no card machine, no lapel pin, no brooch on any customer, no badge pinned to a chest, no gold V worn as jewellery, no logos of real brands, no watermark, no subtitles, no captions, no clothing racks, no crowded shop interior, no shop assistants, no other customers inside the shop, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no montage of trying on clothes, no changing-room sequence, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no screens, no LED, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no cars, no anyone looking at the camera, no smiling broadly, no laughing, no delight, no celebration, no shouting, no rain, no snow, no fog, no night, no darkness

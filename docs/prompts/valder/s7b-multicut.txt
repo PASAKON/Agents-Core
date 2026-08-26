@@ -6,9 +6,9 @@ THIS IS NOT ONE CONTINUOUS SHOT. It is SEVEN SEPARATE SHOTS joined by SIX HARD C
 WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 ================================================================
 
-@project_valder_char_neighbor — THE NEIGHBOUR. A woman in her forties who has lived the wealthy life for years. Two or three deeply saturated colours in large flat blocks, worn with total confidence. Composed, pleasant, completely closed. PALE. The gold V at her collar. SHE IS THE SUBJECT OF THIS SCENE. SHE IS ONE PERSON.
+@project_valder_char_neighbor — THE NEIGHBOUR. A woman in her forties who has lived the wealthy life for years. Two or three deeply saturated colours in large flat blocks, worn with total confidence. Composed, pleasant, completely closed. PALE. She wears an unmistakable Valder garment. SHE IS THE SUBJECT OF THIS SCENE. SHE IS ONE PERSON.
 
-@project_valder_char_mother — THE MOTHER. A woman in her forties who holds herself very straight. Immaculate saturated Valder clothing, the gold V at her collar, PALE skin. She appears only in the last shot, standing behind a window, not moving. SHE IS ONE PERSON.
+@project_valder_char_mother — THE MOTHER. A woman in her forties who holds herself very straight. An immaculate, unmistakable Valder garment. PALE skin. She appears only in the last shot, standing behind a window, not moving. SHE IS ONE PERSON.
 
 @project_valder_loc_street_row — THE STREET. A row of houses that are all EXACTLY THE SAME SHAPE and differ only in colour. Swept rooflines, cantilevered carports, huge empty lawns mown flat. Deeply saturated colour on every facade. No cars.
 
@@ -30,11 +30,11 @@ THE NEIGHBOUR — the woman who opened her door a hand's width and closed it in 
 
 AND THE DOOR OPENS A HAND'S WIDTH, AND CLOSES.
 
-She is standing where the mother stood, holding what the mother held, being measured by eyes that travel down her clothes and back up — and her gold V, which was enough to keep the mother outside, is not enough here.
+She is standing where the mother stood, holding what the mother held, being measured by eyes that travel down her clothes and back up — and her Valder garment, which was enough to keep the mother outside her own door, is not enough here.
 
 THE LAST IMAGE OF THE FILM: the neighbour standing at a closed door with an undelivered parcel, and behind a window across the street, the mother watching her. Neither woman acknowledges the other. NOBODY IS COMFORTED. NOBODY LEARNS ANYTHING. The ladder simply continues upward past both of them.
 
-**THE MARK DOES NOT CHANGE.** There is no new logo, no updated V, no second version of the mark. What the neighbour lacks is not a different badge — it is the newest house. Keep the gold V absolutely identical in every shot; the mark is the one constant in this film and altering it would destroy the joke.
+**NOTHING ABOUT THE CLOTHES OR THE MARK HAS CHANGED.** There is no new logo, no updated V, no newer style of garment. What the neighbour lacks is not a different badge — it is the newest house. Keep the gold V absolutely identical wherever it appears; it is the one constant in this film and altering it would destroy the joke.
 
 NOBODY IS CRUEL. Everyone is pleasant. The door closes gently. There is no dialogue at all in this scene.
 
@@ -75,6 +75,19 @@ NOBODY LOOKS AT THE CAMERA.
 THERE IS NO DIALOGUE IN THIS SCENE AT ALL.
 
 ================================================================
+
+
+================================================================
+WHAT MARKS A PERSON AS ONE OF THEM — READ THIS, IT REPLACES AN EARLIER RULE
+================================================================
+
+**THE GARMENT IS THE BADGE. NOBODY IN THIS FILM WEARS A LAPEL PIN OR A BROOCH BEARING THE GOLD V. NOT ONE PERSON, IN ANY SCENE.**
+
+A Valder coat is unmistakable on sight — floor-length or near it, built from large flat panels of several intensely saturated colours meeting at hard edges, deliberately asymmetric, worn with matching coloured gloves and matching coloured shoes and a scarf at the throat. **Wearing one is what says you belong.** That is the whole signalling system and it needs no extra emblem.
+
+**THE GOLD V IS A MAKER'S MARK ON OBJECTS, NOT A BADGE ON PEOPLE.** It appears stamped, cast, embossed or printed on things Valder made and sold: the shopfront, the shopping bags, a belt buckle, a door, a wall, a plan, a frame. It never appears pinned to a chest.
+
+**THE CHROME STARBURST BELONGS TO VALDER HIMSELF AND TO HIS STAFF.** Valder wears an enormous chrome starburst at his throat; his guards carry a small chrome starburst on their cap badges. Customers do not wear it. The founder does not wear his own product mark and his customers do not wear his personal emblem — that separation is deliberate and it is part of the joke.
 
 === SHOT 1 — 0:00 to 0:03 — THE STREET, AND THE NEW ONE ===
 
@@ -128,7 +141,7 @@ Close, favouring @project_valder_char_neighbor with the narrow gap at the edge o
 
 THE EYE IN THE GAP TRAVELS SLOWLY DOWN HER CLOTHES AND BACK UP AGAIN. Unhurried. Pleasant. Pricing her.
 
-Her own face does not change. @project_valder_prop_mark sits at her collar, catching the light, exactly as gold and exactly as identical as it has been all film — and it is not enough.
+Her own face does not change. She is wearing an unmistakable Valder garment. catching the light, exactly as gold and exactly as identical as it has been all film — and it is not enough.
 
 The door closes. Gently. The latch clicks once.
 
@@ -181,4 +194,4 @@ The street is otherwise completely silent. No traffic, no birds, no wind, no voi
 NEGATIVE
 ================================================================
 
-no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no final chord, no resolving note, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no dialogue, no spoken words, no voiceover, no narration, no non-English dialogue, no closing text, no end card, NO DUPLICATE CHARACTER, no two neighbours, no two mothers, no cloned face, no double in the background, no reflection producing a second person, no altered logo, no different version of the gold V, no new mark, no updated emblem, no second design of the mark, no dirt, no stains, no grime, no dust, no mess, no torn clothing, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no readable text, no lettering, no words, no house numbers, no street signs, no nameplates, no logos of real brands, no watermark, no subtitles, no captions, no flags, no religious symbols, no political imagery, no rally, no crowd facing a leader, no banners, no screens, no LED, no digital displays, no cables, no modern technology, no smartphones, no cars, no removal vans, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no aerial view, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no golden hour, no sunset, no dramatic sky, no anyone looking at the camera, no smiling, no laughing, no crying, no weeping, no tears, no shouting, no arguing, no anger, no sneering, no visible distress, no comforting, no embracing, no wave between the two women, no eye contact between the two women, no acknowledgement between them, no door opening fully, no door slamming, no neighbour being invited in, no parcel being accepted, no children, no pets, no rain, no snow, no fog, no night, no darkness
+no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no final chord, no resolving note, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no dialogue, no spoken words, no voiceover, no narration, no non-English dialogue, no closing text, no end card, NO DUPLICATE CHARACTER, no two neighbours, no two mothers, no cloned face, no double in the background, no reflection producing a second person, no altered logo, no different version of the gold V, no new mark, no updated emblem, no second design of the mark, no dirt, no stains, no grime, no dust, no mess, no torn clothing, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no readable text, no lettering, no words, no house numbers, no street signs, no nameplates, no lapel pin, no brooch on any customer, no badge pinned to a chest, no gold V worn as jewellery, no logos of real brands, no watermark, no subtitles, no captions, no flags, no religious symbols, no political imagery, no rally, no crowd facing a leader, no banners, no screens, no LED, no digital displays, no cables, no modern technology, no smartphones, no cars, no removal vans, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no aerial view, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no golden hour, no sunset, no dramatic sky, no anyone looking at the camera, no smiling, no laughing, no crying, no weeping, no tears, no shouting, no arguing, no anger, no sneering, no visible distress, no comforting, no embracing, no wave between the two women, no eye contact between the two women, no acknowledgement between them, no door opening fully, no door slamming, no neighbour being invited in, no parcel being accepted, no children, no pets, no rain, no snow, no fog, no night, no darkness

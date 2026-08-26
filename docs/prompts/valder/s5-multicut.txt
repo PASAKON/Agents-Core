@@ -8,13 +8,13 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_char_mother — THE MOTHER. A woman in her forties who stands very straight, hands habitually clasped. SHE IS NOW WEARING VALDER. Her garment is built from flat geometric panels of intensely saturated colour, and the gold V sits at her collar. Her skin has begun to go PALE — noticeably less warm than it was, but still unmistakably the same face. SHE IS ONE PERSON.
 
-@project_valder_char_neighbor — THE NEIGHBOUR. A woman in her forties who has lived the wealthy life for years. Two or three deeply saturated colours in large flat blocks, worn with total confidence. Her face is composed, pleasant, and completely closed. PALE in the ordinary indoor human way. The gold V at her collar. SHE IS ONE PERSON.
+@project_valder_char_neighbor — THE NEIGHBOUR. A woman in her forties who has lived the wealthy life for years. Two or three deeply saturated colours in large flat blocks, worn with total confidence. Her face is composed, pleasant, and completely closed. PALE in the ordinary indoor human way. an unmistakable Valder garment. SHE IS ONE PERSON.
 
 @project_valder_loc_neighbor_door — THE NEIGHBOUR'S FRONT DOOR. A single door set into an enormous flat plane of deeply saturated colour, almost nothing else on the wall, chromium door furniture, immaculate.
 
 @project_valder_loc_neighbor_parlour — THE NEIGHBOUR'S RECEIVING ROOM. Rich means EMPTY: one enormous plane of saturated colour on the main wall, a polished floor, three or four exquisite sculptural retrofuturist pieces and nothing else. A low table for tea. Vast empty floor.
 
-@project_valder_prop_dress_c1 — THE VALDER GARMENT. Flat geometric panels of three or four intensely saturated colours meeting at hard edges, deliberately asymmetric — one sleeve longer than the other. The gold V at the collar and again as a belt buckle.
+@project_valder_prop_dress_c1 — THE VALDER GARMENT. Flat geometric panels of three or four intensely saturated colours meeting at hard edges, deliberately asymmetric — one sleeve longer than the other. the gold V as a belt buckle — on the garment's hardware, never pinned to the chest.
 
 @project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered to a sharp point at the bottom. IT IS THE SAME SHAPE AT EVERY SIZE — no simplified version exists.
 
@@ -78,6 +78,19 @@ ALL SPOKEN DIALOGUE IN THIS FILM IS IN ENGLISH.
 
 ================================================================
 
+
+================================================================
+WHAT MARKS A PERSON AS ONE OF THEM — READ THIS, IT REPLACES AN EARLIER RULE
+================================================================
+
+**THE GARMENT IS THE BADGE. NOBODY IN THIS FILM WEARS A LAPEL PIN OR A BROOCH BEARING THE GOLD V. NOT ONE PERSON, IN ANY SCENE.**
+
+A Valder coat is unmistakable on sight — floor-length or near it, built from large flat panels of several intensely saturated colours meeting at hard edges, deliberately asymmetric, worn with matching coloured gloves and matching coloured shoes and a scarf at the throat. **Wearing one is what says you belong.** That is the whole signalling system and it needs no extra emblem.
+
+**THE GOLD V IS A MAKER'S MARK ON OBJECTS, NOT A BADGE ON PEOPLE.** It appears stamped, cast, embossed or printed on things Valder made and sold: the shopfront, the shopping bags, a belt buckle, a door, a wall, a plan, a frame. It never appears pinned to a chest.
+
+**THE CHROME STARBURST BELONGS TO VALDER HIMSELF AND TO HIS STAFF.** Valder wears an enormous chrome starburst at his throat; his guards carry a small chrome starburst on their cap badges. Customers do not wear it. The founder does not wear his own product mark and his customers do not wear his personal emblem — that separation is deliberate and it is part of the joke.
+
 === SHOT 1 — 0:00 to 0:03 — SHE KNOCKS AGAIN ===
 
 Medium. @project_valder_loc_neighbor_door. Camera at chest height, locked, does not move — the same framing as her first visit.
@@ -94,7 +107,7 @@ Medium. Camera at chest height, locked.
 
 The door opens — and this time it swings HALF WAY and stops there. Not a hand's width. Not all the way. Half.
 
-@project_valder_char_neighbor stands in the opening, fully visible for the first time in this film, composed and pleasant. @project_valder_prop_mark sits at her collar.
+@project_valder_char_neighbor stands in the opening, fully visible for the first time in this film, composed and pleasant. She is wearing an unmistakable Valder garment.
 
 Her eyes go straight to the mother's garment. NOT to her face.
 
@@ -180,4 +193,4 @@ The house is otherwise completely silent. No clocks, no radio, no other people, 
 NEGATIVE
 ================================================================
 
-no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no non-English dialogue, no more than one spoken line, no voiceover, no narration, NO DUPLICATE CHARACTER, no two mothers, no two neighbours, no cloned face, no double in the background, no reflection producing a second person, no dirt, no stains, no grime, no smudges, no grease, no dust, no sweat, no torn clothing, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no screens, no LED, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no cars, no flags, no religious symbols, no political imagery, no readable text, no lettering, no words, no logos of real brands, no watermark, no subtitles, no captions, no clutter, no crowded room, no full bookshelves, no many objects, no third person in the room, no servants, no children, no pets, no anyone looking at the camera, no smiling broadly, no laughing, no shouting, no anger, no sneering, no contempt on the face, no embracing, no handshake, no mother sitting down, no mother being offered a seat, no tea being poured, no door opening fully, no door slamming, no rain, no snow, no fog, no night, no darkness
+no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no non-English dialogue, no more than one spoken line, no voiceover, no narration, NO DUPLICATE CHARACTER, no two mothers, no two neighbours, no cloned face, no double in the background, no reflection producing a second person, no dirt, no stains, no grime, no smudges, no grease, no dust, no sweat, no torn clothing, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no screens, no LED, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no cars, no flags, no religious symbols, no political imagery, no readable text, no lettering, no words, no lapel pin, no brooch on any customer, no badge pinned to a chest, no gold V worn as jewellery, no logos of real brands, no watermark, no subtitles, no captions, no clutter, no crowded room, no full bookshelves, no many objects, no third person in the room, no servants, no children, no pets, no anyone looking at the camera, no smiling broadly, no laughing, no shouting, no anger, no sneering, no contempt on the face, no embracing, no handshake, no mother sitting down, no mother being offered a seat, no tea being poured, no door opening fully, no door slamming, no rain, no snow, no fog, no night, no darkness
