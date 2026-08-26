@@ -659,6 +659,51 @@ that says "zero digits anywhere" will stop a correct operator dead; one that say
 "any number means stop" is worse, because it trains the operator to ignore the
 real signal. Write the table.
 
+### THE EASY WAY TO ATTACH A REFERENCE: DRAG THE ASSET IN, THEN USE @Image1 / @Image2
+
+**Read this before doing anything with Elements.** It is simpler than everything
+below it and it sidesteps the entire Element-naming problem.
+
+Reported by the CEO from the live UI, 2026-08-27, after an operator had spent
+hours fighting red tags:
+
+> "2 Image นี้มีอยู่แล้วในนั้น ใช้เป็น Ref ได้โดยการลากมาวาง ไม่ต้อง Create
+> Element ID หลังจากลากวางใช้ @Image1 + @Image2 สำหรับอ้างอิง"
+
+**Any image already in the project can be dragged straight into the composer and
+used as a reference. No Element needs to be created and nothing needs a name.**
+Once dropped, the images are addressed positionally in the prompt text as
+`@Image1`, `@Image2`, and so on, numbered in the order they were dropped.
+
+```
+1. Find the asset in the project grid.
+2. Drag it into the composer's reference area and drop it.
+3. Repeat for each reference you want.
+4. Write the prompt using @Image1, @Image2 … to refer to them.
+5. Generate.
+```
+
+#### Why this matters more than it sounds
+
+Everything else in this file about attaching references — creating an Element,
+naming it exactly, typing `@project_name_thing`, watching for red text, the
+detail-modal-versus-hover-menu trap, the folder-scoped autocomplete — exists to
+solve a problem this mechanism does not have. The named-Element path is for
+things you tag repeatedly across many prompts. **For "use this specific image as
+a reference right now", drag and drop is the correct tool and it is far more
+reliable.**
+
+Two full nights on this project were lost to red tags that turned out to mean
+"you never created the Element", when the operator could have dragged the image
+in and moved on.
+
+#### When you still want a named Element
+
+Named Elements are still right for **recurring cast, locations and props** that
+get tagged in dozens of prompts across a film — you want `@project_x_char_valder`
+to mean one fixed thing everywhere. Use the named path for those, and drag-drop
+for one-off references.
+
 ### HIGGSFIELD SOUL DOES NOT ACCEPT REFERENCE IMAGES AT ALL
 
 Measured 2026-08-27 on the «Absence of Meaning» plate chain. **Soul Cinema
