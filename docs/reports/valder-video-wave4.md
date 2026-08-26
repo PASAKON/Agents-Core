@@ -205,6 +205,40 @@ eligibility re-check** (what happened to prop_frame, twice now, and to
 grandma once in Part 1B before her regen). Both are legitimate, independent
 fixes for the same underlying gate.
 
+## PART 1D — prompt-entry method upgrade: real OS clipboard, not LLM-retyped text
+
+Discovered mid-wave while staging S1 (a large, ~31KB prompt file): **manually
+retyping or re-deriving prompt text into a `javascript_tool` call — whether
+raw or base64-encoded — is not reliable at this length.** Caught two silent
+corruptions before either reached the composer:
+
+1. A first attempt truncated silently mid-sentence at ~15,360 characters
+   (roughly 40% of the file), with no error — the tool call simply completed
+   with less content than intended.
+2. A second attempt, re-deriving the missing back half from memory to
+   patch the first, produced text that matched the source's first/last 80
+   characters and exact total length, but **failed a weighted checksum
+   against the real file** — meaning a wrong character existed somewhere in
+   the middle despite the visible checks passing. A follow-up base64-chunk
+   re-transcription (the method that worked fine for S2/S-V, both ~15-21KB)
+   *also* came out one character long on a ~10KB chunk when retyped by hand.
+
+**Neither corrupted text was ever pasted into the composer** — both were
+caught by verification before touching the DOM. But the pattern is clear:
+any method requiring the text to pass through a generated response (mine)
+is fallible at this scale, no matter how it's encoded.
+
+**Fix, now the standing method for every remaining scene:** `pbcopy <
+promptfile.txt` to load the exact file bytes onto the real macOS clipboard,
+then a **real `Cmd+V` keypress** via the driving tool into the focused
+composer — a genuine OS paste event, zero LLM transcription involved at any
+step. Verified against the source file with a whitespace-normalized weighted
+checksum (strips only formatting differences introduced by Lexical's own
+paragraph rendering): **exact match, both sides, on the first attempt.**
+This is faster, cheaper (no giant tool-call payloads) and categorically
+immune to the transcription-corruption class of bug above. Using it for
+every scene from here on.
+
 ## PART 2 — keeping the slot busy (rotation of scenes that fire clean)
 
 Per the CEO's standing "Unlimited must never sit idle" rule, proceeding to
