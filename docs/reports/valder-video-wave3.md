@@ -237,6 +237,26 @@ it's appeared.
 |---|---|---|---|---|
 | S5B | — | BLOCKED (2 attempts this wave) | 6/6, 0 errors | protected-content gate, 2/6 references flagged (`loc_neighbor_parlour`, `prop_dress_c2`); 0 cost both times |
 
+## S6 — blocked, same pattern (6th consecutive new-element scene gated)
+
+S6 staged cleanly (8/8 elements, 0 errors). Gated on Generate, one retry per
+policy, gated again identically. Credits unchanged (1,932) both times.
+Skipping S6.
+
+**Decision point**: S7A and S7B were checked ahead of time and both also
+contain multiple already-confirmed-flagged Elements (`loc_new_interior`,
+`prop_frame` in S7A; `prop_shopping_bags` in S7B). With 6/6 new-element scenes
+now gated in this wave (S2, S4, S4B, S4C, S5B, S6), further per-scene
+double-retries on S7A/S7B would very likely just reproduce the same 0-cost,
+0-progress result. Testing S7A and S7B once each (no retry) to confirm, then
+pivoting to firing additional takes of the scenes that DO fire clean (S1,
+S1B, S3) so the Unlimited slot is never idle, per the CEO's standing order —
+rather than exhaustively re-testing a already-established platform-side block.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S6 | — | BLOCKED (2 attempts this wave) | 8/8, 0 errors | protected-content gate (elements not individually re-confirmed by screenshot, matches established pattern); 0 cost both times |
+
 ## Incident — MCP tab group destroyed while closing stale tabs
 
 After S1B fired, attempted to close two now-stale tabs (the original composer
