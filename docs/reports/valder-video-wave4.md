@@ -259,7 +259,79 @@ first load of the project this wave, one existing asset card showed "Failed"
 Not touched, not this wave's asset, flagged here only in case it's relevant
 context for the protected-content investigation generally.
 
-(Clip table below, updated after every fire.)
+## HANDOFF — 2026-08-26, operator stopped here on CTO instruction (228k tokens, the handoff point that has worked twice tonight)
+
+**Every clip asset id fired this wave, one line each:**
+
+- S2 (variant, prop_frame removed+plain-worded, proof-of-fix only — NOT
+  canonical): `b9b74401-26cd-433a-8cad-9f0eaf99d138` — fired, complete
+  ("New" badge confirmed before handoff).
+- S2 (canonical, unmodified, `prop_frame` tagged): `b1b3276a-4d4f-483e-af76-dc08f6e63a5a`
+  — fired, complete ("New" badge confirmed before handoff). First
+  successful canonical S2 take this project.
+- S-V take 1 (first-ever fire of this scene): `c7b3c7f2-88b8-4c5e-9376-2af389ecdbe5`
+  — fired, **still rendering at handoff** (~13+ min elapsed, normal
+  20-25min range). Needs visual review once complete: (a) must be ONE
+  continuous 20s shot with zero cuts; (b) crowd must read scattered/loose,
+  not a rally/congregation.
+
+**Every other scene — STILL OWED, not fired this wave:**
+
+- **S1** — STAGED, NOT FIRED. Pasted via the new clipboard method (real
+  `pbcopy` + `Cmd+V`), 9/9 elements bound, 0 mention errors, whitespace-
+  normalized checksum verified byte-exact against source
+  (`docs/prompts/valder/s1-multicut.txt`), all 9 reference cards confirmed
+  clear of warning triangles, Unlimited confirmed ON (`aria-checked: true`).
+  **Did not click Generate** — CTO instruction was to start no new
+  generation at handoff. This is the very next action for whoever resumes:
+  re-verify the desync fix + price fresh, then fire.
+- S1B, S3, S4, S4A, S4B, S4C, S5, S5B, S6, S7A, S7B — not attempted this
+  wave. All were blocked by the protected-content gate in wave 3; per this
+  wave's Part 1/1B/1C findings, the fix (scan reference strip, click every
+  warning triangle, re-verify, then Generate) should very likely clear
+  every one of them, but none has been re-tested yet this wave.
+- **S-MU** (the museum, 15th scene, added by CTO mid-wave) — prompt synced
+  and committed (`0d9014f`), 6 elements confirmed (`loc_museum`,
+  `prop_frame`, `prop_siteplan`, `prop_mark`, `char_crowd_a`, `char_guard`).
+  Never pasted or fired. To be inserted into the rotation after S7B per
+  CTO's instruction. Same anti-formation rule as S-V applies: gallery
+  crowd must be scattered, never in rows facing one wall.
+
+**Current browser state, left exactly as CTO instructed — do not close,
+refresh, or navigate:**
+
+- **One tab open**, tabId `53464678`, URL
+  `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3`, logged in.
+- This tab **is** the composer, currently holding **S1's prompt**, staged
+  and verified but **NOT fired**.
+- Settings confirmed on this tab immediately before handoff: Seedance 2.5,
+  References, 16:9, 720p, 20s, High, Sound On, **Unlimited ON**
+  (`aria-checked: true`, re-verified in the same call as this handoff
+  note, not stale).
+- **Zero reference cards show a warning triangle** on the current S1
+  staging (re-confirmed via zoom immediately before handoff).
+- Credits: **1,918 left** (unchanged from the last several checks this
+  wave — no video-scale charge at any point, all movement accounted for
+  by the documented concurrent image-plate operator's small drift).
+- No other tabs were left open. All scratch tabs created during this
+  session (used for stale-tab cross-checks) were closed after use.
+
+**Recommended next steps for whoever resumes:**
+1. Check S-V's (`c7b3c7f2-...`) render completion, then fire the already-
+   staged S1 (re-verify desync fix + zero-digit/struck price fresh first).
+2. Work through S1B, S3, S4, S4A, S4B, S4C, S5, S5B, S6, S7A, S7B, S-MU in
+   story order, applying the standing procedure every time: paste (via
+   `pbcopy` + `Cmd+V`, checksum-verify), scan the reference strip, click
+   every warning triangle, re-verify, re-apply the desync fix, zoom the
+   Generate button, fire.
+3. Once every scene has one take, start a second pass for more takes per
+   the CEO's standing "many takes per scene" order.
+4. Continue committing this report after every single clip and posting
+   each asset id the instant it exists.
+
+---
+
+(Clip table below, one row per fire this wave.)
 
 | Scene | Take | Clip asset id | Elements | Settings | Notes |
 |---|---|---|---|---|---|
