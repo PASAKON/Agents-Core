@@ -109,3 +109,21 @@ finding, not a new bug.
     tab going forward.
 - Next: stage S2 (`docs/prompts/valder/s2-multicut.txt`, 8 elements) while
   S1 renders.
+
+## S2 — blocked again, skipped per CTO instruction
+
+S2 staged cleanly (8/8 elements, 0 errors) once S1 finished. Generate hit the
+protected-content banner ("Some reference elements may contain protected
+content. Check eligibility or remove them to proceed.") — 0 cost. Identified
+the flagged reference visually: `@project_valder_prop_frame` (the gilt frame)
+shows a warning-triangle overlay in the reference tray; `@project_valder_prop_mark`
+(the gold V) does not. Per CTO's mid-session instruction ("give S2 one plain
+retry when you reach it; if it gates again, skip and move on"), dismissed the
+banner, re-verified 8/8 with 0 errors, re-applied the desync fix, re-confirmed
+`UNLIMITED / ~~140~~ / 0`, and retried Generate once. Gated again, identical
+banner. Credits unchanged (1,932) both times. Skipping S2 per instruction —
+moving to S4.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S2 | — | BLOCKED (2 attempts this wave) | 8/8, 0 errors | protected-content gate on `@project_valder_prop_frame`; 0 cost both times; CTO-authorized skip |
