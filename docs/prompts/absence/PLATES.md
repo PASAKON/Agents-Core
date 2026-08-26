@@ -73,9 +73,45 @@ The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and fa
 
 ---
 
-## 4 · `project_absence_loc_hall_big` — Soul
+## 4 · `project_absence_loc_hall_big` — Soul Cinema
 
-*(pending)*
+**CEO-designated highest-priority plate** — this and plate 3 are, per the CEO's own ruling, "the single most important artifact in the whole production"; everything downstream (all scene video generation) is blocked on these two.
+
+- **Asset id:** `a7d8d116-3b08-442e-89a6-e58a014c8c81`
+- **Filed as Element:** `project_absence_loc_hall_big`, category Location
+- **Folder:** generated from the top-level "All assets" composer (the reference-attachment flow required leaving the Location folder's own composer — see note below); the source asset itself is not yet moved into the Location folder proper. **Flagging this as a housekeeping item for the CEO/CTO** — the Element is correctly created and usable regardless of which folder the underlying asset sits in, but the asset should be filed into Location for tidiness.
+- **Model:** Higgsfield Soul Cinema
+- **Settings:** 16:9, 2K
+- **Camera:** Lens = Auto (see plate 3 note on the lens-preset wheel control being unreachable at this window size — direction was written into the prompt text instead)
+- **Reference attached (genuinely bound, verified):** `project_absence_loc_wall_crack` only, via Elements panel → right-click card → **Use**. **Bound count: 1/1**, confirmed by a single reference thumbnail chip in the composer's reference tray and the mention resolving to the asset's real UUID (`@2c52b541-327d-4d25-8aba-296ba3e787bb`), not the element-name string.
+- **Cost:** 1 free Soul generation (free-allowance counter 4,996 → 4,995; paid balance unaffected, confirmed 1,844 unchanged)
+
+**Prompt:**
+```
+A large, contemporary retrofuturist gallery hall, the same room as the referenced cracked wall, pulled back to see the whole space. Photographed straight-on at eye level, camera perfectly level with no tilt and no dutch angle, a normal 35-50mm lens (not wide-angle).
+
+The hall is NOT a room of only framed paintings. Its plain WHITE hanging walls carry several conventionally framed paintings, spaced apart -- but the room is dominated by strange objects that are not paintings at all: sculptural installations on plinths, odd materials in unfamiliar combinations -- draped fabric frozen mid-fold, polished metal forms, cloudy resin blocks, biomorphic shapes whose purpose is not obvious. Everything -- plinths, sculptures, furniture, structural details -- is built in a consistent retrofuturist material language: moulded plastic, chromium, terrazzo, formica, starburst motifs, boomerang shapes, splayed tapered legs. Nothing digital anywhere: no screens, no LEDs, no digital numerals, no visible cables.
+
+A long segmented yellow moulded-plastic bench runs down the centre of the room. The ceiling and architecture carry bold saturated retrofuturist colour and pattern -- the hanging walls themselves stay plain white and neutral, the colour lives in the floor, the bench, the ceiling, the plinths and the architecture around the walls, never on the walls.
+
+Somewhere along one of the white walls, consistent with the referenced image, is the same bare cracked wall: the small brass plaque still mounted below the same small, faint, off-centre crack -- it must read as one plausible, easy-to-miss object among the room's many strange objects, not as an obvious anomaly.
+
+Recessed downlights. No people anywhere in frame.
+
+The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and falloff, fine film grain throughout, soft halation blooming around the brightest highlights, a gentle vignette and slight softness in the corners, faint chromatic fringing at the extreme frame edges. Lighting is deliberate cinema lighting with real direction and falloff, not a flat, evenly-lit product-catalogue photograph -- let one side of the room fall into deeper shadow than the other, and let exposure fall off naturally toward the edges. Faint atmospheric haze in the air for the light to travel through. An invented place with no identifiable country and no identifiable year.
+```
+
+**What the image actually shows — detailed, per the CEO's request:**
+
+**Hanging walls / white:** Yes — the walls are a plain warm-white/cream, unmistakably neutral. Several small conventionally framed pictures hang on the left wall, plus one larger abstract painting (a stylised orange-red flame/plant shape on a light ground) centred on the back wall. The walls read correctly as the neutral surface the brief describes.
+
+**Saturated retrofuturist colour in floor / bench / ceiling / architecture:** Strongly present and correctly kept off the walls. The floor is a black-and-white checkerboard terrazzo-style pattern with a diagonal sky-blue stripe rug laid over part of it. The bench is the requested long yellow moulded-plastic form, running down the room. The ceiling has arched cove recesses glowing warm amber/orange — genuine saturated colour in the architecture, not the walls. This is a clean, direct hit on the brief's central instruction.
+
+**Strange materials / installations:** Present and genuinely odd — a tall striped cylindrical object on a green pedestal, a spiky green plant-like sculpture, a wire-frame spherical/orb sculpture, a floating red hanging lamp shape, a red geometric object on a low plinth, and draped fabric on the right wall. These read as unclear-purpose art objects rather than furniture or paintings, which is exactly the "plausible neighbour for a crack" quality the brief asked for.
+
+**Cracked wall visible and consistent with plate 3:** Yes, though only as a small background detail — zooming into the relevant wall segment shows the same small brass plaque mounted with a thin crack running above it, in the same relative position (roughly waist height, plaque below the crack) as plate 3. At full-frame viewing distance it is easy to miss, which is arguably correct per the brief ("read as one plausible, easy-to-miss object"), but it does mean a casual viewer may not register it as the same wall without already knowing to look for it.
+
+**Honest flaws:** The room reads slightly more like an eclectic mid-century **lounge/living room** (area rug, low daybed-like bench, table lamps) than a hard "museum gallery hall" — the CEO should look at this framing choice specifically, since it may or may not match the intended register. The crack's exact jaggedness/character isn't verifiable at this viewing distance — it reads as present and roughly consistent, not as a precise character match. Lighting is genuinely cinematic and directional (warm ceiling glow against cooler shadow on the right, real falloff) — this is the strongest "cinematic, not catalogue" result of the set so far.
 
 ---
 
