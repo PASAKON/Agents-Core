@@ -6,11 +6,11 @@ THIS IS NOT ONE CONTINUOUS SHOT. It is SEVEN SEPARATE SHOTS joined by SIX HARD C
 WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 ================================================================
 
-@project_valder_char_mother — THE MOTHER. A woman in her forties, very straight, hands habitually clasped. PALE, washed-out clothes — CLEAN, PRESSED, CAREFULLY MENDED. Her skin is WARM and slightly ruddy; she has not crossed over yet. **SHE RUNS THIS SCENE.** She hung the frame, she arranged the family, she decides when each person steps forward. SHE IS ONE PERSON.
+@project_valder_char_mother — THE MOTHER. A woman in her forties, very straight, hands habitually clasped. PALE, washed-out clothes — CLEAN, PRESSED, CAREFULLY MENDED. Her skin is WARM and slightly ruddy; she has not crossed over yet. **SHE RUNS THIS SCENE AND SHE IS THE HAPPIEST PERSON IN IT.** She put the drawing in the frame and stood it on the dinner table. Everything the others do, they do after her and because of her. SHE IS ONE PERSON.
 
-@project_valder_char_father — THE FATHER. A heavy-set man with a thick neck, in a coat cut for a thinner man. Pale washed-out clothes, clean and mended. Warm skin. Hands behind his back. He does what she indicates. HE IS ONE PERSON.
+@project_valder_char_father — THE FATHER. A heavy-set man with a thick neck, in a coat cut for a thinner man. Pale washed-out clothes, clean and mended. Warm skin. Seated and eating. He is pleased because SHE is pleased, and for no other reason. HE IS ONE PERSON.
 
-@project_valder_char_son — THE SON. A boy, small for his age, sleeves covering his hands, one sock fallen down. Pale clothes, clean, mended. Warm skin. He does not speak. HE IS ONE PERSON.
+@project_valder_char_son — THE SON. A boy, small for his age, sleeves covering his hands, one sock fallen down. Pale clothes, clean, mended. Warm skin. He does not speak. **HE IS THE ONE WHO BROUGHT THE DRAWING HOME, AND HE IS QUIETLY PROUD OF IT** — tonight his parents are happy because of him. HE IS ONE PERSON.
 
 @project_valder_char_daughter — THE DAUGHTER. A small girl with wide unblinking eyes and a fringe cut slightly crooked. Pale clothes, clean, mended. Warm skin. SHE IS THE ONLY PERSON HERE WHO ACTUALLY LOOKS AT THINGS. SHE IS ONE PERSON.
 
@@ -18,7 +18,7 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_loc_home_interior — THE FAMILY'S OLD HOME. Every colour PALE and washed out. CRAMMED with mismatched furniture from several different decades, packed tight. A valve radio in a wooden cabinet. It is a room with too much in it and no space anywhere.
 
-@project_valder_prop_frame — THE GILT FRAME. An ornate gold picture frame hanging flat on the wall. Behind glass: a sheet of paper that was crumpled into a ball and flattened out again, deep creases running every way, corners curled, a small tear at one corner. On it, a child-like drawing of a house in plain black line, and an ENORMOUS sweeping signature far too big for the sheet. The drawing is genuinely crude. IT IS THE ONLY RICHLY SATURATED OBJECT IN THIS ENTIRE ROOM.
+@project_valder_prop_frame — THE GILT FRAME. An ornate gold picture frame. IN THIS SCENE IT IS NOT HUNG ON A WALL — IT STANDS UPRIGHT ON THE DINNER TABLE, propped facing out into the room where a centrepiece would go. Behind glass: a sheet of paper that was crumpled into a ball and flattened out again, deep creases running every way, corners curled, a small tear at one corner. On it, a child-like drawing of a house in plain black line, and an ENORMOUS sweeping signature far too big for the sheet. The drawing is genuinely crude. IT IS THE ONLY RICHLY SATURATED OBJECT IN THIS ENTIRE ROOM.
 
 @project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered to a sharp point at the bottom. It is stamped into everything Valder designs. IT IS THE SAME SHAPE AT EVERY SIZE — no simplified version exists. IN THIS SCENE IT APPEARS ONCE, WORKED INTO THE SIGNATURE ON THE DRAWING. This is the first time in the film the audience sees it clearly.
 
@@ -28,15 +28,23 @@ THERE IS EXACTLY ONE OF EACH FAMILY MEMBER — one mother, one father, one son, 
 WHAT THIS SCENE IS ABOUT — READ THIS, IT DECIDES EVERY CHOICE
 ================================================================
 
-The family has framed the crumpled drawing in gold and hung it in the middle of their cramped, faded living room. Now they take turns admiring it, in a fixed order, like a ceremony.
+**THIS IS A SCENE AT THE FAMILY DINNER TABLE.** It is the evening the boy brought the crumpled drawing home. It has already been put into a gold frame, and the frame is **STANDING UPRIGHT IN THE MIDDLE OF THE DINNER TABLE, FACING OUT INTO THE ROOM, WHERE A CENTREPIECE WOULD GO.** The family is eating around it. Nobody has hung it on a wall yet — tonight it is a guest at the meal.
 
-**THE MOTHER IS THE ENGINE OF THIS SCENE AND OF THIS FILM.** She hung it. She positions the family. She gives each person their turn with a small movement of her head. The father is the one who nods, but she is the one who decides. Watch for this in every shot: SHE ACTS FIRST, THE OTHERS FOLLOW.
+EVERYONE CAN SEE THAT THE DRAWING IS CRUDE. That is not in doubt and nobody is fooled. What it has is the signature and the gold V worked into it, and that is enough for all of them.
 
-EVERYONE CAN SEE THAT THE DRAWING IS CRUDE. That is not in doubt and nobody is fooled. What it has is the signature, and the gold V worked into it, and that is enough for all of them. This is the film's thesis stated in its simplest form.
+**EACH PERSON AT THIS TABLE FEELS A DIFFERENT AMOUNT, AND THE EXACT CALIBRATION IS THE SCENE. GET THIS RIGHT AND NOTHING ELSE MATTERS:**
 
-THE DAUGHTER BREAKS THE CEREMONY. She walks past the line everyone else stops at, gets close enough to touch the glass, tilts her head, and ACTUALLY LOOKS AT IT rather than admiring it. Then she turns and asks the adults a question. NOBODY ANSWERS HER AND NOBODY EVEN TURNS THEIR HEAD. This is the first of four times in the film that she asks and is ignored.
+- **THE MOTHER — the happiest person at the table.** This is the best night of her life and she is not hiding it, though she expresses it in a contained, upright, formal way: very straight back, hands arranging things that do not need arranging, eyes returning to the frame again and again. **SHE IS THE ENGINE OF THIS SCENE AND OF THIS FILM.** She put it in the frame. She stood it on the table. Everything the others do, they do after her and because of her.
 
-NOBODY IS BEING STUPID AND NOBODY IS A FOOL. They are performing a ritual that they believe in completely and sincerely. The comedy lives in the gap between the ceremony and the object it is being performed for.
+- **THE GRANDMOTHER — equally happy, and the only one who shows it openly.** Her joy is completely genuine and slightly overwhelming her. Her eyes shine wet. She claps.
+
+- **THE FATHER — pleased because his wife is pleased, and for no other reason.** He goes along with it. He nods, he agrees, he plays his part — but **HE IS WATCHING HER MORE THAN HE IS WATCHING THE FRAME.** His pleasure is second-hand and it should read that way.
+
+- **THE SON — PROUD.** He is the one who picked it up. He brought this home. Tonight, for the first time in this film, HIS PARENTS ARE HAPPY AND IT IS BECAUSE OF HIM. He sits up straighter than he ever has. He does not speak, he does not boast, he just glows quietly. **This is the payoff of the previous scene, where nobody in the world could see him at all — and it should ache slightly, because the only way he became visible was by bringing his family an object.**
+
+- **THE DAUGHTER — completely unmoved.** Not sad, not sulking, not disapproving. Just **INDIFFERENT.** She eats. She is the only person at the table who is treating this like an ordinary dinner. When she finally does look at the frame, she looks at it properly, the way a person looks at a thing they are trying to understand — and then she says the one line, and NOBODY ANSWERS HER AND NOBODY TURNS THEIR HEAD. First of four times in the film.
+
+NOBODY IS BEING STUPID AND NOBODY IS A FOOL. They are sincerely happy about a thing that is worthless, and the comedy lives in the gap between the size of the feeling and the size of the object.
 
 ================================================================
 POOR IS NOT DIRTY — THIS IS THE MOST MISREAD INSTRUCTION IN THIS FILM
@@ -76,85 +84,85 @@ ALL SPOKEN DIALOGUE IN THIS FILM IS IN ENGLISH.
 
 ================================================================
 
-=== SHOT 1 — 0:00 to 0:03 — THE FRAME ===
+=== SHOT 1 — 0.0 to 3.0 s — THE FRAME ON THE TABLE ===
 
-Close, square on. Camera at chest height, locked, does not move.
+Close, square on, slightly above table height. Camera locked, does not move.
 
-@project_valder_prop_frame fills the frame. Ornate gold, gleaming, hung dead level on a pale faded wall.
+@project_valder_prop_frame STANDING UPRIGHT ON A DINNER TABLE, propped facing out into the room where a centrepiece would sit. Ornate gold, gleaming. Around its base, the ordinary business of a meal: plates, a jug, a folded cloth.
 
-Behind the glass: the crumpled sheet, its creases catching the light, corners curled, a small tear at one corner. The child-like house drawn in plain black line. And the ENORMOUS signature, far too big for the paper, with @project_valder_prop_mark — the gold V — worked into it.
+Behind the glass: the crumpled sheet, creases catching the light, corners curled, a small tear at one corner. The child-like house in plain black line. And the ENORMOUS signature, far too big for the paper, with @project_valder_prop_mark — the gold V — worked into it.
 
 Hold long enough for the audience to see clearly that the drawing is crude.
 
 === HARD CUT ===
 
-=== SHOT 2 — 0:03 to 0:06 — SHE PUTS THEM IN ORDER ===
+=== SHOT 2 — 3.0 to 6.0 s — THE TABLE ===
 
-Wide. @project_valder_loc_home_interior. Camera at chest height, locked.
+Wide. @project_valder_loc_home_interior. Camera at seated eye height, locked.
 
-The cramped faded room, furniture from four different decades packed tight, a valve radio in a wooden cabinet against the wall.
+The cramped faded room, furniture from four different decades packed tight, a valve radio in a wooden cabinet against the wall. In the middle of it, the family seated around the dinner table with the gold frame standing between them like a sixth guest.
 
-@project_valder_char_mother stands beside the gold frame, facing the others. With small precise movements of her hand she PLACES her family in a line at a respectful distance: @project_valder_char_father, @project_valder_char_grandma, @project_valder_char_son, @project_valder_char_daughter.
+@project_valder_char_mother sits very straight at the head, eyes going to the frame and away and back again. @project_valder_char_father, @project_valder_char_grandma, @project_valder_char_son and @project_valder_char_daughter around the rest of it.
 
-They arrange themselves exactly where she indicates. Then everyone goes still.
-
-=== HARD CUT ===
-
-=== SHOT 3 — 0:06 to 0:09 — SHE GOES FIRST ===
-
-Medium. Camera at chest height, locked.
-
-@project_valder_char_mother steps forward to the frame FIRST. She straightens it with one fingertip — a movement of perhaps two millimetres, entirely unnecessary. She steps back.
-
-She turns her head very slightly toward @project_valder_char_father.
-
-He steps forward, hands behind his back, and NODS ONCE. He steps back.
+Everyone is eating except the mother, who keeps adjusting things that do not need adjusting.
 
 === HARD CUT ===
 
-=== SHOT 4 — 0:09 to 0:12 — THE OTHERS TAKE THEIR TURNS ===
+=== SHOT 3 — 6.0 to 9.0 s — THE TWO HAPPIEST PEOPLE AT THE TABLE ===
 
-Medium. Camera at chest height, locked.
+Medium two-shot on @project_valder_char_mother and @project_valder_char_grandma. Camera at seated eye height, locked.
 
-@project_valder_char_son steps forward, puffs his chest, and steps back.
+@project_valder_char_mother reaches out and TURNS THE FRAME A FEW DEGREES on the tablecloth so it faces the room more squarely — a tiny, entirely unnecessary adjustment. Her back is straight, her face is contained, and she is plainly happier than she has ever been.
 
-@project_valder_char_grandma steps forward and CLAPS SLOWLY THREE TIMES, exactly three, her eyes genuinely shining. She steps back.
-
-Everyone returns to precisely the position the mother put them in.
+@project_valder_char_grandma CLAPS SLOWLY THREE TIMES, exactly three, evenly spaced, HER EYES GENUINELY WET. She is the only one letting it show.
 
 === HARD CUT ===
 
-=== SHOT 5 — 0:12 to 0:15 — THE DAUGHTER WALKS PAST THE LINE ===
+=== SHOT 4 — 9.0 to 12.0 s — HE IS WATCHING HER, NOT IT ===
 
-Medium. Camera at chest height, locked.
+Medium on @project_valder_char_father. Camera at seated eye height, locked.
 
-@project_valder_char_daughter steps forward — AND KEEPS GOING, past the point where everyone else stopped, right up to the glass.
+He NODS ONCE at the frame, slowly and formally, entirely in agreement.
 
-She tilts her head. She is not admiring it. SHE IS LOOKING AT IT, closely, the way a person looks at a thing they are trying to understand.
-
-@project_valder_char_mother's eyes move to her. Nobody else notices.
+**AND THEN HIS EYES GO TO HIS WIFE AND STAY THERE.** He is not looking at the drawing any more. He is watching her be happy, and that is the part he is actually pleased about. His face barely changes — it is all in where he is looking.
 
 === HARD CUT ===
 
-=== SHOT 6 — 0:15 to 0:18 — THE QUESTION ===
+=== SHOT 5 — 12.0 to 15.0 s — THE BOY WHO BROUGHT IT ===
 
-Medium, favouring @project_valder_char_daughter with the family behind her. Camera at chest height, locked.
+Medium on @project_valder_char_son. Camera at seated eye height, locked.
 
-She turns around to face the adults and says one short flat line, genuinely puzzled, not rude:
+He is sitting UP VERY STRAIGHT — straighter than he has sat in his life, shoulders squared, sleeves still too long over his hands.
+
+He looks at his mother. He looks at his grandmother. He looks at the frame he carried home.
+
+**HE IS PROUD.** Not smug, not boasting, not smiling broadly — just quietly, enormously proud that the people at this table are happy and that it is because of him. He does not say anything. Nobody says anything to him.
+
+=== HARD CUT ===
+
+=== SHOT 6 — 15.0 to 18.0 s — THE ONE PERSON WHO IS NOT MOVED ===
+
+Medium on @project_valder_char_daughter. Camera at seated eye height, locked.
+
+She is eating. She has been eating this whole time. Her face is completely NEUTRAL — not sad, not sulking, not disapproving, simply not interested. To her this is dinner.
+
+Then she stops, leans in slightly, and LOOKS AT THE FRAME PROPERLY for the first time — tilting her head, studying it, the way a person looks at a thing they are trying to understand.
+
+She says one short flat line, genuinely puzzled, not rude:
 
 "It's a house."
 
-NOBODY ANSWERS HER. Not one head turns toward her. The father keeps looking at the frame. The grandmother keeps looking at the frame. The mother's eyes go back to the frame.
-
 === HARD CUT ===
 
-=== SHOT 7 — 0:18 to 0:20 — ALONE IN FRONT OF IT ===
+=== SHOT 7 — 18.0 to 20.0 s — NOBODY TURNS ===
 
-Wide. Camera at chest height, locked.
+Wide, the framing of shot 2. Camera at seated eye height, locked.
 
-@project_valder_char_daughter stands alone in front of the gold frame, still turned toward her family, still waiting for an answer that is not coming.
+NOT ONE HEAD TURNS TOWARD HER.
 
-Behind her, four people stand in a neat line staring past her at a crumpled piece of paper in a gold frame.
+@project_valder_char_mother is looking at the frame. @project_valder_char_father is looking at the mother. @project_valder_char_grandma is looking at the frame with wet eyes. @project_valder_char_son is sitting up straight, glowing, looking at his parents.
+
+@project_valder_char_daughter sits among them holding her fork, waiting for an answer that is not coming.
 
 Hold on that.
 
@@ -168,8 +176,8 @@ THERE IS NO SOUND AT THE START OF THE CLIP AND NO SOUND AT THE END OF THE CLIP. 
 
 THE ONLY SOUNDS ARE THE ONES PHYSICALLY MADE BY THINGS VISIBLE IN THE SHOT:
 
-- shoes on a worn floor as people step forward and back, five sets, each moving separately and in turn
-- the tiny scrape of a fingertip adjusting a picture frame against a wall
+- five people eating a meal: cutlery on plates, small and irregular, a jug set down, a chair creaking
+- the soft scrape of a gold frame being turned a few degrees on a tablecloth
 - the grandmother's three slow claps — exactly three, evenly spaced
 - fabric and knitwear shifting as people move
 - one spoken line, ENGLISH, a child's voice, flat and genuinely puzzled: "It's a house."
@@ -183,4 +191,4 @@ THE VALVE RADIO IS VISIBLE BUT SWITCHED OFF. There is no radio sound anywhere in
 NEGATIVE
 ================================================================
 
-no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no radio music, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no non-English dialogue, no more than one spoken line, no reply to the daughter, no answering line, no voiceover, no narration, NO DUPLICATE CHARACTER, no two mothers, no two fathers, no two daughters, no cloned faces, no double in the background, no reflection producing a second person, no dirt, no stains, no grime, no smudges, no grease, no dust, no squalor, no mess, no torn clothing, no ragged clothing, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no pale skin on this family, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no beautiful drawing, no skilful drawing, no accomplished artwork, no fine art, no detailed illustration, no clean flat paper, no uncreased sheet, no small signature, no readable name, no readable text, no lettering, no words, no logos of real brands, no watermark, no subtitles, no captions, no screens, no LED, no digital displays, no cables, no modern technology, no smartphones, no empty room, no minimal interior, no bare walls, no other saturated objects in the room, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no anyone looking at the camera, no smiling broadly, no laughing, no cheering, no applause from more than the grandmother, no crying, no shouting, no arguing, no anyone turning toward the daughter, no anyone acknowledging her question, no father leading, no father giving instructions, no pets, no rain, no night, no darkness
+no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no radio music, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no non-English dialogue, no more than one spoken line, no reply to the daughter, no answering line, no voiceover, no narration, NO DUPLICATE CHARACTER, no two mothers, no two fathers, no two daughters, no cloned faces, no double in the background, no reflection producing a second person, no dirt, no stains, no grime, no smudges, no grease, no dust, no squalor, no mess, no torn clothing, no ragged clothing, no unwashed skin, no messy hair, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no pale skin on this family, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no beautiful drawing, no skilful drawing, no accomplished artwork, no fine art, no detailed illustration, no clean flat paper, no uncreased sheet, no small signature, no readable name, no readable text, no lettering, no words, no logos of real brands, no watermark, no subtitles, no captions, no screens, no LED, no digital displays, no cables, no modern technology, no smartphones, no empty room, no minimal interior, no bare walls, no other saturated objects in the room, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no anyone looking at the camera, no smiling broadly, no laughing, no cheering, no applause from more than the grandmother, no crying, no shouting, no arguing, no anyone turning toward the daughter, no anyone acknowledging her question, no father leading, no anyone standing up, no anyone lining up, no wall-hung picture in this scene, no smugness on the boy, no boasting, no sulking on the daughter, no sadness on the daughter, no pets, no rain, no night, no darkness
