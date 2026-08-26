@@ -659,6 +659,50 @@ that says "zero digits anywhere" will stop a correct operator dead; one that say
 "any number means stop" is worse, because it trains the operator to ignore the
 real signal. Write the table.
 
+### HIGGSFIELD SOUL DOES NOT ACCEPT REFERENCE IMAGES AT ALL
+
+Measured 2026-08-27 on the «Absence of Meaning» plate chain. **Soul Cinema
+cannot take Element references.** This is not a technique problem — the
+capability is absent from that composer.
+
+Both paths were tried, one clean attempt each, and both failed:
+
+| Path | Result in Soul |
+|---|---|
+| Paste the prompt with `@element_name` inside it | Tag stays **plain red text**. Never resolves. |
+| Type a real `@` to trigger the native autocomplete | **No dropdown appears at all.** Tag stays red. |
+
+The paste-auto-resolve behaviour documented further down this file is real, but
+it was measured on the **Seedance / video composer**. Soul is a different
+composer and does not share it. Do not assume a technique carries between them.
+
+#### What this costs you, and the rule
+
+A red tag generates silently: the model never sees the reference, invents
+something plausible from the prose, and the output looks perfectly fine. On this
+project it produced a brass plaque that was a completely different object from
+the reference plate — different proportions, different typography, missing the
+screws — and noticing that mismatch was the only reason anyone caught it.
+
+**CEO's standing ruling, 2026-08-27: if a plate needs reference images, generate
+it with GPT Image Gen 2, not Soul.** A bound reference matters more than Soul's
+photographic quality, because plates that have to intercut inside one film have
+to actually match each other.
+
+This overrides the model-routing rule (Location → Soul, Character/Prop → GPT
+Image Gen 2) where the two collide: **routing by asset type loses to the
+reference requirement.** A location that must inherit from an earlier plate goes
+to GPT.
+
+And whichever way you go, **the whole set goes together** — never one location
+from Soul and another from GPT. Different models give different light, texture
+and colour response, and a film whose locations came from two models will not
+cut together; viewers feel some shots are not the same place without being able
+to say why.
+
+Soul remains the right choice for a location that stands alone and needs no
+reference.
+
 ### RED tag text in the composer = the Element does not exist. Look at the colour.
 
 Spotted by the CEO from a screenshot, 2026-08-27, after an operator spent a
