@@ -53,3 +53,30 @@ a film missing ten scenes cannot.
 grep -hE '^\|[^|]+\|[^|]+\|[[:space:]]*`?[0-9a-f]{8}-' docs/reports/valder-video-wave*.md docs/reports/valder-s*.md docs/reports/valder-final-two.md \
   | awk -F'|' '{gsub(/[` ]/,"",$2); gsub(/[` ]/,"",$4); if($4 ~ /^[0-9a-f]{8}-/) print $2"\t"$4}' | sort -u
 ```
+
+## Pre-flight on the ten uncovered scenes — 2026-08-26 15:55
+
+Checked offline, no browser needed. Both structural failure classes are ruled
+out for S4A S4 S4B S4C S5 S5B S6 S7A S7B S-MU:
+
+- **Element ceiling** — every scene declares 9 or fewer (max is 8, in s4b / s6 /
+  s7a). Ten elements fails with a generic error, so this was worth checking
+  before a worker discovered it mid-fire.
+- **Tag resolution** — all 26 distinct `@project_valder_*` tags used across the
+  ten scenes have a real plate on disk. Zero typos. (This is the class that bit
+  us once already: Elements use US `neighbor`, the prompts had said `neighbour`,
+  and a plain tag that does not match exactly silently fails to bind.)
+
+If one of these scenes now fails to fire, **the cause is runtime, not the prompt
+file** — protected-content triangle, Lexical desync, or the render queue. Do not
+spend a cycle re-auditing element counts or tag spelling.
+
+Recompute with:
+
+```
+D=docs/prompts/valder
+for s in s4a s4 s4b s4c s5 s5b s6 s7a s7b smu; do
+  echo "$s $(grep -oE '@project_valder_[a-z0-9_]+' $D/$s-multicut.txt | sort -u | wc -l)"
+done
+ls docs/plates/*.webp | xargs -n1 basename | sed 's/^project_valder_//; s/\.webp$//' | sort -u > /tmp/have.txt
+```
