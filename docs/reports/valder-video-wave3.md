@@ -348,16 +348,38 @@ of whether another task is active on this account; not pausing the queue
 since Unlimited is confirmed working correctly on every fire this operator
 has made.
 
-## Next: S4A (final untried scene from original queue), then extra takes
+## S4A — tried once, confirmed blocked exactly as predicted, skipped per brief
 
-S4A remains untried this wave. Per the task brief, trying it once — expecting
-the same non-transient `loc_neighbor_door` bind failure documented in wave2
-(root cause: malformed mention-ID, already reported to CTO). After that,
-pivoting to firing additional takes of the scenes that DO fire clean (S1,
-S1B, S3, S-V) so the Unlimited slot is never idle, per the CEO's standing
-order — since 8 of the original 13 scenes are currently blocked by a
-platform-side Element moderation issue no amount of operator retrying can
-clear.
+Pasted S4A (5/5 unique mentions bound, but **2 error chips** — `@project_valder_loc_neighbor_door`
+appears twice in the prompt text and both instances failed to bind).
+Confirms wave2's finding and the root cause already reported to CTO earlier
+this wave: the Element's real bound mention-ID is
+`@loc_project_valder_loc_neighbor_door` (malformed double `loc_` prefix),
+not `@project_valder_loc_neighbor_door`. Did not click Generate — the error
+chips are conclusive proof of the exact same non-transient failure, and per
+the brief's own instruction ("if it blocks again, skip it, write down
+exactly what the block was") a Generate click would only waste a round trip
+on a prompt already known to have 2 unbound references. Credits unchanged
+(1,930) — no cost, no click made. Skipping S4A.
+
+A CDP timeout occurred during this scene's prompt paste too (same class as
+the two before it) — checked state before proceeding: `1+1` eval confirmed
+responsive, prompt text had landed correctly (exact first/last-80 match).
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S4A | — | NOT FIRED (1 attempt, confirmed non-transient) | 5/5 mentions, 2 error chips | `@project_valder_loc_neighbor_door` fails to bind both occurrences; same root cause as wave2 (malformed Element ID `@loc_project_valder_loc_neighbor_door`); 0 cost, Generate not clicked |
+
+## Pivoting to extra takes of clean scenes
+
+All 13 scenes from the original queue plus S-V have now been attempted at
+least once this wave. Final tally: **fired clean** — S1, S1B, S3 (carried
+from wave2), S-V (×2 this wave); **blocked on protected-content gate** — S2,
+S4, S4B, S4C, S5B, S6, S7A, S7B (8 scenes, all newly-created Elements);
+**blocked on malformed Element ID** — S4A, S5 (2 scenes, same root cause,
+reported to CTO). Per the CEO's standing order, firing additional takes of
+the scenes that DO work (S1, S1B, S3, S-V) so the Unlimited slot is never
+idle while the platform-side Element issues get resolved elsewhere.
 
 ## Incident — MCP tab group destroyed while closing stale tabs
 
