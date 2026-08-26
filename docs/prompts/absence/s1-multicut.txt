@@ -1,0 +1,127 @@
+SEEDANCE 2.5 — 20 SECONDS — 720p — 16:9
+
+THIS IS NOT ONE CONTINUOUS SHOT. It is SEVEN SEPARATE SHOTS joined by SIX HARD CUTS. Every cut is instant. There is NO dissolve, NO fade, NO wipe, NO whip pan, NO morph, NO camera move that carries across a cut. Each shot is its own framing and the change between them is abrupt.
+
+THERE IS NO DIALOGUE IN THIS SCENE. Nobody speaks. Not one word.
+
+================================================================
+WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
+================================================================
+
+@project_valder_loc_fountain_hall — THE ENTRANCE HALL of the building. Hard-edged blocks of intense petrol teal and chrome yellow. A circular fountain with a chrome atomic starburst rising out of it, water running. Terrazzo floor in blue and yellow blocks. A tall door in vivid red. Curved crescent benches. Recessed downlights. The architecture is square and correct.
+
+@project_valder_loc_museum — THE GALLERY. Enormous unbroken ultramarine wall planes. Framed pictures hung along a single line at one consistent height. A long segmented yellow moulded-plastic bench running down the centre of the room. Terrazzo floor. The framed works are competent abstract modernism — real paintings, properly made, worth looking at.
+
+@project_valder_char_crowd_a — EIGHT WELL-DRESSED VISITORS. Each in one deeply saturated colour — oxblood, cream, orange, blue, teal, yellow, mustard. Every one carries a fashion object: briefcase, hatbox, tube case, handbag, clutch. Three hats, two pairs of glasses, several pairs of coloured gloves. Pale indoor skin. Different ages and builds.
+
+@project_valder_char_crowd_b — EIGHT MORE VISITORS, of a slightly lower rank. Saturated single-colour coats — purple, lilac, blue, mustard, red, teal, orange, chartreuse — but underneath, busy patterned shirts and dresses show at every cuff and collar, and there are too many accessories: brooches, pocket squares, watch chains, checked trousers under plain coats. These are people copying the rich and getting it very slightly wrong.
+
+@project_valder_char_villagers_rich — TWELVE PEOPLE OF THE HIGHEST RANK: six in long multi-panel colour-blocked coats with matching coloured gloves and matching coloured shoes, each a different combination, and six attendants in plain black suits standing slightly behind them. Round sunglasses on three. Healthy skin, not pale.
+
+@project_valder_char_tea_circle — FOUR WOMEN who move as a single unit, each in one deeply saturated colour — mustard, royal blue, red, deep teal — each dress cut with a large asymmetric cream shawl collar.
+
+@project_valder_char_press — THE PRESS PHOTOGRAPHER. Middle-aged heavy man in a dark green wool overcoat, thick black-framed spectacles, a leather bandolier of flashbulbs across his chest, an enormous chrome press camera on a strap with a separate chrome flash reflector held high on a bracket.
+
+================================================================
+WHAT THIS SCENE IS DOING
+================================================================
+
+This is the opening of the film and its whole job is ONE IDEA, delivered without a single word:
+
+**THIS BUILDING IS FULL OF REAL ART, AND NOBODY IS LOOKING AT ANY OF IT.**
+
+The camera travels past wall after wall of genuinely good paintings — properly made, competently composed, the kind of work that took someone years — and the crowd flows past every one of them without stopping. Not one person turns their head. The paintings are not the joke; they are real and they are good, and that is the point.
+
+Then the camera finds where everybody actually is: a large mass of people packed tight in front of a single stretch of wall, at the far end.
+
+**WE DO NOT SEE WHAT THEY ARE LOOKING AT.** The scene ends on their backs. Withholding it is the entire structure of the opening.
+
+================================================================
+STYLE — APPLIES TO EVERY SHOT
+================================================================
+
+ERA: a retrofuturist world — the future as people in the past imagined it. Swept aerodynamic curves, cantilevers, moulded plastic, chromium, terrazzo, formica, starburst motifs, boomerang shapes, tapered splayed legs. THERE IS NOTHING DIGITAL ANYWHERE. No screens, no LEDs, no digital numerals, no cables. An invented place — no country and no year is identifiable.
+
+COLOUR IS THE CLASS SYSTEM: wealth is DEEP SATURATED COLOUR IN LARGE FLAT PLANES, and emptiness.
+
+THE CAMERA IS ALWAYS LEVEL. No dutch angles, no tilting, ever.
+
+LIGHTING IS FLAT AND FRONTAL, like a property brochure — minimal shadow, everything legible, objects square to camera.
+
+PHOTOGRAPHED, NOT RENDERED: fine film grain, halation around bright highlights, faint gate weave, softness and slight colour fringing at the edges of the lens. The grain must NOT desaturate the colour. NO HDR, NO digital glossiness, NO CGI sheen.
+
+PERFORMANCE IS FLAT AND CEREMONIAL: nobody smiles, nobody laughs, nobody grimaces, nobody weeps. Movements precise, slow and formal. Total sincerity delivered completely deadpan.
+
+CROWDS ARE LOOSE AND SCATTERED, NEVER IN FORMATION. No rows, no lines, no ranks, nobody facing camera together, nobody moving in step. People stand at different distances and different angles, in ones and twos and threes, the way people actually stand in a room.
+
+================================================================
+SHOT 1 — 3 seconds
+================================================================
+
+@project_valder_loc_fountain_hall. Wide, static, level. The chrome starburst fountain running in the centre of the frame. @project_valder_char_crowd_a and @project_valder_char_villagers_rich cross the hall from both sides, unhurried, heading for the tall red door. Nobody looks at the fountain. Nobody looks at the camera.
+
+=== HARD CUT ===
+
+================================================================
+SHOT 2 — 3 seconds
+================================================================
+
+@project_valder_loc_museum. Wide, static, level, dead-on to one enormous ultramarine wall. Framed paintings hung in a precise line at one height, evenly spaced, running out of frame both sides. THE ROOM IS EMPTY OF PEOPLE. Hold on it. The paintings are good.
+
+=== HARD CUT ===
+
+================================================================
+SHOT 3 — 3 seconds
+================================================================
+
+@project_valder_loc_museum. The SAME wall, now with @project_valder_char_crowd_b and @project_valder_char_tea_circle moving through the room from left to right, loose and scattered. They pass in front of the paintings and KEEP WALKING. Not one head turns toward the wall. The camera stays static and level and lets them cross.
+
+=== HARD CUT ===
+
+================================================================
+SHOT 4 — 3 seconds
+================================================================
+
+@project_valder_loc_museum. Closer. A single framed painting fills most of the frame — a real, competent, carefully made abstract work. Two members of @project_valder_char_crowd_a walk into frame in front of it, talking to each other, and walk straight out the other side WITHOUT LOOKING AT IT. The painting is left alone in the frame.
+
+=== HARD CUT ===
+
+================================================================
+SHOT 5 — 3 seconds
+================================================================
+
+@project_valder_loc_museum. Low, level, static, along the length of the long yellow moulded-plastic bench running down the centre of the room. THE BENCH IS COMPLETELY EMPTY — not one person is sitting on it. Beyond it, at the far end of the room, a dense mass of people is packed together facing a wall we cannot see.
+
+=== HARD CUT ===
+
+================================================================
+SHOT 6 — 4 seconds
+================================================================
+
+@project_valder_loc_museum. A slow, steady, level PUSH-IN toward that crowd at the far end. @project_valder_char_crowd_a, @project_valder_char_crowd_b and @project_valder_char_villagers_rich all mixed together, standing shoulder to shoulder, all facing away from camera. @project_valder_char_press stands at the edge of the group with the chrome camera and the flash reflector raised. Nobody in the crowd moves. Nobody talks. They are all completely still, all looking at the same thing.
+
+=== HARD CUT ===
+
+================================================================
+SHOT 7 — 4 seconds
+================================================================
+
+@project_valder_loc_museum. Close on the BACKS of the crowd, filling the whole frame — a wall of saturated coloured coats and hats and gloves, packed tight. Static. Level. NOT ONE GAP between the bodies. We cannot see past them and we never do.
+
+A flashbulb fires somewhere inside the group and washes the backs of the coats white for a single frame.
+
+Hold, completely still, until the clip ends.
+
+================================================================
+SOUND
+================================================================
+
+Room tone of a large hard-surfaced hall. Running water in shot 1 only. Footsteps on terrazzo — many, unsynchronised, unhurried. One flashbulb pop in shot 7. A low murmur of a crowd in shots 6 and 7, too distant and too soft for any word to be intelligible.
+
+NO MUSIC OF ANY KIND. No score, no underscore, no drone, no strings, no piano, no synthesiser, no swell, no final chord, no resolving note. No sound at the very start of the clip and no sound at the very end. No whoosh, no riser, no sting, no impact hit, no bass drop.
+
+================================================================
+NEGATIVE
+================================================================
+
+no dialogue, no speech, no voices with intelligible words, no voiceover, no narration, no music, no score, no underscore, no riser, no sting, no whoosh, no subtitles, no captions, no on-screen text, no readable text anywhere, no wall labels, no signage, no timecode, no watermark, no date stamp, no logos of real brands, no screens, no LEDs, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no crowd in formation, no rows, no ranks, no lines of people, no marching, no people moving in step, no anyone facing camera together, no anyone looking at the camera, no smiling, no laughing, no grimacing, no weeping, no dramatic expressions, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no dirt, no grime, no dust, no squalor, no torn clothing, no green skin, no grey skin, no waxy skin, no gaunt faces, no horror imagery, no rain, no fog, no night, no darkness, no crack visible on any wall, no damage to any wall, no empty white wall, no gap in the crowd, no view past the crowd
