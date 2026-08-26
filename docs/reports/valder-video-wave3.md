@@ -198,6 +198,27 @@ Elements, three gates, 0 cost each time.
 |---|---|---|---|---|
 | S4B | — | BLOCKED (2 attempts this wave) | 8/8, 0 errors | protected-content gate on `@project_valder_prop_market_bag`; 0 cost both times; same one-retry-then-skip policy applied |
 
+## S4C — blocked, MULTIPLE references flagged (broader gate than the others)
+
+S4C staged cleanly (7/7 elements, 0 errors). This scene shares `prop_market_bag`
+with S4B (already known-flagged) plus three more newly-created elements
+(`loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags`). Generate hit the
+protected-content banner with **4 of the 7 reference thumbnails showing the
+warning-triangle overlay simultaneously** — a materially broader block than
+the single-element gates seen on S2/S4/S4B. One plain retry per policy:
+dismissed banner, re-verified 7/7 with 0 errors, re-applied desync fix,
+re-confirmed `UNLIMITED / ~~140~~ / 0`, retried. Gated again, identical
+banner. Credits unchanged (1,932) both times. Skipping S4C — moving to S5B.
+
+This strengthens the per-Element-moderation-flag theory over per-scene:
+`loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags` and `prop_market_bag`
+all appear to carry a standing flag from creation, independent of which scene
+attaches them.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S4C | — | BLOCKED (2 attempts this wave) | 7/7, 0 errors | protected-content gate, 4/7 references flagged (`loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags`, `prop_market_bag`); 0 cost both times |
+
 ## Incident — MCP tab group destroyed while closing stale tabs
 
 After S1B fired, attempted to close two now-stale tabs (the original composer
