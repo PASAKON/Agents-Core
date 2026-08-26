@@ -78,17 +78,34 @@ Credits before wave: **1,932** (matches task brief exactly).
 
 | Scene | Take | Clip asset id | Settings confirmed | Elements | Generate button text at fire | Render minutes |
 |---|---|---|---|---|---|---|
-| S1 | 1 | pending | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 9/9, 0 errors | `UNLIMITED / ~~140~~ / 0` (zoom-confirmed struck-through) | staged, waiting on S3's slot to clear (S3 fired ~20-25 min ago, normal render window, not a zombie — confirmed via `date` against wave2's handoff timestamp) |
+| S1 | 1 | `e4c958ae-7249-4fc6-ab83-8b17b13a86f3` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 9/9, 0 errors | `UNLIMITED / ~~140~~ / 0` (zoom-confirmed struck-through) | fired, render in progress |
+
+Credits after S1 fire: **1,932** (unchanged, confirmed via account menu).
+
+### Note on S1's first fire attempt
+
+The very first Generate click on S1 (on the original composer tab, `53464554`)
+was correctly blocked by the platform's "1 unlimited generation at a time"
+toast while S3 (`6d01ad10-...`) was still finishing — 0 cost, 0 side effect.
+That tab then started giving inconsistent concurrency-toast readings even
+after fresh-tab checks showed the slot was free (matches the skill's
+documented "long-lived tab lies about the concurrency slot" finding). Per
+that guidance, opened a brand-new tab (`53464577`), left the original
+untouched, rebuilt the full composer from scratch there, re-pasted S1,
+and fired successfully once S3 genuinely finished. S3's card also flickered
+between "Processing"/"Generating"/complete several times right at the tail
+of its render — matches the wave2 script's documented inconsistent-label
+finding, not a new bug.
 
 ## Live browser state
 
-- One tab open, `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3`,
-  logged in.
-- Composer holds S1's prompt (9/9 elements bound, 0 errors), Unlimited
-  confirmed ON, Generate reads `UNLIMITED / ~~140~~ / 0`.
-- S1 Generate was clicked once already; blocked by the platform's own
-  "1 unlimited generation at a time" toast (S3 still finishing) — 0 cost,
-  0 side effect, confirmed via credit balance unchanged (1,932) both before
-  and after the attempt.
-- Waiting for S3's render to clear before re-clicking Generate on the already
-  staged S1 prompt.
+- Two tabs open in the group:
+  - `53464554` (original composer tab) — left untouched since the stale-toast
+    symptom appeared. Still holds an earlier staged S1 prompt (now stale/
+    irrelevant). Not touched further; will let it sit or repurpose later.
+  - `53464577` (active composer tab, current) — logged in, Seedance 2.5 /
+    720p / 20s / 16:9 / High / Sound On / Unlimited ON confirmed. S1 fire
+    confirmed via toast + asset-count delta. This is now the primary working
+    tab going forward.
+- Next: stage S2 (`docs/prompts/valder/s2-multicut.txt`, 8 elements) while
+  S1 renders.
