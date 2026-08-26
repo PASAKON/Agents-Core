@@ -127,3 +127,30 @@ moving to S4.
 | Scene | Take | Clip asset id | Elements | Notes |
 |---|---|---|---|---|
 | S2 | — | BLOCKED (2 attempts this wave) | 8/8, 0 errors | protected-content gate on `@project_valder_prop_frame`; 0 cost both times; CTO-authorized skip |
+
+## S4 — also blocked on the protected-content gate (new finding)
+
+S4 staged cleanly (7/7 elements, 0 errors — the `loc_new_interior` chip-binding
+issue documented in wave2's handoff did NOT recur). Generate hit the identical
+"Some reference elements may contain protected content" banner — 0 cost.
+Visually confirmed the flagged reference this time: `@project_valder_loc_new_interior`
+(the house interior) shows the warning-triangle overlay in the reference tray.
+Applied the same one-plain-retry-then-skip policy CTO set for S2: dismissed
+the banner, re-verified 7/7 with 0 errors, re-applied the desync fix,
+re-confirmed `UNLIMITED / ~~140~~ / 0`, retried once. Gated again, identical
+banner. Credits unchanged (1,932) both times. Skipping S4 — moving to S1B.
+
+**Pattern emerging**: both gates hit this wave (S2's `prop_frame`, S4's
+`loc_new_interior`) are on Elements that were part of the "15 newly-created
+Elements" batch mentioned in wave2's handoff (the concurrent image-plate task
+that unblocked S2/S3/S4/etc.). `prop_mark`, also newly-created, fired clean in
+both S2 and S4's composers (no warning icon). Worth flagging to CTO: this may
+not be per-scene-transient the way S3's clean fire suggested — it may be
+per-Element, with some newly-created Elements (frame, new_interior) still
+carrying a moderation flag and others (mark) already cleared. S4A/S5's
+`loc_neighbor_door` (a different, non-transient bind failure — see above) is
+a third, unrelated failure mode on yet another newly-created Element.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S4 | — | BLOCKED (2 attempts this wave) | 7/7, 0 errors | protected-content gate on `@project_valder_loc_new_interior`; 0 cost both times; same one-retry-then-skip policy applied |
