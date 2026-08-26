@@ -247,7 +247,30 @@ Fired clean: `"Generation started"` toast caught this time, counter
 incremented 247→248, asset id `22cc1930-6fd7-4038-b7c4-9cb83c041818` isolated
 via the standard ancestor-walk.
 
-**All 5 clips in this wave are now fired.** S1 take B and S1B take A/B
-confirmed complete during the wave; S1 take C confirmed complete via the
-network+fresh-tab cross-check above; S1B take C's completion is the only one
-still pending as of this writing.
+**All 5 original-brief clips fired AND confirmed complete** (S1B take C
+confirmed via fresh-tab check: no in-progress label anywhere, matching the
+pattern of every prior completed clip in this wave).
+
+---
+
+## AMENDMENT — queue extended mid-task (task-b7224c38, 2026-08-26 06:15)
+
+CTO amendment: the concurrent image-plate task finished, all 15 Elements now
+exist, unblocking 7 more scenes. New prompt files (`s4a`, `s4b`, `s4c`, `s5`,
+`s5b`, `s6`, `s7a`) synced from `main` via `git show main:<path>` and
+md5-verified against main's blob (all matched). Continuing: one take each of
+S4A/S4B/S4C/S5/S5B/S6/S7A, then second takes if still running, per the
+amendment's explicit "never stop to ask, just keep the queue moving."
+
+| Scene | Take | Clip asset id | Elements | Generate button text at fire |
+|---|---|---|---|---|
+| S4A | 1 | pending | 5 | pending |
+| S4B | 1 | pending | 8 | pending |
+| S4C | 1 | pending | 7 | pending |
+| S5  | 1 | pending | 6 | pending |
+| S5B | 1 | pending | 6 | pending |
+| S6  | 1 | pending | 8 | pending |
+| S7A | 1 | pending | 8 | pending |
+
+All at Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On /
+Unlimited ON, same as the rest of this wave, updated per-clip below.
