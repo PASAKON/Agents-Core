@@ -314,6 +314,37 @@ Credits after S-V take 1: **1,932** (unchanged).
 Per CTO instruction, firing S-V take 2 next, then continuing with S4A + extra
 takes of clean scenes.
 
+## S-V take 2 — fired, exact asset id ambiguous at time of writing
+
+Re-verified staged state fresh (6/6, 0 errors, Unlimited on), re-applied
+desync fix, zoom-confirmed `UNLIMITED / ~~140~~ / 0`, clicked Generate.
+Confirmed via `"Generation started"` toast and assets 252→253.
+
+**Asset id isolation was inconclusive.** The standard ancestor-walk
+technique against the "Generating"/"Processing" label resolved to
+`3e0252ef-...` (take 1's own id) on three separate attempts across two tabs,
+even after take 1's card had visibly completed (confirmed via screenshot —
+its thumbnail shows the finished red-hall frame, separate from the still-
+"Generating" card next to it). This looks like the ancestor-walk picking up
+a stale/shared id from adjacent DOM rather than the true new card's id — a
+new failure mode not previously documented for this technique. Not
+resolved at time of writing; will re-check via a clean fresh-tab read once
+take 2 fully completes and its own thumbnail is visible, and correct the id
+here once confirmed.
+
+**Credit drift flagged to CTO.** Immediately after take 2's fire, credits
+read **1,930** — a 2-credit drop from the 1,932 baseline that had held flat
+through every single check this entire session (S1, S2×2, S4×2, S4B×2,
+S4C×2, S5B×2, S6×2, S7A, S7B, S-V take 1 all confirmed 1,932 before/after).
+Both S-V clicks showed `UNLIMITED / ~~140~~ / 0` struck-through immediately
+before firing, so this is not a video-scale charge from my own actions — 2
+credits matches wave2's documented "small drift" pattern (attributed there
+to a concurrent image-plate operator on the same account), not the
+130-440cr scale a video charge would show. Flagged to CTO for confirmation
+of whether another task is active on this account; not pausing the queue
+since Unlimited is confirmed working correctly on every fire this operator
+has made.
+
 ## Next: S4A (final untried scene from original queue), then extra takes
 
 S4A remains untried this wave. Per the task brief, trying it once — expecting
