@@ -115,6 +115,57 @@ write-once. Every "blocked" scene should be spot-re-checked visually (zoom on
 the reference strip) rather than assumed permanently blocked from a past
 wave's finding — the flagged-elements list can change between waves.
 
+## PART 1B — CTO-directed follow-up: the fix IS the warning-triangle icon itself
+
+CTO instruction after reading Part 1: the toast literally says "Check
+eligibility or remove them to proceed" — that means the control exists, and
+nobody had tried clicking the warning-triangle overlay on the flagged card
+directly (as opposed to hunting for a panel-level button).
+
+**Tested on the still-loaded S2-variant composer** (7 elements, `prop_frame`
+already removed/described in plain words from Part 1's variation,
+`char_grandma` still showing its warning triangle at the time):
+
+1. Clicked directly on the warning-triangle icon on `char_grandma`'s
+   reference-thumbnail card.
+2. **No menu, no dialog, no dropdown appeared.** The icon changed instantly to
+   a small loading/checked state and the triangle vanished. Zoomed
+   before/after: triangle present → gone, on the same card, no other UI
+   surfaced.
+3. `read_network_requests` showed exactly what fired from that one click:
+   `POST /fnf/reference-elements/306901ba-48b1-4520-8c4e-5daab310145d/ip-detect`
+   (200), followed by a few `GET /fnf/reference-elements/<same-uuid>` polls
+   (200) — a live face/IP eligibility re-check against that specific asset,
+   confirmed via UUID match to `char_grandma`'s own mention id from the
+   earlier bind. Full reference strip re-zoomed after: **zero warning
+   triangles remaining on any of the 7 cards.**
+4. Re-verified 7/7 bound, 0 mention errors, re-applied the desync fix,
+   re-confirmed `UNLIMITED / ~~140~~ / 0` fresh, cleared the network log, and
+   clicked Generate.
+
+**RESULT: FIRED CLEAN.** `"Generation started"` toast, credits 1,922 → 1,918
+(concurrent-operator drift only, matches pattern), new card confirmed via
+`document.querySelectorAll('[data-asset-id]')[0]` →
+**`b9b74401-26cd-433a-8cad-9f0eaf99d138`**.
+
+**Confirmed: the fix is exactly what the CTO predicted.** The per-reference
+"Check eligibility" control is not a separate panel/menu item — it IS the
+warning-triangle icon on the flagged card, one click, no confirmation step,
+resolves via a real `ip-detect` API call in a few seconds. This is why prior
+waves' searches for a panel-level "Check eligibility" button sometimes found
+one (in the Elements panel, per wave3's `valder-s2-eligibility.md`) and
+sometimes didn't — **there are two places this control surfaces, and the
+faster one (the reference-tray thumbnail itself, right where the prompt is
+being built) had not been tried until now.**
+
+**Practical consequence for the rest of this film:** every blocked scene
+(S4, S4A, S4B, S4C, S5, S5B, S6, S7A, S7B) is very likely unblockable the
+same way — paste the prompt, zoom the reference strip, click every
+warning-triangle icon present, wait for it to clear, re-verify 0 errors,
+Generate. No prompt rewriting needed. This is the single highest-value
+finding of the wave. Adding all previously-blocked scenes back into the
+active rotation below.
+
 ## PART 2 — keeping the slot busy (rotation of scenes that fire clean)
 
 Per the CEO's standing "Unlimited must never sit idle" rule, proceeding to
@@ -139,3 +190,4 @@ context for the protected-content investigation generally.
 
 | Scene | Take | Clip asset id | Elements | Settings | Notes |
 |---|---|---|---|---|---|
+| S2 (variant) | 1 | `b9b74401-26cd-433a-8cad-9f0eaf99d138` | 7/7, 0 errors | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | `prop_frame` removed+described in plain words (Part 1's variation) + `char_grandma` cleared via triangle-click eligibility re-check (Part 1B). Fired clean, `UNLIMITED / ~~140~~ / 0`, credits 1922→1918 (drift only). NOT the canonical S2 prompt — this take used the modified/no-prop_frame-tag text, kept for the record as proof-of-fix, not as a canonical S2 take. |
