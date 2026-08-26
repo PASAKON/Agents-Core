@@ -271,7 +271,13 @@ def main() -> None:
     # `developer`, only with the web_designer role doc + the design source
     # resolved from the project UUID (CEO 2026-06-15). The CEO-driven Web
     # UI flow is a separate path (scripts/spawn-web-designer.sh).
-    if role == "web_designer" and backend == "tmux":
+    # ONLY mooniex-claudesign runs the Web-UI daemon that drives this passive
+    # viewer. The tmux rollout (task-2f04a8ca, 2026-08-14) moved most projects
+    # to spawn_backend=tmux, which made their web_designer wrongly fall into this
+    # dead-tail branch (no daemon → 0-byte mirror, nothing runs). Gate it to the
+    # claudesign project so a CTO-delegated web_designer runs AUTONOMOUS (a real
+    # claude TUI) on every other project, exactly like a developer.
+    if role == "web_designer" and backend == "tmux" and project.get("key") == "mooniex-claudesign":
         try:
             db.update_status(task_id, "in_progress", pid=os.getpid(), actor=role)
         except Exception as e:
