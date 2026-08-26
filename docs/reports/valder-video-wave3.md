@@ -257,6 +257,37 @@ rather than exhaustively re-testing a already-established platform-side block.
 |---|---|---|---|---|
 | S6 | — | BLOCKED (2 attempts this wave) | 8/8, 0 errors | protected-content gate (elements not individually re-confirmed by screenshot, matches established pattern); 0 cost both times |
 
+## S7A and S7B — single-attempt confirmation, both gated as predicted
+
+Per the pivot decision above, tested S7A and S7B once each (no retry — the
+pattern was already established 6/6). Both staged cleanly (8/8 and 5/5
+elements respectively, 0 errors) and both gated on the first Generate click,
+0 cost. This makes it 8/8 new-element scenes gated this wave: S2, S4, S4B,
+S4C, S5B, S6, S7A, S7B.
+
+A CDP timeout occurred during S7B's prompt paste (`Runtime.evaluate` timed
+out after 45s — same failure class documented in prior waves). Per the
+skill's rule, checked state before proceeding rather than assuming nothing
+happened: a trivial `1+1` eval confirmed the tab was responsive again, the
+prompt text had landed correctly (5/5 mentions, exact first/last-80 match),
+and credits were unchanged (1,932). Proceeded only after that confirmation.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S7A | — | BLOCKED (1 attempt, no retry) | 8/8, 0 errors | protected-content gate; 0 cost |
+| S7B | — | BLOCKED (1 attempt, no retry) | 5/5, 0 errors | protected-content gate; 0 cost; CDP timeout during paste, recovered clean |
+
+## Next: S4A (final untried scene), then pivot to extra takes
+
+S4A remains untried this wave. Per the task brief, trying it once — expecting
+the same non-transient `loc_neighbor_door` bind failure documented in wave2
+(root cause: malformed mention-ID, already reported to CTO). After that,
+pivoting to firing additional takes of the three scenes that DO fire clean
+(S1, S1B, S3) so the Unlimited slot is never idle, per the CEO's standing
+order — since 8 of 13 scenes in the brief are currently blocked by a
+platform-side Element moderation issue no amount of operator retrying can
+clear.
+
 ## Incident — MCP tab group destroyed while closing stale tabs
 
 After S1B fired, attempted to close two now-stale tabs (the original composer
