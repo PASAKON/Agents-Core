@@ -90,6 +90,26 @@ instead of chasing the Soul bug further, and — per the CEO's standing model-
 consistency rule — **both** locations come from GPT Image 2, not one from
 each, so the location set stays internally consistent for intercutting.
 
+## Location plate redos (GPT Image 2)
+
+**Wall-crack redo — done.** `/Users/gob/Desktop/absence-01-wall-crack.png`
+(overwrote the rejected version). Model: GPT Image 2, Medium quality, 1K, 2
+credits. `@project_absence_prop_tag` verified GREEN (`text-font-brand`) in the
+composer immediately before generating. New prompt fixes both CEO-flagged
+problems: (1) plaque is now referenced correctly by name instead of a stray
+raw uuid pointing at the wrong element, (2) crack rewritten as a long,
+diagonal, clearly-visible fracture with chipped plaster at the edges — result
+confirmed visually as a strong, legible crack running most of the wall's
+width, not a hairline.
+
+**Hall four-panel sheet — generating.** Prompt: one wide image, four panels
+(hero wall w/ crack+tag, left side, right side, high overhead), Valder's seat
+placed in the right-side panel with sightline to the hero wall, white walls +
+other real framed art + sculptures/installations, saturated retrofuturist
+colour in floor/ceiling/architecture, no people. `@project_absence_loc_wall_crack`
+verified GREEN before generating (ties panel 1 to the already-fixed crack
+plate). Model: GPT Image 2, Medium, 1K, 2 credits. Awaiting completion.
+
 ## JOB 3 — corridor generation
 
 Not started — corridor generation is scheduled after both location redos are
