@@ -264,13 +264,35 @@ amendment's explicit "never stop to ask, just keep the queue moving."
 
 | Scene | Take | Clip asset id | Elements | Generate button text at fire |
 |---|---|---|---|---|
-| S4A | 1 | pending | 5 | pending |
-| S4B | 1 | pending | 8 | pending |
+| S4A | 1 | BLOCKED — @project_valder_loc_neighbor_door fails to bind 4/4 (confirmed real, not transient) | 5 | — |
+| S4B | 1 | BLOCKED — hit "protected content, check eligibility" gate on 3 new Props/Locations; no operator-side unblock found in this project's current Elements-panel UI | 8 | — |
 | S4C | 1 | pending | 7 | pending |
-| S5  | 1 | pending | 6 | pending |
+| S5  | 1 | BLOCKED — same element as S4A (@project_valder_loc_neighbor_door) | 6 | — |
 | S5B | 1 | pending | 6 | pending |
 | S6  | 1 | pending | 8 | pending |
 | S7A | 1 | pending | 8 | pending |
+
+## Extension disconnect (~20 min) mid-wave
+
+The Claude-in-Chrome browser extension itself disconnected (not a page-level
+stall — `tabs_context_mcp` returned "Browser extension is not connected" for
+~20 minutes). No browser tool worked at all during this window; computer-use
+was tried as a fallback to restart Chrome but this environment doesn't expose
+a local Chrome to that tool. Used the downtime for non-browser prep: read and
+JSON-encoded S2/S3/S4/S7B ready to paste the instant the connection returned.
+Recovered on its own; no action taken by the operator caused or fixed it.
+
+## AMENDMENT 2 — CEO priority override + full film (2026-08-26 ~07:20)
+
+Complete film is 13 scenes: S1, S1B, S2, S3, S4A, S4, S4B, S4C, S5, S5B, S6,
+S7A, S7B. S2/S3/S4/S7B synced+md5-verified from `main` (rewritten thesis).
+CEO override: fire S2, S3, S4 next ahead of the rest of the queue.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S2 | 1 | BLOCKED — protected-content gate on prop_frame + prop_mark | 8 | 0 cost |
+| S3 | 1 | `6d01ad10-572e-41d1-876f-58093c0f5b56` | 8/8, 0 errors | fired clean — same prop_mark that blocked S2 resolved cleanly here; the eligibility flag appears transient/per-attempt, not a persistent per-element state |
+| S4 | 1 | pending | 7 | in progress — watching for "house looks broken" per CEO's explicit note |
 
 All at Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On /
 Unlimited ON, same as the rest of this wave, updated per-clip below.
