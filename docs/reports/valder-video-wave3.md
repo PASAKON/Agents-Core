@@ -277,14 +277,51 @@ and credits were unchanged (1,932). Proceeded only after that confirmation.
 | S7A | — | BLOCKED (1 attempt, no retry) | 8/8, 0 errors | protected-content gate; 0 cost |
 | S7B | — | BLOCKED (1 attempt, no retry) | 5/5, 0 errors | protected-content gate; 0 cost; CDP timeout during paste, recovered clean |
 
-## Next: S4A (final untried scene), then pivot to extra takes
+## CTO amendment mid-session: new scene S-V, fired ahead of the rest of the queue
+
+CTO sent scene S-V mid-session (CEO's direct request). Synced from `main` via
+`git show main:docs/prompts/valder/sv-multicut.txt` and byte-verified against
+`git cat-file -s` (15,097 bytes / 15,023 chars — the 74-byte gap is expected
+multi-byte UTF-8 encoding of em-dashes, not a mismatch). 6 elements, all
+pre-existing (not from the flagged batch): `char_valder`, `char_guard`,
+`char_press`, `char_crowd_a`, `loc_studio`, `prop_mark`.
+
+Two things make this scene different from every other one fired this wave,
+per the CTO's brief: (1) it is ONE CONTINUOUS 20-SECOND SHOT WITH NO CUTS AT
+ALL — the only uncut scene in the film; a take with hard cuts in it is wrong.
+(2) the crowd must NOT be orderly — no rows/lines/semicircle, no security
+cordon, guards scattered among onlookers not in a line; a take that reads as
+a rally or congregation is unusable (festival bans political statements).
+Both constraints will need visual review once the take completes — noting
+here so the next reviewer knows what to check for.
+
+Staged cleanly (6/6 elements, 0 errors). A CDP timeout occurred during the
+paste (`Runtime.evaluate` timed out after 45s, same class as before) —
+checked state before proceeding: `1+1` eval confirmed responsive, prompt text
+had landed correctly (exact first/last-80 match), credits unchanged. Fired
+clean: `UNLIMITED / ~~140~~ / 0` zoom-confirmed, "Generation started" +
+assets 251→252 confirmed the fire (a stale leftover gate banner from S7B was
+still on-screen and read as `true` by the banner-text check, but did not
+block this fire — the toast/asset-count signals are authoritative here, not
+the banner text alone).
+
+| Scene | Take | Clip asset id | Settings confirmed | Elements | Generate button text at fire | Render minutes | Notes |
+|---|---|---|---|---|---|---|---|
+| S-V | 1 | `3e0252ef-be34-4852-ba0a-0dc83cecbdde` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~140~~ / 0` | fired, render in progress | **Needs visual review for: (a) genuinely zero cuts, one continuous shot; (b) crowd reads as scattered/loose, NOT a rally/congregation formation** |
+
+Credits after S-V take 1: **1,932** (unchanged).
+
+Per CTO instruction, firing S-V take 2 next, then continuing with S4A + extra
+takes of clean scenes.
+
+## Next: S4A (final untried scene from original queue), then extra takes
 
 S4A remains untried this wave. Per the task brief, trying it once — expecting
 the same non-transient `loc_neighbor_door` bind failure documented in wave2
 (root cause: malformed mention-ID, already reported to CTO). After that,
-pivoting to firing additional takes of the three scenes that DO fire clean
-(S1, S1B, S3) so the Unlimited slot is never idle, per the CEO's standing
-order — since 8 of 13 scenes in the brief are currently blocked by a
+pivoting to firing additional takes of the scenes that DO fire clean (S1,
+S1B, S3, S-V) so the Unlimited slot is never idle, per the CEO's standing
+order — since 8 of the original 13 scenes are currently blocked by a
 platform-side Element moderation issue no amount of operator retrying can
 clear.
 
