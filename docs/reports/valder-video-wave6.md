@@ -16,3 +16,4 @@ opening a FRESH tab before the first fire per the tab-staleness rule.
 
 | Scene | Take | Clip asset id | Elements | Settings | Notes |
 |---|---|---|---|---|---|
+| S7A | 1 | `8b229925-7013-408f-b5c5-d0a9b8f011aa` | 8/8, 0 errors | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | First-ever fire of this scene. Duration control is a slider (role="slider", aria-valuemin 4, aria-valuemax 30) on this root-composer surface, not a free-text field — arrow keys, not typed digits, set it to 20. All 8 reference thumbnails clean, no warning triangles. Paste verified 8/8 `data-beautiful-mention` chips + exact first/last-80-char match before firing. Button read `UNLIMITED / ~~140~~ / 0` at click time. Fired clean, "Generation started" toast, project asset count 273→274. Rendering — take confirmed complete before moving to S7B. |
