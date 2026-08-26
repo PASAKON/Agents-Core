@@ -178,6 +178,26 @@ finished property-advertisement thumbnail with a "New" badge, not Processing).
 
 Credits after S1B fire: **1,932** (unchanged).
 
+## S4B — blocked on the protected-content gate (matches wave2's original finding)
+
+S4B staged cleanly (8/8 elements, 0 errors — no chip-binding issue this time
+either). Generate hit the identical protected-content banner — flagged
+reference this time: `@project_valder_prop_market_bag` (confirmed visually,
+warning-triangle overlay on the 8th tray thumbnail). This matches wave2's own
+original note ("S4B hit protected content... no operator-side unblock found").
+One plain retry per policy: dismissed banner, re-verified 8/8 with 0 errors,
+re-applied desync fix, re-confirmed `UNLIMITED / ~~140~~ / 0`, retried. Gated
+again, identical banner. Credits unchanged (1,932) both times. Skipping S4B —
+moving to S4C.
+
+Running tally of protected-content gates this wave: S2 (`prop_frame`), S4
+(`loc_new_interior`), S4B (`prop_market_bag`) — three different newly-created
+Elements, three gates, 0 cost each time.
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S4B | — | BLOCKED (2 attempts this wave) | 8/8, 0 errors | protected-content gate on `@project_valder_prop_market_bag`; 0 cost both times; same one-retry-then-skip policy applied |
+
 ## Incident — MCP tab group destroyed while closing stale tabs
 
 After S1B fired, attempted to close two now-stale tabs (the original composer
