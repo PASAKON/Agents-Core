@@ -154,3 +154,43 @@ a third, unrelated failure mode on yet another newly-created Element.
 | Scene | Take | Clip asset id | Elements | Notes |
 |---|---|---|---|---|
 | S4 | — | BLOCKED (2 attempts this wave) | 7/7, 0 errors | protected-content gate on `@project_valder_loc_new_interior`; 0 cost both times; same one-retry-then-skip policy applied |
+
+## S1B — fired clean (after a tab-group loss and rebuild)
+
+S1B staged cleanly (6/6 elements, 0 errors). First fire attempt on the
+(already-flagged-as-stale) working tab returned an ambiguous read
+(`concurrencyToast: true` AND `gateBanner: true`) — screenshot showed this was
+just S4's old undismissed gate banner sitting behind a genuine "1 unlimited
+generation at a time" toast, not a new S1B-specific gate. A fresh scratch tab
+confirmed the account slot was genuinely free. Rebuilt the full composer from
+scratch in a brand-new tab (model, 720p, 20s, Unlimited-toggle-with-read-race
+pattern again, same as S1's rebuild) and re-pasted S1B fresh.
+
+Fired clean: `UNLIMITED / ~~140~~ / 0` zoom-confirmed, "Generation started"
+toast caught, assets 250→251.
+
+**S1 take 1 confirmed complete** during this rebuild (its card now shows the
+finished property-advertisement thumbnail with a "New" badge, not Processing).
+
+| Scene | Take | Clip asset id | Settings confirmed | Elements | Generate button text at fire | Render minutes |
+|---|---|---|---|---|---|---|
+| S1B | 1 | `4dc7f9b3-94f9-474c-8f83-b22ae92d2e12` | Seedance 2.5 / References / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | 6/6, 0 errors | `UNLIMITED / ~~140~~ / 0` (zoom-confirmed struck-through) | fired, render in progress |
+
+Credits after S1B fire: **1,932** (unchanged).
+
+## Incident — MCP tab group destroyed while closing stale tabs
+
+After S1B fired, attempted to close two now-stale tabs (the original composer
+tab and the S4-blocked tab) as hygiene cleanup. The FIRST close succeeded, but
+the SECOND `tabs_close_mcp` call errored: "This session's tab group no longer
+exists." Matches a documented finding elsewhere in this project (closing a tab
+after certain menu/Escape interactions can destroy the whole MCP tab group,
+even with tabs remaining). Recovered cleanly: `tabs_context_mcp{createIfEmpty:
+true}` created a fresh group with one new tab; navigated it to the project URL
+and confirmed **S1B's render was unaffected and still genuinely in-flight
+server-side** (`hasS1B: true`, `inProgress: true` on a totally fresh page
+load) — matches this skill's documented finding that a generation survives
+the death of whatever fired it. Credits reconfirmed unchanged (1,932). No
+further action needed beyond the fresh tab; composer defaults were lost (as
+expected after any fresh load) and were rebuilt from scratch for the next
+scene.
