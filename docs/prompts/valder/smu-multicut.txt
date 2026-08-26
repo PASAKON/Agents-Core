@@ -1,0 +1,176 @@
+SEEDANCE 2.5 — 20 SECONDS — 720p — 16:9
+
+THIS IS NOT ONE CONTINUOUS SHOT. It is SEVEN SEPARATE SHOTS joined by SIX HARD CUTS. Every cut is instant. There is NO dissolve, NO fade, NO wipe, NO whip pan, NO morph, NO camera move that carries across a cut. Each shot is its own framing and the change between them is abrupt.
+
+================================================================
+WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
+================================================================
+
+@project_valder_loc_museum — THE GALLERY. Enormous unbroken planes of deep ultramarine blue on every wall. A pale speckled terrazzo floor. Framed works hung in a single row at one consistent height, evenly spaced. A long segmented moulded-plastic bench in bright yellow running down the middle of the room. Pale ceiling. Nothing else.
+
+@project_valder_prop_frame — THE FRAMED DRAWING. An ornate gilt frame with heavy rococo scrollwork. Behind glass: a sheet of paper that was crumpled into a ball and flattened out again — deep creases running every way, curled corners, a small tear at one corner. On it, a CRUDE CHILDLIKE HOUSE in plain black line: one square, a triangle roof, a door, two windows. Beneath it an ENORMOUS sweeping signature that BEGINS with a wide-shouldered tapered V and then runs away into an illegible flourish.
+
+@project_valder_prop_siteplan — THE SITE PLAN. A large, genuinely accomplished architectural drawing in crisp ink: a north arrow, dimension lines, a central fountain, a scale bar, a schedule table, and the same sweeping V signature in the corner. It is skilful, precise and beautiful. **It hangs in a plain modern frame.**
+
+@project_valder_char_crowd_a — THE PUBLIC. Well-off members of the public, each in ONE deeply saturated colour — oxblood, cream, orange, blue, teal, yellow, mustard. Every one of them carries a fashion object: a structured handbag, a hatbox, a briefcase, a clutch. THREE of them wear hats. TWO wear glasses. Coloured gloves on several. Pale indoor skin. Every face, build, age and colour different.
+
+@project_valder_char_guard — THE GUARDS. Men in identical deep petrol-teal uniforms: high standing collar, a single row of chrome buttons, matching trousers, black shoes, a peaked cap with a small chrome starburst badge. Uniforms identical, bodies wildly different — one very tall and thin, one very short, one very heavy. Every face different.
+
+@project_valder_prop_mark — THE GOLD V. Valder's trademark: a capital V in brushed matte warm gold, flat, thick strokes WIDE AT THE TOP tapering to a sharp point at the bottom. No bevel, no crossbar, no serif. Here it appears once, small, on the gallery wall.
+
+NO FACE IS EVER REPEATED IN THIS FILM. Every person is a different individual. NO DUPLICATE CHARACTER.
+
+================================================================
+WHAT THIS SCENE IS ABOUT — READ THIS, IT DECIDES EVERY CHOICE
+================================================================
+
+The crumpled drawing that Valder threw on the floor is now hanging in a public gallery, and people have come to look at it.
+
+**EVERYONE IN THIS ROOM CAN SEE THAT IT IS CRUDE.** Nobody is fooled. They lean in close, they tilt their heads, they look at it properly — and what they are looking at is plainly a child's drawing of a house. That is not in doubt for a single person in the frame.
+
+**AND THEY VALUE IT ANYWAY, BECAUSE VALDER'S HAND MADE IT AND HIS NAME IS ON IT.** That is the entire film, and this is the scene where it is stated most plainly.
+
+**THE SHOT THAT PROVES IT.** Further along the same wall hangs the site plan — a genuinely accomplished technical drawing, precise and beautiful, signed by the same man. **NOBODY IS LOOKING AT IT.** Every single person in the room is clustered at the crumpled scribble in the gold frame. The good drawing is alone.
+
+Let that land without comment. Nobody points at it, nobody reacts to it, the camera does not linger meaningfully on it. It is simply there, unattended, at the edge of a shot that is otherwise full of people.
+
+**THE FRAMES SAY IT TOO.** Every other work in this gallery hangs in a plain modern frame. The crumpled sheet is the only thing in the room in an ornate gilt frame, and it is far more elaborate than anything around it.
+
+**NOBODY SPEAKS.** Not one word in this scene.
+
+================================================================
+THE CROWD MUST NOT BE ORDERLY
+================================================================
+
+**THEY ARE NOT IN ROWS, NOT IN A LINE, NOT IN A SEMICIRCLE, AND NOT ALL FACING THE SAME WAY.** They stand the way people stand in a gallery: scattered at uneven distances, in loose ones and twos, at every angle. Some face the wall, some face each other, some have half turned away. Uneven gaps between them. One person much closer than everyone else.
+
+**THIS IS CRITICAL.** A crowd in tidy rows all facing one point reads as a political rally or a congregation. This festival bans political statements, and a shot that reads that way is unusable however beautiful it is.
+
+**NOBODY IS REVERENT.** No clasped hands, no bowing, no worshipful gazing. They are curious and mildly bored, exactly like people at an exhibition.
+
+**THE GUARDS ARE SCATTERED TOO** — one near a wall, one much further back among the public. **No cordon, no rope, no barrier, no line.** They are simply present, hands at their sides, managing nobody.
+
+================================================================
+STYLE — APPLIES TO EVERY SHOT
+================================================================
+
+ERA: retrofuturist — the future as people in the past imagined it. Streamlined curves, moulded plastic, chromium, terrazzo, starburst and boomerang motifs. **NOTHING DIGITAL:** no screens, no LEDs, no digital numerals, no cables. An invented place — no country and no year identifiable.
+
+COLOUR IS LOUD. The ultramarine walls and the yellow bench are at the very top of their saturation. Never pastel, never washed out.
+
+THE CAMERA IS ALWAYS LEVEL. No dutch angles, no tilting, ever.
+
+LIGHTING IS FLAT, EVEN AND FRONTAL, like a printed catalogue page — minimal shadow, everything legible, and the flat light never washes the colour out.
+
+PHOTOGRAPHED, NOT RENDERED: fine film grain, halation around bright highlights, faint gate weave, softness and slight colour fringing at the lens edges. The grain must NOT desaturate the colour. NO HDR, NO digital gloss, NO CGI look.
+
+PERFORMANCE IS FLAT AND DEADPAN. Nobody smiles broadly, nobody laughs, nobody grimaces. Movements precise, slow and formal. Total sincerity delivered completely flat.
+
+PALE means ORDINARY INDOOR HUMAN PALLOR — the skin of people who live indoors. **NEVER green, NEVER grey, NEVER blue, NEVER silver.** Real pores, real texture, normal warm undertone. NOT creatures, NOT corpses, NOT anything from science fiction.
+
+NOBODY LOOKS AT THE CAMERA.
+
+**NO READABLE TEXT ANYWHERE** — no wall labels, no titles, no catalogue numbers, no signage. Any plaque beside a work is blank or too small and soft to read.
+
+================================================================
+
+=== SHOT 1 — 0.0 to 3.0 s — THE ROOM BEFORE ANYONE IS IN IT ===
+
+Very wide. @project_valder_loc_museum. Camera at chest height, locked, does not move.
+
+The gallery empty: enormous ultramarine walls, pale terrazzo floor, the long yellow bench running down the centre, framed works hung in one even row at one height.
+
+@project_valder_prop_mark — the gold V — sits small and alone on one wall. It is the only marking in the room.
+
+Nobody is here yet.
+
+=== HARD CUT ===
+
+=== SHOT 2 — 3.0 to 6.0 s — ONE FRAME IS NOT LIKE THE OTHERS ===
+
+Medium, square on to the wall. Camera at chest height, locked.
+
+A run of works hung in plain, slim, modern frames — and among them, **@project_valder_prop_frame: heavy, ornate, gilded, scrolled, and far more elaborate than anything around it.**
+
+It is hung at exactly the same height as everything else, which somehow makes it worse.
+
+=== HARD CUT ===
+
+=== SHOT 3 — 6.0 to 9.0 s — WHAT IS ACTUALLY IN IT ===
+
+Close on @project_valder_prop_frame. Camera at chest height, locked.
+
+Behind the glass: the crumpled sheet, its creases catching the light, corners curled, the torn corner. **The childlike house in plain black line — one square, a triangle roof, a door, two windows.** Beneath it, the enormous signature.
+
+Hold long enough that there can be no doubt about the quality of the drawing.
+
+=== HARD CUT ===
+
+=== SHOT 4 — 9.0 to 12.0 s — THEY COME TO LOOK AT IT ===
+
+Wide. Camera at chest height, locked.
+
+@project_valder_char_crowd_a fill the room — scattered at uneven distances and angles, in single saturated colours, holding their bags and hatboxes, three in hats, two in glasses. @project_valder_char_guard stand among them, one near a wall, one further back.
+
+**They are all clustered at the gilt frame.** Not in a line — a loose, uneven, drifting cluster.
+
+=== HARD CUT ===
+
+=== SHOT 5 — 12.0 to 15.0 s — THEY CAN SEE IT PERFECTLY WELL ===
+
+Medium, two people close to the glass. Camera at chest height, locked.
+
+Two of them lean in, heads tilted, studying the sheet from a few inches away. **They are looking at it properly, and they can see exactly what it is.**
+
+One straightens up and glances at the other. The other does not look back.
+
+**Neither of them says anything, and neither face changes at all.**
+
+=== HARD CUT ===
+
+=== SHOT 6 — 15.0 to 18.0 s — THE GOOD DRAWING ===
+
+Medium. Camera at chest height, locked.
+
+Further along the same wall: **@project_valder_prop_siteplan** in a plain modern frame. Crisp ink, a north arrow, dimension lines, a scale bar, a schedule table, the same V signature in the corner. It is precise, skilful and beautiful.
+
+**THERE IS NOBODY IN FRONT OF IT.** Empty floor. At the far edge of the frame, the backs of the crowd are visible, all facing the other way.
+
+Do not emphasise this. No push in, no hold beyond the cut. It is simply a fact of the room.
+
+=== HARD CUT ===
+
+=== SHOT 7 — 18.0 to 20.0 s — THE WHOLE WALL ===
+
+Very wide, the whole wall in one frame. Camera at chest height, locked.
+
+On the left, the site plan, alone, with clear floor in front of it.
+
+On the right, the gilt frame with the crumpled sheet, and every person in the room gathered loosely around it.
+
+The yellow bench runs between them, empty.
+
+Hold on that.
+
+================================================================
+SOUND
+================================================================
+
+THERE IS NO MUSIC OF ANY KIND IN THIS FILM. No score, no underscore, no ambient pad, no drone, no strings, no piano, no synthesiser. NOT ONE NOTE.
+
+THERE IS NO SOUND AT THE START OF THE CLIP AND NO SOUND AT THE END. No whoosh, no riser, no impact, no sting, no chord, no reverse cymbal, no bass drop, no swell.
+
+THE ONLY SOUNDS ARE THE ONES PHYSICALLY MADE BY THINGS VISIBLE IN THE SHOT:
+
+- shoes on a hard terrazzo floor, many people, none of them in step with each other
+- the low indistinct murmur of a gallery — **CONVERSATIONAL BUT COMPLETELY UNINTELLIGIBLE.** No word anywhere is clear enough to make out.
+- the small sounds of bags and gloves being shifted
+- the natural reverberation of a large hard-surfaced room under all of it
+
+**NOBODY SPEAKS INTELLIGIBLY. The murmur must never resolve into words.**
+
+================================================================
+NEGATIVE
+================================================================
+
+no music, no score, no soundtrack, no underscore, no ambient music, no drone, no strings, no piano, no synthesiser, no sound at the start of the clip, no sound at the end of the clip, no whoosh, no riser, no sting, no impact hit, no bass drop, no reverse cymbal, no swell, no background music of any kind, no intelligible dialogue, no clear speech, no audible words, no voiceover, no narration, no non-English dialogue, NO DUPLICATE CHARACTER, no cloned faces, no repeated face, no double in the background, no reflection producing a duplicate, no orderly crowd, no rows, no lines, no queue, no semicircle, no bloc, no formation, no everyone facing the same direction, no symmetrical arrangement of people, no rally, no protest, no political gathering, no religious gathering, no congregation, no crowd facing a leader, no worshipful expressions, no reverence, no bowing, no clasped hands, no raised hands, no pointing, no banners, no signs, no placards, no flags, no religious symbols, no security cordon, no rope barrier, no stanchions, no guards in a line, no crowd control, no applause, no beautiful drawing in the gilt frame, no skilful artwork behind the glass, no detailed illustration on the crumpled sheet, no clean flat paper, no uncreased sheet, no anyone standing in front of the site plan, no anyone looking at the site plan, no anyone pointing at the site plan, no readable text, no wall labels, no titles, no catalogue numbers, no signage, no lettering, no words, no logos of real brands, no watermark, no subtitles, no captions, no screens, no LED, no digital displays, no cables, no modern technology, no smartphones, no green skin, no grey skin, no blue skin, no silver skin, no mint skin, no ashen skin, no waxy skin, no corpse-like skin, no zombie, no alien, no creature, no science fiction character, no horror imagery, no dirt, no grime, no dust, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no dolly, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no anyone looking at the camera, no smiling broadly, no laughing, no shouting, no children, no pets, no rain, no night, no darkness
