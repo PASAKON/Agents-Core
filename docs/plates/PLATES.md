@@ -11,7 +11,7 @@ described something the image does not contain.
 **Read this file instead of re-opening the images.** An image read stays in
 context and is paid for on every later turn; this file is cheap.
 
-Progress: **17 of 46 viewed.** The rest are listed at the bottom as not yet seen.
+Progress: **all 46 viewed.**
 
 ---
 
@@ -19,9 +19,10 @@ Progress: **17 of 46 viewed.** The rest are listed at the bottom as not yet seen
 
 | Verdict | Count | Meaning |
 |---|---|---|
-| ✅ matches | 8 | prompt and image agree, nothing to do |
-| ⚠️ prompt fixed | 7 | image was right, prompt was wrong, prompt corrected |
-| 🔴 regenerate | 2 | image is genuinely wrong and needs reshooting |
+| ✅ matches | 26 | prompt and image agree, nothing to do |
+| ⚠️ prompt fixed | 11 | image was right, prompt was wrong, prompt corrected |
+| 🔴 regenerate | 6 | image is genuinely wrong; all six are being reshot |
+| ⛔ never tag | 3 | not broken, but belongs to a retired direction |
 
 ---
 
@@ -252,31 +253,198 @@ Change nothing.
 
 ---
 
-## Not yet viewed — 29 remaining
+## Part 2 — the remaining plates
 
-Characters: `char_crowd_b`, `char_guards_12`, `char_villagers_poor`
+### `char_villagers_poor` ✅
+Six ordinary working people in drab muted everyday clothes — brown corduroy
+jacket, blue-grey dress and cardigan, grey work jacket, dusty pink dress, brown
+tweed, checked skirt. Sturdy worn shoes. Warm healthy skin. White backdrop.
+**Clean, pressed and neat throughout.** This is "poor is not dirty" done
+correctly and it is the benchmark `char_grandma` failed. Also the right
+reference for the shop queue.
 
-Locations: `loc_aerial`, `loc_fountain_hall`, `loc_home_interior`,
-`loc_house_new`, `loc_house_old`, `loc_museum`, `loc_neighbor_door`,
-`loc_neighbor_parlour`, `loc_office_ext`, `loc_shop_int`
+### `char_crowd_b` ✅
+Eight people in saturated single-colour coats — purple, lilac, blue, mustard,
+red, teal, orange, chartreuse. **Underneath, busy patterned shirts and dresses
+show at every cuff and collar.** Too many accessories: starburst chest brooches,
+pocket squares, watch chains, gloves, patterned bags, checked trousers under
+plain coats. Glasses on three. Pale indoor skin. People copying the rich and
+getting it slightly wrong — the coat is right, the layers underneath give them
+away. Exactly as specified.
 
-Props: `prop_cashbox`, `prop_dress_c1`, `prop_dress_c2`, `prop_magazine`,
-`prop_market_bag`, `prop_plan`, `prop_radio`, `prop_signature`,
-`prop_siteplan`, `prop_wipe`, `sb1_1`, `sb1_2`
+### `char_guards_12` ✅ — a different group from `char_guard`
+**Twelve attendants in pale sky-blue uniforms**: high collar, double row of gold
+buttons, **gold stripe down the trouser**, pillbox caps, **white gloves**, black
+shoes. Mixed genders and ethnicities. Standing in a rank, hands clasped.
+Same uniform as the pale-blue runner in `char_chase_group`. So the project has
+two uniformed groups: **`char_guard`** (six men, petrol teal, starburst cap
+badge, extreme build variation) are security; **`char_guards_12`** are service
+staff. No prompt uses the latter yet; it suits the shop and the studio hall.
+*Note:* the plate is a neat forward-facing rank — fine for a lineup, but any
+scene using it must state the anti-formation rule hard.
 
-Plus `char_neighbor` needs re-downloading now that it has been regenerated.
+### `loc_fountain_hall` ⚠️
+Hard-edged blocks of intense petrol teal and chrome yellow. **Circular fountain
+with a chrome atomic starburst rising from it, water running.** Bold terrazzo
+floor in blue and yellow blocks. **A tall door in vivid red.** Curved crescent
+benches. Recessed downlights. Architecture correct and square. No people.
+⚠️ **It contains a readable English direction signboard** — MAIN CONCOURSE / TO
+EXHIBIT HALLS / TO PLANETARIUM / TO THEATRES / TO CAFETERIA / TO PARKING AREA.
+That breaks the no-readable-text rule and makes the building an exhibition
+centre rather than the property sales office the father asks for. S1 now
+instructs framing that keeps it out of shot.
+
+### `loc_house_old` ⚠️
+Small whitewashed cottage, paint peeling, slate roof, chimney, pale red door.
+**No retrofuturist features at all**, which is correct and deliberate. Leaning
+picket fence with boards missing. Washing on a line. No people.
+⚠️ **The yard is genuinely messy rather than modest** — a bicycle lying on its
+side, a mouldy armchair dumped outside, a coiled hose, scattered crates. Same
+problem family as `char_grandma`, but it carries far less weight on a yard than
+on a person, and the untidiness sharpens the contrast with the pristine Valder
+street. **Not worth regenerating** — frame toward the house and fence.
+
+### `loc_museum` ✅
+Enormous ultramarine wall planes. **Framed pictures hung on a single line at one
+consistent height.** A long segmented **yellow moulded-plastic bench** running
+down the centre. Terrazzo floor. No people, no wall labels, no readable text.
+The framed works are competent abstract modernism, which means the crumpled
+drawing will read as crude the moment it is hung among them.
+
+### `loc_house_new` ⛔ NEVER TAG
+Deep petrol-teal wall plane, **enormous thin cantilevered roof with no visible
+support**, vast flat lawn, glazed corner, a chrome wing-shaped carport, a white
+ring sculpture on the grass, sea horizon.
+⛔ It is a **grand one-off coastal villa**, which contradicts the film's entire
+thesis that everyone bought the identical object. `loc_street_row` is the truth.
+No prompt uses this and none should.
+
+### `loc_office_ext` ✅ (unused)
+One enormous unbroken plane of saturated red, virtually no windows, **slender
+chromium columns** evenly spaced, a vast empty paved plaza, and **one comically
+small chrome door** dwarfed by the wall. Level camera, no people, no text.
+⚠️ No gold V, and his office building should carry one.
+No scene uses it. It would serve as an establishing shot for S-V or the museum.
+
+### `loc_neighbor_door` ⚠️
+Enormous flat plane of saturated turquoise. Cream door in a cream frame. **A
+large chromium starburst emblem mounted on the door**, chrome handle plate,
+kickplate and round bell. Terrazzo step with a curved edge. Nothing else on the
+wall. Square-on, level, no text.
+⚠️ Starburst, no gold V. Used by four scenes, and otherwise excellent — **fix in
+the prompt rather than regenerating**: the door's starburst is period hardware,
+and the gold V sits on the wall beside it.
+
+### `prop_radio` ✅
+Wooden cabinet radio in pale honey wood. **Large round tuning dial with a needle
+and a printed scale.** **Exactly three chunky bakelite knobs.** Woven fabric
+speaker grille across the lower half. **Short splayed tapered legs.** Worn but
+clean. Square-on, plain ground.
+⚠️ It is **not the same radio** as the one inside the `loc_new_interior` plate,
+which has a lit arched dial. S6 must state that the radio in the room is this
+one, or the object that disappears will not be the object that was there.
+
+### `prop_cashbox` ✅ — and it solves the currency problem
+Small metal cash box in pale sage enamel, **chipped at every corner but clean**,
+lid open on its hinge. Inside, a stack of **invented banknotes in pure flat
+geometry** — circles, stripes and blocks in muted purple, sage, orange, blue and
+yellow. **No numerals, no text, no country markers at all.** Shot directly
+overhead, square-on, plain ground — exactly the framing S6 repeats three times.
+This is how currency should be handled everywhere in this film.
+
+### `prop_dress_c2` ✅
+On a brass stand, no person. Flat geometric panels in **magenta, deep teal and
+orange** — a different colour set from `c1`. **Far more extreme asymmetry**: one
+enormous triangular wing sleeve on the left, the right side bare; the skirt
+sweeps to a long point on one side and is cut high on the other. **Gold V at the
+collar and a gold V belt buckle**, identical to `c1`. Same designer, unmistakably
+a different garment, and more extreme — exactly as specified, and it proves the
+mark does not vary between collections.
+
+### `prop_magazine` ⚠️
+A period property advertisement, and **structurally exactly right**: an aerial
+photograph of a housing estate across the top, **three house types in a row each
+with a price** — THE COMET, THE SATELLITE, THE OUTRIGGER — and **no human face
+anywhere on the page**. The three tiered prices are the film's satire in one
+image: a product line.
+⚠️ It is **dense readable English** and carries **dollar signs and a US
+telephone number**, which break the no-country rule. S1 shot 1 holds it close to
+the lens, so it would be legible. **Not worth losing the plate** — S1 now asks
+for it held so the layout reads and the words do not.
+
+### `prop_siteplan` ✅ (unused — and it should not be)
+An accomplished architectural site plan in crisp ink: north arrow, dimension
+lines with figures, a central fountain, a scale bar, a title block reading
+VALDER PROPERTY DEVELOPMENT / SITE PLAN / SCALE 1:500, and **a house schedule
+table — Grade A small ×12, Grade B large ×8, Grade C very large ×4, total 24.**
+People graded A, B and C, written out as a table. **The signature bottom right
+is the same sweeping V** as `prop_signature`.
+**This proves Valder can draw beautifully when it is a sales document** — which
+is precisely what makes the crumpled scribble's value about the signature and
+not about ability. Hanging it visibly in the shop or the sales office would
+sharpen the whole film. No scene uses it yet.
+
+### `prop_wipe` ⛔ NEVER TAG
+A horizontal motion-blur streak with a dark vertical band down the middle — a
+whip-pan transition element in the old muted palette. Correctly retired: this
+film uses hard cuts only.
+
+### `sb1_1` ⛔ NEVER TAG — but it carries one idea worth reviving
+Old-style storyboard. A newspaper front page held close to the lens filling the
+frame — **the exact composition of S1 shot 1**. The page reads THE DAILY HERALD
+and **VALDER COLLECTION N7 — NOW SELLING**, with three house types and prices
+(N7-CLASSIC, N7-MODERN, N7-ESTATE). Behind it, a grand pale-green marble hall,
+men in overcoats and fedoras, a fountain.
+⛔ Entirely the pre-restyle look — muted greens and greys, 1930s-40s, steep
+gabled houses, no saturated colour.
+**Worth reviving:** the paper naming the collection *N7*. The film is called
+Collection No. 7, and having its title sitting in the advertisement the parents
+are holding in the first frame is a free, elegant touch.
+
+### `sb1_2` ⛔ NEVER TAG — best blocking reference in the set
+Old-style storyboard. A crowd seen **from behind**, filling both sides of frame
+in drab coats, with a gap down the middle leading to the far end. At that end,
+**two pale-blue-uniformed attendants flank a small seated figure drawing at a
+desk.** A standing film light on a tripod stands in the middle of the floor,
+cable trailing.
+⛔ Pre-restyle palette — pale pink hall, drab wardrobe, 1940s.
+**But the composition is exactly S-V and S1 shot 5**, and crucially **the crowd
+is NOT in orderly rows** — clustered irregularly on both sides with uneven gaps,
+which is precisely what the CEO asked for. Also confirms `char_guards_12` were
+designed as Valder's studio staff.
 
 ---
 
-## Regeneration list so far
+## Regeneration list — all six now in flight
 
 | Plate | Why | Scenes affected |
 |---|---|---|
+| `prop_plan` | **signature is legible and reads as a real famous performer's name** — banned text, a rights problem, and it contradicts `prop_signature` | S1B S2 |
 | `char_grandma` | reads destitute and grimy; breaks "poor is not dirty" | S2 S3 S4 S6 S7A |
 | `char_press` | single person; scenes need several photographers | S1B S-V |
 | `loc_studio` | no gold V on the company's own wall | S1 S1B S-V |
 | `loc_street_row` | no gold V on the houses, which are his product line | S3 S7B |
 | `loc_new_interior` | no gold V in a house he designed | S4 S6 S7A |
 
-`char_valder_press` is not on this list — it is not broken, it belongs to a
-retired design direction. It should simply never be tagged.
+## Never tag
+
+`char_valder_press` · `loc_house_new` · `prop_wipe` · `sb1_1` · `sb1_2`
+
+## Unused but good — worth finding a shot for
+
+`loc_aerial` — houses in concentric rings, roads as wheel spokes, every roof a
+different saturated colour, reading as a product-line diagram. **The film's
+thesis in one image.** Strongest candidate: one cut after S7B.
+
+`prop_siteplan` — proves he can draw when it is a sales document.
+
+`loc_office_ext` — his building from outside; would establish S-V.
+
+`char_guards_12` · `char_villagers_poor` — two good crowd references no scene
+currently tags.
+
+## Still to re-download
+
+`char_neighbor` — regenerated 2026-08-26 (asset
+`77b6a8af-fc94-4329-89a2-12a32ecdfa04`); the file here is still the old wrong
+image.
