@@ -16,9 +16,9 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_char_grandma — THE GRANDMOTHER. A small stooped woman in layers of faded knitwear. Skin still WARM. SHE IS ONE PERSON.
 
-@project_valder_loc_new_interior — THE FAMILY'S VALDER HOUSE, INSIDE. One enormous plane of deeply saturated colour, a polished floor, mostly bare. **THE CEILING COMES DOWN NOTICEABLY LOW OVER ONE END OF THE ROOM.** A doorway is very slightly out of square. A few pale old objects from their previous life sit in it and do not belong. THE BUILDING IS SUBTLY WRONG AND THE CAMERA IS PERFECTLY LEVEL.
+@project_valder_loc_new_interior — THE FAMILY'S VALDER HOUSE, INSIDE. One enormous plane of deeply saturated colour, a polished floor, mostly bare. **THE CEILING COMES DOWN NOTICEABLY LOW OVER ONE END OF THE ROOM.** A doorway is very slightly out of square. A colossal curved kidney-shaped window fills one side. A low boomerang-shaped table on thin splayed metal legs. **And against the red wall, two pale old things from their previous life that plainly do not belong here: a valve radio in a wooden cabinet with a lit arched dial, and a worn wooden armchair.** THE BUILDING IS SUBTLY WRONG AND THE CAMERA IS PERFECTLY LEVEL.
 
-@project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered to a sharp point at the bottom. It is stamped into EVERYTHING Valder designs — here it is set into the wall, into the door, into the fittings. IT IS THE SAME SHAPE AT EVERY SIZE.
+@project_valder_prop_mark — THE GOLD V. Valder's maker's mark: a capital letter V in polished warm gold, thick even strokes, tapered to a sharp point at the bottom. It is stamped into EVERYTHING Valder designs — in this house it is small and sparing — on the door's hardware and on a fitting. It is NOT painted or mounted on the big red wall; that wall is one unbroken plane of colour and nothing else. IT IS THE SAME SHAPE AT EVERY SIZE.
 
 THERE IS EXACTLY ONE OF EACH FAMILY MEMBER — one mother, one father, one son, one daughter, one grandmother. Never two of any of them, never a copy, never a double in the background. NO DUPLICATE CHARACTER.
 

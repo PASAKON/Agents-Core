@@ -12,7 +12,7 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_valder_char_grandma — THE GRANDMOTHER. A small stooped woman in several layers of faded knitwear, carrying an enormous handbag. Her skin is still WARM — she never crossed over, and she never owned a Valder garment. SHE IS ONE PERSON.
 
-@project_valder_loc_new_interior — THE FAMILY'S VALDER HOUSE, INSIDE. One enormous plane of deeply saturated colour, a polished floor, mostly bare. The ceiling comes down noticeably low over one end of the room. A doorway is very slightly out of square. THE BUILDING IS SUBTLY WRONG AND THE CAMERA IS PERFECTLY LEVEL.
+@project_valder_loc_new_interior — THE FAMILY'S VALDER HOUSE, INSIDE. One enormous plane of deeply saturated colour, a polished floor, mostly bare. **THE CEILING SWEEPS DOWN IN A LONG CURVE OVER ONE END OF THE ROOM**, dropping low on that side — a smooth swept curve, not a flat step. A doorway is very slightly out of square. THE BUILDING IS SUBTLY WRONG AND THE CAMERA IS PERFECTLY LEVEL.
 
 @project_valder_prop_cashbox — THE SAVINGS TIN. A small metal cash box with a hinged lid, from the family's old life: pale enamel, chipped at the corners, clean and cared for. Inside, banknotes of an invented design lying flat. NO READABLE TEXT, no real currency, no numerals that read as a real denomination.
 
