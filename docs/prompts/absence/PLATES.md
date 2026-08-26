@@ -26,7 +26,19 @@ A large abstract modernist oil painting in a simple thin plain black wooden fram
 
 ## 2 · `project_absence_prop_tag` — GPT Image 2
 
-*(pending)*
+- **Asset id:** `ec45f919-7fa6-440e-aea7-d987bd140f1a`
+- **Folder:** Prop
+- **Model:** GPT Image 2
+- **Settings:** 4:3, Medium, 1K
+- **References attached:** none
+- **Cost:** 2 credits (paid balance 1,846 → 1,844)
+
+**Prompt:**
+```
+A small rectangular polished brass museum wall plaque, photographed straight-on, filling the entire frame, seen dead center with no perspective distortion. The plaque is mounted flat with two small visible screws, one near each top corner. Engraved in crisp, elegant serif capital lettering, deeply cut and legible, three lines centered: first line 'THE ABSENCE OF MEANING', second line 'Valder', third line '$2,000,000' with the dollar sign and every digit and comma exact and clearly readable. Nothing else appears on the plaque -- no logos, no extra text, no borders beyond a simple thin bevelled edge. Even, flat, neutral studio lighting with soft specular highlights along the brass surface showing its polish and faint fine scratching consistent with a real object, no vignette, no film grain, no colour grading -- a clean, accurate reference photograph of the object itself.
+```
+
+**What the image actually shows:** A clean, convincingly photographed brass plaque, polished with real-looking micro-scratching and soft specular highlights, two screws visible at the top corners, thin bevelled edge. All three lines of text are perfectly legible: "THE ABSENCE OF MEANING" / "Valder" / "$2,000,000" — crisp deep-cut serif engraving, the dollar figure fully readable digit by digit. No defects, matches the brief closely, no regeneration needed.
 
 ---
 
