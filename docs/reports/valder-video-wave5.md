@@ -1,0 +1,144 @@
+# Valder video wave 5 (task-40dd8087)
+
+Takes over from `task-581d5c05` (wave 4). Wave 4 fired: S2 (variant take 1,
+canonical take 1) and S-V (take 1). Full wave4 handoff lives on that branch
+at `docs/reports/valder-video-wave4.md` (uncommitted to main as of wave5
+start — read via `git show agent/browser_operator-task-581d5c05:docs/reports/valder-video-wave4.md`).
+
+Project: `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3/`
+
+Standing fire sequence, per task brief: attach elements → paste prompt →
+scan reference strip for warning triangles, click every one → verify N/N
+bound, 0 errors → verify composer settings (Seedance 2.5 / 20s / 720p / 16:9
+/ Sound On / Unlimited ON) → zoom Generate button, confirm struck-through
+price resolving to 0 → click.
+
+Prompt files already synced with `main` at wave5 start (diffed all 15, zero
+drift).
+
+## Queue plan
+
+**PRIORITY CHANGE from CTO, mid-wave (after S-MU fired):** the real clip
+inventory (`docs/reports/valder-clip-inventory.md` on main) showed only 16
+clips existed covering 5 of 15 scenes — S1 (6 takes) and S1B (4 takes) were
+already the best-covered scenes while ten scenes had ZERO footage: S4A S4
+S4B S4C S5 S5B S6 S7A S7B S-MU. New rule: fire ONE take of every uncovered
+scene before any second take of a covered one. Revised order from here:
+S4A, S4, S4B, S4C, S5, S5B, S6, S7A, S7B (S-MU already done under the old
+plan, correctly — it was on the uncovered list). Do NOT return to
+S1/S1B/S2/S3/S-V until all ten uncovered scenes have at least one clip.
+
+Original pass-1 plan (superseded, kept for the record): S1, S1B, S-MU, S3,
+S4A, S4, S4B, S4C, S5, S5B, S6, S7A, S7B, skipping S2/S-V (wave4 covered).
+S1, S1B, S-MU fired under this plan before the priority change landed.
+
+After all ten uncovered scenes have one clip: second takes across all 15,
+top to bottom. Then third takes.
+
+## Credits
+
+Opening balance: **1,918** (confirmed via account menu, matches task brief exactly).
+
+## Clip table
+
+(updated after every fire)
+
+| Scene | Take | Clip asset id | Elements | Settings | Notes |
+|---|---|---|---|---|---|
+| S1 | 1 | `05261d07-4547-479e-97f7-a9fc14703ba0` | 9/9, 0 errors | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | Composer settings rebuilt fresh from a cold project-root load (Cinema Studio 4.0/1080p/16:9/5s default → switched model to Seedance 2.5 first, then 720p, then duration slider ArrowRight x15 to reach 20s, then Unlimited toggle ON, verified `aria-checked=true`). Real-clipboard paste (`pbcopy` + real Cmd+V), verified exact match: 31,322 normalized chars, first/last 80 chars identical to source. 9/9 mention chips bound (the ceiling), 0 errors. Reference strip zoomed: all 9 cards clear, zero warning triangles — no eligibility clicks needed this fire. Generate button zoom-confirmed `UNLIMITED / ~~140~~ / 0` immediately before click. Fired clean, "Generation started" toast, credits 1,918 unchanged (Unlimited, 0 cost). Completed after ~35 min (past the normal 20-25min window, confirmed genuinely still-rendering via a fresh cross-check tab at 30min, not a stale-tab illusion — consistent with the higgsfield-unlimited-gen skill's Europe-waking-hours slowdown, ~07:00-07:30 UTC at the time). Needs visual review for the crowd rule (loose/scattered, not rally-formation). |
+| S1B | 1 | `272e635e-bfca-4e22-9856-df0479674eac` | 7/7, 0 errors | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | Staged during S1's render (composer text edits are safe mid-render, server already owns the in-flight job). Real-clipboard paste verified exact: 24,162 normalized chars, first/last 80 identical. 7/7 mentions bound, 0 errors. Reference strip zoomed: all 7 clear, no triangles. Re-verified settings + desync fix fresh immediately before click (not reusing the staging-time check). Generate button zoom-confirmed `UNLIMITED / ~~140~~ / 0`. Fired clean, "Generation started" toast, credits 1,918 unchanged. Completed after ~40 min (confirmed genuinely rendering via fresh-tab cross-check at 36min, not stale-tab). No flag. **Needs visual review: shot 3 must be the ONE slow-motion shot in the whole film (paper ball crossing the hall, crowd slowed too, not frozen-time/bullet-time) — flag if wrong.** Also check the crowd rule. |
+| S-MU | 1 | `3834bd4f-4fc6-4846-98c3-43b7eef07c3a` | 6/6, 0 errors | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | First-ever fire of this scene (never generated in any prior wave). Staged during S1B's render. Real-clipboard paste verified exact: 13,733 normalized chars, first/last 80 identical. 6/6 mentions bound, 0 errors. Reference strip zoomed: **2 of 6 cards flagged** (museum-interior card and a plain grey/pattern card) — clicked both warning triangles, confirmed one `ip-detect` POST 200 via network log, re-zoomed strip clean (0/6 flagged) before proceeding. Re-applied desync fix, re-confirmed `UNLIMITED / ~~140~~ / 0`. Fired clean, "Generation started" toast. Completed after ~35 min, no flag. |
+| S4A | 1 | `ecc5f10a-b6d3-4350-ab0a-6c5eaf94ceef` | **4/5 bound, 1 unresolved** | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | **Real binding bug, not a prompt-file typo** (CTO independently pre-verified all 26 tags resolve to real plates, zero typos — this confirms it's runtime, not the source). `@project_valder_loc_neighbor_door` (2 occurrences in the prompt) never resolved to a mention chip across 4 separate attempts: (1) initial paste, (2) 2s-wait re-check ruling out a timing race, (3) full page navigate + fresh clear+re-paste (settings reset to 1080p, rebuilt), (4) in-place select+retype of the literal tag via real keyboard — this last attempt **corrupted the composer** (duplicated the tag to 3 occurrences, truncated "SEEDANCE" to "EEDANCE"), recovered by a second full navigate + clean re-paste (verified byte-exact: 17,859 chars, first/last 80 match, doorCount=2 restored). Confirmed the element genuinely exists in the project (`?elements=1` → Locations tab shows `project_valder_loc_neighbor_door`, exact name match) — this is a Lexical mention-plugin parse failure on this specific element, cause unknown (possibly two adjacent text nodes at that exact position, per DOM inspection: the `@` character sat in a separate text node from the tag body, unlike the other 4 which resolved). Per CTO's "keep going, don't spend a cycle" instruction, fired with 4/5 bound rather than skipping the scene entirely — the door is still described in prose even though not attached as an image reference. Other 4 elements' reference strip: 1 flagged (cleared via triangle-click), 3 clean. Generate button confirmed `UNLIMITED / ~~140~~ / 0`. Fired clean, "Generation started" toast, credits 1,918 unchanged. **Flag for a human to re-check the Elements panel entry for `project_valder_loc_neighbor_door` directly — may need a fresh save/re-upload to fix the binding.** Completed after ~40min, no flag. |
+| S4 | 1 | `608fe914-62a0-48a6-985b-2f0b71f332b4` | 7/7, 0 errors | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | Staged during S4A's render. Real-clipboard paste verified exact: 19,052 normalized chars, first/last 80 identical, 7/7 mentions all resolved to real UUIDs (no repeat of the S4A binding issue). Reference strip: 1 of 7 flagged, cleared via triangle-click, re-verified clean. Generate button confirmed `UNLIMITED / ~~140~~ / 0`. Fired clean, "Generation started" toast, credits 1,918 unchanged. Completed after ~35min, no flag. |
+| S4B | 1 | `fe43795d-4fe7-4bda-b693-27e031949e23` | 8/8, 0 errors | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | Staged during S4's render. Real-clipboard paste verified exact: 18,519 normalized chars, first/last 80 identical, all 8 mentions resolved to real UUIDs. Reference strip: 1 of 8 flagged, cleared via triangle-click, re-verified clean. Generate button confirmed `UNLIMITED / ~~140~~ / 0`. Fired clean, "Generation started" toast, credits 1,918 unchanged. Completed after ~30min, no flag. |
+| S4C | 1 | `fc5bd050-2680-4edc-bb5d-0dcdfb514af9` | 7/7, 0 errors | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | Staged during S4B's render. Real-clipboard paste verified exact: 17,958 normalized chars, first/last 80 identical, all 7 mentions resolved. Reference strip: 2 of 7 flagged, both cleared via triangle-click, re-verified clean. Generate button confirmed `UNLIMITED / ~~140~~ / 0`. Fired clean, "Generation started" toast, credits 1,918 unchanged. Completed in ~35min real time, though the primary tab's own poll read a stale `spinner=true` at the 30min mark — a fresh cross-check tab caught the true `spinner=false` state, confirming the higgsfield-unlimited-gen skill's "long-lived tab lies about the concurrency slot" finding firsthand. Did a full page reload on the primary tab afterward as hygiene. No flag. |
+| S5 | 1 | `e502bd5f-0a19-47bd-ac99-f79c4a3643a7` | **5/6 bound, 1 unresolved (door, as predicted)** | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | **CTO's isolated collision test run first**: pasted `@project_valder_loc_neighbor_door` ALONE into an empty composer — still failed to bind. Rules out substring collision with `char_neighbor` (hypothesis a); consistent with the element itself being broken (hypothesis b) or some other backend-side cause, not prompt-context-dependent. Per CTO instruction, one test only, then proceeded. Staged S5's real prompt (5/6 resolved, door literal as expected), rebuilt composer settings fresh after a full-page reload (Seedance 2.5 persisted this time; 720p/20s/Unlimited rebuilt from scratch). Real-clipboard paste verified exact: 16,351 normalized chars, first/last 80 identical. Reference strip: 1 of 5 bound cards flagged, cleared via triangle-click. Generate button confirmed `UNLIMITED / ~~140~~ / 0`. Fired clean, "Generation started" toast, credits 1,918 unchanged. Completed after ~30min; primary tab read stale `spinner=true` again at the 30min mark, fresh-tab cross-check showed done — reloaded primary before continuing, standard hygiene now. |
+| S5B | 1 | `cce6e442-626b-4deb-a9a8-6423de3758f3` | 6/6, 0 errors | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | Staged during S5's render, re-pasted fresh after the primary-tab reload (settings rebuilt: model persisted, 720p/20s/Unlimited rebuilt). Real-clipboard paste verified exact: 16,503 normalized chars, first/last 80 identical, 6/6 mentions resolved. Reference strip: 2 of 6 flagged, both cleared via triangle-click (one needed a second click — first pass left one still flagged), re-verified clean. Generate button confirmed `UNLIMITED / ~~140~~ / 0`. Fired clean, "Generation started" toast, credits 1,918 unchanged. Completed after ~35min; the tab group was destroyed mid-wait (a known quirk — closing a non-last tab in the group can still tear the whole group down) and had to be recreated from scratch: fresh tab, full navigate, model reset to Cinema Studio 4.0 (had to reselect Seedance 2.5), settings rebuilt. **Also hit real clipboard interference from another process on this shared Mac** — `pbcopy` for S6 was overwritten by unrelated Thai text 3 times in a row before a paste landed correctly; fixed by re-running `pbcopy` immediately before the paste with zero other tool calls in between (verified via `pbpaste` that the clipboard survives a 2s gap when nothing else is actively writing to it — the interference was bursty, not continuous). |
+| S6 | 1 | `d9b5be7b-df13-4f66-809e-845b8dd60c08` | 8/8, 0 errors | Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On / Unlimited ON | Staged during S5B's render, survived a tab-group teardown + Mac-clipboard interference (see above), re-pasted clean and verified exact: 17,643 normalized chars, first/last 80 identical, 8/8 mentions resolved. Reference strip: 2 of 8 flagged, both cleared via triangle-click. Generate button confirmed `UNLIMITED / ~~140~~ / 0`. Fired clean, "Generation started" toast, credits 1,918 unchanged. Rendering — **last clip of this wave per CTO wrap-up instruction at 194k tokens** (S7A/S7B handed to the next wave). |
+
+**CTO hypothesis on the loc_neighbor_door binding bug** (mid-wave message): (a)
+substring collision with `char_neighbor` in the same prompt, or (b) longest
+name in the scene at 32 chars. Instruction: when S5 is reached (also uses the
+door), run ONE isolated test — paste the door tag alone into an empty
+composer. Binds alone = collision confirmed; fails alone = the element itself
+is broken. One attempt only either way, then fire S5 with it unbound if
+needed and move on — the door arc reads through the opening-angle progression
+across the three visits, not pixel identity, and the prose already describes
+it specifically.
+
+## Wrap-up (per CTO instruction at 194k tokens — stopping after S6, handing S7A/S7B to wave6)
+
+**S6 confirmed COMPLETE** — no flag, closing credit balance re-verified.
+
+### Credits
+
+Opening: **1,918**. Closing: **1,918**. Zero credits spent across the entire
+wave (9 clips, all Unlimited).
+
+### Scene coverage after this wave
+
+Uncovered-scene priority list (CTO's mid-wave directive) — **9 of 10 done**:
+
+| Scene | Status |
+|---|---|
+| S4A | ✅ 1 clip (`ecc5f10a`) — 4/5 elements, door unbound |
+| S4 | ✅ 1 clip (`608fe914`) |
+| S4B | ✅ 1 clip (`fe43795d`) |
+| S4C | ✅ 1 clip (`fc5bd050`) |
+| S5 | ✅ 1 clip (`e502bd5f`) — 5/6 elements, door unbound |
+| S5B | ✅ 1 clip (`cce6e442`) |
+| S6 | ✅ 1 clip (`d9b5be7b`) |
+| S-MU | ✅ 1 clip (`3834bd4f`) |
+| **S7A** | ❌ **NOT covered — next priority for wave6** |
+| **S7B** | ❌ **NOT covered — next priority for wave6, now 8 shots (loc_aerial final shot)** |
+
+Also fired this wave (already-covered scenes, extra takes): S1 take1
+(`05261d07`), S1B take1 (`272e635e`).
+
+Full per-project coverage after this wave: S1 (7 takes total across waves),
+S1B (5 takes), S2 (2 takes, wave4), S3 (from wave3, untouched this wave),
+S4A/S4/S4B/S4C/S5/S5B/S6/S-MU (1 take each, this wave), S-V (1 take, wave4).
+**S7A and S7B remain at zero footage.**
+
+### Known issue for wave6 to inherit
+
+`@project_valder_loc_neighbor_door` does not resolve to a bound reference —
+confirmed via 5+ independent attempts across S4A and S5, including an
+isolated empty-composer test that ruled out substring collision with
+`char_neighbor`. The element exists in the project (Elements panel, exact
+name match) but the Lexical mention plugin will not bind it. Needs a human
+with Elements-panel access to re-save or re-upload the element. Does not
+block firing — the door stays in the prose as plain text, just not attached
+as an image reference. Check if any S7A/S7B prompts also reference this tag.
+
+### Exact browser state left behind
+
+- **One tab open**, tabId `53464737`, URL
+  `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3` (no
+  `/folders/` or `?elements=1` suffix — the project-root composer).
+- **Composer holds S6's prompt text** (18,064 raw chars incl. Lexical
+  paragraph breaks; 17,643 normalized). This is stale/already-fired content —
+  **clear it before staging the next scene**, don't assume it's usable.
+- **Settings**: Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On.
+- **Unlimited toggle: ON** (`aria-checked=true`), confirmed in the same read
+  as the settings above — but per the money rules, re-verify fresh (zoom the
+  Generate button for the struck-through price) before any click; it has been
+  seen resetting to OFF silently multiple times this wave after tab-group
+  teardowns and full-page reloads.
+- **No reference elements attached** in the sense that matters — the 8 chips
+  bound to S6 are stale and will be replaced by the next scene's paste.
+- Two environmental hazards hit this wave, both now documented with fixes:
+  (1) the Chrome MCP tab group can be destroyed by closing a non-last tab in
+  it (not just Escape, as previously documented) — recreate via
+  `tabs_context_mcp{createIfEmpty:true}` and re-navigate; (2) the real macOS
+  clipboard on this shared Mac gets overwritten by another process — always
+  re-run `pbcopy` immediately before the paste keystroke, with zero other
+  tool calls in between, and verify post-paste content before trusting it.
+
+### All clip ids fired this wave (chronological)
+
+`05261d07-4547-479e-97f7-a9fc14703ba0` (S1), `272e635e-bfca-4e22-9856-df0479674eac` (S1B),
+`3834bd4f-4fc6-4846-98c3-43b7eef07c3a` (S-MU), `ecc5f10a-b6d3-4350-ab0a-6c5eaf94ceef` (S4A),
+`608fe914-62a0-48a6-985b-2f0b71f332b4` (S4), `fe43795d-4fe7-4bda-b693-27e031949e23` (S4B),
+`fc5bd050-2680-4edc-bb5d-0dcdfb514af9` (S4C), `e502bd5f-0a19-47bd-ac99-f79c4a3643a7` (S5),
+`cce6e442-626b-4deb-a9a8-6423de3758f3` (S5B), `d9b5be7b-df13-4f66-809e-845b8dd60c08` (S6).
