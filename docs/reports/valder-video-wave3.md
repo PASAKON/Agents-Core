@@ -381,6 +381,12 @@ reported to CTO). Per the CEO's standing order, firing additional takes of
 the scenes that DO work (S1, S1B, S3, S-V) so the Unlimited slot is never
 idle while the platform-side Element issues get resolved elsewhere.
 
+## Second-pass takes
+
+| Scene | Take | Clip asset id | Elements | Notes |
+|---|---|---|---|---|
+| S1 | 2 | `b2e27617-43c6-496b-9b51-e7499f1fc515` | 9/9, 0 errors | fired clean, `UNLIMITED / ~~140~~ / 0`, assets 253→254, credits 1,930 unchanged (isolated via `data-asset-id`, first entry) |
+
 ## Incident — MCP tab group destroyed while closing stale tabs
 
 After S1B fired, attempted to close two now-stale tabs (the original composer
