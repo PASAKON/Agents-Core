@@ -1,5 +1,47 @@
 # Valder video wave 3 (task-80379c92)
 
+## HANDOFF — 2026-08-26 ~10:38, operator stopped here on CTO instruction (context length)
+
+**Every clip asset id fired this wave, one line each, all with the current
+rewritten prompts unless noted:**
+
+- S1 take 1: `e4c958ae-7249-4fc6-ab83-8b17b13a86f3` (fired, complete — confirmed via fresh-tab check)
+- S1 take 2: `b2e27617-43c6-496b-9b51-e7499f1fc515` (fired ~10:26, **render in progress at handoff** — not yet confirmed complete)
+- S1B take 1: `4dc7f9b3-94f9-474c-8f83-b22ae92d2e12` (fired, complete — confirmed via fresh-tab check)
+- S1B take 2: **STAGED, NOT FIRED.** Prompt pasted in composer, 6/6 elements bound, 0 errors, Unlimited confirmed ON (`aria-checked: true`) as of the last read before stopping. Was waiting for S1 take 2 to clear the render slot before firing — **did not fire it**, per the instruction to start no new generation.
+- S3 take 1: `6d01ad10-572e-41d1-876f-58093c0f5b56` (carried from the prior task/wave, fired with the current rewritten S3 prompt, complete)
+- S-V take 1: `3e0252ef-be34-4852-ba0a-0dc83cecbdde` (fired, complete — needs visual review, see below)
+- S-V take 2: `77b6a8af-fc94-4329-89a2-12a32ecdfa04` (fired, complete — needs visual review, see below)
+
+**Carried forward from wave2 (task-b7224c38), OLD pre-rewrite prompt versions — real footage but do NOT count as satisfying this task's S1/S1B requirement:**
+- S1 take A: `57453ca1-2a4a-438f-8f10-def379c01ad1` (complete, old 8-element prompt)
+- S1 take B: `43762082-cc8c-4325-b9fa-d5b337c81d46` (complete, old prompt)
+- S1 take C: `8195c8b3-316f-490e-9c78-ac3bb39952bc` — **BAD DATA, do not trust.** This UUID is also recorded elsewhere as the image-plate asset `project_valder_prop_dress_c2`; two assets cannot share a UUID. Old prompt regardless — not chased further, per the task brief's own instruction.
+- S1B take A: `423b2b6f-99c4-4fb4-acaf-43207294e999` (complete, old prompt)
+- S1B take B: `35dbf2d6-3586-4faf-b6e3-9c06ed9a5edf` (complete, old prompt)
+- S1B take C: `22cc1930-6fd7-4038-b7c4-9cb83c041818` (complete, old prompt)
+
+**Every other scene in the 13-scene brief — pending, blocked, not this operator's ability to clear:**
+- S2, S4, S4B, S4C, S5B, S6, S7A, S7B: **BLOCKED**, protected-content gate on newly-created Elements (`prop_frame`, `loc_new_interior`, `prop_market_bag`, `loc_shop_int`, `prop_dress_c1`, `prop_shopping_bags`, `loc_neighbor_parlour`, `prop_dress_c2` — 8 distinct Elements). Each tried once or twice this wave (one plain retry per the CTO's instruction), gated identically both times, 0 cost. This needs someone with platform/Element-admin access to check the Elements' moderation status directly — no amount of operator retrying clears it.
+- S4A, S5: **BLOCKED**, non-transient. `@project_valder_loc_neighbor_door`'s real bound mention-ID is `@loc_project_valder_loc_neighbor_door` (malformed double `loc_` prefix) — confirmed via the Elements panel this wave. The prompt files use the standard `@project_valder_loc_neighbor_door` form, which never binds. Fix is either renaming the Element's ID to match convention, or updating the two prompt files to use the literal malformed string. Reported to CTO mid-wave.
+
+**Credit drift, flagged and unresolved:** credits read **1,932** for the entire first half of this wave (every check before and after S1/S2/S4/S4B/S4C/S5B/S6/S7A/S7B/S-V-take-1), then read **1,930** starting right after S-V take 2's fire and stayed there through the rest of the session. Both S-V clicks were zoom-confirmed `UNLIMITED / ~~140~~ / 0` (struck-through, free) immediately before firing, so this is not a charge from my own video generations. 2 credits matches wave2's documented "small drift" pattern (attributed there to a concurrent image-plate operator on the account) rather than a video-scale charge (130-440cr). Flagged to CTO via `dev_message` at the time; no response received before this handoff. **Someone should confirm nothing else is spending on this account.**
+
+**Current browser state, left exactly as-is per instruction — do not close, refresh, or navigate:**
+- **One tab open**, tabId `53464603` (Chrome-internal id, not meaningful to a human), URL
+  `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3`, logged in.
+- This tab **is** the composer, currently holding **S1B's prompt (take 2)**, staged and verified but **NOT fired**.
+- Settings confirmed on this tab as of the last read before stopping: Seedance 2.5, References, 16:9, 720p, 20s, High, Sound On, **Unlimited ON** (`aria-checked: true`, re-verified in the same call as this handoff note, not stale).
+- No other tabs were left open. All scratch tabs created during this session were closed after use.
+
+**Recommended next steps for whoever resumes:**
+1. Get the 8 gated Elements' moderation status checked/cleared, and get the `loc_neighbor_door` Element's ID fixed (or the 2 prompt files updated to match its actual malformed ID) — both need platform-level access this operator role doesn't have.
+2. Once cleared, resume the queue: S1B take 2 is already staged and ready to fire the instant the render slot clears (check S1 take 2's completion first).
+3. Confirm the 2-credit drift is explained (another operator's image-plate work, most likely) or is a genuine anomaly worth investigating further.
+4. Continue firing extra takes of the scenes that already work clean (S1, S1B, S3, S-V) while the blocked scenes get sorted, per the CEO's standing "never let Unlimited sit idle" order.
+
+---
+
 Project: The Valder Collection No.7
 `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3/`
 
