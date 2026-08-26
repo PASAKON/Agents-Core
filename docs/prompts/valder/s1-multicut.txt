@@ -4,6 +4,8 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW. Each of these i
 
 @project_valder_char_father — THE FATHER. A broad, thick-necked working man in his forties, heavy shoulders, a manual worker's body, wearing a coat plainly cut for a thinner man. Warm terracotta skin. He is the only adult who speaks in this film, and he speaks only to command or to ask a stranger a question. HE IS ONE PERSON AND APPEARS ONLY IN SHOTS 1, 2 AND 3.
 
+@project_valder_char_mother — THE MOTHER. A woman in her forties who holds herself very straight. Her clothes are PALE and washed out — the same hues as the rich around her, drained — and they are CLEAN, PRESSED and CAREFULLY MENDED, with seams sewn twice. Warm terracotta skin. **SHE IS AT THE FRONT. SHE IS PULLING. SHE IS CARRYING THE NEWSPAPER.** She does not speak in this film scene. SHE IS ONE PERSON AND SHE APPEARS ONLY IN SHOTS 1, 2 AND 3.
+
 @project_valder_char_son — THE BOY. Small for his age, bare-headed, in a washed-out olive-green sweater with sleeves too long over his hands, one sock down. Warm terracotta skin — the warmest face in the film. He never speaks. HE IS ONE PERSON AND HE IS THE ONLY CHILD IN THIS FILM.
 
 @project_valder_char_valder — VALDER, THE ARCHITECT. Extremely tall and extremely thin, unnaturally long neck and long fingers, white hair combed flat with a hard parting. His coat is built from large flat geometric panels each a different deep saturated colour, one sleeve full length and one cut at the elbow, gloves of two different colours, an enormous chrome starburst brooch at his throat. The palest skin in the film — and still an entirely ordinary human complexion. HE IS ONE PERSON AND HE APPEARS ONLY AT THE FAR END OF THE HALL.
@@ -18,7 +20,9 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW. Each of these i
 
 @project_valder_prop_magazine — THE NEWSPAPER PAGE. A full-page property advertisement: an aerial photograph of a housing estate above three house types in a row with a price beside each. No human face is printed on it anywhere.
 
-NO FACE IS EVER REPEATED IN THIS FILM. Every person who appears is a different individual. There is exactly one father, exactly one boy, and exactly one Valder — never two of any of them, never a copy, never a double in the background.
+NO FACE IS EVER REPEATED IN THIS FILM. Every person who appears is a different individual. There is exactly one mother, exactly one father, exactly one boy, and exactly one Valder — never two of any of them, never a copy, never a double in the background.
+
+THE FAMILY MOVES AS A CHAIN OF THREE, AND THE ORDER NEVER CHANGES WHILE THEY ARE TOGETHER: **THE MOTHER IS AT THE FRONT AND SHE IS PULLING. She holds the father's hand. The father holds the boy's wrist. The boy is at the back end of the chain.** She is the one who knows where they are going. She is the one carrying the newspaper. The father is in the middle, and the boy is the last link — which is why he is the link that comes loose.
 
 THE LOOK. Retrofuturist: atomic-age, space-age tomorrow. Streamlined curves, cantilevers that should not hold, moulded plastic, brushed chrome, terrazzo, anodised aluminium, smoked glass, kidney and boomerang shapes, starburst and atom motifs. Technology is big, physical and mechanical — dials, chrome levers, cloth-covered cable, enormous press cameras with separate flash units. NOTHING IS DIGITAL: no screens, no flat panels, no LEDs, no modern devices.
 
@@ -41,30 +45,50 @@ SKIN IS REAL, whatever its colour: visible pores, fine facial hair and peach fuz
 EVERY CAMERA IN THIS FILM IS LEVEL. Never tilted, never dutch-angled, never canted, never rolled. Where a building is crooked, THE BUILDING is crooked, not the camera.
 
 === SHOT 1 — 0:00 to 0:02.5 — THE PAGE, THEN THE MAN ===
-Opens on @project_valder_prop_magazine HELD OPEN IN TWO BARE HANDS CLOSE TO THE LENS, filling roughly the central two thirds of the frame with a clear margin of bright room visible all around its edges. That exact page: the large aerial photograph of a new housing estate at the top, three house types laid out in a row beneath it like a product line with a price beside each. NO PHOTOGRAPH OF A PERSON AND NO PRINTED FACE ANYWHERE ON THE PAGE. The hands are broad, weathered and TERRACOTTA-WARM, with knuckle wrinkles and short nails. THE PAGE IS ROCKING AND TILTING because the man holding it is already walking fast. Then he SNAPS IT SHUT in one sharp movement, folds it once against his chest and jams it under his arm — and as it drops out of frame it reveals @project_valder_char_father behind it, mid-stride, walking straight at the lens. The camera walks backwards ahead of him. He does not slow down by a single step when the paper goes away.
+Opens on @project_valder_prop_magazine HELD OPEN IN ONE BARE HAND CLOSE TO THE LENS, filling roughly the central two thirds of the frame with a clear margin of bright room visible all around its edges. That exact page: the large aerial photograph of a new housing estate at the top, three house types laid out in a row beneath it like a product line with a price beside each. NO PHOTOGRAPH OF A PERSON AND NO PRINTED FACE ANYWHERE ON THE PAGE.
+
+**THE HAND HOLDING IT IS A WOMAN'S** — TERRACOTTA-WARM, neat, with a pale mended cuff at the wrist. It is held one-handed because HER OTHER HAND IS ALREADY OCCUPIED, reaching back and down out of the bottom of frame.
+
+THE PAGE IS ROCKING AND TILTING because the person holding it is already walking fast. Then she SNAPS IT SHUT in one sharp movement, folds it once against her chest and clamps it under her arm — and as it drops out of frame it reveals @project_valder_char_mother behind it, mid-stride, walking straight at the lens, back very straight. The camera walks backwards ahead of her. She does not slow down by a single step when the paper goes away.
+
+Behind her and slightly lower in the frame, held by the hand she never let go of: @project_valder_char_father. SHE IS PULLING HIM.
 
 === HARD CUT ===
 
 === SHOT 2 — 0:02.5 to 0:05.5 — THE COURT, AND HE IS THE ONLY ONE IN A HURRY ===
 A WIDE, LEVEL, SIDE-ON SHOT across @project_valder_loc_fountain_hall: the public concourse in full vivid colour — huge flat planes of intense saturated petrol teal and chrome yellow as hard-edged blocks, bold terrazzo floor, and a LARGE CIRCULAR FOUNTAIN with a polished chrome atomic starburst rising from it, water running. The architecture is completely correct and square.
 
-@project_valder_char_father crosses the frame left to right AS FAST AS IT IS POSSIBLE TO WALK WITHOUT BREAKING INTO A RUN, coat flapping open — a plain, clearly cheaper coat in a FADED, WASHED-OUT PETROL TEAL, a colour that wants to be the rich deep teal around him and has been washed out of it. HE HAS @project_valder_char_son BY THE WRIST AND IS TOWING HIM. The boy — small, bare-headed, in a washed-out olive-green sweater with sleeves too long over his hands, one sock down — HAS TO RUN OUTRIGHT to keep up with a grown man walking that fast. His arm is stretched out ahead of him at full length, he is half a step behind and losing, and he takes many short quick steps for every one of his father's long ones. THE FATHER NEVER RUNS AND THE BOY NEVER STOPS RUNNING.
+**A CHAIN OF THREE PEOPLE CROSSES THE FRAME LEFT TO RIGHT, JOINED HAND TO HAND, AS FAST AS IT IS POSSIBLE TO WALK WITHOUT BREAKING INTO A RUN.**
 
-WITHOUT TURNING HIS HEAD AND WITHOUT LOOKING DOWN AT HIM, the father says one short flat line to the boy, quick and level, with no warmth in it and no anger in it either: "Keep up." He does not check whether the boy heard him, and he says nothing else to his son for the rest of the film.
+**AT THE FRONT: @project_valder_char_mother.** Back straight, the folded newspaper clamped under one arm, the other arm stretched out BEHIND her, holding her husband's hand. She is the one setting the pace and she never looks back.
+
+**IN THE MIDDLE: @project_valder_char_father** — a plain, clearly cheaper coat in a FADED, WASHED-OUT PETROL TEAL, a colour that wants to be the rich deep teal around him and has been washed out of it. His forward hand is in his wife's. HIS OTHER HAND HAS @project_valder_char_son BY THE WRIST AND IS TOWING HIM.
+
+**AT THE BACK: the boy** — small, bare-headed, in a washed-out olive-green sweater with sleeves too long over his hands, one sock down. He HAS TO RUN OUTRIGHT to keep up. His arm is stretched out ahead of him at full length, he is half a step behind and losing, and he takes many short quick steps for every one of the adults' long ones. THE ADULTS NEVER RUN AND THE BOY NEVER STOPS RUNNING.
+
+The three of them read as ONE LINKED OBJECT being dragged across the concourse — and it is being dragged from the front, by her.
+
+WITHOUT TURNING HIS HEAD AND WITHOUT LOOKING DOWN AT HIM, the father says one short flat line back to the boy, quick and level, with no warmth in it and no anger in it either: "Keep up." He does not check whether the boy heard him, and he says nothing else to his son for the rest of the film. THE MOTHER DOES NOT TURN ROUND AND DOES NOT SPEAK.
 
 THE COURT IS BUSY. THIS IS A CROWD, NOT ONE OR TWO PASSERS-BY. AT LEAST TEN AND UP TO FIFTEEN SEPARATE PEOPLE are visible in this shot at the same time, spread through the frame at different distances — some close to the lens, some mid-ground, some small and far away near the fountain. They move through the court at an easy unhurried pace, in every direction, none of them connected to each other — which is exactly what makes the father look as rushed as he is. Every face is different and NO FACE IS REPEATED ANYWHERE IN THIS FILM. Their skin is PALE. They do not look at him.
 
 === HARD CUT ===
 
 === SHOT 3 — 0:05.5 to 0:08 — HE ASKS, AND HE LETS GO WITHOUT NOTICING ===
-A LEVEL MEDIUM SHOT, square on. @project_valder_char_father pulls up in ONE ABRUPT STOP in front of a single @project_valder_char_guard standing on his own out in the court, already yanking the paper back out from under his arm. He opens it flat, holds it up and says one short flat line, fast and with no warmth in it: "The sales office. Which way." He does not say please and does not wait. The guard — deep petrol-teal uniform, chrome buttons, peaked cap with a small chrome starburst badge, pale indoor skin — looks down at the page, then lifts one arm and points away to the right.
+A LEVEL MEDIUM SHOT, square on. @project_valder_char_mother pulls up in ONE ABRUPT STOP, and the chain concertinas behind her — the father brought up short, the boy running into the back of him.
 
-BECAUSE BOTH OF THE FATHER'S HANDS ARE NOW ON THE PAPER, HIS HAND HAS ALREADY OPENED AND LET GO OF THE BOY'S WRIST WITHOUT HIM NOTICING. He does not look down. He does not look round. He never once looks at his son in this entire film. THE BOY'S ARM DROPS TO HIS SIDE.
+She is looking at a single @project_valder_char_guard standing on his own out in the court. She pulls the paper out from under her arm, opens it flat, and HOLDS IT OUT TO HER HUSBAND.
+
+**AND TO TAKE IT, HE HAS TO USE BOTH HANDS — SO HE LETS GO OF THE BOY.** The release is completely casual. He does not look down. He does not look round. He never once looks at his son in this entire film. THE BOY'S ARM DROPS TO HIS SIDE AND NOBODY NOTICES.
+
+The father steps forward with the open page, holds it up to the guard and says one short flat line, fast and with no warmth in it: "The sales office. Which way." He does not say please and does not wait. The guard — deep petrol-teal uniform, chrome buttons, peaked cap with a small chrome starburst badge, pale indoor skin — looks down at the page, then lifts one arm and points away to the right.
+
+**@project_valder_char_mother IS WATCHING THE GUARD'S ARM, NOT HER SON.** Her back is to the boy. Both parents are facing the same direction and it is not his.
 
 === HARD CUT ===
 
 === SHOT 4 — 0:08 to 0:10.5 — RELEASED, AND FOR THE FIRST TIME HE IS SLOW ===
-A LEVEL SHOT AT THE BOY'S OWN HEAD HEIGHT, about 130 cm above the floor, moving gently with him. @project_valder_char_son STOPS RUNNING. He keeps going at his own unhurried pace in the direction they were already heading, rubbing his wrist once, looking around him as he goes — up at the ceiling, across at the water, at the people passing him — the way a child looks at a building he has never been inside before. HE NEVER TURNS HIS HEAD BACK. His father is not in this shot and is not seen again for the rest of the film.
+A LEVEL SHOT AT THE BOY'S OWN HEAD HEIGHT, about 130 cm above the floor, moving gently with him. @project_valder_char_son STOPS RUNNING. He keeps going at his own unhurried pace in the direction they were already heading, rubbing his wrist once, looking around him as he goes — up at the ceiling, across at the water, at the people passing him — the way a child looks at a building he has never been inside before. HE NEVER TURNS HIS HEAD BACK. **NEITHER OF HIS PARENTS IS IN THIS SHOT, AND NEITHER OF THEM IS SEEN AGAIN FOR THE REST OF THE FILM.**
 
 Ahead of him, A TALL DOOR IN DEEP, VIVID, FULL-STRENGTH RED stands in the wall, hard-edged against the saturated colour around it. He walks up to it, puts both hands flat on it and pushes.
 
