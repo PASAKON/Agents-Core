@@ -294,3 +294,61 @@ What `11d6e8fa...` (the duplicate) actually shows: a different composition of th
 smaller, tighter cluster, more silver-yellow mixed than white-and-yellow, otherwise the same
 water, lighting, and harmless character. A usable second take of the same variant, not a
 meaningfully different design.
+
+---
+
+## project_feedthem_loc_pier
+
+Asset id: `0596318d-b50b-404d-b338-60b9297285c5`
+
+Prompt:
+```
+An old wooden pier built on stilts extending out over very shallow, extremely clear tropical
+water, photographed from on top of the pier looking down along its length toward the horizon. Hot
+bright midday daylight, harsh sunlight, strong reflections and light shimmer on the water surface.
+The wooden planks are grey, weathered, sun-bleached, and worn smooth in the middle from years of
+foot traffic, with visible grain, gaps, and a few small repairs -- clearly a place people visit
+often, not pristine or new. Simple wooden railings on both sides, some posts leaning slightly. The
+water below is pale turquoise and glassy, shallow enough that the sandy bottom and small rocks are
+visible through it. No people, no boats, no text overlay, no film grain, no found-footage look --
+clean natural location photography, real documentary daylight.
+```
+
+What it actually shows: a genuinely strong match. Straight-on view down a long weathered grey
+wooden pier with simple hand-rails, planks sun-bleached and worn with visible grain and gaps.
+Water on both sides is beautifully clear turquoise near the pier — sandy patches and dark
+rocks/coral clearly visible through it — deepening to a darker teal toward the horizon, which
+reads as a natural, correct depth gradient rather than a flaw. This is the real "location" look
+the brief asked for. One honest gap: the pier's supporting stilts are not visible in this framing
+(camera looks straight down the walkway, not at the structure from the side), so "on stilts" is
+not independently confirmable from this image alone — everything else about the shallow, clear,
+sun-drenched, well-worn quality is there.
+
+---
+
+## project_feedthem_loc_camp
+
+Asset id: `6e8206ab-20de-4581-a9d1-b213a8a20527`
+
+Prompt:
+```
+The landward end of an old wooden pier, where a group of friends have dumped their camping and
+beach gear for the day. A few soft duffel bags and a backpack lie scattered on the weathered
+wooden planks, a hard plastic camping cooler with its lid closed sits nearby, and a small
+two-person tent is pitched just off to one side on the sandy ground where the pier meets the
+shore. Same hot, bright midday daylight as the rest of the location, harsh sunlight, hard shadows
+from the gear and tent. The wood is grey, weathered, and sun-bleached, gaps between planks, a
+scrubby sandy patch of ground visible at the edge of the frame. No people, no text overlay, no
+film grain, no found-footage look -- clean natural location photography, real documentary
+daylight.
+```
+
+What it actually shows: four bags (navy duffel, black tactical-style backpack, black duffel,
+olive green duffel) plus a grey hard-shell cooler with its lid closed, arranged on the same
+weathered grey pier planks as the pier plate, with a small grey/white/navy dome tent pitched on
+sandy, rocky ground just beyond the pier's edge. Hot bright daylight with hard shadows, no people.
+Matches the brief closely — slightly more gear (4 bags vs. "a few") than a minimal reading of the
+prompt implied, which reads as richer rather than wrong. Continuity note: the cooler here is
+closed, styled differently from the separate `project_feedthem_prop_cooler` plate (open lid, ice
+and drinks) — that is expected, they are different plates for different purposes, not an
+inconsistency.

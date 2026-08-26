@@ -37,12 +37,35 @@ sheet (amendment landed before a single-pose Ash was made).
 | project_feedthem_prop_bag | TBD | Prop |
 | project_feedthem_prop_cooler | TBD | Prop |
 
+## Character (cast rename — MAJOR mid-run amendment)
+
+CEO expanded the cast from 3 to 4 and renamed two roles. Discard "Nadia" and "Ash" as names —
+their sheets are kept undeleted (not authorized to delete CEO's approval material) but are
+OBSOLETE, superseded by the 4-person cast below. Milo is unchanged (same role, same generated
+sheet already satisfies the new "white Western man" spec on visual inspection).
+
+| Element name | Asset id | Folder | Status |
+|---|---|---|---|
+| project_feedthem_char_june (sheet, camera operator) | `248b9cec-63bf-4d8b-847f-3ed15ef5a560` | Character | current |
+| project_feedthem_char_cass (sheet, attempt 1, FLAGGED) | `b32302ec-802d-4537-aafb-dcf109b32165` | Character | flagged by safety system, 0 credits (refunded), image not usable |
+| project_feedthem_char_cass (sheet, attempt 2, success) | `b8af2b21-1ba3-4450-a56f-34e5b6c2e475` | Character | current |
+| project_feedthem_char_theo (sheet) | `f6e6442a-a735-45ee-aa99-251001abe583` | Character | current |
+| project_feedthem_char_nadia (single, OBSOLETE) | `18ae64b1-bbcb-4b08-bddf-ba8d80cde965` | Character | obsolete — name discarded |
+| project_feedthem_char_nadia (sheet, OBSOLETE) | `a2625c7a-8fde-48f3-9b46-902677e41a1d` | Character | obsolete — name discarded |
+| project_feedthem_char_ash (sheet, OBSOLETE) | `3ba5f963-4b38-493d-8ee5-494b4815526e` | Character | obsolete — name discarded |
+
 ## Location
 
-| Element name | Asset id | Folder |
-|---|---|---|
-| project_feedthem_loc_pier | TBD | Location |
-| project_feedthem_loc_camp | TBD | Location |
+Water was corrected mid-run from "sea, very shallow" (TASK.md's original wording) to "freshwater
+reservoir, clear but DEEP (8-10m)". Both old (sea) and new (freshwater) plates are kept per the
+CEO's "keep it, generate the new version too, report both ids" instruction.
+
+| Element name | Asset id | Folder | Status |
+|---|---|---|---|
+| project_feedthem_loc_pier (sea/shallow, OBSOLETE) | `0596318d-b50b-404d-b338-60b9297285c5` | Location | superseded by freshwater/deep spec |
+| project_feedthem_loc_camp (sea, OBSOLETE — landward end, no water depth shown) | `6e8206ab-20de-4581-a9d1-b213a8a20527` | Location | kept, likely fine as-is |
+| project_feedthem_loc_pier (freshwater reservoir, deep-but-clear, camping+fishing spot) | `55b0b143-f5c9-467a-be10-6dca7a62a82f` | Location | current |
+| project_feedthem_loc_camp (freshwater reservoir) | `469418d5-829a-4b2d-b7bf-3c240a978b3f` | Location | current |
 
 ## Scene 1
 
