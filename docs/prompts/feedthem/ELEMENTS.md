@@ -32,10 +32,16 @@ sheet (amendment landed before a single-pose Ash was made).
 
 ## Prop
 
-| Element name | Asset id | Folder |
-|---|---|---|
-| project_feedthem_prop_bag | TBD | Prop |
-| project_feedthem_prop_cooler | TBD | Prop |
+Redone mid-run per the CEO's "Do Not Disturb technique" instruction: plain WHITE background,
+object centred, even lighting, no scene — for later compositing. Both old (grey studio bg) and
+new (white bg) versions are kept, CEO picks.
+
+| Element name | Asset id | Folder | Status |
+|---|---|---|---|
+| project_feedthem_prop_bag (grey studio bg, OBSOLETE) | `0563c36f-dd78-42e7-855f-7ac900667c82` | Prop | superseded |
+| project_feedthem_prop_cooler (grey studio bg, OBSOLETE) | `fee02c3b-0b4b-4448-b1f3-5c67bc8178de` | Prop | superseded |
+| project_feedthem_prop_bag (white bg, DND technique) | `2d58ed26-de91-4702-867a-d8a1bc5b7384` | Prop | current |
+| project_feedthem_prop_cooler (white bg, DND technique) | `8aa46c52-776e-45b3-ac86-9321ad4d3b3e` | Prop | current — background not perfectly pure white, see PLATES.md |
 
 ## Character (cast rename — MAJOR mid-run amendment)
 
@@ -69,14 +75,17 @@ CEO's "keep it, generate the new version too, report both ids" instruction.
 
 ## Scene 1
 
-(uses, per brief — these are the same 7 elements above, grouped for Scene 1;
-recorded here rather than duplicated into the Scene 1 folder since the folder
-composer's @ mentions resolve globally per project, not per-folder)
+Cast is now 4, not 3 (mid-run CEO amendment). Grouped here rather than duplicated into the
+Scene 1 folder since the folder composer's @ mentions resolve globally per project, not
+per-folder. Where an element has both an old and current version (cast rename, location
+sea→freshwater, prop grey→white bg), the CURRENT one is listed — see the sections above for
+both ids and why.
 
-- project_feedthem_char_milo
-- project_feedthem_char_nadia
-- project_feedthem_char_ash
-- project_feedthem_loc_camp
-- project_feedthem_loc_pier
-- project_feedthem_prop_cooler
-- project_feedthem_prop_bag
+- project_feedthem_char_june (camera operator)
+- project_feedthem_char_milo (unchanged)
+- project_feedthem_char_cass (attempt 2, success)
+- project_feedthem_char_theo
+- project_feedthem_loc_camp (freshwater reservoir)
+- project_feedthem_loc_pier (freshwater reservoir, deep-but-clear)
+- project_feedthem_prop_cooler (white bg)
+- project_feedthem_prop_bag (white bg)

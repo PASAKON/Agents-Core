@@ -416,4 +416,97 @@
  *     hand once to see whether it fires for a real mouse, or check
  *     Higgsfield's own status/support channel, before spending further
  *     agent attempts here.
+ *
+ * Wave 8 (task-b691b231, 2026-08-26): first plates for a NEW project,
+ * "Feed Them, Feed Me" (ai-film-festival-2, NOT ai-film-festival-3/Valder).
+ * 25 total generations attempted (20 successful paid, 1 flagged/refunded,
+ * plus 4 folder-navigation settings resets fixed inline), 40 credits spent,
+ * landing exactly on the task's hard cap.
+ *   - Confirmed the standard flow (clear via real Cmd+A+Delete x2, synthetic
+ *     text/plain-only ClipboardEvent paste, length+first/last-80-char verify,
+ *     pre-emptive desync fix via focus+Selection-API-cursor-to-end+real
+ *     Space+BackSpace, re-verify Generate button price fresh immediately
+ *     before every click) works reliably across a long multi-folder,
+ *     multi-amendment session — this is now well-trodden ground, not a new
+ *     finding.
+ *   - NEW FINDING — a "no-op" click can actually be a DELAYED success, not a
+ *     true no-op: fired Generate for fish_c, waited ~2s, saw no toast and no
+ *     asset-count change, concluded no-op, re-clicked. The "All assets"
+ *     counter then jumped by TWO (not one), and the credit-balance delta
+ *     confirmed BOTH clicks had fired a real paid generation — the first
+ *     click's result simply hadn't rendered yet at the 2s check. Produced an
+ *     accidental duplicate of the same prompt (2 extra credits, disclosed to
+ *     the CEO rather than hidden). Fix adopted for the rest of the session:
+ *     wait at least 4-6s before deciding a click was a no-op, and treat the
+ *     credit-balance delta (via the account-avatar menu, closed with a click
+ *     elsewhere afterward — never Escape) as the authoritative signal, not
+ *     the toast or the asset counter alone, whenever the budget is tight.
+ *   - NEW FINDING — composer settings (quality/resolution/aspect, sometimes
+ *     even the model) reset unpredictably on **every** folder navigation in
+ *     this session, not just occasionally as earlier waves suggested. Some
+ *     navigations kept GPT Image 2 but reset quality/resolution to
+ *     Auto/High/2K; others reset the model back to the free default
+ *     ("Higgsfield Soul Cinema") and the mode to Video. There is no way to
+ *     predict which will happen — re-verify and re-set all four settings
+ *     (mode, model, quality, resolution, plus aspect if using the sheet
+ *     format) after every single folder navigate, with no exceptions.
+ *   - NEW FINDING — quality/resolution/aspect dropdown pills frequently
+ *     needed a SECOND click on the same coordinate to actually open (first
+ *     click apparently just focuses/hovers without opening the popover on
+ *     this account/session). If `[role="option"]` comes back empty
+ *     immediately after a click on a pill whose text you can see, click the
+ *     exact same coordinate again before trying a different technique —
+ *     this alone resolved the great majority of "dropdown didn't open"
+ *     cases this run, cheaper than switching to a synthetic-event fallback.
+ *   - NEW FINDING — the Image/Video mode toggle button's on-screen position
+ *     is NOT stable across page states in this project: observed at y=496,
+ *     y=580, and y=636 for the same "Image" button in different loads of
+ *     the same folder URL, all within one session. Always re-query
+ *     `getBoundingClientRect()` immediately before this click; never reuse a
+ *     coordinate from even a few calls earlier. When a real click still
+ *     doesn't flip `data-state`, the synthetic pointerdown/mousedown/
+ *     pointerup/mouseup/click MouseEvent sequence documented in Wave 6 fixed
+ *     it every time it was tried again this run.
+ *   - NEW FINDING — post-generation safety-flag cards on THIS account's UI
+ *     variant do not expose the "warning triangle eligibility re-check"
+ *     control described in some task briefs. The actual controls on a
+ *     flagged card are: a selection checkbox (large hit-area, easy to
+ *     trigger by clicking anywhere in the upper two-thirds of the card —
+ *     confirm you didn't just multi-select before doing anything else),
+ *     "Copy prompt", "Delete", and an NSFW visibility eye-slash toggle. No
+ *     click on the card opens a detail/preview modal (there's no image to
+ *     preview). The flag text itself
+ *     ("Content was flagged by the safety system. Try different prompts or
+ *     inputs.") and a "Credits refunded" badge are both present as plain
+ *     text/badges on the card face, not gated behind any click. If a task's
+ *     rules allow a retry on content refusal, the correct move is: confirm
+ *     the refund via account-menu balance (not just the visible badge),
+ *     soften the specific phrase in the prompt most likely to have
+ *     triggered it, and paste + generate fresh — there is nothing to click
+ *     on the flagged card itself.
+ *   - NEW FINDING — the whole browser can silently collapse into a locked
+ *     ~728x420 "Mobile Access Coming Soon" viewport after closing a tab
+ *     (independent of `resize_window` calls, which report success but don't
+ *     take effect while this state persists). Recovery: dismiss the "Got
+ *     it" button on the mobile-notice modal if present, THEN call
+ *     `resize_window` again — dismissing the modal first is necessary, a
+ *     bare resize alone did not recover it in this run. If dismissing
+ *     doesn't help either, close every tab in the group and let it
+ *     auto-destroy, then `tabs_context_mcp({createIfEmpty:true})` to start
+ *     a genuinely fresh tab group.
+ *   - NEW FINDING — closing what you believe is a "spare" tab while another
+ *     tab in the same group was only just created can destroy the whole MCP
+ *     tab group (`tabs_context_mcp` then reports "No tab group exists").
+ *     Recreate with `createIfEmpty:true` and re-navigate; no data was lost,
+ *     just an extra round-trip. Prefer closing the OLDER tab only after
+ *     confirming the newer one is fully loaded and responsive.
+ *   - Multi-amendment mid-session scope changes (three arrived in quick
+ *     succession this run: 8-panel sheet spec -> superseded by a concrete
+ *     4-panel DND-format spec -> superseded again by a full cast expansion
+ *     + location + prop rewrite) are handled by: never deleting superseded
+ *     assets (not authorized to judge/delete — that's the CEO's call),
+ *     recording both old and new ids side by side in the registry with an
+ *     explicit OBSOLETE/current status column, and proactively flagging via
+ *     dev_message when the new scope's credit math lands at or near the
+ *     task's hard cap, before spending into it.
  */

@@ -352,3 +352,182 @@ prompt implied, which reads as richer rather than wrong. Continuity note: the co
 closed, styled differently from the separate `project_feedthem_prop_cooler` plate (open lid, ice
 and drinks) — that is expected, they are different plates for different purposes, not an
 inconsistency.
+
+---
+
+## project_feedthem_char_june — SHEET (new, per cast expansion)
+
+Asset id: `248b9cec-63bf-4d8b-847f-3ed15ef5a560`
+Aspect: 21:9
+
+Prompt: (see git history / conversation for full text — camera operator, glasses, olive t-shirt,
+signature pose holding a handheld camera up to her eye in the front panel, DRY/WET per the
+standard 4-panel template)
+
+What it actually shows: front panel correctly shows her holding a small camera up to her eye,
+olive t-shirt, glasses, dry. Portrait panel (WET) shows glasses with water droplets, damp hair,
+intent expression — reads convincingly curious/nerdy. Back panel (WET) shows the same t-shirt and
+build from behind, wet. Not independently re-screenshotted in full-panel detail beyond the
+front/portrait/back visible in the folder-grid thumbnail; no flags, generated cleanly on first
+attempt.
+
+---
+
+## project_feedthem_char_cass — SHEET, attempt 1 (FLAGGED, per cast expansion)
+
+Asset id: `b32302ec-802d-4537-aafb-dcf109b32165` — **flagged by the safety system, credits
+refunded, no usable image.** Original prompt used "cropped tank top" and "one hand on her hip" —
+most likely trigger for the flag. Not re-attempted with the same wording; see attempt 2 below.
+
+## project_feedthem_char_cass — SHEET, attempt 2 (success, per cast expansion)
+
+Asset id: `b8af2b21-1ba3-4450-a56f-34e5b6c2e475`
+Aspect: 21:9
+
+Prompt: same structure as attempt 1 but with "fitted crew-neck t-shirt" instead of "cropped tank
+top," and "arms loosely crossed" instead of "one hand on her hip." Everything else (playful white
+woman, gaze always off-camera, coral pink dominant colour, signature front-panel pose) unchanged.
+
+What it actually shows: generated cleanly, no flag. Front panel shows a playful confident stance
+with gaze directed off to the side as specified. Coral pink top clearly the dominant identifying
+colour across panels.
+
+---
+
+## project_feedthem_char_theo — SHEET (new, per cast expansion)
+
+Asset id: `f6e6442a-a735-45ee-aa99-251001abe583`
+Aspect: 21:9
+
+Prompt: cautious Black man, dark navy hoodie, signature front-panel pose of one flat hand raised
+toward the viewer blocking the shot with shoulder turned away, DRY/WET per the standard 4-panel
+template.
+
+What it actually shows: front panel correctly shows the raised blocking hand and averted
+shoulder — a clean, unambiguous read of the signature pose. WET portrait panel shows a visibly
+damp, heavier-looking hoodie. Generated cleanly on first attempt, no flag.
+
+---
+
+## project_feedthem_loc_pier — freshwater reservoir, deep-but-clear (CORRECTED, per amendment)
+
+Asset id: `55b0b143-f5c9-467a-be10-6dca7a62a82f`
+
+The original `project_feedthem_loc_pier` plate (kept, see above) was built to the TASK.md brief's
+"very shallow" description. Mid-run the CEO corrected this: the water is meant to be clear but
+DEEP (8-10m) — the clarity is what creates an illusion of shallowness, and that illusion is the
+point of the film. This plate replaces that assumption; both are kept, CEO picks.
+
+Prompt:
+```
+An old wooden pier built on stilts extending out over a freshwater reservoir, the water so
+extraordinarily clear that the bottom is visible even though it is deep -- roughly eight to ten
+metres down. Photographed from on top of the pier looking down along its length toward the
+horizon. The clarity creates an illusion of shallowness, but the true depth reads in a gradual
+colour gradient from pale turquoise-green near the surface into a deeper blue-green further down,
+and in how small and distant details on the bottom appear -- tiny and far below, not close. Hot
+bright midday daylight, harsh sunlight, strong reflections and light shimmer on the water surface,
+visible light shafts penetrating down into the water. The wooden planks are grey, weathered,
+sun-bleached, worn smooth from years of use, with visible grain and gaps. Simple wooden railings
+on both sides. At the shore end of the pier there is flat open ground suitable for pitching a tent
+and casting a fishing line -- the kind of spot people clearly visit regularly to camp and fish,
+not an isolated or untouched place. No coral, this is freshwater, not ocean. Absolutely no murk,
+no gloom, no dark ominous depths, no low visibility, no greenish algae haze -- the water stays
+beautiful, transparent, bright and inviting all the way down. No people, no boats, no text
+overlay, no film grain, no found-footage look -- clean natural location photography, real
+documentary daylight.
+```
+
+What it actually shows: not independently re-screenshotted at full resolution before the task's
+budget ceiling was reached; generated cleanly on first attempt, no flag. The prompt explicitly
+asked for a colour-gradient depth cue rather than murk, per the CEO's critical instruction that
+models default to murky-dark when they hear "deep" — the CEO should check this specific point
+first when reviewing, since it's the instruction most likely to have been under- or
+over-corrected by the model.
+
+---
+
+## project_feedthem_loc_camp — freshwater reservoir (CORRECTED, per amendment)
+
+Asset id: `469418d5-829a-4b2d-b7bf-3c240a978b3f`
+
+Prompt:
+```
+The landward end of an old wooden pier at a freshwater reservoir, flat open shaded ground where a
+group of friends have dumped their camping and beach gear for the day. A couple of soft duffel
+bags and a backpack lie on the weathered wooden planks or the flat ground beside them, a hard
+plastic camping cooler sits nearby, and a small two-person tent is pitched on the flat ground just
+off the pier -- the kind of established, regularly-used spot people come back to for camping and
+fishing. Same hot, bright midday daylight, harsh sunlight, hard shadows from the gear and tent.
+Grey, weathered, sun-bleached wood, gaps between planks, flat ground with sparse dry grass or dirt
+at the edge of frame, the clear deep reservoir visible alongside the pier. No people, no text
+overlay, no film grain, no found-footage look -- clean natural location photography, real
+documentary daylight.
+```
+
+What it actually shows: not independently re-screenshotted at full resolution before the budget
+ceiling was reached; generated cleanly on first attempt, no flag.
+
+---
+
+## project_feedthem_prop_bag — WHITE BACKGROUND (CORRECTED, per amendment — DND isolation technique)
+
+Asset id: `2d58ed26-de91-4702-867a-d8a1bc5b7384`
+
+The CEO asked for props to use the "Do Not Disturb technique": plain white background, object
+centred, even lighting, no scene around it, for later compositing. This replaces the original
+grey-studio-background version above; both kept.
+
+Prompt:
+```
+Product photograph of a plastic carrier bag half full of food, centred on a plain seamless pure
+white background, even bright studio lighting with no visible shadows or gradients, isolated
+product shot for later compositing. The bag is an ordinary thin plastic grocery-style bag,
+slightly crumpled and worn-looking, not new or crisp, with no visible logos, no branding, no text,
+no printed patterns -- completely plain and generic, in a neutral white or semi-translucent
+colour. It is tied or loosely knotted at the top, bulging slightly to show it holds some kind of
+food inside without the contents being clearly identifiable. Clean e-commerce product photography
+style: no film grain, no motion blur, no found-footage look, no other props, no people, no hands,
+no text overlay, no background elements of any kind -- pure isolated object on white.
+```
+
+What it actually shows: a very clean match — semi-translucent white plastic bag, knotted at the
+top, bulging with indistinct contents faintly visible through the plastic, genuinely isolated on
+a flat pure-white background with no gradient or vignette. No branding, no props, no hands. This
+is a stronger match to the "isolated for compositing" brief than the original grey-background
+version.
+
+---
+
+## project_feedthem_prop_cooler — WHITE BACKGROUND (CORRECTED, per amendment — DND isolation technique)
+
+Asset id: `8aa46c52-776e-45b3-ac86-9321ad4d3b3e`
+
+Prompt:
+```
+Product photograph of a hard plastic camping cooler with its lid open, centred on a plain seamless
+pure white background, even bright studio lighting with no visible shadows or gradients, isolated
+product shot for later compositing. The cooler is an ordinary hard-shell picnic cooler, off-white
+or pale grey plastic, slightly worn and scuffed from use, with simple side handles and no visible
+logos or branding. Inside, it is filled with ice and a few canned and bottled drinks partially
+nestled in the ice, condensation visible on the cans and the inside walls of the cooler. Clean
+e-commerce product photography style: no film grain, no motion blur, no found-footage look, no
+other props, no people, no hands, no text overlay, no background elements of any kind -- pure
+isolated object on white.
+```
+
+What it actually shows: pale grey/off-white hard-shell cooler, lid open, ice inside with a mix of
+cans (blue, silver) and bottles (brown glass, green glass, clear), no visible branding. One honest
+flaw: the background is not perfectly flat pure white — it reads as a soft light-grey studio
+backdrop with a very faint vignette darkening toward the edges, closer to a classic product-photo
+grey sweep than the flat white the prompt asked for. Still clearly isolated with no environment or
+props, and likely composites fine, but is not as pure-white as the bag plate above.
+
+---
+
+## Budget summary
+
+Opening balance: 1,918 credits. Closing balance: **1,878 credits** — exactly at the task's
+40-credit hard cap, reached intentionally on the last authorized plate (prop_cooler white-bg).
+20 successful paid generations at 2 credits each (40 credits) + 1 flagged/refunded attempt
+(Cass attempt 1, 0 credits). No further generation was attempted after this point.
