@@ -4,7 +4,13 @@ Project: `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3` (The V
 
 ## Asset
 
-- **Asset id:** `ef107aa3-96c3-408e-abdb-0abbbd7ad554`
+- **Asset id:** `4b445603-ed8c-4b82-86fc-9464f5c3438f` — this is the grid's
+  `data-asset-id` and matches the id Higgsfield itself embedded in the
+  downloaded filename (`hf_20260827_082902_4b445603-...mp4`, see JOB 2 below).
+  **Correction:** this report originally committed `ef107aa3-96c3-408e-abdb-0abbbd7ad554`,
+  read from the detail modal's `?preview=` URL param — that is a *different*,
+  modal/job-scoped id, not the asset id. The download filename is the
+  authoritative source and does not match it. Fixed here, same session.
 - **Generation time:** fired ~15:31, completed ~16:03 today (2026-08-27) — card's own "Created" field reads **August 27, 2026 at 3:29 PM** local.
 - **Duration / resolution / aspect:** 20 seconds, 720p (1280x720), 16:9.
 - **Model:** Seedance 2.5, High bitrate, Sound On (per prompt header).
