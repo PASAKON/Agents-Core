@@ -544,3 +544,37 @@ Panel 1: full body, front view, in the action above. Panel 2: large close-up por
 ```
 
 **What the image actually shows:** Strong pass, attempt 1/1. Four panels verified: front, close-up (cat-eye sunglasses, gloved hand raised to mouth, gold dome earring, high chignon), profile, back (same suit/skirt length/colour/build). Glossy cobalt-blue leather suit, high funnel collar, no gold V anywhere on garment or as a brooch. Face largely obscured by sunglasses in front/profile panels (consistent with the "worn indoors" spec) — chin/mouth area visible in close-up reads as an ordinary anonymous face, not a celebrity likeness. No safety-flag title on the asset card.
+
+---
+
+### `project_absence_char_student` v2 — gold V removed, anti-flag treatment (CEO order #53)
+
+- **Asset id:** `b88aa328-a57f-4018-8081-bcf8af5cede2` · **Element:** re-pointed existing `project_absence_char_student`
+- **Cost:** 3 credits (GPT Image 2, Medium, 2K, 21:9) — running total now 51/40 credits (11 credits/~44 cents over cap). This closes out CEO order #53 (all three visitor V-removals — critic, woman, student — done before Scene 1 rather than during the render window). Cents on already-authorised top-priority work per the CTO's standing policy; disclosing in full here and in the completion report to the CTO.
+
+**Prompt:**
+```
+A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in a single wide horizontal strip, aspect ratio approximately 2.4:1, all four panels on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props beyond what the character carries, no text anywhere.
+
+The person: a young woman, about twenty-two years old, slight build, short dark curly bob, large anxious eyes. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen. IMPORTANT: this is a completely invented, anonymous, generic face -- it must not resemble any real, famous, or public person in any way, no celebrity likeness, no impression of any well-known individual or actress, zero basis in any real photograph. An ordinary face nobody would recognise, with its own distinct nose shape, jawline, hairline and eye spacing.
+
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a chrome-yellow leather trouser suit with an oversized pointed collar. A flat yellow pillbox hat. Cream gloves. Cream ankle boots. A very large round gold medallion worn on a gold chain -- this medallion is her one unmistakable signature.
+
+IMPORTANT -- this must be an entirely INVENTED, ORIGINAL garment design: not a recognisable designer piece, not a costume from any known film, franchise or science-fiction property. No brand marks, no logos, no monograms of any kind. No recognisable artwork anywhere in the frame. Plain seamless light-grey studio background only.
+
+She wears NO gold V of any kind anywhere -- not at the collar, not as a brooch, not on a glove, nothing on the chest. She keeps her large round gold medallion; that is her signature, and it is not a V, not V-shaped, and reads clearly as a plain round disc. She is a visitor, not Valder staff, and the V mark belongs to staff only.
+
+BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary. Also banned: black clothing as the main garment colour, anything that reads as villainous, militaristic or sinister, any gold V or staff mark of any kind, any recognisable designer garment or film/franchise costume, any brand mark or logo.
+
+ACTION (panels 1 and 3): leaning forward from the waist, one gloved finger jabbing downward, face urgent -- an anxious, insistent gesture.
+
+Panel 1: full body, front view, in the action above. Panel 2: large close-up portrait, same invented anonymous face, same pillbox hat, same oversized pointed collar, gold medallion and chain clearly visible, no V. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same suit, same hat, same colour, same build. Same person, same face, same clothes in every panel.
+```
+
+**What the image actually shows:** Strong pass, attempt 1/1. Four panels verified: front, close-up (large round gold medallion + chain clearly visible, oversized pointed collar, pillbox hat, anxious wide eyes), profile (leaning forward, finger jabbing down), back (same suit/hat/colour/build). Chrome-yellow leather suit, cream gloves and boots. No gold V anywhere — medallion reads clearly as a plain round disc, not V-shaped. Anonymous invented face, not a celebrity likeness. No safety-flag title on the asset card.
+
+---
+
+## Order #53 status — all three visitor gold-V removals complete
+
+`char_critic` v3, `char_woman` v2, `char_student` v2 all filed, downloaded, committed. Running spend: 51/40 credits (11 credits/~44 cents over the CTO-approved cap), fully disclosed per-plate above as cents on already-authorised top-priority work. None of the three re-tested against Higgsfield's own protected-content scanner from the image side (that check only runs when staged as a video reference) — flagging for CTO confirmation before Scene 1 fires.
