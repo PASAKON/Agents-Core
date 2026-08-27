@@ -29,6 +29,7 @@ Read at the start of every session, and before every report to the CEO.
 | 13 | **Valder Element** filed from the existing 18 Aug asset, 0 credits | `char_valder` |
 | 14 | **Valder's guards** — six, identical uniform, gold V on chest and cap. CTO-approved 04:00, sent to CEO | `char_guard_valder` |
 | 10x | **Parrot woman** — cockatoo crest, wing-shoulders, feather-cut panelling, single cobalt, no beak/wings/feathers, not comic. CTO-approved 03:32, sent to CEO | `char_woman_b` |
+| 35 | **Grandmother, reshot** — electric wheelchair with real wheels visible in all 4 panels incl. rear (fixes the rejected chrome-lounge-chair-no-wheels attempt), cloth over head, dark glasses, deep violet, no gold V. **Honest flaw: gloves render black, not dark grey/oxblood as the colour rule requires** — flagged to CTO, reshoot queued behind Scene 3 video render, not done yet | `char_grandmother` · asset `5dd23a87-67f3-4452-8a69-e81045e19993` |
 
 ---
 
