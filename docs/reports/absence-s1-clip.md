@@ -129,3 +129,40 @@ Clicked Generate via a fresh `find()`-sourced ref. "All assets" count went
 Fired during a late-evening local window — expect 40–60 min, possibly more;
 not cancelling before 90 min. Will download to
 `/Users/gob/Desktop/absence-s1-take2.mp4` once it lands.
+
+## JOB 4 — CANCELLED per CTO instruction (CEO rejected take 1's setup)
+
+The CEO watched take 1 and rejected the hall setup it was shot in (see his
+four notes below), which makes a second copy of the same setup worthless and
+means it was holding the account's single generation slot for nothing.
+
+Found a **Cancel** control (circle-slash icon) on the in-flight card's
+top-right corner — confirmed by hover tooltip reading "Cancel" before
+clicking. Clicking it raised a real (non-JS) confirm dialog: *"Cancel
+generations? If you cancel now, this generation will stop immediately and
+any progress will be lost. This action cannot be undone."* Clicked
+**Confirm**. Result: toast **"Generation canceled"**, the processing card
+disappeared from the grid, slot freed. Did not touch the Unlimited toggle or
+fire anything else, per instruction.
+
+Asset id `923f3228-bb6d-434e-996a-f5ba0dd6adbe` (take 2) is now dead —
+cancelled before completion, no file to recover, no credits spent (it was
+running under Unlimited).
+
+### CEO's four notes on why take 1's setup is rejected (for the next brief)
+
+1. **Cast size** — no more than 8 characters in the whole film; ~30-40
+   people entered frame in take 1. The three crowd Elements
+   (`project_valder_char_crowd_a`, `crowd_b`, `tea_circle`) are gone
+   entirely — scene carried by named cast only.
+2. **Hall too narrow** — the corridor needs to be rebuilt wider.
+3. **Not enough on display** — the hall reads too empty/sparse.
+4. **Artwork detail** — the canvases were stripped to plain abstract blocks
+   and the bronzes removed this afternoon specifically to beat the
+   protected-content flag; it worked but left the room thin. Per the CTO,
+   the flag catches *recognisable* work, not *detailed* work — so the next
+   hall needs richly detailed **invented** pieces (heavy impasto, collage,
+   torn paper, wire, fabric, assemblage, real texture, visible making) that
+   resemble no real artist.
+
+CTO is writing the next brief; no further generation until it lands.
