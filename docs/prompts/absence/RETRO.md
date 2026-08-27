@@ -201,8 +201,9 @@ Panel 1: full body, front view, in the action above, cane in hand. Panel 2: larg
 
 ### 2.3 · `project_absence_char_woman`
 
-- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_woman`
-- **Cost:** _(pending)_
+- **Asset id:** `5d9661e1-1200-4bbb-accb-402c3263e0a2` · **Element:** re-pointed `project_absence_char_woman` ("Element saved" confirmed)
+- **Cost:** 3 credits (attempt 1/1)
+- **Downloaded:** `/Users/gob/Desktop/absence-char-woman.png`
 
 **Prompt:**
 ```
@@ -221,7 +222,7 @@ ACTION (panels 1 and 3): standing perfectly still, one gloved hand raised to her
 Panel 1: full body, front view, in the action above, gold V brooch and glasses visible. Panel 2: large close-up portrait, same face, glasses, brooch clearly visible at this scale. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same jacket, same collar, same colour, same build. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Strong pass, attempt 1/1. Deep cobalt blue jacket and A-line skirt, high standing collar, gloves. Sharp cat-eye dark glasses worn correctly, gold V brooch clearly visible at the collar, small gold earrings. One gloved hand raised to her mouth, completely absorbed — action reads correctly in panels 1/3. Composed, warm expression, not severe or sinister. Panel 4 (behind) shows the same jacket/collar/colour. No defects found; kept as generated.
 
 ---
 
@@ -331,4 +332,4 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap: 30 credits. Running total: 15 / 30 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3).
+Cap: 30 credits. Running total: 18 / 30 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3).
