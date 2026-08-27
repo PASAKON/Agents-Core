@@ -8,7 +8,7 @@ SEEDANCE 2.5 — 20 SECONDS — 720p — 16:9
    file does not renumber his film.
 2. ONE ADDED IMAGE. The dialogue below is the CEO's own, word for word from
    the sheet, unchanged. What this file adds is WHERE the camera is when the
-   critic says his line: the cleaner is mopping the floor behind him, and
+   critic says her line: the cleaner is mopping the floor behind her, and
    nobody looks at him. That is a staging choice, not a story change, but it
    is pointed enough that the CEO should see it before it is shot.
 Remove these lines once he has ruled on both.
@@ -25,15 +25,15 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_absence_loc_hall_big — THE GALLERY HALL. White side walls hung with framed modern paintings, polished dark terracotta-red terrazzo floor, slim chromium columns flaring into wide trumpet-shaped ceiling coves that glow hot ORANGE. Wire-sphere lamps on white plinths. A long yellow bench and yellow swivel chair on a blue, black and white patterned rug.
 
-@project_absence_loc_wall_crack — THE HERO WALL. Flat white, no painting on it. **ONE SMALL CRACK** at head height, a short jagged star no bigger than a spread hand with a little chipped plaster. Below it a brass plaque engraved THE ABSENCE OF MEANING / Valder / $2,000,000.
+@project_absence_loc_wall_crack — THE HERO WALL. Flat white, no painting on it. **ONE SMALL CRACK** in the MIDDLE of the wall at picture-hanging height, a short jagged star no bigger than a spread hand with a little chipped plaster. Far below it, down at KNEE HEIGHT, a small brass plaque engraved THE ABSENCE OF MEANING / Valder / $2,000,000.
 
 --- THE FOUR WHO SPEAK. Each is ONE PERSON and each says exactly one line. ---
 
 @project_absence_char_oldman — THE ELDERLY GENTLEMAN. Heavy-set man of about eighty, jowly, thin white hair, deeply lined face. Bottle-green leather overcoat with a wide soft shawl collar over a cream turtleneck, cream shoes, slim chrome cane with a round ring handle.
 
-@project_absence_char_woman — THE WOMAN WHO FEELS SOMETHING. Slim woman of about fifty, dark hair in a high chignon. Glossy electric cobalt-blue leather suit with a high funnel collar, long cobalt leather gloves, black cat-eye sunglasses worn indoors, gold V at the collar, gold dome earrings.
+@project_absence_char_woman — THE WOMAN WHO FEELS SOMETHING. Slim woman of about fifty, dark hair in a high chignon. Glossy electric cobalt-blue leather suit with a high funnel collar, long cobalt leather gloves, black cat-eye sunglasses worn indoors, gold dome earrings. No gold V — she is a visitor.
 
-@project_absence_char_student — THE ART STUDENT. Slight young woman of about twenty-two, short dark curly bob. Chrome-yellow leather trouser suit with an oversized pointed collar, flat yellow pillbox hat, a very large round gold medallion on a gold chain, cream gloves, cream ankle boots.
+@project_absence_char_student — THE ART STUDENT. Slight young woman of about twenty-two, short dark curly bob. Chrome-yellow leather trouser suit with an oversized pointed collar, flat yellow pillbox hat, a very large round gold medallion on a gold chain, cream gloves, cream ankle boots. No gold V — she is a visitor.
 
 @project_absence_char_critic — THE ART CRITIC. An Asian woman of about sixty, poised and completely certain of herself, dark grey-streaked hair in a low chignon. Full-length deep magenta fur coat with a wide soft fur shawl collar worn open, long cream suede gloves, a large gold ring over the glove, a heavy gold chain bracelet, cream heels. No gold V — she is a visitor.
 
@@ -57,7 +57,7 @@ Four people take turns explaining what a crack in a wall means. **Every explanat
 
 The scene is not laughing at them for being stupid. **It is showing the pressure everyone in that room is under to prove they understood.** Silence would read as not getting it, so nobody is silent.
 
-Under that runs the one image the whole film turns on. The critic's line asks **who decides what labour is worth** — and while he says it, **the man whose labour actually made the thing in front of them is mopping the floor twenty feet behind him, and not one person turns around.** He does not react. He does not know he is the answer to the question. He just finishes the floor.
+Under that runs the one image the whole film turns on. The critic's line asks **who decides what labour is worth** — and while she says it, **the man whose labour actually made the thing in front of them is mopping the floor twenty feet behind him, and not one person turns around.** He does not react. He does not know he is the answer to the question. He just finishes the floor.
 
 The scene ends with the group agreeing, warmly, with all of it.
 
@@ -127,7 +127,7 @@ SHOT 4 — 5 seconds
 
 **@project_absence_char_critic, a woman's voice, slowly, weighing every word: "It asks who decides what labour is worth."**
 
-Hold on the composition — the critic in front, the cleaner behind him, both in the same frame, unconnected.
+Hold on the composition — the critic in front, the cleaner behind her, both in the same frame, unconnected.
 
 === HARD CUT ===
 
