@@ -49,9 +49,24 @@ Read at the start of every session, and before every report to the CEO.
 | 32 | **Collect both S1 takes** (`5ea44262` silent, `c8e60256` Dupe speaks) + shot-by-shot review of each | `task-ff2828e0` |
 | 33 | **Valder's five pieces** — chair, fish trap, millstone, vessel, painting | `task-fe7b3d37` |
 | 34 | **Parrot woman v3** — hair in green/white/blue, garment single green with cut lines (CEO #64/#65) | `task-fe7b3d37` |
-| 35 | **S2 the accident + S3 the interpretations** — 2 video fires, back to back | `task-a13469e9` |
-| 36 | **Grandmother RE-SHOOT** — v1 rejected, chair had no wheels. Needs real wheels, head cloth, dark glasses, mysterious, violet, not wealthy | `task-f4320f9e` |
-| 37 | **Grandmother v1, the English gentleman + 2 bodyguards, the crocodile bag** | `task-5a3d259c` |
+| 35 | **S2 fired** `56ace68c`, rendering since 05:50 · **S3 re-staging** after a composer navigation wiped it | `task-a13469e9` |
+| 36 | ~~Grandmother RE-SHOOT~~ — **DONE, merged `ab4873d`.** Wheels visible in all 4 panels incl. rear | ✅ `5dd23a87` |
+| 37 | **Crocodile bag → grandmother glove fix → `char_press`** | `task-5a3d259c` |
+
+### ⚠️ CTO error, 2026-08-28 06:30 — corrected
+
+I stood both image operators down "until the video render clears". **That was
+wrong and cost ~40 minutes of two workers.** Proof from this same session: the
+grandmother plate (`5dd23a87`) and the gentleman plate both fired *and finished*
+while S2 was mid-render. **The one-at-a-time slot is scoped to Unlimited VIDEO
+only; paid image generations queue independently.** Recorded in the
+`higgsfield-unlimited-gen` skill so no future wave repeats it.
+
+A second error the same hour: I told the video operator to "check the render now,
+in the browser" without saying *in a separate tab*, and it navigated the composer
+holding the staged S3 prompt — wiping the text and resetting Unlimited. No money
+lost (nothing was fired), but S3 had to be staged twice. **Status checks always
+go in a scratch tab.**
 
 ## 📋 ORDERED, NOT STARTED
 
