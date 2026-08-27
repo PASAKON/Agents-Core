@@ -39,3 +39,66 @@ The card carried no "Last downloaded" tag (unlike the adjacent, visually
 similar older S1 take from the prior wave, asset `3e374d22-5ea6-420e-8438-586884ceb7d8`,
 which does carry that tag) — confirming this is the new, uncollected render,
 not the earlier one already handled in `docs/reports/absence-video-1.md`.
+
+## JOB 2 — download
+
+Downloaded via the card's Download button (from the detail modal) to
+`/Users/gob/Desktop/absence-s1-take1.mp4` — 19,741,432 bytes (19.74 MB).
+Confirmed with `ffprobe`: 1280x720, ~20.04s, 24fps.
+
+## JOB 3 — honest shot-by-shot review
+
+Scene-cut detection (`ffmpeg select=gt(scene,0.15)`) found exactly **6 hard
+cuts** at 2.96s / 6.33s / 9.25s / 12.04s / 15.0s / 17.83s → **7 discrete
+shots**, matching the prompt's "seven shots joined by six hard cuts" spec
+exactly. All cuts are instant — no drift, no dissolve, no camera move
+carrying across a cut.
+
+1. **Shot 1 (0–2.96s):** Opens on the cleaner, back to camera, white uniform
+   and matching cap, pushing a cart away down the empty hall. Correct framing
+   and blocking. **Note:** at this distance/backlighting the cart reads dark
+   maroon/burgundy, not clearly orange — it only reads unambiguously
+   orange-red (with a gold "V" on the bin) in the closer shots 2 and 7. Same
+   cart, just an exposure/distance issue, not a continuity break.
+2. **Shot 2 (2.96–6.33s):** Closer profile as he passes the wall — white
+   uniform with orange piping clearly visible on sleeve/cap, mustache,
+   recast Indian man in his thirties as ordered. Small hairline crack visible
+   in the middle of the wall. He does not turn his head toward camera. Cart
+   has a decorative abstract-art panel taped to its front (set dressing, not
+   in the brief, but harmless).
+3. **Shot 3 (6.33–9.25s):** Crack + brass plaque low near the floor, reading
+   "THE ABSENCE OF MEANING / Valder / $2,000,000" — correct placement. Two
+   people (magenta-coat woman gesturing, green-coat man with cane) start the
+   argument beat. The green-coat man's gaze reads close to camera-facing.
+4. **Shot 4 (9.25–12.04s):** Full group now visible, pink-suited woman
+   dramatically pointing at the bare wall, others reacting — reads clearly
+   as "arguing in front of the wall." No one looking at camera here.
+5. **Shot 5 (12.04–15.0s):** Cutaway to several people viewing an actual
+   painting on the side wall, shot from behind — thematically consistent
+   with the "absence" premise, not a defect.
+6. **Shot 6 (15.0–17.83s):** Wide shot back at the crack/plaque wall with a
+   larger crowd. **Defect — confirmed by zoom crop:** at least 4 background
+   women (mustard, teal, blue, mustard coats) are each wearing a distinct
+   gold "V" pin/brooch on their collar. The brief is explicit: "Only the
+   cleaner and his cart may have one." This is a real violation, not a
+   lighting artifact — the V is a clean, unambiguous glyph in the zoomed
+   crop.
+7. **Shot 7 (17.83–20.0s):** Ends on the cleaner, cart in frame, orange
+   piping and gold-V cap correct. **Does not match the brief:** he is
+   centered in frame facing the camera directly, not "at the edge of frame
+   watching the crowd" — and no crowd is visible in this shot at all; it's
+   an empty hallway behind him.
+
+**Other checks:** no duplicated faces, no black bars/letterboxing, no
+on-screen text beyond the in-world plaque (intentional), the wall crack
+stays small/hairline throughout (never wall-spanning). One pointing hand
+(shot 4) reads slightly stiff/waxy on close zoom but not clearly warped —
+minor, not conclusive.
+
+**Verdict: not clean.** Two real problems: (a) unauthorized gold-V pins on
+multiple background women in shot 6, and (b) the ending shot doesn't deliver
+the specified "cleaner at frame edge watching the crowd" — it's a
+head-on, crowd-less close on the cleaner instead. Structure (7 shots/6 hard
+cuts), the crack, the plaque, and the argument beats are all otherwise
+correct. Recommend the CTO decide whether these are worth a regenerate
+before building on this take.
