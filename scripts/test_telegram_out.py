@@ -13,6 +13,7 @@ Or under pytest:  pytest scripts/test_telegram_out.py
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -575,6 +576,318 @@ def test_probe_via_ffprobe_decode_failure_returns_none(monkeypatch, tmp_path):
 def test_probe_via_ffprobe_missing_binary_returns_none(monkeypatch, tmp_path):
     monkeypatch.setattr(tg.shutil, "which", lambda *a, **kw: None)
     assert tg._probe_via_ffprobe(tmp_path / "whatever.bin") is None
+
+
+# ---------------------------------------------------------------------------
+# send_media_batch_to_ceo -- task-68be2c26 D1/D2/D3/D4 (CEO orders #42/#43)
+#
+# A fake stand-in for scripts/video_to_drive.py's public surface is
+# monkeypatched onto tg._video_to_drive for every Drive-routing test below --
+# no test here ever imports the real gdrive-bridge chain, touches a real
+# OAuth credential, or calls a real Drive API.
+# ---------------------------------------------------------------------------
+
+from types import SimpleNamespace  # noqa: E402
+
+
+def _fake_drive_module(*, listing=None, upload_error=None):
+    uploads = []
+
+    def fake_upload(local_path, name, folder_id):
+        if upload_error:
+            raise upload_error
+        uploads.append((str(local_path), name, folder_id))
+        return {"id": "fake-drive-file-id"}
+
+    def fake_list_folder(folder_id):
+        return dict(listing) if listing is not None else {}
+
+    ns = SimpleNamespace(
+        DRIVE_SOMPONG_GRAB_FOLDER_ID="fake-folder-id",
+        apply_oauth_env_override=lambda: None,
+        upload=fake_upload,
+        list_folder=fake_list_folder,
+        mb=lambda n: f"{n / 1048576:.1f} MB",
+    )
+    ns._uploads = uploads
+    return ns
+
+
+def _make_sized_file(path: Path, size: int, head: bytes = b"") -> Path:
+    """A file of exactly `size` bytes, starting with `head` -- sparse (via
+    seek+write) so a 50MB+ fixture costs no real IO time or disk."""
+    with open(path, "wb") as fh:
+        fh.write(head)
+        if size > len(head):
+            fh.seek(size - 1)
+            fh.write(b"\0")
+    return path
+
+
+def test_batch_two_small_files_go_out_as_one_album(env, monkeypatch, tmp_path):
+    """D1: a 2-file batch of small photos must be ONE sendMediaGroup call,
+    never two separate sendPhoto sends."""
+    _valid_getme(monkeypatch)
+    posts = []
+
+    def fake_post(url, data=None, files=None, **kw):
+        posts.append({"url": url, "data": data, "files": files})
+        return FakeResponse(200, {"ok": True, "result": [{}, {}]})
+
+    monkeypatch.setattr(requests, "post", fake_post)
+
+    f1 = tmp_path / "a.jpg"
+    f1.write_bytes(JPEG_HEAD)
+    f2 = tmp_path / "b.jpg"
+    f2.write_bytes(JPEG_HEAD)
+
+    result = tg.send_media_batch_to_ceo([str(f1), str(f2)])
+
+    assert result["ok"] is True
+    assert [r["status"] for r in result["results"]] == ["uploaded", "uploaded"]
+    assert [r["path"] for r in result["results"]] == [str(f1), str(f2)]
+    assert len(posts) == 1, "two photos must go out as ONE sendMediaGroup call, not two sends"
+    assert posts[0]["url"].endswith("/sendMediaGroup")
+    media = json.loads(posts[0]["data"]["media"])
+    assert len(media) == 2
+    assert set(posts[0]["files"]) == {"file0", "file1"}
+
+
+def test_batch_eleven_files_split_into_ten_plus_one(env, monkeypatch, tmp_path):
+    """D1: Telegram caps a media group at 10 -- an 11-file batch must go out
+    as one 10-item album plus one lone sendPhoto (Telegram rejects a group
+    of size 1)."""
+    _valid_getme(monkeypatch)
+    posts = []
+
+    def fake_post(url, data=None, files=None, **kw):
+        posts.append({"url": url, "files": files})
+        if url.endswith("/sendMediaGroup"):
+            n = len(json.loads(data["media"]))
+            return FakeResponse(200, {"ok": True, "result": [{}] * n})
+        return FakeResponse(200, {"ok": True, "result": {}})
+
+    monkeypatch.setattr(requests, "post", fake_post)
+
+    paths = []
+    for i in range(11):
+        p = tmp_path / f"pic{i}.jpg"
+        p.write_bytes(JPEG_HEAD)
+        paths.append(str(p))
+
+    result = tg.send_media_batch_to_ceo(paths)
+
+    assert result["ok"] is True
+    assert all(r["status"] == "uploaded" for r in result["results"])
+    group_calls = [p for p in posts if p["url"].endswith("/sendMediaGroup")]
+    single_calls = [p for p in posts if p["url"].endswith("/sendPhoto")]
+    assert len(group_calls) == 1, "the first 10 must go out as one album"
+    assert len(group_calls[0]["files"]) == 10
+    assert len(single_calls) == 1, "the 11th, alone, must fall back to a single sendPhoto"
+
+
+def test_batch_documents_sent_individually_not_grouped(env, monkeypatch, tmp_path):
+    """Documents can't share an album with photos/videos on Telegram, so
+    each document goes out on its own -- and a lone photo among them still
+    falls back to a single sendPhoto, not a group of one."""
+    _valid_getme(monkeypatch)
+    posts = []
+    monkeypatch.setattr(
+        requests, "post",
+        lambda url, **kw: (posts.append(url), FakeResponse(200, {"ok": True}))[1],
+    )
+
+    doc1 = tmp_path / "notes1.txt"
+    doc1.write_bytes(PLAIN_TEXT)
+    doc2 = tmp_path / "notes2.txt"
+    doc2.write_bytes(PLAIN_TEXT)
+    photo = tmp_path / "pic.jpg"
+    photo.write_bytes(JPEG_HEAD)
+
+    result = tg.send_media_batch_to_ceo([str(doc1), str(photo), str(doc2)])
+
+    assert all(r["status"] == "uploaded" for r in result["results"])
+    assert len([u for u in posts if u.endswith("/sendDocument")]) == 2
+    assert any(u.endswith("/sendPhoto") for u in posts)
+    assert not any(u.endswith("/sendMediaGroup") for u in posts)
+
+
+def test_batch_exactly_50mb_uploads_one_over_goes_to_drive(env, monkeypatch, tmp_path):
+    """D2: size routing is decided PER FILE -- exactly 50MB still fits and
+    must upload as a real file; one byte over routes to Drive instead."""
+    _valid_getme(monkeypatch)
+    monkeypatch.setattr(requests, "post", lambda *a, **kw: FakeResponse(200, {"ok": True}))
+
+    exact = _make_sized_file(tmp_path / "exact.mp4", tg.MAX_MEDIA_BYTES, head=MP4_HEAD)
+    over = _make_sized_file(tmp_path / "huge.mp4", tg.MAX_MEDIA_BYTES + 1, head=MP4_HEAD)
+
+    drive_ns = _fake_drive_module(listing={"huge.mp4": tg.MAX_MEDIA_BYTES + 1})
+    monkeypatch.setattr(tg, "_video_to_drive", lambda: drive_ns)
+    notices = []
+    monkeypatch.setattr(
+        tg, "send_to_ceo",
+        lambda text: (notices.append(text), {"ok": True, "reason": None})[1],
+    )
+
+    result = tg.send_media_batch_to_ceo([str(exact), str(over)])
+
+    by_path = {r["path"]: r for r in result["results"]}
+    assert by_path[str(exact)]["status"] == "uploaded"
+    assert by_path[str(over)]["status"] == "linked"
+    assert by_path[str(over)]["link"] is not None
+    assert drive_ns._uploads and drive_ns._uploads[0][1] == "huge.mp4"
+    assert notices and "huge.mp4" in notices[0] and "50 MB" in notices[0]
+
+
+def test_batch_mixed_small_and_oversized_reports_distinct_outcomes(env, monkeypatch, tmp_path):
+    """D4: a mixed batch reports each file's real outcome -- never a flat
+    success/failure for the whole call."""
+    _valid_getme(monkeypatch)
+    monkeypatch.setattr(requests, "post", lambda *a, **kw: FakeResponse(200, {"ok": True}))
+
+    small = tmp_path / "small.jpg"
+    small.write_bytes(JPEG_HEAD)
+    over = _make_sized_file(tmp_path / "huge.mp4", tg.MAX_MEDIA_BYTES + 1, head=MP4_HEAD)
+
+    drive_ns = _fake_drive_module(listing={"huge.mp4": tg.MAX_MEDIA_BYTES + 1})
+    monkeypatch.setattr(tg, "_video_to_drive", lambda: drive_ns)
+    monkeypatch.setattr(tg, "send_to_ceo", lambda text: {"ok": True, "reason": None})
+
+    result = tg.send_media_batch_to_ceo([str(small), str(over)])
+
+    assert result["ok"] is True, "every file succeeded (one uploaded, one linked)"
+    statuses = {r["path"]: r["status"] for r in result["results"]}
+    assert statuses[str(small)] == "uploaded"
+    assert statuses[str(over)] == "linked"
+
+
+def test_batch_drive_verify_miss_is_a_failure(env, monkeypatch, tmp_path):
+    """D3: a fresh folder listing that does not show the file is a FAILURE,
+    never a silently-assumed success -- and the CEO is never told about a
+    link that doesn't actually exist on Drive."""
+    _valid_getme(monkeypatch)
+    over = _make_sized_file(tmp_path / "huge.mp4", tg.MAX_MEDIA_BYTES + 1, head=MP4_HEAD)
+
+    drive_ns = _fake_drive_module(listing={})  # fresh listing does not show it
+    monkeypatch.setattr(tg, "_video_to_drive", lambda: drive_ns)
+    notices = []
+    monkeypatch.setattr(
+        tg, "send_to_ceo",
+        lambda text: (notices.append(text), {"ok": True, "reason": None})[1],
+    )
+
+    result = tg.send_media_batch_to_ceo([str(over)])
+
+    assert result["ok"] is False
+    r = result["results"][0]
+    assert r["status"] == "failed"
+    assert "not found in a fresh folder listing" in r["reason"]
+    assert notices == [], "must never notify the CEO of a link that was never verified"
+
+
+def test_batch_partial_failure_is_not_reported_as_flat_success(env, monkeypatch, tmp_path):
+    """D4: one bad path alongside a good file must not collapse into a flat
+    ok:true -- and each file's own outcome is preserved."""
+    _valid_getme(monkeypatch)
+    monkeypatch.setattr(requests, "post", lambda *a, **kw: FakeResponse(200, {"ok": True}))
+
+    good = tmp_path / "pic.jpg"
+    good.write_bytes(JPEG_HEAD)
+    bad_path = "/no/such/path/ever-5555.jpg"
+
+    result = tg.send_media_batch_to_ceo([str(good), bad_path])
+
+    assert result["ok"] is False
+    by_path = {r["path"]: r for r in result["results"]}
+    assert by_path[str(good)]["status"] == "uploaded"
+    assert by_path[bad_path]["status"] == "failed"
+    assert "not an existing regular file" in by_path[bad_path]["reason"]
+
+
+def test_batch_missing_token_reports_failure_for_every_file(monkeypatch, tmp_path):
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    monkeypatch.delenv("TELEGRAM_CEO_CHAT_ID", raising=False)
+    calls = []
+    monkeypatch.setattr(requests, "post", lambda *a, **kw: calls.append(1))
+
+    f = tmp_path / "pic.jpg"
+    f.write_bytes(JPEG_HEAD)
+
+    result = tg.send_media_batch_to_ceo([str(f), "/no/such/path.jpg"])
+
+    assert result["ok"] is False
+    assert all(r["status"] == "failed" for r in result["results"])
+    assert calls == []
+
+
+def test_batch_wrong_bot_fails_every_file_without_sending(env, monkeypatch, tmp_path):
+    post_calls = []
+    _valid_getme(monkeypatch, username="SomeOtherBot")
+    monkeypatch.setattr(requests, "post", lambda *a, **kw: post_calls.append(1))
+
+    f1 = tmp_path / "a.jpg"
+    f1.write_bytes(JPEG_HEAD)
+    f2 = tmp_path / "b.jpg"
+    f2.write_bytes(JPEG_HEAD)
+
+    result = tg.send_media_batch_to_ceo([str(f1), str(f2)])
+
+    assert result["ok"] is False
+    assert all(r["status"] == "failed" for r in result["results"])
+    assert post_calls == []
+
+
+# ---------------------------------------------------------------------------
+# send_media_batch_to_ceo -- D6: the token never leaks, including the new
+# sendMediaGroup path
+# ---------------------------------------------------------------------------
+
+def test_batch_token_never_leaks_through_media_group_network_error(env, monkeypatch, tmp_path):
+    _valid_getme(monkeypatch)
+
+    def boom(url, **kw):
+        if url.endswith("/sendMediaGroup"):
+            raise requests.ConnectionError(
+                f"HTTPSConnectionPool(host='api.telegram.org', port=443): "
+                f"Max retries exceeded with url: /bot{TOKEN}/sendMediaGroup"
+            )
+        return FakeResponse(200, {"ok": True})
+
+    monkeypatch.setattr(requests, "post", boom)
+
+    f1 = tmp_path / "a.jpg"
+    f1.write_bytes(JPEG_HEAD)
+    f2 = tmp_path / "b.jpg"
+    f2.write_bytes(JPEG_HEAD)
+
+    result = tg.send_media_batch_to_ceo([str(f1), str(f2)])
+
+    assert result["ok"] is False
+    for r in result["results"]:
+        assert r["status"] == "failed"
+        assert TOKEN not in r["reason"]
+    assert TOKEN not in str(result)
+
+
+def test_batch_token_never_leaks_through_document_send_network_error(env, monkeypatch, tmp_path):
+    _valid_getme(monkeypatch)
+
+    def boom(*a, **kw):
+        raise requests.ConnectionError(
+            f"HTTPSConnectionPool(host='api.telegram.org', port=443): "
+            f"Max retries exceeded with url: /bot{TOKEN}/sendDocument"
+        )
+
+    monkeypatch.setattr(requests, "post", boom)
+
+    f = tmp_path / "notes.txt"
+    f.write_bytes(PLAIN_TEXT)
+
+    result = tg.send_media_batch_to_ceo([str(f)])
+
+    assert result["ok"] is False
+    assert TOKEN not in result["results"][0]["reason"]
+    assert TOKEN not in str(result)
 
 
 if __name__ == "__main__":

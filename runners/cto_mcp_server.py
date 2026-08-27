@@ -180,6 +180,38 @@ def send_media_to_ceo(path: str, caption: str = "") -> str:
     return json.dumps(result)
 
 
+@mcp.tool()
+def send_media_batch_to_ceo(paths: str, caption: str = "") -> str:
+    """Upload multiple files to the CEO's real Telegram chat in one call
+    (task-68be2c26, CEO orders #42/#43). `paths` is a JSON array string or
+    comma-separated list of local file paths.
+
+    Each file is routed independently by its own size: anything that fits
+    under Telegram's 50 MB cap always goes out as a real file, never a
+    link — photos and videos share an album (sendMediaGroup, up to 10 per
+    album, more sent as further albums), documents go one at a time since
+    Telegram won't let a document share an album with a photo/video. A
+    file over 50 MB goes to the CEO's Google Drive `Desktop Cloud` folder
+    instead — verified by a fresh folder listing before it's ever reported
+    as done — and the CEO is told why, by name, size, and link. That is the
+    only case that ever produces a link (order #38 still stands for
+    everything that fits).
+
+    Not wired through org_tools_registry's dispatch — same reasoning as
+    send_media_to_ceo above (no cross-CTO ownership concern) — it parses
+    `paths` and calls lib/telegram_out.py directly.
+
+    Returns a JSON string: {"ok": bool, "results": [{"path", "status",
+    "reason", "link"}]}. Never raises.
+    """
+    try:
+        path_list = reg._parse_list_arg(paths)
+        result = telegram_out.send_media_batch_to_ceo(path_list, caption=caption)
+    except Exception as e:  # thin wrapper contract: never raise
+        result = {"ok": False, "reason": f"unexpected error: {e}"}
+    return json.dumps(result)
+
+
 if __name__ == "__main__":
     db.init()
     mcp.run()
