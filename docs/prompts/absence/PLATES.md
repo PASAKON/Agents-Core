@@ -326,3 +326,54 @@ clearly legible edge to edge. No logo or brand mark anywhere. Sitting on the
 hall's own polished terracotta-toned floor with chromium columns visible
 softly out of focus behind it, matching the referenced room's warm light and
 colour temperature. No hard defects.
+
+---
+
+## 10 · `project_absence_char_press` — GPT Image 2 (task-5a3d259c)
+
+**The press** — two journalists sharing one camera; unblocks S5 and S11 per
+the CTO. CTO correction mid-task: an earlier stand-down (thinking paid image
+gens contended with the Unlimited Seedance video slot) was wrong — proof was
+this task's own char_gentleman AND another operator's char_grandmother both
+firing and completing while a Scene 2 video render was still in flight. Only
+Unlimited VIDEO generations share that one slot; paid GPT Image 2 gens do not
+contend with it.
+
+- **Asset id:** `ce865189-aa11-4936-a2f2-eb97da6f7caa` (from the downloaded
+  filename `hf_20260827_234552_ce865189-...png`; the `?preview=8d563844-...`
+  URL param again did not match — the fourth consecutive plate this session
+  where the preview id and real asset id differed)
+- **Filed as Element:** `project_absence_char_press`, category Character,
+  display name "Press"
+- **Model:** GPT Image 2, 16:9, Medium, 2K
+- **References attached:** `@project_absence_loc_hall_big_d`, 1/1, bound
+  (lime/green mention chip confirmed via `data-beautiful-mention`)
+- **Cost:** 2.5 credits (paid balance 1,668 → 1,663 across this plate + the
+  croc bag, both 2.5 credits, no unaccounted delta this time)
+- **Downloaded to:** Google Drive `Sorry, Sir/Element/absence-char-press.png`
+
+**Prompt (accepted, first attempt):**
+```
+@project_absence_loc_hall_big_d -- reference for light, floor and material only; do not reuse its composition or contents.
+
+A four-panel character reference sheet, 2x2 grid on one plain warm studio backdrop echoing the referenced hall's warm light and colour temperature: top-left FRONT full body, top-right FACE close-up on both journalists together, bottom-left SIDE profile, bottom-right REAR view. The same two people, same outfits, same pose group, in all four panels -- a continuity reference sheet, not a single scene.
+
+TWO PRESS JOURNALISTS, standing together, professional and alert. Between them, shared, is ONE SHOULDER-MOUNTED RETROFUTURIST FILM CAMERA -- a boxy analogue news camera built in the same retrofuturist material language as the museum: moulded plastic and chromium housing, a large glass lens, a coiled cable, physical dials and knobs -- nothing digital, no screen, no LED, no modern tech of any kind, no visible brand markings or logos anywhere on it. One journalist has the camera resting on their shoulder, operating it; the other stands close beside, notebook or microphone in hand, attentive.
+
+Both journalists are dressed in a mid-century cut appropriate to the film's invented pre-1970s design language -- structured jackets, ties or scarves, nothing that reads as modern or post-1970. Each wears exactly ONE saturated colour of their own, and NEVER black -- their two colours are different from each other. No jewellery, no fur, no logos or brand marks anywhere on their clothing. No gold V mark anywhere on either of them -- press are visitors, not staff.
+
+Both are real invented human faces with genuine age and skin texture and variation -- no doll faces, no beauty-filter smoothing, no CGI sheen, ordinary adult press-corps ages, not glamorous.
+
+Warm bright light. Warm shadow, cold white grade: amber-orange highlights and mids, whites pushed slightly cool, shadows never pure black but deep red-brown, halation around every lamp, saturation high in flat planes but never touching skin. Photographed, not rendered: fine film grain, halation, slight colour fringing. No HDR, no CGI sheen, no doll faces, no beauty filter. Invented anonymous faces resembling no real, famous or public person. Our own invented design -- no logos, no recognisable designer pieces, nothing post-1970 in the cut. 2K, filling the frame, no black bars.
+```
+
+**What the image actually shows:** Clean hit on first attempt. Man in a
+saturated blue mid-century suit, woman in a saturated rust/orange suit-dress
+-- one colour each, neither black, clearly distinct from each other. The
+shared camera is a chunky chrome/metal analogue box with a large glass lens,
+physical knobs and dials, a coiled cable -- no screen, no LED, no visible
+branding anywhere, confirmed via close zoom on panel 2. Real aged, textured
+faces (the man has a visible moustache and genuine skin texture; the woman's
+face shows real bone structure and age) -- no doll-face smoothing. All four
+required panels present: front, face close-up, side profile, rear view, same
+outfits and pose group throughout. No gold V anywhere. No hard defects.
