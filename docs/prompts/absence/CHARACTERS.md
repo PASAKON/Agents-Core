@@ -99,3 +99,89 @@ right "slight frown, unconvinced" expression. This is a spec miss on the
 action, not a hard failure (no error, not blank, no content refusal), so per
 the task's no-taste-regeneration rule this was kept rather than regenerated —
 flagging here for the CEO's call on whether it needs a redo.
+
+---
+
+## 3 · `project_absence_char_woman` — the woman who genuinely feels something
+
+- **Element:** `project_absence_char_woman`, category Character, name "woman"
+- **Model:** GPT Image 2, 21:9, Medium, 1K
+- **References:** none (first appearance)
+- **Cost:** 2 credits (1,817 → 1,815)
+- **Signature (spec-change compliant):** glasses with a specific frame — large
+  round tortoiseshell frames, always worn the same way.
+
+**Prompt:**
+```
+A wide horizontal character reference sheet, aspect ratio roughly 2.4:1, four panels arranged side by side on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props, no text. The same woman in her forties or fifties, same face, same clothes, in every panel: she wears a deeply saturated deep-teal dress, one large flat plane of colour, retrofuturist mid-century cut, no pattern-on-pattern, no modern clothing. Her one unmistakable signature, worn the exact same way in every panel: large round tortoiseshell-frame glasses with a distinctive thick dark frame, an unusual and specific shape unlike ordinary glasses, always worn the same way, giving her head a very recognisable outline even in silhouette or from behind (visible as a thin dark temple arm line at the side of her head). She has real personal style. Real human skin with natural texture and variation, a real face with real bone structure, no pale waxy stylised skin, no doll face, no airbrushed beauty-filter look, no CGI sheen.
+
+Panel 1 (far left): full body, front view, standing very still, one hand raised to her mouth, fingers lightly touching her lips, completely absorbed in something off-frame, quiet and still -- she is the one who genuinely feels something.
+Panel 2: large close-up portrait, head and shoulders only, glasses clearly visible, an expression on the edge of tears but dignified and composed -- no sobbing, no mugging, just quiet, real emotion held with control.
+Panel 3: full body, side profile, standing still, same hand-at-mouth gesture, same absorbed stillness.
+Panel 4: full body, viewed from directly behind, the distinctive glasses' temple arm visible at the side of her head, same still standing posture -- she must be identifiable from this back view by her glasses' silhouette and posture.
+
+Photographed like a real fashion/character turnaround reference sheet: crisp, clean, accurate colour rendition, flat even studio light throughout, no vignette, no film grain, no dramatic cinema lighting.
+```
+
+**What the image actually shows:** Excellent result. Real, expressive middle-
+aged face with natural skin texture and true personal style. Deep-teal dress
+renders as a single clean saturated plane per the wardrobe language. **Panel
+1's characteristic action reads correctly and strongly**: standing very still,
+one hand at her mouth, genuinely absorbed — this is the clearest "acting"
+result of the four so far. Panel 2's portrait nails the brief precisely: on
+the edge of tears but dignified, no sobbing, no mugging, held with real
+control — a standout. The large round tortoiseshell glasses are bold and
+distinctive in panels 1-3. **Honest flaw, and an important one for the CEO's
+call:** in panel 4 (directly from behind), her hair is worn up and covers her
+ears entirely — the glasses' temple arms are **not visible at all** from a
+true back view. This is a structural limitation of "glasses" as a signature
+type: unlike a hat, cane, or oversized coat, glasses sit on the front of the
+face and by definition cannot be seen in a pure from-behind shot unless the
+head is turned or hair explicitly reveals the temple. From this back panel
+she is only identifiable by dress colour, hair colour/style and build — not
+by the chosen signature itself. Not a hard failure (nothing wrong with the
+image itself), but worth flagging: the CEO's own signature-type list includes
+glasses, yet it may be the one type that cannot satisfy the "recognisable
+...from behind, with no face visible" requirement on its own.
+
+---
+
+## 4 · `project_absence_char_student` — the art student
+
+- **Element:** `project_absence_char_student`, category Character, name "student"
+- **Model:** GPT Image 2, 21:9, Medium, 1K
+- **References:** none (first appearance)
+- **Cost:** 2 credits (1,815 → 1,813)
+- **Signature (spec-change compliant):** an unmistakable proportion — an
+  oversized, borrowed-looking coat with long sleeves meant to swallow her
+  hands, giving her a swamped, boxy silhouette nobody else in the film has.
+
+**Prompt:**
+```
+A wide horizontal character reference sheet, aspect ratio roughly 2.4:1, four panels arranged side by side on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props, no text. The same young woman, about twenty years old, same face, same clothes, in every panel: an art student at a gallery opening above her price bracket, dressed slightly wrong for it. She wears a deeply saturated cobalt-blue coat, one large flat plane of colour, retrofuturist mid-century cut, no pattern-on-pattern -- the coat itself is right, but it is a hand-me-down or borrowed piece, noticeably too large for her. Her one unmistakable signature, present in every panel: an unmistakable PROPORTION mismatch -- the coat's sleeves are cut long and full, swallowing her hands completely so only her fingertips peek out past the cuffs, giving her a distinctive oversized, swamped silhouette instantly different from anyone else in the film. Cheaper, mismatched layers are visible at the collar and hem, poking out from under the coat, giving away that she doesn't quite belong in this room. Real human skin with natural texture, a real young face with real bone structure, no pale waxy stylised skin, no doll face, no airbrushed beauty-filter look, no CGI sheen.
+
+Panel 1 (far left): full body, front view, caught mid-interjection, one arm extended with the oversized sleeve drooping, index finger jabbing downward and out from within the long cuff to underline a point, chin forward, earnest and urgent -- a point nobody in the room is listening to.
+Panel 2: large close-up portrait, head and shoulders only, an earnest, slightly defiant expression, young and sincere, unwilling to back down.
+Panel 3: full body, side profile, continuing the same downward jabbing-finger gesture, oversized sleeve visible drooping past her wrist.
+Panel 4: full body, viewed from directly behind, the oversized coat's swamped silhouette and long drooping sleeves clearly readable from behind -- she must be identifiable from this back view by the coat's exaggerated oversized proportion alone.
+
+Photographed like a real fashion/character turnaround reference sheet: crisp, clean, accurate colour rendition, flat even studio light throughout, no vignette, no film grain, no dramatic cinema lighting.
+```
+
+**What the image actually shows:** Good result. Young, real face with a
+sincere, slightly defiant expression in the portrait — matches the brief.
+Mismatched cheaper layers (a plaid shirt collar, a grey pleated skirt hem,
+patterned socks) are clearly visible under and past the cobalt coat, exactly
+selling "dressed slightly wrong for the room." **The proportion signature
+partially reads**: the coat itself is visibly oversized, boxy and roomy —
+clearly bigger than a normal fit — and this silhouette carries through
+strongly to panel 4 (directly behind), where the wide, cocoon-like shape is
+the most identifiable thing about her from that angle. **One honest miss**:
+the specific detail I asked for — sleeves so long they swallow her hands,
+fingertips barely peeking out — did not render in panel 1; her arm is
+extended in the pointing gesture and her whole hand is visible, cuff pulled
+back naturally by the motion, not drooping over it. **Panel 1's characteristic
+action (mid-interjection, one finger jabbing downward) reads only
+partially** — her arm is extended and her hand is pointing, but the gesture
+reads more as reaching/pointing forward than a sharp downward jab. Not a hard
+failure; kept on first generation, flagged for the CEO.
