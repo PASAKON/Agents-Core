@@ -48,7 +48,7 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_absence_char_visitor_b — A MAN BROWSING. An ordinary man of about forty-five with dark brown hair swept to one side and a plain, slightly tired face. He wears a **burnt-orange leather jacket with a flat pointed collar, zipped**, over a cream turtleneck and cream trousers, with brown shoes. **No gold V, no brooch, no jewellery beyond a plain dark wristwatch.** **HIS ACTION: walks slowly along the wall of pictures, head turned toward them, at a browsing pace.** HE IS ONE PERSON.
 
-@project_absence_char_visitor_c — SOMEONE CROSSING THE ROOM. **A BLACK MAN** of about fifty-five, solidly built, with short greying hair and a calm, unremarkable, slightly weary face. He wears a **plum-aubergine leather jacket with a plain mandarin collar, zipped**, over grey trousers and brown shoes. **No gold V, no brooch, no jewellery.** **HIS ACTION: walks briskly straight ahead, mid-stride, and looks at nothing at all.** HE IS ONE PERSON.
+THE MAN CROSSING THE ROOM (no reference image — build him entirely from this description). **A BLACK MAN** of about fifty-five, solidly built, with short greying hair and a calm, unremarkable, slightly weary face. He wears a **plum-aubergine leather jacket with a plain mandarin collar, zipped**, over grey trousers and brown shoes. **No gold V, no brooch, no jewellery.** **HIS ACTION: walks briskly straight ahead, mid-stride, and looks at nothing at all.** HE IS ONE PERSON.
 
 --- THE MASS THAT ARRIVES LATER. Background only. These groups never act individually. ---
 
@@ -136,7 +136,7 @@ SHOT 4 — 2 seconds
 
 **@project_absence_char_visitor_a stands squarely in front of one of them, hands clasped behind his back, genuinely studying it.** He does not move.
 
-**@project_absence_char_visitor_c walks through frame behind him, briskly, looking straight ahead at nothing**, heading down the hall toward the group.
+**THE MAN CROSSING THE ROOM walks through frame behind him, briskly, looking straight ahead at nothing**, heading down the hall toward the group.
 
 === HARD CUT ===
 
