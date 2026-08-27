@@ -75,8 +75,9 @@ deliberately unremarkable.
 
 ### 2.1 · `project_absence_char_critic`
 
-- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_critic`
-- **Cost:** _(pending)_
+- **Asset id:** `dd1f6c17-225b-4ba1-b770-f8661fdf5b25` · **Element:** re-pointed `project_absence_char_critic` ("Element saved" confirmed, no confirmation dialog appeared — low usage count)
+- **Cost:** 3 credits (attempt 1/1)
+- **Downloaded:** `/Users/gob/Desktop/absence-char-critic.png`
 
 **Prompt:**
 ```
@@ -93,7 +94,7 @@ ACTION (panels 1 and 3): mid-sentence, one hand raised open toward the wall he's
 Panel 1: full body, front view, in the action above. Panel 2: large close-up portrait, same face, same collar. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same coat, same collar shape, same colour, same build. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Strong pass, attempt 1/1. Floor-length ink-black coat with the dramatic exaggerated standing collar framing his face, moulded/seamless-looking material, gloves visible in panels 1/3. Real aged human face — genuine skin texture, lines, no doll/CGI sheen. Panel 1 and 3 both show the hand-raised mid-sentence gesture correctly. Panel 4 (from behind) shows the same coat and collar shape consistently. Plain seamless light-grey studio background, no environment, no text, all four panels legible at ~2.4:1. No defects found; kept as generated.
 
 ---
 
@@ -253,4 +254,4 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap: 30 credits. Running total: 3 / 30 (JOB 1 hall).
+Cap: 30 credits. Running total: 6 / 30 (JOB 1 hall 3 + critic 3).
