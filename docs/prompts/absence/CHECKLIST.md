@@ -29,6 +29,7 @@ Read at the start of every session, and before every report to the CEO.
 | 13 | **Valder Element** filed from the existing 18 Aug asset, 0 credits | `char_valder` |
 | 14 | **Valder's guards** — six, identical uniform, gold V on chest and cap. CTO-approved 04:00, sent to CEO | `char_guard_valder` |
 | 10x | **Parrot woman** — cockatoo crest, wing-shoulders, feather-cut panelling, single cobalt, no beak/wings/feathers, not comic. CTO-approved 03:32, sent to CEO | `char_woman_b` |
+| 35 | **SCENE 2 — THE ACCIDENT fired** — Dupe dusting, painting slips, crack in the wall, painting leaned on cart facing out. Seedance 2.5, 20s/720p/16:9/High/Sound On, Unlimited (struck `140`→`0`). Refs: `loc_hall_big_d` + `char_cleaner_c` + `prop_cart`, 3/3 bound clean. Not yet reviewed — still rendering | asset `56ace68c-ffd0-47ec-a7f6-d24bf523496a` · task-a13469e9 |
 
 ---
 
