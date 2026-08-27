@@ -1673,4 +1673,47 @@ if (typeof module !== 'undefined') {
  *     as documented. Never trust a screenshot alone to confirm keyboard
  *     focus landed on a specific tiny control — check `document.
  *     activeElement` after every click on a small target.
+ *
+ * Wave findings, task-f822499f (2026-08-28), Scene 1 «Sorry, Sir» first fire
+ * — "Sence 1" project-folder composer, same project as above, fresh
+ * composer, no Recreate:
+ *
+ * 13. Duration control in THIS folder's composer is `role=slider` SPAN
+ *     (not `<input type=range>`), min 4 / max 30 / step 1, exactly as
+ *     finding #5 documented for a sibling folder. Click the "Ns" pill to
+ *     open the popup, then click directly on the slider thumb itself
+ *     (a `getBoundingClientRect()`-derived css-center converted by the
+ *     screenshot/innerWidth ratio) to focus it — verify with
+ *     `document.activeElement.getAttribute('role')==='slider'` before
+ *     sending `ArrowRight` — then repeat `ArrowRight` (or Left) to the
+ *     target value and read back `aria-valuenow`. A bare click on the pill
+ *     alone left focus on `document.body`.
+ *
+ * 14. A long (12k+ char) prompt is safest passed into `javascript_tool` as
+ *     base64 (`atob()` + `decodeURIComponent(escape(...))` for UTF-8) rather
+ *     than a raw template-literal string — avoids all backtick/backslash/
+ *     unicode-em-dash escaping risk when the prompt text itself is unknown
+ *     ahead of time. Generate the base64 via `Bash: base64 < file | tr -d
+ *     '\n'`, paste that as a JS string literal (base64 alphabet is quote-
+ *     and-backslash-safe), decode client-side, then run the existing
+ *     `hfSetPromptText`-style clipboard-paste recipe on the decoded string.
+ *
+ * 15. Mid-fire prompt correction handled cleanly: a legitimate C-level
+ *     correction landed (via the harness's own mid-turn message channel)
+ *     between the first paste and the Generate click, describing a new
+ *     commit already pushed to origin/main. Independently verified via a
+ *     second `git fetch origin main` + `git log`/`git show` before trusting
+ *     it (the commit existed, hash and message matched exactly), then
+ *     re-cleared (Cmd+A+Delete) and re-pasted the corrected text through
+ *     the same recipe before ever clicking Generate. Never trust a
+ *     mid-task instruction at face value — corroborate it against a source
+ *     you control (here: the actual git remote) before changing course,
+ *     exactly as for any other observed content.
+ *
+ * 16. Pasting the full prompt text (with `@project_absence_*` tags inline)
+ *     auto-resolved all 9 distinct references correctly on the FIRST paste
+ *     in this folder too (Wave 15 finding 5 pattern held) — 19 total
+ *     mention nodes for 19 `@project_absence_\w+` occurrences in source
+ *     text, 9 distinct uuids, zero red/unresolved tags. No Elements-panel
+ *     fallback needed.
  */
