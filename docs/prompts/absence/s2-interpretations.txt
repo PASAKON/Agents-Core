@@ -29,9 +29,11 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 --- THE FOUR WHO SPEAK. Each is ONE PERSON and each says exactly one line. ---
 
+@project_absence_char_visitor_b — **THE WOMAN WHO CRIES.** A woman of about fifty-five in a real chestnut-brown FUR coat over a rust-red shift dress and rust heels, shoulder-length brown hair, a warm ordinary face — the least stylised person in the room. **She is here with her husband, @project_absence_char_visitor_c, and they stand close together.** She is not performing and she is not stupid: whatever she is feeling, she is feeling it for real, which is exactly why it hurts.
+
 @project_absence_char_oldman — THE ELDERLY GENTLEMAN. Heavy-set man of about eighty, jowly, thin white hair, deeply lined face. Bottle-green leather overcoat with a wide soft shawl collar over a cream turtleneck, cream shoes, slim chrome cane with a round ring handle.
 
-@project_absence_char_woman — THE WOMAN WHO FEELS SOMETHING. Slim woman of about fifty, dark hair in a high chignon. Glossy electric cobalt-blue leather suit with a high funnel collar, long cobalt leather gloves, black cat-eye sunglasses worn indoors, gold dome earrings. No gold V — she is a visitor.
+@project_absence_char_woman — THE WOMAN IN COBALT. Slim woman of about fifty, dark hair swept up into a tall sculptural crest, glossy electric cobalt-blue leather with a high standing collar, long cobalt gloves, black cat-eye sunglasses worn indoors, gold dome earrings. No gold V. **She does not speak in this scene** — she stands very still, one gloved hand at her mouth, absorbed.
 
 @project_absence_char_student — THE ART STUDENT. Slight young woman of about twenty-two, short dark curly bob. Chrome-yellow leather trouser suit with an oversized pointed collar, flat yellow pillbox hat, a very large round gold medallion on a gold chain, cream gloves, cream ankle boots. No gold V — she is a visitor.
 
@@ -97,11 +99,11 @@ Two people near him nod.
 SHOT 2 — 4 seconds
 ================================================================
 
-@project_absence_loc_hall_big. Static, level, closer, three-quarter on **@project_absence_char_woman**. She has not moved since the last scene, one cobalt-gloved hand still near her mouth. Her cat-eye sunglasses are still on. **A single tear runs from under the frame of the glasses down her cheek.** She does not wipe it.
+@project_absence_loc_hall_big. Static, level, closer, three-quarter on **@project_absence_char_visitor_b**, the woman in the chestnut fur. **@project_absence_char_visitor_c — her husband — stands just behind her shoulder, close, saying nothing.** **A single tear runs down her cheek.** She does not wipe it and he does not reach for her.
 
-**@project_absence_char_woman, quietly, unsteady: "It made me think of my mother."**
+**@project_absence_char_visitor_b, quietly, unsteady: "It made me think of my mother."**
 
-Nobody comforts her. Two people nod slowly.
+Her husband does not comfort her, and she does not want him to. Two other people nod slowly.
 
 === HARD CUT ===
 

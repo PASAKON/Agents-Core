@@ -31,7 +31,7 @@ These are the real characters of the film and they must be recognisably themselv
 @project_absence_char_woman — a slim woman of about fifty in a **glossy cobalt-blue leather suit** and **black cat-eye sunglasses worn indoors**. Standing at a glass vitrine, looking down into it.
 @project_absence_char_student_b — a young woman of about twenty-two in a **blush-pink leather suit with a violet collar and a violet pillbox hat**, a large gold medallion. Crouched slightly, looking closely at something low down.
 @project_absence_char_visitor_a — an ordinary balding man of about sixty-five in an **oxblood leather suit**, hands clasped behind his back in front of a painting.
-@project_absence_char_visitor_b — an ordinary man of about forty-five in a **burnt-orange leather jacket**, walking slowly along the pictures.
+@project_absence_char_visitor_b — **a woman of about fifty-five in a real chestnut-brown FUR coat** over a rust-red shift dress and rust heels, shoulder-length brown hair, a warm ordinary face. Walking slowly along the pictures. **She is here with her husband** — they arrived together and stay near each other.
 
 **NOBODY WEARS A GOLD V EXCEPT DUPE AND HIS CART.** No visitor has a V pin, brooch, or badge anywhere.
 
