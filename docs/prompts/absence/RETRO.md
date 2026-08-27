@@ -113,6 +113,15 @@ strong signature differing in KIND: critic = coat cut, oldman = carried
 object, woman = glasses, student = hat. The three visitors get NO signature —
 deliberately unremarkable.
 
+**CTO 10:10 guard, applied to all seven from here on:** one deeply saturated
+colour per person, NEVER black (black reads outside this world's colour-class
+system and — combined with a severe cut — reads villainous). Nobody is styled
+to look threatening; severe/eccentric/over-dressed/ordinary are all fine,
+sinister is not. Final palette, kept distinct across all seven: critic =
+petrol teal, oldman = bottle green, woman = cobalt blue, student = marigold
+orange, visitor_a = burgundy red, visitor_b = aubergine plum, visitor_c =
+ochre/mustard brown.
+
 ### 2.1 · `project_absence_char_critic`
 
 - **Asset id:** `dd1f6c17-225b-4ba1-b770-f8661fdf5b25` · **Element:** re-pointed `project_absence_char_critic` ("Element saved" confirmed, no confirmation dialog appeared — low usage count)
@@ -134,7 +143,34 @@ ACTION (panels 1 and 3): mid-sentence, one hand raised open toward the wall he's
 Panel 1: full body, front view, in the action above. Panel 2: large close-up portrait, same face, same collar. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same coat, same collar shape, same colour, same build. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** Strong pass, attempt 1/1. Floor-length ink-black coat with the dramatic exaggerated standing collar framing his face, moulded/seamless-looking material, gloves visible in panels 1/3. Real aged human face — genuine skin texture, lines, no doll/CGI sheen. Panel 1 and 3 both show the hand-raised mid-sentence gesture correctly. Panel 4 (from behind) shows the same coat and collar shape consistently. Plain seamless light-grey studio background, no environment, no text, all four panels legible at ~2.4:1. No defects found; kept as generated.
+**What the image actually shows (v1):** Strong craft, but CTO-flagged story defect. Floor-length ink-black coat with the dramatic exaggerated standing collar framing his face, moulded/seamless-looking material, gloves visible in panels 1/3. Real aged human face — genuine skin texture, lines, no doll/CGI sheen. Panel 1 and 3 both show the hand-raised mid-sentence gesture correctly. Panel 4 (from behind) shows the same coat and collar shape consistently. Plain seamless light-grey studio background, no environment, no text, all four panels legible at ~2.4:1. **Rejected per CTO 10:10:** the floor-length black leather coat reads as villainous (Sith lord / priest / fascist), breaking the film's "nobody is a villain" rule, and black is not a saturated colour in this world's colour system.
+
+---
+
+### 2.1v2 · `project_absence_char_critic` — fix (CTO 10:10: petrol teal, mid-calf, matte, jewellery)
+
+- **Asset id:** `318e142d-4d70-4609-8eb7-b7fe0fd1a23a` · **Element:** re-pointed `project_absence_char_critic` again (same Element, "Element saved" confirmed). This is a CTO spec-correction, not a taste re-roll — does not count against the never-regenerate rule per the CTO's own note.
+- **Cost:** 3 credits (attempt 1/1 for this fix)
+- **Downloaded:** `/Users/gob/Desktop/absence-char-critic.png` (overwrote v1)
+
+**Prompt (v2, changes from v1: coat brought to knee/mid-calf length, matte finish not leather sheen, colour changed ink-black → deep petrol teal, jewellery/gold V added, explicit non-threatening language added):**
+```
+A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in a single wide horizontal strip, aspect ratio approximately 2.4:1, all four panels on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props beyond what the character carries, no text anywhere.
+
+The person: an art critic, 50s, tall, thin, upright posture -- speaks with total authority, the loudest and most commanding presence in the room. He is not a villain and must never read as sinister or threatening: he is a man very sure of his own taste, not a man who could hurt anyone. Genuinely human: real skin with real texture and pore-level variation, real bone structure, real signs of middle age -- no doll face, no beauty-filter smoothing, no CGI sheen.
+
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a coat reaching to about knee or mid-calf length (NOT floor-length) with straight structured shoulders and an exaggerated stiff standing collar that frames his face -- THIS dramatic collar-and-coat cut is his one unmistakable signature, unlike anyone else in the room. The coat is cut from a moulded, seamless material with a MATTE finish (never glossy, never leather-sheen, never patent) -- think matte-lacquered or matte-coated fabric -- in one deeply saturated flat colour, NEVER black: deep petrol teal. Gloves. Round-toe shoes. No pattern, no print, no logo.
+
+JEWELLERY: real understated wealth -- a good ring or two, something subtle at the cuff, plus a small gold brooch or pin shaped like the letter V, worn correctly and centred.
+
+BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary. Also banned: floor-length coats, black clothing, leather/patent gloss sheen, anything that reads as villainous, militaristic or sinister.
+
+ACTION (panels 1 and 3): mid-sentence, one hand raised open toward the wall he's addressing -- the gesture of someone making an emphatic point, not an aggressive gesture.
+
+Panel 1: full body, front view, in the action above. Panel 2: large close-up portrait, same face, same collar, jewellery visible. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same coat length, same collar shape, same colour, same build. Same person, same face, same clothes in every panel.
+```
+
+**What the image actually shows:** Both defects fixed. Deep petrol teal coat (matte, not glossy), reaching to roughly mid-calf/near-ankle — clearly shorter than the floor-length v1 and no longer villain-coded. Gold V brooch visible clearly at the collar, a ring visible on the gloved hand. Standing collar preserved as the signature (still frames the face dramatically). Real aged human face unchanged, same build/tailoring/gloves/action as v1. Reads as severe and expensive rather than sinister. Zoomed and verified before filing.
 
 ---
 
@@ -294,4 +330,4 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap: 30 credits. Running total: 9 / 30 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3).
+Cap: 30 credits. Running total: 12 / 30 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3).
