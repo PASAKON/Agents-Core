@@ -176,8 +176,9 @@ Panel 1: full body, front view, in the action above. Panel 2: large close-up por
 
 ### 2.2 · `project_absence_char_oldman`
 
-- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_oldman`
-- **Cost:** _(pending)_
+- **Asset id:** `2da070af-ef82-4eca-ac22-ac1caed80e8f` · **Element:** re-pointed `project_absence_char_oldman` ("Element saved" confirmed)
+- **Cost:** 3 credits (attempt 1/1)
+- **Downloaded:** `/Users/gob/Desktop/absence-char-oldman.png`
 
 **Prompt:**
 ```
@@ -194,7 +195,7 @@ ACTION (panels 1 and 3): stepping back a pace, head tilted, visibly unconvinced 
 Panel 1: full body, front view, in the action above, cane in hand. Panel 2: large close-up portrait, same face, same age, same lines. Panel 3: full body, side profile, same action, cane visible. Panel 4: full body, seen entirely from behind -- same coat, same colour, same stoop, cane still in hand. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Strong pass, attempt 1/1. Heavy bottle-green coat with wide oversized lapel, softened/lived-in surface, no black anywhere. Real aged human face — genuine texture, deep lines, gentle/tired/bewildered expression, not remotely threatening. Chromium-topped cane visible and consistent across panels 1, 3 and 4. Stooped posture and slow-moving body language read clearly. Plain grey studio background, no environment, no text. No defects found; kept as generated.
 
 ---
 
@@ -330,4 +331,4 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap: 30 credits. Running total: 12 / 30 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3).
+Cap: 30 credits. Running total: 15 / 30 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3).
