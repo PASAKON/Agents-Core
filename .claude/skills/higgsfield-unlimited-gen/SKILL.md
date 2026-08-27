@@ -193,10 +193,24 @@ baseline is a reference point, not a budget.
    Unlimited Mode toggle's apparent on/off state is **not sufficient on its
    own** — it silently resets to OFF after any full-page reload, which is
    the exact gap that caused the incident above.
-4. **One generation at a time.** Wait for full completion (card shows
-   Recreate+Rerun options and full resolution/duration/aspect-ratio
-   metadata, no "Processing"/"Generating" state) before starting the next.
-   No parallel generations, ever.
+4. **One UNLIMITED VIDEO generation at a time.** Wait for full completion
+   (card shows Recreate+Rerun options and full resolution/duration/aspect-ratio
+   metadata, no "Processing"/"Generating" state) before starting the next
+   video. No parallel video generations, ever.
+
+   **But a paid GPT Image 2 generation does NOT contend for that slot, and
+   holding image work behind a rendering video wastes hours.** Measured
+   2026-08-28 on the «Sorry, Sir» wave: Scene 2 fired as an Unlimited
+   Seedance video at 05:50 and was still rendering at 06:30, and during that
+   window **two separate operators each fired and completed a paid image
+   plate** — `char_grandmother` (asset `5dd23a87`) and `char_gentleman`.
+   Neither saw a concurrency toast.
+
+   The slot is scoped to **unlimited** generations. Paid ones queue
+   independently. The CTO on that wave stood two image operators down "until
+   the video clears" and burned roughly forty minutes of two workers for
+   nothing — do not repeat it. **Video work serialises; image work runs
+   alongside it.**
 5. **Concurrency toast with no visible in-flight job**: if Higgsfield shows
    a "1 unlimited generation at a time" toast and nothing in your own
    History is actually generating, don't force through it or guess a
