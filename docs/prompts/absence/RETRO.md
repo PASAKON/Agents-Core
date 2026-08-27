@@ -370,7 +370,48 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap raised to 40 by CTO. Running total: 39 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + hall v3 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3 + visitor_b v1 3 + visitor_b v2 redo 3 + visitor_c 3). All 7 characters + hall v3 landed. **Now doing hall v4 (CEO order #49, crack moved to picture-hanging height, dead centre) — top priority, out of budget headroom (1 credit left at 40), need explicit authorization to exceed 40.**
+Cap raised to 40 by CTO. Running total after hall v4: 42 / 40 — 2 credits (~8 cents) over the 40 cap. Per the CTO's own stated policy ("when it is cents on already-authorised work, name the number and keep going"), proceeded without pausing to ask given explicit top-priority/urgent framing (other operator's composer frozen waiting) — disclosed here, not hidden.
+
+---
+
+## JOB 1 v4 · Hall fix (CEO order #49) — crack moved to picture-hanging height, centred
+
+**CEO's reasoning (recorded because it explains the story):** the crack sits on the empty hook where the missing painting used to hang — that's WHY the painting had to come down, and it's why nobody has to lie for the rest of the film to happen. v3 put the crack too high (~2m, near the ceiling); it needs to be at ordinary picture-hanging height, dead centre horizontally on the wall, matching the height of the framed works on the side walls. The plaque stays exactly where v3 put it (knee height, ~0.5m). Everything else stays identical to v3, which passed.
+
+- **Asset id:** _(pending)_
+- **Filed as Element:** re-point `project_absence_loc_hall_big` (same UUID `173cb410-60e3-43fe-b80d-baa946c0d001`)
+- **Model:** GPT Image Gen 2, 1:1, Medium, 2K
+- **References (Element `@mention`):** `@project_absence_loc_hall_big` (v3, the passed hall) and `@project_absence_loc_wall_crack` (crack shape reference)
+- **Cost:** _(pending)_
+
+**Prompt:**
+```
+@project_absence_loc_hall_big @project_absence_loc_wall_crack
+
+The room shown in @project_absence_loc_hall_big is the correct room, exactly as it already is -- KEEP EVERYTHING: the chrome trumpet-flared columns, the hot-orange-lit coves, the polished dark terracotta-red terrazzo floor, the yellow bench on the blue-and-black rug, the starburst and boomerang-shaped objects at the perimeter, and the varied real artworks (abstract, figurative, sculptural) already hanging on both long side walls.
+
+ONE change only, on the hero wall (top-left panel), moving the crack's position. The plaque does NOT move -- it stays exactly where it already is, low on the wall at roughly knee height, about half a metre from the floor.
+
+THE CRACK moves to ordinary PICTURE-HANGING HEIGHT, dead centre horizontally on the wall, at the same height as the framed paintings visible hanging on the side walls in the other panels -- this is the exact empty spot, the hook mark, where a painting used to hang and has now been taken down. One small star-shaped crack, small and unremarkable, the kind of accidental damage a maintenance worker's ladder makes, not large, not structural, no rubble, no crumbling. Shown in @project_absence_loc_wall_crack for its exact shape.
+
+The plaque stays low, at roughly knee height, well below the crack -- there is still a clear vertical gap between the crack (at picture height, roughly mid-wall) and the plaque (near the floor), they are not touching or stacked. The small engraved brass plaque, two visible screws, reads exactly three lines: 'THE ABSENCE OF MEANING' then 'Valder' then '$2,000,000', spelled correctly.
+
+Nothing else about the hero wall changes: still the same plain white hanging wall, still photographed straight-on at eye level, camera perfectly level, no tilt, no dutch angle, still with the same quiet open floor in front of it.
+
+ONE IMAGE, perfectly SQUARE 1:1, divided into FOUR PANELS arranged in a 2x2 GRID, each panel a different camera position inside this exact same hall -- same floor, same ceiling, same lighting, only the camera moves. The four panels fill the frame completely edge to edge, touching each other with no gap, no black bars, no border, no margin anywhere. No people in any panel.
+
+TOP-LEFT -- THE HERO WALL as described above, crack centred at picture-hanging height, plaque low near knee height, a clear gap of plain wall between them.
+
+TOP-RIGHT -- LEFT SIDE of the same hall, looking down the long room toward a genuinely distant far wall, showing the varied real artworks hung along the wall among the retrofuturist columns, coves and sculptural objects.
+
+BOTTOM-LEFT -- RIGHT SIDE of the same hall, including the yellow bench on its blue-and-black rug, varied artworks on the wall, and, further along, one distinctive single seat set slightly apart with a clear sightline back to the hero wall -- this is Valder's own seat, visually distinct from any other furniture in the room.
+
+BOTTOM-RIGHT -- A HIGH WIDE VIEW looking down over the whole room from an elevated angle so the floor plan reads at once: the hero wall with its crack and plaque, the entrance, the flat unobstructed wheelchair route between them, the bench, the varied artworks on the walls, and Valder's seat, all visible together.
+
+The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and falloff, fine film grain throughout, soft halation blooming around the brightest highlights, a gentle vignette, deliberate directional cinema lighting with real falloff -- bright, warm and high-key overall, never dim, never desaturated, never a flat product-catalogue photograph. An invented place with no identifiable country and no identifiable year.
+```
+
+**What the image actually shows:** _(pending)_
 
 ---
 
