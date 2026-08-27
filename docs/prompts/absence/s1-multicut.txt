@@ -1,40 +1,67 @@
 SEEDANCE 2.5 — 20 SECONDS — 720p — 16:9
 
+!!! DRAFT — DO NOT FIRE YET !!!
+The seven character descriptions below were written from the SPEC THAT ORDERED
+the plates, not from the finished images. The CTO must open all seven plates,
+check what each person actually looks like and whether the written action really
+reads in the image, and revise this file — BEFORE any Generate click.
+Standing rule from the CEO: look at every image before writing the real prompt.
+Remove these five lines once that pass is done.
+
 THIS IS NOT ONE CONTINUOUS SHOT. It is SEVEN SEPARATE SHOTS joined by SIX HARD CUTS. Every cut is instant. There is NO dissolve, NO fade, NO wipe, NO whip pan, NO morph, NO camera move that carries across a cut. Each shot is its own framing and the change between them is abrupt.
 
-THERE IS NO DIALOGUE IN THIS SCENE. Nobody speaks. Not one word.
+THERE IS NO INTELLIGIBLE DIALOGUE IN THIS SCENE. Four people are visibly talking and arguing, but the camera is never close enough to hear one word. No subtitles.
 
 ================================================================
 WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 ================================================================
 
-@project_absence_loc_hall_big — THE GALLERY HALL. This is the only location in the scene and every shot happens inside it. A very long, tall hall. **Both side walls are plain flat WHITE** and carry framed paintings — real, competently made abstract modern works, properly framed, hung in a line along the walls. **The floor is polished dark terracotta-red terrazzo**, glossy enough that every lamp reflects in it. Down both sides runs a row of **columns that flare out at the top into curved ceiling coves, and each cove glows hot ORANGE from a concealed uplight** — a long receding rhythm of orange flares down the length of the hall. Between the columns, at the edges of the room, sit the strange objects: a tall **acid-green spiky sculpture**, a **yellow drum lamp** on a chrome frame, **wire-sphere lamps**, white cylinder lamps, **green lacquer plinths**, a **red plinth**, a brass starburst wall piece. **The middle of the floor is completely open and empty.** Near one end stands a **yellow upholstered bench on a blue, black and white patterned rug.**
+--- THE PLACE ---
 
-@project_absence_loc_wall_crack — THE HERO WALL at the far end of that hall. A large unbroken plane of plain flat WHITE, set between two of the rounded columns. **There is no painting on it.** At about head height there is **ONE SMALL CRACK** — a short irregular star-shaped break with a little plaster chipped at its centre, no bigger than a spread hand. Below it, mounted on the wall, a **polished brass plaque with two screws**, engraved THE ABSENCE OF MEANING / Valder / $2,000,000.
+@project_absence_loc_hall_big — THE GALLERY HALL. The only location in the scene. A very long, tall hall. **Both side walls are plain flat WHITE** and carry framed paintings — real, competently made abstract modern works, properly framed, hung in a line. **The floor is polished dark terracotta-red terrazzo**, glossy enough that every lamp reflects in it. Down both sides runs a row of **columns that flare out at the top into curved ceiling coves, each cove glowing hot ORANGE from a concealed uplight** — a long receding rhythm of orange flares. At the edges sit the strange objects: a tall **acid-green spiky sculpture**, a **yellow drum lamp** on a chrome frame, **wire-sphere lamps**, **green lacquer plinths**, a **red plinth**. **The middle of the floor is open and empty.** Near one end, a **yellow upholstered bench on a blue, black and white patterned rug.**
 
-@project_valder_char_crowd_a — EIGHT WELL-DRESSED VISITORS. Each in one deeply saturated colour — oxblood, cream, orange, blue, teal, yellow, mustard. Every one carries a fashion object: briefcase, hatbox, tube case, handbag, clutch. Three hats, two pairs of glasses, coloured gloves. All different ages and builds.
+@project_absence_loc_wall_crack — THE HERO WALL at the far end. A large unbroken plane of flat WHITE between two rounded columns. No painting on it. At head height, **ONE SMALL CRACK** no bigger than a spread hand. Below it a **brass plaque with two screws**.
 
-@project_valder_char_crowd_b — EIGHT MORE VISITORS of slightly lower rank. Saturated single-colour coats — purple, lilac, blue, mustard, red, teal, orange, chartreuse — but busy patterned shirts show at every cuff and collar and there are too many accessories. People copying the rich and getting it very slightly wrong.
+--- THE FOUR WHO ARGUE. Each is ONE PERSON. Each does exactly what is written here. ---
 
-@project_valder_char_villagers_rich — TWELVE PEOPLE OF THE HIGHEST RANK: six in long multi-panel colour-blocked coats with matching coloured gloves and shoes, and six attendants in plain black suits standing slightly behind them. Round sunglasses on three.
+@project_absence_char_critic — THE ART CRITIC. Middle-aged man who speaks with total authority. **HIS ACTION: one hand raised and open toward the wall, chin slightly lifted, mid-sentence.** He is the one explaining. HE IS ONE PERSON.
 
-@project_valder_char_tea_circle — FOUR WOMEN who move as a single unit, each in one deeply saturated colour — mustard, royal blue, red, deep teal — each dress cut with a large asymmetric cream shawl collar.
+@project_absence_char_oldman — THE ELDERLY GENTLEMAN. Well dressed, unhurried. **HIS ACTION: steps back one pace with his weight on his back foot, head tilted, taking it in from a distance, unconvinced.** HE IS ONE PERSON.
 
-@project_valder_char_press — THE PRESS PHOTOGRAPHER. Middle-aged heavy man, dark green wool overcoat, thick black-framed spectacles, a leather bandolier of flashbulbs across his chest, an enormous chrome press camera on a strap with a separate chrome flash reflector held high on a bracket.
+@project_absence_char_woman — THE WOMAN WHO FEELS SOMETHING. Forties or fifties, real personal style. **HER ACTION: stands completely still, one hand at her mouth, absorbed. She does not take her eyes off the wall.** SHE IS ONE PERSON.
+
+@project_absence_char_student — THE ART STUDENT. Twenty or so, dressed slightly wrong for this room. **HER ACTION: interjects, one finger jabbing downward to underline a point, and nobody turns to listen.** SHE IS ONE PERSON.
+
+--- THE THREE WHO LOOK AT THE REAL ART INSTEAD ---
+
+@project_absence_char_visitor_a — A QUIET MAN. **HIS ACTION: stands squarely and still in front of a framed painting, hands clasped behind his back, genuinely studying it.** HE IS ONE PERSON.
+
+@project_absence_char_visitor_b — A WOMAN BROWSING. **HER ACTION: walks slowly along the wall of pictures, head turned toward them, at a browsing pace.** SHE IS ONE PERSON.
+
+@project_absence_char_visitor_c — SOMEONE CROSSING THE ROOM. **THEIR ACTION: walks briskly straight ahead and looks at nothing at all.** THEY ARE ONE PERSON.
+
+--- THE MASS THAT ARRIVES LATER. Background only. These groups never act individually. ---
+
+@project_valder_char_crowd_a — eight well-dressed visitors, each in one deeply saturated colour, each carrying a fashion object.
+@project_valder_char_crowd_b — eight visitors of slightly lower rank, saturated coats with busy patterned shirts showing at every cuff.
+@project_valder_char_villagers_rich — twelve people of the highest rank in long multi-panel colour-blocked coats, with attendants in black behind them.
+@project_valder_char_tea_circle — four women who move as a single unit, each in one deeply saturated colour with a large cream shawl collar.
 
 ================================================================
 WHAT THIS SCENE IS DOING
 ================================================================
 
-This is the opening of the film and its whole job is ONE IDEA, delivered without a single word:
+This is the opening of the film. It shows **THE BIRTH OF A CROWD.**
 
-**THIS BUILDING IS FULL OF REAL ART, AND NOBODY IS LOOKING AT ANY OF IT.**
+It begins with **FOUR PEOPLE** in front of one white wall, **arguing about it.** Not a mob — four ordinary gallery visitors having a real disagreement, gesturing at the wall and turning to answer each other. They are completely serious.
 
-The camera travels down a hall lined with genuinely good paintings — properly made, competently composed, the kind of work that took someone years — and the crowd flows past every one of them without stopping. Not one person turns their head. **The paintings are not the joke. They are real and they are good, and that is exactly the point.**
+Over the scene, **MORE PEOPLE DRIFT IN.** One at a time, then in twos and threes. Nobody is summoned and nobody hurries. They arrive, join the back, and start looking at whatever the others are looking at. By the end the four have become a mass.
 
-Then the camera finds where everybody actually is: a mass of people packed tight at the far end of the hall, in front of one white wall.
+Underneath runs the second idea: **THE HALL IS FULL OF REAL ART AND ALMOST NOBODY IS LOOKING AT IT.** Three people are — properly, quietly, alone. Everyone else walks past those paintings without turning their heads, on their way to the white wall.
 
-**WE NEVER SEE WHAT THEY ARE LOOKING AT.** The scene ends on their backs. Withholding it is the entire structure of the opening.
+**WE NEVER SEE WHAT THEY ARE LOOKING AT.** The camera stays behind them, beside them, past them — never square on to the hero wall. The scene ends on their backs. Withholding it is the entire structure of the opening.
+
+**THERE IS NO PRESS PHOTOGRAPHER IN THIS SCENE.** Nobody is reporting on this yet. It is still just people arguing in a room.
 
 ================================================================
 STYLE — APPLIES TO EVERY SHOT
@@ -50,15 +77,19 @@ THE CAMERA IS ALWAYS LEVEL. No dutch angles, no tilting, ever.
 
 PHOTOGRAPHED, NOT RENDERED: fine film grain, halation around bright highlights, faint gate weave, softness and slight colour fringing at the edges of the lens. The grain must NOT desaturate the colour. NO HDR, NO digital glossiness, NO CGI sheen.
 
-PERFORMANCE IS FLAT AND CEREMONIAL: nobody smiles, nobody laughs, nobody grimaces, nobody weeps. Movements precise, slow and formal. Total sincerity delivered completely deadpan.
+PERFORMANCE IS DEADPAN AND COMPLETELY SINCERE. They are arguing seriously, never comically. Gestures are small and precise. Nobody smiles, nobody laughs, nobody mugs, nobody shouts.
 
-CROWDS ARE LOOSE AND SCATTERED, NEVER IN FORMATION. No rows, no lines, no ranks, nobody facing camera together, nobody moving in step. People stand at different distances and different angles, in ones and twos and threes, the way people actually stand in a room.
+**EVERY NAMED CHARACTER APPEARS EXACTLY ONCE IN ANY SHOT. There are no duplicates, no twins, no repeated faces in the crowd.**
+
+CROWDS ARE LOOSE AND SCATTERED, NEVER IN FORMATION. No rows, no lines, no ranks, nobody facing camera together, nobody moving in step.
 
 ================================================================
 SHOT 1 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big. Wide, static, level, looking straight down the length of the hall. The receding rows of orange ceiling coves on both sides, the polished red floor reflecting them, the white walls with their framed paintings, the strange lamps and plinths along the edges. THE HALL IS COMPLETELY EMPTY OF PEOPLE. Hold on it.
+@project_absence_loc_hall_big. Wide, static, level, looking straight down the length of the hall. Receding rows of orange ceiling coves, the polished red floor reflecting them, the white side walls with their framed paintings.
+
+Far away at the end of the hall, small in frame, **@project_absence_char_critic, @project_absence_char_oldman, @project_absence_char_woman and @project_absence_char_student** stand together in front of the far wall. They are the only group in the hall.
 
 === HARD CUT ===
 
@@ -66,7 +97,11 @@ SHOT 1 — 3 seconds
 SHOT 2 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big. Static, level, square-on to one white side wall carrying several framed paintings hung in a line at one height. Still no people. The paintings are good.
+@project_absence_loc_hall_big. Closer, static, level, taken from **BEHIND AND SLIGHTLY TO ONE SIDE** of the four, so we see them in three-quarter view and the wall stays blocked by their bodies.
+
+All four do their own action at once. **@project_absence_char_critic raises an open hand toward the wall, mid-sentence.** **@project_absence_char_oldman steps back a pace, head tilted, and shakes his head once.** **@project_absence_char_woman stands motionless with a hand at her mouth.** **@project_absence_char_student jabs a finger downward, interrupting, and nobody turns to her.**
+
+They are talking over each other. **No word is audible.**
 
 === HARD CUT ===
 
@@ -74,7 +109,11 @@ SHOT 2 — 3 seconds
 SHOT 3 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big. The SAME wall, now with @project_valder_char_crowd_b and @project_valder_char_tea_circle moving through the frame from left to right, loose and scattered. They pass in front of the paintings and KEEP WALKING. Not one head turns toward the wall. The camera stays static and level and lets them cross.
+@project_absence_loc_hall_big. Static, level, square-on to one of the **SIDE** walls, showing several framed paintings hung in a line. The paintings are good.
+
+**@project_absence_char_visitor_a stands squarely in front of one of them, hands clasped behind his back, genuinely studying it.** He does not move.
+
+**@project_absence_char_visitor_c walks through frame behind him, briskly, looking straight ahead at nothing**, heading down the hall toward the group.
 
 === HARD CUT ===
 
@@ -82,7 +121,11 @@ SHOT 3 — 3 seconds
 SHOT 4 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big. Closer. A single framed painting fills most of the frame — a real, competent, carefully made abstract work on the white wall. Two members of @project_valder_char_crowd_a walk into frame in front of it, talking to each other, and walk straight out the other side WITHOUT LOOKING AT IT. The painting is left alone in the frame.
+@project_absence_loc_hall_big. The same three-quarter angle on the group as shot 2.
+
+**The group has grown.** The four are still arguing. **@project_valder_char_tea_circle have arrived and joined the back**, standing slightly apart, watching the argument rather than the wall. @project_absence_char_critic half-turns to include them without stopping talking.
+
+In the far background, **@project_absence_char_visitor_b walks slowly along the side wall, head turned toward the pictures**, going the other way.
 
 === HARD CUT ===
 
@@ -90,7 +133,9 @@ SHOT 4 — 3 seconds
 SHOT 5 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big. Low, level, static, on the yellow upholstered bench standing on its blue and black patterned rug. THE BENCH IS COMPLETELY EMPTY — not one person is sitting on it. Beyond it, far down the hall, a dense mass of people is packed together facing a wall we cannot see.
+@project_absence_loc_hall_big. Low, level, static, on the yellow upholstered bench on its blue and black patterned rug in the foreground. **THE BENCH IS COMPLETELY EMPTY** — not one person is sitting on it.
+
+Beyond it, down the hall, the group is now **twelve or fifteen people**, and more are walking toward it from both sides of frame.
 
 === HARD CUT ===
 
@@ -98,7 +143,9 @@ SHOT 5 — 3 seconds
 SHOT 6 — 4 seconds
 ================================================================
 
-@project_absence_loc_hall_big. A slow, steady, level PUSH-IN down the hall toward that crowd at the far end. @project_valder_char_crowd_a, @project_valder_char_crowd_b and @project_valder_char_villagers_rich all mixed together, standing shoulder to shoulder, all facing away from camera toward @project_absence_loc_wall_crack. @project_valder_char_press stands at the edge of the group with the chrome camera and the flash reflector raised. Nobody in the crowd moves. Nobody talks. They are completely still, all looking at the same thing.
+@project_absence_loc_hall_big. A slow, steady, level **PUSH-IN** down the hall toward the group. @project_valder_char_crowd_a, @project_valder_char_crowd_b and @project_valder_char_villagers_rich are all mixed together now, twenty or more, loose and scattered but packed close, all facing away from camera toward @project_absence_loc_wall_crack.
+
+**People are still arriving** — two more walk in from the side of frame and join the back without a word. Near the front an arm is still raised toward the wall. The argument is still going.
 
 === HARD CUT ===
 
@@ -106,9 +153,9 @@ SHOT 6 — 4 seconds
 SHOT 7 — 4 seconds
 ================================================================
 
-@project_absence_loc_hall_big. Close on the BACKS of the crowd, filling the whole frame — a wall of saturated coloured coats and hats and gloves, packed tight. Static. Level. NOT ONE GAP between the bodies. We cannot see past them and we never do.
+@project_absence_loc_hall_big. Close on the **BACKS** of the crowd, filling the whole frame — a wall of saturated coloured coats and hats and gloves, packed tight. Static. Level. **NOT ONE GAP between the bodies.** We cannot see past them and we never do.
 
-A flashbulb fires somewhere inside the group and washes the backs of the coats white for a single frame.
+At the very edge of frame, one more person steps into the back of the group and settles, facing away with everyone else.
 
 Hold, completely still, until the clip ends.
 
@@ -116,7 +163,7 @@ Hold, completely still, until the clip ends.
 SOUND
 ================================================================
 
-Room tone of a large hard-surfaced hall. Footsteps on polished stone — many, unsynchronised, unhurried. One flashbulb pop in shot 7. A low murmur of a crowd in shots 6 and 7, too distant and too soft for any word to be intelligible.
+Room tone of a large hard-surfaced hall. Footsteps on polished stone — many, unsynchronised, unhurried, arriving from different directions and stopping. A low murmur of several people talking over each other, **close enough to hear the shape of an argument but never close enough for one word to be intelligible.**
 
 NO MUSIC OF ANY KIND. No score, no underscore, no drone, no strings, no piano, no synthesiser, no swell, no final chord, no resolving note. No sound at the very start of the clip and no sound at the very end. No whoosh, no riser, no sting, no impact hit, no bass drop.
 
@@ -124,4 +171,4 @@ NO MUSIC OF ANY KIND. No score, no underscore, no drone, no strings, no piano, n
 NEGATIVE
 ================================================================
 
-no dialogue, no speech, no voices with intelligible words, no voiceover, no narration, no music, no score, no underscore, no riser, no sting, no whoosh, no subtitles, no captions, no on-screen text, no readable text anywhere except the brass plaque, no wall labels, no signage, no timecode, no watermark, no date stamp, no logos of real brands, no screens, no LEDs, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no crowd in formation, no rows, no ranks, no lines of people, no marching, no people moving in step, no anyone facing camera together, no anyone looking at the camera, no smiling, no laughing, no grimacing, no weeping, no dramatic expressions, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no dirt, no grime, no dust, no squalor, no torn clothing, no green skin, no grey skin, no waxy skin, no gaunt faces, no horror imagery, no rain, no fog, no night, no darkness, no dim moody lighting, no brown murky colour grade, no large crack, no wall-spanning crack, no rubble on the floor, no structural damage, no gap in the crowd, no view past the crowd, no ultramarine walls, no blue walls, no fountain, no wooden floor
+no intelligible dialogue, no clear speech, no voiceover, no narration, no subtitles, no captions, no on-screen text, no readable text anywhere except the brass plaque, no wall labels, no signage, no timecode, no watermark, no date stamp, no logos of real brands, no music, no score, no underscore, no riser, no sting, no whoosh, no press photographer, no camera flash, no flashbulb, no journalists, no microphones, no duplicate characters, no twins, no repeated faces, no cloned people, no screens, no LEDs, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no crowd in formation, no rows, no ranks, no lines of people, no marching, no people moving in step, no anyone facing camera together, no anyone looking at the camera, no smiling, no laughing, no grimacing, no weeping, no shouting, no comic expressions, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no dirt, no grime, no dust, no squalor, no torn clothing, no green skin, no grey skin, no waxy skin, no gaunt faces, no horror imagery, no rain, no fog, no night, no darkness, no dim moody lighting, no brown murky colour grade, no large crack, no wall-spanning crack, no rubble on the floor, no structural damage, no gap in the crowd, no clear view of the hero wall, no square-on shot of the hero wall, no ultramarine walls, no blue walls, no fountain, no wooden floor
