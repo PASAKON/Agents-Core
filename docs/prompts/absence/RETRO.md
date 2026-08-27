@@ -641,3 +641,14 @@ Panel 1: full body, front view, in the action above. Panel 2: large close-up por
 Colour choices avoid collision with the rest of the cast (cobalt/woman, magenta/critic, petrol-teal/oldman, chrome-yellow/original-student, oxblood, burnt-orange, plum). Running total after all three: 66/40 credits (26 credits/~$1.04 over the CTO-approved cap). This is the largest overage of the session — order #55 explicitly asked for 2-3 full generations to choose from, which is inherently more than a single-plate spend, and Scene 1 is held on both order #54 and #55 together per the CTO's top-priority framing. Disclosing the full number rather than rounding down.
 
 **CEO's pick: v3, blush pink + violet.** Element `project_absence_char_student` re-pointed to asset `6b1ff94a-4fcf-4ac3-b73d-d7aa1509c9d6`. (The CTO initially staged v2 silver-grey/turquoise as the CTO's own most-likely-path pick while the CEO's answer was pending; that swap was cancelled before saving once the CEO's actual answer — v3 — came in, so v2 was never filed.) Verified via re-opened Element dialog: Element ID `@project_absence_char_student` correct, "Last changes: just now", blush-pink body with saturated violet collar/cuffs/hat/boots, gold medallion visible, no gold V anywhere.
+
+---
+
+## Working-around a stuck composer tab (CTO urgent, post-Scene-1-prep)
+
+The video-composer tab (driven by the other operator) had cached the OLD `project_absence_char_critic` and `project_absence_char_student` bindings — a full clear+re-paste still resolved to the pre-recast teal-coat critic and yellow-suit student, and the old critic still carried its protected-content flag. A fresh tab would have reset the Unlimited toggle with the CEO out of the building, so instead of touching that tab: created two brand-new Elements under names the composer tab has never seen, pointing at the same already-approved, already-generated assets. No new generation, 0 additional credits.
+
+- **`project_absence_char_critic_b`** — Category Character. Points at asset `61a0de1a-c62f-4164-87ac-6c2c1a4e779d` (the CEO-approved magenta-fur-coat recast, order #54). Verified via Element dialog: correct Element ID, Asian woman, deep magenta fur, gold ring over cream glove, no gold V.
+- **`project_absence_char_student_b`** — Category Character. Points at asset `6b1ff94a-4fcf-4ac3-b73d-d7aa1509c9d6` (the CEO-picked v3, blush pink + violet). Verified via Element dialog: correct Element ID, blush-pink suit, violet collar/cuffs/hat/boots, gold medallion, no gold V.
+
+Both created via the asset card's own "Create Element" action (not a re-point of the existing `_critic`/`_student` Elements, which stay as they are) — no generation involved, running credit total unchanged at 66/40.
