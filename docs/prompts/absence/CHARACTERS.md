@@ -342,6 +342,31 @@ generation.
 
 ---
 
+## 9 · `project_absence_char_valder` — Valder himself, filed from an EXISTING plate
+
+CEO-requested reuse, not a new generation. **No credits spent** — this is an
+Element filed from an asset already sitting in the project since 2026-08-18
+(job `6d8ac10c-be3c-4e1b-8099-d307005dc24c`), untouched, unaltered.
+
+- **Element:** `project_absence_char_valder`, category Character, name "Valder"
+- **Asset id:** `6edafc56-5dff-4c52-844e-73b125e047f0`
+- **Cost:** 0 credits (element-only, no generation)
+- **Confirmed match against the CTO's description** before filing: tall, very
+  thin elderly man, silver hair swept straight back, small round tinted
+  sunglasses, colour-blocked suit jacket panelled magenta/yellow/green/blue/red
+  over a scarlet waistcoat and white shirt, purple trousers, long
+  mustard-yellow scarf, deliberately mismatched shoes (one dark green, one
+  oxblood). Three full-body views along the top (front, profile, back) plus
+  four close-up portraits along the bottom — matches exactly.
+- Filed via the Elements panel's card `...` menu → **Create Element** (not the
+  upload-a-new-image dropzone flow — that path requires a locally-shared file
+  path the harness didn't have; the card menu binds the existing asset
+  directly, no upload needed).
+- Verified: Elements → Characters tab shows `Character • Valder —
+  @project_absence_char_valder` with the correct thumbnail.
+
+---
+
 ## Summary — signature-type audit for the CEO
 
 | # | Character | Signature type | From-behind legibility |
