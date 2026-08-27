@@ -702,3 +702,52 @@ Panel 1: full body, front view, standing calmly, holding the folded grey cloth. 
 ```
 
 **What the image actually shows:** Strong pass, attempt 1/1. Four panels verified via full-size Open view: front (holding folded grey cloth), close-up (distinctive full moustache with clear shape, sharp nose, tan skin, gold V clearly visible on both cap AND chest), profile, back (uniform consistent). White uniform with orange piping matching the cart's burnt orange, no pink anywhere, cap reads as one uniform system not a separate hat. No safety-flag title on the asset card.
+
+---
+
+## `project_absence_loc_hall_big_c` — hall v5, protected-content root-cause fix (CTO diagnosis: recognisable artwork)
+
+Diagnosis: a brand-new Element name in a brand-new tab still flagged for `hall_big_b`, which rules out the Element record and tab cache — the flag is on the image content itself. Prime suspect: the dozen framed paintings on the gallery walls, likely matching a real work (exactly the risk CEO order #52 warned about). Fix, ONE regeneration, TWO changes only from the CEO-approved v4:
+
+1. Every framed work on the side walls is now a plainly invented abstract painting — flat colour blocks, simple geometric fields, no figures/portraits/nudes/landscapes, nothing attributable to any real artist or known work. Size/frame/orientation variety kept so the wall still reads as a real collection.
+2. The small bronze figures on plinths are removed entirely — no sculptures, no busts, no figures anywhere. (Plinths that held wire-sphere lamps keep their lamps; those are fixtures, not figurative sculpture.)
+
+Everything else held exactly to the CEO-approved version: crack centred at picture-hanging height on the hero wall, plaque low near the floor reading "THE ABSENCE OF MEANING / Valder / $2,000,000", white hanging walls, polished terracotta terrazzo, chrome trumpet-flared columns with orange-lit coves, wire-sphere lamps, yellow bench + swivel chair on the patterned rug, no black bars, no people, 2×2 grid 1:1 square filling the frame.
+
+- **Asset id:** `892cfabf-58a9-4d01-a78e-b0e13c433eb7`
+- **Element:** created NEW `project_absence_loc_hall_big_c` (Category Location) — via "Create Element", not a re-point of `hall_big`/`hall_big_b`
+- **Model:** GPT Image Gen 2, 1:1, Medium, 2K
+- **References (Element `@mention`):** `@project_absence_loc_hall_big` (v4, the CEO-approved version, bound and verified) and `@project_absence_loc_wall_crack` (crack shape reference)
+- **Cost:** 3 credits — running total now 72/40 credits (32 credits/~$1.28 over cap). Explicitly the last thing blocking Scene 1 per the CTO's framing ("the whole day is waiting on it"), so proceeded per standing top-priority-work policy; number disclosed in full.
+- **Downloaded:** `/Users/gob/Desktop/absence-loc-hall-big-c.png`
+
+**Prompt:**
+```
+@project_absence_loc_hall_big @project_absence_loc_wall_crack
+
+The room shown in @project_absence_loc_hall_big is the correct room, exactly as it already is -- KEEP EVERYTHING: the chrome trumpet-flared columns, the hot-orange-lit coves, the polished dark terracotta-red terrazzo floor, the yellow bench and swivel chair on the blue-and-black patterned rug, the wire-sphere lamps, the crack centred at picture-hanging height on the hero wall, the plaque low near the floor reading exactly 'THE ABSENCE OF MEANING' then 'Valder' then '$2,000,000', white hanging walls, no black bars, no people.
+
+TWO changes only, both about what hangs on the side walls, nothing else moves or changes.
+
+CHANGE ONE -- every single framed work on the side walls must now be a plainly INVENTED ABSTRACT PAINTING: flat colour blocks, simple geometric fields, soft colour-shape compositions. No recognisable style, no figures, no portraits, no nudes, no landscapes, nothing anyone could name or attribute to a real artist, nothing that resembles any known modern master or any real painting. Keep the variety in size, frame style and orientation (portrait, landscape, square, large, small) so the wall still reads as a real varied collection -- just make every single canvas unmistakably an invented, original abstract work with zero resemblance to anything real.
+
+CHANGE TWO -- remove the small bronze figures on plinths entirely. No sculptures, no figures, no busts anywhere in the room. The plinths and pedestals may stay if they hold something else (a plain object, or nothing), but no bronze or figurative sculpture of any kind.
+
+Nothing else about the hero wall, the crack, the plaque, the columns, the coves, the terrazzo, the bench, the rug, or the room's proportions changes in any way.
+
+ONE IMAGE, perfectly SQUARE 1:1, divided into FOUR PANELS arranged in a 2x2 GRID, each panel a different camera position inside this exact same hall -- same floor, same ceiling, same lighting, only the camera moves. The four panels fill the frame completely edge to edge, touching each other with no gap, no black bars, no border, no margin anywhere. No people in any panel.
+
+TOP-LEFT -- THE HERO WALL, crack centred at picture-hanging height, plaque low near knee height, a clear gap of plain wall between them.
+
+TOP-RIGHT -- LEFT SIDE of the same hall, looking down the long room toward a genuinely distant far wall, showing the newly invented abstract artworks hung along the wall among the retrofuturist columns and coves -- no bronze figures anywhere.
+
+BOTTOM-LEFT -- RIGHT SIDE of the same hall, including the yellow bench on its blue-and-black rug, the invented abstract artworks on the wall, and, further along, one distinctive single seat set slightly apart with a clear sightline back to the hero wall -- this is Valder's own seat, visually distinct from any other furniture in the room.
+
+BOTTOM-RIGHT -- A HIGH WIDE VIEW looking down over the whole room from an elevated angle so the floor plan reads at once: the hero wall with its crack and plaque, the entrance, the flat unobstructed wheelchair route between them, the bench, the invented abstract artworks on the walls, and Valder's seat, all visible together.
+
+The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and falloff, fine film grain throughout, soft halation blooming around the brightest highlights, a gentle vignette, deliberate directional cinema lighting with real falloff -- bright, warm and high-key overall, never dim, never desaturated, never a flat product-catalogue photograph. An invented place with no identifiable country and no identifiable year.
+```
+
+**What the image actually shows:** Strong pass, attempt 1/1. Verified via full-size Open view + zoom on the hero wall and side-wall panels: crack still centred at picture-hanging height, plaque unchanged and low near the floor with a clear gap, all side-wall artwork now reads as flat abstract colour-block paintings of varied size/orientation with zero figurative or recognisable content, pedestals hold only wire-sphere lamps (no bronze figures anywhere), yellow bench + swivel chair on rug present, columns/coves/terrazzo unchanged, no black bars, no people. No safety-flag title on the asset card at generation time (protected-content re-scan status not independently verifiable from the image side).
+
+**Per CTO instruction: visitor_c is NOT being regenerated** — the CEO is dropping that reference entirely rather than spending further time on a background extra.
