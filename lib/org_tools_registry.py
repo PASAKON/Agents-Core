@@ -277,6 +277,10 @@ def _h_send_media_to_ceo(*, path: str, caption: str = "") -> dict:
     return telegram_out.send_media_to_ceo(path, caption=caption)
 
 
+def _h_send_media_batch_to_ceo(*, paths: str, caption: str = "") -> dict:
+    return telegram_out.send_media_batch_to_ceo(_parse_list_arg(paths), caption=caption)
+
+
 REGISTRY: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="wiki_read",
@@ -571,6 +575,35 @@ REGISTRY: tuple[ToolSpec, ...] = (
         ),
         params=(Param("path", str), Param("caption", str, "")),
         handler=_h_send_media_to_ceo,
+    ),
+    ToolSpec(
+        name="send_media_batch_to_ceo",
+        description=(
+            "Upload multiple files to the CEO's real Telegram chat via "
+            "SomPong in one call (CEO orders #42/#43). `paths` accepts a "
+            "JSON array string or comma-separated list of local file "
+            "paths.\n\n"
+            "Each file is routed independently by its own size: a file "
+            "that fits under Telegram's 50 MB cap always goes out as a "
+            "real file, never a link -- photos/videos are grouped into "
+            "Telegram album(s) (up to 10 per album, more files sent as "
+            "further albums), documents can't share an album with "
+            "photos/videos so each goes out on its own. A file over 50 MB "
+            "is uploaded instead to the CEO's Google Drive `Desktop "
+            "Cloud` folder -- verified by a fresh folder listing, never "
+            "assumed from the upload response -- and reported to the CEO "
+            "as a text message naming the file, its real size, and the "
+            "link, and why it wasn't sent as a file. This is the ONLY "
+            "case that ever produces a link; anything that fits still "
+            "uploads as a real file.\n\n"
+            "Returns {\"ok\": bool, \"results\": [{\"path\", \"status\", "
+            "\"reason\", \"link\"}]} in the same order as `paths` -- "
+            "`status` is exactly one of uploaded/linked/failed per file, "
+            "so a partial batch is never reported as a flat success. "
+            "Never raises."
+        ),
+        params=(Param("paths", str), Param("caption", str, "")),
+        handler=_h_send_media_batch_to_ceo,
     ),
 )
 
