@@ -457,3 +457,59 @@ The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and fa
 ```
 
 **What the image actually shows:** Height fix landed correctly, verified by zooming the hero wall panel directly. The crack sits high on the wall (roughly two metres, near the coves) and the small brass plaque sits low (roughly knee height, close to the floor) — a large, obvious gap of plain wall separates them, no longer stacked. Plaque text still legible: "THE ABSENCE OF MEANING / Valder / $2,000,000". Everything else (chrome columns, orange coves, terracotta floor, yellow bench, varied artworks on side walls) unchanged from v2. No defects found; kept as generated, attempt 1/1.
+
+---
+
+## URGENT — Protected content fix: `project_absence_char_cleaner` and `project_absence_char_critic` v3
+
+Higgsfield flagged both as PROTECTED CONTENT, refusing them as video-composer references (the composer's own file uploader rejects the same PNG with "Protected content is not allowed" — confirmed by the other operator, not fixable by re-uploading/re-elementing). Cause: faces read as photorealistic likenesses of real people. Fix: regenerate with identical wardrobe/colour/age/build/action/panels, ONLY the face changed to an explicitly anonymous, non-celebrity, invented face. `char_cleaner` did not previously exist in this task's scope — it is a pre-existing project Element from an earlier wave; CTO supplied its full current spec directly (previous version wrongly put him in a business suit in 2 of 4 panels — corrected here to uniform in all four). `char_critic` additionally drops the gold V per CEO order #50 (V is staff-only; critic is being recast as a visitor, not staff).
+
+### `project_absence_char_cleaner` — anonymized face, uniform in all 4 panels
+
+- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_cleaner`
+- **Cost:** _(pending)_
+
+**Prompt:**
+```
+A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in a single wide horizontal strip, aspect ratio approximately 2.4:1, all four panels on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props beyond what the character carries, no text anywhere.
+
+The person: a maintenance worker, in his sixties, short and stocky build. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen. IMPORTANT: this is a completely invented, anonymous, generic face -- it must not resemble any real, famous, or public person in any way, no celebrity likeness, no impression of any well-known individual, zero basis in any real photograph. An ordinary face nobody would recognise.
+
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a cobalt-blue work uniform with a mandarin (standing) collar, moulded seamless synthetic fabric, brass buttons down the front, a black belt, black shoes. A small gold brooch or pin shaped like the letter V is worn on the chest -- this is a staff mark, correctly worn since he is Valder staff. He carries a small folded grey cloth, held loosely in one or both hands.
+
+The uniform is worn in ALL FOUR PANELS, identical in every panel -- no wardrobe change, no business suit, no alternate outfit.
+
+BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary. Also banned: black clothing as the dominant garment colour, anything that reads as villainous or sinister.
+
+ACTION (panels 1 and 3): standing attentively, calm and unhurried, holding the folded grey cloth in front of him.
+
+Panel 1: full body, front view, in the action above, uniform and gold V visible. Panel 2: large close-up portrait, same invented anonymous face, same uniform collar. Panel 3: full body, side profile, same action, cloth visible. Panel 4: full body, seen entirely from behind -- same uniform, same colour, same build. Same person, same face, same clothes in every panel.
+```
+
+**What the image actually shows:** _(pending)_
+
+---
+
+### `project_absence_char_critic` v3 — anonymized face, gold V removed (CEO order #50)
+
+- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_critic`
+- **Cost:** _(pending)_
+
+**Prompt:**
+```
+A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in a single wide horizontal strip, aspect ratio approximately 2.4:1, all four panels on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props beyond what the character carries, no text anywhere.
+
+The person: a visitor, in his sixties, tall, slim build -- speaks with total authority, the loudest and most commanding presence in the room. He is not a villain and must never read as sinister or threatening: he is a man very sure of his own taste, not a man who could hurt anyone. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen. IMPORTANT: this is a completely invented, anonymous, generic face -- it must not resemble any real, famous, or public person in any way, no celebrity likeness, no impression of any well-known individual or actor, zero basis in any real photograph. Change the face structure noticeably from a typical severe-authority look: a different nose shape, a different jawline, a different hairline, different eye spacing -- an ordinary face nobody would recognise.
+
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a coat reaching to about mid-calf length (NOT floor-length) with straight structured shoulders and an exaggerated stiff standing collar that frames his face -- this dramatic collar-and-coat cut is his one unmistakable signature. The coat is cut from a moulded, seamless material with a MATTE finish (never glossy, never leather-sheen, never patent) in one deeply saturated flat colour, NEVER black: deep petrol teal. Cream suede gloves. Round-toe shoes. A gold signet ring and a gold bracelet, worn as real understated wealth.
+
+He wears NO gold V of any kind -- he is a visitor, not Valder staff, and the V mark belongs to staff only. No brooch, no pin, nothing on the chest.
+
+BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary. Also banned: floor-length coats, black clothing, leather/patent gloss sheen, anything that reads as villainous, militaristic or sinister, any gold V or staff mark of any kind.
+
+ACTION (panels 1 and 3): mid-sentence, one hand raised open toward the wall he's addressing -- the gesture of someone making an emphatic point, not an aggressive gesture.
+
+Panel 1: full body, front view, in the action above. Panel 2: large close-up portrait, same invented anonymous face, same collar, ring and bracelet visible, no V. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same coat length, same collar shape, same colour, same build. Same person, same face, same clothes in every panel.
+```
+
+**What the image actually shows:** _(pending)_
