@@ -292,6 +292,56 @@ flagging; kept on first generation.
 
 ---
 
+## 8 · `project_absence_char_student_c` — the art student, REDESIGNED
+
+CEO rejection of the original `project_absence_char_student` read (retrofuturist
+pillbox hat + leather suit, hunched forward). New name — original kept, not
+overwritten, per instruction.
+
+- **Element:** `project_absence_char_student_c`, category Character, name "student_c"
+- **Asset id:** `94355cca-52d8-4813-bab5-fd089d6558ba`
+- **Model:** GPT Image 2, Auto aspect (resolved to 1:1 square, 2x2 grid layout —
+  no aspect specified in this brief, unlike the original 7's 21:9 four-across
+  strip), Medium, 2K
+- **References:** none (pure text redescription, no image binding to the old
+  element)
+- **Cost:** 2.5 credits
+- **Hair colour chosen:** acid chartreuse (bright yellow-green) — checked
+  against the excluded list (cobalt, magenta, bottle green, oxblood, burnt
+  orange, plum, white-and-orange); chartreuse is distinct from all seven.
+
+**Prompt:**
+```
+CHARACTER SHEET — invented anonymous young woman, art student, no resemblance to any real or public person. Four panels on a plain neutral grey seamless studio backdrop, softbox photographic lighting, shot on a full-frame camera — photographed, not illustrated or rendered.
+
+WHO: approximately twenty-two years old, slight/slender build, short curly dark hair now dyed a striking acid chartreuse (bright yellow-green) colour, natural curly texture. Large expressive eyes, warm approachable face, no heavy makeup styling. She visibly reads as the least wealthy person in this world — comfortable, unpolished, practical.
+
+POSTURE: standing fully upright, shoulders open, spine straight — not hunched, not bent forward. Confident but unstudied posture, like someone standing her ground rather than posing.
+
+WARDROBE: real art-student studio clothes — a loose paint-marked canvas or denim overshirt layered over a plain t-shirt, comfortable trousers or dungarees, worn flat sneakers or boots. Visible dried paint smears and small stains in several colours on cuffs and knees. Everything looks practical, lived-in, worked in — not styled, not fashion, not costume. No gold V mark anywhere on her — she is a visitor, not staff.
+
+CARRIES: one item only — a soft-cover sketchbook held under one arm, consistent across all four panels.
+
+PANELS:
+1. FULL BODY, FRONT, standing upright, facing camera straight-on, entire body head-to-shoe in frame.
+2. LARGE CLOSE-UP PORTRAIT, head and shoulders only, direct gaze at camera.
+3. SIDE PROFILE, full body, facing left, standing upright.
+4. FULL BODY FROM BEHIND, standing upright, back to camera, showing the back of the hair and clothing.
+
+No logos, no legible text, no recognisable artwork in frame anywhere. Plain grey seamless background in all four panels, consistent lighting and framing across panels.
+```
+
+**What the image actually shows:** Clean hit on first generation. Chartreuse
+curly hair reads bright and unmistakable in all four panels. Standing upright
+in every panel — no hunch, spine straight, matching the CEO's correction
+directly. Denim/canvas overshirt with visible paint marks over a plain tee,
+worn sneakers, sketchbook held under one arm — practical, unstyled, reads
+poor-relative-to-the-room. No gold V visible anywhere. Panel 4 (behind) shows
+the back of the jacket and hair consistently. No hard defects; kept on first
+generation.
+
+---
+
 ## Summary — signature-type audit for the CEO
 
 | # | Character | Signature type | From-behind legibility |
