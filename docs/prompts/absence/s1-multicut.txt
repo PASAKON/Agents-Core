@@ -2,7 +2,21 @@ SEEDANCE 2.5 — 20 SECONDS — 720p — 16:9
 
 THIS SCENE IS **ONE LONG TAKE, THEN ONE JUMP CUT, THEN A SECOND LONG TAKE.** That is all. There is exactly ONE cut in the entire twenty seconds. No other cuts, no dissolve, no fade, no wipe, no whip pan, no morph.
 
-**THERE IS NO DIALOGUE IN THIS SCENE AT ALL. NOBODY SPEAKS. NOBODY ARGUES. NOBODY GATHERS.** This is purely a man cleaning a museum. No subtitles, no voiceover.
+**DUPE SPEAKS. NOBODY ELSE DOES, AND NOBODY EVER ANSWERS HIM.**
+
+He says short, polite, ordinary service phrases — because he needs to clean the spot where somebody is standing, or needs to get past them with the cart. **Every line is spoken quietly, warmly and politely, in English, and every single one goes unanswered.** Not one visitor replies, turns, nods, or moves. He is never annoyed by this and never repeats himself with any edge.
+
+**These are his exact lines, in this order, and no others:**
+
+1. **"Excuse me, sir."**
+2. **"Sorry, madam."**
+3. **"Excuse me. Just a moment."**
+4. **"Sorry, sir."**
+5. **"Thank you, sir."**
+
+The last one is said to a man who has not moved and has not acknowledged him.
+
+**NO OTHER DIALOGUE EXISTS IN THIS SCENE.** Nobody argues, nobody gathers, no visitor says anything at all. No subtitles, no captions, no voiceover.
 
 **THE CAMERA IS ON DUPE THE WHOLE TIME.** He is the subject of every frame. Everyone else is scenery he moves through.
 
@@ -47,7 +61,9 @@ Two things are being planted, both silently.
 
 **ONE — WE MEET DUPE BEFORE ANYTHING HAPPENS TO HIM.** Twenty seconds of a man taking real pleasure in ordinary work. He dusts a frame and steps back to check it. He polishes a vitrine and catches his own reflection in it, satisfied. He is careful with things that are not his.
 
-**TWO — NOBODY SEES HIM.** He moves through six people and not one of them looks up, moves aside, or acknowledges the cart. This is never pointed out and he never reacts to it. It is simply how the room works. He is as invisible as the plinths.
+**TWO — HE SPEAKS TO PEOPLE AND NOBODY ANSWERS.** He is not silent and he is not sneaking around them. He says excuse me, he says sorry, he says thank you — five times, politely, to six people — and **not one reply comes back.** Not a nod, not a glance, not a step aside. This is never pointed out and he never reacts to it. It is simply how the room works. **He is more invisible for having spoken than he would have been in silence.**
+
+**The film is called «Sorry, Sir» and this is where the title comes from.** It is not something anyone says to Valder. It is what Dupe says all day to people who do not hear him.
 
 The scene is warm, and quietly funny, and it must be **completely sincere**. The camera does not wink. Nothing here is played as a joke.
 
@@ -79,7 +95,9 @@ SHOT 1 — LONG TAKE — 12 seconds
 
 He moves on. **He takes a cloth and polishes the top of a glass vitrine**, working in slow circles, then leans in and buffs out one stubborn spot. He catches his own reflection in the glass and his smile widens very slightly.
 
-**As he works, the camera's movement carries him past the visitors.** @project_absence_char_visitor_a stands with his hands behind his back in front of a painting. @project_absence_char_critic_b in her magenta fur considers a framed work. @project_absence_char_woman in cobalt leather and dark glasses looks down into a vitrine. **NOT ONE OF THEM LOOKS AT HIM.** He passes close behind two of them; neither moves aside and neither turns. **He does not react to this at all** — he simply steps around them and carries on with his brush.
+**As he works, the camera's movement carries him past the visitors.** @project_absence_char_visitor_a stands with his hands behind his back in front of a painting. @project_absence_char_critic_b in her magenta fur considers a framed work. @project_absence_char_woman in cobalt leather and dark glasses looks down into a vitrine. **As he reaches each of them he speaks, politely, and waits half a beat.** To @project_absence_char_visitor_a: **"Excuse me, sir."** To @project_absence_char_critic_b in her magenta fur: **"Sorry, madam."** To @project_absence_char_woman at the vitrine: **"Excuse me. Just a moment."**
+
+**NOT ONE OF THEM ANSWERS. NOT ONE OF THEM TURNS. NOT ONE OF THEM MOVES ASIDE.** They do not even register that a voice has spoken. **He does not react to this at all** — no sigh, no glance to camera, no flicker of irritation. He simply steps around them and carries on with his brush, still smiling.
 
 === JUMP CUT ===
 
@@ -93,7 +111,9 @@ SHOT 2 — LONG TAKE — 8 seconds
 
 He is **mopping the polished terrazzo floor** now, working backwards in long steady strokes, the red mop head leaving a dark wet arc that shrinks as it dries. The cart is parked beside him. **He is still smiling.** He pauses, crouches, and **wipes a mark off the base of a white plinth with the corner of a cloth**, then straightens up, pleased with himself.
 
-Behind him @project_absence_char_oldman moves very slowly along the wall with his chrome cane. @project_absence_char_student_b crouches to look closely at something low down. @project_absence_char_visitor_b walks slowly past the pictures. **None of them looks at Dupe. None of them speaks.**
+@project_absence_char_oldman is standing exactly where Dupe needs to mop, leaning on his chrome ring cane. Dupe stops, waits, and says: **"Sorry, sir."** The old man does not move and does not look at him. Dupe waits another half beat, then mops carefully around his shoes and says: **"Thank you, sir."**
+
+Further back @project_absence_char_student_b crouches to look closely at something low down, and @project_absence_char_visitor_b in her chestnut fur walks slowly past the pictures. **Nobody answers him. Nobody looks at him. No visitor speaks a single word in this scene.**
 
 **Hold on him, still working, still content, until the clip ends.**
 
@@ -101,11 +121,13 @@ Behind him @project_absence_char_oldman moves very slowly along the wall with hi
 SOUND
 ================================================================
 
-Room tone of a large hard-surfaced hall. **The specific small sounds of his work, close and clear**: soft brush bristles on a wooden frame, a cloth squeaking on glass, the wet sweep of a mop on stone, the small rattle of bottles as the cart is pushed, the low rumble of its wheels, his shoes on terrazzo.
+Room tone of a large hard-surfaced hall. **Dupe's five spoken lines are clear, close and fully intelligible**, quiet and polite, never raised. Nobody replies to any of them and there is no other speech in the scene.
+
+**The specific small sounds of his work, close and clear**: soft brush bristles on a wooden frame, a cloth squeaking on glass, the wet sweep of a mop on stone, the small rattle of bottles as the cart is pushed, the low rumble of its wheels, his shoes on terrazzo.
 
 Distant unhurried footsteps of other people, never near.
 
-**NOBODY SPEAKS. NO DIALOGUE OF ANY KIND.**
+**NO VISITOR SPEAKS. Dupe's five lines are the only dialogue in the scene.**
 
 NO MUSIC. No score, no underscore, no drone, no strings, no piano, no synthesiser, no swell, no final chord. No whoosh, no riser, no sting, no impact hit, no bass drop. No laugh track, no comedy sting.
 
@@ -113,4 +135,4 @@ NO MUSIC. No score, no underscore, no drone, no strings, no piano, no synthesise
 NEGATIVE
 ================================================================
 
-no dialogue, no speech, no talking, no conversation, no argument, no crowd, no group forming, no people gathering, no extras, no background figures, no additional people, no more than seven people in any shot, no anyone looking at the cleaner, no anyone speaking to the cleaner, no anyone moving aside for the cleaner, no voiceover, no narration, no subtitles, no captions, no on-screen text, no readable text anywhere, no wall labels, no signage, no timecode, no watermark, no date stamp, no logos of real brands, no music, no score, no laugh track, no comedy sting, no cleaner in a suit, no cleaner in a tie, no cleaner without his cap, no cleaner looking sad, no cleaner looking bitter, no cleaner looking weary, no cleaner looking at the camera, no cleaner mugging or performing, no gold V on any visitor, no multiple cuts, no rapid cutting, no montage, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no duplicate characters, no twins, no repeated faces, no cloned people, no screens, no LEDs, no digital displays, no cables, no modern technology, no smartphones, no black clothing, no dirt, no grime, no squalor, no green skin, no grey skin, no waxy skin, no horror imagery, no rain, no fog, no night, no darkness, no dim moody lighting, no brown murky colour grade, no rubble, no structural damage, no ultramarine walls, no blue walls, no fountain, no wooden floor
+no visitor speaking, no reply to the cleaner, no conversation, no argument, no invented dialogue, no lines other than the five written, no crowd, no group forming, no people gathering, no extras, no background figures, no additional people, no more than seven people in any shot, no anyone looking at the cleaner, no anyone speaking to the cleaner, no anyone answering the cleaner, no anyone moving aside for the cleaner, no anyone nodding at the cleaner, no voiceover, no narration, no subtitles, no captions, no on-screen text, no readable text anywhere, no wall labels, no signage, no timecode, no watermark, no date stamp, no logos of real brands, no music, no score, no laugh track, no comedy sting, no cleaner in a suit, no cleaner in a tie, no cleaner without his cap, no cleaner looking sad, no cleaner looking bitter, no cleaner looking weary, no cleaner looking at the camera, no cleaner mugging or performing, no gold V on any visitor, no multiple cuts, no rapid cutting, no montage, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no duplicate characters, no twins, no repeated faces, no cloned people, no screens, no LEDs, no digital displays, no cables, no modern technology, no smartphones, no black clothing, no dirt, no grime, no squalor, no green skin, no grey skin, no waxy skin, no horror imagery, no rain, no fog, no night, no darkness, no dim moody lighting, no brown murky colour grade, no rubble, no structural damage, no ultramarine walls, no blue walls, no fountain, no wooden floor
