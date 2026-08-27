@@ -615,4 +615,91 @@
  *     side effects (no new job fired, same top job as before the freeze) --
  *     the freezes were purely a rendering/JS-engine issue, not caused by
  *     and not causing any generation activity.
+ *
+ * Wave 10 (task-f4320f9e, 2026-08-28): single replacement plate for
+ * `char_grandmother` (elderly woman in an electric wheelchair) in the
+ * "Sorry, Sir" project (same ai-film-festival-3 account, Character folder
+ * ae0bb5a3-9f66-4e95-8112-c2939e9de56e). GPT Image 2 / 16:9 / Medium / 2K,
+ * 1 generation, 2.5 credits, no reshoot.
+ *   - Literal `@project_absence_loc_hall_big_d` pasted directly in prompt
+ *     text auto-resolved to a genuine bound reference on GPT Image 2 (not
+ *     just Soul Cinema) -- confirmed via `data-beautiful-mention` matching
+ *     the known UUID `1a2cf503-4843-4aed-b4cb-d7cb8b919fa8` from
+ *     docs/prompts/absence/PLATES.md plate 6. This is the same UUID the
+ *     exterior plate resolved to, so paste-based mention binding is
+ *     reliable on this composer for a single reference; the Elements-panel
+ *     right-click->Use path from earlier waves is not required when the
+ *     literal `@name` string is already correct.
+ *   - Real click on Generate (computer tool, not JS-dispatched) worked on
+ *     the first attempt -- no PointerEvent-sequence workaround needed this
+ *     run, unlike Waves 6/7. The desync fix (focus + Selection API cursor-
+ *     to-end + real Space + real BackSpace) was still applied pre-emptively
+ *     and the click fired clean first try.
+ *   - "Create Element" via the card's hover "..." menu (synthetic
+ *     pointerover/mouseover/pointerenter/mouseenter/mousemove to reveal the
+ *     6-icon hover stack, then click the "More actions" aria-label button)
+ *     confirmed working again -- same reliable path as Wave 9. The dialog
+ *     pre-populates the just-generated image with no upload needed.
+ *     Category dropdown ("Auto" -> "Character") responds to a real
+ *     `computer` click on the option text. Name + Element ID inputs need
+ *     the native-value-setter + `input`-event-dispatch technique -- a
+ *     coordinate click alone does not reliably focus/type into them (per
+ *     the existing skill note); confirmed this run that setting Element ID
+ *     to a value NOT matching the auto-generated `char_<name-lowercased>`
+ *     default (i.e. the full `project_absence_char_grandmother` convention)
+ *     overwrites the auto-fill cleanly with no leftover text.
+ *   - Uploading a single generated plate PNG to this org's Google Drive
+ *     (`ALL DRAFT/YT: ILAG/<project>/Element/`) has NO tool support in
+ *     `scripts/gdrive-bridge/gdrive_move.py` (metadata-only CLI: move/
+ *     rename/trash/create_folder/list/create_file[text]/create_doc/
+ *     read_file/append_log -- no binary upload action). The working path:
+ *     `from ilag_sync import upload` (same file's `upload(local_path, name,
+ *     parent_id)` resumable-upload helper, built for the local-mirror sync
+ *     loop but works standalone for one ad-hoc file) in a small scratch
+ *     script, `sys.path.insert` to `scripts/gdrive-bridge`. Verified via
+ *     returned `size` matching the local file's `stat().st_size` exactly
+ *     (5332262 bytes both sides).
+ *   - The "Sorry, Sir" project's `Element/` folder was set up 2026-08-28
+ *     with Character/Location/Prop sub-folders (mirroring the `Do Not
+ *     Disturb` DND template per the gdrive-filing skill's YT:ILAG section),
+ *     but every one of the ~34 plates uploaded there before this run sits
+ *     FLAT in `Element/` root, not sorted into the sub-folders -- the
+ *     sub-folders are empty. This run matched the established flat
+ *     practice (also what the CTO's own follow-up instruction specified:
+ *     ".../Sorry, Sir/Element/", no sub-folder named) rather than the
+ *     original 3-folder design, and logged it as an `EXCEPTION:` line in
+ *     the project's `logs.txt` per the YT:ILAG "rules bend but never
+ *     silently" clause -- do not silently start sorting into Character/ on
+ *     a future run without raising this drift to the CEO/CTO first, since
+ *     that would split one project's plates across two conventions.
+ *   - Per the "nothing gets deleted" YT:ILAG rule, the REJECTED prior
+ *     attempt for the same character (`absence-char-grandma.png`, found
+ *     already sitting in `Element/` from an earlier session, chrome lounge
+ *     chair with no wheels) was left in place untouched -- the new plate
+ *     was uploaded under a deliberately different filename
+ *     (`absence-char-grandmother.png`, note the full word vs the old
+ *     abbreviated "grandma") specifically so the two would not collide or
+ *     invite an accidental overwrite.
+ *   - The worker mailbox delivered TWO separate "[New message from CEO]" /
+ *     "[New message from CTO]" notifications during this run with zero
+ *     body content each time (matches the documented empty-mailbox issue
+ *     above) -- one of the two turned out to carry a real instruction that
+ *     only reached this agent because it was ALSO relayed as literal
+ *     injected chat text in the same turn (not via TASK.md, which stayed
+ *     unchanged both times when re-checked). Treat an empty mailbox ping
+ *     as inconclusive, not as "nothing happened" -- check both TASK.md AND
+ *     the surrounding chat turn text before concluding there is nothing to
+ *     act on.
+ *   - Visual QA finding, worth generalising: a plate can clear the single
+ *     rejection-driving criterion cleanly (wheels, unmistakable in all 4
+ *     panels including the rear one) while still missing a secondary,
+ *     unrelated spec line (here: gloves rendered black against an explicit
+ *     "never black" colour rule). Zooming panel-by-panel via the detail
+ *     modal's fullscreen view (not just the grid thumbnail) caught this;
+ *     the grid thumbnail alone was too small to see the glove colour
+ *     clearly. Reported the flaw plainly rather than silently filing the
+ *     plate as a clean pass -- the CTO's own call was to accept it as-is
+ *     and queue the fix behind higher-priority render-slot work, which is
+ *     a judgment only a C-level should make, not something to decide
+ *     silently either way as the operator.
  */
