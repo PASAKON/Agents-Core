@@ -1008,3 +1008,32 @@ already covered above; these three numbers were not).
   delegating, not once the worker is already running.
 - **Cap any single `sleep()` at ~90s.** A longer one blocks the poll loop past
   the point where a finished render can be noticed promptly.
+
+## A bound reference keeps the OLD asset when you re-point its Element
+
+Measured 2026-08-27 (task-66d5a582), and it is the most dangerous failure on
+this list because **nothing errors and the finished clip looks fine** — it is
+just the wrong film.
+
+A reference binds to a specific **asset** at the moment you attach it, not to
+the Element name. Re-pointing that Element afterwards updates the Element and
+leaves the attached reference exactly as it was. The chip stays green. The name
+still reads correctly. Only the thumbnail betrays it, and only if someone looks.
+
+On this job four Elements were re-pointed to regenerated plates during a single
+staging session. Two of them — the recast critic and the recolored student —
+were still showing the replaced versions in the strip minutes before Generate.
+Firing would have produced a scene starring two characters the CEO had already
+rejected, with no error anywhere to explain it.
+
+**The fix is never a refresh.** Remove the reference completely and re-add it,
+so it binds to the current asset.
+
+**Fold this into the fire sequence**, next to the warning-triangle scan:
+
+> Before Generate, zoom EVERY reference thumbnail and confirm it shows the
+> version you actually intend. Any plate regenerated during this session is
+> suspect by default — remove and re-add it rather than trusting the chip.
+
+The tell to watch for is a plate that has been through several versions in one
+day. A first-generation Element is safe; a re-pointed one is not.
