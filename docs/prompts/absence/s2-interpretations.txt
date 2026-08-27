@@ -35,7 +35,7 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 @project_absence_char_student — THE ART STUDENT. Slight young woman of about twenty-two, short dark curly bob. Chrome-yellow leather trouser suit with an oversized pointed collar, flat yellow pillbox hat, a very large round gold medallion on a gold chain, cream gloves, cream ankle boots.
 
-@project_absence_char_critic — THE ART CRITIC. Tall slim man in his sixties, swept-back steel-grey hair, long lined face. Matte petrol-teal coat with a high standing collar cut to mid-calf, small gold V pin, cream suede gloves, gold signet ring, flat gold bracelet.
+@project_absence_char_critic — THE ART CRITIC. An Asian woman of about sixty, poised and completely certain of herself, dark grey-streaked hair in a low chignon. Full-length deep magenta fur coat with a wide soft fur shawl collar worn open, long cream suede gloves, a large gold ring over the glove, a heavy gold chain bracelet, cream heels. No gold V — she is a visitor.
 
 --- THE MAN NOBODY LOOKS AT ---
 
@@ -121,11 +121,11 @@ SHOT 3 — 3 seconds
 SHOT 4 — 5 seconds
 ================================================================
 
-@project_absence_loc_hall_big. Static, level, a **DEEP SHOT** — **@project_absence_char_critic** stands in the near foreground at the left of frame in three-quarter view, one gloved hand raised open toward the wall, and the hall runs away behind him in sharp focus down its full length.
+@project_absence_loc_hall_big. Static, level, a **DEEP SHOT** — **@project_absence_char_critic** stands in the near foreground at the left of frame in three-quarter view, one cream-gloved hand raised open toward the wall, magenta fur filling her side of the frame, and the hall runs away behind him in sharp focus down its full length.
 
 **FAR BEHIND HIM, small in the frame and perfectly visible, @project_absence_char_cleaner is mopping the polished red floor**, working steadily backwards, @project_absence_prop_cart parked beside him with the framed painting still leaning against it. He is bent to his work. **He does not look up. Nobody in the group turns around. Nobody sees him.**
 
-**@project_absence_char_critic, slowly, weighing every word: "It asks who decides what labour is worth."**
+**@project_absence_char_critic, a woman's voice, slowly, weighing every word: "It asks who decides what labour is worth."**
 
 Hold on the composition — the critic in front, the cleaner behind him, both in the same frame, unconnected.
 
