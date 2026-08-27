@@ -23,6 +23,8 @@ Read at the start of every session, and before every report to the CEO.
 | 6 | Cast bible cards with portraits in the production sheet | artifact `5a5cccb4` |
 | 7 | Skill fixed: Unlimited = Seedance video only, never images | commit `a5f966d` |
 | 8 | Skill: a bound reference keeps the OLD asset when its Element is re-pointed | commit `1b54e9c` |
+| 9 | **Museum exterior** — trumpet columns + terracotta terrazzo continuous with the interior, gold V, revolving door, wheelchair ramp, open sky. CTO-approved 03:32, sent to CEO | `loc_exterior` |
+| 10 | **Parrot woman** — cockatoo crest, wing-shoulders, feather-cut panelling, single cobalt, no beak/wings/feathers, not comic. CTO-approved 03:32, sent to CEO | `char_woman_b` |
 
 ---
 
@@ -34,8 +36,6 @@ Read at the start of every session, and before every report to the CEO.
 | 9b | **S1 v2 — Dupe cleaning WITH his five polite lines**, none of them answered. Title drop: "Sorry, sir." | — | `task-7dcf64d3` |
 | 10 | **Wall POV v2** — ghosted wall · **crack DEAD CENTRE and the hero of the frame** · all six focused on it · plaque low and **MIRROR-REVERSED** · no hole | `loc_wall_pov_b` | `task-fe200749` |
 | 11 | **Art student redesign** — real art-student clothes, **dyed hair in an odd colour**, upright not hunched | `char_student_c` | `task-d988c30c` |
-| 12 | **Museum exterior** — entrance, forecourt, gold V on the building, open sky for the helicopter | `loc_exterior` | `task-d988c30c` |
-| 13 | **Parrot woman** — crest hair, parrot silhouette and texture, single cobalt, **must not read comic** | `char_woman_b` | `task-d988c30c` |
 | 14 | **Valder Element** from the existing 18 Aug asset `6edafc56` — no generation, no cost | `char_valder` | `task-d988c30c` |
 
 ---
@@ -107,7 +107,8 @@ Same frame every time. Only what is inside it changes.
 
 | # | Question |
 |---|---|
-| A | **What is `char_woman` for now?** Her line went to `visitor_b`. She stands still, hand at her mouth, and says nothing. — **CEO: decide later** |
+| A | ~~What is `char_woman` for?~~ — **ANSWERED.** She declares it art, longer line, delivered perfectly still, and the room agrees. Written into `s2-interpretations.txt`. |
+| F | **Parrot woman came out with BLUE HAIR**, which collides with the student's signature ("dyed hair in an odd colour"). Not rejected — it passes every written rule, and the two read as different registers (couture colouring vs a student dying her own hair). **CEO to confirm** whether dyed hair should belong to the student alone. |
 | B | ~~How do the guards dress?~~ — **ANSWERED: black is allowed for guards** |
 | C | ~~Who is Valder as a person?~~ — **ANSWERED, see [VALDER.md](VALDER.md).** Deadpan permanent smile, stands perfectly straight, speaks a lot in Phase 2. |
 | E | **Valder's sixth line** — the improvised story of the crack. The pivot of the film. Five rehearsal stories are written; this one is the CEO's. |
