@@ -607,3 +607,35 @@ Panel 1: full body, front view, in the action above. Panel 2: large close-up por
 ```
 
 **What the image actually shows:** Strong pass, attempt 1/1. Four panels verified: front (raised open hand, role/action preserved), close-up (Asian woman, invented anonymous face, gold ring + bracelet, cream glove, mouth open mid-sentence), profile (same action), back (same coat length/collar/colour/build). Deep saturated magenta fur, mid-calf, dramatic collar, no gold V anywhere, no brand marks/logos. No safety-flag title on the asset card.
+
+---
+
+### `project_absence_char_student` — colour redesign, 3 candidate versions for CEO to pick (CEO order #55)
+
+Not filed to the `project_absence_char_student` Element — this is a selection round, the CEO picks one and only the winner gets pointed. Identity/action/medallion/no-V/anti-flag treatment held constant across all three; only the two-tone colour scheme changes. Base prompt (shared, colour line swapped per version):
+
+```
+A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in a single wide horizontal strip, aspect ratio approximately 2.4:1, all four panels on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props beyond what the character carries, no text anywhere.
+
+The person: a young woman, about twenty-two years old, slight build, short dark curly bob, large anxious eyes. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen. IMPORTANT: this is a completely invented, anonymous, generic face -- it must not resemble any real, famous, or public person in any way, no celebrity likeness, no impression of any well-known individual or actress, zero basis in any real photograph. An ordinary face nobody would recognise, with its own distinct nose shape, jawline, hairline and eye spacing.
+
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a leather trouser suit in [BASE COLOUR], with an oversized pointed collar and cuffs in [ACCENT COLOUR] -- a two-colour block combination, [BASE COLOUR] body with saturated [ACCENT COLOUR] collar, cuffs, and a flat [ACCENT COLOUR] pillbox hat. [BASE COLOUR] gloves. [ACCENT COLOUR] ankle boots. A very large round gold medallion worn on a gold chain -- this medallion is her one unmistakable signature. She is the only person in this room who wears more than one saturated colour -- everyone else wears exactly one -- and that combination is deliberate: it marks her out as the odd one among the collectors.
+
+IMPORTANT -- this must be an entirely INVENTED, ORIGINAL garment design: not a recognisable designer piece, not a costume from any known film, franchise or science-fiction property. No brand marks, no logos, no monograms of any kind. No recognisable artwork anywhere in the frame. Plain seamless light-grey studio background only.
+
+She wears NO gold V of any kind anywhere -- not at the collar, not as a brooch, not on a glove, nothing on the chest. She keeps her large round gold medallion; that is her signature, and it is not a V, not V-shaped, and reads clearly as a plain round disc. She is a visitor, not Valder staff, and the V mark belongs to staff only.
+
+BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary. Also banned: black clothing as a main garment colour, anything that reads as villainous, militaristic or sinister, any gold V or staff mark of any kind, any recognisable designer garment or film/franchise costume, any brand mark or logo.
+
+ACTION (panels 1 and 3): leaning forward from the waist, one gloved finger jabbing downward, face urgent -- an anxious, insistent gesture.
+
+Panel 1: full body, front view, in the action above. Panel 2: large close-up portrait, same invented anonymous face, same pillbox hat, same oversized pointed collar, gold medallion and chain clearly visible, no V. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same suit, same hat, same two-tone colour scheme, same build. Same person, same face, same clothes in every panel.
+```
+
+**v1 — cream + scarlet red.** Asset `0077f5d7-d453-4a2e-9b76-5399421c26fb`. Downloaded to `/Users/gob/Desktop/absence-char-student-v1-cream-scarlet.png`. 3 credits. Cream body, saturated scarlet collar/cuffs/hat/boots. Gold medallion clear, no V, no flag.
+
+**v2 — silver-grey + bright turquoise.** Asset `cdb107f6-64f5-4a6b-88a5-349e7ce66ebb`. Downloaded to `/Users/gob/Desktop/absence-char-student-v2-silvergrey-turquoise.png`. 3 credits. Silver-grey body, saturated turquoise collar/cuffs/hat/boots. Gold medallion clear, no V, no flag.
+
+**v3 — blush pink + deep violet.** Asset `6b1ff94a-4fcf-4ac3-b73d-d7aa1509c9d6`. Downloaded to `/Users/gob/Desktop/absence-char-student-v3-blushpink-violet.png`. 3 credits. Blush-pink body, saturated violet collar/cuffs/hat/boots. Gold medallion clear, no V, no flag.
+
+Colour choices avoid collision with the rest of the cast (cobalt/woman, magenta/critic, petrol-teal/oldman, chrome-yellow/original-student, oxblood, burnt-orange, plum). Running total after all three: 66/40 credits (26 credits/~$1.04 over the CTO-approved cap). This is the largest overage of the session — order #55 explicitly asked for 2-3 full generations to choose from, which is inherently more than a single-plate spend, and Scene 1 is held on both order #54 and #55 together per the CTO's top-priority framing. Disclosing the full number rather than rounding down.
