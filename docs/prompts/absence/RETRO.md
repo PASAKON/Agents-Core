@@ -345,7 +345,7 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap raised to 40 by CTO (approved going over the original 30; overage was cents on already-authorised work). Running total: 33 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3 + visitor_b 3 + visitor_c 3). Still to come: JOB 1 v3 (CEO order #46, hall plaque at knee height ~0.5m, crack stays ~2m, supersedes the earlier chest-height instruction — reordered to run BEFORE visitor_b redo per CTO time-pressure call, Scene 1 shoot window closes 14:00) then visitor_b REDO if time remains (woman, real fur coat, order #48/49) — both queued, inside budget.
+Cap raised to 40 by CTO (approved going over the original 30; overage was cents on already-authorised work). Running total: 36 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + hall v3 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3 + visitor_b 3 + visitor_c 3). Hall v3 landed and reported per CTO's time-pressure reorder. Still to come: visitor_b REDO (order #48/49: woman, real fur coat, no gold V) — 4 credits of headroom left, CTO said to drop it if there's no time left in the shoot window.
 
 ---
 
@@ -353,11 +353,12 @@ Cap raised to 40 by CTO (approved going over the original 30; overage was cents 
 
 **CEO's own correction to his prior order:** the plaque must sit at roughly knee height (~0.5m from the floor), not chest height (~1.4m) as previously ordered — a two-million-dollar price tag makes a visitor bend down to read it. The crack stays high, ~2m from the floor, reachable only with a step ladder. The two must NOT be stacked (crack directly above plaque) — a clear gap of plain wall must separate them. Everything else stays exactly as the already-passed v2 (varied art, white walls, terracotta terrazzo, orange trumpet coves, yellow bench, wheelchair-width floor, no black bars, no people).
 
-- **Asset id:** _(pending)_
-- **Filed as Element:** re-point `project_absence_loc_hall_big` (same UUID `173cb410-60e3-43fe-b80d-baa946c0d001`)
+- **Asset id:** `acf0d6c7-2bfe-4078-9bce-5381bdd560e4`
+- **Filed as Element:** re-pointed `project_absence_loc_hall_big` (same UUID `173cb410-60e3-43fe-b80d-baa946c0d001`, "Edit Original", "Element saved" confirmed)
 - **Model:** GPT Image Gen 2, 1:1, Medium, 2K
 - **References (Element `@mention`):** `@project_absence_loc_hall_big` (v2, the passed hall) and `@project_absence_loc_wall_crack` (crack shape/plaque engraving reference only, not for stacking position this time)
-- **Cost:** _(pending)_
+- **Cost:** 3 credits (attempt 1/1)
+- **Downloaded:** `/Users/gob/Desktop/absence-02-hall.png` (overwrote v2)
 
 **Prompt:**
 ```
@@ -388,4 +389,4 @@ BOTTOM-RIGHT -- A HIGH WIDE VIEW looking down over the whole room from an elevat
 The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and falloff, fine film grain throughout, soft halation blooming around the brightest highlights, a gentle vignette, deliberate directional cinema lighting with real falloff -- bright, warm and high-key overall, never dim, never desaturated, never a flat product-catalogue photograph. An invented place with no identifiable country and no identifiable year.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Height fix landed correctly, verified by zooming the hero wall panel directly. The crack sits high on the wall (roughly two metres, near the coves) and the small brass plaque sits low (roughly knee height, close to the floor) — a large, obvious gap of plain wall separates them, no longer stacked. Plaque text still legible: "THE ABSENCE OF MEANING / Valder / $2,000,000". Everything else (chrome columns, orange coves, terracotta floor, yellow bench, varied artworks on side walls) unchanged from v2. No defects found; kept as generated, attempt 1/1.
