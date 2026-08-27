@@ -663,3 +663,42 @@ Composer was missing/refusing `project_absence_loc_hall_big` and `project_absenc
 - **`project_absence_char_visitor_c_b`** — Category Character. Points at asset `5ade0802-43b0-453b-a2a6-fd588be77221` (the approved visitor_c). Verified via Element dialog: correct Element ID, Black man ~55, plum aubergine leather jacket, grey trousers, walking mid-stride, no gold V.
 
 Running credit total unchanged at 66/40.
+
+---
+
+## `project_absence_char_cleaner_c` — protagonist recast (CEO, three messages combined, third supersedes second on colour)
+
+The protagonist ("the cleaner") recast entirely: Indian man in his early thirties (was: sixties), short but ordinary proportions (not a dwarf), tan skin, sharp pointed nose, man's haircut, a distinctive full moustache with a real describable shape. Uniform recast from cobalt blue to WHITE with ORANGE trim matching the burnt-orange of `project_absence_prop_cart` exactly (the CEO first said pink, then explicitly cancelled pink in favour of cart-orange — no pink anywhere). Matching white-and-orange cap as part of the same uniform system. Gold V in TWO places (cap + chest, correct since he's staff). Folded grey cloth in hand, as before. Filed as a **NEW Element name**, `project_absence_char_cleaner_c` — the existing `project_absence_char_cleaner` (the 12:18 version) is explicitly kept untouched as a CEO-requested backup, NOT overwritten.
+
+- **Asset id:** `a021050e-78c7-42c2-8316-961d49e81982`
+- **Element:** created NEW `project_absence_char_cleaner_c` (Category Character) — via "Create Element" from the asset, not a re-point
+- **Cost:** 3 credits (GPT Image 2, Medium, 2K, 21:9) — running total now 69/40 credits (29 credits/~$1.16 over cap). Everything was explicitly stopped waiting on this single plate per the CEO's own framing ("Everything is stopped waiting on this"), so proceeding is cents-on-top-priority-work per the CTO's standing policy — flagging the number rather than hiding it, given it's now over $1 total for the session.
+- **Downloaded:** `/Users/gob/Desktop/absence-char-cleaner-c.png`
+- **Colour reference:** prompt used a live `@project_absence_prop_cart` Element mention (bound, verified via `data-beautiful-mention`) twice, once as a leading reference and once inline in the uniform description, so the model had the actual cart asset to match the orange against rather than a text description alone.
+
+**Prompt:**
+```
+@project_absence_prop_cart
+
+A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in a single wide horizontal strip, aspect ratio approximately 2.4:1, all four panels on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props beyond what the character carries, no text anywhere.
+
+The person: an Indian man, in his early thirties, short -- noticeably shorter than average but NOT a dwarf, ordinary proportions scaled to a small frame. Tan skin, not dark. A sharp, pointed nose. A man's haircut, short and neat. A distinctive moustache -- his single most memorable feature, with a real, describable shape (not generic stubble, not a thin pencil line): a full, neatly groomed moustache with a clear defined shape someone could describe from memory. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen. IMPORTANT: this is a completely invented, anonymous, generic face -- it must not resemble any real, famous, or public person in any way, no celebrity likeness, no impression of any well-known individual or actor, zero basis in any real photograph.
+
+Expression and bearing throughout: calm, tired, non-threatening -- never comic, never a caricature, never played for laughs.
+
+UNIFORM -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a WHITE mandarin-collar work uniform with ORANGE trim and piping along the collar, cuffs and front placket. The orange must exactly match the deep burnt-orange of the cart shown in @project_absence_prop_cart -- use that cart as the precise colour reference for the trim, they are one matching livery, his uniform and his trolley. NO pink anywhere on him or the uniform. A matching WHITE cap with the same ORANGE trim, styled as part of the same uniform system, not a separate or mismatched hat.
+
+GOLD V IN TWO PLACES: one small gold V pin on the front of the cap, and one small gold V on the chest of the uniform -- he is Valder staff, so both V marks are correct and intentional.
+
+IN HIS HAND: a folded grey cloth, carried as before.
+
+IMPORTANT -- this must be an entirely INVENTED, ORIGINAL garment design: not a recognisable designer piece, not a costume from any known film, franchise or science-fiction property. No brand marks, no logos, no monograms of any kind except the two gold V marks described above. No recognisable artwork anywhere in the frame. Plain seamless light-grey studio background only.
+
+BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary, any suit or suit jacket, any black clothing as a main garment colour, any pink anywhere, anything that reads as villainous, militaristic, comic or caricatured.
+
+The white-and-orange uniform, with its cap, must appear in ALL FOUR PANELS -- no panel shows him in a suit or any other clothing.
+
+Panel 1: full body, front view, standing calmly, holding the folded grey cloth. Panel 2: large close-up portrait, same invented anonymous face, moustache clearly visible and detailed, cap with its gold V visible, chest gold V visible. Panel 3: full body, side profile, same calm bearing. Panel 4: full body, seen entirely from behind -- same uniform, same cap, same build. Same person, same face, same uniform in every panel.
+```
+
+**What the image actually shows:** Strong pass, attempt 1/1. Four panels verified via full-size Open view: front (holding folded grey cloth), close-up (distinctive full moustache with clear shape, sharp nose, tan skin, gold V clearly visible on both cap AND chest), profile, back (uniform consistent). White uniform with orange piping matching the cart's burnt orange, no pink anywhere, cap reads as one uniform system not a separate hat. No safety-flag title on the asset card.
