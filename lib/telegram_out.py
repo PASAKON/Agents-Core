@@ -101,14 +101,29 @@ def _redact(text: str, token: str) -> str:
 def send_to_ceo(text: str) -> dict:
     """POST `text` to the CEO's Telegram chat. Returns
     {"ok": bool, "reason": str|None} -- `reason` is None only when `ok` is
-    True. Never raises."""
-    token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    if not token:
-        return {"ok": False, "reason": "TELEGRAM_BOT_TOKEN is not set"}
+    True. Never raises.
 
-    chat_id = os.environ.get("TELEGRAM_CEO_CHAT_ID")
+    Resolves the token/chat id the same way every other sender in this
+    module does (_resolve_env, process env first, claudeflow's SECRETARY_*
+    .env as the Mac-side fallback) -- this function used to read
+    os.environ.get("TELEGRAM_BOT_TOKEN") directly with no fallback, which
+    made it fail on the Mac even right after send_media_batch_to_ceo's own
+    Drive upload had just succeeded via that same fallback (task-80f1405e)."""
+    token = _resolve_env("TELEGRAM_BOT_TOKEN", "SECRETARY_BOT_TOKEN")
+    if not token:
+        return {
+            "ok": False,
+            "reason": "no bot token: set TELEGRAM_BOT_TOKEN, or claudeflow's "
+                       "SECRETARY_BOT_TOKEN",
+        }
+
+    chat_id = _resolve_env("TELEGRAM_CEO_CHAT_ID", "SECRETARY_ADMIN_CHAT_ID")
     if not chat_id:
-        return {"ok": False, "reason": "TELEGRAM_CEO_CHAT_ID is not set"}
+        return {
+            "ok": False,
+            "reason": "no chat id: set TELEGRAM_CEO_CHAT_ID, or claudeflow's "
+                       "SECRETARY_ADMIN_CHAT_ID",
+        }
 
     body = _truncate(text)
 
@@ -582,8 +597,14 @@ def _send_normal_batch(entries: list, token: str, chat_id: str, caption: str,
         results[idx] = _uploaded(path) if outcome["ok"] else _failed(path, outcome["reason"])
 
 
+# Explicit allow-list, not a deny-list -- adding a new failure-shaped status
+# later (as "linked_but_not_notified" was added here) can never silently
+# count as success by omission the way a deny-list would (task-80f1405e D2).
+_SUCCESS_STATUSES = ("uploaded", "linked")
+
+
 def _batch_result(results: list) -> dict:
-    ok = all(r["status"] in ("uploaded", "linked") for r in results)
+    ok = all(r["status"] in _SUCCESS_STATUSES for r in results)
     return {"ok": ok, "results": results}
 
 
@@ -607,13 +628,17 @@ def send_media_batch_to_ceo(paths: list[str], caption: str = "") -> dict:
         message naming the file, its real size, and the link, and saying
         it exceeded Telegram's 50 MB limit. This is the ONLY case that ever
         produces a link -- order #38 ("a send, not a link") still holds for
-        every file that fits.
+        every file that fits. If that notify send itself fails, the status
+        is "linked_but_not_notified", not "linked" -- the file reaching
+        Drive is not success when the CEO has no link, no message, and no
+        idea the file exists (task-80f1405e D2).
 
     Returns {"ok": bool, "results": [{"path", "status", "reason", "link"}]}
     in the same order as `paths` -- "ok" is True only when every file
-    uploaded or linked cleanly, so a partial batch is never reported as a
-    flat success. Each result's "status" is exactly one of "uploaded" /
-    "linked" / "failed". Never raises."""
+    uploaded or linked *and notified* cleanly, so a partial batch is never
+    reported as a flat success. Each result's "status" is exactly one of
+    "uploaded" / "linked" / "linked_but_not_notified" / "failed". Never
+    raises."""
     token = _resolve_env("TELEGRAM_BOT_TOKEN", "SECRETARY_BOT_TOKEN")
     if not token:
         reason = ("no bot token: set TELEGRAM_BOT_TOKEN, or claudeflow's "
@@ -650,10 +675,20 @@ def send_media_batch_to_ceo(paths: list[str], caption: str = "") -> dict:
             continue
         notice = _oversized_notice_text(file_path.name, size, drive["link"], caption)
         sent = send_to_ceo(notice)
-        reason = None if sent["ok"] else (
-            f"uploaded to Drive but could not notify the CEO: {sent['reason']}"
-        )
-        results[idx] = {"path": p, "status": "linked", "reason": reason, "link": drive["link"]}
+        if sent["ok"]:
+            results[idx] = {"path": p, "status": "linked", "reason": None, "link": drive["link"]}
+        else:
+            # The file really is on Drive, but the CEO was never told -- that
+            # is not a success (task-80f1405e D2, task-68be2c26 D4): a distinct
+            # status keeps _batch_result's "ok" from ever conflating the two,
+            # and a caller can tell "CEO has the link" from "file is on Drive
+            # but nobody was notified" by checking status, not by parsing reason.
+            results[idx] = {
+                "path": p,
+                "status": "linked_but_not_notified",
+                "reason": f"uploaded to Drive but could not notify the CEO: {sent['reason']}",
+                "link": drive["link"],
+            }
 
     if normal:
         identity_ok, identity_reason = _verify_bot_identity(token)

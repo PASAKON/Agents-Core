@@ -245,6 +245,43 @@ def test_short_message_is_sent_unmodified(env, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# send_to_ceo -- task-80f1405e D1/D3: must resolve the same claudeflow-.env
+# fallback the media paths already use, not read os.environ.get directly
+# with no fallback (the actual root cause of the live bug: the Drive-notify
+# text upload used the fallback and succeeded, the notify send did not and
+# failed, in the same call).
+# ---------------------------------------------------------------------------
+
+def test_send_to_ceo_resolves_fallback_token_without_env_var(monkeypatch, tmp_path):
+    """D3 bullet 3: send_to_ceo itself resolves the fallback token/chat id,
+    exercised without TELEGRAM_BOT_TOKEN/TELEGRAM_CEO_CHAT_ID in the env --
+    the real Mac shape."""
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    monkeypatch.delenv("TELEGRAM_CEO_CHAT_ID", raising=False)
+    fixture_env = tmp_path / "claudeflow.env"
+    fixture_env.write_text(f"SECRETARY_BOT_TOKEN={TOKEN}\nSECRETARY_ADMIN_CHAT_ID={CHAT_ID}\n")
+    monkeypatch.setenv("CLAUDEFLOW_ENV", str(fixture_env))
+
+    captured = {}
+
+    def fake_post(url, json=None, **kw):
+        captured["url"] = url
+        captured["chat_id"] = json["chat_id"]
+        return FakeResponse(200, {"ok": True})
+
+    monkeypatch.setattr(requests, "post", fake_post)
+
+    result = tg.send_to_ceo("hello")
+
+    assert result == {"ok": True, "reason": None}
+    assert captured["url"] == f"{tg.TELEGRAM_API_BASE}/bot{TOKEN}/sendMessage", (
+        "must use the resolved fallback token, not fail for lack of "
+        "TELEGRAM_BOT_TOKEN"
+    )
+    assert captured["chat_id"] == CHAT_ID
+
+
+# ---------------------------------------------------------------------------
 # send_media_to_ceo -- D2: dual-machine token/chat-id resolution
 # ---------------------------------------------------------------------------
 
@@ -783,6 +820,69 @@ def test_batch_drive_verify_miss_is_a_failure(env, monkeypatch, tmp_path):
     assert r["status"] == "failed"
     assert "not found in a fresh folder listing" in r["reason"]
     assert notices == [], "must never notify the CEO of a link that was never verified"
+
+
+def test_batch_oversized_notify_failure_makes_ok_false_and_status_says_not_notified(
+    env, monkeypatch, tmp_path
+):
+    """D2/D3 bullet 2: when the Drive-notify send fails for any reason, the
+    batch's overall "ok" must be False and the per-file status must say the
+    CEO was not notified -- a file that reached Drive is not a success when
+    the CEO has no link, no message, and no idea the file exists. This is
+    the exact live bug (task-80f1405e): the old code kept status "linked"
+    and "ok": True here."""
+    over = _make_sized_file(tmp_path / "huge.mp4", tg.MAX_MEDIA_BYTES + 1, head=MP4_HEAD)
+
+    drive_ns = _fake_drive_module(listing={"huge.mp4": tg.MAX_MEDIA_BYTES + 1})
+    monkeypatch.setattr(tg, "_video_to_drive", lambda: drive_ns)
+    monkeypatch.setattr(
+        tg, "send_to_ceo",
+        lambda text: {"ok": False, "reason": "TELEGRAM_BOT_TOKEN is not set"},
+    )
+
+    result = tg.send_media_batch_to_ceo([str(over)])
+
+    assert result["ok"] is False
+    r = result["results"][0]
+    assert r["status"] == "linked_but_not_notified"
+    assert "could not notify the CEO" in r["reason"]
+    assert r["link"] is not None, "the Drive link is still reported even though nobody was told"
+
+
+def test_batch_oversized_notify_falls_back_to_claudeflow_token_on_the_mac(monkeypatch, tmp_path):
+    """D3 bullet 1: with TELEGRAM_BOT_TOKEN absent but SECRETARY_BOT_TOKEN
+    present (the real Mac shape), the Drive-notify step (send_to_ceo,
+    exercised for real here, not mocked) still sends -- asserted on the
+    actual token/chat id used in the request, not just that some send
+    happened."""
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    monkeypatch.delenv("TELEGRAM_CEO_CHAT_ID", raising=False)
+    fixture_env = tmp_path / "claudeflow.env"
+    fixture_env.write_text(f"SECRETARY_BOT_TOKEN={TOKEN}\nSECRETARY_ADMIN_CHAT_ID={CHAT_ID}\n")
+    monkeypatch.setenv("CLAUDEFLOW_ENV", str(fixture_env))
+
+    over = _make_sized_file(tmp_path / "huge.mp4", tg.MAX_MEDIA_BYTES + 1, head=MP4_HEAD)
+    drive_ns = _fake_drive_module(listing={"huge.mp4": tg.MAX_MEDIA_BYTES + 1})
+    monkeypatch.setattr(tg, "_video_to_drive", lambda: drive_ns)
+
+    captured = {}
+
+    def fake_post(url, json=None, **kw):
+        captured["url"] = url
+        captured["chat_id"] = json["chat_id"]
+        return FakeResponse(200, {"ok": True})
+
+    monkeypatch.setattr(requests, "post", fake_post)
+
+    result = tg.send_media_batch_to_ceo([str(over)])
+
+    assert result["ok"] is True
+    assert result["results"][0]["status"] == "linked"
+    assert captured.get("url") == f"{tg.TELEGRAM_API_BASE}/bot{TOKEN}/sendMessage", (
+        "the notify send must actually go out using the resolved fallback "
+        "token, not silently fail for lack of TELEGRAM_BOT_TOKEN"
+    )
+    assert captured.get("chat_id") == CHAT_ID
 
 
 def test_batch_partial_failure_is_not_reported_as_flat_success(env, monkeypatch, tmp_path):
