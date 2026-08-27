@@ -289,8 +289,9 @@ Panel 1: full body, front view, in the action above. Panel 2: large close-up por
 
 ### 2.6 · `project_absence_char_visitor_b`
 
-- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_visitor_b`
-- **Cost:** _(pending)_
+- **Asset id:** `972c6a49-71c9-4fb2-94a0-1eed1c1bbbfe` · **Element:** re-pointed `project_absence_char_visitor_b` ("Element saved" confirmed, correct element verified via dialog-scoped text + Element ID input value before each destructive action)
+- **Cost:** 3 credits (attempt 1/1)
+- **Downloaded:** `/Users/gob/Desktop/absence-char-visitor_b.png`
 
 **Prompt:**
 ```
@@ -309,7 +310,7 @@ ACTION (panels 1 and 3): caught mid-step, walking casually, head turned toward w
 Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large close-up portrait, same ordinary, believable face, head turned. Panel 3: full body, side profile, same mid-step action. Panel 4: full body, seen entirely from behind -- same jacket, same colour, same long-limbed build. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Strong pass, attempt 1/1. Burnt orange rust straight-cut jacket, plain tan trousers, no hat, no gloves, no jewellery — deliberately unremarkable per brief. Mid-stride, head turned toward something off-frame — action reads correctly in panels 1/3. Real ordinary human face, comfortable/unstudied, not threatening. Panel 4 (behind) consistent jacket/colour/build. No defects found; kept as generated.
 
 ---
 
@@ -341,4 +342,4 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap raised to 40 by CTO (approved going over the original 30; overage was cents on already-authorised work). Running total: 27 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3).
+Cap raised to 40 by CTO (approved going over the original 30; overage was cents on already-authorised work). Running total: 30 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3 + visitor_b 3). Still to come: visitor_c, then JOB 1 v3 (CEO order #45, hall crack/plaque height fix) — both inside budget.
