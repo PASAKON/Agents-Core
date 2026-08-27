@@ -466,8 +466,9 @@ Higgsfield flagged both as PROTECTED CONTENT, refusing them as video-composer re
 
 ### `project_absence_char_cleaner` — anonymized face, uniform in all 4 panels
 
-- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_cleaner`
-- **Cost:** _(pending)_
+- **Asset id:** `732a5814-b428-43c2-9f07-d638c9cf0612` · **Element:** re-pointed `project_absence_char_cleaner` ("Element saved" confirmed; old version verified before overwrite — panels 2 and 4 really did show a business suit, matching the CTO's described defect)
+- **Cost:** 3 credits (attempt 1/1)
+- **Downloaded:** `/Users/gob/Desktop/absence-char-cleaner.png`
 
 **Prompt:**
 ```
@@ -486,7 +487,7 @@ ACTION (panels 1 and 3): standing attentively, calm and unhurried, holding the f
 Panel 1: full body, front view, in the action above, uniform and gold V visible. Panel 2: large close-up portrait, same invented anonymous face, same uniform collar. Panel 3: full body, side profile, same action, cloth visible. Panel 4: full body, seen entirely from behind -- same uniform, same colour, same build. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Strong pass, attempt 1/1. Cobalt-blue mandarin-collar uniform worn identically in ALL FOUR panels this time — no business suit anywhere, the prior defect is fixed. Brass buttons, black belt, black shoes, gold V clearly visible on the chest, folded grey cloth held in both hands. Real elderly human face (reads closer to 70s than the "sixties" spec, a soft miss, not blocking), generic/anonymous, no obvious celebrity resemblance. Panel 4 consistent from behind. Not yet re-tested against the protected-content flag (that check is Higgsfield's own scanner on the video composer, not something verifiable from the image side) — flagging for the CTO/other operator to re-attempt as a reference.
 
 ---
 
