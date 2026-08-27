@@ -142,15 +142,15 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | S1 | Dupe cleans, greets, nobody answers. Title drop. | 20s | ✅ 2 takes — `5ea44262` `c8e60256` |
 | S2 | **The accident.** Dupe knocks the frame into the wall, takes the painting away. | 20s | 🎬 **FIRED** asset `56ace68c-ffd0-47ec-a7f6-d24bf523496a` · Unlimited struck 140→0 · 3/3 refs bound · rendering |
 | S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | 🔄 `task-a13469e9` |
-| S4 | **$2,000,000** — wall POV. 6 people, ordinary clothes. | 15s | ⬜ |
-| S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | ⬜ |
+| S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 📝 prompt written — [s4-s5.txt](s4-s5.txt) |
+| S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
 | S6 | **$20,000,000** — wall POV. 10–20 people, personal guards. | 15s | ⬜ |
 | S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | ⬜ |
 | S8 | **Valder's five pieces**, one at a time. He cannot see the crack. | 25s | ⬜ plates |
 | S9 | Dupe hears Valder's voice from the next room. Sweat. | 15s | ⬜ |
 | S10 | **The parrot woman arrives** with the crocodile bag. Rivalry. | 20s | ⬜ |
 | S11 | **$100,000,000** — wall POV. Press, live broadcast, helicopter. | 15s | ⬜ |
-| S12 | **The grandmother** wheels in and takes it. The room freezes. | 25s | 🔄 plate `task-f4320f9e` |
+| S12 | **The grandmother** wheels in and takes it. The room freezes. | 25s | ✅ plate `5dd23a87` — wheels pass all 4 panels · ⚠️ gloves came out black, re-shoot queued behind S3 |
 | S13 | **Valder improvises** the sixth story. He believes it. | 25s | ⬜ |
 | S14 | **The workman arrives with plaster.** Valder screams. | 20s | ⬜ |
 | S15 | **Dupe confesses.** "I cracked it. Last hour." Absorbed. | 25s | ⬜ |
