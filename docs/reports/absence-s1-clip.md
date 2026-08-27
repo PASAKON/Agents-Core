@@ -102,3 +102,30 @@ head-on, crowd-less close on the cleaner instead. Structure (7 shots/6 hard
 cuts), the crack, the plaque, and the argument beats are all otherwise
 correct. Recommend the CTO decide whether these are worth a regenerate
 before building on this take.
+
+## JOB 4 — backup take fired (in-flight)
+
+Used **Recreate** on the take-1 card (never Rerun) — button read bare
+"Recreate", confirmed by zoom before clicking. It loaded the composer with
+the identical prompt, Seedance 2.5 / 16:9 / 720p / 20s / High / Sound On, and
+40 bound `[data-beautiful-mention]` references (matching the original,
+prompt unchanged).
+
+**Money check caught a real risk:** the Generate button first read
+`440` (struck through) `130` (live, NOT struck through) — the fresh tab had
+cold-loaded with Unlimited off (expected: new tabs always do). Per the
+task's explicit rule, stopped and did not click. One ref-based `find()`
+click on the Unlimited toggle flipped it to `data-state="on"`; button then
+read `UNLIMITED` / `440` (struck through) / `0` — the safe pattern —
+zoom-verified before touching Generate.
+
+Clicked Generate via a fresh `find()`-sourced ref. "All assets" count went
+330 → 331 immediately. New asset id:
+
+- **`923f3228-bb6d-434e-996a-f5ba0dd6adbe`** — `status: null` (in-flight, not
+  failed/NSFW), kind not yet classified. Committing this now, before any
+  wait, per the exact lesson this task itself was created to teach.
+
+Fired during a late-evening local window — expect 40–60 min, possibly more;
+not cancelling before 90 min. Will download to
+`/Users/gob/Desktop/absence-s1-take2.mp4` once it lands.
