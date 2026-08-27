@@ -164,11 +164,13 @@ Far beyond it, small at the end of a very long hall, the group at the bare wall 
 SHOT 7 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big_d. Static, level, low. **In the foreground at the right edge of frame stands @project_absence_char_cleaner_c beside @project_absence_prop_cart**, in three-quarter view, the framed painting still leaning against the cart facing outward so we see it clearly. He has stopped. Both hands rest on the cart's chrome rail.
+@project_absence_loc_hall_big_d. Static, level, low, shot from BEHIND AND BESIDE the cleaner.
 
-Behind him and much further away, the seven of them stand in front of the bare wall, all backs, all facing away, a small knot of colour in an enormous empty room. **He is looking at them.**
+**THE CLEANER IS NOT IN THE CENTRE OF FRAME AND HE IS NOT FACING THE CAMERA.** He stands **hard against the RIGHT EDGE of the frame**, cut off by it, seen from **behind and slightly to his left, over his shoulder** — we see the back of his cap, the back of his white uniform, and the side of his face in profile. **His back is to the camera.** @project_absence_prop_cart is beside him with the framed painting still leaning against it, facing outward so we see it clearly. Both hands rest on the cart's chrome rail. He has stopped walking.
 
-**HIS FACE DOES NOT CHANGE. HE DOES NOT MOVE AND HE DOES NOT SPEAK.** He does not step toward the crowd. Nobody in the group turns around. Nobody looks at him or at the painting on his cart.
+**THE LEFT TWO-THIRDS OF THE FRAME IS THE HALL RUNNING AWAY FROM HIM, AND THE SEVEN OTHER PEOPLE MUST BE VISIBLE IN IT.** Small, far away at the end, standing together in front of the bare white wall, all with their backs to camera. **BOTH THE CLEANER AND THE GROUP ARE IN THIS ONE SHOT AT THE SAME TIME. Do not cut to him alone. Do not empty the hall behind him.** The whole point of the frame is that we see the man who caused it and the people worshipping it in a single image, at opposite ends of a very long room.
+
+**HIS FACE DOES NOT CHANGE. HE DOES NOT MOVE AND HE DOES NOT SPEAK.** He does not step toward them. Nobody in the group turns around. Nobody looks at him or at the painting on his cart.
 
 Hold, completely still, until the clip ends.
 
