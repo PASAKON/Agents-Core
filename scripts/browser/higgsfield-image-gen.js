@@ -509,4 +509,110 @@
  *     explicit OBSOLETE/current status column, and proactively flagging via
  *     dev_message when the new scope's credit math lands at or near the
  *     task's hard cap, before spending into it.
+ *
+ * Wave 9 (task-d988c30c, 2026-08-27/28): 3 character plates (redesigned art
+ * student, museum exterior location, parrot-redesigned woman) + 1 Element-only
+ * filing job (Valder, from a pre-existing asset, 0 credits) in "The Valder
+ * Collection No.7". 3 generations, 7.5 credits total, all first-attempt, none
+ * flagged.
+ *   - NEW FINDING -- the screenshot-px-to-CSS-px ratio is NOT a fixed
+ *     constant and must be recomputed every time the window/viewport changes.
+ *     Measured 1456/1024=1.4219 early in this run, then 1374/1024=1.3418
+ *     after a Chrome restart -- window dimensions differ per launch even at
+ *     the "same" resize_window request. A card click computed from a stale
+ *     ratio landed on the WRONG card (opened a neighboring asset's preview
+ *     instead of the intended one) more than once this run. Fix: read
+ *     `window.innerWidth` fresh and compute `screenshotWidth/innerWidth`
+ *     immediately before converting any CSS rect to a click coordinate --
+ *     never reuse a ratio from earlier in the same session.
+ *   - NEW FINDING -- `?preview=<asset-id>` is NOT a valid deep link. A full
+ *     `navigate()` to that URL, and even a same-tab `history.pushState` +
+ *     `popstate` dispatch while the SPA was already loaded, both got silently
+ *     stripped back to the bare project URL with no dialog opening. The
+ *     preview param is a RESULT of an in-app card click, not an input the
+ *     router accepts. Always locate the actual card in the DOM
+ *     (`[data-asset-id="..."]`) and click it for real.
+ *   - NEW FINDING -- filing an Element from an asset that ISN'T freshly
+ *     generated (i.e. hunting an old asset in "All assets" to build an
+ *     Element from it, per a CEO instruction to reuse instead of
+ *     regenerate) is far more expensive than filing one just generated,
+ *     because the target card is deep in a large virtualized grid with no
+ *     reliable search-by-id. Approaches that did NOT work: the account's
+ *     `/fnf/jobs` API only ever returns ~5 recent items regardless of
+ *     `limit=100` or a `folder_id=` query param -- it is a recent-activity
+ *     feed, not a paginated listing endpoint, don't rely on it for
+ *     enumeration. The "Downloaded" and "Date range" activity/type filters in
+ *     the Filter dropdown DID work for narrowing the visible set (down to
+ *     ~18-45 items, fully rendered, no further virtualization) but the
+ *     target asset wasn't in either filtered set this run for reasons not
+ *     fully understood (possibly filter semantics not matching the raw
+ *     `created_at`/download-event timestamp). What DID work: real
+ *     `computer` scroll actions (mouse-wheel, not JS `scrollTop` assignment)
+ *     repeated in a `browser_batch` of 5-10 at a time, checking
+ *     `document.querySelectorAll('[data-asset-id]')` for the target id
+ *     between batches -- this is genuinely brute-force but reliable, since
+ *     the grid is virtualized and a JS-only `scrollTop` change does NOT
+ *     reliably trigger the pagination/mount cycle the way a real wheel event
+ *     does.
+ *   - NEW FINDING -- once the target card is found and hovered (via
+ *     synthetic `pointerover`/`mouseover`/`pointerenter`/`mouseenter`/
+ *     `mousemove` PointerEvents dispatched in sequence -- a REAL hover isn't
+ *     needed for this, only the icon-reveal state, which responds fine to
+ *     synthetic events since it's not money-committing), its own "..." menu
+ *     (bottom-right of the 5-icon hover stack: heart/download/copy/expand/
+ *     more) contains **Create Element** directly -- this is faster and more
+ *     reliable than the documented "click card -> ?preview=<uuid> modal ->
+ *     ... -> Create Element" path from earlier waves, since it skips the
+ *     preview-modal step entirely (which, per this wave's finding above, no
+ *     longer opens reliably via any tested method). Confirmed working 3/3
+ *     times this run (once per plate).
+ *   - NEW FINDING -- the "New element" dialog, when opened via a card's own
+ *     "Create Element" menu item, arrives PRE-POPULATED with that exact
+ *     asset image already attached (visible as a thumbnail in the dropzone
+ *     immediately, no upload needed). This is the correct path when the
+ *     task says "file an Element from this existing asset, don't
+ *     regenerate" -- the alternative "Add new" button in the Elements panel
+ *     opens the SAME dialog but with an EMPTY dropzone requiring a local
+ *     file upload via `file_upload`, which the harness restricts to
+ *     session-shared paths (`~/Downloads` and `~/Desktop` were both
+ *     rejected this run: "only files this session is allowed to read can be
+ *     uploaded"). Don't fight the upload restriction -- use the card menu's
+ *     pre-populated path instead, it requires no file access at all.
+ *   - NEW FINDING -- the Category dropdown inside "New element" needs its
+ *     OPTION clicked at the SAME coordinate the dropdown itself was opened
+ *     with the FIRST time reliably, but a stale reference to an ALREADY-
+ *     rendered-but-closed dropdown's option coordinates can silently
+ *     re-open the dropdown instead of selecting (happened twice this run --
+ *     the fix was to click the Category button again fresh, screenshot,
+ *     THEN click the visible option, rather than assuming a remembered
+ *     coordinate from a prior dialog instance still applies).
+ *   - NEW FINDING -- when you already have the completed job's direct
+ *     CloudFront asset URL (from the `results.raw.url` field via
+ *     `GET /fnf/jobs/{id}`), a plain `curl` download straight to the target
+ *     Desktop path is faster and more reliable than fighting the in-page
+ *     hover-icon download button or the detail-modal Download button --
+ *     zero browser interaction needed, and it's the exact same file
+ *     (verified via `file` command reporting correct PNG dimensions
+ *     matching the composer's resolution setting). Use this whenever the
+ *     task's Desktop-path download requirement doesn't require the file to
+ *     have passed through Higgsfield's own "mark as downloaded" tracking.
+ *   - NEW FINDING -- the page's JS execution can freeze mid-session on this
+ *     heavy "All assets" view (300+ mixed image/video assets): two
+ *     consecutive `javascript_tool` calls timed out at 45s with "renderer
+ *     may be frozen or unresponsive," even a brand-new tab in the same
+ *     Chrome process froze the same way seconds after loading. A full
+ *     `osascript -e 'quit app "Google Chrome"'` + `open -a "Google Chrome"`
+ *     resolved it -- the extension took ~10-15s to reconnect after relaunch
+ *     (`tabs_context_mcp` returned "not connected" for the first couple of
+ *     retries, then recovered on its own with no other action needed).
+ *     Escalation order confirmed once again: reload -> new tab -> quit+
+ *     reopen Chrome, exactly per the skill's documented ladder, and each
+ *     step really was necessary this time (reload alone and one fresh tab
+ *     both still froze).
+ *   - Per the "any tool error/timeout -> check Usage/job status first" hard
+ *     rule: both freezes this run were checked against the jobs API
+ *     immediately after recovery, and both times confirmed zero unexpected
+ *     side effects (no new job fired, same top job as before the freeze) --
+ *     the freezes were purely a rendering/JS-engine issue, not caused by
+ *     and not causing any generation activity.
  */
