@@ -230,3 +230,61 @@ including the close-up. No gold V or staff insignia anywhere. Warm amber
 lighting and a polished dark-wood floor give a reasonable hit on the warm
 grade, though it leans warm throughout rather than showing a strong
 warm/cold split — a minor grade miss, not a content defect. No hard defects.
+
+---
+
+## 8 · `project_absence_char_gentleman` — GPT Image 2 (task-5a3d259c)
+
+**The English gentleman and his two bodyguards** — a retry; an earlier attempt
+was lost to a site-side failure with no credits spent.
+
+- **Asset id:** `c39351d3-8f95-46fd-8f30-7bd291a1bb98` (from the downloaded
+  filename `hf_20260827_230139_c39351d3-...png`; the browser's
+  `?preview=9a178c24-f785-4b66-9a4f-2e21bc60e103` URL param again did not
+  match — same "preview param ≠ real asset id" pattern as plate 7)
+- **Filed as Element:** `project_absence_char_gentleman`, category Character,
+  display name "Gentleman"
+- **Model:** GPT Image 2, 16:9, Medium, 2K
+- **References attached:** `@project_absence_char_cleaner` (Dupe the cleaner),
+  1/1, bound (lime/green mention chip confirmed via
+  `data-beautiful-mention`) — explicitly scoped in the prompt text to NOSE
+  SHAPE ONLY, with an explicit instruction not to copy ethnicity/skin
+  tone/age/build
+- **Cost:** 2.5 credits (paid balance 1,676 → ~1,673 estimated; not
+  individually re-read between plates 2 and 3 this session)
+- **Downloaded to:** Google Drive `Sorry, Sir/Element/absence-char-gentleman.png`
+
+**Prompt (accepted, first attempt):**
+```
+@project_absence_char_cleaner -- reference for NOSE SHAPE ONLY: match the sharp, distinctly pointed nose shape shown in the reference image exactly. Do not copy anything else from the reference -- not his ethnicity, skin tone, age, build, or any other facial feature. The man in THIS image is a completely different person: an elderly, pale, English gentleman.
+
+A two-panel character sheet, THREE PEOPLE together in every panel, the same three exact people and faces in both panels, plain neutral studio-adjacent setting, full attention on the figures, no clutter.
+
+THE MAIN FIGURE, centre: an elderly English gentleman of enormous wealth. Short and slight -- a small, compact build, older and smaller than an ordinary short adult man. A sharp, distinctly pointed nose (matching the referenced nose shape exactly) is his single most identifying facial feature. He is English, not South Asian or any other ethnicity -- pale, weathered English skin, wispy white or grey hair. A beautifully cut white English gentleman's suit, immaculate Savile Row tailoring, crisp white shirt, formal tie, every seam precise. A black cane with a gold grip in one hand. A large diamond ring on one finger, cut to flare in the light. He is smiling warmly and the smile clearly shows TWO GOLD-CAPPED TEETH -- his single most important feature, and it must read with total, unmistakable clarity in every panel where his face is visible. No gold V mark anywhere on him -- he is a visitor, not staff.
+
+TWO BODYGUARDS stand behind him and slightly to either side, both in sleek, slightly futuristic-cut BLACK SUITS -- tailored and modern, not tactical gear, no visible weapons or gear harnesses. One bodyguard is a Black man, completely bald. The other is a white Englishman. Both are large, physically imposing, calm and entirely professional -- upright, still, attentive. Neither reads as threatening or villainous; both read as protective professionals.
+
+Panel 1 (full body, front view): all three figures together, the gentleman centred and slightly forward, a bodyguard standing behind each shoulder.
+
+Panel 2 (large close-up on the gentleman's face alone, filling the panel): his warm smile fully visible, both gold-capped teeth reading with complete clarity, the sharp pointed nose clearly shown, real aged skin texture, no beauty-filter smoothing.
+
+Warm bright light. Warm shadow, cold white grade: amber-orange highlights and mids, whites pushed slightly cool, shadows never pure black but deep red-brown, halation around every lamp, saturation high in flat planes but never touching skin. Photographed, not rendered: fine film grain, halation, slight colour fringing. No HDR, no CGI sheen, no doll faces, no beauty filter. Invented anonymous faces resembling no real, famous or public person. Our own invented design -- no logos, no recognisable designer pieces, nothing post-1970 in the cut. 2K, filling the frame, no black bars.
+```
+
+**What the image actually shows:** Panel 1 — three figures together exactly
+as briefed: the gentleman in an immaculate cream/white three-piece suit,
+white tie, holding a black cane with a visible gold knob grip and a
+gold/diamond ring on the cane hand, flanked by two black-suited bodyguards
+(one bald Black man on the left, one white Englishman with close-cropped hair
+on the right), both calm and professional, hands clasped, not menacing. Panel
+2 — a large close-up: warm genuine smile, sharp pointed nose (the Dupe
+reference clearly influenced the nose shape without importing his ethnicity
+or build — he reads unmistakably English, pale, elderly), real skin texture
+throughout. **Honest flaw on the single most important feature:** at full
+resolution, two teeth on one side of the smile read as unmistakably solid
+gold, but a couple of teeth on the other side of the smile also carry a
+yellow-gold tint rather than pure white — the "TWO gold-capped teeth among
+otherwise normal teeth" contrast is a little softer than the brief's precise
+ask. Flagged to the CTO/CEO in the delivery message rather than unilaterally
+spending a retry; filed and downloaded as directed pending their call on
+whether it needs a regen.
