@@ -659,6 +659,34 @@ that says "zero digits anywhere" will stop a correct operator dead; one that say
 "any number means stop" is worse, because it trains the operator to ignore the
 real signal. Write the table.
 
+### SEEDANCE 2.5 TAKES UP TO 50 REFERENCES. Not 9. Design scenes accordingly.
+
+CEO, 2026-08-27: **"Higgsfield ได้มากสุด 50 REF"** — and he had said it before,
+which means a CTO planned around a nine-element ceiling that does not exist and
+wrote weaker scenes because of it.
+
+**The ceiling for Seedance 2.5 is 50 references.** Any earlier note in this org
+claiming nine is wrong. Do not ration references.
+
+#### What this unlocks — one reference per person
+
+With 50 slots, **every character who does anything gets their own individual
+plate.** No group plates for anyone who acts.
+
+That is not a nicety, it is the difference between directing and hoping. A group
+plate of eight people cannot be directed: write "one of them raises a hand
+toward the wall" and the model has no idea which one, so it invents. With one
+plate per person you write `@char_critic raises a hand toward the wall while
+@char_student shakes her head` and both land.
+
+CEO's rule, verbatim: **"REF ที่ดี ต้องมี 1 REF / 1 คน / 1 ภาพ"** — one
+reference, one person, one image. **"แม้แต่ตัวประกอบ ก็ต้องมี REF"** — even the
+extras.
+
+Group plates still have one honest use: an undifferentiated mass in the deep
+background that performs no action. The moment a body needs to do something
+specific, it needs its own plate.
+
 ### THE EASY WAY TO ATTACH A REFERENCE: DRAG THE ASSET IN, THEN USE @Image1 / @Image2
 
 **Read this before doing anything with Elements.** It is simpler than everything
