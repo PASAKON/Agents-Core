@@ -50,17 +50,15 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 THE MAN CROSSING THE ROOM (no reference image — build him entirely from this description). **A BLACK MAN** of about fifty-five, solidly built, with short greying hair and a calm, unremarkable, slightly weary face. He wears a **plum-aubergine leather jacket with a plain mandarin collar, zipped**, over grey trousers and brown shoes. **No gold V, no brooch, no jewellery.** **HIS ACTION: walks briskly straight ahead, mid-stride, and looks at nothing at all.** HE IS ONE PERSON.
 
---- THE MASS THAT ARRIVES LATER. Background only. These groups never act individually. ---
+--- THERE IS NO CROWD. THE CAST IS EIGHT PEOPLE AND THAT IS EVERYONE. ---
 
-@project_valder_char_crowd_a — eight well-dressed visitors, each in one deeply saturated colour, each carrying a fashion object.
-@project_valder_char_crowd_b — eight visitors of slightly lower rank, saturated coats with busy patterned shirts showing at every cuff.
-@project_valder_char_tea_circle — four women who move as a single unit, each in one deeply saturated colour with a large cream shawl collar.
+**THIS HALL CONTAINS EIGHT PEOPLE IN TOTAL AND NOT ONE MORE.** The cleaner, the critic, the elderly gentleman, the woman, the student, and the three visitors. **NOBODY ELSE EXISTS IN THIS BUILDING.** Do not add extras, do not add a crowd, do not fill the background with figures, do not put anyone in the far distance. When the group at the wall grows, it grows because these same named people move closer together and turn toward it — not because new bodies arrive. If a shot looks empty, leave it empty: an almost-empty gallery is the correct image, because the joke is that a handful of people can price a crack at two million dollars.
 
 ================================================================
 WHAT THIS SCENE IS DOING
 ================================================================
 
-This is the opening of the film, and the film is told through THE CLEANER.
+This is the opening of the film, and the film is told through THE CLEANER. **THE ENTIRE CAST IS EIGHT PEOPLE. There is no crowd anywhere in this film.**
 
 **IT OPENS ON HIM AND IT ENDS ON HIM.** In between, a crowd is born in front of a wall he damaged by accident. He is the only person in the building who knows what the crack really is. He never says so. That silence is the film.
 
@@ -68,7 +66,7 @@ The scene has three movements:
 
 **ONE — THE MAN WHO KNOWS.** The hall is empty. The cleaner walks the length of it pushing his cart, and on the cart is the painting that used to hang on the hero wall, taken down and carried away by him. **The crack is in the middle of that wall, in the exact space the painting covered — which is why the painting is gone. He took it down to get at the damage, and the brass price plaque stayed where it was.** He passes the bare wall with its crack and its plaque. **He does not look at it.** He keeps walking.
 
-**TWO — THE CROWD IS BORN.** Two people stop at the bare wall. Then four. They begin to argue about it, completely seriously. Then more drift in, one at a time and then in twos and threes. Nobody is summoned and nobody hurries. They arrive, join the back, and start looking at whatever the others are looking at.
+**TWO — SEVEN PEOPLE DECIDE IT IS ART.** Two stop at the bare wall. Then four. They begin to argue about it, completely seriously. The two or three who were looking at the real paintings drift over and join them. **That is the entire audience: seven people.** Nobody is summoned, nobody hurries, and nobody else comes, because there is nobody else. The absurdity is not that a mob formed — it is that this many people, and only this many, is enough.
 
 **THREE — HE WATCHES AND SAYS NOTHING.** The last shot returns to the cleaner at the edge of the room, his cart beside him, the real painting still leaning against it, watching a crowd worship the damage he caused. He does not step forward. He does not speak. Hold on that.
 
@@ -146,9 +144,9 @@ SHOT 5 — 3 seconds
 
 @project_absence_loc_hall_big_c. The same three-quarter angle on the group as shot 3.
 
-**The group has grown.** The four are still arguing. **@project_valder_char_tea_circle have arrived and joined the back**, standing slightly apart, watching the argument rather than the wall. @project_absence_char_critic_b half-turns to include them without stopping talking.
+**The group has tightened.** The four are still arguing and have drawn closer to one another. @project_absence_char_visitor_a has left the painting he was studying and drifted over to stand at the edge of them, not speaking, just watching. **That is five people. There is nobody else near them.**
 
-In the far background, **@project_absence_char_visitor_b walks slowly along the side wall, head turned toward the pictures**, going the other way.
+Far down the hall, **@project_absence_char_visitor_b walks slowly along the side wall, head turned toward the pictures**, going the other way, alone.
 
 === HARD CUT ===
 
@@ -158,7 +156,7 @@ SHOT 6 — 3 seconds
 
 @project_absence_loc_hall_big_c. Wide, static, level, from further back down the hall. The long yellow bench and yellow swivel chair sit in the foreground on their patterned rug. **THE BENCH IS COMPLETELY EMPTY** — not one person is sitting on it.
 
-Beyond it, the group at the bare wall is now **twelve or fifteen people** — @project_valder_char_crowd_a and @project_valder_char_crowd_b mixed in, loose and scattered, all facing away from camera. **People are still arriving**, two more walking in from the side of frame and joining the back without a word. Near the front an arm is still raised toward the wall.
+Far beyond it, small at the end of a very long hall, the group at the bare wall is now **all seven of the visitors**, loose and scattered, all facing away from camera. **That is everyone in the building and it is a small group in a very large room.** Near the front an arm is still raised toward the wall. **The hall around them is otherwise completely empty.**
 
 === HARD CUT ===
 
@@ -168,9 +166,9 @@ SHOT 7 — 3 seconds
 
 @project_absence_loc_hall_big_c. Static, level, low. **In the foreground at the right edge of frame stands @project_absence_char_cleaner_c beside @project_absence_prop_cart**, in three-quarter view, the framed painting still leaning against the cart facing outward so we see it clearly. He has stopped. Both hands rest on the cart's chrome rail.
 
-Behind him and much further away, the crowd is packed in front of the bare wall, all backs, all facing away. **He is looking at them.**
+Behind him and much further away, the seven of them stand in front of the bare wall, all backs, all facing away, a small knot of colour in an enormous empty room. **He is looking at them.**
 
-**HIS FACE DOES NOT CHANGE. HE DOES NOT MOVE AND HE DOES NOT SPEAK.** He does not step toward the crowd. Nobody in the crowd turns around. Nobody looks at him or at the painting on his cart.
+**HIS FACE DOES NOT CHANGE. HE DOES NOT MOVE AND HE DOES NOT SPEAK.** He does not step toward the crowd. Nobody in the group turns around. Nobody looks at him or at the painting on his cart.
 
 Hold, completely still, until the clip ends.
 
@@ -186,4 +184,4 @@ NO MUSIC OF ANY KIND. No score, no underscore, no drone, no strings, no piano, n
 NEGATIVE
 ================================================================
 
-no intelligible dialogue, no clear speech, no voiceover, no narration, no subtitles, no captions, no on-screen text, no readable text anywhere except the brass plaque, no wall labels, no signage, no timecode, no watermark, no date stamp, no logos of real brands, no music, no score, no underscore, no riser, no sting, no whoosh, no press photographer, no camera flash, no flashbulb, no journalists, no microphones, no cleaner in a suit, no cleaner in a tie, no cleaner in business clothing, no cleaner without his cap, no pink on the cleaner, no cobalt uniform, no cleaner looking at the cracked wall, no cleaner speaking, no cleaner smiling, no painting hanging on the hero wall, no duplicate characters, no twins, no repeated faces, no cloned people, no screens, no LEDs, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no crowd in formation, no rows, no ranks, no lines of people, no marching, no people moving in step, no anyone facing camera together, no anyone looking at the camera, no smiling, no laughing, no grimacing, no weeping, no shouting, no comic expressions, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no dirt, no grime, no dust, no squalor, no torn clothing, no green skin, no grey skin, no waxy skin, no gaunt faces, no horror imagery, no rain, no fog, no night, no darkness, no dim moody lighting, no brown murky colour grade, no large crack, no wall-spanning crack, no rubble on the floor, no structural damage, no ultramarine walls, no blue walls, no fountain, no wooden floor, no high-mounted plaque, no crack near the ceiling, no crack at the top of the wall, no crack off to one side, no plaque above knee height, no plaque at chest height, no plaque at eye level, no plaque directly beneath the crack, no gold V on any visitor, no V pin on the critic, no V brooch on the woman, no V on the student
+no intelligible dialogue, no clear speech, no voiceover, no narration, no subtitles, no captions, no on-screen text, no readable text anywhere except the brass plaque, no wall labels, no signage, no timecode, no watermark, no date stamp, no logos of real brands, no music, no score, no underscore, no riser, no sting, no whoosh, no press photographer, no camera flash, no flashbulb, no journalists, no microphones, no cleaner in a suit, no cleaner in a tie, no cleaner in business clothing, no cleaner without his cap, no pink on the cleaner, no cobalt uniform, no cleaner looking at the cracked wall, no cleaner speaking, no cleaner smiling, no painting hanging on the hero wall, no duplicate characters, no twins, no repeated faces, no cloned people, no screens, no LEDs, no digital displays, no digital numerals, no cables, no modern technology, no smartphones, no crowd, no extras, no background figures, no additional people, no more than eight people in any shot, no crowd in formation, no rows, no ranks, no lines of people, no marching, no people moving in step, no anyone facing camera together, no anyone looking at the camera, no smiling, no laughing, no grimacing, no weeping, no shouting, no comic expressions, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no dirt, no grime, no dust, no squalor, no torn clothing, no green skin, no grey skin, no waxy skin, no gaunt faces, no horror imagery, no rain, no fog, no night, no darkness, no dim moody lighting, no brown murky colour grade, no large crack, no wall-spanning crack, no rubble on the floor, no structural damage, no ultramarine walls, no blue walls, no fountain, no wooden floor, no high-mounted plaque, no crack near the ceiling, no crack at the top of the wall, no crack off to one side, no plaque above knee height, no plaque at chest height, no plaque at eye level, no plaque directly beneath the crack, no gold V on any visitor, no V pin on the critic, no V brooch on the woman, no V on the student
