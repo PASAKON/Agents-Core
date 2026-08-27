@@ -87,16 +87,43 @@ produces false alarms: on 2026-08-13 it read 339.2 credits / $13.568 against
 a 21.8 / $0.872 baseline confirmed the day before — a 15x jump that looked
 alarming and was entirely benign.
 
-**Unlimited covers IMAGES too — corrected 2026-08-19.** The older claim here was
-that Unlimited applied to Seedance video only and that every reference plate was
-a paid image create. That is wrong: with Unlimited active, an image generate
-shows the `UNLIMITED` button with no price and costs nothing, confirmed from the
-live composer. Do not tell an operator to expect a charge on plates.
+## UNLIMITED COVERS SEEDANCE 2.5 VIDEO ONLY. IMAGES ALWAYS COST CREDITS.
 
-When Unlimited is genuinely unavailable and the CEO authorises paying, the cheap
-fallback is **GPT Image 2 at 1K + Medium ≈ 2 credits per image** — measured
-2026-08-19 at exactly 16 credits for 8 images. 2K + High costs materially more,
-so name 1K/Medium explicitly in the brief or the operator uses composer defaults.
+**CEO, 2026-08-27, stated directly: "เรา Unlimited แค่ 2.5 Seedance"** — our
+Unlimited applies to Seedance 2.5 and nothing else, and it has an end date he
+has already given. **GPT Image 2 is NOT Unlimited and never was.**
+
+This section previously claimed the opposite ("Unlimited covers IMAGES too —
+corrected 2026-08-19… do not tell an operator to expect a charge on plates").
+**That was wrong and it cost real time.** On 2026-08-27 an operator read it,
+went looking for an Unlimited toggle beside GPT Image 2, found the paid
+*upsell* control that sits there, saw it open a $30 purchase page, and
+correctly refused to buy — then stalled for eight minutes filing a blocker
+against a system that was working perfectly. The whole detour came from this
+file.
+
+| What | Covered by Unlimited? | Real cost |
+|---|---|---|
+| **Seedance 2.5 video** | **YES** | 0 — button reads `UNLIMITED`, price struck to 0 |
+| **GPT Image 2** (every plate) | **NO** | ~3 credits at 2K/Medium, ~2 at 1K/Medium |
+| Any other model | NO | metered |
+
+Two consequences an operator must internalise:
+
+- **On a VIDEO generate, any live number at all means STOP.** The only safe
+  reading is struck-through-then-zero.
+- **On an IMAGE generate, a small live number is CORRECT, not a fault.** About
+  3 credits is what a plate costs and what every plate in this production has
+  cost. An operator that halts on it is halting on normal operation.
+
+**There is an "Unlimited mode" control next to GPT Image 2. It is a paid
+upsell, not our subscription. Never click it.** It is not the toggle the rest
+of this skill is about; that one lives on the Seedance 2.5 composer.
+
+Give image tasks an explicit credit budget in the brief (e.g. "12 credits =
+four attempts") so the operator knows a charge is expected and knows the
+ceiling. Name 1K/Medium explicitly if cost matters, or the composer defaults
+to something dearer.
 
 Known price points (CEO, 2026-08-13):
 
