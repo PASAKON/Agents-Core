@@ -288,3 +288,41 @@ otherwise normal teeth" contrast is a little softer than the brief's precise
 ask. Flagged to the CTO/CEO in the delivery message rather than unilaterally
 spending a retry; filed and downloaded as directed pending their call on
 whether it needs a regen.
+
+---
+
+## 9 · `project_absence_prop_croc_bag` — GPT Image 2 (task-5a3d259c)
+
+**The crocodile bag** — the auction scene cuts to her hand tightening on this
+bag as the price climbs; the only object the woman's hand needs to survive a
+close-up on.
+
+- **Asset id:** `effd6bd4-beed-4558-a9d3-bd107ab42bec` (from the downloaded
+  filename `hf_20260827_233718_effd6bd4-...png`; the `?preview=a75c6ad4-...`
+  URL param again did not match — same recurring pattern as plates 7 and 8)
+- **Filed as Element:** `project_absence_prop_croc_bag`, category Prop,
+  display name "Croc Bag"
+- **Model:** GPT Image 2, 4:3, Medium, 2K
+- **References attached:** `@project_absence_loc_hall_big_d`, 1/1, bound
+  (lime/green mention chip confirmed via `data-beautiful-mention`)
+- **Cost:** 2.5 credits
+- **Downloaded to:** Google Drive `Sorry, Sir/Element/absence-prop-croc-bag.png`
+
+**Prompt (accepted, first attempt):**
+```
+@project_absence_loc_hall_big_d -- reference for the SAME gallery room: match its light, floor material and colour temperature exactly, so this object looks photographed inside that exact space.
+
+A single prop, no people anywhere in frame: a genuine crocodile-skin handbag, structured and formal, in a rich saturated colour (deep burgundy). Real crocodile scale pattern, correct natural scale size and irregular grain, fully legible in close-up -- individual scales, their natural sheen, and slight texture variation must be clearly visible. A heavy, substantial metal clasp closes the bag, catching the light. No logo, no brand mark, no visible label of any kind anywhere on the bag.
+
+Photographed alone on a surface within the referenced gallery hall, its polished floor and warm directional light visible around it, matching the reference room exactly so it reads as sitting in that same space.
+
+Warm bright light. Warm shadow, cold white grade: amber-orange highlights and mids, whites pushed slightly cool, shadows never pure black but deep red-brown, halation around every lamp, saturation high in flat planes but never touching the bag's surface texture. Photographed, not rendered: fine film grain, halation, slight colour fringing. No HDR, no CGI sheen. Our own invented design -- no logos, no recognisable designer pieces, nothing post-1970 in the cut. 2K, filling the frame, no black bars.
+```
+
+**What the image actually shows:** A clean hit on first attempt. Deep
+burgundy/oxblood crocodile-skin bag, structured top-handle silhouette, a
+heavy gold-toned metal clasp catching the light, real irregular scale grain
+clearly legible edge to edge. No logo or brand mark anywhere. Sitting on the
+hall's own polished terracotta-toned floor with chromium columns visible
+softly out of focus behind it, matching the referenced room's warm light and
+colour temperature. No hard defects.
