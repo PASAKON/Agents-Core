@@ -77,6 +77,36 @@ Prompt used (both `@` tags auto-resolved to reference chips on paste, confirmed 
 > and background as the original reference photo. Do not add, remove, or
 > alter any person.
 
-## Remaining (in progress at time of writing)
+## Job 2, Route A — single-guard 4-panel plate
 
-- Single-guard 4-panel plate → `project_absence_char_guard_valder_single`.
+| Field | Value |
+|---|---|
+| Element name | Guard Redressed Single |
+| Element ID | `project_absence_char_guard_valder_single` |
+| Asset ID | `59cd4a02-946b-40cf-a1ac-2eb0f24a187f` |
+| References | `@project_absence_char_guard_valder_six` only (isolates the tallest/thinnest guard, far left of that plate) |
+| Model | GPT Image 2, 1K, Medium |
+| Cost | 1.5 credits (attempt 1 of 1 — succeeded first try) |
+| Result | 4 panels — front, close-up, three-quarter profile, back — same identity/build as the far-left guard in the six-plate, identical uniform (gold V chest+cap, gold buttons/piping, black belt) |
+| File written | `docs/plates-props/project_absence_char_guard_valder_single.png` (repo copy) + `/Users/gob/Desktop/absence-guard-valder-single.png` (task-specified path) |
+
+Prompt used:
+> Using @project_absence_char_guard_valder_six as the reference: isolate the
+> guard standing on the far left of that photo, the tallest and thinnest of
+> the six, and render him alone in four separate panels arranged in a row:
+> front view, a close-up of his face and chest, a three-quarter profile view,
+> and a back view.
+>
+> Same face, same build, and the same uniform exactly as shown in the
+> reference: deep navy uniform with a standing mandarin collar, gold buttons
+> down the front, gold piping on the cuffs and trouser side-seam, black
+> leather belt with a gold buckle, a clearly visible GOLD V on the chest, and
+> a matching gold V on the front of his cap.
+>
+> Plain neutral studio background, consistent even lighting across all four
+> panels, no other people in frame.
+
+## Total spend
+
+1.5 + 1.5 + 1.5 = **4.5 credits**, 3 attempts, 3 plates, zero failed
+generations (each succeeded on attempt 1/1). Well under the 12-credit budget.
