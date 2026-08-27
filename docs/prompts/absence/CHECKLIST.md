@@ -45,7 +45,7 @@ Read at the start of every session, and before every report to the CEO.
 
 | # | What | Needed for |
 |---|---|---|
-| 15 | `char_guard_private` — personal bodyguard | $20M tier |
+| 15 | `char_guard_private` — personal bodyguard. **CEO: black IS allowed for guards** | $20M tier |
 | 16 | `char_guard_valder` — Valder's own guards, multiplying as the price rises | $20M tier |
 | 17 | `char_press` — journalists | $100M tier |
 | 18 | Helicopter — decide: part of the exterior plate, or its own | $100M tier |
@@ -58,6 +58,16 @@ Read at the start of every session, and before every report to the CEO.
 | 20 | `char_cleaner_rich` — a good suit that finally fits |
 | 21 | `loc_mansion` — **furnished by someone else, nothing in it is his**, his old cart in one corner as the only thing that is |
 | 22 | `prop_camera_rig` — retrofuturist interview camera, nothing digital |
+
+**Valder's five pieces** — full spec in [VALDER.md](VALDER.md)
+
+| # | What | Element |
+|---|---|---|
+| 15a | The chair — "in the room where the armistice was signed. Not at the table." | `prop_valder_chair` |
+| 15b | The hanging fish trap — "caught nothing for forty years" | `prop_valder_trap` |
+| 15c | The millstone ring — "somebody stood it upright and it stopped being a tool" | `prop_valder_millstone` |
+| 15d | The lidded vessel — "seventeen made, he destroyed sixteen" | `prop_valder_vessel` |
+| 15e | The painting — "painted in one afternoon to test a colour" | `prop_valder_study` |
 
 **Scenes**
 
@@ -96,9 +106,10 @@ Same frame every time. Only what is inside it changes.
 
 | # | Question |
 |---|---|
-| A | **What is `char_woman` for now?** Her line went to `visitor_b`. She stands still, hand at her mouth, and says nothing. |
-| B | **How do the guards dress?** The film's rule is nobody wears black, but black is the universal bodyguard language. Which wins? |
-| C | **Who is Valder as a person?** The look is locked. Age, manner, whether he speaks at all — not decided. |
+| A | **What is `char_woman` for now?** Her line went to `visitor_b`. She stands still, hand at her mouth, and says nothing. — **CEO: decide later** |
+| B | ~~How do the guards dress?~~ — **ANSWERED: black is allowed for guards** |
+| C | ~~Who is Valder as a person?~~ — **ANSWERED, see [VALDER.md](VALDER.md).** Deadpan permanent smile, stands perfectly straight, speaks a lot in Phase 2. |
+| E | **Valder's sixth line** — the improvised story of the crack. The pivot of the film. Five rehearsal stories are written; this one is the CEO's. |
 | D | Scene numbering — the sheet's 15-scene table predates the rewrite and no longer matches what is being shot. |
 
 ---
