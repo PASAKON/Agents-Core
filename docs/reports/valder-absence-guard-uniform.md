@@ -49,9 +49,34 @@ Prompt used:
 > stitching, collar, buttons, fastenings, and the gold V. No background
 > clutter.
 
+## Job 2, Route A — six-guard redress
+
+| Field | Value |
+|---|---|
+| Element name | Guards Redressed Six |
+| Element ID | `project_absence_char_guard_valder_six` |
+| Asset ID | `db69589e-1c4a-4800-8723-0dde14ab28bb` |
+| References | `@project_valder_char_guard` (original 6-guard plate) + `@project_absence_prop_guard_uniform` (uniform study), both auto-resolved from plain-text `@` mentions in the pasted prompt |
+| Model | GPT Image 2, 1K, Medium |
+| Cost | 1.5 credits (attempt 1 of 1 — succeeded first try) |
+| Result | Same six faces, builds, heights, poses, and framing as the original; uniform swapped to the study's navy uniform with gold V on chest and cap, gold buttons, black belt |
+| File written | `docs/plates-props/project_absence_char_guard_valder_six.png` (repo copy) + `/Users/gob/Desktop/absence-guard-valder-six.png` (task-specified path) |
+
+Prompt used (both `@` tags auto-resolved to reference chips on paste, confirmed by checking tag color/chip before Generate — not left as red text):
+> Using @project_valder_char_guard as the reference for the six guards' faces,
+> body types, poses, and framing, and @project_absence_prop_guard_uniform as
+> the reference for the uniform garment: redress all six guards in the exact
+> uniform shown in the uniform reference. Deep navy blue uniform body,
+> standing mandarin collar, gold buttons down the front, gold piping on the
+> cuffs and trouser side-seam, black leather belt with a gold buckle, and a
+> clearly visible GOLD V centered on the chest of each guard's uniform. If a
+> guard wears a cap, add a small matching gold V on the front of the cap too.
+>
+> Change ONLY the clothing. Keep the same six faces, the same six body types
+> and heights, the same poses, and the same framing, composition, lighting,
+> and background as the original reference photo. Do not add, remove, or
+> alter any person.
+
 ## Remaining (in progress at time of writing)
 
-- Re-dress the 6-guard plate using `project_valder_char_guard` + this uniform
-  study as two references, changing clothing only → deliver
-  `project_absence_char_guard_valder_six`.
 - Single-guard 4-panel plate → `project_absence_char_guard_valder_single`.
