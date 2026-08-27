@@ -345,4 +345,47 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap raised to 40 by CTO (approved going over the original 30; overage was cents on already-authorised work). Running total: 33 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3 + visitor_b 3 + visitor_c 3). Still to come: visitor_b REDO (CTO-ordered: woman, real fur coat, order #48/49) + JOB 1 v3 (CEO order #46, hall plaque at knee height ~0.5m, supersedes chest-height) — both queued, inside budget.
+Cap raised to 40 by CTO (approved going over the original 30; overage was cents on already-authorised work). Running total: 33 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3 + visitor_b 3 + visitor_c 3). Still to come: JOB 1 v3 (CEO order #46, hall plaque at knee height ~0.5m, crack stays ~2m, supersedes the earlier chest-height instruction — reordered to run BEFORE visitor_b redo per CTO time-pressure call, Scene 1 shoot window closes 14:00) then visitor_b REDO if time remains (woman, real fur coat, order #48/49) — both queued, inside budget.
+
+---
+
+## JOB 1 v3 · Hall fix (CEO order #46) — plaque dropped to knee height
+
+**CEO's own correction to his prior order:** the plaque must sit at roughly knee height (~0.5m from the floor), not chest height (~1.4m) as previously ordered — a two-million-dollar price tag makes a visitor bend down to read it. The crack stays high, ~2m from the floor, reachable only with a step ladder. The two must NOT be stacked (crack directly above plaque) — a clear gap of plain wall must separate them. Everything else stays exactly as the already-passed v2 (varied art, white walls, terracotta terrazzo, orange trumpet coves, yellow bench, wheelchair-width floor, no black bars, no people).
+
+- **Asset id:** _(pending)_
+- **Filed as Element:** re-point `project_absence_loc_hall_big` (same UUID `173cb410-60e3-43fe-b80d-baa946c0d001`)
+- **Model:** GPT Image Gen 2, 1:1, Medium, 2K
+- **References (Element `@mention`):** `@project_absence_loc_hall_big` (v2, the passed hall) and `@project_absence_loc_wall_crack` (crack shape/plaque engraving reference only, not for stacking position this time)
+- **Cost:** _(pending)_
+
+**Prompt:**
+```
+@project_absence_loc_hall_big @project_absence_loc_wall_crack
+
+The room shown in @project_absence_loc_hall_big is the correct room, exactly as it already is -- KEEP EVERYTHING: the chrome trumpet-flared columns, the hot-orange-lit coves, the polished dark terracotta-red terrazzo floor, the yellow bench on the blue-and-black rug, the starburst and boomerang-shaped objects at the perimeter, and the varied real artworks (abstract, figurative, sculptural) already hanging on both long side walls.
+
+ONE change only, on the hero wall (top-left panel), correcting the heights of its two objects:
+
+The crack and the plaque are at VERY DIFFERENT HEIGHTS and must NOT be stacked on top of each other -- there is a large, obvious gap of plain wall between them, not a tight pairing.
+
+- THE CRACK sits HIGH on the wall, at roughly two metres from the floor -- high enough that only someone with a step ladder could have caused it. One small star-shaped crack, small and unremarkable, the kind of accidental damage a maintenance worker with a ladder makes, not large, not structural, no rubble, no crumbling. Shown in @project_absence_loc_wall_crack for its exact shape.
+
+- THE PLAQUE sits LOW on the wall, at roughly knee height, about half a metre from the floor -- level with where a standing adult's knee would be, clearly much nearer the floor than the crack, in the lower portion of the wall. The small engraved brass plaque, two visible screws, reads exactly three lines: 'THE ABSENCE OF MEANING' then 'Valder' then '$2,000,000', spelled correctly.
+
+Nothing else about the hero wall changes: still the same plain white hanging wall, still photographed straight-on at eye level, camera perfectly level, no tilt, no dutch angle, still with the same quiet open floor in front of it.
+
+ONE IMAGE, perfectly SQUARE 1:1, divided into FOUR PANELS arranged in a 2x2 GRID, each panel a different camera position inside this exact same hall -- same floor, same ceiling, same lighting, only the camera moves. The four panels fill the frame completely edge to edge, touching each other with no gap, no black bars, no border, no margin anywhere. No people in any panel.
+
+TOP-LEFT -- THE HERO WALL as described above, crack high near two metres, plaque low near half a metre, a clear gap of plain wall between them.
+
+TOP-RIGHT -- LEFT SIDE of the same hall, looking down the long room toward a genuinely distant far wall, showing the varied real artworks hung along the wall among the retrofuturist columns, coves and sculptural objects.
+
+BOTTOM-LEFT -- RIGHT SIDE of the same hall, including the yellow bench on its blue-and-black rug, varied artworks on the wall, and, further along, one distinctive single seat set slightly apart with a clear sightline back to the hero wall -- this is Valder's own seat, visually distinct from any other furniture in the room.
+
+BOTTOM-RIGHT -- A HIGH WIDE VIEW looking down over the whole room from an elevated angle so the floor plan reads at once: the hero wall with its crack and plaque, the entrance, the flat unobstructed wheelchair route between them, the bench, the varied artworks on the walls, and Valder's seat, all visible together.
+
+The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and falloff, fine film grain throughout, soft halation blooming around the brightest highlights, a gentle vignette, deliberate directional cinema lighting with real falloff -- bright, warm and high-key overall, never dim, never desaturated, never a flat product-catalogue photograph. An invented place with no identifiable country and no identifiable year.
+```
+
+**What the image actually shows:** _(pending)_
