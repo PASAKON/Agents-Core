@@ -46,7 +46,7 @@ Read at the start of every session, and before every report to the CEO.
 | # | What | Needed for |
 |---|---|---|
 | 15 | `char_guard_private` — personal bodyguard. **CEO: black IS allowed for guards** | $20M tier |
-| 16 | `char_guard_valder` — Valder's own guards, multiplying as the price rises | $20M tier |
+| 16 | ~~`char_guard_valder`~~ → **IN FLIGHT `task-962ebf8d`.** CEO: reuse the existing blue 6-guard plate **if it already has the gold V** — check first, generate nothing if so. If no V: generate the UNIFORM alone, then re-dress the existing six so faces stay varied and the uniform stays identical. Single plate first, six-guard plate second. | $20M tier |
 | 17 | `char_press` — journalists | $100M tier |
 | 18 | Helicopter — decide: part of the exterior plate, or its own | $100M tier |
 | 19 | `char_visitor_c` — **currently has NO reference image**, content-flagged, prose-only | face consistency across scenes |
