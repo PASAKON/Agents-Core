@@ -17,6 +17,7 @@ NOT duplicated here, it's pulled from the registry at decoration time.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sys
 
@@ -26,6 +27,7 @@ from mcp.server.fastmcp import FastMCP
 
 from lib import db
 from lib import org_tools_registry as reg
+from lib import telegram_out
 from lib.logger import get_logger
 # Re-exported for scripts/test_org_tools_registry.py and
 # scripts/test_owner_cto_routing.py, which patch/call these directly as
@@ -153,6 +155,29 @@ def send_to_cxo(role: str, message: str, spawn: bool = False) -> str:
 def report_to_ceo(order_id: int, status: str, detail: str) -> str:
     return reg.dispatch_sync("report_to_ceo", order_id=order_id,
                              status=status, detail=detail)
+
+
+@mcp.tool()
+def send_media_to_ceo(path: str, caption: str = "") -> str:
+    """Upload a photo, video, or other file to the CEO's real Telegram chat
+    as an actual file — never a link (task-ed9e5b9a, CEO order #38).
+
+    Picks sendPhoto/sendVideo/sendDocument by probing the file's real
+    content, not its extension. Verifies the bot is @SSomPongBot before
+    sending — a wrong token still comes back "ok": true from Telegram while
+    the message never reaches the CEO (2026-08-16 incident). Files over
+    Telegram's 50 MB cap are refused outright, never sent as a link.
+
+    Not wired through org_tools_registry — this tool has no cross-CTO
+    ownership concern, so it calls lib/telegram_out.py directly.
+
+    Returns a JSON string: {"ok": bool, "reason": str|None}.
+    """
+    try:
+        result = telegram_out.send_media_to_ceo(path, caption=caption)
+    except Exception as e:  # thin wrapper contract: never raise
+        result = {"ok": False, "reason": f"unexpected error: {e}"}
+    return json.dumps(result)
 
 
 if __name__ == "__main__":
