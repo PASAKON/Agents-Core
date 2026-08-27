@@ -516,3 +516,31 @@ Panel 1: full body, front view, in the action above. Panel 2: large close-up por
 ```
 
 **What the image actually shows:** Strong pass, attempt 1/1. Four panels verified: front (raised open hand, mid-sentence), close-up portrait (gold signet ring + gold bracelet visible, cream suede glove), profile (same gesture), back view (same coat length/collar/colour/build). Matte petrol-teal coat, mid-calf (not floor-length), stiff standing collar reading as invented tailoring rather than any nameable sci-fi uniform, no brand marks/logos/monograms, no gold V anywhere on the garment. Face is a new invented anonymous man — swept-back steel-grey hair, different nose/jaw/hairline/eye-spacing from the rejected v1/v2 — reads as an ordinary severe-but-non-threatening face, not a celebrity likeness. No safety-flag title on the asset card. Not yet re-tested against Higgsfield's own protected-content scanner (that check only runs when the other operator stages this as a reference on the video composer) — flagging for the CTO to confirm the flag has cleared before Scene 1 references it.
+
+---
+
+### `project_absence_char_woman` v2 — gold V removed, anti-flag treatment (CEO order #53)
+
+- **Asset id:** `3054ae95-a8e1-40a6-addc-0d6579bdea89` · **Element:** re-pointed existing `project_absence_char_woman`
+- **Cost:** 3 credits (GPT Image 2, Medium, 2K, 21:9) — running total now 48/40 credits (8 credits/~32 cents over cap). Order #53 is the CEO's own explicit call to move all three visitor-V removals before Scene 1 rather than after, so this spend is cents on already-authorised top-priority work; disclosing and continuing per the CTO's standing policy, no pause.
+
+**Prompt:**
+```
+A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in a single wide horizontal strip, aspect ratio approximately 2.4:1, all four panels on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props beyond what the character carries, no text anywhere.
+
+The person: a woman, about fifty years old, slim build, dark hair worn in a high chignon. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen. IMPORTANT: this is a completely invented, anonymous, generic face -- it must not resemble any real, famous, or public person in any way, no celebrity likeness, no impression of any well-known individual or actress, zero basis in any real photograph. An ordinary face nobody would recognise, with its own distinct nose shape, jawline, hairline and eye spacing.
+
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a glossy electric cobalt-blue leather suit with a high funnel collar, fitted jacket, and an A-line skirt to mid-calf. Long cobalt-blue leather gloves reaching past the elbow. Black cat-eye sunglasses worn indoors. Gold dome earrings. Low cobalt-blue heels.
+
+IMPORTANT -- this must be an entirely INVENTED, ORIGINAL garment design: not a recognisable designer piece, not a costume from any known film, franchise or science-fiction property. No brand marks, no logos, no monograms of any kind. No recognisable artwork anywhere in the frame. Plain seamless light-grey studio background only.
+
+She wears NO gold V of any kind anywhere -- not at the collar, not as a brooch, not on a glove, nothing on the chest. She is a visitor, not Valder staff, and the V mark belongs to staff only.
+
+BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary. Also banned: black clothing as the main garment colour, anything that reads as villainous, militaristic or sinister, any gold V or staff mark of any kind, any recognisable designer garment or film/franchise costume, any brand mark or logo.
+
+ACTION (panels 1 and 3): standing completely still, one gloved hand raised to her mouth, absorbed in thought, not smiling, not distressed -- quiet concentration.
+
+Panel 1: full body, front view, in the action above. Panel 2: large close-up portrait, same invented anonymous face, same sunglasses, same funnel collar, gold dome earring visible, no V. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same suit, same skirt length, same colour, same build. Same person, same face, same clothes in every panel.
+```
+
+**What the image actually shows:** Strong pass, attempt 1/1. Four panels verified: front, close-up (cat-eye sunglasses, gloved hand raised to mouth, gold dome earring, high chignon), profile, back (same suit/skirt length/colour/build). Glossy cobalt-blue leather suit, high funnel collar, no gold V anywhere on garment or as a brooch. Face largely obscured by sunglasses in front/profile panels (consistent with the "worn indoors" spec) — chin/mouth area visible in close-up reads as an ordinary anonymous face, not a celebrity likeness. No safety-flag title on the asset card.
