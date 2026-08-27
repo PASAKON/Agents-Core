@@ -24,7 +24,11 @@ Read at the start of every session, and before every report to the CEO.
 | 7 | Skill fixed: Unlimited = Seedance video only, never images | commit `a5f966d` |
 | 8 | Skill: a bound reference keeps the OLD asset when its Element is re-pointed | commit `1b54e9c` |
 | 9 | **Museum exterior** — trumpet columns + terracotta terrazzo continuous with the interior, gold V, revolving door, wheelchair ramp, open sky. CTO-approved 03:32, sent to CEO | `loc_exterior` |
-| 10 | **Parrot woman** — cockatoo crest, wing-shoulders, feather-cut panelling, single cobalt, no beak/wings/feathers, not comic. CTO-approved 03:32, sent to CEO | `char_woman_b` |
+| 11 | **Wall POV v2** — no hole, ghosted wall, **crack dead centre and floating**, plaque low with **mirror-reversed text**, six facing camera. CTO-approved 04:00, sent to CEO. *Minor: plaque lettering is reversed but garbled — flagged, not rejected* | `loc_wall_pov_b` |
+| 12 | **Art student redesign** — real art-student clothes, dyed hair, upright | `char_student_c` |
+| 13 | **Valder Element** filed from the existing 18 Aug asset, 0 credits | `char_valder` |
+| 14 | **Valder's guards** — six, identical uniform, gold V on chest and cap. CTO-approved 04:00, sent to CEO | `char_guard_valder` |
+| 10x | **Parrot woman** — cockatoo crest, wing-shoulders, feather-cut panelling, single cobalt, no beak/wings/feathers, not comic. CTO-approved 03:32, sent to CEO | `char_woman_b` |
 
 ---
 
@@ -34,9 +38,6 @@ Read at the start of every session, and before every report to the CEO.
 |---|---|---|---|
 | 9 | **S1 v1 — Dupe cleaning, silent.** Fired, asset `5ea44262`, rendering | — | done |
 | 9b | **S1 v2 — Dupe cleaning WITH his five polite lines**, none of them answered. Title drop: "Sorry, sir." | — | `task-7dcf64d3` |
-| 10 | **Wall POV v2** — ghosted wall · **crack DEAD CENTRE and the hero of the frame** · all six focused on it · plaque low and **MIRROR-REVERSED** · no hole | `loc_wall_pov_b` | `task-fe200749` |
-| 11 | **Art student redesign** — real art-student clothes, **dyed hair in an odd colour**, upright not hunched | `char_student_c` | `task-d988c30c` |
-| 14 | **Valder Element** from the existing 18 Aug asset `6edafc56` — no generation, no cost | `char_valder` | `task-d988c30c` |
 
 ---
 
@@ -47,7 +48,7 @@ Read at the start of every session, and before every report to the CEO.
 | # | What | Needed for |
 |---|---|---|
 | 15 | `char_guard_private` — personal bodyguard. **CEO: black IS allowed for guards** | $20M tier |
-| 16 | ~~`char_guard_valder`~~ → **IN FLIGHT `task-962ebf8d`.** CEO: reuse the existing blue 6-guard plate **if it already has the gold V** — check first, generate nothing if so. If no V: generate the UNIFORM alone, then re-dress the existing six so faces stay varied and the uniform stays identical. Single plate first, six-guard plate second. | $20M tier |
+| 16 | **`char_guard_valder` — DONE.** Uniform identical across all six, gold V on chest and cap, black only on belts and shoes, real range of builds. Route A worked: uniform study first, then re-dressed the existing six.  ~~original brief:~~ CEO: reuse the existing blue 6-guard plate **if it already has the gold V** — check first, generate nothing if so. If no V: generate the UNIFORM alone, then re-dress the existing six so faces stay varied and the uniform stays identical. Single plate first, six-guard plate second. | $20M tier |
 | 17 | `char_press` — journalists | $100M tier |
 | 18 | Helicopter — decide: part of the exterior plate, or its own | $100M tier |
 | 19 | `char_visitor_c` — **currently has NO reference image**, content-flagged, prose-only | face consistency across scenes |
