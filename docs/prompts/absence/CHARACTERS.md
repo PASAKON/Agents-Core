@@ -185,3 +185,74 @@ action (mid-interjection, one finger jabbing downward) reads only
 partially** — her arm is extended and her hand is pointing, but the gesture
 reads more as reaching/pointing forward than a sharp downward jab. Not a hard
 failure; kept on first generation, flagged for the CEO.
+
+---
+
+## THE THREE EXTRAS — deliberately ordinary, per CEO spec
+
+The following three are the people who look at the real art properly. Per the
+CEO's 07:52 spec change they carry **no signature, no memorable silhouette** —
+deliberately unremarkable so the four at the wall stand out against them.
+
+---
+
+## 5 · `project_absence_char_visitor_a` — the quiet man studying
+
+- **Element:** `project_absence_char_visitor_a`, category Character, name "visitor_a"
+- **Model:** GPT Image 2, 21:9, Medium, 1K
+- **References:** none (first appearance)
+- **Cost:** 2 credits (1,813 → 1,811)
+- **Signature:** deliberately none — plain moderately-saturated slate-grey suit,
+  ordinary proportions.
+
+**Prompt:**
+```
+A wide horizontal character reference sheet, aspect ratio roughly 2.4:1, four panels arranged side by side on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props, no text. The same quiet middle-aged man, same face, same clothes, in every panel: plainly and well dressed, an ordinary gallery visitor with no distinguishing feature -- a simple, moderately saturated slate-grey suit, single flat plane of colour, retrofuturist mid-century cut, ordinary proportions, no hat, no glasses, nothing carried, nothing unusual about his silhouette. He is deliberately unremarkable: well dressed and believable, nothing the eye catches on, someone you would not pick out of a crowd. Real human skin with natural texture, a real ordinary face with real bone structure, no pale waxy stylised skin, no doll face, no airbrushed beauty-filter look, no CGI sheen.
+
+Panel 1 (far left): full body, front view, standing squarely and still, hands clasped behind his back, genuinely studying something off-frame, unhurried and calm.
+Panel 2: large close-up portrait, head and shoulders only, a calm, attentive expression, quietly absorbed, unremarkable and ordinary.
+Panel 3: full body, side profile, standing still, same hands-clasped-behind-back posture, same unhurried attentiveness.
+Panel 4: full body, viewed from directly behind, hands still clasped behind his back, an ordinary, unremarkable standing posture with nothing distinctive about his silhouette.
+
+Photographed like a real fashion/character turnaround reference sheet: crisp, clean, accurate colour rendition, flat even studio light throughout, no vignette, no film grain, no dramatic cinema lighting.
+```
+
+**What the image actually shows:** Clean, strong result — exactly on brief.
+**Panel 1's characteristic action reads perfectly**: standing squarely, hands
+clasped behind his back, calm and unhurried. The plain slate-grey suit and
+ordinary bone structure read as genuinely unremarkable — nothing the eye
+catches on, per spec. Panel 4 (directly behind) shows the same clasped-hands
+posture; he is not meant to be "identifiable" by a signature (the extras
+carry none by design), but the pose is at least consistent and legible from
+behind. No flaws worth flagging; kept on first generation.
+
+---
+
+## 6 · `project_absence_char_visitor_b` — the woman browsing the wall
+
+- **Element:** `project_absence_char_visitor_b`, category Character, name "visitor_b"
+- **Model:** GPT Image 2, 21:9, Medium, 1K
+- **References:** none (first appearance)
+- **Cost:** 2 credits (1,811 → 1,809)
+- **Signature:** deliberately none — plain moderately-saturated tan-ochre coat,
+  ordinary proportions.
+
+**Prompt:**
+```
+A wide horizontal character reference sheet, aspect ratio roughly 2.4:1, four panels arranged side by side on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props, no text. The same woman, same face, same clothes, in every panel: an ordinary gallery visitor with no distinguishing feature -- a moderately saturated soft tan-ochre coat, single flat plane of colour, retrofuturist mid-century cut, ordinary proportions, no hat, no glasses, nothing carried, nothing unusual about her silhouette. She is deliberately unremarkable: well dressed and believable, nothing the eye catches on, someone you would not pick out of a crowd. Real human skin with natural texture, a real ordinary face with real bone structure, no pale waxy stylised skin, no doll face, no airbrushed beauty-filter look, no CGI sheen.
+
+Panel 1 (far left): full body, front-ish view, caught mid-step walking slowly along a wall of pictures, head turned to one side toward something off-frame, moving at an unhurried browsing pace.
+Panel 2: large close-up portrait, head and shoulders only, a mild, interested expression, quietly looking at something, ordinary and unremarkable.
+Panel 3: full body, side profile, continuing the same slow mid-step walking pose, head turned toward the wall.
+Panel 4: full body, viewed from directly behind, an ordinary, unremarkable walking posture with nothing distinctive about her silhouette.
+
+Photographed like a real fashion/character turnaround reference sheet: crisp, clean, accurate colour rendition, flat even studio light throughout, no vignette, no film grain, no dramatic cinema lighting.
+```
+
+**What the image actually shows:** Strong, on-brief result. **Panel 1's
+characteristic action reads clearly**: caught mid-step walking, head turned
+toward the wall at a relaxed browsing pace. Portrait carries a mild,
+interested expression exactly as asked. Tan-ochre coat is a single flat
+saturated plane, appropriately less visually loud than any of the four who
+argue. Panel 4 (directly behind) shows a plain, unremarkable walking posture
+— correctly forgettable. No flaws worth flagging; kept on first generation.
