@@ -292,6 +292,151 @@ flagging; kept on first generation.
 
 ---
 
+## 8 · `project_absence_char_student_c` — the art student, REDESIGNED
+
+CEO rejection of the original `project_absence_char_student` read (retrofuturist
+pillbox hat + leather suit, hunched forward). New name — original kept, not
+overwritten, per instruction.
+
+- **Element:** `project_absence_char_student_c`, category Character, name "student_c"
+- **Asset id:** `94355cca-52d8-4813-bab5-fd089d6558ba`
+- **Model:** GPT Image 2, Auto aspect (resolved to 1:1 square, 2x2 grid layout —
+  no aspect specified in this brief, unlike the original 7's 21:9 four-across
+  strip), Medium, 2K
+- **References:** none (pure text redescription, no image binding to the old
+  element)
+- **Cost:** 2.5 credits
+- **Hair colour chosen:** acid chartreuse (bright yellow-green) — checked
+  against the excluded list (cobalt, magenta, bottle green, oxblood, burnt
+  orange, plum, white-and-orange); chartreuse is distinct from all seven.
+
+**Prompt:**
+```
+CHARACTER SHEET — invented anonymous young woman, art student, no resemblance to any real or public person. Four panels on a plain neutral grey seamless studio backdrop, softbox photographic lighting, shot on a full-frame camera — photographed, not illustrated or rendered.
+
+WHO: approximately twenty-two years old, slight/slender build, short curly dark hair now dyed a striking acid chartreuse (bright yellow-green) colour, natural curly texture. Large expressive eyes, warm approachable face, no heavy makeup styling. She visibly reads as the least wealthy person in this world — comfortable, unpolished, practical.
+
+POSTURE: standing fully upright, shoulders open, spine straight — not hunched, not bent forward. Confident but unstudied posture, like someone standing her ground rather than posing.
+
+WARDROBE: real art-student studio clothes — a loose paint-marked canvas or denim overshirt layered over a plain t-shirt, comfortable trousers or dungarees, worn flat sneakers or boots. Visible dried paint smears and small stains in several colours on cuffs and knees. Everything looks practical, lived-in, worked in — not styled, not fashion, not costume. No gold V mark anywhere on her — she is a visitor, not staff.
+
+CARRIES: one item only — a soft-cover sketchbook held under one arm, consistent across all four panels.
+
+PANELS:
+1. FULL BODY, FRONT, standing upright, facing camera straight-on, entire body head-to-shoe in frame.
+2. LARGE CLOSE-UP PORTRAIT, head and shoulders only, direct gaze at camera.
+3. SIDE PROFILE, full body, facing left, standing upright.
+4. FULL BODY FROM BEHIND, standing upright, back to camera, showing the back of the hair and clothing.
+
+No logos, no legible text, no recognisable artwork in frame anywhere. Plain grey seamless background in all four panels, consistent lighting and framing across panels.
+```
+
+**What the image actually shows:** Clean hit on first generation. Chartreuse
+curly hair reads bright and unmistakable in all four panels. Standing upright
+in every panel — no hunch, spine straight, matching the CEO's correction
+directly. Denim/canvas overshirt with visible paint marks over a plain tee,
+worn sneakers, sketchbook held under one arm — practical, unstyled, reads
+poor-relative-to-the-room. No gold V visible anywhere. Panel 4 (behind) shows
+the back of the jacket and hair consistently. No hard defects; kept on first
+generation.
+
+---
+
+## 9 · `project_absence_char_valder` — Valder himself, filed from an EXISTING plate
+
+CEO-requested reuse, not a new generation. **No credits spent** — this is an
+Element filed from an asset already sitting in the project since 2026-08-18
+(job `6d8ac10c-be3c-4e1b-8099-d307005dc24c`), untouched, unaltered.
+
+- **Element:** `project_absence_char_valder`, category Character, name "Valder"
+- **Asset id:** `6edafc56-5dff-4c52-844e-73b125e047f0`
+- **Cost:** 0 credits (element-only, no generation)
+- **Confirmed match against the CTO's description** before filing: tall, very
+  thin elderly man, silver hair swept straight back, small round tinted
+  sunglasses, colour-blocked suit jacket panelled magenta/yellow/green/blue/red
+  over a scarlet waistcoat and white shirt, purple trousers, long
+  mustard-yellow scarf, deliberately mismatched shoes (one dark green, one
+  oxblood). Three full-body views along the top (front, profile, back) plus
+  four close-up portraits along the bottom — matches exactly.
+- Filed via the Elements panel's card `...` menu → **Create Element** (not the
+  upload-a-new-image dropzone flow — that path requires a locally-shared file
+  path the harness didn't have; the card menu binds the existing asset
+  directly, no upload needed).
+- Verified: Elements → Characters tab shows `Character • Valder —
+  @project_absence_char_valder` with the correct thumbnail.
+
+---
+
+## 10 · `project_absence_char_woman_b` — the woman, REDESIGNED as a parrot
+
+CEO's third add-on to this task. New name — original `project_absence_char_woman`
+kept, not overwritten.
+
+- **Element:** `project_absence_char_woman_b`, category Character, name "Woman B (Parrot)"
+- **Asset id:** `8b8191f8-9483-409a-8433-03e841e0ba80`
+- **Model:** GPT Image 2, 1:1, Medium, 2K
+- **References:** none (pure text redescription)
+- **Cost:** 2.5 credits
+- **Who she is stays the same** as the original: slim ~50-year-old, dark hair,
+  strong composed face, cat-eye sunglasses, gold dome earrings, long cobalt
+  gloves, no gold V, standing still with one gloved hand at her mouth.
+- **What changes — the choices made, for the CTO's record:**
+  - **Crest:** hair swept sharply upward off the crown into one tall, rigid,
+    lacquered vertical crest — a single cockatoo-style crest shape, not a bun
+    or beehive.
+  - **Collar:** a high, stiff, architectural leather collar standing away
+    from the neck the way a parrot's throat puffs out — structured, not soft
+    fabric.
+  - Shoulders cut to read as folded wings in silhouette only (no literal wing
+    shapes); the dress/skirt built from overlapping cut-and-layered leather
+    panels giving a scaled, feather-like surface texture, entirely in the
+    single cobalt colour — no rainbow, no green/red parrot palette, no beak,
+    mask, wings, tail, attached feathers, claws, perch, or live bird anywhere.
+
+**Prompt:**
+```
+CHARACTER SHEET — invented anonymous woman, no resemblance to any real or public person. Four panels on plain grey seamless studio backdrop, professional photographic softbox lighting — photographed, not illustrated or rendered.
+
+WHO: a slim woman of about fifty years old, dark hair, a strong composed face. Black cat-eye sunglasses worn indoors. Gold dome stud earrings. Long cobalt-blue leather gloves reaching past the elbow. No gold V mark anywhere on her.
+
+ACTION/POSE: standing completely still and upright, one gloved hand raised and resting near her mouth, an absorbed, self-contained expression — not performing for anyone.
+
+COLOUR: entirely one single saturated glossy electric cobalt-blue leather, head to toe — hair, clothing, gloves. No other colour anywhere on her body. Do not introduce a second colour.
+
+THE DESIGN CONCEPT — HER HAIR AND CLOTHES ARE DESIGNED FROM A PARROT, BUT THIS MUST READ AS HIGH COUTURE, NEVER AS A COSTUME:
+
+HAIR: swept sharply upward off the crown into one tall, sculptural, lacquered CREST — like a cockatoo raising its crest, rigid, structured, deliberate, glossy cobalt. Not a bun, not a beehive — a single vertical crest shape.
+
+COLLAR/SHOULDERS: a high, stiff collar that stands away from the neck the way a parrot's throat puffs out — architectural, structured leather, not soft fabric. Shoulders cut and padded so they read as folded wings in silhouette alone, without being literal wings. The torso's leather is sculpted in overlapping layered panels that suggest plumage through their cut and layering and surface texture alone — glossy leather with a subtle feather-like ridged texture, all in the single cobalt colour.
+
+ABSOLUTELY DO NOT INCLUDE, under any circumstance: a beak, a bird mask, actual wings, a tail, real or attached feathers, any rainbow or multi-colour scheme, the classic green-and-red parrot palette, bird-style face makeup, claws, a perch, or any live bird anywhere in frame. If in doubt, favour couture over bird.
+
+She must read as a woman wearing extraordinarily expensive parrot-inspired couture — a fashion editor's description, not a costume.
+
+PANELS (four, including one back view):
+1. FULL BODY, FRONT, standing still, one gloved hand at her mouth, facing camera.
+2. LARGE CLOSE-UP PORTRAIT, head and shoulders, showing the crest and collar clearly, sunglasses on.
+3. SIDE PROFILE, full body, showing the crest's silhouette and the collar's stand-away shape from the side.
+4. FULL BODY FROM BEHIND, showing the back of the crest and the shoulder/collar construction from behind.
+
+No logos, no legible text, no recognisable artwork. Plain grey seamless background, consistent lighting and framing across all four panels.
+```
+
+**What the image actually shows:** Strong hit on first generation, and the
+hardest brief of the three plates in this task (avoiding costume territory).
+The crest reads exactly as asked: a rigid, glossy, vertically-swept cobalt
+crest, unmistakably cockatoo-inspired without being literal. The collar
+stands dramatically away from the neck in the close-up and back-view panels,
+architectural and structured, not soft. The gown's lower half carries a
+scaled, layered leather texture that reads as feather-structure through cut
+alone — no colour break, no attached feathers, no beak/mask/wings/claws
+anywhere in frame. She reads as a woman in extreme couture, not a costume.
+Back view (panel 4) shows the crest and collar construction clearly from
+behind, matching the brief's requirement. No hard defects; kept on first
+generation.
+
+---
+
 ## Summary — signature-type audit for the CEO
 
 | # | Character | Signature type | From-behind legibility |

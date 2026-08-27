@@ -118,3 +118,53 @@ The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and fa
 ## 5 · `project_absence_loc_corridor` — Soul
 
 *(pending)*
+
+---
+
+## 6 · `project_absence_loc_exterior` — the museum's outside, GPT Image 2
+
+Outstanding all day per the CEO; generated as part of task-d988c30c alongside
+the redesigned art student and the parrot-inspired woman.
+
+- **Element:** `project_absence_loc_exterior`, category Location, name
+  "Museum Exterior"
+- **Asset id:** `5095a857-034d-417d-99c2-0a71f94b6b57`
+- **Model:** GPT Image 2, 1:1, Medium, 2K
+- **Reference attached (bound via literal `@project_absence_loc_hall_big_d` in
+  the pasted prompt text, auto-resolved on paste):** `project_absence_loc_hall_big_d`
+  — verified 1/1 via `data-beautiful-mention` before Generate
+  (`@1a2cf503-4843-4aed-b4cb-d7cb8b919fa8`)
+- **Cost:** 2.5 credits
+
+**Prompt:**
+```
+@project_absence_loc_hall_big_d — reference for the SAME building: match its architectural language, era and material palette exactly (chromium accents, swept aerodynamic curves, moulded architectural forms, terrazzo floor material, retrofuturist mid-century design vocabulary — the future as imagined by the past).
+
+EXTERIOR of The Valder Collection, a private museum, seen from outside. This is the SAME building as the reference interior — continue its design DNA out onto the exterior envelope: chromium and polished metal details, swept aerodynamic curves, smooth moulded architectural forms, terrazzo paving on the forecourt, retrofuturist mid-century modern massing. Absolutely nothing digital anywhere: no screens, no LED panels, no digital signage, no visible cables or wiring of any kind.
+
+MUST INCLUDE:
+- A clear, prominent MAIN ENTRANCE with a proper approach: a flight of steps or a ramp leading up to it, and an open forecourt/plaza in front where a crowd could gather and press cameras could set up.
+- The GOLD V MARK — Valder's own house mark — mounted prominently on the building facade near the entrance. Prominent but tasteful, not garish or oversized.
+- OPEN SKY above the building, uncropped — leave generous headroom of open sky in every panel (a helicopter shot circles overhead in a later scene, so the sky must not be cropped tight).
+- WARM DAYLIGHT, bright and sunny — never night, never moody, never overcast.
+- NO PEOPLE anywhere in any panel.
+
+FOUR ANGLES, 2x2 grid, each panel filling its quadrant edge-to-edge with no black bars or letterboxing:
+1. WIDE ESTABLISHING VIEW of the whole frontage — entire building facade visible.
+2. CLOSER VIEW of the entrance itself — steps/ramp, doors, forecourt.
+3. LOW ANGLE FROM THE APPROACH LOOKING UP at the building, from ground level near the forecourt.
+4. SIDE VIEW showing the building's full mass and depth from an angle.
+
+No logos anywhere except the Valder gold V mark itself. No recognisable real-world buildings or landmarks. Photographed, not rendered or illustrated.
+```
+
+**What the image actually shows:** Clean hit on first generation. Retrofuturist
+mid-century massing with chromium/steel canopy curves and polished sphere
+sculptures flanking the entrance, matching the referenced hall's material
+language. Gold V mark clearly visible on the facade in two of the four panels
+(closer entrance view and low-angle view), tasteful scale, not garish. Wide
+open blue sky with generous headroom in all four panels. Warm bright daylight
+throughout, no moodiness. Terrazzo-toned pink/red forecourt paving with room
+for a crowd. No people anywhere. All four required angles present: wide
+establishing, closer entrance, low angle looking up, and side massing view.
+No hard defects; kept on first generation.
