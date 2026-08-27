@@ -615,4 +615,88 @@
  *     side effects (no new job fired, same top job as before the freeze) --
  *     the freezes were purely a rendering/JS-engine issue, not caused by
  *     and not causing any generation activity.
+ *
+ * Wave 10 (task-fe7b3d37, 2026-08-28): 6 plates in "The Valder Collection
+ * No.7" -- 1 character turnaround (parrot woman v3, Character folder) + 5
+ * hall-referenced object plates (Prop folder). 6 generations, 15 credits
+ * total, all first-attempt except one (see below), zero flags.
+ *   - NEW FINDING -- a Generate click can silently no-op 4 TIMES IN A ROW
+ *     with the standard desync fix (focus+Selection-API-cursor-to-end+real
+ *     Space+BackSpace) re-applied fresh each time, all confirmed zero-cost
+ *     via the "All assets" counter not moving, THEN fire cleanly on a
+ *     `find()`-ref click after zero other changes. Raw-coordinate clicks and
+ *     one `find()`-ref click both no-op'd on the same button in the same
+ *     session; a later `find()`-ref click on the identical button worked.
+ *     Clicks were independently confirmed to work fine elsewhere on the same
+ *     page (a quality-dropdown pill opened correctly) during the no-op
+ *     streak, ruling out a page-wide click-delivery fault. No clean
+ *     explanation found; the fix that worked was simply "try find()-ref
+ *     click if raw-coordinate clicks are no-opping," not a specific
+ *     technique change. Prefer `find()`-ref over raw coordinates for the
+ *     Generate button as the default first attempt on this composer.
+ *   - NEW FINDING -- a full page reload (`navigate()` to the same folder
+ *     URL) mid-troubleshooting restored the composer's PROMPT TEXT via
+ *     autosave, but broke the @mention's visual binding: the tag rendered as
+ *     RED unresolved text (`@<uuid>`) instead of a resolved chip, even
+ *     though the identical uuid had been a normal-colored bound mention
+ *     seconds before the reload. Clearing (Cmd+A + Delete x2) and re-pasting
+ *     the identical prompt text fixed it immediately (mention resolved
+ *     normal-colored again). Treat ANY post-reload composer state as
+ *     suspect regardless of what autosave shows -- verify mention color, and
+ *     when in doubt, clear + re-paste rather than trusting the restored
+ *     text.
+ *   - NEW FINDING -- the "All assets" sidebar counter incremented by 1
+ *     independent of any of my own actions (jumped 348->349 during a run of
+ *     confirmed no-op Generate clicks). Root cause: another operator was
+ *     active on the same shared account concurrently (this project's task
+ *     brief explicitly named one, collecting separate Scene 1 video takes).
+ *     This counter is account/project-wide, not per-operator -- don't treat
+ *     a delta as proof YOUR click fired; cross-check that the actual target
+ *     folder shows a new top-of-grid card matching your prompt before
+ *     concluding a click succeeded.
+ *   - NEW FINDING -- the grid-hover "..." icon (5-icon hover stack: heart /
+ *     download / copy(Recreate) / reference / more) needed 2-4 clicks at the
+ *     same coordinate before the menu actually opened and stayed open, on 3
+ *     separate cards in this run (millstone, vessel, study). No visible
+ *     difference between a "worked" and "didn't work" click -- both looked
+ *     identical (hover-revealed icon, real `computer` click, verified
+ *     coordinate via zoom first). Toggling behavior suggests each click
+ *     alternates open/close and the render can lag behind the click by one
+ *     cycle. If a menu-item text search comes back empty after one click,
+ *     click the exact same coordinate again (up to ~3 times) before
+ *     switching technique -- this resolved every case this run without
+ *     needing to fall back to the modal-detail-panel route.
+ *   - NEW FINDING -- the modal detail-panel's own "..." button (bottom-right
+ *     of the action row, next to Download/Like/Share) is a MORE RELIABLE
+ *     fallback than the grid-hover icon stack when the grid-hover route is
+ *     fighting you -- opened correctly on the first real click every time it
+ *     was tried this run. Route: click the card's thumbnail image directly
+ *     (not top-left corner, which toggles the selection checkbox) to open
+ *     the `?preview=<uuid>` detail panel, confirm identity via the panel's
+ *     own PROMPT text matching what you generated, then use ITS "..." menu.
+ *   - NEW FINDING -- window/viewport dimensions kept drifting across this
+ *     session with no resize_window call in between (1024x591, then
+ *     1024x647, then 1374x868, then back to 1456x840-family) -- confirms the
+ *     existing "recompute the screenshot-px/CSS-px ratio every time" rule,
+ *     but extends it: a `getBoundingClientRect()` read from one
+ *     `javascript_tool` call can be STALE by the time a later `computer`
+ *     click uses it, even a few calls apart with no explicit resize. Always
+ *     re-read the rect (or re-screenshot) in the SAME batch/turn as the
+ *     click that uses it, never reuse a coordinate captured 2+ calls earlier
+ *     -- this caused several missed clicks on the "..." icon and the
+ *     card-grid checkbox this run.
+ *   - Character-folder plate (parrot woman v3, 4-panel turnaround
+ *     referencing an existing character Element via @mention): identical
+ *     flow to a Prop-folder object plate -- paste with literal `@ElementName`
+ *     text, verify chip resolves non-red, desync fix, verify price, Generate.
+ *     One accidental extra reference got attached mid-session by
+ *     mis-clicking the grid-hover "Reference" icon (4th in the 5-icon stack)
+ *     instead of intending an "expand/preview" action -- it has no tooltip
+ *     distinguishing it from a fullscreen-preview icon at a glance, hover for
+ *     the tooltip text before clicking any icon in that stack, exactly as
+ *     the existing Wave 2 guidance already says for Recreate/Rerun. Removing
+ *     a manually-attached reference chip (X on its thumbnail in the composer)
+ *     also silently deleted the real @mention text from the editor in this
+ *     run -- if that happens, don't try to fix it in place: clear the whole
+ *     composer and re-paste the original prompt fresh.
  */
