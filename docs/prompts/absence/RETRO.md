@@ -262,8 +262,9 @@ Panel 1: full body, front view, in the action above, hat and crooked gold V visi
 
 ### 2.5 · `project_absence_char_visitor_a`
 
-- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_visitor_a`
-- **Cost:** _(pending)_
+- **Asset id:** `a97c667f-add6-4b89-9a32-e3c63fa98f36` · **Element:** re-pointed `project_absence_char_visitor_a` ("Element saved" confirmed — verified correct element in the dialog itself after an Elements-panel search fuzzy-matched all 3 visitors and initial clicks landed on wrong grid positions twice; the dialog's own scoped text, not `document.body`, was the reliable check)
+- **Cost:** 3 credits (attempt 1/2 — first click was a genuine no-op with zero cost, confirmed via unchanged "All assets" count after 8s; retry fired cleanly)
+- **Downloaded:** `/Users/gob/Desktop/absence-char-visitor_a.png`
 
 **Prompt:**
 ```
@@ -282,7 +283,7 @@ ACTION (panels 1 and 3): standing squarely still, hands clasped behind their bac
 Panel 1: full body, front view, in the action above. Panel 2: large close-up portrait, same ordinary, plain, believable face. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same jacket, same colour, same build. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Strong pass, attempt 1/2 (first attempt was a genuine zero-cost no-op, not a real render). Deep oxblood wine-red plain jacket with modest standing collar, no hat, no gloves, no jewellery visible — reads as deliberately unremarkable per brief. Hands clasped behind back, quietly studying — action correct in panels 1/3. Real aged human face, ordinary, not severe or threatening. Panel 4 (behind) consistent jacket/colour/build. No defects found; kept as generated.
 
 ---
 
@@ -340,6 +341,4 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap: 30 credits. Running total: 24 / 30 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate generation, see note above]).
-
-**Budget alert:** 3 characters remain (visitor_a, visitor_b, visitor_c) at ~3 credits each = 9 more, which would land at 33/30 — 3 over the stated cap. Flagged to CTO before proceeding with visitor_a.
+Cap raised to 40 by CTO (approved going over the original 30; overage was cents on already-authorised work). Running total: 27 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3).
