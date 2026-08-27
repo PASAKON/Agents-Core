@@ -15,11 +15,12 @@ Order: JOB 1 (hall) first, then JOB 2 (7 characters). Both block Scene 1.
 
 ## JOB 1 · `project_absence_loc_hall_big`
 
-- **Asset id:** _(pending generation)_
-- **Filed as Element:** `project_absence_loc_hall_big` (re-point existing Element, UUID `173cb410-60e3-43fe-b80d-baa946c0d001` per docs/reports/absence-hall.md)
-- **Model:** GPT Image Gen 2, 1:1, 2K
-- **Reference:** `@Image1` = asset `a75c7cb9-5a2e-4bb3-bafb-f5f64e3e8a69` (currently-approved hall), attached via the asset's own detail-modal **Reference** button (drag-and-drop mechanism, not an `@ElementName` mention — per CEO direction on the prior hall task)
-- **Cost:** _(pending)_
+- **Asset id:** `0b0ccb01-7565-41ec-80e0-94d271a43d3d`
+- **Filed as Element:** `project_absence_loc_hall_big` re-pointed (Element UUID `173cb410-60e3-43fe-b80d-baa946c0d001`, "Edit Original" used — not "Duplicate & Edit" — so the UUID is unchanged). Verified via the Elements-panel search grid: card thumbnail now shows the new retrofuturist render.
+- **Model:** GPT Image Gen 2, 1:1, Medium, 2K
+- **Reference:** `@Image1` = asset `a75c7cb9-5a2e-4bb3-bafb-f5f64e3e8a69` (currently-approved hall), attached via the asset's own detail-modal **Reference** button. Confirmed bound: a reference thumbnail chip appeared above the composer before Generate was clicked.
+- **Cost:** 3 credits (1:1/Medium/2K priced 3; attempt 1/1, no retry needed)
+- **Downloaded:** `/Users/gob/Desktop/absence-02-hall.png` (converted from the Element-download zip's `.webp` via `sips`)
 
 **Prompt:**
 ```
@@ -44,7 +45,7 @@ The hanging walls stay plain white and neutral in every panel -- all the saturat
 The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and falloff, fine film grain throughout, soft halation blooming around the brightest highlights, a gentle vignette, deliberate directional cinema lighting with real falloff -- bright, warm and high-key overall like @Image1, never dim, never desaturated, never a flat product-catalogue photograph. An invented place with no identifiable country and no identifiable year.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** A clean 1:1 square, four panels in a proper 2x2 grid filling the frame edge to edge with no black bars or margins. The period push landed strongly: chrome/aluminium trumpet-shaped column capitals flaring into hot-orange-lit coves line both long sides of the hall (a genuine Playtime/2001-style manufactured-object read), a starburst wall sculpture and round mirror-disc "art" objects sit at the perimeter, and a boomerang-shaped side table appears near the yellow bench. Top-left hero wall is plain white, empty, brightly lit, nothing hung yet, quiet open floor in front -- correct per brief. The yellow bench + blue-and-black rug are present (bottom-left/bottom-right). Terracotta terrazzo floor and hot-orange coves are intact from the reference. **One honest flaw, same one the prior accepted hall attempt had:** the three non-hero panels (top-right, bottom-left, bottom-right) all read as close variations of the same long corridor shot rather than three clearly distinct camera positions -- there is no genuinely elevated/high "floor plan" view in the bottom-right panel as the brief specified, and Valder's seat is not clearly distinguished from the yellow bench as a separate, distinct piece of furniture. Not a hard failure (no error, no blank, no content flag) so kept per the task's regen-only-on-hard-failure rule -- flagging for the CEO to judge.
 
 ---
 
@@ -252,4 +253,4 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap: 30 credits. Running total: 0 / 30.
+Cap: 30 credits. Running total: 3 / 30 (JOB 1 hall).
