@@ -256,3 +256,62 @@ interested expression exactly as asked. Tan-ochre coat is a single flat
 saturated plane, appropriately less visually loud than any of the four who
 argue. Panel 4 (directly behind) shows a plain, unremarkable walking posture
 — correctly forgettable. No flaws worth flagging; kept on first generation.
+
+---
+
+## 7 · `project_absence_char_visitor_c` — crossing the room
+
+- **Element:** `project_absence_char_visitor_c`, category Character, name "visitor_c"
+- **Model:** GPT Image 2, 21:9, Medium, 1K
+- **References:** none (first appearance)
+- **Cost:** 2 credits (1,809 → 1,807)
+- **Signature:** deliberately none — plain moderately-saturated navy coat,
+  ordinary proportions.
+
+**Prompt:**
+```
+A wide horizontal character reference sheet, aspect ratio roughly 2.4:1, four panels arranged side by side on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props, no text. The same person, same face, same clothes, in every panel: an ordinary gallery visitor with no distinguishing feature, on their way somewhere else -- a moderately saturated navy coat, single flat plane of colour, retrofuturist mid-century cut, ordinary proportions, no hat, no glasses, nothing carried, nothing unusual about their silhouette. Deliberately unremarkable: well dressed and believable, nothing the eye catches on, someone you would not pick out of a crowd. Real human skin with natural texture, a real ordinary face with real bone structure, no pale waxy stylised skin, no doll face, no airbrushed beauty-filter look, no CGI sheen.
+
+Panel 1 (far left): full body, front view, caught mid-stride walking briskly, facing straight ahead, not looking at anything, purposeful and preoccupied, crossing the room on the way to somewhere else.
+Panel 2: large close-up portrait, head and shoulders only, a neutral, preoccupied expression, eyes forward, not engaging with anything, ordinary and unremarkable.
+Panel 3: full body, side profile, continuing the same brisk walking stride, facing forward.
+Panel 4: full body, viewed from directly behind, an ordinary, unremarkable brisk-walking posture with nothing distinctive about their silhouette.
+
+Photographed like a real fashion/character turnaround reference sheet: crisp, clean, accurate colour rendition, flat even studio light throughout, no vignette, no film grain, no dramatic cinema lighting.
+```
+
+**What the image actually shows:** The cleanest hit of all seven plates.
+**Panel 1's characteristic action reads perfectly**: caught mid-stride, facing
+straight ahead, purposeful and preoccupied — exactly the "crossing the room on
+the way to somewhere else" brief. Portrait is genuinely neutral and
+preoccupied, eyes forward, not engaging — a strong contrast against the four
+who argue. Navy coat is plain and ordinary, correctly less loud than the
+signature-bearing four. Panel 4 (directly behind) shows the same brisk stride
+carried through, unremarkable and forgettable as intended. No flaws worth
+flagging; kept on first generation.
+
+---
+
+## Summary — signature-type audit for the CEO
+
+| # | Character | Signature type | From-behind legibility |
+|---|---|---|---|
+| 1 | critic | carried object (cane) | **Works** — cane visible under arm in panel 4 |
+| 2 | oldman | hat (homburg) | **Works** — hat silhouette instantly readable in panel 4 |
+| 3 | woman | glasses (round tortoiseshell) | **Does not work** — glasses invisible from a true back view; identifiable only by dress/hair/build |
+| 4 | student | oversized proportion (coat) | **Works** — boxy, roomy silhouette clearly reads in panel 4 |
+| 5-7 | visitors a/b/c | none (deliberate) | N/A — ordinary by design |
+
+Three of the four signature types the CEO listed hold up under the "no face
+visible" test; **glasses is the one type that structurally cannot**, since
+they sit on the front of the face. Worth an explicit CEO call on whether
+`char_woman` needs a different or additional signature (e.g. a distinctive
+hairstyle/silhouette) for scenes shot purely from behind, or whether the
+dress colour + build is judged sufficient given she is never purely
+faceless-from-behind for long in the actual film.
+
+Total spend: 14 credits (1,821 → 1,807), well under the 25-credit cap. Two
+characteristic actions (oldman's "stepping back," student's "sleeves
+swallowing hands") rendered only partially and are flagged in their own
+sections above — neither was a hard failure (no error, blank, or content
+refusal), so neither was regenerated per the task's rules.
