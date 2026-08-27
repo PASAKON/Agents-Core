@@ -117,10 +117,17 @@ deliberately unremarkable.
 colour per person, NEVER black (black reads outside this world's colour-class
 system and — combined with a severe cut — reads villainous). Nobody is styled
 to look threatening; severe/eccentric/over-dressed/ordinary are all fine,
-sinister is not. Final palette, kept distinct across all seven: critic =
-petrol teal, oldman = bottle green, woman = cobalt blue, student = marigold
-orange, visitor_a = burgundy red, visitor_b = aubergine plum, visitor_c =
-ochre/mustard brown.
+sinister is not.
+
+**CTO colour-separation directive (after critic/oldman/woman approved):**
+critic/oldman/woman all landed in the blue-green family, and another
+operator's cleaner character is also cobalt blue — four blue-green people
+would visually merge in a wide hall shot. The remaining four move to clearly
+separated WARM hues, assigned exactly: student = chrome yellow, visitor_a =
+oxblood deep wine, visitor_b = burnt orange rust, visitor_c = plum aubergine.
+Final palette across all seven: critic = petrol teal, oldman = bottle green,
+woman = cobalt blue, student = chrome yellow, visitor_a = oxblood deep wine,
+visitor_b = burnt orange rust, visitor_c = plum aubergine.
 
 ### 2.1 · `project_absence_char_critic`
 
@@ -237,7 +244,7 @@ A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in 
 
 The person: a student, early 20s, small, slight build -- visibly trying hard to look right for this room and not quite managing it. Nervous, eager, not sinister or severe, never threatening. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen.
 
-CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a boxy jacket with an oversized lapel, slightly too big or too formal for how young and unsettled they look, cut from a moulded, seamless, faintly synthetic material -- vinyl or coated fabric, never woven wool -- in one deeply saturated flat colour, NEVER black: saturated marigold-orange. Narrow trousers with a turn-up. Gloves, worn a little awkwardly. Round-toe shoes. Their one unmistakable signature -- differing in KIND from the other three -- is a shaped hat: a jaunty pillbox hat worn slightly off-centre, a little too deliberately styled, part of the "trying too hard" read.
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a boxy jacket with an oversized lapel, slightly too big or too formal for how young and unsettled they look, cut from a moulded, seamless, faintly synthetic material -- vinyl or coated fabric, never woven wool -- in one deeply saturated flat colour, NEVER black: bright chrome yellow. Narrow trousers with a turn-up. Gloves, worn a little awkwardly. Round-toe shoes. Their one unmistakable signature -- differing in KIND from the other three -- is a shaped hat: a jaunty pillbox hat worn slightly off-centre, a little too deliberately styled, part of the "trying too hard" read.
 
 JEWELLERY: one large, conspicuous piece that visibly does NOT belong to them -- oversized, borrowed-looking, slightly wrong for their frame -- plus a small gold brooch shaped like the letter V, worn slightly wrong: pinned crooked, upside down, or in an odd spot, clearly not placed the way the woman's is.
 
@@ -263,7 +270,7 @@ A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in 
 
 The person: a visitor, 60s, broad, solid build. Dressed plainly, neatly and unfashionably -- deliberately UNREMARKABLE, nothing the eye catches on, no signature detail of any kind. Not sinister or severe, simply ordinary. Genuinely human: real skin with real texture and variation, real bone structure, real signs of age, no doll face, no beauty-filter smoothing, no CGI sheen.
 
-CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern, but plain and ordinary within that world: a simple boxy jacket with a modest standing collar, cut from a moulded, seamless, faintly synthetic material -- vinyl or coated fabric, never woven wool -- in one deeply saturated flat colour, NEVER black: deep burgundy-red. No hat. No gloves. Round-toe shoes. Nothing distinctive, nothing styled to draw the eye -- the whole point of this person is that they blend in.
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern, but plain and ordinary within that world: a simple boxy jacket with a modest standing collar, cut from a moulded, seamless, faintly synthetic material -- vinyl or coated fabric, never woven wool -- in one deeply saturated flat colour, NEVER black: deep oxblood wine-red. No hat. No gloves. Round-toe shoes. Nothing distinctive, nothing styled to draw the eye -- the whole point of this person is that they blend in.
 
 JEWELLERY: almost nothing -- at most a plain worn wedding band or a simple plain watch. NO gold V, no brooch, no visible ornament.
 
@@ -289,7 +296,7 @@ A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in 
 
 The person: a visitor, 30s, tall, long-limbed build. Dressed comfortably and unstudied -- deliberately UNREMARKABLE, nothing the eye catches on, no signature detail of any kind. Not sinister or severe, simply ordinary. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen.
 
-CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern, but plain and ordinary within that world: a simple straight-cut jacket with modest lapels, cut from a moulded, seamless, faintly synthetic material -- vinyl or coated fabric, never woven wool -- in one deeply saturated flat colour, NEVER black: deep aubergine-plum. No hat. No gloves. Round-toe shoes. Nothing distinctive, nothing styled to draw the eye -- the whole point of this person is that they blend in.
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern, but plain and ordinary within that world: a simple straight-cut jacket with modest lapels, cut from a moulded, seamless, faintly synthetic material -- vinyl or coated fabric, never woven wool -- in one deeply saturated flat colour, NEVER black: burnt orange rust. No hat. No gloves. Round-toe shoes. Nothing distinctive, nothing styled to draw the eye -- the whole point of this person is that they blend in.
 
 JEWELLERY: almost nothing -- at most a plain worn watch. NO gold V, no brooch, no visible ornament.
 
@@ -315,7 +322,7 @@ A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in 
 
 The person: a visitor, 40s, stocky, brisk build and manner. Dressed functionally, like someone who is only passing through on their way to be somewhere else -- deliberately UNREMARKABLE, nothing the eye catches on, no signature detail of any kind. Not sinister, not military, not severe, simply practical. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen.
 
-CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern, but plain, functional and ordinary within that world: a simple short boxy jacket, practical rather than fashionable, cut from a moulded, seamless, faintly synthetic material -- vinyl or coated fabric, never woven wool -- in one deeply saturated flat colour, NEVER black and never a military/olive-drab green: deep ochre-mustard brown. No hat. No gloves. Round-toe shoes. Nothing distinctive, nothing styled to draw the eye -- the whole point of this person is that they blend in.
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern, but plain, functional and ordinary within that world: a simple short boxy jacket, practical rather than fashionable, cut from a moulded, seamless, faintly synthetic material -- vinyl or coated fabric, never woven wool -- in one deeply saturated flat colour, NEVER black and never a military/olive-drab green: deep plum aubergine. No hat. No gloves. Round-toe shoes. Nothing distinctive, nothing styled to draw the eye -- the whole point of this person is that they blend in.
 
 JEWELLERY: almost nothing -- at most a plain worn watch. NO gold V, no brooch, no visible ornament.
 
