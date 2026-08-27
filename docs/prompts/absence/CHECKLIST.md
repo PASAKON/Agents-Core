@@ -30,8 +30,9 @@ Read at the start of every session, and before every report to the CEO.
 
 | # | What | Element | Worker |
 |---|---|---|---|
-| 9 | **S1 — Dupe cleaning.** Long take 12s + jump cut + long take 8s. No dialogue. 9 refs. | — | `task-f822499f` |
-| 10 | **Wall POV v2** — ghosted wall, crack + plaque floating at true positions, **plaque text MIRROR-REVERSED**, no hole | `loc_wall_pov_b` | `task-fe200749` |
+| 9 | **S1 v1 — Dupe cleaning, silent.** Fired, asset `5ea44262`, rendering | — | done |
+| 9b | **S1 v2 — Dupe cleaning WITH his five polite lines**, none of them answered. Title drop: "Sorry, sir." | — | `task-7dcf64d3` |
+| 10 | **Wall POV v2** — ghosted wall · **crack DEAD CENTRE and the hero of the frame** · all six focused on it · plaque low and **MIRROR-REVERSED** · no hole | `loc_wall_pov_b` | `task-fe200749` |
 | 11 | **Art student redesign** — real art-student clothes, **dyed hair in an odd colour**, upright not hunched | `char_student_c` | `task-d988c30c` |
 | 12 | **Museum exterior** — entrance, forecourt, gold V on the building, open sky for the helicopter | `loc_exterior` | `task-d988c30c` |
 | 13 | **Parrot woman** — crest hair, parrot silhouette and texture, single cobalt, **must not read comic** | `char_woman_b` | `task-d988c30c` |
