@@ -316,9 +316,9 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ### 2.6v2 · `project_absence_char_visitor_b` — redo (CTO order #49: woman, real fur coat)
 
-- **Asset id:** _(pending)_
-- **Filed as Element:** re-point `project_absence_char_visitor_b`
-- **Cost:** _(pending)_
+- **Asset id:** `e2fa56a6-7a47-4c0a-8fe8-1014666b7aca` · **Element:** re-pointed `project_absence_char_visitor_b` ("Element saved" confirmed, overwrote the man/leather-jacket v1)
+- **Cost:** 3 credits (attempt 1/1)
+- **Downloaded:** `/Users/gob/Desktop/absence-char-visitor_b.png` (overwrote v1)
 
 **Prompt:**
 ```
@@ -337,7 +337,7 @@ ACTION (panels 1 and 3): walking slowly along a wall of pictures, at a browsing 
 Panel 1: full body, front-three-quarter view, in the action above, fur coat open, walking slowly. Panel 2: large close-up portrait, same ordinary, believable face, head turned as if looking at something beside her. Panel 3: full body, side profile, same slow browsing walk. Panel 4: full body, seen entirely from behind -- same fur coat, same colour, same build, texture of the fur clearly visible from behind too. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Strong pass, attempt 1/1. Genuine soft thick fur texture, knee length, worn open over a plain matching burnt-orange-rust dress underneath, small plain earrings only, no gold V, no other jewellery. Real ordinary woman ~50, believable face, not remarkable, not threatening. Slow browsing walk with head turned reads correctly in panels 1/3. Panel 4 (behind) shows the fur texture clearly from the back too. Satisfies CEO order #48/#49 exactly.
 
 ---
 
@@ -370,7 +370,7 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap raised to 40 by CTO (approved going over the original 30; overage was cents on already-authorised work). Running total: 36 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + hall v3 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3 + visitor_b 3 + visitor_c 3). Hall v3 landed and reported per CTO's time-pressure reorder. Still to come: visitor_b REDO (order #48/49: woman, real fur coat, no gold V) — 4 credits of headroom left, CTO said to drop it if there's no time left in the shoot window.
+Cap raised to 40 by CTO. Running total: 39 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + hall v3 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3 + visitor_b v1 3 + visitor_b v2 redo 3 + visitor_c 3). All 7 characters + hall v3 landed. **Now doing hall v4 (CEO order #49, crack moved to picture-hanging height, dead centre) — top priority, out of budget headroom (1 credit left at 40), need explicit authorization to exceed 40.**
 
 ---
 
