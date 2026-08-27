@@ -504,9 +504,11 @@ The person: a visitor, in his sixties, tall, slim build -- speaks with total aut
 
 CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a coat reaching to about mid-calf length (NOT floor-length) with straight structured shoulders and an exaggerated stiff standing collar that frames his face -- this dramatic collar-and-coat cut is his one unmistakable signature. The coat is cut from a moulded, seamless material with a MATTE finish (never glossy, never leather-sheen, never patent) in one deeply saturated flat colour, NEVER black: deep petrol teal. Cream suede gloves. Round-toe shoes. A gold signet ring and a gold bracelet, worn as real understated wealth.
 
+IMPORTANT -- this must be an entirely INVENTED, ORIGINAL garment design: not a recognisable designer piece, not a costume from any known film, franchise or science-fiction property. The standing collar in particular must read as our own original retrofuturist tailoring choice, not as any specific sci-fi uniform anyone could name or recognise. No brand marks, no logos, no monograms of any kind. No recognisable artwork anywhere in the frame. Plain seamless light-grey studio background only.
+
 He wears NO gold V of any kind -- he is a visitor, not Valder staff, and the V mark belongs to staff only. No brooch, no pin, nothing on the chest.
 
-BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary. Also banned: floor-length coats, black clothing, leather/patent gloss sheen, anything that reads as villainous, militaristic or sinister, any gold V or staff mark of any kind.
+BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary. Also banned: floor-length coats, black clothing, leather/patent gloss sheen, anything that reads as villainous, militaristic or sinister, any gold V or staff mark of any kind, any recognisable designer garment or film/franchise costume, any brand mark or logo.
 
 ACTION (panels 1 and 3): mid-sentence, one hand raised open toward the wall he's addressing -- the gesture of someone making an emphatic point, not an aggressive gesture.
 
