@@ -41,6 +41,14 @@ Read at the start of every session, and before every report to the CEO.
 
 ---
 
+## 🔄 ALSO IN FLIGHT
+
+| # | What | Worker |
+|---|---|---|
+| 32 | **Collect both S1 takes** (`5ea44262` silent, `c8e60256` Dupe speaks) + shot-by-shot review of each | `task-ff2828e0` |
+| 33 | **Valder's five pieces** — chair, fish trap, millstone, vessel, painting | `task-fe7b3d37` |
+| 34 | **Parrot woman v3** — hair in green/white/blue, garment single green with cut lines (CEO #64/#65) | `task-fe7b3d37` |
+
 ## 📋 ORDERED, NOT STARTED
 
 **Plates**
@@ -109,7 +117,7 @@ Same frame every time. Only what is inside it changes.
 | # | Question |
 |---|---|
 | A | ~~What is `char_woman` for?~~ — **ANSWERED.** She declares it art, longer line, delivered perfectly still, and the room agrees. Written into `s2-interpretations.txt`. |
-| F | **Parrot woman came out with BLUE HAIR**, which collides with the student's signature ("dyed hair in an odd colour"). Not rejected — it passes every written rule, and the two read as different registers (couture colouring vs a student dying her own hair). **CEO to confirm** whether dyed hair should belong to the student alone. |
+| F | ~~Parrot woman blue-hair collision~~ — **RESOLVED by CEO orders #64/#65.** Hair now carries three colours (green/white/blue); the garment stays a single green. Multi-colour lives in the hair only, so the one-colour-per-person rule survives. Original note: **Parrot woman came out with BLUE HAIR**, which collides with the student's signature ("dyed hair in an odd colour"). Not rejected — it passes every written rule, and the two read as different registers (couture colouring vs a student dying her own hair). **CEO to confirm** whether dyed hair should belong to the student alone. |
 | B | ~~How do the guards dress?~~ — **ANSWERED: black is allowed for guards** |
 | C | ~~Who is Valder as a person?~~ — **ANSWERED, see [VALDER.md](VALDER.md).** Deadpan permanent smile, stands perfectly straight, speaks a lot in Phase 2. |
 | E | **Valder's sixth line** — the improvised story of the crack. The pivot of the film. Five rehearsal stories are written; this one is the CEO's. |
