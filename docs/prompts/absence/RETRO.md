@@ -318,8 +318,9 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ### 2.7 · `project_absence_char_visitor_c`
 
-- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_visitor_c`
-- **Cost:** _(pending)_
+- **Asset id:** `5ade0802-43b0-453b-a2a6-fd588be77221` · **Element:** re-pointed `project_absence_char_visitor_c` ("Element saved" confirmed, correct element re-verified before Edit/Save/Download each time)
+- **Cost:** 3 credits (attempt 1/1)
+- **Downloaded:** `/Users/gob/Desktop/absence-char-visitor_c.png`
 
 **Prompt:**
 ```
@@ -338,10 +339,10 @@ ACTION (panels 1 and 3): walking briskly, purposeful stride, looking at nothing 
 Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large close-up portrait, same ordinary, believable face. Panel 3: full body, side profile, same brisk-stride action. Panel 4: full body, seen entirely from behind -- same jacket, same colour, same stocky build. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Strong pass, attempt 1/1. Black man, deep plum-aubergine short boxy jacket, plain grey trousers, no hat/gloves, no jewellery — deliberately unremarkable per brief and satisfies CEO order #48's casting requirement. Real dark skin with genuine texture, ordinary believable face, not threatening. Mid-stride, purposeful, looking at nothing — action reads correctly in panels 1/3. Panel 4 (behind) consistent jacket/colour/build. No defects found; kept as generated.
 
 ---
 
 ## Money log
 
-Cap raised to 40 by CTO (approved going over the original 30; overage was cents on already-authorised work). Running total: 30 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3 + visitor_b 3). Still to come: visitor_c, then JOB 1 v3 (CEO order #45, hall crack/plaque height fix) — both inside budget.
+Cap raised to 40 by CTO (approved going over the original 30; overage was cents on already-authorised work). Running total: 33 / 40 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate, disclosed above] + visitor_a 3 + visitor_b 3 + visitor_c 3). Still to come: visitor_b REDO (CTO-ordered: woman, real fur coat, order #48/49) + JOB 1 v3 (CEO order #46, hall plaque at knee height ~0.5m, supersedes chest-height) — both queued, inside budget.
