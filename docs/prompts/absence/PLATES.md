@@ -168,3 +168,65 @@ throughout, no moodiness. Terrazzo-toned pink/red forecourt paving with room
 for a crowd. No people anywhere. All four required angles present: wide
 establishing, closer entrance, low angle looking up, and side massing view.
 No hard defects; kept on first generation.
+
+---
+
+## 7 · `project_absence_char_grandma` — GPT Image 2 (task-5a3d259c)
+
+**She wins the wall** — the last person anyone expects to outbid them at the
+$2,000,000 tier.
+
+- **Asset id:** `21701245-43b3-472d-b53e-9a53acfbbacb` (the true underlying
+  asset id, taken from the downloaded filename `hf_20260827_225113_21701245-...png`
+  — the browser's `?preview=a09eb3b8-7eec-4bd0-bd54-64860614ea28` URL param
+  does NOT match this id; confirms the existing "preview param ≠ real asset
+  id" finding in the higgsfield-unlimited-gen skill. Use the filename id when
+  recording, not the URL.)
+- **Filed as Element:** `project_absence_char_grandma`, category Character,
+  display name "Grandma"
+- **Model:** GPT Image 2, 16:9, Medium, 2K
+- **References attached:** none
+- **Cost:** 2.5 credits (paid balance 1,678 → 1,676)
+- **Downloaded to:** Google Drive `Sorry, Sir/Element/absence-char-grandma.png`
+  (per CEO's live download-path change mid-task — no longer the Desktop path
+  named in the original brief)
+
+**Prompt (v2, accepted):**
+```
+A wide horizontal four-panel character sheet, all four panels on the same continuous plain wall background, no separating lines, showing the exact same elderly woman with the exact same face throughout.
+
+She is elderly, in her seventies or eighties, and she is COOL, not rich: plain, well-chosen clothes with real personal style and nothing expensive on her -- no fur, no jewellery, no visible labels or logos of any kind. She looks like someone who decided what she liked forty years ago and never wavered. She must not read as poor or pitiable, and she must not read as wealthy. Her expression throughout is completely unimpressed: calm, level, unhurried -- not sweet, not doddering, not comic.
+
+She sits in a RETROFUTURIST ELECTRIC WHEELCHAIR -- this is a genuine motorized WHEELCHAIR, absolutely NOT an ordinary chair. It clearly has large visible WHEELS: one large wheel mounted on each side plus small front castor wheels, exactly like a real powered wheelchair. It has a chromium tubular frame, a smooth moulded plastic shell seat with a high curved backrest, swept aerodynamic curves, in the same retrofuturist material language as the museum's own furniture. Built into one armrest is a small mechanical control pad with a row of physical push-buttons and a joystick-like lever, which SHE operates herself with her own hand resting on it -- this must be unmistakably read as a powered mobility wheelchair, never as a lounge chair, dining chair, or office chair. Nothing digital anywhere on the chair: no screens, no LEDs, no digital numerals, no glowing elements, no visible cables.
+
+Panel 1 (full body, front view): she sits square to camera in the electric wheelchair, both large side wheels clearly visible on either side of her, one hand resting on the armrest control pad, calm and unimpressed.
+
+Panel 2 (large close-up on her face): just her face and shoulders, filling most of the panel, same completely unimpressed, level expression, real aged skin texture and bone structure, no beauty-filter smoothing, no doll face.
+
+Panel 3 (side profile, full body): the same woman in the same electric wheelchair seen from the side, the large side wheel and the chair's distinctive swept silhouette clearly visible, unmistakably a wheelchair and not a normal chair.
+
+Panel 4 (from directly behind, full body): the wheelchair's rear structure clearly visible -- the moulded shell backrest, the chromium frame, and both large side wheels visible from behind.
+
+No gold V mark or any staff insignia anywhere on her or the chair -- she is a visitor, not staff.
+
+Warm bright light. Warm shadow, cold white grade: amber-orange highlights and mids, whites pushed slightly cool, shadows never pure black but deep red-brown, halation around every lamp, saturation high in flat planes but never touching skin. Photographed, not rendered: fine film grain, halation, slight colour fringing. No HDR, no CGI sheen, no doll faces, no beauty filter. An invented anonymous face resembling no real, famous or public person. Our own invented design -- no logos, no recognisable designer pieces, nothing post-1970 in the cut. 2K, filling the frame, no black bars.
+```
+
+**Discarded v1** (asset `06f2658a-b8a6-4f0d-8a85-7233b5fccccf`, same settings, 2.5
+credits, NOT filed/downloaded): the "RETROFUTURIST ELECTRIC WHEELCHAIR" language
+alone produced an ordinary chrome-tube bistro/lounge chair — no wheels, no
+control pad, just tapered chrome legs. Regenerated with the wheelchair language
+made much more explicit ("absolutely NOT an ordinary chair", large side wheels
+called out per-panel, joystick-like lever) — v2 above fixed it completely.
+
+**What the image actually shows:** A genuine powered wheelchair reads clearly
+in all four panels — large chromed side wheels, small front castors, a
+joystick control on the right armrest under her hand, moulded cream shell seat
+and high curved backrest. She wears a rust/maroon knit vest-cardigan over a
+black turtleneck, black trousers, burgundy loafers — plain, considered,
+nothing expensive, no fur/jewellery/logos, reads neither poor nor wealthy.
+Expression is calm, level and genuinely unimpressed across all four panels,
+including the close-up. No gold V or staff insignia anywhere. Warm amber
+lighting and a polished dark-wood floor give a reasonable hit on the warm
+grade, though it leans warm throughout rather than showing a strong
+warm/cold split — a minor grade miss, not a content defect. No hard defects.
