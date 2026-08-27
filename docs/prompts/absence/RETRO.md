@@ -312,6 +312,8 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 **What the image actually shows:** Strong pass, attempt 1/1. Burnt orange rust straight-cut jacket, plain tan trousers, no hat, no gloves, no jewellery — deliberately unremarkable per brief. Mid-stride, head turned toward something off-frame — action reads correctly in panels 1/3. Real ordinary human face, comfortable/unstudied, not threatening. Panel 4 (behind) consistent jacket/colour/build. No defects found; kept as generated.
 
+**CEO order #48 (arrived AFTER this plate fired):** visitor_b should be a woman in a real fur coat, not a man in a vinyl/leather jacket. This plate does NOT match — it was already filed and committed before the order arrived. Per CTO instruction, not regenerating on my own judgment; flagged to CTO, holding for their decision on whether to regenerate. No gold V was ever included on this plate, so that half of order #48 is already satisfied regardless of outcome.
+
 ---
 
 ### 2.7 · `project_absence_char_visitor_c`
@@ -323,7 +325,7 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 ```
 A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in a single wide horizontal strip, aspect ratio approximately 2.4:1, all four panels on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props, no text anywhere.
 
-The person: a visitor, 40s, stocky, brisk build and manner. Dressed functionally, like someone who is only passing through on their way to be somewhere else -- deliberately UNREMARKABLE, nothing the eye catches on, no signature detail of any kind. Not sinister, not military, not severe, simply practical. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen.
+The person: a visitor, 40s, a Black man, stocky, brisk build and manner. Dressed functionally, like someone who is only passing through on their way to be somewhere else -- deliberately UNREMARKABLE, nothing the eye catches on, no signature detail of any kind. Not sinister, not military, not severe, simply practical. Genuinely human: real dark skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen.
 
 CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern, but plain, functional and ordinary within that world: a simple short boxy jacket, practical rather than fashionable, cut from a moulded, seamless, faintly synthetic material -- vinyl or coated fabric, never woven wool -- in one deeply saturated flat colour, NEVER black and never a military/olive-drab green: deep plum aubergine. No hat. No gloves. Round-toe shoes. Nothing distinctive, nothing styled to draw the eye -- the whole point of this person is that they blend in.
 
