@@ -380,6 +380,19 @@ Rules:
   tab** rather than clicking again.
 - Escalation order stays: hard reload → new tab → quit and reopen Chrome.
   Chrome belongs to the org, so restarting it needs no permission.
+- **A tab whose viewport has collapsed to a stuck 728x420 "mobile" layout
+  cannot be repaired — open a fresh tab.** Measured 2026-08-27
+  (task-f4305098): `resize_window` returned success and changed nothing, so
+  the operator had no error to react to; the page kept rendering the mobile
+  composer, where several controls do not exist at all. Treat a success
+  return from `resize_window` as unverified until the layout actually
+  changes, and skip straight to a new tab.
+- **Clicks can stop registering across the whole tab, ref-based ones
+  included.** Same session. Nothing errors — every call reports success and
+  the page simply never responds. If two consecutive clicks produce no DOM
+  change, stop clicking and hard-reload; more attempts near a priced
+  Generate button is exactly the pattern that cost $10.80 in the toggle
+  incident above.
 
 ## The composer silently resets its settings — check the spec, not just the price
 
@@ -440,6 +453,22 @@ useful "before" value: 450 struck through means the toggle is working; 450
   failures on the same shot. It is also faster than pasting. If Recreate is
   genuinely unavailable, reload the page fully and paste into a clean
   composer.
+- **A full page reload does NOT clear the desync on its own** — measured
+  2026-08-27 (task-f4305098), directly contradicting the fallback sentence
+  above, which was written from a session where the reload happened to
+  coincide with a recovery. The operator reloaded fully, pasted into a clean
+  composer, and Generate still refused with the same "Prompt is required".
+  **What actually forced the bind was a real trusted keystroke after the
+  paste: `End`, then `space`, then `Backspace`.** A synthetic paste alone
+  never produces the keydown React listens for; those three keys leave the
+  text byte-identical while generating genuine trusted key events, so the
+  bound state catches up to the visible text.
+- **Make the three-key tap a routine step after every paste**, not a
+  recovery move — it costs one call and removes the whole failure class
+  before you ever look at the Generate button. It does not conflict with the
+  ban on `type()` for prompt *content*: the ban exists because keystroke
+  entry truncates multi-paragraph text, and these three keys enter no text
+  at all.
 - **Recreate button reliability**: its on-screen position shifts with
   thumbnail width (cards with different reference-image counts render
   different thumbnail widths), and it only mounts in the DOM on real hover,
