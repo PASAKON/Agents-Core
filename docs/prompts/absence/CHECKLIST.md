@@ -48,6 +48,9 @@ Read at the start of every session, and before every report to the CEO.
 | 32 | **Collect both S1 takes** (`5ea44262` silent, `c8e60256` Dupe speaks) + shot-by-shot review of each | `task-ff2828e0` |
 | 33 | **Valder's five pieces** — chair, fish trap, millstone, vessel, painting | `task-fe7b3d37` |
 | 34 | **Parrot woman v3** — hair in green/white/blue, garment single green with cut lines (CEO #64/#65) | `task-fe7b3d37` |
+| 35 | **S2 the accident + S3 the interpretations** — 2 video fires, back to back | `task-a13469e9` |
+| 36 | **Grandmother RE-SHOOT** — v1 rejected, chair had no wheels. Needs real wheels, head cloth, dark glasses, mysterious, violet, not wealthy | `task-f4320f9e` |
+| 37 | **Grandmother v1, the English gentleman + 2 bodyguards, the crocodile bag** | `task-5a3d259c` |
 
 ## 📋 ORDERED, NOT STARTED
 
@@ -79,13 +82,7 @@ Read at the start of every session, and before every report to the CEO.
 | 15d | The lidded vessel — "seventeen made, he destroyed sixteen" | `prop_valder_vessel` |
 | 15e | The painting — "painted in one afternoon to test a colour" | `prop_valder_study` |
 
-**Scenes**
-
-| # | What |
-|---|---|
-| 23 | S2 — the interpretations scene. Written, not fired. Dialogue is the CEO's own. |
-| 24 | S3 — not written |
-| 25 | The three wall-POV escalation shots — see the price ladder |
+**Scenes** — see the 17-scene table below
 
 **Sheet updates owed**
 
@@ -112,6 +109,64 @@ Same frame every time. Only what is inside it changes.
 
 ---
 
+## 🔒 STORY FACTS — locked by the CEO, 2026-08-28. Every prompt must obey these.
+
+1. **Dupe cracked the wall himself, then called the workman to come and repair it.**
+   The workman in S16 is there because Dupe asked him to be. The S16 flashback is
+   **Dupe making that phone call**, not Dupe cracking the wall — we already saw
+   that in S2.
+2. **The whole film happens in one day, morning to noon.** So "I cracked it. Last
+   hour." is **literally true**, and the price climbs $5M → $100M before the
+   plaster the workman brought has had time to dry.
+3. **Valder genuinely believes his own invention by the end.** He is not a con
+   man and must never be played as one. The system swallows the man who built
+   it — that is what keeps the film from having a villain.
+4. **Two takes of every scene**, fired back to back, working through the film in
+   order.
+
+---
+
+## 🎬 THE 17 SCENES — shooting order
+
+**Every locked line lives in [DIALOGUE.md](DIALOGUE.md).** A line that is not in
+that file is not written — ask, never invent. S7/S8/S9 were recovered from the
+session transcript on 2026-08-28 after nearly being lost; that is why the file
+exists.
+
+
+Fire **2 takes per scene**, then move to the next scene. In order, so that if the
+schedule slips the missing footage is at the end of the film and not its middle.
+
+| # | Scene | Length | Status |
+|---|---|---|---|
+| S1 | Dupe cleans, greets, nobody answers. Title drop. | 20s | ✅ 2 takes — `5ea44262` `c8e60256` |
+| S2 | **The accident.** Dupe knocks the frame into the wall, takes the painting away. | 20s | 🎬 **FIRED** asset `56ace68c-ffd0-47ec-a7f6-d24bf523496a` · Unlimited struck 140→0 · 3/3 refs bound · rendering |
+| S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | 🔄 `task-a13469e9` |
+| S4 | **$2,000,000** — wall POV. 6 people, ordinary clothes. | 15s | ⬜ |
+| S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | ⬜ |
+| S6 | **$20,000,000** — wall POV. 10–20 people, personal guards. | 15s | ⬜ |
+| S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | ⬜ |
+| S8 | **Valder's five pieces**, one at a time. He cannot see the crack. | 25s | ⬜ plates |
+| S9 | Dupe hears Valder's voice from the next room. Sweat. | 15s | ⬜ |
+| S10 | **The parrot woman arrives** with the crocodile bag. Rivalry. | 20s | ⬜ |
+| S11 | **$100,000,000** — wall POV. Press, live broadcast, helicopter. | 15s | ⬜ |
+| S12 | **The grandmother** wheels in and takes it. The room freezes. | 25s | 🔄 plate `task-f4320f9e` |
+| S13 | **Valder improvises** the sixth story. He believes it. | 25s | ⬜ |
+| S14 | **The workman arrives with plaster.** Valder screams. | 20s | ⬜ |
+| S15 | **Dupe confesses.** "I cracked it. Last hour." Absorbed. | 25s | ⬜ |
+| S16 | **They saw the wall out of the building.** | 20s | ⬜ |
+| S17 | The square hole. Someone steps back from it exactly as in S3. | 15s | ⬜ |
+| S18 | Dupe rich, the interview — then alone at a white wall, hammer. | 25s | ⬜ |
+
+**That is 18 rows for a 17-scene film** because S1 is already shot. **17 scenes
+still to fire × 2 takes = 34 clips.** At ~60 min a clip that is the whole budget
+to 30 August with almost no slack — every re-shoot costs a scene at the end.
+
+**Wall POV appears 4 times:** S3, S4, S6, S11. Same frame every time; only the
+crowd inside it changes.
+
+---
+
 ## ❓ WAITING ON THE CEO — these block work
 
 | # | Question |
@@ -120,8 +175,11 @@ Same frame every time. Only what is inside it changes.
 | F | ~~Parrot woman blue-hair collision~~ — **RESOLVED by CEO orders #64/#65.** Hair now carries three colours (green/white/blue); the garment stays a single green. Multi-colour lives in the hair only, so the one-colour-per-person rule survives. Original note: **Parrot woman came out with BLUE HAIR**, which collides with the student's signature ("dyed hair in an odd colour"). Not rejected — it passes every written rule, and the two read as different registers (couture colouring vs a student dying her own hair). **CEO to confirm** whether dyed hair should belong to the student alone. |
 | B | ~~How do the guards dress?~~ — **ANSWERED: black is allowed for guards** |
 | C | ~~Who is Valder as a person?~~ — **ANSWERED, see [VALDER.md](VALDER.md).** Deadpan permanent smile, stands perfectly straight, speaks a lot in Phase 2. |
-| E | **Valder's sixth line** — the improvised story of the crack. The pivot of the film. Five rehearsal stories are written; this one is the CEO's. |
-| D | Scene numbering — the sheet's 15-scene table predates the rewrite and no longer matches what is being shot. |
+| E | ~~**Valder's sixth line**~~ — **ANSWERED.** CTO drafted it, CEO approved: *"ตามนั้น"*. |
+| D | ~~Scene numbering~~ — **RESOLVED.** 17 scenes, table above. |
+| G | ~~Who is Collector A?~~ — **ANSWERED 2026-08-28: reuse an existing character, generate nothing.** The person who interpreted it as art becomes the person who has to pay to prove it. |
+| H | ~~In-hall press vs outside press~~ — **ANSWERED: one plate, used for both** S5 and S14. |
+| I | ~~Fire now or wait for plates?~~ — **ANSWERED: fire S2 and S3 immediately**, plates run in parallel. |
 
 ---
 
@@ -135,3 +193,8 @@ Same frame every time. Only what is inside it changes.
 - **Commit the asset id before downloading** — ids cannot be recovered, files always can.
 - **Look at every plate before writing a prompt that uses it.**
 - **Ask before building** — counts, heights, who-wears-what. Ask first, not after the render.
+- **Download straight into Drive, never the Desktop.** The project folder is
+  mounted locally at `~/Library/CloudStorage/GoogleDrive-pass.gob1@gmail.com/ไดรฟ์ของฉัน/ALL DRAFT/YT: ILAG/Sorry, Sir/`
+  — `All Scene/` for clips, `Element/` for plates. CEO, 2026-08-28: keep the
+  Mac's disk clear. **Copy, verify byte-exact, then delete the local** — never
+  delete first.
