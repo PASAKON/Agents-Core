@@ -652,3 +652,14 @@ The video-composer tab (driven by the other operator) had cached the OLD `projec
 - **`project_absence_char_student_b`** — Category Character. Points at asset `6b1ff94a-4fcf-4ac3-b73d-d7aa1509c9d6` (the CEO-picked v3, blush pink + violet). Verified via Element dialog: correct Element ID, blush-pink suit, violet collar/cuffs/hat/boots, gold medallion, no gold V.
 
 Both created via the asset card's own "Create Element" action (not a re-point of the existing `_critic`/`_student` Elements, which stay as they are) — no generation involved, running credit total unchanged at 66/40.
+
+---
+
+## Two more fresh-name Elements — hall_big and visitor_c, same trick (CTO urgent)
+
+Composer was missing/refusing `project_absence_loc_hall_big` and `project_absence_char_visitor_c`. Same fix: new Element names, no new generation, 0 additional credits, original Elements untouched.
+
+- **`project_absence_loc_hall_big_b`** — Category Location. Points at asset `b69d5170-1a8d-4431-8c84-3881baa634dc` (JOB 1 v4, CEO order #49 — crack centred at picture-hanging height, plaque low near the floor, clear gap between them). Verified via Element dialog: correct Element ID, and zoomed on the hero-wall panel to confirm crack position exactly matches the v4 spec (not the v3 near-ceiling position). NOT v3 (`acf0d6c7`) or earlier.
+- **`project_absence_char_visitor_c_b`** — Category Character. Points at asset `5ade0802-43b0-453b-a2a6-fd588be77221` (the approved visitor_c). Verified via Element dialog: correct Element ID, Black man ~55, plum aubergine leather jacket, grey trousers, walking mid-stride, no gold V.
+
+Running credit total unchanged at 66/40.
