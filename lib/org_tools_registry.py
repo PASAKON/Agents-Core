@@ -47,6 +47,7 @@ from lib import ceo_report
 from lib import db
 from lib import recall as recall_lib
 from lib import reflect as reflect_lib
+from lib import telegram_out
 from lib import toon
 from lib.config import get_project, projects
 from lib.notify import info, warn
@@ -270,6 +271,10 @@ def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False) -> str:
 
 def _h_report_to_ceo(*, order_id: int, status: str, detail: str) -> str:
     return ceo_report.report_to_ceo(order_id, status, detail)
+
+
+def _h_send_media_to_ceo(*, path: str, caption: str = "") -> dict:
+    return telegram_out.send_media_to_ceo(path, caption=caption)
 
 
 REGISTRY: tuple[ToolSpec, ...] = (
@@ -547,6 +552,25 @@ REGISTRY: tuple[ToolSpec, ...] = (
         ),
         handler=_h_report_to_ceo,
         response_format="text",
+    ),
+    ToolSpec(
+        name="send_media_to_ceo",
+        description=(
+            "Upload the file at `path` to the CEO's real Telegram chat via "
+            "SomPong as an actual file -- never a link. Picks "
+            "sendPhoto/sendVideo/sendDocument by probing the file's real "
+            "content, not its extension.\n\n"
+            "Refuses outright, naming the size in the error, for anything "
+            "over Telegram's 50 MB cap -- it never silently downgrades an "
+            "oversized file to a link instead. Also refuses to send unless "
+            "the configured bot's identity verifies as @SSomPongBot, since "
+            "a wrong token can still come back \"ok\": true from Telegram "
+            "while landing in the wrong chat.\n\n"
+            "Returns the same {\"ok\": bool, \"reason\": str|None} shape as "
+            "report_to_ceo/send_to_cxo's underlying transport. Never raises."
+        ),
+        params=(Param("path", str), Param("caption", str, "")),
+        handler=_h_send_media_to_ceo,
     ),
 )
 
