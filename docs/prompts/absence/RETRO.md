@@ -378,11 +378,12 @@ Cap raised to 40 by CTO. Running total after hall v4: 42 / 40 — 2 credits (~8 
 
 **CEO's reasoning (recorded because it explains the story):** the crack sits on the empty hook where the missing painting used to hang — that's WHY the painting had to come down, and it's why nobody has to lie for the rest of the film to happen. v3 put the crack too high (~2m, near the ceiling); it needs to be at ordinary picture-hanging height, dead centre horizontally on the wall, matching the height of the framed works on the side walls. The plaque stays exactly where v3 put it (knee height, ~0.5m). Everything else stays identical to v3, which passed.
 
-- **Asset id:** _(pending)_
-- **Filed as Element:** re-point `project_absence_loc_hall_big` (same UUID `173cb410-60e3-43fe-b80d-baa946c0d001`)
+- **Asset id:** `b69d5170-1a8d-4431-8c84-3881baa634dc`
+- **Filed as Element:** re-pointed `project_absence_loc_hall_big` ("Edit Original", "Element saved" confirmed)
 - **Model:** GPT Image Gen 2, 1:1, Medium, 2K
 - **References (Element `@mention`):** `@project_absence_loc_hall_big` (v3, the passed hall) and `@project_absence_loc_wall_crack` (crack shape reference)
-- **Cost:** _(pending)_
+- **Cost:** 3 credits (attempt 1/1) — landed at 42/40, 2 credits over cap, disclosed in Money log below per CTO's own cents-on-authorised-work policy
+- **Downloaded:** `/Users/gob/Desktop/absence-02-hall.png` (overwrote v3)
 
 **Prompt:**
 ```
@@ -411,7 +412,7 @@ BOTTOM-RIGHT -- A HIGH WIDE VIEW looking down over the whole room from an elevat
 The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and falloff, fine film grain throughout, soft halation blooming around the brightest highlights, a gentle vignette, deliberate directional cinema lighting with real falloff -- bright, warm and high-key overall, never dim, never desaturated, never a flat product-catalogue photograph. An invented place with no identifiable country and no identifiable year.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Crack moved successfully to roughly mid-wall / picture-hanging height (verified by zoom, matches the height of the framed art visible in the adjacent panels), plaque unchanged at knee height below it, a clear visible gap between them. Everything else (columns, coves, terrazzo, bench, varied artworks) identical to v3. This is now the CEO-approved final hall — reported to CTO the moment it landed, per "Scene 1 held on it."
 
 ---
 
