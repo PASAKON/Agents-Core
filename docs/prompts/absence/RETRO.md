@@ -578,3 +578,32 @@ Panel 1: full body, front view, in the action above. Panel 2: large close-up por
 ## Order #53 status — all three visitor gold-V removals complete
 
 `char_critic` v3, `char_woman` v2, `char_student` v2 all filed, downloaded, committed. Running spend: 51/40 credits (11 credits/~44 cents over the CTO-approved cap), fully disclosed per-plate above as cents on already-authorised top-priority work. None of the three re-tested against Higgsfield's own protected-content scanner from the image side (that check only runs when staged as a video reference) — flagging for CTO confirmation before Scene 1 fires.
+
+---
+
+### `project_absence_char_critic` v4 — full recast, Asian woman in fur coat (CEO order #54)
+
+- **Asset id:** `61a0de1a-c62f-4164-87ac-6c2c1a4e779d` · **Element:** re-pointed existing `project_absence_char_critic`
+- **Cost:** 3 credits (GPT Image 2, Medium, 2K, 21:9) — running total now 54/40 credits (14 credits/~56 cents over cap). Order #54 recasts the character entirely; Scene 1 is held on this and order #55, so treating both as cents on already-authorised top-priority work per the CTO's standing policy, disclosing and proceeding.
+- **Colour choice:** deep saturated **magenta** fur (chosen over ochre/ultramarine to avoid collision — ochre reads too close to the existing oxblood/burnt-orange earth-tone family, ultramarine too close to the woman's cobalt blue leather; magenta is the only one of the three options with no existing wardrobe neighbour in this cast).
+
+**Prompt:**
+```
+A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in a single wide horizontal strip, aspect ratio approximately 2.4:1, all four panels on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props beyond what the character carries, no text anywhere.
+
+The person: an Asian woman, in her sixties, tall, slim build -- speaks with total authority, the loudest and most commanding presence in the room. She is not a villain and must never read as sinister or threatening: she is a woman very sure of her own taste, not someone who could hurt anyone. Genuinely human: real skin with real texture and variation, real bone structure, no doll face, no beauty-filter smoothing, no CGI sheen. IMPORTANT: this is a completely invented, anonymous, generic face -- it must not resemble any real, famous, or public person in any way, no celebrity likeness, no impression of any well-known individual or actress, zero basis in any real photograph. An ordinary face nobody would recognise, with its own distinct nose shape, jawline, hairline and eye spacing.
+
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a real fur coat reaching to about mid-calf length (NOT floor-length), full and voluminous, with a high dramatic collar that frames her face -- this dramatic fur-and-collar cut is her one unmistakable signature. The fur is in one deeply saturated flat colour, NEVER black: deep saturated magenta. Cream suede gloves. Round-toe heels. A gold signet ring and a gold bracelet, worn as real understated wealth.
+
+IMPORTANT -- this must be an entirely INVENTED, ORIGINAL garment design: not a recognisable designer piece, not a costume from any known film, franchise or science-fiction property. No brand marks, no logos, no monograms of any kind. No recognisable artwork anywhere in the frame. Plain seamless light-grey studio background only.
+
+She wears NO gold V of any kind -- she is a visitor, not Valder staff, and the V mark belongs to staff only. No brooch, no pin, nothing on the chest.
+
+BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary. Also banned: floor-length coats, black clothing, anything that reads as villainous, militaristic or sinister, any gold V or staff mark of any kind, any recognisable designer garment or film/franchise costume, any brand mark or logo.
+
+ACTION (panels 1 and 3): mid-sentence, one gloved hand raised open toward the wall she's addressing, chin slightly lifted, mouth open mid-sentence -- the gesture of someone making an emphatic point, not an aggressive gesture.
+
+Panel 1: full body, front view, in the action above. Panel 2: large close-up portrait, same invented anonymous face, same fur collar, ring and bracelet visible, no V. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same coat length, same collar shape, same colour, same build. Same person, same face, same clothes in every panel.
+```
+
+**What the image actually shows:** Strong pass, attempt 1/1. Four panels verified: front (raised open hand, role/action preserved), close-up (Asian woman, invented anonymous face, gold ring + bracelet, cream glove, mouth open mid-sentence), profile (same action), back (same coat length/collar/colour/build). Deep saturated magenta fur, mid-calf, dramatic collar, no gold V anywhere, no brand marks/logos. No safety-flag title on the asset card.
