@@ -145,9 +145,11 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 📝 prompt written — [s4-s5.txt](s4-s5.txt) |
 | S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
 | S6 | **$20,000,000** — wall POV. 10–20 people, personal guards. | 15s | ⬜ |
-| S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | ⬜ |
-| S8 | **Valder's five pieces**, one at a time. He cannot see the crack. | 25s | ⬜ plates |
-| S9 | Dupe hears Valder's voice from the next room. Sweat. | 15s | ⬜ |
+| S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | 📝 **ready to fire, no missing plates** — [s7-s9.txt](s7-s9.txt) |
+| S8a | Pieces 1–3: the chair, the fish trap, the millstone. | 20s | 📝 **ready to fire** |
+| S8b | Pieces 4–5, then he turns and the crowd parts. Ends on his face. | 20s | 📝 **ready to fire** |
+| S8c | **The sixth story.** The pivot of the film. | 25s | 📝 **ready to fire** |
+| S9 | Dupe hears Valder's voice from the next room. Sweat. | 20s | 📝 **ready to fire** · audio is S8c's take, unbroken |
 | S10 | **The parrot woman arrives** with the crocodile bag. Rivalry. | 20s | ⬜ |
 | S11 | **$100,000,000** — wall POV. Press, live broadcast, helicopter. | 15s | ⬜ |
 | S12 | **The grandmother** wheels in and takes it. The room freezes. | 25s | ✅ plate `5dd23a87` — wheels pass all 4 panels · ⚠️ gloves came out black, re-shoot queued behind S3 |
@@ -158,9 +160,26 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | S17 | The square hole. Someone steps back from it exactly as in S3. | 15s | ⬜ |
 | S18 | Dupe rich, the interview — then alone at a white wall, hammer. | 25s | ⬜ |
 
-**That is 18 rows for a 17-scene film** because S1 is already shot. **17 scenes
-still to fire × 2 takes = 34 clips.** At ~60 min a clip that is the whole budget
-to 30 August with almost no slack — every re-shoot costs a scene at the end.
+**S8 does not fit in one clip.** Valder's five stories plus the improvisation run
+~160 spoken words; a 25s clip holds ~60. So S8 is written as **S8a / S8b / S8c**
+in [s7-s9.txt](s7-s9.txt). No line was cut. That makes **19 clips per pass, not
+17.**
+
+**Corrected arithmetic — the earlier figure I gave the CEO was wrong.**
+
+| | |
+|---|---|
+| Clips per pass | 19 |
+| × 2 takes | 38 |
+| Already fired | 2 (S1) + 1 (S2) |
+| **Remaining** | **35** |
+| Time to end of 30 Aug | **~66 h**, not the 41 h I first said |
+| At 50 min/clip (peak-hours pessimistic) | ~29 h |
+| **Margin** | **~37 h** |
+
+So the schedule is comfortable, not knife-edge, and there is room for re-shoots.
+The real constraint is **never leaving the one generation slot idle**, not the
+clip count.
 
 **Wall POV appears 4 times:** S3, S4, S6, S11. Same frame every time; only the
 crowd inside it changes.
