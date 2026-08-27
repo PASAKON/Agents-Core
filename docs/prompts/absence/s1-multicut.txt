@@ -16,7 +16,7 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
 
 --- THE PLACE ---
 
-@project_absence_loc_hall_big_c — THE GALLERY HALL. The only location in the scene. A very long, tall hall. **Both side walls are plain flat WHITE** and carry framed paintings — real, competently made modern works in varied styles, properly framed, hung in a line, with small bronze figures on white plinths between them. **The floor is polished dark terracotta-red terrazzo**, glossy enough that every lamp reflects in it. Down both sides runs a row of **slim chromium columns that flare out at the top into wide trumpet-shaped ceiling coves, each cove glowing hot ORANGE from a concealed uplight** — a long receding rhythm of orange flares. At the edges sit **wire-sphere lamps on white cylindrical plinths** and small chrome-and-glass consoles. **The middle of the floor is open and empty.** Near one end, a **long yellow upholstered bench and a yellow swivel chair on a blue, black and white patterned rug.**
+@project_absence_loc_hall_big_d — THE GALLERY HALL. The only location in the scene. A very long, tall hall. **Both side walls are plain flat WHITE** and carry framed paintings — real, competently made modern works in varied styles, properly framed, hung in a line, with small bronze figures on white plinths between them. **The floor is polished dark terracotta-red terrazzo**, glossy enough that every lamp reflects in it. Down both sides runs a row of **slim chromium columns that flare out at the top into wide trumpet-shaped ceiling coves, each cove glowing hot ORANGE from a concealed uplight** — a long receding rhythm of orange flares. At the edges sit **wire-sphere lamps on white cylindrical plinths** and small chrome-and-glass consoles. **The middle of the floor is open and empty.** Near one end, a **long yellow upholstered bench and a yellow swivel chair on a blue, black and white patterned rug.**
 
 @project_absence_loc_wall_crack — THE HERO WALL. A large unbroken plane of flat WHITE between two rounded chromium columns. **NO PAINTING HANGS ON IT.**
 
@@ -98,7 +98,7 @@ CROWDS ARE LOOSE AND SCATTERED, NEVER IN FORMATION. No rows, no lines, no ranks,
 SHOT 1 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big_c. Wide, static, level, looking straight down the length of the hall. Receding rows of orange ceiling coves, the polished red floor reflecting them, the white side walls with their framed paintings. **THE HALL IS COMPLETELY EMPTY OF PEOPLE except one.**
+@project_absence_loc_hall_big_d. Wide, static, level, looking straight down the length of the hall. Receding rows of orange ceiling coves, the polished red floor reflecting them, the white side walls with their framed paintings. **THE HALL IS COMPLETELY EMPTY OF PEOPLE except one.**
 
 **@project_absence_char_cleaner_c walks slowly away from camera down the middle of the hall, pushing @project_absence_prop_cart ahead of him.** We see him from behind, small in the frame, the white of his uniform the only bright block in a warm room. The cart's chrome catches the orange light. He is unhurried.
 
@@ -118,7 +118,7 @@ SHOT 2 — 3 seconds
 SHOT 3 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big_c. Static, level, taken from **BEHIND AND SLIGHTLY TO ONE SIDE** of a small group, so we see them in three-quarter view.
+@project_absence_loc_hall_big_d. Static, level, taken from **BEHIND AND SLIGHTLY TO ONE SIDE** of a small group, so we see them in three-quarter view.
 
 **@project_absence_char_critic_b, @project_absence_char_oldman, @project_absence_char_woman and @project_absence_char_student_b stand in front of the bare wall, arguing.** All four do their own action at once. **@project_absence_char_critic_b raises an open gloved hand toward the wall, mid-sentence.** **@project_absence_char_oldman steps back a pace, head tilted, and shakes his head once.** **@project_absence_char_woman stands motionless with a hand at her mouth.** **@project_absence_char_student_b jabs a finger downward, interrupting, and nobody turns to her.**
 
@@ -130,7 +130,7 @@ They are talking over each other. **No word is audible.**
 SHOT 4 — 2 seconds
 ================================================================
 
-@project_absence_loc_hall_big_c. Static, level, square-on to one of the **SIDE** walls, showing several framed paintings hung in a line with a small bronze figure on a plinth between them. The paintings are good.
+@project_absence_loc_hall_big_d. Static, level, square-on to one of the **SIDE** walls, showing several framed paintings hung in a line with a small bronze figure on a plinth between them. The paintings are good.
 
 **@project_absence_char_visitor_a stands squarely in front of one of them, hands clasped behind his back, genuinely studying it.** He does not move.
 
@@ -142,7 +142,7 @@ SHOT 4 — 2 seconds
 SHOT 5 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big_c. The same three-quarter angle on the group as shot 3.
+@project_absence_loc_hall_big_d. The same three-quarter angle on the group as shot 3.
 
 **The group has tightened.** The four are still arguing and have drawn closer to one another. @project_absence_char_visitor_a has left the painting he was studying and drifted over to stand at the edge of them, not speaking, just watching. **That is five people. There is nobody else near them.**
 
@@ -154,7 +154,7 @@ Far down the hall, **@project_absence_char_visitor_b walks slowly along the side
 SHOT 6 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big_c. Wide, static, level, from further back down the hall. The long yellow bench and yellow swivel chair sit in the foreground on their patterned rug. **THE BENCH IS COMPLETELY EMPTY** — not one person is sitting on it.
+@project_absence_loc_hall_big_d. Wide, static, level, from further back down the hall. The long yellow bench and yellow swivel chair sit in the foreground on their patterned rug. **THE BENCH IS COMPLETELY EMPTY** — not one person is sitting on it.
 
 Far beyond it, small at the end of a very long hall, the group at the bare wall is now **all seven of the visitors**, loose and scattered, all facing away from camera. **That is everyone in the building and it is a small group in a very large room.** Near the front an arm is still raised toward the wall. **The hall around them is otherwise completely empty.**
 
@@ -164,7 +164,7 @@ Far beyond it, small at the end of a very long hall, the group at the bare wall 
 SHOT 7 — 3 seconds
 ================================================================
 
-@project_absence_loc_hall_big_c. Static, level, low. **In the foreground at the right edge of frame stands @project_absence_char_cleaner_c beside @project_absence_prop_cart**, in three-quarter view, the framed painting still leaning against the cart facing outward so we see it clearly. He has stopped. Both hands rest on the cart's chrome rail.
+@project_absence_loc_hall_big_d. Static, level, low. **In the foreground at the right edge of frame stands @project_absence_char_cleaner_c beside @project_absence_prop_cart**, in three-quarter view, the framed painting still leaning against the cart facing outward so we see it clearly. He has stopped. Both hands rest on the cart's chrome rail.
 
 Behind him and much further away, the seven of them stand in front of the bare wall, all backs, all facing away, a small knot of colour in an enormous empty room. **He is looking at them.**
 
