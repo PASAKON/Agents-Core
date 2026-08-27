@@ -310,9 +310,34 @@ ACTION (panels 1 and 3): caught mid-step, walking casually, head turned toward w
 Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large close-up portrait, same ordinary, believable face, head turned. Panel 3: full body, side profile, same mid-step action. Panel 4: full body, seen entirely from behind -- same jacket, same colour, same long-limbed build. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** Strong pass, attempt 1/1. Burnt orange rust straight-cut jacket, plain tan trousers, no hat, no gloves, no jewellery — deliberately unremarkable per brief. Mid-stride, head turned toward something off-frame — action reads correctly in panels 1/3. Real ordinary human face, comfortable/unstudied, not threatening. Panel 4 (behind) consistent jacket/colour/build. No defects found; kept as generated.
+**What the image actually shows (v1):** Strong craft, but wrong casting. Burnt orange rust straight-cut jacket, plain tan trousers, no hat, no gloves, no jewellery — deliberately unremarkable per brief. Mid-stride, head turned toward something off-frame — action reads correctly in panels 1/3. Real ordinary human face, comfortable/unstudied, not threatening. Panel 4 (behind) consistent jacket/colour/build. **Superseded by CEO order #48/#49** (arrived after this plate fired and was already filed/committed): visitor_b must be a woman in a real fur coat, not a man in a vinyl/leather jacket. CTO confirmed the redo directly (crossed messages, no fault) — see v2 below. No gold V was ever included on this plate, so that half of order #48 was already satisfied by luck.
 
-**CEO order #48 (arrived AFTER this plate fired):** visitor_b should be a woman in a real fur coat, not a man in a vinyl/leather jacket. This plate does NOT match — it was already filed and committed before the order arrived. Per CTO instruction, not regenerating on my own judgment; flagged to CTO, holding for their decision on whether to regenerate. No gold V was ever included on this plate, so that half of order #48 is already satisfied regardless of outcome.
+---
+
+### 2.6v2 · `project_absence_char_visitor_b` — redo (CTO order #49: woman, real fur coat)
+
+- **Asset id:** _(pending)_
+- **Filed as Element:** re-point `project_absence_char_visitor_b`
+- **Cost:** _(pending)_
+
+**Prompt:**
+```
+A character reference sheet, ONE IMAGE divided into FOUR PANELS side by side in a single wide horizontal strip, aspect ratio approximately 2.4:1, all four panels on a plain seamless light-grey studio background, soft even studio lighting, no environment, no props, no text anywhere.
+
+The person: a visitor, about 50, a woman, comfortable build. Dressed well but deliberately UNREMARKABLE in face and behaviour, nothing about her manner catches the eye, no signature detail. Not sinister or severe, simply ordinary. Genuinely human: real skin with real texture and variation, real bone structure, real signs of middle age, no doll face, no beauty-filter smoothing, no CGI sheen.
+
+CLOTHING -- retrofuturist mid-century silhouette, the future as imagined in the 1960s (2001: A Space Odyssey, Tati's Playtime, Gattaca), never a literal period piece, never anything modern: a REAL FUR COAT, thick and soft, knee length, worn open and unbuttoned over a plain matching dress underneath, in one deeply saturated flat colour, NEVER black: burnt orange rust. The fur itself is the point -- it must read unmistakably as genuine fur, with real depth, texture and softness, the one texture in the room that signals money without any logo or brand. Round-toe shoes.
+
+JEWELLERY: almost nothing beyond one small, plain pair of earrings. NO gold V, no brooch, no other visible ornament.
+
+BANNED: jeans, sneakers, trainers, hoodies, graphic tees, plastic zips, printed logos, baseball caps, anything reading as post-1970 or contemporary. Also banned: black clothing, anything that reads as villainous or sinister.
+
+ACTION (panels 1 and 3): walking slowly along a wall of pictures, at a browsing pace, her head turned toward the pictures as she looks at them.
+
+Panel 1: full body, front-three-quarter view, in the action above, fur coat open, walking slowly. Panel 2: large close-up portrait, same ordinary, believable face, head turned as if looking at something beside her. Panel 3: full body, side profile, same slow browsing walk. Panel 4: full body, seen entirely from behind -- same fur coat, same colour, same build, texture of the fur clearly visible from behind too. Same person, same face, same clothes in every panel.
+```
+
+**What the image actually shows:** _(pending)_
 
 ---
 
