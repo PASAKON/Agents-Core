@@ -45,7 +45,47 @@ The hanging walls stay plain white and neutral in every panel -- all the saturat
 The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and falloff, fine film grain throughout, soft halation blooming around the brightest highlights, a gentle vignette, deliberate directional cinema lighting with real falloff -- bright, warm and high-key overall like @Image1, never dim, never desaturated, never a flat product-catalogue photograph. An invented place with no identifiable country and no identifiable year.
 ```
 
-**What the image actually shows:** A clean 1:1 square, four panels in a proper 2x2 grid filling the frame edge to edge with no black bars or margins. The period push landed strongly: chrome/aluminium trumpet-shaped column capitals flaring into hot-orange-lit coves line both long sides of the hall (a genuine Playtime/2001-style manufactured-object read), a starburst wall sculpture and round mirror-disc "art" objects sit at the perimeter, and a boomerang-shaped side table appears near the yellow bench. Top-left hero wall is plain white, empty, brightly lit, nothing hung yet, quiet open floor in front -- correct per brief. The yellow bench + blue-and-black rug are present (bottom-left/bottom-right). Terracotta terrazzo floor and hot-orange coves are intact from the reference. **One honest flaw, same one the prior accepted hall attempt had:** the three non-hero panels (top-right, bottom-left, bottom-right) all read as close variations of the same long corridor shot rather than three clearly distinct camera positions -- there is no genuinely elevated/high "floor plan" view in the bottom-right panel as the brief specified, and Valder's seat is not clearly distinguished from the yellow bench as a separate, distinct piece of furniture. Not a hard failure (no error, no blank, no content flag) so kept per the task's regen-only-on-hard-failure rule -- flagging for the CEO to judge.
+**What the image actually shows (v1):** A clean 1:1 square, four panels in a proper 2x2 grid filling the frame edge to edge with no black bars or margins. The period push landed strongly: chrome/aluminium trumpet-shaped column capitals flaring into hot-orange-lit coves line both long sides of the hall (a genuine Playtime/2001-style manufactured-object read), a starburst wall sculpture and round mirror-disc "art" objects sit at the perimeter, and a boomerang-shaped side table appears near the yellow bench. Top-left hero wall is plain white, empty, brightly lit, nothing hung yet, quiet open floor in front -- correct per brief. The yellow bench + blue-and-black rug are present (bottom-left/bottom-right). Terracotta terrazzo floor and hot-orange coves are intact from the reference. **One honest flaw, same one the prior accepted hall attempt had:** the three non-hero panels (top-right, bottom-left, bottom-right) all read as close variations of the same long corridor shot rather than three clearly distinct camera positions -- there is no genuinely elevated/high "floor plan" view in the bottom-right panel as the brief specified, and Valder's seat is not clearly distinguished from the yellow bench as a separate, distinct piece of furniture. Not a hard failure (no error, no blank, no content flag) so kept per the task's regen-only-on-hard-failure rule -- flagging for the CEO to judge.
+
+---
+
+## JOB 1 v2 · Hall fix (CTO 10:00) — crack/plaque restored + varied art added
+
+**CTO feedback:** panel 1 was a bare white wall (`project_absence_loc_wall_crack` was never attached — the crack/plaque, the one object the whole film is about, was missing) and the artworks had "almost vanished" behind chrome ornaments, inverting the CEO's varied-museum-art rule.
+
+- **Asset id:** `c185a402-3cdb-4af3-b6ca-70fa3615557b`
+- **Filed as Element:** `project_absence_loc_hall_big` re-pointed again (same UUID `173cb410-60e3-43fe-b80d-baa946c0d001`, "Edit Original")
+- **Model:** GPT Image Gen 2, 1:1, Medium, 2K
+- **References (Element `@mention`, not the Image1/Image2 drag-slot):** `@project_absence_loc_hall_big` (the v1 retro hall, UUID `173cb410...`) and `@project_absence_loc_wall_crack` (the pre-existing plate 3 crack+plaque composition, UUID `2c52b541-327d-4d25-8aba-296ba3e787bb` — matches the UUID on record in `docs/prompts/absence/PLATES.md`, confirmed via `data-beautiful-mention`). Chose the `@ElementName` mention route over dragging a raw asset into an Image-slot since both sources are already filed Elements — simpler and independently verifiable (chip resolves to real UUID, not red/error text).
+- **Cost:** 3 credits (attempt 1/1)
+- **Downloaded:** `/Users/gob/Desktop/absence-02-hall.png` (overwrote v1)
+
+**Prompt:**
+```
+@project_absence_loc_hall_big @project_absence_loc_wall_crack
+
+The room shown in @project_absence_loc_hall_big is the correct room and its retrofuturist architecture, furniture, colour and lighting language are exactly right -- KEEP ALL OF IT: the chrome trumpet-flared columns, the hot-orange-lit coves, the polished dark terracotta-red terrazzo floor, the yellow bench on the blue-and-black rug, the starburst and boomerang-shaped objects at the perimeter.
+
+TWO changes only, both about content, not style:
+
+1) THE HERO WALL (top-left panel): reproduce the wall shown in @project_absence_loc_wall_crack -- at roughly head height there is ONE SMALL star-shaped crack, small and unremarkable, the kind of accidental damage one man with a ladder could have made, not large, not structural, no rubble, no crumbling. Mounted on the wall below it is the small engraved brass plaque reading exactly three lines: 'THE ABSENCE OF MEANING' then 'Valder' then '$2,000,000', spelled correctly. This is the room's white hanging wall, at the same scale and position as in @project_absence_loc_hall_big's hero-wall panel, now correctly carrying the crack and plaque instead of being bare.
+
+2) REAL, VARIED ARTWORKS on both long white side walls (visible in the left-side and right-side panels): actual framed paintings, spaced apart along the walls, genuinely varied in style -- some abstract, some figurative, some minimal, some conceptual -- plus a few sculptures and strange-material installations on plinths among the existing chrome/orbital objects. As mixed and eclectic as a real museum, which never shows only one era or one style. These artworks are completely free of the retrofuturist period -- ordinary picture frames, ordinary canvases, ordinary sculptural materials -- while the architecture, furniture and lighting around them stay exactly as retrofuturist as before. No artwork may reference identifiable modern culture: no screens inside any artwork, no photographs of modern things, no contemporary English text on any artwork. Abstract, figurative, sculptural and conceptual are all safe.
+
+ONE IMAGE, perfectly SQUARE 1:1, divided into FOUR PANELS arranged in a 2x2 GRID, each panel a different camera position inside this exact same hall -- same floor, same ceiling, same lighting, only the camera moves. The four panels fill the frame completely edge to edge, touching each other with no gap, no black bars, no border, no margin anywhere. No people in any panel.
+
+TOP-LEFT -- THE HERO WALL as described in point 1 above: the crack and plaque now correctly present, photographed straight-on at eye level, camera perfectly level, no tilt, no dutch angle. The open floor before it stays quiet and empty.
+
+TOP-RIGHT -- LEFT SIDE of the same hall, looking down the long room toward a genuinely distant far wall, now showing the varied real artworks from point 2 hung along the wall among the retrofuturist columns, coves and sculptural objects.
+
+BOTTOM-LEFT -- RIGHT SIDE of the same hall, including the yellow bench on its blue-and-black rug, varied artworks on the wall, and, further along, one distinctive single seat set slightly apart with a clear sightline back to the hero wall -- this is Valder's own seat, visually distinct from any other furniture in the room.
+
+BOTTOM-RIGHT -- A HIGH WIDE VIEW looking down over the whole room from an elevated angle so the floor plan reads at once: the hero wall with its crack and plaque, the entrance, the flat unobstructed wheelchair route between them, the bench, the varied artworks on the walls, and Valder's seat, all visible together.
+
+The image must look genuinely PHOTOGRAPHED, not rendered: real lens depth and falloff, fine film grain throughout, soft halation blooming around the brightest highlights, a gentle vignette, deliberate directional cinema lighting with real falloff -- bright, warm and high-key overall, never dim, never desaturated, never a flat product-catalogue photograph. An invented place with no identifiable country and no identifiable year.
+```
+
+**What the image actually shows (v2, accepted):** Both defects fixed. Hero wall (top-left) now shows a small jagged star-shaped crack at head height with the correctly-spelled brass plaque ("THE ABSENCE OF MEANING / Valder / $2,000,000") mounted below it — verified via zoom, both present and legible. Both side-wall panels (top-right, bottom-left) now carry genuinely varied framed art: a Rothko-style black/gold colour-field abstract, a warm red figurative/impressionistic piece, a blue abstract, plus dark bronze figurative sculptures on plinths among the retrofuturist chrome/orbital lamp objects — reads as a real eclectic museum collection, not a matching set, and nothing in the visible art references modern culture (no screens, no photos, no contemporary text). Retrofuturist architecture (chrome trumpet columns, orange coves, terracotta floor, yellow bench) unchanged from v1. Bottom-right panel still reads closer to another corridor view than a true elevated floor-plan shot — the same non-hard-failure flaw carried over from v1 — kept per the regen-only-on-hard-failure rule.
 
 ---
 
@@ -254,4 +294,4 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap: 30 credits. Running total: 6 / 30 (JOB 1 hall 3 + critic 3).
+Cap: 30 credits. Running total: 9 / 30 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3).
