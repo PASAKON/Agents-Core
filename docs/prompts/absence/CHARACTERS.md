@@ -367,6 +367,76 @@ Element filed from an asset already sitting in the project since 2026-08-18
 
 ---
 
+## 10 · `project_absence_char_woman_b` — the woman, REDESIGNED as a parrot
+
+CEO's third add-on to this task. New name — original `project_absence_char_woman`
+kept, not overwritten.
+
+- **Element:** `project_absence_char_woman_b`, category Character, name "Woman B (Parrot)"
+- **Asset id:** `8b8191f8-9483-409a-8433-03e841e0ba80`
+- **Model:** GPT Image 2, 1:1, Medium, 2K
+- **References:** none (pure text redescription)
+- **Cost:** 2.5 credits
+- **Who she is stays the same** as the original: slim ~50-year-old, dark hair,
+  strong composed face, cat-eye sunglasses, gold dome earrings, long cobalt
+  gloves, no gold V, standing still with one gloved hand at her mouth.
+- **What changes — the choices made, for the CTO's record:**
+  - **Crest:** hair swept sharply upward off the crown into one tall, rigid,
+    lacquered vertical crest — a single cockatoo-style crest shape, not a bun
+    or beehive.
+  - **Collar:** a high, stiff, architectural leather collar standing away
+    from the neck the way a parrot's throat puffs out — structured, not soft
+    fabric.
+  - Shoulders cut to read as folded wings in silhouette only (no literal wing
+    shapes); the dress/skirt built from overlapping cut-and-layered leather
+    panels giving a scaled, feather-like surface texture, entirely in the
+    single cobalt colour — no rainbow, no green/red parrot palette, no beak,
+    mask, wings, tail, attached feathers, claws, perch, or live bird anywhere.
+
+**Prompt:**
+```
+CHARACTER SHEET — invented anonymous woman, no resemblance to any real or public person. Four panels on plain grey seamless studio backdrop, professional photographic softbox lighting — photographed, not illustrated or rendered.
+
+WHO: a slim woman of about fifty years old, dark hair, a strong composed face. Black cat-eye sunglasses worn indoors. Gold dome stud earrings. Long cobalt-blue leather gloves reaching past the elbow. No gold V mark anywhere on her.
+
+ACTION/POSE: standing completely still and upright, one gloved hand raised and resting near her mouth, an absorbed, self-contained expression — not performing for anyone.
+
+COLOUR: entirely one single saturated glossy electric cobalt-blue leather, head to toe — hair, clothing, gloves. No other colour anywhere on her body. Do not introduce a second colour.
+
+THE DESIGN CONCEPT — HER HAIR AND CLOTHES ARE DESIGNED FROM A PARROT, BUT THIS MUST READ AS HIGH COUTURE, NEVER AS A COSTUME:
+
+HAIR: swept sharply upward off the crown into one tall, sculptural, lacquered CREST — like a cockatoo raising its crest, rigid, structured, deliberate, glossy cobalt. Not a bun, not a beehive — a single vertical crest shape.
+
+COLLAR/SHOULDERS: a high, stiff collar that stands away from the neck the way a parrot's throat puffs out — architectural, structured leather, not soft fabric. Shoulders cut and padded so they read as folded wings in silhouette alone, without being literal wings. The torso's leather is sculpted in overlapping layered panels that suggest plumage through their cut and layering and surface texture alone — glossy leather with a subtle feather-like ridged texture, all in the single cobalt colour.
+
+ABSOLUTELY DO NOT INCLUDE, under any circumstance: a beak, a bird mask, actual wings, a tail, real or attached feathers, any rainbow or multi-colour scheme, the classic green-and-red parrot palette, bird-style face makeup, claws, a perch, or any live bird anywhere in frame. If in doubt, favour couture over bird.
+
+She must read as a woman wearing extraordinarily expensive parrot-inspired couture — a fashion editor's description, not a costume.
+
+PANELS (four, including one back view):
+1. FULL BODY, FRONT, standing still, one gloved hand at her mouth, facing camera.
+2. LARGE CLOSE-UP PORTRAIT, head and shoulders, showing the crest and collar clearly, sunglasses on.
+3. SIDE PROFILE, full body, showing the crest's silhouette and the collar's stand-away shape from the side.
+4. FULL BODY FROM BEHIND, showing the back of the crest and the shoulder/collar construction from behind.
+
+No logos, no legible text, no recognisable artwork. Plain grey seamless background, consistent lighting and framing across all four panels.
+```
+
+**What the image actually shows:** Strong hit on first generation, and the
+hardest brief of the three plates in this task (avoiding costume territory).
+The crest reads exactly as asked: a rigid, glossy, vertically-swept cobalt
+crest, unmistakably cockatoo-inspired without being literal. The collar
+stands dramatically away from the neck in the close-up and back-view panels,
+architectural and structured, not soft. The gown's lower half carries a
+scaled, layered leather texture that reads as feather-structure through cut
+alone — no colour break, no attached feathers, no beak/mask/wings/claws
+anywhere in frame. She reads as a woman in extreme couture, not a costume.
+Back view (panel 4) shows the crest and collar construction clearly from
+behind, matching the brief's requirement. No hard defects; kept on first
+generation.
+
+---
+
 ## Summary — signature-type audit for the CEO
 
 | # | Character | Signature type | From-behind legibility |
