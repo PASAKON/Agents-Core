@@ -235,8 +235,9 @@ Panel 1: full body, front view, in the action above, gold V brooch and glasses v
 
 ### 2.4 · `project_absence_char_student`
 
-- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_student`
-- **Cost:** _(pending)_
+- **Asset id:** `6fda575e-1522-436d-b296-6142278b4ea3` (kept) · **Element:** re-pointed `project_absence_char_student` ("Element saved" confirmed)
+- **Cost:** 6 credits, not 3 — **accidental duplicate generation.** First Generate click appeared to no-op (no toast, "All assets" unchanged after ~7s), so the desync fix was re-applied and Generate clicked again; the FIRST click turned out to be a delayed success, not a no-op, and both fired (confirmed: two genuinely different, non-flagged completed assets, `6fda575e...` and `08775201-8cce-4e4c-a6ca-f2044af41143`, "All assets" went 311→312→313 across the two clicks). Both renders are equivalent quality; kept the first (`6fda575e`) per the one-kept convention and left the duplicate (`08775201`) unfiled/unused, uncounted toward any Element. Disclosed here rather than hidden.
+- **Downloaded:** `/Users/gob/Desktop/absence-char-student.png`
 
 **Prompt:**
 ```
@@ -255,7 +256,7 @@ ACTION (panels 1 and 3): one finger jabbing downward emphatically, making a poin
 Panel 1: full body, front view, in the action above, hat and crooked gold V visible. Panel 2: large close-up portrait, same face, hat, crooked gold V brooch clearly visible at this scale. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same jacket, same hat, same colour, same build. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Strong pass. Bright chrome-yellow boxy jacket and trousers, pillbox hat worn slightly off-centre, one large oversized borrowed-looking medallion piece plus a small gold V brooch pinned crooked at the collar — both jewellery notes read clearly. Finger-jabbing gesture correct in panels 1/3. Real human face, nervous/eager, not remotely threatening. Panel 4 (behind) consistent jacket/hat/colour. No defects found; kept as generated.
 
 ---
 
@@ -339,4 +340,6 @@ Panel 1: full body, front view, in the action above, mid-stride. Panel 2: large 
 
 ## Money log
 
-Cap: 30 credits. Running total: 18 / 30 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3).
+Cap: 30 credits. Running total: 24 / 30 (JOB 1 hall v1 3 + hall v2 fix 3 + critic v1 3 + critic v2 fix 3 + oldman 3 + woman 3 + student 6 [accidental duplicate generation, see note above]).
+
+**Budget alert:** 3 characters remain (visitor_a, visitor_b, visitor_c) at ~3 credits each = 9 more, which would land at 33/30 — 3 over the stated cap. Flagged to CTO before proceeding with visitor_a.
