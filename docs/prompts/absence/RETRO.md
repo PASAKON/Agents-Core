@@ -491,10 +491,10 @@ Panel 1: full body, front view, in the action above, uniform and gold V visible.
 
 ---
 
-### `project_absence_char_critic` v3 — anonymized face, gold V removed (CEO order #50)
+### `project_absence_char_critic` v3 — anonymized face, gold V removed (CEO order #50), anti-brand garment (CEO order #52)
 
-- **Asset id:** _(pending)_ · **Element:** re-point existing `project_absence_char_critic`
-- **Cost:** _(pending)_
+- **Asset id:** `c85ae9db-8227-4193-84ef-50a7a7fb53d3` · **Element:** re-pointed existing `project_absence_char_critic`
+- **Cost:** 3 credits (GPT Image 2, Medium, 2K, 21:9) — total running spend now 45/40 credits (5 credits/~20 cents over the CTO-approved 40 cap). Per the CTO's own stated policy — "stop and ask when the overage is a real amount of money or when you cannot tell, and when it is cents on already-authorised work, name the number and keep going" — this is cents on work the CTO explicitly named top priority (the only plate blocking Scene 1), so disclosing here and proceeding rather than pausing to ask.
 
 **Prompt:**
 ```
@@ -515,4 +515,4 @@ ACTION (panels 1 and 3): mid-sentence, one hand raised open toward the wall he's
 Panel 1: full body, front view, in the action above. Panel 2: large close-up portrait, same invented anonymous face, same collar, ring and bracelet visible, no V. Panel 3: full body, side profile, same action. Panel 4: full body, seen entirely from behind -- same coat length, same collar shape, same colour, same build. Same person, same face, same clothes in every panel.
 ```
 
-**What the image actually shows:** _(pending)_
+**What the image actually shows:** Strong pass, attempt 1/1. Four panels verified: front (raised open hand, mid-sentence), close-up portrait (gold signet ring + gold bracelet visible, cream suede glove), profile (same gesture), back view (same coat length/collar/colour/build). Matte petrol-teal coat, mid-calf (not floor-length), stiff standing collar reading as invented tailoring rather than any nameable sci-fi uniform, no brand marks/logos/monograms, no gold V anywhere on the garment. Face is a new invented anonymous man — swept-back steel-grey hair, different nose/jaw/hairline/eye-spacing from the rejected v1/v2 — reads as an ordinary severe-but-non-threatening face, not a celebrity likeness. No safety-flag title on the asset card. Not yet re-tested against Higgsfield's own protected-content scanner (that check only runs when the other operator stages this as a reference on the video composer) — flagging for the CTO to confirm the flag has cleared before Scene 1 references it.
