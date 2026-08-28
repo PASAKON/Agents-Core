@@ -486,6 +486,33 @@ S1A and S1B as spares.
 
 ---
 
+## 🎯 TOLERANCE — CEO, 2026-08-28 17:10
+
+> **"ขอเหมือนที่สุดก็พอ ประมาณ 10-20% Error ได้ไม่ว่ากัน"**
+
+**Close enough is the bar.** Nothing in this film has to be pixel-identical
+between shots — it has to **read** as the same thing to someone watching for a
+few seconds. **10–20% drift is accepted.**
+
+Applied first to the crack, which had blocked the wall-POV plate through two
+re-fires: roughly the same length, roughly the same diagonal path, roughly the
+same branching, mirrored. That is the test. Stop firing for the crack alone.
+
+**What this does NOT relax** — these are structural, not cosmetic, and a miss
+breaks a scene rather than looking slightly off:
+
+- **No people in a location plate.** Faces are what the Face/IP scanner kills.
+- **The red door**, far end, dead opposite, the only entrance.
+- **Duration** on any scene carrying dialogue — lines get cut off, not softened.
+- **720p**, never 480p.
+- **The Generate price**, read off a zoomed screenshot. That one is money.
+
+*Why write this down: an operator was refusing to file a usable plate because it
+was hunting an exact match nobody had asked for, and the entire video re-shoot
+was queued behind it.*
+
+---
+
 ## 🚪 THE RED DOOR — CEO, 2026-08-28 16:00. One entrance, in every reference.
 
 **No plate we own contains a door at all**, so the model invents an entrance
