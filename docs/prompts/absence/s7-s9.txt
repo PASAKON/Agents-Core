@@ -181,11 +181,23 @@ Same colour grade and film treatment as Scene 7.
 ===============================================================
 SCENE 9 — DUPE HEARS IT · 20s · HE SAYS NOTHING
 ===============================================================
-References: loc_hall_big_d · char_cleaner_c · prop_cart
+References: loc_hall_big_d · char_cleaner_c · prop_cart_b · char_valder ·
+char_gentleman_e · char_woman · char_critic_b · char_oldman
 
-VALDER'S DIALOGUE FROM SCENE 8c RUNS CONTINUOUSLY OVER THIS ENTIRE SHOT, heard
-from the next part of the hall — same words, same take, unbroken, slightly
-distant and reverberant. Valder himself is never in frame.
+VALDER'S DIALOGUE FROM SCENE 8c RUNS CONTINUOUSLY OVER THIS ENTIRE SHOT — same
+words, same take, unbroken, slightly distant and reverberant.
+
+**CEO REVISION 2026-08-28: Valder and the people who spoke in the previous scene
+ARE VISIBLE IN THIS SHOT, deep in the background and THROWN WELL OUT OF FOCUS.**
+Valder is among them, still talking, still wearing the warm ingratiating smile —
+we can tell it is him from the panelled colour of the jacket alone. The gentleman
+in the white suit, the woman in cobalt, the art critic and the elderly gentleman
+are gathered around him.
+
+They must be soft enough that **no face is readable and no mouth can be lip-read**
+— shapes and colours only. The point is that the audience can see the voice has a
+body and a room, twenty feet away, while Dupe stands in the foreground hearing his
+own accident being turned into a story.
 
 DUPE is mopping at the edge of the room, his back against the shadow of a
 chromium column, his cart beside him. THE REAL PAINTING IS LEANING AGAINST THE
