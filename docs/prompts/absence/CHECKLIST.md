@@ -34,8 +34,6 @@ Read at the start of every session, and before every report to the CEO.
 | 36 | **English gentleman + 2 bodyguards** — 3 people in one image, white Savile Row suit, gold cane grip, diamond ring, two gold-capped teeth, black-suited bald Black + white English guards, neither threatening. Nose ref'd off Dupe (shape only) | `char_gentleman` |
 | 37 | **Crocodile bag** — deep burgundy, real scale grain, gold clasp, no logo, ref'd off `loc_hall_big_d` for light/floor | `prop_croc_bag` |
 | 38 | **Press — two journalists + one shared retrofuturist shoulder camera** — blue + rust colours (never black), no logos/modern tech, real age/skin variation, no gold V. Unblocks S5/S11 | `char_press` |
-| 39 | **Parrot woman v3 — collected.** Was generated/filed/approved earlier but never downloaded, so Drive still had v2. Confirmed the panel's real mention is `@project_absence_char_woman_c` (has the prefix). Cockatoo crest banded green/white/blue, single saturated green garment, feather-cut panelling, no beak/wings/feathers, not comic — sanity check passed | `char_woman_c` · asset `c677a65d-4bdb-4391-addf-445d83c83fa2` · `Element/absence-char-woman-c.png` |
-| 40 | **Cart, painting moved onto it** — same cart (mops, bucket, bottles, cloths, brush, folding ladder, gold V) bound as reference, one change: the painting is now slotted into the side rack, secured, front face outward, instead of propped on the floor. Filed as a fresh Element, `prop_cart` left untouched | `prop_cart_b` · asset `bc89ef6c-86ed-4dd6-8f5a-13eb68441d25` · `Element/absence-prop-cart-b.png` |
 
 ---
 
@@ -49,48 +47,6 @@ Read at the start of every session, and before every report to the CEO.
 pieces + parrot woman v3) · `task-f4320f9e` merged `ab4873d` (grandmother) ·
 `task-5a3d259c` merged `3b28724` (croc bag, gentleman, press) · `task-7cb85052`
 done, asset ids rescued into this file · S1 both takes and S2 take 1 delivered.
-
----
-
-## 🔴 `loc_wall_pov_d` — NOT FILED. Crack still doesn't match the reference after one re-fire.
-
-CEO ordered a new wall-POV variant: from BEHIND the wall (not the empty-hall
-`loc_wall_pov_c` angle), the crack from `project_absence_loc_wall_crack`
-mirrored left-to-right exactly, a large red door added at the far end, no
-people. Bound `project_absence_loc_hall_big_d` + `project_absence_loc_wall_crack`
-as real references both times (confirmed via `data-beautiful-mention` UUIDs),
-GPT Image 2 · 16:9 · 2K · Medium · 2.5 credits both fires.
-
-- **Attempt 1**, asset `004d8a1a-9c10-48e7-8601-e8db4e977c90` — the crack
-  rendered as a large rounded blob-shaped hole (amoeba/porthole), nothing
-  like the reference's thin 5-branch hairline star. **Discarded, not filed.**
-- **Attempt 2** (the one authorised re-fire, prompt rewritten with the
-  reference's exact branch geometry spelled out — long branch up-left → up-
-  right when mirrored, short branch up, medium branch down-left → down-right,
-  tiny stub right → left), asset `80f5df1f-c11a-4804-a5c2-b3b26f371513` —
-  **better but still not a match.** The opening is smaller and the top edge
-  now shows genuine thin jagged branch lines, but the bottom boundary is
-  still a smooth rounded curve, not sharp hairline branches — reads as "hole
-  with some crack decoration," not "the same crack, mirrored." Also worth a
-  second look: the mirrored plaque's second line looks like it may read
-  "Value" rather than "Valder" — mirrored text is hard to verify with
-  certainty from a screenshot, flagging rather than asserting.
-  **Discarded, not filed.**
-- Both attempts: red door present and large ✓, zero people ✓, hall/columns/
-  terrazzo matched ✓. Only the crack geometry (and possibly the plaque
-  reading) are the open problem.
-
-**Did not fire a third time.** The task's own gate was "re-fire once with the
-mismatch named" — that's used up. This needs a CEO/CTO call: try a different
-technique (e.g. drag-drop the crack image directly as `@Image1` instead of
-the named-Element auto-resolve path, or accept attempt 2 as close enough), or
-hand it to a fresh operator with a clean prompt. **`loc_wall_pov_d` does not
-exist as a filed Element yet — nothing is downloaded, nothing is in Drive.**
-
-**JOB 4 (hall_big_e, red door added to `loc_hall_big_d` matching the wall-POV
-door exactly) is blocked on this** — the CEO's own instruction was to match
-"the wall-POV version exactly," and there is no accepted wall-POV version to
-match yet. Held rather than guessed at.
 
 ---
 
@@ -483,6 +439,197 @@ two-cap version, say so and it gets one more focused attempt.
 
 *Soft spot the operator flagged and could not resolve at render resolution: the
 diamond ring's sparkle. Worth the CEO eyeballing.*
+
+---
+
+## ♻️ STANDING RULE — CEO, 2026-08-28 16:05
+
+> **"ทุกครั้งที่มีการ Update Prompt หรือ Element อันไหนที่เกี่ยวข้อง Generate ใหม่ทั้งหมด"**
+>
+> Whenever a prompt or an Element changes, **every scene that depends on it is
+> re-shot.** No exceptions, no "close enough".
+
+That only works if the dependency map is written down, so here it is. Regenerate
+this map after any prompt edit — it is derived, not remembered.
+
+| Element | Scenes that break if it changes |
+|---|---|
+| **`loc_hall_big_d` → `loc_hall_big_e`** | **S2 S5 S7 S8a S8b S8c S9 S10 S12 S15 S16 S17** — twelve |
+| `loc_wall_pov_c` → `loc_wall_pov_d` | S3 S4 S6 S11 |
+| `prop_cart` → `prop_cart_b` | S2 S4 S9 S15 S18 |
+| `char_valder` (smile rewritten) | S7 S8a S8b S8c S9 S10 S12 S15 S16 |
+| `char_critic_b` (accent added) | S1 S4 S5 S6 S7 S8b S8c S9 S10 S11 S15 |
+| `char_cleaner_c` | S2 S4 S5 S6 S7 S8a S8c S9 S11 S12 S15 S16 |
+| `char_gentleman` → `char_gentleman_e` | S7 S8a S8b S8c S10 |
+| `char_woman_b` → `char_woman_c` | S10 S11 S12 |
+| `loc_mansion` (must be redone for the new cart) | S18 |
+
+**Consequence, accepted by the CEO:** the door change alone re-shoots the film.
+Everything already shot is archived, not deleted — every clip now sits in
+`All Scene/<SCENE>/v1-no-door/` and parts of them remain usable.
+
+**~~Therefore the video lane is PAUSED~~ — WRONG, and the CEO corrected it at
+17:05.** *"อย่าให้คิว Generate ว่าง"* — never leave the generate queue idle.
+
+I paused the lane to avoid making clips we would re-shoot. That optimised the
+wrong thing: **Unlimited video costs nothing, so a re-shot clip is free — but an
+idle slot costs time, and time is the only thing this production is actually
+short of.** The lane is running again.
+
+**What can fire while the plates are still being made:** S13 (exterior, behind
+the museum — touches none of the changing plates), S1C (cart detail, needs only
+`prop_cart_b` which already exists), S1F (the hands, the room barely shows), then
+S1A and S1B as spares.
+
+**Order of work:** plates first — `loc_wall_pov_d`, `loc_hall_big_e`,
+`prop_cart_b`, then `loc_mansion` v2 — then re-shoot in story order.
+
+---
+
+## ❌ MY ERROR — a scene and the title line, both lost in a renumber
+
+**S14 was never unwritten.** The CEO wrote it in the pre-split numbering, in the
+same message that gave us S11 and S12. When S15 was split into three and every
+number after S12 shifted, his S14 text stopped matching a row in my register and
+I recorded it as "waiting on the CEO" for a full day.
+
+**And "Sorry, sir." was in the wrong mouth.** `DIALOGUE.md` credited it to the
+workman. **It is DUPE's line** — he runs in frightened to shield the workman, says
+it to Valder, looks at the wall, looks at Valder's face, and only then confesses.
+That is the title of the film, and it sat attributed to the wrong character all
+day.
+
+**Cause, both times:** I re-derived the scene list from my own summary instead of
+from what he actually typed. His words are the record; my table is a view of it.
+
+**How to not repeat it:** after any renumber, re-read the CEO's original messages
+and re-attach each block to its new number **before** marking anything missing.
+A scene marked "waiting on the CEO" should always be checked against the
+transcript first — the answer is often already there.
+
+---
+
+## 🎯 TOLERANCE — CEO, 2026-08-28 17:10
+
+> **"ขอเหมือนที่สุดก็พอ ประมาณ 10-20% Error ได้ไม่ว่ากัน"**
+
+**Close enough is the bar.** Nothing in this film has to be pixel-identical
+between shots — it has to **read** as the same thing to someone watching for a
+few seconds. **10–20% drift is accepted.**
+
+Applied first to the crack, which had blocked the wall-POV plate through two
+re-fires: roughly the same length, roughly the same diagonal path, roughly the
+same branching, mirrored. That is the test. Stop firing for the crack alone.
+
+**What this does NOT relax** — these are structural, not cosmetic, and a miss
+breaks a scene rather than looking slightly off:
+
+- **No people in a location plate.** Faces are what the Face/IP scanner kills.
+- **The red door**, far end, dead opposite, the only entrance.
+- **Duration** on any scene carrying dialogue — lines get cut off, not softened.
+- **720p**, never 480p.
+- **The Generate price**, read off a zoomed screenshot. That one is money.
+
+*Why write this down: an operator was refusing to file a usable plate because it
+was hunting an exact match nobody had asked for, and the entire video re-shoot
+was queued behind it.*
+
+---
+
+## 🚪 THE RED DOOR — CEO, 2026-08-28 16:00. One entrance, in every reference.
+
+**No plate we own contains a door at all**, so the model invents an entrance
+every time someone walks into the film. That is why arrivals never look like they
+come from the same place twice.
+
+**The rule:** a **large red door at the far end of the hall, dead opposite the
+camera, at the vanishing point** — and it is **the only way in or out of the
+room.** Tall, wide, deep saturated red, unmistakable. Wide enough for the
+grandmother's wheelchair. It never moves between shots.
+
+Everyone who arrives comes through it: **Valder (S7) · the parrot woman (S10) ·
+the grandmother (S12) · the workman (S14).**
+
+**It must exist in BOTH plates, identically** — the wall-POV frame and the hall
+frame are the same room from opposite sides, so a door that disagrees between
+them breaks the geometry of every scene.
+
+| Plate | Job |
+|---|---|
+| `loc_wall_pov_d` | red door at the vanishing point, seen through the cracked wall · **no people** |
+| `loc_hall_big_e` | the same door, same size, colour and position · everything else about `loc_hall_big_d` unchanged · **no people** |
+
+**Never re-point the old Elements** — a scene that already bound one keeps
+serving the old asset silently. New names only.
+
+⚠️ **Consequence the CEO should know:** every clip already shot used a hall with
+no door. Anything kept from before the swap will disagree with everything after
+it. S2, S3 and S9 are already down for re-shoots; S17's beat is broken anyway.
+The clean line is to treat the door as the cut-over point.
+
+---
+
+## 📋 ORDER REGISTER — everything the CEO has asked for and not yet got
+
+Two lanes run in parallel: **video is one slot at a time**, **images are
+independent of it**. Anything in the image lane can start immediately.
+
+### 🎬 VIDEO LANE — `wd-9ba8e06b`
+
+| # | What | State |
+|---|---|---|
+| V1 | Collect **S7** `1a50c388` and **S8a** `5cdfc192` — both finished, never downloaded | running |
+| V2 | Fire **S8b → S8c → S10 → S5 → S6 → S12 → S15 → S16** | queued |
+| V3 | **ONE TAKE ONLY, no second takes of anything** — CEO 15:20, because his review notes will drive the re-shoots instead | rule |
+| V3b | **S2 RE-SHOOT** — the painting hangs CROOKED, Dupe tries to straighten it, that is what brings it down. Crack must match the reference exactly. Painting size locked at **90×70 cm landscape**. [s2-accident.txt](s2-accident.txt) | ⬜ queued |
+| ~~V4~~ | ✅ **S1A–S1G WRITTEN 16:42** — seven angles: floor-level, waist-up, cart detail, over-shoulder, long hall, hands, past-the-column. Three non-duplicate extras (teal / mustard / plum) built into all seven. [s1-angles.txt](s1-angles.txt) | ⬜ queued to fire |
+| ~~V4-old~~ | ~~**S1A–S1G · 5–7 extra camera angles for S1**~~, in order, as cutting footage. Named: **camera on the floor at foot height** as Dupe walks past; **straight-on, Dupe from the waist up**, dusting | ⬜ not written |
+| V5 | **At least 3 extras in S1, none duplicated.** Need not be in the main frame — seen far off looking at pictures, or walking through | ⬜ folded into V4 |
+
+### 🖼 IMAGE LANE — `wd-4cbd60f4`
+
+| # | What | State |
+|---|---|---|
+| I1 | **Wall-POV v4** — bind the existing crack plate so it is **the SAME crack, mirrored**, not a new one each time. No people at all. **Add a large red door** for character entrances | ✅ **DONE.** Two attempts fired (first was a rounded blob, discarded); filed the second under the CEO's 17:10 tolerance ruling rather than a third re-fire. `loc_wall_pov_d` · asset `80f5df1f-c11a-4804-a5c2-b3b26f371513` · red door present and large, zero people, plaque mirror-reversed. Downloaded, byte-exact verified, Drive `Element/Location/absence-loc-wall-pov-d.png` |
+| I2 | **Download parrot woman v3** `c677a65d` — generated and approved in the morning, never collected, so the Sheet still shows v2 | ✅ **DONE.** `char_woman_c` · asset `c677a65d-4bdb-4391-addf-445d83c83fa2` · confirmed the panel's real mention has the `project_absence_` prefix. Downloaded, byte-exact verified, Drive `Element/absence-char-woman-c.png` |
+| I3 | **Cart v2** — same design, but **the painting slotted INTO the cart**, not propped on the floor beside it, because the model keeps dropping it. New Element `prop_cart_b`, never re-point the old one | ✅ **DONE.** `prop_cart_b` · asset `bc89ef6c-86ed-4dd6-8f5a-13eb68441d25` · painting now slotted upright in the side rack, front face outward, everything else (mops, bucket, bottles, ladder, gold V) unchanged. `prop_cart` untouched. Downloaded, byte-exact verified, Drive `Element/absence-prop-cart-b.png` |
+| I4 | **Hall v5 door swap** — bind `loc_hall_big_d`, add only the same red door matching `loc_wall_pov_d` in size/position, nothing else changes | ✅ **DONE.** `loc_hall_big_e` · asset `5447f1d9-8a62-4ebb-8d94-cdc94920461c` · one-shot clean, no defects. Downloaded, byte-exact verified, Drive `Element/Location/absence-loc-hall-big-e.png` |
+| I5 | **`loc_mansion` v2** — bind `loc_mansion` + `prop_cart_b`, swap only the corner cart, gold V and painting-in-rack carry over | ✅ **DONE.** `loc_mansion_b` · asset `1014df24-5f7f-434e-8897-fbe3de4a091e` (same generation also served under filename id `3c4c4d85-...` — a known dual-id quirk on this app, both point at the identical image, verified by content). One-shot clean. Downloaded, byte-exact verified, Drive `Element/Location/absence-loc-mansion-b.png` |
+
+### ✍️ CTO DESK — mine, no worker needed
+
+| # | What | State |
+|---|---|---|
+| C1 | **Art critic speaks with a Chinese accent** — half-Chinese, fluent English, Chinese cadence. Written into all four prompt files she appears in | ✅ done |
+| C2 | Update the Sheet card + Element id for **parrot woman**, **wall-POV v4**, **cart v2**, **hall v5**, **mansion v2** as each lands | ✅ unblocked — all five asset ids + Element mentions in I1–I5 above |
+| C3 | Swap `prop_cart` → `prop_cart_b`, `loc_wall_pov_c` → `loc_wall_pov_d`, `loc_hall_big_d` → `loc_hall_big_e`, `loc_mansion` → `loc_mansion_b` across every prompt once filed | ✅ unblocked — all four Elements now exist and are filed |
+
+### 🔴 WAITING ON THE CEO — these are the only true blockers
+
+| # | What |
+|---|---|
+| ~~B1~~ | ✅ **S13 WRITTEN 16:40** — CEO handed it to me. Not the gallery: **outside, behind the museum, two men alone, played as a secret.** Valder offers eight thousand *"to have never come"*; the workman refuses. [s13-the-back-door.txt](s13-the-back-door.txt) |
+| ~~B2~~ | ✅ **NOT MISSING — the CEO wrote it and I lost it.** *"VALDER ตะโกนสุดเสียง 'STOP! You are destroying a hundred million dollar artwork!' ช่างตกใจทำปูนตกพื้น"*. It fell out of my register when S15 was split into three and every number after S12 shifted. Restored to `DIALOGUE.md`. |
+| ~~B3~~ | ✅ **ANSWERED 16:15 — the husband is `char_husband`**, option B, the ochre coat. `char_visitor_c` (plum jacket) is not him. |
+| B4 | **Is S18's pacing too fast?** 11s against a 25s script — both beats survive but it is compressed. Needs his ear |
+| B5 | **The gentleman's teeth** — the shipped plate has far more gold than the two caps he specified. CTO accepted it after three drifting attempts; say the word and it gets one more focused try |
+
+---
+
+## ✅ S3 CAST LOCKED — CEO, 2026-08-28 16:15
+
+**`char_visitor_a` is OUT of S3.** He was a silent body added to fill the frame,
+and in a scene built entirely out of what people say, a person with nothing to say
+does not belong. *(He stays in S4/S6/S11, where nobody speaks and a quiet body
+costs nothing — say the word if he should go from those too.)*
+
+**`char_husband` is IN** — option B, the ochre coat, and this also settles who
+visitor_b's husband is for the whole film.
+
+Written into [s3-interpretations.txt](s3-interpretations.txt), which is a **new
+file**: S3 never had one, it only ever lived inside a worker brief. The old
+`s2-interpretations.txt` was a dead draft naming Elements that no longer exist —
+renamed `DEAD-s2-interpretations-superseded.txt` so nobody fires it by mistake.
 
 ---
 

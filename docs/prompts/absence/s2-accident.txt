@@ -1,0 +1,112 @@
+===============================================================
+SCENE 2 — THE ACCIDENT · REDO · 20s · NO DIALOGUE
+===============================================================
+References: loc_hall_big_e · char_cleaner_c · prop_cart_b · prop_valder_study
+            · the crack plate (absence-01-wall-crack) — MANDATORY, see below
+
+CEO REVISION 2026-08-28: the accident now comes from Dupe doing his job WELL.
+The painting is hanging crooked. He tries to straighten it. That is what brings
+it down. He is no longer taking it off the wall to clean behind it — he never
+intended to touch it at all.
+
+That is a better beat and it changes his guilt entirely: the film's whole
+catastrophe starts with a man tidying something because it was slightly wrong.
+
+---------------------------------------------------------------
+THE PAINTING — FIXED SIZE, DO NOT LET IT DRIFT
+---------------------------------------------------------------
+⚠️ CTO SET THIS NUMBER. The CEO asked for a fixed size but did not name one, so
+this is my call and he can overrule it. Once fired, it is locked for the film.
+
+**90 cm wide × 70 cm tall, landscape, thin dark frame about 4 cm deep.**
+
+That is: a little wider than Dupe's shoulders, light enough for one man to lift
+alone, small enough to ride on the cart without overhanging it. State the
+proportion explicitly in the prompt — roughly 9:7, clearly wider than tall —
+because "a painting" with no size drifts between shots and the audience stops
+believing it is the same object.
+
+Its face is `prop_valder_study`: heavy impasto in ochre, rust, sage and cream,
+one long blade-scrape through the paint. Bind that Element so the canvas is the
+same canvas here, on the cart, and in every later scene.
+
+---------------------------------------------------------------
+THE CRACK — MATCH THE REFERENCE, NEVER REINVENT IT
+---------------------------------------------------------------
+⚠️ **Bind the existing crack plate and match it exactly.** This is the same fault
+that broke the wall-POV shots: left to itself the model draws a different crack
+every time, and the audience reads a different object each time. It is ONE crack
+and it must be identical everywhere it appears — here, in the wall-POV frames,
+and at the end of the film.
+
+Same length, same jagged path, same branch points, same chipped plaster at the
+edges. Do not add fractures. Do not make it a spider-web or a shattered-glass
+pattern. **One crack, roughly a foot long, exactly as the reference draws it.**
+
+---------------------------------------------------------------
+THE SCENE
+---------------------------------------------------------------
+The gallery, EARLY MORNING BEFORE OPENING. Empty of people. Warm orange cove
+light already on. Terracotta terrazzo floor.
+
+**THE PAINTING HANGS VISIBLY CROOKED** on the hero wall — tilted several degrees,
+enough that it reads as wrong the instant you see it. The small brass plaque sits
+low beneath it: THE ABSENCE OF MEANING / Valder / $2,000,000.
+
+DUPE comes along the wall with his cart, working, unhurried, quietly content.
+Indian man in his early thirties, short, white uniform with orange trim and a
+matching cap, gold V on cap and chest.
+
+**HE NOTICES THE TILT.** He stops. He looks at it the way a person looks at a
+frame that is off by two degrees.
+
+He reaches up with both hands and **gently tries to straighten it** — a small,
+careful, well-meant adjustment. Nothing forceful.
+
+**IT COMES OFF ITS FIXING.** It drops, strikes the floor, and ends leaning
+against the wall on its bottom edge. The frame is not destroyed.
+
+**ONE SOUND: a short dry crack of plaster** as it goes.
+
+He freezes. He looks at the wall.
+
+**THERE IS THE CRACK** — where the painting was, exactly as the reference draws
+it, roughly a foot long, plaster chipped a little at the edges.
+
+He looks left. He looks right. Nobody.
+
+He picks the painting up, carries it to his cart, and **slots it upright into the
+cart**, face turned outward, where it stays for the rest of the film.
+
+**HOLD ON THE WALL as he leaves frame:** the plaque still in place, and above it
+now nothing at all but the crack.
+
+Camera: static and level, or one slow unhurried move. No handheld, no shake.
+
+---------------------------------------------------------------
+LOOK
+---------------------------------------------------------------
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows never pure black but deep red-brown, saturation
+high in flat planes but never touching skin, halation blooming around every lamp.
+Photographed, not rendered: fine film grain, halation, faint gate weave, slight
+colour fringing.
+
+20s · 720p · 16:9 · High · Sound On.
+
+---------------------------------------------------------------
+NEGATIVES
+---------------------------------------------------------------
+no dialogue, no voiceover, no narration, no subtitles, no captions, no on-screen
+text, no readable text anywhere except the brass plaque, no music, no score, no
+other people, no crowd, no extras, no background figures, no visitors, no guards,
+no press, no gold V on anyone but Dupe and his cart, no ladder, no step stool, no
+Dupe climbing, no Dupe on tiptoe, no reaching from above, no painting carried out
+of the room, no painting left on the floor, no broken frame, no torn canvas, no
+shattered glass, no glass at all, no spider-web crack, no multiple cracks, no
+crack larger than about a foot, no wall-spanning crack, no rubble, no debris, no
+dust cloud, no structural damage, no hole, no aperture, no invented crack shape,
+no smartphones, no screens, no modern technology, no dutch angle, no handheld
+wobble, no zoom, no slow motion, no speed ramp, no lens flare, no HDR, no CGI
+sheen, no plastic skin, no beauty filter, no dim moody lighting, no darkness, no
+night, no ultramarine walls, no blue walls, no wooden floor

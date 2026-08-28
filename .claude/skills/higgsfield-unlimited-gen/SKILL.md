@@ -193,10 +193,64 @@ baseline is a reference point, not a budget.
    Unlimited Mode toggle's apparent on/off state is **not sufficient on its
    own** — it silently resets to OFF after any full-page reload, which is
    the exact gap that caused the incident above.
-4. **One generation at a time.** Wait for full completion (card shows
-   Recreate+Rerun options and full resolution/duration/aspect-ratio
-   metadata, no "Processing"/"Generating" state) before starting the next.
-   No parallel generations, ever.
+
+   ⚠️ **A JS TEXT-SCRAPE OF THE GENERATE BUTTON IS NOT A SUBSTITUTE FOR THE
+   ZOOM, AND CAN BE FLATLY WRONG.** Measured 2026-08-28:
+   `[...document.querySelectorAll('button')].find(b=>/generate/i.test(b.innerText))`
+   matched a **stale duplicate button** reading `GENERATE8045` — struck 80,
+   **live 45** — in the same second that a zoomed screenshot of the real,
+   visible button clearly read `UNLIMITED / struck 60 / 0`. Same
+   decoy-duplicate-element family as the prompt editor: **more than one element
+   matches a loose text selector on this composer at any moment.**
+
+   An operator trusting the scrape in the other direction — decoy says `0`,
+   real button says `45` — fires a paid generation believing it is free. **The
+   zoom in this rule is load-bearing, not a formality.** Read the money off the
+   pixels, never off the DOM.
+3b. **"Rights verification required" — CLICK CONFIRM RIGHTS. Standing CEO
+   approval, 2026-08-28.** A finished card sometimes carries a *Rights
+   verification required* banner and will not download until it is confirmed.
+
+   **Confirm it and carry on. Do not escalate, do not ask, do not hold the
+   clip.** This is not a legal risk transfer and it is not the CEO's signature
+   on anything — the banner asks whether we own the content, and we do: we wrote
+   the prompt, and the clip is generated from it. His words: *"กดเองได้เลย…
+   เพราะเราเป็นคนสร้าง Promt คุณก็เขียนขึ้นมาเอง."*
+
+   Context that makes this safe rather than sloppy: the flag comes from the same
+   automated Face/IP scanner that terminally killed **three healthy plates in one
+   day** on this project. It fires on *resemblance*, not on infringement, and it
+   rescans retroactively — a clip that passed an hour ago can be flagged now.
+   Confirming states the true thing: nothing here was copied from anyone.
+
+   **What this does NOT authorise:** buying anything, renewing a plan, accepting
+   new terms of service, or any other consent dialogue. Those all still stop and
+   go to the C-level. This approval covers the rights banner on generated clips
+   in this project and nothing else.
+
+   *Why it is written here rather than passed down verbally:* an operator
+   correctly refused a CTO instruction to click it, on the grounds that a
+   relayed approval is not the same as an authorised rule. It was right. The
+   skill is the legitimate place to change that.
+
+4. **One UNLIMITED VIDEO generation at a time.** Wait for full completion
+   (card shows Recreate+Rerun options and full resolution/duration/aspect-ratio
+   metadata, no "Processing"/"Generating" state) before starting the next
+   video. No parallel video generations, ever.
+
+   **But a paid GPT Image 2 generation does NOT contend for that slot, and
+   holding image work behind a rendering video wastes hours.** Measured
+   2026-08-28 on the «Sorry, Sir» wave: Scene 2 fired as an Unlimited
+   Seedance video at 05:50 and was still rendering at 06:30, and during that
+   window **two separate operators each fired and completed a paid image
+   plate** — `char_grandmother` (asset `5dd23a87`) and `char_gentleman`.
+   Neither saw a concurrency toast.
+
+   The slot is scoped to **unlimited** generations. Paid ones queue
+   independently. The CTO on that wave stood two image operators down "until
+   the video clears" and burned roughly forty minutes of two workers for
+   nothing — do not repeat it. **Video work serialises; image work runs
+   alongside it.**
 5. **Concurrency toast with no visible in-flight job**: if Higgsfield shows
    a "1 unlimited generation at a time" toast and nothing in your own
    History is actually generating, don't force through it or guess a
@@ -295,6 +349,41 @@ baseline is a reference point, not a budget.
      prompt contained only its first line — at the time it was blamed on
      keystroke truncation. Treat a mysteriously empty or partial saved
      prompt as decoy-editor first, `type()` second.
+   - **DURATION IS NOT A TEXT FIELD AT ALL — IT IS A RADIX ARIA SLIDER. Never
+     type into it.** Measured 2026-08-28 on the «Sorry, Sir» wave, at a cost of
+     four unusable clips and four wrong diagnoses.
+
+     The signature that something was wrong: **two fixed output values, no error
+     anywhere.**
+
+     | Clip | Target | Actual |
+     |---|---|---|
+     | S2, S3 | 20s | **20.04s** |
+     | S4, S9, S17, S18 | 15 / 20 / 25s | **11.04s every time** |
+
+     DOM inspection settled it. The control is
+     `role="slider"` · `aria-valuemin="4"` · `aria-valuemax="30"` ·
+     `aria-valuenow` · `tabindex="0"`, and the visible "20s" is a **read-only
+     `<span>` beside it**. Typing was never landing anywhere real — and the `4s`
+     that kept reading back was simply `aria-valuemin`, the slider sitting at its
+     floor.
+
+     **The method that works, confirmed exact:** click the slider thumb once to
+     focus it, then send **`ArrowRight` once per second** from the current
+     `aria-valuenow`. 16 presses took it cleanly from 4 → 20, verified by
+     `aria-valuenow="20"` and the visible label agreeing.
+
+     **Four theories were burned before anyone inspected the DOM**, and every one
+     of them was plausible: a stale composer tab (a fresh tab reproduced it on
+     the first attempt), a lapsed Unlimited entitlement (plan active, usage log
+     all `Unlimited` with no digits), a platform-side duration cap, and — mine —
+     that the duration box had the same decoy-contenteditable structure as the
+     prompt editor. It does not: the page holds only **two** such nodes, the
+     prompt editor's own real+decoy pair, and neither is anywhere near the
+     duration popover.
+
+     **Inspect the control before theorising about the value.** One DOM query
+     would have replaced four hours of hypotheses.
    - **Verify via three independent reads before every Generate click**:
      `element.innerText`, `element.__lexicalTextContent` (or equivalent
      Lexical-exposed text property), and — the authoritative one —
