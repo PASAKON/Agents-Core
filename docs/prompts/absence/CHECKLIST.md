@@ -548,9 +548,26 @@ independent of it**. Anything in the image lane can start immediately.
 |---|---|
 | B1 | **S13 dialogue** — Valder when the workman arrives |
 | B2 | **S14 dialogue** — the workman, who apologises before he understands why |
-| B3 | **Which man is visitor_b's husband** — `char_visitor_c` (plum jacket, already exists) or `char_husband` (ochre coat, made today) |
+| ~~B3~~ | ✅ **ANSWERED 16:15 — the husband is `char_husband`**, option B, the ochre coat. `char_visitor_c` (plum jacket) is not him. |
 | B4 | **Is S18's pacing too fast?** 11s against a 25s script — both beats survive but it is compressed. Needs his ear |
 | B5 | **The gentleman's teeth** — the shipped plate has far more gold than the two caps he specified. CTO accepted it after three drifting attempts; say the word and it gets one more focused try |
+
+---
+
+## ✅ S3 CAST LOCKED — CEO, 2026-08-28 16:15
+
+**`char_visitor_a` is OUT of S3.** He was a silent body added to fill the frame,
+and in a scene built entirely out of what people say, a person with nothing to say
+does not belong. *(He stays in S4/S6/S11, where nobody speaks and a quiet body
+costs nothing — say the word if he should go from those too.)*
+
+**`char_husband` is IN** — option B, the ochre coat, and this also settles who
+visitor_b's husband is for the whole film.
+
+Written into [s3-interpretations.txt](s3-interpretations.txt), which is a **new
+file**: S3 never had one, it only ever lived inside a worker brief. The old
+`s2-interpretations.txt` was a dead draft naming Elements that no longer exist —
+renamed `DEAD-s2-interpretations-superseded.txt` so nobody fires it by mistake.
 
 ---
 

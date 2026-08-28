@@ -1,0 +1,125 @@
+===============================================================
+SCENE 3 — THE INTERPRETATIONS · REDO · 20s · shot from behind the wall
+===============================================================
+References: loc_wall_pov_d · char_oldman · char_visitor_b · char_husband ·
+char_student_c · char_critic_b · char_woman · char_cleaner_c · prop_cart_b
+
+⚠️ EVERY ELEMENT NAME HERE IS THE NEW ONE. Do not reuse `loc_wall_pov_b`,
+`loc_wall_pov_c`, `prop_cart` or `char_student_b` — all superseded. **Count the
+reference chips against the mentions before firing**; a chip that silently fails
+to bind is exactly what turned the first S3 into a porthole.
+
+---------------------------------------------------------------
+CAST — CEO, 2026-08-28: `char_visitor_a` is OUT, `char_husband` is IN
+---------------------------------------------------------------
+Six people, and every one of them now has a reason to be in frame.
+
+`char_visitor_a` — the silent man in maroon — is removed. He was a body added to
+fill the frame, and in a scene built entirely out of what people say, a person
+with nothing to say does not belong.
+
+`char_husband` takes his place: the man in the deep-ochre wool coat, about sixty,
+grey at the temples. **He is married to the woman in the chestnut fur.** They
+arrive together and stand together. He never speaks anywhere in the film. His
+whole part is that he stands beside his wife while she cries and does not know
+what to do about it — so keep him close to her, half a step behind, with a face
+that can hold quiet concern.
+
+---------------------------------------------------------------
+THE FRAME
+---------------------------------------------------------------
+The camera is BEHIND THE WALL, looking out through the cracked plaster, exactly
+as `loc_wall_pov_d` renders it. Very wide. The camera never moves.
+
+**THE CRACK IS THE SAME CRACK, MIRRORED** — identical length, path and branch
+points to the reference, reversed left-to-right because we are on the other side
+of it. Do not invent a new one, do not add fractures, do not make it a web.
+
+The brass plaque sits low in frame with its lettering MIRROR-REVERSED.
+
+**The large red door is visible at the far end of the hall, dead opposite** — the
+room's only entrance. Nobody uses it in this scene; it simply exists.
+
+---------------------------------------------------------------
+THE SCENE
+---------------------------------------------------------------
+SIX PEOPLE stand beyond the wall facing camera, eyelines locked on the crack —
+which means on us. Completely sincere, quiet, serious. Nobody amused, nobody
+performing.
+
+They speak in this order. **These lines exactly, and no others:**
+
+1. **THE ELDERLY GENTLEMAN** — heavy, about eighty, bottle-green leather, chrome
+   ring cane — slowly, with great certainty:
+   **"It's about death."**
+
+2. **THE WOMAN IN THE CHESTNUT FUR** — about fifty-five, rust dress, a warm
+   ordinary face — quietly, unsteady, **a single tear running down her cheek that
+   she does not wipe**:
+   **"It made me think of my mother."**
+   **HER HUSBAND STANDS BESIDE HER IN THE OCHRE COAT.** He glances at her. He
+   does not touch her. He does not know what to do. Nobody else reacts.
+
+3. **THE ART STUDENT** — about twenty-two, **acid-green dyed hair**, paint-stained
+   denim, standing upright — fast and flat:
+   **"It's anti-capitalist. Obviously."**
+   **NOT ONE PERSON TURNS TOWARD HER.**
+
+4. **THE ART CRITIC** — Asian woman about sixty, deep magenta fur, cream gloves.
+   **She is HALF-CHINESE and speaks fluent English with a Chinese accent** — the
+   cadence and vowel shapes of a Chinese speaker using English well. Slowly,
+   weighing every word:
+   **"It asks who decides what labour is worth."**
+
+5. **THE WOMAN IN COBALT** — about fifty, tall sculptural crest of hair, cat-eye
+   sunglasses worn indoors. **She does not move at all while she speaks, only her
+   mouth:**
+   **"This is the real thing."**
+   **"I have spent my whole life in rooms like this one."**
+   **"I have never once stood in front of anything like it."**
+   **"That is not a picture of something. That is the thing itself."**
+
+Then a **low warm murmur of agreement across the group: "Ohhh."** Nods spread.
+Brief, quiet, sincere applause.
+
+**AND THROUGHOUT, DUPE IS CLEANING NEARBY.** He works at the edge of frame with
+his cart — **the painting slotted upright into it, face outward** — drifts closer
+as the scene goes on, and **at one point leans his head into shot** before
+withdrawing. **Nobody looks at him. He never reacts.** He is the only person in
+the building who knows where the crack came from.
+
+**No gold V on any visitor.** Only Dupe and his cart carry one.
+
+---------------------------------------------------------------
+LOOK
+---------------------------------------------------------------
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows never pure black but deep red-brown, saturation
+high in flat planes but never touching skin, halation blooming around every lamp.
+Photographed, not rendered: fine film grain, halation, faint gate weave, slight
+colour fringing. Camera level, no dutch angle.
+
+20s · 720p · 16:9 · High · Sound On.
+
+---------------------------------------------------------------
+NEGATIVES
+---------------------------------------------------------------
+no extra dialogue, no invented lines, no improvised speech, no voiceover, no
+narration, no subtitles, no captions, no on-screen text, no readable text
+anywhere except the brass plaque, no wall labels, no signage, no watermark, no
+logos, no music, no score, no laugh track, no comedy sting, no seventh person, no
+crowd, no extras, no background figures, no press, no cameras, no microphones, no
+guards, no gold V on any visitor, no painting hanging on the hero wall, no
+duplicate characters, no twins, no repeated faces, no cloned people, no anyone
+turning around, no anyone noticing the cleaner, no cleaner speaking, no cleaner
+looking at camera, no anyone looking at the camera, no smiling while speaking, no
+laughing, no wailing, no sobbing, no comic expressions, no knowing looks to
+camera, no spider-web crack, no multiple cracks, no invented crack shape, no
+crack larger than about a foot, no hole, no aperture, no porthole, no round
+window, no wooden frame border, no shattered glass, no rubble, no structural
+damage, no screens, no LEDs, no smartphones, no modern technology, no dissolve,
+no crossfade, no fade to black, no whip pan, no slow motion, no speed ramp, no
+camera shake, no handheld wobble, no dutch angle, no zoom, no crane, no drone, no
+lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin, no beauty
+filter, no dim moody lighting, no darkness, no ultramarine walls, no blue walls,
+no wooden floor
