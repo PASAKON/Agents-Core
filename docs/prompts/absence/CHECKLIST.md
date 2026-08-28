@@ -29,10 +29,11 @@ Read at the start of every session, and before every report to the CEO.
 | 13 | **Valder Element** filed from the existing 18 Aug asset, 0 credits | `char_valder` |
 | 14 | **Valder's guards** — six, identical uniform, gold V on chest and cap. CTO-approved 04:00, sent to CEO | `char_guard_valder` |
 | 10x | **Parrot woman** — cockatoo crest, wing-shoulders, feather-cut panelling, single cobalt, no beak/wings/feathers, not comic. CTO-approved 03:32, sent to CEO | `char_woman_b` |
-| 35 | **SCENE 2 — THE ACCIDENT fired** — Dupe dusting, painting slips, crack in the wall, painting leaned on cart facing out. Seedance 2.5, 20s/720p/16:9/High/Sound On, Unlimited (struck `140`→`0`). Refs: `loc_hall_big_d` + `char_cleaner_c` + `prop_cart`, 3/3 bound clean. Landed after ~42 min — collected + reviewed shot-by-shot in task-a13469e9's report | asset `56ace68c-ffd0-47ec-a7f6-d24bf523496a` · task-a13469e9 |
-| 36 | **SCENE 3 — THE INTERPRETATIONS fired** — wall's-eye-view, six people speak in order (oldman/visitor_b/student_c/critic_b/woman/silent visitor_a), Dupe cleans throughout. Seedance 2.5, 20s/720p/16:9/High/Sound On, Unlimited (struck `140`→`0`). Refs: `char_oldman`+`char_visitor_b`+`char_student_c`+`char_critic_b`+`char_woman`+`char_visitor_a`+`char_cleaner_c`+`prop_cart`, 8/8 bound clean — **fired WITHOUT `loc_wall_pov_b`, see #37 below**. Landed after ~30 min, despite the missing location reference the fisheye-porthole wall's-POV concept still read strongly. Collected + reviewed shot-by-shot in task-a13469e9's report | asset `27180404-e517-49b6-90ab-b81e3c500b35` · task-a13469e9 |
-| 37 | 🔴 **`loc_wall_pov_b` fails Higgsfield's own Face/IP eligibility check** — hard failure, not a pending-check state: hovering its warning triangle reads *"Face/IP failed — A face or protected content was detected, so this asset cannot be used. Try another."* Re-confirmed a second time after re-binding — the UI showed no "Check eligibility" button on the second failure, only the terminal message, no retry path in the UI. CTO's diagnosis: the six human faces in that plate are almost certainly what the Face/IP scanner caught — a LOCATION reference should carry no people at all. Superseded by `loc_wall_pov_c` (#38) — **do not attempt to revive `loc_wall_pov_b`.** | task-a13469e9 |
-| 38 | **`loc_wall_pov_c` generated** — same behind-the-wall/cracked-glass concept as `_b` but with the fix: zero people in the plate (location refs carry the frame, not the cast; characters bind separately). Also fixes the stale pink-suit art-student design that `_b` still carried. GPT Image 2, 16:9, Medium, 2K, ref `loc_hall_big_d`, cost 2.5 credits (CTO pre-confirmed the price). Not yet reviewed — still rendering | asset `48c69798-3f3d-44ce-969d-4b2fcd0020b7` · task-a13469e9 |
+| 35a | **Grandmother, reshot** — electric wheelchair with real wheels visible in all 4 panels incl. rear (fixes the rejected chrome-lounge-chair-no-wheels attempt), cloth over head, dark glasses, deep violet, no gold V. **Honest flaw: gloves render black, not dark grey/oxblood as the colour rule requires** — flagged to CTO, reshoot queued behind Scene 3 video render, not done yet | `char_grandmother` · asset `5dd23a87-67f3-4452-8a69-e81045e19993` |
+| 35b | **Grandmother (auction wall)** — cool not rich, unimpressed, real electric wheelchair w/ visible wheels + self-operated control pad, no gold V. v1 read as an ordinary chair, v2 fixed | `char_grandma` |
+| 36 | **English gentleman + 2 bodyguards** — 3 people in one image, white Savile Row suit, gold cane grip, diamond ring, two gold-capped teeth, black-suited bald Black + white English guards, neither threatening. Nose ref'd off Dupe (shape only) | `char_gentleman` |
+| 37 | **Crocodile bag** — deep burgundy, real scale grain, gold clasp, no logo, ref'd off `loc_hall_big_d` for light/floor | `prop_croc_bag` |
+| 38 | **Press — two journalists + one shared retrofuturist shoulder camera** — blue + rust colours (never black), no logos/modern tech, real age/skin variation, no gold V. Unblocks S5/S11 | `char_press` |
 
 ---
 
@@ -52,6 +53,24 @@ Read at the start of every session, and before every report to the CEO.
 | 32 | **Collect both S1 takes** (`5ea44262` silent, `c8e60256` Dupe speaks) + shot-by-shot review of each | `task-ff2828e0` |
 | 33 | **Valder's five pieces** — chair, fish trap, millstone, vessel, painting | `task-fe7b3d37` |
 | 34 | **Parrot woman v3** — hair in green/white/blue, garment single green with cut lines (CEO #64/#65) | `task-fe7b3d37` |
+| 35 | **S2 fired** `56ace68c`, rendering since 05:50 · **S3 re-staging** after a composer navigation wiped it | `task-a13469e9` |
+| 36 | ~~Grandmother RE-SHOOT~~ — **DONE, merged `ab4873d`.** Wheels visible in all 4 panels incl. rear | ✅ `5dd23a87` |
+| 37 | **Crocodile bag → grandmother glove fix → `char_press`** | `task-5a3d259c` |
+
+### ⚠️ CTO error, 2026-08-28 06:30 — corrected
+
+I stood both image operators down "until the video render clears". **That was
+wrong and cost ~40 minutes of two workers.** Proof from this same session: the
+grandmother plate (`5dd23a87`) and the gentleman plate both fired *and finished*
+while S2 was mid-render. **The one-at-a-time slot is scoped to Unlimited VIDEO
+only; paid image generations queue independently.** Recorded in the
+`higgsfield-unlimited-gen` skill so no future wave repeats it.
+
+A second error the same hour: I told the video operator to "check the render now,
+in the browser" without saying *in a separate tab*, and it navigated the composer
+holding the staged S3 prompt — wiping the text and resetting Unlimited. No money
+lost (nothing was fired), but S3 had to be staged twice. **Status checks always
+go in a scratch tab.**
 
 ## 📋 ORDERED, NOT STARTED
 
@@ -65,13 +84,17 @@ Read at the start of every session, and before every report to the CEO.
 | 18 | Helicopter — decide: part of the exterior plate, or its own | $100M tier |
 | 19 | `char_visitor_c` — **currently has NO reference image**, content-flagged, prose-only | face consistency across scenes |
 
-**The cleaner's later life**
+**The cleaner's later life** — ✅ **ALL DONE, CTO-approved 07:40, `task-7cb85052`**
 
-| # | What |
-|---|---|
-| 20 | `char_cleaner_rich` — a good suit that finally fits |
-| 21 | `loc_mansion` — **furnished by someone else, nothing in it is his**, his old cart in one corner as the only thing that is |
-| 22 | `prop_camera_rig` — retrofuturist interview camera, nothing digital |
+| # | What | Verdict |
+|---|---|---|
+| 20 | `char_cleaner_rich` · `59470e23` | ✅ deep teal suit, one colour, no jewellery, no gold V, 4 panels with back view — and **the posture is right: hands clasped in front like a servant, not a rich man** |
+| 21 | `loc_mansion` · `93c52112` | ✅ sunken plum seating, warm wood, tall windows, impersonal luxury — **and the cart gets its own close-up panel, gold V and all** |
+| 22 | `prop_camera_rig` · `f9b9946e` | ✅ filed |
+| 15 | `char_guard_private` · `dbd40616` | ✅ black suit as the CEO allows for guards, no sunglasses, no earpiece, no weapon, hands loose at his sides, **reads as paid help and not as a threat** |
+
+*Asset ids copied out of the worker's DB report — that branch carried no commits,
+so the repo was the only place these would have been lost from.*
 
 **Valder's five pieces** — full spec in [VALDER.md](VALDER.md)
 
@@ -83,13 +106,7 @@ Read at the start of every session, and before every report to the CEO.
 | 15d | The lidded vessel — "seventeen made, he destroyed sixteen" | `prop_valder_vessel` |
 | 15e | The painting — "painted in one afternoon to test a colour" | `prop_valder_study` |
 
-**Scenes**
-
-| # | What |
-|---|---|
-| 23 | S2 — the interpretations scene. Written, not fired. Dialogue is the CEO's own. |
-| 24 | S3 — not written |
-| 25 | The three wall-POV escalation shots — see the price ladder |
+**Scenes** — see the 17-scene table below
 
 **Sheet updates owed**
 
@@ -116,6 +133,118 @@ Same frame every time. Only what is inside it changes.
 
 ---
 
+## 🔒 STORY FACTS — locked by the CEO, 2026-08-28. Every prompt must obey these.
+
+1. **Dupe cracked the wall himself, then called the workman to come and repair it.**
+   The workman in S16 is there because Dupe asked him to be. The S16 flashback is
+   **Dupe making that phone call**, not Dupe cracking the wall — we already saw
+   that in S2.
+2. **The whole film happens in one day, morning to noon.** So "I cracked it. Last
+   hour." is **literally true**, and the price climbs $5M → $100M before the
+   plaster the workman brought has had time to dry.
+3. **Valder genuinely believes his own invention by the end.** He is not a con
+   man and must never be played as one. The system swallows the man who built
+   it — that is what keeps the film from having a villain.
+4. **Two takes of every scene**, fired back to back, working through the film in
+   order.
+
+---
+
+## 🎬 THE 17 SCENES — shooting order
+
+**Every locked line lives in [DIALOGUE.md](DIALOGUE.md).** A line that is not in
+that file is not written — ask, never invent. S7/S8/S9 were recovered from the
+session transcript on 2026-08-28 after nearly being lost; that is why the file
+exists.
+
+
+Fire **2 takes per scene**, then move to the next scene. In order, so that if the
+schedule slips the missing footage is at the end of the film and not its middle.
+
+| # | Scene | Length | Status |
+|---|---|---|---|
+| S1 | Dupe cleans, greets, nobody answers. Title drop. | 20s | ✅ 2 takes — `5ea44262` `c8e60256` |
+| S2 | **The accident.** Dupe knocks the frame into the wall, takes the painting away. | 20s | ✅ **TAKE 1 DELIVERED** `56ace68c` · watched + verified · in Drive · sent to CEO |
+| S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | ⚠️ **take 1 NG, kept as alternate** `27180404` (porthole, prose-only fire). **take 2 fired** `61198828-dce4-4aef-8d01-aebdc8eb6f0f` with `loc_wall_pov_c` bound (new no-people plate, replaces the Face/IP-dead `loc_wall_pov_b`) + all 6 character Elements + `char_cleaner_c` + `prop_cart`, 9/9 clean, CTO-approved prompt. Not yet reviewed — rendering | task-a13469e9 |
+| S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 📝 prompt written — [s4-s5.txt](s4-s5.txt) |
+| S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
+| S6 | **$20,000,000** — wall POV. 10–20 people, personal guards. | 15s | ⬜ |
+| S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | 📝 **ready to fire, no missing plates** — [s7-s9.txt](s7-s9.txt) |
+| S8a | Pieces 1–3: the chair, the fish trap, the millstone. | 20s | 📝 **ready to fire** |
+| S8b | Pieces 4–5, then he turns and the crowd parts. Ends on his face. | 20s | 📝 **ready to fire** |
+| S8c | **The sixth story.** The pivot of the film. | 25s | 📝 **ready to fire** |
+| S9 | Dupe hears Valder's voice from the next room. Sweat. | 20s | 📝 **ready to fire** · audio is S8c's take, unbroken |
+| S10 | **The parrot woman arrives** with the crocodile bag. Rivalry. | 20s | ⬜ |
+| S11 | **$100,000,000** — wall POV. Press, live broadcast, helicopter. | 15s | ⬜ |
+| S12 | **The grandmother** wheels in and takes it. The room freezes. | 25s | ✅ plate `5dd23a87` — wheels pass all 4 panels · ⚠️ gloves came out black, re-shoot queued behind S3 |
+| S13 | **Valder improvises** the sixth story. He believes it. | 25s | ⬜ |
+| S14 | **The workman arrives with plaster.** Valder screams. | 20s | ⬜ |
+| S15 | **Dupe confesses.** "I cracked it. Last hour." Absorbed. | 25s | ⬜ |
+| S16 | **They saw the wall out of the building.** | 20s | ⬜ |
+| S17 | The square hole. Someone steps back from it exactly as in S3. | 15s | ⬜ |
+| S18 | Dupe rich, the interview — then alone at a white wall, hammer. | 25s | ⬜ |
+
+**S8 does not fit in one clip.** Valder's five stories plus the improvisation run
+~160 spoken words; a 25s clip holds ~60. So S8 is written as **S8a / S8b / S8c**
+in [s7-s9.txt](s7-s9.txt). No line was cut. That makes **19 clips per pass, not
+17.**
+
+**Corrected arithmetic — the earlier figure I gave the CEO was wrong.**
+
+| | |
+|---|---|
+| Clips per pass | 19 |
+| × 2 takes | 38 |
+| Already fired | 2 (S1) + 1 (S2) |
+| **Remaining** | **35** |
+| Time to end of 30 Aug | **~66 h**, not the 41 h I first said |
+| At 50 min/clip (peak-hours pessimistic) | ~29 h |
+| **Margin** | **~37 h** |
+
+So the schedule is comfortable, not knife-edge, and there is room for re-shoots.
+The real constraint is **never leaving the one generation slot idle**, not the
+clip count.
+
+**Wall POV appears 4 times:** S3, S4, S6, S11. Same frame every time; only the
+crowd inside it changes.
+
+> **What `loc_wall_pov_b` actually looks like — CTO opened the file, 07:35.**
+> A third-person view down the hall **seen through cracked glass**: fine crack
+> lines radiating from a dark point **dead centre**, the brass plaque low in
+> frame with its lettering **mirror-reversed**, six people beyond it facing
+> camera. The reversed plaque is the tell that we are behind the wall.
+>
+> Two false alarms on this plate, both resolved:
+> - An operator reported it had been **swapped by someone else mid-task**. It had
+>   not. That description matched the approved asset all along.
+> - The **Face/IP flag cleared on its own** — no warning triangle remains. That
+>   is the documented periodic-rescan behaviour.
+>
+> **The real fault was my prose, not the plate.** My S3 prompt said "the wall
+> ghosted and translucent… no hole, no aperture", which contradicts the plate the
+> CEO approved. Firing without the reference let the model follow my words and it
+> produced a porthole. Prompt now rewritten to match the plate.
+>
+> ⚠️ Known staleness, cosmetic: the plate still shows the art student in her
+> **original** design (pink suit, purple beret), before the CEO's redesign. Bind
+> `char_student_c` alongside it so her current look wins.
+>
+> **Update, 08:10 — `loc_wall_pov_b` is actually dead, not resolved.** A second
+> hover after re-binding showed the terminal message *"Face/IP failed... this
+> asset cannot be used. Try another."* — no "Check eligibility" button, no retry
+> path, not the periodic-rescan pending-state described above. CTO's diagnosis:
+> the six human faces baked into that plate are almost certainly what the
+> scanner caught — a **location** reference should carry the frame, not the
+> cast. **Fix: `loc_wall_pov_c`**, same cracked-glass/mirror-plaque concept,
+> **zero people** in the plate (GPT Image 2, 16:9, Medium, 2K, ref
+> `loc_hall_big_d`, 2.5 credits), which also kills the stale-student-design bug
+> for free since there's no student in it to be stale. CTO opened the finished
+> plate and approved it outright — dark impact point sits dead on the vanishing
+> point, plaque reversed and legible. **`loc_wall_pov_b` is retired — do not
+> attempt to revive it.**
+
+---
+
 ## ❓ WAITING ON THE CEO — these block work
 
 | # | Question |
@@ -124,8 +253,11 @@ Same frame every time. Only what is inside it changes.
 | F | ~~Parrot woman blue-hair collision~~ — **RESOLVED by CEO orders #64/#65.** Hair now carries three colours (green/white/blue); the garment stays a single green. Multi-colour lives in the hair only, so the one-colour-per-person rule survives. Original note: **Parrot woman came out with BLUE HAIR**, which collides with the student's signature ("dyed hair in an odd colour"). Not rejected — it passes every written rule, and the two read as different registers (couture colouring vs a student dying her own hair). **CEO to confirm** whether dyed hair should belong to the student alone. |
 | B | ~~How do the guards dress?~~ — **ANSWERED: black is allowed for guards** |
 | C | ~~Who is Valder as a person?~~ — **ANSWERED, see [VALDER.md](VALDER.md).** Deadpan permanent smile, stands perfectly straight, speaks a lot in Phase 2. |
-| E | **Valder's sixth line** — the improvised story of the crack. The pivot of the film. Five rehearsal stories are written; this one is the CEO's. |
-| D | Scene numbering — the sheet's 15-scene table predates the rewrite and no longer matches what is being shot. |
+| E | ~~**Valder's sixth line**~~ — **ANSWERED.** CTO drafted it, CEO approved: *"ตามนั้น"*. |
+| D | ~~Scene numbering~~ — **RESOLVED.** 17 scenes, table above. |
+| G | ~~Who is Collector A?~~ — **ANSWERED 2026-08-28: reuse an existing character, generate nothing.** The person who interpreted it as art becomes the person who has to pay to prove it. |
+| H | ~~In-hall press vs outside press~~ — **ANSWERED: one plate, used for both** S5 and S14. |
+| I | ~~Fire now or wait for plates?~~ — **ANSWERED: fire S2 and S3 immediately**, plates run in parallel. |
 
 ---
 
@@ -138,4 +270,22 @@ Same frame every time. Only what is inside it changes.
 - **Never click Rerun.** Recreate is the safe one.
 - **Commit the asset id before downloading** — ids cannot be recovered, files always can.
 - **Look at every plate before writing a prompt that uses it.**
+- **THE GRANDMOTHER IS `char_grandmother`. NEVER `char_grandma`.** Two separate
+  plates exist and using the wrong one changes her face between scenes. CTO
+  looked at both, 2026-08-28 07:00:
+  - ✅ `char_grandmother` — violet throughout, **head cloth to the shoulders**,
+    **large opaque smoked glasses**, retrofuturist shell chair with big rear
+    wheels and front castors, physical button pod on the armrest, terracotta
+    terrazzo floor. Matches every word of the CEO's spec.
+  - ❌ `char_grandma` — **no head cloth, no glasses**, oxblood vest over a black
+    turtleneck, joystick chair, and a **dark polished wood floor** that breaks
+    continuity with the hall. Fails the spec twice and the location once.
+    Superseded — do not reference it.
 - **Ask before building** — counts, heights, who-wears-what. Ask first, not after the render.
+- **Download straight into Drive, never the Desktop.** The project folder is
+  mounted locally at `~/Library/CloudStorage/GoogleDrive-pass.gob1@gmail.com/ไดรฟ์ของฉัน/ALL DRAFT/YT: ILAG/Sorry, Sir/`
+  — `All Scene/` for clips, `Element/` for plates. CEO, 2026-08-28: keep the
+  Mac's disk clear. **Copy, verify byte-exact, then delete the local** — never
+  delete first.
+- **Paid GPT Image 2 gens do NOT share the Unlimited Seedance video slot.** Confirmed 2026-08-28: char_gentleman and another operator's char_grandmother both fired and completed while a Scene 2 video render was in flight. Don't stand down image generation while waiting on a video render.
+- **`char_grandmother`** (note: different Element from `char_grandma` above — a second, separate grandmother design exists on the account, purple robe/headscarf/dark glasses in an antique-style wheelchair) came out with black gloves; the prompt already specified dark grey or oxblood. CTO decision 2026-08-28: **skip the reshoot** — gloves are an accessory, not a CEO-set rule, and a re-roll is a coin flip not worth the credits/time. Left as-is.
