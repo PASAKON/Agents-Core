@@ -468,9 +468,18 @@ this map after any prompt edit — it is derived, not remembered.
 Everything already shot is archived, not deleted — every clip now sits in
 `All Scene/<SCENE>/v1-no-door/` and parts of them remain usable.
 
-**Therefore the video lane is PAUSED** until the three replacement plates land.
-Firing against a plate we already know is dead spends the one video slot on a
-clip we have committed to re-shooting.
+**~~Therefore the video lane is PAUSED~~ — WRONG, and the CEO corrected it at
+17:05.** *"อย่าให้คิว Generate ว่าง"* — never leave the generate queue idle.
+
+I paused the lane to avoid making clips we would re-shoot. That optimised the
+wrong thing: **Unlimited video costs nothing, so a re-shot clip is free — but an
+idle slot costs time, and time is the only thing this production is actually
+short of.** The lane is running again.
+
+**What can fire while the plates are still being made:** S13 (exterior, behind
+the museum — touches none of the changing plates), S1C (cart detail, needs only
+`prop_cart_b` which already exists), S1F (the hands, the room barely shows), then
+S1A and S1B as spares.
 
 **Order of work:** plates first — `loc_wall_pov_d`, `loc_hall_big_e`,
 `prop_cart_b`, then `loc_mansion` v2 — then re-shoot in story order.
