@@ -286,3 +286,38 @@ instruction. Ready for use in S3, S4, S6, S11.
 8s · 720p · 16:9 · Seedance 2.5 · Unlimited (struck 56→0, verified by zoom).
 3 references bound clean: `loc_hall_big_e`, `char_cleaner_c`, `prop_cart_b`.
 Asset id not yet known, card processing.
+
+## Drive folder renamed — new path
+
+CTO renamed the Drive folder at 18:58: now
+`ALL DRAFT/YT: ILAG/Sorry, Sir (The Valder Collection)/`, same structure
+inside. Verified it exists and contains all prior downloads (S2, S1C, S5,
+S8a all present under `All Scene/`). Using this path from here on.
+
+## WES ANDERSON PASS — major creative redirect, 18:59
+
+Every prompt file rewritten for symmetrical Wes Anderson blocking. Events/
+dialogue unchanged, only photography. Confirmed via fresh file re-read
+(s1-angles.txt): S1B is now a dead-centre frontal portrait (was
+lens's-left profile), S1F is now GOD'S-EYE OVERHEAD locked off (was eye-
+level close-up — **my already-fired S1F used the OLD eye-level framing,
+before this pass landed; not refiring per one-take rule, noting the
+mismatch**), S1E is now an explicit one-point symmetrical master. S1A, S1C,
+S1D, S1G unchanged in blocking.
+
+**S1/S1A-G continuity reverted to ORIGINAL `prop_cart`** (mention
+`@project_absence_prop_cart`, confirmed live) — no painting, pre-accident.
+`prop_cart_b` (with painting) is S2-onward only. My already-fired S1C used
+`prop_cart_b` — per the file's own note this is NOT wasted, can be reused
+later as a post-accident cart insert.
+
+Three new 5s plaque-insert scenes exist in `s-price-inserts.txt` (P1/P2/P3,
+hands only) — fireable any time, not yet started.
+
+**Discarding my stale S1A staging** (had prop_cart_b) and rebuilding fresh
+against the current file before firing.
+
+## S1F asset id — committed before download
+
+Asset `914906a1-0964-4668-99cc-4f9e36107ef6`. 720p/1280x720. Downloading
+next.
