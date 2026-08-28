@@ -84,13 +84,14 @@ go in a scratch tab.**
 | 18 | Helicopter — decide: part of the exterior plate, or its own | $100M tier |
 | 19 | `char_visitor_c` — **currently has NO reference image**, content-flagged, prose-only | face consistency across scenes |
 
-**The cleaner's later life**
+**The cleaner's later life** — ✅ **ALL DONE, CTO-approved 07:40, `task-7cb85052`**
 
-| # | What |
-|---|---|
-| 20 | `char_cleaner_rich` — a good suit that finally fits |
-| 21 | `loc_mansion` — **furnished by someone else, nothing in it is his**, his old cart in one corner as the only thing that is |
-| 22 | `prop_camera_rig` — retrofuturist interview camera, nothing digital |
+| # | What | Verdict |
+|---|---|---|
+| 20 | `char_cleaner_rich` | ✅ deep teal suit, one colour, no jewellery, no gold V, 4 panels with back view — and **the posture is right: hands clasped in front like a servant, not a rich man** |
+| 21 | `loc_mansion` | ✅ sunken plum seating, warm wood, tall windows, impersonal luxury — **and the cart gets its own close-up panel, gold V and all** |
+| 22 | `prop_camera_rig` | ✅ filed |
+| 15 | `char_guard_private` | ✅ black suit as the CEO allows for guards, no sunglasses, no earpiece, no weapon, hands loose at his sides, **reads as paid help and not as a threat** |
 
 **Valder's five pieces** — full spec in [VALDER.md](VALDER.md)
 
