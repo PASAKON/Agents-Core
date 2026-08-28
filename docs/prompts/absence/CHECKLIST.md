@@ -222,6 +222,19 @@ commits at all and its ids survived only because they were copied out by hand.
 
 ---
 
+## ⚠️ ELEMENT NAMING IS NOT UNIFORM — check the mention, not the name you expect
+
+Every Element created earlier carries the prefix `project_absence_`, but
+`char_gentleman_c` was filed as plain **`@char_gentleman_c`**. Typing the
+prefixed form silently fails to bind: the chip simply does not appear, and the
+count comes up short — 6 chips for 7 mentions — with **no error anywhere**.
+
+Caught at 11:16 only because the operator counted chips against mentions before
+firing. **Count them every time.** A scene that fires with a reference missing
+looks fine until you watch it, which is exactly how S3 take 1 became a porthole.
+
+---
+
 ## 🔴 FACE/IP HAS NOW KILLED THREE PLATES — the pattern is settled
 
 | Plate | Faces in it | Outcome |
