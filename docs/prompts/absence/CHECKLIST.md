@@ -210,7 +210,8 @@ commits at all and its ids survived only because they were copied out by hand.
 | S9 take 1 · Dupe hears it | `209d88c2` |
 | `loc_wall_pov_c` — the no-people replacement plate | `48c69798` |
 | `char_gentleman` v2 — solo portrait, gold teeth not visible | `87afaa67` |
-| `char_gentleman` v3 — mouth open for the gold teeth | `5e5c2eaf` |
+| `char_gentleman_c` v3 — mouth open, but **a full gold grill, not two caps** | `5e5c2eaf` |
+| `char_gentleman_d` v4 — exactly two gold caps | *(firing)* |
 | `char_grandmother` | `5dd23a87` |
 | `char_workman` | `15f60a4e` |
 | `char_husband` | `efb9cf29` |
@@ -218,6 +219,27 @@ commits at all and its ids survived only because they were copied out by hand.
 | `loc_mansion` | `93c52112` |
 | `prop_camera_rig` | `f9b9946e` |
 | `char_guard_private` | `dbd40616` |
+
+---
+
+## 🦷 THE GENTLEMAN'S TEETH — four attempts, and why
+
+The CEO's brief says **two gold-capped teeth**, and he called it the important
+detail. S7 has a scripted beat built on it: he smiles, the gold flashes, he does
+not answer. Getting the count wrong changes who the character is.
+
+| Version | Result |
+|---|---|
+| v1 (original) | 3 people in one plate → **terminal Face/IP death** |
+| v2 `87afaa67` | solo portrait, correct in everything — but **mouth closed, no gold visible** |
+| v3 `5e5c2eaf` | mouth open — but **essentially the whole upper row in gold**, reads as a grill, wrong register for a refined elderly Englishman |
+| v4 | firing: **exactly two adjacent upper front teeth capped, every other tooth natural** |
+
+**`char_gentleman_c` (v3) is filed and usable**, so this is not a blocker — if v4
+lands worse, c is the fallback and S7/S8/S10 can shoot on it. Only the tooth
+count is in question; everything else in v3 passed: white Savile Row
+double-breasted suit, black cane with a gold grip, small and elderly, warm not
+sinister, four panels with the back view, no gold V.
 
 ---
 
