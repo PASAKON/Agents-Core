@@ -235,6 +235,30 @@ looks fine until you watch it, which is exactly how S3 take 1 became a porthole.
 
 ---
 
+## 🔴🔴 THE FACE/IP SCAN IS RETROACTIVE — passing at creation means nothing
+
+**`char_gentleman_c` passed its check at 10:41 and was terminally dead by 11:47.**
+Roughly one hour. Nothing about it changed in between; a periodic rescan simply
+reached it.
+
+Two conclusions, both expensive to learn any other way:
+
+1. **A plate that passes today can be dead tomorrow**, so a plate is never
+   "banked". I told the CEO at 11:31 that nothing was blocked on a plate any
+   more; sixteen minutes later that was false. **Corrected.**
+2. **Face count is not the whole story.** `char_gentleman_c` was already a *solo*
+   portrait and died anyway — so the scanner is matching **the face itself**, not
+   merely how many there are. Reducing faces helped `loc_wall_pov_c` and the two
+   press plates because it removed matchable faces, not because two-is-legal.
+
+**The tactic that follows: make the plate and fire every scene that needs it in
+one unbroken loop, same operator, no handoff, no waiting.** Time between creating
+a plate and using it is pure risk. That is now how the gentleman is being redone.
+
+**Currently re-blocked by this:** S7, S8a, S8b, S8c, S10, S12.
+
+---
+
 ## 🔴 FACE/IP HAS NOW KILLED THREE PLATES — the pattern is settled
 
 | Plate | Faces in it | Outcome |
@@ -257,7 +281,7 @@ the UI clears it and hunting for a control only burns the render window.
 and `char_press_b` wherever a prompt says `char_press`; that is two chips where
 the prompt implies one.
 
-**Nothing in the film is blocked on a plate any more.**
+**~~Nothing in the film is blocked on a plate any more.~~ Wrong within 16 minutes — see the retroactive-rescan section above.**
 
 ---
 
@@ -345,8 +369,8 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | S14 | **The workman arrives with plaster.** He apologises before he understands why. | 20s | 🔴 **CEO — dialogue unwritten** |
 | S15 | **Dupe confesses.** "I cracked it. Last hour." Absorbed. | 25s | 📝 [s6-s18.txt](s6-s18.txt) |
 | S16 | **They saw the wall out of the building.** | 20s | 📝 [s6-s18.txt](s6-s18.txt) |
-| S17 | The square hole. Someone steps back from it exactly as in S4. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
-| S18 | Dupe rich, the interview — then alone at a white wall, hammer. | 25s | 📝 [s6-s18.txt](s6-s18.txt) |
+| S17 | The square hole. Someone steps back from it exactly as in S4. | 15s | ✅ **take 1 DELIVERED** `d0469ad9` — clean hole, chipped edges, plaster dust, plaque gone. ⚠️ 11s not 15s, and **he does not step backward** — the beat that should rhyme with S4 is missing. Sent to CEO. |
+| S18 | Dupe rich, the interview — then alone at a white wall, hammer. | 25s | 🎬 **take 1 FIRED** `76fc65dc` |
 
 **S8 does not fit in one clip.** Valder's five stories plus the improvisation run
 ~160 spoken words; a 25s clip holds ~60. So S8 is written as **S8a / S8b / S8c**
