@@ -35,7 +35,7 @@ struck out four times, and its plaque read "Value" instead of "Valder".
 
 **I built the replacement myself rather than ask the model again.** It is on disk:
 
-`.../Sorry, Sir/Element/Location/absence-loc-wall-pov-e.png`
+`.../Sorry, Sir (The Valder Collection)/Element/Location/absence-loc-wall-pov-e.png`
 
 It is the approved hall (`loc_hall_big_e`) **mirrored** — so the red door sits at
 the vanishing point on the correct side — with a crack radiating from a dark
