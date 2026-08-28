@@ -112,3 +112,9 @@ Copied `hf_20260828_070257_5cdfc192-93a0-46d8-a62f-67508935daea.mp4` (S8a) to
 `~/Library/CloudStorage/GoogleDrive-pass.gob1@gmail.com/ไดรฟ์ของฉัน/ALL DRAFT/
 YT: ILAG/Sorry, Sir/All Scene/S8a/`, verified byte-exact (md5 match), then
 deleted the local `~/Downloads` copy.
+
+
+## S5 asset id — committed before download
+
+Asset `34b813c5-4bcc-4697-b828-e987dd7a29fd`, Seedance 2.5, 720p, 1280x720,
+created Aug 28 2026 3:13 PM. Downloading next.
