@@ -165,11 +165,11 @@ schedule slips the missing footage is at the end of the film and not its middle.
 |---|---|---|---|
 | S1 | Dupe cleans, greets, nobody answers. Title drop. | 20s | ✅ 2 takes — `5ea44262` `c8e60256` |
 | S2 | **The accident.** Dupe knocks the frame into the wall, takes the painting away. | 20s | ✅ **TAKE 1 DELIVERED** `56ace68c` · watched + verified · in Drive · sent to CEO |
-| S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | ⚠️ **take 1 NG, kept as alternate** `27180404` (porthole, prose-only fire). **take 2 fired** `61198828-dce4-4aef-8d01-aebdc8eb6f0f` with `loc_wall_pov_c` bound (new no-people plate, replaces the Face/IP-dead `loc_wall_pov_b`) + all 6 character Elements + `char_cleaner_c` + `prop_cart`, 9/9 clean, CTO-approved prompt. Not yet reviewed — rendering | task-a13469e9 |
+| S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | ✅ **take 1** `27180404` (porthole, kept as alternate) · **take 2 LANDED** `61198828-dce4-4aef-8d01-aebdc8eb6f0f` with `loc_wall_pov_c` bound, 9/9 clean. Not yet reviewed shot-by-shot — queued | task-a13469e9 |
 | S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 📝 prompt written — [s4-s5.txt](s4-s5.txt) |
 | S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
 | S6 | **$20,000,000** — wall POV. 10–20 people, personal guards. | 15s | ⬜ |
-| S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | 📝 **ready to fire, no missing plates** — [s7-s9.txt](s7-s9.txt) |
+| S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | 🔴 **blocked, fixing** — `char_gentleman` also Face/IP-dead (same terminal message as `loc_wall_pov_b`, 3 faces baked into one plate). First solo-portrait attempt `96d067d8` fired **without the CEO's full spec** (missing the Dupe-build comparison, "NOT Indian — English", saturated-white, ring-catches-light, retrofuturist-materials, rival-not-villain, no-gold-V, and the anti-resemblance/vary-features line — likely the actual fix). **Superseded, do not use.** Corrected asset `87afaa67-698c-4df2-ab30-82a25ff137b1` carries every CEO detail incl. two gold-capped teeth, black cane w/ gold grip, diamond ring. Re-pointing the existing `char_gentleman` Element to this one — every scene (S7/S8a/S8b) needs no prompt change | task-a13469e9 |
 | S8a | Pieces 1–3: the chair, the fish trap, the millstone. | 20s | 📝 **ready to fire** |
 | S8b | Pieces 4–5, then he turns and the crowd parts. Ends on his face. | 20s | 📝 **ready to fire** |
 | S8c | **The sixth story.** The pivot of the film. | 25s | 📝 **ready to fire** |
