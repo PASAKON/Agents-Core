@@ -478,8 +478,8 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | ✅ **take 1 DELIVERED** `6aa5bf40` — frame matches `loc_wall_pov_c` exactly, plaque reversed reading $2,000,000, 8 people, Dupe with cart. Sent to CEO. |
 | S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
 | S6 | **$20,000,000** — wall POV. 12–14 people, personal guards. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
-| S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | 🎬 **take 1 FIRED at a true 20s** — first clip since S3 with the correct duration |
-| S8a | Pieces 1–3: the chair, the fish trap, the millstone. | 20s | 📝 **ready to fire** |
+| S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | ✅ **take 1 LANDED** `1a50c388` at a true 20s — first correct duration since S3. Rights banner cleared under the CEO's standing approval; collecting. |
+| S8a | Pieces 1–3: the chair, the fish trap, the millstone. | 20s | ⚠️ **take 1 fired at 480p — REJECTED by the CEO.** Re-firing at 720p. |
 | S8b | Pieces 4–5, then he turns and the crowd parts. Ends on his face. | 20s | 📝 **ready to fire** |
 | S8c | **The sixth story.** The pivot of the film. | 25s | 📝 **ready to fire** |
 | S9 | Dupe hears Valder's voice from the next room. Sweat. | 20s | ✅ **take 1 DELIVERED** `209d88c2` — mopping behind a column, cart with gold V, real painting facing outward, Valder never in frame. ⚠️ **came out 11s, not 20s.** Sent to CEO. |
@@ -558,6 +558,24 @@ crowd inside it changes.
 | G | ~~Who is Collector A?~~ — **ANSWERED 2026-08-28: reuse an existing character, generate nothing.** The person who interpreted it as art becomes the person who has to pay to prove it. |
 | H | ~~In-hall press vs outside press~~ — **ANSWERED: one plate, used for both** S5 and S14. |
 | I | ~~Fire now or wait for plates?~~ — **ANSWERED: fire S2 and S3 immediately**, plates run in parallel. |
+
+---
+
+## ✅ CEO STANDING APPROVALS — «Sorry, Sir», given 2026-08-28 14:00
+
+- **Rights verification: APPROVED for the whole project.** Any clip showing the
+  "Rights verification required" banner — click **Confirm rights** and carry on.
+  No need to ask again for this film. *(He had approved it once before for S1;
+  I did not treat that as carrying over, and asked. He then made it standing.)*
+- **Resolution is not negotiable: 720p.** S8a fired at 480p and he rejected it —
+  480p inside a 720p film reads visibly softer, especially cut against
+  neighbouring scenes. **Re-fire, discard the 480p take.**
+
+**Resolution now joins the pre-fire gate**, alongside duration, aspect ratio,
+bound references, and the Generate price read off a zoomed screenshot:
+
+> **720p · 16:9 · correct duration via the slider · all refs bound and
+> thumbnail-checked · Generate zoomed to UNLIMITED with a struck-through zero.**
 
 ---
 
