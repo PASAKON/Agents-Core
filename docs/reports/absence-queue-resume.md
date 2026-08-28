@@ -209,3 +209,18 @@ earlier finding that `char_gentleman_c` is dead), `char_woman_b` →
 `loc_hall_big_e`/`loc_wall_pov_d` exist: S3→S4→S5→S6→S7→S8a→S8b→S8c→S9→S10→
 S11→S12→S15→S16→S17→S18→S1D→S1E. Discarding my staged S9 prompt — moving to
 S13 next per the new order.
+
+## S2 — COLLECTED
+
+720p/1280x720/20.04s confirmed. Shot-by-shot review clean: painting hangs on
+the wall (new prop_cart_b visible, orange/red service cart with the same
+colourful painting panel as the reference), Dupe reaches to straighten it,
+it comes off the wall and leans against the base, small crack revealed
+above matching the reference plate closely, final hold on the bare wall
+with plaque legible ("THE ABSENCE OF MEANING / Valder / $2,000,000") as
+Dupe exits frame. No defects. Note: existing S2 folder already held a
+`v1-no-door` take from an earlier version — this redo filed alongside it,
+not overwritten, per standing rule. Copied to Drive, byte-exact verified,
+local deleted.
+
+Moving to S13 next per QUEUE.md order.
