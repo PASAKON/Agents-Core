@@ -339,3 +339,11 @@ byte-exact verified, local deleted.
 zoom). 3 references bound clean: `loc_hall_big_e`, `char_cleaner_c`,
 `project_absence_prop_cart` (the correct original cart, no painting).
 Asset id not yet known, card processing.
+
+## S1A asset id — committed before download
+
+Asset `d0223537-7200-423e-a8f6-17deb3a9ebcd`. Render sat in "queued" state
+for ~20 minutes before starting (Europe midday, the documented worst
+render-queue window per the skill) — verified genuinely queued with a
+fresh tab, not a stale-tab artifact, before waiting it out. 720p,
+downloading next.
