@@ -819,7 +819,7 @@ bound references, and the Generate price read off a zoomed screenshot:
     Superseded — do not reference it.
 - **Ask before building** — counts, heights, who-wears-what. Ask first, not after the render.
 - **Download straight into Drive, never the Desktop.** The project folder is
-  mounted locally at `~/Library/CloudStorage/GoogleDrive-pass.gob1@gmail.com/ไดรฟ์ของฉัน/ALL DRAFT/YT: ILAG/Sorry, Sir/`
+  mounted locally at `~/Library/CloudStorage/GoogleDrive-pass.gob1@gmail.com/ไดรฟ์ของฉัน/ALL DRAFT/YT: ILAG/Sorry, Sir (The Valder Collection)/`
   — `Element/` for plates. CEO, 2026-08-28: keep the Mac's disk clear.
   **Copy, verify byte-exact, then delete the local** — never delete first.
 - **ONE FOLDER PER SCENE for clips** — CEO, 2026-08-28 14:20. Every clip goes to
