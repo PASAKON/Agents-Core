@@ -21,9 +21,14 @@ colour system. He is the man who set it.
 
 ### How he behaves — CEO, verbatim
 
-- **He smiles the entire time he speaks.** Not playful, not warm. **A still,
-  deadpan smile** that never changes and never reaches the eyes. It is simply
-  the shape his face makes.
+- **He smiles the entire time he speaks — a warm, charming, faintly INGRATIATING
+  smile.** CEO revision, 2026-08-28: *"เวลาเขาพูดเขาจะยิ้มตลอดเวลา แบบประจบประแจง
+  มีเสน่ห์."* The smile of a man who wants to be liked and is extremely good at
+  being liked. **It is charisma, not menace**, and it never leaves his face while
+  he is talking.
+  *(This replaces the earlier direction of a still, deadpan, unreadable smile.
+  He is charming, not cold — the opposite reading. Anything still describing him
+  as deadpan is stale.)*
 - **He stands perfectly straight at all times.** He does not lean, slouch, sit
   or shift his weight. Ever.
 - He has **a fair amount of dialogue** in Phase 2, when he arrives.

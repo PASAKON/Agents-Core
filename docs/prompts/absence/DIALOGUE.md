@@ -74,7 +74,7 @@ prove it. Ladder runs 5,250,000 → 5,500,000 → never past 6,000,000.
 
 ## S7 · Valder arrives · **LOCKED**
 
-He walks in **standing straight, smiling the still deadpan smile**, past
+He walks in **standing straight, wearing the warm ingratiating smile**, past
 everyone without looking, and **stops in front of the old gentleman in the white
 suit alone.**
 
@@ -105,7 +105,7 @@ wall.**
 He turns, raises a hand to introduce the last piece. **The crowd parts.** He sees
 the crack. The painting is gone.
 
-**The smile does not change.** He goes silent — two seconds, three — hand still
+**The smile — that same warm, charming, ingratiating one — does not change.** He goes silent — two seconds, three — hand still
 raised, the room waiting. Then, in exactly the same voice:
 
 > **VALDER** *"And this one."*
