@@ -309,31 +309,41 @@ baseline is a reference point, not a budget.
      prompt contained only its first line — at the time it was blamed on
      keystroke truncation. Treat a mysteriously empty or partial saved
      prompt as decoy-editor first, `type()` second.
-   - **THE DECOY IS NOT ONLY THE PROMPT BOX — THE DURATION FIELD HAS IT TOO.**
-     Measured 2026-08-28 on the «Sorry, Sir» wave, at a cost of four unusable
-     clips. It is a plain freeform `contenteditable`: no `<select>`, no slider,
-     no option list, and the same overlapping duplicate structure.
+   - **DURATION IS NOT A TEXT FIELD AT ALL — IT IS A RADIX ARIA SLIDER. Never
+     type into it.** Measured 2026-08-28 on the «Sorry, Sir» wave, at a cost of
+     four unusable clips and four wrong diagnoses.
 
-     The signature is **two fixed output values and no error at all**:
+     The signature that something was wrong: **two fixed output values, no error
+     anywhere.**
 
      | Clip | Target | Actual |
      |---|---|---|
      | S2, S3 | 20s | **20.04s** |
      | S4, S9, S17, S18 | 15 / 20 / 25s | **11.04s every time** |
 
-     The decoy accepts the typing, echoes the value back when read, and sets
-     nothing; the real field keeps its default. Because it reads back
-     *correctly*, a read-back check alone does **not** catch it — read back from
-     the node you selected by visibility, or you learn nothing.
+     DOM inspection settled it. The control is
+     `role="slider"` · `aria-valuemin="4"` · `aria-valuemax="30"` ·
+     `aria-valuenow` · `tabindex="0"`, and the visible "20s" is a **read-only
+     `<span>` beside it**. Typing was never landing anywhere real — and the `4s`
+     that kept reading back was simply `aria-valuemin`, the slider sitting at its
+     floor.
 
-     Three false diagnoses were burned before anyone inspected the DOM: a stale
-     tab (a fresh tab reproduced it on the first attempt), a lapsed Unlimited
-     entitlement (plan active, usage log all `Unlimited` with no digits), and a
-     platform-side duration cap. **A clean two-valued result with no error is a
-     decoy signature, not a cap.**
+     **The method that works, confirmed exact:** click the slider thumb once to
+     focus it, then send **`ArrowRight` once per second** from the current
+     `aria-valuenow`. 16 presses took it cleanly from 4 → 20, verified by
+     `aria-valuenow="20"` and the visible label agreeing.
 
-     **Apply the visibility filter to every contenteditable in that composer,
-     not just the prompt box.**
+     **Four theories were burned before anyone inspected the DOM**, and every one
+     of them was plausible: a stale composer tab (a fresh tab reproduced it on
+     the first attempt), a lapsed Unlimited entitlement (plan active, usage log
+     all `Unlimited` with no digits), a platform-side duration cap, and — mine —
+     that the duration box had the same decoy-contenteditable structure as the
+     prompt editor. It does not: the page holds only **two** such nodes, the
+     prompt editor's own real+decoy pair, and neither is anywhere near the
+     duration popover.
+
+     **Inspect the control before theorising about the value.** One DOM query
+     would have replaced four hours of hypotheses.
    - **Verify via three independent reads before every Generate click**:
      `element.innerText`, `element.__lexicalTextContent` (or equivalent
      Lexical-exposed text property), and — the authoritative one —

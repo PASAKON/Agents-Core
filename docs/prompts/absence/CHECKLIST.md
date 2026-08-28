@@ -299,34 +299,39 @@ event.
 **Two wrong theories in twenty minutes.** Stopped guessing and sent the operator
 to gather facts read-only instead. That found it in one pass.
 
-### ✅ 12:58 — SOLVED. It is the decoy-editor bug, in a field nobody had checked
+### ✅ 13:08 — SOLVED. The duration control is a RADIX ARIA SLIDER, not a text field
 
-The operator inspected the DOM: **the duration control is a plain freeform
-`contenteditable` with the SAME DECOY DUPLICATE STRUCTURE as the main prompt
-editor.** No `<select>`, no slider, no option list.
-
-The measured durations prove it:
+**Never type into it.** The control is `role="slider"` · `aria-valuemin="4"` ·
+`aria-valuemax="30"` · `aria-valuenow` · `tabindex="0"`, and the visible "20s" is
+a **read-only `<span>` beside it**. Typing never landed anywhere real — and the
+`4s` that kept reading back was simply `aria-valuemin`, the slider sitting at its
+floor.
 
 | Clip | Target | Actual |
 |---|---|---|
-| S2 | 20s | **20.04s** |
-| S3 take 1 | 20s | **20.04s** |
+| S2, S3 | 20s | **20.04s** |
 | S4, S9, S17, S18 | 15 / 20 / 25s | **11.04s every time** |
 
-**Two fixed values, no error, no randomness — that is a decoy, not a cap.** The
-decoy accepts typing, echoes it back, and sets nothing; the real field keeps its
-default. It changed as a clean step between S3 take 2 and S4, which is when the
-operator started hitting the wrong node.
+**The method, confirmed exact:** click the slider thumb once to focus it, then
+send **`ArrowRight` once per second** from the current `aria-valuenow`. 16
+presses took it from 4 → 20, verified by `aria-valuenow="20"` and the visible
+label agreeing. Written into the `higgsfield-unlimited-gen` skill.
 
-**The fix is already in the `higgsfield-unlimited-gen` skill for the prompt box
-and transfers directly:** enumerate the candidate `contenteditable` nodes and
-**discard any where `getComputedStyle(el).visibility === 'hidden'`.** Bounding
-rect, offset position and the Lexical text property are *identical* on both
-nodes, so computed visibility is the only reliable discriminator — picking by
-position is a coin flip.
+**I was wrong four times before the operator inspected the DOM** — a stale tab, a
+lapsed Unlimited plan, a platform duration cap, and a decoy `contenteditable`
+like the prompt box. The last one was mine and it was specific and confident and
+still wrong: the page holds only two such nodes, the prompt editor's own
+real+decoy pair, and neither sits near the duration popover. The operator
+disproved each theory cleanly instead of accepting it, which is the only reason
+this got solved rather than worked around.
 
-**Apply the visibility filter to every field in that composer, not just the
-prompt box.** This one cost four short clips before anyone thought to look.
+**The lesson worth keeping: inspect the control before theorising about the
+value.** One DOM query would have replaced four hours of hypotheses.
+
+**Two real blockers found on the same pass:** the S7 composer had silently
+emptied its prompt (original safe in scratch), and the **Unlimited toggle row
+overflows off-screen to the right** at the current window width, so it cannot be
+clicked until the window is widened.
 
 ---
 
