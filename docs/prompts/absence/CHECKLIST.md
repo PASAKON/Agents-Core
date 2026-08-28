@@ -207,6 +207,7 @@ commits at all and its ids survived only because they were copied out by hand.
 | S3 take 1 · **NG, porthole** — kept as an alternate | `27180404` |
 | S3 take 2 · with `loc_wall_pov_c` | `61198828` |
 | S4 take 1 · $2,000,000 wall POV | `6aa5bf40` |
+| S9 take 1 · Dupe hears it | `209d88c2` |
 | `loc_wall_pov_c` — the no-people replacement plate | `48c69798` |
 | `char_gentleman` v2 — solo portrait, gold teeth not visible | `87afaa67` |
 | `char_gentleman` v3 — mouth open for the gold teeth | `5e5c2eaf` |
@@ -253,14 +254,14 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | S1 | Dupe cleans, greets, nobody answers. Title drop. | 20s | ✅ 2 takes — `5ea44262` `c8e60256` |
 | S2 | **The accident.** Dupe knocks the frame into the wall, takes the painting away. | 20s | ✅ **TAKE 1 DELIVERED** `56ace68c` · watched + verified · in Drive · sent to CEO |
 | S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | ✅ **take 2 DELIVERED** `61198828` — reviewed frame by frame, correct cracked-glass frame, plaque reversed on all three lines, 6 facing camera, Dupe drifting through. **Frame confirmed reusable for S4/S6/S11.** Sent to CEO. *Take 1 `27180404` was NG (porthole) — kept as an alternate.* |
-| S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 🎬 **take 1 FIRED** `6aa5bf40` |
+| S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | ✅ **take 1 DELIVERED** `6aa5bf40` — frame matches `loc_wall_pov_c` exactly, plaque reversed reading $2,000,000, 8 people, Dupe with cart. Sent to CEO. |
 | S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
 | S6 | **$20,000,000** — wall POV. 12–14 people, personal guards. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
 | S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | 📝 **ready to fire, no missing plates** — [s7-s9.txt](s7-s9.txt) |
 | S8a | Pieces 1–3: the chair, the fish trap, the millstone. | 20s | 📝 **ready to fire** |
 | S8b | Pieces 4–5, then he turns and the crowd parts. Ends on his face. | 20s | 📝 **ready to fire** |
 | S8c | **The sixth story.** The pivot of the film. | 25s | 📝 **ready to fire** |
-| S9 | Dupe hears Valder's voice from the next room. Sweat. | 20s | 📝 **ready to fire** · audio is S8c's take, unbroken |
+| S9 | Dupe hears Valder's voice from the next room. Sweat. | 20s | 🎬 **take 1 FIRED** `209d88c2` · audio is S8c's take, unbroken |
 | S10 | **The parrot woman arrives** with the crocodile bag. Rivalry. | 20s | 📝 [s6-s18.txt](s6-s18.txt) |
 | S11 | **$100,000,000** — wall POV. Press, live broadcast, helicopter. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
 | S12 | **The grandmother** wheels in and takes it. The room freezes. | 25s | 📝 [s6-s18.txt](s6-s18.txt) · plate `5dd23a87` approved |
