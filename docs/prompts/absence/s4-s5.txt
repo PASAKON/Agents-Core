@@ -1,3 +1,9 @@
+
+**THE ART CRITIC — `char_critic_b` — how she speaks.** She is HALF-CHINESE and
+her face reads Chinese. She speaks English fluently but with a Chinese accent —
+the cadence and vowel shapes of a Chinese speaker using English well. State this
+in every prompt she appears in; the CEO asked for it explicitly.
+
 ===============================================================
 SCENE 4 — $2,000,000 · THE FIRST PRICE MARKER · 15s · NO DIALOGUE
 ===============================================================

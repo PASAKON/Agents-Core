@@ -1,3 +1,9 @@
+
+**THE ART CRITIC — `char_critic_b` — how she speaks.** She is HALF-CHINESE and
+her face reads Chinese. She speaks English fluently but with a Chinese accent —
+the cadence and vowel shapes of a Chinese speaker using English well. State this
+in every prompt she appears in; the CEO asked for it explicitly.
+
 THE SCENES NOT COVERED BY s4-s5.txt AND s7-s9.txt.
 
 Only S13 and S14 are missing, and they are missing because their dialogue is

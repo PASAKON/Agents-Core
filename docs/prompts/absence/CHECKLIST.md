@@ -442,6 +442,49 @@ diamond ring's sparkle. Worth the CEO eyeballing.*
 
 ---
 
+## 📋 ORDER REGISTER — everything the CEO has asked for and not yet got
+
+Two lanes run in parallel: **video is one slot at a time**, **images are
+independent of it**. Anything in the image lane can start immediately.
+
+### 🎬 VIDEO LANE — `wd-9ba8e06b`
+
+| # | What | State |
+|---|---|---|
+| V1 | Collect **S7** `1a50c388` and **S8a** `5cdfc192` — both finished, never downloaded | running |
+| V2 | Fire **S8b → S8c → S10 → S5 → S6 → S12 → S15 → S16** | queued |
+| V3 | **ONE TAKE ONLY, no second takes of anything** — CEO 15:20, because his review notes will drive the re-shoots instead | rule |
+| V4 | **S1A–S1G · 5–7 extra camera angles for S1**, in order, as cutting footage. Named: **camera on the floor at foot height** as Dupe walks past; **straight-on, Dupe from the waist up**, dusting | ⬜ not written |
+| V5 | **At least 3 extras in S1, none duplicated.** Need not be in the main frame — seen far off looking at pictures, or walking through | ⬜ folded into V4 |
+
+### 🖼 IMAGE LANE — `wd-4cbd60f4`
+
+| # | What | State |
+|---|---|---|
+| I1 | **Wall-POV v4** — bind the existing crack plate so it is **the SAME crack, mirrored**, not a new one each time. No people at all. **Add a large red door** for character entrances | running |
+| I2 | **Download parrot woman v3** `c677a65d` — generated and approved in the morning, never collected, so the Sheet still shows v2 | running |
+| I3 | **Cart v2** — same design, but **the painting slotted INTO the cart**, not propped on the floor beside it, because the model keeps dropping it. New Element `prop_cart_b`, never re-point the old one | queued |
+
+### ✍️ CTO DESK — mine, no worker needed
+
+| # | What | State |
+|---|---|---|
+| C1 | **Art critic speaks with a Chinese accent** — half-Chinese, fluent English, Chinese cadence. Written into all four prompt files she appears in | ✅ done |
+| C2 | Update the Sheet card + Element id for **parrot woman**, **wall-POV v4**, **cart v2** as each lands | ⬜ waiting on I1–I3 |
+| C3 | Swap `prop_cart` → `prop_cart_b` and `loc_wall_pov_c` → `loc_wall_pov_d` across every prompt once filed | ⬜ waiting |
+
+### 🔴 WAITING ON THE CEO — these are the only true blockers
+
+| # | What |
+|---|---|
+| B1 | **S13 dialogue** — Valder when the workman arrives |
+| B2 | **S14 dialogue** — the workman, who apologises before he understands why |
+| B3 | **Which man is visitor_b's husband** — `char_visitor_c` (plum jacket, already exists) or `char_husband` (ochre coat, made today) |
+| B4 | **Is S18's pacing too fast?** 11s against a 25s script — both beats survive but it is compressed. Needs his ear |
+| B5 | **The gentleman's teeth** — the shipped plate has far more gold than the two caps he specified. CTO accepted it after three drifting attempts; say the word and it gets one more focused try |
+
+---
+
 ## 📝 CEO NOTES ON S1 — 2026-08-28 15:xx · NOT YET BUILT, he paused me mid-order
 
 **1 · Add at least THREE extras, none of them duplicates.** They do not have to be
