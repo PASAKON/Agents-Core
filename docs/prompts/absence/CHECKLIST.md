@@ -212,6 +212,9 @@ commits at all and its ids survived only because they were copied out by hand.
 | `char_gentleman` v2 — solo portrait, gold teeth not visible | `87afaa67` |
 | `char_gentleman_c` v3 — mouth open, but **a full gold grill, not two caps** | `5e5c2eaf` |
 | `char_gentleman_d` v4 — **rejected, never filed** | `5c3df52d` |
+| `char_gentleman_e` v5 — deliberately different face, mention is **`@gentleman_e`** (no prefix again) | `414cf9f6` |
+| S17 take 1 · the square hole | `d0469ad9` |
+| S18 take 1 · interview + hammer | `76fc65dc` |
 | `char_grandmother` | `5dd23a87` |
 | `char_workman` | `15f60a4e` |
 | `char_husband` | `efb9cf29` |
