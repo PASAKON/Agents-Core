@@ -590,17 +590,30 @@ independent of it**. Anything in the image lane can start immediately.
 
 | # | What | State |
 |---|---|---|
+<<<<<<< HEAD
 | I1 | **Wall-POV v4** — bind the existing crack plate so it is **the SAME crack, mirrored**, not a new one each time. No people at all. **Add a large red door** for character entrances | running |
 | I2 | **Download parrot woman v3** `c677a65d` — generated and approved in the morning, never collected, so the Sheet still shows v2 | running |
 | I3 | **Cart v2** — same design, but **the painting slotted INTO the cart**, not propped on the floor beside it, because the model keeps dropping it. New Element `prop_cart_b`, never re-point the old one | queued |
+=======
+| I1 | **Wall-POV v4** — bind the existing crack plate so it is **the SAME crack, mirrored**, not a new one each time. No people at all. **Add a large red door** for character entrances | ✅ **DONE.** Two attempts fired (first was a rounded blob, discarded); filed the second under the CEO's 17:10 tolerance ruling rather than a third re-fire. `loc_wall_pov_d` · asset `80f5df1f-c11a-4804-a5c2-b3b26f371513` · red door present and large, zero people, plaque mirror-reversed. Downloaded, byte-exact verified, Drive `Element/Location/absence-loc-wall-pov-d.png` |
+| I2 | **Download parrot woman v3** `c677a65d` — generated and approved in the morning, never collected, so the Sheet still shows v2 | ✅ **DONE.** `char_woman_c` · asset `c677a65d-4bdb-4391-addf-445d83c83fa2` · confirmed the panel's real mention has the `project_absence_` prefix. Downloaded, byte-exact verified, Drive `Element/absence-char-woman-c.png` |
+| I3 | **Cart v2** — same design, but **the painting slotted INTO the cart**, not propped on the floor beside it, because the model keeps dropping it. New Element `prop_cart_b`, never re-point the old one | ✅ **DONE.** `prop_cart_b` · asset `bc89ef6c-86ed-4dd6-8f5a-13eb68441d25` · painting now slotted upright in the side rack, front face outward, everything else (mops, bucket, bottles, ladder, gold V) unchanged. `prop_cart` untouched. Downloaded, byte-exact verified, Drive `Element/absence-prop-cart-b.png` |
+| I4 | **Hall v5 door swap** — bind `loc_hall_big_d`, add only the same red door matching `loc_wall_pov_d` in size/position, nothing else changes | ✅ **DONE.** `loc_hall_big_e` · asset `5447f1d9-8a62-4ebb-8d94-cdc94920461c` · one-shot clean, no defects. Downloaded, byte-exact verified, Drive `Element/Location/absence-loc-hall-big-e.png` |
+| I5 | **`loc_mansion` v2** — bind `loc_mansion` + `prop_cart_b`, swap only the corner cart, gold V and painting-in-rack carry over | ✅ **DONE.** `loc_mansion_b` · asset `1014df24-5f7f-434e-8897-fbe3de4a091e` (same generation also served under filename id `3c4c4d85-...` — a known dual-id quirk on this app, both point at the identical image, verified by content). One-shot clean. Downloaded, byte-exact verified, Drive `Element/Location/absence-loc-mansion-b.png` |
+>>>>>>> agent/browser_operator-task-4cbd60f4
 
 ### ✍️ CTO DESK — mine, no worker needed
 
 | # | What | State |
 |---|---|---|
 | C1 | **Art critic speaks with a Chinese accent** — half-Chinese, fluent English, Chinese cadence. Written into all four prompt files she appears in | ✅ done |
+<<<<<<< HEAD
 | C2 | Update the Sheet card + Element id for **parrot woman**, **wall-POV v4**, **cart v2** as each lands | ⬜ waiting on I1–I3 |
 | C3 | Swap `prop_cart` → `prop_cart_b` and `loc_wall_pov_c` → `loc_wall_pov_d` across every prompt once filed | ⬜ waiting |
+=======
+| C2 | Update the Sheet card + Element id for **parrot woman**, **wall-POV v4**, **cart v2**, **hall v5**, **mansion v2** as each lands | ✅ unblocked — all five asset ids + Element mentions in I1–I5 above |
+| C3 | Swap `prop_cart` → `prop_cart_b`, `loc_wall_pov_c` → `loc_wall_pov_d`, `loc_hall_big_d` → `loc_hall_big_e`, `loc_mansion` → `loc_mansion_b` across every prompt once filed | ✅ unblocked — all four Elements now exist and are filed |
+>>>>>>> agent/browser_operator-task-4cbd60f4
 
 ### 🔴 WAITING ON THE CEO — these are the only true blockers
 

@@ -18,6 +18,7 @@ you with one short line whenever it changes.
 - File to `All Scene/<SCENE>/`. Commit the asset id **before** downloading.
 - Watch every clip and describe it shot by shot.
 
+<<<<<<< HEAD
 ## ALL PLATES ARE DONE — 18:08. Nothing is blocked on an asset any more.
 
 `loc_wall_pov_d` · `loc_hall_big_e` · `loc_mansion_b` · `prop_cart_b` ·
@@ -51,6 +52,12 @@ regenerate it, do not "improve" it. Then use it for S3, S4, S6 and S11.
 
 ## FIRE IN THIS ORDER
 
+=======
+## FIRE IN THIS ORDER
+
+These need **no** plate that is still being remade:
+
+>>>>>>> agent/browser_operator-task-4cbd60f4
 1. **S13** — `s13-the-back-door.txt` · 25s · exterior behind the museum ·
    refs `loc_exterior` `char_valder` `char_workman` · 51 spoken words so the
    duration must genuinely hold 25s
@@ -61,6 +68,7 @@ regenerate it, do not "improve" it. Then use it for S3, S4, S6 and S11.
 5. **S1B** — waist up · 10s
 6. **S1G** — past the column · 10s
 
+<<<<<<< HEAD
 **BOTH LOCATION PLATES NOW EXIST (18:00).** Every prompt file has been swept onto
 the new names and re-synced to your worktree, md5-verified. Re-read any prompt
 before firing it. Story order from here:
@@ -77,6 +85,12 @@ the crack, **Valder screams "STOP! You are destroying a hundred million dollar
 artwork!"**, and the workman is so startled he drops the plaster on the floor.
 S15 continues straight out of it — Dupe runs in, shields the workman, and says
 **"Sorry, sir."** before confessing. **That line is DUPE's, not the workman's.**
+=======
+Then, once `loc_hall_big_e` and `loc_wall_pov_d` exist, in story order:
+
+7. S3 (`s3-interpretations.txt`) → S4 → S5 → S6 → S7 → S8a → S8b → S8c → S9 →
+   S10 → S11 → S12 → S15 → S16 → S17 → S18 → S1D → S1E
+>>>>>>> agent/browser_operator-task-4cbd60f4
 
 ## ELEMENT SWAPS — use the new names everywhere
 
@@ -85,8 +99,13 @@ S15 continues straight out of it — Dupe runs in, shields the workman, and says
 | `prop_cart` | **`prop_cart_b`** ✅ exists |
 | `char_woman_b` | **`char_woman_c`** ✅ exists |
 | `char_gentleman` | **`char_gentleman_e`** ✅ exists |
+<<<<<<< HEAD
 | `loc_hall_big_d` | **`loc_hall_big_e`** ✅ exists |
 | `loc_wall_pov_c` / `loc_wall_pov_d` | **`loc_wall_pov_e`** — see below, needs uploading |
+=======
+| `loc_hall_big_d` | `loc_hall_big_e` — being made |
+| `loc_wall_pov_c` | `loc_wall_pov_d` — being made |
+>>>>>>> agent/browser_operator-task-4cbd60f4
 
 ## WAITING ON THE CEO — do not invent these
 

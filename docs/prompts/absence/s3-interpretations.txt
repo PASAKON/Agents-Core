@@ -1,6 +1,3 @@
-===============================================================
-SCENE 3 — THE INTERPRETATIONS · REDO · 20s · shot from behind the wall
-===============================================================
 References: loc_wall_pov_e · char_oldman · char_visitor_b · char_husband ·
 char_student_c · char_critic_b · char_woman · char_cleaner_c · prop_cart_b
 

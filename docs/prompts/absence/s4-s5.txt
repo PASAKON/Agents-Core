@@ -4,9 +4,6 @@ her face reads Chinese. She speaks English fluently but with a Chinese accent �
 the cadence and vowel shapes of a Chinese speaker using English well. State this
 in every prompt she appears in; the CEO asked for it explicitly.
 
-===============================================================
-SCENE 4 — $2,000,000 · THE FIRST PRICE MARKER · 15s · NO DIALOGUE
-===============================================================
 References: loc_wall_pov_e · char_critic_b · char_oldman · char_woman ·
 char_student_c · char_visitor_a · char_visitor_b · char_cleaner_c · prop_cart_b
 
@@ -52,66 +49,3 @@ angle, no handheld shake, no zoom, no slow motion, no lens flare, no HDR, no
 CGI sheen, no plastic skin, no beauty filter, no dim moody lighting, no
 darkness, no rubble, no structural damage, no large crack
 
-
-===============================================================
-SCENE 5 — COLLECTOR A OPENS THE BIDDING · 20s
-===============================================================
-References: loc_hall_big_e · char_woman · char_critic_b · char_oldman ·
-char_student_c · char_visitor_a · char_visitor_b · char_press · char_cleaner_c
-
-⚠️ CTO ASSUMPTION, FLAGGED FOR THE CEO — not his explicit words.
-He answered "reuse a character who already exists" and described Collector A as
-"the person who interprets it as art becomes the person who has to pay to prove
-it". The character who most emphatically declares it art is THE WOMAN IN COBALT
-(char_woman), whose Scene 3 closing line is "That is not a picture of something.
-That is the thing itself." So this prompt casts her as Collector A. If the CEO
-meant the art critic instead, swap the reference and the two lines move with her
-— nothing else in the scene changes.
-
-Back in the room, normal angle this time — a wide shot of the hall from the
-visitors' side, the crack and the plaque on the far wall, people standing loosely
-around it.
-
-THE WOMAN IN COBALT steps forward out of the group. Tall, sculptural crest of
-hair, cat-eye sunglasses worn indoors, one saturated cobalt garment. She stands
-perfectly still and speaks without raising her voice.
-
-    "I understand it."
-
-A beat. Nobody moves.
-
-    "Five million."
-
-The room turns. Not dramatically — a slow ripple of heads, the way a room turns
-when somebody says a number out loud for the first time.
-
-TWO JOURNALISTS have arrived at the edge of the hall with a single shoulder-
-mounted retrofuturist film camera between them. They start filming. No flashes,
-no shouting, no scrum — two people quietly doing their job.
-
-DUPE is mopping near the back wall. He looks up once, at the number, then down
-again.
-
-Camera: one slow push in toward her, or static. No handheld.
-
-Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
-pushed slightly cool, shadows never pure black but deep red-brown, saturation
-high in flat planes but never touching skin, halation blooming around every
-lamp. Photographed, not rendered: fine film grain, halation, faint gate weave,
-slight colour fringing.
-
-20s · 720p · 16:9 · High · Sound On.
-
-no extra dialogue, no invented lines, no voiceover, no narration, no subtitles,
-no captions, no on-screen text, no readable text except the brass plaque, no
-music, no score, no auction gavel, no auctioneer, no podium, no paddles, no
-bidding numbers held up, no crowd beyond nine people, no extras, no background
-figures, no press scrum, no camera flashes, no smartphones, no screens, no LEDs,
-no digital displays, no modern technology, no gold V on any visitor, no guards,
-no painting on the hero wall, no duplicate faces, no cloned people, no anyone
-looking at the camera, no smiling while speaking, no laughing, no comic
-expressions, no black clothing as anyone's main colour, no dutch angle, no
-handheld shake, no zoom, no crane, no drone, no slow motion, no lens flare, no
-bokeh balls, no HDR, no CGI sheen, no plastic skin, no beauty filter, no dim
-moody lighting, no darkness, no rain, no fog, no rubble, no structural damage,
-no ultramarine walls, no blue walls, no wooden floor

@@ -786,4 +786,61 @@
  *     and queue the fix behind higher-priority render-slot work, which is
  *     a judgment only a C-level should make, not something to decide
  *     silently either way as the operator.
+
+ * Wave 10 (task-4cbd60f4, 2026-08-28): two paid GPT Image 2 plates on
+ * "The Valder Collection No.7" (film "Sorry, Sir") -- a wall-POV crack
+ * variant (2 attempts, both discarded) and a prop-cart revision (1 attempt,
+ * accepted). Element panel search box collapses back to icon-only after
+ * every navigate/modal-close; budget one extra click to re-expand it before
+ * typing every single time -- typing straight into the collapsed icon is a
+ * silent no-op (confirmed repeatedly this run, cost ~6 wasted round-trips
+ * before recognising the pattern).
+ *   - NEW FINDING -- the Elements-panel card's own "Download" button
+ *     (bottom-left of the Info tab) returns a SMALL COMPRESSED WEBP
+ *     (185 KB, 2688x1520) even for an asset whose native generation is a
+ *     full-res PNG (6+ MB, same 2688x1520). This is a thumbnail export, not
+ *     the source file -- do not use it as the deliverable. The reliable
+ *     path is the ASSET's own hover download icon in the "All assets" /
+ *     folder grid (top-right icon stack: heart / download / copy /
+ *     reference / "..." -- the second icon), which produces the true
+ *     native-resolution PNG named `hf_<UTC-timestamp>_<asset-id>.png`.
+ *     Confirmed twice this run (char_woman_c, prop_cart_b): Element-panel
+ *     Download = webp thumbnail; asset-grid hover download = full PNG.
+ *   - NEW FINDING -- "Create Element" from a full-size image detail
+ *     dialog's "..." menu (More -> Create Element) does NOT open a naming
+ *     dialog the way Wave 9's card-hover-menu path did. It creates the
+ *     Element immediately with placeholder name "My-Element" / id
+ *     "my-element" and shows a bare "Element created." toast. Find it
+ *     afterward via Elements-panel search (it will NOT show up under a
+ *     search for the intended name yet) and open its own "Edit" action to
+ *     set Category/Name/Element ID -- same native-value-setter technique as
+ *     the New-Element dialog. Budget this as a required follow-up step,
+ *     not an optional cleanup.
+ *   - NEW FINDING -- the "..." (More) menu on an asset detail dialog can
+ *     silently fail to open on a click that looks identical to one that
+ *     just worked seconds earlier (confirmed 3 failed silent closes in a
+ *     row on the same button before a 4th click opened it) -- no visible
+ *     cause, no error, the dialog just doesn't render. Re-click the same
+ *     spot rather than switching technique; it always recovered within a
+ *     few attempts this run and never needed a page reload.
+ *   - CONFIRMED again -- pasting a prompt whose body contains a literal
+ *     "@project_absence_loc_wall_crack" (or similarly-prefixed) Element
+ *     name auto-resolves to a real bound `data-beautiful-mention` UUID
+ *     reference with zero manual @-picker interaction, exactly per the
+ *     documented "paste the whole prompt" default flow -- verified via the
+ *     mention's UUID matching the Element's own known asset id from
+ *     PLATES.md before ever clicking Generate.
+ *   - OPEN FINDING, not a technique fix -- GPT Image 2 has a real,
+ *     repeated failure mode when asked to render "photographed from behind
+ *     a cracked wall, matching a specific small reference crack, mirrored":
+ *     it defaults to inventing a large rounded aperture/porthole shape
+ *     bounded loosely by crack-like squiggles, rather than tracing the
+ *     reference's actual thin multi-branch hairline geometry. Spelling out
+ *     the exact branch count/directions/mirroring in prose measurably
+ *     improved the second attempt (sharper top-edge lines) but did not fix
+ *     the bottom-edge smooth-hole problem. Unresolved; worth trying the
+ *     drag-drop `@Image1` reference path (bypasses the named-Element
+ *     resolve entirely) or Soul Cinema with the reference bound via the
+ *     Elements-panel "Use" method next time, before assuming prose tuning
+ *     alone will converge.
  */
