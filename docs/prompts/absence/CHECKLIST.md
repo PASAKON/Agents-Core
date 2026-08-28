@@ -90,8 +90,8 @@ go in a scratch tab.**
 | 16 | **`char_guard_valder` — DONE.** Uniform identical across all six, gold V on chest and cap, black only on belts and shoes, real range of builds. Route A worked: uniform study first, then re-dressed the existing six.  ~~original brief:~~ CEO: reuse the existing blue 6-guard plate **if it already has the gold V** — check first, generate nothing if so. If no V: generate the UNIFORM alone, then re-dress the existing six so faces stay varied and the uniform stays identical. Single plate first, six-guard plate second. | $20M tier |
 | 17 | ✅ **`char_press` DONE** — two journalists, one shared shoulder camera, blue + rust | S5 · S11 |
 | 18 | Helicopter — **decided: no plate.** Written into S11 as seen through the hall windows, never cut to | S11 |
-| 19 | `char_visitor_c` — visitor_b's husband, ~60, deep ochre. Was content-flagged; brief now demands a deliberately different face | 🔄 `task-3d39df87` |
-| 19b | `char_workman` — the plasterer Dupe telephoned. Forties, slate-blue overalls, bucket and float, hand tools only | 🔄 `task-3d39df87` · S14 · S16 |
+| 19 | 🔴 **WHO IS VISITOR_B'S HUSBAND? — CEO decides, see below** | S3 · S4 · S6 · S11 |
+| 19b | ✅ **`char_workman` DONE** `15f60a4e` — slate-blue overalls genuinely worn, cloth on the shoulder, bucket and float, hand tools only, open uncomplicated face, 4 panels with back view. **Best plate of the batch.** CTO-approved 09:05 | S14 · S16 |
 
 **The cleaner's later life** — ✅ **ALL DONE, CTO-approved 07:40, `task-7cb85052`**
 
@@ -139,6 +139,30 @@ Same frame every time. Only what is inside it changes.
 | **$2,000,000** | 6 people, **+2 per scene**, ordinary clothes |
 | **$20,000,000** | 10–20 people, **each with a personal guard**. Valder appears; his guards multiply. |
 | **$100,000,000** | Peak. Press, live broadcast, **helicopter circling the building**, reporters filing from outside. |
+
+---
+
+## 🔴 ONE QUESTION FOR THE CEO — everything else is unblocked
+
+**Which man is married to the woman in the chestnut fur coat?**
+
+When you pointed at two images and said *"คนนี้เขามากับคนนี้ ซึ่งทั้ง 2 เป็น สามี ภารยากัน"*,
+I never recorded which man it was. Two now exist and I will not guess — who a
+character is, is yours.
+
+| | Who | Where he already is |
+|---|---|---|
+| **A** | **`char_visitor_c`** — Black man ~55, plum-aubergine leather jacket, grey trousers, a walking plate ("the man crossing the room") | **Already exists and is already referenced by the film.** Costs nothing to choose. |
+| **B** | **`char_husband`** `efb9cf29` — man ~60, deep ochre wool coat, grey at the temples, built to hold quiet concern while his wife cries | Generated today, filed under a fresh name so it collides with nothing |
+
+Choosing **A** costs nothing and needs no re-shoot. **B** was built specifically
+for the scene where he stands next to her and does not know what to do.
+
+**My error behind this:** I ordered B because our own checklist said
+`char_visitor_c` had *"NO reference image"*. That line was stale — the plate had
+existed all along. The operator caught the collision and refused to overwrite,
+which is the only reason nothing was lost. Both men are filed; nothing is wasted
+whichever you pick.
 
 ---
 
