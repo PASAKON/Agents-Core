@@ -1,174 +1,71 @@
-# VIDEO QUEUE — authoritative, 2026-08-28 17:35
+# VIDEO QUEUE — authoritative · rebuilt clean 2026-08-28 20:50
 
-My tmux relays have been arriving fragmented — your own commit says
-"reconstruct scattered CEO relays". **This file is the source of truth. Ignore any
-partial pane message that disagrees with it.** I will update this file and ping
-you with one short line whenever it changes.
+**This file is the source of truth. Ignore any pane message that disagrees.**
+Long tmux relays fragment — substantial changes land HERE, then a short ping.
 
-## RULES
+## STANDING RULES
+- **Never let the generate slot sit idle.** A re-shot clip is free; an idle
+  hour is not.
+- **One take per scene.** The CEO's review notes drive re-shoots, not spares.
+- Tolerance: things must READ the same, 10–20% drift is fine — EXCEPT: no
+  people in a location plate · duration on dialogue scenes · 720p · the
+  Generate price.
+- **Pre-fire gate, every clip:** 720p · 16:9 · duration set via the ArrowRight
+  slider AND read back (`aria-valuenow` + visible label) · reference chips
+  COUNTED against mentions, thumbnails zoomed · Generate price read off a
+  ZOOMED SCREENSHOT, never a JS scrape.
+- Rights-verification banner = standing CEO approval, click Confirm and carry
+  on (skill rule 3b). Purchases/renewals/ToS still stop.
+- Files: download → `…/ALL DRAFT/YT: ILAG/Sorry, Sir (The Valder Collection)/
+  All Scene/<SCENE>/` (folder per scene, create only if missing) → verify
+  byte-exact → delete local. **Never recreate the old "Sorry, Sir" folder.**
+- **Commit every asset id BEFORE downloading.** Watch every clip; describe it
+  shot by shot against the prompt's named beats.
 
-- **Never let the generate slot sit idle.** CEO, 17:05. Unlimited video costs
-  nothing, so a clip we later re-shoot is free — an idle slot is not.
-- **One take per scene.** No second takes of anything.
-- **Tolerance: 10–20% drift is fine.** Things must *read* as the same, not match
-  pixel for pixel.
-- **Pre-fire gate, every time:** 720p · 16:9 · duration set with the ArrowRight
-  slider and read back · all refs bound with thumbnails zoomed · Generate price
-  read off a **zoomed screenshot**, never a JS scrape.
-- File to `All Scene/<SCENE>/`. Commit the asset id **before** downloading.
-- Watch every clip and describe it shot by shot.
+## ASSETS — all exist unless marked
+`loc_hall_big_e` · `loc_mansion_b` · `prop_cart` (original, S1 only) ·
+`prop_cart_b` (S2 onward) · `char_woman_c` · `char_gentleman_e` ·
+`char_grandmother` (never char_grandma) · `char_press_a/b` · `char_workman` ·
+`char_husband` · `char_guard_private` · `char_guard_valder` · `char_valder` ·
+`char_registrar` **← DOES NOT EXIST YET — plate it first, spec below** ·
+`loc_wall_pov_e` **← hand-built PNG at Element/Location/absence-loc-wall-pov-e.png
+— UPLOAD via the composer's uploader and file as Element `loc_wall_pov_e`; never
+regenerate it; report the exact mention string.**
 
-<<<<<<< HEAD
-## ALL PLATES ARE DONE — 18:08. Nothing is blocked on an asset any more.
+### char_registrar — plate spec (GPT Image 2 · 16:9 · 2K · Medium · ~2.5cr)
+The museum's own official — bid-recorder and plaque-keeper in one. Composed man
+~50s, immaculate IVORY staff livery with subtle orange piping, **small GOLD V at
+the chest** (staff mark), **WHITE GLOVES**, slim brass-cornered leather ledger +
+fountain pen. Calm, ceremonial, zero emotion, NOT sinister. **One face only**,
+four panels incl. back view, real age and skin, face resembling no real person.
 
-`loc_wall_pov_d` · `loc_hall_big_e` · `loc_mansion_b` · `prop_cart_b` ·
-`char_woman_c` · `char_gentleman_e` — all exist, and every prompt file has been
-swept onto these names and re-synced to your worktree, md5-verified.
+## THE FILM — current structure (CEO's Dupe-POV cut)
+S1 silent solo → S2 accident → S2b phone call → A1–A5 arrivals → P1 → S4 → S5
+(registrar, no press) → S6 → P2 → S7 → S8a → S8b → S8c → S9 → S10 → S10b (the
+war) → S12 (grandmother, ledger-close = the gavel) → P3 → S11 (press arrive) →
+S13 → S14 → S15 (confession live; the 100M goes to Dupe) → S16 → S17 → S18.
 
-**S18 is no longer on hold** — `loc_mansion_b` has the new cart in it.
+Prompt files: `s1-multicut.txt` `s1-angles.txt` `s2-accident.txt`
+`s-arrivals.txt` (S2b + A1–A5) `s4-s5.txt` `s6-s18.txt` `s7-s9.txt`
+`s13-the-back-door.txt` `s-price-inserts.txt` (P1–P3)
+`s-dupe-inserts.txt` (D1–D5). S3 files are DEAD — do not fire anything named S3.
 
-## 🔴 FIRST JOB: UPLOAD THE HAND-BUILT WALL-POV PLATE
-
-`loc_wall_pov_d` was **rejected** — it came back as a small ragged HOLE in a blank
-wall with the hall visible through it. That is the porthole design the CEO has now
-struck out four times, and its plaque read "Value" instead of "Valder".
-
-**I built the replacement myself rather than ask the model again.** It is on disk:
-
-`.../Sorry, Sir (The Valder Collection)/Element/Location/absence-loc-wall-pov-e.png`
-
-It is the approved hall (`loc_hall_big_e`) **mirrored** — so the red door sits at
-the vanishing point on the correct side — with a crack radiating from a dark
-impact point dead centre, and the brass plaque low in frame, **mirror-reversed**
-and reading THE ABSENCE OF MEANING / Valder / $2,000,000.
-
-**Because it is generated by code from a fixed seed, the crack is now IDENTICAL
-in every scene that uses it** — which was the CEO's actual complaint. No model
-re-interpretation, ever.
-
-**Your job:** upload that PNG through the composer's own file uploader, file it as
-Element **`loc_wall_pov_e`**, and report the exact mention string. Do not
-regenerate it, do not "improve" it. Then use it for S3, S4, S6 and S11.
-
-## 🎬 WES ANDERSON PASS — 2026-08-28 evening. EVERY PROMPT FILE UPGRADED.
-
-The CEO had me redirect the whole film as Wes Anderson: symmetry about the red-
-door axis, planimetric frontal/profile staging, lateral dollies and axis push-ins
-only, class-photo group shots, deadpan holds, and FOUR approved motifs — unison
-head-turns (S5/S10/S12), one snap zoom in S2 and one whip-pan+snap-zoom in S7, a
-whip-pan chain in S12, and three new plaque inserts (`s-price-inserts.txt`,
-P1/P2/P3, 5s each, hands only, fire any time).
-
-**Dialogue and events are unchanged. Only the photography changed.**
-
-⚠️ **Re-read every prompt from the file before firing it, and RE-STAGE anything
-currently staged** — staged text predates this pass. The negatives now permit
-exactly the moves each scene names, nothing more.
-
-⚠️ **S1/S1A–S1G continuity: use the ORIGINAL `prop_cart` (no painting) — these
-are pre-accident.** `prop_cart_b` starts at S2.
-
-## 🔴 STORY UPDATE — CEO answered the audit, 2026-08-28 20:1x
-
-1. **TIMELINE FLIPPED: S2 (the accident) is the FILM'S EARLIEST BEAT, before
-   opening.** S1 and every S1 angle happen AFTER it — so they now use
-   `prop_cart_b` (painting in the rack). The S1C take with the painting aboard
-   is canon-correct. S1D is rewritten as a guilt beat (he cleans NEXT to the
-   crack, never looks at it). Re-read both S1 files.
-2. **NEW CHARACTER — `char_registrar`, and he must be PLATED before S5.** The
-   museum's own official: composed man ~50s, staff ivory livery, small GOLD V at
-   the chest (staff mark), WHITE GLOVES, slim brass-cornered leather ledger and
-   pen. Calm, ceremonial, zero emotion, not sinister. ONE FACE ONLY, four panels
-   incl. back, face must resemble no real person. GPT Image 2 · 16:9 · 2K ·
-   Medium (~2.5 credits is correct). **Generate him during the next render wait**,
-   file as Element, report the exact mention string. He appears in S5, S10b,
-   S12, S15 — and the P1–P3 plaque hands are his.
-3. **NEW SCENE S10b — the bidding war**, numbers only, in `s6-s18.txt`. Fire it
-   between S10 and S12.
-4. **ORDER CHANGE (CEO):** … S10 → **S10b** → **S12** (grandmother — the
-   registrar CLOSES THE LEDGER = the film's gavel) → **P3** → **S11** (the press
-   arrive AFTER the hammer) → S13 → S14 → **S15** (press filming; the
-   grandmother redirects the 100M to DUPE) → S16 → S17 → S18.
-5. **S5 has NO PRESS any more** — the registrar replaces the journalists there.
-
-## 🎬 OPENING ACT REBUILT — CEO 2026-08-28 evening (Dupe-POV cut)
-
-- **S1 is now SILENT and SOLO** — empty museum, original `prop_cart` (no
-  painting), 15s. All seven S1 angles likewise empty; the three extras debut in
-  S4 instead. Both S1 files fully rewritten — anything staged from old versions
-  is stale.
-- **NEW `s-arrivals.txt`: S2b (the phone call, 8s silent) + A1–A5** — the
-  interpretations are now five ARRIVAL scenes in the wall-POV frame, the row
-  assembling one character at a time. **S3 is retired** (renamed DEAD-).
-- **NEW `s-dupe-inserts.txt`: D1–D5** — five 5s Dupe reaction portraits, fire
-  between renders.
-- Canon rulings: the painting rides the cart in plain sight all film and NOBODY
-  ever looks at it, Valder included (deliberate joke) · S17's stepping-back
-  visitor = `char_visitor_a` · "Then the artist is the building." stays a
-  faceless voice · Collector A = the woman in cobalt · S10b ends with the
-  parrot woman at eighty.
+## CANON RULINGS (CEO)
+- S1 and all S1 angles: EMPTY museum, silent, original `prop_cart`, no extras
+  (extras debut in S4).
+- The painting rides the cart in plain sight from S2 to the end; **nobody ever
+  looks at it, Valder included** — deliberate.
+- Greetings only in A1 ("Excuse me, sir."), A3 ("Excuse me. Just a moment."),
+  A5 ("Sorry, madam.").
+- S17's stepping-back visitor = `char_visitor_a`, the same man as S4.
+- "Then the artist is the building." = a faceless voice, nobody shown speaking.
+- Collector A = the woman in cobalt. S10b ends with the parrot woman at eighty.
 
 ## FIRE IN THIS ORDER
-1. **`char_registrar` plate FIRST** (spec above) — S5 cannot fire without him.
-2. **S1** (new silent master) → **S1A–S1G** (new empty versions)
-3. **S2** (re-fire under the Anderson pass) → **S2b** (the phone call)
-4. **A1 → A2 → A3 → A4 → A5** — in order; the row must accumulate
-5. **D1–D5** whenever the slot would otherwise idle
+1. **char_registrar plate** (S5 blocks without him) + **upload loc_wall_pov_e**
+2. **S1** → **S1A–S1G** (all rewritten — restage from the files, never from memory)
+3. **S2** (re-fire, Anderson pass) → **S2b**
+4. **A1 → A2 → A3 → A4 → A5** — strict order, the row accumulates
+5. **D1–D5** whenever the slot would idle
 6. **P1 → S4 → S5 → S6 → P2 → S7 → S8a → S8b → S8c → S9 → S10 → S10b → S12 →
-   P3 → S11 → S13 → S14 → S15 → S16 → S17 → S18** → S1D/S1E spares last.
-
-
-## FIRE IN THIS ORDER
-
-These need **no** plate that is still being remade:
-
->>>>>>> agent/browser_operator-task-4cbd60f4
-1. **S13** — `s13-the-back-door.txt` · 25s · exterior behind the museum ·
-   refs `loc_exterior` `char_valder` `char_workman` · 51 spoken words so the
-   duration must genuinely hold 25s
-2. **S1C** — `s1-angles.txt` · 8s · the cart detail · `loc_hall_big_e` + the ORIGINAL `prop_cart`
-3. **S1F** — `s1-angles.txt` · 8s · the hands · room barely visible
-4. **S1A** — floor-level · 10s
-5. **S1B** — waist up · 10s
-6. **S1G** — past the column · 10s
-
-<<<<<<< HEAD
-**BOTH LOCATION PLATES NOW EXIST (18:00).** Every prompt file has been swept onto
-the new names and re-synced to your worktree, md5-verified. Re-read any prompt
-before firing it. Story order from here:
-
-7. **S3** → **S4** → **S5** (registrar, no press) → **S6** → **S7** → **S8a** →
-   **S8b** → **S8c** → **S9** → **S10** → **S10b** → **S12** → **P3** → **S11**
-   → **S13** → **S14** → **S15** → **S16** → **S17** → **S18** → **S1D** → **S1E**
-
-**S14 is written after all** — it was the CEO's own text, mislaid when the scene
-numbers shifted. It is in `DIALOGUE.md`: the workman raises his float to plaster
-the crack, **Valder screams "STOP! You are destroying a hundred million dollar
-artwork!"**, and the workman is so startled he drops the plaster on the floor.
-S15 continues straight out of it — Dupe runs in, shields the workman, and says
-**"Sorry, sir."** before confessing. **That line is DUPE's, not the workman's.**
-=======
-Then, once `loc_hall_big_e` and `loc_wall_pov_d` exist, in story order:
-
-7. S3 (`s3-interpretations.txt`) → S4 → S5 → S6 → S7 → S8a → S8b → S8c → S9 →
-   S10 → S11 → S12 → S15 → S16 → S17 → S18 → S1D → S1E
->>>>>>> agent/browser_operator-task-4cbd60f4
-
-## ELEMENT SWAPS — use the new names everywhere
-
-| old | new |
-|---|---|
-| `prop_cart` | **`prop_cart_b`** ✅ exists |
-| `char_woman_b` | **`char_woman_c`** ✅ exists |
-| `char_gentleman` | **`char_gentleman_e`** ✅ exists |
-<<<<<<< HEAD
-| `loc_hall_big_d` | **`loc_hall_big_e`** ✅ exists |
-| `loc_wall_pov_c` / `loc_wall_pov_d` | **`loc_wall_pov_e`** — see below, needs uploading |
-=======
-| `loc_hall_big_d` | `loc_hall_big_e` — being made |
-| `loc_wall_pov_c` | `loc_wall_pov_d` — being made |
->>>>>>> agent/browser_operator-task-4cbd60f4
-
-## WAITING ON THE CEO — do not invent these
-
-S14's dialogue. Everything else in the film is written.
+   P3 → S11 → S13 → S14 → S15 → S16 → S17 → S18** → spares S1D/S1E last.
