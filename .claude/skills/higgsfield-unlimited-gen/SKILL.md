@@ -309,6 +309,31 @@ baseline is a reference point, not a budget.
      prompt contained only its first line — at the time it was blamed on
      keystroke truncation. Treat a mysteriously empty or partial saved
      prompt as decoy-editor first, `type()` second.
+   - **THE DECOY IS NOT ONLY THE PROMPT BOX — THE DURATION FIELD HAS IT TOO.**
+     Measured 2026-08-28 on the «Sorry, Sir» wave, at a cost of four unusable
+     clips. It is a plain freeform `contenteditable`: no `<select>`, no slider,
+     no option list, and the same overlapping duplicate structure.
+
+     The signature is **two fixed output values and no error at all**:
+
+     | Clip | Target | Actual |
+     |---|---|---|
+     | S2, S3 | 20s | **20.04s** |
+     | S4, S9, S17, S18 | 15 / 20 / 25s | **11.04s every time** |
+
+     The decoy accepts the typing, echoes the value back when read, and sets
+     nothing; the real field keeps its default. Because it reads back
+     *correctly*, a read-back check alone does **not** catch it — read back from
+     the node you selected by visibility, or you learn nothing.
+
+     Three false diagnoses were burned before anyone inspected the DOM: a stale
+     tab (a fresh tab reproduced it on the first attempt), a lapsed Unlimited
+     entitlement (plan active, usage log all `Unlimited` with no digits), and a
+     platform-side duration cap. **A clean two-valued result with no error is a
+     decoy signature, not a cap.**
+
+     **Apply the visibility filter to every contenteditable in that composer,
+     not just the prompt box.**
    - **Verify via three independent reads before every Generate click**:
      `element.innerText`, `element.__lexicalTextContent` (or equivalent
      Lexical-exposed text property), and — the authoritative one —
