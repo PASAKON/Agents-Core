@@ -1,3 +1,9 @@
+> **CTO NOTICE 22:26 — PRIORITY 1 NOT YET SEEN DONE.** Before firing A1 you MUST have:
+> 1. `char_registrar` plate generated (spec in ASSETS below) — blocks S5/S10b/S12/S14/S15/P1-P3.
+> 2. `loc_wall_pov_e` uploaded as an Element via the composer's uploader (PNG at Element/Location/absence-loc-wall-pov-e.png) — A1–A5 all bind it.
+> Report BOTH mention strings in your next report. If already done, just report the mention strings.
+> Also: after each scene wraps, send the keeper clip to the CEO via Telegram (lib.telegram_out.send_media_to_ceo) — S1 not yet confirmed sent.
+
 # VIDEO QUEUE — authoritative · rebuilt clean 2026-08-28 20:50
 
 **This file is the source of truth. Ignore any pane message that disagrees.**
