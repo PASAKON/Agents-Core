@@ -523,7 +523,8 @@ independent of it**. Anything in the image lane can start immediately.
 | V2 | Fire **S8b → S8c → S10 → S5 → S6 → S12 → S15 → S16** | queued |
 | V3 | **ONE TAKE ONLY, no second takes of anything** — CEO 15:20, because his review notes will drive the re-shoots instead | rule |
 | V3b | **S2 RE-SHOOT** — the painting hangs CROOKED, Dupe tries to straighten it, that is what brings it down. Crack must match the reference exactly. Painting size locked at **90×70 cm landscape**. [s2-accident.txt](s2-accident.txt) | ⬜ queued |
-| V4 | **S1A–S1G · 5–7 extra camera angles for S1**, in order, as cutting footage. Named: **camera on the floor at foot height** as Dupe walks past; **straight-on, Dupe from the waist up**, dusting | ⬜ not written |
+| ~~V4~~ | ✅ **S1A–S1G WRITTEN 16:42** — seven angles: floor-level, waist-up, cart detail, over-shoulder, long hall, hands, past-the-column. Three non-duplicate extras (teal / mustard / plum) built into all seven. [s1-angles.txt](s1-angles.txt) | ⬜ queued to fire |
+| ~~V4-old~~ | ~~**S1A–S1G · 5–7 extra camera angles for S1**~~, in order, as cutting footage. Named: **camera on the floor at foot height** as Dupe walks past; **straight-on, Dupe from the waist up**, dusting | ⬜ not written |
 | V5 | **At least 3 extras in S1, none duplicated.** Need not be in the main frame — seen far off looking at pictures, or walking through | ⬜ folded into V4 |
 
 ### 🖼 IMAGE LANE — `wd-4cbd60f4`
@@ -546,7 +547,7 @@ independent of it**. Anything in the image lane can start immediately.
 
 | # | What |
 |---|---|
-| B1 | **S13 dialogue** — Valder when the workman arrives |
+| ~~B1~~ | ✅ **S13 WRITTEN 16:40** — CEO handed it to me. Not the gallery: **outside, behind the museum, two men alone, played as a secret.** Valder offers eight thousand *"to have never come"*; the workman refuses. [s13-the-back-door.txt](s13-the-back-door.txt) |
 | B2 | **S14 dialogue** — the workman, who apologises before he understands why |
 | ~~B3~~ | ✅ **ANSWERED 16:15 — the husband is `char_husband`**, option B, the ochre coat. `char_visitor_c` (plum jacket) is not him. |
 | B4 | **Is S18's pacing too fast?** 11s against a 25s script — both beats survive but it is compressed. Needs his ear |
