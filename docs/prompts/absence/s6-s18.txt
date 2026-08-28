@@ -276,6 +276,9 @@ dollars for it.
 tilt, eyes move from him to the crack and back. One of them nods slowly, the way
 people nod when they have decided something is profound.
 
+    A VOICE FROM THE CROWD — deliberately unassigned, off-axis, nobody shown
+    speaking (CEO chose not to give this line a face):
+
     "Then the artist is the building."
 
 **THE PRESS ARE FILMING ALL OF THIS** — the confession goes out live (CEO: the
@@ -345,15 +348,17 @@ demolition, no collapse, no danger, no rubble beyond fine plaster dust.
 ===============================================================
 SCENE 17 — THE SQUARE HOLE · 15s · NO DIALOGUE
 ===============================================================
-References: loc_hall_big_e
+References: loc_hall_big_e · char_visitor_a
 
 The gallery, empty and quiet. **On the wall there is now a clean square hole cut
 straight through it**, edges chipped, the building's insides visible, a scatter
 of plaster dust on the terracotta floor beneath. The brass plaque is gone with
 the wall.
 
-**One person walks in and stops in front of the hole.** They look at it. They
-tilt their head.
+**ONE PERSON walks in and stops in front of the hole — `char_visitor_a`, the
+ordinary balding man in the oxblood leather suit, THE SAME MAN who stepped back
+from the crack in Scene 4 (CEO-confirmed).** The film's first and last viewer.
+He looks at it. He tilts his head.
 
 **They take a single step backwards to see the whole thing at once — the exact
 same movement, from the exact same distance, as in Scene 4.**

@@ -1,0 +1,176 @@
+===============================================================
+S2b + A1–A5 · THE OPENING ACT REBUILT · CEO 2026-08-28
+"เผยตัวละครทีละตัว" — the cast is revealed one at a time, and the
+audience holds the truth alone from Scene 2 onward.
+===============================================================
+
+Shared rules: colour grade warm shadow / cold white, photographed not
+rendered (grain, halation, gate weave), camera always level, 720p ·
+16:9 · High · Sound On. One take per scene.
+
+Negative block for every scene here: no invented dialogue, no lines
+beyond those written, no voiceover, no narration, no subtitles, no
+captions, no readable text except the brass plaque (mirror-reversed in
+the wall frame), no music, no score, no extras beyond the named cast,
+no crowd, no press, no guards, no gold V on any visitor, no duplicate
+faces, no anyone noticing the cleaner, no anyone answering him, no
+porthole, no hole, no invented crack shape, no handheld, no dutch
+angle, no zoom, no whip pan, no crane, no drone, no slow motion, no
+HDR, no CGI sheen, no beauty filter, no darkness
+
+---------------------------------------------------------------
+S2b · THE PHONE CALL · 8s · SILENT
+---------------------------------------------------------------
+References: loc_hall_big_e · char_cleaner_c
+
+A quiet corner of the museum — a plain wall section by the service
+side. **A retrofuturist WALL TELEPHONE**: cream and chrome, rotary
+dial, coiled cord, a small brass shelf. Nothing digital.
+
+CAMERA: locked profile, waist height, perfectly symmetrical — Dupe
+dead centre at the phone.
+
+**DUPE, worried, glances over his shoulder — nobody — then dials.** A
+rotary number, deliberate. He waits. He cups his hand around the
+mouthpiece and speaks — **we hear nothing intelligible, a low murmur
+under the room tone.** He nods. In his other hand, **a small fold of
+worn banknotes — his own money.** He hangs up, straightens his cap,
+breathes once, and walks out of frame with the cart.
+
+*What this plants: the workman of S13/S14 was called by Dupe, this
+morning, and the eight hundred is Dupe's own savings. "Someone asked
+me to fix it." now has a face.*
+
+Sound: rotary dial clicks, the murmur, room tone. No dialogue proper.
+
+---------------------------------------------------------------
+THE ARRIVALS — shared frame for A1–A5
+---------------------------------------------------------------
+References every time: **loc_wall_pov_e** (the hand-built frame — the
+camera is BEHIND the wall looking out through the crack; the brass
+plaque low in frame, MIRROR-REVERSED, reading $2,000,000; **the RED
+DOOR dead centre at the vanishing point**) · char_cleaner_c ·
+prop_cart_b · plus that scene's arrivals.
+
+**THE FRAME NEVER MOVES, in any of the five.** Locked off. Identical.
+The only thing that changes from scene to scene is who stands in it.
+
+**Each arrival:** the red door opens far away, dead centre. The new
+character walks the centreline toward camera, growing from tiny to
+full figure, stops at the row, looks at the crack — which is the
+camera — and **delivers their interpretation straight into the lens.**
+
+**THE ROW ACCUMULATES.** Everyone who has arrived STAYS, standing in a
+neat line facing camera like a class photograph assembling one pupil
+at a time: 1 → 2 → 4 → 5 → 6 across the five scenes. Costume colours
+alternate warm and cool along the line.
+
+**DUPE IS IN EVERY FRAME** — at the edge, cleaning the wall BESIDE the
+crack, close to it, **and never once looking at it.** The painting
+rides his cart in plain sight, face outward. **Nobody ever looks at
+the cart. This is deliberate — the truth sits in the corner of every
+shot in the film and no one, ever, looks at it.**
+
+His greetings (canon lines, CEO: only some arrivals keep one, so the
+joke never wears out): **A1, A3 and A5 only.** Spoken quietly, warmly;
+**never answered, never acknowledged, and he never reacts to that.**
+
+---------------------------------------------------------------
+A1 · THE ELDERLY GENTLEMAN · 15s — the first man in the world
+---------------------------------------------------------------
+Cast: char_oldman
+
+The empty frame. The crack. The plaque. A long still beat.
+
+The red door opens. **THE ELDERLY GENTLEMAN** — heavy, about eighty,
+bottle-green leather overcoat, chrome ring-handled cane — comes down
+the centreline SLOWLY, cane first, a small figure becoming a large
+one. He stops. He looks at the crack a very long time. Dupe, at the
+frame's edge, wipes the wall and says: **"Excuse me, sir."** Nothing.
+The old man does not hear him — or does not distinguish him from the
+building.
+
+Then, slowly, with the certainty of a man reading scripture:
+
+    "It's about death."
+
+Hold him alone in the frame, one beat too long.
+
+*The first human being ever to see the crack as art. The patient zero
+of the whole film. Give the silence its full weight.*
+
+---------------------------------------------------------------
+A2 · THE ART CRITIC · 10s
+---------------------------------------------------------------
+Cast: char_oldman (in the row) + char_critic_b
+
+The old man now stands in the row, still. The door opens again.
+**THE ART CRITIC** — Asian woman about sixty, deep magenta fur, cream
+gloves; **half-Chinese, and when she speaks it is fluent English with
+a Chinese accent, the cadence of a Chinese speaker who uses English
+well.** She walks the axis, joins the line beside him, studies the
+crack, weighing it, and says slowly:
+
+    "It asks who decides what labour is worth."
+
+Dupe cleans on at the edge. No greeting in this one.
+
+---------------------------------------------------------------
+A3 · THE COUPLE · 12s
+---------------------------------------------------------------
+Cast: the row (oldman, critic) + char_visitor_b + char_husband
+
+The door opens on TWO figures: **THE WOMAN IN THE CHESTNUT FUR**
+(~55, rust dress, warm ordinary face) with **HER HUSBAND** half a step
+behind in his deep-ochre wool coat. They come down the axis together.
+As they pass him, Dupe: **"Excuse me. Just a moment."** — finishing a
+wipe at their feet. Neither of them registers he exists.
+
+She takes her place in the row, looks at the crack, and quietly, a
+single tear running down her cheek that she does not wipe:
+
+    "It made me think of my mother."
+
+**Her husband glances at her. He does not touch her. He does not know
+what to do.** Nobody else reacts at all.
+
+---------------------------------------------------------------
+A4 · THE ART STUDENT · 10s
+---------------------------------------------------------------
+Cast: the row (4) + char_student_c
+
+The door again. **THE ART STUDENT** — about twenty-two, acid-green
+dyed hair, paint-stained denim — walks the axis FASTER than anyone
+else, already unimpressed, plants herself at the end of the row, and
+fires it flat:
+
+    "It's anti-capitalist. Obviously."
+
+**NOT ONE PERSON IN THE ROW TURNS TOWARD HER.** The same silence Dupe
+gets. She joins the line anyway. Dupe cleans on. No greeting here.
+
+---------------------------------------------------------------
+A5 · THE WOMAN IN COBALT · 20s — the consensus
+---------------------------------------------------------------
+Cast: the full row (5) + char_woman
+
+The door, one last time. **THE WOMAN IN COBALT** — ~50, glossy cobalt
+leather, tall sculptural crest, cat-eye sunglasses indoors — the
+slowest, most deliberate walk of the five. As she passes him Dupe
+says: **"Sorry, madam."** Nothing, as always.
+
+She takes the centre of the row, looks at the crack, and — **perfectly
+still, only her mouth moving:**
+
+    "This is the real thing."
+    "I have spent my whole life in rooms like this one."
+    "I have never once stood in front of anything like it."
+    "That is not a picture of something. That is the thing itself."
+
+A beat — then **a low warm murmur across the whole row: "Ohhh."** Nods
+spread. Brief, quiet, sincere applause.
+
+**And at the edge of frame Dupe stops wiping for one second — his only
+reaction in the whole act — then goes back to work.**
+
+*The consensus is born. From the next scene it has a price.*

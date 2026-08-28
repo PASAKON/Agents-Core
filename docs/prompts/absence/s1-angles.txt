@@ -1,36 +1,17 @@
 ===============================================================
 S1A – S1G · SEVEN COVERAGE ANGLES FOR SCENE 1 · cutting footage
 ===============================================================
-References for all seven: loc_hall_big_e · char_cleaner_c · prop_cart_b
-⚠️ TIMELINE (CEO, locked): **the accident has ALREADY happened — S2 is the
-earliest beat of the film, before opening.** These angles are later the same
-morning, so **use `prop_cart_b`: the painting rides in the rack, face outward.**
-The S1C take already fired with the painting aboard is canon-correct.
-
+References for all seven: loc_hall_big_e · char_cleaner_c · prop_cart
+⚠️ REWRITE 2026-08-28 (CEO): these are the film's OPENING — pre-accident,
+**museum EMPTY, Dupe completely alone. NO extras any more** (the three
+extras move to S4). **Original `prop_cart`, rack empty, no painting.**
+Silent except the sounds of his work.
 CEO, 2026-08-28. `s1-multicut.txt` stays as the master wide. These seven are
 **extra footage to cut with** — the same morning, the same room, the same man,
 photographed seven different ways so the editor can build rhythm instead of
 sitting in one frame for twenty seconds.
 
 Fire them in order. **One take each.** They are short on purpose.
-
----------------------------------------------------------------
-THE THREE EXTRAS — applies to every angle below
----------------------------------------------------------------
-**At least three extras, and no two of them alike.** They do **not** have to be
-in the main frame — far off looking at pictures, or crossing the back of shot, is
-exactly what the CEO asked for. The room currently reads too empty for a museum.
-
-- **A** — man, forties, **deep teal**, standing well down the hall with his back
-  to us, looking up at a painting. He never moves.
-- **B** — woman, twenties, **mustard**, walking slowly across the far end of the
-  hall, right to left, out of frame.
-- **C** — older woman, **plum**, sitting on a distant bench, hands in her lap,
-  looking at nothing in particular.
-
-**They must not resemble each other or any named character.** Different ages,
-builds, hair. **No gold V on any of them** — that mark is staff only. They never
-interact with Dupe and they never look at camera.
 
 ---------------------------------------------------------------
 S1A · THE FLOOR — camera at ankle height
@@ -45,8 +26,6 @@ away to the vanishing point; **the red door is small and far off at the end.**
 **DUPE WALKS PAST, VERY CLOSE TO CAMERA** — his shoes, the hem of his white
 trousers, the wheels of the cart rolling by. He crosses frame and continues away
 down the hall, getting smaller.
-
-Extra A is visible far down the hall, back to us, looking up at a painting.
 
 *The point: the film's most ignored man, shot from the height of the floor he
 cleans.*
@@ -64,8 +43,6 @@ hands, his sleeve, the gold V on his chest, his face in three-quarter.
 He is content. He hums a little. He is entirely absorbed in a job nobody will
 notice.
 
-Behind him, softly out of focus, extra B crosses the far end of the hall.
-
 *The point: the only angle in the film that treats him as the subject.*
 
 ---------------------------------------------------------------
@@ -73,9 +50,9 @@ S1C · THE CART — detail
 ---------------------------------------------------------------
 **8s. No dialogue.**
 
-Close on **`prop_cart_b`** as it rolls: mop, orange bucket, bottles, folded
+Close on **`prop_cart`** as it rolls: mop, orange bucket, bottles, folded
 cloths, brush, the folding ladder on the side, **the gold V on the front panel**,
-and the painting slotted upright in its rack, front face turned outward.
+**The rack is empty — no painting anywhere.**
 
 The camera tracks alongside at cart height, terrazzo sliding past.
 
@@ -88,16 +65,13 @@ S1D · OVER THE SHOULDER — what he is looking at
 **10s. No dialogue.**
 
 From just behind and above Dupe's shoulder. The back of his cap with the gold V,
-and beyond it **the hero wall — BARE, with the small crack and the brass plaque.**
-His own accident, an hour old.
+and beyond it **the hero wall with the painting still hanging on it, straight
+and untouched, the brass plaque beneath.**
 
-**He wipes the wall NEXT to the crack, carefully, and never once looks at the
-crack itself.** Not a glance. He cleans around it the way you avoid a bruise.
+He wipes the wall beside the frame with real care. He does not touch the
+painting.
 
-Extra C sits on a distant bench, out of focus.
-
-*The point: the film's best guilt beat — a man polishing the scene of his crime
-while refusing to see it.*
+*The point: the last time the audience sees that wall intact.*
 
 ---------------------------------------------------------------
 S1E · THE LONG HALL — he is very small
@@ -109,11 +83,8 @@ definitive ONE-POINT symmetrical master.** Columns in mirrored pairs, and **the
 red door exactly centred at the vanishing point.** Chromium columns
 march away on both sides, artworks on plinths between them.
 
-**DUPE IS TINY**, off to one side, working along the wall with his cart. All three
-extras are in this shot — **A** at a painting, **B** crossing the distance, **C**
-on the bench — spread far apart, none near each other, none near Dupe.
-
-Nobody looks at anybody.
+**DUPE IS TINY**, off to one side, working along the wall with his cart. **The hall is completely empty around him** — one tiny man and four hundred
+feet of museum. Nobody else exists yet.
 
 *The point: the geography of the whole film in one frame, and the man who matters
 least occupying the least of it.*
@@ -138,11 +109,9 @@ S1G · PAST THE COLUMN — watched by nobody
 **10s. No dialogue.**
 
 Camera behind a chromium column, part of the column down one edge of frame, as if
-we are half-hidden. **Dupe works in the middle distance.** Extra B walks between
-camera and Dupe, crossing close to the lens and briefly blocking him completely,
-then clearing.
+we are half-hidden. **Dupe works in the middle distance, alone.** Nothing else moves in the frame.
 
-Dupe never notices either of them.
+He never notices the camera's hiding place, because there is nobody behind it.
 
 *The point: the film's only voyeur shot, and there is nothing to see.*
 

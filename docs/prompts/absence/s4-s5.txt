@@ -18,8 +18,9 @@ hall and its people seen beyond. The camera never moves.
 This must match `loc_wall_pov_e` exactly — S3, S4, S6 and S11 are the same frame
 and only the crowd inside it changes.
 
-EIGHT PEOPLE now, not six — the same six from Scene 3 plus two more who have
-drifted in from the corridor. Ordinary clothes, nothing expensive, the way
+EIGHT PEOPLE now — **the six assembled by the arrivals (A1–A5)** plus two of the
+three unnamed extras making their debut (the man in deep teal and the woman in
+mustard; the plum woman sits far off on a bench). Ordinary clothes, the way
 people dress to visit a museum on a weekday morning.
 
 STAGING — the Anderson plan: they stand in **NEAT ROWS facing camera like a
