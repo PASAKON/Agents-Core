@@ -226,7 +226,7 @@ schedule slips the missing footage is at the end of the film and not its middle.
 |---|---|---|---|
 | S1 | Dupe cleans, greets, nobody answers. Title drop. | 20s | ✅ 2 takes — `5ea44262` `c8e60256` |
 | S2 | **The accident.** Dupe knocks the frame into the wall, takes the painting away. | 20s | ✅ **TAKE 1 DELIVERED** `56ace68c` · watched + verified · in Drive · sent to CEO |
-| S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | ⚠️ **take 1 NG — re-firing.** Rendered a wood-and-brass **porthole**, i.e. a hole, which the CEO rejected twice. Cause: `loc_wall_pov_b` is **Face/IP flagged** so it could not be bound and the clip fired from prose alone. Kept as an alternate. |
+| S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | 🎬 **take 2 landed** `61198828` — fired with `loc_wall_pov_c` bound, awaiting collection + review. *Take 1 was NG: a porthole, because the flagged plate could not bind and the clip followed my prose instead. Kept as an alternate.* |
 | S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 📝 prompt written — [s4-s5.txt](s4-s5.txt) |
 | S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
 | S6 | **$20,000,000** — wall POV. 12–14 people, personal guards. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
