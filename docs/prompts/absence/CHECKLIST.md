@@ -442,6 +442,41 @@ diamond ring's sparkle. Worth the CEO eyeballing.*
 
 ---
 
+## ♻️ STANDING RULE — CEO, 2026-08-28 16:05
+
+> **"ทุกครั้งที่มีการ Update Prompt หรือ Element อันไหนที่เกี่ยวข้อง Generate ใหม่ทั้งหมด"**
+>
+> Whenever a prompt or an Element changes, **every scene that depends on it is
+> re-shot.** No exceptions, no "close enough".
+
+That only works if the dependency map is written down, so here it is. Regenerate
+this map after any prompt edit — it is derived, not remembered.
+
+| Element | Scenes that break if it changes |
+|---|---|
+| **`loc_hall_big_d` → `loc_hall_big_e`** | **S2 S5 S7 S8a S8b S8c S9 S10 S12 S15 S16 S17** — twelve |
+| `loc_wall_pov_c` → `loc_wall_pov_d` | S3 S4 S6 S11 |
+| `prop_cart` → `prop_cart_b` | S2 S4 S9 S15 S18 |
+| `char_valder` (smile rewritten) | S7 S8a S8b S8c S9 S10 S12 S15 S16 |
+| `char_critic_b` (accent added) | S1 S4 S5 S6 S7 S8b S8c S9 S10 S11 S15 |
+| `char_cleaner_c` | S2 S4 S5 S6 S7 S8a S8c S9 S11 S12 S15 S16 |
+| `char_gentleman` → `char_gentleman_e` | S7 S8a S8b S8c S10 |
+| `char_woman_b` → `char_woman_c` | S10 S11 S12 |
+| `loc_mansion` (must be redone for the new cart) | S18 |
+
+**Consequence, accepted by the CEO:** the door change alone re-shoots the film.
+Everything already shot is archived, not deleted — every clip now sits in
+`All Scene/<SCENE>/v1-no-door/` and parts of them remain usable.
+
+**Therefore the video lane is PAUSED** until the three replacement plates land.
+Firing against a plate we already know is dead spends the one video slot on a
+clip we have committed to re-shooting.
+
+**Order of work:** plates first — `loc_wall_pov_d`, `loc_hall_big_e`,
+`prop_cart_b`, then `loc_mansion` v2 — then re-shoot in story order.
+
+---
+
 ## 🚪 THE RED DOOR — CEO, 2026-08-28 16:00. One entrance, in every reference.
 
 **No plate we own contains a door at all**, so the model invents an entrance
