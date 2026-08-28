@@ -153,7 +153,7 @@ character is, is yours.
 | | Who | Where he already is |
 |---|---|---|
 | **A** | **`char_visitor_c`** — Black man ~55, plum-aubergine leather jacket, grey trousers, a walking plate ("the man crossing the room") | **Already exists and is already referenced by the film.** Costs nothing to choose. |
-| **B** | **`char_husband`** `efb9cf29` — man ~60, deep ochre wool coat, grey at the temples, built to hold quiet concern while his wife cries | Generated today, filed under a fresh name so it collides with nothing |
+| **B** | **`char_husband`** `efb9cf29` — man ~60, deep ochre wool coat, grey at the temples, built to hold quiet concern while his wife cries | ✅ Element filed 09:08 under a fresh name, in Drive as `absence-char-husband.png`. Collides with nothing. |
 
 Choosing **A** costs nothing and needs no re-shoot. **B** was built specifically
 for the scene where he stands next to her and does not know what to do.
