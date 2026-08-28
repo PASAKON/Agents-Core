@@ -7,15 +7,15 @@ in every prompt she appears in; the CEO asked for it explicitly.
 ===============================================================
 SCENE 4 — $2,000,000 · THE FIRST PRICE MARKER · 15s · NO DIALOGUE
 ===============================================================
-References: loc_wall_pov_b · char_critic_b · char_oldman · char_woman ·
-char_student_c · char_visitor_a · char_visitor_b · char_cleaner_c · prop_cart
+References: loc_wall_pov_d · char_critic_b · char_oldman · char_woman ·
+char_student_c · char_visitor_a · char_visitor_b · char_cleaner_c · prop_cart_b
 
 Shot from behind the wall, exactly as Scene 3: the camera looks out THROUGH
 CRACKED GLASS, fine crack lines radiating from a dark point dead centre of
 frame, the brass plaque low in frame with its lettering MIRROR-REVERSED, the
 hall and its people seen beyond. The camera never moves.
 
-This must match `loc_wall_pov_b` exactly — S3, S4, S6 and S11 are the same frame
+This must match `loc_wall_pov_d` exactly — S3, S4, S6 and S11 are the same frame
 and only the crowd inside it changes.
 
 EIGHT PEOPLE now, not six — the same six from Scene 3 plus two more who have
@@ -56,7 +56,7 @@ darkness, no rubble, no structural damage, no large crack
 ===============================================================
 SCENE 5 — COLLECTOR A OPENS THE BIDDING · 20s
 ===============================================================
-References: loc_hall_big_d · char_woman · char_critic_b · char_oldman ·
+References: loc_hall_big_e · char_woman · char_critic_b · char_oldman ·
 char_student_c · char_visitor_a · char_visitor_b · char_press · char_cleaner_c
 
 ⚠️ CTO ASSUMPTION, FLAGGED FOR THE CEO — not his explicit words.

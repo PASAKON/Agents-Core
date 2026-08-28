@@ -4,10 +4,11 @@ SCENE 3 — THE INTERPRETATIONS · REDO · 20s · shot from behind the wall
 References: loc_wall_pov_d · char_oldman · char_visitor_b · char_husband ·
 char_student_c · char_critic_b · char_woman · char_cleaner_c · prop_cart_b
 
-⚠️ EVERY ELEMENT NAME HERE IS THE NEW ONE. Do not reuse `loc_wall_pov_b`,
-`loc_wall_pov_c`, `prop_cart` or `char_student_b` — all superseded. **Count the
-reference chips against the mentions before firing**; a chip that silently fails
-to bind is exactly what turned the first S3 into a porthole.
+⚠️ THE NAMES IN THE REFERENCE LINE ABOVE ARE THE ONES TO USE. Superseded and
+banned: `loc_wall_pov_b`, `loc_wall_pov_c`, `loc_hall_big_d`, `prop_cart`,
+`char_student_b`, `char_gentleman`, `char_woman_b`. **Count the reference chips
+against the mentions before firing** — a chip that silently fails to bind is
+exactly what turned the first S3 into a porthole.
 
 ---------------------------------------------------------------
 CAST — CEO, 2026-08-28: `char_visitor_a` is OUT, `char_husband` is IN

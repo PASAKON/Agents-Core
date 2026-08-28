@@ -32,7 +32,9 @@ These need **no** plate that is still being remade:
 5. **S1B** — waist up · 10s
 6. **S1G** — past the column · 10s
 
-Then, once `loc_hall_big_e` and `loc_wall_pov_d` exist, in story order:
+**BOTH LOCATION PLATES NOW EXIST (18:00).** Every prompt file has been swept onto
+the new names and re-synced to your worktree, md5-verified. Re-read any prompt
+before firing it. Story order from here:
 
 7. S3 (`s3-interpretations.txt`) → S4 → S5 → S6 → S7 → S8a → S8b → S8c → S9 →
    S10 → S11 → S12 → S15 → S16 → S17 → S18 → S1D → S1E
@@ -44,8 +46,8 @@ Then, once `loc_hall_big_e` and `loc_wall_pov_d` exist, in story order:
 | `prop_cart` | **`prop_cart_b`** ✅ exists |
 | `char_woman_b` | **`char_woman_c`** ✅ exists |
 | `char_gentleman` | **`char_gentleman_e`** ✅ exists |
-| `loc_hall_big_d` | `loc_hall_big_e` — being made |
-| `loc_wall_pov_c` | `loc_wall_pov_d` — being made |
+| `loc_hall_big_d` | **`loc_hall_big_e`** ✅ exists |
+| `loc_wall_pov_c` | **`loc_wall_pov_d`** ✅ exists |
 
 ## WAITING ON THE CEO — do not invent these
 

@@ -21,7 +21,7 @@ clips, not 2.
 ===============================================================
 SCENE 7 — VALDER ARRIVES · 20s
 ===============================================================
-References: loc_hall_big_d · char_valder · char_guard_valder · char_gentleman ·
+References: loc_hall_big_e · char_valder · char_guard_valder · char_gentleman_e ·
 char_woman · char_critic_b · char_cleaner_c
 
 VALDER walks into the hall. Tall, very thin, elderly, silver hair swept straight
@@ -69,8 +69,8 @@ colour fringing.
 ===============================================================
 SCENE 8a — THE FIRST THREE PIECES · 20s
 ===============================================================
-References: loc_hall_big_d · char_valder · prop_valder_chair ·
-prop_valder_trap · prop_valder_millstone · char_gentleman · char_woman ·
+References: loc_hall_big_e · char_valder · prop_valder_chair ·
+prop_valder_trap · prop_valder_millstone · char_gentleman_e · char_woman ·
 char_cleaner_c
 
 Valder walks the room, standing straight, smiling, introducing his collection.
@@ -107,8 +107,8 @@ Same colour grade and film treatment as Scene 7.
 ===============================================================
 SCENE 8b — THE LAST TWO PIECES, AND THE TURN · 20s
 ===============================================================
-References: loc_hall_big_d · char_valder · prop_valder_vessel ·
-prop_valder_study · char_gentleman · char_woman · char_critic_b
+References: loc_hall_big_e · char_valder · prop_valder_vessel ·
+prop_valder_study · char_gentleman_e · char_woman · char_critic_b
 
 THE DARK LIDDED VESSEL on its stepped plinth:
 
@@ -138,7 +138,7 @@ Same colour grade and film treatment as Scene 7.
 ===============================================================
 SCENE 8c — THE SIXTH STORY · 25s · THE PIVOT OF THE FILM
 ===============================================================
-References: loc_hall_big_d · char_valder · char_gentleman · char_woman ·
+References: loc_hall_big_e · char_valder · char_gentleman_e · char_woman ·
 char_critic_b · char_oldman · char_cleaner_c
 
 Continue exactly where 8b ended. Valder, hand still raised, facing the bare wall
@@ -181,7 +181,7 @@ Same colour grade and film treatment as Scene 7.
 ===============================================================
 SCENE 9 — DUPE HEARS IT · 20s · HE SAYS NOTHING
 ===============================================================
-References: loc_hall_big_d · char_cleaner_c · prop_cart_b · char_valder ·
+References: loc_hall_big_e · char_cleaner_c · prop_cart_b · char_valder ·
 char_gentleman_e · char_woman · char_critic_b · char_oldman
 
 VALDER'S DIALOGUE FROM SCENE 8c RUNS CONTINUOUSLY OVER THIS ENTIRE SHOT — same
