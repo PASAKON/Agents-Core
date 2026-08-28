@@ -442,6 +442,39 @@ diamond ring's sparkle. Worth the CEO eyeballing.*
 
 ---
 
+## 🚪 THE RED DOOR — CEO, 2026-08-28 16:00. One entrance, in every reference.
+
+**No plate we own contains a door at all**, so the model invents an entrance
+every time someone walks into the film. That is why arrivals never look like they
+come from the same place twice.
+
+**The rule:** a **large red door at the far end of the hall, dead opposite the
+camera, at the vanishing point** — and it is **the only way in or out of the
+room.** Tall, wide, deep saturated red, unmistakable. Wide enough for the
+grandmother's wheelchair. It never moves between shots.
+
+Everyone who arrives comes through it: **Valder (S7) · the parrot woman (S10) ·
+the grandmother (S12) · the workman (S14).**
+
+**It must exist in BOTH plates, identically** — the wall-POV frame and the hall
+frame are the same room from opposite sides, so a door that disagrees between
+them breaks the geometry of every scene.
+
+| Plate | Job |
+|---|---|
+| `loc_wall_pov_d` | red door at the vanishing point, seen through the cracked wall · **no people** |
+| `loc_hall_big_e` | the same door, same size, colour and position · everything else about `loc_hall_big_d` unchanged · **no people** |
+
+**Never re-point the old Elements** — a scene that already bound one keeps
+serving the old asset silently. New names only.
+
+⚠️ **Consequence the CEO should know:** every clip already shot used a hall with
+no door. Anything kept from before the swap will disagree with everything after
+it. S2, S3 and S9 are already down for re-shoots; S17's beat is broken anyway.
+The clean line is to treat the door as the cut-over point.
+
+---
+
 ## 📋 ORDER REGISTER — everything the CEO has asked for and not yet got
 
 Two lanes run in parallel: **video is one slot at a time**, **images are
