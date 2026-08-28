@@ -29,7 +29,11 @@ Read at the start of every session, and before every report to the CEO.
 | 13 | **Valder Element** filed from the existing 18 Aug asset, 0 credits | `char_valder` |
 | 14 | **Valder's guards** — six, identical uniform, gold V on chest and cap. CTO-approved 04:00, sent to CEO | `char_guard_valder` |
 | 10x | **Parrot woman** — cockatoo crest, wing-shoulders, feather-cut panelling, single cobalt, no beak/wings/feathers, not comic. CTO-approved 03:32, sent to CEO | `char_woman_b` |
-| 35 | **Grandmother, reshot** — electric wheelchair with real wheels visible in all 4 panels incl. rear (fixes the rejected chrome-lounge-chair-no-wheels attempt), cloth over head, dark glasses, deep violet, no gold V. **Honest flaw: gloves render black, not dark grey/oxblood as the colour rule requires** — flagged to CTO, reshoot queued behind Scene 3 video render, not done yet | `char_grandmother` · asset `5dd23a87-67f3-4452-8a69-e81045e19993` |
+| 35a | **Grandmother, reshot** — electric wheelchair with real wheels visible in all 4 panels incl. rear (fixes the rejected chrome-lounge-chair-no-wheels attempt), cloth over head, dark glasses, deep violet, no gold V. **Honest flaw: gloves render black, not dark grey/oxblood as the colour rule requires** — flagged to CTO, reshoot queued behind Scene 3 video render, not done yet | `char_grandmother` · asset `5dd23a87-67f3-4452-8a69-e81045e19993` |
+| 35b | **Grandmother (auction wall)** — cool not rich, unimpressed, real electric wheelchair w/ visible wheels + self-operated control pad, no gold V. v1 read as an ordinary chair, v2 fixed | `char_grandma` |
+| 36 | **English gentleman + 2 bodyguards** — 3 people in one image, white Savile Row suit, gold cane grip, diamond ring, two gold-capped teeth, black-suited bald Black + white English guards, neither threatening. Nose ref'd off Dupe (shape only) | `char_gentleman` |
+| 37 | **Crocodile bag** — deep burgundy, real scale grain, gold clasp, no logo, ref'd off `loc_hall_big_d` for light/floor | `prop_croc_bag` |
+| 38 | **Press — two journalists + one shared retrofuturist shoulder camera** — blue + rust colours (never black), no logos/modern tech, real age/skin variation, no gold V. Unblocks S5/S11 | `char_press` |
 
 ---
 
@@ -233,3 +237,5 @@ crowd inside it changes.
   — `All Scene/` for clips, `Element/` for plates. CEO, 2026-08-28: keep the
   Mac's disk clear. **Copy, verify byte-exact, then delete the local** — never
   delete first.
+- **Paid GPT Image 2 gens do NOT share the Unlimited Seedance video slot.** Confirmed 2026-08-28: char_gentleman and another operator's char_grandmother both fired and completed while a Scene 2 video render was in flight. Don't stand down image generation while waiting on a video render.
+- **`char_grandmother`** (note: different Element from `char_grandma` above — a second, separate grandmother design exists on the account, purple robe/headscarf/dark glasses in an antique-style wheelchair) came out with black gloves; the prompt already specified dark grey or oxblood. CTO decision 2026-08-28: **skip the reshoot** — gloves are an accessory, not a CEO-set rule, and a re-roll is a coin flip not worth the credits/time. Left as-is.

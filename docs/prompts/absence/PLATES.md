@@ -168,3 +168,212 @@ throughout, no moodiness. Terrazzo-toned pink/red forecourt paving with room
 for a crowd. No people anywhere. All four required angles present: wide
 establishing, closer entrance, low angle looking up, and side massing view.
 No hard defects; kept on first generation.
+
+---
+
+## 7 · `project_absence_char_grandma` — GPT Image 2 (task-5a3d259c)
+
+**She wins the wall** — the last person anyone expects to outbid them at the
+$2,000,000 tier.
+
+- **Asset id:** `21701245-43b3-472d-b53e-9a53acfbbacb` (the true underlying
+  asset id, taken from the downloaded filename `hf_20260827_225113_21701245-...png`
+  — the browser's `?preview=a09eb3b8-7eec-4bd0-bd54-64860614ea28` URL param
+  does NOT match this id; confirms the existing "preview param ≠ real asset
+  id" finding in the higgsfield-unlimited-gen skill. Use the filename id when
+  recording, not the URL.)
+- **Filed as Element:** `project_absence_char_grandma`, category Character,
+  display name "Grandma"
+- **Model:** GPT Image 2, 16:9, Medium, 2K
+- **References attached:** none
+- **Cost:** 2.5 credits (paid balance 1,678 → 1,676)
+- **Downloaded to:** Google Drive `Sorry, Sir/Element/absence-char-grandma.png`
+  (per CEO's live download-path change mid-task — no longer the Desktop path
+  named in the original brief)
+
+**Prompt (v2, accepted):**
+```
+A wide horizontal four-panel character sheet, all four panels on the same continuous plain wall background, no separating lines, showing the exact same elderly woman with the exact same face throughout.
+
+She is elderly, in her seventies or eighties, and she is COOL, not rich: plain, well-chosen clothes with real personal style and nothing expensive on her -- no fur, no jewellery, no visible labels or logos of any kind. She looks like someone who decided what she liked forty years ago and never wavered. She must not read as poor or pitiable, and she must not read as wealthy. Her expression throughout is completely unimpressed: calm, level, unhurried -- not sweet, not doddering, not comic.
+
+She sits in a RETROFUTURIST ELECTRIC WHEELCHAIR -- this is a genuine motorized WHEELCHAIR, absolutely NOT an ordinary chair. It clearly has large visible WHEELS: one large wheel mounted on each side plus small front castor wheels, exactly like a real powered wheelchair. It has a chromium tubular frame, a smooth moulded plastic shell seat with a high curved backrest, swept aerodynamic curves, in the same retrofuturist material language as the museum's own furniture. Built into one armrest is a small mechanical control pad with a row of physical push-buttons and a joystick-like lever, which SHE operates herself with her own hand resting on it -- this must be unmistakably read as a powered mobility wheelchair, never as a lounge chair, dining chair, or office chair. Nothing digital anywhere on the chair: no screens, no LEDs, no digital numerals, no glowing elements, no visible cables.
+
+Panel 1 (full body, front view): she sits square to camera in the electric wheelchair, both large side wheels clearly visible on either side of her, one hand resting on the armrest control pad, calm and unimpressed.
+
+Panel 2 (large close-up on her face): just her face and shoulders, filling most of the panel, same completely unimpressed, level expression, real aged skin texture and bone structure, no beauty-filter smoothing, no doll face.
+
+Panel 3 (side profile, full body): the same woman in the same electric wheelchair seen from the side, the large side wheel and the chair's distinctive swept silhouette clearly visible, unmistakably a wheelchair and not a normal chair.
+
+Panel 4 (from directly behind, full body): the wheelchair's rear structure clearly visible -- the moulded shell backrest, the chromium frame, and both large side wheels visible from behind.
+
+No gold V mark or any staff insignia anywhere on her or the chair -- she is a visitor, not staff.
+
+Warm bright light. Warm shadow, cold white grade: amber-orange highlights and mids, whites pushed slightly cool, shadows never pure black but deep red-brown, halation around every lamp, saturation high in flat planes but never touching skin. Photographed, not rendered: fine film grain, halation, slight colour fringing. No HDR, no CGI sheen, no doll faces, no beauty filter. An invented anonymous face resembling no real, famous or public person. Our own invented design -- no logos, no recognisable designer pieces, nothing post-1970 in the cut. 2K, filling the frame, no black bars.
+```
+
+**Discarded v1** (asset `06f2658a-b8a6-4f0d-8a85-7233b5fccccf`, same settings, 2.5
+credits, NOT filed/downloaded): the "RETROFUTURIST ELECTRIC WHEELCHAIR" language
+alone produced an ordinary chrome-tube bistro/lounge chair — no wheels, no
+control pad, just tapered chrome legs. Regenerated with the wheelchair language
+made much more explicit ("absolutely NOT an ordinary chair", large side wheels
+called out per-panel, joystick-like lever) — v2 above fixed it completely.
+
+**What the image actually shows:** A genuine powered wheelchair reads clearly
+in all four panels — large chromed side wheels, small front castors, a
+joystick control on the right armrest under her hand, moulded cream shell seat
+and high curved backrest. She wears a rust/maroon knit vest-cardigan over a
+black turtleneck, black trousers, burgundy loafers — plain, considered,
+nothing expensive, no fur/jewellery/logos, reads neither poor nor wealthy.
+Expression is calm, level and genuinely unimpressed across all four panels,
+including the close-up. No gold V or staff insignia anywhere. Warm amber
+lighting and a polished dark-wood floor give a reasonable hit on the warm
+grade, though it leans warm throughout rather than showing a strong
+warm/cold split — a minor grade miss, not a content defect. No hard defects.
+
+---
+
+## 8 · `project_absence_char_gentleman` — GPT Image 2 (task-5a3d259c)
+
+**The English gentleman and his two bodyguards** — a retry; an earlier attempt
+was lost to a site-side failure with no credits spent.
+
+- **Asset id:** `c39351d3-8f95-46fd-8f30-7bd291a1bb98` (from the downloaded
+  filename `hf_20260827_230139_c39351d3-...png`; the browser's
+  `?preview=9a178c24-f785-4b66-9a4f-2e21bc60e103` URL param again did not
+  match — same "preview param ≠ real asset id" pattern as plate 7)
+- **Filed as Element:** `project_absence_char_gentleman`, category Character,
+  display name "Gentleman"
+- **Model:** GPT Image 2, 16:9, Medium, 2K
+- **References attached:** `@project_absence_char_cleaner` (Dupe the cleaner),
+  1/1, bound (lime/green mention chip confirmed via
+  `data-beautiful-mention`) — explicitly scoped in the prompt text to NOSE
+  SHAPE ONLY, with an explicit instruction not to copy ethnicity/skin
+  tone/age/build
+- **Cost:** 2.5 credits (paid balance 1,676 → ~1,673 estimated; not
+  individually re-read between plates 2 and 3 this session)
+- **Downloaded to:** Google Drive `Sorry, Sir/Element/absence-char-gentleman.png`
+
+**Prompt (accepted, first attempt):**
+```
+@project_absence_char_cleaner -- reference for NOSE SHAPE ONLY: match the sharp, distinctly pointed nose shape shown in the reference image exactly. Do not copy anything else from the reference -- not his ethnicity, skin tone, age, build, or any other facial feature. The man in THIS image is a completely different person: an elderly, pale, English gentleman.
+
+A two-panel character sheet, THREE PEOPLE together in every panel, the same three exact people and faces in both panels, plain neutral studio-adjacent setting, full attention on the figures, no clutter.
+
+THE MAIN FIGURE, centre: an elderly English gentleman of enormous wealth. Short and slight -- a small, compact build, older and smaller than an ordinary short adult man. A sharp, distinctly pointed nose (matching the referenced nose shape exactly) is his single most identifying facial feature. He is English, not South Asian or any other ethnicity -- pale, weathered English skin, wispy white or grey hair. A beautifully cut white English gentleman's suit, immaculate Savile Row tailoring, crisp white shirt, formal tie, every seam precise. A black cane with a gold grip in one hand. A large diamond ring on one finger, cut to flare in the light. He is smiling warmly and the smile clearly shows TWO GOLD-CAPPED TEETH -- his single most important feature, and it must read with total, unmistakable clarity in every panel where his face is visible. No gold V mark anywhere on him -- he is a visitor, not staff.
+
+TWO BODYGUARDS stand behind him and slightly to either side, both in sleek, slightly futuristic-cut BLACK SUITS -- tailored and modern, not tactical gear, no visible weapons or gear harnesses. One bodyguard is a Black man, completely bald. The other is a white Englishman. Both are large, physically imposing, calm and entirely professional -- upright, still, attentive. Neither reads as threatening or villainous; both read as protective professionals.
+
+Panel 1 (full body, front view): all three figures together, the gentleman centred and slightly forward, a bodyguard standing behind each shoulder.
+
+Panel 2 (large close-up on the gentleman's face alone, filling the panel): his warm smile fully visible, both gold-capped teeth reading with complete clarity, the sharp pointed nose clearly shown, real aged skin texture, no beauty-filter smoothing.
+
+Warm bright light. Warm shadow, cold white grade: amber-orange highlights and mids, whites pushed slightly cool, shadows never pure black but deep red-brown, halation around every lamp, saturation high in flat planes but never touching skin. Photographed, not rendered: fine film grain, halation, slight colour fringing. No HDR, no CGI sheen, no doll faces, no beauty filter. Invented anonymous faces resembling no real, famous or public person. Our own invented design -- no logos, no recognisable designer pieces, nothing post-1970 in the cut. 2K, filling the frame, no black bars.
+```
+
+**What the image actually shows:** Panel 1 — three figures together exactly
+as briefed: the gentleman in an immaculate cream/white three-piece suit,
+white tie, holding a black cane with a visible gold knob grip and a
+gold/diamond ring on the cane hand, flanked by two black-suited bodyguards
+(one bald Black man on the left, one white Englishman with close-cropped hair
+on the right), both calm and professional, hands clasped, not menacing. Panel
+2 — a large close-up: warm genuine smile, sharp pointed nose (the Dupe
+reference clearly influenced the nose shape without importing his ethnicity
+or build — he reads unmistakably English, pale, elderly), real skin texture
+throughout. **Honest flaw on the single most important feature:** at full
+resolution, two teeth on one side of the smile read as unmistakably solid
+gold, but a couple of teeth on the other side of the smile also carry a
+yellow-gold tint rather than pure white — the "TWO gold-capped teeth among
+otherwise normal teeth" contrast is a little softer than the brief's precise
+ask. Flagged to the CTO/CEO in the delivery message rather than unilaterally
+spending a retry; filed and downloaded as directed pending their call on
+whether it needs a regen.
+
+---
+
+## 9 · `project_absence_prop_croc_bag` — GPT Image 2 (task-5a3d259c)
+
+**The crocodile bag** — the auction scene cuts to her hand tightening on this
+bag as the price climbs; the only object the woman's hand needs to survive a
+close-up on.
+
+- **Asset id:** `effd6bd4-beed-4558-a9d3-bd107ab42bec` (from the downloaded
+  filename `hf_20260827_233718_effd6bd4-...png`; the `?preview=a75c6ad4-...`
+  URL param again did not match — same recurring pattern as plates 7 and 8)
+- **Filed as Element:** `project_absence_prop_croc_bag`, category Prop,
+  display name "Croc Bag"
+- **Model:** GPT Image 2, 4:3, Medium, 2K
+- **References attached:** `@project_absence_loc_hall_big_d`, 1/1, bound
+  (lime/green mention chip confirmed via `data-beautiful-mention`)
+- **Cost:** 2.5 credits
+- **Downloaded to:** Google Drive `Sorry, Sir/Element/absence-prop-croc-bag.png`
+
+**Prompt (accepted, first attempt):**
+```
+@project_absence_loc_hall_big_d -- reference for the SAME gallery room: match its light, floor material and colour temperature exactly, so this object looks photographed inside that exact space.
+
+A single prop, no people anywhere in frame: a genuine crocodile-skin handbag, structured and formal, in a rich saturated colour (deep burgundy). Real crocodile scale pattern, correct natural scale size and irregular grain, fully legible in close-up -- individual scales, their natural sheen, and slight texture variation must be clearly visible. A heavy, substantial metal clasp closes the bag, catching the light. No logo, no brand mark, no visible label of any kind anywhere on the bag.
+
+Photographed alone on a surface within the referenced gallery hall, its polished floor and warm directional light visible around it, matching the reference room exactly so it reads as sitting in that same space.
+
+Warm bright light. Warm shadow, cold white grade: amber-orange highlights and mids, whites pushed slightly cool, shadows never pure black but deep red-brown, halation around every lamp, saturation high in flat planes but never touching the bag's surface texture. Photographed, not rendered: fine film grain, halation, slight colour fringing. No HDR, no CGI sheen. Our own invented design -- no logos, no recognisable designer pieces, nothing post-1970 in the cut. 2K, filling the frame, no black bars.
+```
+
+**What the image actually shows:** A clean hit on first attempt. Deep
+burgundy/oxblood crocodile-skin bag, structured top-handle silhouette, a
+heavy gold-toned metal clasp catching the light, real irregular scale grain
+clearly legible edge to edge. No logo or brand mark anywhere. Sitting on the
+hall's own polished terracotta-toned floor with chromium columns visible
+softly out of focus behind it, matching the referenced room's warm light and
+colour temperature. No hard defects.
+
+---
+
+## 10 · `project_absence_char_press` — GPT Image 2 (task-5a3d259c)
+
+**The press** — two journalists sharing one camera; unblocks S5 and S11 per
+the CTO. CTO correction mid-task: an earlier stand-down (thinking paid image
+gens contended with the Unlimited Seedance video slot) was wrong — proof was
+this task's own char_gentleman AND another operator's char_grandmother both
+firing and completing while a Scene 2 video render was still in flight. Only
+Unlimited VIDEO generations share that one slot; paid GPT Image 2 gens do not
+contend with it.
+
+- **Asset id:** `ce865189-aa11-4936-a2f2-eb97da6f7caa` (from the downloaded
+  filename `hf_20260827_234552_ce865189-...png`; the `?preview=8d563844-...`
+  URL param again did not match — the fourth consecutive plate this session
+  where the preview id and real asset id differed)
+- **Filed as Element:** `project_absence_char_press`, category Character,
+  display name "Press"
+- **Model:** GPT Image 2, 16:9, Medium, 2K
+- **References attached:** `@project_absence_loc_hall_big_d`, 1/1, bound
+  (lime/green mention chip confirmed via `data-beautiful-mention`)
+- **Cost:** 2.5 credits (paid balance 1,668 → 1,663 across this plate + the
+  croc bag, both 2.5 credits, no unaccounted delta this time)
+- **Downloaded to:** Google Drive `Sorry, Sir/Element/absence-char-press.png`
+
+**Prompt (accepted, first attempt):**
+```
+@project_absence_loc_hall_big_d -- reference for light, floor and material only; do not reuse its composition or contents.
+
+A four-panel character reference sheet, 2x2 grid on one plain warm studio backdrop echoing the referenced hall's warm light and colour temperature: top-left FRONT full body, top-right FACE close-up on both journalists together, bottom-left SIDE profile, bottom-right REAR view. The same two people, same outfits, same pose group, in all four panels -- a continuity reference sheet, not a single scene.
+
+TWO PRESS JOURNALISTS, standing together, professional and alert. Between them, shared, is ONE SHOULDER-MOUNTED RETROFUTURIST FILM CAMERA -- a boxy analogue news camera built in the same retrofuturist material language as the museum: moulded plastic and chromium housing, a large glass lens, a coiled cable, physical dials and knobs -- nothing digital, no screen, no LED, no modern tech of any kind, no visible brand markings or logos anywhere on it. One journalist has the camera resting on their shoulder, operating it; the other stands close beside, notebook or microphone in hand, attentive.
+
+Both journalists are dressed in a mid-century cut appropriate to the film's invented pre-1970s design language -- structured jackets, ties or scarves, nothing that reads as modern or post-1970. Each wears exactly ONE saturated colour of their own, and NEVER black -- their two colours are different from each other. No jewellery, no fur, no logos or brand marks anywhere on their clothing. No gold V mark anywhere on either of them -- press are visitors, not staff.
+
+Both are real invented human faces with genuine age and skin texture and variation -- no doll faces, no beauty-filter smoothing, no CGI sheen, ordinary adult press-corps ages, not glamorous.
+
+Warm bright light. Warm shadow, cold white grade: amber-orange highlights and mids, whites pushed slightly cool, shadows never pure black but deep red-brown, halation around every lamp, saturation high in flat planes but never touching skin. Photographed, not rendered: fine film grain, halation, slight colour fringing. No HDR, no CGI sheen, no doll faces, no beauty filter. Invented anonymous faces resembling no real, famous or public person. Our own invented design -- no logos, no recognisable designer pieces, nothing post-1970 in the cut. 2K, filling the frame, no black bars.
+```
+
+**What the image actually shows:** Clean hit on first attempt. Man in a
+saturated blue mid-century suit, woman in a saturated rust/orange suit-dress
+-- one colour each, neither black, clearly distinct from each other. The
+shared camera is a chunky chrome/metal analogue box with a large glass lens,
+physical knobs and dials, a coiled cable -- no screen, no LED, no visible
+branding anywhere, confirmed via close zoom on panel 2. Real aged, textured
+faces (the man has a visible moustache and genuine skin texture; the woman's
+face shows real bone structure and age) -- no doll-face smoothing. All four
+required panels present: front, face close-up, side profile, rear view, same
+outfits and pose group throughout. No gold V anywhere. No hard defects.
