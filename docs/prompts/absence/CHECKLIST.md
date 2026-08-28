@@ -75,7 +75,8 @@ go in a scratch tab.**
 | 16 | **`char_guard_valder` — DONE.** Uniform identical across all six, gold V on chest and cap, black only on belts and shoes, real range of builds. Route A worked: uniform study first, then re-dressed the existing six.  ~~original brief:~~ CEO: reuse the existing blue 6-guard plate **if it already has the gold V** — check first, generate nothing if so. If no V: generate the UNIFORM alone, then re-dress the existing six so faces stay varied and the uniform stays identical. Single plate first, six-guard plate second. | $20M tier |
 | 17 | ✅ **`char_press` DONE** — two journalists, one shared shoulder camera, blue + rust | S5 · S11 |
 | 18 | Helicopter — **decided: no plate.** Written into S11 as seen through the hall windows, never cut to | S11 |
-| 19 | `char_visitor_c` — **currently has NO reference image**, content-flagged, prose-only | face consistency across scenes |
+| 19 | `char_visitor_c` — visitor_b's husband, ~60, deep ochre. Was content-flagged; brief now demands a deliberately different face | 🔄 `task-3d39df87` |
+| 19b | `char_workman` — the plasterer Dupe telephoned. Forties, slate-blue overalls, bucket and float, hand tools only | 🔄 `task-3d39df87` · S14 · S16 |
 
 **The cleaner's later life** — ✅ **ALL DONE, CTO-approved 07:40, `task-7cb85052`**
 
