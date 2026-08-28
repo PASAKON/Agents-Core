@@ -54,8 +54,11 @@ def post(path: str, payload: dict, key: str) -> dict:
 def upload(clip: pathlib.Path, key: str) -> str:
     """Files API, for clips too big to inline. Returns a file URI."""
     size = clip.stat().st_size
+    # Media upload lives under /upload/, not the plain API root -- the plain
+    # root answers 200 with JSON and no X-Goog-Upload-URL, which reads as a
+    # success right up until the header is None.
     start = urllib.request.Request(
-        f"{API}/files",
+        "https://generativelanguage.googleapis.com/upload/v1beta/files",
         data=json.dumps({"file": {"display_name": clip.name}}).encode(),
         headers={
             "x-goog-api-key": key,
