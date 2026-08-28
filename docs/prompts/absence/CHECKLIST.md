@@ -238,6 +238,27 @@ looks fine until you watch it, which is exactly how S3 take 1 became a porthole.
 
 ---
 
+## 💸 THE MONEY CHECK ITSELF HAS A DECOY — read the price off the pixels
+
+The single most dangerous thing found today. A JS scrape of the Generate button —
+`[...document.querySelectorAll('button')].find(b=>/generate/i.test(b.innerText))`
+— matched a **stale duplicate button** reading `GENERATE8045`, i.e. struck 80 and
+**live 45**, in the *same second* that a zoomed screenshot of the real visible
+button read `UNLIMITED / struck 60 / 0`.
+
+It happened to fail safe this time. **The other direction is a live money
+incident:** decoy reports `0`, real button charges 45, operator clicks believing
+it is free.
+
+**Rule: the price is read off the pixels, never off the DOM.** The "zoom the
+Generate button" step is load-bearing, not a formality. Written into the
+`higgsfield-unlimited-gen` skill as part of hard rule 3.
+
+Same decoy-duplicate family as the prompt editor — **more than one element
+matches a loose text selector on this composer at any moment.**
+
+---
+
 ## ⏱️ CLIPS ARE COMING BACK SHORT — a hard gate on every dialogue scene
 
 The composer's duration field desyncs: it accepts a value, shows a stale pill,
@@ -457,7 +478,7 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | ✅ **take 1 DELIVERED** `6aa5bf40` — frame matches `loc_wall_pov_c` exactly, plaque reversed reading $2,000,000, 8 people, Dupe with cart. Sent to CEO. |
 | S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
 | S6 | **$20,000,000** — wall POV. 12–14 people, personal guards. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
-| S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | 📝 **ready to fire, no missing plates** — [s7-s9.txt](s7-s9.txt) |
+| S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | 🎬 **take 1 FIRED at a true 20s** — first clip since S3 with the correct duration |
 | S8a | Pieces 1–3: the chair, the fish trap, the millstone. | 20s | 📝 **ready to fire** |
 | S8b | Pieces 4–5, then he turns and the crowd parts. Ends on his face. | 20s | 📝 **ready to fire** |
 | S8c | **The sixth story.** The pivot of the film. | 25s | 📝 **ready to fire** |

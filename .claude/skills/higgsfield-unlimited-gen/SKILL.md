@@ -193,6 +193,20 @@ baseline is a reference point, not a budget.
    Unlimited Mode toggle's apparent on/off state is **not sufficient on its
    own** — it silently resets to OFF after any full-page reload, which is
    the exact gap that caused the incident above.
+
+   ⚠️ **A JS TEXT-SCRAPE OF THE GENERATE BUTTON IS NOT A SUBSTITUTE FOR THE
+   ZOOM, AND CAN BE FLATLY WRONG.** Measured 2026-08-28:
+   `[...document.querySelectorAll('button')].find(b=>/generate/i.test(b.innerText))`
+   matched a **stale duplicate button** reading `GENERATE8045` — struck 80,
+   **live 45** — in the same second that a zoomed screenshot of the real,
+   visible button clearly read `UNLIMITED / struck 60 / 0`. Same
+   decoy-duplicate-element family as the prompt editor: **more than one element
+   matches a loose text selector on this composer at any moment.**
+
+   An operator trusting the scrape in the other direction — decoy says `0`,
+   real button says `45` — fires a paid generation believing it is free. **The
+   zoom in this rule is load-bearing, not a formality.** Read the money off the
+   pixels, never off the DOM.
 4. **One UNLIMITED VIDEO generation at a time.** Wait for full completion
    (card shows Recreate+Rerun options and full resolution/duration/aspect-ratio
    metadata, no "Processing"/"Generating" state) before starting the next
