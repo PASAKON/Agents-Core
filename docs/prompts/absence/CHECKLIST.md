@@ -168,21 +168,21 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | ⚠️ **take 1 NG — re-firing.** Rendered a wood-and-brass **porthole**, i.e. a hole, which the CEO rejected twice. Cause: `loc_wall_pov_b` is **Face/IP flagged** so it could not be bound and the clip fired from prose alone. Kept as an alternate. |
 | S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 📝 prompt written — [s4-s5.txt](s4-s5.txt) |
 | S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
-| S6 | **$20,000,000** — wall POV. 10–20 people, personal guards. | 15s | ⬜ |
+| S6 | **$20,000,000** — wall POV. 12–14 people, personal guards. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
 | S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | 📝 **ready to fire, no missing plates** — [s7-s9.txt](s7-s9.txt) |
 | S8a | Pieces 1–3: the chair, the fish trap, the millstone. | 20s | 📝 **ready to fire** |
 | S8b | Pieces 4–5, then he turns and the crowd parts. Ends on his face. | 20s | 📝 **ready to fire** |
 | S8c | **The sixth story.** The pivot of the film. | 25s | 📝 **ready to fire** |
 | S9 | Dupe hears Valder's voice from the next room. Sweat. | 20s | 📝 **ready to fire** · audio is S8c's take, unbroken |
-| S10 | **The parrot woman arrives** with the crocodile bag. Rivalry. | 20s | ⬜ |
-| S11 | **$100,000,000** — wall POV. Press, live broadcast, helicopter. | 15s | ⬜ |
-| S12 | **The grandmother** wheels in and takes it. The room freezes. | 25s | ✅ plate `5dd23a87` — wheels pass all 4 panels · ⚠️ gloves came out black, re-shoot queued behind S3 |
-| S13 | **Valder improvises** the sixth story. He believes it. | 25s | ⬜ |
-| S14 | **The workman arrives with plaster.** Valder screams. | 20s | ⬜ |
-| S15 | **Dupe confesses.** "I cracked it. Last hour." Absorbed. | 25s | ⬜ |
-| S16 | **They saw the wall out of the building.** | 20s | ⬜ |
-| S17 | The square hole. Someone steps back from it exactly as in S3. | 15s | ⬜ |
-| S18 | Dupe rich, the interview — then alone at a white wall, hammer. | 25s | ⬜ |
+| S10 | **The parrot woman arrives** with the crocodile bag. Rivalry. | 20s | 📝 [s6-s18.txt](s6-s18.txt) |
+| S11 | **$100,000,000** — wall POV. Press, live broadcast, helicopter. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
+| S12 | **The grandmother** wheels in and takes it. The room freezes. | 25s | 📝 [s6-s18.txt](s6-s18.txt) · plate `5dd23a87` approved |
+| S13 | Valder's reaction when the workman arrives. | 25s | 🔴 **CEO — dialogue unwritten** |
+| S14 | **The workman arrives with plaster.** He apologises before he understands why. | 20s | 🔴 **CEO — dialogue unwritten** |
+| S15 | **Dupe confesses.** "I cracked it. Last hour." Absorbed. | 25s | 📝 [s6-s18.txt](s6-s18.txt) |
+| S16 | **They saw the wall out of the building.** | 20s | 📝 [s6-s18.txt](s6-s18.txt) |
+| S17 | The square hole. Someone steps back from it exactly as in S4. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
+| S18 | Dupe rich, the interview — then alone at a white wall, hammer. | 25s | 📝 [s6-s18.txt](s6-s18.txt) |
 
 **S8 does not fit in one clip.** Valder's five stories plus the improvisation run
 ~160 spoken words; a 25s clip holds ~60. So S8 is written as **S8a / S8b / S8c**
