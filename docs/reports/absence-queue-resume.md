@@ -280,3 +280,9 @@ the composer, cleared its transient "needs eligibility check" warning, and
 confirmed the reference thumbnail shows the correct mirrored-hall image (red
 door, crack, mirror-reversed plaque). Did not regenerate or modify it, per
 instruction. Ready for use in S3, S4, S6, S11.
+
+## S1F — FIRED
+
+8s · 720p · 16:9 · Seedance 2.5 · Unlimited (struck 56→0, verified by zoom).
+3 references bound clean: `loc_hall_big_e`, `char_cleaner_c`, `prop_cart_b`.
+Asset id not yet known, card processing.
