@@ -88,10 +88,13 @@ go in a scratch tab.**
 
 | # | What | Verdict |
 |---|---|---|
-| 20 | `char_cleaner_rich` | ✅ deep teal suit, one colour, no jewellery, no gold V, 4 panels with back view — and **the posture is right: hands clasped in front like a servant, not a rich man** |
-| 21 | `loc_mansion` | ✅ sunken plum seating, warm wood, tall windows, impersonal luxury — **and the cart gets its own close-up panel, gold V and all** |
-| 22 | `prop_camera_rig` | ✅ filed |
-| 15 | `char_guard_private` | ✅ black suit as the CEO allows for guards, no sunglasses, no earpiece, no weapon, hands loose at his sides, **reads as paid help and not as a threat** |
+| 20 | `char_cleaner_rich` · `59470e23` | ✅ deep teal suit, one colour, no jewellery, no gold V, 4 panels with back view — and **the posture is right: hands clasped in front like a servant, not a rich man** |
+| 21 | `loc_mansion` · `93c52112` | ✅ sunken plum seating, warm wood, tall windows, impersonal luxury — **and the cart gets its own close-up panel, gold V and all** |
+| 22 | `prop_camera_rig` · `f9b9946e` | ✅ filed |
+| 15 | `char_guard_private` · `dbd40616` | ✅ black suit as the CEO allows for guards, no sunglasses, no earpiece, no weapon, hands loose at his sides, **reads as paid help and not as a threat** |
+
+*Asset ids copied out of the worker's DB report — that branch carried no commits,
+so the repo was the only place these would have been lost from.*
 
 **Valder's five pieces** — full spec in [VALDER.md](VALDER.md)
 
