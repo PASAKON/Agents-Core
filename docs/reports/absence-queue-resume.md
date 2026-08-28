@@ -358,3 +358,10 @@ door, plum-dressed older woman seated on a bench. Dupe walks close past
 camera then away toward the door, cart visible (gold V, orange bucket, red
 panel). No gold V on any extra. No defects. Copied to Drive, byte-exact
 verified, local deleted.
+
+## S1B — FIRED
+
+10s · 720p · 16:9 · Seedance 2.5 · Unlimited (struck 70→0, verified by
+zoom). 3 references bound clean: `loc_hall_big_e`, `char_cleaner_c`,
+`project_absence_prop_cart`. New symmetrical frontal-portrait framing per
+the Wes Anderson pass. Asset id not yet known, card processing.
