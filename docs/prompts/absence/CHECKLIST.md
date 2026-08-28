@@ -296,12 +296,37 @@ today.** The 28/26 the operator saw was almost certainly the Unlimited toggle
 silently resetting to OFF after a reload — documented behaviour — not a billing
 event.
 
-**Two wrong theories in twenty minutes.** Stopped guessing; the operator is now
-gathering facts read-only: what kind of control the duration actually is, what
-values it offers, what it reads back when set through its own UI rather than
-typed, and what duration the S2/S3 cards report versus now. **If Seedance simply
-no longer offers 20s at 720p, that is a constraint to design around by splitting
-dialogue across more clips — not a bug to fight.**
+**Two wrong theories in twenty minutes.** Stopped guessing and sent the operator
+to gather facts read-only instead. That found it in one pass.
+
+### ✅ 12:58 — SOLVED. It is the decoy-editor bug, in a field nobody had checked
+
+The operator inspected the DOM: **the duration control is a plain freeform
+`contenteditable` with the SAME DECOY DUPLICATE STRUCTURE as the main prompt
+editor.** No `<select>`, no slider, no option list.
+
+The measured durations prove it:
+
+| Clip | Target | Actual |
+|---|---|---|
+| S2 | 20s | **20.04s** |
+| S3 take 1 | 20s | **20.04s** |
+| S4, S9, S17, S18 | 15 / 20 / 25s | **11.04s every time** |
+
+**Two fixed values, no error, no randomness — that is a decoy, not a cap.** The
+decoy accepts typing, echoes it back, and sets nothing; the real field keeps its
+default. It changed as a clean step between S3 take 2 and S4, which is when the
+operator started hitting the wrong node.
+
+**The fix is already in the `higgsfield-unlimited-gen` skill for the prompt box
+and transfers directly:** enumerate the candidate `contenteditable` nodes and
+**discard any where `getComputedStyle(el).visibility === 'hidden'`.** Bounding
+rect, offset position and the Lexical text property are *identical* on both
+nodes, so computed visibility is the only reliable discriminator — picking by
+position is a coin flip.
+
+**Apply the visibility filter to every field in that composer, not just the
+prompt box.** This one cost four short clips before anyone thought to look.
 
 ---
 
