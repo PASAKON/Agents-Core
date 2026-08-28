@@ -454,6 +454,7 @@ independent of it**. Anything in the image lane can start immediately.
 | V1 | Collect **S7** `1a50c388` and **S8a** `5cdfc192` — both finished, never downloaded | running |
 | V2 | Fire **S8b → S8c → S10 → S5 → S6 → S12 → S15 → S16** | queued |
 | V3 | **ONE TAKE ONLY, no second takes of anything** — CEO 15:20, because his review notes will drive the re-shoots instead | rule |
+| V3b | **S2 RE-SHOOT** — the painting hangs CROOKED, Dupe tries to straighten it, that is what brings it down. Crack must match the reference exactly. Painting size locked at **90×70 cm landscape**. [s2-accident.txt](s2-accident.txt) | ⬜ queued |
 | V4 | **S1A–S1G · 5–7 extra camera angles for S1**, in order, as cutting footage. Named: **camera on the floor at foot height** as Dupe walks past; **straight-on, Dupe from the waist up**, dusting | ⬜ not written |
 | V5 | **At least 3 extras in S1, none duplicated.** Need not be in the main frame — seen far off looking at pictures, or walking through | ⬜ folded into V4 |
 
