@@ -1,3 +1,21 @@
+> ## 🔁 RE-FIRE S15a — take 1 is a REJECT (CTO 05:20, found by transcript)
+> `absence-S15a-take1-35b4edd4.mp4`: Dupe **speaks the stage direction out
+> loud** — "Sorry, sir. With no idea what he is doing, I cracked it last hour."
+> The prompt read `says it with no idea what he is doing: "I cracked it..."`
+> and the model spoke the tag. Frames passed it; only audio caught it.
+> Fixed in `s6-s18.txt` (SCENE 15a) plus four other at-risk cues across
+> s6-s18 / s7-s9 / s13. **Re-fire S15a from the updated file.** Keep take 1.
+> S15b take 1 PASSES on audio — its two grandmother lines transcribe clean.
+>
+> **NEW STANDING RULE — transcribe every dialogue clip before calling it a
+> keeper.** Model is at `.cache/whisper/ggml-base.en.bin`:
+> `ffmpeg -y -i <clip> -ar 16000 -ac 1 -c:a pcm_s16le /tmp/a.wav && \
+>  whisper-cli -m /Users/gob/Projects/Agents/.cache/whisper/ggml-base.en.bin -f /tmp/a.wav -nt`
+> Compare word-for-word against the scene's quoted lines. Anything spoken that
+> is not inside quotation marks in the prompt is a reject.
+> (Whisper tags ambient room tone as "(dramatic music)" — that is a known
+> mislabel, not a real score. Verified: RMS is a steady -35 to -40 dB.)
+
 > ## 🔁 RE-FIRE S1D — take 1 is a REJECT (CTO 04:40)
 > `absence-S1D-take1-be929c0a.mp4` came back with **TWO DUPES in frame** —
 > the over-the-shoulder man AND a second identical cleaner wiping the wall.

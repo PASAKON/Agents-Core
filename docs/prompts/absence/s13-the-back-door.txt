@@ -41,7 +41,7 @@ flat: "…Fill a crack. Sir." Valder: "Yes." A beat — the smile does not move.
 
 [9s] Valder, gently, as if offering a gift: "How much were you offered?" The
 workman: "Eight hundred." Valder: "I will give you eight thousand." The
-workman looks down at his bucket, then back up: "To fix it?" Valder, softer
+workman looks down at his bucket, then back up. Flat: "To fix it?" Valder, softer
 still: "To have never come."
 
 [17s] END on the workman's frontal single, holding the offer, saying
@@ -86,7 +86,7 @@ not rendered: film grain, faint gate weave, slight colour fringing.
 HANDOFF: because he refuses, the workman still walks to the wall in S14 —
 which is what brings Dupe running in S15. The refusal keeps the story moving.
 
-CRITICAL NEGATIVES: no third person, no passers-by, no cash on screen, no
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no third person, no passers-by, no cash on screen, no
 envelope, no handshake, no menace or villain acting, no Valder losing the
 smile, no workman looking frightened.
 

@@ -57,3 +57,35 @@ room tone, <one foley detail>, no music
 Camera-lock language · "no music" every scene · quoted dialogue · one-colour
 casting · reference thumbnails counted against mentions · warm-shadow grade
 block · the Anderson plans (they translate perfectly into beats).
+
+## ⚠️ RULE 5 CORRECTED 29 Aug — the tone tag must be MANNER ONLY
+
+Measured, not theorised. S15a take 1 (35b4edd4) was transcribed with whisper
+and Dupe **said the stage direction out loud**:
+
+    written : and says it with no idea what he is doing: "I cracked it. Last hour."
+    spoken  : "Sorry, sir. With no idea what he is doing, I cracked it last hour."
+
+The model cannot reliably find where a direction ends and the quote begins.
+Visual review passed this clip completely — only audio caught it.
+
+**The phrase immediately before `: "` must be a manner tag: at most about five
+words, no subject-plus-verb, no meta-commentary, no parenthetical note.**
+
+    SAFE   : quietly: · flat: · warm and unhurried: · savouring it: ·
+             exactly as flat as her first bid:
+    UNSAFE : with no idea what he is doing: · telling the same truth he has
+             told all along: · and this is the line the film turns on: ·
+             (CEO chose not to give this line a face):
+
+Anything longer goes in its OWN sentence before the cue:
+
+    He looks at the wall, then at Valder. He has no idea what he is doing.
+    Then, plainly: "I cracked it. Last hour."
+
+Add to every dialogue scene's CRITICAL NEGATIVES:
+`no stage directions spoken aloud, no narration of the character's state, no
+speaking anything outside the quotation marks`
+
+**Always transcribe a dialogue clip before calling it a keeper.** Frames cannot
+show this class of failure.

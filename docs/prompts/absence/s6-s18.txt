@@ -74,7 +74,7 @@ him since Scene 1. Hold.
 
 AUDIO: room tone of a fuller room, footsteps, no music.
 
-CRITICAL NEGATIVES: no crowd beyond fourteen people, no press, no cameras, no
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no crowd beyond fourteen people, no press, no cameras, no
 weapons, no holsters, no earpieces, no sunglasses on the guards, no painting
 on the wall, no large crack, no un-mirrored plaque text. + house negatives.
 
@@ -114,7 +114,7 @@ game get interesting — then his face is exactly as it was. Hold the duel.
 
 AUDIO: her heels on terrazzo, room tone, no music.
 
-CRITICAL NEGATIVES: no dialogue, no beak, no wings, no feathers, no bird
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no beak, no wings, no feathers, no bird
 mask, no costume or fancy dress, no guards beside the parrot woman, no crowd
 beyond ten people, no black clothing as anyone's main colour, no painting on
 the hero wall. + house negatives.
@@ -159,7 +159,7 @@ object is beneath him. The registrar's pen writes the last number and stops.
 
 AUDIO: the two voices, the pen scratch, held breath of a full room, no music.
 
-CRITICAL NEGATIVES: no words other than the eight numbers, no gavel, no
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no words other than the eight numbers, no gavel, no
 auctioneer calls, no paddles, no raised numbers, no shouting, no crowd beyond
 twelve people, no press, no anyone but the two rivals speaking. + house
 negatives.
@@ -200,7 +200,7 @@ The film camera's motor runs.
 AUDIO: room tone, the film camera's motor, the far-off beat of rotors, no
 music.
 
-CRITICAL NEGATIVES: no crowd beyond sixteen people, no camera flashes, no
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no crowd beyond sixteen people, no camera flashes, no
 microphones held up, no boom poles, no press scrum, no shouting, no
 helicopter inside the building, no weapons, no large crack, no un-mirrored
 plaque text. + house negatives.
@@ -245,7 +245,7 @@ Hold on her stillness. Cut.
 
 AUDIO: wheel squeak, room tone of a full room, no music. NO DIALOGUE.
 
-CRITICAL NEGATIVES: no dialogue in this half, no one pushing her chair, no
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue in this half, no one pushing her chair, no
 nurse or carer, no hospital or medical equipment, no joystick, no jewellery
 or fur or gold on her, no black as her main colour, no crowd beyond sixteen
 people. + house negatives.
@@ -285,7 +285,7 @@ just bought.
 AUDIO: her single line, the pen, the ledger's soft clap, room tone, no
 music.
 
-CRITICAL NEGATIVES: no dialogue beyond her one line, no auctioneer, no gavel
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond her one line, no auctioneer, no gavel
 object, no podium, no paddles, no re-staging (positions must match S12a), no
 crowd beyond sixteen people. + house negatives.
 
@@ -331,7 +331,7 @@ mid-stroke. Hold the tableau. Cut.
 
 AUDIO: the scream, the wet slap of plaster, then ringing silence, no music.
 
-CRITICAL NEGATIVES: no dialogue other than Valder's one line, no plaster
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue other than Valder's one line, no plaster
 touching the crack, no workman falling, no violence, no guards grabbing
 anyone, no crowd beyond fourteen people, no Valder smiling in this scene. +
 house negatives.
@@ -375,8 +375,8 @@ shield, all three on one line, symmetrical. The first decisive thing he has
 done in the entire film, and he does it to protect somebody else. Out of
 breath, frightened, frontal, almost into the lens: "Sorry, sir."
 
-[5s] He looks at the wall, then at Valder, and says it with no idea what he
-is doing: "I cracked it. Last hour." SILENCE. Hold it. Every face in the
+[5s] He looks at the wall, then at Valder. He has no idea what he is doing.
+Then, plainly: "I cracked it. Last hour." SILENCE. Hold it. Every face in the
 room turns to him. He stands there in a white uniform, holding a mop, having
 just told the truth to a room that paid a hundred million dollars for it.
 The slow push-in on him begins.
@@ -386,15 +386,15 @@ at the frame edges, eyes move from him to the crack and back. One of them
 nods slowly, the way people nod when they have decided something is
 profound.
 
-[16s] A VOICE FROM THE CROWD — off-axis, nobody shown speaking (CEO chose
-not to give this line a face): "Then the artist is the building." END on
+[16s] A VOICE FROM THE CROWD, off-axis. Nobody is shown speaking; this line
+deliberately has no face. The voice, certain: "Then the artist is the building." END on
 Dupe's centred face inside the push, mouth slightly open, no reply.
 
 (13 spoken words.)
 
 AUDIO: his breathing, room tone, the press camera's motor, no music.
 
-CRITICAL NEGATIVES: no dialogue beyond the three lines written above, no
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond the three lines written above, no
 grandmother speaking in this half, no anyone laughing, no anyone shouting at
 him, no anyone grabbing him, no violence, no security removing him, no
 police, no comic reaction, no slapstick, no crowd beyond twelve people, no
@@ -437,7 +437,7 @@ does not understand. He never will. Cut.
 AUDIO: the wheel squeak, her two lines, the pen, the ledger's soft clap,
 room tone, no music.
 
-CRITICAL NEGATIVES: no dialogue beyond the grandmother's two lines, no Dupe
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond the grandmother's two lines, no Dupe
 speaking in this half, no Dupe smiling, no celebration, no applause, no
 handshake, no anyone touching Dupe, no crowd beyond twelve people, no
 painting on the hero wall, no re-staging (positions must match S15a). +
@@ -474,7 +474,7 @@ the square cut, the still silhouette. Cut.
 
 AUDIO: the saw, dust, room tone — then the silence after it stops. No music.
 
-CRITICAL NEGATIVES: no dialogue, no cranes, no forklifts, no power tools
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no cranes, no forklifts, no power tools
 with cables, no hard hats, no hi-vis vests, no scaffolding, no demolition,
 no collapse, no danger, no rubble beyond fine plaster dust, no crowd beyond
 ten people, no Valder's face (back to camera throughout). + house negatives.
@@ -506,7 +506,7 @@ him one beat too long. Cut.
 
 AUDIO: room tone, his footsteps, no music.
 
-CRITICAL NEGATIVES: no other people, no plaque, no painting, no crack (the
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no other people, no plaque, no painting, no crack (the
 hole has replaced it), no rope barrier, no stanchions, no press, no guards.
 + house negatives.
 
@@ -537,7 +537,7 @@ know what to do with his hands.
 
 [6s] A reporter just out of frame asks, off: "How did you know?"
 
-[10s] He answers flatly, telling the same truth he has told all along: "I
+[10s] It is the same truth he has told all along. He answers flatly: "I
 dropped a painting."
 
 [14s] The reporter nods slowly, moved, and writes something else down. HOLD
@@ -548,7 +548,7 @@ nobody in the room can hear it. Cut.
 
 AUDIO: room tone, the pen, the camera rig's motor, no music.
 
-CRITICAL NEGATIVES: no dialogue beyond the two lines, no smiling, no
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond the two lines, no smiling, no
 triumph, no tears, no crowd, no audience, no studio lights in frame, no
 microphones on stands, no boom, no gold V on his suit, no jewellery, no
 watch, no hammer in this half. + house negatives.
@@ -582,6 +582,6 @@ blank wall.
 AUDIO: near-silence, room tone, the small sound of the hammer moving. No
 music.
 
-CRITICAL NEGATIVES: no dialogue, no swing of the hammer, no impact, no
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no swing of the hammer, no impact, no
 damage or crack in the white wall, no smiling, no triumph, no tears, no
 other people, no camera movement, no music. + house negatives.
