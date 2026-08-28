@@ -204,13 +204,26 @@ clip count.
 **Wall POV appears 4 times:** S3, S4, S6, S11. Same frame every time; only the
 crowd inside it changes.
 
-> 🔴 **`loc_wall_pov_b` IS FACE/IP FLAGGED AND CANNOT BE BOUND.** This blocks all
-> four wall-POV scenes, not just S3 — they must share one frame. S3 take 1 fired
-> without it and produced a porthole, which is the one thing the CEO struck out.
-> **Fix to try first: click the WARNING TRIANGLE on the flagged card — the
-> triangle itself is the eligibility re-check, and the flag is a periodic rescan
-> that hits old healthy assets.** If that fails, the plate must be regenerated
-> before S4/S6/S11 can be shot at all.
+> **What `loc_wall_pov_b` actually looks like — CTO opened the file, 07:35.**
+> A third-person view down the hall **seen through cracked glass**: fine crack
+> lines radiating from a dark point **dead centre**, the brass plaque low in
+> frame with its lettering **mirror-reversed**, six people beyond it facing
+> camera. The reversed plaque is the tell that we are behind the wall.
+>
+> Two false alarms on this plate, both resolved:
+> - An operator reported it had been **swapped by someone else mid-task**. It had
+>   not. That description matched the approved asset all along.
+> - The **Face/IP flag cleared on its own** — no warning triangle remains. That
+>   is the documented periodic-rescan behaviour.
+>
+> **The real fault was my prose, not the plate.** My S3 prompt said "the wall
+> ghosted and translucent… no hole, no aperture", which contradicts the plate the
+> CEO approved. Firing without the reference let the model follow my words and it
+> produced a porthole. Prompt now rewritten to match the plate.
+>
+> ⚠️ Known staleness, cosmetic: the plate still shows the art student in her
+> **original** design (pink suit, purple beret), before the CEO's redesign. Bind
+> `char_student_c` alongside it so her current look wins.
 
 ---
 
