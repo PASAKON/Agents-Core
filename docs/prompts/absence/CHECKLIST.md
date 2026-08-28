@@ -235,6 +235,34 @@ looks fine until you watch it, which is exactly how S3 take 1 became a porthole.
 
 ---
 
+## ⏱️ CLIPS ARE COMING BACK SHORT — a hard gate on every dialogue scene
+
+The composer's duration field desyncs: it accepts a value, shows a stale pill,
+and fires at something else.
+
+| Scene | Asked for | Got |
+|---|---|---|
+| S9 | 20s | **11s** |
+| S17 | 15s | **11s** |
+
+Both are silent, so both survived it. **The scenes still to shoot are not.**
+
+| Scene | Spoken words |
+|---|---|
+| S7 | 28 |
+| S8a | 60 |
+| S8b | 44 |
+| **S8c** | **62 — the pivot of the film** |
+
+At 11 seconds those lines are cut off mid-sentence and the take is worthless.
+
+**The gate, from 12:02:** on any scene with dialogue, set the duration, then
+**read it back from the composer and confirm it holds** before clicking Generate.
+If it will not hold, **do not fire** — a wasted 40-minute render costs far more
+than the wait. On silent shots, keep taking whatever it gives.
+
+---
+
 ## 🔴🔴 THE FACE/IP SCAN IS RETROACTIVE — passing at creation means nothing
 
 **`char_gentleman_c` passed its check at 10:41 and was terminally dead by 11:47.**
