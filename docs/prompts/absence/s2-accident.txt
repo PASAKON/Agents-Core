@@ -26,10 +26,13 @@ REFERENCES — each with a job:
   path, same branch points, same chipped plaster. One crack, roughly a foot
   long. Never reinvent it.
 
-⚠️ THE PAINTING — FIXED SIZE (CTO set it, CEO may overrule; once fired it is
-locked): 90 cm wide × 70 cm tall, LANDSCAPE, clearly wider than tall (~9:7),
-thin dark frame ~4 cm deep. A little wider than Dupe's shoulders, light enough
-for one man, small enough to ride the cart without overhanging.
+⚠️ THE PAINTING — FIXED SIZE, CORRECTED 29 Aug against the plate as it
+actually renders (S1D take 1 shows it PORTRAIT, not landscape; the earlier
+landscape figure was my guess and the plate overrules it):
+**70 cm wide × 90 cm tall, PORTRAIT, clearly taller than wide (~7:9), thin
+dark frame ~4 cm deep.** About shoulder-width on Dupe, light enough for one
+man, small enough to ride upright in the cart without overhanging. Geometric
+abstract blocks in ochre, rust, sage, cream and dusty pink.
 
 CEO 2026-08-28: the accident comes from Dupe doing his job WELL — the painting
 hangs crooked, he tries to straighten it, that is what brings it down.

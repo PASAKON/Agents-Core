@@ -64,11 +64,18 @@ S1D · OVER THE SHOULDER — the wall intact
 ---------------------------------------------------------------
 10s · ONE LOCKED SHOT — the camera never moves, no cuts.
 
+⚠️ ONE PERSON ONLY IN THIS SHOT. Take 1 (be929c0a) came back with TWO Dupes —
+the model read "over his shoulder" and "he wipes" as two separate men. The
+shoulder in the foreground and the hand that does the wiping BELONG TO THE
+SAME MAN. There is no second cleaner, no second cap, no one else in the room.
+
 [0s] From just behind and above Dupe's shoulder: the back of his cap with the
-gold V, and beyond it the hero wall with THE PAINTING STILL HANGING, straight
-and untouched, the brass plaque beneath.
-[4s] He wipes the wall BESIDE the frame with real care. He does not touch the
-painting.
+gold V fills the lower right of frame, and beyond it the hero wall with THE
+PAINTING STILL HANGING, straight and untouched, the brass plaque beneath.
+[4s] HIS OWN HAND AND CLOTH reach in from the near edge of frame — his arm,
+belonging to the shoulder we are looking over — and wipe the wall BESIDE the
+frame with real care. His body never appears a second time. He does not touch
+the painting.
 [8s] Hold — the last time the audience sees that wall intact.
 
 ---------------------------------------------------------------

@@ -1,3 +1,16 @@
+> ## 🔁 RE-FIRE S1D — take 1 is a REJECT (CTO 04:40)
+> `absence-S1D-take1-be929c0a.mp4` came back with **TWO DUPES in frame** —
+> the over-the-shoulder man AND a second identical cleaner wiping the wall.
+> Breaks the no-duplicate-people rule. Camera geometry was otherwise perfect,
+> so this is a wording fix, not a framing one: `s1-angles.txt` S1D now states
+> ONE PERSON ONLY and has his own hand reach in from the near edge. **Re-fire
+> S1D from the updated file after S1E lands.** Keep take 1 in Drive.
+>
+> Also corrected in `s2-accident.txt`: the painting is **PORTRAIT 70x90**, not
+> landscape 90x70. S1D take 1 shows the plate renders portrait, and the plate
+> wins over my earlier guess. Anything already fired is unaffected; S2 has not
+> been re-shot yet.
+
 > ## ⚠️ MENTION MAP — Element names are NOT consistent. Check before every paste.
 > Reported by the operator on task-f05ed75f (00:07, 29 Aug): some Elements are
 > bare, others still carry the old `project_absence_` prefix. **The .txt prompt
