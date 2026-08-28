@@ -1,3 +1,8 @@
+⚠️ MENTIONS: names below are the WRITING convention. Some live Elements carry a
+`project_absence_` prefix (cleaner_c, valder, grandmother, workman, press_a/b) and
+`@gentleman_e` has no `char_`. CHECK THE ELEMENTS PANEL AND CORRECT AT PASTE TIME.
+See the MENTION MAP at the top of QUEUE.md.
+
 **THE ART CRITIC — `char_critic_b` — how she speaks.** She is HALF-CHINESE and
 her face reads Chinese. She speaks English fluently but with a Chinese accent —
 the cadence and vowel shapes of a Chinese speaker using English well. State

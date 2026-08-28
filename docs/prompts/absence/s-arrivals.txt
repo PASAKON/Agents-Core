@@ -1,3 +1,8 @@
+⚠️ MENTIONS: names below are the WRITING convention. Some live Elements carry a
+`project_absence_` prefix (cleaner_c, valder, grandmother, workman, press_a/b) and
+`@gentleman_e` has no `char_`. CHECK THE ELEMENTS PANEL AND CORRECT AT PASTE TIME.
+See the MENTION MAP at the top of QUEUE.md.
+
 ===============================================================
 S2b + A1–A5 · THE OPENING ACT REBUILT · CEO 2026-08-28
 "เผยตัวละครทีละตัว" — the cast is revealed one at a time, and the

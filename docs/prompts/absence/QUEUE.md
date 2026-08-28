@@ -1,3 +1,24 @@
+> ## ⚠️ MENTION MAP — Element names are NOT consistent. Check before every paste.
+> Reported by the operator on task-f05ed75f (00:07, 29 Aug): some Elements are
+> bare, others still carry the old `project_absence_` prefix. **The .txt prompt
+> files write the bare form everywhere — that is a WRITING convention, not the
+> live name.** Pasting a prompt verbatim without checking produces a silent red
+> tag and a reference that never binds.
+>
+> CONFIRMED LIVE (operator read them off the Elements panel):
+> - bare: `@char_registrar` · `@loc_wall_pov_e` · `@loc_hall_big_e` ·
+>   `@prop_cart_b` · `@gentleman_e`  ← note: NO `char_` on this one
+> - prefixed: `@project_absence_char_cleaner_c` ·
+>   `@project_absence_char_valder` · `@project_absence_char_grandmother` ·
+>   `@project_absence_char_workman` · `@project_absence_char_press_a` ·
+>   `@project_absence_char_press_b`
+> - every other name: UNVERIFIED — read the panel, do not guess.
+>
+> **FIRST JOB of the next operator, before firing anything:** open the Elements
+> panel, list EVERY element with its exact live name, and append the complete
+> map to this section. It is a read-only five-minute job and it permanently
+> kills this whole class of failure. Report the list in your report too.
+
 > ## 🔴 CEO OVERRIDE 22:35 — S15 IS NOW THE TOP PRIORITY (editor needs it)
 > The editor is waiting on S15. Jump the queue in this exact order:
 > 1. **NOW, in parallel with whatever video is rendering** — generate the
