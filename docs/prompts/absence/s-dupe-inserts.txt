@@ -1,33 +1,39 @@
 ===============================================================
-D1–D5 · DUPE REACTION INSERTS · 5s each · CEO-approved
+D1–D5 · DUPE REACTION INSERTS · CEO-approved
 ===============================================================
-References: loc_hall_big_e · char_cleaner_c
+ALL FIVE: 5s · 720p · 16:9 · ONE LOCKED SHOT — no camera movement, no cuts.
+Sound On · High. NO DIALOGUE.
 
-Five tiny portraits for the edit room — cut in after each
-interpretation line, or wherever the cut needs Dupe's face. **Fire
-them between renders; they cost nothing and bind almost nothing.**
+REFERENCES — each with a job:
+@loc_hall_big_e — the hall, soft behind him. Not the framing.
+@char_cleaner_c — DUPE: the entire subject. Frontal, chest up, cloth in
+  hand, mid-work but momentarily still, gold V on cap and chest.
 
-SHARED FRAME: **a locked FRONTAL PORTRAIT, Dupe dead centre from the
-chest up**, waist-height lens, the hall soft behind him, cloth in
-hand, mid-work but momentarily still. Deadpan — the reactions are
-TINY. One micro-event per insert, nothing else moves.
+Five tiny portraits for the edit room — cut in after each interpretation
+line, or wherever the cut needs Dupe's face. Fire between renders; they cost
+nothing and bind almost nothing.
 
-- **D1 · after "It's about death."** — he blinks. Once. Slowly. That
-  is the entire clip.
-- **D2 · after "…what labour is worth."** — his eyes drop to his own
-  two hands holding the cloth, then come back up.
-- **D3 · after "…my mother."** — he almost nods — the nod begins,
-  perhaps three millimetres — and stops.
-- **D4 · after "It's anti-capitalist. Obviously."** — his eyes slide
-  sideways to his own mop leaning on the cart, and return.
-- **D5 · after "That is the thing itself."** — his eyes go to the real
-  painting riding his cart, hold half a second, and snap back — the
-  only guilty movement he makes all act.
+SHARED FRAME: locked FRONTAL PORTRAIT, Dupe dead centre from the chest up,
+waist-height lens. Deadpan — the reactions are TINY. One micro-event per
+insert, nothing else moves.
 
-Sound: room tone only. No dialogue.
+- D1 · after "It's about death." — [0s] still. [2s] he blinks. Once. Slowly.
+  That is the entire clip.
+- D2 · after "…what labour is worth." — [0s] still. [2s] his eyes drop to
+  his own two hands holding the cloth, then come back up.
+- D3 · after "…my mother." — [0s] still. [2s] he almost nods — the nod
+  begins, perhaps three millimetres — and stops.
+- D4 · after "It's anti-capitalist. Obviously." — [0s] still. [2s] his eyes
+  slide sideways to his own mop leaning on the cart, and return.
+- D5 · after "That is the thing itself." — [0s] still. [2s] his eyes go to
+  the real painting riding his cart, hold half a second, and snap back —
+  the only guilty movement he makes all act.
 
-NEGATIVE: no speech, no mouth movement, no smiling, no frowning, no
-tears, no comic expression, no big reaction, no head turn beyond the
-eyes, no camera movement, no zoom, no cut inside the clip, no second
-person in frame, no gold V missing from cap or chest, no HDR, no CGI
-sheen, no beauty filter
+AUDIO: room tone only. No music.
+
+CRITICAL NEGATIVES: no speech, no mouth movement, no big reaction, no head
+turn beyond the eyes, no second person in frame, no camera movement.
+
+House negatives: no smiling, no frowning, no tears, no comic expression, no
+zoom, no cut inside the clip, no gold V missing from cap or chest, no HDR,
+no CGI sheen, no beauty filter

@@ -1,130 +1,128 @@
-
 **THE ART CRITIC — `char_critic_b` — how she speaks.** She is HALF-CHINESE and
 her face reads Chinese. She speaks English fluently but with a Chinese accent —
-the cadence and vowel shapes of a Chinese speaker using English well. State this
-in every prompt she appears in; the CEO asked for it explicitly.
+the cadence and vowel shapes of a Chinese speaker using English well. State
+this in every prompt she appears in; the CEO asked for it explicitly.
 
 ===============================================================
-SCENE 4 — $2,000,000 · THE FIRST PRICE MARKER · 15s · NO DIALOGUE
+SCENE 4 — $2,000,000 · THE FIRST PRICE MARKER
 ===============================================================
-References: loc_wall_pov_e · char_critic_b · char_oldman · char_woman ·
-char_student_c · char_visitor_a · char_visitor_b · char_cleaner_c · prop_cart_b
+15s · 720p · 16:9 · ONE LOCKED SHOT — the wall-POV frame, the camera never
+moves, no cuts. NO DIALOGUE. Sound On · High.
 
-Shot from behind the wall, exactly as Scene 3: the camera looks out THROUGH
-CRACKED GLASS, fine crack lines radiating from a dark point dead centre of
-frame, the brass plaque low in frame with its lettering MIRROR-REVERSED, the
-hall and its people seen beyond. The camera never moves.
+REFERENCES — each with a job:
+@loc_wall_pov_e — THE FRAME ITSELF, match exactly: the view out through
+  cracked glass, fine crack lines radiating from a dark point DEAD CENTRE,
+  the brass plaque low in frame MIRROR-REVERSED, the red door far off. S3,
+  S4, S6 and S11 are this same frame — only the crowd changes.
+@char_critic_b @char_oldman @char_woman @char_student_c @char_visitor_a
+@char_visitor_b — the six assembled by the arrivals: faces, builds, costumes.
+@char_cleaner_c @prop_cart_b — Dupe and his cart (painting riding the rack,
+  face outward) at the frame edge.
 
-This must match `loc_wall_pov_e` exactly — S3, S4, S6 and S11 are the same frame
-and only the crowd inside it changes.
+Plus two of the three unnamed extras making their debut: a man in deep teal
+and a woman in mustard walk with the group; a woman in plum sits far off on a
+bench. Ordinary weekday-museum clothes. EIGHT PEOPLE total.
 
-EIGHT PEOPLE now — **the six assembled by the arrivals (A1–A5)** plus two of the
-three unnamed extras making their debut (the man in deep teal and the woman in
-mustard; the plum woman sits far off on a bench). Ordinary clothes, the way
-people dress to visit a museum on a weekday morning.
+[0s] The locked wall-POV frame. Eight people stand in NEAT ROWS facing camera
+like a formal class photograph — taller behind, costume colours alternating
+warm and cool, spaced evenly around the crack's axis. Every eyeline on the
+crack. Nobody speaks, nobody points — the room gone quiet the way a room goes
+quiet when people are being serious in public.
 
-STAGING — the Anderson plan: they stand in **NEAT ROWS facing camera like a
-formal class photograph** — taller people behind, costume colours alternating
-warm and cool, spaced evenly around the crack's axis.
-Every one of them is facing camera with their eyeline on the crack. Nobody
-speaks. Nobody points. The room has gone quiet in the way a room goes quiet
-when people are being serious in public.
+[6s] One of them takes a single step backwards to see the whole thing at
+once. Another tilts their head. A third folds their arms. Nothing else moves.
 
-One of them takes a single step backwards to see the whole thing at once.
-Another tilts their head. A third folds their arms.
+[11s] Dupe keeps cleaning at the edge of frame with his cart, unnoticed, the
+painting in plain sight on the rack. Hold. Let the silence do the work.
 
-DUPE keeps cleaning at the edge of frame with his cart, unnoticed.
+AUDIO: room tone and footsteps only. No music.
 
-Hold. Let the silence do the work.
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation. Photographed,
+not rendered: film grain, faint gate weave, slight colour fringing.
 
-Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
-pushed slightly cool, shadows never pure black but deep red-brown, saturation
-high in flat planes but never touching skin, halation blooming around every
-lamp. Photographed, not rendered: fine film grain, halation, faint gate weave,
-slight colour fringing. Camera level, no dutch angle.
+CRITICAL NEGATIVES: no dialogue, no crowd beyond eight people, no painting on
+the wall, no press, no cameras, no duplicate faces, no looking at the camera,
+no un-mirrored plaque text.
 
-15s · 720p · 16:9 · High · Sound On — room tone and footsteps only.
-
-no dialogue, no voiceover, no narration, no subtitles, no captions, no on-screen
-text, no readable text anywhere except the brass plaque, no music, no score, no
-crowd beyond eight people, no extras, no background figures, no press, no
-cameras, no flashes, no microphones, no guards, no gold V on any visitor, no
-painting on the wall, no duplicate faces, no cloned people, no smiling to
-camera, no looking at the camera, no comic expressions, no black clothing as
-anyone's main colour, no modern technology, no phones, no screens, no dutch
-angle, no handheld shake, no zoom, no slow motion, no lens flare, no HDR, no
-CGI sheen, no plastic skin, no beauty filter, no dim moody lighting, no
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+readable text anywhere except the brass plaque, no music, no score, no
+extras beyond those specified, no background figures, no flashes, no
+microphones, no guards, no gold V on any visitor, no cloned people, no
+smiling to camera, no comic expressions, no black clothing as anyone's main
+colour, no modern technology, no phones, no screens, no dutch angle, no
+handheld shake, no zoom, no slow motion, no lens flare, no HDR, no CGI
+sheen, no plastic skin, no beauty filter, no dim moody lighting, no
 darkness, no rubble, no structural damage, no large crack
 
-
 ===============================================================
-SCENE 5 — COLLECTOR A OPENS THE BIDDING · 20s
+SCENE 5 — COLLECTOR A OPENS THE BIDDING
 ===============================================================
-References: loc_hall_big_e · char_woman · char_critic_b · char_oldman ·
-char_student_c · char_visitor_a · char_visitor_b · char_registrar · char_cleaner_c
+20s · 720p · 16:9 · ONE SETUP, ONE MOVE — a locked one-point frame that
+begins ONE slow push-in straight down the axis and nothing else, no cuts.
+Sound On · High.
 
-⚠️ CTO ASSUMPTION, FLAGGED FOR THE CEO — not his explicit words.
-He answered "reuse a character who already exists" and described Collector A as
-"the person who interprets it as art becomes the person who has to pay to prove
-it". The character who most emphatically declares it art is THE WOMAN IN COBALT
-(char_woman), whose Scene 3 closing line is "That is not a picture of something.
-That is the thing itself." So this prompt casts her as Collector A. If the CEO
-meant the art critic instead, swap the reference and the two lines move with her
-— nothing else in the scene changes.
+REFERENCES — each with a job:
+@loc_hall_big_e — the hall from the visitors' side, crack and plaque on the
+  far wall on the axis.
+@char_woman — COLLECTOR A, the woman in cobalt: tall, sculptural crest of
+  hair, cat-eye sunglasses worn indoors, one saturated cobalt garment. She
+  speaks.
+@char_registrar — the museum's official: composed man, ivory staff livery,
+  small gold V at the chest, WHITE GLOVES, slim brass-cornered ledger. He
+  debuts here. No words.
+@char_critic_b @char_oldman @char_student_c @char_visitor_a @char_visitor_b
+  — the rest of the group, standing loosely, listening.
+@char_cleaner_c — Dupe, mopping near the back wall.
 
-Back in the room, normal angle this time — a wide shot of the hall from the
-visitors' side, the crack and the plaque on the far wall, people standing loosely
-around it.
+⚠️ CTO casting call, flagged: CEO said "reuse a character who already
+exists"; the cobalt woman is the one who most emphatically declared it art
+(A5: "That is the thing itself."), so she is Collector A. If he meant the
+critic, swap the reference — the two lines move with her, nothing else
+changes.
 
-THE WOMAN IN COBALT steps forward out of the group. Tall, sculptural crest of
-hair, cat-eye sunglasses worn indoors, one saturated cobalt garment. She stands
-perfectly still and speaks without raising her voice.
+NO PRESS — the news breaks only after the hundred-million hammer (CEO); the
+press belong to S11.
 
-    "I understand it."
+[0s] Locked one-point wide at waist height, crack and plaque on the axis,
+people standing loosely around it. THE WOMAN IN COBALT steps forward out of
+the group and lands DEAD CENTRE, frontal, perfectly still. The slow push-in
+down the axis begins and runs to the end of the clip.
 
-A beat. Nobody moves.
+[5s] She says it quietly, without raising her voice: "I understand it." A
+beat. Nobody moves.
 
-    "Five million."
+[9s] Still level, still quiet: "Five million." THE ROOM TURNS AS ONE — every
+head snaps toward her in the same single instant, one synchronized movement
+like a flock, then perfect stillness. The unison is the joke and it must be
+exact. The push does not react.
 
-**THE ROOM TURNS AS ONE.** Every head snaps toward her in the same single
-instant — one synchronized movement, like a flock — then perfect stillness.
-The unison is the joke and it must be exact.
+[14s] THE REGISTRAR steps quietly in from the frame edge and WRITES THE
+NUMBER DOWN in the ledger — no words, the pen the only sound. From this
+moment the audience knows the institution is listening. Dupe, mopping near
+the back wall, looks up once at the number, then down again. The push
+settles. Hold.
 
-**NO PRESS — the news breaks only after the hundred-million hammer; the press
-belong to S11 (CEO).** Instead: **THE REGISTRAR** — the museum's own official, a
-composed man in the staff's ivory livery, a small gold V at the chest, WHITE
-GLOVES, a slim brass-cornered ledger — **steps quietly in from the frame edge
-and WRITES THE NUMBER DOWN.** No words; the pen is the only sound. He is the
-same white-gloved hands that polish and swap the plaque, and from this moment
-the audience knows the institution is listening.
+AUDIO: room tone, the pen scratch, no music.
 
-DUPE is mopping near the back wall. He looks up once, at the number, then down
-again.
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation. Photographed,
+not rendered: film grain, faint gate weave, slight colour fringing.
 
-CAMERA — the Anderson plan: locked one-point frame at waist height, crack and
-plaque on the axis. When she steps forward she lands DEAD CENTRE, frontal, and
-the camera begins **one slow push-in straight down the axis** that runs to the
-end of the clip. The unison head-turn happens inside the push, which never
-reacts to it. No handheld.
+CRITICAL NEGATIVES: no extra dialogue, no press, no gavel or auctioneer or
+podium or paddles, no crowd beyond nine people, no painting on the hero
+wall, no gold V on any visitor (the registrar's staff V is correct), no
+camera move except the single specified push-in.
 
-Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
-pushed slightly cool, shadows never pure black but deep red-brown, saturation
-high in flat planes but never touching skin, halation blooming around every
-lamp. Photographed, not rendered: fine film grain, halation, faint gate weave,
-slight colour fringing.
-
-20s · 720p · 16:9 · High · Sound On.
-
-no extra dialogue, no invented lines, no voiceover, no narration, no subtitles,
-no captions, no on-screen text, no readable text except the brass plaque, no
-music, no score, no auction gavel, no auctioneer, no podium, no paddles, no
-bidding numbers held up, no crowd beyond nine people, no extras, no background
-figures, no press scrum, no camera flashes, no smartphones, no screens, no LEDs,
-no digital displays, no modern technology, no gold V on any visitor, no guards,
-no painting on the hero wall, no duplicate faces, no cloned people, no anyone
-looking at the camera, no smiling while speaking, no laughing, no comic
-expressions, no black clothing as anyone's main colour, no dutch angle, no
-handheld shake, no zoom, no crane, no drone, no slow motion, no lens flare, no
-bokeh balls, no HDR, no CGI sheen, no plastic skin, no beauty filter, no dim
-moody lighting, no darkness, no rain, no fog, no rubble, no structural damage,
-no ultramarine walls, no blue walls, no wooden floor
+House negatives: no invented lines, no voiceover, no narration, no
+subtitles, no captions, no on-screen text, no readable text except the brass
+plaque, no music, no score, no bidding numbers held up, no extras, no
+background figures, no camera flashes, no smartphones, no screens, no LEDs,
+no digital displays, no modern technology, no guards, no duplicate faces, no
+cloned people, no anyone looking at the camera, no smiling while speaking,
+no laughing, no comic expressions, no black clothing as anyone's main
+colour, no dutch angle, no handheld shake, no zoom, no crane, no drone, no
+slow motion, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no rain, no fog,
+no rubble, no structural damage, no ultramarine walls, no blue walls, no
+wooden floor

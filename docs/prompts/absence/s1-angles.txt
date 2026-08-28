@@ -1,144 +1,123 @@
 ===============================================================
 S1A – S1G · SEVEN COVERAGE ANGLES FOR SCENE 1 · cutting footage
 ===============================================================
-References for all seven: loc_hall_big_e · char_cleaner_c · prop_cart
-⚠️ REWRITE 2026-08-28 (CEO): these are the film's OPENING — pre-accident,
-**museum EMPTY, Dupe completely alone. NO extras any more** (the three
-extras move to S4). **Original `prop_cart`, rack empty, no painting.**
-Silent except the sounds of his work.
-CEO, 2026-08-28. `s1-multicut.txt` stays as the master wide. These seven are
-**extra footage to cut with** — the same morning, the same room, the same man,
-photographed seven different ways so the editor can build rhythm instead of
-sitting in one frame for twenty seconds.
+ALL SEVEN: 720p · 16:9 · Sound On · High · camera LOCKED or one stated move,
+no cuts inside any clip. PRE-ACCIDENT (CEO 2026-08-28): museum EMPTY, Dupe
+completely alone, NO extras (they debut in S4). Silent except his work.
 
-Fire them in order. **One take each.** They are short on purpose.
+REFERENCES — all seven, each with a job:
+@loc_hall_big_e — the hall: white walls, orange cove light, terracotta
+  terrazzo, chromium columns, the red door at the far end. Not the framing.
+@char_cleaner_c — Dupe: face, build, white uniform with orange trim, cap,
+  gold V at cap and chest.
+@prop_cart — the cart design. Rack EMPTY — no painting anywhere.
+
+`s1-multicut.txt` stays the master wide. These seven are extra footage to cut
+with — same morning, same room, same man, photographed seven ways so the
+editor can build rhythm. Fire in order, one take each.
 
 ---------------------------------------------------------------
-S1A · THE FLOOR — camera at ankle height
+S1A · THE FLOOR
 ---------------------------------------------------------------
-**10s. No dialogue.**
+10s · ONE LOCKED SHOT — the camera never moves, no cuts.
 
-**The camera sits ON THE TERRAZZO FLOOR**, lens a few inches up, looking along the
-polished floor down the length of the hall. Extreme low angle. Chromium column
-bases and terracotta floor fill the bottom of frame; the orange cove lighting runs
-away to the vanishing point; **the red door is small and far off at the end.**
-
-**DUPE WALKS PAST, VERY CLOSE TO CAMERA** — his shoes, the hem of his white
-trousers, the wheels of the cart rolling by. He crosses frame and continues away
-down the hall, getting smaller.
-
-*The point: the film's most ignored man, shot from the height of the floor he
-cleans.*
+[0s] Extreme low angle: the camera sits ON the terrazzo, lens inches up,
+looking along the polished floor down the hall's length — level, not tilted.
+Chromium column bases fill the bottom of frame, orange cove light runs to the
+vanishing point, the red door small and far off at the end.
+[3s] Dupe walks past VERY CLOSE to camera — shoes, white trouser hems, the
+cart's wheels rolling by.
+[6s] He continues away down the hall, getting smaller. Hold.
 
 ---------------------------------------------------------------
 S1B · WAIST UP — straight on
 ---------------------------------------------------------------
-**10s. No dialogue.**
+10s · ONE LOCKED SHOT — the camera never moves, no cuts.
 
-Camera straight on at chest height, no tilt — **a FRONTAL PORTRAIT, perfectly
-symmetrical, DUPE DEAD CENTRE FROM THE WAIST UP**, facing almost into the lens as
-he dusts the top edge of a frame that sits just off-frame, slow careful strokes. His
-hands, his sleeve, the gold V on his chest, his face in three-quarter.
-
-He is content. He hums a little. He is entirely absorbed in a job nobody will
-notice.
-
-*The point: the only angle in the film that treats him as the subject.*
+[0s] Frontal portrait at chest height, no tilt, perfectly symmetrical: DUPE
+DEAD CENTRE from the waist up, face in three-quarter, dusting the top edge of
+a frame that sits just off-frame with slow careful strokes — hands, sleeve,
+the gold V on his chest.
+[5s] He hums a little, content, entirely absorbed in a job nobody will
+notice. Hold on the care.
 
 ---------------------------------------------------------------
 S1C · THE CART — detail
 ---------------------------------------------------------------
-**8s. No dialogue.**
+8s · ONE LATERAL TRACK at cart height, constant speed — no other movement,
+no cuts.
 
-Close on **`prop_cart`** as it rolls: mop, orange bucket, bottles, folded
-cloths, brush, the folding ladder on the side, **the gold V on the front panel**,
-**The rack is empty — no painting anywhere.**
-
-The camera tracks alongside at cart height, terrazzo sliding past.
-
-*The point: establishes the cart as an object before it starts carrying the
-story.*
+[0s] Close on the cart as it rolls: mop, orange bucket, bottles, folded
+cloths, brush, the folding ladder on the side, the gold V on the front panel.
+The rack is EMPTY — no painting anywhere. Terrazzo slides past.
+[5s] The track holds pace with the wheels. Hold.
 
 ---------------------------------------------------------------
-S1D · OVER THE SHOULDER — what he is looking at
+S1D · OVER THE SHOULDER — the wall intact
 ---------------------------------------------------------------
-**10s. No dialogue.**
+10s · ONE LOCKED SHOT — the camera never moves, no cuts.
 
-From just behind and above Dupe's shoulder. The back of his cap with the gold V,
-and beyond it **the hero wall with the painting still hanging on it, straight
-and untouched, the brass plaque beneath.**
-
-He wipes the wall beside the frame with real care. He does not touch the
+[0s] From just behind and above Dupe's shoulder: the back of his cap with the
+gold V, and beyond it the hero wall with THE PAINTING STILL HANGING, straight
+and untouched, the brass plaque beneath.
+[4s] He wipes the wall BESIDE the frame with real care. He does not touch the
 painting.
-
-*The point: the last time the audience sees that wall intact.*
+[8s] Hold — the last time the audience sees that wall intact.
 
 ---------------------------------------------------------------
 S1E · THE LONG HALL — he is very small
 ---------------------------------------------------------------
-**12s. No dialogue.**
+12s · ONE LOCKED SHOT — the definitive one-point master, the camera never
+moves, no cuts.
 
-Very wide, camera at eye height, **locked dead on the room's centreline — the
-definitive ONE-POINT symmetrical master.** Columns in mirrored pairs, and **the
-red door exactly centred at the vanishing point.** Chromium columns
-march away on both sides, artworks on plinths between them.
-
-**DUPE IS TINY**, off to one side, working along the wall with his cart. **The hall is completely empty around him** — one tiny man and four hundred
-feet of museum. Nobody else exists yet.
-
-*The point: the geography of the whole film in one frame, and the man who matters
-least occupying the least of it.*
+[0s] Very wide at eye height, locked dead on the room's centreline: columns
+in mirrored pairs, artworks on plinths between them, THE RED DOOR EXACTLY
+CENTRED at the vanishing point.
+[4s] DUPE IS TINY, off to one side, working along the wall with his cart. The
+hall completely empty around him — one small man and four hundred feet of
+museum.
+[9s] Nothing else moves. Hold.
 
 ---------------------------------------------------------------
 S1F · THE HANDS
 ---------------------------------------------------------------
-**8s. No dialogue.**
+8s · GOD'S-EYE OVERHEAD, locked off — the camera never moves, no cuts.
 
-**GOD'S-EYE OVERHEAD, locked off:** straight down on **his hands and the cloth**
-against the terrazzo — wringing it, folding it into a neat square, checking the
-fold, going again. The hands work dead centre of frame like a cooking-show insert.
-Warm light, flat and even.
-
-No face. Just the care.
-
-*The point: eight seconds that make the accident hurt later.*
+[0s] Straight down: his hands and the cloth dead centre of frame against the
+terrazzo, like a cooking-show insert — wringing the cloth, folding it into a
+neat square, checking the fold, going again. Warm flat even light.
+[6s] No face ever. Just the care. Hold.
 
 ---------------------------------------------------------------
 S1G · PAST THE COLUMN — watched by nobody
 ---------------------------------------------------------------
-**10s. No dialogue.**
+10s · ONE LOCKED SHOT — the camera never moves, no cuts.
 
-Camera behind a chromium column, part of the column down one edge of frame, as if
-we are half-hidden. **Dupe works in the middle distance, alone.** Nothing else moves in the frame.
-
-He never notices the camera's hiding place, because there is nobody behind it.
-
-*The point: the film's only voyeur shot, and there is nothing to see.*
-
----------------------------------------------------------------
-LOOK — all seven
----------------------------------------------------------------
-Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
-pushed slightly cool, shadows never pure black but deep red-brown, saturation
-high in flat planes but never touching skin, halation blooming around every lamp.
-Photographed, not rendered: fine film grain, halation, faint gate weave, slight
-colour fringing. **Camera level in every shot** — S1A is level too, just on the
-floor. No handheld anywhere.
-
-720p · 16:9 · High · Sound On — room tone, footsteps, cart wheels, cloth.
+[0s] Camera behind a chromium column, the column's edge down one side of
+frame, half-hidden. Dupe works in the middle distance, alone. Nothing else
+moves.
+[6s] He never notices the camera's hiding place, because there is nobody
+behind it. Hold — the film's only voyeur shot, and there is nothing to see.
 
 ---------------------------------------------------------------
-NEGATIVES — all seven
+LOOK + AUDIO — all seven
 ---------------------------------------------------------------
-no dialogue, no voiceover, no narration, no subtitles, no captions, no on-screen
-text, no readable text, no signage, no logos, no music, no score, no more than
-three extras, no crowd, no duplicate faces, no twins, no cloned people, no extra
-resembling a named character, no extra resembling another extra, no gold V on any
-extra, no anyone interacting with Dupe, no anyone looking at Dupe, no anyone
-looking at camera, no Dupe looking at camera, no Dupe speaking, no crack in the
-wall, no damage, no painting off the wall, no smartphones, no screens, no LEDs,
-no modern technology, no dutch angle, no tilted horizon, no handheld wobble, no
-zoom, no crane, no drone, no slow motion, no speed ramp, no lens flare, no bokeh
-balls, no HDR, no CGI sheen, no plastic skin, no beauty filter, no dirt, no
-grime, no dim moody lighting, no darkness, no night, no ultramarine walls, no
-blue walls, no wooden floor
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, saturation high in flat
+planes but never touching skin, halation around every lamp. Photographed, not
+rendered: fine film grain, faint gate weave, slight colour fringing. Camera
+level in every shot — S1A is level too, just on the floor.
+AUDIO: room tone, footsteps, cart wheels, cloth. No music.
+
+CRITICAL NEGATIVES: no other people at all, no crack in the wall, no damage,
+no painting off the wall, no painting in the cart, no Dupe looking at camera,
+no Dupe speaking.
+
+House negatives: no dialogue, no voiceover, no narration, no subtitles, no
+captions, no on-screen text, no readable text, no signage, no logos, no
+music, no score, no extras, no crowd, no duplicate faces, no smartphones, no
+screens, no LEDs, no modern technology, no dutch angle, no tilted horizon,
+no handheld wobble, no zoom, no crane, no drone, no slow motion, no speed
+ramp, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin,
+no beauty filter, no dirt, no grime, no dim moody lighting, no darkness, no
+night, no ultramarine walls, no blue walls, no wooden floor
