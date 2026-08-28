@@ -39,7 +39,7 @@ walls, no blue walls, no wooden floor
 ===============================================================
 SCENE 6 — $20,000,000 · THE SECOND PRICE MARKER · 15s · NO DIALOGUE
 ===============================================================
-References: loc_wall_pov_d · char_critic_b · char_oldman · char_woman ·
+References: loc_wall_pov_e · char_critic_b · char_oldman · char_woman ·
 char_student_c · char_visitor_a · char_visitor_b · char_guard_private ·
 char_gentleman_e · char_cleaner_c
 
@@ -104,7 +104,7 @@ no black clothing as anyone's main colour, no painting on the hero wall.
 ===============================================================
 SCENE 11 — $100,000,000 · THE PEAK · 15s · NO DIALOGUE
 ===============================================================
-References: loc_wall_pov_d · char_press · char_critic_b · char_oldman ·
+References: loc_wall_pov_e · char_press · char_critic_b · char_oldman ·
 char_woman · char_woman_c · char_gentleman_e · char_guard_private ·
 char_guard_valder · char_cleaner_c
 

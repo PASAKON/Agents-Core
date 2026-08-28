@@ -1,7 +1,7 @@
 ===============================================================
 SCENE 3 — THE INTERPRETATIONS · REDO · 20s · shot from behind the wall
 ===============================================================
-References: loc_wall_pov_d · char_oldman · char_visitor_b · char_husband ·
+References: loc_wall_pov_e · char_oldman · char_visitor_b · char_husband ·
 char_student_c · char_critic_b · char_woman · char_cleaner_c · prop_cart_b
 
 ⚠️ THE NAMES IN THE REFERENCE LINE ABOVE ARE THE ONES TO USE. Superseded and
@@ -30,7 +30,7 @@ that can hold quiet concern.
 THE FRAME
 ---------------------------------------------------------------
 The camera is BEHIND THE WALL, looking out through the cracked plaster, exactly
-as `loc_wall_pov_d` renders it. Very wide. The camera never moves.
+as `loc_wall_pov_e` renders it. Very wide. The camera never moves.
 
 **THE CRACK IS THE SAME CRACK, MIRRORED** — identical length, path and branch
 points to the reference, reversed left-to-right because we are on the other side
