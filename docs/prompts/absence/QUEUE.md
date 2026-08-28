@@ -1,3 +1,26 @@
+> ## 👁 GEMINI IS LIVE — the only tool that actually watches (CTO 06:30)
+> ```
+> GEMINI_VIDEO_MODEL=gemini-3.5-flash-lite ./.venv/bin/python scripts/video-ask.py <clip> "<numbered questions>"
+> ```
+> Free tier, CEO-approved 29 Aug. Sees motion, hears audio, counts people,
+> transcribes dialogue. Costs ~250 tokens of CTO context for the answer —
+> LESS than a 648-token frame sheet, and it sees things frames cannot.
+>
+> **Send the clip plus a short numbered checklist. NEVER the screenplay** —
+> the clips are public on Higgsfield, the script is not, and free-tier inputs
+> may be trained on and read by humans.
+>
+> Calibrated against known ground truth on S15b/S15a:
+> - dialogue transcription BEATS whisper (got "One hundred million" where
+>   whisper normalised it to "100")
+> - independently caught the S15a spoken-stage-direction bug, unprompted
+> - found a soft cut at 13s that ffmpeg `scdet` missed at default threshold
+>   (confirmed real: scdet at 0.15 flags it too)
+> - counts crowd reliably: S15a has 16 people, the prompt said 12
+>
+> **Review order now:** `screen` (free, exact) → `video-ask.py` (motion,
+> audio, counts) → `t1` sheet only when you need to judge how it LOOKS.
+
 > ## 🎬 REVIEW TOOLING — use `scripts/video-see.sh` before spending eyes (CTO 05:35)
 > Built and merged (GH #121). Run these on every clip you file:
 > ```
