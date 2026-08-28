@@ -191,3 +191,21 @@ zoom). 5 references bound clean: `loc_hall_big_d`, `char_cleaner_c`,
 `prop_cart_b` (note: no `project_absence_` prefix on this one — confirmed via
 Elements panel), `prop_valder_study`, `loc_wall_crack`. Asset id not yet
 known — card still processing.
+
+## S2 asset id — committed before download
+
+Asset `06e97fd9-c26f-4b2d-bfaa-25fd0dbf3434` (via video currentSrc filename,
+not the preview= URL param — same decoy pattern, confirmed correct by
+matching the 5:10 PM Usage log timestamp exactly). Seedance 2.5, 720p.
+Downloading next.
+
+## QUEUE.md is now authoritative
+
+CTO wrote `docs/prompts/absence/QUEUE.md` — supersedes all chat relays.
+Element swaps confirmed: `char_gentleman` → `char_gentleman_e` (matches my
+earlier finding that `char_gentleman_c` is dead), `char_woman_b` →
+`char_woman_c`, `prop_cart` → `prop_cart_b`. New fire order: S13 → S1C → S1F
+→ S1A → S1B → S1G first (none need a still-pending plate), then once
+`loc_hall_big_e`/`loc_wall_pov_d` exist: S3→S4→S5→S6→S7→S8a→S8b→S8c→S9→S10→
+S11→S12→S15→S16→S17→S18→S1D→S1E. Discarding my staged S9 prompt — moving to
+S13 next per the new order.
