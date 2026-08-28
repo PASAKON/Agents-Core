@@ -25,9 +25,13 @@ none of them acknowledged.
 > **DUPE** *"Just a moment, madam."*
 > **DUPE** *"Sorry, sir."*
 
-**The title comes from here, and it is the CEO's own line** — the same words the
-workman says in S15 before he confesses. One line doing two jobs, thirteen
-scenes apart.
+**The title comes from here, and it is the CEO's own line** — the same words
+**DUPE** says in S15, frightened, as he runs in to shield the workman, before he
+confesses. One line doing two jobs, thirteen scenes apart.
+
+*(Corrected 2026-08-28: this file previously credited "Sorry, sir." in S15 to the
+workman. It is Dupe's. The CEO's text: "Dupe ที่แอบมองใกล้ๆ วิ่งเข้ามาปกป้องช่าง
+และบอก Valder แบบกลัวๆ ไปว่า 'Sorry, sir.'")*
 
 Assets: `5ea44262` (silent) · `c8e60256` (speaking).
 
@@ -167,7 +171,31 @@ and never sits.** He smiles **with one corner of his mouth, like someone playing
 
 ---
 
-## S15 · Dupe confesses · **LOCKED phrase**
+## S14 · THE WORKMAN ARRIVES · **LOCKED — the CEO wrote this, I mislaid it**
+
+The workman walks to the wall with his bucket and float and raises the float to
+plaster over the crack.
+
+> **VALDER**, at the top of his voice — the only time in the film the smile breaks
+> *"STOP! You are destroying a hundred million dollar artwork!"*
+
+**The workman is so startled he drops the plaster on the floor.**
+
+*(CEO's own text, in the pre-split numbering: "Valder ก็ตะโกนไปว่า … ช่างตกใจ
+ทำปูนตกพื้น". It was written all along; it fell out of my register when S15 was
+split into three and the scene numbers shifted.)*
+
+---
+
+## S15 · Dupe confesses · **LOCKED**
+
+**Dupe has been watching from close by.** He runs in and **puts himself between
+Valder and the workman.** He is frightened.
+
+> **DUPE**, frightened *"Sorry, sir."*
+
+He looks at the wall. He looks at Valder's face. Then he goes on, **without any
+idea what he is doing:**
 
 > **DUPE** *"I cracked it. Last hour."*
 
@@ -199,6 +227,4 @@ He lowers it. He stands there. **Hold long, then cut to black.**
 |---|---|
 | S4 · S6 · S11 | The price-marker wall POVs — crowd only, no dialogue needed |
 | S12 | The grandmother's line, if she gets one at all |
-| S13 | Valder's reaction when the workman arrives |
-| S14 | The workman. He apologises before he understands what he is apologising for. |
 | S16 · S17 | Sawing the wall out; the square hole. Both may stay silent. |

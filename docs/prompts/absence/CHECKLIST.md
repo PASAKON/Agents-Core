@@ -486,6 +486,29 @@ S1A and S1B as spares.
 
 ---
 
+## ❌ MY ERROR — a scene and the title line, both lost in a renumber
+
+**S14 was never unwritten.** The CEO wrote it in the pre-split numbering, in the
+same message that gave us S11 and S12. When S15 was split into three and every
+number after S12 shifted, his S14 text stopped matching a row in my register and
+I recorded it as "waiting on the CEO" for a full day.
+
+**And "Sorry, sir." was in the wrong mouth.** `DIALOGUE.md` credited it to the
+workman. **It is DUPE's line** — he runs in frightened to shield the workman, says
+it to Valder, looks at the wall, looks at Valder's face, and only then confesses.
+That is the title of the film, and it sat attributed to the wrong character all
+day.
+
+**Cause, both times:** I re-derived the scene list from my own summary instead of
+from what he actually typed. His words are the record; my table is a view of it.
+
+**How to not repeat it:** after any renumber, re-read the CEO's original messages
+and re-attach each block to its new number **before** marking anything missing.
+A scene marked "waiting on the CEO" should always be checked against the
+transcript first — the answer is often already there.
+
+---
+
 ## 🎯 TOLERANCE — CEO, 2026-08-28 17:10
 
 > **"ขอเหมือนที่สุดก็พอ ประมาณ 10-20% Error ได้ไม่ว่ากัน"**
@@ -584,7 +607,7 @@ independent of it**. Anything in the image lane can start immediately.
 | # | What |
 |---|---|
 | ~~B1~~ | ✅ **S13 WRITTEN 16:40** — CEO handed it to me. Not the gallery: **outside, behind the museum, two men alone, played as a secret.** Valder offers eight thousand *"to have never come"*; the workman refuses. [s13-the-back-door.txt](s13-the-back-door.txt) |
-| B2 | **S14 dialogue** — the workman, who apologises before he understands why |
+| ~~B2~~ | ✅ **NOT MISSING — the CEO wrote it and I lost it.** *"VALDER ตะโกนสุดเสียง 'STOP! You are destroying a hundred million dollar artwork!' ช่างตกใจทำปูนตกพื้น"*. It fell out of my register when S15 was split into three and every number after S12 shifted. Restored to `DIALOGUE.md`. |
 | ~~B3~~ | ✅ **ANSWERED 16:15 — the husband is `char_husband`**, option B, the ochre coat. `char_visitor_c` (plum jacket) is not him. |
 | B4 | **Is S18's pacing too fast?** 11s against a 25s script — both beats survive but it is compressed. Needs his ear |
 | B5 | **The gentleman's teeth** — the shipped plate has far more gold than the two caps he specified. CTO accepted it after three drifting attempts; say the word and it gets one more focused try |
