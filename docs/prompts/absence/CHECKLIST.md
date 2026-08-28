@@ -194,6 +194,32 @@ of this character edits this list; it does not reinvent it.
 
 ---
 
+## 🔑 ASSET IDS — mirrored onto main so a worktree clean cannot lose them
+
+Ids cannot be recovered. Files always can. A previous task's branch carried no
+commits at all and its ids survived only because they were copied out by hand.
+
+| What | Asset |
+|---|---|
+| S1 take 1 · silent | `5ea44262` |
+| S1 take 2 · Dupe speaks | `c8e60256` |
+| S2 take 1 · the accident | `56ace68c` |
+| S3 take 1 · **NG, porthole** — kept as an alternate | *(uncommitted, superseded)* |
+| S3 take 2 · with `loc_wall_pov_c` | `61198828` |
+| S4 take 1 · $2,000,000 wall POV | `6aa5bf40` |
+| `loc_wall_pov_c` — the no-people replacement plate | `48c69798` |
+| `char_gentleman` v2 — solo portrait, gold teeth not visible | `87afaa67` |
+| `char_gentleman` v3 — mouth open for the gold teeth | `5e5c2eaf` |
+| `char_grandmother` | `5dd23a87` |
+| `char_workman` | `15f60a4e` |
+| `char_husband` | `efb9cf29` |
+| `char_cleaner_rich` | `59470e23` |
+| `loc_mansion` | `93c52112` |
+| `prop_camera_rig` | `f9b9946e` |
+| `char_guard_private` | `dbd40616` |
+
+---
+
 ## 🔒 STORY FACTS — locked by the CEO, 2026-08-28. Every prompt must obey these.
 
 1. **Dupe cracked the wall himself, then called the workman to come and repair it.**
@@ -227,7 +253,7 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | S1 | Dupe cleans, greets, nobody answers. Title drop. | 20s | ✅ 2 takes — `5ea44262` `c8e60256` |
 | S2 | **The accident.** Dupe knocks the frame into the wall, takes the painting away. | 20s | ✅ **TAKE 1 DELIVERED** `56ace68c` · watched + verified · in Drive · sent to CEO |
 | S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | 🎬 **take 2 landed** `61198828` — fired with `loc_wall_pov_c` bound, awaiting collection + review. *Take 1 was NG: a porthole, because the flagged plate could not bind and the clip followed my prose instead. Kept as an alternate.* |
-| S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 📝 prompt written — [s4-s5.txt](s4-s5.txt) |
+| S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 🎬 **take 1 FIRED** `6aa5bf40` |
 | S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
 | S6 | **$20,000,000** — wall POV. 12–14 people, personal guards. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
 | S7 | **Valder arrives** and greets the gentleman in the white suit. | 20s | 📝 **ready to fire, no missing plates** — [s7-s9.txt](s7-s9.txt) |
