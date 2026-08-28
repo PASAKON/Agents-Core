@@ -1,3 +1,17 @@
+> ## 🎬 REVIEW TOOLING — use `scripts/video-see.sh` before spending eyes (CTO 05:35)
+> Built and merged (GH #121). Run these on every clip you file:
+> ```
+> bash scripts/video-see.sh screen <clip>...   # 0 tokens: cuts, freezes, spec, audio level
+> bash scripts/video-see.sh t1 <clip> -o <dir> # ~648 tokens: 12-frame contact sheet
+> ```
+> `screen` costs nothing and already caught two things eyes missed: S15b has
+> 2 cuts / 3 shots on a prompt that forbade cuts, and S1E's framing drifts on
+> a shot specified locked-off. **Max 3 clips per t1 run** — reviewing a pile in
+> one breath is how clip 7 gets judged on clip 3's face.
+>
+> Dialogue clips ALSO get transcribed (see the S15a block below). Ignore
+> whisper's "(dramatic music)" tag on silent clips — it mislabels room tone.
+
 > ## 🔁 RE-FIRE S15a — take 1 is a REJECT (CTO 05:20, found by transcript)
 > `absence-S15a-take1-35b4edd4.mp4`: Dupe **speaks the stage direction out
 > loud** — "Sorry, sir. With no idea what he is doing, I cracked it last hour."
