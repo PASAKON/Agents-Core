@@ -1,7 +1,9 @@
-⚠️ MENTIONS: names below are the WRITING convention. Some live Elements carry a
-`project_absence_` prefix (cleaner_c, valder, grandmother, workman, press_a/b) and
-`@gentleman_e` has no `char_`. CHECK THE ELEMENTS PANEL AND CORRECT AT PASTE TIME.
-See the MENTION MAP at the top of QUEUE.md.
+✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
+complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
+Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
+gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
+loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
+film on this account owns that id; this film's is @project_absence_char_valder.
 
 ===============================================================
 SCENE 2 — THE ACCIDENT · REDO
@@ -12,15 +14,15 @@ never moves otherwise, no cuts. Sound On · High.
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall only: white walls, orange cove light, terracotta
   terrazzo, chromium columns. Not the framing.
-@char_cleaner_c — Dupe: face, build, white uniform with orange trim, cap,
+@project_absence_char_cleaner_c — Dupe: face, build, white uniform with orange trim, cap,
   gold V at cap and chest.
-@prop_cart — the cart DESIGN: mop, orange bucket, bottles, ladder, gold V.
+@project_absence_prop_cart — the cart DESIGN: mop, orange bucket, bottles, ladder, gold V.
   ⚠️ CTO ref call: rack EMPTY at scene start (the painting only lands in it at
   [13s]); binding prop_cart_b here would show the painting aboard before it
   falls.
-@prop_valder_study — the painting's face: heavy impasto in ochre, rust, sage
+@project_absence_prop_valder_study — the painting's face: heavy impasto in ochre, rust, sage
   and cream, one long blade-scrape. Same canvas in every later scene.
-@absence-01-wall-crack — THE crack. Match it exactly: same length, same jagged
+@project_absence_loc_wall_crack — THE crack. Match it exactly: same length, same jagged
   path, same branch points, same chipped plaster. One crack, roughly a foot
   long. Never reinvent it.
 

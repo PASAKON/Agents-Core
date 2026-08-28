@@ -19,6 +19,51 @@
 > map to this section. It is a read-only five-minute job and it permanently
 > kills this whole class of failure. Report the list in your report too.
 
+> ## ✅ COMPLETE LIVE ELEMENT CENSUS — task-ead8a66e, 29 Aug, read via the
+> Elements panel `?elements=1` + per-term Search box (panel is virtualized —
+> a naive scroll under-reports; confirmed exhaustive by re-querying every
+> stem: absence, gentleman, cart, hall_big, wall_pov, mansion, registrar).
+> **54 elements scoped to THIS film.** (A separate `project_valder_*` family
+> — grandma/son/daughter/mother/father/press/crowd/guard/studio/valder —
+> also lives in this same account/project but belongs to a DIFFERENT film.
+> Do not tag it into any absence prompt.)
+>
+> **⚠️ GLOBAL-ID COLLISION — two different `char_valder` exist on this
+> account.** This film's Valder is `@project_absence_char_valder`. The other
+> project's is `@project_valder_char_valder`. A short `@char_valder` or
+> `@valder` will resolve to whichever one the account picks — never write the
+> short form; always the full confirmed id below.
+>
+> **BARE (no `project_absence_` prefix) — 8, all confirmed live:**
+> `@char_registrar` · `@gentleman_e` · `@char_gentleman_c` ·
+> `@loc_wall_pov_e` · `@loc_wall_pov_d` · `@loc_hall_big_e` ·
+> `@loc_mansion_b` · `@prop_cart_b`
+>
+> **PREFIXED `@project_absence_` — 46, confirmed live:**
+> - **Characters (27):** `char_cleaner` · `char_cleaner_c` (Dupe) ·
+>   `char_cleaner_rich` · `char_critic` · `char_critic_b` · `char_oldman` ·
+>   `char_student` · `char_student_b` · `char_student_c` · `char_visitor_a` ·
+>   `char_visitor_b` · `char_visitor_c` · `char_visitor_c_b` · `char_woman` ·
+>   `char_woman_b` · `char_woman_c` (parrot woman) · `char_husband` ·
+>   `char_workman` · `char_press` · `char_press_a` · `char_press_b` ·
+>   `char_guard_private` · `char_guard_valder_single` · `char_guard_valder_six` ·
+>   `char_gentleman` · `char_grandmother` · `char_grandma`
+> - **Locations (10):** `loc_hall_big` · `loc_hall_big_b` · `loc_hall_big_c` ·
+>   `loc_hall_big_d` · `loc_wall_pov` · `loc_wall_pov_b` · `loc_wall_pov_c` ·
+>   `loc_wall_crack` · `loc_mansion` · `loc_exterior`
+> - **Props (9):** `prop_cart` · `prop_tag` · `prop_painting` ·
+>   `prop_guard_uniform` · `prop_valder_study` · `prop_valder_vessel` ·
+>   `prop_valder_millstone` · `prop_valder_trap` · `prop_valder_chair`
+> - **Character (1, this film's Valder):** `char_valder`
+>
+> **What this means for firing today's queue:** the .txt files write bare
+> `@char_cleaner_c`, `@prop_cart` (S1/S2 only — correct, original cart IS
+> bare-scoped as `project_absence_prop_cart`... no — confirmed above it is
+> PREFIXED, not bare), `@char_oldman`, `@char_critic_b`, `@char_visitor_b`,
+> `@char_husband`, `@char_student_c`, `@char_woman`. **Every one of those
+> seven needs `project_absence_` prepended at paste time** — none of them
+> exist as a bare Element. Only the 8 listed above are genuinely bare.
+
 > ## 🔴 CEO OVERRIDE 22:35 — S15 IS NOW THE TOP PRIORITY (editor needs it)
 > The editor is waiting on S15. Jump the queue in this exact order:
 > 1. **NOW, in parallel with whatever video is rendering** — generate the

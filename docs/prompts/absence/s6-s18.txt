@@ -1,7 +1,9 @@
-⚠️ MENTIONS: names below are the WRITING convention. Some live Elements carry a
-`project_absence_` prefix (cleaner_c, valder, grandmother, workman, press_a/b) and
-`@gentleman_e` has no `char_`. CHECK THE ELEMENTS PANEL AND CORRECT AT PASTE TIME.
-See the MENTION MAP at the top of QUEUE.md.
+✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
+complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
+Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
+gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
+loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
+film on this account owns that id; this film's is @project_absence_char_valder.
 
 **THE ART CRITIC — `char_critic_b` — how she speaks.** She is HALF-CHINESE and
 her face reads Chinese. She speaks English fluently but with a Chinese accent —
@@ -50,10 +52,10 @@ REFERENCES — each with a job:
 @loc_wall_pov_e — THE FRAME ITSELF, match exactly: cracked glass, crack lines
   radiating from the dark point DEAD CENTRE, brass plaque low and
   MIRROR-REVERSED. Same frame as S3/S4/S11 — only the crowd changes.
-@char_critic_b @char_oldman @char_woman @char_student_c @char_visitor_a
-@char_visitor_b @char_gentleman_e — guests: faces, builds, costumes.
-@char_guard_private — the personal bodyguards: plain dark suit, hands loose.
-@char_cleaner_c — Dupe at the frame edge with his cart.
+@project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_student_c @project_absence_char_visitor_a
+@project_absence_char_visitor_b @gentleman_e — guests: faces, builds, costumes.
+@project_absence_char_guard_private — the personal bodyguards: plain dark suit, hands loose.
+@project_absence_char_cleaner_c — Dupe at the frame edge with his cart.
 
 The plaque now reads $20,000,000.
 
@@ -85,13 +87,13 @@ except the single centred frontal for Valder's quarter-smile.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall, red door at the vanishing point.
-@char_woman_c — THE PARROT WOMAN: cockatoo-crest of hair banded green, white
+@project_absence_char_woman_c — THE PARROT WOMAN: cockatoo-crest of hair banded green, white
   and blue; single saturated green garment with feather-cut panelling.
   Couture, not comic — no beak, no wings, no feathers, nothing costume.
-@prop_croc_bag — one genuine deep-burgundy crocodile handbag, in one hand.
-@char_gentleman_e — the rival: white suit, black cane with gold grip.
-@char_valder @char_guard_valder — standing (he never sits), warm smile.
-@char_critic_b — among the guests.
+@project_absence_prop_croc_bag — one genuine deep-burgundy crocodile handbag, in one hand.
+@gentleman_e — the rival: white suit, black cane with gold grip.
+@project_absence_char_valder @project_absence_char_guard_valder_six — standing (he never sits), warm smile.
+@project_absence_char_critic_b — among the guests.
 
 [0s] THE RED DOOR OPENS DEAD CENTRE and she enters ON THE AXIS, alone — no
 guards, nobody with her — walking straight toward the locked one-point frame
@@ -126,13 +128,13 @@ movement inside any setup.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall.
-@char_gentleman_e — bidder one: frontal single, dead centre, gold teeth.
-@char_woman_c — bidder two: frontal single, dead centre, identical framing.
+@gentleman_e — bidder one: frontal single, dead centre, gold teeth.
+@project_absence_char_woman_c — bidder two: frontal single, dead centre, identical framing.
 @char_registrar — locked side profile at the frame edge, writing each number
   in the ledger, pen scratching, face empty.
-@char_valder — midframe behind, watching, delighted, the warm ingratiating
+@project_absence_char_valder — midframe behind, watching, delighted, the warm ingratiating
   smile at full power.
-@char_critic_b @char_cleaner_c — edges.
+@project_absence_char_critic_b @project_absence_char_cleaner_c — edges.
 
 CEO owns the numbers; he confirmed the parrot woman ends on eighty.
 
@@ -173,13 +175,13 @@ hundred-million sale broke instantly as news, and the world has just arrived.
 
 REFERENCES — each with a job:
 @loc_wall_pov_e — THE FRAME ITSELF, match exactly, as S3/S4/S6.
-@char_press_a @char_press_b — two journalists with a single shoulder-mounted
+@project_absence_char_press_a @project_absence_char_press_b — two journalists with a single shoulder-mounted
   retrofuturist film camera, filming the crack directly, at the two frame
   edges like bookends.
-@char_critic_b @char_oldman @char_woman @char_woman_c @char_gentleman_e —
+@project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_woman_c @gentleman_e —
   guests, one saturated colour each.
-@char_guard_private @char_guard_valder — the guards' rank.
-@char_cleaner_c — Dupe, still at the edge, still cleaning.
+@project_absence_char_guard_private @project_absence_char_guard_valder_six — the guards' rank.
+@project_absence_char_cleaner_c — Dupe, still at the edge, still cleaning.
 
 The plaque now reads $100,000,000.
 
@@ -216,15 +218,15 @@ superseded.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall, red door at the vanishing point.
-@char_grandmother — deep violet throughout: cloth over head and shoulders
+@project_absence_char_grandmother — deep violet throughout: cloth over head and shoulders
   covering the hair completely, plain long coat, LARGE DARK RECTANGULAR
   SMOKED GLASSES that make her eyes unreadable. No jewellery, no fur, no
   gold. Plainly not as rich as the room. She drives a RETROFUTURIST ELECTRIC
   WHEELCHAIR — brushed aluminium and cream, big rear wheels, small front
   castors, a pod of chunky physical buttons under her right hand — HERSELF.
-@char_gentleman_e @char_woman_c — the two rivals, planted.
-@char_valder @char_guard_valder — standing, smiling.
-@char_cleaner_c — Dupe at the edge.
+@gentleman_e @project_absence_char_woman_c — the two rivals, planted.
+@project_absence_char_valder @project_absence_char_guard_valder_six — standing, smiling.
+@project_absence_char_cleaner_c — Dupe at the edge.
 
 [0s] THE RED DOOR OPENS dead centre at the vanishing point. A beat — the
 doorway reads EMPTY at eye height, because she sits below the sightline. A
@@ -298,13 +300,13 @@ workman is so startled he drops the plaster.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall, the crack and plaque on the axis.
-@char_workman — slate-blue overalls, bucket and float, at the wall.
-@char_valder — panelled jacket. THE ONLY MOMENT IN THE FILM THE SMILE IS
+@project_absence_char_workman — slate-blue overalls, bucket and float, at the wall.
+@project_absence_char_valder — panelled jacket. THE ONLY MOMENT IN THE FILM THE SMILE IS
   GONE.
-@char_gentleman_e @char_woman_c @char_grandmother @char_registrar — the
+@gentleman_e @project_absence_char_woman_c @project_absence_char_grandmother @char_registrar — the
   buyers and the official, planted mid-room.
-@char_press_a @char_press_b — filming from the edges.
-@char_cleaner_c — Dupe at the far edge, mid-stroke, watching.
+@project_absence_char_press_a @project_absence_char_press_b — filming from the edges.
+@project_absence_char_cleaner_c — Dupe at the far edge, mid-stroke, watching.
 
 [0s] Locked symmetrical wide, crack and plaque dead centre. THE WORKMAN,
 back from the service door, stands at the wall — he dips the float in the
@@ -347,18 +349,18 @@ continues on the same frame, same light, same positions.
 
 REFERENCES — 10 chips, each with a job:
 @loc_hall_big_e — the hall.
-@char_cleaner_c — DUPE: the subject. White uniform, orange trim, gold V,
+@project_absence_char_cleaner_c — DUPE: the subject. White uniform, orange trim, gold V,
   mop in hand.
 @prop_cart_b — his cart at the edge, painting face-out.
-@char_valder — between the workman and the wall, mid-fury.
-@char_workman — slate-blue overalls, bucket and float, AT THE WALL. Dupe
+@project_absence_char_valder — between the workman and the wall, mid-fury.
+@project_absence_char_workman — slate-blue overalls, bucket and float, AT THE WALL. Dupe
   puts himself in front of THIS man — he must be in frame or the shield
   reads as nothing.
-@char_grandmother — in the wheelchair, present but SILENT this half; she
+@project_absence_char_grandmother — in the wheelchair, present but SILENT this half; she
   speaks in S15b.
 @char_registrar — ivory livery, white gloves, the ledger. Present, still.
-@char_gentleman_e — the room, planted at the frame edge.
-@char_press_a @char_press_b — FILMING ALL OF THIS — the confession goes out
+@gentleman_e — the room, planted at the frame edge.
+@project_absence_char_press_a @project_absence_char_press_b — FILMING ALL OF THIS — the confession goes out
   live (CEO: press arrived after the sale, before the reveal). This
   broadcast is why the world knows Dupe's face by S18.
 
@@ -449,12 +451,12 @@ cuts. NO DIALOGUE.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall, later.
-@char_workman — one of the two workmen (the other matches him in plain
+@project_absence_char_workman — one of the two workmen (the other matches him in plain
   overalls, no face priority).
-@char_valder — CENTRED FOREGROUND, BACK TO CAMERA — a still silhouette.
-@char_press_a @char_press_b — filming the saw from the edge.
-@char_guard_valder — keeping a respectful distance from a piece of plaster.
-@char_cleaner_c — Dupe apart, holding his mop, not helping.
+@project_absence_char_valder — CENTRED FOREGROUND, BACK TO CAMERA — a still silhouette.
+@project_absence_char_press_a @project_absence_char_press_b — filming the saw from the edge.
+@project_absence_char_guard_valder_six — keeping a respectful distance from a piece of plaster.
+@project_absence_char_cleaner_c — Dupe apart, holding his mop, not helping.
 
 [0s] Locked symmetrical wide: a square line ruled around the crack sits dead
 centre; TWO WORKMEN mirror each other left and right of it, cutting the wall
@@ -485,7 +487,7 @@ one-point frame, the camera never moves, no cuts. NO DIALOGUE.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall, empty and quiet.
-@char_visitor_a — THE SAME MAN who stepped back from the crack in Scene 4
+@project_absence_char_visitor_a — THE SAME MAN who stepped back from the crack in Scene 4
   (CEO-confirmed): ordinary balding man in the oxblood leather suit. The
   film's first and last viewer.
 
@@ -521,9 +523,9 @@ them, so nothing is lost.
 REFERENCES — each with a job:
 @loc_mansion_b — his house: warm daylight through tall windows, sunken plum
   seating, warm wood, everything beautiful and chosen by somebody else.
-@char_cleaner_rich — DUPE in a deep teal suit that fits him perfectly and
+@project_absence_char_cleaner_rich — DUPE in a deep teal suit that fits him perfectly and
   that he is not comfortable in.
-@prop_camera_rig — the retrofuturist television camera on a rolling
+@project_absence_prop_camera_rig — the retrofuturist television camera on a rolling
   pedestal, nosing in from one frame edge as a foreground prop.
 @prop_cart_b — his old cleaning cart in the corner on the axis, gold V and
   all — the only object in the room that is his.
@@ -560,7 +562,7 @@ camera never moves, no cuts. NO DIALOGUE.
 REFERENCES — each with a job:
 @loc_mansion_b — the same house, a different room: a fresh white wall,
   nothing on it.
-@char_cleaner_rich — DUPE, same deep teal suit, TINY at dead centre.
+@project_absence_char_cleaner_rich — DUPE, same deep teal suit, TINY at dead centre.
 
 Do not cut this shot to save time. The whole film is a man who broke
 something by accident being told he meant it. This is the only moment he

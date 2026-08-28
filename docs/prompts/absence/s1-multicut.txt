@@ -1,7 +1,9 @@
-⚠️ MENTIONS: names below are the WRITING convention. Some live Elements carry a
-`project_absence_` prefix (cleaner_c, valder, grandmother, workman, press_a/b) and
-`@gentleman_e` has no `char_`. CHECK THE ELEMENTS PANEL AND CORRECT AT PASTE TIME.
-See the MENTION MAP at the top of QUEUE.md.
+✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
+complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
+Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
+gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
+loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
+film on this account owns that id; this film's is @project_absence_char_valder.
 
 15s · 720p · 16:9 · TWO LONG TAKES WITH EXACTLY ONE JUMP CUT BETWEEN THEM —
 no other cuts, no zoom, no dissolve.
@@ -10,7 +12,7 @@ no other cuts, no zoom, no dissolve.
 SCENE 1 — THE CLEANER · Dupe-POV opening · house template 2026-08-28
 ================================================================
 REFERENCES — each with its job:
-@project_absence_loc_hall_big_e — the room: columns, red door, cove light,
+@loc_hall_big_e — the room: columns, red door, cove light,
   terrazzo. Controls place and light only.
 @project_absence_char_cleaner_c — DUPE: face, build, moustache, uniform, cap.
 @project_absence_prop_cart — the cart, RACK EMPTY. Controls the object only.

@@ -1,7 +1,9 @@
-⚠️ MENTIONS: names below are the WRITING convention. Some live Elements carry a
-`project_absence_` prefix (cleaner_c, valder, grandmother, workman, press_a/b) and
-`@gentleman_e` has no `char_`. CHECK THE ELEMENTS PANEL AND CORRECT AT PASTE TIME.
-See the MENTION MAP at the top of QUEUE.md.
+✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
+complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
+Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
+gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
+loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
+film on this account owns that id; this film's is @project_absence_char_valder.
 
 ===============================================================
 SCENE 13a — THE BACK DOOR · THE OFFER · PART 1 OF 2
@@ -12,13 +14,13 @@ cut on exchanges, no camera movement inside any setup. Sound On · High.
 ⚠️ SPLIT 22:45 (CEO): 20s is the hard ceiling. S13 is now S13a + S13b.
 
 REFERENCES — each with a job:
-@loc_exterior — the museum's SERVICE side: plain concrete, exposed pipework,
+@project_absence_loc_exterior — the museum's SERVICE side: plain concrete, exposed pipework,
   steel service door, delivery bay, two bins. The beautiful building from
   behind, where nobody photographs it.
-@char_valder — face, silver hair, panelled jacket, scarlet waistcoat, mustard
+@project_absence_char_valder — face, silver hair, panelled jacket, scarlet waistcoat, mustard
   scarf, mismatched shoes. He stands perfectly straight and SMILES the warm
   ingratiating smile the entire scene — it never once changes.
-@char_workman — face, slate-blue overalls, bucket and float in hand.
+@project_absence_char_workman — face, slate-blue overalls, bucket and float in hand.
 
 CTO-drafted dialogue (CEO may cut any line). Valder is not covering a crime —
 he BELIEVES the crack is the finest thing he owns; to him this is a rescue,
