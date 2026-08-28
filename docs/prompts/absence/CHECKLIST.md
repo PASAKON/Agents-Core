@@ -211,7 +211,7 @@ commits at all and its ids survived only because they were copied out by hand.
 | `loc_wall_pov_c` — the no-people replacement plate | `48c69798` |
 | `char_gentleman` v2 — solo portrait, gold teeth not visible | `87afaa67` |
 | `char_gentleman_c` v3 — mouth open, but **a full gold grill, not two caps** | `5e5c2eaf` |
-| `char_gentleman_d` v4 — exactly two gold caps | *(firing)* |
+| `char_gentleman_d` v4 — **rejected, never filed** | `5c3df52d` |
 | `char_grandmother` | `5dd23a87` |
 | `char_workman` | `15f60a4e` |
 | `char_husband` | `efb9cf29` |
@@ -233,13 +233,28 @@ not answer. Getting the count wrong changes who the character is.
 | v1 (original) | 3 people in one plate → **terminal Face/IP death** |
 | v2 `87afaa67` | solo portrait, correct in everything — but **mouth closed, no gold visible** |
 | v3 `5e5c2eaf` | mouth open — but **essentially the whole upper row in gold**, reads as a grill, wrong register for a refined elderly Englishman |
-| v4 | firing: **exactly two adjacent upper front teeth capped, every other tooth natural** |
+| v4 `5c3df52d` | **REJECTED, not filed.** Undershot to ONE gold tooth — and also grew an unrequested mustache and changed the suit to a three-piece with black shoes. The model was drifting, not converging. |
 
-**`char_gentleman_c` (v3) is filed and usable**, so this is not a blocker — if v4
-lands worse, c is the fallback and S7/S8/S10 can shoot on it. Only the tooth
-count is in question; everything else in v3 passed: white Savile Row
-double-breasted suit, black cane with a gold grip, small and elderly, warm not
-sinister, four panels with the back view, no gold V.
+### 🟡 CTO DECISION 10:52 — we ship v3, `char_gentleman_c`. **CEO may overrule.**
+
+Three attempts moved the tooth count from none, to all, to one, while v4 also
+invented a mustache and a different suit. The model is drifting rather than
+converging, so a fourth try is more likely to break something else than to land
+two caps.
+
+**What we are shipping and what is wrong with it:** `char_gentleman_c` is correct
+on every other line — white Savile Row double-breasted suit, black cane with a
+gold grip, small and elderly, warm and not sinister, four panels with the back
+view, no gold V — but **the smile shows far more gold than the two caps the CEO
+specified.**
+
+**Why I accepted it rather than keep firing:** five clips have been blocked on
+this plate since morning, and at video scale a brief smile flash reads as gold
+teeth either way. Logging it plainly instead of hiding it — if the CEO wants the
+two-cap version, say so and it gets one more focused attempt.
+
+*Soft spot the operator flagged and could not resolve at render resolution: the
+diamond ring's sparkle. Worth the CEO eyeballing.*
 
 ---
 
