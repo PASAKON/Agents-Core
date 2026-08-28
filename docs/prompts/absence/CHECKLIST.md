@@ -241,7 +241,7 @@ looks fine until you watch it, which is exactly how S3 take 1 became a porthole.
 |---|---|---|
 | `loc_wall_pov_b` | six people in a *location* shot | terminal → fixed by regenerating the location **with nobody in it** (`loc_wall_pov_c`) |
 | `char_gentleman` | three — the man plus two bodyguards | terminal → fixed as a **solo portrait** (`char_gentleman_c`) |
-| `char_press` | two journalists | terminal → **splitting into `char_press_a` and `char_press_b`, one face each** (`task-6d6361ed`) |
+| `char_press` | two journalists | terminal → **split into `char_press_a` `feb18927` and `char_press_b` `f4498e2b`, one face each. Both passed FIRST ATTEMPT, neither flagged** — the rule works. |
 
 **The trigger is the number of human faces in a single plate.** Every fix that
 worked reduced the face count. **Design every future plate with one face**, and
@@ -253,7 +253,11 @@ eligibility" is a pending re-check and usually clears. A tooltip reading *"Face/
 failed — … cannot be used. Try another."* with **no button** is final; nothing in
 the UI clears it and hunting for a control only burns the render window.
 
-`char_press` blocks **S11, S12 and S16**.
+**`char_press` blocked S11, S12 and S16 — now unblocked.** Bind BOTH `char_press_a`
+and `char_press_b` wherever a prompt says `char_press`; that is two chips where
+the prompt implies one.
+
+**Nothing in the film is blocked on a plate any more.**
 
 ---
 
