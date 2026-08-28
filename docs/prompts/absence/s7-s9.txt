@@ -128,39 +128,62 @@ smile completely unchanged. Do not show what he is looking at.
 AUDIO: room tone, his voice, the crowd's feet parting, no music.
 
 ===============================================================
-SCENE 8c — THE SIXTH STORY · THE PIVOT OF THE FILM
+SCENE 8c — THE SIXTH STORY · PART 1 OF 2 · THE PIVOT OF THE FILM
 ===============================================================
-25s · 720p · 16:9 · ONE SHOT, ONE MOVE — the slowest possible push-in dead on
-the axis, running the entire 25 seconds, medium to close. No cuts, no
-handheld. Sound On · High.
+20s · 720p · 16:9 · ONE SHOT, ONE MOVE — the slowest possible push-in dead
+on the axis running the whole clip, medium. No cuts, no handheld.
+
+⚠️ SPLIT 22:45 (CEO): 20s is the hard ceiling. The pivot is now S8c + S8d,
+one unbroken push across both. No line was cut.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall, the bare wall with the crack and brass plaque.
-@char_valder — straight, smiling. He is NOT lying and must never be played as
-  lying — every word is true, he has only rearranged them; by the last line
-  he believes it himself.
+@char_valder — straight, smiling. He is NOT lying and must never be played
+  as lying — every word is true, he has only rearranged them.
 @char_gentleman_e @char_woman @char_critic_b @char_oldman — parted guests in
   symmetrical rows forming the corridor.
 @char_cleaner_c — Dupe, far edge.
 
-[0s] Continue exactly where 8b ended: Valder dead centre, frontal, hand still
-raised, facing the bare wall with the crack. The painting is gone. HIS SMILE
-DOES NOT CHANGE. He does not flinch, does not blink hard, does not look at
-anyone. HE IS SILENT — two seconds, three. The hand stays up. The whole room
-waits. This silence is the most important beat in the scene; hold it.
+[0s] Continue exactly where 8b ended: Valder dead centre, frontal, hand
+still raised, facing the bare wall with the crack. The painting is gone. HIS
+SMILE DOES NOT CHANGE. He does not flinch, does not blink hard, does not
+look at anyone. HE IS SILENT — two seconds, three. The hand stays up. The
+whole room waits. This silence is the most important beat in the scene; hold
+it.
 
-[4s] Then he speaks on IN EXACTLY THE SAME VOICE he used for the other five —
-same pace, same warmth, same certainty: "And this one." A breath. "I did not
-commission it. I did not buy it."
+[6s] Then he speaks on IN EXACTLY THE SAME VOICE he used for the other five
+— same pace, same warmth, same certainty: "And this one." A breath. "I did
+not commission it. I did not buy it."
 
-[10s] Still warm, still even: "It happened to my wall while nobody was
-looking." A beat. "Every other thing in this room, someone decided to make."
+[13s] Still warm, still even, the hand still in the air: "It happened to my
+wall while nobody was looking." END on his face inside the push, hand up,
+smile unchanged.
 
-[15s] Quieter, believing it now: "That one decided by itself." A pause.
+(19 spoken words.)
 
-[19s] Softest of all: "I have been collecting for forty years to find
-something that did not need me." THE RAISED HAND LOWERS, SLOWLY. The push
-settles close on the unchanged smile. Hold.
+AUDIO: room tone, his voice alone, no music.
+
+===============================================================
+SCENE 8d — THE SIXTH STORY · PART 2 OF 2
+===============================================================
+20s · 720p · 16:9 · CONTINUES S8c UNBROKEN — the same slow push-in, now
+medium to close, running the whole clip. No cuts, no handheld.
+
+REFERENCES — same as S8c, same jobs. Nobody has moved; the hand is still up.
+
+[0s] Hold exactly where S8c ended. Same voice, no escalation: "Every other
+thing in this room, someone decided to make." A beat.
+
+[6s] Quieter, believing it now: "That one decided by itself." A pause — let
+the room sit in it.
+
+[12s] Softest of all, and this is the line the film turns on: "I have been
+collecting for forty years to find something that did not need me."
+
+[17s] THE RAISED HAND LOWERS, SLOWLY. The push settles close on the
+unchanged smile. Hold. By this line he believes it himself. Cut.
+
+(26 spoken words.)
 
 AUDIO: room tone, his voice alone, no music.
 

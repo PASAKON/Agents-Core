@@ -199,11 +199,12 @@ helicopter inside the building, no weapons, no large crack, no un-mirrored
 plaque text. + house negatives.
 
 ===============================================================
-SCENE 12 — THE GRANDMOTHER
+SCENE 12a — THE GRANDMOTHER ARRIVES · PART 1 OF 2
 ===============================================================
-25s · 720p · 16:9 · NUMBERED SETUPS — empty-door hold, axis advance, ONE low
-lateral dolly at wheelchair height, locked wide for the bid, ONE fast chain
-of three 90-degree whip pans, frozen tableau. Nothing handheld.
+20s · 720p · 16:9 · empty-door hold → axis advance → ONE low lateral dolly
+at wheelchair height. Nothing handheld.
+
+⚠️ SPLIT 22:45 (CEO): 20s is the hard ceiling. S12 is now S12a + S12b.
 
 ⚠️ USE `char_grandmother`. NOT `char_grandma` — the other plate is
 superseded.
@@ -216,42 +217,70 @@ REFERENCES — each with a job:
   gold. Plainly not as rich as the room. She drives a RETROFUTURIST ELECTRIC
   WHEELCHAIR — brushed aluminium and cream, big rear wheels, small front
   castors, a pod of chunky physical buttons under her right hand — HERSELF.
-@char_gentleman_e @char_woman_c — the two beaten rivals, planted.
+@char_gentleman_e @char_woman_c — the two rivals, planted.
 @char_valder @char_guard_valder — standing, smiling.
-@char_registrar — ivory livery, white gloves, the ledger.
-@char_cleaner_c — Dupe at the edge, mid-stroke.
+@char_cleaner_c — Dupe at the edge.
 
 [0s] THE RED DOOR OPENS dead centre at the vanishing point. A beat — the
 doorway reads EMPTY at eye height, because she sits below the sightline. A
-squeak of wheels. Deadpan hold. Then she rolls into view tiny on the
-centreline and advances down the axis, driving straight through the middle of
-them. EVERY HEAD TRACKS HER IN UNISON.
+squeak of wheels. Deadpan hold, one beat too long.
 
-[7s] ONE LOW LATERAL DOLLY at wheelchair height, exact profile, gliding with
-her past the planted guests. She does not look at the gentleman. She does not
-look at the parrot woman. She stops in front of the crack and looks at it for
-a long moment.
+[5s] She rolls into view tiny on the centreline and advances down the axis,
+driving straight through the middle of them. EVERY HEAD TRACKS HER IN
+UNISON — one synchronized turn, then stillness.
 
-[13s] Locked one-point wide: she raises one hand, barely — the smallest bid
-in the room — and says it level, without emotion: "A hundred million."
-NOBODY COUNTERS. A silence with money in it.
+[10s] ONE LOW LATERAL DOLLY at wheelchair height, exact profile, gliding
+with her past the planted guests. She does not look at the gentleman. She
+does not look at the parrot woman.
 
-[18s] THE REGISTRAR steps forward, writes the number, and CLOSES THE LEDGER —
-a soft leather clap, the only gavel this film has. SOLD. Then ONE FAST CHAIN
-OF 90-DEGREE WHIP PANS: guard → Valder → Dupe, each landing on a perfectly
-centred frontal face, each held half a beat — the guard's face slack with
-surprise, Valder delighted, and Dupe STOPPED MID-STROKE, staring, the only
-person in the building who knows what she has just bought.
+[16s] She stops in front of the crack and looks at it for a long moment.
+Hold on her stillness. Cut.
 
-[23s] End: the whole room in a frozen class-photo tableau. Hold too long.
+AUDIO: wheel squeak, room tone of a full room, no music. NO DIALOGUE.
 
-AUDIO: wheel squeak, her single line, the pen, the ledger's soft clap, no
+CRITICAL NEGATIVES: no dialogue in this half, no one pushing her chair, no
+nurse or carer, no hospital or medical equipment, no joystick, no jewellery
+or fur or gold on her, no black as her main colour, no crowd beyond sixteen
+people. + house negatives.
+
+===============================================================
+SCENE 12b — A HUNDRED MILLION · PART 2 OF 2
+===============================================================
+20s · 720p · 16:9 · CONTINUES S12a UNBROKEN — locked one-point wide, then
+ONE fast chain of three 90-degree whip pans, then frozen tableau. Nothing
+handheld.
+
+REFERENCES — as S12a, PLUS:
+@char_registrar — ivory livery, white gloves, the ledger. His ledger-close
+  is the only gavel this film has.
+
+[0s] Hold exactly where S12a ended, now in the locked one-point wide: she
+sits dead centre in front of the crack, the room behind her. She raises one
+hand, barely — the smallest bid in the room — and says it level, without
+emotion: "A hundred million."
+
+[6s] NOBODY COUNTERS. A silence with money in it. Hold it far past
+comfortable — the silence is the sale.
+
+[10s] THE REGISTRAR steps forward, writes the number, and CLOSES THE LEDGER
+— a soft leather clap, the only gavel this film has. SOLD.
+
+[13s] ONE FAST CHAIN OF 90-DEGREE WHIP PANS: guard → Valder → Dupe, each
+landing on a perfectly centred frontal face, each held half a beat — the
+guard's face slack with surprise, Valder delighted, and Dupe STOPPED
+MID-STROKE, staring, the only person in the building who knows what she has
+just bought.
+
+[18s] End: the whole room in a frozen class-photo tableau. Hold too long.
+
+(3 spoken words.)
+
+AUDIO: her single line, the pen, the ledger's soft clap, room tone, no
 music.
 
-CRITICAL NEGATIVES: no auctioneer, no gavel object, no podium, no paddles, no
-one pushing her chair, no nurse or carer, no hospital or medical equipment,
-no joystick, no jewellery or fur or gold on her, no black as her main colour,
-no crowd beyond sixteen people. + house negatives.
+CRITICAL NEGATIVES: no dialogue beyond her one line, no auctioneer, no gavel
+object, no podium, no paddles, no re-staging (positions must match S12a), no
+crowd beyond sixteen people. + house negatives.
 
 ===============================================================
 SCENE 14 — THE SCREAM · new prompt, CEO's line verbatim
@@ -301,32 +330,36 @@ anyone, no crowd beyond fourteen people, no Valder smiling in this scene. +
 house negatives.
 
 ===============================================================
-SCENE 15 — DUPE CONFESSES
+SCENE 15a — DUPE CONFESSES · PART 1 OF 2
 ===============================================================
-25s · 720p · 16:9 · axis run-in, then ONE clean slow push-in on Dupe —
+20s · 720p · 16:9 · axis run-in, then ONE clean slow push-in on Dupe —
 frontal, almost into the lens; unison reactions at the edges. Handheld is
 banned.
 
-REFERENCES — each with a job:
+⚠️ SPLIT 22:45 (CEO): 25s is not available — 20s is the ceiling. S15 is now
+TWO clips, S15a + S15b, 40s of screen time total. No line was cut. S15b
+continues on the same frame, same light, same positions.
+
+REFERENCES — 10 chips, each with a job:
 @loc_hall_big_e — the hall.
 @char_cleaner_c — DUPE: the subject. White uniform, orange trim, gold V,
   mop in hand.
 @prop_cart_b — his cart at the edge, painting face-out.
 @char_valder — between the workman and the wall, mid-fury.
-@char_grandmother — the buyer, in the wheelchair.
-@char_registrar — ivory livery, white gloves, the ledger.
 @char_workman — slate-blue overalls, bucket and float, AT THE WALL. Dupe
   puts himself in front of THIS man — he must be in frame or the shield
   reads as nothing.
+@char_grandmother — in the wheelchair, present but SILENT this half; she
+  speaks in S15b.
+@char_registrar — ivory livery, white gloves, the ledger. Present, still.
 @char_gentleman_e — the room, planted at the frame edge.
 @char_press_a @char_press_b — FILMING ALL OF THIS — the confession goes out
   live (CEO: press arrived after the sale, before the reveal). This
   broadcast is why the world knows Dupe's face by S18.
 
-⚠️ REF BUDGET (CTO 22:35): trimmed to 10 chips. `char_woman` and
-`char_critic_b` are DROPPED from the reference list and play as unnamed
-background guests in the rows — twelve chips reliably turns to mush, and
-they have no action in this scene. Do not re-add them.
+`char_woman` and `char_critic_b` are DROPPED from the reference list and play
+as unnamed background guests in the rows — twelve chips reliably turns to
+mush and they have no action here. Do not re-add them.
 
 [0s] The workman at the wall with bucket and float; Valder between him and
 the crack, still mid-rage. DUPE RUNS IN ALONG THE AXIS from the frame edge
@@ -341,33 +374,67 @@ room turns to him. He stands there in a white uniform, holding a mop, having
 just told the truth to a room that paid a hundred million dollars for it.
 The slow push-in on him begins.
 
-[10s] The room absorbs it — not shock, recalculation: heads tilt IN UNISON
+[11s] The room absorbs it — not shock, recalculation: heads tilt IN UNISON
 at the frame edges, eyes move from him to the crack and back. One of them
 nods slowly, the way people nod when they have decided something is
-profound. Then A VOICE FROM THE CROWD — off-axis, nobody shown speaking
-(CEO chose not to give this line a face): "Then the artist is the building."
+profound.
 
-[16s] The squeak of wheels in the silence. THE GRANDMOTHER rolls forward
-until she is beside Dupe, looks up at the crack, then at him. Level: "I was
-not buying a wall." Then, to Dupe: "One hundred million. For the artist."
-(CTO-drafted lines — CEO confirmed the mechanism: the money goes to DUPE,
-not Valder. She bid on an artwork; the maker just confessed; she pays the
-maker.)
+[16s] A VOICE FROM THE CROWD — off-axis, nobody shown speaking (CEO chose
+not to give this line a face): "Then the artist is the building." END on
+Dupe's centred face inside the push, mouth slightly open, no reply.
 
-[21s] THE REGISTRAR opens the ledger, strikes one line, writes another, and
-closes it a second time — the soft clap. Cash settles authorship. END ON
-DUPE'S CENTRED FACE, one beat past comfortable — a man who told the truth
-expecting punishment and received a hundred million dollars. He does not
-understand. He never will.
+(13 spoken words.)
 
-AUDIO: his breathing, the wheel squeak, the pen, the ledger clap, room tone,
-no music.
+AUDIO: his breathing, room tone, the press camera's motor, no music.
 
-CRITICAL NEGATIVES: no dialogue beyond the five lines written above, no
-anyone laughing, no anyone shouting at him, no anyone grabbing him, no
-violence, no security removing him, no police, no comic reaction, no
-slapstick, no crowd beyond twelve people, no painting on the hero wall, no
-face shown for the crowd voice. + house negatives.
+CRITICAL NEGATIVES: no dialogue beyond the three lines written above, no
+grandmother speaking in this half, no anyone laughing, no anyone shouting at
+him, no anyone grabbing him, no violence, no security removing him, no
+police, no comic reaction, no slapstick, no crowd beyond twelve people, no
+painting on the hero wall, no face shown for the crowd voice. + house
+negatives.
+
+===============================================================
+SCENE 15b — THE MONEY FINDS THE ARTIST · PART 2 OF 2
+===============================================================
+20s · 720p · 16:9 · CONTINUES S15a UNBROKEN — same frame, same light, same
+positions, the push-in already close on Dupe. ONE low move with the
+wheelchair, then locked. Handheld is banned.
+
+REFERENCES — same 10 chips as S15a, same jobs. Continuity is the whole
+point: nobody has moved between the two clips.
+
+[0s] Hold exactly where S15a ended: Dupe centred, the room silent, every
+face still turned to him. Then THE SQUEAK OF WHEELS in the silence.
+
+[3s] THE GRANDMOTHER rolls forward until she is beside Dupe — a low move
+with her, at wheelchair height, then locked. She looks up at the crack, then
+at him. Level, no emotion: "I was not buying a wall."
+
+[9s] She turns her head to Dupe and says it directly to him, exactly as
+flatly as she bid: "One hundred million. For the artist." (CTO-drafted lines
+— CEO confirmed the mechanism: the money goes to DUPE, not Valder. She bid
+on an artwork; the maker just confessed; she pays the maker.)
+
+[14s] THE REGISTRAR opens the ledger, strikes one line, writes another, and
+closes it a second time — the soft clap. Cash settles authorship. In the
+same beat, VALDER'S FACE at the frame edge: the warm smile still there,
+holding on nothing.
+
+[17s] END ON DUPE'S CENTRED FACE, one beat past comfortable — a man who told
+the truth expecting punishment and received a hundred million dollars. He
+does not understand. He never will. Cut.
+
+(12 spoken words.)
+
+AUDIO: the wheel squeak, her two lines, the pen, the ledger's soft clap,
+room tone, no music.
+
+CRITICAL NEGATIVES: no dialogue beyond the grandmother's two lines, no Dupe
+speaking in this half, no Dupe smiling, no celebration, no applause, no
+handshake, no anyone touching Dupe, no crowd beyond twelve people, no
+painting on the hero wall, no re-staging (positions must match S15a). +
+house negatives.
 
 ===============================================================
 SCENE 16 — THEY SAW THE WALL OUT
@@ -437,14 +504,17 @@ hole has replaced it), no rope barrier, no stanchions, no press, no guards.
 + house negatives.
 
 ===============================================================
-SCENE 18 — THE INTERVIEW, THEN THE HAMMER
+SCENE 18a — THE INTERVIEW · PART 1 OF 2
 ===============================================================
-25s · 720p · 16:9 · TWO LOCKED SETUPS WITH EXACTLY ONE CUT between them —
-Shot 1 the interview, Shot 2 the white wall. Nothing moves but him, in
-either.
+20s · 720p · 16:9 · ONE LOCKED FRONTAL SETUP — the camera never moves, no
+cuts.
+
+⚠️ SPLIT 22:45 (CEO): 20s is the hard ceiling. The film's last beat is now
+two clips; they were always two separate setups with a hard cut between
+them, so nothing is lost.
 
 REFERENCES — each with a job:
-@loc_mansion — his house: warm daylight through tall windows, sunken plum
+@loc_mansion_b — his house: warm daylight through tall windows, sunken plum
   seating, warm wood, everything beautiful and chosen by somebody else.
 @char_cleaner_rich — DUPE in a deep teal suit that fits him perfectly and
   that he is not comfortable in.
@@ -453,34 +523,58 @@ REFERENCES — each with a job:
 @prop_cart_b — his old cleaning cart in the corner on the axis, gold V and
   all — the only object in the room that is his.
 
-Shot 1 — THE INTERVIEW:
 [0s] Locked frontal symmetric frame at waist height: Dupe dead centre on the
 sunken plum sofa, hands together in his lap, facing camera; the camera rig
-noses in from one edge; the old cart on the axis behind him. A reporter just
-out of frame asks, off: "How did you know?"
+noses in from one edge; the old cart on the axis behind him. He does not
+know what to do with his hands.
 
-[5s] He answers flatly, telling the same truth he has told all along: "I
-dropped a painting." The reporter nods slowly, moved, and writes something
-else down. Hold his unchanged face.
+[6s] A reporter just out of frame asks, off: "How did you know?"
 
-=== CUT ===
+[10s] He answers flatly, telling the same truth he has told all along: "I
+dropped a painting."
 
-Shot 2 — THE WALL:
-[10s] A vast, perfectly symmetrical white frame: Dupe TINY at dead centre in
+[14s] The reporter nods slowly, moved, and writes something else down. HOLD
+on Dupe's unchanged face — he is not being modest, he is being accurate, and
+nobody in the room can hear it. Cut.
+
+(9 spoken words.)
+
+AUDIO: room tone, the pen, the camera rig's motor, no music.
+
+CRITICAL NEGATIVES: no dialogue beyond the two lines, no smiling, no
+triumph, no tears, no crowd, no audience, no studio lights in frame, no
+microphones on stands, no boom, no gold V on his suit, no jewellery, no
+watch, no hammer in this half. + house negatives.
+
+===============================================================
+SCENE 18b — THE HAMMER · PART 2 OF 2 · LAST SHOT OF THE FILM
+===============================================================
+20s · 720p · 16:9 · ONE LOCKED SHOT — a vast symmetrical white frame, the
+camera never moves, no cuts. NO DIALOGUE.
+
+REFERENCES — each with a job:
+@loc_mansion_b — the same house, a different room: a fresh white wall,
+  nothing on it.
+@char_cleaner_rich — DUPE, same deep teal suit, TINY at dead centre.
+
+Do not cut this shot to save time. The whole film is a man who broke
+something by accident being told he meant it. This is the only moment he
+considers doing it on purpose — and does not.
+
+[0s] A vast, perfectly symmetrical white frame: Dupe TINY at dead centre in
 front of a fresh white wall, nothing on it, A HAMMER in his right hand.
-Locked off.
+Locked off. He stands there. Nothing moves.
 
-[15s] He raises the hammer. STOP.
+[6s] He raises the hammer. STOP. Hold him with it up.
 
-[19s] He lowers it. He stands there, hammer at his side, looking at the
+[12s] He lowers it. He stands there, hammer at his side, looking at the
 blank wall.
 
-[21s] HOLD the unmoved frame far past comfortable, then cut to black.
+[15s] HOLD the unmoved frame far past comfortable, then cut to black.
 
-AUDIO: the two lines and pen scratch in Shot 1; near-silence and room tone
-in Shot 2. No music.
+AUDIO: near-silence, room tone, the small sound of the hammer moving. No
+music.
 
-CRITICAL NEGATIVES: no swing of the hammer, no impact, no damage or crack in
-the white wall, no smiling, no triumph, no tears, no crowd, no audience, no
-studio lights in frame, no microphones on stands, no boom, no gold V on his
-suit, no jewellery, no watch. + house negatives.
+CRITICAL NEGATIVES: no dialogue, no swing of the hammer, no impact, no
+damage or crack in the white wall, no smiling, no triumph, no tears, no
+other people, no camera movement, no music. + house negatives.

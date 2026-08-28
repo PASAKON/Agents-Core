@@ -1,8 +1,10 @@
 ===============================================================
-SCENE 13 — THE BACK DOOR · TWO MEN, NOBODY ELSE
+SCENE 13a — THE BACK DOOR · THE OFFER · PART 1 OF 2
 ===============================================================
-25s · 720p · 16:9 · LOCKED-OFF SETUPS ONLY — profile master + frontal singles,
+20s · 720p · 16:9 · LOCKED-OFF SETUPS ONLY — profile master + frontal singles,
 cut on exchanges, no camera movement inside any setup. Sound On · High.
+
+⚠️ SPLIT 22:45 (CEO): 20s is the hard ceiling. S13 is now S13a + S13b.
 
 REFERENCES — each with a job:
 @loc_exterior — the museum's SERVICE side: plain concrete, exposed pipework,
@@ -35,18 +37,37 @@ workman: "Eight hundred." Valder: "I will give you eight thousand." The
 workman looks down at his bucket, then back up: "To fix it?" Valder, softer
 still: "To have never come."
 
-[17s] HOLD on the workman in his frontal single — he genuinely thinks about
-it for a second, because eight thousand is real money to him. Then, in the
-profile master, he shakes his head once — not angry, almost apologetic — and
-says quietly: "Someone asked me to fix it." He picks up his bucket and walks
-back in through the service door, past Valder, who does not stop him.
+[17s] END on the workman's frontal single, holding the offer, saying
+nothing yet.
 
-[21s] LAST SHOT: Valder ALONE, TINY, DEAD CENTRE against the huge blank
+(41 spoken words.)
+
+===============================================================
+SCENE 13b — THE BACK DOOR · THE REFUSAL · PART 2 OF 2
+===============================================================
+20s · 720p · 16:9 · CONTINUES S13a UNBROKEN — same locked setups, same
+positions, same light. No camera movement inside any setup.
+
+REFERENCES — same three as S13a, same jobs.
+
+[0s] Hold exactly where S13a ended: the workman in his frontal single. He
+genuinely thinks about it — for a real second, because eight thousand is
+real money to him. Valder waits in his own frontal single, still smiling,
+utterly patient.
+
+[7s] Back in the profile master: the workman shakes his head. Once. Not
+angry, almost apologetic — and says it quietly, as if explaining something
+obvious: "Someone asked me to fix it."
+
+[12s] He picks up his bucket and walks back in through the service door,
+past Valder, who does not stop him. The door closes.
+
+[15s] LAST SHOT: Valder ALONE, TINY, DEAD CENTRE against the huge blank
 concrete wall among the bins, still smiling — the smile has not changed once
 in the whole scene. The most expensive man in the film, standing among bins.
 Hold far past comfortable. Cut.
 
-(51 spoken words — fits 25s.)
+(6 spoken words.)
 
 AUDIO: exterior room tone, far-off traffic, the bucket set down, the steel
 door — no music.
