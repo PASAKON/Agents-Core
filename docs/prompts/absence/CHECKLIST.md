@@ -39,23 +39,16 @@ Read at the start of every session, and before every report to the CEO.
 
 ## 🔄 IN FLIGHT — verify the worker is actually alive, every check
 
-| # | What | Element | Worker |
-|---|---|---|---|
-| 9 | **S1 v1 — Dupe cleaning, silent.** Fired, asset `5ea44262`, rendering | — | done |
-| 9b | **S1 v2 — Dupe cleaning WITH his five polite lines**, none of them answered. Title drop: "Sorry, sir." | — | `task-7dcf64d3` |
+| What | Worker | State at 08:12 |
+|---|---|---|
+| **S3 re-fire**, then S7 · S8a · S8b · S8c · S9 back to back | `task-a13469e9` | ALIVE · filing `loc_wall_pov_c`, then fires the queue without waiting between scenes |
+
+**Everything else has landed.** `task-fe7b3d37` merged `917ad59` (Valder's five
+pieces + parrot woman v3) · `task-f4320f9e` merged `ab4873d` (grandmother) ·
+`task-5a3d259c` merged `3b28724` (croc bag, gentleman, press) · `task-7cb85052`
+done, asset ids rescued into this file · S1 both takes and S2 take 1 delivered.
 
 ---
-
-## 🔄 ALSO IN FLIGHT
-
-| # | What | Worker |
-|---|---|---|
-| 32 | **Collect both S1 takes** (`5ea44262` silent, `c8e60256` Dupe speaks) + shot-by-shot review of each | `task-ff2828e0` |
-| 33 | **Valder's five pieces** — chair, fish trap, millstone, vessel, painting | `task-fe7b3d37` |
-| 34 | **Parrot woman v3** — hair in green/white/blue, garment single green with cut lines (CEO #64/#65) | `task-fe7b3d37` |
-| 35 | **S2 fired** `56ace68c`, rendering since 05:50 · **S3 re-staging** after a composer navigation wiped it | `task-a13469e9` |
-| 36 | ~~Grandmother RE-SHOOT~~ — **DONE, merged `ab4873d`.** Wheels visible in all 4 panels incl. rear | ✅ `5dd23a87` |
-| 37 | **Crocodile bag → grandmother glove fix → `char_press`** | `task-5a3d259c` |
 
 ### ⚠️ CTO error, 2026-08-28 06:30 — corrected
 
@@ -78,10 +71,10 @@ go in a scratch tab.**
 
 | # | What | Needed for |
 |---|---|---|
-| 15 | `char_guard_private` — personal bodyguard. **CEO: black IS allowed for guards** | $20M tier |
+| 15 | ✅ **`char_guard_private` DONE** `dbd40616` | $20M tier |
 | 16 | **`char_guard_valder` — DONE.** Uniform identical across all six, gold V on chest and cap, black only on belts and shoes, real range of builds. Route A worked: uniform study first, then re-dressed the existing six.  ~~original brief:~~ CEO: reuse the existing blue 6-guard plate **if it already has the gold V** — check first, generate nothing if so. If no V: generate the UNIFORM alone, then re-dress the existing six so faces stay varied and the uniform stays identical. Single plate first, six-guard plate second. | $20M tier |
-| 17 | `char_press` — journalists | $100M tier |
-| 18 | Helicopter — decide: part of the exterior plate, or its own | $100M tier |
+| 17 | ✅ **`char_press` DONE** — two journalists, one shared shoulder camera, blue + rust | S5 · S11 |
+| 18 | Helicopter — **decided: no plate.** Written into S11 as seen through the hall windows, never cut to | S11 |
 | 19 | `char_visitor_c` — **currently has NO reference image**, content-flagged, prose-only | face consistency across scenes |
 
 **The cleaner's later life** — ✅ **ALL DONE, CTO-approved 07:40, `task-7cb85052`**
