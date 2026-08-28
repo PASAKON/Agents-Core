@@ -147,3 +147,47 @@ positioned close together per "a single shared camera between them," but
 worth a second look if the CEO wants to check. No hard defects. Copied to
 Drive `All Scene/S5/` (new folder, created), byte-exact verified, local
 deleted.
+
+## New CEO instructions received mid-session, several via truncated relays
+
+Reconstructed from a mix of full and partial chat deliveries plus files
+dropped directly into the worktree (`s2-accident.txt`, `s3-interpretations.txt`,
+`s1-angles.txt`, `s13-the-back-door.txt`, updated `s7-s9.txt`):
+
+- **char_critic_b now needs "fluent English with a Chinese accent" stated in
+  every prompt she appears in.** Applied from S2 onward (too late for S5).
+- **S9 gets re-shot**: Valder + the four who spoke are now visible deep
+  background, thrown out of focus, per updated `s7-s9.txt`. Uses
+  `char_gentleman_e` (not the dead `char_gentleman_c`).
+- **S18 is ON HOLD** — do not re-shoot, cart design changing, waiting on
+  `loc_mansion` regeneration first.
+- **S2 REDO** (accident now comes from Dupe straightening a crooked painting,
+  not deliberately taking it down) — needs `prop_cart_b` (new cart) + the
+  `loc_wall_crack` reference plate, both now confirmed to exist.
+- **S3 REDO**: `char_visitor_a` OUT, `char_husband` IN (the couple). Needs
+  `loc_wall_pov_d` — **checked, does NOT exist yet. Still blocked.**
+- **S13, new scene** (CTO draft, CEO-requested): Valder bribes the workman
+  outside, workman refuses. References `loc_exterior`/`char_valder`/
+  `char_workman`, all exist — **not blocked by anything.**
+- **S1A–S1G, seven B-roll coverage angles for S1** — need `loc_hall_big_e`
+  (new hall variant) — **checked, does NOT exist yet.** Per the CEO: fire the
+  angles that barely show the hall first if it's still not ready (I do not
+  have the exact "which three" from the relay — a message fragment named
+  S1F specifically as one that "leans" least on the hall; the rest is my
+  inference, not confirmed instruction — **asking rather than guessing**),
+  then S1A/S1B as spares even though they lean on the hall, since a spare
+  take costs nothing once the CEO said so explicitly.
+- **CEO said "wait"** mid-session — held with nothing fired, Unlimited
+  toggled but untouched, until confirming (via file checks) nothing further
+  was pending, then resumed once "prop_cart_b" turned out to exist and S2
+  was unambiguously ready.
+- **ONE TAKE PER SCENE ONLY, no second takes anywhere** — standing order,
+  applied throughout.
+
+## S2 — FIRED
+
+Seedance 2.5 · 720p · 16:9 · 20s · Unlimited (struck 140→0, verified by
+zoom). 5 references bound clean: `loc_hall_big_d`, `char_cleaner_c`,
+`prop_cart_b` (note: no `project_absence_` prefix on this one — confirmed via
+Elements panel), `prop_valder_study`, `loc_wall_crack`. Asset id not yet
+known — card still processing.
