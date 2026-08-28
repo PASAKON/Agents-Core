@@ -166,6 +166,34 @@ whichever you pick.
 
 ---
 
+## 🔴 SECOND TERMINAL FACE/IP CASUALTY — `char_gentleman`, 09:06
+
+`char_gentleman` hard-fails Face/IP the same way `loc_wall_pov_b` did: the
+verdict is final and there is **no re-check button left in the UI**. It blocks
+**S7 and S10**, where the English gentleman is a named speaking presence.
+
+**Same root cause, same fix: too many faces in one plate.** That plate carried
+three people — the gentleman and both his bodyguards. It is being regenerated as
+a **solo portrait**, and his two bodyguards now come from `char_guard_private`
+bound alongside. Exactly the lesson `loc_wall_pov_c` proved an hour earlier.
+
+**The CEO's spec for him, every item load-bearing** — an operator was about to
+compose a replacement from scratch because it believed no original existed:
+
+- Elderly English gentleman of great wealth, **smaller and older than Dupe**, similar build
+- **A sharp pointed nose like Dupe's — but he is English, not Indian**
+- **A white English gentleman's suit**, Savile Row cut, one saturated white
+- **A black cane with a gold grip**
+- **A diamond ring** that catches the light hard
+- **Two gold-capped teeth, visible when he smiles** — the CEO called this the important one
+- Two bodyguards, now a separate Element, not baked in
+
+**Why this is written down here:** rewriting a CEO prompt from memory instead of
+editing the original is how his details get quietly dropped. Any future re-shoot
+of this character edits this list; it does not reinvent it.
+
+---
+
 ## 🔒 STORY FACTS — locked by the CEO, 2026-08-28. Every prompt must obey these.
 
 1. **Dupe cracked the wall himself, then called the workman to come and repair it.**
