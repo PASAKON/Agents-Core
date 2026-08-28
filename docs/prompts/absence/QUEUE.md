@@ -91,9 +91,33 @@ are pre-accident.** `prop_cart_b` starts at S2.
    grandmother redirects the 100M to DUPE) → S16 → S17 → S18.
 5. **S5 has NO PRESS any more** — the registrar replaces the journalists there.
 
-## FIRE IN THIS ORDER
+## 🎬 OPENING ACT REBUILT — CEO 2026-08-28 evening (Dupe-POV cut)
 
-=======
+- **S1 is now SILENT and SOLO** — empty museum, original `prop_cart` (no
+  painting), 15s. All seven S1 angles likewise empty; the three extras debut in
+  S4 instead. Both S1 files fully rewritten — anything staged from old versions
+  is stale.
+- **NEW `s-arrivals.txt`: S2b (the phone call, 8s silent) + A1–A5** — the
+  interpretations are now five ARRIVAL scenes in the wall-POV frame, the row
+  assembling one character at a time. **S3 is retired** (renamed DEAD-).
+- **NEW `s-dupe-inserts.txt`: D1–D5** — five 5s Dupe reaction portraits, fire
+  between renders.
+- Canon rulings: the painting rides the cart in plain sight all film and NOBODY
+  ever looks at it, Valder included (deliberate joke) · S17's stepping-back
+  visitor = `char_visitor_a` · "Then the artist is the building." stays a
+  faceless voice · Collector A = the woman in cobalt · S10b ends with the
+  parrot woman at eighty.
+
+## FIRE IN THIS ORDER
+1. **`char_registrar` plate FIRST** (spec above) — S5 cannot fire without him.
+2. **S1** (new silent master) → **S1A–S1G** (new empty versions)
+3. **S2** (re-fire under the Anderson pass) → **S2b** (the phone call)
+4. **A1 → A2 → A3 → A4 → A5** — in order; the row must accumulate
+5. **D1–D5** whenever the slot would otherwise idle
+6. **P1 → S4 → S5 → S6 → P2 → S7 → S8a → S8b → S8c → S9 → S10 → S10b → S12 →
+   P3 → S11 → S13 → S14 → S15 → S16 → S17 → S18** → S1D/S1E spares last.
+
+
 ## FIRE IN THIS ORDER
 
 These need **no** plate that is still being remade:

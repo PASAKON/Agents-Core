@@ -14,28 +14,20 @@ file exists to prevent.
 
 ---
 
-## S1 · Dupe cleans · **SHOT** — 2 takes
+## S1 · Dupe cleans · REWRITTEN 2026-08-28 — SILENT
 
-He works alone along the wall, greeting people who never answer. Five lines,
-none of them acknowledged.
+**The museum is empty; Dupe is alone; the scene is silent except the sounds of
+his work.** (CEO chose silence over talking to the statues.)
 
-> **DUPE** *"Excuse me, sir."*
-> **DUPE** *"Sorry, madam."*
-> **DUPE** *"Excuse me. Just a moment."*
-> **DUPE** *"Sorry, sir."*
-> **DUPE** *"Thank you, sir."*
+**His five greeting lines are REDISTRIBUTED into the arrivals** — and per the
+CEO only SOME arrivals carry one, so the joke never wears out:
 
-*(Canon = the set already on film — the shot takes used these five.)*
+> **A1**, to the elderly gentleman *"Excuse me, sir."*
+> **A3**, to the passing couple *"Excuse me. Just a moment."*
+> **A5**, to the woman in cobalt *"Sorry, madam."*
 
-**The title comes from here, and it is the CEO's own line** — the same words
-**DUPE** says in S15, frightened, as he runs in to shield the workman, before he
-confesses. One line doing two jobs, thirteen scenes apart.
-
-*(Corrected 2026-08-28: this file previously credited "Sorry, sir." in S15 to the
-workman. It is Dupe's. The CEO's text: "Dupe ที่แอบมองใกล้ๆ วิ่งเข้ามาปกป้องช่าง
-และบอก Valder แบบกลัวๆ ไปว่า 'Sorry, sir.'")*
-
-Assets: `5ea44262` (silent) · `c8e60256` (speaking).
+*("Sorry, sir." and "Thank you, sir." are held back — the freight on "Sorry,
+sir." belongs to S15, where Dupe says it to Valder before confessing.)*
 
 ---
 
@@ -45,7 +37,12 @@ No dialogue. One sound: a short dry crack of plaster.
 
 ---
 
-## S3 · The interpretations · shot from inside the wall
+## A1–A5 · The interpretations — five ARRIVAL scenes (S3 retired)
+
+Same five lines, same order, one speaker per scene, delivered straight into the
+wall-POV lens as the row assembles 1→2→4→5→6. Full staging in `s-arrivals.txt`.
+
+### was S3 · shot from inside the wall
 
 Six people facing camera, eyelines locked on the crack. Sincere, quiet, serious.
 Nobody amused. In this order:

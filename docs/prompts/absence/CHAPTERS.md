@@ -9,7 +9,7 @@ line; the CTO drafted the copy, the CEO owns every word and can rewrite freely.
 |---|---|---|
 | I | PART ONE · THE CLEANER | S1 |
 | II | PART TWO · AN ACCIDENT | S2 |
-| III | PART THREE · THE INTERPRETATIONS | S3 |
+| III | PART THREE · THE INTERPRETATIONS | A1 (the arrivals) |
 | IV | PART FOUR · TWO MILLION | P1/S4 |
 | V | PART FIVE · THE COLLECTION OF MR. VALDER | S7 |
 | VI | PART SIX · ONE HUNDRED MILLION | P3/S11 |
