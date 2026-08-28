@@ -332,3 +332,10 @@ care," and the model didn't honor that. Framing is eye-level, not the
 overhead angle the later Wes Anderson pass now calls for (expected — fired
 before that pass landed). Copied to Drive (new path) `All Scene/S1F/`,
 byte-exact verified, local deleted.
+
+## S1A — FIRED
+
+10s · 720p · 16:9 · Seedance 2.5 · Unlimited (struck 70→0, verified by
+zoom). 3 references bound clean: `loc_hall_big_e`, `char_cleaner_c`,
+`project_absence_prop_cart` (the correct original cart, no painting).
+Asset id not yet known, card processing.
