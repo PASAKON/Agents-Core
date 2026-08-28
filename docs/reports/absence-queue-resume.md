@@ -321,3 +321,14 @@ against the current file before firing.
 
 Asset `914906a1-0964-4668-99cc-4f9e36107ef6`. 720p/1280x720. Downloading
 next.
+
+## S1F — COLLECTED
+
+720p/1280x720/8.06s confirmed. Reviewed shot-by-shot: hands wringing a
+cloth (water dripping), then folding it neatly, all against the symmetrical
+column hall, gold V cap correct. **One real defect: Dupe's face is fully
+visible and frontal throughout** — the fired prompt said "No face. Just the
+care," and the model didn't honor that. Framing is eye-level, not the
+overhead angle the later Wes Anderson pass now calls for (expected — fired
+before that pass landed). Copied to Drive (new path) `All Scene/S1F/`,
+byte-exact verified, local deleted.
