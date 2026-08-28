@@ -18,9 +18,15 @@ you with one short line whenever it changes.
 - File to `All Scene/<SCENE>/`. Commit the asset id **before** downloading.
 - Watch every clip and describe it shot by shot.
 
-## FIRE IN THIS ORDER
+## ALL PLATES ARE DONE — 18:08. Nothing is blocked on an asset any more.
 
-These need **no** plate that is still being remade:
+`loc_wall_pov_d` · `loc_hall_big_e` · `loc_mansion_b` · `prop_cart_b` ·
+`char_woman_c` · `char_gentleman_e` — all exist, and every prompt file has been
+swept onto these names and re-synced to your worktree, md5-verified.
+
+**S18 is no longer on hold** — `loc_mansion_b` has the new cart in it.
+
+## FIRE IN THIS ORDER
 
 1. **S13** — `s13-the-back-door.txt` · 25s · exterior behind the museum ·
    refs `loc_exterior` `char_valder` `char_workman` · 51 spoken words so the
@@ -36,8 +42,18 @@ These need **no** plate that is still being remade:
 the new names and re-synced to your worktree, md5-verified. Re-read any prompt
 before firing it. Story order from here:
 
-7. S3 (`s3-interpretations.txt`) → S4 → S5 → S6 → S7 → S8a → S8b → S8c → S9 →
-   S10 → S11 → S12 → S15 → S16 → S17 → S18 → S1D → S1E
+7. **S3** (`s3-interpretations.txt` — new cast: `char_visitor_a` out,
+   `char_husband` in) → **S4** → **S5** → **S6** → **S7** → **S8a** → **S8b** →
+   **S8c** → **S9** (rewritten: Valder and the speakers blurred behind Dupe) →
+   **S10** → **S11** → **S12** → **S13** (`s13-the-back-door.txt`, exterior) →
+   **S14** → **S15** → **S16** → **S17** → **S18** → **S1D** → **S1E**
+
+**S14 is written after all** — it was the CEO's own text, mislaid when the scene
+numbers shifted. It is in `DIALOGUE.md`: the workman raises his float to plaster
+the crack, **Valder screams "STOP! You are destroying a hundred million dollar
+artwork!"**, and the workman is so startled he drops the plaster on the floor.
+S15 continues straight out of it — Dupe runs in, shields the workman, and says
+**"Sorry, sir."** before confessing. **That line is DUPE's, not the workman's.**
 
 ## ELEMENT SWAPS — use the new names everywhere
 
