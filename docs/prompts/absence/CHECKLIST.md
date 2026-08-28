@@ -264,6 +264,24 @@ At 11 seconds those lines are cut off mid-sentence and the take is worthless.
 If it will not hold, **do not fire** — a wasted 40-minute render costs far more
 than the wait. On silent shots, keep taking whatever it gives.
 
+### 12:15 — the gate caught it, and the real cause is the TAB, not the field
+
+S7 was staged and the duration would not hold 20s: it read back **4s**, and while
+retrying **Unlimited dropped to real pricing, 28/26 credits.** The operator
+stopped rather than fire. Correct call — that is a money risk, not an
+inconvenience.
+
+**Three symptoms at once — stale toggle, desynced duration, price reverting to
+paid — are the documented signature of a long-lived composer tab**, not three
+separate bugs. That tab had been open more than six hours.
+
+**Fix: close it and open a completely fresh tab**, then rebuild in order —
+Seedance 2.5 first (switching models resets everything), then 20s / 720p / 16:9 /
+High / Sound On, then the prompt and references, then Unlimited last.
+
+**Standing rule from here: a fresh tab every three or four generations**, before
+it breaks rather than after.
+
 ---
 
 ## 🔴🔴 THE FACE/IP SCAN IS RETROACTIVE — passing at creation means nothing
