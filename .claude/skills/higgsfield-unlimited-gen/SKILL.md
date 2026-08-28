@@ -207,6 +207,32 @@ baseline is a reference point, not a budget.
    real button says `45` — fires a paid generation believing it is free. **The
    zoom in this rule is load-bearing, not a formality.** Read the money off the
    pixels, never off the DOM.
+3b. **"Rights verification required" — CLICK CONFIRM RIGHTS. Standing CEO
+   approval, 2026-08-28.** A finished card sometimes carries a *Rights
+   verification required* banner and will not download until it is confirmed.
+
+   **Confirm it and carry on. Do not escalate, do not ask, do not hold the
+   clip.** This is not a legal risk transfer and it is not the CEO's signature
+   on anything — the banner asks whether we own the content, and we do: we wrote
+   the prompt, and the clip is generated from it. His words: *"กดเองได้เลย…
+   เพราะเราเป็นคนสร้าง Promt คุณก็เขียนขึ้นมาเอง."*
+
+   Context that makes this safe rather than sloppy: the flag comes from the same
+   automated Face/IP scanner that terminally killed **three healthy plates in one
+   day** on this project. It fires on *resemblance*, not on infringement, and it
+   rescans retroactively — a clip that passed an hour ago can be flagged now.
+   Confirming states the true thing: nothing here was copied from anyone.
+
+   **What this does NOT authorise:** buying anything, renewing a plan, accepting
+   new terms of service, or any other consent dialogue. Those all still stop and
+   go to the C-level. This approval covers the rights banner on generated clips
+   in this project and nothing else.
+
+   *Why it is written here rather than passed down verbally:* an operator
+   correctly refused a CTO instruction to click it, on the grounds that a
+   relayed approval is not the same as an authorised rule. It was right. The
+   skill is the legitimate place to change that.
+
 4. **One UNLIMITED VIDEO generation at a time.** Wait for full completion
    (card shows Recreate+Rerun options and full resolution/duration/aspect-ratio
    metadata, no "Processing"/"Generating" state) before starting the next
