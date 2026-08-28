@@ -1,3 +1,28 @@
+================================================================
+DIRECTION — THE CAMERA GRAMMAR (Wes Anderson pass, 2026-08-28)
+Applies to every scene in this file. The dialogue and the actions
+are LOCKED — this pass changes only how they are photographed.
+================================================================
+- SYMMETRY FIRST. Every composition is built around the vertical
+  centreline of the frame. The hall's RED DOOR sits on that axis;
+  when the door is visible it is dead centre at the vanishing point.
+- PLANIMETRIC STAGING. The camera stands exactly perpendicular to
+  the back wall, or exactly parallel to it. People are arranged
+  facing the camera, or in exact profile — never three-quarter.
+- THE CAMERA MOVES LIKE FURNITURE. Only these moves exist:
+  a straight lateral dolly at constant speed, a slow push-in dead
+  on the axis, a single fast 90-degree whip pan where marked, a
+  single fast snap zoom where marked, and a locked-off tableau.
+  Never handheld, never dutch, never drifting.
+- ONE FIXED HEIGHT PER SHOT — waist height or eye height, chosen
+  once, never changing inside the shot.
+- DEADPAN TIMING. After anything happens, the frame HOLDS one full
+  beat longer than is comfortable before the scene moves on.
+- GROUP SHOTS ARE CLASS PHOTOS. People stand in neat rows facing
+  camera, spaced evenly, alternating warm and cool costume colours.
+- INSERTS ARE PORTRAITS OF OBJECTS: dead centre, frontal or exactly
+  overhead (God's eye), lit flat, held still.
+
 SEEDANCE 2.5 — 20 SECONDS — 720p — 16:9
 
 THIS SCENE IS **ONE LONG TAKE, THEN ONE JUMP CUT, THEN A SECOND LONG TAKE.** That is all. There is exactly ONE cut in the entire twenty seconds. No other cuts, no dissolve, no fade, no wipe, no whip pan, no morph.
@@ -26,7 +51,7 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE THE SHOTS BELOW.
 
 --- THE PLACE ---
 
-@project_absence_loc_hall_big_d — THE GALLERY HALL. A corridor of slim chromium columns flaring at the top into wide trumpet-shaped ceiling coves glowing hot ORANGE, which **opens out into a wide exhibition hall**. White walls hung with richly textured invented artworks — thick impasto, collage, torn paper, wire and fabric assemblage. Polished dark terracotta-red terrazzo floor. Freestanding sculptures on white plinths of varying heights, long glass vitrines down the centre line, a large woven form suspended from the ceiling, a big stone ring you could walk around. Wire-sphere lamps. A long yellow upholstered bench and a yellow swivel chair on a blue, black and white patterned rug.
+@project_absence_loc_hall_big_e — THE GALLERY HALL. A corridor of slim chromium columns flaring at the top into wide trumpet-shaped ceiling coves glowing hot ORANGE, which **opens out into a wide exhibition hall**. White walls hung with richly textured invented artworks — thick impasto, collage, torn paper, wire and fabric assemblage. Polished dark terracotta-red terrazzo floor. Freestanding sculptures on white plinths of varying heights, long glass vitrines down the centre line, a large woven form suspended from the ceiling, a big stone ring you could walk around. Wire-sphere lamps. A long yellow upholstered bench and a yellow swivel chair on a blue, black and white patterned rug. **At the far end of the hall, dead centre, a LARGE RED DOUBLE DOOR — the room's only entrance.**
 
 --- THE SUBJECT ---
 
@@ -34,7 +59,10 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE THE SHOTS BELOW.
 
 **HE IS HAPPY. THIS IS THE MOST IMPORTANT THING IN THE SCENE.** He enjoys this work and he is good at it. He smiles to himself as he goes — a small, private, contented smile, not a grin, never comic, never mugging. He takes real care with each object. **He is not sad, not bitter, not weary, not resentful, and he is absolutely not performing for anyone.** Nobody is watching him and that suits him.
 
-@project_absence_prop_cart — **DUPE'S CART.** A burnt-orange lacquered trolley on a chromium frame with splayed tapered legs, a **gold V on the front panel**, a small drawer, a chrome rail holding four cream plastic bottles, folded cream and tan towels and a wooden brush. Mops with a red head and a cream head stand upright in clips. A burnt-orange bucket at floor level. A folding step ladder strapped to the side. He pushes it with him and it is never far from his hands.
+@project_absence_prop_cart — **DUPE'S CART.** A burnt-orange lacquered trolley on a chromium frame with splayed tapered legs, a **gold V on the front panel**, a small drawer, a chrome rail holding four cream plastic bottles, folded cream and tan towels and a wooden brush. Mops with a red head and a cream head stand upright in clips. A burnt-orange bucket at floor level. A folding step ladder strapped to the side. He pushes it with him and it is never far from his hands. **THIS IS THE
+PRE-ACCIDENT CART — there is NO painting on it or near it anywhere.** The painting
+still hangs on the wall in this scene. (From Scene 2 onward the film switches to
+@project_absence_prop_cart_b, which carries the painting in its rack.)
 
 --- THE PEOPLE HE PASSES. Background only. NOT ONE OF THEM SPEAKS OR LOOKS AT HIM. ---
 
@@ -43,7 +71,7 @@ These are the real characters of the film and they must be recognisably themselv
 @project_absence_char_critic_b — an Asian woman of about sixty in a **full-length deep magenta FUR coat**, cream gloves. Standing still in front of one framed work, considering it.
 @project_absence_char_oldman — a heavy man of about eighty in a **bottle-green leather overcoat** with a **chrome ring-handled cane**. Moving very slowly along the wall.
 @project_absence_char_woman — a slim woman of about fifty in a **glossy cobalt-blue leather suit** and **black cat-eye sunglasses worn indoors**. Standing at a glass vitrine, looking down into it.
-@project_absence_char_student_b — a young woman of about twenty-two in a **blush-pink leather suit with a violet collar and a violet pillbox hat**, a large gold medallion. Crouched slightly, looking closely at something low down.
+@project_absence_char_student_c — a young woman of about twenty-two with **acid-green dyed hair**, paint-stained denim, standing upright. Looking closely at something low on the wall.
 @project_absence_char_visitor_a — an ordinary balding man of about sixty-five in an **oxblood leather suit**, hands clasped behind his back in front of a painting.
 @project_absence_char_visitor_b — **a woman of about fifty-five in a real chestnut-brown FUR coat** over a rust-red shift dress and rust heels, shoulder-length brown hair, a warm ordinary face. Walking slowly along the pictures. **She is here with her husband** — they arrived together and stay near each other.
 
@@ -89,7 +117,13 @@ PHOTOGRAPHED, NOT RENDERED: fine film grain, halation around bright highlights, 
 SHOT 1 — LONG TAKE — 12 seconds
 ================================================================
 
-@project_absence_loc_hall_big_d. **ONE UNBROKEN TAKE. The camera moves slowly and steadily with DUPE, holding him in frame the entire time** — a smooth level tracking move alongside and slightly behind him, at his height. No cuts inside this shot.
+@project_absence_loc_hall_big_e. **ONE UNBROKEN TAKE — A STRAIGHT LATERAL DOLLY,**
+the camera gliding sideways at constant speed, **exactly parallel to the wall of
+paintings, at waist height, perfectly level.** DUPE stays DEAD CENTRE of frame the
+entire take, in clean profile as he works, the wall flat behind him like a stage
+backdrop. The visitors he passes stand PLANTED like statues, each perfectly
+frontal to their own artwork, spaced as evenly as the columns. The dolly never
+speeds up, never slows for anything, and never stops until the cut.
 
 **@project_absence_char_cleaner_c — DUPE — is working, and enjoying it.** He pushes @project_absence_prop_cart a few steps, sets it down, and **takes a soft brush from the cart and dusts the top edge of a framed artwork**, carefully, along the whole length of the frame. He steps back, tilts his head, checks it, and **gives a small satisfied nod**. He is smiling to himself the whole time.
 
@@ -105,15 +139,21 @@ He moves on. **He takes a cloth and polishes the top of a glass vitrine**, worki
 SHOT 2 — LONG TAKE — 8 seconds
 ================================================================
 
-@project_absence_loc_hall_big_d. **A JUMP CUT — the same hall, the same camera language, but DUPE is now somewhere else in the room and clearly some time has passed.** He is deeper into the wide part of the hall. **The cut is abrupt and it is the only cut in the entire scene.**
+@project_absence_loc_hall_big_e. **A JUMP CUT — and the camera language flips:
+from movement to a LOCKED-OFF ONE-POINT TABLEAU.** The camera now stands dead on
+the room's centreline at eye height, perfectly level, facing straight down the
+hall — **the RED DOOR exactly centred at the vanishing point**, columns marching
+away in mirrored pairs left and right. **The cut is abrupt and it is the only cut
+in the entire scene.**
 
-**ONE UNBROKEN TAKE, camera again moving slowly with him.**
+**ONE UNBROKEN STATIC TAKE. The camera does not move at all.** Dupe works ON the
+centreline, small in the symmetrical frame, mopping toward camera.
 
 He is **mopping the polished terrazzo floor** now, working backwards in long steady strokes, the red mop head leaving a dark wet arc that shrinks as it dries. The cart is parked beside him. **He is still smiling.** He pauses, crouches, and **wipes a mark off the base of a white plinth with the corner of a cloth**, then straightens up, pleased with himself.
 
 @project_absence_char_oldman is standing exactly where Dupe needs to mop, leaning on his chrome ring cane. Dupe stops, waits, and says: **"Sorry, sir."** The old man does not move and does not look at him. Dupe waits another half beat, then mops carefully around his shoes and says: **"Thank you, sir."**
 
-Further back @project_absence_char_student_b crouches to look closely at something low down, and @project_absence_char_visitor_b in her chestnut fur walks slowly past the pictures. **Nobody answers him. Nobody looks at him. No visitor speaks a single word in this scene.**
+Further back @project_absence_char_student_c crouches to look closely at something low down, and @project_absence_char_visitor_b in her chestnut fur walks slowly past the pictures. **Nobody answers him. Nobody looks at him. No visitor speaks a single word in this scene.**
 
 **Hold on him, still working, still content, until the clip ends.**
 

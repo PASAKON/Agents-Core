@@ -81,7 +81,24 @@ cart**, face turned outward, where it stays for the rest of the film.
 **HOLD ON THE WALL as he leaves frame:** the plaque still in place, and above it
 now nothing at all but the crack.
 
-Camera: static and level, or one slow unhurried move. No handheld, no shake.
+CAMERA — the Anderson plan:
+The frame is PERFECTLY SYMMETRICAL about the hero wall's centreline — plaque dead
+centre, cove lights mirrored — **except for one thing: the crooked painting.**
+That single tilted rectangle is the only asymmetry in an otherwise perfect frame,
+and it itches. Camera locked off at waist height, exactly perpendicular to the
+wall.
+
+Dupe enters from frame edge and works INTO the symmetry. When he reaches up to
+straighten the painting the camera DOES NOT move and DOES NOT cut closer — the
+fall happens small, inside the big formal frame, which is what makes it terrible.
+
+**THE ONE CAMERA EVENT OF THE SCENE: the instant the painting lands, a single
+FAST SNAP ZOOM straight in to the crack** — one sharp move, then dead still.
+Hold the crack a full beat too long. Then Dupe's look left, look right, plays in
+the same locked frame.
+
+End: he exits with the cart; the symmetrical tableau of bare wall + plaque holds
+until the clip ends — one beat longer than comfortable.
 
 ---------------------------------------------------------------
 LOOK
@@ -107,6 +124,6 @@ shattered glass, no glass at all, no spider-web crack, no multiple cracks, no
 crack larger than about a foot, no wall-spanning crack, no rubble, no debris, no
 dust cloud, no structural damage, no hole, no aperture, no invented crack shape,
 no smartphones, no screens, no modern technology, no dutch angle, no handheld
-wobble, no zoom, no slow motion, no speed ramp, no lens flare, no HDR, no CGI
+wobble, no zoom except the single fast SNAP ZOOM to the crack specified above, no slow motion, no speed ramp, no lens flare, no HDR, no CGI
 sheen, no plastic skin, no beauty filter, no dim moody lighting, no darkness, no
 night, no ultramarine walls, no blue walls, no wooden floor

@@ -1,7 +1,11 @@
 ===============================================================
 S1A – S1G · SEVEN COVERAGE ANGLES FOR SCENE 1 · cutting footage
 ===============================================================
-References for all seven: loc_hall_big_e · char_cleaner_c · prop_cart_b
+References for all seven: loc_hall_big_e · char_cleaner_c · prop_cart
+⚠️ CONTINUITY: these are PRE-ACCIDENT shots — use the ORIGINAL `prop_cart`, which
+carries no painting. (`prop_cart_b` has the painting in its rack and belongs to
+S2 onward. The S1C take already fired with `prop_cart_b` is NOT wasted — the
+editor can use it as a post-accident cart insert later in the film.)
  · plus the three extras described below
 
 CEO, 2026-08-28. `s1-multicut.txt` stays as the master wide. These seven are
@@ -53,8 +57,9 @@ S1B · WAIST UP — straight on
 ---------------------------------------------------------------
 **10s. No dialogue.**
 
-Camera straight on at chest height, no tilt. **DUPE FROM THE WAIST UP**, working
-to the lens's left, dusting the top edge of a frame with slow careful strokes. His
+Camera straight on at chest height, no tilt — **a FRONTAL PORTRAIT, perfectly
+symmetrical, DUPE DEAD CENTRE FROM THE WAIST UP**, facing almost into the lens as
+he dusts the top edge of a frame that sits just off-frame, slow careful strokes. His
 hands, his sleeve, the gold V on his chest, his face in three-quarter.
 
 He is content. He hums a little. He is entirely absorbed in a job nobody will
@@ -69,7 +74,7 @@ S1C · THE CART — detail
 ---------------------------------------------------------------
 **8s. No dialogue.**
 
-Close on **`prop_cart_b`** as it rolls: mop, orange bucket, bottles, folded
+Close on **`prop_cart`** as it rolls: mop, orange bucket, bottles, folded
 cloths, brush, the folding ladder on the side, **the gold V on the front panel**,
 and the painting slotted upright in its rack, front face turned outward.
 
@@ -98,8 +103,9 @@ S1E · THE LONG HALL — he is very small
 ---------------------------------------------------------------
 **12s. No dialogue.**
 
-Very wide, camera at eye height at one end of the hall, dead centre so the
-perspective runs straight to **the red door at the far end.** Chromium columns
+Very wide, camera at eye height, **locked dead on the room's centreline — the
+definitive ONE-POINT symmetrical master.** Columns in mirrored pairs, and **the
+red door exactly centred at the vanishing point.** Chromium columns
 march away on both sides, artworks on plinths between them.
 
 **DUPE IS TINY**, off to one side, working along the wall with his cart. All three
@@ -116,9 +122,10 @@ S1F · THE HANDS
 ---------------------------------------------------------------
 **8s. No dialogue.**
 
-Tight on **his hands and the cloth** — wringing it out, folding it, running it
-along the top edge of a frame, checking the fold, going again. Warm light, shallow
-focus, the hall soft behind.
+**GOD'S-EYE OVERHEAD, locked off:** straight down on **his hands and the cloth**
+against the terrazzo — wringing it, folding it into a neat square, checking the
+fold, going again. The hands work dead centre of frame like a cooking-show insert.
+Warm light, flat and even.
 
 No face. Just the care.
 

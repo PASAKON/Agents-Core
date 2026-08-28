@@ -50,6 +50,24 @@ re-interpretation, ever.
 Element **`loc_wall_pov_e`**, and report the exact mention string. Do not
 regenerate it, do not "improve" it. Then use it for S3, S4, S6 and S11.
 
+## 🎬 WES ANDERSON PASS — 2026-08-28 evening. EVERY PROMPT FILE UPGRADED.
+
+The CEO had me redirect the whole film as Wes Anderson: symmetry about the red-
+door axis, planimetric frontal/profile staging, lateral dollies and axis push-ins
+only, class-photo group shots, deadpan holds, and FOUR approved motifs — unison
+head-turns (S5/S10/S12), one snap zoom in S2 and one whip-pan+snap-zoom in S7, a
+whip-pan chain in S12, and three new plaque inserts (`s-price-inserts.txt`,
+P1/P2/P3, 5s each, hands only, fire any time).
+
+**Dialogue and events are unchanged. Only the photography changed.**
+
+⚠️ **Re-read every prompt from the file before firing it, and RE-STAGE anything
+currently staged** — staged text predates this pass. The negatives now permit
+exactly the moves each scene names, nothing more.
+
+⚠️ **S1/S1A–S1G continuity: use the ORIGINAL `prop_cart` (no painting) — these
+are pre-accident.** `prop_cart_b` starts at S2.
+
 ## FIRE IN THIS ORDER
 
 =======
@@ -61,8 +79,7 @@ These need **no** plate that is still being remade:
 1. **S13** — `s13-the-back-door.txt` · 25s · exterior behind the museum ·
    refs `loc_exterior` `char_valder` `char_workman` · 51 spoken words so the
    duration must genuinely hold 25s
-2. **S1C** — `s1-angles.txt` · 8s · the cart detail · refs `loc_hall_big_e` if it
-   exists yet, otherwise `loc_hall_big_d`, plus `prop_cart_b` (`bc89ef6c`)
+2. **S1C** — `s1-angles.txt` · 8s · the cart detail · `loc_hall_big_e` + the ORIGINAL `prop_cart`
 3. **S1F** — `s1-angles.txt` · 8s · the hands · room barely visible
 4. **S1A** — floor-level · 10s
 5. **S1B** — waist up · 10s

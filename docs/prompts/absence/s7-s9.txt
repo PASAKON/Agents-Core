@@ -54,8 +54,21 @@ FAR WALL.
 
 DUPE is cleaning at the far edge of frame, back to the camera.
 
-Camera: one slow lateral track following Valder in, settling as he stops. Level,
-no handheld.
+CAMERA — the Anderson plan:
+**THE RED DOOR OPENS DEAD CENTRE AT THE VANISHING POINT and VALDER walks straight
+down the room's centreline TOWARD the camera**, which retreats ahead of him at
+exactly his walking pace, waist height, perfectly level — a frontal corridor
+walk. His six guards follow **in a symmetrical V formation behind him**, three a
+side. Guests stand planted at the frame edges like columns.
+
+He stops. The camera stops. **A single fast 90-DEGREE WHIP PAN** lands on the
+gentleman in the white suit — already perfectly framed, frontal, dead centre.
+
+**When the old man smiles: ONE FAST SNAP ZOOM straight to the two gold teeth,
+then hold.**
+
+Valder's hand-sweep of the room plays in a frontal medium two-shot, both men
+facing camera, symmetrical about the axis. No handheld.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
 pushed slightly cool, shadows never pure black but deep red-brown, saturation
@@ -97,7 +110,12 @@ CRITICAL: PEOPLE AND A CHROMIUM COLUMN BLOCK THE FAR WALL THROUGHOUT. Valder
 never sees the crack, never glances at it, and the camera never gives him a
 clear line to it.
 
-Camera: a push in on each object, then back to Valder. Level, unhurried.
+CAMERA — the Anderson plan: **one continuous LATERAL DOLLY at constant speed**,
+parallel to the wall, tracking Valder piece to piece, the listeners drifting
+behind him in a loose row. **As he names each object, cut to a ONE-SECOND locked
+PORTRAIT of it — dead centre, frontal, flat-lit, a catalogue plate** — then
+return to the moving master exactly where it left off. Three portraits, three
+returns. Level, unhurried, never handheld.
 
 Same colour grade and film treatment as Scene 7.
 
@@ -128,7 +146,12 @@ THE CROWD PARTS FOR HIM.
 END THE CLIP ON HIS FACE THE INSTANT HE SEES IT. His hand still raised. The
 smile completely unchanged. Do not show what he is looking at.
 
-Camera: push in on each object, then a slow move round to his face for the turn.
+CAMERA — the Anderson plan: the same lateral dolly and one-second object
+portraits as Scene 8a — two more catalogue plates. Then, for the turn: **the
+crowd PARTS SYMMETRICALLY, half stepping left and half right like theatre
+curtains opening on the axis**, and the camera **pushes straight down the
+cleared centreline** toward his face as the hand rises. End on his face, the
+push just settling, the smile unchanged.
 
 Same colour grade and film treatment as Scene 7.
 
@@ -170,8 +193,10 @@ THE RAISED HAND LOWERS, SLOWLY.
 He is not lying and must never be played as lying. Every word is true; he has
 only rearranged them. By the last line he believes it himself.
 
-Camera: static on him, or the slowest possible push in. Nothing showy — the
-performance carries it.
+CAMERA — the Anderson plan: **one shot, one move — the slowest possible push-in
+dead on the axis, running the entire 25 seconds**, medium to close. Valder dead
+centre, frontal, framed down a corridor of parted guests in symmetrical rows.
+Nothing else moves. Nothing showy — the performance carries it.
 
 Same colour grade and film treatment as Scene 7.
 
@@ -225,7 +250,11 @@ He looks down and goes back to mopping. Same rhythm, same speed as before.
 
     "…something that did not need me."
 
-Camera: static, medium. No push, no handheld.
+CAMERA — the Anderson plan: **DUPE DEAD CENTRE, FRONTAL, waist height — a
+portrait** — the blurred Valder group deep behind him ON THE SAME AXIS, so the
+voice and the man hearing it share one line. **One continuous slow push-in runs
+the whole clip**, medium to close. His mop strokes are metronome-steady until
+the lines stop them. No cut, no handheld.
 
 Same colour grade and film treatment as Scene 7.
 
@@ -248,9 +277,9 @@ Valder looking shocked, no Valder looking angry, no Valder looking sinister, no
 villain acting, no smirking, no knowing looks to camera, no winking, no anyone
 looking at the camera, no laughing, no comic expressions, no screens, no LEDs,
 no digital displays, no cables, no modern technology, no smartphones, no
-dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no
+dissolve, no crossfade, no fade to black, no wipe, no whip pan except the single 90-degree whip pan specified in Scene 7, no morph, no
 slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle,
-no tilted horizon, no zoom, no crane move, no drone shot, no lens flare, no
+no tilted horizon, no zoom except the single fast snap zoom specified in Scene 7, no crane move, no drone shot, no lens flare, no
 anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no
 plastic skin, no smooth airbrushed faces, no beauty filter, no dirt, no grime,
 no squalor, no grey skin, no waxy skin, no horror imagery, no rain, no fog, no
