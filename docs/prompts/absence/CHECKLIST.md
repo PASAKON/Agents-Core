@@ -602,8 +602,13 @@ bound references, and the Generate price read off a zoomed screenshot:
 - **Ask before building** — counts, heights, who-wears-what. Ask first, not after the render.
 - **Download straight into Drive, never the Desktop.** The project folder is
   mounted locally at `~/Library/CloudStorage/GoogleDrive-pass.gob1@gmail.com/ไดรฟ์ของฉัน/ALL DRAFT/YT: ILAG/Sorry, Sir/`
-  — `All Scene/` for clips, `Element/` for plates. CEO, 2026-08-28: keep the
-  Mac's disk clear. **Copy, verify byte-exact, then delete the local** — never
-  delete first.
+  — `Element/` for plates. CEO, 2026-08-28: keep the Mac's disk clear.
+  **Copy, verify byte-exact, then delete the local** — never delete first.
+- **ONE FOLDER PER SCENE for clips** — CEO, 2026-08-28 14:20. Every clip goes to
+  `All Scene/<SCENE>/`, named for its own scene id: `S1`, `S2`, `S8a`, `S17`.
+  **Create the folder only if it is missing; never duplicate one that exists.**
+  Second takes sit in the same scene folder beside the first, distinguished by
+  filename, not by a new folder. The 11 existing clips were sorted into `S1`
+  `S2` `S3` `S4` `S9` `S17` `S18` at 14:20.
 - **Paid GPT Image 2 gens do NOT share the Unlimited Seedance video slot.** Confirmed 2026-08-28: char_gentleman and another operator's char_grandmother both fired and completed while a Scene 2 video render was in flight. Don't stand down image generation while waiting on a video render.
 - **`char_grandmother`** (note: different Element from `char_grandma` above — a second, separate grandmother design exists on the account, purple robe/headscarf/dark glasses in an antique-style wheelchair) came out with black gloves; the prompt already specified dark grey or oxblood. CTO decision 2026-08-28: **skip the reshoot** — gloves are an accessory, not a CEO-set rule, and a re-roll is a coin flip not worth the credits/time. Left as-is.
