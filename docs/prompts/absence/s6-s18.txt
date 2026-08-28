@@ -315,10 +315,18 @@ REFERENCES — each with a job:
 @char_valder — between the workman and the wall, mid-fury.
 @char_grandmother — the buyer, in the wheelchair.
 @char_registrar — ivory livery, white gloves, the ledger.
-@char_gentleman_e @char_woman @char_critic_b — the room.
+@char_workman — slate-blue overalls, bucket and float, AT THE WALL. Dupe
+  puts himself in front of THIS man — he must be in frame or the shield
+  reads as nothing.
+@char_gentleman_e — the room, planted at the frame edge.
 @char_press_a @char_press_b — FILMING ALL OF THIS — the confession goes out
   live (CEO: press arrived after the sale, before the reveal). This
   broadcast is why the world knows Dupe's face by S18.
+
+⚠️ REF BUDGET (CTO 22:35): trimmed to 10 chips. `char_woman` and
+`char_critic_b` are DROPPED from the reference list and play as unnamed
+background guests in the rows — twelve chips reliably turns to mush, and
+they have no action in this scene. Do not re-add them.
 
 [0s] The workman at the wall with bucket and float; Valder between him and
 the crack, still mid-rage. DUPE RUNS IN ALONG THE AXIS from the frame edge

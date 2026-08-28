@@ -1,3 +1,19 @@
+> ## 🔴 CEO OVERRIDE 22:35 — S15 IS NOW THE TOP PRIORITY (editor needs it)
+> The editor is waiting on S15. Jump the queue in this exact order:
+> 1. **NOW, in parallel with whatever video is rendering** — generate the
+>    `char_registrar` plate (image gens do NOT hold the video slot). Spec in
+>    ASSETS below. ONE face, 4 panels. Report its mention string.
+> 2. **The very next free video slot = S15.** Not S1B, not S2. S15.
+>    Prompt: `s6-s18.txt` → SCENE 15 — DUPE CONFESSES (25s).
+>    Refs trimmed to 10 chips; `char_woman`/`char_critic_b` deliberately
+>    dropped — do not re-add. `char_workman` was missing and is now in.
+> 3. Deliver S15 the moment it lands: review → Drive `All Scene/S15/` →
+>    Telegram to CEO. Do not batch it behind anything.
+> 4. Then resume the normal FIRE ORDER from where you left off.
+> Note: renders are in the SLOW window until ~08:00 ICT, expect 50+ min.
+> If S15 comes back with drifted dialogue, re-fire ONCE immediately — do not
+> queue other scenes ahead of a usable S15.
+
 > **CTO NOTICE 22:26 — PRIORITY 1 NOT YET SEEN DONE.** Before firing A1 you MUST have:
 > 1. `char_registrar` plate generated (spec in ASSETS below) — blocks S5/S10b/S12/S14/S15/P1-P3.
 > 2. `loc_wall_pov_e` uploaded as an Element via the composer's uploader (PNG at Element/Location/absence-loc-wall-pov-e.png) — A1–A5 all bind it.
