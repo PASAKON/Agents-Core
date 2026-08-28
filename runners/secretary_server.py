@@ -222,7 +222,24 @@ DIGEST_TURN_MARKER = "[C-LEVEL DIGEST]"
 # bare "Read" that could open anything on the box). Named as its own
 # constant, not inlined into ALLOWED_TOOLS below, so the test suite can
 # assert against the exact same string rather than re-deriving it.
-IMAGE_READ_TOOL = f"Read({SECRETARY_IMAGE_DIR}/**)"
+#
+# The leading slash on top of the absolute path is load-bearing, not a typo.
+# A permission rule reads its path gitignore-style, so a single leading "/"
+# means "relative to the project root" and an absolute path has to be written
+# with two. Measured on the box 2026-08-29, permission-mode dontAsk, against a
+# file at <staging>/<uuid>/probe.txt:
+#
+#   Read(/opt/.../secretary_images/**)      -> DENIED   (1 permission_denial)
+#   Read(/opt/.../secretary_images/**/*)    -> DENIED
+#   Read(/opt/.../secretary_images/*/*)     -> DENIED
+#   Read(//opt/.../secretary_images/**)     -> read the file, 0 denials
+#
+# The single-slash form matched nothing at all, so every inbound photo was
+# refused and SomPong reported it could not open its own staged file. It also
+# made the jail look airtight in testing: probes for traversal were correctly
+# blocked, but so was the one path that was supposed to work, and only the
+# blocked half had been checked.
+IMAGE_READ_TOOL = f"Read(/{SECRETARY_IMAGE_DIR}/**)"
 
 ALLOWED_TOOLS: tuple[str, ...] = (
     "mcp__lungnote__list_todos",

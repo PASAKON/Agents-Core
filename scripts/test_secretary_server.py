@@ -155,6 +155,18 @@ def test_read_is_the_only_new_tool_added_for_images() -> None:
     assert ss.IMAGE_READ_TOOL.startswith("Read(")
     assert str(ss.SECRETARY_IMAGE_DIR) in ss.IMAGE_READ_TOOL
 
+    # Both assertions above passed for months against a rule that matched
+    # nothing. A permission path is read gitignore-style, so a single leading
+    # "/" means "relative to the project root"; an absolute path needs two.
+    # Measured on the box 2026-08-29 under permission-mode dontAsk, reading
+    # <staging>/<uuid>/probe.txt: the single-slash form was DENIED and the
+    # double-slash form read the file with zero denials. Shape was never the
+    # problem, so assert the semantics.
+    assert ss.IMAGE_READ_TOOL.startswith("Read(//"), (
+        "an absolute path in a permission rule needs a doubled leading slash "
+        f"— {ss.IMAGE_READ_TOOL!r} matches nothing and denies every inbound "
+        "image")
+
 
 def test_generated_mcp_config_never_carries_a_cwd_key(tmp_path, monkeypatch) -> None:
     """Claude Code silently drops an mcpServers entry carrying a `cwd` key.
