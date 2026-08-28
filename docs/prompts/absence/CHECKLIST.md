@@ -282,6 +282,27 @@ High / Sound On, then the prompt and references, then Unlimited last.
 **Standing rule from here: a fresh tab every three or four generations**, before
 it breaks rather than after.
 
+### 12:33 — the stale-tab theory was WRONG, and so was the next one
+
+A completely fresh tab, rebuilt in the right order, **still desynced to 4s on the
+first attempt.** So the tab was not the cause.
+
+Second theory, also wrong: that the Unlimited entitlement had lapsed. Checked
+read-only — **Ultra Plan, renews 7 Sep; "Seedance 2.5 Unlimited" active to 9 Sep;
+and every Seedance entry in today's usage log reads `Unlimited` with no digits.**
+
+**The one thing that matters and is now confirmed: nothing has been charged
+today.** The 28/26 the operator saw was almost certainly the Unlimited toggle
+silently resetting to OFF after a reload — documented behaviour — not a billing
+event.
+
+**Two wrong theories in twenty minutes.** Stopped guessing; the operator is now
+gathering facts read-only: what kind of control the duration actually is, what
+values it offers, what it reads back when set through its own UI rather than
+typed, and what duration the S2/S3 cards report versus now. **If Seedance simply
+no longer offers 20s at 720p, that is a constraint to design around by splitting
+dialogue across more clips — not a bug to fight.**
+
 ---
 
 ## 🔴🔴 THE FACE/IP SCAN IS RETROACTIVE — passing at creation means nothing
