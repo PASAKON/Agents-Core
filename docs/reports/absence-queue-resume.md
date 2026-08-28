@@ -347,3 +347,14 @@ for ~20 minutes before starting (Europe midday, the documented worst
 render-queue window per the skill) — verified genuinely queued with a
 fresh tab, not a stale-tab artifact, before waiting it out. 720p,
 downloading next.
+
+## S1A — COLLECTED
+
+720p/1280x720/10.04s confirmed. Shot-by-shot review clean: extreme low
+ankle-height angle, symmetric hall, red door dead centre at the far end.
+All three extras present and correctly placed — teal-suited man with his
+back to us studying a sculpture, mustard-dressed woman crossing near the
+door, plum-dressed older woman seated on a bench. Dupe walks close past
+camera then away toward the door, cart visible (gold V, orange bucket, red
+panel). No gold V on any extra. No defects. Copied to Drive, byte-exact
+verified, local deleted.
