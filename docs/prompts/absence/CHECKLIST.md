@@ -161,7 +161,7 @@ schedule slips the missing footage is at the end of the film and not its middle.
 |---|---|---|---|
 | S1 | Dupe cleans, greets, nobody answers. Title drop. | 20s | ✅ 2 takes — `5ea44262` `c8e60256` |
 | S2 | **The accident.** Dupe knocks the frame into the wall, takes the painting away. | 20s | ✅ **TAKE 1 DELIVERED** `56ace68c` · watched + verified · in Drive · sent to CEO |
-| S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | 🔄 `task-a13469e9` |
+| S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | ⚠️ **take 1 NG — re-firing.** Rendered a wood-and-brass **porthole**, i.e. a hole, which the CEO rejected twice. Cause: `loc_wall_pov_b` is **Face/IP flagged** so it could not be bound and the clip fired from prose alone. Kept as an alternate. |
 | S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 📝 prompt written — [s4-s5.txt](s4-s5.txt) |
 | S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
 | S6 | **$20,000,000** — wall POV. 10–20 people, personal guards. | 15s | ⬜ |
@@ -203,6 +203,14 @@ clip count.
 
 **Wall POV appears 4 times:** S3, S4, S6, S11. Same frame every time; only the
 crowd inside it changes.
+
+> 🔴 **`loc_wall_pov_b` IS FACE/IP FLAGGED AND CANNOT BE BOUND.** This blocks all
+> four wall-POV scenes, not just S3 — they must share one frame. S3 take 1 fired
+> without it and produced a porthole, which is the one thing the CEO struck out.
+> **Fix to try first: click the WARNING TRIANGLE on the flagged card — the
+> triangle itself is the eligibility re-check, and the flag is a periodic rescan
+> that hits old healthy assets.** If that fails, the plate must be regenerated
+> before S4/S6/S11 can be shot at all.
 
 ---
 
