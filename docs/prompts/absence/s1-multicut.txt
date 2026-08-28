@@ -1,10 +1,14 @@
-SEEDANCE 2.5 — 15 SECONDS — 720p — 16:9
+15s · 720p · 16:9 · TWO LONG TAKES WITH EXACTLY ONE JUMP CUT BETWEEN THEM —
+no other cuts, no zoom, no dissolve.
 
 ================================================================
-SCENE 1 — THE CLEANER · REWRITE 2026-08-28 (CEO: Dupe-POV opening)
-ONE LONG TAKE, ONE JUMP CUT, ONE LONG TAKE. Exactly one cut.
+SCENE 1 — THE CLEANER · Dupe-POV opening · house template 2026-08-28
 ================================================================
-References: loc_hall_big_e · char_cleaner_c · prop_cart
+REFERENCES — each with its job:
+@project_absence_loc_hall_big_e — the room: columns, red door, cove light,
+  terrazzo. Controls place and light only.
+@project_absence_char_cleaner_c — DUPE: face, build, moustache, uniform, cap.
+@project_absence_prop_cart — the cart, RACK EMPTY. Controls the object only.
 
 **THE MUSEUM IS EMPTY. DUPE IS COMPLETELY ALONE — before opening.**
 No visitors, no extras, no staff, nobody. This is his private world
@@ -36,27 +40,32 @@ bucket, cream bottles, folded towels, brush, folding step ladder,
 **gold V on the front panel. THE RACK IS EMPTY.**
 
 ================================================================
-SHOT 1 — LONG TAKE — 8 seconds
+SHOT 1 — LONG TAKE
 ================================================================
-CAMERA — the Anderson plan: **one straight LATERAL DOLLY at constant
-speed, exactly parallel to the wall of paintings, waist height,
-perfectly level.** Dupe stays DEAD CENTRE in clean profile as he works
-along the wall — dusts the top of a frame the full length, steps back,
-checks it, gives one small satisfied nod; moves on, polishes a vitrine
-top in slow circles, catches his own reflection, smile widens slightly.
-The empty hall glides past behind him like a stage backdrop.
+[0s] Medium profile: Dupe dusts the top edge of a framed artwork the
+full length of the frame. Camera is a straight lateral dolly at
+constant speed, parallel to the wall, waist height, perfectly level —
+Dupe held DEAD CENTRE, the empty hall gliding behind him like a stage
+backdrop. Warm cove light.
 
-=== JUMP CUT ===
+[4s] Same dolly, unbroken: he steps back, checks the frame, gives one
+small satisfied nod, moves on and polishes a vitrine top in slow
+circles. He catches his own reflection in the glass; the private smile
+widens slightly.
+
+=== JUMP CUT (the only cut) ===
 
 ================================================================
-SHOT 2 — LONG TAKE — 7 seconds
+SHOT 2 — LONG TAKE
 ================================================================
-CAMERA: **a LOCKED-OFF ONE-POINT TABLEAU** — dead on the room's
-centreline at eye height, **the RED DOOR exactly centred at the
-vanishing point**, columns in mirrored pairs. **The camera does not
-move.** Dupe, small in the symmetrical frame, mops the centreline
-toward camera in long steady strokes, alone in the whole deep frame.
-Hold on him, still working, still content, until the clip ends.
+[8s] Very wide one-point tableau: the RED DOOR dead centre at the
+vanishing point, columns in mirrored pairs. Camera locked off at eye
+height, perfectly level — it does not move again. Dupe, small on the
+centreline, mops toward camera in long steady strokes, alone in the
+whole deep frame.
+
+[13s] Hold. He works on, content. Nothing else moves. End on the
+unmoved symmetrical frame.
 
 ================================================================
 STYLE

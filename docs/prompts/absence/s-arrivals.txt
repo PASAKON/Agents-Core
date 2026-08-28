@@ -19,9 +19,13 @@ angle, no zoom, no whip pan, no crane, no drone, no slow motion, no
 HDR, no CGI sheen, no beauty filter, no darkness
 
 ---------------------------------------------------------------
-S2b · THE PHONE CALL · 8s · SILENT
+S2b · THE PHONE CALL
 ---------------------------------------------------------------
-References: loc_hall_big_e · char_cleaner_c
+8s · 720p · 16:9 · ONE CONTINUOUS LOCKED SHOT, no cuts, no zoom.
+
+REFERENCES — jobs:
+@project_absence_loc_hall_big_e — wall texture and light only.
+@project_absence_char_cleaner_c — DUPE: face, uniform, cap.
 
 A quiet corner of the museum — a plain wall section by the service
 side. **A retrofuturist WALL TELEPHONE**: cream and chrome, rotary
@@ -30,12 +34,17 @@ dial, coiled cord, a small brass shelf. Nothing digital.
 CAMERA: locked profile, waist height, perfectly symmetrical — Dupe
 dead centre at the phone.
 
-**DUPE, worried, glances over his shoulder — nobody — then dials.** A
-rotary number, deliberate. He waits. He cups his hand around the
-mouthpiece and speaks — **we hear nothing intelligible, a low murmur
-under the room tone.** He nods. In his other hand, **a small fold of
-worn banknotes — his own money.** He hangs up, straightens his cap,
-breathes once, and walks out of frame with the cart.
+[0s] Locked profile, waist height, perfectly symmetrical: Dupe dead
+centre at the wall phone. He glances over his shoulder — nobody — and
+dials a rotary number, deliberate, one digit at a time.
+
+[3s] He waits, receiver to his ear, and cups his hand around the
+mouthpiece. He speaks — a low murmur under the room tone, nothing
+intelligible. In his other hand, a small fold of worn banknotes — his
+own money.
+
+[6s] He nods once, hangs up, straightens his cap, breathes once, and
+walks out of frame. The empty phone holds the frame a beat too long.
 
 *What this plants: the workman of S13/S14 was called by Dupe, this
 morning, and the eight hundred is Dupe's own savings. "Someone asked
@@ -76,101 +85,138 @@ joke never wears out): **A1, A3 and A5 only.** Spoken quietly, warmly;
 **never answered, never acknowledged, and he never reacts to that.**
 
 ---------------------------------------------------------------
-A1 · THE ELDERLY GENTLEMAN · 15s — the first man in the world
+A1 · THE ELDERLY GENTLEMAN — the first man in the world
 ---------------------------------------------------------------
-Cast: char_oldman
+15s · 720p · 16:9 · ONE LOCKED SHOT, the camera never moves, no cuts.
 
-The empty frame. The crack. The plaque. A long still beat.
+REFERENCES — jobs:
+@project_absence_loc_wall_pov_e — THE FRAME ITSELF: behind-the-wall view,
+  crack, reversed plaque, red door at the vanishing point. Never deviate.
+@project_absence_char_oldman — the gentleman: face, build, green leather, cane.
+@project_absence_char_cleaner_c — DUPE at frame edge. @project_absence_prop_cart_b —
+  his cart, painting visible in the rack. Nobody looks at it.
 
-The red door opens. **THE ELDERLY GENTLEMAN** — heavy, about eighty,
-bottle-green leather overcoat, chrome ring-handled cane — comes down
-the centreline SLOWLY, cane first, a small figure becoming a large
-one. He stops. He looks at the crack a very long time. Dupe, at the
-frame's edge, wipes the wall and says: **"Excuse me, sir."** Nothing.
-The old man does not hear him — or does not distinguish him from the
-building.
+[0s] The locked frame, empty: the crack (the camera), the mirror-reversed
+plaque, the red door far away dead centre. A long still beat — three full
+seconds of nothing.
 
-Then, slowly, with the certainty of a man reading scripture:
+[3s] The red door opens. The elderly gentleman comes down the centreline
+SLOWLY, cane first, a tiny figure growing large. At the frame's edge Dupe
+wipes the wall beside the crack and says it quietly, warm and polite:
+"Excuse me, sir." — no answer, no glance; the old man does not distinguish
+him from the building. Dupe works on.
 
-    "It's about death."
+[10s] The gentleman stops close, looks straight into the lens a long
+moment, and says it slowly, with the certainty of a man reading
+scripture: "It's about death."
 
-Hold him alone in the frame, one beat too long.
+[14s] Hold him alone in the frame, one beat too long.
 
 *The first human being ever to see the crack as art. The patient zero
 of the whole film. Give the silence its full weight.*
 
 ---------------------------------------------------------------
-A2 · THE ART CRITIC · 10s
+A2 · THE ART CRITIC
 ---------------------------------------------------------------
-Cast: char_oldman (in the row) + char_critic_b
+10s · 720p · 16:9 · ONE LOCKED SHOT, identical frame to A1, no cuts.
+
+REFERENCES — jobs:
+@project_absence_loc_wall_pov_e — the frame. @project_absence_char_oldman —
+  standing in the row, still. @project_absence_char_critic_b — the critic:
+  face, magenta fur, cream gloves. @project_absence_char_cleaner_c +
+  @project_absence_prop_cart_b — Dupe and cart at the edge.
 
 The old man now stands in the row, still. The door opens again.
 **THE ART CRITIC** — Asian woman about sixty, deep magenta fur, cream
 gloves; **half-Chinese, and when she speaks it is fluent English with
 a Chinese accent, the cadence of a Chinese speaker who uses English
-well.** She walks the axis, joins the line beside him, studies the
-crack, weighing it, and says slowly:
+well.** [0s] The locked frame: the old man alone in the row, motionless. The
+door opens; the critic walks the axis toward the lens.
 
-    "It asks who decides what labour is worth."
+[5s] She joins the line beside him and studies the crack, weighing it.
+Then she says it slowly, measured, fluent English carried on a Chinese
+cadence: "It asks who decides what labour is worth."
 
-Dupe cleans on at the edge. No greeting in this one.
-
----------------------------------------------------------------
-A3 · THE COUPLE · 12s
----------------------------------------------------------------
-Cast: the row (oldman, critic) + char_visitor_b + char_husband
-
-The door opens on TWO figures: **THE WOMAN IN THE CHESTNUT FUR**
-(~55, rust dress, warm ordinary face) with **HER HUSBAND** half a step
-behind in his deep-ochre wool coat. They come down the axis together.
-As they pass him, Dupe: **"Excuse me. Just a moment."** — finishing a
-wipe at their feet. Neither of them registers he exists.
-
-She takes her place in the row, looks at the crack, and quietly, a
-single tear running down her cheek that she does not wipe:
-
-    "It made me think of my mother."
-
-**Her husband glances at her. He does not touch her. He does not know
-what to do.** Nobody else reacts at all.
+[9s] Nobody moves. Dupe cleans on at the edge. No greeting in this one.
 
 ---------------------------------------------------------------
-A4 · THE ART STUDENT · 10s
+A3 · THE COUPLE
 ---------------------------------------------------------------
-Cast: the row (4) + char_student_c
+12s · 720p · 16:9 · ONE LOCKED SHOT, identical frame, no cuts.
 
-The door again. **THE ART STUDENT** — about twenty-two, acid-green
-dyed hair, paint-stained denim — walks the axis FASTER than anyone
-else, already unimpressed, plants herself at the end of the row, and
-fires it flat:
+REFERENCES — jobs:
+@project_absence_loc_wall_pov_e — the frame. Row so far:
+@project_absence_char_oldman + @project_absence_char_critic_b, motionless.
+@project_absence_char_visitor_b — the wife: chestnut fur, rust dress.
+@project_absence_char_husband — the husband: deep-ochre wool coat, ~60.
+@project_absence_char_cleaner_c + @project_absence_prop_cart_b — the edge.
 
-    "It's anti-capitalist. Obviously."
+[0s] The locked frame, two in the row. The red door opens on TWO
+figures: the woman in the chestnut fur, her husband half a step behind.
+They come down the axis together.
 
-**NOT ONE PERSON IN THE ROW TURNS TOWARD HER.** The same silence Dupe
-gets. She joins the line anyway. Dupe cleans on. No greeting here.
+[4s] As they pass him Dupe finishes a wipe at their feet and says it
+softly, apologetic: "Excuse me. Just a moment." Neither of them
+registers that he exists. They keep walking.
+
+[7s] She takes her place in the row and looks into the lens. She says
+it quietly, unsteady, a single tear running down her cheek that she
+does not wipe: "It made me think of my mother."
+
+[11s] Her husband glances at her. He does not touch her. He does not
+know what to do. Nobody else reacts at all.
+
+---------------------------------------------------------------
+A4 · THE ART STUDENT
+---------------------------------------------------------------
+10s · 720p · 16:9 · ONE LOCKED SHOT, identical frame, no cuts.
+
+REFERENCES — jobs:
+@project_absence_loc_wall_pov_e — the frame. The row of four, motionless.
+@project_absence_char_student_c — the student: acid-green hair,
+paint-stained denim. @project_absence_char_cleaner_c +
+@project_absence_prop_cart_b — the edge.
+
+[0s] The locked frame, four in the row. The door again. The art student
+walks the axis FASTER than anyone else has, already unimpressed.
+
+[5s] She plants herself at the end of the row and fires it flat, fast,
+bone-dry: "It's anti-capitalist. Obviously."
+
+[7s] NOT ONE PERSON IN THE ROW TURNS TOWARD HER. The same silence Dupe
+gets. She folds her arms and joins the line anyway. Dupe cleans on. No
+greeting here.
 
 ---------------------------------------------------------------
 A5 · THE WOMAN IN COBALT · 20s — the consensus
 ---------------------------------------------------------------
 Cast: the full row (5) + char_woman
 
-The door, one last time. **THE WOMAN IN COBALT** — ~50, glossy cobalt
-leather, tall sculptural crest, cat-eye sunglasses indoors — the
-slowest, most deliberate walk of the five. As she passes him Dupe
-says: **"Sorry, madam."** Nothing, as always.
+20s · 720p · 16:9 · ONE LOCKED SHOT, identical frame, no cuts.
 
-She takes the centre of the row, looks at the crack, and — **perfectly
-still, only her mouth moving:**
+REFERENCES — jobs:
+@project_absence_loc_wall_pov_e — the frame. The row of five, motionless.
+@project_absence_char_woman — the woman in cobalt: leather, crest,
+cat-eye sunglasses. @project_absence_char_cleaner_c +
+@project_absence_prop_cart_b — the edge.
 
-    "This is the real thing."
-    "I have spent my whole life in rooms like this one."
-    "I have never once stood in front of anything like it."
-    "That is not a picture of something. That is the thing itself."
+[0s] The locked frame, five in the row. The door, one last time. The
+woman in cobalt makes the slowest, most deliberate walk of the five
+down the axis. As she passes him Dupe says it gently, half a bow in
+the voice: "Sorry, madam." Nothing, as always.
 
-A beat — then **a low warm murmur across the whole row: "Ohhh."** Nods
-spread. Brief, quiet, sincere applause.
+[6s] She takes the centre of the row and looks straight into the lens.
+Perfectly still, only her mouth moving, measured and absolutely
+certain: "This is the real thing." — "I have spent my whole life in
+rooms like this one."
 
-**And at the edge of frame Dupe stops wiping for one second — his only
-reaction in the whole act — then goes back to work.**
+[12s] Still motionless: "I have never once stood in front of anything
+like it." — "That is not a picture of something. That is the thing
+itself."
+
+[16s] A beat. Then a low warm murmur across the whole row — "Ohhh." —
+nods spreading, brief quiet sincere applause. At the frame's edge Dupe
+stops wiping for one single second — his only reaction in the whole
+act — then goes back to work.
 
 *The consensus is born. From the next scene it has a price.*
