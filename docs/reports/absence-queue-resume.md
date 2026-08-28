@@ -268,3 +268,15 @@ grey bucket with brush and cloth, four labelled bottles, folded cloths,
 folding ladder clipped to the side, gold V on the red front panel, the
 painting slotted upright in its rack facing outward. No people, no defects.
 New Drive folder S1C created, byte-exact verified, local deleted.
+
+## loc_wall_pov_e — UPLOADED AND FILED
+
+Uploaded `absence-loc-wall-pov-e.png` through the composer's own file
+uploader (via the New Element dialog's dropzone, category Location).
+Filed as Element **`loc_wall_pov_e`**, mention string **`@loc_wall_pov_e`**
+(no `project_absence_` prefix — same naming exception as `prop_cart_b` and
+`gentleman_e`). Verified genuinely bound: pasted the tag standalone into
+the composer, cleared its transient "needs eligibility check" warning, and
+confirmed the reference thumbnail shows the correct mirrored-hall image (red
+door, crack, mirror-reversed plaque). Did not regenerate or modify it, per
+instruction. Ready for use in S3, S4, S6, S11.
