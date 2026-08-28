@@ -59,10 +59,13 @@ WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE THE SHOTS BELOW.
 
 **HE IS HAPPY. THIS IS THE MOST IMPORTANT THING IN THE SCENE.** He enjoys this work and he is good at it. He smiles to himself as he goes — a small, private, contented smile, not a grin, never comic, never mugging. He takes real care with each object. **He is not sad, not bitter, not weary, not resentful, and he is absolutely not performing for anyone.** Nobody is watching him and that suits him.
 
-@project_absence_prop_cart — **DUPE'S CART.** A burnt-orange lacquered trolley on a chromium frame with splayed tapered legs, a **gold V on the front panel**, a small drawer, a chrome rail holding four cream plastic bottles, folded cream and tan towels and a wooden brush. Mops with a red head and a cream head stand upright in clips. A burnt-orange bucket at floor level. A folding step ladder strapped to the side. He pushes it with him and it is never far from his hands. **THIS IS THE
-PRE-ACCIDENT CART — there is NO painting on it or near it anywhere.** The painting
-still hangs on the wall in this scene. (From Scene 2 onward the film switches to
-@project_absence_prop_cart_b, which carries the painting in its rack.)
+@project_absence_prop_cart_b — **DUPE'S CART.** A burnt-orange lacquered trolley on a chromium frame with splayed tapered legs, a **gold V on the front panel**, a small drawer, a chrome rail holding four cream plastic bottles, folded cream and tan towels and a wooden brush. Mops with a red head and a cream head stand upright in clips. A burnt-orange bucket at floor level. A folding step ladder strapped to the side. He pushes it with him and it is never far from his hands. **THE PAINTING RIDES
+IN THE CART'S SIDE RACK, face turned outward** — because TIMELINE (CEO, locked):
+**Scene 2, the accident, has ALREADY HAPPENED, before opening.** This scene is
+later the same morning: doors open, visitors in, and Dupe back at his routine as
+if nothing happened — polite, content, greeting people — with the fallen
+painting travelling beside him in plain sight. Nobody notices it. Nobody ever
+looks at his cart.
 
 --- THE PEOPLE HE PASSES. Background only. NOT ONE OF THEM SPEAKS OR LOOKS AT HIM. ---
 
@@ -77,7 +80,10 @@ These are the real characters of the film and they must be recognisably themselv
 
 **NOBODY WEARS A GOLD V EXCEPT DUPE AND HIS CART.** No visitor has a V pin, brooch, or badge anywhere.
 
-**THERE ARE SIX OF THEM AND NOBODY ELSE.** No extras, no background crowd, no additional figures, no people in the far distance. Six visitors and Dupe. Seven people in the entire building.
+**SIX NAMED VISITORS, plus AT MOST THREE distant unnamed extras** (per the CEO —
+a man in deep teal at a far painting, a woman in mustard crossing the far end, an
+older woman in plum on a distant bench; none alike, none near Dupe, no gold V).
+Nobody else. No crowd.
 
 ================================================================
 WHAT THIS SCENE IS DOING
@@ -125,7 +131,7 @@ backdrop. The visitors he passes stand PLANTED like statues, each perfectly
 frontal to their own artwork, spaced as evenly as the columns. The dolly never
 speeds up, never slows for anything, and never stops until the cut.
 
-**@project_absence_char_cleaner_c — DUPE — is working, and enjoying it.** He pushes @project_absence_prop_cart a few steps, sets it down, and **takes a soft brush from the cart and dusts the top edge of a framed artwork**, carefully, along the whole length of the frame. He steps back, tilts his head, checks it, and **gives a small satisfied nod**. He is smiling to himself the whole time.
+**@project_absence_char_cleaner_c — DUPE — is working, and enjoying it.** He pushes @project_absence_prop_cart_b a few steps, sets it down, and **takes a soft brush from the cart and dusts the top edge of a framed artwork**, carefully, along the whole length of the frame. He steps back, tilts his head, checks it, and **gives a small satisfied nod**. He is smiling to himself the whole time.
 
 He moves on. **He takes a cloth and polishes the top of a glass vitrine**, working in slow circles, then leans in and buffs out one stubborn spot. He catches his own reflection in the glass and his smile widens very slightly.
 

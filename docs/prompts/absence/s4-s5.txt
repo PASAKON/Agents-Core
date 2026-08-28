@@ -60,7 +60,7 @@ darkness, no rubble, no structural damage, no large crack
 SCENE 5 — COLLECTOR A OPENS THE BIDDING · 20s
 ===============================================================
 References: loc_hall_big_e · char_woman · char_critic_b · char_oldman ·
-char_student_c · char_visitor_a · char_visitor_b · char_press · char_cleaner_c
+char_student_c · char_visitor_a · char_visitor_b · char_registrar · char_cleaner_c
 
 ⚠️ CTO ASSUMPTION, FLAGGED FOR THE CEO — not his explicit words.
 He answered "reuse a character who already exists" and described Collector A as
@@ -89,11 +89,13 @@ A beat. Nobody moves.
 instant — one synchronized movement, like a flock — then perfect stillness.
 The unison is the joke and it must be exact.
 
-**THE RED DOOR AT THE FAR END OPENS — dead centre at the vanishing point — and
-TWO JOURNALISTS enter through it**, tiny and symmetrical, one either side of the
-axis, with a single shoulder-mounted retrofuturist film camera between them.
-They advance a few steps down the centreline and start filming. No flashes, no
-shouting, no scrum — two people quietly doing their job.
+**NO PRESS — the news breaks only after the hundred-million hammer; the press
+belong to S11 (CEO).** Instead: **THE REGISTRAR** — the museum's own official, a
+composed man in the staff's ivory livery, a small gold V at the chest, WHITE
+GLOVES, a slim brass-cornered ledger — **steps quietly in from the frame edge
+and WRITES THE NUMBER DOWN.** No words; the pen is the only sound. He is the
+same white-gloved hands that polish and swap the plaque, and from this moment
+the audience knows the institution is listening.
 
 DUPE is mopping near the back wall. He looks up once, at the number, then down
 again.

@@ -1,12 +1,11 @@
 ===============================================================
 S1A – S1G · SEVEN COVERAGE ANGLES FOR SCENE 1 · cutting footage
 ===============================================================
-References for all seven: loc_hall_big_e · char_cleaner_c · prop_cart
-⚠️ CONTINUITY: these are PRE-ACCIDENT shots — use the ORIGINAL `prop_cart`, which
-carries no painting. (`prop_cart_b` has the painting in its rack and belongs to
-S2 onward. The S1C take already fired with `prop_cart_b` is NOT wasted — the
-editor can use it as a post-accident cart insert later in the film.)
- · plus the three extras described below
+References for all seven: loc_hall_big_e · char_cleaner_c · prop_cart_b
+⚠️ TIMELINE (CEO, locked): **the accident has ALREADY happened — S2 is the
+earliest beat of the film, before opening.** These angles are later the same
+morning, so **use `prop_cart_b`: the painting rides in the rack, face outward.**
+The S1C take already fired with the painting aboard is canon-correct.
 
 CEO, 2026-08-28. `s1-multicut.txt` stays as the master wide. These seven are
 **extra footage to cut with** — the same morning, the same room, the same man,
@@ -74,7 +73,7 @@ S1C · THE CART — detail
 ---------------------------------------------------------------
 **8s. No dialogue.**
 
-Close on **`prop_cart`** as it rolls: mop, orange bucket, bottles, folded
+Close on **`prop_cart_b`** as it rolls: mop, orange bucket, bottles, folded
 cloths, brush, the folding ladder on the side, **the gold V on the front panel**,
 and the painting slotted upright in its rack, front face turned outward.
 
@@ -89,14 +88,16 @@ S1D · OVER THE SHOULDER — what he is looking at
 **10s. No dialogue.**
 
 From just behind and above Dupe's shoulder. The back of his cap with the gold V,
-and beyond it **the hero wall with the painting still hanging on it, straight and
-untouched.**
+and beyond it **the hero wall — BARE, with the small crack and the brass plaque.**
+His own accident, an hour old.
 
-He reaches in and wipes the wall beside the frame. He does not touch the painting.
+**He wipes the wall NEXT to the crack, carefully, and never once looks at the
+crack itself.** Not a glance. He cleans around it the way you avoid a bruise.
 
 Extra C sits on a distant bench, out of focus.
 
-*The point: the last time the audience sees that wall intact.*
+*The point: the film's best guilt beat — a man polishing the scene of his crime
+while refusing to see it.*
 
 ---------------------------------------------------------------
 S1E · THE LONG HALL — he is very small

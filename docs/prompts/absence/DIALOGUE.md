@@ -20,10 +20,12 @@ He works alone along the wall, greeting people who never answer. Five lines,
 none of them acknowledged.
 
 > **DUPE** *"Excuse me, sir."*
-> **DUPE** *"Excuse me, madam."*
+> **DUPE** *"Sorry, madam."*
+> **DUPE** *"Excuse me. Just a moment."*
 > **DUPE** *"Sorry, sir."*
-> **DUPE** *"Just a moment, madam."*
-> **DUPE** *"Sorry, sir."*
+> **DUPE** *"Thank you, sir."*
+
+*(Canon = the set already on film — the shot takes used these five.)*
 
 **The title comes from here, and it is the CEO's own line** — the same words
 **DUPE** says in S15, frightened, as he runs in to shield the workman, before he
@@ -187,7 +189,24 @@ split into three and the scene numbers shifted.)*
 
 ---
 
-## S15 · Dupe confesses · **LOCKED**
+## S10b · The war — numbers only · CTO draft, CEO owns the numbers
+
+> **GENTLEMAN** *"Twenty."* → **PARROT** *"Twenty-five."* → **G** *"Thirty."* →
+> **P** *"Forty."* → **G** *"Fifty."* → **P** *"Sixty."* → **G** *"Seventy."* →
+> **P** *"Eighty."* — the gentleman answers with the gold-toothed smile and
+> silence. The registrar writes every number.
+
+---
+
+## S12 · The grandmother — and the film's only gavel
+
+> **THE GRANDMOTHER**, level, no emotion *"A hundred million."*
+
+The REGISTRAR writes it and **closes the ledger — a soft leather clap. SOLD.**
+
+---
+
+## S15 · Dupe confesses · **LOCKED** — then the money finds its owner
 
 **Dupe has been watching from close by.** He runs in and **puts himself between
 Valder and the workman.** He is frightened.

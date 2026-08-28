@@ -1,7 +1,11 @@
 ===============================================================
 P1 · P2 · P3 — THE PLAQUE INSERTS · 5s each · CEO-approved 2026-08-28
 ===============================================================
-References: loc_hall_big_e
+References: loc_hall_big_e · char_registrar
+
+**THE HANDS BELONG TO THE REGISTRAR** — the museum official who records the bids
+in S5/S10b/S12. Same white gloves, same ivory cuffs as his plate. One character,
+two duties: he writes the numbers, and he makes them official in brass.
 
 Three tiny clips, one gag, pure Anderson. Between price jumps, the film cuts to
 the museum QUIETLY UPDATING THE PLAQUE — white-gloved hands, ceremony, zero

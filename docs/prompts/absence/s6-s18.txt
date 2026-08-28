@@ -112,11 +112,54 @@ no black clothing as anyone's main colour, no painting on the hero wall.
 
 
 ===============================================================
+SCENE 10b — THE WAR · 20s · NUMBERS ONLY · new scene, CEO-ordered
+===============================================================
+References: loc_hall_big_e · char_gentleman_e · char_woman_c · char_registrar ·
+char_valder · char_critic_b · char_cleaner_c
+
+The bidding war the film was missing: **twenty million to eighty, spoken as
+nothing but numbers.** CTO drafted the numbers; the CEO owns them and may
+reassign who ends on eighty — he has said either rival may win it.
+
+CAMERA — the Anderson plan: **alternating FRONTAL SINGLES.** Each bidder faces
+almost straight into the lens, dead centre, and says only a number. Cut on every
+bid. Identical framing for both — the symmetry IS the duel. Between them, in a
+locked side profile at the frame edge, **THE REGISTRAR writes each number in the
+ledger**, pen scratching, face empty. Valder watches from midframe behind,
+delighted, the warm ingratiating smile at full power.
+
+    THE GENTLEMAN: "Twenty."
+    THE PARROT WOMAN: "Twenty-five."
+    THE GENTLEMAN: "Thirty."
+    THE PARROT WOMAN: "Forty."
+    THE GENTLEMAN: "Fifty."
+    THE PARROT WOMAN: "Sixty."
+    THE GENTLEMAN: "Seventy."
+    THE PARROT WOMAN: "Eighty."
+
+A long beat. **The gentleman looks at her, smiles — the gold teeth — and says
+nothing.** He concedes the way rich men concede: as if he has decided the object
+is beneath him. The registrar's pen writes the last number and stops.
+
+The room holds its breath at eighty million. Cut.
+
+*(16 spoken words. Pace the numbers evenly, one every ~2 seconds, metronomic —
+the rhythm is the comedy.)*
+
+Additional negatives: no other dialogue, no gavel, no auctioneer calls, no
+paddles, no raised numbers, no shouting, no crowd beyond twelve people, no press,
+no anyone but the two rivals speaking.
+
+
+===============================================================
 SCENE 11 — $100,000,000 · THE PEAK · 15s · NO DIALOGUE
 ===============================================================
 References: loc_wall_pov_e · char_press · char_critic_b · char_oldman ·
 char_woman · char_woman_c · char_gentleman_e · char_guard_private ·
 char_guard_valder · char_cleaner_c
+
+**MINUTES AFTER THE HAMMER (CEO order: S12 → P3 → this scene).** The hundred-
+million sale broke instantly as news, and the world has just arrived.
 
 The same frame again, the fourth and last time. Camera behind the wall, cracked
 glass, crack dead centre, plaque low and mirror-reversed, never moving.
@@ -151,7 +194,7 @@ weapons, no rubble, no large crack.
 SCENE 12 — THE GRANDMOTHER · 25s
 ===============================================================
 References: loc_hall_big_e · char_grandmother · char_gentleman_e · char_woman_c ·
-char_valder · char_guard_valder · char_press · char_cleaner_c
+char_valder · char_guard_valder · char_registrar · char_cleaner_c
 
 ⚠️ USE `char_grandmother`. NOT `char_grandma` — two plates exist and the other
 one is superseded.
@@ -183,9 +226,15 @@ She drives straight through the middle of them. She does not look at the
 gentleman in the white suit. She does not look at the parrot woman. She stops
 in front of the crack, and she looks at it for a long moment.
 
-Then she raises one hand, barely — the smallest bid in the room.
+Then she raises one hand, barely — the smallest bid in the room — and says,
+level, without emotion:
 
-**IT IS OVER.** Nobody counters.
+    THE GRANDMOTHER: "A hundred million."
+
+**Nobody counters.** A silence with money in it.
+
+**THE REGISTRAR steps forward, writes the number, and CLOSES THE LEDGER — a
+soft leather clap, the only gavel this film has.** SOLD.
 
 **END ON THE REACTION, NOT ON HER.** A guard's face goes slack with surprise.
 The room freezes. And at the edge of frame **Dupe stops mid-stroke and stares** —
@@ -204,7 +253,8 @@ jewellery, no fur, no gold V on her, no wooden floor.
 SCENE 15 — DUPE CONFESSES · 25s
 ===============================================================
 References: loc_hall_big_e · char_cleaner_c · prop_cart_b · char_valder ·
-char_gentleman_e · char_woman · char_grandmother · char_critic_b
+char_gentleman_e · char_woman · char_grandmother · char_critic_b ·
+char_registrar · char_press_a · char_press_b
 
 Normal angle. The workman is at the wall with his bucket and float, about to
 put plaster over the crack. Valder is between him and it, shouting.
@@ -228,8 +278,26 @@ people nod when they have decided something is profound.
 
     "Then the artist is the building."
 
-**END ON DUPE'S FACE** as he realises he has not been believed — he has been
-promoted.
+**THE PRESS ARE FILMING ALL OF THIS** — the confession goes out live (CEO: the
+press arrived after the sale and BEFORE the reveal). This broadcast is why the
+whole world knows Dupe's face by S18.
+
+**AND THEN THE GRANDMOTHER MOVES.** The squeak of wheels in the silence. She
+rolls forward until she is beside Dupe, looks up at the crack, then at him.
+
+    THE GRANDMOTHER, level: "I was not buying a wall."
+    THE GRANDMOTHER, to Dupe: "One hundred million. For the artist."
+
+*(CTO-drafted lines — the CEO owns them and confirmed the mechanism: the money
+goes to DUPE, not Valder. She bid on an artwork; the maker just confessed;
+she pays the maker.)*
+
+**THE REGISTRAR opens the ledger, strikes one line, writes another, and closes
+it a second time.** The room's theory said the building; the only person whose
+opinion is money says Dupe. **Cash settles authorship.**
+
+**END ON DUPE'S FACE** — a man who told the truth expecting punishment and
+received a hundred million dollars. He does not understand. He never will.
 
 CAMERA — the Anderson plan: Dupe runs IN ALONG THE AXIS and plants himself
 **DEAD CENTRE between Valder and the workman — a human shield, all three on one

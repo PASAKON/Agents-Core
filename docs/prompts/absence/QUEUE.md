@@ -68,6 +68,29 @@ exactly the moves each scene names, nothing more.
 ⚠️ **S1/S1A–S1G continuity: use the ORIGINAL `prop_cart` (no painting) — these
 are pre-accident.** `prop_cart_b` starts at S2.
 
+## 🔴 STORY UPDATE — CEO answered the audit, 2026-08-28 20:1x
+
+1. **TIMELINE FLIPPED: S2 (the accident) is the FILM'S EARLIEST BEAT, before
+   opening.** S1 and every S1 angle happen AFTER it — so they now use
+   `prop_cart_b` (painting in the rack). The S1C take with the painting aboard
+   is canon-correct. S1D is rewritten as a guilt beat (he cleans NEXT to the
+   crack, never looks at it). Re-read both S1 files.
+2. **NEW CHARACTER — `char_registrar`, and he must be PLATED before S5.** The
+   museum's own official: composed man ~50s, staff ivory livery, small GOLD V at
+   the chest (staff mark), WHITE GLOVES, slim brass-cornered leather ledger and
+   pen. Calm, ceremonial, zero emotion, not sinister. ONE FACE ONLY, four panels
+   incl. back, face must resemble no real person. GPT Image 2 · 16:9 · 2K ·
+   Medium (~2.5 credits is correct). **Generate him during the next render wait**,
+   file as Element, report the exact mention string. He appears in S5, S10b,
+   S12, S15 — and the P1–P3 plaque hands are his.
+3. **NEW SCENE S10b — the bidding war**, numbers only, in `s6-s18.txt`. Fire it
+   between S10 and S12.
+4. **ORDER CHANGE (CEO):** … S10 → **S10b** → **S12** (grandmother — the
+   registrar CLOSES THE LEDGER = the film's gavel) → **P3** → **S11** (the press
+   arrive AFTER the hammer) → S13 → S14 → **S15** (press filming; the
+   grandmother redirects the 100M to DUPE) → S16 → S17 → S18.
+5. **S5 has NO PRESS any more** — the registrar replaces the journalists there.
+
 ## FIRE IN THIS ORDER
 
 =======
@@ -90,11 +113,9 @@ These need **no** plate that is still being remade:
 the new names and re-synced to your worktree, md5-verified. Re-read any prompt
 before firing it. Story order from here:
 
-7. **S3** (`s3-interpretations.txt` — new cast: `char_visitor_a` out,
-   `char_husband` in) → **S4** → **S5** → **S6** → **S7** → **S8a** → **S8b** →
-   **S8c** → **S9** (rewritten: Valder and the speakers blurred behind Dupe) →
-   **S10** → **S11** → **S12** → **S13** (`s13-the-back-door.txt`, exterior) →
-   **S14** → **S15** → **S16** → **S17** → **S18** → **S1D** → **S1E**
+7. **S3** → **S4** → **S5** (registrar, no press) → **S6** → **S7** → **S8a** →
+   **S8b** → **S8c** → **S9** → **S10** → **S10b** → **S12** → **P3** → **S11**
+   → **S13** → **S14** → **S15** → **S16** → **S17** → **S18** → **S1D** → **S1E**
 
 **S14 is written after all** — it was the CEO's own text, mislaid when the scene
 numbers shifted. It is in `DIALOGUE.md`: the workman raises his float to plaster
