@@ -259,3 +259,12 @@ again, plaque misspelled "Value"). CTO hand-built a replacement PNG at
 `.../Sorry, Sir/Element/Location/absence-loc-wall-pov-e.png` (fixed-seed
 mirror of loc_hall_big_e with an identical crack every time) — my next job
 is uploading it and filing it as Element `loc_wall_pov_e`.
+
+## S1C — COLLECTED
+
+720p/1280x720/8.04s confirmed. Shot-by-shot review clean: prop_cart_b in
+close-up matches its own reference exactly — burgundy + cream mop heads,
+grey bucket with brush and cloth, four labelled bottles, folded cloths,
+folding ladder clipped to the side, gold V on the red front panel, the
+painting slotted upright in its rack facing outward. No people, no defects.
+New Drive folder S1C created, byte-exact verified, local deleted.
