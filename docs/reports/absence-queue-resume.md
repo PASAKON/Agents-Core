@@ -118,3 +118,16 @@ deleted the local `~/Downloads` copy.
 
 Asset `34b813c5-4bcc-4697-b828-e987dd7a29fd`, Seedance 2.5, 720p, 1280x720,
 created Aug 28 2026 3:13 PM. Downloading next.
+
+## CORRECTION — S5's real asset id
+
+The `preview=` URL query param (`34b813c5-4bcc-4697-b828-e987dd7a29fd`) is NOT
+the downloadable asset id — clicking Download produced a file carrying a
+DIFFERENT id (`db2fc877-c30d-4357-a105-f9f6c2e43a6c`), and that id's embedded
+timestamp (`hf_20260828_081312...` = 08:13:12 UTC = 3:13:12 PM ICT) matches
+the "Created August 28, 2026 at 3:13 PM" shown in the Details panel exactly.
+**S5's correct asset id is `db2fc877-c30d-4357-a105-f9f6c2e43a6c`**, not the
+id in the previous entry. ffprobe-verified 1280x720 / 20.06s. Same decoy-id
+family as the earlier substring-match trap — the `preview=` query param is a
+navigation/job id, not the asset id; only the downloaded filename or a
+verified `data-asset-id` DOM attribute can be trusted.
