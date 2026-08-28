@@ -224,3 +224,19 @@ not overwritten, per standing rule. Copied to Drive, byte-exact verified,
 local deleted.
 
 Moving to S13 next per QUEUE.md order.
+
+## BLOCKER — loc_exterior also dead, S13 blocked
+
+GH issue: https://github.com/PASAKON/MoonieX-Agents/issues/120
+
+`@project_absence_loc_exterior` hit terminal Face/IP failure while staging
+S13 (first item in QUEUE.md's fire order). Notable: this is a location plate
+with explicitly zero people in its own spec — the scanner is now flagging
+non-portrait assets too, third element to die this way today. Skipped S13,
+moved to S1C per QUEUE.md order.
+
+## S1C — FIRED
+
+8s · 720p · 16:9 · Seedance 2.5 · Unlimited (struck 56→0, verified by zoom).
+2 references bound clean: `loc_hall_big_d` (fallback, since `loc_hall_big_e`
+still doesn't exist), `prop_cart_b`. Asset id not yet known, card processing.
