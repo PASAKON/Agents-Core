@@ -222,6 +222,28 @@ commits at all and its ids survived only because they were copied out by hand.
 
 ---
 
+## 🔴 FACE/IP HAS NOW KILLED THREE PLATES — the pattern is settled
+
+| Plate | Faces in it | Outcome |
+|---|---|---|
+| `loc_wall_pov_b` | six people in a *location* shot | terminal → fixed by regenerating the location **with nobody in it** (`loc_wall_pov_c`) |
+| `char_gentleman` | three — the man plus two bodyguards | terminal → fixed as a **solo portrait** (`char_gentleman_c`) |
+| `char_press` | two journalists | terminal → **splitting into `char_press_a` and `char_press_b`, one face each** (`task-6d6361ed`) |
+
+**The trigger is the number of human faces in a single plate.** Every fix that
+worked reduced the face count. **Design every future plate with one face**, and
+let the scene assemble its cast from separate Elements — which is what the
+reference system is for.
+
+**Two flag states, and they look alike.** A triangle *with* a clickable "Check
+eligibility" is a pending re-check and usually clears. A tooltip reading *"Face/IP
+failed — … cannot be used. Try another."* with **no button** is final; nothing in
+the UI clears it and hunting for a control only burns the render window.
+
+`char_press` blocks **S11, S12 and S16**.
+
+---
+
 ## 🦷 THE GENTLEMAN'S TEETH — four attempts, and why
 
 The CEO's brief says **two gold-capped teeth**, and he called it the important
@@ -298,7 +320,7 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | S8a | Pieces 1–3: the chair, the fish trap, the millstone. | 20s | 📝 **ready to fire** |
 | S8b | Pieces 4–5, then he turns and the crowd parts. Ends on his face. | 20s | 📝 **ready to fire** |
 | S8c | **The sixth story.** The pivot of the film. | 25s | 📝 **ready to fire** |
-| S9 | Dupe hears Valder's voice from the next room. Sweat. | 20s | 🎬 **take 1 FIRED** `209d88c2` · audio is S8c's take, unbroken |
+| S9 | Dupe hears Valder's voice from the next room. Sweat. | 20s | ✅ **take 1 DELIVERED** `209d88c2` — mopping behind a column, cart with gold V, real painting facing outward, Valder never in frame. ⚠️ **came out 11s, not 20s.** Sent to CEO. |
 | S10 | **The parrot woman arrives** with the crocodile bag. Rivalry. | 20s | 📝 [s6-s18.txt](s6-s18.txt) |
 | S11 | **$100,000,000** — wall POV. Press, live broadcast, helicopter. | 15s | 📝 [s6-s18.txt](s6-s18.txt) |
 | S12 | **The grandmother** wheels in and takes it. The room freezes. | 25s | 📝 [s6-s18.txt](s6-s18.txt) · plate `5dd23a87` approved |
