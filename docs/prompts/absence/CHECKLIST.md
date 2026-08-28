@@ -442,6 +442,22 @@ diamond ring's sparkle. Worth the CEO eyeballing.*
 
 ---
 
+## 📝 CEO NOTES ON S1 — 2026-08-28 15:xx · NOT YET BUILT, he paused me mid-order
+
+**1 · Add at least THREE extras, none of them duplicates.** They do not have to be
+inside the camera's frame — seen far off looking at pictures, or just walking
+through, is enough. The room currently reads too empty for a museum.
+
+**2 · Many more camera angles — 5 to 7 of them, as `S1A`, `S1B`, `S1C`…** in
+order, as extra footage to cut with. Two he named specifically:
+- **a low angle at foot/ankle height**, camera set on the floor, Dupe walking past
+- **a straight-on angle showing Dupe from the waist up**, dusting
+
+**Not started — he stopped me to look at the Sheet first.** Nothing here is
+written into a prompt yet.
+
+---
+
 ## 🔒 STORY FACTS — locked by the CEO, 2026-08-28. Every prompt must obey these.
 
 1. **Dupe cracked the wall himself, then called the workman to come and repair it.**
