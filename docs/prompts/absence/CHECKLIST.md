@@ -160,7 +160,7 @@ schedule slips the missing footage is at the end of the film and not its middle.
 | # | Scene | Length | Status |
 |---|---|---|---|
 | S1 | Dupe cleans, greets, nobody answers. Title drop. | 20s | ✅ 2 takes — `5ea44262` `c8e60256` |
-| S2 | **The accident.** Dupe knocks the frame into the wall, takes the painting away. | 20s | 🎬 **FIRED** asset `56ace68c-ffd0-47ec-a7f6-d24bf523496a` · Unlimited struck 140→0 · 3/3 refs bound · rendering |
+| S2 | **The accident.** Dupe knocks the frame into the wall, takes the painting away. | 20s | ✅ **TAKE 1 DELIVERED** `56ace68c` · watched + verified · in Drive · sent to CEO |
 | S3 | **The interpretations**, from inside the wall. 6 people, 5 lines. | 20s | 🔄 `task-a13469e9` |
 | S4 | **$2,000,000** — wall POV. 8 people now, ordinary clothes. | 15s | 📝 prompt written — [s4-s5.txt](s4-s5.txt) |
 | S5 | Collector A reads it aloud. Bidding opens. Press arrive. | 20s | 📝 prompt written · ⚠️ needs `char_press` · **CTO cast the woman in cobalt as Collector A — CEO to confirm** |
