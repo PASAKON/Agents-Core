@@ -240,3 +240,22 @@ moved to S1C per QUEUE.md order.
 8s · 720p · 16:9 · Seedance 2.5 · Unlimited (struck 56→0, verified by zoom).
 2 references bound clean: `loc_hall_big_d` (fallback, since `loc_hall_big_e`
 still doesn't exist), `prop_cart_b`. Asset id not yet known, card processing.
+
+## S1C asset id — committed before download
+
+Asset `1014df24-5f7f-434e-8897-fbe3de4a091e` (via video currentSrc, not the
+preview= param). Seedance 2.5, 720p. Downloading next.
+
+## QUEUE.md update — all plates done, S18 off hold, S14 dialogue found
+
+18:08 update: loc_wall_pov_d, loc_hall_big_e, loc_mansion_b, prop_cart_b,
+char_woman_c, char_gentleman_e all exist. S18 no longer on hold. S14's
+dialogue was found (mislaid, not missing) — Valder screams "STOP! You are
+destroying a hundred million dollar artwork!", workman drops the plaster;
+S15's "Sorry, sir." confession line belongs to DUPE, not the workman.
+
+**loc_wall_pov_d then got REJECTED** (came back as the porthole-hole design
+again, plaque misspelled "Value"). CTO hand-built a replacement PNG at
+`.../Sorry, Sir/Element/Location/absence-loc-wall-pov-e.png` (fixed-seed
+mirror of loc_hall_big_e with an identical crack every time) — my next job
+is uploading it and filing it as Element `loc_wall_pov_e`.
