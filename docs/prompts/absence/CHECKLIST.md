@@ -231,6 +231,17 @@ crowd inside it changes.
 - **Never click Rerun.** Recreate is the safe one.
 - **Commit the asset id before downloading** — ids cannot be recovered, files always can.
 - **Look at every plate before writing a prompt that uses it.**
+- **THE GRANDMOTHER IS `char_grandmother`. NEVER `char_grandma`.** Two separate
+  plates exist and using the wrong one changes her face between scenes. CTO
+  looked at both, 2026-08-28 07:00:
+  - ✅ `char_grandmother` — violet throughout, **head cloth to the shoulders**,
+    **large opaque smoked glasses**, retrofuturist shell chair with big rear
+    wheels and front castors, physical button pod on the armrest, terracotta
+    terrazzo floor. Matches every word of the CEO's spec.
+  - ❌ `char_grandma` — **no head cloth, no glasses**, oxblood vest over a black
+    turtleneck, joystick chair, and a **dark polished wood floor** that breaks
+    continuity with the hall. Fails the spec twice and the location once.
+    Superseded — do not reference it.
 - **Ask before building** — counts, heights, who-wears-what. Ask first, not after the render.
 - **Download straight into Drive, never the Desktop.** The project folder is
   mounted locally at `~/Library/CloudStorage/GoogleDrive-pass.gob1@gmail.com/ไดรฟ์ของฉัน/ALL DRAFT/YT: ILAG/Sorry, Sir/`
