@@ -201,26 +201,31 @@ clip count.
 **Wall POV appears 4 times:** S3, S4, S6, S11. Same frame every time; only the
 crowd inside it changes.
 
-> **What `loc_wall_pov_b` actually looks like — CTO opened the file, 07:35.**
-> A third-person view down the hall **seen through cracked glass**: fine crack
-> lines radiating from a dark point **dead centre**, the brass plaque low in
-> frame with its lettering **mirror-reversed**, six people beyond it facing
-> camera. The reversed plaque is the tell that we are behind the wall.
+> ✅ **`loc_wall_pov_c` — CTO-approved 08:15, replaces the dead `loc_wall_pov_b`.**
+> An **empty** hall photographed from behind the wall through cracked glass: a
+> dark impact point **dead centre on the vanishing point**, crack lines radiating
+> to the edges, the brass plaque low in frame **mirror-reversed and legible** —
+> THE ABSENCE OF MEANING / Valder / $2,000,000. Chromium trumpet columns, orange
+> cove light, terracotta terrazzo, art on plinths both sides.
 >
-> Two false alarms on this plate, both resolved:
-> - An operator reported it had been **swapped by someone else mid-task**. It had
->   not. That description matched the approved asset all along.
-> - The **Face/IP flag cleared on its own** — no warning triangle remains. That
->   is the documented periodic-rescan behaviour.
+> **Better than the plate it replaces on every axis**, and the fix was structural:
+> `loc_wall_pov_b` died on a permanent Face/IP verdict with no re-check button
+> left in the UI, almost certainly because it contained six human faces. Making
+> the location plate **empty of people** removes the thing the scanner catches,
+> and it also kills a second bug — the old plate still carried the art student in
+> her superseded pink-suit design. The cast comes from the character Elements
+> bound alongside it, where it belongs.
 >
-> **The real fault was my prose, not the plate.** My S3 prompt said "the wall
-> ghosted and translucent… no hole, no aperture", which contradicts the plate the
-> CEO approved. Firing without the reference let the model follow my words and it
-> produced a porthole. Prompt now rewritten to match the plate.
+> ⚠️ The plaque reads **$2,000,000**. S6 needs $20,000,000 and S11 needs
+> $100,000,000 — state the number in the prompt and let the model override the
+> reference. **Do not spend a re-shoot on the number**; the CEO has said the
+> plaque need not be legible.
 >
-> ⚠️ Known staleness, cosmetic: the plate still shows the art student in her
-> **original** design (pink suit, purple beret), before the CEO's redesign. Bind
-> `char_student_c` alongside it so her current look wins.
+> **Earlier alarms on the old plate, both false:** an operator reported it had
+> been swapped by someone mid-task (it had not — that was the approved asset all
+> along), and the real fault was **my prose, not the plate**. My S3 prompt said
+> "ghosted and translucent… no hole, no aperture", which contradicted it. Firing
+> without the reference let the model follow my words and produce a porthole.
 
 ---
 
