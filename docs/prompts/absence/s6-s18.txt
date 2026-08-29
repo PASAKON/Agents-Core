@@ -69,7 +69,7 @@ never heavier at the edges, never a dark border.
 @project_absence_char_guard_private — the personal bodyguards: plain dark suit, hands loose.
 @project_absence_char_cleaner_c — Dupe at the frame edge with his cart.
 
-The plaque now reads $20,000,000.
+The plaque now reads 20,000,000 — NO dollar sign, no currency symbol; mirrored, a $ reads as a stray digit and corrupts the number.
 
 [0s] The locked wall-POV frame. The room fuller and richer than S4: twelve to
 fourteen people, heavier coats, better cut, one saturated colour each,
@@ -209,13 +209,13 @@ never heavier at the edges, never a dark border.
 @project_absence_char_guard_private @project_absence_char_guard_valder_six — the guards' rank.
 @project_absence_char_cleaner_c — Dupe, still at the edge, still cleaning.
 
-The plaque now reads $100,000,000.
+The plaque now reads 100,000,000 — NO dollar sign, no currency symbol; mirrored, a $ reads as a stray digit and corrupts the number.
 
 [0s] The locked wall-POV frame at its peak — the room has stopped being a
 gallery. THREE EXACT RANKS facing camera: guests in front, personal guards
 directly behind their employers, the press pair at the two frame edges,
 colours alternating warm and cool. Every eyeline still on the crack — the one
-thing that has not changed since Scene 3 is what they are looking at.
+thing that has not changed since the first visitor walked in (A1) is what they are looking at.
 
 [6s] Through the tall windows at the far end, A HELICOPTER CIRCLES the
 building — small, slow, unmistakable, seen through glass and never cut to.
