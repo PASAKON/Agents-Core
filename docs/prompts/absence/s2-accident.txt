@@ -32,6 +32,29 @@ plaster. The wall-POV frames are shot through CRACKED GLASS and that
 radiating pattern belongs to them; this is a PLASTER wall and it cracks in a
 line. Describe it in words only — see [9s].
 
+⚠️ THE PAINTING — CORRECTED 29 Aug FROM THE CART PLATE ITSELF (CEO).
+Both my earlier numbers were guesses and both were wrong: first 90x70
+landscape, then "corrected" to 70x90 portrait off a couple of clips. The
+canonical object is visible in `@prop_cart_b`, standing in Dupe's cart, and it
+is **LANDSCAPE, very slightly wider than tall — about 1.1 : 1, nearly square.
+Roughly 80 cm wide x 72 cm tall.** Thin black frame, a few centimetres deep.
+
+**Its face is NOT heavy impasto and there is no blade-scrape.** It is a FLAT
+MATTE GEOMETRIC ABSTRACT: interlocking curved and angular blocks in rust red,
+burnt orange, ochre, cream, sage green, dusty pink, terracotta and one black
+wedge. Poster-flat, chalky, no visible brush texture.
+
+**Reference `docs/prompts/absence/REF-painting-from-cart.png`** — the canvas
+cropped straight out of the cart plate. Upload it, or bind `@prop_cart_b` for
+the canvas shape and face. Do not describe the painting from memory again;
+every time it has been described rather than shown, it has come back wrong.
+
+⚠️ THE CRACK PLATE IS DELIBERATELY NOT BOUND. Takes 1 and 2 both returned a
+spiderweb radiating from an impact point, which is glass behaviour, not
+plaster. The wall-POV frames are shot through CRACKED GLASS and that
+radiating pattern belongs to them; this is a PLASTER wall and it cracks in a
+line. Describe it in words only — see [9s].
+
 ⚠️ THE PAINTING — FIXED SIZE, CORRECTED 29 Aug against the plate as it
 actually renders (S1D take 1 shows it PORTRAIT, not landscape; the earlier
 landscape figure was my guess and the plate overrules it):
@@ -87,7 +110,7 @@ whites pushed slightly cool, shadows deep red-brown, halation around every
 lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
 colour fringing.
 
-CRITICAL NEGATIVES: no landscape painting, no painting wider than tall, no square painting, no spiderweb crack, no radiating cracks, no star-shaped crack, no impact crater, no multiple separate cracks, no painting left leaning against the wall at the end, no painting on the floor at the end, no Dupe lifting the painting off its hook on purpose, no Dupe removing the painting to clean behind it, no other people, no spider-web crack, no multiple cracks,
+CRITICAL NEGATIVES: no portrait painting, no painting taller than wide, no heavy impasto, no thick brushstrokes, no blade-scrape, no spiderweb crack, no radiating cracks, no star-shaped crack, no impact crater, no multiple separate cracks, no painting left leaning against the wall at the end, no painting on the floor at the end, no Dupe lifting the painting off its hook on purpose, no Dupe removing the painting to clean behind it, no other people, no spider-web crack, no multiple cracks,
 no invented crack shape, no broken frame, no torn canvas, no ladder or tiptoe
 climbing, no painting left on the floor at the end, no camera move except the
 single specified snap zoom.
