@@ -1,3 +1,18 @@
+> # 🧱 NO NEW IN-WALL POV PLATES (CEO 04:30, 30 Aug)
+> Verbatim: «ไม่ต้องสร้างภาพมุมมองในกำแพงใหม่นะ ใช้มุมมอง ข้างหน้ากำแพงบ่อยๆ
+> ดีกว่า เรามี ref ที่ใช้งานได้จริง»
+> - **Generate NO further in-wall-POV image plates.** The set we have is
+>   final: `loc_wall_pov_e`, `loc_wall_pov_d`, and the two price variants
+>   `_20m` / `_100m` just made on-platform. Nothing more gets made in that
+>   viewpoint — no round 4, no refinements, no re-crops.
+> - **This RESOLVES the open question below** about the base wall element's
+>   hand-built origin: it is NOT regenerated. We keep and use it.
+> - **Favour the FRONT-OF-WALL angle in coverage** — the camera in the room
+>   looking AT the wall (S2's locked wide, the X4 reverse, the doll's-house
+>   box). The CEO's reason: those refs actually work. The in-wall POV stays
+>   reserved for the beats that need it (A1-A5, S3, S4, S6, S11) and is not
+>   the default choice for anything new.
+
 > # 🧱 S2 REWRITTEN CLEAN (CEO 04:15, 30 Aug) — re-read s2-accident.txt before firing
 > Three CEO notes folded into one clean file (the old file had duplicated,
 > contradictory painting blocks — all gone):
