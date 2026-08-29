@@ -4,7 +4,13 @@ A museum gallery interior with its fourth wall removed — the camera stands exa
 
 THE ROOM, seen through the missing wall: plain polished chromium columns with flared trumpet tops standing in mirrored pairs, orange cove lighting washing the ceiling, a terracotta terrazzo floor, modernist abstract sculptures on white plinths, abstract canvases on the side walls, and a large RED DOUBLE DOOR dead centre in the far wall at the vanishing point.
 
-THE CRACK — the only marking in the frame, DEAD CENTRE: a single small fracture in the plaster, a star shape about the size of a hand with a few short thin branches. It sits exactly in the middle of the frame, horizontally and vertically centred.
+THE CRACK — READ THIS CAREFULLY, IT IS IN A DIFFERENT PLANE FROM THE ROOM.
+
+The crack is NOT on any wall inside the room. It is NOT on the far wall, NOT on the side walls, NOT on the ceiling. It sits in the MISSING FOURTH WALL ITSELF — the plane right at the camera, between the lens and the gallery. Think of it as a fracture in a sheet of plaster standing directly in front of the lens, with the room visible beyond it.
+
+Because it is in the near plane, it OVERLAPS whatever is behind it. It sits DEAD CENTRE of the frame, horizontally and vertically, which means it lands directly over the red double door in the distance and partly covers it. That overlap is correct and intended — the crack is closer to camera than the door is.
+
+The mark itself: a single small fracture in the plaster, a star shape about the size of a hand with a few short thin branches.
 
 KEEP SAME the number of branches. KEEP SAME the overall star shape. The whole mark stays small — about the size of a hand. Do not make it a full-height fracture, do not make it a spiderweb, do not make it radiate from an impact crater, do not add branches.
 
@@ -33,4 +39,4 @@ NO PEOPLE. NO FIGURES. NO SILHOUETTES.
 
 NEGATIVE: no plaque, no brass plate, no label, no wall text, no lettering, no numbers, no readable text of any kind, no signage, no second crack, no additional cracks, no chips or marks on the wall, no large crack, no full-height fracture, no spiderweb crack, no radiating cracks, no impact crater, no heavy vignette, no large darkened corners, no round or oval vignette shape, no black bars, no letterbox, no hard edge between dark and light, no visible frame object, no moulding, no cloth folds, no wrinkles, no drapery, no curtain, no opaque areas, no part of the frame left uncovered, no smoke, no fog, no haze, no blur, no defocus, no people, no faces, no hands, no square or portrait aspect ratio, no ornate architecture, no classical columns, no carved capitals, no marble busts, no gilt frames, no HDR, no CGI sheen, no plastic sheen, no night, no darkness beyond the specified veil
 
-Additional negatives for the crack: no larger crack, no longer crack, no wider crack, no additional branches, no off-centre crack, no thick white lines, no widened white tips, no white glow, no faint crack, no grey crack, no soft or blurred crack edges, no crack out of focus, no glow, no light emitting from the crack, no painted or drawn-on look
+Additional negatives for the crack: no larger crack, no longer crack, no wider crack, no additional branches, no off-centre crack, no crack on the ceiling, no crack on the far wall, no crack on a side wall, no crack pushed aside to avoid the door, no thick white lines, no widened white tips, no white glow, no faint crack, no grey crack, no soft or blurred crack edges, no crack out of focus, no glow, no light emitting from the crack, no painted or drawn-on look
