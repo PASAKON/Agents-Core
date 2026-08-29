@@ -1,3 +1,27 @@
+> ## 🔴 CEO ORDER 15:00 — WALL FRAME FINAL, RE-SHOOT EVERYTHING THAT USED IT
+> **The Element ID is `@project_absence_loc_wall_pov_e`** (WITH the prefix).
+> The CEO has updated that Element himself — same id, new picture. All eight
+> bindings are repointed and committed: A1, A2, A3, A4, A5, S4, S6, S11.
+>
+> **Every scene already generated against the old frame must be re-shot**:
+> A1 (91c83858), A2 (9f4d8b8e), A3 (7fa174e0), A4. Rename the old takes
+> `-SUPERSEDED-oldframe`, never delete.
+>
+> **New in every one of those prompts — say it to the model:** we are standing
+> INSIDE THE WALL, so the whole frame carries a slight darkness, as if seen
+> through a thin dark veil — dimmed a little, contrast eased, blacks lifted,
+> the room still fully readable. Even across the frame, NOT a vignette and NOT
+> a dark border. The text is already in the prompt files.
+>
+> **FIRE ORDER:** A1 → A2 → A3 → A4 → A5 → S4 → S6 → S11.
+>
+> ## 🖼 ALSO: the painting is wrong and must be re-plated
+> `project_absence_prop_valder_study` uses the wrong image. See
+> `PLATE-prop_valder_study_b.md` — upload `REF-painting-from-cart.png`, bind
+> `@prop_cart_b`, generate `prop_valder_study_b`. It is LANDSCAPE ~1.1:1 and
+> flat matte, not portrait and not impasto. Then repoint `s2-accident.txt` and
+> SCENE 8b in `s7-s9.txt` and re-fire S2.
+
 > ## 🧱 THE INVISIBLE WALL — new frame, CEO 29 Aug, supersedes loc_wall_pov_e
 > **JOB 1, do this before any more video:** generate the plate from
 > `docs/prompts/absence/PLATE-loc_wall_pov_f.md` as an IMAGE (image gens run

@@ -1,7 +1,7 @@
 ✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
 complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
 Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
-gentleman_e, char_gentleman_c, loc_wall_pov_f, loc_wall_pov_d, loc_hall_big_e,
+gentleman_e, char_gentleman_c, project_absence_loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
 loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
 film on this account owns that id; this film's is @project_absence_char_valder.
 
@@ -62,7 +62,7 @@ Sound: rotary dial clicks, the murmur, room tone. No dialogue proper.
 ---------------------------------------------------------------
 THE ARRIVALS — shared frame for A1–A5
 ---------------------------------------------------------------
-References every time: **loc_wall_pov_f** (the hand-built frame — the
+References every time: **project_absence_loc_wall_pov_e** (the hand-built frame — the
 camera is BEHIND the wall looking out through the crack; the brass
 plaque low in frame, MIRROR-REVERSED, reading $2,000,000; **the RED
 DOOR dead centre at the vanishing point**) · char_cleaner_c ·
@@ -97,13 +97,21 @@ A1 · THE ELDERLY GENTLEMAN — the first man in the world
 15s · 720p · 16:9 · ONE LOCKED SHOT, the camera never moves, no cuts.
 
 REFERENCES — jobs:
-@loc_wall_pov_f — THE FRAME ITSELF, match exactly: the gallery as a BOX with
+@project_absence_loc_wall_pov_e — THE FRAME ITSELF, match exactly: the gallery as a BOX with
   its fourth wall removed, camera slightly elevated and DEAD-ON, looking into
   the open room. The CRACK floats in the near plane across the missing wall,
   large and unmistakable; the brass plaque sits low in the near plane
   MIRROR-REVERSED; the red door is dead centre in the far wall. People stand
   INSIDE the box FACING CAMERA — they are looking at the wall, and the wall
   is where we are.
+
+THE VEIL — WE ARE STANDING INSIDE THE WALL. The whole frame carries a slight
+darkness, as though seen through a thin dark veil: everything dimmed a little,
+contrast eased, blacks lifted, colours very slightly muted. The room stays
+fully readable through it. This is NOT a mood grade and NOT a vignette — it is
+the wall itself, between us and them. Keep it even across the whole frame,
+never heavier at the edges, never a dark border.
+
 @project_absence_char_oldman — the gentleman: face, build, green leather, cane.
 @project_absence_char_cleaner_c — DUPE at frame edge. @prop_cart_b —
   his cart, painting visible in the rack. Nobody looks at it.
@@ -133,7 +141,7 @@ A2 · THE ART CRITIC
 10s · 720p · 16:9 · ONE LOCKED SHOT, identical frame to A1, no cuts.
 
 REFERENCES — jobs:
-@loc_wall_pov_f — the frame. @project_absence_char_oldman —
+@project_absence_loc_wall_pov_e — the frame. @project_absence_char_oldman —
   standing in the row, still. @project_absence_char_critic_b — the critic:
   face, magenta fur, cream gloves. @project_absence_char_cleaner_c +
   @prop_cart_b — Dupe and cart at the edge.
@@ -157,7 +165,7 @@ A3 · THE COUPLE
 12s · 720p · 16:9 · ONE LOCKED SHOT, identical frame, no cuts.
 
 REFERENCES — jobs:
-@loc_wall_pov_f — the frame. Row so far:
+@project_absence_loc_wall_pov_e — the frame. Row so far:
 @project_absence_char_oldman + @project_absence_char_critic_b, motionless.
 @project_absence_char_visitor_b — the wife: chestnut fur, rust dress.
 @project_absence_char_husband — the husband: deep-ochre wool coat, ~60.
@@ -184,7 +192,7 @@ A4 · THE ART STUDENT
 10s · 720p · 16:9 · ONE LOCKED SHOT, identical frame, no cuts.
 
 REFERENCES — jobs:
-@loc_wall_pov_f — the frame. The row of four, motionless.
+@project_absence_loc_wall_pov_e — the frame. The row of four, motionless.
 @project_absence_char_student_c — the student: acid-green hair,
 paint-stained denim. @project_absence_char_cleaner_c +
 @prop_cart_b — the edge.
@@ -207,7 +215,7 @@ Cast: the full row (5) + char_woman
 20s · 720p · 16:9 · ONE LOCKED SHOT, identical frame, no cuts.
 
 REFERENCES — jobs:
-@loc_wall_pov_f — the frame. The row of five, motionless.
+@project_absence_loc_wall_pov_e — the frame. The row of five, motionless.
 @project_absence_char_woman — the woman in cobalt: leather, crest,
 cat-eye sunglasses. @project_absence_char_cleaner_c +
 @prop_cart_b — the edge.
