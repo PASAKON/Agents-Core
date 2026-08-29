@@ -1,3 +1,16 @@
+> # ⛳ THE PROJECT — CHECK THIS BEFORE EVERY SINGLE FIRE
+> **https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3**
+> ("The Valder Collection No.7")
+>
+> Every image and every video for this film is generated THERE and nowhere
+> else. Navigate to that exact URL when you open your tab, and re-check the
+> address bar before each Generate click — a fresh tab does not inherit it.
+>
+> Elements are account-wide, so a clip fired in the wrong project still comes
+> out looking correct. **You cannot catch this by reviewing the clip.** The
+> only tell is the URL. Every task brief between 2026-08-29 and 30 omitted
+> this line and the CEO caught generations landing outside the project.
+
 > ## 🚫 NO PLAQUE IN THE ARRIVALS (CEO 20:15)
 > "ฉากที่คนพูดเรียงทีละคน ไม่ต้องใส่ป้ายก็ได้นะ ... เพราะว่าไม่อยากให้เห็น"
 > **A1–A5 show NO brass plaque, no lettering, no readable text at all.**
