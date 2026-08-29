@@ -177,6 +177,37 @@ immediately before each Generate click, and (b) no charged entry landing
 inside a window when an operator clicked Generate. Re-baseline freely; the
 baseline is a reference point, not a budget.
 
+## Rule 0 — GENERATE ONLY IN THE PROJECT THE CTO NAMED
+
+Before every single Generate click, image or video, **check the address bar**
+and confirm you are in the project the task brief named. A fresh tab does not
+inherit it, and neither does a tab someone else opened.
+
+Current mapping (CEO, 2026-08-30):
+
+| Film | Project URL |
+|---|---|
+| **«Sorry, Sir» / The Valder Collection No.7** | `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3` |
+| **«Do Not Disturb» (DND)** | `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival` |
+
+The two URLs differ by one character. Read the whole path, not the prefix.
+
+**Why this cannot be caught downstream:** Elements are account-wide, so a clip
+fired in the wrong project binds the right characters, the right room and the
+right props, and comes back looking completely correct. Reviewing the footage
+will never reveal it. The URL is the only tell, and the cost is discovering
+weeks later that a film's material is scattered across two projects.
+
+Measured 2026-08-29/30: the three original «Sorry, Sir» task briefs carried the
+project URL; every brief written after them dropped it. The early waves
+survived only because a browser tab happened to be sitting in the right
+project already. The moment an operator opened its own tab, generations began
+landing outside the film's project and nobody noticed until the CEO checked.
+
+**So: the project URL belongs in every task brief, and the operator re-reads
+the address bar before every fire.** If a brief does not name a project, stop
+and ask the C-level which one — do not guess from what is already open.
+
 ## Hard rules — non-negotiable, no exceptions
 
 1. **Never click "Rerun"** (↻ icon, bottom-left row on a History/generation
