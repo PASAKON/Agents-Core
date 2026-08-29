@@ -33,10 +33,9 @@ REFERENCES — each with a job:
   trousers, mustard scarf, mismatched shoes (one green, one oxblood).
 @project_absence_char_guard_valder_six — his six guards, matching uniform, small gold V at cap
   and chest.
-@gentleman_e — the elderly gentleman: small, sharp-nosed. ⚠️ CEO recostume
-  30 Aug: a CHARCOAL GREY three-piece with a fine pinstripe (the plate's
-  white suit is outdated — bind for FACE AND BUILD ONLY). Black cane with
-  gold grip, diamond ring, TWO GOLD TEETH, two bodyguards behind him.
+@gentleman_e — the elderly gentleman: small, sharp-nosed, white English
+  tailoring exactly as his plate shows, black cane with gold grip, diamond
+  ring, TWO GOLD TEETH, two bodyguards behind him.
 @project_absence_char_woman @project_absence_char_critic_b — guests, planted at the frame edges.
 @project_absence_char_cleaner_c — Dupe, cleaning at the far edge, back to camera.
 
@@ -47,7 +46,7 @@ corridor walk. His six guards follow in a symmetrical V formation, three a
 side. Guests stand planted at the frame edges like columns. He looks at none
 of them.
 
-[7s] He stops in front of the gentleman in the charcoal pinstripe; the camera stops
+[7s] He stops in front of the gentleman in the white suit; the camera stops
 with him. ONE FAST 90-DEGREE WHIP PAN lands on the gentleman — already
 perfectly framed, frontal, dead centre. Valder says it warmly, delighted,
 smiling the whole time: "Sir. You should have told me you were coming." Then,

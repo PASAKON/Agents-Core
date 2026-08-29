@@ -99,9 +99,8 @@ absurd entrance, played completely straight.
 
 REFERENCES — jobs:
 @loc_hall_big_e — the hall from the room side, red door at the vanishing point.
-@gentleman_e — FACE AND BUILD ONLY; his suit is a CHARCOAL GREY three-piece
-  with a fine pinstripe (CEO recostume — the plate's white suit is outdated).
-  Black cane with gold grip, diamond ring, two gold teeth.
+@gentleman_e — exactly as his plate shows: white English tailoring, black
+  cane with gold grip, diamond ring, two gold teeth.
 @project_absence_char_guard_private — his two bodyguards, plain dark suits.
 @project_absence_char_oldman @project_absence_char_critic_b
 @project_absence_char_visitor_b @project_absence_char_husband
@@ -117,8 +116,8 @@ perfect stillness.
 [3s] THE RED DOOR OPENS. Two bodyguards walk in carrying, level as a
 stretcher, A SMALL DARK MAHOGANY AUCTION DESK — brass fittings, a little
 railed gallery around its top — and STANDING CALMLY BEHIND THE DESK AS IT
-TRAVELS, riding it like furniture, is THE ELDERLY GENTLEMAN in his charcoal
-pinstripe, both hands resting on his cane, perfectly upright, perfectly
+TRAVELS, riding it like furniture, is THE ELDERLY GENTLEMAN in his white
+English tailoring, both hands resting on his cane, perfectly upright, perfectly
 level, as though the room is moving and he is not.
 
 [8s] They set the desk down at the end of the row with a soft thud. The
@@ -130,7 +129,7 @@ carries on.
 AUDIO: the door, the bodyguards' synchronised footsteps, the soft thud of
 the desk, two cane taps, room tone. No dialogue. No music.
 
-CRITICAL NEGATIVES: no dialogue, no white suit, no one reacting, no one
+CRITICAL NEGATIVES: no dialogue, no one reacting, no one
 turning, no camera movement, no zoom, no music, no auctioneer gavel, no
 readable text. + house negatives.
 
@@ -147,7 +146,7 @@ REFERENCES — each with a job:
   and blue; single saturated green garment with feather-cut panelling.
   Couture, not comic — no beak, no wings, no feathers, nothing costume.
 @project_absence_prop_croc_bag — one genuine deep-burgundy crocodile handbag, in one hand.
-@gentleman_e — the rival. ⚠️ COSTUME CHANGED BY THE CEO 30 Aug: a CHARCOAL GREY three-piece suit with a fine pinstripe — dark, rich, nothing white (white belongs to Dupe). Keep the black cane with the gold grip, the diamond ring, the two gold teeth. The Element plate still shows the old white suit — bind it for FACE AND BUILD ONLY and state the charcoal suit in text until gentleman_f exists.
+@gentleman_e — the rival: white English tailoring exactly as his plate shows (CEO 30 Aug: the white suit STAYS), black cane with gold grip, diamond ring, two gold teeth.
 @project_absence_char_valder @project_absence_char_guard_valder_six — standing (he never sits), warm smile.
 @project_absence_char_critic_b — among the guests.
 
@@ -156,11 +155,11 @@ guards, nobody with her — walking straight toward the locked one-point frame
 at waist height. The room parts for her without being asked.
 
 [6s] EVERY HEAD IN THE ROOM TRACKS HER IN UNISON — one synchronized turn,
-then stillness. THE GENTLEMAN IN THE CHARCOAL PINSTRIPE watches her come. He does not
+then stillness. THE GENTLEMAN IN THE WHITE SUIT watches her come. He does not
 move; his hand rests on the gold grip of his cane. This is the moment the
 room understands there are two of them now.
 
-[12s] She stops. The scene settles into a DUEL: she and the charcoal-suited
+[12s] She stops. The scene settles into a DUEL: she and the white-suited
 gentleman in EXACT PROFILE, facing each other across the centreline, Valder
 framed frontal midway between them.
 
@@ -172,7 +171,7 @@ AUDIO: her heels on terrazzo, room tone, no music.
 
 CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no beak, no wings, no feathers, no bird
 mask, no costume or fancy dress, no guards beside the parrot woman, no crowd
-beyond ten people, no black clothing as anyone's main colour, no painting on
+beyond ten people, no black clothing as any visitor's main colour, no painting on
 the hero wall. + house negatives.
 
 ===============================================================
@@ -184,7 +183,7 @@ movement inside any setup.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall.
-@gentleman_e — bidder one: frontal single, dead centre, gold teeth, charcoal pinstripe. His small mahogany auction desk from S6b stands beside him — it is HIS furniture, not a podium; allowed.
+@gentleman_e — bidder one: frontal single, dead centre, gold teeth, white suit. His small mahogany auction desk from S6b stands beside him — it is HIS furniture, not a podium; allowed.
 @project_absence_char_woman_c — bidder two: frontal single, dead centre, identical framing.
 @char_registrar — locked side profile at the frame edge, writing each number
   in the ledger, pen scratching, face empty.
@@ -329,8 +328,7 @@ ONE fast chain of three 90-degree whip pans, then frozen tableau. Nothing
 handheld.
 
 REFERENCES — as S12a, PLUS:
-@char_registrar — ivory livery, white gloves, the ledger. His ledger-close
-  is the only gavel this film has.
+@char_registrar — FORMAL BLACK suit — sober, immaculate, undertaker-clean (CEO 30 Aug). WHITE GLOVES. Small GOLD V at the chest. The brass-cornered ledger. He is the man who KNOCKS THE PRICE (his ledger-close is the film's only gavel) and the man who CHANGES THE PLAQUE — one person, both duties. Bind the plate for FACE ONLY until char_registrar_b exists.
 
 [0s] Hold exactly where S12a ended, now in the locked one-point wide: she
 sits dead centre in front of the crack, the room behind her. She raises one
@@ -429,7 +427,7 @@ REFERENCES — 10 chips, each with a job:
   reads as nothing.
 @project_absence_char_grandmother — in the wheelchair, present but SILENT this half; she
   speaks in S15b.
-@char_registrar — ivory livery, white gloves, the ledger. Present, still.
+@char_registrar — formal BLACK suit (recostume — plate face only), white gloves, GOLD V, the ledger. Present, still.
 @gentleman_e — the room, planted at the frame edge.
 @project_absence_char_press_a @project_absence_char_press_b — FILMING ALL OF THIS — the confession goes out
   live (CEO: press arrived after the sale, before the reveal). This

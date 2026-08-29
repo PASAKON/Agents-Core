@@ -1,3 +1,19 @@
+> ## 🎩 COSTUME FINAL (CEO 04:00, 30 Aug) — read before firing any registrar or gentleman scene
+> - **The gentleman keeps his WHITE suit.** `gentleman_f` is CANCELLED as his
+>   plate — do not bind it to him, ever. (If already generated, archive it.)
+> - **THE REGISTRAR is recostumed: FORMAL BLACK suit** — sober, immaculate —
+>   with **WHITE GLOVES** and the **small GOLD V** at the chest, ledger as
+>   always. He is the price-knocker AND the plaque-changer, one man. Bind
+>   `@char_registrar` FACE ONLY + state the black suit in text until
+>   `char_registrar_b` exists.
+> - **IMAGE LANE'S JOB CHANGES: generate `char_registrar_b`** — 4-panel
+>   character sheet, SAME FACE as `@char_registrar` (bind it), formal black
+>   suit, white gloves, gold V at chest, brass-cornered ledger in hand in one
+>   panel, ONE face, 16:9 2K, id BY HAND `char_registrar_b`.
+> - ⚠️ S15a/S15b keepers show the registrar in the old ivory livery — accepted
+>   for now; the arrivals-style upgrade re-shoot pass at the back of the queue
+>   can pick this up if time allows.
+
 > ## ▶️ ORDER OF PLAY (CEO 03:05, 30 Aug): NEW WORK GOES TO THE BACK
 > "เอา Task ใหม่ต่อหลัง ให้ Task เก่า Generate ไปก่อน เพราะอยากเห็นซีนใหม่ๆ ด้วย"
 > **Do not stall the queue polishing what exists — push into UNSEEN scenes.**

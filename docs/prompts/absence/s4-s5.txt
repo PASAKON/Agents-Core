@@ -67,8 +67,8 @@ House negatives: no voiceover, no narration, no subtitles, no captions, no
 readable text anywhere except the brass plaque, no music, no score, no
 extras beyond those specified, no background figures, no flashes, no
 microphones, no guards, no gold V on any visitor, no cloned people, no
-smiling to camera, no comic expressions, no black clothing as anyone's main
-colour, no modern technology, no phones, no screens, no dutch angle, no
+smiling to camera, no comic expressions, no black clothing as any VISITOR's main colour (the registrar's formal
+black is correct), no modern technology, no phones, no screens, no dutch angle, no
 handheld shake, no zoom, no slow motion, no lens flare, no HDR, no CGI
 sheen, no plastic skin, no beauty filter, no dim moody lighting, no
 darkness, no rubble, no structural damage, no large crack
@@ -86,9 +86,7 @@ REFERENCES — each with a job:
 @project_absence_char_woman — COLLECTOR A, the woman in cobalt: tall, sculptural crest of
   hair, cat-eye sunglasses worn indoors, one saturated cobalt garment. She
   speaks.
-@char_registrar — the museum's official: composed man, ivory staff livery,
-  small gold V at the chest, WHITE GLOVES, slim brass-cornered ledger. He
-  debuts here. No words.
+@char_registrar — the museum's official: composed man. ⚠️ FORMAL BLACK suit — sober, immaculate, undertaker-clean (CEO 30 Aug). WHITE GLOVES. Small GOLD V at the chest. The brass-cornered ledger. He is the man who KNOCKS THE PRICE (his ledger-close is the film's only gavel) and the man who CHANGES THE PLAQUE — one person, both duties. Bind the plate for FACE ONLY until char_registrar_b exists. He debuts here. No words.
 @project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_student_c @project_absence_char_visitor_a @project_absence_char_visitor_b
   — the rest of the group, standing loosely, listening.
 @project_absence_char_cleaner_c — Dupe, mopping near the back wall.
@@ -129,7 +127,7 @@ not rendered: film grain, faint gate weave, slight colour fringing.
 
 CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no extra dialogue, no press, no gavel or auctioneer or
 podium or paddles, no crowd beyond nine people, no painting on the hero
-wall, no gold V on any visitor (the registrar's staff V is correct), no
+wall, no gold V on any visitor (the registrar's V is correct), no
 camera move except the single specified push-in.
 
 House negatives: no invented lines, no voiceover, no narration, no
@@ -138,8 +136,8 @@ plaque, no music, no score, no bidding numbers held up, no extras, no
 background figures, no camera flashes, no smartphones, no screens, no LEDs,
 no digital displays, no modern technology, no guards, no duplicate faces, no
 cloned people, no anyone looking at the camera, no smiling while speaking,
-no laughing, no comic expressions, no black clothing as anyone's main
-colour, no dutch angle, no handheld shake, no zoom, no crane, no drone, no
+no laughing, no comic expressions, no black clothing as any VISITOR's main colour (the registrar's formal
+black is correct), no dutch angle, no handheld shake, no zoom, no crane, no drone, no
 slow motion, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
 skin, no beauty filter, no dim moody lighting, no darkness, no rain, no fog,
 no rubble, no structural damage, no ultramarine walls, no blue walls, no
