@@ -23,7 +23,7 @@ REFERENCES — each with a job:
   wall at [0s] is THAT canvas: same portrait proportions, same tall
   rectangle, same painted face. Do not take the cart or its contents from
   this plate — take the picture's shape.
-@project_absence_prop_valder_study — the painting's painted face: geometric
+@project_absence_prop_valder_study_b — the painting's painted face: geometric
   blocks in ochre, rust, sage, cream and dusty pink.
 
 ⚠️ THE CRACK PLATE IS DELIBERATELY NOT BOUND. Takes 1 and 2 both returned a

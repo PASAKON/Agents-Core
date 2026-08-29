@@ -113,7 +113,7 @@ REFERENCES — each with a job:
 @loc_hall_big_e — the hall.
 @project_absence_char_valder — straight, smiling, talking.
 @project_absence_prop_valder_vessel — the dark lidded vessel on its stepped plinth.
-@project_absence_prop_valder_study — the thickly painted canvas on the white wall.
+@project_absence_prop_valder_study_b — the thickly painted canvas on the white wall.
 @gentleman_e @project_absence_char_woman @project_absence_char_critic_b — the crowd that parts.
 
 [0s] The dolly continues. At the vessel, warm, confiding: "Seventeen of these
