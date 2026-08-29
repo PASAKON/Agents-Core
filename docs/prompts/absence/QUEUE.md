@@ -1,3 +1,18 @@
+> ## ▶️ ORDER OF PLAY (CEO 03:05, 30 Aug): NEW WORK GOES TO THE BACK
+> "เอา Task ใหม่ต่อหลัง ให้ Task เก่า Generate ไปก่อน เพราะอยากเห็นซีนใหม่ๆ ด้วย"
+> **Do not stall the queue polishing what exists — push into UNSEEN scenes.**
+>
+> 1. Finish what is in flight: A4 re-fire, A5.
+> 2. Then straight into scenes the CEO has never seen: **S2 → S4 → S7 →
+>    S8a → S8b → S8c → S8d → S9 → S10 → S10b → S12a → S12b → S5 → S14 →
+>    S16 → S17 → S18a → S18b** (S6 and S11 wait for the 20M/100M wall
+>    variants; slot them in whenever those plates exist).
+> 3. THE NEW ADDITIONS GO AFTER THAT: S6b (auction-desk entrance), P1–P3,
+>    D1–D5, X1–X8, DH1–DH4.
+> 4. Image jobs (gentleman_f plate, wall-pov source download) still run in a
+>    PARALLEL tab — they cost no video slot and unblock S6/S6b/S11, so do
+>    them whenever the composer is rendering.
+
 > ## 📖 STORY AUDIT RESULTS + CEO DECISIONS (30 Aug 02:50) — all in the files
 > 1. **P1 is now THE INSTALLATION.** The arrivals see a BARE cracked wall; P1
 >    (after A5, before S4) shows gloved hands screwing a FRESH plaque on —
