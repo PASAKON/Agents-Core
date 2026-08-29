@@ -1,3 +1,23 @@
+> ## 🏠 NEW VIEWPOINT — THE DOLL'S HOUSE (CEO 29 Aug, 19:15)
+> A second way of seeing the film: look DOWN into the gallery as a lit
+> rectangular box **floating in a glossy black void**, people reduced to
+> figures on a board. Coldest angle in the picture; use it 3–4 times only.
+>
+> **Plate first:** `PLATE-loc_dollhouse-PROMPT.txt` — file as Element
+> `loc_dollhouse`. Changes from the earlier V4 variant, per the CEO: the
+> brass plaque and any gold-framed picture are GONE, the room is a clean
+> rectangle, and everything outside the four walls is deep glossy black with
+> a faint sheen — nothing else in frame, no floor, no table, no backdrop.
+>
+> **Then four inserts:** `s-dollhouse.txt` — DH1 cleaning (cuts against S1),
+> DH2 an arrival (against A1), DH3 a conversation (against S7/S8, voices
+> carried under and never intelligible), DH4 the full crowd (against S6/S11).
+> All locked-off, no camera move, figures small, no faces readable.
+>
+> **Priority: AFTER the current story queue.** These are additive coverage,
+> not story beats — fire them when the main queue is clear or while a long
+> render blocks the slot.
+
 > ## 🔴 CEO ORDER 15:00 — WALL FRAME FINAL, RE-SHOOT EVERYTHING THAT USED IT
 > **The Element ID is `@project_absence_loc_wall_pov_e`** (WITH the prefix).
 > The CEO has updated that Element himself — same id, new picture. All eight

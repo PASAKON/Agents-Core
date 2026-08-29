@@ -1,0 +1,150 @@
+✅ MENTIONS ARE THE EXACT LIVE ELEMENT IDS. PASTE VERBATIM — do not "fix" them.
+Most carry a `project_absence_` prefix; the bare ones are char_registrar,
+gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
+loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
+film on this account owns that id; this film's is @project_absence_char_valder.
+
+===============================================================
+DH1 – DH4 · THE DOLL'S HOUSE · a second way of seeing the film
+===============================================================
+CEO 2026-08-29. A new recurring viewpoint, cut in among the existing coverage.
+
+**The idea.** Two or three times the film pulls all the way out and looks DOWN
+into the gallery as if into a doll's house: a lit rectangular box floating in
+a glossy black void, the people inside reduced to figures on a board. It is
+the coldest angle in the film and it says the thing the script never says out
+loud — that this is a game being played on a small table, and that the man
+cleaning it is a piece like any other.
+
+Use it sparingly. Three or four cuts across ninety minutes of screen time.
+Its power comes from how rarely it appears.
+
+REFERENCES — all four, each with a job:
+@loc_dollhouse — THE FRAME ITSELF: the gallery as an open rectangular box seen
+  from steeply above, floating in glossy black, red door small at the top of
+  frame, ONE jagged crack in the near plane. Match it exactly.
+@project_absence_char_cleaner_c — Dupe: white uniform, orange trim, cap, gold V.
+@prop_cart_b — the cart, the painting standing in it face outward.
+(plus the character named in each scene below)
+
+SHARED RULES — every DH shot:
+- **The camera NEVER moves.** Locked off, steeply elevated, no drift, no push,
+  no rotation. The box is a photograph of an object; only the figures move.
+- **Figures are SMALL** — a fifth of the frame height at most. We read them by
+  costume colour and posture, never by facial expression. No close-ups, ever.
+- **The black void stays clean** on all four sides. Nothing enters it, nobody
+  walks out into it, nothing is lit in it.
+- **The crack stays in the near plane**, floating in front, unmoved by anything
+  happening in the room below.
+- Warm shadow, cold white grade; fine film grain, faint gate weave.
+- 720p · 16:9 · High · Sound On. Room tone always, plus the one sound named.
+
+---------------------------------------------------------------
+DH1 · THE CLEANING — the board before the game
+---------------------------------------------------------------
+10s · 720p · 16:9 · ONE LOCKED HIGH SHOT — the camera never moves, no cuts.
+NO DIALOGUE. Cuts against S1 and the S1 angles.
+
+REFERENCES: @loc_dollhouse · @project_absence_char_cleaner_c · @prop_cart_b
+
+[0s] The lit box, empty, floating in black. Nothing moves. Hold two full
+seconds on an empty room seen from above — a set waiting for its play.
+
+[3s] DUPE enters through the red door at the top of frame, tiny, pushing the
+cart. He begins to work along the left wall, moving slowly left to right
+across the floor of the box, the way a piece moves across a board.
+
+[7s] He keeps going. He does not look up. The room is enormous and he is
+crossing it alone. Hold until the clip ends.
+
+AUDIO: room tone, distant cart wheels, a cloth. No music.
+
+---------------------------------------------------------------
+DH2 · THE FIRST PIECE ARRIVES — an entrance, from above
+---------------------------------------------------------------
+10s · 720p · 16:9 · ONE LOCKED HIGH SHOT — the camera never moves, no cuts.
+NO DIALOGUE. Cuts against A1 as its wide counterpart.
+
+REFERENCES: @loc_dollhouse · @project_absence_char_oldman ·
+@project_absence_char_cleaner_c · @prop_cart_b
+
+[0s] The box, with Dupe small at one edge still working, cart beside him.
+
+[3s] The red door opens at the top of frame and ONE FIGURE enters — the
+elderly gentleman, a dark green shape with a cane. He walks down the length
+of the box toward the near plane, growing slightly as he comes.
+
+[7s] He stops below the crack and stands still, facing it, his back to us.
+Dupe carries on at the edge, not looking. Two figures in a lit box, ten
+metres apart, neither aware of the other. Hold.
+
+AUDIO: room tone, the door, a cane on terrazzo. No music.
+
+---------------------------------------------------------------
+DH3 · THE CONVERSATION — two pieces on a board
+---------------------------------------------------------------
+12s · 720p · 16:9 · ONE LOCKED HIGH SHOT — the camera never moves, no cuts.
+The voices are carried under from the scene this cuts against; nothing is
+spoken to camera and no mouth is readable at this distance.
+
+REFERENCES: @loc_dollhouse · @project_absence_char_valder ·
+@gentleman_e · @project_absence_char_cleaner_c · @prop_cart_b
+
+[0s] The box from above. TWO FIGURES stand facing each other near the centre
+of the floor: VALDER, unmistakable as a small bright panel of magenta,
+yellow, green and blue, and THE GENTLEMAN IN THE WHITE SUIT, a pale upright
+shape. They are perfectly still.
+
+[4s] Valder's arm rises and sweeps slowly across the room, taking it all in.
+The gesture is enormous from up here and means nothing — a small coloured
+figure waving at a box.
+
+[8s] Neither of them moves after that. At the far edge, Dupe pushes the cart
+one slow length of the wall and out of frame. Hold on the two still figures.
+
+AUDIO: their voices, distant and indistinct under the room tone — words never
+intelligible from this height. No music.
+
+---------------------------------------------------------------
+DH4 · THE BOARD IS FULL — the crowd, from above
+---------------------------------------------------------------
+12s · 720p · 16:9 · ONE LOCKED HIGH SHOT — the camera never moves, no cuts.
+NO DIALOGUE. Cuts against S6 or S11 as the wide that shows how many they are.
+
+REFERENCES: @loc_dollhouse · @project_absence_char_valder ·
+@gentleman_e · @project_absence_char_woman_c ·
+@project_absence_char_guard_private · @project_absence_char_cleaner_c ·
+@prop_cart_b
+
+[0s] The box, now full. TWELVE TO FOURTEEN FIGURES stand across the floor in
+loose rows, each a single saturated colour, all facing the same way — toward
+the near plane and the crack floating in front of it. Personal guards stand
+in a dark second rank behind their employers.
+
+[5s] Nobody moves. Not one figure turns, shifts or gestures. The stillness is
+total and slightly wrong, like a photograph of a board mid-game.
+
+[9s] At the very edge of the floor, one small white figure with a cart is
+still working — the only thing in the box that moves. Hold until the clip ends.
+
+AUDIO: the room tone of a full room, one pair of footsteps. No music.
+
+---------------------------------------------------------------
+NEGATIVES — all four
+---------------------------------------------------------------
+no dialogue spoken to camera, no readable speech, no close-ups, no medium
+shots, no readable faces, no facial expressions, no camera movement, no push
+in, no pull out, no drift, no rotation, no crane, no drone move, no zoom, no
+cuts inside a clip, no eye-level angle, no dead-on elevation, no plaque, no
+brass plate, no label, no lettering, no readable text, no signage, no gilt
+frames, no gold frames, no framed pictures in the near plane, no ornate
+columns, no Corinthian capitals, no classical busts, no figurative paintings,
+no spiderweb crack, no radiating cracks, no star-shaped crack, no second
+crack, no floor or ground outside the box, no table or surface under the box,
+no room around the box, no visible set edges, no studio backdrop, no grey or
+white or gradient background, no light in the black void, no figure stepping
+outside the box, no smartphones, no screens, no modern technology, no music,
+no score, no slow motion, no speed ramp, no handheld wobble, no dutch angle,
+no lens flare, no HDR, no CGI sheen, no plastic skin, no beauty filter, no
+darkness inside the room, no night, no rain, no fog, no blue walls, no
+wooden floor
