@@ -191,13 +191,25 @@ A4 · THE ART STUDENT
 ---------------------------------------------------------------
 10s · 720p · 16:9 · ONE LOCKED SHOT, identical frame, no cuts.
 
-REFERENCES — jobs:
-@project_absence_loc_wall_pov_e — the frame. The row of four, motionless.
-@project_absence_char_student_c — the student: acid-green hair,
-paint-stained denim. @project_absence_char_cleaner_c +
-@prop_cart_b — the edge.
+REFERENCES — jobs. ⚠️ THE FOUR ALREADY IN THE ROW MUST BE BOUND AND NAMED,
+not left to the model. Take 1 (cbfb41e0) said only "the row of four" and the
+model invented four strangers in the wrong costumes.
+@project_absence_loc_wall_pov_e — the frame.
+@project_absence_char_oldman — ALREADY STANDING, far left: heavy man ~80,
+  bottle-green leather coat, cream turtleneck, hooked cane.
+@project_absence_char_critic_b — ALREADY STANDING: Asian woman ~60, deep
+  magenta fur coat full length, cream gloves, grey hair in a low bun.
+@project_absence_char_visitor_b — ALREADY STANDING: woman ~55, rust-brown fur
+  coat, brown hair to the shoulder.
+@project_absence_char_husband — ALREADY STANDING beside her: black man ~55,
+  olive-tan jacket, short grey hair, calm.
+@project_absence_char_student_c — THE ONE WHO ARRIVES: woman ~22, small, acid
+  lime-green hair, paint-stained denim.
+@project_absence_char_cleaner_c + @prop_cart_b — Dupe at the edge, painting
+  standing in the cart, nobody looks at it.
 
-[0s] The locked frame, four in the row. The door again. The art student
+[0s] The locked frame. THOSE FOUR ARE ALREADY THERE in exactly those
+costumes, standing in a line, motionless, facing camera. The door again. The art student
 walks the axis FASTER than anyone else has, already unimpressed.
 
 [5s] She plants herself at the end of the row and fires it flat, fast,
@@ -219,6 +231,14 @@ REFERENCES — jobs:
 @project_absence_char_woman — the woman in cobalt: leather, crest,
 cat-eye sunglasses. @project_absence_char_cleaner_c +
 @prop_cart_b — the edge.
+
+⚠️ ALL FIVE EARLIER ARRIVALS ARE ALREADY IN THE ROW, in these exact costumes,
+motionless, facing camera — bind and name them, never write "the row of five":
+@project_absence_char_oldman — bottle-green leather coat, cream turtleneck, cane.
+@project_absence_char_critic_b — deep magenta fur, cream gloves, grey bun.
+@project_absence_char_visitor_b — rust-brown fur coat, shoulder-length brown hair.
+@project_absence_char_husband — olive-tan jacket, short grey hair.
+@project_absence_char_student_c — acid lime-green hair, paint-stained denim.
 
 [0s] The locked frame, five in the row. The door, one last time. The
 woman in cobalt makes the slowest, most deliberate walk of the five
