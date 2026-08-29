@@ -1,3 +1,19 @@
+> # 🧱 S2 REWRITTEN CLEAN (CEO 04:15, 30 Aug) — re-read s2-accident.txt before firing
+> Three CEO notes folded into one clean file (the old file had duplicated,
+> contradictory painting blocks — all gone):
+> - **THE PLAQUE FALLS TOO** («ต้องมีฉากที่ Dupe ทำป้ายตกด้วย»): plaque is
+>   PRESENT at [0s] under the crooked painting (2,000,000, no $), the falling
+>   painting clips it off the wall, it clatters, Dupe lays it on the cart
+>   shelf. End tableau = BARE wall + one crack. This closes the loop: bare
+>   wall for all arrivals → P1 installs the FRESH plaque before S4.
+> - **THE CRACK IS REFERENCED, not word-only** («กำแพงร้าวต้องใส่ REF ไปดีๆ»):
+>   S2 now binds `@project_absence_loc_wall_pov_e` scoped to THE CRACK'S
+>   EXACT SHAPE ONLY — never its framing, veil, or border.
+> - **SIZE CONTINUITY**: painting is the SAME SMALL object on wall and in
+>   cart — landscape ~1.1:1 (~80×72cm), Dupe taller than it, oversize is a
+>   named reject. Painting face binds `@project_absence_prop_valder_study_b`
+>   (on-platform, replaces the external crop per competition rule).
+
 > # 🏆 COMPETITION RULE (CEO 04:10, 30 Aug) — PLATFORM-ONLY GENERATION
 > **Festival rules: every image and every video must be GENERATED ON
 > HIGGSFIELD.** Externally created or externally edited pictures may not be
