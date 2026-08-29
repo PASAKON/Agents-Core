@@ -1,3 +1,20 @@
+> ## 🎬 EDITOR SUPPORT PACK + INTERLEAVE ORDER (CEO 02:10, 30 Aug)
+> The CEO reviewed coverage and approved ALL of it:
+> - **`s-extras.txt` X1–X8** (9 clips): museum-front establishing · 20s room
+>   tone bed · red-door open/close insert · reverse of the arrivals row ·
+>   macro push on the painting in the cart · helicopter circling outside ·
+>   TV news broadcast after the 100M · PA open/close bookends.
+> - **P1–P3 and D1–D5 are now INTERLEAVED into the live queue**, not parked
+>   at the end — his words: "แทรกคิวเลย".
+>
+> **Slot priority stays simple: a story scene that is ready to fire always
+> beats an insert.** Use P/D/X clips to fill the slot whenever the next
+> story scene is not yet staged (e.g. while reviewing a landed take).
+>
+> **Element prep for X1/X6, zero gen cost:** upload the existing front plate
+> (Drive `Element/absence-loc-exterior.png`) as a NEW Element, id BY HAND
+> `project_absence_loc_exterior_front`.
+
 > # ⛳ THE PROJECT — CHECK THIS BEFORE EVERY SINGLE FIRE
 > **https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3**
 > ("The Valder Collection No.7")

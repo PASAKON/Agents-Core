@@ -1,0 +1,197 @@
+✅ MENTIONS ARE THE EXACT LIVE ELEMENT IDS. PASTE VERBATIM — do not "fix" them.
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+
+===============================================================
+X1 – X8 · EDITOR SUPPORT PACK · CEO-approved 2026-08-30 02:10
+===============================================================
+Cutaways, establishing shots and sound beds the edit currently lacks. All
+CEO-picked. Slot fillers: fire them between story renders or after the story
+queue — a story scene always outranks an X clip for the slot.
+
+⚠️ ELEMENT PREP FIRST (zero generation cost): the museum FRONT plate already
+exists as a finished image — Drive `Element/absence-loc-exterior.png` (four
+views of the cream streamline-moderne facade, gold V, pink terrazzo). Its old
+Element is terminally "Not eligible", so UPLOAD the file and create a NEW
+Element, id set BY HAND to `project_absence_loc_exterior_front`. X1 and X6
+bind it.
+
+---------------------------------------------------------------
+X1 · ESTABLISHING — THE FRONT OF THE MUSEUM
+---------------------------------------------------------------
+10s · 720p · 16:9 · ONE LOCKED SHOT — the camera never moves, no cuts.
+NO DIALOGUE, NO PEOPLE.
+
+REFERENCES: @project_absence_loc_exterior_front — the building: cream
+limestone streamline-moderne facade, chromium trumpet columns at the
+entrance, gold V, pink terrazzo forecourt. Match it exactly.
+
+[0s] The museum's front, dead-on and perfectly symmetrical, early morning:
+low warm sun raking across the forecourt, long shadows, the mirrored spheres
+catching the light. The building sits centred like a monument to itself.
+[5s] Nothing moves except the light. A flag-less, person-less, perfect
+stillness. Hold to the end.
+
+AUDIO: distant birds, faint city hum, no music.
+NEGATIVE: no people, no cars, no crowd, no camera movement, no zoom, no
+readable text, no signage beyond the gold V, no night, no rain, no HDR.
+
+---------------------------------------------------------------
+X2 · ROOM TONE BED — the empty hall, 20 seconds of nothing
+---------------------------------------------------------------
+20s · 720p · 16:9 · ONE LOCKED SHOT — the camera never moves, no cuts.
+NO DIALOGUE, NO PEOPLE. This clip exists mostly for its AUDIO: a clean
+continuous room-tone bed the editor can lay under any cut.
+
+REFERENCES: @loc_hall_big_e — the hall, exactly as it is.
+
+[0s] The one-point symmetrical master of the empty hall, red door dead
+centre. Nobody in it. Nothing moves.
+[10s] Still nothing moves. The cove lights hum. Hold to the end.
+
+AUDIO: pure room tone — the building's own quiet, a faint electrical hum,
+nothing else. Absolutely no music, no footsteps, no events.
+NEGATIVE: no people, no movement, no camera drift, no zoom, no music, no
+sudden sounds, no readable text.
+
+---------------------------------------------------------------
+X3 · THE RED DOOR — open and close, punctuation marks
+---------------------------------------------------------------
+8s · 720p · 16:9 · ONE LOCKED SHOT — the camera never moves, no cuts.
+NO DIALOGUE, NO PEOPLE VISIBLE.
+
+REFERENCES: @loc_hall_big_e — the hall; frame TIGHT on the red double door,
+centred, filling most of frame.
+
+[0s] The red double door, closed, dead centre, symmetrical. Hold one beat.
+[2s] Both leaves swing OPEN — smooth, unhurried, nobody visible behind them,
+only the warm corridor beyond.
+[5s] They swing gently CLOSED again and seat with a soft click. Hold the
+closed door to the end.
+
+AUDIO: the hinge, the soft click, room tone. No music.
+NEGATIVE: no people, no hands, no camera movement, no zoom, no readable
+text, no music.
+
+---------------------------------------------------------------
+X4 · THE ROW, FROM THE ROOM — reverse of the arrivals
+---------------------------------------------------------------
+10s · 720p · 16:9 · ONE LOCKED SHOT — the camera never moves, no cuts.
+NO DIALOGUE. The reverse angle of A1–A5: the audience seen from inside the
+room, from behind and slightly to the side, looking AT the cracked wall.
+
+REFERENCES — the row must be THE SAME FIVE PEOPLE, bound and named:
+@loc_hall_big_e — the hall from the room side; the hero wall with the small
+  crack faces them.
+@project_absence_char_oldman — bottle-green leather coat, cream turtleneck, cane.
+@project_absence_char_critic_b — deep magenta fur, cream gloves, grey bun.
+@project_absence_char_visitor_b — rust-brown fur coat, shoulder-length brown hair.
+@project_absence_char_husband — olive-tan jacket, short grey hair.
+@project_absence_char_student_c — acid lime-green hair, paint-stained denim.
+@project_absence_char_cleaner_c + @prop_cart_b — Dupe at the frame edge,
+  painting standing in the cart, nobody looks at it.
+
+[0s] From behind the row at a three-quarter back angle: five people in a
+neat line, motionless, all facing the far wall where the small crack sits
+above the brass plaque. Their backs and profiles carry the scene.
+[5s] Nobody moves. The stillness of people being serious in public. Dupe
+wipes at the edge, unnoticed. Hold to the end.
+
+AUDIO: room tone, one cloth wipe. No music.
+NEGATIVE: no dialogue, no faces to camera, no one turning around, no camera
+movement, no zoom, no plaque legible (too far to read), no extra people, no
+duplicate faces, no music.
+
+---------------------------------------------------------------
+X5 · THE PAINTING ON THE CART — the secret, in macro
+---------------------------------------------------------------
+8s · 720p · 16:9 · ONE MOVE ONLY — the slowest possible push-in, no cuts.
+
+REFERENCES:
+@prop_valder_study_b — the painting's face: flat matte geometric blocks in
+  rust, burnt orange, ochre, cream, sage, dusty pink, one black wedge.
+@prop_cart_b — the cart it stands in.
+
+[0s] Close on the painting standing upright in the cart's rack, face
+outward, slightly askew — framed by mop handles and the orange bucket. The
+whole truth of the film, parked in a janitor's cart.
+[4s] The slow push continues until the canvas nearly fills frame. Its flat
+matte blocks, its thin black frame. Hold.
+
+AUDIO: room tone only. No music.
+NEGATIVE: no people, no hands, no camera shake, no cut, no impasto texture,
+no gloss, no readable text, no music.
+
+---------------------------------------------------------------
+X6 · THE HELICOPTER — outside, circling
+---------------------------------------------------------------
+10s · 720p · 16:9 · ONE LOCKED SHOT from the ground — the camera never
+moves, no cuts. NO DIALOGUE, NO PEOPLE.
+
+REFERENCES: @project_absence_loc_exterior_front — the building.
+
+[0s] The museum's facade from the forecourt, late golden afternoon. HIGH
+above the roofline, A SMALL RETROFUTURIST NEWS HELICOPTER circles slowly —
+polished metal, rounded canopy, its rotor beat echoing off the building.
+[5s] It banks and continues its circle, never landing, never leaving. The
+building beneath it stays perfectly still. Hold.
+
+AUDIO: rotor beat, doppler as it passes, wind. No music.
+NEGATIVE: no people, no cars, no second aircraft, no landing, no crash, no
+camera movement, no zoom, no readable text, no military aircraft, no music.
+
+---------------------------------------------------------------
+X7 · THE BROADCAST — the news the whole world saw
+---------------------------------------------------------------
+15s · 720p · 16:9 · ONE LOCKED SHOT — a retrofuturist TELEVISION fills the
+frame, no cuts. Plays right after S11 / the 100M hammer.
+
+⚠️ CTO reading of the CEO's "รายการทีวีจริง" — a real broadcast segment ON a
+period TV set. The anchor is a ONE-OFF character seen only on this screen, so
+an invented face is acceptable here (the one place it is).
+
+[0s] A retrofuturist television — rounded CRT glass, brushed-metal cabinet,
+rabbit-ear antenna — fills the frame against a dark neutral wall. On its
+slightly curved, faintly scan-lined screen: a news studio, a composed anchor
+at a desk, mid-broadcast. Any graphics or captions on the screen are soft
+and unreadable.
+[3s] The anchor speaks, voice slightly compressed through the TV speaker,
+measured, mid-Atlantic calm: "One hundred million dollars — for a crack in
+a wall."
+[8s] A beat. "The collector, Maximilian Valder, declined to comment."
+[12s] Driest of all: "The artist remains unknown." Hold on the flickering
+screen.
+
+AUDIO: the anchor's voice through a small speaker, CRT hum, room tone. No
+music.
+NEGATIVE: no readable on-screen text, no channel logos, no modern flat
+screen, no smartphone, no dialogue beyond the three lines, no music, no
+camera movement, no cut.
+
+---------------------------------------------------------------
+X8a / X8b · THE PA — the museum speaks, twice
+---------------------------------------------------------------
+8s each · 720p · 16:9 · ONE LOCKED SHOT — the camera never moves, no cuts.
+NO PEOPLE. Bookends: X8a near the film's open, X8b near its close.
+
+REFERENCES: @loc_hall_big_e — the empty hall, one-point master, red door
+centred.
+
+X8a [0s] The empty hall, morning-bright. A soft two-tone PA chime, then a
+calm institutional voice, gently reverberant through the space: "Good
+morning. The museum is now open." [5s] Silence returns. Hold.
+
+X8b [0s] The empty hall, light a shade warmer, end of day. The same chime,
+the same voice: "The museum is now closing. Thank you for your visit."
+[5s] Silence. The red door. Hold.
+
+AUDIO: the chime, the PA voice with room reverb, room tone. No music.
+NEGATIVE: no people, no movement, no camera drift, no dialogue beyond the PA
+line, no readable text, no music.
+
+---------------------------------------------------------------
+FIRE ACCOUNTING
+---------------------------------------------------------------
+9 clips ≈ 107s of footage ≈ 4h of slot at fast-window pace, plus the
+zero-cost loc_exterior_front Element upload. Interleave with P1–P3 and
+D1–D5 per the CEO's order: a story scene always fires first when one is
+ready.
