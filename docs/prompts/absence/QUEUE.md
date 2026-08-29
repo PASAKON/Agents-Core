@@ -1,3 +1,22 @@
+> # 🏆 COMPETITION RULE (CEO 04:10, 30 Aug) — PLATFORM-ONLY GENERATION
+> **Festival rules: every image and every video must be GENERATED ON
+> HIGGSFIELD.** Externally created or externally edited pictures may not be
+> used as assets. Effective immediately:
+> - **DELETE Elements `project_absence_loc_wall_pov_e_100m` and `_20m`** (if
+>   filed) — they were hand-built outside the platform. Do not upload the
+>   PNGs; they are removed from the repo.
+> - **The S6/S11 price walls are now GENERATED on-platform instead**: image
+>   mode, bind `@project_absence_loc_wall_pov_e`, prompt the plaque in — a
+>   brass plaque low in the near plane, MIRROR-REVERSED lettering, reading
+>   THE ABSENCE OF MEANING / Valder / 20,000,000 (or 100,000,000), no
+>   currency symbol, everything else in the frame unchanged. Expect retries
+>   on the mirrored digits; verify by zooming the output.
+> - **No more hand-built composites as production assets, ever.** External
+>   images may exist only as private notes for humans, never uploaded.
+> - ⚠️ OPEN QUESTION FOR THE CEO: the base wall element and some earlier
+>   plates began life as hand-built composites uploaded to the platform. If
+>   the rule covers those too, they need on-platform regeneration — his call.
+
 > ## 🎩 COSTUME FINAL (CEO 04:00, 30 Aug) — read before firing any registrar or gentleman scene
 > - **The gentleman keeps his WHITE suit.** `gentleman_f` is CANCELLED as his
 >   plate — do not bind it to him, ever. (If already generated, archive it.)
