@@ -1,3 +1,26 @@
+> ## 🧱 THE INVISIBLE WALL — new frame, CEO 29 Aug, supersedes loc_wall_pov_e
+> **JOB 1, do this before any more video:** generate the plate from
+> `docs/prompts/absence/PLATE-loc_wall_pov_f.md` as an IMAGE (image gens run
+> in parallel with a rendering video, they do not hold the slot), file it as
+> Element **`loc_wall_pov_f`**, and report its exact mention string.
+> **NO PEOPLE IN THE PLATE** — faces in a location plate trip the Face/IP
+> scanner and that verdict is retroactive and terminal.
+>
+> The gallery becomes a BOX with its fourth wall removed; the camera stands
+> where the hero wall was, slightly elevated, dead-on. The crack floats in
+> the near plane, large and unmistakable. The plaque stays mirror-reversed.
+> People stand INSIDE the box FACING CAMERA (CEO: "เห็นรอยร้าวชัด คนหันหน้า
+> เข้ากล้อง").
+>
+> **JOB 2: re-fire every scene that used the old frame.** All prompt files
+> are already repointed to `@loc_wall_pov_f`. That is **A1, A2, A3, A4, A5,
+> S4, S6, S11**. A1/A2/A3 are already-delivered keepers and A4 just landed —
+> **the CEO chose to redo them anyway** (he was given the cost). Keep every
+> old take in Drive; rename the superseded ones `-SUPERSEDED-oldframe` rather
+> than deleting.
+>
+> Order: plate → A1 → A2 → A3 → A4 → A5 → then back to the normal queue.
+
 > ## ⛔ GEMINI IS DOWN — billing, not code (CTO 09:55)
 > Every model on the key now answers `429 RESOURCE_EXHAUSTED — Your
 > prepayment credits are depleted`. Not model-specific and not our volume
