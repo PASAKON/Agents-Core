@@ -1,3 +1,22 @@
+> ## ⛔ GEMINI IS DOWN — billing, not code (CTO 09:55)
+> Every model on the key now answers `429 RESOURCE_EXHAUSTED — Your
+> prepayment credits are depleted`. Not model-specific and not our volume
+> (about six calls total). The project is on prepay with a zero balance, and
+> the old free-tier models (`gemini-2.5-flash*`) answer `404 no longer
+> available to new users`. **Waiting on the CEO — do not retry, it will not
+> clear on its own.**
+>
+> **Fall back to the free stack, which already caught the two worst bugs:**
+> ```
+> bash scripts/video-see.sh screen <clip>        # cuts, freezes, spec, audio dB
+> ffmpeg -y -i <clip> -ar 16000 -ac 1 -c:a pcm_s16le /tmp/a.wav && \
+>   whisper-cli -m /Users/gob/Projects/Agents/.cache/whisper/ggml-base.en.bin -f /tmp/a.wav -nt
+> bash scripts/video-see.sh t1 <clip> -o <dir>   # 12-frame sheet
+> ```
+> whisper is what found the S15a spoken stage direction. Transcribe every
+> dialogue clip and compare word for word against the quoted lines; anything
+> spoken that is not inside quotation marks in the prompt is a reject.
+
 > ## 🔁 S2 TAKE 3 — root cause found, two plate changes (CTO 09:05)
 > Take 2 came back landscape AND spiderweb again. **The plate is NOT the
 > problem** — A1 take 1 shows the painting standing in the cart in correct
