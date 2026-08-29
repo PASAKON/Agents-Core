@@ -2,13 +2,22 @@
 > "เอา Task ใหม่ต่อหลัง ให้ Task เก่า Generate ไปก่อน เพราะอยากเห็นซีนใหม่ๆ ด้วย"
 > **Do not stall the queue polishing what exists — push into UNSEEN scenes.**
 >
-> 1. Finish what is in flight: A4 re-fire, A5.
-> 2. Then straight into scenes the CEO has never seen: **S2 → S4 → S7 →
+> **STANDING RULE (CEO 03:10): ฉากแก้เอาต่อท้ายเสมอ — A RE-SHOOT ALWAYS GOES
+> TO THE BACK OF THE QUEUE.** A reject never jumps the line; unseen scenes
+> always fire first. This applies from now until the film wraps.
+>
+> 1. If A4/A5 are ALREADY staged or rendering, let them finish — never waste
+>    a fire. If not yet staged, SKIP them for now: they are re-shoots and go
+>    to the back.
+> 2. Straight into scenes the CEO has never seen: **S2 → S4 → S7 →
 >    S8a → S8b → S8c → S8d → S9 → S10 → S10b → S12a → S12b → S5 → S14 →
 >    S16 → S17 → S18a → S18b** (S6 and S11 wait for the 20M/100M wall
->    variants; slot them in whenever those plates exist).
-> 3. THE NEW ADDITIONS GO AFTER THAT: S6b (auction-desk entrance), P1–P3,
->    D1–D5, X1–X8, DH1–DH4.
+>    variants; slot them in whenever those plates exist). Note S2 is itself
+>    a re-shoot BUT the CEO has never seen a correct S2 — treat "unseen" as
+>    "the CEO has not approved a version of this beat"; S2 stays in line.
+> 3. THE BACK OF THE QUEUE, in order: A4 re-fire, A5, S17 re-fire, S6b
+>    (auction-desk entrance), P1–P3, D1–D5, X1–X8, DH1–DH4, and any future
+>    reject's re-fire as it arises.
 > 4. Image jobs (gentleman_f plate, wall-pov source download) still run in a
 >    PARALLEL tab — they cost no video slot and unblock S6/S6b/S11, so do
 >    them whenever the composer is rendering.
