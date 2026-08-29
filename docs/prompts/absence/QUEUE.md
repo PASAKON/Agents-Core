@@ -1,3 +1,18 @@
+> ## 🚫 NO PLAQUE IN THE ARRIVALS (CEO 20:15)
+> "ฉากที่คนพูดเรียงทีละคน ไม่ต้องใส่ป้ายก็ได้นะ ... เพราะว่าไม่อยากให้เห็น"
+> **A1–A5 show NO brass plaque, no lettering, no readable text at all.**
+> `s-arrivals.txt` is updated: the frame job, the shared frame block and the
+> opening beat all say so, and the negative now BANS text instead of carving
+> out an exception for the plaque.
+>
+> **A1 take 2 (1d87608e) is therefore superseded** — it has the plaque clearly
+> in frame. Rename it `-SUPERSEDED-plaque` and shoot A1 again. Annoying, but
+> one clip.
+>
+> **The plaque STAYS in S4, S6 and S11** — the price marker changing from
+> 2,000,000 to 20,000,000 to 100,000,000 is the whole point of those scenes.
+> Do not strip it there.
+
 > ## 🏠 NEW VIEWPOINT — THE DOLL'S HOUSE (CEO 29 Aug, 19:15)
 > A second way of seeing the film: look DOWN into the gallery as a lit
 > rectangular box **floating in a glossy black void**, people reduced to

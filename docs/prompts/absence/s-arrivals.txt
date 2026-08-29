@@ -17,8 +17,8 @@ rendered (grain, halation, gate weave), camera always level, 720p ·
 
 Negative block for every scene here: no invented dialogue, no lines
 beyond those written, no voiceover, no narration, no subtitles, no
-captions, no readable text except the brass plaque (mirror-reversed in
-the wall frame), no music, no score, no extras beyond the named cast,
+captions, no brass plaque, no plate, no label, no lettering, no numbers, no readable
+text of any kind, no signage, no music, no score, no extras beyond the named cast,
 no crowd, no press, no guards, no gold V on any visitor, no duplicate
 faces, no anyone noticing the cleaner, no anyone answering him, no
 porthole, no hole, no invented crack shape, no handheld, no dutch
@@ -64,7 +64,7 @@ THE ARRIVALS — shared frame for A1–A5
 ---------------------------------------------------------------
 References every time: **project_absence_loc_wall_pov_e** (the hand-built frame — the
 camera is BEHIND the wall looking out through the crack; the brass
-plaque low in frame, MIRROR-REVERSED, reading $2,000,000; **the RED
+**NO PLAQUE AND NO LETTERING ANYWHERE IN FRAME**; **the RED
 DOOR dead centre at the vanishing point**) · char_cleaner_c ·
 prop_cart_b · plus that scene's arrivals.
 
@@ -100,8 +100,8 @@ REFERENCES — jobs:
 @project_absence_loc_wall_pov_e — THE FRAME ITSELF, match exactly: the gallery as a BOX with
   its fourth wall removed, camera slightly elevated and DEAD-ON, looking into
   the open room. The CRACK floats in the near plane across the missing wall,
-  large and unmistakable; the brass plaque sits low in the near plane
-  MIRROR-REVERSED; the red door is dead centre in the far wall. People stand
+  large and unmistakable. **NO BRASS PLAQUE IN THESE SHOTS** — the arrivals
+  never show it (CEO 29 Aug). The red door is dead centre in the far wall. People stand
   INSIDE the box FACING CAMERA — they are looking at the wall, and the wall
   is where we are.
 
@@ -117,7 +117,7 @@ never heavier at the edges, never a dark border.
   his cart, painting visible in the rack. Nobody looks at it.
 
 [0s] The locked frame, empty: the crack (the camera), the mirror-reversed
-plaque, the red door far away dead centre. A long still beat — three full
+the red door far away dead centre, no plaque anywhere. A long still beat — three full
 seconds of nothing.
 
 [3s] The red door opens. The elderly gentleman comes down the centreline
