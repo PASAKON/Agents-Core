@@ -77,6 +77,9 @@ REQUIRED_LUNGNOTE_TOOLS = (
 RELAY_TOOLS = (
     "mcp__relay__mac_status", "mcp__relay__org_snapshot",
     "mcp__relay__relay_to_session", "mcp__relay__spawn_c_level",
+    # CEO 2026-08-29: reads back what happened to a queued relay. Without
+    # it "queued" and "delivered" are indistinguishable after the fact.
+    "mcp__relay__check_relay_status",
     "mcp__relay__read_session",
     "mcp__relay__list_terminals", "mcp__relay__session_history",
     "mcp__relay__open_terminal",
@@ -143,13 +146,20 @@ def test_allowlist_never_contains_a_mutating_or_org_tool() -> None:
 
 def test_read_is_the_only_new_tool_added_for_images() -> None:
     """D3 (task-ff60da52): Read, scoped to the image-staging root, is the
-    ONLY new capability this task adds. Bash/Write/Edit/NotebookEdit stay
-    forbidden — the jail on a scoped Read is UNPROVEN (a Mac test with a
-    permissive settings.json failed to block `../` traversal, but that
-    proved nothing about the real hardened runtime), so the design does not
-    depend on it: the staging root holds only images downloaded this turn,
-    and nothing else of value is reachable from this box any more (secrets
-    moved to /etc/mooniex/secretary-secrets.env)."""
+    ONLY new capability that task added. Bash/Write/Edit/NotebookEdit stay
+    forbidden.
+
+    The jail on a scoped Read is no longer unproven, and the earlier note here
+    had it backwards: measured on the box 2026-08-29 under permission-mode
+    dontAsk, the rule denied every read including the file it existed to allow,
+    because an absolute path in a permission rule needs a doubled leading slash
+    (a single one is read as project-relative). The old Mac traversal test ran
+    under a settings.json that pre-allows Read, so it measured nothing either
+    way. See IMAGE_READ_TOOL in secretary_server.py for the numbers.
+
+    The design still does not lean on the scope alone: the staging root holds
+    only images downloaded this turn, and nothing else of value is reachable
+    from this box (secrets moved to /etc/mooniex/secretary-secrets.env)."""
     for forbidden in ("Bash", "Write", "Edit", "NotebookEdit"):
         assert forbidden not in ss.ALLOWED_TOOLS, (
             f"{forbidden!r} must never appear in ALLOWED_TOOLS")

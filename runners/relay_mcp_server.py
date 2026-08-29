@@ -1030,6 +1030,41 @@ def relay_to_session(target_role: str, message: str, wait: bool = False,
     }, ensure_ascii=False)
 
 
+@mcp.tool()
+def check_relay_status(queue_id: int) -> str:
+    """Look up what actually happened to a queued relay, by the queue_id that
+    relay_to_session returned.
+
+    A "queued" result means the letter was written into the queue, nothing
+    more. The Mac-side agent drains it afterwards and can fail -- most often
+    because no live session exists for the role -- and until this is called
+    there is no way to know which happened. On 2026-08-29 a relay was reported
+    to the CEO as delivered while queue row 103 read
+    `failed: no live cto session 'eab87266' on this Mac`, twenty seconds after
+    it was queued. Nothing was wrong with the pipe; the outcome simply was not
+    read before it was described.
+
+    Returns JSON with `status` (queued | done | failed | unknown) and, once the
+    Mac agent has written one, `result` -- the reason in plain words. Poll it
+    rather than assuming: a status of `queued` means still in flight, and is
+    not a delivery either.
+    """
+    entry = _queue_get(queue_id)
+    if entry is None:
+        _audit("check_relay_status", str(queue_id), "unknown", "no such queue id")
+        return json.dumps({
+            "status": "unknown", "queue_id": queue_id,
+            "detail": f"no queue entry {queue_id} -- wrong id, or a different box's queue",
+        }, ensure_ascii=False)
+    _audit("check_relay_status", str(queue_id), entry["status"], entry.get("result") or "")
+    return json.dumps({
+        "status": entry["status"], "queue_id": queue_id,
+        "target_role": entry["target_role"], "kind": entry["kind"],
+        "result": entry.get("result"),
+        "delivered": entry["status"] == "done",
+    }, ensure_ascii=False)
+
+
 # ---------------------------------------------------------------------------
 # spawn_c_level
 # ---------------------------------------------------------------------------

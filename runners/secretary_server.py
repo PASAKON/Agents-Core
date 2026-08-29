@@ -260,6 +260,11 @@ ALLOWED_TOOLS: tuple[str, ...] = (
     "mcp__relay__mac_status",
     "mcp__relay__org_snapshot",
     "mcp__relay__relay_to_session",
+    # CEO 2026-08-29 -- read-only companion to relay_to_session. A queued
+    # relay has not arrived anywhere yet; this is the only way to learn
+    # which way it went, and the system prompt now requires reading it
+    # before describing the outcome.
+    "mcp__relay__check_relay_status",
     "mcp__relay__spawn_c_level",
     # task-da873c76 Deliverable 3 -- read-only (no confirm-before-write
     # needed), the fifth relay tool that closes the read-back gap
@@ -363,9 +368,20 @@ SECRETARY_SYSTEM_PROMPT = (
     "เรียกได้ทันทีไม่ต้องขอยืนยัน อย่านับ to-do ซ้ำจาก tool นี้ ใช้ list_todos แทน\n"
     "- relay_to_session (ส่งคำสั่งไปหา C-level session ที่เปิดอยู่แล้ว): ทำได้ทันที "
     "ไม่ต้องขอยืนยันก่อน — นี่คือการส่งต่อข้อความปกติของ CEO ไปยัง session ปลายทาง ไม่ใช่เรื่องสำคัญ "
-    "ที่ต้องหยุดถามทุกครั้ง (session ปลายทางตัดสินใจเองว่าจะทำอะไรกับข้อความนั้น) "
-    "หลังส่งเสร็จ รายงานผลจริงเป็นบรรทัดสั้นๆ (ส่งถึงแล้ว หรือเข้าคิวรอ Mac พร้อมเลขคิว "
-    "ถ้า Mac หลับอยู่ตอนที่เข้าคิว ให้บอกด้วย)\n"
+    "ที่ต้องหยุดถามทุกครั้ง (session ปลายทางตัดสินใจเองว่าจะทำอะไรกับข้อความนั้น)\n"
+    "  กฎเหล็ก (CEO 29 ส.ค.) — ห้ามเดาผลการส่ง ต้องอ่านค่าที่ tool คืนมาจริงเท่านั้น:\n"
+    "  1. status='delivered' เท่านั้นที่แปลว่า 'ส่งถึงแล้ว' "
+    "status='queued' แปลว่า 'เข้าคิวแล้ว ยังไม่ถึงมือใคร' — คนละเรื่องกัน "
+    "ห้ามรายงาน queued ว่าเป็น 'ส่งแล้ว/สำเร็จ/ถึงแล้ว' เด็ดขาด\n"
+    "  2. ถ้าได้ queued ให้บอก CEO ตรงๆ ว่าเข้าคิว พร้อมเลขคิว แล้ว **เรียก check_relay_status "
+    "ด้วยเลขคิวนั้น** เพื่อดูผลจริง ก่อนจะสรุปอะไรก็ตาม ผลที่ได้: done=ถึงแล้ว "
+    "failed=ไม่ถึง (ในช่อง result จะบอกเหตุผล เช่นไม่มี session เปิดอยู่) queued=ยังค้างอยู่\n"
+    "  3. ถ้า failed ให้บอก CEO ว่าไม่ถึง พร้อมเหตุผลจาก result ห้ามเงียบ ห้ามพูดคลุมเครือ\n"
+    "  เหตุที่มีกฎนี้: 29 ส.ค. มีการรายงาน CEO ว่า 'relay สำเร็จถึง CTO แล้ว' "
+    "ทั้งที่แถวคิว 103 ขึ้น failed ภายใน 20 วินาที เพราะไม่มี cto session เปิดอยู่เลย "
+    "ท่อไม่ได้พัง แต่ไม่มีใครอ่านผลก่อนพูด — ซึ่งอันตรายกว่าท่อพัง เพราะ CEO เชื่อว่าสั่งงานถึงแล้ว\n"
+    "- check_relay_status (เช็คว่า relay ที่เข้าคิวไปนั้น ถึงหรือไม่ถึง): อ่านอย่างเดียว "
+    "เรียกได้ทันที ใช้ queue_id ที่ relay_to_session คืนมา\n"
     "- spawn_c_level (เปิด C-level session ใหม่แทน CEO): นี่คือเรื่องสำคัญจริงๆ เพราะกิน "
     "compute/token จริงและเปิด session ใหม่ ต้องขอยืนยันก่อนเท่านั้น:\n"
     "  1. ห้ามเรียกทันทีตอนที่ CEO พูดถึงครั้งแรก ให้พูดย้ำก่อนว่าจะเปิด role ไหนที่ host ไหน "

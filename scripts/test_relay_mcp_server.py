@@ -1820,3 +1820,50 @@ def test_share_image_broker_ok_without_a_file_id_is_verify_failed(monkeypatch, t
     result = json.loads(rms.share_image_with_cto(str(photo)))
     assert result["status"] == "verify_failed"
     assert "drive_link" not in result
+
+
+# ---------------------------------------------------------------------------
+# check_relay_status — "queued" is not "delivered". Row 103 on 2026-08-29 read
+# failed twenty seconds after it was queued, while the CEO was told the relay
+# had arrived. These pin the distinction the reporting rule depends on.
+# ---------------------------------------------------------------------------
+
+def test_check_relay_status_reports_a_failed_queue_row_as_not_delivered(monkeypatch):
+    monkeypatch.setattr(rms, "_queue_get", lambda qid: {
+        "id": qid, "kind": "relay", "target_role": "cto", "status": "failed",
+        "result": "no live cto session 'eab87266' on this Mac. "
+                  "Live cto session ids here: (none)",
+    })
+    result = json.loads(rms.check_relay_status(103))
+    assert result["status"] == "failed"
+    assert result["delivered"] is False
+    assert "no live cto session" in result["result"]
+
+
+def test_check_relay_status_still_queued_is_not_a_delivery(monkeypatch):
+    """The row exists and nothing has gone wrong — but nothing has arrived
+    either, which is exactly the state that got misreported."""
+    monkeypatch.setattr(rms, "_queue_get", lambda qid: {
+        "id": qid, "kind": "relay", "target_role": "cto",
+        "status": "queued", "result": None,
+    })
+    result = json.loads(rms.check_relay_status(104))
+    assert result["status"] == "queued"
+    assert result["delivered"] is False
+
+
+def test_check_relay_status_done_is_the_only_delivered(monkeypatch):
+    monkeypatch.setattr(rms, "_queue_get", lambda qid: {
+        "id": qid, "kind": "relay", "target_role": "cto",
+        "status": "done", "result": "delivered to cto-c01011d2",
+    })
+    result = json.loads(rms.check_relay_status(105))
+    assert result["status"] == "done"
+    assert result["delivered"] is True
+
+
+def test_check_relay_status_unknown_id_never_claims_anything(monkeypatch):
+    monkeypatch.setattr(rms, "_queue_get", lambda qid: None)
+    result = json.loads(rms.check_relay_status(999999))
+    assert result["status"] == "unknown"
+    assert "delivered" not in result or result.get("delivered") is not True
