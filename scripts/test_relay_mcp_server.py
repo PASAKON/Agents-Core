@@ -1704,3 +1704,119 @@ def test_grab_video_broker_mode_still_honours_the_no_escape_hatch_guard_and_allo
 
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-v"]))
+
+
+# ---------------------------------------------------------------------------
+# share_image_with_cto — the return leg. An image can be pushed to the CEO
+# because the CEO is a Telegram user; a C-level session gets a text letter, so
+# the bytes go to Desktop Cloud and the link travels instead. These assert what
+# the tool REFUSES as hard as what it does: the sibling Read rule spent months
+# denying everything while its test only checked the rule's shape.
+# ---------------------------------------------------------------------------
+
+def _image_staging(monkeypatch, tmp_path, *, with_broker=True):
+    image_root = tmp_path / "images" / "abc123"
+    image_root.mkdir(parents=True)
+    photo = image_root / "photo.png"
+    photo.write_bytes(b"\x89PNG\r\n\x1a\n" + b"x" * 64)
+    monkeypatch.setenv(rms.SECRETARY_IMAGE_DIR_VAR, str(tmp_path / "images"))
+    if with_broker:
+        staging_root = tmp_path / "staging"
+        staging_root.mkdir()
+        monkeypatch.setenv(rms.video_to_drive.DRIVE_UPLOAD_SOCKET_VAR, "/tmp/fake-broker.sock")
+        monkeypatch.setenv(rms.SOMPONG_STAGING_DIR_VAR, str(staging_root))
+    else:
+        monkeypatch.delenv(rms.video_to_drive.DRIVE_UPLOAD_SOCKET_VAR, raising=False)
+    return photo
+
+
+def test_share_image_refuses_a_path_outside_the_image_staging_root(monkeypatch, tmp_path):
+    """The reachable set is exactly the images staged for this turn. Anything
+    the secretary user could otherwise read stays unreachable through here."""
+    _image_staging(monkeypatch, tmp_path)
+    outsider = tmp_path / "not-an-image.txt"
+    outsider.write_text("secrets")
+
+    called = []
+    monkeypatch.setattr(rms.video_to_drive, "broker_upload",
+                        lambda *a, **kw: called.append(a) or {"id": "nope"})
+
+    result = json.loads(rms.share_image_with_cto(str(outsider)))
+    assert result["status"] == "refused"
+    assert "outside the image staging root" in result["reason"]
+    assert called == [], "a refused path must never reach the broker"
+
+
+def test_share_image_refuses_traversal_back_out_of_the_staging_root(monkeypatch, tmp_path):
+    """`..` is resolved before the containment check, not after."""
+    photo = _image_staging(monkeypatch, tmp_path)
+    escape = photo.parent / ".." / ".." / "not-an-image.txt"
+    (tmp_path / "not-an-image.txt").write_text("secrets")
+
+    result = json.loads(rms.share_image_with_cto(str(escape)))
+    assert result["status"] == "refused"
+
+
+def test_share_image_without_a_broker_refuses_instead_of_using_a_credential(monkeypatch, tmp_path):
+    """SomPong never holds a Drive credential. No broker means no upload —
+    never a quiet fallback to the direct path, which is the hole the broker
+    exists to close."""
+    photo = _image_staging(monkeypatch, tmp_path, with_broker=False)
+
+    def _boom(*a, **kw):
+        raise AssertionError("the direct Drive path must never be reached")
+    monkeypatch.setattr(rms.video_to_drive, "apply_oauth_env_override", _boom)
+    monkeypatch.setattr(rms.video_to_drive, "upload", _boom)
+
+    result = json.loads(rms.share_image_with_cto(str(photo)))
+    assert result["status"] == "broker_unavailable"
+
+
+def test_share_image_success_returns_a_link_and_leaves_no_staged_copy(monkeypatch, tmp_path):
+    photo = _image_staging(monkeypatch, tmp_path)
+    staging_root = tmp_path / "staging"
+
+    seen = {}
+
+    def fake_broker_upload(sock_path, local_path, name):
+        # The broker only accepts paths inside its own root, and needs group
+        # traverse to reach in — assert both while the copy still exists.
+        seen["under_root"] = Path(local_path).resolve().is_relative_to(staging_root.resolve())
+        seen["dir_mode"] = Path(local_path).parent.stat().st_mode & 0o7777
+        seen["file_mode"] = Path(local_path).stat().st_mode & 0o777
+        seen["name"] = name
+        return {"id": "broker-file-id", "name": name}
+    monkeypatch.setattr(rms.video_to_drive, "broker_upload", fake_broker_upload)
+
+    result = json.loads(rms.share_image_with_cto(str(photo)))
+
+    assert result["status"] == "ok"
+    assert result["drive_link"] == "https://drive.google.com/file/d/broker-file-id/view"
+    assert result["name"] == "photo.png"
+    assert seen["under_root"], "the broker cannot read a path outside its staging root"
+    assert seen["dir_mode"] == 0o2750, "mkdtemp's 0700 strips the group traverse bit"
+    assert seen["file_mode"] == 0o640
+    assert photo.exists(), "the turn's own staged image must survive the copy"
+    assert list(staging_root.iterdir()) == [], "the broker copy is dropped once verified"
+
+
+def test_share_image_broker_failure_never_invents_a_link(monkeypatch, tmp_path):
+    photo = _image_staging(monkeypatch, tmp_path)
+
+    def _fail(*a, **kw):
+        raise rms.video_to_drive.BrokerUploadError("socket refused")
+    monkeypatch.setattr(rms.video_to_drive, "broker_upload", _fail)
+
+    result = json.loads(rms.share_image_with_cto(str(photo)))
+    assert result["status"] == "upload_failed"
+    assert "socket refused" in result["reason"]
+    assert "drive_link" not in result
+
+
+def test_share_image_broker_ok_without_a_file_id_is_verify_failed(monkeypatch, tmp_path):
+    photo = _image_staging(monkeypatch, tmp_path)
+    monkeypatch.setattr(rms.video_to_drive, "broker_upload", lambda *a, **kw: {"name": "photo.png"})
+
+    result = json.loads(rms.share_image_with_cto(str(photo)))
+    assert result["status"] == "verify_failed"
+    assert "drive_link" not in result

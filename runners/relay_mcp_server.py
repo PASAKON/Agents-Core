@@ -75,6 +75,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -1635,6 +1636,110 @@ GRAB_VIDEO_STAGE_PREFIX = "grab_video_"
 # when provisioning. Unset (today, the Mac): behaviour is completely
 # unchanged from before this task.
 SOMPONG_STAGING_DIR_VAR = "SOMPONG_STAGING_DIR"
+
+SHARE_IMAGE_STAGE_PREFIX = "share_image_"
+
+# Kept in step with runners/secretary_server.py's SECRETARY_IMAGE_DIR, which
+# is where an inbound Telegram photo is staged for the turn that handles it.
+# Same env var, same default, on purpose: this tool exists to hand one of
+# those staged files onward, and a drift between the two would show up as a
+# blanket refusal rather than anything legible.
+SECRETARY_IMAGE_DIR_VAR = "SECRETARY_IMAGE_DIR"
+
+
+def _secretary_image_dir() -> Path:
+    return Path(os.environ.get(SECRETARY_IMAGE_DIR_VAR)
+                or ROOT / "state" / "secretary_images")
+
+
+@mcp.tool()
+def share_image_with_cto(path: str) -> str:
+    """Put an image the CEO just sent into the Desktop Cloud folder and return
+    a link any C-level session can open, whichever machine it runs on.
+
+    The CEO is a Telegram user, so a photo can simply be pushed to them. A
+    C-level session is a tmux process on a box, reachable only by a letter in
+    its mailbox, and a letter carries text -- so an image cannot travel that
+    way. This closes the gap the only way that survives the recipient being on
+    a different machine: park the bytes in Drive, send the link as text.
+
+    `path` must resolve inside the per-turn image staging root; nothing else on
+    the box is uploadable through here, which keeps the reachable set identical
+    to the Read rule SomPong already runs under. The destination folder is not
+    an argument and cannot be one: the broker fixes it server-side.
+
+    Broker mode only. If DRIVE_UPLOAD_SOCKET is unset this refuses rather than
+    reaching for a Drive credential directly -- SomPong never holds one, and a
+    silent fallback would be exactly the hole the broker exists to close.
+
+    Returns JSON: {"status": "ok", "drive_link", "name", "size"} or
+    {"status": <failure kind>, "reason": <human-readable>}. Failure kinds:
+    refused, not_found, broker_unavailable, upload_failed, verify_failed.
+    Pass the link on with relay_to_session; this tool does not deliver.
+    """
+    def fail(kind: str, reason: str) -> str:
+        _audit("share_image_with_cto", path, kind, reason)
+        return json.dumps({"status": kind, "reason": reason}, ensure_ascii=False)
+
+    image_root = _secretary_image_dir()
+    try:
+        src = Path(path).resolve(strict=True)
+    except (OSError, RuntimeError) as e:
+        return fail("not_found", f"cannot resolve {path}: {e}")
+    try:
+        src.relative_to(image_root.resolve())
+    except ValueError:
+        return fail("refused",
+                    f"{src} is outside the image staging root {image_root} -- "
+                    "only a photo staged for this turn can be shared")
+    if not src.is_file():
+        return fail("refused", f"{src} is not a regular file")
+
+    broker_socket = os.environ.get(video_to_drive.DRIVE_UPLOAD_SOCKET_VAR) or None
+    if not broker_socket:
+        return fail("broker_unavailable",
+                    f"{video_to_drive.DRIVE_UPLOAD_SOCKET_VAR} is not set -- "
+                    "refusing to upload without the broker")
+    staging_root = os.environ.get(SOMPONG_STAGING_DIR_VAR)
+    if not staging_root:
+        return fail("broker_unavailable",
+                    f"{video_to_drive.DRIVE_UPLOAD_SOCKET_VAR} is set but "
+                    f"{SOMPONG_STAGING_DIR_VAR} is not -- broker mode misconfigured")
+
+    # The broker only accepts paths inside its own staging root, so the file
+    # has to be copied there first. 0o2750 on the directory and 0o640 on the
+    # file for the reason grab_video documents at length: mkdtemp hardcodes
+    # 0700, which strips the group traverse bit the broker needs to reach in.
+    try:
+        Path(staging_root).mkdir(parents=True, exist_ok=True)
+        stage_dir = Path(tempfile.mkdtemp(prefix=SHARE_IMAGE_STAGE_PREFIX, dir=staging_root))
+        os.chmod(stage_dir, 0o2750)
+        local_path = stage_dir / src.name
+        shutil.copyfile(src, local_path)
+        local_path.chmod(0o640)
+        size = local_path.stat().st_size
+    except OSError as e:
+        return fail("upload_failed", f"could not stage {src.name} for the broker: {e}")
+
+    try:
+        uploaded = video_to_drive.broker_upload(broker_socket, local_path, src.name)
+    except video_to_drive.BrokerUploadError as e:
+        return fail("upload_failed", f"upload to Drive via broker failed: {e}")
+
+    file_id = uploaded.get("id")
+    if not file_id:
+        # The broker answered ok but gave nothing to build a link from. Never
+        # invent one -- same rule grab_video follows.
+        return fail("verify_failed", "upload succeeded but broker returned no file id")
+
+    # The broker verifies against a fresh Drive listing before answering ok,
+    # so the staged copy is only dropped once that has happened.
+    shutil.rmtree(stage_dir, ignore_errors=True)
+    drive_link = f"https://drive.google.com/file/d/{file_id}/view"
+    _audit("share_image_with_cto", str(src), "ok",
+           f"drive_link={drive_link} name={src.name} size={size}")
+    return json.dumps({"status": "ok", "drive_link": drive_link,
+                       "name": src.name, "size": size}, ensure_ascii=False)
 
 
 @mcp.tool()

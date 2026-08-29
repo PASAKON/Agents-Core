@@ -293,19 +293,35 @@ ALLOWED_TOOLS: tuple[str, ...] = (
     # rule (report the real link back, never invent one; state a failure
     # plainly, never smooth it into "กำลังโหลดอยู่").
     "mcp__relay__grab_video",
+    # CEO 2026-08-29 -- the other half of the same journey. An image can be
+    # pushed to the CEO because the CEO is a Telegram user with a chat id; a
+    # C-level session is a tmux process reachable only by a text letter in its
+    # mailbox, so a photo cannot travel that way. This parks the bytes in the
+    # Desktop Cloud folder and hands back a link, which relay_to_session can
+    # carry as ordinary text and a session on any machine can open. The
+    # destination folder is fixed inside the broker and is not an argument.
+    "mcp__relay__share_image_with_cto",
     # task-ff60da52 (CEO order #38 half 1/2) -- Read, scoped to the image
     # staging root, so SomPong can open images the CEO sends. This is THE
-    # only new tool this task adds; Bash/Write/Edit/NotebookEdit stay
+    # only new tool that task added; Bash/Write/Edit/NotebookEdit stay
     # forbidden (see test_read_is_the_only_new_tool_added_for_images in
-    # scripts/test_secretary_server.py). Whether the CLI actually enforces
-    # this path scope is UNPROVEN (a Mac test with a permissive
-    # settings.json failed to block `../` traversal, but proved nothing
-    # about the real hardened runtime) -- the design does not depend on it:
-    # the staging root holds only images downloaded THIS turn, and nothing
-    # else of value is reachable from this box any more (secrets moved to
-    # /etc/mooniex/secretary-secrets.env, root:root 600, loaded by systemd
-    # before it drops to User=secretary; the Drive OAuth token lives in a
-    # separate broker user).
+    # scripts/test_secretary_server.py).
+    #
+    # The scope IS enforced, and for most of this rule's life it was enforced
+    # against everything, including the file it was written to allow. Measured
+    # on the box 2026-08-29 under permission-mode dontAsk: the single-slash
+    # form denied even a direct child of the staging root, while the
+    # double-slash form read a nested file with zero denials. The earlier note
+    # here read UNPROVEN and cited a Mac traversal test; that test ran under a
+    # settings.json that pre-allows Read, so it measured nothing either way.
+    # See IMAGE_READ_TOOL above for the numbers.
+    #
+    # The design still does not lean on the scope alone: the staging root holds
+    # only images downloaded THIS turn, and nothing else of value is reachable
+    # from this box (secrets moved to /etc/mooniex/secretary-secrets.env,
+    # root:root 600, loaded by systemd before it drops to User=secretary; the
+    # Drive OAuth token lives in a separate broker user, and `secretary` cannot
+    # read it -- verified, along with both .env files and root's credentials).
     IMAGE_READ_TOOL,
 )
 

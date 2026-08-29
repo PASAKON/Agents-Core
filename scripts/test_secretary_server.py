@@ -92,6 +92,12 @@ RELAY_TOOLS = (
     # Drive) but no confirm gate — the CEO's own link IS the instruction, per
     # SECRETARY_SYSTEM_PROMPT's grab_video rule.
     "mcp__relay__grab_video",
+    # CEO 2026-08-29: the return leg. Copies one image the CEO sent this turn
+    # into the Desktop Cloud folder and hands back a link a C-level session on
+    # any machine can open — a mailbox letter carries text, never bytes. Takes
+    # only a path, which must resolve inside the image staging root, and cannot
+    # name a destination: the broker fixes the folder server-side.
+    "mcp__relay__share_image_with_cto",
 )
 
 
