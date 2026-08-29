@@ -14,6 +14,12 @@ cut on exchanges, no camera movement inside any setup. Sound On · High.
 ⚠️ SPLIT 22:45 (CEO): 20s is the hard ceiling. S13 is now S13a + S13b.
 
 REFERENCES — each with a job:
+⚠️ THIS MENTION IS STALE. `project_absence_loc_exterior` is terminally "Not
+eligible" in the composer and cannot be selected. S13a and S13b were shot
+against the REPLACEMENT plate (see PLATE-loc_exterior_b.md); the operator
+substituted it at paste time. Before any S13 re-shoot, get the replacement's
+exact mention string from the Elements panel and use that instead.
+
 @project_absence_loc_exterior — the museum's SERVICE side: plain concrete, exposed pipework,
   steel service door, delivery bay, two bins. The beautiful building from
   behind, where nobody photographs it.
