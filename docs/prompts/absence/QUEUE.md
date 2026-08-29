@@ -1,3 +1,25 @@
+> ## 🔁 S2 TAKE 3 — root cause found, two plate changes (CTO 09:05)
+> Take 2 came back landscape AND spiderweb again. **The plate is NOT the
+> problem** — A1 take 1 shows the painting standing in the cart in correct
+> PORTRAIT, and so does S1D take 2. Only S2 goes landscape, because there the
+> canvas HANGS ON A GALLERY WALL and the model falls back on its generic
+> "painting on a museum wall" shape. Words lost that fight twice, so S2 now
+> gets a PICTURE to copy instead:
+> - **`@prop_cart_b` is now bound to S2 for THE CANVAS'S SHAPE ONLY** — that
+>   plate shows the same painting standing upright, so it anchors the portrait
+>   proportions visually. The rack still reads empty until [13s].
+> - **The crack plate `@project_absence_loc_wall_crack` is REMOVED from S2.**
+>   Both takes returned a spiderweb radiating from an impact point, which is
+>   GLASS behaviour. The wall-POV frames are shot through cracked glass and
+>   that radiating pattern is correct there; S2 is a PLASTER wall and plaster
+>   cracks in a line. Described in words only now.
+>
+> **Operator: when you next have the Elements panel open, look at
+> `project_absence_loc_wall_crack` and tell me what it actually depicts** —
+> if it is the glass pattern, no S2-family prompt should ever bind it.
+>
+> Re-fire S2 as take 3 after the arrivals in flight. Keep takes 1 and 2.
+
 > ## 🔁 RE-FIRE S2 — take 1 rejected on FOUR counts (CTO 07:30)
 > `absence-S2-take1-c02e940f-FLAGGED-landscape-painting.mp4` — good catch on
 > the flag; Gemini confirms it and finds three more:

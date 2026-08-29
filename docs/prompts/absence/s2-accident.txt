@@ -16,15 +16,21 @@ REFERENCES — each with a job:
   terrazzo, chromium columns. Not the framing.
 @project_absence_char_cleaner_c — Dupe: face, build, white uniform with orange trim, cap,
   gold V at cap and chest.
-@project_absence_prop_cart — the cart DESIGN: mop, orange bucket, bottles, ladder, gold V.
-  ⚠️ CTO ref call: rack EMPTY at scene start (the painting only lands in it at
-  [13s]); binding prop_cart_b here would show the painting aboard before it
-  falls.
-@project_absence_prop_valder_study — the painting's face: heavy impasto in ochre, rust, sage
-  and cream, one long blade-scrape. Same canvas in every later scene.
-@project_absence_loc_wall_crack — THE crack. Match it exactly: same length, same jagged
-  path, same branch points, same chipped plaster. One crack, roughly a foot
-  long. Never reinvent it.
+@project_absence_prop_cart — the cart DESIGN: mop, orange bucket, bottles,
+  ladder, gold V. Rack EMPTY until [13s].
+@prop_cart_b — **THE CANVAS'S SHAPE AND PROPORTIONS ONLY.** This plate shows
+  the same painting standing upright in the cart. The canvas hanging on the
+  wall at [0s] is THAT canvas: same portrait proportions, same tall
+  rectangle, same painted face. Do not take the cart or its contents from
+  this plate — take the picture's shape.
+@project_absence_prop_valder_study — the painting's painted face: geometric
+  blocks in ochre, rust, sage, cream and dusty pink.
+
+⚠️ THE CRACK PLATE IS DELIBERATELY NOT BOUND. Takes 1 and 2 both returned a
+spiderweb radiating from an impact point, which is glass behaviour, not
+plaster. The wall-POV frames are shot through CRACKED GLASS and that
+radiating pattern belongs to them; this is a PLASTER wall and it cracks in a
+line. Describe it in words only — see [9s].
 
 ⚠️ THE PAINTING — FIXED SIZE, CORRECTED 29 Aug against the plate as it
 actually renders (S1D take 1 shows it PORTRAIT, not landscape; the earlier
