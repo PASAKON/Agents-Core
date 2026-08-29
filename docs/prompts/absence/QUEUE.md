@@ -1,3 +1,23 @@
+> ## 🔁 RE-FIRE S2 — take 1 rejected on FOUR counts (CTO 07:30)
+> `absence-S2-take1-c02e940f-FLAGGED-landscape-painting.mp4` — good catch on
+> the flag; Gemini confirms it and finds three more:
+> 1. **Painting is LANDSCAPE 4:3.** S1D take 2 (a keeper) shows it PORTRAIT.
+>    The painting rides the cart for the whole film — it cannot change shape.
+> 2. **The crack is a SPIDERWEB** radiating from an impact point. The prompt
+>    bans that; it must be ONE jagged line about a foot long.
+> 3. **He takes the painting OFF the wall.** The CEO's revision is that he
+>    tries to STRAIGHTEN a crooked picture he means to leave hanging — that
+>    is the whole point, the catastrophe starts with tidying.
+> 4. **It ends leaning against the wall.** It must end SLOTTED UPRIGHT IN THE
+>    CART, which is where it rides for the rest of the film.
+>
+> `s2-accident.txt` now forces all four in the beats themselves, not just in
+> the negatives. **Re-fire S2 before S2b's follow-ups.** Keep take 1.
+>
+> **Folder rule: one folder per SCENE.** S15a and S15b both live in `S15/` —
+> I merged a stray `S15a/` folder this morning. Same for S12a/b→`S12/`,
+> S13a/b→`S13/`, S18a/b→`S18/`, S8a-d→`S8/`.
+
 > ## 👁 GEMINI IS LIVE — the only tool that actually watches (CTO 06:30)
 > ```
 > GEMINI_VIDEO_MODEL=gemini-3.5-flash-lite ./.venv/bin/python scripts/video-ask.py <clip> "<numbered questions>"
