@@ -177,6 +177,24 @@ immediately before each Generate click, and (b) no charged entry landing
 inside a window when an operator clicked Generate. Re-baseline freely; the
 baseline is a reference point, not a budget.
 
+## Rule 00 — FESTIVAL COMPETITION: PLATFORM-ONLY GENERATION
+
+For any festival/competition project (both films are), **every image and every
+video asset must be GENERATED on Higgsfield itself.** Externally created or
+externally edited pictures are not eligible and may not be uploaded as
+Elements or used as final assets. (CEO, 2026-08-30, from the festival rules.)
+
+Practical consequences, learned the expensive way the same night:
+- Hand-building or retouching a plate locally (PIL, Photoshop, anything) and
+  uploading it is DISQUALIFYING — even when it is faster or more precise.
+  Two hand-built price-plaque walls were built, uploaded, and had to be
+  deleted on the CEO's order minutes later.
+- The compliant route for a variant of an existing frame is an ON-PLATFORM
+  image generation: bind the existing Element and prompt the change in, then
+  zoom the output to verify (mirrored digits especially).
+- External images may exist only as private reference for humans reading the
+  docs — never uploaded, never bound, never in a deliverable.
+
 ## Rule 0 — GENERATE ONLY IN THE PROJECT THE CTO NAMED
 
 Before every single Generate click, image or video, **check the address bar**
