@@ -1,3 +1,40 @@
+> ## 📖 STORY AUDIT RESULTS + CEO DECISIONS (30 Aug 02:50) — all in the files
+> 1. **P1 is now THE INSTALLATION.** The arrivals see a BARE cracked wall; P1
+>    (after A5, before S4) shows gloved hands screwing a FRESH plaque on —
+>    the institution canonises the crack. No dollar sign on any plaque ever.
+> 2. **THE GENTLEMAN IS RECOSTUMED: charcoal grey pinstripe three-piece**
+>    (white clashed with Dupe). Cane/ring/gold teeth unchanged. His plate
+>    still shows white — bind `@gentleman_e` for FACE AND BUILD ONLY and
+>    state the suit in text, until a `gentleman_f` plate exists (image job
+>    below). ⚠️ S15a/S15b keepers may show him in white at the frame edge —
+>    CEO accepts for now.
+> 3. **NEW SCENE 6b** in `s6-s18.txt`: his entrance — bodyguards carry in a
+>    mahogany auction desk WITH him standing behind it, riding it like
+>    furniture; two cane taps; nobody reacts. Room-side one-point, fires on
+>    `loc_hall_big_e`, no wall-frame dependency.
+> 4. **EXACTLY TWO absurd red-door entrances in the film** (CEO): the
+>    gentleman (S6b, desk) and the grandmother (S12a, empty doorway). Nobody
+>    else gets one — the parrot woman's S10 entrance stays a straight power
+>    walk.
+> 5. **The husband is now bound in S4, S6 and S11** — he arrived in A3 and
+>    was silently missing from every later crowd.
+> 6. **S16 adds the grandmother** parked in her wheelchair watching her wall
+>    being cut — buyer and seller silently watching the same rectangle.
+> 7. S4's step-back man is now named+bound (`visitor_a` — S17 repeats his
+>    move). S6/S11 plaques lose the `$`. S11's stale "Scene 3" ref now says A1.
+>
+> **TWO IMAGE JOBS (parallel tab or image lane):**
+> - **`gentleman_f` plate**: charcoal grey pinstripe three-piece, fine
+>   stripe, same face/build as `@gentleman_e` (bind it), cane with gold
+>   grip, diamond ring, subtle gold teeth, 4-panel character sheet incl.
+>   back view, ONE face, 16:9 2K. Id BY HAND: `gentleman_f` (bare, matching
+>   its sibling).
+> - **Download the wall Element's source image** (`project_absence_loc_wall_pov_e`
+>   from the Elements panel) into the worktree as `wall-pov-e-source.png` and
+>   commit — the CTO hand-builds the 20M and 100M plaque variants from it,
+>   zero gen cost, then you upload them as
+>   `project_absence_loc_wall_pov_e_20m` / `_100m` for S6 and S11.
+
 > ## 🎬 EDITOR SUPPORT PACK + INTERLEAVE ORDER (CEO 02:10, 30 Aug)
 > The CEO reviewed coverage and approved ALL of it:
 > - **`s-extras.txt` X1–X8** (9 clips): museum-front establishing · 20s room

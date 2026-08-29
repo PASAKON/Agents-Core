@@ -65,7 +65,7 @@ the wall itself, between us and them. Keep it even across the whole frame,
 never heavier at the edges, never a dark border.
 
 @project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_student_c @project_absence_char_visitor_a
-@project_absence_char_visitor_b @gentleman_e — guests: faces, builds, costumes.
+@project_absence_char_visitor_b @project_absence_char_husband @gentleman_e — guests: faces, builds, costumes.
 @project_absence_char_guard_private — the personal bodyguards: plain dark suit, hands loose.
 @project_absence_char_cleaner_c — Dupe at the frame edge with his cart.
 
@@ -91,6 +91,50 @@ weapons, no holsters, no earpieces, no sunglasses on the guards, no painting
 on the wall, no large crack, no un-mirrored plaque text. + house negatives.
 
 ===============================================================
+SCENE 6b — THE GENTLEMAN ARRIVES · the auction comes to him
+===============================================================
+12s · 720p · 16:9 · ONE LOCKED ONE-POINT SHOT — the camera never moves, no
+cuts. CEO-ordered 30 Aug: "อยู่ดีๆ ก็โผล่มาพร้อมโต๊ะประมูล" — the film's most
+absurd entrance, played completely straight.
+
+REFERENCES — jobs:
+@loc_hall_big_e — the hall from the room side, red door at the vanishing point.
+@gentleman_e — FACE AND BUILD ONLY; his suit is a CHARCOAL GREY three-piece
+  with a fine pinstripe (CEO recostume — the plate's white suit is outdated).
+  Black cane with gold grip, diamond ring, two gold teeth.
+@project_absence_char_guard_private — his two bodyguards, plain dark suits.
+@project_absence_char_oldman @project_absence_char_critic_b
+@project_absence_char_visitor_b @project_absence_char_husband
+@project_absence_char_student_c @project_absence_char_woman — the six
+  arrivals, ALREADY STANDING in their established costumes, motionless,
+  facing the wall.
+@project_absence_char_cleaner_c + @prop_cart_b — Dupe at the edge.
+
+[0s] The locked one-point wide: the row of six stands facing the cracked
+wall, motionless. The red door sits closed at the vanishing point. A beat of
+perfect stillness.
+
+[3s] THE RED DOOR OPENS. Two bodyguards walk in carrying, level as a
+stretcher, A SMALL DARK MAHOGANY AUCTION DESK — brass fittings, a little
+railed gallery around its top — and STANDING CALMLY BEHIND THE DESK AS IT
+TRAVELS, riding it like furniture, is THE ELDERLY GENTLEMAN in his charcoal
+pinstripe, both hands resting on his cane, perfectly upright, perfectly
+level, as though the room is moving and he is not.
+
+[8s] They set the desk down at the end of the row with a soft thud. The
+gentleman does not thank them. He taps his cane twice on the terrazzo —
+tick, tick — and settles into stillness like the others. NOT ONE PERSON in
+the row turns to look. Dupe, at the edge, pauses one second mid-wipe, then
+carries on.
+
+AUDIO: the door, the bodyguards' synchronised footsteps, the soft thud of
+the desk, two cane taps, room tone. No dialogue. No music.
+
+CRITICAL NEGATIVES: no dialogue, no white suit, no one reacting, no one
+turning, no camera movement, no zoom, no music, no auctioneer gavel, no
+readable text. + house negatives.
+
+===============================================================
 SCENE 10 — THE PARROT WOMAN ARRIVES
 ===============================================================
 20s · 720p · 16:9 · ONE LOCKED ONE-POINT FRAME — she moves, the camera never
@@ -103,7 +147,7 @@ REFERENCES — each with a job:
   and blue; single saturated green garment with feather-cut panelling.
   Couture, not comic — no beak, no wings, no feathers, nothing costume.
 @project_absence_prop_croc_bag — one genuine deep-burgundy crocodile handbag, in one hand.
-@gentleman_e — the rival: white suit, black cane with gold grip.
+@gentleman_e — the rival. ⚠️ COSTUME CHANGED BY THE CEO 30 Aug: a CHARCOAL GREY three-piece suit with a fine pinstripe — dark, rich, nothing white (white belongs to Dupe). Keep the black cane with the gold grip, the diamond ring, the two gold teeth. The Element plate still shows the old white suit — bind it for FACE AND BUILD ONLY and state the charcoal suit in text until gentleman_f exists.
 @project_absence_char_valder @project_absence_char_guard_valder_six — standing (he never sits), warm smile.
 @project_absence_char_critic_b — among the guests.
 
@@ -112,11 +156,11 @@ guards, nobody with her — walking straight toward the locked one-point frame
 at waist height. The room parts for her without being asked.
 
 [6s] EVERY HEAD IN THE ROOM TRACKS HER IN UNISON — one synchronized turn,
-then stillness. THE GENTLEMAN IN THE WHITE SUIT watches her come. He does not
+then stillness. THE GENTLEMAN IN THE CHARCOAL PINSTRIPE watches her come. He does not
 move; his hand rests on the gold grip of his cane. This is the moment the
 room understands there are two of them now.
 
-[12s] She stops. The scene settles into a DUEL: she and the white-suited
+[12s] She stops. The scene settles into a DUEL: she and the charcoal-suited
 gentleman in EXACT PROFILE, facing each other across the centreline, Valder
 framed frontal midway between them.
 
@@ -140,7 +184,7 @@ movement inside any setup.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall.
-@gentleman_e — bidder one: frontal single, dead centre, gold teeth.
+@gentleman_e — bidder one: frontal single, dead centre, gold teeth, charcoal pinstripe. His small mahogany auction desk from S6b stands beside him — it is HIS furniture, not a podium; allowed.
 @project_absence_char_woman_c — bidder two: frontal single, dead centre, identical framing.
 @char_registrar — locked side profile at the frame edge, writing each number
   in the ledger, pen scratching, face empty.
@@ -204,7 +248,8 @@ never heavier at the edges, never a dark border.
 @project_absence_char_press_a @project_absence_char_press_b — two journalists with a single shoulder-mounted
   retrofuturist film camera, filming the crack directly, at the two frame
   edges like bookends.
-@project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_woman_c @gentleman_e —
+@project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_woman_c
+@project_absence_char_visitor_b @project_absence_char_husband @gentleman_e —
   guests, one saturated colour each.
 @project_absence_char_guard_private @project_absence_char_guard_valder_six — the guards' rank.
 @project_absence_char_cleaner_c — Dupe, still at the edge, still cleaning.
@@ -483,12 +528,17 @@ REFERENCES — each with a job:
 @project_absence_char_press_a @project_absence_char_press_b — filming the saw from the edge.
 @project_absence_char_guard_valder_six — keeping a respectful distance from a piece of plaster.
 @project_absence_char_cleaner_c — Dupe apart, holding his mop, not helping.
+@project_absence_char_grandmother — THE BUYER: parked to one side in her
+  retrofuturist wheelchair, deep violet, smoked glasses, perfectly still,
+  watching her wall being cut free. She bought it; she waits for it.
 
 [0s] Locked symmetrical wide: a square line ruled around the crack sits dead
 centre; TWO WORKMEN mirror each other left and right of it, cutting the wall
 out of the building with a long-bladed saw. Valder stands centred in the
 foreground with his back to camera, perfectly straight, hands at his sides,
-watching his wall become cargo. Plaster dust hangs in the warm light.
+watching his wall become cargo. To one side, THE GRANDMOTHER sits in her
+wheelchair watching the same cut — the buyer and the seller, both silent,
+watching the same rectangle of plaster. Plaster dust hangs in the warm light.
 
 [8s] The cut edge is clean — timber, dust, the ordinary guts of a building
 visible inside. The press film the saw. The guards keep their distance. Dupe
