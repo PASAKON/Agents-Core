@@ -20,7 +20,7 @@ beyond those written, no voiceover, no narration, no subtitles, no
 captions, no brass plaque, no plate, no label, no lettering, no numbers, no readable
 text of any kind, no signage, no music, no score, no extras beyond the named cast,
 no crowd, no press, no guards, no gold V on any visitor, no duplicate
-faces, no anyone noticing the cleaner, no anyone answering him, no
+faces, no anyone noticing the cleaner, no anyone answering him, no frozen mannequin stillness in the row, no one turning toward a new arrival, no
 porthole, no hole, no invented crack shape, no handheld, no dutch
 angle, no zoom, no whip pan, no crane, no drone, no slow motion, no
 HDR, no CGI sheen, no beauty filter, no darkness
@@ -71,6 +71,15 @@ prop_cart_b · plus that scene's arrivals.
 **THE FRAME NEVER MOVES, in any of the five.** Locked off. Identical.
 The only thing that changes from scene to scene is who stands in it.
 
+⚠️ LAYER ORDER — SAY THIS TO THE MODEL, IT CANNOT GUESS IT (CEO 30 Aug):
+**THE CRACK IS THE NEAREST THING IN THE FRAME.** It sits in the missing wall
+itself, right at the lens, IN FRONT of everything — in front of the people,
+in front of the room, in front of the red door. When someone walks in, they
+walk BEHIND the crack and it OVERLAPS them as they pass. The crack is NEVER
+on the wall behind the people, NEVER on the far wall, NEVER part of the
+room's background. Think of it as a fracture on a pane of glass the camera
+looks through: everyone in the scene is on the other side of that pane.
+
 **Each arrival:** the red door opens far away, dead centre. The new
 character walks the centreline toward camera, growing from tiny to
 full figure, stops at the row, looks at the crack — which is the
@@ -80,6 +89,19 @@ camera — and **delivers their interpretation straight into the lens.**
 neat line facing camera like a class photograph assembling one pupil
 at a time: 1 → 2 → 4 → 5 → 6 across the five scenes. Costume colours
 alternate warm and cool along the line.
+
+**THE ROW IS ALIVE, NOT A WAXWORK (CEO 30 Aug).** The people already
+standing keep small, quiet, human idle movement throughout — weight shifts,
+a slow blink, a hand adjusting a glove, a chin resting on a hand, a breath.
+Standing habits per person, use them in every scene where they are present:
+- the old man leans a little on his hooked cane and re-sets his grip;
+- the critic tilts her head at the crack and rests her chin on a gloved hand;
+- **the husband keeps an arm around his wife's shoulders and gently rubs her
+  arm — she is still teary from her line, dabs her eyes, leans into him**;
+- the student stands arms-folded, one boot tapping very slowly.
+TWO RULES SURVIVE ON TOP OF ALL THIS MOVEMENT: nobody ever turns toward a
+new arrival, and nobody ever looks at the cleaner or his cart. The life is
+small; the attention never breaks from the crack.
 
 **DUPE IS IN EVERY FRAME** — at the edge, cleaning the wall BESIDE the
 crack, close to it, **and never once looking at it.** The painting
@@ -209,8 +231,11 @@ model invented four strangers in the wrong costumes.
   standing in the cart, nobody looks at it.
 
 [0s] The locked frame. THOSE FOUR ARE ALREADY THERE in exactly those
-costumes, standing in a line, motionless, facing camera. The door again. The art student
-walks the axis FASTER than anyone else has, already unimpressed.
+costumes, standing in a line facing camera — alive in small ways: the old
+man re-sets his cane, the critic's chin rests on her gloved hand, and THE
+HUSBAND HAS HIS ARM AROUND HIS WIFE, rubbing her shoulder while she dabs her
+eyes, still teary from her line. The door again. The art student walks the
+axis FASTER than anyone else has, already unimpressed.
 
 [5s] She plants herself at the end of the row and fires it flat, fast,
 bone-dry: "It's anti-capitalist. Obviously."
@@ -233,7 +258,7 @@ cat-eye sunglasses. @project_absence_char_cleaner_c +
 @prop_cart_b — the edge.
 
 ⚠️ ALL FIVE EARLIER ARRIVALS ARE ALREADY IN THE ROW, in these exact costumes,
-motionless, facing camera — bind and name them, never write "the row of five":
+facing camera with small idle life (see the shared ROW IS ALIVE rules) — bind and name them, never write "the row of five":
 @project_absence_char_oldman — bottle-green leather coat, cream turtleneck, cane.
 @project_absence_char_critic_b — deep magenta fur, cream gloves, grey bun.
 @project_absence_char_visitor_b — rust-brown fur coat, shoulder-length brown hair.
