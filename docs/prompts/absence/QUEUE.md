@@ -53,6 +53,25 @@
 > unflagged-but-superseded takes also sit in Drive and are not keepers:
 > S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
 
+> # 👵 S12 IS NOW THREE SCENES (CEO comedy rewrite 12:50, 30 Aug)
+> «20วิแรก ยายมาไม่ถึงซักที ... รถกระตุก เสียงลากยาว ดับ ติดใหม่ ... บางคน
+> ยืนอ้าปาก บางคนเดินหนี เพราะมันช้า» — the grandmother's arrival is now a
+> slowness gag across S12a/S12b, and the bid moved whole into a new S12c:
+> - **S12a — THE SLOWEST ARRIVAL**: multi-cut comedy. Wheelchair jerks,
+>   stalls, motor dies, restarts; LOW WHEEL CLOSE-UP; onlookers frozen,
+>   mouths open; one guest walks away; she NEVER arrives in this clip.
+>   Everyone stands along the side walls at the paintings — centre aisle
+>   empty, nobody beside her.
+> - **S12b — SHE ARRIVES · THE ROOM PARTS**: one locked reverse one-point;
+>   crowd parts slowly down the middle; she rolls through, stops at the
+>   crack, looks; total silence; frozen tableau. No dialogue.
+> - **S12c — A HUNDRED MILLION**: the old S12b whole — her line, the
+>   registrar's ledger-clap gavel, the whip chain guard→Valder→Dupe, the
+>   class-photo tableau. Nothing was cut (CEO picked "เพิ่มเป็น S12c").
+> Story queue gains one scene. Wave-3 shoots S12a → S12b → S12c in order,
+> each with its previz ref per the new standard once its SX-Render.MP4
+> exists.
+
 > # 🎥 S7 RE-SHOOT: BLENDER CAMERA REF APPROVED (CEO 12:10, 30 Aug)
 > CEO watched `S7-Blender.MP4` and ruled: «ผ่าน ใช้เป็น ref ตอน S7 re-shoot
 > ได้เลย». His standing interpretation of the festival rules: Blender / After

@@ -309,54 +309,100 @@ helicopter inside the building, no weapons, no large crack, no un-mirrored
 plaque text. + house negatives.
 
 ===============================================================
-SCENE 12a — THE GRANDMOTHER ARRIVES · PART 1 OF 2
+SCENE 12a — THE SLOWEST ARRIVAL · PART 1 OF 3 (CEO comedy rewrite 30 Aug)
 ===============================================================
-20s · 720p · 16:9 · empty-door hold → axis advance → ONE low lateral dolly
-at wheelchair height. Nothing handheld.
+20s · 720p · 16:9 · MULTI-CUT: locked one-point master + LOW WHEEL CLOSE-UP
++ reaction cutaways. Locked frames only — nothing handheld, no camera moves
+inside any cut.
 
-⚠️ SPLIT 22:45 (CEO): 20s is the hard ceiling. S12 is now S12a + S12b.
+CEO 12:50: «20วิแรก ยายมาไม่ถึงซักที ... รถกระตุก เสียงลากยาว ดับ และติดใหม่
+... คนที่ชมรอยแตก นิ่ง บางคนยืนอ้าปาก บางคนเดินหนี เพราะมันช้า»
 
-⚠️ USE `char_grandmother`. NOT `char_grandma` — the other plate is
-superseded.
+⚠️ USE `char_grandmother`. NOT `char_grandma` — the other plate is superseded.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall, red door at the vanishing point.
-@project_absence_char_grandmother — deep violet throughout: cloth over head and shoulders
-  covering the hair completely, plain long coat, LARGE DARK RECTANGULAR
-  SMOKED GLASSES that make her eyes unreadable. No jewellery, no fur, no
-  gold. Plainly not as rich as the room. She drives a RETROFUTURIST ELECTRIC
-  WHEELCHAIR — brushed aluminium and cream, big rear wheels, small front
-  castors, a pod of chunky physical buttons under her right hand — HERSELF.
-@gentleman_e @project_absence_char_woman_c — the two rivals, planted.
-@project_absence_char_valder @project_absence_char_guard_valder_six — standing, smiling. ⚠️ EXACTLY TWO guards, one either side of him like bodyguards — the plate shows six; take the uniform from it, not the count (CEO 2026-08-30).
+@project_absence_char_grandmother — deep violet cloth over head and
+  shoulders, plain long coat, LARGE DARK RECTANGULAR SMOKED GLASSES. No
+  jewellery, no fur, no gold. She drives a RETROFUTURIST ELECTRIC WHEELCHAIR
+  — brushed aluminium and cream, big rear wheels, small front castors, a
+  pod of chunky buttons under her right hand — HERSELF.
+@gentleman_e @project_absence_char_woman_c — planted among the viewers.
+@project_absence_char_valder @project_absence_char_guard_valder_six —
+  standing, smiling. ⚠️ EXACTLY TWO guards, one either side of him.
 @project_absence_char_cleaner_c — Dupe at the edge.
 
-[0s] THE RED DOOR OPENS dead centre at the vanishing point. A beat — the
-doorway reads EMPTY at eye height, because she sits below the sightline. A
-squeak of wheels. Deadpan hold, one beat too long.
+⚠️ THE ROOM'S BLOCKING (CEO): EVERYONE STANDS ALONG THE SIDE WALLS AT THE
+PAINTINGS' POSITIONS, like museum visitors in front of artworks — the
+centre aisle is COMPLETELY EMPTY for her. Nobody stands beside her, nobody
+helps her, nobody walks with her.
 
-[5s] She rolls into view tiny on the centreline and advances down the axis,
-driving straight through the middle of them. EVERY HEAD TRACKS HER IN
-UNISON — one synchronized turn, then stillness.
+[0s] Locked one-point master: THE RED DOOR OPENS dead centre. The doorway
+reads EMPTY at eye height. A squeak — she rolls into view tiny on the
+centreline — and the wheelchair JERKS TO A STALL. A long dragging electric
+whine. The motor DIES. Silence.
 
-[10s] ONE LOW LATERAL DOLLY at wheelchair height, exact profile, gliding
-with her past the planted guests. She does not look at the gentleman. She
-does not look at the parrot woman.
+[4s] LOW WHEEL CLOSE-UP, floor level: the small front castors twitch. A
+restart attempt — the long whine winds up again, catches — the chair
+creeps forward maybe thirty centimetres — dies again. The castors settle.
 
-[16s] She stops in front of the crack and looks at it for a long moment.
-Hold on her stillness. Cut.
+[8s] REACTION CUTAWAY along the row of viewers standing at the paintings:
+every face turned toward her, FROZEN. Some mouths hang open. Nobody moves,
+nobody helps. Hold their stillness.
 
-AUDIO: wheel squeak, room tone of a full room, no music. NO DIALOGUE.
+[12s] Back in the locked master: she has advanced BARELY A FEW METRES.
+Restart — the whine — a slow, slow crawl. She is nowhere near arriving.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue in this half, no one pushing her chair, no
-nurse or carer, no hospital or medical equipment, no joystick, no jewellery
-or fur or gold on her, no black as her main colour, no crowd beyond sixteen
-people. + house negatives.
+[16s] One guest quietly gives up and WALKS AWAY out of frame — it is
+taking too long. She keeps crawling. At cut she is STILL ONLY MID-HALL.
+NO DIALOGUE anywhere.
+
+AUDIO: the electric motor's long dragging whine, stall, silence, restart;
+wheel squeak; room tone of a full room. No music, no dialogue.
+
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration, no
+dialogue, no one helping her, no one pushing the chair, no nurse or carer,
+no joystick, no jewellery or fur or gold on her, no black as her main
+colour, no one standing in the centre aisle, no one beside her, no crowd
+beyond sixteen people, no camera movement inside any cut. + house negatives.
 
 ===============================================================
-SCENE 12b — A HUNDRED MILLION · PART 2 OF 2
+SCENE 12b — SHE ARRIVES · THE ROOM PARTS · PART 2 OF 3
 ===============================================================
-20s · 720p · 16:9 · CONTINUES S12a UNBROKEN — locked one-point wide, then
+20s · 720p · 16:9 · ONE LOCKED REVERSE ONE-POINT from the crack wall —
+the camera never moves, no cuts. NO DIALOGUE.
+
+CEO: «ยายมาถึงรอยแตก ตัวละครค่อยๆ หลบให้ยาย ผ่านตรงกลางไป ดูรูปภาพ
+ทุกคนเงียบ จบ»
+
+REFERENCES — as S12a.
+
+[0s] Locked reverse one-point from beside the crack wall, looking back up
+the hall: THE CROWD stands gathered in front of the crack, backs mostly to
+camera, filling the aisle. From deep in the hall, her squeak and the
+dragging whine grow slowly louder. Nobody turns yet.
+
+[5s] The crowd begins to PART — slowly, awkwardly, person by person, a
+reluctant Red Sea opening down the exact centre. Through the widening gap:
+the violet grandmother, crawling forward at her impossible pace.
+
+[13s] She rolls through the parted middle past all of them and STOPS in
+front of the crack. She looks at it. Nobody speaks.
+
+[16s] Everyone holds — she looks at the crack, the room looks at her,
+TOTAL SILENCE. Frozen tableau. Hold too long. Cut.
+
+AUDIO: the whine and squeak approaching, shuffling feet as they part, then
+room tone only — the silence is the scene. No music, no dialogue.
+
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration, no
+dialogue, no one helping her, no camera movement, no cuts, no one left
+standing in her path, no crowd beyond sixteen people. + house negatives.
+
+===============================================================
+SCENE 12c — A HUNDRED MILLION · PART 3 OF 3
+===============================================================
+20s · 720p · 16:9 · CONTINUES S12b UNBROKEN — begins inside its frozen silence — locked one-point wide, then
 ONE fast chain of three 90-degree whip pans, then frozen tableau. Nothing
 handheld.
 
@@ -390,7 +436,6 @@ music.
 CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond her one line, no auctioneer, no gavel
 object, no podium, no paddles, no re-staging (positions must match S12a), no
 crowd beyond sixteen people. + house negatives.
-
 ===============================================================
 SCENE 14 — THE SCREAM · new prompt, CEO's line verbatim
 ===============================================================
