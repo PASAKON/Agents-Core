@@ -1,3 +1,5 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
 
 
 ===============================================================
@@ -16,12 +18,16 @@ means THESE PEOPLE and nobody else:
 - @project_absence_char_husband  — olive-tan jacket, short grey hair (A3, with her)
 - @project_absence_char_student_c — acid lime-green hair, paint-stained denim (A4/A5)
 Plus, once they enter: @project_absence_char_valder (S7),
-@gentleman_e (S6/S7), @char_registrar (S5), @project_absence_char_visitor_a
+@gentleman_e (S6/S7), @project_absence_char_registrar_b (S5), @project_absence_char_visitor_a
 (the balding man in the oxblood leather suit, S4 and S17).
 
 HEAD-COUNTS ARE FIXED (CEO 2026-08-30):
 - **Valder travels with EXACTLY TWO guards**, one at each shoulder like
-  bodyguards. `@project_absence_char_guard_valder_six` is bound for the
+  bodyguards. `@project_absence_char_guard_valder_two` is bound for the
+  ⚠️ THE PLATE NOW CONTAINS EXACTLY TWO MEN — bind it whole; the old
+  six-guard plate is retired. They walk ONE AT VALDER'S LEFT SHOULDER and
+  ONE AT HIS RIGHT, a pace behind, from the moment he enters a scene until
+  he leaves it. Never six, never a V formation, never a third.
   UNIFORM AND FACES ONLY — its plate shows six; take the look, never the
   count.
 - **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two.
@@ -38,8 +44,7 @@ present in that shot.
 
 ✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
 complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
-Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
-gentleman_e, char_gentleman_c, project_absence_loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
+Most carry a `project_absence_` prefix; exactly seven are bare: gentleman_e, char_gentleman_c, project_absence_loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
 loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
 film on this account owns that id; this film's is @project_absence_char_valder.
 
@@ -96,13 +101,13 @@ and he appears ONCE. Every other figure is a visitor in colour. Take 1
 rendered him twice — two cleaners, two carts — so state his position once and
 never imply a second worker anywhere in the room.
 
-AUDIO: room tone and footsteps only. No music.
+AUDIO: room tone and footsteps only. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids,
 whites pushed slightly cool, shadows deep red-brown, halation. Photographed,
 not rendered: film grain, faint gate weave, slight colour fringing.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no crowd beyond eight people, no painting on
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no crowd beyond eight people, no painting on
 the wall, no press, no cameras, no duplicate faces, no looking at the camera,
 no un-mirrored plaque text, no second cleaner, no two Dupes, no duplicate
 cleaner, no second cart, no other person in a white uniform.
@@ -120,19 +125,37 @@ darkness, no rubble, no structural damage, no large crack
 ===============================================================
 SCENE 5 — COLLECTOR A OPENS THE BIDDING
 ===============================================================
-20s · 720p · 16:9 · ONE SETUP, ONE MOVE — a locked one-point frame that
-begins ONE slow push-in straight down the axis and nothing else, no cuts.
+20s · 720p · 16:9 · ONE SETUP, ONE MOVE — a LOW THREE-QUARTER ANGLE from
+inside the group, slightly below eye height, the hero wall NOT in frame and
+NOT behind her — she stands against the room's depth: chromium columns and
+the artworks along the side wall running away behind her. ONE slow lateral
+DRIFT past the standing guests, nothing else, no cuts.
+
+⚠️ CAMERA CHANGE (CEO 17:25): «มุมนี้เห็นจนเบื่อแล้ว ไม่เอาฉากหลังกำแพงแล้ว
+ใช้เยอะไปจนมันไม่เด่นเลย» — the axis-on frame with the cracked wall behind
+the speaker has been used so often it has stopped reading. This scene does
+NOT use it. No hero wall, no crack, no plaque anywhere in this frame.
 Sound On · High.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall from the visitors' side, crack and plaque on the
-  far wall on the axis.
+@project_absence_loc_hall_big_d — HALL D, the richer hall: a corridor opening
+  into a wide room, more works on display, detailed artworks along the side
+  walls. ⚠️ The camera looks ACROSS the room at a low three-quarter, so what
+  fills the background is the hall's own DEPTH — chromium trumpet columns
+  receding, artworks on the side wall, warm cove light — never the hero wall.
+  Take the fuller artwork dressing from this plate; it is the whole point of
+  using D here.
 @project_absence_char_woman — COLLECTOR A, the woman in cobalt: tall, sculptural crest of
   hair, cat-eye sunglasses worn indoors, one saturated cobalt garment. She
   speaks.
-@char_registrar — the museum's official: composed man. ⚠️ FORMAL BLACK suit — sober, immaculate, undertaker-clean (CEO 30 Aug). WHITE GLOVES. Small GOLD V at the chest. The brass-cornered ledger. He is the man who KNOCKS THE PRICE (his ledger-close is the film's only gavel) and the man who CHANGES THE PLAQUE — one person, both duties. Bind the plate for FACE ONLY until char_registrar_b exists. He debuts here. No words.
+@project_absence_char_registrar_b — the museum's official: composed man. ⚠️ FORMAL BLACK suit — sober, immaculate, undertaker-clean (CEO 30 Aug). WHITE GLOVES. Small GOLD V at the chest. The brass-cornered ledger. He is the man who KNOCKS THE PRICE (his ledger-close is the film's only gavel) and the man who CHANGES THE PLAQUE — one person, both duties. He debuts here. No words. ⚠️ THE GOLD V IS HIS ALONE — take 1 put a gold V
+  on Collector A's cobalt coat, which this prompt already banned. NO other
+  person in this scene carries a V, a monogram, an emblem or any gold mark on
+  their clothing. Her cobalt coat is PLAIN — no insignia of any kind.
 @project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_student_c @project_absence_char_visitor_a @project_absence_char_visitor_b
-  — the rest of the group, standing loosely, listening.
+  — the ONLY other guests in this scene. FIVE of them, no more. Each is
+  named, each appears EXACTLY ONCE, each in a different single colour. There
+  is no background crowd behind them: past these five the hall is EMPTY.
 @project_absence_char_cleaner_c — Dupe, mopping near the back wall.
 
 ⚠️ CTO casting call, flagged: CEO said "reuse a character who already
@@ -163,14 +186,14 @@ moment the audience knows the institution is listening. Dupe, mopping near
 the back wall, looks up once at the number, then down again. The push
 settles. Hold.
 
-AUDIO: room tone, the pen scratch, no music.
+AUDIO: room tone, the pen scratch, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids,
 whites pushed slightly cool, shadows deep red-brown, halation. Photographed,
 not rendered: film grain, faint gate weave, slight colour fringing.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no extra dialogue, no press, no gavel or auctioneer or
-podium or paddles, no crowd beyond nine people, no painting on the hero
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no extra dialogue, no press, no gavel or auctioneer or
+podium or paddles, no crowd beyond the five named guests, no background crowd, no extra people behind them, no duplicate characters, no twins, no character appearing twice, no repeated faces, no gold V or monogram or emblem on any visitor's clothing, no crack or plaque or hero wall in frame, no painting on the hero
 wall, no gold V on any visitor (the registrar's V is correct), no
 camera move except the single specified push-in.
 

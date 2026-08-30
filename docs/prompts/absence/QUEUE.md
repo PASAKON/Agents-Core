@@ -53,6 +53,51 @@
 > unflagged-but-superseded takes also sit in Drive and are not keepers:
 > S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
 
+> # 💂 ENTOURAGE LOCKED (CEO 17:35, 30 Aug)
+> Two standing facts, now true in EVERY scene, swept across all prompt files:
+> - **VALDER TRAVELS WITH EXACTLY TWO GUARDS.** The six-guard plate is the
+>   reason takes kept rendering six men, so it is RETIRED. New plate
+>   `@project_absence_char_guard_valder_two` contains exactly two men and is
+>   bound WHOLE. They walk one at his LEFT shoulder and one at his RIGHT, a
+>   pace behind, from the moment he enters a scene until he leaves it.
+> - **THE GOLD-TOOTHED GENTLEMAN HAS ONE PERSONAL BODYGUARD, ALWAYS.** He was
+>   bound in only 3 of the 13 scenes the gentleman appears in; all 13 now
+>   carry him — as a chip where the budget allowed, as an explicit
+>   description in S7, S14 and S15a which were already at 10 chips.
+> Both counts are now stated in the beats AND in the negatives, per the iron
+> rule. Any take that shows six guards, a V formation, or the gentleman alone
+> is a defect.
+
+> # 🔁 THE REVIEW LOOP IS NOW MANDATORY (CEO 17:20, 30 Aug)
+> Generate → **CTO inspects the frames** → fix the prompt → hand it back →
+> Worker regenerates → **reports back WITH the exact prompt used** → CTO
+> passes it. No clip counts as reviewed until the CTO has personally opened
+> frames from it.
+> - **The operator returns EVERY finished clip to the CTO together with the
+>   exact prompt text that produced it.** Not a summary of the prompt.
+> - **EVERY CLIP IS SAVED TO DRIVE — pass or fail, always.** A rejected take
+>   is filed with a `-FLAGGED-<reason>` suffix and kept forever. Nothing is
+>   ever discarded.
+> - CTO checks, every clip: duplicate characters · correct location ·
+>   correct camera angle · anything the prompt banned that appeared anyway.
+> - **Duplicate characters are fixed on sight, no asking.** Everything else:
+>   ask the CEO first, and batch the questions rather than interrupting per
+>   clip.
+> Measured cost of skipping this: four clips shipped as keepers on the
+> operator's word alone; when the CTO finally looked, S8c had TWO Valders and
+> S5 had a gold V on a visitor's coat its own prompt banned.
+
+> # 🗂 REGISTRAR ID CHANGED (CEO 17:05, 30 Aug)
+> **`@project_absence_char_registrar_b` is the ONLY registrar id now.** The
+> bare `@char_registrar` is RETIRED — never write it again. Every prompt file
+> was swept and updated (11 files); the old "bind FACE ONLY until
+> char_registrar_b exists" instruction is gone because the plate now exists
+> and carries the full look: formal BLACK suit, WHITE GLOVES, small GOLD V,
+> brass-cornered ledger. Bind the new plate whole.
+> He is both the price-knocker (his ledger-close is the film's only gavel)
+> and the plaque-changer — one man, both duties. Appears in S5, S12c, S14,
+> S16 and the P-series plaque inserts.
+
 > # ⚔️ IRON RULE — EVERY CHARACTER APPEARS EXACTLY ONCE (CEO 13:15, 30 Aug)
 > «หลายซีน Character ออกมาซ้ำ — ใส่ไว้เป็นกฏเหล็กของการเขียน Prompt เลย»
 > Every prompt carries both halves: counts stated in the beats ("his TWO
@@ -117,7 +162,7 @@
 > «ผู้ติดตาม Bodyguard ของชายฟันทอง แค่คนเดียวพอ» ·
 > «ตัวละครใส่ให้ครบหน่อยในนี้ REF ไม่ครบเลย»
 > - **Valder has EXACTLY TWO guards**, one at each shoulder. The
->   `char_guard_valder_six` plate is bound for UNIFORM AND FACES ONLY — take
+>   `char_guard_valder_two` plate is bound for UNIFORM AND FACES ONLY — take
 >   the look, never the count. Applied to S7 and to every later scene that
 >   binds it (S10, S11, S14, S16).
 > - **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two. Applied
@@ -191,10 +236,10 @@
 > - **THE REGISTRAR is recostumed: FORMAL BLACK suit** — sober, immaculate —
 >   with **WHITE GLOVES** and the **small GOLD V** at the chest, ledger as
 >   always. He is the price-knocker AND the plaque-changer, one man. Bind
->   `@char_registrar` FACE ONLY + state the black suit in text until
+>   `@project_absence_char_registrar_b` FACE ONLY + state the black suit in text until
 >   `char_registrar_b` exists.
 > - **IMAGE LANE'S JOB CHANGES: generate `char_registrar_b`** — 4-panel
->   character sheet, SAME FACE as `@char_registrar` (bind it), formal black
+>   character sheet, SAME FACE as `@project_absence_char_registrar_b` (bind it), formal black
 >   suit, white gloves, gold V at chest, brass-cornered ledger in hand in one
 >   panel, ONE face, 16:9 2K, id BY HAND `char_registrar_b`.
 > - ⚠️ S15a/S15b keepers show the registrar in the old ivory livery — accepted
@@ -511,7 +556,7 @@
 > tag and a reference that never binds.
 >
 > CONFIRMED LIVE (operator read them off the Elements panel):
-> - bare: `@char_registrar` · `@loc_wall_pov_e` · `@loc_hall_big_e` ·
+> - bare: `@project_absence_char_registrar_b` · `@loc_wall_pov_e` · `@loc_hall_big_e` ·
 >   `@prop_cart_b` · `@gentleman_e`  ← note: NO `char_` on this one
 > - prefixed: `@project_absence_char_cleaner_c` ·
 >   `@project_absence_char_valder` · `@project_absence_char_grandmother` ·
@@ -540,7 +585,7 @@
 > short form; always the full confirmed id below.
 >
 > **BARE (no `project_absence_` prefix) — 8, all confirmed live:**
-> `@char_registrar` · `@gentleman_e` · `@char_gentleman_c` ·
+> `@project_absence_char_registrar_b` · `@gentleman_e` · `@char_gentleman_c` ·
 > `@loc_wall_pov_e` · `@loc_wall_pov_d` · `@loc_hall_big_e` ·
 > `@loc_mansion_b` · `@prop_cart_b`
 >
@@ -551,7 +596,7 @@
 >   `char_visitor_b` · `char_visitor_c` · `char_visitor_c_b` · `char_woman` ·
 >   `char_woman_b` · `char_woman_c` (parrot woman) · `char_husband` ·
 >   `char_workman` · `char_press` · `char_press_a` · `char_press_b` ·
->   `char_guard_private` · `char_guard_valder_single` · `char_guard_valder_six` ·
+>   `char_guard_private` · `char_guard_valder_single` · `char_guard_valder_two` ·
 >   `char_gentleman` · `char_grandmother` · `char_grandma`
 > - **Locations (10):** `loc_hall_big` · `loc_hall_big_b` · `loc_hall_big_c` ·
 >   `loc_hall_big_d` · `loc_wall_pov` · `loc_wall_pov_b` · `loc_wall_pov_c` ·

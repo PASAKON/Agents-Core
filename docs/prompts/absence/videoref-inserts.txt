@@ -1,0 +1,219 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
+✅ VIDEO-REF INSERT BLOCKS — one per previz'd scene (CEO order 14:05 30 Aug:
+workers fire these directly, no more CEO approval per clip)
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3
+
+HOW TO USE (same every scene):
+1. Upload the scene's MP4 from docs/ (dd it into your session scratchpad
+   first if the sandbox refuses the org path): S10-Render.MP4,
+   S12a-Render.MP4, S12b-Render.MP4, S12c-Render.MP4, S5-Render.MP4, S14-Render.MP4, S16-Render.MP4, S6-Render.MP4, S11-Render.MP4.
+2. Attach via + panel → Recent → wait "Checking.." → click tile → "Added to
+   prompt box".
+3. Paste the scene's INSERT BLOCK first, then the scene's normal prompt text
+   from its scene file, unchanged. The block sits ABOVE [0s].
+4. `@Video 1` is a CHIP EXACTLY ONCE — first mention only. The platform BUGS
+   on a second mention (CEO measured). Later refs = plain words.
+5. Chips = video + the scene's normal Elements. Unlimited $0 zoom-check.
+   Everything else per higgsfield-unlimited-gen.
+6. Take numbering continues the scene's sequence; previz-ref takes are STILL
+   filed/reviewed/delivered per the footage rule.
+
+===============================================================
+S10 INSERT (use with SCENE 10 text; previz = S10-Render.MP4)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a
+20-second gray previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY: one
+locked one-point frame at waist height for the whole clip, the camera never
+moves — and exactly ONE cut to a brief centred frontal single of Valder at
+16 seconds, back to the same locked frame in under a second, exactly as the
+reference video does it.
+
+POSITION MAP — every figure in the reference video stands EXACTLY where its
+character must stand, same spot, same path, same timing, and EVERY CHARACTER
+APPEARS EXACTLY ONCE — one proxy, one person, never both:
+- the GREEN figure labelled PARROT walking in from the red door on the axis,
+  carrying the small dark-red box = the parrot woman with her crocodile
+  handbag; she stops right of the centreline at 12s
+- the WHITE figure labelled GOLD-TOOTH standing left of the centreline = the
+  gentleman; he never moves
+- the MAGENTA figure labelled VALDER framed dead centre between and beyond
+  them = Valder, frontal
+- the TWO dark figures flanking Valder, one at each shoulder = his TWO
+  guards and no others
+- the remaining coloured figures at the edges = the guests, planted
+The reference video carries ONLY camera, timing, and positions. It is NOT a
+style reference: take all light, colour, texture, costume and faces from the
+Elements and the text below.
+
+===============================================================
+S12a INSERT (use with SCENE 12a text; previz = S12a-Render.MP4)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CUT PATTERN EXACTLY: locked one-point
+master at the red door → LOW WHEEL CLOSE-UP at floor level → a locked
+cutaway along the row of frozen viewers → back to the master → master again
+as one guest walks out of frame. Five locked frames, no camera movement
+inside any of them, exactly as the reference video cuts them.
+
+POSITION MAP — same spots, same paths, same timing, EVERY CHARACTER APPEARS
+EXACTLY ONCE:
+- the small pale figure on the wheeled chair stalled in the red doorway,
+  advancing in jerks and stalls down the centreline = the grandmother in her
+  old electric wheelchair; by the end she is STILL only mid-hall
+- the wheels filling frame in the low close-up = her wheelchair's wheels
+- the coloured figures standing along BOTH side walls at the paintings =
+  the guests, each at an artwork, centre aisle COMPLETELY EMPTY
+- the lime-green figure that walks away out of frame near the end = the
+  student giving up
+The reference video carries ONLY camera, timing, and positions — NOT style.
+All light, colour, texture, costume and faces come from the Elements and
+the text below.
+
+===============================================================
+S12b INSERT (use with SCENE 12b text; previz = S12b-Render.MP4)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY: ONE locked reverse
+one-point beside the crack wall looking back up the hall, the camera never
+moves, no cuts.
+
+POSITION MAP — same spots, same paths, same timing, EVERY CHARACTER APPEARS
+EXACTLY ONCE:
+- the crowd of coloured figures filling the aisle in front of camera, backs
+  to us = the guests gathered at the crack; they PART person by person from
+  5 seconds, sliding outward to both sides
+- the small pale figure on the wheeled chair approaching from deep in the
+  hall through the widening gap = the grandmother, crawling at her
+  impossible pace; she rolls through the parted middle and stops nearest
+  camera
+The reference video carries ONLY camera, timing, and positions — NOT style.
+
+===============================================================
+S12c INSERT (use with SCENE 12c text; previz = S12c-Render.MP4)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CUT PATTERN EXACTLY: locked wide from
+behind the grandmother (she dead centre, the parted room beyond her) for the
+first 13 seconds → a fast chain of THREE centred frontal close-up singles —
+first face, second face, third face — each held about a second → back to
+the same locked wide for the frozen tableau. Exactly as the reference video
+cuts it.
+
+POSITION MAP — same spots, same paths, same timing, EVERY CHARACTER APPEARS
+EXACTLY ONCE:
+- the pale figure on the wheeled chair dead centre, back to camera = the
+  grandmother, facing the room
+- the coloured figures parted to both sides = the guests
+- the BLACK figure that steps from the right side to stand beside her at 10
+  seconds = the registrar with his ledger
+- the three close-up singles land, in order: a GUARD's face → VALDER's face
+  → DUPE's face
+The reference video carries ONLY camera, timing, and positions — NOT style.
+
+===============================================================
+S5 INSERT (use with SCENE 5 text; previz = S5-Render.MP4)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY: ONE slow push-in
+straight down the axis for the entire clip, locked level at waist height,
+no cuts, nothing else.
+
+POSITION MAP — same spots, same paths, same timing, EVERY CHARACTER APPEARS
+EXACTLY ONCE:
+- the BLUE figure that steps out of the loose group to dead centre in the
+  first two seconds = Collector A, the woman in cobalt; she stays dead
+  centre facing camera
+- the loose group of coloured figures around her = the guests, listening
+- the BLACK figure that enters from the right frame edge at 14 seconds and
+  stops beside her = the registrar, writing in his ledger
+- the pale figure far behind at the back wall = Dupe, mopping
+The reference video carries ONLY camera, timing, and positions — NOT style.
+
+===============================================================
+S14 INSERT (use with SCENE 14 text; previz = S14-Render.MP4)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CUT PATTERN EXACTLY: one locked
+symmetrical wide facing the crack wall → at 11 seconds ONE FAST SNAP ZOOM
+down to the wet plaster splat on the floor, held a full beat → back to the
+same locked wide for the frozen tableau. Nothing else moves the camera.
+
+POSITION MAP — same spots, same paths, same timing, EVERY CHARACTER APPEARS
+EXACTLY ONCE:
+- the SLATE-BLUE figure at the crack wall with the raised float and the
+  orange bucket at his feet = the workman
+- the round pale disc that appears on the floor beside him at 11 seconds =
+  the wet plaster splat (the snap zoom's target)
+- the MAGENTA figure mid-room that strides one step toward the wall after
+  6 seconds = Valder, the scream — the only time his smile is gone
+- the pale figure on the boxy chair = the grandmother; the WHITE figure and
+  the TEAL figure = the gentleman and the parrot woman; the BLACK figure =
+  the registrar — the buyers, planted mid-room
+- the two ochre figures at the far edges = the press, filming
+- the pale figure at the far right edge = Dupe, stopped mid-stroke
+The reference video carries ONLY camera, timing, and positions — NOT style.
+
+===============================================================
+S16 INSERT (use with SCENE 16 text; previz = S16-Render.MP4)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY: ONE locked
+symmetrical wide facing the crack wall, the camera never moves, no cuts.
+
+POSITION MAP — same spots, same paths, same timing, EVERY CHARACTER APPEARS
+EXACTLY ONCE:
+- the MAGENTA figure centred foreground, back to camera, motionless = Valder
+  watching, face never seen
+- the ruled dark SQUARE on the wall around the crack, framed around his
+  silhouette = the cut line; the horizontal bar oscillating across it until
+  15 seconds = the long saw
+- the two SLATE-BLUE figures mirrored left and right of the square = the two
+  workmen sawing
+- the TWO dark figures flanking mid-room = Valder's two guards and no others
+- the seated figure with the boxy chair to one side = the grandmother, the
+  buyer, watching
+- the two ochre figures at the edges = the press, filming the saw
+- the pale figure apart holding the thin stick = Dupe with his mop, not
+  helping
+The reference video carries ONLY camera, timing, and positions — NOT style.
+
+===============================================================
+S6 INSERT (use with SCENE 6 text; previz = S6-Render.MP4 · 15s)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY: ONE locked
+front-of-wall frame in the wide hall, slightly elevated, dead-on the hero
+wall, the camera never moves, no cuts, 15 seconds.
+
+POSITION MAP — same spots, EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the row of SATURATED-COLOUR figures across frame, backs and three-quarter
+  profiles to camera, facing the wall = the guests, one colour each,
+  alternating warm and cool
+- the row of DARK figures standing directly behind them, one per guest =
+  each guest's personal bodyguard, a precise second rank
+- the WHITE figure at the left end with a single dark figure behind him =
+  the gentleman and his ONE bodyguard
+- the small dark STAR on the wall above them = the crack; the plaque sits
+  below it and READS CORRECT-WAY-ROUND, never mirrored
+- the pale figure with the box at the far left edge = Dupe with his cart
+The reference video carries ONLY camera, timing, and positions — NOT style.
+
+===============================================================
+S11 INSERT (use with SCENE 11 text; previz = S11-Render.MP4)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY: ONE locked
+front-of-wall frame in the wide hall, slightly elevated, dead-on the hero
+wall, the camera never moves, no cuts.
+
+POSITION MAP — same spots, EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the same two ranks as S6, now DEEPER and fuller: saturated-colour guests
+  in front, a dark bodyguard behind each one
+- the MAGENTA figure standing dead centre among them = Valder, with his TWO
+  guards flanking him and no others
+- the two OCHRE figures at the far left and right edges = the press, filming
+- the small dark STAR on the wall = the crack; the plaque below it reads
+  100,000,000 CORRECT-WAY-ROUND, never mirrored, no currency symbol
+- the pale figure with the box at the left edge = Dupe with his cart
+The reference video carries ONLY camera, timing, and positions — NOT style.
