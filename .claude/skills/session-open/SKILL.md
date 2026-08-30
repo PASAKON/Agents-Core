@@ -125,10 +125,18 @@ if this step is skipped.
 bash scripts/tab-title.sh "⏳ <entry problem ≤35 chars>"
 # Main tab (the window titlebar): where the session is going, 0 of N DoD done
 bash scripts/tab-main.sh "<entry problem, fuller wording is fine>" 0/<DoD count>
+# Claude session name (mobile app / Remote Control list): machine+role+id+topic
+bash scripts/session-rename.sh "<entry problem, short>"
 ```
 The clock runs itself from here (shared 60s daemon). The goal and the progress
 numbers do not — they move only when `tab-main.sh` is called again, which
 `/session-worktree` and `/session-close` do.
+
+`session-rename.sh` types `/rename <MACHINE> <ROLE> #<id> (<topic>)` into this
+session's own tmux pane — the command queues and executes right after the
+current turn ends, and the new name syncs to claude.ai + the mobile app
+(CEO 2026-08-30). Run it as the LAST tool call of the charter turn so nothing
+else interleaves; skip silently if not under tmux (script handles it).
 
 ### 4. (optional) Bind a git worktree for code sessions
 If the session's work is code on one repo, make the metaphor literal — branch +
