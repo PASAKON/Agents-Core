@@ -53,6 +53,29 @@
 > unflagged-but-superseded takes also sit in Drive and are not keepers:
 > S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
 
+> # 🎥 S7 RE-SHOOT: BLENDER CAMERA REF APPROVED (CEO 12:10, 30 Aug)
+> CEO watched `S7-Blender.MP4` and ruled: «ผ่าน ใช้เป็น ref ตอน S7 re-shoot
+> ได้เลย». His standing interpretation of the festival rules: Blender / After
+> Effects / cutting tools are EDITING-CLASS tools and exempt — generation
+> still happens on Higgsfield. This previz is a CAMERA/MOTION reference, not
+> content.
+> - The file is on this Mac at `docs/S7-Blender.MP4` (20s · 1280x720 · 24fps,
+>   ~1MB). Also on winbox at `C:\Users\UsEr\Downloads\S7-Blender.MP4`.
+> - **When the S7 re-shoot reaches the front of the back-queue**, the operator
+>   shoots it WITH this ref: bind the normal S7 Elements + corrected text
+>   (TWO guards · ONE bodyguard · gold-tooth GLINT gag · WHO IS IN THE ROOM
+>   block), AND attach the MP4 as the video/motion input.
+> - **HOW (untested — nobody has attached a video ref yet):** look for the
+>   composer's video-input / start-frame attach control (the Video tab's
+>   input-source slot, or the paperclip/upload in the composer). Use
+>   `mcp__claude-in-chrome__file_upload` aimed at the real `<input type=file>`
+>   ref — never a blind click (native OS picker is unobservable). Verify a
+>   video thumbnail chip appears in the composer before Generate.
+> - **If the composer refuses a video** in this mode: report back — do NOT
+>   improvise frame-extraction as image refs without a CTO/CEO call.
+> - Money rules unchanged: Unlimited $0 check before the click, one gen at a
+>   time, never Rerun.
+
 > # 👥 CAST + HEAD-COUNTS FIXED (CEO 10:10, 30 Aug)
 > «คนที่เดินตาม Valder เข้ามาขอแค่ 2 คนพอ ซ้ายคน ขวาคน แบบบอดี้การ์ด» ·
 > «ผู้ติดตาม Bodyguard ของชายฟันทอง แค่คนเดียวพอ» ·
