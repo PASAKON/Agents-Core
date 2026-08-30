@@ -180,6 +180,18 @@ def scan_once() -> dict:
                 f"issue={issue}"
             )
             continue
+        # Do not ping a process that is demonstrably alive. This branch only
+        # ever sees PING_AFTER_S <= silent < STALL_AFTER_S, i.e. 10-30
+        # minutes — precisely the length of one Higgsfield render, so the
+        # ping fired every INTERVAL_S at a worker doing exactly what it was
+        # told (four times per render on 2026-08-30). The ping is not free
+        # either: it lands in the worker's pane and kills the background
+        # sleep it polls on, so nudging a busy worker is what stops it
+        # working. Silence is a proxy for death and a bad one — the same
+        # reasoning the stall branch above already applies. A live but
+        # genuinely wedged process is still reaped at STALL_ALIVE_AFTER_S.
+        if _pid_alive(t.get("pid")):
+            continue
         msg = (f"watchdog ping — silent {int(silent/60)} min. "
                f"Status check? If stuck, call mcp__org__file_blocker_issue.")
         if _send_ping(t["id"], msg):
