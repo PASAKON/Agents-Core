@@ -26,6 +26,11 @@ HEAD-COUNTS ARE FIXED (CEO 2026-08-30):
   count.
 - **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two.
 
+
+EVERY CHARACTER APPEARS EXACTLY ONCE. There is one Dupe, one Valder, one
+gentleman, one grandmother, one of each guest. If two identical people
+appear anywhere in a frame, the take is wrong.
+
 CHIP BUDGET is about 10. When a scene cannot fit every guest, drop the
 GENERIC ones first (`char_woman`, `char_visitor_c`) and keep the NAMED five —
 they are the continuity. Whoever is not bound must also not be described as
