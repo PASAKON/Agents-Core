@@ -372,10 +372,23 @@ done
 # binary's own strings for the var name rather than assuming it.
 export DISABLE_AUTOUPDATER=1
 
+# Machine prefix for the Claude session display name (CEO 2026-08-30): the
+# mobile app lists every Remote Control session from every box in one flat
+# list, so the name itself must say which machine it lives on. Session name
+# only (-n) — the iTerm tab strip stays "CTO #id" because on the Mac itself
+# the prefix is redundant and the ≤35-char summary needs the room.
+case "$(uname -s)" in
+  Darwin) MACHINE_LABEL="MAC" ;;
+  Linux)  if [ -d /opt/mooniex-agents ]; then MACHINE_LABEL="CONTABO"
+          else MACHINE_LABEL="$(hostname -s 2>/dev/null | tr '[:lower:]' '[:upper:]')"; fi ;;
+  MINGW*|MSYS*|CYGWIN*) MACHINE_LABEL="WINDOWS" ;;
+  *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;
+esac
+
 # `exec` would replace the shell and skip the EXIT trap, leaving a
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
-  -n "CTO #$CTO_SESSION_ID" \
+  -n "$MACHINE_LABEL CTO #$CTO_SESSION_ID" \
   "${MODEL_ARGS[@]}" \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \

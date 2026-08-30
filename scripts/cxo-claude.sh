@@ -421,9 +421,21 @@ if [ -n "${INITIAL_PROMPT:-}" ]; then
   CLAUDE_POSITIONAL+=("$INITIAL_PROMPT")
 fi
 
+# Machine prefix for the Claude session display name (CEO 2026-08-30) —
+# same block as cto-claude.sh: the mobile app lists Remote Control sessions
+# from every box in one flat list, so the name must carry the machine.
+# Session name only; TAB_TITLE (iTerm tab strip) stays unprefixed.
+case "$(uname -s)" in
+  Darwin) MACHINE_LABEL="MAC" ;;
+  Linux)  if [ -d /opt/mooniex-agents ]; then MACHINE_LABEL="CONTABO"
+          else MACHINE_LABEL="$(hostname -s 2>/dev/null | tr '[:lower:]' '[:upper:]')"; fi ;;
+  MINGW*|MSYS*|CYGWIN*) MACHINE_LABEL="WINDOWS" ;;
+  *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;
+esac
+
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
-  -n "$TAB_TITLE" \
+  -n "$MACHINE_LABEL $TAB_TITLE" \
   "${MODEL_ARGS[@]}" \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
