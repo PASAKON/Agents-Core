@@ -532,9 +532,11 @@ do three jobs, in this order, or the model randomises:
    light/texture from the film's standard block. Otherwise the gray previz
    look bleeds into the render.
 The character prompt itself stays exactly as the scene file wrote it — the
-video blocks ADD to it, never replace it. **The video is a CHIP exactly ONCE** — the first mention only; every later
-reference to it in the prompt is plain words ("the reference video"), never
-a second mention, so the paste cannot attach it twice. Budget note: video
+video blocks ADD to it, never replace it. **The video is a CHIP exactly ONCE — the composer BUGS on a second
+`@Video 1` mention (CEO measured it live, 2026-08-30).** One prompt supports
+one video mention, full stop. The first mention is the chip; every later
+reference in the prompt is plain words ("the reference video"), never a
+mention. Budget note: video
 chip + 10 element mentions = 11 chips, measured accepted; state in the brief
 which element to drop if the composer refuses the 11th. And it bears repeating:
 **UNLIMITED GENERATE ONLY** — the video ref changes nothing about money
