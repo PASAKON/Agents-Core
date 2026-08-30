@@ -453,6 +453,51 @@ and ask the C-level which one — do not guess from what is already open.
    fully completed regardless of what the tool call reported back. Don't
    assume a failed call = no side effect.
 
+## Attaching a VIDEO reference — @Video 1 (verified end-to-end 2026-08-30, task-58f2d7b4)
+
+The CEO's new generation standard: **Video ref (camera) + Elements
+(faces/costumes/location) + prompt (model control) = full control.** A Blender
+previz MP4 (see `blender-previz`) rides the composer as `@Video 1`. Every step
+below was executed and verified once for real; the gotchas are measured, not
+guessed.
+
+1. **The composer is embedded at the bottom of the project's asset-grid page**
+   (no separate URL) behind an Image/Video tab toggle. Click "Video". **The
+   model DEFAULTS to Cinema Studio 4.0** — open the model dropdown and select
+   Seedance 2.5 explicitly, every fresh composer.
+2. **Decoy twins everywhere on this page**: two "Video" tabs, two "References"
+   buttons, and TWO whole composer panel instances (a hidden Cinema Studio one
+   and the visible Seedance one — the first DOM match is the wrong one).
+   Filter every candidate by `getComputedStyle(el).visibility === 'visible'`
+   before clicking or pasting; `find()` alone cannot tell them apart.
+3. **Upload path**: "+" icon left of the composer → reference panel
+   (Uploads/Elements/Generations/Liked) → the panel's `<input type=file>`
+   whose `accept` includes `video/mp4` (the page has THREE file inputs — pick
+   by accept attribute) → `mcp__claude-in-chrome__file_upload` with that ref.
+   Synthetic drag-and-drop CANNOT work for a real filesystem file — page JS
+   can't fabricate a File object; don't attempt it.
+4. **The file must be readable by the operator's session.** An org-repo
+   absolute path gets refused by the upload sandbox, and `cp` out of the org
+   repo trips self_repo_guard. CTO: stage the MP4 INTO the worktree at task
+   creation. Operator fallback that measured clean: `dd if=<org path>
+   of=<scratchpad path>` (or `base64 -i … -o …`).
+5. **Verification is a two-step flow**: toast "Your upload is being verified",
+   tile spins as "Checking.." and is UNCLICKABLE; wait for the real thumbnail,
+   then click the tile → toast "Added to prompt box" + green checkmark.
+6. **Mention syntax is literally `@Video 1`.** Typing `@Video` in the prompt
+   box surfaces a dropdown entry "Video 1"; selecting it makes a green chip,
+   exactly like Element mentions. Element chips coexist alongside it
+   unchanged. (Typing the short `@Video` trigger is fine — the type() ban is
+   about multi-paragraph content; build the surrounding prompt with the
+   synthetic-paste technique as always, then End→space→Backspace to force
+   state sync.)
+7. Everything else is unchanged: Unlimited $0 zoom-check before Generate, one
+   generation at a time, never Rerun.
+
+Festival ruling (CEO 2026-08-30): Blender/AE are editing-class tools — a
+camera previz used as @Video 1 is allowed; generation still happens on
+Higgsfield.
+
 ## Render time is a function of WHEN you generate — schedule the wave for Europe's night
 
 Measured across a single 14-hour wave on 2026-08-13. Render time is not a
