@@ -777,6 +777,13 @@ detailed it otherwise looks.
   If that scene needs 2 footage variants, generating more than that during
   idle wait time is fine too — more usable footage for the editor, at zero
   cost, is never wasted. Keep every extra take, same as always.
+- **Shoot the whole wave before you stop — the floor is not one.** The wave
+  cap below is a ceiling; an operator that fires once and reports out has
+  under-run its wave and parked the slot for the length of a respawn. While a
+  render is in flight, stage the NEXT scene's prompt so it fires the moment
+  the slot frees. When you do stop — at the cap, or genuinely low on context
+  — say in the report EXACTLY which scene is next and what state the composer
+  is in, so the next operator resumes without re-deriving anything.
 - **Split into waves capped at ~5 generations each — this is a hard cap, not
   a suggestion.** Spawn a separate task/DEV session per wave rather than one
   long-running session. Screenshots stay in context for the rest of a session
@@ -1171,6 +1178,13 @@ already covered above; these three numbers were not).
   CEO-enforced 2026-08-14 after a 14-clip / 7-scene queue was handed to a
   single task and had to be split mid-flight. Count the clips before
   delegating, not once the worker is already running.
+  **~5 is a CEILING, not a target — never stop after one.** Measured
+  2026-08-30 on «Sorry, Sir»: an operator shot one scene, cited "the wave
+  cap", and submitted its report, leaving the account's single generation
+  slot idle across a full respawn. At one scene per worker every scene pays
+  that respawn, which on a deadline is the most expensive thing an operator
+  can do. Run the wave out to the cap unless something actually stops you —
+  nothing ready to fire, a blocker, or genuinely low context.
 - **Cap any single `sleep()` at ~90s.** A longer one blocks the poll loop past
   the point where a finished render can be noticed promptly.
 
