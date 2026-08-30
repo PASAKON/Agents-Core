@@ -4,12 +4,14 @@ UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
 
 HOW TO STAGE: attach the uploaded previz (+ panel → Recent → tile "Added to
 prompt box") so @Video 1 resolves, then paste THIS ENTIRE TEXT as the prompt.
+⚠️ @Video 1 IS A CHIP EXACTLY ONCE — the first mention only. Later
+references are plain words on purpose; do NOT convert them to mentions.
 11 chips total (1 video + 10 elements). If the composer refuses the 11th chip,
 drop @project_absence_char_visitor_b AND delete her one description line.
 
 === THE PROMPT (paste from here down) ===
 
-@Video 1 is the CAMERA REFERENCE for this entire shot — a 20-second gray
+the reference video (Video 1) is the CAMERA REFERENCE for this entire shot — a 20-second gray
 previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY, beat for beat:
 [0-7s] the camera RETREATS backward down the hall's centreline at walking
 pace, perfectly level at waist height, while VALDER walks toward the camera
@@ -18,7 +20,7 @@ PAN left, landing on the GENTLEMAN frontal and dead centre; [13s] ONE FAST
 SNAP ZOOM punches in to his gold teeth; [16-20s] frontal medium two-shot,
 held. No other camera movement exists in this shot.
 
-POSITION MAP — every figure in @Video 1 stands EXACTLY where its character
+POSITION MAP — every figure in the reference video (Video 1) stands EXACTLY where its character
 must stand; replace each gray/coloured proxy with its real character, same
 spot, same path, same timing. Nothing may move to a different position than
 its proxy in the video, and EVERY CHARACTER APPEARS EXACTLY ONCE — one
@@ -46,7 +48,7 @@ proxy, one person, never both a mapped character AND a leftover gray figure:
   columns, terracotta terrazzo, red double door at the vanishing point —
   = @loc_hall_big_e exactly.
 
-@Video 1 carries ONLY camera path, timing, and positions. It is NOT a style
+the reference video (Video 1) carries ONLY camera path, timing, and positions. It is NOT a style
 reference: take ALL light, colour, texture, costume and faces from the
 Elements and this text — warm shadow, cold white grade; amber-orange
 highlights, whites pushed slightly cool, shadows deep red-brown, halation;
