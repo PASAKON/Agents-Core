@@ -1,3 +1,27 @@
+> # 💽 VERIFIED KEEPER LEDGER (CTO audited Drive directly, 07:45 30 Aug)
+> Counted from Drive itself, not from memory. **19 keepers.** A scene listed
+> here is SHOT — do not re-fire it as if it were new; any improvement to it is
+> a re-shoot and goes to the BACK per the CEO's standing rule.
+>
+> **Story (13):** S1 `cfbb4a9d` · S2 take4 `a4e364f7` · S2b `f5e097db` ·
+> A1 take3 `b2f5c42e` · A2 take2 `886bcbeb` · A3 `963b3ecc` ·
+> A4 take2 `f6ef6773` · A5 `c45363a0` · S13a `c20dbf52` · S13b `ea3b2961` ·
+> S15a take2 `b207303a` · S15b `c3516bfd` · **S17 `9d3e2fe4`**
+> **Coverage (5):** S1A `091b3608` · S1B `9bd03344` · S1D take2 `ab366138` ·
+> S1E `9f1e996c` · S1G `3364edbe`
+> **In flight:** S4 take2 (take1 `180f1c5a` flagged — Dupe rendered twice).
+>
+> ⚠️ **S17 ALREADY HAS A CLEAN KEEPER.** Its entry at the back of the queue
+> is an UPGRADE re-fire, not a missing scene. If the clock runs short, S17 is
+> already covered and can be dropped from the remaining work entirely.
+>
+> ⚠️ **Ignore the old lowercase files** in Drive — `absence-s3-the-
+> interpretations`, `absence-s4-two-million`, `absence-s9-dupe-hears-it`,
+> `absence-s17-the-square-hole`, `absence-s18-the-interview-and-hammer`. They
+> pre-date the 28 Aug Dupe-POV rewrite and are NOT part of this cut. Two
+> unflagged-but-superseded takes also sit in Drive and are not keepers:
+> S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
+
 > # 🧱 NO NEW IN-WALL POV PLATES (CEO 04:30, 30 Aug)
 > Verbatim: «ไม่ต้องสร้างภาพมุมมองในกำแพงใหม่นะ ใช้มุมมอง ข้างหน้ากำแพงบ่อยๆ
 > ดีกว่า เรามี ref ที่ใช้งานได้จริง»
