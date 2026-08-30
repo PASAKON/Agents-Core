@@ -21,7 +21,11 @@ Plus, once they enter: @project_absence_char_valder (S7),
 
 HEAD-COUNTS ARE FIXED (CEO 2026-08-30):
 - **Valder travels with EXACTLY TWO guards**, one at each shoulder like
-  bodyguards. `@project_absence_char_guard_valder_six` is bound for the
+  bodyguards. `@project_absence_char_guard_valder_two` is bound for the
+  ⚠️ THE PLATE NOW CONTAINS EXACTLY TWO MEN — bind it whole; the old
+  six-guard plate is retired. They walk ONE AT VALDER'S LEFT SHOULDER and
+  ONE AT HIS RIGHT, a pace behind, from the moment he enters a scene until
+  he leaves it. Never six, never a V formation, never a third.
   UNIFORM AND FACES ONLY — its plate shows six; take the look, never the
   count.
 - **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two.

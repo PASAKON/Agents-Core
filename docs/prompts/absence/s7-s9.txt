@@ -25,7 +25,11 @@ man in the oxblood leather suit, S4 and S17).
 
 HEAD-COUNTS ARE FIXED (CEO 2026-08-30):
 - **Valder travels with EXACTLY TWO guards**, one at each shoulder like
-  bodyguards. `@project_absence_char_guard_valder_six` is bound for the
+  bodyguards. `@project_absence_char_guard_valder_two` is bound for the
+  ⚠️ THE PLATE NOW CONTAINS EXACTLY TWO MEN — bind it whole; the old
+  six-guard plate is retired. They walk ONE AT VALDER'S LEFT SHOULDER and
+  ONE AT HIS RIGHT, a pace behind, from the moment he enters a scene until
+  he leaves it. Never six, never a V formation, never a third.
   UNIFORM AND FACES ONLY — its plate shows six; take the look, never the count.
 - **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two.
 
@@ -64,9 +68,8 @@ REFERENCES — each with a job:
 @project_absence_char_valder — face, silver hair swept back, small round tinted sunglasses,
   panelled jacket (magenta/yellow/green/blue/red), scarlet waistcoat, purple
   trousers, mustard scarf, mismatched shoes (one green, one oxblood).
-@project_absence_char_guard_valder_six — THE GUARDS' UNIFORM AND FACES ONLY,
-  matching uniform, small gold V at cap and chest. ⚠️ Take the LOOK from this
-  plate, NOT the head-count: there are EXACTLY TWO of them in this scene.
+@project_absence_char_guard_valder_two — THE GUARDS' UNIFORM AND FACES ONLY,
+  matching uniform, small gold V at cap and chest. ⚠️ EXACTLY TWO, bind whole.
 @gentleman_e — the elderly gentleman: small, sharp-nosed, white English
   tailoring exactly as his plate shows, black cane with gold grip, diamond
   ring, TWO GOLD TEETH. ONE bodyguard behind him, not two.
@@ -78,6 +81,12 @@ REFERENCES — each with a job:
 @project_absence_char_husband — olive-tan jacket, short grey hair.
 @project_absence_char_student_c — acid lime-green hair, paint-stained denim.
 @project_absence_char_cleaner_c — Dupe, cleaning at the far edge, back to camera.
+
+⚠️ THE GENTLEMAN'S BODYGUARD (no chip left in this scene — render him
+from this description): wherever the gold-toothed gentleman stands, ONE
+personal bodyguard in a plain dark suit stands a pace behind him, hands
+loose, face neutral. Exactly one, never two, never absent. He carries no
+gold V and never speaks (CEO 2026-08-30).
 
 [0s] THE RED DOOR OPENS DEAD CENTRE AT THE VANISHING POINT. VALDER walks
 straight down the room's centreline TOWARD the camera, which retreats ahead
@@ -153,6 +162,11 @@ VALDER in this shot. He is the ONLY person wearing a panelled multi-colour
 jacket; NOBODY else wears panelled, striped or rainbow clothing. The guests
 are in plain single-colour coats.
 
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
+
 [0s] The lateral dolly tracks Valder piece to piece, parallel to the wall,
 guests following. At the armchair he says it warm and unhurried, in love with
 the object: "This chair was in the room where the armistice was signed. Not
@@ -193,6 +207,11 @@ thing in the frame — one man, dead centre, unmirrored. There is EXACTLY ONE
 VALDER in this shot. He is the ONLY person wearing a panelled multi-colour
 jacket; NOBODY else wears panelled, striped or rainbow clothing. The guests
 are in plain single-colour coats.
+
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
 
 [0s] The dolly continues. At the vessel, warm, confiding: "Seventeen of these
 were made. He destroyed sixteen. He kept the one he liked least." One-second
@@ -237,6 +256,11 @@ thing in the frame — one man, dead centre, unmirrored. There is EXACTLY ONE
 VALDER in this shot. He is the ONLY person wearing a panelled multi-colour
 jacket; NOBODY else wears panelled, striped or rainbow clothing. The guests
 are in plain single-colour coats.
+
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
 
 [0s] Continue exactly where 8b ended: Valder dead centre, frontal, hand
 still raised, facing the bare wall with the crack. The painting is gone. HIS
@@ -308,6 +332,11 @@ REFERENCES — each with a job:
 
 VALDER'S DIALOGUE FROM SCENE 8c RUNS CONTINUOUSLY OVER THIS ENTIRE SHOT —
 same words, same take, unbroken, slightly distant and reverberant.
+
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
 
 [0s] DUPE DEAD CENTRE, FRONTAL, waist height — a portrait — mopping at the
 edge of the room against the shadow of a chromium column, cart beside him,

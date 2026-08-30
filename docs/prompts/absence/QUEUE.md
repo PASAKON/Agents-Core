@@ -53,6 +53,21 @@
 > unflagged-but-superseded takes also sit in Drive and are not keepers:
 > S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
 
+> # 💂 ENTOURAGE LOCKED (CEO 17:35, 30 Aug)
+> Two standing facts, now true in EVERY scene, swept across all prompt files:
+> - **VALDER TRAVELS WITH EXACTLY TWO GUARDS.** The six-guard plate is the
+>   reason takes kept rendering six men, so it is RETIRED. New plate
+>   `@project_absence_char_guard_valder_two` contains exactly two men and is
+>   bound WHOLE. They walk one at his LEFT shoulder and one at his RIGHT, a
+>   pace behind, from the moment he enters a scene until he leaves it.
+> - **THE GOLD-TOOTHED GENTLEMAN HAS ONE PERSONAL BODYGUARD, ALWAYS.** He was
+>   bound in only 3 of the 13 scenes the gentleman appears in; all 13 now
+>   carry him — as a chip where the budget allowed, as an explicit
+>   description in S7, S14 and S15a which were already at 10 chips.
+> Both counts are now stated in the beats AND in the negatives, per the iron
+> rule. Any take that shows six guards, a V formation, or the gentleman alone
+> is a defect.
+
 > # 🔁 THE REVIEW LOOP IS NOW MANDATORY (CEO 17:20, 30 Aug)
 > Generate → **CTO inspects the frames** → fix the prompt → hand it back →
 > Worker regenerates → **reports back WITH the exact prompt used** → CTO
@@ -147,7 +162,7 @@
 > «ผู้ติดตาม Bodyguard ของชายฟันทอง แค่คนเดียวพอ» ·
 > «ตัวละครใส่ให้ครบหน่อยในนี้ REF ไม่ครบเลย»
 > - **Valder has EXACTLY TWO guards**, one at each shoulder. The
->   `char_guard_valder_six` plate is bound for UNIFORM AND FACES ONLY — take
+>   `char_guard_valder_two` plate is bound for UNIFORM AND FACES ONLY — take
 >   the look, never the count. Applied to S7 and to every later scene that
 >   binds it (S10, S11, S14, S16).
 > - **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two. Applied
@@ -581,7 +596,7 @@
 >   `char_visitor_b` · `char_visitor_c` · `char_visitor_c_b` · `char_woman` ·
 >   `char_woman_b` · `char_woman_c` (parrot woman) · `char_husband` ·
 >   `char_workman` · `char_press` · `char_press_a` · `char_press_b` ·
->   `char_guard_private` · `char_guard_valder_single` · `char_guard_valder_six` ·
+>   `char_guard_private` · `char_guard_valder_single` · `char_guard_valder_two` ·
 >   `char_gentleman` · `char_grandmother` · `char_grandma`
 > - **Locations (10):** `loc_hall_big` · `loc_hall_big_b` · `loc_hall_big_c` ·
 >   `loc_hall_big_d` · `loc_wall_pov` · `loc_wall_pov_b` · `loc_wall_pov_c` ·
