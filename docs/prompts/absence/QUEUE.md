@@ -53,6 +53,25 @@
 > unflagged-but-superseded takes also sit in Drive and are not keepers:
 > S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
 
+> # 🔁 THE REVIEW LOOP IS NOW MANDATORY (CEO 17:20, 30 Aug)
+> Generate → **CTO inspects the frames** → fix the prompt → hand it back →
+> Worker regenerates → **reports back WITH the exact prompt used** → CTO
+> passes it. No clip counts as reviewed until the CTO has personally opened
+> frames from it.
+> - **The operator returns EVERY finished clip to the CTO together with the
+>   exact prompt text that produced it.** Not a summary of the prompt.
+> - **EVERY CLIP IS SAVED TO DRIVE — pass or fail, always.** A rejected take
+>   is filed with a `-FLAGGED-<reason>` suffix and kept forever. Nothing is
+>   ever discarded.
+> - CTO checks, every clip: duplicate characters · correct location ·
+>   correct camera angle · anything the prompt banned that appeared anyway.
+> - **Duplicate characters are fixed on sight, no asking.** Everything else:
+>   ask the CEO first, and batch the questions rather than interrupting per
+>   clip.
+> Measured cost of skipping this: four clips shipped as keepers on the
+> operator's word alone; when the CTO finally looked, S8c had TWO Valders and
+> S5 had a gold V on a visitor's coat its own prompt banned.
+
 > # 🗂 REGISTRAR ID CHANGED (CEO 17:05, 30 Aug)
 > **`@project_absence_char_registrar_b` is the ONLY registrar id now.** The
 > bare `@char_registrar` is RETIRED — never write it again. Every prompt file

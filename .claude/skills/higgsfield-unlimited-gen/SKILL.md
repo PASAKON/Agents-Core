@@ -453,6 +453,28 @@ and ask the C-level which one — do not guess from what is already open.
    fully completed regardless of what the tool call reported back. Don't
    assume a failed call = no side effect.
 
+## THE REVIEW LOOP — the operator never self-certifies a clip
+
+CEO-set 2026-08-30. The pipeline is a loop, not a line:
+
+**Generate → CTO inspects frames → fix the prompt → hand back → regenerate →
+operator reports WITH the exact prompt used → CTO passes.**
+
+- The operator sends every finished clip to the CTO **together with the exact
+  prompt text that produced it** — not a summary. The prompt is what gets
+  debugged; a summary cannot be.
+- **Every clip is saved to Drive whether it passes or fails**, always, with a
+  `-FLAGGED-<reason>` suffix when it missed. Nothing is discarded, ever.
+- The CTO opens frames personally (`video-see.sh screen` → `t1` sheet →
+  full-res on doubt) and checks: duplicate characters, location, camera
+  angle, and anything the prompt explicitly banned that appeared anyway.
+- Duplicates are fixed on sight. Everything else goes to the CEO as a batched
+  question rather than a unilateral fix.
+
+Why: an operator's written review reported four clips clean that were not.
+S8c had two Valders standing side by side; S5 wore a gold V its own prompt
+banned in words. Both survived a green report and neither survives a look.
+
 ## IRON RULE OF PROMPT WRITING — every character appears EXACTLY ONCE
 
 CEO-set 2026-08-30 («ใส่ไว้เป็นกฏเหล็กของการเขียน Prompt เลย») after duplicate
