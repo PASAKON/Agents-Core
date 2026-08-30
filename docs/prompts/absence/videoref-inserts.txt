@@ -5,7 +5,7 @@ workers fire these directly, no more CEO approval per clip)
 HOW TO USE (same every scene):
 1. Upload the scene's MP4 from docs/ (dd it into your session scratchpad
    first if the sandbox refuses the org path): S10-Render.MP4,
-   S12a-Render.MP4, S12b-Render.MP4, S12c-Render.MP4, S5-Render.MP4, S14-Render.MP4.
+   S12a-Render.MP4, S12b-Render.MP4, S12c-Render.MP4, S5-Render.MP4, S14-Render.MP4, S16-Render.MP4.
 2. Attach via + panel → Recent → wait "Checking.." → click tile → "Added to
    prompt box".
 3. Paste the scene's INSERT BLOCK first, then the scene's normal prompt text
@@ -150,4 +150,28 @@ EXACTLY ONCE:
   the registrar — the buyers, planted mid-room
 - the two ochre figures at the far edges = the press, filming
 - the pale figure at the far right edge = Dupe, stopped mid-stroke
+The reference video carries ONLY camera, timing, and positions — NOT style.
+
+===============================================================
+S16 INSERT (use with SCENE 16 text; previz = S16-Render.MP4)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY: ONE locked
+symmetrical wide facing the crack wall, the camera never moves, no cuts.
+
+POSITION MAP — same spots, same paths, same timing, EVERY CHARACTER APPEARS
+EXACTLY ONCE:
+- the MAGENTA figure centred foreground, back to camera, motionless = Valder
+  watching, face never seen
+- the ruled dark SQUARE on the wall around the crack, framed around his
+  silhouette = the cut line; the horizontal bar oscillating across it until
+  15 seconds = the long saw
+- the two SLATE-BLUE figures mirrored left and right of the square = the two
+  workmen sawing
+- the TWO dark figures flanking mid-room = Valder's two guards and no others
+- the seated figure with the boxy chair to one side = the grandmother, the
+  buyer, watching
+- the two ochre figures at the edges = the press, filming the saw
+- the pale figure apart holding the thin stick = Dupe with his mop, not
+  helping
 The reference video carries ONLY camera, timing, and positions — NOT style.
