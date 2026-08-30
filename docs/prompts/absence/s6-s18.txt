@@ -183,7 +183,8 @@ REFERENCES — each with a job:
 @project_absence_char_woman_c — THE PARROT WOMAN: cockatoo-crest of hair banded green, white
   and blue; single saturated green garment with feather-cut panelling.
   Couture, not comic — no beak, no wings, no feathers, nothing costume.
-@project_absence_prop_croc_bag — one genuine deep-burgundy crocodile handbag, in one hand.
+@project_absence_prop_bag_croc — one small deep-burgundy TEXTURED-LEATHER
+  handbag (never name the material), in one hand.
 @gentleman_e — the rival: white English tailoring exactly as his plate shows (CEO 30 Aug: the white suit STAYS), black cane with gold grip, diamond ring, two gold teeth.
 @project_absence_char_valder @project_absence_char_guard_valder_six — standing (he never sits), warm smile. ⚠️ EXACTLY TWO guards, one either side of him like bodyguards — the plate shows six; take the uniform from it, not the count (CEO 2026-08-30).
 @project_absence_char_critic_b — among the guests.
@@ -230,6 +231,16 @@ REFERENCES — each with a job:
 @project_absence_char_critic_b @project_absence_char_cleaner_c — edges.
 
 CEO owns the numbers; he confirmed the parrot woman ends on eighty.
+
+⚠️ COPYRIGHT-SCANNER NOTE (2 consecutive output rejections, 30 Aug — GH
+#125): this scene's dead-frontal close-up singles give the face scanner its
+largest surface, and it trips stochastically on them. Take 3+ MUST carry the
+modified language below (already folded in): both bidders' faces are
+FICTIONAL, and the anti-likeness negatives are load-bearing. If a take with
+this language still rejects TWICE more, stop and escalate to the CTO —
+that points at the plate itself, which is the CEO's call to regenerate.
+BOTH BIDDERS' FACES ARE FICTIONAL INVENTED FACES resembling no real person,
+no actor, no celebrity — stylized retrofuturist film characters.
 
 [0s] The duel begins — each bidder faces almost straight into the lens and
 says ONLY a number, flat, unhurried, one bid every ~2 seconds, metronomic
