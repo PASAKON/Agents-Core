@@ -20,9 +20,14 @@ REFERENCES — each with a job:
   blocks in rust red, burnt orange, ochre, cream, sage green, dusty pink,
   one black wedge. No impasto, no brush texture, no blade-scrape.
 @project_absence_loc_wall_pov_e — THE CRACK'S EXACT SHAPE ONLY (CEO: the
-  crack must carry a real reference). Copy the fracture's shape, length,
-  branches and character from the crack in this plate. Take NOTHING else
-  from it — not its framing, not its veil, not its darkness, not its border.
+  crack must carry a real reference). THE CRACK IS A STAR. Copy it exactly:
+  a small STAR-SHAPED break with an irregular DARK OPENING at its centre
+  where a little plaster has come away, and about FIVE long, thin, clean
+  cracks radiating outward from that centre, unequal in length, each
+  slightly kinked. Few arms, cleanly drawn, plenty of bare wall between
+  them. This star is the film's crack and it appears in every other scene —
+  it must match. Take NOTHING else from the plate — not its framing, not
+  its veil, not its darkness, not its border.
 
 ⚠️ SIZE CONTINUITY (CEO 30 Aug): earlier takes rendered the painting BIGGER
 on the wall than it is in the cart. IT IS THE SAME OBJECT AT THE SAME SIZE
@@ -55,10 +60,11 @@ CLIPS THE BRASS PLAQUE, which tears off the wall and clatters across the
 terrazzo, spinning to a stop. Two sounds: one dry crack of plaster, one
 bright metallic clatter. The instant the painting lands: ONE FAST SNAP ZOOM
 straight to the wall where it hung — THE CRACK, exactly as the reference
-plate draws it: the same single fracture, the same length, the same few
-branches, the same character. NOT a spiderweb, NOT radiating from an impact
-point, NO star pattern, NO crater. Plaster chipped a little at the edges.
-Hold a full beat.
+plate draws it: the small dark star — a broken opening at the centre with
+about five long thin clean arms running out of it, unequal in length,
+slightly kinked, bare white wall showing between them. It is SMALL, about
+the size of a hand on an enormous wall. Plaster chipped a little at the
+edges. Hold a full beat.
 
 [13s] Back in the locked wide: he freezes, looks at the wall, left, right —
 nobody. He picks the painting up and SLOTS IT UPRIGHT INTO THE CART'S RACK,
@@ -71,6 +77,15 @@ plaque lying on the shelf. Hold the symmetrical tableau: a completely BARE
 wall with one small crack, nothing else on it. One beat longer than
 comfortable.
 
+⚠️ HOW TO JUDGE THE CRACK ON REVIEW — this criterion wrongly rejected three
+takes. THE CORRECT CRACK IS A STAR: a dark centre with a FEW (about five)
+long clean arms. That is what the CEO's wall plate shows and what every
+filed keeper already contains. Do NOT reject a take for "being a star" or
+"radiating arms". Reject only for: a dense mesh of many fine lines (a real
+spiderweb), concentric rings, a fracture splitting the wall top to bottom,
+or a hole/crater with rubble. Few clean arms = PASS. Many fine meshed
+lines = FAIL.
+
 AUDIO: room tone, cart wheels, cloth, one dry crack of plaster, one metallic
 clatter, no music.
 
@@ -82,9 +97,12 @@ colour fringing.
 CRITICAL NEGATIVES: no oversized painting, no painting larger than
 shoulder-height on Dupe, no painting dominating the wall, no portrait
 painting, no painting clearly taller than wide, no square canvas, no heavy
-impasto, no brush texture, no blade-scrape, no spiderweb crack, no radiating
-cracks, no star-shaped crack, no impact crater, no multiple separate cracks,
-no invented crack shape (match the reference), no plaque left hanging on the
+impasto, no brush texture, no blade-scrape, no dense spiderweb of fine lines, no
+meshed hairline cracks, no concentric rings, no dozens of small cracks, no
+full-height fracture splitting the wall, no crack running to floor or
+ceiling, no hole, no crater, no rubble, no separate cracks in other places,
+no invented crack shape (match the reference star), no crack bigger than a
+hand, no plaque left hanging on the
 wall at the end, no plaque back on the wall, no painting leaning against the
 wall at the end, no painting on the floor at the end, no Dupe lifting the
 painting off its hook on purpose, no other people, no broken frame, no torn
