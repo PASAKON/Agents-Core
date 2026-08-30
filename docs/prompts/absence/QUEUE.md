@@ -53,6 +53,29 @@
 > unflagged-but-superseded takes also sit in Drive and are not keepers:
 > S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
 
+> # 👥 CAST + HEAD-COUNTS FIXED (CEO 10:10, 30 Aug)
+> «คนที่เดินตาม Valder เข้ามาขอแค่ 2 คนพอ ซ้ายคน ขวาคน แบบบอดี้การ์ด» ·
+> «ผู้ติดตาม Bodyguard ของชายฟันทอง แค่คนเดียวพอ» ·
+> «ตัวละครใส่ให้ครบหน่อยในนี้ REF ไม่ครบเลย»
+> - **Valder has EXACTLY TWO guards**, one at each shoulder. The
+>   `char_guard_valder_six` plate is bound for UNIFORM AND FACES ONLY — take
+>   the look, never the count. Applied to S7 and to every later scene that
+>   binds it (S10, S11, S14, S16).
+> - **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two. Applied
+>   to S6, S7 and S12a.
+> - **Every scene file now opens with a WHO IS IN THE ROOM block.** Any scene
+>   saying "guests", "the crowd", "the bidders" means the FIVE NAMED ARRIVALS
+>   and nobody else — oldman, critic_b, visitor_b, husband, student_c — each
+>   listed with its costume. An unnamed guest is an invented guest.
+> - **S7's references were rebuilt**: the four named arrivals replaced the
+>   generic `char_woman`, landing exactly on the 10-chip budget.
+> - **NEW GAG in S7 [13s]**: the gold tooth throws a cartoon TWINKLE with a
+>   single 'ting', and mirrored in the tooth — curved, doll-sized — is VALDER
+>   WITH HIS TWO GUARDS. Nobody reacts.
+> - ⚠️ S7 take1 is ALREADY a filed keeper, shot before these notes. The
+>   corrected S7 is a RE-SHOOT and goes to the BACK of the queue per the
+>   standing rule «ฉากแก้เอาต่อท้ายเสมอ».
+
 > # 🧱 NO NEW IN-WALL POV PLATES (CEO 04:30, 30 Aug)
 > Verbatim: «ไม่ต้องสร้างภาพมุมมองในกำแพงใหม่นะ ใช้มุมมอง ข้างหน้ากำแพงบ่อยๆ
 > ดีกว่า เรามี ref ที่ใช้งานได้จริง»

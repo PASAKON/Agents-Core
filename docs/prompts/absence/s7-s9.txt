@@ -5,6 +5,35 @@ gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
 loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
 film on this account owns that id; this film's is @project_absence_char_valder.
 
+===============================================================
+WHO IS IN THE ROOM — bind these, never invent (CEO 2026-08-30)
+===============================================================
+CEO: «ตัวละครใส่ให้ครบหน่อยในนี้ REF ไม่ครบเลย». An unnamed guest is an
+invented guest, and the model will happily invent five strangers where the
+film has five specific people.
+
+From S4 onward the room contains THE FIVE WHO ALREADY ARRIVED, and any scene
+that says "guests", "the crowd", "the others", "the bidders" or "the room"
+means THESE PEOPLE and nobody else:
+- @project_absence_char_oldman   — bottle-green leather coat, cream turtleneck, cane (A1)
+- @project_absence_char_critic_b — deep magenta fur, cream gloves, grey bun (A2)
+- @project_absence_char_visitor_b — rust-brown fur coat, shoulder-length brown hair (A3)
+- @project_absence_char_husband  — olive-tan jacket, short grey hair (A3, with her)
+- @project_absence_char_student_c — acid lime-green hair, paint-stained denim (A4/A5)
+Plus, once they enter: @project_absence_char_valder (S7), @gentleman_e
+(S6/S7), @char_registrar (S5), @project_absence_char_visitor_a (the balding
+man in the oxblood leather suit, S4 and S17).
+
+HEAD-COUNTS ARE FIXED (CEO 2026-08-30):
+- **Valder travels with EXACTLY TWO guards**, one at each shoulder like
+  bodyguards. `@project_absence_char_guard_valder_six` is bound for the
+  UNIFORM AND FACES ONLY — its plate shows six; take the look, never the count.
+- **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two.
+
+CHIP BUDGET is about 10. When a scene cannot fit every guest, drop the GENERIC
+ones first (`char_woman`, `char_visitor_c`) and keep the NAMED five — they are
+the continuity. Whoever is not bound must also not be described as present.
+
 **THE ART CRITIC — `char_critic_b` — how she speaks.** She is HALF-CHINESE and
 her face reads Chinese. She speaks English fluently but with a Chinese accent —
 the cadence and vowel shapes of a Chinese speaker using English well. State
@@ -31,20 +60,35 @@ REFERENCES — each with a job:
 @project_absence_char_valder — face, silver hair swept back, small round tinted sunglasses,
   panelled jacket (magenta/yellow/green/blue/red), scarlet waistcoat, purple
   trousers, mustard scarf, mismatched shoes (one green, one oxblood).
-@project_absence_char_guard_valder_six — his six guards, matching uniform, small gold V at cap
-  and chest.
+@project_absence_char_guard_valder_six — THE GUARDS' UNIFORM AND FACES ONLY,
+  matching uniform, small gold V at cap and chest. ⚠️ Take the LOOK from this
+  plate, NOT the head-count: there are EXACTLY TWO of them in this scene.
 @gentleman_e — the elderly gentleman: small, sharp-nosed, white English
   tailoring exactly as his plate shows, black cane with gold grip, diamond
-  ring, TWO GOLD TEETH, two bodyguards behind him.
-@project_absence_char_woman @project_absence_char_critic_b — guests, planted at the frame edges.
+  ring, TWO GOLD TEETH. ONE bodyguard behind him, not two.
+@project_absence_char_critic_b — the critic: deep magenta fur coat, cream
+  gloves, grey bun. Half-Chinese; her face reads Chinese.
+@project_absence_char_oldman — the visitor from A1: bottle-green leather coat,
+  cream turtleneck, cane.
+@project_absence_char_visitor_b — rust-brown fur coat, shoulder-length brown hair.
+@project_absence_char_husband — olive-tan jacket, short grey hair.
+@project_absence_char_student_c — acid lime-green hair, paint-stained denim.
 @project_absence_char_cleaner_c — Dupe, cleaning at the far edge, back to camera.
 
 [0s] THE RED DOOR OPENS DEAD CENTRE AT THE VANISHING POINT. VALDER walks
 straight down the room's centreline TOWARD the camera, which retreats ahead
 of him at exactly his walking pace — waist height, perfectly level, a frontal
-corridor walk. His six guards follow in a symmetrical V formation, three a
-side. Guests stand planted at the frame edges like columns. He looks at none
-of them.
+corridor walk. EXACTLY TWO GUARDS follow him — ONE at his left shoulder, ONE
+at his right, a bodyguard pair walking level with each other. Not six, not a
+V formation: TWO.
+
+⚠️ THE GUESTS AT THE FRAME EDGES ARE THE PEOPLE WHO ALREADY ARRIVED — named
+and bound, never invented extras. Standing planted like columns, each
+unmistakable by costume: the OLD MAN in the bottle-green leather coat with his
+cane, the CRITIC in the deep magenta fur with cream gloves, the WOMAN IN THE
+RUST-BROWN FUR COAT, the HUSBAND in the olive-tan jacket, and the STUDENT with
+acid lime-green hair. Five guests, no more, no strangers among them. Valder
+looks at none of them.
 
 [7s] He stops in front of the gentleman in the white suit; the camera stops
 with him. ONE FAST 90-DEGREE WHIP PAN lands on the gentleman — already
@@ -55,6 +99,16 @@ still warm: "I would have had the room ready for you."
 [13s] The old man smiles — ONE FAST SNAP ZOOM straight to the TWO GOLD TEETH,
 then hold. He does not answer.
 
+⚠️ THE GLINT — this is a JOKE, played absolutely straight (CEO 2026-08-30).
+As the zoom lands, a small bright STAR OF LIGHT flares off one gold tooth with
+a tiny chime — a cartoon twinkle, precise and quick, the sparkle a toothpaste
+advertisement would use, on a face that is not selling anything. And MIRRORED
+IN THE POLISHED GOLD OF THE TOOTH, small but unmistakable: the REFLECTION OF
+VALDER IN HIS PANELLED COAT WITH HIS TWO GUARDS, one either side of him,
+standing exactly where they stand in the room. The reflection is curved and
+doll-sized, as a reflection in a tooth would be. Nobody reacts to the twinkle.
+Hold on it a beat longer than is comfortable.
+
 [16s] Frontal medium two-shot, both men facing camera, symmetrical about the
 axis. Valder sweeps one hand slowly across the whole room WITHOUT turning
 toward the far wall and says, charming: "Then let me show you what you are
@@ -62,7 +116,9 @@ standing in." At the far edge, Dupe cleans with his back to camera — the
 missing painting riding his cart in plain sight, face outward. Nobody looks
 at it. Nobody ever looks at it (CEO, deliberate).
 
-AUDIO: room tone, his footsteps and the guards' in step, no music.
+AUDIO: room tone, his footsteps and the two guards' in step, and ONE tiny
+bright chime on the tooth glint — a single clean 'ting', nothing else. No
+music.
 
 ===============================================================
 SCENE 8a — THE FIRST THREE PIECES

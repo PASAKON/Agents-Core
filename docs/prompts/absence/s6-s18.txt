@@ -1,3 +1,36 @@
+
+
+===============================================================
+WHO IS IN THE ROOM — bind these, never invent (CEO 2026-08-30)
+===============================================================
+CEO: «ตัวละครใส่ให้ครบหน่อยในนี้ REF ไม่ครบเลย». An unnamed guest is an
+invented guest, and the model will happily invent five strangers where the
+film has five specific people.
+
+From S4 onward the room contains THE FIVE WHO ALREADY ARRIVED, and any scene
+that says "guests", "the crowd", "the others", "the bidders" or "the room"
+means THESE PEOPLE and nobody else:
+- @project_absence_char_oldman   — bottle-green leather coat, cream turtleneck, cane (A1)
+- @project_absence_char_critic_b — deep magenta fur, cream gloves, grey bun (A2)
+- @project_absence_char_visitor_b — rust-brown fur coat, shoulder-length brown hair (A3)
+- @project_absence_char_husband  — olive-tan jacket, short grey hair (A3, with her)
+- @project_absence_char_student_c — acid lime-green hair, paint-stained denim (A4/A5)
+Plus, once they enter: @project_absence_char_valder (S7),
+@gentleman_e (S6/S7), @char_registrar (S5), @project_absence_char_visitor_a
+(the balding man in the oxblood leather suit, S4 and S17).
+
+HEAD-COUNTS ARE FIXED (CEO 2026-08-30):
+- **Valder travels with EXACTLY TWO guards**, one at each shoulder like
+  bodyguards. `@project_absence_char_guard_valder_six` is bound for the
+  UNIFORM AND FACES ONLY — its plate shows six; take the look, never the
+  count.
+- **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two.
+
+CHIP BUDGET is about 10. When a scene cannot fit every guest, drop the
+GENERIC ones first (`char_woman`, `char_visitor_c`) and keep the NAMED five —
+they are the continuity. Whoever is not bound must also not be described as
+present in that shot.
+
 ✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
 complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
 Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
@@ -66,7 +99,7 @@ never heavier at the edges, never a dark border.
 
 @project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_student_c @project_absence_char_visitor_a
 @project_absence_char_visitor_b @project_absence_char_husband @gentleman_e — guests: faces, builds, costumes.
-@project_absence_char_guard_private — the personal bodyguards: plain dark suit, hands loose.
+@project_absence_char_guard_private — the gentleman's ONE personal bodyguard: plain dark suit, hands loose. ⚠️ ONE, not two (CEO 2026-08-30).
 @project_absence_char_cleaner_c — Dupe at the frame edge with his cart.
 
 The plaque now reads 20,000,000 — NO dollar sign, no currency symbol; mirrored, a $ reads as a stray digit and corrupts the number.
@@ -101,7 +134,7 @@ REFERENCES — jobs:
 @loc_hall_big_e — the hall from the room side, red door at the vanishing point.
 @gentleman_e — exactly as his plate shows: white English tailoring, black
   cane with gold grip, diamond ring, two gold teeth.
-@project_absence_char_guard_private — his two bodyguards, plain dark suits.
+@project_absence_char_guard_private — his ONE bodyguard, plain dark suit. ⚠️ ONE, not two (CEO 2026-08-30).
 @project_absence_char_oldman @project_absence_char_critic_b
 @project_absence_char_visitor_b @project_absence_char_husband
 @project_absence_char_student_c @project_absence_char_woman — the six
@@ -147,7 +180,7 @@ REFERENCES — each with a job:
   Couture, not comic — no beak, no wings, no feathers, nothing costume.
 @project_absence_prop_croc_bag — one genuine deep-burgundy crocodile handbag, in one hand.
 @gentleman_e — the rival: white English tailoring exactly as his plate shows (CEO 30 Aug: the white suit STAYS), black cane with gold grip, diamond ring, two gold teeth.
-@project_absence_char_valder @project_absence_char_guard_valder_six — standing (he never sits), warm smile.
+@project_absence_char_valder @project_absence_char_guard_valder_six — standing (he never sits), warm smile. ⚠️ EXACTLY TWO guards, one either side of him like bodyguards — the plate shows six; take the uniform from it, not the count (CEO 2026-08-30).
 @project_absence_char_critic_b — among the guests.
 
 [0s] THE RED DOOR OPENS DEAD CENTRE and she enters ON THE AXIS, alone — no
@@ -250,7 +283,7 @@ never heavier at the edges, never a dark border.
 @project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_woman_c
 @project_absence_char_visitor_b @project_absence_char_husband @gentleman_e —
   guests, one saturated colour each.
-@project_absence_char_guard_private @project_absence_char_guard_valder_six — the guards' rank.
+@project_absence_char_guard_private @project_absence_char_guard_valder_six — the guards' rank. ⚠️ EXACTLY TWO guards, one either side of him like bodyguards — the plate shows six; take the uniform from it, not the count (CEO 2026-08-30).
 @project_absence_char_cleaner_c — Dupe, still at the edge, still cleaning.
 
 The plaque now reads 100,000,000 — NO dollar sign, no currency symbol; mirrored, a $ reads as a stray digit and corrupts the number.
@@ -295,7 +328,7 @@ REFERENCES — each with a job:
   WHEELCHAIR — brushed aluminium and cream, big rear wheels, small front
   castors, a pod of chunky physical buttons under her right hand — HERSELF.
 @gentleman_e @project_absence_char_woman_c — the two rivals, planted.
-@project_absence_char_valder @project_absence_char_guard_valder_six — standing, smiling.
+@project_absence_char_valder @project_absence_char_guard_valder_six — standing, smiling. ⚠️ EXACTLY TWO guards, one either side of him like bodyguards — the plate shows six; take the uniform from it, not the count (CEO 2026-08-30).
 @project_absence_char_cleaner_c — Dupe at the edge.
 
 [0s] THE RED DOOR OPENS dead centre at the vanishing point. A beat — the
@@ -524,7 +557,7 @@ REFERENCES — each with a job:
   overalls, no face priority).
 @project_absence_char_valder — CENTRED FOREGROUND, BACK TO CAMERA — a still silhouette.
 @project_absence_char_press_a @project_absence_char_press_b — filming the saw from the edge.
-@project_absence_char_guard_valder_six — keeping a respectful distance from a piece of plaster.
+@project_absence_char_guard_valder_six — keeping a respectful distance from a piece of plaster. ⚠️ EXACTLY TWO guards, one either side of him like bodyguards — the plate shows six; take the uniform from it, not the count (CEO 2026-08-30).
 @project_absence_char_cleaner_c — Dupe apart, holding his mop, not helping.
 @project_absence_char_grandmother — THE BUYER: parked to one side in her
   retrofuturist wheelchair, deep violet, smoked glasses, perfectly still,
