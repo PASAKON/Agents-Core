@@ -82,37 +82,29 @@ ultramarine walls, no blue walls, no wooden floor
 ===============================================================
 SCENE 6 — $20,000,000 · THE SECOND PRICE MARKER
 ===============================================================
-15s · 720p · 16:9 · ONE LOCKED SHOT — the wall-POV frame, the camera never
+15s · 720p · 16:9 · ONE LOCKED SHOT — a locked front-of-wall frame, the camera never
 moves, no cuts. NO DIALOGUE.
 
 REFERENCES — each with a job:
-@project_absence_loc_hall_big_d ⚠️ VIEWPOINT REBALANCE (CEO 17:15): this scene MOVES OFF the in-wall
-  glass POV to the FRONT-OF-WALL angle in HALL D — the richer hall, corridor
-  opening into a wide room, more works on display. The camera now stands IN
-  THE ROOM looking AT the hero wall. Consequence: the brass plaque READS
-  CORRECT-WAY-ROUND, never mirrored — the mirroring hack existed only
-  because we used to be behind the wall. No red door in frame (hall D has
-  none) and none is needed here. — THE FRAME ITSELF, match exactly: the gallery as a BOX with
-  its fourth wall removed, camera slightly elevated and DEAD-ON, looking into
-  the open room. The CRACK floats in the near plane across the missing wall,
-  large and unmistakable; the brass plaque sits low in the near plane
-  MIRROR-REVERSED; the red door is dead centre in the far wall. People stand
-  INSIDE the box FACING CAMERA — they are looking at the wall, and the wall
-  is where we are.
-
-THE VEIL — WE ARE STANDING INSIDE THE WALL. The whole frame carries a slight
-darkness, as though seen through a thin dark veil: everything dimmed a little,
-contrast eased, blacks lifted, colours very slightly muted. The room stays
-fully readable through it. This is NOT a mood grade and NOT a vignette — it is
-the wall itself, between us and them. Keep it even across the whole frame,
-never heavier at the edges, never a dark border.
-
+@project_absence_loc_hall_big_d — THE FRAME ITSELF, match exactly. ⚠️
+  VIEWPOINT REBALANCE (CEO 17:15): this scene is NO LONGER the in-wall glass
+  POV. The camera stands IN THE ROOM, on the axis, slightly elevated and
+  DEAD-ON, LOOKING AT THE HERO WALL — hall D, the richer hall: a corridor
+  opening into a wide room, more works on display, detailed artworks along
+  both side walls. The CRACK and the BRASS PLAQUE are on that far wall,
+  small and centred, with the guests standing in front of it with their
+  BACKS AND THREE-QUARTER PROFILES to camera — we watch the room watching
+  the wall. No red door in frame; hall D has none and none is needed.
+  THE PLAQUE READS CORRECT-WAY-ROUND — never mirrored. The mirroring existed
+  only because we used to stand behind the wall; from the room side the
+  lettering is simply the right way round. NO VEIL, no dark scrim, no
+  vignette — that darkness belonged to the wall we are no longer inside.
 @project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_student_c @project_absence_char_visitor_a
 @project_absence_char_visitor_b @project_absence_char_husband @gentleman_e — guests: faces, builds, costumes.
 @project_absence_char_guard_private — the gentleman's ONE personal bodyguard: plain dark suit, hands loose. ⚠️ ONE, not two (CEO 2026-08-30).
 @project_absence_char_cleaner_c — Dupe at the frame edge with his cart.
 
-The plaque now reads 20,000,000 — NO dollar sign, no currency symbol; mirrored, a $ reads as a stray digit and corrupts the number.
+The plaque now reads 20,000,000 — NO dollar sign, no currency symbol.
 
 [0s] The locked wall-POV frame. The room fuller and richer than S4: twelve to
 fourteen people, heavier coats, better cut, one saturated colour each,
@@ -283,37 +275,26 @@ MINUTES AFTER THE HAMMER (CEO order: S12 → P3 → this scene). The
 hundred-million sale broke instantly as news, and the world has just arrived.
 
 REFERENCES — each with a job:
-@project_absence_loc_hall_big_d ⚠️ VIEWPOINT REBALANCE (CEO 17:15): this scene MOVES OFF the in-wall
-  glass POV to the FRONT-OF-WALL angle in HALL D — the richer hall, corridor
-  opening into a wide room, more works on display. The camera now stands IN
-  THE ROOM looking AT the hero wall. Consequence: the brass plaque READS
-  CORRECT-WAY-ROUND, never mirrored — the mirroring hack existed only
-  because we used to be behind the wall. No red door in frame (hall D has
-  none) and none is needed here. — THE FRAME ITSELF, match exactly: the gallery as a BOX with
-  its fourth wall removed, camera slightly elevated and DEAD-ON, looking into
-  the open room. The CRACK floats in the near plane across the missing wall,
-  large and unmistakable; the brass plaque sits low in the near plane
-  MIRROR-REVERSED; the red door is dead centre in the far wall. People stand
-  INSIDE the box FACING CAMERA — they are looking at the wall, and the wall
-  is where we are.
-
-THE VEIL — WE ARE STANDING INSIDE THE WALL. The whole frame carries a slight
-darkness, as though seen through a thin dark veil: everything dimmed a little,
-contrast eased, blacks lifted, colours very slightly muted. The room stays
-fully readable through it. This is NOT a mood grade and NOT a vignette — it is
-the wall itself, between us and them. Keep it even across the whole frame,
-never heavier at the edges, never a dark border.
-
-@project_absence_char_press_a @project_absence_char_press_b — two journalists with a single shoulder-mounted
-  retrofuturist film camera, filming the crack directly, at the two frame
-  edges like bookends.
+@project_absence_loc_hall_big_d — THE FRAME ITSELF, match exactly. ⚠️
+  VIEWPOINT REBALANCE (CEO 17:15): this scene is NO LONGER the in-wall glass
+  POV. The camera stands IN THE ROOM, on the axis, slightly elevated and
+  DEAD-ON, LOOKING AT THE HERO WALL — hall D, the richer hall: a corridor
+  opening into a wide room, more works on display, detailed artworks along
+  both side walls. The CRACK and the BRASS PLAQUE are on that far wall,
+  small and centred, with the guests standing in front of it with their
+  BACKS AND THREE-QUARTER PROFILES to camera — we watch the room watching
+  the wall. No red door in frame; hall D has none and none is needed.
+  THE PLAQUE READS CORRECT-WAY-ROUND — never mirrored. The mirroring existed
+  only because we used to stand behind the wall; from the room side the
+  lettering is simply the right way round. NO VEIL, no dark scrim, no
+  vignette — that darkness belonged to the wall we are no longer inside.
 @project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_woman_c
 @project_absence_char_visitor_b @project_absence_char_husband @gentleman_e —
   guests, one saturated colour each.
 @project_absence_char_guard_private @project_absence_char_guard_valder_six — the guards' rank. ⚠️ EXACTLY TWO guards, one either side of him like bodyguards — the plate shows six; take the uniform from it, not the count (CEO 2026-08-30).
 @project_absence_char_cleaner_c — Dupe, still at the edge, still cleaning.
 
-The plaque now reads 100,000,000 — NO dollar sign, no currency symbol; mirrored, a $ reads as a stray digit and corrupts the number.
+The plaque now reads 100,000,000 — NO dollar sign, no currency symbol.
 
 [0s] The locked wall-POV frame at its peak — the room has stopped being a
 gallery. THREE EXACT RANKS facing camera: guests in front, personal guards

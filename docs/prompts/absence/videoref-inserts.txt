@@ -5,7 +5,7 @@ workers fire these directly, no more CEO approval per clip)
 HOW TO USE (same every scene):
 1. Upload the scene's MP4 from docs/ (dd it into your session scratchpad
    first if the sandbox refuses the org path): S10-Render.MP4,
-   S12a-Render.MP4, S12b-Render.MP4, S12c-Render.MP4, S5-Render.MP4, S14-Render.MP4, S16-Render.MP4.
+   S12a-Render.MP4, S12b-Render.MP4, S12c-Render.MP4, S5-Render.MP4, S14-Render.MP4, S16-Render.MP4, S6-Render.MP4, S11-Render.MP4.
 2. Attach via + panel → Recent → wait "Checking.." → click tile → "Added to
    prompt box".
 3. Paste the scene's INSERT BLOCK first, then the scene's normal prompt text
@@ -174,4 +174,44 @@ EXACTLY ONCE:
 - the two ochre figures at the edges = the press, filming the saw
 - the pale figure apart holding the thin stick = Dupe with his mop, not
   helping
+The reference video carries ONLY camera, timing, and positions — NOT style.
+
+===============================================================
+S6 INSERT (use with SCENE 6 text; previz = S6-Render.MP4 · 15s)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY: ONE locked
+front-of-wall frame in the wide hall, slightly elevated, dead-on the hero
+wall, the camera never moves, no cuts, 15 seconds.
+
+POSITION MAP — same spots, EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the row of SATURATED-COLOUR figures across frame, backs and three-quarter
+  profiles to camera, facing the wall = the guests, one colour each,
+  alternating warm and cool
+- the row of DARK figures standing directly behind them, one per guest =
+  each guest's personal bodyguard, a precise second rank
+- the WHITE figure at the left end with a single dark figure behind him =
+  the gentleman and his ONE bodyguard
+- the small dark STAR on the wall above them = the crack; the plaque sits
+  below it and READS CORRECT-WAY-ROUND, never mirrored
+- the pale figure with the box at the far left edge = Dupe with his cart
+The reference video carries ONLY camera, timing, and positions — NOT style.
+
+===============================================================
+S11 INSERT (use with SCENE 11 text; previz = S11-Render.MP4)
+===============================================================
+@Video 1 is the CAMERA AND BLOCKING REFERENCE for this entire shot — a gray
+previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY: ONE locked
+front-of-wall frame in the wide hall, slightly elevated, dead-on the hero
+wall, the camera never moves, no cuts.
+
+POSITION MAP — same spots, EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the same two ranks as S6, now DEEPER and fuller: saturated-colour guests
+  in front, a dark bodyguard behind each one
+- the MAGENTA figure standing dead centre among them = Valder, with his TWO
+  guards flanking him and no others
+- the two OCHRE figures at the far left and right edges = the press, filming
+- the small dark STAR on the wall = the crack; the plaque below it reads
+  100,000,000 CORRECT-WAY-ROUND, never mirrored, no currency symbol
+- the pale figure with the box at the left edge = Dupe with his cart
 The reference video carries ONLY camera, timing, and positions — NOT style.
