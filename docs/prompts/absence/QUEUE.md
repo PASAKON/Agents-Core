@@ -53,6 +53,17 @@
 > unflagged-but-superseded takes also sit in Drive and are not keepers:
 > S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
 
+> # 🗂 REGISTRAR ID CHANGED (CEO 17:05, 30 Aug)
+> **`@project_absence_char_registrar_b` is the ONLY registrar id now.** The
+> bare `@char_registrar` is RETIRED — never write it again. Every prompt file
+> was swept and updated (11 files); the old "bind FACE ONLY until
+> char_registrar_b exists" instruction is gone because the plate now exists
+> and carries the full look: formal BLACK suit, WHITE GLOVES, small GOLD V,
+> brass-cornered ledger. Bind the new plate whole.
+> He is both the price-knocker (his ledger-close is the film's only gavel)
+> and the plaque-changer — one man, both duties. Appears in S5, S12c, S14,
+> S16 and the P-series plaque inserts.
+
 > # ⚔️ IRON RULE — EVERY CHARACTER APPEARS EXACTLY ONCE (CEO 13:15, 30 Aug)
 > «หลายซีน Character ออกมาซ้ำ — ใส่ไว้เป็นกฏเหล็กของการเขียน Prompt เลย»
 > Every prompt carries both halves: counts stated in the beats ("his TWO
@@ -191,10 +202,10 @@
 > - **THE REGISTRAR is recostumed: FORMAL BLACK suit** — sober, immaculate —
 >   with **WHITE GLOVES** and the **small GOLD V** at the chest, ledger as
 >   always. He is the price-knocker AND the plaque-changer, one man. Bind
->   `@char_registrar` FACE ONLY + state the black suit in text until
+>   `@project_absence_char_registrar_b` FACE ONLY + state the black suit in text until
 >   `char_registrar_b` exists.
 > - **IMAGE LANE'S JOB CHANGES: generate `char_registrar_b`** — 4-panel
->   character sheet, SAME FACE as `@char_registrar` (bind it), formal black
+>   character sheet, SAME FACE as `@project_absence_char_registrar_b` (bind it), formal black
 >   suit, white gloves, gold V at chest, brass-cornered ledger in hand in one
 >   panel, ONE face, 16:9 2K, id BY HAND `char_registrar_b`.
 > - ⚠️ S15a/S15b keepers show the registrar in the old ivory livery — accepted
@@ -511,7 +522,7 @@
 > tag and a reference that never binds.
 >
 > CONFIRMED LIVE (operator read them off the Elements panel):
-> - bare: `@char_registrar` · `@loc_wall_pov_e` · `@loc_hall_big_e` ·
+> - bare: `@project_absence_char_registrar_b` · `@loc_wall_pov_e` · `@loc_hall_big_e` ·
 >   `@prop_cart_b` · `@gentleman_e`  ← note: NO `char_` on this one
 > - prefixed: `@project_absence_char_cleaner_c` ·
 >   `@project_absence_char_valder` · `@project_absence_char_grandmother` ·
@@ -540,7 +551,7 @@
 > short form; always the full confirmed id below.
 >
 > **BARE (no `project_absence_` prefix) — 8, all confirmed live:**
-> `@char_registrar` · `@gentleman_e` · `@char_gentleman_c` ·
+> `@project_absence_char_registrar_b` · `@gentleman_e` · `@char_gentleman_c` ·
 > `@loc_wall_pov_e` · `@loc_wall_pov_d` · `@loc_hall_big_e` ·
 > `@loc_mansion_b` · `@prop_cart_b`
 >

@@ -1,5 +1,5 @@
 ✅ MENTIONS ARE THE EXACT LIVE ELEMENT IDS. PASTE VERBATIM — do not "fix" them.
-Most carry a `project_absence_` prefix; the bare ones are char_registrar,
+Most carry a `project_absence_` prefix; the bare ones are
 gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
 loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
 film on this account owns that id; this film's is @project_absence_char_valder.

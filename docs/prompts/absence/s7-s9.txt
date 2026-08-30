@@ -1,7 +1,6 @@
 ✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
 complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
-Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
-gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
+Most carry a `project_absence_` prefix; exactly seven are bare: gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
 loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
 film on this account owns that id; this film's is @project_absence_char_valder.
 
@@ -21,7 +20,7 @@ means THESE PEOPLE and nobody else:
 - @project_absence_char_husband  — olive-tan jacket, short grey hair (A3, with her)
 - @project_absence_char_student_c — acid lime-green hair, paint-stained denim (A4/A5)
 Plus, once they enter: @project_absence_char_valder (S7), @gentleman_e
-(S6/S7), @char_registrar (S5), @project_absence_char_visitor_a (the balding
+(S6/S7), @project_absence_char_registrar_b (S5), @project_absence_char_visitor_a (the balding
 man in the oxblood leather suit, S4 and S17).
 
 HEAD-COUNTS ARE FIXED (CEO 2026-08-30):

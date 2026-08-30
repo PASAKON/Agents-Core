@@ -16,7 +16,7 @@ means THESE PEOPLE and nobody else:
 - @project_absence_char_husband  — olive-tan jacket, short grey hair (A3, with her)
 - @project_absence_char_student_c — acid lime-green hair, paint-stained denim (A4/A5)
 Plus, once they enter: @project_absence_char_valder (S7),
-@gentleman_e (S6/S7), @char_registrar (S5), @project_absence_char_visitor_a
+@gentleman_e (S6/S7), @project_absence_char_registrar_b (S5), @project_absence_char_visitor_a
 (the balding man in the oxblood leather suit, S4 and S17).
 
 HEAD-COUNTS ARE FIXED (CEO 2026-08-30):
@@ -38,8 +38,7 @@ present in that shot.
 
 ✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
 complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
-Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
-gentleman_e, char_gentleman_c, project_absence_loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
+Most carry a `project_absence_` prefix; exactly seven are bare: gentleman_e, char_gentleman_c, project_absence_loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
 loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
 film on this account owns that id; this film's is @project_absence_char_valder.
 
@@ -130,7 +129,7 @@ REFERENCES — each with a job:
 @project_absence_char_woman — COLLECTOR A, the woman in cobalt: tall, sculptural crest of
   hair, cat-eye sunglasses worn indoors, one saturated cobalt garment. She
   speaks.
-@char_registrar — the museum's official: composed man. ⚠️ FORMAL BLACK suit — sober, immaculate, undertaker-clean (CEO 30 Aug). WHITE GLOVES. Small GOLD V at the chest. The brass-cornered ledger. He is the man who KNOCKS THE PRICE (his ledger-close is the film's only gavel) and the man who CHANGES THE PLAQUE — one person, both duties. Bind the plate for FACE ONLY until char_registrar_b exists. He debuts here. No words.
+@project_absence_char_registrar_b — the museum's official: composed man. ⚠️ FORMAL BLACK suit — sober, immaculate, undertaker-clean (CEO 30 Aug). WHITE GLOVES. Small GOLD V at the chest. The brass-cornered ledger. He is the man who KNOCKS THE PRICE (his ledger-close is the film's only gavel) and the man who CHANGES THE PLAQUE — one person, both duties. He debuts here. No words.
 @project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_student_c @project_absence_char_visitor_a @project_absence_char_visitor_b
   — the rest of the group, standing loosely, listening.
 @project_absence_char_cleaner_c — Dupe, mopping near the back wall.
