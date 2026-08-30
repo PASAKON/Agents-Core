@@ -35,7 +35,11 @@ STALL_AFTER_S = 30 * 60
 # dead, and jobs whose unit of work outlasts STALL_AFTER_S (a Higgsfield
 # render is 26-30min) are silent by design. A live process gets this long
 # before it is reaped anyway, so a wedged one is still collected.
-STALL_ALIVE_AFTER_S = 90 * 60
+# 150 min, was 90: a single Higgsfield render measured 80+ min on 2026-08-30
+# (S8b), and a worker mid-poll writes no DB checkpoint, so the live ceiling
+# reaped a healthy worker mid-queue. The ceiling must exceed the longest
+# normal unit of silent work, not the average one.
+STALL_ALIVE_AFTER_S = 150 * 60
 INTERVAL_S = 300
 
 # Layer 2 floor (task-78ab64ba): a DEV whose task reached review/done but
