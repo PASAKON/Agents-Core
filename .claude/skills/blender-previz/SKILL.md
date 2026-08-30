@@ -114,12 +114,31 @@ placing hero geometry).
    structural read (expect `FROZEN` flags at hold beats — proxies have no
    idle animation; that is normal, not a defect).
 
+## Two rendering traps measured 2026-08-30 (S12a build)
+
+- **Never re-key an object that already has animation from an earlier bridge
+  call — rebuild it fresh.** `animation_data_clear()` + new keys on an
+  existing object produced a scene where `frame_set` + `matrix_world`
+  evaluated CORRECTLY in the bridge, but every render (write_still AND the
+  animation playblast) drew the OLD pose — Blender 5's slotted actions plus
+  the never-redrawn viewport hold stale state, and even explicitly assigning
+  `animation_data.action_slot` did not fix the draw. Objects created AND
+  keyed inside the same script render correctly every time. So: each scene
+  script deletes its animated actors and recreates them; only dead
+  architecture (walls, columns, crack) is safe to reuse across scripts.
+- **The default Cube comes back after every Blender restart** (fresh startup
+  scene) and photobombs dead centre of the master. Remove `Cube` and `Light`
+  at the top of every build script, not once per session.
+
 ## The verification discipline (non-negotiable)
 
 v1 shipped with three wrong things the structural check could not see. So:
-**before ANY MP4 leaves the machine, render stills at the story beats**
-(start / after-pan / after-zoom), scp them back, and LOOK at them yourself
-with Read. Claiming a camera does X without having seen a frame is how you
+**verify from the MP4's OWN FRAMES, not from viewport stills** — playblast,
+mux, then `ffmpeg -ss <t> -i file.MP4 -frames:v 1 chk.png` at each story
+beat, scp back, and LOOK at them yourself with Read. A viewport still can
+disagree with both the depsgraph and the final movie (see the re-key trap
+above); frames extracted from the muxed MP4 are the ground truth of what
+the CEO will actually receive. Claiming a camera does X without having seen a frame is how you
 send the CEO a film of the wrong wall. Only after the stills match the text
 do you playblast, mux, and deliver via `mcp__org__send_media_to_ceo`.
 
