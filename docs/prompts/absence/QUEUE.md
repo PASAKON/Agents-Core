@@ -1,3 +1,29 @@
+> # 🎥 MORE FOOTAGE IS THE GOAL — A BAD TAKE IS NOT A FAILURE (CEO 07:55, 30 Aug)
+> Verbatim: «Footage มากที่สุด = ดีที่สุด» and «Generate เสียไม่ใช่ความผิด
+> เก็บไว้ใน Drive ทุกคลิป ใช้ได้แม้ทำพลาด»
+>
+> **This changes what the operator does after a review.** Until now a take that
+> missed its spec triggered a re-fire, and the slot went back over ground it had
+> already covered. It does not any more:
+> - **KEEP EVERY CLIP. File all of them in Drive**, flawed ones included. A
+>   clip that missed its spec is still usable footage — the editor may want it,
+>   and the CEO decides that, not the reviewer.
+> - **A flag is a LABEL, not a rejection.** Keep writing the descriptive suffix
+>   (`-FLAGGED-duplicate-cleaner`) so the editor knows what is in the clip.
+>   It does NOT mean "throw away" and it does NOT mean "shoot it again".
+> - **DO NOT re-fire a scene just because a take missed.** File it, say what
+>   you saw, and move to the NEXT UNSHOT SCENE. Breadth beats polish: a scene
+>   with one imperfect take is worth more than a scene with none.
+> - **Re-shoot only when the CEO asks for one**, or when a take is literally
+>   unusable (black frame, wrong film, no output). Everything else goes in the
+>   can and the queue keeps moving.
+> - The point of the review stays: WATCH every clip and REPORT what is in it
+>   accurately, so the CEO can choose. Reviewing is labelling now, not gating.
+>
+> **Consequence for the schedule:** the ~1.6-takes-per-scene grind is gone, so
+> the 19 remaining story clips cost ~19 renders instead of ~30. That is what
+> makes the full scope reachable before Monday with the extras still in.
+
 > # 💽 VERIFIED KEEPER LEDGER (CTO audited Drive directly, 07:45 30 Aug)
 > Counted from Drive itself, not from memory. **19 keepers.** A scene listed
 > here is SHOT — do not re-fire it as if it were new; any improvement to it is
