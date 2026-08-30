@@ -322,11 +322,17 @@ CEO 12:50: «20วิแรก ยายมาไม่ถึงซักที 
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall, red door at the vanishing point.
-@project_absence_char_grandmother — deep violet cloth over head and
-  shoulders, plain long coat, LARGE DARK RECTANGULAR SMOKED GLASSES. No
-  jewellery, no fur, no gold. She drives a RETROFUTURIST ELECTRIC WHEELCHAIR
-  — brushed aluminium and cream, big rear wheels, small front castors, a
-  pod of chunky buttons under her right hand — HERSELF.
+@project_absence_char_grandmother — RE-POINTED 30 Aug to the knitted
+  grandmother (bind = source of truth for face AND costume): pale gray
+  knitted headscarf tied under the chin, layered pale-gray knit cardigan
+  over a knitted button vest, long beige knitted dress with ribbed hem,
+  worn brown leather ankle boots, big soft patchwork knitted bag on her
+  lap. Muted palette — soft grays, oatmeal beige. NO smoked glasses, her
+  eyes are visible: calm, level, unimpressed. She drives an OLD
+  RETROFUTURIST ELECTRIC WHEELCHAIR — dull cream and gray-green enamel,
+  scuffed, dented, big rear wheels, small front castors, boxy motor under
+  the seat, chunky physical-button control pod under her RIGHT hand, no
+  screens, no joystick. It rattles and whines when it moves — HERSELF.
 @gentleman_e @project_absence_char_woman_c — planted among the viewers.
 @project_absence_char_valder @project_absence_char_guard_valder_six —
   standing, smiling. ⚠️ EXACTLY TWO guards, one either side of him.
@@ -362,8 +368,8 @@ wheel squeak; room tone of a full room. No music, no dialogue.
 
 CRITICAL NEGATIVES: no stage directions spoken aloud, no narration, no
 dialogue, no one helping her, no one pushing the chair, no nurse or carer,
-no joystick, no jewellery or fur or gold on her, no black as her main
-colour, no one standing in the centre aisle, no one beside her, no crowd
+no joystick, no jewellery or fur or gold on her, no violet, no smoked glasses or
+sunglasses on her, no shiny new wheelchair, no one standing in the centre aisle, no one beside her, no crowd
 beyond sixteen people, no camera movement inside any cut. + house negatives.
 
 ===============================================================
@@ -384,7 +390,8 @@ dragging whine grow slowly louder. Nobody turns yet.
 
 [5s] The crowd begins to PART — slowly, awkwardly, person by person, a
 reluctant Red Sea opening down the exact centre. Through the widening gap:
-the violet grandmother, crawling forward at her impossible pace.
+the knitted grandmother in her gray headscarf, crawling forward at her
+impossible pace.
 
 [13s] She rolls through the parted middle past all of them and STOPS in
 front of the crack. She looks at it. Nobody speaks.
@@ -605,7 +612,8 @@ REFERENCES — each with a job:
 @project_absence_char_guard_valder_six — keeping a respectful distance from a piece of plaster. ⚠️ EXACTLY TWO guards, one either side of him like bodyguards — the plate shows six; take the uniform from it, not the count (CEO 2026-08-30).
 @project_absence_char_cleaner_c — Dupe apart, holding his mop, not helping.
 @project_absence_char_grandmother — THE BUYER: parked to one side in her
-  retrofuturist wheelchair, deep violet, smoked glasses, perfectly still,
+  old rattling wheelchair, gray knitted headscarf and layered knits,
+  eyes visible and unreadable anyway, perfectly still,
   watching her wall being cut free. She bought it; she waits for it.
 
 [0s] Locked symmetrical wide: a square line ruled around the crack sits dead
