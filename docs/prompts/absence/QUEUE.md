@@ -65,14 +65,22 @@
 >   shoots it WITH this ref: bind the normal S7 Elements + corrected text
 >   (TWO guards · ONE bodyguard · gold-tooth GLINT gag · WHO IS IN THE ROOM
 >   block), AND attach the MP4 as the video/motion input.
-> - **HOW (untested — nobody has attached a video ref yet):** look for the
->   composer's video-input / start-frame attach control (the Video tab's
->   input-source slot, or the paperclip/upload in the composer). Use
->   `mcp__claude-in-chrome__file_upload` aimed at the real `<input type=file>`
->   ref — never a blind click (native OS picker is unobservable). Verify a
->   video thumbnail chip appears in the composer before Generate.
-> - **If the composer refuses a video** in this mode: report back — do NOT
->   improvise frame-extraction as image refs without a CTO/CEO call.
+> - **HOW — CEO's own method (12:15, 30 Aug), use exactly this:**
+>   1. **Drag-and-drop the MP4 onto the Seedance 2.5 PROMPT BOX** (the same
+>      box you paste prompts into). It uploads into the project and becomes a
+>      referenceable item.
+>   2. **In the prompt text, reference it as `@Video 1`** — same mention
+>      mechanics as Element chips. Verify the mention resolves to a chip, the
+>      same check as every other mention.
+>   3. **Element chips stay exactly as normal** alongside it — the video
+>      carries the CAMERA, the Elements carry faces/costumes/location.
+>   For an automated operator, the drop can be done with
+>   `mcp__claude-in-chrome__file_upload` on the composer's file input if
+>   drag-and-drop is awkward — the outcome to verify is the same: a video
+>   chip/thumbnail present, `@Video 1` resolving in the prompt.
+> - **If `@Video 1` does not resolve** or the box rejects the file: report
+>   back — do NOT improvise frame-extraction as image refs without a CTO/CEO
+>   call.
 > - Money rules unchanged: Unlimited $0 check before the click, one gen at a
 >   time, never Rerun.
 
