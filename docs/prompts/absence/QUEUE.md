@@ -12,8 +12,13 @@
 > **In flight:** S4 take2 (take1 `180f1c5a` flagged — Dupe rendered twice).
 >
 > ⚠️ **S17 ALREADY HAS A CLEAN KEEPER.** Its entry at the back of the queue
-> is an UPGRADE re-fire, not a missing scene. If the clock runs short, S17 is
-> already covered and can be dropped from the remaining work entirely.
+> is an UPGRADE re-fire, not a missing scene.
+> ✅ **CEO 07:55, 30 Aug: NOTHING IS CUT. Full scope stands** — all 19
+> remaining story clips plus every extra (S1C/S1F, X1–X8, P1–P3, D1–D5,
+> DH1–DH4). The CTO offered a scope cut and the CEO declined it. Shoot the
+> queue as written, in order; do not skip S17 or any back-of-queue item on
+> your own judgement. If the clock actually runs out, that is a call for the
+> CEO to make, not the operator.
 >
 > ⚠️ **Ignore the old lowercase files** in Drive — `absence-s3-the-
 > interpretations`, `absence-s4-two-million`, `absence-s9-dupe-hears-it`,
