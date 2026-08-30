@@ -158,6 +158,16 @@ Rules:
 ห้ามยิง OSC 0 ตั้ง title เอง — มันเซ็ตทั้งสองชั้นพร้อมกัน Main จะโดนทับหาย
 (Sub ใช้ OSC 1, Main ใช้ OSC 2 — ดู `tools/maintab.py`)
 
+### Claude session name = ชั้นที่สาม (app มือถือเห็น)
+
+ชื่อ Claude session (Remote Control list) ผูกกับ charter เดียวกัน:
+`/session-open` จะรัน `scripts/session-rename.sh` ตั้งเป็น
+`<เครื่อง> <ROLE> #<id> (<หัวข้อ>)` ให้อัตโนมัติ — ไม่ต้องสั่งเพิ่ม
+**แต่ทุกครั้งที่ resume** launcher จะประทับชื่อใหม่แบบไม่มีหัวข้อทับของเดิม
+ดังนั้นเมื่อกลับมาทำงานต่อโดยไม่ charter ใหม่ ให้รัน
+`bash scripts/session-rename.sh "<หัวข้อปัจจุบัน>"` เองหนึ่งครั้งทันทีที่รู้ว่า
+session นี้ทำเรื่องอะไร (และรันซ้ำเมื่อหัวข้อหลักเปลี่ยนกลางคัน)
+
 ## Your model tier
 
 Default: **Sonnet 5 @ effort: xhigh**. Escalate to **Opus 5 @ effort:
