@@ -86,7 +86,13 @@ SCENE 6 — $20,000,000 · THE SECOND PRICE MARKER
 moves, no cuts. NO DIALOGUE.
 
 REFERENCES — each with a job:
-@project_absence_loc_wall_pov_e — THE FRAME ITSELF, match exactly: the gallery as a BOX with
+@project_absence_loc_hall_big_d ⚠️ VIEWPOINT REBALANCE (CEO 17:15): this scene MOVES OFF the in-wall
+  glass POV to the FRONT-OF-WALL angle in HALL D — the richer hall, corridor
+  opening into a wide room, more works on display. The camera now stands IN
+  THE ROOM looking AT the hero wall. Consequence: the brass plaque READS
+  CORRECT-WAY-ROUND, never mirrored — the mirroring hack existed only
+  because we used to be behind the wall. No red door in frame (hall D has
+  none) and none is needed here. — THE FRAME ITSELF, match exactly: the gallery as a BOX with
   its fourth wall removed, camera slightly elevated and DEAD-ON, looking into
   the open room. The CRACK floats in the near plane across the missing wall,
   large and unmistakable; the brass plaque sits low in the near plane
@@ -220,7 +226,7 @@ identical framing for both bidders — the symmetry IS the duel. No camera
 movement inside any setup.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall.
+@project_absence_loc_hall_big_d — the hall.
 @gentleman_e — bidder one: frontal single, dead centre, gold teeth, white suit. His small mahogany auction desk from S6b stands beside him — it is HIS furniture, not a podium; allowed.
 @project_absence_char_woman_c — bidder two: frontal single, dead centre, identical framing.
 @project_absence_char_registrar_b — locked side profile at the frame edge, writing each number
@@ -277,7 +283,13 @@ MINUTES AFTER THE HAMMER (CEO order: S12 → P3 → this scene). The
 hundred-million sale broke instantly as news, and the world has just arrived.
 
 REFERENCES — each with a job:
-@project_absence_loc_wall_pov_e — THE FRAME ITSELF, match exactly: the gallery as a BOX with
+@project_absence_loc_hall_big_d ⚠️ VIEWPOINT REBALANCE (CEO 17:15): this scene MOVES OFF the in-wall
+  glass POV to the FRONT-OF-WALL angle in HALL D — the richer hall, corridor
+  opening into a wide room, more works on display. The camera now stands IN
+  THE ROOM looking AT the hero wall. Consequence: the brass plaque READS
+  CORRECT-WAY-ROUND, never mirrored — the mirroring hack existed only
+  because we used to be behind the wall. No red door in frame (hall D has
+  none) and none is needed here. — THE FRAME ITSELF, match exactly: the gallery as a BOX with
   its fourth wall removed, camera slightly elevated and DEAD-ON, looking into
   the open room. The CRACK floats in the near plane across the missing wall,
   large and unmistakable; the brass plaque sits low in the near plane
@@ -468,7 +480,7 @@ CEO wrote this beat himself: Valder screams at the top of his voice, the
 workman is so startled he drops the plaster.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall, the crack and plaque on the axis.
+@project_absence_loc_hall_big_d — the hall, the crack and plaque on the axis.
 @project_absence_char_workman — slate-blue overalls, bucket and float, at the wall.
 @project_absence_char_valder — panelled jacket. THE ONLY MOMENT IN THE FILM THE SMILE IS
   GONE.
@@ -619,7 +631,7 @@ SCENE 16 — THEY SAW THE WALL OUT
 cuts. NO DIALOGUE.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall, later.
+@project_absence_loc_hall_big_d — the hall, later.
 @project_absence_char_workman — one of the two workmen (the other matches him in plain
   overalls, no face priority).
 @project_absence_char_valder — CENTRED FOREGROUND, BACK TO CAMERA — a still silhouette.

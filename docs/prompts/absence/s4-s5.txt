@@ -124,8 +124,13 @@ begins ONE slow push-in straight down the axis and nothing else, no cuts.
 Sound On · High.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall from the visitors' side, crack and plaque on the
-  far wall on the axis.
+@project_absence_loc_hall_big_d — the hall from the visitors' side, crack and
+  plaque on the far wall on the axis. ⚠️ LOCATION CHANGE (CEO 17:10): this
+  scene uses HALL D, not hall E. D is the richer hall — a corridor opening
+  into a wide room, more works on display, more detailed artworks — and its
+  only difference from E is that it has no red door, which does not matter
+  here because the camera faces the CRACK WALL and the door would be behind
+  it. Take the fuller artwork dressing from this plate.
 @project_absence_char_woman — COLLECTOR A, the woman in cobalt: tall, sculptural crest of
   hair, cat-eye sunglasses worn indoors, one saturated cobalt garment. She
   speaks.
