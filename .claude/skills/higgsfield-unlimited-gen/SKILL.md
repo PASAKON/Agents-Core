@@ -494,6 +494,25 @@ guessed.
 7. Everything else is unchanged: Unlimited $0 zoom-check before Generate, one
    generation at a time, never Rerun.
 
+**PROMPT AUTHORING FOR A VIDEO REF (CEO rules, 2026-08-30):** the prompt must
+do three jobs, in this order, or the model randomises:
+1. **Describe the video's camera in words too** — beat-for-beat with
+   timestamps, ending "No other camera movement exists in this shot." The
+   chip alone is not enough; the text tells the model what to copy from it.
+2. **POSITION MAP every figure** — one line per proxy: what it looks like in
+   the video (colour + floating label) = which Element replaces it. A proxy
+   without a mapping line is a slot the model fills with a stranger.
+3. **Declare the ref camera-only**: "@Video 1 carries ONLY camera path,
+   timing, and positions. It is NOT a style reference" — then restate grade/
+   light/texture from the film's standard block. Otherwise the gray previz
+   look bleeds into the render.
+The character prompt itself stays exactly as the scene file wrote it — the
+video blocks ADD to it, never replace it. Budget note: video chip + 10
+element mentions = 11 chips, measured accepted; state in the brief which
+element to drop if the composer refuses the 11th. And it bears repeating:
+**UNLIMITED GENERATE ONLY** — the video ref changes nothing about money
+rules.
+
 Festival ruling (CEO 2026-08-30): Blender/AE are editing-class tools — a
 camera previz used as @Video 1 is allowed; generation still happens on
 Higgsfield.
