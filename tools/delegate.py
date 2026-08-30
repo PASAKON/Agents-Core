@@ -73,7 +73,13 @@ def _owner_window_id(owner_cto: str | None,
     if not owner_cto:
         return None
     role_prefix = owner_role or "cto"
-    p = ROOT / "state" / "locks" / f"{role_prefix}-{owner_cto}.winid"
+    # Callers pass the session id either bare ("eab87266") or already
+    # role-qualified ("cto-eab87266"); the qualified form used to build a
+    # doubled path and silently fall through to the current window.
+    ident = owner_cto
+    if ident.startswith(f"{role_prefix}-"):
+        ident = ident[len(role_prefix) + 1:]
+    p = ROOT / "state" / "locks" / f"{role_prefix}-{ident}.winid"
     try:
         raw = p.read_text().strip()
     except OSError:
