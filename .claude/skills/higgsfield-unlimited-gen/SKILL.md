@@ -453,6 +453,31 @@ and ask the C-level which one — do not guess from what is already open.
    fully completed regardless of what the tool call reported back. Don't
    assume a failed call = no side effect.
 
+## IRON RULE OF PROMPT WRITING — every character appears EXACTLY ONCE
+
+CEO-set 2026-08-30 («ใส่ไว้เป็นกฏเหล็กของการเขียน Prompt เลย») after duplicate
+characters appeared across MULTIPLE scenes — S4 rendered two Dupes with two
+carts, and it was not an isolated case. Seedance duplicates a character
+whenever the prompt gives it two independent reasons to draw the same person
+(a binding + an unbound description, a group noun + a named member, or — the
+worst case — a video-ref proxy + its mapped character).
+
+Every prompt, no exceptions, carries BOTH halves:
+
+1. **In the beats**: state the count in words wherever a character could be
+   inferred twice — "his TWO guards and no others", "there is exactly ONE
+   Dupe in this shot".
+2. **In the negatives, verbatim**: `no duplicate characters, no twins, no
+   character appearing twice` — plus, when a video ref is attached: `no
+   proxy rendered as an extra person`.
+
+For video-ref prompts the position map must close the loop explicitly:
+"one proxy, one person — never both a mapped character AND a leftover gray
+figure." A proxy without a mapping line is a duplicate waiting to happen.
+
+Reviewers: a duplicated character is a FLAG-worthy defect — label the take
+(`-FLAGGED-duplicate-<who>`), file it, move on, per the footage rule.
+
 ## Attaching a VIDEO reference — @Video 1 (verified end-to-end 2026-08-30, task-58f2d7b4)
 
 The CEO's new generation standard: **Video ref (camera) + Elements

@@ -53,6 +53,15 @@
 > unflagged-but-superseded takes also sit in Drive and are not keepers:
 > S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
 
+> # ⚔️ IRON RULE — EVERY CHARACTER APPEARS EXACTLY ONCE (CEO 13:15, 30 Aug)
+> «หลายซีน Character ออกมาซ้ำ — ใส่ไว้เป็นกฏเหล็กของการเขียน Prompt เลย»
+> Every prompt carries both halves: counts stated in the beats ("his TWO
+> guards and no others", "exactly ONE Dupe"), and the verbatim negative
+> `no duplicate characters, no twins, no character appearing twice` — plus
+> `no proxy rendered as an extra person` whenever a video ref is attached.
+> Already applied to every scene file and the S7 re-shoot prompt. Full rule
+> in higgsfield-unlimited-gen.
+
 > # 👵 S12 IS NOW THREE SCENES (CEO comedy rewrite 12:50, 30 Aug)
 > «20วิแรก ยายมาไม่ถึงซักที ... รถกระตุก เสียงลากยาว ดับ ติดใหม่ ... บางคน
 > ยืนอ้าปาก บางคนเดินหนี เพราะมันช้า» — the grandmother's arrival is now a
