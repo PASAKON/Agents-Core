@@ -13,6 +13,7 @@ roles:
     can_write_wiki: true
     can_merge: true
     can_push: true
+    skills_profile: all
 
   cto:
     display: CTO
@@ -30,6 +31,10 @@ roles:
     can_merge: true
     can_push: true
     can_delete_branch: true
+    # CEO decision (ADR 0022 §2): CTO sees every skill. "all" is read by
+    # runners/worker_init.py._skill_visibility_overlay(), which emits no
+    # file and passes no flag for it -- this decision costs zero code.
+    skills_profile: all
 
   cfo:
     display: CFO
@@ -42,6 +47,7 @@ roles:
     can_merge: true
     can_push: true
     can_delete_branch: true
+    skills_profile: all
 
   cgo:
     display: CGO
@@ -54,6 +60,7 @@ roles:
     can_merge: true
     can_push: true
     can_delete_branch: true
+    skills_profile: all
 
   cmo:
     display: CMO
@@ -66,6 +73,7 @@ roles:
     can_merge: true
     can_push: true
     can_delete_branch: true
+    skills_profile: all
 
   developer:
     display: Developer
@@ -77,6 +85,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   tester:
     display: Tester
@@ -88,6 +97,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   web_designer:
     display: Web Designer
@@ -99,6 +109,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   browser_operator:
     display: Browser Operator
@@ -116,6 +127,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   video_editor:
     display: Video Editor
@@ -129,6 +141,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   devops_engineer:
     display: DevOps Engineer
@@ -140,6 +153,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   security_engineer:
     display: Security Engineer
@@ -151,6 +165,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   data_analyst:
     display: Data Analytics
@@ -162,6 +177,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   prompt_engineer:
     display: Prompt Engineer
@@ -173,6 +189,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   ads_manager:
     display: Ads Manager
@@ -184,6 +201,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   content_strategist:
     display: Content Strategist
@@ -195,6 +213,7 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
   script_writer:
     display: Script Writer
@@ -209,5 +228,6 @@ roles:
     can_merge: false
     can_push: false
     workspace_only: true
+    skills_profile: worker-baseline
 
 c_level: [ceo, cto, cmo, cgo, cfo]
