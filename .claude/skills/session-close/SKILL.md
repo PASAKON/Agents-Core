@@ -9,6 +9,8 @@ scope: >-
   refusing — STAY OPEN is the CEO's explicit "still working" choice. Enforces
   IRON-RULES §35. Companion to session-open.
 description: Verify a session's Entry Problem is actually solved before closing it 🏁. Trigger on /session-close and when the CEO says "ปิด session", "จบงาน", "พอแค่นี้", "close out", "done for now".
+created_by: human
+audience: [cxo]
 ---
 
 # Session Close — exit gate tied to the entry problem

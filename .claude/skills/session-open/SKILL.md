@@ -8,6 +8,8 @@ scope: >-
   or multi-topic charter. Enforces IRON-RULES §35. Does not close or resume a
   session — see session-close and session-merge.
 description: Charter a session under one bound problem before work starts. Trigger on /session-open and at the start of a session when the CEO states a goal — "เปิดงาน", "วันนี้ทำ", "ปัญหาคือ", "อยากแก้", "let's work on", "start".
+created_by: human
+audience: [cxo]
 ---
 
 # Session Open — charter the session

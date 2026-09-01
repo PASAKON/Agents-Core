@@ -7,6 +7,8 @@ scope: >-
   gate fails. Does not perform the merge, review code line-by-line, or resolve
   conflicts.
 description: Pre-merge verification gate — refuses merge_task if any check fails. Trigger on /cto-merge-checklist and whenever about to call merge_task, or the user says "merge", "ship", "land", "approve", "close out" a task.
+created_by: human
+audience: [cto]
 ---
 
 # CTO Merge Checklist

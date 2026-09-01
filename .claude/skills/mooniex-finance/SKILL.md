@@ -8,6 +8,8 @@ scope: >-
   mapping, monthly close. Not general accounting: for standard bookkeeping
   (journal entries, reconciliation, SOX) use the finance:* skills instead.
 description: The org's finance authority — budget, runway, burn, subscriptions, /admin/finance, and the webapp_cfo_* tables. Trigger on /mooniex-finance and on "budget", "runway", "burn", "spend", "subscription", "CFO", "cost tracking", "monthly close", "ค่าใช้จ่าย", "งบ". Use instead of the generic finance:* bookkeeping skills, which are not MoonieX-grounded.
+created_by: human
+audience: [cfo]
 ---
 
 # MoonieX Finance & Cost-Tracking Skill

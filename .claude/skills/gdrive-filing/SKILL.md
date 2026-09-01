@@ -8,6 +8,8 @@ scope: >-
   mutation, whether via the gdrive-bridge script or the Drive MCP tools. Rules
   only; not a file-transfer tool.
 description: Filing rules for the CEO's Google Drive — read before any create/move/rename/delete there. Trigger on /gdrive-filing, "จัดระเบียบ Drive", "ย้ายไฟล์ไป Drive", "เก็บไฟล์นี้ไว้ที่ไหน", "ลบไฟล์ใน Drive", "save this to Drive", "file this".
+created_by: human
+audience: [cxo]
 ---
 
 # Google Drive Filing — CEO's personal Drive (pass.gob1@gmail.com)

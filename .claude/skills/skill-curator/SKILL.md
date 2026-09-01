@@ -11,6 +11,7 @@ scope: >-
   instead — that script is unchanged by this one.
 created_by: human
 description: Review skill telemetry and act on stale/unused skills without touching anyone else's repo. Trigger on /skill-curator, "curate skills", "archive unused skills", "skill lifecycle", "which skills are dead", or as a one-line nudge from /session-close when skills are proposed for archive.
+audience: [cxo]
 ---
 
 # Skill Curator — turn telemetry into a lifecycle

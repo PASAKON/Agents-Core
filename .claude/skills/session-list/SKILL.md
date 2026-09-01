@@ -8,6 +8,8 @@ scope: >-
   its real log to catch title-sync bugs and true ghost spawns. Does not close or
   resume anything.
 description: List past CTO/CXO sessions still open, with state, blocker, and age. Trigger on /session-list and when the CEO asks "ดู session เก่า", "session ที่ค้าง", "session ไหนยังไม่ปิด", "list sessions", "what sessions are still open".
+created_by: human
+audience: [cxo]
 ---
 
 # Session List — inventory past sessions, minus the live tabs

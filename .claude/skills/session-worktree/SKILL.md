@@ -8,6 +8,8 @@ scope: >-
   summary for the CEO. Text and emoji only — CTO chat renders no inline images.
   Absorbed the former /session-summary. Enforces the §35 one-problem view.
 description: Show what this session has done, is doing, is blocked on, and has left. Trigger on /session-worktree and when the CEO asks "ทำถึงไหนแล้ว", "เหลืออะไร", "ติด blocker ตรงไหน", "สรุป session", "อธิบายแบบบ้านๆ", "progress", "where are we", "recap".
+created_by: human
+audience: [cxo]
 ---
 
 # Session Worktree — what's done / doing / blocked / left (+ plain recap)

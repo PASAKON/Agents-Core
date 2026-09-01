@@ -1,6 +1,8 @@
 ---
 name: browser-operator
 description: Cost-disciplined browser driving for the org's `browser_operator` role — the step order that keeps a browser task from burning context, and the rule that every repeatable flow leaves a replay script behind. Trigger on /browser-operator, whenever a task assigns role=browser_operator, and before the first `mcp__claude-in-chrome__*` call in any session that is driving a web UI to get work done (log into a dashboard the org already has a session for, pull numbers off a page with no API, fill a form, verify what a live page renders). Not for reviewing a page's design (that is web_designer) and not for deciding *whether* a task should use a browser — a C-level decides that before delegating.
+created_by: human
+audience: [browser_operator]
 ---
 
 # Browser Operator — how to drive a browser without burning the session

@@ -1,6 +1,20 @@
 ---
 name: higgsfield-unlimited-gen
-description: Domain-specific safety rules and operating patterns for driving Higgsfield.ai (Seedance/AI video generation) in Unlimited Mode, where real credits must never be spent by accident. Trigger on /higgsfield-unlimited-gen and proactively whenever a C-level is about to delegate or drive browser work on higgsfield.ai, or when the request mentions "Higgsfield", "Seedance", "Unlimited mode video gen", "AI video generation credits", "jump-cut pass", or a Higgsfield History/Recreate/Rerun button. Supplements — does not replace — `browser-operator` (generic browser cost-discipline) and `dev-spawn-protocol` (generic DEV spawning): follow both of those plus everything here for any Higgsfield task. Do NOT fire for video generation on other platforms (fal.ai, Kling, Veo) — those have their own cost rules elsewhere.
+description: >-
+  Domain-specific safety rules and operating patterns for driving
+  Higgsfield.ai (Seedance/AI video generation) in Unlimited Mode, where real
+  credits must never be spent by accident. Trigger on /higgsfield-unlimited-gen
+  and proactively whenever a C-level is about to delegate or drive browser
+  work on higgsfield.ai, or when the request mentions "Higgsfield",
+  "Seedance", "Unlimited mode video gen", "AI video generation credits",
+  "jump-cut pass", or a Higgsfield History/Recreate/Rerun button. Supplements
+  — does not replace — `browser-operator` (generic browser cost-discipline)
+  and `dev-spawn-protocol` (generic DEV spawning): follow both of those plus
+  everything here for any Higgsfield task. Do NOT fire for video generation
+  on other platforms (fal.ai, Kling, Veo) — those have their own cost rules
+  elsewhere.
+created_by: human
+audience: [cto, cmo, cfo, cgo]
 ---
 
 # Higgsfield Unlimited-Mode Generation — Safety Rules

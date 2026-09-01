@@ -8,6 +8,8 @@ scope: >-
   transcript, never kills anything. Works when typed from the phone: the agent runs
   on the Mac, so the Mac window reappears.
 description: Bring back the Mac iTerm window for a C-level chat whose tab was closed — same session, same scrollback. Trigger on /terminal-open and when the CEO says "เปิด terminal กลับมา", "ปิด tab ไปแล้วเอากลับ", "เอา terminal คืนมา", "show the terminal", "reattach", "กลับเข้า session เดิม", "open iTerm back".
+created_by: human
+audience: [cxo]
 ---
 
 # Show Terminal — put the closed iTerm tab back

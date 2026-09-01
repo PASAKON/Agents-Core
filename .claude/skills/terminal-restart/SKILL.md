@@ -10,6 +10,8 @@ scope: >-
   wrongly named, or gone while the process lingers), this is the wrong tool;
   see session-restart.
 description: Restart a stuck/stale/confused claude process without losing the tmux session or the iTerm tab. Trigger on /terminal-restart and when the CEO or CTO says "claude ค้าง", "claude งง", "restart claude", "รันโค้ดเก่า", "session นี้ทำงานแปลกๆ", "claude stuck", "reload claude", or a running session is clearly executing stale/pre-merge code. Not for a wedged tmux session or a gone tab — see session-restart / terminal-open.
+created_by: human
+audience: [cxo]
 ---
 
 # Terminal Restart — replace claude in place, leave tmux alone
