@@ -2,14 +2,22 @@
 """scripts/skill-lint.py -- frontmatter lint for org-authored skills (ADR 0022 Wave 1).
 
 Checks every skill under `.claude/skills/` against the Wave 1 frontmatter
-contract (ADR 0022 section 3): `audience`, `created_by`, `author`,
-`improved_by`, `aka`. Five finding codes:
+contract (ADR 0022 section 3: `audience`, `created_by`, `author`,
+`improved_by`, `aka`) plus the Wave 2 lifecycle keys (ADR 0022 section 4.3:
+`pinned`, `lifecycle`, `archived_at` — moved out of the deleted
+state/skill-usage.json sidecar into each skill's own frontmatter). Seven
+finding codes:
 
   1. missing SKILL.md
   2. unparseable frontmatter
   3. `name` != directory basename
   4. `created_by` outside {human, agent}
   5. `audience` token not a known role or group (all|cxo|worker)
+  6. `pinned` present but not a boolean
+  7. `lifecycle` present but not "active" or "archived"
+
+`archived_at` is not format-checked — it is a free-form timestamp stamped
+by skill-curator.py itself, never hand-typed.
 
 Role tokens are derived at runtime from `policies/agents.yaml` -- never
 hardcoded, so this does not drift when a role is added or removed.
@@ -57,6 +65,8 @@ CODES = {
     3: "name-mismatch",
     4: "bad-created-by",
     5: "unknown-audience",
+    6: "bad-pinned",
+    7: "bad-lifecycle",
 }
 
 # The two additional group tokens `audience:` may use besides a real role key.
@@ -177,6 +187,20 @@ def lint_skill(name: str, skill_dir: Path, known_audience: set[str]) -> list[Fin
                     f"audience token {tok!r} is not a known role or group "
                     f"(known: {', '.join(sorted(known_audience))})",
                 ))
+
+    if "pinned" in data and not isinstance(data.get("pinned"), bool):
+        findings.append(Finding(
+            name, 6, CODES[6],
+            f"pinned={data.get('pinned')!r} is not a boolean (true/false)",
+        ))
+
+    if "lifecycle" in data:
+        lc = data.get("lifecycle")
+        if lc not in ("active", "archived"):
+            findings.append(Finding(
+                name, 7, CODES[7],
+                f"lifecycle={lc!r} is not 'active' or 'archived'",
+            ))
 
     return findings
 

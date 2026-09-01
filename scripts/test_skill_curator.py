@@ -11,9 +11,15 @@ Proves the five curator invariants:
 
 Every fixture lives under tmp_path via CuratorPaths(merge_external=False),
 which skips the ~/.claude/skills + plugin-marketplace merge entirely and
-reads only the log_path/state_path handed to it. This module never opens
+reads only the log_path handed to it. This module never opens
 state/skill-usage.log, state/skill-usage.json, ~/.claude/skills/, or
 anything under output/ (ADR 0021 §"tests must not write to real state").
+
+ADR 0022 Wave 2 -- git is the ledger. Every mutating verb (archive, restore,
+pin, unpin, create) now ends with a real `git commit`, so `_make_paths` git
+inits tmp_path as its own throwaway repo (hard constraint #4: a test that
+commits to the real checkout is a defect even if it passes -- this file
+never touches this repo's own .git).
 
 Run standalone:   python scripts/test_skill_curator.py
 Or under pytest:  pytest scripts/test_skill_curator.py
@@ -23,6 +29,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -42,6 +49,31 @@ _SPEC.loader.exec_module(curator)
 # --------------------------------------------------------------------------
 # fixtures — everything lives under tmp_path.
 # --------------------------------------------------------------------------
+
+def _commit_path(path: Path, message: str, *, when: "datetime | None" = None) -> None:
+    """Explicit fixture commit -- used only by tests that deliberately want
+    a skill already tracked in git BEFORE a mutating verb runs on it (the
+    realistic production case: `.claude/skills/` is git-tracked from Wave 0
+    onward). Deliberately NOT wired into `_write_skill` below: most fixture
+    skills here are `_backdate`d to look idle, and `_idle_since_unused`
+    consults `_git_added_at`, which reads the FIRST "Added" commit for a
+    path -- committing a fresh fixture for real would stamp that as "added
+    today" and override the backdated idle clock. `when`, if given, stamps
+    GIT_AUTHOR_DATE/GIT_COMMITTER_DATE so a fixture can be "added N days
+    ago" (matching `_backdate`'s days) and still safely receive LATER
+    mutation commits (pin/archive/etc, at the real current time) without
+    resetting that first-added date -- those show up as "Modified", not
+    "Added", once this initial commit exists."""
+    env = dict(os.environ)
+    if when is not None:
+        env["GIT_AUTHOR_DATE"] = when.isoformat()
+        env["GIT_COMMITTER_DATE"] = when.isoformat()
+    subprocess.run(["git", "add", "-A", "--", str(path)], cwd=str(path), check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", message, "--", str(path)],
+        cwd=str(path), check=True, capture_output=True, env=env,
+    )
+
 
 def _write_skill(base: Path, name: str, *, created_by: "str | None" = "agent",
                   body: str = "content") -> Path:
@@ -87,13 +119,27 @@ def _backdate(skill_md: Path, days: int) -> None:
         log_path.write_text(sentinel + existing, encoding="utf-8")
 
 
+def _git_init(repo_root: Path) -> None:
+    """Throwaway git repo for a mutating-verb test (hard constraint #4).
+    Local-only config (`--local`, never `--global`) so the fixture works
+    with no user.email/name set and no GPG key configured, without touching
+    the real checkout's git config at all."""
+    for args in (
+        ["git", "init", "-q"],
+        ["git", "config", "--local", "user.email", "test@example.com"],
+        ["git", "config", "--local", "user.name", "skill-curator-tests"],
+        ["git", "config", "--local", "commit.gpgsign", "false"],
+    ):
+        subprocess.run(args, cwd=str(repo_root), check=True, capture_output=True)
+
+
 def _make_paths(tmp_path: Path) -> "curator.CuratorPaths":
     owned = tmp_path / "owned-skills"
     owned.mkdir()
+    _git_init(tmp_path)
     return curator.CuratorPaths(
         owned_skills_dir=owned,
         log_path=tmp_path / "state" / "skill-usage.log",
-        state_path=tmp_path / "state" / "skill-usage.json",
         archive_dir=tmp_path / "skills-archive",
         backup_dir=tmp_path / "backups",
         merge_external=False,
@@ -190,6 +236,11 @@ def test_unpin_restores_transition_eligibility(tmp_path: Path) -> None:
     paths = _make_paths(tmp_path)
     skill = _write_skill(paths.owned_skills_dir, "toggle-skill", created_by="agent")
     _backdate(skill / "SKILL.md", days=200)
+    # Commit the fixture at its backdated age FIRST -- otherwise pin_skill's
+    # own commit below would be this file's first-ever git history, and
+    # _git_added_at would (correctly, just not for this test) read that as
+    # "added today", masking the staleness this test means to exercise.
+    _commit_path(skill, "fixture: add toggle-skill", when=datetime.now(timezone.utc) - timedelta(days=200))
 
     curator.pin_skill(paths, "toggle-skill")
     assert "toggle-skill" not in {p.name for p in curator.compute_proposals(paths)}
@@ -226,10 +277,11 @@ def test_archive_then_restore_round_trips_file_intact(tmp_path: Path) -> None:
     curator.restore_skill(paths, "roundtrip-skill")
     assert not (paths.archive_dir / "roundtrip-skill").exists()
     restored = (paths.owned_skills_dir / "roundtrip-skill" / "SKILL.md").read_bytes()
-    assert restored == original
+    assert restored == original  # byte-for-byte: restore deletes the lifecycle/
+    # archived_at lines archive() added, rather than writing lifecycle: active
 
-    state = json.loads(paths.state_path.read_text(encoding="utf-8"))
-    assert state["roundtrip-skill"]["lifecycle"] == "active"
+    portfolio = curator.build_portfolio(paths)
+    assert portfolio["roundtrip-skill"]["lifecycle"] == "active"
 
 
 def test_restore_missing_name_refuses(tmp_path: Path) -> None:
@@ -279,7 +331,6 @@ def test_propose_mutates_nothing(tmp_path: Path) -> None:
     _backdate(human_skill / "SKILL.md", days=200)
 
     before = _snapshot(paths.owned_skills_dir)
-    assert not paths.state_path.exists()
     assert not paths.archive_dir.exists()
     assert not paths.backup_dir.exists()
 
@@ -288,7 +339,6 @@ def test_propose_mutates_nothing(tmp_path: Path) -> None:
 
     after = _snapshot(paths.owned_skills_dir)
     assert before == after
-    assert not paths.state_path.exists()
     assert not paths.archive_dir.exists()
     assert not paths.backup_dir.exists()
 
@@ -355,6 +405,339 @@ def test_created_by_absent_never_warns(tmp_path: Path, capsys: pytest.CaptureFix
 
     assert result == "human"
     assert capsys.readouterr().err == ""
+
+
+# --------------------------------------------------------------------------
+# ADR 0022 Wave 2 -- git is the ledger, not a bespoke store
+# --------------------------------------------------------------------------
+
+def _log_text(paths: "curator.CuratorPaths") -> str:
+    result = subprocess.run(
+        ["git", "log", "--format=%B"], cwd=str(paths.owned_skills_dir), capture_output=True, text=True,
+    )
+    return result.stdout
+
+
+def _head(paths: "curator.CuratorPaths") -> str:
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=str(paths.owned_skills_dir), capture_output=True, text=True,
+    )
+    return result.stdout.strip()
+
+
+def _set_worker_identity(monkeypatch: pytest.MonkeyPatch, *, role: str, task_id: str) -> None:
+    """Deterministic Skill-Actor identity for a test, regardless of this
+    session's own ambient WORKER_TASK_ID/WORKER_ROLE (this dev task itself
+    runs under the org runtime with those set)."""
+    monkeypatch.setenv("WORKER_TASK_ID", task_id)
+    monkeypatch.setenv("WORKER_ROLE", role)
+    monkeypatch.delenv("CXO_ROLE", raising=False)
+    monkeypatch.delenv("CXO_SESSION_ID", raising=False)
+    monkeypatch.delenv("CTO_SESSION_ID", raising=False)
+
+
+def test_archive_commits_with_skill_actor_trailer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-abcdef12")
+    paths = _make_paths(tmp_path)
+    skill = _write_skill(paths.owned_skills_dir, "logged-skill", created_by="agent")
+    _commit_path(skill, "fixture: add logged-skill")
+
+    curator.archive_skill(paths, "logged-skill")
+
+    log = _log_text(paths)
+    assert "skill-curator: archive logged-skill" in log
+    assert "Skill-Actor: developer/task-abcdef12" in log
+
+
+def test_pin_then_unpin_each_produce_their_own_commit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-abcdef12")
+    paths = _make_paths(tmp_path)
+    skill = _write_skill(paths.owned_skills_dir, "pin-log-skill", created_by="agent")
+    _commit_path(skill, "fixture: add pin-log-skill")
+
+    curator.pin_skill(paths, "pin-log-skill")
+    curator.unpin_skill(paths, "pin-log-skill")
+
+    log = _log_text(paths)
+    assert "skill-curator: pin pin-log-skill" in log
+    assert "skill-curator: unpin pin-log-skill" in log
+    assert log.count("Skill-Actor: developer/task-abcdef12") == 2
+
+
+def test_noop_mutation_creates_no_commit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """ADR 0022: git history should be real mutations, not noise -- unpin on
+    an already-unpinned skill changes nothing on disk, so nothing commits."""
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    skill = _write_skill(paths.owned_skills_dir, "already-unpinned", created_by="agent")
+    _commit_path(skill, "fixture: add already-unpinned")
+
+    before = _head(paths)
+    curator.unpin_skill(paths, "already-unpinned")
+    after = _head(paths)
+
+    assert before == after
+
+
+def test_create_skill_stamps_identity_and_passes_lint(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_worker_identity(monkeypatch, role="browser_operator", task_id="task-newskill1")
+    paths = _make_paths(tmp_path)
+
+    dest = curator.create_skill(
+        paths, "cto-new-thing",
+        description="A brand new org skill created by an agent.",
+        audience=["cto"],
+    )
+
+    fm = curator._read_frontmatter(dest)
+    assert fm["created_by"] == "agent"
+    assert fm["author"]["role"] == "browser_operator"
+    assert fm["audience"] == ["cto"]
+    assert fm["name"] == "cto-new-thing"
+
+    # Acceptance criterion: passes skill-lint.py on the first try.
+    lint_spec = importlib.util.spec_from_file_location(
+        "skill_lint_for_create_test", ROOT / "scripts" / "skill-lint.py"
+    )
+    assert lint_spec is not None and lint_spec.loader is not None
+    skill_lint = importlib.util.module_from_spec(lint_spec)
+    sys.modules[lint_spec.name] = skill_lint
+    lint_spec.loader.exec_module(skill_lint)
+    findings, refused = skill_lint.run_check(owned_dir=paths.owned_skills_dir)
+    assert findings == []
+    assert refused == []
+
+
+def test_create_skill_commits_with_skill_actor_trailer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-newskill2")
+    paths = _make_paths(tmp_path)
+
+    curator.create_skill(paths, "worker-fresh-skill", description="desc", audience=["all"])
+
+    log = _log_text(paths)
+    assert "skill-curator: create worker-fresh-skill" in log
+    assert "Skill-Actor: developer/task-newskill2" in log
+
+
+def test_create_skill_refuses_existing_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    _write_skill(paths.owned_skills_dir, "already-here", created_by="human")
+
+    with pytest.raises(curator.CuratorError, match="already exists"):
+        curator.create_skill(paths, "already-here", description="x", audience=["all"])
+
+
+def test_create_skill_rejects_path_traversal_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    with pytest.raises(curator.CuratorError, match="invalid skill name"):
+        curator.create_skill(paths, "../evil", description="x", audience=["all"])
+
+
+def test_skill_actor_defaults_to_ceo_when_no_identity_env_set(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    for var in ("WORKER_TASK_ID", "WORKER_ROLE", "CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID"):
+        monkeypatch.delenv(var, raising=False)
+    paths = _make_paths(tmp_path)
+
+    curator.create_skill(paths, "ceo-authored-skill", description="d", audience=["all"])
+
+    log = _log_text(paths)
+    assert "Skill-Actor: CEO/-" in log
+
+
+def _boom_module_not_found():
+    """Stand-in for `_agent_transport` when `tools/` isn't importable — the
+    CTO iter-1 repro: this script copied standalone into a repo with no
+    tools/ package. `raise ModuleNotFoundError(...)` inline is a SyntaxError
+    inside a lambda, so this is the plain helper `monkeypatch.setattr` calls."""
+    raise ModuleNotFoundError("No module named 'tools'")
+
+
+def test_actor_resolution_failure_leaves_filesystem_untouched(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """CTO iter-1 defect: a mutation landed on disk with no ledger entry
+    because `_skill_actor()` was called INSIDE the commit message, after the
+    move and after `git add`. Fixed by resolving the actor at the top of
+    each mutating verb, before any filesystem touch. This test proves the
+    ordering directly: even if `_skill_actor()` itself raised (defense in
+    depth, regardless of its own internal broad catch), the verb must abort
+    with nothing moved, nothing backed up, and nothing staged -- fail
+    closed, not a half-applied mutation."""
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    skill = _write_skill(paths.owned_skills_dir, "actor-fail-skill", created_by="agent")
+    _commit_path(skill, "fixture: add actor-fail-skill")
+    before = _snapshot(paths.owned_skills_dir)
+    before_head = _head(paths)
+
+    def _boom() -> str:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(curator, "_skill_actor", _boom)
+
+    with pytest.raises(RuntimeError, match="boom"):
+        curator.archive_skill(paths, "actor-fail-skill")
+
+    assert _snapshot(paths.owned_skills_dir) == before  # byte-identical: no move happened
+    assert not paths.archive_dir.exists()
+    assert not paths.backup_dir.exists()  # _backup_skill() never ran either
+    assert _head(paths) == before_head  # no commit
+
+    status = subprocess.run(
+        ["git", "status", "--porcelain"], cwd=str(paths.owned_skills_dir), capture_output=True, text=True,
+    ).stdout
+    assert status == ""  # nothing staged or dirty
+
+
+def test_identity_lookup_failure_falls_back_to_unknown_actor_and_verb_completes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The actual CTO iter-1 repro: `tools/agent_transport` unimportable.
+    CEO rule 4 forbids a gate that would block authoring over this, so the
+    verb must still complete -- but the trailer must say so honestly
+    (`unknown/-`) rather than fabricate a role."""
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    monkeypatch.setattr(curator, "_agent_transport", _boom_module_not_found)
+
+    dest = curator.create_skill(paths, "orphan-skill", description="d", audience=["all"])
+    assert dest.is_dir()
+
+    fm = curator._read_frontmatter(dest)
+    assert fm["author"]["role"] == "unknown"
+
+    log = _log_text(paths)
+    assert "skill-curator: create orphan-skill" in log
+    assert "Skill-Actor: unknown/-" in log
+
+
+def test_archive_completes_with_fallback_actor_when_identity_lookup_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Same fallback as create, for a mutating verb that doesn't itself need
+    identity for anything but the trailer -- archive must not be blocked by
+    identity trouble either."""
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    skill = _write_skill(paths.owned_skills_dir, "archive-fallback-skill", created_by="agent")
+    _commit_path(skill, "fixture: add archive-fallback-skill")
+    monkeypatch.setattr(curator, "_agent_transport", _boom_module_not_found)
+
+    curator.archive_skill(paths, "archive-fallback-skill")
+
+    assert not (paths.owned_skills_dir / "archive-fallback-skill").exists()
+    assert (paths.archive_dir / "archive-fallback-skill" / "SKILL.md").is_file()
+    log = _log_text(paths)
+    assert "skill-curator: archive archive-fallback-skill" in log
+    assert "Skill-Actor: unknown/-" in log
+
+
+def test_history_skill_shows_commits_with_trailer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-hist1")
+    paths = _make_paths(tmp_path)
+    curator.create_skill(paths, "history-target", description="desc", audience=["all"])
+    curator.pin_skill(paths, "history-target")
+
+    log = curator.history_skill(paths, "history-target")
+    assert "skill-curator: create history-target" in log
+    assert "skill-curator: pin history-target" in log
+    assert log.count("Skill-Actor: developer/task-hist1") == 2
+
+
+def test_history_of_archived_skill_still_shows_earlier_commits(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`history --skill NAME` targets the owned-dir path per the brief's own
+    literal `git log --follow -- .claude/skills/<name>` spec -- this proves
+    that still surfaces a skill's full history even after it has been moved
+    to the archive dir (git log finds commits that touched the path
+    historically; it need not exist at HEAD)."""
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-hist3")
+    paths = _make_paths(tmp_path)
+    curator.create_skill(paths, "archived-history", description="d", audience=["all"])
+    curator.archive_skill(paths, "archived-history")
+
+    log = curator.history_skill(paths, "archived-history")
+    assert "skill-curator: create archived-history" in log
+    assert "skill-curator: archive archived-history" in log
+
+
+def test_history_without_skill_returns_whole_tree_log(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-hist2")
+    paths = _make_paths(tmp_path)
+    curator.create_skill(paths, "tree-one", description="d", audience=["all"])
+    curator.create_skill(paths, "tree-two", description="d", audience=["all"])
+
+    log = curator.history_skill(paths)
+    assert "skill-curator: create tree-one" in log
+    assert "skill-curator: create tree-two" in log
+
+
+def test_undo_reverses_archive_and_restores_content_byte_for_byte(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The brief's own acceptance demonstration: archive a skill in a
+    throwaway repo, then `undo` it, and show the content restored
+    byte-for-byte -- via `git revert`, not the curator's own `restore` verb
+    (which is a separate, non-git lifecycle action -- see its own docstring)."""
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-undo1")
+    paths = _make_paths(tmp_path)
+
+    dest = curator.create_skill(paths, "undo-me", description="original content here", audience=["all"])
+    original = (dest / "SKILL.md").read_bytes()
+
+    curator.archive_skill(paths, "undo-me")
+    assert not (paths.owned_skills_dir / "undo-me").exists()
+
+    archive_sha = subprocess.run(
+        ["git", "log", "-1", "--format=%H", "--grep=skill-curator: archive undo-me"],
+        cwd=str(paths.owned_skills_dir), capture_output=True, text=True,
+    ).stdout.strip()
+    assert archive_sha, "sanity: the archive commit must be findable to undo it"
+
+    curator.undo_mutation(paths, archive_sha)
+
+    restored = (paths.owned_skills_dir / "undo-me" / "SKILL.md").read_bytes()
+    assert restored == original
+    assert not (paths.archive_dir / "undo-me").exists()
+
+
+def test_undo_bad_sha_raises_curator_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    curator.create_skill(paths, "some-skill", description="d", audience=["all"])
+
+    with pytest.raises(curator.CuratorError, match="git revert"):
+        curator.undo_mutation(paths, "0" * 40)
+
+
+def test_drift_is_empty_right_after_a_commit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-drift0")
+    paths = _make_paths(tmp_path)
+    curator.create_skill(paths, "clean-skill", description="d", audience=["all"])
+
+    assert curator.detect_drift(paths) == ""
+
+
+def test_drift_detects_a_hand_edited_skill(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """This is the whole detection story CEO rule 4 leaves us with: no gate
+    can stop a skill being hand-edited outside the curator, so `drift` is
+    how it's caught -- one `git status` call."""
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-drift1")
+    paths = _make_paths(tmp_path)
+    dest = curator.create_skill(paths, "drift-target", description="d", audience=["all"])
+
+    (dest / "SKILL.md").write_text(
+        (dest / "SKILL.md").read_text(encoding="utf-8") + "\nhand-edited line\n", encoding="utf-8"
+    )
+
+    drift = curator.detect_drift(paths)
+    assert "drift-target" in drift
+    assert " M " in drift  # git status --porcelain: modified, not staged
 
 
 if __name__ == "__main__":
