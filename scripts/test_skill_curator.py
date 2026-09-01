@@ -548,6 +548,94 @@ def test_skill_actor_defaults_to_ceo_when_no_identity_env_set(
     assert "Skill-Actor: CEO/-" in log
 
 
+def _boom_module_not_found():
+    """Stand-in for `_agent_transport` when `tools/` isn't importable — the
+    CTO iter-1 repro: this script copied standalone into a repo with no
+    tools/ package. `raise ModuleNotFoundError(...)` inline is a SyntaxError
+    inside a lambda, so this is the plain helper `monkeypatch.setattr` calls."""
+    raise ModuleNotFoundError("No module named 'tools'")
+
+
+def test_actor_resolution_failure_leaves_filesystem_untouched(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """CTO iter-1 defect: a mutation landed on disk with no ledger entry
+    because `_skill_actor()` was called INSIDE the commit message, after the
+    move and after `git add`. Fixed by resolving the actor at the top of
+    each mutating verb, before any filesystem touch. This test proves the
+    ordering directly: even if `_skill_actor()` itself raised (defense in
+    depth, regardless of its own internal broad catch), the verb must abort
+    with nothing moved, nothing backed up, and nothing staged -- fail
+    closed, not a half-applied mutation."""
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    skill = _write_skill(paths.owned_skills_dir, "actor-fail-skill", created_by="agent")
+    _commit_path(skill, "fixture: add actor-fail-skill")
+    before = _snapshot(paths.owned_skills_dir)
+    before_head = _head(paths)
+
+    def _boom() -> str:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(curator, "_skill_actor", _boom)
+
+    with pytest.raises(RuntimeError, match="boom"):
+        curator.archive_skill(paths, "actor-fail-skill")
+
+    assert _snapshot(paths.owned_skills_dir) == before  # byte-identical: no move happened
+    assert not paths.archive_dir.exists()
+    assert not paths.backup_dir.exists()  # _backup_skill() never ran either
+    assert _head(paths) == before_head  # no commit
+
+    status = subprocess.run(
+        ["git", "status", "--porcelain"], cwd=str(paths.owned_skills_dir), capture_output=True, text=True,
+    ).stdout
+    assert status == ""  # nothing staged or dirty
+
+
+def test_identity_lookup_failure_falls_back_to_unknown_actor_and_verb_completes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The actual CTO iter-1 repro: `tools/agent_transport` unimportable.
+    CEO rule 4 forbids a gate that would block authoring over this, so the
+    verb must still complete -- but the trailer must say so honestly
+    (`unknown/-`) rather than fabricate a role."""
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    monkeypatch.setattr(curator, "_agent_transport", _boom_module_not_found)
+
+    dest = curator.create_skill(paths, "orphan-skill", description="d", audience=["all"])
+    assert dest.is_dir()
+
+    fm = curator._read_frontmatter(dest)
+    assert fm["author"]["role"] == "unknown"
+
+    log = _log_text(paths)
+    assert "skill-curator: create orphan-skill" in log
+    assert "Skill-Actor: unknown/-" in log
+
+
+def test_archive_completes_with_fallback_actor_when_identity_lookup_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Same fallback as create, for a mutating verb that doesn't itself need
+    identity for anything but the trailer -- archive must not be blocked by
+    identity trouble either."""
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    skill = _write_skill(paths.owned_skills_dir, "archive-fallback-skill", created_by="agent")
+    _commit_path(skill, "fixture: add archive-fallback-skill")
+    monkeypatch.setattr(curator, "_agent_transport", _boom_module_not_found)
+
+    curator.archive_skill(paths, "archive-fallback-skill")
+
+    assert not (paths.owned_skills_dir / "archive-fallback-skill").exists()
+    assert (paths.archive_dir / "archive-fallback-skill" / "SKILL.md").is_file()
+    log = _log_text(paths)
+    assert "skill-curator: archive archive-fallback-skill" in log
+    assert "Skill-Actor: unknown/-" in log
+
+
 def test_history_skill_shows_commits_with_trailer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _set_worker_identity(monkeypatch, role="developer", task_id="task-hist1")
     paths = _make_paths(tmp_path)

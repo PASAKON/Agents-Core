@@ -32,8 +32,12 @@ Five invariants (non-negotiable, ADR 0018 §4):
      state/skill-curator-backups/, independent of `restore`'s own move-back.
 
 ADR 0022 Wave 2 — git is the ledger, not a bespoke store. Every mutating verb
-(archive/restore/pin/unpin/create) ends by committing the skill dir(s) it
-touched, with a `Skill-Actor: <role>/<session-id>` trailer. `undo <sha>` is
+(archive/restore/pin/unpin/create) resolves its `Skill-Actor: <role>/<session-id>`
+trailer FIRST, before touching the filesystem, then ends by committing the
+skill dir(s) it touched with that trailer. Identity lookup itself cannot
+raise — a broken/absent tools/ package degrades to `unknown/-` rather than
+leaving a mutation on disk with no matching commit (CTO iter-1 finding).
+`undo <sha>` is
 `git revert`; `history` is `git log --follow`; `drift` is `git status`. There
 is no more state/skill-usage.json sidecar — it was never written (verified
 before deleting), and `pinned`/`lifecycle`/`archived_at` now live in each
@@ -490,15 +494,51 @@ def _agent_transport():
     return agent_transport
 
 
+class _UnknownIdentity:
+    """Fallback when identity lookup itself is unavailable (e.g. this script
+    copied standalone into a repo with no tools/ package — CTO iter-1 repro:
+    `ModuleNotFoundError: No module named 'tools'`). Honest and greppable,
+    never a plausible-looking fake role."""
+
+    role = "unknown"
+    session_id: Optional[str] = None
+
+
+def _current_identity_safe():
+    """Best-effort identity lookup for a mutating verb's commit trailer /
+    author stamp. Never raises.
+
+    Every mutating verb calls this BEFORE touching the filesystem, so a
+    broken or absent `tools/` package fails the whole call cleanly with the
+    filesystem untouched and nothing staged — never a mutation with no
+    matching commit (the defect this closes). Beyond that ordering
+    guarantee, this also can't raise on its own: `tools/` present but broken
+    in some other way must still let the verb *complete*, just with an
+    honest fallback trailer, rather than turning identity trouble into a
+    reason to block authoring (CEO rule 4)."""
+    try:
+        return _agent_transport().current_identity()
+    except Exception as exc:  # noqa: BLE001 - identity lookup must never abort a mutation
+        print(
+            f"WARNING: skill-curator: identity lookup failed ({exc.__class__.__name__}: {exc}) "
+            "-- committing with fallback Skill-Actor: unknown/- (ADR 0022 Wave 2)",
+            file=sys.stderr,
+        )
+        return _UnknownIdentity()
+
+
 def _skill_actor() -> str:
     """`<role>/<session-id>` for the commit trailer, from whoever is calling
     right now — never anything the caller passes in (same rule
-    tools.agent_transport.current_identity() itself follows)."""
-    identity = _agent_transport().current_identity()
+    tools.agent_transport.current_identity() itself follows). Cannot raise —
+    see _current_identity_safe()."""
+    identity = _current_identity_safe()
     return f"{identity.role}/{identity.session_id or '-'}"
 
 
-def _commit_skill_mutation(paths: CuratorPaths, verb: str, name: str, touched: list[Path]) -> None:
+def _commit_skill_mutation(
+    paths: CuratorPaths, verb: str, name: str, touched: list[Path], actor: str
+) -> None:
     """Stage + commit whatever `touched` now looks like on disk, with a
     `Skill-Actor: <role>/<session-id>` trailer.
 
@@ -528,7 +568,7 @@ def _commit_skill_mutation(paths: CuratorPaths, verb: str, name: str, touched: l
     unchanged = _git(paths, "diff", "--cached", "--quiet", "--", *spec)
     if unchanged.returncode == 0:
         return
-    message = f"skill-curator: {verb} {name}\n\nSkill-Actor: {_skill_actor()}"
+    message = f"skill-curator: {verb} {name}\n\nSkill-Actor: {actor}"
     commit = _git(paths, "commit", "-m", message, "--", *spec)
     if commit.returncode != 0:
         raise CuratorError(f"git commit failed for {name!r}: {commit.stderr.strip()}")
@@ -556,6 +596,7 @@ def archive_skill(paths: CuratorPaths, name: str) -> dict:
     <sha>` is what reverses this from here on; `restore` (below) is the
     curator's own separate un-archive verb, not this commit's undo.
     """
+    actor = _skill_actor()  # resolved before any mutation (fail-closed if this ever raises)
     safe_path = _resolve_within(name, paths.owned_skills_dir)
     if not safe_path.is_dir() or not (safe_path / "SKILL.md").is_file():
         raise CuratorError(f"{name!r} not found under {paths.owned_skills_dir}")
@@ -581,7 +622,7 @@ def archive_skill(paths: CuratorPaths, name: str) -> dict:
 
     archived_at = datetime.now(timezone.utc).isoformat()
     _patch_frontmatter(dest / "SKILL.md", {"lifecycle": "archived", "archived_at": json.dumps(archived_at)})
-    _commit_skill_mutation(paths, "archive", name, [safe_path, dest])
+    _commit_skill_mutation(paths, "archive", name, [safe_path, dest], actor)
     return _read_frontmatter(dest)
 
 
@@ -593,6 +634,7 @@ def restore_skill(paths: CuratorPaths, name: str) -> dict:
     — so a restore round-trips the file byte-for-byte when nothing else
     changed in the meantime.
     """
+    actor = _skill_actor()  # resolved before any mutation (fail-closed if this ever raises)
     safe_path = _resolve_within(name, paths.archive_dir)
     if not safe_path.is_dir() or not (safe_path / "SKILL.md").is_file():
         raise CuratorError(f"{name!r} not found under {paths.archive_dir} — nothing to restore")
@@ -605,11 +647,12 @@ def restore_skill(paths: CuratorPaths, name: str) -> dict:
     shutil.move(str(safe_path), str(dest))
 
     _patch_frontmatter(dest / "SKILL.md", {"lifecycle": None, "archived_at": None})
-    _commit_skill_mutation(paths, "restore", name, [safe_path, dest])
+    _commit_skill_mutation(paths, "restore", name, [safe_path, dest], actor)
     return _read_frontmatter(dest)
 
 
 def _set_pinned(paths: CuratorPaths, name: str, pinned: bool) -> dict:
+    actor = _skill_actor()  # resolved before any mutation (fail-closed if this ever raises)
     owned = _scan_skill_dir(paths.owned_skills_dir)
     archived = _scan_skill_dir(paths.archive_dir)
     if name in owned:
@@ -623,7 +666,7 @@ def _set_pinned(paths: CuratorPaths, name: str, pinned: bool) -> dict:
     # already means unpinned (_pinned()'s default), and it makes "unpin a
     # skill that was never pinned" a true no-op: nothing staged, no commit.
     _patch_frontmatter(skill_dir / "SKILL.md", {"pinned": "true" if pinned else None})
-    _commit_skill_mutation(paths, "pin" if pinned else "unpin", name, [skill_dir])
+    _commit_skill_mutation(paths, "pin" if pinned else "unpin", name, [skill_dir], actor)
     return _read_frontmatter(skill_dir)
 
 
@@ -653,7 +696,8 @@ def create_skill(paths: CuratorPaths, name: str, *, description: str, audience: 
     if safe_path.exists():
         raise CuratorError(f"{name!r} already exists under {paths.owned_skills_dir}")
 
-    identity = _agent_transport().current_identity()
+    identity = _current_identity_safe()  # resolved before any mutation; never raises
+    actor = f"{identity.role}/{identity.session_id or '-'}"
     today = datetime.now(timezone.utc).date().isoformat()
 
     paths.owned_skills_dir.mkdir(parents=True, exist_ok=True)
@@ -674,7 +718,7 @@ def create_skill(paths: CuratorPaths, name: str, *, description: str, audience: 
     ])
     (safe_path / "SKILL.md").write_text(frontmatter, encoding="utf-8")
 
-    _commit_skill_mutation(paths, "create", name, [safe_path])
+    _commit_skill_mutation(paths, "create", name, [safe_path], actor)
     return safe_path
 
 

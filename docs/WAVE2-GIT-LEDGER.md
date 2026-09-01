@@ -177,6 +177,53 @@ to run), that change is real on disk and invisible to `history`/`undo`
 alike. This is the deliberate trade the ADR makes: no gate, so also no
 guarantee — only a cheap, always-available way to go check.
 
+### Closed: a mutation landing with no ledger entry at all (CTO iter-1)
+
+A narrower, worse failure mode than the one above nearly shipped in this
+wave's first iteration: not a hand-edit that skips the curator, but the
+curator *itself* moving a skill on disk with `git add` staging it and then
+never committing. `_skill_actor()` was called **inside** the commit message
+f-string — after `shutil.move`/`_backup_skill()` and after `git add` had
+already run. If identity lookup raised (reproduced with `scripts/skill-curator.py`
+copied into a throwaway repo with no `tools/` package: `ModuleNotFoundError:
+No module named 'tools'`), the move and the `git add` had already happened
+and the exception propagated before `git commit` ever ran — a skill gone
+from its owned location, staged, and un-committed. `drift` still caught the
+resulting `git status --porcelain` line, but that is exactly the
+untracked-mutation state this wave exists to prevent, produced by the
+curator's own commit path rather than an outside hand-edit.
+
+Closed by two changes, both required together:
+
+1. **Order.** Every mutating verb (`archive`, `restore`, `pin`/`unpin` via
+   `_set_pinned`, `create`) now resolves its actor as the first line of the
+   function, before `_resolve_within`, `_backup_skill`, any `shutil.move`,
+   or any frontmatter write. `_commit_skill_mutation` takes the resolved
+   `actor: str` as a parameter instead of calling `_skill_actor()` itself
+   from inside the commit message.
+2. **`_skill_actor()`/`_current_identity_safe()` cannot raise.** The
+   `tools.agent_transport` import and `current_identity()` call are wrapped
+   in a broad `except Exception`, logged to stderr, and fall back to an
+   `_UnknownIdentity` (`role="unknown"`, `session_id=None`) — producing a
+   `Skill-Actor: unknown/-` trailer rather than blocking the verb. CEO
+   rule 4 forbids a gate that would refuse authoring over identity trouble,
+   so the fallback keeps the verb completing; what changed is that the
+   *filesystem* mutation and the *commit* are now atomic with respect to
+   this specific failure — either both happen (real or fallback actor), or
+   neither does.
+
+Point (1) is what actually closes the reported defect (fail-closed: nothing
+moves before the actor is known); point (2) is defense in depth so an
+identity-lookup failure degrades to an honest trailer rather than becoming
+a reason to refuse a mutation the CEO already said should never be gated.
+Tests: `test_actor_resolution_failure_leaves_filesystem_untouched` (proves
+the ordering — even a raise from `_skill_actor()` itself leaves the tree
+byte-identical, nothing staged, no commit) and
+`test_identity_lookup_failure_falls_back_to_unknown_actor_and_verb_completes`
+/ `test_archive_completes_with_fallback_actor_when_identity_lookup_fails`
+(prove the fallback trailer and that the verb still completes) in
+`scripts/test_skill_curator.py`.
+
 ## Demonstration (throwaway repo, not this checkout)
 
 ```
