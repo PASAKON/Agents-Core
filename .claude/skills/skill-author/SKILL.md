@@ -75,13 +75,41 @@ Optional but valuable:
 - **Noun if reference** (`postgres-patterns`, `motion-foundations`).
 - **No version numbers** in name (`my-skill-v2`) — edit in place instead.
 
+### Audience prefix — NEW skills only (ADR 0022 §4)
+
+Every brand-new org-authored skill's directory name gets prefixed with its
+`audience:` role(s), e.g. `CTO_Higgsfield_Seedance2.5_Prompt`. This is a
+naming mirror, not the routing mechanism — the `audience:` frontmatter field
+is the actual authority (reports and visibility both compute from it), the
+prefix just lets a human recognize who a skill is for while browsing
+`.claude/skills/` directly.
+
+**The 21 skills that predate this ADR are grandfathered permanently.**
+**Never rename an existing skill directory and never `git mv` one** —
+`~/.claude/skills` holds symlinks into this repo (`browser-operator`,
+`mooniex-finance`, ...), and renaming the target dangles the link: the skill
+vanishes with no error. 39+ files also reference skill names as literal
+strings (including prompt text in `runners/`). This restriction applies to
+every existing skill regardless of who authored it — it is a rename hazard,
+not a grandfather clause for legacy naming style.
+
 ## Location
 
 | Scope | Path | When |
 |---|---|---|
-| Global (all projects) | `~/.claude/skills/<name>/SKILL.md` | Cross-project discipline (debug-mantra). |
-| Project | `<repo>/.claude/skills/<name>/SKILL.md` | Repo-specific workflow (cto-merge-checklist). |
+| Project (the only sanctioned org location) | `<repo>/.claude/skills/<name>/SKILL.md` | Every org-authored skill — repo-specific or cross-project discipline alike. |
 | External link | symlink global → external clone | Imported from a curated source (9arm). |
+
+**`~/.claude/skills/<name>/` is no longer a sanctioned location for
+org-authored skills (ADR 0022 §5).** A skill written there sits outside git,
+outside `skill-curator.py`, and outside `undo` by construction — which
+defeats the entire point of git-as-ledger (ADR 0022 §4): no commit, no
+history, no revert. Always scaffold into `<repo>/.claude/skills/<name>/`, or
+better, use `scripts/skill-curator.py create <name> --description ... --audience
+...`, which stamps `created_by: agent` + `author:` from the calling identity
+and commits the result for you. A purely personal, non-org skill (something
+this org's curator/lint/undo machinery has no reason to ever touch) is the
+only case still fine to keep under `~/.claude/skills/`.
 
 ## Refusal conditions
 
