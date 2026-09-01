@@ -1,3 +1,5 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
 ✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
 complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
 Most carry a `project_absence_` prefix; exactly seven are bare: gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
@@ -35,9 +37,9 @@ insert, nothing else moves.
   the real painting riding his cart, hold half a second, and snap back —
   the only guilty movement he makes all act.
 
-AUDIO: room tone only. No music.
+AUDIO: room tone only. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no speech, no mouth movement, no big reaction, no head
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no speech, no mouth movement, no big reaction, no head
 turn beyond the eyes, no second person in frame, no camera movement.
 
 House negatives: no smiling, no frowning, no tears, no comic expression, no

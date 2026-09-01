@@ -1,3 +1,5 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
 
 
 ===============================================================
@@ -99,13 +101,13 @@ and he appears ONCE. Every other figure is a visitor in colour. Take 1
 rendered him twice — two cleaners, two carts — so state his position once and
 never imply a second worker anywhere in the room.
 
-AUDIO: room tone and footsteps only. No music.
+AUDIO: room tone and footsteps only. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids,
 whites pushed slightly cool, shadows deep red-brown, halation. Photographed,
 not rendered: film grain, faint gate weave, slight colour fringing.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no crowd beyond eight people, no painting on
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no crowd beyond eight people, no painting on
 the wall, no press, no cameras, no duplicate faces, no looking at the camera,
 no un-mirrored plaque text, no second cleaner, no two Dupes, no duplicate
 cleaner, no second cart, no other person in a white uniform.
@@ -184,13 +186,13 @@ moment the audience knows the institution is listening. Dupe, mopping near
 the back wall, looks up once at the number, then down again. The push
 settles. Hold.
 
-AUDIO: room tone, the pen scratch, no music.
+AUDIO: room tone, the pen scratch, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids,
 whites pushed slightly cool, shadows deep red-brown, halation. Photographed,
 not rendered: film grain, faint gate weave, slight colour fringing.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no extra dialogue, no press, no gavel or auctioneer or
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no extra dialogue, no press, no gavel or auctioneer or
 podium or paddles, no crowd beyond the five named guests, no background crowd, no extra people behind them, no duplicate characters, no twins, no character appearing twice, no repeated faces, no gold V or monogram or emblem on any visitor's clothing, no crack or plaque or hero wall in frame, no painting on the hero
 wall, no gold V on any visitor (the registrar's V is correct), no
 camera move except the single specified push-in.

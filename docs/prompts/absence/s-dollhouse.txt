@@ -1,3 +1,5 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
 ✅ MENTIONS ARE THE EXACT LIVE ELEMENT IDS. PASTE VERBATIM — do not "fix" them.
 Most carry a `project_absence_` prefix; the bare ones are
 gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
@@ -56,7 +58,7 @@ across the floor of the box, the way a piece moves across a board.
 [7s] He keeps going. He does not look up. The room is enormous and he is
 crossing it alone. Hold until the clip ends.
 
-AUDIO: room tone, distant cart wheels, a cloth. No music.
+AUDIO: room tone, distant cart wheels, a cloth. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 DH2 · THE FIRST PIECE ARRIVES — an entrance, from above
@@ -77,7 +79,7 @@ of the box toward the near plane, growing slightly as he comes.
 Dupe carries on at the edge, not looking. Two figures in a lit box, ten
 metres apart, neither aware of the other. Hold.
 
-AUDIO: room tone, the door, a cane on terrazzo. No music.
+AUDIO: room tone, the door, a cane on terrazzo. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 DH3 · THE CONVERSATION — two pieces on a board
@@ -102,7 +104,7 @@ figure waving at a box.
 one slow length of the wall and out of frame. Hold on the two still figures.
 
 AUDIO: their voices, distant and indistinct under the room tone — words never
-intelligible from this height. No music.
+intelligible from this height. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 DH4 · THE BOARD IS FULL — the crowd, from above
@@ -126,11 +128,12 @@ total and slightly wrong, like a photograph of a board mid-game.
 [9s] At the very edge of the floor, one small white figure with a cart is
 still working — the only thing in the box that moves. Hold until the clip ends.
 
-AUDIO: the room tone of a full room, one pair of footsteps. No music.
+AUDIO: the room tone of a full room, one pair of footsteps. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 NEGATIVES — all four
 ---------------------------------------------------------------
+every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound;
 no dialogue spoken to camera, no readable speech, no close-ups, no medium
 shots, no readable faces, no facial expressions, no camera movement, no push
 in, no pull out, no drift, no rotation, no crane, no drone move, no zoom, no
