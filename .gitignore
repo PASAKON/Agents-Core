@@ -44,6 +44,7 @@ state/locks/*.spawned_by
 # scripts/hook-inbox.py. Letters are in-flight runtime state, never content.
 state/inbox/
 state/backups/
+state/skill-curator-backups/
 # Per-session turn counter for scripts/hook-memory-nudge.py (ADR 0019 §1).
 # Runtime state; state/*.db already covers the search index beside it.
 state/session-nudge-counters.json
