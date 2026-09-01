@@ -293,5 +293,23 @@ def test_propose_mutates_nothing(tmp_path: Path) -> None:
     assert not paths.backup_dir.exists()
 
 
+# --------------------------------------------------------------------------
+# Wave 0.3 — role column: _load_log_tsv pads legacy 3-field lines
+# --------------------------------------------------------------------------
+
+def test_load_log_tsv_pads_legacy_lines_and_reads_role_column(tmp_path: Path) -> None:
+    log_path = tmp_path / "skill-usage.log"
+    log_path.write_text(
+        "2026-08-01T00:00:00+00:00\tdebug-mantra\tlegacy-session\n"
+        "2026-09-01T00:00:00+00:00\tscrutinize\tnew-session\tdeveloper\n",
+        encoding="utf-8",
+    )
+
+    entries = curator._load_log_tsv(log_path)
+    assert len(entries) == 2
+    assert entries[0][1:] == ("debug-mantra", "legacy-session", "-")
+    assert entries[1][1:] == ("scrutinize", "new-session", "developer")
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))

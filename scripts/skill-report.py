@@ -62,10 +62,16 @@ def _discover_skills() -> set[str]:
     return found
 
 
-def _load_log() -> list[tuple[datetime, str, str]]:
+def _load_log() -> list[tuple[datetime, str, str, str]]:
+    """Parse state/skill-usage.log.
+
+    Tolerant of legacy 3-field lines (ts, skill, session) written before the
+    role column existed — those pad role to "-", same as a hook fire with no
+    WORKER_ROLE/CXO_ROLE set.
+    """
     if not LOG.is_file():
         return []
-    out: list[tuple[datetime, str, str]] = []
+    out: list[tuple[datetime, str, str, str]] = []
     for line in LOG.read_text().splitlines():
         parts = line.split("\t")
         if len(parts) < 2:
@@ -78,15 +84,16 @@ def _load_log() -> list[tuple[datetime, str, str]]:
             continue
         skill = parts[1].strip()
         session = parts[2].strip() if len(parts) >= 3 else ""
-        out.append((ts, skill, session))
+        role = parts[3].strip() if len(parts) >= 4 and parts[3].strip() else "-"
+        out.append((ts, skill, session, role))
     return out
 
 
-def _summarize(entries: list[tuple[datetime, str, str]]):
+def _summarize(entries: list[tuple[datetime, str, str, str]]):
     count: Counter[str] = Counter()
     last: dict[str, datetime] = {}
     sessions: dict[str, set[str]] = defaultdict(set)
-    for ts, skill, session in entries:
+    for ts, skill, session, _role in entries:
         count[skill] += 1
         if skill not in last or ts > last[skill]:
             last[skill] = ts

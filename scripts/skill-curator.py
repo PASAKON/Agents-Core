@@ -158,13 +158,16 @@ def _created_by(skill_dir: Path) -> str:
     return value if value in ("human", "agent") else "human"
 
 
-def _load_log_tsv(log_path: Path) -> list[tuple[datetime, str, str]]:
+def _load_log_tsv(log_path: Path) -> list[tuple[datetime, str, str, str]]:
     """Local TSV reader for the merge_external=False (test) path — reads an
     arbitrary log_path rather than skill-report.py's hardcoded LOG constant.
+
+    Tolerant of legacy 3-field lines (ts, skill, session) written before the
+    role column existed — those pad role to "-".
     """
     if not log_path.is_file():
         return []
-    out: list[tuple[datetime, str, str]] = []
+    out: list[tuple[datetime, str, str, str]] = []
     for line in log_path.read_text(encoding="utf-8").splitlines():
         parts = line.split("\t")
         if len(parts) < 2:
@@ -177,13 +180,14 @@ def _load_log_tsv(log_path: Path) -> list[tuple[datetime, str, str]]:
             continue
         skill = parts[1].strip()
         session = parts[2].strip() if len(parts) >= 3 else ""
-        out.append((ts, skill, session))
+        role = parts[3].strip() if len(parts) >= 4 and parts[3].strip() else "-"
+        out.append((ts, skill, session, role))
     return out
 
 
-def _aggregate_usage(entries: list[tuple[datetime, str, str]]) -> dict[str, dict]:
+def _aggregate_usage(entries: list[tuple[datetime, str, str, str]]) -> dict[str, dict]:
     agg: dict[str, dict] = {}
-    for ts, skill, _session in entries:
+    for ts, skill, _session, _role in entries:
         rec = agg.setdefault(skill, {"use_count": 0, "first_seen_at": ts, "last_used_at": ts})
         rec["use_count"] += 1
         if ts < rec["first_seen_at"]:
@@ -301,7 +305,7 @@ def build_portfolio(paths: CuratorPaths) -> dict[str, dict]:
     # Earliest entry in the whole log = when telemetry started. A skill with
     # zero uses has been idle at least since then, and cannot be judged over
     # any period before it.
-    observation_start = min((ts for ts, _s, _x in entries), default=None)
+    observation_start = min((e[0] for e in entries), default=None)
     existing_state = _load_state(paths.state_path)
     names |= set(existing_state.keys())
 
