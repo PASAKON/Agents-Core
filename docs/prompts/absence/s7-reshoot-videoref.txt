@@ -1,15 +1,19 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
 ✅ S7 RE-SHOOT — THE VIDEO-REF STANDARD'S FIRST REAL FIRE (CEO approved 12:45)
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
 UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
 
 HOW TO STAGE: attach the uploaded previz (+ panel → Recent → tile "Added to
 prompt box") so @Video 1 resolves, then paste THIS ENTIRE TEXT as the prompt.
+⚠️ @Video 1 IS A CHIP EXACTLY ONCE — the first mention only. Later
+references are plain words on purpose; do NOT convert them to mentions.
 11 chips total (1 video + 10 elements). If the composer refuses the 11th chip,
 drop @project_absence_char_visitor_b AND delete her one description line.
 
 === THE PROMPT (paste from here down) ===
 
-@Video 1 is the CAMERA REFERENCE for this entire shot — a 20-second gray
+the reference video (Video 1) is the CAMERA REFERENCE for this entire shot — a 20-second gray
 previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY, beat for beat:
 [0-7s] the camera RETREATS backward down the hall's centreline at walking
 pace, perfectly level at waist height, while VALDER walks toward the camera
@@ -18,14 +22,18 @@ PAN left, landing on the GENTLEMAN frontal and dead centre; [13s] ONE FAST
 SNAP ZOOM punches in to his gold teeth; [16-20s] frontal medium two-shot,
 held. No other camera movement exists in this shot.
 
-POSITION MAP — every figure in @Video 1 stands EXACTLY where its character
+POSITION MAP — every figure in the reference video (Video 1) stands EXACTLY where its character
 must stand; replace each gray/coloured proxy with its real character, same
 spot, same path, same timing. Nothing may move to a different position than
 its proxy in the video, and EVERY CHARACTER APPEARS EXACTLY ONCE — one
 proxy, one person, never both a mapped character AND a leftover gray figure:
 - the MAGENTA figure labelled VALDER = @project_absence_char_valder
 - the TWO dark figures flanking him, one at each shoulder = his TWO guards,
-  uniform and faces from @project_absence_char_guard_valder_six — EXACTLY
+  uniform and faces from @project_absence_char_guard_valder_two — EXACTLY
+  ⚠️ THE PLATE NOW CONTAINS EXACTLY TWO MEN — bind it whole; the old
+  six-guard plate is retired. They walk ONE AT VALDER'S LEFT SHOULDER and
+  ONE AT HIS RIGHT, a pace behind, from the moment he enters a scene until
+  he leaves it. Never six, never a V formation, never a third.
   TWO guards, not six
 - the WHITE figure labelled GOLD-TOOTH = @gentleman_e (small, sharp-nosed,
   white English tailoring, black cane with gold grip, diamond ring, TWO GOLD
@@ -46,7 +54,7 @@ proxy, one person, never both a mapped character AND a leftover gray figure:
   columns, terracotta terrazzo, red double door at the vanishing point —
   = @loc_hall_big_e exactly.
 
-@Video 1 carries ONLY camera path, timing, and positions. It is NOT a style
+the reference video (Video 1) carries ONLY camera path, timing, and positions. It is NOT a style
 reference: take ALL light, colour, texture, costume and faces from the
 Elements and this text — warm shadow, cold white grade; amber-orange
 highlights, whites pushed slightly cool, shadows deep red-brown, halation;
@@ -74,9 +82,9 @@ the far edge, Dupe cleans with his back to camera — the painting in plain
 sight on his cart. Nobody looks at it. Nobody ever looks at it.
 
 AUDIO: room tone, his footsteps and the two guards' in step, ONE tiny bright
-chime on the tooth glint — a single clean 'ting'. No music.
+chime on the tooth glint — a single clean 'ting'. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no duplicate characters, no twins, no character
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no duplicate characters, no twins, no character
 appearing twice, no proxy rendered as an extra person, no stage directions spoken aloud, no narration, no
 speaking anything outside the quotation marks, no dialogue beyond Valder's
 three lines, no six guards, no V formation of guards, no third guard, no
