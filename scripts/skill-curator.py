@@ -153,8 +153,22 @@ def _created_by(skill_dir: Path) -> str:
     This default is the whole safety story for invariant 2: every skill that
     predates this field, or whose SKILL.md the curator can't parse, is
     protected rather than assumed fair game.
+
+    A *present but invalid* value (e.g. `created_by: cto` -- a role, which
+    belongs in `author:`, not here) used to coerce to "human" silently. That
+    silence is what let a typo take a skill outside the curator's reach with
+    no error and no log line (ADR 0022). The coercion itself is unchanged --
+    still fail-closed to "human" -- but it is no longer silent: it prints to
+    stderr naming the file and the bad value.
     """
     value = _read_frontmatter(skill_dir).get("created_by")
+    if value is not None and value not in ("human", "agent"):
+        print(
+            f"WARNING: {skill_dir / 'SKILL.md'}: created_by={value!r} is not "
+            "'human' or 'agent' -- coercing to 'human' (see ADR 0022 section 3: "
+            "the role belongs in author:, never in created_by)",
+            file=sys.stderr,
+        )
     return value if value in ("human", "agent") else "human"
 
 
