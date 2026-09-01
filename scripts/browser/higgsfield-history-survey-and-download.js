@@ -104,22 +104,51 @@
  * ============================================================
  * With a card open: Info tab -> "Download" button (bottom of the right
  * panel, below Recreate/Reference). Downloads straight to ~/Downloads with
- * no dialog. Measured this session: anywhere from 1 to 5 clicks needed,
- * with waits up to ~10s between clicks, before the file actually appears —
- * no error, no visible "processing" state change, it just silently doesn't
- * fire the download sometimes. One clip never triggered after 4 clicks /
- * ~35s and was left for a retry pass. This matches the browser-operator
- * skill's documented "clicks stop registering across the whole tab" failure
- * mode — a hard reload (full `navigate`, not SPA routing) sometimes but not
- * always unsticks it.
+ * no dialog.
  *
- * Practical pattern that worked most often:
+ * ⚠️ DO NOT `computer.click` this button by screenshot coordinates. Measured
+ * this session: the button's screenshot-pixel position drifts between page
+ * loads even at a FIXED requested window size (1200x800 in every case), by
+ * enough to miss the button outright — confirmed via
+ * `getBoundingClientRect()` showing the real center 190px away from where a
+ * previous successful click had landed. The screenshot-to-CSS-pixel ratio is
+ * also NOT uniform between width and height (e.g. rx=1.15, ry=1.39 measured
+ * once), so hand-computed coordinate math from an old screenshot silently
+ * drifts wrong. A `find()` ref-based click had the SAME low success rate as
+ * raw coordinates in this session — this is not a coordinate problem.
+ *
+ * ✅ THE FIX: drive it via `javascript_tool`, not `computer`:
+ *   const btn = [...document.querySelectorAll('button')]
+ *     .find(b => b.textContent.trim() === 'Download');
+ *   btn.click();
+ * This is dramatically more reliable than any pointer-based click for this
+ * specific button (real success rate near 100% within 1-2 attempts, vs.
+ * needing 3-5+ coordinate clicks and sometimes never firing at all).
+ *
+ * Even with `.click()`, still budget for retries and delayed completion:
  *   navigate to `?preview=<id>` (full URL, not SPA nav)
- *   wait ~6-7s for the modal to actually render (readyState/DOM check)
- *   click Download
+ *   wait ~6-10s for the modal to actually render — `btn` may be `undefined`
+ *     even after `document.readyState === 'complete'`; poll/retry the query
+ *     rather than trusting readyState alone
+ *   `btn.click()` via javascript_tool
  *   wait, check ~/Downloads for a new file (`ls -lat ~/Downloads/*.mp4 | head -3`)
- *   if nothing new: click again, wait longer (up to ~10s), recheck
- *   after ~4-5 failed clicks over ~35s: flag it and move on, come back later
+ *   if nothing new after ~7s: click again once
+ *   if STILL nothing after a second click: open a genuinely FRESH TAB
+ *     (`tabs_create_mcp`, not SPA-navigate the same tab) and retry there —
+ *     measured this session: items stuck after repeated clicks on a
+ *     long-lived tab succeeded on the very first click of a new tab, more
+ *     than once. This matches the browser-operator skill's "a long-lived tab
+ *     lies about state" guidance, extended to the Download button.
+ *   ⚠️ A click can also succeed with a LONG delay (~20s+) that lands only
+ *     after you've already navigated on to the NEXT item. If a later item's
+ *     download produces a filename whose uuid doesn't match what you expect,
+ *     check whether it actually matches the PREVIOUS item's asset (compare
+ *     the UTC timestamp in the filename, +7h for ICT, against that earlier
+ *     item's own "Created" field) before concluding something is wrong.
+ *   Per standing CTO guidance: an asset whose own preview never renders a
+ *     frame (fully black main viewer, not just a dark-toned scene) is a
+ *     broken asset, not a click problem — flag and skip after one retry,
+ *     don't keep hammering it.
  *
  * ============================================================
  * 7. FILING TO DRIVE
@@ -137,4 +166,28 @@
  * confirmed by walking the actual folder contents, not by folder name
  * alone. Always resolve the target folder id fresh and verify by listing
  * it, per the skill's standing warning that sub-shot folders drift.
+ *
+ * ⚠️ DUPLICATE FOLDER NAMES EXIST. This project has TWO Drive folders both
+ * literally named "S5" under All Scene — one holds the real take1/take2
+ * files, the other is an empty leftover with only a stray "v1-no-door"
+ * subfolder. A naive `{name: id}` dict built from listing All Scene's
+ * children will silently pick whichever one the API happens to return last.
+ * Before uploading, list the CANDIDATE folder's own children and confirm it
+ * already contains that scene's earlier takes — never trust a name match
+ * alone when more than one folder shares the name.
+ *
+ * ============================================================
+ * 8. A SECOND OPERATOR CAN FILE TO THE SAME FOLDERS WHILE YOU WORK
+ * ============================================================
+ * If another browser_operator is generating/filing in this same project
+ * concurrently (a normal situation per the skill — they hold the Unlimited
+ * render slot, you're doing read-only reconciliation), they can upload a
+ * clip to Drive mid-session with the EXACT filename you were about to use.
+ * Measured this session: a fresh re-scan of Drive right before uploading
+ * found `absence-S18b-take1-6a6377db-...` already present — filed by the
+ * other operator between when this session first surveyed Drive and when it
+ * got around to uploading. Re-scan Drive immediately before every upload
+ * batch (not just once at the start of the session) and skip anything that
+ * already matches your target uuid — don't assume your earlier snapshot is
+ * still current, especially for a wave that ran long.
  */
