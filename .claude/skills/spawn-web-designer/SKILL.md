@@ -7,6 +7,8 @@ scope: >-
   scripts/spawn-web-designer.sh so the CEO can design hands-on. This is the
   CEO-driven path — the CTO autonomous route is delegate_task web_designer.
 description: Open the Web Designer surface for the CEO to design directly. Trigger on /spawn-web-designer and when the CEO says "spawn web designer", "เปิด web designer", "เปิดหน้าออกแบบ", "open the designer".
+created_by: human
+audience: [cto]
 ---
 
 # Spawn Web Designer — CEO hands-on design surface

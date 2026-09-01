@@ -7,6 +7,8 @@ scope: >-
   touches lock, auto-close on done. Does not create the task or review DEV output.
   Enforces IRON-RULES §29.
 description: Required steps when CTO spawns a DEV agent. Trigger on /dev-spawn-protocol and before any delegate_task or DEV spawn, or when the user says "spawn dev", "delegate", "kick off the dev", "start the developer".
+created_by: human
+audience: [cto]
 ---
 
 # DEV Spawn Protocol

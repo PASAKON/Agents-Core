@@ -8,6 +8,8 @@ scope: >-
   history. Enforces the tier table in decisions/0009-model-routing-policy.md.
   Shared by CTO/CFO/CGO/CMO, all defaulting to Sonnet 5.
 description: Propose a mid-session model escalation (Sonnet 5 → Opus 5) and wait for CEO confirmation. Trigger on /session-change-model and when a session on a lighter tier hits architecture, security, prod-deploy, final-merge, or cross-project work, or under-delivers twice.
+created_by: human
+audience: [cxo]
 ---
 
 # Session Change Model — propose, confirm, hand off the exact command

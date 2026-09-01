@@ -1,6 +1,8 @@
 ---
 name: blender-previz
 description: "Drive Blender (on winbox) from a Claude session to build free camera-previz for AI film scenes — the proven camera rigs (retreat-lead, whip-pan, snap-zoom, locked-master), the exec-bridge protocol, the playblast-to-MP4 pipeline, and the verification discipline. Use for previz/blocking/camera-reference work BEFORE spending Higgsfield credits; every bpy operation here is free. Trigger on /blender-previz, 'previz', 'บล็อกฉาก', 'มุมกล้อง Blender', 'camera reference', or any task that renders a Blender camera move for use as a Higgsfield @Video ref. NOT for paid Higgsfield generation (higgsfield-unlimited-gen owns that) and NOT for beauty renders."
+created_by: human
+audience: [all]
 ---
 
 # Blender Previz — free camera truth before paid generation

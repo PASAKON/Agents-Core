@@ -8,6 +8,8 @@ scope: >-
   Synthesis, not verbatim transcript splicing — to continue that session itself, use
   spawn-cto --resume instead.
 description: Carry another session's context into this one, then mark it merged. Trigger on /session-merge and when the CEO says "merge session", "รวม session", "เอา session A มารวมกับอันนี้", "ย้ายมาทำที่นี่แทน".
+created_by: human
+audience: [cxo]
 ---
 
 # Session Merge — fold session A's context into session B (this one)

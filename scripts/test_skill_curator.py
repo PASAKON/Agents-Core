@@ -311,5 +311,51 @@ def test_load_log_tsv_pads_legacy_lines_and_reads_role_column(tmp_path: Path) ->
     assert entries[1][1:] == ("scrutinize", "new-session", "developer")
 
 
+# --------------------------------------------------------------------------
+# ADR 0022 Wave 1 -- _created_by no longer coerces an invalid value silently
+# --------------------------------------------------------------------------
+
+def test_created_by_role_value_warns_on_stderr_but_still_coerces_to_human(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    """The exact incident ADR 0022 exists to fix: created_by: cto (a role,
+    which belongs in author:, not here) used to coerce to "human" with no
+    error and no log line. The coercion is correct and unchanged (invariant
+    2's whole safety story depends on it staying fail-closed) -- what
+    changes is that it is no longer silent."""
+    skill = _write_skill(tmp_path, "role-created-by-skill", created_by="cto")
+
+    result = curator._created_by(skill)
+
+    assert result == "human"  # unchanged: still fail-closed
+    err = capsys.readouterr().err
+    assert "cto" in err
+    assert str(skill / "SKILL.md") in err
+    assert "WARNING" in err
+
+
+@pytest.mark.parametrize("value", ["human", "agent"])
+def test_created_by_valid_values_never_warn(
+    tmp_path: Path, capsys: pytest.CaptureFixture, value: str
+) -> None:
+    skill = _write_skill(tmp_path, "valid-created-by-skill", created_by=value)
+
+    result = curator._created_by(skill)
+
+    assert result == value
+    assert capsys.readouterr().err == ""
+
+
+def test_created_by_absent_never_warns(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    """Absent is the normal, protected case for every skill written before
+    this ADR -- it must default to human with no warning noise."""
+    skill = _write_skill(tmp_path, "no-created-by-skill", created_by=None)
+
+    result = curator._created_by(skill)
+
+    assert result == "human"
+    assert capsys.readouterr().err == ""
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))

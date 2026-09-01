@@ -7,6 +7,8 @@ scope: >-
   format, refusal conditions, required body sections, naming and location rules.
   Authoring only; does not install, register, or route the resulting skill.
 description: Author a new Claude Code skill whose description reliably triggers. Trigger on /skill-author and when the user asks to "create a skill", "write a skill", "make a SKILL.md", "scaffold a skill", or wants a recurring pattern codified.
+created_by: human
+audience: [all]
 ---
 
 # Skill Author

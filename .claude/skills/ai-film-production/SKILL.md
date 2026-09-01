@@ -11,6 +11,8 @@ description: >
   (the platform's buttons and money) and `browser-operator` (generic browser cost
   discipline). Do NOT fire for a single standalone clip, for storyboarding with no
   generation attached (that is `ai-video-storyboard`), or for still-image work.
+created_by: human
+audience: [cxo]
 ---
 
 # Running a multi-scene AI film

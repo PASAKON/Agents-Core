@@ -11,6 +11,8 @@ scope: >-
   when the pane's claude is merely stuck/stale/confused and tmux is fine —
   see terminal-restart, which is far cheaper and never closes the tab.
 description: Rebuild a C-level session whose tmux itself is broken — wedged, wrongly named, or gone while the process lingers. Trigger on /session-restart and when the CEO or CTO says "tmux ค้าง", "session หาย", "tmux session ผิดชื่อ", "attach ไม่ได้", "tmux server พัง", or terminal-restart itself reports it cannot deliver respawn-pane. Not for a claude process that is merely stuck/confused with tmux otherwise healthy — see terminal-restart.
+created_by: human
+audience: [cxo]
 ---
 
 # Session Restart — last resort: rebuild the whole stack

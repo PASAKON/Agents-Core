@@ -9,6 +9,8 @@ scope: >-
   resumable) via scripts/session-kill.sh --status saved, so it stops costing RAM.
   This is the CEO's "park it" move, not a mid-session checkpoint.
 description: Park this session — save full context to disk + a SID-tagged summary in LungNote, then END the session everywhere so it frees RAM. Resumable later. Trigger on /session-save and when the CEO says "save session", "เซฟ session", "จอด session", "บันทึก session", "เก็บไว้ก่อน", or before walking away to free memory.
+created_by: human
+audience: [cxo]
 ---
 
 # Session Save — park this session for a future resume
