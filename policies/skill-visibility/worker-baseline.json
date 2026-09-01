@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "finance@knowledge-work-plugins": false,
+    "cost-guardian@cost-guardian-marketplace": false,
+    "meigen@meigen-marketplace": false
+  }
+}

@@ -47,13 +47,17 @@ from lib.config import display_for, get_project, role as get_role, worker_provid
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
 
-# Tools every worker DEV may call, regardless of role.
+# Tools every worker DEV may call, regardless of role. Skill is here (not a
+# per-role add-on) because every role now carries a skills_profile (ADR 0022
+# §2) -- a role with visibility configured and no tool to use it with would
+# be pointless. Before this, only web_designer and browser_operator granted
+# it explicitly.
 _BASE_WORKER_TOOLS = (
     "mcp__org__wiki_read mcp__org__wiki_list mcp__org__wiki_search "
     "mcp__org__submit_report mcp__org__dev_message "
     "mcp__org__file_blocker_issue mcp__org__request_human_handoff "
     "mcp__lungnote__list_todos mcp__lungnote__add_todo "
-    "Read Write Edit Bash Glob Grep"
+    "Read Write Edit Bash Glob Grep Skill"
 ).split()
 
 # browser_operator only. Still narrower than the full Chrome surface: no
@@ -108,13 +112,8 @@ def worker_tool_grants(role: str) -> tuple[list[str], list[str]]:
     """
     allowed = list(_BASE_WORKER_TOOLS)
     flags: list[str] = []
-    if role == "web_designer":
-        # design skills (frontend-design / mooniex-tool-builder) are
-        # invocable so the agent can lean on the org's UI craft skill.
-        allowed.append("Skill")
     if role == "browser_operator":
         allowed.extend(_CHROME_TOOLS)
-        allowed.append("Skill")  # loads the browser-operator skill
         flags.append("--chrome")
     return allowed, flags
 
@@ -173,13 +172,57 @@ def _root_mcp_server_names() -> list[str]:
         return []
 
 
-def _write_dev_settings(worktree: str) -> None:
+def skill_visibility_overlay(role: str) -> dict[str, bool] | None:
+    """Return the `enabledPlugins` map for role's skills_profile, or None.
+
+    ADR 0022 §2 / playbook Wave 3 Phase 1: `skillOverrides` short-circuits
+    to "on" for plugin-sourced skills (`e.source === "plugin"`), so the only
+    lever for them is `enabledPlugins`, keyed `<plugin>@<marketplace>`.
+
+    None means "all" (or an unregistered role) -- the CEO's CTO-sees-
+    everything decision costs zero code: no key is added to the settings
+    dict, so `_write_dev_settings` writes exactly what it always wrote.
+
+    Measured 2026-09-01 on Claude Code 2.1.252: a `.claude/settings.local.json`
+    (localSettings) `enabledPlugins: false` entry DOES override an explicit
+    `true` for the same plugin in `~/.claude/settings.json` (userSettings),
+    even though userSettings outranks localSettings in the documented
+    precedence -- so the file `_write_dev_settings` already writes is
+    sufficient; no `--settings` flag is needed for Phase 1. See
+    docs/WAVE3-SKILL-VISIBILITY.md for the measurement.
+
+    `ecc@ecc` must never appear here: its hooks.json (GateGuard's
+    gateguard-fact-force among others) ships inside the plugin bundle, and
+    `enabledPlugins: false` disables the whole bundle, hooks included, not
+    just its skills -- verified live 2026-09-01 (see the doc). Excluding it
+    is enforced by scripts/test_skill_visibility.py, not just this comment.
+    """
+    try:
+        profile = get_role(role).get("skills_profile") or "all"
+    except ValueError:
+        profile = "all"
+    if profile == "all":
+        return None
+    profile_path = ROOT / "policies" / "skill-visibility" / f"{profile}.json"
+    data = json.loads(profile_path.read_text(encoding="utf-8"))
+    return data.get("enabledPlugins") or {}
+
+
+def _write_dev_settings(worktree: str, role: str | None = None) -> None:
     """Drop .claude/settings.local.json into the worktree so claude wires
-    the Stop hook that relays DEV replies into cto.log, and explicitly
-    disables any project-scoped MCP servers inherited from Agents/.mcp.json
-    (see _root_mcp_server_names) so DEV spawns never hit the interactive
-    approval screen for servers they were never meant to use — DEVs get
-    MCP access only via --mcp-config config/worker.mcp.json."""
+    the Stop hook that relays DEV replies into cto.log, explicitly disables
+    any project-scoped MCP servers inherited from Agents/.mcp.json (see
+    _root_mcp_server_names) so DEV spawns never hit the interactive approval
+    screen for servers they were never meant to use — DEVs get MCP access
+    only via --mcp-config config/worker.mcp.json — and applies role's
+    skill-visibility profile (see skill_visibility_overlay).
+
+    role defaults to None (no overlay applied) rather than being required:
+    runners/worker_resume.py calls this with the one-arg form and is outside
+    this task's declared touches (self_repo_guard, ADR 0020), so a resumed
+    worker falls back to pre-task behaviour (all skills visible) until that
+    file gets the matching one-line update in a follow-up task. Flagged to
+    the CTO -- see docs/WAVE3-SKILL-VISIBILITY.md."""
     settings_dir = Path(worktree) / ".claude"
     settings_dir.mkdir(parents=True, exist_ok=True)
     cfg = {
@@ -200,6 +243,9 @@ def _write_dev_settings(worktree: str) -> None:
     inherited = _root_mcp_server_names()
     if inherited:
         cfg["disabledMcpjsonServers"] = inherited
+    overlay = skill_visibility_overlay(role) if role else None
+    if overlay:
+        cfg["enabledPlugins"] = overlay
     (settings_dir / "settings.local.json").write_text(
         json.dumps(cfg, indent=2), encoding="utf-8"
     )
@@ -337,7 +383,7 @@ def main() -> None:
     except Exception as e:
         print(f"warn: could not record pid for {task_id}: {e}", file=sys.stderr)
 
-    _write_dev_settings(worktree)
+    _write_dev_settings(worktree, role)
     _symlink_knowledge(worktree, role)
 
     task_md = Path(worktree) / "TASK.md"
