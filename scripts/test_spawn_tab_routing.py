@@ -96,22 +96,59 @@ def test_checks_both_title_surfaces() -> bool:
     AppleScript can miss the CTO window during a session-name flicker."""
     script = _build_spawn_applescript(
         cmd="echo hi", task_id="task-z", owner_cto="ctowxyzab")
+    # Two lookups remain — tab-reuse and the owner-id match. (A third, the
+    # generic "any C-level-looking tab" guess, was removed 2026-09-01; see
+    # test_no_owner_refuses_rather_than_guessing.) Both must still read the
+    # sticky tab title AND the flickering session badge.
     return (
-        script.count("set tabName to name of t") >= 3
-        and script.count("set sessName to name of current session of t") >= 3
+        script.count("set tabName to name of t") >= 2
+        and script.count("set sessName to name of current session of t") >= 2
         and "tabName contains \"(task-z)\"" in script
         and "sessName contains \"(task-z)\"" in script
         and "tabName contains \"CTO Chat #ctowxyzab\"" in script
     )
 
 
-def test_no_owner_falls_through() -> bool:
+def test_no_owner_refuses_rather_than_guessing() -> bool:
+    """With no owner and no winid, the script must REFUSE.
+
+    Until 2026-09-01 it fell through to "any window whose title contains
+    'CTO Chat #'", which is how two worker tabs landed in an unrelated CTO
+    session's window while their reports were orphaned. An unresolved owner
+    now returns "no-window" and Python raises.
+    """
     script = _build_spawn_applescript(
         cmd="echo hi", task_id="task-1", owner_cto=None)
     return (
-        '"" is not ""' in script
-        and 'contains "CTO Chat #"' in script
+        '"" is not ""' in script                   # exact-match branch disabled
+        and 'contains "CTO Chat #"' not in script  # the guess is gone
+        and 'return "no-window"' in script
+        and "set targetWin to current window" not in script
     )
+
+
+def test_tty_fallback_when_nothing_recorded() -> bool:
+    """_resolve_owner_window must fall back to the live tty.
+
+    This is the whole point of the fix: a session started outside the org
+    launcher (bare `claude -r`, `claude -c`, a background job) has no
+    CTO_SESSION_ID and no .winid, so the recorded lookup returns None. The
+    tty of the process is still a truthful, always-available identity.
+    """
+    import tools.delegate as d
+    orig_file, orig_tty = d._owner_window_id, d._window_id_from_tty
+    try:
+        d._owner_window_id = lambda *a, **k: None      # nothing recorded
+        d._window_id_from_tty = lambda: "4242"         # but the tty knows
+        by_tty = d._resolve_owner_window(None, "cto")
+        d._owner_window_id = lambda *a, **k: "1111"    # recorded wins
+        preferred = d._resolve_owner_window("ctoaaaaa", "cto")
+        d._owner_window_id = lambda *a, **k: None
+        d._window_id_from_tty = lambda: None           # both blind
+        refused = d._resolve_owner_window(None, "cto")
+    finally:
+        d._owner_window_id, d._window_id_from_tty = orig_file, orig_tty
+    return by_tty == "4242" and preferred == "1111" and refused is None
 
 
 def test_cfo_owner_routing() -> bool:
@@ -800,8 +837,10 @@ def main() -> int:
     _mark(r, "_owner_window_id reads digit content + rejects garbage")
     r = test_checks_both_title_surfaces(); fails += not r
     _mark(r, "AppleScript still checks tab name and session name")
-    r = test_no_owner_falls_through(); fails += not r
-    _mark(r, "absent owner_cto disables exact match branch")
+    r = test_no_owner_refuses_rather_than_guessing(); fails += not r
+    _mark(r, "unresolved owner returns no-window instead of guessing a tab")
+    r = test_tty_fallback_when_nothing_recorded(); fails += not r
+    _mark(r, "_resolve_owner_window: recorded id first, live tty as fallback")
     r = test_cfo_owner_routing(); fails += not r
     _mark(r, "CFO-owned task matches 'CFO ...' tabs, not 'CTO ...'")
     r = test_cmo_and_cgo_owner_routing(); fails += not r

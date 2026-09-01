@@ -87,6 +87,86 @@ def _owner_window_id(owner_cto: str | None,
     return raw if raw.isdigit() else None
 
 
+def _tty_of_self() -> str | None:
+    """The terminal device this process — or its nearest ancestor that has
+    one — is attached to, e.g. `/dev/ttys003`.
+
+    delegate runs either in-process inside the C-level's claude process or
+    as its descendant, so walking up the parent chain always reaches the
+    claude process and therefore the tty of the tab the human is looking at.
+    """
+    pid = os.getpid()
+    for _ in range(12):                      # bounded: never chase init
+        if pid <= 1:
+            return None
+        try:
+            out = subprocess.run(
+                ["ps", "-o", "tty=,ppid=", "-p", str(pid)],
+                capture_output=True, text=True, timeout=5,
+            ).stdout.split()
+        except Exception:
+            return None
+        if not out:
+            return None
+        tty = out[0]
+        parent = out[1] if len(out) > 1 else ""
+        if tty and tty not in ("??", "-"):
+            return tty if tty.startswith("/dev/") else f"/dev/{tty}"
+        pid = int(parent) if parent.isdigit() else 0
+    return None
+
+
+def _window_id_from_tty() -> str | None:
+    """Ask iTerm which window owns the tty this process runs under.
+
+    This is the identity fallback that needs NOTHING recorded at boot — no
+    CTO_SESSION_ID, no `.winid` file, no tab-title convention. It therefore
+    keeps working for sessions the org launcher never touched: a bare
+    `claude -r <uuid>` resume, `claude -c`, a background job.
+
+    That gap is not hypothetical. On 2026-09-01 a session resumed with a
+    bare `claude -r` had no CTO_SESSION_ID and no `.winid`; owner_cto was
+    stamped NULL, every id-based lookup missed, and the old title-guessing
+    fallback dropped two worker tabs into an unrelated CTO window while the
+    reports were left orphaned.
+    """
+    tty = _tty_of_self()
+    if not tty:
+        return None
+    script = f'''
+tell application "iTerm"
+  repeat with w in windows
+    repeat with t in tabs of w
+      repeat with s in sessions of t
+        try
+          if (tty of s) is "{tty}" then return (id of w) as string
+        end try
+      end repeat
+    end repeat
+  end repeat
+end tell
+return ""
+'''
+    try:
+        out = subprocess.run(["osascript", "-e", script],
+                             capture_output=True, text=True,
+                             timeout=15).stdout.strip()
+    except Exception:
+        return None
+    return out if out.isdigit() else None
+
+
+def _resolve_owner_window(owner_cto: str | None,
+                          owner_role: str | None = None) -> str | None:
+    """Window id for the session that owns this spawn.
+
+    Recorded id first (cheap, exact); the live tty second (works when
+    nothing was recorded). Returns None only when both fail — and callers
+    must treat that as a refusal, never as licence to guess a window.
+    """
+    return _owner_window_id(owner_cto, owner_role) or _window_id_from_tty()
+
+
 def _build_spawn_applescript(cmd: str, task_id: str,
                               owner_cto: str | None,
                               owner_role: str | None = None,
@@ -190,27 +270,12 @@ tell application "iTerm"
       if targetWin is not missing value then exit repeat
     end repeat
   end if
-  if targetWin is missing value then
-    repeat with w in windows
-      repeat with t in tabs of w
-        try
-          set tabName to ""
-          try
-            set tabName to name of t
-          end try
-          set sessName to ""
-          try
-            set sessName to name of current session of t
-          end try
-          if (tabName contains "{display} Chat #") or (sessName contains "{display} Chat #") or (tabName contains "{display} #") or (sessName contains "{display} #") then
-            set targetWin to w
-            exit repeat
-          end if
-        end try
-      end repeat
-      if targetWin is not missing value then exit repeat
-    end repeat
-  end if
+  -- NOTE: there is deliberately no "any window whose title looks like a
+  -- C-level chat" fallback here. It existed until 2026-09-01 and is what
+  -- put two worker tabs into a stranger's window: with owner_cto NULL the
+  -- id lookups all missed, and the title guess happily matched an
+  -- unrelated CTO session. Guessing wrong is worse than not spawning, so
+  -- an unresolved owner now returns "no-window" and Python refuses.
   if targetWin is missing value then
     if (count of windows) = 0 then
       set targetWin to (create window with default profile)
@@ -220,7 +285,7 @@ tell application "iTerm"
       end tell
       return "spawned"
     else
-      set targetWin to current window
+      return "no-window"
     end if
   end if
   tell targetWin
@@ -303,13 +368,27 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
             f"printf '\\\\033]1;{tab_title}\\\\007' && "
             f"{cto_env}{WORKER_LAUNCHER} {role} {task_id}; exit $?"
         )
-    owner_winid = _owner_window_id(owner_cto, owner_role)
+    owner_winid = _resolve_owner_window(owner_cto, owner_role)
     script = _build_spawn_applescript(cmd, task_id, owner_cto,
                                       owner_role=owner_role,
                                       owner_winid=owner_winid)
     result = subprocess.run(["osascript", "-e", script],
                             check=True, capture_output=True, text=True)
-    return (result.stdout or "").strip() or "spawned"
+    outcome = (result.stdout or "").strip() or "spawned"
+    if outcome == "no-window":
+        # Refuse rather than drop the tab somewhere the human is not
+        # looking. Both recorded id and live tty failed to name a window,
+        # so any tab we opened would be a guess — and a guess also strands
+        # the worker's reports, which route by the same owner identity.
+        raise RuntimeError(
+            f"delegate: cannot resolve the owning iTerm window for "
+            f"{task_id} (owner_cto={owner_cto!r}, role={owner_role!r}). "
+            f"No state/locks/<role>-<id>.winid and no window owns this "
+            f"process's tty. Start the session through scripts/cto-claude.sh "
+            f"(or spawn-cto.sh --resume) so it has an org identity, or pass "
+            f"owner_cto explicitly to create_task. Refusing to guess a window."
+        )
+    return outcome
 
 
 async def _wait_for_terminal(task_id: str, timeout_s: float) -> dict:
