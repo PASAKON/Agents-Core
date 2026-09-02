@@ -23,6 +23,7 @@ from lib.logger import get_logger
 from lib.notify import info
 from tools import wiki as wiki_tools
 from tools.gh_issue import create_issue as gh_create_issue
+from tools.skill_objection import raise_objection as _raise_skill_objection
 
 TASK_ID = os.environ.get("WORKER_TASK_ID", "")
 ROLE = os.environ.get("WORKER_ROLE", "dev")
@@ -291,6 +292,31 @@ def dev_message(text: str) -> str:
     except Exception as e:  # bookkeeping must never break the DEV's report
         info(f"(dev_message: could not touch task row: {e})")
     return ack
+
+
+@mcp.tool()
+def skill_objection(skill: str, conflict: str, did_instead: str, blocked: bool = False) -> str:
+    """Report a skill conflict back to its author (CEO rule 8 / ADR 0022 §6).
+
+    Call this when a skill you did NOT write gave you wrong or conflicting
+    guidance. Writes one skill_objection event and adds a LungNote to-do
+    addressed to the skill's author (no author on record -> cto). Author and
+    user then improve the skill together — this is not a way to silently
+    patch the skill yourself. There is no resolve verb: completing the
+    LungNote to-do IS the resolution.
+
+    Args:
+      skill: skill name exactly as it appears under .claude/skills, or the
+        plugin-prefixed form ("<plugin>:<name>").
+      conflict: what the skill told you to do that was wrong or contradictory.
+      did_instead: what you actually did instead.
+      blocked: True if the conflict stopped you from proceeding at all.
+    """
+    try:
+        result = _raise_skill_objection(skill, conflict, did_instead, blocked)
+    except Exception as e:
+        return f"ERROR: {e}"
+    return f"OK — objection raised for {skill!r}, routed to {result['author']}"
 
 
 if __name__ == "__main__":
