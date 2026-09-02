@@ -1,3 +1,5 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
 ✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
 complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
 Most carry a `project_absence_` prefix; exactly seven are bare: gentleman_e, char_gentleman_c, project_absence_loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
@@ -14,7 +16,7 @@ Shared rules: colour grade warm shadow / cold white, photographed not
 rendered (grain, halation, gate weave), camera always level, 720p ·
 16:9 · High · Sound On. One take per scene.
 
-Negative block for every scene here: no invented dialogue, no lines
+Negative block for every scene here: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no invented dialogue, no lines
 beyond those written, no voiceover, no narration, no subtitles, no
 captions, no brass plaque, no plate, no label, no lettering, no numbers, no readable
 text of any kind, no signage, no music, no score, no extras beyond the named cast,
@@ -56,7 +58,7 @@ walks out of frame. The empty phone holds the frame a beat too long.
 morning, and the eight hundred is Dupe's own savings. "Someone asked
 me to fix it." now has a face.*
 
-Sound: rotary dial clicks, the murmur, room tone. No dialogue proper.
+Sound: rotary dial clicks, the murmur, room tone. No dialogue proper. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 THE ARRIVALS — shared frame for A1–A5

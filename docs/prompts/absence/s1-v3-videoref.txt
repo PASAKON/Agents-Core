@@ -1,0 +1,99 @@
+✅ S1 v3 — THE HALL-v41 VIDEO-REF STANDARD · CEO green-lit 2026-08-31 02:40
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 15s FOR THIS SCENE (not 20). Full spec: 15s / 720p /
+Seedance 2.5 / High / 1/4 / Sound ON. Verify all six fields before firing.
+
+HOW TO STAGE: attach the previz docs/S1-Render.MP4 (+ panel → video picker)
+so @Video 1 resolves, then paste THIS ENTIRE TEXT as the prompt.
+⚠️ @Video 1 IS A CHIP EXACTLY ONCE — first mention only; later references
+are plain words on purpose. 4 chips total (1 video + 3 elements).
+⚠️ IF THE VIDEO WILL NOT ATTACH: STOP AND REPORT. Never fire text-only —
+text-only is the proven 5-second bug.
+
+=== THE PROMPT (paste from here down) ===
+
+15s · 720p · 16:9 · TWO LONG TAKES WITH EXACTLY ONE JUMP CUT BETWEEN THEM —
+no other cuts, no zoom, no dissolve. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+entire shot — a 15-second grey previz of THIS exact scene in THIS exact hall.
+FOLLOW ITS CAMERA EXACTLY, beat for beat:
+[0-8s] TAKE ONE — a straight lateral dolly at constant speed, parallel to the
+right-hand wall, waist height, perfectly level, medium profile framing; the
+cleaner held centre frame while he works along the wall;
+[8s] THE ONLY JUMP CUT;
+[8-15s] TAKE TWO — a very wide locked one-point tableau from the far end of
+the hall: the RED DOOR dead centre at the vanishing point, chrome trumpet
+columns in mirrored pairs, camera locked at eye height, never moving again.
+
+POSITION MAP — every figure in the reference video (Video 1) stands exactly
+where its character must stand; replace each proxy with its real character,
+same spot, same path, same timing. EVERY CHARACTER APPEARS EXACTLY ONCE —
+one proxy, one person, never both a mapped character AND a leftover grey
+figure:
+- the WHITE figure labelled DUPE = @project_absence_char_cleaner_c
+- the BURNT-ORANGE trolley labelled CART = @project_absence_prop_cart —
+  RACK EMPTY, nothing leaning on it
+- every small grey shape on a plinth is museum sculpture, not a person
+
+REFERENCES — each with its job:
+@loc_hall_big_e — the room: columns, red door, cove light, terrazzo.
+  Controls place and light only; the FRAMING comes from Video 1.
+@project_absence_char_cleaner_c — DUPE: face, build, moustache, uniform, cap.
+@project_absence_prop_cart — the cart, RACK EMPTY. Controls the object only.
+
+THE MUSEUM IS EMPTY. DUPE IS COMPLETELY ALONE — before opening. No visitors,
+no extras, no staff, nobody. This is his private world and the first thing
+the film shows. PRE-ACCIDENT: no painting on or near the cart, every framed
+work hangs straight, nothing has happened yet.
+
+DUPE: Indian man, early thirties, noticeably SHORT, ordinary proportions,
+tan skin, sharp pointed nose, a thick moustache with curled tips. WHITE
+uniform with ORANGE trim and matching cap. Gold V on cap and chest. HE IS
+HAPPY — a small private contented smile, never comic. Nobody is watching him
+and that suits him.
+
+[0s] TAKE ONE, medium profile, the dolly gliding with him: Dupe dusts the
+top edge of a framed artwork the full length of the frame with a soft brush,
+unhurried, precise.
+[4s] Same take, unbroken: he steps back half a pace, checks the frame is
+straight, gives one small satisfied nod, then moves to the display plinth
+beside it and polishes its top in slow circles with a cloth. The private
+smile widens slightly.
+[8s] JUMP CUT to TAKE TWO, the locked one-point wide: the red door dead
+centre far away, Dupe small on the centreline mopping toward camera in long
+steady strokes, his burnt-orange cart parked beside him mid-aisle, alone in
+the whole deep symmetrical frame.
+[13s] Hold. He works on, content. Nothing else moves. End on the unmoved
+symmetrical frame.
+
+AUDIO: the room's own tone and only the sounds of his work — brush bristles
+on a frame, cloth on stone, the wet sweep of a mop, bottles rattling softly
+on the cart, wheels on terrazzo, his shoes. No dialogue, no humming, no
+music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with
+no intro sting or riser, and simply stops with no tail, swell or fade.
+
+STYLE: retrofuturist — chromium, moulded plastic, terrazzo, trumpet columns,
+warm cove light. NOTHING DIGITAL. Colour grade warm shadow / cold white:
+amber-orange highlights and mids, whites pushed slightly cool, shadows deep
+red-brown, halation around every lamp. Photographed, not rendered: fine film
+grain, halation, faint gate weave, slight colour fringing. Camera always
+level.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age,
+hair and clothing, and no face is repeated anywhere; no opening sound, no
+intro sting, no whoosh, no riser, no closing sound, no outro, no final
+chord, no audio tail, no fade-in or fade-out on the sound; no proxy rendered
+as an extra person, no grey figures, no duplicate characters, no twins, no
+second cleaner, no people other than the cleaner, no visitors, no extras,
+no crowd, no background figures, no silhouettes, no dialogue, no speech, no
+humming, no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no readable text, no signage, no music, no score, no
+painting on the cart, no crack in any wall, no damage, no cleaner in a
+suit, no cleaner without his cap, no cleaner looking sad or weary, no
+cleaner looking at the camera, no gold V anywhere but the cleaner and his
+cart, no multiple cuts beyond the single jump cut, no dissolve, no fade, no
+wipe, no whip pan, no zoom, no slow motion, no camera shake, no handheld,
+no dutch angle, no crane, no drone, no lens flare, no HDR, no CGI sheen, no
+plastic skin

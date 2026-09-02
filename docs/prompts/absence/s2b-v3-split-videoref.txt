@@ -1,0 +1,123 @@
+✅ S2b v3 — THE PHONE CALL, SPLIT SCREEN · CEO-approved 2026-09-01
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. The duration control is a hidden slider that defaults to 5s and
+silently resets — read all six fields back before firing.
+
+⚠️ NO PLATE FOR THE BUILDING SITE. CEO 2026-09-01: do NOT generate an image
+for it. The unfinished building is described in prose below and the model
+designs it. Only the two people carry Elements.
+
+HOW TO STAGE: attach docs/S2b-Split-Render.MP4 through the video picker so
+@Video 1 resolves, then paste THIS ENTIRE TEXT. @Video 1 IS A CHIP EXACTLY
+ONCE — first mention only. 3 chips total (1 video + 2 elements).
+⚠️ IF THE VIDEO WILL NOT ATTACH: STOP AND REPORT. Never fire text-only.
+
+=== THE PROMPT (paste from here down) ===
+
+20s · 720p · 16:9 · ONE SPLIT-SCREEN COMPOSITION, both halves locked off, no
+cuts, no camera movement of any kind. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND LAYOUT REFERENCE for this
+entire shot — a 20-second grey previz of THIS exact scene. FOLLOW IT EXACTLY:
+[0-7s] FULL FRAME, one image only: the cleaner alone at a wall telephone in
+an empty museum corridor, shot flat-on and dead level, the wall filling the
+frame behind him;
+[7s] the frame SPLITS INTO TWO EQUAL HALVES down the middle, and the right
+half FADES UP QUICKLY — about a third of a second — from white. The left
+half never blinks, never re-frames, and continues unbroken underneath;
+[7-20s] LEFT HALF the cleaner at the telephone, RIGHT HALF the contractor
+high on a building. Both halves stay locked and level to the end.
+
+POSITION MAP — every figure in the reference video (Video 1) stands exactly
+where its character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the WHITE figure at the wall telephone = @project_absence_char_cleaner_c
+- the SLATE-BLUE figure seated on the hanging plank = @project_absence_char_workman
+- every grey block is a prop, never a person
+
+REFERENCES — each with its job:
+@project_absence_char_cleaner_c — DUPE: face, build, moustache, white uniform
+  with orange trim, cap, gold V. Controls the person only.
+@project_absence_char_workman — THE CONTRACTOR: face, build, slate-blue
+  overalls. Controls the person only.
+
+LEFT HALF — the museum, early morning, before opening. A quiet service
+corner: a plain warm-cream wall filling the frame, one retrofuturist WALL
+TELEPHONE on it — cream and chrome, rotary dial, coiled cord, a small brass
+shelf. Dupe stands beside it, shot flat-on and perfectly level, his whole
+body in frame down to the terrazzo floor. He is anxious and in a hurry, and
+he is trying not to look it.
+
+RIGHT HALF — an unfinished apartment building, the same morning, high up. NO
+INTERIOR, NO ROOM: he is OUTSIDE, on the face of the building. The wall
+behind him is bare grey blockwork with a fresh patch of wet plaster spreading
+out from his hands and a ragged unfinished edge beside it; horizontal
+concrete slab lines run away above and below him so the height reads
+instantly. He sits on a SUSPENDED WOODEN PLANK hung on two ropes that run
+straight up out of frame, his legs dangling over the edge into open air, a
+plaster bucket beside him on the plank. He wears a HI-VIS ORANGE SAFETY
+HARNESS across his chest with a lanyard clipped to an anchor above. Bright
+flat morning daylight, open sky beyond.
+
+⚠️ THE CONTRACTOR NEVER STOPS WORKING AND NEVER HOLDS THE PHONE IN HIS HAND.
+He takes the call by SHRUGGING HIS MOBILE PHONE UP AND PINCHING IT BETWEEN
+HIS EAR AND HIS SHOULDER, head tilted over to trap it, and keeps plastering
+throughout — trowel in one hand sweeping the wall in continuous strokes,
+hawk board steady in the other. The pinch never slips and the trowel never
+pauses, not once, not even when he answers and not when he agrees.
+
+[0s] The cleaner alone, full frame. He glances back over his shoulder —
+nobody — then dials fast, one hurried pull after another, and lifts the
+receiver to his ear. He waits. Room tone. The frame holds on him.
+
+[7s] THE SPLIT. The right half fades up: the contractor seated on his plank
+against the raw wall, already mid-stroke. His phone rings; without putting
+anything down he shrugs it up to his shoulder and traps it with his cheek.
+Dupe says it quietly and quickly, glancing off: "Hello — is this the
+contractor?" The contractor, flat and unhurried, still troweling: "Yes. How
+can we help?"
+
+[12s] Dupe, lower, faster: "Can you come now?" A beat of nothing but two
+rooms of air. The contractor, without looking away from his wall: "What's
+the emergency?"
+
+[16s] Dupe does not explain. He glances over his shoulder again, then says
+one word, almost too quiet: "Please." The contractor keeps working — then
+gives ONE short nod, the only answer he offers.
+
+[18s] Neither of them speaks again. The cleaner hangs up and stays exactly
+where he is; the contractor keeps plastering. Hold both halves, still and
+level, one beat longer than is comfortable. Cut.
+
+(19 spoken words.)
+
+AUDIO: LEFT — museum room tone, the rotary dial's clicks, his breathing.
+RIGHT — open-air wind at height, the wet scrape of the trowel on render, a
+distant compressor. Both voices slightly thinned by the phone line. No
+music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with
+no intro sting or riser, and simply stops with no tail, swell or fade.
+
+STYLE: symmetrical, flat-on, dead level, everything centred — both halves
+composed like formal portraits. Colour grade warm shadow / cold white:
+amber-orange highlights and mids, whites pushed slightly cool, shadows deep
+red-brown, halation around every lamp. Photographed, not rendered: fine film
+grain, faint gate weave, slight colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age,
+hair and clothing, and no face is repeated anywhere; no opening sound, no
+intro sting, no whoosh, no riser, no closing sound, no outro, no final
+chord, no audio tail, no fade-in or fade-out on the sound; no proxy rendered
+as an extra person, no grey figures, no duplicate characters, no twins, no
+second cleaner, no second contractor, no other people in either half, no
+crowd, no camera movement, no zoom, no pan, no handheld, no dutch angle, no
+tilted horizon, no cut inside either half, no split appearing before 7s, no
+slow fade on the split, no contractor holding the phone in his hand, no
+contractor standing on scaffolding or a ladder or a balcony or inside a
+room, no missing safety harness, no interior for the right half, no price
+or number spoken, no dialogue beyond the five lines written above, no
+voiceover, no narration, no subtitles, no captions, no on-screen text, no
+readable text, no signage, no music, no score, no modern smartphones in the
+museum half, no screens, no dissolve, no wipe, no slow motion, no lens
+flare, no HDR, no CGI sheen, no plastic skin, no beauty filter, no darkness,
+no night

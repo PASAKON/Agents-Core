@@ -100,3 +100,6 @@ output/**/*.wav
 scripts/**/out/*.mp4
 scripts/**/out/*.mov
 scripts/**/out/*.webm
+
+# local model/tool cache — 141MB, never commit
+.cache/
