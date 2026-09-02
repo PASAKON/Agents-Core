@@ -14,7 +14,8 @@ handover — no adjectives.
 | S16t2 | 1 | **PASS** | `S16/absence-S16t2-take1-2ad0f7c2-PASS-20s-720p.mp4` | 20s/720p | `@Video 1`=S16-Render.MP4, insert from `videoref-inserts.txt`. Locked wide, saw progression visible 0s→8s→19s, no dialogue (whisper's `[MUSIC PLAYING]` tag is the known room-tone mislabel). |
 | S6 | 1 | **PASS** (renamed live) | `S6/absence-S6-take1-89740256-PASS-15s-720p.mp4` | 15s/720p | `@Video 1`=S6-Render.MP4, insert from `videoref-inserts.txt`. Originally filed `FLAGGED-goldV` (visible gold V pin on the blue-coat visitor); **CTO override mid-session** (see §3) reclassified this as PASS per today's CEO ruling — Drive file renamed in place, `logs.txt` carries the correction line. |
 | S6b | 1 | **PASS** | `S6b/absence-S6b-take1-4ce5f768-PASS-12s-720p.mp4` | 12s/720p | Refless — no previz exists for this scene per `docs/PREVIZ-INDEX.md`. Desk-entrance sequence exactly per spec, no dialogue. **New Drive folder created** (`S6b` did not exist under `All Scene`). |
-| S11 | 1 | **FLAGGED-duplicate-criticB** | `S11/absence-S11-take1-7059cb89-FLAGGED-duplicate-criticB-15s-720p.mp4` | 15s/720p | `@Video 1`=S11-Render.MP4, insert from `videoref-inserts.txt`. Camera, plaque (100,000,000 correct-way-round), helicopter through the window, audio all correct — but `@project_absence_char_critic_b` (magenta fur, grey bun) renders TWICE, side by side. Iron Rule violation. Filed and moved on per the never-discard / no-re-fire-on-a-miss rule; this was the last video block in the queue anyway. |
+| S11 | 1 | FLAGGED-duplicate-criticB | `S11/absence-S11-take1-7059cb89-FLAGGED-duplicate-criticB-15s-720p.mp4` | 15s/720p | `@Video 1`=S11-Render.MP4, insert from `videoref-inserts.txt`. Camera, plaque (100,000,000 correct-way-round), helicopter through the window, audio all correct — but `@project_absence_char_critic_b` (magenta fur, grey bun) renders TWICE, side by side. Iron Rule violation. |
+| S11 | 2 | **PASS** | `S11/absence-S11-take2-51e029c5-PASS-15s-720p.mp4` | 15s/720p | **CTO-ordered re-roll** (arrived after this handover's first draft and after the cart Element job — see §3). Prompt fired byte-identical to take1 (same length landed in the composer, 5675 chars), same `@Video 1` + guard_private→prose adjustments, no anti-duplication wording added. Only ONE `critic_b` this time — confirms the duplication was stochastic, not an Element fault, same conclusion the CEO's X4 re-roll reached earlier today. No stray gold V on any visitor, no dialogue, plaque/helicopter/camera all correct. This was the block's 2nd and last permitted attempt; it passed, so no further escalation needed. Take1 kept in Drive, never discarded. |
 
 **Element fix applied to S6, S6b, S11**: `@project_absence_char_guard_private`
 is flagged by Higgsfield's protected-content scanner and blocks Generate
@@ -68,7 +69,22 @@ composer. Caught before any further action, removed via the chip's own ×.
 Full-res viewing works by clicking the card thumbnail itself, which opens a
 proper detail panel with Download/Upscale/Reference/Create-Element options.
 
-## 3. CEO RULING RECEIVED MID-SESSION — S6's gold V is not a defect
+## 3. TWO CTO ORDERS RECEIVED MID-SESSION, OUT OF THE ORIGINAL PLANNED ORDER
+
+Both arrived as inbox messages after the cart Element job (§2) had already
+started or finished, so the actual execution order was: video queue → cart
+Element → S11 take2 → this handover — not the order either message
+requested when read in isolation. Neither order was missed; the mailbox
+notifications carry no body in the mid-turn ping (a known Higgsfield-skill
+issue), so each was only visible on the next explicit inbox check via
+`find ... -newer`.
+
+**S6's gold V is not a defect** (see below). **S11 gets a second, and per
+the CTO's order last, attempt** — done after the cart job rather than
+before it as originally instructed, because the order arrived after the
+cart job was already underway. Result is in §1's S11 take2 row.
+
+### CEO RULING — S6's gold V is not a defect
 
 Full text: `docs/reports/absence-collectorA-goldV-plate.md` (commit
 `d04af33`), relayed via inbox message from CTO #116d7688 at
@@ -130,8 +146,8 @@ the time of this report.
 
 ## 5. QUEUE POINTER
 
-**The video queue and the CTO's assigned image job are both exhausted.**
-Nothing in the task brief remains unfired except the three items explicitly
-held for a CEO/CTO decision: `DH1`–`DH4` (plate crack), `S1C` (cart plate
-review), `S10b` (copyright scanner). This session did not go looking for
-extra work, per instruction.
+**The video queue, S11's re-roll, and the cart Element job are all
+exhausted.** Nothing in the task brief remains unfired except the three
+items explicitly held for a CEO/CTO decision: `DH1`–`DH4` (plate crack),
+`S1C` (cart plate review), `S10b` (copyright scanner). This session did not
+go looking for extra work, per instruction.
