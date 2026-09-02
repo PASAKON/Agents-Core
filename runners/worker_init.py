@@ -277,6 +277,11 @@ Default branch (do NOT touch): {project['default_branch']}
    (files changed, tests run, blockers). This is how the CTO learns
    you finished — without it the task stays in_progress forever.
 
+If a skill you followed gave HARD-tagged rules, follow them as written. If it
+gave advice (not HARD) and you judged the situation called for something
+else, that's fine — just record it in your report as one line per override:
+`SKILL-OVERRIDE: <skill> :: <rule> :: <did instead> :: <why>`
+
 Begin.
 """
 
