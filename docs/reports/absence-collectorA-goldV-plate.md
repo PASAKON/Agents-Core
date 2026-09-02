@@ -44,3 +44,25 @@ is a look decision about the CEO's own film, so it waits for him.
   hardening the prompt — but the operator is mid-wave reading that exact file,
   so the edit waits for the CEO's OK rather than changing live production text
   under a running agent at night.
+
+---
+
+## CEO RULING — 2026-09-02: the V stays. Exception granted.
+
+The CEO ruled on this today: **accept the gold V on `@project_absence_char_woman`
+as it is.** In their words, it is an exception granted for this one character
+because you do not see it unless you are really looking for it.
+
+Consequences, so nobody reopens this:
+- **No re-plate. No reshoot.** Every scene already in the can that binds this
+  Element keeps its take. That is nearly all of them — the Element is bound in
+  10 places across `s-arrivals.txt`, `s4-s5.txt`, `s7-s9.txt` and `s6-s18.txt`.
+- Future takes fire from the prompt files unchanged. The three negative lines
+  banning the V stay in the text; they cost nothing and they are the reason the
+  V never spread to anyone else.
+- **This exception covers `char_woman` only.** It is not a general "ship the
+  plate defect" rule. The doll's-house crack in `@project_absence_loc_dollhouse`
+  is a separate, still-open decision — it is larger in frame and the spec bans
+  it in that viewpoint by name.
+
+Recorded by CTO #116d7688.
