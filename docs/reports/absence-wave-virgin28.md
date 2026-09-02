@@ -37,3 +37,18 @@ content, GH #125 — a third slot is waste until the CEO rules on it).
 Order: finish the take-2 queue first (S18b → S14t2 → S16t2 → S18at2), then
 Wave I → II → III → IV. File every take to Drive pass or fail; report each
 with its exact prompt; CTO reviews frames per the iron rule.
+
+## Standing exception — the gold V on char_woman (CEO, 2026-09-02)
+
+**Do not flag a take because Collector A wears a gold V pin.** The V is baked
+into the `@project_absence_char_woman` plate and the CEO ruled it acceptable as
+it is, on the grounds that you do not see it unless you are looking for it. No
+re-plate, no reshoot; takes already filed keep their status. Full reasoning at
+the end of `absence-collectorA-goldV-plate.md`.
+
+Keep the no-V negative lines in every prompt — they are the reason the V never
+spread to any other character. But if it appears on **her** anyway, that is not
+a defect and the take is a keeper.
+
+**Her only.** A gold V on any other visitor is still a real defect and still
+gets flagged. The registrar's V is correct by design and never was one.
