@@ -60,26 +60,24 @@ that isn't pinned; it backs up before moving and is reversible via `restore`.
 Output splits into two sections:
 
 - **Proposed transitions** — `created_by: agent` skills the curator could
-  actually archive. Empty today, because no agent-authored skill exists yet
-  (ADR 0018 §6, agent-authored skill creation, is separate work and not yet
-  built).
+  actually archive. Anything an agent authored via `create` lands here; skills
+  written by a human never do.
 - **Informational only** — everything else that looks stale or never-used but
   is human-authored (or absent `created_by`, which defaults to human). The
   curator will never propose *archiving* these; if one genuinely needs
   cleanup, that's a manual `git rm`, not a curator action.
 
 Never skip straight to `archive` on a name you saw in `propose` — re-run
-`propose` first if time has passed; lifecycle state is derived from
-`state/skill-usage.log` (append-only, written by the existing
-`hook-skill-log.py` hook) plus `state/skill-usage.json` (a rebuildable sidecar
-of use counts, pin state, and lifecycle — safe to delete, but you lose pin
-decisions along with it, which is why `pin` matters for anything you want
-protected long-term).
+`propose` first if time has passed. Lifecycle state is derived from
+`state/skill-usage.log` (append-only, written by `hook-skill-log.py`) plus each
+skill's own **frontmatter** (`pinned`, `created_by`, `audience`). The old
+`state/skill-usage.json` sidecar was deleted in Wave 2 — it had never once been
+written, and pin state now lives with the skill it protects.
 
 ## What this skill does not do
 
-- Does not create agent-authored skills — that half of ADR 0018 (§6) is future
-  work.
+- Does not decide *what* a skill should say. `create` scaffolds a compliant,
+  stamped skill; the content is the caller's judgement.
 - Does not touch anything outside `.claude/skills/` in this repo — no
   `external/*`, no plugin marketplaces, no `~/.claude/skills/` symlinks
   themselves.

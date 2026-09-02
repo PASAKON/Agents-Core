@@ -58,17 +58,7 @@
         ]
       }
     ],
-    "PostToolUse": [
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-skill-log.py"
-          }
-        ]
-      }
-    ],
+    "PostToolUse": [],
     "Stop": [
       {
         "hooks": [
