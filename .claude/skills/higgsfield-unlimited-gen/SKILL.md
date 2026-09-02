@@ -240,22 +240,59 @@ landing outside the film's project and nobody noticed until the CEO checked.
 the address bar before every fire.** If a brief does not name a project, stop
 and ask the C-level which one — do not guess from what is already open.
 
-## Hard rules — non-negotiable, no exceptions
+## Hard rules — tiered (ADR 0022 §7 pass, 2026-09-02)
 
-1. **Never click "Rerun"** (↻ icon, bottom-left row on a History/generation
-   card). Banned entirely on every Higgsfield task, forever. It auto-fires a
-   generation with no confirmation.
-2. **Use "Recreate" instead** (copy icon, top-right of the video thumbnail,
-   appears on hover — confirm via its tooltip text before clicking) to load
-   a card's prompt + references into the composer for editing. This does
-   NOT fire anything by itself.
-3. **Before every single Generate click, with no exceptions**: zoom into the
-   Generate button itself and confirm it reads bare **"Generate"** with
-   **ZERO digits anywhere on it** (not "Generate ✦ 130", not any number). If
-   any number shows, do not click — stop and message the C-level. The
-   Unlimited Mode toggle's apparent on/off state is **not sufficient on its
-   own** — it silently resets to OFF after any full-page reload, which is
-   the exact gap that caused the incident above.
+Every rule below is tagged **HARD** and carries a **`Why hard:`** clause per
+the ADR 0022 §7 contract — a rule block is either HARD-with-a-reason, or it is
+advice the model may override (and says why when it does). Every rule in this
+section traces to a real credit loss or an unrecoverable wrong-footage
+incident, so none of it is softened to make a doctrine point: money and
+irreversibility are exactly the two carve-outs the ADR keeps binding.
+
+**Fixed in this pass:** rule 2 below used to say "confirm the Generate button
+reads bare 'Generate' with ZERO digits anywhere on it" — but a correctly
+working Unlimited *video* generation legitimately shows digits, struck
+through (`Unlimited · ~~140~~ · 0`), as the "Findings from the Valder wave"
+section further down already documents. The zero-digits wording and the
+struck-through wording contradicted each other in this same file; an operator
+handed only the old rule 3 would stop dead on a correct button. Rule 2 now
+states the one table that actually governs both surfaces, and it is the only
+place that table needs to live — VIDEO generate check, IMAGE generate check.
+
+1. **HARD — Never click "Rerun"** (↻ icon, bottom-left row on a
+   History/generation card). Banned entirely on every Higgsfield task,
+   forever. Use **"Recreate"** instead (copy icon, top-right of the video
+   thumbnail, appears on hover — confirm via its tooltip text before
+   clicking) to load a card's prompt + references into the composer for
+   editing; Recreate does NOT fire anything by itself.
+
+   **Why hard:** money. Rerun auto-fires a generation with zero confirmation
+   step, independent of Unlimited Mode's on/off state. Confirmed 130-credit
+   charge, mooniex-agents task-eed61860, GH #45.
+
+2. **HARD — Before every single Generate click, read the button's price
+   signal correctly. A wrong reading is real money, and there is no undo
+   after the click.**
+
+   | Surface | Button reads | Meaning | Action |
+   |---|---|---|---|
+   | Seedance 2.5 VIDEO, Unlimited working | struck-through price then `0` (e.g. `Unlimited · ~~140~~ · 0`) | Unlimited applied | Click |
+   | Seedance 2.5 VIDEO | bare `Generate`, no price shown at all | fine | Click |
+   | Seedance 2.5 VIDEO | a live price, **no strike-through** | Unlimited is OFF | **STOP** — message the C-level |
+   | GPT Image 2 (any plate) | a small live number, ~0.2–3 credits at 1K/Medium, no strike | normal — images are never Unlimited | Click, within the credit budget the brief gave you |
+   | GPT Image 2 | an "Unlimited mode" control shown beside it | that is a $30 paid upsell, not our subscription | **Never click it** |
+
+   **The struck-through number is not a fixed value and you should not expect
+   140.** It varies with the clip's length and quality settings — 137, 140,
+   whatever that particular job would have cost. Do not stop because the number
+   is unfamiliar. **Read exactly two things: is the price struck through, and is
+   there a `0` after it.** Those two together mean Unlimited is applied and the
+   click is free. (CEO, 2026-09-02.)
+
+   The distinction that matters is **the strike-through, not the presence of
+   digits.** The Unlimited Mode toggle's apparent on/off state is **not
+   sufficient on its own** — it silently resets to OFF after any full-page
+   reload.
 
    ⚠️ **A JS TEXT-SCRAPE OF THE GENERATE BUTTON IS NOT A SUBSTITUTE FOR THE
    ZOOM, AND CAN BE FLATLY WRONG.** Measured 2026-08-28:
@@ -267,130 +304,126 @@ and ask the C-level which one — do not guess from what is already open.
    matches a loose text selector on this composer at any moment.**
 
    An operator trusting the scrape in the other direction — decoy says `0`,
-   real button says `45` — fires a paid generation believing it is free. **The
-   zoom in this rule is load-bearing, not a formality.** Read the money off the
-   pixels, never off the DOM.
-3b. **"Rights verification required" — CLICK CONFIRM RIGHTS. Standing CEO
-   approval, 2026-08-28.** A finished card sometimes carries a *Rights
-   verification required* banner and will not download until it is confirmed.
+   real button says `45` — fires a paid generation believing it is free.
 
-   **Confirm it and carry on. Do not escalate, do not ask, do not hold the
-   clip.** This is not a legal risk transfer and it is not the CEO's signature
-   on anything — the banner asks whether we own the content, and we do: we wrote
-   the prompt, and the clip is generated from it. His words: *"กดเองได้เลย…
-   เพราะเราเป็นคนสร้าง Promt คุณก็เขียนขึ้นมาเอง."*
+   **Why hard:** money. Read the number off the pixels, never off the DOM —
+   the zoom is load-bearing, not a formality, and there is no way to un-fire
+   a generation once the click lands.
 
-   Context that makes this safe rather than sloppy: the flag comes from the same
-   automated Face/IP scanner that terminally killed **three healthy plates in one
-   day** on this project. It fires on *resemblance*, not on infringement, and it
-   rescans retroactively — a clip that passed an hour ago can be flagged now.
-   Confirming states the true thing: nothing here was copied from anyone.
+3. **HARD — "Rights verification required" banner: click Confirm Rights,
+   every time. Do not escalate, do not ask, do not hold the clip.** Standing
+   CEO approval, 2026-08-28. A finished card sometimes carries this banner
+   and will not download until it is confirmed.
 
-   **What this does NOT authorise:** buying anything, renewing a plan, accepting
-   new terms of service, or any other consent dialogue. Those all still stop and
-   go to the C-level. This approval covers the rights banner on generated clips
-   in this project and nothing else.
+   This is not a legal risk transfer and not the CEO's signature on anything
+   — the banner asks whether we own the content, and we do: we wrote the
+   prompt, and the clip is generated from it. His words: *"กดเองได้เลย…
+   เพราะเราเป็นคนสร้าง Promt คุณก็เขียนขึ้นมาเอง."* The flag comes from the
+   same automated Face/IP scanner that terminally killed **three healthy
+   plates in one day** on this project — it fires on *resemblance*, not
+   infringement, and rescans retroactively, so a clip that passed an hour
+   ago can be flagged now. Confirming states the true thing: nothing here
+   was copied from anyone.
 
-   *Why it is written here rather than passed down verbally:* an operator
-   correctly refused a CTO instruction to click it, on the grounds that a
-   relayed approval is not the same as an authorised rule. It was right. The
-   skill is the legitimate place to change that.
+   **What this does NOT authorise:** buying anything, renewing a plan,
+   accepting new terms of service, or any other consent dialogue. Those all
+   still stop and go to the C-level. This approval covers only the rights
+   banner on generated clips in this project.
 
-4. **One UNLIMITED VIDEO generation at a time.** Wait for full completion
-   (card shows Recreate+Rerun options and full resolution/duration/aspect-ratio
-   metadata, no "Processing"/"Generating" state) before starting the next
-   video. No parallel video generations, ever.
+   **Why hard:** the scope of what is and isn't authorised here is
+   CEO-bounded and must not be widened by inference — an operator that once
+   correctly refused a relayed (not written) version of this same approval
+   was right to refuse it, which is exactly why the boundary is written here
+   instead of passed down verbally.
 
-   **But a paid GPT Image 2 generation does NOT contend for that slot, and
-   holding image work behind a rendering video wastes hours.** Measured
+4. **HARD — One Unlimited VIDEO generation at a time; never force through a
+   stuck concurrency toast.** Wait for full completion (card shows
+   Recreate+Rerun options and full resolution/duration/aspect-ratio metadata,
+   no "Processing"/"Generating" state) before starting the next video. If
+   Higgsfield shows a "1 unlimited generation at a time" toast and nothing in
+   your own History is generating, don't force through it or guess a
+   workaround — message the C-level and wait.
+
+   **A paid GPT Image 2 generation does NOT contend for that slot**, and
+   holding image work behind a rendering video wastes hours. Measured
    2026-08-28 on the «Sorry, Sir» wave: Scene 2 fired as an Unlimited
    Seedance video at 05:50 and was still rendering at 06:30, and during that
    window **two separate operators each fired and completed a paid image
    plate** — `char_grandmother` (asset `5dd23a87`) and `char_gentleman`.
-   Neither saw a concurrency toast.
+   Neither saw a concurrency toast. The slot is scoped to **unlimited**
+   generations only; paid ones queue independently. **Video work serialises;
+   image work runs alongside it.**
 
-   The slot is scoped to **unlimited** generations. Paid ones queue
-   independently. The CTO on that wave stood two image operators down "until
-   the video clears" and burned roughly forty minutes of two workers for
-   nothing — do not repeat it. **Video work serialises; image work runs
-   alongside it.**
-5. **Concurrency toast with no visible in-flight job**: if Higgsfield shows
-   a "1 unlimited generation at a time" toast and nothing in your own
-   History is actually generating, don't force through it or guess a
-   workaround. Message the C-level and wait.
+   **What actually causes a toast with nothing visibly running** (measured
+   2026-08-12, task-cda4f469): the slot is **account-wide, not
+   project-wide**, and a generation survives the death of the agent that
+   started it. Killing a DEV does not cancel its in-flight render — that job
+   keeps running server-side and holds the slot until it finishes on its
+   own, roughly 20 minutes for a 20-second Seedance clip. Two read-only
+   checks resolve it: look at the account-level generations feed (not just
+   the current project's History — a job in any other project holds the same
+   slot and is invisible from inside one project), and check the most recent
+   Usage entry's timestamp — under ~20 minutes old is the holder; wait it
+   out. The toast itself costs nothing, confirmed.
 
-6. **If the Unlimited toggle won't respond, stop after the FIRST clean
-   attempt — do not escalate through more click techniques.** Real incident,
-   2026-08-14 (task-f693a4ee, GH #67): the toggle was stuck off, so the
-   Generate button stayed priced (`Generate180135`) for the whole session.
-   The operator never intended to click it and correctly never clicked it
-   on purpose — but while troubleshooting the toggle it tried seven
-   different techniques in succession (ref click, raw-coordinate click,
-   keyboard focus+Space+Enter, click-drag, hover, double-click, zoom+click),
-   and **two real 135-credit charges landed anyway**, $10.80 total, most
-   likely because one of those techniques — probably the keyboard Enter
-   press — landed on the adjacent Generate button instead of the switch
-   (the two sit 40–50px apart). Every click technique tried near a priced
-   Generate button is itself a money risk, independent of what you're
-   aiming at.
+   **Why hard:** money, by the same path as rule 5 below — guessing a
+   workaround around a stuck slot means clicking near a live, potentially
+   priced composer, and that is exactly the pattern that cost $10.80 in a
+   real incident.
+
+5. **HARD — If the Unlimited toggle won't respond, stop after the FIRST
+   clean attempt. Do not escalate through more click techniques.** Real
+   incident, 2026-08-14 (task-f693a4ee, GH #67): the toggle was stuck off, so
+   the Generate button stayed priced (`Generate180135`) for the whole
+   session. The operator never intended to click it and correctly never
+   clicked it on purpose — but while troubleshooting the toggle it tried
+   seven different techniques in succession (ref click, raw-coordinate
+   click, keyboard focus+Space+Enter, click-drag, hover, double-click,
+   zoom+click), and **two real 135-credit charges landed anyway**, $10.80
+   total, most likely because one of those techniques — probably the
+   keyboard Enter press — landed on the adjacent Generate button instead of
+   the switch (the two sit 40–50px apart).
 
    **The fix:** one ref-based click attempt on the exact toggle element via
    `find()`. If `data-state` doesn't flip, **stop entirely and message the
-   C-level** — do not try a second technique, do not try raw coordinates,
-   do not try keyboard input near the composer. A stuck toggle is a
-   blocker to report, not a puzzle to solve by trying more input methods
-   next to a live priced button.
+   C-level** — do not try a second technique, do not try raw coordinates, do
+   not try keyboard input near the composer.
 
-   **Standing escalation policy, CEO-set 2026-08-14: any control an
-   operator cannot reliably click goes to the CTO, not back into more
-   operator retries.** The CTO asks the CEO to fix it by hand in the real
-   Chrome window. The operator's job at that point is to **leave the
-   browser open exactly as it is** — no navigate, no refresh, no retry, no
-   close — and report the composer's exact current state (text present,
-   element chips attached, toggle state) so the CEO knows what he's
-   looking at before he touches anything. **The CEO clicks Generate
-   himself in this scenario, not the operator** — the final money-
-   committing click moves to a human hand whenever the automated path has
-   already failed once. This generalizes past the Unlimited toggle to any
-   stuck control on a priced surface.
+   **Standing escalation policy, CEO-set 2026-08-14: any control an operator
+   cannot reliably click goes to the CTO, not back into more operator
+   retries.** The CTO asks the CEO to fix it by hand in the real Chrome
+   window. The operator's job at that point is to **leave the browser open
+   exactly as it is** — no navigate, no refresh, no retry, no close — and
+   report the composer's exact current state (text present, element chips
+   attached, toggle state). **The CEO clicks Generate himself in this
+   scenario, not the operator** — the final money-committing click moves to
+   a human hand whenever the automated path has already failed once. This
+   generalizes past the Unlimited toggle to any stuck control on a priced
+   surface.
 
    **Once the CEO has fixed the toggle by hand, that composer tab becomes
    protected — proceed on it, but never navigate it away, refresh it, or
    close it, for the rest of the session.** A page reload silently resets
-   Unlimited back to off (already documented above as the cause of the
-   original incident), so leaving this exact tab would force the CEO to
-   walk over and click it by hand a second time — an avoidable ask. Need
-   to check Usage, History, or anything else mid-queue? **Open a separate
-   tab for that** and leave the composer tab exactly as the CEO left it.
+   Unlimited back to off, so leaving this exact tab would force the CEO to
+   walk over and click it by hand a second time. Need to check Usage,
+   History, or anything else mid-queue? **Open a separate tab for that** and
+   leave the composer tab exactly as the CEO left it.
 
-   **What actually causes it** (measured 2026-08-12, task-cda4f469): the
-   slot is **account-wide, not project-wide**, and a generation survives the
-   death of the agent that started it. Killing a DEV does not cancel its
-   in-flight render — that job keeps running server-side and keeps holding
-   the slot until it finishes on its own, roughly 20 minutes for a
-   20-second Seedance clip. So the toast is the normal, expected state for
-   ~20 minutes after any operator is killed mid-render, and it resolves
-   itself with no action.
+   **Why hard:** money. Every additional click technique tried near a priced
+   Generate button is itself a money risk, independent of what you're aiming
+   at — confirmed twice in the reference incident.
 
-   Two checks resolve it, both read-only:
-   - Look at the **account-level** generations feed, not just the current
-     project's History. A job in any other project on the account holds the
-     same single slot and is invisible from inside one project.
-   - Find the most recent Usage entry and work out whether it is still
-     running. If its timestamp is under ~20 minutes old, that is the
-     holder; wait it out.
+6. **HARD — Never enter prompt text with a keystroke-simulating "type"
+   action. Synthetic-paste only.** Confirmed 3-for-3 failure rate in one
+   session (task-7b4402d4): every `type()`-entered multi-paragraph prompt
+   silently truncated to a fragment, which then got submitted as a real
+   generation with wrong subject matter. Use `ClipboardEvent` paste **only**,
+   every prompt, no exceptions, especially prompts with blank lines between
+   paragraphs (most of ours).
 
-   The toast costs nothing — the click that triggers it does not generate
-   and does not move credits, confirmed. A retry after the wait is safe;
-   forcing it or hunting workarounds is what is banned.
-6. **Never enter prompt text with a keystroke-simulating "type" action.**
-   Confirmed 3-for-3 failure rate in one session (task-7b4402d4): every
-   `type()`-entered multi-paragraph prompt silently truncated to a
-   fragment, which then got submitted as a real generation with wrong
-   subject matter. Synthetic-paste is the fix, not a style preference — see
-   Incident 2. Use `ClipboardEvent` paste **only**, every prompt, no
-   exceptions, especially prompts with blank lines between paragraphs
-   (most of ours).
+   **Why hard:** money, and silently. A truncated prompt does not fail — it
+   fires a real, paid generation of the wrong thing, and the operator only
+   finds out after the credits are gone. 3 for 3 in one session.
    - **Do NOT also dispatch a synthetic `input` event after the paste.**
      Tested and confirmed harmful: Lexical's own paste handler already
      inserts the text, and a follow-up synthetic `input` event causes a
@@ -460,12 +493,16 @@ and ask the C-level which one — do not guess from what is already open.
      actually gets serialized into the Generate API call) is empty or
      truncated. This is the actual mechanism behind Incident 2, not a
      stray-Enter theory (that was an earlier, superseded hypothesis).
-7. **Any browser-tool error or timeout while on a Higgsfield generation
-   page — of any kind, not just during text entry — means your next action
-   is checking Usage History, before anything else.** A timeout does not
-   mean nothing happened; the underlying page action may have partially or
-   fully completed regardless of what the tool call reported back. Don't
-   assume a failed call = no side effect.
+7. **HARD — Any browser-tool error or timeout while on a Higgsfield
+   generation page — of any kind, not just during text entry — means your
+   next action is checking Usage History, before anything else.** A timeout
+   does not mean nothing happened; the underlying page action may have
+   partially or fully completed regardless of what the tool call reported
+   back. Don't assume a failed call = no side effect.
+
+   **Why hard:** money. Usage History is the only ground truth for whether a
+   charge landed — a failed tool call is not evidence either way, and
+   skipping this check is how a real charge goes unnoticed.
 
 ## THE REVIEW LOOP — the operator never self-certifies a clip
 
