@@ -306,6 +306,11 @@ def test_skill_report_load_log_pads_legacy_three_field_lines(tmp_path: Path, mon
     )
     mod = _load_skill_report()
     monkeypatch.setattr(mod, "LOG", log_path)
+    # Stub the worktree fold-in (ADR 0022 Wave 4). Without this the assertion
+    # below counts whatever worktrees/*/state/skill-usage.log happen to exist
+    # on this machine, so the test's result changes when an unrelated session
+    # creates or reaps a worktree.
+    monkeypatch.setattr(mod, "_worktree_logs", lambda: [])
 
     entries = mod._load_log()
     assert len(entries) == 2

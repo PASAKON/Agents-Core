@@ -127,6 +127,15 @@ def _objection_summary(days: int = 30) -> dict[str, dict]:
         return {}
 
 
+def _worktree_logs() -> list[Path]:
+    """The worktree copies to fold in. Its own function so a test can stub the
+    filesystem read out — globbing the real tree from inside _iter_log_lines()
+    made every caller's result depend on how many worktrees happened to exist
+    on the machine, which is not a property any test should assert against.
+    """
+    return sorted(ROOT.glob("worktrees/*/state/skill-usage.log"))
+
+
 def _iter_log_lines() -> list[str]:
     """Every line from state/skill-usage.log plus any
     worktrees/*/state/skill-usage.log (ADR 0022 §5 — folded in so a
@@ -137,7 +146,7 @@ def _iter_log_lines() -> list[str]:
     """
     lines: list[str] = []
     seen: set[str] = set()
-    for src in [LOG, *sorted(ROOT.glob("worktrees/*/state/skill-usage.log"))]:
+    for src in [LOG, *_worktree_logs()]:
         if not src.is_file():
             continue
         for line in src.read_text().splitlines():
