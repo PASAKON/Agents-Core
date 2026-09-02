@@ -61,12 +61,85 @@ Required sections:
 2. **When to invoke** — bullet list of trigger phrases (expanded from description).
 3. **When NOT to invoke** — false positives explicit.
 4. **Steps / workflow** — numbered, in execution order. Each step has a refusal condition (when to stop and ask).
-5. **Operating rules** — bullet list of guardrails (`Never X`, `Always Y`).
+5. **Rules, tiered** — see below. Not a flat `Never X` / `Always Y` list.
 6. **Output format** — show a literal example block so AI mimics it.
 
 Optional but valuable:
 - **Worked example** — full input → output walkthrough.
 - **Reference** — link to related skills, code files, memory entries.
+
+## Rules, tiered (ADR 0022 §7 — a skill must not cage the model)
+
+**The principle:** a skill that says "you must do exactly X" removes the
+model's judgement. That costs nothing on a weak model and costs real
+capability on a strong one — **and we run only frontier models.** Facts the
+model cannot derive, and cause→effect it can reason from, are pure gain.
+Blanket mandates are a loss.
+
+This is not something to copy from anywhere. Hermes does the opposite
+deliberately — its own system prompt tells the model to load a skill *"even
+if you think you could handle the task with basic tools"* and *"even for
+tasks you already know how to do,"* and across its 58 bundled skills there
+are ~460 mandate tokens against 4 uses of "judgment" and none of
+"discretion." That posture is the price of supporting 300+ models down to a
+local Llama — they must write for the weakest model they support. We do not
+pay that price, so we must not inherit its side effect.
+
+**The contract is binary, and that is deliberate:**
+
+> A rule block is either **HARD**, and then it carries a **`Why hard:`**
+> clause, or it is advice the model may override — and when it overrides, it
+> says why.
+
+There is no third tier. Do not build a scored/ratio classifier (`cage_ratio`
+was proposed for this org and explicitly rejected — no variance across the
+corpus, an undefended threshold, an unvalidated Thai mandate-word matcher,
+no consumer). One rule, tagged one of two ways.
+
+### The HARD test
+
+A rule earns **HARD** only if the answer to at least one of these is yes.
+Write the `Why hard:` clause from whichever answer was yes — that is the
+whole clause, not a separate justification you invent afterward.
+
+1. **Does breaking this rule spend money or consume a paid/limited
+   resource** (credits, a rate-limited quota, a scarce account-wide slot)?
+2. **Is the action irreversible** — no undo, no way to unfire it, no way to
+   get back to the prior state once it happens?
+3. **Is there a safety, legal, or scope-of-authorisation issue** — harm to a
+   person, data, or system; consent/rights exposure; acting outside a bound
+   the CEO or CTO explicitly drew?
+
+If none apply, the rule is **advice**: state the fact or the cause→effect
+reasoning, and let the model weigh it against the situation in front of it.
+FACT (something the model cannot derive on its own) and WHY (a cause→effect
+chain it can reason from) are the two shapes advice takes — both are free:
+unenforced, unmeasured, and nothing in the authoring or review mechanism
+reads them any differently from prose.
+
+**An override is a signal about the skill, not misbehaviour by the model.**
+When advice gets overridden, that is information — either the advice was
+wrong for this situation, or the skill is missing a fact that would have
+changed the model's call. Neither is a violation to police.
+
+### Template
+
+```markdown
+## Rules
+
+1. **HARD — <the rule, one sentence>.** <mechanism/detail as needed>.
+
+   **Why hard:** <money | irreversible | safety/scope>, plus the specific
+   consequence — cite the incident or the concrete failure mode if one exists.
+
+2. <Advice, stated as FACT or WHY — no bullet-list "Never X, Always Y".
+   State the fact plainly, or the cause and its effect, and trust the model
+   to apply it.>
+```
+
+A skill with zero HARD rules is not a defect — most authoring/reference
+skills have none. A skill that tags everything HARD probably has not asked
+the three questions honestly.
 
 ## Naming
 
@@ -136,9 +209,29 @@ Write the refusal explicitly: *"If X is missing, list what's missing and stop. D
 4. Print the registered skill description so user can sanity-check trigger phrases.
 5. If creating in project scope, suggest adding to `~/.claude/CLAUDE.md` skill-preferences if it overrides any `ecc:*` default.
 
-## Operating rules
+## Rules
 
-- **Never invent triggers** the user didn't confirm. Ask.
-- **Never name a skill `helper`, `utility`, `tool`, `assistant`** — too vague, never fires.
-- **One iteration is normal, three is a smell.** If user still revising description on third try, ask what scenario isn't matching.
-- **Log new skills** to project memory (`reference_<name>.md` if cross-session importance).
+This skill follows its own doctrine above — a doctrine skill that doesn't
+tier its own rules teaches the opposite of what it says.
+
+1. **HARD — Never scaffold an org-authored skill under `~/.claude/skills/`.**
+   See "Location" above.
+
+   **Why hard:** irreversible-by-construction, not just risky. A skill
+   written there sits outside git, outside `skill-curator.py`, and outside
+   `undo` (ADR 0022 §4) — there is no ledger entry to revert, because there
+   was never a commit.
+
+2. Don't invent trigger phrases the user hasn't confirmed — ask instead. A
+   description with guessed triggers either mis-fires on things the user
+   never meant, or the real trigger phrase never made it in and the skill
+   stays dead. Confirming first is cheaper than a silent non-fire.
+3. Skip vague names (`helper`, `utility`, `tool`, `assistant`) — a
+   description can be perfect and the skill will still never fire, because
+   Claude can't tell from the name what domain it's even in.
+4. One revision round on the description is normal; three is a smell worth
+   naming out loud — at that point ask what concrete scenario still isn't
+   matching, rather than iterating on wording blind.
+5. Log a new skill to project memory (`reference_<name>.md`) when it carries
+   cross-session importance — otherwise the next session has no way to know
+   it exists outside of grepping `.claude/skills/`.
