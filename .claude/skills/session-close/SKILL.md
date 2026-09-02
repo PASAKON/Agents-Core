@@ -108,9 +108,16 @@ Only after gates 1–4 pass:
 ```bash
 bash scripts/tab-title.sh "🏁 <entry problem solved, ≤35 chars>"
 bash scripts/tab-main.sh "" <N>/<N>          # every DoD item done -> a full bar
+bash scripts/session-rename.sh "<entry problem, short>"
 ```
-Both, always. A 🏁 sub tab above a half-empty progress bar is the tab bar
-contradicting itself, and the CEO reads the bar first.
+Both tab layers, always. A 🏁 sub tab above a half-empty progress bar is the
+tab bar contradicting itself, and the CEO reads the bar first.
+
+The rename call is the same display-layer sync `/session-worktree` does mid-
+session ([[session-worktree]]) — usually a silent `unchanged: <topic>` no-op,
+sent here so a closing session's Claude display name reflects what it ended
+up being about, not the entry problem it was chartered under if that topic
+drifted along the way.
 
 ### 6. End the tmux session — LAST, on 🏁 or force_saved
 Print the report first (below), then as the final action of the whole skill:

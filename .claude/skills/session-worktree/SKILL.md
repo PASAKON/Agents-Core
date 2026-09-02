@@ -153,11 +153,21 @@ titlebar so the CEO reads progress off the tab bar without opening anything:
 
 ```bash
 bash scripts/tab-main.sh "" <done>/<total>   # "" keeps the goal set at /session-open
+bash scripts/session-rename.sh "<entry problem, short>"
 ```
 
 Use the numbers already in the `📊` line — never invent a percentage. This is
 the routine moment the bar moves; skipping it leaves the titlebar showing a
 stale count until close.
+
+`session-rename.sh` is normally **silent** here — it prints nothing worth
+reading (`unchanged: <topic>`) on the vast majority of calls, because it only
+sends `/rename` when the entry problem's short form has actually drifted from
+what the session is already named. That's the same category of exception as
+the `tab-main.sh` call right above it: `/session-worktree` documents itself
+as read-only, and pushing an unchanged display name is exactly as much "new
+work" as pushing an unchanged progress count — a display-layer sync, not a
+task. Skip it only if the session never charter'd a topic at all.
 
 ## Rules
 

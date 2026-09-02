@@ -11,23 +11,81 @@
 #
 # Usage:  bash scripts/session-rename.sh "หัวข้อของ session"
 #   → /rename MAC CTO #c670eb50 (หัวข้อของ session)
+#         bash scripts/session-rename.sh --force "<topic>"   # resend even if unchanged
+#         bash scripts/session-rename.sh --show              # print the recorded topic, no send
 #
-# Called by /session-open step 3 (right after tab-title/tab-main), and any time
-# the session's topic shifts enough that the mobile list would mislead.
+# State (task-460f3eaf): this used to be write-only — every call queued a
+# /rename keystroke with no record of what it last set, so a caller could not
+# tell whether a rename had landed, and could not call it routinely (every
+# invocation retyped the command). It now records the topic it sends to
+# state/locks/<role>-<id>.topic — the SAME sibling-file convention every other
+# `.topic` writer in this repo uses (tools/session_name.py LOCK_SUFFIXES;
+# see also tools/send_to_cxo.py's ephemeral-spawn dedupe slug, a different use
+# of the same suffix). Full format + recovery notes: docs/SESSION-RENAME-STATE.md.
+#
+# Called by /session-open step 3 (right after tab-title/tab-main), and now also
+# by /session-worktree and /session-close so the display name tracks the topic
+# without a caller having to remember to run it — the recorded-topic check
+# below makes repeat calls a no-op whenever nothing actually changed.
 #
 # Guards:
 #   - no $TMUX (e.g. Windows phase-1, plain terminal) → print what WOULD run,
-#     exit 0 — the CEO can Ctrl+R-rename manually; never a hard failure.
+#     exit 0 — the CEO can Ctrl+R-rename manually; never a hard failure. This
+#     branch never writes the record: nothing was actually applied, so there
+#     is nothing to remember as "sent".
 #   - topic trimmed to 40 chars so the app list stays scannable.
 set -euo pipefail
 
-TOPIC="${1:-}"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOCKS_DIR="$ROOT/state/locks"
+
+FORCE=0
+SHOW=0
+TOPIC=""
+for arg in "$@"; do
+  case "$arg" in
+    --force) FORCE=1 ;;
+    --show) SHOW=1 ;;
+    *) TOPIC="$arg" ;;
+  esac
+done
+
+ROLE="${CXO_ROLE:-cto}"
+SID="${CTO_SESSION_ID:-${CXO_SESSION_ID:-}}"
+# Only a live C-level session (one with an id) has a meaningful record — an
+# ad-hoc/no-id invocation degrades to the old always-send behaviour below.
+TOPIC_FILE=""
+if [ -n "$SID" ]; then
+  TOPIC_FILE="$LOCKS_DIR/$ROLE-$SID.topic"
+fi
+
+if [ "$SHOW" = "1" ]; then
+  if [ -z "$TOPIC_FILE" ]; then
+    echo "recorded: (none — no session id in CTO_SESSION_ID / CXO_SESSION_ID)"
+    exit 0
+  fi
+  if [ -f "$TOPIC_FILE" ]; then
+    echo "recorded: $(cat "$TOPIC_FILE")"
+  else
+    echo "recorded: (none)"
+  fi
+  exit 0
+fi
+
 if [ -z "$TOPIC" ]; then
-  echo "usage: session-rename.sh \"<topic>\"" >&2
+  echo "usage: session-rename.sh [--force] [--show] \"<topic>\"" >&2
   exit 1
 fi
 # Keep the list scannable; the full story lives in the session itself.
 TOPIC="$(printf '%s' "$TOPIC" | cut -c1-40)"
+
+if [ "$FORCE" != "1" ] && [ -n "$TOPIC_FILE" ] && [ -f "$TOPIC_FILE" ]; then
+  RECORDED="$(cat "$TOPIC_FILE")"
+  if [ "$RECORDED" = "$TOPIC" ]; then
+    echo "unchanged: $TOPIC"
+    exit 0
+  fi
+fi
 
 # Same machine-label logic as cto-claude.sh / cxo-claude.sh — keep in sync.
 case "$(uname -s)" in
@@ -38,8 +96,7 @@ case "$(uname -s)" in
   *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;
 esac
 
-ROLE_UP="$(printf '%s' "${CXO_ROLE:-cto}" | tr '[:lower:]' '[:upper:]')"
-SID="${CTO_SESSION_ID:-${CXO_SESSION_ID:-}}"
+ROLE_UP="$(printf '%s' "$ROLE" | tr '[:lower:]' '[:upper:]')"
 
 NEW_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
 
@@ -53,3 +110,8 @@ SESS="$(tmux display-message -p '#S')"
 tmux send-keys -t "$SESS" -l "/rename $NEW_NAME"
 tmux send-keys -t "$SESS" Enter
 echo "queued: /rename $NEW_NAME (executes when the current turn ends)"
+
+if [ -n "$TOPIC_FILE" ]; then
+  mkdir -p "$LOCKS_DIR"
+  printf '%s' "$TOPIC" > "$TOPIC_FILE"
+fi
