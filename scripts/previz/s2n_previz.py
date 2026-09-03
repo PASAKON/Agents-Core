@@ -23,6 +23,20 @@ for n in ("wall_hero_panel", "wall_crack_end"):
     ob = bpy.data.objects.get(n)
     if ob: ob.hide_render = ob.hide_viewport = True
 
+
+# ---- the crack, scaled 3x IN THE PREVIZ ONLY. At true size it is 0.34 m of
+# hairline sticks 1.78 m from the lens, and it renders as a small dark mark
+# that the eye reads as being on the far wall. That misreading is precisely the
+# failure this whole camera exists to prevent — the model keeps staging people
+# in front of the break. A previz is a depth diagram, not a beauty render, so
+# the break is drawn big enough that its position in front of everybody is
+# unmistakable. The true shape and size come from the Element in the prompt.
+_piv = (0.0, -21.82, 2.45)
+for _o in bpy.data.objects:
+    if _o.name.startswith("crack_"):
+        _o.location = tuple(_piv[i] + (_o.location[i] - _piv[i]) * 3.0 for i in range(3))
+        _o.scale = tuple(v * 3.0 for v in _o.scale)
+
 exec(open(r"C:\Users\UsEr\Downloads\charlib.py").read())
 col = sc.collection
 
@@ -33,11 +47,11 @@ def box(name, loc, dim, color):
     m.diffuse_color = color; o.data.materials.append(m); return o
 
 # ---- the five, exactly where S2M left them. Do not tidy these numbers.
-woman   = spawn_char(col, "COLLECTOR_A",     (-1.45, -19.95), h=1.68, prefix="s2n")
-student = spawn_char(col, "STUDENT", ( 0.15, -19.75), h=1.70, prefix="s2n")
-wifeB   = spawn_char(col, "VISITOR_B", ( 1.85, -19.70), h=1.66, prefix="s2n")
-manA    = spawn_char(col, "VISITOR_A", ( 2.60, -19.45), h=1.78, prefix="s2n")
-critic  = spawn_char(col, "CRITIC",  ( 3.55, -19.85), h=1.64, prefix="s2n")
+woman   = spawn_char(col, "COLLECTOR_A",     (-1.60, -19.95), h=1.68, prefix="s2n")
+student = spawn_char(col, "STUDENT", ( -0.45, -19.72), h=1.70, prefix="s2n")
+wifeB   = spawn_char(col, "VISITOR_B", ( 0.40, -19.88), h=1.66, prefix="s2n")
+manA    = spawn_char(col, "VISITOR_A", ( 1.05, -19.55), h=1.78, prefix="s2n")
+critic  = spawn_char(col, "CRITIC",  ( 1.80, -19.95), h=1.64, prefix="s2n")
 dupe    = spawn_char(col, "DUPE",      (-2.35, -17.20), h=1.80, prefix="s2n")
 regis   = spawn_char(col, "REGISTRAR", (-3.20, -19.00), h=1.80, prefix="s2n")
 gent    = spawn_char(col, "GENTLEMAN", ( 6.40,  -1.60), h=1.79, prefix="s2n")
@@ -63,10 +77,12 @@ for fr, ang in ((1, 0), (10, 0), (34, R(78)), (480, R(78))):
     sc.frame_set(fr); piv.rotation_euler.z = ang
     piv.keyframe_insert("rotation_euler", frame=fr)
 
-cam_d = bpy.data.cameras.new("CAM_S2N"); cam_d.lens = 21
+cam_d = bpy.data.cameras.new("CAM_S2N"); cam_d.lens = 28
 cam = bpy.data.objects.new("CAM_S2N", cam_d); sc.collection.objects.link(cam); sc.camera = cam
-cam.location = (0.0, -22.45, 2.45)
-cam.rotation_euler = (R(90), 0, 0)
+cam.location = (0.0, -23.60, 2.45)
+cam.rotation_euler = (R(80), 0, 0)   # 10 deg down; the crack is at 2.45 m, above their heads
+
+
 for who, ob in (("WOMAN", woman), ("STUDENT", student), ("WIFE", wifeB),
                 ("MAN_A", manA), ("CRITIC", critic), ("DUPE", dupe),
                 ("REGISTRAR", regis), ("GENTLEMAN", gent), ("BODYGUARD", guard)):
@@ -92,8 +108,8 @@ key(regis, 329,  3.40,  -3.80); key(regis, 468,  3.40,  -3.80)
 key(regis, 480,  3.05,  -4.35)     # the turn begins, nothing more
 
 # the five hold their marks; heads turn, and a turn is not a translation
-for ob, x, y in ((woman, -1.45, -19.95), (student, 0.15, -19.75),
-                 (wifeB, 1.85, -19.70), (manA, 2.60, -19.45), (critic, 3.55, -19.85)):
+for ob, x, y in ((woman, -1.60, -19.95), (student, -0.45, -19.72),
+                 (wifeB, 0.40, -19.88), (manA, 1.05, -19.55), (critic, 1.80, -19.95)):
     key(ob, 1, x, y); key(ob, 480, x, y)
 
 key(dupe, 1, -2.35, -17.20); key(dupe, 240, -2.00, -17.20); key(dupe, 480, -2.30, -17.20)

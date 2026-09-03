@@ -1,3 +1,27 @@
+# DEAD — superseded 2026-09-04, do not use
+
+The Element already existed: **`project_absence_prop_croc_bag`**, CEO-verified
+on the panel the same night. Nothing needed generating and nothing needed
+paying for.
+
+Two things this draft got wrong, kept here because both are the kind of mistake
+worth being able to point at later:
+
+1. **Colour.** This plate specified GREEN, reasoned off her gown. The real prop
+   is **deep oxblood / burgundy crocodile** — it deliberately does NOT match
+   her dress, which is what makes it read as an object she owns rather than an
+   accessory somebody styled.
+2. **Existence.** It was written without first asking whether the prop already
+   existed. Check the panel before writing a plate.
+
+The real bag, read off the CEO's image: a structured top-handle handbag in
+polished deep oxblood crocodile, trapezoid, wider at the base, a single arched
+top handle on gold anchors, a large plain gold push-clasp centred on the front
+flap, small gold feet, photographed standing on the museum's terracotta
+terrazzo with the gallery warm and out of focus behind it.
+
+----- original draft below, for reference only -----
+
 # PLATE — `prop_bag_woman_c` · THE PARROT WOMAN'S BAG
 CEO 2026-09-04: "ผู้หญิงคนนี้มี กระเป๋า ด้วย ขอ Prompt กระเป่าหน่อย" — she
 carries a bag, and it needs its own Element so every scene she appears in
