@@ -32,12 +32,13 @@ for o in bpy.data.objects:
     if o.name.startswith("s2d_cart_") and o is not cart:
         o.parent = cart; o.matrix_parent_inverse = cart.matrix_world.inverted()
 box("s2d_painting", (2.4, -20.0, 1.35), (0.80, 0.05, 0.72), (0.45,0.45,0.45,1)).parent = cart
-guest = spawn_char(col, "STUDENT", (-1.6, 6.0), h=1.75, prefix="s2d")
+guest = spawn_char(col, "OLDMAN", (-1.6, 20.5), h=1.70, prefix="s2d")
+guest.hide_render = guest.hide_viewport = True   # not in the room until the door opens
 
 cam_d = bpy.data.cameras.new("CAM_S2D"); cam = bpy.data.objects.new("CAM_S2D", cam_d)
 sc.collection.objects.link(cam); sc.camera = cam
 tag_label(col, "DUPE", dupe, cam, prefix="s2d")
-tag_label(col, "GUEST", guest, cam, prefix="s2d")
+tag_label(col, "OLDMAN", guest, cam, prefix="s2d")
 tag_label(col, "CART", cart, cam, z=1.4, prefix="s2d")
 
 def ckey(fr, loc, rot, lens):
@@ -46,7 +47,7 @@ def ckey(fr, loc, rot, lens):
     cam_d.keyframe_insert("lens", frame=fr)
 
 WALL  = ((0, -15.6, 1.45), (R(90), 0, R(180)), 30)     # shot 1, straight on the wall
-INSIDE= ((0.6, -21.78, 2.45), (R(90), 0, 0), 55)       # shot 2, at the crack, hand height
+INSIDE= ((0.6, -21.86, 2.45), (R(96), 0, 0), 28)       # shot 2, at the crack looking out and down
 BEHIND= ((0.9, -21.75, 2.30), (R(80), 0, 0), 24)       # shot 3, behind him looking up the gallery
 
 ckey(1, *WALL);   ckey(167, *WALL)
@@ -64,18 +65,23 @@ Z0 = dupe.location.z          # standing height of the proxy
 key(dupe, 1, -4.6, -20.6); key(dupe, 60, 0.6, -20.6); key(dupe, 72, 0.6, -21.35)
 # three hops at the wall — he is too short for a crack at z=2.45 and never
 # quite gets his eye to it. up-down-up-down-up-down, 12 frames each way.
-for base in (96, 132, 168):
+for base in (84, 112, 140):                        # all three land before the cut at 167
     key(dupe, base,      0.6, -21.35, Z0)
-    key(dupe, base + 11, 0.6, -21.35, Z0 + 0.34)   # top of the hop
-    key(dupe, base + 22, 0.6, -21.35, Z0)
+    key(dupe, base + 9,  0.6, -21.35, Z0 + 0.52)   # higher, and still short of the crack
+    key(dupe, base + 18, 0.6, -21.35, Z0)
 key(dupe, 288, 0.6, -21.35, Z0); key(dupe, 300, 0.9, -21.05, Z0)
 key(dupe, 480, 0.9, -21.05, Z0)
 zc = cart.location.z
 key(cart, 1, -3.1, -20.4); key(cart, 60, 2.4, -20.4); key(cart, 480, 2.4, -20.4)
 p = bpy.data.objects["s2d_painting"]
 # guest: enters far end at 12s, drifts down the hall
-key(guest, 1, -1.6, 20.5); key(287, 0, 0) if False else None
-key(guest, 287, -1.6, 20.5); key(guest, 300, -1.6, 17.0); key(guest, 480, -1.2, 2.0)
+for fr, vis in ((1, True), (287, True), (288, False)):
+    sc.frame_set(fr)
+    guest.hide_render = guest.hide_viewport = vis
+    guest.keyframe_insert("hide_render", frame=fr)
+    guest.keyframe_insert("hide_viewport", frame=fr)
+key(guest, 1, -1.6, 20.5); key(guest, 287, -1.6, 20.5)
+key(guest, 300, -1.6, 18.0); key(guest, 480, -1.2, 4.0)
 
 for a, v in (("use_shadows", False), ("use_raytracing", False), ("taa_render_samples", 8)):
     try: setattr(sc.eevee, a, v)

@@ -17,24 +17,23 @@ camera aperture — black surround, the hall seen through the star, centre
 opening about 30% of frame). Bind it once it exists and the CEO has cleared it.
 If it is not ready, do NOT improvise that beat in prose — report and hold.
 
-⚠️ ONE OPEN QUESTION FOR THE CEO — WHO IS THE FIRST GUEST? The brief says "the
-first customer walks in" without naming them, and this project's iron rule is
-that nobody guesses an Element. Every guest is verified and available:
-gentleman_e (gold-toothed, white suit) · char_woman_c (parrot woman) ·
-char_woman (blue coat) · char_visitor_a / _b (husband and wife) ·
-char_oldman · char_grandmother · char_student_c · char_critic_b.
-The prompt carries GUEST_ELEMENT as a placeholder. Replace it with the one the
-CEO names before firing — do not choose one.
+THE FIRST GUEST IS THE ELDERLY MAN (CEO 2026-09-04):
+@project_absence_char_oldman — heavy-set, elderly, dark green leather overcoat
+with a wide shawl collar, cream polo neck, pale gloves, a slim silver cane,
+pale shoes. His previz proxy is DARK GREEN, which is his registered colour in
+docs/CHARACTER-COLOR-TAGS.md and happens to match his coat exactly.
 
-CTO's suggestion only, to be overruled freely: char_student_c. The first person
-through the door being a scruffy young student with a notebook rather than a
-collector makes the room's later valuation funnier — the crack is discovered by
-someone with no money at all.
+⚠️ CONTINUITY ACROSS THE ROUND (CEO 2026-09-04): these scenes are being
+rendered one after another, so WHERE A CHARACTER ENDS ONE SCENE IS WHERE THEY
+START THE NEXT. Every previz carries floating name tags in the character's own
+registered colour so the model can map proxy to Element without guessing. End
+positions for this scene are logged at the bottom of this file — read them
+before writing whatever comes after it.
 
 Elements, all CEO-verified in /Users/gob/Desktop/Fix-1-Elements/:
 @project_absence_char_cleaner_c · @project_absence_prop_cart_a_painted ·
 @project_absence_loc_hall_big_d · @project_absence_prop_tag ·
-@project_absence_loc_wall_pov_e · GUEST_ELEMENT · the aperture plate
+@project_absence_loc_wall_pov_e · @project_absence_char_oldman · the aperture plate
 
 Filing: All Scene/Fix-1/ as S2D-Fix1.MP4.
 
@@ -169,5 +168,14 @@ REVIEW ORDER:
    watches someone else.
 5. One visitor only, who never speaks and never notices the wall.
 File the take whatever the verdict.
+
+END POSITIONS, for whatever scene follows this one:
+- DUPE at the hero wall, roughly one metre right of the crack's centreline,
+  facing the wall, cloth in hand, mid-wipe.
+- HIS CART parked beside him against the wall, painting still upright in the
+  rack, untouched since he arrived.
+- THE ELDERLY MAN about a third of the way down the gallery from the far end,
+  drifting toward Dupe, still looking at the works rather than at him.
+- The wall itself unchanged: the mark, and the plaque level beneath it.
 
 === END NOTES ===
