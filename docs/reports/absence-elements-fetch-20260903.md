@@ -108,6 +108,29 @@ acting on it (see Notes).
   and the download here overwrote an older, stale copy already sitting in
   `~/Downloads` from an earlier session (15:32 today).
 
+## Cart hunt by image (wheels + painting together) — NOT FOUND
+
+CTO's final follow-up: find, by image (not by name), a NEW cart Element
+the CEO created this evening showing both castor wheels AND the racked
+painting together. Method:
+
+- Opened the Props category, grouped by Created date, both Active and
+  Drafts statuses included.
+- "Today" group contains exactly two Props: `@project_absence_prop_cart_a`
+  (Cart A — wheels, empty rack) and `@prop_cart_c_empty` (Cart C Empty —
+  legs, empty rack). Both already fetched in the wheels-vs-legs follow-up
+  above. No third entry.
+- The next-older group jumps straight to "August 29, 2026" — nothing was
+  created in between.
+- Re-ran a name search for "cart" across all Props as a cheap second check:
+  same 4 IDs as before (`project_absence_prop_cart_a`, `prop_cart_c_empty`,
+  `prop_cart_b`, `project_absence_prop_cart`), no new one.
+
+**Conclusion: no cart Element on the panel currently shows wheels and the
+racked painting together.** The CEO's new Element has not appeared on the
+panel yet. Not substituting anything for it — reported plainly per
+instructions.
+
 ## The plaque (target 5)
 
 Searched the Elements panel for names containing `tag`, `plaque`, and
