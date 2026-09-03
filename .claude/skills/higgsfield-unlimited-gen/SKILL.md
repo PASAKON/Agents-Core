@@ -1408,3 +1408,62 @@ so it binds to the current asset.
 
 The tell to watch for is a plate that has been through several versions in one
 day. A first-generation Element is safe; a re-pointed one is not.
+
+## Video-ref attach on the PROJECT composer (not the /ai/video jump-cut editor) — measured 2026-09-03, task-17fba11f
+
+This is the `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3`
+asset-grid page's own embedded Video composer (Seedance 2.5), a different
+surface from `scripts/browser/higgsfield-jumpcut-gen.js`'s `/ai/video`
+jump-cut editor — same account, same hard rules, different DOM.
+
+1. **Attaching an uploaded video is a TWO-CLICK flow, not one.** After the
+   file finishes uploading (spinner tile → real thumbnail), the tile is
+   **not yet clickable to attach** — hovering shows a "Check eligibility"
+   pill over it. Click that pill first; it flips to a `Checking..` spinner
+   (a **second**, separate wait, several seconds), and only after that
+   clears does clicking the tile actually attach it ("Added to prompt box"
+   toast + green checkmark). Clicking the tile before this resolves is a
+   silent no-op that looks like nothing happened.
+2. **A stale reload can leave a BROKEN video chip that looks identical to a
+   working one.** Confirmed the jump-cut script's existing finding ("prompt
+   draft survives reload, Unlimited toggle does not") on this surface too —
+   but here the survived chip can be an **empty placeholder**: a rounded box
+   with no thumbnail, hover shows only expand/× icons, and
+   `document.elementsFromPoint()` at that box finds a real `<video>` node
+   inside it with `readyState:0` and `currentSrc:""` — i.e. attached to
+   nothing. Visually indistinguishable from "still loading" at a glance.
+   **Fix: remove it (×) and re-attach fresh** from Uploads → Videos (sort by
+   "Last created", not the default "Last used" — "Last used" does not
+   surface a video that was uploaded but never yet used as a reference).
+3. **A `@mention` trigger typed right after clicking near an existing chip
+   pill can silently land on the wrong node and substitute an unrelated
+   mention.** Reproduced once: clicking at a point that was actually
+   *on/inside* the previous chip's pill, then typing `@Video`, produced a
+   completely unrelated `@Mother` chip in the text — no error, no dropdown
+   shown in the screenshot taken right after. Root cause: the click did not
+   focus the real contenteditable (confirmed via
+   `document.activeElement.tagName === 'BODY'` afterward) — a `cmd+a` at
+   that point selects the *whole page*, not the editor, which is the tell
+   that focus never landed. **Fix: after every click meant to place the
+   cursor in the prompt box, verify
+   `document.activeElement.getAttribute('contenteditable') === 'true'`
+   before typing anything** — if it isn't, the click landed on a decoy/chip
+   and must be retried at a provably empty point in the text flow.
+   Convert the click coordinate from `getBoundingClientRect()` (CSS px)
+   using the measured screenshot-to-viewport ratio
+   (`screenshotWidth / window.innerWidth`, **1374/1024 ≈ 1.342** this
+   session — re-measure per session, it tracks devicePixelRatio) rather than
+   eyeballing screenshot pixels, since the two coordinate spaces differ.
+4. **Settings-row scroll order for this composer**, reached by repeated
+   clicks on the `>` chevron at the row's right edge: References dropdown →
+   aspect ratio (16:9 etc) → resolution (720p etc) → duration (the same ARIA
+   slider as hard rule 6 above — click the thumb, then `ArrowRight`/`Left`
+   once per second, never type into it) → **batch size** (shows as `N/4` —
+   confirmed via `find()` label text "Increase/Decrease batch size", this is
+   NOT the quality tier, do not confuse the two) → quality tier (High/etc,
+   a separate control further right) → Sound On/Off → Unlimited toggle.
+5. **Reload preserves duration/resolution/batch-size/quality/sound; it does
+   NOT preserve Unlimited** (consistent with the jump-cut script's existing
+   Wave 3 finding, now confirmed on this surface too) — re-verify the whole
+   row, not just Unlimited, after any reload, since a broken video chip
+   (point 2 above) is also a reason you might reload mid-task.
