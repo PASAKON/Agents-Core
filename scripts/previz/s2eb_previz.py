@@ -28,21 +28,36 @@ def box(name, loc, dim, color):
     m = bpy.data.materials.new(name+"_m"); m.use_nodes = False
     m.diffuse_color = color; o.data.materials.append(m); return o
 
-# Dupe stands in the colonnade beside a column, between two of them so his own
-# silhouette cannot be mistaken for one.
-dupe = spawn_char(col, "DUPE", (-2.1, -4.0), h=1.80, prefix="s2eb")
-# Break the plain-cylinder read that made him look like a chromium column.
-# Parenting WITHOUT matrix_parent_inverse makes .location a LOCAL offset — the
-# trap this project's own skill documents, and which I walked into by setting
-# world coordinates on the first attempt.
-for nm, loc, dim in (("s2eb_dupe_shoulders", (0.0, 0.0, 0.72), (0.66, 0.30, 0.15)),
-                     ("s2eb_dupe_armL",      (-0.30, 0.10, 0.42), (0.14, 0.14, 0.62)),
-                     ("s2eb_dupe_armR",      (0.34, 0.16, 0.40), (0.14, 0.14, 0.58)),
-                     ("s2eb_dupe_cloth",     (0.46, 0.30, 0.46), (0.24, 0.05, 0.24)),
-                     ("s2eb_dupe_cap",       (0.0, 0.06, 1.06), (0.40, 0.40, 0.07))):
-    o = box(nm, (0, 0, 0), dim, (0.97, 0.97, 0.97, 1))
-    o.parent = dupe
-    o.location = loc
+# CEO 2026-09-04: keep the human proxy to a RECTANGLE, a ROUND HEAD and HANDS.
+# Nothing else. charlib's cylinder-plus-sphere reads as a chromium column in
+# this room, and the arms/cap version that replaced it was clutter.
+def simple_person(name, x, y, h=1.80, colour=(0.97, 0.97, 0.97, 1)):
+    """Rectangle body, round head, two hands. Nothing else.
+
+    Everything hangs off an EMPTY, never off the body box. box() sets .scale to
+    reach its dimensions, and children inherit a parent's scale — parenting the
+    head to the body shrank it and pulled it down inside the torso, which is why
+    the first attempt rendered as a plain slab.
+    """
+    root = bpy.data.objects.new(name, None)
+    sc.collection.objects.link(root)
+    root.location = (x, y, 0.0)
+    body = box(name + "_body", (0, 0, 0), (0.46, 0.26, h * 0.62), colour)
+    body.parent = root; body.location = (0.0, 0.0, h * 0.50)
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=h * 0.095, location=(0, 0, 0),
+                                         segments=18, ring_count=12)
+    head = bpy.context.object; head.name = name + "_head"
+    head.data.materials.append(body.data.materials[0])
+    head.parent = root; head.location = (0.0, 0.0, h * 0.90)
+    for hn, hx, hy in ((name + "_handL", -0.31, 0.17), (name + "_handR", 0.31, 0.15)):
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.08, location=(0, 0, 0),
+                                             segments=14, ring_count=10)
+        hd = bpy.context.object; hd.name = hn
+        hd.data.materials.append(body.data.materials[0])
+        hd.parent = root; hd.location = (hx, hy, h * 0.58)
+    return root
+
+dupe = simple_person("s2eb_DUPE", -2.1, -4.0, h=1.80)
 
 build_cart(col, (-2.9, -3.1), prefix="s2eb", with_painting=True)
 cart = bpy.data.objects.get("s2eb_cart_base")
@@ -53,7 +68,7 @@ if cart:
             o.parent = cart; o.matrix_parent_inverse = cart.matrix_world.inverted()
     box("s2eb_painting", (-2.9, -2.7, 1.35), (0.80,0.05,0.72), (0.45,0.45,0.45,1)).parent = cart
 
-oldman = spawn_char(col, "OLDMAN", (1.9, 6.0), h=1.70, prefix="s2eb")
+oldman = simple_person("s2eb_OLDMAN", 1.9, 6.0, h=1.70, colour=(0.05, 0.30, 0.10, 1))
 
 cam_d = bpy.data.cameras.new("CAM_S2EB"); cam_d.lens = 35
 cam = bpy.data.objects.new("CAM_S2EB", cam_d); sc.collection.objects.link(cam); sc.camera = cam
