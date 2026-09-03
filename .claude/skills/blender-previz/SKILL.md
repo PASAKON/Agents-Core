@@ -405,3 +405,53 @@ normal (CEO's method — full procedure and its verification live in
 `higgsfield-unlimited-gen`). Festival ruling, CEO 2026-08-30: Blender/AE are
 editing-class tools and exempt from platform-only — generation still happens
 on Higgsfield; the previz carries only the camera.
+
+## Three more traps, all measured on hall_v41 (2026-09-04)
+
+**`action.fcurves` is gone in Blender 5.2.** Actions are slotted now, so the
+flat list raises `AttributeError` and the curves live at
+`action.layers[].strips[].channelbags[].fcurves`. Any LINEAR-interpolation pass
+needs to handle both:
+
+```python
+def all_fcurves(act):
+    fl = getattr(act, "fcurves", None)
+    if fl is not None:
+        yield from fl; return
+    for layer in getattr(act, "layers", []):
+        for strip in getattr(layer, "strips", []):
+            for cb in getattr(strip, "channelbags", []):
+                yield from cb.fcurves
+```
+
+**`matrix_parent_inverse` cancels the parent, it does not enable it.** Setting
+it to `parent.matrix_world.inverted()` makes world = local, which is right when
+you are placing an already-positioned prop under a parent and want it to stay
+put — and exactly wrong when you want camera-space placement. A lens mask
+parented that way lands at its raw coordinates in world space, which on this
+project buried it under the floor 22 m from the camera. For true camera space,
+**leave the inverse as identity** so world = `cam.matrix_world @ local`. Either
+way, `bpy.context.view_layer.update()` first — `matrix_world` is stale until the
+depsgraph ticks, so parenting straight after moving a camera uses the old matrix.
+
+**`charlib.CHARS` is a fixed key table.** `spawn_char` does `CHARS[name]` with
+no fallback, so a scene-local proxy name is a `KeyError` that kills the whole
+render. Check the table before inventing a name; the colours already encode the
+costumes (COLLECTOR_A is blue, STUDENT yellow-green, CRITIC magenta).
+
+## Previz is a depth diagram, not a beauty render
+
+Hall geometry beats intuition, and both of these were caught only by rendering
+frames and looking at them:
+
+- **Measure the room before placing a tracking camera.** A lateral dolly at
+  x=-10.5 rendered solid black because the hall is only x -6.0..+6.0 — the
+  camera was outside the building. One `bound_box` probe would have said so.
+- **Cheat scale to encode depth order.** The wall break is 0.34 m of hairline
+  sticks; at true size, 1.8 m from the lens, it reads as a small mark on the far
+  wall — and the model's standing failure is staging people *in front of* it.
+  Scaling it 3x in previz only, so its arms visibly cross the figures, makes the
+  ordering unmisreadable. The true shape still comes from the Element.
+- **A black aperture mask is worse than none.** Four slabs leaving a hole render
+  as a hard rectangle, and Seedance copies it as a letterbox. Carry the
+  aperture look in the prompt and the reference image instead.
