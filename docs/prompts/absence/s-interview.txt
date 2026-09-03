@@ -1,0 +1,159 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+THE CLOSING INTERVIEW · five clips · CEO 2026-09-03
+
+Dupe, rich, telling the story himself. We never hear the interviewer and never
+see them. Every answer implies its question.
+
+The engine of the sequence, and of the film: he is telling the exact truth in
+plain words, and everyone hearing it mistakes it for profundity. He is not being
+modest and he is not being sly. He is being accurate, and nobody in the room can
+hear it. Play every line flat.
+
+Plate: @project_absence_char_dupe_interview_house (created 2026-09-03, $0.06,
+derived from @project_absence_char_cleaner_rich for face continuity). One frame
+carries all five clips.
+
+Word budget: our measured ceiling is 45-50 spoken words per 20s clip. Counts per
+clip below are 38 / 30 / 35 / 38 / 50.
+
+CTO edit to the CEO's text, flagged rather than made silently: four filler words
+removed from clip 5 to bring it from 54 to 50 — "anywhere from" and "that day".
+Meaning unchanged. Everything else is the CEO's wording verbatim.
+
+Clip 2 is the only clip whose camera moves. Placement was chosen so the gag
+lands on character rather than slapstick: the line before it is about dropping
+something by accident, the line after it is about being afraid of the
+consequences, and the crash makes the second line read in two tenses at once —
+he is describing the past and flinching in the present. He is rich and he still
+jumps when he hears something break.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+ALL FIVE: 20s · 720p · 16:9 · Sound On · High. THE SAME LOCKED FRONTAL FRAME
+every time, identical framing across all five clips.
+
+REFERENCES — all five, each with a job:
+@project_absence_char_dupe_interview_house — THE FRAME ITSELF: Dupe seated dead
+  centre, medium shot from the chest up, in a well-cut dark suit, in his own
+  enormous retrofuturist house. Warm daylight, tall windows, sunken plum
+  seating, warm wood. Match it exactly. Take the framing and the room from it.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, saturation high in flat planes but
+never touching skin, halation around every lamp. Photographed, not rendered: fine
+film grain, faint gate weave, slight colour fringing. Camera level in every shot.
+
+He is calm and he is not comfortable. His hands stay together in his lap. He does
+not smile, does not perform, does not look pleased with himself. He speaks the way
+a man speaks when he has told the same true thing many times and it has never once
+been believed.
+
+---------------------------------------------------------------
+IV1 · THE PAINTING
+---------------------------------------------------------------
+20s · ONE LOCKED SHOT — the camera never moves, no cuts.
+
+[0s] He looks straight into the lens and says, flatly: "I dropped a painting."
+[3s] A beat. Then, as if the first answer had not been enough: "I came in early
+that morning. It was hanging crooked, only a little. So I straightened it."
+[11s] A beat. He lifts one hand slightly, then puts it back: "And, well. You can
+see. It came off the wall. There's a hole there now."
+[18s] He stops. He has finished answering. Hold.
+
+---------------------------------------------------------------
+IV2 · THE CRASH
+---------------------------------------------------------------
+20s · LOCKED, then ONE WHIP PAN AND BACK — the only camera move in the sequence.
+
+[0s] Identical locked frame. "I wasn't trying to do anything. I was going to dust
+it. That was all."
+[7s] Off screen, sharp and close: a metal tray and china hitting a hard floor.
+ONE FAST WHIP PAN sideways, three or four frames, the room smearing into
+horizontal streaks.
+[8s] It lands on a HOUSEKEEPER in a plain domestic uniform standing over a
+dropped tray of pastries on the floor, perfectly composed and dead centre in her
+own frame, looking straight down the lens. She does not move. She does not
+apologise. Nobody speaks. Hold two full seconds on her.
+[10s] ONE FAST WHIP PAN BACK, the same speed, landing on exactly the original
+frame with Dupe exactly as he was.
+[12s] His face has not changed. He continues as if nothing happened: "I thought
+they were going to fire me. So I had to do something."
+[18s] Hold.
+
+---------------------------------------------------------------
+IV3 · THE FIRST CUSTOMER
+---------------------------------------------------------------
+20s · ONE LOCKED SHOT — the camera never moves, no cuts.
+
+[0s] "Then the first customer walked into this room."
+[4s] "I went back to my corner and kept cleaning. She looked at the things in the
+room. She never looked at the wall."
+[13s] A long beat, remembering it. "And then she left."
+[17s] Hold.
+
+---------------------------------------------------------------
+IV4 · WHAT HE DOES NOT SAY
+---------------------------------------------------------------
+20s · ONE LOCKED SHOT — the camera never moves, no cuts.
+
+[0s] "I was so relieved. I called a plasterer straight away and asked him to come
+and patch it."
+[8s] A beat. "I want to tell them it's only a crack. But everyone looks so happy.
+So I don't say anything."
+[18s] Hold.
+
+---------------------------------------------------------------
+IV5 · WHAT IT IS WORTH
+---------------------------------------------------------------
+20s · ONE LOCKED SHOT — the camera never moves, no cuts.
+
+[0s] "If I had left it crooked, it would still be hanging there."
+[5s] A beat, and this one lands somewhere the others did not: "I do miss it. It
+was a beautiful painting."
+[10s] A long beat. Then, plainly, the way a man states his occupation: "These
+days my work is creative."
+[13s] "People pay a few hundred to a few hundred thousand dollars to have that
+crack on their own wall."
+[18s] "And everyone calls it art."
+[19s] Hold on his face, unchanged, one beat longer than comfortable. Cut.
+
+AUDIO: room tone, distant birds through the tall windows. In IV2 only: one sharp
+metal-and-china crash off screen at 7s, then complete silence for the two seconds
+the camera holds on her. No music in any clip. NO SOUND AT THE START OR THE END:
+each clip opens mid room-tone with no intro sting or riser, and simply stops with
+no tail, swell or fade.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro sting,
+no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail,
+no fade-in or fade-out on the sound; no stage directions spoken aloud, no
+narration of the character's state, no speaking anything outside the quotation
+marks; no interviewer, no reporter, no second voice, no question audible or
+implied on the soundtrack; no cleaning cart anywhere in any clip; no white
+uniform on Dupe, no cap on Dupe, no gold V on Dupe; no camera equipment in frame,
+no microphone, no boom, no studio lighting; no jewellery, no watch; no smiling,
+no laughing, no tears, no triumph, no shrugging, no winking; no zoom, no dolly,
+no crane, no handheld wobble, no reframing of any kind except the single whip pan
+in IV2; no slow motion, no speed ramp.
+
+House negatives: no dialogue beyond the quoted lines, no voiceover, no narration,
+no subtitles, no captions, no on-screen text, no readable text, no signage, no
+logos, no music, no score, no extras, no crowd, no duplicate faces, no
+smartphones, no screens, no LEDs, no modern technology, no dutch angle, no tilted
+horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin, no
+beauty filter, no dim moody lighting, no darkness, no night.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+Filing: All Scene/Fix-1/ as IV1-Fix1.MP4 through IV5-Fix1.MP4.
+
+IV2 is the only clip that introduces a second person. She appears only inside the
+whip pan and never shares a frame with Dupe. If the model puts her in the locked
+frame, that is a defect worth re-firing.
+
+=== END NOTES ===
