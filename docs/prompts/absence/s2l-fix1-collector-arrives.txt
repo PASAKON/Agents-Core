@@ -50,6 +50,12 @@ black silhouette all around the frame, completely out of focus and completely
 black, and EVERY PERSON IS BEHIND IT, further away, in the lit room. Nobody
 ever passes in front of the broken edge. Nothing is in front of it.
 
+THE COMPLETE CAST OF THIS SHOT IS SIX PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards, no reporters, no journalists, nobody holding a camera, nobody
+filming, nobody in the background, nobody walking through. If a figure is not named below it must
+not exist.
+
 POSITION MAP — every figure in the reference video stands exactly where its
 character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
 - the BLUE figure labelled COLLECTOR_A = @project_absence_char_woman
@@ -66,6 +72,7 @@ REFERENCES — each with a job:
   wool overcoat with wide lapels and a small gold V pin at the chest, a striped
   collar and dark green knit beneath, a large pearl cluster necklace, a
   brown-checked midi skirt, black tights, dark brown leather loafers.
+  She wears NO glasses of any kind.
 @project_absence_char_student_c — THE ART STUDENT: young, short curly hair
   dyed acid yellow-green, a paint-spattered blue denim overshirt over a white
   tee, dark work trousers, worn trainers, a black hardback sketchbook under one
@@ -155,8 +162,10 @@ and clothing, and no face is repeated anywhere; no opening sound, no intro
 sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
 audio tail, no fade-in or fade-out on the sound; no person in front of the
 broken edge, no person between the camera and the wall, no hand reaching into
-the black foreground, nothing crossing the black silhouette; no sixth person,
-no crowd, no guards, no staff, no second cleaner, no children; no Dupe joining
+the black foreground, nothing crossing the black silhouette; no seventh person, no extra, no bystander, no other visitor, no gallery staff,
+no security guard, no reporter, no journalist, nobody holding a camera, nobody
+filming, no crowd, no children, nobody in the background, nobody walking
+through; no Dupe joining
 the group, no Dupe walking to the wall, no Dupe stopping work; no gasping, no
 hand over the mouth, no recoiling, no stumbling backwards, no crying, no
 screaming, no comic surprise, no wide open mouth; no smiling, no laughing; no

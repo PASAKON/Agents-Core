@@ -1,0 +1,202 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2M-Fix1 · THE REGISTRAR, AND THE FIRST PRICE · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — it defaults to 5s silently.
+
+WHERE IT SITS. Straight after S2L. The same five are at the wall on the same
+marks and nobody has moved. The registrar walks in with his ledger to open the
+museum for the morning, and gets an offer he was not expecting.
+
+THIS IS THE FIRST RUNG OF THE PRICE LADDER. Only three people ever name a
+price in this film: the young woman in the blue coat says TWO MILLION here and
+never names a price again; the gold-toothed gentleman says five million in
+S2N; the parrot Madame and the gentleman fight it out later, and an old woman
+in a wheelchair ends it at a hundred million. Two million is the number
+already engraved on the plaque, which is the joke — her offer is not a bid,
+it is her agreeing to the asking price for a hole in a wall.
+
+⚠️ THE CRACK IS IN FRONT OF EVERYONE. The camera is inside the wall cavity, so
+the broken plaster is a black silhouette in the extreme foreground and every
+person is BEHIND it. In the previz its arms visibly cross in front of the
+group; keep exactly that depth order.
+
+⚠️ NEVER UPLOAD AN IMAGE. Every Element exists on the account — match by ID in
+the panel and bind the library entry. If the composer caps references, drop in
+this order and report it: prop_cart_a_painted first, then char_cleaner_c.
+Never drop a speaking character.
+
+Previz: docs/S2M-Render.MP4 — 1280x720 / 480 frames / 20.0s.
+
+Filing: All Scene/Fix-1/ as S2M-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, no cuts, for the whole twenty seconds. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE CAMERA IS INSIDE THE BROKEN WALL, looking out through the break into the
+gallery. The jagged edges of the hole sit in the extreme foreground as a hard
+black silhouette, out of focus and solid black, and EVERY PERSON IS BEHIND IT,
+further away, in the lit room. Nobody ever passes in front of the broken edge.
+
+THE COMPLETE CAST OF THIS SHOT IS SEVEN PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards, no reporters, no journalists, nobody holding a camera, nobody
+filming, nobody in the background, nobody walking through. If a figure is not named below it must
+not exist.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the BLUE figure labelled COLLECTOR_A = @project_absence_char_woman
+- the YELLOW-GREEN figure labelled STUDENT = @project_absence_char_student_c
+- the BROWN figure labelled WIFE = @project_absence_char_visitor_b
+- the ORANGE figure labelled MAN_A = @project_absence_char_visitor_a
+- the MAGENTA figure labelled CRITIC = @project_absence_char_critic_b
+- the BLACK figure labelled REGISTRAR = @char_registrar
+- the WHITE figure labelled DUPE = @project_absence_char_cleaner_c
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@char_registrar — THE REGISTRAR: a man of about sixty, grey hair combed flat,
+  a cream stand-collar tunic suit with a fine orange piped edge and a small
+  gold V on the chest, white gloves, cream shoes, carrying a dark brown
+  leather ledger and a pen.
+@project_absence_char_woman — THE YOUNG COLLECTOR: a young woman, dark hair
+  pinned up with loose strands, an oversized cobalt-blue wool overcoat with
+  wide lapels and a small gold V pin, a striped collar and dark green knit
+  beneath, a pearl cluster necklace, brown-checked midi skirt, black tights,
+  dark brown loafers. She wears NO glasses of any kind.
+@project_absence_char_student_c — THE ART STUDENT: young, short curly hair
+  dyed acid yellow-green, paint-spattered denim overshirt, dark work trousers,
+  worn trainers, a black sketchbook under one arm.
+@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, brown
+  bob, long tawny-brown fur coat over a rust-red shift dress.
+@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
+  hair, deep maroon leather suit with a stand collar.
+@project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
+  silver-streaked hair swept up, full-length deep magenta fur coat, long cream
+  gloves, cream heels.
+@project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap,
+  gold V, moustache. Far to the left, working, silent, never joining them.
+@project_absence_prop_cart_a_painted — HIS CART, parked beside him and never
+  moving: castor wheels, mop, orange bucket, bottles, ladder, gold V, the
+  painting upright in the rack.
+@project_absence_loc_wall_pov_e — THE SHAPE OF THE BREAK ONLY, the black
+  silhouette the camera looks out through: a star-shaped mark whose centre is
+  a SOLID BLACK ARROWHEAD POINTING DOWN, broad at the top, tapering to a point
+  at the bottom, with a short HOOKED SPUR curling off its upper right like a
+  comma and a notch at its upper left. FOUR long arms leave it and no more:
+  one rising at 12 o'clock with a single oval bead a third of the way up; the
+  longest and heaviest climbing toward 1:30, lumpy and kinked once; one running
+  down-left at 9:30, thinner, ending in a fine point; one falling down-right at
+  4:30 that kinks partway and throws a small barb near its needle-sharp end.
+  Every arm is BEADED — swelling into small dark lozenges and pinching back to
+  a hairline several times along its length, never a smooth taper. Copy this
+  shape exactly. Take nothing else from this reference.
+
+THE FRAME, unchanging for twenty seconds: the ragged black opening frames the
+picture, and through it the five stand in front of the wall at uneven distances
+with the colonnade receding behind them. Far to the left, deep in the shot,
+Dupe works beside his parked cart.
+
+[0s] The five are exactly as we left them, looking at the wall, nobody
+speaking. From the left, deep in the gallery, THE REGISTRAR walks in at an
+ordinary unhurried pace, ledger held against his chest, and he is already
+talking as he comes — the cheerful practised delivery of a man who says this
+every single morning and has stopped hearing himself say it.
+
+He says, warmly and to the room in general: "Good morning. Welcome, all of
+you, to the Valder Collection. Mr Valder should be with us very shortly."
+
+[9s] He reaches the left of the group and stops, turning to face them, hands
+folded on the ledger. NOBODY REACTS TO HIM. Not one of the five turns around.
+They go on looking at the wall.
+
+[11s] THE YOUNG WOMAN IN THE BLUE COAT turns her head to him. Her face gives
+away absolutely nothing — no smile, no excitement, no drama, the flat courteous
+expression of somebody ordering lunch. She says, evenly: "I would like to buy
+this piece. Two million."
+
+[14s] AND HIS WHOLE MANNER CHANGES IN ONE SECOND. The practised morning
+cheerfulness drops off him and something much more eager comes up underneath.
+He straightens, the ledger comes open, the pen is already moving, and his voice
+goes soft and deferential and a little too pleased.
+
+He says: "Of course, madam. Of course. I will fetch Mr Valder at once."
+
+[18s] He shuts the ledger, gives a small bow that is a fraction lower than it
+needs to be, and turns to go. He has barely begun the first step when the shot
+ends.
+
+[19s] Hold. Cut.
+
+AUDIO: room tone, unhurried footsteps on terrazzo, the small creak of a leather
+ledger opening, the scratch of a pen, the soft drag of cloth on metal far off
+to the left. THREE lines of dialogue only, in this order: the registrar's
+welcome, her offer, his reply. Nobody else says anything at all. NO SOUND AT
+THE START OR THE END: the clip opens mid room-tone with no intro sting or
+riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no eighth person, no extra, no
+bystander, no other visitor, no gallery staff, no security guard, no reporter,
+no journalist, nobody holding a camera, nobody filming, no crowd, no children,
+nobody in the background, nobody walking through; no person in front of the broken
+edge, no person between the camera and the wall, no hand reaching into the
+black foreground; no other character speaking, no chorus, no murmuring crowd,
+no reaction shot of the group talking; no smiling from the young woman, no
+excitement from her, no gasping, no wide eyes, no drama, no haggling, no
+negotiation; no handshake, no papers exchanged, no money, no card, no
+contract; no Dupe joining the group, no Dupe speaking, no Dupe stopping work;
+no running, no hurrying, no sped-up motion, no slow motion; no camera movement
+of any kind, no pan, no tilt, no zoom, no dolly, no handheld, no reframing, no
+cut, no second angle; no four-panel layout, no grid, no split screen; no fifth
+arm on the mark, no five-pointed star, no symmetrical star, no round hole at
+its centre, no rings; no plaque falling, no plaque moving; no cart moving, no
+painting leaving the rack; no tidy row of people, no evenly spaced line, no
+looking at camera; no smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness outside the
+foreground silhouette, no night, no blue walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. THE TONE FLIP. His welcome is bored routine; his reply to her is eager and
+   deferential. If both lines sound the same the scene has no joke in it.
+2. HER FACE GIVES NOTHING. Flat, courteous, unbothered. Any excitement or
+   smiling is the wrong performance.
+3. THE CRACK IS IN FRONT OF EVERYONE, the whole time.
+4. Exactly three lines, in order, and nobody else speaks.
+5. SEVEN PEOPLE, no extras of any kind.
+6. Camera dead still for twenty seconds.
+File the take whatever the verdict.
+
+END POSITIONS, inherited by S2N:
+- THE FIVE unchanged at the wall.
+- THE REGISTRAR at the group's left, mid-turn, ledger closed, one step begun.
+- DUPE far left with his cart.
+
+=== END NOTES ===
