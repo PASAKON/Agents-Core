@@ -1,0 +1,156 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2D-Fix1 · THE FIRST GUEST · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — the slider resets silently.
+
+WHERE IT SITS. Straight after S2b, the phone call. Dupe has rung the contractor
+and come back to the wall with the painting still in his cart. The museum is
+about to open. No dialogue anywhere in this scene.
+
+🔒 ONE DEPENDENCY, and it is why this cannot fire yet: the [7s] beat cuts to
+THE VIEW FROM INSIDE THE WALL, a plate still being generated (the crack as a
+camera aperture — black surround, the hall seen through the star, centre
+opening about 30% of frame). Bind it once it exists and the CEO has cleared it.
+If it is not ready, do NOT improvise that beat in prose — report and hold.
+
+⚠️ ONE OPEN QUESTION FOR THE CEO — WHO IS THE FIRST GUEST? The brief says "the
+first customer walks in" without naming them, and this project's iron rule is
+that nobody guesses an Element. Every guest is verified and available:
+gentleman_e (gold-toothed, white suit) · char_woman_c (parrot woman) ·
+char_woman (blue coat) · char_visitor_a / _b (husband and wife) ·
+char_oldman · char_grandmother · char_student_c · char_critic_b.
+The prompt carries GUEST_ELEMENT as a placeholder. Replace it with the one the
+CEO names before firing — do not choose one.
+
+CTO's suggestion only, to be overruled freely: char_student_c. The first person
+through the door being a scruffy young student with a notebook rather than a
+collector makes the room's later valuation funnier — the crack is discovered by
+someone with no money at all.
+
+Elements, all CEO-verified in /Users/gob/Desktop/Fix-1-Elements/:
+@project_absence_char_cleaner_c · @project_absence_prop_cart_a_painted ·
+@project_absence_loc_hall_big_d · @project_absence_prop_tag ·
+@project_absence_loc_wall_pov_e · GUEST_ELEMENT · the aperture plate
+
+Filing: All Scene/Fix-1/ as S2D-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · THREE SHOTS, cut exactly as timed below. No camera movement
+inside any of them — every one is locked off. Sound On · High.
+
+REFERENCES — each with a job:
+@project_absence_loc_hall_big_d — THE MUSEUM: warm cream walls, orange cove
+  light washing the ceiling, polished terracotta terrazzo, chromium trumpet
+  columns, white plinths, the collection on display. Take the room's surfaces,
+  light and dressing from it. It is a four-panel sheet — take NOTHING of its
+  arrangement, its framing or its layout, and never reproduce a grid.
+@project_absence_char_cleaner_c — DUPE: face, build, moustache, white uniform
+  with orange trim, cap, gold V at cap and chest.
+@project_absence_prop_cart_a_painted — HIS CART: four castor wheels, mop,
+  orange bucket, labelled bottles, folding ladder, gold V, and the Valder
+  painting standing upright in the rack, face outward.
+@project_absence_prop_tag — THE BRASS PLAQUE on the wall: engraved THE ABSENCE
+  OF MEANING / Valder / $2,000,000, two screws at the top corners, warm brass.
+@project_absence_loc_wall_pov_e — THE MARK'S EXACT SHAPE ONLY: a small
+  star-shaped mark, a dark irregular centre where a little plaster has lifted,
+  about five thin clean lines running out of it, unequal in length, each
+  slightly kinked, bare wall between them, no bigger than a hand. Copy this
+  star exactly. Take nothing else from this reference.
+GUEST_ELEMENT — THE FIRST VISITOR OF THE DAY: face, build, clothing.
+
+SHOT ONE · [0s-7s] · LOCKED WIDE, straight on to the hero wall, level, the
+frame symmetrical about the wall's centreline. The wall carries the small star
+mark and, beneath it, the brass plaque. The room is empty and open and quiet,
+early light.
+
+[0s] Dupe wheels his cart IN FROM THE LEFT and stops in front of the wall. The
+painting rides upright in the rack, face outward, and he does not touch it.
+[3s] He steps up close to the wall and LOOKS INTO THE MARK — head tilted, one
+eye near the small dark centre, trying to see into it. He is checking whether
+the thing he did is as bad as he thinks.
+
+SHOT TWO · [7s-10s] · CUT. THE VIEW FROM INSIDE THE WALL, looking out through
+the mark. The whole frame is BLACK except the star-shaped opening, and through
+that opening we see the gallery and DUPE'S FACE PRESSED UP CLOSE, one eye
+filling the gap, looking straight in at us.
+[9s] HIS FINGER comes into the opening — he pokes it in, feeling the edge, and
+it blocks most of the light. Then it withdraws.
+
+SHOT THREE · [10s-20s] · CUT. LOCKED, BEHIND DUPE AND SLIGHTLY ABOVE, looking
+past his shoulders down the length of the gallery — the receding chromium
+columns, the plinths, the works on both walls, the far end of the room. He is
+in the near foreground with his back to us, his cart beside him.
+
+[10s] He stands there, back to camera, for a beat. Two seconds, no more.
+[12s] Off screen, a DOOR OPENS. HE FLINCHES — a real startle, shoulders up,
+whole body jolting — and the first visitor of the day walks into the far end of
+the gallery.
+[13s] THE VISITOR MOVES SLOWLY INTO THE ROOM, unhurried, stopping to look at
+the works on their plinths one after another, taking their time. They have not
+noticed Dupe and they have not noticed the wall.
+[15s] DUPE PRETENDS TO WORK. He turns to the wall beside the mark and starts
+cleaning it, cloth in hand, wiping the same patch of blank wall over and over
+with enormous care. He is not cleaning anything. He is standing guard.
+[17s] And while he wipes he CRANES TO WATCH — head turning, neck stretching,
+eyes following the visitor across the room, then snapping back to the wall
+whenever the visitor looks his way. Wipe, crane, wipe, crane.
+[19s] Hold. The visitor drifts nearer. Cut.
+
+AUDIO: room tone, cart wheels on terrazzo, cloth on wall, one door opening off
+screen at 12s, unhurried footsteps approaching. No music, no voices, nobody
+speaks. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no
+intro sting or riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no dialogue, nobody speaks, no
+voices, no greeting, no words exchanged; no second visitor, no third visitor,
+no crowd, no group, no guards, no staff, no second cleaner; no camera movement
+of any kind inside any shot, no pan, no tilt, no zoom, no dolly, no handheld,
+no reframing, no fourth shot, no extra cut; no four-panel layout, no grid, no
+split screen, no inset panel; no plaque falling, no plaque moving, no bare wall
+without the plaque; no painting leaving the rack, no painting changing size, no
+painting on the wall, no painting on the floor; no cart being pushed after 0s,
+no cart leaving the frame; no dense mesh of fine lines, no rings, no line
+reaching floor or ceiling, no opening larger than the reference in shots one
+and three, no loose material on the floor, nothing bigger than a hand; no
+visitor noticing the mark, no visitor speaking to Dupe, no visitor looking at
+camera, no Dupe looking at camera except through the opening in shot two; no
+smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no readable text except the brass plaque, no signage, no logos,
+no music, no score, no dutch angle, no tilted horizon, no slow motion, no speed
+ramp, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin, no
+beauty filter, no dim moody lighting, no darkness, no night, no blue walls, no
+wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. THREE SHOTS, no more and no fewer, cut at 7s and 10s, each locked off.
+2. Shot two is genuinely from inside the wall — black surround, his eye and
+   then his finger in the opening. If it plays as an ordinary close-up of the
+   wall from the room side, the scene's one trick is gone.
+3. The flinch at 12s is a real startle, not a glance.
+4. The fake cleaning reads as fake — the same patch, over and over, while he
+   watches someone else.
+5. One visitor only, who never speaks and never notices the wall.
+File the take whatever the verdict.
+
+=== END NOTES ===

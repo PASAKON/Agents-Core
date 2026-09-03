@@ -36,6 +36,7 @@ keeper ignores its previz entirely unless the CEO orders a reshoot.
 | `X4-Render.MP4` | 10s | Wave III the row from the room: five backs at three-quarter angle (gold/cyan/plum/green/lime), Dupe + cart crossing behind |
 | `S1C-Render.MP4` | 8s | Wave IV cart detail: one lateral track at cart height holding pace with the wheels, cart static in frame while the hall slides past; rack EMPTY per spec |
 | `S2C-Render.MP4` | 20s | Fix-1 pacing: one locked wide looking UP the hall into Valder's collection, never the cracked wall; Dupe paces, exits at 5s, returns at 7s, freezes for the PA at 10s, leaves for good at 18s; the cart stands parked throughout |
+| `S2D-Render.MP4` | 20s | Fix-1 first guest: three locked shots cut at 7s and 10s — wide on the hero wall with the cart in from the left, the inside-the-wall beat (a generated plate, so the previz only holds its timing), then behind Dupe looking up the gallery as the first visitor enters at 12s |
 | `S2Fix1-Render.MP4` | 20s | Fix-1 accident: locked wide → fast zoom into the crack at 8s → tilt down to the plaque at 10s → CUT close on Dupe at 12s → CUT wide, he racks the painting and wheels out while the camera stays put → CUT to the straight-on final, crack above and plaque below |
 
 ## How a previz gets built (recorded 2026-09-03, so it is done once)
