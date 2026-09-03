@@ -33,12 +33,12 @@ tag_label(col, "OLDMAN", guest, cam, prefix="s2f")
 def key(o, fr, x, y):
     sc.frame_set(fr); o.location = (x, y, o.location.z); o.keyframe_insert("location", frame=fr)
 # walk, stop and look, walk, stop and look — the pauses are the nods
-key(guest, 1, -2.0, 11.00)
-key(guest, 81, -2.0, 7.00)
-key(guest, 123, -2.0, 7.00)
-key(guest, 213, -2.0, 2.50)
-key(guest, 248, -2.0, 2.50)
-key(guest, 288, -2.0, 0.50)
+key(guest, 1, -2.0, 9.50)
+key(guest, 77, -2.0, 6.50)
+key(guest, 123, -2.0, 6.50)
+key(guest, 211, -2.0, 3.00)
+key(guest, 250, -2.0, 3.00)
+key(guest, 288, -2.0, 1.50)
 
 sc.frame_end = 288
 

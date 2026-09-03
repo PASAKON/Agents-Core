@@ -50,7 +50,8 @@ def key(o, fr, x, y, z=None):
 # he barely moves — small drift along the wall as the cloth works
 key(dupe, 1, 0.9, -21.05); key(dupe, 144, 0.75, -21.05); key(dupe, 288, 0.95, -21.05)
 # the old man crosses behind him, which is what his eyes are actually following
-key(guest, 1, -1.4, 8.0); key(guest, 288, -1.4, -4.0)
+key(guest, 1, -1.4, 8.0); key(guest, 303, -1.4, -4.0)
+sc.frame_end = 288
 
 for a, v in (("use_shadows", False), ("use_raytracing", False), ("taa_render_samples", 8)):
     try: setattr(sc.eevee, a, v)

@@ -71,13 +71,46 @@ def key(o, fr, x, y, z=None):
 Z0 = dupe.location.z          # standing height of the proxy
 
 # Dupe: wheels in from the left, steps to the wall, then turns and fake-cleans
-key(dupe, 1, -4.6, -20.6); key(dupe, 120, 0.6, -20.6); key(dupe, 140, 0.6, -21.35)
-# three hops at the wall — he is too short for a crack at z=2.45 and never
-# quite gets his eye to it. up-down-up-down-up-down, 12 frames each way.
-for base in (146, 152, 158):                        # all three land before the cut at 167
-    key(dupe, base,     0.6, -21.35, Z0)
-    key(dupe, base + 3, 0.6, -21.35, Z0 + 0.52)
-    key(dupe, base + 6, 0.6, -21.35, Z0)
+import math as _m
+
+def hop(o, start, x, y, z0, h=0.28, crouch=0.11):
+    """One counter-movement jump, timed and shaped from physics.
+
+    A jump is ballistic: it leaves the ground fastest and hangs at the apex.
+    Blender's default bezier does the opposite — slow off the ground, quick
+    through the middle — which is exactly what made the earlier version read as
+    a glitch rather than a person. So the flight is sampled on the true
+    parabola every frame, and the crouch and the landing absorption a real body
+    has are keyed either side of it.
+
+    airtime = 2*sqrt(2h/g) — 0.28 m gives 0.48 s, eleven frames at 24 fps.
+    """
+    g, fps = 9.81, 24.0
+    air = int(round(2 * _m.sqrt(2 * h / g) * fps))
+    CR, PU, AB, RE = 7, 5, 6, 5          # crouch, push-off, absorb, recover
+    f = start
+    for i in range(CR + 1):                                   # sink
+        key(o, f + i, x, y, z0 - crouch * (i / CR))
+    f += CR
+    for i in range(PU + 1):                                   # drive up, accelerating
+        key(o, f + i, x, y, z0 - crouch + crouch * (i / PU) ** 2)
+    f += PU
+    for i in range(air + 1):                                  # flight
+        t = i / air
+        key(o, f + i, x, y, z0 + 4 * h * t * (1 - t))
+    f += air
+    for i in range(AB + 1):                                   # land, absorb
+        key(o, f + i, x, y, z0 - crouch * (i / AB))
+    f += AB
+    for i in range(RE + 1):                                   # stand back up
+        key(o, f + i, x, y, z0 - crouch * (1 - i / RE))
+    return f + RE
+
+# arrival first, then the hops — the two used to overlap and fight each other
+key(dupe, 1, -4.6, -20.6); key(dupe, 108, 0.6, -20.6); key(dupe, 124, 0.6, -21.35)
+_f = 128
+for _ in range(2):                        # two full jumps, ~1.4 s each
+    _f = hop(dupe, _f, 0.6, -21.35, Z0) + 6
 key(dupe, 288, 0.6, -21.35, Z0); key(dupe, 300, 0.9, -21.05, Z0)
 key(dupe, 480, 0.9, -21.05, Z0)
 zc = cart.location.z
@@ -90,7 +123,12 @@ for fr, vis in ((1, True), (287, True), (288, False)):
     guest.keyframe_insert("hide_render", frame=fr)
     guest.keyframe_insert("hide_viewport", frame=fr)
 key(guest, 1, -1.6, 20.5); key(guest, 287, -1.6, 20.5)
-key(guest, 300, -1.6, 18.0); key(guest, 580, -1.2, 4.0)
+key(guest, 300, -1.6, 18.0); key(guest, 654, -1.2, 4.0)
+
+for _act in (dupe.animation_data.action,) if dupe.animation_data else ():
+    for _fc in (_act.fcurves if hasattr(_act, "fcurves") else []):
+        for _kp in _fc.keyframe_points:
+            _kp.interpolation = 'LINEAR'
 
 for a, v in (("use_shadows", False), ("use_raytracing", False), ("taa_render_samples", 8)):
     try: setattr(sc.eevee, a, v)
