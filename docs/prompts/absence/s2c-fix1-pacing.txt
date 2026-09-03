@@ -73,23 +73,42 @@ columns. Warm early morning, the museum empty and open and quiet.
 Dupe's cart stands PARKED off to one side, fully in frame, the painting upright
 in its rack. It never moves, not once, not an inch, for the whole shot.
 
-[0s] Dupe is already moving. HE WALKS QUICKLY AND HE NEVER RUNS — a fast,
-purposeful, long-strided walk, the walk of a man late for something, never a
-jog, never a scurry, never a trot. He crosses the length of the frame to one
-side, stops, turns on his heel and walks quickly back the other way. THREE
-crossings in the first five seconds and no more, each one long.
+[0s] Dupe is already moving. HE WALKS FAST AND HE NEVER RUNS — a brisk
+purposeful walk at about 1.7 metres per second, which is the pace of a person
+hurrying to catch something: long strides, roughly two and a half steps a
+second, both feet in contact with the floor in turn and never both off it at
+once. That last part is what separates a fast walk from a run and it must hold
+in every frame. No jog, no trot, no scurry, no speed-up. He crosses the length
+of the frame to one side, stops, turns on his heel and walks fast back the
+other way. THREE crossings in the first five seconds and no more, each one
+long.
+
+HIS EYES GO WHERE HIS FEET GO. He looks ahead along his own path, at the floor
+a few metres in front of him, at the far end of the room he is walking toward —
+never at the camera, not for a single frame, not in passing. The camera is not
+in the room as far as he is concerned.
 
 WHAT IS HAPPENING TO HIM, so the walk is played correctly: he has just knocked
 a two-million-dollar painting off a museum wall by accident, minutes before the
 museum opens. He is not hurt and nothing is chasing him. He is a careful man
-who has done something uncorrectable and has no idea what to do next, and the
-walking IS the thinking — every turn is him rejecting an idea and starting
-another. His jaw is tight, his breathing is shallow and fast, his eyes move
-before his feet do. His hands go to his cap, to his mouth, behind his back, and
-will not settle. He glances toward the cart, then away, then back, because the
-painting in it is the problem and he cannot stop checking that it is still
-real. He is frightened of losing his job and ashamed of the mistake at the same
-time, and he is trying to look like a man who is merely busy.
+who has done something uncorrectable and has no idea what to do next.
+
+PLAY HIM AS SOMEONE IN THE GRIP OF A PANIC ATTACK, thinking far too much and
+far too fast. His breathing is shallow, quick and high in the chest, and it is
+visible in his shoulders. His jaw is clamped. His eyes are wide and moving
+constantly — flicking ahead, to the floor, to the cart, away again — never
+settling on anything for as long as a second. His hands cannot be still: they
+go to his cap, to his mouth, behind his back, into his pockets and out again,
+one washing over the other. He swallows. He half-starts a turn, changes his
+mind mid-step and completes it anyway.
+
+The walking IS the thinking. Every turn is one idea rejected and another
+started, and none of them survive the length of the room. He glances at the
+cart, then away, then back, because the painting in it is the problem and he
+cannot stop checking that it is still real.
+
+And underneath all of it he is trying to look like a man who is merely busy —
+which he is failing at completely, and that failure is the performance.
 
 [5s] He crosses the frame and KEEPS GOING, straight out of shot. For a moment
 there is no one in the picture at all — only the long gallery, Valder's
@@ -135,8 +154,11 @@ no hand on the cart; no painting leaving the rack, no painting changing size,
 no painting on the floor, no painting on the wall; no speaker or loudspeaker
 visible in frame, no person delivering the announcement, no second person at
 all, no visitors, no staff, no guards, no crowd; no Dupe speaking, no Dupe
-looking at camera, no frantic scurrying, no running, no jogging, no comic
-speed, no sped-up motion, no more than three crossings in any five seconds, no
+looking at camera, no Dupe glancing at camera, no Dupe acknowledging the
+camera, no eyeline to lens at any point; no Dupe looking backwards while
+walking forwards; no running, no jogging, no trotting, no scurrying, no both
+feet off the floor at once, no airborne stride, no comic speed, no sped-up
+motion, no more than three crossings in any five seconds, no
 crying, no shouting, no throwing anything, no kicking, no
 collapsing to the floor, no head in hands melodrama.
 
