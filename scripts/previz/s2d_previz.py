@@ -35,6 +35,15 @@ box("s2d_painting", (2.4, -20.0, 1.35), (0.80, 0.05, 0.72), (0.45,0.45,0.45,1)).
 guest = spawn_char(col, "OLDMAN", (-1.6, 20.5), h=1.70, prefix="s2d")
 guest.hide_render = guest.hide_viewport = True   # not in the room until the door opens
 
+# the red door swings open as he enters — two leaves, hinged at their outer edges
+dL, dR = bpy.data.objects.get("red_door_L"), bpy.data.objects.get("red_door_R")
+for leaf, sign in ((dL, 1), (dR, -1)):
+    if not leaf: continue
+    leaf.rotation_mode = 'XYZ'
+    for fr, ang in ((1, 0), (276, 0), (300, sign * 1.15), (480, sign * 1.15)):
+        sc.frame_set(fr); leaf.rotation_euler.z = ang
+        leaf.keyframe_insert("rotation_euler", frame=fr)
+
 cam_d = bpy.data.cameras.new("CAM_S2D"); cam = bpy.data.objects.new("CAM_S2D", cam_d)
 sc.collection.objects.link(cam); sc.camera = cam
 tag_label(col, "DUPE", dupe, cam, prefix="s2d")
@@ -62,17 +71,17 @@ def key(o, fr, x, y, z=None):
 Z0 = dupe.location.z          # standing height of the proxy
 
 # Dupe: wheels in from the left, steps to the wall, then turns and fake-cleans
-key(dupe, 1, -4.6, -20.6); key(dupe, 60, 0.6, -20.6); key(dupe, 72, 0.6, -21.35)
+key(dupe, 1, -4.6, -20.6); key(dupe, 120, 0.6, -20.6); key(dupe, 140, 0.6, -21.35)
 # three hops at the wall — he is too short for a crack at z=2.45 and never
 # quite gets his eye to it. up-down-up-down-up-down, 12 frames each way.
-for base in (84, 112, 140):                        # all three land before the cut at 167
-    key(dupe, base,      0.6, -21.35, Z0)
-    key(dupe, base + 9,  0.6, -21.35, Z0 + 0.52)   # higher, and still short of the crack
-    key(dupe, base + 18, 0.6, -21.35, Z0)
+for base in (146, 152, 158):                        # all three land before the cut at 167
+    key(dupe, base,     0.6, -21.35, Z0)
+    key(dupe, base + 3, 0.6, -21.35, Z0 + 0.52)
+    key(dupe, base + 6, 0.6, -21.35, Z0)
 key(dupe, 288, 0.6, -21.35, Z0); key(dupe, 300, 0.9, -21.05, Z0)
 key(dupe, 480, 0.9, -21.05, Z0)
 zc = cart.location.z
-key(cart, 1, -3.1, -20.4); key(cart, 60, 2.4, -20.4); key(cart, 480, 2.4, -20.4)
+key(cart, 1, -3.1, -20.4); key(cart, 120, 2.4, -20.4); key(cart, 480, 2.4, -20.4)
 p = bpy.data.objects["s2d_painting"]
 # guest: enters far end at 12s, drifts down the hall
 for fr, vis in ((1, True), (287, True), (288, False)):
@@ -81,7 +90,7 @@ for fr, vis in ((1, True), (287, True), (288, False)):
     guest.keyframe_insert("hide_render", frame=fr)
     guest.keyframe_insert("hide_viewport", frame=fr)
 key(guest, 1, -1.6, 20.5); key(guest, 287, -1.6, 20.5)
-key(guest, 300, -1.6, 18.0); key(guest, 480, -1.2, 4.0)
+key(guest, 300, -1.6, 18.0); key(guest, 580, -1.2, 4.0)
 
 for a, v in (("use_shadows", False), ("use_raytracing", False), ("taa_render_samples", 8)):
     try: setattr(sc.eevee, a, v)

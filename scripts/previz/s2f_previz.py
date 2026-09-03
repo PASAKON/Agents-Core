@@ -33,12 +33,14 @@ tag_label(col, "OLDMAN", guest, cam, prefix="s2f")
 def key(o, fr, x, y):
     sc.frame_set(fr); o.location = (x, y, o.location.z); o.keyframe_insert("location", frame=fr)
 # walk, stop and look, walk, stop and look — the pauses are the nods
-key(guest, 1,   -2.0, 11.0)
-key(guest, 60,  -2.0,  7.0)     # arrives at the first piece
-key(guest, 132, -2.0,  7.0)     # stands and looks, three seconds
-key(guest, 192, -2.0,  2.5)     # moves on
-key(guest, 252, -2.0,  2.5)     # looks again
-key(guest, 288, -2.0,  0.5)
+key(guest, 1, -2.0, 11.00)
+key(guest, 81, -2.0, 7.00)
+key(guest, 123, -2.0, 7.00)
+key(guest, 213, -2.0, 2.50)
+key(guest, 248, -2.0, 2.50)
+key(guest, 288, -2.0, 0.50)
+
+sc.frame_end = 288
 
 for a, v in (("use_shadows", False), ("use_raytracing", False), ("taa_render_samples", 8)):
     try: setattr(sc.eevee, a, v)
