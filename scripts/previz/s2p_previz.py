@@ -34,37 +34,37 @@ def box(name, loc, dim, color):
 # with the cart because he is staff and was never invited.
 BASE = -12.0
 LINE = [
-    ("VALDER",    3.20, +2.40, 1.86),
-    ("GUARD_V1", 2.45, +3.10, 1.84),
-    ("GUARD_V2", 4.60, +1.90, 1.76),
-    ("GENTLEMAN", 3.90, +1.50, 1.79),
-    ("BODYGUARD", 4.70, +0.70, 1.94),
-    ("REGISTRAR", 3.40, -0.10, 1.80),
-    ("COLLECTOR_A",     2.90, -0.90, 1.68),
-    ("CRITIC",  3.70, -1.80, 1.64),
-    ("VISITOR_B", 2.70, -2.50, 1.66),
-    ("VISITOR_A", 3.50, -3.20, 1.78),
-    ("STUDENT", 2.60, -4.10, 1.70),
-    ("DUPE",      2.20, -5.40, 1.80),
+    ("VALDER", 1.60, +2.40, 1.86),
+    ("GUARD_V1", 0.85, +3.10, 1.84),
+    ("GUARD_V2", 3.00, +1.90, 1.76),
+    ("GENTLEMAN", 2.30, +1.50, 1.79),
+    ("BODYGUARD", 3.10, +0.70, 1.94),
+    ("REGISTRAR", 1.80, -0.10, 1.80),
+    ("COLLECTOR_A", 1.30, -0.90, 1.68),
+    ("CRITIC", 2.10, -1.80, 1.64),
+    ("VISITOR_B", 1.10, -2.50, 1.66),
+    ("VISITOR_A", 1.90, -3.20, 1.78),
+    ("STUDENT", 1.00, -4.10, 1.70),
+    ("DUPE", 0.60, -5.40, 1.80),
 ]
 people = []
 for name, x, dy, h in LINE:
     ob = spawn_char(col, name, (x, BASE + dy), h=h, prefix="s2p")
     people.append((ob, x, dy))
-build_cart(col, (1.45, BASE - 6.20), prefix="s2p", with_painting=True)
+build_cart(col, (-0.15, BASE - 6.20), prefix="s2p", with_painting=True)
 cart = bpy.data.objects.get("s2p_cart_base")
 if cart:
     for o in bpy.data.objects:
         if o.name.startswith("s2p_cart_") and o is not cart:
             o.parent = cart; o.matrix_parent_inverse = cart.matrix_world.inverted()
-    box("s2p_painting", (1.45, BASE - 5.80, 1.35), (0.80, 0.05, 0.72), (0.45, 0.45, 0.45, 1)).parent = cart
+    box("s2p_painting", (-0.15, BASE - 5.80, 1.35), (0.80, 0.05, 0.72), (0.45, 0.45, 0.45, 1)).parent = cart
 
 # ---- the tracking camera. 35 mm at ~13 m covers 14.4 m along the walking axis
 # and the procession spans 7.8 m, so nobody clips out at either end.
-cam_d = bpy.data.cameras.new("CAM_S2P"); cam_d.lens = 35
+cam_d = bpy.data.cameras.new("CAM_S2P"); cam_d.lens = 28
 cam = bpy.data.objects.new("CAM_S2P", cam_d); sc.collection.objects.link(cam); sc.camera = cam
 cam.rotation_euler = (R(90), 0, R(-90))         # (90,0,0) looks +Y; -90 about Z swings it to +X
-cam.location = (-10.50, BASE - 1.00, 1.70)
+cam.location = (-5.40, BASE - 1.00, 1.70)   # hall is x -6.0..+6.0; -10.5 was outside it
 
 for ob, _, _ in people:
     tag_label(col, ob.name.split("_", 1)[-1], ob, cam, prefix="s2p")
@@ -82,12 +82,12 @@ for ob, x, dy in people:
     key(ob, 1,   x, BASE + dy)
     key(ob, 480, x, BASE + dy + TRAVEL)
 if cart:
-    key(cart, 1,   1.45, BASE - 6.20)
-    key(cart, 480, 1.45, BASE - 6.20 + TRAVEL)
+    key(cart, 1,   -0.15, BASE - 6.20)
+    key(cart, 480, -0.15, BASE - 6.20 + TRAVEL)
 
-sc.frame_set(1);   cam.location = (-10.50, BASE - 1.00, 1.70)
+sc.frame_set(1);   cam.location = (-5.40, BASE - 1.00, 1.70)   # hall is x -6.0..+6.0; -10.5 was outside it
 cam.keyframe_insert("location", frame=1)
-sc.frame_set(480); cam.location = (-10.50, BASE - 1.00 + TRAVEL, 1.70)
+sc.frame_set(480); cam.location = (-5.40, BASE - 1.00 + TRAVEL, 1.70)
 cam.keyframe_insert("location", frame=480)
 
 # LINEAR on everything. Blender's default bezier eases in and out of every

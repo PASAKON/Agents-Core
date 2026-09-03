@@ -53,11 +53,12 @@ if cart:
 
 cam_d = bpy.data.cameras.new("CAM_S2O"); cam_d.lens = 28
 cam = bpy.data.objects.new("CAM_S2O", cam_d); sc.collection.objects.link(cam); sc.camera = cam
-cam.location = (-5.20, -20.40, 1.72)
+cam.location = (-3.20, -20.80, 1.60)   # 3.7 m behind Dupe, on his own line
 # AIM WITH A CONSTRAINT, NOT WITH TYPED EULERS. Hand-typed angles have missed
 # on this project four times; a TRACK_TO at a fixed empty has never missed.
 aim = bpy.data.objects.new("s2o_aim", None); sc.collection.objects.link(aim)
-aim.location = (-1.20, -10.00, 1.55)            # between Dupe and the far doors
+aim.parent = dupe
+aim.location = (0.0, 0.0, 0.55)               # locked to Dupe himself
 trk = cam.constraints.new('TRACK_TO'); trk.target = aim
 trk.track_axis = 'TRACK_NEGATIVE_Z'; trk.up_axis = 'UP_Y'
 
