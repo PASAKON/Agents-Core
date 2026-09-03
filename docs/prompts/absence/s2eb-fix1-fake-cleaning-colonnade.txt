@@ -1,0 +1,162 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2Eb-Fix1 · THE FAKE CLEANING, IN THE COLONNADE · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 12s. Full spec: 12s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — it defaults to 5s silently.
+
+WHAT CHANGED FROM S2E. Take 1 landed FLAGGED: every part of the performance
+passed, and the wall mark rendered as an insect-like figure instead of the
+star. The CEO's fix removes the problem rather than fighting it — this version
+moves the whole scene OUT of the hero-wall corner and into the colonnade, the
+long gallery with the chromium trumpet columns and the red door at the end.
+
+So there is NO cracked wall, NO plaque and NO wall reference in this scene at
+all. Dupe is simply cleaning somewhere in that room. The joke is untouched: his
+hands work and his eyes are elsewhere.
+
+S2E-Fix1.MP4 stays on Drive exactly as it is. This files separately.
+
+⚠️ NEVER UPLOAD AN IMAGE. Every Element below exists on the account. Match by
+ID in the Elements panel and bind the library entry. An uploaded copy becomes a
+second Element that drifts from the one every other scene uses. CEO-confirmed
+UUIDs, for matching only — always verify against the panel, never paste a UUID
+as if it were a handle:
+  char_cleaner_c        8af158a5-f856-479d-add6-2f5276967ed6
+  char_oldman           5531d2b5-df16-44c7-a2a7-5fe74117aa8d
+  prop_cart_a_painted   cdd014de-fc4a-4900-9027-afd297ab9069
+  loc_hall_big_e        (the colonnade view — red door at the vanishing point)
+
+Previz: docs/S2E-Render.MP4 — the blocking and the camera are unchanged, only
+the room around them differs. 1280x720 / 288 frames / 12.0s.
+
+Filing: All Scene/Fix-1/ as S2Eb-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+12s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, no cuts, for the whole twelve seconds. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 12-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the WHITE figure labelled DUPE = @project_absence_char_cleaner_c
+- the DARK GREEN figure labelled OLDMAN = @project_absence_char_oldman
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and this shot happens inside it: a long gallery
+  with CHROMIUM TRUMPET COLUMNS in receding pairs down both sides, their wide
+  flared tops throwing orange cove light across the ceiling, polished
+  terracotta terrazzo underfoot, framed works and bronze pieces on white
+  plinths along both walls, and a tall RED DOUBLE DOOR small and far off at the
+  vanishing point. Take the room, its surfaces and its light from this.
+@project_absence_char_cleaner_c — DUPE: face, build, moustache, white uniform
+  with orange trim, cap, gold V at cap and chest.
+@project_absence_prop_cart_a_painted — HIS CART, parked: four castor wheels,
+  mop, orange bucket, labelled bottles, folding ladder, gold V, the Valder
+  painting standing upright in the rack, face outward.
+@project_absence_char_oldman — THE VISITOR: heavy-set and elderly, dark green
+  leather overcoat with a wide shawl collar, cream polo neck, pale gloves, slim
+  silver cane, pale shoes.
+
+THE FRAME, unchanging for twelve seconds: a locked three-quarter view of Dupe
+working in the colonnade, close enough that HIS FACE AND THE THING HE IS
+CLEANING ARE BOTH IN SHOT AT ONCE. That is the whole point of the framing — the
+lie has to be visible in one image. Behind and past him the columns recede down
+the gallery. His cart is parked within reach, the painting upright in its rack,
+and it never moves.
+
+HE IS CLEANING THE ROOM, NOT A WALL. Cloth in hand, he works the polished
+chromium of a column and the white edge of a plinth beside it — the surfaces a
+museum cleaner actually touches on an ordinary morning.
+
+[0s] HIS HANDS ARE WORKING AND THEY DO NOT STOP. He wipes the column in slow
+steady circles, then long strokes down the flute of it, then circles again —
+the unhurried competent motion of a man who has done this for twenty years and
+could do it asleep. The hands are entirely convincing. AND HIS EYES ARE NOT
+THERE. He never once looks at what he is cleaning. His head is up and turned
+away from his own hands, his gaze fixed off to the side and slightly ahead,
+locked on something out of frame with total concentration. The hands and the
+eyes belong to two different men, and they do so from the first frame to the
+last.
+
+[4s] He shifts his feet a little, a small sideways step around the column, and
+the cloth follows him — but his head does not turn with his body. He keeps the
+same line of sight, adjusting his stance to hold it, the way someone does when
+they are trying not to be seen looking.
+
+[6s] BEHIND HIM, deep in the gallery, THE ELDERLY VISITOR in the dark green
+overcoat walks between the columns, cane in hand, looking at the works and not
+at Dupe. He crosses the whole width of the shot at an ordinary unhurried
+walking pace and never looks over.
+
+[8s] Dupe's eyes track him the entire way. Only the eyes and a fraction of the
+head — nothing else about him admits it is happening. The cloth keeps circling.
+
+[11s] Hold. Hands still working. Eyes still elsewhere. Cut.
+
+AUDIO: room tone, the soft repeated drag of cloth on metal, unhurried footsteps
+crossing behind on terrazzo, the small tap of a cane. No music, no voices,
+nobody speaks. NO SOUND AT THE START OR THE END: the clip opens mid room-tone
+with no intro sting or riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no cracked wall, no crack, no
+star-shaped mark, no damaged wall, no brass plaque, no price plaque, no
+readable text anywhere in frame; no dialogue, nobody speaks, no voices, no
+greeting; no Dupe looking at what he is cleaning, no Dupe looking down at his
+own hands, no Dupe stopping cleaning, no idle hands, no folded arms, no leaning
+on the column; no Dupe looking at camera, no visitor looking at Dupe, no
+visitor speaking, no second visitor, no third person, no crowd, no guards, no
+staff, no second cleaner; no running, no hurrying, no comic speed, no sped-up
+motion — the visitor walks at an ordinary unhurried pace and so does everything
+else; no camera movement of any kind, no pan, no tilt, no zoom, no dolly, no
+handheld, no reframing, no cut, no second angle; no four-panel layout, no grid,
+no split screen, no inset panel; no cart moving, no hand on the cart, no
+painting leaving the rack, no painting changing size, no painting on the wall;
+no smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no slow motion, no speed ramp, no lens flare, no bokeh balls,
+no HDR, no CGI sheen, no plastic skin, no beauty filter, no dim moody lighting,
+no darkness, no night, no blue walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. THE HANDS NEVER STOP AND THE EYES NEVER ARRIVE. If he glances at what he is
+   cleaning even once, the scene has no idea left in it.
+2. NO CRACKED WALL AND NO PLAQUE anywhere in frame. That is the entire reason
+   this version exists — take 1 was flagged for the mark rendering wrong, and
+   this one removes it from the shot rather than fighting it.
+3. His face and the thing he is cleaning are both in frame together.
+4. The old man crosses behind at an ordinary walking pace.
+5. Camera dead still for twelve seconds; the cart never moves.
+File the take whatever the verdict.
+
+END POSITIONS, for whatever scene follows:
+- DUPE in the colonnade, cloth in hand, mid-wipe on a column, eyes off to the
+  side.
+- HIS CART parked beside him, painting upright in the rack.
+- THE ELDERLY MAN has crossed the frame and is out of shot on the near side,
+  still walking, still looking at the art.
+
+=== END NOTES ===
