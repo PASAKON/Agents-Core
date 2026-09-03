@@ -114,7 +114,128 @@ technique. Read back: 4,203 chars from the source, first/last 80 chars
 matched exactly.
 
 **Generated:** fired ~04:47 ICT, confirmed via "Generation started" toast
-and project asset count 620 → 621.
+and project asset count 620 → 621. Card completed after ~34 minutes (same
+US-evening/peak UTC window as S2Eb).
 
-_[Verdict, filing and money confirmation for S2F to follow once the render
-completes — see below for current status at report time.]_
+## Verdict against the review order — FLAGGED, real defect, not the pacing note
+
+Sampled 12 frames at 1fps across the full 12s.
+
+1. **His pace, ordinary and unhurried throughout** — **cannot be assessed as
+   scripted.** By 2s he is already standing directly beside the first piece;
+   there is no visible multi-second unhurried walk-in the prompt called for
+   at [0s]-[3s]. This may be an artifact of the camera problem below
+   compressing the entrance, not a genuine speed defect, but it does not
+   confirm the pace the CEO has rejected twice on.
+2. **He stops properly and stands with a piece rather than slowing as he
+   passes** — PASS on this piece specifically; he settles in, weight on the
+   cane, head tilted, looking at it.
+3. **ONE nod at the first piece only; the second piece gets a longer look
+   and no nod** — **FAIL.** There is no second piece. He never leaves the
+   first vessel for the entire 12 seconds — the walk-on/stop/second-look
+   structure the prompt scripts for [6s]-[11s] never happens.
+4. **Camera dead still** — **FAIL, the real defect.** Frame-by-frame
+   comparison (f02 through f12) shows a continuous, unmistakable push-in:
+   at 2-3s the frame holds the full room (yellow chairs, glass case, far
+   wall, several background pieces); by 11-12s the same vessel and the old
+   man's face fill almost the entire frame in an extreme close-up, his nose
+   nearly touching the sculpture. This is a slow dolly-in/zoom running the
+   whole clip, not a locked shot — a direct violation of the prompt's own
+   "no camera movement of any kind, no pan, no tilt, no zoom, no dolly."
+5. **He is alone; no Dupe, no cart, no cracked wall** — PASS. No other
+   person, no cart, no wall damage anywhere in any sampled frame.
+
+**Read together, items 3 and 4 look like one failure, not two**: the model
+appears to have interpreted the shot as a single continuous push-in on one
+object rather than the static-camera two-piece walk the prompt scripted,
+which is why there's no second piece to nod away from — the camera's own
+drift consumed the beat structure.
+
+**This is a new, different failure from the CEO's twice-rejected pacing
+note** — it isn't that he moved too fast, it's that the camera moved when
+it was never supposed to and the choreography collapsed to one piece. Worth
+flagging explicitly since the brief specifically asked for pace-related data
+points, and this data point is about the camera, not his legs.
+
+**Money:** `UNLIMITED · ~~84~~ · 0` zoom-verified immediately before the
+click — struck-through price, real charge $0. No browser-tool error or
+timeout occurred during this fire.
+
+**Filing:** downloaded the finished clip's direct CDN file
+(`hf_20260903_214646_29177157-e09a-4261-be72-9c2cc2faa00f.mp4`, confirmed
+1280x720/24fps/12.04s via `ffprobe` — spec-correct) and filed via
+`scripts/gdrive-bridge/ilag_mirror.py` to `All Scene/Fix-1/` as
+**`S2F-Fix1.MP4`** — no verdict in the filename, per the brief; usability is
+the editor's call regardless of our PASS/FLAGGED read. Upload verified
+against a fresh Drive folder listing (size match, 12.6 MB) before the local
+staging copy was deleted.
+
+**Exact prompt used** (per the standing review-loop rule that a clip must
+travel with its prompt, not a summary) — the full PASTE-block text from
+`docs/prompts/absence/s2f-fix1-oldman-looks.txt`, unmodified, 4,203 chars.
+
+## 3. Money summary
+
+Two Unlimited video fires this session, both struck-to-0 zoom-verified
+immediately before the click:
+- S2Eb: `UNLIMITED · ~~84~~ · 0`
+- S2F: `UNLIMITED · ~~84~~ · 0`
+
+No live/unstruck price seen at any point. Neither fire hit the content
+filter refusal the brief warned about (`S2-Fix1`/`S2C`'s "Output may
+contain sensitive content" wording) — no data point either way on that
+question this session. No browser-tool error or timeout occurred during
+either fire, so the Usage-History-after-error hard rule was never
+triggered.
+
+## 4. Render slot discipline
+
+The slot was never left empty: S2F's full setup (video ref removed/re-added,
+2 elements, prompt pasted, all six fields re-verified) was staged in the
+same composer tab during S2Eb's ~41-minute render, and fired within seconds
+of S2Eb's card completing. No idle time between the two fires beyond the
+download/file/report work done on S2Eb while S2F was itself rendering.
+
+## Files Changed
+
+- `docs/reports/absence-s2eb-s2f-20260904.md` — this report
+
+## Commits
+
+- `3217557` — S2Eb report + progress checkpoint (interim, before S2F completed)
+- (this report's completion — see final commit below)
+
+## Issues / Blockers
+
+- **S2F-Fix1 needs a re-fire.** The camera dollies/zooms in continuously for
+  the full 12s instead of holding still, and as a direct consequence the
+  scripted two-piece walk/stop/nod/walk/stop/look structure never happens —
+  he never leaves the first vessel. This is worth a CEO look before
+  re-firing since it's a different failure class than the twice-rejected
+  pacing note, not a repeat of it.
+- Neither clip hit the content-filter refusal the brief asked about — no new
+  data point on the S2-Fix1/S2C mystery this session.
+- Two empty `[New message from CTO]` mailbox pings arrived mid-session with
+  no body (known Higgsfield-skill mailbox quirk); checked TASK.md both times
+  and found no update, so treated as the known artifact rather than a real
+  instruction change.
+
+## Notes for Reviewer
+
+- S2Eb-Fix1.MP4 is a clean PASS and needs no further action.
+- S2F-Fix1.MP4 is filed to Drive per the "file every take" rule but the CTO
+  should look at it before deciding whether/how to re-fire — the defect
+  (camera drift) is visually obvious frame-to-frame and not a judgment call.
+- The composer tab was left on the S2F prompt/settings after the fire (not
+  touched further, no navigate/refresh) in case a resume needs the staged
+  state; Unlimited is on, video ref chip is S2F-Render.MP4.
+
+## SKILL-OVERRIDE
+
+None. All hard rules in `higgsfield-unlimited-gen` and `browser-operator`
+followed as written — Rerun never used, struck-to-0 zoom check immediately
+before each Generate click, synthetic-paste-only text entry with the
+End→space→Backspace bind-fix, duration driven via `ArrowRight` on the
+slider (never typed), one Unlimited video generation in flight at a time,
+render slot never left idle, every take filed regardless of verdict with no
+verdict in the filename.
