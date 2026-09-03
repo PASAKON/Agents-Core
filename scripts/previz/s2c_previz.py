@@ -53,14 +53,18 @@ def key(o, fr, x, y=-14.3):
 # ---- the pacing, all of it lateral, all of it hurried ----
 # frames: 24 = 1s. Off-frame is roughly |x| > 3.4 at this lens and distance.
 PACE = [
-    (1,    0.0), (26,  -2.5), (48,   2.4), (70,  -2.2), (92,   2.6),   # left-right-left, fast
-    (116, -4.6),                                                        # OUT of frame, left
-    (150, -4.6),                                                        # gone. the cart alone.
-    (176,  0.4), (198,  2.3), (220, -1.8),                              # back in, still pacing
+    # ~30% slower than the first build (CEO 2026-09-03). Same story beats —
+    # out at 5s, back at 7s, frozen 10-14s, gone at 19s — but fewer crossings,
+    # each one taking about a third longer, so it reads as a man thinking
+    # rather than a man twitching.
+    (1,    0.0), (34,  -2.6), (68,   2.5), (100, -1.4),                 # 3 long crossings
+    (122, -5.0),                                                        # OUT of frame, left
+    (156, -5.0),                                                        # gone. the cart alone.
+    (178,  0.2), (212,  2.4), (240,  0.6),                              # back in, 2 crossings
     (243,  0.6),                                                        # PA starts — he stops dead
-    (336,  0.6),                                                        # frozen through the whole announcement
-    (360, -1.6), (380,  2.2), (400, -2.4), (420,  2.8),                 # worse than before
-    (452,  5.2), (480,  5.2),                                           # out for good, cart left behind
+    (336,  0.6),                                                        # frozen through the announcement
+    (362, -2.0), (398,  2.2), (430, -1.2),                              # tighter, still not frantic
+    (458, -5.2), (480, -5.2),                                           # out for good, cart left behind
 ]
 for fr, x in PACE:
     key(dupe, fr, x)
