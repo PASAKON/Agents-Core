@@ -58,18 +58,44 @@ ssh winbox 'powershell -NoProfile -ExecutionPolicy Bypass -Command \
 
 ## Blender 5.x API traps (all hit on day one)
 
-- `action.fcurves` is GONE (layered actions). Skip easing loops; defaults are
-  fine for previz.
-- `render.image_settings.file_format` has NO video formats any more —
-  **Blender 5.x cannot write MP4.** Verified directly on winbox (Blender
-  5.2.1 LTS, 2026-09-03): the enum's static RNA definition still LISTS
-  `'FFMPEG'`, which is a trap — introspecting `bl_rna.properties[...]
-  .enum_items` reports it as valid, but actually setting
-  `file_format = 'FFMPEG'` raises `TypeError: enum "FFMPEG" not found in
-  (...)` at runtime; the dynamic item list strips it. Don't trust the static
-  enum for this property. Playblast/render to a PNG sequence and mux with
-  ffmpeg (installed on winbox via winget, find it under
-  `$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Gyan.FFmpeg*`).
+- ✅ **CORRECTED 2026-09-04 — Blender 5.x CAN write MP4 directly.** This skill
+  previously said it could not, and sent everyone down a PNG-sequence-plus-mux
+  path for nothing. The earlier finding was half right: setting
+  `file_format = 'FFMPEG'` on its own really does raise
+  `TypeError: enum "FFMPEG" not found in (...)`. What was missed is WHY — 5.x
+  gates video behind a new `media_type` property, and the format enum only
+  offers video once you have switched it. Set that first and FFMPEG appears:
+
+  ```python
+  sc.render.image_settings.media_type = "VIDEO"     # <- the gate. Do this first.
+  sc.render.image_settings.file_format = "FFMPEG"
+  sc.render.ffmpeg.format = "MPEG4"
+  sc.render.ffmpeg.codec  = "H264"
+  sc.render.ffmpeg.constant_rate_factor = "HIGH"
+  sc.render.ffmpeg.audio_codec = "NONE"
+  sc.render.filepath = r"C:\Users\UsEr\Downloads\SCENE-Render.MP4"
+  bpy.ops.render.render(animation=True)
+  ```
+
+  Six previz shipped this way on 2026-09-03/04, every one passing
+  `previz-check.py`. Blender writes the extension lowercase (`.mp4`) whatever
+  case you give it, so `scp` the lowercase name back. The PNG-sequence path
+  further down still works and is still the fallback if a build genuinely
+  lacks ffmpeg, but it is no longer the default.
+- `action.fcurves` still exists in 5.2 despite the layered-actions rewrite.
+  `obj.animation_data.action.fcurves` iterates fine, and it is how you force
+  interpolation — which the motion section below depends on completely.
+- **A timeline marker silently overrides `scene.camera`.** `hall_v41` carries
+  one marker, `('FLY', 1, 'CAM_FLY4')`. You set `sc.camera = my_cam`, the
+  assignment succeeds, and the render still comes out of the flyover camera —
+  every frame pointed at the wrong end of the room, no error anywhere. Cost two
+  full renders before anyone printed `sc.camera` from inside the render. Always
+  `sc.timeline_markers.clear()` before assigning the camera.
+- **Depth sign: the camera looks along −y, so NEARER means LARGER y.** A
+  painting written at `y = -21.84` sits *behind* a crack at `-21.82` and
+  vanishes into the wall. Anything meant to read as in front of something else
+  needs the larger y. The same trap puts a camera inside a wall solid and
+  renders flat brown — check a mesh's y-extent before placing a camera near it.
 - **The parenting trap that shipped a broken previz:** `o.parent = walk;
   o.matrix_parent_inverse = walk.matrix_world.inverted()` KEEPS the child's
   world position — the group does not move to the empty, and everyone stays
@@ -234,6 +260,130 @@ winbox (this skill does not obtain one — see the rule above).
 - **The default Cube comes back after every Blender restart** (fresh startup
   scene) and photobombs dead centre of the master. Remove `Cube` and `Light`
   at the top of every build script, not once per session.
+
+## Human motion timing — the hardest thing to fake (added 2026-09-04)
+
+The CEO rejected three previz in a row for movement before anyone rejected one
+for framing. Camera grammar is what previz exists to prove, but a body moving
+at the wrong speed destroys a take just as thoroughly, and it is the note you
+will hear first. Full working: `Agents-Wikis/research/2026-09-04-human-motion-timing-for-previz.md`.
+
+### Never pick frame numbers by feel. Derive them from speed.
+
+    frames = round(distance / speed * fps)
+
+| | speed | notes |
+|---|---|---|
+| adult, unhurried | 1.2–1.4 m/s | ~0.70 m stride, ~2 steps/s |
+| elderly, or with a cane | 0.9–1.3 m/s | |
+| hurrying, not running | 1.6–1.9 m/s | |
+
+Eyeballing frame counts is how an elderly man in a heavy overcoat ended up
+crossing a gallery at **1.87 m/s** — faster than a healthy young adult walks —
+across three separate previz before anyone did the division.
+
+**🟡 Proxy correction:** our proxies are legless cylinders. They give the eye no
+gait cues, so they read as gliding and a correct 1.2 m/s looks too fast. **Use
+0.95 m/s in previz** while the prompt still says an ordinary unhurried pace.
+Re-measure if proxies ever get legs.
+
+### A jump is ballistic, and Blender's defaults fight you
+
+    airtime = 2 * sqrt(2h/g)        take-off = sqrt(2gh)        g = 9.81
+
+0.28 m → 0.48 s airtime → **11 frames at 24fps**, leaving the ground at 2.34 m/s.
+
+The trap is not the airtime. **It is the shape.** A jump leaves the ground
+fastest and hangs at the apex; Blender's default bezier eases out of the first
+key and into the last, which is exactly backwards. Two keyframes will never
+read as a jump whatever numbers they hold — the first attempt here looked like
+a glitch and stayed looking like one through two rounds of "make it slower".
+
+And airtime is only the middle. The five-phase counter-movement jump:
+
+| phase | s | frames |
+|---|---|---|
+| crouch (sink 0.10–0.12 m) | 0.30 | 7 |
+| push-off, accelerating | 0.20 | 5 |
+| **flight — the parabola** | 0.48 | 11 |
+| land and absorb | 0.25 | 6 |
+| recover to standing | 0.20 | 5 |
+| **whole cycle** | **1.43** | **34** |
+
+Budget a hop at a second and a half, not a quarter of one.
+
+```python
+def hop(o, start, x, y, z0, h=0.28, crouch=0.11, fps=24.0):
+    g = 9.81
+    air = int(round(2 * math.sqrt(2 * h / g) * fps))
+    CR, PU, AB, RE = 7, 5, 6, 5
+    f = start
+    for i in range(CR + 1):                       # sink
+        key(o, f + i, x, y, z0 - crouch * (i / CR))
+    f += CR
+    for i in range(PU + 1):                       # drive, accelerating
+        key(o, f + i, x, y, z0 - crouch + crouch * (i / PU) ** 2)
+    f += PU
+    for i in range(air + 1):                      # SAMPLE the parabola
+        t = i / air
+        key(o, f + i, x, y, z0 + 4 * h * t * (1 - t))
+    f += air
+    for i in range(AB + 1):                       # land, absorb
+        key(o, f + i, x, y, z0 - crouch * (i / AB))
+    f += AB
+    for i in range(RE + 1):                       # stand up
+        key(o, f + i, x, y, z0 - crouch * (1 - i / RE))
+    return f + RE
+```
+
+Two rules or it does not work:
+
+1. **Sample the curve; do not key its endpoints.** `4*h*t*(1-t)` passes through
+   0, h, 0. One key per frame.
+2. **Force LINEAR afterwards** or Blender re-eases your samples and undoes the
+   whole thing:
+
+```python
+for fc in obj.animation_data.action.fcurves:
+    for kp in fc.keyframe_points:
+        kp.interpolation = 'LINEAR'
+```
+
+### Prove it with numbers, not with your eyes
+
+```python
+prev = None
+for fr in range(start, end):
+    sc.frame_set(fr); z = obj.location.z
+    if prev is not None: print(fr, round(z,3), round((z-prev)*fps, 2))   # m/s
+    prev = z
+```
+
+A correct jump prints a slow negative through the crouch, a rising positive
+through the push, a peak near `sqrt(2gh)`, a smooth decay to 0.00 at the apex,
+then the mirror. **Deceleration must land near 9.8 m/s².** Ours read 10.7 — the
+expected over-read from two-frame differencing.
+
+The broken version printed **±6 to ±12 m/s**. No human does that, and the
+number said so in one line where two rounds of watching the render only got
+"still too fast".
+
+### Watch for patches racing each other
+
+Two edits to the same keyframe block in one session, and the second one
+anchored on text the first had already replaced — so a "fixed" render shipped
+still containing the old motion. And walk keys running to frame 150 while hops
+started at 120 fought for the same channel. **After any motion edit, probe the
+values out of the .blend before re-rendering.** The probe above costs seconds
+and catches both.
+
+### The gate cannot replace a person watching
+
+`previz-check.py` passed every one of these renders. It does not know that a
+man is hopping a metre to the left of the crack he is trying to see into, or
+that a trolley whose long axis runs along y is being wheeled sideways along x.
+Both shipped through the gate and were caught by the CEO watching the video.
+**Mechanical checks catch mechanical faults. Staging needs eyes.**
 
 ## The verification discipline (non-negotiable)
 
