@@ -61,22 +61,29 @@ The film has moved out of the shoot-everything phase. Draft 1 is cut and the
 story is close to complete, so from here generation is **ฉากซ่อม** — repairs and
 additions that sharpen scenes that already exist.
 
-**Repair takes go into a `Fix-1` folder inside the scene's own folder**, not
-alongside the original takes:
+**Every repair take goes into ONE folder: `All Scene/Fix-1/`.** Not a Fix-1
+inside each scene — a single flat folder holding every fix from this round.
+
+**The file is named after the scene it replaces, plus the round:**
 
 ```
-All Scene/<SCENE>/                      ← the original takes stay here
-All Scene/<SCENE>/Fix-1/                ← repair takes for that scene
+All Scene/Fix-1/S1-Fix1.MP4
+All Scene/Fix-1/S1A-Fix1.MP4
+All Scene/Fix-1/S10b-Fix1.MP4
 ```
 
-Same file-naming rules as always — block id, take number, verdict, duration,
-resolution. Same never-discard rule: a failed repair take is filed in `Fix-1`
-with its verdict, not deleted.
+No take number, no hash, no duration, no resolution — the editor is not reading
+metadata out of a filename, they are looking for "the fixed version of S10b" and
+that is exactly what the name says.
 
-Why the separation: the editor has a cut built from the originals. A repair that
-lands in the same folder makes it ambiguous which file the cut refers to, and
-the first thing anyone will need to answer is "is the version in Draft 1 still
-the version we are using". Keeping repairs in their own folder answers that by
-looking, not by comparing timestamps.
+Why one flat folder: the editor has a cut built from the originals. One folder
+answers "what changed this round" by opening it. A fix scattered into thirty
+scene folders answers the same question only by hunting.
 
-A later repair round becomes `Fix-2`, and so on.
+A later round is `All Scene/Fix-2/` with `-Fix2` filenames.
+
+**What still goes in the scene's own folder:** failed and flagged repair takes.
+Never-discard has not changed — a repair that comes back wrong is filed beside
+the originals under the old naming with its verdict in the name. `Fix-1` holds
+takes that are actually going into the cut, so that opening it never requires
+judging which of several files is the good one.
