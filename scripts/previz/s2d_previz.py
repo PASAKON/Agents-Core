@@ -46,19 +46,30 @@ def ckey(fr, loc, rot, lens):
     cam_d.keyframe_insert("lens", frame=fr)
 
 WALL  = ((0, -15.6, 1.45), (R(90), 0, R(180)), 30)     # shot 1, straight on the wall
-INSIDE= ((0.9, -21.80, 1.72), (R(90), 0, 0), 60)       # shot 2, at the wall face looking back at his eye
+INSIDE= ((0.6, -21.78, 2.45), (R(90), 0, 0), 55)       # shot 2, at the crack, hand height
 BEHIND= ((0.9, -21.75, 2.30), (R(80), 0, 0), 24)       # shot 3, behind him looking up the gallery
 
 ckey(1, *WALL);   ckey(167, *WALL)
 ckey(168, *INSIDE); ckey(239, *INSIDE)
 ckey(240, *BEHIND); ckey(480, *BEHIND)
 
-def key(o, fr, x, y):
-    sc.frame_set(fr); o.location = (x, y, o.location.z); o.keyframe_insert("location", frame=fr)
+def key(o, fr, x, y, z=None):
+    sc.frame_set(fr)
+    o.location = (x, y, o.location.z if z is None else z)
+    o.keyframe_insert("location", frame=fr)
+
+Z0 = dupe.location.z          # standing height of the proxy
 
 # Dupe: wheels in from the left, steps to the wall, then turns and fake-cleans
 key(dupe, 1, -4.6, -20.6); key(dupe, 60, 0.6, -20.6); key(dupe, 72, 0.6, -21.35)
-key(dupe, 288, 0.6, -21.35); key(dupe, 300, 0.9, -21.05); key(dupe, 480, 0.9, -21.05)
+# three hops at the wall — he is too short for a crack at z=2.45 and never
+# quite gets his eye to it. up-down-up-down-up-down, 12 frames each way.
+for base in (96, 132, 168):
+    key(dupe, base,      0.6, -21.35, Z0)
+    key(dupe, base + 11, 0.6, -21.35, Z0 + 0.34)   # top of the hop
+    key(dupe, base + 22, 0.6, -21.35, Z0)
+key(dupe, 288, 0.6, -21.35, Z0); key(dupe, 300, 0.9, -21.05, Z0)
+key(dupe, 480, 0.9, -21.05, Z0)
 zc = cart.location.z
 key(cart, 1, -3.1, -20.4); key(cart, 60, 2.4, -20.4); key(cart, 480, 2.4, -20.4)
 p = bpy.data.objects["s2d_painting"]
