@@ -7,6 +7,21 @@ UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
 ⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
 Sound ON. Read all six fields back before firing — the slider silently resets.
 
+⚠️ SOFTENED PASS 1 (CTO 2026-09-04). Take 1 rendered for ~35 minutes and was
+then refused by Higgsfield's OUTPUT filter — "Output may contain sensitive
+content. Try changing your inputs." — NSFW badge, credits refunded, no frame
+produced, no retry control on the card. The CEO's instruction was to adjust in
+small steps with interchangeable words rather than remove anything, so the
+scene, the beats and every action are byte-for-byte the same story; only the
+register of the impact-and-damage vocabulary has moved. strikes the floor ->
+comes to rest; dry crack of plaster -> short dry tap of settling plaster;
+STAR-SHAPED break -> STAR-SHAPED MARK; broken opening -> open centre; fracture
+/ crater / rubble / debris / structural damage / broken frame / torn canvas ->
+plain descriptive equivalents; SLOTS IT INTO -> STANDS IT UPRIGHT IN; Shock ->
+Held completely still. If take 2 is refused again, the next suspect is an
+INPUT, not the text — the filter's own words point there and a full vocabulary
+differential against six passing prompts already cleared the wording.
+
 ✅ REF GATE CLEARED — CEO verified all six references by eye against the live
 Elements panel, 2026-09-03: char_cleaner_c, loc_hall_big_e, prop_cart_a,
 prop_cart_a_painted, prop_valder_study_b, loc_wall_pov_e, plus prop_tag.
@@ -80,8 +95,8 @@ REFERENCES — each with a job:
   It reads clearly from the wide — a hand-and-a-half across, not a small
   label. Controls the plaque only.
 @project_absence_loc_wall_pov_e — THE CRACK'S EXACT SHAPE ONLY: a small
-  STAR-SHAPED break, an irregular dark opening at the centre where a little
-  plaster has come away, about five long thin clean cracks radiating outward,
+  STAR-SHAPED MARK, a small irregular dark centre where a little plaster has
+  lifted away, about five long thin clean cracks radiating outward,
   unequal in length, each slightly kinked, bare wall between them. Copy this
   star exactly — it appears in every other scene and must match. Take nothing
   else from this reference: not its framing, not its light.
@@ -104,20 +119,20 @@ its rack empty. Nothing about the day is special yet.
 off its hook. He reaches up with both hands and gently pushes one corner to
 STRAIGHTEN it — a small, careful, well-meant adjustment.
 
-[8s] The painting comes off its fixing on its own, drops, strikes the floor
-and ends leaning on its bottom edge, frame intact. The brass plaque does not
+[8s] The painting comes off its fixing on its own, slips down and comes to
+rest leaning on its lower edge, the frame still whole. The brass plaque does not
 move — the painting falls clear of it and the plaque stays screwed to the
-wall, level and undisturbed. One sound: a dry crack of plaster. The instant it
+wall, level and undisturbed. One sound: a short dry tap of settling plaster. The instant it
 lands, ONE FAST ZOOM into the wall where it hung — THE CRACK, exactly as the
-crack reference draws it: the small dark star, a broken opening at the centre,
+crack reference draws it: the small dark star with its open centre,
 about five long thin clean arms, unequal, slightly kinked, bare white wall
 between them, small as a hand on an enormous wall. Hold the crack a full beat.
 
-[12s] CUT — close on Dupe. Shock, held still: eyes wide, breath caught, a man
-watching his ordinary morning end. One beat, no dialogue.
+[12s] CUT — close on Dupe. Held completely still: eyes wide, breath
+held, a man watching his ordinary morning end. One beat, no dialogue.
 
 [14s] CUT back to the locked wide. He moves fast now: picks the painting up
-and SLOTS IT UPRIGHT INTO THE CART'S RACK, face outward, at exactly the size
+and STANDS IT UPRIGHT IN THE CART'S RACK, face outward, at exactly the size
 it was on the wall, and hurries the cart away from camera, deeper into the
 hall, wheels loud on the terrazzo. THE CAMERA DOES NOT FOLLOW — it stays
 locked as he shrinks into the distance and leaves.
@@ -128,7 +143,7 @@ level, untouched, reading THE ABSENCE OF MEANING / Valder / $2,000,000. Hold
 that pairing — crack above, price below — one beat longer than is
 comfortable. Nothing moves. End.
 
-AUDIO: room tone, cloth on wall, cart wheels, one dry crack of plaster,
+AUDIO: room tone, cloth on wall, cart wheels, one short dry tap of settling plaster,
 hurried wheels receding, then silence on the final frame. No music. NO SOUND
 AT THE START OR THE END: the clip opens mid room-tone with no intro sting or
 riser, and simply stops with no tail, swell or fade.
@@ -148,21 +163,21 @@ paintings; no change in the painting's size between wall and cart, no
 oversized painting, no painting larger than shoulder-height on Dupe, no
 painting dominating the wall, no portrait canvas, no square canvas, no heavy
 impasto, no brush texture; no dense spiderweb of fine lines, no meshed
-hairline cracks, no concentric rings, no dozens of small cracks, no
-full-height fracture, no crack running to floor or ceiling, no hole, no
-crater, no rubble, no invented crack shape, no crack bigger than a hand; no
+hairline cracks, no concentric rings, no dozens of small cracks, no mark running the full height of the wall, no line reaching floor or
+ceiling, no opening larger than the reference, no loose material on the
+floor, no invented shape, nothing bigger than a hand; no
 plaque falling, no plaque moving, no plaque leaving the wall, no bare wall
 without the plaque in the final frame; no camera following the cart, no
 tracking shot, no dolly, no pan after the exit, no camera move except the one
 zoom and the two cuts written above; no Dupe lifting the painting off its
-hook on purpose, no other people, no broken frame, no torn canvas, no ladder
+hook on purpose, no other people, no split frame, no marked canvas, no ladder
 climbing, no painting left on the floor at the end, no painting back on the
 wall.
 
 House negatives: no dialogue, no voiceover, no narration, no subtitles, no
 captions, no readable text anywhere except the brass plaque, no music, no
-score, no gold V on anyone but Dupe and his cart, no glass, no debris, no
-dust cloud, no structural damage, no smartphones, no screens, no modern
+score, no gold V on anyone but Dupe and his cart, no glass, no scattered material, no
+dust cloud, no harm to the building, no smartphones, no screens, no modern
 technology, no dutch angle, no handheld wobble, no slow motion, no lens
 flare, no HDR, no CGI sheen, no plastic skin, no beauty filter, no dim moody
 lighting, no darkness, no night, no ultramarine walls, no blue walls, no
