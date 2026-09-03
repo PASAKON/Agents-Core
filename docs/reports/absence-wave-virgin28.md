@@ -55,16 +55,15 @@ gets flagged. The registrar's V is correct by design and never was one.
 
 ---
 
-## Filing convention for the repair phase (CEO 2026-09-03)
+## Filing convention from here on — `Fix-1` (CEO 2026-09-03)
 
-The film has moved out of the shoot-everything phase. Draft 1 is cut and the
-story is close to complete, so from here generation is **ฉากซ่อม** — repairs and
-additions that sharpen scenes that already exist.
+Draft 1 is cut and the story is close to complete. From this point every
+generation is an addition to a film that already exists.
 
-**Every repair take goes into ONE folder: `All Scene/Fix-1/`.** Not a Fix-1
-inside each scene — a single flat folder holding every fix from this round.
+**Everything generated from now on goes into ONE folder: `All Scene/Fix-1/`.**
+Not a Fix-1 per scene. Not only the good takes. Everything.
 
-**The file is named after the scene it replaces, plus the round:**
+**Named for the scene it belongs to, plus the round:**
 
 ```
 All Scene/Fix-1/S1-Fix1.MP4
@@ -72,18 +71,39 @@ All Scene/Fix-1/S1A-Fix1.MP4
 All Scene/Fix-1/S10b-Fix1.MP4
 ```
 
-No take number, no hash, no duration, no resolution — the editor is not reading
-metadata out of a filename, they are looking for "the fixed version of S10b" and
-that is exactly what the name says.
+A second take of the same scene in the same round appends a number:
+`S10b-Fix1-2.MP4`.
 
-Why one flat folder: the editor has a cut built from the originals. One folder
-answers "what changed this round" by opening it. A fix scattered into thirty
-scene folders answers the same question only by hunting.
+### Why one folder — the editor is a person
 
-A later round is `All Scene/Fix-2/` with `-Fix2` filenames.
+> "ที่ต้องสร้าง Folder แยกเพราะว่า Editor ไม่ใช่ AI เป็นคนธรรมดา เพราะงั้น
+> การที่จะต้องมานั่งไล่เปิด Folder ทั้งหมด มันปวดหัว" — CEO
 
-**What still goes in the scene's own folder:** failed and flagged repair takes.
-Never-discard has not changed — a repair that comes back wrong is filed beside
-the originals under the old naming with its verdict in the name. `Fix-1` holds
-takes that are actually going into the cut, so that opening it never requires
-judging which of several files is the good one.
+An agent can list thirty folders in a second. A human editor opening thirty
+folders to find what changed this week is being made to do the machine's work.
+One folder, one round, everything in it.
+
+### Do not withhold a take because we called it a failure
+
+> "อย่าบอกว่ามันไม่ผ่าน ไม่ผ่านอาจจะหมายถึง 95% ใช้ไม่ได้ อีก 5% ใช้ได้"
+> "บางฉาก 1s ก็สามารถนำไปใช้ได้แล้ว" — CEO
+
+This corrects an assumption that was built into our review language. PASS and
+FLAGGED are **our** verdicts, for deciding whether to re-fire. They were never a
+judgement about whether footage is usable, and we do not get to make that
+judgement — the editor does.
+
+A take we flagged for a duplicated face may hold four clean seconds before the
+duplicate walks in. A take flagged for the wrong camera may contain the one
+gesture the cut needs. **Every take of every scene generated from now on goes
+into `Fix-1`, whatever we thought of it**, so the editor sees the whole roll.
+
+Note our defects in the report and the handover, where they help the next
+operator. Do not encode them in the filename, and never decide on the editor's
+behalf that a clip is not worth looking at.
+
+### Rounds
+
+`Fix-1` is the current round. `Fix-2`, `Fix-3` are subsequent editor rounds, and
+**the CEO says when a new round opens** — do not start one because a batch feels
+finished.
