@@ -1,0 +1,151 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2C-Fix1 · THE PACING · CEO 2026-09-03
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — the slider resets silently.
+
+WHERE IT SITS. Directly after S2-Fix1, the accident. The painting is already in
+the cart. Dupe has not phoned anyone yet — S2b, the phone call, comes after
+this. This is the gap between the mistake and the decision, and it is the only
+scene in the film that is purely about a man not knowing what to do.
+
+⚠️ NOT THE CRACKED WALL (CEO 2026-09-03). The hero wall has carried too many
+scenes. This one turns its back on it and looks up the hall instead, so the
+frame is filled with VALDER'S COLLECTION — the shell chair on its rugs, the
+hanging trap, the vessel, the millstone, the pieces on their plinths. No crack,
+no plaque, nowhere in shot.
+
+WHY IT IS ONE LOCKED SHOT. The camera never moves, and that is the joke: the
+frame stays perfectly composed and perfectly still while the man inside it
+comes apart. He crosses it left, crosses it right, leaves it entirely, comes
+back, freezes, and finally walks out for good — and the frame does not follow
+him even once. It ends on the cart, alone, holding the painting.
+
+THE ANNOUNCEMENT IS SOUND ONLY. A PA voice says the museum opens in five
+minutes. Nothing appears on screen for it; he simply stops dead and listens.
+It is the deadline landing on him, and it is what turns pacing into panic.
+
+Previz: docs/S2C-Render.MP4 — 1280x720 / 480 frames / 20.0s, built on hall_v41
+looking up the hall into the collection, with the cart parked and Dupe's real
+pacing path including both exits. Clears the previz resolution rule.
+
+Elements, all CEO-verified in /Users/gob/Desktop/Fix-1-Elements/:
+@loc_hall_big_e · @project_absence_char_cleaner_c ·
+@project_absence_prop_cart_a_painted
+
+Filing: All Scene/Fix-1/ as S2C-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, never cuts, for the entire twenty seconds. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. The camera position and the
+man's path across the frame follow it exactly. Every grey block is a prop,
+never a person.
+
+REFERENCES — each with a job:
+@loc_hall_big_e — the hall: white walls, orange cove light washing the ceiling,
+  polished terracotta terrazzo, chromium trumpet columns in receding pairs, the
+  red door small and far off at the end. Not the framing.
+@project_absence_char_cleaner_c — DUPE: face, build, moustache, white uniform
+  with orange trim, cap, gold V at cap and chest.
+@project_absence_prop_cart_a_painted — THE CART, parked and never touched: its
+  four castor wheels, mop, orange bucket, labelled bottles, folded cloths,
+  folding ladder, gold V on the front panel, and the Valder painting standing
+  upright in the rack, face outward.
+
+THE FRAME, unchanging for twenty seconds: a locked wide looking straight up the
+length of the gallery at eye height, level, dead on the room's centreline, the
+red door tiny at the vanishing point. The frame is filled with VALDER'S
+COLLECTION: a sculptural shell chair standing on layered rugs, a large woven
+openwork sphere hanging on lines from the ceiling, a tall ceramic vessel on its
+plinth, a great circular millstone further off, bronze and stone pieces on
+white plinths down both sides, framed works on the side walls between the
+columns. Warm early morning, the museum empty and open and quiet.
+
+Dupe's cart stands PARKED off to one side, fully in frame, the painting upright
+in its rack. It never moves, not once, not an inch, for the whole shot.
+
+[0s] Dupe is already moving. He walks fast across the frame to one side,
+stops, turns on his heel and walks fast back the other way. His hands go to his
+cap, to his mouth, behind his back. He glances toward the cart, then away, then
+back. This is a man doing the only thing left to do, which is walk.
+
+[5s] He crosses the frame and KEEPS GOING, straight out of shot. For a moment
+there is no one in the picture at all — only the long gallery, Valder's
+collection standing in the quiet, and his cart with the painting in it.
+
+[7s] He comes back in, faster than he left, and resumes pacing. Nothing has
+been solved by leaving.
+
+[10s] A PUBLIC ADDRESS ANNOUNCEMENT begins, a calm recorded woman's voice over
+the museum speakers, warm and unhurried: "Good morning. The Valder Collection
+opens to visitors in five minutes." HE STOPS DEAD where he stands, mid-stride,
+and listens to all of it without moving a muscle. He does not look at the
+camera. He just listens.
+
+[14s] The announcement ends. He starts again, and it is worse now — faster,
+tighter, less like thinking and more like flinching. Two crossings, both quick.
+
+[18s] He walks out of frame and does not come back. Hold on what he left: the
+long empty gallery, Valder's collection, and the cart standing alone with a
+two-million-dollar painting sitting in a cleaner's rack. One beat longer than
+is comfortable. Cut.
+
+AUDIO: room tone and his own hurried footsteps on terrazzo, close and dry. The
+PA announcement at 10s, slightly boxy through ceiling speakers, then room tone
+again. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone
+with no intro sting or riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no cracked wall, no crack, no
+brass plaque, no price plaque, no damaged wall anywhere in frame; no camera
+movement of any kind, no pan, no tilt, no zoom, no dolly, no handheld, no
+reframing to follow him, no camera following him out of frame, no cut, no
+second angle; no cart moving, no cart being pushed, no cart leaving the frame,
+no hand on the cart; no painting leaving the rack, no painting changing size,
+no painting on the floor, no painting on the wall; no speaker or loudspeaker
+visible in frame, no person delivering the announcement, no second person at
+all, no visitors, no staff, no guards, no crowd; no Dupe speaking, no Dupe
+looking at camera, no crying, no shouting, no throwing anything, no kicking, no
+collapsing to the floor, no head in hands melodrama.
+
+House negatives: no dialogue from Dupe, no voiceover, no narration beyond the
+single PA announcement, no subtitles, no captions, no on-screen text, no
+readable text, no signage, no logos, no music, no score, no smartphones, no
+screens, no modern technology, no dutch angle, no tilted horizon, no slow
+motion, no speed ramp, no lens flare, no bokeh balls, no HDR, no CGI sheen, no
+plastic skin, no beauty filter, no dim moody lighting, no darkness, no night,
+no ultramarine walls, no blue walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER, strictest first:
+1. THE CAMERA NEVER MOVES. If it drifts, reframes, or follows him out, the shot
+   has lost its only idea and is worth re-firing.
+2. HE LEAVES THE FRAME TWICE — once at 5s and comes back, once at 18s and does
+   not. If he never exits, the emptiness the scene is built on is missing.
+3. HE STOPS DEAD for the whole announcement. A take where he keeps pacing
+   through it has thrown away the beat.
+4. NO CRACKED WALL IN SHOT. This is the CEO's reason for the new angle; a take
+   that finds its way back to the hero wall defeats the point of shooting it.
+5. THE CART NEVER MOVES and the painting stays in the rack at its true size.
+Everything gets filed whatever the verdict; the verdict decides re-fires only.
+
+=== END NOTES ===
