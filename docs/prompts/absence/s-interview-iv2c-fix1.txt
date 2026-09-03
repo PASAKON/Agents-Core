@@ -1,0 +1,168 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+IV2c-Fix1 · THE CRASH, THE CREW NAMED · CEO 2026-09-04
+
+WHY A THIRD VERSION. Takes 1 and 2 both came back with the same defect: the
+crew-reveal half read as a studio instead of Dupe's house, and take 2 carried
+five negatives aimed straight at it which changed nothing. A defect that
+survives that much hardening is not a wording problem — the model was being
+asked to invent a reverse angle of a room it has only ever seen from one side,
+and with nothing to go on it reached for the commonest thing behind a camera,
+which is a studio.
+
+So this version stops banning and starts describing. The CEO's instruction: say
+exactly how many people there are and exactly what each one looks like, because
+a model left to guess gives every crew member the same face.
+
+THE THREE, as specified:
+  1. seated, operating the camera
+  2. standing with a long boom microphone
+  3. the one who knocked the light over — shocked, frozen
+
+And the beat: we NEVER SEE the drop, only hear it. By the time the camera
+arrives the other two have already looked at what fell and are turning back to
+their work like professionals. Only the one who dropped it is still frozen.
+Then the camera whips back and Dupe simply carries on.
+
+Plate: @project_absence_char_dupe_interview_house, the same one all five
+interview clips used. No new plate, nothing to approve, nothing to pay for.
+
+Filing: All Scene/Fix-1/ as IV2c-Fix1.MP4. IV2b-Fix1.MP4 and
+IV2b-Fix1-take2.MP4 both stay exactly where they are.
+
+⚠️ THIS FILE OVERRIDES A STANDING NEGATIVE. `s-interview.txt` bans camera gear
+in every clip so the other four never betray that a crew exists. IV2c is the
+single deliberate exception and only inside the whip pan; Dupe's own frame
+stays clean. That is why it lives in its own file.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · Sound On · High. LOCKED, then ONE WHIP PAN AND BACK — the
+only camera move in the shot.
+
+REFERENCES — each with its job:
+@project_absence_char_dupe_interview_house — THE FRAME ITSELF: Dupe seated dead
+  centre, medium shot from the chest up, in a well-cut dark suit, in his own
+  enormous retrofuturist house. Warm daylight, tall windows, sunken plum
+  seating, warm wood. Match it exactly. Take the framing and the room from it.
+
+He is calm and he is not comfortable. His hands stay together in his lap. He
+does not smile, does not perform, does not look pleased with himself. He speaks
+the way a man speaks when he has told the same true thing many times and it has
+never once been believed. Play every line flat.
+
+[0s] The locked frontal frame. Dupe alone, nothing else in shot with him — no
+equipment, no crew, no cable, no light stand, an ordinary clean interview
+frame. He looks straight into the lens and says, flatly: "I wasn't trying to do
+anything. I was going to dust it. That was all."
+
+[7s] Off screen, sharp and close: metal and glass hitting a hard floor. We
+never see it fall. ONE FAST WHIP PAN sideways, three or four frames, the room
+smearing into horizontal streaks.
+
+[8s] It lands on THE THREE-PERSON FILM CREW WHO ARE SHOOTING THIS INTERVIEW,
+arranged dead centre and perfectly symmetrical in their own frame, exactly the
+way Dupe is composed in his. EXACTLY THREE PEOPLE, no more and no fewer, and
+all three look completely different from one another — different faces,
+different ages, different builds, different hair, different clothes:
+
+  THE CAMERA OPERATOR — a woman in her thirties, SEATED on a low stool behind a
+  professional cinema camera on a heavy tripod, the camera pointed back the way
+  we came, pointed at Dupe. Short black hair pushed behind one ear, wire-framed
+  glasses, a plain olive shirt with the sleeves rolled. One hand rests on the
+  focus ring. She has already glanced at the noise and is turning back to her
+  eyepiece.
+
+  THE BOOM OPERATOR — a tall thin man in his twenties, STANDING, holding a LONG
+  BOOM POLE overhead with a furry grey microphone on the end of it, both arms
+  up, the pole running out of the top of frame. Curly light-brown hair, a faded
+  navy t-shirt, headphones over his ears. He too has already looked and is
+  bringing the boom back into position.
+
+  THE ONE WHO KNOCKED THE LIGHT OVER — a heavyset older man with a grey beard
+  and a shaved head, in a black work shirt, STANDING FROZEN and STARING at the
+  floor beside him where a tall light stand has gone over. He has not moved
+  since it happened, his hands still half-raised where the stand was. He is the
+  only one still shocked.
+
+Around the three, the working gear of a small shoot: two tall LED panels on
+stands throwing the warm key we have been seeing all along, a white bounce
+card, a coiled cable across the floor, a clipboard. And behind all of it the
+room is unmistakably still DUPE'S OWN HOUSE — the same tall windows with the
+same warm daylight coming through them, the same sunken plum seating, the same
+warm wood, the same enormous retrofuturist room seen from its other side. This
+is a crew filming inside a rich man's home, not a set.
+
+Nobody speaks. Nobody apologises. Hold two full seconds on them.
+
+[10s] ONE FAST WHIP PAN BACK, the same speed, landing on exactly the original
+frame with Dupe exactly as he was, alone and with nothing in shot beside him.
+
+[12s] His face has not changed and he does not react to any of it. He simply
+continues, as if nothing had happened: "I thought they were going to fire me.
+So I had to do something."
+
+[18s] Hold.
+
+AUDIO: room tone, distant birds through the tall windows. One sharp crash of
+metal and glass off screen at 7s, then complete silence for the two seconds the
+camera holds on the crew. No music. NO SOUND AT THE START OR THE END: the clip
+opens mid room-tone with no intro sting or riser, and simply stops with no
+tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, saturation high in flat
+planes but never touching skin, halation around every lamp. Photographed, not
+rendered: fine film grain, faint gate weave, slight colour fringing. Camera
+level throughout, including inside the whip pan.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no two crew members who look
+alike, no matching outfits, no uniform on the crew, no crew member resembling
+another, no crew member resembling Dupe; no opening sound, no intro sting, no
+whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no
+fade-in or fade-out on the sound; no falling light shown on screen, no light
+stand seen in the act of falling, no object shown hitting the floor; no crew in
+Dupe's own frame, no camera in Dupe's own frame, no light stand or cable or
+monitor in Dupe's own frame, no crew member sharing a frame with Dupe at any
+point, no crew visible before 8s, no crew visible after 10s, no fourth crew
+member, no second person at the camera, no second boom, no crowd; no housekeeper, no
+domestic uniform, no tray, no pastries, no food; no crew member speaking, no
+crew member apologising, no laughing, no smiling; no exterior, no studio, no
+soundstage, no black or grey backdrop, no bare production walls, no cyclorama,
+no location that is not his house; no stage directions spoken aloud, no
+narration of the character's state, no speaking anything outside the quotation
+marks; no interviewer, no reporter, no second voice, no question audible or
+implied on the soundtrack; no cleaning cart, no white uniform on Dupe, no cap
+on Dupe, no gold V on Dupe; no jewellery, no watch; no smiling on Dupe, no
+laughing, no tears, no triumph, no shrugging, no winking, no reaction from Dupe
+to the crash; no zoom, no dolly, no crane, no handheld wobble, no second camera
+move, no reframing of any kind except the single whip pan out and the single
+whip pan back; no slow motion, no speed ramp.
+
+House negatives: no dialogue beyond the quoted lines, no voiceover, no
+narration, no subtitles, no captions, no on-screen text, no readable text, no
+signage, no logos, no music, no score, no duplicate faces, no smartphones, no
+screens, no LEDs except the two lighting panels, no dutch angle, no tilted
+horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin,
+no beauty filter, no dim moody lighting, no darkness, no night.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. THREE crew, three clearly different people. If two share a face, the fix
+   this version exists for has failed.
+2. The room behind them is Dupe's house, not a studio. This is the defect that
+   killed takes 1 and 2.
+3. A camera visibly pointed back at Dupe inside the pan — without it the joke
+   does not exist.
+4. Only the light-dropper is frozen; the other two are already returning to
+   work.
+5. Dupe's own frame clean of gear at 0-7s and 10-20s, and he never reacts.
+File the take whatever the verdict.
+
+=== END NOTES ===
