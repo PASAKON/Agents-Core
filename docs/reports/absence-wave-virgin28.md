@@ -55,55 +55,62 @@ gets flagged. The registrar's V is correct by design and never was one.
 
 ---
 
-## Filing convention from here on — `Fix-1` (CEO 2026-09-03)
+## Fix-1 — the new round (CEO 2026-09-03)
 
-Draft 1 is cut and the story is close to complete. From this point every
-generation is an addition to a film that already exists.
+Draft 1 is cut. What follows is **not repairs of the existing shots**. Fix-1 is a
+round of **new scenes**, built with the existing film as reference. The earlier
+work stays exactly as it is.
 
-**Everything generated from now on goes into ONE folder: `All Scene/Fix-1/`.**
-Not a Fix-1 per scene. Not only the good takes. Everything.
+### The rules, in the CEO's own terms
 
-**Named for the scene it belongs to, plus the round:**
+**Nothing old changes.** Old prompt files, old Elements, old takes on Drive — all
+stay untouched. Do not rewrite an existing scene's prompt to serve a Fix-1 shot,
+and do not repoint an existing Element.
+
+**New scene, new file, `Fix-1` in the name.** A Fix-1 shot gets its own prompt
+file carrying `Fix-1` in the filename, not an edit to an existing one.
+
+**Every take goes to `All Scene/Fix-1/`, named for its scene:**
 
 ```
-All Scene/Fix-1/S1-Fix1.MP4
-All Scene/Fix-1/S1A-Fix1.MP4
-All Scene/Fix-1/S10b-Fix1.MP4
+All Scene/Fix-1/S2b-Fix1.MP4
+All Scene/Fix-1/IV1-Fix1.MP4
 ```
 
-A second take of the same scene in the same round appends a number:
-`S10b-Fix1-2.MP4`.
+A second take of the same scene this round appends a number: `S2b-Fix1-2.MP4`.
 
-### Why one folder — the editor is a person
+### The CEO chooses the Elements
 
-> "ที่ต้องสร้าง Folder แยกเพราะว่า Editor ไม่ใช่ AI เป็นคนธรรมดา เพราะงั้น
-> การที่จะต้องมานั่งไล่เปิด Folder ทั้งหมด มันปวดหัว" — CEO
+> "ฉันจะบอกเองว่า ในแต่ละฉากต้องใช้ Element ไหนบ้าง ต้องเปลี่ยนอะไรบ้าง …
+> element ฉันจะบอกเองว่าใส่อะไรบ้าง location ใช้อันไหน"
 
-An agent can list thirty folders in a second. A human editor opening thirty
-folders to find what changed this week is being made to do the machine's work.
-One folder, one round, everything in it.
+Which Elements a Fix-1 scene binds, and which location plate it uses, is the
+CEO's call per scene. Do not infer it from what the equivalent old scene used,
+and do not substitute an Element that looks equivalent. If a brief does not name
+the Elements, ask — that is a question with one right answer and it is not ours.
 
-### Do not withhold a take because we called it a failure
+### File every take, whatever we think of it
 
 > "อย่าบอกว่ามันไม่ผ่าน ไม่ผ่านอาจจะหมายถึง 95% ใช้ไม่ได้ อีก 5% ใช้ได้"
-> "บางฉาก 1s ก็สามารถนำไปใช้ได้แล้ว" — CEO
+> "บางฉาก 1s ก็สามารถนำไปใช้ได้แล้ว"
 
-This corrects an assumption that was built into our review language. PASS and
-FLAGGED are **our** verdicts, for deciding whether to re-fire. They were never a
-judgement about whether footage is usable, and we do not get to make that
-judgement — the editor does.
+PASS and FLAGGED are **our** verdicts, for deciding whether to re-fire. They were
+never a judgement about whether footage is usable, and that judgement belongs to
+the editor. A take flagged for a duplicated face may hold four clean seconds
+before the duplicate walks in.
 
-A take we flagged for a duplicated face may hold four clean seconds before the
-duplicate walks in. A take flagged for the wrong camera may contain the one
-gesture the cut needs. **Every take of every scene generated from now on goes
-into `Fix-1`, whatever we thought of it**, so the editor sees the whole roll.
+Note defects in the report and the handover where they help the next operator.
+Never in the filename, and never by withholding a file.
 
-Note our defects in the report and the handover, where they help the next
-operator. Do not encode them in the filename, and never decide on the editor's
-behalf that a clip is not worth looking at.
+### Why one flat folder
+
+> "Editor ไม่ใช่ AI เป็นคนธรรมดา เพราะงั้นการที่จะต้องมานั่งไล่เปิด Folder
+> ทั้งหมด มันปวดหัว"
+
+An agent lists thirty folders in a second. A person opening thirty folders to
+find what changed this round is doing the machine's work.
 
 ### Rounds
 
-`Fix-1` is the current round. `Fix-2`, `Fix-3` are subsequent editor rounds, and
-**the CEO says when a new round opens** — do not start one because a batch feels
-finished.
+`Fix-2`, `Fix-3` are later rounds. **The CEO says when one opens** — never start
+a new round because a batch feels finished.
