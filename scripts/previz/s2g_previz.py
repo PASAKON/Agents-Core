@@ -7,7 +7,7 @@ import bpy, math
 from math import radians as R
 
 sc = bpy.context.scene
-sc.frame_start, sc.frame_end = 1, 480
+sc.frame_start, sc.frame_end = 1, 288
 sc.render.resolution_x, sc.render.resolution_y = 1280, 720
 sc.render.fps = 24
 sc.timeline_markers.clear()                       # hall_v41 binds CAM_FLY4 otherwise
@@ -60,9 +60,8 @@ WALL  = ((0, -15.6, 1.45), (R(90), 0, R(180)), 30)     # shot 1, straight on the
 INSIDE= ((0.6, -21.86, 2.45), (R(96), 0, 0), 28)       # shot 2, at the crack looking out and down
 BEHIND= ((0.9, -21.75, 2.30), (R(80), 0, 0), 24)       # shot 3, behind him looking up the gallery
 
-ckey(1, *WALL);   ckey(167, *WALL)
-ckey(168, *INSIDE); ckey(239, *INSIDE)
-ckey(240, *BEHIND); ckey(480, *BEHIND)
+HEADCAM = ((0.0, -20.35, 2.45), (R(93), 0, R(180)), 42)
+ckey(1, *HEADCAM); ckey(480, *HEADCAM)
 
 def key(o, fr, x, y, z=None):
     sc.frame_set(fr)
@@ -139,8 +138,8 @@ except Exception as e: print("media_type:", e)
 sc.render.image_settings.file_format = "FFMPEG"
 sc.render.ffmpeg.format = "MPEG4"; sc.render.ffmpeg.codec = "H264"
 sc.render.ffmpeg.constant_rate_factor = "HIGH"; sc.render.ffmpeg.audio_codec = "NONE"
-sc.render.filepath = r"C:\Users\UsEr\Downloads\S2D-Render.MP4"
-bpy.ops.wm.save_as_mainfile(filepath=r"C:\Users\UsEr\Downloads\S2D_previz.blend")
+sc.render.filepath = r"C:\Users\UsEr\Downloads\S2G-Render.MP4"
+bpy.ops.wm.save_as_mainfile(filepath=r"C:\Users\UsEr\Downloads\S2G_previz.blend")
 sc.frame_set(1)
 print("render camera =", sc.camera.name, "markers =", len(sc.timeline_markers))
 bpy.ops.render.render(animation=True)
