@@ -61,7 +61,13 @@ ssh winbox 'powershell -NoProfile -ExecutionPolicy Bypass -Command \
 - `action.fcurves` is GONE (layered actions). Skip easing loops; defaults are
   fine for previz.
 - `render.image_settings.file_format` has NO video formats any more —
-  **Blender 5.x cannot write MP4.** Playblast to a PNG sequence and mux with
+  **Blender 5.x cannot write MP4.** Verified directly on winbox (Blender
+  5.2.1 LTS, 2026-09-03): the enum's static RNA definition still LISTS
+  `'FFMPEG'`, which is a trap — introspecting `bl_rna.properties[...]
+  .enum_items` reports it as valid, but actually setting
+  `file_format = 'FFMPEG'` raises `TypeError: enum "FFMPEG" not found in
+  (...)` at runtime; the dynamic item list strips it. Don't trust the static
+  enum for this property. Playblast/render to a PNG sequence and mux with
   ffmpeg (installed on winbox via winget, find it under
   `$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Gyan.FFmpeg*`).
 - **The parenting trap that shipped a broken previz:** `o.parent = walk;
@@ -104,7 +110,104 @@ LAW — in «Sorry, Sir» the crack wall is the END wall OPPOSITE the red door,
 not a side wall (CEO caught this in v1; check the film's canon before
 placing hero geometry).
 
-## Playblast → MP4 (~1 minute for 480 frames)
+## Headless EEVEE render → MP4 (standard path, ~30s for 192 frames)
+
+**Use this, not the opengl playblast below, unless you already have GUI
+access.** `bpy.ops.render.opengl` (viewport playblast) needs an interactive
+window station, and getting one on winbox over ssh does not work — no window
+station, and the scheduled-task workaround is (correctly) refused by the
+safety classifier as a persistence-technique pattern. `bpy.ops.render.render`
+(a real production render) does NOT need a window station at all and runs
+fine from a plain background Blender process:
+
+```bash
+scp -q previz_job.py winbox:'C:/Users/UsEr/Downloads/previz_job.py'
+ssh winbox 'powershell -NoProfile -Command "& \"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe\" -b \"C:\Users\UsEr\Downloads\SorrySir_hall_v41.blend\" --python \"C:\Users\UsEr\Downloads\previz_job.py\" -- <SHOT> 2>&1 | Out-String"'
+```
+
+This is `-b` (background CLI mode), a completely separate mechanism from the
+exec bridge on :9876 — no bridge, no window station, no GUI, ever. This is
+the actual fix for "no window station": swap which render call you use, not
+how you reach Blender.
+
+**The settings that made it fast** (measured on S1C, 192 frames, 1280×720,
+Blender 5.2.1 LTS, hall_v41, 2026-09-03):
+
+```python
+S.render.engine = 'BLENDER_EEVEE'
+S.eevee.taa_render_samples = 4
+S.eevee.use_shadows = False       # see WHY below — this is the one that matters
+S.eevee.use_raytracing = False
+S.eevee.use_fast_gi = False
+S.render.use_simplify = True
+S.render.simplify_subdivision_render = 0
+```
+
+| Run | Settings | Wall clock (192 frames) | Notes |
+|---|---|---|---|
+| BEFORE | `taa_render_samples=8`, everything else default (shadows/raytracing/fast_gi ON, no simplify) — today's committed `x_shots_720.py` as-is | **598.58s (9m59s)** | `Error: Shadow buffer full, may result in missing shadows and lower performance. (3340-3355 / 2048)` on nearly every frame (see WHY) |
+| AFTER | block above | **29.16s** | zero shadow-buffer errors; visually verified from the muxed MP4's own frames — camera track and proxy read are unchanged |
+
+**20.5x faster, and well under the "couple of minutes" target** — 192 frames
+at 1280×720 landed at 29s, not "a few minutes." Confirmed via
+`ffprobe -count_frames` on the muxed MP4 (not just the PNG count) and by
+looking at contact-sheet frames pulled from that MP4, per the verification
+discipline below.
+
+**WHY it was slow: this is EEVEE Next, and the scene has 31 shadow-casting
+lights.** `SorrySir_hall_v41.blend` carries 20 spot lights @700W, 10 point
+lights @140W, 1 area light, 1 sun — every one casting a shadow by default.
+EEVEE Next's shadow system pools all lights' shadow tiles into one
+`shadow_pool_size` (default 2048); this scene needs ~3340-3355, so every
+single frame overflowed it and re-computed shadows from a blown budget —
+that overflow, not sample count, was the dominant cost. `taa_render_samples`
+matters far less here than `use_shadows` because flat grey/emissive proxy
+materials don't produce meaningful noise at low sample counts to begin with.
+**If a scene's proxies need shadows for the blocking to read** (rare — the
+whole layer is deliberately grey and flat), raise `shadow_pool_size` instead
+of leaving it overflowing, or drop `shadow_resolution_scale` well below 1.0
+to shrink the per-light footprint — don't just crank samples, that was never
+the bottleneck.
+
+**EEVEE Next (Blender 5.2.1) is a different API from legacy EEVEE — do not
+carry over old attribute names.** Verified via runtime introspection
+(`dir(scene.eevee)`), not docs, since the API moved twice in two majors:
+- `use_gtao`, `use_bloom`, `use_ssr`, `use_soft_shadows` **do not exist any
+  more.** Setting any of them raises `AttributeError`.
+- Bloom is **gone entirely** — no EEVEE Next equivalent, compositor-only now.
+  Nothing to disable; it already costs zero.
+- AO is folded into the GI system: `use_fast_gi` (+ `fast_gi_*` quality
+  knobs), not a separate toggle.
+- Reflections/refraction ray tracing is one master switch: `use_raytracing`.
+- Shadows are one master switch, `use_shadows`, plus `shadow_ray_count`,
+  `shadow_step_count`, `shadow_resolution_scale`, `shadow_pool_size` for
+  quality/cost if you need shadows kept on for a specific scene.
+- `render.use_simplify` + `simplify_subdivision_render = 0` cost nothing to
+  set but did nothing measurable here either — the proxy geometry has no
+  subsurf modifiers to simplify. Harmless to leave on; don't expect it to
+  move the needle on a proxy-only scene.
+- `film_transparent` and colour management (`view_settings.view_transform`,
+  currently `AgX`) were left alone, per the "don't touch unless you can show
+  it costs time" rule — untested because `use_shadows` alone already blew
+  past the target; no reason to touch anything with no evidence behind it.
+- **Direct FFMPEG output is a trap, not just unavailable** — see the API
+  traps section above; the static enum lies, the runtime enum doesn't.
+  PNG-sequence + external `ffmpeg` mux stays mandatory.
+
+**Mux, same as before, but check the bitrate:**
+`ffmpeg -framerate 24 -i f_%04d.png -c:v libx264 -pix_fmt yuv420p -crf 20
+<Name>.MP4`. `-crf 20` is the default starting point, but a shot with a lot
+of foreground detail sliding past camera (S1C's colonnade) can push CRF 20
+above the corpus's usual ~80-900 kbps band (`scripts/previz-check.py` flags
+this, doesn't fail it) — S1C measured 1417 kbps at CRF 20 against 841 kbps at
+CRF 24, same PNG frames, no visible difference in contact-sheet frames at
+either. Bump CRF a few points on a busy shot rather than accepting a
+50%-over-band file by default.
+
+## Playblast → MP4 (GUI-only fallback, ~1 minute for 480 frames)
+
+Use this only when you already have interactive GUI access to Blender on
+winbox (this skill does not obtain one — see the rule above).
 
 1. Bridge job: viewport capture through the scene camera —
    `region_3d.view_perspective='CAMERA'`, shading `MATERIAL`, overlays off,
