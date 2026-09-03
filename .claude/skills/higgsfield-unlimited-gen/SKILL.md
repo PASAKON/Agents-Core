@@ -551,6 +551,32 @@ figure." A proxy without a mapping line is a duplicate waiting to happen.
 Reviewers: a duplicated character is a FLAG-worthy defect — label the take
 (`-FLAGGED-duplicate-<who>`), file it, move on, per the footage rule.
 
+## PRE-FIRE — lint the prompt before you paste it, every time
+
+CTO-set 2026-09-03, after S1C burned two operator sessions and three renders
+on a defect a human review missed by eye: a block of guidance the CTO added
+to stop an earlier mistake sat *inside the text the operator pastes*, and it
+described the very things it was banning. Whatever is pasted into the
+composer IS the prompt — notes, take ids, `(CEO ...)` stamps and all.
+
+**Before firing any prompt, and before committing a new or edited prompt
+block, run:**
+
+```bash
+python3 scripts/prompt-lint.py path/to/the-file.txt --shot S1C
+```
+
+It flags operator/CTO/CEO guidance sitting in the pasteable text, a second
+`@Video` mention in one shot, quoted strings that read like a reference
+declaration, bans written as a description of the banned image, and a
+negative that contradicts a reference in the same block. Exit code
+non-zero means something in that text would corrupt generation — fix it
+before pasting, don't paste around it. False positives happen (the tool
+says so in its own output); use judgement, don't silence the check.
+
+The full defect class and the two-zone rule (NOTES vs PASTE, nothing else)
+are in `docs/prompts/absence/AUTHORING-RULES.md`.
+
 ## Attaching a VIDEO reference — @Video 1 (verified end-to-end 2026-08-30, task-58f2d7b4)
 
 The CEO's new generation standard: **Video ref (camera) + Elements
