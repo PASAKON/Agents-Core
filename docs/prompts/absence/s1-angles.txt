@@ -1,3 +1,5 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
 ✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
 complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
 Most carry a `project_absence_` prefix; exactly seven are bare: gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
@@ -54,9 +56,44 @@ S1C · THE CART — detail
 no cuts.
 
 [0s] Close on the cart as it rolls: mop, orange bucket, bottles, folded
-cloths, brush, the folding ladder on the side, the gold V on the front panel.
-The rack is EMPTY — no painting anywhere. Terrazzo slides past.
-[5s] The track holds pace with the wheels. Hold.
+cloths, brush, the folding ladder on the side, the gold V on the front panel,
+and FOUR VISIBLE CASTOR WHEELS carrying it — the wheels are the subject of
+this shot as much as the cart is. The rack is EMPTY — no painting anywhere.
+Terrazzo slides past.
+[5s] The track keeps pace with the turning wheels and KEEPS MOVING at the same
+constant lateral speed all the way to the end. The camera never stops, never
+settles, and there is no static held frame at any point in this clip.
+
+⚠️ S1C-ONLY OVERRIDES (CTO 2026-09-03, after take 1 failed with a generic
+platform error). These beat the shared blocks above and below for THIS shot
+only — S1A/S1B/S1D–S1G are unaffected.
+
+- **THE CART MUST HAVE WHEELS (CEO 2026-09-03).** The existing cart plates show
+  a cart with no visible wheels, yet Dupe pushes it — it reads as breaking
+  physics, and this shot is a close track along the wheels, so it is the one
+  shot where that defect is unmissable. Bind a cart Element whose castors are
+  visible and turning. If no such Element exists yet, it must be created before
+  this shot is fired at all.
+- **CAMERA.** The "camera LOCKED or one stated move" line in the ALL SEVEN
+  header resolves here to THE MOVE, not to locked. S1C is the one shot in this
+  set whose camera travels. Do not write "locked" anywhere in this prompt, and
+  do not end a beat with a bare "Hold" — in every other block in this file
+  "Hold" means the camera stops, and here it must not.
+- **EXACTLY ONE VIDEO REFERENCE.** `@Video 1` = `docs/S1C-Render.MP4`, the
+  previz, mentioned ONCE and never again. The platform accepts one video
+  reference per generation; take 1 was staged with two (the previz AND the cart
+  attached as a video) and the generation failed. The cart is NOT a video.
+- **THE CART IS AN ELEMENT CHIP, NOT AN ATTACHMENT.** Bind the cart from the
+  Elements panel so it resolves to a real chip with a UUID, the way
+  `@loc_hall_big_e` and `@project_absence_char_cleaner_c` do. In take 1 the
+  cart appeared in the composer as a bare "Video — the cart design" line with
+  no handle and no UUID, which means nothing was enforcing the empty rack at
+  all. Never fall back to `@prop_cart_b` — that one has the painting in it, and
+  this scene happens before the painting is ever in the cart.
+- **ONE PERSON.** The shared CRITICAL NEGATIVES open with "every single person
+  has a different face…". This shot has one man and mostly only his cart in
+  frame. Keep the clause, but understand it is not a licence to populate the
+  frame: no second person appears for any reason.
 
 ---------------------------------------------------------------
 S1D · OVER THE SHOULDER — the wall intact
@@ -120,9 +157,9 @@ whites pushed slightly cool, shadows deep red-brown, saturation high in flat
 planes but never touching skin, halation around every lamp. Photographed, not
 rendered: fine film grain, faint gate weave, slight colour fringing. Camera
 level in every shot — S1A is level too, just on the floor.
-AUDIO: room tone, footsteps, cart wheels, cloth. No music.
+AUDIO: room tone, footsteps, cart wheels, cloth. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no other people at all, no crack in the wall, no damage,
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no other people at all, no crack in the wall, no damage,
 no painting off the wall, no painting in the cart, no Dupe looking at camera,
 no Dupe speaking.
 
