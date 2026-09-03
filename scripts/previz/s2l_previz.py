@@ -36,11 +36,11 @@ def box(name, loc, dim, color):
 # the cut between scenes does not move anybody. Gaps are 1.60 / 1.70 / 0.75 /
 # 0.95 and depths run -19.45 to -19.95 — deliberately uneven, per the CEO's
 # "do not stand smart, uneven gaps".
-woman   = spawn_char(col, "WOMAN",     (-1.45,  -4.00), h=1.68, prefix="s2l")  # walks in
-student = spawn_char(col, "STUDENT_C", ( 0.15, -19.75), h=1.70, prefix="s2l")
+woman   = spawn_char(col, "COLLECTOR_A",     (-1.45,  -4.00), h=1.68, prefix="s2l")  # walks in
+student = spawn_char(col, "STUDENT", ( 0.15, -19.75), h=1.70, prefix="s2l")
 wifeB   = spawn_char(col, "VISITOR_B", ( 1.85, -19.70), h=1.66, prefix="s2l")
 manA    = spawn_char(col, "VISITOR_A", ( 4.60,  -7.50), h=1.78, prefix="s2l")  # joins
-critic  = spawn_char(col, "CRITIC_B",  ( 3.55, -19.85), h=1.64, prefix="s2l")
+critic  = spawn_char(col, "CRITIC",  ( 3.55, -19.85), h=1.64, prefix="s2l")
 dupe    = spawn_char(col, "DUPE",      (-2.60, -17.20), h=1.80, prefix="s2l")
 build_cart(col, (-3.30, -16.60), prefix="s2l", with_painting=True)
 cart = bpy.data.objects.get("s2l_cart_base")

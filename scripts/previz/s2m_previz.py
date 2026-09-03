@@ -33,11 +33,11 @@ def box(name, loc, dim, color):
     m.diffuse_color = color; o.data.materials.append(m); return o
 
 # ---- the five, exactly where S2L ended. Do not tidy these numbers.
-woman   = spawn_char(col, "WOMAN",     (-1.45, -19.95), h=1.68, prefix="s2m")
-student = spawn_char(col, "STUDENT_C", ( 0.15, -19.75), h=1.70, prefix="s2m")
+woman   = spawn_char(col, "COLLECTOR_A",     (-1.45, -19.95), h=1.68, prefix="s2m")
+student = spawn_char(col, "STUDENT", ( 0.15, -19.75), h=1.70, prefix="s2m")
 wifeB   = spawn_char(col, "VISITOR_B", ( 1.85, -19.70), h=1.66, prefix="s2m")
 manA    = spawn_char(col, "VISITOR_A", ( 2.60, -19.45), h=1.78, prefix="s2m")
-critic  = spawn_char(col, "CRITIC_B",  ( 3.55, -19.85), h=1.64, prefix="s2m")
+critic  = spawn_char(col, "CRITIC",  ( 3.55, -19.85), h=1.64, prefix="s2m")
 dupe    = spawn_char(col, "DUPE",      (-2.40, -17.20), h=1.80, prefix="s2m")
 regis   = spawn_char(col, "REGISTRAR", (-5.00,  -8.00), h=1.80, prefix="s2m")
 build_cart(col, (-3.30, -16.60), prefix="s2m", with_painting=True)
