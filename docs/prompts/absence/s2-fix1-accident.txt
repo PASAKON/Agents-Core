@@ -10,13 +10,24 @@ Sound ON. Read all six fields back before firing — the slider silently resets.
 🔒 DO NOT FIRE YET — CEO REF-VERIFICATION GATE, OPEN AS OF WRITING.
 The CEO's rule for this scene: it may use ONLY references that live in
 /Users/gob/Desktop/Fix-1-Elements/ and every one of them has been verified by
-the CEO's own eye, ID against image, on the live Elements panel. Four of the
-six Elements below were fetched for exactly that check and the CEO has not yet
-cleared them:
-    project_absence_prop_cart · prop_cart_b ·
-    project_absence_prop_valder_study_b · project_absence_loc_wall_pov_e
-The CTO strikes this block and re-commits when the CEO clears them. If this
+the CEO's own eye, ID against image, on the live Elements panel. Status:
+    ✅ project_absence_prop_cart_a (the empty wheeled cart, verified 21:5x)
+    ✅ project_absence_loc_hall_big_d · project_absence_char_workman
+    🟡 prop_cart_b · project_absence_prop_valder_study_b ·
+       project_absence_loc_wall_pov_e · project_absence_char_cleaner_c
+       — fetched and sent, awaiting the CEO's word
+The CTO strikes this block and re-commits when every one is cleared. If this
 block is still here, the scene is not cleared.
+
+⚠️ CART GENERATION MISMATCH, decided by the CEO before firing: cart_a (empty)
+stands on FOUR CASTOR WHEELS — the new wheeled generation. prop_cart_b
+(painting racked) is the older generation on tapered furniture LEGS, and no
+wheeled with-painting cart exists on the panel. The prompt below forces castor
+wheels in prose for the whole scene, but a plate detail usually beats prose
+(measured on this film: a banned detail that appears twice is a PLATE defect).
+Two ways out — the CEO picks: (a) fire as-is, $0, accept the risk the cart
+grows legs at [14s]; (b) commission a wheeled with-painting cart image first —
+paid, needs the CEO's explicit OK per the money rule.
 
 WHAT THIS FILE IS. A Fix-1 round scene, descended from `s2-accident.txt`,
 which stays exactly as it is. It retells the accident with cuts — the original
@@ -61,12 +72,15 @@ REFERENCES — each with a job:
   terrazzo, chromium columns. Not the framing.
 @project_absence_char_cleaner_c — Dupe: face, build, white uniform with
   orange trim, cap, gold V at cap and chest.
-@project_absence_prop_cart — the cart BEFORE the fall: mop, orange bucket,
-  bottles, folding ladder, gold V, and the rack EMPTY. This is the only cart
-  in the scene and it governs every frame before [14s].
+@project_absence_prop_cart_a — the cart BEFORE the fall: mop, orange bucket,
+  bottles, folding ladder, gold V, FOUR CASTOR WHEELS carrying it, and the
+  rack EMPTY. This is the only cart in the scene and it governs every frame
+  before [14s].
 @prop_cart_b — the SAME cart AFTER the fall, from [14s] on: identical in
   every part, now with the painting standing upright in the rack, face
-  outward. Not a second cart — the same object later in time.
+  outward. Not a second cart — the same object later in time. It rolls on
+  THE SAME FOUR CASTOR WHEELS as before the fall; take the racked painting
+  from this reference and nothing about its base or legs.
 @project_absence_prop_valder_study_b — THE PAINTING, face and proportions: a
   LANDSCAPE canvas, very slightly wider than tall (~1.1:1, roughly 80 cm wide
   × 72 cm tall), thin black frame, flat matte geometric blocks in rust red,
@@ -135,7 +149,8 @@ CRITICAL NEGATIVES: every single person has a different face, build, age,
 hair and clothing, and no face is repeated anywhere; no opening sound, no
 intro sting, no whoosh, no riser, no closing sound, no outro, no final chord,
 no audio tail, no fade-in or fade-out on the sound; no second cart, no two
-carts in any frame, no cart duplicated, no painting duplicated, no two
+carts in any frame, no cart duplicated, no cart without castor wheels, no
+tapered furniture legs on the cart, no cart standing on legs, no painting duplicated, no two
 paintings; no change in the painting's size between wall and cart, no
 oversized painting, no painting larger than shoulder-height on Dupe, no
 painting dominating the wall, no portrait canvas, no square canvas, no heavy
