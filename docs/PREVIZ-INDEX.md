@@ -49,3 +49,30 @@ The void around the doll's house box reads dark grey, not glossy black — a
 viewport-shading limit of the playblast, not a staging error. The plate
 `@loc_dollhouse` carries the true black; the previz is only there for the
 figure blocking, count and scale.
+
+## A previz must be at least the resolution we generate at (measured 2026-09-03)
+
+**Every previz is 1280x720. A 640x360 file will fail the generation.**
+
+This cost three failed generations and two operator sessions before anyone
+measured it. S1C's previz was 640x360; the shot fired cleanly three times, each
+rendered ~26 minutes, and each died on Higgsfield's generic *"Something went
+wrong. Please try again, or change your input files or prompt."* Every other
+explanation was eliminated first — all 33 previz are exactly 16:9, S1C was not
+the largest file, its raw bitrate ranked fifth of thirty-three, and a
+file-by-file count found no duplicate `@Video` mention anywhere.
+
+The one thing left was resolution. Of previz used as video references, both at
+640x360 had failed and all five at 1280x720 had passed. The previz was scaled to
+1280x720 with nothing else changed — same 8 seconds, same 192 frames, same
+camera — and **take 4 passed**: `absence-S1C-take4-023e91c3-PASS-8s-720p.mp4`.
+
+Higgsfield documents no such requirement anywhere. A sweep of all 74 help
+articles, 20 doc pages and the full OpenAPI spec found nothing about video
+reference resolution at all, so this is our own measurement and nobody else's
+rule. It holds for our pipeline at 720p output; if we ever generate at 1080p,
+assume it moves with the output and re-measure rather than trusting this line.
+
+`scripts/previz-check.py` enforces it. Run it before using any previz as a
+reference — it also catches wrong frame rate, wrong duration, a stray audio
+track, and a bitrate outside the band the corpus occupies.
