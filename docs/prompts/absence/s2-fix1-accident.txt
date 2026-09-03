@@ -7,27 +7,17 @@ UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
 ⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
 Sound ON. Read all six fields back before firing — the slider silently resets.
 
-🔒 DO NOT FIRE YET — CEO REF-VERIFICATION GATE, OPEN AS OF WRITING.
-The CEO's rule for this scene: it may use ONLY references that live in
-/Users/gob/Desktop/Fix-1-Elements/ and every one of them has been verified by
-the CEO's own eye, ID against image, on the live Elements panel. Status:
-    ✅ project_absence_prop_cart_a (the empty wheeled cart, verified 21:5x)
-    ✅ project_absence_loc_hall_big_d · project_absence_char_workman
-    🟡 prop_cart_b · project_absence_prop_valder_study_b ·
-       project_absence_loc_wall_pov_e · project_absence_char_cleaner_c
-       — fetched and sent, awaiting the CEO's word
-The CTO strikes this block and re-commits when every one is cleared. If this
-block is still here, the scene is not cleared.
+✅ REF GATE CLEARED — CEO verified all six references by eye against the live
+Elements panel, 2026-09-03: char_cleaner_c, loc_hall_big_e, prop_cart_a,
+prop_cart_a_painted, prop_valder_study_b, loc_wall_pov_e, plus prop_tag.
+Every image sits in /Users/gob/Desktop/Fix-1-Elements/ under its exact ID.
+CEO cleared the previz the same evening. THIS SCENE IS CLEARED TO FIRE.
 
-⚠️ CART GENERATION MISMATCH, decided by the CEO before firing: cart_a (empty)
-stands on FOUR CASTOR WHEELS — the new wheeled generation. prop_cart_b
-(painting racked) is the older generation on tapered furniture LEGS, and no
-wheeled with-painting cart exists on the panel. The prompt below forces castor
-wheels in prose for the whole scene, but a plate detail usually beats prose
-(measured on this film: a banned detail that appears twice is a PLATE defect).
-Two ways out — the CEO picks: (a) fire as-is, $0, accept the risk the cart
-grows legs at [14s]; (b) commission a wheeled with-painting cart image first —
-paid, needs the CEO's explicit OK per the money rule.
+⚠️ CART: both states are now WHEELED. project_absence_prop_cart_a is the
+empty rack, project_absence_prop_cart_a_painted is the same cart with the
+painting racked — generated today for exactly this scene because no
+wheels+painting cart existed. The old legs-only prop_cart_b is RETIRED and
+must never be bound here.
 
 WHAT THIS FILE IS. A Fix-1 round scene, descended from `s2-accident.txt`,
 which stays exactly as it is. It retells the accident with cuts — the original
@@ -76,16 +66,19 @@ REFERENCES — each with a job:
   bottles, folding ladder, gold V, FOUR CASTOR WHEELS carrying it, and the
   rack EMPTY. This is the only cart in the scene and it governs every frame
   before [14s].
-@prop_cart_b — the SAME cart AFTER the fall, from [14s] on: identical in
-  every part, now with the painting standing upright in the rack, face
-  outward. Not a second cart — the same object later in time. It rolls on
-  THE SAME FOUR CASTOR WHEELS as before the fall; take the racked painting
-  from this reference and nothing about its base or legs.
+@project_absence_prop_cart_a_painted — the SAME cart AFTER the fall, from
+  [14s] on: identical in every part, on the same four castor wheels, now with
+  the painting standing upright in the rack, face outward. Not a second cart —
+  the same object later in time.
 @project_absence_prop_valder_study_b — THE PAINTING, face and proportions: a
   LANDSCAPE canvas, very slightly wider than tall (~1.1:1, roughly 80 cm wide
   × 72 cm tall), thin black frame, flat matte geometric blocks in rust red,
   burnt orange, ochre, cream, sage green, dusty pink, one black wedge. No
   impasto, no brush texture.
+@project_absence_prop_tag — THE BRASS PLAQUE: engraved THE ABSENCE OF
+  MEANING / Valder / $2,000,000, two screws at the top corners, warm brass.
+  It reads clearly from the wide — a hand-and-a-half across, not a small
+  label. Controls the plaque only.
 @project_absence_loc_wall_pov_e — THE CRACK'S EXACT SHAPE ONLY: a small
   STAR-SHAPED break, an irregular dark opening at the centre where a little
   plaster has come away, about five long thin clean cracks radiating outward,
@@ -102,7 +95,7 @@ shot is wrong.
 [0s] Locked wide, waist height, perpendicular to the hero wall, the frame
 symmetrical about the wall's centreline. On the wall: ONE SMALL LANDSCAPE
 PAINTING, and beneath it a SMALL BRASS PLAQUE reading THE ABSENCE OF MEANING /
-Valder / 2,000,000. The painting hangs VISIBLY CROOKED — the only asymmetry in
+Valder / $2,000,000. The painting hangs VISIBLY CROOKED — the only asymmetry in
 a perfect frame. Early morning, museum empty. Dupe works his ordinary morning
 round: cloth in hand, wiping along the wall, his cart standing beside him with
 its rack empty. Nothing about the day is special yet.
@@ -131,7 +124,7 @@ locked as he shrinks into the distance and leaves.
 
 [17s] The room, empty. Then the shot settles into its final framing: the wall
 STRAIGHT-ON — the small star crack, and directly beneath it THE BRASS PLAQUE,
-level, untouched, reading THE ABSENCE OF MEANING / Valder / 2,000,000. Hold
+level, untouched, reading THE ABSENCE OF MEANING / Valder / $2,000,000. Hold
 that pairing — crack above, price below — one beat longer than is
 comfortable. Nothing moves. End.
 
