@@ -101,5 +101,8 @@ scripts/**/out/*.mp4
 scripts/**/out/*.mov
 scripts/**/out/*.webm
 
+# scripts/previz-check.py output — regenerate with the script, don't commit.
+docs/reports/previz-contacts/
+
 # local model/tool cache — 141MB, never commit
 .cache/
