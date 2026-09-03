@@ -52,3 +52,31 @@ a defect and the take is a keeper.
 
 **Her only.** A gold V on any other visitor is still a real defect and still
 gets flagged. The registrar's V is correct by design and never was one.
+
+---
+
+## Filing convention for the repair phase (CEO 2026-09-03)
+
+The film has moved out of the shoot-everything phase. Draft 1 is cut and the
+story is close to complete, so from here generation is **ฉากซ่อม** — repairs and
+additions that sharpen scenes that already exist.
+
+**Repair takes go into a `Fix-1` folder inside the scene's own folder**, not
+alongside the original takes:
+
+```
+All Scene/<SCENE>/                      ← the original takes stay here
+All Scene/<SCENE>/Fix-1/                ← repair takes for that scene
+```
+
+Same file-naming rules as always — block id, take number, verdict, duration,
+resolution. Same never-discard rule: a failed repair take is filed in `Fix-1`
+with its verdict, not deleted.
+
+Why the separation: the editor has a cut built from the originals. A repair that
+lands in the same folder makes it ambiguous which file the cut refers to, and
+the first thing anyone will need to answer is "is the version in Draft 1 still
+the version we are using". Keeping repairs in their own folder answers that by
+looking, not by comparing timestamps.
+
+A later repair round becomes `Fix-2`, and so on.
