@@ -58,12 +58,21 @@ REFERENCES — each with a job:
   painting standing upright in the rack, face outward.
 @project_absence_prop_tag — THE BRASS PLAQUE on the wall: engraved THE ABSENCE
   OF MEANING / Valder / $2,000,000, two screws at the top corners, warm brass.
-@project_absence_loc_wall_pov_e — THE MARK'S EXACT SHAPE ONLY: a small
-  star-shaped mark, a dark irregular centre where a little plaster has lifted,
-  about five thin clean lines running out of it, unequal in length, each
-  slightly kinked, bare wall between them, no bigger than a hand. Copy this
-  star exactly. Take nothing else from this reference.
-GUEST_ELEMENT — THE FIRST VISITOR OF THE DAY: face, build, clothing.
+@project_absence_loc_wall_pov_e — THE MARK'S EXACT SHAPE ONLY: 
+  a small STAR-SHAPED MARK whose centre is a SOLID BLACK ARROWHEAD
+  POINTING DOWN — broad at the top, tapering to a point at the bottom, with a
+  short HOOKED SPUR curling off its upper right like a comma and a notch at its
+  upper left. FOUR long arms leave it and no more: one rising at 12 o'clock
+  with a single oval bead a third of the way up; the longest and heaviest
+  climbing toward 1:30, lumpy and kinked once; one running down-left at 9:30,
+  thinner, ending in a fine point; and one falling down-right at 4:30 that
+  kinks partway and throws a small barb near its needle-sharp end. Every arm is
+  BEADED — swelling into small dark lozenges and pinching back to a hairline,
+  several times along its length, never a smooth taper — and every edge carries
+  a thin bright lip where the broken plaster catches the light. Copy this
+  exactly; it appears in every other scene and must match. Take nothing else
+  from this reference.
+
 
 SHOT ONE · [0s-7s] · LOCKED WIDE, straight on to the hero wall, level, the
 frame symmetrical about the wall's centreline. The wall carries the small star

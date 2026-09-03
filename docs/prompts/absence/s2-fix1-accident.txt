@@ -94,12 +94,21 @@ REFERENCES — each with a job:
   MEANING / Valder / $2,000,000, two screws at the top corners, warm brass.
   It reads clearly from the wide — a hand-and-a-half across, not a small
   label. Controls the plaque only.
-@project_absence_loc_wall_pov_e — THE CRACK'S EXACT SHAPE ONLY: a small
-  STAR-SHAPED MARK, a small irregular dark centre where a little plaster has
-  lifted away, about five long thin clean cracks radiating outward,
-  unequal in length, each slightly kinked, bare wall between them. Copy this
-  star exactly — it appears in every other scene and must match. Take nothing
-  else from this reference: not its framing, not its light.
+@project_absence_loc_wall_pov_e — THE CRACK'S EXACT SHAPE ONLY: 
+  a small STAR-SHAPED MARK whose centre is a SOLID BLACK ARROWHEAD
+  POINTING DOWN — broad at the top, tapering to a point at the bottom, with a
+  short HOOKED SPUR curling off its upper right like a comma and a notch at its
+  upper left. FOUR long arms leave it and no more: one rising at 12 o'clock
+  with a single oval bead a third of the way up; the longest and heaviest
+  climbing toward 1:30, lumpy and kinked once; one running down-left at 9:30,
+  thinner, ending in a fine point; and one falling down-right at 4:30 that
+  kinks partway and throws a small barb near its needle-sharp end. Every arm is
+  BEADED — swelling into small dark lozenges and pinching back to a hairline,
+  several times along its length, never a smooth taper — and every edge carries
+  a thin bright lip where the broken plaster catches the light. Copy this
+  exactly; it appears in every other scene and must match. Take nothing else
+  from this reference.
+
 
 THE PAINTING IS ONE OBJECT AT ONE SIZE. On the wall it is a SMALL picture —
 the wall dwarfs it, Dupe standing beside it is clearly taller than it — and
@@ -125,8 +134,7 @@ move — the painting falls clear of it and the plaque stays screwed to the
 wall, level and undisturbed. One sound: a short dry tap of settling plaster. The instant it
 lands, ONE FAST ZOOM into the wall where it hung — THE CRACK, exactly as the
 crack reference draws it: the small dark star with its open centre,
-about five long thin clean arms, unequal, slightly kinked, bare white wall
-between them, small as a hand on an enormous wall. Hold the crack a full beat.
+the four arms described above. Hold the crack a full beat.
 
 [12s] CUT — close on Dupe. Held completely still: eyes wide, breath
 held, a man watching his ordinary morning end. One beat, no dialogue.
@@ -192,7 +200,8 @@ REVIEW ORDER, strictest first:
    The CEO has rejected takes for this twice; measure it against Dupe's
    height in both places before judging anything else.
 2. PLAQUE — on the wall, level, in every frame including the last.
-3. CRACK — the star from the plate: dark centre, ~five clean arms. Few clean
+3. CRACK — the star from the plate: the solid black arrowhead centre with
+   its hooked spur, and FOUR beaded arms. Four clean
    arms = PASS. A mesh of many fine lines, rings, a wall-splitting fracture,
    or a crater = FAIL. (This criterion wrongly rejected three takes on the
    original S2 — do not reject a take FOR being a star.)
