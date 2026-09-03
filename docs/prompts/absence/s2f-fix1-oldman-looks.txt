@@ -1,0 +1,136 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2F-Fix1 · THE OLD MAN LOOKS · CEO 2026-09-04 · PREVIZ APPROVED
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 12s. Full spec: 12s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — the slider defaults to 5s
+and resets silently.
+
+WHAT IT IS. Twelve seconds of a man enjoying an exhibition. He walks, stops at
+a piece, stands with it, nods, moves on, stops again. Dupe is not in this scene
+at all — and that absence is the point, because this is the footage the editor
+cuts against S2E, where Dupe is pretending to polish a wall while watching
+exactly this man.
+
+No dialogue. Nobody speaks.
+
+⚠️ HE WALKS AT AN ORDINARY PACE. The CEO rejected two previz for having him
+move far too fast for his age and his coat. Not slow, not frail — an ordinary
+unhurried adult walk, about 1.2 m/s, the speed of someone with nowhere
+particular to be. The pauses are where the time goes, not the walking.
+
+⚠️ NEVER UPLOAD AN IMAGE. Both Elements below already exist on the account.
+Match by ID in the Elements panel and bind the library entry. Uploading a copy
+creates a duplicate Element that drifts from the one every other scene uses.
+
+Previz: docs/S2F-Render.MP4 — 1280x720 / 288 frames / 12.0s, CEO-approved.
+Clears the previz resolution rule.
+
+Elements, both CEO-verified:
+@project_absence_char_oldman · @project_absence_loc_hall_big_d
+
+Filing: All Scene/Fix-1/ as S2F-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+12s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, no cuts, for the whole twelve seconds. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 12-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the DARK GREEN figure labelled OLDMAN = @project_absence_char_oldman
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@project_absence_loc_hall_big_d — THE MUSEUM: warm cream walls, orange cove
+  light washing the ceiling, polished terracotta terrazzo, chromium trumpet
+  columns, white plinths, bronze and stone pieces on display, framed works on
+  the side walls. Take the room's surfaces, light and dressing from it. It is a
+  four-panel sheet — take NOTHING of its arrangement, its framing or its
+  layout, and never reproduce a grid.
+@project_absence_char_oldman — THE VISITOR: heavy-set and elderly, dark green
+  leather overcoat with a wide shawl collar, cream polo neck, pale gloves, a
+  slim silver cane, pale shoes.
+
+THE FRAME, unchanging for twelve seconds: a locked three-quarter view across
+the gallery at eye height, level. The colonnade recedes behind, works stand on
+their plinths along the near wall, framed pieces hang beyond. Warm morning
+light, the room otherwise empty.
+
+[0s] The elderly man walks into frame from one side at an ordinary unhurried
+pace, cane in his right hand, coat heavy on him. He is not hurrying and he is
+not shuffling. He walks like a man who has all morning.
+
+[3s] He stops at the first piece and STANDS WITH IT. Not a glance — he settles
+in front of it, weight on the cane, and looks. His head tilts a little. After a
+moment he NODS, once, slowly, the private nod of a man agreeing with something
+nobody said aloud. He does not speak.
+
+[6s] He moves on at the same pace, three or four unhurried steps to the next
+piece.
+
+[8s] He stops again and looks at the second piece the same way — settles, tilts
+his head, considers it. This time he does not nod. He simply looks a moment
+longer than the first one deserved, then walks on.
+
+[11s] He carries on toward the far side of the frame, still walking, still
+looking. Hold. Cut.
+
+AUDIO: room tone, the unhurried tap of a cane on terrazzo, heavy footsteps, the
+faint creak of leather when he shifts his weight. No music, no voices, nobody
+speaks. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no
+intro sting or riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no dialogue, nobody speaks, no
+voices, no muttering, no narration; no second person, no cleaner, no Dupe, no
+cart, no staff, no guards, no crowd — he is alone in the room; no running, no
+hurrying, no shuffling, no limping, no frailty, no comic speed, no sped-up
+motion, no slow motion; no camera movement of any kind, no pan, no tilt, no
+zoom, no dolly, no handheld, no reframing, no cut, no second angle; no
+four-panel layout, no grid, no split screen, no inset panel; no cracked wall,
+no crack, no brass plaque, no price plaque, no damaged wall anywhere in frame;
+no visitor looking at camera, no acknowledging the camera; no smartphones, no
+screens, no cameras, no modern technology.
+
+House negatives: no voiceover, no subtitles, no captions, no on-screen text, no
+readable text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. HIS PACE. Ordinary and unhurried, all the way through. This is the note the
+   CEO has given twice and it is the only reason to re-fire.
+2. He stops properly — settles in front of a piece and stands with it, rather
+   than slowing as he passes.
+3. ONE nod, at the first piece only. The second gets a longer look and no nod.
+4. Camera dead still for twelve seconds.
+5. He is alone. No Dupe, no cart, no cracked wall.
+File the take whatever the verdict.
+
+END POSITIONS, for whatever scene follows:
+- THE ELDERLY MAN is near the far side of the gallery, still walking, still
+  looking at the works, cane in his right hand.
+- The room is otherwise as it was — nobody else in it.
+
+=== END NOTES ===
