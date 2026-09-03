@@ -1,0 +1,146 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+IV2b-Fix1 · THE CRASH, RESTAGED · CEO 2026-09-03
+
+WHAT CHANGED AND WHY. IV2 already shot and filed as IV2-Fix1.MP4; that take
+stays on Drive and `s-interview.txt` stays exactly as it is. The CEO asked for
+the whip-pan gag to land somewhere better: the camera turns and finds THE FILM
+CREW WHO ARE SHOOTING THIS INTERVIEW — a camera pointed back at Dupe, two or
+three crew running the take, lights and grip gear — while the room behind them
+is still his enormous house.
+
+The old version turned and found a housekeeper with a dropped tray. The joke
+was slapstick. The new one is better and it is a different joke: the moment the
+camera turns, the audience learns this is a production, that Dupe has been
+performing sincerity into a lens the whole time, and that the film they are
+watching is being made by someone. Then the camera turns back and he carries on
+as if nothing happened, which is the same beat as before but now means
+something about him rather than about a dropped tray.
+
+The dropped object is kept — it is what motivates the whip — but the person who
+drops it is now one of the crew. That is exactly what the CEO asked for.
+
+⚠️ THIS FILE OVERRIDES A STANDING NEGATIVE. `s-interview.txt` bans camera
+equipment, microphones, booms and studio lighting in every clip, for good
+reason: the other four must never betray that a crew exists. IV2b is the single
+deliberate exception, and it is only an exception INSIDE the whip pan. Dupe's
+own locked frame stays clean — no gear, no crew, no cable, nothing. That is why
+this shot lives in its own file rather than as an edit to the shared one; a
+blanket edit would have leaked the crew into IV1, IV3, IV4 and IV5.
+
+Plate: @project_absence_char_dupe_interview_house — the same one all five clips
+used. No new plate, no image generation, nothing to approve.
+
+Word budget: 30 spoken words in 20s, unchanged from IV2. Well inside the
+measured 45-50 ceiling.
+
+Filing: All Scene/Fix-1/ as IV2b-Fix1.MP4. IV2-Fix1.MP4 is NOT replaced and NOT
+deleted — the editor decides which one the film uses.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · Sound On · High. LOCKED, then ONE WHIP PAN AND BACK — the
+only camera move in the shot.
+
+REFERENCES — each with its job:
+@project_absence_char_dupe_interview_house — THE FRAME ITSELF: Dupe seated dead
+  centre, medium shot from the chest up, in a well-cut dark suit, in his own
+  enormous retrofuturist house. Warm daylight, tall windows, sunken plum
+  seating, warm wood. Match it exactly. Take the framing and the room from it.
+
+He is calm and he is not comfortable. His hands stay together in his lap. He
+does not smile, does not perform, does not look pleased with himself. He speaks
+the way a man speaks when he has told the same true thing many times and it has
+never once been believed. Play every line flat.
+
+[0s] The locked frontal frame. Dupe alone, nothing else in shot with him — no
+equipment, no crew, no cable, no light stand, an ordinary clean interview
+frame. He looks straight into the lens and says, flatly: "I wasn't trying to do
+anything. I was going to dust it. That was all."
+
+[7s] Off screen, sharp and close: metal and glass hitting a hard floor. ONE
+FAST WHIP PAN sideways, three or four frames, the room smearing into horizontal
+streaks.
+
+[8s] It lands on THE FILM CREW WHO ARE SHOOTING THIS INTERVIEW, arranged dead
+centre and perfectly symmetrical in their own frame, exactly the way Dupe is
+composed in his. A PROFESSIONAL CINEMA CAMERA on a heavy tripod stands at the
+centre, pointed back the way we came — pointed at Dupe. Behind and beside it,
+THREE CREW: one at the camera with a hand still on the focus ring, one holding
+a small monitor, one standing over a dropped LIGHT STAND and a scattered lens
+cap and metal filter on the floor at their feet. Around them the working gear
+of a shoot: two tall LED panels on stands throwing the warm key we have been
+seeing all along, a white bounce card, a coiled cable on the floor, a
+clipboard. And behind all of it the room is unmistakably still his house —
+the same tall windows, the same warm daylight, the same sunken plum seating
+and warm wood.
+
+All three crew are frozen and all three are looking straight down the lens.
+Nobody moves. Nobody apologises. Nobody speaks. Hold two full seconds on them.
+
+[10s] ONE FAST WHIP PAN BACK, the same speed, landing on exactly the original
+frame with Dupe exactly as he was, alone and with nothing in shot beside him.
+
+[12s] His face has not changed. He continues as if nothing had happened: "I
+thought they were going to fire me. So I had to do something."
+
+[18s] Hold.
+
+AUDIO: room tone, distant birds through the tall windows. One sharp crash of
+metal and glass off screen at 7s, then complete silence for the two seconds the
+camera holds on the crew. No music. NO SOUND AT THE START OR THE END: the clip
+opens mid room-tone with no intro sting or riser, and simply stops with no
+tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, saturation high in flat
+planes but never touching skin, halation around every lamp. Photographed, not
+rendered: fine film grain, faint gate weave, slight colour fringing. Camera
+level throughout, including inside the whip pan.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no crew in Dupe's own frame,
+no camera in Dupe's own frame, no light stand or cable or monitor in Dupe's own
+frame, no crew member sharing a frame with Dupe at any point, no crew visible
+before 8s, no crew visible after 10s, no fourth crew member, no crowd; no
+housekeeper, no domestic uniform, no tray, no pastries, no food; no crew member
+moving, no crew member speaking, no crew member apologising, no crew member
+reacting, no laughing, no smiling; no exterior, no studio, no soundstage, no
+bare walls, no location that is not his house; no stage directions spoken
+aloud, no narration of the character's state, no speaking anything outside the
+quotation marks; no interviewer, no reporter, no second voice, no question
+audible or implied on the soundtrack; no cleaning cart, no white uniform on
+Dupe, no cap on Dupe, no gold V on Dupe; no jewellery, no watch; no smiling on
+Dupe, no laughing, no tears, no triumph, no shrugging, no winking; no zoom, no
+dolly, no crane, no handheld wobble, no second camera move, no reframing of any
+kind except the single whip pan out and the single whip pan back; no slow
+motion, no speed ramp.
+
+House negatives: no dialogue beyond the quoted lines, no voiceover, no
+narration, no subtitles, no captions, no on-screen text, no readable text, no
+signage, no logos, no music, no score, no duplicate faces, no smartphones, no
+screens except the small monitor held by one crew member, no LEDs except the
+two lighting panels, no dutch angle, no tilted horizon, no lens flare, no bokeh
+balls, no HDR, no CGI sheen, no plastic skin, no beauty filter, no dim moody
+lighting, no darkness, no night.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW CRITERIA, so a good take is not thrown away:
+- PASS needs: Dupe's locked frame clean at 0-7s and again at 10-20s; a camera
+  visibly pointed back at him inside the pan; two or three crew, frozen, facing
+  lens; the house still readable behind them.
+- The exact count of crew (2 or 3) is not worth a re-fire. The camera pointing
+  back at him is — without it the joke does not exist.
+- If gear leaks into Dupe's own frame, that IS worth a re-fire; it breaks the
+  other four clips' continuity.
+- File the take either way. Our verdict decides whether to re-fire, never
+  whether the editor gets the footage.
+
+=== END NOTES ===
