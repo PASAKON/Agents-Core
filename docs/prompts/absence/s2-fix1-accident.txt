@@ -1,0 +1,181 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2-Fix1 · THE ACCIDENT, RESTAGED · CEO 2026-09-03
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — the slider silently resets.
+
+🔒 DO NOT FIRE YET — CEO REF-VERIFICATION GATE, OPEN AS OF WRITING.
+The CEO's rule for this scene: it may use ONLY references that live in
+/Users/gob/Desktop/Fix-1-Elements/ and every one of them has been verified by
+the CEO's own eye, ID against image, on the live Elements panel. Four of the
+six Elements below were fetched for exactly that check and the CEO has not yet
+cleared them:
+    project_absence_prop_cart · prop_cart_b ·
+    project_absence_prop_valder_study_b · project_absence_loc_wall_pov_e
+The CTO strikes this block and re-commits when the CEO clears them. If this
+block is still here, the scene is not cleared.
+
+WHAT THIS FILE IS. A Fix-1 round scene, descended from `s2-accident.txt`,
+which stays exactly as it is. It retells the accident with cuts — the original
+is one locked shot with a single snap zoom; this version cuts twice and ends
+on a held closing frame the original does not have. Filing: All Scene/Fix-1/
+as S2-Fix1.MP4. The original scene's takes keep their own names; nothing is
+replaced.
+
+THE CEO'S BEATS, restated: Dupe cleans, an ordinary day. He finds the painting
+on the wall hanging tilted. He steps in and straightens it. It falls. The wall
+cracks — the crack copying the reference plate exactly. The camera zooms to
+the crack. CUT to Dupe's shock. He puts the painting on his cart and hurries
+it out of frame, away from camera; the camera does not follow. End on the
+2,000,000 plaque straight-on and the cracked wall.
+
+TWO CART ELEMENTS, ONE CART. The CEO asked for both states of Dupe's old cart:
+empty rack before the fall, painting standing in the rack after. Each Element
+governs its own span of time and they are the SAME single object — the prompt
+says so and the negatives ban a second cart. If the take comes back with two
+carts in frame, that is the defect to report.
+
+SIZE CONTINUITY IS THE HILL THIS SCENE DIES ON (CEO, verbatim intent): the
+painting is the same object at the same size on the wall and on the cart, and
+it never changes size, เด็ดขาด. The original S2 shipped takes with the wall
+copy larger than the cart copy; the CEO has called it out twice. Judge this
+first on review.
+
+PLAQUE CONTINUITY (CEO 2026-09-03, standing): the brass plaque NEVER moves,
+never falls, stays screwed to the wall for the rest of the film. The closing
+frame depends on it — a cracked wall with a price plaque under it reads as a
+work of art with a price; a cracked wall alone reads as damage.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · A LOCKED WIDE with ONE zoom and TWO cuts, exactly as
+timed below — no other camera movement anywhere. Sound On · High.
+
+REFERENCES — each with a job:
+@loc_hall_big_e — the hall only: white walls, orange cove light, terracotta
+  terrazzo, chromium columns. Not the framing.
+@project_absence_char_cleaner_c — Dupe: face, build, white uniform with
+  orange trim, cap, gold V at cap and chest.
+@project_absence_prop_cart — the cart BEFORE the fall: mop, orange bucket,
+  bottles, folding ladder, gold V, and the rack EMPTY. This is the only cart
+  in the scene and it governs every frame before [14s].
+@prop_cart_b — the SAME cart AFTER the fall, from [14s] on: identical in
+  every part, now with the painting standing upright in the rack, face
+  outward. Not a second cart — the same object later in time.
+@project_absence_prop_valder_study_b — THE PAINTING, face and proportions: a
+  LANDSCAPE canvas, very slightly wider than tall (~1.1:1, roughly 80 cm wide
+  × 72 cm tall), thin black frame, flat matte geometric blocks in rust red,
+  burnt orange, ochre, cream, sage green, dusty pink, one black wedge. No
+  impasto, no brush texture.
+@project_absence_loc_wall_pov_e — THE CRACK'S EXACT SHAPE ONLY: a small
+  STAR-SHAPED break, an irregular dark opening at the centre where a little
+  plaster has come away, about five long thin clean cracks radiating outward,
+  unequal in length, each slightly kinked, bare wall between them. Copy this
+  star exactly — it appears in every other scene and must match. Take nothing
+  else from this reference: not its framing, not its light.
+
+THE PAINTING IS ONE OBJECT AT ONE SIZE. On the wall it is a SMALL picture —
+the wall dwarfs it, Dupe standing beside it is clearly taller than it — and
+when it stands in the cart's rack it is EXACTLY that same size, never scaled
+down to fit the cart, never enlarged on the wall. If the two sizes differ the
+shot is wrong.
+
+[0s] Locked wide, waist height, perpendicular to the hero wall, the frame
+symmetrical about the wall's centreline. On the wall: ONE SMALL LANDSCAPE
+PAINTING, and beneath it a SMALL BRASS PLAQUE reading THE ABSENCE OF MEANING /
+Valder / 2,000,000. The painting hangs VISIBLY CROOKED — the only asymmetry in
+a perfect frame. Early morning, museum empty. Dupe works his ordinary morning
+round: cloth in hand, wiping along the wall, his cart standing beside him with
+its rack empty. Nothing about the day is special yet.
+
+[5s] He notices the tilt. He does not take the painting down, does not lift it
+off its hook. He reaches up with both hands and gently pushes one corner to
+STRAIGHTEN it — a small, careful, well-meant adjustment.
+
+[8s] The painting comes off its fixing on its own, drops, strikes the floor
+and ends leaning on its bottom edge, frame intact. The brass plaque does not
+move — the painting falls clear of it and the plaque stays screwed to the
+wall, level and undisturbed. One sound: a dry crack of plaster. The instant it
+lands, ONE FAST ZOOM into the wall where it hung — THE CRACK, exactly as the
+crack reference draws it: the small dark star, a broken opening at the centre,
+about five long thin clean arms, unequal, slightly kinked, bare white wall
+between them, small as a hand on an enormous wall. Hold the crack a full beat.
+
+[12s] CUT — close on Dupe. Shock, held still: eyes wide, breath caught, a man
+watching his ordinary morning end. One beat, no dialogue.
+
+[14s] CUT back to the locked wide. He moves fast now: picks the painting up
+and SLOTS IT UPRIGHT INTO THE CART'S RACK, face outward, at exactly the size
+it was on the wall, and hurries the cart away from camera, deeper into the
+hall, wheels loud on the terrazzo. THE CAMERA DOES NOT FOLLOW — it stays
+locked as he shrinks into the distance and leaves.
+
+[17s] The room, empty. Then the shot settles into its final framing: the wall
+STRAIGHT-ON — the small star crack, and directly beneath it THE BRASS PLAQUE,
+level, untouched, reading THE ABSENCE OF MEANING / Valder / 2,000,000. Hold
+that pairing — crack above, price below — one beat longer than is
+comfortable. Nothing moves. End.
+
+AUDIO: room tone, cloth on wall, cart wheels, one dry crack of plaster,
+hurried wheels receding, then silence on the final frame. No music. NO SOUND
+AT THE START OR THE END: the clip opens mid room-tone with no intro sting or
+riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age,
+hair and clothing, and no face is repeated anywhere; no opening sound, no
+intro sting, no whoosh, no riser, no closing sound, no outro, no final chord,
+no audio tail, no fade-in or fade-out on the sound; no second cart, no two
+carts in any frame, no cart duplicated, no painting duplicated, no two
+paintings; no change in the painting's size between wall and cart, no
+oversized painting, no painting larger than shoulder-height on Dupe, no
+painting dominating the wall, no portrait canvas, no square canvas, no heavy
+impasto, no brush texture; no dense spiderweb of fine lines, no meshed
+hairline cracks, no concentric rings, no dozens of small cracks, no
+full-height fracture, no crack running to floor or ceiling, no hole, no
+crater, no rubble, no invented crack shape, no crack bigger than a hand; no
+plaque falling, no plaque moving, no plaque leaving the wall, no bare wall
+without the plaque in the final frame; no camera following the cart, no
+tracking shot, no dolly, no pan after the exit, no camera move except the one
+zoom and the two cuts written above; no Dupe lifting the painting off its
+hook on purpose, no other people, no broken frame, no torn canvas, no ladder
+climbing, no painting left on the floor at the end, no painting back on the
+wall.
+
+House negatives: no dialogue, no voiceover, no narration, no subtitles, no
+captions, no readable text anywhere except the brass plaque, no music, no
+score, no gold V on anyone but Dupe and his cart, no glass, no debris, no
+dust cloud, no structural damage, no smartphones, no screens, no modern
+technology, no dutch angle, no handheld wobble, no slow motion, no lens
+flare, no HDR, no CGI sheen, no plastic skin, no beauty filter, no dim moody
+lighting, no darkness, no night, no ultramarine walls, no blue walls, no
+wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER, strictest first:
+1. SIZE — wall painting vs cart painting, the same object at the same size.
+   The CEO has rejected takes for this twice; measure it against Dupe's
+   height in both places before judging anything else.
+2. PLAQUE — on the wall, level, in every frame including the last.
+3. CRACK — the star from the plate: dark centre, ~five clean arms. Few clean
+   arms = PASS. A mesh of many fine lines, rings, a wall-splitting fracture,
+   or a crater = FAIL. (This criterion wrongly rejected three takes on the
+   original S2 — do not reject a take FOR being a star.)
+4. ONE CART — never two, even across the element handover at [14s].
+5. CAMERA — locked wide, one zoom, two cuts, no follow on the exit.
+File the take whatever the verdict, named S2-Fix1.MP4; the verdicts decide
+re-fires, the editor decides usability.
+
+=== END NOTES ===
