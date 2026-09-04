@@ -118,6 +118,31 @@ becomes
 Nothing else moves: the Element list, the position map, the negatives and the
 scaffolding clause are all unchanged, and the reference cap is unaffected.
 
+## When the upload is down — the CEO's escalation ladder
+
+CEO, 2026-09-05, after the video-reference upload hung for two and a half hours
+and stopped the whole queue. The queue keeps moving; degraded blocking beats no
+footage.
+
+1. **Try with the previz.** Attach it and wait — **10 to 20 minutes, no more.**
+2. **If it has not resolved, stop that clip and move on.** Do not retry with
+   another file, another tab, or a remux. That ground is covered: task-c6bec902
+   spent half an hour proving three files across two tabs all hang, and a
+   faststart remux changes nothing.
+3. **Next task, try the previz again.** The outage is intermittent — the same
+   file uploaded fine at 21:00 and hung at 02:00, 02:30 and 03:38.
+4. **If that one also passes 10-20 minutes: FIRE WITHOUT THE PREVIZ.**
+
+Firing without it is a real cost, not a free win — the previz is where camera
+position and blocking come from, and prose does not carry blocking the way it
+carries costume. Expect the framing and the marks to drift, flag the take
+accordingly, and file it like any other. The editor decides what is usable.
+
+Prefer the small files when probing: `S2O-Render.MP4` is 3.6 MB, against a
+median of 1.47 MB and a maximum of 6.13 MB (`S2PB-Render.MP4`) across the 56
+previz. Size is not the cause — the identical file uploaded fine six hours
+before it started hanging — but there is no reason to probe with the largest.
+
 ## Roll it out on one clip first
 
 Before 24 sheets are rewritten, one previz goes up as an Element and one clip
