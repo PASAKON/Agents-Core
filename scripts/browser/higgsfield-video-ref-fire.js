@@ -63,6 +63,42 @@ async function higgsfieldVideoRefSetup({ promptTextBase64, durationSeconds }) {
   return { pasted: text.length, editorsFound: editors.length };
 }
 
+// GOTCHA (2026-09-04, task-12f2bb1f, S2M/S2N/S2O wave): the "@Video" text
+// trigger's "Video 1" dropdown entry does NOT reliably bind to whatever is
+// currently attached in the reference strip. Measured repeatedly in a tab
+// that had touched more than one video asset: selecting "Video 1" from the
+// @-trigger re-attached a DIFFERENT, earlier-touched asset, silently
+// swapping the strip's chip out from under you — with no error, no visual
+// difference in the chip, and a plausible-looking @Video 1 tag in the text.
+// The strip can show the right thumbnail one second and the wrong cloudfront
+// URL the next, purely from typing "@Video" and clicking the dropdown entry.
+//
+// Verify the ACTUAL bound asset by src, not by trusting the chip or the tag:
+//   [...document.querySelectorAll('video')]
+//     .map(v => { const r = v.getBoundingClientRect();
+//                  return {src: v.src, visible: r.width > 0}; })
+//     .filter(v => v.visible)
+// Do this immediately after selecting "Video 1" from the dropdown, and again
+// immediately before Generate. If the src doesn't match the asset id you
+// intended (cross-check via a HEAD request's content-length against the
+// local file's byte size), remove the reference (hover -> X on the strip
+// chip — this removes both the strip attachment AND the text mention
+// together) and re-attach the correct asset from the Uploads panel by exact
+// ref (via read_page's button "<asset-id>" entries), not by clicking the
+// dropdown's "Video 1" a second time — the same trigger reproduces the same
+// wrong binding.
+//
+// Separately, and worse: two independent video-reference uploads in this
+// same wave (S2N-Render.MP4, then S2O-Render.MP4 in a completely fresh tab)
+// never verified server-side at all — confirmed via a fresh-tab check of
+// Videos sorted "Last created" plus the project's "All assets" count staying
+// flat, after 30+ minutes and 11+ minutes respectively. S2M's own upload
+// (same wave, same account) DID eventually verify within ~4 minutes. This
+// looks like an intermittent platform-side upload-pipeline issue, not a
+// per-file or per-technique problem — don't assume a stuck upload will
+// clear itself by retrying the same way twice; escalate after the second
+// attempt per the skill's hard rule.
+
 // Verification, run before every Generate click:
 function verifyBeforeGenerate() {
   const mentions = [...document.querySelectorAll('[contenteditable="true"] span, [contenteditable="true"] a')]
