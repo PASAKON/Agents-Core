@@ -120,8 +120,15 @@ been solved by leaving.
 [10s] A PUBLIC ADDRESS ANNOUNCEMENT begins, a calm recorded woman's voice over
 the museum speakers, warm and unhurried: "Good morning. The Valder Collection
 opens to visitors in five minutes." HE STOPS DEAD where he stands, mid-stride,
-and listens to all of it without moving a muscle. He does not look at the
-camera. He just listens.
+and listens to all of it without moving a muscle.
+
+HIS BODY STAYS TURNED THE WAY HE WAS WALKING — he freezes mid-stride and does
+not square up to the room, so he is caught in three-quarter profile, never
+front-on. AND HIS EYES GO TO THE CART, and stay on the cart for the whole
+announcement. Not to the ceiling, not into the middle distance, not forward:
+on the cart with the painting in it, because that is the thing the
+announcement has just put a clock on. He listens to a voice from above while
+staring at the object that is going to end him.
 
 [14s] The announcement ends. He starts again, and it is worse now — the
 crossings shorter and tighter than before, less like thinking and more like
@@ -181,6 +188,14 @@ REVIEW ORDER, strictest first:
    not. If he never exits, the emptiness the scene is built on is missing.
 3. HE STOPS DEAD for the whole announcement. A take where he keeps pacing
    through it has thrown away the beat.
+3b. AND CHECK HIS EYES DURING THAT FREEZE, frame by frame. Take 2 passed every
+   other item on this list and failed here: at about 11 s he stood square to
+   the room and looked straight into the lens. The freeze is the one moment he
+   is still enough to do it, and "he does not look at the camera" was a
+   prohibition with nothing put in its place. He now has somewhere specific to
+   look — the cart — and a body angle that makes front-on wrong. If a take
+   still finds the lens on this beat, the fix is a different one and not more
+   negatives.
 4. NO CRACKED WALL IN SHOT. This is the CEO's reason for the new angle; a take
    that finds its way back to the hero wall defeats the point of shooting it.
 5. THE CART NEVER MOVES and the painting stays in the rack at its true size.
