@@ -57,11 +57,17 @@ if cart:
 
 cam_d = bpy.data.cameras.new("CAM_S2O"); cam_d.lens = 28
 cam = bpy.data.objects.new("CAM_S2O", cam_d); sc.collection.objects.link(cam); sc.camera = cam
-cam.location = (0.20, -13.60, 1.72)    # B ANGLE: out in the hall, behind the group
+cam.location = (0.20, 10.00, 1.72)     # B ANGLE (CEO 2026-09-04): 180 deg opposite
+# the A camera, standing ON Valder's path. Measured 2026-09-04: the hall interior
+# is y -22.10..+22.10 with the red-door end wall at 21.90, so +24 was INSIDE that
+# wall and rendered solid brown. Valder starts at 20.5, ten metres behind the lens;
+# he walks past it and on down the room to Carrington at y=-3, so we get his back
+# for most of the clip. The action in this scene runs along the length of the room,
+# not across it, which is why a camera facing the broken wall saw nothing.
 # AIM WITH A CONSTRAINT, NOT WITH TYPED EULERS. Hand-typed angles have missed
 # on this project four times; a TRACK_TO at a fixed empty has never missed.
 aim = bpy.data.objects.new("s2ob_aim", None); sc.collection.objects.link(aim)
-aim.location = (0.0, -21.82, 2.20)            # the break itself, not Dupe
+aim.location = (0.0, -3.00, 1.55)             # down the room, where Carrington waits
 trk = cam.constraints.new('TRACK_TO'); trk.target = aim
 trk.track_axis = 'TRACK_NEGATIVE_Z'; trk.up_axis = 'UP_Y'
 

@@ -64,8 +64,15 @@ if cart:
 
 cam_d = bpy.data.cameras.new("CAM_S2RB"); cam_d.lens = 35
 cam = bpy.data.objects.new("CAM_S2RB", cam_d); sc.collection.objects.link(cam); sc.camera = cam
-cam.location = (0.20, -13.60, 1.72)        # in the hall, behind the group
-cam.rotation_euler = (R(92), 0, R(180))    # looking BACK at the wall along -y
+# B ANGLE (CEO 2026-09-04): the far end, 180 deg opposite the A camera. The
+# bidders stand at y=-3; from this side Carrington reads on the RIGHT and the
+# Madame on the LEFT, mirrored from the A angle, Valder still between them, all
+# three seen from behind. Dupe sits at y=1.6 and lands in the near foreground,
+# watching the whole thing over their heads. A camera facing the broken wall
+# gave an empty wall — nobody in this scene is anywhere near it.
+cam.location = (0.00, 7.00, 1.66)
+cam.rotation_euler = (R(92), 0, R(180))    # looking back down the hall along -y
+cam_d.lens = 30                            # match the A angle
 for who, ob in (("GENTLEMAN", gent), ("MADAME", madame), ("VALDER", valder),
                 ("REGISTRAR", regis), ("BODYGUARD", bguard), ("DUPE", dupe)):
     tag_label(col, who, ob, cam, prefix="s2rb")

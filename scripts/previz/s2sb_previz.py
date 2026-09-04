@@ -80,8 +80,18 @@ gran.location = (0.0, 0.0, 0.52)                  # sitting on the seat
 
 cam_d = bpy.data.cameras.new("CAM_S2SB"); cam_d.lens = 35
 cam = bpy.data.objects.new("CAM_S2SB", cam_d); sc.collection.objects.link(cam); sc.camera = cam
-cam.location = (0.20, -13.60, 1.72)        # in the hall, behind the group
-cam.rotation_euler = (R(92), 0, R(180))    # looking BACK at the wall along -y
+# B ANGLE (CEO 2026-09-04): the far end, 180 deg opposite the A camera, and the
+# one place this angle beats its A twin outright. The grandmother sits at y=16
+# and the whole party is 19 m beyond her at y=-3, so from here we are BEHIND
+# HER: her back and her chair fill the near foreground, and the entire room is
+# small and far away, facing her. We hear a hundred million from a few feet away
+# and watch it land on twelve people down the hall.
+# Measured 2026-09-04: hall interior y -22.10..+22.10, red-door end wall at 21.90.
+# 22.00 was inside that wall and rendered solid brown. 20.80 clears it by 1.1 m and
+# still sits 4.8 m behind the grandmother at y=16.
+cam.location = (0.30, 20.80, 1.66)
+cam.rotation_euler = (R(92), 0, R(180))    # looking back down the hall along -y
+cam_d.lens = 30                            # match the A angle
 for who, ob in (("GENTLEMAN", gent), ("MADAME", madame), ("VALDER", valder),
                 ("GRANDMOTHER", gran), ("REGISTRAR", regis), ("DUPE", dupe)):
     tag_label(col, who, ob, cam, prefix="s2sb")

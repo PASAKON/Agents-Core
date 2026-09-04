@@ -66,8 +66,16 @@ if cart:
 # at once. A wide lens here would make her a dot that suddenly balloons.
 cam_d = bpy.data.cameras.new("CAM_S2QB"); cam_d.lens = 35
 cam = bpy.data.objects.new("CAM_S2QB", cam_d); sc.collection.objects.link(cam); sc.camera = cam
-cam.location = (0.20, -13.60, 1.72)        # in the hall, behind the group
-cam.rotation_euler = (R(92), 0, R(180))    # looking BACK at the wall along -y
+# B ANGLE (CEO 2026-09-04): the far end, 180 deg opposite the A camera. She
+# enters at y=19 and walks the runway toward y=-8, so from here she sets off
+# almost under the lens and walks AWAY from us the whole twenty seconds, with
+# the party lining the columns on both sides in front of her. Long lens kept, so
+# the hall still compresses. A camera facing the broken wall gave an empty wall.
+# Measured 2026-09-04: hall interior y -22.10..+22.10, red-door end wall at 21.90.
+# +24 was inside that wall and rendered solid brown. 20.80 is 1.1 m clear of it.
+cam.location = (0.20, 20.80, 1.58)
+cam.rotation_euler = (R(92), 0, R(180))    # looking back down the hall along -y
+cam_d.lens = 35                            # she starts 1.8 m out; 50 mm would be all coat
 for who, ob in ([("MADAME", madame), ("DUPE", dupe)] +
                 [(n, o) for (n, _, _, _), o in zip(LEFT + RIGHT, standing)]):
     tag_label(col, who, ob, cam, prefix="s2qb")

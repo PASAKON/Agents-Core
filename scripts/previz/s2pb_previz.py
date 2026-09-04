@@ -67,9 +67,13 @@ if cart:
 # and the procession spans 7.8 m, so nobody clips out at either end.
 cam_d = bpy.data.cameras.new("CAM_S2PB"); cam_d.lens = 35
 cam = bpy.data.objects.new("CAM_S2PB", cam_d); sc.collection.objects.link(cam); sc.camera = cam
-cam.location = (0.20, -13.60, 1.72)        # in the hall, behind the group
-cam.rotation_euler = (R(92), 0, R(180))    # looking BACK at the wall along -y
-cam.location = (-5.40, BASE - 1.00, 1.70)   # hall is x -6.0..+6.0; -10.5 was outside it
+# B ANGLE (CEO 2026-09-04): the far end, 180 deg opposite the A camera, and
+# LOCKED. The tour walks 14 m from BASE toward +y, so the camera stands behind
+# where they start and they walk AWAY down the room — backs the whole clip,
+# which is what the CEO asked this angle for. A camera facing the broken wall
+# lost them inside four seconds.
+cam.location = (0.20, BASE - 7.00, 1.70)   # 7 m behind the head of the procession
+cam.rotation_euler = (R(90), 0, 0)         # level, looking along +y after them
 
 for ob, _, _ in people:
     tag_label(col, ob.name.split("_", 1)[-1], ob, cam, prefix="s2pb")
@@ -90,10 +94,9 @@ if cart:
     key(cart, 1,   -0.15, BASE - 6.20)
     key(cart, 480, -0.15, BASE - 6.20 + TRAVEL)
 
-sc.frame_set(1);   cam.location = (-5.40, BASE - 1.00, 1.70)   # hall is x -6.0..+6.0; -10.5 was outside it
-cam.keyframe_insert("location", frame=1)
-sc.frame_set(480); cam.location = (-5.40, BASE - 1.00 + TRAVEL, 1.70)
-cam.keyframe_insert("location", frame=480)
+# NO CAMERA KEYFRAMES ON THE B ANGLE. The A version tracks with the group; this
+# one is locked and lets them walk out of it. Leaving the old keyframes here is
+# what made the first B render come back as a copy of the A shot.
 
 # LINEAR on everything. Blender's default bezier eases in and out of every
 # channel, and an eased lateral track is the one thing that cannot look like
