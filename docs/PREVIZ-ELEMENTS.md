@@ -124,14 +124,27 @@ CEO, 2026-09-05, after the video-reference upload hung for two and a half hours
 and stopped the whole queue. The queue keeps moving; degraded blocking beats no
 footage.
 
-1. **Try with the previz.** Attach it and wait — **10 to 20 minutes, no more.**
-2. **If it has not resolved, stop that clip and move on.** Do not retry with
-   another file, another tab, or a remux. That ground is covered: task-c6bec902
-   spent half an hour proving three files across two tabs all hang, and a
-   faststart remux changes nothing.
-3. **Next task, try the previz again.** The outage is intermittent — the same
-   file uploaded fine at 21:00 and hung at 02:00, 02:30 and 03:38.
-4. **If that one also passes 10-20 minutes: FIRE WITHOUT THE PREVIZ.**
+**No clip is ever skipped, and every clip gets its own upload attempt.** Run
+this loop per clip, for as long as the outage lasts:
+
+1. **Attach the previz and wait — 10 to 20 minutes, no more.**
+2. **If it resolves:** fire normally, with the previz. The outage is over for
+   now; keep using it on every following clip until it hangs again.
+3. **If it has not resolved: FIRE THAT CLIP ANYWAY, WITHOUT THE PREVIZ.** Do
+   not skip it and do not park it. Flag the take, file it, move on.
+4. **On the next clip: RELOAD THE PAGE ONCE**, then go back to step 1.
+
+Do not retry the same clip with another file, another tab, or a remux —
+task-c6bec902 spent half an hour proving three files across two tabs all hang
+and that a faststart remux changes nothing. One attempt per clip is the whole
+budget; the retry is the *next* clip, which is why the loop never stalls.
+
+⚠️ **RELOAD THE TAB. DO NOT RESTART CHROME.** Restarting it once tonight brought
+Higgsfield back **logged out** and cost the queue several hours (task-2df7d670).
+A page reload is free; a browser restart needs the CEO to sign in again.
+
+Because each clip retries independently, the moment the endpoint recovers the
+very next clip picks it up automatically — nobody has to notice or intervene.
 
 Firing without it is a real cost, not a free win — the previz is where camera
 position and blocking come from, and prose does not carry blocking the way it
