@@ -1,0 +1,257 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2N-B · FIVE MILLION — REVERSE ANGLE · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — Unlimited ON as the FIRST action in the composer,
+before typing or binding anything, then zoom the Generate button and confirm
+ZERO digits before every click.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — it defaults to 5s silently.
+
+WHAT THIS IS. The CEO's 2026-09-04 ruling: every scene in this stretch gets TWO
+angles, sixteen clips in total.
+
+  A — camera INSIDE the wall, looking out through the break. Carrington and his
+      bodyguard enter on the right and are seen. Location: loc_wall_pov_e.
+  B — THIS ONE. Camera out in the gallery, BEHIND the group, looking back at
+      the broken wall. Location: loc_hall_big_d. Cut as JUMP CUTS.
+
+⚠️ READ THIS BEFORE ANYTHING ELSE — THIS ANGLE IS A REACTION SHOT. The side
+door Carrington comes through is at y = −2.65 in the previz; this camera stands
+at y = −13.6 facing the other way. THAT PUTS HIM AND HIS BODYGUARD BEHIND THE
+LENS FOR THE WHOLE CLIP. They are HEARD and never SEEN. The registrar walks
+away from the wall, straight past the camera, and out of shot.
+
+That is not a defect and it is not to be "fixed" by swinging the camera round.
+It is what this angle buys the editor: the five million arrives out of nowhere,
+and we watch it land on six backs. Check the previz — nobody enters frame.
+
+⚠️ WHAT MAKES THE GROUP TURN. The CEO's rule is most backs, not all backs, and
+it depends on what each person is doing. Here the context turns them: a voice
+comes from behind the camera, so at 6s the whole group turns AROUND toward the
+lens in a ragged ripple. Backs for six seconds, then faces. That reversal is
+the shot.
+
+⚠️ THIS ANGLE IS CUT, NOT HELD. Three hard jump cuts: the camera never moves
+and the framing never changes, but time skips.
+
+⚠️ ONE LOCATION ELEMENT ONLY. Three room pictures exist, one per camera
+position: loc_wall_pov_e (inside the wall), loc_hall_big_e (outside, toward the
+red door), loc_hall_big_d (outside, facing the wall with the plaque). Binding
+two in one scene confuses the model completely. This is the third kind.
+
+⚠️ REFERENCE ECONOMY. Carrington and the bodyguard are never on screen, so do
+NOT bind gentleman_e or char_guard_private_v2 here. Their voices are described
+in text. Binding a character who never appears is how a seventh person gets
+invented.
+
+Previz: docs/S2NB-Render.MP4 — 1280x720 / 480 frames / 20.0s.
+
+Filing: All Scene/Fix-1/ as S2N-B-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9. The camera is LOCKED and never moves, never pans, never
+zooms — but the shot is CUT: three hard jump cuts inside the same unchanging
+frame. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE BLACK MARK YOU SEE IN THE REFERENCE VIDEO IS SCAFFOLDING, NOT ART. The grey
+previz carries a crude black shape standing in for the break, purely to say
+WHERE it is and that nobody may block it. Do not copy that shape, its edges or
+its texture. The break's real appearance comes ONLY from the still image
+reference, which is the authority on it.
+
+THE FRAME, unchanging for twenty seconds: the camera stands out in the gallery,
+BEHIND the group, at chest height, looking back toward the wall. We see the
+people from behind, and past them THE WALL with the break on it and the brass
+plaque beneath. Chromium trumpet columns stand on both sides, warm orange cove
+light along the ceiling, polished terracotta terrazzo underfoot.
+
+THIS IS A REACTION SHOT. Two men are speaking from somewhere BEHIND THE CAMERA
+and NEITHER OF THEM IS EVER SEEN. No part of them enters the frame — not a
+shoulder, not a shadow, not a reflection. We only ever watch what their voices
+do to the people at the wall.
+
+NOTHING BLOCKS THE BREAK. The people stand to either side of the line between
+the lens and it, and it is visible over and between their shoulders throughout.
+
+THE COMPLETE CAST VISIBLE IN THIS SHOT IS SIX PEOPLE AND NOT ONE MORE. Two more
+are heard and never seen. There are no extras in this film. No bystanders, no
+other visitors, no gallery staff, no security guards, no reporters, no
+journalists, nobody holding a camera, nobody filming, nobody in the background,
+nobody walking through. If a figure is not named below it must not exist.
+
+AT ANY ONE MOMENT ONLY THREE PEOPLE ARE DOING SOMETHING. The rest are alive but
+idle — shifting weight, folding arms, tilting a head, breathing. Nobody stands
+frozen waiting for a cue, and nobody does anything the scene has not given
+them.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the BLUE figure labelled COLLECTOR_A = @project_absence_char_woman
+- the YELLOW-GREEN figure labelled STUDENT = @project_absence_char_student_c
+- the BROWN figure labelled WIFE = @project_absence_char_visitor_b
+- the ORANGE figure labelled MAN_A = @project_absence_char_visitor_a
+- the MAGENTA figure labelled CRITIC = @project_absence_char_critic_b
+- the BLACK figure labelled REGISTRAR = @char_registrar, who leaves early
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@project_absence_loc_hall_big_d — THE ROOM AND THE WALL, and the only location
+  reference here: warm cream walls, orange cove light on the ceiling, polished
+  terracotta terrazzo, chromium trumpet columns, white plinths, the collection
+  on display, and the WALL the group is facing with its brass plaque beneath
+  the break. Take the room's surfaces, light and dressing from it. It is a
+  four-panel sheet — take NOTHING of its arrangement or layout, and never
+  reproduce a grid.
+  THE BREAK, read off that picture exactly: a star-shaped mark whose centre is
+  a SOLID BLACK ARROWHEAD POINTING DOWN, broad at the top, tapering to a point
+  at the bottom, with a short HOOKED SPUR curling off its upper right like a
+  comma and a notch at its upper left. FOUR long arms leave it and no more: one
+  rising at 12 o'clock with a single oval bead a third of the way up; the
+  longest and heaviest climbing toward 1:30, lumpy and kinked once; one running
+  down-left at 9:30, thinner, ending in a fine point; one falling down-right at
+  4:30 that kinks partway and throws a small barb near its needle-sharp end.
+  Every arm is BEADED — swelling into small dark lozenges and pinching back to
+  a hairline several times along its length, never a smooth taper.
+  THE BREAK APPEARS EXACTLY ONCE, on that one wall, and no other surface in the
+  room is damaged.
+@project_absence_char_woman — THE YOUNG COLLECTOR: a young woman, dark hair
+  pinned up with loose strands, an oversized cobalt-blue wool overcoat with
+  wide lapels and a small gold V pin, a striped collar and dark green knit
+  beneath, a pearl cluster necklace, brown-checked midi skirt, black tights,
+  dark brown loafers. She wears NO glasses of any kind.
+@project_absence_char_student_c — THE ART STUDENT: young, short curly acid
+  yellow-green hair, paint-spattered denim overshirt over a white tee, dark
+  work trousers, worn trainers, a black hardback sketchbook under one arm.
+@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, chin
+  length brown bob, long tawny-brown fur coat over a rust-red shift dress.
+@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
+  hair, deep maroon leather suit with a stand collar, dark brown shoes.
+@project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
+  silver-streaked hair swept up, full-length deep magenta fur coat, long cream
+  gloves, gold bracelets, cream heels.
+@char_registrar — THE REGISTRAR: a man of about sixty, grey hair combed flat, a
+  cream stand-collar tunic suit with a fine orange piped edge and a small gold V
+  on the chest, white gloves, cream shoes, a dark brown leather ledger and a pen.
+
+THE TWO VOICES, heard and never seen: an elderly man, unhurried, pleasant and
+faintly amused, who speaks from far behind the camera and is never in shot; and
+the registrar's own voice once he has walked out of frame.
+
+[0s] NOBODY HAS MOVED. Five people stand with their backs to us facing the
+wall — the young woman in the blue coat, the art student, the woman in the
+tawny fur, the woman in magenta, the elderly man in maroon. The registrar is at
+their left, half-turned, ledger closed, a step already begun.
+
+[1s] A HEAVY DOOR OPENS SOMEWHERE BEHIND THE CAMERA. Nothing in the frame
+changes. Two sets of footsteps come a short way into the room and stop.
+
+[3s] AN ELDERLY MAN'S VOICE, from far behind the lens, unhurried and pleasant
+and pitched to carry the whole length of the gallery: "Five million." A pause,
+and then, amused, as if repeating a small joke to himself: "I will give you
+five million for it."
+
+[6s] THE GROUP TURNS AROUND TOWARD THE CAMERA. Not fast and not together — a
+ragged ripple, one after another, the way real people turn when a voice comes
+from behind them. Now we see their faces for the first time. THE YOUNG WOMAN IN
+BLUE TURNS LAST, and her face has nothing on it. Nobody says a word.
+
+[8s] HARD CUT. Time has jumped. THE REGISTRAR HAS ABANDONED HER. He is walking
+fast toward the camera, ledger clutched to his chest, growing in the frame, and
+he never once looks back at the woman he was serving thirty seconds ago. He
+does not run.
+
+[11s] HARD CUT. He is gone — walked straight past the lens and out of shot. The
+five are left alone in the frame, still turned toward the camera, still looking
+past it at something we cannot see. The art student has half raised her
+sketchbook and stopped.
+
+[14s] From off screen, out of breath and much closer to the voices now, the
+registrar says: "Forgive me, sir. May I take your name?" A pause. The elderly
+man's voice answers with one unhurried word: "Carrington."
+
+[16s] HARD CUT. Time has jumped again. The five have begun to drift back toward
+the wall, not all at the same moment — the woman in magenta first, the man in
+maroon last, the young woman in blue still facing the camera and still holding
+whatever it is she is holding in.
+
+[17s] Off screen the registrar's manner collapses into delighted flattery,
+nodding audible in his voice: "Mr Carrington. Of course. You did not tell us
+you were coming today — I would have received you properly. I will contact Mr
+Valder at once."
+
+[19.5s] Hold on the five and the wall. Cut.
+
+AUDIO: room tone, a heavy door opening far behind the camera, two sets of
+unhurried footsteps that stop, then the registrar's hurried footsteps crossing
+the room and passing the lens. THREE speakers, only one of whom is on screen:
+the elderly man's two lines and his one-word name, all from behind the camera;
+the registrar's two lines, both delivered after he has left frame. The five say
+nothing at all. NO SOUND AT THE START OR THE END: the clip opens mid room-tone
+with no intro sting or riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no elderly man in a white suit
+on screen, no man with a cane on screen, no bodyguard on screen, no large man
+in black on screen, nobody entering the frame from behind the camera, no
+shoulder or arm or shadow or reflection of the two speakers, no cutaway to
+them, no reverse angle; no seventh person, no extra, no bystander, no other
+visitor, no gallery staff, no security guard, no reporter, no journalist,
+nobody holding a camera, nobody filming, no crowd, no children, nobody walking
+through; no person blocking the break, nobody standing on the line between the
+lens and the wall; no whole group turning in unison, no drill, no synchronised
+movement; nobody standing frozen, nobody waiting motionless for a cue; no
+camera movement of any kind, no pan, no tilt, no zoom, no dolly, no handheld,
+no reframing, no change of framing at any cut; no running, no hurrying beyond a
+fast walk, no sped-up motion, no slow motion; no gasping, no hand over the
+mouth, no recoiling, no smiling, no laughing, no applause; no money, no card,
+no contract, no papers exchanged, no visible figures written on screen; no
+second crack, no mark on any other wall; no plaque falling, no plaque moving;
+no four-panel layout, no grid, no split screen, no inset panel; no fifth arm on
+the mark, no five-pointed star, no symmetrical star, no round hole at its
+centre, no rings; no smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. CARRINGTON AND THE BODYGUARD ARE NEVER SEEN. If any part of either enters
+   the frame, or the model cuts to them, the take is wrong. This is the one
+   thing this angle exists to do.
+2. THE TURN AT 6s. Backs for six seconds, then a ragged ripple round to the
+   lens, the woman in blue last. If they turn in unison it reads as a drill.
+3. THE REGISTRAR WALKS PAST THE CAMERA and is gone by 11s. His remaining lines
+   are off screen.
+4. THE FIVE NEVER SPEAK.
+5. THREE HARD CUTS, SAME FRAME. Time jumps; the camera does not move.
+6. THE BREAK IS VISIBLE throughout and appears exactly once.
+7. SIX PEOPLE ON SCREEN, no extras.
+File the take whatever the verdict.
+
+PAIRS WITH: s2n-fix1-five-million.txt (angle A, camera inside the wall, where
+Carrington IS seen). The editor cuts between the two — that is the whole point
+of shooting it both ways.
+
+=== END NOTES ===
