@@ -54,8 +54,8 @@ manA    = spawn_char(col, "VISITOR_A", ( 1.05, -19.55), h=1.78, prefix="s2n")
 critic  = spawn_char(col, "CRITIC",  ( 1.80, -19.95), h=1.64, prefix="s2n")
 dupe    = spawn_char(col, "DUPE",      (-2.35, -17.20), h=1.80, prefix="s2n")
 regis   = spawn_char(col, "REGISTRAR", (-3.20, -19.00), h=1.80, prefix="s2n")
-gent    = spawn_char(col, "GENTLEMAN", ( 6.40,  -1.60), h=1.79, prefix="s2n")
-guard   = spawn_char(col, "BODYGUARD", ( 7.20,  -0.90), h=1.94, prefix="s2n")
+gent    = spawn_char(col, "GENTLEMAN", ( 5.60,  -1.60), h=1.79, prefix="s2n")
+guard   = spawn_char(col, "BODYGUARD", ( 5.95,  -0.90), h=1.94, prefix="s2n")
 build_cart(col, (-3.30, -16.60), prefix="s2n", with_painting=True)
 cart = bpy.data.objects.get("s2n_cart_base")
 if cart:
@@ -67,10 +67,10 @@ if cart:
 
 # the side door they come through — a leaf hinged on its upstream edge so the
 # swing reads, at the right wall about 18 m short of the hero wall
-door = box("s2n_sidedoor", (6.95, -2.00, 1.35), (0.10, 1.30, 2.70), (0.32, 0.10, 0.10, 1))
-door.location = (6.95, -2.65, 1.35)
+door = box("s2n_sidedoor", (5.90, -2.00, 1.35), (0.10, 1.30, 2.70), (0.32, 0.10, 0.10, 1))
+door.location = (5.90, -2.65, 1.35)
 piv = bpy.data.objects.new("s2n_door_piv", None); sc.collection.objects.link(piv)
-piv.location = (6.95, -3.30, 0.0)
+piv.location = (5.90, -3.30, 0.0)
 door.parent = piv; door.matrix_parent_inverse = piv.matrix_world.inverted()
 piv.rotation_mode = 'XYZ'
 for fr, ang in ((1, 0), (10, 0), (34, R(78)), (480, R(78))):
@@ -95,17 +95,17 @@ def key(o, fr, x, y, z=None):
 # GENTLEMAN: three steps in from the door and then he stops, for good. 2.1 m at
 # 0.85 m/s = 2.5 s. A man who has just said a number does not walk toward
 # anyone; he waits. The BODYGUARD shadows him and stops a pace behind.
-key(gent, 1,  6.40, -1.60); key(gent, 24, 6.40, -1.60)
-key(gent, 84, 5.00, -3.00); key(gent, 480, 5.00, -3.00)
-key(guard, 1, 7.20, -0.90); key(guard, 34, 7.20, -0.90)
-key(guard, 96, 5.95, -2.15); key(guard, 480, 5.95, -2.15)
+key(gent, 1,  5.60, -1.60); key(gent, 24, 5.60, -1.60)
+key(gent, 84, 4.30, -3.00); key(gent, 480, 4.30, -3.00)
+key(guard, 1, 5.95, -0.90); key(guard, 34, 5.95, -0.90)
+key(guard, 96, 5.25, -2.15); key(guard, 480, 5.25, -2.15)
 
 # REGISTRAR: leaves the group at 5 s and covers 16.6 m at 1.90 m/s — hurrying,
 # not running, which is 8.7 s = 209 frames. He arrives at 13.7 s and the two
 # lines fill the rest. At 19.5 s he turns; the clip cuts before the step lands.
 key(regis, 1,   -3.20, -19.00); key(regis, 120, -3.20, -19.00)
-key(regis, 329,  3.40,  -3.80); key(regis, 468,  3.40,  -3.80)
-key(regis, 480,  3.05,  -4.35)     # the turn begins, nothing more
+key(regis, 329,  2.95,  -3.80); key(regis, 468,  2.95,  -3.80)
+key(regis, 480,  2.65,  -4.35)     # the turn begins, nothing more
 
 # the five hold their marks; heads turn, and a turn is not a translation
 for ob, x, y in ((woman, -1.60, -19.95), (student, -0.45, -19.72),
