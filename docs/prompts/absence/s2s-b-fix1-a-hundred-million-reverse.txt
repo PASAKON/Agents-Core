@@ -1,0 +1,239 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2S-B · A HUNDRED MILLION — REVERSE ANGLE · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — Unlimited ON as the FIRST action in the composer,
+before typing or binding anything, then zoom the Generate button and confirm
+ZERO digits before every click.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — it defaults to 5s silently.
+
+WHAT THIS IS. The CEO's 2026-09-04 ruling: every scene in this stretch gets two
+angles. For the five scenes that stage their action along the LENGTH of the
+hall, the CEO approved the reverse camera being the far end of that same axis,
+turned 180 degrees — not the wall-facing rig the earlier scenes use.
+
+⚠️ THIS IS THE ONE THAT BEATS ITS A TWIN. In the A version the old woman is a
+speck at the far end and the room is close. Here it is exactly inverted: THE
+CAMERA IS BEHIND HER. Her back and her chair fill the near foreground, and the
+entire party — all twelve of them — is twenty-four metres away, small, facing
+us. We hear a hundred million spoken from a metre away and then watch it land
+on a room at the other end of the building.
+
+⚠️ EVERY HEAD TURNS TO THE LENS AT 3s. In the A version the room turns AWAY
+from camera to look up the hall. From this side that same turn is the entire
+room turning to FACE us. It is the only moment in the film when everybody does
+the same thing at the same instant, and this angle is where it reads.
+
+⚠️ SHE MOVES AWAY FROM US, not toward us. The chair goes down the hall, so we
+watch her back recede very slowly. Do not have her approach the camera.
+
+⚠️ THE TWO WHO GIVE UP WALK PAST HER. The art student and the woman in the
+tawny fur leave up the hall, which from this angle means they walk TOWARD the
+lens, past the wheelchair, and out. Neither of them looks at her. They have no
+idea they are walking past the person who just bid a hundred million. That is
+the joke and it only exists in this angle.
+
+⚠️ ONE LOCATION ELEMENT ONLY. Three room pictures exist, one per camera
+position: loc_wall_pov_e (inside the wall), loc_hall_big_e (outside, looking
+down the hall toward the red door — THIS ONE), loc_hall_big_d (outside, facing
+the wall with the plaque). Binding two in one scene confuses the model
+completely (CEO: "Model จะงง 100%").
+
+Previz: docs/S2SB-Render.MP4 — 1280x720 / 480 frames / 20.0s. Verified by eye
+2026-09-04: her chair in the near foreground, the whole party small and far off.
+Registry handle once Elements go live: project_absence_previz_s2s_b_v1 — see
+docs/PREVIZ-ELEMENTS.md. Until that path is proven, attach the file as Video 1
+exactly as every other sheet does.
+
+Filing: All Scene/Fix-1/ as S2S-B-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, no cuts, for the whole twenty seconds. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE FRAME, unchanging for twenty seconds: a locked shot down the length of the
+gallery at chest height. IN THE NEAR FOREGROUND, close to the lens and seen
+FROM BEHIND, A VERY OLD WOMAN SITS IN A POWERED WHEELCHAIR, her back to us, one
+hand on the control lever. Beyond her the gallery runs away for twenty-four
+metres — chromium trumpet columns receding in matched pairs down both sides,
+warm orange cove light along the ceiling, polished terracotta terrazzo
+underfoot, works on white plinths — and at the far end of it, SMALL AND DISTANT,
+stands the whole party, facing us.
+
+THE DISTANCE IS THE SHOT. She is large and near; they are tiny and far. Do not
+close that gap, do not cut to them, and do not make them any bigger than the
+reference video shows.
+
+THE COMPLETE CAST OF THIS SHOT IS THIRTEEN PEOPLE AND NOT ONE MORE. There are
+no extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards beyond the three named, no reporters, no journalists, nobody
+holding a camera, nobody filming, nobody walking through. If a figure is not
+named below it must not exist.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the small figure ALONE IN THE NEAR FOREGROUND, seen from behind in a powered
+  wheelchair = @project_absence_char_grandmother
+- far down the hall, the GOLD figure = @gentleman_e, MR CARRINGTON
+- far down the hall, the TEAL figure = @project_absence_char_woman_c, THE MADAME
+- far down the hall, the MAGENTA figure = @project_absence_char_valder, between
+  them
+- far down the hall, the BLACK figure = @char_registrar, off to one side
+- the rest of the distant figures are the bodyguard, the two uniformed guards
+  and the watching visitors
+- the WHITE figure far off on the left is DUPE with his cart
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
+  The camera stands in the gallery looking down its length: chromium trumpet
+  columns receding in matched pairs on both sides, warm orange cove light along
+  the ceiling, polished terracotta terrazzo underfoot, works on white plinths
+  and framed pieces down both walls. THE BROKEN WALL IS NOT IN THIS SHOT — no
+  crack, no star, no damaged plaster anywhere. Take the room, its surfaces and
+  its light from this picture.
+@project_absence_char_grandmother — THE OLD WOMAN: very old, small, sitting
+  upright in a powered wheelchair, seen from behind for almost the whole clip —
+  the back of her head, her shoulders, her hand on the control lever. She is
+  entirely alone. No nurse, no companion, no attendant.
+@gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
+  stand-collar suit, white shoes, a black cane with a gold lion head, two gold
+  front teeth. His mouth is still half open when the clip starts.
+@project_absence_char_woman_c — MADAME THIBAULT: elderly, tall, rail-straight,
+  a floor-length gown of glossy mid-green leather with pointed shoulder caps
+  and a tall standing collar, long green opera gloves, a towering pompadour
+  streaked blue, green and silver-white, black cat-eye sunglasses.
+@project_absence_char_valder — VALDER: tall, slim, elderly, swept-back white
+  hair, small round tinted sunglasses, a blazer panelled in flat blocks of
+  magenta, yellow, green, blue and red, a red waistcoat, a long mustard-yellow
+  scarf, purple trousers, two different shoes.
+@char_registrar — THE REGISTRAR: about sixty, grey hair combed flat, a cream
+  stand-collar tunic with fine orange piping and a small gold V, white gloves,
+  a brown leather ledger and a pen.
+
+THE OTHERS, far down the hall and carried in this text: a very heavily built
+Black bodyguard in an all-black suit with opaque dark sunglasses and white
+gloves; two guards in navy military-cut tunics with gold buttons and a large
+gold V, one tall and thin and one short and heavy; a young woman in an
+oversized cobalt-blue overcoat with a pearl cluster necklace; an elderly East
+Asian woman in a full-length deep magenta fur coat; a woman of about fifty-five
+with a brown bob in a tawny-brown fur coat over a rust-red dress; an elderly man
+in a deep maroon leather suit; a young art student with short curly acid
+yellow-green hair and a black sketchbook; and far off on the left a cleaner in a
+white uniform with orange trim beside a cleaning cart.
+
+[0s] NOBODY HAS MOVED since the last scene. The party stands far down the hall,
+silent and still. In the near foreground the back of the wheelchair, motionless.
+We do not know who she is yet and neither do they.
+
+[1s] SHE SPEAKS, from a metre in front of the lens — thin, old, unhurried, and
+carrying the whole length of the gallery: "One hundred million." We never see
+her face. We see the back of her head and her hand on the lever.
+
+[3s] EVERY SINGLE HEAD DOWN THE HALL TURNS TO FACE THE CAMERA AT THE SAME
+INSTANT — Carrington, the Madame, Valder, the guards, the visitors, the
+registrar, all of them together. It is the only moment in the film when the
+whole room does one thing at one time. From here it reads as twelve tiny faces
+all snapping toward the lens at once.
+
+[5s] AND THEY STILL CANNOT SEE HER PROPERLY. She is twenty-four metres away
+from them and no bigger to them than they are to us.
+
+[7s] THE CHAIR STARTS MOVING. It goes AWAY from the camera, down the hall
+toward them, at a speed that would be slow for a person walking beside it. Her
+back recedes.
+
+[10s] Nobody says anything. Nobody walks toward her. They stand and watch her
+come, and she gets very slightly smaller, and it takes a very long time.
+
+[13s] THE ART STUDENT GIVES UP. She turns from the distant group and walks up
+the hall STRAIGHT TOWARD THE CAMERA at an ordinary bored pace, sketchbook under
+her arm, getting larger. She walks PAST THE WHEELCHAIR without slowing, without
+looking down at it, and out of frame past the lens. She has no idea who she has
+just walked past.
+
+[15s] Far away, Valder glances after her, then back, and adjusts his scarf.
+
+[16s] THE WOMAN IN THE TAWNY FUR GIVES UP TOO. She follows the same path up the
+hall, past the wheelchair, past the lens and gone. She does not look down
+either. Nobody tries to stop her and nobody comments.
+
+[18s] The chair is still going. It has covered barely any of the distance at
+all. Everybody left is still standing there watching it come.
+
+[19s] Hold on her back and the room beyond. Cut.
+
+AUDIO: room tone, one thin old voice close to the microphone at 1s, the low
+electric hum of a powered wheelchair running for the rest of the clip, two sets
+of unhurried footsteps passing the camera at 13s and 16s. ONE line of dialogue
+only, hers. Nobody else speaks a word. NO SOUND AT THE START OR THE END: the
+clip opens mid room-tone with no intro sting or riser, and simply stops with no
+tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no fourteenth person, no
+extra, no bystander, no other visitor, no gallery staff, no reporter, no
+journalist, nobody holding a camera, nobody filming, no crowd, no children,
+nobody walking through; NO NURSE, no carer, no attendant, no companion, nobody
+pushing the wheelchair, nobody walking beside it, nobody helping her; no view
+of the old woman's face, no cut to her front, no reverse angle on her, no
+reflection showing her face; no wheelchair approaching the camera, no chair
+coming toward the lens, no chair turning round; nobody from the distant group
+walking toward her, no escort, no greeting party, no applause, no cheering, no
+gasping; the student and the woman in fur do NOT look at the wheelchair, do not
+slow down, do not speak to her, do not react to her; no camera movement of any
+kind, no pan, no tilt, no zoom, no dolly, no handheld, no reframing, no cut, no
+second angle, no shot-reverse-shot; no closing of the distance, no group
+getting larger, no perspective change; no cracked wall, no crack, no brass
+plaque, no price plaque in frame; no auctioneer, no podium, no gavel, no
+bidding paddle, no raised hands, no numbered card, no visible price, no written
+figures on screen; no money, no card, no contract, no papers exchanged; no
+weapon, no gun, no holster, no earpiece; no running, no hurrying, no sped-up
+motion, no slow motion; no four-panel layout, no grid, no split screen, no
+inset panel; no smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. WE ARE BEHIND HER AND STAY BEHIND HER. Her face is never seen. If the model
+   cuts round to her front, the whole point — a voice from nowhere landing on a
+   room at the other end of the building — is gone.
+2. THE CHAIR GOES AWAY FROM US. Toward the camera is the wrong direction.
+3. THE MASS TURN AT 3s hits all at once, everybody, facing the lens. This is
+   the one place in the film where unison is correct.
+4. THE TWO WHO LEAVE WALK PAST HER WITHOUT LOOKING. If either glances down or
+   slows, re-fire — the joke is that they do not know.
+5. THE DISTANCE HOLDS for twenty seconds. The group never gets bigger.
+6. ONE line of dialogue, hers, close to the mic while she is far from them.
+7. THIRTEEN PEOPLE, no extras, and no nurse.
+File the take whatever the verdict.
+
+PAIRS WITH: s2s-fix1-a-hundred-million.txt (angle A, camera among the party
+looking up the hall at her). The two are exact inversions of each other and the
+editor can cut between them on the turn at 3s.
+
+=== END NOTES ===
