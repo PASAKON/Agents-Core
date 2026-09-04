@@ -1,0 +1,207 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2R-Fix1 · THE BIDDING BATTLE · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — Unlimited ON as the FIRST action in the composer,
+before typing or binding anything, then zoom the Generate button and confirm
+ZERO digits before every click.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — it defaults to 5s silently.
+
+WHERE IT SITS. After S2Q. She has arrived and been named. Carrington's five
+million is the standing bid. This is the fight, and it is conducted entirely
+with numbers — nobody in this scene walks anywhere.
+
+THE PRICE LADDER, and only three people ever say a price in this whole film:
+the young woman in blue said two million (S2M) and never speaks a price again;
+Carrington said five million (S2N); this scene runs from ten to fifty between
+Carrington and the Madame; and an old woman in a wheelchair ends it at a
+hundred million in the scene after this. The editor asked specifically for
+2,000,000 and 20,000,000 to be spoken aloud — two million is already in S2M,
+and twenty million is the middle rung here.
+
+⚠️ VALDER STANDS IN THE MIDDLE. That is the CEO's staging and it is the shot:
+the two bidders on opposite sides, Valder between them, and the whole room
+turning left, right, left after whoever just spoke. He never bids. He is the
+happiest man alive.
+
+⚠️ THE REGISTRAR CANNOT KEEP UP. He is writing the entire twenty seconds and
+he is always one number behind. Do not let him become calm.
+
+⚠️ REFERENCES ARE CAPPED. Bind these six plus the video and carry the rest in
+prose: char_woman_c, prop_croc_bag, gentleman_e, char_guard_private_v2,
+char_valder, char_registrar.
+
+⚠️ ON A REFUSAL OR A COPYRIGHT REJECTION: re-fire the same thing once,
+unchanged — these rejections are not deterministic. Only stop if the same clip
+is refused twice. CHECK THE FINISHED CARD'S INFO ICON: a copyright rejection is
+invisible in the composer and the card can look complete.
+
+Previz: docs/S2R-Render.MP4 — 1280x720 / 480 frames / 20.0s.
+
+Filing: All Scene/Fix-1/ as S2R-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, no cuts, for the whole twenty seconds. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE FRAME: a locked, symmetrical view straight down the gallery at chest
+height. MR CARRINGTON stands on the LEFT. MADAME THIBAULT stands on the RIGHT,
+about four metres from him. VALDER STANDS BETWEEN THEM, dead centre and a
+little further back, facing the lens. Everybody else is banked behind the two
+bidders on their own side, and the registrar is off to the left and nearer the
+camera, writing. Chromium trumpet columns recede behind them, orange cove
+light on the ceiling, polished terracotta terrazzo underfoot.
+
+THE COMPLETE CAST OF THIS SHOT IS TWELVE PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards beyond the three named, no reporters, no journalists, nobody
+holding a camera, nobody filming, nobody walking through. If a figure is not
+named below it must not exist.
+
+NOBODY WALKS ANYWHERE IN THIS SHOT. Not one person changes position. The only
+movement in the entire twenty seconds is heads turning, mouths speaking, a pen
+moving, and Valder shifting his weight from one foot to the other.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the GOLD figure labelled GENTLEMAN = @gentleman_e, on the LEFT
+- the TEAL figure labelled MADAME = @project_absence_char_woman_c, on the RIGHT
+- the MAGENTA figure labelled VALDER = @project_absence_char_valder, CENTRE
+- the BLACK figure labelled REGISTRAR = @char_registrar, near left, writing
+- the DARK GREY figure labelled BODYGUARD =
+  @project_absence_char_guard_private_v2, behind Carrington
+- the WHITE figure labelled DUPE, far back on the left with his cart
+- the remaining figures are the watching visitors and the two uniformed guards
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
+  stand-collar suit, white shoes, a black cane with a gold lion head, TWO GOLD
+  FRONT TEETH. He bids like a man playing a game he expects to win.
+@project_absence_char_guard_private_v2 — HIS BODYGUARD: very heavily built
+  Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black shirt
+  and tie. Never speaks, never moves. No weapon, no earpiece, no holster.
+@project_absence_char_woman_c — MADAME THIBAULT: elderly, tall, rail-straight,
+  a sculpted floor-length gown of glossy mid-green leather with chevron
+  leaf-vein seams, sharply pointed shoulder caps, a tall standing collar; long
+  green leather opera gloves; a towering pompadour streaked blue, green and
+  silver-white; black cat-eye sunglasses. She never raises her voice once.
+@project_absence_prop_croc_bag — HER BAG, held in one gloved hand the whole
+  time: structured top-handle, polished deep OXBLOOD crocodile, gold clasp.
+@project_absence_char_valder — VALDER, between them: tall, slim, elderly,
+  swept-back white hair, small round tinted sunglasses, a blazer panelled in
+  flat blocks of magenta, yellow, green, blue and red, a red waistcoat, a long
+  mustard-yellow scarf, purple trousers, two different shoes.
+@char_registrar — THE REGISTRAR: about sixty, cream stand-collar tunic with
+  orange piping and a small gold V, white gloves, a brown leather ledger held
+  open in one hand, pen going in the other.
+
+THE OTHERS, carried in this text: two guards in navy military-cut tunics with
+gold buttons and a large gold V, one tall and thin and one short and heavy; a
+young woman in an oversized cobalt-blue overcoat with a pearl cluster necklace;
+an elderly East Asian woman in a deep magenta fur coat and cream gloves; a
+woman of about fifty-five with a brown bob in a tawny-brown fur coat over a
+rust-red dress; an elderly man in a deep maroon leather suit; a young art
+student with short curly acid yellow-green hair and a black sketchbook; and far
+back on the left, a cleaner in a white uniform with orange trim standing beside
+a cleaning cart, watching, taking no part.
+
+[0s] Silence, and everybody looking at the Madame. She has not spoken yet.
+
+[1s] SHE SPEAKS FIRST, quietly, without moving anything but her mouth: "Ten
+million."
+
+[3s] EVERY HEAD IN THE ROOM SWINGS TO THE LEFT, to Carrington — not together,
+a ragged wave of them. Carrington does not hesitate. He is smiling: "Fifteen."
+
+[6s] EVERY HEAD SWINGS BACK TO THE RIGHT. The Madame lets a beat go by, purely
+to make him wait, and then says: "Twenty million."
+
+[9s] THE HEADS SWING LEFT AGAIN. The registrar's pen is going furiously and he
+is muttering to himself, a number behind and losing. Carrington's smile is
+thinner now: "Twenty-five."
+
+[13s] THE HEADS SWING RIGHT. And she does not pause at all this time. Flat,
+bored, as if correcting a waiter: "Fifty."
+
+[15s] THE ROOM STOPS. Nobody's head moves. Carrington's smile is gone. He opens
+his mouth and nothing comes out of it.
+
+[17s] AND VALDER, IN THE MIDDLE, IS DELIGHTED. He looks left at Carrington,
+then right at the Madame, then left again, rocking very slightly from foot to
+foot like a man watching a rally he cannot lose. He says nothing at all.
+
+[19s] Hold on the three of them. Cut.
+
+AUDIO: room tone, a pen scratching hard and fast on paper for the whole twenty
+seconds, one small strangled sound from Carrington at 15s, the creak of a
+leather ledger, no footsteps because nobody walks. FIVE spoken bids only, in
+this order: hers, his, hers, his, hers. Nobody else speaks a word — not Valder,
+not the registrar, not one of the watchers. NO SOUND AT THE START OR THE END:
+the clip opens mid room-tone with no intro sting or riser, and simply stops
+with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no thirteenth person, no
+extra, no bystander, no other visitor, no gallery staff, no reporter, no
+journalist, nobody holding a camera, nobody filming, no crowd, no children,
+nobody walking through; nobody walking at all, nobody changing position,
+nobody stepping forward, nobody approaching anybody; no auctioneer, no podium,
+no rostrum, no gavel, no bidding paddle, no raised hands, no numbered card, no
+auction house, no lot number, no visible price, no written figures on screen;
+no shouting, no arguing, no laughing, no applause, no cheering, no gasping
+crowd; no Valder speaking, no Valder bidding, no registrar speaking, no watcher
+speaking; no third bidder, nobody else naming a price; no handshake, no money,
+no card, no contract, no papers exchanged; no weapon, no gun, no holster, no
+earpiece; no cracked wall, no crack, no brass plaque, no price plaque in frame;
+no camera movement of any kind, no pan, no tilt, no zoom, no dolly, no
+handheld, no reframing, no cut, no second angle, no shot-reverse-shot; no
+four-panel layout, no grid, no split screen; no looking at camera by anybody;
+no smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. VALDER IS IN THE MIDDLE and stays there. If he drifts to one side, or joins
+   in, the shot is wrong.
+2. THE HEADS SWING. Left, right, left, right — ragged, not in unison, and
+   visibly following whoever just spoke. That swing is the scene.
+3. NOBODY WALKS. Not one step, by anybody.
+4. FIVE BIDS in order, hers first, and nobody else says anything.
+5. SHE NEVER RAISES HER VOICE and never looks pleased. He starts confident and
+   ends silent.
+6. THE REGISTRAR IS WRITING THE WHOLE TIME and never catches up.
+7. TWELVE PEOPLE, no extras, no auction furniture of any kind.
+File the take whatever the verdict.
+
+END POSITIONS, inherited by S2S:
+- Everyone exactly where they are. Carrington left with his mouth open, the
+  Madame right, Valder centre, the registrar writing.
+- The next thing anyone hears is a voice from far down the hall saying a
+  hundred million, and nobody has seen her yet.
+
+=== END NOTES ===
