@@ -11,11 +11,22 @@ WHERE IT SITS. Straight after S2b, the phone call. Dupe has rung the contractor
 and come back to the wall with the painting still in his cart. The museum is
 about to open. No dialogue anywhere in this scene.
 
-🔒 ONE DEPENDENCY, and it is why this cannot fire yet: the [7s] beat cuts to
-THE VIEW FROM INSIDE THE WALL, a plate still being generated (the crack as a
-camera aperture — black surround, the hall seen through the star, centre
-opening about 30% of frame). Bind it once it exists and the CEO has cleared it.
-If it is not ready, do NOT improvise that beat in prose — report and hold.
+🔓 DEPENDENCY CLEARED 2026-09-04 — THIS CAN FIRE. It used to wait on a purpose
+built "aperture plate" for the [7s] beat. THAT PLATE WAS ABANDONED: it rendered
+as a hard black rectangle and Seedance copied the letterbox straight into the
+take. Do not go looking for it and do not wait for it.
+
+The beat is carried in prose instead, and the prose is already in the paste
+block below — the frame black except the star, the gallery through the gap.
+That is not an improvisation; it is the same description the plate was built
+from, and S2H/S2I/S2K shoot this exact viewpoint the same way.
+
+⚠️ AND STILL ONLY ONE LOCATION ELEMENT. loc_hall_big_d stays the single room
+reference for all three shots. Do NOT also bind loc_wall_pov_e for shot two,
+even though it shows that viewpoint — two location Elements in one prompt
+confuses the model completely (CEO 2026-09-04, "Model จะงง 100%"). All three
+shots are the same room from three camera positions, so one Element carries the
+surfaces, the light and the dressing, and the camera moves are prose.
 
 THE FIRST GUEST IS THE ELDERLY MAN (CEO 2026-09-04):
 @project_absence_char_oldman — heavy-set, elderly, dark green leather overcoat
@@ -30,10 +41,18 @@ registered colour so the model can map proxy to Element without guessing. End
 positions for this scene are logged at the bottom of this file — read them
 before writing whatever comes after it.
 
-Elements, all CEO-verified in /Users/gob/Desktop/Fix-1-Elements/:
+BIND EXACTLY THESE FIVE, all CEO-verified in /Users/gob/Desktop/Fix-1-Elements/:
 @project_absence_char_cleaner_c · @project_absence_prop_cart_a_painted ·
 @project_absence_loc_hall_big_d · @project_absence_prop_tag ·
-@project_absence_loc_wall_pov_e · @project_absence_char_oldman · the aperture plate
+@project_absence_char_oldman
+
+NOT BOUND, deliberately: loc_wall_pov_e (would be a second location Element —
+see the note above) and the aperture plate (abandoned, does not exist).
+
+Previz: docs/S2D-Render.MP4 — 1280x720 / 480 frames / 20.0s. Its three camera
+segments match the three shots below exactly: frames 1-167 straight on the wall
+with the cart, 168-239 at the crack looking out, 240-480 behind Dupe looking up
+the gallery.
 
 Filing: All Scene/Fix-1/ as S2D-Fix1.MP4.
 
