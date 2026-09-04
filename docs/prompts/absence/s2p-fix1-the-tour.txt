@@ -1,0 +1,209 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2P-Fix1 · THE TOUR · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — it defaults to 5s silently.
+
+WHERE IT SITS. Straight after S2O. Valder has taken Carrington's arm and is
+showing him the room, and the whole gallery has fallen in behind them. The
+madame with the crocodile bag has NOT arrived yet — she comes after this.
+
+⚠️ THIS IS THE FIRST MOVING CAMERA IN THE FILM, and the CEO asked for it by
+name: a Wes Anderson lateral track. Every other Fix-1 shot is locked off, so
+the change has to be unmistakable and it has to be the RIGHT move — the camera
+runs sideways at exactly the group's own speed, dead square to them, so they
+hang motionless in frame while the gallery streams past behind. It is not a
+follow, not a handheld, not a pan. If it eases in or out at either end it stops
+being the reference and becomes an ordinary tracking shot.
+
+⚠️ VALDER TALKS TO THE ROOM AND LOOKS AT ONE MAN. He narrates as if hosting
+everyone, and every time he turns his head it is to Carrington and nobody else.
+That is the joke: eleven people are being given a tour and only one of them is
+actually being addressed.
+
+⚠️ NEVER UPLOAD AN IMAGE. Match by ID in the panel and bind the library entry.
+This shot has the largest cast in the film; if the composer caps references,
+drop in this order and report it: prop_cart_a_painted, then char_registrar,
+then char_guard_valder_two. Never drop Valder, Carrington or Dupe.
+
+Previz: docs/S2P-Render.MP4 — 1280x720 / 480 frames / 20.0s.
+
+Filing: All Scene/Fix-1/ as S2P-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE CONTINUOUS SHOT, no cuts. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE CAMERA MOVE, and it is the only camera move in this film: a PERFECTLY FLAT
+SIDEWAYS TRACK. The camera faces the group dead square, at chest height, and
+slides sideways at exactly the speed they are walking, so the people stay
+locked in the same place in frame for the whole twenty seconds while the
+columns, plinths and artworks behind them slide steadily past. Symmetrical,
+head-on, unhurried. The move starts at full speed on the first frame and stops
+at full speed on the last — no acceleration, no deceleration, no easing, no
+drift, no pan, no tilt, no zoom, no handheld shake, no reframing.
+
+THE COMPLETE CAST OF THIS SHOT IS TWELVE PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards beyond the three named, no reporters, no journalists, nobody
+holding a camera, nobody filming, nobody in the background, nobody walking
+through. If a figure is not named below it must not exist.
+
+POSITION MAP — every figure in the reference video walks exactly where its
+character must walk, in that order along the line. EVERY CHARACTER APPEARS
+EXACTLY ONCE:
+- the MAGENTA figure labelled VALDER = @project_absence_char_valder
+- the two NAVY figures labelled GUARD_V1 and GUARD_V2 =
+  @project_absence_char_guard_valder_two
+- the GOLD figure labelled GENTLEMAN = @gentleman_e
+- the DARK GREY figure labelled BODYGUARD =
+  @project_absence_char_guard_private_v2
+- the BLACK figure labelled REGISTRAR = @char_registrar
+- the BLUE figure labelled COLLECTOR_A = @project_absence_char_woman
+- the MAGENTA-PINK figure labelled CRITIC = @project_absence_char_critic_b
+- the BROWN figure labelled VISITOR_B = @project_absence_char_visitor_b
+- the ORANGE figure labelled VISITOR_A = @project_absence_char_visitor_a
+- the YELLOW-GREEN figure labelled STUDENT = @project_absence_char_student_c
+- the WHITE figure labelled DUPE = @project_absence_char_cleaner_c
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@project_absence_char_valder — VALDER, leading: tall, slim, elderly, swept-back
+  white hair, small round tinted sunglasses, a blazer PANELLED IN FLAT BLOCKS
+  OF COLOUR — magenta, yellow, green, blue, red — over a red waistcoat, a long
+  mustard-yellow scarf down the front, purple trousers, two DIFFERENT shoes,
+  one dark green and one burgundy.
+@gentleman_e — MR CARRINGTON, at his shoulder: tall, elderly, swept-back white
+  hair, a white stand-collar suit, white shoes, a black cane with a gold lion
+  head, TWO GOLD FRONT TEETH.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black
+  shirt and tie. No weapon, no earpiece, no holster.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy
+  military-cut tunics with gold buttons and a large gold V, black belts, navy
+  peaked caps. ONE TALL AND THIN, ONE SHORT AND HEAVY.
+@char_registrar — THE REGISTRAR: about sixty, cream stand-collar tunic with
+  orange piping and a small gold V, white gloves, a brown leather ledger held
+  open, writing as he walks.
+@project_absence_char_woman — THE YOUNG COLLECTOR: young, dark hair pinned up,
+  oversized cobalt-blue overcoat with a gold V pin, pearl cluster necklace,
+  brown-checked skirt, black tights, brown loafers. NO glasses of any kind.
+@project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
+  silver-streaked hair up, full-length deep magenta fur coat, long cream
+  gloves, cream heels.
+@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, brown
+  bob, long tawny-brown fur coat over a rust-red shift dress.
+@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
+  hair, deep maroon leather suit with a stand collar.
+@project_absence_char_student_c — THE ART STUDENT: young, short curly acid
+  yellow-green hair, paint-spattered denim overshirt, dark trousers, worn
+  trainers, a black sketchbook.
+@project_absence_char_cleaner_c — DUPE, far behind them all: white uniform
+  with orange trim, cap, gold V, moustache.
+@project_absence_prop_cart_a_painted — HIS CART, which he pushes along at the
+  very back: castor wheels, mop, orange bucket, bottles, folding ladder, gold
+  V, a painting standing upright in the rack.
+
+THE FRAME: the whole procession strung out ACROSS the picture in a long
+horizontal line, everybody visible, everybody at a slightly different distance
+from the lens so it does not read as a flat rank. Behind them the gallery —
+chromium trumpet columns, white plinths, bronzes, framed works, orange cove
+light on the ceiling — slides past at a steady speed.
+
+[0s] They are already walking when the shot begins. VALDER LEADS, half a step
+ahead of everyone, talking and gesturing with an open hand at the works as they
+pass. Mr Carrington walks at his shoulder with his cane. Behind them the guards,
+the bodyguard, the registrar writing in his ledger as he walks, and the four
+visitors strung out in a loose line. Far at the back, well separated from all of
+them, DUPE pushes his cart along and is plainly not part of the party.
+
+Valder, to the room, warm and expansive: "Everything in this wing was rehung
+only last week."
+
+[6s] HE TURNS HIS HEAD, and he turns it to Carrington and to nobody else,
+speaking now as though the other ten were not there at all: "I think you will
+like what I have done with it."
+
+[11s] He faces front again and carries on narrating to the air, gesturing at
+another piece: "Every one of them was acquired in the last two years."
+
+[15s] AND HE TURNS AGAIN, and again it is only Carrington: "But I kept the best
+of it for you."
+
+[18s] He faces front and walks on, still talking, still gesturing. THE WHOLE
+LINE KEEPS WALKING at exactly the same pace and the camera keeps sliding with
+them. Nobody stops. Nobody answers him. The registrar is still writing.
+
+[19s] Hold, still moving. Cut.
+
+AUDIO: room tone, many sets of footsteps on terrazzo all at the same unhurried
+pace, the tap of a cane, a pen moving on paper. FOUR speeches only, all
+Valder's, in the order above. Nobody else says a word — Carrington never
+answers, and none of the others speak at all. NO SOUND AT THE START OR THE END:
+the clip opens mid room-tone with no intro sting or riser, and simply stops
+with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no thirteenth person, no
+extra, no bystander, no other visitor, no gallery staff, no reporter, no
+journalist, nobody holding a camera, nobody filming, no crowd, no children,
+nobody in the background, nobody walking through; no Carrington replying, no
+other character speaking, no conversation, no murmuring, no laughing, no
+applause; no group stopping, no group gathering around a piece, no pointing
+crowd, no huddle; no Dupe joining the party, no Dupe speaking, no Dupe leaving
+his cart; no camera easing in or out, no acceleration, no deceleration, no
+slowing at the end, no pan, no tilt, no zoom, no dolly toward or away, no
+handheld shake, no reframing, no whip, no cut, no second angle; no vertical
+composition, no group in single file toward the lens, no over-the-shoulder; no
+cracked wall, no crack, no brass plaque, no price plaque in frame; no running,
+no hurrying, no comic speed, no sped-up motion, no slow motion; no four-panel
+layout, no grid, no split screen; no money, no card, no contract, no papers
+exchanged; no weapon, no gun, no holster, no earpiece; no looking at camera by
+anybody; no smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration over the top, no subtitles, no
+captions, no on-screen text, no signage, no logos, no music, no score, no
+dutch angle, no tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI
+sheen, no plastic skin, no beauty filter, no dim moody lighting, no darkness,
+no night, no blue walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. THE MOVE. Flat, square, constant speed, people locked in frame, background
+   sliding. If it eases at either end, or drifts into a follow, re-fire — that
+   move is the entire reason this shot exists.
+2. HE ONLY EVER TURNS TO CARRINGTON. Two head turns, both to him. If he turns
+   to the group the joke is gone.
+3. NOBODY ANSWERS HIM, including Carrington.
+4. THE LINE IS HORIZONTAL and everyone is visible. A single file walking away
+   from the lens is the wrong shot.
+5. DUPE IS AT THE BACK WITH HIS CART, visibly not part of the party.
+6. TWELVE PEOPLE, no extras of any kind.
+File the take whatever the verdict.
+
+END POSITIONS, inherited by S2Q:
+- The whole party mid-gallery, still walking, Valder leading with Carrington at
+  his shoulder.
+- DUPE at the back with his cart.
+- The madame with the crocodile bag has still not arrived. She enters next.
+
+=== END NOTES ===
