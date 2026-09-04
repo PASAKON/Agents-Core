@@ -2,6 +2,31 @@
 
 S2P-Fix1 · THE TOUR · CEO 2026-09-04
 
+🔁 TAKE 2 — TAKE 1 CAME BACK WITHOUT VALDER (CTO review, 2026-09-04 23:00).
+Take 1 is filed as S2P-Fix1.MP4 and it is a clean, handsome shot of the
+procession — registrar, bodyguard, Carrington, both guards, all four visitors,
+Dupe and his cart, tracking beautifully. Valder is not in it. Not late, not
+obscured: absent from every frame sampled across the whole width of the
+picture. In a scene whose premise is Valder walking Carrington round his own
+collection, that leaves a group of people following nobody.
+
+WHY, and what changed: take 1 bound THIRTEEN Elements. The sheets that come
+back right — S2Q, S2R — bind six plus the location and carry everyone else in
+prose, and that trade is proven (S2L take 2 rendered four characters correctly
+from description alone). Thirteen is double the working number, the model
+dropped one, and it dropped the one that mattered.
+
+So the reference list is now SIX plus the room: Valder, Carrington, the
+bodyguard, Valder's two guards, Dupe and the cart. The registrar, the young
+woman in cobalt, the woman in magenta, the woman in tawny fur, the man in
+maroon and the art student are all still IN the shot — they are described
+rather than bound. Do not add them back as Elements.
+
+⚠️ VALDER IS THE ONE THAT CANNOT BE MISSING. He leads, he is the only person
+who speaks, and the panelled blazer is unmistakable. If take 2 comes back
+without him, stop and report rather than firing a third time — the next thing
+to try is dropping the bodyguard too, not repeating.
+
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
 UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
 ⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
@@ -106,22 +131,20 @@ REFERENCES — each with a job:
 @project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy
   military-cut tunics with gold buttons and a large gold V, black belts, navy
   peaked caps. ONE TALL AND THIN, ONE SHORT AND HEAVY.
-@char_registrar — THE REGISTRAR: about sixty, cream stand-collar tunic with
-  orange piping and a small gold V, white gloves, a brown leather ledger held
-  open, writing as he walks.
-@project_absence_char_woman — THE YOUNG COLLECTOR: young, dark hair pinned up,
-  oversized cobalt-blue overcoat with a gold V pin, pearl cluster necklace,
-  brown-checked skirt, black tights, brown loafers. NO glasses of any kind.
-@project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
-  silver-streaked hair up, full-length deep magenta fur coat, long cream
-  gloves, cream heels.
-@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, brown
-  bob, long tawny-brown fur coat over a rust-red shift dress.
-@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
-  hair, deep maroon leather suit with a stand collar.
-@project_absence_char_student_c — THE ART STUDENT: young, short curly acid
-  yellow-green hair, paint-spattered denim overshirt, dark trousers, worn
-  trainers, a black sketchbook.
+THE REST OF THE PROCESSION, carried in this text and NOT bound as references:
+  THE REGISTRAR, about sixty, a cream stand-collar tunic with orange piping and
+  a small gold V, white gloves, a brown leather ledger held open, writing as he
+  walks; A YOUNG WOMAN, dark hair pinned up, an oversized cobalt-blue overcoat
+  with a gold V pin, a pearl cluster necklace, a brown-checked skirt, black
+  tights, brown loafers, and no glasses of any kind; AN ELDERLY EAST ASIAN
+  WOMAN, silver-streaked hair up, a full-length deep magenta fur coat, long
+  cream gloves, cream heels.
+  Also in the line and likewise NOT bound: A WOMAN OF ABOUT FIFTY-FIVE with a
+  brown bob in a long tawny-brown fur coat over a rust-red shift dress; AN
+  ELDERLY MAN with thinning grey hair in a deep maroon leather suit with a
+  stand collar; A YOUNG ART STUDENT with short curly acid yellow-green hair, a
+  paint-spattered denim overshirt, dark trousers, worn trainers and a black
+  sketchbook.
 @project_absence_char_cleaner_c — DUPE, far behind them all: white uniform
   with orange trim, cap, gold V, moustache.
 @project_absence_prop_cart_a_painted — HIS CART, which he pushes along at the
