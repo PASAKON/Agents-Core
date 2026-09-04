@@ -122,6 +122,16 @@ is a CTO/CEO creative-review step, not part of this click-time bisect.
    the exact wording and the exact reference set at that moment — this report
    found no fixed rule that predicts either.
 
+## Browser cleanup note
+
+Closing the first of the four composer tabs caused this session's Chrome tab
+group to be dropped entirely (harness-side), so the remaining three tabs
+(Round 2/3/4 composers) are still open in Chrome but no longer addressable by
+this session. All work in them was already complete — every render had fired,
+every downloadable clip was already saved and filed, and nothing further was
+staged to click — so nothing is lost or at risk by leaving them open. They can
+be closed by hand or picked up by a fresh session.
+
 ## SKILL-OVERRIDE notes
 
 - `higgsfield-unlimited-gen` :: "prompt text unchanged, only bound references
