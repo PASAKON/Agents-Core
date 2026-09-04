@@ -1,0 +1,216 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2O-B · VALDER ARRIVES — REVERSE ANGLE · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — Unlimited ON as the FIRST action in the composer,
+before typing or binding anything, then zoom the Generate button and confirm
+ZERO digits before every click.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — it defaults to 5s silently.
+
+WHAT THIS IS. The CEO's 2026-09-04 ruling: every scene in this stretch gets two
+angles. For the five scenes staged along the LENGTH of the hall, the reverse
+camera is the far end of that same axis, turned 180 degrees.
+
+⚠️ BE HONEST ABOUT WHAT THIS ANGLE IS. The A version's whole point is DUPE'S
+FACE — he hears Valder coming, turns, and everything drains out of him. From
+this side Dupe is thirty metres away and unreadable, and that beat is simply
+gone. What the angle gives back instead is CARRINGTON'S FACE: he stands waiting
+mid-hall facing the lens for the entire clip, so we watch him receive Valder
+rather than watching Dupe dread him. It is the weaker of this pair and it is
+here because the CEO asked for both angles on every scene; the editor decides.
+
+⚠️ VALDER ENTERS FROM BEHIND THE CAMERA. The camera stands on his path, ten
+metres in front of where he starts. He and his two guards come past the lens at
+around 7s and walk AWAY from us down the room to Carrington. So: an empty
+corridor, then a man in a panelled blazer crossing the frame, then his back.
+Verified against docs/S2OB-Render.MP4 by eye on 2026-09-04.
+
+⚠️ THE HANDSHAKE IS SEEN FROM VALDER'S SIDE. We get the back of Valder's head
+and Carrington's face over his shoulder — which means Carrington's reaction to
+being grabbed by both hands is the readable half. Do not turn the camera round
+for it.
+
+⚠️ ONE LOCATION ELEMENT ONLY. Three room pictures exist, one per camera
+position: loc_wall_pov_e (inside the wall), loc_hall_big_e (outside, down the
+length of the hall — THIS ONE), loc_hall_big_d (outside, facing the wall with
+the plaque). Binding two in one scene confuses the model completely.
+
+⚠️ REFERENCES ARE CAPPED AT SIX PLUS THE ROOM. This is load-bearing, not style:
+S2P take 1 bound thirteen and the model dropped Valder out of a scene he hosts.
+Bind char_valder, gentleman_e, char_guard_valder_two, char_guard_private_v2,
+char_registrar, char_cleaner_c. Nobody else.
+
+Previz: docs/S2OB-Render.MP4 — 1280x720 / 480 frames / 20.0s.
+Registry handle once Elements go live: project_absence_previz_s2o_b_v1 — see
+docs/PREVIZ-ELEMENTS.md. Until that path is proven, attach the file as Video 1
+exactly as every other sheet does.
+
+Filing: All Scene/Fix-1/ as S2O-B-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, no cuts, for the whole twenty seconds. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE FRAME, unchanging for twenty seconds: a locked shot down the length of the
+gallery at chest height, standing in the middle of the floor. Chromium trumpet
+columns recede in matched pairs down both sides, warm orange cove light along
+the ceiling, polished terracotta terrazzo underfoot, works on white plinths and
+framed pieces down both walls. MID-DISTANCE AND FACING US stands MR CARRINGTON
+in a white suit with his bodyguard behind him and the registrar off to one
+side. Far beyond them, small, a cleaner works beside a cart.
+
+THE CENTRE OF THE FLOOR IS EMPTY WHEN THE CLIP BEGINS, and it stays a clear
+corridor — people walk down it, nobody stands in it.
+
+THE COMPLETE CAST OF THIS SHOT IS SEVEN PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards beyond the three named, no reporters, no journalists, nobody
+holding a camera, nobody filming, nobody walking through. If a figure is not
+named below it must not exist.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the MAGENTA figure that ENTERS FROM BEHIND THE CAMERA = @project_absence_char_valder
+- the two figures half a pace behind him = @project_absence_char_guard_valder_two
+- the GOLD figure mid-distance, facing us = @gentleman_e, MR CARRINGTON
+- the DARK GREY figure behind him = @project_absence_char_guard_private_v2
+- the BLACK figure off to one side = @char_registrar
+- the WHITE figure far off = @project_absence_char_cleaner_c, DUPE
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
+  The camera stands in the gallery looking down its length: chromium trumpet
+  columns receding in matched pairs on both sides, warm orange cove light along
+  the ceiling, polished terracotta terrazzo underfoot, works on white plinths
+  and framed pieces down both walls. THE BROKEN WALL IS NOT IN THIS SHOT — no
+  crack, no star, no damaged plaster anywhere. Take the room, its surfaces and
+  its light from this picture.
+@project_absence_char_valder — VALDER: tall, slim, elderly, swept-back white
+  hair, small round tinted sunglasses, a blazer PANELLED IN FLAT BLOCKS OF
+  COLOUR — magenta, yellow, green, blue, red — over a red waistcoat, a long
+  mustard-yellow scarf down the front, purple trousers, two DIFFERENT shoes,
+  one dark green and one burgundy. He is seen from behind for most of the clip
+  and the blazer is what identifies him.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy
+  military-cut tunics with gold buttons and a large gold V, black belts, navy
+  peaked caps. ONE TALL AND THIN, ONE SHORT AND HEAVY. They walk half a pace
+  behind him and never speak.
+@gentleman_e — MR CARRINGTON, facing the camera the whole clip: tall, elderly,
+  swept-back white hair, a white stand-collar suit, white shoes, a black cane
+  with a gold lion head, TWO GOLD FRONT TEETH. His is the face this angle is
+  for.
+@project_absence_char_guard_private_v2 — HIS BODYGUARD: very heavily built
+  Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black shirt
+  and tie. Never speaks, never moves. No weapon, no earpiece, no holster.
+@char_registrar — THE REGISTRAR: about sixty, grey hair combed flat, a cream
+  stand-collar tunic with fine orange piping and a small gold V, white gloves,
+  a brown leather ledger and a pen.
+@project_absence_char_cleaner_c — DUPE, far off down the room beside a cleaning
+  cart: white uniform with orange trim, cap, gold V, moustache. He is small and
+  we cannot read his face from here. He works, and then he stops working.
+
+[0s] The corridor down the middle of the room is empty. Mid-distance, MR
+CARRINGTON stands facing us with his bodyguard at his shoulder and the
+registrar to one side. Far beyond them a cleaner is working beside a cart.
+Somewhere behind the camera, tall doors open.
+
+[2s] FOOTSTEPS BEHIND THE LENS — several sets, unhurried, confident. Nothing in
+the frame changes yet. Carrington hears them and his eyes come up.
+
+[7s] VALDER WALKS PAST THE CAMERA and away down the empty centre, a guard half
+a pace behind on either side. We see his back: the panelled blazer, the
+mustard-yellow scarf, the two different shoes. He does not stop and does not
+look back. As he goes he calls out to the room in a warm public voice, pleased
+with the day: "Good morning. Good morning, everyone. It is a very good day."
+
+[10s] HIS WHOLE MANNER SHARPENS INTO DELIGHT as he spots Carrington ahead of
+him. He raises both arms wide as he walks, and calls down the room: "Ah, Mr
+Carrington, there you are."
+
+[12s] HE REACHES HIM AND TAKES HIS HAND IN A LARGE TWO-HANDED HANDSHAKE,
+clasping it and holding on. We see this over Valder's shoulder, so it is
+CARRINGTON'S FACE we read — polite, amused, and entirely unbothered by being
+held. The flattery is shameless: "Why did you not tell me you were coming
+today? I would have received you properly."
+
+[16s] Still holding the hand, VALDER TURNS AND SWEEPS HIS OTHER ARM down the
+gallery, back toward the camera and past it: "This room has only just been
+rearranged. Come — let me show you everything."
+
+[18s] He lets go and begins to lead Carrington away down the room. FAR OFF, THE
+CLEANER HAS STOPPED WORKING. He is too small for us to read, and he is standing
+completely still, and he has not moved since Valder passed him.
+
+[19s] Hold on the two of them going, and the small still figure beyond. Cut.
+
+AUDIO: room tone, tall doors opening far behind the camera, several sets of
+unhurried footsteps passing the lens and receding, one two-handed handshake.
+ONE speaker only, Valder, in three separate lines. Carrington does not answer
+and nobody else says a word. NO SOUND AT THE START OR THE END: the clip opens
+mid room-tone with no intro sting or riser, and simply stops with no tail,
+swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no eighth person, no extra, no
+bystander, no other visitor, no gallery staff, no reporter, no journalist,
+nobody holding a camera, nobody filming, no crowd, no children, nobody walking
+through; no close-up of the cleaner, no cut to his face, no camera move toward
+him, no second angle on him — he stays far away and unreadable; no Valder
+turning to face the camera, no walking back toward the lens, no reverse angle
+on the handshake; nobody standing in the middle of the corridor before Valder
+walks down it; no Carrington speaking, no registrar speaking, no guard
+speaking, no cleaner speaking; no running, no hurrying, no comic speed, no
+sped-up motion, no slow motion; no bowing, no kiss on the cheek, no embrace, no
+applause, no cheering; no money, no card, no contract, no papers exchanged; no
+weapon, no gun, no holster, no earpiece; no cracked wall, no crack, no brass
+plaque, no price plaque in frame; no camera movement of any kind, no pan, no
+tilt, no zoom, no dolly, no handheld, no reframing, no cut; no four-panel
+layout, no grid, no split screen; no smartphones, no screens, no modern
+technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. VALDER ENTERS FROM BEHIND THE LENS at around 7s and walks away. If he is
+   already in frame at 0s, or walks toward the camera, the angle is wrong.
+2. THE PANELLED BLAZER IS PRESENT. Valder going missing is the exact failure
+   S2P take 1 hit; six Elements plus the room is the guard against it.
+3. CARRINGTON FACES US THE WHOLE TIME and his reaction to the handshake is
+   readable. He is the reason this angle exists.
+4. THE HANDSHAKE IS SHOT OVER VALDER'S SHOULDER, never reversed.
+5. THE CLEANER STAYS SMALL AND FAR. No close-up, no cut to him — his stillness
+   has to read at distance or not at all.
+6. THREE LINES, all Valder's. Nobody answers him.
+7. SEVEN PEOPLE, no extras. SIX Elements plus the room, no more.
+File the take whatever the verdict.
+
+PAIRS WITH: s2o-fix1-valder-arrives.txt (angle A, where Dupe is close and his
+face is the scene). A is the stronger of the two; this one exists so the editor
+has Carrington's side of the same twenty seconds.
+
+=== END NOTES ===
