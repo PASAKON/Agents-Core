@@ -73,8 +73,15 @@ work of art with a price; a cracked wall alone reads as damage.
 timed below — no other camera movement anywhere. Sound On · High.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall only: white walls, orange cove light, terracotta
-  terrazzo, chromium columns. Not the framing.
+
+@project_absence_loc_hall_big_d — THE ROOM, and the ONLY location reference in
+  this prompt. Camera outside the wall, facing the wall that carries the brass
+  plaque: warm cream walls, orange cove light on the ceiling, polished
+  terracotta terrazzo, chromium trumpet columns, white plinths, the collection
+  on display. Take the room's surfaces, light and dressing from it. It is a
+  four-panel sheet — take NOTHING of its arrangement or layout, and never
+  reproduce a grid.
+
 @project_absence_char_cleaner_c — Dupe: face, build, white uniform with
   orange trim, cap, gold V at cap and chest.
 @project_absence_prop_cart_a — the cart BEFORE the fall: mop, orange bucket,
@@ -94,27 +101,7 @@ REFERENCES — each with a job:
   MEANING / Valder / $2,000,000, two screws at the top corners, warm brass.
   It reads clearly from the wide — a hand-and-a-half across, not a small
   label. Controls the plaque only.
-@project_absence_loc_wall_pov_e — THE CRACK'S EXACT SHAPE ONLY: 
-  a small STAR-SHAPED MARK whose centre is a SOLID BLACK ARROWHEAD
-  POINTING DOWN — broad at the top, tapering to a point at the bottom, with a
-  short HOOKED SPUR curling off its upper right like a comma and a notch at its
-  upper left. FOUR long arms leave it and no more: one rising at 12 o'clock
-  with a single oval bead a third of the way up; the longest and heaviest
-  climbing toward 1:30, lumpy and kinked once; one running down-left at 9:30,
-  thinner, ending in a fine point; and one falling down-right at 4:30 that
-  kinks partway and throws a small barb near its needle-sharp end. Every arm is
-  BEADED — swelling into small dark lozenges and pinching back to a hairline,
-  several times along its length, never a smooth taper — and every edge carries
-  a thin bright lip where the broken plaster catches the light. Copy this
-  exactly; it appears in every other scene and must match. Take nothing else
-  from this reference.
 
-
-THE PAINTING IS ONE OBJECT AT ONE SIZE. On the wall it is a SMALL picture —
-the wall dwarfs it, Dupe standing beside it is clearly taller than it — and
-when it stands in the cart's rack it is EXACTLY that same size, never scaled
-down to fit the cart, never enlarged on the wall. If the two sizes differ the
-shot is wrong.
 
 [0s] Locked wide, waist height, perpendicular to the hero wall, the frame
 symmetrical about the wall's centreline. On the wall: ONE SMALL LANDSCAPE

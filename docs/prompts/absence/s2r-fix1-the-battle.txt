@@ -84,6 +84,15 @@ character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
 - every grey block is a prop, never a person
 
 REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
+  The camera stands OUTSIDE the wall, in the gallery, looking down its length:
+  chromium trumpet columns receding in matched pairs on both sides, warm orange
+  cove light along the ceiling, polished terracotta terrazzo underfoot, works on
+  white plinths and framed pieces down both walls, and the tall RED DOUBLE DOOR
+  far off at the vanishing point. THE BROKEN WALL IS NOT IN THIS SHOT — no
+  crack, no star, no damaged plaster anywhere. Take the room, its surfaces and
+  its light from this picture.
+
 @gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
   stand-collar suit, white shoes, a black cane with a gold lion head, TWO GOLD
   FRONT TEETH. He bids like a man playing a game he expects to win.

@@ -21,6 +21,12 @@ changes.
 bodyguard. Only Dupe. He is also the only person in the building who has a
 reason to be afraid of Valder, and the audience does not know why yet.
 
+⚠️ EXACTLY ONE LOCATION ELEMENT, AND IT IS @loc_hall_big_e. CEO 2026-09-04:
+there are three room pictures, one per camera position — loc_wall_pov_e for
+the camera inside the wall, loc_hall_big_e for outside looking at the red
+door, loc_hall_big_d for outside facing the plaque. Binding more than one in
+a single scene confuses the model completely. This shot is the second kind.
+
 ⚠️ NEVER UPLOAD AN IMAGE. Match by ID in the panel and bind the library entry.
 If the composer caps references, drop in this order and report it:
 prop_cart_a_painted first, then char_registrar. Never drop Dupe or Valder.
@@ -66,6 +72,15 @@ character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
 - every grey block is a prop, never a person
 
 REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
+  The camera stands OUTSIDE the wall, in the gallery, looking down its length:
+  chromium trumpet columns receding in matched pairs on both sides, warm orange
+  cove light along the ceiling, polished terracotta terrazzo underfoot, works on
+  white plinths and framed pieces down both walls, and the tall RED DOUBLE DOOR
+  far off at the vanishing point. THE BROKEN WALL IS NOT IN THIS SHOT — no
+  crack, no star, no damaged plaster anywhere. Take the room, its surfaces and
+  its light from this picture.
+
 @project_absence_char_cleaner_c — DUPE: face, build, moustache, white uniform
   with orange trim, cap with a gold V, gold V at the chest. His face is the
   subject of this shot.
