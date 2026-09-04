@@ -63,6 +63,12 @@ security guards, no reporters, no journalists, nobody holding a camera, nobody
 filming, nobody in the background, nobody walking through. If a figure is not
 named below it must not exist.
 
+THE BLACK MARK YOU SEE IN THE REFERENCE VIDEO IS SCAFFOLDING, NOT ART. The grey
+previz contains a crude black shape standing in for the break, purely to say
+WHERE it is and that people must not block it. Do not copy that shape, its
+edges or its texture. The break's real appearance comes ONLY from the still
+image reference, and that image is the authority on it.
+
 POSITION MAP — every figure in the reference video stands exactly where its
 character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
 - the BLUE figure labelled COLLECTOR_A = @project_absence_char_woman

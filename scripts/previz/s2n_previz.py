@@ -24,7 +24,9 @@ for n in ("wall_hero_panel", "wall_crack_end"):
     if ob: ob.hide_render = ob.hide_viewport = True
 
 
-# ---- the crack, scaled 3x IN THE PREVIZ ONLY. At true size it is 0.34 m of
+# ---- the crack, scaled 1.5x IN THE PREVIZ ONLY (CEO 2026-09-04 halved it
+# from 3x: big enough to say WHERE the break is, small enough that the model
+# is not tempted to copy this crude grey shape instead of the real Element). At true size it is 0.34 m of
 # hairline sticks 1.78 m from the lens, and it renders as a small dark mark
 # that the eye reads as being on the far wall. That misreading is precisely the
 # failure this whole camera exists to prevent — the model keeps staging people
@@ -34,8 +36,8 @@ for n in ("wall_hero_panel", "wall_crack_end"):
 _piv = (0.0, -21.82, 2.45)
 for _o in bpy.data.objects:
     if _o.name.startswith("crack_"):
-        _o.location = tuple(_piv[i] + (_o.location[i] - _piv[i]) * 3.0 for i in range(3))
-        _o.scale = tuple(v * 3.0 for v in _o.scale)
+        _o.location = tuple(_piv[i] + (_o.location[i] - _piv[i]) * 1.5 for i in range(3))
+        _o.scale = tuple(v * 1.5 for v in _o.scale)
 
 exec(open(r"C:\Users\UsEr\Downloads\charlib.py").read())
 col = sc.collection
