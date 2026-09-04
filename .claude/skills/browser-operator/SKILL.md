@@ -167,6 +167,44 @@ exists. This is the whole point of the role: **make yourself unnecessary.**
   text path exists — that is a signal you skipped step 5.
 - Report `steps_used`, `screenshots_taken`, and the window size you used.
 
+## Count the reference chips before you fire — a typed @name is not a binding
+
+An Element attaches only if it reaches the composer as a **chip**. If it stays
+as plain text the model gets no reference plate for it, and nothing warns you:
+the generation runs, the clip comes back, and the character has the wrong face
+or is missing. It is invisible until someone reviews frames.
+
+Measured 2026-09-05 on «Sorry, Sir» S2L. Of ten references, **five never became
+chips** — `char_woman`, `char_student_c`, `char_visitor_b`, `char_visitor_a`,
+`char_critic_b` sat there as words, while `cleaner_c`, the cart, the room and
+the wall bound correctly. The scene's five visitors were generated with no plate
+at all. The prompt file was perfect; the binding failed at paste time.
+
+**Before every fire:**
+
+```bash
+python3 scripts/prompt-lint.py <sheet>           # ELEMENT_MISSING_AT = the sheet is wrong
+python3 scripts/prompt-lint.py --chips <sheet>   # -> "EXPECTED 8 Element chips"
+```
+
+```js
+// then count what actually bound, in the composer
+document.querySelectorAll('[data-element-id], .element-chip, a[href*="/element"]').length
+document.querySelectorAll('.text-icon-error').length   // must be 0
+```
+
+**If the chip count is below the expected number, DO NOT FIRE.** Bind the
+missing ones and count again. An error chip counts as not bound.
+
+Report it as `M/N bound, K error chips`. The Valder waves did exactly this and
+their reports carry lines like `8/8 unique mentions bound, 0 .text-icon-error
+chips`; the practice was not carried into later films, and five characters were
+silently generated without references as a result.
+
+The selector above is a starting point, not gospel — if it returns a number that
+disagrees with what you can see, find the real one and **say so in your report**
+so the next operator gets the corrected selector.
+
 ## Money — the price is on the button, and it moves
 
 **Read the button with `javascript_tool`.** The price is rendered as text inside
