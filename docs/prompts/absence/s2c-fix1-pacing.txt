@@ -73,15 +73,14 @@ columns. Warm early morning, the museum empty and open and quiet.
 Dupe's cart stands PARKED off to one side, fully in frame, the painting upright
 in its rack. It never moves, not once, not an inch, for the whole shot.
 
-[0s] Dupe is already moving. HE WALKS FAST AND HE NEVER RUNS — a brisk
-purposeful walk at about 1.7 metres per second, which is the pace of a person
-hurrying to catch something: long strides, roughly two and a half steps a
-second, both feet in contact with the floor in turn and never both off it at
-once. That last part is what separates a fast walk from a run and it must hold
-in every frame. No jog, no trot, no scurry, no speed-up. He crosses the length
-of the frame to one side, stops, turns on his heel and walks fast back the
-other way. THREE crossings in the first five seconds and no more, each one
-long.
+[0s] Dupe is already moving. HE IS WORRIED AND HE IS WALKING — slowly, back and
+forth, the way a man walks when he is turning a problem over and getting
+nowhere with it. NOT FAST. Slower than an ordinary walk, not quicker. He goes a
+little way one direction, stops, turns, and comes back. He never runs, never
+jogs, never hurries, and his feet are never both off the floor at once.
+
+HIS LEGS ARE THE CALMEST PART OF HIM. Everything that shows the panic happens
+above the waist, and none of it makes him move faster.
 
 HIS EYES GO WHERE HIS FEET GO. He looks ahead along his own path, at the floor
 a few metres in front of him, at the far end of the room he is walking toward —
@@ -110,12 +109,9 @@ cannot stop checking that it is still real.
 And underneath all of it he is trying to look like a man who is merely busy —
 which he is failing at completely, and that failure is the performance.
 
-[5s] He crosses the frame and KEEPS GOING, straight out of shot. For a moment
-there is no one in the picture at all — only the long gallery, Valder's
-collection standing in the quiet, and his cart with the painting in it.
-
-[7s] He comes back in, faster than he left, and resumes pacing. Nothing has
-been solved by leaving.
+[5s] He is still going back and forth, and he has got no further with it. He
+glances at the cart, then away, then back at it, because the painting in it is
+the problem and he cannot stop checking that it is still real.
 
 [10s] A PUBLIC ADDRESS ANNOUNCEMENT begins, a calm recorded woman's voice over
 the museum speakers, warm and unhurried: "Good morning. The Valder Collection
@@ -130,14 +126,14 @@ on the cart with the painting in it, because that is the thing the
 announcement has just put a clock on. He listens to a voice from above while
 staring at the object that is going to end him.
 
-[14s] The announcement ends. He starts again, and it is worse now — the
-crossings shorter and tighter than before, less like thinking and more like
-flinching. Still measured walking, never a run, never a scurry.
+[14s] The announcement ends. He starts walking again, at the same slow pace as
+before — the clock has changed, he has not. The worry is in his face and his
+hands, not in his speed.
 
-[18s] He walks out of frame and does not come back. Hold on what he left: the
-long empty gallery, Valder's collection, and the cart standing alone with a
-two-million-dollar painting sitting in a cleaner's rack. One beat longer than
-is comfortable. Cut.
+[19s] He walks out of the side of the frame and does not come back. Hold on
+what he left: the long empty gallery, Valder's collection, and the cart
+standing alone with a two-million-dollar painting sitting in a cleaner's rack.
+One beat longer than is comfortable. Cut.
 
 AUDIO: room tone and his own hurried footsteps on terrazzo, close and dry. The
 PA announcement at 10s, slightly boxy through ceiling speakers, then room tone
@@ -163,9 +159,10 @@ visible in frame, no person delivering the announcement, no second person at
 all, no visitors, no staff, no guards, no crowd; no Dupe speaking, no Dupe
 looking at camera, no Dupe glancing at camera, no Dupe acknowledging the
 camera, no eyeline to lens at any point; no Dupe looking backwards while
-walking forwards; no running, no jogging, no trotting, no scurrying, no both
-feet off the floor at once, no airborne stride, no comic speed, no sped-up
-motion, no more than three crossings in any five seconds, no
+walking forwards; no running, no jogging, no trotting, no scurrying, no
+striding, no marching, no power walking, no hurrying, no rushing, no both feet
+off the floor at once, no airborne stride, no comic speed, no sped-up motion,
+no walking faster after the announcement, no getting quicker at any point; no
 crying, no shouting, no throwing anything, no kicking, no
 collapsing to the floor, no head in hands melodrama.
 

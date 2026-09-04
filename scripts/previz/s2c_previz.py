@@ -53,18 +53,31 @@ def key(o, fr, x, y=-14.3):
 # ---- the pacing, all of it lateral, all of it hurried ----
 # frames: 24 = 1s. Off-frame is roughly |x| > 3.4 at this lens and distance.
 PACE = [
-    # ~30% slower than the first build (CEO 2026-09-03). Same story beats —
-    # out at 5s, back at 7s, frozen 10-14s, gone at 19s — but fewer crossings,
-    # each one taking about a third longer, so it reads as a man thinking
-    # rather than a man twitching.
-    (1,    0.0), (34,  -2.6), (68,   2.5), (100, -1.4),                 # 3 long crossings
-    (122, -5.0),                                                        # OUT of frame, left
-    (156, -5.0),                                                        # gone. the cart alone.
-    (178,  0.2), (212,  2.4), (240,  0.6),                              # back in, 2 crossings
-    (243,  0.6),                                                        # PA starts — he stops dead
-    (336,  0.6),                                                        # frozen through the announcement
-    (362, -2.0), (398,  2.2), (430, -1.2),                              # tighter, still not frantic
-    (458, -5.2), (480, -5.2),                                           # out for good, cart left behind
+    # CEO 2026-09-05: HE WALKS, SLOWLY. He does not run at any point.
+    #
+    # The old table said "hurried" in its comments while the prompt said "no
+    # running" in its negatives, and the motion said something else again.
+    # Measured: seven of its eleven segments were over 2.0 m/s, where people
+    # stop walking and break into a run, and one was 5.67 m/s, a sprint. The
+    # model takes motion from the video reference, so the reference beat the
+    # words and Dupe ran.
+    #
+    # Every segment below is at or under 0.84 m/s. Ordinary walking is about
+    # 1.3-1.4 m/s, so this is deliberately SLOWER than a normal walk — the pace
+    # of a worried man going back and forth, not a man hurrying anywhere.
+    #
+    # The agitation comes from everything except his legs — breath, hands, jaw,
+    # eyes — which is what the prompt carries.
+    #
+    # DROPPED: the mid-scene exit at 5s and return at 7s. At walking pace he
+    # cannot cross to off-frame and come back before the PA at 10s; it only fit
+    # before because he was running. He now paces the whole first ten seconds,
+    # stops dead for the announcement, paces again, and walks out for good at
+    # the end. Off-frame is roughly |x| > 3.4 at this lens and distance.
+    (1,    0.0), (60,  -2.0), (145,  0.6), (200, -1.2), (243,  0.3),
+    (336,  0.3),                                          # frozen for the PA, 10.1s to 14.0s
+    (396, -1.6), (436, -2.9),                             # pacing again, drifting left
+    (480, -3.9),                                          # walks out left, clear by ~frame 458
 ]
 for fr, x in PACE:
     key(dupe, fr, x)
