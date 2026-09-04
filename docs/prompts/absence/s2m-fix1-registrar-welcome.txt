@@ -96,18 +96,27 @@ REFERENCES — each with a job:
 @project_absence_prop_cart_a_painted — HIS CART, parked beside him and never
   moving: castor wheels, mop, orange bucket, bottles, ladder, gold V, the
   painting upright in the rack.
-@project_absence_loc_wall_pov_e — THE SHAPE OF THE BREAK ONLY, the black
-  silhouette the camera looks out through: a star-shaped mark whose centre is
+@project_absence_loc_wall_pov_e — THE ONE PICTURE THIS SHOT IS BUILT FROM.
+  Take the whole look from it: the room, the chromium trumpet columns receding
+  in pairs, the warm orange cove light along the ceiling, the polished
+  terracotta terrazzo, the works on their plinths down both sides, the tall red
+  door far off at the vanishing point, and the BREAK ITSELF. It is the only
+  room reference in this prompt — there is no second view of the gallery and
+  nothing else describes this space.
+  THE BREAK, read off that picture exactly: a star-shaped mark whose centre is
   a SOLID BLACK ARROWHEAD POINTING DOWN, broad at the top, tapering to a point
   at the bottom, with a short HOOKED SPUR curling off its upper right like a
-  comma and a notch at its upper left. FOUR long arms leave it and no more:
-  one rising at 12 o'clock with a single oval bead a third of the way up; the
+  comma and a notch at its upper left. FOUR long arms leave it and no more: one
+  rising at 12 o'clock with a single oval bead a third of the way up; the
   longest and heaviest climbing toward 1:30, lumpy and kinked once; one running
   down-left at 9:30, thinner, ending in a fine point; one falling down-right at
   4:30 that kinks partway and throws a small barb near its needle-sharp end.
   Every arm is BEADED — swelling into small dark lozenges and pinching back to
-  a hairline several times along its length, never a smooth taper. Copy this
-  shape exactly. Take nothing else from this reference.
+  a hairline several times along its length, never a smooth taper.
+  THE BREAK APPEARS EXACTLY ONCE. In this shot the camera sits inside it, so it
+  reads as the black silhouette at the very front of the picture. It is not
+  also on a wall behind the people, and no other surface in the room is
+  damaged.
 
 THE FRAME, unchanging for twenty seconds: the ragged black opening frames the
 picture, and through it the five stand in front of the wall at uneven distances
