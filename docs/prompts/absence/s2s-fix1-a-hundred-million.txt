@@ -1,0 +1,222 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2S-Fix1 · A HUNDRED MILLION · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — Unlimited ON as the FIRST action in the composer,
+before typing or binding anything, then zoom the Generate button and confirm
+ZERO digits before every click.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — it defaults to 5s silently.
+
+WHERE IT SITS. Straight after S2R, same frame, nobody has moved. Carrington has
+just been beaten to fifty million and has no answer. Then a voice arrives from
+the far end of the hall.
+
+THE LAST RUNG OF THE PRICE LADDER, and the film's biggest number. Only three
+people ever name a price: two million (the woman in blue, S2M), five through
+fifty (Carrington and the Madame, S2N and S2R), and a hundred million here. She
+is the only one who says it and she says it once.
+
+⚠️ THE JOKE IS THE SPEED, NOT THE NUMBER. She says a hundred million from
+somewhere nobody can see, the whole room turns to look — and then she takes
+forever to arrive. She is still a long way off when the clip ends. Two people
+give up waiting and walk out. If she arrives, or even gets close, the scene has
+no joke in it.
+
+⚠️ THE VOICE COMES FIRST AND SHE IS NOT VISIBLE WHEN IT DOES. That gap between
+hearing her and seeing her is the whole setup.
+
+⚠️ REFERENCES ARE CAPPED. Bind these six plus the video and carry the rest in
+prose: char_grandmother, gentleman_e, char_woman_c, prop_croc_bag, char_valder,
+char_registrar.
+
+⚠️ ON A REFUSAL OR A COPYRIGHT REJECTION: re-fire the same thing once,
+unchanged — these are not deterministic. Stop only if the same clip fails
+twice. CHECK THE FINISHED CARD'S INFO ICON: a copyright rejection is invisible
+in the composer and the card can look complete.
+
+Previz: docs/S2S-Render.MP4 — 1280x720 / 480 frames / 20.0s.
+
+Filing: All Scene/Fix-1/ as S2S-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, no cuts, for the whole twenty seconds. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE FRAME: exactly the frame of the scene before it — a locked, symmetrical
+view straight down the gallery at chest height. MR CARRINGTON on the LEFT,
+MADAME THIBAULT on the RIGHT about four metres away, VALDER BETWEEN THEM dead
+centre and slightly further back, the others banked behind them on their own
+sides, the registrar off to the left and nearer the camera with his ledger.
+Chromium trumpet columns recede away behind them toward a tall red double door
+small and far off at the vanishing point.
+
+THE COMPLETE CAST OF THIS SHOT IS THIRTEEN PEOPLE AND NOT ONE MORE. There are
+no extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards beyond the three named, no reporters, no journalists, nobody
+holding a camera, nobody filming. If a figure is not named below it must not
+exist.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the GOLD figure labelled GENTLEMAN = @gentleman_e, LEFT
+- the TEAL figure labelled MADAME = @project_absence_char_woman_c, RIGHT
+- the MAGENTA figure labelled VALDER = @project_absence_char_valder, CENTRE
+- the BLACK figure labelled REGISTRAR = @char_registrar, near left
+- the small SEATED figure labelled GRANDMOTHER =
+  @project_absence_char_grandmother, far away at the end of the hall, in the
+  wheelchair
+- the WHITE figure labelled DUPE, far back on the left with his cart
+- the remaining figures are the watching visitors, the bodyguard and the two
+  uniformed guards
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@project_absence_char_grandmother — THE OLD WOMAN: extremely old, small,
+  silver hair, seated in a RETROFUTURIST ELECTRIC WHEELCHAIR — a genuine
+  powered mobility chair with a chromium tubular frame, a moulded shell seat
+  with a high curved backrest, one large wheel on each side and small front
+  castors, and a small mechanical control pad with physical push-buttons and a
+  lever built into one armrest, which she operates herself with her own hand.
+  Nothing digital anywhere on it: no screens, no lights, no glowing parts, no
+  visible cables.
+@gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, white
+  stand-collar suit, white shoes, a black cane with a gold lion head, two gold
+  front teeth. He has just lost and it is on his face.
+@project_absence_char_woman_c — MADAME THIBAULT: elderly, tall, rail-straight,
+  a sculpted floor-length gown of glossy mid-green leather with chevron
+  leaf-vein seams and sharply pointed shoulder caps, long green leather opera
+  gloves, a towering pompadour streaked blue, green and silver-white, black
+  cat-eye sunglasses.
+@project_absence_prop_croc_bag — HER BAG, in one gloved hand throughout:
+  structured top-handle, polished deep OXBLOOD crocodile, gold clasp.
+@project_absence_char_valder — VALDER, between them: tall, slim, elderly,
+  swept-back white hair, small round tinted sunglasses, a blazer panelled in
+  flat blocks of magenta, yellow, green, blue and red, a red waistcoat, a long
+  mustard-yellow scarf, purple trousers, two different shoes.
+@char_registrar — THE REGISTRAR: about sixty, cream stand-collar tunic with
+  orange piping and a small gold V, white gloves, a brown leather ledger held
+  open, pen in hand.
+
+THE OTHERS, carried in this text: a very heavily built Black bodyguard in an
+all-black suit with opaque dark sunglasses and white gloves; two guards in navy
+military-cut tunics with gold buttons and a large gold V, one tall and thin and
+one short and heavy; a young woman in an oversized cobalt-blue overcoat with a
+pearl cluster necklace; an elderly East Asian woman in a deep magenta fur coat
+and cream gloves; a woman of about fifty-five with a brown bob in a
+tawny-brown fur coat over a rust-red dress; an elderly man in a deep maroon
+leather suit; a young art student with short curly acid yellow-green hair and a
+black sketchbook; and far back on the left a cleaner in a white uniform with
+orange trim beside a cleaning cart.
+
+[0s] Nobody has moved since the last scene. Carrington's mouth is still half
+open. The room is silent and waiting for him.
+
+[1s] AND A VOICE COMES FROM SOMEWHERE ELSE ENTIRELY — thin, old, unhurried,
+carrying the whole length of the gallery from far behind them all: "One hundred
+million."
+
+[3s] NOBODY CAN SEE WHO SAID IT. Every single head in the room turns away from
+the camera to look up the hall, all of them at once this time — Carrington, the
+Madame, Valder, the guards, the visitors, the registrar. It is the only moment
+in the film when the whole room does the same thing at the same instant.
+
+[5s] AND THERE SHE IS: tiny, at the far end of the gallery by the red doors, a
+very old woman alone in a powered wheelchair, her hand on the control lever.
+She is enormously far away.
+
+[7s] SHE STARTS COMING. The chair moves. It moves at a speed that would be slow
+for a person walking beside it, and she is coming the entire length of the
+room.
+
+[10s] Nobody says anything. Nobody moves toward her. They simply stand and
+watch her come, and she gets very slightly bigger, and it takes a very long
+time.
+
+[13s] THE ART STUDENT GIVES UP. She turns, walks past everybody and out of the
+picture past the camera at an ordinary bored pace, sketchbook under her arm,
+without a word to anyone.
+
+[15s] Valder glances after her, then back up the hall, and adjusts his scarf.
+
+[16s] THE WOMAN IN THE TAWNY FUR GIVES UP TOO and follows her out past the lens.
+Nobody tries to stop either of them. Nobody comments.
+
+[18s] The old woman is still coming. She has covered barely any of the distance
+at all. Everybody left is still watching her.
+
+[19s] Hold. Cut.
+
+AUDIO: room tone, one thin old voice carrying from a long way off, the faint
+electric hum of a small motor running continuously from 7s, two sets of
+unhurried footsteps leaving on terrazzo, the creak of a leather ledger. ONE
+line of dialogue in the entire clip, hers, spoken before she is visible.
+Nobody else says a single word. NO SOUND AT THE START OR THE END: the clip
+opens mid room-tone with no intro sting or riser, and simply stops with no
+tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no fourteenth person, no
+extra, no bystander, no other visitor, no gallery staff, no reporter, no
+journalist, nobody holding a camera, nobody filming, no crowd, no children; no
+old woman arriving, no old woman reaching the group, no old woman close to
+camera, no old woman in the foreground, no cut to her, no close-up of her — she
+stays far away for the entire clip; no wheelchair moving quickly, no chair
+being pushed by anybody, no attendant, no nurse, no helper, no walking frame,
+no walking stick, no ordinary chair, no lounge chair, no office chair, no
+screens or lights or glowing parts on the chair; no crowd walking toward her,
+no group going to meet her, no applause, no cheering, no gasping, no laughing;
+no Carrington bidding again, no Madame bidding again, no third bid, nobody else
+naming a price; no Valder speaking, no registrar speaking; no auctioneer, no
+podium, no gavel, no paddle, no raised hands, no visible price, no written
+figures on screen; no running, no hurrying, no comic speed, no sped-up motion,
+no slow motion; no camera movement of any kind, no pan, no tilt, no zoom, no
+dolly, no handheld, no reframing, no cut, no second angle; no four-panel
+layout, no grid, no split screen; no cracked wall, no crack, no brass plaque in
+frame; no looking at camera by anybody; no smartphones, no screens, no modern
+technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. SHE NEVER ARRIVES. At 19s she must still be obviously far away. If she gets
+   anywhere near the group the scene is dead — re-fire.
+2. THE VOICE LANDS BEFORE SHE IS VISIBLE, and the whole room turns at once.
+   That simultaneous turn is the only one in the film; every other scene's
+   heads turn raggedly.
+3. TWO PEOPLE LEAVE, separately, out past the lens, unremarked.
+4. THE CHAIR IS A REAL POWERED WHEELCHAIR she drives herself — not a pushed
+   chair, no attendant, nothing digital on it.
+5. ONE line of dialogue in the whole clip.
+6. THIRTEEN PEOPLE, no extras, no auction furniture.
+7. Camera dead still for twenty seconds.
+File the take whatever the verdict.
+
+END POSITIONS: everyone still watching, the old woman still coming, two of the
+watchers gone. Whatever follows this inherits a room that has been waiting a
+long time.
+
+=== END NOTES ===
