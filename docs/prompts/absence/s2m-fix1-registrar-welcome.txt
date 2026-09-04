@@ -44,6 +44,11 @@ the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
 shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
 never a person.
 
+THE BREAK EXISTS EXACTLY ONCE IN THIS PICTURE, and it is the black shape in
+the extreme foreground. Every other wall in the room is clean, undamaged
+plaster. There is no second crack, no star painted or marked on the far wall,
+nothing damaged anywhere behind the people.
+
 THE CAMERA IS INSIDE THE BROKEN WALL, looking out through the break into the
 gallery. The jagged edges of the hole sit in the extreme foreground as a hard
 black silhouette, out of focus and solid black, and EVERY PERSON IS BEHIND IT,
@@ -109,8 +114,8 @@ picture, and through it the five stand in front of the wall at uneven distances
 with the colonnade receding behind them. Far to the left, deep in the shot,
 Dupe works beside his parked cart.
 
-[0s] The five are exactly as we left them, looking at the wall, nobody
-speaking. From the left, deep in the gallery, THE REGISTRAR walks in at an
+[0s] The five are exactly as we left them, FACING THE BROKEN WALL — which
+means facing the lens, not standing side-on in profile — nobody speaking. From the left, deep in the gallery, THE REGISTRAR walks in at an
 ordinary unhurried pace, ledger held against his chest, and he is already
 talking as he comes — the cheerful practised delivery of a man who says this
 every single morning and has stopped hearing himself say it.
@@ -171,7 +176,9 @@ cut, no second angle; no four-panel layout, no grid, no split screen; no fifth
 arm on the mark, no five-pointed star, no symmetrical star, no round hole at
 its centre, no rings; no plaque falling, no plaque moving; no cart moving, no
 painting leaving the rack; no tidy row of people, no evenly spaced line, no
-looking at camera; no smartphones, no screens, no modern technology.
+looking at camera; no second crack, no second star, no mark on the far wall, no
+damage anywhere but the foreground silhouette; no group standing in profile, no
+group facing sideways before the registrar arrives; no smartphones, no screens, no modern technology.
 
 House negatives: no voiceover, no narration, no subtitles, no captions, no
 on-screen text, no signage, no logos, no music, no score, no dutch angle, no
