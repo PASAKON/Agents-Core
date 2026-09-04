@@ -284,6 +284,49 @@ So, every time:
 - `save_to_disk` on a screenshot saves the file — it does not reduce the token
   cost of that screenshot.
 
+## Tabs — claim what you open, close what you claimed
+
+This is not a Higgsfield rule. It applies to every site any operator drives,
+because the failure is about the browser, not the product: about twenty-five
+tabs had piled up in one Chrome window before anyone noticed, left behind by
+operator after operator across many sessions. Nobody had ever been told to
+close one, and the half-rule we did have — never touch another operator's tab —
+had no way to tell whose was whose, so in practice nobody touched anything.
+
+Two costs, and the second is the one that bites:
+- The window overflows and a human can no longer find their own tabs.
+- **A tab that has been reused across several different assets starts
+  misbehaving.** On Higgsfield that shows up as a reference chip silently
+  binding the wrong upload; expect the same class of stale-state bug anywhere
+  a page keeps client-side state between jobs. A fresh tab per job and a closed
+  tab after it is the cheapest defence there is.
+
+**Ownership is proved from disk, never from memory.**
+
+```bash
+# the moment you open a tab
+python3 scripts/browser/tab_registry.py claim <task-id> <tab-id> "<url>"
+
+# close them in the browser, then, before you submit your report
+python3 scripts/browser/tab_registry.py done <task-id>
+```
+
+- **One working tab at a time.** When a job has landed and been filed, that tab
+  has no further use.
+- **A tab held by another LIVE task is untouchable.** `tab_registry.py owner
+  <tab-id>` exits 1 and prints the exact tmux command to warn that worker.
+  Wait for them to answer in their own pane before touching anything — the
+  mailbox path delivers empty bodies, so tmux is the channel that reaches them.
+- **A tab in no file is an orphan** and is safe to close. `orphans <id>...`
+  sorts a list for you.
+- **Never close a tab you did not open** without checking the owner first.
+
+`scripts/browser/tab_guard.py` enforces the two dangerous cases as a PreToolUse
+hook — closing a live owner's tab, and opening a second tab while holding one —
+so this is not left to memory. It fails open: a broken guard must never be able
+to stall a queue.
+
+
 ## Hard stops
 
 Credentials, account creation, real-money payments, accepting terms, granting
