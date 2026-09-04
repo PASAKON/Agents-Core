@@ -1,5 +1,16 @@
 # «Sorry, Sir» — every locked line
 
+> ⚠️ **2026-09-04 — FIX-1 OVERRIDES THIS FILE.** The CEO's ruling: the Fix-1
+> prompts in this directory (`s2*-fix1-*.txt`) are the authority. This file is a
+> SKELETON — read it for scenes Fix-1 has not covered, and for camera ideas and
+> staging worth borrowing, but where the two disagree, Fix-1 wins.
+>
+> Concretely: S10 / S10b / S12 here are superseded by S2Q (the Madame's
+> entrance), S2R (the bidding battle, 10 → 15 → 20 → 25 → 50) and S2S (the
+> grandmother's hundred million). The middle rungs differ from S10b's 20 → 80;
+> the ENDING does not — both close at a hundred million, so S14's locked line
+> about "a hundred million dollar artwork" still stands untouched.
+
 **Written 2026-08-28 after the CEO said "ที่เขียนไว้หายหมดเลย" and
 "คุณจดไอเดียฉันไว้ไหนบ้างเอาออกมาให้หมด".** S7/S8/S9 below were drafted in
 chat, approved, and then existed nowhere but a transcript. That is what this
