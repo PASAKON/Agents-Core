@@ -1467,3 +1467,37 @@ jump-cut editor — same account, same hard rules, different DOM.
    Wave 3 finding, now confirmed on this surface too) — re-verify the whole
    row, not just Unlimited, after any reload, since a broken video chip
    (point 2 above) is also a reason you might reload mid-task.
+
+## Tab hygiene — claim what you open, close what you claimed (2026-09-04)
+
+About twenty-five Higgsfield tabs had piled up in one Chrome window before
+anyone noticed, because every operator opens its own and nothing ever told one
+to close it. We had half a rule — never touch another operator's tab — and no
+way to tell whose was whose, so nobody touched anything and they accumulated.
+
+This is not cosmetic. The stale-@Video-binding failure below only reproduces in
+a tab that has touched more than one video asset, and a pile of abandoned tabs
+is exactly that condition.
+
+**Ownership is provable from disk, never from memory.** Use
+`scripts/browser/tab_registry.py`:
+
+```bash
+# the moment you open a tab
+python3 scripts/browser/tab_registry.py claim <task-id> <tab-id> "<url>"
+
+# before you submit your report: close them in Chrome, then
+python3 scripts/browser/tab_registry.py done <task-id>
+```
+
+Rules that follow from it:
+- **One working tab at a time.** When a fire has landed and been filed, that
+  tab has no further use — close it.
+- **A tab in another LIVE task's file is untouchable.** `owner <tab-id>` exits 1
+  and prints the exact tmux command to warn that worker; the mailbox path
+  delivers empty bodies (GH #129), so tmux is the channel that reaches them.
+  Wait for that worker to answer in its own pane before touching anything.
+- **A tab in no file is an orphan** and is safe to close. `orphans <id>...`
+  sorts a list for you.
+- **Never close a tab you did not open**, even if it looks abandoned — check
+  first.
