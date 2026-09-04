@@ -27,9 +27,12 @@ def box(name, loc, dim, color):
     m = bpy.data.materials.new(name+"_m"); m.use_nodes = False
     m.diffuse_color = color; o.data.materials.append(m); return o
 
-# the couple, far RIGHT of frame as the CEO asked
-wife    = spawn_char(col, "VISITOR_B", ( 1.85, -19.7), h=1.66, prefix="s2h")
-husband = spawn_char(col, "VISITOR_A", ( 2.60, -19.5), h=1.78, prefix="s2h")
+# the couple, far RIGHT of frame as the CEO asked.
+# CEO 2026-09-04: the couple is TWO WOMEN. visitor_b (RUST) is the one crying;
+# collector_a (COBALT) is the partner who comforts her. The man in the maroon
+# suit is NOT part of this couple — he browses alone elsewhere.
+wife    = spawn_char(col, "VISITOR_B",   ( 1.85, -19.7), h=1.66, prefix="s2h")
+partner = spawn_char(col, "COLLECTOR_A", ( 2.60, -19.5), h=1.70, prefix="s2h")
 # Dupe well left, working, never crossing to them
 dupe    = spawn_char(col, "DUPE",      (-2.6, -17.2), h=1.80, prefix="s2h")
 build_cart(col, (-3.3, -16.6), prefix="s2h", with_painting=True)
@@ -45,7 +48,7 @@ cam_d = bpy.data.cameras.new("CAM_S2H"); cam_d.lens = 21
 cam = bpy.data.objects.new("CAM_S2H", cam_d); sc.collection.objects.link(cam); sc.camera = cam
 cam.location = (0.0, -22.45, 2.45)              # behind the wall, at crack height
 cam.rotation_euler = (R(90), 0, 0)              # looking out along +y, down the hall
-for who, ob in (("WIFE", wife), ("HUSBAND", husband), ("DUPE", dupe)):
+for who, ob in (("WIFE", wife), ("PARTNER", partner), ("DUPE", dupe)):
     tag_label(col, who, ob, cam, prefix="s2h")
 
 def key(o, fr, x, y, z=None):
@@ -54,7 +57,7 @@ def key(o, fr, x, y, z=None):
 
 # the couple barely move — she is rooted, he closes the last half metre to her
 key(wife, 1, 1.85, -19.7); key(wife, 288, 1.85, -19.7)
-key(husband, 1, 2.75, -19.4); key(husband, 96, 2.30, -19.6); key(husband, 288, 2.30, -19.6)
+key(partner, 1, 2.75, -19.4); key(partner, 96, 2.30, -19.6); key(partner, 288, 2.30, -19.6)
 
 # Dupe works his way slowly along, never toward them. 0.35 m/s — he is cleaning,
 # not walking; the pace comes from the motion research, not from feel.

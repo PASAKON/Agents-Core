@@ -1,0 +1,134 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2G-Fix1 · THE MARK — INSERT · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — Unlimited ON as the FIRST action in the composer,
+before typing or binding anything, then zoom the Generate button and confirm
+ZERO digits before every click.
+⚠️ DURATION SLIDER = 12s, NOT 20s. This one is short. Full spec: 12s / 720p /
+Seedance 2.5 / High / 1/4 / Sound ON. Read all six fields back before firing —
+the slider defaults to 5s silently, and 12s is a value this project has used
+before, so it is there on the slider.
+
+WHAT THIS IS. The CEO's list, item 2: the single insert of the break on its
+own. No people, no room, no story — twelve seconds of the mark, locked off, so
+the editor has a cutaway he can drop anywhere in the sequence.
+
+⚠️ THE PREVIZ IS ALMOST EMPTY ON PURPOSE. docs/S2G-Render.MP4 is twelve seconds
+of a crude black star on a flat wall and nothing else. It is a position
+diagram: it says the mark is centred, it is roughly this big in frame, and the
+camera does not move. It says NOTHING about what the mark looks like. Count the
+arms in the previz if you like — they are wrong, and they are meant to be.
+
+⚠️ THE STILL IMAGE IS THE ONLY AUTHORITY ON THE MARK. Everything about its
+shape comes from loc_hall_big_d and from the written description below, never
+from the video.
+
+⚠️ THE ONE FAILURE MODE THAT MATTERS HERE. With nothing else in frame, the
+model will want to fill twelve seconds — a slow push, a drift, a light change,
+a bit of dust. It must not. This is a locked plate. The negatives below fight
+for that and they are not optional.
+
+Previz: docs/S2G-Render.MP4 — 1280x720 / 288 frames / 12.0s.
+
+Filing: All Scene/Fix-1/ as S2G-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+12s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, never drifts, no cuts, for the whole twelve seconds. Sound On · High.
+
+the reference video (Video 1) is the FRAMING REFERENCE for this shot — a
+12-second grey previz that carries a crude black star standing in for the
+break. It tells you WHERE the mark sits in frame and HOW BIG it is, and nothing
+else. Do not copy that shape, its arms, its count, its edges or its texture.
+
+THE BLACK MARK IN THE REFERENCE VIDEO IS SCAFFOLDING, NOT ART. The break's real
+appearance comes ONLY from the still image reference, which is the authority on
+it.
+
+THE FRAME, unchanging for twelve seconds: a flat, straight-on view of a warm
+cream gallery wall, filling the whole picture. THE BREAK sits a little above
+centre. There is no floor, no ceiling, no column, no doorway, no plaque, no
+plinth and no person in this shot — the wall is all there is.
+
+@project_absence_loc_hall_big_d — THE WALL AND ITS SURFACE, and the only
+  reference in this prompt: warm cream plaster, the soft warm orange light of
+  the gallery falling across it from above, a faint honeyed sheen where the
+  light grazes, fine real texture in the paint. Take the wall's colour, its
+  surface and its light from this picture. It is a four-panel sheet — take
+  NOTHING of its arrangement or layout, never reproduce a grid, and do not
+  bring the room, the columns, the floor or the plaque into this shot.
+  THE BREAK, read off that picture exactly: a star-shaped mark whose centre is
+  a SOLID BLACK ARROWHEAD POINTING DOWN, broad at the top, tapering to a point
+  at the bottom, with a short HOOKED SPUR curling off its upper right like a
+  comma and a notch at its upper left. FOUR long arms leave it and no more: one
+  rising at 12 o'clock with a single oval bead a third of the way up; the
+  longest and heaviest climbing toward 1:30, lumpy and kinked once; one running
+  down-left at 9:30, thinner, ending in a fine point; one falling down-right at
+  4:30 that kinks partway and throws a small barb near its needle-sharp end.
+  Every arm is BEADED — swelling into small dark lozenges and pinching back to
+  a hairline several times along its length, never a smooth taper.
+  THE BREAK APPEARS EXACTLY ONCE and no other surface is damaged.
+
+[0s] The mark, held. The wall is completely still. Nothing enters, nothing
+leaves, nothing changes.
+
+[6s] Still held. The only thing alive in the picture is the grain of the film
+itself and the faintest wander of light on the plaster, the kind a real camera
+records off a real wall.
+
+[11s] Still held. Cut.
+
+AUDIO: room tone only — the large, quiet, slightly hollow air of a big empty
+gallery, and nothing else. No footsteps, no voices, no movement. NO SOUND AT
+THE START OR THE END: the clip opens mid room-tone with no intro sting or
+riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown. Photographed, not
+rendered: fine film grain, faint gate weave, slight colour fringing.
+
+CRITICAL NEGATIVES: no camera movement of any kind, no pan, no tilt, no zoom,
+no push in, no pull out, no dolly, no truck, no crane, no handheld, no shake,
+no drift, no reframing, no rack focus, no cut, no second angle; no change of
+light, no flicker, no shadow crossing the wall, no light sweeping past, no
+dust motes, no smoke, no falling plaster, no crumbling, no dust puff, no debris,
+no motion in the mark, no crack growing, no crack spreading, no animation of any
+kind; no person, no hand, no face, no silhouette, no reflection of anybody, no
+shadow of anybody; no floor, no ceiling, no skirting, no column, no doorway, no
+window, no plinth, no artwork, no picture frame, no brass plaque, no label, no
+sign; no second crack, no mark on any other surface; no fifth arm on the mark,
+no five-pointed star, no six-pointed star, no symmetrical star, no round hole
+at its centre, no rings, no spiral, no bullet hole, no impact crater, no
+spider web, no shattered glass; no four-panel layout, no grid, no split screen,
+no inset panel, no vignette, no letterbox, no black border.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. THE CAMERA IS DEAD STILL for twelve seconds. A slow push is the most likely
+   failure and it makes the plate useless to the editor — re-fire on any move.
+2. THE MARK MATCHES THE STILL, not the previz. Four beaded arms, arrowhead
+   centre with the hooked spur. Five arms or a symmetrical star = re-fire.
+3. NOTHING BUT WALL. No plaque, no floor line, no column edge, no plinth.
+4. NOTHING MOVES. No dust, no falling plaster, no growing crack.
+5. Room tone only, no tail.
+File the take whatever the verdict.
+
+WHY IT EXISTS: the editor asked for a clean cutaway of the mark he can drop
+between any two scenes in the stretch. It carries no story, so it can go
+anywhere — which is exactly why it must be locked and empty.
+
+=== END NOTES ===
