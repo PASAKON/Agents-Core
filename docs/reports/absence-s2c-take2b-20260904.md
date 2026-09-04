@@ -68,43 +68,107 @@ No entry above it, no refund/failure entry beneath it. Total 7-day spend for
 this account: $18 / 450 credits, 100% attributed to GPT Image 2.0, 0% to
 Seedance 2.5 - consistent with zero paid video charges from this session.
 
-## What could NOT be confirmed by report time
+## THE CLIP LANDED — 07:00 ICT, ~34 minutes after the click
 
-**No visible "Processing" card was found anywhere in the project's asset
-grid, the account-wide "My generations" view, or the composer's own
-Generations/Uploads/Videos reference pickers**, despite the confirmed Usage
-History charge. Checked: main grid (both collapsed and expanded sidebar),
-Filter -> Status -> "In progress" (returned empty - that filter is a manual
-review-workflow tag, not a render-status indicator, confirmed by testing it),
-and the Generations picker filtered to Video Generations. Asset count stayed
-at 622 throughout.
+Confirmed live in the project grid at `?preview=e84b4871-5ceb-4f4d-ad7d-2bef144a7723`,
+badged "New". **No visible "Processing" card was ever found in any grid,
+history or picker view while it rendered** (checked repeatedly across ~30
+minutes: main grid, account-wide "My generations", Filter -> Status -> "In
+progress" — that filter turned out to be a manual review-workflow tag, not a
+render-status indicator — and the Generations picker filtered to Video
+Generations). The asset appeared abruptly, fully finished, with no visible
+in-between state. Flagging this as a real gap in this account/UI tier for
+future operators: **the Usage History timestamp, not any in-app spinner, is
+the only reliable mid-render signal available.**
 
-This is logged as an observation, not a blocker: the Usage History entry is
-the authoritative signal per the skill's hard rule 7, and it is unambiguous.
-The absence of a visible in-app spinner is most likely either (a) this
-account/UI surfaces in-progress renders only inside the exact tab session
-that submitted them, and both staging tabs were reloaded/navigated during the
-verification process above, or (b) the render is genuinely still queued and
-Higgsfield does not pre-populate a placeholder tile until generation actually
-starts. Render time at the moment of firing (~23:49 UTC / 06:49 ICT) falls
-inside the skill's documented **US-peak slow window (16:00-01:00 UTC)**, so a
-50+ minute render is expected, not a fault.
+**File identity, independently confirmed three ways:**
+- Its underlying filename is `hf_20260903_232626_4e960c68-1282-427b-841d-b8199baf8937.mp4`
+  — the embedded timestamp `20260903_232626` UTC = **06:26:26 ICT**, matching
+  the Generate click and the Usage History entry to the second.
+- `HEAD` on its CDN URL: 200, `content-length: 20145469`, `content-type:
+  video/mp4`, `last-modified: Thu, 03 Sep 2026 23:59:46 GMT` (06:59:46 ICT —
+  render took **~33 minutes**, consistent with the US-peak slow window the
+  fire landed in).
+- Downloaded via the card's own Download button (no rights-verification
+  banner appeared) to `~/Downloads/`; local file size matches the HEAD byte
+  for byte (20,145,469 bytes), MD5 `9aca2d143668edb293ba7a757b628265`. Copied
+  to `~/Downloads/S2C-Fix1.MP4` (scene-named, no verdict in the name, per the
+  brief) alongside the original.
 
-## Verdict against the review list
+**Technical spec of the finished file** (`ffprobe`): 1280x720 h264 @ 24fps +
+aac audio, duration **20.04s** (the same clean target-consistent overshoot
+documented elsewhere for a 20s ask — not a defect). `volumedetect`: mean
+-29.3 dB / peak -4.6 dB — a real, non-silent audio track with dynamic range.
 
-**Not yet available - the clip has not finished rendering as of this report.**
-Continuing to poll on the skill's 20-min-then-5-min cadence. This report will
-be updated (or a follow-up filed) the moment the card completes, with the
-PASS/REFUSED verdict against the six-point review order in the brief.
+## THE FIRE WAS NOT REFUSED — resolves the open question in the brief
+
+**This is the headline finding.** S2C was refused once before the prompt
+rewrite (full render, then "Output may contain sensitive content"); S2-Fix1
+was refused the same way. This rewritten prompt rendered clean end to end —
+no scanner banner, no mid-render refusal, no post-render content warning,
+full frames, full audio, normal download. **A pass here means the refusal
+tracked something in the old text, not the shared Elements or the scene
+concept itself** — the two live theories from the brief (word-level prompt
+differential, shared-Element contamination) can both be closed for S2C
+specifically; whatever tripped the scanner before is gone from this text.
+
+## Verdict against the review list — frame-sampled review (PASS)
+
+Extracted and reviewed 1fps frames across the full 20s, an 8fps burst across
+1-4s for gait detail, full-resolution frames at the start/PA-freeze/end
+beats, and a difference-blend of the first vs. last frame to check camera
+drift pixel-by-pixel (methodology, not just eyeballing, per the brief's own
+instruction on point 4).
+
+| # | Check | Read | Evidence |
+|---|---|---|---|
+| 1 | Fast real walk, one foot down, no running | **PASS** | 8fps burst (1-4s) shows a genuine alternating-stride gait with motion blur consistent with real walking speed; no frame shows both feet clearly airborne, no floating/teleport artifacts |
+| 2 | Never looks at camera | **PASS** (frame-sampled) | Most frontal pose is the t=10s PA-freeze; full-res crop shows his eyes lowered/averted, not direct lens contact. Not exhaustively checked frame-by-frame — full-speed playback review is still worth a look before this is called 100% clean |
+| 3 | Panic, not busy-ness | **Consistent, qualitative** | Hand-to-cap/face gesture visible in the opening frame; hesitant repositioning across the "empty hallway" beats at 5s/6s and 15-17s tracks the prompt. Full judgment on performance quality is the CTO's per the review loop |
+| 4 | Camera dead still, whole 20s | **PASS, strong evidence** | Difference-blend of frame 0 vs. frame 19.5: background (columns, ceiling lamps, red door, shell chair, cart, framed art) shows near-zero pixel difference across the entire frame — only Dupe's silhouette differs, which is expected since he's present in one frame and gone in the other. No systematic drift anywhere in the image |
+| 5 | No cracked wall, no plaque | **PASS** | Scanned all 20 1fps frames plus full-res start/mid/end frames — hero wall never enters frame; visible walls show only clean plaster, columns, sculptures on plinths, and framed artwork |
+| 6 | Ends on the cart, alone, holding the painting | **PASS** | t=19.5s frame: empty hallway, cart stationary in its original position with bucket/mop/bottles/gold-V panel visible; matches "long empty gallery... cart standing alone" |
+
+**Overall verdict: PASS**, on the frame sample reviewed. Per the skill's
+standing review-loop rule ("the operator never self-certifies a clip"), this
+is my operator-level read for the re-fire/no-re-fire call the brief asked
+for — the CTO should still open full-resolution frames personally
+(`video-see.sh` / direct playback) before final sign-off, since ~44 sampled
+frames out of 481 total cannot rule out a single-frame anomaly the way a full
+watch can.
+
+## Filing — blocked on Drive access, not on the render
+
+The brief's target is `All Scene/Fix-1/S2C-Fix1.MP4`, matching the `YT: ILAG`
+Drive convention documented for the sibling "Do Not Disturb" project in the
+`gdrive-filing` skill. **That skill's folder map has no entry for this film
+("The Valder Collection No.7" / "Absence") at all** — every ID it lists is
+under `YT: ILAG/Do Not Disturb`. This session also has no Google Drive MCP
+tool available (checked via `ToolSearch`; browser_operator scope does not
+carry Drive access). Both mean I cannot resolve the correct target folder ID
+myself, and per that skill's hard rule 3 ("never create a new sub-folder
+without asking first") I should not guess one into existence.
+
+**The clip is staged and ready** at `~/Downloads/S2C-Fix1.MP4` (and the
+original `~/Downloads/hf_20260903_232626_4e960c68-1282-427b-841d-b8199baf8937.mp4`
+for provenance) for whoever has Drive access to file it into the correct
+`All Scene/Fix-1` (or equivalent) folder under this film's own `YT: ILAG`
+project — which itself may need to be confirmed/created first, since it does
+not appear in the current folder map.
 
 ## Blocker
 
-None that stops progress. Flagging for the record: **a browser-tab-wide
-click-registration failure** (four clean, verified attempts on a correctly
-identified Generate button, zero network effect) was hit and worked around
-per the skill's documented fresh-tab escalation - no credits were spent by
-any of the failed attempts (confirmed via Usage History: only one Seedance
-2.5 Unlimited entry in the whole session window).
+None that stops the deliverable — the render is done, confirmed correct, and
+locally staged. Two things flagged for the record, neither blocking:
+
+1. **A browser-tab-wide click-registration failure** (four clean, verified
+   attempts on a correctly identified Generate button, zero network effect)
+   was hit and worked around per the skill's documented fresh-tab escalation
+   — no credits were spent by any of the failed attempts (confirmed via
+   Usage History: only one Seedance 2.5 Unlimited entry in the whole session
+   window).
+2. **Drive filing needs a human/CTO with Drive access** — the Valder
+   Collection / Absence project has no documented Drive folder yet.
 
 ## SKILL-OVERRIDE
 
