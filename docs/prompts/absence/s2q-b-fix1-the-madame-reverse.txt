@@ -1,0 +1,229 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2Q-B · THE MADAME ARRIVES — REVERSE ANGLE · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — Unlimited ON as the FIRST action in the composer,
+before typing or binding anything, then zoom the Generate button and confirm
+ZERO digits before every click.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — it defaults to 5s silently.
+
+WHAT THIS IS. The CEO's 2026-09-04 ruling: every scene in this stretch gets two
+angles. For the five scenes staged along the LENGTH of the hall, the reverse
+camera is the far end of that same axis, turned 180 degrees.
+
+⚠️ THE RUNWAY RUNS THE OTHER WAY. In the A version she walks toward the lens and
+grows. Here the camera stands behind where she enters, so SHE WALKS AWAY FROM US
+and shrinks — her back, her gown, her pompadour and the bag swinging at her side,
+for twenty unbroken seconds. Verified against docs/S2QB-Render.MP4 by eye on
+2026-09-04: she starts large in the near foreground and recedes down an empty
+corridor with the party lining the columns on both sides.
+
+⚠️ WHAT THIS ANGLE BUYS. In the A version she is the face and Carrington is off
+to one side. From behind her, SHE HAS NO FACE AT ALL — and the person we can
+read for the whole clip is MR CARRINGTON, waiting at the far end, watching her
+come, until the two gold teeth show at 16s. He is the payoff instead of her.
+
+⚠️ SHE NEVER TURNS, NEVER SLOWS, NEVER LOOKS AT ANYBODY. That is the whole
+character and it survives the angle change intact. From behind, the only things
+that move on her are her heels and the bag.
+
+⚠️ ONE LOCATION ELEMENT ONLY. Three room pictures exist, one per camera
+position: loc_wall_pov_e (inside the wall), loc_hall_big_e (outside, down the
+length of the hall — THIS ONE), loc_hall_big_d (outside, facing the wall with
+the plaque). Binding two in one scene confuses the model completely.
+
+⚠️ REFERENCES ARE CAPPED AT SIX PLUS THE ROOM. This is not a style note — S2P
+take 1 bound thirteen and the model dropped Valder out of a scene he hosts.
+Bind: char_woman_c, prop_croc_bag, gentleman_e, char_valder, char_registrar,
+char_cleaner_c. Everyone else is prose.
+
+Previz: docs/S2QB-Render.MP4 — 1280x720 / 480 frames / 20.0s.
+Registry handle once Elements go live: project_absence_previz_s2q_b_v1 — see
+docs/PREVIZ-ELEMENTS.md. Until that path is proven, attach the file as Video 1
+exactly as every other sheet does.
+
+Filing: All Scene/Fix-1/ as S2Q-B-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, no cuts, for the whole twenty seconds. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE FRAME, unchanging for twenty seconds: a locked shot straight down the
+length of the gallery, at chest height, dead centre, on a longer lens so the
+perspective compresses. Chromium trumpet columns recede in matched pairs down
+both sides, orange cove light runs along the ceiling, the floor is polished
+terracotta terrazzo. THE CENTRE OF THE ROOM IS AN EMPTY CORRIDOR, because the
+party is standing back against the columns on either side. AT THE FAR END,
+small and facing us, stands MR CARRINGTON with his bodyguard behind him.
+
+IN THE NEAR FOREGROUND, HER BACK. A tall elderly woman in a green leather gown
+walks away from the camera down that empty centre, and she is the only thing
+moving in the frame.
+
+WE NEVER SEE HER FACE. Not once, not in reflection, not at the end. Everything
+she is has to come off her back, her walk and the bag.
+
+THE COMPLETE CAST OF THIS SHOT IS THIRTEEN PEOPLE AND NOT ONE MORE. There are
+no extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards beyond the three named, no reporters, no journalists, nobody
+holding a camera, nobody filming, nobody walking through. If a figure is not
+named below it must not exist.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the TEAL figure in the NEAR FOREGROUND, walking away = @project_absence_char_woman_c
+- the GOLD figure far off at the end, facing us = @gentleman_e, MR CARRINGTON
+- the MAGENTA figure on the LEFT side = @project_absence_char_valder
+- the BLACK figure on the LEFT side = @char_registrar
+- the WHITE figure far back on the left with a cart = @project_absence_char_cleaner_c
+- the remaining figures line the columns: the bodyguard behind Carrington, two
+  uniformed guards, and four watching visitors
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
+  The camera stands in the gallery looking down its length: chromium trumpet
+  columns receding in matched pairs on both sides, warm orange cove light along
+  the ceiling, polished terracotta terrazzo underfoot, works on white plinths
+  and framed pieces down both walls. THE BROKEN WALL IS NOT IN THIS SHOT — no
+  crack, no star, no damaged plaster anywhere. Take the room, its surfaces and
+  its light from this picture.
+@project_absence_char_woman_c — MADAME THIBAULT, seen from BEHIND for the whole
+  clip: elderly, tall and rail-straight, a sculpted floor-length gown of glossy
+  mid-green leather panelled in chevron leaf-vein seams, with sharply pointed
+  shoulder caps and a tall standing collar to the jaw; long green leather opera
+  gloves above the elbow; a TOWERING VERTICAL POMPADOUR streaked blue, green and
+  silver-white, which from behind is the most identifiable thing in the frame.
+@project_absence_prop_croc_bag — HER BAG, carried in one gloved hand at her
+  side the entire time and swinging very slightly as she walks: a structured
+  top-handle handbag in polished deep OXBLOOD crocodile, trapezoid, wider at the
+  base, a single arched top handle and a large plain gold clasp.
+@gentleman_e — MR CARRINGTON, at the far end and facing the camera: tall,
+  elderly, swept-back white hair, a white stand-collar suit, white shoes, a
+  black cane with a gold lion head, TWO GOLD FRONT TEETH. His is the only face
+  we can read in this shot.
+@project_absence_char_valder — VALDER, on the left side: tall, slim, elderly,
+  swept-back white hair, small round tinted sunglasses, a blazer panelled in
+  flat blocks of magenta, yellow, green, blue and red, a red waistcoat, a long
+  mustard-yellow scarf, purple trousers, two different shoes.
+@char_registrar — THE REGISTRAR: about sixty, grey hair combed flat, a cream
+  stand-collar tunic with fine orange piping and a small gold V, white gloves, a
+  brown leather ledger and a pen.
+@project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap,
+  gold V, moustache. Far back on the left beside his cleaning cart, watching,
+  not part of anything.
+
+THE OTHERS, lining the columns and carried in this text: a very heavily built
+Black bodyguard in an all-black suit with opaque dark sunglasses and white
+gloves, standing behind Carrington; two guards in navy military-cut tunics with
+gold buttons and a large gold V, one tall and thin and one short and heavy; a
+young woman in an oversized cobalt-blue overcoat with a small gold V pin and a
+pearl cluster necklace; an elderly East Asian woman in a full-length deep
+magenta fur coat and long cream gloves; a woman of about fifty-five with a brown
+bob in a tawny-brown fur coat over a rust-red dress; an elderly man in a deep
+maroon leather suit.
+
+[0s] The gallery is quiet and the centre of the floor is empty. The party stands
+in two loose lines against the columns, left and right. Far away at the end of
+the room, Mr Carrington waits, facing us.
+
+[2s] SHE WALKS INTO THE FRAME FROM UNDER THE LENS and sets off straight down
+the middle, away from us. It is not a walk to somewhere — it is a walk to be
+watched. Slow, absolutely level, one foot placed directly in front of the other,
+shoulders still, chin up, the bag held slightly out from her side. She never
+once turns her head.
+
+[5s] EVERY HEAD ON BOTH SIDES TURNS TO HER as she passes, one after another, the
+way a room turns when it recognises somebody — a ripple running away from the
+camera down both walls. Nobody steps into the centre.
+
+[8s] ON THE LEFT, THE REGISTRAR'S LEDGER COMES OPEN FAST and he starts writing
+before anything at all has happened.
+
+[11s] VALDER SEES HER. He spreads both arms wide in welcome — from behind him it
+is pure showmanship, a gesture aimed down the room — and says warmly, to the
+room as much as to her: "Madame Thibault."
+
+[13s] SHE DOES NOT ANSWER HIM AND DOES NOT LOOK AT HIM. She keeps walking at
+exactly the same pace. The only thing that moves on her is the bag.
+
+[16s] AND AT THE FAR END, CARRINGTON IS SMILING. We can see it now — he has
+been watching her come the whole time, and THE TWO GOLD TEETH SHOW. This is a
+man who has just realised the morning is going to be interesting. His is the
+only face in the picture and it does the work of the whole scene.
+
+[19s] She is smaller now, still walking, still not looking at anybody. Hold.
+Cut.
+
+AUDIO: room tone, tall doors closing somewhere behind the camera, one slow set
+of heels on terrazzo receding steadily for the whole twenty seconds, the creak
+of a ledger opening, a pen. ONE line of dialogue only, Valder's, naming her.
+Nobody else speaks — she does not answer. NO SOUND AT THE START OR THE END: the
+clip opens mid room-tone with no intro sting or riser, and simply stops with no
+tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; NO VIEW OF THE MADAME'S FACE,
+no cut to her front, no reverse angle on her, no reflection showing her face, no
+turning round, no glancing back over her shoulder; no walking toward the camera,
+no approaching the lens, no getting larger; no fourteenth person, no extra, no
+bystander, no other visitor, no gallery staff, no reporter, no journalist,
+nobody holding a camera, nobody filming, no crowd, no children, nobody walking
+through; nobody standing in the centre of the floor, nobody crossing in front of
+her, nobody walking with her, no escort, no entourage; no speaking from the
+Madame, no greeting from her, no nodding, no smiling, no waving, no looking at
+anyone; no handshake, no kiss on the cheek, no bowing, no applause, no cheering,
+no gasping; no running, no hurrying, no comic speed, no sped-up motion, no slow
+motion, no strutting, no exaggerated catwalk hip sway, no posing, no turning on
+the spot; no second bag, no bag changing colour, no green bag, no bag over the
+shoulder; no camera movement of any kind, no pan, no tilt, no zoom, no dolly, no
+handheld, no reframing, no cut, no second angle; no wide-angle distortion, no
+fisheye; no four-panel layout, no grid, no split screen; no cracked wall, no
+crack, no brass plaque, no price plaque in frame; no money, no card, no
+contract, no papers exchanged; no weapon, no gun, no holster, no earpiece; no
+smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. HER FACE IS NEVER SEEN and she never turns round. If the model swings to her
+   front, this angle has become the A angle and there is no reason to have shot
+   it.
+2. SHE WALKS AWAY AND SHRINKS. Toward the lens is the wrong direction.
+3. CARRINGTON'S GOLD TEETH AT 16s. He is the only readable face; if he is too
+   small or turned away, the scene has no payoff from this side.
+4. THE EMPTY CENTRE HOLDS. Nobody steps into her corridor.
+5. HEADS TURN IN A RIPPLE running away from camera, not in unison.
+6. THE OXBLOOD BAG is in her hand throughout and is deep red, not green.
+7. ONE line, Valder's, and she does not answer it.
+8. THIRTEEN PEOPLE, no extras. SIX Elements plus the room, no more.
+File the take whatever the verdict.
+
+PAIRS WITH: s2q-fix1-the-madame.txt (angle A, where she walks into the lens).
+The two are exact inversions and the editor can cut between them mid-walk.
+
+=== END NOTES ===
