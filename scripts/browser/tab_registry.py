@@ -31,7 +31,27 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+def _repo_root() -> Path:
+    """The MAIN checkout, not whatever worktree this copy happens to sit in.
+
+    Every worker runs from `<repo>/worktrees/<project>__<role>__<task>/`, which
+    is its own checkout WITHOUT the shared state directory. Resolving the root
+    as parents[2] therefore pointed at the worktree, `state/tasks.db` did not
+    exist there, and liveness silently answered "no tasks db" for every claim —
+    which the registry then reported as safe-to-close. That is the precise
+    failure this tool exists to prevent, so it is worth the extra lines.
+    """
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if parent.name == "worktrees":          # cut back over the worktree
+            return parent.parent
+    for parent in here.parents:                 # otherwise find the real state dir
+        if (parent / "state" / "tasks.db").exists():
+            return parent
+    return here.parents[2]
+
+
+ROOT = _repo_root()
 REG = ROOT / "state" / "browser-tabs"
 DB = ROOT / "state" / "tasks.db"
 LIVE = ("pending", "in_progress")
@@ -65,7 +85,11 @@ def _task_alive(task_id: str) -> tuple[bool, str]:
     the pid is checked too.
     """
     if not DB.exists():
-        return False, "no tasks db"
+        # FAIL SAFE, not fail open. If liveness cannot be established the
+        # honest answer is "unknown", and unknown must mean hands off — the
+        # cost of wrongly keeping a dead tab is a stale tab; the cost of
+        # wrongly closing a live one is half an hour of somebody's staged work.
+        return True, f"UNKNOWN — no tasks db at {DB}, treating as live"
     con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
     row = con.execute("select status, pid from tasks where id=?", (task_id,)).fetchone()
     con.close()
