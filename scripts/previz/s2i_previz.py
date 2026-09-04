@@ -29,7 +29,10 @@ def box(name, loc, dim, color):
 
 # the couple, far RIGHT of frame as the CEO asked
 wife    = spawn_char(col, "VISITOR_B", ( 1.85, -19.7), h=1.66, prefix="s2i")
-husband = spawn_char(col, "VISITOR_A", ( 2.60, -19.5), h=1.78, prefix="s2i")
+# CEO 2026-09-04: the couple is TWO WOMEN. visitor_b (RUST) cries; collector_a
+# (COBALT) is the partner who comforts her. The man in the maroon suit is not
+# part of this couple. Same correction as s2h_previz.py.
+partner = spawn_char(col, "COLLECTOR_A", ( 2.60, -19.5), h=1.70, prefix="s2i")
 # Dupe well left, working, never crossing to them
 dupe    = spawn_char(col, "DUPE",      (-2.6, -17.2), h=1.80, prefix="s2i")
 build_cart(col, (-3.3, -16.6), prefix="s2i", with_painting=True)
@@ -64,7 +67,7 @@ COUPLE  = ((4.9, -16.2, 1.62), None, 34)                 # B: cutaway, aimed at 
 PLAQUE  = ((1.35, -20.55, 1.35), (R(84), 0, R(203)), 80) # D: off-axis so she does not block it
 DUPECU  = ((-0.9, -14.4, 1.70), None, 55)                # E: Dupe, aimed at him
 cam.location, cam.rotation_euler = WALLPOV[0], WALLPOV[1]
-for who, ob in (("WIFE", wife), ("HUSBAND", husband), ("DUPE", dupe), ("STUDENT", student)):
+for who, ob in (("WIFE", wife), ("PARTNER", partner), ("DUPE", dupe), ("STUDENT", student)):
     tag_label(col, who, ob, cam, prefix="s2i")
 
 # aim helpers — hand-typed euler angles have missed three times tonight
@@ -103,7 +106,7 @@ def key(o, fr, x, y, z=None):
 
 # the couple barely move — she is rooted, he closes the last half metre to her
 key(wife, 1, 1.85, -19.7); key(wife, 288, 1.85, -19.7)
-key(husband, 1, 2.75, -19.4); key(husband, 96, 2.30, -19.6); key(husband, 288, 2.30, -19.6)
+key(partner, 1, 2.75, -19.4); key(partner, 96, 2.30, -19.6); key(partner, 288, 2.30, -19.6)
 
 # Dupe works his way slowly along, never toward them. 0.35 m/s — he is cleaning,
 # not walking; the pace comes from the motion research, not from feel.
