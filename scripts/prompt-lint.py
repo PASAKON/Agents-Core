@@ -78,6 +78,11 @@ DATE_RE = re.compile(
     r"|\b\d{1,2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b"
 )
 AT_VIDEO_RE = re.compile(r"@Video\b")
+# An Element id: the project prefix, or one of the seven bare ids this film
+# uses (gentleman_e, char_registrar, loc_hall_big_e, loc_wall_pov_d/e, ...).
+_ELEMENT_ID = r"(?:project_absence_|project_valder_|char_|loc_|gentleman_|prop_)[a-z0-9_]+"
+AT_ELEMENT_RE = re.compile(r"@(" + _ELEMENT_ID + r")")
+BARE_ELEMENT_RE = re.compile(r"(?<![@\w])(" + _ELEMENT_ID + r")")
 QUOTED_REF_RE = re.compile(r'"[^"\n]{2,80}[—–][^"\n]{0,80}"')
 QUOTED_SAID_RE = re.compile(r'\b(said|wrote|quoted?|reads?)\b[^".\n]{0,20}"[^"\n]+"', re.IGNORECASE)
 DESCRIBES_FORBIDDEN_RE = re.compile(
@@ -228,6 +233,7 @@ def split_blocks(lines: list[str]) -> list[tuple[int, int, str]]:
 def lint_file(path: Path, shot: str | None = None) -> list[Finding]:
     raw = path.read_text(encoding="utf-8", errors="replace")
     lines = raw.split("\n")
+    has_paste_markers = any(PASTE_START_RE.match(ln) for ln in lines)
     fname = path.name
     findings: list[Finding] = []
 
@@ -376,7 +382,59 @@ def lint_file(path: Path, shot: str | None = None) -> list[Finding]:
                             neg_match.group(0), label)
                 )
 
+        # --- Element names that lost their @ (CEO 2026-09-05) --------------
+        # An Element only binds if it reaches the composer as "@name". A bare
+        # name is just a word in the prompt, and the model gets no reference
+        # plate for it -- invisible in the finished take until a character
+        # comes back with the wrong face, or missing entirely.
+        #
+        # The CEO caught a live composer where five of ten references had lost
+        # their @ and sat there as plain text. This catches the same shape on
+        # our side, before a sheet ever reaches a worker.
+        # Only sheets with explicit PASTE markers are checked. Without them
+        # there is no way to tell a binding from prose ABOUT bindings -- the
+        # older sheets' headers list the bare ids as documentation ("exactly
+        # seven are bare: gentleman_e, ...") and every one would false-positive.
+        # Those sheets cannot be fired anyway: the standing rule is that an
+        # operator never pastes anything outside the markers.
+        if not has_paste_markers:
+            continue
+        paste_only = "\n".join(lines[i] for i in block_paste_lines)
+        bound = set(AT_ELEMENT_RE.findall(paste_only))
+        for i in block_paste_lines:
+            for m in BARE_ELEMENT_RE.finditer(lines[i]):
+                name = m.group(1)
+                if name in bound:
+                    continue
+                findings.append(
+                    Finding(fname, i + 1, "ELEMENT_MISSING_AT", "ERROR", name,
+                            f"Element name '{name}' appears without a leading @ and "
+                            "is never bound anywhere in this block -- it reaches the "
+                            "composer as plain text and no reference plate is "
+                            "attached. Write it as @" + name)
+                )
+
     return findings
+
+
+def expected_chips(path: Path) -> dict[str, int]:
+    """How many distinct Elements each paste block should bind.
+
+    This is the number an operator counts against in the composer before
+    firing. The video reference is excluded: it is attached rather than typed,
+    and is verified separately by the src byte-check.
+    """
+    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    zones = build_zone_map(lines)
+    out: dict[str, int] = {}
+    for start, end, label in split_blocks(lines):
+        text = "\n".join(
+            lines[i] for i in range(start, end + 1) if zones.zones[i] == "paste"
+        )
+        names = {n for n in AT_ELEMENT_RE.findall(text) if n.lower() != "video"}
+        if names:
+            out[label or path.stem] = len(names)
+    return out
 
 
 def print_findings(findings: list[Finding]) -> None:
@@ -466,6 +524,10 @@ def main() -> int:
     ap.add_argument("files", nargs="*", type=Path, help="prompt file(s) to lint")
     ap.add_argument("--shot", help="only scan the block(s) whose header line matches this shot id")
     ap.add_argument("--validate", action="store_true", help="check catch rate against the 30 known instances")
+    ap.add_argument("--chips", action="store_true",
+                    help="print how many Element chips each block must bind, and stop. "
+                         "Count the chips in the composer against this number BEFORE "
+                         "firing -- a bare @name that never became a chip is not bound")
     args = ap.parse_args()
 
     if args.validate:
@@ -473,6 +535,21 @@ def main() -> int:
 
     if not args.files:
         ap.error("give at least one file, or --validate")
+
+    if args.chips:
+        for path in args.files:
+            if not path.exists():
+                print(f"{path}: not found", file=sys.stderr)
+                return 1
+            counts = expected_chips(path)
+            total = max(counts.values()) if counts else 0
+            print(f"{path.name}: EXPECTED {total} Element chips "
+                  f"(video reference not counted)")
+            for name in sorted(set(AT_ELEMENT_RE.findall(
+                    path.read_text(encoding='utf-8', errors='replace')))):
+                if name.lower() != "video":
+                    print(f"    @{name}")
+        return 0
 
     any_error = False
     for path in args.files:
