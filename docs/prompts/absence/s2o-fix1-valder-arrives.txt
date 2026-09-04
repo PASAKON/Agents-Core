@@ -1,0 +1,196 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2O-Fix1 · VALDER ARRIVES · CEO 2026-09-04
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — it defaults to 5s silently.
+
+WHERE IT SITS. Straight after S2N. The registrar has just gone to fetch him,
+and here he comes. Everybody else is on the mark S2N left them on.
+
+⚠️ THIS ONE LEAVES THE WALL CAVITY, AND IT HAS TO. The CEO's note is that DUPE
+IS THE ONLY PERSON WHO REACTS, and that you can read the fear on his face. At
+sixteen metres through a hole in a wall he is four pixels of white uniform, so
+this shot moves to his side of the room: he is in the near foreground, large,
+and Valder's entrance happens deep behind him. Nothing else about the staging
+changes.
+
+⚠️ NOBODY ELSE TURNS. Not one of the five at the wall, not Carrington, not the
+bodyguard. Only Dupe. He is also the only person in the building who has a
+reason to be afraid of Valder, and the audience does not know why yet.
+
+⚠️ NEVER UPLOAD AN IMAGE. Match by ID in the panel and bind the library entry.
+If the composer caps references, drop in this order and report it:
+prop_cart_a_painted first, then char_registrar. Never drop Dupe or Valder.
+
+Previz: docs/S2O-Render.MP4 — 1280x720 / 480 frames / 20.0s.
+
+Filing: All Scene/Fix-1/ as S2O-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, no cuts, for the whole twenty seconds. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE FRAME: a locked view from inside the gallery, low and slightly behind the
+CLEANER, who stands close to the lens on the right of frame — near enough that
+his face fills a good part of the picture and every expression on it is
+readable. Past his shoulder the museum runs away in a long perspective of
+chromium trumpet columns toward a tall red double door at the far end. His cart
+is parked beside him.
+
+THE COMPLETE CAST OF THIS SHOT IS SEVEN PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards, no reporters, no journalists, nobody holding a camera, nobody
+filming, nobody in the background, nobody walking through. If a figure is not
+named below it must not exist.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the WHITE figure labelled DUPE = @project_absence_char_cleaner_c
+- the MAGENTA figure labelled VALDER = @project_absence_char_valder
+- the two NAVY figures labelled GUARD_V1 and GUARD_V2 =
+  @project_absence_char_guard_valder_two
+- the GOLD figure labelled GENTLEMAN = @gentleman_e
+- the DARK GREY figure labelled BODYGUARD =
+  @project_absence_char_guard_private_v2
+- the BLACK figure labelled REGISTRAR = @char_registrar
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@project_absence_char_cleaner_c — DUPE: face, build, moustache, white uniform
+  with orange trim, cap with a gold V, gold V at the chest. His face is the
+  subject of this shot.
+@project_absence_char_valder — VALDER: tall, slim, elderly, full swept-back
+  white hair, small round tinted sunglasses. A blazer PANELLED IN FLAT BLOCKS
+  OF COLOUR — magenta, yellow, green, blue, red — over a red waistcoat and
+  white shirt, a long mustard-yellow scarf hanging down the front, purple
+  trousers, and two DIFFERENT shoes, one dark green and one burgundy. He is
+  completely at ease.
+@project_absence_char_guard_valder_two — HIS TWO UNIFORMED GUARDS: navy
+  military-cut tunics with gold buttons, a large gold V on the chest, black
+  belts with gold buckles, navy trousers with a gold side stripe, navy peaked
+  caps, black shoes. ONE IS TALL AND THIN, THE OTHER SHORT AND HEAVY. They
+  walk a pace and a half behind him and never speak.
+@gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
+  suit with a stand collar, white shoes, a black cane with a gold lion head,
+  TWO GOLD FRONT TEETH when he smiles.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: a very
+  heavily built Black man, opaque dark sunglasses, WHITE gloves, an all-black
+  suit, black shirt, black tie. Never speaks, never moves from his shoulder.
+  No weapon, no earpiece, no holster.
+@char_registrar — THE REGISTRAR: about sixty, grey hair combed flat, cream
+  stand-collar tunic suit with orange piping and a small gold V, white gloves,
+  a brown leather ledger.
+@project_absence_prop_cart_a_painted — DUPE'S CART, parked beside him and
+  never moving: castor wheels, mop, orange bucket, bottles, folding ladder,
+  gold V, a painting standing upright in the rack.
+
+[0s] Dupe is working, close to us, cloth in hand, his back three-quarters to
+the lens. Deep down the gallery the tall red doors open and THREE FIGURES COME
+THROUGH: Valder in the middle in his panelled coat, a uniformed guard on each
+side and half a pace behind. They walk toward us at an ordinary confident
+pace, and they do not stop.
+
+[2s] DUPE HEARS THEM AND TURNS. It is the only movement anybody makes in this
+entire shot, and it is not a comic double-take — his head comes round, he sees
+who it is, and everything drains out of his face at once. His hands stop. His
+mouth closes. He goes very still in the way a man does when he is frightened
+and is trying hard not to look frightened. He does not drop anything, does not
+gasp, does not run. HE JUST WATCHES HIM COME. Hold on that face.
+
+[6s] Valder, walking, calls out to the room in general in a warm public voice,
+pleased with the day: "Good morning. Good morning, everyone. It is a very good
+day."
+
+[10s] HIS EYE CATCHES SOMETHING OFF TO THE SIDE and his whole manner sharpens
+into delight. He changes direction slightly and raises both arms as he goes:
+"Ah — Mr Carrington!"
+
+[12s] He reaches Mr Carrington, who is standing waiting with his bodyguard
+behind him, and TAKES HIS HAND IN A LARGE TWO-HANDED WESTERN HANDSHAKE,
+clasping it and holding on. The flattery is completely shameless: "Why did you
+not tell me you were coming today? I would have received you properly."
+
+[16s] Still holding the hand, he turns and sweeps his other arm down the
+gallery: "This room has only just been rearranged. Come — let me show you
+everything."
+
+[18s] He lets go and begins to lead him away. IN THE FOREGROUND DUPE HAS NOT
+MOVED AT ALL. The cloth is still in his hand, unused, and he is still watching.
+
+[19s] Hold on Dupe. Cut.
+
+AUDIO: room tone, tall doors opening far off, several sets of unhurried
+footsteps on terrazzo approaching, a warm confident voice carrying down a big
+stone room, the clap of a two-handed handshake. THREE speeches only, all
+Valder's, in this order: the good-morning, the greeting by name and the
+question, then the invitation. Nobody else says a single word — not Dupe, not
+Carrington, not the guards, not the registrar. NO SOUND AT THE START OR THE
+END: the clip opens mid room-tone with no intro sting or riser, and simply
+stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no eighth person, no extra, no
+bystander, no other visitor, no gallery staff, no security guard beyond the
+three named, no reporter, no journalist, nobody holding a camera, nobody
+filming, no crowd, no children, nobody in the background, nobody walking
+through; nobody but Dupe reacting to Valder, no other head turning, no group
+turning, no greeting from anybody else, no applause; no Dupe speaking, no Dupe
+running, no Dupe hiding, no Dupe dropping anything, no comic double-take, no
+exaggerated fear, no shaking, no sweating, no wide cartoon eyes; no Carrington
+speaking, no bodyguard speaking, no guard speaking, no registrar speaking; no
+weapon, no gun, no holster, no earpiece; no bowing from Valder, no hat, no
+umbrella; no money, no card, no contract, no papers exchanged; no cracked wall,
+no crack, no brass plaque, no price plaque in frame; no running, no hurrying,
+no comic speed, no sped-up motion, no slow motion; no camera movement of any
+kind, no pan, no tilt, no zoom, no dolly, no handheld, no reframing, no cut, no
+second angle; no four-panel layout, no grid, no split screen; no cart moving,
+no painting leaving the rack; no looking at camera by anybody; no smartphones,
+no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. DUPE'S FACE. He must be big enough in frame to read, and the fear must be
+   held in rather than played — no comic double-take, no shaking. If his face
+   is too small to read, the shot has failed no matter what else works.
+2. HE IS THE ONLY ONE WHO REACTS. Any other head turning is a defect.
+3. VALDER NEVER STOPS WALKING until he reaches Carrington.
+4. THE HANDSHAKE IS TWO-HANDED and he holds on through the next line.
+5. Exactly three speeches, all his; nobody else speaks.
+6. SEVEN PEOPLE, no extras of any kind.
+7. Camera dead still for twenty seconds.
+File the take whatever the verdict.
+
+END POSITIONS, inherited by S2P:
+- VALDER leading CARRINGTON away down the gallery, still talking.
+- The two uniformed guards following; the bodyguard following Carrington.
+- THE REGISTRAR trailing with his ledger.
+- THE FIVE still at the wall, about to follow.
+- DUPE exactly where he was, cloth in hand, not working.
+
+=== END NOTES ===
