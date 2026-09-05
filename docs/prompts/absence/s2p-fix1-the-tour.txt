@@ -217,9 +217,12 @@ nobody in the background, nobody walking through; no Carrington replying, no
 other character speaking, no conversation, no murmuring, no laughing, no
 applause; no group stopping, no group gathering around a piece, no pointing
 crowd, no huddle; no Dupe joining the party, no Dupe speaking, no Dupe leaving
-his cart; NO DUPE WITHOUT HIS CART, no Dupe with empty hands, no Dupe carrying a
-bottle or a cloth or any object instead of pushing the cart, no cart out of
-frame, no cart left behind; NO VALDER AT THE BACK OF THE LINE, no Valder behind
+his cart; THE CART TRAVELS WITH DUPE AND ONLY WITH DUPE — no cart at the front
+of the line, no cart near Valder or Carrington or the guards, no cart separated
+from Dupe by other people, no cart at the opposite end of the procession from
+him, no cart moving on its own, no second cart; NO DUPE WITHOUT HIS CART, no
+Dupe with empty hands, no Dupe carrying a bottle or a cloth or any object
+instead of pushing the cart; NO VALDER AT THE BACK OF THE LINE, no Valder behind
 Carrington, no Valder behind the guards or the registrar or the visitors, nobody
 walking ahead of Valder; no camera easing in or out, no acceleration, no deceleration, no
 slowing at the end, no pan, no tilt, no zoom, no dolly toward or away, no
@@ -249,10 +252,13 @@ REVIEW ORDER:
    Carrington and the registrar, walking beside Dupe. The previz has him leading
    and the prose said "VALDER LEADS" once; the order is now written out as a
    numbered list because one adjective did not hold it.
-1c. THE CART IS IN SHOT. Take 2 lost it completely and gave Dupe a small bottle
-   to carry instead. The cart is in the previz and was bound as an Element, so
-   this is the model dropping a prop it was given — it is now named in the beat
-   text and banned by its absence in the negatives.
+1c. THE CART IS AT THE BACK WITH DUPE. In take 2 the cart is in shot but at the
+   FRONT of the procession, up among the guests, while Dupe walks empty-handed
+   at the back carrying a small dark object. The prop and its owner came apart.
+   (I first read this as the cart being missing, because I only cropped the
+   right-hand side of frame where Dupe is; the operator caught the separation.
+   Check BOTH ends of the line.) The negatives now ban the separation itself,
+   not just the absence.
 2. HE ONLY EVER TURNS TO CARRINGTON. Two head turns, both to him. If he turns
    to the group the joke is gone.
 3. NOBODY ANSWERS HIM, including Carrington.
