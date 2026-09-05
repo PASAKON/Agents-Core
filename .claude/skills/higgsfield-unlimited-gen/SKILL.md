@@ -191,6 +191,29 @@ immediately before each Generate click, and (b) no charged entry landing
 inside a window when an operator clicked Generate. Re-baseline freely; the
 baseline is a reference point, not a budget.
 
+## DURATION IS A PRICE. ASK THE DIRECTOR BEFORE YOU WRITE A LONGER CLIP
+
+**CEO 2026-09-05: "ถามก่อนเขียน Prompt นะ เพราะ 30s ใช้เครดิตแพงมาก"** — ask
+before writing the prompt, because 30 seconds costs a great deal of credit.
+
+- **30s is the ceiling on the Create (credit) lane.** There is no longer clip to
+  escape to, so an overrun past 30s can only be solved by trimming words or
+  splitting the scene.
+- **Length is a spend decision, and spend decisions are the director's.** When a
+  scene will not fit its slot, do NOT quietly write it longer. Put the real
+  choice in front of them — *more seconds and more credit* versus *fewer words
+  at the current length* — with the trim already drafted so choosing costs them
+  nothing.
+- **Write the prompt only after they pick.** Writing the long version first
+  makes the expensive option the default and quietly frames the cheap one as a
+  climbdown.
+- **Do not invent the credit figure.** If you have not read the price off the
+  button, say you do not have it and ask. A made-up number is worse than no
+  number — see the CEO's standing rule on never quoting an invented figure.
+
+This is the same rule as never spending on a paid image without approval; the
+duration slider is simply a less obvious place for money to be.
+
 ## Rule 00 — FESTIVAL COMPETITION: PLATFORM-ONLY GENERATION
 
 For any festival/competition project (both films are), **every image and every

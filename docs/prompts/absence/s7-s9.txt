@@ -138,9 +138,39 @@ music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no in
 ===============================================================
 SCENE 8a — THE FIRST THREE PIECES
 ===============================================================
-20s · 720p · 16:9 · ONE CONTINUOUS LATERAL DOLLY at constant speed + three
+30s · 720p · 16:9 · ONE CONTINUOUS LATERAL DOLLY at constant speed + three
 one-second locked object portraits cut in and back — no other moves, no
 handheld. Sound On · High.
+
+⚠️ THIRTY SECONDS, NOT TWENTY — CEO 2026-09-05. The three object stories plus
+the new Dupe joke are about 70 words, which is roughly 29 seconds of unhurried
+speech, plus 3 seconds of catalogue portraits. It never fit in 20s and the model
+would have gabbled it or dropped a line. The CEO's fix is length, not cuts: every
+word he wrote stays.
+⚠️ 30s IS THE PLATFORM CEILING ON THE CREDIT LANE — CEO 2026-09-05, "Generate
+Create ได้ Maximum 30s". So this clip is at the maximum a single generation can
+be. There is no room to solve a future overrun by adding seconds again: past
+this, the only moves are to trim words or to split the scene. Every other sheet
+in this film is 20s and the slider resets silently, so READ THE DURATION BACK
+before firing — at 20s a whole story goes missing and the take is wasted.
+
+⚠️ SUPERSEDED BY THE 30s DECISION ABOVE — kept only as the record of why.
+THE SPEECH DID NOT FIT IN TWENTY SECONDS, AND DID NOT BEFORE THE JOKE WAS
+ADDED. Three object lines are 63 words; Valder is directed to speak "warm and
+unhurried", call it 2.2 words a second, so about 28 seconds of speech, plus 3
+seconds of portraits. The new line adds 7 more. Roughly 31 seconds of content in
+a 20-second clip. The model will either gabble it or silently drop a line.
+THE TRIM, if the CEO wants it — it keeps every idea and every prop, and costs
+26 words:
+  chair     "This chair was in the room where the armistice was signed. Nobody
+             sat in it."                                        (15, was 22)
+  trap      "A fish trap. Forty years, it caught nothing. He never sold one."
+                                                                (12, was 20)
+  millstone "A millstone. Two hundred years of grain. Somebody stood it upright,
+             and it stopped being a tool."                      (17, was 21)
+That is 44 words with the joke and it would have fitted 20s. THE CEO CHOSE
+LENGTH INSTEAD, so this trim is NOT applied and must not be — it is here only so
+nobody re-derives it and starts cutting his lines.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall.
@@ -148,8 +178,21 @@ REFERENCES — each with a job:
 @project_absence_prop_valder_chair — the mustard swivel armchair on its blue patterned rug.
 @project_absence_prop_valder_trap — the large woven oval form hanging on wires.
 @project_absence_prop_valder_millstone — the upright stone ring on its low plinth.
-@gentleman_e @project_absence_char_woman — listeners drifting behind him in a loose row.
-@project_absence_char_cleaner_c — Dupe at the frame edge.
+@gentleman_e — MR CARRINGTON, THE GOLD-TOOTHED GENTLEMAN: walking right beside
+  Valder and conversing with him, smiling constantly, gold teeth showing.
+@project_absence_char_oldman — THE ELDERLY GENTLEMAN: heavy-set, about eighty,
+  jowly, thin white hair, a bottle-green leather overcoat with a wide shawl
+  collar over a cream turtleneck, cream shoes, a slim chrome cane with a ring
+  handle. He walks with the group, listening, and never speaks.
+@project_absence_char_woman — THE WOMAN IN COBALT, listening, drifting behind.
+@project_absence_char_guard_valder_two — VALDER'S TWO UNIFORMED GUARDS: navy
+  military-cut tunics with gold buttons and a large gold V, black belts, navy
+  peaked caps. ONE TALL AND THIN, ONE SHORT AND HEAVY. They follow a pace and a
+  half behind Valder the whole way and never speak.
+@project_absence_char_cleaner_c — DUPE, and he is not at the edge of this scene.
+  HE IS FOLLOWING THE GROUP with his cart from the very first frame.
+@prop_cart_b — HIS CART, which he pushes along behind them: castor wheels, mop,
+  bucket, bottles, gold V, a painting standing upright in the rack.
 
 CRITICAL: PEOPLE AND A CHROMIUM COLUMN BLOCK THE FAR WALL THROUGHOUT. Valder
 never sees the crack, never glances at it, and the camera never gives him a
@@ -176,14 +219,28 @@ at the table. In the corner. Nobody sat in it." Cut to a ONE-SECOND locked
 PORTRAIT of the chair — dead centre, frontal, flat-lit, a catalogue plate —
 then return to the moving master exactly where it left off.
 
-[8s] At the woven form, same warmth: "A fish trap. It caught nothing for
+[11s] At the woven form, same warmth: "A fish trap. It caught nothing for
 forty years. The man who made it never sold a single one." One-second
 catalogue portrait of the trap. Return.
 
-[14s] At the stone ring, savouring it: "A millstone. It ground grain for two
-hundred years. Then somebody stood it upright. And it stopped being a tool."
-One-second catalogue portrait of the millstone. Return to the master; nobody
-interrupts. Hold.
+[19s] THE ONLY INTERRUPTION IN THE SCENE. Valder turns from the trap to move on
+and finds DUPE STANDING RIGHT THERE with his cart, close, having quietly pushed
+it along behind the group since the first frame. Valder is not annoyed and not
+suspicious. He is charming about it, faintly puzzled, and completely polite:
+"Excuse me. Are you following us with that?"
+EVERY SINGLE PERSON IN THE GROUP TURNS AND LOOKS AT DUPE — the gold-toothed
+gentleman, his bodyguard, the elderly gentleman, the woman in cobalt, both
+guards. All of them, at once, on the line.
+DUPE SAYS NOTHING. He goes red, fumbles for a cloth off the cart and starts
+wiping the nearest surface far too fast, as though he had been about to do that
+all along. Nobody helps him and nobody laughs.
+
+[24s] Valder simply carries on as if it had not happened. At the stone ring,
+savouring it: "A millstone. It ground grain for two hundred years. Then
+somebody stood it upright. And it stopped being a tool." One-second catalogue
+portrait of the millstone. Return to the master. THE WHOLE GROUP MOVES ON WITH
+VALDER — except Dupe, who stays where he is, still wiping, and SLIDES OUT OF
+FRAME as the dolly leaves him behind. Hold.
 
 AUDIO: room tone, his voice, slow footsteps, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
