@@ -41,6 +41,17 @@ registered colour so the model can map proxy to Element without guessing. End
 positions for this scene are logged at the bottom of this file — read them
 before writing whatever comes after it.
 
+⚠️ FIXED 2026-09-05, two defects found when the CEO asked for this scene:
+  1. THE ELDERLY MAN WAS NOT BOUND IN THE PASTE BLOCK. The notes said "bind
+     exactly these five" and the REFERENCES section listed four — the first
+     guest, who is the title of the scene, was carried as "the visitor" with no
+     Element and no description at all. He is now bound and described, and the
+     beats name him instead of saying "the visitor".
+  2. REVIEW ORDER 2 CONTRADICTED THE PASTE BLOCK. It asked for "his eye and
+     then his finger in the opening"; the paste block says "WE SEE ONLY HIS
+     HAND. No face, no eye." The paste block is right — a face at the hole
+     would undo the hop joke — so the check and the negatives now match it.
+
 BIND EXACTLY THESE FIVE, all CEO-verified in /Users/gob/Desktop/Fix-1-Elements/:
 @project_absence_char_cleaner_c · @project_absence_prop_cart_a_painted ·
 @project_absence_loc_hall_big_d · @project_absence_prop_tag ·
@@ -76,6 +87,11 @@ REFERENCES — each with a job:
   painting standing upright in the rack, face outward.
 @project_absence_prop_tag — THE BRASS PLAQUE on the wall: engraved THE ABSENCE
   OF MEANING / Valder / $2,000,000, two screws at the top corners, warm brass.
+@project_absence_char_oldman — THE FIRST GUEST, and the only other person in
+  this clip: a heavy-set elderly man of about eighty, jowly, thin white hair, a
+  deeply lined face. A dark green leather overcoat with a wide soft shawl
+  collar over a cream polo neck, pale gloves, pale shoes, a slim silver cane.
+  He never speaks and never notices the wall.
 
 
 [0s] Dupe wheels his cart IN FROM THE LEFT and stops in front of the wall. The
@@ -106,18 +122,18 @@ in the near foreground with his back to us, his cart beside him.
 
 [10s] He stands there, back to camera, for a beat. Two seconds, no more.
 [12s] Off screen, a DOOR OPENS. HE FLINCHES — a real startle, shoulders up,
-whole body jolting — and the first visitor of the day walks into the far end of
-the gallery.
-[13s] THE VISITOR MOVES SLOWLY INTO THE ROOM, unhurried, stopping to look at
-the works on their plinths one after another, taking their time. They have not
-noticed Dupe and they have not noticed the wall.
+whole body jolting — and THE ELDERLY MAN, the first guest of the day, walks in
+at the far end of the gallery.
+[13s] THE ELDERLY MAN MOVES SLOWLY INTO THE ROOM, unhurried, stopping to look at
+the works on their plinths one after another, taking his time. He has not
+noticed Dupe and he has not noticed the wall.
 [15s] DUPE PRETENDS TO WORK. He turns to the wall beside the mark and starts
 cleaning it, cloth in hand, wiping the same patch of blank wall over and over
 with enormous care. He is not cleaning anything. He is standing guard.
 [17s] And while he wipes he CRANES TO WATCH — head turning, neck stretching,
-eyes following the visitor across the room, then snapping back to the wall
-whenever the visitor looks his way. Wipe, crane, wipe, crane.
-[19s] Hold. The visitor drifts nearer. Cut.
+eyes following the old man across the room, then snapping back to the wall
+whenever the old man looks his way. Wipe, crane, wipe, crane.
+[19s] Hold. The old man drifts nearer. Cut.
 
 AUDIO: room tone, cart wheels on terrazzo, cloth on wall, one door opening off
 screen at 12s, unhurried footsteps approaching. No music, no voices, nobody
@@ -133,7 +149,7 @@ CRITICAL NEGATIVES: every single person has a different face, build, age, hair
 and clothing, and no face is repeated anywhere; no opening sound, no intro
 sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
 audio tail, no fade-in or fade-out on the sound; no dialogue, nobody speaks, no
-voices, no greeting, no words exchanged; no second visitor, no third visitor,
+voices, no greeting, no words exchanged; no second guest, no third guest,
 no crowd, no group, no guards, no staff, no second cleaner; no camera movement
 of any kind inside any shot, no pan, no tilt, no zoom, no dolly, no handheld,
 no reframing, no fourth shot, no extra cut; no four-panel layout, no grid, no
@@ -144,7 +160,9 @@ no cart leaving the frame; no dense mesh of fine lines, no rings, no line
 reaching floor or ceiling, no opening larger than the reference in shots one
 and three, no loose material on the floor, nothing bigger than a hand; no
 visitor noticing the mark, no visitor speaking to Dupe, no visitor looking at
-camera, no Dupe looking at camera except through the opening in shot two; no
+camera, no Dupe looking at camera, no face of Dupe in the opening in shot two, no eye
+at the opening, no head at the opening — the opening shows his HAND and nothing
+else; no
 smartphones, no screens, no modern technology.
 
 House negatives: no voiceover, no narration, no subtitles, no captions, no
@@ -160,9 +178,11 @@ wooden floor.
 
 REVIEW ORDER:
 1. THREE SHOTS, no more and no fewer, cut at 7s and 10s, each locked off.
-2. Shot two is genuinely from inside the wall — black surround, his eye and
-   then his finger in the opening. If it plays as an ordinary close-up of the
-   wall from the room side, the scene's one trick is gone.
+2. Shot two is genuinely from inside the wall — black surround, and A HAND
+   ONLY in the opening, never a face and never an eye. That is the payoff of
+   the hop: he never got high enough to look, so all that can reach the hole is
+   his hand. If a face appears there, or if it plays as an ordinary close-up of
+   the wall from the room side, the scene's one trick is gone.
 3. The flinch at 12s is a real startle, not a glance.
 4. The fake cleaning reads as fake — the same patch, over and over, while he
    watches someone else.
