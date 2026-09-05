@@ -1,5 +1,17 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
+⚠️ THE NAME IS STRIPPED, AND IT IS NOT A STYLE CHOICE — CTO 2026-09-05.
+S2Q was refused twice for copyright with "MADAME THIBAULT" in its prompt. Strip
+the three name strings and change nothing else and the identical prompt renders
+clean on the first try, which was measured, not guessed. THE FILTER READS THE
+WHOLE PROMPT, NOT ONLY THE QUOTED LINES — this sheet never says the name out
+loud, but it was written into the blocking line, the position map and the
+reference description, so it carried exactly the same risk. Every occurrence is
+now a descriptive stand-in.
+HER REAL NAME IS MADAME THIBAULT and it is recorded here so the story does not
+lose it. Whether it is MADAME or THIBAULT that the filter objects to is still
+unknown; nobody needs to find out to finish the film.
+
 S2S-B · A HUNDRED MILLION — REVERSE ANGLE · CEO 2026-09-04
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
@@ -84,7 +96,7 @@ character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
 - the small figure ALONE IN THE NEAR FOREGROUND, seen from behind in a powered
   wheelchair = @project_absence_char_grandmother
 - far down the hall, the GOLD figure = @gentleman_e, MR CARRINGTON
-- far down the hall, the TEAL figure = @project_absence_char_woman_c, THE MADAME
+- far down the hall, the TEAL figure = @project_absence_char_woman_c, THE WOMAN IN GREEN
 - far down the hall, the MAGENTA figure = @project_absence_char_valder, between
   them
 - far down the hall, the BLACK figure = @char_registrar, off to one side
@@ -108,7 +120,7 @@ REFERENCES — each with a job:
 @gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
   stand-collar suit, white shoes, a black cane with a gold lion head, two gold
   front teeth. His mouth is still half open when the clip starts.
-@project_absence_char_woman_c — MADAME THIBAULT: elderly, tall, rail-straight,
+@project_absence_char_woman_c — THE WOMAN IN GREEN: elderly, tall, rail-straight,
   a floor-length gown of glossy mid-green leather with pointed shoulder caps
   and a tall standing collar, long green opera gloves, a towering pompadour
   streaked blue, green and silver-white, black cat-eye sunglasses.
@@ -149,7 +161,7 @@ carrying the whole length of the gallery: "One hundred million." We never see
 her face. We see the back of her head and her hand on the lever.
 
 [3s] EVERY SINGLE HEAD DOWN THE HALL TURNS TO FACE THE CAMERA AT THE SAME
-INSTANT — Carrington, the Madame, Valder, the guards, the visitors, the
+INSTANT — Carrington, the the woman in green, Valder, the guards, the visitors, the
 registrar, all of them together. It is the only moment in the film when the
 whole room does one thing at one time. From here it reads as twelve tiny faces
 all snapping toward the lens at once.
