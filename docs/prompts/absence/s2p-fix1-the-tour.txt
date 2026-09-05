@@ -158,12 +158,23 @@ from the lens so it does not read as a flat rank. Behind them the gallery —
 chromium trumpet columns, white plinths, bronzes, framed works, orange cove
 light on the ceiling — slides past at a steady speed.
 
-[0s] They are already walking when the shot begins. VALDER LEADS, half a step
-ahead of everyone, talking and gesturing with an open hand at the works as they
-pass. Mr Carrington walks at his shoulder with his cane. Behind them the guards,
-the bodyguard, the registrar writing in his ledger as he walks, and the four
-visitors strung out in a loose line. Far at the back, well separated from all of
-them, DUPE pushes his cart along and is plainly not part of the party.
+[0s] They are already walking when the shot begins. THE ORDER OF THE LINE, FROM
+THE FRONT OF THE PROCESSION TO THE BACK, AND IT IS NOT NEGOTIABLE:
+
+  1. VALDER, AND HE IS THE FRONT-MOST PERSON IN THE WHOLE SHOT. Nobody walks
+     ahead of him and nobody walks level with him except Carrington. He is
+     talking and gesturing with an open hand at the works as they pass.
+  2. MR CARRINGTON at his shoulder with his cane, half a step back.
+  3. Then the guards, the bodyguard, and the registrar writing in his ledger as
+     he walks.
+  4. Then the four visitors, strung out in a loose line.
+  5. LAST OF ALL, well separated from everyone, DUPE.
+
+DUPE IS PUSHING A WHEELED CLEANING CART WITH BOTH HANDS ON ITS HANDLE, and the
+cart is in shot with him for the whole twenty seconds — the orange bucket, the
+mop, the bottles, the folding ladder, the gold V, the painting standing upright
+in its rack. HE IS NOT CARRYING ANYTHING. He has no bottle in his hands, no
+cloth, nothing: his hands are on the cart. He is plainly not part of the party.
 
 Valder, to the room, warm and expansive: "Everything in this wing was rehung
 only last week."
@@ -206,7 +217,11 @@ nobody in the background, nobody walking through; no Carrington replying, no
 other character speaking, no conversation, no murmuring, no laughing, no
 applause; no group stopping, no group gathering around a piece, no pointing
 crowd, no huddle; no Dupe joining the party, no Dupe speaking, no Dupe leaving
-his cart; no camera easing in or out, no acceleration, no deceleration, no
+his cart; NO DUPE WITHOUT HIS CART, no Dupe with empty hands, no Dupe carrying a
+bottle or a cloth or any object instead of pushing the cart, no cart out of
+frame, no cart left behind; NO VALDER AT THE BACK OF THE LINE, no Valder behind
+Carrington, no Valder behind the guards or the registrar or the visitors, nobody
+walking ahead of Valder; no camera easing in or out, no acceleration, no deceleration, no
 slowing at the end, no pan, no tilt, no zoom, no dolly toward or away, no
 handheld shake, no reframing, no whip, no cut, no second angle; no vertical
 composition, no group in single file toward the lens, no over-the-shoulder; no
@@ -230,6 +245,14 @@ REVIEW ORDER:
 1. THE MOVE. Flat, square, constant speed, people locked in frame, background
    sliding. If it eases at either end, or drifts into a follow, re-fire — that
    move is the entire reason this shot exists.
+1b. VALDER IS AT THE FRONT. Take 2 put him second from the back, behind
+   Carrington and the registrar, walking beside Dupe. The previz has him leading
+   and the prose said "VALDER LEADS" once; the order is now written out as a
+   numbered list because one adjective did not hold it.
+1c. THE CART IS IN SHOT. Take 2 lost it completely and gave Dupe a small bottle
+   to carry instead. The cart is in the previz and was bound as an Element, so
+   this is the model dropping a prop it was given — it is now named in the beat
+   text and banned by its absence in the negatives.
 2. HE ONLY EVER TURNS TO CARRINGTON. Two head turns, both to him. If he turns
    to the group the joke is gone.
 3. NOBODY ANSWERS HIM, including Carrington.
