@@ -68,6 +68,21 @@ THIS SHOT". That is now reversed for SHOT A only, and only as the aperture the
 camera looks through — never as damaged plaster seen on a wall in a background.
 SHOT B does not contain it at all. Same discipline as S2H.
 
+⚠️ NAME-FREE TAKE FIRED FIRST — CEO 2026-09-05. Before firing this sheet as
+written, the CEO asked for a version with the name stripped out, to see whether
+the two copyright rejections were about the name at all. What was changed, and
+only this: the reference line reads THE WOMAN IN GREEN instead of MADAME
+THIBAULT, the [2s] beat says SHE instead of naming her, and Valder's [15s] line
+becomes "There she is. At last." Everything else — all 16 references, the
+blocking, the cuts, the other four lines — is identical, so the take is a clean
+single-variable test.
+  · GENERATES CLEAN -> the name was the trigger, and the next question is
+    MADAME or THIBAULT (S2R and S2S answer that free: they bind the same plate
+    and never speak the name).
+  · STILL REFUSED -> the name was never the problem and the plate
+    char_woman_c is the suspect. Do not fire this sheet a fourth time; take the
+    plate to the CEO instead.
+
 ⚠️ HER NAME IS MADAME THIBAULT — flagged for the CEO the same way Carrington
 was. It is said ONCE, by Valder. S2Q was refused twice for copyright with this
 name in it; S2R and S2S bind the same plate WITHOUT speaking the name, so those
