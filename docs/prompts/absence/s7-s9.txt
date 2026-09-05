@@ -138,9 +138,29 @@ music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no in
 ===============================================================
 SCENE 8a — THE FIRST THREE PIECES
 ===============================================================
-30s · 720p · 16:9 · ONE CONTINUOUS LATERAL DOLLY at constant speed + three
-one-second locked object portraits cut in and back — no other moves, no
-handheld. Sound On · High.
+30s · 720p · 16:9 · A MOVING CAMERA THAT FOLLOWS PEOPLE, CUT IN TIME, plus
+three one-second locked object portraits. Sound On · High.
+
+THE CAMERA IS NEVER PARKED. In every shot that has a person in it, the camera
+is moving with them — travelling alongside Valder as he walks and talks,
+swinging round with him when he turns, easing in on a face. It never sits on a
+tripod watching from a distance and there is no wide master of the room.
+
+AND IT IS CUT IN TIME. JUMP CUTS forward between the three objects, so we never
+watch anybody walk from one piece to the next. Thirty seconds covers a tour
+that would really take several minutes.
+
+THE RULE THAT DECIDES EVERY SHOT WITH A PERSON IN IT:
+**THE CAMERA IS ON WHOEVER IS SPEAKING** — which is Valder almost all the way
+through, so the camera travels with Valder. **WHEN NOBODY IS SPEAKING IT IS ON
+DUPE.** Never a cutaway to a silent listener, never a shot of the group for its
+own sake.
+
+THE ONE EXCEPTION, AND IT IS DELIBERATE: **the three object portraits are dead
+still.** Locked, frontal, flat-lit, dead centre, one second each, exactly three
+of them, like a catalogue plate. They are the only motionless frames in the
+clip and the stillness is the joke — the objects get the reverence the people
+never do. Cut to the portrait, cut straight back to the moving camera.
 
 ⚠️ THIRTY SECONDS, NOT TWENTY — CEO 2026-09-05. The three object stories plus
 the new Dupe joke are about 70 words, which is roughly 29 seconds of unhurried
@@ -213,35 +233,43 @@ are in plain single-colour coats.
   behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
   scene — one man, never two, never absent (CEO 2026-08-30).
 
-[0s] The lateral dolly tracks Valder piece to piece, parallel to the wall,
-guests following. At the armchair he says it warm and unhurried, in love with
-the object: "This chair was in the room where the armistice was signed. Not
+[0s] WITH VALDER — the camera travels alongside him as he walks and talks, the
+gold-toothed gentleman beside him, the bodyguard a pace behind, the elderly
+gentleman and the woman in cobalt drifting after them, both uniformed guards a
+pace and a half back, and DUPE pushing his cart along at the rear. At the
+armchair Valder says it warm and unhurried, in love with the object: "This chair was in the room where the armistice was signed. Not
 at the table. In the corner. Nobody sat in it." Cut to a ONE-SECOND locked
 PORTRAIT of the chair — dead centre, frontal, flat-lit, a catalogue plate —
 then return to the moving master exactly where it left off.
 
-[11s] At the woven form, same warmth: "A fish trap. It caught nothing for
+[11s] JUMP CUT — they are already at the woven form, much further along the
+wall than the walk would have carried them, and the camera is still travelling
+with Valder. Same warmth: "A fish trap. It caught nothing for
 forty years. The man who made it never sold a single one." One-second
 catalogue portrait of the trap. Return.
 
-[19s] THE ONLY INTERRUPTION IN THE SCENE. Valder turns from the trap to move on
-and finds DUPE STANDING RIGHT THERE with his cart, close, having quietly pushed
-it along behind the group since the first frame. Valder is not annoyed and not
+[19s] NO JUMP CUT HERE — THIS ONE BEAT IS CONTINUOUS, because the joke only
+works if we see it happen in one piece. Valder turns from the trap to move on
+AND THE CAMERA SWINGS ROUND WITH HIM, landing on DUPE STANDING RIGHT THERE with
+his cart, close, having quietly pushed it along behind the group since the first
+frame. Valder is not annoyed and not
 suspicious. He is charming about it, faintly puzzled, and completely polite:
 "Excuse me. Are you following us with that?"
 EVERY SINGLE PERSON IN THE GROUP TURNS AND LOOKS AT DUPE — the gold-toothed
 gentleman, his bodyguard, the elderly gentleman, the woman in cobalt, both
 guards. All of them, at once, on the line.
-DUPE SAYS NOTHING. He goes red, fumbles for a cloth off the cart and starts
+DUPE SAYS NOTHING — so by the rule the camera now belongs to him, and it stays
+on him and eases in. He goes red, fumbles for a cloth off the cart and starts
 wiping the nearest surface far too fast, as though he had been about to do that
 all along. Nobody helps him and nobody laughs.
 
-[24s] Valder simply carries on as if it had not happened. At the stone ring,
+[24s] JUMP CUT BACK TO VALDER, who is speaking again and simply carries on as
+if it had not happened, the camera travelling with him. At the stone ring,
 savouring it: "A millstone. It ground grain for two hundred years. Then
 somebody stood it upright. And it stopped being a tool." One-second catalogue
-portrait of the millstone. Return to the master. THE WHOLE GROUP MOVES ON WITH
+portrait of the millstone. Back to the moving camera. THE WHOLE GROUP MOVES ON WITH
 VALDER — except Dupe, who stays where he is, still wiping, and SLIDES OUT OF
-FRAME as the dolly leaves him behind. Hold.
+FRAME as the camera travels away and leaves him behind. Hold.
 
 AUDIO: room tone, his voice, slow footsteps, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
