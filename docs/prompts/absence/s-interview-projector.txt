@@ -1,0 +1,210 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+IVR1 / IVR2 / IVR3 · THE INTERVIEW, RE-SHOT WITH THE PROJECTOR · CEO 2026-09-05
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY for the video — Unlimited ON as the FIRST action in the
+composer, then zoom the Generate button and confirm ZERO digits before every
+click.
+⚠️ DURATION SLIDER = 20s on all three. Full spec: 20s / 720p / Seedance 2.5 /
+High / 1/4 / Sound ON. Read all six fields back before firing.
+
+WHY THIS EXISTS. The editor compared the two interview looks and preferred the
+one with the projector standing in the near foreground — his words were that it
+reads with far more depth, and that the extra foreground gives the room a
+dimension the flat version does not have. The CEO agreed and asked for the
+interview re-shot that way.
+
+⚠️ THREE CLIPS ONLY, not the whole interview. The opening, the dropped-object
+joke, and the ending. IV3 and IV4 are not being re-shot.
+
+⚠️ WHAT CHANGES AND WHAT DOES NOT. The CEO was explicit: same prompt, only the
+set and the camera position change. So every spoken line is IDENTICAL to
+s-interview.txt — IVR1 is IV1's dialogue, IVR2 is IV2's, IVR3 is IV5's. Do not
+rewrite a word of what he says. What changes is the frame around him.
+
+⚠️ THIS SHEET DELIBERATELY BREAKS TWO OF THE OLD SHEET'S NEGATIVES, and that is
+the point of it, not a mistake:
+  - the old sheet bans camera equipment in frame. HERE A FILM PROJECTOR IS
+    REQUIRED, in the near foreground, as the depth cue the editor asked for.
+  - the old sheet bans the cleaning cart in any clip. HERE IT IS ALLOWED, parked
+    behind him against the panelling, because it is in the reference the editor
+    picked and it quietly says who this man actually is.
+Everything else in the old negative list still stands.
+
+⚠️ ONE PAID IMAGE, CEO-APPROVED 2026-09-05 for this scene. The plate below does
+not exist yet and must be generated before any of the three clips can fire. It
+is the only paid item; the three videos are Unlimited and free. If the image
+price is anything other than what the task states, STOP and report rather than
+clicking.
+
+NO PREVIZ ANYWHERE IN THIS SHEET. None of the three clips takes a video
+reference, so the video-reference upload outage does not touch them.
+
+Filing: All Scene/Fix-1/ as IVR1-Fix1.MP4, IVR2-Fix1.MP4, IVR3-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+ALL THREE: 20s · 720p · 16:9 · Sound On · High. THE SAME LOCKED FRAME every
+time, identical framing across all three clips.
+
+REFERENCE:
+@project_absence_char_dupe_interview_projector — THE FRAME ITSELF. Take the
+  framing, the room and the foreground from it exactly.
+
+THE FRAME, and it is the whole reason for this version: a locked medium shot of
+DUPE seated dead centre, from the chest up, in a well-cut dark blue suit with an
+open pale shirt and no tie, hands together in his lap. He is in his own enormous
+retrofuturist house — warm wood panelling in wide vertical slats, tall windows
+throwing warm daylight in from the right, sunken plum seating, warm shadow.
+
+IN THE NEAR FOREGROUND ON THE LEFT, LARGE AND CLOSE TO THE LENS AND SLIGHTLY
+OUT OF FOCUS, STANDS AN OLD FILM PROJECTOR — a boxy grey-and-white machine on a
+stand with a big black feed reel on top, a lens barrel and a knurled focus ring
+pointing across the frame toward him. It occupies the left third and it is not
+explained. It is never switched on, never touched, never looked at.
+
+BEHIND HIM, against the wood panelling, HIS CLEANING CART is parked: an orange
+bucket, a red-handled mop and a broom standing up out of it, labelled bottles,
+and a small gold V on the front panel. It is at rest and nobody goes near it.
+
+THE DEPTH IS THE POINT. Three distinct planes — the projector close and soft,
+Dupe sharp in the middle, the panelled room and the cart falling away behind
+him. Do not flatten it, do not move the projector out of shot, and do not put
+him against a plain wall.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, saturation high in flat planes but
+never touching skin, halation around every lamp. Photographed, not rendered:
+fine film grain, faint gate weave, slight colour fringing. Camera level in every
+shot.
+
+He is calm and he is not comfortable. His hands stay together in his lap. He does
+not smile, does not perform, does not look pleased with himself. He speaks the way
+a man speaks when he has told the same true thing many times and it has never once
+been believed.
+
+---------------------------------------------------------------
+IVR1 · THE PAINTING
+---------------------------------------------------------------
+20s · ONE LOCKED SHOT — the camera never moves, no cuts.
+
+[0s] He looks straight into the lens and says, flatly: "I dropped a painting."
+[3s] A beat. Then, as if the first answer had not been enough: "I came in early
+that morning. It was hanging crooked, only a little. So I straightened it."
+[11s] A beat. He lifts one hand slightly, then puts it back: "And, well. You can
+see. It came off the wall. There's a hole there now."
+[18s] He stops. He has finished answering. Hold.
+
+---------------------------------------------------------------
+IVR2 · THE CRASH
+---------------------------------------------------------------
+20s · LOCKED, then ONE WHIP PAN AND BACK — the only camera move in the three.
+
+[0s] Identical locked frame, projector still large on the left. "I wasn't trying
+to do anything. I was going to dust it. That was all."
+[7s] Off screen, sharp and close: a metal tray and china hitting a hard floor.
+ONE FAST WHIP PAN sideways, three or four frames, the room smearing into
+horizontal streaks.
+[8s] It lands on a HOUSEKEEPER in a plain domestic uniform standing over a
+dropped tray of pastries on the floor, perfectly composed and dead centre in her
+own frame, looking straight down the lens. She does not move. She does not
+apologise. Nobody speaks. THE ROOM AROUND HER IS UNMISTAKABLY THE SAME HOUSE —
+the same wood panelling, the same warm daylight, the same deep plum tones. Hold
+two full seconds on her.
+[10s] ONE FAST WHIP PAN BACK, the same speed, landing on exactly the original
+frame with Dupe exactly as he was and the projector exactly where it was.
+[12s] His face has not changed. He continues as if nothing happened: "I thought
+they were going to fire me. So I had to do something."
+[18s] Hold.
+
+---------------------------------------------------------------
+IVR3 · WHAT IT IS WORTH
+---------------------------------------------------------------
+20s · ONE LOCKED SHOT — the camera never moves, no cuts.
+
+[0s] "If I had left it crooked, it would still be hanging there."
+[5s] A beat, and this one lands somewhere the others did not: "I do miss it. It
+was a beautiful painting."
+[10s] A long beat. Then, plainly, the way a man states his occupation: "These
+days my work is creative."
+[13s] "People pay a few hundred to a few hundred thousand dollars to have that
+crack on their own wall."
+[18s] "And everyone calls it art."
+[19s] Hold on his face, unchanged, one beat longer than comfortable. Cut.
+
+AUDIO: room tone, distant birds through the tall windows. In IVR2 only: one
+sharp metal-and-china crash off screen at 7s, then complete silence for the two
+seconds the camera holds on her. No music in any clip. NO SOUND AT THE START OR
+THE END: each clip opens mid room-tone with no intro sting or riser, and simply
+stops with no tail, swell or fade.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro sting,
+no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail,
+no fade-in or fade-out on the sound; no stage directions spoken aloud, no
+narration of the character's state, no speaking anything outside the quotation
+marks; no interviewer, no reporter, no second voice, no question audible or
+implied on the soundtrack; no third person in any clip, no film crew of any
+kind, nobody holding a camera, nobody holding a microphone boom, nobody
+adjusting a light, nobody behind the camera;
+no projector switched on, no beam of light, no projected image, no smoke in the
+beam, no film running, no reel turning, nobody touching or adjusting the
+projector, no cable from it; no white uniform on Dupe, no cap on Dupe, no gold V
+on Dupe; no cart moving, no mop or broom being used, nobody near the cart; no
+jewellery, no watch; no smiling, no laughing, no tears, no triumph, no
+shrugging, no winking; no zoom, no dolly, no crane, no handheld wobble, no
+reframing of any kind except the single whip pan in IVR2; no flattening of the
+frame, no plain wall behind him, no empty foreground; no slow motion, no speed
+ramp.
+
+House negatives: no dialogue beyond the quoted lines, no voiceover, no narration,
+no subtitles, no captions, no on-screen text, no readable text, no signage, no
+logos, no music, no score, no extras, no crowd, no duplicate faces, no
+smartphones, no screens, no LEDs, no modern technology, no dutch angle, no tilted
+horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin, no
+beauty filter, no dim moody lighting, no darkness, no night.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+THE PLATE THAT HAS TO EXIST FIRST — generate this image, name the Element
+`project_absence_char_dupe_interview_projector`, then fire the three clips
+against it:
+
+  A locked medium shot, camera level, of a man seated dead centre from the chest
+  up: forties, South Asian, a full dark moustache, short dark hair, calm and
+  unsmiling, in a well-cut dark blue suit over an open pale shirt with no tie,
+  hands together in his lap. He sits in an enormous 1960s retrofuturist house —
+  warm wood panelling in wide vertical slats, a tall window throwing warm
+  daylight in from the right, deep plum sunken seating, polished stone floor.
+  IN THE NEAR FOREGROUND ON THE LEFT, large and close to the lens and slightly
+  out of focus, an old grey-and-white film projector on a stand, a big black
+  feed reel on top, its lens barrel pointing across the frame toward him.
+  Behind him against the panelling, a cleaning cart at rest: orange bucket, a
+  red-handled mop and a broom standing up out of it, labelled bottles, a small
+  gold V on the front panel. Warm shadow, cold white, fine film grain,
+  photographed not rendered. No text, no logos, no other people.
+
+REVIEW ORDER for each clip:
+1. THE PROJECTOR IS THERE, large in the near-left foreground and softly out of
+   focus. If it is gone, or small, or sharp, or switched on, the version has no
+   reason to exist — that foreground IS the note the editor gave.
+2. THREE PLANES. Projector soft in front, Dupe sharp in the middle, panelled
+   room and cart behind. A flat shot against a plain wall is the failure.
+3. THE LINES ARE WORD FOR WORD the same as IV1 / IV2 / IV5. Nothing rewritten.
+4. IVR2 ONLY: one whip pan out and one back, the housekeeper dead centre over a
+   dropped tray, the same house around her, and Dupe's face unchanged when we
+   return. No crew, no third person, ever.
+5. NOBODY TOUCHES the projector or the cart, and the projector is never on.
+6. Dupe never smiles and never performs.
+File the take whatever the verdict.
+
+PAIRS WITH: s-interview.txt (the flat version, IV1-IV5, already shot and on
+Drive). Both looks exist so the editor can choose; nothing here replaces those
+files.
+
+=== END NOTES ===
