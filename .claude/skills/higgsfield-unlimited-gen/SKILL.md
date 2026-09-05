@@ -130,6 +130,36 @@ Two consequences an operator must internalise:
   3 credits is what a plate costs and what every plate in this production has
   cost. An operator that halts on it is halting on normal operation.
 
+### "Unlimited" does not mean "always fireable" — 2026-09-06
+
+**Unlimited sets the PRICE to zero. It does not guarantee the button is
+clickable.** On 2026-09-06 the Generate button went dead for the whole account:
+the price still displayed correctly as `~~84~~ → 0`, and the button was still
+`disabled=""` with React props `isDisabled: true`, `freeGens: undefined`,
+`credits: 0`, under a banner reading *"Credits are running low! Over 90% already
+used"*. Three different dispatch methods produced no network POST at all. A
+composer that is perfectly staged and shows a struck-through zero can still be
+unable to fire.
+
+**Two explanations fit, and they call for opposite actions — do not guess
+between them, and do not tell the CEO it is one of them:**
+
+1. **The Unlimited subscription lapsed.** This file already records that our
+   Unlimited "has an end date he has already given" (CEO 2026-08-27).
+   `freeGens: undefined` reads more like an absent entitlement than an exhausted
+   one. Fix: renew.
+2. **The credit balance gates the button globally**, Unlimited video included.
+   Fix: top up.
+
+**What an operator should do:** stop, record all four values (`disabled`,
+`isDisabled`, `freeGens`, `credits`) plus any banner text, and hand the C-level
+BOTH readings. Do not click harder — a `disabled` button will not fire however
+the event is dispatched, and no amount of retrying distinguishes the two causes.
+
+**And note what this breaks:** the two lanes are not as independent as we
+treated them. A C-level firing on the Credit lane and an operator firing on
+Unlimited share one account-level gate, whatever that gate turns out to be.
+
 **There is an "Unlimited mode" control next to GPT Image 2. It is a paid
 upsell, not our subscription. Never click it.** It is not the toggle the rest
 of this skill is about; that one lives on the Seedance 2.5 composer.
