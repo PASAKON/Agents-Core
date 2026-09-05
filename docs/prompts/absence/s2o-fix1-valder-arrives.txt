@@ -35,19 +35,30 @@ a single scene confuses the model completely. This shot is the second kind.
      and left unbound at the same time. THE MADAME IS NOT HERE — she does not
      arrive until S2Q, and binding her would put her in the room two scenes
      early.
-  2. JUMP CUTS. One camera position, cut forward in time, so the twenty seconds
-     do not have to play out in real time. This is what stops the scene from
-     becoming another slow walk across a forty-three-metre hall, which is the
-     exact failure S2C took three takes to fix. The previz still applies — it
-     is one locked camera and cutting in time does not contradict it, so
-     ATTACH IT AS NORMAL.
+  2. JUMP CUTS. Cut forward in time so the twenty seconds do not have to play
+     out in real time. This is what stops the scene from becoming another slow
+     walk across a forty-three-metre hall, the exact failure S2C took three
+     takes to fix.
+  3. THE CAMERA MOVES AND IT FOLLOWS THE SPEAKER — second instruction, same
+     day, after the CEO saw the locked version. Nothing in this clip is a
+     static tripod frame. The rule that decides every shot: the camera is on
+     whoever is talking, and on DUPE whenever nobody is. Valder is the only
+     person who speaks, so the clip is four Valder shots and three Dupe shots
+     and nothing else — no master, no cutaways, no coverage of listeners.
+     ⚠️ THE PREVIZ IS NO LONGER USABLE AND MUST NOT BE ATTACHED.
+     `docs/S2O-Render.MP4` is a single locked camera; a following camera
+     contradicts it frame for frame, and a video reference beats prose on
+     camera geometry every time (measured on S2L take 5). Its tsv row moves to
+     `deferred`. Side effect, and a good one: with no video reference this clip
+     cannot be touched by the upload outage.
 
 ⚠️ NEVER UPLOAD AN IMAGE. Match by ID in the panel and bind the library entry.
 The old six-reference cap is dead (CEO 2026-09-05). If the composer genuinely
 refuses more, drop in this order and report it: prop_cart_a_painted first, then
 char_visitor_a, then char_registrar. Never drop Dupe, Valder or Carrington.
 
-Previz: docs/S2O-Render.MP4 — 1280x720 / 480 frames / 20.0s.
+Previz: docs/S2O-Render.MP4 — DEFERRED 2026-09-05, do not attach. Locked
+camera, superseded by the following-camera rewrite.
 
 Filing: All Scene/Fix-1/ as S2O-Fix1.MP4.
 
@@ -55,24 +66,35 @@ Filing: All Scene/Fix-1/ as S2O-Fix1.MP4.
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-20s · 720p · 16:9 · ONE LOCKED CAMERA POSITION, CUT IN TIME. Sound On · High.
-The camera never moves, never pans, never zooms and never changes angle — but
-the shot is NOT one continuous take. JUMP CUTS ARE WANTED: hard cuts forward in
-time from the same viewpoint, so the twenty seconds skip ahead instead of
-playing out in real time. Every cut lands on the same axis, the same lens
-height and the same framing, with only the people in different places. Never
-cut to a new angle, a reverse or a second location.
+20s · 720p · 16:9 · A MOVING CAMERA, CUT IN TIME. Sound On · High.
+THE CAMERA IS NEVER LOCKED OFF. It is alive in every single shot — it walks
+with people, follows them, drifts in and reframes as they move. Even when it is
+holding on a still man it keeps breathing very slightly. No shot in this clip
+is a static frame on a tripod.
 
-the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
-shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
-never a person.
+AND IT IS CUT, not one continuous take. JUMP CUTS forward in time, so twenty
+seconds cover a walk that would really take much longer.
 
-THE FRAME: a locked view from inside the gallery, low and slightly behind the
-CLEANER, who stands close to the lens on the right of frame — near enough that
-his face fills a good part of the picture and every expression on it is
-readable. Past his shoulder the museum runs away in a long perspective of
-chromium trumpet columns toward a tall red double door at the far end. His cart
-is parked beside him.
+THE ONE RULE THAT DECIDES EVERY FRAME:
+**THE CAMERA IS ON WHOEVER IS SPEAKING.** The moment a line starts, the person
+saying it is the person we are with, and the camera moves with them for as long
+as they are talking. **WHEN NOBODY IS SPEAKING THE CAMERA IS ON DUPE.** It is
+never on anybody else, at any time, for any reason. There is no wide master, no
+cutaway to a listener, no shot of the room for its own sake.
+
+THE TWO THINGS THE CAMERA DOES, and it only ever does these two:
+
+DUPE'S FRAMING — in close, low and slightly behind the CLEANER, near enough
+that his face fills a good part of the picture and every expression on it is
+readable, the camera easing in on him rather than sitting still. Past his
+shoulder the museum runs away in a long perspective of chromium trumpet columns
+toward a tall red double door at the far end. His cart is parked beside him.
+
+VALDER'S FRAMING — with him, at his level, moving as he moves: travelling
+backwards ahead of him while he walks and talks, swinging round with him when
+he changes direction, arriving with him when he reaches somebody. He is held at
+chest-up size, the gallery sliding past behind him. The camera keeps up with
+him and never lets him walk out of frame.
 
 THE COMPLETE CAST OF THIS SHOT IS TWELVE PEOPLE AND NOT ONE MORE. There are no
 extras in this film. No bystanders, no other visitors, no gallery staff, no
@@ -80,8 +102,7 @@ security guards, no reporters, no journalists, nobody holding a camera, nobody
 filming, nobody in the background, nobody walking through. If a figure is not
 named below it must not exist.
 
-POSITION MAP — every figure in the reference video stands exactly where its
-character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+WHO IS IN THE ROOM. EVERY CHARACTER APPEARS EXACTLY ONCE:
 - the WHITE figure labelled DUPE = @project_absence_char_cleaner_c
 - the MAGENTA figure labelled VALDER = @project_absence_char_valder
 - the two NAVY figures labelled GUARD_V1 and GUARD_V2 =
@@ -96,7 +117,6 @@ character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
   comforted), @project_absence_char_woman beside her,
   @project_absence_char_critic_b, @project_absence_char_visitor_a on his own,
   and @project_absence_char_student_c with his sketchbook
-- every grey block is a prop, never a person
 
 REFERENCES — each with a job:
 @loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
@@ -149,48 +169,61 @@ REFERENCES — each with a job:
   never moving: castor wheels, mop, orange bucket, bottles, folding ladder,
   gold V, a painting standing upright in the rack.
 
-[0s] Dupe is working, close to us, cloth in hand, his back three-quarters to
-the lens. Deep down the gallery the tall red doors open and THREE FIGURES COME
-THROUGH: Valder in the middle in his panelled coat, a uniformed guard on each
-side and half a pace behind. They walk toward us at an ordinary confident
-pace, and they do not stop.
+[0s] ON DUPE — nobody is speaking, so we are with him. The camera moves with
+him as he works, close, cloth in hand, his back three-quarters to us. Deep down
+the gallery behind him the tall red doors open and THREE FIGURES COME THROUGH:
+Valder in the middle in his panelled coat, a uniformed guard on each side and
+half a pace behind. They walk toward us at an ordinary confident pace and they
+do not stop.
 
-[2s] JUMP CUT. DUPE HEARS THEM AND TURNS. It is the only movement anybody makes in this
-entire shot, and it is not a comic double-take — his head comes round, he sees
+[2s] JUMP CUT, STILL ON DUPE, closer now, the camera easing steadily in on his
+face for the whole beat. DUPE HEARS THEM AND TURNS. It is the only thing any
+PERSON does in the whole clip besides Valder, and it is not a comic double-take — his head comes round, he sees
 who it is, and everything drains out of his face at once. His hands stop. His
 mouth closes. He goes very still in the way a man does when he is frightened
 and is trying hard not to look frightened. He does not drop anything, does not
 gasp, does not run. HE JUST WATCHES HIM COME. Hold on that face.
 
-[6s] JUMP CUT — Valder and his guards are suddenly much further up the room
-than the walk would have carried them, and Dupe in the foreground has not
-moved a muscle. Valder, walking, calls out to the room in general in a warm public voice,
-pleased with the day: "Good morning. Good morning, everyone. It is a very good
-day."
+[6s] JUMP CUT TO VALDER — HE HAS STARTED SPEAKING, SO WE ARE NOW WITH HIM, and
+he is already much further up the room than the walk would have carried him.
+The camera travels backwards ahead of him, holding him chest-up as he strides,
+the gallery sliding past behind. He calls out to the room in general in a warm
+public voice, pleased with the day: "Good morning. Good morning, everyone. It
+is a very good day."
 
-[10s] JUMP CUT. HIS EYE CATCHES SOMETHING OFF TO THE SIDE and his whole manner sharpens
+[10s] JUMP CUT, STILL WITH VALDER because he is still the one talking, the
+camera swinging round with him as he turns. HIS EYE CATCHES SOMETHING OFF TO
+THE SIDE and his whole manner sharpens
 into delight. He changes direction slightly and raises both arms as he goes,
 calling out down the room: "Ah, Mr Carrington, there you are."
 
-[12s] JUMP CUT — he is already there. He reaches Mr Carrington, who is standing waiting with his bodyguard
+[12s] JUMP CUT — he is already there, and the camera arrives with him and
+moves round the meeting rather than watching it from a stand. He reaches Mr
+Carrington, who is standing waiting with his bodyguard
 behind him, and TAKES HIS HAND IN A LARGE TWO-HANDED WESTERN HANDSHAKE,
 clasping it and holding on. The flattery is completely shameless: "Why did you
 not tell me you were coming today? I would have received you properly."
 
-[16s] JUMP CUT. Still holding the hand, he turns and sweeps his other arm down the
+[16s] JUMP CUT, STILL ON VALDER, the camera drifting with him. Still holding
+the hand, he turns and sweeps his other arm down the
 gallery: "This room has only just been rearranged. Come — let me show you
 everything."
 
-[18s] JUMP CUT. He lets go and begins to lead him away. IN THE FOREGROUND DUPE HAS NOT
-MOVED AT ALL. The cloth is still in his hand, unused, and he is still watching.
+[18s] JUMP CUT BACK TO DUPE — Valder has stopped talking, so we leave him
+mid-move and return to the only person we go to in silence. DUPE HAS NOT MOVED
+AT ALL. The cloth is still in his hand, unused, and he is still watching. Far
+behind him and small, Valder is leading Carrington away.
 
-[19s] Hold on Dupe. Cut.
+[19s] Stay on Dupe, the camera still alive on his face and still creeping in a
+little. Cut.
 
-THE CUTS ARE THE POINT OF THE EDIT: every one of them jumps forward in time on
-exactly the same camera, and Dupe in the foreground is in the SAME POSITION in
-every single one of them while the room behind him keeps skipping ahead. He is
-the only fixed thing in the shot. THE FIVE GUESTS carry on with their own
-morning across every cut and never once look at Valder.
+WHAT THE EDIT IS DOING: the cuts jump forward in time, and each one lands on
+whoever is talking. Four shots are Valder's, because Valder is the only person
+in this film who speaks in this scene, and three are Dupe's, because those are
+the only moments when nobody does. THE FIVE GUESTS carry on with their own
+morning behind whoever we are with, and never once look at Valder. WE NEVER CUT
+TO THEM, never to Carrington, never to a guard, never to the registrar, never
+to the room on its own.
 
 AUDIO: room tone, tall doors opening far off, several sets of unhurried
 footsteps on terrazzo approaching, a warm confident voice carrying down a big
@@ -222,10 +255,14 @@ speaking, no bodyguard speaking, no guard speaking, no registrar speaking; no
 weapon, no gun, no holster, no earpiece; no bowing from Valder, no hat, no
 umbrella; no money, no card, no contract, no papers exchanged; no cracked wall,
 no crack, no brass plaque, no price plaque in frame; no running, no hurrying,
-no comic speed, no sped-up motion, no slow motion; no camera movement of any
-kind, no pan, no tilt, no zoom, no dolly, no handheld, no reframing inside a
-shot, no second angle, no reverse angle, no second location, no change of lens
-height or framing across a cut, no dissolve, no fade between cuts; no four-panel layout, no grid, no split screen; no cart moving,
+no comic speed, no sped-up motion, no slow motion; no locked-off camera, no static tripod
+frame, no shot in which the camera is completely still, no wide master, no
+establishing shot of the room, no cutaway to a listener, no shot of anybody who
+is not speaking except Dupe, no shot of Carrington on his own, no shot of a
+guard, the bodyguard, the registrar or a guest on their own, no camera holding
+on the room after everyone has left frame; no second location; no dissolve, no
+fade between cuts, no whip pan, no crash zoom, no spinning camera, no orbit, no
+drone move, no crane, no camera passing through a wall or an object; no four-panel layout, no grid, no split screen; no cart moving,
 no painting leaving the rack; no looking at camera by anybody; no smartphones,
 no screens, no modern technology.
 
