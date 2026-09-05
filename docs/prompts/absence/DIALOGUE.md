@@ -75,6 +75,33 @@ once. Nobody looks at him. He never reacts.
 
 ---
 
+## S2Q · The Madame arrives · **LOCKED 2026-09-05** (CEO asked for these)
+
+Carrington has already bid five million in S2N. Valder is still walking him
+round the room from S2P. The joke: **the buyer has decided, and the salesman
+cannot stop selling long enough to hear it.** Valder never closes — that is
+load-bearing, because S2R's bidding war only exists if the painting is still
+for sale.
+
+> **CARRINGTON**, simply, cutting across him *"I want it."*
+> **VALDER**, not appearing to hear it, gesturing at the ceiling *"The lighting alone took three weeks."*
+> **CARRINGTON**, eyes already past him on the Madame, not amused now *"Mr Valder. I want it."*
+> **VALDER**, warm, expansive, oblivious, still not closing *"Of course you do. Everybody does."*
+> **VALDER**, spreading his arms as he finally turns *"Madame Thibault."*
+
+**"I want it" is said twice on purpose** — relaxed the first time, urgent the
+second, because between them a rival walked in. And Valder's *"Everybody does"*
+is what tells Carrington there is competition, one second before he works out
+who she is. That line is the cause of the smile coming back.
+
+**THE MADAME DOES NOT SPEAK IN THIS SCENE.** Her first words in the film are
+her bid, *"Ten million."*, in S2R. She answers the greeting with a nod and a
+gloved hand.
+
+22 words all in, inside the 40-word budget.
+
+---
+
 ## S5 · Collector A opens the bidding
 
 > **COLLECTOR A** *"I understand it."*

@@ -28,6 +28,14 @@ WHAT CHANGED, point by point, so nothing gets quietly restored:
   7. THE LOOK ORDER IS THE SCENE: Dupe sees her first, Carrington second.
   8. CARRINGTON AND THE MADAME ALREADY KNOW EACH OTHER. They greet.
   9. DUPE ENDS THE SCENE SWEATING, worse than he started.
+ 10. VALDER AND CARRINGTON NOW HAVE LINES — CEO asked for them 2026-09-05.
+     Four of them, plus the naming, 22 words all in, inside the 40-word
+     per-scene budget DIALOGUE.md locks. They are recorded in DIALOGUE.md
+     under S2Q so they never live only in a chat transcript again.
+     THE SHAPE IS THE JOKE: Carrington has already decided to buy and says so
+     twice, and Valder is too busy selling to close. His refusal to close is
+     what keeps S2R (the bidding war) possible, and his "Everybody does" is
+     what tells Carrington there is a rival — one second before he sees her.
 
 ⚠️ TWO LOCATION ELEMENTS IN ONE PROMPT, AND THAT BREAKS A STANDING RULE.
 `s2h-fix1-the-first-two.txt` says in its own notes: "ONE LOCATION ELEMENT ONLY
@@ -202,6 +210,10 @@ woman in the chestnut fur crying, her partner dabbing her cheek with the
 tissue. Behind them the room is busy and talking. Valder is deep in
 conversation with Carrington, each man with his guard standing behind him.
 Dupe is wiping a plinth. The room has a steady murmur of voices over it.
+Under the murmur we hear the two of them, close and clear.
+MR CARRINGTON, simply, cutting across whatever Valder was saying: "I want it."
+VALDER does not appear to hear it. He is already onto the next thing, gesturing
+at the ceiling: "The lighting alone took three weeks."
 
 [3s] CUT TO SHOT B. Far away at the vanishing point THE RED DOORS OPEN, and
 MADAME THIBAULT COMES THROUGH THEM AND WALKS STRAIGHT DOWN THE MIDDLE OF THE
@@ -216,12 +228,16 @@ cloth stops mid-stroke on the plinth. He does not straighten up and he does not
 say anything. He just watches her come.
 
 [8s] CUT TO CARRINGTON. HE IS THE SECOND TO SEE HER, over Valder's shoulder,
-while Valder is still talking. His smile drops off his face. For about a second
-he looks genuinely worried. Then he places who she is, and the smile comes
-back, wider than before, and the two gold teeth show.
+while Valder is still talking. His smile drops off his face and for about a
+second he looks genuinely worried. Without taking his eyes off her, and not
+amused any more, he says it again: "Mr Valder. I want it."
 
-[11s] VALDER IS STILL TALKING and has seen nothing. He is watching Carrington's
-face, not the room, and he keeps going, still selling.
+[11s] VALDER HAS SEEN NOTHING. He is watching Carrington's face, not the room,
+and he does not close the sale — he is warm, expansive and completely
+oblivious: "Of course you do. Everybody does." ON THAT LINE Carrington places
+who she is, and the smile comes back wider than before, and the two gold teeth
+show. He has just been told there are other buyers, and one of them is walking
+up the room behind him.
 
 [13s] CARRINGTON TURNS AWAY FROM HIM TO FACE HER. Valder follows his eyes and
 turns too, mid-sentence, and finds her already there.
@@ -240,8 +256,9 @@ at the start, and he is far more worried than he was when she walked in.
 
 AUDIO: a room full of low conversation from the first frame to the last, tall
 doors opening far off, one slow set of heels on terrazzo, quiet crying, the
-creak of a ledger. ONE line of dialogue only, Valder's, naming her. Nobody else
-speaks and she does not answer. NO SOUND AT THE START OR THE END: the clip
+creak of a ledger. FIVE lines of dialogue in the whole clip and no more: four
+between Carrington and Valder while she is walking, and Valder's naming of her
+at the end. SHE NEVER SPEAKS and nobody else speaks at all. NO SOUND AT THE START OR THE END: the clip
 opens mid room-tone with no intro sting or riser, and simply stops with no
 tail, swell or fade.
 
@@ -294,17 +311,21 @@ REVIEW ORDER:
    Carrington turned. If Valder spots her himself, or if everybody turns at
    once, the scene has lost its point.
 3. CARRINGTON'S FACE DOES THREE THINGS: smile off, a beat of worry, smile back
-   wider. All three, in that order. Two out of three is a re-fire.
-4. THE FIVE AT THE WALL, with the crying woman still crying and her partner
+   wider. All three, in that order. Two out of three is a re-fire. The smile
+   must come back ON Valder's "Everybody does" — that line is what causes it.
+4. THE FIVE LINES, word for word, nothing added, nothing improvised, and
+   "I want it" said TWICE — relaxed the first time, not amused the second.
+   Valder never closes the sale; if he accepts the offer, S2R cannot happen.
+5. THE FIVE AT THE WALL, with the crying woman still crying and her partner
    dabbing her with a tissue. Both of them women. No husband anywhere.
-5. TWO CAMERA POSITIONS, CLEANLY SEPARATE. Crack visible ONLY as the aperture
+6. TWO CAMERA POSITIONS, CLEANLY SEPARATE. Crack visible ONLY as the aperture
    in SHOT A. No crack anywhere in SHOT B. If the rooms blend, split the clip.
-6. EACH GUARD BEHIND HIS OWN MAN — bodyguard behind Carrington, tall thin guard
+7. EACH GUARD BEHIND HIS OWN MAN — bodyguard behind Carrington, tall thin guard
    behind Valder.
-7. THE OXBLOOD CROCODILE BAG in her gloved hand throughout, deep red not green.
-8. DUPE SWEATS AT THE END and is plainly worse than he was at [0s]. This is the
+8. THE OXBLOOD CROCODILE BAG in her gloved hand throughout, deep red not green.
+9. DUPE SWEATS AT THE END and is plainly worse than he was at [0s]. This is the
    last image of the clip and it is the joke landing.
-9. THIRTEEN PEOPLE, no extras.
+10. THIRTEEN PEOPLE, no extras.
 File the take whatever the verdict.
 
 END POSITIONS, inherited by S2R (the bidding battle):
