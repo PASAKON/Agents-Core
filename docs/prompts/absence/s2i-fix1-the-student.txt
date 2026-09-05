@@ -1,0 +1,204 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2I-Fix1 · THE STUDENT AND THE PRICE · CTO 2026-09-05
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. Read all six fields back before firing — the slider resets silently.
+
+⚠️ WHY THIS SHEET EXISTS AT ALL. S2I is the only Fix-1 scene whose previz was
+rendered and whose prompt was never written, so it has been the one clip in the
+queue that could not fire no matter what else got fixed. The film is due 9
+September. Written from the previz itself — `scripts/previz/s2i_previz.py` is
+the source of every camera, every position and every timing below, so the sheet
+and the video reference cannot disagree.
+
+⚠️ THE STUDENT'S LINE IS BORROWED, NOT INVENTED. `DIALOGUE.md` locks
+"It's anti-capitalist. Obviously." to the art student and its rule is that a
+line not in that file is not written yet. It is currently filed under the
+arrivals. The previz walks her the length of the hall, stops her at the break,
+and cuts to the price the moment she has spoken — which is that line's joke,
+built as a scene. I have used it here rather than invent one. IF THE CEO WANTS
+IT KEPT FOR THE ARRIVALS, say so and this scene goes silent; nothing else in
+the sheet changes.
+
+⚠️ THE CRACK IS NOT IN THE PREVIZ AND THAT IS DELIBERATE (CEO 2026-09-05). The
+previz used to draw it as a grey proxy, that proxy beat the photographic plate,
+and a machine-drawn star reached the finished film. The previz now carries
+camera and blocking only. THE BREAK'S SHAPE COMES FROM THE LOCATION PICTURE AND
+NOWHERE ELSE.
+
+⚠️ ONE LOCATION ELEMENT. `loc_wall_pov_e` covers all five shots even though
+three of them are inside the room — two location Elements in one prompt confuses
+the model completely (CEO 2026-09-04, "Model จะงง 100%"). The other camera
+positions are prose, exactly as S2D does it.
+
+Previz: docs/S2I-Render.MP4 — 1280x720 / 480 frames / 20.0s, re-rendered
+2026-09-05 with the crack removed.
+
+Filing: All Scene/Fix-1/ as S2I-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · FIVE SHOTS, cut exactly as timed below. No camera movement
+inside any of them — every one is locked off. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE PREVIZ CONTAINS NO BREAK IN THE WALL, AND THAT IS DELIBERATE. It gives you
+the camera position and where every person stands, and nothing else. THE SHAPE
+OF THE BREAK COMES ONLY FROM THE LOCATION PICTURE — take it from there exactly
+and take nothing about it from the video. Do not invent a hole, do not add a
+crack the picture does not show, and do not draw straight lines radiating from a
+centre.
+
+THE COMPLETE CAST OF THIS SHOT IS FOUR PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no other visitors, no gallery staff, no
+guards, no reporters, nobody holding a camera, nobody filming, nobody walking
+through. If a figure is not named below it must not exist.
+
+REFERENCES — each with a job:
+@project_absence_loc_wall_pov_e — THE ROOM, and the only location reference in
+  this prompt. Take its surfaces, its light and its dressing from this picture:
+  chromium trumpet columns receding in pairs, warm orange cove light along the
+  ceiling, polished terracotta terrazzo, works on white plinths down both walls,
+  the tall RED DOUBLE DOOR far off at the vanishing point. AND TAKE THE BREAK
+  ITSELF FROM IT — its exact shape, its ragged plaster edges, the way the room
+  is seen through it. It is the aperture the camera looks out of in shots ONE
+  and THREE, it appears exactly once, and it never also appears as damage on a
+  wall in the background.
+@project_absence_char_student_c — THE STUDENT: a young woman about twenty, short
+  curly acid yellow-green hair, an oversized deeply saturated cobalt-blue coat
+  whose sleeves swallow her hands so only her fingertips show, cheaper
+  mismatched layers at the collar and hem, a black sketchbook. She is dressed
+  slightly wrong for this room and she knows it.
+@project_absence_char_visitor_b — THE WOMAN IN THE CHESTNUT FUR: about
+  fifty-five, a brown bob, a long tawny-brown fur coat over a rust-red dress.
+  She is crying, quietly and genuinely, and has been for a while.
+@project_absence_char_woman — HER PARTNER: a slim woman about fifty, dark hair
+  swept up into a tall sculptural crest, glossy electric cobalt-blue leather with
+  a high standing collar, long cobalt gloves, black cat-eye sunglasses worn
+  indoors, gold dome earrings. THEY ARE A COUPLE.
+@project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap with
+  a gold V, gold V at the chest, moustache.
+@project_absence_prop_cart_a_painted — HIS CART: castor wheels, mop, orange
+  bucket, labelled bottles, folding ladder, gold V, the painting standing
+  upright in the rack.
+@project_absence_prop_tag — THE BRASS PLAQUE on the wall beneath the break:
+  engraved THE ABSENCE OF MEANING / Valder / $2,000,000, two screws at the top
+  corners, warm brass.
+
+SHOT ONE · [0s-6s] · THE VIEW FROM INSIDE THE WALL, looking out through the
+break into the gallery. The break is the frame of the picture; the room is seen
+through it and everybody is BEHIND it, never in front.
+
+[0s] The gallery is quiet. Far off to the right of the opening THE COUPLE stand
+together: the woman in the chestnut fur crying, her partner in cobalt close
+beside her. Well over to the left DUPE is working, wiping down beside his cart,
+paying them no attention.
+[2s] FORTY-THREE METRES AWAY AT THE VANISHING POINT THE TALL RED DOORS SWING
+OPEN, and THE STUDENT comes through them alone. She is tiny at that distance.
+She starts walking straight up the middle of the hall toward us.
+[5s] She is still a long way off and still walking. Nobody has looked at her.
+
+SHOT TWO · [6s-10s] · CUT. A CLOSER FRAME INSIDE THE ROOM, no break in it,
+aimed across at the couple from their own side of the gallery. The break is not
+in this shot at all.
+
+[6s] THE WOMAN IN THE CHESTNUT FUR, in tears and not hiding it. Her partner has
+closed the last half metre between them and stands against her shoulder,
+saying nothing. Neither of them speaks. Behind them, small and off to one side,
+Dupe goes on working and does not look over.
+[9s] Hold on the two of them.
+
+SHOT THREE · [10s-16s] · CUT BACK TO THE VIEW FROM INSIDE THE WALL, exactly the
+frame of shot one, the break the same shape in the same place. TIME HAS MOVED
+ON WHILE WE WERE AWAY: the student has crossed the rest of the hall and is now
+standing right in front of the opening, close, filling much of it.
+
+[10s] She looks at the break. She takes it in for a moment, entirely serious.
+[13s] Then, fast and flat, to nobody in particular and with complete
+confidence: "It's anti-capitalist. Obviously."
+[14s] NOBODY TURNS TOWARD HER. The couple do not look up. Dupe does not look
+over. The line lands in a room that was not listening.
+
+SHOT FOUR · [16s-18s] · CUT. A TIGHT INSERT OF THE BRASS PLAQUE on the wall,
+shot slightly off to one side so nobody stands in front of it, filling the
+frame. THE ABSENCE OF MEANING / Valder / $2,000,000, engraved, warm brass, two
+screws at the top corners. Nothing moves. No hand enters the frame.
+
+SHOT FIVE · [18s-20s] · CUT. A CLOSE FRAME ON DUPE inside the room, taken from
+his own side of the gallery. No break in this shot.
+
+[18s] He has stopped wiping. He is looking across at all of it — the student, the
+crying woman, the wall — with the flat, tired expression of a man who knows
+exactly how that hole got there and is not going to say so.
+[19s] Hold on his face. Cut.
+
+AUDIO: room tone in a big stone room, quiet crying, a cloth on stone, tall doors
+opening far off at 2s, one set of unhurried footsteps crossing terrazzo. ONE
+line of dialogue in the whole clip, the student's, and nobody answers it. NO
+SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting
+or riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, halation around every lamp.
+Photographed, not rendered: fine film grain, faint gate weave, slight colour
+fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio
+tail, no fade-in or fade-out on the sound; no fifth person, no extra, no
+bystander, no other visitor, no gallery staff, no guard, no reporter, nobody
+holding a camera, nobody filming, no crowd; no husband, no man beside the crying
+woman, no couple made of a man and a woman — THE COUPLE IS TWO WOMEN; no dialogue
+beyond the student's one line, no reply to her, no second voice, nobody turning
+to look at her, no nodding, no agreement, no applause; no crack, no break and no
+damaged plaster in shots TWO, FOUR or FIVE; no second break anywhere, no crack on
+a background wall, no straight lines radiating from a centre, no drawn or
+geometric crack; no hand entering the plaque insert, no person in front of the
+plaque, no plaque falling, no plaque moving; no cart being pushed, no painting
+leaving the rack, no Dupe speaking, no Dupe crying, no Dupe smiling; no camera
+movement of any kind inside any shot, no pan, no tilt, no zoom, no dolly, no
+handheld, no reframing, no sixth shot, no extra cut; no four-panel layout, no
+grid, no split screen, no inset panel; no looking at camera by anybody; no slow
+motion, no speed ramp; no smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no readable text except the brass plaque, no signage, no logos,
+no music, no score, no dutch angle, no tilted horizon, no lens flare, no bokeh
+balls, no HDR, no CGI sheen, no plastic skin, no beauty filter, no dim moody
+lighting, no darkness, no night, no blue walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. FIVE SHOTS, cut at 6s, 10s, 16s and 18s, every one locked off.
+2. SHOTS ONE AND THREE ARE GENUINELY FROM INSIDE THE WALL — the break is the
+   frame and everybody is behind it. If it plays as an ordinary view of a
+   cracked wall from the room side, the scene's one trick is gone.
+3. THE BREAK MATCHES THE PLATE and appears ONLY in shots one and three. A
+   geometric star, straight radiating bars, or a second crack in the background
+   is the failure this whole re-render exists to stop — re-fire.
+4. TIME JUMPS BETWEEN SHOT ONE AND SHOT THREE. She is far off at 5s and at the
+   opening at 10s; 43 metres is 36 seconds of walking and the clip is 20, so the
+   cutaway is doing that work. If she is shown crossing the whole hall in real
+   time, the geometry is wrong.
+5. NOBODY REACTS TO HER LINE. That is the joke.
+6. THE COUPLE IS TWO WOMEN, one crying, the other against her shoulder.
+7. THE PLAQUE INSERT IS CLEAN — no hand, no person, text legible.
+8. FOUR PEOPLE, no extras.
+File the take whatever the verdict.
+
+END POSITIONS, for whatever follows:
+- THE STUDENT at the break, close to it, sketchbook still shut.
+- THE COUPLE together to the right, the fur-coated one still upset.
+- DUPE at his cart on the left, cloth in hand, watching.
