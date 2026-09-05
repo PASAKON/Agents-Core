@@ -1,0 +1,156 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2Ca-Fix1 · THE ANXIOUS WALK · CEO 2026-09-05
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+⚠️ DURATION SLIDER = 5s. Full spec: 5s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. 5s is the slider's own default, so a silent reset lands on the right
+number here — read the other five fields back anyway.
+
+WHERE IT SITS. Immediately BEFORE the PA announcement in S2C. The museum is not
+open, the room is empty, and Dupe is alone with what he has done. This clip is
+one thing only, per the CEO: him walking, fast, worried. Nothing else happens.
+
+⚠️ THIS SHEET DELIBERATELY REVERSES S2C'S PACE DIRECTION, AND IT IS NOT A
+CONTRADICTION. `s2c-fix1-pacing.txt` bans "no power walking, no hurrying, no
+rushing" and its previz was rebuilt to hold every segment at or under 0.84 m/s
+— DELIBERATELY SLOWER than an ordinary walk — because S2C is a man thinking and
+the panic belongs in his hands, not his legs. THIS clip is the CEO asking for
+the opposite: "เดินเร็วกังวล". So S2Ca is fast and S2C is slow, on purpose, and
+the two sit next to each other in the edit. DO NOT "fix" either one against the
+other.
+
+⚠️ FAST WALKING IS NOT RUNNING, AND THIS FILM HAS ALREADY BEEN BITTEN BY THAT.
+S2C take 1 came back with Dupe running because its previz carried segments up to
+5.67 m/s while the prompt's words said not to run — and a video reference beats
+prose every time. There is no previz here, so the words are all there is, and
+they have to be exact. The number is written into the paste block: about 1.8
+metres a second, faster than an ordinary 1.3-1.4 walk, and ONE FOOT IS ALWAYS ON
+THE GROUND. That last clause is the actual physical difference between a walk
+and a run, so it is the one that must survive.
+
+NO PREVIZ — CEO's explicit call. Nothing to upload, so the video-reference
+outage cannot touch this clip.
+
+Filing: All Scene/Fix-1/ as S2Ca-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+5s · 720p · 16:9 · ONE SHOT, no cuts. Sound On · High.
+
+THE CAMERA TRAVELS BACKWARDS AHEAD OF HIM for the whole five seconds, holding
+him from the chest up, dead centre, matching his speed exactly so he stays the
+same size in frame while the museum streams past behind him. The camera is never
+still and never cuts. No pan, no zoom, no handheld wobble — one smooth retreat.
+
+THE COMPLETE CAST OF THIS SHOT IS ONE PERSON. Dupe is alone. The museum has not
+opened. There is nobody else in the building — no visitors, no guards, no staff,
+no second cleaner, nobody in the background, nobody walking through, and no
+figure at any distance down the gallery. If a person is not named below they
+must not exist.
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM: chromium trumpet columns receding in matched pairs
+  down both sides, warm orange cove light along the ceiling, polished
+  terracotta terrazzo underfoot, works on white plinths and framed pieces down
+  both walls. Take the room, its surfaces and its light from this picture. NO
+  BROKEN WALL IN THIS SHOT — no crack, no star, no damaged plaster anywhere.
+@project_absence_char_cleaner_c — DUPE, and this shot is entirely his face and
+  his walk: white uniform with orange trim, cap with a gold V, gold V at the
+  chest, moustache.
+@project_absence_prop_cart_a_painted — HIS CART, standing parked and still where
+  he left it: castor wheels, mop, orange bucket, labelled bottles, folding
+  ladder, gold V, the painting upright in the rack. He walks past it and it
+  never moves.
+
+HIS SPEED, and this is the whole shot: HE IS WALKING FAST. About 1.8 metres a
+second — noticeably quicker than an ordinary walk, the pace of a man who wants
+to be somewhere else and has not decided where. ONE FOOT IS ALWAYS ON THE
+GROUND. He never breaks into a run, never trots, never has both feet off the
+floor at the same time, and never gets faster or slower across the five
+seconds. The speed is constant from the first frame to the last.
+
+WHERE THE WORRY SHOWS. Not in his face, which is doing very little — jaw set,
+mouth closed, eyes moving from one thing to another and settling on none of
+them, the flat expression of a man whose mind is somewhere the camera cannot
+follow. THE WORRY IS IN HIS HANDS. One holds a cleaning cloth and keeps
+gripping and re-gripping it, twisting it into a knot and letting it go. The
+other comes up to the brim of his cap, touches it, and drops again. Then again.
+That is the entire performance.
+
+[0s] DUPE WALKS STRAIGHT TOWARD THE LENS, fast, and the camera retreats ahead
+of him at exactly his speed. The empty museum streams past on both sides —
+chromium columns, plinths, the warm cove light overhead. He is going somewhere
+with purpose he does not actually have.
+
+[2s] HIS HANDS GIVE HIM AWAY. The cloth twists in one fist. The other hand
+touches the cap and drops. His face does not change.
+
+[3s] HE PASSES HIS OWN CART, parked and still against a plinth, and DOES NOT
+LOOK AT IT. Not a glance. It slides past the edge of frame behind him.
+
+[4s] Still walking, exactly as fast as he was at the start. Nothing has been
+resolved and he has not arrived anywhere.
+
+[5s] Cut, mid-stride.
+
+AUDIO: room tone in a big empty stone room, and his own footsteps on terrazzo —
+quick, even, unbroken, the only sound with a rhythm to it. Nothing else. NOBODY
+SPEAKS AND THERE IS NO DIALOGUE. NO PA ANNOUNCEMENT ANYWHERE IN THIS CLIP — no
+voice over speakers, no chime, no bell, no tannoy. No music. NO SOUND AT THE
+START OR THE END: the clip opens mid room-tone with no intro sting or riser,
+and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: no running, no jogging, no trotting, no scurrying, no
+sprinting, NO BOTH FEET OFF THE GROUND AT ONCE, no airborne stride, no leaping,
+no comic speed, no sped-up motion, no slow motion, no speed ramp, no
+accelerating, no slowing down, no stopping, no turning back, no pacing back and
+forth, no changing direction; no second person, no visitor, no guard, no staff,
+no second cleaner, no figure in the background, no figure far down the gallery,
+nobody walking through, no crowd; no opening sound, no intro sting, no whoosh,
+no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in
+or fade-out on the sound; no PA announcement, no announcement, no voice over
+speakers, no chime, no bell; no dialogue, no voice, no muttering, no talking to
+himself, no breathing heavily, no panting, no sweating, no wide cartoon eyes, no
+exaggerated fear, no comic panic, no head clutching, no hand-wringing above the
+waist; no cart moving, no cart being pushed, no painting leaving the rack, no
+Dupe looking at the cart; no cracked wall, no crack, no brass plaque, no price
+plaque in frame; no cut, no second shot, no second angle, no reverse, no camera
+movement except the single backward travel, no pan, no tilt, no zoom, no
+handheld wobble, no whip pan, no dutch angle; no looking at camera; no
+smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no readable text, no signage, no logos, no music, no score, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. HE IS WALKING, NOT RUNNING. One foot on the ground at all times. If both
+   feet leave the floor in a single frame, re-fire — that is the exact failure
+   S2C spent three takes on.
+2. THE SPEED IS CONSTANT. No acceleration, no slowing, no stopping, no turning.
+   He is the same speed in the last frame as in the first.
+3. THE WORRY IS IN THE HANDS — the cloth twisting, the hand to the cap and
+   away. If it has migrated to his face as a grimace or wide eyes, re-fire.
+4. THE MUSEUM IS EMPTY. One person in the clip, nobody at any distance.
+5. He passes the cart without looking at it.
+6. NO ANNOUNCEMENT ON THE SOUNDTRACK. This clip is before it.
+File the take whatever the verdict.
+
+PAIRS WITH: s2c-fix1-pacing.txt, which follows it and is deliberately slower.
+Both pace directions are intentional; see the note at the top of this file.
+
+=== END NOTES ===
