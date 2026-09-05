@@ -344,6 +344,25 @@ place that table needs to live — VIDEO generate check, IMAGE generate check.
    your own History is generating, don't force through it or guess a
    workaround — message the C-level and wait.
 
+   ⚠️ **"Unlimited is free, so there is no urgency to cancel a long render" is
+   wrong, and it was reasoned out loud by an operator on 2026-09-05 while a
+   clip sat at 93 minutes.** Money is not the cost being paid. The slot is
+   serial and account-wide, so one over-long render blocks *every* clip behind
+   it — that operator had the next clip fully staged and could not fire it. A
+   90-minute render against a 35-40 minute norm has already cost an hour of
+   queue whether or not it ever completes.
+
+   So the threshold is about the QUEUE, not the bill. Past it, decide
+   deliberately: cancel and re-fire, or keep waiting because this specific clip
+   is worth the block — and say which, and why, in your status line. What is
+   not acceptable is waiting by default because it is free.
+
+   And know what killing things does NOT do: **a generation survives the death
+   of the agent that started it.** Killing the worker does not cancel the
+   render or free the slot. Only cancelling it in the browser does, which means
+   only the operator holding that tab can unblock the queue — a C-level cannot
+   do it from outside, and reaping the worker just loses the staged next clip.
+
    **A paid GPT Image 2 generation does NOT contend for that slot**, and
    holding image work behind a rendering video wastes hours. Measured
    2026-08-28 on the «Sorry, Sir» wave: Scene 2 fired as an Unlimited
