@@ -224,10 +224,24 @@ python3 scripts/prompt-lint.py --chips <sheet>   # -> "EXPECTED 8 Element chips"
 ```
 
 ```js
-// then count what actually bound, in the composer
-document.querySelectorAll('[data-element-id], .element-chip, a[href*="/element"]').length
-document.querySelectorAll('.text-icon-error').length   // must be 0
+// then count what actually bound, in the composer.
+// VERIFIED 2026-09-05 on the live build (task-1db3f46e). A bound chip is a leaf
+// <span> inside the contenteditable whose text starts with '@', carrying class
+// text-font-brand and rendering lime, rgb(209,254,23). Unbound text is a plain
+// span in the body colour, which is exactly why it is invisible to the eye.
+[...document.querySelectorAll('[contenteditable="true"] span.text-font-brand')]
+  .filter(e => !e.querySelector('span') && e.textContent.trim().startsWith('@'))
+  .length
 ```
+
+⚠️ **The old selector is dead. Do not use it.**
+`[data-element-id], .element-chip, a[href*="/element"]` and `.text-icon-error`
+**returned 0 on this build** — and 0 reads exactly like "nothing bound", so a
+worker following it either refuses to fire a perfectly good composer or, worse,
+stops trusting the gate. It was never wrong when written; the product's DOM
+changed under it. **If your count comes back 0 while chips are plainly lime on
+screen, suspect the selector before you suspect the binding, and put the working
+one in your report.**
 
 **If the chip count is below the expected number, DO NOT FIRE.** Bind the
 missing ones and count again. An error chip counts as not bound.
