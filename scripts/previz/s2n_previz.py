@@ -19,6 +19,14 @@ sc.timeline_markers.clear()                     # marker binds CAM_FLY4 otherwis
 for o in bpy.data.objects:
     if o.name.startswith(("A_", "B_", "hvfly_tag", "Text.")):
         o.hide_render = o.hide_viewport = True
+# CEO 2026-09-05: the crack comes OUT of the previz entirely. Its shape must
+# come from the location plate, which is a photograph of the real break; a grey
+# proxy drawn here is a crude approximation competing with that plate, and a
+# video reference beats a still every time, so the proxy was winning and putting
+# a machine-drawn star into the finished film. The previz now carries CAMERA and
+# BLOCKING only.
+for _c in [o for o in bpy.data.objects if o.name.startswith("crack_")]:
+    _c.hide_render = _c.hide_viewport = True
 for n in ("wall_hero_panel", "wall_crack_end"):
     ob = bpy.data.objects.get(n)
     if ob: ob.hide_render = ob.hide_viewport = True

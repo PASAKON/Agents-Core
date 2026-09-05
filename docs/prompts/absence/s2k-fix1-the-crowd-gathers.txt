@@ -50,6 +50,13 @@ the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
 shot — a 12-second grey previz of this exact scene. Every grey block is a prop,
 never a person.
 
+THE PREVIZ CONTAINS NO BREAK IN THE WALL, AND THAT IS DELIBERATE. It gives you
+the camera position and where every person stands, and nothing else. THE SHAPE
+OF THE BREAK COMES ONLY FROM THE LOCATION PICTURE — take it from there exactly
+and take nothing about it from the video. Do not invent a hole, do not add a
+crack the picture does not show, and do not draw straight lines radiating from a
+centre.
+
 THE BLACK SHAPE ACROSS THE FRONT OF THE REFERENCE VIDEO IS SCAFFOLDING, NOT
 ART. The grey previz carries crude black arms standing in for the broken
 opening, purely to say WHERE it is and how much of the picture it eats. Do not
