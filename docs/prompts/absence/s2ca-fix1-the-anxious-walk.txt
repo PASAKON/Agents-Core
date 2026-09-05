@@ -29,6 +29,15 @@ metres a second, faster than an ordinary 1.3-1.4 walk, and ONE FOOT IS ALWAYS ON
 THE GROUND. That last clause is the actual physical difference between a walk
 and a run, so it is the one that must survive.
 
+⚠️ CAMERA AND PATH CORRECTED BY THE CEO 2026-09-05, after the first draft had
+him walking into the lens on a retreating camera. The shot is now LOCKED and
+STRAIGHT ON, and he moves ONLY SIDEWAYS across it, left and right, turning at
+each edge. He never approaches the lens, never recedes, never changes size in
+frame and NEVER LOOKS AT THE CAMERA. The cart is parked in shot and stays
+motionless. The only moving thing in the frame is Dupe.
+Note this reverses one line of the first draft: pacing back and forth was
+banned there and is REQUIRED here.
+
 NO PREVIZ — CEO's explicit call. Nothing to upload, so the video-reference
 outage cannot touch this clip.
 
@@ -40,10 +49,20 @@ Filing: All Scene/Fix-1/ as S2Ca-Fix1.MP4.
 
 5s · 720p · 16:9 · ONE SHOT, no cuts. Sound On · High.
 
-THE CAMERA TRAVELS BACKWARDS AHEAD OF HIM for the whole five seconds, holding
-him from the chest up, dead centre, matching his speed exactly so he stays the
-same size in frame while the museum streams past behind him. The camera is never
-still and never cuts. No pan, no zoom, no handheld wobble — one smooth retreat.
+THE CAMERA IS LOCKED OFF AND STRAIGHT ON, and it does not move once in the five
+seconds. No pan, no tilt, no zoom, no dolly, no tracking, no handheld, no
+reframing, no cuts. It is square to the room — a flat frontal view of a stretch
+of the gallery, the chromium columns standing in it, and HIS CART PARKED IN
+FRAME AND COMPLETELY STILL.
+
+HE MOVES SIDEWAYS ACROSS THE FRAME AND ONLY SIDEWAYS. He walks left, and he
+walks right, back and forth in front of the locked camera, always in profile or
+three-quarter. HE NEVER WALKS TOWARD THE LENS and never walks away from it. He
+never gets bigger or smaller in frame. He never once looks at the camera, at any
+point, for any fraction of a second — his eyes stay in the room.
+
+THE ONLY THING THAT MOVES IN THIS SHOT IS DUPE. The camera is still, the cart is
+still, the room is still.
 
 THE COMPLETE CAST OF THIS SHOT IS ONE PERSON. Dupe is alone. The museum has not
 opened. There is nobody else in the building — no visitors, no guards, no staff,
@@ -80,19 +99,22 @@ gripping and re-gripping it, twisting it into a knot and letting it go. The
 other comes up to the brim of his cap, touches it, and drops again. Then again.
 That is the entire performance.
 
-[0s] DUPE WALKS STRAIGHT TOWARD THE LENS, fast, and the camera retreats ahead
-of him at exactly his speed. The empty museum streams past on both sides —
-chromium columns, plinths, the warm cove light overhead. He is going somewhere
-with purpose he does not actually have.
+[0s] THE LOCKED FRAME: a flat straight-on view of the empty gallery, his cart
+parked in it and still. DUPE ENTERS FROM ONE SIDE, already walking fast, and
+CROSSES THE FRAME SIDEWAYS in front of the cart. He is going somewhere with
+purpose he does not actually have.
 
-[2s] HIS HANDS GIVE HIM AWAY. The cloth twists in one fist. The other hand
-touches the cap and drops. His face does not change.
+[2s] HE REACHES THE FAR SIDE OF THE FRAME, TURNS SHARPLY ON THE SPOT AND WALKS
+BACK THE OTHER WAY at exactly the same speed. HIS HANDS GIVE HIM AWAY. The cloth
+twists in one fist. The other hand touches the cap and drops. His face does not
+change and he does not look at the camera.
 
-[3s] HE PASSES HIS OWN CART, parked and still against a plinth, and DOES NOT
-LOOK AT IT. Not a glance. It slides past the edge of frame behind him.
+[3s] HE CROSSES BACK PAST HIS OWN CART, which has not moved and will not move,
+and DOES NOT LOOK AT IT. Not a glance.
 
-[4s] Still walking, exactly as fast as he was at the start. Nothing has been
-resolved and he has not arrived anywhere.
+[4s] HE REACHES THE OTHER SIDE, TURNS AGAIN and starts back, exactly as fast as
+he was at the start. Nothing has been resolved and he has not arrived anywhere,
+because there is nowhere in this room for him to arrive.
 
 [5s] Cut, mid-stride.
 
@@ -122,9 +144,11 @@ himself, no breathing heavily, no panting, no sweating, no wide cartoon eyes, no
 exaggerated fear, no comic panic, no head clutching, no hand-wringing above the
 waist; no cart moving, no cart being pushed, no painting leaving the rack, no
 Dupe looking at the cart; no cracked wall, no crack, no brass plaque, no price
-plaque in frame; no cut, no second shot, no second angle, no reverse, no camera
-movement except the single backward travel, no pan, no tilt, no zoom, no
-handheld wobble, no whip pan, no dutch angle; no looking at camera; no
+plaque in frame; no cut, no second shot, no second angle, no reverse, NO CAMERA MOVEMENT OF ANY
+KIND, no pan, no tilt, no zoom, no dolly, no tracking, no following, no
+handheld wobble, no whip pan, no dutch angle, no reframing; NO LOOKING AT THE CAMERA at any point, not once, not
+in passing, no glance to lens, no eye contact with the viewer, no acknowledging
+the camera exists; no
 smartphones, no screens, no modern technology.
 
 House negatives: no voiceover, no narration, no subtitles, no captions, no
@@ -141,13 +165,18 @@ REVIEW ORDER:
 1. HE IS WALKING, NOT RUNNING. One foot on the ground at all times. If both
    feet leave the floor in a single frame, re-fire — that is the exact failure
    S2C spent three takes on.
-2. THE SPEED IS CONSTANT. No acceleration, no slowing, no stopping, no turning.
-   He is the same speed in the last frame as in the first.
-3. THE WORRY IS IN THE HANDS — the cloth twisting, the hand to the cap and
+2. THE SPEED IS CONSTANT and he never stops. He turns at each edge of frame
+   without losing pace. Same speed in the last frame as the first.
+3. THE PATH IS FLAT AND SIDEWAYS. He never walks at the lens or away from it,
+   never changes size in frame, and NEVER LOOKS AT THE CAMERA. A single glance
+   to lens is a re-fire.
+4. THE CAMERA NEVER MOVES and the cart never moves. Dupe is the only moving
+   thing in the shot.
+5. THE WORRY IS IN THE HANDS — the cloth twisting, the hand to the cap and
    away. If it has migrated to his face as a grimace or wide eyes, re-fire.
-4. THE MUSEUM IS EMPTY. One person in the clip, nobody at any distance.
-5. He passes the cart without looking at it.
-6. NO ANNOUNCEMENT ON THE SOUNDTRACK. This clip is before it.
+6. THE MUSEUM IS EMPTY. One person in the clip, nobody at any distance.
+7. He passes the cart without looking at it.
+8. NO ANNOUNCEMENT ON THE SOUNDTRACK. This clip is before it.
 File the take whatever the verdict.
 
 PAIRS WITH: s2c-fix1-pacing.txt, which follows it and is deliberately slower.
