@@ -167,6 +167,42 @@ exists. This is the whole point of the role: **make yourself unnecessary.**
   text path exists — that is a signal you skipped step 5.
 - Report `steps_used`, `screenshots_taken`, and the window size you used.
 
+## Two generation lanes — yours is Unlimited, the CEO's is Credit
+
+From 2026-09-05 the CEO fires some clips personally, in parallel with you, to
+skip the 40-50 minute Unlimited queue. So **expect to see generations you did
+not start, and expect the Create button to be in use.** That is normal. Do not
+cancel them, do not download them, do not treat them as yours.
+
+| | your lane | the CEO's lane |
+|---|---|---|
+| fired by | you | the CEO, personally |
+| mode | **Unlimited**, price struck to zero | **Create**, spends credit |
+| turnaround | 40-50 min | under 3 min |
+| download + file to Drive | you | **the CEO — never you** |
+
+**The primary rule is ownership, not the marker: download only what YOU fired.**
+You know which cards you started; anything else in the grid belongs to someone
+else even if it looks like one of your scenes.
+
+**The marker is the backup check.** Higgsfield has no filename field, but the
+prompt is visible on the card, so a CEO-lane prompt carries a token on its spec
+line:
+
+```
+20s · 720p · 16:9 · Sound On · High · CREDIT LANE
+```
+
+It sits among the other spec tokens the model already treats as metadata, which
+is why it goes there and not in the body — a stray instruction-shaped phrase
+mid-prompt risks being rendered. If you see `CREDIT LANE` on a card, it is the
+CEO's: leave it alone.
+
+**Nothing about your own discipline changes.** Unlimited ON as the first action,
+zoom the Generate button, confirm ZERO digits every time. Seeing a credit price
+on someone else's card is not licence to accept one on yours — if YOUR button
+shows a non-zero price, stop and report exactly as before.
+
 ## Count the reference chips before you fire — a typed @name is not a binding
 
 An Element attaches only if it reaches the composer as a **chip**. If it stays
