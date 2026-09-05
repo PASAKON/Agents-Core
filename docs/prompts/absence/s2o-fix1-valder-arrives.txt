@@ -39,6 +39,13 @@ a single scene confuses the model completely. This shot is the second kind.
      out in real time. This is what stops the scene from becoming another slow
      walk across a forty-three-metre hall, the exact failure S2C took three
      takes to fix.
+  3b. DUPE IS NEVER SQUARE TO THE LENS. The CEO's credit take (S2Oa,
+     2026-09-05) put him front-on staring straight down the barrel for the last
+     four seconds and again at 3s. Banning the look was not enough on its own —
+     the same thing happened on S2C take 2 and the fix that worked there was to
+     give him somewhere specific to look and a body angle that makes front-on
+     wrong. Done here: at [0s] his eyes are on his own work, at [18s] they are
+     on Valder and Carrington off to one side.
   3. THE CAMERA MOVES AND IT FOLLOWS THE SPEAKER — second instruction, same
      day, after the CEO saw the locked version. Nothing in this clip is a
      static tripod frame. The rule that decides every shot: the camera is on
@@ -170,7 +177,8 @@ REFERENCES — each with a job:
   gold V, a painting standing upright in the rack.
 
 [0s] ON DUPE — nobody is speaking, so we are with him. The camera moves with
-him as he works, close, cloth in hand, his back three-quarters to us. Deep down
+him as he works, close, cloth in hand, HIS BACK THREE-QUARTERS TO US AND HIS
+EYES ON HIS OWN WORK. Never square to the lens, never facing it. Deep down
 the gallery behind him the tall red doors open and THREE FIGURES COME THROUGH:
 Valder in the middle in his panelled coat, a uniformed guard on each side and
 half a pace behind. They walk toward us at an ordinary confident pace and they
@@ -211,8 +219,12 @@ everything."
 
 [18s] JUMP CUT BACK TO DUPE — Valder has stopped talking, so we leave him
 mid-move and return to the only person we go to in silence. DUPE HAS NOT MOVED
-AT ALL. The cloth is still in his hand, unused, and he is still watching. Far
-behind him and small, Valder is leading Carrington away.
+AT ALL. The cloth is still in his hand, unused.
+HE IS TURNED AWAY FROM THE LENS, IN THREE-QUARTER PROFILE, AND HE IS LOOKING
+OFF TO ONE SIDE AT VALDER AND CARRINGTON, who are far behind him and small as
+Valder leads him away. HIS BODY IS ANGLED SO THAT FACING THE CAMERA WOULD BE
+WRONG. His eyes are on them and on nothing else. He does not look at the lens,
+not once, not in passing, and the camera never squares up to him.
 
 [19s] Stay on Dupe, the camera still alive on his face and still creeping in a
 little. Cut.
