@@ -228,10 +228,12 @@ VALDER in this shot. He is the ONLY person wearing a panelled multi-colour
 jacket; NOBODY else wears panelled, striped or rainbow clothing. The guests
 are in plain single-colour coats.
 
-@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
-  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
-  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
-  scene — one man, never two, never absent (CEO 2026-08-30).
+@project_absence_char_guard_private_v2 — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: a VERY HEAVILY BUILT BLACK MAN, opaque dark sunglasses,
+  WHITE GLOVES, an all-black suit with a BLACK SHIRT and a black tie, hands
+  loose, standing a pace behind his employer. No weapon, no earpiece, no
+  holster. He goes WHEREVER the gentleman goes — ONE man, never two, never
+  absent.
 
 [0s] WITH VALDER — the camera travels alongside him as he walks and talks, the
 gold-toothed gentleman beside him, the bodyguard a pace behind, the elderly
@@ -273,7 +275,50 @@ FRAME as the camera travels away and leaves him behind. Hold.
 
 AUDIO: room tone, his voice, slow footsteps, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; NO MAN IN A PLAIN MODERN
+BUSINESS SUIT, no man in a black suit with a WHITE shirt, no generic
+businessman, no slim clean-shaven man in a dark suit and tie, no extra man
+walking with the group, no unnamed figure at the front of the procession — THE
+ONLY MAN IN BLACK IS THE HEAVILY BUILT BODYGUARD IN DARK GLASSES AND WHITE
+GLOVES; no thirteenth person, no extra, no bystander, no other visitor, no
+gallery staff, no reporter, nobody holding a camera, nobody filming, no crowd;
+no second Valder, no duplicate faces, no twins; no Valder losing the smile, no
+Valder sitting, leaning or slouching, no frowning, no smirking, no knowing look
+to camera, no winking; no Dupe speaking, no Dupe laughing, no Dupe running; no
+cart moving on its own, no second cart, no painting leaving the rack; no
+dialogue beyond the quoted lines, no voiceover, no narration, no second voice;
+no opening sound, no intro sting, no riser, no closing sound, no outro, no audio
+tail; no subtitles, no captions, no on-screen text, no readable text, no
+signage, no logos; no music, no score; no slow motion, no speed ramp, no
+sped-up motion; no dutch angle, no tilted horizon, no lens flare, no bokeh
+balls, no HDR, no CGI sheen, no plastic skin, no beauty filter; no dim moody
+lighting, no darkness, no night; no smartphones, no screens, no modern
+technology.
+
 ===============================================================
+
+===============================================================
+
+REVIEW ORDER for S8a · CTO 2026-09-06:
+1. THE BODYGUARD IS THE HEAVILY BUILT BLACK MAN in dark glasses and white
+   gloves. The CEO's credit fire on 2026-09-05 rendered a slim clean-shaven man
+   in an ordinary black suit and WHITE shirt instead, front and centre for most
+   of the clip — an invented character, in a film whose whole rule is that
+   nobody exists unless named. Cause: this sheet bound `char_guard_private`,
+   described here as only "plain dark suit, hands loose", and the model filled
+   the gap with a generic businessman. Now bound to `char_guard_private_v2`,
+   the Element every Fix-1 scene uses, with its full description.
+   ⚠️ THE OTHER S7-S9 SCENES STILL BIND THE OLD ELEMENT. Switch them when they
+   are shot or the bodyguard changes face mid-sequence.
+2. ALL THREE CATALOGUE PORTRAITS — chair, woven form, stone ring — dead still,
+   frontal, one second each. Take 1 had all three.
+3. THE DUPE JOKE LANDS: Valder finds him, asks, THE GROUP TURNS TO LOOK, Dupe
+   says nothing and starts wiping. Take 1 had the turn.
+4. Valder never loses the smile and never sits or leans.
+5. TWELVE PEOPLE and not one more.
+File the take whatever the verdict.
+
 SCENE 8b — THE LAST TWO PIECES, AND THE TURN
 ===============================================================
 20s · 720p · 16:9 · the same LATERAL DOLLY + two one-second object portraits,
