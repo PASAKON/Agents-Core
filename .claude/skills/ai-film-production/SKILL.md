@@ -223,11 +223,17 @@ downloading**, because ids cannot be recovered and files always can.
 
 ## 10 · A CHARACTER'S NAME CAN BLOCK THE CLIP, AND NOTHING TELLS YOU WHICH ONE
 
-A generator's copyright filter reads **proper nouns in your prompt text** and
-will refuse the whole clip over a name you invented for a fictional character.
-The refusal never names the string it objected to. It looks like a random
-rejection, so the first instinct is to re-fire, then to blame the reference
-plate.
+**Names are not the risk. A COLLISION is.** A generator's copyright filter
+reads proper nouns in your prompt text and matches them against real people and
+real works. Invented names pass all day — in the same film `Valder` and
+`Carrington` are spoken out loud in a dozen rendered clips and nothing has ever
+objected to them. What gets refused is the invented name that happens to land on
+somebody or something notable. The refusal never names the string it objected
+to. It looks random, so the first instinct is to re-fire, then to blame the
+reference plate.
+
+The director's framing, and it is the correct one: **do not stop using names —
+find the one that collided.**
 
 Measured 2026-09-05 on «Sorry, Sir». One scene was refused twice for copyright.
 The suspicion fell on the character's image plate. It was the name: with three
@@ -253,6 +259,12 @@ identical blocking and identical cuts generated clean on the first try.
    those six had ever rendered.** The untested strings and the blocked clips
    were the same set. That is the diagnosis, and it costs nothing.
 3. **Change only the names.** One variable, or the result means nothing.
+4. **A full strip proves the name was the trigger. It does not tell you WHICH
+   WORD.** An honorific and a surname are two variables — clear both at once and
+   you have a working clip and no knowledge. If the answer matters, split them
+   across clips you have to fire anyway: keep the honorific and change the
+   surname on the next scene, and one render answers it at no extra cost. Never
+   spend a render on a test you could have piggybacked.
 
 **A name in the prose counts, not just a name in dialogue.** Sister scenes were
 assumed to be a free control because nobody says the name out loud in them — but
