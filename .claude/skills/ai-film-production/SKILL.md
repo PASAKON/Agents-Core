@@ -218,3 +218,51 @@ Ask for named beats — *"does he look left and right", "do the gold teeth show"
 platform for two hours while everyone believed it was done. Uncollected work is
 the only work that can actually be lost: **commit the asset id before
 downloading**, because ids cannot be recovered and files always can.
+
+---
+
+## 10 · A CHARACTER'S NAME CAN BLOCK THE CLIP, AND NOTHING TELLS YOU WHICH ONE
+
+A generator's copyright filter reads **proper nouns in your prompt text** and
+will refuse the whole clip over a name you invented for a fictional character.
+The refusal never names the string it objected to. It looks like a random
+rejection, so the first instinct is to re-fire, then to blame the reference
+plate.
+
+Measured 2026-09-05 on «Sorry, Sir». One scene was refused twice for copyright.
+The suspicion fell on the character's image plate. It was the name: with three
+strings changed and **nothing else** — a reference description, one blocking
+line and one spoken line — the identical prompt, identical sixteen references,
+identical blocking and identical cuts generated clean on the first try.
+
+**Diagnose it from the files you already have, before you fire anything.**
+
+1. **List every proper noun in the paste block.** There are usually about four.
+   Strip `@handles` first so Element ids do not pollute the scan.
+   ```bash
+   python3 - <<'PY'
+   import re,pathlib
+   b = pathlib.Path(SHEET).read_text().split("PASTE FROM HERE",1)[1].split("PASTE STOPS HERE",1)[0]
+   print(sorted(set(re.findall(r"(?<!^)\b([A-Z][a-z]{2,})\b", re.sub(r"@\S+"," ",b), re.M))))
+   PY
+   ```
+2. **Cross the list against what has already rendered.** A name that appears in
+   a clip sitting on the drive is cleared by evidence and needs no test. On that
+   wave two of the four names had rendered in seven scenes and three scenes
+   respectively; the two untested names appeared in six sheets, **and not one of
+   those six had ever rendered.** The untested strings and the blocked clips
+   were the same set. That is the diagnosis, and it costs nothing.
+3. **Change only the names.** One variable, or the result means nothing.
+
+**A name in the prose counts, not just a name in dialogue.** Sister scenes were
+assumed to be a free control because nobody says the name out loud in them — but
+it was written into their blocking lines, position maps and reference
+descriptions, and a filter reads the whole prompt. They were carrying the same
+risk, not testing it. **Grep the paste block, never reason from the dialogue.**
+
+**When one name is cleared, sweep every sheet that carries it** — the string
+lives in more prompts than the one in your hand.
+
+Give the invented name a plain descriptive stand-in (`THE WOMAN IN GREEN`) and
+keep the real one in the sheet's notes so the story is not lost. The director
+decides whether to keep hunting for a usable name or ship the descriptive one.

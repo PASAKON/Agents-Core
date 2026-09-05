@@ -68,6 +68,18 @@ THIS SHOT". That is now reversed for SHOT A only, and only as the aperture the
 camera looks through — never as damaged plaster seen on a wall in a background.
 SHOT B does not contain it at all. Same discipline as S2H.
 
+✅ RESULT 2026-09-05: THE NAME-FREE TAKE GENERATED CLEAN, FIRST TRY.
+Two copyright refusals with "MADAME THIBAULT" in the prompt; strip the three
+name strings and change nothing else, and the identical prompt with the
+identical sixteen references renders. THE NAME WAS THE TRIGGER — the plate
+`char_woman_c` is exonerated, and so is every reference in this sheet.
+STILL UNKNOWN: whether it is MADAME or THIBAULT. Nobody needs to find out to
+finish the film; the descriptive stand-in works. If the CEO wants a real name
+back, test one word at a time.
+THE STRIP MUST BE CARRIED TO FIVE MORE SHEETS before they fire — s2q-b, s2r,
+s2r-b, s2s, s2s-b all carry the string in their prompt text.
+Rule written up as §10 of the `ai-film-production` skill.
+
 ⚠️ NAME-FREE TAKE FIRED FIRST — CEO 2026-09-05. Before firing this sheet as
 written, the CEO asked for a version with the name stripped out, to see whether
 the two copyright rejections were about the name at all. What was changed, and
