@@ -1,0 +1,185 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2J-Fix1 · THE WHISPER · CEO 2026-09-05
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+⚠️ DURATION SLIDER = 5s. Full spec: 5s / 720p / Seedance 2.5 / High / 1/4 /
+Sound ON. 5s happens to be the slider's own default, so this is the one sheet
+in the film where a silent reset lands on the right number — READ IT BACK
+ANYWAY, because the other five fields still drift.
+
+WHERE IT SITS. Valder is already in the room and working it. The crowd has
+built up — this is the part of the morning where the gallery is genuinely busy.
+One of his own guards comes to his ear and tells him something, and we never
+find out what.
+
+⚠️ THE WHISPER IS INAUDIBLE ON PURPOSE. Nobody in the audience hears a word and
+nobody is meant to. There is no dialogue in this clip at all. Do not let the
+model give the guard a line, and do not let it caption one.
+
+⚠️ WHAT HE WAS TOLD IS NOT DECIDED, AND THAT IS DELIBERATE. The clip is written
+so it can be cut in almost anywhere in the party — before the Madame arrives,
+after Carrington's bid, wherever the edit wants a beat. So Valder's reaction is
+specific but non-committal: the public smile stays on his mouth while his eyes
+go somewhere else, and then it comes back. He registers something. He does not
+tell us what. IF THE CEO LATER DECIDES WHAT THE WHISPER IS, this sheet does not
+need rewriting — only its position in the edit changes.
+
+⚠️ NOT EVERY CHARACTER IS IN THIS ONE. The CEO's call: "ไม่ต้องมีครบทุกคนใน
+เฟรมก็ได้". Nine references, not sixteen. The frame is close on Valder, and the
+party reads as busy from the people nearest behind him rather than from a head
+count. THE FILM'S NO-EXTRAS RULE STILL HOLDS — everyone visible is still a named,
+bound character; there are simply fewer of them in shot. The five not bound here
+(the Madame, the couple, the man in maroon, the second guard's opposite number)
+are OUT OF FRAME, not absent from the room.
+
+NO PREVIZ FOR THIS SCENE and none is needed — it is one short shot on one man.
+Nothing to upload, so the video-reference outage cannot touch it.
+
+Filing: All Scene/Fix-1/ as S2J-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+5s · 720p · 16:9 · ONE SHOT, no cuts. Sound On · High.
+
+THE CAMERA IS ALIVE BUT SLOW: a single unbroken, very gradual push in on
+VALDER, from a medium shot to a medium close-up over the five seconds. No pan,
+no whip, no reframing beyond that steady creep forward. It is on Valder for the
+whole clip and never leaves him.
+
+THE FRAME: Valder stands in the middle of a gallery that has filled up. Behind
+him and slightly out of focus the party is in full flow — people standing in
+loose knots, talking to each other, holding drinks, looking at the works. The
+room is busy and the depth is what sells it: several figures at several
+distances, the chromium trumpet columns receding past them, warm orange cove
+light along the ceiling, polished terracotta terrazzo underfoot.
+
+THE COMPLETE CAST OF THIS SHOT IS SEVEN PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no unnamed guests, no gallery staff, no
+reporters, no journalists, nobody holding a camera, nobody filming. If a figure
+is not named below it must not exist. The room reads as busy because of DEPTH
+and CONVERSATION, never because of a crowd of invented faces.
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM: chromium trumpet columns receding in matched pairs,
+  warm orange cove light along the ceiling, polished terracotta terrazzo, works
+  on white plinths and framed pieces down the walls. Take the room, its
+  surfaces and its light from this picture. NO BROKEN WALL IN THIS SHOT — no
+  crack, no star, no damaged plaster anywhere.
+@project_absence_char_valder — VALDER, and the whole clip is his face: tall,
+  slim, elderly, swept-back white hair, small round tinted sunglasses, a blazer
+  panelled in flat blocks of magenta, yellow, green, blue and red, a red
+  waistcoat, a long mustard-yellow scarf, purple trousers, two different shoes
+  — one dark green, one burgundy. He is mid-charm when the clip opens.
+@project_absence_char_guard_valder_two — HIS TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V, black belts, navy peaked caps.
+  ONE TALL AND THIN, ONE SHORT AND HEAVY. This one picture is both of them.
+  THE TALL THIN ONE is the one who comes to his ear. The short heavy one stays
+  at his post further back and never moves.
+@gentleman_e — MR CARRINGTON, in the busy background, talking to somebody else
+  and paying Valder no attention: tall, elderly, swept-back white hair, a white
+  stand-collar suit, white shoes, a black cane with a gold lion head.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD, a pace behind
+  him: very heavily built Black man, opaque dark sunglasses, WHITE gloves, an
+  all-black suit, black shirt and tie.
+@char_registrar — THE REGISTRAR, off to one side with his ledger: about sixty,
+  grey hair combed flat, a cream stand-collar tunic with fine orange piping and
+  a small gold V, white gloves.
+@project_absence_char_critic_b — AN ELDERLY EAST ASIAN WOMAN in the background:
+  silver-streaked hair up, a full-length deep magenta fur coat, long cream
+  gloves.
+@project_absence_char_student_c — A YOUNG ART STUDENT in the background: short
+  curly acid yellow-green hair, a paint-spattered denim overshirt, a black
+  sketchbook.
+@project_absence_char_cleaner_c — DUPE, far off and small at the very back,
+  working: white uniform with orange trim, cap, gold V, moustache. Nobody is
+  looking at him and he takes no part in this.
+
+[0s] VALDER IS MID-CHARM. He is talking to somebody just off the edge of frame,
+smiling his big public smile, entirely pleased with his morning. Behind him the
+gallery is full of conversation.
+
+[1s] THE TALL THIN GUARD ARRIVES AT HIS SHOULDER from behind, unhurried, and
+LEANS IN TO HIS EAR. He does not touch him. He does not look at the camera.
+
+[2s] HE SPEAKS, AND WE DO NOT HEAR IT. All that reaches us is the sound of a
+voice too quiet to make out under the noise of the room — no words, nothing
+intelligible, nothing that could be read off his lips.
+
+[3s] VALDER'S FACE DOES ONE THING, AND IT IS SMALL. The smile stays exactly
+where it is on his mouth. HIS EYES GO SOMEWHERE ELSE — off to the side, not
+following anything in the room, focused on nothing, the look of a man who has
+just been handed a fact he was not expecting and is deciding what it means. He
+does not turn to the guard. He does not answer. He does not look startled or
+alarmed.
+
+[4s] THE GUARD STRAIGHTENS AND STEPS BACK to where he was, in one movement, and
+says nothing more. Valder's eyes come back and the smile goes back up to full
+strength, exactly as it was when the clip opened, as though the last three
+seconds had not happened. He carries on talking to whoever is off frame.
+
+[5s] Cut.
+
+AUDIO: a gallery full of low conversation, glasses, unhurried footsteps on
+terrazzo. A quiet unintelligible murmur close to the microphone at 2s — the
+texture of a voice at someone's ear and nothing more. NO DIALOGUE ANYWHERE IN
+THIS CLIP. Nobody says a single audible word. No music. NO SOUND AT THE START
+OR THE END: the clip opens mid room-tone with no intro sting or riser, and
+simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; NO AUDIBLE WORDS from the
+guard, no intelligible whisper, no line of dialogue, no lip movement clear
+enough to read, no subtitle, no caption, no translation on screen; no reply
+from Valder, no Valder speaking to the guard, no Valder turning to face the
+guard, no nodding, no shaking of the head, no hand raised, no gesture; no shock
+on Valder, no alarm, no fear, no anger, no frown, no villain expression, no
+smirk, no knowing look to camera, no wink; no eighth person, no extra, no
+unnamed guest, no bystander, no crowd of invented faces, no gallery staff, no
+reporter, no journalist, nobody holding a camera, nobody filming; nobody else
+reacting to the whisper, no other head turning, no guest looking at Valder or
+at the guard, no group falling silent; no touching, no hand on the shoulder, no
+guard walking Valder away, no second guard approaching, no earpiece, no radio,
+no note handed over, no paper, no phone, no weapon, no holster; no cut, no
+second shot, no second angle, no reverse, no camera movement except the single
+slow push in, no pan, no tilt, no zoom, no handheld wobble, no whip pan; no
+cracked wall, no crack, no brass plaque, no price plaque in frame; no slow
+motion, no speed ramp; no smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no readable text, no signage, no logos, no music, no score, no
+dutch angle, no tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI
+sheen, no plastic skin, no beauty filter, no dim moody lighting, no darkness,
+no night, no blue walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. NOT ONE AUDIBLE WORD, and no caption or subtitle anywhere. If the guard can
+   be heard or read, the whole point of the scene is gone.
+2. THE ROOM READS AS BUSY — several people at several distances, all of them
+   talking to each other, none of them looking at Valder or the guard.
+3. VALDER'S SMILE NEVER DROPS. Only his eyes move, once, and then come back.
+   A frown, a flinch or a look of alarm is a re-fire — the character is a man
+   who is never seen to be rattled.
+4. He never replies, never turns to the guard, never nods.
+5. ONE SHOT, one slow push in, no cuts.
+6. SEVEN PEOPLE, no invented faces in the background.
+File the take whatever the verdict.
+
+WHERE IT CAN BE CUT IN: anywhere in the party once the room is full. It carries
+no information of its own, so it cannot contradict a neighbouring scene. If the
+CEO later decides what the guard said, that is an edit decision, not a rewrite.
+
+=== END NOTES ===
