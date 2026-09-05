@@ -76,18 +76,27 @@ THIBAULT, the [2s] beat says SHE instead of naming her, and Valder's [15s] line
 becomes "There she is. At last." Everything else — all 16 references, the
 blocking, the cuts, the other four lines — is identical, so the take is a clean
 single-variable test.
-  · GENERATES CLEAN -> the name was the trigger, and the next question is
-    MADAME or THIBAULT (S2R and S2S answer that free: they bind the same plate
-    and never speak the name).
+  · GENERATES CLEAN -> the name was the trigger. CORRECTION, verified
+    2026-09-05: S2R and S2S are NOT a free control for this. They never speak
+    the name in dialogue, but "MADAME THIBAULT" is written into their prompt
+    text (blocking line, position map, reference description) and a filter
+    reads the whole prompt, not just the quoted lines. All six sheets carrying
+    the string — s2q, s2q-b, s2r, s2r-b, s2s, s2s-b — must be stripped the same
+    way before they fire, or they will hit the same wall.
   · STILL REFUSED -> the name was never the problem and the plate
     char_woman_c is the suspect. Do not fire this sheet a fourth time; take the
     plate to the CEO instead.
 
 ⚠️ HER NAME IS MADAME THIBAULT — flagged for the CEO the same way Carrington
 was. It is said ONCE, by Valder. S2Q was refused twice for copyright with this
-name in it; S2R and S2S bind the same plate WITHOUT speaking the name, so those
-two clips will separate plate from name for free. If this version is refused
-again, that is a third data point and the next move is the name, not the plate.
+name in it.
+WHAT THE RENDERED FILES ALREADY PROVE, checked 2026-09-05: the prompt contains
+exactly four proper names — Valder, Carrington, Madame, Thibault. VALDER has
+rendered in seven scenes and CARRINGTON in three (S2N, S2O, S2P all on Drive),
+so neither of those is the trigger. MADAME and THIBAULT appear in six sheets
+(s2q, s2q-b, s2r, s2r-b, s2s, s2s-b) and NOT ONE OF THOSE SIX HAS EVER
+RENDERED. The two untested strings and the six unrendered clips are the same
+set. That is the whole case against the name.
 
 ⚠️ THE BAG IS AN ELEMENT, not a description: @project_absence_prop_croc_bag.
 Deep oxblood crocodile, gold clasp. It is how the audience is told what she is
