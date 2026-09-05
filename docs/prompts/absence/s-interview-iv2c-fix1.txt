@@ -17,11 +17,12 @@ a model left to guess gives every crew member the same face.
 THE THREE, as specified:
   1. seated, operating the camera
   2. standing with a long boom microphone
-  3. the one who knocked the light over — shocked, frozen
+  3. the one who knocked the light over — crouched on the floor picking it up
 
 And the beat: we NEVER SEE the drop, only hear it. By the time the camera
 arrives the other two have already looked at what fell and are turning back to
-their work like professionals. Only the one who dropped it is still frozen.
+their work like professionals. Only the one who knocked it over is out of
+position, crouched on the floor picking his light stand back up.
 Then the camera whips back and Dupe simply carries on.
 
 Plate: @project_absence_char_dupe_interview_house, the same one all five
@@ -82,20 +83,13 @@ different ages, different builds, different hair, different clothes:
   bringing the boom back into position.
 
   THE ONE WHO KNOCKED THE LIGHT OVER — a heavyset older man with a grey beard
-  and a shaved head, in a black work shirt, STANDING FROZEN and STARING at the
-  floor beside him. He has not moved since it happened, his hands still
-  half-raised in front of him at chest height exactly where the stand was when
-  he caught it, palms open, elbows bent, ARMS COMPLETELY STILL. He is not
-  gesturing, not explaining, not shrugging, not talking. He is the only one
-  still shocked.
-
-  AND THE FALLEN LIGHT STAND IS ON THE FLOOR BESIDE HIM, lying flat and clearly
-  visible — a tall black metal lighting stand tipped right over, its three legs
-  splayed off the ground on one side, the lamp head at the far end resting on
-  the floor with its barn doors open. This object is the reason for the crash we
-  heard, and if it is not lying there the sound has no cause and the man's
-  stillness has nothing to be about. It must be unmistakably DOWN and on the
-  floor, not upright, not leaning, not being held.
+  and a shaved head, in a black work shirt, CROUCHED DOWN ON ONE KNEE ON THE
+  FLOOR, both hands reaching toward a TOPPLED BLACK METAL LIGHT STAND lying on
+  its side on the floor in front of him, its three legs splayed out sideways and
+  its lamp head resting on the ground. He is caught in the middle of picking it
+  up: bent over it, hands on the pole, head down, looking at the thing he has
+  knocked over rather than at the camera or at anybody else. He is the only one
+  out of position, and he is the reason for the crash we heard.
 
 Around the three, the working gear of a small shoot: two tall LED panels on
 stands throwing the warm key we have been seeing all along, a white bounce
@@ -178,8 +172,15 @@ REVIEW ORDER:
    killed takes 1 and 2.
 3. A camera visibly pointed back at Dupe inside the pan — without it the joke
    does not exist.
-4. Only the light-dropper is frozen; the other two are already returning to
-   work.
+4. THE TOPPLED LIGHT STAND IS ON THE FLOOR and the third man is CROUCHED OVER
+   IT PICKING IT UP, while the other two are already returning to work. Takes 3
+   and 4 both came back with every light upright and that man standing with his
+   palms out, explaining. Asking for a still man beside an absent object failed
+   twice; he is now given an action with the object under his hands, because a
+   generator renders a man crouching over a fallen thing far more readily than
+   it renders stillness plus something that is not there. If take 5 still has
+   no stand on the floor, STOP — the next move is to cut the light-drop from
+   the scene and give the off-screen crash a different cause, not to fire again.
 5. Dupe's own frame clean of gear at 0-7s and 10-20s, and he never reacts.
 File the take whatever the verdict.
 
