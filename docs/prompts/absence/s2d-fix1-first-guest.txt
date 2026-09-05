@@ -60,7 +60,8 @@ BIND EXACTLY THESE FIVE, all CEO-verified in /Users/gob/Desktop/Fix-1-Elements/:
 NOT BOUND, deliberately: loc_wall_pov_e (would be a second location Element —
 see the note above) and the aperture plate (abandoned, does not exist).
 
-Previz: docs/S2D-Render.MP4 — 1280x720 / 480 frames / 20.0s. Its three camera
+Previz: docs/S2D-Render.MP4 — ATTACH IT (CEO 2026-09-05). 1280x720 / 480
+frames / 20.0s. Its three camera
 segments match the three shots below exactly: frames 1-167 straight on the wall
 with the cart, 168-239 at the crack looking out, 240-480 behind Dupe looking up
 the gallery.
