@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-S2Q-Fix1 · THE MADAME ARRIVES · CEO 2026-09-04
+S2Q-Fix1 · THE MADAME ARRIVES · CEO 2026-09-04, REWRITTEN BY CEO 2026-09-05
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
 UNLIMITED GENERATE ONLY — Unlimited ON as the FIRST action in the composer,
@@ -9,30 +9,71 @@ ZERO digits before every click.
 ⚠️ DURATION SLIDER = 20s. Full spec: 20s / 720p / Seedance 2.5 / High / 1/4 /
 Sound ON. Read all six fields back before firing — it defaults to 5s silently.
 
-WHERE IT SITS. After S2P. Valder has finished walking Carrington round the
-room. The CEO's note: she arrives LAST, after the tour is over, and she walks
-in like a model on a runway. Everyone already knows who she is.
+⚠️ THIS IS A FULL REWRITE. CEO 2026-09-05. Version 1 of this sheet staged the
+room as a runway: everybody stood back in two lines against the columns, the
+centre was empty floor, and she walked twenty metres of it in one locked long
+take. THE CEO KILLED THAT. The room is not posed and it is not quiet. Everyone
+is already in it, doing something, mid-conversation, and she walks into a party
+that is already happening. Version 1 is in git if it is ever wanted back.
 
-⚠️ HER NAME IS MADAME THIBAULT — my choice, flagged for the CEO the same way
-Carrington was. Swap it if they want another. It is said ONCE, by Valder.
+WHAT CHANGED, point by point, so nothing gets quietly restored:
+  1. NO LEFT/RIGHT FORMATION. No two lines, no cleared corridor, no runway.
+  2. THE ROOM HAS SOUND AT [0s] — people talking. It does not open on silence.
+  3. FIVE PEOPLE ARE AT THE CRACK, looking at it, and the crying woman from
+     S2H is still crying, still being dabbed with a tissue.
+  4. VALDER IS MID-CONVERSATION with Carrington when she arrives. He is not
+     waiting for her.
+  5. EACH GUARD STANDS BEHIND THE PERSON HE BELONGS TO.
+  6. TWO LOCATIONS, CUT BETWEEN FREELY. Jump cuts allowed. NO LONG TAKE.
+  7. THE LOOK ORDER IS THE SCENE: Dupe sees her first, Carrington second.
+  8. CARRINGTON AND THE MADAME ALREADY KNOW EACH OTHER. They greet.
+  9. DUPE ENDS THE SCENE SWEATING, worse than he started.
 
-⚠️ SHE DOES NOT SPEAK IN THIS SCENE. Her first words in the film are her bid,
-in the scene after this. Here she only walks, and the room reacts to her.
+⚠️ TWO LOCATION ELEMENTS IN ONE PROMPT, AND THAT BREAKS A STANDING RULE.
+`s2h-fix1-the-first-two.txt` says in its own notes: "ONE LOCATION ELEMENT ONLY
+... Binding two in one scene confuses the model completely." The CEO has
+ordered a two-angle cut scene, so that rule is deliberately broken here. The
+mitigation is that neither plate is offered as a choice — each is nailed to a
+named shot below (SHOT A = inside the wall, SHOT B = outside it) and the prompt
+never asks the model to pick. If the render comes back with the two rooms
+blended, mixed up, or the crack appearing in SHOT B, that is the rule biting
+and the fix is to split this into two clips, not to re-word it.
 
-⚠️ FOR ONCE THE 43-METRE HALL IS THE POINT. Every other scene has fought the
-length of this room; this one uses it. The party parts to both sides leaving an
-empty centre, and she walks twenty metres of it straight down the lens on a
-long focal length. That compression is what makes it read as a runway — do not
-let it become a wide shot.
+⚠️ NO PREVIZ ON THIS VERSION. `docs/S2Q-Render.MP4` is a single locked
+twenty-second camera built for the runway staging. It now contradicts the
+scene — a cut sequence cannot take a one-shot camera reference — so it is NOT
+attached. Two consequences, both good: the two location plates now carry the
+camera geometry instead (this is exactly how S2H works), and the video-upload
+outage does not touch this clip at all. Do not attach S2Q-Render.MP4.
+`docs/previz-elements.tsv` row `project_absence_previz_s2q_v1` should move to
+`deferred` when this fires.
+
+⚠️ SHE STILL DOES NOT SPEAK — my call, flag it if the CEO wants otherwise.
+The original design has her first words in the whole film be her bid, one scene
+later, and that is worth protecting. So the greeting at [15s] is Carrington's
+and Valder's in words, and hers in a nod and a gloved hand. If the CEO wants
+her to answer out loud, it is one line to add at [16s] and nothing else in the
+sheet changes.
+
+⚠️ THE CRACK IS BACK IN THE SCENE. Version 1 said "THE BROKEN WALL IS NOT IN
+THIS SHOT". That is now reversed for SHOT A only, and only as the aperture the
+camera looks through — never as damaged plaster seen on a wall in a background.
+SHOT B does not contain it at all. Same discipline as S2H.
+
+⚠️ HER NAME IS MADAME THIBAULT — flagged for the CEO the same way Carrington
+was. It is said ONCE, by Valder. S2Q was refused twice for copyright with this
+name in it; S2R and S2S bind the same plate WITHOUT speaking the name, so those
+two clips will separate plate from name for free. If this version is refused
+again, that is a third data point and the next move is the name, not the plate.
 
 ⚠️ THE BAG IS AN ELEMENT, not a description: @project_absence_prop_croc_bag.
 Deep oxblood crocodile, gold clasp. It is how the audience is told what she is
 before anybody says a word, so it must be the real one.
 
-⚠️ REFERENCES ARE CAPPED. Bind these six plus the video and carry everyone else
-in prose: char_woman_c, prop_croc_bag, char_valder, gentleman_e,
-char_registrar, char_cleaner_c. That trade is proven — S2L take 2 rendered four
-characters correctly from prose alone.
+⚠️ REFERENCES: SEVEN, and no video. Bind loc_wall_pov_e, loc_hall_big_e,
+char_woman_c, prop_croc_bag, char_valder, gentleman_e, char_cleaner_c. THE
+REGISTRAR DROPS TO PROSE in this version — he has no beat in the CEO's rewrite
+and the two location plates need the slots more than he does.
 
 ⚠️ ON A REFUSAL OR A COPYRIGHT REJECTION: re-fire the same thing once,
 unchanged. These rejections are not deterministic — the identical reference set
@@ -40,54 +81,88 @@ was rejected once and rendered clean on an immediate retry. Only stop if the
 same clip is refused twice in a row. And CHECK THE FINISHED CARD'S INFO ICON: a
 copyright rejection is invisible in the composer and the card can look complete.
 
-Previz: docs/S2Q-Render.MP4 — 1280x720 / 480 frames / 20.0s.
-
 Filing: All Scene/Fix-1/ as S2Q-Fix1.MP4.
 
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-20s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
-zooms, no cuts, for the whole twenty seconds. Sound On · High.
+20s · 720p · 16:9 · Sound On · High. A CUT SEQUENCE, not a long take. Two
+camera positions in one room, cut between freely and hard. Jump cuts are
+welcome. There is no single continuous shot in this scene and no camera move
+inside any shot — every shot is locked, and the edit does the moving.
 
-the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
-shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
-never a person.
+TWO SHOTS, AND EACH ONE HAS ITS OWN PICTURE. Never blend them, never invent a
+third position:
 
-THE FRAME: a locked shot straight down the length of the gallery on a LONG
-LENS, at chest height, dead centre. The perspective is compressed and
-symmetrical — chromium trumpet columns receding in matched pairs down both
-sides, orange cove light along the ceiling, polished terracotta terrazzo, and a
-tall red double door small and far away at the vanishing point. The centre of
-the room is EMPTY FLOOR, a clear corridor running from the doors to the lens,
-because the people are all standing back against the columns on either side.
+SHOT A — THE WALL. The camera sits INSIDE the broken wall, looking out into the
+gallery through the break, so the break reads as a ragged black silhouette
+across the front of the picture and the room is seen through it. The break
+appears exactly once, as the aperture, and never also as damage on a wall in
+the background. This is @project_absence_loc_wall_pov_e.
 
-THE COMPLETE CAST OF THIS SHOT IS THIRTEEN PEOPLE AND NOT ONE MORE. There are
+SHOT B — THE HALL. The camera stands OUTSIDE the wall, in the gallery, at chest
+height, looking down the length of the room toward the tall RED DOUBLE DOOR far
+off at the vanishing point. THERE IS NO CRACK, NO BREAK AND NO DAMAGED PLASTER
+ANYWHERE IN THIS SHOT — the wall it came from is behind the camera. This is
+@loc_hall_big_e.
+
+THE ROOM IS ALREADY ALIVE WHEN THE CLIP STARTS. It is not silent, nobody is
+posed, and nobody is waiting for anything. People stand in loose knots around
+the gallery talking to each other, spread through the room, not lined up
+against the columns and not clearing a path for anybody. There is a steady
+low murmur of conversation from the first frame.
+
+THE COMPLETE CAST OF THIS SCENE IS THIRTEEN PEOPLE AND NOT ONE MORE. There are
 no extras in this film. No bystanders, no other visitors, no gallery staff, no
 security guards beyond the three named, no reporters, no journalists, nobody
 holding a camera, nobody filming, nobody walking through. If a figure is not
 named below it must not exist.
 
-POSITION MAP — every figure in the reference video stands exactly where its
-character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
-- the TEAL figure labelled MADAME = @project_absence_char_woman_c, walking
-- on the LEFT side, standing: VALDER, GENTLEMAN, BODYGUARD, GUARD_V1,
-  REGISTRAR
-- on the RIGHT side, standing: COLLECTOR_A, CRITIC, VISITOR_B, VISITOR_A,
-  STUDENT, GUARD_V2
-- the WHITE figure labelled DUPE, far back on the left with his cart
-- every grey block is a prop, never a person
+WHAT EACH OF THE THIRTEEN IS DOING WHEN THE CLIP OPENS:
+
+FIVE PEOPLE ARE GATHERED CLOSE AT THE BROKEN WALL, looking at it — which means
+in SHOT A they are looking almost into the lens, close and slightly below it,
+their faces filling the opening:
+  - THE WOMAN IN THE CHESTNUT FUR is crying, genuinely and quietly, her face
+    wet, and she has been crying for a while.
+  - THE YOUNG WOMAN IN THE COBALT OVERCOAT is her partner and is close beside
+    her, holding a folded white tissue and dabbing the tears from her cheek.
+    They are a couple. She is the only one of the five not looking at the wall,
+    because she is looking at her.
+  - THE ELDERLY EAST ASIAN WOMAN IN THE MAGENTA FUR stands with them, looking
+    at the break.
+  - THE ELDERLY MAN IN THE MAROON LEATHER SUIT stands a little apart, also
+    looking at the break, alone and not with anybody.
+  - THE ART STUDENT stands closest of all, sketchbook open, looking up at the
+    break and down at his page.
+
+DEEPER INTO THE ROOM, AWAY FROM THE WALL:
+  - VALDER is mid-conversation with MR CARRINGTON, talking, hands moving,
+    completely absorbed in his own sales patter. He is NOT watching the door
+    and he is not waiting for anybody.
+  - MR CARRINGTON is listening to him, amused, leaning on his cane.
+  - THE BODYGUARD stands DIRECTLY BEHIND MR CARRINGTON, a pace back, hands
+    folded, watching the room and not the conversation.
+  - THE TALL THIN GUARD stands DIRECTLY BEHIND VALDER in the same way. Each
+    guard belongs to the man in front of him and stays behind him.
+  - THE SHORT HEAVY GUARD stands further off near a wall, on his own post.
+  - THE REGISTRAR is off to one side with his ledger closed under his arm,
+    waiting.
+  - DUPE is working. He is wiping down a plinth beside his cart, unhurried,
+    part of the furniture, and nobody is paying him any attention at all.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
-  The camera stands OUTSIDE the wall, in the gallery, looking down its length:
-  chromium trumpet columns receding in matched pairs on both sides, warm orange
-  cove light along the ceiling, polished terracotta terrazzo underfoot, works on
-  white plinths and framed pieces down both walls, and the tall RED DOUBLE DOOR
-  far off at the vanishing point. THE BROKEN WALL IS NOT IN THIS SHOT — no
-  crack, no star, no damaged plaster anywhere. Take the room, its surfaces and
-  its light from this picture.
+@project_absence_loc_wall_pov_e — SHOT A ONLY: the room seen from inside the
+  break. Take the whole look of that shot from it — the ragged black opening
+  across the front of the frame, the chromium trumpet columns receding in pairs
+  beyond it, the warm orange cove light along the ceiling, the polished
+  terracotta terrazzo, the works on their plinths.
+@loc_hall_big_e — SHOT B ONLY: the room seen from the gallery floor, looking
+  down its length. Chromium trumpet columns receding in matched pairs on both
+  sides, warm orange cove light, polished terracotta terrazzo underfoot, works
+  on white plinths and framed pieces down both walls, and the tall RED DOUBLE
+  DOOR far off at the vanishing point. NO CRACK IN THIS PICTURE.
 
 @project_absence_char_woman_c — MADAME THIBAULT: an elderly woman, tall and
   rail-straight, wearing a sculpted floor-length gown of glossy mid-green
@@ -106,61 +181,67 @@ REFERENCES — each with a job:
 @gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
   stand-collar suit, white shoes, a black cane with a gold lion head, two gold
   front teeth.
-@char_registrar — THE REGISTRAR: about sixty, grey hair combed flat, a cream
-  stand-collar tunic with fine orange piping and a small gold V, white gloves,
-  a brown leather ledger and a pen.
 @project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap,
-  gold V, moustache. Far back on the left beside his cleaning cart, watching,
-  not part of anything.
+  gold V, moustache. Working at a plinth beside his cleaning cart.
 
-THE OTHERS, standing back against the columns and carried in this text: a very
-heavily built Black bodyguard in an all-black suit with opaque dark sunglasses
-and white gloves, at Carrington's shoulder; two guards in navy military-cut
-tunics with gold buttons and a large gold V, one tall and thin and one short
-and heavy; a young woman in an oversized cobalt-blue overcoat with a small gold
-V pin and a pearl cluster necklace; an elderly East Asian woman in a
-full-length deep magenta fur coat and long cream gloves; a woman of about
-fifty-five with a brown bob in a tawny-brown fur coat over a rust-red dress; an
-elderly man in a deep maroon leather suit; a young art student with short curly
-acid yellow-green hair, a paint-spattered denim overshirt and a black
-sketchbook.
+THE OTHERS, carried in this text: a very heavily built Black bodyguard in an
+all-black suit with opaque dark sunglasses and white gloves; two guards in navy
+military-cut tunics with gold buttons and a large gold V, one tall and thin and
+one short and heavy; a man of about sixty with grey hair combed flat in a cream
+stand-collar tunic with fine orange piping and a small gold V, white gloves,
+carrying a brown leather ledger and a pen; a young woman in an oversized
+cobalt-blue overcoat with a small gold V pin and a pearl cluster necklace; an
+elderly East Asian woman in a full-length deep magenta fur coat and long cream
+gloves; a woman of about fifty-five with a brown bob in a tawny-brown fur coat
+over a rust-red dress; an elderly man in a deep maroon leather suit; a young
+art student with short curly acid yellow-green hair, a paint-spattered denim
+overshirt and a black sketchbook.
 
-[0s] The gallery is quiet. The party stands in two loose lines against the
-columns, left and right, the centre of the floor empty between them. Far away
-at the vanishing point THE RED DOORS OPEN.
+[0s] SHOT A. Through the break: the five of them close to the opening, the
+woman in the chestnut fur crying, her partner dabbing her cheek with the
+tissue. Behind them the room is busy and talking. Valder is deep in
+conversation with Carrington, each man with his guard standing behind him.
+Dupe is wiping a plinth. The room has a steady murmur of voices over it.
 
-[2s] SHE COMES THROUGH THEM AND WALKS STRAIGHT DOWN THE MIDDLE. It is not a
-walk to somewhere — it is a walk to be watched. Slow, absolutely level, one
-foot placed directly in front of the other, shoulders still, chin up, the bag
-held out slightly from her side in one gloved hand. She looks at nobody. She
-does not slow, she does not speed up, and she never once turns her head.
+[3s] CUT TO SHOT B. Far away at the vanishing point THE RED DOORS OPEN, and
+MADAME THIBAULT COMES THROUGH THEM AND WALKS STRAIGHT DOWN THE MIDDLE OF THE
+ROOM. Slow, absolutely level, one foot placed directly in front of the other,
+shoulders still, chin up, the bag held out slightly from her side in one gloved
+hand. She looks at nobody. Nobody has noticed her yet and nobody moves out of
+her way — the guests are simply standing where they were standing, and she
+walks through the room around them.
 
-[5s] EVERY HEAD ON BOTH SIDES TURNS TO HER, one after another as she passes,
-the way a room turns when it recognises somebody. Nobody steps into the centre.
+[6s] CUT TO DUPE, closer. HE IS THE FIRST PERSON IN THE ROOM TO SEE HER. His
+cloth stops mid-stroke on the plinth. He does not straighten up and he does not
+say anything. He just watches her come.
 
-[8s] THE REGISTRAR'S LEDGER COMES OPEN FAST and he begins writing before
-anything has happened.
+[8s] CUT TO CARRINGTON. HE IS THE SECOND TO SEE HER, over Valder's shoulder,
+while Valder is still talking. His smile drops off his face. For about a second
+he looks genuinely worried. Then he places who she is, and the smile comes
+back, wider than before, and the two gold teeth show.
 
-[11s] VALDER SEES HER, and for half a second his delight is genuine and then it
-tightens, because a second buyer in the room is not only good news. He recovers
-instantly, spreads his arms, and says warmly, to the room as much as to her:
-"Madame Thibault."
+[11s] VALDER IS STILL TALKING and has seen nothing. He is watching Carrington's
+face, not the room, and he keeps going, still selling.
 
-[13s] SHE DOES NOT ANSWER HIM. She does not look at him. She keeps walking at
-exactly the same pace, and the only thing that moves on her is the bag swinging
-very slightly.
+[13s] CARRINGTON TURNS AWAY FROM HIM TO FACE HER. Valder follows his eyes and
+turns too, mid-sentence, and finds her already there.
 
-[16s] MR CARRINGTON WATCHES HER COME, and he is smiling, and the two gold teeth
-show — this is a man who has just realised the morning is going to be
-interesting.
+[15s] THEY GREET EACH OTHER LIKE PEOPLE WHO HAVE MET MANY TIMES BEFORE.
+Carrington is delighted and unsurprised. Valder recovers instantly, spreads his
+arms, and says warmly, to the room as much as to her: "Madame Thibault." She
+inclines her head to Carrington and offers him one gloved hand. She does not
+speak.
 
-[19s] She is close now, still walking, still looking straight past the lens.
-Hold. Cut.
+[17s] CUT TO SHOT A. Through the break, past the five at the wall, DUPE IS
+STILL WATCHING THE THREE OF THEM. He is sweating now, visibly more than he was
+at the start, and he is far more worried than he was when she walked in.
 
-AUDIO: room tone, tall doors opening far off, one slow set of heels on
-terrazzo growing steadily louder for the whole twenty seconds, the creak of a
-ledger opening, a pen. ONE line of dialogue only, Valder's, naming her. Nobody
-else speaks — she does not answer. NO SOUND AT THE START OR THE END: the clip
+[19s] Hold on him. Cut.
+
+AUDIO: a room full of low conversation from the first frame to the last, tall
+doors opening far off, one slow set of heels on terrazzo, quiet crying, the
+creak of a ledger. ONE line of dialogue only, Valder's, naming her. Nobody else
+speaks and she does not answer. NO SOUND AT THE START OR THE END: the clip
 opens mid room-tone with no intro sting or riser, and simply stops with no
 tail, swell or fade.
 
@@ -172,23 +253,28 @@ colour fringing.
 CRITICAL NEGATIVES: every single person has a different face, build, age, hair
 and clothing, and no face is repeated anywhere; no opening sound, no intro
 sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
-audio tail, no fade-in or fade-out on the sound; no fourteenth person, no
-extra, no bystander, no other visitor, no gallery staff, no reporter, no
-journalist, nobody holding a camera, nobody filming, no crowd, no children,
-nobody walking through; nobody standing in the centre of the floor, nobody
-crossing in front of her, nobody walking with her, no escort, no entourage; no
-speaking from the Madame, no greeting from her, no nodding from her, no smiling
-from her, no waving, no looking at anyone, no looking at camera; no handshake,
-no kiss on the cheek, no bowing, no applause, no cheering, no gasping; no
-running, no hurrying, no comic speed, no sped-up motion, no slow motion, no
-strutting, no exaggerated catwalk hip sway, no posing, no turning on the spot;
-no second bag, no bag changing colour, no green bag, no bag over the shoulder;
-no camera movement of any kind, no pan, no tilt, no zoom, no dolly, no
-handheld, no reframing, no cut, no second angle; no wide-angle distortion, no
-fisheye; no four-panel layout, no grid, no split screen; no cracked wall, no
-crack, no brass plaque, no price plaque in frame; no money, no card, no
-contract, no papers exchanged; no weapon, no gun, no holster, no earpiece; no
-smartphones, no screens, no modern technology.
+audio tail, no fade-in or fade-out on the sound; no silent room at the start,
+no hush, no room falling quiet; no two lines of people, no crowd standing back
+against the columns, no cleared corridor down the middle, no empty floor
+parting for her, no runway, no catwalk, no red carpet, no guard of honour, no
+receiving line; no fourteenth person, no extra, no bystander, no other visitor,
+no gallery staff, no reporter, no journalist, nobody holding a camera, nobody
+filming, no crowd, no children; no crack, no break, no damaged plaster and no
+hole in SHOT B; no crack appearing on a background wall in SHOT A, no second
+break, no brass plaque, no price plaque in frame; no blending of the two camera
+positions, no third camera position, no camera move inside any shot, no pan, no
+tilt, no zoom, no dolly, no handheld, no reframing; no speaking from the
+Madame, no greeting spoken by her, no smiling from her, no waving, no looking
+at camera; no kiss on the cheek, no bowing, no applause, no cheering, no
+gasping; no running, no hurrying, no comic speed, no sped-up motion, no slow
+motion, no strutting, no exaggerated catwalk hip sway, no posing, no turning on
+the spot; no husband, no man comforting the crying woman, no man beside her,
+no couple made of a man and a woman at the wall; no guard standing in front of
+the man he belongs to, no guard walking with her, no escort, no entourage; no
+second bag, no bag changing colour, no green bag, no bag over the shoulder; no
+wide-angle distortion, no fisheye; no four-panel layout, no grid, no split
+screen; no money, no card, no contract, no papers exchanged; no weapon, no gun,
+no holster, no earpiece; no smartphones, no screens, no modern technology.
 
 House negatives: no voiceover, no narration, no subtitles, no captions, no
 on-screen text, no signage, no logos, no music, no score, no dutch angle, no
@@ -201,23 +287,30 @@ walls, no wooden floor.
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. THE RUNWAY READS. Long lens, compressed hall, empty centre corridor, and she
-   grows steadily for twenty seconds. If it comes back wide, or if anyone is
-   standing in the middle of the floor, re-fire.
-2. SHE NEVER ACKNOWLEDGES ANYBODY. No smile, no nod, no glance. The whole
-   character is in the not-looking.
-3. THE OXBLOOD CROCODILE BAG is in her hand the entire time and is the real
-   one — deep red, not green.
-4. Heads turn in a ripple, not in unison, and nobody steps into her path.
-5. ONE line, Valder's, and she does not answer it.
-6. THIRTEEN PEOPLE, no extras.
-7. Camera dead still for twenty seconds.
+1. THE ROOM IS NOT POSED AND NOT SILENT. People in loose knots, talking, from
+   the first frame. If it opens on two tidy lines and an empty centre, this is
+   version 1 coming back and it is a re-fire.
+2. THE LOOK ORDER. Dupe first, Carrington second, Valder last and only because
+   Carrington turned. If Valder spots her himself, or if everybody turns at
+   once, the scene has lost its point.
+3. CARRINGTON'S FACE DOES THREE THINGS: smile off, a beat of worry, smile back
+   wider. All three, in that order. Two out of three is a re-fire.
+4. THE FIVE AT THE WALL, with the crying woman still crying and her partner
+   dabbing her with a tissue. Both of them women. No husband anywhere.
+5. TWO CAMERA POSITIONS, CLEANLY SEPARATE. Crack visible ONLY as the aperture
+   in SHOT A. No crack anywhere in SHOT B. If the rooms blend, split the clip.
+6. EACH GUARD BEHIND HIS OWN MAN — bodyguard behind Carrington, tall thin guard
+   behind Valder.
+7. THE OXBLOOD CROCODILE BAG in her gloved hand throughout, deep red not green.
+8. DUPE SWEATS AT THE END and is plainly worse than he was at [0s]. This is the
+   last image of the clip and it is the joke landing.
+9. THIRTEEN PEOPLE, no extras.
 File the take whatever the verdict.
 
 END POSITIONS, inherited by S2R (the bidding battle):
-- MADAME THIBAULT arrived at the near end of the gallery, standing, bag in hand.
+- MADAME THIBAULT is with Valder and Carrington, standing, bag in hand.
 - CARRINGTON opposite her, amused. VALDER between them, in the middle.
-- THE REGISTRAR to one side with his ledger already open.
-- Everyone else along the columns. DUPE far back with his cart.
+- THE REGISTRAR to one side, ledger now open.
+- The five still over at the wall. DUPE at his cart, sweating.
 
 === END NOTES ===
