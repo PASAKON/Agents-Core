@@ -115,16 +115,27 @@ REFERENCES — each with a job:
   orange piping and a small gold V, white gloves, a brown leather ledger held
   open, pen in hand.
 
-THE OTHERS, carried in this text: a very heavily built Black bodyguard in an
-all-black suit with opaque dark sunglasses and white gloves; two guards in navy
-military-cut tunics with gold buttons and a large gold V, one tall and thin and
-one short and heavy; a young woman in an oversized cobalt-blue overcoat with a
-pearl cluster necklace; an elderly East Asian woman in a deep magenta fur coat
-and cream gloves; a woman of about fifty-five with a brown bob in a
-tawny-brown fur coat over a rust-red dress; an elderly man in a deep maroon
-leather suit; a young art student with short curly acid yellow-green hair and a
-black sketchbook; and far back on the left a cleaner in a white uniform with
-orange trim beside a cleaning cart.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black
+  shirt and tie. No weapon, no earpiece, no holster.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V, black belts, navy peaked caps.
+  ONE TALL AND THIN, ONE SHORT AND HEAVY. This one picture is both of them.
+@project_absence_char_woman — THE YOUNG WOMAN IN COBALT: dark hair pinned up,
+  an oversized cobalt-blue overcoat with a gold V pin, a pearl cluster
+  necklace, a brown-checked skirt, black tights, brown loafers, no glasses.
+@project_absence_char_critic_b — THE ELDERLY EAST ASIAN WOMAN: silver-streaked
+  hair up, a full-length deep magenta fur coat, long cream gloves, cream heels.
+@project_absence_char_visitor_b — THE WOMAN IN THE CHESTNUT FUR: about
+  fifty-five, a brown bob, a long tawny-brown fur coat over a rust-red shift
+  dress.
+@project_absence_char_student_c — THE ART STUDENT: short curly acid yellow-green
+  hair, a paint-spattered denim overshirt, dark trousers, worn trainers, a
+  black sketchbook.
+@project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap,
+  gold V, moustache. Far off, watching, taking no part.
+@project_absence_prop_cart_a_painted — HIS CART: castor wheels, mop, orange
+  bucket, bottles, folding ladder, gold V.
 
 [0s] Nobody has moved since the last scene. Carrington's mouth is still half
 open. The room is silent and waiting for him.

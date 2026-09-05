@@ -122,15 +122,19 @@ REFERENCES — each with a job:
   everyone: castor wheels, mop, orange bucket, bottles, folding ladder, gold V,
   a painting standing upright in the rack.
 
-THE REST OF THE PROCESSION, carried in this text and NOT bound as references:
-THE REGISTRAR, about sixty, a cream stand-collar tunic with orange piping and a
-small gold V, white gloves, a brown leather ledger held open, writing as he
-walks; A YOUNG WOMAN, dark hair pinned up, an oversized cobalt-blue overcoat
-with a gold V pin and a pearl cluster necklace, and no glasses of any kind; AN
-ELDERLY EAST ASIAN WOMAN, silver-streaked hair up, a full-length deep magenta
-fur coat and long cream gloves; A WOMAN OF ABOUT FIFTY-FIVE with a brown bob in
-a tawny-brown fur coat over a rust-red shift dress; AN ELDERLY MAN with thinning
-grey hair in a deep maroon leather suit.
+@char_registrar — THE REGISTRAR: about sixty, grey hair combed flat, a cream
+  stand-collar tunic with fine orange piping and a small gold V, white gloves,
+  a brown leather ledger and a pen.
+@project_absence_char_woman — THE YOUNG WOMAN IN COBALT: dark hair pinned up,
+  an oversized cobalt-blue overcoat with a gold V pin, a pearl cluster
+  necklace, no glasses of any kind.
+@project_absence_char_critic_b — THE ELDERLY EAST ASIAN WOMAN: silver-streaked
+  hair up, a full-length deep magenta fur coat, long cream gloves, cream heels.
+@project_absence_char_visitor_b — THE WOMAN IN THE CHESTNUT FUR: about
+  fifty-five, a brown bob, a long tawny-brown fur coat over a rust-red shift
+  dress.
+@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
+  hair, a deep maroon leather suit with a stand collar.
 
 [0s] They are already walking when the shot begins, close to the camera and
 strung out across the picture. VALDER LEADS, half a step ahead of Mr

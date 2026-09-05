@@ -17,8 +17,18 @@ Two came from the CEO on 2026-09-04, one is measured and already in the skills.
 
 1. **A video Element does not consume a reference slot.** It is counted
    separately from image Elements, so no sheet has to drop a character to make
-   room. Every "REFERENCES ARE CAPPED — bind these six plus the video" note
-   stands exactly as written.
+   room.
+
+   > **The six-reference cap is dead — CEO 2026-09-05, "ใส่มาให้หมดทุกคนเลย".**
+   > It was never a platform limit. I invented it after S2P take 1 came back
+   > missing Valder and I blamed "thirteen Elements, the model dropped one" — a
+   > diagnosis I had already recorded as probably wrong once we learned an
+   > unbound chip fails silently and looks identical. Meanwhile
+   > `s2p-fix1-the-tour.txt` had been binding thirteen the whole time. The cap
+   > was suppressing character binding in seven sheets for no measured reason.
+   > **Bind every character that has an Element.** If a render does come back
+   > with people merged or missing, drop props first, then characters with no
+   > beat — never someone with a line, a look or a position.
 2. **A video Element's file cannot be swapped in place.** A re-rendered previz
    is always a *new* Element. This is why the version lives in the handle.
 3. **The Unlimited render slot is one generation, account-wide, and a second
@@ -116,7 +126,7 @@ becomes
 > shot — a 20-second grey previz of this exact scene.
 
 Nothing else moves: the Element list, the position map, the negatives and the
-scaffolding clause are all unchanged, and the reference cap is unaffected.
+scaffolding clause are all unchanged.
 
 ## When the upload is down — the CEO's escalation ladder
 

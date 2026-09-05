@@ -122,15 +122,19 @@ REFERENCES — each with a job:
   gold V, moustache. Far back on the left beside his cleaning cart, watching,
   not part of anything.
 
-THE OTHERS, lining the columns and carried in this text: a very heavily built
-Black bodyguard in an all-black suit with opaque dark sunglasses and white
-gloves, standing behind Carrington; two guards in navy military-cut tunics with
-gold buttons and a large gold V, one tall and thin and one short and heavy; a
-young woman in an oversized cobalt-blue overcoat with a small gold V pin and a
-pearl cluster necklace; an elderly East Asian woman in a full-length deep
-magenta fur coat and long cream gloves; a woman of about fifty-five with a brown
-bob in a tawny-brown fur coat over a rust-red dress; an elderly man in a deep
-maroon leather suit.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black
+  shirt and tie. No weapon, no earpiece, no holster.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V, black belts, navy peaked caps.
+  ONE TALL AND THIN, ONE SHORT AND HEAVY. This one picture is both of them.
+@project_absence_char_woman — THE YOUNG WOMAN IN COBALT: dark hair pinned up,
+  an oversized cobalt-blue overcoat with a gold V pin, a pearl cluster
+  necklace, no glasses of any kind.
+@project_absence_char_critic_b — THE ELDERLY EAST ASIAN WOMAN: silver-streaked
+  hair up, a full-length deep magenta fur coat, long cream gloves, cream heels.
+@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
+  hair, a deep maroon leather suit with a stand collar.
 
 [0s] The gallery is quiet and the centre of the floor is empty. The party stands
 in two loose lines against the columns, left and right. Far away at the end of

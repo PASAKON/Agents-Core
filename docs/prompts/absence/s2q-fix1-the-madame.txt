@@ -78,10 +78,21 @@ again, that is a third data point and the next move is the name, not the plate.
 Deep oxblood crocodile, gold clasp. It is how the audience is told what she is
 before anybody says a word, so it must be the real one.
 
-⚠️ REFERENCES: SEVEN, and no video. Bind loc_wall_pov_e, loc_hall_big_e,
-char_woman_c, prop_croc_bag, char_valder, gentleman_e, char_cleaner_c. THE
-REGISTRAR DROPS TO PROSE in this version — he has no beat in the CEO's rewrite
-and the two location plates need the slots more than he does.
+⚠️ EVERY CHARACTER IS BOUND. CEO 2026-09-05: "ใส่มาให้หมดทุกคนเลย".
+SIXTEEN chips, no video: two locations, two props, and all thirteen people.
+Twelve character handles cover thirteen bodies because
+`char_guard_valder_two` is one picture of both of Valder's guards.
+I had capped this sheet at six references and pushed everyone else into prose.
+That cap was mine, not the platform's, and I set it on a diagnosis I had
+already written down as probably wrong — S2P take 1 lost Valder and I blamed
+"thirteen Elements, the model dropped one", when an unbound chip was at least
+as likely. s2p-fix1-the-tour.txt has been binding thirteen all along. So the
+cap is gone.
+SIXTEEN IS A NEW HIGH FOR THIS FILM and nobody has proved it is safe. If the
+render comes back with characters merged, swapped or missing, the first thing
+to drop is `prop_cart_a_painted` (a describable object), then
+`char_visitor_a` (the man in maroon has no beat here) — NOT one of the five at
+the wall and never one of the four with lines or looks.
 
 ⚠️ ON A REFUSAL OR A COPYRIGHT REJECTION: re-fire the same thing once,
 unchanged. These rejections are not deterministic — the identical reference set
@@ -132,32 +143,37 @@ WHAT EACH OF THE THIRTEEN IS DOING WHEN THE CLIP OPENS:
 FIVE PEOPLE ARE GATHERED CLOSE AT THE BROKEN WALL, looking at it — which means
 in SHOT A they are looking almost into the lens, close and slightly below it,
 their faces filling the opening:
-  - THE WOMAN IN THE CHESTNUT FUR is crying, genuinely and quietly, her face
+  - THE WOMAN IN THE CHESTNUT FUR (@project_absence_char_visitor_b) is crying, genuinely and quietly, her face
     wet, and she has been crying for a while.
-  - THE YOUNG WOMAN IN THE COBALT OVERCOAT is her partner and is close beside
+  - THE YOUNG WOMAN IN THE COBALT OVERCOAT (@project_absence_char_woman) is her partner and is close beside
     her, holding a folded white tissue and dabbing the tears from her cheek.
     They are a couple. She is the only one of the five not looking at the wall,
     because she is looking at her.
-  - THE ELDERLY EAST ASIAN WOMAN IN THE MAGENTA FUR stands with them, looking
+  - THE ELDERLY EAST ASIAN WOMAN IN THE MAGENTA FUR (@project_absence_char_critic_b)
+    stands with them, looking
     at the break.
-  - THE ELDERLY MAN IN THE MAROON LEATHER SUIT stands a little apart, also
+  - THE ELDERLY MAN IN THE MAROON LEATHER SUIT (@project_absence_char_visitor_a)
+    stands a little apart, also
     looking at the break, alone and not with anybody.
-  - THE ART STUDENT stands closest of all, sketchbook open, looking up at the
+  - THE ART STUDENT (@project_absence_char_student_c) stands closest of all, sketchbook open, looking up at the
     break and down at his page.
 
 DEEPER INTO THE ROOM, AWAY FROM THE WALL:
-  - VALDER is mid-conversation with MR CARRINGTON, talking, hands moving,
+  - VALDER (@project_absence_char_valder) is mid-conversation with MR CARRINGTON, talking, hands moving,
     completely absorbed in his own sales patter. He is NOT watching the door
     and he is not waiting for anybody.
-  - MR CARRINGTON is listening to him, amused, leaning on his cane.
-  - THE BODYGUARD stands DIRECTLY BEHIND MR CARRINGTON, a pace back, hands
+  - MR CARRINGTON (@gentleman_e) is listening to him, amused, leaning on his cane.
+  - THE BODYGUARD (@project_absence_char_guard_private_v2) stands DIRECTLY BEHIND
+    MR CARRINGTON, a pace back, hands
     folded, watching the room and not the conversation.
-  - THE TALL THIN GUARD stands DIRECTLY BEHIND VALDER in the same way. Each
-    guard belongs to the man in front of him and stays behind him.
-  - THE SHORT HEAVY GUARD stands further off near a wall, on his own post.
-  - THE REGISTRAR is off to one side with his ledger closed under his arm,
+  - VALDER'S TWO GUARDS (@project_absence_char_guard_valder_two) — THE TALL THIN
+    ONE stands DIRECTLY BEHIND VALDER, and THE SHORT HEAVY ONE stands further off
+    near a wall on his own post. Each guard belongs to the man in front of him
+    and stays behind him.
+  - THE REGISTRAR (@char_registrar) is off to one side with his ledger closed under his arm,
     waiting.
-  - DUPE is working. He is wiping down a plinth beside his cart, unhurried,
+  - DUPE (@project_absence_char_cleaner_c) is working. He is wiping down a plinth
+    beside his cart (@project_absence_prop_cart_a_painted), unhurried,
     part of the furniture, and nobody is paying him any attention at all.
 
 REFERENCES — each with a job:
@@ -192,18 +208,30 @@ REFERENCES — each with a job:
 @project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap,
   gold V, moustache. Working at a plinth beside his cleaning cart.
 
-THE OTHERS, carried in this text: a very heavily built Black bodyguard in an
-all-black suit with opaque dark sunglasses and white gloves; two guards in navy
-military-cut tunics with gold buttons and a large gold V, one tall and thin and
-one short and heavy; a man of about sixty with grey hair combed flat in a cream
-stand-collar tunic with fine orange piping and a small gold V, white gloves,
-carrying a brown leather ledger and a pen; a young woman in an oversized
-cobalt-blue overcoat with a small gold V pin and a pearl cluster necklace; an
-elderly East Asian woman in a full-length deep magenta fur coat and long cream
-gloves; a woman of about fifty-five with a brown bob in a tawny-brown fur coat
-over a rust-red dress; an elderly man in a deep maroon leather suit; a young
-art student with short curly acid yellow-green hair, a paint-spattered denim
-overshirt and a black sketchbook.
+@char_registrar — THE REGISTRAR: about sixty, grey hair combed flat, a cream
+  stand-collar tunic with fine orange piping and a small gold V, white gloves,
+  a brown leather ledger and a pen.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black
+  shirt and tie. No weapon, no earpiece, no holster.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V, black belts, navy peaked caps.
+  ONE TALL AND THIN, ONE SHORT AND HEAVY. This one picture is both of them.
+@project_absence_char_visitor_b — THE WOMAN IN THE CHESTNUT FUR, crying: about
+  fifty-five, a brown bob, a long tawny-brown fur coat over a rust-red shift
+  dress.
+@project_absence_char_woman — HER PARTNER: a young woman, dark hair pinned up,
+  an oversized cobalt-blue overcoat with a gold V pin, a pearl cluster
+  necklace, a brown-checked skirt, black tights, brown loafers, no glasses.
+@project_absence_char_critic_b — THE ELDERLY EAST ASIAN WOMAN: silver-streaked
+  hair up, a full-length deep magenta fur coat, long cream gloves, cream heels.
+@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
+  hair, a deep maroon leather suit with a stand collar. He is on his own.
+@project_absence_char_student_c — THE ART STUDENT: short curly acid yellow-green
+  hair, a paint-spattered denim overshirt, dark trousers, worn trainers, a
+  black sketchbook.
+@project_absence_prop_cart_a_painted — DUPE'S CART: castor wheels, mop, orange
+  bucket, bottles, folding ladder, gold V.
 
 [0s] SHOT A. Through the break: the five of them close to the opening, the
 woman in the chestnut fur crying, her partner dabbing her cheek with the
