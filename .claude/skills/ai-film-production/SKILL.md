@@ -278,3 +278,40 @@ lives in more prompts than the one in your hand.
 Give the invented name a plain descriptive stand-in (`THE WOMAN IN GREEN`) and
 keep the real one in the sheet's notes so the story is not lost. The director
 decides whether to keep hunting for a usable name or ship the descriptive one.
+
+---
+
+## 11 · A PROHIBITION WITH NOTHING PUT IN ITS PLACE DOES NOT HOLD
+
+The most common wasted take is not a prompt that forgot to ban something. It is
+a prompt that banned it clearly, in capitals, and got it anyway. **A negative
+tells the model what not to render; it does not tell it what to render instead,
+and the gap fills itself.**
+
+Four measured instances in one night on «Sorry, Sir»:
+
+| what was banned | what came back | what actually fixed it |
+|---|---|---|
+| "no looking at camera by anybody" | four of twenty seconds are the cleaner squared to the lens | give him a specific thing to look at *off* to one side, and a body angle that makes front-on wrong |
+| "no running, no jogging, no scurrying" | he ran | the previz was showing 5.67 m/s; fix the reference, then write the number and *one foot always on the ground* |
+| character's cart "at the very back" with him | cart at the front of the line, its owner empty-handed at the back | ban the SEPARATION — no cart at the front, not near anyone else, not separated by other people |
+| a bodyguard described as "plain dark suit" | a generic businessman in a black suit and white shirt, front and centre | the full description: heavily built, dark glasses, white gloves, black shirt |
+
+The shape is always the same. Prefer these, in order:
+
+1. **Replace, don't forbid.** Somewhere specific to look, a named body angle, a
+   hand on a specific object. The model needs a thing to do.
+2. **Ban the RELATIONSHIP, not the absence.** "The cart is with him and only
+   with him" beats "no missing cart" — the failure is rarely deletion, it is
+   drift.
+3. **Name the exact wrong thing you actually got.** "No straight lines
+   radiating from a centre" and "no black suit with a white shirt" outperform
+   "no geometric crack" and "no extras". A banned specific beats a banned
+   category.
+4. **A vague description is a blank the model fills.** Four words invite an
+   invention. If a character has a plate, paste that plate's full description in.
+
+**And check the reference before you rewrite the words at all.** Twice the words
+were already right and the video reference was overriding them — see rule 7 and
+[[feedback-proxy-in-previz-beats-the-plate]]. Hardening prose against a
+reference that disagrees with it is the most expensive way to lose a take.
