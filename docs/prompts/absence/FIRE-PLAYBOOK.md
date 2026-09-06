@@ -61,8 +61,11 @@ words. Expect: `NO WIDER THAN THE RED DOOR` → 1 on wall-POV sheets;
   reload clears that but resets Unlimited; re-toggle, re-zoom, re-count chips
   (a detach can silently delete an adjacent chip).
 - FIRE: Generate is the very last action with nothing in flight. Verify by a
-  "Generation started" toast / new Processing card AND the asset count going
-  up by one — read the count first; the CEO may fire on the Credit lane at any
+  "Generation started" toast AND a NEW Processing card (spinner, top of the
+  grid, visible under the Today + Generated filter). The asset count is only a
+  cross-check: READ IT AFTER THE PREVIZ IS ATTACHED — an uploaded reference
+  counts as an asset, and S2D t1 waited 70 minutes on a "fire" that was the
+  previz upload (2026-09-07 04:12); the CEO may fire on the Credit lane at any
   time, so confirm YOUR card. No toast after 60 s → reload, count cards; only
   if the count did not change, one JS `.click()` on the $0 button, and say so.
 
