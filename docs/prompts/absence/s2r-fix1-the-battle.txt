@@ -233,4 +233,15 @@ END POSITIONS, inherited by S2S:
 - The next thing anyone hears is a voice from far down the hall saying a
   hundred million, and nobody has seen her yet.
 
+2026-09-07 (browser_operator task-66c3f162): Take 1 FLAGGED — three fires,
+three "Rejected due to copyright restrictions" (fire 1 with previz, fire 2
+same paste unchanged with previz per this sheet's own retry rule, fire 3
+same paste unchanged WITHOUT previz per CTO's contingency). Name already
+stripped in this paste block (zero MADAME/THIBAULT occurrences), so the
+S2Q-style name leak is ruled out; the previz's floating on-screen labels
+(REGISTRAR/VALDER/MADAME baked into the grey-block reference) are also ruled
+out since fire 3 had no previz and still failed identically. Suspect moved to
+the prop/reference descriptions themselves (see report for detail). Full
+report: docs/reports/absence-wave-20260907-s2r-t1.md.
+
 === END NOTES ===
