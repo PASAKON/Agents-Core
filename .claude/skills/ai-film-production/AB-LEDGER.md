@@ -101,8 +101,13 @@ VERDICT: S2M t2 (canon prose, 2026-09-06 10:22) FAILED THE SAME WAY — crack
   hand" is a world size, not a frame size.
 PROMPT C (S2M t3): no depth words; size anchored in the frame — "NO WIDER
   THAN THE RED DOOR AND NO TALLER THAN THE RED DOOR, exactly as the picture has
-  it"; the crack-shape negatives removed. Awaiting t3. If t3 is still
-  oversized the plate/model is the driver → editor overlay, not a prompt.
+  it"; the crack-shape negatives removed.
+  t3 (12:15) was NSFW-REJECTED by the platform's OUTPUT filter — zero output,
+  credits refunded, "Output may contain sensitive content". Not a verdict on
+  Prompt C (take 2 with the same cast and scene rendered fine). Re-fired as
+  take 3b with the prompt unchanged; a second rejection would mean a trigger
+  in the new prose. If 3b renders and is still oversized, the plate/model is
+  the driver → editor overlay, not a prompt.
 
 ### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
 PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;
