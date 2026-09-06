@@ -1523,3 +1523,19 @@ with no resize call, and `resize_window(1600,1000)` returned success while
 ("Mobile Access Coming Soon"). Recovery that worked both times: close the
 tab, open a fresh one, read `window.innerWidth` back. The tool's return value
 proves nothing — only the readback counts, before every Generate.
+
+## HARD · The Unlimited toggle can be COVERED — a click that "does not flip it" landed on the cover (CEO 2026-09-06)
+
+Three workers in one day reported "clicked the Unlimited toggle once, it did
+not flip". The CEO, watching the screen, saw the cause: a toast (or the
+reference panel, an upload tile, a modal) was sitting over the toggle, and
+the click hit the cover. Before calling the toggle broken:
+
+1. Screenshot and look at what is over it; `document.elementFromPoint(x, y)`
+   at the toggle's centre names the element on top.
+2. Close the cover by ITS OWN close control (the toast's X, the panel's
+   collapse). Never click "somewhere else" to dismiss it — a stray click
+   selects an asset card and collapses the composer (seen 12:20 today).
+3. If the cover is fixed, click the toggle's real input/button element via
+   `javascript_tool`, then verify by the price readback: struck price + 0.
+A reload also clears a toast but resets Unlimited to off — re-toggle after.
