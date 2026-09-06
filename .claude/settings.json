@@ -56,6 +56,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Bash|Read|Skill|mcp__claude_ai_Google_Drive__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-gdrive-skill-gate.py"
+          }
+        ]
       }
     ],
     "PostToolUse": [],

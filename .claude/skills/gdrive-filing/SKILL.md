@@ -7,7 +7,7 @@ scope: >-
   live and what AI may create, move, rename, or delete. Read before any Drive
   mutation, whether via the gdrive-bridge script or the Drive MCP tools. Rules
   only; not a file-transfer tool.
-description: Filing rules for the CEO's Google Drive — read before any create/move/rename/delete there. Trigger on /gdrive-filing, "จัดระเบียบ Drive", "ย้ายไฟล์ไป Drive", "เก็บไฟล์นี้ไว้ที่ไหน", "ลบไฟล์ใน Drive", "save this to Drive", "file this".
+description: Filing rules for the CEO's Google Drive — read before ANY Drive action (create/upload/move/rename/delete, rclone, the gdrive-bridge, the Drive MCP). Trigger on /gdrive-filing, "จัดระเบียบ Drive", "ย้ายไฟล์ไป Drive", "เก็บไฟล์นี้ไว้ที่ไหน", "ลบไฟล์ใน Drive", "save this to Drive", "file this", "backup to Drive", "สำรองไป Gdrive", "upload to Drive", "rclone", "Google Drive". A PreToolUse hook (scripts/hook-gdrive-skill-gate.py) blocks Drive-touching tool calls until this file has been read in the session.
 created_by: human
 audience: [cxo]
 ---
@@ -235,11 +235,19 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │                             or redundant copies the CEO wants kept in
 │   │                             2-3 places — temporary or permanent, either
 │   │                             is fine.
-│   └── FaceBook Backup/          Meta "Download Your Information" auto-export
+│   ├── FaceBook Backup/          Meta "Download Your Information" auto-export
 │       ├── meta-2025-Jun.../     bundles — rarely actually used. Moved here
 │       ├── ... (10 total)        from root 2026-08-04. New meta-* exports
 │       └── meta-2026-Jun-18.../  land at Drive ROOT (Meta gives no destination
 │                                 control) — move each one in here manually.
+│   └── CookieRun Backup/         NEW 2026-09-06 (CEO-approved). Raw copies of the
+│       │                     Cookie Run bot's data from the Windows box (winbox),
+│       │                     uploaded by rclone as one tar per take + a sha256
+│       │                     manifest — never loose frames. Steward brief:
+│       │                     cookierun-bot/docs/DATA-STEWARD.md; gate row in
+│       │                     playbooks/drive-archive-gate.md.
+│       ├── play_rec/         <take>.tar + <take>.manifest.json (CEO's recorded takes)
+│       └── (bot_sessions/, playsets/ — proposed, not created yet)
 ├── Desktop Cloud/                cross-device sync — AI never auto-files here
 └── My Picture & Videos./         personal, filed by month
 ```
@@ -627,6 +635,8 @@ needs to see at a glance which are the sharp ones.
 | `Do Not Disturb/Soundtrack` | `1BcwtvPSSGN4kQwuYnerWYyPrLF3iAwjQ` | Defined 2026-08-12 — **everything audio** for this film — music, SFX, ambience, voice. Sub-folders are split by whatever kind makes it easy for the editor to grab (`SFX`, `Ambient`, `Audio`, …), named by the director rather than by us (CEO 2026-08-12). Empty as of that date. |
 | `BACKUP` (root) | `1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq` | NEW 2026-08-04. Important data that doesn't belong to / can't be categorized into any other folder, specifically related to backing up or redundantly storing data in 2-3 places. Can be temporary or permanent. |
 | `BACKUP/FaceBook Backup` | `1cNHt6bg7-ggXf8ec6DChzouUrw3nUGig` | Meta "Download Your Information" auto-export bundles — rarely actually used. Moved here from Drive root 2026-08-04 (was a root-level folder). Meta's export flow has no destination-folder setting, so new `meta-*` exports will keep landing at Drive root — move each one into this folder manually/by AI when found. The old stray `meta-2026-Jun-18-22-41-35` was merged in here 2026-08-04. |
+| `BACKUP/CookieRun Backup` | `1a5I-YVpeLelju2EY5Ey-jqDmRymfgQEl` | NEW 2026-09-06, CEO-approved in chat. Raw copies of the Cookie Run bot's data from the Windows box: the CEO's recorded takes, later the bot's own sessions and training sets. Uploaded from the box by rclone (remote `gdrive:`, scope drive.file) as one tar per item + sha256 manifest, verified with `rclone check`. Rules and lifecycle: `cookierun-bot/docs/DATA-STEWARD.md`; the move row lives in `playbooks/drive-archive-gate.md`. Created by rclone (not the bridge) so the drive.file token can still see it. |
+| `BACKUP/CookieRun Backup/play_rec` | `1U_-pog8MCHrvpVbLLbwe_sMJKDRbZphH` | `<take>.tar` + `<take>.manifest.json` per recorded take. First item 2026-09-06: `1788525250.tar` (3,494,379,520 B, 14,000 frames). |
 | `Desktop Cloud` (root) | `115w-UxOvdmPIc5X8nq_oV42EEsrVMRtR` | Cross-device sync (Desktop/Windows/Drive). Expect duplicates and off-taxonomy files — that's normal. **AI never auto-files in or out — ONE exception, below.** Search/read is fine anytime; delete only on direct CEO command. **EXCEPTION (CEO 2026-08-24): SomPong's video grabber files here automatically.** The CEO was shown the "AI never auto-files here" rule, asked where a clip grabbed from a pasted link should land, and chose this folder over `ALL DRAFT/ASSETS/ALL Assets` and over a new folder — granting the carve-out explicitly. Scope: uploads only, by that one feature, of clips the CEO asked for by sending a link. Nothing else about this folder changes, and the no-delete rule is untouched. Target id lives in `DRIVE_SOMPONG_GRAB_FOLDER_ID`. **Do NOT reuse `DRIVE_VIDEO_PARENT_FOLDER_ID` for this** — that one is `ALL DRAFT/BLACK LIQUIDITY` and is load-bearing for `mooniex-claudeflow/src/video/videodrive.js` and `scripts/higgsfield/gen_loop.py`; repointing it breaks both. (`scripts/video_to_drive.py` was built on it and would have created a `desktop cloud` folder *inside* the BLACK LIQUIDITY channel, beside 53 real clip folders. Caught before it ever ran.) |
 | `My Picture & Videos.` (root) | `1Fwir7lXpgRmMjU6hbynI-4BsQH92L6wy` | Personal photos/videos — memories, family, travel. Very personal. File by month (e.g. `2026-08/`) so timeline browsing works. |
 
