@@ -22,6 +22,10 @@ words. Expect: `NO WIDER THAN THE RED DOOR` → 1 on wall-POV sheets;
 → 0. Mismatch → STOP and report; never fire from a stale sheet.
 
 ## 1 · Browser
+- claude-in-chrome ONLY. NEVER call computer-use (screenshot/click/type/clipboard) or ask
+  for Finder / clipboardWrite: the permission dialog it raises blocks the whole pane
+  silently — S2I t1 sat 40 minutes on one (2026-09-07 00:15). Paste = javascript_tool
+  synthetic ClipboardEvent on the focused contenteditable; if that will not bind, type @.
 - Fresh tab, claim it in the tab registry, release it at the end. Never touch,
   reload, resize or close another worker's tab or the window size.
 - Maximise (>= 1280) and PROVE it: `({w: window.innerWidth, h: window.innerHeight})`
