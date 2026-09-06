@@ -130,119 +130,46 @@ Two consequences an operator must internalise:
   3 credits is what a plate costs and what every plate in this production has
   cost. An operator that halts on it is halting on normal operation.
 
-### "Unlimited" does not mean "always fireable" — 2026-09-06
+### HARD — MAXIMISE THE WINDOW BEFORE EVERY GENERATE CLICK — root cause found by the CEO 2026-09-06
 
-**Unlimited sets the PRICE to zero. It does not guarantee the button is
-clickable.** On 2026-09-06 the Generate button went dead for the whole account:
-the price still displayed correctly as `~~84~~ → 0`, and the button was still
-`disabled=""` with React props `isDisabled: true`, `freeGens: undefined`,
-`credits: 0`, under a banner reading *"Credits are running low! Over 90% already
-used"*. Three different dispatch methods produced no network POST at all. A
-composer that is perfectly staged and shows a struck-through zero can still be
-unable to fire.
+**A "disabled" Generate button with `freeGens: undefined` is the signature of
+Higgsfield's MOBILE LAYOUT, and the mobile layout is what you get when the
+viewport is too narrow. The cause was our own window size, not the account.**
 
-**Two explanations fit, and they call for opposite actions — do not guess
-between them, and do not tell the CEO it is one of them:**
+What happened: a worker shrank the window (the `browser-operator` skill teaches
+resizing to 1024x768 or smaller to cut screenshot tokens). Below Higgsfield's
+desktop breakpoint the composer re-renders as the mobile version, in which
+Unlimited does not exist — so React reports `freeGens: undefined`, `credits: 0`,
+the button carries `disabled=""`, and the price can still *display* as a
+struck-through zero from stale state. The operator read that as an account
+gate. The CTO accepted it and parked the queue for six hours, three days from
+the film's deadline, and wrote two wrong hypotheses (subscription lapsed /
+credits gate the button) into this file. **Both were wrong.** The CEO restored
+the window to full size and the button worked immediately.
 
-1. **The Unlimited subscription lapsed.** This file already records that our
-   Unlimited "has an end date he has already given" (CEO 2026-08-27).
-   `freeGens: undefined` reads more like an absent entitlement than an exhausted
-   one. Fix: renew.
-2. **The credit balance gates the button globally**, Unlimited video included.
-   Fix: top up.
+**The rule, and it is HARD:**
 
-**What an operator should do:** stop, record all four values (`disabled`,
-`isDisabled`, `freeGens`, `credits`) plus any banner text, and hand the C-level
-BOTH readings. Do not click harder — a `disabled` button will not fire however
-the event is dispatched, and no amount of retrying distinguishes the two causes.
+1. **Before every Generate click, maximise the window** — or resize to at least
+   1280 wide — **and verify it took:**
+   ```js
+   ({w: window.innerWidth, h: window.innerHeight})   // w must be >= 1280
+   ```
+   `resize_window` has returned success without changing anything before
+   (2026-08-27); the JS readback is the only proof.
+2. **Then verify the desktop composer is actually present:** the Unlimited
+   toggle exists, the price reads struck-through zero, and the Generate button
+   has **no** `disabled` attribute. If any of the three is missing at >= 1280
+   wide, open a fresh tab at that width and check again.
+3. **`disabled` + `freeGens: undefined` = check `innerWidth` FIRST.** Do not
+   reason about credits or subscriptions until the window is proven wide and
+   the symptom survives. Ninety-nine times in a hundred it will not survive.
+4. **Shrinking the viewport for cheap screenshots is still fine — for
+   reading.** Restore desktop width before any state-changing action on this
+   site: toggling Unlimited, attaching a reference, and above all clicking
+   Generate.
 
-**And note what this breaks:** the two lanes are not as independent as we
-treated them. A C-level firing on the Credit lane and an operator firing on
-Unlimited share one account-level gate, whatever that gate turns out to be.
-
-**There is an "Unlimited mode" control next to GPT Image 2. It is a paid
-upsell, not our subscription. Never click it.** It is not the toggle the rest
-of this skill is about; that one lives on the Seedance 2.5 composer.
-
-Give image tasks an explicit credit budget in the brief (e.g. "12 credits =
-four attempts") so the operator knows a charge is expected and knows the
-ceiling. Name 1K/Medium explicitly if cost matters, or the composer defaults
-to something dearer.
-
-Known price points (CEO, 2026-08-13):
-
-| What | Cost |
-|---|---|
-| Image create, GPT Gen2 | **0.2 – 2 credits** |
-| Seedance 2.5 video, Unlimited Mode | **0** (entry reads `Unlimited`, no digit) |
-| Seedance 2.5 video, accidental Rerun | **130 credits** |
-| Credit rate | $0.04 / credit |
-
-That table is the audit's first filter: **a video charge is 65x the ceiling
-of an image create, so it is unmistakable by size alone.** Do not try to
-identify charges by model name — names in the ledger are ambiguous and
-paginating for completeness is expensive. Scan for entries of **5 credits or
-more**.
-
-**Then apply the second filter, which is the one that actually decides:
-compare each hit's DATE against the window your own wave has been running.**
-Size tells you an entry is a video charge; only the date tells you whether it
-is *yours*. Skipping this step makes the audit useless, because the ledger
-permanently contains historical video charges and always will:
-
-| Entry | Date | Verdict |
-|---|---|---|
-| 130 credits · Seedance 2.5 | 2026-08-10 22:18 | Known Rerun incident — task-eed61860, GH #45 |
-| 72 credits · Seedance 2.0 | 2026-08-05 15:44 | Refunded +72 at 15:49, net 0 |
-| 72 credits · Seedance 2.0 | 2026-08-05 | Same day, same class |
-
-An operator running the size filter alone will find those three every single
-time, conclude "not clean", and halt a wave that has spent nothing. That
-happened on 2026-08-13 and cost a full stop plus a round trip. **A charge is
-only an incident if its timestamp falls inside a window when an operator
-clicked Generate.** Give the DEV the wave's start date and let it clear
-historical hits on its own instead of escalating them.
-
-Sizing sanity check from the same day: ~317 credits of image spend over 35
-plates is ~9 image creates per plate at ~1 credit each — the total reconciles
-with zero video charges of our own.
-
-**The baseline is not necessarily cumulative.** The 21.8 credits / $0.872
-figure carried as "the baseline" through this wave could not have been a
-cumulative spent total, since a 130-credit charge two days earlier would
-already exceed it. It was a different view — a period or page subtotal — and
-treating it as the same metric as a 339.2 cumulative reading produced a
-phantom "15x jump". Before comparing two ledger numbers, confirm they are the
-same view.
-
-**What still matters when the total moves:** not the total, but (a) every
-Seedance 2.5 entry still reading `Unlimited` with zero digits, checked
-immediately before each Generate click, and (b) no charged entry landing
-inside a window when an operator clicked Generate. Re-baseline freely; the
-baseline is a reference point, not a budget.
-
-## DURATION IS A PRICE. ASK THE DIRECTOR BEFORE YOU WRITE A LONGER CLIP
-
-**CEO 2026-09-05: "ถามก่อนเขียน Prompt นะ เพราะ 30s ใช้เครดิตแพงมาก"** — ask
-before writing the prompt, because 30 seconds costs a great deal of credit.
-
-- **30s is the ceiling on the Create (credit) lane.** There is no longer clip to
-  escape to, so an overrun past 30s can only be solved by trimming words or
-  splitting the scene.
-- **Length is a spend decision, and spend decisions are the director's.** When a
-  scene will not fit its slot, do NOT quietly write it longer. Put the real
-  choice in front of them — *more seconds and more credit* versus *fewer words
-  at the current length* — with the trim already drafted so choosing costs them
-  nothing.
-- **Write the prompt only after they pick.** Writing the long version first
-  makes the expensive option the default and quietly frames the cheap one as a
-  climbdown.
-- **Do not invent the credit figure.** If you have not read the price off the
-  button, say you do not have it and ask. A made-up number is worse than no
-  number — see the CEO's standing rule on never quoting an invented figure.
-
-This is the same rule as never spending on a paid image without approval; the
-duration slider is simply a less obvious place for money to be.
+This supersedes the "728x420 mobile layout" note further down, which described
+the symptom correctly and the cause not at all.
 
 ## Rule 00 — FESTIVAL COMPETITION: PLATFORM-ONLY GENERATION
 

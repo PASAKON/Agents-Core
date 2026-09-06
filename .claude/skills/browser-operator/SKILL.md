@@ -27,7 +27,17 @@ height, so a 768-tall window screenshots at ~591.
 | **1024x768** | **1024x591** (measured) | **814** |
 | 800x700 | ~800x523 | 551 |
 
-Cost scales with **area**: halving each side quarters the price. The model's
+Cost scales with **area**: halving each side quarters the price.
+
+> ⚠️ **Shrink to READ, restore to ACT — measured the hard way 2026-09-06.**
+> Responsive apps re-render below their desktop breakpoint, and controls can
+> vanish or disable in the mobile layout. Higgsfield drops its Unlimited mode
+> entirely below ~1280 wide, so a worker that had shrunk the window for cheap
+> screenshots found the Generate button `disabled`, reported an account-level
+> blocker, and the queue sat idle for six hours. **Before any state-changing
+> click on a responsive app — toggles, uploads, submit/generate — resize back
+> to desktop width and prove it with `window.innerWidth` before proceeding.**
+> The screenshot saving is real; it is never worth a dead button. The model's
 own ceiling is 1,568 visual tokens on the standard tier and 4,784 on the
 high-resolution tier — Sonnet 5 is high-resolution, so nothing downscales for
 you until ~3.75 megapixels, which a browser never reaches.
