@@ -119,6 +119,11 @@ LESSON: state gaze and body orientation in camera terms ("facing the camera",
   leaves to a reference. (§7b)
 RESULT: S2M-Fix1 closed on take 4 — mark 1x the door, faces to the lens,
   registrar's entrance and ledger, cast of seven, camera locked.
+CONFIRMED on S2K take 2 (2026-09-06 16:19, S2K-Fix1-take2.MP4): same two
+  sentences carried over — mark about 1x the door and off every face, the
+  four women full-face to the lens, the couple two women, the man in maroon
+  alone far off, Dupe at his cart. S2K-Fix1 closed. The prose is now the
+  template for S2N t2 and S2L t6.
 
 ---
 
