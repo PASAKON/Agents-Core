@@ -124,10 +124,23 @@ CONFIRMED on S2K take 2 (2026-09-06 16:19, S2K-Fix1-take2.MP4): same two
   four women full-face to the lens, the couple two women, the man in maroon
   alone far off, Dupe at his cart. S2K-Fix1 closed. The prose is now the
   template for S2N t2 and S2L t6.
+CONFIRMED AGAIN on S2N take 2 (17:38): mark about 1x the door. But S2N t2
+  inverted the gaze — backs to the lens from 0s (see PENDING: S2N gaze).
 
 ---
 
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
+
+### S2N · the five's gaze · t2 backs to the lens from 0s (previz attached)
+PROMPT A (t2, 3b6294f): "the five stand FACING THE CAMERA — full face to the
+  lens, not backs, not profiles — with their backs to the room" + the S2N
+  previz attached (faceless proxies). Result: backs to the lens from 0s.
+PROMPT B (t3): the same minus "with their backs to the room" ("their faces
+  toward us until the door opens"), and NO previz — the two takes that faced
+  the lens today (S2M t4, S2K t2) both fired without one.
+VERDICT: awaiting S2N t3. Two variables changed at once, on purpose — the
+  deadline outranks a clean A/B here; if t3 passes, the next sheet that needs
+  a previz will separate them.
 
 ### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
 PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;

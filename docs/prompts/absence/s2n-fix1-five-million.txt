@@ -7,6 +7,16 @@ the red door (S2M t3b: about 1x the door, PASS). "Turned toward the mark"
 became FACING THE CAMERA: S2M t3b sent everyone to face the far door when the
 gaze was tied to the mark. Canon: PLATE-loc_wall_pov_e.md.
 
+⚠️ TAKE 2 (16:56, S2N-Fix1-take2.MP4, previz ATTACHED) — mark PASS (about 1x the
+door, off every face — third confirmation of the red-door anchor); the door
+opens at ~2s and the old man + bodyguard stop inside it as written; BUT the five
+stand with their BACKS to the lens from 0s, already facing the far door, and
+only turn toward us at ~8s — the beat is inverted. Two suspects, both removed
+for take 3: the previz (faceless proxies read as backs — S2M t4 and S2K t2 fired
+without a previz and faced the lens) and the phrase "with their backs to the
+room" (the model places the camera in the room, so backs-to-the-room became
+backs-to-us). Take 3 = same prose minus that phrase, no previz.
+
 S2N-Fix1 · FIVE MILLION · CEO 2026-09-04
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
@@ -142,7 +152,7 @@ REFERENCES — each with a job:
 
 THE FRAME, unchanging for twenty seconds: the location picture as it is. Close
 to us the five stand FACING THE CAMERA — full face to the lens, not backs, not
-profiles — with their backs to the room. Far behind them the gallery runs
+profiles, their faces toward us until the door opens. Far behind them the gallery runs
 away, and it is down there that the rest of this scene happens — small, deep in
 the shot, while the five stay big and still in front.
 
