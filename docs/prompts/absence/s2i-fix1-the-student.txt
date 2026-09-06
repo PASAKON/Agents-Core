@@ -91,10 +91,12 @@ REFERENCES — each with a job:
 @project_absence_char_visitor_b — THE WOMAN IN THE CHESTNUT FUR: about
   fifty-five, a brown bob, a long tawny-brown fur coat over a rust-red dress.
   She is crying, quietly and genuinely, and has been for a while.
-@project_absence_char_woman — HER PARTNER: a slim woman about fifty, dark hair
-  swept up into a tall sculptural crest, glossy electric cobalt-blue leather with
-  a high standing collar, long cobalt gloves, black cat-eye sunglasses worn
-  indoors, gold dome earrings. THEY ARE A COUPLE.
+@project_absence_char_woman — THE WOMAN IN COBALT: a young woman, dark hair
+  pinned up with loose strands, an oversized cobalt-blue wool overcoat with
+  wide lapels and a small gold V pin, a striped collar and dark green knit
+  beneath, a pearl cluster necklace, brown-checked midi skirt, black tights,
+  dark brown loafers. She wears NO glasses of any kind. SHE IS THE PARTNER OF
+  THE WOMAN BESIDE HER. THEY ARE A COUPLE.
 @project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap with
   a gold V, gold V at the chest, moustache.
 @project_absence_prop_cart_a_painted — HIS CART: castor wheels, mop, orange
@@ -135,7 +137,9 @@ front. TIME HAS MOVED ON WHILE WE WERE AWAY: the student has crossed the rest
 of the hall and is now standing close, FACING THE CAMERA, filling much of
 the frame.
 
-[10s] She stands facing the camera and takes it in for a moment, entirely
+[10s] She stops A HALF-STEP TO THE LEFT OF THE MARK, so the mark stays in full
+view beside her face and never behind her head, and stands facing the camera,
+taking it in for a moment, entirely
 serious.
 [13s] Then, fast and flat, to nobody in particular and with complete
 confidence: "It's anti-capitalist. Obviously."
@@ -226,3 +230,15 @@ END POSITIONS, for whatever follows:
 - THE STUDENT at the break, close to it, sketchbook still shut.
 - THE COUPLE together to the right, the fur-coated one still upset.
 - DUPE at his cart on the left, cloth in hand, watching.
+
+TAKE 1 · 2026-09-07 01:12 fired (no previz — tile stuck, Generate disabled) → 01:46
+landed, 20.04s 1280x720 · CTO verdict FLAGGED: the partner rendered as a
+sculptural-crest / cobalt-leather / cat-eye-sunglasses woman — EXACTLY what this
+sheet's reference paragraph said, and NOT the Element (bob, pearls, cobalt wool
+coat), so S2H and S2I showed two different women. Sheet defect: the paragraph
+had been written from the Madame's look. Fixed for take 2 by copying S2H's
+paragraph verbatim (the Element wins when the prose agrees with it). Also: the
+mark rolled ~1.5x the door (usable) and vanished behind the student's head in
+shot C — take 2 stands her a half-step left of it. Everything else passed:
+five shots as timed, student on-Element, plaque insert, Dupe CU. Re-fire after
+the unshot scenes.
