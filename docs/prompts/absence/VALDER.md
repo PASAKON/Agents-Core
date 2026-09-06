@@ -21,9 +21,14 @@ colour system. He is the man who set it.
 
 ### How he behaves — CEO, verbatim
 
-- **He smiles the entire time he speaks.** Not playful, not warm. **A still,
-  deadpan smile** that never changes and never reaches the eyes. It is simply
-  the shape his face makes.
+- **He smiles the entire time he speaks — a warm, charming, faintly INGRATIATING
+  smile.** CEO revision, 2026-08-28: *"เวลาเขาพูดเขาจะยิ้มตลอดเวลา แบบประจบประแจง
+  มีเสน่ห์."* The smile of a man who wants to be liked and is extremely good at
+  being liked. **It is charisma, not menace**, and it never leaves his face while
+  he is talking.
+  *(This replaces the earlier direction of a still, deadpan, unreadable smile.
+  He is charming, not cold — the opposite reading. Anything still describing him
+  as deadpan is stale.)*
 - **He stands perfectly straight at all times.** He does not lean, slouch, sit
   or shift his weight. Ever.
 - He has **a fair amount of dialogue** in Phase 2, when he arrives.
@@ -170,17 +175,41 @@ because he says so.
 
 ---
 
-## THE SIXTH — improvised, no plate
+## THE SIXTH — improvised, no plate — **LOCKED**
 
-He turns to the wall expecting the painting, and finds the crack.
+**CEO approved 2026-08-28: "S8 บทที่ Valder ตามน้ำ ผมร่างไว้แล้ว เอาไหม -> ตามนั้น".**
+This text is final. Do not rewrite it, do not paraphrase it, do not let a model
+improve it.
 
-He does not hesitate and his smile does not change. He tells a sixth story in
-the same grammar as the five: an accident, an absence, a rotation, a refusal.
+He turns to the wall, raises a hand to introduce the last piece. **The crowd
+parts for him.**
 
-**The line is not written yet — it is the pivot of the film and belongs to the
-CEO.** What it has to do: sound exactly like the other five, be obviously
-invented to us and obviously true to them, and never once acknowledge that he
-is looking at damage.
+**He sees the crack. The painting is gone.**
+
+The smile does not change. He does not miss a beat.
+
+**He goes silent** — two seconds, three. The hand still raised in mid-air. The
+whole room waits.
+
+Then he speaks on, **in exactly the same voice he used for the other five:**
+
+> *"And this one."*
+> *"I did not commission it. I did not buy it."*
+> *"It happened to my wall while nobody was looking."*
+> *"Every other thing in this room, someone decided to make."*
+> *"That one decided by itself."*
+
+A pause.
+
+> *"I have been collecting for forty years to find something that did not need me."*
+
+The raised hand lowers, slowly.
+
+**Why it is written this way:** he never claims he commissioned it. A direct lie
+would make him the villain. **Every word he says is true** — he has only
+rearranged them into a reason. And the last line is the one that makes him
+believe it himself, which is what the CEO locked on 2026-08-28: *Valder
+genuinely believes his own invention by the end.*
 
 ---
 

@@ -1,0 +1,169 @@
+SEEDANCE 2.5 — 20 SECONDS — 720p — 16:9
+
+!!! NOT READY TO FIRE — TWO THINGS NEED THE CEO !!!
+1. SCENE NUMBER. The production sheet's 15-scene table was written before the
+   CEO moved the story into the retro hall and redefined S1 as the interior
+   gathering. In that older table this scene is S3 "การตีความ". Under the new
+   S1 it is the second scene shot. The CEO decides the final numbering; this
+   file does not renumber his film.
+2. ONE ADDED IMAGE. The dialogue below is the CEO's own, word for word from
+   the sheet, unchanged. What this file adds is WHERE the camera is when the
+   critic says her line: the cleaner is mopping the floor behind her, and
+   nobody looks at him. That is a staging choice, not a story change, but it
+   is pointed enough that the CEO should see it before it is shot.
+Remove these lines once he has ruled on both.
+
+THIS IS NOT ONE CONTINUOUS SHOT. It is FIVE SEPARATE SHOTS joined by FOUR HARD CUTS. Every cut is instant. There is NO dissolve, NO fade, NO wipe, NO whip pan, NO morph, NO camera move that carries across a cut.
+
+**THIS SCENE HAS DIALOGUE AND IT MUST BE CLEARLY AUDIBLE.** Four people each say one line, in English, in the order written. Every line is spoken calmly and completely seriously. Nobody performs, nobody winks, nobody plays it for a laugh.
+
+================================================================
+WHO AND WHAT EACH REFERENCE IS. READ THIS BEFORE ANY SHOT BELOW.
+================================================================
+
+--- THE PLACE ---
+
+@project_absence_loc_hall_big — THE GALLERY HALL. White side walls hung with framed modern paintings, polished dark terracotta-red terrazzo floor, slim chromium columns flaring into wide trumpet-shaped ceiling coves that glow hot ORANGE. Wire-sphere lamps on white plinths. A long yellow bench and yellow swivel chair on a blue, black and white patterned rug.
+
+@project_absence_loc_wall_crack — THE HERO WALL. Flat white, no painting on it. **ONE SMALL CRACK** in the MIDDLE of the wall at picture-hanging height, a short jagged star no bigger than a spread hand with a little chipped plaster. Far below it, down at KNEE HEIGHT, a small brass plaque engraved THE ABSENCE OF MEANING / Valder / $2,000,000.
+
+--- THE FOUR WHO SPEAK. Each is ONE PERSON and each says exactly one line. ---
+
+@project_absence_char_visitor_b — **THE WOMAN WHO CRIES.** A woman of about fifty-five in a real chestnut-brown FUR coat over a rust-red shift dress and rust heels, shoulder-length brown hair, a warm ordinary face — the least stylised person in the room. **She is here with her husband, @project_absence_char_visitor_c, and they stand close together.** She is not performing and she is not stupid: whatever she is feeling, she is feeling it for real, which is exactly why it hurts.
+
+@project_absence_char_oldman — THE ELDERLY GENTLEMAN. Heavy-set man of about eighty, jowly, thin white hair, deeply lined face. Bottle-green leather overcoat with a wide soft shawl collar over a cream turtleneck, cream shoes, slim chrome cane with a round ring handle.
+
+@project_absence_char_woman — **THE WOMAN IN COBALT. She is the one who declares it art, and she is the reason the room commits.** Slim woman of about fifty, dark hair swept up into a tall sculptural crest, glossy electric cobalt-blue leather with a high standing collar, long cobalt gloves, black cat-eye sunglasses worn indoors, gold dome earrings. No gold V. **HER ACTION: she stands completely still and speaks without moving.** No gesture, no lean, no hand raised. Only her mouth moves. She is not persuading anyone — she is stating a fact she considers settled, and that total absence of effort is what makes the room believe her.
+
+@project_absence_char_student — THE ART STUDENT. Slight young woman of about twenty-two, short dark curly bob. Chrome-yellow leather trouser suit with an oversized pointed collar, flat yellow pillbox hat, a very large round gold medallion on a gold chain, cream gloves, cream ankle boots. No gold V — she is a visitor.
+
+@project_absence_char_critic — THE ART CRITIC. An Asian woman of about sixty, poised and completely certain of herself, dark grey-streaked hair in a low chignon. Full-length deep magenta fur coat with a wide soft fur shawl collar worn open, long cream suede gloves, a large gold ring over the glove, a heavy gold chain bracelet, cream heels. No gold V — she is a visitor.
+
+--- THE MAN NOBODY LOOKS AT ---
+
+@project_absence_char_cleaner — THE CLEANER. Short stocky man in his sixties, broad weathered face, dark curly greying hair. **Cobalt blue mandarin-collar work uniform with brass buttons, a small gold V on the chest, black leather belt, black shoes.** **HE IS NEVER IN A SUIT AND NEVER IN A TIE.** **HE DOES NOT SPEAK IN THIS SCENE AND HIS FACE NEVER CHANGES.**
+
+@project_absence_prop_cart — THE CLEANER'S CART. Burnt-orange lacquered trolley on a chromium frame with splayed tapered legs, gold V on the front panel, chrome rail with cream bottles, folded towels, a wooden brush, mops in clips, a burnt-orange bucket, a folding step ladder strapped to the side, and **one framed painting in a thin black frame leaning against the front** — soft-edged abstract in terracotta, ochre, sage and cream.
+
+--- THE GROUP AROUND THEM. Background only, never individually. ---
+
+@project_valder_char_crowd_a — eight well-dressed visitors, each in one deeply saturated colour, each carrying a fashion object.
+@project_valder_char_crowd_b — eight visitors of slightly lower rank, saturated coats with busy patterned shirts showing at every cuff.
+@project_valder_char_tea_circle — four women who move as a single unit, each in one deeply saturated colour with a large cream shawl collar.
+
+================================================================
+WHAT THIS SCENE IS DOING
+================================================================
+
+Four people take turns explaining what a crack in a wall means. **Every explanation is confident, and every one of them is about something the crack has nothing to do with.** Nobody checks. Nobody disagrees. Each new reading is treated as an addition to the last, never a contradiction.
+
+The scene is not laughing at them for being stupid. **It is showing the pressure everyone in that room is under to prove they understood.** Silence would read as not getting it, so nobody is silent.
+
+Under that runs the one image the whole film turns on. The critic's line asks **who decides what labour is worth** — and while she says it, **the man whose labour actually made the thing in front of them is mopping the floor twenty feet behind him, and not one person turns around.** He does not react. He does not know he is the answer to the question. He just finishes the floor.
+
+The scene ends with the group agreeing, warmly, with all of it.
+
+================================================================
+STYLE — APPLIES TO EVERY SHOT
+================================================================
+
+ERA: a retrofuturist world — the future as people in the past imagined it. Swept aerodynamic curves, moulded plastic, chromium, terrazzo, tapered splayed legs. THERE IS NOTHING DIGITAL ANYWHERE. No screens, no LEDs, no digital numerals, no cables.
+
+COLOUR IS THE CLASS SYSTEM: wealth is DEEP SATURATED COLOUR IN LARGE FLAT PLANES. Every named person wears ONE saturated colour and no two wear the same one.
+
+THE LIGHT IS WARM AND BRIGHT, never moody and never dim. Orange ceiling coves throw warm light down the hall and it bounces off the polished red floor.
+
+THE CAMERA IS ALWAYS LEVEL. No dutch angles, no tilting, ever.
+
+PHOTOGRAPHED, NOT RENDERED: fine film grain, halation around bright highlights, faint gate weave. The grain must NOT desaturate the colour. NO HDR, NO digital glossiness, NO CGI sheen.
+
+PERFORMANCE IS DEADPAN AND COMPLETELY SINCERE. Gestures are small and precise. Nobody smiles while speaking, nobody laughs, nobody mugs, nobody shouts. The one warm reaction at the end is genuine, quiet and brief.
+
+**EVERY NAMED CHARACTER APPEARS EXACTLY ONCE IN ANY SHOT. No duplicates, no twins, no repeated faces.**
+
+================================================================
+SHOT 1 — 4 seconds
+================================================================
+
+@project_absence_loc_hall_big. Static, level, medium shot from behind and to one side of the group, so the hero wall stays mostly blocked. **@project_absence_char_oldman** stands with both hands on his chrome cane, head tilted back slightly, looking at the wall. Around him, out of focus, the saturated coats of @project_valder_char_crowd_a.
+
+He speaks without turning to anyone.
+
+**@project_absence_char_oldman, slowly, with great certainty: "It's about death."**
+
+Two people near him nod.
+
+=== HARD CUT ===
+
+================================================================
+SHOT 2 — 4 seconds
+================================================================
+
+@project_absence_loc_hall_big. Static, level, closer, three-quarter on **@project_absence_char_visitor_b**, the woman in the chestnut fur. **@project_absence_char_visitor_c — her husband — stands just behind her shoulder, close, saying nothing.** **A single tear runs down her cheek.** She does not wipe it and he does not reach for her.
+
+**@project_absence_char_visitor_b, quietly, unsteady: "It made me think of my mother."**
+
+Her husband does not comfort her, and she does not want him to. Two other people nod slowly.
+
+=== HARD CUT ===
+
+================================================================
+SHOT 3 — 3 seconds
+================================================================
+
+@project_absence_loc_hall_big. Static, level, medium on **@project_absence_char_student**. She leans forward from the waist, one cream-gloved finger jabbing downward, urgent, eyes wide.
+
+**@project_absence_char_student, fast and flat: "It's anti-capitalist. Obviously."**
+
+**NOT ONE PERSON TURNS TOWARD HER.** The nodding continues as though she had not spoken.
+
+=== HARD CUT ===
+
+================================================================
+SHOT 4 — 5 seconds
+================================================================
+
+@project_absence_loc_hall_big. Static, level, a **DEEP SHOT** — **@project_absence_char_critic** stands in the near foreground at the left of frame in three-quarter view, one cream-gloved hand raised open toward the wall, magenta fur filling her side of the frame, and the hall runs away behind him in sharp focus down its full length.
+
+**FAR BEHIND HIM, small in the frame and perfectly visible, @project_absence_char_cleaner is mopping the polished red floor**, working steadily backwards, @project_absence_prop_cart parked beside him with the framed painting still leaning against it. He is bent to his work. **He does not look up. Nobody in the group turns around. Nobody sees him.**
+
+**@project_absence_char_critic, a woman's voice, slowly, weighing every word: "It asks who decides what labour is worth."**
+
+Hold on the composition — the critic in front, the cleaner behind her, both in the same frame, unconnected.
+
+=== HARD CUT ===
+
+================================================================
+SHOT 5 — 4 seconds
+================================================================
+
+@project_absence_loc_hall_big. Static, level, wider, taking in the whole group from behind and to one side — @project_absence_char_oldman, @project_absence_char_woman, @project_absence_char_student, @project_absence_char_critic and the saturated coats of @project_valder_char_crowd_a, @project_valder_char_crowd_b and @project_valder_char_tea_circle around them.
+
+**@project_absence_char_woman speaks last, and she does not move at all while she says it:**
+
+**"This is the real thing."**
+**"I have spent my whole life in rooms like this one."**
+**"I have never once stood in front of anything like it."**
+**"That is not a picture of something. That is the thing itself."**
+
+She stops. Nobody contradicts her.
+
+**Together, a low warm murmur of agreement across the whole group: "Ohhh."** Then **light, brief, sincere applause** — a dozen gloved hands, quiet, lasting about a second, and stopping.
+
+**In the deep background @project_absence_char_cleaner is still mopping, at the same steady pace. He does not look up at the applause.** He finishes his stroke and moves one step further away.
+
+Hold, level and still, until the clip ends.
+
+================================================================
+SOUND
+================================================================
+
+Room tone of a large hard-surfaced hall. **The four spoken lines are clear, close and fully intelligible, in English, in the order written, with natural pauses between them.** A low murmur of agreement from the group. Light brief applause at the end, a dozen gloved hands, quiet. Under all of it, faint and constant, **the wet sweep of a mop on stone.**
+
+NO MUSIC OF ANY KIND. No score, no underscore, no drone, no strings, no piano, no synthesiser, no swell, no final chord. No whoosh, no riser, no sting, no impact hit, no bass drop. No laugh track. No comedy sting on any line.
+
+================================================================
+NEGATIVE
+================================================================
+
+no extra dialogue, no invented lines, no improvised speech, no voiceover, no narration, no subtitles, no captions, no on-screen text, no readable text anywhere except the brass plaque, no wall labels, no signage, no timecode, no watermark, no logos of real brands, no music, no score, no laugh track, no comedy sting, no press photographer, no camera flash, no journalists, no microphones, no cleaner in a suit, no cleaner in a tie, no cleaner speaking, no cleaner looking at the camera, no cleaner looking at the group, no anyone noticing the cleaner, no anyone turning around, no painting hanging on the hero wall, no duplicate characters, no twins, no repeated faces, no cloned people, no screens, no LEDs, no digital displays, no cables, no modern technology, no smartphones, no crowd in formation, no rows, no ranks, no marching, no people moving in step, no anyone looking at the camera, no smiling while speaking, no laughing, no grimacing, no sobbing, no wailing, no shouting, no comic expressions, no winking, no knowing looks to camera, no dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no tilted horizon, no zoom, no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed faces, no beauty filter, no dirt, no grime, no squalor, no green skin, no grey skin, no waxy skin, no horror imagery, no rain, no fog, no night, no darkness, no dim moody lighting, no brown murky colour grade, no large crack, no wall-spanning crack, no rubble on the floor, no structural damage, no ultramarine walls, no blue walls, no fountain, no wooden floor

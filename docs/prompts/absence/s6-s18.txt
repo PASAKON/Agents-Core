@@ -1,0 +1,421 @@
+
+**THE ART CRITIC — `char_critic_b` — how she speaks.** She is HALF-CHINESE and
+her face reads Chinese. She speaks English fluently but with a Chinese accent —
+the cadence and vowel shapes of a Chinese speaker using English well. State this
+in every prompt she appears in; the CEO asked for it explicitly.
+
+THE SCENES NOT COVERED BY s4-s5.txt AND s7-s9.txt.
+
+Only S13 and S14 are missing, and they are missing because their dialogue is
+the CEO's to write. Everything else in the film is now written and fireable.
+
+Shared rules for every prompt below — apply them, they are not repeated each time:
+
+Colour grade, warm shadow and cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows never pure black but deep red-brown,
+saturation high in flat planes but never touching skin, halation blooming around
+every lamp. Photographed, not rendered: fine film grain, halation, faint gate
+weave, slight colour fringing. Camera always level. 720p · 16:9 · High · Sound On.
+
+Negative block, append to every one of these:
+no extra dialogue, no invented lines, no improvised speech, no voiceover, no
+narration, no subtitles, no captions, no on-screen text, no readable text
+anywhere except the brass plaque, no wall labels, no signage, no timecode, no
+watermark, no logos of real brands, no music, no score, no laugh track, no comedy
+sting, no gold V on any visitor, no duplicate characters, no twins, no repeated
+faces, no cloned people, no anyone looking at the camera, no smiling to camera,
+no winking, no knowing looks to camera, no laughing, no comic expressions, no
+smartphones, no screens, no LEDs, no digital displays, no modern technology, no
+dissolve, no crossfade, no fade to black, no wipe, no whip pan, no morph, no slow
+motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle, no
+tilted horizon, no zoom except where a scene explicitly specifies a snap zoom, no crane move, no drone shot, no lens flare, no
+anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no
+plastic skin, no smooth airbrushed faces, no beauty filter, no dirt, no grime,
+no grey skin, no waxy skin, no horror imagery, no rain, no fog, no night, no
+darkness, no dim moody lighting, no brown murky colour grade, no ultramarine
+walls, no blue walls, no wooden floor
+
+
+===============================================================
+SCENE 6 — $20,000,000 · THE SECOND PRICE MARKER · 15s · NO DIALOGUE
+===============================================================
+References: loc_wall_pov_e · char_critic_b · char_oldman · char_woman ·
+char_student_c · char_visitor_a · char_visitor_b · char_guard_private ·
+char_gentleman_e · char_cleaner_c
+
+The same frame as Scene 3 and Scene 4, unchanged: the camera behind the wall
+looking out THROUGH CRACKED GLASS, fine crack lines radiating from a dark point
+DEAD CENTRE, the brass plaque low in frame with its lettering MIRROR-REVERSED.
+The camera never moves. Only what is inside the frame has changed.
+
+**The plaque now reads $20,000,000.**
+
+The room is fuller and it is richer. Where Scene 4 had eight people in ordinary
+clothes, this has twelve to fourteen, and the clothes have changed: heavier
+coats, better cut, one saturated colour each. **Behind several of them stands a
+personal bodyguard in a plain dark suit**, hands loose, one per guest, waiting
+rather than watching.
+
+STAGING — the Anderson plan: **two exact ranks facing camera** — guests in the
+front row, and **each guest's personal bodyguard standing directly behind their
+employer as a precise second row**, a portrait of money with its shadow. Colours
+alternate warm and cool along the line.
+They are all still facing camera. They are all still looking at the crack.
+
+Dupe is at the edge of frame with his cart, cleaning. Nobody has noticed him
+since Scene 1.
+
+15s. Hold. No dialogue — only room tone and the sound of a fuller room.
+
+Additional negatives for this one: no crowd beyond fourteen people, no press, no
+cameras, no flashes, no microphones, no weapons, no holsters, no earpieces, no
+sunglasses on the guards, no painting on the wall, no rubble, no large crack.
+
+
+===============================================================
+SCENE 10 — THE PARROT WOMAN ARRIVES · 20s
+===============================================================
+References: loc_hall_big_e · char_woman_c · prop_croc_bag · char_gentleman_e ·
+char_valder · char_guard_valder · char_critic_b
+
+Normal angle, wide, from the visitors' side of the hall.
+
+**THE PARROT WOMAN enters alone.** No guards, nobody with her. A cockatoo-crest
+of hair banded in green, white and blue; a single saturated green garment with
+feather-cut panelling; **one genuine deep-burgundy crocodile handbag** carried in
+one hand. She is couture, not comic — no beak, no wings, no feathers, nothing
+costume about her.
+
+She walks the length of the hall and the room parts for her without being asked.
+
+**THE ELDERLY GENTLEMAN IN THE WHITE SUIT** watches her come. He does not move.
+His hand rests on the gold grip of his black cane. This is the moment the room
+understands there are two of them now.
+
+**VALDER does not stand up to greet her — he has been standing the entire time
+and never sits.** He turns his head toward her, still wearing the warm
+ingratiating smile, and it sharpens for less than a second: **one corner lifts
+further, the look of a man watching a game get interesting.** It lasts less than a second and then his
+face is exactly as it was.
+
+CAMERA — the Anderson plan: **the red door opens dead centre and she enters ON
+THE AXIS**, walking straight toward a locked one-point frame at waist height.
+**Every head in the room tracks her IN UNISON** — one synchronized turn, then
+stillness. She stops; **the scene settles into a DUEL: she and the white-suited
+gentleman in exact profile, facing each other across the centreline**, Valder
+framed frontal midway between them. His quarter-smile plays in a brief centred
+frontal single. No handheld.
+
+Additional negatives: no crowd beyond ten people, no guards beside the parrot
+woman, no beak, no wings, no feathers, no bird mask, no costume, no fancy dress,
+no black clothing as anyone's main colour, no painting on the hero wall.
+
+
+===============================================================
+SCENE 10b — THE WAR · 20s · NUMBERS ONLY · new scene, CEO-ordered
+===============================================================
+References: loc_hall_big_e · char_gentleman_e · char_woman_c · char_registrar ·
+char_valder · char_critic_b · char_cleaner_c
+
+The bidding war the film was missing: **twenty million to eighty, spoken as
+nothing but numbers.** CTO drafted the numbers; the CEO owns them and may
+reassign who ends on eighty — he has said either rival may win it.
+
+CAMERA — the Anderson plan: **alternating FRONTAL SINGLES.** Each bidder faces
+almost straight into the lens, dead centre, and says only a number. Cut on every
+bid. Identical framing for both — the symmetry IS the duel. Between them, in a
+locked side profile at the frame edge, **THE REGISTRAR writes each number in the
+ledger**, pen scratching, face empty. Valder watches from midframe behind,
+delighted, the warm ingratiating smile at full power.
+
+    THE GENTLEMAN: "Twenty."
+    THE PARROT WOMAN: "Twenty-five."
+    THE GENTLEMAN: "Thirty."
+    THE PARROT WOMAN: "Forty."
+    THE GENTLEMAN: "Fifty."
+    THE PARROT WOMAN: "Sixty."
+    THE GENTLEMAN: "Seventy."
+    THE PARROT WOMAN: "Eighty."
+
+A long beat. **The gentleman looks at her, smiles — the gold teeth — and says
+nothing.** He concedes the way rich men concede: as if he has decided the object
+is beneath him. The registrar's pen writes the last number and stops.
+
+The room holds its breath at eighty million. Cut.
+
+*(16 spoken words. Pace the numbers evenly, one every ~2 seconds, metronomic —
+the rhythm is the comedy.)*
+
+Additional negatives: no other dialogue, no gavel, no auctioneer calls, no
+paddles, no raised numbers, no shouting, no crowd beyond twelve people, no press,
+no anyone but the two rivals speaking.
+
+
+===============================================================
+SCENE 11 — $100,000,000 · THE PEAK · 15s · NO DIALOGUE
+===============================================================
+References: loc_wall_pov_e · char_press · char_critic_b · char_oldman ·
+char_woman · char_woman_c · char_gentleman_e · char_guard_private ·
+char_guard_valder · char_cleaner_c
+
+**MINUTES AFTER THE HAMMER (CEO order: S12 → P3 → this scene).** The hundred-
+million sale broke instantly as news, and the world has just arrived.
+
+The same frame again, the fourth and last time. Camera behind the wall, cracked
+glass, crack dead centre, plaque low and mirror-reversed, never moving.
+
+**The plaque now reads $100,000,000.**
+
+The room beyond is at its peak and it has stopped being a gallery. **Press are
+inside now** — two journalists with a single shoulder-mounted retrofuturist film
+camera, filming the crack directly. STAGING — the Anderson plan: **three exact ranks facing camera** — guests in
+front, personal guards directly behind their employers, and the press pair at
+the two frame edges like bookends — every one in one saturated colour,
+alternating warm and cool.
+
+**Through the tall windows at the far end of the hall, a helicopter circles the
+building** — small, slow, unmistakable, seen through glass and never cut to.
+
+Everyone is still facing camera. Everyone is still looking at the crack. **The
+one thing that has not changed since Scene 3 is what they are looking at.**
+
+Dupe is still there at the edge of frame, still cleaning.
+
+15s. No dialogue. Room tone, the film camera's motor, and the far-off beat of
+rotors.
+
+Additional negatives: no crowd beyond sixteen people, no camera flashes, no
+microphones held up, no boom poles, no press scrum, no shouting, no smartphones,
+no television screens, no news graphics, no helicopter inside the building, no
+weapons, no rubble, no large crack.
+
+
+===============================================================
+SCENE 12 — THE GRANDMOTHER · 25s
+===============================================================
+References: loc_hall_big_e · char_grandmother · char_gentleman_e · char_woman_c ·
+char_valder · char_guard_valder · char_registrar · char_cleaner_c
+
+⚠️ USE `char_grandmother`. NOT `char_grandma` — two plates exist and the other
+one is superseded.
+
+Normal angle, wide. The room is at its fullest and its loudest.
+
+CAMERA — the Anderson plan, in order:
+1. **The RED DOOR OPENS dead centre at the vanishing point. A beat — the doorway
+   reads EMPTY at eye height**, because she sits below the sightline. A squeak
+   of wheels. Deadpan hold.
+2. **She rolls into view tiny on the centreline** and advances down the axis.
+   **Every head tracks her in unison.**
+3. A **low lateral dolly at wheelchair height, exact profile**, gliding with her
+   past the planted guests.
+4. The bid — the barely-raised hand — in the locked one-point wide, dead centre.
+5. **A fast chain of 90-degree WHIP PANS: guard → Valder → Dupe**, each landing
+   on a perfectly centred frontal face, each held half a beat.
+6. End: the whole room in a frozen class-photo tableau. Hold too long.
+
+**AN OLD WOMAN COMES IN THROUGH THE CROWD IN A RETROFUTURIST ELECTRIC
+WHEELCHAIR** — brushed aluminium and cream, big rear wheels, small front castors,
+**driving it herself** with a pod of chunky physical buttons under her right
+hand. Deep violet throughout: a cloth over her head and shoulders covering her
+hair completely, a plain long coat, **large dark rectangular smoked glasses that
+make her eyes unreadable.** No jewellery, no fur, no gold. She is not dressed
+like anyone else in the room and she is plainly not as rich as they are.
+
+She drives straight through the middle of them. She does not look at the
+gentleman in the white suit. She does not look at the parrot woman. She stops
+in front of the crack, and she looks at it for a long moment.
+
+Then she raises one hand, barely — the smallest bid in the room — and says,
+level, without emotion:
+
+    THE GRANDMOTHER: "A hundred million."
+
+**Nobody counters.** A silence with money in it.
+
+**THE REGISTRAR steps forward, writes the number, and CLOSES THE LEDGER — a
+soft leather clap, the only gavel this film has.** SOLD.
+
+**END ON THE REACTION, NOT ON HER.** A guard's face goes slack with surprise.
+The room freezes. And at the edge of frame **Dupe stops mid-stroke and stares** —
+because he is the only person in the building who knows what she has just bought.
+
+Camera: as the numbered Anderson plan above. Perfectly level throughout.
+
+Additional negatives: no crowd beyond sixteen people, no auctioneer, no gavel,
+no podium, no paddles, no bidding numbers held up, no wheelchair without wheels,
+no lounge chair, no joystick, no hospital equipment, no medical equipment, no
+nurse, no carer, no one pushing her chair, no black as her main colour, no
+jewellery, no fur, no gold V on her, no wooden floor.
+
+
+===============================================================
+SCENE 15 — DUPE CONFESSES · 25s
+===============================================================
+References: loc_hall_big_e · char_cleaner_c · prop_cart_b · char_valder ·
+char_gentleman_e · char_woman · char_grandmother · char_critic_b ·
+char_registrar · char_press_a · char_press_b
+
+Normal angle. The workman is at the wall with his bucket and float, about to
+put plaster over the crack. Valder is between him and it, shouting.
+
+**DUPE RUNS IN FROM THE EDGE OF FRAME AND PUTS HIMSELF IN FRONT OF THE WORKMAN.**
+It is the first decisive thing he has done in the entire film, and he does it to
+protect somebody else, not himself.
+
+He is out of breath. He speaks to the whole room and his voice is not raised.
+
+    "I cracked it. Last hour."
+
+**SILENCE.** Hold it. Every face in the room turns to him. Nobody speaks. He
+stands there in a white uniform with an orange trim and a gold V on his cap,
+holding a mop, having just told the truth to a room that paid a hundred million
+dollars for it.
+
+**And the room absorbs it.** The turn is not shock, it is recalculation — heads
+tilt, eyes move from him to the crack and back. One of them nods slowly, the way
+people nod when they have decided something is profound.
+
+    "Then the artist is the building."
+
+**THE PRESS ARE FILMING ALL OF THIS** — the confession goes out live (CEO: the
+press arrived after the sale and BEFORE the reveal). This broadcast is why the
+whole world knows Dupe's face by S18.
+
+**AND THEN THE GRANDMOTHER MOVES.** The squeak of wheels in the silence. She
+rolls forward until she is beside Dupe, looks up at the crack, then at him.
+
+    THE GRANDMOTHER, level: "I was not buying a wall."
+    THE GRANDMOTHER, to Dupe: "One hundred million. For the artist."
+
+*(CTO-drafted lines — the CEO owns them and confirmed the mechanism: the money
+goes to DUPE, not Valder. She bid on an artwork; the maker just confessed;
+she pays the maker.)*
+
+**THE REGISTRAR opens the ledger, strikes one line, writes another, and closes
+it a second time.** The room's theory said the building; the only person whose
+opinion is money says Dupe. **Cash settles authorship.**
+
+**END ON DUPE'S FACE** — a man who told the truth expecting punishment and
+received a hundred million dollars. He does not understand. He never will.
+
+CAMERA — the Anderson plan: Dupe runs IN ALONG THE AXIS and plants himself
+**DEAD CENTRE between Valder and the workman — a human shield, all three on one
+line, symmetrical**. "Sorry, sir." is delivered frontal, almost into the lens.
+Then **one clean slow push-in on him** through the confession. The room's slow
+nods happen IN UNISON at the frame edges. End held on Dupe's centred face one
+beat past comfortable. Handheld is banned.
+
+Additional negatives: no crowd beyond twelve people, no anyone laughing, no
+anyone shouting at him, no anyone grabbing him, no violence, no security removing
+him, no police, no comic reaction, no slapstick, no painting on the hero wall.
+
+
+===============================================================
+SCENE 16 — THEY SAW THE WALL OUT · 20s · NO DIALOGUE
+===============================================================
+References: loc_hall_big_e · char_valder · char_press · char_guard_valder ·
+char_cleaner_c
+
+The gallery, later. **Two workmen in plain overalls are cutting the wall out of
+the building** with a long-bladed saw, following a square line ruled around the
+crack. Plaster dust hangs in the warm light. The cut edge is clean and the
+inside of the wall is visible — timber, dust, the ordinary guts of a building.
+
+**Valder stands watching, perfectly straight, wearing the same warm ingratiating
+smile, hands at his sides.** The
+press film the saw. The guards keep a respectful distance from a piece of
+plaster.
+
+Nobody speaks. The only sounds are the saw, the dust, and the room.
+
+**Dupe is not helping. He stands apart, watching them cut, holding his mop.**
+
+CAMERA — the Anderson plan: **one locked symmetrical wide.** The square cut
+sits dead centre; the two workmen mirror each other left and right of it;
+**Valder stands centred in the FOREGROUND with his BACK to camera**, a still
+silhouette watching his wall become cargo. Nothing moves but the saw and the
+dust. Hold the final frame after the sawing stops.
+
+Additional negatives: no crowd beyond ten people, no cranes, no forklifts, no
+power tools with cables, no hard hats, no hi-vis vests, no scaffolding, no
+demolition, no collapse, no danger, no rubble beyond fine plaster dust.
+
+
+===============================================================
+SCENE 17 — THE SQUARE HOLE · 15s · NO DIALOGUE
+===============================================================
+References: loc_hall_big_e
+
+The gallery, empty and quiet. **On the wall there is now a clean square hole cut
+straight through it**, edges chipped, the building's insides visible, a scatter
+of plaster dust on the terracotta floor beneath. The brass plaque is gone with
+the wall.
+
+**One person walks in and stops in front of the hole.** They look at it. They
+tilt their head.
+
+**They take a single step backwards to see the whole thing at once — the exact
+same movement, from the exact same distance, as in Scene 4.**
+
+CAMERA — the Anderson plan: **the exact camera geometry of Scene 4** — locked
+one-point frame, waist height — with the square hole now occupying the crack's
+position on the axis. The visitor enters from frame edge, stops dead centre,
+tilts the head, **steps back exactly as the Scene 4 viewer did.**
+Hold on them one beat too long. Cut.
+
+Additional negatives: no dialogue, no other people, no crowd, no press, no
+guards, no plaque, no painting, no wall text, no rope barrier, no stanchions.
+
+
+===============================================================
+SCENE 18 — THE INTERVIEW, THEN THE HAMMER · 25s
+===============================================================
+References: loc_mansion · char_cleaner_rich · prop_camera_rig · prop_cart_b
+
+Interior, his house. Warm daylight through tall windows, sunken plum seating,
+warm wood, everything beautiful and chosen by somebody else. **His old cleaning
+cart stands in one corner, gold V and all — the only object in the room that is
+his.**
+
+**DUPE sits in a deep teal suit that fits him perfectly and that he is not
+comfortable in.** Hands together in his lap. A retrofuturist television camera on
+a rolling pedestal is pointed at him, a reporter just out of frame.
+
+    REPORTER: "How did you know?"
+
+He answers flatly, telling the same truth he has told all along.
+
+    DUPE: "I dropped a painting."
+
+**The reporter nods slowly, moved, and writes something else down.**
+
+**CUT.**
+
+Dupe stands alone in front of a fresh white wall. Nothing on it. **A hammer in
+his right hand.**
+
+He raises it.
+
+**STOP.**
+
+He lowers it. He stands there, hammer at his side, looking at the blank wall.
+
+**HOLD LONG. Then cut to black.**
+
+CAMERA — the Anderson plan:
+THE INTERVIEW — a locked frontal symmetric frame at waist height: **Dupe dead
+centre on the sunken plum sofa**, hands in his lap, facing camera; **the
+retrofuturist camera rig noses in from one frame edge as a foreground prop**;
+his old cart sits on the axis in the corner behind him. The reporter is a voice
+off frame.
+THE WALL — a vast, perfectly symmetrical white frame, **Dupe tiny at dead
+centre**, hammer in hand. Locked off. He raises it. STOP. He lowers it. **Hold
+the unmoved frame far past comfortable, then cut to black.**
+Nothing moves but him, in either setup.
+
+Additional negatives: no crowd, no audience, no studio lights in frame, no
+microphones on stands, no boom, no smartphones, no screens, no LEDs, no cables,
+no modern technology, no gold V on his suit, no jewellery, no watch, no smiling,
+no triumph, no tears, no music, no swing of the hammer, no impact, no damage to
+the white wall, no crack in the white wall.

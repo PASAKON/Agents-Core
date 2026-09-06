@@ -1,0 +1,288 @@
+
+**THE ART CRITIC — `char_critic_b` — how she speaks.** She is HALF-CHINESE and
+her face reads Chinese. She speaks English fluently but with a Chinese accent —
+the cadence and vowel shapes of a Chinese speaker using English well. State this
+in every prompt she appears in; the CEO asked for it explicitly.
+
+⚠️ CTO NOTE FOR THE CEO — S8 DOES NOT FIT IN ONE CLIP
+
+Valder's five acquisition stories run about 100 spoken words, and the sixth
+improvisation another 60. At a natural speaking rate that is roughly 65 seconds
+of dialogue. A Seedance clip is 20-25 seconds, which holds about 60 words.
+
+So S8 is written below as THREE clips — S8a, S8b, S8c. No line was cut, no line
+was changed. The five stories simply had to be dealt out across two clips, and
+the improvisation gets its own, which it should anyway — it is the pivot of the
+film and it deserves an unbroken take.
+
+Shot-count consequence: S8 costs 3 clips instead of 1, so 2 takes of it is 6
+clips, not 2.
+
+===============================================================
+SCENE 7 — VALDER ARRIVES · 20s
+===============================================================
+References: loc_hall_big_e · char_valder · char_guard_valder · char_gentleman_e ·
+char_woman · char_critic_b · char_cleaner_c
+
+VALDER walks into the hall. Tall, very thin, elderly, silver hair swept straight
+back, small round tinted sunglasses. A suit jacket panelled in magenta, yellow,
+green, blue and red over a scarlet waistcoat, purple trousers, a long mustard
+scarf, and two deliberately mismatched shoes — one green, one oxblood.
+
+HE SMILES CONSTANTLY WHILE HE SPEAKS — a warm, charming, faintly ingratiating
+smile, the smile of a man who wants to be liked and is extremely good at being
+liked. It is charisma, not menace, and it does not leave his face while he is
+talking. He also STANDS PERFECTLY STRAIGHT at all times — he never leans,
+slouches, sits or shifts his weight.
+
+His six guards follow in matching uniform, a small gold V at cap and chest.
+
+He walks past every guest without looking at any of them, and STOPS IN FRONT OF
+THE ELDERLY GENTLEMAN IN THE WHITE SUIT — small, elderly, sharp-nosed, white
+English tailoring, a black cane with a gold grip, a diamond ring, two bodyguards
+behind him.
+
+    "Sir. You should have told me you were coming."
+    "I would have had the room ready for you."
+
+The old man smiles — A FLASH OF TWO GOLD TEETH — and does not answer.
+
+Valder sweeps one hand slowly across the whole room, WITHOUT TURNING TOWARD THE
+FAR WALL.
+
+    "Then let me show you what you are standing in."
+
+DUPE is cleaning at the far edge of frame, back to the camera.
+
+CAMERA — the Anderson plan:
+**THE RED DOOR OPENS DEAD CENTRE AT THE VANISHING POINT and VALDER walks straight
+down the room's centreline TOWARD the camera**, which retreats ahead of him at
+exactly his walking pace, waist height, perfectly level — a frontal corridor
+walk. His six guards follow **in a symmetrical V formation behind him**, three a
+side. Guests stand planted at the frame edges like columns.
+
+He stops. The camera stops. **A single fast 90-DEGREE WHIP PAN** lands on the
+gentleman in the white suit — already perfectly framed, frontal, dead centre.
+
+**When the old man smiles: ONE FAST SNAP ZOOM straight to the two gold teeth,
+then hold.**
+
+Valder's hand-sweep of the room plays in a frontal medium two-shot, both men
+facing camera, symmetrical about the axis. No handheld.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows never pure black but deep red-brown, saturation
+high in flat planes but never touching skin, halation blooming around every lamp.
+Photographed, not rendered: fine film grain, halation, faint gate weave, slight
+colour fringing.
+
+20s · 720p · 16:9 · High · Sound On.
+
+
+===============================================================
+SCENE 8a — THE FIRST THREE PIECES · 20s
+===============================================================
+References: loc_hall_big_e · char_valder · prop_valder_chair ·
+prop_valder_trap · prop_valder_millstone · char_gentleman_e · char_woman ·
+char_cleaner_c
+
+Valder walks the room, standing straight, smiling, introducing his collection.
+The camera pushes in on each object as he names it, then returns to him.
+
+THE MUSTARD SWIVEL ARMCHAIR on its blue patterned rug:
+
+    "This chair was in the room where the armistice was signed. Not at the table.
+    In the corner. Nobody sat in it."
+
+THE LARGE WOVEN OVAL FORM hanging on wires:
+
+    "A fish trap. It caught nothing for forty years. The man who made it never
+    sold a single one."
+
+THE UPRIGHT STONE RING on its low plinth:
+
+    "A millstone. It ground grain for two hundred years. Then somebody stood it
+    upright. And it stopped being a tool."
+
+Guests follow him, listening. Nobody interrupts.
+
+CRITICAL: PEOPLE AND A CHROMIUM COLUMN BLOCK THE FAR WALL THROUGHOUT. Valder
+never sees the crack, never glances at it, and the camera never gives him a
+clear line to it.
+
+CAMERA — the Anderson plan: **one continuous LATERAL DOLLY at constant speed**,
+parallel to the wall, tracking Valder piece to piece, the listeners drifting
+behind him in a loose row. **As he names each object, cut to a ONE-SECOND locked
+PORTRAIT of it — dead centre, frontal, flat-lit, a catalogue plate** — then
+return to the moving master exactly where it left off. Three portraits, three
+returns. Level, unhurried, never handheld.
+
+Same colour grade and film treatment as Scene 7.
+
+20s · 720p · 16:9 · High · Sound On.
+
+
+===============================================================
+SCENE 8b — THE LAST TWO PIECES, AND THE TURN · 20s
+===============================================================
+References: loc_hall_big_e · char_valder · prop_valder_vessel ·
+prop_valder_study · char_gentleman_e · char_woman · char_critic_b
+
+THE DARK LIDDED VESSEL on its stepped plinth:
+
+    "Seventeen of these were made. He destroyed sixteen. He kept the one he liked
+    least."
+
+THE THICKLY PAINTED CANVAS on the white wall:
+
+    "He painted this in one afternoon, to test a colour. The finished work is in a
+    vault in Geneva. Nobody has ever asked to see it."
+
+Then he turns toward the far wall and RAISES ONE HAND to introduce the last
+piece.
+
+THE CROWD PARTS FOR HIM.
+
+END THE CLIP ON HIS FACE THE INSTANT HE SEES IT. His hand still raised. The
+smile completely unchanged. Do not show what he is looking at.
+
+CAMERA — the Anderson plan: the same lateral dolly and one-second object
+portraits as Scene 8a — two more catalogue plates. Then, for the turn: **the
+crowd PARTS SYMMETRICALLY, half stepping left and half right like theatre
+curtains opening on the axis**, and the camera **pushes straight down the
+cleared centreline** toward his face as the hand rises. End on his face, the
+push just settling, the smile unchanged.
+
+Same colour grade and film treatment as Scene 7.
+
+20s · 720p · 16:9 · High · Sound On.
+
+
+===============================================================
+SCENE 8c — THE SIXTH STORY · 25s · THE PIVOT OF THE FILM
+===============================================================
+References: loc_hall_big_e · char_valder · char_gentleman_e · char_woman ·
+char_critic_b · char_oldman · char_cleaner_c
+
+Continue exactly where 8b ended. Valder, hand still raised, facing the bare wall
+with the crack and the brass plaque. The painting is gone.
+
+HIS SMILE DOES NOT CHANGE. He does not flinch, does not blink hard, does not
+look at anyone.
+
+HE IS SILENT — two seconds, three. The hand stays up in the air. The whole room
+waits. Nobody moves. This silence is the most important beat in the scene; hold
+it.
+
+Then he speaks on, IN EXACTLY THE SAME VOICE HE USED FOR THE OTHER FIVE — same
+pace, same warmth, same certainty:
+
+    "And this one."
+    "I did not commission it. I did not buy it."
+    "It happened to my wall while nobody was looking."
+    "Every other thing in this room, someone decided to make."
+    "That one decided by itself."
+
+A pause.
+
+    "I have been collecting for forty years to find something that did not need
+    me."
+
+THE RAISED HAND LOWERS, SLOWLY.
+
+He is not lying and must never be played as lying. Every word is true; he has
+only rearranged them. By the last line he believes it himself.
+
+CAMERA — the Anderson plan: **one shot, one move — the slowest possible push-in
+dead on the axis, running the entire 25 seconds**, medium to close. Valder dead
+centre, frontal, framed down a corridor of parted guests in symmetrical rows.
+Nothing else moves. Nothing showy — the performance carries it.
+
+Same colour grade and film treatment as Scene 7.
+
+25s · 720p · 16:9 · High · Sound On.
+
+
+===============================================================
+SCENE 9 — DUPE HEARS IT · 20s · HE SAYS NOTHING
+===============================================================
+References: loc_hall_big_e · char_cleaner_c · prop_cart_b · char_valder ·
+char_gentleman_e · char_woman · char_critic_b · char_oldman
+
+VALDER'S DIALOGUE FROM SCENE 8c RUNS CONTINUOUSLY OVER THIS ENTIRE SHOT — same
+words, same take, unbroken, slightly distant and reverberant.
+
+**CEO REVISION 2026-08-28: Valder and the people who spoke in the previous scene
+ARE VISIBLE IN THIS SHOT, deep in the background and THROWN WELL OUT OF FOCUS.**
+Valder is among them, still talking, still wearing the warm ingratiating smile —
+we can tell it is him from the panelled colour of the jacket alone. The gentleman
+in the white suit, the woman in cobalt, the art critic and the elderly gentleman
+are gathered around him.
+
+They must be soft enough that **no face is readable and no mouth can be lip-read**
+— shapes and colours only. The point is that the audience can see the voice has a
+body and a room, twenty feet away, while Dupe stands in the foreground hearing his
+own accident being turned into a story.
+
+DUPE is mopping at the edge of the room, his back against the shadow of a
+chromium column, his cart beside him. THE REAL PAINTING IS LEANING AGAINST THE
+FRONT OF HIS CART, facing outward.
+
+    "…It happened to my wall while nobody was looking."
+
+HIS HANDS STOP.
+
+    "…Every other thing in this room, someone decided to make."
+
+SWEAT RUNS DOWN HIS TEMPLE. He does not wipe it.
+
+He looks at the painting on his cart. Then back toward the crowd.
+
+    "…That one decided by itself."
+
+HE OPENS HIS MOUTH.
+
+One second.
+
+HE CLOSES IT.
+
+He looks down and goes back to mopping. Same rhythm, same speed as before.
+
+    "…something that did not need me."
+
+CAMERA — the Anderson plan: **DUPE DEAD CENTRE, FRONTAL, waist height — a
+portrait** — the blurred Valder group deep behind him ON THE SAME AXIS, so the
+voice and the man hearing it share one line. **One continuous slow push-in runs
+the whole clip**, medium to close. His mop strokes are metronome-steady until
+the lines stop them. No cut, no handheld.
+
+Same colour grade and film treatment as Scene 7.
+
+20s · 720p · 16:9 · High · Sound On.
+
+
+===============================================================
+APPLIES TO ALL FIVE CLIPS ABOVE
+===============================================================
+no extra dialogue, no invented lines, no improvised speech, no voiceover, no
+narration, no subtitles, no captions, no on-screen text, no readable text
+anywhere except the brass plaque, no wall labels, no signage, no timecode, no
+watermark, no logos of real brands, no music, no score, no laugh track, no comedy
+sting, no crowd beyond nine people, no extras, no background figures, no press,
+no cameras, no flashes, no microphones, no gold V on any visitor, no gold V
+except on Valder's guards and on Dupe and his cart, no duplicate characters, no
+twins, no repeated faces, no cloned people, no Valder sitting, no Valder
+leaning, no Valder slouching, no Valder frowning, no Valder losing the smile, no
+Valder looking shocked, no Valder looking angry, no Valder looking sinister, no
+villain acting, no smirking, no knowing looks to camera, no winking, no anyone
+looking at the camera, no laughing, no comic expressions, no screens, no LEDs,
+no digital displays, no cables, no modern technology, no smartphones, no
+dissolve, no crossfade, no fade to black, no wipe, no whip pan except the single 90-degree whip pan specified in Scene 7, no morph, no
+slow motion, no speed ramp, no camera shake, no handheld wobble, no dutch angle,
+no tilted horizon, no zoom except the single fast snap zoom specified in Scene 7, no crane move, no drone shot, no lens flare, no
+anamorphic streak, no bokeh balls, no HDR, no digital gloss, no CGI sheen, no
+plastic skin, no smooth airbrushed faces, no beauty filter, no dirt, no grime,
+no squalor, no grey skin, no waxy skin, no horror imagery, no rain, no fog, no
+night, no darkness, no dim moody lighting, no brown murky colour grade, no large
+crack, no wall-spanning crack, no rubble on the floor, no structural damage, no
+ultramarine walls, no blue walls, no fountain, no wooden floor
