@@ -116,7 +116,7 @@ REFERENCES — each with a job:
   leaf-vein seams, sharply pointed shoulder caps, a tall standing collar; long
   green leather opera gloves; a towering pompadour streaked blue, green and
   silver-white; black cat-eye sunglasses. She never raises her voice once.
-@project_absence_prop_croc_bag — HER BAG, held in one gloved hand the whole
+HER BAG (no picture — describe it, do not look for one): a dark crocodile-skin handbag, held in one gloved hand the whole
   time: structured top-handle, polished deep OXBLOOD crocodile, gold clasp.
 @project_absence_char_valder — VALDER, between them: tall, slim, elderly,
   swept-back white hair, small round tinted sunglasses, a blazer panelled in
@@ -245,3 +245,15 @@ the prop/reference descriptions themselves (see report for detail). Full
 report: docs/reports/absence-wave-20260907-s2r-t1.md.
 
 === END NOTES ===
+
+TAKE 1 · 2026-09-07 · THREE FIRES, ALL "Rejected due to copyright restrictions"
+(02:07 with previz · ~02:55 with previz · 03:25 WITHOUT previz — same paste, 14
+chips, Unlimited). So the previz is not the trigger and the text names only
+Carrington/Valder, both proven on this lane. CTO analysis 04:05: the only S2R
+Elements that have never rendered on the UNLIMITED lane are
+@project_absence_char_woman_c (the Madame) and @project_absence_prop_croc_bag;
+S2Q "passed" with both, but on the CREDIT lane after the name strip — two
+variables changed at once, so the ledger's "it was the name" is unproven.
+FIRE 4 (this sheet as edited above): the croc-bag chip is dropped and carried
+as prose; if it still rejects, the Madame's Element is the flagged one and the
+CEO decides (credit lane, which passed S2Q, or a new Madame Element = paid).
