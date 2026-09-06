@@ -3,8 +3,8 @@
 ⚠️ TAKE 2 (2026-09-06 10:22, canon prose, S2M-Fix1-take2.MP4) — FLAGGED, crack
 ~4-5x the plate's, black core across the student's face; everything else in
 the shot passed. Second take in a row where the prose did not move the size.
-CTO hypothesis: "nearest thing to the lens / extreme foreground / floating at
-the very front" told the model the mark is CLOSE, and a close object is BIG in
+CTO hypothesis: the depth phrases (nearest-to-lens, foreground, at-the-front)
+told the model the mark is CLOSE, and a close object is BIG in
 frame — the model was doing perspective correctly. "Size of a hand" is a world
 size, not a frame size. TAKE 3 removes every depth word and anchors the size
 to something in the picture: no wider or taller than the red door. If take 3
