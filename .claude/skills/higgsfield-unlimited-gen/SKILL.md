@@ -1527,11 +1527,15 @@ proves nothing — only the readback counts, before every Generate.
 ## HARD · The Unlimited toggle can be COVERED — a click that "does not flip it" landed on the cover (CEO 2026-09-06)
 
 **The cover has a name (CEO 2026-09-06 12:15): the banner "Credits are running
-low! Over 90% already used".** It sits over the toggle/price area, it comes back
-after every reload, and it is what three workers were clicking on. FIRST ACTION
-in the composer, before Unlimited, before pasting: close that banner with its
-own (x). The CEO has said so explicitly — closing it is safe. Its warning is
-about credits, which Unlimited video does not spend, so it is never a blocker.
+low! Over 90% already used".** It is an UPSELL, not a fault: Higgsfield shows
+it whenever the account's paid credits are more than 90% used, on EVERY new
+tab and EVERY reload, and keeps showing it until the billing cycle resets or
+the CEO tops up (CEO 2026-09-06). It sits over the toggle/price area and is
+what three workers were clicking on. FIRST ACTION in the composer, on every
+tab and after every reload, before Unlimited, before pasting: close that
+banner with its own (x). Closing it is safe and wanted. Never act on its
+message — Unlimited video spends no credits, so it is never a blocker and
+never a reason to report "credits".
 
 Three workers in one day reported "clicked the Unlimited toggle once, it did
 not flip". The CEO, watching the screen, saw the cause: a toast (or the
