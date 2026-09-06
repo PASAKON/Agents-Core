@@ -1,5 +1,12 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
+⚠️ TAKE 1 PROSE (2026-09-06 22:20, from S2M/S2K/S2N/S2L): every depth word is
+out of the paste block ("floating at the very front", "just behind the mark"
+made the crack 4-5x too big elsewhere), the mark's size is anchored to the red
+door (four passes today at 1x-3x), and gaze is stated in camera terms (FACING
+THE CAMERA) — "she looks at the break" would turn her to the far door as S2M
+t3b did. Canon: PLATE-loc_wall_pov_e.md.
+
 S2I-Fix1 · THE STUDENT AND THE PRICE · CTO 2026-09-05
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
@@ -68,13 +75,14 @@ REFERENCES — each with a job:
   chromium trumpet columns receding in pairs, warm orange cove light along the
   ceiling, polished terracotta terrazzo, works on white plinths down both walls,
   the tall RED DOUBLE DOOR far off at the vanishing point. AND TAKE THE BREAK
-  ITSELF FROM IT. IT IS A CRACK, NOT A STAR: one small solid BLACK crack,
-  star-shaped, about the size of a hand, floating at the very front of the
-  frame in the plane where the wall was — the wall itself invisible, no hole,
-  no edges, no black surround — with every person behind it. COPY IT EXACTLY AS
-  THE PICTURE SHOWS IT AND NEVER CHANGE IT: not its shape, not its colour, not
-  its size. It appears exactly once, in shots ONE and THREE, and never as
-  damage on a wall in the background.
+  ITSELF FROM IT: THE MARK, from that picture and only from it. SAME PLACE IN
+  THE FRAME: over the far red door, in the upper middle of the picture. SAME
+  SIZE IN THE FRAME: a small patch, NO WIDER THAN THE RED DOOR AND NO TALLER
+  THAN THE RED DOOR, exactly as the picture has it and not one bit larger. SAME
+  SHAPE — thin lines meeting at one small dark point — and SAME SOLID BLACK.
+  Nothing about it is enlarged, thickened, extended or redrawn, and it never
+  touches or crosses anybody's face or body. It appears exactly once, in shots
+  ONE and THREE, and never as damage on a wall in the background.
 @project_absence_char_student_c — THE STUDENT: a young woman about twenty, short
   curly acid yellow-green hair, an oversized deeply saturated cobalt-blue coat
   whose sleeves swallow her hands so only her fingertips show, cheaper
@@ -97,8 +105,10 @@ REFERENCES — each with a job:
   corners, warm brass.
 
 SHOT ONE · [0s-6s] · THE VIEW FROM WHERE THE WALL WAS, looking out into the
-gallery. The wall itself is not visible; the small black crack floats at the
-very front of the picture, and everybody is BEHIND it, never in front.
+gallery — the location picture as it is. The wall itself is not visible; the
+small black mark sits over the far red door exactly as the picture has it, in
+front of everybody, and nobody passes in front of it. THE COUPLE AND DUPE FACE
+THE CAMERA — faces to the lens, not backs, not profiles to the far door.
 
 [0s] The gallery is quiet. Far off, to the right of the mark, THE COUPLE stand
 together: the woman in the chestnut fur crying, her partner in cobalt close
@@ -122,10 +132,11 @@ Dupe goes on working and does not look over.
 SHOT THREE · [10s-16s] · CUT BACK TO THE VIEW FROM WHERE THE WALL WAS, exactly
 the frame of shot one, the mark the same shape in the same place at the very
 front. TIME HAS MOVED ON WHILE WE WERE AWAY: the student has crossed the rest
-of the hall and is now standing close, just behind the mark, filling much of
+of the hall and is now standing close, FACING THE CAMERA, filling much of
 the frame.
 
-[10s] She looks at the break. She takes it in for a moment, entirely serious.
+[10s] She stands facing the camera and takes it in for a moment, entirely
+serious.
 [13s] Then, fast and flat, to nobody in particular and with complete
 confidence: "It's anti-capitalist. Obviously."
 [14s] NOBODY TURNS TOWARD HER. The couple do not look up. Dupe does not look
@@ -186,16 +197,18 @@ lighting, no darkness, no night, no blue walls, no wooden floor.
 
 REVIEW ORDER:
 0. THE MARK, before anything else (CEO 2026-09-06): ONE small solid-BLACK
-   crack, star-shaped, about a hand across, at the very FRONT of the frame with
-   every person behind it, exactly the plate's shape. Bigger than a hand, thick
-   heavy arms, arms reaching the frame edge, a line across anyone's face, pale
-   or grey, a hole with edges, a black surround, or a second mark = FLAGGED:
-   file it and re-fire.
+   star-shaped crack over the far red door, NO WIDER AND NO TALLER THAN THE
+   DOOR (about 1x — today's rolls ranged 1x-3x; a 5x monster or arms across a
+   face = FLAGGED), off every face, exactly the plate's shape, in shots ONE and
+   THREE only.
+0b. EVERYONE AT THE MARK FACES THE LENS in shots one and three — faces, not
+   backs, not profiles to the far door (the student walks TOWARD us in shot
+   one, so she faces the lens by construction).
 1. FIVE SHOTS, cut at 6s, 10s, 16s and 18s, every one locked off.
-2. SHOTS ONE AND THREE ARE FROM WHERE THE WALL WAS — the small black mark at
-   the very front, everybody behind it. If the mark is a hole with edges or a
-   black surround, or if it plays as an ordinary view of a cracked wall from
-   the room side, the scene's one trick is gone.
+2. SHOTS ONE AND THREE ARE FROM WHERE THE WALL WAS — the small black mark over
+   the far red door, everybody facing the lens. If the mark is a hole with
+   edges or a black surround, or if it plays as an ordinary view of a cracked
+   wall from the room side, the scene's one trick is gone.
 3. THE MARK MATCHES THE PLATE and appears ONLY in shots one and three. A
    geometric star, straight radiating bars, or a second crack in the background
    is the failure this whole re-render exists to stop — re-fire.
