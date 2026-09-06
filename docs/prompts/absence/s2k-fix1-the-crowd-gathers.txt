@@ -39,6 +39,17 @@ Previz: docs/S2K-Render.MP4 — 1280x720 / 288 frames / 12.0s.
 
 Filing: All Scene/Fix-1/ as S2K-Fix1.MP4.
 
+⚠️ TAKE FIRED 2026-09-06 ~08:40 (S2K-Fix1.MP4) — FLAGGED, RE-FIRE. Camera
+still, couple two women, crying small, maroon man alone far off, six people —
+all pass. THE CRACK FAILS ON SCALE: it is the right concept (a star floating in
+front of the red door, matching the plate) but rendered about five times the
+plate's size with thick heavy arms, and because the four women stand at the wall
+plane its arms are drawn across their faces. Cause: the reference paragraph
+described a big dramatic crack in loving detail (arrowhead, four long arms, a
+bead, a barb) and said nothing about size; the plate shows a hand-sized mark.
+Prose beat plate on SCALE. Rewritten to lead with size, in the CEO's own words
+from PLATE-loc_wall_pov_f.md.
+
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
@@ -105,20 +116,14 @@ REFERENCES — each with a job:
   light along the ceiling, the polished terracotta terrazzo, the works on their
   plinths down both sides, the tall red door far off at the vanishing point,
   and THE BREAK ITSELF seen from inside.
-  THE BREAK, read off that picture exactly: a star-shaped opening whose centre
-  is a SOLID BLACK ARROWHEAD POINTING DOWN, broad at the top, tapering to a
-  point at the bottom, with a short HOOKED SPUR curling off its upper right
-  like a comma and a notch at its upper left. FOUR long arms leave it and no
-  more: one rising at 12 o'clock with a single oval bead a third of the way up;
-  the longest and heaviest climbing toward 1:30, lumpy and kinked once; one
-  running down-left at 9:30, thinner, ending in a fine point; one falling
-  down-right at 4:30 that kinks partway and throws a small barb near its
-  needle-sharp end. Every arm is BEADED — swelling into small dark lozenges and
-  pinching back to a hairline several times along its length, never a smooth
-  taper.
-  THE BREAK APPEARS EXACTLY ONCE. In this shot the camera sits inside it, so it
-  reads as the black silhouette at the very front of the picture. It is not
-  also on a wall behind the people, and no other surface in the room is damaged.
+  THE BREAK, read off that picture exactly — AND ABOVE ALL ITS SIZE: it is
+  SMALL. A delicate star about the size of a hand, floating where the wall was,
+  high in the frame in front of the far red door, with a few short thin
+  branches. It is a mark you could cover with your palm. Take its exact size,
+  shape and position from the picture and DO NOT ENLARGE IT: no full-height
+  fracture, no spiderweb, no thick heavy arms, no arms reaching the edges of
+  the frame, no lines drawn across anybody's face or body. The whole joke of
+  the film is that this tiny mark is what everybody has come to see.
 @project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
   silver-streaked hair swept up, full-length deep magenta fur coat, long cream
   gloves, gold bracelets, cream heels.
