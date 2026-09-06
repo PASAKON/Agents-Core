@@ -1,0 +1,85 @@
+# FIRE PLAYBOOK — «Sorry, Sir» Unlimited fires (browser_operator)
+
+Every fire brief says "follow FIRE-PLAYBOOK.md" and gives only: scene, sheet,
+duration, chip count, previz file, Drive filename, review items. Everything
+below applies to every fire. Written 2026-09-06 23:05 from the day's passes.
+
+PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY
+("The Valder Collection No.7"). UNLIMITED video only — zoom the button, ZERO
+digits. ZERO PAID ACTIONS: nothing priced above a struck-through zero, no
+image generation, never click a paid control twice, never touch the CEO's
+cards (they start `SEEDANCE 2.5 CREDIT`), leave the NSFW-rejected S2M take-3
+card alone. Seedance 2.5 Unlimited grant expires Sep 9 — and the plan flips to
+Plus on Sep 7 at 18:18 ICT, after which the grant may stop: every fire before
+then is free, so never let the slot idle.
+
+## 0 · Worktree
+`git merge main` first. Run the sheet's gate greps on the PASTE BLOCK ONLY:
+`awk '/PASTE FROM HERE/{p=1;next} /PASTE STOPS HERE/{p=0} p' <sheet>` piped to
+grep — the notes above/below the block are never pasted and may quote banned
+words. Expect: `NO WIDER THAN THE RED DOOR` → 1 on wall-POV sheets;
+`nearest|extreme foreground|very front|floating|toward the mark|backs to the room`
+→ 0. Mismatch → STOP and report; never fire from a stale sheet.
+
+## 1 · Browser
+- Fresh tab, claim it in the tab registry, release it at the end. Never touch,
+  reload, resize or close another worker's tab or the window size.
+- Maximise (>= 1280) and PROVE it: `({w: window.innerWidth, h: window.innerHeight})`
+  — only the readback counts; `resize_window` has lied. Below 1280 = the
+  mobile lockup (no Unlimited, Generate disabled) → close the tab, open another.
+- FIRST ACTION in the composer: close the banner "Credits are running low!
+  Over 90% already used" with its own (x). It is an upsell; it returns on every
+  reload and covers the Unlimited toggle. Never act on it, never click
+  "elsewhere" to dismiss it (that selects an asset card and collapses the composer).
+- Video tab (the composer opens in Image mode — switch first, confirm nothing
+  fired) → Seedance 2.5 explicitly → 16:9 · 720p · the brief's duration (ARIA
+  slider, ArrowRight, never typed) · High · Sound On. Setting the duration
+  RESETS Unlimited: toggle Unlimited AFTER the six fields, then zoom the
+  button: `UNLIMITED · ~~<price>~~ · 0`. A toggle click that "does nothing"
+  hit a cover — `document.elementFromPoint(x,y)`, close the cover by its own
+  control, click the real toggle via javascript_tool. The zoomed screenshot is
+  the authority; a JS scrape can read a decoy element.
+- PROMPT: paste ONLY the block between "PASTE FROM HERE" and "PASTE STOPS
+  HERE" with the base64 synthetic paste, then the End→space→Backspace tap so
+  Lexical binds the chips (worked on S2L t6, S2K t2, S2M t4). Chip gate:
+  `python3 scripts/prompt-lint.py --chips <sheet>` gives the unique names; the
+  composer must show them lime:
+  `[...document.querySelectorAll('[contenteditable="true"] span.text-font-brand')].filter(e => !e.querySelector('span') && e.textContent.trim().startsWith('@')).length`
+  — count unique names, 0 red/unresolved '@'. If the paste leaves names
+  unresolved, bind each by typing @ and selecting (slow — say so).
+- PREVIZ (if the brief names one): attach via the reference panel's file
+  input, verify the platform's reported size equals `ls -l`'s byte count (the
+  picker's "Last used" sort shows a stale asset first). 10-minute cap: stuck at
+  "Checking eligibility" / readyState 0 → remove it and fire without it,
+  flagging the take. Removing a stuck tile can leave Generate disabled — a
+  reload clears that but resets Unlimited; re-toggle, re-zoom, re-count chips
+  (a detach can silently delete an adjacent chip).
+- FIRE: Generate is the very last action with nothing in flight. Verify by a
+  "Generation started" toast / new Processing card AND the asset count going
+  up by one — read the count first; the CEO may fire on the Credit lane at any
+  time, so confirm YOUR card. No toast after 60 s → reload, count cards; only
+  if the count did not change, one JS `.click()` on the $0 button, and say so.
+
+## 2 · After the fire
+Poll every 5 minutes with a reload (a stale tab lies; if background sleeps get
+killed by low memory, poll anyway). Renders took 30-55 min today. Finished
+card shows "NSFW / Credits refunded / sensitive content" → screenshot, STOP,
+report, do not re-fire. Otherwise: info icon (a copyright rejection is
+invisible in the composer) → download → ffprobe 1280x720 / duration → file to
+Drive All Scene/Fix-1/ under the brief's filename with
+`scripts/gdrive-bridge/upload_fix1.py` (appends the logs.txt line). Whatever
+the verdict, it is filed.
+
+## 3 · Checks (frames at 0.5s, 3s, mid, end — `ffmpeg -ss <t> -i <file> -frames:v 1 <png>`, LOOK)
+Wall-POV sheets: 0 THE MARK — one small solid-black star-shaped crack over the
+far red door, as close to 1x the door as it comes (today's rolls: 1x-3x; a 5x
+monster or an arm across a face = FLAGGED), off every face. 0b faces to the
+lens, not backs/profiles to the far door. 0c every named character present.
+Then the sheet's own REVIEW ORDER. Report PASS/FLAGGED per item with the size
+in words and the frame paths. Then STOP — one fire per task.
+
+## 4 · Report
+docs/reports/<brief's path> — innerWidth readback, banner closed yes/no, six
+fields, price zoom, paste method + chip count, previz yes/no + byte check, fire
+time + how verified, render duration, NSFW yes/no, info-icon, Drive filename +
+link, verdicts with frame paths, anything odd. Commit, submit_report, STOP.
