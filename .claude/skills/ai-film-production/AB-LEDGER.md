@@ -126,6 +126,11 @@ CONFIRMED on S2K take 2 (2026-09-06 16:19, S2K-Fix1-take2.MP4): same two
   template for S2N t2 and S2L t6.
 CONFIRMED AGAIN on S2N take 2 (17:38): mark about 1x the door. But S2N t2
   inverted the gaze — backs to the lens from 0s (see PENDING: S2N gaze).
+VARIANCE, five takes on the same anchor (2026-09-06): S2M t4 1x, S2K t2 1x,
+  S2N t4 1.5x, S2N t3 2x, S2L t6 3x the door. The frame anchor removes the 5x
+  monster and the face-crossing arms every time, but the size still rolls
+  between 1x and 3x. If the editor needs one identical crack across cuts, an
+  overlay at edit time is the only exact tool; the prompt gets you "small".
 
 ### S2N · the five's gaze · take 2 → 3 · gaze passed 2026-09-06 18:55 (S2N-Fix1-take3.MP4)
 DEFECT SEEN: take 2 — backs to the lens from 0s, facing the far door before it
