@@ -1,0 +1,98 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
+✅ S7 RE-SHOOT — THE VIDEO-REF STANDARD'S FIRST REAL FIRE (CEO approved 12:45)
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+UNLIMITED GENERATE ONLY — zoom the Generate button, ZERO digits, every time.
+
+HOW TO STAGE: attach the uploaded previz (+ panel → Recent → tile "Added to
+prompt box") so @Video 1 resolves, then paste THIS ENTIRE TEXT as the prompt.
+⚠️ @Video 1 IS A CHIP EXACTLY ONCE — the first mention only. Later
+references are plain words on purpose; do NOT convert them to mentions.
+11 chips total (1 video + 10 elements). If the composer refuses the 11th chip,
+drop @project_absence_char_visitor_b AND delete her one description line.
+
+=== THE PROMPT (paste from here down) ===
+
+the reference video (Video 1) is the CAMERA REFERENCE for this entire shot — a 20-second gray
+previz of THIS exact scene. FOLLOW ITS CAMERA EXACTLY, beat for beat:
+[0-7s] the camera RETREATS backward down the hall's centreline at walking
+pace, perfectly level at waist height, while VALDER walks toward the camera
+from the red door; [7s] the camera STOPS and makes ONE FAST 90-DEGREE WHIP
+PAN left, landing on the GENTLEMAN frontal and dead centre; [13s] ONE FAST
+SNAP ZOOM punches in to his gold teeth; [16-20s] frontal medium two-shot,
+held. No other camera movement exists in this shot.
+
+POSITION MAP — every figure in the reference video (Video 1) stands EXACTLY where its character
+must stand; replace each gray/coloured proxy with its real character, same
+spot, same path, same timing. Nothing may move to a different position than
+its proxy in the video, and EVERY CHARACTER APPEARS EXACTLY ONCE — one
+proxy, one person, never both a mapped character AND a leftover gray figure:
+- the MAGENTA figure labelled VALDER = @project_absence_char_valder
+- the TWO dark figures flanking him, one at each shoulder = his TWO guards,
+  uniform and faces from @project_absence_char_guard_valder_two — EXACTLY
+  ⚠️ THE PLATE NOW CONTAINS EXACTLY TWO MEN — bind it whole; the old
+  six-guard plate is retired. They walk ONE AT VALDER'S LEFT SHOULDER and
+  ONE AT HIS RIGHT, a pace behind, from the moment he enters a scene until
+  he leaves it. Never six, never a V formation, never a third.
+  TWO guards, not six
+- the WHITE figure labelled GOLD-TOOTH = @gentleman_e (small, sharp-nosed,
+  white English tailoring, black cane with gold grip, diamond ring, TWO GOLD
+  TEETH)
+- the dark figure behind him = his ONE bodyguard, plain dark suit
+  (@project_absence_char_guard_private)
+- the figure labelled DUPE with the cart at the far edge =
+  @project_absence_char_cleaner_c, back to camera, the landscape painting
+  riding his cart face outward
+- the planted guests at the frame edges, by label: OLDMAN =
+  @project_absence_char_oldman (bottle-green leather coat, cane) · CRITIC =
+  @project_absence_char_critic_b (deep magenta fur, cream gloves, grey bun,
+  half-Chinese) · VISITOR-B = @project_absence_char_visitor_b (rust-brown fur
+  coat) · HUSBAND = @project_absence_char_husband (olive-tan jacket) ·
+  STUDENT = @project_absence_char_student_c (acid lime-green hair,
+  paint-stained denim). Five guests, planted like columns, nobody else.
+- the hall itself — white walls, orange cove light, chromium trumpet
+  columns, terracotta terrazzo, red double door at the vanishing point —
+  = @loc_hall_big_e exactly.
+
+the reference video (Video 1) carries ONLY camera path, timing, and positions. It is NOT a style
+reference: take ALL light, colour, texture, costume and faces from the
+Elements and this text — warm shadow, cold white grade; amber-orange
+highlights, whites pushed slightly cool, shadows deep red-brown, halation;
+photographed, not rendered: film grain, faint gate weave.
+
+VALDER: he SMILES CONSTANTLY while he speaks — warm, charming, faintly
+ingratiating. He STANDS PERFECTLY STRAIGHT, never leans or slouches.
+
+[7s] Valder stops in front of the gentleman; whip pan lands. Valder says it
+warmly, delighted, smiling the whole time: "Sir. You should have told me you
+were coming." Then, still warm: "I would have had the room ready for you."
+
+[13s] The old man smiles — the snap zoom lands on the TWO GOLD TEETH, hold.
+He does not answer. THE GLINT, played absolutely straight: a small bright
+STAR OF LIGHT flares off one gold tooth with a single clean 'ting' — a
+cartoon toothpaste twinkle on a face that is not selling anything — and
+MIRRORED IN THE POLISHED GOLD OF THE TOOTH, curved and doll-sized: the
+REFLECTION OF VALDER IN HIS PANELLED COAT WITH HIS TWO GUARDS, one either
+side. Nobody reacts to the twinkle.
+
+[16s] Frontal medium two-shot, both men facing camera, symmetrical. Valder
+sweeps one hand slowly across the whole room WITHOUT turning toward the far
+wall and says, charming: "Then let me show you what you are standing in." At
+the far edge, Dupe cleans with his back to camera — the painting in plain
+sight on his cart. Nobody looks at it. Nobody ever looks at it.
+
+AUDIO: room tone, his footsteps and the two guards' in step, ONE tiny bright
+chime on the tooth glint — a single clean 'ting'. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no duplicate characters, no twins, no character
+appearing twice, no proxy rendered as an extra person, no stage directions spoken aloud, no narration, no
+speaking anything outside the quotation marks, no dialogue beyond Valder's
+three lines, no six guards, no V formation of guards, no third guard, no
+second bodyguard behind the gentleman, no invented guests, no strangers in
+the row, no crowd beyond the named people, no camera movement beyond the
+retreat + one whip pan + one snap zoom, no handheld, no dutch angle, no
+plaque, no lettering, no readable text anywhere, no music, no score, no
+gold V on anyone but Valder's guards and Dupe, no smartphones, no modern
+technology, no slow motion, no lens flare except the single tooth glint, no
+HDR, no CGI sheen, no plastic skin, no beauty filter, no dim moody lighting,
+no darkness, no night, no ultramarine walls, no blue walls, no wooden floor

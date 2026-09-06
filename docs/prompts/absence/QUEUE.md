@@ -53,6 +53,133 @@
 > unflagged-but-superseded takes also sit in Drive and are not keepers:
 > S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
 
+> # 💂 ENTOURAGE LOCKED (CEO 17:35, 30 Aug)
+> Two standing facts, now true in EVERY scene, swept across all prompt files:
+> - **VALDER TRAVELS WITH EXACTLY TWO GUARDS.** The six-guard plate is the
+>   reason takes kept rendering six men, so it is RETIRED. New plate
+>   `@project_absence_char_guard_valder_two` contains exactly two men and is
+>   bound WHOLE. They walk one at his LEFT shoulder and one at his RIGHT, a
+>   pace behind, from the moment he enters a scene until he leaves it.
+> - **THE GOLD-TOOTHED GENTLEMAN HAS ONE PERSONAL BODYGUARD, ALWAYS.** He was
+>   bound in only 3 of the 13 scenes the gentleman appears in; all 13 now
+>   carry him — as a chip where the budget allowed, as an explicit
+>   description in S7, S14 and S15a which were already at 10 chips.
+> Both counts are now stated in the beats AND in the negatives, per the iron
+> rule. Any take that shows six guards, a V formation, or the gentleman alone
+> is a defect.
+
+> # 🔁 THE REVIEW LOOP IS NOW MANDATORY (CEO 17:20, 30 Aug)
+> Generate → **CTO inspects the frames** → fix the prompt → hand it back →
+> Worker regenerates → **reports back WITH the exact prompt used** → CTO
+> passes it. No clip counts as reviewed until the CTO has personally opened
+> frames from it.
+> - **The operator returns EVERY finished clip to the CTO together with the
+>   exact prompt text that produced it.** Not a summary of the prompt.
+> - **EVERY CLIP IS SAVED TO DRIVE — pass or fail, always.** A rejected take
+>   is filed with a `-FLAGGED-<reason>` suffix and kept forever. Nothing is
+>   ever discarded.
+> - CTO checks, every clip: duplicate characters · correct location ·
+>   correct camera angle · anything the prompt banned that appeared anyway.
+> - **Duplicate characters are fixed on sight, no asking.** Everything else:
+>   ask the CEO first, and batch the questions rather than interrupting per
+>   clip.
+> Measured cost of skipping this: four clips shipped as keepers on the
+> operator's word alone; when the CTO finally looked, S8c had TWO Valders and
+> S5 had a gold V on a visitor's coat its own prompt banned.
+
+> # 🗂 REGISTRAR ID CHANGED (CEO 17:05, 30 Aug)
+> **`@project_absence_char_registrar_b` is the ONLY registrar id now.** The
+> bare `@char_registrar` is RETIRED — never write it again. Every prompt file
+> was swept and updated (11 files); the old "bind FACE ONLY until
+> char_registrar_b exists" instruction is gone because the plate now exists
+> and carries the full look: formal BLACK suit, WHITE GLOVES, small GOLD V,
+> brass-cornered ledger. Bind the new plate whole.
+> He is both the price-knocker (his ledger-close is the film's only gavel)
+> and the plaque-changer — one man, both duties. Appears in S5, S12c, S14,
+> S16 and the P-series plaque inserts.
+
+> # ⚔️ IRON RULE — EVERY CHARACTER APPEARS EXACTLY ONCE (CEO 13:15, 30 Aug)
+> «หลายซีน Character ออกมาซ้ำ — ใส่ไว้เป็นกฏเหล็กของการเขียน Prompt เลย»
+> Every prompt carries both halves: counts stated in the beats ("his TWO
+> guards and no others", "exactly ONE Dupe"), and the verbatim negative
+> `no duplicate characters, no twins, no character appearing twice` — plus
+> `no proxy rendered as an extra person` whenever a video ref is attached.
+> Already applied to every scene file and the S7 re-shoot prompt. Full rule
+> in higgsfield-unlimited-gen.
+
+> # 👵 S12 IS NOW THREE SCENES (CEO comedy rewrite 12:50, 30 Aug)
+> «20วิแรก ยายมาไม่ถึงซักที ... รถกระตุก เสียงลากยาว ดับ ติดใหม่ ... บางคน
+> ยืนอ้าปาก บางคนเดินหนี เพราะมันช้า» — the grandmother's arrival is now a
+> slowness gag across S12a/S12b, and the bid moved whole into a new S12c:
+> - **S12a — THE SLOWEST ARRIVAL**: multi-cut comedy. Wheelchair jerks,
+>   stalls, motor dies, restarts; LOW WHEEL CLOSE-UP; onlookers frozen,
+>   mouths open; one guest walks away; she NEVER arrives in this clip.
+>   Everyone stands along the side walls at the paintings — centre aisle
+>   empty, nobody beside her.
+> - **S12b — SHE ARRIVES · THE ROOM PARTS**: one locked reverse one-point;
+>   crowd parts slowly down the middle; she rolls through, stops at the
+>   crack, looks; total silence; frozen tableau. No dialogue.
+> - **S12c — A HUNDRED MILLION**: the old S12b whole — her line, the
+>   registrar's ledger-clap gavel, the whip chain guard→Valder→Dupe, the
+>   class-photo tableau. Nothing was cut (CEO picked "เพิ่มเป็น S12c").
+> Story queue gains one scene. Wave-3 shoots S12a → S12b → S12c in order,
+> each with its previz ref per the new standard once its SX-Render.MP4
+> exists.
+
+> # 🎥 S7 RE-SHOOT: BLENDER CAMERA REF APPROVED (CEO 12:10, 30 Aug)
+> CEO watched `S7-Blender.MP4` and ruled: «ผ่าน ใช้เป็น ref ตอน S7 re-shoot
+> ได้เลย». His standing interpretation of the festival rules: Blender / After
+> Effects / cutting tools are EDITING-CLASS tools and exempt — generation
+> still happens on Higgsfield. This previz is a CAMERA/MOTION reference, not
+> content.
+> - The file is on this Mac at `docs/S7-Blender.MP4` (20s · 1280x720 · 24fps,
+>   ~1MB). Also on winbox at `C:\Users\UsEr\Downloads\S7-Blender.MP4`.
+> - **When the S7 re-shoot reaches the front of the back-queue**, the operator
+>   shoots it WITH this ref: bind the normal S7 Elements + corrected text
+>   (TWO guards · ONE bodyguard · gold-tooth GLINT gag · WHO IS IN THE ROOM
+>   block), AND attach the MP4 as the video/motion input.
+> - **HOW — CEO's own method (12:15, 30 Aug), use exactly this:**
+>   1. **Drag-and-drop the MP4 onto the Seedance 2.5 PROMPT BOX** (the same
+>      box you paste prompts into). It uploads into the project and becomes a
+>      referenceable item.
+>   2. **In the prompt text, reference it as `@Video 1`** — same mention
+>      mechanics as Element chips. Verify the mention resolves to a chip, the
+>      same check as every other mention.
+>   3. **Element chips stay exactly as normal** alongside it — the video
+>      carries the CAMERA, the Elements carry faces/costumes/location.
+>   For an automated operator, the drop can be done with
+>   `mcp__claude-in-chrome__file_upload` on the composer's file input if
+>   drag-and-drop is awkward — the outcome to verify is the same: a video
+>   chip/thumbnail present, `@Video 1` resolving in the prompt.
+> - **If `@Video 1` does not resolve** or the box rejects the file: report
+>   back — do NOT improvise frame-extraction as image refs without a CTO/CEO
+>   call.
+> - Money rules unchanged: Unlimited $0 check before the click, one gen at a
+>   time, never Rerun.
+
+> # 👥 CAST + HEAD-COUNTS FIXED (CEO 10:10, 30 Aug)
+> «คนที่เดินตาม Valder เข้ามาขอแค่ 2 คนพอ ซ้ายคน ขวาคน แบบบอดี้การ์ด» ·
+> «ผู้ติดตาม Bodyguard ของชายฟันทอง แค่คนเดียวพอ» ·
+> «ตัวละครใส่ให้ครบหน่อยในนี้ REF ไม่ครบเลย»
+> - **Valder has EXACTLY TWO guards**, one at each shoulder. The
+>   `char_guard_valder_two` plate is bound for UNIFORM AND FACES ONLY — take
+>   the look, never the count. Applied to S7 and to every later scene that
+>   binds it (S10, S11, S14, S16).
+> - **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two. Applied
+>   to S6, S7 and S12a.
+> - **Every scene file now opens with a WHO IS IN THE ROOM block.** Any scene
+>   saying "guests", "the crowd", "the bidders" means the FIVE NAMED ARRIVALS
+>   and nobody else — oldman, critic_b, visitor_b, husband, student_c — each
+>   listed with its costume. An unnamed guest is an invented guest.
+> - **S7's references were rebuilt**: the four named arrivals replaced the
+>   generic `char_woman`, landing exactly on the 10-chip budget.
+> - **NEW GAG in S7 [13s]**: the gold tooth throws a cartoon TWINKLE with a
+>   single 'ting', and mirrored in the tooth — curved, doll-sized — is VALDER
+>   WITH HIS TWO GUARDS. Nobody reacts.
+> - ⚠️ S7 take1 is ALREADY a filed keeper, shot before these notes. The
+>   corrected S7 is a RE-SHOOT and goes to the BACK of the queue per the
+>   standing rule «ฉากแก้เอาต่อท้ายเสมอ».
+
 > # 🧱 NO NEW IN-WALL POV PLATES (CEO 04:30, 30 Aug)
 > Verbatim: «ไม่ต้องสร้างภาพมุมมองในกำแพงใหม่นะ ใช้มุมมอง ข้างหน้ากำแพงบ่อยๆ
 > ดีกว่า เรามี ref ที่ใช้งานได้จริง»
@@ -109,10 +236,10 @@
 > - **THE REGISTRAR is recostumed: FORMAL BLACK suit** — sober, immaculate —
 >   with **WHITE GLOVES** and the **small GOLD V** at the chest, ledger as
 >   always. He is the price-knocker AND the plaque-changer, one man. Bind
->   `@char_registrar` FACE ONLY + state the black suit in text until
+>   `@project_absence_char_registrar_b` FACE ONLY + state the black suit in text until
 >   `char_registrar_b` exists.
 > - **IMAGE LANE'S JOB CHANGES: generate `char_registrar_b`** — 4-panel
->   character sheet, SAME FACE as `@char_registrar` (bind it), formal black
+>   character sheet, SAME FACE as `@project_absence_char_registrar_b` (bind it), formal black
 >   suit, white gloves, gold V at chest, brass-cornered ledger in hand in one
 >   panel, ONE face, 16:9 2K, id BY HAND `char_registrar_b`.
 > - ⚠️ S15a/S15b keepers show the registrar in the old ivory livery — accepted
@@ -429,7 +556,7 @@
 > tag and a reference that never binds.
 >
 > CONFIRMED LIVE (operator read them off the Elements panel):
-> - bare: `@char_registrar` · `@loc_wall_pov_e` · `@loc_hall_big_e` ·
+> - bare: `@project_absence_char_registrar_b` · `@loc_wall_pov_e` · `@loc_hall_big_e` ·
 >   `@prop_cart_b` · `@gentleman_e`  ← note: NO `char_` on this one
 > - prefixed: `@project_absence_char_cleaner_c` ·
 >   `@project_absence_char_valder` · `@project_absence_char_grandmother` ·
@@ -458,7 +585,7 @@
 > short form; always the full confirmed id below.
 >
 > **BARE (no `project_absence_` prefix) — 8, all confirmed live:**
-> `@char_registrar` · `@gentleman_e` · `@char_gentleman_c` ·
+> `@project_absence_char_registrar_b` · `@gentleman_e` · `@char_gentleman_c` ·
 > `@loc_wall_pov_e` · `@loc_wall_pov_d` · `@loc_hall_big_e` ·
 > `@loc_mansion_b` · `@prop_cart_b`
 >
@@ -469,7 +596,7 @@
 >   `char_visitor_b` · `char_visitor_c` · `char_visitor_c_b` · `char_woman` ·
 >   `char_woman_b` · `char_woman_c` (parrot woman) · `char_husband` ·
 >   `char_workman` · `char_press` · `char_press_a` · `char_press_b` ·
->   `char_guard_private` · `char_guard_valder_single` · `char_guard_valder_six` ·
+>   `char_guard_private` · `char_guard_valder_single` · `char_guard_valder_two` ·
 >   `char_gentleman` · `char_grandmother` · `char_grandma`
 > - **Locations (10):** `loc_hall_big` · `loc_hall_big_b` · `loc_hall_big_c` ·
 >   `loc_hall_big_d` · `loc_wall_pov` · `loc_wall_pov_b` · `loc_wall_pov_c` ·

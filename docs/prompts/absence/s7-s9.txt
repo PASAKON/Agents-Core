@@ -1,9 +1,48 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
 ✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
 complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
-Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
-gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
+Most carry a `project_absence_` prefix; exactly seven are bare: gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
 loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
 film on this account owns that id; this film's is @project_absence_char_valder.
+
+===============================================================
+WHO IS IN THE ROOM — bind these, never invent (CEO 2026-08-30)
+===============================================================
+CEO: «ตัวละครใส่ให้ครบหน่อยในนี้ REF ไม่ครบเลย». An unnamed guest is an
+invented guest, and the model will happily invent five strangers where the
+film has five specific people.
+
+From S4 onward the room contains THE FIVE WHO ALREADY ARRIVED, and any scene
+that says "guests", "the crowd", "the others", "the bidders" or "the room"
+means THESE PEOPLE and nobody else:
+- @project_absence_char_oldman   — bottle-green leather coat, cream turtleneck, cane (A1)
+- @project_absence_char_critic_b — deep magenta fur, cream gloves, grey bun (A2)
+- @project_absence_char_visitor_b — rust-brown fur coat, shoulder-length brown hair (A3)
+- @project_absence_char_husband  — olive-tan jacket, short grey hair (A3, with her)
+- @project_absence_char_student_c — acid lime-green hair, paint-stained denim (A4/A5)
+Plus, once they enter: @project_absence_char_valder (S7), @gentleman_e
+(S6/S7), @project_absence_char_registrar_b (S5), @project_absence_char_visitor_a (the balding
+man in the oxblood leather suit, S4 and S17).
+
+HEAD-COUNTS ARE FIXED (CEO 2026-08-30):
+- **Valder travels with EXACTLY TWO guards**, one at each shoulder like
+  bodyguards. `@project_absence_char_guard_valder_two` is bound for the
+  ⚠️ THE PLATE NOW CONTAINS EXACTLY TWO MEN — bind it whole; the old
+  six-guard plate is retired. They walk ONE AT VALDER'S LEFT SHOULDER and
+  ONE AT HIS RIGHT, a pace behind, from the moment he enters a scene until
+  he leaves it. Never six, never a V formation, never a third.
+  UNIFORM AND FACES ONLY — its plate shows six; take the look, never the count.
+- **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two.
+
+
+EVERY CHARACTER APPEARS EXACTLY ONCE. There is one Dupe, one Valder, one
+gentleman, one grandmother, one of each guest. If two identical people
+appear anywhere in a frame, the take is wrong.
+
+CHIP BUDGET is about 10. When a scene cannot fit every guest, drop the GENERIC
+ones first (`char_woman`, `char_visitor_c`) and keep the NAMED five — they are
+the continuity. Whoever is not bound must also not be described as present.
 
 **THE ART CRITIC — `char_critic_b` — how she speaks.** She is HALF-CHINESE and
 her face reads Chinese. She speaks English fluently but with a Chinese accent —
@@ -31,20 +70,40 @@ REFERENCES — each with a job:
 @project_absence_char_valder — face, silver hair swept back, small round tinted sunglasses,
   panelled jacket (magenta/yellow/green/blue/red), scarlet waistcoat, purple
   trousers, mustard scarf, mismatched shoes (one green, one oxblood).
-@project_absence_char_guard_valder_six — his six guards, matching uniform, small gold V at cap
-  and chest.
+@project_absence_char_guard_valder_two — THE GUARDS' UNIFORM AND FACES ONLY,
+  matching uniform, small gold V at cap and chest. ⚠️ EXACTLY TWO, bind whole.
 @gentleman_e — the elderly gentleman: small, sharp-nosed, white English
   tailoring exactly as his plate shows, black cane with gold grip, diamond
-  ring, TWO GOLD TEETH, two bodyguards behind him.
-@project_absence_char_woman @project_absence_char_critic_b — guests, planted at the frame edges.
+  ring, TWO GOLD TEETH. ONE bodyguard behind him, not two.
+@project_absence_char_critic_b — the critic: deep magenta fur coat, cream
+  gloves, grey bun. Half-Chinese; her face reads Chinese.
+@project_absence_char_oldman — the visitor from A1: bottle-green leather coat,
+  cream turtleneck, cane.
+@project_absence_char_visitor_b — rust-brown fur coat, shoulder-length brown hair.
+@project_absence_char_husband — olive-tan jacket, short grey hair.
+@project_absence_char_student_c — acid lime-green hair, paint-stained denim.
 @project_absence_char_cleaner_c — Dupe, cleaning at the far edge, back to camera.
+
+⚠️ THE GENTLEMAN'S BODYGUARD (no chip left in this scene — render him
+from this description): wherever the gold-toothed gentleman stands, ONE
+personal bodyguard in a plain dark suit stands a pace behind him, hands
+loose, face neutral. Exactly one, never two, never absent. He carries no
+gold V and never speaks (CEO 2026-08-30).
 
 [0s] THE RED DOOR OPENS DEAD CENTRE AT THE VANISHING POINT. VALDER walks
 straight down the room's centreline TOWARD the camera, which retreats ahead
 of him at exactly his walking pace — waist height, perfectly level, a frontal
-corridor walk. His six guards follow in a symmetrical V formation, three a
-side. Guests stand planted at the frame edges like columns. He looks at none
-of them.
+corridor walk. EXACTLY TWO GUARDS follow him — ONE at his left shoulder, ONE
+at his right, a bodyguard pair walking level with each other. Not six, not a
+V formation: TWO.
+
+⚠️ THE GUESTS AT THE FRAME EDGES ARE THE PEOPLE WHO ALREADY ARRIVED — named
+and bound, never invented extras. Standing planted like columns, each
+unmistakable by costume: the OLD MAN in the bottle-green leather coat with his
+cane, the CRITIC in the deep magenta fur with cream gloves, the WOMAN IN THE
+RUST-BROWN FUR COAT, the HUSBAND in the olive-tan jacket, and the STUDENT with
+acid lime-green hair. Five guests, no more, no strangers among them. Valder
+looks at none of them.
 
 [7s] He stops in front of the gentleman in the white suit; the camera stops
 with him. ONE FAST 90-DEGREE WHIP PAN lands on the gentleman — already
@@ -55,6 +114,16 @@ still warm: "I would have had the room ready for you."
 [13s] The old man smiles — ONE FAST SNAP ZOOM straight to the TWO GOLD TEETH,
 then hold. He does not answer.
 
+⚠️ THE GLINT — this is a JOKE, played absolutely straight (CEO 2026-08-30).
+As the zoom lands, a small bright STAR OF LIGHT flares off one gold tooth with
+a tiny chime — a cartoon twinkle, precise and quick, the sparkle a toothpaste
+advertisement would use, on a face that is not selling anything. And MIRRORED
+IN THE POLISHED GOLD OF THE TOOTH, small but unmistakable: the REFLECTION OF
+VALDER IN HIS PANELLED COAT WITH HIS TWO GUARDS, one either side of him,
+standing exactly where they stand in the room. The reflection is curved and
+doll-sized, as a reflection in a tooth would be. Nobody reacts to the twinkle.
+Hold on it a beat longer than is comfortable.
+
 [16s] Frontal medium two-shot, both men facing camera, symmetrical about the
 axis. Valder sweeps one hand slowly across the whole room WITHOUT turning
 toward the far wall and says, charming: "Then let me show you what you are
@@ -62,7 +131,9 @@ standing in." At the far edge, Dupe cleans with his back to camera — the
 missing painting riding his cart in plain sight, face outward. Nobody looks
 at it. Nobody ever looks at it (CEO, deliberate).
 
-AUDIO: room tone, his footsteps and the guards' in step, no music.
+AUDIO: room tone, his footsteps and the two guards' in step, and ONE tiny
+bright chime on the tooth glint — a single clean 'ting', nothing else. No
+music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ===============================================================
 SCENE 8a — THE FIRST THREE PIECES
@@ -84,6 +155,20 @@ CRITICAL: PEOPLE AND A CHROMIUM COLUMN BLOCK THE FAR WALL THROUGHOUT. Valder
 never sees the crack, never glances at it, and the camera never gives him a
 clear line to it.
 
+⚠️ ONE VALDER — take 1 rendered him TWICE, two identical men in panelled
+jackets standing side by side (CEO caught it 30 Aug). The cause is the word
+SYMMETRICAL: the model mirrored the centred figure to complete the symmetry.
+THE SYMMETRY BELONGS TO THE GUESTS ONLY. Valder is the single ASYMMETRIC
+thing in the frame — one man, dead centre, unmirrored. There is EXACTLY ONE
+VALDER in this shot. He is the ONLY person wearing a panelled multi-colour
+jacket; NOBODY else wears panelled, striped or rainbow clothing. The guests
+are in plain single-colour coats.
+
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
+
 [0s] The lateral dolly tracks Valder piece to piece, parallel to the wall,
 guests following. At the armchair he says it warm and unhurried, in love with
 the object: "This chair was in the room where the armistice was signed. Not
@@ -100,7 +185,7 @@ hundred years. Then somebody stood it upright. And it stopped being a tool."
 One-second catalogue portrait of the millstone. Return to the master; nobody
 interrupts. Hold.
 
-AUDIO: room tone, his voice, slow footsteps, no music.
+AUDIO: room tone, his voice, slow footsteps, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ===============================================================
 SCENE 8b — THE LAST TWO PIECES, AND THE TURN
@@ -115,6 +200,20 @@ REFERENCES — each with a job:
 @project_absence_prop_valder_vessel — the dark lidded vessel on its stepped plinth.
 @project_absence_prop_valder_study_b — the thickly painted canvas on the white wall.
 @gentleman_e @project_absence_char_woman @project_absence_char_critic_b — the crowd that parts.
+
+⚠️ ONE VALDER — take 1 rendered him TWICE, two identical men in panelled
+jackets standing side by side (CEO caught it 30 Aug). The cause is the word
+SYMMETRICAL: the model mirrored the centred figure to complete the symmetry.
+THE SYMMETRY BELONGS TO THE GUESTS ONLY. Valder is the single ASYMMETRIC
+thing in the frame — one man, dead centre, unmirrored. There is EXACTLY ONE
+VALDER in this shot. He is the ONLY person wearing a panelled multi-colour
+jacket; NOBODY else wears panelled, striped or rainbow clothing. The guests
+are in plain single-colour coats.
+
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
 
 [0s] The dolly continues. At the vessel, warm, confiding: "Seventeen of these
 were made. He destroyed sixteen. He kept the one he liked least." One-second
@@ -132,7 +231,7 @@ the cleared centreline toward his face as the hand rises.
 [18s] END THE CLIP ON HIS FACE THE INSTANT HE SEES IT. Hand still raised. The
 smile completely unchanged. Do not show what he is looking at.
 
-AUDIO: room tone, his voice, the crowd's feet parting, no music.
+AUDIO: room tone, his voice, the crowd's feet parting, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ===============================================================
 SCENE 8c — THE SIXTH STORY · PART 1 OF 2 · THE PIVOT OF THE FILM
@@ -151,6 +250,20 @@ REFERENCES — each with a job:
   symmetrical rows forming the corridor.
 @project_absence_char_cleaner_c — Dupe, far edge.
 
+⚠️ ONE VALDER — take 1 rendered him TWICE, two identical men in panelled
+jackets standing side by side (CEO caught it 30 Aug). The cause is the word
+SYMMETRICAL: the model mirrored the centred figure to complete the symmetry.
+THE SYMMETRY BELONGS TO THE GUESTS ONLY. Valder is the single ASYMMETRIC
+thing in the frame — one man, dead centre, unmirrored. There is EXACTLY ONE
+VALDER in this shot. He is the ONLY person wearing a panelled multi-colour
+jacket; NOBODY else wears panelled, striped or rainbow clothing. The guests
+are in plain single-colour coats.
+
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
+
 [0s] Continue exactly where 8b ended: Valder dead centre, frontal, hand
 still raised, facing the bare wall with the crack. The painting is gone. HIS
 SMILE DOES NOT CHANGE. He does not flinch, does not blink hard, does not
@@ -168,7 +281,7 @@ smile unchanged.
 
 (19 spoken words.)
 
-AUDIO: room tone, his voice alone, no music.
+AUDIO: room tone, his voice alone, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ===============================================================
 SCENE 8d — THE SIXTH STORY · PART 2 OF 2
@@ -177,6 +290,15 @@ SCENE 8d — THE SIXTH STORY · PART 2 OF 2
 medium to close, running the whole clip. No cuts, no handheld.
 
 REFERENCES — same as S8c, same jobs. Nobody has moved; the hand is still up.
+
+⚠️ ONE VALDER — take 1 rendered him TWICE, two identical men in panelled
+jackets standing side by side (CEO caught it 30 Aug). The cause is the word
+SYMMETRICAL: the model mirrored the centred figure to complete the symmetry.
+THE SYMMETRY BELONGS TO THE GUESTS ONLY. Valder is the single ASYMMETRIC
+thing in the frame — one man, dead centre, unmirrored. There is EXACTLY ONE
+VALDER in this shot. He is the ONLY person wearing a panelled multi-colour
+jacket; NOBODY else wears panelled, striped or rainbow clothing. The guests
+are in plain single-colour coats.
 
 [0s] Hold exactly where S8c ended. Same voice, no escalation: "Every other
 thing in this room, someone decided to make." A beat.
@@ -192,7 +314,7 @@ unchanged smile. Hold. By this line he believes it himself. Cut.
 
 (26 spoken words.)
 
-AUDIO: room tone, his voice alone, no music.
+AUDIO: room tone, his voice alone, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ===============================================================
 SCENE 9 — DUPE HEARS IT · HE SAYS NOTHING
@@ -213,6 +335,11 @@ REFERENCES — each with a job:
 VALDER'S DIALOGUE FROM SCENE 8c RUNS CONTINUOUSLY OVER THIS ENTIRE SHOT —
 same words, same take, unbroken, slightly distant and reverberant.
 
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
+
 [0s] DUPE DEAD CENTRE, FRONTAL, waist height — a portrait — mopping at the
 edge of the room against the shadow of a chromium column, cart beside him,
 the blurred Valder group twenty feet behind him ON THE SAME AXIS, still
@@ -230,7 +357,7 @@ CLOSES IT.
 [16s] He looks down and goes back to mopping — same rhythm, same speed as
 before. Distant: "…something that did not need me." The push settles. Hold.
 
-AUDIO: Valder's distant reverberant voice, mop water, room tone, no music.
+AUDIO: Valder's distant reverberant voice, mop water, room tone, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ===============================================================
 APPLIES TO ALL FIVE CLIPS ABOVE
@@ -240,7 +367,7 @@ whites pushed slightly cool, shadows deep red-brown, saturation high in flat
 planes but never touching skin, halation around every lamp. Photographed, not
 rendered: fine film grain, faint gate weave, slight colour fringing.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no invented lines beyond the dialogue written above, no
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no invented lines beyond the dialogue written above, no
 Valder losing the smile, no Valder sitting or leaning, no whip pan except the
 single one specified in Scene 7, no zoom except the single snap zoom
 specified in Scene 7, no crowd beyond nine people.

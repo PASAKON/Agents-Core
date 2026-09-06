@@ -1,7 +1,50 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
+
+
+===============================================================
+WHO IS IN THE ROOM — bind these, never invent (CEO 2026-08-30)
+===============================================================
+CEO: «ตัวละครใส่ให้ครบหน่อยในนี้ REF ไม่ครบเลย». An unnamed guest is an
+invented guest, and the model will happily invent five strangers where the
+film has five specific people.
+
+From S4 onward the room contains THE FIVE WHO ALREADY ARRIVED, and any scene
+that says "guests", "the crowd", "the others", "the bidders" or "the room"
+means THESE PEOPLE and nobody else:
+- @project_absence_char_oldman   — bottle-green leather coat, cream turtleneck, cane (A1)
+- @project_absence_char_critic_b — deep magenta fur, cream gloves, grey bun (A2)
+- @project_absence_char_visitor_b — rust-brown fur coat, shoulder-length brown hair (A3)
+- @project_absence_char_husband  — olive-tan jacket, short grey hair (A3, with her)
+- @project_absence_char_student_c — acid lime-green hair, paint-stained denim (A4/A5)
+Plus, once they enter: @project_absence_char_valder (S7),
+@gentleman_e (S6/S7), @project_absence_char_registrar_b (S5), @project_absence_char_visitor_a
+(the balding man in the oxblood leather suit, S4 and S17).
+
+HEAD-COUNTS ARE FIXED (CEO 2026-08-30):
+- **Valder travels with EXACTLY TWO guards**, one at each shoulder like
+  bodyguards. `@project_absence_char_guard_valder_two` is bound for the
+  ⚠️ THE PLATE NOW CONTAINS EXACTLY TWO MEN — bind it whole; the old
+  six-guard plate is retired. They walk ONE AT VALDER'S LEFT SHOULDER and
+  ONE AT HIS RIGHT, a pace behind, from the moment he enters a scene until
+  he leaves it. Never six, never a V formation, never a third.
+  UNIFORM AND FACES ONLY — its plate shows six; take the look, never the
+  count.
+- **The gold-toothed gentleman has EXACTLY ONE bodyguard**, not two.
+
+
+EVERY CHARACTER APPEARS EXACTLY ONCE. There is one Dupe, one Valder, one
+gentleman, one grandmother, one of each guest. If two identical people
+appear anywhere in a frame, the take is wrong.
+
+CHIP BUDGET is about 10. When a scene cannot fit every guest, drop the
+GENERIC ones first (`char_woman`, `char_visitor_c`) and keep the NAMED five —
+they are the continuity. Whoever is not bound must also not be described as
+present in that shot.
+
 ✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
 complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
-Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
-gentleman_e, char_gentleman_c, project_absence_loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
+Most carry a `project_absence_` prefix; exactly seven are bare: gentleman_e, char_gentleman_c, project_absence_loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
 loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
 film on this account owns that id; this film's is @project_absence_char_valder.
 
@@ -45,31 +88,29 @@ ultramarine walls, no blue walls, no wooden floor
 ===============================================================
 SCENE 6 — $20,000,000 · THE SECOND PRICE MARKER
 ===============================================================
-15s · 720p · 16:9 · ONE LOCKED SHOT — the wall-POV frame, the camera never
+15s · 720p · 16:9 · ONE LOCKED SHOT — a locked front-of-wall frame, the camera never
 moves, no cuts. NO DIALOGUE.
 
 REFERENCES — each with a job:
-@project_absence_loc_wall_pov_e — THE FRAME ITSELF, match exactly: the gallery as a BOX with
-  its fourth wall removed, camera slightly elevated and DEAD-ON, looking into
-  the open room. The CRACK floats in the near plane across the missing wall,
-  large and unmistakable; the brass plaque sits low in the near plane
-  MIRROR-REVERSED; the red door is dead centre in the far wall. People stand
-  INSIDE the box FACING CAMERA — they are looking at the wall, and the wall
-  is where we are.
-
-THE VEIL — WE ARE STANDING INSIDE THE WALL. The whole frame carries a slight
-darkness, as though seen through a thin dark veil: everything dimmed a little,
-contrast eased, blacks lifted, colours very slightly muted. The room stays
-fully readable through it. This is NOT a mood grade and NOT a vignette — it is
-the wall itself, between us and them. Keep it even across the whole frame,
-never heavier at the edges, never a dark border.
-
+@project_absence_loc_hall_big_d — THE FRAME ITSELF, match exactly. ⚠️
+  VIEWPOINT REBALANCE (CEO 17:15): this scene is NO LONGER the in-wall glass
+  POV. The camera stands IN THE ROOM, on the axis, slightly elevated and
+  DEAD-ON, LOOKING AT THE HERO WALL — hall D, the richer hall: a corridor
+  opening into a wide room, more works on display, detailed artworks along
+  both side walls. The CRACK and the BRASS PLAQUE are on that far wall,
+  small and centred, with the guests standing in front of it with their
+  BACKS AND THREE-QUARTER PROFILES to camera — we watch the room watching
+  the wall. No red door in frame; hall D has none and none is needed.
+  THE PLAQUE READS CORRECT-WAY-ROUND — never mirrored. The mirroring existed
+  only because we used to stand behind the wall; from the room side the
+  lettering is simply the right way round. NO VEIL, no dark scrim, no
+  vignette — that darkness belonged to the wall we are no longer inside.
 @project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_student_c @project_absence_char_visitor_a
 @project_absence_char_visitor_b @project_absence_char_husband @gentleman_e — guests: faces, builds, costumes.
-@project_absence_char_guard_private — the personal bodyguards: plain dark suit, hands loose.
+@project_absence_char_guard_private — the gentleman's ONE personal bodyguard: plain dark suit, hands loose. ⚠️ ONE, not two (CEO 2026-08-30).
 @project_absence_char_cleaner_c — Dupe at the frame edge with his cart.
 
-The plaque now reads 20,000,000 — NO dollar sign, no currency symbol; mirrored, a $ reads as a stray digit and corrupts the number.
+The plaque now reads 20,000,000 — NO dollar sign, no currency symbol.
 
 [0s] The locked wall-POV frame. The room fuller and richer than S4: twelve to
 fourteen people, heavier coats, better cut, one saturated colour each,
@@ -84,9 +125,9 @@ speaking. The sound of a fuller room.
 [12s] Dupe at the edge of frame with his cart, cleaning. Nobody has noticed
 him since Scene 1. Hold.
 
-AUDIO: room tone of a fuller room, footsteps, no music.
+AUDIO: room tone of a fuller room, footsteps, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no crowd beyond fourteen people, no press, no cameras, no
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no crowd beyond fourteen people, no press, no cameras, no
 weapons, no holsters, no earpieces, no sunglasses on the guards, no painting
 on the wall, no large crack, no un-mirrored plaque text. + house negatives.
 
@@ -101,7 +142,7 @@ REFERENCES — jobs:
 @loc_hall_big_e — the hall from the room side, red door at the vanishing point.
 @gentleman_e — exactly as his plate shows: white English tailoring, black
   cane with gold grip, diamond ring, two gold teeth.
-@project_absence_char_guard_private — his two bodyguards, plain dark suits.
+@project_absence_char_guard_private — his ONE bodyguard, plain dark suit. ⚠️ ONE, not two (CEO 2026-08-30).
 @project_absence_char_oldman @project_absence_char_critic_b
 @project_absence_char_visitor_b @project_absence_char_husband
 @project_absence_char_student_c @project_absence_char_woman — the six
@@ -127,9 +168,9 @@ the row turns to look. Dupe, at the edge, pauses one second mid-wipe, then
 carries on.
 
 AUDIO: the door, the bodyguards' synchronised footsteps, the soft thud of
-the desk, two cane taps, room tone. No dialogue. No music.
+the desk, two cane taps, room tone. No dialogue. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no dialogue, no one reacting, no one
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no dialogue, no one reacting, no one
 turning, no camera movement, no zoom, no music, no auctioneer gavel, no
 readable text. + house negatives.
 
@@ -145,10 +186,16 @@ REFERENCES — each with a job:
 @project_absence_char_woman_c — THE PARROT WOMAN: cockatoo-crest of hair banded green, white
   and blue; single saturated green garment with feather-cut panelling.
   Couture, not comic — no beak, no wings, no feathers, nothing costume.
-@project_absence_prop_croc_bag — one genuine deep-burgundy crocodile handbag, in one hand.
+@project_absence_prop_bag_croc — one small deep-burgundy TEXTURED-LEATHER
+  handbag (never name the material), in one hand.
 @gentleman_e — the rival: white English tailoring exactly as his plate shows (CEO 30 Aug: the white suit STAYS), black cane with gold grip, diamond ring, two gold teeth.
-@project_absence_char_valder @project_absence_char_guard_valder_six — standing (he never sits), warm smile.
+@project_absence_char_valder @project_absence_char_guard_valder_two — standing (he never sits), warm smile.
 @project_absence_char_critic_b — among the guests.
+
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
 
 [0s] THE RED DOOR OPENS DEAD CENTRE and she enters ON THE AXIS, alone — no
 guards, nobody with her — walking straight toward the locked one-point frame
@@ -167,9 +214,9 @@ framed frontal midway between them.
 sharpens for less than a second — one corner lifts further, a man watching a
 game get interesting — then his face is exactly as it was. Hold the duel.
 
-AUDIO: her heels on terrazzo, room tone, no music.
+AUDIO: her heels on terrazzo, room tone, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no beak, no wings, no feathers, no bird
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no beak, no wings, no feathers, no bird
 mask, no costume or fancy dress, no guards beside the parrot woman, no crowd
 beyond ten people, no black clothing as any visitor's main colour, no painting on
 the hero wall. + house negatives.
@@ -182,16 +229,31 @@ identical framing for both bidders — the symmetry IS the duel. No camera
 movement inside any setup.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall.
+@project_absence_loc_hall_big_d — the hall.
 @gentleman_e — bidder one: frontal single, dead centre, gold teeth, white suit. His small mahogany auction desk from S6b stands beside him — it is HIS furniture, not a podium; allowed.
 @project_absence_char_woman_c — bidder two: frontal single, dead centre, identical framing.
-@char_registrar — locked side profile at the frame edge, writing each number
+@project_absence_char_registrar_b — locked side profile at the frame edge, writing each number
   in the ledger, pen scratching, face empty.
 @project_absence_char_valder — midframe behind, watching, delighted, the warm ingratiating
   smile at full power.
 @project_absence_char_critic_b @project_absence_char_cleaner_c — edges.
 
 CEO owns the numbers; he confirmed the parrot woman ends on eighty.
+
+⚠️ COPYRIGHT-SCANNER NOTE (2 consecutive output rejections, 30 Aug — GH
+#125): this scene's dead-frontal close-up singles give the face scanner its
+largest surface, and it trips stochastically on them. Take 3+ MUST carry the
+modified language below (already folded in): both bidders' faces are
+FICTIONAL, and the anti-likeness negatives are load-bearing. If a take with
+this language still rejects TWICE more, stop and escalate to the CTO —
+that points at the plate itself, which is the CEO's call to regenerate.
+BOTH BIDDERS' FACES ARE FICTIONAL INVENTED FACES resembling no real person,
+no actor, no celebrity — stylized retrofuturist film characters.
+
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
 
 [0s] The duel begins — each bidder faces almost straight into the lens and
 says ONLY a number, flat, unhurried, one bid every ~2 seconds, metronomic
@@ -212,9 +274,9 @@ object is beneath him. The registrar's pen writes the last number and stops.
 
 (16 spoken words.)
 
-AUDIO: the two voices, the pen scratch, held breath of a full room, no music.
+AUDIO: the two voices, the pen scratch, held breath of a full room, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no words other than the eight numbers, no gavel, no
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no words other than the eight numbers, no gavel, no
 auctioneer calls, no paddles, no raised numbers, no shouting, no crowd beyond
 twelve people, no press, no anyone but the two rivals speaking. + house
 negatives.
@@ -229,31 +291,26 @@ MINUTES AFTER THE HAMMER (CEO order: S12 → P3 → this scene). The
 hundred-million sale broke instantly as news, and the world has just arrived.
 
 REFERENCES — each with a job:
-@project_absence_loc_wall_pov_e — THE FRAME ITSELF, match exactly: the gallery as a BOX with
-  its fourth wall removed, camera slightly elevated and DEAD-ON, looking into
-  the open room. The CRACK floats in the near plane across the missing wall,
-  large and unmistakable; the brass plaque sits low in the near plane
-  MIRROR-REVERSED; the red door is dead centre in the far wall. People stand
-  INSIDE the box FACING CAMERA — they are looking at the wall, and the wall
-  is where we are.
-
-THE VEIL — WE ARE STANDING INSIDE THE WALL. The whole frame carries a slight
-darkness, as though seen through a thin dark veil: everything dimmed a little,
-contrast eased, blacks lifted, colours very slightly muted. The room stays
-fully readable through it. This is NOT a mood grade and NOT a vignette — it is
-the wall itself, between us and them. Keep it even across the whole frame,
-never heavier at the edges, never a dark border.
-
-@project_absence_char_press_a @project_absence_char_press_b — two journalists with a single shoulder-mounted
-  retrofuturist film camera, filming the crack directly, at the two frame
-  edges like bookends.
+@project_absence_loc_hall_big_d — THE FRAME ITSELF, match exactly. ⚠️
+  VIEWPOINT REBALANCE (CEO 17:15): this scene is NO LONGER the in-wall glass
+  POV. The camera stands IN THE ROOM, on the axis, slightly elevated and
+  DEAD-ON, LOOKING AT THE HERO WALL — hall D, the richer hall: a corridor
+  opening into a wide room, more works on display, detailed artworks along
+  both side walls. The CRACK and the BRASS PLAQUE are on that far wall,
+  small and centred, with the guests standing in front of it with their
+  BACKS AND THREE-QUARTER PROFILES to camera — we watch the room watching
+  the wall. No red door in frame; hall D has none and none is needed.
+  THE PLAQUE READS CORRECT-WAY-ROUND — never mirrored. The mirroring existed
+  only because we used to stand behind the wall; from the room side the
+  lettering is simply the right way round. NO VEIL, no dark scrim, no
+  vignette — that darkness belonged to the wall we are no longer inside.
 @project_absence_char_critic_b @project_absence_char_oldman @project_absence_char_woman @project_absence_char_woman_c
 @project_absence_char_visitor_b @project_absence_char_husband @gentleman_e —
   guests, one saturated colour each.
-@project_absence_char_guard_private @project_absence_char_guard_valder_six — the guards' rank.
+@project_absence_char_guard_private @project_absence_char_guard_valder_two — the guards' rank.
 @project_absence_char_cleaner_c — Dupe, still at the edge, still cleaning.
 
-The plaque now reads 100,000,000 — NO dollar sign, no currency symbol; mirrored, a $ reads as a stray digit and corrupts the number.
+The plaque now reads 100,000,000 — NO dollar sign, no currency symbol.
 
 [0s] The locked wall-POV frame at its peak — the room has stopped being a
 gallery. THREE EXACT RANKS facing camera: guests in front, personal guards
@@ -268,67 +325,125 @@ The film camera's motor runs.
 [11s] Dupe still there at the edge of frame, still cleaning. Hold.
 
 AUDIO: room tone, the film camera's motor, the far-off beat of rotors, no
-music.
+music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no crowd beyond sixteen people, no camera flashes, no
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no crowd beyond sixteen people, no camera flashes, no
 microphones held up, no boom poles, no press scrum, no shouting, no
 helicopter inside the building, no weapons, no large crack, no un-mirrored
 plaque text. + house negatives.
 
 ===============================================================
-SCENE 12a — THE GRANDMOTHER ARRIVES · PART 1 OF 2
+SCENE 12a — THE SLOWEST ARRIVAL · PART 1 OF 3 (CEO comedy rewrite 30 Aug)
 ===============================================================
-20s · 720p · 16:9 · empty-door hold → axis advance → ONE low lateral dolly
-at wheelchair height. Nothing handheld.
+20s · 720p · 16:9 · MULTI-CUT: locked one-point master + LOW WHEEL CLOSE-UP
++ reaction cutaways. Locked frames only — nothing handheld, no camera moves
+inside any cut.
 
-⚠️ SPLIT 22:45 (CEO): 20s is the hard ceiling. S12 is now S12a + S12b.
+CEO 12:50: «20วิแรก ยายมาไม่ถึงซักที ... รถกระตุก เสียงลากยาว ดับ และติดใหม่
+... คนที่ชมรอยแตก นิ่ง บางคนยืนอ้าปาก บางคนเดินหนี เพราะมันช้า»
 
-⚠️ USE `char_grandmother`. NOT `char_grandma` — the other plate is
-superseded.
+⚠️ USE `char_grandmother`. NOT `char_grandma` — the other plate is superseded.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall, red door at the vanishing point.
-@project_absence_char_grandmother — deep violet throughout: cloth over head and shoulders
-  covering the hair completely, plain long coat, LARGE DARK RECTANGULAR
-  SMOKED GLASSES that make her eyes unreadable. No jewellery, no fur, no
-  gold. Plainly not as rich as the room. She drives a RETROFUTURIST ELECTRIC
-  WHEELCHAIR — brushed aluminium and cream, big rear wheels, small front
-  castors, a pod of chunky physical buttons under her right hand — HERSELF.
-@gentleman_e @project_absence_char_woman_c — the two rivals, planted.
-@project_absence_char_valder @project_absence_char_guard_valder_six — standing, smiling.
+@project_absence_char_grandmother — RE-POINTED 30 Aug to the knitted
+  grandmother (bind = source of truth for face AND costume): pale gray
+  knitted headscarf tied under the chin, layered pale-gray knit cardigan
+  over a knitted button vest, long beige knitted dress with ribbed hem,
+  worn brown leather ankle boots, big soft patchwork knitted bag on her
+  lap. Muted palette — soft grays, oatmeal beige. NO smoked glasses, her
+  eyes are visible: calm, level, unimpressed. She drives an OLD
+  RETROFUTURIST ELECTRIC WHEELCHAIR — dull cream and gray-green enamel,
+  scuffed, dented, big rear wheels, small front castors, boxy motor under
+  the seat, chunky physical-button control pod under her RIGHT hand, no
+  screens, no joystick. It rattles and whines when it moves — HERSELF.
+@gentleman_e @project_absence_char_woman_c — planted among the viewers.
+@project_absence_char_valder @project_absence_char_guard_valder_two —
+  standing, smiling. ⚠️ EXACTLY TWO guards, one either side of him.
 @project_absence_char_cleaner_c — Dupe at the edge.
 
-[0s] THE RED DOOR OPENS dead centre at the vanishing point. A beat — the
-doorway reads EMPTY at eye height, because she sits below the sightline. A
-squeak of wheels. Deadpan hold, one beat too long.
+⚠️ THE ROOM'S BLOCKING (CEO): EVERYONE STANDS ALONG THE SIDE WALLS AT THE
+PAINTINGS' POSITIONS, like museum visitors in front of artworks — the
+centre aisle is COMPLETELY EMPTY for her. Nobody stands beside her, nobody
+helps her, nobody walks with her.
 
-[5s] She rolls into view tiny on the centreline and advances down the axis,
-driving straight through the middle of them. EVERY HEAD TRACKS HER IN
-UNISON — one synchronized turn, then stillness.
+@project_absence_char_guard_private — THE GOLD-TOOTHED GENTLEMAN'S ONE
+  PERSONAL BODYGUARD: plain dark suit, hands loose, standing a pace
+  behind his employer. ⚠️ He goes WHEREVER the gentleman goes, in EVERY
+  scene — one man, never two, never absent (CEO 2026-08-30).
 
-[10s] ONE LOW LATERAL DOLLY at wheelchair height, exact profile, gliding
-with her past the planted guests. She does not look at the gentleman. She
-does not look at the parrot woman.
+[0s] Locked one-point master: THE RED DOOR OPENS dead centre. The doorway
+reads EMPTY at eye height. A squeak — she rolls into view tiny on the
+centreline — and the wheelchair JERKS TO A STALL. A long dragging electric
+whine. The motor DIES. Silence.
 
-[16s] She stops in front of the crack and looks at it for a long moment.
-Hold on her stillness. Cut.
+[4s] LOW WHEEL CLOSE-UP, floor level: the small front castors twitch. A
+restart attempt — the long whine winds up again, catches — the chair
+creeps forward maybe thirty centimetres — dies again. The castors settle.
 
-AUDIO: wheel squeak, room tone of a full room, no music. NO DIALOGUE.
+[8s] REACTION CUTAWAY along the row of viewers standing at the paintings:
+every face turned toward her, FROZEN. Some mouths hang open. Nobody moves,
+nobody helps. Hold their stillness.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue in this half, no one pushing her chair, no
-nurse or carer, no hospital or medical equipment, no joystick, no jewellery
-or fur or gold on her, no black as her main colour, no crowd beyond sixteen
-people. + house negatives.
+[12s] Back in the locked master: she has advanced BARELY A FEW METRES.
+Restart — the whine — a slow, slow crawl. She is nowhere near arriving.
+
+[16s] One guest quietly gives up and WALKS AWAY out of frame — it is
+taking too long. She keeps crawling. At cut she is STILL ONLY MID-HALL.
+NO DIALOGUE anywhere.
+
+AUDIO: the electric motor's long dragging whine, stall, silence, restart;
+wheel squeak; room tone of a full room. No music, no dialogue. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration, no
+dialogue, no one helping her, no one pushing the chair, no nurse or carer,
+no joystick, no jewellery or fur or gold on her, no violet, no smoked glasses or
+sunglasses on her, no shiny new wheelchair, no duplicate characters, no twins, no character appearing twice, no one standing in the centre aisle, no one beside her, no crowd
+beyond sixteen people, no camera movement inside any cut. + house negatives.
 
 ===============================================================
-SCENE 12b — A HUNDRED MILLION · PART 2 OF 2
+SCENE 12b — SHE ARRIVES · THE ROOM PARTS · PART 2 OF 3
 ===============================================================
-20s · 720p · 16:9 · CONTINUES S12a UNBROKEN — locked one-point wide, then
+20s · 720p · 16:9 · ONE LOCKED REVERSE ONE-POINT from the crack wall —
+the camera never moves, no cuts. NO DIALOGUE.
+
+CEO: «ยายมาถึงรอยแตก ตัวละครค่อยๆ หลบให้ยาย ผ่านตรงกลางไป ดูรูปภาพ
+ทุกคนเงียบ จบ»
+
+REFERENCES — as S12a.
+
+[0s] Locked reverse one-point from beside the crack wall, looking back up
+the hall: THE CROWD stands gathered in front of the crack, backs mostly to
+camera, filling the aisle. From deep in the hall, her squeak and the
+dragging whine grow slowly louder. Nobody turns yet.
+
+[5s] The crowd begins to PART — slowly, awkwardly, person by person, a
+reluctant Red Sea opening down the exact centre. Through the widening gap:
+the knitted grandmother in her gray headscarf, crawling forward at her
+impossible pace.
+
+[13s] She rolls through the parted middle past all of them and STOPS in
+front of the crack. She looks at it. Nobody speaks.
+
+[16s] Everyone holds — she looks at the crack, the room looks at her,
+TOTAL SILENCE. Frozen tableau. Hold too long. Cut.
+
+AUDIO: the whine and squeak approaching, shuffling feet as they part, then
+room tone only — the silence is the scene. No music, no dialogue. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration, no
+dialogue, no one helping her, no camera movement, no cuts, no duplicate characters, no twins, no character appearing twice, no one left
+standing in her path, no crowd beyond sixteen people. + house negatives.
+
+===============================================================
+SCENE 12c — A HUNDRED MILLION · PART 3 OF 3
+===============================================================
+20s · 720p · 16:9 · CONTINUES S12b UNBROKEN — begins inside its frozen silence — locked one-point wide, then
 ONE fast chain of three 90-degree whip pans, then frozen tableau. Nothing
 handheld.
 
 REFERENCES — as S12a, PLUS:
-@char_registrar — FORMAL BLACK suit — sober, immaculate, undertaker-clean (CEO 30 Aug). WHITE GLOVES. Small GOLD V at the chest. The brass-cornered ledger. He is the man who KNOCKS THE PRICE (his ledger-close is the film's only gavel) and the man who CHANGES THE PLAQUE — one person, both duties. Bind the plate for FACE ONLY until char_registrar_b exists.
+@project_absence_char_registrar_b — FORMAL BLACK suit — sober, immaculate, undertaker-clean (CEO 30 Aug). WHITE GLOVES. Small GOLD V at the chest. The brass-cornered ledger. He is the man who KNOCKS THE PRICE (his ledger-close is the film's only gavel) and the man who CHANGES THE PLAQUE — one person, both duties.
 
 [0s] Hold exactly where S12a ended, now in the locked one-point wide: she
 sits dead centre in front of the crack, the room behind her. She raises one
@@ -352,12 +467,11 @@ just bought.
 (3 spoken words.)
 
 AUDIO: her single line, the pen, the ledger's soft clap, room tone, no
-music.
+music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond her one line, no auctioneer, no gavel
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no duplicate characters, no twins, no character appearing twice, no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond her one line, no auctioneer, no gavel
 object, no podium, no paddles, no re-staging (positions must match S12a), no
 crowd beyond sixteen people. + house negatives.
-
 ===============================================================
 SCENE 14 — THE SCREAM · new prompt, CEO's line verbatim
 ===============================================================
@@ -368,14 +482,20 @@ CEO wrote this beat himself: Valder screams at the top of his voice, the
 workman is so startled he drops the plaster.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall, the crack and plaque on the axis.
+@project_absence_loc_hall_big_d — the hall, the crack and plaque on the axis.
 @project_absence_char_workman — slate-blue overalls, bucket and float, at the wall.
 @project_absence_char_valder — panelled jacket. THE ONLY MOMENT IN THE FILM THE SMILE IS
   GONE.
-@gentleman_e @project_absence_char_woman_c @project_absence_char_grandmother @char_registrar — the
+@gentleman_e @project_absence_char_woman_c @project_absence_char_grandmother @project_absence_char_registrar_b — the
   buyers and the official, planted mid-room.
 @project_absence_char_press_a @project_absence_char_press_b — filming from the edges.
 @project_absence_char_cleaner_c — Dupe at the far edge, mid-stroke, watching.
+
+⚠️ THE GENTLEMAN'S BODYGUARD (no chip left in this scene — render him
+from this description): wherever the gold-toothed gentleman stands, ONE
+personal bodyguard in a plain dark suit stands a pace behind him, hands
+loose, face neutral. Exactly one, never two, never absent. He carries no
+gold V and never speaks (CEO 2026-08-30).
 
 [0s] Locked symmetrical wide, crack and plaque dead centre. THE WORKMAN,
 back from the service door, stands at the wall — he dips the float in the
@@ -398,9 +518,9 @@ mid-stroke. Hold the tableau. Cut.
 
 (11 spoken words.)
 
-AUDIO: the scream, the wet slap of plaster, then ringing silence, no music.
+AUDIO: the scream, the wet slap of plaster, then ringing silence, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue other than Valder's one line, no plaster
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue other than Valder's one line, no plaster
 touching the crack, no workman falling, no violence, no guards grabbing
 anyone, no crowd beyond fourteen people, no Valder smiling in this scene. +
 house negatives.
@@ -427,7 +547,7 @@ REFERENCES — 10 chips, each with a job:
   reads as nothing.
 @project_absence_char_grandmother — in the wheelchair, present but SILENT this half; she
   speaks in S15b.
-@char_registrar — formal BLACK suit (recostume — plate face only), white gloves, GOLD V, the ledger. Present, still.
+@project_absence_char_registrar_b — formal BLACK suit (the recostumed plate — bind it whole), white gloves, GOLD V, the ledger. Present, still.
 @gentleman_e — the room, planted at the frame edge.
 @project_absence_char_press_a @project_absence_char_press_b — FILMING ALL OF THIS — the confession goes out
   live (CEO: press arrived after the sale, before the reveal). This
@@ -436,6 +556,12 @@ REFERENCES — 10 chips, each with a job:
 `char_woman` and `char_critic_b` are DROPPED from the reference list and play
 as unnamed background guests in the rows — twelve chips reliably turns to
 mush and they have no action here. Do not re-add them.
+
+⚠️ THE GENTLEMAN'S BODYGUARD (no chip left in this scene — render him
+from this description): wherever the gold-toothed gentleman stands, ONE
+personal bodyguard in a plain dark suit stands a pace behind him, hands
+loose, face neutral. Exactly one, never two, never absent. He carries no
+gold V and never speaks (CEO 2026-08-30).
 
 [0s] The workman at the wall with bucket and float; Valder between him and
 the crack, still mid-rage. DUPE RUNS IN ALONG THE AXIS from the frame edge
@@ -461,9 +587,9 @@ Dupe's centred face inside the push, mouth slightly open, no reply.
 
 (13 spoken words.)
 
-AUDIO: his breathing, room tone, the press camera's motor, no music.
+AUDIO: his breathing, room tone, the press camera's motor, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond the three lines written above, no
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond the three lines written above, no
 grandmother speaking in this half, no anyone laughing, no anyone shouting at
 him, no anyone grabbing him, no violence, no security removing him, no
 police, no comic reaction, no slapstick, no crowd beyond twelve people, no
@@ -504,9 +630,9 @@ does not understand. He never will. Cut.
 (12 spoken words.)
 
 AUDIO: the wheel squeak, her two lines, the pen, the ledger's soft clap,
-room tone, no music.
+room tone, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond the grandmother's two lines, no Dupe
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond the grandmother's two lines, no Dupe
 speaking in this half, no Dupe smiling, no celebration, no applause, no
 handshake, no anyone touching Dupe, no crowd beyond twelve people, no
 painting on the hero wall, no re-staging (positions must match S15a). +
@@ -519,15 +645,16 @@ SCENE 16 — THEY SAW THE WALL OUT
 cuts. NO DIALOGUE.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall, later.
+@project_absence_loc_hall_big_d — the hall, later.
 @project_absence_char_workman — one of the two workmen (the other matches him in plain
   overalls, no face priority).
 @project_absence_char_valder — CENTRED FOREGROUND, BACK TO CAMERA — a still silhouette.
 @project_absence_char_press_a @project_absence_char_press_b — filming the saw from the edge.
-@project_absence_char_guard_valder_six — keeping a respectful distance from a piece of plaster.
+@project_absence_char_guard_valder_two — keeping a respectful distance from a piece of plaster.
 @project_absence_char_cleaner_c — Dupe apart, holding his mop, not helping.
 @project_absence_char_grandmother — THE BUYER: parked to one side in her
-  retrofuturist wheelchair, deep violet, smoked glasses, perfectly still,
+  old rattling wheelchair, gray knitted headscarf and layered knits,
+  eyes visible and unreadable anyway, perfectly still,
   watching her wall being cut free. She bought it; she waits for it.
 
 [0s] Locked symmetrical wide: a square line ruled around the crack sits dead
@@ -546,9 +673,9 @@ and the dust.
 [15s] The sawing stops. Hold the final frame in the new silence — the room,
 the square cut, the still silhouette. Cut.
 
-AUDIO: the saw, dust, room tone — then the silence after it stops. No music.
+AUDIO: the saw, dust, room tone — then the silence after it stops. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no cranes, no forklifts, no power tools
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no cranes, no forklifts, no power tools
 with cables, no hard hats, no hi-vis vests, no scaffolding, no demolition,
 no collapse, no danger, no rubble beyond fine plaster dust, no crowd beyond
 ten people, no Valder's face (back to camera throughout). + house negatives.
@@ -578,9 +705,9 @@ dead centre. He looks at it. He tilts his head.
 EXACT SAME MOVEMENT, from the exact same distance, as in Scene 4. Hold on
 him one beat too long. Cut.
 
-AUDIO: room tone, his footsteps, no music.
+AUDIO: room tone, his footsteps, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no other people, no plaque, no painting, no crack (the
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no other people, no plaque, no painting, no crack (the
 hole has replaced it), no rope barrier, no stanchions, no press, no guards.
 + house negatives.
 
@@ -620,9 +747,9 @@ nobody in the room can hear it. Cut.
 
 (9 spoken words.)
 
-AUDIO: room tone, the pen, the camera rig's motor, no music.
+AUDIO: room tone, the pen, the camera rig's motor, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond the two lines, no smiling, no
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue beyond the two lines, no smiling, no
 triumph, no tears, no crowd, no audience, no studio lights in frame, no
 microphones on stands, no boom, no gold V on his suit, no jewellery, no
 watch, no hammer in this half. + house negatives.
@@ -654,8 +781,8 @@ blank wall.
 [15s] HOLD the unmoved frame far past comfortable, then cut to black.
 
 AUDIO: near-silence, room tone, the small sound of the hammer moving. No
-music.
+music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no swing of the hammer, no impact, no
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of the character's state, no speaking anything outside the quotation marks, no dialogue, no swing of the hammer, no impact, no
 damage or crack in the white wall, no smiling, no triumph, no tears, no
 other people, no camera movement, no music. + house negatives.

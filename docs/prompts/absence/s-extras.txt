@@ -1,3 +1,5 @@
+⟪v2 SWEEP · CTO 2026-08-31 · CEO-approved⟫ Both 2026-08-21 forever-lines restored to every scene in this file: (1) the positive no-duplicate form, (2) the audio-endpoint bans. Add-only — nothing removed. Shot scenes keep their Drive take as evidence; any future take fires from THIS text.
+
 ✅ MENTIONS ARE THE EXACT LIVE ELEMENT IDS. PASTE VERBATIM — do not "fix" them.
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
 
@@ -32,8 +34,8 @@ catching the light. The building sits centred like a monument to itself.
 stillness. Hold to the end.
 
 AUDIO: distant birds, faint city hum, no music.
-NEGATIVE: no people, no cars, no crowd, no camera movement, no zoom, no
-readable text, no signage beyond the gold V, no night, no rain, no HDR.
+NEGATIVE: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no people, no cars, no crowd, no camera movement, no zoom, no
+readable text, no signage beyond the gold V, no night, no rain, no HDR. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 X2 · ROOM TONE BED — the empty hall, 20 seconds of nothing
@@ -50,8 +52,8 @@ centre. Nobody in it. Nothing moves.
 
 AUDIO: pure room tone — the building's own quiet, a faint electrical hum,
 nothing else. Absolutely no music, no footsteps, no events.
-NEGATIVE: no people, no movement, no camera drift, no zoom, no music, no
-sudden sounds, no readable text.
+NEGATIVE: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no people, no movement, no camera drift, no zoom, no music, no
+sudden sounds, no readable text. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 X3 · THE RED DOOR — open and close, punctuation marks
@@ -69,8 +71,8 @@ only the warm corridor beyond.
 closed door to the end.
 
 AUDIO: the hinge, the soft click, room tone. No music.
-NEGATIVE: no people, no hands, no camera movement, no zoom, no readable
-text, no music.
+NEGATIVE: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no people, no hands, no camera movement, no zoom, no readable
+text, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 X4 · THE ROW, FROM THE ROOM — reverse of the arrivals
@@ -97,9 +99,9 @@ above the brass plaque. Their backs and profiles carry the scene.
 wipes at the edge, unnoticed. Hold to the end.
 
 AUDIO: room tone, one cloth wipe. No music.
-NEGATIVE: no dialogue, no faces to camera, no one turning around, no camera
+NEGATIVE: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no dialogue, no faces to camera, no one turning around, no camera
 movement, no zoom, no plaque legible (too far to read), no extra people, no
-duplicate faces, no music.
+duplicate faces, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 X5 · THE PAINTING ON THE CART — the secret, in macro
@@ -118,8 +120,8 @@ whole truth of the film, parked in a janitor's cart.
 matte blocks, its thin black frame. Hold.
 
 AUDIO: room tone only. No music.
-NEGATIVE: no people, no hands, no camera shake, no cut, no impasto texture,
-no gloss, no readable text, no music.
+NEGATIVE: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no people, no hands, no camera shake, no cut, no impasto texture,
+no gloss, no readable text, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 X6 · THE HELICOPTER — outside, circling
@@ -136,8 +138,8 @@ polished metal, rounded canopy, its rotor beat echoing off the building.
 building beneath it stays perfectly still. Hold.
 
 AUDIO: rotor beat, doppler as it passes, wind. No music.
-NEGATIVE: no people, no cars, no second aircraft, no landing, no crash, no
-camera movement, no zoom, no readable text, no military aircraft, no music.
+NEGATIVE: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no people, no cars, no second aircraft, no landing, no crash, no
+camera movement, no zoom, no readable text, no military aircraft, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 X7 · THE BROADCAST — the news the whole world saw
@@ -163,9 +165,9 @@ screen.
 
 AUDIO: the anchor's voice through a small speaker, CRT hum, room tone. No
 music.
-NEGATIVE: no readable on-screen text, no channel logos, no modern flat
+NEGATIVE: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no readable on-screen text, no channel logos, no modern flat
 screen, no smartphone, no dialogue beyond the three lines, no music, no
-camera movement, no cut.
+camera movement, no cut. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 X8a / X8b · THE PA — the museum speaks, twice
@@ -185,8 +187,8 @@ the same voice: "The museum is now closing. Thank you for your visit."
 [5s] Silence. The red door. Hold.
 
 AUDIO: the chime, the PA voice with room reverb, room tone. No music.
-NEGATIVE: no people, no movement, no camera drift, no dialogue beyond the PA
-line, no readable text, no music.
+NEGATIVE: every single person has a different face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound, no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no fade-in or fade-out on the sound; no people, no movement, no camera drift, no dialogue beyond the PA
+line, no readable text, no music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no tail, swell or fade.
 
 ---------------------------------------------------------------
 FIRE ACCOUNTING
