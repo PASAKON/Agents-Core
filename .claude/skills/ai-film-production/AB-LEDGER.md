@@ -74,40 +74,44 @@ WHY B HELD: the filter reads the whole prompt, and a name that collides with
 LESSON: a proper name is a risk only when it collides; when the gate refuses,
   strip proper names first and re-fire before touching anything else. (§10)
 
+### S2M · the crack's SIZE · takes 1 → 3b · size passed 2026-09-06 13:55 (S2M-Fix1-take3.MP4)
+DEFECT SEEN: S2K t1 and S2M t2 — the crack 4-5x the plate's, thick black core
+  drawn across a woman's face; everything else in both shots passed.
+PROMPT A (S2M t2, dd6e0de): "IT IS THE NEAREST THING TO THE LENS — it floats
+  at the very front of the frame, in the plane where the wall was… It is
+  SMALL: about the size of a hand, a mark you could cover with your palm" and
+  "one small solid black crack, star-shaped, floating in the extreme
+  foreground, the nearest thing to the lens".
+PROMPT B (S2M t3b, c082768 + 48ec434): "THE MARK, from that picture and only
+  from it. SAME PLACE IN THE FRAME: over the far red door, in the upper middle
+  of the picture. SAME SIZE IN THE FRAME: a small patch, NO WIDER THAN THE RED
+  DOOR AND NO TALLER THAN THE RED DOOR, exactly as the picture has it and not
+  one bit larger" — and every depth word removed from the paste block.
+WHY B HELD: depth words are a size instruction. "Nearest to the lens / extreme
+  foreground" makes a near object BIG in frame — the model did perspective
+  correctly — and "size of a hand" is a world size the model cannot place.
+  Anchoring the size to something visible in the same frame (the door) gave
+  it a scale it could honour: the mark came out about 1x the door.
+LESSON: give an object's size relative to another thing IN THE FRAME, never as
+  a world measurement, and never with depth words unless you want it big.
+  (§7, and a new rule for §12's readers.)
+SIDE EFFECT → see PENDING (S2M orientation): B's "turned toward the mark" plus
+  "over the far red door" turned the five toward the DOOR with their backs to
+  the lens for 0-6s. Take 3 itself was NSFW-rejected by the output filter
+  with zero output; 3b was the identical prompt and rendered.
+
 ---
 
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
 
-### S2K / S2M / S2N / S2L · the crack · S2K t1 FLAGGED 2026-09-06, S2M/S2N t1 and S2L t1-5 pre-canon
-DEFECT SEEN (S2K t1): the crack is the right idea — a black star-shaped mark
-  floating in front of the far red door — but about five times too big, with
-  heavy arms drawn across two women's faces.
-PROMPT A (until 3ca9420 / dd6e0de): two descriptions of one object in one
-  paste block. The reference paragraph said "SMALL. A delicate star about
-  the size of a hand", while the shot lines said "THE CAMERA IS INSIDE THE
-  BROKEN WALL, looking out through the break… The jagged edges of the hole
-  sit in the extreme foreground as a hard black silhouette… THE FRAME…: the
-  ragged black opening frames the picture". The model rendered the vivid one.
-PROMPT B (dd6e0de, 136f8ef, fb1e32e, b6984f5): one description — "IT IS A
-  CRACK, NOT A STAR: a BLACK crack in the wall… COPY THAT MARK EXACTLY AS THE
-  PICTURE SHOWS IT AND NEVER CHANGE IT… It is SMALL… IT IS THE NEAREST THING
-  TO THE LENS… THE WALL ITSELF IS NOT VISIBLE — no plaster, no edges, no hole,
-  no black surround". Canon: PLATE-loc_wall_pov_e.md.
-VERDICT: S2M t2 (canon prose, 2026-09-06 10:22) FAILED THE SAME WAY — crack
-  ~4-5x the plate, black core across a face; everything else passed. Prompt B
-  did not move the size at all. New hypothesis: "nearest thing to the lens /
-  extreme foreground / floating at the very front" is a DEPTH cue, and a near
-  object is big in frame — the model did perspective correctly; "size of a
-  hand" is a world size, not a frame size.
-PROMPT C (S2M t3): no depth words; size anchored in the frame — "NO WIDER
-  THAN THE RED DOOR AND NO TALLER THAN THE RED DOOR, exactly as the picture has
-  it"; the crack-shape negatives removed.
-  t3 (12:15) was NSFW-REJECTED by the platform's OUTPUT filter — zero output,
-  credits refunded, "Output may contain sensitive content". Not a verdict on
-  Prompt C (take 2 with the same cast and scene rendered fine). Re-fired as
-  take 3b with the prompt unchanged; a second rejection would mean a trigger
-  in the new prose. If 3b renders and is still oversized, the plate/model is
-  the driver → editor overlay, not a prompt.
+### S2M · the five's ORIENTATION · t3b backs to the lens 0-6s
+PROMPT A (t3b): "the five standing in it at uneven distances, turned toward
+  the mark" and "[0s] … FACING THE MARK — which means facing the lens".
+PROMPT B (t4): "FACING THE CAMERA — full face to the lens, not backs, not
+  profiles" and "[0s] … FACING THE CAMERA — their faces toward the lens,
+  nobody's back to us"; the people's orientation is never tied to the mark.
+VERDICT: awaiting S2M t4. Then S2K t2 / S2N t2 / S2L t6 get the red-door
+  size anchor + FACING THE CAMERA, one sheet at a time.
 
 ### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
 PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;

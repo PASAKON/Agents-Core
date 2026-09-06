@@ -11,6 +11,14 @@ to something in the picture: no wider or taller than the red door. If take 3
 is still oversized, the plate/model is the driver and the fix is an editor
 overlay, not another prompt.
 
+✅ TAKE 3b (13:12, red-door prose, S2M-Fix1-take3.MP4): THE CRACK PASSED — about
+1x the door, off every face, solid black, plate shape. The size anchor works.
+NEW DEFECT: 0-6s the five stand with backs/profiles to the lens, looking at the
+far door — "turned toward the mark" + "over the far red door" put their gaze
+on the door. TAKE 4 says FACING THE CAMERA outright and never ties the
+people's orientation to the mark. (Take 3 itself was NSFW-rejected by the
+output filter, zero output; 3b was the same prompt.)
+
 S2M-Fix1 · THE REGISTRAR, AND THE FIRST PRICE · CEO 2026-09-04
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
@@ -132,12 +140,13 @@ REFERENCES — each with a job:
   crosses anybody's face or body.
 
 THE FRAME, unchanging for twenty seconds: the location picture as it is, with
-the five standing in it at uneven distances, turned toward the mark, and the
-colonnade receding behind them. Far to the left, deep in the shot, Dupe works
+the five standing in it at uneven distances, FACING THE CAMERA — full face to
+the lens, not backs, not profiles — and the colonnade receding behind them. Far to the left, deep in the shot, Dupe works
 beside his parked cart.
 
-[0s] The five are exactly as we left them, FACING THE MARK — which
-means facing the lens, not standing side-on in profile — nobody speaking. From the left, deep in the gallery, THE REGISTRAR walks in at an
+[0s] The five are exactly as we left them, FACING THE CAMERA — their faces
+toward the lens, nobody's back to us, nobody side-on in profile — nobody
+speaking. From the left, deep in the gallery, THE REGISTRAR walks in at an
 ordinary unhurried pace, ledger held against his chest, and he is already
 talking as he comes — the cheerful practised delivery of a man who says this
 every single morning and has stopped hearing himself say it.
@@ -217,7 +226,10 @@ REVIEW ORDER:
    every person behind it, exactly the plate's shape. Bigger than a hand, thick
    heavy arms, arms reaching the frame edge, a line across anyone's face, pale
    or grey, a hole with edges, a black surround, or a second mark = FLAGGED:
-   file it and re-fire.
+   file it and re-fire. (Take 3b, 2026-09-06 13:55: PASS — about 1x the door.)
+0b. THE FIVE FACE THE LENS in the opening beat (0-6s): faces, not backs, not
+   profiles. Backs or profiles turned to the far door = FLAGGED (take 3b did
+   this — "turned toward the mark" sent them to the door).
 1. THE TONE FLIP. His welcome is bored routine; his reply to her is eager and
    deferential. If both lines sound the same the scene has no joke in it.
 2. HER FACE GIVES NOTHING. Flat, courteous, unbothered. Any excitement or
