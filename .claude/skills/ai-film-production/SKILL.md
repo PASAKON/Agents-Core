@@ -315,3 +315,26 @@ The shape is always the same. Prefer these, in order:
 were already right and the video reference was overriding them — see rule 7 and
 [[feedback-proxy-in-previz-beats-the-plate]]. Hardening prose against a
 reference that disagrees with it is the most expensive way to lose a take.
+
+## 12 · WHEN A RE-FIRE PASSES, WRITE THE A/B ENTRY (CEO 2026-09-06)
+
+Every job that had to be sent back for a fix gets a ledger entry the moment
+the fixed take passes review: **Prompt A** (the prose that produced the
+defect) against **Prompt B** (the prose that fixed it), quoted, with the
+defect as it was seen in the clip and the reason B worked. The point is
+comparison — the next writer reads what actually changed, not a summary.
+
+The ledger lives beside this file: `AB-LEDGER.md`. Entry shape:
+
+    ### <scene> · takes N → M · <date passed>
+    DEFECT SEEN: what the clip did (from frames, not from the report)
+    PROMPT A:   "…the exact lines…"           (commit <sha>)
+    PROMPT B:   "…the exact lines…"           (commit <sha>)
+    WHY B HELD: the mechanism, one or two sentences
+    LESSON:     one line, general enough to reuse; cite the § it belongs to
+
+Rules: the entry is written by whoever reviewed the passing take (the CTO),
+never by the operator; A and B are quoted from git, not paraphrased; a fix
+that has not passed goes under PENDING with its A already quoted, so the B is
+filled in the day it lands. Creative restages ordered by the director are
+not defects and do not go in.
