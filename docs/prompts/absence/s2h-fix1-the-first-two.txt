@@ -1,5 +1,12 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
+⚠️ TAKE 1 PROSE (2026-09-06 22:00, from S2M/S2K/S2N): every depth word is out of
+the paste block ("nearest to the lens / very front / floating / seen from
+inside" made the crack 4-5x too big elsewhere), the mark's size is anchored to
+the red door (three passes today at about 1x), and the women FACE THE CAMERA
+instead of "looking straight into" the break (gaze tied to the mark sent a
+crowd to face the far door on S2M t3b). Canon: PLATE-loc_wall_pov_e.md.
+
 S2H-Fix1 · THE FIRST TWO · CEO 2026-09-04
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
@@ -60,10 +67,10 @@ crack the picture does not show, and do not draw straight lines radiating from a
 centre.
 
 THE FRAME, unchanging for twelve seconds: THE CAMERA STANDS WHERE THE WALL
-WAS, at chest height, looking out. The wall itself is not visible — no edges,
-no hole, no black surround. One small solid black crack, star-shaped, floats at
-the very front of the picture, and behind it we see the gallery running away
-from us: chromium trumpet columns receding in
+WAS, at chest height, looking out — the location picture as it is. The wall
+itself is not visible — no edges, no hole, no black surround. The one small
+black mark sits over the far red door exactly as the picture has it, and we
+see the gallery running away from us: chromium trumpet columns receding in
 matched pairs, warm orange cove light along the ceiling, polished terracotta
 terrazzo underfoot, works on white plinths down both sides, and a tall red
 double door small and far away at the vanishing point.
@@ -91,20 +98,14 @@ REFERENCES — each with a job:
   room, the chromium trumpet columns receding in pairs, the warm orange cove
   light along the ceiling, the polished terracotta terrazzo, the works on their
   plinths down both sides, the tall red door far off at the vanishing point,
-  and THE BREAK ITSELF seen from inside.
-  THE BREAK, read off that picture exactly. IT IS A CRACK, NOT A STAR: a
-  BLACK crack in the wall, thin short branches meeting at a point, which only
-  happens to be star-shaped. COPY THAT MARK EXACTLY AS THE PICTURE SHOWS IT AND
-  NEVER CHANGE IT — not its shape, not its colour, not its size. It is SMALL:
-  about the size of a hand, a mark you could cover with your palm. IT IS THE
-  NEAREST THING TO THE LENS — it floats at the very front of the frame, in the
-  plane where the wall was, and every person and every part of the room is
-  behind it, further away. In the picture it sits high in the frame, over the
-  far red door. DO NOT ENLARGE IT AND DO NOT REDRAW IT: no full-height
-  fracture, no spiderweb, no thick heavy arms, no arms reaching the edges of
-  the frame, no lines drawn across anybody's face or body, no pale or grey
-  mark, no glowing mark — solid black only. The whole joke of the film is that
-  this tiny black mark is what everybody has come to see.
+  and THE BREAK ITSELF.
+  THE MARK, from that picture and only from it. SAME PLACE IN THE FRAME: over
+  the far red door, in the upper middle of the picture. SAME SIZE IN THE FRAME:
+  a small patch, NO WIDER THAN THE RED DOOR AND NO TALLER THAN THE RED DOOR,
+  exactly as the picture has it and not one bit larger. SAME SHAPE — thin
+  lines meeting at one small dark point — and SAME SOLID BLACK. Nothing about
+  it is enlarged, thickened, extended or redrawn, and it never touches or
+  crosses anybody's face or body.
 @project_absence_char_visitor_b — THE WOMAN IN RUST: about fifty-five, chin
   length brown bob, long tawny-brown fur coat over a rust-red shift dress. SHE
   IS THE ONE WHO CRIES, quietly and without any performance.
@@ -122,7 +123,7 @@ REFERENCES — each with a job:
 
 [0s] THE GALLERY IS ALMOST EMPTY. Far to the LEFT, DUPE is working beside his
 parked cart, cloth in hand, turned toward his own work. Far to the RIGHT, TWO
-WOMEN have stopped in front of the break and are looking straight into it,
+WOMEN have stopped at the mark and stand FACING THE CAMERA, full face to the lens,
 which means straight into the lens.
 
 [2s] THE WOMAN IN RUST TAKES ONE SMALL STEP CLOSER and stops again. She has
@@ -178,8 +179,8 @@ standing frozen, nobody waiting motionless for a cue; no second crack, no mark
 on any other wall, no crack on a background wall; no plaque, no brass label, no
 price plaque in frame; no cart moving, no painting leaving the rack, no cleaner
 walking over to them; no four-panel layout, no grid, no split screen, no inset
-panel; no fifth arm on the mark, no five-pointed star, no symmetrical star, no
-round hole at its centre, no rings; no smartphones, no screens, no modern
+panel; no mark larger than the one in the picture, no thick black core, no line
+across any face; no smartphones, no screens, no modern
 technology.
 
 House negatives: no voiceover, no narration, no subtitles, no captions, no
@@ -194,11 +195,14 @@ walls, no wooden floor.
 
 REVIEW ORDER:
 0. THE MARK, before anything else (CEO 2026-09-06): ONE small solid-BLACK
-   crack, star-shaped, about a hand across, at the very FRONT of the frame with
-   every person behind it, exactly the plate's shape. Bigger than a hand, thick
-   heavy arms, arms reaching the frame edge, a line across anyone's face, pale
-   or grey, a hole with edges, a black surround, or a second mark = FLAGGED:
-   file it and re-fire.
+   star-shaped crack over the far red door, NO WIDER AND NO TALLER THAN THE
+   DOOR (about 1x the door — S2M t4 / S2K t2 / S2N t4 are the reference), off
+   every face, exactly the plate's shape. Bigger than the door, thick black
+   core, a line across anyone's face, pale or grey, a hole with edges, a black
+   surround, or a second mark = FLAGGED: file it and re-fire.
+0b. THE TWO WOMEN FACE THE LENS: faces, not backs, not profiles turned to the
+   far door (S2M t3b failed this with "turned toward the mark"; "FACING THE
+   CAMERA" passed on S2M t4, S2K t2, S2N t4).
 1. TWO WOMEN, NO MAN. The only man in frame is Dupe, far off on the left. A
    husband beside the crying woman is the single most likely failure — re-fire.
 2. THE ROOM IS NEARLY EMPTY. Three people total. If the model fills the gallery
