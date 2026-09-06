@@ -34,8 +34,8 @@ REFERENCES — each with a job:
 @project_absence_char_guard_valder_six — his six guards, matching uniform, small gold V at cap
   and chest.
 @gentleman_e — the elderly gentleman: small, sharp-nosed, white English
-  tailoring, black cane with gold grip, diamond ring, TWO GOLD TEETH, two
-  bodyguards behind him.
+  tailoring exactly as his plate shows, black cane with gold grip, diamond
+  ring, TWO GOLD TEETH, two bodyguards behind him.
 @project_absence_char_woman @project_absence_char_critic_b — guests, planted at the frame edges.
 @project_absence_char_cleaner_c — Dupe, cleaning at the far edge, back to camera.
 
