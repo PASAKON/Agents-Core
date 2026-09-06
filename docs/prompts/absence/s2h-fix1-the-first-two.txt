@@ -59,17 +59,11 @@ and take nothing about it from the video. Do not invent a hole, do not add a
 crack the picture does not show, and do not draw straight lines radiating from a
 centre.
 
-THE BLACK SHAPE ACROSS THE FRONT OF THE REFERENCE VIDEO IS SCAFFOLDING, NOT
-ART. The grey previz carries crude black arms standing in for the broken
-opening, purely to say WHERE it is and how much of the picture it eats. Do not
-copy that shape, its arm count, its edges or its texture. The break's real
-appearance comes ONLY from the still image reference, which is the authority on
-it.
-
-THE FRAME, unchanging for twelve seconds: THE CAMERA IS INSIDE THE WALL,
-looking out through the break at chest height. The ragged black edges of the
-opening sit across the front of the picture on all sides, and through the gap
-we see the gallery running away from us: chromium trumpet columns receding in
+THE FRAME, unchanging for twelve seconds: THE CAMERA STANDS WHERE THE WALL
+WAS, at chest height, looking out. The wall itself is not visible — no edges,
+no hole, no black surround. One small solid black crack, star-shaped, floats at
+the very front of the picture, and behind it we see the gallery running away
+from us: chromium trumpet columns receding in
 matched pairs, warm orange cove light along the ceiling, polished terracotta
 terrazzo underfoot, works on white plinths down both sides, and a tall red
 double door small and far away at the vanishing point.
@@ -199,6 +193,12 @@ walls, no wooden floor.
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
+0. THE MARK, before anything else (CEO 2026-09-06): ONE small solid-BLACK
+   crack, star-shaped, about a hand across, at the very FRONT of the frame with
+   every person behind it, exactly the plate's shape. Bigger than a hand, thick
+   heavy arms, arms reaching the frame edge, a line across anyone's face, pale
+   or grey, a hole with edges, a black surround, or a second mark = FLAGGED:
+   file it and re-fire.
 1. TWO WOMEN, NO MAN. The only man in frame is Dupe, far off on the left. A
    husband beside the crying woman is the single most likely failure — re-fire.
 2. THE ROOM IS NEARLY EMPTY. Three people total. If the model fills the gallery
