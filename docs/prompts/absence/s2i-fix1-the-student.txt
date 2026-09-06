@@ -242,3 +242,12 @@ mark rolled ~1.5x the door (usable) and vanished behind the student's head in
 shot C — take 2 stands her a half-step left of it. Everything else passed:
 five shots as timed, student on-Element, plaque insert, Dupe CU. Re-fire after
 the unshot scenes.
+
+2026-09-07 take 1 (browser_operator task-d3549139): FLAGGED. Fired without previz
+(stuck 10min at Checking eligibility, removed per playbook). Render took ~185min
+(3-4x the 30-55min estimate) but finished clean, no NSFW/refund. Everything else
+passed (5 shots, cast, plaque, couple, timing) but the mark itself failed: MISSING
+from shot 3 entirely, and a geometric radiating-crack appeared instead in shot 4
+(the plaque insert) — the exact failure this re-render exists to stop. Filed to
+Drive as S2I-Fix1.MP4 per instruction (file whatever the verdict). Full report:
+docs/reports/absence-wave-20260907-s2i-t1.md
