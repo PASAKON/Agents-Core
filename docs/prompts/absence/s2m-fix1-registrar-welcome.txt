@@ -19,8 +19,8 @@ in a wheelchair ends it at a hundred million. Two million is the number
 already engraved on the plaque, which is the joke — her offer is not a bid,
 it is her agreeing to the asking price for a hole in a wall.
 
-⚠️ THE CRACK IS IN FRONT OF EVERYONE. The camera is inside the wall cavity, so
-the broken plaster is a black silhouette in the extreme foreground and every
+⚠️ THE CRACK IS IN FRONT OF EVERYONE. The camera stands where the wall was, so
+the small black crack floats in the extreme foreground and every
 person is BEHIND it. In the previz its arms visibly cross in front of the
 group; keep exactly that depth order.
 
@@ -53,25 +53,21 @@ centre.
 
 THE BREAK EXISTS EXACTLY ONCE IN THIS PICTURE, and it is the black shape in
 the extreme foreground. Every other wall in the room is clean, undamaged
-plaster. There is no second crack, no star painted or marked on the far wall,
+plaster. There is no second crack, nothing painted or marked on the far wall,
 nothing damaged anywhere behind the people.
 
-THE CAMERA IS INSIDE THE BROKEN WALL, looking out through the break into the
-gallery. The jagged edges of the hole sit in the extreme foreground as a hard
-black silhouette, out of focus and solid black, and EVERY PERSON IS BEHIND IT,
-further away, in the lit room. Nobody ever passes in front of the broken edge.
+THE CAMERA STANDS WHERE THE WALL WAS, looking out into the gallery. THE WALL
+ITSELF IS NOT VISIBLE — no plaster, no edges, no hole, no black surround, no
+frame around the picture. The only trace of it is THE MARK: one small solid
+black crack, star-shaped, floating in the extreme foreground, the nearest thing
+to the lens, and EVERY PERSON IS BEHIND IT, further away, in the lit room.
+Nobody ever passes in front of the mark.
 
 THE COMPLETE CAST OF THIS SHOT IS SEVEN PEOPLE AND NOT ONE MORE. There are no
 extras in this film. No bystanders, no other visitors, no gallery staff, no
 security guards, no reporters, no journalists, nobody holding a camera, nobody
 filming, nobody in the background, nobody walking through. If a figure is not named below it must
 not exist.
-
-THE BLACK MARK YOU SEE IN THE REFERENCE VIDEO IS SCAFFOLDING, NOT ART. The grey
-previz contains a crude black shape standing in for the break, purely to say
-WHERE it is and that people must not block it. Do not copy that shape, its
-edges or its texture. The break's real appearance comes ONLY from the still
-image reference, and that image is the authority on it.
 
 POSITION MAP — every figure in the reference video stands exactly where its
 character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
@@ -116,21 +112,26 @@ REFERENCES — each with a job:
   door far off at the vanishing point, and the BREAK ITSELF. It is the only
   room reference in this prompt — there is no second view of the gallery and
   nothing else describes this space.
-  THE BREAK, read off that picture exactly — AND ABOVE ALL ITS SIZE: it is
-  SMALL. A delicate star about the size of a hand, floating where the wall was,
-  high in the frame in front of the far red door, with a few short thin
-  branches. It is a mark you could cover with your palm. Take its exact size,
-  shape and position from the picture and DO NOT ENLARGE IT: no full-height
+  THE BREAK, read off that picture exactly. IT IS A CRACK, NOT A STAR: a
+  BLACK crack in the wall, thin short branches meeting at a point, which only
+  happens to be star-shaped. COPY THAT MARK EXACTLY AS THE PICTURE SHOWS IT AND
+  NEVER CHANGE IT — not its shape, not its colour, not its size. It is SMALL:
+  about the size of a hand, a mark you could cover with your palm. IT IS THE
+  NEAREST THING TO THE LENS — it floats at the very front of the frame, in the
+  plane where the wall was, and every person and every part of the room is
+  behind it, further away. In the picture it sits high in the frame, over the
+  far red door. DO NOT ENLARGE IT AND DO NOT REDRAW IT: no full-height
   fracture, no spiderweb, no thick heavy arms, no arms reaching the edges of
-  the frame, no lines drawn across anybody's face or body. The whole joke of
-  the film is that this tiny mark is what everybody has come to see.
+  the frame, no lines drawn across anybody's face or body, no pale or grey
+  mark, no glowing mark — solid black only. The whole joke of the film is that
+  this tiny black mark is what everybody has come to see.
 
-THE FRAME, unchanging for twenty seconds: the ragged black opening frames the
-picture, and through it the five stand in front of the wall at uneven distances
-with the colonnade receding behind them. Far to the left, deep in the shot,
-Dupe works beside his parked cart.
+THE FRAME, unchanging for twenty seconds: the small black mark floats at the
+very front of the picture, and behind it the five stand at uneven distances,
+turned toward the mark, with the colonnade receding behind them. Far to the
+left, deep in the shot, Dupe works beside his parked cart.
 
-[0s] The five are exactly as we left them, FACING THE BROKEN WALL — which
+[0s] The five are exactly as we left them, FACING THE MARK — which
 means facing the lens, not standing side-on in profile — nobody speaking. From the left, deep in the gallery, THE REGISTRAR walks in at an
 ordinary unhurried pace, ledger held against his chest, and he is already
 talking as he comes — the cheerful practised delivery of a man who says this
@@ -207,6 +208,12 @@ foreground silhouette, no night, no blue walls, no wooden floor.
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
+0. THE MARK, before anything else (CEO 2026-09-06): ONE small solid-BLACK
+   crack, star-shaped, about a hand across, at the very FRONT of the frame with
+   every person behind it, exactly the plate's shape. Bigger than a hand, thick
+   heavy arms, arms reaching the frame edge, a line across anyone's face, pale
+   or grey, a hole with edges, a black surround, or a second mark = FLAGGED:
+   file it and re-fire.
 1. THE TONE FLIP. His welcome is bored routine; his reply to her is eager and
    deferential. If both lines sound the same the scene has no joke in it.
 2. HER FACE GIVES NOTHING. Flat, courteous, unbothered. Any excitement or
