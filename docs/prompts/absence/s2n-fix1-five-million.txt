@@ -26,6 +26,13 @@ gave 1x on S2M/S2K — variance, not prose) and THE WOMAN IN MAGENTA IS MISSING
 [0s] line only said "the five". TAKE 4 = same prose + the five named in the
 [0s] line + the previz attached again (t2 with the previz had all nine).
 
+✅✅ TAKE 4 (20:20, S2N-Fix1-take4.MP4, previz attached, five named) — PASS, CTO
+frame review 21:12: all nine present incl. the woman in magenta; faces to the
+lens at 0.5s and 3s; door opens at ~2s, the old man and the all-black bodyguard
+stop inside it; the turn by 8s; the registrar's walk and bow by 16s; Dupe at
+the cart; camera locked; mark about 1.5x the door, thin, black, off every face
+(accepted). S2N-Fix1 IS DONE.
+
 S2N-Fix1 · FIVE MILLION · CEO 2026-09-04
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.

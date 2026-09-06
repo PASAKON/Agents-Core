@@ -136,26 +136,38 @@ PROMPT B (t3, 75108b8): "…not backs, not profiles, their faces toward us until
   the door opens" — "with their backs to the room" removed (+ no previz).
 WHY B HELD: the model places the camera in the room, so "backs to the room"
   read as backs to us and overrode "facing the camera". Two variables were
-  changed together (phrase and previz); t4 puts the previz back to separate them.
+  changed together (phrase and previz); t4 put the previz back and the gaze
+  stayed correct — the phrase was the culprit.
 LESSON: never describe orientation relative to the room or the wall when the
   camera stands where the wall was — camera terms only. (§7b)
 RESULT: t3 gaze correct in every beat; t3 not accepted for other reasons (see
   PENDING: S2N cast count).
 
+### S2N · cast count · take 3 → 4 · passed 2026-09-06 21:10 (S2N-Fix1-take4.MP4)
+DEFECT SEEN: take 3 (no previz) — the woman in magenta missing, 8 of 9; the
+  mark about 2x the door.
+PROMPT A (t3): "[0s] Nobody has moved. The five are at the wall." with no
+  video reference for the position map to point at.
+PROMPT B (t4, f0c0a7b): "[0s] Nobody has moved. THE FIVE ARE AT THE WALL, left
+  to right: the young woman in the blue coat, the art student, the woman in
+  the chestnut fur, the man in maroon, and THE WOMAN IN MAGENTA at the far
+  right — all five present, nobody missing" + the previz attached again.
+WHY B HELD: a character who exists only in the POSITION MAP and the REFERENCES
+  has no beat; naming all five in the first beat gives the model a count it
+  has to honour, and the previz gives the map something to point at. The
+  gaze stayed correct with the previz back on — so the "backs to the room"
+  phrase, not the previz, was the gaze culprit (the open question from the
+  entry above is answered).
+LESSON: every character gets a beat line that names them; a position map
+  alone does not hold when there is no video to map against. (§7, §12)
+RESULT: S2N-Fix1 closed on take 4 — nine people, faces to the lens then the
+  turn, the old man stopped inside the door, the registrar's walk and bow,
+  camera locked; mark about 1.5x the door (accepted — thin, black, off every
+  face, same place).
+
 ---
 
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
-
-### S2N · cast count and mark size · t3 (no previz) dropped the woman in magenta, mark ~2x the door
-PROMPT A (t3): "[0s] Nobody has moved. The five are at the wall." with no previz
-  to point the position map at. Result: 8 of 9 — the magenta critic gone; the
-  mark about 2x the door (S2M/S2K gave 1x on the same sentences — variance).
-PROMPT B (t4): "[0s] … THE FIVE ARE AT THE WALL, left to right: the young woman
-  in the blue coat, the art student, the woman in the chestnut fur, the man in
-  maroon, and THE WOMAN IN MAGENTA at the far right — all five present, nobody
-  missing", and the previz attached again.
-VERDICT: awaiting S2N t4. If the previz brings the backs back, the gaze fix
-  below was the phrase after all; if not, the previz is cleared.
 
 ### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
 PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;
