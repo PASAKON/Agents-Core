@@ -29,7 +29,14 @@ FORBIDDEN = [
 # go fix. Nothing in this range may be queued without the CEO.
 QUARANTINED = ('4', '5', '6', '7', '8')
 
-MAX_ELEMENTS = 10  # Seedance 2.0 hard cap, on ATTACHED elements
+MAX_ELEMENTS = 9  # Confirmed 2026-08-14 (task-0ee4a20a): 10 fails 3/3 with a
+# generic Higgsfield error indistinguishable from a content rejection; 9
+# generates first try, same beat, same plates. Treat 10 as unusable.
+
+# Seedance 2.5 accepts up to 50 reference images (CEO, 2026-08-14) - the
+# 9-cap above is a Seedance 2.0 limit only. Scenes generated on 2.5 carry
+# "Seedance 2.5" somewhere in their title; give them the real cap instead.
+MAX_ELEMENTS_SEEDANCE_25 = 50
 
 TAG = re.compile(r'@[A-Za-z][A-Za-z0-9-]*')
 
@@ -72,8 +79,9 @@ def main():
                 flags.append('FORBIDDEN ' + f)
                 problems += 1
 
-        if len(tags) > MAX_ELEMENTS:
-            flags.append(f'OVER CAP ({len(tags)})')
+        cap = MAX_ELEMENTS_SEEDANCE_25 if 'Seedance 2.5' in title else MAX_ELEMENTS
+        if len(tags) > cap:
+            flags.append(f'OVER CAP ({len(tags)} > {cap})')
             problems += 1
 
         # The daughter appears in Scene 9 only as the child inside the
