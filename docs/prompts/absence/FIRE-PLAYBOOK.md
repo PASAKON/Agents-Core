@@ -53,9 +53,11 @@ words. Expect: `NO WIDER THAN THE RED DOOR` → 1 on wall-POV sheets;
   unresolved, bind each by typing @ and selecting (slow — say so).
 - PREVIZ (if the brief names one): attach via the reference panel's file
   input, verify the platform's reported size equals `ls -l`'s byte count (the
-  picker's "Last used" sort shows a stale asset first). 10-minute cap: stuck at
-  "Checking eligibility" / readyState 0 → remove it and fire without it,
-  flagging the take. Removing a stuck tile can leave Generate disabled — a
+  picker's "Last used" sort shows a stale asset first). readyState 0 /
+  "Checking eligibility" on the tile is BENIGN when the byte count matches and
+  Generate is enabled — S2H t1 fired that way and rendered (2026-09-07). Fire.
+  10-minute cap only when Generate stays DISABLED → remove it and fire without
+  it, flagging the take. Removing a stuck tile can leave Generate disabled — a
   reload clears that but resets Unlimited; re-toggle, re-zoom, re-count chips
   (a detach can silently delete an adjacent chip).
 - FIRE: Generate is the very last action with nothing in flight. Verify by a
