@@ -1,12 +1,8 @@
-✅ MENTIONS ARE NOW THE EXACT LIVE ELEMENT IDS (normalised 29 Aug against the
-complete Elements census in QUEUE.md). PASTE THEM VERBATIM — do not "fix" them.
-Most carry a `project_absence_` prefix; exactly eight are bare: char_registrar,
-gentleman_e, char_gentleman_c, loc_wall_pov_e, loc_wall_pov_d, loc_hall_big_e,
-loc_mansion_b, prop_cart_b. ⚠️ Never write a short `@char_valder` — a DIFFERENT
-film on this account owns that id; this film's is @project_absence_char_valder.
+✅ MENTIONS ARE THE EXACT LIVE ELEMENT IDS. PASTE VERBATIM — do not "fix" them.
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
 
 ===============================================================
-SCENE 2 — THE ACCIDENT · REDO
+SCENE 2 — THE ACCIDENT · rewritten clean 30 Aug (CEO notes in)
 ===============================================================
 20s · 720p · 16:9 · ONE LOCKED SHOT + exactly ONE fast snap zoom — the camera
 never moves otherwise, no cuts. Sound On · High.
@@ -14,112 +10,110 @@ never moves otherwise, no cuts. Sound On · High.
 REFERENCES — each with a job:
 @loc_hall_big_e — the hall only: white walls, orange cove light, terracotta
   terrazzo, chromium columns. Not the framing.
-@project_absence_char_cleaner_c — Dupe: face, build, white uniform with orange trim, cap,
-  gold V at cap and chest.
+@project_absence_char_cleaner_c — Dupe: face, build, white uniform with
+  orange trim, cap, gold V at cap and chest.
 @project_absence_prop_cart — the cart DESIGN: mop, orange bucket, bottles,
   ladder, gold V. Rack EMPTY until [13s].
-@prop_cart_b — **THE CANVAS'S SHAPE AND PROPORTIONS ONLY.** This plate shows
-  the same painting standing upright in the cart. The canvas hanging on the
-  wall at [0s] is THAT canvas: same portrait proportions, same tall
-  rectangle, same painted face. Do not take the cart or its contents from
-  this plate — take the picture's shape.
-@project_absence_prop_valder_study_b — the painting's painted face: geometric
-  blocks in ochre, rust, sage, cream and dusty pink.
+@project_absence_prop_valder_study_b — THE PAINTING, face and proportions:
+  a LANDSCAPE canvas, very slightly wider than tall (~1.1:1, nearly square,
+  roughly 80 cm wide × 72 cm tall), thin black frame. Flat matte geometric
+  blocks in rust red, burnt orange, ochre, cream, sage green, dusty pink,
+  one black wedge. No impasto, no brush texture, no blade-scrape.
+@project_absence_loc_wall_pov_e — THE CRACK'S EXACT SHAPE ONLY (CEO: the
+  crack must carry a real reference). THE CRACK IS A STAR. Copy it exactly:
+  a small STAR-SHAPED break with an irregular DARK OPENING at its centre
+  where a little plaster has come away, and about FIVE long, thin, clean
+  cracks radiating outward from that centre, unequal in length, each
+  slightly kinked. Few arms, cleanly drawn, plenty of bare wall between
+  them. This star is the film's crack and it appears in every other scene —
+  it must match. Take NOTHING else from the plate — not its framing, not
+  its veil, not its darkness, not its border.
 
-⚠️ THE CRACK PLATE IS DELIBERATELY NOT BOUND. Takes 1 and 2 both returned a
-spiderweb radiating from an impact point, which is glass behaviour, not
-plaster. The wall-POV frames are shot through CRACKED GLASS and that
-radiating pattern belongs to them; this is a PLASTER wall and it cracks in a
-line. Describe it in words only — see [9s].
+⚠️ SIZE CONTINUITY (CEO 30 Aug): earlier takes rendered the painting BIGGER
+on the wall than it is in the cart. IT IS THE SAME OBJECT AT THE SAME SIZE
+IN BOTH PLACES. On the wall it is a SMALL picture — the wall dwarfs it; Dupe
+standing beside it is clearly TALLER than the painting; it occupies a modest
+patch of the huge white wall, exactly as small as it looks in the cart rack.
 
-⚠️ THE PAINTING — CORRECTED 29 Aug FROM THE CART PLATE ITSELF (CEO).
-Both my earlier numbers were guesses and both were wrong: first 90x70
-landscape, then "corrected" to 70x90 portrait off a couple of clips. The
-canonical object is visible in `@prop_cart_b`, standing in Dupe's cart, and it
-is **LANDSCAPE, very slightly wider than tall — about 1.1 : 1, nearly square.
-Roughly 80 cm wide x 72 cm tall.** Thin black frame, a few centimetres deep.
-
-**Its face is NOT heavy impasto and there is no blade-scrape.** It is a FLAT
-MATTE GEOMETRIC ABSTRACT: interlocking curved and angular blocks in rust red,
-burnt orange, ochre, cream, sage green, dusty pink, terracotta and one black
-wedge. Poster-flat, chalky, no visible brush texture.
-
-**Reference `docs/prompts/absence/REF-painting-from-cart.png`** — the canvas
-cropped straight out of the cart plate. Upload it, or bind `@prop_cart_b` for
-the canvas shape and face. Do not describe the painting from memory again;
-every time it has been described rather than shown, it has come back wrong.
-
-⚠️ THE CRACK PLATE IS DELIBERATELY NOT BOUND. Takes 1 and 2 both returned a
-spiderweb radiating from an impact point, which is glass behaviour, not
-plaster. The wall-POV frames are shot through CRACKED GLASS and that
-radiating pattern belongs to them; this is a PLASTER wall and it cracks in a
-line. Describe it in words only — see [9s].
-
-⚠️ THE PAINTING — FIXED SIZE, CORRECTED 29 Aug against the plate as it
-actually renders (S1D take 1 shows it PORTRAIT, not landscape; the earlier
-landscape figure was my guess and the plate overrules it):
-**70 cm wide × 90 cm tall, PORTRAIT, clearly taller than wide (~7:9), thin
-dark frame ~4 cm deep.** About shoulder-width on Dupe, light enough for one
-man, small enough to ride upright in the cart without overhanging. Geometric
-abstract blocks in ochre, rust, sage, cream and dusty pink.
-
-CEO 2026-08-28: the accident comes from Dupe doing his job WELL — the painting
-hangs crooked, he tries to straighten it, that is what brings it down.
+CEO 2026-08-28: the accident comes from Dupe doing his job WELL — the
+painting hangs crooked, he tries to straighten it, that is what brings it
+down. CEO 2026-08-30: THE PLAQUE FALLS TOO — that is why the arrivals face a
+bare wall until the institution installs a fresh plaque in P1.
 
 [0s] Locked wide, waist height, exactly perpendicular to the hero wall — the
-frame PERFECTLY SYMMETRICAL about the wall's centreline, plaque dead centre
-(THE ABSENCE OF MEANING / Valder / $2,000,000), cove lights mirrored. On the
-wall hangs ONE PAINTING, **PORTRAIT ORIENTATION — TALLER THAN IT IS WIDE,
-standing up like a door, roughly 70cm wide by 90cm tall. It is NOT a
-landscape picture. It is NOT square.** It hangs VISIBLY CROOKED, tilted
-several degrees — the single asymmetry in a perfect frame. Early morning,
-museum empty, warm orange light. Dupe enters from frame edge with his cart.
+frame PERFECTLY SYMMETRICAL about the wall's centreline, cove lights
+mirrored. On the wall hangs ONE SMALL LANDSCAPE PAINTING (the canvas from
+the reference, slightly wider than tall), and beneath it a SMALL BRASS
+PLAQUE reading THE ABSENCE OF MEANING / Valder / 2,000,000 — no currency
+symbol. The painting hangs VISIBLY CROOKED, tilted several degrees — the
+single asymmetry in a perfect frame. Early morning, museum empty, warm
+orange light. Dupe enters from frame edge with his cart, rack empty.
 
 [6s] He notices the tilt. He does NOT take the painting down. He does NOT
-lift it off its hook. **He reaches up with both hands and gently pushes one
-corner to STRAIGHTEN it** — a small, careful, well-meant adjustment to a
-picture he intends to leave hanging. The camera does not move and does not
-cut closer.
+lift it off its hook. He reaches up with both hands and gently pushes one
+corner to STRAIGHTEN it — a small, careful, well-meant adjustment to a
+picture he intends to leave hanging. The camera does not move, does not cut.
 
-[9s] The painting comes off its fixing on its own, drops, strikes the floor,
-and ends leaning on its bottom edge — the tall portrait canvas, frame
-intact. One short dry crack of plaster. The instant it lands: ONE FAST SNAP
-ZOOM straight in to the wall where it hung. **THERE IS EXACTLY ONE CRACK: a
-SINGLE JAGGED LINE about a foot long, running roughly top-left to
-bottom-right, like a line drawn with one stroke. It has at most two small
-branches near its middle. It is NOT a spiderweb. It does NOT radiate from a
-centre point. There is NO star pattern, NO shattered-glass pattern, NO
-impact crater.** Plaster chipped a little at the edges. Hold it a full beat
-too long.
+[9s] The painting comes off its fixing on its own, drops, strikes the floor
+and ends leaning on its bottom edge, frame intact — AND ON ITS WAY DOWN IT
+CLIPS THE BRASS PLAQUE, which tears off the wall and clatters across the
+terrazzo, spinning to a stop. Two sounds: one dry crack of plaster, one
+bright metallic clatter. The instant the painting lands: ONE FAST SNAP ZOOM
+straight to the wall where it hung — THE CRACK, exactly as the reference
+plate draws it: the small dark star — a broken opening at the centre with
+about five long thin clean arms running out of it, unequal in length,
+slightly kinked, bare white wall showing between them. It is SMALL, about
+the size of a hand on an enormous wall. Plaster chipped a little at the
+edges. Hold a full beat.
 
-[13s] Back in the locked wide: he freezes, looks at the wall, looks left,
-looks right — nobody. He picks the tall painting up. **HE CARRIES IT TO THE
-CART AND SLOTS IT UPRIGHT INTO THE CART'S RACK, standing vertically in the
-cart, face turned outward, held by the cart itself.** It must end up IN the
-cart, riding it — NOT leaning against the wall, NOT on the floor, NOT
-propped beside the cart.
+[13s] Back in the locked wide: he freezes, looks at the wall, left, right —
+nobody. He picks the painting up and SLOTS IT UPRIGHT INTO THE CART'S RACK,
+face outward, held by the cart. Then he picks the fallen PLAQUE off the
+floor, looks at it for half a second, and lays it flat on the cart's shelf
+among the bottles. Nothing goes back on the wall.
 
-[17s] He pushes the cart out of frame with the painting standing upright in
-it. Hold the symmetrical tableau — bare wall, plaque, the single crack — one
-beat longer than comfortable.
+[17s] He pushes the cart out of frame — painting standing in the rack,
+plaque lying on the shelf. Hold the symmetrical tableau: a completely BARE
+wall with one small crack, nothing else on it. One beat longer than
+comfortable.
 
-AUDIO: room tone, cart wheels, cloth, one dry crack of plaster, no music.
+⚠️ HOW TO JUDGE THE CRACK ON REVIEW — this criterion wrongly rejected three
+takes. THE CORRECT CRACK IS A STAR: a dark centre with a FEW (about five)
+long clean arms. That is what the CEO's wall plate shows and what every
+filed keeper already contains. Do NOT reject a take for "being a star" or
+"radiating arms". Reject only for: a dense mesh of many fine lines (a real
+spiderweb), concentric rings, a fracture splitting the wall top to bottom,
+or a hole/crater with rubble. Few clean arms = PASS. Many fine meshed
+lines = FAIL.
+
+AUDIO: room tone, cart wheels, cloth, one dry crack of plaster, one metallic
+clatter, no music.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids,
 whites pushed slightly cool, shadows deep red-brown, halation around every
 lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
 colour fringing.
 
-CRITICAL NEGATIVES: no portrait painting, no painting taller than wide, no heavy impasto, no thick brushstrokes, no blade-scrape, no spiderweb crack, no radiating cracks, no star-shaped crack, no impact crater, no multiple separate cracks, no painting left leaning against the wall at the end, no painting on the floor at the end, no Dupe lifting the painting off its hook on purpose, no Dupe removing the painting to clean behind it, no other people, no spider-web crack, no multiple cracks,
-no invented crack shape, no broken frame, no torn canvas, no ladder or tiptoe
-climbing, no painting left on the floor at the end, no camera move except the
-single specified snap zoom.
+CRITICAL NEGATIVES: no oversized painting, no painting larger than
+shoulder-height on Dupe, no painting dominating the wall, no portrait
+painting, no painting clearly taller than wide, no square canvas, no heavy
+impasto, no brush texture, no blade-scrape, no dense spiderweb of fine lines, no
+meshed hairline cracks, no concentric rings, no dozens of small cracks, no
+full-height fracture splitting the wall, no crack running to floor or
+ceiling, no hole, no crater, no rubble, no separate cracks in other places,
+no invented crack shape (match the reference star), no crack bigger than a
+hand, no plaque left hanging on the
+wall at the end, no plaque back on the wall, no painting leaning against the
+wall at the end, no painting on the floor at the end, no Dupe lifting the
+painting off its hook on purpose, no other people, no broken frame, no torn
+canvas, no ladder, no tiptoe climbing, no camera move except the single
+specified snap zoom.
 
 House negatives: no dialogue, no voiceover, no narration, no subtitles, no
-captions, no readable text anywhere except the brass plaque, no music, no
-score, no gold V on anyone but Dupe and his cart, no glass, no rubble, no
-debris, no dust cloud, no structural damage, no hole, no smartphones, no
-screens, no modern technology, no dutch angle, no handheld wobble, no slow
-motion, no lens flare, no HDR, no CGI sheen, no plastic skin, no beauty
-filter, no dim moody lighting, no darkness, no night, no ultramarine walls,
-no blue walls, no wooden floor
+captions, no readable text anywhere except the brass plaque before it falls,
+no music, no score, no gold V on anyone but Dupe and his cart, no glass, no
+rubble, no debris, no dust cloud, no structural damage, no hole, no
+smartphones, no screens, no modern technology, no dutch angle, no handheld
+wobble, no slow motion, no lens flare, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no
+ultramarine walls, no blue walls, no wooden floor

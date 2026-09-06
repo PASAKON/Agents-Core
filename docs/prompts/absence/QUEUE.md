@@ -1,3 +1,202 @@
+> # 🎥 MORE FOOTAGE IS THE GOAL — A BAD TAKE IS NOT A FAILURE (CEO 07:55, 30 Aug)
+> Verbatim: «Footage มากที่สุด = ดีที่สุด» and «Generate เสียไม่ใช่ความผิด
+> เก็บไว้ใน Drive ทุกคลิป ใช้ได้แม้ทำพลาด»
+>
+> **This changes what the operator does after a review.** Until now a take that
+> missed its spec triggered a re-fire, and the slot went back over ground it had
+> already covered. It does not any more:
+> - **KEEP EVERY CLIP. File all of them in Drive**, flawed ones included. A
+>   clip that missed its spec is still usable footage — the editor may want it,
+>   and the CEO decides that, not the reviewer.
+> - **A flag is a LABEL, not a rejection.** Keep writing the descriptive suffix
+>   (`-FLAGGED-duplicate-cleaner`) so the editor knows what is in the clip.
+>   It does NOT mean "throw away" and it does NOT mean "shoot it again".
+> - **DO NOT re-fire a scene just because a take missed.** File it, say what
+>   you saw, and move to the NEXT UNSHOT SCENE. Breadth beats polish: a scene
+>   with one imperfect take is worth more than a scene with none.
+> - **Re-shoot only when the CEO asks for one**, or when a take is literally
+>   unusable (black frame, wrong film, no output). Everything else goes in the
+>   can and the queue keeps moving.
+> - The point of the review stays: WATCH every clip and REPORT what is in it
+>   accurately, so the CEO can choose. Reviewing is labelling now, not gating.
+>
+> **Consequence for the schedule:** the ~1.6-takes-per-scene grind is gone, so
+> the 19 remaining story clips cost ~19 renders instead of ~30. That is what
+> makes the full scope reachable before Monday with the extras still in.
+
+> # 💽 VERIFIED KEEPER LEDGER (CTO audited Drive directly, 07:45 30 Aug)
+> Counted from Drive itself, not from memory. **19 keepers.** A scene listed
+> here is SHOT — do not re-fire it as if it were new; any improvement to it is
+> a re-shoot and goes to the BACK per the CEO's standing rule.
+>
+> **Story (13):** S1 `cfbb4a9d` · S2 take4 `a4e364f7` · S2b `f5e097db` ·
+> A1 take3 `b2f5c42e` · A2 take2 `886bcbeb` · A3 `963b3ecc` ·
+> A4 take2 `f6ef6773` · A5 `c45363a0` · S13a `c20dbf52` · S13b `ea3b2961` ·
+> S15a take2 `b207303a` · S15b `c3516bfd` · **S17 `9d3e2fe4`**
+> **Coverage (5):** S1A `091b3608` · S1B `9bd03344` · S1D take2 `ab366138` ·
+> S1E `9f1e996c` · S1G `3364edbe`
+> **In flight:** S4 take2 (take1 `180f1c5a` flagged — Dupe rendered twice).
+>
+> ⚠️ **S17 ALREADY HAS A CLEAN KEEPER.** Its entry at the back of the queue
+> is an UPGRADE re-fire, not a missing scene.
+> ✅ **CEO 07:55, 30 Aug: NOTHING IS CUT. Full scope stands** — all 19
+> remaining story clips plus every extra (S1C/S1F, X1–X8, P1–P3, D1–D5,
+> DH1–DH4). The CTO offered a scope cut and the CEO declined it. Shoot the
+> queue as written, in order; do not skip S17 or any back-of-queue item on
+> your own judgement. If the clock actually runs out, that is a call for the
+> CEO to make, not the operator.
+>
+> ⚠️ **Ignore the old lowercase files** in Drive — `absence-s3-the-
+> interpretations`, `absence-s4-two-million`, `absence-s9-dupe-hears-it`,
+> `absence-s17-the-square-hole`, `absence-s18-the-interview-and-hammer`. They
+> pre-date the 28 Aug Dupe-POV rewrite and are NOT part of this cut. Two
+> unflagged-but-superseded takes also sit in Drive and are not keepers:
+> S1D take1 `be929c0a` and S15a take1 `35b4edd4`.
+
+> # 🧱 NO NEW IN-WALL POV PLATES (CEO 04:30, 30 Aug)
+> Verbatim: «ไม่ต้องสร้างภาพมุมมองในกำแพงใหม่นะ ใช้มุมมอง ข้างหน้ากำแพงบ่อยๆ
+> ดีกว่า เรามี ref ที่ใช้งานได้จริง»
+> - **Generate NO further in-wall-POV image plates.** The set we have is
+>   final: `loc_wall_pov_e`, `loc_wall_pov_d`, and the two price variants
+>   `_20m` / `_100m` just made on-platform. Nothing more gets made in that
+>   viewpoint — no round 4, no refinements, no re-crops.
+> - **This RESOLVES the open question below** about the base wall element's
+>   hand-built origin: it is NOT regenerated. We keep and use it.
+> - **Favour the FRONT-OF-WALL angle in coverage** — the camera in the room
+>   looking AT the wall (S2's locked wide, the X4 reverse, the doll's-house
+>   box). The CEO's reason: those refs actually work. The in-wall POV stays
+>   reserved for the beats that need it (A1-A5, S3, S4, S6, S11) and is not
+>   the default choice for anything new.
+
+> # 🧱 S2 REWRITTEN CLEAN (CEO 04:15, 30 Aug) — re-read s2-accident.txt before firing
+> Three CEO notes folded into one clean file (the old file had duplicated,
+> contradictory painting blocks — all gone):
+> - **THE PLAQUE FALLS TOO** («ต้องมีฉากที่ Dupe ทำป้ายตกด้วย»): plaque is
+>   PRESENT at [0s] under the crooked painting (2,000,000, no $), the falling
+>   painting clips it off the wall, it clatters, Dupe lays it on the cart
+>   shelf. End tableau = BARE wall + one crack. This closes the loop: bare
+>   wall for all arrivals → P1 installs the FRESH plaque before S4.
+> - **THE CRACK IS REFERENCED, not word-only** («กำแพงร้าวต้องใส่ REF ไปดีๆ»):
+>   S2 now binds `@project_absence_loc_wall_pov_e` scoped to THE CRACK'S
+>   EXACT SHAPE ONLY — never its framing, veil, or border.
+> - **SIZE CONTINUITY**: painting is the SAME SMALL object on wall and in
+>   cart — landscape ~1.1:1 (~80×72cm), Dupe taller than it, oversize is a
+>   named reject. Painting face binds `@project_absence_prop_valder_study_b`
+>   (on-platform, replaces the external crop per competition rule).
+
+> # 🏆 COMPETITION RULE (CEO 04:10, 30 Aug) — PLATFORM-ONLY GENERATION
+> **Festival rules: every image and every video must be GENERATED ON
+> HIGGSFIELD.** Externally created or externally edited pictures may not be
+> used as assets. Effective immediately:
+> - **DELETE Elements `project_absence_loc_wall_pov_e_100m` and `_20m`** (if
+>   filed) — they were hand-built outside the platform. Do not upload the
+>   PNGs; they are removed from the repo.
+> - **The S6/S11 price walls are now GENERATED on-platform instead**: image
+>   mode, bind `@project_absence_loc_wall_pov_e`, prompt the plaque in — a
+>   brass plaque low in the near plane, MIRROR-REVERSED lettering, reading
+>   THE ABSENCE OF MEANING / Valder / 20,000,000 (or 100,000,000), no
+>   currency symbol, everything else in the frame unchanged. Expect retries
+>   on the mirrored digits; verify by zooming the output.
+> - **No more hand-built composites as production assets, ever.** External
+>   images may exist only as private notes for humans, never uploaded.
+> - ⚠️ OPEN QUESTION FOR THE CEO: the base wall element and some earlier
+>   plates began life as hand-built composites uploaded to the platform. If
+>   the rule covers those too, they need on-platform regeneration — his call.
+
+> ## 🎩 COSTUME FINAL (CEO 04:00, 30 Aug) — read before firing any registrar or gentleman scene
+> - **The gentleman keeps his WHITE suit.** `gentleman_f` is CANCELLED as his
+>   plate — do not bind it to him, ever. (If already generated, archive it.)
+> - **THE REGISTRAR is recostumed: FORMAL BLACK suit** — sober, immaculate —
+>   with **WHITE GLOVES** and the **small GOLD V** at the chest, ledger as
+>   always. He is the price-knocker AND the plaque-changer, one man. Bind
+>   `@char_registrar` FACE ONLY + state the black suit in text until
+>   `char_registrar_b` exists.
+> - **IMAGE LANE'S JOB CHANGES: generate `char_registrar_b`** — 4-panel
+>   character sheet, SAME FACE as `@char_registrar` (bind it), formal black
+>   suit, white gloves, gold V at chest, brass-cornered ledger in hand in one
+>   panel, ONE face, 16:9 2K, id BY HAND `char_registrar_b`.
+> - ⚠️ S15a/S15b keepers show the registrar in the old ivory livery — accepted
+>   for now; the arrivals-style upgrade re-shoot pass at the back of the queue
+>   can pick this up if time allows.
+
+> ## ▶️ ORDER OF PLAY (CEO 03:05, 30 Aug): NEW WORK GOES TO THE BACK
+> "เอา Task ใหม่ต่อหลัง ให้ Task เก่า Generate ไปก่อน เพราะอยากเห็นซีนใหม่ๆ ด้วย"
+> **Do not stall the queue polishing what exists — push into UNSEEN scenes.**
+>
+> **STANDING RULE (CEO 03:10): ฉากแก้เอาต่อท้ายเสมอ — A RE-SHOOT ALWAYS GOES
+> TO THE BACK OF THE QUEUE.** A reject never jumps the line; unseen scenes
+> always fire first. This applies from now until the film wraps.
+>
+> 1. If A4/A5 are ALREADY staged or rendering, let them finish — never waste
+>    a fire. If not yet staged, SKIP them for now: they are re-shoots and go
+>    to the back.
+> 2. Straight into scenes the CEO has never seen: **S2 → S4 → S7 →
+>    S8a → S8b → S8c → S8d → S9 → S10 → S10b → S12a → S12b → S5 → S14 →
+>    S16 → S17 → S18a → S18b** (S6 and S11 wait for the 20M/100M wall
+>    variants; slot them in whenever those plates exist). Note S2 is itself
+>    a re-shoot BUT the CEO has never seen a correct S2 — treat "unseen" as
+>    "the CEO has not approved a version of this beat"; S2 stays in line.
+> 3. THE BACK OF THE QUEUE, in order: A4 re-fire, A5, S17 re-fire, S6b
+>    (auction-desk entrance), P1–P3, D1–D5, X1–X8, DH1–DH4, and any future
+>    reject's re-fire as it arises.
+> 4. Image jobs (gentleman_f plate, wall-pov source download) still run in a
+>    PARALLEL tab — they cost no video slot and unblock S6/S6b/S11, so do
+>    them whenever the composer is rendering.
+
+> ## 📖 STORY AUDIT RESULTS + CEO DECISIONS (30 Aug 02:50) — all in the files
+> 1. **P1 is now THE INSTALLATION.** The arrivals see a BARE cracked wall; P1
+>    (after A5, before S4) shows gloved hands screwing a FRESH plaque on —
+>    the institution canonises the crack. No dollar sign on any plaque ever.
+> 2. **THE GENTLEMAN IS RECOSTUMED: charcoal grey pinstripe three-piece**
+>    (white clashed with Dupe). Cane/ring/gold teeth unchanged. His plate
+>    still shows white — bind `@gentleman_e` for FACE AND BUILD ONLY and
+>    state the suit in text, until a `gentleman_f` plate exists (image job
+>    below). ⚠️ S15a/S15b keepers may show him in white at the frame edge —
+>    CEO accepts for now.
+> 3. **NEW SCENE 6b** in `s6-s18.txt`: his entrance — bodyguards carry in a
+>    mahogany auction desk WITH him standing behind it, riding it like
+>    furniture; two cane taps; nobody reacts. Room-side one-point, fires on
+>    `loc_hall_big_e`, no wall-frame dependency.
+> 4. **EXACTLY TWO absurd red-door entrances in the film** (CEO): the
+>    gentleman (S6b, desk) and the grandmother (S12a, empty doorway). Nobody
+>    else gets one — the parrot woman's S10 entrance stays a straight power
+>    walk.
+> 5. **The husband is now bound in S4, S6 and S11** — he arrived in A3 and
+>    was silently missing from every later crowd.
+> 6. **S16 adds the grandmother** parked in her wheelchair watching her wall
+>    being cut — buyer and seller silently watching the same rectangle.
+> 7. S4's step-back man is now named+bound (`visitor_a` — S17 repeats his
+>    move). S6/S11 plaques lose the `$`. S11's stale "Scene 3" ref now says A1.
+>
+> **TWO IMAGE JOBS (parallel tab or image lane):**
+> - **`gentleman_f` plate**: charcoal grey pinstripe three-piece, fine
+>   stripe, same face/build as `@gentleman_e` (bind it), cane with gold
+>   grip, diamond ring, subtle gold teeth, 4-panel character sheet incl.
+>   back view, ONE face, 16:9 2K. Id BY HAND: `gentleman_f` (bare, matching
+>   its sibling).
+> - **Download the wall Element's source image** (`project_absence_loc_wall_pov_e`
+>   from the Elements panel) into the worktree as `wall-pov-e-source.png` and
+>   commit — the CTO hand-builds the 20M and 100M plaque variants from it,
+>   zero gen cost, then you upload them as
+>   `project_absence_loc_wall_pov_e_20m` / `_100m` for S6 and S11.
+
+> ## 🎬 EDITOR SUPPORT PACK + INTERLEAVE ORDER (CEO 02:10, 30 Aug)
+> The CEO reviewed coverage and approved ALL of it:
+> - **`s-extras.txt` X1–X8** (9 clips): museum-front establishing · 20s room
+>   tone bed · red-door open/close insert · reverse of the arrivals row ·
+>   macro push on the painting in the cart · helicopter circling outside ·
+>   TV news broadcast after the 100M · PA open/close bookends.
+> - **P1–P3 and D1–D5 are now INTERLEAVED into the live queue**, not parked
+>   at the end — his words: "แทรกคิวเลย".
+>
+> **Slot priority stays simple: a story scene that is ready to fire always
+> beats an insert.** Use P/D/X clips to fill the slot whenever the next
+> story scene is not yet staged (e.g. while reviewing a landed take).
+>
+> **Element prep for X1/X6, zero gen cost:** upload the existing front plate
+> (Drive `Element/absence-loc-exterior.png`) as a NEW Element, id BY HAND
+> `project_absence_loc_exterior_front`.
+
 > # ⛳ THE PROJECT — CHECK THIS BEFORE EVERY SINGLE FIRE
 > **https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3**
 > ("The Valder Collection No.7")

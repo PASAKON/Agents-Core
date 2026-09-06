@@ -13,8 +13,9 @@ zoom. Sound On · High.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — the white wall and warm light only. Not the framing.
-@char_registrar — HIS HANDS ONLY: same white gloves, same ivory cuffs as his
-  plate. The man who records the bids is the man who makes them official in
+@char_registrar — HIS HANDS ONLY: WHITE GLOVES with FORMAL BLACK suit
+  cuffs (his recostume, CEO 30 Aug — not the plate's ivory). He is the one
+  man who both knocks the price and changes the plaque. The man who records the bids is the man who makes them official in
   brass. NO face, NO body, NO reflection of a person anywhere, ever.
 
 One gag, pure Anderson: between price jumps the film cuts to the museum
@@ -25,26 +26,29 @@ the madness in brass. Fire any time; they bind only the hall.
 SHARED FRAME — all three: locked-off FRONTAL PORTRAIT of the brass plaque,
 dead centre, filling about a third of frame, mounted low on the white wall.
 VISITOR side — the lettering reads CORRECTLY, not mirrored. Perfectly level,
-perfectly symmetrical. Serif engraved text: THE ABSENCE OF MEANING / Valder /
-and the price.
+perfectly symmetrical. Serif engraved text: THE ABSENCE OF MEANING / Valder / and the price.
+NO DOLLAR SIGN, NO CURRENCY SYMBOL — the number stands alone.
 
---- P1 · THE POLISH ($2,000,000) — plays before S4 ---
-[0s] The plaque reads $2,000,000. A gloved hand enters with a folded cream
-cloth and polishes the brass in slow circles — unhurried, devoted.
-[3s] One last wipe of the "$". The hand withdraws. Hold the gleaming plaque
-one beat too long.
-
---- P2 · THE SWAP ($20,000,000) — plays before S6 ---
-[0s] The plaque reads $2,000,000. Two gloved hands enter with a small
+--- P1 · THE INSTALLATION (2,000,000) — plays after A5, before S4 ---
+⚠️ REWRITTEN 30 Aug (CEO): the arrivals see a BARE cracked wall — no plaque.
+This insert is the moment the institution makes it official.
+[0s] The bare white wall, the small crack above. Two gloved hands enter with
+a FRESH brass plaque and a small screwdriver, hold it level below the crack,
+and drive the four corner screws with tiny precise turns.
+[3s] One slow polishing circle over the new brass, one last wipe of the
+engraved price — 2,000,000 — and the hands withdraw. The crack now has a
+title, an artist and a price. Hold the gleaming plaque one beat too long.
+--- P2 · THE SWAP (20,000,000) — plays before S6 ---
+[0s] The plaque reads 2,000,000. Two gloved hands enter with a small
 screwdriver, unscrew the four corner screws with tiny precise turns, lift
 the plaque away — a clean unfaded rectangle left on the wall.
-[3s] They screw a new plaque into its place: $20,000,000. One flat wipe of
+[3s] They screw a new plaque into its place: 20,000,000. One flat wipe of
 the cloth. Withdraw. Hold.
 
---- P3 · THE SWAP ($100,000,000) — plays before S11 ---
+--- P3 · THE SWAP (100,000,000) — plays before S11 ---
 [0s] Identical choreography, identical pace, no escalation in the hands
-whatsoever: off comes $20,000,000.
-[3s] On goes $100,000,000. The hands remain exactly as calm as they were at
+whatsoever: off comes 20,000,000.
+[3s] On goes 100,000,000. The hands remain exactly as calm as they were at
 two million. That is the joke. Wipe. Withdraw. Hold.
 
 AUDIO: room tone, the squeak of cloth on brass, the tick of tiny screws. No
@@ -57,6 +61,6 @@ CRITICAL NEGATIVES: no faces, no people, no bodies, no reflections of
 people, no mirrored text, no misspelled text, no camera movement.
 
 House negatives: no second pair of hands beyond the two specified, no bare
-hands, no skin above the cuff, no extra plaques, no music, no dialogue, no
+hands, no skin above the cuff, no ivory cuffs, no extra plaques, no music, no dialogue, no
 voiceover, no captions, no zoom, no handheld, no dutch angle, no cut inside
 the clip, no HDR, no CGI sheen, no darkness
