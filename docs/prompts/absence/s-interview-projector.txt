@@ -231,3 +231,14 @@ Drive). Both looks exist so the editor can choose; nothing here replaces those
 files.
 
 === END NOTES ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+⛔ PLATE TAKE 2 REJECTED BY THE CEO, 2026-09-06 ~10:20 —
+docs/prompts/absence/generated/project_absence_char_dupe_interview_projector_take2.png
+(fired by task-f7ac7a01 WITH ELEMENT-dupe-interview-house.png attached as the
+image reference). Take 1 (prose-only) was rejected 09-06 morning as "not Dupe".
+CEO: "ไม่ผ่าน เดี๋ยว Update ให้" — the CEO supplies the next plate themselves.
+DO NOT FIRE A THIRD PLATE. IVR1/2/3 stay blocked until the CEO's plate exists.
+Two paid attempts so far; the second also fired three unplanned extra images
+(Generate click retried after 5 s — see higgsfield-unlimited-gen "Paid controls").
+=== END NOTES ===
