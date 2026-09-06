@@ -171,9 +171,32 @@ beauty filter, no dim moody lighting, no darkness, no night.
 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-THE PLATE THAT HAS TO EXIST FIRST — generate this image, name the Element
-`project_absence_char_dupe_interview_projector`, then fire the three clips
-against it:
+🔴 PLATE TAKE 1 REJECTED — CEO 2026-09-06: "Charactor ไม่ใช่ Dupe จริงๆ". The
+face is a different man. Root cause is in how it was ordered, not in the
+operator: the prompt below was PROSE ONLY, with no image reference attached, and
+a prose face description is a dice roll. The original interview plate
+(`char_dupe_interview_house`) was ALSO generated prose-only and simply rolled a
+face the CEO accepted — and that face then became Dupe's canonical interview
+face, because all eight IV clips bound it. A new prose-only roll was never going
+to match it except by luck.
+
+⚠️ TAKE 2 MUST BE GENERATED WITH AN IMAGE REFERENCE, NOT PROSE ALONE:
+attach `docs/prompts/absence/ELEMENT-dupe-interview-house.png` (the accepted
+plate — it carries BOTH the canonical face and the same house) as the image
+reference in the composer, with the prompt below describing what changes: the
+camera pulls wider, the projector enters the near-left foreground, the cart sits
+behind him. THE MAN AND THE HOUSE COME FROM THE REFERENCE; only the framing and
+the two objects are new. If the image composer offers no reference/image slot,
+STOP and report exactly what controls it does offer — do not fire prose-only a
+second time, it costs credits and the odds have not changed.
+
+⚠️ THE REJECTED ELEMENT `project_absence_char_dupe_interview_projector` MUST NOT
+BE USED. IVR1/IVR2/IVR3 stay blocked until a take-2 plate passes the CEO.
+Re-point or re-create the Element from the approved take 2 when it exists.
+
+THE PLATE THAT HAS TO EXIST FIRST — generate this image (WITH the reference
+above), name the Element `project_absence_char_dupe_interview_projector`, then
+fire the three clips against it:
 
   A locked medium shot, camera level, of a man seated dead centre from the chest
   up: forties, South Asian, a full dark moustache, short dark hair, calm and
