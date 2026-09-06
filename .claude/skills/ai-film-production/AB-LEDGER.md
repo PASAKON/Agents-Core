@@ -93,7 +93,16 @@ PROMPT B (dd6e0de, 136f8ef, fb1e32e, b6984f5): one description — "IT IS A
   PICTURE SHOWS IT AND NEVER CHANGE IT… It is SMALL… IT IS THE NEAREST THING
   TO THE LENS… THE WALL ITSELF IS NOT VISIBLE — no plaster, no edges, no hole,
   no black surround". Canon: PLATE-loc_wall_pov_e.md.
-VERDICT: awaiting S2M t2 (firing 2026-09-06), then S2K t2, S2N t2, S2L t6.
+VERDICT: S2M t2 (canon prose, 2026-09-06 10:22) FAILED THE SAME WAY — crack
+  ~4-5x the plate, black core across a face; everything else passed. Prompt B
+  did not move the size at all. New hypothesis: "nearest thing to the lens /
+  extreme foreground / floating at the very front" is a DEPTH cue, and a near
+  object is big in frame — the model did perspective correctly; "size of a
+  hand" is a world size, not a frame size.
+PROMPT C (S2M t3): no depth words; size anchored in the frame — "NO WIDER
+  THAN THE RED DOOR AND NO TALLER THAN THE RED DOOR, exactly as the picture has
+  it"; the crack-shape negatives removed. Awaiting t3. If t3 is still
+  oversized the plate/model is the driver → editor overlay, not a prompt.
 
 ### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
 PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;
