@@ -452,3 +452,30 @@ determination is the CEO's to make in person.
 Generate itself (having confirmed Unlimited is on) as soon as the queue is
 free. Do not ask the CEO to click Generate too, and do not ask for help again
 while a render is still in flight — the queue clears on its own.
+
+## A blocker is not confirmed until the cheapest reset has been tried
+
+**Measured 2026-09-06:** an operator found a page control disabled, gathered
+thorough evidence (DOM attribute, React props, three dispatch methods, no
+network POST), and reported an account-level blocker. The evidence was real and
+the conclusion was wrong — nobody had reloaded the page. The queue it was
+guarding sat idle for six hours. The next operator's first action was a reload,
+and the control was live.
+
+**Thoroughness on the wrong branch is not diligence.** Before any report says
+"blocked at the app/account level":
+
+1. **Reload the tab** and read the state again.
+2. **Open a fresh tab** on the same URL and read it a third time.
+3. Only if all three readings agree, report — and put all three in the report.
+
+The cost of those two steps is under two minutes. The cost of skipping them was
+six hours. If a money rule forbids retrying (a live price, an unverified
+toggle), say so explicitly and stop — but check that the money rule actually
+applies before invoking it: a `disabled` button at a verified $0 price is a
+diagnostic, not a hazard.
+
+**For the C-level reading the report:** a blocker report without the
+reload/fresh-tab readings is incomplete. Send it back, or spawn a two-minute
+probe. "I cannot drive the browser myself" is never a reason to accept an
+untested blocker — it is a reason to delegate the test.

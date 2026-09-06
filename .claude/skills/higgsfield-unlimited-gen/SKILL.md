@@ -467,7 +467,28 @@ place that table needs to live — VIDEO generate check, IMAGE generate check.
    window. The operator's job at that point is to **leave the browser open
    exactly as it is** — no navigate, no refresh, no retry, no close — and
    report the composer's exact current state (text present, element chips
-   attached, toggle state). **The CEO clicks Generate himself in this
+   attached, toggle state).
+
+   ⚠️ **SCOPE OF THAT POLICY — corrected 2026-09-06 after it cost six hours.**
+   The "no refresh, no retry" rule exists because retrying near a composer
+   whose price is NOT verified can land a charge. It applies to a stuck
+   *toggle* and to any composer showing a live number. **It does NOT apply to a
+   Generate button that is `disabled` while the price reads struck-through
+   zero** — there is nothing to accidentally spend, and a `disabled` attribute
+   is a *diagnostic*, not a hazard. On 2026-09-06 an operator found exactly
+   that (`disabled=""`, `credits: 0`, price `~~84~~ → 0`), cited this rule,
+   left the tab untouched, and reported an account-level blocker. The CTO
+   accepted it. Nobody reloaded the page. The queue sat idle for six hours
+   with the film three days from due. The very first thing the next operator
+   did was reload, and it proceeded to fire.
+
+   **For a `disabled` button at a verified $0 price the order is:** reload the
+   tab → read the four values again (`disabled`, `isDisabled`, `freeGens`,
+   `credits`) → if still disabled, open a FRESH tab on the same URL and read
+   them a third time → only then report it as account-level, with all three
+   readings. Never restart Chrome (CEO rule). A blocker report that does not
+   show the reload and the fresh-tab readings is not finished, and the CTO
+   should send it back rather than escalate it. **The CEO clicks Generate himself in this
    scenario, not the operator** — the final money-committing click moves to
    a human hand whenever the automated path has already failed once. This
    generalizes past the Unlimited toggle to any stuck control on a priced
