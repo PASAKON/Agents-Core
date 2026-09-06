@@ -127,20 +127,35 @@ CONFIRMED on S2K take 2 (2026-09-06 16:19, S2K-Fix1-take2.MP4): same two
 CONFIRMED AGAIN on S2N take 2 (17:38): mark about 1x the door. But S2N t2
   inverted the gaze — backs to the lens from 0s (see PENDING: S2N gaze).
 
+### S2N · the five's gaze · take 2 → 3 · gaze passed 2026-09-06 18:55 (S2N-Fix1-take3.MP4)
+DEFECT SEEN: take 2 — backs to the lens from 0s, facing the far door before it
+  opened; the beat (faces → door opens at 1s → the turn at 6s) inverted.
+PROMPT A (t2, 3b6294f): "the five stand FACING THE CAMERA — full face to the
+  lens, not backs, not profiles — with their backs to the room" (+ previz).
+PROMPT B (t3, 75108b8): "…not backs, not profiles, their faces toward us until
+  the door opens" — "with their backs to the room" removed (+ no previz).
+WHY B HELD: the model places the camera in the room, so "backs to the room"
+  read as backs to us and overrode "facing the camera". Two variables were
+  changed together (phrase and previz); t4 puts the previz back to separate them.
+LESSON: never describe orientation relative to the room or the wall when the
+  camera stands where the wall was — camera terms only. (§7b)
+RESULT: t3 gaze correct in every beat; t3 not accepted for other reasons (see
+  PENDING: S2N cast count).
+
 ---
 
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
 
-### S2N · the five's gaze · t2 backs to the lens from 0s (previz attached)
-PROMPT A (t2, 3b6294f): "the five stand FACING THE CAMERA — full face to the
-  lens, not backs, not profiles — with their backs to the room" + the S2N
-  previz attached (faceless proxies). Result: backs to the lens from 0s.
-PROMPT B (t3): the same minus "with their backs to the room" ("their faces
-  toward us until the door opens"), and NO previz — the two takes that faced
-  the lens today (S2M t4, S2K t2) both fired without one.
-VERDICT: awaiting S2N t3. Two variables changed at once, on purpose — the
-  deadline outranks a clean A/B here; if t3 passes, the next sheet that needs
-  a previz will separate them.
+### S2N · cast count and mark size · t3 (no previz) dropped the woman in magenta, mark ~2x the door
+PROMPT A (t3): "[0s] Nobody has moved. The five are at the wall." with no previz
+  to point the position map at. Result: 8 of 9 — the magenta critic gone; the
+  mark about 2x the door (S2M/S2K gave 1x on the same sentences — variance).
+PROMPT B (t4): "[0s] … THE FIVE ARE AT THE WALL, left to right: the young woman
+  in the blue coat, the art student, the woman in the chestnut fur, the man in
+  maroon, and THE WOMAN IN MAGENTA at the far right — all five present, nobody
+  missing", and the previz attached again.
+VERDICT: awaiting S2N t4. If the previz brings the backs back, the gaze fix
+  below was the phrase after all; if not, the previz is cleared.
 
 ### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
 PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;

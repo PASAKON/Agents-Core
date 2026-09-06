@@ -17,6 +17,15 @@ without a previz and faced the lens) and the phrase "with their backs to the
 room" (the model places the camera in the room, so backs-to-the-room became
 backs-to-us). Take 3 = same prose minus that phrase, no previz.
 
+✅/⚠️ TAKE 3 (18:07, S2N-Fix1-take3.MP4, NO previz) — THE GAZE IS FIXED: faces to
+the lens at 0.5s and 3s, the door opens at 3s, the turn at ~6-8s, the registrar
+walks down and bows to Carrington by 16s, bodyguard in black behind him. Two
+new defects: the mark came out about 2x the door (a re-roll of the same prose
+gave 1x on S2M/S2K — variance, not prose) and THE WOMAN IN MAGENTA IS MISSING
+(8 of 9): without the previz the position map had no video to point at and the
+[0s] line only said "the five". TAKE 4 = same prose + the five named in the
+[0s] line + the previz attached again (t2 with the previz had all nine).
+
 S2N-Fix1 · FIVE MILLION · CEO 2026-09-04
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
@@ -156,8 +165,11 @@ profiles, their faces toward us until the door opens. Far behind them the galler
 away, and it is down there that the rest of this scene happens — small, deep in
 the shot, while the five stay big and still in front.
 
-[0s] Nobody has moved. The five are at the wall. The registrar is at their
-left, half-turned, ledger closed, one step begun.
+[0s] Nobody has moved. THE FIVE ARE AT THE WALL, left to right: the young
+woman in the blue coat, the art student, the woman in the chestnut fur, the man
+in maroon, and THE WOMAN IN MAGENTA at the far right — all five present, nobody
+missing. The registrar is at their left, half-turned, ledger closed, one step
+begun.
 
 [1s] FAR AWAY ON THE RIGHT, deep in the gallery, A DOOR SWINGS OPEN. Two
 figures step through: the tall old man in the white suit with his cane, and
