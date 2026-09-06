@@ -131,9 +131,36 @@ def main():
     print("\n".join(out))
 
 
+def box_disk_warning():
+    """Surface the Cookie Run data steward's disk warning from the Windows box.
+
+    tools/disksense.py on winbox writes ledger/DISK-WARNING.txt when C: runs low or
+    the training data grows fast (CEO 2026-09-06: warn, never auto-delete). The
+    file is the whole message; this only relays it. Fails quiet: no ssh, no box,
+    no file → prints nothing.
+    """
+    import subprocess
+    try:
+        r = subprocess.run(
+            ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", "winbox",
+             "cmd /c type C:\\Users\\UsEr\\Documents\\CookieRunScript\\ledger\\DISK-WARNING.txt"],
+            capture_output=True, text=True, timeout=12)
+    except Exception:
+        return
+    body = (r.stdout or "").strip()
+    if r.returncode == 0 and body and "DISK WARNING" in body:
+        print("💽 WINBOX DISK WARNING (Cookie Run data — steward brief: cookierun-bot/docs/DATA-STEWARD.md):")
+        for line in body.splitlines()[:8]:
+            print("  " + line)
+
+
 if __name__ == "__main__":
     try:
         main()
     except Exception:
         pass  # never block session start
+    try:
+        box_disk_warning()
+    except Exception:
+        pass
     sys.exit(0)
