@@ -18,8 +18,8 @@ inherits.
 "still in the background, not yet at the crack". The CEO's list of the five now
 includes him, so this scene is where he crosses over. He arrives last.
 
-⚠️ THE CRACK IS IN FRONT OF EVERYONE. The camera is inside the wall cavity
-looking out, so the broken plaster is a black silhouette in the extreme
+⚠️ THE CRACK IS IN FRONT OF EVERYONE. The camera stands where the wall was,
+looking out, so the small black crack floats in the extreme
 foreground and every person is BEHIND it. The model's habit is to put people in
 front of the mark; here that is geometrically impossible and it must stay that
 way.
@@ -51,23 +51,18 @@ and take nothing about it from the video. Do not invent a hole, do not add a
 crack the picture does not show, and do not draw straight lines radiating from a
 centre.
 
-THE CAMERA IS INSIDE THE BROKEN WALL, looking out through the break into the
-gallery. The jagged edges of the hole sit in the extreme foreground as a hard
-black silhouette all around the frame, completely out of focus and completely
-black, and EVERY PERSON IS BEHIND IT, further away, in the lit room. Nobody
-ever passes in front of the broken edge. Nothing is in front of it.
+THE CAMERA STANDS WHERE THE WALL WAS, looking out into the gallery. THE WALL
+ITSELF IS NOT VISIBLE — no plaster, no edges, no hole, no black surround, no
+frame around the picture. The only trace of it is THE MARK: one small solid
+black crack, star-shaped, floating in the extreme foreground, the nearest thing
+to the lens, and EVERY PERSON IS BEHIND IT, further away, in the lit room.
+Nobody ever passes in front of the mark. Nothing is in front of it.
 
 THE COMPLETE CAST OF THIS SHOT IS SIX PEOPLE AND NOT ONE MORE. There are no
 extras in this film. No bystanders, no other visitors, no gallery staff, no
 security guards, no reporters, no journalists, nobody holding a camera, nobody
 filming, nobody in the background, nobody walking through. If a figure is not named below it must
 not exist.
-
-THE BLACK MARK YOU SEE IN THE REFERENCE VIDEO IS SCAFFOLDING, NOT ART. The grey
-previz contains a crude black shape standing in for the break, purely to say
-WHERE it is and that people must not block it. Do not copy that shape, its
-edges or its texture. The break's real appearance comes ONLY from the still
-image reference, and that image is the authority on it.
 
 POSITION MAP — every figure in the reference video stands exactly where its
 character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
@@ -124,8 +119,8 @@ REFERENCES — each with a job:
   mark, no glowing mark — solid black only. The whole joke of the film is that
   this tiny black mark is what everybody has come to see.
 
-THE FRAME, unchanging for twenty seconds: the ragged black opening fills the
-edges of the picture, and through it we see the gallery floor and the people
+THE FRAME, unchanging for twenty seconds: the small black mark floats at the
+very front of the picture, and behind it we see the gallery floor and the people
 standing in front of the wall, at a slight distance, with the colonnade
 receding away behind them. Warm morning light out there, darkness in here.
 
@@ -159,7 +154,7 @@ this." Nobody answers her. Nobody looks at her.
 beside the woman in the tawny fur. Now there are FIVE of them at the wall, all
 looking at it, none of them speaking, standing at uneven distances.
 
-[19s] Hold on the five of them through the black opening. Cut.
+[19s] Hold on the five of them, the mark still at the very front. Cut.
 
 AUDIO: room tone, quiet footsteps on terrazzo arriving from two directions, the
 soft drag of cloth on metal far off to the left, the faint tap of shoes. ONE
@@ -178,7 +173,7 @@ and clothing, and no face is repeated anywhere; no opening sound, no intro
 sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
 audio tail, no fade-in or fade-out on the sound; no person in front of the
 broken edge, no person between the camera and the wall, no hand reaching into
-the black foreground, nothing crossing the black silhouette; no seventh person, no extra, no bystander, no other visitor, no gallery staff,
+the mark, nothing crossing in front of the mark; no seventh person, no extra, no bystander, no other visitor, no gallery staff,
 no security guard, no reporter, no journalist, nobody holding a camera, nobody
 filming, no crowd, no children, nobody in the background, nobody walking
 through; no Dupe joining
@@ -205,8 +200,14 @@ foreground silhouette, no night, no blue walls, no wooden floor.
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
+0. THE MARK, before anything else (CEO 2026-09-06): ONE small solid-BLACK
+   crack, star-shaped, about a hand across, at the very FRONT of the frame with
+   every person behind it, exactly the plate's shape. Bigger than a hand, thick
+   heavy arms, arms reaching the frame edge, a line across anyone's face, pale
+   or grey, a hole with edges, a black surround, or a second mark = FLAGGED:
+   file it and re-fire.
 1. THE CRACK IS IN FRONT OF EVERYONE, the whole time. One person drifting in
-   front of the black edge kills the shot and it is the model's favourite
+   front of the mark kills the shot and it is the model's favourite
    mistake.
 2. HER REACTION IS CONTAINED. If she gasps or claps a hand over her mouth it is
    the wrong performance — the whole note was shock held in.
