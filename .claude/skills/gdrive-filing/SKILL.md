@@ -21,7 +21,7 @@ file, so it stays consistent without re-explaining itself each time.
 
 ## Hard rules — apply to every action, no exceptions
 
-1. **Ask before doing anything.** No silent create/move/rename/delete.
+1. **Ask before doing anything.** No silent create/move/rename/delete. (Bulk uploads: see the "Bulk transfer" chapter — same rules, plus verification and a gate row.)
 2. **Never delete without being told, and always confirm first.** Before any
    `trash` call: state which file/folder, why you believe it's safe (e.g.
    "confirmed empty via search"), and wait for an explicit yes. **Re-verify
@@ -251,6 +251,58 @@ Google Drive (root) — pass.gob1@gmail.com
 ├── Desktop Cloud/                cross-device sync — AI never auto-files here
 └── My Picture & Videos./         personal, filed by month
 ```
+
+## Bulk transfer — moving gigabytes INTO Drive (CEO 2026-09-06)
+
+The bridge and the Drive MCP move metadata and read files; they never carry bytes. Anything
+larger than a handful of files — recordings, datasets, backups from the Windows box — goes
+through **rclone**, and rclone obeys this file exactly like every other hand.
+
+**Which hand for which job**
+
+| Job | Tool | Notes |
+|---|---|---|
+| Upload GB–TB from a machine (Windows box, VPS) | `rclone` (remote `gdrive:` on that machine) | one tar per item + manifest; verify; log |
+| Move / rename / create folder / trash inside Drive | gdrive-bridge (`scripts/gdrive-bridge/gdrive_move.py`) | metadata only, IDs not names |
+| Search, read, verify a folder is empty | Drive MCP (`mcp__claude_ai_Google_Drive__*`) | read side |
+| The Mac's synced Drive folder (stream mode) | never for bulk | the Mac has no disk for the cache |
+
+**Rules for every bulk upload (in addition to the hard rules above)**
+
+1. **Destination must already be a defined folder in the map with a row in the Drive archive gate**
+   (`Agents-Wikis/playbooks/drive-archive-gate.md`, CEO-approved per source). No row → ask first;
+   never invent a folder at the root (that is exactly what happened on 2026-09-06 and was undone).
+   New folders are created ONCE with the CEO's OK — by the bridge, or by rclone when the token's
+   scope must be able to see them later — and go into the tree + ID table the same turn.
+2. **One tar per item, never loose files.** A take is 14k–84k JPEGs; Drive allows 500,000 items
+   per folder and flags "automated mass upload". Tar it (no gzip for JPEG/MP4), stream it if the
+   source disk is full (`tools/stream_take_to_drive.py` in cookierun-bot: tar → `rclone rcat`,
+   hashes on the fly, no local copy), and write `<item>.manifest.json` next to it: file count,
+   bytes, sha256 (and md5) of the tar, source path, date.
+3. **Verify before anything is deleted.** `rclone check <src> <dst> --one-way` (md5 from Drive)
+   or Drive size + `rclone md5sum` against the manifest. Size alone is not verification.
+   Then, and only then, delete the source — and log it.
+4. **Log every item** in `~/.claude/logs/drive-archive.log` (one line: date, source, destination,
+   files, bytes, sha256, drive md5, status) and in the machine's own housekeeping ledger.
+5. **Limits to respect (Google's own numbers, read 2026-09-06):** 750 GB upload per user per
+   24 h; 5 TB per file; 500,000 items per folder; account activity at least every 2 years.
+   Big nights: check the day's total before starting a third 20 GB tar.
+6. **Credentials:** the rclone token lives only in `rclone.conf` on the machine that uploads
+   (Windows: `%APPDATA%\rclone\rclone.conf`); scope **`drive.file`** (sees only what rclone
+   created; set `root_folder_id` to the approved folder) — a full-scope token is a CEO decision,
+   never a default. Use the org's own Google client_id (rclone's shared one is being throttled
+   in 2026); never copy the token to the Mac, a repo, a chat, or a pod.
+7. **Never `rclone sync`/`delete`/`purge` against Drive.** `copy`, `copyto`, `rcat`, `moveto`
+   (server-side, for filing) and `check` are the whole vocabulary. A sync would mirror a
+   machine's deletions into the archive.
+8. **Bandwidth manners:** `--transfers 1 --drive-chunk-size 64M` from the game box while the bot
+   plays (the CPU/disk contention halved the recorder's frame rate on 2026-09-06); bigger
+   parallelism only on an idle machine.
+9. **Same-turn bookkeeping:** after the first upload into a new folder, update the tree and the
+   ID table here and paste the subtree back to the CEO (hard rule 6).
+
+Reference implementation: cookierun-bot `docs/DATA-STEWARD.md` (lifecycle), `tools/archive_take.py`,
+`tools/stream_take_to_drive.py`, gate rows `winbox play_rec → BACKUP/CookieRun Backup/play_rec`.
 
 ## The bridge — how moves/renames/deletes actually happen
 
