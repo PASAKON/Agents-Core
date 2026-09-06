@@ -180,6 +180,28 @@ idea.
 
 ---
 
+### 7b · Depth words are a size instruction; state size IN THE FRAME (2026-09-06)
+
+A small mark rendered 4-5x too big on two consecutive takes while the prose
+said "SMALL… about the size of a hand". The same prose also said "the nearest
+thing to the lens / extreme foreground / floating at the very front". The
+model was doing perspective correctly: a near object is big in frame, and "a
+hand" is a world size it cannot place. The take that passed (S2M 3b, ledger
+entry) removed every depth word and anchored the size to something visible
+in the same frame: "NO WIDER THAN THE RED DOOR AND NO TALLER THAN THE RED
+DOOR, exactly as the picture has it". Rules:
+
+- Give an object's size relative to another thing IN THE FRAME (the door, a
+  head, a plinth), never as a world measurement (a hand, 30 cm).
+- Use no depth words (nearest, foreground, in front, floating at the front)
+  unless you want the object BIG. Layering ("in front of everyone") is fine
+  once; emphasis ("the nearest thing to the lens") is a size order.
+- Do not tie people's gaze to an object whose depth you left ambiguous —
+  "turned toward the mark" sent a whole crowd to face the far door. Say
+  where their faces point in camera terms: "FACING THE CAMERA".
+- Emphasis sentences ("the whole joke is this tiny mark") make the thing
+  bigger, not smaller. Cut them.
+
 ## 8 · WHAT THE DIRECTOR DECIDES, AND WHAT YOU MUST NOT
 
 Story, plot, who a character is, what anyone says, the ending, shooting order.
