@@ -1,5 +1,16 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
+⚠️ TAKE 2 (2026-09-06 10:22, canon prose, S2M-Fix1-take2.MP4) — FLAGGED, crack
+~4-5x the plate's, black core across the student's face; everything else in
+the shot passed. Second take in a row where the prose did not move the size.
+CTO hypothesis: "nearest thing to the lens / extreme foreground / floating at
+the very front" told the model the mark is CLOSE, and a close object is BIG in
+frame — the model was doing perspective correctly. "Size of a hand" is a world
+size, not a frame size. TAKE 3 removes every depth word and anchors the size
+to something in the picture: no wider or taller than the red door. If take 3
+is still oversized, the plate/model is the driver and the fix is an editor
+overlay, not another prompt.
+
 S2M-Fix1 · THE REGISTRAR, AND THE FIRST PRICE · CEO 2026-09-04
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
@@ -56,12 +67,12 @@ the extreme foreground. Every other wall in the room is clean, undamaged
 plaster. There is no second crack, nothing painted or marked on the far wall,
 nothing damaged anywhere behind the people.
 
-THE CAMERA STANDS WHERE THE WALL WAS, looking out into the gallery. THE WALL
-ITSELF IS NOT VISIBLE — no plaster, no edges, no hole, no black surround, no
-frame around the picture. The only trace of it is THE MARK: one small solid
-black crack, star-shaped, floating in the extreme foreground, the nearest thing
-to the lens, and EVERY PERSON IS BEHIND IT, further away, in the lit room.
-Nobody ever passes in front of the mark.
+THE CAMERA STANDS WHERE THE WALL WAS, looking out into the gallery, exactly as
+in the location picture. THE WALL ITSELF IS NOT VISIBLE — no plaster, no edges,
+no hole, no black surround. The only trace of it is THE MARK, and the picture
+is the whole authority on it: its place in the frame, its size in the frame and
+its shape come from the picture and nothing changes them. It is in front of
+everyone, and nobody ever passes in front of it.
 
 THE COMPLETE CAST OF THIS SHOT IS SEVEN PEOPLE AND NOT ONE MORE. There are no
 extras in this film. No bystanders, no other visitors, no gallery staff, no
@@ -112,24 +123,18 @@ REFERENCES — each with a job:
   door far off at the vanishing point, and the BREAK ITSELF. It is the only
   room reference in this prompt — there is no second view of the gallery and
   nothing else describes this space.
-  THE BREAK, read off that picture exactly. IT IS A CRACK, NOT A STAR: a
-  BLACK crack in the wall, thin short branches meeting at a point, which only
-  happens to be star-shaped. COPY THAT MARK EXACTLY AS THE PICTURE SHOWS IT AND
-  NEVER CHANGE IT — not its shape, not its colour, not its size. It is SMALL:
-  about the size of a hand, a mark you could cover with your palm. IT IS THE
-  NEAREST THING TO THE LENS — it floats at the very front of the frame, in the
-  plane where the wall was, and every person and every part of the room is
-  behind it, further away. In the picture it sits high in the frame, over the
-  far red door. DO NOT ENLARGE IT AND DO NOT REDRAW IT: no full-height
-  fracture, no spiderweb, no thick heavy arms, no arms reaching the edges of
-  the frame, no lines drawn across anybody's face or body, no pale or grey
-  mark, no glowing mark — solid black only. The whole joke of the film is that
-  this tiny black mark is what everybody has come to see.
+  THE MARK, from that picture and only from it. SAME PLACE IN THE FRAME: over
+  the far red door, in the upper middle of the picture. SAME SIZE IN THE FRAME:
+  a small patch, NO WIDER THAN THE RED DOOR AND NO TALLER THAN THE RED DOOR,
+  exactly as the picture has it and not one bit larger. SAME SHAPE — thin
+  lines meeting at one small dark point — and SAME SOLID BLACK. Nothing about
+  it is enlarged, thickened, extended or redrawn, and it never touches or
+  crosses anybody's face or body.
 
-THE FRAME, unchanging for twenty seconds: the small black mark floats at the
-very front of the picture, and behind it the five stand at uneven distances,
-turned toward the mark, with the colonnade receding behind them. Far to the
-left, deep in the shot, Dupe works beside his parked cart.
+THE FRAME, unchanging for twenty seconds: the location picture as it is, with
+the five standing in it at uneven distances, turned toward the mark, and the
+colonnade receding behind them. Far to the left, deep in the shot, Dupe works
+beside his parked cart.
 
 [0s] The five are exactly as we left them, FACING THE MARK — which
 means facing the lens, not standing side-on in profile — nobody speaking. From the left, deep in the gallery, THE REGISTRAR walks in at an
@@ -189,19 +194,18 @@ negotiation; no handshake, no papers exchanged, no money, no card, no
 contract; no Dupe joining the group, no Dupe speaking, no Dupe stopping work;
 no running, no hurrying, no sped-up motion, no slow motion; no camera movement
 of any kind, no pan, no tilt, no zoom, no dolly, no handheld, no reframing, no
-cut, no second angle; no four-panel layout, no grid, no split screen; no fifth
-arm on the mark, no five-pointed star, no symmetrical star, no round hole at
-its centre, no rings; no plaque falling, no plaque moving; no cart moving, no
+cut, no second angle; no four-panel layout, no grid, no split screen; no mark larger than the one in the picture, no thick black core, no line
+across any face; no plaque falling, no plaque moving; no cart moving, no
 painting leaving the rack; no tidy row of people, no evenly spaced line, no
 looking at camera; no second crack, no second star, no mark on the far wall, no
-damage anywhere but the foreground silhouette; no group standing in profile, no
+damage anywhere but the mark; no group standing in profile, no
 group facing sideways before the registrar arrives; no smartphones, no screens, no modern technology.
 
 House negatives: no voiceover, no narration, no subtitles, no captions, no
 on-screen text, no signage, no logos, no music, no score, no dutch angle, no
 tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
 skin, no beauty filter, no dim moody lighting, no darkness outside the
-foreground silhouette, no night, no blue walls, no wooden floor.
+mark, no night, no blue walls, no wooden floor.
 
 === ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
 
