@@ -100,18 +100,29 @@ SIDE EFFECT → see PENDING (S2M orientation): B's "turned toward the mark" plus
   the lens for 0-6s. Take 3 itself was NSFW-rejected by the output filter
   with zero output; 3b was the identical prompt and rendered.
 
+### S2M · the five's ORIENTATION · take 3b → 4 · passed 2026-09-06 15:10 (S2M-Fix1-take4.MP4)
+DEFECT SEEN: take 3b — for 0-6s the five stood with backs and profiles to the
+  lens, looking at the far door; the crack itself was right.
+PROMPT A (t3b, c082768): "the five standing in it at uneven distances, turned
+  toward the mark" and "[0s] … FACING THE MARK — which means facing the lens,
+  not standing side-on in profile".
+PROMPT B (t4, 8537f04): "the five standing in it at uneven distances, FACING
+  THE CAMERA — full face to the lens, not backs, not profiles" and "[0s] …
+  FACING THE CAMERA — their faces toward the lens, nobody's back to us, nobody
+  side-on in profile". The people's orientation is never tied to the mark.
+WHY B HELD: once the mark's depth was left to the picture ("over the far red
+  door"), "toward the mark" meant toward the door. Saying where the faces
+  point in camera terms removed the dependency — and the mark stayed about 1x
+  the door, so the size anchor and the gaze fix do not fight.
+LESSON: state gaze and body orientation in camera terms ("facing the camera",
+  "backs to the room"), never relative to an object whose depth the prompt
+  leaves to a reference. (§7b)
+RESULT: S2M-Fix1 closed on take 4 — mark 1x the door, faces to the lens,
+  registrar's entrance and ledger, cast of seven, camera locked.
+
 ---
 
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
-
-### S2M · the five's ORIENTATION · t3b backs to the lens 0-6s
-PROMPT A (t3b): "the five standing in it at uneven distances, turned toward
-  the mark" and "[0s] … FACING THE MARK — which means facing the lens".
-PROMPT B (t4): "FACING THE CAMERA — full face to the lens, not backs, not
-  profiles" and "[0s] … FACING THE CAMERA — their faces toward the lens,
-  nobody's back to us"; the people's orientation is never tied to the mark.
-VERDICT: awaiting S2M t4. Then S2K t2 / S2N t2 / S2L t6 get the red-door
-  size anchor + FACING THE CAMERA, one sheet at a time.
 
 ### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
 PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;

@@ -19,6 +19,13 @@ on the door. TAKE 4 says FACING THE CAMERA outright and never ties the
 people's orientation to the mark. (Take 3 itself was NSFW-rejected by the
 output filter, zero output; 3b was the same prompt.)
 
+✅✅ TAKE 4 (14:15, S2M-Fix1-take4.MP4) — PASS, CTO frame review 15:12: mark about
+1x the door and off every face; all five full-face to the lens at 0.5s and 3s;
+Dupe at the cart far left; the registrar in from the left with the ledger at
+8s, writing in it at 16s; camera locked; cast of seven, no extras. S2M-Fix1
+IS DONE. (Only note: the five stand in a tidier row than "uneven distances"
+asked for — accepted.)
+
 S2M-Fix1 · THE REGISTRAR, AND THE FIRST PRICE · CEO 2026-09-04
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
