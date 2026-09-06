@@ -1496,3 +1496,30 @@ The one Higgsfield-specific consequence worth repeating: the stale-@Video
 binding failure documented above only reproduces in a tab that has already
 touched more than one video asset, so a fresh tab per fire is a real defence
 and not just tidiness.
+
+## HARD · Paid controls: one click, never a retry (2026-09-06)
+
+The "$0 button: JS `.click()` fallback / retry if no toast after 5 s"
+guidance is for the UNLIMITED VIDEO button only. On 2026-09-06 an operator
+applied it to the paid image composer — no toast after 5 s, clicked again —
+and FOUR images fired (~3 credits unplanned). Image generations show nothing
+for longer than 5 s.
+
+- Anything priced above a struck-through zero: ONE click. Then wait 60 s,
+  reload, count the asset grid (or watch the network POST). No second click
+  without a count that says nothing fired.
+- Disclose every unplanned credit to the CEO with the exact number.
+- Rejected extra images stay in the project — no delete authority.
+- The reference picker's Videos tab sorts a previously-clicked asset to the
+  front regardless of upload time ("Last used"). Verify `content-length`
+  against the local byte count before EVERY attach click —
+  `scripts/browser/higgsfield-video-ref-attach-fix.js` has the technique.
+
+## HARD · A window can shrink on its own; `resize_window` can lie (2026-09-06)
+
+Twice in one session the window fell below 1280 during reference-panel work
+with no resize call, and `resize_window(1600,1000)` returned success while
+`window.innerWidth` read 764. Below 1280 the composer is the mobile lockup
+("Mobile Access Coming Soon"). Recovery that worked both times: close the
+tab, open a fresh one, read `window.innerWidth` back. The tool's return value
+proves nothing — only the readback counts, before every Generate.

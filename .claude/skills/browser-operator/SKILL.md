@@ -489,3 +489,10 @@ diagnostic, not a hazard.
 reload/fresh-tab readings is incomplete. Send it back, or spawn a two-minute
 probe. "I cannot drive the browser myself" is never a reason to accept an
 untested blocker — it is a reason to delegate the test.
+
+## Paid controls (2026-09-06)
+
+The "no toast after 5 s = no-op, retry" habit belongs to the $0 Unlimited
+video button ONLY. On a paid control (any price above a struck-through zero)
+it fired four images instead of one. One click, wait 60 s, reload, count the
+assets — no retry without a count. Details in `higgsfield-unlimited-gen`.
