@@ -68,10 +68,13 @@ REFERENCES — each with a job:
   chromium trumpet columns receding in pairs, warm orange cove light along the
   ceiling, polished terracotta terrazzo, works on white plinths down both walls,
   the tall RED DOUBLE DOOR far off at the vanishing point. AND TAKE THE BREAK
-  ITSELF FROM IT — its exact shape, its ragged plaster edges, the way the room
-  is seen through it. It is the aperture the camera looks out of in shots ONE
-  and THREE, it appears exactly once, and it never also appears as damage on a
-  wall in the background.
+  ITSELF FROM IT. IT IS A CRACK, NOT A STAR: one small solid BLACK crack,
+  star-shaped, about the size of a hand, floating at the very front of the
+  frame in the plane where the wall was — the wall itself invisible, no hole,
+  no edges, no black surround — with every person behind it. COPY IT EXACTLY AS
+  THE PICTURE SHOWS IT AND NEVER CHANGE IT: not its shape, not its colour, not
+  its size. It appears exactly once, in shots ONE and THREE, and never as
+  damage on a wall in the background.
 @project_absence_char_student_c — THE STUDENT: a young woman about twenty, short
   curly acid yellow-green hair, an oversized deeply saturated cobalt-blue coat
   whose sleeves swallow her hands so only her fingertips show, cheaper
@@ -93,11 +96,11 @@ REFERENCES — each with a job:
   engraved THE ABSENCE OF MEANING / Valder / $2,000,000, two screws at the top
   corners, warm brass.
 
-SHOT ONE · [0s-6s] · THE VIEW FROM INSIDE THE WALL, looking out through the
-break into the gallery. The break is the frame of the picture; the room is seen
-through it and everybody is BEHIND it, never in front.
+SHOT ONE · [0s-6s] · THE VIEW FROM WHERE THE WALL WAS, looking out into the
+gallery. The wall itself is not visible; the small black crack floats at the
+very front of the picture, and everybody is BEHIND it, never in front.
 
-[0s] The gallery is quiet. Far off to the right of the opening THE COUPLE stand
+[0s] The gallery is quiet. Far off, to the right of the mark, THE COUPLE stand
 together: the woman in the chestnut fur crying, her partner in cobalt close
 beside her. Well over to the left DUPE is working, wiping down beside his cart,
 paying them no attention.
@@ -116,10 +119,11 @@ saying nothing. Neither of them speaks. Behind them, small and off to one side,
 Dupe goes on working and does not look over.
 [9s] Hold on the two of them.
 
-SHOT THREE · [10s-16s] · CUT BACK TO THE VIEW FROM INSIDE THE WALL, exactly the
-frame of shot one, the break the same shape in the same place. TIME HAS MOVED
-ON WHILE WE WERE AWAY: the student has crossed the rest of the hall and is now
-standing right in front of the opening, close, filling much of it.
+SHOT THREE · [10s-16s] · CUT BACK TO THE VIEW FROM WHERE THE WALL WAS, exactly
+the frame of shot one, the mark the same shape in the same place at the very
+front. TIME HAS MOVED ON WHILE WE WERE AWAY: the student has crossed the rest
+of the hall and is now standing close, just behind the mark, filling much of
+the frame.
 
 [10s] She looks at the break. She takes it in for a moment, entirely serious.
 [13s] Then, fast and flat, to nobody in particular and with complete
@@ -137,7 +141,7 @@ his own side of the gallery. No break in this shot.
 
 [18s] He has stopped wiping. He is looking across at all of it — the student, the
 crying woman, the wall — with the flat, tired expression of a man who knows
-exactly how that hole got there and is not going to say so.
+exactly how that mark got there and is not going to say so.
 [19s] Hold on his face. Cut.
 
 AUDIO: room tone in a big stone room, quiet crying, a cloth on stone, tall doors
@@ -181,15 +185,22 @@ lighting, no darkness, no night, no blue walls, no wooden floor.
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
+0. THE MARK, before anything else (CEO 2026-09-06): ONE small solid-BLACK
+   crack, star-shaped, about a hand across, at the very FRONT of the frame with
+   every person behind it, exactly the plate's shape. Bigger than a hand, thick
+   heavy arms, arms reaching the frame edge, a line across anyone's face, pale
+   or grey, a hole with edges, a black surround, or a second mark = FLAGGED:
+   file it and re-fire.
 1. FIVE SHOTS, cut at 6s, 10s, 16s and 18s, every one locked off.
-2. SHOTS ONE AND THREE ARE GENUINELY FROM INSIDE THE WALL — the break is the
-   frame and everybody is behind it. If it plays as an ordinary view of a
-   cracked wall from the room side, the scene's one trick is gone.
-3. THE BREAK MATCHES THE PLATE and appears ONLY in shots one and three. A
+2. SHOTS ONE AND THREE ARE FROM WHERE THE WALL WAS — the small black mark at
+   the very front, everybody behind it. If the mark is a hole with edges or a
+   black surround, or if it plays as an ordinary view of a cracked wall from
+   the room side, the scene's one trick is gone.
+3. THE MARK MATCHES THE PLATE and appears ONLY in shots one and three. A
    geometric star, straight radiating bars, or a second crack in the background
    is the failure this whole re-render exists to stop — re-fire.
 4. TIME JUMPS BETWEEN SHOT ONE AND SHOT THREE. She is far off at 5s and at the
-   opening at 10s; 43 metres is 36 seconds of walking and the clip is 20, so the
+   mark at 10s; 43 metres is 36 seconds of walking and the clip is 20, so the
    cutaway is doing that work. If she is shown crossing the whole hall in real
    time, the geometry is wrong.
 5. NOBODY REACTS TO HER LINE. That is the joke.
