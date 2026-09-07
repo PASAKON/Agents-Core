@@ -232,3 +232,59 @@ RESULT: first fire — one small solid-black crack about the plaque's width,
 LESSON: size lives in the FRAME — anchor it to an object that is in the same
   shot (the plaque for the room side, the red door for the wall side), and
   say which side of the wall the camera is on.
+
+### prop_van (image plate) · Carrington's van · takes 1 → 4 · CEO APPROVED 2026-09-07 16:02
+DEFECT SEEN: take 1 rendered a low black WEDGE COUPÉ, not a van at all. Take 2
+  swung the other way — a tiny cab under a windowless box roughly three times
+  the cab's height, a vehicle that does not exist.
+PROMPT A (t1, 058dc40): "Retro-futuristic 1970s concept-car design language,
+  the same era as a wedge-shaped limousine: a long GLOSS BLACK VAN — a sleek
+  streamlined box on wheels, sharp creased body lines, low flat roof…"
+  t2 (402c98c) led with the body but sized it by a human landmark: "a tall boxy
+  one-box panel van… a high flat roof as tall as a standing man's shoulder".
+PROMPT B (t3, b6c1562): "THE VEHICLE IS A CLASSIC 1970s PANEL VAN in gloss
+  black, with ORDINARY VAN PROPORTIONS: about 5 metres long and 2 metres tall —
+  only a little taller than a car, the roof one flat line from the windscreen
+  to the tail, the body a long low box two and a half times as long as it is
+  high", negatives "no tall box, no high roof, no camper, no truck, no lorry,
+  no bus… no low wedge body".
+  t4 (8fad09d) kept t3's proportion sentences verbatim and added only the
+  luxury dressing the CEO asked for ("mirror-polished piano-black… a broad
+  polished chrome band… a thin GOLD pinstripe… deep-dish chrome wire wheels
+  with whitewall tyres… cream silk curtains… quilted cream leather lounge
+  seats").
+WHY B HELD: two independent failures, one cause each.
+  1. ERA BEFORE CLASS. Take 1's first content clause was the era, and the era
+     was illustrated with "a wedge-shaped limousine" — the model rendered the
+     illustration. The object's CLASS must be the first thing the sentence
+     says; the era is dressing applied to that class, never the other way up.
+  2. A HUMAN LANDMARK IS NOT A MEASUREMENT. "As tall as a standing man's
+     shoulder" gave take 2 a licence to grow: there is no man in frame to
+     scale against, so the phrase only says "tall". Metres plus a RATIO
+     (2.5 : 1 long-to-high) is checkable inside the picture and held on the
+     first try.
+LESSON: name the object class first, size it in metres and ratios, and put the
+  banned silhouettes in the negatives by name. Once the proportions render
+  right, do NOT rewrite them for a style change — copy those sentences across
+  verbatim and add only the new dressing (t4 did exactly that and kept the
+  shape).
+
+### SC2 · a flagged prop Element vs the same prop in prose · credit lane · fired clean 2026-09-07 13:44
+DEFECT SEEN: SC2 staged with @project_absence_prop_car raised the pre-fire
+  toast "Some reference elements may contain protected content. Check
+  eligibility or remove them to proceed", and the chip carried a
+  warning-triangle badge. There is no per-Element eligibility control to clear
+  it. One click at 13:24 was refused client-side; credits unchanged (461).
+PROMPT A: 4 chips including "@project_absence_prop_car — THE CAR: the emerald
+  green retro-futuristic sports coupé…".
+PROMPT B (028c131): the chip dropped to 3 and the car carried as prose in the
+  same slot — "an emerald-green retro-futuristic sports coupé, low and
+  angular, chrome trim, the only car in the shot".
+WHY B HELD: fired first click, "Generation started", credits 461 → 409 exactly
+  (-52), no warning. Second data point for the same rule the croc bag gave on
+  S2R: a flagged Element is not negotiable and not fixable from the composer —
+  the object survives as prose with no loss on screen. Flagged so far:
+  prop_croc_bag, prop_car, char_guard_private (v1, retired).
+LESSON: when a chip shows the warning triangle, do not click twice hoping —
+  move that object into prose in the same sentence position and re-verify the
+  chip count before firing.
