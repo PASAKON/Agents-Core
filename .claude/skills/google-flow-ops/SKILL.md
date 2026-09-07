@@ -385,6 +385,21 @@ account, and whether the Gemini/Vertex **API** can set a voice (no voice
 parameter is documented — if the API cannot, an API-scale episode loses voice
 lock and the whole plan changes).
 
+### Chip attach: the ⋮ menu is gone (2026-09-08, task-0793785a)
+
+The "open the tile's more-options menu, click the inner label node, expect it to
+work about once in fifteen tries" path no longer exists — an asset row is a bare
+`<button class="asset-item" role="option">` with no nested menu button. **Single
+-click the row; a preview pane opens to the right with its own full-width
+`เพิ่มไปยังพรอมต์` button; click that.** Three attachments, three first-try
+successes, including the voice preset. If a future session sees the ⋮ menu
+again, both paths belong here — but do not spend a 7-fail streak hunting for a
+menu that is not on screen.
+
+A voice chip reports `disabled: false` as soon as two other ingredients sit
+beside it, which is the practical confirmation that a voice is live for that
+generation. Check it before firing.
+
 ### Measured on the account, 2026-09-08 (task-e3bf2fa9, read-only, 0 credits)
 
 - **Voices is live on the PLUS tier.** The Add-ingredient picker's categories
