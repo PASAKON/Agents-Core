@@ -20,7 +20,7 @@ Seedance 2.5 / High / 1/4 / Sound ON, Unlimited ON, zoom the button and confirm
 ZERO digits. ⚠️ The duration slider defaults to 5s silently — set 8s and read
 it back.
 
-⚠️ 13 CHIPS. char_woman and char_critic_b stay
+⚠️ 12 CHIPS. char_woman and char_critic_b stay
 DROPPED and play as unnamed background guests — twelve chips reliably turns to
 mush and they have no action here. Do not re-add them.
 
@@ -34,12 +34,16 @@ mush and they have no action here. Do not re-add them.
      replacing the old two-person press_a/press_b pair; six ordinary people
      join as @project_valder_char_villagers_poor.
   4. Two hard cuts per clip (three shots), not one continuous push.
-  Room total is now 21 people and the negative says so.
+  Room total is 21 people and the negative says so; the six members of the
+  public are prose because their Element is flagged.
 
-⚠️ @project_valder_char_villagers_poor HAS NEVER BEEN USED IN ANY SHEET. Open
-the @ picker and confirm it resolves BEFORE firing. If it does not exist, tell
-the CTO and stop — do not fire with an unbound chip, it fails silently and the
-six people simply vanish.
+⚠️ THE SIX ORDINARY PEOPLE ARE PROSE, NOT A CHIP (2026-09-07 22:23). The
+project_valder_char_villagers_poor Element (name written without the @ so it
+does not inflate the chip count) exists but carries the
+protected-content warning triangle: with it bound, Higgsfield's eligibility
+check REFUSED the Generate click outright — no charge, no card. Same failure as
+prop_croc_bag on S2R and prop_car on SC2, and the same fix: the object survives
+as prose with no loss on screen. Do not re-add it as a chip. Chips are 12.
 
 Filing: All Scene/Fix-1/ as S15a1-Shield-Fix1.MP4.
 Word count: 6 spoken words in this half.
@@ -90,9 +94,11 @@ THE THREE BODYGUARDS STAND TOGETHER, shoulder to shoulder in one small group at
 the frame edge nearest their masters — Valder's two navy guards and Carrington's
 man in black side by side, close enough to touch, all three facing the room and
 none of them moving for the whole clip.
-@project_valder_char_villagers_poor — SIX ORDINARY PEOPLE, ordinary modern
-  clothes, no gold V on any of them, standing among the guests in the rows.
-  Each of the six is a different person with their own face, hair and clothes.
+SIX ORDINARY PEOPLE (no picture — describe them, do not look for one): six
+members of the public standing among the guests in the rows, in ordinary modern
+street clothes — overcoats, jackets, cardigans, jeans, a scarf or two — and no
+gold V on any of them. Each of the six is a different person with their own
+face, own hair and own clothes.
 @project_absence_char_woman_c — MADAME THIBAULT: elderly, tall and rail-straight,
   a floor-length gown of glossy mid-green leather panelled in chevron leaf-vein
   seams, sharply pointed shoulder caps, a tall standing collar to the jaw, long
