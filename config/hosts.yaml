@@ -13,6 +13,8 @@
 
 hosts:
   mac:
+    chrome_device_id: 35a05d33-19a5-4d2e-bab0-08503bad0a9b   # 'Browser 1 (macOS)' in list_connected_browsers
+    chrome_name: mac-chrome
     os: darwin
     remote_control: true   # session shows in the CEO Claude app
     ssh: null
@@ -26,6 +28,8 @@ hosts:
     max_browser_operators: 2
 
   winbox:
+    chrome_device_id: null   # unknown until the CEO connects+names it 'winbox-chrome' (switch_browser flow)
+    chrome_name: winbox-chrome
     os: windows
     remote_control: true   # session shows in the CEO Claude app
     ssh: winbox

@@ -171,6 +171,7 @@ try {
 
     $launcherPath = Join-Path $launchDir 'launch.ps1'
     $launcherBody = @"
+`$env:ORG_HOST = 'winbox'
 `$claudeExe = '$claude'
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' | ConvertFrom-Json)
 & `$claudeExe @argArray

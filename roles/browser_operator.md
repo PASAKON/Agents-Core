@@ -116,7 +116,10 @@ alone. Three cases, and you must decide which one you are in before acting:
 2. Invoke the `browser-operator` skill. Follow its step order.
 3. Check whether the site has an API or an existing script under
    `scripts/browser/`. If one exists, run it instead of driving the UI.
-4. `tabs_context_mcp` first, then open your own tab. Never reuse a tab the
+4. Select the browser first (skill section "Select the browser before anything
+   else"): `select_browser` the host's configured `chrome_device_id`, else pick
+   the one local browser, else `switch_browser` and let the CEO click Connect.
+   Only then `tabs_context_mcp`, then open your own tab. Never reuse a tab the
    CEO is working in.
 5. `resize_window` to 1024x768 (or smaller) before anything else.
 6. Confirm the step budget in your task. If it is not stated, cap yourself at

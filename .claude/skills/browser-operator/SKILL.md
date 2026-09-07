@@ -114,6 +114,29 @@ sanity-check it against something already known — this operator's own check
 (other folders' counts matching known-good numbers exactly) is what proved which
 tree was authoritative. Do that in one call, before spending the budget.
 
+## Select the browser before anything else (2026-09-07)
+
+Several Chromes are paired to the org's Claude account (the Mac's, winbox's,
+and any others the CEO connects). With more than one connected, the CLI
+refuses every browser action until one is selected, and its default advice is
+to ask a human. Do not ask. Do this, in order, before `tabs_context_mcp`:
+
+1. Read `config/hosts.yaml` in your worktree and the `ORG_HOST` environment
+   variable (mac if unset). If that host has a `chrome_device_id`, call
+   `mcp__claude-in-chrome__select_browser` with it. Done.
+2. Otherwise call `mcp__claude-in-chrome__list_connected_browsers`. If exactly
+   one entry is marked as being on this computer, `select_browser` it.
+3. Otherwise call `mcp__claude-in-chrome__switch_browser` — a Connect prompt
+   appears in every paired extension; the CEO clicks Connect in the right
+   browser and names it (`winbox-chrome`, `mac-chrome`). This waits up to two
+   minutes. Then `list_connected_browsers` again and put the full list —
+   names AND deviceIds — in your report so the CTO can record the id in
+   `config/hosts.yaml` and step 3 never happens on that host again.
+
+Never `select_browser` a deviceId the host config does not name and the list
+does not mark as local: driving another machine's Chrome is how a task on the
+wrong computer clicks a paid button the CEO cannot see.
+
 ## Step order — do not skip ahead
 
 This ladder *is* the cost plan. Do not write your own — a paragraph of
