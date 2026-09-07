@@ -91,19 +91,38 @@ security guards beyond the three named, no reporters, no journalists, nobody
 holding a camera, nobody filming, nobody walking through. If a figure is not
 named below it must not exist.
 
-POSITION MAP — every figure in the reference video stands exactly where its
-character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
-- the small figure ALONE IN THE NEAR FOREGROUND, seen from behind in a powered
-  wheelchair = @project_absence_char_grandmother
-- far down the hall, the GOLD figure = @gentleman_e, MR CARRINGTON
-- far down the hall, the TEAL figure = @project_absence_char_woman_c, THE WOMAN IN GREEN
-- far down the hall, the MAGENTA figure = @project_absence_char_valder, between
-  them
-- far down the hall, the BLACK figure = @char_registrar, off to one side
-- the rest of the distant figures are the bodyguard, the two uniformed guards
-  and the watching visitors
-- the WHITE figure far off on the left is DUPE with his cart
-- every grey block is a prop, never a person
+POSITION MAP. EVERY ONE OF THE THIRTEEN HAS A PLACE OF THEIR OWN AND APPEARS
+EXACTLY ONCE. Twelve of them stand in a row at the far end of the hall; the
+thirteenth is the old woman alone in the near foreground. NAMED LEFT TO RIGHT
+ACROSS THE FAR END, and there is nobody in that row who is not on this list:
+  1. DUPE, out on the far LEFT and standing apart from the rest with his cart
+  2. THE ART STUDENT, at the left end of the row proper
+  3. MR CARRINGTON = @gentleman_e
+  4. CARRINGTON'S BODYGUARD = @project_absence_char_guard_private_v2, directly
+     behind Carrington's shoulder
+  5. VALDER'S TALL THIN NAVY GUARD
+  6. VALDER'S SHORT HEAVY NAVY GUARD, beside the tall one
+  7. VALDER = @project_absence_char_valder, in the centre of the row
+  8. THE WOMAN IN GREEN = @project_absence_char_woman_c
+  9. THE REGISTRAR = @char_registrar, immediately to her right
+  10. THE MAN IN MAROON = @project_absence_char_visitor_a
+  11. THE WOMAN IN THE CHESTNUT FUR = @project_absence_char_visitor_b
+  12. THE YOUNG WOMAN IN COBALT = @project_absence_char_woman, at the far RIGHT
+      end of the row
+  13. THE OLD WOMAN = @project_absence_char_grandmother, alone in the near
+      foreground, seen from behind in a powered wheelchair
+BOTH NAVY UNIFORMS ARE ON VALDER'S LEFT AND THERE ARE ONLY TWO OF THEM —
+numbers 5 and 6, standing beside each other. Everybody standing to the RIGHT of
+Valder is in ordinary clothes: the woman in green's green leather gown, the
+registrar's cream tunic with orange piping, a maroon leather suit, a tawny fur
+coat, a cobalt overcoat. That is the whole right-hand half of the row and it
+holds no uniform.
+DUPE HAS NO REFERENCE PICTURE IN THIS PROMPT — describe him: a small man far
+off on the LEFT in a WHITE cleaner's uniform with orange trim, a white cap, a
+small gold V, a moustache, standing beside his cart with a mop in his hand,
+watching and taking no part. He is a person and he is visible; the cart is not
+standing there by itself.
+Every grey block in the reference video is a prop, never a person.
 
 REFERENCES — each with a job:
 @loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
@@ -162,9 +181,10 @@ her face. We see the back of her head and her hand on the lever.
 
 [3s] EVERY SINGLE HEAD DOWN THE HALL TURNS TO FACE THE CAMERA AT THE SAME
 INSTANT — Carrington, the the woman in green, Valder, the guards, the visitors, the
-registrar, all of them together. It is the only moment in the film when the
-whole room does one thing at one time. From here it reads as twelve tiny faces
-all snapping toward the lens at once.
+registrar, the art student, Dupe, all of them together. It is the only moment in
+the film when the whole room does one thing at one time. From here it reads as
+twelve tiny faces all snapping toward the lens at once — count them as they
+turn: twelve, one for each person in the row.
 
 [5s] AND THEY STILL CANNOT SEE HER PROPERLY. She is twenty-four metres away
 from them and no bigger to them than they are to us.
@@ -176,15 +196,17 @@ back recedes.
 [10s] Nobody says anything. Nobody walks toward her. They stand and watch her
 come, and she gets very slightly smaller, and it takes a very long time.
 
-[13s] THE ART STUDENT GIVES UP. She turns from the distant group and walks up
-the hall STRAIGHT TOWARD THE CAMERA at an ordinary bored pace, sketchbook under
-her arm, getting larger. She walks PAST THE WHEELCHAIR without slowing, without
+[13s] THE ART STUDENT GIVES UP — number 2 in the row, the one with the acid
+yellow-green hair, the denim overshirt and the sketchbook, and nobody else. She
+turns from the distant group and walks up the hall STRAIGHT TOWARD THE CAMERA at
+an ordinary bored pace, sketchbook under her arm, getting larger. She walks PAST THE WHEELCHAIR without slowing, without
 looking down at it, and out of frame past the lens. She has no idea who she has
 just walked past.
 
 [15s] Far away, Valder glances after her, then back, and adjusts his scarf.
 
-[16s] THE WOMAN IN THE TAWNY FUR GIVES UP TOO. She follows the same path up the
+[16s] THE WOMAN IN THE TAWNY FUR GIVES UP TOO — number 11 in the row, the
+chestnut fur coat over the rust-red shift dress. She follows the same path up the
 hall, past the wheelchair, past the lens and gone. She does not look down
 either. Nobody tries to stop her and nobody comments.
 
