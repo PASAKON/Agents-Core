@@ -288,4 +288,20 @@ REVIEW ORDER:
 6. TWENTY-ONE PEOPLE, every face different.
 File the take whatever the verdict.
 
+2026-09-08T06:13:19+07:00 — t4 (task-8a70a0c0): FIRED, UNLIMITED/FREE lane.
+Gates: git merge main clean (already at bbac8b0, up to date), gate-0
+depth/gaze grep 0 hits on paste block, prompt-lint exit 0, 12/12 chips exact
+match to prompt-lint --chips list (villagers_poor correctly prose-only, not
+a chip), 2 HARD CUT confirmed in sheet (shots 2 and 3). All 12 reference
+thumbnails zoomed, no warning triangles. innerWidth 1400 (>=1280) verified
+before firing. Credits-low banner closed via its own (x) first action.
+Duration slider defaulted to 12s (not 5s this session) — corrected to 8 via
+focus()+ArrowLeft x4, read back aria-valuenow=8 before firing. Paste via
+synthetic ClipboardEvent + End/space/Backspace tap; chip count re-verified
+12/12 after paste and again after Unlimited toggle. Unlimited toggled ON as
+the LAST field (after duration/quality/sound/batch), one clean ref-click,
+zoomed Generate button read `UNLIMITED · struck 56 · 0` at the moment of
+fire. Generate clicked exactly once. "Generation started" toast confirmed,
+asset count 715→716. Awaiting render (see report for landing details).
+
 === END NOTES ===
