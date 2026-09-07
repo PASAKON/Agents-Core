@@ -169,6 +169,11 @@ try {
 `$claudeExe = '$claude'
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' | ConvertFrom-Json)
 & `$claudeExe @argArray
+# Windows Terminal's default closeOnExit is "graceful": the tab stays open
+# when its process exits NON-zero, which is exactly what a hub-side
+# `taskkill /T /F` produces. Exit 0 here so the tab closes with the worker
+# (CEO rule 2026-09-07: closing a worker closes its window).
+exit 0
 "@
     Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8
 
