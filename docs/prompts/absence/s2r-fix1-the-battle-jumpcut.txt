@@ -96,25 +96,42 @@ HER BAG (no picture — describe it, do not look for one): a dark crocodile-skin
 @project_absence_prop_cart_a_painted — HIS CART: castor wheels, mop, orange
   bucket, bottles, folding ladder, gold V.
 
-[0s] Silence, and everybody looking at the woman in green. She has not spoken yet.
+[0s] Silence. EVERY WATCHER'S HEAD IS TURNED RIGHT, looking at the woman in
+green — that is the starting position every later turn is measured against. She
+has not spoken yet.
 
 [1s] SHE SPEAKS FIRST, quietly, without moving anything but her mouth: "Ten
 million."
 
-[3s] HARD JUMP CUT, same frame. EVERY HEAD IN THE ROOM SWINGS TO THE LEFT, to Carrington — not together,
-a ragged wave of them. Carrington does not hesitate. He is smiling: "Fifteen."
+[3s] HARD JUMP CUT, same frame. THE HEADS ARE THE WHOLE POINT OF THIS CUT. In
+the last frame before the cut, every watcher's face is turned RIGHT, towards the
+woman in green. In the first frame after it, every one of those same faces is
+turned LEFT, towards Carrington — the registrar's, the young woman in cobalt's,
+the elderly East Asian woman's, the woman in the chestnut fur's, the man in
+maroon's, both uniformed guards', and Dupe's far back at his cart. Not one of
+them has moved their feet; every one of them has turned their head. Put a frame
+from 2s beside a frame from 4s and you see the same twelve people with their
+heads pointing the opposite way. Carrington does not hesitate. He is smiling:
+"Fifteen."
 
-[6s] EVERY HEAD SWINGS BACK TO THE RIGHT. The woman in green lets a beat go by, purely
-to make him wait, and then says: "Twenty million."
+[6s] EVERY HEAD TURNS BACK TO THE RIGHT — the same faces, now pointing at the
+woman in green again, feet still planted. The woman in green lets a beat go by,
+purely to make him wait, and then says: "Twenty million."
 
-[9s] HARD JUMP CUT, same frame. THE HEADS SWING LEFT AGAIN. The registrar's pen is going furiously and he
+[9s] HARD JUMP CUT, same frame. THE HEADS ARE LEFT AGAIN ACROSS THIS CUT: right
+in the frame before, left in the frame after, same people, feet planted, only the
+necks turning. The registrar's pen is going furiously and he
 is muttering to himself, a number behind and losing. Carrington's smile is
 thinner now: "Twenty-five."
 
-[13s] THE HEADS SWING RIGHT. And she does not pause at all this time. Flat,
+[13s] THE HEADS TURN RIGHT once more, every face back on the woman in green. And
+she does not pause at all this time. Flat,
 bored, as if correcting a waiter: "Fifty."
 
-[15s] HARD JUMP CUT, same frame. THE ROOM STOPS. Nobody's head moves. Carrington's smile is gone. He opens
+[15s] HARD JUMP CUT, same frame. THE ROOM STOPS — and this is the ONE cut where
+the heads do NOT change: every face stays pointing right, at the woman in green,
+exactly as it was before the cut. That frozen non-swing is what makes this cut
+land. Carrington's smile is gone. He opens
 his mouth and nothing comes out of it.
 
 [17s] AND VALDER, IN THE MIDDLE, IS DELIGHTED. He looks left at Carrington,
@@ -142,8 +159,11 @@ sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
 audio tail, no fade-in or fade-out on the sound; no thirteenth person, no
 extra, no bystander, no other visitor, no gallery staff, no reporter, no
 journalist, nobody holding a camera, nobody filming, no crowd, no children,
-nobody walking through; nobody walking at all, nobody changing position,
-nobody stepping forward, nobody approaching anybody; no auctioneer, no podium,
+nobody walking through; nobody walking at all, nobody stepping forward, nobody
+approaching anybody. FEET DO NOT MOVE AND HEADS DO: every person keeps both feet
+planted in exactly the same spot for the whole twenty seconds, and every person
+turns their head and eyes freely. Stillness in this clip means the feet, never
+the heads; no auctioneer, no podium,
 no rostrum, no gavel, no bidding paddle, no raised hands, no numbered card, no
 auction house, no lot number, no visible price, no written figures on screen;
 no shouting, no arguing, no laughing, no applause, no cheering, no gasping

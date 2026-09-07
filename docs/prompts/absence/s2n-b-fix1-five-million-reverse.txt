@@ -56,7 +56,12 @@ Filing: All Scene/Fix-1/ as S2N-B-Fix1.MP4.
 
 20s · 720p · 16:9. The camera is LOCKED and never moves, never pans, never
 zooms — but the shot is CUT: three hard jump cuts inside the same unchanging
-frame. Sound On · High.
+frame, at 8s, 11s and 16s and nowhere else. WHAT A CUT IS ALLOWED TO CHANGE HERE
+IS THE CLOCK AND NOTHING ELSE. Every cut lands on the identical camera position,
+the identical lens, the identical gallery and the identical background; a viewer
+comparing the frame just before a cut with the frame just after it sees the same
+room from the same spot, with the people in new positions because time passed.
+Sound On · High.
 
 the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
 shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
@@ -161,12 +166,18 @@ ragged ripple, one after another, the way real people turn when a voice comes
 from behind them. Now we see their faces for the first time. THE YOUNG WOMAN IN
 BLUE TURNS LAST, and her face has nothing on it. Nobody says a word.
 
-[8s] HARD CUT. Time has jumped. THE REGISTRAR HAS ABANDONED HER. He is walking
-fast toward the camera, ledger clutched to his chest, growing in the frame, and
-he never once looks back at the woman he was serving thirty seconds ago. He
-does not run.
+[8s] HARD CUT. Time has jumped, but THE CAMERA HAS NOT MOVED ONE INCH. This is
+the same locked frame as the last eight seconds: the same gallery, the same
+chromium columns in the same places, the same red double door at the same
+vanishing point, the same five people standing where they already stood. Only
+the clock jumped. THE REGISTRAR HAS ABANDONED HER. He is already out in front of
+the group, walking fast up the gallery towards the lens, ledger clutched to his
+chest. He gets bigger in the picture ONLY because he is closer to a camera that
+did not move; the lens does not follow him and does not go to meet him. He never
+once looks back at the woman he was serving thirty seconds ago. He does not run.
 
-[11s] HARD CUT. He is gone — walked straight past the lens and out of shot. The
+[11s] HARD CUT, still the same locked frame and the same gallery. He is gone —
+walked straight past the lens and out of shot. The
 five are left alone in the frame, still turned toward the camera, still looking
 past it at something we cannot see. The art student has half raised her
 sketchbook and stopped.
@@ -175,7 +186,8 @@ sketchbook and stopped.
 registrar says: "Forgive me, sir. May I take your name?" A pause. The elderly
 man's voice answers with one unhurried word: "Carrington."
 
-[16s] HARD CUT. Time has jumped again. The five have begun to drift back toward
+[16s] HARD CUT, still the same locked frame and the same gallery. Time has
+jumped again. The five have begun to drift back toward
 the wall, not all at the same moment — the woman in magenta first, the man in
 maroon last, the young woman in blue still facing the camera and still holding
 whatever it is she is holding in.

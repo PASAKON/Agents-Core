@@ -75,7 +75,10 @@ REFERENCES — each with a job:
 @project_absence_char_grandmother — in the wheelchair, present but SILENT this
   half; she speaks later.
 @project_absence_char_registrar_b — THE REGISTRAR: a formal BLACK suit, white
-  gloves, a GOLD V, the leather ledger. Present, still.
+  gloves, a GOLD V, the leather ledger. THERE IS EXACTLY ONE REGISTRAR — one man,
+  standing on the RIGHT side of the room, still, holding the ledger. He is the
+  only person in the entire frame wearing a black suit with white gloves and a
+  gold V; every other guest wears something different.
 @gentleman_e — the room, planted at the frame edge.
 @project_valder_char_press — THE PRESS, FOUR of them, FILMING ALL OF THIS:
   news crews with shoulder cameras, a boom microphone, a stills photographer.
@@ -90,10 +93,14 @@ REFERENCES — each with a job:
   built Black man, opaque dark sunglasses, WHITE gloves on both hands, an
   all-black suit with a black shirt and black tie. No weapon, no earpiece, no
   holster, no gold V. He never speaks.
-THE THREE BODYGUARDS STAND TOGETHER, shoulder to shoulder in one small group at
-the frame edge on their masters' side — Valder's two navy guards and Carrington's
-man in black side by side, close enough to touch, all three facing the room and
-none of them moving for the whole clip.
+THE THREE BODYGUARDS STAND IN ONE GROUP AT THE LEFT EDGE OF FRAME — COUNT THEM:
+THREE, and all three in the SAME place. VALDER'S TALL THIN NAVY GUARD stands at
+the left edge. VALDER'S SHORT HEAVY NAVY GUARD stands directly beside him with
+their shoulders touching. CARRINGTON'S BODYGUARD IN BLACK stands directly beside
+the short guard, his shoulder touching that one. The three make one unbroken line
+of three bodies at the left edge, all three facing the room, none of them moving
+for the whole clip. Every bodyguard in this film is in that group at the left
+edge; the right side of frame holds ordinary guests only.
 SIX ORDINARY PEOPLE (no picture — describe them, do not look for one): six
 members of the public standing among the guests in the rows, in ordinary modern
 street clothes — overcoats, jackets, cardigans, jeans, a scarf or two — and no
@@ -168,7 +175,8 @@ REVIEW ORDER:
 3. THE SILENCE IS STILL HOLDING AT 8s. The clip must not resolve — S15a-2
    picks it up.
 4. THE PUSH-IN HAS STARTED and it is smooth. Any handheld wobble = re-fire.
-5. TWELVE PEOPLE, every face different, one bodyguard behind the gentleman.
+5. TWENTY-ONE PEOPLE, every face different. All THREE bodyguards in one group
+   at the LEFT edge, and exactly ONE registrar, on the RIGHT — the t1 failures.
 6. Nobody looks into the lens except Dupe's near-frontal address.
 File the take whatever the verdict.
 
