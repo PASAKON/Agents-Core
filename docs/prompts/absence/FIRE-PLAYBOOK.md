@@ -81,6 +81,14 @@ S15a-2's operator was right to stop.
   structure without the CEO's approval. If you have already uploaded under a wrong
   name, report the exact name and file id and change NOTHING: renaming and deleting
   on Drive are the CTO's to authorise, with the CEO's say-so.
+- A POLL IS NOT A REPORT. While a render is in flight you send NOTHING — not "still
+  rendering", not "waiting on a 5-min chunk", not "polling ~20 min". Three operators
+  did that tonight, several times each, and every one of those messages arrives in the
+  CTO's context as an interruption that says nothing the CTO cannot already see from
+  the pane. Report on a STATE CHANGE only: it fired, it landed, it was rejected, you
+  are blocked, two instructions conflict. A long silence while you work is correct and
+  expected — the CTO watches your process directly and learns you died faster than you
+  could tell it.
 - NEVER quit or restart Chrome (HARD, 2026-09-07): the window is shared with the other operators; a frozen tab → close your own tabs, one fresh tab, else STOP and report. The render lives server-side and survives your tab.
 - claude-in-chrome ONLY. NEVER call computer-use (screenshot/click/type/clipboard) or ask
   for Finder / clipboardWrite: the permission dialog it raises blocks the whole pane
