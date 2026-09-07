@@ -1,0 +1,125 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S15a-2 · DUPE CONFESSES — THE ROOM DECIDES · 8s · part 2 of 2
+Split from SCENE 15a in docs/prompts/absence/s6-s18.txt on the CEO's order
+2026-09-07 21:30 + 21:33 ("โดยไม่เปลี่ยนเนื้อหา หรือบริบทเยอะ").
+
+⚠️ THIS IS A CONTINUATION, NOT A NEW SET-UP. It opens on the exact frame
+S15a-1 ended on: same hall, same light, same three bodies on the axis, the
+slow push-in already moving, the silence already holding, every face already
+turned to Dupe. Nobody re-enters and nobody re-positions. The two clips cut
+together with no gap.
+
+⚠️ NOTHING WAS CUT from the 20s block. S15a-1 carries the run-in and both of
+Dupe's lines; this half carries the room's recalculation and the crowd's line.
+Same 10 chips in both.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+💚 UNLIMITED (FREE) unless the CEO says credits. Spec: 8s / 720p / 16:9 /
+Seedance 2.5 / High / 1/4 / Sound ON, Unlimited ON, zoom the button and confirm
+ZERO digits. ⚠️ The duration slider defaults to 5s silently — set 8s and read
+it back.
+
+⚠️ THE ONE SPOKEN LINE HAS NO FACE. "Then the artist is the building" comes
+from off-axis and nobody is shown speaking it. That is the point of the line —
+the room has decided collectively and no individual owns the decision.
+
+⚠️ THE GENTLEMAN'S BODYGUARD has no chip — render him from the description in
+the paste block. Exactly one, never two, never absent, no gold V, never speaks.
+
+Filing: All Scene/Fix-1/ as S15a2-RoomDecides-Fix1.MP4.
+Word count: 6 spoken words in this half.
+Previz: NONE. Fire S15a-1 first so the two can be checked against each other.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+8s · 720p · 16:9 · ONE clean slow push-in on Dupe, already in motion when the
+clip opens — frontal, almost into the lens; unison reactions at the edges.
+Handheld is banned. Sound On · High.
+
+THE CLIP OPENS MID-MOMENT. Dupe is already standing dead centre between Valder
+and the workman, all three on one line, symmetrical; he has just spoken and the
+room is already silent with every face already turned to him. The push-in is
+already moving. Nothing restarts, nobody walks in, nobody changes position.
+
+REFERENCES — each with a job:
+@loc_hall_big_e — the hall, the same frame and the same light as a moment ago.
+@project_absence_char_cleaner_c — DUPE: the subject, centred, white uniform,
+  orange trim, gold V, mop in hand, out of breath, saying nothing more.
+@prop_cart_b — his cart at the edge, painting face-out.
+@project_absence_char_valder — beside him on the axis, the rage gone quiet.
+@project_absence_char_workman — slate-blue overalls, bucket and float, AT THE
+  WALL, still behind Dupe where the shield put him.
+@project_absence_char_grandmother — in the wheelchair, present and SILENT.
+@project_absence_char_registrar_b — THE REGISTRAR: a formal BLACK suit, white
+  gloves, a GOLD V, the leather ledger. Present, still.
+@gentleman_e — the room, planted at the frame edge. Wherever he stands, ONE
+  personal bodyguard in a plain dark suit stands a pace behind him, hands
+  loose, face neutral — exactly one, never two, never absent, carrying no gold
+  V and never speaking.
+@project_absence_char_press_a @project_absence_char_press_b — FILMING ALL OF
+  THIS — the confession is going out live; this broadcast is why the world
+  knows Dupe's face later in the film.
+
+[0s] The room absorbs what he just said — not shock, RECALCULATION: heads tilt
+IN UNISON at the frame edges, eyes move from him to the crack and back. One of
+them nods slowly, the way people nod when they have decided something is
+profound. Nobody speaks. Nobody moves towards him.
+
+[4s] A VOICE FROM THE CROWD, off-axis. Nobody is shown speaking; this line
+deliberately has no face. The voice, certain: "Then the artist is the
+building." END on Dupe's centred face inside the push, mouth slightly open, no
+reply.
+
+AUDIO: his breathing, room tone, the press camera's motor, no music. NO SOUND
+AT THE START OR THE END: the clip opens mid room-tone with no intro sting or
+riser, and simply stops with no tail, swell or fade.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no stage directions spoken
+aloud, no narration of the character's state, no speaking anything outside the
+quotation marks; no dialogue beyond the one line written above, no repeat of
+"Sorry, sir" or "I cracked it", no grandmother speaking in this half, no anyone
+laughing, no anyone shouting at him, no anyone grabbing him, no violence, no
+security removing him, no police, no comic reaction, no slapstick, no crowd
+beyond twelve people, no painting on the hero wall, no face shown for the crowd
+voice, no run-in, no new arrival, no repositioning.
+
+House negatives: no extra dialogue, no invented lines, no improvised speech, no
+voiceover, no narration, no subtitles, no captions, no on-screen text, no
+readable text anywhere except the brass plaque, no wall labels, no signage, no
+timecode, no watermark, no logos of real brands, no music, no score, no laugh
+track, no comedy sting, no gold V on any visitor, no duplicate characters, no
+twins, no repeated faces, no cloned people, no anyone looking at the camera, no
+smiling to camera, no winking, no knowing looks to camera, no laughing, no
+comic expressions, no smartphones, no screens, no LEDs, no digital displays, no
+modern technology, no dissolve, no crossfade, no fade to black, no wipe, no
+morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no
+dutch angle, no tilted horizon, no whip pan, no zoom other than the slow push-in
+named above, no crane move, no drone shot, no lens flare, no anamorphic streak,
+no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no
+smooth airbrushed faces, no beauty filter, no dirt, no grime, no grey skin, no
+waxy skin, no horror imagery, no rain, no fog, no night, no darkness, no dim
+moody lighting, no brown murky colour grade, no ultramarine walls, no blue
+walls, no wooden floor.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. IT MUST CUT TO S15a-1. Same hall, same light, Dupe still dead centre
+   between Valder and the workman, nobody re-entering. If it opens on a new
+   set-up or a walk-in, it will not edit together — re-fire.
+2. THE UNISON TILT at the frame edges, then one slow nod. That is the whole
+   joke: a confession being reclassified as art.
+3. THE CROWD LINE HAS NO FACE. If the model shows someone speaking it, flag.
+4. ONLY those six words. No repeat of Dupe's lines, no invented dialogue.
+5. THE PUSH-IN IS ALREADY MOVING at 0s and stays smooth to the end.
+6. TWELVE PEOPLE, every face different, one bodyguard behind the gentleman.
+File the take whatever the verdict.
+
+=== END NOTES ===
