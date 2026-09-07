@@ -74,6 +74,20 @@ _LIVE_DB = (Path(__file__).resolve().parent.parent / "state" / "tasks.db").resol
 if Path(db_mod.DB_PATH).resolve() == _LIVE_DB:
     db_mod.DB_PATH = Path(tempfile.mkdtemp(prefix="test-db-guard-")) / "tasks.db"
     db_mod.init()
+
+    # Same reasoning for the two other production surfaces these tests reach:
+    # the org event log the CEO reads (a test run printed a dozen ERROR-level
+    # SURFACE-REAPED lines into it) and `gh issue create` (a stall test tried to
+    # open a real GitHub issue and was saved only by its fake project name).
+    import lib.notify as _notify
+    for _fn in ("info", "success", "warn", "error"):
+        setattr(_notify, _fn, lambda *a, **k: None)
+    import runners.watchdog as _wd
+    for _fn in ("info", "success", "warn", "error"):
+        if hasattr(_wd, _fn):
+            setattr(_wd, _fn, lambda *a, **k: None)
+    import tools.gh_issue as _gh
+    _gh.create_issue = lambda *a, **k: "https://example.invalid/issues/0"
 # ---------------------------------------------------------------------------
 
 _failures = 0
