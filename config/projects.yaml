@@ -51,6 +51,14 @@ projects:
     # Enabled 2026-07-19 after verifying: 709/710 pass (1 skipped), 8.4s.
     test_command: npm test --silent
     gate_tests: true
+    # Per-host checkout paths (Phase 1, docs/design/multi-host-workers.md).
+    # mac stays implicit via top-level `path:` above — listed here too so a
+    # host lookup is uniform. contabo is a real clone (CLAUDE.md's Contabo
+    # availability table); winbox is not cloned yet, so it is left out
+    # (project_path_for_host raises rather than guessing).
+    paths:
+      mac: /Users/gob/Projects/mooniex-claudeflow
+      contabo: /root/projects/mooniex-claudeflow
     # task-2f04a8ca (CEO 2026-08-14): tmux-backed so send_to_dev's mailbox+
     # wake can actually reach a spawned DEV (a wake only lands via
     # `task["tmux_session"]`; iterm-backend DEVs never set it, so the
@@ -95,6 +103,12 @@ projects:
     # comment above for why. web_ui stays unset/off — CEO preference
     # 2026-05-19 (no auto ttyd browser) is unaffected.
     spawn_backend: tmux
+    # Per-host checkout paths (Phase 1, docs/design/multi-host-workers.md).
+    # winbox is a real clone already (CLAUDE.md's Contabo/winbox tables) —
+    # spawn-worker.ps1 will `git fetch` it rather than clone from scratch.
+    paths:
+      mac: /Users/gob/Projects/mooniex-webapp
+      winbox: 'C:\Users\UsEr\Projects\mooniex-webapp'
     wiki_refs:
       - playbooks/frontend.md
       - playbooks/backend.md
@@ -172,6 +186,14 @@ projects:
     # task-2f04a8ca (CEO 2026-08-14): tmux-backed, see mooniex-claudeflow's
     # comment above for why.
     spawn_backend: tmux
+    # Per-host checkout paths (Phase 1, docs/design/multi-host-workers.md).
+    # winbox has no clone yet — spawn-worker.ps1 clones it there on first
+    # use (this task's acceptance run). contabo is a real clone (CLAUDE.md's
+    # Contabo availability table).
+    paths:
+      mac: /Users/gob/Projects/Agents
+      winbox: 'C:\Users\UsEr\mooniex\repo\MoonieX-Agents'
+      contabo: /opt/mooniex-agents
     wiki_refs:
       - playbooks/backend.md
 

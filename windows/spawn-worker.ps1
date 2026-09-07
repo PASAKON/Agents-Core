@@ -1,0 +1,206 @@
+# WINBOX WORKER LAUNCHER — Phase 1 (docs/design/multi-host-workers.md).
+#
+# Invoked by tools/delegate.py's _spawn_remote() over:
+#   ssh winbox powershell -NoProfile -ExecutionPolicy Bypass -File spawn-worker.ps1 ...
+#
+# Clones/fetches the project, adds a worktree on a fresh task branch, writes
+# TASK.md + WORKER.md, and launches `claude.exe` --remote-control inside a
+# visible Windows Terminal tab (ADDENDUM 1, CTO 2026-09-07: Remote Control
+# needs an interactive console session, so a fully detached Start-Process
+# would never show up in the CEO's Claude app — same reason win-cto.ps1
+# runs the Windows CTO inside a wt.exe tab rather than detached). Prints the
+# child pid as the LAST line of stdout so the Mac side can parse it with
+# `lines[-1]`. Every other line this script prints is informational and
+# must come BEFORE that one.
+#
+# PowerShell 5.1 syntax only (this box has no pwsh 7). Never prompts —
+# every git/ssh call is forced non-interactive, so a bad credential or an
+# unknown host key fails loudly instead of hanging the whole pipe.
+#
+# Deployed to $AgentsRoot (e.g. C:\Users\UsEr\mooniex\spawn-worker.ps1) by
+# scp as part of tools/delegate.py's automatic deploy check — re-run that
+# check (sha256 compare) after editing this file, there is no git clone of
+# the Agents repo on this box.
+
+param(
+    [Parameter(Mandatory = $true)][string]$Task,
+    [Parameter(Mandatory = $true)][string]$Project,
+    [Parameter(Mandatory = $true)][string]$Role,
+    [Parameter(Mandatory = $true)][string]$Branch,
+    [Parameter(Mandatory = $true)][string]$Base,
+    [Parameter(Mandatory = $true)][string]$RepoUrl,
+    [Parameter(Mandatory = $true)][string]$RepoPath,
+    [Parameter(Mandatory = $true)][string]$WorktreeRoot,
+    [Parameter(Mandatory = $true)][string]$ClaudeArgs,
+    [Parameter(Mandatory = $true)][string]$Model,
+    [Parameter(Mandatory = $true)][string]$Effort,
+    [Parameter(Mandatory = $true)][string]$SessionName,
+    [string]$TaskFile = ''
+)
+
+$ErrorActionPreference = 'Stop'
+$env:GIT_TERMINAL_PROMPT = '0'
+
+# --- GitHub reachability: port 22 may be blocked from this box (measured
+# 2026-09-07 — `ssh -T git@github.com` hung with no ConnectTimeout). Probe
+# with a bounded timeout; on failure/hang, fall back to ssh.github.com:443
+# (GitHub's documented SSH-over-443 endpoint) by writing a Host override
+# into this user's ~/.ssh/config, unless one is already there. Reported on
+# the line prefixed GITHUB_SSH_ROUTE= so the Mac side can log which path
+# actually worked.
+function Ensure-GithubSshRoute {
+    # Probe github.com:22 with a bounded timeout. On success use it. On failure
+    # fall back to ssh.github.com:443 FOR THIS PROCESS ONLY via GIT_SSH_COMMAND.
+    # NEVER write the user's ~/.ssh/config: on 2026-09-07 an appended
+    # "Host github.com / Port 443" block silently broke a working port-22 route
+    # for every later git call on the box (OpenSSH takes the first value per
+    # option across matching blocks -> github.com:443 = HTTPS port = closed).
+    $probeArgs = @('-T', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8',
+                   '-o', 'StrictHostKeyChecking=accept-new', 'git@github.com')
+    $probeOk = $true
+    try {
+        & ssh @probeArgs 2>&1 | Out-Null
+        # git@github.com exits 1 on a successful handshake (no shell); only a
+        # 255 (connection failure) or an exception means the route is dead.
+    } catch {
+        $probeOk = $false
+    }
+    if ($LASTEXITCODE -eq 255) { $probeOk = $false }
+    if ($probeOk) { return 'github.com:22' }
+
+    $env:GIT_SSH_COMMAND = 'ssh -o HostName=ssh.github.com -p 443 -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new'
+    Write-Output 'GITHUB_SSH_ROUTE=fallback-443 (port 22 probe failed; user ssh config left untouched)'
+    return 'ssh.github.com:443'
+}
+
+try {
+    $githubRoute = Ensure-GithubSshRoute
+    Write-Output "GITHUB_SSH_ROUTE=$githubRoute"
+
+    # Non-interactive SSH for every git network op below — an unknown host
+    # key or a missing credential must fail, never prompt into a dead pipe.
+    $env:GIT_SSH_COMMAND = 'ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new'
+
+    # --- 1. Clone (first use) or fetch (repeat use) the canonical checkout ---
+    if (-not (Test-Path (Join-Path $RepoPath '.git'))) {
+        $parent = Split-Path $RepoPath -Parent
+        if ($parent -and -not (Test-Path $parent)) {
+            New-Item -ItemType Directory -Path $parent -Force | Out-Null
+        }
+        git clone $RepoUrl $RepoPath
+    }
+    git -C $RepoPath fetch origin
+
+    # --- 2. Worktree on a fresh task branch (idempotent: this launcher may
+    # run more than once for the same task while the pipe is being tested) ---
+    $wt = Join-Path $WorktreeRoot "$Project`__$Role`__$Task"
+    if (Test-Path $wt) {
+        git -C $RepoPath worktree remove --force $wt 2>$null
+        if (Test-Path $wt) { Remove-Item -Recurse -Force $wt }
+    }
+    git -C $RepoPath branch -D $Branch 2>$null
+    if (-not (Test-Path $WorktreeRoot)) {
+        New-Item -ItemType Directory -Path $WorktreeRoot -Force | Out-Null
+    }
+    git -C $RepoPath worktree add -b $Branch $wt "origin/$Base"
+
+    # --- 3. TASK.md: from -TaskFile (scp'd ahead of this call) or stdin ---
+    if ($TaskFile -and (Test-Path $TaskFile)) {
+        $taskContent = Get-Content -Raw -Path $TaskFile
+    } else {
+        $taskContent = [Console]::In.ReadToEnd()
+    }
+    Set-Content -Path (Join-Path $wt 'TASK.md') -Value $taskContent -NoNewline -Encoding UTF8
+
+    # --- 4. WORKER.md: the remote-worker contract, read from the copy this
+    # script's own deploy step scp'd alongside it ---
+    $rolesDir = Join-Path (Split-Path $PSCommandPath -Parent) 'roles'
+    $remoteContractPath = Join-Path $rolesDir '_worker_remote.md'
+    $sharedDocPath = Join-Path $rolesDir '_worker_shared.md'
+    $roleDocPath = Join-Path $rolesDir "$Role.md"
+    $remoteContract = Get-Content -Raw -Path $remoteContractPath
+    Set-Content -Path (Join-Path $wt 'WORKER.md') -Value $remoteContract -NoNewline -Encoding UTF8
+
+    # --- 5. System prompt: shared conventions + role doc + remote contract,
+    # same composition runners/worker_init.py builds for a Mac-spawned DEV,
+    # plus the remote contract appended (roles/_worker_remote.md). ---
+    $sharedDoc = Get-Content -Raw -Path $sharedDocPath
+    $roleDoc = Get-Content -Raw -Path $roleDocPath
+    $systemPrompt = "$sharedDoc`n`n$roleDoc`n`n$remoteContract"
+
+    # --- 6. Launch claude.exe --remote-control inside a Windows Terminal
+    # tab (ADDENDUM 1). Prompt goes first (positional), --allowed-tools
+    # (inside $ClaudeArgs, rendered on the Mac side via worker_tool_grants)
+    # stays LAST with nothing after it — same rule runners/worker_init.py
+    # documents: it is variadic and swallows every following argv element.
+    #
+    # The full arg list (including the system prompt, which can be
+    # thousands of characters of quotes/newlines/non-ASCII) is written to a
+    # JSON file and read back by a tiny generated launcher script, instead
+    # of being inlined into the wt.exe command line — that line would go
+    # through THREE layers of shell re-quoting (wt.exe -> `powershell
+    # -Command` -> `& claude.exe`) and is not a safe place for that text. ---
+    $claude = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
+    if (-not (Test-Path $claude)) { $claude = 'claude' }
+
+    $claudeArgsSplit = @($ClaudeArgs -split '\s+' | Where-Object { $_ -ne '' })
+    $argList = @($taskContent, '-n', $SessionName, '--append-system-prompt', $systemPrompt) + $claudeArgsSplit
+
+    $launchDir = Join-Path $wt '.launch'
+    New-Item -ItemType Directory -Force -Path $launchDir | Out-Null
+    $argsJsonPath = Join-Path $launchDir 'args.json'
+    $argList | ConvertTo-Json -Depth 2 | Set-Content -Path $argsJsonPath -Encoding UTF8
+
+    $launcherPath = Join-Path $launchDir 'launch.ps1'
+    $launcherBody = @"
+`$claudeExe = '$claude'
+`$argArray = @(Get-Content -Raw -Path '$argsJsonPath' | ConvertFrom-Json)
+& `$claudeExe @argArray
+"@
+    Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8
+
+    $logsDir = Join-Path (Split-Path $WorktreeRoot -Parent) 'logs'
+    if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir -Force | Out-Null }
+
+    # No -NoExit (CTO correction 2026-09-07): the tab's lifetime must equal
+    # claude.exe's lifetime — when the process ends (naturally, or via
+    # `ssh winbox taskkill /PID <pid> /T /F` from the hub), this powershell
+    # has nothing left to run and exits, and Windows Terminal closes the
+    # tab with it. CEO rule: closing a worker closes its window too, never
+    # just the process.
+    & wt.exe -w 0 nt --title $SessionName --tabColor '#0078d4' -d $wt powershell -NoProfile -File $launcherPath
+
+    # --- 7. Capture the claude.exe pid. wt.exe hands the new-tab request to
+    # the running Terminal instance and returns almost immediately — it is
+    # not claude.exe's parent process, so there is no Start-Process handle
+    # to read a pid from. Poll instead, matching on the task id, which
+    # appears in claude's own command line (both the prompt text and -n). ---
+    $workerPid = $null
+    $deadline = (Get-Date).AddSeconds(30)
+    while ((Get-Date) -lt $deadline -and -not $workerPid) {
+        Start-Sleep -Milliseconds 500
+        $procs = Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" |
+            Where-Object { $_.CommandLine -and $_.CommandLine -like "*$Task*" }
+        if ($procs) {
+            $workerPid = ($procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
+        }
+    }
+    if (-not $workerPid) {
+        throw ("claude.exe did not appear within 30s for task $Task -- the " +
+               "Windows Terminal tab may not have opened (wt.exe needs an " +
+               "interactive desktop session; verify one exists over this " +
+               "SSH connection type). See ADDENDUM 1 in the task brief.")
+    }
+
+    # --- 8. .worker.json — what the Mac-side liveness poller reads back ---
+    $startedAt = (Get-Date).ToUniversalTime().ToString('o')
+    $workerInfo = @{ pid = $workerPid; started_at = $startedAt; host = 'winbox' } | ConvertTo-Json -Compress
+    Set-Content -Path (Join-Path $wt '.worker.json') -Value $workerInfo -Encoding UTF8
+
+    # LAST line of stdout, on purpose — the Mac side parses this with
+    # lines[-1]. Nothing may print after this.
+    Write-Output $workerPid
+} catch {
+    Write-Error "spawn-worker.ps1 failed: $_"
+    exit 1
+}

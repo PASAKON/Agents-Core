@@ -156,3 +156,80 @@ routing by host name instead of by "here".
 1. Approve a deploy key with **push** rights on winbox (and on Contabo in Phase 2).
 2. Do step 1a yourself — Chrome + extension + logins on winbox — nobody else can.
 3. Hub stays on the Mac through Phases 1–3, moves to Contabo in Phase 4. OK?
+
+## 7. Phase 1 — status (developer, task-d1d6b2ef, 2026-09-07)
+
+**Shipped:**
+
+- `config/hosts.yaml` + `lib/config.py` `hosts()`/`host(name)`/
+  `project_path_for_host(project, host)` — the last raises a clear error
+  for an unrouted project/host pair instead of guessing.
+- `config/projects.yaml` `paths:` filled for `mooniex-agents` (winbox +
+  contabo), `mooniex-webapp` (winbox), `mooniex-claudeflow` (contabo). The
+  other four Contabo repos named in the brief (`mooniex-option`,
+  `mooniex-alphatrader`, `mooniex-line-automation`, `mooniex-line-poster`)
+  are not registered `projects.yaml` entries at all yet — adding them
+  needs a real `remote:` URL per repo, which this task did not fabricate.
+  Flagged for whoever picks up Phase 2.
+- `lib/db.py` `tasks.host` column (NULL = mac) + `create_task(host=...)`.
+- `lib/config.py` `worker_session_name(host, role, task_id, title)` —
+  `<MACHINE> <ROLE> #<id8> (<title>)` (ADDENDUM 1, CEO decision: every
+  session is addressed from the Claude app, on any device, so the machine
+  has to be in the name itself).
+- `tools/delegate.py` `_spawn_remote()`: dispatches to
+  `windows/spawn-worker.ps1` over SSH when a task's resolved host isn't
+  `mac` (explicit `delegate_task(host=...)` arg > `tasks.host` > `'mac'`).
+  Renders the remote argv from `worker_tool_grants()` (never a second
+  hand-maintained tool list) plus `--remote-control`, deploys
+  `spawn-worker.ps1` + the role docs to the box automatically (sha256
+  compare, only copies what changed), and supports `dry_run=True` to print
+  the exact ssh command without running it.
+- `windows/spawn-worker.ps1`: clones/fetches the project, adds a worktree
+  on the task branch, writes `TASK.md`/`WORKER.md`, launches
+  `claude.exe --remote-control` inside a **Windows Terminal tab**
+  (`wt.exe -w 0 nt`) rather than a detached process — Remote Control needs
+  an interactive console, and a detached process would never show up in
+  the CEO's Claude app. No `-NoExit`: the tab's lifetime equals
+  claude.exe's, so a hub-side `taskkill /PID <pid> /T /F` closes the
+  window too (CEO rule: ending a worker closes its window, never just the
+  process). Falls back to `ssh.github.com:443` when `github.com:22` is
+  blocked (measured true from this box on 2026-09-07) and reports which
+  route worked. Never prompts.
+- `roles/_worker_remote.md`: the remote-worker contract — no org MCP, no
+  `submit_report`/`dev_message`; report by pushing `REPORT.md`/`BLOCKER.md`
+  and `git push`.
+- `runners/branch_poller.py`: polls every 60s for in-progress remote
+  tasks; a pushed branch with `REPORT.md` → `review`; with `BLOCKER.md` →
+  a `gh issue create` + `blocked_human` (closest existing status to
+  "blocked" — `lib/db.py` has no bare `blocked`); no branch and a dead
+  remote pid → `failed`. `--once` for a single tick (tests).
+- `tools/delegate.py` `_spawn_iterm_tab`: tmux-attach branch now ends
+  `; exit $?` (ADDENDUM 2) so a dead tmux session doesn't leave an open
+  bare-shell tab, matching the non-tmux branch's existing GH #27 fix.
+- `tests/test_multihost.py`: 25 tests — remote argv rendering (chrome per
+  role, `--allowed-tools` last), hosts/paths resolution + the not-routable
+  error, `worker_session_name` shape, `.worker.json` parsing, and
+  `branch_poller` state transitions against a real local git repo standing
+  in for GitHub (a bare repo on disk, no real network) — report/blocker/
+  dead-pid/unreachable-host/still-working/skip-mac all covered.
+
+**Deploy (one-line, manual/emergency — normally automatic on first
+`delegate_task(host='winbox')`):**
+
+```
+scp windows/spawn-worker.ps1 winbox:'C:\Users\UsEr\mooniex\spawn-worker.ps1'
+```
+
+**Not done / open:**
+
+- `lib/org_tools_registry.py`'s `host` param on `create_task`/
+  `delegate_task` (registry half of deliverable 3) — that file was outside
+  this task's declared `touches`; self_repo_guard refused the edit and a
+  touches-expansion request was sent to the CTO mid-task. `runners/
+  cto_mcp_server.py`'s side (in touches) is done; until the registry side
+  lands, an MCP-level `host=` argument is silently dropped by
+  `_prepare()`'s param filter — `delegate_task` still works correctly when
+  called with `host=` from Python directly (as the acceptance run below
+  does), just not yet through the MCP tool surface.
+- Live end-to-end acceptance against the real winbox box — see the
+  developer's task report for what was actually run (dry-run vs. real).

@@ -126,6 +126,12 @@ _MIGRATION_COLUMNS = [
     # NULL on pre-migration rows and on any task never delegated. Readers
     # must treat NULL as "no spawn on record", never as "spawned long ago".
     ("spawned_at", "TEXT"),
+    # Which host (config/hosts.yaml key) this task's DEV runs/ran on.
+    # NULL means "mac" — every pre-migration row, and every row created
+    # before host routing existed, keeps working unchanged. tools/delegate.py
+    # resolves the effective host as: explicit delegate_task(host=...) arg >
+    # this column > 'mac' (docs/design/multi-host-workers.md Phase 1).
+    ("host", "TEXT"),
 ]
 
 # c_level_sessions lifecycle columns (task-728e4741). Same forward-only
@@ -317,6 +323,7 @@ def create_task(
     touches: list[str] | None = None,
     owner_cto: str | None = None,
     owner_role: str | None = None,
+    host: str | None = None,
 ) -> str:
     validate_designer_context(role, description)
     # Stamp the spawning C-level session so DEV reports route back to that
@@ -343,10 +350,10 @@ def create_task(
     ts = now_iso()
     with get_conn() as conn:
         conn.execute(
-            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,owner_role,created_at,updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,owner_role,host,created_at,updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (tid, project, role, "pending", title, description, parent_task,
-             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, owner_role, ts, ts),
+             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, owner_role, host, ts, ts),
         )
         log_event(conn, tid, "system", "task_created",
                   {"role": role, "title": title, "touches": touches or []})
@@ -373,7 +380,7 @@ VALID_COLUMNS = {
     "iteration", "description", "title",
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
     "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto", "owner_role",
-    "delegate_log", "spawned_at",
+    "delegate_log", "spawned_at", "host",
 }
 
 
