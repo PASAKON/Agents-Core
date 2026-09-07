@@ -111,19 +111,15 @@ REFERENCES — each with a job:
   the break. Take the room's surfaces, light and dressing from it. It is a
   four-panel sheet — take NOTHING of its arrangement or layout, and never
   reproduce a grid.
-  THE BREAK, read off that picture exactly. IT IS A CRACK, NOT A STAR: a
-  BLACK crack in the wall, thin short branches meeting at a point, which only
-  happens to be star-shaped. COPY THAT MARK EXACTLY AS THE PICTURE SHOWS IT AND
-  NEVER CHANGE IT — not its shape, not its colour, not its size. It is SMALL:
-  about the size of a hand, a mark you could cover with your palm. IT IS THE
-  NEAREST THING TO THE LENS — it floats at the very front of the frame, in the
-  plane where the wall was, and every person and every part of the room is
-  behind it, further away. In the picture it sits high in the frame, over the
-  far red door. DO NOT ENLARGE IT AND DO NOT REDRAW IT: no full-height
-  fracture, no spiderweb, no thick heavy arms, no arms reaching the edges of
-  the frame, no lines drawn across anybody's face or body, no pale or grey
-  mark, no glowing mark — solid black only. The whole joke of the film is that
-  this tiny black mark is what everybody has come to see.
+  THE MARK, from that picture and only from it, seen here FROM THE ROOM SIDE
+  because the camera stands behind the group: it sits on the wall they face,
+  above the brass plaque. SAME SIZE AS IN THE PICTURE: a small patch, NO WIDER
+  THAN THE BRASS PLAQUE BENEATH IT AND NO TALLER THAN THAT PLAQUE, exactly as
+  the picture has it and not one bit larger. SAME SHAPE — thin lines meeting
+  at one small dark point — and SAME SOLID BLACK. Nothing about it is
+  enlarged, thickened, extended or redrawn, and it never touches or crosses
+  anybody. The whole joke of the film is that this small black mark is what
+  everybody has come to see.
 @project_absence_char_woman — THE YOUNG COLLECTOR: a young woman, dark hair
   pinned up with loose strands, an oversized cobalt-blue wool overcoat with
   wide lapels and a small gold V pin, a striped collar and dark green knit
@@ -256,3 +252,7 @@ Carrington IS seen). The editor cuts between the two — that is the whole point
 of shooting it both ways.
 
 === END NOTES ===
+
+CTO 2026-09-07 11:20: BREAK paragraph replaced before any fire (same fix as S2M-B,
+30f3a59): depth words out, size anchored to the brass plaque, camera side stated.
+S2M-B rendered the mark correctly first try with this wording.
