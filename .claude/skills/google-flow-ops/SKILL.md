@@ -274,6 +274,36 @@ Veo 3.1 Fast clips. Plan every shoot against 200, not 1,000.
   Whether a ceiling is enforced at *generation* time is **untested** — settling
   it costs one Lite generation (10 credits) and is worth doing.
 
+## Mid-session Google sign-out — it looks exactly like Flow being flaky
+
+Observed 2026-09-07, task-4a59a1a4. The Chrome profile lost its Google session
+part-way through a run. Every route — the direct project URL, the bare root,
+a reload, a brand-new tab — silently redirected to the `/about` marketing
+splash. Flow's own chrome never said "please sign in". It reads as a routing
+bug and can burn ten minutes of debugging.
+
+**The one-second test:** open `google.com` and look at the top-right corner.
+An avatar means signed in; a "Sign in" button means the session is gone.
+`myaccount.google.com` and `accounts.google.com/ServiceLogin` confirm it.
+
+If signed out: **do not sign in.** File a blocker and stop — credentials are a
+hard stop for this role, and only the CEO can restore the session.
+
+Note that Higgsfield and other sites in the same Chrome keep working normally
+when this happens, so "another operator is fine" is not evidence your session
+is fine. Each site's login is independent.
+
+## The MCP tab group can be destroyed mid-action
+
+Once during the same run, `tabs_context_mcp` returned "No tab group exists for
+this session" immediately after a submit click. The submit never reached
+Google. Recovery: open a fresh tab, re-navigate, and **re-verify the composer
+state from scratch** — the prompt text, the mode, and every chip. Never assume
+a pre-destruction state survived.
+
+Suspected contributing factor: four browser_operators were sharing this Chrome
+at the time. Two is the org's working limit; beyond that, expect tab churn.
+
 ## How this file changes
 
 A worker who finds a rule here to be wrong does **not** edit this file — workers
