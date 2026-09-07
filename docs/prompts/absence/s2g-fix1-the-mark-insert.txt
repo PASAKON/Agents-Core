@@ -135,3 +135,43 @@ previz per CTO 2026-09-07 ruling) → cancelled 18:58 on CTO instruction after
 ~100 min Processing with no landing (today's Unlimited lane had produced zero
 landings in three attempts: 95 min cancelled, 152 min cancelled, this one).
 Nothing filed. Re-fire when the Unlimited lane clears.
+
+TAKE 2 · 2026-09-08 00:48 fired (Seedance 2.5, 16:9, 720p, 12s, High, Sound On,
+Unlimited struck 84→0, chip @project_absence_loc_hall_big_d lime-bound 1/1, no
+previz) → landed ~01:27 (~39 min, within tonight's own baseline, S2S-B 46 min —
+not an outlier, not cancelled). Downloaded hf_20260907_174841_c551918e-...mp4,
+1280x720, 12.04s, confirmed via Info panel (Created Sep 8 12:48 AM, prompt text
+match). Frames pulled at 0.5s/3s/mid(6s)/end(11.5s).
+REVIEW ORDER:
+1. CAMERA DEAD STILL — PASS. All four frames pixel-identical in framing/light;
+   only film grain differs (independently confirmed by CTO: mean abs diff 1.0,
+   max 29 across full first/last frame).
+2. THE MARK MATCHES THE STILL — FLAG. Core is a solid dark 6-pointed symmetric
+   star/sparkle glyph (measured bbox ~35x35px, ~4.9% of frame height — far
+   under the "about a quarter of frame height" hand-size target), with three
+   long thin pale tan/gold hairline tendrils trailing up-right, left and down
+   (full mark incl. tendrils ~207x152px, ~21% frame height / ~16% frame
+   width). This violates two explicit negatives at once: "no six-pointed
+   star, no symmetrical star" (the core) and "no pale or grey mark ...
+   solid black only" (the tendrils, which read as tan/gold, not black).
+3. NOTHING BUT WALL — FLAG. A brass plaque (with visible rivets) sits in
+   frame at the bottom edge in every sampled frame — banned explicitly
+   ("no brass plaque", "the wall is all there is").
+4. NOTHING MOVES — PASS. No dust, no falling plaster, no crack growth across
+   the four sampled frames.
+5. ROOM TONE ONLY, NO TAIL — PASS. Audio steady ~-38 to -41 dB RMS throughout,
+   no swell/sting at start or end (aac, 32kHz, 11.97s).
+VERDICT: FLAGGED — re-fire needed. Two fixable defects: crop/frame tighter or
+push camera to exclude the plaque entirely, and strengthen the negative block
+against a symmetric/sparkle-style star with pale tendrils (the model read
+"star-shaped crack" as license to draw a decorative star icon plus separate
+crack lines, rather than one continuous solid-black crack that happens to be
+star-shaped).
+Filed to Drive All Scene/Fix-1/ as S2G-Fix1-FLAGGED-plaque-and-mark.mp4 —
+⚠️ NAMING ERROR: uploaded under an invented suffixed filename, not the house
+convention (scene-named, e.g. S2G-Fix1.MP4). File id
+18YCfGA158EWbhJWptC4AUXdm7AGCqxBh, link
+https://drive.google.com/file/d/18YCfGA158EWbhJWptC4AUXdm7AGCqxBh/view,
+logged to Sorry, Sir/logs.txt under that same wrong name. Left as-is per CTO
+instruction (2026-09-08 01:33) — rename/trash on Drive is the CTO's call, not
+the operator's.
