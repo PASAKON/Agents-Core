@@ -64,20 +64,34 @@ REFERENCES — each with a job:
   tunics with gold buttons and a large gold V on the chest, black belts with
   gold buckles, navy trousers, navy peaked caps, black shoes. THIS PICTURE
   SHOWS SIX MEN AND ALL SIX ARE IN THIS SHOT, the only people in uniform here.
-  They are spread to cover EVERY way in: four shoulder to shoulder across the
-  top step in front of the glass doors, one at the left flank where the steps
-  meet the wall, one at the right flank by the ramp rail. Arms out, planted,
-  calm, silent. Every gap they leave is closed by the next man.
+  COUNT THEM: SIX GUARDS, not five. Place them one by one — GUARD 1 at the far
+  left of the top step where the steps meet the wall, GUARDS 2, 3, 4 and 5
+  shoulder to shoulder across the middle of the top step directly in front of
+  the glass doors, and GUARD 6 at the far right of the top step by the ramp
+  rail. That is one, two, three, four, five, six navy uniforms in the line,
+  spanning the full width of the entrance from the wall on the left to the rail
+  on the right. Arms out, planted, calm, silent. Every gap they leave is closed
+  by the next man.
 
-THE TIME OF DAY, which is not the reference picture's: LATE AFTERNOON going
-into evening, an hour or so before sunset. The sky is deep warm blue overhead
-turning amber and rose low down, high cloud catching the last gold. The sun is
-low and off to one side, so the cream stone is lit warm gold on the face that
-catches it and drops into cool blue shadow on the other, the chromium canopy
-and the mirrored spheres throw long hot highlights, and every person on the
-forecourt casts a long raking shadow across the terrazzo. The lamps under the
-canopy have just come on. NO midday sun, NO hard blue noon sky, NO short
-overhead shadows.
+THE TIME OF DAY, which is not the reference picture's, and it is THE SAME IN
+ALL THREE SHOTS: sunset. The whole clip happens in the last twenty minutes of
+daylight. In EVERY shot, including the opening wide, the sky is amber and rose
+low down going to deep warm blue overhead, with high cloud lit gold underneath;
+the sun sits on the horizon behind the camera side, so the cream stone burns
+warm gold on the face that catches it and drops to cool blue shadow on the
+other; the chromium canopy and the mirrored spheres throw long hot highlights;
+every person casts a long raking shadow across the terrazzo; the lamps under
+the canopy are already lit and read warm against the sky. The sky in shot one
+looks exactly like the sky in shot three. Keep the daylight golden and the sky
+sunset-coloured in all three shots.
+
+THE PLACE IS THE SAME IN ALL THREE SHOTS. Every frame of this clip happens on
+the museum forecourt at the foot of those steps, with the cream stone building,
+the chromium canopy, the glass doors and the gold V in shot or just out of it.
+Shots two and three are closer angles on the SAME crowd on the SAME steps in
+the SAME place — the building's stone and canopy stay visible behind the
+people, and the terrazzo stays underfoot. There is no park, no field, no grass,
+no open landscape, no distant crowd, no other venue.
 
 WHAT IS HAPPENING, and it is chaos. Between TWENTY AND THIRTY people are packed
 across the forecourt and up the steps, and every one of them is trying to get
@@ -105,21 +119,26 @@ work trousers, scarves, a few suits among them — nothing uniform, nothing
 matching, nothing formal or costumed. Only the six guards wear a uniform.
 
 SHOT ONE · [0s-3s] · locked wide from the forecourt, the whole entrance in
-frame under the low sun: the crowd packed across the bottom two thirds, arms
-and cameras up, surging up the steps, edge-runners going for both flanks, and
-the SIX GUARDS covering the doors and both sides. Bodies move hard; the line
-does not.
+frame with the sunset sky above the roofline — amber and rose low down, gold on
+the cloud, long shadows raking across the terrazzo: the crowd packed across the
+bottom two thirds, arms and cameras up, surging up the steps, edge-runners
+going for both flanks, and ALL SIX GUARDS in the line, one at the left wall,
+four across the doors, one at the right rail. Bodies move hard; the line does
+not.
 
 SHOT TWO · [3s-6s] · HARD CUT to a closer angle from beside the guard line,
-looking down the steps into the crush: faces upturned and shouting, mouths
+still on the museum steps with the cream stone and the chromium canopy behind
+the people and the sunset sky beyond them, looking down the steps into the
+crush: faces upturned and shouting, mouths
 open, a phone shoved past a guard's shoulder, a flash going off, a boom mic
 swinging over their heads, a reporter mid-sentence to camera, one man trying to
 duck under an outstretched arm and being turned back. Two navy shoulders and a
 gold V fill the near edge of frame and never move.
 
 SHOT THREE · [6s-8s] · HARD CUT tight on the middle of the line: two of the six
-from the chest up, peaked caps, gold V, eyes forward, absolutely still, the
-crowd loud and out of focus beyond them. Hold. Cut.
+from the chest up, peaked caps, gold V, eyes forward, absolutely still, with the
+museum's cream stone and the sunset sky behind them and the crowd loud and out
+of focus below. Hold. Cut.
 
 AUDIO: a wall of human noise with NO intelligible words in it — voices layered
 over voices, shouting, calling, overlapping questions, camera shutters
@@ -137,7 +156,8 @@ inside the building; the six guards never fight, never strike anybody, never
 push anybody over, never draw anything, never speak and never break the line;
 no police, no police uniforms, no metal crowd barriers, no rope, no fences, no
 weapons, no batons, no violence, no blood, no falling, no trampling, no injury;
-no readable text of any kind — no banners, no placards, no protest signs, no
+no park, no field, no grass, no open landscape, no venue other than this
+museum forecourt; no readable text of any kind — no banners, no placards, no protest signs, no
 headlines, no station logos, no legible press badges, no subtitles, no
 captions, no on-screen text; no Valder, no Carrington, no madame, no cleaner,
 no cart; no crack, no wall, no gallery interior; no camera movement inside a
@@ -154,11 +174,13 @@ no plastic skin, no beauty filter, no dim moody lighting, no darkness.
 REVIEW ORDER:
 0. NO REPEATED FACES (CEO 18:53). Scan both edges of every frame, not the
    middle only. One cloned face or one repeated coat = flagged, re-fire.
-1. THE LIGHT. Low sun, long raking shadows, warm sky going amber low down,
-   lamps on under the canopy. Midday blue like the plate = the one instruction
-   the CEO gave for this shot has failed — re-fire.
-2. SIX GUARDS, covering the doors AND both flanks, holding for the whole clip.
-   Five or seven, or a line that breaks, = flagged.
+1. THE LIGHT, IN ALL THREE SHOTS INCLUDING THE OPENING WIDE. Sunset sky, long
+   raking shadows, lamps lit. Take 1 got shots 2-3 right and left shot one
+   under a midday blue sky with white cloud — check the wide first.
+1b. THE PLACE, IN ALL THREE SHOTS. Museum forecourt, stone and canopy visible
+   behind the crowd. Take 1 put shots 2-3 in an open field at dusk.
+2. COUNT THE GUARDS IN THE WIDE — there must be SIX. Take 1 rendered FIVE
+   across the doors with nobody on either flank. Zoom the line and count.
 3. 20-30 PEOPLE and it must read as a crush, not a queue. Count in the wide.
 4. NOBODY GETS IN. Glass doors shut behind the line for all 8 seconds.
 5. TWO HARD CUTS at 3s and 6s, angle different either side of both.
