@@ -168,6 +168,46 @@ FIRE-PLAYBOOK.md §0 mismatch rule. prompt-lint / 12 chips / 2 HARD CUT all
 passed. No browser action taken. See
 docs/reports/absence-wave-20260908-s15a2-t1.md.
 
+2026-09-08T00:33+07:00 — t2 (task-1e95d2af): FIRED, CREDIT lane. Gate checks
+(re-run after CTO's crowd-count fix 12→21 people): 0 depth/gaze hits, lint
+exit 0, 12/12 chips exact match, 2 HARD CUT. All 12 chip thumbnails zoomed,
+no warning triangles. Credits 58→6 (52 spent, exact match to 8s spec).
+Generate clicked exactly once. Downloaded hf_20260907_173333_fc9630b4-
+59ac-4f77-a06d-d5fea69f43a6.mp4, 8.04s / 1280x720 / Seedance 2.5 / High.
+VERDICT: FLAGGED — two defects found (one via own frame review, two more
+via CTO's independent frame-crop check):
+  1. FIRST FRAME PASS: Dupe dead centre between Valder/workman, room
+     silent, push-in already moving, nobody walking in — PASSES, cuts
+     against S15a-1.
+  2. UNISON TILT / slow nod (room reaction, shot 2): NOT visible across
+     sampled frames 3.0s-4.5s — heads look static, no confirmed tilt or
+     nod. FLAG.
+  3. CROWD LINE HAS NO FACE: PASSES — shot 3 (5.5s-8s) stays on Dupe's
+     close-up throughout, no cutaway to anyone else.
+  4. ONLY SIX WORDS, no repeat: not independently verified via audio
+     (no transcription tool available this session) — no visual sign of
+     extra dialogue.
+  5. PUSH-IN ALREADY MOVING, smooth to end: PASSES on frame progression
+     (12→14→16 progressively closer, centred, no visible cut/jump).
+     Shot 2→3 cut timing landed ~4.5-5.0s, not the scripted 5.5s (shot 2
+     compressed to ~1.5-2.0s vs scripted 2.5s) — minor timing deviation,
+     flagging for the record.
+  6. TWENTY-ONE PEOPLE, every face different: rough count in shot-2 frame
+     ~19-21, no obvious duplicate FACES spotted — but CTO's independent
+     crop found a DUPLICATE/MIRRORED 4th navy guard (guard_valder_two)
+     alone on the frame-right side (behind the grey-overcoat man),
+     crop x=0.60-0.78/y=0.20-0.75 of 3.2s frame — 3 navy uniforms total
+     across the frame vs the 2 the reference specifies. FLAG.
+  7. CTO's second check: the small black mark on the hero wall (opening
+     shot) renders as a thin, translucent, spidery/insect shape with
+     leg-like lines radiating from a small body — reads as a mosquito or
+     spider, NOT the crack canon's "one small solid-black star-shaped
+     crack about a hand across." Scale roughly OK (~head-wide); shape and
+     weight both fail. FLAG.
+Filed to Drive regardless (All Scene/Fix-1/S15a2-RoomDecides-Fix1.MP4):
+https://drive.google.com/file/d/19zD1SxuEkI-0qI5GbC2_abnI0mNoVXds/view
+Full per-item table and frame evidence: docs/reports/absence-wave-20260908-s15a2-t2.md
+
 REVIEW ORDER:
 1. IT MUST CUT TO S15a-1. Same hall, same light, Dupe still dead centre
    between Valder and the workman, nobody re-entering. If it opens on a new
