@@ -29,10 +29,18 @@ sys.path.insert(0, str(ROOT))
 from lib import db  # noqa: E402
 from lib.config import get_project, host as get_host  # noqa: E402
 from lib.logger import get_logger  # noqa: E402
+from tools.worker_reap import close_remote  # noqa: E402
 
 POLL_SECONDS = 60
 SSH_TIMEOUT_S = 20
 GIT_TIMEOUT_S = 20
+
+# GAP 2 (task-59780ac3): how long the newest commit on a finished remote
+# branch must sit untouched before branch_poller will close that worker's
+# surface — proof it has stopped pushing, not evidence by itself (a worker
+# mid-render writes nothing new for much longer than this; REPORT.md having
+# landed is the actual "done" signal, this just rules out "still mid-push").
+REVIEW_CLOSE_QUIET_S = 5 * 60
 
 _LOGGER = None
 
@@ -79,6 +87,73 @@ def read_remote_file(repo_path: str, branch: str, file_name: str) -> str | None:
     if r.returncode != 0:
         return None
     return r.stdout
+
+
+def remote_commit_age_seconds(repo_path: str, branch: str) -> float | None:
+    """Seconds since the newest commit on `origin/<branch>` — the branch
+    must already be fetched by the caller (fetch_branch); this never fetches
+    on its own. None on any git failure (ref missing, empty/non-numeric
+    output) — callers must treat that as "cannot prove it's quiet yet",
+    never as "old enough"."""
+    r = _run(["git", "log", "-1", "--format=%ct", f"origin/{branch}"], cwd=repo_path)
+    if r.returncode != 0:
+        return None
+    out = r.stdout.strip()
+    if not out:
+        return None
+    try:
+        commit_epoch = int(out)
+    except ValueError:
+        return None
+    return time.time() - commit_epoch
+
+
+def _maybe_close_finished_remote_worker(task_id: str, repo_path: str, branch: str) -> None:
+    """Close a remote worker's surface right after its task flips to
+    `review` (GAP 2, task-59780ac3) — the gap measured 2026-09-08: on the
+    Mac the CTO sees the iTerm tab and closes it at merge_task, but nobody
+    watches a remote box, so task-5d0bd2fa's winbox claude.exe + terminal
+    window sat alive for 5h54m after REPORT.md landed, until the CTO killed
+    them by hand.
+
+    A remote worker that pushed REPORT.md has declared itself finished — its
+    entire output is in git, the process holds nothing more to give. But the
+    CEO's hard rule (2026-09-07) is that a surface must NEVER be closed
+    under a worker that may still be working (it could be waiting on a
+    render), so this only acts when ALL of:
+      (a) task.host is a remote spoke,
+      (b) status is still 'review' on a fresh re-read here — a merge or a
+          re-delegate could have raced the flip above,
+      (c) REPORT.md is still present on the branch,
+      (d) the branch's newest commit is at least REVIEW_CLOSE_QUIET_S old —
+          proof the worker has actually stopped pushing, not mid-push.
+
+    Passes close_remote's `allow_review=True` opt-in explicitly — no other
+    caller in this codebase does. Never raises: a failure here must never
+    undo the status flip that already landed; each early return is a normal
+    "not eligible yet", not an error.
+    """
+    try:
+        task = db.get_task(task_id)
+    except Exception as e:
+        _log().warning("task %s: could not re-read for review-close: %s", task_id, e)
+        return
+    if not task:
+        return
+    host = task.get("host")
+    if not host or host == "mac":
+        return
+    if task.get("status") != "review":
+        return
+    if read_remote_file(repo_path, branch, "REPORT.md") is None:
+        return
+    age = remote_commit_age_seconds(repo_path, branch)
+    if age is None or age < REVIEW_CLOSE_QUIET_S:
+        return
+    reap = close_remote(task, reason="branch_poller: REPORT.md pushed and quiet",
+                        allow_review=True)
+    _log().info("task %s: review-close attempted host=%s ssh_ok=%s refused=%s",
+               task_id, host, reap.get("ssh_ok"), reap.get("refused"))
 
 
 def remote_pid_alive(host_cfg: dict, pid: int) -> bool | None:
@@ -153,6 +228,7 @@ def check_task(task: dict) -> None:
         if report is not None:
             db.update_status(task_id, "review", report=report, actor="branch_poller")
             _log().info("task %s -> review (REPORT.md on %s)", task_id, branch)
+            _maybe_close_finished_remote_worker(task_id, repo_path, branch)
             return
 
         blocker = read_remote_file(repo_path, branch, "BLOCKER.md")

@@ -54,16 +54,17 @@ def _ts(delta_minutes: float) -> str:
 
 
 def _insert_task(*, status: str, age_minutes: float = 0,
-                 pid: int | None = None, project: str = "test-proj") -> str:
+                 pid: int | None = None, host: str | None = None,
+                 project: str = "test-proj") -> str:
     tid = "task-" + uuid.uuid4().hex[:8]
     ts = _ts(age_minutes)
     with db_mod.get_conn() as conn:
         conn.execute(
             """INSERT INTO tasks
-               (id, project, role, status, title, description, pid,
+               (id, project, role, status, title, description, pid, host,
                 depends_on, touches, created_at, updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-            (tid, project, "developer", status, "t", "d", pid,
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (tid, project, "developer", status, "t", "d", pid, host,
              "[]", "[]", ts, ts),
         )
     return tid
@@ -273,6 +274,74 @@ def test_suspect_reuses_existing_issue_on_next_tick() -> bool:
     return fake_file_issue.call_count == 1
 
 
+# ---------------------------------------------------------------------------
+# GAP 3 (task-59780ac3): remote in_progress stall detection. Before this
+# fix, runners/watchdog.py's stall loop skipped every host != mac outright
+# — a remote worker that died mid-task sat in_progress forever, silently.
+# ---------------------------------------------------------------------------
+
+def test_remote_stall_pid_gone_marks_stalled() -> bool:
+    """The remote box answered and the pid is provably gone — stall it and
+    file the same GH issue the local path files."""
+    tid = _insert_task(status="in_progress", age_minutes=40, pid=7777, host="winbox")
+    with mock.patch.object(watchdog, "get_host", mock.Mock(return_value={"ssh": "winbox"})), \
+         mock.patch.object(watchdog, "remote_pid_alive", mock.Mock(return_value=False)), \
+         mock.patch.object(watchdog, "_file_stalled_issue",
+                          mock.Mock(return_value="https://github.com/x/y/issues/3")), \
+         mock.patch.object(watchdog, "sweep_terminal_surfaces", mock.Mock(return_value=[])):
+        out = watchdog.scan_once()
+    task = db_mod.get_task(tid)
+    stalled_ids = {r["task"] for r in out["stalled"]}
+    return task["status"] == "stalled" and tid in stalled_ids
+
+
+def test_remote_stall_unreachable_ssh_never_flips() -> bool:
+    """None (ssh itself failed — box unreachable) must never collapse into
+    'dead': a Wi-Fi/Tailscale blip must not stall a task that is still
+    running fine."""
+    tid = _insert_task(status="in_progress", age_minutes=40, pid=7778, host="winbox")
+    with mock.patch.object(watchdog, "get_host", mock.Mock(return_value={"ssh": "winbox"})), \
+         mock.patch.object(watchdog, "remote_pid_alive", mock.Mock(return_value=None)), \
+         mock.patch.object(watchdog, "sweep_terminal_surfaces", mock.Mock(return_value=[])):
+        out = watchdog.scan_once()
+    task = db_mod.get_task(tid)
+    stalled_ids = {r["task"] for r in out["stalled"]}
+    return task["status"] == "in_progress" and tid not in stalled_ids
+
+
+def test_remote_stall_alive_never_flips() -> bool:
+    """The box answered and the pid IS alive — must also stay in_progress,
+    not just the unreachable case above."""
+    tid = _insert_task(status="in_progress", age_minutes=40, pid=7779, host="winbox")
+    with mock.patch.object(watchdog, "get_host", mock.Mock(return_value={"ssh": "winbox"})), \
+         mock.patch.object(watchdog, "remote_pid_alive", mock.Mock(return_value=True)), \
+         mock.patch.object(watchdog, "sweep_terminal_surfaces", mock.Mock(return_value=[])):
+        out = watchdog.scan_once()
+    return db_mod.get_task(tid)["status"] == "in_progress"
+
+
+def test_mac_task_never_uses_remote_stall_path() -> bool:
+    """LOCAL (mac) task must be unaffected by GAP 3's new remote path — it
+    must never even be handed to _check_remote_stall (only winbox/contabo
+    rows reach that helper). Checked by id, not a global call count: this
+    file's tests share one accumulating temp DB, and earlier tests in this
+    run legitimately leave their own winbox rows in_progress, which would
+    also reach _check_remote_stall on this tick — that is correct behaviour
+    for THEM, not a leak in this test."""
+    tid = _insert_task(status="in_progress", age_minutes=40, pid=7780, host=None)
+    seen_ids: list[str] = []
+
+    def spy(t, host_name):
+        seen_ids.append(t["id"])
+        return None
+
+    with mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=False)), \
+         mock.patch.object(watchdog, "_check_remote_stall", side_effect=spy), \
+         mock.patch.object(watchdog, "sweep_terminal_surfaces", mock.Mock(return_value=[])):
+        watchdog.scan_once()
+    return tid not in seen_ids
+
+
 def main() -> int:
     tmp = tempfile.mkdtemp(prefix="watchdog-reap-")
     db_mod.DB_PATH = Path(tmp) / "tasks.db"
@@ -304,6 +373,16 @@ def main() -> int:
           "3h silent + live pid -> suspect, nothing closed, one log line")
     _mark(test_suspect_reuses_existing_issue_on_next_tick(),
           "a second silent-but-alive tick reuses the filed issue")
+
+    print("== GAP 3: remote in_progress stall detection ==")
+    _mark(test_remote_stall_pid_gone_marks_stalled(),
+          "remote pid provably gone (False) -> stalled + issue filed")
+    _mark(test_remote_stall_unreachable_ssh_never_flips(),
+          "remote pid check unreachable (None) -> never flipped to stalled")
+    _mark(test_remote_stall_alive_never_flips(),
+          "remote pid alive (True) -> never flipped to stalled")
+    _mark(test_mac_task_never_uses_remote_stall_path(),
+          "local (mac) task never consults remote_pid_alive/get_host")
 
     print(f"\n{'ALL PASS' if _failures == 0 else f'{_failures} FAILURE(S)'}")
     return 1 if _failures else 0

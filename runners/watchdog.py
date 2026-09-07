@@ -31,7 +31,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.notify import info, success, warn, error
-from tools.worker_reap import _cleanup_tmux_ttyd, _pid_alive, close_dev, _chrome_running
+from lib.config import host as get_host
+from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
+                               close_remote, _chrome_running)
+from runners.branch_poller import remote_pid_alive
 from tools.gc_stale_tasks import gc_stale_tasks
 from tools import tmux_session
 
@@ -252,6 +255,40 @@ def _log_unclaimed_org_tabs(claimed_tab_ids: set[str]) -> None:
             warn(f"unclaimed org tab: {tab_id} {url}")
 
 
+def _sweep_remote_terminal_task(t: dict, host: str) -> dict | None:
+    """Remote half of sweep_terminal_surfaces (GAP 1, task-59780ac3).
+
+    No local pid/tmux/tab table can tell this box whether a winbox/contabo
+    surface is still alive, so unlike the mac branch above there is no
+    liveness check to gate the call on — `close_remote` is called
+    unconditionally for every terminal remote task reaching here, and its
+    own re-read-and-refuse-unless-terminal guard (ADDENDUM 2) is the safety
+    net instead.
+
+    Returns None (not counted toward SWEEP_CAP, not logged) when
+    close_remote had nothing to do — `command` is None whenever it refused
+    before ever building an ssh command (no pid recorded is the common case:
+    an already-reaped task, or one that never wrote one), matching the local
+    branch's "no live surface found, no log line" behaviour. When a kill was
+    actually attempted and it reported success, clears the row's `pid` so
+    the next tick's close_remote call is the same cheap no-pid no-op rather
+    than re-running `taskkill`/`kill` against an already-dead pid forever.
+    """
+    reap = close_remote(t, reason="reaper: terminal status with live surface")
+    if reap.get("command") is None:
+        return None
+    if reap.get("ssh_ok"):
+        try:
+            db.set_fields(t["id"], actor="watchdog", pid=None)
+        except Exception as e:  # never let bookkeeping stop the sweep
+            warn(f"could not clear pid after remote reap on {t['id']}: {e}")
+    error(
+        f"SURFACE-REAPED {t['id']} status={t['status']} host={host} "
+        f"command={' '.join(reap.get('command') or [])} ssh_ok={reap.get('ssh_ok')}"
+    )
+    return {"task": t["id"], "status": t["status"], "host": host, **reap}
+
+
 def sweep_terminal_surfaces() -> list[dict]:
     """Second watchdog pass (task-92118d4e): close any live pid/tmux/tab/
     Chrome-tab-claim a task left behind after reaching a terminal status
@@ -259,11 +296,18 @@ def sweep_terminal_surfaces() -> list[dict]:
     that exited on its own, a rate-limited/cancelled worker, a cancel. See
     docs/design/multi-host-workers.md "Teardown invariant".
 
-    Only inspects LOCAL (Mac) surfaces — a task whose `host` (task-d1d6b2ef,
-    may not exist yet) is set to a remote spoke is skipped here; nothing on
-    this machine can tell whether its remote pid/tmux is still alive, and
-    tools.worker_reap.close_remote is the (separately exposed, separately
-    wired) teardown for that case.
+    Two passes (task-59780ac3 GAP 1; before this, a task whose `host` was a
+    remote spoke was skipped here entirely, so a winbox/contabo task that
+    went terminal by any route other than close_remote's own callers — a
+    direct sqlite edit, a cancel — was never reaped, unlike a mac one).
+    Local (host is None/"mac"): the existing pid/tmux/tab/Chrome-tab-claim
+    liveness probe below, gated on an actual live surface being found.
+    Remote (host is a spoke): this machine cannot see winbox's/contabo's
+    process table, tmux server or terminal, so there is no liveness probe to
+    gate on — every terminal remote task past REAP_GRACE_S calls
+    `tools.worker_reap.close_remote` unconditionally and relies on
+    close_remote's own re-read-and-refuse-unless-terminal check (ADDENDUM 2)
+    as the safety gate instead. See `_sweep_remote_terminal_task`.
 
     Runs close_dev — already idempotent, never raises — on every terminal-
     status task that still shows a live pid, live `wd-<id>` tmux session, an
@@ -310,9 +354,13 @@ def sweep_terminal_surfaces() -> list[dict]:
         if len(reaped) >= SWEEP_CAP:
             break
         task_id = t["id"]
-        if t.get("host") not in (None, "mac"):
-            continue
         if _silent_seconds(t.get("updated_at")) < REAP_GRACE_S:
+            continue
+        host = t.get("host")
+        if host not in (None, "mac"):
+            remote_reap = _sweep_remote_terminal_task(t, host)
+            if remote_reap is not None:
+                reaped.append(remote_reap)
             continue
         pid_alive = _pid_alive(t.get("pid"))
         tmux_alive = tmux_session.session_name_for(task_id) in live_tmux
@@ -345,6 +393,60 @@ def sweep_terminal_surfaces() -> list[dict]:
     return reaped
 
 
+def _check_remote_stall(t: dict, host_name: str) -> dict | None:
+    """GAP 3 (task-59780ac3): a remote in_progress task whose worker died
+    mid-task used to be invisible forever — this box's own process table
+    can't see winbox's/contabo's pids, so the local stall loop always
+    skipped host != mac entirely.
+
+    Reuses `runners.branch_poller.remote_pid_alive` (do not reimplement) —
+    True/False from a real remote query, or None when the ssh call itself
+    failed. None must never collapse into False here: an unreachable box is
+    "unknown", not "dead", and flipping a task to stalled on a Wi-Fi/Tailscale
+    hiccup would be exactly the false-positive branch_poller.py already
+    guards against on its own dead-pid path. Only a definite False — the box
+    answered and the pid is provably gone — marks the task stalled and files
+    the same GH issue the local path files.
+
+    Never touches a task with no recorded pid (nothing to ask the box about)
+    or one silent for less than STALL_AFTER_S. Returns the stall record dict
+    (matching the local branch's shape) on stall, else None.
+    """
+    silent = _silent_seconds(t.get("updated_at"))
+    if silent < STALL_AFTER_S:
+        return None
+    pid = t.get("pid")
+    if not pid:
+        return None
+    try:
+        host_cfg = get_host(host_name)
+    except ValueError:
+        return None
+    alive = remote_pid_alive(host_cfg, pid)
+    if alive is not False:  # True (working) or None (ssh unreachable) — never act
+        return None
+    issue = _file_stalled_issue(t, silent)
+    try:
+        review = json.loads(t.get("review") or "{}")
+    except json.JSONDecodeError:
+        review = {}
+    review.update({
+        "watchdog": "stalled",
+        "host": host_name,
+        "silent_seconds": int(silent),
+        "issue": issue,
+        "pid": pid,
+        "pid_alive": False,
+    })
+    db.update_status(t["id"], "stalled", actor="watchdog", review=json.dumps(review))
+    error(
+        f"STALLED-REMOTE {t['id']} host={host_name} silent={int(silent/60)}min "
+        f"pid={pid} alive=False issue={issue}"
+    )
+    return {"task": t["id"], "silent_s": int(silent), "issue": issue,
+           "pid": pid, "pid_alive": False, "host": host_name}
+
+
 def scan_once() -> dict:
     pinged = []
     stalled = []
@@ -353,9 +455,14 @@ def scan_once() -> dict:
         # Remote workers (host != mac) have pids that live on ANOTHER machine;
         # _pid_alive() here checks the Mac's process table and would read every
         # one of them as dead (a winbox browser_operator was flipped to
-        # 'stalled' this way on 2026-09-07). Their liveness belongs to
-        # runners/branch_poller.py, which asks the box over ssh.
-        if (t.get("host") or "mac") != "mac":
+        # 'stalled' this way on 2026-09-07). _check_remote_stall asks the box
+        # itself over ssh instead (GAP 3, task-59780ac3) — before that fix a
+        # remote task whose worker actually died just sat in_progress forever.
+        host = t.get("host") or "mac"
+        if host != "mac":
+            remote_stall = _check_remote_stall(t, host)
+            if remote_stall is not None:
+                stalled.append(remote_stall)
             continue
         silent = _silent_seconds(t["updated_at"])
         if silent < PING_AFTER_S:

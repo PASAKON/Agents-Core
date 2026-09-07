@@ -452,6 +452,119 @@ def test_close_dev_no_claim_never_touches_chrome() -> bool:
     return r["chrome_tabs_closed"] == [] and fake_close_chrome.call_count == 0
 
 
+# ---------------------------------------------------------------------------
+# sweep_terminal_surfaces: remote pass (GAP 1, task-59780ac3). Before this
+# fix, a winbox/contabo task in a terminal status was skipped by the sweep
+# entirely (host not in (None, 'mac') -> continue).
+# ---------------------------------------------------------------------------
+
+def test_sweep_reaps_terminal_remote_task_via_close_remote() -> bool:
+    """Must now reach close_remote for real — only the ssh layer
+    (subprocess.run) is stubbed here — and the ssh command must carry the
+    task's recorded pid.
+
+    `subprocess.run` is patched at module level, so it also intercepts
+    lib.notify's own desktop-notification call fired by the sweep's
+    SURFACE-REAPED log line — pick out the ssh call specifically rather
+    than assuming it's the only (or the last) call recorded.
+    """
+    tid = _insert_task(status="done", pid=4242, host="winbox", age_minutes=10)
+    fake_run = mock.Mock(return_value=mock.Mock(returncode=0, stderr=""))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run), \
+         mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=False)), \
+         mock.patch.object(watchdog, "_live_tmux_sessions", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_live_task_tab_ids", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_log_unclaimed_org_tabs", mock.Mock()), \
+         _NO_CLAIMS:
+        out = watchdog.sweep_terminal_surfaces()
+    ids = {r["task"] for r in out}
+    ssh_calls = [c for c in fake_run.call_args_list if c.args and c.args[0][:1] == ["ssh"]]
+    return (tid in ids and len(ssh_calls) == 1
+           and ssh_calls[0].args[0] == ["ssh", "winbox", "taskkill", "/PID", "4242", "/T", "/F"])
+
+
+def test_sweep_remote_respects_grace_period() -> bool:
+    tid = _insert_task(status="done", pid=4242, host="winbox", age_minutes=1)
+    fake_run = mock.Mock(return_value=mock.Mock(returncode=0, stderr=""))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run), \
+         mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=False)), \
+         mock.patch.object(watchdog, "_live_tmux_sessions", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_live_task_tab_ids", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_log_unclaimed_org_tabs", mock.Mock()), \
+         _NO_CLAIMS:
+        out = watchdog.sweep_terminal_surfaces()
+    ids = {r["task"] for r in out}
+    return tid not in ids and fake_run.call_count == 0
+
+
+def test_sweep_remote_no_pid_is_silent_noop() -> bool:
+    """No pid ever recorded on a winbox task -> close_remote refuses before
+    ever building an ssh command; the sweep must not log/count it, matching
+    the local branch's "no live surface, no log line" behaviour."""
+    tid = _insert_task(status="done", pid=None, host="winbox", age_minutes=10)
+    fake_run = mock.Mock()
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run), \
+         mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=False)), \
+         mock.patch.object(watchdog, "_live_tmux_sessions", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_live_task_tab_ids", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_log_unclaimed_org_tabs", mock.Mock()), \
+         _NO_CLAIMS:
+        out = watchdog.sweep_terminal_surfaces()
+    ids = {r["task"] for r in out}
+    return tid not in ids and fake_run.call_count == 0
+
+
+def test_sweep_local_task_never_touches_close_remote() -> bool:
+    """LOCAL (mac) task must be unaffected by GAP 1's new remote path —
+    close_remote must never be called for it. Checked by id, not a global
+    call count: this file's tests share one accumulating temp DB, and a
+    leftover winbox row from an earlier test legitimately reaches
+    close_remote on this same sweep tick too — that is correct for it, not
+    a leak in this test."""
+    tid = _insert_task(status="done", pid=None, host=None, age_minutes=10)
+    session = tmux_session.session_name_for(tid)
+    seen_ids: list[str] = []
+
+    def spy_close_remote(t, **kwargs):
+        seen_ids.append(t.get("id"))
+        return {"command": None, "ssh_ok": None, "refused": "test stub"}
+
+    fake_close_dev = mock.Mock(return_value={
+        "task_id": tid, "closed_tab": False, "pid": None, "pid_matched": False,
+        "signal": None, "tmux_killed": True, "ttyd_killed": False,
+        "reason": "reaper: terminal status with live surface", "refused": None,
+        "found": {"pid": False, "tmux": True, "ttyd": False},
+        "chrome_tabs_closed": [],
+    })
+    with mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=False)), \
+         mock.patch.object(watchdog, "_live_tmux_sessions", mock.Mock(return_value={session})), \
+         mock.patch.object(watchdog, "_live_task_tab_ids", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_log_unclaimed_org_tabs", mock.Mock()), \
+         _NO_CLAIMS, \
+         mock.patch.object(watchdog, "close_remote", side_effect=spy_close_remote), \
+         mock.patch.object(watchdog, "close_dev", fake_close_dev):
+        out = watchdog.sweep_terminal_surfaces()
+    ids = {r["task"] for r in out}
+    return tid in ids and tid not in seen_ids and fake_close_dev.call_count == 1
+
+
+# ---------------------------------------------------------------------------
+# close_remote: allow_review opt-in (GAP 2 plumbing, task-59780ac3)
+# ---------------------------------------------------------------------------
+
+def test_close_remote_allow_review_opt_in() -> bool:
+    """Default (allow_review=False) still refuses status='review' exactly
+    like before; passing allow_review=True accepts it, and every other
+    guard (host/pid) still applies regardless."""
+    tid = _insert_task(status="review", pid=4242, host="winbox")
+    r_default = worker_reap.close_remote({"id": tid})
+    fake_run = mock.Mock(return_value=mock.Mock(returncode=0, stderr=""))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run):
+        r_allowed = worker_reap.close_remote({"id": tid}, allow_review=True)
+    return (r_default["refused"] is not None and "not terminal" in r_default["refused"]
+           and r_allowed["refused"] is None and r_allowed["ssh_ok"] is True)
+
+
 def main() -> int:
     tmp = tempfile.mkdtemp(prefix="surface-reaper-")
     db_mod.DB_PATH = Path(tmp) / "tasks.db"
@@ -509,6 +622,20 @@ def main() -> int:
           "close_dev closes claimed Chrome tabs and clears the registry")
     _mark(test_close_dev_no_claim_never_touches_chrome(),
           "close_dev never touches Chrome when the task claimed nothing")
+
+    print("== sweep_terminal_surfaces: remote pass (GAP 1) ==")
+    _mark(test_sweep_reaps_terminal_remote_task_via_close_remote(),
+          "terminal remote task reaches close_remote, ssh command carries the pid")
+    _mark(test_sweep_remote_respects_grace_period(),
+          "a 1-minute-old terminal remote task is untouched (REAP_GRACE_S)")
+    _mark(test_sweep_remote_no_pid_is_silent_noop(),
+          "no pid recorded on a remote task -> silent no-op, not logged")
+    _mark(test_sweep_local_task_never_touches_close_remote(),
+          "local (mac) task never calls close_remote")
+
+    print("== close_remote: allow_review opt-in (GAP 2 plumbing) ==")
+    _mark(test_close_remote_allow_review_opt_in(),
+          "allow_review=True accepts 'review'; default still refuses it")
 
     print(f"\n{'ALL PASS' if _failures == 0 else f'{_failures} FAILURE(S)'}")
     return 1 if _failures else 0

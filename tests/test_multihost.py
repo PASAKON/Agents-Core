@@ -16,7 +16,9 @@ import json
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -287,15 +289,30 @@ class _FakeOrigin:
         _git(self.remote_worker, "config", "user.email", "worker@test")
         _git(self.remote_worker, "config", "user.name", "worker")
 
-    def push_branch(self, branch: str, files: dict[str, str]) -> None:
+    def push_branch(self, branch: str, files: dict[str, str], *,
+                    committer_date: str | None = None) -> None:
         """Simulate the remote worker: new branch, write `files`, commit,
         push — exactly what a real winbox worker's REPORT.md/BLOCKER.md
-        push produces on the branch_poller side."""
+        push produces on the branch_poller side.
+
+        `committer_date` (e.g. "<unix-epoch> +0000") backdates the commit
+        via GIT_AUTHOR_DATE/GIT_COMMITTER_DATE — used to simulate an "old,
+        quiet" branch for the GAP 2 review-close tests without a real
+        multi-minute sleep in the test."""
         _git(self.remote_worker, "checkout", "-q", "-b", branch)
         for name, content in files.items():
             (self.remote_worker / name).write_text(content)
         _git(self.remote_worker, "add", "-A")
-        _git(self.remote_worker, "commit", "-q", "-m", f"push {branch}")
+        env = None
+        if committer_date is not None:
+            import os
+            env = {**os.environ, "GIT_AUTHOR_DATE": committer_date,
+                   "GIT_COMMITTER_DATE": committer_date}
+        r = subprocess.run(["git", "commit", "-q", "-m", f"push {branch}"],
+                           cwd=str(self.remote_worker), capture_output=True,
+                           text=True, env=env)
+        if r.returncode != 0:
+            raise RuntimeError(f"git commit in {self.remote_worker}\n{r.stderr}")
         _git(self.remote_worker, "push", "-q", "origin", branch)
         _git(self.remote_worker, "checkout", "-q", "main")
 
@@ -416,6 +433,72 @@ def test_check_task_still_working_no_state_change(fake_origin, temp_db, monkeypa
 
     t = temp_db.get_task("task-poll06")
     assert t["status"] == "in_progress"
+
+
+# ---------------------------------------------------------------------------
+# 5. GAP 2 (task-59780ac3): closing a remote worker's surface right after
+#    its task flips to review, but only once the branch has gone quiet —
+#    never under a worker that might still be pushing.
+# ---------------------------------------------------------------------------
+
+def test_check_task_review_close_skips_fresh_commit(fake_origin, temp_db, monkeypatch):
+    """REPORT.md just landed (commit is <5 min old, the real case every
+    time) — must NOT close the remote worker yet; it could still be
+    mid-push. The task still flips to review either way."""
+    branch = "agent/developer-task-poll08"
+    fake_origin.push_branch(branch, {"REPORT.md": "## Summary\nok\n"})
+    monkeypatch.setattr(poller, "get_project",
+                        lambda key: {"path": str(fake_origin.work)})
+    fake_close_remote = mock.Mock()
+    monkeypatch.setattr(poller, "close_remote", fake_close_remote)
+    _insert_remote_task(temp_db, task_id="task-poll08", branch=branch,
+                        host="winbox", project="fake-proj", pid=4242)
+
+    poller.check_task(temp_db.get_task("task-poll08"))
+
+    assert temp_db.get_task("task-poll08")["status"] == "review"
+    assert fake_close_remote.call_count == 0
+
+
+def test_check_task_review_close_fires_on_old_commit(fake_origin, temp_db, monkeypatch):
+    """Same setup, but the branch's newest commit is backdated >5 min —
+    proof the worker has stopped pushing. close_remote must be called with
+    allow_review=True (no other caller in the codebase passes that)."""
+    branch = "agent/developer-task-poll09"
+    old_epoch = int(time.time()) - 600
+    fake_origin.push_branch(branch, {"REPORT.md": "## Summary\nok\n"},
+                            committer_date=f"{old_epoch} +0000")
+    monkeypatch.setattr(poller, "get_project",
+                        lambda key: {"path": str(fake_origin.work)})
+    fake_close_remote = mock.Mock(return_value={"ssh_ok": True, "refused": None})
+    monkeypatch.setattr(poller, "close_remote", fake_close_remote)
+    _insert_remote_task(temp_db, task_id="task-poll09", branch=branch,
+                        host="winbox", project="fake-proj", pid=4242)
+
+    poller.check_task(temp_db.get_task("task-poll09"))
+
+    assert temp_db.get_task("task-poll09")["status"] == "review"
+    assert fake_close_remote.call_count == 1
+    assert fake_close_remote.call_args.kwargs.get("allow_review") is True
+
+
+def test_check_task_review_close_local_task_unaffected(fake_origin, temp_db, monkeypatch):
+    """A LOCAL (mac) task must be unaffected by GAP 2's new review-close
+    path — check_task returns before ever looking at branch/project for a
+    mac/hostless task (see test_check_task_skips_mac_and_hostless_tasks),
+    so close_remote must never even be consulted."""
+    fake_close_remote = mock.Mock()
+    monkeypatch.setattr(poller, "close_remote", fake_close_remote)
+    monkeypatch.setattr(config, "get_project",
+                        lambda key: (_ for _ in ()).throw(
+                            AssertionError("must not look up project for a mac task")))
+    _insert_remote_task(temp_db, task_id="task-poll10", branch="agent/developer-task-poll10",
+                        host="mac", project="fake-proj", pid=4242)
+
+    poller.check_task(temp_db.get_task("task-poll10"))
+
+    assert temp_db.get_task("task-poll10")["status"] == "in_progress"
+    assert fake_close_remote.call_count == 0
 
 
 def test_check_task_skips_mac_and_hostless_tasks(fake_origin, temp_db, monkeypatch):

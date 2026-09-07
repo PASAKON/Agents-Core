@@ -151,13 +151,54 @@ routing by host name instead of by "here".
 - **Sign-outs happen mid-session** (seen twice today). A second Chrome halves
   the blast radius; it does not remove the failure mode.
 
-## 5a. Teardown invariant (task-92118d4e, CEO rule 2026-09-07)
+## 5a. Teardown invariant (task-92118d4e, CEO rule 2026-09-07; extended
+task-59780ac3, 2026-09-08)
 
 *Terminal status ⇒ no process, no tmux, no tab, no claimed Chrome tab, on
 any host; the watchdog sweep (`runners/watchdog.py:sweep_terminal_surfaces()`)
 is the backstop, `close_dev`/`merge_task` are the method — Chrome tabs
 claimed via `scripts/browser/tab_registry.py` are torn down the same way
 (ADDENDUM 1).*
+
+**Extended invariant (task-59780ac3):** a remote (winbox/contabo) worker is
+closed when its task reaches a terminal status **OR** when it has published
+REPORT.md and gone quiet — whichever comes first. The two triggers:
+
+1. **Terminal status** — `sweep_terminal_surfaces()` now runs a remote pass
+   too (before task-59780ac3 it skipped every non-mac host outright): for
+   each terminal-status remote task past `REAP_GRACE_S`, it calls
+   `tools/worker_reap.py:close_remote()` directly. There is no local
+   pid/tmux/tab table for this box to probe a winbox/contabo surface with,
+   so close_remote's own re-read-and-refuse-unless-terminal check
+   (ADDENDUM 2) is the safety gate instead of a liveness check.
+2. **REPORT.md pushed and quiet** — the gap that actually bit (measured
+   2026-09-08: task-5d0bd2fa's winbox claude.exe + terminal window sat alive
+   5h54m after finishing, until the CTO killed it by hand). `review` is a
+   live-and-waiting status on the Mac (a C-level may still be deciding) and
+   is deliberately excluded from the terminal set — but a remote worker in
+   `review` has already pushed its entire output to git and holds nothing
+   back. `runners/branch_poller.py`, right after flipping a task to
+   `review`, closes that worker's surface via `close_remote(...,
+   allow_review=True)` — a narrow, explicit opt-in only it passes — but only
+   once ALL of: the host is a remote spoke, the re-read status is still
+   `review`, REPORT.md is still present on the branch, and the branch's
+   newest commit is at least `REVIEW_CLOSE_QUIET_S` (5 min) old (proof the
+   worker has stopped pushing, not mid-push).
+
+**Dead-worker detection (task-59780ac3):** a remote `in_progress` task whose
+worker died before pushing anything is also no longer invisible forever.
+`runners/watchdog.py`'s stall loop now asks the box itself over SSH (reusing
+`runners/branch_poller.py:remote_pid_alive`) once a remote task has been
+silent past `STALL_AFTER_S`: a definite **False** (the box answered, the pid
+is gone) marks it `stalled` and files the same GH issue the local path
+files; **None** (the SSH call itself failed — host unreachable) is treated
+as unknown and never flips the task, exactly like the local path already
+guards silence from becoming a false "dead" verdict on a network hiccup.
+
+**Nothing on Windows runs on a timer of its own.** The task DB lives only on
+the Mac and winbox cannot read it — there is no watchdog, no cron, no
+scheduled task on Windows. All three mechanisms above are one Mac-side
+watchdog/poller reaching out over SSH; that stays the whole design.
 
 ## 6. Decisions needed from the CEO
 

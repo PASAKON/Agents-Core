@@ -513,7 +513,8 @@ def _remote_kill_command(task_id: str, pid: int | None, os_kind: str) -> list[st
 
 
 def close_remote(task: dict, *,
-                 reason: str = "reaper: terminal status with live surface") -> dict:
+                 reason: str = "reaper: terminal status with live surface",
+                 allow_review: bool = False) -> dict:
     """End a remote (winbox/contabo) DEV's worker over SSH. See module note
     above and docs/design/multi-host-workers.md.
 
@@ -526,6 +527,21 @@ def close_remote(task: dict, *,
     the id can't be re-read at all (task deleted, or a synthetic dict with
     no matching row), falls back to the status the caller already had rather
     than crashing; that dict is then held to the same guard.
+
+    `allow_review` (task-59780ac3 GAP 2, default False — a deliberate,
+    narrow opt-in) additionally accepts status='review'. `review` is NOT in
+    _TERMINAL_SURFACE_STATUSES on purpose: on the Mac a live pid there means
+    "finished, waiting on a C-level decision" (see list_alive's
+    _AWAITING_DECISION_STATUSES) and must never be auto-closed. But a remote
+    worker in `review` has already pushed REPORT.md — its entire output is
+    in git, there is no decision left that needs the process alive to make.
+    Only `runners/branch_poller.py`, right after it flips a task to `review`
+    and only once REPORT.md is confirmed still on the branch AND the
+    branch's newest commit is several minutes old (proof it has stopped
+    pushing, not mid-push), passes this. No other caller in this codebase
+    does, and passing it does not touch _TERMINAL_SURFACE_STATUSES itself —
+    every other guard below (fresh re-read, host/pid checks) still applies
+    exactly as it does for a terminal-status call.
 
     Guards on `task.get("host")`, not `task["host"]`: the `host` column is
     being added by a separate in-flight task (task-d1d6b2ef) and a task dict
@@ -552,7 +568,8 @@ def close_remote(task: dict, *,
     }
 
     status = task.get("status")
-    if status not in _TERMINAL_SURFACE_STATUSES:
+    allowed_statuses = _TERMINAL_SURFACE_STATUSES | ({"review"} if allow_review else set())
+    if status not in allowed_statuses:
         result["refused"] = f"status {status} is not terminal"
         return result
 
