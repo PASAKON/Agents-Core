@@ -3,7 +3,13 @@
 SC4 · VALDER SEES THE WALL · CEO 2026-09-07 18:20
 CEO: "อยากได้ ฉากตอนที่ Valder เข้ามาแล้วในห้องนั้น เห็นคน 5 คนกำลังยืนดูกำแพง
 Valder รู้ทันทีว่า รูปนั้นหาย ไป สีหน้าของเขาเปลี่ยนไปจากยิ้มแย้มเป็นคนละคนเลย
-ขอฉากสั้นๆ 5-8s" + 18:22 "ใส่ Location ตรงทางเดิน ใช้มุมกล้องแบบ Jump Cut ได้เลย".
+ขอฉากสั้นๆ 5-8s" · 18:22 "ใส่ Location ตรงทางเดิน ใช้มุมกล้องแบบ Jump Cut ได้เลย"
+· 18:35 "ทุกคนดูกำแพงอยู่นะ ฉากนี้ยังไม่หันมา ดูไปที่รอยร้าวนั้นอยู่"
+· 18:40 "กำแพงไม่ได้อยู่หลังกล้อง เราใช้ภาพห้องโถงรอบนี้ กำแพงอยู่ไกลจากห้องเลย
+  และไม่ต้องมีประตูแดง"
+· 18:44 (with the four-panel hall plate) "เราใช้ภาพนี้ และใช้ภาพแรกอธิบายว่า 5 คน
+  กำลังมองจุดนี้อยู่ · Valder อยู่กลางห้องแล้ว มากับ Guard 2 คน เดินเข้ามายิ้มแย้ม
+  เห็นรอยแตก และหน้าเขาเปลี่ยนสี".
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
 💚 UNLIMITED (FREE), not the credit lane — the CEO's standing order 2026-09-07
@@ -11,28 +17,32 @@ Valder รู้ทันทีว่า รูปนั้นหาย ไป �
 / High / 1/4 / Sound ON, Unlimited ON, zoom the button and confirm ZERO digits.
 ⚠️ The duration slider defaults to 5s silently — set 8s and read it back.
 
-WHY THE CAMERA IS WHERE IT IS. The CEO asked for the corridor (ทางเดิน), so the
-one location Element is @loc_hall_big_e: the camera stands at the hero-wall end
-of the gallery looking DOWN its length to the red door. That puts the broken
-wall BEHIND the camera, which is exactly what this beat wants — the five face
-us because they are facing that wall, Valder enters from the red door at the
-far end, and what he sees is off-screen behind the lens. The audience reads the
-loss off his face, not off the wall. It also keeps the crack out of frame
-entirely, so nothing here can contradict the crack canon.
+⚠️ THE PLATE THE CEO SENT IS @project_absence_loc_hall_big_d — the four-panel
+hall sheet. Its FIRST panel is the thing the five are looking at: a big plain
+pale wall, a brass plaque at chest height, and one small dark mark on the
+plaster above it. Its other panels are the same hall in wider views. Take the
+room, its light and its dressing from the sheet; never reproduce the grid.
 
-⚠️ EXACTLY ONE LOCATION ELEMENT (CEO 2026-09-04): there are three room
-pictures, one per camera position; binding more than one confuses the model.
-This shot is the corridor kind → @loc_hall_big_e and nothing else.
+⚠️ CAMERA. The camera is in the hall looking toward that wall. The wall is FAR
+— the far end of the room, not behind the lens (CEO 18:40 corrected my first
+version). NO RED DOOR anywhere in this shot.
 
-⚠️ SIX PEOPLE, NOBODY ELSE. The CEO's beat is Valder plus the five at the wall.
-No registrar, no Carrington, no bodyguard, no Dupe, no cart, no madame, no
-guards. Fewer bound characters render more reliably (7 chips is the count that
-has been landing this week).
+⚠️ VALDER IS ALREADY MID-ROOM AND HE IS NOT ALONE (CEO 18:44). He walks in
+smiling with his TWO uniformed guards a pace and a half behind him, and he
+reaches the middle of the hall before he sees anything. Chips are 8, not 7.
+
+⚠️ THE CRACK IS IN FRAME, so the canon applies: ONE small solid-black
+star-shaped crack, no wider than the brass plaque beneath it, copied from the
+plate and never enlarged. At this distance it is a small dark mark, not a
+feature. The size wording below is the one that passed S2M-B first fire.
+
+⚠️ EIGHT PEOPLE, NOBODY ELSE: Valder, his two guards, the five at the wall. No
+registrar, no Carrington, no bodyguard in black, no Dupe, no cart, no madame.
 
 ⚠️ THE FACE IS THE WHOLE SHOT. He comes in as the host — open, delighted,
 mid-greeting. Then the smile does not fall into anger, it EMPTIES: the warmth
-goes out and what is left is a different man wearing the same clothes. No
-shouting, no gasp, no hand to the mouth, no tears. Stillness is the effect.
+and the colour go out of him and what is left is a different man wearing the
+same clothes. No shouting, no gasp, no hand to the mouth, no tears.
 
 Filing: All Scene/Fix-1/ as SC4-Valder-Sees-Fix1.MP4.
 Previz: NONE. Three locked angles, no camera move to describe.
@@ -46,20 +56,32 @@ LOCKED — no pan, no tilt, no zoom, no handheld, no drift inside a shot. Sound
 On · High.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — THE GALLERY CORRIDOR, and the only location reference: the
-  camera stands in the gallery looking straight down its length, chromium
-  trumpet columns receding in matched pairs on both sides, warm orange cove
-  light along the ceiling, polished terracotta terrazzo underfoot, works on
-  white plinths and framed pieces down both walls, and the tall RED DOUBLE DOOR
-  far off at the vanishing point. Take the room, its surfaces and its light
-  from this picture. THE BROKEN WALL IS NOT IN THIS SHOT — no crack, no star,
-  no mark, no damaged plaster anywhere in frame.
+@project_absence_loc_hall_big_d — THE GALLERY HALL, and the only location
+  reference: the camera stands in the hall facing the far wall that carries the
+  brass plaque. Warm cream walls, orange cove light washing the ceiling,
+  polished terracotta terrazzo underfoot, tall chromium trumpet columns in
+  matched pairs down both sides, white plinths, sculpture and framed work along
+  both walls. Take the room, its surfaces, its light and its dressing from this
+  picture. It is a four-panel sheet — take NOTHING of its arrangement or
+  layout, and never reproduce a grid.
+  THE FAR WALL, from that same picture: a big plain pale wall standing between
+  two chromium columns, a small brass plaque fixed at chest height, and ONE
+  SMALL BLACK MARK on the plaster above the plaque — thin short lines meeting
+  at one dark point. IT IS NO WIDER THAN THE BRASS PLAQUE BENEATH IT AND NO TALLER THAN THAT PLAQUE, exactly as the picture has it and not one bit larger.
+  Solid black. At this distance it reads as a small dark mark and nothing more.
+  Do not enlarge it, do not redraw it, and never let it touch or cross anybody.
 @project_absence_char_valder — VALDER: tall, slim, elderly, full swept-back
   white hair, small round tinted sunglasses. A blazer PANELLED IN FLAT BLOCKS
   OF COLOUR — magenta, yellow, green, blue, red — over a red waistcoat and
   white shirt, a long mustard-yellow scarf hanging down the front, purple
   trousers, and two DIFFERENT shoes, one dark green and one burgundy. He owns
-  this building and he arrives believing everything in it is fine.
+  this building and he walks in believing everything in it is fine.
+@project_absence_char_guard_valder_two — HIS TWO UNIFORMED GUARDS: navy
+  military-cut tunics with gold buttons, a large gold V on the chest, black
+  belts with gold buckles, navy trousers with a gold side stripe, navy peaked
+  caps, black shoes. ONE IS TALL AND THIN, THE OTHER SHORT AND HEAVY. This one
+  picture is both of them. They walk a pace and a half behind him, they stop
+  when he stops, and they never speak.
 @project_absence_char_woman — THE YOUNG COLLECTOR: young, dark hair pinned up,
   oversized cobalt-blue wool overcoat with a small gold V pin, pearl cluster
   necklace, brown-checked midi skirt, black tights, dark brown loafers.
@@ -74,53 +96,58 @@ REFERENCES — each with a job:
   silver-streaked hair swept up, full-length deep magenta fur coat, long cream
   gloves, cream heels.
 
-WHO IS WHERE. The five stand together in the middle of the corridor in a loose
-row, all five turned toward the camera because the wall they are studying is
-behind it. THEIR EYES ARE ON THE SMALL BLACK CRACK IN THAT WALL, which sits a
-little ABOVE the camera and slightly to one side: every one of the five is
-looking THROUGH the camera position at that mark, chins fractionally lifted,
-and NONE of them looks into the lens. They are still and absorbed, and not one
-of them looks away, turns round, or notices Valder at any point in this clip —
-they are exactly as fixed on the crack at 8s as they were at 0s. Left to right:
-the man in maroon, the woman in magenta, the young collector, the woman in fur,
-the art student. VALDER comes in alone through the red double door at the far
-end, forty metres behind them.
+WHO IS WHERE. THE FIVE STAND AT THE FAR WALL IN A LOOSE ROW WITH THEIR BACKS TO
+US, small in the frame, all five looking up at the small black mark above the
+brass plaque. Left to right: the man in maroon, the woman in magenta, the young
+collector, the woman in fur, the art student. They are still and absorbed. Not
+one of them turns round, looks over a shoulder, looks at Valder or stops
+looking at that mark at any point in this clip — at 8s all five are exactly as
+they were at 0s, backs to us, eyes on the mark. VALDER is in the middle of the
+hall, much closer to the camera and much larger than they are, with his TWO
+UNIFORMED GUARDS a pace and a half behind him.
 
-SHOT ONE · [0s-3s] · locked wide, the full length of the corridor. The red door
-stands open and VALDER walks in, small and far away, arms a little open, chin
-up, plainly in the middle of greeting a room he is delighted with. He takes
-three or four easy strides toward us and stops. The five never move and never
-take their eyes off the crack.
+SHOT ONE · [0s-3s] · locked wide down the length of the hall: the far wall with
+its brass plaque and the small dark mark, the five standing at it with their
+backs to us. VALDER walks into the middle of the hall with his two guards
+behind him, arms a little open, chin up, plainly in the middle of greeting a
+room he is delighted with. He takes three or four easy strides, sees the five
+and the wall beyond them, and stops; the guards stop with him. The five never
+move and never take their eyes off the mark.
 
-SHOT TWO · [3s-6s] · HARD CUT to a waist-up of Valder, standing where he
-stopped, the corridor soft behind him. He is still smiling for the first half
-second. Then he looks past the five, straight down the lens, at the wall behind
-the camera — and the smile goes out of his face. It does not turn into anger.
-The warmth simply leaves, the jaw sets, and the man standing there is not the
-man who walked in. He does not move a step.
+SHOT TWO · [3s-6s] · HARD CUT to a waist-up of Valder from the front, standing
+where he stopped, the hall soft and out of focus behind him, one guard's navy
+shoulder just in frame. He is still smiling for the first half second. Then his
+eyes go to the far wall and the smile goes out of his face. It does not turn
+into anger. The warmth and the colour drain out of him, the jaw sets, and the
+man standing there is not the man who walked in. He does not move a step and he
+does not speak.
 
 SHOT THREE · [6s-8s] · HARD CUT to a tight frame of his face, dead still, held
 to the end. Nothing else changes. Cut.
 
-AUDIO: room tone of a large stone hall, his footsteps on terrazzo in shot one
-and then nothing at all — no dialogue, no gasp, no music, no sting. It opens
-mid room-tone and stops dead with no tail.
+AUDIO: room tone of a large stone hall, three sets of footsteps on terrazzo in
+shot one and then nothing at all — no dialogue, no gasp, no music, no sting. It
+opens mid room-tone and stops dead with no tail.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids,
 whites pushed slightly cool, shadows deep red-brown, halation around the cove
 lights. Photographed, not rendered: fine film grain, faint gate weave, slight
 colour fringing.
 
-CRITICAL NEGATIVES: nobody but the six named people — no registrar, no man in a
-white suit, no bodyguard, no cleaner, no cart, no uniformed guards, no crowd,
-no extras; none of the five turns round, looks at Valder, looks into the lens,
-makes eye contact with the camera, speaks or moves from the row, and none of
-them stops looking at the crack; Valder does not speak, does not shout, does not raise a hand to his
-face, does not cry, does not stagger, does not run; no crack, no star, no mark,
-no hole, no damaged plaster, no bare hook, no empty picture frame anywhere in
-frame; no camera movement inside a shot, no pan, no tilt, no zoom, no push in,
-no dolly, no handheld, no slow motion, no speed ramp; no fourth angle, no cut
-other than the two named above.
+CRITICAL NEGATIVES: no red door, no double door, no doorway of any kind in
+frame; nobody but the eight named people — no registrar, no man in a white
+suit, no bodyguard in black, no cleaner, no cart, no crowd, no extras; none of
+the five turns round, looks over a shoulder, looks at Valder, looks into the
+lens, speaks or moves from the row, and none of them stops looking at the mark;
+the guards never overtake him, never speak and never react; Valder does not
+speak, does not shout, does not raise a hand to his face, does not cry, does
+not stagger, does not run; the mark stays small — no full-height fracture, no
+spiderweb, no thick heavy arms, no arms reaching the edges of the frame, no
+second mark, no hole with edges, no black surround, no five-pointed star, no
+symmetrical star, no glowing or pale or grey mark, no mark on any other
+surface, no mark growing or moving; no camera movement inside a shot, no pan,
+no tilt, no zoom, no push in, no dolly, no handheld, no slow motion, no speed
+ramp; no fourth angle, no cut other than the two named above.
 
 House negatives: no voiceover, no narration, no subtitles, no captions, no
 on-screen text, no signage, no logos, no music, no score, no dutch angle, no
@@ -132,16 +159,18 @@ walls, no wooden floor.
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
+0. THE MARK on the far wall: one small solid-black crack, no wider than the
+   brass plaque beneath it, off every body. Bigger than the plaque, thick arms,
+   a hole with edges or a second mark = flagged, re-fire.
 1. THE FACE CHANGES, and it changes by emptying, not by scowling. If he plays
    anger or shock the beat is wrong — re-fire.
-2. TWO HARD CUTS, at 3s and 6s, and the angle is different on each side of
-   both. A single continuous shot is a fail.
-3. SIX PEOPLE ONLY. Any seventh body, any cart, any uniform = flagged.
-4. NONE OF THE FIVE TURNS, and none of them looks into the lens. At 8s all
-   five are still fixed on the crack above and behind the camera (CEO 18:35:
-   "ทุกคนดูกำแพงอยู่นะ ฉากนี้ยังไม่หันมา ดูไปที่รอยร้าวนั้นอยู่"). Eye contact
-   with the camera is a fail even if nobody turned.
-5. NO CRACK ANYWHERE. The broken wall is behind the lens in every shot.
+2. TWO HARD CUTS, at 3s and 6s, and the angle differs either side of both. A
+   single continuous shot is a fail.
+3. EIGHT PEOPLE ONLY: Valder, two navy guards, five at the wall. Any ninth
+   body, any cart, any white or black uniform = flagged.
+4. NONE OF THE FIVE TURNS. Backs to us at 0s and still backs to us at 8s, eyes
+   on the mark (CEO 18:35).
+5. NO RED DOOR, no doorway (CEO 18:40).
 6. He never speaks and nothing is said.
 File the take whatever the verdict.
 
