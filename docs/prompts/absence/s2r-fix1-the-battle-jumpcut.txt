@@ -1,0 +1,175 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2R-Fix1 JUMP-CUT · THE BATTLE · CEO 2026-09-07 08:15 ("ฉากนี้ขอแบบ Jumpcut แบบ
+ไม่ต้องใส่ previz หน่อย … แซกคิวต่อไปได้เลย")
+
+Same scene, same 13 Elements, same beats as s2r-fix1-the-battle.txt, but the
+take is CUT (three hard jump cuts inside the unchanging frame at 3s / 9s / 15s,
+the S2M-B construction) and there is NO PREVIZ: the position map is prose.
+The crocodile-bag Element stays OUT (copyright trigger, ledger 2026-09-07).
+Unlimited only. File as S2R-Fix1-JC.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9. The camera is LOCKED and never moves, never pans, never
+zooms — but the take is CUT: THREE HARD JUMP CUTS inside the same unchanging
+frame, at 3s, 9s and 15s. Same lens, same framing, same people in the same
+places on both sides of every cut; only time jumps. Sound On · High.
+
+
+THE FRAME: a locked, symmetrical view straight down the gallery at chest
+height. MR CARRINGTON stands on the LEFT. THE WOMAN IN GREEN stands on the RIGHT,
+about four metres from him. VALDER STANDS BETWEEN THEM, dead centre and a
+little further back, facing the lens. Everybody else is banked behind the two
+bidders on their own side, and the registrar is off to the left and nearer the
+camera, writing. Chromium trumpet columns recede behind them, orange cove
+light on the ceiling, polished terracotta terrazzo underfoot.
+
+THE COMPLETE CAST OF THIS SHOT IS TWELVE PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards beyond the three named, no reporters, no journalists, nobody
+holding a camera, nobody filming, nobody walking through. If a figure is not
+named below it must not exist.
+
+NOBODY WALKS ANYWHERE IN THIS SHOT. Not one person changes position. The only
+movement in the entire twenty seconds is heads turning, mouths speaking, a pen
+moving, and Valder shifting his weight from one foot to the other.
+
+POSITION MAP — there is no video reference for this take; these words are the
+blocking. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- @gentleman_e, on the LEFT
+- @project_absence_char_woman_c, on the RIGHT
+- @project_absence_char_valder, CENTRE
+- @char_registrar, near left, writing
+- @project_absence_char_guard_private_v2, behind Carrington
+- DUPE, far back on the left with his cart
+- the remaining figures are the watching visitors and the two uniformed guards
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
+  The camera stands OUTSIDE the wall, in the gallery, looking down its length:
+  chromium trumpet columns receding in matched pairs on both sides, warm orange
+  cove light along the ceiling, polished terracotta terrazzo underfoot, works on
+  white plinths and framed pieces down both walls, and the tall RED DOUBLE DOOR
+  far off at the vanishing point. THE BROKEN WALL IS NOT IN THIS SHOT — no
+  crack, no star, no damaged plaster anywhere. Take the room, its surfaces and
+  its light from this picture.
+
+@gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
+  stand-collar suit, white shoes, a black cane with a gold lion head, TWO GOLD
+  FRONT TEETH. He bids like a man playing a game he expects to win.
+@project_absence_char_guard_private_v2 — HIS BODYGUARD: very heavily built
+  Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black shirt
+  and tie. Never speaks, never moves. No weapon, no earpiece, no holster.
+@project_absence_char_woman_c — THE WOMAN IN GREEN: elderly, tall, rail-straight,
+  a sculpted floor-length gown of glossy mid-green leather with chevron
+  leaf-vein seams, sharply pointed shoulder caps, a tall standing collar; long
+  green leather opera gloves; a towering pompadour streaked blue, green and
+  silver-white; black cat-eye sunglasses. She never raises her voice once.
+HER BAG (no picture — describe it, do not look for one): a dark crocodile-skin handbag, held in one gloved hand the whole
+  time: structured top-handle, polished deep OXBLOOD crocodile, gold clasp.
+@project_absence_char_valder — VALDER, between them: tall, slim, elderly,
+  swept-back white hair, small round tinted sunglasses, a blazer panelled in
+  flat blocks of magenta, yellow, green, blue and red, a red waistcoat, a long
+  mustard-yellow scarf, purple trousers, two different shoes.
+@char_registrar — THE REGISTRAR: about sixty, cream stand-collar tunic with
+  orange piping and a small gold V, white gloves, a brown leather ledger held
+  open in one hand, pen going in the other.
+
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V, black belts, navy peaked caps.
+  ONE TALL AND THIN, ONE SHORT AND HEAVY. This one picture is both of them.
+@project_absence_char_woman — THE YOUNG WOMAN IN COBALT: dark hair pinned up,
+  an oversized cobalt-blue overcoat with a gold V pin, a pearl cluster
+  necklace, a brown-checked skirt, black tights, brown loafers, no glasses.
+@project_absence_char_critic_b — THE ELDERLY EAST ASIAN WOMAN: silver-streaked
+  hair up, a full-length deep magenta fur coat, long cream gloves, cream heels.
+@project_absence_char_visitor_b — THE WOMAN IN THE CHESTNUT FUR: about
+  fifty-five, a brown bob, a long tawny-brown fur coat over a rust-red shift
+  dress.
+@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
+  hair, a deep maroon leather suit with a stand collar.
+@project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap,
+  gold V, moustache. Far off, watching, taking no part.
+@project_absence_prop_cart_a_painted — HIS CART: castor wheels, mop, orange
+  bucket, bottles, folding ladder, gold V.
+
+[0s] Silence, and everybody looking at the woman in green. She has not spoken yet.
+
+[1s] SHE SPEAKS FIRST, quietly, without moving anything but her mouth: "Ten
+million."
+
+[3s] HARD JUMP CUT, same frame. EVERY HEAD IN THE ROOM SWINGS TO THE LEFT, to Carrington — not together,
+a ragged wave of them. Carrington does not hesitate. He is smiling: "Fifteen."
+
+[6s] EVERY HEAD SWINGS BACK TO THE RIGHT. The woman in green lets a beat go by, purely
+to make him wait, and then says: "Twenty million."
+
+[9s] HARD JUMP CUT, same frame. THE HEADS SWING LEFT AGAIN. The registrar's pen is going furiously and he
+is muttering to himself, a number behind and losing. Carrington's smile is
+thinner now: "Twenty-five."
+
+[13s] THE HEADS SWING RIGHT. And she does not pause at all this time. Flat,
+bored, as if correcting a waiter: "Fifty."
+
+[15s] HARD JUMP CUT, same frame. THE ROOM STOPS. Nobody's head moves. Carrington's smile is gone. He opens
+his mouth and nothing comes out of it.
+
+[17s] AND VALDER, IN THE MIDDLE, IS DELIGHTED. He looks left at Carrington,
+then right at the woman in green, then left again, rocking very slightly from foot to
+foot like a man watching a rally he cannot lose. He says nothing at all.
+
+[19s] Hold on the three of them. Cut.
+
+AUDIO: room tone, a pen scratching hard and fast on paper for the whole twenty
+seconds, one small strangled sound from Carrington at 15s, the creak of a
+leather ledger, no footsteps because nobody walks. FIVE spoken bids only, in
+this order: hers, his, hers, his, hers. Nobody else speaks a word — not Valder,
+not the registrar, not one of the watchers. NO SOUND AT THE START OR THE END:
+the clip opens mid room-tone with no intro sting or riser, and simply stops
+with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no thirteenth person, no
+extra, no bystander, no other visitor, no gallery staff, no reporter, no
+journalist, nobody holding a camera, nobody filming, no crowd, no children,
+nobody walking through; nobody walking at all, nobody changing position,
+nobody stepping forward, nobody approaching anybody; no auctioneer, no podium,
+no rostrum, no gavel, no bidding paddle, no raised hands, no numbered card, no
+auction house, no lot number, no visible price, no written figures on screen;
+no shouting, no arguing, no laughing, no applause, no cheering, no gasping
+crowd; no Valder speaking, no Valder bidding, no registrar speaking, no watcher
+speaking; no third bidder, nobody else naming a price; no handshake, no money,
+no card, no contract, no papers exchanged; no weapon, no gun, no holster, no
+earpiece; no cracked wall, no crack, no brass plaque, no price plaque in frame;
+no camera movement of any kind, no pan, no tilt, no zoom, no dolly, no
+handheld, no reframing across a cut, no second angle, no shot-reverse-shot,
+no cut other than the three jump cuts and none that changes the frame; no
+four-panel layout, no grid, no split screen; no looking at camera by anybody;
+no smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER: as s2r-fix1-the-battle.txt, plus:
+0. THREE CUTS at ~3s, ~9s, ~15s and the frame identical on both sides of each.
+7. TWELVE PEOPLE — S2R take 2 (locked, no cuts) doubled the chestnut-fur woman.
+File the take whatever the verdict.
+
+=== END NOTES ===
