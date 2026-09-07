@@ -22,6 +22,7 @@ words. Expect: `NO WIDER THAN THE RED DOOR` → 1 on wall-POV sheets;
 → 0. Mismatch → STOP and report; never fire from a stale sheet.
 
 ## 1 · Browser
+- TWO Higgsfield tabs at most on this Mac (measured 2026-09-07 14:36: three operator tabs → load 13-15 on 8 cores, swap 2.5 GB, every tab 'renderer stuck' / 'input desync' / composer vanishing; closing one tab → load 7, Chrome CPU 3%). The CTO pauses the third operator; if you are told to PAUSE, close your tab and make no browser calls until RESUME.
 - NEVER quit or restart Chrome (HARD, 2026-09-07): the window is shared with the other operators; a frozen tab → close your own tabs, one fresh tab, else STOP and report. The render lives server-side and survives your tab.
 - claude-in-chrome ONLY. NEVER call computer-use (screenshot/click/type/clipboard) or ask
   for Finder / clipboardWrite: the permission dialog it raises blocks the whole pane

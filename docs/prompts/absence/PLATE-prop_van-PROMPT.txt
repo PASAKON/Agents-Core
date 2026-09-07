@@ -1,4 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
+TAKE 3 (CTO 14:56): take 2 rendered a tiny cab under a box three times its height — 'as tall as
+a standing man's shoulder' became a skyscraper. Now stated in metres and ratios, high roof banned.
 TAKE 2 (CTO 14:32): take 1 came back as a low black wedge coupé — the words 'same era
 as a wedge-shaped limousine' pulled the body toward the limo. The van body is now
 stated first and the wedge banned in the negatives.
@@ -8,8 +10,8 @@ CEO: "ขาด รถของ Carrington คันนี้ขอรถตู�
 (project_absence_prop_limo) and the emerald coupé (project_absence_prop_car).
 FREE IMAGE ONLY: Image tab → Kling O1 → Unlimited TOGGLE ON (badge alone lies)
 → 16:9 → 1/4 → zoom the button, ZERO digits → ONE fire. Save the PNG as
-docs/prompts/absence/generated/project_absence_prop_van_take2.png. Do NOT make
+docs/prompts/absence/generated/project_absence_prop_van_take3.png. Do NOT make
 it an Element until the CEO approves the look.
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
-Three-view studio plate of ONE vehicle on a plain warm-grey seamless backdrop, soft even studio light, no people, no text, no logo, no badge, no emblem, no number plate. THE VEHICLE IS A VAN, NOT A CAR: a tall boxy one-box panel van, gloss black — a high flat roof as tall as a standing man's shoulder, vertical slab sides, a short blunt nose with a big upright windscreen, a wide SLIDING DOOR on the passenger side, twin rear doors, small wheels tucked under the tall body. Retro-futuristic 1970s styling on that van body: rounded streamlined corners, a single chrome trim line along the flank, chrome bumpers, dark-tinted windows, full wheel spats over wire wheels, a plain smooth rear with no writing on it. Three views of the same van: LEFT a side profile, CENTRE a front three-quarter view (the largest), RIGHT a rear view. Photographed, not rendered: fine film grain, warm shadow and cold white grade. Negative: no sports car, no coupé, no sedan, no low wedge body, no long bonnet, no second vehicle, no people, no driver, no text, no logo, no badge, no number plate, no grid lines, no white background, no cartoon, no toy.
+Three-view studio plate of ONE vehicle on a plain warm-grey seamless backdrop, soft even studio light, no people, no text, no logo, no badge, no emblem, no number plate. THE VEHICLE IS A CLASSIC 1970s PANEL VAN in gloss black, with ORDINARY VAN PROPORTIONS: about 5 metres long and 2 metres tall — only a little taller than a car, the roof one flat line from the windscreen to the tail, the body a long low box two and a half times as long as it is high. Short blunt nose with a big upright windscreen, vertical slab sides, a wide SLIDING DOOR on the passenger side, twin rear doors, the wheels at the corners. Retro-futuristic detailing on that ordinary van body: rounded streamlined corners, a single chrome trim line along the flank, chrome bumpers, dark-tinted windows, full wheel spats over wire wheels, a plain smooth rear with no writing on it. Three views of the same van: LEFT a side profile, CENTRE a front three-quarter view (the largest), RIGHT a rear view. Photographed, not rendered: fine film grain, warm shadow and cold white grade. Negative: no tall box, no high roof, no camper, no truck, no lorry, no bus, no sports car, no coupé, no sedan, no low wedge body, no second vehicle, no people, no driver, no text, no logo, no badge, no number plate, no grid lines, no white background, no cartoon, no toy.
 === ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===

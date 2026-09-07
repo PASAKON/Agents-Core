@@ -49,31 +49,41 @@ $env:GIT_TERMINAL_PROMPT = '0'
 # the line prefixed GITHUB_SSH_ROUTE= so the Mac side can log which path
 # actually worked.
 function Ensure-GithubSshRoute {
-    # Probe github.com:22 with a bounded timeout. On success use it. On failure
-    # fall back to ssh.github.com:443 FOR THIS PROCESS ONLY via GIT_SSH_COMMAND.
-    # NEVER write the user's ~/.ssh/config: on 2026-09-07 an appended
-    # "Host github.com / Port 443" block silently broke a working port-22 route
-    # for every later git call on the box (OpenSSH takes the first value per
-    # option across matching blocks -> github.com:443 = HTTPS port = closed).
-    $probeArgs = @('-T', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8',
-                   '-o', 'StrictHostKeyChecking=accept-new', 'git@github.com')
-    $probeOk = $true
-    try {
-        & ssh @probeArgs 2>&1 | Out-Null
-        # git@github.com exits 1 on a successful handshake (no shell); only a
-        # 255 (connection failure) or an exception means the route is dead.
-    } catch {
-        $probeOk = $false
+    # Probe GitHub with a bounded `git ls-remote`, NOT `ssh -T git@github.com`:
+    # on Windows OpenSSH the -T login test never returns from PowerShell (three
+    # hung probes found on winbox 2026-09-07), while git ls-remote with the same
+    # key answers in ~3 s. Fallback to ssh.github.com:443 is process-scoped via
+    # GIT_SSH_COMMAND; the user's ~/.ssh/config is never written.
+    function Test-GitRoute([string]$sshCmd) {
+        $old = $env:GIT_SSH_COMMAND
+        if ($sshCmd) { $env:GIT_SSH_COMMAND = $sshCmd }
+        try {
+            $p = Start-Process -FilePath git -ArgumentList @('ls-remote','--exit-code',$RepoUrl,'HEAD') -NoNewWindow -PassThru -RedirectStandardOutput "$env:TEMP\gitprobe-out.txt" -RedirectStandardError "$env:TEMP\gitprobe-err.txt"
+            if (-not $p.WaitForExit(20000)) { try { $p.Kill() } catch {}; return $false }
+            return ($p.ExitCode -eq 0)
+        } catch { return $false }
+        finally { if (-not $sshCmd) { $env:GIT_SSH_COMMAND = $old } }
     }
-    if ($LASTEXITCODE -eq 255) { $probeOk = $false }
-    if ($probeOk) { return 'github.com:22' }
-
-    $env:GIT_SSH_COMMAND = 'ssh -o HostName=ssh.github.com -p 443 -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new'
-    Write-Output 'GITHUB_SSH_ROUTE=fallback-443 (port 22 probe failed; user ssh config left untouched)'
-    return 'ssh.github.com:443'
+    if (Test-GitRoute $null) { return 'github.com:22' }
+    $fallback = 'ssh -o HostName=ssh.github.com -p 443 -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new'
+    if (Test-GitRoute $fallback) {
+        Write-Output 'GITHUB_SSH_ROUTE=fallback-443 (port 22 probe failed; user ssh config left untouched)'
+        return 'ssh.github.com:443'
+    }
+    Write-Output 'GITHUB_SSH_ROUTE=unreachable (both port 22 and 443 probes failed)'
+    return 'unreachable'
 }
 
 try {
+    # PowerShell 5.1 + $ErrorActionPreference='Stop' turns ANY native stderr
+    # line (git progress, "Preparing worktree", a harmless "branch not found"
+    # from the idempotent branch -D) into a terminating error — even under
+    # 2>$null. That failed the first real winbox spawn on 2026-09-07. Git's
+    # success/failure is its exit code, so check $LASTEXITCODE explicitly and
+    # let stderr flow.
+    $ErrorActionPreference = 'Continue'
+    function Assert-Git([string]$what) { if ($LASTEXITCODE -ne 0) { throw "git $what failed (exit $LASTEXITCODE)" } }
+
     $githubRoute = Ensure-GithubSshRoute
     Write-Output "GITHUB_SSH_ROUTE=$githubRoute"
 
@@ -87,7 +97,9 @@ try {
         if ($parent -and -not (Test-Path $parent)) {
             New-Item -ItemType Directory -Path $parent -Force | Out-Null
         }
-        git clone $RepoUrl $RepoPath
+        # blob:none skips the multi-GB media pack (docs/reports mp4/png); blobs stream in on checkout as needed
+        git clone --filter=blob:none $RepoUrl $RepoPath 2>&1 | Select-Object -Last 2
+        Assert-Git "clone"
     }
     git -C $RepoPath fetch origin
 
@@ -102,7 +114,8 @@ try {
     if (-not (Test-Path $WorktreeRoot)) {
         New-Item -ItemType Directory -Path $WorktreeRoot -Force | Out-Null
     }
-    git -C $RepoPath worktree add -b $Branch $wt "origin/$Base"
+    git -C $RepoPath worktree add -b $Branch $wt "origin/$Base" 2>&1 | ForEach-Object { "$_" } | Select-Object -Last 3
+    Assert-Git "worktree add"
 
     # --- 3. TASK.md: from -TaskFile (scp'd ahead of this call) or stdin ---
     if ($TaskFile -and (Test-Path $TaskFile)) {
@@ -168,7 +181,28 @@ try {
     # has nothing left to run and exits, and Windows Terminal closes the
     # tab with it. CEO rule: closing a worker closes its window too, never
     # just the process.
-    & wt.exe -w 0 nt --title $SessionName --tabColor '#0078d4' -d $wt powershell -NoProfile -File $launcherPath
+    # A process started from an SSH shell lives in Windows session 0 and never
+    # reaches the logged-in desktop (session 1): wt.exe silently opened nothing
+    # and claude.exe never appeared (2026-09-07, task-1289db7b). The only way in
+    # from SSH is a one-shot scheduled task with an INTERACTIVE logon type run as
+    # the desktop user. All quoting lives inside a wrapper .cmd so the task
+    # action is one bare path (PowerShell -> schtasks quoting is unreliable).
+    $SessionName = ($SessionName -replace "[^\x20-\x7E]", "-")   # .cmd is ASCII; keep the title readable
+    $wtExe = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\wt.exe'
+    $wrapper = Join-Path $PSScriptRoot ("launch-" + $Task + ".cmd")   # beside this script, like win-cto.ps1
+    @"
+@echo off
+start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
+"@ | Set-Content -Path $wrapper -Encoding ASCII
+    $stName = "mooniex-worker-" + $Task
+    $me = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue
+    $stAct = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument "/c `"$wrapper`""
+    $stPri = New-ScheduledTaskPrincipal -UserId $me -LogonType Interactive -RunLevel Limited
+    $stSet = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 5)
+    Register-ScheduledTask -TaskName $stName -Action $stAct -Principal $stPri -Settings $stSet -Force | Out-Null
+    Start-ScheduledTask -TaskName $stName
+    Write-Output "launched via interactive scheduled task $stName as $me"
 
     # --- 7. Capture the claude.exe pid. wt.exe hands the new-tab request to
     # the running Terminal instance and returns almost immediately — it is
@@ -176,7 +210,7 @@ try {
     # to read a pid from. Poll instead, matching on the task id, which
     # appears in claude's own command line (both the prompt text and -n). ---
     $workerPid = $null
-    $deadline = (Get-Date).AddSeconds(30)
+    $deadline = (Get-Date).AddSeconds(60)
     while ((Get-Date) -lt $deadline -and -not $workerPid) {
         Start-Sleep -Milliseconds 500
         $procs = Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" |
@@ -186,12 +220,13 @@ try {
         }
     }
     if (-not $workerPid) {
-        throw ("claude.exe did not appear within 30s for task $Task -- the " +
+        throw ("claude.exe did not appear within 60s for task $Task -- the " +
                "Windows Terminal tab may not have opened (wt.exe needs an " +
                "interactive desktop session; verify one exists over this " +
                "SSH connection type). See ADDENDUM 1 in the task brief.")
     }
 
+    Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue
     # --- 8. .worker.json — what the Mac-side liveness poller reads back ---
     $startedAt = (Get-Date).ToUniversalTime().ToString('o')
     $workerInfo = @{ pid = $workerPid; started_at = $startedAt; host = 'winbox' } | ConvertTo-Json -Compress
@@ -201,6 +236,7 @@ try {
     # lines[-1]. Nothing may print after this.
     Write-Output $workerPid
 } catch {
+    if ($stName) { Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue }
     Write-Error "spawn-worker.ps1 failed: $_"
     exit 1
 }
