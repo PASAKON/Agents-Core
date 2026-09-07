@@ -399,11 +399,29 @@ lock and the whole plan changes).
 - **The 30 presets carry written labels** — name plus "Male, gravelly, low
   pitch" and so on. Nobody has to listen to choose one. Pick from the label,
   record the name.
+- **A voice attaches as a CHIP, not as text.** `เพิ่มไปยังพรอมต์` adds a
+  `<flow-audio-ingredient-chip>` to the ingredient bar and leaves the prompt box
+  untouched (its innerText still reads the placeholder). The chip is **inert on
+  its own** — tooltip "องค์ประกอบเสียงต้องมีองค์ประกอบอื่นๆ จึงจะทำงานได้" — so a voice
+  only works alongside a Character or other ingredient in the same generation.
+- **The customize-performance path is dead on this account (2026-09-08).**
+  Typing into `ปรับแต่งประสิทธิภาพ` removes `เพิ่มไปยังพรอมต์` and reveals a save
+  flow: a name field pre-filled `"<Preset> คัสตอม"`, `รีเซ็ต`, and
+  `บันทึกเสียงใหม่` — and that save button was found **permanently disabled**,
+  across two characters, ~10 minutes of attempts, after editing the name, after
+  previewing. `รีเซ็ต` reliably restores the working plain-preset flow. So:
+  **attach the plain preset, and write the performance direction into the shot's
+  own prompt text.** That is better anyway — the direction then lives in the
+  script, under version control, instead of inside Google's account state.
+- **One "not found" is not proof a preset is gone.** A search for Algenib
+  returned ไม่พบชิ้นงาน and the list skipped it alphabetically; a freshly opened
+  picker minutes later showed it in place. Same `document.hidden` virtual-scroll
+  trap. Reopen before concluding anything is missing.
 - **Selecting a preset opens a panel, it does not attach immediately**:
   a preview button, `ตัวอย่างบทสนทนา` (example dialogue, maxlength 120),
   `ปรับแต่งประสิทธิภาพ` (customize performance, a free-text description with no
   DOM length cap), then `เพิ่มไปยังพรอมต์` (add to prompt). **There is no name
-  field**, contrary to the docs — the voice is not a saved named object, it is
+  field in the plain flow** (one appears only in the broken save flow above) — the voice is not a saved named object, it is
   text added to the prompt. So the durable artifact is the preset name plus the
   performance description, written into the script beside the APPEARANCE LOCK.
 - **Long virtualized lists can be unreadable on winbox.** The tab reported
