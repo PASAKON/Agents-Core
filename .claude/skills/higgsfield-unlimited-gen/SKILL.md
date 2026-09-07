@@ -1550,3 +1550,15 @@ the click hit the cover. Before calling the toggle broken:
 3. If the cover is fixed, click the toggle's real input/button element via
    `javascript_tool`, then verify by the price readback: struck price + 0.
 A reload also clears a toast but resets Unlimited to off — re-toggle after.
+
+## Free IMAGE plates (proven 2026-09-07, tasks bc7f8d5d / 63fc0684)
+
+- Image tab → model **Kling O1** (Image) → switch its **Unlimited toggle** on → the
+  Generate button reads bare `UNLIMITED`, no digits. Credits 513 → 513 after the click;
+  the account's "Free generations in total" counter ticks up instead.
+- The **UNLIMITED badge on a model card is not the toggle.** GPT Image 2 carried the badge
+  and still showed a 6.5-credit price on the button. Zoom the button; digits = paid = STOP.
+- Higgsfield Soul Cinema shows a "free generations" counter (4,995 seen) — also $0, but
+  Kling O1 is the recipe that has been run twice.
+- Plate recipe: three views (front 3/4 centre, side left, rear 3/4 right) on a plain
+  warm-grey studio backdrop, no people, no badge/plate/text, 16:9, count 1.
