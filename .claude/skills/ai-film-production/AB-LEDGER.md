@@ -317,3 +317,25 @@ LESSON: a count is not a placement. For any chip that depicts more than one
   people stand and say what stands on the opposite side of frame. If a region
   of the frame has no named occupant, expect the nearest distinctive costume to
   be copied into it.
+
+### S15a-2 vs S2G · the mark rendered as an insect when the sheet only named it · 2026-09-08
+DEFECT SEEN: S15a-2 t1 put the mark on the wall as fine GREY hairlines with thin
+  legs radiating from a dark dot. At the scale it rendered it reads as a mosquito
+  or a spider sitting on the plaster, not as masonry damage. Size was arguably
+  right (about a head wide); weight and colour were not.
+PROMPT A (S15a-2, failed): the mark appears once, inside the location chip's
+  description, as a shorthand — "the brass plaque and the small black mark on the
+  axis". Four words, no shape, no weight, no negatives.
+PROMPT B (S2G, the insert whose entire subject is the mark): the full canon —
+  "IT IS A CRACK, NOT A STAR: a BLACK crack in the plaster… COPY THAT MARK EXACTLY
+  AS THE PICTURE SHOWS IT… It is IN the wall, a break in the surface, not a thing
+  in front of it and not a drawn shape… no spiderweb, no thick heavy arms, no pale
+  or grey mark, no glowing mark — solid black only."
+LESSON: the mark has a canon and the canon has to travel with it. A sheet that
+  merely NAMES the mark while describing something else will get whatever the
+  model imagines a small black mark to be, and what it imagines is an insect.
+  Every sheet in which the mark is visible carries the full description, even when
+  the mark is background and the scene is about people.
+WATCH: S2G says "thin short lines" in the same breath as "solid black only" and
+  "no thick heavy arms". If S2G comes back spidery too, "thin" is the word doing
+  the damage and the canon needs rewriting to lead with weight, not with size.
