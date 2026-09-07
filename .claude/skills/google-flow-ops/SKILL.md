@@ -366,6 +366,9 @@ choice is between the two that can.
 | Cheap draft | 360p at half cost | none |
 | Ingredients (face lock) | yes | yes (8s only) |
 | Raw visual finish | second | first |
+| Cost, 720p 8s | **12 credits** | 20 credits |
+| Cost, 720p 10s | 15 credits | n/a |
+| Cost, 360p draft | 6 at 8s, 7 at 10s | none |
 
 Veo Fast makes the prettier frame. Omni Flash makes the thing a viewer can
 follow: the same voice every scene, a quarter more story per credit, and a way
@@ -381,6 +384,34 @@ plan exposes Voices at all, what Omni Flash costs per generation on this
 account, and whether the Gemini/Vertex **API** can set a voice (no voice
 parameter is documented — if the API cannot, an API-scale episode loses voice
 lock and the whole plan changes).
+
+### Measured on the account, 2026-09-08 (task-e3bf2fa9, read-only, 0 credits)
+
+- **Voices is live on the PLUS tier.** The Add-ingredient picker's categories
+  are ทั้งหมด · รูปภาพ · วิดีโอ · **เสียง** · ตัวละคร · รูปโปรไฟล์ · การอัปโหลด.
+  No upgrade wall anywhere near it.
+- **The model is called "Omni 1.1 Flash" in the UI**, not "Gemini Omni Flash
+  1.1". It is the account default and reappears on every project reload, so a
+  task that wants Veo must select Veo every time.
+- **Omni Flash undercuts Veo 3.1 Fast**: 12 credits at 720p/8s against Veo's
+  20, 15 at 720p/10s, and a 360p draft at 6 and 7. Ingredient chips and the
+  เฟรม/องค์ประกอบ toggle are unchanged when it is selected.
+- **The 30 presets carry written labels** — name plus "Male, gravelly, low
+  pitch" and so on. Nobody has to listen to choose one. Pick from the label,
+  record the name.
+- **Selecting a preset opens a panel, it does not attach immediately**:
+  a preview button, `ตัวอย่างบทสนทนา` (example dialogue, maxlength 120),
+  `ปรับแต่งประสิทธิภาพ` (customize performance, a free-text description with no
+  DOM length cap), then `เพิ่มไปยังพรอมต์` (add to prompt). **There is no name
+  field**, contrary to the docs — the voice is not a saved named object, it is
+  text added to the prompt. So the durable artifact is the preset name plus the
+  performance description, written into the script beside the APPEARANCE LOCK.
+- **Long virtualized lists can be unreadable on winbox.** The tab reported
+  `document.hidden === true` for a whole session on two different tabs, which
+  froze `cdk-virtual-scroll-viewport` rendering (scrollTop and scrollIntoView
+  did nothing) and made screenshots time out about half the time. The fix that
+  works: use the panel's own search box, which substring-matches the full data
+  set and re-renders regardless of scroll state.
 
 ## winbox findings 2026-09-07 (task-ef3995a1, first real shoot on Windows Chrome)
 
