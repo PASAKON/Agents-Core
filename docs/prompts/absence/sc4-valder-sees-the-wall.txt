@@ -1,0 +1,138 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+SC4 · VALDER SEES THE WALL · CEO 2026-09-07 18:20
+CEO: "อยากได้ ฉากตอนที่ Valder เข้ามาแล้วในห้องนั้น เห็นคน 5 คนกำลังยืนดูกำแพง
+Valder รู้ทันทีว่า รูปนั้นหาย ไป สีหน้าของเขาเปลี่ยนไปจากยิ้มแย้มเป็นคนละคนเลย
+ขอฉากสั้นๆ 5-8s" + 18:22 "ใส่ Location ตรงทางเดิน ใช้มุมกล้องแบบ Jump Cut ได้เลย".
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+💚 UNLIMITED (FREE), not the credit lane — the CEO's standing order 2026-09-07
+16:47 is that credits wait until he says. Spec: 8s / 720p / 16:9 / Seedance 2.5
+/ High / 1/4 / Sound ON, Unlimited ON, zoom the button and confirm ZERO digits.
+⚠️ The duration slider defaults to 5s silently — set 8s and read it back.
+
+WHY THE CAMERA IS WHERE IT IS. The CEO asked for the corridor (ทางเดิน), so the
+one location Element is @loc_hall_big_e: the camera stands at the hero-wall end
+of the gallery looking DOWN its length to the red door. That puts the broken
+wall BEHIND the camera, which is exactly what this beat wants — the five face
+us because they are facing that wall, Valder enters from the red door at the
+far end, and what he sees is off-screen behind the lens. The audience reads the
+loss off his face, not off the wall. It also keeps the crack out of frame
+entirely, so nothing here can contradict the crack canon.
+
+⚠️ EXACTLY ONE LOCATION ELEMENT (CEO 2026-09-04): there are three room
+pictures, one per camera position; binding more than one confuses the model.
+This shot is the corridor kind → @loc_hall_big_e and nothing else.
+
+⚠️ SIX PEOPLE, NOBODY ELSE. The CEO's beat is Valder plus the five at the wall.
+No registrar, no Carrington, no bodyguard, no Dupe, no cart, no madame, no
+guards. Fewer bound characters render more reliably (7 chips is the count that
+has been landing this week).
+
+⚠️ THE FACE IS THE WHOLE SHOT. He comes in as the host — open, delighted,
+mid-greeting. Then the smile does not fall into anger, it EMPTIES: the warmth
+goes out and what is left is a different man wearing the same clothes. No
+shouting, no gasp, no hand to the mouth, no tears. Stillness is the effect.
+
+Filing: All Scene/Fix-1/ as SC4-Valder-Sees-Fix1.MP4.
+Previz: NONE. Three locked angles, no camera move to describe.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+8s · 720p · 16:9 · THREE SHOTS, hard cut at 3s and again at 6s. Every shot is
+LOCKED — no pan, no tilt, no zoom, no handheld, no drift inside a shot. Sound
+On · High.
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE GALLERY CORRIDOR, and the only location reference: the
+  camera stands in the gallery looking straight down its length, chromium
+  trumpet columns receding in matched pairs on both sides, warm orange cove
+  light along the ceiling, polished terracotta terrazzo underfoot, works on
+  white plinths and framed pieces down both walls, and the tall RED DOUBLE DOOR
+  far off at the vanishing point. Take the room, its surfaces and its light
+  from this picture. THE BROKEN WALL IS NOT IN THIS SHOT — no crack, no star,
+  no mark, no damaged plaster anywhere in frame.
+@project_absence_char_valder — VALDER: tall, slim, elderly, full swept-back
+  white hair, small round tinted sunglasses. A blazer PANELLED IN FLAT BLOCKS
+  OF COLOUR — magenta, yellow, green, blue, red — over a red waistcoat and
+  white shirt, a long mustard-yellow scarf hanging down the front, purple
+  trousers, and two DIFFERENT shoes, one dark green and one burgundy. He owns
+  this building and he arrives believing everything in it is fine.
+@project_absence_char_woman — THE YOUNG COLLECTOR: young, dark hair pinned up,
+  oversized cobalt-blue wool overcoat with a small gold V pin, pearl cluster
+  necklace, brown-checked midi skirt, black tights, dark brown loafers.
+@project_absence_char_student_c — THE ART STUDENT: young, short curly acid
+  yellow-green hair, paint-spattered denim overshirt, dark trousers, worn
+  trainers, a black sketchbook under one arm.
+@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, brown
+  bob, long tawny-brown fur coat over a rust-red shift dress.
+@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
+  hair, deep maroon leather suit with a stand collar.
+@project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
+  silver-streaked hair swept up, full-length deep magenta fur coat, long cream
+  gloves, cream heels.
+
+WHO IS WHERE. The five stand together in the middle of the corridor in a loose
+row, all five FACING THE CAMERA because they are looking at the wall behind it.
+They are still, absorbed, and not one of them looks away or turns round at any
+point in this clip. Left to right: the man in maroon, the woman in magenta, the
+young collector, the woman in fur, the art student. VALDER comes in alone
+through the red double door at the far end, forty metres behind them.
+
+SHOT ONE · [0s-3s] · locked wide, the full length of the corridor. The red door
+stands open and VALDER walks in, small and far away, arms a little open, chin
+up, plainly in the middle of greeting a room he is delighted with. He takes
+three or four easy strides toward us and stops. The five never move.
+
+SHOT TWO · [3s-6s] · HARD CUT to a waist-up of Valder, standing where he
+stopped, the corridor soft behind him. He is still smiling for the first half
+second. Then he looks past the five, straight down the lens, at the wall behind
+the camera — and the smile goes out of his face. It does not turn into anger.
+The warmth simply leaves, the jaw sets, and the man standing there is not the
+man who walked in. He does not move a step.
+
+SHOT THREE · [6s-8s] · HARD CUT to a tight frame of his face, dead still, held
+to the end. Nothing else changes. Cut.
+
+AUDIO: room tone of a large stone hall, his footsteps on terrazzo in shot one
+and then nothing at all — no dialogue, no gasp, no music, no sting. It opens
+mid room-tone and stops dead with no tail.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around the cove
+lights. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: nobody but the six named people — no registrar, no man in a
+white suit, no bodyguard, no cleaner, no cart, no uniformed guards, no crowd,
+no extras; none of the five turns round, looks at Valder, speaks or moves from
+the row; Valder does not speak, does not shout, does not raise a hand to his
+face, does not cry, does not stagger, does not run; no crack, no star, no mark,
+no hole, no damaged plaster, no bare hook, no empty picture frame anywhere in
+frame; no camera movement inside a shot, no pan, no tilt, no zoom, no push in,
+no dolly, no handheld, no slow motion, no speed ramp; no fourth angle, no cut
+other than the two named above.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. THE FACE CHANGES, and it changes by emptying, not by scowling. If he plays
+   anger or shock the beat is wrong — re-fire.
+2. TWO HARD CUTS, at 3s and 6s, and the angle is different on each side of
+   both. A single continuous shot is a fail.
+3. SIX PEOPLE ONLY. Any seventh body, any cart, any uniform = flagged.
+4. NONE OF THE FIVE TURNS. They are still facing the camera at 8s.
+5. NO CRACK ANYWHERE. The broken wall is behind the lens in every shot.
+6. He never speaks and nothing is said.
+File the take whatever the verdict.
+
+=== END NOTES ===
