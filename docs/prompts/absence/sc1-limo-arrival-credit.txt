@@ -34,7 +34,7 @@ REFERENCES — each with a job:
 @gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
   stand-collar suit, white shoes, a black cane with a gold lion head, two gold
   front teeth. He rides in the rear seat.
-@project_absence_char_guard_private — HIS BODYGUARD: very heavily built Black
+@project_absence_char_guard_private_v2 — HIS BODYGUARD: very heavily built Black
   man, opaque dark sunglasses, white gloves, all-black suit, black shirt and
   tie. He rides in the front passenger seat, gets out first, and HE is the one
   who opens the rear door for Mr Carrington. He never speaks.
@@ -81,5 +81,5 @@ it rendered, ffprobes it, and files it.
 === END NOTES ===
 
 CEO 2026-09-07 13:02: the door is opened by HIS BODYGUARD (the big Black man in dark
-sunglasses, @project_absence_char_guard_private), not by a Valder guard — the six-guard
+sunglasses, @project_absence_char_guard_private_v2), not by a Valder guard — the six-guard
 Element is dropped from this sheet. 4 chips.
