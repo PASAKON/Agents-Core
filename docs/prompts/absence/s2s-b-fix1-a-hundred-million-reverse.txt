@@ -258,3 +258,7 @@ looking up the hall at her). The two are exact inversions of each other and the
 editor can cut between them on the turn at 3s.
 
 === END NOTES ===
+
+CTO 2026-09-07 07:50: @project_absence_prop_croc_bag DROPPED from the paste block — S2R was
+"Rejected due to copyright restrictions" three times with it and rendered on the fourth fire
+without it (13 chips, same text, previz on). The bag is carried as prose now.

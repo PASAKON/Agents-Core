@@ -117,7 +117,7 @@ REFERENCES — each with a job:
   leaf-vein seams and sharply pointed shoulder caps, long green leather opera
   gloves, a towering pompadour streaked blue, green and silver-white, black
   cat-eye sunglasses.
-@project_absence_prop_croc_bag — HER BAG, in one gloved hand throughout:
+HER BAG (no picture — describe it, do not look for one): a dark crocodile-skin handbag; HER BAG, in one gloved hand throughout:
   structured top-handle, polished deep OXBLOOD crocodile, gold clasp.
 @project_absence_char_valder — VALDER, between them: tall, slim, elderly,
   swept-back white hair, small round tinted sunglasses, a blazer panelled in
@@ -252,3 +252,7 @@ watchers gone. Whatever follows this inherits a room that has been waiting a
 long time.
 
 === END NOTES ===
+
+CTO 2026-09-07 07:50: @project_absence_prop_croc_bag DROPPED from the paste block — S2R was
+"Rejected due to copyright restrictions" three times with it and rendered on the fourth fire
+without it (13 chips, same text, previz on). The bag is carried as prose now.

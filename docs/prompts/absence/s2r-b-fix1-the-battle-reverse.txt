@@ -129,7 +129,7 @@ REFERENCES — each with a job:
   chevron leaf-vein seams, sharply pointed shoulder caps, a tall standing
   collar; long green leather opera gloves; a towering pompadour streaked blue,
   green and silver-white; black cat-eye sunglasses. She never raises her voice.
-@project_absence_prop_croc_bag — HER BAG, held in one gloved hand the whole
+HER BAG (no picture — describe it, do not look for one): a dark crocodile-skin handbag; HER BAG, held in one gloved hand the whole
   time: structured top-handle, polished deep OXBLOOD crocodile, gold clasp.
 @gentleman_e — MR CARRINGTON, on the RIGHT: tall, elderly, swept-back white
   hair, a white stand-collar suit, white shoes, a black cane with a gold lion
@@ -260,3 +260,7 @@ PAIRS WITH: s2r-fix1-the-battle.txt (angle A, from the other end, where Valder
 faces the lens). The editor can cut between them on any of the four head-swings.
 
 === END NOTES ===
+
+CTO 2026-09-07 07:50: @project_absence_prop_croc_bag DROPPED from the paste block — S2R was
+"Rejected due to copyright restrictions" three times with it and rendered on the fourth fire
+without it (13 chips, same text, previz on). The bag is carried as prose now.
