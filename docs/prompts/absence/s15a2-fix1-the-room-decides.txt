@@ -135,7 +135,7 @@ quotation marks; no dialogue beyond the one line written above, no repeat of
 "Sorry, sir" or "I cracked it", no grandmother speaking in this half, no anyone
 laughing, no anyone shouting at him, no anyone grabbing him, no violence, no
 security removing him, no police, no comic reaction, no slapstick, no crowd
-beyond twelve people, no painting on the hero wall, no face shown for the crowd
+beyond twenty-one people, no painting on the hero wall, no face shown for the crowd
 voice, no run-in, no new arrival, no repositioning.
 
 House negatives: no extra dialogue, no invented lines, no improvised speech, no
@@ -177,7 +177,7 @@ REVIEW ORDER:
 3. THE CROWD LINE HAS NO FACE. If the model shows someone speaking it, flag.
 4. ONLY those six words. No repeat of Dupe's lines, no invented dialogue.
 5. THE PUSH-IN IS ALREADY MOVING at 0s and stays smooth to the end.
-6. TWELVE PEOPLE, every face different, one bodyguard behind the gentleman.
+6. TWENTY-ONE PEOPLE, every face different.
 File the take whatever the verdict.
 
 === END NOTES ===
