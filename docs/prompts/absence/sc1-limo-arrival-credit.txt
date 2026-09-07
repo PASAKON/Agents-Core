@@ -9,8 +9,7 @@ SC1 · CARRINGTON ARRIVES BY LIMOUSINE · CEO 2026-09-07 12:10 ("อยากใ
 Unlimited toggle OFF. The button will show a credit price (~52 for 8s) — that is
 expected and authorised for THIS fire only. Click Generate ONCE. Never retry.
 Record credits before/after. NO video reference (there is no previz for this).
-Location Element: @project_absence_loc_museum_front (generated + registered by the
-same worker just before this fire, Kling O1 Unlimited, $0).
+Location Element: @project_absence_loc_exterior_front (existing, CEO 2026-09-07 12:20).
 Filing: All Scene/Fix-1/ as SC1-Limo-Arrival-Credit.MP4. The CEO reviews this one himself.
 
 === END NOTES ===
@@ -21,11 +20,14 @@ Filing: All Scene/Fix-1/ as SC1-Limo-Arrival-Credit.MP4. The CEO reviews this on
 no zoom, no handheld. Sound On · High.
 
 REFERENCES — each with a job:
-@project_absence_loc_museum_front — THE MUSEUM ENTRANCE, and the only location
-  reference: the forecourt outside the museum, warm cream stone, chromium trim,
-  the tall RED DOUBLE DOOR at the top of a few shallow steps, daylight. Take the
-  building, its surfaces and its light from this picture. Nothing else is here:
-  no other cars, no crowd, no street traffic.
+@project_absence_loc_exterior_front — THE MUSEUM ENTRANCE, and the only location
+  reference: the forecourt of polished terracotta terrazzo, the low cream-stone
+  museum with its chromium canopy and two chromium trumpet columns, the glass
+  revolving-door entrance at the top of a fan of shallow steps, the gold V on
+  the wall, chrome spheres on cylinder plinths, blue daylight. Take the
+  building, its surfaces and its light from this picture. It is a four-panel
+  sheet — take NOTHING of its arrangement or layout, never reproduce a grid.
+  Nothing else is here: no other cars, no crowd, no street traffic.
 @project_absence_prop_limo — THE LIMOUSINE: the very long angular retro-futuristic
   limousine in champagne-gold lacquer, three doors a side, chrome trim. It is
   the only car in the shot.
@@ -37,10 +39,10 @@ REFERENCES — each with a job:
   tie. He rides in the front passenger seat and gets out first.
 @project_absence_char_guard_valder_six — VALDER'S GUARD: navy military-cut tunic
   with gold buttons and a large gold V, black belt, navy peaked cap. THIS PICTURE
-  SHOWS SIX MEN; USE ONLY ONE OF THEM — a single guard, standing at the red door.
+  SHOWS SIX MEN; USE ONLY ONE OF THEM — a single guard, standing at the entrance.
   Nobody else from the picture exists in this shot.
 
-SHOT ONE · [0s-3s] · locked, from the forecourt, the red door and the single
+SHOT ONE · [0s-3s] · locked, from the forecourt, the glass entrance and the single
 guard in the background. THE LIMOUSINE IS ALREADY MOVING: it rolls in from the
 left at walking pace, long body sliding across the frame, and comes to a smooth
 stop with its rear door exactly in front of the steps. The guard steps down
@@ -48,7 +50,7 @@ toward it.
 
 SHOT TWO · [3s-8s] · HARD CUT, closer, from beside the rear door. The bodyguard
 is already out, standing by the front wing. VALDER'S GUARD OPENS THE REAR DOOR
-himself, one hand on the handle, the other extended toward the red door in a
+himself, one hand on the handle, the other extended toward the entrance in a
 small formal "please, this way" gesture. MR CARRINGTON steps out with his cane,
 straightens, smiles — gold teeth showing — and starts up the steps. Hold. Cut.
 
