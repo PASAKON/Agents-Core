@@ -318,3 +318,34 @@ SKILL-CONTRADICTION: google-flow-ops :: <the rule as written>
 
 A contradiction backed by a screenshot or a DOM read wins over anything written
 here. A contradiction backed by a memory does not.
+
+
+## winbox findings 2026-09-07 (task-ef3995a1, first real shoot on Windows Chrome)
+
+Measured on winbox; the rest of this skill was measured on the Mac. Full
+report: `docs/reports/teaser-shoot-winbox-20260907.md`.
+
+- **`resize_window` never takes effect on winbox** — innerWidth stayed 1920
+  through repeated resize+navigate cycles. Screenshots cost 1.5–2.3k tokens
+  each there, not ~800. Prefer JS reads over screenshots on that host.
+- **Money buttons need a trusted click.** JS `element.click()` opens pickers
+  and menus but did NOT fire เริ่มสร้าง (no card, no balance change). Submit
+  with the `computer` tool's click, then confirm the balance moved.
+- **Inline `@handle` in a prompt truncates `computer` typing** — the
+  ProseMirror @-autocomplete swallows everything after the `@`. Type prompts
+  that contain `@handle` with `document.execCommand('insertText', false, text)`
+  after placing the caret at the end; verify `innerText` before submit.
+- **Agent mode can be ON by default** (chip text exactly `Agent`,
+  aria-pressed true). While on, the settings icon opens การตั้งค่า Agent, not
+  the per-shot panel. Click the Agent chip off first.
+- **Export hang can take 2 reloads / ~9 min.** And ดาวน์โหลดฉาก inside the
+  Scenebuilder saves a direct `.mp4`, not the grid card's `.zip` — check
+  Downloads for both.
+- **A tab can collapse to 98x74 / hidden mid-session** and then time out on
+  screenshots. Open a fresh tab, close the broken one, continue there.
+- **Chip attach in องค์ประกอบ mode had a 7-fail streak** (coordinates verified
+  each time, reload did not help). Budget for it: 3-chip shots took ~10 min
+  each. Stop at 5 consecutive failures and reload the project, not the tab.
+- **Plates must be 9:16.** A landscape start frame is padded with grey bars
+  and the whole clip inherits them (shot 1). Check the plate's aspect in the
+  รูปภาพ tab before binding it as เริ่ม.
