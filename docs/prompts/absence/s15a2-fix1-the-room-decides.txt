@@ -159,6 +159,15 @@ walls, no wooden floor.
 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
+TAKE LOG:
+2026-09-08 — t1 (task-c6d20a5e): STOPPED before fire. Gate check
+depth/gaze-pattern grep hit 1 (expected 0) on "frame edge nearest their
+masters" (guard-grouping line, paste block). Likely a false positive
+(positional, not camera depth-cheat) but not adjudicated by the operator per
+FIRE-PLAYBOOK.md §0 mismatch rule. prompt-lint / 12 chips / 2 HARD CUT all
+passed. No browser action taken. See
+docs/reports/absence-wave-20260908-s15a2-t1.md.
+
 REVIEW ORDER:
 1. IT MUST CUT TO S15a-1. Same hall, same light, Dupe still dead centre
    between Valder and the workman, nobody re-entering. If it opens on a new
