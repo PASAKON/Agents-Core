@@ -264,3 +264,12 @@ faces the lens). The editor can cut between them on any of the four head-swings.
 CTO 2026-09-07 07:50: @project_absence_prop_croc_bag DROPPED from the paste block — S2R was
 "Rejected due to copyright restrictions" three times with it and rendered on the fourth fire
 without it (13 chips, same text, previz on). The bag is carried as prose now.
+
+AI:browser_operator-task-6c89cef9 2026-09-07 11:07 ICT: S2R-B take 1 fired and filed. Gates
+passed (13 chips, no croc_bag chip, 2 depth-pattern hits both Dupe's position). Fire confirmed
+by toast + new Processing card after 5 busy-slot refusals (S2M-B render ahead in queue). Frame
+checks PASS on locked camera / no crack / mirrored sides (Madame left, Carrington right, Valder
+centre) / Dupe frontal-and-nearest / no duplicates. FLAGGED: Dupe's cleaning cart not visible in
+any of the 6 sampled frames (extreme close crop cuts off below chest — cannot confirm present or
+absent from stills). Filed to Drive All Scene/Fix-1/S2R-B-Fix1.MP4 regardless. Full report:
+docs/reports/absence-wave-20260907-s2r-b-t1.md.
