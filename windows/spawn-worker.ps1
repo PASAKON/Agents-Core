@@ -157,7 +157,12 @@ try {
     if (-not (Test-Path $claude)) { $claude = 'claude' }
 
     $claudeArgsSplit = @($ClaudeArgs -split '\s+' | Where-Object { $_ -ne '' })
-    $argList = @($taskContent, '-n', $SessionName, '--append-system-prompt', $systemPrompt) + $claudeArgsSplit
+    # Get-Content -Raw returns a string decorated with NoteProperties (PSPath,
+    # ReadCount...). ConvertTo-Json serialises such a string as an OBJECT
+    # {"value": "...", "PSPath": ...}, so claude.exe received the literal text
+    # "@{value=# Task ..." as its first prompt (every Windows worker so far).
+    # Cast both prompts to plain strings before serialising.
+    $argList = @([string]$taskContent, '-n', [string]$SessionName, '--append-system-prompt', [string]$systemPrompt) + $claudeArgsSplit
 
     $launchDir = Join-Path $wt '.launch'
     New-Item -ItemType Directory -Force -Path $launchDir | Out-Null

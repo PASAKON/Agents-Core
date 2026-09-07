@@ -350,6 +350,13 @@ def scan_once() -> dict:
     stalled = []
     rows = db.list_tasks(status="in_progress", limit=200)
     for t in rows:
+        # Remote workers (host != mac) have pids that live on ANOTHER machine;
+        # _pid_alive() here checks the Mac's process table and would read every
+        # one of them as dead (a winbox browser_operator was flipped to
+        # 'stalled' this way on 2026-09-07). Their liveness belongs to
+        # runners/branch_poller.py, which asks the box over ssh.
+        if (t.get("host") or "mac") != "mac":
+            continue
         silent = _silent_seconds(t["updated_at"])
         if silent < PING_AFTER_S:
             continue
