@@ -266,3 +266,15 @@ Cancelled 17:14 ICT on CTO instruction after the 150-min ceiling. Nothing filed 
 no clip was ever produced to download. Composer/prompt/references were all clean
 at fire time; re-fire the same paste block for take 2, no prompt changes indicated
 by this outcome.
+
+BROWSER_OPERATOR 2026-09-07: take 2 — fired 19:35 ICT (Seedance 2.5, 20s/720p/16:9,
+Unlimited 140->0, 7/7 unique Element chips bound, 0 error chips, same S2NB-Render.MP4
+previz reattached and byte-verified after ~35 min of busy-slot refusals and one
+stray navigation off-project mid-pipeline, both recovered before firing). Rendered
+clean in ~35 min, no NSFW/copyright flag. Filed to All Scene/Fix-1/S2N-B-Fix1.MP4.
+FLAGGED: the clip is THREE shots, not the sheet's one locked shot — a moving/
+relocated camera insert (8-10s) shows the registrar walking a different gallery
+toward the lens, before cutting back to the correct locked frame at 11s (which
+also correctly shows him exiting as a close foreground blur). Mark measured
+0.56x the plaque's width (passes) but 1.19x its height (mild miss). Full detail:
+docs/reports/absence-wave-20260907-s2n-b-t2.md.
