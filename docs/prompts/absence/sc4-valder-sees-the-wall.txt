@@ -75,16 +75,22 @@ REFERENCES — each with a job:
   gloves, cream heels.
 
 WHO IS WHERE. The five stand together in the middle of the corridor in a loose
-row, all five FACING THE CAMERA because they are looking at the wall behind it.
-They are still, absorbed, and not one of them looks away or turns round at any
-point in this clip. Left to right: the man in maroon, the woman in magenta, the
-young collector, the woman in fur, the art student. VALDER comes in alone
-through the red double door at the far end, forty metres behind them.
+row, all five turned toward the camera because the wall they are studying is
+behind it. THEIR EYES ARE ON THE SMALL BLACK CRACK IN THAT WALL, which sits a
+little ABOVE the camera and slightly to one side: every one of the five is
+looking THROUGH the camera position at that mark, chins fractionally lifted,
+and NONE of them looks into the lens. They are still and absorbed, and not one
+of them looks away, turns round, or notices Valder at any point in this clip —
+they are exactly as fixed on the crack at 8s as they were at 0s. Left to right:
+the man in maroon, the woman in magenta, the young collector, the woman in fur,
+the art student. VALDER comes in alone through the red double door at the far
+end, forty metres behind them.
 
 SHOT ONE · [0s-3s] · locked wide, the full length of the corridor. The red door
 stands open and VALDER walks in, small and far away, arms a little open, chin
 up, plainly in the middle of greeting a room he is delighted with. He takes
-three or four easy strides toward us and stops. The five never move.
+three or four easy strides toward us and stops. The five never move and never
+take their eyes off the crack.
 
 SHOT TWO · [3s-6s] · HARD CUT to a waist-up of Valder, standing where he
 stopped, the corridor soft behind him. He is still smiling for the first half
@@ -107,8 +113,9 @@ colour fringing.
 
 CRITICAL NEGATIVES: nobody but the six named people — no registrar, no man in a
 white suit, no bodyguard, no cleaner, no cart, no uniformed guards, no crowd,
-no extras; none of the five turns round, looks at Valder, speaks or moves from
-the row; Valder does not speak, does not shout, does not raise a hand to his
+no extras; none of the five turns round, looks at Valder, looks into the lens,
+makes eye contact with the camera, speaks or moves from the row, and none of
+them stops looking at the crack; Valder does not speak, does not shout, does not raise a hand to his
 face, does not cry, does not stagger, does not run; no crack, no star, no mark,
 no hole, no damaged plaster, no bare hook, no empty picture frame anywhere in
 frame; no camera movement inside a shot, no pan, no tilt, no zoom, no push in,
@@ -130,7 +137,10 @@ REVIEW ORDER:
 2. TWO HARD CUTS, at 3s and 6s, and the angle is different on each side of
    both. A single continuous shot is a fail.
 3. SIX PEOPLE ONLY. Any seventh body, any cart, any uniform = flagged.
-4. NONE OF THE FIVE TURNS. They are still facing the camera at 8s.
+4. NONE OF THE FIVE TURNS, and none of them looks into the lens. At 8s all
+   five are still fixed on the crack above and behind the camera (CEO 18:35:
+   "ทุกคนดูกำแพงอยู่นะ ฉากนี้ยังไม่หันมา ดูไปที่รอยร้าวนั้นอยู่"). Eye contact
+   with the camera is a fail even if nobody turned.
 5. NO CRACK ANYWHERE. The broken wall is behind the lens in every shot.
 6. He never speaks and nothing is said.
 File the take whatever the verdict.
