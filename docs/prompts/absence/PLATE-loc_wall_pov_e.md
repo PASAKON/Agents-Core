@@ -52,10 +52,20 @@ crack kills the film."
    - S2G take 4, FAILED: mark 170 x 154 px, 13.3% of frame width, and the black fills
      only 0.037 of its bounding box — three times sparser, a spidery web.
    So the acceptance test is measurable and belongs in every REVIEW ORDER that carries
-   the mark: **bounding box under about 8% of frame width, fill ratio at or above
-   0.10.** If a shot wants the mark bigger than that, move the camera back instead of
-   adding adjectives — this is the same lesson SC5's sky taught, that framing beats
-   description when a picture is fighting the words.
+   the mark: **the mark must register as dark at a threshold of 80 on a 0-255 grey
+   scale, its bounding box under about 8% of frame width, and its fill ratio at or
+   above 0.10.**
+
+   CORRECTED the same day, after S15a-2 take 3. The "bigger means thinner" reading
+   above came from two clips and does not survive a third: take 3 fired from the same
+   sheet with the mark wording untouched, came back at 4.6% of frame width — SMALLER
+   than the take that passed — and still failed, because it rendered GREY. It does not
+   register at threshold 80 at all; it only appears at 150-190 against a 220
+   background. So the variable that separates a pass from a fail is BLACKNESS, and it
+   varied with no change to the words.
+   Treat this rule as an acceptance test, not a recipe. The mark is not deterministic
+   from the prompt: fire, measure, and keep the take that passes rather than rewriting
+   the sheet again. Only rewrite when a take fails a criterion the sheet never stated.
 
 7. **THE CANON TRAVELS WITH THE MARK.** Any sheet in which the mark is visible carries
    this whole description, even when the mark is background and the scene is about

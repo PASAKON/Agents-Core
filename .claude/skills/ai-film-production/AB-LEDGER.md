@@ -381,7 +381,7 @@ STILL OPEN on this take: the wall mark renders as spidery hairlines and reads as
   were added at 01:32, eight minutes before this fired, and were not yet in this
   sheet. Not a counter-example to the fix above — a separate defect with its own fix.
 
-### S15a-2 take 1 → take 2 · weight before size on the mark · free lane · PASSED 2026-09-08 03:05
+### S15a-2 take 1 → take 2 · weight before size on the mark · PASSED ONCE, THEN FAILED — see the correction at the end of this entry · 2026-09-08
 DEFECT SEEN (t1, 52 credits, fired 00:33): the wall mark rendered as fine GREY
   hairlines with thin legs radiating from a dark dot. At the rendered scale it reads
   as a mosquito or spider sitting on the plaster, not as masonry damage.
@@ -457,3 +457,20 @@ STILL OPEN: shot two broke location a third time — an open horizon with trees 
   looking down, the building is at your back. Turning the camera to look ALONG the
   facade makes both true at once. LESSON: before adding words to fix a background,
   check that the camera position you asked for can physically see it.
+
+CORRECTION 2026-09-08 07:00, after S15a-2 take 3. The entry above was written from a
+single take and it overclaimed. Take 3 fired from the SAME sheet with the mark
+description untouched — only the shot-two guard line changed between them — and the
+mark came back GREY and wire-thin again, reading as an insect exactly as take 1 did.
+Measured on the opening frames:
+  take 2: registers as dark at threshold <80, bbox 96 x 125 px, 7.5% of frame width,
+          fill 0.12 — solid black, thick, angular.
+  take 3: does NOT register at <80 at all; only appears at 150-190 against a
+          background of 220. Bbox 59 x 56 px, 4.6% of frame width, fill 0.091.
+Take 3's mark is SMALLER than take 2's and still failed, so the causal story in canon
+rule 8 — bigger in frame means thinner — does not survive this data point. What
+actually differs is blackness, and it differed with no change to the words.
+WHAT THIS MEANS IN PRACTICE: the mark is not deterministic from the prompt. Two takes
+of one sheet give opposite results, so the remedy is not another rewrite. Fire, MEASURE
+against the rule 8 numbers, and keep the take that passes. Rule 8 remains a good
+acceptance TEST; it is not a reliable recipe.
