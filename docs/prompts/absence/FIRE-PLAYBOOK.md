@@ -59,6 +59,18 @@ S15a-2's operator was right to stop.
   start a background wait and check again, repeatedly, until the card is finished
   or you hit a real error. The CTO's stall watch now flags a worker pane that has
   not changed in 30 minutes, but the operator is the first line of defence.
+- THE DRIVE FILENAME IS THE SCENE NAME AND NOTHING ELSE (HARD, 2026-09-08). Every
+  clip goes to All Scene/Fix-1/ named for its scene — S2G-Fix1.MP4,
+  S15a1-Shield-Fix1.MP4, S2S-B-Fix1.MP4 — and that is true of failures too. Do NOT
+  append a verdict, a defect list, or anything else to the name; S2G take 2 was
+  uploaded as "S2G-Fix1-FLAGGED-plaque-and-mark.mp4" on a "house convention" that
+  does not exist. The verdict lives in the TAKE LOG, the report and the logs.txt
+  line, never in the filename — the editor finds a clip by its scene, and a name
+  that changes with the verdict cannot be found or overwritten by the next take.
+  Inventing a naming pattern also breaks the gdrive-filing skill, which forbids new
+  structure without the CEO's approval. If you have already uploaded under a wrong
+  name, report the exact name and file id and change NOTHING: renaming and deleting
+  on Drive are the CTO's to authorise, with the CEO's say-so.
 - NEVER quit or restart Chrome (HARD, 2026-09-07): the window is shared with the other operators; a frozen tab → close your own tabs, one fresh tab, else STOP and report. The render lives server-side and survives your tab.
 - claude-in-chrome ONLY. NEVER call computer-use (screenshot/click/type/clipboard) or ask
   for Finder / clipboardWrite: the permission dialog it raises blocks the whole pane
