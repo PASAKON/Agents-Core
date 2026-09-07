@@ -12,7 +12,7 @@ together with no gap.
 
 ⚠️ NOTHING WAS CUT from the 20s block. S15a-1 carries the run-in and both of
 Dupe's lines; this half carries the room's recalculation and the crowd's line.
-Same 10 chips in both.
+Same 13 chips in both.
 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
 💚 UNLIMITED (FREE) unless the CEO says credits. Spec: 8s / 720p / 16:9 /
@@ -24,8 +24,22 @@ it back.
 from off-axis and nobody is shown speaking it. That is the point of the line —
 the room has decided collectively and no individual owns the decision.
 
-⚠️ THE GENTLEMAN'S BODYGUARD has no chip — render him from the description in
-the paste block. Exactly one, never two, never absent, no gold V, never speaks.
+⚠️ CEO 2026-09-07 21:55, four rulings applied to this sheet:
+  1. Location is the plate he sent — @project_absence_loc_hall_big_d, not
+     loc_hall_big_e.
+  2. Guards are CHIPPED, both of them, so their faces are locked instead of
+     invented: Valder's two navy guards + Carrington's man in black, and the
+     three stand together in one group at the frame edge.
+  3. Press is now ONE chip of four people (@project_valder_char_press),
+     replacing the old two-person press_a/press_b pair; six ordinary people
+     join as @project_valder_char_villagers_poor.
+  4. Two hard cuts per clip (three shots), not one continuous push.
+  Room total is now 21 people and the negative says so.
+
+⚠️ @project_valder_char_villagers_poor HAS NEVER BEEN USED IN ANY SHEET. Open
+the @ picker and confirm it resolves BEFORE firing. If it does not exist, tell
+the CTO and stop — do not fire with an unbound chip, it fails silently and the
+six people simply vanish.
 
 Filing: All Scene/Fix-1/ as S15a2-RoomDecides-Fix1.MP4.
 Word count: 6 spoken words in this half.
@@ -35,8 +49,9 @@ Previz: NONE. Fire S15a-1 first so the two can be checked against each other.
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-8s · 720p · 16:9 · ONE clean slow push-in on Dupe, already in motion when the
-clip opens — frontal, almost into the lens; unison reactions at the edges.
+8s · 720p · 16:9 · THREE SHOTS, hard cut at 3s and again at 5.5s. The push-in
+on Dupe is already in motion when the clip opens — frontal, almost into the
+lens; unison reactions at the edges. Every shot is locked apart from that push.
 Handheld is banned. Sound On · High.
 
 THE CLIP OPENS MID-MOMENT. Dupe is already standing dead centre between Valder
@@ -45,7 +60,12 @@ room is already silent with every face already turned to him. The push-in is
 already moving. Nothing restarts, nobody walks in, nobody changes position.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall, the same frame and the same light as a moment ago.
+@project_absence_loc_hall_big_d — THE HALL, and the only location reference,
+  the same frame and the same light as a moment ago: warm cream walls, orange
+  cove light, polished terracotta terrazzo, chromium trumpet columns, white
+  plinths, the brass plaque and the small black mark on the axis. It is a
+  four-panel sheet — take NOTHING of its arrangement or layout, and never
+  reproduce a grid.
 @project_absence_char_cleaner_c — DUPE: the subject, centred, white uniform,
   orange trim, gold V, mop in hand, out of breath, saying nothing more.
 @prop_cart_b — his cart at the edge, painting face-out.
@@ -55,23 +75,46 @@ REFERENCES — each with a job:
 @project_absence_char_grandmother — in the wheelchair, present and SILENT.
 @project_absence_char_registrar_b — THE REGISTRAR: a formal BLACK suit, white
   gloves, a GOLD V, the leather ledger. Present, still.
-@gentleman_e — the room, planted at the frame edge. Wherever he stands, ONE
-  personal bodyguard in a plain dark suit stands a pace behind him, hands
-  loose, face neutral — exactly one, never two, never absent, carrying no gold
-  V and never speaking.
-@project_absence_char_press_a @project_absence_char_press_b — FILMING ALL OF
-  THIS — the confession is going out live; this broadcast is why the world
-  knows Dupe's face later in the film.
+@gentleman_e — the room, planted at the frame edge.
+@project_valder_char_press — THE PRESS, FOUR of them, FILMING ALL OF THIS:
+  news crews with shoulder cameras, a boom microphone, a stills photographer.
+  The confession goes out live; the press arrived after the sale and before the
+  reveal, and this broadcast is why the world knows Dupe's face later in the
+  film.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V on the chest, black belts with
+  gold buckles, navy trousers, navy peaked caps, black shoes. One tall and thin,
+  the other short and heavy. This one picture is both of them.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: a very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves on both hands, an
+  all-black suit with a black shirt and black tie. No weapon, no earpiece, no
+  holster, no gold V. He never speaks.
+THE THREE BODYGUARDS STAND TOGETHER, shoulder to shoulder in one small group at
+the frame edge nearest their masters — Valder's two navy guards and Carrington's
+man in black side by side, close enough to touch, all three facing the room and
+none of them moving for the whole clip.
+@project_valder_char_villagers_poor — SIX ORDINARY PEOPLE, ordinary modern
+  clothes, no gold V on any of them, standing among the guests in the rows.
+  Each of the six is a different person with their own face, hair and clothes.
+@project_absence_char_woman_c — MADAME THIBAULT: elderly, tall and rail-straight,
+  a floor-length gown of glossy mid-green leather panelled in chevron leaf-vein
+  seams, sharply pointed shoulder caps, a tall standing collar to the jaw, long
+  green leather opera gloves. She stands where she already was and does not move.
 
-[0s] The room absorbs what he just said — not shock, RECALCULATION: heads tilt
-IN UNISON at the frame edges, eyes move from him to the crack and back. One of
-them nods slowly, the way people nod when they have decided something is
-profound. Nobody speaks. Nobody moves towards him.
+SHOT ONE · [0s-3s] · the push-in already moving on Dupe, centred, silent, the
+room still turned to him. He says nothing at all.
 
-[4s] A VOICE FROM THE CROWD, off-axis. Nobody is shown speaking; this line
-deliberately has no face. The voice, certain: "Then the artist is the
-building." END on Dupe's centred face inside the push, mouth slightly open, no
-reply.
+SHOT TWO · [3s-5.5s] · HARD CUT to the room in the same hall — the guests, the
+three bodyguards together at the edge, the press filming. The room absorbs what
+he just said, and it is not shock but RECALCULATION: heads tilt IN UNISON, eyes
+move from him to the crack and back. One of them nods slowly, the way people
+nod when they have decided something is profound. Nobody speaks. Nobody moves
+towards him.
+
+SHOT THREE · [5.5s-8s] · HARD CUT back to Dupe inside the push. A VOICE FROM
+THE CROWD, off-axis. Nobody is shown speaking; this line deliberately has no
+face. The voice, certain: "Then the artist is the building." END on Dupe's
+centred face, mouth slightly open, no reply.
 
 AUDIO: his breathing, room tone, the press camera's motor, no music. NO SOUND
 AT THE START OR THE END: the clip opens mid room-tone with no intro sting or
@@ -99,7 +142,7 @@ smiling to camera, no winking, no knowing looks to camera, no laughing, no
 comic expressions, no smartphones, no screens, no LEDs, no digital displays, no
 modern technology, no dissolve, no crossfade, no fade to black, no wipe, no
 morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no
-dutch angle, no tilted horizon, no whip pan, no zoom other than the slow push-in
+dutch angle, no tilted horizon, no whip pan, no zoom other than the slow push-in named above, no cut other than the two
 named above, no crane move, no drone shot, no lens flare, no anamorphic streak,
 no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no
 smooth airbrushed faces, no beauty filter, no dirt, no grime, no grey skin, no

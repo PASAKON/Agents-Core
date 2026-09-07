@@ -20,12 +20,26 @@ Seedance 2.5 / High / 1/4 / Sound ON, Unlimited ON, zoom the button and confirm
 ZERO digits. ⚠️ The duration slider defaults to 5s silently — set 8s and read
 it back.
 
-⚠️ 10 CHIPS, the same ten as the 20s block. char_woman and char_critic_b stay
+⚠️ 13 CHIPS. char_woman and char_critic_b stay
 DROPPED and play as unnamed background guests — twelve chips reliably turns to
 mush and they have no action here. Do not re-add them.
 
-⚠️ THE GENTLEMAN'S BODYGUARD has no chip — render him from the description in
-the paste block. Exactly one, never two, never absent, no gold V, never speaks.
+⚠️ CEO 2026-09-07 21:55, four rulings applied to this sheet:
+  1. Location is the plate he sent — @project_absence_loc_hall_big_d, not
+     loc_hall_big_e.
+  2. Guards are CHIPPED, both of them, so their faces are locked instead of
+     invented: Valder's two navy guards + Carrington's man in black, and the
+     three stand together in one group at the frame edge.
+  3. Press is now ONE chip of four people (@project_valder_char_press),
+     replacing the old two-person press_a/press_b pair; six ordinary people
+     join as @project_valder_char_villagers_poor.
+  4. Two hard cuts per clip (three shots), not one continuous push.
+  Room total is now 21 people and the negative says so.
+
+⚠️ @project_valder_char_villagers_poor HAS NEVER BEEN USED IN ANY SHEET. Open
+the @ picker and confirm it resolves BEFORE firing. If it does not exist, tell
+the CTO and stop — do not fire with an unbound chip, it fails silently and the
+six people simply vanish.
 
 Filing: All Scene/Fix-1/ as S15a1-Shield-Fix1.MP4.
 Word count: 6 spoken words in this half.
@@ -35,12 +49,18 @@ Previz: NONE.
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-8s · 720p · 16:9 · axis run-in, then ONE clean slow push-in on Dupe — frontal,
-almost into the lens; unison reactions at the edges. Handheld is banned. Sound
-On · High.
+8s · 720p · 16:9 · THREE SHOTS, hard cut at 3s and again at 5.5s. Axis run-in,
+then the push-in on Dupe — frontal, almost into the lens; unison reactions at
+the edges. Every shot is locked apart from the push named in shot three.
+Handheld is banned. Sound On · High.
 
 REFERENCES — each with a job:
-@loc_hall_big_e — the hall.
+@project_absence_loc_hall_big_d — THE HALL, and the only location reference:
+  warm cream walls, orange cove light washing the ceiling, polished terracotta
+  terrazzo underfoot, tall chromium trumpet columns in matched pairs down both
+  sides, white plinths and the collection along both walls, the brass plaque and
+  the small black mark on the hero wall on the axis. It is a four-panel sheet —
+  take NOTHING of its arrangement or layout, and never reproduce a grid.
 @project_absence_char_cleaner_c — DUPE: the subject. White uniform, orange trim,
   gold V, mop in hand.
 @prop_cart_b — his cart at the edge, painting face-out.
@@ -52,28 +72,50 @@ REFERENCES — each with a job:
   half; she speaks later.
 @project_absence_char_registrar_b — THE REGISTRAR: a formal BLACK suit, white
   gloves, a GOLD V, the leather ledger. Present, still.
-@gentleman_e — the room, planted at the frame edge. Wherever he stands, ONE
-  personal bodyguard in a plain dark suit stands a pace behind him, hands
-  loose, face neutral — exactly one, never two, never absent, carrying no gold
-  V and never speaking.
-@project_absence_char_press_a @project_absence_char_press_b — FILMING ALL OF
-  THIS — the confession goes out live; the press arrived after the sale and
-  before the reveal, and this broadcast is why the world knows Dupe's face
-  later in the film.
+@gentleman_e — the room, planted at the frame edge.
+@project_valder_char_press — THE PRESS, FOUR of them, FILMING ALL OF THIS:
+  news crews with shoulder cameras, a boom microphone, a stills photographer.
+  The confession goes out live; the press arrived after the sale and before the
+  reveal, and this broadcast is why the world knows Dupe's face later in the
+  film.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V on the chest, black belts with
+  gold buckles, navy trousers, navy peaked caps, black shoes. One tall and thin,
+  the other short and heavy. This one picture is both of them.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: a very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves on both hands, an
+  all-black suit with a black shirt and black tie. No weapon, no earpiece, no
+  holster, no gold V. He never speaks.
+THE THREE BODYGUARDS STAND TOGETHER, shoulder to shoulder in one small group at
+the frame edge nearest their masters — Valder's two navy guards and Carrington's
+man in black side by side, close enough to touch, all three facing the room and
+none of them moving for the whole clip.
+@project_valder_char_villagers_poor — SIX ORDINARY PEOPLE, ordinary modern
+  clothes, no gold V on any of them, standing among the guests in the rows.
+  Each of the six is a different person with their own face, hair and clothes.
+@project_absence_char_woman_c — MADAME THIBAULT: elderly, tall and rail-straight,
+  a floor-length gown of glossy mid-green leather panelled in chevron leaf-vein
+  seams, sharply pointed shoulder caps, a tall standing collar to the jaw, long
+  green leather opera gloves. She stands where she already was and does not move.
 
-[0s] The workman at the wall with bucket and float; Valder between him and the
-crack, still mid-rage. DUPE RUNS IN ALONG THE AXIS from the frame edge and
-PLANTS HIMSELF DEAD CENTRE between Valder and the workman — a human shield, all
-three on one line, symmetrical. The first decisive thing he has done in the
-entire film, and he does it to protect somebody else. Out of breath,
-frightened, frontal, almost into the lens: "Sorry, sir."
+SHOT ONE · [0s-3s] · locked wide down the hall: the workman at the wall with
+bucket and float; Valder between him and the crack, still mid-rage; the three
+bodyguards together at the frame edge; the room watching. DUPE RUNS IN ALONG
+THE AXIS from the frame edge and PLANTS HIMSELF DEAD CENTRE between Valder and
+the workman — a human shield, all three on one line, symmetrical. The first
+decisive thing he has done in the entire film, and he does it to protect
+somebody else.
 
-[4s] He looks at the wall, then at Valder. He has no idea what he is doing.
-Then, plainly: "I cracked it. Last hour." SILENCE. Hold it. Every face in the
-room turns to him. He stands there in a white uniform, holding a mop, having
-just told the truth to a room that paid a hundred million dollars for it. The
-slow push-in on him begins and the clip ends while the silence is still
-holding, on his centred face, nobody having answered.
+SHOT TWO · [3s-5.5s] · HARD CUT to a chest-up of Dupe, frontal, almost into the
+lens, out of breath and frightened: "Sorry, sir." He looks off to the wall,
+then back to Valder. He has no idea what he is doing. Then, plainly: "I cracked
+it. Last hour."
+
+SHOT THREE · [5.5s-8s] · HARD CUT wider for one beat — every face in the room
+turning to him, the room going silent — then straight into the slow push-in on
+Dupe. He stands there in a white uniform, holding a mop, having just told the
+truth to a room that paid a hundred million dollars for it. The clip ends while
+the silence is still holding, on his centred face, nobody having answered.
 
 AUDIO: his breathing, room tone, the press camera's motor, no music. NO SOUND
 AT THE START OR THE END: the clip opens mid room-tone with no intro sting or
@@ -87,7 +129,7 @@ aloud, no narration of the character's state, no speaking anything outside the
 quotation marks; no dialogue beyond the two lines written above, no grandmother
 speaking in this half, no anyone laughing, no anyone shouting at him, no anyone
 grabbing him, no violence, no security removing him, no police, no comic
-reaction, no slapstick, no crowd beyond twelve people, no painting on the hero
+reaction, no slapstick, no crowd beyond twenty-one people, no painting on the hero
 wall.
 
 House negatives: no extra dialogue, no invented lines, no improvised speech, no
@@ -100,7 +142,7 @@ smiling to camera, no winking, no knowing looks to camera, no laughing, no
 comic expressions, no smartphones, no screens, no LEDs, no digital displays, no
 modern technology, no dissolve, no crossfade, no fade to black, no wipe, no
 morph, no slow motion, no speed ramp, no camera shake, no handheld wobble, no
-dutch angle, no tilted horizon, no whip pan, no zoom other than the slow push-in
+dutch angle, no tilted horizon, no whip pan, no zoom other than the slow push-in named above, no cut other than the two
 named above, no crane move, no drone shot, no lens flare, no anamorphic streak,
 no bokeh balls, no HDR, no digital gloss, no CGI sheen, no plastic skin, no
 smooth airbrushed faces, no beauty filter, no dirt, no grime, no grey skin, no
