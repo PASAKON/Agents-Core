@@ -257,3 +257,11 @@ variables changed at once, so the ledger's "it was the name" is unproven.
 FIRE 4 (this sheet as edited above): the croc-bag chip is dropped and carried
 as prose; if it still rejects, the Madame's Element is the flagged one and the
 CEO decides (credit lane, which passed S2Q, or a new Madame Element = paid).
+
+TAKE 2 · 2026-09-07 (browser_operator task-efa1d2dd): RENDERED — one fire,
+13 chips (croc-bag chip absent, carried as prose only), previz attached and
+byte-verified. No copyright rejection this time (croc-bag drop looks like the
+fix). FLAGGED on review instead: 13 people in frame, not 12 — a duplicated
+chestnut-fur/rust-dress woman (@project_absence_char_visitor_b) appears twice,
+flanking the Madame, in every checked frame. Filed to Drive regardless. Full
+report: docs/reports/absence-wave-20260907-s2r-t2.md.
