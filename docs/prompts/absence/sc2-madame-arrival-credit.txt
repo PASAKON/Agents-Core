@@ -28,9 +28,11 @@ REFERENCES — each with a job:
   building, its surfaces and its light from this picture. It is a four-panel
   sheet — take NOTHING of its arrangement or layout, never reproduce a grid.
   Nothing else is here: no other cars, no crowd, no street traffic.
-@project_absence_prop_car — HER CAR: the low, long retro-futuristic sports coupé
-  in deep glossy emerald-green lacquer with gold flake, chrome spine, chrome
-  wheel spats, teardrop glass canopy. The only car in the shot.
+HER CAR (no picture of it — build it from these words): a low, long retro-futuristic
+  sports coupé, the year 2000 as imagined in 1968 — long bonnet, teardrop glass
+  canopy, a single chrome spine down the centre, chrome wheel spats, small tail
+  fins, round chrome lamps — in deep glossy EMERALD-GREEN lacquer with a faint
+  gold flake, cream leather inside. The only car in the shot.
 @project_absence_char_woman_c — THE WOMAN IN GREEN: elderly, tall, rail-straight,
   a sculpted floor-length gown of glossy mid-green leather with chevron seams,
   sharply pointed shoulder caps, a tall standing collar; long green leather
@@ -81,3 +83,7 @@ REVIEW: the CEO reviews this clip himself (2026-09-07). The worker only confirms
 it rendered, ffprobes it, and files it.
 
 === END NOTES ===
+
+CTO 2026-09-07 13:27: @project_absence_prop_car DROPPED — the Element carries Higgsfield's
+protected-content warning badge (the fire is refused with it). The car is prose now;
+the CEO can decide on a new plate later. 3 chips.
