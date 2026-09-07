@@ -195,4 +195,13 @@ entirely (open field/park at dusk, not the museum forecourt). Filed to Drive
 regardless per instruction. Full report:
 docs/reports/absence-wave-20260907-sc5-t1.md
 
+2026-09-07 — take 2 (Unlimited/free lane, fired 21:07 ICT, cost 0): FLAGGED.
+Guard COUNT fixed (6/6, was 5), but still bunched at the doors with no flank
+coverage — none at the wall, none at the rail. Shot One sky still not
+sunset (flat blue-grey; Shots 2-3 correctly amber). Shot Three's location is
+now FIXED (correct museum doors), but Shot Two still breaks location
+continuity (open field with a distant dome, not the forecourt). Filed to
+Drive regardless per instruction. Full report:
+docs/reports/absence-wave-20260907-sc5-t2.md
+
 === END NOTES ===
