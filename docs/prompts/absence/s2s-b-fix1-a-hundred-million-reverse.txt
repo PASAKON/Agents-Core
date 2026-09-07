@@ -276,3 +276,16 @@ uploads from this session remain in the project's Uploads > Videos library unuse
 fresh previz upload from a clean tab; if it sticks a third time this may be a platform-side
 previz-verification issue worth flagging to the CEO/Higgsfield support rather than retrying
 blind.
+
+browser_operator 2026-09-08 (task-5335bd7c), take 2 FIRED CLEAN, FLAGGED: attached the
+existing GRANDMOTHER-labelled library tile (byte-verified 4276866 via HEAD content-length
+against the CloudFront URL, no fresh upload needed) — Generate enabled immediately, no
+eligibility wait. Fired 23:34:18 ICT, landed ~46 min later with no rejection. Cast is wrong:
+the guard_valder_two chip rendered TWICE, mirrored across the group at the opening frame (4
+navy guards at 0.5s, 2 to the left of Valder + 2 to the right of the woman in green — a clean
+"no face repeated anywhere" violation), settling to 3 navy guards (one persistent extra) from
+4s onward. THE REGISTRAR / THE ART STUDENT / DUPE never appear anywhere in the 20s. The 13s
+walk-past-camera beat is performed by THE WOMAN IN COBALT instead of the art student it
+belongs to (fur woman's 16s walk is correct). No crack/mark, camera/chair blocking clean.
+Filed to All Scene/Fix-1/ as S2S-B-Fix1.MP4 regardless of verdict. Full report (corrected
+after CTO recount 2026-09-08): docs/reports/absence-wave-20260907-s2s-b-t2.md.
