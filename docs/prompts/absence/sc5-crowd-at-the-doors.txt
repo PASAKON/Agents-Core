@@ -1,0 +1,169 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+SC5 · THE CROWD AT THE DOORS · CEO 2026-09-07 18:50
+CEO: "คนแห่เข้ามา มุงที่หน้า [loc_exterior_front] เยอะมาก โดยมี Guard ของ Valder 6
+ปิดกั้นประตูไม่ให้เข้า · ช่วงเวลาตอนนี้เป็นตอนบ่ายๆ เย็นๆ แล้ว แสงท้องฟ้าจะเป็น
+คนละแบบกับในรูป แต่เราใช้รูปนี้แต่บอกช่วงเวลาให้ Model ปรับแสงให้ได้ · ฉากนี้จะใช้
+5-8s เหมือนเดิม ไม่มีบทพูด มีแต่เสียงที่ฟังไม่รู้เรื่อง เสียงคน + นักข่าวเต็มไปหมด
+อยากเข้าไปข้างในแต่เข้าไม่ได้ เพราะตอนนี้เกิดการประมูลกำแพงกันอยู่ ออกข่าวไปทั่ว"
+· 18:53 "ขอแบบวุ่นวายสุดๆ เลย คนจะเข้าไปให้ได้ Guard ก็บังสุดทุกทาง ห้ามมี
+Character ซ้ำกันนะ คนใส่ชุดทั่วไปได้เลย" · 18:55 "ขอประมาณ 20-30 คน".
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+💚 UNLIMITED (FREE), not the credit lane — the CEO's standing order 2026-09-07
+16:47 is that credits wait until he says. Spec: 8s / 720p / 16:9 / Seedance 2.5
+/ High / 1/4 / Sound ON, Unlimited ON, zoom the button and confirm ZERO digits.
+⚠️ The duration slider defaults to 5s silently — set 8s and read it back.
+
+⚠️ THE TIME OF DAY IS DELIBERATELY NOT THE PLATE'S. The exterior plate is a
+midday shot under a hard blue sky. This scene is late afternoon going into
+evening. The block takes the BUILDING from the picture and states the light in
+its own paragraph so the model reads it from one place. That paragraph is the
+CEO's whole point for this shot — do not soften it.
+
+⚠️ ALL SIX GUARDS, AND THEY COVER EVERY WAY IN. SC1 used one man off this same
+plate and had to say "USE ONLY ONE"; this sheet says the opposite as plainly:
+all six, and they are spread across the doors AND both flanks, because the CEO
+asked for people trying every route and guards blocking every route.
+
+⚠️ NO REPEATED FACES (CEO 18:53). A crowd is exactly where this model clones a
+face and a coat four times. The block names the count (20-30), demands every
+person be different, and bans duplicates outright in the negatives. Check it at
+review: scan both edges of frame, not just the middle.
+
+⚠️ THE CROWD IS PROSE, NOT ELEMENTS. There is no crowd plate and binding a
+dozen character Elements is what loses people in a render. Two chips only.
+Ordinary modern street clothes (CEO 18:53) — not uniforms, not evening dress.
+
+⚠️ NOBODY SPEAKS A LINE. The sound is a wall of voices with no words in it,
+plus shutters. No dialogue, no chant anybody could transcribe, no captions.
+
+Filing: All Scene/Fix-1/ as SC5-Crowd-Fix1.MP4.
+Previz: NONE. Three locked angles, no camera move to describe.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+8s · 720p · 16:9 · THREE SHOTS, hard cut at 3s and again at 6s. Every shot is
+LOCKED — no pan, no tilt, no zoom, no handheld, no drift inside a shot. Sound
+On · High.
+
+REFERENCES — each with a job:
+@project_absence_loc_exterior_front — THE MUSEUM ENTRANCE, and the only
+  location reference: a low curved building faced in warm cream stone, a long
+  polished chromium canopy along its front edge, two tall chromium trumpet
+  columns holding that canopy up, a glass revolving-door entrance set back
+  beneath it, a large gold V on the stone beside the doors, mirrored chrome
+  spheres on cylinder plinths, and a wide fan of shallow steps dropping to a
+  forecourt of polished terracotta terrazzo. Take the BUILDING, its materials
+  and its shapes from this picture. It is a four-panel sheet — take NOTHING of
+  its arrangement or layout, and never reproduce a grid. DO NOT TAKE ITS LIGHT
+  OR ITS SKY — the time-of-day paragraph below overrides the picture on both.
+@project_absence_char_guard_valder_six — VALDER'S GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V on the chest, black belts with
+  gold buckles, navy trousers, navy peaked caps, black shoes. THIS PICTURE
+  SHOWS SIX MEN AND ALL SIX ARE IN THIS SHOT, the only people in uniform here.
+  They are spread to cover EVERY way in: four shoulder to shoulder across the
+  top step in front of the glass doors, one at the left flank where the steps
+  meet the wall, one at the right flank by the ramp rail. Arms out, planted,
+  calm, silent. Every gap they leave is closed by the next man.
+
+THE TIME OF DAY, which is not the reference picture's: LATE AFTERNOON going
+into evening, an hour or so before sunset. The sky is deep warm blue overhead
+turning amber and rose low down, high cloud catching the last gold. The sun is
+low and off to one side, so the cream stone is lit warm gold on the face that
+catches it and drops into cool blue shadow on the other, the chromium canopy
+and the mirrored spheres throw long hot highlights, and every person on the
+forecourt casts a long raking shadow across the terrazzo. The lamps under the
+canopy have just come on. NO midday sun, NO hard blue noon sky, NO short
+overhead shadows.
+
+WHAT IS HAPPENING, and it is chaos. Between TWENTY AND THIRTY people are packed
+across the forecourt and up the steps, and every one of them is trying to get
+inside, because the auction everybody has seen on the news is happening in
+there right now. They press forward in a body, shoulder against shoulder, up
+the shallow steps. Individuals break off and try the edges: one squeezing along
+the left-hand wall, one hauling himself up the ramp rail on the right, two more
+ducking low to slip under a guard's outstretched arm, hands flat on the glass,
+phones thrust over heads at arm's length to film past the line. PRESS are
+everywhere in it — news crews with shoulder cameras up on their shoulders, two
+boom microphones swinging over the heads of the crowd, stills photographers
+firing flashes, a reporter jammed sideways in the crush talking fast into her
+own lens. THE SIX GUARDS HOLD EVERY ROUTE and nobody gets through: the line
+across the doors does not break, the flank men turn the edge-runners back, the
+glass doors stay shut. Bodies surge; the navy line does not move.
+
+EVERY PERSON IS A DIFFERENT PERSON. No two people in this crowd share a face, a
+hairstyle, a build or an outfit. Mixed ages from students to pensioners, mixed
+heights and builds, mixed skin tones, some with glasses, some with beards, some
+with bags, some with children on their shoulders. ORDINARY MODERN STREET
+CLOTHES in ordinary colours — overcoats, anoraks, jackets, cardigans, jeans,
+work trousers, scarves, a few suits among them — nothing uniform, nothing
+matching, nothing formal or costumed. Only the six guards wear a uniform.
+
+SHOT ONE · [0s-3s] · locked wide from the forecourt, the whole entrance in
+frame under the low sun: the crowd packed across the bottom two thirds, arms
+and cameras up, surging up the steps, edge-runners going for both flanks, and
+the SIX GUARDS covering the doors and both sides. Bodies move hard; the line
+does not.
+
+SHOT TWO · [3s-6s] · HARD CUT to a closer angle from beside the guard line,
+looking down the steps into the crush: faces upturned and shouting, mouths
+open, a phone shoved past a guard's shoulder, a flash going off, a boom mic
+swinging over their heads, a reporter mid-sentence to camera, one man trying to
+duck under an outstretched arm and being turned back. Two navy shoulders and a
+gold V fill the near edge of frame and never move.
+
+SHOT THREE · [6s-8s] · HARD CUT tight on the middle of the line: two of the six
+from the chest up, peaked caps, gold V, eyes forward, absolutely still, the
+crowd loud and out of focus beyond them. Hold. Cut.
+
+AUDIO: a wall of human noise with NO intelligible words in it — voices layered
+over voices, shouting, calling, overlapping questions, camera shutters
+clattering, a siren far off. No dialogue, no line anybody could transcribe, no
+music, no score. It opens mid-noise and stops dead with no tail.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around the lamps
+and the low sun. Photographed, not rendered: fine film grain, faint gate weave,
+slight colour fringing.
+
+CRITICAL NEGATIVES: no duplicate people — no two identical faces, no cloned
+person, no repeated haircut-and-coat pairing, nobody appearing twice in the
+same frame; no midday sun, no hard blue noon sky, no short overhead shadows, no
+night, no rain; the crowd never gets through and no member of the public is
+inside the building; the six guards never fight, never strike anybody, never
+push anybody over, never draw anything, never speak and never break the line;
+no police, no police uniforms, no metal crowd barriers, no rope, no fences, no
+weapons, no batons, no violence, no blood, no falling, no trampling, no injury;
+no readable text of any kind — no banners, no placards, no protest signs, no
+headlines, no station logos, no legible press badges, no subtitles, no
+captions, no on-screen text; no Valder, no Carrington, no madame, no cleaner,
+no cart; no crack, no wall, no gallery interior; no camera movement inside a
+shot, no pan, no tilt, no zoom, no push in, no dolly, no handheld, no slow
+motion, no speed ramp; no fourth angle, no cut other than the two named above.
+
+House negatives: no voiceover, no narration, no music, no score, no dutch
+angle, no tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen,
+no plastic skin, no beauty filter, no dim moody lighting, no darkness.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+0. NO REPEATED FACES (CEO 18:53). Scan both edges of every frame, not the
+   middle only. One cloned face or one repeated coat = flagged, re-fire.
+1. THE LIGHT. Low sun, long raking shadows, warm sky going amber low down,
+   lamps on under the canopy. Midday blue like the plate = the one instruction
+   the CEO gave for this shot has failed — re-fire.
+2. SIX GUARDS, covering the doors AND both flanks, holding for the whole clip.
+   Five or seven, or a line that breaks, = flagged.
+3. 20-30 PEOPLE and it must read as a crush, not a queue. Count in the wide.
+4. NOBODY GETS IN. Glass doors shut behind the line for all 8 seconds.
+5. TWO HARD CUTS at 3s and 6s, angle different either side of both.
+6. NO READABLE TEXT anywhere — signs, badges, banners, captions.
+7. Sound is voices with no words. Any intelligible line = flagged.
+File the take whatever the verdict.
+
+=== END NOTES ===
