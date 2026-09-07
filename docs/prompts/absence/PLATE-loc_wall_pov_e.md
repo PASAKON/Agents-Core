@@ -42,6 +42,21 @@ crack kills the film."
      black. Predicted in the A/B ledger before the clip landed, then confirmed.
    The star core is not the problem in either take. The tendrils are. Ban them by
    naming what the lines ARE — short, solid, ink-weight, ending where they end.
+8. **THE MARK MUST BE SMALL IN FRAME, AND THERE IS A NUMBER FOR IT — measured
+   2026-09-08.** The bigger the mark is allowed to be in the picture, the thinner the
+   model draws it: at close range it stops drawing a graphic and starts drawing
+   realistic plaster fracture, which is fine hairlines by nature. Two takes, same
+   canon wording, opposite results:
+   - S15a-2 take 2, PASSED: mark 96 x 125 px on a 1280 frame, 7.5% of frame width,
+     and the black FILLS 0.12 of its own bounding box — a bold compact shape.
+   - S2G take 4, FAILED: mark 170 x 154 px, 13.3% of frame width, and the black fills
+     only 0.037 of its bounding box — three times sparser, a spidery web.
+   So the acceptance test is measurable and belongs in every REVIEW ORDER that carries
+   the mark: **bounding box under about 8% of frame width, fill ratio at or above
+   0.10.** If a shot wants the mark bigger than that, move the camera back instead of
+   adding adjectives — this is the same lesson SC5's sky taught, that framing beats
+   description when a picture is fighting the words.
+
 7. **THE CANON TRAVELS WITH THE MARK.** Any sheet in which the mark is visible carries
    this whole description, even when the mark is background and the scene is about
    people. A sheet that only names it ("the small black mark on the axis") gets whatever

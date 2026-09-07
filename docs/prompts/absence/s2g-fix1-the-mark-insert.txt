@@ -41,8 +41,9 @@ Filing: All Scene/Fix-1/ as S2G-Fix1.MP4.
 zooms, never drifts, no cuts, for the whole twelve seconds. Sound On · High.
 
 THE FRAME, unchanging for twelve seconds: a flat, straight-on view of a warm
-cream gallery wall, filling the whole picture. The camera stands close to the
-wall, and THE BREAK sits in the middle of the frame with clean cream plaster on
+cream gallery wall, filling the whole picture. The camera stands WELL BACK from
+the wall, so the wall is a wide calm field and the break is small in it, and THE
+BREAK sits in the middle of the frame with clean cream plaster on
 every side of it and plaster running unbroken to all four edges of the picture.
 This shot is wall and crack and nothing else: cream plaster fills every corner,
 top, bottom, left and right.
@@ -61,16 +62,20 @@ top, bottom, left and right.
   wall, alone on the plaster. IT IS A CRACK, NOT A STAR: a BLACK crack in the
   plaster. EVERY LINE OF IT IS SOLID AND CARRIES THE WEIGHT OF INK — short,
   blunt, dark for its whole length, ending where it ends. A few such lines meet
-  at one small dark point, which only happens to be star-shaped. Take 2 gave the
-  star a correct solid core and then trailed three long TAN HAIRLINES off it,
-  up-right, left and down; those are the defect. The mark has a hard edge all the
-  way round and nothing wisps away from it. COPY THAT MARK EXACTLY AS THE PICTURE SHOWS IT AND NEVER
+  at one small dark point, which only happens to be star-shaped. The mark has a
+  hard edge all the way round and every line keeps its full width and its full
+  blackness until it stops. COPY THAT MARK EXACTLY AS THE PICTURE SHOWS IT AND NEVER
   CHANGE IT — not its shape, not its colour, not its proportions. On the real
-  wall it is SMALL, about the size of a hand; here the camera is close, so that
-  hand-sized mark fills about a quarter of the frame's height and no more. It
-  sits in the MIDDLE of the picture with a clear field of unbroken cream plaster
-  all round it, and there is at least as much plain plaster BELOW the mark as
-  above it, running unbroken right down to the bottom edge of the frame. It is IN the
+  wall it is SMALL, about the size of a hand. THE CAMERA STANDS WELL BACK FROM THE
+  WALL, far enough that the mark is a SMALL SHAPE IN A LARGE EMPTY FIELD OF
+  PLASTER — it spans only about one twelfth of the picture's width, roughly a
+  hundred pixels across a 1280-wide frame, and no more. Do not move in close on
+  it. It sits in the MIDDLE of the picture with unbroken cream plaster on every
+  side, at least as much plaster BELOW the mark as above it, running unbroken to
+  all four edges. At this distance the mark reads as one bold compact black shape
+  rather than a web of fine fractures: its few lines are SHORT and THICK relative
+  to the shape itself, so that if you drew a box tightly round the whole mark,
+  black would fill more than a tenth of that box. It is IN the
   wall, a break in the surface, not a thing in front of it and not a drawn
   shape. DO NOT ENLARGE IT AND DO NOT REDRAW IT: no full-height fracture, no
   spiderweb, no arms reaching the edges of the frame, no fine radiating
