@@ -293,4 +293,74 @@ REVIEW ORDER:
 6. TWENTY-ONE PEOPLE, every face different.
 File the take whatever the verdict.
 
+2026-09-08T06:13:19+07:00 — t4 (task-8a70a0c0): FIRED, UNLIMITED/FREE lane.
+Gates: git merge main clean (already at bbac8b0, up to date), gate-0
+depth/gaze grep 0 hits on paste block, prompt-lint exit 0, 12/12 chips exact
+match to prompt-lint --chips list (villagers_poor correctly prose-only, not
+a chip), 2 HARD CUT confirmed in sheet (shots 2 and 3). All 12 reference
+thumbnails zoomed, no warning triangles. innerWidth 1400 (>=1280) verified
+before firing. Credits-low banner closed via its own (x) first action.
+Duration slider defaulted to 12s (not 5s this session) — corrected to 8 via
+focus()+ArrowLeft x4, read back aria-valuenow=8 before firing. Paste via
+synthetic ClipboardEvent + End/space/Backspace tap; chip count re-verified
+12/12 after paste and again after Unlimited toggle. Unlimited toggled ON as
+the LAST field (after duration/quality/sound/batch), one clean ref-click,
+zoomed Generate button read `UNLIMITED · struck 56 · 0` at the moment of
+fire. Generate clicked exactly once. "Generation started" toast confirmed,
+asset count 715→716. Render observed Processing at 20min and 25min checks
+(inside norm, never cancelled), landed by the 30min check. Card verified
+mine via Info panel: prompt text match, Model Seedance 2.5, 720p, 1280x720,
+Created "September 8, 2026 at 6:13 AM" = exact fire timestamp. Downloaded
+hf_20260907_231311_1f9a5d6a-ff27-46fc-8ab0-c64e24854a9d.mp4, 8.04s,
+1280x720, md5 d4b51fef2258bb3b6ad31ca94f580427 unique against every prior
+Downloads mp4. No NSFW/rights-verification banner.
+VERDICT: FLAGGED — per CTO's frame review (independently corroborated on
+this operator's own zoomed crops before the CTO's call arrived):
+  1. CUTS TO S15a-1 / Dupe dead centre / room silent / push-in moving /
+     nobody walking in: PASS at 0.2s — Dupe centred exactly between Valder
+     (rainbow coat, far left) and the workman (navy overalls, far right),
+     static opening, no walk-in.
+  2. THE UNISON TILT / slow nod: FLAG — compared 3.1s and 4.5s crops of the
+     same crowd cluster (registrar/Thibault region), heads read static, no
+     confirmed tilt or nod progression. Same defect as the prior take.
+  3. THE CROWD LINE HAS NO FACE: PASS — shot 3 (6.5s, 7.8s) stays on Dupe's
+     close-up throughout, no cutaway to anyone else, mouth slightly open at
+     7.8s with no reply, matching the sheet.
+  4. ONLY SIX WORDS, no repeat: not independently verified via audio (no
+     transcription tool this session) — no visual sign of extra dialogue.
+  5. PUSH-IN ALREADY MOVING, smooth to end: PASS — frame progression 0.2s→
+     1.5s shows Dupe/Valder/workman filling more of frame, consistent push,
+     no visible cut/jump inside shot 1.
+  6. TWENTY-ONE PEOPLE, every face different: approx 22 counted in shot 2
+     (5 navy+black left cluster [see #7], 5 press WITH cameras where the
+     sheet specifies four, ~5 unbadged guests, registrar, an unreferenced
+     white-suited man, Madame Thibault) — one press member over count,
+     contributing the +1. No duplicate FACES spotted otherwise.
+  7. THE BODYGUARD GROUP (CTO's ruling, this operator's zoom of the 3.1s
+     left-edge cluster confirms it exactly): GROUPING PASSED — all bodies
+     in one unbroken cluster at the left edge, no isolated bodyguard on the
+     right (the specific defect the previous take had). NAVY COUNT FLAGGED
+     — FOUR navy uniforms visible in that cluster (tall thin, short heavy,
+     then two more), not the specified two; Carrington's man in black sits
+     third in the line, sandwiched among the navy figures rather than at
+     the end of a three-body cluster. Commit f241add (CTO, same session)
+     already rewrites the sheet's shot-two paragraph to count bodies in
+     order instead of naming a "group", to fix this for the next take.
+  8. WALL MARK vs canon rule 8: FLAG — measured on the 0.2s frame: bounding
+     box ~72-88px wide x ~58-75px tall depending on threshold (5.6%-6.9%
+     of the 1280px frame width), fill ratio 0.067-0.095 (below the 0.10
+     floor). Visually the mark reads as thin grey wire-like hairlines
+     radiating from a small dark core — the exact "insect/spider" defect
+     the sheet's own notes warn take 1 produced, not the solid-black
+     thick-stem star crack take 3 (sheet numbering) passed. Regression
+     against the same location plate.
+  9. REGISTRAR COUNT: PASS — exactly one, black suit, white glove, ledger
+     visible, present and still (4.5s frame).
+CTO instruction received mid-review (verified via commit f241add existing
+on origin/main at the exact timestamp cited): record this take FLAGGED on
+navy count with grouping PASSED, do not re-fire, file regardless — CTO will
+queue the next take against the already-committed fix.
+Filed to Drive regardless (All Scene/Fix-1/S15a2-RoomDecides-Fix1.MP4):
+https://drive.google.com/file/d/1F3QeTUxEZB0ulRK5WtSvVbxWgxvLRSCT/view
+
 === END NOTES ===
