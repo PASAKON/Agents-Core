@@ -8,18 +8,25 @@ the CTO chat. The CTO blocks on a DB poll until the DEV calls the
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
+import re
+import shlex
 import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 from lib import db
-from lib.config import display_for, get_project
+from lib.config import (
+    display_for, get_project, host as get_host,
+    project_path_for_host, role as get_role,
+    worker_session_name as get_worker_session_name,
+)
 from lib.notify import info, success, error, warn
 from tools import tmux_session as tmux
-from tools.worktree import create_worktree
+from tools.worktree import branch_name, create_worktree
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -43,6 +50,11 @@ WORKER_LAUNCHER = f"bash '{ROOT / 'scripts' / 'spawn-worker.sh'}'"
 POLL_INTERVAL_S = 2.0
 DEFAULT_TIMEOUT_S = 30 * 60  # 30 min per DEV task
 TERMINAL_STATUSES = {"review", "done", "failed", "cancelled"}
+
+# ADDENDUM 3 (CTO 2026-09-07): statuses a browser_operator counts as "live"
+# for the per-host Chrome cap — mirrors db.ACTIVE_STATUSES minus 'pending'
+# and 'conflict' (a pending/conflicted operator holds no Chrome tab yet).
+_BROWSER_OPERATOR_ACTIVE_STATUSES = ("in_progress", "rate_limited", "stalled")
 
 # IRON-RULES §29: every spawn must ship a visible kickoff ping. Sleep
 # lets the claude TUI in the new tab finish booting before keystrokes
@@ -282,9 +294,15 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
     tab_title = f"{display} ({task_id})"
     cto_env = f"export WORKER_CTO_ID='{owner_cto}' && " if owner_cto else ""
     if tmux_attach:
+        # Trailing `; exit $?` (ADDENDUM 2, CTO 2026-09-07 — CEO rule:
+        # ending a worker must close its window, never just the process).
+        # Without it, when the tmux session dies the tab drops to a bare
+        # shell prompt and stays open — iTerm's "Close Sessions On End" is
+        # on, but the shell itself never ends, so it never fires. Mirrors
+        # the non-tmux branch below, which has carried this since GH #27.
         cmd = (
             f"printf '\\\\033]1;{tab_title}\\\\007' && "
-            f"{cto_env}tmux attach -t {tmux_attach}"
+            f"{cto_env}tmux attach -t {tmux_attach}; exit $?"
         )
     else:
         # Print ANSI title escape from inside the shell so zsh's precmd
@@ -507,9 +525,292 @@ async def _verify_claimed(task_id: str, role_name: str,
                                         attempt=attempt + 1))
 
 
+# ---------------------------------------------------------------------------
+# Remote host spawn (winbox, Phase 1 — docs/design/multi-host-workers.md).
+#
+# Git is the only cross-machine channel (design doc §3 rule 2): a remote DEV
+# is cloned in from git by windows/spawn-worker.ps1, and reports back by
+# pushing a branch + REPORT.md, which runners/branch_poller.py (separate
+# task deliverable) picks up. No stdio MCP over SSH, no shared filesystem.
+# ---------------------------------------------------------------------------
+
+REMOTE_SSH_TIMEOUT_S = 30
+
+# (local path relative to ROOT, remote path relative to host agents_root).
+# roles/<role>.md is appended per-spawn in _ensure_remote_deploy — it's the
+# one file that depends on which task is being spawned.
+_REMOTE_DEPLOY_FILES = (
+    ("windows/spawn-worker.ps1", "spawn-worker.ps1"),
+    ("roles/_worker_shared.md", "roles/_worker_shared.md"),
+    ("roles/_worker_remote.md", "roles/_worker_remote.md"),
+)
+
+
+def _ps_quote(value: str) -> str:
+    """Quote `value` as a single PowerShell double-quoted string literal.
+
+    Used to build the ONE string handed to `ssh <host> <cmd>` — ssh does
+    not preserve argv boundaries across the wire, it joins/re-sends a
+    single command string that the remote shell re-parses with ITS OWN
+    quoting rules, not Python's."""
+    escaped = value.replace("`", "``").replace('"', '`"').replace("$", "`$")
+    return f'"{escaped}"'
+
+
+def _local_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest().upper()
+
+
+def _remote_sha256(ssh_alias: str, remote_path: str) -> str | None:
+    """SHA256 of a file already on the box (uppercase hex), or None if the
+    file is absent or the box is unreachable — never raises, a deploy check
+    that can't confirm the remote state just re-copies the file."""
+    check = (
+        f"if (Test-Path {_ps_quote(remote_path)}) "
+        f"{{ (Get-FileHash -Algorithm SHA256 {_ps_quote(remote_path)}).Hash }}"
+    )
+    try:
+        r = subprocess.run(
+            ["ssh", ssh_alias, "powershell", "-NoProfile", "-Command", check],
+            capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    out = (r.stdout or "").strip().upper()
+    return out or None
+
+
+def _ensure_remote_deploy(host_cfg: dict, role_name: str, *,
+                          dry_run: bool = False) -> list[str]:
+    """scp spawn-worker.ps1 + the role docs a remote DEV needs, but only
+    the files missing or whose content changed (sha256 compare) — so a
+    routine delegate call is a no-op scp-wise once the box is warm. Returns
+    the actions taken (or, in dry-run, that would be taken)."""
+    ssh_alias = host_cfg["ssh"]
+    agents_root = host_cfg["agents_root"]
+    sep = "\\" if host_cfg.get("os") == "windows" else "/"
+    files = list(_REMOTE_DEPLOY_FILES) + [(f"roles/{role_name}.md", f"roles/{role_name}.md")]
+
+    actions: list[str] = []
+    dirs_needed: set[str] = set()
+    to_copy: list[tuple[Path, str]] = []
+    for local_rel, remote_rel in files:
+        local = ROOT / local_rel
+        if not local.is_file():
+            continue
+        remote_abs = f"{agents_root}{sep}{remote_rel.replace('/', sep)}"
+        if dry_run:
+            actions.append(f"[dry-run] would check/deploy {local_rel} -> {ssh_alias}:{remote_abs}")
+            continue
+        if _remote_sha256(ssh_alias, remote_abs) == _local_sha256(local):
+            continue
+        to_copy.append((local, remote_abs))
+        dirs_needed.add(remote_abs.rsplit(sep, 1)[0])
+
+    if dry_run or not to_copy:
+        return actions
+
+    if dirs_needed:
+        # No `| Out-Null` here — winbox's OpenSSH default shell is cmd.exe,
+        # which splits an UNQUOTED `|` before powershell.exe ever sees it
+        # (confirmed live 2026-09-07: `New-Item ... | Out-Null` breaks into
+        # two cmd.exe commands, the second — `Out-Null` — fails as
+        # "not recognized", and the directory is never created). New-Item's
+        # own stdout is harmless; we already capture_output and ignore it.
+        mkdirs = "; ".join(
+            f"New-Item -ItemType Directory -Force -Path {_ps_quote(d)}"
+            for d in dirs_needed
+        )
+        r = subprocess.run(["ssh", ssh_alias, "powershell", "-NoProfile", "-Command", mkdirs],
+                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+        if r.returncode != 0:
+            raise RuntimeError(f"remote mkdir failed: {(r.stderr or r.stdout or '').strip()}")
+    for local, remote_abs in to_copy:
+        r = subprocess.run(["scp", str(local), f"{ssh_alias}:{remote_abs}"],
+                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+        if r.returncode != 0:
+            raise RuntimeError(f"deploy scp failed for {local.name}: {r.stderr}")
+        actions.append(f"deployed {local.name} -> {remote_abs}")
+    return actions
+
+
+def _ssh_remote_url(remote: str) -> str:
+    """Normalize a project's `remote:` (HTTPS or SSH in config/projects.yaml
+    — the file mixes both today) to the SSH form a remote spoke can clone
+    with. A spoke like winbox authenticates via an SSH deploy key only; it
+    has no HTTPS credential manager wired up (confirmed live 2026-09-07:
+    `git clone https://...` on winbox failed with "Unable to persist
+    credentials ... terminal prompts disabled")."""
+    if remote.startswith("git@"):
+        return remote
+    m = re.match(r"^https://github\.com/([^/]+)/(.+?)(?:\.git)?/?$", remote)
+    if not m:
+        raise ValueError(f"cannot derive an SSH clone URL from remote {remote!r}")
+    org, repo = m.group(1), m.group(2)
+    return f"git@github.com:{org}/{repo}.git"
+
+
+def _render_remote_claude_args(role_name: str) -> str:
+    """Render the flags a remote spawn needs: model/effort (policies/
+    agents.yaml) + the SAME allowed-tools/--chrome worker_tool_grants
+    renders for a Mac spawn (runners/worker_init.py) — reused verbatim
+    rather than hand-duplicated, minus what a remote box can't have (org
+    MCP, hence no --mcp-config here at all) — plus --remote-control, which
+    every remote worker carries (ADDENDUM 1, CTO 2026-09-07) so it shows up
+    in the CEO's Claude app session list, same as win-cto.ps1 already does
+    for the Windows CTO session.
+
+    --allowed-tools stays LAST with nothing after it (it is variadic and
+    swallows every following argv element — see runners/worker_init.py's
+    own comment on this), so --remote-control goes before the chrome flags,
+    not after."""
+    from runners.worker_init import worker_tool_grants
+    allowed, extra_flags = worker_tool_grants(role_name)
+    role_cfg = get_role(role_name)
+    model = role_cfg.get("model") or "claude-sonnet-5"
+    effort = role_cfg.get("effort") or "high"
+    parts = [
+        "--model", model,
+        "--effort", effort,
+        "--permission-mode", "auto",
+        "--strict-mcp-config",
+        "--remote-control",
+        *extra_flags,
+        "--allowed-tools", ",".join(allowed),
+    ]
+    return " ".join(parts)
+
+
+async def _spawn_remote(task: dict, host_name: str, *,
+                        dry_run: bool = False) -> dict:
+    """Spawn a DEV on a remote spoke host (winbox today; a Contabo launcher
+    is Phase 2, a non-goal of this task). No org MCP, no tmux, no iTerm —
+    the worktree is cloned in from git by windows/spawn-worker.ps1, and the
+    DEV reports back by pushing its branch + REPORT.md. This function's job
+    ends at recording host/branch/worktree/pid on the task row;
+    runners/branch_poller.py takes it from there."""
+    from runners.worker_init import _build_prompt
+
+    task_id = task["id"]
+    role_name = task["role"]
+    project_key = task["project"]
+
+    host_cfg = get_host(host_name)  # raises ValueError if host_name is unknown
+    if host_cfg.get("os") != "windows":
+        raise NotImplementedError(
+            f"host {host_name!r} (os={host_cfg.get('os')}) has no remote "
+            f"launcher yet — only winbox is wired in Phase 1; a Contabo "
+            f"launcher is Phase 2 (non-goal of this task)"
+        )
+    ssh_alias = host_cfg.get("ssh")
+    if not ssh_alias:
+        raise ValueError(f"host {host_name!r} has no ssh alias configured")
+
+    proj = get_project(project_key)
+    repo_url = proj.get("remote")
+    if not repo_url:
+        raise ValueError(f"project {project_key!r} has no `remote:` — cannot clone it onto {host_name}")
+    repo_url = _ssh_remote_url(repo_url)
+    repo_path = project_path_for_host(project_key, host_name)  # raises if not routable
+    worktree_root = host_cfg["worktrees"]
+    branch = branch_name(role_name, task_id)
+    base = proj["default_branch"]
+    remote_worktree = f"{worktree_root}\\{project_key}__{role_name}__{task_id}"
+
+    claude_args = _render_remote_claude_args(role_name)
+    role_cfg = get_role(role_name)
+    model = role_cfg.get("model") or "claude-sonnet-5"
+    effort = role_cfg.get("effort") or "high"
+    # ADDENDUM 1 (CTO 2026-09-07): machine-prefixed session name, rendered
+    # once here (single source of truth) and handed to the launcher rather
+    # than recomputed in PowerShell.
+    session_name = get_worker_session_name(host_name, role_name, task_id,
+                                           task.get("title") or "")
+
+    deploy_actions = _ensure_remote_deploy(host_cfg, role_name, dry_run=dry_run)
+
+    prompt = _build_prompt(task, proj, remote_worktree)
+    remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
+    remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
+
+    remote_cmd = (
+        f"powershell -NoProfile -ExecutionPolicy Bypass -File {_ps_quote(remote_ps1)} "
+        f"-Task {_ps_quote(task_id)} -Project {_ps_quote(project_key)} "
+        f"-Role {_ps_quote(role_name)} -Branch {_ps_quote(branch)} "
+        f"-Base {_ps_quote(base)} -RepoUrl {_ps_quote(repo_url)} "
+        f"-RepoPath {_ps_quote(repo_path)} -WorktreeRoot {_ps_quote(worktree_root)} "
+        f"-ClaudeArgs {_ps_quote(claude_args)} -Model {_ps_quote(model)} "
+        f"-Effort {_ps_quote(effort)} -TaskFile {_ps_quote(remote_task_file)} "
+        f"-SessionName {_ps_quote(session_name)}"
+    )
+    cmd = ["ssh", ssh_alias, remote_cmd]
+
+    if dry_run:
+        printable = " ".join(shlex.quote(c) for c in cmd)
+        info(f"[dry-run] task={task_id} host={host_name} deploy: {deploy_actions}")
+        info(f"[dry-run] task={task_id} ssh command: {printable}")
+        db.set_fields(
+            task_id,
+            delegate_log=f"[dry-run] host={host_name} ssh_cmd={printable}",
+            actor="cto",
+        )
+        return db.get_task(task_id)
+
+    # Local temp copy of the rendered prompt, scp'd to the box rather than
+    # crossing the wire as ssh command-line text — it can be thousands of
+    # words and contain quotes/non-ASCII the remote shell would re-mangle.
+    tmp_task_md = ROOT / "state" / f".remote-task-{task_id}.md"
+    tmp_task_md.parent.mkdir(parents=True, exist_ok=True)
+    tmp_task_md.write_text(prompt, encoding="utf-8")
+    try:
+        r = subprocess.run(["scp", str(tmp_task_md), f"{ssh_alias}:{remote_task_file}"],
+                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+        if r.returncode != 0:
+            raise RuntimeError(f"scp of TASK.md failed: {r.stderr}")
+    finally:
+        tmp_task_md.unlink(missing_ok=True)
+
+    info(f"spawn remote task={task_id} host={host_name} role={role_name} deploy={deploy_actions}")
+    r = subprocess.run(cmd, capture_output=True, text=True,
+                       timeout=REMOTE_SSH_TIMEOUT_S + 60)
+    lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
+    if r.returncode != 0 or not lines:
+        detail = (r.stderr or r.stdout or "").strip()[:1000]
+        error(f"remote spawn failed task={task_id} host={host_name}: {detail}")
+        db.update_status(task_id, "failed",
+                         delegate_log=f"remote spawn ({host_name}) failed: {detail}",
+                         actor="cto")
+        return db.get_task(task_id)
+
+    for ln in lines[:-1]:
+        if ln.startswith("GITHUB_SSH_ROUTE="):
+            info(f"task={task_id} host={host_name} {ln}")
+
+    try:
+        pid = int(lines[-1].strip())
+    except ValueError:
+        error(f"remote spawn task={task_id}: could not parse pid from last line: {lines[-1]!r}")
+        db.update_status(task_id, "failed",
+                         delegate_log=f"remote spawn ({host_name}): unparseable pid line {lines[-1]!r}",
+                         actor="cto")
+        return db.get_task(task_id)
+
+    db.update_status(
+        task_id, "in_progress",
+        pid=pid, host=host_name, worktree=remote_worktree, branch=branch,
+        assigned_agent=role_name, actor="cto",
+    )
+    success(f"remote DEV spawned task={task_id} host={host_name} pid={pid}")
+    return db.get_task(task_id)
+
+
 async def delegate_task(task_id: str, *, wait: bool = False,
                          timeout_s: float = DEFAULT_TIMEOUT_S,
-                         kickoff: str | None = None) -> dict:
+                         kickoff: str | None = None,
+                         host: str | None = None,
+                         dry_run: bool = False) -> dict:
     """Open DEV in a new iTerm tab. Fire-and-forget by default.
 
     With the Stop-hook relay + cto.log auto-inject + DB poll, the CTO no
@@ -518,7 +819,15 @@ async def delegate_task(task_id: str, *, wait: bool = False,
 
     `kickoff`: text typed into the new tab after spawn (IRON-RULES §29).
     Defaults to `DEFAULT_KICKOFF`. Pass an explicit string to override,
-    or `""` (empty) to suppress — empty is discouraged outside tests."""
+    or `""` (empty) to suppress — empty is discouraged outside tests.
+
+    `host`: which host (config/hosts.yaml key) to spawn on. Resolution is
+    explicit arg > `tasks.host` (set by a prior spawn or create_task) >
+    `'mac'`. A resolved host other than 'mac' skips every Mac-specific step
+    below (iTerm, tmux, local worktree) and hands off entirely to
+    `_spawn_remote` — see docs/design/multi-host-workers.md Phase 1.
+    `dry_run`: for a remote host only — print the exact ssh command instead
+    of running it. No-op for host='mac'."""
     task = db.get_task(task_id)
     if not task:
         raise ValueError(f"task not found: {task_id}")
@@ -536,6 +845,37 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     proj = get_project(project_key)
     if role_name not in proj["agents_allowed"]:
         raise PermissionError(f"role {role_name} not allowed on project {project_key}")
+
+    # Host resolution (Phase 1): explicit arg > tasks.host > 'mac'. Computed
+    # here (not just at the spawn branch below) because the browser cap
+    # check right after this needs to know the TARGET host, not just
+    # whether it's remote.
+    resolved_host = host if host is not None else (task.get("host") or "mac")
+
+    # ADDENDUM 3 (CTO 2026-09-07) — CEO rule: one browser_operator, one
+    # Chrome tab, never a pile-up. Four operators sharing the Mac's Chrome
+    # in one morning destroyed a tab group, caused a sign-out, and blocked
+    # two runs. Same treatment as a touches collision below: status
+    # 'conflict' + a delegate_log line, so the CTO's existing
+    # "wait and re-delegate" loop handles it unchanged — no new status, no
+    # new retry mechanism.
+    if role_name == "browser_operator":
+        cap = get_host(resolved_host).get("max_browser_operators")
+        if cap is not None:
+            live = sum(
+                1
+                for status in _BROWSER_OPERATOR_ACTIVE_STATUSES
+                for t in db.list_tasks(status=status, role="browser_operator", limit=500)
+                if (t.get("host") or "mac") == resolved_host
+            )
+            if live >= cap:
+                warn(f"browser cap blocked task={task_id}: {live}/{cap} on {resolved_host}")
+                db.update_status(
+                    task_id, "conflict",
+                    delegate_log=f"browser cap: {live}/{cap} operators live on {resolved_host}",
+                    actor="cto",
+                )
+                return db.get_task(task_id)
 
     # W3 (audit 2026-08-06): depends_on was invisible to this pre-flight —
     # only a touches overlap with an ACTIVE task ever blocked a delegate, and
@@ -596,6 +936,26 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             )
             return db.get_task(task_id)
         info(f"locked {len(touches)} path(s) for task={task_id}")
+
+    # Host routing (Phase 1): resolved_host was already computed above (the
+    # browser cap check needed it too). Everything below this point
+    # (worktree creation, iTerm/tmux, kickoff, the claim watchdog) is
+    # Mac-only — a non-mac host hands off entirely to _spawn_remote, which
+    # has its own worktree/spawn/report path over git.
+    if resolved_host != "mac":
+        db.set_fields(task_id, spawned_at=db.now_iso(), actor="cto")
+        try:
+            return await _spawn_remote(task, resolved_host, dry_run=dry_run)
+        except Exception as e:
+            if touches:
+                db.release_task_locks(task_id, project_key)
+            error(f"remote spawn setup failed task={task_id} host={resolved_host}: {e}")
+            db.update_status(
+                task_id, "failed",
+                delegate_log=f"remote spawn setup failed ({resolved_host}): {e}",
+                actor="cto",
+            )
+            return db.get_task(task_id)
 
     if not task.get("worktree"):
         wt_info = create_worktree(project_key, role_name, task_id)

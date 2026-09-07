@@ -1,0 +1,43 @@
+# Host registry — Phase 1 of docs/design/multi-host-workers.md.
+#
+# Declares WHAT each host provides and HOW to reach it. No router reads
+# `provides` yet (that's Phase 3) — hosts.yaml just declares them so Phase 3
+# has something to match against later.
+#
+# `ssh` is the alias tools/delegate.py shells out to (must match a Host
+# entry in ~/.ssh/config on the Mac) — null on mac itself, which never
+# dials out to reach itself.
+#
+# `agents_root` / `worktrees` are host-native absolute paths (Windows paths
+# use backslashes, quoted so YAML doesn't need double-escaping).
+
+hosts:
+  mac:
+    os: darwin
+    ssh: null
+    agents_root: /Users/gob/Projects/Agents
+    worktrees: /Users/gob/Projects/Agents/worktrees
+    provides: [chrome, macos_cu, blender_bridge]
+    max_workers: 4
+    # ADDENDUM 3 (CTO 2026-09-07): CEO rule — one operator, one Chrome tab,
+    # never a pile-up. Four operators sharing the Mac's Chrome produced a
+    # destroyed tab group, a sign-out, and two blocked runs the same day.
+    max_browser_operators: 2
+
+  winbox:
+    os: windows
+    ssh: winbox
+    agents_root: 'C:\Users\UsEr\mooniex'
+    worktrees: 'C:\Users\UsEr\mooniex\worktrees'
+    provides: [chrome, blender, win_gui]
+    max_workers: 1
+    max_browser_operators: 1
+
+  contabo:
+    os: linux
+    ssh: mooniex-vps
+    agents_root: /opt/mooniex-agents
+    worktrees: /opt/mooniex-agents/worktrees
+    provides: [always_on, api]
+    max_workers: 3
+    max_browser_operators: 0

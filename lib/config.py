@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PROJECTS_CONFIG = ROOT / "config" / "projects.yaml"
 AGENTS_CONFIG = ROOT / "policies" / "agents.yaml"
 WIKIS_CONFIG = ROOT / "config" / "wikis.yaml"
+HOSTS_CONFIG = ROOT / "config" / "hosts.yaml"
 
 
 @lru_cache(maxsize=1)
@@ -82,6 +83,36 @@ def live_c_level_roles() -> tuple[str, ...]:
     return tuple(r for r in agents()["c_level"] if r != "ceo")
 
 
+# Host key (config/hosts.yaml) -> the machine label the CEO sees first in a
+# worker's session name (ADDENDUM 1, CTO 2026-09-07): every session is now
+# addressed from the Claude app, on any device, never from a terminal on a
+# specific box — the machine has to be in the name itself. Falls back to
+# the host key upper-cased for a host not listed here (hosts.yaml can grow
+# without this map growing in lockstep).
+_HOST_MACHINE_LABEL = {"mac": "MAC", "winbox": "WINDOWS", "contabo": "CONTABO"}
+
+
+def worker_session_name(host_name: str, role_name: str, task_id: str,
+                        title: str) -> str:
+    """`<MACHINE> <ROLE> #<task-id-8> (<title, truncated ~40>)`.
+
+    e.g. `WINDOWS Browser Operator #4a59a1a4 (SHOOT the teaser)`. Single
+    source of truth for this shape — the Windows launcher (spawn-worker.ps1)
+    receives the fully-rendered string from tools/delegate.py rather than
+    recomputing the truncation/label logic itself, and a follow-up task can
+    switch runners/worker_init.py's Mac-side `-n` to call this too.
+    """
+    machine = _HOST_MACHINE_LABEL.get(host_name, host_name.upper())
+    short_id = task_id[len("task-"):] if task_id.startswith("task-") else task_id
+    short_id = short_id[:8]
+    display = display_for(role_name)
+    trimmed = (title or "").strip()
+    if len(trimmed) > 40:
+        trimmed = trimmed[:40].rstrip() + "…"
+    suffix = f" ({trimmed})" if trimmed else ""
+    return f"{machine} {display} #{short_id}{suffix}"
+
+
 def display_for(role_name: str) -> str:
     """Pretty role label used in tab titles, chat prefixes, and logs.
 
@@ -100,6 +131,50 @@ def get_project(key: str) -> dict:
     p = projects().get(key)
     if not p:
         raise ValueError(f"unknown project: {key}. Known: {list(projects())}")
+    return p
+
+
+@lru_cache(maxsize=1)
+def hosts() -> dict[str, dict]:
+    """Host registry (config/hosts.yaml, ADR-shaped like projects/agents).
+
+    Phase 1 (docs/design/multi-host-workers.md): declares what each host
+    provides and how to reach it (ssh alias, native paths). Nothing here
+    reads `provides` for routing yet — that's Phase 3.
+    """
+    data = yaml.safe_load(HOSTS_CONFIG.read_text())
+    return data["hosts"]
+
+
+def host(name: str) -> dict:
+    h = hosts().get(name)
+    if not h:
+        raise ValueError(f"unknown host: {name}. Known: {list(hosts())}")
+    return h
+
+
+def project_path_for_host(project_key: str, host_name: str) -> str:
+    """Repo-checkout path for `project_key` on `host_name`.
+
+    `mac` falls back to the project's top-level `path:` (backward
+    compatible with every project that predates the `paths:` map). Every
+    other host reads `paths.<host_name>` only. A project with no path
+    configured for a host is not routable there — raise a clear error
+    rather than guessing or falling back to the Mac path, which would
+    silently point a remote spawn at a directory that doesn't exist on
+    that box.
+    """
+    proj = get_project(project_key)
+    if host_name == "mac":
+        p = (proj.get("paths") or {}).get("mac") or proj.get("path")
+    else:
+        p = (proj.get("paths") or {}).get(host_name)
+    if not p:
+        raise ValueError(
+            f"project {project_key!r} has no path configured for host "
+            f"{host_name!r} — not routable there. Add it under "
+            f"paths.{host_name} in config/projects.yaml."
+        )
     return p
 
 

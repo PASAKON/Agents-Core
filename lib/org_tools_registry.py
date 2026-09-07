@@ -140,7 +140,8 @@ def _h_wiki_write(*, path: str, content: str, message: str = "") -> str:
 
 
 def _h_create_task(*, project: str, role: str, title: str, description: str,
-                    depends_on: str = "", touches: str = "") -> str:
+                    depends_on: str = "", touches: str = "",
+                    host: str = "") -> str:
     deps = _parse_list_arg(depends_on)
     paths = _parse_list_arg(touches)
     # The regression this must not reintroduce (task-78ef13b0 point 1):
@@ -155,6 +156,7 @@ def _h_create_task(*, project: str, role: str, title: str, description: str,
     tid = db.create_task(
         project=project, role=role, title=title, description=description,
         depends_on=deps, touches=paths,
+        host=(host.strip() or None),
         owner_cto=os.environ.get("CTO_SESSION_ID"),
     )
     info(f"task created {tid} → {role} on {project} touches={paths}")
@@ -189,8 +191,8 @@ def _slim_task(t: dict | None) -> dict | None:
     return {k: t[k] for k in _SLIM_KEYS if k in t}
 
 
-async def _h_delegate_task(*, task_id: str) -> dict:
-    return _slim_task(await do_delegate(task_id))
+async def _h_delegate_task(*, task_id: str, host: str = "") -> dict:
+    return _slim_task(await do_delegate(task_id, host=(host.strip() or None)))
 
 
 async def _h_delegate_parallel_tasks(*, task_ids: str) -> list[dict]:
@@ -331,7 +333,7 @@ REGISTRY: tuple[ToolSpec, ...] = (
         params=(
             Param("project", str), Param("role", str), Param("title", str),
             Param("description", str), Param("depends_on", str, ""),
-            Param("touches", str, ""),
+            Param("touches", str, ""), Param("host", str, ""),
         ),
         handler=_h_create_task,
         response_format="text",
@@ -355,7 +357,7 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "Spawn a DEV subprocess to execute a task. Blocks until DEV "
             "reports back."
         ),
-        params=(Param("task_id", str),),
+        params=(Param("task_id", str), Param("host", str, "")),
         handler=_h_delegate_task,
         is_async=True,
         needs_ownership_check=True,

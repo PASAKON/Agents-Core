@@ -72,10 +72,12 @@ def create_task(
     description: str,
     depends_on: str = "",
     touches: str = "",
+    host: str = "",
 ) -> str:
     return reg.dispatch_sync(
         "create_task", project=project, role=role, title=title,
         description=description, depends_on=depends_on, touches=touches,
+        host=host,
     )
 
 
@@ -85,8 +87,8 @@ def check_collisions(project: str, touches: str) -> str:
 
 
 @mcp.tool(description=reg.BY_NAME["delegate_task"].description)
-async def delegate_task(task_id: str) -> str:
-    return await reg.dispatch("delegate_task", task_id=task_id)
+async def delegate_task(task_id: str, host: str = "") -> str:
+    return await reg.dispatch("delegate_task", task_id=task_id, host=host)
 
 
 @mcp.tool(description=reg.BY_NAME["delegate_parallel_tasks"].description)
