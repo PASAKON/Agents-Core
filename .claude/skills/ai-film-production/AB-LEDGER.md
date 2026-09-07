@@ -380,3 +380,37 @@ STILL OPEN on this take: the wall mark renders as spidery hairlines and reads as
   insect. Canon rules 6 and 7 (weight before size; the canon travels with the mark)
   were added at 01:32, eight minutes before this fired, and were not yet in this
   sheet. Not a counter-example to the fix above — a separate defect with its own fix.
+
+### S15a-2 take 1 → take 2 · weight before size on the mark · free lane · PASSED 2026-09-08 03:05
+DEFECT SEEN (t1, 52 credits, fired 00:33): the wall mark rendered as fine GREY
+  hairlines with thin legs radiating from a dark dot. At the rendered scale it reads
+  as a mosquito or spider sitting on the plaster, not as masonry damage.
+PROMPT A (t1) — the mark is NAMED and never described, four words inside the location
+  chip: "@project_absence_loc_hall_big_d — THE HALL … white plinths, the brass plaque
+  and the small black mark on the axis."
+PROMPT B (a80e193) — the mark gets its own sentences, weight stated BEFORE size:
+  "THE MARK ABOVE THE PLAQUE IS A CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK:
+  one short thick black line about as wide as a man's hand, with three or four shorter
+  thick black lines breaking off it, every line solid and heavy like ink, the whole
+  thing star shaped and flat against the wall. Take 1 rendered it as fine grey
+  hairlines with thin legs and it read as an insect on the wall. It is masonry damage:
+  thick, black, angular, and part of the plaster."
+WHY B HELD, measured on t2's own opening frame rather than eyeballed: the mark is
+  solid black, thick, angular and star-shaped, sitting IN the plaster. Dark-pixel
+  bounding box 96 x 125 px on a 1280 x 720 frame; Dupe's head is 108 px wide at face
+  level, so the crack is 0.89 of a head across — about a hand, which is canon. Worth
+  recording that the first visual impression was "too big" and the measurement said
+  otherwise: the heaviness reads as size, but the extent is right. Measure before
+  flagging a size.
+WHY IT WORKS: "thin" and "solid black" had been sitting in the same breath in five
+  sheets, and thin won every time. Leading with weight — solid, heavy like ink, dark
+  for its whole length — and only then giving the hand-across size, reverses that.
+  Predicted in this ledger before S2G landed, confirmed by S2G's tan tendrils, fixed
+  here on the first attempt.
+LESSON: canon rules 6 and 7 in PLATE-loc_wall_pov_e.md now carry this. Weight before
+  size, and the full description travels into every sheet where the mark is visible —
+  naming it is not describing it.
+ALSO FIXED on this take: exactly TWO navy uniforms across the full frame width, so
+  take 1's mirrored fourth guard is gone.
+STILL OPEN: the three bodyguards are not one group — the two navy are together at the
+  left edge but Carrington's man in black stands across the frame on the right.
