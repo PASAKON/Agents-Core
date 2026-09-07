@@ -23,6 +23,29 @@ crack kills the film."
 5. **FRONTMOST.** It floats at the very front of the frame, in the plane where the wall was;
    every person and every part of the room is behind it. No hole, no edges, no black
    surround — the wall is not there. (The layering in S2K take 1 was already right — CEO.)
+6. **WEIGHT BEFORE SIZE — added 2026-09-08 by the CTO, from two measured failures.**
+   Every line of the crack is SOLID and carries the weight of ink. There are no
+   hairlines, no fine threads, no wisps, and nothing tapers away to a point outside the
+   star. Say this BEFORE saying how small it is, because "small" and "thin" are not the
+   same instruction and the model treats them as one.
+
+   Why this rule exists. The sheets said "SAME SHAPE — thin lines meeting at one small
+   dark point — and SAME SOLID BLACK", putting "thin" and "solid black" in the same
+   breath, and thin won twice:
+   - S15a-2 take 1 (2026-09-08, 52 credits): fine GREY hairlines with legs radiating
+     from a dark dot. At the rendered scale it reads as a mosquito on the plaster.
+     That sheet had also merely NAMED the mark in four words, which is the other half
+     of the cause — see rule 7.
+   - S2G take 2 (2026-09-08, free lane), the insert whose entire subject is the mark
+     and which carries the full canon: a correct solid dark star CORE, but three long
+     TAN tendrils trailing up-right, left and down, each a hairline and none of them
+     black. Predicted in the A/B ledger before the clip landed, then confirmed.
+   The star core is not the problem in either take. The tendrils are. Ban them by
+   naming what the lines ARE — short, solid, ink-weight, ending where they end.
+7. **THE CANON TRAVELS WITH THE MARK.** Any sheet in which the mark is visible carries
+   this whole description, even when the mark is background and the scene is about
+   people. A sheet that only names it ("the small black mark on the axis") gets whatever
+   the model imagines a small black mark to be, and what it imagines is an insect.
 
 ## What was wrong before today — all mine, none of it from a plate
 
