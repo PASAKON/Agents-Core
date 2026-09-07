@@ -18,8 +18,22 @@ then is free, so never let the slot idle.
 `awk '/PASTE FROM HERE/{p=1;next} /PASTE STOPS HERE/{p=0} p' <sheet>` piped to
 grep — the notes above/below the block are never pasted and may quote banned
 words. Expect: `NO WIDER THAN THE RED DOOR` → 1 on wall-POV sheets;
-`nearest|extreme foreground|very front|floating|toward the mark|backs to the room`
+`extreme foreground|very front|floating|toward the mark|backs to the room|(crack|mark|star|plaque)[^.]{0,30}nearest|nearest[^.]{0,30}(crack|mark|star|plaque)`
 → 0. Mismatch → STOP and report; never fire from a stale sheet.
+
+NARROWED 2026-09-08, after a bare `nearest` produced three false positives in one
+night and no true positive on record. It stopped S15a-2 before firing on "at the
+frame edge nearest their masters" (where three bodyguards stand), it fired again on
+the SC5 rewrite an hour later, and it sits on two legitimate lines in S2R-B ("DUPE,
+nearest the camera"). The gate exists to catch the MARK being floated up near the
+lens instead of sitting on the wall at its stated size, so `nearest` is now scoped
+to the mark and its synonyms. Everything the gate was built to catch it still
+catches: "the crack floats nearest the lens" matches, ordinary blocking prose does
+not. Verified 0 across all 43 sheets at the time of the change.
+
+An operator who hits a mismatch STILL stops and reports — do not adjudicate a gate
+hit yourself, even one that looks obviously positional. That call is the CTO's, and
+S15a-2's operator was right to stop.
 
 ## 1 · Browser
 - A DISABLED GENERATE IS USUALLY THE TAB, NOT THE PREVIZ SERVICE (measured 2026-09-07 18:15). Two tabs sat with Generate disabled for 20-40 min after attaching a video reference, and one stayed disabled even after the video tile was removed — tab-local state, not the eligibility check. A FRESH tab with the same 7 chips and the same library previz tile had Generate ENABLED within a minute. Order of moves: innerWidth (>= 1280) → hover the button for its reason → if still disabled with all references in place, close the tab and rebuild in ONE fresh tab before ever blaming the previz or firing bare.
