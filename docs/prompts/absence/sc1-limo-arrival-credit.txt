@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-SC1 · CARRINGTON ARRIVES BY LIMOUSINE · CEO 2026-09-07 12:10 ("อยากให้ Worker ยิงแบบใช้เครดิตได้ แต่ทำเท่าที่สั่งเท่านั้น …
+SC1 · VALDER ARRIVES BY LIMOUSINE (CEO 13:08: "คนของ Valder ถือร่มมารับ · Guard ลงมาพร้อม Valder · ร่มรับแค่ Valder · Guard เดินตาม") · CEO 2026-09-07 12:10 ("อยากให้ Worker ยิงแบบใช้เครดิตได้ แต่ทำเท่าที่สั่งเท่านั้น …
 5s-8s ไม่เกินนี้ ไม่เอาฉาก LongTake ขอแบบ Jump Cut … ไม่ต้องเอาตอนขับมาไกลๆ เอาตอนขับมาถึง
 หน้า Museum แล้วรถเบรกจอด … โฟกัสที่การลงรถ … ไม่เอารถจอดนิ่งๆ แล้วเปิดประตู")
 
@@ -14,8 +14,7 @@ Filing: All Scene/Fix-1/ as SC1-Limo-Arrival-Credit.MP4. The CEO reviews this on
 
 === END NOTES ===
 
-=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
-
+=== ↓↓↓ PASTE FROM HERE
 8s · 720p · 16:9 · TWO SHOTS, one hard cut at 3s. Both shots LOCKED — no pan,
 no zoom, no handheld. Sound On · High.
 
@@ -31,28 +30,36 @@ REFERENCES — each with a job:
 @project_absence_prop_limo — THE LIMOUSINE: the very long angular retro-futuristic
   limousine in champagne-gold lacquer, three doors a side, chrome trim. It is
   the only car in the shot.
-@gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
-  stand-collar suit, white shoes, a black cane with a gold lion head, two gold
-  front teeth. He rides in the rear seat.
-@project_absence_char_guard_private_v2 — HIS BODYGUARD: very heavily built Black
-  man, opaque dark sunglasses, white gloves, all-black suit, black shirt and
-  tie. He rides in the front passenger seat, gets out first, and HE is the one
-  who opens the rear door for Mr Carrington. He never speaks.
+@project_absence_char_valder — VALDER: tall, slim, elderly, swept-back white
+  hair, small round tinted sunglasses, a blazer panelled in flat blocks of
+  magenta, yellow, green, blue and red, a red waistcoat, a long mustard-yellow
+  scarf, purple trousers, two different shoes. He rides in the rear seat and is
+  the only person who matters in this shot.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V, black belts, navy peaked caps,
+  one tall and thin, one short and heavy. This one picture is both of them.
+  They ride in the limousine with him and get out with him.
+@project_absence_char_guard_valder_six — THE DOORMAN, one of Valder's own men:
+  the same navy tunic, gold V, peaked cap. THIS PICTURE SHOWS SIX MEN; USE ONLY
+  ONE OF THEM — a single man waiting at the entrance holding a LARGE BLACK
+  UMBRELLA, furled. Nobody else from the picture exists in this shot.
 
 SHOT ONE · [0s-3s] · locked, from the forecourt, the glass entrance in the
-background, nobody standing there. THE LIMOUSINE IS ALREADY MOVING: it rolls in from the
-left at walking pace, long body sliding across the frame, and comes to a smooth
-stop with its rear door exactly in front of the steps. The front passenger
-door is already opening.
+background with the doorman waiting on the top step, umbrella furled. THE
+LIMOUSINE IS ALREADY MOVING: it rolls in from the left at walking pace, long
+body sliding across the frame, and comes to a smooth stop with its rear door
+exactly in front of the steps. The doorman opens the umbrella and starts down.
 
-SHOT TWO · [3s-8s] · HARD CUT, closer, from beside the rear door. THE BODYGUARD
-IS ALREADY OUT and at the rear door: HE OPENS IT, one white-gloved hand on the
-handle, the other extended toward the entrance in a small formal "please, this
-way" gesture. MR CARRINGTON steps out with his cane,
-straightens, smiles — gold teeth showing — and starts up the steps. Hold. Cut.
+SHOT TWO · [3s-8s] · HARD CUT, closer, from beside the rear door. The doorman
+opens the rear door with one hand and holds the big black umbrella high with
+the other. VALDER steps out and walks up the steps UNDER THE UMBRELLA, the
+doorman keeping pace beside him — THE UMBRELLA COVERS VALDER AND NOBODY ELSE.
+HIS TWO GUARDS climb out behind him, uncovered, and follow two paces behind in
+step. Nobody speaks. Hold. Cut.
 
-AUDIO: tyres on stone, one soft door opening, a cane tip on the step, no
-voices, no music. No sound at the start or end: opens mid room-tone, stops dead.
+AUDIO: tyres on stone, one soft door opening, the snap of an umbrella opening,
+footsteps on the steps, no voices, no music. No sound at the start or end:
+opens mid room-tone, stops dead.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
 pushed slightly cool, shadows deep red-brown, halation around every lamp.
@@ -60,17 +67,19 @@ Photographed, not rendered: fine film grain, faint gate weave, slight colour
 fringing.
 
 House negatives: no voiceover, no narration, no subtitles, no captions, no
-on-screen text, no signage, no logos, no registration tag on the car, no music, no score, no
-dutch angle, no tilted horizon, no slow motion, no speed ramp, no lens flare,
-no bokeh balls, no HDR, no CGI sheen, no plastic skin, no beauty filter, no dim
-moody lighting, no night, no rain; no second car, no traffic, no crowd, no
-extras, no camera movement inside a shot other than the cuts named above.
+on-screen text, no signage, no logos, no registration tag on the car, no music,
+no score, no dutch angle, no tilted horizon, no slow motion, no speed ramp, no
+lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin, no beauty
+filter, no dim moody lighting, no night, no rain; no second car, no traffic, no
+crowd, no extras, no camera movement inside a shot other than the cut named
+above.
 
 CRITICAL NEGATIVES: no driving from far away, no road, no wide establishing
 shot, no parked-and-static car before the cut — the car MOVES in shot one;
-Carrington does not open his own door; nobody speaks; no uniformed guard, no
-doorman, nobody else at the entrance; the bodyguard never touches Carrington; no crack, no wall, no gallery interior.
-
+Valder does not open his own door; nobody speaks; exactly three uniformed men
+(the doorman and the two guards) and nobody else; the umbrella never covers
+the guards; no Carrington, no bodyguard; no crack, no wall, no gallery
+interior.
 === ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
 
 === NOTES · DO NOT PASTE ANY OF THIS ===
@@ -83,3 +92,8 @@ it rendered, ffprobes it, and files it.
 CEO 2026-09-07 13:02: the door is opened by HIS BODYGUARD (the big Black man in dark
 sunglasses, @project_absence_char_guard_private_v2), not by a Valder guard — the six-guard
 Element is dropped from this sheet. 4 chips.
+
+CEO 2026-09-07 13:08: SC1 rewritten — VALDER arrives in the limousine with his two
+guards; one of his own men waits with a large black umbrella, opens the door and
+shelters Valder alone up the steps; the guards follow behind. Carrington and the
+bodyguard are out of this scene. 5 chips.
