@@ -95,6 +95,17 @@ Replace the ban with a positive statement of what occupies that place instead.
   like that at 01:11 and its render would have sat there until morning. The stall
   watch alerts on that combination within three minutes rather than waiting half an
   hour for a pane to look quiet.
+- A WORSE TAKE MUST NOT OVERWRITE A BETTER ONE (HARD, added 2026-09-08 06:52 after it
+  happened). The scene-name rule below says every take files under its scene name, and
+  taken alone that means the LATEST take wins. It should be the BEST take that wins.
+  S15a-2 take 3 overwrote take 2 on Drive although take 2 was better on both measured
+  criteria — two navy uniforms against four, and a mark that registered as black
+  against one that only registered as grey.
+  So before uploading, compare your take against what the sheet's TAKE LOG records for
+  the take currently filed. If yours is worse on any criterion that one passed, DO NOT
+  UPLOAD over it: report the comparison to the CTO and leave the Drive copy alone. The
+  clip is not lost either way — every take stays in ~/Downloads under its hf_ name, and
+  the take log records which is which.
 - THE DRIVE FILENAME IS THE SCENE NAME AND NOTHING ELSE (HARD, 2026-09-08). Every
   clip goes to All Scene/Fix-1/ named for its scene — S2G-Fix1.MP4,
   S15a1-Shield-Fix1.MP4, S2S-B-Fix1.MP4 — and that is true of failures too. Do NOT
