@@ -217,3 +217,18 @@ LESSON (§10 amended): on a copyright rejection, diff the sheet's chips against
   first. S2Q's "it was the name" entry above is confounded — the name strip and
   the move to the credit lane happened in the same fire — so keep names as the
   second suspect, not the first.
+
+### S2M-B · the mark from the ROOM side (reverse angle) · prose fixed before the first fire · PASS 2026-09-07 11:00 (S2M-B-Fix1.MP4)
+PROMPT A (never fired — the sheet as written 2026-09-05): "IT IS THE NEAREST
+  THING TO THE LENS — it floats at the very front of the frame … about the
+  size of a hand, a mark you could cover with your palm" — the same depth
+  words that made S2K/S2M/S2N draw a 5x mark, and wrong for a reverse angle
+  where the wall is in the background.
+PROMPT B (30f3a59): "seen here FROM THE ROOM SIDE … it sits on the wall they
+  face, above the brass plaque. SAME SIZE AS IN THE PICTURE: a small patch, NO
+  WIDER THAN THE BRASS PLAQUE BENEATH IT AND NO TALLER THAN THAT PLAQUE".
+RESULT: first fire — one small solid-black crack about the plaque's width,
+  above the plaque, off every body. PASS.
+LESSON: size lives in the FRAME — anchor it to an object that is in the same
+  shot (the plaque for the room side, the red door for the wall side), and
+  say which side of the wall the camera is on.
