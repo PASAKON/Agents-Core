@@ -220,4 +220,22 @@ continuity (open field with a distant dome, not the forecourt). Filed to
 Drive regardless per instruction. Full report:
 docs/reports/absence-wave-20260907-sc5-t2.md
 
+2026-09-08 — take 3 (Unlimited/free lane, fired 03:27:58 ICT, cost 0):
+FLAGGED, one item outstanding. Guard grouping FIXED (6/6, one alone at the
+wall, four together, one alone at the rail, visible gaps — first take to fix
+the bunching defect). Shot One sky FIXED (no flat blue-grey; tight low/close
+framing removed the sky from view entirely, so light quality reads sunset
+via warm gold key + long raking shadows, though no open-sky pixel exists to
+directly confirm amber). Crowd count/no-duplicates, ordinary clothes, closed
+doors, two hard cuts, no readable text: all PASS. Shot Two STILL breaks
+location (open ground + stadium floodlights + distant city skyline, not the
+forecourt) — CTO diagnosed the root cause live during review as a
+contradiction in the shot's own camera description (asks the camera to look
+down the steps AWAY from the building while also requiring the building
+behind the crowd — geometrically impossible, so the model invented a
+plausible background instead). Audio not independently verified (track
+present, not transcribed). Filed to Drive regardless per instruction, NOT
+re-fired per CTO instruction — sheet geometry to be fixed before take 4.
+Full report: docs/reports/absence-wave-20260907-sc5-t3.md
+
 === END NOTES ===
