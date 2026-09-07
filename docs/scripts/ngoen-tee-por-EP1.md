@@ -31,6 +31,8 @@ Runtime: 480s = 8:00 = 60 shots × 8s. No shot exceeds 8 seconds.
 
 **APPEARANCE LOCK:** Thai man, 58 years old, lean build, weathered square face, short greying black hair, deep-set brown eyes, light stubble, wearing a faded dark-blue cotton shopkeeper's apron OVER a plain white short-sleeved shirt, a worn leather wristwatch on his left wrist. *(CORRECTED 2026-09-07 from the stored prompt on the existing Flow Ingredient — this is the look in the already-shot clip. The earlier text had the apron and shirt the wrong way round.)*
 
+**VOICE LOCK:** Preset **Algenib** (Male, gravelly, low pitch). Performance: "Speaks Thai. A tired 58-year-old Thai noodle-shop owner. Low, gravelly, unhurried. Warm underneath but holding something back. Never raises his voice." *(2026-09-08: attached in Flow via the base preset flow — no literal prompt string is inserted by Flow for a voice reference, it attaches as a `flow-audio-ingredient-chip`; see docs/reports/flow-voices-installed-20260908.md for why the performance text above could not be saved through Flow's own customize-performance panel this session.)*
+
 **Reference-image prompt (free):**
 ```
 Photorealistic portrait of a Thai man, 58 years old, medium height, slightly
@@ -53,6 +55,8 @@ soft even frontal lighting, no shadows on the face, sharp focus, 4:5.
 
 **APPEARANCE LOCK:** Thai man, 24 years old, slim build, oval face, thick black hair swept back, dark brown eyes, clean-shaven, wearing a plain grey short-sleeved polo shirt and a thin silver chain necklace. *(CORRECTED 2026-09-07 from the stored prompt on the existing Flow Ingredient — not the white shirt / black slacks / lanyard the first draft described.)*
 
+**VOICE LOCK:** Preset **Iapetus** (Male, clear, mid-low pitch). Performance: "Speaks Thai. A 24-year-old Thai man, recently graduated. Clear and direct, a little tight with held-back emotion. Respectful when speaking to his father." *(2026-09-08: attached in Flow via the base preset flow; see docs/reports/flow-voices-installed-20260908.md.)*
+
 **Reference-image prompt (free):**
 ```
 Photorealistic portrait of a Thai man, 24 years old, slim athletic build,
@@ -74,6 +78,8 @@ soft even frontal lighting, no shadows on the face, sharp focus, 4:5.
 
 **APPEARANCE LOCK:** Thai woman, 79 years old, frail thin frame, silver-white hair cropped short and thinning at the temples, deeply wrinkled papery skin, sunken cheeks, cloudy but alert dark eyes, wearing a faded floral-print cotton nightgown, propped against two stacked pillows, a thin nasal cannula tube looped over her ears, a small brass amulet on a string around her neck.
 
+**VOICE LOCK:** Preset **Gacrux** (Female, mature, mid pitch). Performance: "Speaks Thai. A frail 79-year-old Thai woman, seriously ill. Thin, breathy, slow. Short phrases, running out of air. Gentle." *(2026-09-08: attached in Flow via the base preset flow; see docs/reports/flow-voices-installed-20260908.md.)*
+
 **Reference-image prompt (free):**
 ```
 Photorealistic portrait of a Thai woman, 79 years old, frail thin frame,
@@ -94,6 +100,8 @@ even frontal lighting, no shadows on the face, sharp focus, 4:5.
 **ไทย:** เจ้าหนี้นอกระบบในย่านนี้ แต่งตัวดีกว่าคนทั่วไปในซอยเสมอ พูดจาสุภาพในที่สาธารณะทุกครั้งไม่มีข้อยกเว้น ปมในใจ: มองว่าตัวเองเป็น "คนทำธุรกิจ" ไม่ใช่คนเลว ต้องการ: เงินคืนตรงเวลาทุกงวดไม่มีข้อยกเว้น กลัว: เสียชื่อถ้าใครในย่านรู้ว่าตัวเองใช้ความรุนแรง
 
 **APPEARANCE LOCK:** Thai man, 45 years old, medium build going soft at the waist, slicked-back black hair with grey at the temples, clean-shaven square jaw, tan skin, wearing a crisp short-sleeve dark-navy polo shirt tucked into pressed grey trousers, a thick silver-link bracelet on his right wrist, gold-rimmed sunglasses pushed up on his head.
+
+**VOICE LOCK:** Preset **Umbriel** (Male, smooth, lower pitch). Performance: "Speaks Thai. A 45-year-old Thai money lender. Smooth, controlled, friendly on the surface with a threat underneath. Never shouts." *(2026-09-08: attached in Flow via the base preset flow; see docs/reports/flow-voices-installed-20260908.md.)*
 
 **Reference-image prompt (free):**
 ```
