@@ -230,3 +230,10 @@ Filed to Drive All Scene/Fix-1/ as S2G-Fix1.MP4 (scene name only, per the
 HARD naming rule) — file id 1ccwmJgD6GHIztVNJOvyVsnGDDbkp8Huv, link
 https://drive.google.com/file/d/1ccwmJgD6GHIztVNJOvyVsnGDDbkp8Huv/view,
 logged to Sorry, Sir/logs.txt by upload_fix1.py.
+
+TAKE 4 · 2026-09-07 22:19 UTC (2026-09-08 05:19 ICT) fired (Seedance 2.5,
+16:9, 720p, 12s, High, Sound On, Unlimited struck 84→0, chip
+@project_absence_loc_hall_big_d 1/1 lime-bound, 0 error chips, no warning
+triangle on thumbnail, no previz attached) — gate 0, prompt-lint exit 0, zero
+"plaque" / zero "thick heavy" in paste block, matching CTO's expected gates.
+"Generation started" toast confirmed, asset count 714→715. Awaiting landing.
