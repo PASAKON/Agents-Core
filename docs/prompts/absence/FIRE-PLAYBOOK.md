@@ -96,3 +96,11 @@ docs/reports/<brief's path> — innerWidth readback, banner closed yes/no, six
 fields, price zoom, paste method + chip count, previz yes/no + byte check, fire
 time + how verified, render duration, NSFW yes/no, info-icon, Drive filename +
 link, verdicts with frame paths, anything odd. Commit, submit_report, STOP.
+
+## 5 · Pipelining (proven 2026-09-07 09:55)
+The Unlimited lane renders ONE generation at a time — a second fire is refused
+with the toast "You can generate 1 unlimited video, image & audio generation at
+a time" (not queued). So the NEXT scene's worker should build its composer
+(fields, paste, chips, previz, Unlimited zoom) WHILE the previous render runs,
+then retry Generate every 5 minutes until the slot frees. The refusal costs
+nothing; the slot idles for zero minutes.
