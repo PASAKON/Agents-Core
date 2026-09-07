@@ -166,4 +166,11 @@ REVIEW ORDER:
 7. Sound is voices with no words. Any intelligible line = flagged.
 File the take whatever the verdict.
 
+2026-09-07 — take 1 (credit lane, fired 19:09 ICT, cost 52 credits): FLAGGED.
+5 guards not 6 in Shot One (no flank coverage), Shot One sky still midday-blue
+(Shots 2-3 correctly amber/dusk), and Shots 2-3 break location continuity
+entirely (open field/park at dusk, not the museum forecourt). Filed to Drive
+regardless per instruction. Full report:
+docs/reports/absence-wave-20260907-sc5-t1.md
+
 === END NOTES ===
