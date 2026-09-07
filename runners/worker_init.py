@@ -42,7 +42,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import display_for, get_project, role as get_role, worker_provider_overrides
+from lib.config import (
+    get_project,
+    host as get_host,
+    role as get_role,
+    worker_provider_overrides,
+    worker_session_name,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
@@ -96,6 +102,84 @@ _CHROME_TOOLS = (
     "mcp__claude-in-chrome__read_console_messages "
     "mcp__claude-in-chrome__read_network_requests"
 ).split()
+
+
+def clean_title(title: str | None) -> str:
+    """Collapse a task title to a single line for use in a session name.
+
+    `lib.config.worker_session_name` truncates to ~40 chars but does not
+    strip embedded newlines (a title pasted from chat can carry one) --
+    left in, one would break both the `-n` argv token's readability and
+    the AppleScript title escape a resumed tab reasserts.
+    """
+    return " ".join((title or "").split())
+
+
+def current_host() -> str:
+    """Host key (config/hosts.yaml) this runtime is on.
+
+    Defaults to 'mac' -- this launcher was Mac-only through task-af5268b3.
+    ORG_HOST lets the identical code run unchanged on Contabo later (ADDENDUM
+    1, CTO 2026-09-07): the CEO only ever talks to a session from the Claude
+    app, so every worker's name has to say which machine spawned it.
+    """
+    return (os.environ.get("ORG_HOST") or "mac").strip().lower() or "mac"
+
+
+def remote_control_args(host_name: str) -> list[str]:
+    """``["--remote-control"]`` if `host_name` opts in, else ``[]``.
+
+    Reads `config/hosts.yaml`'s per-host `remote_control` flag, defaulting
+    to True (every host opts in today) so an unlisted or not-yet-declared
+    host still gets Remote Control rather than silently losing it. Fails
+    open the same way on an unknown host key -- never let a config typo
+    strand a worker unreachable from the Claude app.
+    """
+    try:
+        enabled = get_host(host_name).get("remote_control", True)
+    except ValueError:
+        enabled = True
+    return ["--remote-control"] if enabled else []
+
+
+def worker_claude_argv(
+    *,
+    prompt: str,
+    session_name: str,
+    model: str,
+    effort_args: list[str],
+    role_doc: str,
+    mcp_config: Path,
+    chrome_args: list[str],
+    allowed: list[str],
+    host_name: str,
+    extra_flags: list[str] | None = None,
+) -> list[str]:
+    """Shared claude argv assembly for worker_init and worker_resume.
+
+    Single source of truth -- the two launchers used to hand-duplicate this
+    (worker_resume's docstring already warned they must not drift, and they
+    already had: worker_init's `-n` was `<display> (<task_id>)`, worker_resume's
+    was `<role>:<task_id>`). Positional `prompt` goes FIRST, before any flag,
+    and `--allowed-tools` goes LAST with nothing after it -- that flag is
+    variadic and swallows every following argv element (see the note at the
+    execvpe call site).
+    """
+    return [
+        "claude",
+        prompt,
+        "-n", session_name,
+        "--model", model,
+        *effort_args,
+        *(extra_flags or []),
+        "--permission-mode", "auto",
+        "--append-system-prompt", role_doc,
+        "--mcp-config", str(mcp_config),
+        "--strict-mcp-config",
+        *chrome_args,
+        *remote_control_args(host_name),
+        "--allowed-tools", ",".join(allowed),
+    ]
 
 
 def worker_tool_grants(role: str) -> tuple[list[str], list[str]]:
@@ -419,36 +503,37 @@ def main() -> None:
         if _ov["effort"] is None:
             effort_args = []
 
+    host_name = current_host()
+    session_name = worker_session_name(host_name, role, task_id, clean_title(task.get("title")))
+
     os.chdir(worktree)
     os.execvpe(
         "claude",
-        [
-            "claude",
-            # Prompt goes FIRST, before any flag, and --allowed-tools goes
-            # LAST with nothing after it. Both halves are load-bearing:
-            # --allowed-tools is variadic, so it consumes every following
-            # argv element until the next flag -- a trailing positional
-            # prompt gets eaten whole and the worker launches with its brief
-            # parsed as ~1200 bogus tool names and no prompt at all.
-            # Comma-joining the tool list does NOT fix this on its own
-            # (measured 2026-08-15: the swallow still happens, because the
-            # flag takes the *next element* regardless of the first one's
-            # shape). Do not "fix" it with `-p` either -- that turns claude
-            # headless (print-and-exit) and kills the interactive TUI that
-            # kickoff pings, ttyd attach and dev_message all depend on.
-            prompt,
-            "-n", f"{display_for(role)} ({task_id})",
-            "--model", model,
-            *effort_args,
-            "--permission-mode", "auto",
-            "--append-system-prompt", role_doc,
-            "--mcp-config", str(mcp_config),
-            "--strict-mcp-config",
-            *chrome_args,
-            # Joined into one element (matches runners/secretary_server.py)
-            # and kept LAST in the argv -- see the note above the prompt.
-            "--allowed-tools", ",".join(allowed),
-        ],
+        # Prompt goes FIRST, before any flag, and --allowed-tools goes
+        # LAST with nothing after it. Both halves are load-bearing:
+        # --allowed-tools is variadic, so it consumes every following
+        # argv element until the next flag -- a trailing positional
+        # prompt gets eaten whole and the worker launches with its brief
+        # parsed as ~1200 bogus tool names and no prompt at all.
+        # Comma-joining the tool list does NOT fix this on its own
+        # (measured 2026-08-15: the swallow still happens, because the
+        # flag takes the *next element* regardless of the first one's
+        # shape). Do not "fix" it with `-p` either -- that turns claude
+        # headless (print-and-exit) and kills the interactive TUI that
+        # kickoff pings, ttyd attach and dev_message all depend on.
+        # Joined into one element (matches runners/secretary_server.py)
+        # and kept LAST in the argv -- see worker_claude_argv.
+        worker_claude_argv(
+            prompt=prompt,
+            session_name=session_name,
+            model=model,
+            effort_args=effort_args,
+            role_doc=role_doc,
+            mcp_config=mcp_config,
+            chrome_args=chrome_args,
+            allowed=allowed,
+            host_name=host_name,
+        ),
         env,
     )
 

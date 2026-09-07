@@ -20,10 +20,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import get_project, role as get_role, worker_provider_overrides
+from lib.config import get_project, role as get_role, worker_provider_overrides, worker_session_name
 from runners.worker_init import (  # type: ignore
     _write_dev_settings,
     _symlink_knowledge,
+    clean_title,
+    current_host,
+    worker_claude_argv,
     worker_tool_grants,
 )
 
@@ -109,26 +112,28 @@ def main() -> None:
         if _ov["effort"] is None:
             effort_args = []
 
+    host_name = current_host()
+    session_name = worker_session_name(host_name, role, task_id, clean_title(task.get("title")))
+
     os.chdir(worktree)
     os.execvpe(
         "claude",
-        [
-            "claude",
-            "-n", f"{role}:{task_id}",
-            # Positional FIRST, --allowed-tools LAST -- see the full note at
-            # the matching site in runners/worker_init.py. That variadic flag
-            # eats any argv element that follows it.
-            resume_nudge,
-            "--resume", session_id,
-            "--model", model,
-            *effort_args,
-            "--permission-mode", "auto",
-            "--append-system-prompt", role_doc,
-            "--mcp-config", str(ROOT / "config" / "worker.mcp.json"),
-            "--strict-mcp-config",
-            *chrome_args,
-            "--allowed-tools", ",".join(allowed),
-        ],
+        # Positional `prompt` FIRST, --allowed-tools LAST -- see the full
+        # note at worker_claude_argv / the matching site in
+        # runners/worker_init.py. That flag is variadic and eats any argv
+        # element that follows it.
+        worker_claude_argv(
+            prompt=resume_nudge,
+            session_name=session_name,
+            model=model,
+            effort_args=effort_args,
+            role_doc=role_doc,
+            mcp_config=ROOT / "config" / "worker.mcp.json",
+            chrome_args=chrome_args,
+            allowed=allowed,
+            host_name=host_name,
+            extra_flags=["--resume", session_id],
+        ),
         env,
     )
 
