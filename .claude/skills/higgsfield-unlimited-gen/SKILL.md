@@ -755,8 +755,10 @@ Rules:
   loaded tab is the only reliable check.
 - **If the toggle reads `aria-checked=false` after a click, go straight to a new
   tab** rather than clicking again.
-- Escalation order stays: hard reload → new tab → quit and reopen Chrome.
-  Chrome belongs to the org, so restarting it needs no permission.
+- Escalation order: hard reload → new tab → STOP and report. Quitting or
+  restarting Chrome is a CTO-only decision (browser-operator HARD rule,
+  2026-09-07): the window is shared and a restart wipes every other operator's
+  staged composer. A frozen tab never loses a render — the job lives server-side.
 - **A tab whose viewport has collapsed to a stuck 728x420 "mobile" layout
   cannot be repaired — open a fresh tab.** Measured 2026-08-27
   (task-f4305098): `resize_window` returned success and changed nothing, so

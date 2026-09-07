@@ -358,41 +358,23 @@ So, every time:
 - **Stop after 2-3 failed attempts at the same action.** Report what you tried
   and what the page did. Grinding on a stuck element is how a 40-step budget
   disappears into one button.
-- **Restart Chrome. It is free and it is yours.** Chrome is the org's browser,
-  not the CEO's — he works in Safari (confirmed 2026-08-12). No window in it
-  belongs to him, so closing tabs, hard-reloading and quitting Chrome outright
-  are ordinary repair moves that need no permission. What *is* his are the
-  logged-in sessions inside it, and those survive a restart.
-
-  Reach for it when a control will not respond to a correct click, when page
-  state looks impossible, or when CDP calls time out on one page while others
-  work. Measured on task-cda4f469: an Unlimited toggle refused four separate
-  click methods and stayed `data-state="off"`, two fresh *tabs* inherited the
-  fault, and a full **browser** restart fixed it on the first try. Escalate in
-  that order — hard-reload the page, then a new tab, then quit and reopen
-  Chrome. **A new tab is not a substitute for a new browser.**
-
-  Two operators sat blocked for roughly half an hour that night because both
-  they and the C-level believed the browser was the CEO's and treated
-  restarting it as destructive. It is not.
-
-  **After any restart the composer resets to defaults.** Rebuild the whole
-  state before touching content: mode, then model, then every setting, then
-  the cost toggle, then read the toggle back — and only then paste.
-- `save_to_disk` on a screenshot saves the file — it does not reduce the token
-  cost of that screenshot.
-
-## Tabs — claim what you open, close what you claimed
-
-This is not a Higgsfield rule. It applies to every site any operator drives,
-because the failure is about the browser, not the product: about twenty-five
-tabs had piled up in one Chrome window before anyone noticed, left behind by
-operator after operator across many sessions. Nobody had ever been told to
-close one, and the half-rule we did have — never touch another operator's tab —
-had no way to tell whose was whose, so in practice nobody touched anything.
-
-Two costs, and the second is the one that bites:
-- The window overflows and a human can no longer find their own tabs.
+- **HARD — never quit or restart Chrome while any other operator task is
+  in flight.** Chrome is the org's browser and the CEO works in Safari, but the
+  window is SHARED: every browser_operator on the box holds tabs in it, and a
+  quit destroys their staged composers, attached previz tiles and Unlimited
+  toggles in one stroke. Measured 2026-09-07 13:56 (task-0c309025): one
+  operator "escalated to a full Chrome restart per skill" over a frozen tab and
+  wiped a fully staged S2N-B composer plus a credit-lane render watch that
+  belonged to two other workers. The ladder for a frozen tab is: hard-reload →
+  close YOUR OWN tabs and open one fresh tab → if that freezes too, STOP and
+  report (`submit_report` with the exact state) — the CTO decides whether Chrome
+  restarts, because only the CTO can see who else is inside it. Before even
+  considering it, run
+  `sqlite3 state/tasks.db "select id from tasks where status='in_progress' and role='browser_operator'"`
+  — any id other than your own is a hard no. A generation survives your tab, so
+  a frozen tab never loses a render; a restart can lose everyone else's.
+  (Supersedes the 2026-08-12 note that a restart "needs no permission" — that
+  was written when one operator at a time used the browser.)
 - **A tab that has been reused across several different assets starts
   misbehaving.** On Higgsfield that shows up as a reference chip silently
   binding the wrong upload; expect the same class of stale-state bug anywhere

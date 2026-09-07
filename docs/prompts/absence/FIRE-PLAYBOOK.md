@@ -22,6 +22,7 @@ words. Expect: `NO WIDER THAN THE RED DOOR` → 1 on wall-POV sheets;
 → 0. Mismatch → STOP and report; never fire from a stale sheet.
 
 ## 1 · Browser
+- NEVER quit or restart Chrome (HARD, 2026-09-07): the window is shared with the other operators; a frozen tab → close your own tabs, one fresh tab, else STOP and report. The render lives server-side and survives your tab.
 - claude-in-chrome ONLY. NEVER call computer-use (screenshot/click/type/clipboard) or ask
   for Finder / clipboardWrite: the permission dialog it raises blocks the whole pane
   silently — S2I t1 sat 40 minutes on one (2026-09-07 00:15). Paste = javascript_tool
