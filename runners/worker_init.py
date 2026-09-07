@@ -100,12 +100,12 @@ _CHROME_TOOLS = (
     "mcp__claude-in-chrome__javascript_tool "
     "mcp__claude-in-chrome__browser_batch "
     "mcp__claude-in-chrome__read_console_messages "
-    "mcp__claude-in-chrome__read_network_requests",
+    "mcp__claude-in-chrome__read_network_requests "
     # Browser selection: with several Chromes paired to the account the CLI
     # refuses every browser action until one is chosen (2026-09-07, winbox).
-    "mcp__claude-in-chrome__list_connected_browsers",
-    "mcp__claude-in-chrome__select_browser",
-    "mcp__claude-in-chrome__switch_browser",
+    "mcp__claude-in-chrome__list_connected_browsers "
+    "mcp__claude-in-chrome__select_browser "
+    "mcp__claude-in-chrome__switch_browser"
 ).split()
 
 
