@@ -289,7 +289,7 @@ LESSON: when a chip shows the warning triangle, do not click twice hoping —
   move that object into prose in the same sentence position and re-verify the
   chip count before firing.
 
-### S15a-1 + S2S-B · an unnamed side of frame gets filled by mirroring the chip beside it · 2026-09-08
+### S15a-1 · an unnamed side of frame gets filled by mirroring the chip beside it · CONFIRMED by take 2 · 2026-09-08
 DEFECT SEEN: twice in one night, on two unrelated sheets, in the same shape.
   1. S15a-1 t1 (52 credits): the Registrar — one man, one chip — appeared at
      BOTH frame edges, black suit, white gloves, gold V, ledger, twice.
@@ -339,3 +339,44 @@ LESSON: the mark has a canon and the canon has to travel with it. A sheet that
 WATCH: S2G says "thin short lines" in the same breath as "solid black only" and
   "no thick heavy arms". If S2G comes back spidery too, "thin" is the word doing
   the damage and the canon needs rewriting to lead with weight, not with size.
+
+### S15a-1 take 1 → take 2 · anchoring both sides of frame · free lane · PASSED 2026-09-08 02:10
+DEFECT SEEN (t1, 52 credits, fired 22:31): (b) the three bodyguards did not group —
+  Valder's two navy guards stayed at the left edge while Carrington's man in black
+  stood alone at the right edge; (e) the Registrar appeared at BOTH frame edges,
+  black suit, white gloves, gold V and ledger, twice.
+PROMPT A (t1), the guards: "THE THREE BODYGUARDS STAND TOGETHER, shoulder to shoulder
+  in one small group at the frame edge nearest their masters — Valder's two navy
+  guards and Carrington's man in black side by side, close enough to touch, all three
+  facing the room and none of them moving for the whole clip."
+  And the Registrar, in full: "@project_absence_char_registrar_b — THE REGISTRAR: a
+  formal BLACK suit, white gloves, a GOLD V, the leather ledger. Present, still."
+PROMPT B (d0d19f9), the guards, placed one by one with a side named: "THE THREE
+  BODYGUARDS STAND IN ONE GROUP AT THE LEFT EDGE OF FRAME — COUNT THEM: THREE, and
+  all three in the SAME place. VALDER'S TALL THIN NAVY GUARD stands at the left edge.
+  VALDER'S SHORT HEAVY NAVY GUARD stands directly beside him with their shoulders
+  touching. CARRINGTON'S BODYGUARD IN BLACK stands directly beside the short guard…
+  Every bodyguard in this film is in that group at the left edge; the right side of
+  frame holds ordinary guests only."
+  And the Registrar, given the other side to hold: "THERE IS EXACTLY ONE REGISTRAR —
+  one man, standing on the RIGHT side of the room, still, holding the ledger. He is
+  the only person in the entire frame wearing a black suit with white gloves and a
+  gold V; every other guest wears something different."
+WHY B HELD (measured on t2's own frames, fired 01:40, landed ~02:10, free lane):
+  at 0.2s the three bodyguards are one unbroken group at the LEFT edge, navy, navy,
+  black; exactly ONE registrar, at the RIGHT edge, with no copy on the left; exactly
+  TWO navy uniforms in the whole frame. The shield still reads at 3.3s with the
+  workman in shot, four press at 5.9s, and every face different.
+WHY IT WORKS: take 1's prose already said "TOGETHER", "one small group", "close enough
+  to touch" and gave the correct count. None of that binds, because none of it says
+  WHERE. What changed is that both sides of frame now have a named occupant — guards
+  left, registrar right — so there is no empty region for the model to fill by copying
+  the nearest distinctive costume.
+LESSON: a count is not a placement, and "together" is not a location. Name the side of
+  frame each group stands on, and name who holds the opposite side. Confirmed three
+  times over as a defect (S15a-1 t1 registrar, S2S-B t2 guard pair, S15a-2 t1 fourth
+  guard) and once as a fix.
+STILL OPEN on this take: the wall mark renders as spidery hairlines and reads as an
+  insect. Canon rules 6 and 7 (weight before size; the canon travels with the mark)
+  were added at 01:32, eight minutes before this fired, and were not yet in this
+  sheet. Not a counter-example to the fix above — a separate defect with its own fix.
