@@ -187,3 +187,46 @@ https://drive.google.com/file/d/18YCfGA158EWbhJWptC4AUXdm7AGCqxBh/view,
 logged to Sorry, Sir/logs.txt under that same wrong name. Left as-is per CTO
 instruction (2026-09-08 01:33) — rename/trash on Drive is the CTO's call, not
 the operator's.
+
+TAKE 3 · 2026-09-08 04:26 fired (Seedance 2.5, 16:9, 720p, 12s, High, Sound On,
+Unlimited struck 84→0, chip @project_absence_loc_hall_big_d 1/1 lime-bound, no
+previz) → landed 04:59 (~33 min). Downloaded
+hf_20260907_212540_39a5c351-19d0-4bbe-bab0-5355a4b43e37.mp4, 1280x720, 12.04s,
+confirmed via Info panel (Created Sep 8 04:25 AM, Model Seedance 2.5, 720p,
+High, prompt text match). Not a duplicate of any prior download (md5 checked
+against every mp4 in ~/Downloads). Frames pulled at 0.5s/3s/mid(6s)/end(11.5s).
+REVIEW ORDER:
+1. THE LOCK — PASS. Mean abs diff (first vs last frame) 1.52, max 22 — grain
+   only, matches take 2's baseline (1.0/29). No push, no drift, no light
+   change, no dust across all four sampled frames.
+2. THE MARK MATCHES THE STILL — FLAG, same defect as take 2. Only a small
+   central blob reads truly solid black (bbox ~52x81px, brightness <90/255).
+   Every line radiating from it — the four symmetric star rays AND the long
+   wavy trailing line up-right — sits in the 90-175 brightness band: a warm
+   tan/gold tone, not black. This is the take-2 "TAN HAIRLINES" defect
+   recurring, and the four rays plus the trailing squiggle still read as a
+   decorative symmetric star-with-tendril rather than one continuous solid
+   crack. Full mark bbox (core + all rays, measured by brightness threshold)
+   299x210px = 23.4% of frame width, 29.2% of frame height — over the sheet's
+   "about a quarter of the frame's height, no more" target (25%), though the
+   solidity/colour defect is the primary issue, not the size (stroke weight
+   reads as size per S15a-2).
+3. NOTHING BUT WALL — FLAG. Brass plaque sits at the bottom edge in all four
+   sampled frames — the take-2 defect returning unchanged; the sheet said the
+   plaster continues down past the bottom edge unbroken.
+4. NOTHING MOVES — PASS. Identical framing/lighting across all four frames,
+   no dust, no falling plaster, no crack growth.
+5. ROOM TONE ONLY, NO TAIL — PASS. Audio steady -42.0 dB mean / -27.2 dB max
+   across the whole clip; 0-0.5s window -40.6/-27.8 dB, 11.5-12s window
+   -42.0/-27.2 dB — no swell or sting at either end.
+VERDICT: FLAGGED — re-fire needed. Same two defects as take 2: the mark's
+radiating lines are tan, not solid black, and the star reads symmetric/
+decorative rather than one continuous crack; and the brass plaque is still in
+frame. CTO confirmed (2026-09-08 ~05:00) both are already fixed in commit
+9b0b6d3 for take 4 — thin-arms ban removed, negatives no longer fight the
+mark's stated weight, paste block carries zero plaque mentions. Take 4 to be
+queued separately; this take is filed and not re-fired.
+Filed to Drive All Scene/Fix-1/ as S2G-Fix1.MP4 (scene name only, per the
+HARD naming rule) — file id 1ccwmJgD6GHIztVNJOvyVsnGDDbkp8Huv, link
+https://drive.google.com/file/d/1ccwmJgD6GHIztVNJOvyVsnGDDbkp8Huv/view,
+logged to Sorry, Sir/logs.txt by upload_fix1.py.
