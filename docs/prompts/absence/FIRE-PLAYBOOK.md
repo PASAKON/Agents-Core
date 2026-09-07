@@ -48,6 +48,17 @@ S15a-2's operator was right to stop.
   night and rendered in 46 minutes. Never refuse to fire on the strength of that
   banner — read the toggle and the button price instead, and fire when the button
   shows zero digits. The button is the authority on what you are about to spend.
+- NEVER END YOUR TURN WHILE A RENDER IS UNRESOLVED (HARD, measured 2026-09-08
+  01:16). S2G's operator fired at 00:48, checked once at 01:11, wrote itself
+  "check again in 10 min", and ended its turn — with that reminder still sitting
+  UNSENT in its own input line. Nothing was scheduled. The process stayed alive at
+  idle, the tmux session was healthy, the task read `in_progress`, and every
+  liveness check passed, so the failure is invisible from outside: the render
+  would have landed and sat unnoticed until morning. A self-addressed note is not
+  a timer. Stay inside ONE turn: check the grid, and while it is still Processing,
+  start a background wait and check again, repeatedly, until the card is finished
+  or you hit a real error. The CTO's stall watch now flags a worker pane that has
+  not changed in 30 minutes, but the operator is the first line of defence.
 - NEVER quit or restart Chrome (HARD, 2026-09-07): the window is shared with the other operators; a frozen tab → close your own tabs, one fresh tab, else STOP and report. The render lives server-side and survives your tab.
 - claude-in-chrome ONLY. NEVER call computer-use (screenshot/click/type/clipboard) or ask
   for Finder / clipboardWrite: the permission dialog it raises blocks the whole pane
