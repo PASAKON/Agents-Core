@@ -35,6 +35,32 @@ An operator who hits a mismatch STILL stops and reports — do not adjudicate a 
 hit yourself, even one that looks obviously positional. That call is the CTO's, and
 S15a-2's operator was right to stop.
 
+## 0b · After editing a sheet, grep the paste block for the OPPOSITE of what you just wrote
+
+A prompt describes an object ONCE. The way that rule actually gets broken is not by
+writing a second description on purpose — it is by adding a new positive instruction
+and leaving an old negative in place that contradicts it. Twice on 2026-09-08 that
+cost a whole take.
+
+- S2G take 3: canon rule 6 was added asking for lines "solid and heavy like ink", and
+  four lines below it the same block still said "no thick heavy arms". The model split
+  the difference and rendered a solid core with thin tapering arms — worse than the
+  take before it.
+- S2G takes 2 and 3: the brass plaque was banned from the shot while being named four
+  times inside the same block, including as the size anchor ("no wider than the plaque
+  beneath it"). It appeared in both takes.
+
+So after every sheet edit, before committing, grep the PASTE BLOCK for the antonyms
+and for the noun you just banned:
+
+    blk() { awk '/PASTE FROM HERE/{p=1;next} /PASTE STOPS HERE/{p=0} p' "$1"; }
+    blk <sheet> | grep -inE 'thin|thick|heavy|hairline|fine|solid'   # weight words
+    blk <sheet> | grep -ic '<the noun you just banned>'              # expect 0
+
+If a banned object still appears anywhere in the block, delete every mention, including
+the one in the negatives — naming a thing in a prohibition is what puts it on screen.
+Replace the ban with a positive statement of what occupies that place instead.
+
 ## 1 · Browser
 - A DISABLED GENERATE IS USUALLY THE TAB, NOT THE PREVIZ SERVICE (measured 2026-09-07 18:15). Two tabs sat with Generate disabled for 20-40 min after attaching a video reference, and one stayed disabled even after the video tile was removed — tab-local state, not the eligibility check. A FRESH tab with the same 7 chips and the same library previz tile had Generate ENABLED within a minute. Order of moves: innerWidth (>= 1280) → hover the button for its reason → if still disabled with all references in place, close the tab and rebuild in ONE fresh tab before ever blaming the previz or firing bare.
 - WINDOW WIDTH TRAP (2026-09-07 17:35): a Chrome window that is 1440 px wide LOOKS fine but the extension side panel eats ~300 px, so window.innerWidth lands near 1140 and Higgsfield silently switches to its mobile layout — Generate DISABLED, freeGens undefined, and it looks exactly like a stuck previz check. Measured 17:40: the S2R-JC tab read innerWidth 1440 with the window at 1440, so on this Mac the side panel does NOT shrink innerWidth and 1440 is safe; the trap only bites when innerWidth itself is under 1280. The CTO's OS guard now fires only under 1300 px: macOS keeps clamping the off-screen window back to 1440, and re-widening every 90 s re-lays out pages that operators have staged, for no benefit when 1440 already clears 1280. Operator rule: a DISABLED Generate → read window.innerWidth FIRST; under 1280 → wait 60 s for the guard, re-read, then continue.
