@@ -220,6 +220,57 @@ Filed to Drive regardless (All Scene/Fix-1/S15a2-RoomDecides-Fix1.MP4):
 https://drive.google.com/file/d/19zD1SxuEkI-0qI5GbC2_abnI0mNoVXds/view
 Full per-item table and frame evidence: docs/reports/absence-wave-20260908-s15a2-t2.md
 
+2026-09-08T02:30:54+07:00 — t3 (task-1deb52ec): FIRED, UNLIMITED/FREE lane.
+Gates: git merge main clean (at 1d2fe8f), prompt-lint exit 0, gate-0
+depth/gaze grep 0 hits (narrowed pattern), 12/12 chips exact match to
+prompt-lint --chips list, 2 HARD CUT confirmed (shots 2 and 3). All 12
+reference thumbnails zoomed, no warning triangles. Unlimited toggled ON as
+first composer action (one clean ref-click after a miscoordinate click
+missed it), zoomed Generate button read `UNLIMITED · struck 56 · 0` at fire.
+Duration slider defaulted to 5s, set to 8 via focus+ArrowRight x3, read back
+aria-valuenow=8 before firing. Generate clicked exactly once. "Generation
+started" toast confirmed, asset count 711→712. Render observed Processing
+at 20/25/31/36 min checks (well inside tonight's 30-46min norm, never an
+outlier, never cancelled) and landed by the ~40min check. Card verified
+mine via Info panel: prompt text match, Model Seedance 2.5, 720p, 1280x720,
+Created "September 8, 2026 at 2:30 AM" = exact fire timestamp. Downloaded
+hf_20260907_193050_14ba27cf-6dec-4dc2-9f34-1e018d8b295c.mp4, 8.05s,
+1280x720, md5 unique against prior Downloads. No NSFW/rights-verification
+banner.
+VERDICT: FLAGGED — one defect, per CTO's mid-review call after seeing the
+frame evidence:
+  1. CUTS TO S15a-1 / Dupe dead centre / room silent / push-in moving /
+     nobody walking in: PASS at 0.2s — Dupe centred between (loosely)
+     Valder on the far left and the workman on the far right, static
+     opening, no walk-in visible.
+  2. NAVY UNIFORMS: exactly 2 across the full frame width (shot 2, both
+     3.1s and 4.5s frames), both grouped together at the LEFT edge —
+     defect (a) from take 1 (phantom 3rd/4th navy uniform on the right)
+     is FIXED. PASS.
+  3. REGISTRAR: exactly 1, black suit, white gloves, gold V, leather
+     ledger, present and singular (0.2s frame). PASS.
+  4. THREE BODYGUARDS ONE GROUP AT LEFT: FLAG. Only the 2 navy guards are
+     grouped left; the third bodyguard (heavy-built Black man, black suit,
+     sunglasses, white gloves) stands isolated at the FAR RIGHT of frame,
+     shoulder-to-shoulder with Madame Thibault instead of with the navy
+     guards. The prompt's explicit "shoulder touching" three-body cluster
+     at the left edge did not bind.
+  5. WALL MARK vs canon (rules 6/7): PASS per CTO's independent read — a
+     solid black star/branch-crack over the plaque, thick main stem,
+     angular. (Operator's own zoom noted the branch lines reading thinner/
+     more wire-like than the main stem — recorded for the ledger, CTO's
+     PASS call stands as the verdict.)
+  6. PRESS COUNT: 4 people visibly hold camera+flashbulb-bandolier gear in
+     the shot-2 cluster, matching the sheet's "FOUR of them" exactly, no
+     duplicate press faces. ~6 more figures stand in the same tight
+     cluster with no camera visible, styled in near-identical dark
+     overcoats — almost certainly the scripted six prose-only villagers
+     rather than extra press, but visually indistinguishable from press at
+     a glance because of the shared coat styling, which is why a look
+     reads as "more than four press."
+Filed to Drive regardless (All Scene/Fix-1/S15a2-RoomDecides-Fix1.MP4):
+https://drive.google.com/file/d/1fsmOp7Dk3Zwri7CbA9X4LS1rVb3G753Y/view
+
 REVIEW ORDER:
 1. IT MUST CUT TO S15a-1. Same hall, same light, Dupe still dead centre
    between Valder and the workman, nobody re-entering. If it opens on a new
