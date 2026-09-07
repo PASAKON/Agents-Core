@@ -123,23 +123,37 @@ Frame paths: `docs/reports/frames-s2s-b-t2/t0.5.png`, `t4.png`, `t8.png`,
 - **The distance holds for 20s, group never gets bigger:** PASS — chair
   covers only a small fraction of the 24m by t19.5; the standing group stays
   the same apparent size throughout.
-- **People count, "THIRTEEN PEOPLE and not one more":** **FLAGGED.** Counted
-  the full frame width at every timestamp (grandmother + the standing
-  group), cross-checked left/right edges for figures blocked by the
-  reflective columns. Total distinct individuals across the whole clip: **11**
-  (grandmother, Carrington, the bodyguard, two named Valder guards, Valder,
-  the woman in green, the woman in the chestnut fur/visitor_b, the man in
-  maroon/visitor_a, the young woman in cobalt). Three named characters never
-  appear anywhere in the 20 seconds — **THE REGISTRAR** (cream/orange tunic),
-  **THE ART STUDENT** (yellow-green hair, denim overshirt, sketchbook), and
-  **DUPE** (his service cart is present at frame-left in every frame, but he
-  himself never is). In their place, an unnamed **third navy-uniformed
-  guard** stands in the line between the woman in green and the man in
-  maroon at every timestamp checked (0.5s, 4s, 8s) — a genuine extra figure,
-  not a column reflection (confirmed: upright stance, own shadow, holds
-  position with the line, distinct build from the other two named guards).
-  This both exceeds the "TWO GUARDS" spec and violates "no face is repeated
-  anywhere" if it is meant to be a duplicate of an existing guard.
+- **People count, "THIRTEEN PEOPLE and not one more":** **FLAGGED.**
+  **CORRECTED after CTO recount (2026-09-08)** — the first pass undercounted
+  the right-hand guard cluster as one figure; it is two, overlapping in the
+  frame. Re-examined every check frame with matched, tight crops on both
+  guard clusters (left-of-Valder and right-of-green-woman) and counted
+  navy-uniformed guards per frame:
+
+  | frame | left cluster | right cluster | total navy guards |
+  |---|---|---|---|
+  | t0.5 | 2 (tall-thin + short-heavy) | **2** (two guards, same build, overlapping) | **4** |
+  | t4   | 2 | 1 | 3 |
+  | t8   | 2 | 1 | 3 |
+  | t12  | 2 | 1 | 3 |
+  | t16  | 2 | 1 | 3 |
+  | t19.5| 2 | 1 | 3 |
+
+  At **t0.5 the guard_valder_two pair is rendered twice**, mirrored across
+  the group — two guards to the left of Valder, two more to the right of
+  the woman in green — exactly as the CTO read from `t0.5_fullgroup.png`.
+  This is a clean "no face is repeated anywhere" violation at the very
+  first frame. From t4 onward one of the right-hand pair is gone and the
+  count settles to 3 navy guards (2 correct + 1 persistent, unaccounted
+  extra) for the rest of the clip — still one too many against the named
+  "TWO GUARDS" spec, just not the full mirrored duplicate the opening frame
+  shows. Net: **12 distinct background figures appear at some point in the
+  clip** (10 sustained from 4s on, +1 transient 4th guard visible only at
+  0.5s) + grandmother = 12 max instantaneous headcount, never the full 13.
+  Three named characters never appear anywhere in the 20 seconds —
+  **THE REGISTRAR** (cream/orange tunic), **THE ART STUDENT** (yellow-green
+  hair, denim overshirt, sketchbook), and **DUPE** (his service cart is
+  present at frame-left in every frame, but he himself never is).
 - **The two who leave walk past her without looking (13s/16s):** **FLAGGED**
   in part. At t16 the correct character (the woman in the chestnut fur,
   matching @project_absence_char_visitor_b) walks past camera without
@@ -157,10 +171,11 @@ Frame paths: `docs/reports/frames-s2s-b-t2/t0.5.png`, `t4.png`, `t8.png`,
   contrary evidence observed.
 
 **Overall verdict: FLAGGED.** No crack/mark violation and the camera/chair
-blocking is clean, but the named cast is wrong on three fronts at once
-(missing registrar, missing art student, missing DUPE, plus one unnamed
-extra guard), and the 13s walk-past is performed by the wrong character.
-Filed regardless per instruction.
+blocking is clean, but the named cast is wrong on several fronts at once:
+the guard_valder_two pair duplicates/mirrors at the opening frame (4 navy
+guards at t0.5, settling to 3 — one persistent extra — from t4 on), the
+registrar/art student/DUPE never appear anywhere, and the 13s walk-past is
+performed by the wrong character. Filed regardless per instruction.
 
 ## Notes
 
