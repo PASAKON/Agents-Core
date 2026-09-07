@@ -256,3 +256,13 @@ of shooting it both ways.
 CTO 2026-09-07 11:20: BREAK paragraph replaced before any fire (same fix as S2M-B,
 30f3a59): depth words out, size anchored to the brass plaque, camera side stated.
 S2M-B rendered the mark correctly first try with this wording.
+
+BROWSER_OPERATOR 2026-09-07: take 1 — fired 14:41 ICT (Seedance 2.5, 20s/720p/16:9,
+Unlimited 140->0, 7/7 unique Element chips bound, 0 error chips, S2NB-Render.MP4
+previz attached as video ref and byte-verified). Card never showed an error or
+NSFW flag; it sat Processing for 152 min while other credit-lane renders that same
+day also ran 85-110+ min, so the platform was slow, not rejecting the prompt.
+Cancelled 17:14 ICT on CTO instruction after the 150-min ceiling. Nothing filed —
+no clip was ever produced to download. Composer/prompt/references were all clean
+at fire time; re-fire the same paste block for take 2, no prompt changes indicated
+by this outcome.
