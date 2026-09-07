@@ -535,6 +535,9 @@ async def _verify_claimed(task_id: str, role_name: str,
 # ---------------------------------------------------------------------------
 
 REMOTE_SSH_TIMEOUT_S = 30
+# The launcher step on a fresh box does a partial clone + worktree + spawn; 90 s
+# marked a healthy spawn failed on 2026-09-07. Liveness is watched separately.
+REMOTE_LAUNCH_TIMEOUT_S = 300
 
 # (local path relative to ROOT, remote path relative to host agents_root).
 # roles/<role>.md is appended per-spawn in _ensure_remote_deploy — it's the
@@ -774,7 +777,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
 
     info(f"spawn remote task={task_id} host={host_name} role={role_name} deploy={deploy_actions}")
     r = subprocess.run(cmd, capture_output=True, text=True,
-                       timeout=REMOTE_SSH_TIMEOUT_S + 60)
+                       timeout=REMOTE_LAUNCH_TIMEOUT_S)
     lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
     if r.returncode != 0 or not lines:
         detail = (r.stderr or r.stdout or "").strip()[:1000]
