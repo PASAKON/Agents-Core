@@ -172,4 +172,13 @@ REVIEW ORDER: as s2r-fix1-the-battle.txt, plus:
 7. TWELVE PEOPLE — S2R take 2 (locked, no cuts) doubled the chestnut-fur woman.
 File the take whatever the verdict.
 
+2026-09-07 t1 (browser_operator, task-facd467d): fired 09:38 ICT, Unlimited
+$0, 13/13 chips bound, no previz attached (deliberate, per this sheet).
+Higgsfield card status: Rejected due to copyright restrictions. No frame
+checks possible (no output). CTO's finding, same session: the sibling
+no-previz take without jump-cuts also failed, while the 13-chip take WITH
+the previz attached rendered clean at 07:50 (fire 4) — so the next jump-cut
+attempt on this scene should carry the previz. See
+docs/reports/absence-wave-20260907-s2r-jc-t1.md.
+
 === END NOTES ===
