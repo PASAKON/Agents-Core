@@ -236,4 +236,50 @@ TAKE 4 · 2026-09-07 22:19 UTC (2026-09-08 05:19 ICT) fired (Seedance 2.5,
 @project_absence_loc_hall_big_d 1/1 lime-bound, 0 error chips, no warning
 triangle on thumbnail, no previz attached) — gate 0, prompt-lint exit 0, zero
 "plaque" / zero "thick heavy" in paste block, matching CTO's expected gates.
-"Generation started" toast confirmed, asset count 714→715. Awaiting landing.
+"Generation started" toast confirmed, asset count 714→715.
+Landed ~22:53 UTC (~34 min). Downloaded
+hf_20260907_221933_eb8e3081-1e07-4e6c-8974-fc609c03ee91.mp4, 1280x720,
+12.041667s, confirmed via Info panel (Model Seedance 2.5, 720p, High, Created
+Sep 8 2026 5:19 AM, prompt text match). Not a duplicate of any prior download
+(md5 checked against every mp4 in ~/Downloads).
+REVIEW ORDER:
+1. THE LOCK — PASS. Mean abs diff (0.5s vs 11.5s frame) 1.08, max 16 — best
+   lock yet, matches CTO's independent read of this same take (1.06/17,
+   difference is grain-noise/sampling only).
+2. THE MARK — FLAGGED per canon rule 8 (docs/prompts/absence/PLATE-loc_wall_pov_e.md,
+   commit ae7d19a). Measured independently (absolute-brightness threshold
+   sweep 90-140 on the 11.5s frame, region cropped to avoid vignette):
+   threshold<110 gives bbox 158 x 154 px on a 1280-wide frame = 12.3% of
+   frame width, fill ratio (dark pixels / bbox area) = 0.040. Threshold
+   range 100-130 gives bbox 146-248 x 142-165 px, frac width 11.4%-19.4%,
+   fill ratio 0.030-0.043 — every reading fails both canon-rule-8 tests
+   (bbox must be <8% of frame width, fill ratio must be >=0.10): the mark
+   is 1.4-2.4x too wide and 2.3-3.3x too sparse. Height matches the CTO's
+   own independent measurement almost exactly (154px both). Colour is NOT
+   the defect this time — core dark pixels are near-black (RGB ~54,37,25 at
+   <60 brightness), no tan/gold cast — the failure is purely scale/density:
+   at this frame size the model renders a fine multi-line fracture instead
+   of one bold compact shape. No fifth arm, no round hole, no bullet-hole
+   read on the arms themselves (see item 3 for the center point).
+3. THE FRAME'S CONTENT — PASS (plaque). Plaster runs to all four edges in
+   all four sampled frames (0.5s/3s/6s/11.5s); only a faint few-pixel-tall
+   lighter band at the very bottom-center, no rivets/edges/engraving visible
+   — reads as a soft light gradient, not a metal/rectangular object. No
+   plaque, no floor line, no column edge, no plinth.
+4. NOTHING MOVES — PASS. Identical framing/lighting across all four sampled
+   frames, consistent with the LOCK measurement; no dust, no falling
+   plaster, no crack growth.
+5. ROOM TONE ONLY, NO TAIL — PASS. Steady room tone throughout (overall RMS
+   -42.1dB/peak -34.5dB); start window (0-0.5s) RMS -35.8dB/peak -28.6dB,
+   end window (11.5-12s) RMS -42.1dB/peak -34.5dB — natural variation, no
+   sting or swell at either end.
+VERDICT (CTO ruling, 2026-09-08 ~05:57 ICT, mid-review): LOCK PASSED, PLAQUE
+PASSED, MARK FLAGGED — canon rule 8 (bbox <8% width / fill ratio >=0.10) now
+makes this measurable; take 4 fails on scale, not wording. Do not re-fire;
+CTO queues take 5 with the camera reframed well back (mark ~1/12 of frame
+width) per the same commit.
+Filed to Drive All Scene/Fix-1/ as S2G-Fix1.MP4 (scene name only, per the
+HARD naming rule, per CTO's explicit instruction to file this take despite
+the flag) — file id 17iLCWrklmZ28pRd8y0EnTl97TAJx8FLy, link
+https://drive.google.com/file/d/17iLCWrklmZ28pRd8y0EnTl97TAJx8FLy/view,
+logged to Sorry, Sir/logs.txt by upload_fix1.py.
