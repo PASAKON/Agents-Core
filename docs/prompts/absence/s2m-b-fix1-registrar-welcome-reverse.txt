@@ -242,3 +242,14 @@ carried the depth words ("NEAREST THING TO THE LENS", "floats at the very
 front") that made the mark huge on S2K/S2M/S2N, and they are wrong for this
 reverse angle anyway (the wall is in the background here). Size is now
 anchored in the frame to the brass plaque beneath the mark.
+
+2026-09-07T10:21+07:00 AI:browser_operator-task-0b0aff80 — take 1 FIRED (Seedance
+2.5, Unlimited, 720p/20s/16:9/High/Sound On), rendered ~40min, PASS: registrar
+plays whole scene to camera (never backs to us), 13s cheerful->eager change
+reads clearly, nobody else turns (only her head at ~11-12s, body square to
+wall), mark small/solid-black/no wider than plaque/off every body, three
+posture-jump beats visible across the six check frames, break visible over
+shoulders throughout, seven people confirmed present (Dupe at cart + registrar
++ five backs) at every checked frame. Filed to Drive All Scene/Fix-1/ as
+S2M-B-Fix1.MP4 (md5 6714661220723b497a9598c14c872906, no dup in ~/Downloads).
+Report: docs/reports/absence-wave-20260907-s2m-b-t1.md.
