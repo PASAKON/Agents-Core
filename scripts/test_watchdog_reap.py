@@ -56,13 +56,23 @@ if Path(db_mod.DB_PATH).resolve() == _LIVE_DB:
     # the org event log the CEO reads (a test run printed a dozen ERROR-level
     # SURFACE-REAPED lines into it) and `gh issue create` (a stall test tried to
     # open a real GitHub issue and was saved only by its fake project name).
+    # `from lib.notify import info, warn` binds a module-local name, so stubbing
+    # lib.notify alone leaves every importer still pointing at the real emitter
+    # (worker_reap kept logging after the first attempt at this guard). Stub the
+    # names on lib.notify AND on every module that imported them.
+    import importlib
     import lib.notify as _notify
-    for _fn in ("info", "success", "warn", "error"):
-        setattr(_notify, _fn, lambda *a, **k: None)
-    import runners.watchdog as _wd
-    for _fn in ("info", "success", "warn", "error"):
-        if hasattr(_wd, _fn):
-            setattr(_wd, _fn, lambda *a, **k: None)
+    _quiet = lambda *a, **k: None  # noqa: E731
+    _emitters = ("info", "success", "warn", "error")
+    for _mod_name in ("lib.notify", "tools.worker_reap", "runners.watchdog",
+                      "runners.branch_poller", "tools.tmux_session"):
+        try:
+            _m = importlib.import_module(_mod_name)
+        except Exception:
+            continue
+        for _fn in _emitters:
+            if hasattr(_m, _fn):
+                setattr(_m, _fn, _quiet)
     import tools.gh_issue as _gh
     _gh.create_issue = lambda *a, **k: "https://example.invalid/issues/0"
 # ---------------------------------------------------------------------------
