@@ -14,6 +14,7 @@
 hosts:
   mac:
     os: darwin
+    remote_control: true   # session shows in the CEO Claude app
     ssh: null
     agents_root: /Users/gob/Projects/Agents
     worktrees: /Users/gob/Projects/Agents/worktrees
@@ -26,6 +27,7 @@ hosts:
 
   winbox:
     os: windows
+    remote_control: true   # session shows in the CEO Claude app
     ssh: winbox
     agents_root: 'C:\Users\UsEr\mooniex'
     worktrees: 'C:\Users\UsEr\mooniex\worktrees'
@@ -35,6 +37,7 @@ hosts:
 
   contabo:
     os: linux
+    remote_control: true   # session shows in the CEO Claude app
     ssh: mooniex-vps
     agents_root: /opt/mooniex-agents
     worktrees: /opt/mooniex-agents/worktrees
