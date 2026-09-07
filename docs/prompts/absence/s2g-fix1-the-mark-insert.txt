@@ -42,9 +42,10 @@ zooms, never drifts, no cuts, for the whole twelve seconds. Sound On · High.
 
 THE FRAME, unchanging for twelve seconds: a flat, straight-on view of a warm
 cream gallery wall, filling the whole picture. The camera stands close to the
-wall, and THE BREAK sits a little above centre with clean cream plaster on
-every side of it. There is no floor, no ceiling, no column, no doorway, no
-plaque, no plinth and no person in this shot — the wall is all there is.
+wall, and THE BREAK sits in the middle of the frame with clean cream plaster on
+every side of it and plaster running unbroken to all four edges of the picture.
+This shot is wall and crack and nothing else: cream plaster fills every corner,
+top, bottom, left and right.
 
 @project_absence_loc_hall_big_d — THE WALL AND ITS SURFACE, and the only
   reference in this prompt: warm cream plaster, the soft warm orange light of
@@ -54,10 +55,10 @@ plaque, no plinth and no person in this shot — the wall is all there is.
   NOTHING of its arrangement or layout and never reproduce a grid. WHAT FILLS
   THIS FRAME IS PLAIN PLASTER WALL, edge to edge and corner to corner, with the
   mark alone on it. The wall runs past all four edges of the picture and the only
-  thing on it is the crack. Take 2 let the brass plaque creep into the bottom of
-  frame; the plaster continues down past the bottom edge unbroken.
+  thing on it is the crack. The plaster continues down past the bottom edge of
+  the picture unbroken, and past the top, left and right edges too.
   THE BREAK, from that picture and only from it: the small black mark on the
-  wall above the brass plaque. IT IS A CRACK, NOT A STAR: a BLACK crack in the
+  wall, alone on the plaster. IT IS A CRACK, NOT A STAR: a BLACK crack in the
   plaster. EVERY LINE OF IT IS SOLID AND CARRIES THE WEIGHT OF INK — short,
   blunt, dark for its whole length, ending where it ends. A few such lines meet
   at one small dark point, which only happens to be star-shaped. Take 2 gave the
@@ -65,14 +66,18 @@ plaque, no plinth and no person in this shot — the wall is all there is.
   up-right, left and down; those are the defect. The mark has a hard edge all the
   way round and nothing wisps away from it. COPY THAT MARK EXACTLY AS THE PICTURE SHOWS IT AND NEVER
   CHANGE IT — not its shape, not its colour, not its proportions. On the real
-  wall it is SMALL, about the size of a hand, no wider than the plaque beneath
-  it; here the camera is close, so that hand-sized mark fills about a quarter of
-  the frame's height and no more, with plain plaster all round it. It is IN the
+  wall it is SMALL, about the size of a hand; here the camera is close, so that
+  hand-sized mark fills about a quarter of the frame's height and no more. It
+  sits in the MIDDLE of the picture with a clear field of unbroken cream plaster
+  all round it, and there is at least as much plain plaster BELOW the mark as
+  above it, running unbroken right down to the bottom edge of the frame. It is IN the
   wall, a break in the surface, not a thing in front of it and not a drawn
-  shape. DO NOT ENLARGE IT AND DO NOT REDRAW IT: no full-height
-  fracture, no spiderweb, no thick heavy arms, no arms reaching the edges of
-  the frame, no lines drawn across anybody's face or body, no pale or grey
-  mark, no glowing mark — solid black only. The whole joke of the film is that
+  shape. DO NOT ENLARGE IT AND DO NOT REDRAW IT: no full-height fracture, no
+  spiderweb, no arms reaching the edges of the frame, no fine radiating
+  fractures, no tapering spikes, no curling tendril, no lines drawn across
+  anybody's face or body, no pale, grey, brown or tan mark, no glowing mark —
+  solid black only, and every line the same solid black from the centre to its
+  blunt end. The whole joke of the film is that
   this tiny black mark is what everybody has come to see.
 
 [0s] The mark, held. The wall is completely still. Nothing enters, nothing
@@ -101,7 +106,7 @@ dust motes, no smoke, no falling plaster, no crumbling, no dust puff, no debris,
 no motion in the mark, no crack growing, no crack spreading, no animation of any
 kind; no person, no hand, no face, no silhouette, no reflection of anybody, no
 shadow of anybody; no floor, no ceiling, no skirting, no column, no doorway, no
-window, no plinth, no artwork, no picture frame, no brass plaque, no label, no
+window, no plinth, no artwork, no picture frame, no metal, no label, no
 sign; no second crack, no mark on any other surface; no fifth arm on the mark,
 no five-pointed star, no six-pointed star, no symmetrical star, no round hole
 at its centre, no rings, no spiral, no bullet hole, no impact crater, no
