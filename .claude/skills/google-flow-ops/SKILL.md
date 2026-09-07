@@ -349,3 +349,31 @@ report: `docs/reports/teaser-shoot-winbox-20260907.md`.
 - **Plates must be 9:16.** A landscape start frame is padded with grey bars
   and the whole clip inherits them (shot 1). Check the plate's aspect in the
   รูปภาพ tab before binding it as เริ่ม.
+
+### winbox, run 2 additions (task-5d0bd2fa, 2026-09-07)
+
+Second shoot on the same box, 39 minutes for 4 clips against the first run's 76
+for 4 — the findings above are what made the difference. Three more:
+
+- **Never click at a `getBoundingClientRect()` coordinate on winbox.** The
+  screenshot is scaled down from the real viewport by a ratio that changes with
+  tab state (~0.688 one run, ~0.82 the next), so a DOM rect points somewhere
+  else entirely. Click only at coordinates read off a fresh screenshot. On this
+  box a `find()` ref click failed to toggle the Agent chip for the same reason;
+  a pixel click at the chip worked. This is a better explanation of the run-1
+  "money buttons need a trusted click" finding than trustedness is.
+- **A download can silently walk to another clip.** Clicking download on a
+  clip's edit page starts the preview playing, and Flow's own carousel can
+  auto-advance to an unrelated clip mid-export; the export toast then belongs to
+  whatever is now on screen. Re-check the page title against the intended shot
+  right after clicking download, and re-navigate to `/edit/<id>` if it drifted.
+- **Budget the export hang per download, not per session.** It hit all four
+  downloads, 1-2 reload cycles each, worst case ~7 minutes.
+
+**Verify grade, not just geometry.** Run 2's bonus re-fire of shot 1 against a
+fresh 9:16 plate came back correct in every mechanical check the worker ran
+(8.00 s, 720x1280, audio present, no padding) and still unusable: the clip is
+black-and-white while the rest of the teaser is colour. A shot only passes if it
+also matches the neighbouring shots' colour and grade, and a plate generated from
+a prompt that does not pin the look will drift. Say the look in the plate prompt,
+and compare frame 0 against a neighbouring shot before calling a re-fire good.

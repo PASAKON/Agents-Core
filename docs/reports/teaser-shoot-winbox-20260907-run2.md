@@ -223,3 +223,19 @@ SKILL-CONTRADICTION: google-flow-ops :: (confirmation, not new) :: The
 3. Final balance 50/200 monthly credits. The account is genuinely low —
    whoever schedules the next shoot (retakes, or the next episode) should
    confirm the monthly credit reset date before planning further spend.
+
+---
+
+## CTO review, 2026-09-08
+
+Shots 56, 57 and 58 pass: full-frame 9:16, characters continuous with shots 54
+and 55, audio present.
+
+**`shot01-refire.mp4` does not pass and must not replace `shot01.mp4`.** It
+fixes the letterboxing, but the clip is black-and-white while every other shot
+in the teaser is colour, so it cannot be cut against them. The mechanical checks
+in this report (duration, resolution, audio, no padding) were all correct and
+all blind to it. The canonical shot 1 stays the padded original until a re-fire
+comes back in colour; the new "Man standing in alley 9x16" plate should be
+regenerated with the grade pinned in its prompt first. Folded into the
+`google-flow-ops` skill as "verify grade, not just geometry".
