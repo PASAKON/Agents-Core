@@ -143,17 +143,21 @@ An operator that reports "it took a while" has failed the reporting bar.
 Verified absent across the toolbar, right-click menu, share panel, fullscreen
 player, model dropdown and filter panel:
 
-- **No first-frame or last-frame slot.** This is the big one: frame chaining,
-  the technique that holds a set steady between shots, is **API-only**. Flow can
-  shoot disconnected beats; it cannot shoot a continuous scene.
+- ~~No first-frame or last-frame slot~~ — **WRONG, retracted 2026-09-07.**
+  See "Start and end frames" below. The CTO inferred this from an operator's
+  silence rather than from a measurement, told the CEO frame control was
+  API-only, and the CEO found the control himself in about a minute. Do not
+  repeat the mistake: an operator not mentioning a feature is not evidence the
+  feature is absent.
 - **No 1080p and no upscale control** on the account tested. The asset
   resolution facet offers only 720p and 360p, and both exports came out
   720x1280. Google's own credit table lists "1080p upscale = 0 credits" — it
   could not be reproduced. Treat 1080p in Flow as unavailable until someone
   finds the control.
-- **No pre-generation storyboard.** The Scenes ("ฉาก") tab is a passive gallery
-  of media that already exists. There is no empty ordered slot, no shot list,
-  no way to plan a sequence before generating it.
+- **No shot-list style storyboard.** There is still no way to type a shot list
+  or order empty slots. But the Scenes ("ฉาก") tab is **not** the passive
+  gallery the first recon called it — it is where the frames that feed the
+  start/end slots are made. See below.
 - **No whole-episode export.** Per-clip download only. Assembly happens outside.
 - **No batch or queue.** One fire, one wait, every time.
 - **No saved prompt templates.** Google's example cards are presets, not
@@ -165,6 +169,51 @@ player, model dropdown and filter panel:
   Settings page offering confirm-every-time vs fully-autonomous. Unexplored —
   the next operator with budget should map it, because it is the only
   automation-shaped thing in the UI.
+
+## Start and end frames — they DO exist in the web UI
+
+Confirmed by the CEO from his own screen, 2026-09-07. The composer carries two
+chips side by side with a swap arrow between them, sitting directly above the
+"คุณต้องการสร้างอะไร" prompt field:
+
+```
+[ เริ่ม ]  ⇄  [ สิ้นสุด ]          เริ่ม = start frame,  สิ้นสุด = end frame
+```
+
+**Clicking them does nothing on its own.** The working path, in the CEO's words:
+
+1. Left sidebar → **ฉาก** (Scenes), between ตัวละคร and เครื่องมือ
+2. Create/generate a scene there. The tab is empty until you do and reads
+   "เริ่มสร้างหรือวางสื่อ" — *start creating, or paste media*.
+3. That scene is then pickable for the `เริ่ม` / `สิ้นสุด` slots.
+
+Consequence: **frame chaining is possible inside Flow**, not only through the
+API. A shot's end frame can seed the next shot's start frame, which is how a
+set is held steady across a scene.
+
+Still unverified as of writing (task-ecca0bc3 is measuring):
+- whether a start frame and character chips can be used in the **same**
+  generation, or whether they are mutually exclusive
+- whether ฉาก accepts an **uploaded file from disk**, or only Flow-generated images
+- whether creating a scene costs credits
+- whether frame 0 of the output **is** the supplied plate or merely resembles it
+
+## Left sidebar — what each tab is for
+
+`สื่อทั้งหมด` all media · `วิดีโอ` videos · `ตัวละคร` characters (Ingredients) ·
+**`ฉาก` scenes — the start/end frame source** · `เครื่องมือ` tools ·
+`ถังขยะ` trash · `ยุบ` collapse.
+
+## Composer settings row — what it shows
+
+`Agent` toggle on the left; on the right `วิดีโอ · 720p · 8 วินาที · [aspect] · x1`
+and the submit arrow. 720p is the ceiling shown on a PLUS account.
+
+## Account tier
+
+The CEO's account badge reads **PLUS** (Google AI Plus), not Pro — visible
+top-right beside the avatar. That means **200 credits per month**, i.e. ten
+Veo 3.1 Fast clips. Plan every shoot against 200, not 1,000.
 
 ## Contested — do not state these as fact
 
