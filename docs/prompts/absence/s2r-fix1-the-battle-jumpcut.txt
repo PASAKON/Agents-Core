@@ -182,3 +182,10 @@ attempt on this scene should carry the previz. See
 docs/reports/absence-wave-20260907-s2r-jc-t1.md.
 
 === END NOTES ===
+
+TAKE 1 · 2026-09-07 09:38 fired, 13 chips, NO previz → "Rejected due to copyright
+restrictions" (the 4th rejected S2R card). Fire 4 of the locked version, same 13
+chips WITH docs/S2R-Render.MP4 attached, rendered at 07:50 — on this account
+the cast passes only through the video-reference path. TAKE 2: same paste,
+previz ATTACHED (the CEO asked for none; a rejected clip is worse). The
+position-map prose stays as written; the video reference carries the blocking.
