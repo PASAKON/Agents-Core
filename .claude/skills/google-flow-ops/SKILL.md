@@ -320,6 +320,68 @@ A contradiction backed by a screenshot or a DOM read wins over anything written
 here. A contradiction backed by a memory does not.
 
 
+## Voices — lock one per character BEFORE shooting any dialogue (CEO 2026-09-08)
+
+A drama dies if the father sounds like a different man each scene. Flow can fix
+that, and the fix is a setup step, not a per-shot step. **Install a voice on
+every speaking character first. Only then shoot dialogue.** A series that starts
+shooting before its voices are fixed pays for those shots twice.
+
+What Google documents (support.google.com/flow/answer/16353334):
+
+- **Add (+) → Voices**, in the ingredients section.
+- Preset voices, each with a free 10-second sample: hover, then click Play.
+- **Custom voice**: choose a base preset, name it, and *describe* the change
+  ("Make the voice sound slightly raspy with a New York accent").
+- "To maintain a specific character's voice across multiple video clips, add a
+  single-speaker voice reference to your prompt."
+- Voice references work **only on generations that use ingredients**. A
+  frame-only (เฟรม) shot cannot carry one, and errors if you try.
+- Requires the model **Gemini Omni Flash 1.1**, not Veo 3.1 Fast.
+
+Two rules that follow, and are not negotiable:
+
+1. **A worker has no ears.** Never pick a voice by listening, never infer a
+   voice's gender or age from its name, never write "sounds about right" in a
+   report. Either use the custom-voice path and *describe* the voice in words
+   (the description is text, which a worker can write and verify), or capture
+   the preset list verbatim and let the CEO listen and name the choice. Copy UI
+   strings exactly; do not translate them.
+2. **One voice, one character, written down.** Record the chosen voice name (and
+   the exact custom description) next to that character's APPEARANCE LOCK in the
+   script, the same way the look is locked. A voice that lives only in someone's
+   memory of a preview will not survive the next session.
+
+## Which model for a drama: Omni Flash, not Veo 3.1 Fast (2026-09-08)
+
+Veo 3.1 **Quality** is out of the question for a character series regardless of
+budget: it cannot use ingredients at all, so it cannot hold a face. The real
+choice is between the two that can.
+
+| | Gemini Omni Flash 1.1 | Veo 3.1 Fast |
+|---|---|---|
+| Voice lock | yes | no |
+| Max length | 10s | 8s |
+| Video-to-video editing | yes | no |
+| Cheap draft | 360p at half cost | none |
+| Ingredients (face lock) | yes | yes (8s only) |
+| Raw visual finish | second | first |
+
+Veo Fast makes the prettier frame. Omni Flash makes the thing a viewer can
+follow: the same voice every scene, a quarter more story per credit, and a way
+to fix a near-miss without re-rolling it. For a dialogue-driven series the
+features outweigh the finish, and the gap in finish is small — one third-party
+matched test of eight prompts scored Omni 4.124 against Veo 3.1 Fast's 4.009.
+That is a blog, not a measurement of our own material; the settling test is one
+shot we already own, re-shot on Omni with the same ingredients, compared side by
+side against the Veo version.
+
+Unverified as of 2026-09-08, and each one can change this: whether the AI PLUS
+plan exposes Voices at all, what Omni Flash costs per generation on this
+account, and whether the Gemini/Vertex **API** can set a voice (no voice
+parameter is documented — if the API cannot, an API-scale episode loses voice
+lock and the whole plan changes).
+
 ## winbox findings 2026-09-07 (task-ef3995a1, first real shoot on Windows Chrome)
 
 Measured on winbox; the rest of this skill was measured on the Mac. Full
