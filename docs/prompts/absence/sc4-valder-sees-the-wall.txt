@@ -175,3 +175,12 @@ REVIEW ORDER:
 File the take whatever the verdict.
 
 === END NOTES ===
+
+=== TAKE LOG ===
+2026-09-07 19:04 ICT — take 1 fired (Unlimited, main 9d49510 restage). FLAGGED-blocking-mismatch:
+  face-change beat and crack canon both land clean, but at t=0.5s only 4 of the 5 wall
+  visitors are clustered at the wall (man in maroon stands apart near Valder instead) and
+  0 guards are visible; guards appear by t=2.5s but the man in maroon is not visible in
+  that frame. Total body count still 8, no extras. Filed to Drive Fix-1/ as
+  SC4-Valder-Sees-Fix1.MP4 regardless. Full report: docs/reports/absence-wave-20260907-sc4-t1.md
+=== END TAKE LOG ===
