@@ -36,22 +36,19 @@ REFERENCES — each with a job:
   front teeth. He rides in the rear seat.
 @project_absence_char_guard_private — HIS BODYGUARD: very heavily built Black
   man, opaque dark sunglasses, white gloves, all-black suit, black shirt and
-  tie. He rides in the front passenger seat and gets out first.
-@project_absence_char_guard_valder_six — VALDER'S GUARD: navy military-cut tunic
-  with gold buttons and a large gold V, black belt, navy peaked cap. THIS PICTURE
-  SHOWS SIX MEN; USE ONLY ONE OF THEM — a single guard, standing at the entrance.
-  Nobody else from the picture exists in this shot.
+  tie. He rides in the front passenger seat, gets out first, and HE is the one
+  who opens the rear door for Mr Carrington. He never speaks.
 
-SHOT ONE · [0s-3s] · locked, from the forecourt, the glass entrance and the single
-guard in the background. THE LIMOUSINE IS ALREADY MOVING: it rolls in from the
+SHOT ONE · [0s-3s] · locked, from the forecourt, the glass entrance in the
+background, nobody standing there. THE LIMOUSINE IS ALREADY MOVING: it rolls in from the
 left at walking pace, long body sliding across the frame, and comes to a smooth
-stop with its rear door exactly in front of the steps. The guard steps down
-toward it.
+stop with its rear door exactly in front of the steps. The front passenger
+door is already opening.
 
-SHOT TWO · [3s-8s] · HARD CUT, closer, from beside the rear door. The bodyguard
-is already out, standing by the front wing. VALDER'S GUARD OPENS THE REAR DOOR
-himself, one hand on the handle, the other extended toward the entrance in a
-small formal "please, this way" gesture. MR CARRINGTON steps out with his cane,
+SHOT TWO · [3s-8s] · HARD CUT, closer, from beside the rear door. THE BODYGUARD
+IS ALREADY OUT and at the rear door: HE OPENS IT, one white-gloved hand on the
+handle, the other extended toward the entrance in a small formal "please, this
+way" gesture. MR CARRINGTON steps out with his cane,
 straightens, smiles — gold teeth showing — and starts up the steps. Hold. Cut.
 
 AUDIO: tyres on stone, one soft door opening, a cane tip on the step, no
@@ -71,8 +68,8 @@ extras, no camera movement inside a shot other than the cuts named above.
 
 CRITICAL NEGATIVES: no driving from far away, no road, no wide establishing
 shot, no parked-and-static car before the cut — the car MOVES in shot one;
-Carrington does not open his own door; nobody speaks; exactly one guard; the
-bodyguard never touches Carrington; no crack, no wall, no gallery interior.
+Carrington does not open his own door; nobody speaks; no uniformed guard, no
+doorman, nobody else at the entrance; the bodyguard never touches Carrington; no crack, no wall, no gallery interior.
 
 === ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
 
@@ -82,3 +79,7 @@ REVIEW: the CEO reviews this clip himself (2026-09-07). The worker only confirms
 it rendered, ffprobes it, and files it.
 
 === END NOTES ===
+
+CEO 2026-09-07 13:02: the door is opened by HIS BODYGUARD (the big Black man in dark
+sunglasses, @project_absence_char_guard_private), not by a Valder guard — the six-guard
+Element is dropped from this sheet. 4 chips.
