@@ -31,6 +31,13 @@ words. Expect: `NO WIDER THAN THE RED DOOR` → 1 on wall-POV sheets;
 - Maximise (>= 1280) and PROVE it: `({w: window.innerWidth, h: window.innerHeight})`
   — only the readback counts; `resize_window` has lied. Below 1280 = the
   mobile lockup (no Unlimited, Generate disabled) → close the tab, open another.
+- WINDOW TOO NARROW AND NOTHING WORKS? (2026-09-07 10:15) `resize_window` lies,
+  `window.open` popups are blocked, Cmd+minus zoom is refused by the tool, and
+  with only the 13" screen (1440 pt) plus the extension side panel (~300 px)
+  the viewport cannot reach 1280. Tell the CTO — the fix is from the OS:
+  `osascript -e 'tell application "Google Chrome" to set bounds of window id
+  <id> to {-420, 0, 1860, 900}'` (a window wider than the screen is allowed);
+  list windows first with `bounds of every window` / `URL of active tab`.
 - FIRST ACTION in the composer: close the banner "Credits are running low!
   Over 90% already used" with its own (x). It is an upsell; it returns on every
   reload and covers the Unlimited toggle. Never act on it, never click
