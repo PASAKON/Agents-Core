@@ -73,8 +73,12 @@ words. Expect: `NO WIDER THAN THE RED DOOR` → 1 on wall-POV sheets;
 Poll every 5 minutes with a reload (a stale tab lies; if background sleeps get
 killed by low memory, poll anyway). Renders took 30-55 min today. Finished
 card shows "NSFW / Credits refunded / sensitive content" → screenshot, STOP,
-report, do not re-fire. Otherwise: info icon (a copyright rejection is
-invisible in the composer) → download → ffprobe 1280x720 / duration → file to
+report, do not re-fire. Otherwise: IDENTIFY YOUR CARD FIRST — open its Info panel and match the
+Created time to your fire time and the prompt text to your sheet; the top
+card is often another worker's clip (S2S t1 filed S2R's clip under S2S's
+name, 2026-09-07 09:02). Then download → `md5` it against every mp4 already
+in ~/Downloads (a match = wrong card, start over) → ffprobe 1280x720 /
+duration → file to
 Drive All Scene/Fix-1/ under the brief's filename with
 `scripts/gdrive-bridge/upload_fix1.py` (appends the logs.txt line). Whatever
 the verdict, it is filed.
