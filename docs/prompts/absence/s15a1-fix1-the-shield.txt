@@ -195,5 +195,25 @@ TAKES LOG:
   (a), both hard cuts (d, ~0.3-0.5s early but real angle changes), the
   silence holding at 8s, the push-in, and the mark-vs-plaque size (f) all
   PASS. Full report: docs/reports/absence-wave-20260907-s15a1-t1.md.
+- 2026-09-08 01:40 ICT (task-ce78420e) t2: FIRED (UNLIMITED lane, 0 credits).
+  Sheet fixed by CTO (commit d0d19f9) — bodyguards moved to one group at the
+  LEFT edge, Registrar reduced to exactly one on the RIGHT. Gates all clean:
+  gate 0 wide-door 0, gate 0 narrowed mark/depth 0, prompt-lint exit 0, 12/12
+  chips, 2 HARD CUT. 12/12 chips bound lime, 0 warning triangles, 0 red/
+  unresolved. 8s/720p/16:9/Seedance2.5/High/1-4/SoundOn, Unlimited zoomed
+  struck 56→0 at click. Rendered ~26-32 min. Filed regardless of verdict:
+  All Scene/Fix-1/S15a1-Shield-Fix1.MP4
+  (https://drive.google.com/file/d/1uAtfHerMlbY3RnIPb2E-fhod2BQi9xa-/view).
+  VERDICT: FLAGGED — mark alone, per CTO instruction relayed mid-render:
+  `loc_wall_pov_e.md` landed 01:32 ICT, 8 min before this fire, too late to
+  reach it — CTO's own miss, not caught by this operator. Guard grouping (b)
+  and Registrar (e) both PASS, confirmed by left/right edge crops at 2.5s:
+  3 bodyguards (2 navy + 1 black) in one line at the LEFT edge, exactly 1
+  registrar alone at the RIGHT. Shield (a), both hard cuts (d, cut1
+  ~0.4-0.6s early, cut2 ~0.1-0.2s early, both real angle changes), silence
+  holding at 8s (3), push-in smooth (4), and gaze (6) all PASS. Headcount
+  not exhaustively recounted (verdict is on the mark, not headcount) — no
+  duplicated face spotted beyond the registrar check. Full report:
+  docs/reports/absence-wave-20260908-s15a1-t2.md.
 
 === END NOTES ===
