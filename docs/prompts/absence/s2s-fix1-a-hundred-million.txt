@@ -256,3 +256,23 @@ long time.
 CTO 2026-09-07 07:50: @project_absence_prop_croc_bag DROPPED from the paste block — S2R was
 "Rejected due to copyright restrictions" three times with it and rendered on the fourth fire
 without it (13 chips, same text, previz on). The bag is carried as prose now.
+
+browser_operator 2026-09-07 09:10: S2S-Fix1 take 1 fired once, 14/14 chips, 0/no
+copyright rejection, rendered clean (720p/20s, matches spec).
+
+CORRECTION 2026-09-07 09:30 (CTO caught it): the 09:10 note above was written against
+the WRONG file — downloaded the S2R card by mistake (S2S opens on the same locked
+frame as S2R, "same frame, nobody has moved," so the two cards' thumbnails look near-
+identical in the grid) and filed it to Drive as S2S-Fix1.MP4 (md5 56b25dd4...). That
+file is actually S2R-Fix1 footage, which is why the first review found a static
+tableau with a duplicate/missing-character cast — it was S2R's cast, not S2S's.
+
+Re-checked against the real S2S asset (uuid cf43d0ba-3ebd-4629-b13a-a50300254303, md5
+4cf4dcea..., created 08:12 ICT matching the actual fire time, prompt text contains
+"wheelchair"/"hundred million"): PASS on all 7 REVIEW ORDER items. Head-turn happens
+by 4-8s, grandmother visible tiny at the red door by 8s and still far at 19.5s,
+student_c leaves by 16s, visitor_b leaves by 16-19.5s, wheelchair is real/powered,
+one dialogue line at 0.8-2.4s, correct 13-person cast throughout, camera lock held.
+Re-uploaded correctly as a second S2S-Fix1.MP4 (the wrong file left in Drive for the
+CTO to trash after CEO OK, not deleted by the operator). Full report:
+docs/reports/absence-wave-20260907-s2s-t1.md. Not re-fired (one fire/task).
