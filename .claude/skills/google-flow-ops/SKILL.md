@@ -180,23 +180,73 @@ chips side by side with a swap arrow between them, sitting directly above the
 [ เริ่ม ]  ⇄  [ สิ้นสุด ]          เริ่ม = start frame,  สิ้นสุด = end frame
 ```
 
-**Clicking them does nothing on its own.** The working path, in the CEO's words:
+### The exact path (task-ecca0bc3, measured)
 
-1. Left sidebar → **ฉาก** (Scenes), between ตัวละคร and เครื่องมือ
-2. Create/generate a scene there. The tab is empty until you do and reads
-   "เริ่มสร้างหรือวางสื่อ" — *start creating, or paste media*.
-3. That scene is then pickable for the `เริ่ม` / `สิ้นสุด` slots.
+```
+composer → settings pill (bottom-right, shows model/mode)
+        → วิดีโอ tab
+        → submode toggle:  [ เฟรม ]  [ องค์ประกอบ ]
+```
 
-Consequence: **frame chaining is possible inside Flow**, not only through the
-API. A shot's end frame can seed the next shot's start frame, which is how a
-set is held steady across a scene.
+**The default is `องค์ประกอบ` (Ingredients).** That single default is why the
+first recon reported the feature as absent — it is one click away from the
+chip UI, not hidden in a menu.
 
-Still unverified as of writing (task-ecca0bc3 is measuring):
-- whether a start frame and character chips can be used in the **same**
-  generation, or whether they are mutually exclusive
-- whether ฉาก accepts an **uploaded file from disk**, or only Flow-generated images
-- whether creating a scene costs credits
-- whether frame 0 of the output **is** the supplied plate or merely resembles it
+Click **`เฟรม`** and the composer's whole attach area is replaced by two slots:
+`เริ่ม` (start) and `สิ้นสุด` (end), with a swap control between them whose
+accessible name is `สลับเฟรมแรกและเฟรมสุดท้าย` — "swap first frame and last
+frame".
+
+### ⛔ THE CONSTRAINT THAT SHAPES EVERY SHOT: เฟรม and องค์ประกอบ are mutually exclusive
+
+They are a **single-select toggle**. Choosing `เฟรม` removes the chip row and
+the `+` ingredient picker entirely. Choosing `องค์ประกอบ` removes the frame
+slots.
+
+**In Flow you get consistent faces OR a consistent set. Never both in one
+generation.**
+
+| Mode | You lock | You lose |
+|---|---|---|
+| `องค์ประกอบ` | up to 3 characters/props | frame control — the set drifts |
+| `เฟรม` | the exact opening (and closing) image | character references — faces drift |
+
+This is a **Flow UI limit, not a Veo limit**. The API takes `image`,
+`lastFrame` and `referenceImages` as separate parameters and accepts all of
+them together. For any production that needs recurring faces in a recurring
+place, that difference is the whole argument for scripting against the API.
+
+Per-shot workaround inside Flow: pick the mode by what matters in that shot.
+A face held in frame needs `องค์ประกอบ`. A wide, a cutaway, an object, a back
+of a head, a shot that must cut cleanly from the last one — `เฟรม`.
+
+### What the frame picker will actually show you
+
+Clicking `เริ่ม` opens a dialog titled `เลือกรูปภาพเฟรม` with a project-scoped
+dropdown, a search box and a sort control. It has **no upload button and no
+drop zone**.
+
+**Character/Ingredient-tagged images are EXCLUDED from this picker.** A project
+holding only Characters shows `ไม่พบชิ้นงาน` — "no items found". A plain
+untagged image generated in Image mode appears immediately and is selectable.
+
+So: **a plate you want to use as a frame must be generated as a plain image in
+Image mode, NOT saved as a Character.** An image can serve one role or the
+other, not both. Plan which role each plate plays before you make it.
+
+Uploading from disk: the project's `เมนูเพิ่มสื่อ` (Add media) menu has an
+`อัปโหลด` item, but a trusted click on it opens an **OS-native file dialog**
+(`document.hasFocus()` goes false, no `<input type="file">` ever enters the
+DOM — consistent with `showOpenFilePicker()`). Neither the extension's
+`file_upload` tool nor a synthetic JS click can drive it. Whether an uploaded
+file then appears in the frame picker is **plausible but unverified**. Do not
+plan around disk upload until someone proves it.
+
+### Cost in เฟรม mode
+
+The live estimate reads `การสร้างใช้ 20 เครดิต` — identical to `องค์ประกอบ`
+mode for the same Veo 3.1 Fast / 9:16 / x1 config. Measured with both slots
+empty; a before/after delta with an image actually attached is still unmeasured.
 
 ## Left sidebar — what each tab is for
 
