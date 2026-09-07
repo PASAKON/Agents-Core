@@ -189,3 +189,16 @@ chips WITH docs/S2R-Render.MP4 attached, rendered at 07:50 — on this account
 the cast passes only through the video-reference path. TAKE 2: same paste,
 previz ATTACHED (the CEO asked for none; a rejected clip is worse). The
 position-map prose stays as written; the video reference carries the blocking.
+
+2026-09-07 TAKE 2 (browser_operator, task-a5de192a): fired 22:07:13, 13/13
+chips, previz ATTACHED (byte-verified 4528874B, the real library tile —
+report also documents a first-pass false-positive byte match off a
+partially-buffered modal blob: URL, corrected). Rendered clean, no rejection,
+~46 min (queue was busy on another Unlimited render most of the wait; fired
+at the 5-min retry after the busy-slot toast). FLAGGED on frame check: item 2
+"THE HEADS SWING" (the sheet's own stated core beat) did not render — pixel-
+diff across all three cut boundaries (3s/9s/15s) shows no more discontinuity
+than two frames deep inside the same uncut span; everyone's head orientation
+is static throughout. Item 7 (twelve people) uncertain, needs a full-res
+human look. Filed to Drive All Scene/Fix-1/S2R-JC-Fix1.MP4 regardless. Full
+report: docs/reports/absence-wave-20260907-s2r-jc-t2.md.
