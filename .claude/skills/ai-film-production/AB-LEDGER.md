@@ -198,3 +198,22 @@ PROMPT B (t5, 4f04928): "CROUCHED DOWN ON ONE KNEE… picking his light stand
   furnishings required in frame so the room reads as his house.
 VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
   the projector (IVR1/2/3), so this entry closes only if IV2c t5 is used.
+
+### S2R · the copyright gate · fires 1-3 rejected → fire 4 rendered 2026-09-07 07:50 (S2R-Fix1.MP4)
+PROMPT A (d53060d sheet): 14 Element chips including
+  `@project_absence_prop_croc_bag — HER BAG, held in one gloved hand the whole
+  time…`. Three fires — two with the previz, one without, same text — every
+  card ended `Rejected due to copyright restrictions` (card title attr).
+PROMPT B (4e461a1): byte-identical text with that one chip removed and the
+  bag carried as prose — `HER BAG (no picture — describe it, do not look for
+  one): a dark crocodile-skin handbag…` — 13 chips, previz on. Rendered.
+DEFECT SEEN: the filter is not reading names (Carrington/Valder are proven on
+  this lane) and not the previz; it rejected an IMAGE — the crocodile-handbag
+  plate reads as protected trade dress.
+WHY B HELD: the trigger was a reference, so removing the reference removed the
+  rejection; the prose keeps the prop in the scene.
+LESSON (§10 amended): on a copyright rejection, diff the sheet's chips against
+  every sheet that rendered ON THE SAME LANE and drop the never-rendered props
+  first. S2Q's "it was the name" entry above is confounded — the name strip and
+  the move to the credit lane happened in the same fire — so keep names as the
+  second suspect, not the first.
