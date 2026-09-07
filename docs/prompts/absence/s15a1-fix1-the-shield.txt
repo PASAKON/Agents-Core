@@ -172,4 +172,20 @@ REVIEW ORDER:
 6. Nobody looks into the lens except Dupe's near-frontal address.
 File the take whatever the verdict.
 
+TAKES LOG:
+- 2026-09-07 22:31 ICT (task-af5c21d7) t1: FIRED (2nd attempt, after a 1st
+  attempt at 22:31 was REFUSED by Higgsfield's protected-content check on
+  the then-still-chipped villagers_poor Element — no charge, no card; fixed
+  by dropping the chip to prose, per CTO). 12/12 chips clean, no warning
+  triangles, 8s/720p/16:9/Seedance2.5/High/SoundOn, credit-lane 52cr.
+  Filed regardless of verdict: All Scene/Fix-1/S15a1-Shield-Fix1.MP4
+  (https://drive.google.com/file/d/1HsXo2moXrUV0wwayDwfKsZ6dC7M5Hj1y/view).
+  VERDICT: FLAGGED — (b) the three bodyguards did not group together (navy
+  two stayed at the left edge, guard_private_v2 alone at the right edge
+  next to the Registrar); (e) the Registrar (black suit/white gloves/gold
+  V/leather ledger) appears duplicated at BOTH frame edges. Shield formation
+  (a), both hard cuts (d, ~0.3-0.5s early but real angle changes), the
+  silence holding at 8s, the push-in, and the mark-vs-plaque size (f) all
+  PASS. Full report: docs/reports/absence-wave-20260907-s15a1-t1.md.
+
 === END NOTES ===
