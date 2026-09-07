@@ -28,7 +28,7 @@ hosts:
     max_browser_operators: 2
 
   winbox:
-    chrome_device_id: null   # unknown until the CEO connects+names it 'winbox-chrome' (switch_browser flow)
+    chrome_device_id: 815ddf16-36ea-4e0d-827a-f51e9ff85351   # winbox Chrome (worker verified via navigator.userAgent 2026-09-07; 70bf3142-… is Edge)
     chrome_name: winbox-chrome
     os: windows
     remote_control: true   # session shows in the CEO Claude app
