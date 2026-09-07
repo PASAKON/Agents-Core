@@ -1,0 +1,81 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+SC2 · THE MADAME ARRIVES IN THE SPORTS CAR · CEO 2026-09-07 12:10 ("อยากให้ Worker ยิงแบบใช้เครดิตได้ แต่ทำเท่าที่สั่งเท่านั้น …
+5s-8s ไม่เกินนี้ ไม่เอาฉาก LongTake ขอแบบ Jump Cut … ไม่ต้องเอาตอนขับมาไกลๆ เอาตอนขับมาถึง
+หน้า Museum แล้วรถเบรกจอด … โฟกัสที่การลงรถ … ไม่เอารถจอดนิ่งๆ แล้วเปิดประตู")
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+💳 CREDIT LANE, by CEO order: Seedance 2.5 · 720p · 16:9 · 8s · High · Sound On ·
+Unlimited toggle OFF. The button will show a credit price (~52 for 8s) — that is
+expected and authorised for THIS fire only. Click Generate ONCE. Never retry.
+Record credits before/after. NO video reference (there is no previz for this).
+Location Element: @project_absence_loc_museum_front (generated + registered by the
+same worker just before this fire, Kling O1 Unlimited, $0).
+Filing: All Scene/Fix-1/ as SC2-Madame-Arrival-Credit.MP4. The CEO reviews this one himself.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+8s · 720p · 16:9 · TWO SHOTS, one hard cut at 3s. Both shots LOCKED — no pan,
+no zoom, no handheld. Sound On · High.
+
+REFERENCES — each with a job:
+@project_absence_loc_museum_front — THE MUSEUM ENTRANCE, and the only location
+  reference: the forecourt outside the museum, warm cream stone, chromium trim,
+  the tall RED DOUBLE DOOR at the top of a few shallow steps, daylight. Take the
+  building, its surfaces and its light from this picture. Nothing else is here:
+  no other cars, no crowd, no street traffic.
+@project_absence_prop_car — HER CAR: the low, long retro-futuristic sports coupé
+  in deep glossy emerald-green lacquer with gold flake, chrome spine, chrome
+  wheel spats, teardrop glass canopy. The only car in the shot.
+@project_absence_char_woman_c — THE WOMAN IN GREEN: elderly, tall, rail-straight,
+  a sculpted floor-length gown of glossy mid-green leather with chevron seams,
+  sharply pointed shoulder caps, a tall standing collar; long green leather
+  opera gloves; a towering pompadour streaked blue, green and silver-white;
+  black cat-eye sunglasses. She drives herself. Nobody else is in the car.
+@project_absence_char_guard_valder_six — VALDER'S GUARD: navy military-cut tunic
+  with gold buttons and a large gold V, black belt, navy peaked cap. THIS PICTURE
+  SHOWS SIX MEN; USE ONLY ONE OF THEM — a single guard, standing at the red door.
+  Nobody else from the picture exists in this shot.
+
+SHOT ONE · [0s-3s] · locked, from the forecourt, the red door and the single
+guard in the background. THE CAR IS ALREADY MOVING, FAST: it comes in from the
+right, brakes HARD — a short dip of the nose, a chirp of tyres — and stops at an
+angle in front of the steps, not neatly parked. The guard flinches half a step.
+
+SHOT TWO · [3s-8s] · HARD CUT, closer, from beside the driver's door. SHE OPENS
+THE DOOR HERSELF, swings out in one movement, stands to her full height, and
+without looking at him TOSSES THE CAR KEY underhand to the guard, who catches it
+against his chest with both hands. She is already walking up the steps. Hold.
+Cut.
+
+AUDIO: engine note dropping, a hard brake and tyre chirp, one door, keys
+jingling once in the air and slapping into gloved hands, heels on stone. No
+voices, no music. No sound at the start or end: opens mid room-tone, stops dead.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, halation around every lamp.
+Photographed, not rendered: fine film grain, faint gate weave, slight colour
+fringing.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no number plate, no music, no score, no
+dutch angle, no tilted horizon, no slow motion, no speed ramp, no lens flare,
+no bokeh balls, no HDR, no CGI sheen, no plastic skin, no beauty filter, no dim
+moody lighting, no night, no rain; no second car, no traffic, no crowd, no
+extras, no camera movement inside a shot other than the cuts named above.
+
+CRITICAL NEGATIVES: no driving from far away, no road, no wide establishing
+shot, no parked-and-static car before the cut — the car MOVES and BRAKES in shot
+one; nobody opens her door for her; the guard never touches her; exactly one
+guard; no passenger; nobody speaks; no crack, no wall, no gallery interior.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW: the CEO reviews this clip himself (2026-09-07). The worker only confirms
+it rendered, ffprobes it, and files it.
+
+=== END NOTES ===
