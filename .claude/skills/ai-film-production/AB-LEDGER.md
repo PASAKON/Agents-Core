@@ -414,3 +414,46 @@ ALSO FIXED on this take: exactly TWO navy uniforms across the full frame width, 
   take 1's mirrored fourth guard is gone.
 STILL OPEN: the three bodyguards are not one group — the two navy are together at the
   left edge but Carrington's man in black stands across the frame on the right.
+
+### SC5 take 2 → take 3 · the wide shot was copying the plate's sky · free lane · PASSED 2026-09-08 04:05
+DEFECT SEEN (t1 credits, t2 free): shot one's sky came back flat blue-grey while shots
+  two and three were correctly amber. Two takes in a row, and the sheet already said
+  sunset in a global paragraph AND inside shot one's own line.
+PROMPT A (t2): "SHOT ONE · [0s-3s] · locked wide from the forecourt, the whole
+  entrance in frame with the sunset sky above the roofline — amber and rose low down,
+  gold on the cloud, long shadows raking across the terrazzo…"
+PROMPT B (3a3d4d2): the light stated first, and the SHOT MOVED so the sky is barely
+  present — "THE LIGHT IN THIS SHOT IS SUNSET, and it is the first thing to get right:
+  low amber sun raking in from the camera side… Locked wide, but taken LOW and CLOSE —
+  the camera is down at shoulder height in among the back of the crowd, not standing
+  off across an empty forecourt. Heads and raised arms fill the bottom two thirds of
+  frame… and the sky is only a thin band of amber and rose along the top."
+WHY B HELD: at 0.5s the facade is raked with low amber light, the cream stone burns
+  gold where it catches, every figure throws a long shadow. The diagnosis was that
+  shot one is the widest and most closely resembles the four-panel reference plate, so
+  it was copying the plate's midday sky wholesale; shots two and three, being less
+  plate-like, invented their own light and got it right. Lowering the camera did not
+  make the sunset instruction louder — it removed the surface the plate was being
+  copied onto.
+LESSON: when a wide shot ignores a stated light, the reference plate is winning.
+  Adding adjectives loses to a picture. Change the framing so the contested area — the
+  sky here — occupies little of the frame, and the plate has nothing left to impose.
+SAME TAKE, second fix that held: SIX GUARDS WITH REAL FLANK COVER.
+  A: "GUARD 1 at the far left… GUARDS 2, 3, 4 and 5 shoulder to shoulder across the
+  middle… GUARD 6 at the far right… six navy uniforms in the line". They bunched at
+  the doors, because "in the line" reads as one line.
+  B: "THEY ARE NOT ONE TIGHT LINE — they are a middle block of four with a lone man on
+  each flank… GUARD 1 STANDS ALONE… several metres of empty step between him and the
+  middle four; his job is the left-hand wall and he turns back everyone who tries to
+  squeeze along it… GUARD 6 STANDS ALONE… his job is the rail."
+  Held on the first try: one alone at the wall with arms out, four across the doors,
+  one alone at the rail with arms out, empty step visible either side.
+  LESSON: give a figure a JOB, not just a coordinate. "Stands at the far right" is
+  decoration; "his job is the rail and he pulls back anyone who climbs it" is blocking.
+STILL OPEN: shot two broke location a third time — an open horizon with trees and
+  floodlights. Cause found and fixed in 6d0f21e, and it was a contradiction in the
+  prompt, not a model failure: the camera was told to look DOWN the steps into the
+  crush while the museum was asked to sit BEHIND the crowd. Standing at the doors
+  looking down, the building is at your back. Turning the camera to look ALONG the
+  facade makes both true at once. LESSON: before adding words to fix a background,
+  check that the camera position you asked for can physically see it.
