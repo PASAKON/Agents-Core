@@ -29,7 +29,7 @@ Runtime: 480s = 8:00 = 60 shots × 8s. No shot exceeds 8 seconds.
 
 **ไทย:** เจ้าของร้านก๋วยเตี๋ยว อาชีพเดียวมาทั้งชีวิต ปมในใจ: รู้สึกผิดที่ปล่อยให้แม่ป่วยหนักเพราะตัวเองยุ่งกับการหาเงิน ต้องการ: ให้ลูกชายมีชีวิตที่ดีกว่าตัวเองโดยไม่ต้องแบกอะไรเลย กลัว: ลูกชายรู้ความจริงแล้วรู้สึกผิดจนไม่กล้าใช้ชีวิตของตัวเองอีกต่อไป
 
-**APPEARANCE LOCK:** Thai man, 58 years old, medium height, slightly stooped shoulders, a soft round face with deep smile-lines and dark under-eye circles, short greying black hair combed flat, sun-weathered olive skin, wearing a faded pale-blue short-sleeve button shirt under a stained once-white apron tied twice at the waist, sleeves rolled to the elbow, a thin plain gold wedding band on his left hand, worn brown rubber sandals.
+**APPEARANCE LOCK:** Thai man, 58 years old, lean build, weathered square face, short greying black hair, deep-set brown eyes, light stubble, wearing a faded dark-blue cotton shopkeeper's apron OVER a plain white short-sleeved shirt, a worn leather wristwatch on his left wrist. *(CORRECTED 2026-09-07 from the stored prompt on the existing Flow Ingredient — this is the look in the already-shot clip. The earlier text had the apron and shirt the wrong way round.)*
 
 **Reference-image prompt (free):**
 ```
@@ -51,7 +51,7 @@ soft even frontal lighting, no shadows on the face, sharp focus, 4:5.
 
 **ไทย:** เพิ่งเรียนจบปริญญาตรี หางานประจำไม่ได้มาหลายเดือน สุภาพ กลืนความโกรธของตัวเองไว้เสมอ ปมในใจ: รู้สึกไร้ค่าที่ยังต้องพึ่งพ่ออยู่ทั้งที่เรียนจบแล้ว ต้องการ: งานที่มั่นคงสักงานเดียว กลัว: กลายเป็นภาระของพ่อไปตลอดชีวิต
 
-**APPEARANCE LOCK:** Thai man, 24 years old, slim athletic build, short neat black hair side-parted, smooth unlined face, light-brown skin, wearing a slightly wrinkled white collared shirt tucked into black slacks, sleeves rolled up past the forearm, a plain black digital watch on his left wrist, a lanyard with a blank ID card around his neck.
+**APPEARANCE LOCK:** Thai man, 24 years old, slim build, oval face, thick black hair swept back, dark brown eyes, clean-shaven, wearing a plain grey short-sleeved polo shirt and a thin silver chain necklace. *(CORRECTED 2026-09-07 from the stored prompt on the existing Flow Ingredient — not the white shirt / black slacks / lanyard the first draft described.)*
 
 **Reference-image prompt (free):**
 ```

@@ -44,6 +44,7 @@ second worker does not have to rediscover what the first one paid to learn.
 |---|---|
 | Create a project | **0** |
 | Generate a Character / Ingredient image (Nano Banana Pro, 4:5) | **0** — measured 4 times |
+| Generate a SCENE / LOCATION plate | **0** — confirmed 2026-09-07, task-46e7c41b, cost-probe first |
 | Attach ingredient chips | 0 |
 | Navigate any tab (Scenes, Tools, Agent) | 0 |
 | **Veo 3.1 Fast — 8s, 720p, 9:16, x1** | **20** — measured twice, matched the published table exactly |
@@ -55,9 +56,11 @@ second worker does not have to rediscover what the first one paid to learn.
 every character, prop and location plate in Flow, download them, and spend
 credits only on video.
 
-Unmeasured and worth measuring on the next run: whether **scene/location** plates
-are also 0 credits (only *character* images were measured), and whether Lite is
-really 10.
+Scene/location plates were confirmed free on 2026-09-07 (task-46e7c41b) by
+generating one image first and re-reading the balance: 210 -> 210. Still
+unmeasured: whether Lite video is really 10.
+
+**Every still this production needs is free.** Spend credits only on video.
 
 ## The shortest path — 12 steps, do them in this order
 
@@ -73,7 +76,26 @@ really 10.
 6. Back in the composer, set the model to **Veo 3.1 - Fast**. It does not
    persist — see Traps.
 7. Set aspect ratio **9:16** and quantity **x1**. Neither is sticky.
-8. `+` picker → click each character → a chip appears above the prompt box.
+8. **Attach the ingredients — and this is the hardest thing in the product.**
+   Clicking a character tile in the `+` picker **navigates to that character's
+   editor page**; it does not insert a chip. The only path that inserts a real
+   chip (`<span class="mention-chip" data-entity-id="...">`) is:
+
+   > tile's `⋮ more options` menu → click the **inner
+   > `<span class="label">เพิ่มไปยังพรอมต์</span>` node**, not the outer
+   > `<button>`
+
+   The outer button carries stray `mat-mdc-menu-trigger` / `aria-expanded`
+   attributes and **silently no-ops** on every method tried: real click, JS
+   `.click()`, pointerdown/up+click dispatch, and ArrowDown+Enter keyboard nav.
+   Even the correct inner-span target succeeded roughly **once in fifteen
+   attempts** on 2026-09-07 — the insertion is racy in a way no operator has
+   characterised yet. Budget for this. It cost task-46e7c41b most of its hour
+   and blocked six planned stills entirely.
+
+   The earlier recon (task-796a93f6) attached chips, including four at once,
+   without difficulty — so this is flaky, not impossible. Treat a failed
+   attach as normal and retry rather than as a blocker.
 9. **Count the chips before you fire.** The picker hides characters that are
    already attached, so an attached character is one that has *disappeared*
    from the list. A missing chip means the shot generates with no reference
@@ -94,6 +116,12 @@ really 10.
 | Veo 3.1 Fast 8s render, run 2 | **~94 s** | task-796a93f6 |
 | Second clip's export | hung indefinitely; a full page reload then a retry completed it ~15 s later | task-796a93f6 |
 | Full walk: project + 4 characters + 2 videos + downloads | ~40 min, well over a 30-action budget | task-796a93f6 |
+| First page load of flow.google.com incl. resize | 50 s | task-46e7c41b |
+| Reading the credit balance from the account menu | ~115 s (2 failed menu-toggle attempts) | task-46e7c41b |
+| **Still image generation, submit -> image visible** | **32 / 38 / 40 / 48 s** (4 samples, Nano Banana Pro) | task-46e7c41b |
+| Renaming a Character | 286 s (UI fought back) | task-46e7c41b |
+| Downloading one image | 25 / 82 / 85 / 266 s — wildly variable; two needed a fresh tab | task-46e7c41b |
+| Full still-plate session (4 images made, 6 blocked) | **~70 min**, over its 60-min budget | task-46e7c41b |
 
 **Every Flow task must record wall-clock per action and append to this table.**
 An operator that reports "it took a while" has failed the reporting bar.
@@ -107,6 +135,8 @@ An operator that reports "it took a while" has failed the reporting bar.
 | **Aspect and quantity are not sticky** | 9:16 and x1 revert across prompt sessions. | Set and verify both every time. |
 | **Export hangs** | "Exporting your scene…" can sit forever. | Full page reload, then click download again. Costs nothing but time. |
 | **resize_window is late** | Applies only after a navigation; early screenshots come out at ~1456x840 and cost far more visual tokens. | Resize, navigate, then screenshot. |
+| **The viewport reverts mid-session** | A correctly-resized tab silently went back to 2280x722 with no navigation in between. Screenshot pixels and `window.innerWidth` then disagreed by a ~0.688 scale factor (1568px shot for a 2280px CSS viewport). | Never click from raw `getBoundingClientRect()` coordinates. Click by element handle, or convert by the measured ratio. |
+| **A focused contenteditable still drops the first keystroke** | A `.ProseMirror` composer confirmed as `document.activeElement` lost the next keystroke about half the time — text stayed as the placeholder, no error, no state change. | `el.focus()` via `javascript_tool` and the first keystroke via `computer` **in the same `browser_batch` call**, with no intervening tool call, not even a read. This single behaviour cost most of one task's budget. |
 
 ## What Flow does NOT have — stop looking for these
 
