@@ -57,8 +57,18 @@ S15a-2's operator was right to stop.
   would have landed and sat unnoticed until morning. A self-addressed note is not
   a timer. Stay inside ONE turn: check the grid, and while it is still Processing,
   start a background wait and check again, repeatedly, until the card is finished
-  or you hit a real error. The CTO's stall watch now flags a worker pane that has
-  not changed in 30 minutes, but the operator is the first line of defence.
+  or you hit a real error. The operator is the first line of defence.
+
+  HOW THE CTO TELLS ASLEEP FROM WAITING, in one line of the pane's status bar
+  (measured 2026-09-08 01:59, with both cases on screen minutes apart). A finished
+  turn prints `· done H:MM`. If that same line ALSO says `N shell still running`, a
+  background wait is live and the harness re-invokes the worker when it exits — that
+  is the correct pattern and needs no action, even with an unsent nudge sitting in
+  the input line, which is what S15a-1 looked like. If `· done H:MM` appears with NO
+  shell running, nothing is scheduled and the worker is asleep — S2G looked exactly
+  like that at 01:11 and its render would have sat there until morning. The stall
+  watch alerts on that combination within three minutes rather than waiting half an
+  hour for a pane to look quiet.
 - THE DRIVE FILENAME IS THE SCENE NAME AND NOTHING ELSE (HARD, 2026-09-08). Every
   clip goes to All Scene/Fix-1/ named for its scene — S2G-Fix1.MP4,
   S15a1-Shield-Fix1.MP4, S2S-B-Fix1.MP4 — and that is true of failures too. Do NOT
