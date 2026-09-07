@@ -321,6 +321,16 @@ def sweep_terminal_surfaces() -> list[dict]:
         if not (pid_alive or tmux_alive or tab_open or tab_claimed):
             continue
         reap = close_dev(task_id, reason="reaper: terminal status with live surface")
+        # A recorded pid that is alive but no longer THIS task's process is a
+        # recycled pid: close_dev rightly refuses to signal it, but leaving it on
+        # the row makes every later tick see "pid alive" and re-log the task
+        # forever (seen live: efa1d2dd / 5c0adb13 / 7cb85052 every 5 minutes).
+        # Forget the pid so the row is quiet from the next tick on.
+        if pid_alive and reap.get("pid_matched") is False:
+            try:
+                db.set_fields(task_id, actor="watchdog", pid=None)
+            except Exception as e:  # never let bookkeeping stop the sweep
+                warn(f"could not clear recycled pid on {task_id}: {e}")
         reaped.append({"task": task_id, "status": t["status"],
                        "pid_alive": pid_alive, "tmux_alive": tmux_alive,
                        "tab_open": tab_open, "tab_claimed": tab_claimed, **reap})
