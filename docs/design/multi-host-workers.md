@@ -151,6 +151,14 @@ routing by host name instead of by "here".
 - **Sign-outs happen mid-session** (seen twice today). A second Chrome halves
   the blast radius; it does not remove the failure mode.
 
+## 5a. Teardown invariant (task-92118d4e, CEO rule 2026-09-07)
+
+*Terminal status ⇒ no process, no tmux, no tab, no claimed Chrome tab, on
+any host; the watchdog sweep (`runners/watchdog.py:sweep_terminal_surfaces()`)
+is the backstop, `close_dev`/`merge_task` are the method — Chrome tabs
+claimed via `scripts/browser/tab_registry.py` are torn down the same way
+(ADDENDUM 1).*
+
 ## 6. Decisions needed from the CEO
 
 1. Approve a deploy key with **push** rights on winbox (and on Contabo in Phase 2).

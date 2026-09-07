@@ -205,6 +205,72 @@ end tell
     return r.returncode == 0 and r.stdout.strip() == "1"
 
 
+def list_task_tabs() -> list[tuple[str, str]]:
+    """Every iTerm tab whose title contains a task id, as (window_id, title).
+
+    One osascript call, enumerating every window explicitly by its own `id`
+    — never "current window" (a prior incident closed the CEO's own window
+    via an untargeted osascript call; this module binds window ids
+    explicitly everywhere for that reason). Same C-level exclusion as
+    close_tab: a tab whose title carries a CTO/CMO/CGO/CFO prefix is never
+    returned, even if its live work summary happens to mention a task id
+    (IRON-RULES §32).
+
+    Used by runners/watchdog.py's sweep_terminal_surfaces() (task-92118d4e)
+    to find an orphan DEV tab that has no recorded pid — the case
+    close_tab's own pid-first path cannot see, and the reason a single
+    batched scan beats calling close_tab's per-task title search N times.
+    """
+    guard = ('and not (nm contains "CTO ") and not (nm contains "CMO ") '
+             'and not (nm contains "CGO ") and not (nm contains "CFO ") '
+             'and not (tn contains "CTO ") and not (tn contains "CMO ") '
+             'and not (tn contains "CGO ") and not (tn contains "CFO ")')
+    script = f'''
+tell application "iTerm"
+  set outLines to {{}}
+  repeat with w in windows
+    set wid to id of w
+    set tabsList to tabs of w
+    repeat with t in tabsList
+      set nm to ""
+      try
+        set nm to name of current session of t
+      end try
+      set tn to ""
+      try
+        set tn to name of t
+      end try
+      if ((nm contains "task-") or (tn contains "task-")) {guard} then
+        set theTitle to tn
+        if theTitle is "" then set theTitle to nm
+        -- (ASCII character 9), not the bare word `tab`: inside `tell
+        -- application "iTerm"` the identifier `tab` resolves to iTerm's own
+        -- scripting-dictionary "tab" class, not AppleScript's ASCII-9
+        -- constant — confirmed live (task-92118d4e): it silently stringified
+        -- to the literal text "tab" instead of a real delimiter, so every
+        -- line's window-id and title glued together with no way to split.
+        set end of outLines to ((wid as text) & (ASCII character 9) & theTitle)
+      end if
+    end repeat
+  end repeat
+  set AppleScript's text item delimiters to linefeed
+  set outStr to outLines as text
+  set AppleScript's text item delimiters to ""
+  return outStr
+end tell
+'''
+    r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+    if r.returncode != 0:
+        return []
+    out = []
+    for line in r.stdout.splitlines():
+        if not line.strip():
+            continue
+        wid, _, title = line.partition("\t")
+        out.append((wid, title))
+    return out
+
+
 def close_session(role: str, session_id: str) -> bool:
     """Close the iTerm tab owned by role+session_id.
 

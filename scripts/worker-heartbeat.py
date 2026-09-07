@@ -3,14 +3,18 @@
 
 runners/watchdog.py measures a worker's silence from `tasks.updated_at`, not
 from process liveness. A worker sitting in a long poll (a Higgsfield render is
-26-30 minutes, one measured 80+) writes no DB row, so it looks silent. At
-STALL_ALIVE_AFTER_S (150 min) the watchdog flips the task to `stalled`, files
-a GH issue, and tears the tmux session down mid-queue.
+26-30 minutes, one measured 80+) writes no DB row, so it looks silent. Past
+STALL_AFTER_S (30 min) the watchdog used to flip even a live-pid task to
+`stalled`, file a GH issue, and tear the tmux session down mid-queue once
+silence passed a raised ceiling.
 
 That reaped a healthy worker on 2026-08-12/13 (the ceiling was raised 90->150
 in response) and reaped two more on 2026-09-01 at 20:30 and 23:36, each time
-losing an unreported queue. Raising the ceiling again only moves the cliff;
-what was missing is a way for a waiting worker to say "still here".
+losing an unreported queue. Raising the ceiling again only moved the cliff;
+task-92118d4e (ADDENDUM 2, CEO rule 2026-09-07) removed the ceiling instead —
+a live pid is never reaped now, only flagged `suspect` — but this heartbeat
+still matters: it keeps a long-silent worker out of the ping/suspect noise
+and the GH issue that noise files.
 
     python3 scripts/worker-heartbeat.py <task_id>
 

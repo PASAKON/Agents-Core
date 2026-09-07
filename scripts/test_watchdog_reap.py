@@ -8,18 +8,22 @@ are stubbed for the watchdog-pass tests.
 Tests:
   1. refuses a task in in_progress
   2. refuses a task in blocked_human
-  3. refuses when pid is NULL
+  3. no-pid task is no longer refused (task-92118d4e: close_dev is total)
   4. does not signal when the pid's command line lacks the task_id
      (recycled-pid case) but still closes the tab
   5. reaps a review task whose pid matches
   6. watchdog pass ignores a finished task younger than 60 minutes
   7. watchdog pass reaps one older than 60 minutes
   8. idempotent: a second close_dev on the same task does not raise
+  9. stall pass: a silent in_progress task with a LIVE pid is flagged
+     'suspect', never closed/stalled (ADDENDUM 2, task-92118d4e)
+  10. a second silent-but-alive tick reuses the already-filed issue
 
 Run via: python scripts/test_watchdog_reap.py
 """
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import uuid
@@ -83,11 +87,17 @@ def test_refuses_blocked_human() -> bool:
     return r["refused"] is not None and r["closed_tab"] is False
 
 
-def test_refuses_null_pid() -> bool:
+def test_null_pid_is_no_longer_refused() -> bool:
+    """task-92118d4e: close_dev used to refuse outright when pid was NULL,
+    which is exactly the case that left a leaked tmux/tab behind for a task
+    that never got a pid recorded at all (a direct sqlite status edit, a
+    worker that exited before writing one). It is now total — no pid means
+    no signal to send, but tmux/tab cleanup still runs."""
     tid = _insert_task(status="review", pid=None)
-    r = worker_reap.close_dev(tid, reason="test")
-    return (r["refused"] is not None and "pid" in r["refused"].lower()
-           and r["closed_tab"] is False)
+    with mock.patch.object(worker_reap, "close_tab", mock.Mock(return_value=False)):
+        r = worker_reap.close_dev(tid, reason="test")
+    return (r["refused"] is None and r["pid"] is None and r["signal"] is None
+           and r["found"]["pid"] is False)
 
 
 # ---------------------------------------------------------------------------
@@ -190,8 +200,14 @@ def test_idempotent_second_call() -> bool:
 def test_watchdog_ignores_young_finished() -> bool:
     tid = _insert_task(status="review", age_minutes=10, pid=11111)
     fake_close_dev = mock.Mock()
+    # task-92118d4e added a fourth pass (sweep_terminal_surfaces) to
+    # scan_once. It shares this mocked close_dev/_pid_alive, and the same
+    # temp DB accumulates 'done'/'review' rows from every earlier test in
+    # this file — stubbed out here so this test stays scoped to the
+    # third pass (the 60-min finished-reap floor) it was written for.
     with mock.patch.object(watchdog, "close_dev", fake_close_dev), \
-         mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=True)):
+         mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=True)), \
+         mock.patch.object(watchdog, "sweep_terminal_surfaces", mock.Mock(return_value=[])):
         out = watchdog.scan_once()
     reaped_ids = {r["task"] for r in out["reaped"]}
     return tid not in reaped_ids and fake_close_dev.call_count == 0
@@ -204,14 +220,57 @@ def test_watchdog_reaps_old_finished() -> bool:
              "ttyd_killed": False,
              "reason": "watchdog: no C-level decision in 60 min", "refused": None}
     fake_close_dev = mock.Mock(return_value=canned)
+    # Same isolation as above — this test asserts fake_close_dev.call_count
+    # == 1, which the fourth pass (sweeping unrelated leftover 'done' rows
+    # from earlier tests via the same mocked close_dev) would break.
     with mock.patch.object(watchdog, "close_dev", fake_close_dev), \
-         mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=True)):
+         mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=True)), \
+         mock.patch.object(watchdog, "sweep_terminal_surfaces", mock.Mock(return_value=[])):
         out = watchdog.scan_once()
     reaped_ids = {r["task"] for r in out["reaped"]}
     called_reason = (fake_close_dev.call_args.kwargs.get("reason", "")
                      if fake_close_dev.call_args else "")
     return (tid in reaped_ids and fake_close_dev.call_count == 1
            and called_reason.startswith("watchdog:"))
+
+
+# ---------------------------------------------------------------------------
+# watchdog stall pass: live pid is never closed, only flagged suspect
+# (ADDENDUM 2, task-92118d4e, CEO rule 2026-09-07)
+# ---------------------------------------------------------------------------
+
+def test_silent_in_progress_with_live_pid_is_suspect_not_stalled() -> bool:
+    """3 hours silent, pid alive: status must stay in_progress, no tab/tmux
+    close, and exactly one 'suspect' log line — not the old ceiling-reap."""
+    tid = _insert_task(status="in_progress", age_minutes=180, pid=55555)
+    logged: list[str] = []
+    with mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=True)), \
+         mock.patch.object(watchdog, "_close_tab", mock.Mock()) as fake_close_tab, \
+         mock.patch.object(watchdog, "_cleanup_tmux_ttyd", mock.Mock()) as fake_tmux, \
+         mock.patch.object(watchdog, "_file_stalled_issue",
+                          mock.Mock(return_value="https://github.com/x/y/issues/1")), \
+         mock.patch.object(watchdog, "warn", side_effect=lambda m: logged.append(m)), \
+         mock.patch.object(watchdog, "sweep_terminal_surfaces", mock.Mock(return_value=[])):
+        watchdog.scan_once()
+    task = db_mod.get_task(tid)
+    review = json.loads(task["review"] or "{}")
+    suspect_lines = [m for m in logged if m.startswith("SUSPECT ")]
+    return (task["status"] == "in_progress" and review.get("watchdog") == "suspect"
+           and fake_close_tab.call_count == 0 and fake_tmux.call_count == 0
+           and len(suspect_lines) == 1)
+
+
+def test_suspect_reuses_existing_issue_on_next_tick() -> bool:
+    """A second tick while still silent-but-alive must not file a second GH
+    issue — it reuses the one already recorded in review.issue."""
+    tid = _insert_task(status="in_progress", age_minutes=180, pid=55556)
+    fake_file_issue = mock.Mock(return_value="https://github.com/x/y/issues/2")
+    with mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=True)), \
+         mock.patch.object(watchdog, "_file_stalled_issue", fake_file_issue), \
+         mock.patch.object(watchdog, "sweep_terminal_surfaces", mock.Mock(return_value=[])):
+        watchdog.scan_once()
+        watchdog.scan_once()
+    return fake_file_issue.call_count == 1
 
 
 def main() -> int:
@@ -222,7 +281,7 @@ def main() -> int:
     print("== close_dev: refuse branches ==")
     _mark(test_refuses_in_progress(), "refuses a task in in_progress")
     _mark(test_refuses_blocked_human(), "refuses a task in blocked_human")
-    _mark(test_refuses_null_pid(), "refuses when pid is NULL")
+    _mark(test_null_pid_is_no_longer_refused(), "no-pid task is no longer refused")
 
     print("== close_dev: recycled-pid safety ==")
     _mark(test_recycled_pid_not_signalled_but_tab_closed(),
@@ -239,6 +298,12 @@ def main() -> int:
     print("== watchdog finished-reap pass (60 min floor) ==")
     _mark(test_watchdog_ignores_young_finished(), "ignores a finished task younger than 60 min")
     _mark(test_watchdog_reaps_old_finished(), "reaps a finished task older than 60 min")
+
+    print("== watchdog stall pass: live pid is suspect, never closed (ADDENDUM 2) ==")
+    _mark(test_silent_in_progress_with_live_pid_is_suspect_not_stalled(),
+          "3h silent + live pid -> suspect, nothing closed, one log line")
+    _mark(test_suspect_reuses_existing_issue_on_next_tick(),
+          "a second silent-but-alive tick reuses the filed issue")
 
     print(f"\n{'ALL PASS' if _failures == 0 else f'{_failures} FAILURE(S)'}")
     return 1 if _failures else 0

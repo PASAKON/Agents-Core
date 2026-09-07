@@ -144,6 +144,39 @@ def cmd_done(task_id: str) -> int:
     return 0
 
 
+def all_claims() -> dict[str, str]:
+    """tab_id -> task_id across every registry file — the full claim map.
+
+    Public sibling of the private `_claims()` this module already used
+    internally, for a caller outside this file (task-92118d4e's watchdog
+    sweep) that needs to know which live Chrome tabs are anybody's claim at
+    all, not just one task's.
+    """
+    return _claims()
+
+
+def tabs_for(task_id: str) -> list[dict]:
+    """Every tab this task currently claims, as recorded on disk.
+
+    Programmatic sibling of `list`/`owner` for a caller (task-92118d4e's
+    close_dev) that needs the raw claim rather than a printed report.
+    """
+    return _load(task_id)["tabs"]
+
+
+def clear(task_id: str) -> list[str]:
+    """Release every tab task_id claims and drop its registry file.
+
+    Silent sibling of cmd_done: no stdout, so a caller like close_dev (whose
+    own output the watchdog sweep logs) doesn't get registry chatter mixed
+    into it. Returns the tab_ids that were released.
+    """
+    rec = _load(task_id)
+    ids = [str(t["tab_id"]) for t in rec["tabs"]]
+    _path(task_id).unlink(missing_ok=True)
+    return ids
+
+
 def cmd_owner(tab_id: str) -> int:
     owner = _claims().get(str(tab_id))
     if not owner:

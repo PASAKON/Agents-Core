@@ -3,7 +3,11 @@
 Scans tasks WHERE status='in_progress'. For each:
   - silent < PING_AFTER_S          → leave alone
   - PING_AFTER_S <= silent < STALL_AFTER_S → send_to_worker "status check"
-  - silent >= STALL_AFTER_S        → status=stalled + file gh issue
+  - silent >= STALL_AFTER_S, pid dead  → status=stalled + file gh issue
+  - silent >= STALL_AFTER_S, pid alive → review.watchdog="suspect" + file/
+    refresh gh issue; status, tab and tmux are never touched (ADDENDUM 2,
+    CEO rule 2026-09-07: never close a surface under a worker that may
+    still be working)
 
 "Silent" = seconds since tasks.updated_at (Stop-hook relay touches this).
 
@@ -16,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import time
@@ -26,20 +31,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.notify import info, success, warn, error
-from tools.worker_reap import _cleanup_tmux_ttyd, _pid_alive, close_dev
+from tools.worker_reap import _cleanup_tmux_ttyd, _pid_alive, close_dev, _chrome_running
 from tools.gc_stale_tasks import gc_stale_tasks
+from tools import tmux_session
+
+# Chrome tabs on these org generation sites are the ones ADDENDUM 1's
+# unclaimed-tab log line cares about — a stray shell/bank/docs tab is just
+# the CEO's own browsing, not a leak.
+_ORG_TAB_DOMAINS = ("higgsfield.ai", "flow.google.com", "grok.com")
 
 PING_AFTER_S = 10 * 60
 STALL_AFTER_S = 30 * 60
-# Ceiling for a task whose pid is still ALIVE. Silence alone does not mean
-# dead, and jobs whose unit of work outlasts STALL_AFTER_S (a Higgsfield
-# render is 26-30min) are silent by design. A live process gets this long
-# before it is reaped anyway, so a wedged one is still collected.
-# 150 min, was 90: a single Higgsfield render measured 80+ min on 2026-08-30
-# (S8b), and a worker mid-poll writes no DB checkpoint, so the live ceiling
-# reaped a healthy worker mid-queue. The ceiling must exceed the longest
-# normal unit of silent work, not the average one.
-STALL_ALIVE_AFTER_S = 150 * 60
 INTERVAL_S = 300
 
 # Layer 2 floor (task-78ab64ba): a DEV whose task reached review/done but
@@ -54,6 +56,38 @@ FINISHED_REAP_AFTER_S = 60 * 60
 # pings) but if no human attention arrives within HUMAN_TIMEOUT_S we
 # escalate to 'stalled' + file a GH issue so the task can't sit forever.
 HUMAN_TIMEOUT_S = 24 * 3600
+
+# Terminal-surface sweep (task-92118d4e, CEO rule 2026-09-07: "closing a
+# worker means closing its window too"). Every status where the task is
+# over and no worker process/tmux/tab should still exist for it —
+# db.VALID_STATUS minus db.ACTIVE_STATUSES (pending/in_progress/
+# rate_limited/conflict — still working or awaiting retry) minus
+# {'review', 'blocked_human'} (still awaiting a C-level/CEO decision, so a
+# live surface there is expected, not a leak — see the FINISHED_REAP_AFTER_S
+# floor above, which already covers 'review'/'done') minus {'stalled'}
+# (ADDENDUM 2, CEO ruling 2026-09-07: stalled is a SUSPICION set by silence
+# alone, not proof of death — a silent browser_operator is usually mid
+# 20-40min render. Sweeping it would close a worker that may still be
+# working, exactly the leak the CEO ruled against). Computed from the
+# actual VALID_STATUS/ACTIVE_STATUSES sets rather than hand-copied so it
+# can't silently drift if either set changes — exactly {done, failed,
+# cancelled, reverted, merged} today.
+TERMINAL_SURFACE_STATUSES = tuple(sorted(
+    db.VALID_STATUS - set(db.ACTIVE_STATUSES)
+    - {"review", "blocked_human", "stalled"}
+))
+
+# Grace period (ADDENDUM 2): a terminal-status task is only swept once its
+# own `updated_at` is at least this old. The normal close_dev caller
+# (merge_task, the CTO's close_dev MCP tool) needs a moment to actually run
+# right after the status flip; sweeping instantly would race a legitimate
+# in-flight close_dev and could act on a tab/tmux mid-teardown by its
+# proper owner.
+REAP_GRACE_S = 300
+
+# Cap on tasks actually reaped (close_dev called) per sweep tick — a runaway
+# state (many leaked tasks at once) must not stall the watchdog's main loop.
+SWEEP_CAP = 20
 
 
 def _close_tab(task_id: str) -> bool:
@@ -118,6 +152,189 @@ def _file_stalled_issue(task: dict, silent_s: float) -> str:
         return ""
 
 
+def _live_tmux_sessions() -> set[str]:
+    """Every live tmux session name, in one `tmux list-sessions` call.
+
+    Batched rather than one `has-session` subprocess per task — the sweep
+    may look at up to 6 statuses x 200 rows each; one call here beats up to
+    1200. Returns an empty set on no server / any error (tmux not running is
+    not a leak signal, it just means nothing is alive to find).
+    """
+    try:
+        r = subprocess.run(
+            [tmux_session.tmux_bin(), "list-sessions", "-F", "#{session_name}"],
+            capture_output=True, text=True, timeout=5,
+        )
+    except Exception as e:
+        warn(f"sweep: tmux list-sessions failed: {e}")
+        return set()
+    if r.returncode != 0:
+        return set()
+    return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
+
+
+def _live_task_tab_ids() -> set[str]:
+    """Every task id that appears in a live iTerm tab title, in one call.
+
+    Delegates to tools.itermtab.list_task_tabs() (task-92118d4e) — the
+    single batched osascript enumeration — rather than searching per-task,
+    for the same reason as _live_tmux_sessions above.
+    """
+    try:
+        from tools.itermtab import list_task_tabs
+    except Exception as e:
+        warn(f"sweep: itermtab import failed: {e}")
+        return set()
+    try:
+        tabs = list_task_tabs()
+    except Exception as e:
+        warn(f"sweep: list_task_tabs failed: {e}")
+        return set()
+    ids: set[str] = set()
+    for _window_id, title in tabs:
+        m = re.search(r"task-[0-9a-fA-F]+", title)
+        if m:
+            ids.add(m.group(0))
+    return ids
+
+
+def _live_org_chrome_tabs() -> list[tuple[str, str]]:
+    """Every live Chrome tab (id, url) on an org generation domain, in one
+    osascript call — task-92118d4e ADDENDUM 1.
+
+    Guarded by _chrome_running() first: `tell application "Google Chrome"`
+    launches Chrome if it is not already running, which a background sweep
+    must never do just to look.
+    """
+    if not _chrome_running():
+        return []
+    script = '''
+tell application "Google Chrome"
+  set outLines to {}
+  repeat with w in windows
+    repeat with t in tabs of w
+      set end of outLines to ((id of t as text) & (ASCII character 9) & (URL of t))
+    end repeat
+  end repeat
+  set AppleScript's text item delimiters to linefeed
+  set outStr to outLines as text
+  set AppleScript's text item delimiters to ""
+  return outStr
+end tell
+'''
+    try:
+        r = subprocess.run(["osascript", "-e", script],
+                           capture_output=True, text=True, timeout=10)
+    except Exception as e:
+        warn(f"sweep: chrome tab listing failed: {e}")
+        return []
+    if r.returncode != 0:
+        return []
+    out: list[tuple[str, str]] = []
+    for line in r.stdout.splitlines():
+        if not line.strip():
+            continue
+        tid, _, url = line.partition("\t")
+        if any(dom in url for dom in _ORG_TAB_DOMAINS):
+            out.append((tid, url))
+    return out
+
+
+def _log_unclaimed_org_tabs(claimed_tab_ids: set[str]) -> None:
+    """ADDENDUM 1: a live Chrome tab on an org generation site with no claim
+    anywhere in the browser-tabs registry is suspicious — a browser_operator
+    that never registered its tab, or a claim already cleared out from under
+    a still-open one — but this sweep only ever LOGS it, never closes it;
+    only a claimed tab under a terminal task is ever closed automatically.
+    """
+    for tab_id, url in _live_org_chrome_tabs():
+        if tab_id not in claimed_tab_ids:
+            warn(f"unclaimed org tab: {tab_id} {url}")
+
+
+def sweep_terminal_surfaces() -> list[dict]:
+    """Second watchdog pass (task-92118d4e): close any live pid/tmux/tab/
+    Chrome-tab-claim a task left behind after reaching a terminal status
+    WITHOUT going through close_dev — a direct sqlite status edit, a worker
+    that exited on its own, a rate-limited/cancelled worker, a cancel. See
+    docs/design/multi-host-workers.md "Teardown invariant".
+
+    Only inspects LOCAL (Mac) surfaces — a task whose `host` (task-d1d6b2ef,
+    may not exist yet) is set to a remote spoke is skipped here; nothing on
+    this machine can tell whether its remote pid/tmux is still alive, and
+    tools.worker_reap.close_remote is the (separately exposed, separately
+    wired) teardown for that case.
+
+    Runs close_dev — already idempotent, never raises — on every terminal-
+    status task that still shows a live pid, live `wd-<id>` tmux session, an
+    open iTerm tab, OR a claimed Chrome tab in the browser-tabs registry
+    (ADDENDUM 1: "Chrome tabs are a surface too" — close_dev itself closes
+    the claimed tab(s) by id and clears the claim). Logs one line per task
+    actually acted on; a clean task (nothing left to close) produces no log
+    line at all, so re-running this after a clean sweep is silent —
+    matching close_dev's own idempotency, and the acceptance test's "run it
+    again -> no output".
+
+    Also logs (ADDENDUM 1), every tick and regardless of any task's status,
+    any live Chrome tab on an org generation domain that has NO claim at
+    all in the registry — `unclaimed org tab: <id> <url>`. That line is
+    informational only; this sweep never closes an unclaimed tab.
+
+    Capped at SWEEP_CAP tasks actually reaped per tick (not per task
+    scanned) so a runaway state cannot stall the watchdog's main loop. Skips
+    any task whose terminal `updated_at` is younger than REAP_GRACE_S
+    (ADDENDUM 2) — a task that just went terminal gets a moment for its
+    normal close_dev caller to run before the sweep treats it as a leak.
+    """
+    reaped: list[dict] = []
+
+    try:
+        from scripts.browser.tab_registry import all_claims
+        claims = all_claims()
+    except Exception as e:
+        warn(f"sweep: tab_registry import failed: {e}")
+        claims = {}
+    _log_unclaimed_org_tabs(set(claims.keys()))
+    claimed_task_ids = set(claims.values())
+
+    rows: list[dict] = []
+    for status in TERMINAL_SURFACE_STATUSES:
+        rows.extend(db.list_tasks(status=status, limit=200))
+    if not rows:
+        return reaped
+
+    live_tmux = _live_tmux_sessions()
+    live_tab_ids = _live_task_tab_ids()
+
+    for t in rows:
+        if len(reaped) >= SWEEP_CAP:
+            break
+        task_id = t["id"]
+        if t.get("host") not in (None, "mac"):
+            continue
+        if _silent_seconds(t.get("updated_at")) < REAP_GRACE_S:
+            continue
+        pid_alive = _pid_alive(t.get("pid"))
+        tmux_alive = tmux_session.session_name_for(task_id) in live_tmux
+        tab_open = task_id in live_tab_ids
+        tab_claimed = task_id in claimed_task_ids
+        if not (pid_alive or tmux_alive or tab_open or tab_claimed):
+            continue
+        reap = close_dev(task_id, reason="reaper: terminal status with live surface")
+        reaped.append({"task": task_id, "status": t["status"],
+                       "pid_alive": pid_alive, "tmux_alive": tmux_alive,
+                       "tab_open": tab_open, "tab_claimed": tab_claimed, **reap})
+        error(
+            f"SURFACE-REAPED {task_id} status={t['status']} "
+            f"pid_alive={pid_alive} tmux_alive={tmux_alive} tab_open={tab_open} "
+            f"tab_claimed={tab_claimed} "
+            f"signal={reap.get('signal')} tmux_killed={reap.get('tmux_killed')} "
+            f"tab_closed={reap.get('closed_tab')} "
+            f"chrome_tabs_closed={reap.get('chrome_tabs_closed')}"
+        )
+    return reaped
+
+
 def scan_once() -> dict:
     pinged = []
     stalled = []
@@ -129,21 +346,37 @@ def scan_once() -> dict:
         if silent >= STALL_AFTER_S:
             pid = t.get("pid")
             pid_alive = _pid_alive(pid)
-            # A live process is not a stalled task. Silence is a proxy for
-            # death and a bad one for any job whose unit of work is longer
-            # than STALL_AFTER_S — a Higgsfield render takes 26-30 minutes
-            # against a 30-minute threshold, so a DEV doing exactly what it
-            # was told got reaped three times on 2026-08-12/13
-            # (task-cda4f469). The pid was already being computed here and
-            # written into `review`; it simply was never consulted.
-            #
-            # Dead pid -> reap immediately, unchanged. Alive -> tolerate up
-            # to a hard ceiling, so a genuinely wedged process is still
-            # collected rather than sitting forever.
-            if pid_alive and silent < STALL_ALIVE_AFTER_S:
-                info(f"watchdog: {t['id']} silent {int(silent/60)}min but "
-                     f"pid={pid} is alive — not stalling "
-                     f"(ceiling {int(STALL_ALIVE_AFTER_S/60)}min)")
+            # CEO rule (ADDENDUM 2, task-92118d4e): never close a surface
+            # under a worker that may be working. A live pid means silence
+            # is suspicion, not proof of death — a Higgsfield render takes
+            # 26-30 minutes (one measured 80+), well past STALL_AFTER_S, and
+            # a DEV doing exactly what it was told got reaped on
+            # 2026-08-12/13 (task-cda4f469) and again — via a raised but
+            # still finite ceiling — later. There is no ceiling now: file or
+            # refresh the blocker issue, mark the task suspect, and leave
+            # its tab, tmux and status alone for as long as the pid lives.
+            # A genuinely wedged live process is the human's call via the
+            # filed issue, not the watchdog's to reap.
+            if pid_alive:
+                try:
+                    review = json.loads(t.get("review") or "{}")
+                except json.JSONDecodeError:
+                    review = {}
+                # Reuse an already-filed issue rather than filing a new one
+                # every tick while the same worker stays silent-but-alive.
+                issue = review.get("issue") or _file_stalled_issue(t, silent)
+                review.update({
+                    "watchdog": "suspect",
+                    "silent_seconds": int(silent),
+                    "issue": issue,
+                    "pid": pid,
+                    "pid_alive": True,
+                })
+                db.set_fields(t["id"], actor="watchdog",
+                              review=json.dumps(review))
+                warn(f"SUSPECT {t['id']} silent={int(silent/60)}min "
+                     f"pid={pid} alive — status/tab/tmux left untouched, "
+                     f"issue={issue}")
                 continue
             issue = _file_stalled_issue(t, silent)
             # SAFETY: only close the tab when `pid` is recorded. PID is
@@ -168,7 +401,7 @@ def scan_once() -> dict:
                 "silent_seconds": int(silent),
                 "issue": issue,
                 "pid": pid,
-                "pid_alive": pid_alive,
+                "pid_alive": False,
                 "tab_closed": tab_closed,
                 **tmux_cleanup,
             })
@@ -176,11 +409,11 @@ def scan_once() -> dict:
                              review=json.dumps(review))
             stalled.append({"task": t["id"], "silent_s": int(silent),
                             "issue": issue, "pid": pid,
-                            "pid_alive": pid_alive,
+                            "pid_alive": False,
                             "tab_closed": tab_closed})
             error(
                 f"STALLED {t['id']} silent={int(silent/60)}min "
-                f"pid={pid} alive={pid_alive} tab_closed={tab_closed} "
+                f"pid={pid} alive=False tab_closed={tab_closed} "
                 f"issue={issue}"
             )
             continue
@@ -193,7 +426,8 @@ def scan_once() -> dict:
         # sleep it polls on, so nudging a busy worker is what stops it
         # working. Silence is a proxy for death and a bad one — the same
         # reasoning the stall branch above already applies. A live but
-        # genuinely wedged process is still reaped at STALL_ALIVE_AFTER_S.
+        # genuinely wedged process is now flagged suspect (never reaped)
+        # once silence crosses STALL_AFTER_S — see the branch above.
         if _pid_alive(t.get("pid")):
             continue
         msg = (f"watchdog ping — silent {int(silent/60)} min. "
@@ -266,7 +500,18 @@ def scan_once() -> dict:
         warn(f"watchdog gc error: {e}")
         gc_cancelled = []
 
+    # Fourth pass — surface sweep (task-92118d4e): any terminal-status task
+    # with a live pid/tmux/tab that never went through close_dev at all
+    # (direct sqlite status edit, self-exited worker, a cancel). See
+    # sweep_terminal_surfaces()'s docstring.
+    try:
+        surface_reaped = sweep_terminal_surfaces()
+    except Exception as e:
+        warn(f"watchdog surface sweep error: {e}")
+        surface_reaped = []
+
     return {"pinged": pinged, "stalled": stalled, "reaped": reaped,
+            "surface_reaped": surface_reaped,
             "scanned": len(rows) + len(human_rows),
             "gc_cancelled": len(gc_cancelled)}
 
@@ -290,9 +535,10 @@ def main() -> int:
     while True:
         try:
             out = scan_once()
-            if out["pinged"] or out["stalled"] or out["reaped"]:
+            if out["pinged"] or out["stalled"] or out["reaped"] or out["surface_reaped"]:
                 success(f"watchdog: pinged={len(out['pinged'])} stalled={len(out['stalled'])} "
-                       f"reaped={len(out['reaped'])}")
+                       f"reaped={len(out['reaped'])} "
+                       f"surface_reaped={len(out['surface_reaped'])}")
         except KeyboardInterrupt:
             return 0
         except Exception as e:
