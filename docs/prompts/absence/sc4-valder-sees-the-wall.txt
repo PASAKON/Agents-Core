@@ -192,4 +192,12 @@ File the take whatever the verdict.
   0 guards are visible; guards appear by t=2.5s but the man in maroon is not visible in
   that frame. Total body count still 8, no extras. Filed to Drive Fix-1/ as
   SC4-Valder-Sees-Fix1.MP4 regardless. Full report: docs/reports/absence-wave-20260907-sc4-t1.md
+2026-09-07 20:31 ICT — take 2 fired (Unlimited). FLAGGED-partial: wall row blocking now correct
+  (5 at the wall, man in maroon at the left end, all backs to camera, confirmed at t=0.5s) --
+  fixes take 1's mismatch. Two issues persist: 0 guards visible at t=0.5s (both appear by
+  t=2.5s, same failure class as take 1); mark height still exceeds the plaque (measured
+  width 0.67x plaque, height 1.22x plaque -- width passes, height still over, slightly worse
+  than take 1's 1.19x). Smile-empties beat and two hard cuts both land clean, 8 total bodies,
+  no cart/red door. Filed to Drive Fix-1/ as SC4-Valder-Sees-Fix1-take2.MP4 regardless.
+  Full report: docs/reports/absence-wave-20260907-sc4-t2.md
 === END TAKE LOG ===
