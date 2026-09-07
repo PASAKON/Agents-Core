@@ -38,6 +38,21 @@ import lib.db as db_mod  # noqa: E402
 import tools.worker_reap as worker_reap  # noqa: E402
 import runners.watchdog as watchdog  # noqa: E402
 
+# --- Never touch the live task DB ------------------------------------------
+# This file is a script (its main() builds a temp DB), but pytest happily
+# collects the test_* functions too — and under pytest main() never runs, so
+# every _insert_task() lands in whatever DB_PATH points at. On 2026-09-08 that
+# wrote 17 fake rows into the production state/tasks.db, seven of them carrying
+# a fake pid; with the remote sweep merged, a fake pid on a fake winbox row is
+# an ssh taskkill aimed at whatever real process happens to hold that number.
+# Redirect at import time so there is no way to reach the real database from
+# here, whichever way this file is run.
+_LIVE_DB = (Path(__file__).resolve().parent.parent / "state" / "tasks.db").resolve()
+if Path(db_mod.DB_PATH).resolve() == _LIVE_DB:
+    db_mod.DB_PATH = Path(tempfile.mkdtemp(prefix="test-db-guard-")) / "tasks.db"
+    db_mod.init()
+# ---------------------------------------------------------------------------
+
 _failures = 0
 
 
