@@ -1,0 +1,91 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+SC3 · CARRINGTON ARRIVES BY VAN, WITH HIS BODYGUARD · CEO 2026-09-07 13:45
+("ตอนนี้เรามีรถของ Valder แล้ว รถของหญิงนกแก้วแล้ว ขาด รถของ Carrington คันนี้ขอรถตู้สีดำ
+ได้เลย มาพร้อมกับ Guard ของเขา คนนี้ [picture = project_absence_char_guard_private_v2]").
+Same brief as SC1/SC2 (CEO 12:10): 5-8s, jump cut, no long take, no driving from
+far away — the van arrives, brakes, and the focus is the GETTING OUT.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+💳 CREDIT LANE, by CEO order: Seedance 2.5 · 720p · 16:9 · 8s · High · Sound On ·
+Unlimited toggle OFF. The button will show a credit price (~52 for 8s) — that is
+expected and authorised for THIS fire only. Click Generate ONCE. Never retry.
+Record credits before/after. NO video reference (there is no previz for this).
+⚠️ @project_absence_prop_van does not exist until the CEO approves the van plate
+(docs/prompts/absence/PLATE-prop_van-PROMPT.txt) and it is registered. Do not
+fire this sheet before that. If the van chip trips the protected-content toast
+the way project_absence_prop_car did, drop the chip and describe the van in
+prose (SC2 precedent) — 3 chips.
+Filing: All Scene/Fix-1/ as SC3-Carrington-Arrival-Credit.MP4. The CEO reviews
+this one himself.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+8s · 720p · 16:9 · TWO SHOTS, one hard cut at 3s. Both shots LOCKED — no pan,
+no zoom, no handheld. Sound On · High.
+
+REFERENCES — each with a job:
+@project_absence_loc_exterior_front — THE MUSEUM ENTRANCE, and the only location
+  reference: the forecourt of polished terracotta terrazzo, the low cream-stone
+  museum with its chromium canopy and two chromium trumpet columns, the glass
+  revolving-door entrance at the top of a fan of shallow steps, the gold V on
+  the wall, chrome spheres on cylinder plinths, blue daylight. Take the
+  building, its surfaces and its light from this picture. It is a four-panel
+  sheet — take NOTHING of its arrangement or layout, never reproduce a grid.
+  Nothing else is here: no other cars, no crowd, no street traffic.
+@project_absence_prop_van — THE VAN: a long gloss-black retro-futuristic van,
+  a streamlined box with sharp creased lines, a chrome trim line along the
+  flank, dark-tinted windows and a wide sliding side door. It is the only car
+  in the shot.
+@gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
+  stand-collar suit, white shoes, a black cane with a gold lion head, TWO GOLD
+  FRONT TEETH. He rides in the back of the van and is the only person who
+  matters in this shot.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black
+  shirt and tie. No weapon, no earpiece, no holster. He rides in the van with
+  Carrington and gets out first.
+
+SHOT ONE · [0s-3s] · locked, from the forecourt, the glass entrance in the
+background, the steps empty. THE VAN IS ALREADY MOVING: it rolls in from the
+left at walking pace, long black body sliding across the frame, and comes to a
+smooth stop with its sliding door exactly in front of the steps.
+
+SHOT TWO · [3s-8s] · HARD CUT, closer, from beside the sliding door. THE
+BODYGUARD steps out first, slides the wide door fully open with one white-gloved
+hand and holds it, scanning the forecourt. CARRINGTON steps down, cane first,
+straightens, looks up at the building and GRINS — the two gold front teeth catch
+the light — then walks up the steps at an unhurried pace, the bodyguard one
+pace behind him, watching everything but him. Nobody speaks. Hold. Cut.
+
+AUDIO: tyres on stone, the heavy roll and thud of a sliding door, the tap of a
+cane on the steps, footsteps, no voices, no music. No sound at the start or
+end: opens mid room-tone, stops dead.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, halation around every lamp.
+Photographed, not rendered: fine film grain, faint gate weave, slight colour
+fringing.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no registration tag on the car, no music,
+no score, no dutch angle, no tilted horizon, no slow motion, no speed ramp, no
+lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin, no beauty
+filter, no dim moody lighting, no night, no rain; no second car, no traffic, no
+crowd, no extras, no camera movement inside a shot other than the cut named
+above.
+
+CRITICAL NEGATIVES: no driving from far away, no road, no wide establishing
+shot, no parked-and-static van before the cut — the van MOVES in shot one;
+Carrington does not open the door himself; nobody speaks; exactly two people
+(Carrington and his bodyguard) and nobody else — no doorman, no Valder, no
+Valder's guards, no woman; no umbrella; no crack, no wall, no gallery interior.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW: the CEO reviews this clip himself (2026-09-07). The worker only confirms
+it rendered, ffprobes it, and files it.
+
+=== END NOTES ===
