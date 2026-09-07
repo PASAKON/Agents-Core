@@ -262,3 +262,17 @@ editor can cut between them on the turn at 3s.
 CTO 2026-09-07 07:50: project_absence_prop_croc_bag (Element name, no @) DROPPED from the paste block — S2R was
 "Rejected due to copyright restrictions" three times with it and rendered on the fourth fire
 without it (13 chips, same text, previz on). The bag is carried as prose now.
+
+browser_operator 2026-09-07 ~16:50 (task-a3b3c25e), take 1 NOT FIRED: composer built twice
+(fresh tab both times, 720p/20s/16:9/Seedance 2.5/High/Sound On, Unlimited ON verified
+~~140~~ 0, 13/13 unique chips bound both times) but docs/S2SB-Render.MP4 (byte-verified
+4276866 on every upload/attach, 3 uploads total) sat "Checking eligibility" past the 10-min
+cap on the first build and past a 20-min cap on the rebuild-after-reload — Generate stayed
+`disabled` throughout (confirmed by DOM read on the real button node, not the decoy). Per
+CEO 16:45 ruling (never-fired clips go first, retrying clips go to back of queue): removed
+the stuck tile, closed the tab, released the claim, did not fire bare. Two stuck previz
+uploads from this session remain in the project's Uploads > Videos library unused (ids
+8fd6b947.../02d2933a...) — safe to ignore or clean up later. Next fire attempt should try a
+fresh previz upload from a clean tab; if it sticks a third time this may be a platform-side
+previz-verification issue worth flagging to the CEO/Higgsfield support rather than retrying
+blind.
