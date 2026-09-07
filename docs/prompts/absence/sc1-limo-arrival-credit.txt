@@ -90,7 +90,7 @@ it rendered, ffprobes it, and files it.
 === END NOTES ===
 
 CEO 2026-09-07 13:02: the door is opened by HIS BODYGUARD (the big Black man in dark
-sunglasses, @project_absence_char_guard_private_v2), not by a Valder guard — the six-guard
+sunglasses, project_absence_char_guard_private_v2), not by a Valder guard — the six-guard
 Element is dropped from this sheet. 4 chips.
 
 CEO 2026-09-07 13:08: SC1 rewritten — VALDER arrives in the limousine with his two
