@@ -62,9 +62,16 @@ REFERENCES — each with a job:
 @project_absence_loc_hall_big_d — THE HALL, and the only location reference:
   warm cream walls, orange cove light washing the ceiling, polished terracotta
   terrazzo underfoot, tall chromium trumpet columns in matched pairs down both
-  sides, white plinths and the collection along both walls, the brass plaque and
-  the small black mark on the hero wall on the axis. It is a four-panel sheet —
-  take NOTHING of its arrangement or layout, and never reproduce a grid.
+  sides, white plinths and the collection along both walls, and the brass plaque on
+  the hero wall on the axis. It is a four-panel sheet — take NOTHING of its
+  arrangement or layout, and never reproduce a grid.
+  THE MARK ABOVE THE PLAQUE IS A CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK:
+  one short thick black line about as wide as a man's hand, with three or four
+  shorter thick black lines breaking off it, every line solid and heavy like ink and
+  dark for its whole length, ending where it ends. It is masonry damage — thick,
+  black, angular, flat against the wall and part of the plaster. Take 2 rendered it
+  as fine spidery hairlines and it read as an insect sitting on the wall; there are
+  no hairlines here, no fine threads, and nothing wisps away from it.
 @project_absence_char_cleaner_c — DUPE: the subject. White uniform, orange trim,
   gold V, mop in hand.
 @prop_cart_b — his cart at the edge, painting face-out.
