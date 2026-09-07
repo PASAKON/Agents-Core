@@ -15,22 +15,21 @@ WHAT THIS IS. The CEO's list, item 2: the single insert of the break on its
 own. No people, no room, no story — twelve seconds of the mark, locked off, so
 the editor has a cutaway he can drop anywhere in the sequence.
 
-⚠️ THE PREVIZ IS ALMOST EMPTY ON PURPOSE. docs/S2G-Render.MP4 is twelve seconds
-of a crude black star on a flat wall and nothing else. It is a position
-diagram: it says the mark is centred, it is roughly this big in frame, and the
-camera does not move. It says NOTHING about what the mark looks like. Count the
-arms in the previz if you like — they are wrong, and they are meant to be.
+⚠️ NO PREVIZ ON THIS SHOT (CTO 2026-09-07, from the CEO's 2026-09-05 ruling).
+docs/S2G-Render.MP4 is twelve seconds of a crude black star on a flat wall — a
+machine-drawn star is exactly the shape the CEO banned, and a video reference
+beats a still every time, so the model would render the proxy instead of the
+photograph. Do NOT attach it. Fire from the text and the one still alone.
 
 ⚠️ THE STILL IMAGE IS THE ONLY AUTHORITY ON THE MARK. Everything about its
-shape comes from loc_hall_big_d and from the written description below, never
-from the video.
+shape comes from loc_hall_big_d and from the written description below.
 
 ⚠️ THE ONE FAILURE MODE THAT MATTERS HERE. With nothing else in frame, the
 model will want to fill twelve seconds — a slow push, a drift, a light change,
 a bit of dust. It must not. This is a locked plate. The negatives below fight
 for that and they are not optional.
 
-Previz: docs/S2G-Render.MP4 — 1280x720 / 288 frames / 12.0s.
+Previz: NONE — do not attach docs/S2G-Render.MP4 (see above).
 
 Filing: All Scene/Fix-1/ as S2G-Fix1.MP4.
 
@@ -41,19 +40,11 @@ Filing: All Scene/Fix-1/ as S2G-Fix1.MP4.
 12s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
 zooms, never drifts, no cuts, for the whole twelve seconds. Sound On · High.
 
-the reference video (Video 1) is the FRAMING REFERENCE for this shot — a
-12-second grey previz that carries a crude black star standing in for the
-break. It tells you WHERE the mark sits in frame and HOW BIG it is, and nothing
-else. Do not copy that shape, its arms, its count, its edges or its texture.
-
-THE BLACK MARK IN THE REFERENCE VIDEO IS SCAFFOLDING, NOT ART. The break's real
-appearance comes ONLY from the still image reference, which is the authority on
-it.
-
 THE FRAME, unchanging for twelve seconds: a flat, straight-on view of a warm
-cream gallery wall, filling the whole picture. THE BREAK sits a little above
-centre. There is no floor, no ceiling, no column, no doorway, no plaque, no
-plinth and no person in this shot — the wall is all there is.
+cream gallery wall, filling the whole picture. The camera stands close to the
+wall, and THE BREAK sits a little above centre with clean cream plaster on
+every side of it. There is no floor, no ceiling, no column, no doorway, no
+plaque, no plinth and no person in this shot — the wall is all there is.
 
 @project_absence_loc_hall_big_d — THE WALL AND ITS SURFACE, and the only
   reference in this prompt: warm cream plaster, the soft warm orange light of
@@ -62,15 +53,16 @@ plinth and no person in this shot — the wall is all there is.
   surface and its light from this picture. It is a four-panel sheet — take
   NOTHING of its arrangement or layout, never reproduce a grid, and do not
   bring the room, the columns, the floor or the plaque into this shot.
-  THE BREAK, read off that picture exactly. IT IS A CRACK, NOT A STAR: a
-  BLACK crack in the wall, thin short branches meeting at a point, which only
-  happens to be star-shaped. COPY THAT MARK EXACTLY AS THE PICTURE SHOWS IT AND
-  NEVER CHANGE IT — not its shape, not its colour, not its size. It is SMALL:
-  about the size of a hand, a mark you could cover with your palm. IT IS THE
-  NEAREST THING TO THE LENS — it floats at the very front of the frame, in the
-  plane where the wall was, and every person and every part of the room is
-  behind it, further away. In the picture it sits high in the frame, over the
-  far red door. DO NOT ENLARGE IT AND DO NOT REDRAW IT: no full-height
+  THE BREAK, from that picture and only from it: the small black mark on the
+  wall above the brass plaque. IT IS A CRACK, NOT A STAR: a BLACK crack in the
+  plaster, thin short lines meeting at one small dark point, which only happens
+  to be star-shaped. COPY THAT MARK EXACTLY AS THE PICTURE SHOWS IT AND NEVER
+  CHANGE IT — not its shape, not its colour, not its proportions. On the real
+  wall it is SMALL, about the size of a hand, no wider than the plaque beneath
+  it; here the camera is close, so that hand-sized mark fills about a quarter of
+  the frame's height and no more, with plain plaster all round it. It is IN the
+  wall, a break in the surface, not a thing in front of it and not a drawn
+  shape. DO NOT ENLARGE IT AND DO NOT REDRAW IT: no full-height
   fracture, no spiderweb, no thick heavy arms, no arms reaching the edges of
   the frame, no lines drawn across anybody's face or body, no pale or grey
   mark, no glowing mark — solid black only. The whole joke of the film is that
@@ -122,8 +114,10 @@ walls, no wooden floor.
 REVIEW ORDER:
 1. THE CAMERA IS DEAD STILL for twelve seconds. A slow push is the most likely
    failure and it makes the plate useless to the editor — re-fire on any move.
-2. THE MARK MATCHES THE STILL, not the previz. Four beaded arms, arrowhead
-   centre with the hooked spur. Five arms or a symmetrical star = re-fire.
+2. THE MARK MATCHES THE STILL. Thin short lines meeting at one small dark
+   point, solid black, hand-sized on the wall, about a quarter of the frame's
+   height here. A symmetrical star, a thick heavy star, or a mark bigger than
+   a third of the frame = re-fire.
 3. NOTHING BUT WALL. No plaque, no floor line, no column edge, no plinth.
 4. NOTHING MOVES. No dust, no falling plaster, no growing crack.
 5. Room tone only, no tail.
