@@ -288,3 +288,32 @@ WHY B HELD: fired first click, "Generation started", credits 461 → 409 exactly
 LESSON: when a chip shows the warning triangle, do not click twice hoping —
   move that object into prose in the same sentence position and re-verify the
   chip count before firing.
+
+### S15a-1 + S2S-B · an unnamed side of frame gets filled by mirroring the chip beside it · 2026-09-08
+DEFECT SEEN: twice in one night, on two unrelated sheets, in the same shape.
+  1. S15a-1 t1 (52 credits): the Registrar — one man, one chip — appeared at
+     BOTH frame edges, black suit, white gloves, gold V, ledger, twice.
+  2. S2S-B t2 (free lane): @project_absence_char_guard_valder_two, whose whole
+     text is "VALDER'S TWO GUARDS … ONE TALL AND THIN, ONE SHORT AND HEAVY.
+     This one picture is both of them", rendered as FOUR navy uniforms — the
+     tall/heavy pair on Valder's left and the same pair again on the woman in
+     green's right, mirrored across the group. Three named characters
+     (Registrar, art student, Dupe) were missing from the same frame.
+WHAT BOTH SHEETS ALREADY SAID: the count, in capitals, correctly. S2S-B even
+  said "This one picture is both of them" and carried a "no face is repeated
+  anywhere" negative. Saying the number does not stop the duplication.
+WHAT THE TWO FAILING SHEETS HAD IN COMMON: one side of the frame had nothing
+  named standing in it. The model filled the empty side by copying the closest
+  chip it had. It is not a counting failure, it is a composition failure — an
+  unoccupied region is an instruction to invent an occupant, and the cheapest
+  occupant is the one already on screen.
+FIX APPLIED (S15a-1, d0d19f9): anchor BOTH sides by name. The three bodyguards
+  are placed one by one at the LEFT edge with shoulders touching; the Registrar
+  is stated as exactly one man on the RIGHT, "the only person in the entire
+  frame wearing a black suit with white gloves and a gold V". Neither side is
+  left for the model to fill.
+LESSON: a count is not a placement. For any chip that depicts more than one
+  person, or any chip whose costume is visually distinctive, say WHERE its
+  people stand and say what stands on the opposite side of frame. If a region
+  of the frame has no named occupant, expect the nearest distinctive costume to
+  be copied into it.
