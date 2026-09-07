@@ -90,6 +90,11 @@ REFERENCES — each with a job:
   painting standing upright in the rack, face outward.
 @project_absence_prop_tag — THE BRASS PLAQUE on the wall: engraved THE ABSENCE
   OF MEANING / Valder / $2,000,000, two screws at the top corners, warm brass.
+THE MARK (no picture of it — take it from these words only): a SMALL crack
+  in the plaster above the plaque, about a hand across, MATTE SOLID BLACK — a
+  few thin black lines meeting at one small dark point, so it reads as a star
+  only by accident. It is a break in the wall, not a drawn shape: no gold, no
+  metal, no bevelled edge, no cut-out, no outline, no glow.
 @project_absence_char_oldman — THE FIRST GUEST, and the only other person in
   this clip: a heavy-set elderly man of about eighty, jowly, thin white hair, a
   deeply lined face. A dark green leather overcoat with a wide soft shawl
@@ -108,8 +113,10 @@ land, hop. He never gets a proper look. It is the small undignified effort of a
 man checking how bad a thing is that he cannot quite reach.
 
 SHOT TWO · [7s-10s] · CUT. THE VIEW FROM INSIDE THE WALL, looking out through
-the mark. The whole frame is BLACK except the star-shaped opening, and through
-that opening we see a slice of the gallery beyond.
+the mark. The whole frame is BLACK except the small opening, which has the
+crack's own irregular outline — thin, uneven, plaster-edged, NOT a geometric
+star and with no gold rim — and through that opening we see a slice of the
+gallery beyond.
 
 WE SEE ONLY HIS HAND. No face, no eye — he never got high enough for that, and
 the joke of the previous beat is that he could not. His HAND comes up into the
@@ -202,3 +209,14 @@ END POSITIONS, for whatever scene follows this one:
 - The wall itself unchanged: the mark, and the plaque level beneath it.
 
 === END NOTES ===
+
+TAKE 1 · 2026-09-07 06:05 fired (real fire; the 04:12 "fire" was the previz
+upload bumping the asset count) → 06:54 landed, 20.04s 1280x720 · CTO verdict
+FLAGGED on the mark only: shot one drew a GOLD metallic star, shot two a
+geometric five-point star with a gold bevel, shot three a pale grey scratch —
+the paste block never described the mark (this sheet binds no crack plate), so
+the model invented one. Everything else passed: the hop, the hand-only insert,
+the flinch, the elderly man, the fake cleaning. Usable as a fallback. Take 2:
+one MARK paragraph added to the references (matte solid black, hand-sized, a
+break not a drawn shape) and shot two's opening given the crack's own
+irregular outline. Re-fire after the unshot scenes.
