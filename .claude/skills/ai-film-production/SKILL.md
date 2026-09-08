@@ -360,3 +360,30 @@ never by the operator; A and B are quoted from git, not paraphrased; a fix
 that has not passed goes under PENDING with its A already quoted, so the B is
 filled in the day it lands. Creative restages ordered by the director are
 not defects and do not go in.
+
+## 13 · EVERY PROJECT HAS A CAST.md FROM DAY ONE, AND EVERY PROMPT MATCHES IT (CEO 2026-09-08)
+
+**Rule:** before the first video prompt is written, the project has one file —
+`CAST.md` beside the prompt sheets — with ONE ROW PER CHARACTER: the Element
+chip name that is canon, what they wear (colours named), what they carry and
+what they never carry, their acting register in five words, and their locked
+lines. A prompt sheet may not describe a character in words that disagree with
+that row. When the director changes a character, the row changes first and
+every sheet bound to it is re-checked (§5). Two chips for one character is a
+defect in CAST.md, not a style choice.
+
+**Why (in the CEO's words): "CAST.md ฉันคิดว่าควรมีแต่แรก … โปรเจคหน้าจะต้องมีการ
+CAST ตัวละครให้เหมือนกันทุก ๆ PROMPT."** On «Sorry, Sir» the late-film cast —
+Dupe, the registrar, the workman, the guards, the bodyguard, Carrington, the
+grandmother, the Madame — existed only inside individual sheets. Two registrar
+Elements (white and black) and two grandmother wardrobes (grey knit and purple
+with sunglasses) shipped into Draft 3 without anyone seeing the split, because
+there was no single page where the split would have been visible. Finding it
+cost a full judge review of the cut, two aborted spawns and three hours of
+sheet surgery on 2026-09-08.
+
+**How to apply:** the sheet-writing gate is "does every character line in this
+paste block match its CAST.md row?" — grep the FLATTENED paste block (phrases
+wrap) for each character's colour and carried object against the row. The
+first commit of a new film's prompt directory is CAST.md; a sheet that binds a
+chip absent from CAST.md fails lint.
