@@ -104,7 +104,10 @@ Replace the ban with a positive statement of what occupies that place instead.
   S15a1-Shield-Fix1.MP4, S2Eb-Fix1.MP4, S2G-Fix1.MP4 and S2S-Fix1.MP4 twice each.
   So before uploading, compare your take against what the sheet's TAKE LOG records for
   the take already filed. If yours is worse on any criterion that one passed, DO NOT
-  UPLOAD: report the comparison to the CTO and leave Drive alone. Nothing is lost by
+  UPLOAD: report the comparison to the CTO and leave Drive alone. EQUAL IS ALSO A
+  REASON NOT TO UPLOAD — if both takes fail the same criterion, the new file adds
+  nothing but a second clip the editor cannot tell from the first. Upload only when
+  your take is BETTER on something. Nothing is lost by
   waiting — every take stays in ~/Downloads under its hf_ name and the take log says
   which is which.
   I originally wrote this rule believing take 3 had destroyed take 2. It had not. The
