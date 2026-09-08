@@ -18,7 +18,7 @@ means THESE PEOPLE and nobody else:
 - @project_absence_char_husband  — olive-tan jacket, short grey hair (A3, with her)
 - @project_absence_char_student_c — acid lime-green hair, paint-stained denim (A4/A5)
 Plus, once they enter: @project_absence_char_valder (S7),
-@gentleman_e (S6/S7), @project_absence_char_registrar_b (S5), @project_absence_char_visitor_a
+@gentleman_e (S6/S7), @char_registrar (S5), @project_absence_char_visitor_a
 (the balding man in the oxblood leather suit, S4 and S17).
 
 HEAD-COUNTS ARE FIXED (CEO 2026-08-30):
@@ -148,7 +148,7 @@ REFERENCES — each with a job:
 @project_absence_char_woman — COLLECTOR A, the woman in cobalt: tall, sculptural crest of
   hair, cat-eye sunglasses worn indoors, one saturated cobalt garment. She
   speaks.
-@project_absence_char_registrar_b — the museum's official: composed man. ⚠️ FORMAL BLACK suit — sober, immaculate, undertaker-clean (CEO 30 Aug). WHITE GLOVES. Small GOLD V at the chest. The brass-cornered ledger. He is the man who KNOCKS THE PRICE (his ledger-close is the film's only gavel) and the man who CHANGES THE PLAQUE — one person, both duties. He debuts here. No words. ⚠️ THE GOLD V IS HIS ALONE — take 1 put a gold V
+@char_registrar — the museum's official: composed man. ⚠️ FORMAL BLACK suit — sober, immaculate, undertaker-clean (CEO 30 Aug). WHITE GLOVES. Small GOLD V at the chest. The brass-cornered ledger. He is the man who KNOCKS THE PRICE (his ledger-close is the film's only gavel) and the man who CHANGES THE PLAQUE — one person, both duties. He debuts here. No words. ⚠️ THE GOLD V IS HIS ALONE — take 1 put a gold V
   on Collector A's cobalt coat, which this prompt already banned. NO other
   person in this scene carries a V, a monogram, an emblem or any gold mark on
   their clothing. Her cobalt coat is PLAIN — no insignia of any kind.

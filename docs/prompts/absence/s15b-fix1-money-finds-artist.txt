@@ -77,7 +77,11 @@ REFERENCES — each with a job:
 @prop_cart_b — his cart at the edge, painting face-out.
 @project_absence_char_grandmother — THE BUYER: very old, small, in a powered
   wheelchair, grey knitted headscarf and layered knits.
-@project_absence_char_registrar_b — THE REGISTRAR: a formal BLACK suit, white
+  SHE WEARS EXACTLY WHAT HER PICTURE SHOWS AND NOTHING ELSE: a GREY knitted
+  headscarf tied under the chin, a GREY knitted cardigan, a knitted bag on her
+  lap, brown boots. NO sunglasses on her — the sunglasses in this room belong to
+  other people. NO purple, NO coat, NO hat. Grey wool, head to knee.
+@char_registrar — THE REGISTRAR: a CREAM-WHITE mandarin-collar suit with thin ORANGE piping, white
   gloves, a GOLD V, and THE BROWN LEATHER LEDGER IS IN HIS HANDS AND NOBODY ELSE'S —
   he is the only person in this film who carries a book, and he is holding it.
   THERE IS EXACTLY ONE REGISTRAR — one man, and he is the only person in the entire
