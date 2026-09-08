@@ -119,8 +119,13 @@ try {
 
     # --- 3. TASK.md: from -TaskFile (scp'd ahead of this call) or stdin ---
     if ($TaskFile -and (Test-Path $TaskFile)) {
-        $taskContent = Get-Content -Raw -Path $TaskFile
+        # -Encoding UTF8 is load-bearing: Windows PowerShell 5.1's Get-Content
+        # defaults to the ANSI codepage, so a UTF-8 brief comes back as mojibake
+        # and the Set-Content below re-encodes that mojibake as UTF-8 — the
+        # double-encoding that truncated the Thai dialogue in task-34350c98.
+        $taskContent = Get-Content -Raw -Path $TaskFile -Encoding UTF8
     } else {
+        [Console]::InputEncoding = New-Object System.Text.UTF8Encoding $false
         $taskContent = [Console]::In.ReadToEnd()
     }
     Set-Content -Path (Join-Path $wt 'TASK.md') -Value $taskContent -NoNewline -Encoding UTF8
@@ -131,14 +136,14 @@ try {
     $remoteContractPath = Join-Path $rolesDir '_worker_remote.md'
     $sharedDocPath = Join-Path $rolesDir '_worker_shared.md'
     $roleDocPath = Join-Path $rolesDir "$Role.md"
-    $remoteContract = Get-Content -Raw -Path $remoteContractPath
+    $remoteContract = Get-Content -Raw -Path $remoteContractPath -Encoding UTF8
     Set-Content -Path (Join-Path $wt 'WORKER.md') -Value $remoteContract -NoNewline -Encoding UTF8
 
     # --- 5. System prompt: shared conventions + role doc + remote contract,
     # same composition runners/worker_init.py builds for a Mac-spawned DEV,
     # plus the remote contract appended (roles/_worker_remote.md). ---
-    $sharedDoc = Get-Content -Raw -Path $sharedDocPath
-    $roleDoc = Get-Content -Raw -Path $roleDocPath
+    $sharedDoc = Get-Content -Raw -Path $sharedDocPath -Encoding UTF8
+    $roleDoc = Get-Content -Raw -Path $roleDocPath -Encoding UTF8
     $systemPrompt = "$sharedDoc`n`n$roleDoc`n`n$remoteContract"
 
     # --- 6. Launch claude.exe --remote-control inside a Windows Terminal
@@ -167,13 +172,16 @@ try {
     $launchDir = Join-Path $wt '.launch'
     New-Item -ItemType Directory -Force -Path $launchDir | Out-Null
     $argsJsonPath = Join-Path $launchDir 'args.json'
-    $argList | ConvertTo-Json -Depth 2 | Set-Content -Path $argsJsonPath -Encoding UTF8
+    # UTF-8 WITHOUT a BOM: Set-Content -Encoding UTF8 emits one on PS5.1 and a
+    # leading BOM makes ConvertFrom-Json fail on the read side below.
+    [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
+                                   (New-Object System.Text.UTF8Encoding $false))
 
     $launcherPath = Join-Path $launchDir 'launch.ps1'
     $launcherBody = @"
 `$env:ORG_HOST = 'winbox'
 `$claudeExe = '$claude'
-`$argArray = @(Get-Content -Raw -Path '$argsJsonPath' | ConvertFrom-Json)
+`$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
 & `$claudeExe @argArray
 # Windows Terminal's default closeOnExit is "graceful": the tab stays open
 # when its process exits NON-zero, which is exactly what a hub-side
