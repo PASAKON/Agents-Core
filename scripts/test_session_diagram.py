@@ -6,9 +6,9 @@ return or park), kept in one JSON per session and patched between runs so the
 model spends tokens only on what changed. These pin:
 
   1. map: files written, status text, stable basename = session id
-  2. accessible-SVG contract on both maps (wide + narrow, prefixed ids) and
-     diagram-design's own self_check.py accepts the artifact page
-  3. every <rect> in both maps sits on the 4px grid
+  2. accessible-SVG contract (prefixed ids) and diagram-design's own
+     self_check.py accepts the artifact page
+  3. every <rect> sits on the 4px grid
   4. patch: set/add/evidence/here merge, auto-stamped times, run counter
   5. goal status inferred from tasks; times derived; here auto-advances
   6. refs (G2 / G2.3 / D1), unknown refs and dependency cycles raise
@@ -86,9 +86,9 @@ def test_map_writes_files_and_status(tmp_path):
 def test_accessible_contract_and_upstream_self_check(tmp_path):
     s = _session()
     body = sd.render_artifact_html(s, NOW)
-    for slug in ("session-map-wide", "session-map-narrow"):
-        assert f'aria-labelledby="{slug}-title {slug}-desc"' in body
-        assert f'<title id="{slug}-title">' in body and f'<desc id="{slug}-desc">' in body
+    slug = "session-map"
+    assert f'aria-labelledby="{slug}-title {slug}-desc"' in body
+    assert f'<title id="{slug}-title">' in body and f'<desc id="{slug}-desc">' in body
     assert "<script" not in body
     p = Path(tmp_path) / "a.html"
     p.write_text(body, encoding="utf-8")
@@ -97,15 +97,14 @@ def test_accessible_contract_and_upstream_self_check(tmp_path):
 
 
 def test_rects_on_4px_grid():
-    s = _session()
-    for svg, _w, h in (sd.render_wide(s, NOW), sd.render_narrow(s, NOW)):
-        assert h % 4 == 0
-        seen = 0
-        for m in re.finditer(r'<rect x="(-?\d+)" y="(-?\d+)" width="(\d+)" height="(\d+)"', svg):
-            seen += 1
-            for v in m.groups():
-                assert int(v) % 4 == 0, m.group(0)
-        assert seen > 20
+    svg, _w, h = sd.render_map(_session(), NOW)
+    assert h % 4 == 0
+    seen = 0
+    for m in re.finditer(r'<rect x="(-?\d+)" y="(-?\d+)" width="(\d+)" height="(\d+)"', svg):
+        seen += 1
+        for v in m.groups():
+            assert int(v) % 4 == 0, m.group(0)
+    assert seen > 20
 
 
 def test_patch_merges_and_stamps_times():
@@ -158,7 +157,7 @@ def test_refs_and_errors():
 
 
 def test_detours_render_both_kinds():
-    svg, _w, _h = sd.render_wide(_session(), NOW)
+    svg, _w, _h = sd.render_map(_session(), NOW)
     assert ">DETOUR<" in svg and ">PARKED<" in svg
     assert "↩ back on the line" in svg and "⊥ LungNote 0c2b506c" in svg
     g2 = _session().goal("G2")
@@ -171,7 +170,7 @@ def test_escaping_and_truncation():
     def mutate(d):
         d["goals"][0]["title"] = "<b>x</b> & " + "ก" * 300
         d["entry_problem"] = "ยาว " * 80
-    svg, _w, _h = sd.render_wide(_session(mutate), NOW)
+    svg, _w, _h = sd.render_map(_session(mutate), NOW)
     assert "<b>x</b>" not in svg and "&lt;b&gt;x&lt;/b&gt; &amp;" in svg
     assert "…" in svg
     assert 1 <= svg.count('font-size="24"') <= 2
@@ -189,13 +188,13 @@ def test_tree_and_status_text():
     assert st.splitlines()[0].startswith("📊 goals 1/4 · tasks 5/9 · 🔴 1 · ↪ 2 detours (1 parked) · ⏱ ")
 
 
-def test_artifact_body_no_wrapper_and_two_maps():
+def test_artifact_body_no_wrapper_single_map():
     body = sd.render_artifact_html(_session(), NOW)
     assert body.startswith("<title>")
     for tag in ("<!DOCTYPE", "<html", "<head", "<body"):
         assert tag not in body
-    assert 'class="session-map-wide"' in body and 'class="session-map-narrow"' in body
-    assert "@media (max-width: 719px)" in body
+    assert body.count("<svg ") == 1 and 'class="session-map"' in body
+    assert "overflow-x: auto" in body and "@media" not in body
 
 
 def test_photo_scale_respects_telegram_cap():

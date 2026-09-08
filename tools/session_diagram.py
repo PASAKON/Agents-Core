@@ -31,8 +31,8 @@ Commands (stdin = JSON):
 Outputs (basename = the session id, stable):
   <session>.json            the map (source of truth between runs)
   <session>.html            self-contained wide page (for PNG / local viewing)
-  <session>.artifact.html   page body for the Artifact tool: wide map + narrow map,
-                            switched by a CSS media query (desktop / phone)
+  <session>.artifact.html   page body for the Artifact tool — the same map; a phone
+                            scrolls it sideways (CEO 2026-09-09: horizontal only)
   <session>.png             opt-in --png via headless Chrome; --send = Telegram opt-in
 
 Drawn in the visual system of the `diagram-design` skill (cathrynlavery
@@ -117,7 +117,6 @@ MAX_TASK_ROWS = 8
 DETOUR_H, DETOUR_GAP = 40, 24
 STUB = 8                # dead-end stub under a parked detour
 PORT_Y = 24             # edges attach at the header band, not the block centre
-NARROW_W, NM = 400, 24  # phone layout: page width and margin
 TELEGRAM_PHOTO_MAX_SUM = 10000   # sendPhoto: width + height ≤ 10000 px
 
 SAMPLE = {
@@ -827,8 +826,7 @@ def _vline(x: int, y1: int, y2: int, dashed: bool = True, arrow: bool = True) ->
     return f'<line x1="{x}" y1="{y1}" x2="{x}" y2="{y2}" stroke="{MUTED}" stroke-width="1"{dash}{mk}/>'
 
 
-def draw_goal(parts: list[str], g: Goal, x: int, y: int, w: int, s: Session, now: datetime,
-              extra_chips: list[str] | None = None) -> int:
+def draw_goal(parts: list[str], g: Goal, x: int, y: int, w: int, s: Session, now: datetime) -> int:
     """Draw one goal block (+ its detours below). Returns the footprint height."""
     h = g.height()
     is_here = s.here_goal == g.id
@@ -843,7 +841,7 @@ def draw_goal(parts: list[str], g: Goal, x: int, y: int, w: int, s: Session, now
         parts.append(f'<rect x="{x + 4}" y="{y + 8}" width="4" height="32" rx="1" fill="{ACCENT}"/>')
         cx = x + 16
     for label, color in [(g.id, CHIP_COLOR[status]), (STATUS_WORD[status], CHIP_COLOR[status])] \
-            + ([(g.type, INK_40)] if g.type != "GOAL" else []) + [(c, SOFT) for c in (extra_chips or [])]:
+            + ([(g.type, INK_40)] if g.type != "GOAL" else []):
         chip, cw = _chip(cx, y + 12, label, color)
         parts.append(chip)
         cx += cw + 4
@@ -918,7 +916,7 @@ def draw_goal(parts: list[str], g: Goal, x: int, y: int, w: int, s: Session, now
     return dy - y
 
 
-def draw_legend(parts: list[str], y: int, x0: int, x1: int, s: Session, now: datetime, compact: bool) -> int:
+def draw_legend(parts: list[str], y: int, x0: int, x1: int, s: Session, now: datetime) -> int:
     """Legend strip + counts. Returns the y after it."""
     parts.append(f'<line x1="{x0}" y1="{y}" x2="{x1}" y2="{y}" stroke="{RULE}" stroke-width="0.8"/>')
     parts.append(_text(x0, y + 16, "LEGEND", 8, MUTED, FONT_MONO, ls="0.18em"))
@@ -937,9 +935,6 @@ def draw_legend(parts: list[str], y: int, x0: int, x1: int, s: Session, now: dat
                      f'stroke="{t["stroke"]}" stroke-width="1"{dash}/>')
         parts.append(_text(lx + 24, sw_y + 9, label, 9, MUTED, FONT_SANS))
         lx += 24 + up4(text_width(label, 9) + 32)
-    if compact:
-        sw_y += 20
-        lx = x0
     parts.append(f'<line x1="{lx}" y1="{sw_y + 6}" x2="{lx + 28}" y2="{sw_y + 6}" stroke="{MUTED}" stroke-width="1.2" marker-end="url(#arrow)"/>')
     parts.append(_text(lx + 36, sw_y + 9, "Needs the previous goal", 9, MUTED, FONT_SANS))
     lx += 36 + up4(text_width("Needs the previous goal", 9) + 32)
@@ -964,8 +959,8 @@ def _svg_open(slug: str, w: int, h: int, s: Session) -> str:
             f'<rect width="100%" height="100%" fill="{PAPER}"/>\n')
 
 
-# ---- wide layout (desktop): left → right --------------------------------------
-def render_wide(s: Session, now: datetime) -> tuple[str, int, int]:
+# ---- the map: left → right ------------------------------------------------------
+def render_map(s: Session, now: datetime) -> tuple[str, int, int]:
     W = col_x(s.ncols - 1) + GOAL_W + M
     parts: list[str] = []
     y = M
@@ -1026,49 +1021,13 @@ def render_wide(s: Session, now: datetime) -> tuple[str, int, int]:
     for g in s.goals:
         draw_goal(parts, g, g.x, g.y, GOAL_W, s, now)
     y_leg = row_y[-1] + s.row_h[-1] + 28
-    H = up4(draw_legend(parts, y_leg, M, W - M, s, now, compact=False))
-    return _svg_open("session-map-wide", W, H, s) + "\n".join(parts) + "\n</svg>", W, H
-
-
-# ---- narrow layout (phone): one block per row, top → bottom ---------------------
-def render_narrow(s: Session, now: datetime) -> tuple[str, int, int]:
-    W = NARROW_W
-    bw = W - 2 * NM
-    parts: list[str] = []
-    y = NM
-    el = s.elapsed(now)
-    parts.append(_text(NM, y + 8, f"SESSION MAP · {s.date} · RUN #{s.runs}" + (f" · {el.upper()}" if el else ""),
-                       8, MUTED, FONT_MONO, ls="0.14em"))
-    y += 36
-    head = wrap(s.entry_problem, 20, bw, 3)
-    for i, ln in enumerate(head):
-        parts.append(_text(NM, y + i * 24, ln, 20, INK, FONT_SERIF))
-    y = up4(y + (len(head) - 1) * 24 + 28)
-    # START
-    parts.append(f'<rect x="{NM}" y="{y}" width="{bw}" height="{START_H}" rx="6" fill="#ffffff" stroke="{INK}" stroke-width="1"/>')
-    chip, _w = _chip(NM + 12, y + 8, "START", INK)
-    parts.append(chip)
-    for i, ln in enumerate(wrap(s.start, 10, bw - 24, 2)):
-        parts.append(_text(NM + 12, y + 36 + i * 14, ln, 10, INK, FONT_SANS, weight="500"))
-    prev_bottom = y + START_H
-    prev: Goal | None = None
-    for g in ordered(s):
-        gy = prev_bottom + 24
-        links_prev = (prev is None and not g.depends_on) or (prev is not None and prev.id in g.depends_on)
-        if links_prev:
-            parts.append(f'<line x1="{NM + 40}" y1="{prev_bottom}" x2="{NM + 40}" y2="{gy}" stroke="{MUTED}" '
-                         f'stroke-width="1.2" marker-end="url(#arrow)"/>')
-        chips = [] if links_prev else ([f"AFTER {', '.join(g.depends_on)}"] if g.depends_on else [f"LINE {g.row + 1}"])
-        fp = draw_goal(parts, g, NM, gy, bw, s, now, extra_chips=chips)
-        prev_bottom = gy + fp
-        prev = g
-    H = up4(draw_legend(parts, prev_bottom + 28, NM, W - NM, s, now, compact=True))
-    return _svg_open("session-map-narrow", W, H, s) + "\n".join(parts) + "\n</svg>", W, H
+    H = up4(draw_legend(parts, y_leg, M, W - M, s, now))
+    return _svg_open("session-map", W, H, s) + "\n".join(parts) + "\n</svg>", W, H
 
 
 # ---- pages -------------------------------------------------------------------
 def render_html(s: Session, now: datetime) -> tuple[str, int, int]:
-    svg, w, h = render_wide(s, now)
+    svg, w, h = render_map(s, now)
     title = esc(f"Session map · {s.date} · {s.session}")
     return f"""<!DOCTYPE html>
 <html lang="th">
@@ -1093,28 +1052,19 @@ def render_html(s: Session, now: datetime) -> tuple[str, int, int]:
 
 def render_artifact_html(s: Session, now: datetime) -> str:
     """Page body for the Artifact tool — no doctype/html/head/body (the tool
-    wraps it). Two maps, one page: the wide one on desktop, the narrow one
-    on phones; each keeps its own prefixed title/desc ids."""
-    wide, ww, _ = render_wide(s, now)
-    narrow, nw, _ = render_narrow(s, now)
+    wraps it). One map at its natural size: centred on a wide screen, scrolled
+    sideways inside its own frame on a narrow one (the page never scrolls)."""
+    svg, w, h = render_map(s, now)
     title = esc(f"Session map · {s.date} · {s.session}")
     return f"""<title>{title}</title>
 <link href="{FONT_LINK}" rel="stylesheet">
 <style>
   body {{ margin: 0; padding: 24px 16px; background: {PAPER}; color: {INK}; font-family: {FONT_SANS}; }}
-  .frame {{ max-width: {ww}px; margin: 0 auto; overflow-x: auto; }}
-  .frame svg {{ display: block; height: auto; }}
-  .session-map-wide {{ width: 100%; min-width: 720px; }}
-  .session-map-narrow {{ display: none; width: 100%; max-width: {nw}px; margin: 0 auto; }}
-  @media (max-width: 719px) {{
-    .frame {{ overflow-x: visible; }}
-    .session-map-wide {{ display: none; }}
-    .session-map-narrow {{ display: block; }}
-  }}
+  .frame {{ overflow-x: auto; }}
+  .frame svg {{ display: block; width: {w}px; height: {h}px; margin: 0 auto; }}
 </style>
 <div class="frame">
-{wide}
-{narrow}
+{svg}
 </div>
 """
 

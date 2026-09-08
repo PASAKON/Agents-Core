@@ -38,8 +38,9 @@ A left→right picture of the session: **START** (what the CEO asked) → **goal
 needs an earlier goal follows it with an arrow; a goal on its own line sits on its own row; each
 block lists its tasks 1-2-3 with a checkbox, the block's `start→finish · minutes`, and the
 block/task being worked on is orange with `◀ HERE`; work that left the path hangs under its
-block as a **DETOUR** (came back, ↩) or **PARKED** (dead end ⊥, LungNote). Desktop shows the wide
-map, a phone the same data stacked — one page, one link per session.
+block as a **DETOUR** (came back, ↩) or **PARKED** (dead end ⊥, LungNote). One map, left→right,
+one link per session; on a phone it scrolls sideways (pinch-zoom) — the CEO chose the horizontal
+map only (2026-09-09: "แนวนอนอย่างเดียว").
 
 Vocabulary, so every session's map reads the same:
 
@@ -190,8 +191,8 @@ Print it only when the CEO asks for the text tree — it costs the tokens the ma
    สร้างก็ห้ามทำ"), and every unrequested map spends tokens the design exists to save.
 
 2. **Short + link, every time.** Status block → recap → link. The map carries the detail; the
-   chat carries the "so what". The CEO reads the link on desktop or phone — both layouts are in
-   the one page.
+   chat carries the "so what". One horizontal layout on every device (a phone scrolls sideways) —
+   the CEO's choice, not a gap.
 3. **Patch, don't resend.** After the first run, the map file is the source of truth; send only
    the deltas. Resending the whole map costs the tokens the design exists to save and can
    silently drop times the script stamped.
