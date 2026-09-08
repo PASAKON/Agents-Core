@@ -280,3 +280,88 @@ one dialogue line at 0.8-2.4s, correct 13-person cast throughout, camera lock he
 Re-uploaded correctly as a second S2S-Fix1.MP4 (the wrong file left in Drive for the
 CTO to trash after CEO OK, not deleted by the operator). Full report:
 docs/reports/absence-wave-20260907-s2s-t1.md. Not re-fired (one fire/task).
+
+browser_operator (task-20f5c644) 2026-09-08 20:22 ICT: S2S-Fix1 take 2 fired
+(re-fire ordered by CEO 20260908 19:30, "20 วิเต็ม ใช้ฟรีก่อนได้", to fix take 1's
+DRAFT-3 defect — grandmother rendered in a PURPLE headscarf + dark sunglasses at
+4:33/5:42 in the cut instead of her canon GREY knit — by adding the missing
+clothes-anchor line "SHE WEARS EXACTLY WHAT HER PICTURE SHOWS AND NOTHING ELSE").
+Pre-flight: git merge main at 66ac452 (past "the registrar's suit is cream-white
+in every sentence"), black-suit grep = bodyguard only, clothes-anchor grep = 1,
+Thibault = 0, gold-teeth = 0, flagged-Element grep = 0, §0 gate = 0, prompt-lint
+exit 0, 14/14 chips. Fields: Seedance 2.5 / 16:9 / 720p / 20s / High / 1/4 /
+Sound On. Unlimited ON first, six fields set, RE-CHECKED after — Generate read
+`UNLIMITED · struck 140 · 0` (zoomed, confirmed visually). Paste: sha256
+hash-verified 8-chunk base64 assembly (b64 sha256 10a699b9...cb3a, raw sha256
+2f1a7a30...37978, both matched before ClipboardEvent), End→space→Backspace
+sync tap. 14/14 chips bound lime, 0 red/unresolved, 0 warning-triangle
+thumbnails; grandmother thumbnail shows grey knit correctly. No previz (per
+task brief — sheet's stale Video-1 prose left un-pasted-around, per hard rule
+not to hand-edit the paste block). Fired once: "Generation started" toast + new
+Processing card + asset count 726→727 (exactly +1, read immediately before
+click). The S15b Unlimited slot (expected busy per brief) was apparently free
+by fire time — no refusal toast, clean first-attempt fire. Waiting on render;
+will identify card by Created-time + prompt text before download.
+
+browser_operator (task-20f5c644) 2026-09-08 22:56 ICT: take 2 landed at 20:56
+ICT (34 min render). Identified by Created-time exact match + full prompt-text
+match (asset uuid ad847559-da50-4133-ae9a-5a482a52e1c1, downloaded as
+hf_20260908_135641_ad847559-....mp4, md5 f330cc82eadaf30aab19b2d4d33a7ba7,
+unique against every other file in ~/Downloads). ffprobe: 1280x720, 20.041s,
+h264+aac — spec matches. 0.2s-sweep camera-stillness check: median step 1.78,
+max spike 6.5x median (at 16.2-16.8s, matching the tawny-fur visitor's scripted
+exit) — well under the 15x cut threshold, camera lock holds, no real cut.
+
+REVIEW ORDER verdict — NOT CLEAN, WORSE THAN TAKE 1 ON ITEM 1:
+1 SHE NEVER ARRIVES — FAIL. She is NOT tiny/far at any point in the clip.
+  The camera is effectively co-located with her position from 0.5s through
+  19.5s (checked f0.5/f5/f8/f10/f13/f16/f18/f19): she fills the lower-center
+  foreground, seen from behind, at a constant close distance the entire time.
+  She never reads as "enormously far away" or "still coming" — there is no
+  visible approach arc. This inverts the shot's whole spatial joke: the cast
+  is now facing TOWARD the camera/her end because that is structurally where
+  the voice and the camera both are, not turning their backs to camera to
+  look at someone genuinely distant. Take 1's own passing note (2026-09-07)
+  read "grandmother visible tiny at the red door by 8s and still far at
+  19.5s" — take 2 fails the exact criterion take 1 passed.
+2 head-turn/simultaneous-turn — inconclusive given item 1's staging break;
+  not independently verified (would need audio+early-frame timing this take
+  cannot usefully answer while the space itself is wrong).
+3 TWO LEAVE past the lens unremarked — PASS. Art student exits ~13-16s
+  (f13/f16), tawny-fur visitor exits ~15-19s (f16/f18/f19), both walk large
+  through frame and off, matching script.
+4 REAL POWERED WHEELCHAIR, no attendant — PASS. Motor/battery pack visible
+  on the chair in f19, no attendant present.
+5 ONE line of dialogue — not independently verified (audio not transcribed;
+  moot given item 1).
+6 THIRTEEN people — PASS by count in f0.5/f5/f8/f10: Dupe, art student,
+  Carrington, bodyguard, guard 1, Valder, registrar, guard 2, woman in green,
+  critic, chestnut-fur visitor, cobalt-coat woman, + grandmother = 13, no
+  extras.
+7 CAMERA DEAD STILL — PASS, per the 0.2s sweep above.
+NEW checks: grandmother's headscarf/cardigan read GREY throughout every frame
+  (matches the new clothes-anchor line) — but her FACE IS NEVER SEEN (she
+  stays back-to-camera the entire clip, a direct consequence of the item-1
+  staging break), so the "NO sunglasses" half of the fix is UNVERIFIABLE from
+  this take, not confirmed. REGISTRAR reads cream-white with orange piping in
+  every frame he appears — PASS.
+
+DIAGNOSIS: this take had no @Video previz attached (per this task's explicit
+"No previz" instruction), and the paste block's own POSITION MAP section
+describes camera/character placement "in the reference video" — a reference
+that was never bound this fire. Per ai-film-production §7 ("the model follows
+your prose over your reference" — and the inverse: with NO reference at all,
+prose describing one goes unanchored), the model had no real camera-distance
+cue for the grandmother and appears to have defaulted to a near-camera POV
+framing instead of the take-1 far-end placement. Take 1 fired WITH the video
+previz attached and passed item 1 cleanly.
+
+VERDICT: NOT UPLOADED. Per FIRE-PLAYBOOK "DO NOT ADD A WORSE TAKE UNDER A NAME
+THAT ALREADY HOLDS A BETTER ONE" — take 2 is worse than take 1 on REVIEW ITEM
+1 (a core scripted beat), so Drive is left untouched; take 1's S2S-Fix1.MP4
+remains the only filed asset for this scene. File not deleted — kept at
+~/Downloads/hf_20260908_135641_ad847559-da50-4133-ae9a-5a482a52e1c1.mp4 for
+the CTO to review directly if wanted. Recommendation to CTO: re-fire take 3
+WITH the @Video 1 previz (docs/S2S-Render.MP4) re-attached to restore the
+camera-distance staging, keeping the new clothes-anchor line — the two fixes
+are independent and both are needed.
