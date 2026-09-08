@@ -1,0 +1,96 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S15d · THE ARTIST IS THE BUILDING · 5s INSERT · CEO 2026-09-08 19:50
+
+The room's verdict on Dupe's confession — the half of the film's second thesis
+that Draft 3 never delivers. Dupe has just said "I cracked it. Last hour." and
+the room has heard him. Then the CRITIC — whose S3 line was "It asks who decides
+what labour is worth" — closes her own arc by deciding: "Then the artist is the
+building." The truth is not disbelieved; it is promoted into legend. That is the
+point, and it lands on her face, not on his.
+
+CEO 2026-09-08: "นักวิจารณ์พูด … ยิงเลนเครดิต 5 วิ ยิงเสร็จเซฟลง ขอฉันรีวิว". CREDIT
+lane, ~33 credits at 5s. The CEO reviews the take himself.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+💳 CREDIT LANE — Unlimited OFF on purpose (the free slot is held by S15b/S2S).
+Spec: 5s / 720p / 16:9 / Seedance 2.5 / High / 1/4 / Sound ON. Zoom the button:
+it must read about 33 credits at 5s (measured 2026-09-06). 52 or more means the
+slider is not at 5 — STOP. Click ONCE, never retry a paid control.
+
+⚠️ 2 CHIPS ONLY: the critic and the hall. Nobody else is a chip. The rest of the
+room is soft background prose — do not add people chips, this is a single.
+Critic block copied from s2l-fix1-collector-arrives.txt.
+
+REVIEW ORDER:
+1. IT IS THE CRITIC — the magenta fur, the chignon, the face from her plate. Any
+   other woman saying it is a fail.
+2. SHE SAYS IT TO THE LENS, level and certain, as a verdict — not a question,
+   not a joke, no smile. Six words, nobody else speaks.
+3. FRONTAL SINGLE, LOCKED CAMERA, no cut: 0.2s sweep, median + steps >3x, no
+   spike >15x, and a crop the action never touches stays flat.
+4. THE HALL behind her, soft; the cracked wall is NOT in this frame (she faces
+   the room, the wall is behind the camera).
+5. Count faces: hers sharp, the rest soft and unnamed. No registrar, no ledger,
+   no Valder, no Dupe in this frame.
+File the take whatever the verdict, as S15d-ArtistIsTheBuilding-Fix1.MP4 in
+All Scene/Fix-2/. The CEO reviews it.
+
+TAKE LOG:
+(none yet)
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+5s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, never drifts, no cuts, for the whole five seconds. Sound On · High.
+
+A FRONTAL SINGLE, chest up, straight down the lens, in the great cream gallery
+hall. ONE woman fills the centre of the frame and speaks to us. Behind her the
+hall falls away soft and out of focus: the chrome flared columns, the warm
+orange light along the ceiling, a few dark unnamed figures far back, nobody
+close, nobody sharp, nobody moving. She stands with her back to the far end of
+the hall and faces the room; the cracked wall is behind the camera and is not
+in this picture at all.
+
+@project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
+  silver-streaked hair swept up, a full-length deep magenta fur coat with a
+  wide shawl collar, long cream gloves, gold bracelets, cream heels.
+  She has just heard a cleaner confess. Her face is the verdict: LEVEL, CERTAIN,
+  UNSMILING, the calm of a woman who has decided something on behalf of the
+  room. Chin very slightly raised. Eyes straight into the lens and held there.
+  Hands out of frame or still at her sides. No gesture. No nod.
+
+@project_absence_loc_hall_big_d — THE HALL, and the only location reference,
+  the same frame and the same light as a moment ago: warm cream walls, orange
+  cove light, polished terracotta terrazzo, chromium trumpet columns, white
+  plinths, and the brass plaque on the axis. THE MARK ABOVE THE PLAQUE IS A
+  CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK: one short thick black line
+  about as wide as a man's hand, with three or four shorter thick black lines
+  breaking off it, every line solid and heavy like ink, the whole thing star
+  shaped and flat against the wall. Take 1 rendered it as fine grey hairlines
+  with thin legs and it read as an insect on the wall. It is masonry damage:
+  thick, black, angular, and part of the plaster. It is a
+  four-panel sheet — take NOTHING of its arrangement or layout, and never
+  reproduce a grid.
+
+WHAT HAPPENS, in five seconds, in one shot:
+[0s] She is already looking at us. A beat of stillness — half a second, no
+  more — the pause before a judge speaks.
+[0.7s] She says, slowly, as a ruling and not a question, in a low even voice
+  that carries the room:
+  "Then the artist is the building."
+  Six words. Nobody else speaks. No music.
+[3.5s] The line has landed. She does not smile, does not blink more than once,
+  does not look away. She holds the lens. The room behind her stays soft and
+  still.
+[5s] End on her held face.
+
+NEGATIVES: no smile, no smirk, no eyebrow, no head tilt, no gesture, no second
+speaker, no cut, no camera move, no zoom, no push-in, no subtitle, no text, no
+caption, no grid, no split screen, no four-panel layout, no wall crack in
+frame, no plaque in frame, no ledger, no registrar, no man in a multicolour
+coat, no cleaner in white, no wheelchair, nothing sharp behind her.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
