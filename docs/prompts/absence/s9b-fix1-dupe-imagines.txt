@@ -54,6 +54,7 @@ File the take whatever the verdict, as S9b-DupeImagines-Fix1.MP4 in All
 Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
 
 TAKE LOG:
+take 1 fired 2026-09-09 01:40:10 ICT from the Mac (asset 731→732); harvest handed to winbox (CEO 02:47)
 
 === END NOTES ===
 
