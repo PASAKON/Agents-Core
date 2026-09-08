@@ -486,6 +486,30 @@ LESSON, and it applies to every multi-cut sheet in this film: A CUT CANNOT CARRY
 
 ---
 
+### The mark's darkness test is SIZE-DEPENDENT — three greys in one day with identical prose · measured 2026-09-08
+DEFECT SEEN: S16 t1 and S15b2 t1 (both credit lane, both wide room shots) rendered
+  the mark as a pale brown spiderweb — darkest pixel 116 and 94, zero pixels under
+  threshold 80. S15a-2 t3 failed the same way earlier. Each is a re-fire candidate
+  on canon rule 8.
+PROMPT A = PROMPT B: the mark paragraph is byte-identical across the two that failed
+  (S16, S15b2) and the two that passed today (S15a-1 t2, S15b1 t1): "THE MARK ABOVE
+  THE PLAQUE IS A CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK" plus the same
+  ban list ("no pale, grey, brown or tan mark"). The words did not vary. The result
+  did. So the words are not the variable.
+WHAT VARIED: pixel size. Failing marks measured 0.4-0.5% of frame width at 1280 px
+  = a 5-7 px core. Passing S15a-1 t2 measured 1.0% / fill 0.538 — twice the width.
+  A 5 px stroke on a 224-grey wall cannot contain a fully dark interior pixel; the
+  anti-aliased edge IS the whole mark. Threshold-80 is therefore a test the mark
+  can only pass above roughly 0.8-1.0% of frame width, whatever the prompt says.
+LESSON: do not re-edit the colour sentence on a wide shot — it is already correct
+  and it will fail again. The choice is the CEO's, and it is a framing choice:
+  (a) accept a faint mark in wides (it is the same crack, just far away), (b) frame
+  the wall tighter so the mark clears ~1% of width, or (c) allow the mark to be
+  written larger in wides only. Canon rule 8 stays an acceptance test; this entry
+  records the size below which it cannot be met.
+
+---
+
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
 
 Only entries whose take has NOT yet been fired or judged belong under this
