@@ -95,17 +95,24 @@ Replace the ban with a positive statement of what occupies that place instead.
   like that at 01:11 and its render would have sat there until morning. The stall
   watch alerts on that combination within three minutes rather than waiting half an
   hour for a pane to look quiet.
-- A WORSE TAKE MUST NOT OVERWRITE A BETTER ONE (HARD, added 2026-09-08 06:52 after it
-  happened). The scene-name rule below says every take files under its scene name, and
-  taken alone that means the LATEST take wins. It should be the BEST take that wins.
-  S15a-2 take 3 overwrote take 2 on Drive although take 2 was better on both measured
-  criteria — two navy uniforms against four, and a mark that registered as black
-  against one that only registered as grey.
+- DO NOT ADD A WORSE TAKE UNDER A NAME THAT ALREADY HOLDS A BETTER ONE (HARD, 2026-09-08
+  06:52; the reason below was CORRECTED at 07:20 after actually listing the folder).
+  The upload script does NOT overwrite — it creates a NEW Drive file with the same
+  name. So a second upload never destroys the first; it leaves two files with identical
+  names, and the editor cannot tell which one passed. As of 07:20 that had already
+  happened five times: S15a2-RoomDecides-Fix1.MP4 exists three times, and
+  S15a1-Shield-Fix1.MP4, S2Eb-Fix1.MP4, S2G-Fix1.MP4 and S2S-Fix1.MP4 twice each.
   So before uploading, compare your take against what the sheet's TAKE LOG records for
-  the take currently filed. If yours is worse on any criterion that one passed, DO NOT
-  UPLOAD over it: report the comparison to the CTO and leave the Drive copy alone. The
-  clip is not lost either way — every take stays in ~/Downloads under its hf_ name, and
-  the take log records which is which.
+  the take already filed. If yours is worse on any criterion that one passed, DO NOT
+  UPLOAD: report the comparison to the CTO and leave Drive alone. EQUAL IS ALSO A
+  REASON NOT TO UPLOAD — if both takes fail the same criterion, the new file adds
+  nothing but a second clip the editor cannot tell from the first. Upload only when
+  your take is BETTER on something. Nothing is lost by
+  waiting — every take stays in ~/Downloads under its hf_ name and the take log says
+  which is which.
+  I originally wrote this rule believing take 3 had destroyed take 2. It had not. The
+  rule stands, the reason is duplicate names rather than lost footage, and no clip has
+  ever been lost on Drive.
 - THE DRIVE FILENAME IS THE SCENE NAME AND NOTHING ELSE (HARD, 2026-09-08). Every
   clip goes to All Scene/Fix-1/ named for its scene — S2G-Fix1.MP4,
   S15a1-Shield-Fix1.MP4, S2S-B-Fix1.MP4 — and that is true of failures too. Do NOT
@@ -126,6 +133,17 @@ Replace the ban with a positive statement of what occupies that place instead.
   are blocked, two instructions conflict. A long silence while you work is correct and
   expected — the CTO watches your process directly and learns you died faster than you
   could tell it.
+- NEVER PUT alert(), confirm() OR prompt() IN A JS SNIPPET — not even in your own
+  throwaway test (HARD, 2026-09-08 07:05, after it happened). A JS modal blocks the
+  extension for that tab and there is no extension call that can dismiss it. Use
+  console.log and read it back with read_console_messages.
+  RECOVERY, and it does NOT need a human: the modal blocks that ONE tab, not the
+  browser — every other tab still answers, which is why the frozen tab's title is
+  still readable. Close the frozen tab with tabs_close addressed BY TAB ID (never by
+  clicking into it, never with computer-use); Chrome discards a pending dialog when
+  the tab closes. Release the registry claim, claim ONE fresh tab, rebuild the
+  composer. Only if tabs_close itself errors do you stop and report. Nothing is lost
+  as long as no Generate click was made.
 - NEVER quit or restart Chrome (HARD, 2026-09-07): the window is shared with the other operators; a frozen tab → close your own tabs, one fresh tab, else STOP and report. The render lives server-side and survives your tab.
 - claude-in-chrome ONLY. NEVER call computer-use (screenshot/click/type/clipboard) or ask
   for Finder / clipboardWrite: the permission dialog it raises blocks the whole pane

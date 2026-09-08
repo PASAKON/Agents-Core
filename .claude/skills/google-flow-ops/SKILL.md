@@ -352,6 +352,123 @@ Two rules that follow, and are not negotiable:
    script, the same way the look is locked. A voice that lives only in someone's
    memory of a preview will not survive the next session.
 
+## Casting a voice — the rules, the whole voice list, and the ledger (CEO 2026-09-08)
+
+Everything needed to cast a voice is on this page. **Do not search the web for
+it** — Google's own API docs are thinner than what is here (one adjective per
+voice, no gender, no pitch), and the Flow UI labels below were read off the
+CEO's own account.
+
+### Rules
+
+1. **One voice per character, and never the same voice twice in one story.**
+   Two characters sharing a preset will read as the same person the moment they
+   share a scene. Check the cast ledger before assigning.
+2. **The C-level casts, not the worker.** The voice goes into the brief by name;
+   a worker may only report that a preset is missing, never substitute on taste.
+   A worker has no ears and must never claim it heard anything.
+3. **Write it into the script** as a `VOICE LOCK:` line under the character's
+   `APPEARANCE LOCK`, before any dialogue shot is fired.
+4. **The CEO's ear is the only real evidence.** The labels get us a shortlist;
+   the 10-second previews are free and speak Thai, so a doubtful cast is settled
+   by listening, not by arguing from adjectives.
+5. **Score every verdict in the ledger.** A voice the CEO keeps earns +1. A voice
+   the CEO orders changed earns −1. At −2 a voice is retired for that kind of
+   role and must not be proposed again.
+
+### Casting criteria, and which parts are guesses
+
+In priority order:
+
+1. **Sex must match the character.** The one field that is unambiguous data.
+2. **Pitch band as a stand-in for age** — low for an older man, mid-low for a
+   young man. **This is an inference, not data.** Nothing in Google's labels ties
+   pitch to age; it is simply the best proxy available.
+3. **The tone word separates characters who share a scene.** The father is
+   gravelly and the lender smooth so they never blur together.
+4. **Reject tone words that fight the character.** No "lively", "upbeat" or
+   "excitable" for a man who is exhausted.
+
+**What the labels do not contain: age, accent, or how well the voice handles
+Thai.** Only three of the thirty carry any age signal at all — Gacrux "mature",
+Leda "youthful", Fenrir "younger pitch" — and none of those three is a male
+voice, so there is no documented "old man" preset to pick. Thai is listed as a
+supported language, with nothing said per voice.
+
+### All 30 presets, as the Flow picker labels them
+
+| Voice | Label (verbatim) |
+|---|---|
+| Achernar | Female, soft, high pitch |
+| Achird | Male, friendly, mid pitch |
+| Algenib | Male, gravelly, low pitch |
+| Algieba | Male, easy-going, mid-low pitch |
+| Alnilam | Male, firm, mid-low pitch |
+| Aoede | Female, breezy, mid pitch |
+| Autonoe | Female, bright, mid pitch |
+| Callirrhoe | Female, easy-going, mid pitch |
+| Charon | Male, informative, lower pitch |
+| Despina | Female, smooth, mid pitch |
+| Enceladus | Male, breathy, lower pitch |
+| Erinome | Female, clear, mid pitch |
+| Fenrir | Male, excitable, younger pitch |
+| Gacrux | Female, mature, mid pitch |
+| Iapetus | Male, clear, mid-low pitch |
+| Kore | Female, firm, mid pitch |
+| Laomedeia | Female, upbeat, mid-high pitch |
+| Leda | Female, youthful, mid-high pitch |
+| Orus | Male, firm, mid-low pitch |
+| Puck | Male, upbeat, mid pitch |
+| Pulcherrima | Ungendered, forward, mid-high pitch |
+| Rasalgethi | Male, informative, mid pitch |
+| Sadachbia | Male, lively, low pitch |
+| Sadaltager | Male, knowledgeable, mid pitch |
+| Schedar | Male, even, mid-low pitch |
+| Sulafat | Female, warm, mid pitch |
+| Umbriel | Male, smooth, lower pitch |
+| Vindemiatrix | Female, gentle, mid pitch |
+| Zephyr | Female, bright, mid-high pitch |
+| Zubenelgenubi | Male, casual, mid-low pitch |
+
+### Cast ledger
+
+Update this the moment the CEO reacts to a voice. Score starts at 0 and moves
+±1 per verdict; the "verdict" column stays "pending ear" until a human has
+actually listened.
+
+| Story | Character | Voice | Score | Verdict |
+|---|---|---|---|---|
+| เงินที่พ่อตั้งใจหา | @lung_somchai (M, 58) | Algenib | 0 | pending ear — heard in shot58-omni |
+| เงินที่พ่อตั้งใจหา | @nong_daeng (M, 24) | Iapetus | 0 | pending ear |
+| เงินที่พ่อตั้งใจหา | @grandma_pranom (F, 79) | Gacrux | 0 | pending ear |
+| เงินที่พ่อตั้งใจหา | @lender_cherd (M, 45) | Umbriel | 0 | pending ear |
+
+Shortlist held in reserve for an older-sounding man, if Algenib is rejected:
+Enceladus (breathy, lower), Charon (informative, lower). Sadachbia is the only
+other male at the lowest pitch band but "lively" fights the character.
+
+## Sound: what can be steered and what cannot (2026-09-08)
+
+The CEO's plan is to score the series in Suno and ElevenLabs, so what Flow needs
+to deliver is the sound that genuinely happens in the scene, and nothing else.
+
+**There is no off switch.** Omni Flash does not support negative prompts at all,
+the Gemini API's Veo parameters carry no negativePrompt, and there is no mute,
+no level control and no way to separate the audio Veo bakes into the clip.
+
+What works instead:
+
+- **Name only the diegetic sounds, positively.** Keep the script's
+  `Ambient noise: ladle in broth.` line and let it carry the whole audio brief.
+- **Delete "No music." from the prompt.** Google's own prompting guide says to
+  describe what you do not want rather than instruct with "no" or "don't", and
+  naming music at all is a way to invite it. Our shot prompts still carry that
+  line; strip it on the next pass.
+- **Silent shots get muted in the edit.** A shot with no dialogue loses nothing
+  by having its whole track replaced with our own ambience and score, which
+  removes any risk of an unwanted bed. Only dialogue shots have to keep Veo's
+  audio, because the voice is welded to it.
+
 ## Which model for a drama: Omni Flash, not Veo 3.1 Fast (2026-09-08)
 
 Veo 3.1 **Quality** is out of the question for a character series regardless of

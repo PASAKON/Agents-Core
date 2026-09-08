@@ -80,8 +80,9 @@ REFERENCES — each with a job:
   orange trim, gold V, mop in hand, out of breath, saying nothing more.
 @prop_cart_b — his cart at the edge, painting face-out.
 @project_absence_char_valder — beside him on the axis, the rage gone quiet.
-@project_absence_char_workman — slate-blue overalls, bucket and float, AT THE
-  WALL, still behind Dupe where the shield put him.
+@project_absence_char_workman — THE CONTRACTOR: overalls in DARK NAVY BLUE, the
+  colour of his reference picture, deep and close to black in shadow; bucket and
+  float, AT THE WALL, still behind Dupe where the shield put him.
 @project_absence_char_grandmother — in the wheelchair, present and SILENT.
 @project_absence_char_registrar_b — THE REGISTRAR: a formal BLACK suit, white
   gloves, a GOLD V, the leather ledger. Present, still.
