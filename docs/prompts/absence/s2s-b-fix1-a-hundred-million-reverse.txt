@@ -330,6 +330,25 @@ bound (@gentleman_e, @project_absence_char_guard_private_v2, @project_absence_ch
 @project_absence_char_student_c, @project_absence_prop_cart_a_painted), 0 red/unresolved.
 Two refusal-toast attempts ("1 unlimited generation at a time") at ~20:52 and ~20:55 while S2S
 still held the slot (confirmed via tab_registry.py each time), cost nothing. Third click at
-20:56:59 ICT returned "Generation started" toast + asset count 727→728 (+1 exactly). Filing
-pending render completion — will file to All Scene/Fix-2/ as S2S-B-Fix1.MP4 per CEO's Fix-2
-ruling. Report: docs/reports/absence-wave-20260908-s2s-b-t3.md.
+20:56:59 ICT returned "Generation started" toast + asset count 727→728 (+1 exactly). LANDED
+~113 min later (Chrome minimized by CEO for most of the wait — identified/downloaded/reviewed
+entirely via JS with visibilityState=hidden, per CTO direction). Asset id
+ad847559-da50-4133-ae9a-5a482a52e1c1, md5 f330cc82eadaf30aab19b2d4d33a7ba7 (no collision vs
+existing Downloads), ffprobe 1280x720/20.04s, no NSFW/rejection flag. REVIEW: item 1 (face
+never seen) PASS across 0.1/0.5/1/3/5/7/10/13/16/18/19s frames — only the back of her head
+visible throughout. Item 5 (distance holds) PASS — fixed-crop comparison grid across 9
+timestamps shows the far group's apparent size/position unchanged the whole 20s; the
+close-up-to-normal recession is the chair moving away from the CAMERA as scripted ([7s] beat),
+not the group closing in. This take did NOT repeat S2S t2's no-previz distance failure. Cut
+sweep (0.2s steps) clean — two broad multi-frame motion clusters (~15.2-17.2s peak 11.6x,
+~18.4-19.8s peak 6.3x) line up with the art-student/fur-woman walk-past beats, no single spike
+>15x, ONE CONTINUOUS SHOT holds. 13 people present exactly once, no duplicates, no nurse; grey
+knit headscarf/cardigan confirmed (no purple, no sunglasses on her); registrar in cream.
+FLAG (non-blocking, reported to CTO): the second navy guard and the registrar are swapped
+versus the sheet's position map — registrar sits directly right of Valder, guard #2 is further
+right past the registrar (sheet wants both guards together on Valder's left, registrar right
+of the woman in green). Mass-turn at 3s unverified from stills — group already reads
+loosely-forward even at 0.1s, can't confirm a clean synchronized snap. Filed to All Scene/Fix-2/
+as S2S-B-Fix1.MP4 (https://drive.google.com/file/d/1Z7e2h_KJup7ZR4FhgPdDv7ah_XD8yrMK/view) per
+CEO's Fix-2 ruling and CTO's pass verdict on the two gating checks. Report:
+docs/reports/absence-wave-20260908-s2s-b-t3.md.
