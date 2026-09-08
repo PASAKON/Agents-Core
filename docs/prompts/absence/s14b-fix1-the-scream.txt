@@ -171,6 +171,62 @@ the filename. If a take already filed under that name passed a criterion yours
 fails, do not upload over it; report the comparison instead.
 
 TAKE LOG:
-(none yet)
+take 1 (2026-09-08, task-42e8f072, Unlimited FREE, hf_20260908_031639_59e169b7-50b2-4bc0-85f7-13928bfa41d9.mp4)
+  filed: All Scene/Fix-1/S14b-TheScream-Fix1.MP4
+  https://drive.google.com/file/d/11-gU10we4B9_gtUGsJh5azi5urjywkjE/view
+  1. SMILE GONE: PASS. Shot two (frames 3.5s/4.5s/5.0s) shows open mouth,
+     bared teeth, furrowed brow — angry/screaming, not amused. The one place
+     in the film this is true.
+  2. PLASTER FALLS + SNAP ZOOM: PASS. Wide shot shows grey smear appear on
+     wall below the crack (not touching it) around 6.0s; zoom lands on the
+     splat on the terracotta floor by 7.0s and holds it steady through 7.9s
+     (confirmed close-up at 7.6s matches spec).
+  3. CUTS TO S14a: PASS. First frame (0.0-2.5s) already shows the contractor
+     with float raised toward the crack; nobody walks in.
+  4. NINE WORDS: could not run STT (no tool available this session) — visual
+     lip movement is continuous from ~2.6s to ~5.3s (one unbroken speech
+     block per audio analysis below), consistent with one uninterrupted line;
+     no other character's mouth moves in a speaking way in any sampled frame.
+     Not independently verified word-for-word.
+  5. CUTS ACTUALLY CUT — methodology note: CTO-directed correction mid-take —
+     computed frame-to-frame MAD at 0.1s steps across the whole clip, took
+     the median (1.64), and flagged any step >3x median (4.92) as a real
+     boundary, rather than comparing fixed nominal-time offsets.
+       Real boundaries found: 2.5s->2.6s (MAD 52.31, 31.9x median) and
+       5.3s->5.4s (MAD 50.93, 31.1x median) — both are the two named HARD
+       CUTS. Nominal sheet times were 3s and 5.5s; actual cuts landed ~0.4s
+       and ~0.15s earlier. A third cluster of large diffs (6.3s-6.9s, up to
+       40.25) is the snap zoom's own motion, not a cut.
+       Within-shot baseline (0.5s vs 1.5s, both shot one): MAD 1.81.
+       Both real cuts (52.31, 50.93) crush the baseline — PASS, both cuts did
+       real work.
+  6. THE MARK, measured on frame f_6.0.png (float/arm clear of the crack at
+     this frame, contractor's body to the side): threshold-80 dark-pixel
+     bounding box = 41x26px inside a 100x100 search window -> 3.2% of the
+     1280px frame width (limit: under ~8%); fill ratio 0.192 (limit: 0.10+).
+     Both PASS.
+  7. COUNT: navy uniforms = 2 (tall thin + short heavy guard, left edge),
+     plus the contractor's navy overalls (correctly not counted as a
+     uniform) = PASS, matches "expect exactly 2". Registrars = 1 (black
+     suit, white gloves, gold V, ledger) = PASS, matches "expect 1".
+     TOTAL PEOPLE: ~10 visible in the static wide shot (3 bodyguards + 1
+     contractor + Carrington + 1 identifiable press + grandmother + Thibault
+     + 1 more partial press/figure + registrar), plus Valder who appears
+     only in the shot-two close-up (never visible in the wide shot at all,
+     despite the sheet's "mid-room among the guests / head snaps to wall"
+     beat) = ~11 total distinct characters rendered vs the sheet's 21. Six
+     ordinary public (prose-only) did not render. Consistent with the known
+     "1 REF / 1 person" limitation already flagged for S14a; not a new
+     defect, not a reason to re-fire per the task brief.
+  OTHER: navy overalls on contractor confirmed navy (not slate-blue). Press
+  chip rendered ~1-2 identifiable people, not 4 (known limitation).
+  project_valder_char_villagers_poor correctly stayed prose, no chip, no
+  Generate refusal. No NSFW/rights-verification banner. Audio: silence
+  0-0.4s (room tone, no sting), continuous sound 2.65s-7.07s (scream + wet
+  slap), silence 7.07s-end (ringing silence, no fade). 1280x720, 8.04s.
+  VERDICT: mostly PASS on the review-order criteria; open items are the
+  unverified exact wording of the line (no STT) and Valder's absence from
+  the wide shot. Filed as first take under this name per the task brief
+  ("nothing filed yet, upload whatever the verdict").
 
 === END NOTES ===
