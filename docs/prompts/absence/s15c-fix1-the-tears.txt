@@ -181,6 +181,28 @@ the filename. If a take already filed under that name passed a criterion yours
 fails, do not upload over it; report the comparison instead.
 
 TAKE LOG:
-(none yet)
+2026-09-08 · take 1 · FREE/Unlimited lane · fired 08:09:06Z (15:09:06 ICT) ·
+landed between ~176-187min elapsed (~180min, matches S2I's 185min precedent —
+lane is healthy, long render is not a stall signal) · 1280x720, 8.05s, 24fps ·
+PASSED all review items:
+  1. Tears run, he stays still — PASS (mop grip held, shoulders static, mouth
+     closed throughout, tears visible from 0.5s onward)
+  2. Nobody comforts him — PASS (no one approaches/touches him)
+  3. Sideways eye flick in shot two — PASS (glance down/left ~4.5-6.0s, back
+     to front by 7.8s)
+  4. No smile — PASS (mouth closed every sampled frame)
+  5. No dialogue — PASS (audio: mean -43.6dB, near-total silence except one
+     brief peak at 3.79-3.84s matching "breathing gone uneven once")
+  6. Push-in smooth — PASS (MAD sweep shows smooth continuous ramp, no jagged
+     noise pattern)
+  6b. Cut sweep (0.2s steps, greyscale MAD): median 2.891. ONE isolated spike
+     at 3.8-4.0s = 46.84 (16.2x median) — real, isolated cut. Push-in from
+     4.0s onward ramps smoothly 2.0→8.8 (6.6-6.8s) then falls — a sustained
+     rising/falling run, correctly the push-in itself, not a second cut.
+  7. Room visible: three bodyguards at left edge in correct order (tall thin
+     navy, short heavy navy, black-suit-white-gloves) — matches sheet. No
+     duplicate faces spotted.
+Filed: All Scene/Fix-1/S15c-TheTears-Fix1.MP4
+https://drive.google.com/file/d/1WuRPwGmk-x9Iy3ndhftS3EDt4g6JzmRi/view
 
 === END NOTES ===
