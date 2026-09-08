@@ -315,3 +315,21 @@ walk-past-camera beat is performed by THE WOMAN IN COBALT instead of the art stu
 belongs to (fur woman's 16s walk is correct). No crack/mark, camera/chair blocking clean.
 Filed to All Scene/Fix-1/ as S2S-B-Fix1.MP4 regardless of verdict. Full report (corrected
 after CTO recount 2026-09-08): docs/reports/absence-wave-20260907-s2s-b-t2.md.
+
+browser_operator 2026-09-08 20:56:59 ICT (task-b80a20a9), take 3 FIRED CLEAN: pipelined behind
+S2S (task-20f5c644) per brief — composer built fully first (Video tab, Seedance 2.5, 16:9, 720p,
+20s via ARIA slider ArrowRight x15, batch 1/4, High, Sound On), then Unlimited toggled ON last
+and zoom-verified UNLIMITED · ~~140~~ · 0 (screenshot, not JS scrape). Prompt entered via
+sha256-verified synthetic ClipboardEvent paste (paste-block sha256 00ee18ec7fec2fd1f64869892cd
+1926ffa6f4c710ff904066a9c088cd7c6ad54, 11962 bytes, matched before dispatch) into the real
+(visible) contenteditable, decoy filtered by getComputedStyle visibility. 13/13 unique chips
+bound (@gentleman_e, @project_absence_char_guard_private_v2, @project_absence_char_valder,
+@project_absence_char_woman_c, @char_registrar, @project_absence_char_visitor_a,
+@project_absence_char_visitor_b, @project_absence_char_woman,
+@project_absence_char_grandmother, @loc_hall_big_e, @project_absence_char_guard_valder_two,
+@project_absence_char_student_c, @project_absence_prop_cart_a_painted), 0 red/unresolved.
+Two refusal-toast attempts ("1 unlimited generation at a time") at ~20:52 and ~20:55 while S2S
+still held the slot (confirmed via tab_registry.py each time), cost nothing. Third click at
+20:56:59 ICT returned "Generation started" toast + asset count 727→728 (+1 exactly). Filing
+pending render completion — will file to All Scene/Fix-2/ as S2S-B-Fix1.MP4 per CEO's Fix-2
+ruling. Report: docs/reports/absence-wave-20260908-s2s-b-t3.md.
