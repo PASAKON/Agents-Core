@@ -126,6 +126,17 @@ Replace the ban with a positive statement of what occupies that place instead.
   are blocked, two instructions conflict. A long silence while you work is correct and
   expected — the CTO watches your process directly and learns you died faster than you
   could tell it.
+- NEVER PUT alert(), confirm() OR prompt() IN A JS SNIPPET — not even in your own
+  throwaway test (HARD, 2026-09-08 07:05, after it happened). A JS modal blocks the
+  extension for that tab and there is no extension call that can dismiss it. Use
+  console.log and read it back with read_console_messages.
+  RECOVERY, and it does NOT need a human: the modal blocks that ONE tab, not the
+  browser — every other tab still answers, which is why the frozen tab's title is
+  still readable. Close the frozen tab with tabs_close addressed BY TAB ID (never by
+  clicking into it, never with computer-use); Chrome discards a pending dialog when
+  the tab closes. Release the registry claim, claim ONE fresh tab, rebuild the
+  composer. Only if tabs_close itself errors do you stop and report. Nothing is lost
+  as long as no Generate click was made.
 - NEVER quit or restart Chrome (HARD, 2026-09-07): the window is shared with the other operators; a frozen tab → close your own tabs, one fresh tab, else STOP and report. The render lives server-side and survives your tab.
 - claude-in-chrome ONLY. NEVER call computer-use (screenshot/click/type/clipboard) or ask
   for Finder / clipboardWrite: the permission dialog it raises blocks the whole pane
