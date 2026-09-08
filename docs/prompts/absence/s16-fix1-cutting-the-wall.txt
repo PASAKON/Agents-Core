@@ -31,6 +31,12 @@ register: the plate shows navy overalls and every older prompt was wrong).
 every scene; the location is @project_absence_loc_hall_big_d and nothing else; the
 electric saw is prose because there is no saw plate.
 
+⚠️ TAKE 2 (2026-09-09): the tool is now an ANGLE GRINDER with a flat disc — take 1
+rendered a CHAINSAW from "electric wall saw with a round toothed blade". The
+short heavy guard got his own position half a step in front of the tall one —
+take 1 merged the two navy guards into one body. Item 8 (mark darkness) is
+information only at this framing. Lane: FREE (Unlimited, 8s).
+
 Previz: NONE.
 
 === END NOTES ===
@@ -97,9 +103,11 @@ REFERENCES — each with a job:
 
 THE THREE BODYGUARDS STAND AT THE LEFT EDGE OF FRAME, and there are THREE BODIES
 there, not four and not five — count them along the wall from the left edge
-inwards: FIRST the tall thin navy guard, SECOND the short heavy navy guard with
-his shoulder against the first, THIRD Carrington's man in black with the white
-gloves against the second, and then NOBODY ELSE in uniform, only guests. Two navy
+inwards: FIRST the tall thin navy guard, SECOND the short heavy navy guard, a
+full head shorter and twice as wide, standing half a step IN FRONT of the tall one
+so that BOTH navy tunics and BOTH gold V's are seen whole, side by side, neither
+hiding the other, THIRD Carrington's man in black with the white gloves beside the
+second, and then NOBODY ELSE in uniform, only guests. Two navy
 uniforms and one black suit, in that order. There are exactly two navy uniforms in
 this entire film and both of them are the two named above. The RIGHT side of frame
 belongs to the guests — Madame Thibault in her green leather gown, the registrar
@@ -110,16 +118,20 @@ street clothes — overcoats, jackets, cardigans, jeans, a scarf or two — and 
 gold V on any of them. Each of the six is a different person with their own face,
 own hair and own clothes. With them the room holds TWENTY-ONE people in total.
 
-THE ELECTRIC SAW (no picture — describe it, do not look for one): a hand-held
-electric wall saw with a round toothed blade and a moulded grip, cutting through
-plaster and leaving a clean kerf. It is a plain, ordinary, workmanlike tool.
+THE CUTTING TOOL (no picture — describe it, do not look for one): a hand-held
+ANGLE GRINDER — a short grey motor body gripped in both hands, and at its front a
+FLAT ROUND STEEL DISC as wide as a man's spread hand, spinning inside a
+half-moon guard, its rim biting into the plaster and throwing a low fan of sparks and white
+dust, leaving a clean kerf. A flat spinning disc is the only blade in the picture:
+the tool has no bar, no chain, no orange body and no top handle. It is a plain,
+ordinary, workmanlike tool.
 
 THE FRAME, unchanging for eight seconds: a locked symmetrical wide of the hall.
 A SQUARE LINE HAS BEEN RULED AROUND THE CRACK on the hero wall and sits dead
 centre in the picture, the brass plaque inside it, the small black crack inside it.
 
 ONE MAN IS CUTTING AND ONLY ONE. THE CONTRACTOR in his NAVY overalls stands at the
-wall alone, holding the electric saw in both hands, running its blade along the
+wall alone, holding the angle grinder in both hands, running its spinning disc along the
 ruled square line. He is the only person in the entire frame touching the wall and
 the only person holding a tool. Nobody assists him, nobody stands beside him at
 the wall, and nobody else is cutting.
@@ -135,18 +147,18 @@ watching the same rectangle of plaster.
 DUPE stands apart from all of it at the edge of frame, holding his mop, not
 helping, not asked to help.
 
-THE PRESS film the saw from the edge. The three bodyguards keep a respectful
+THE PRESS film the grinder from the edge. The three bodyguards keep a respectful
 distance from the work. PLASTER DUST HANGS IN THE WARM ORANGE LIGHT and drifts
 slowly across the picture.
 
-[0s-5s] The saw runs along the ruled line. The cut edge behind it is clean —
+[0s-5s] The grinder's disc runs along the ruled line. The cut edge behind it is clean —
 timber, dust and the ordinary guts of a building visible inside the kerf. Nothing
-in the picture moves except the saw, the dust, and the contractor's arms.
+in the picture moves except the grinder, its sparks, the dust, and the contractor's arms.
 
-[5s-8s] THE SAW STOPS. Hold the final frame in the new silence: the room, the
+[5s-8s] THE GRINDER STOPS. Hold the final frame in the new silence: the room, the
 square cut, the still silhouette, the dust still hanging. Cut.
 
-AUDIO: the electric saw, plaster dust, room tone, then the silence after the motor
+AUDIO: the high whine of the angle grinder, plaster dust, room tone, then the silence after the motor
 stops. No music. NO DIALOGUE — nobody speaks in this clip.
 NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro
 sting or riser, and simply stops with no tail, swell or fade.
@@ -157,7 +169,7 @@ whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no
 fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of
 the character's state, no speaking anything outside the quotation marks; no crowd
 beyond twenty-one people; no dialogue, no second man cutting, no
-assistant at the wall, no hand saw, no long-bladed saw, no crane, no forklift, no
+assistant at the wall, no hand saw, no long-bladed saw, no chainsaw, no chain bar, no crane, no forklift, no
 hard hat, no hi-vis vest, no scaffolding, no ladder, no demolition, no collapse,
 no danger, no rubble beyond fine plaster dust, no Valder's face, no anyone
 walking, no anyone looking at the camera, no cut of any kind, no camera move of
@@ -187,7 +199,9 @@ murky colour grade, no ultramarine walls, no blue walls, no wooden floor.
 REVIEW ORDER:
 1. ONE MAN CUTS. Count the people touching the wall — expect exactly one, the
    contractor in navy. A second cutter is the defect this rewrite exists to fix.
-2. IT IS AN ELECTRIC SAW, round blade and motor, not a long hand saw.
+2. IT IS AN ANGLE GRINDER: a flat round spinning DISC on a short motor body. A
+   chainsaw (long bar, chain, orange body, top handle) is the take-1 defect and
+   fails this item; so does a long hand saw.
 3. VALDER'S BACK IS TO CAMERA and his face is never seen.
 4. THE GRANDMOTHER IS IN FRAME to one side, watching. She is the buyer; without
    her the shot loses its point.
@@ -208,7 +222,9 @@ REVIEW ORDER:
 7. COUNT THE PEOPLE. Expect twenty-one. COUNT THE NAVY UNIFORMS: exactly two,
    plus the contractor's navy overalls, which are not a uniform.
 8. THE MARK is inside the ruled square: measure it against canon rule 8 and give
-   the three numbers.
+   the three numbers. INFORMATION, NOT A GATE at this framing (AB-LEDGER
+   2026-09-08): a mark under ~1% of frame width cannot pass threshold 80 whatever
+   the prose says. Report the numbers; the framing choice is the CEO's.
 File the take whatever the verdict, named for its scene only — never a verdict in
 the filename. If a take already filed under that name passed a criterion yours
 fails, do not upload over it; report the comparison instead.
