@@ -228,3 +228,30 @@ than two frames deep inside the same uncut span; everyone's head orientation
 is static throughout. Item 7 (twelve people) uncertain, needs a full-res
 human look. Filed to Drive All Scene/Fix-1/S2R-JC-Fix1.MP4 regardless. Full
 report: docs/reports/absence-wave-20260907-s2r-jc-t2.md.
+
+2026-09-08 TAKE 3 (browser_operator, task-311a4111): fired 00:29:02Z (07:29
+ICT), 13/13 chips, previz ATTACHED (fresh upload of docs/S2R-Render.MP4,
+byte-verified 4528874B against the same take-2 source file). Rendered clean,
+no rejection, no NSFW/rights banner, ~29-37 min. FLAGGED, same defect as take
+2: 0/12 watchers changed head direction across the 3s cut (frames 2.9s vs
+3.1s) and 0/12 across the 9s cut (8.9s vs 9.1s) — every head orientation
+static across both jump cuts. 15s cut (14.9s vs 15.1s) correctly shows no
+change (the one cut where that's right), but that's true here only because
+NOTHING changes anywhere in the clip. Feet confirmed planted, nobody walks,
+across all 10 sampled frames (2.0-15.1s). Audio: 5 speech-adjacent bursts at
+roughly the right timestamps for the 5 bids, order not independently
+transcribed (no STT tool). NEW finding beyond take 2: item 7 (twelve people)
+does NOT pass — only 11 distinct figures visible; the registrar appears
+merged into Carrington (one foreground figure holds both Carrington's cane
+and a brown ledger that should be the registrar's). CTO ruling (same
+session): take 3 scores equal to take 2 on the failing head-swing criterion
+(0/12 both), so per the "worse take must not overwrite" rule extended to the
+equal case, take 3 is NOT uploaded to Drive — S2R-JC-Fix1.MP4 there remains
+take 2's file. Take 3's raw clip is kept locally only:
+~/Downloads/hf_20260908_002848_04a931eb-f286-489b-aa76-3438dcfb09fe.mp4
+(17,994,870 bytes, md5 225e8fbb7727272ebe716d034fd8bf8f, 1280x720/20.04s/
+24fps confirmed via ffprobe). Root cause per CTO: a hard jump cut cannot
+animate a head turn — take 4 moves the turn inside each shot (heads swing on
+screen during the shot, cuts stay as time-jumps between bids) and is being
+written now; do not re-fire this sheet as-is. Full report:
+docs/reports/absence-wave-20260908-s2r-jc-t3.md.
