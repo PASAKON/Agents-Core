@@ -215,6 +215,12 @@ Replace the ban with a positive statement of what occupies that place instead.
   the same fire would be 140, which is why a non-zero digit is always a STOP.
 - PROMPT: paste ONLY the block between "PASTE FROM HERE" and "PASTE STOPS
   HERE" with the base64 synthetic paste, then the End→space→Backspace tap so
+  NEVER HAND-TRANSCRIBE THE BASE64 (S15b t1, 2026-09-08, 25 minutes lost): an
+  ~12 KB base64 string retyped into a javascript_tool call corrupted a single
+  byte twice ("navy" → "njöy"). Compute the paste block's sha256 in Bash from
+  the sheet, split the base64 into length-verified chunks, assemble them in the
+  page, decode, and compare the hash BEFORE dispatching the ClipboardEvent. The
+  hash match is the gate; a length match is not.
   Lexical binds the chips (worked on S2L t6, S2K t2, S2M t4). Chip gate:
   `python3 scripts/prompt-lint.py --chips <sheet>` gives the unique names; the
   composer must show them lime:
