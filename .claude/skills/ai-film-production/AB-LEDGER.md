@@ -630,6 +630,41 @@ characters sharing one reference picture need two POSITIONS, not a count:
 tunics whole" gave each man his own place. Same family as the S15b "every
 person-chip gets a WHERE" entry.
 
+## S2R-JC THE BATTLE — take 3 → take 4 (2026-09-09, PARTIAL PASS, best of four)
+
+**Defects seen (takes 2 and 3):** the "heads swing" core beat scored 0/12 across
+every jump cut; take 3 also rendered ELEVEN people — the registrar merged into
+Carrington (one figure holding the cane AND the ledger).
+
+**Prompt A (474b653, take 3):** the head swing was written as a DIFFERENCE across
+a hard jump cut ("put a frame from 2s beside a frame from 4s and see the same
+twelve people with their heads pointing the opposite way"); the registrar was
+"@char_registrar, near left, writing".
+
+**Prompt B (f67e866 + d27064f, take 4):**
+> [6s] AND WE WATCH THEM ALL TURN BACK, right there in the shot: every head sweeps …
+> - @char_registrar, near left — a SEPARATE man from Carrington, standing two
+>   paces nearer the lens than him and a pace further left, on his own, writing
+> … HE IS NOT CARRINGTON AND HE DOES NOT STAND WITH HIM: a second, separate man,
+> two paces nearer the camera, no cane, no white hair swept back. The ledger and
+> the pen are his alone; Carrington's hands hold nothing but the cane.
+
+**What held (take 4, FREE lane, 00:55 → 01:35):** two separate men, ledger in
+the registrar's hands; five bids in order ("Ten million / Fifteen / Twenty
+million / Twenty-five / Fifty"), nothing else spoken; ~12 people; heads now
+MOVE on screen (registrar, critic, Carrington turn during the shot) — partial,
+not the full twelve-head sweep.
+
+**What did not hold:** the three "HARD JUMP CUT, same frame" beats rendered as
+NO cut at all (0.2s sweep: no spike above 15x; only raised runs at ~3/6/9.5/12.5s).
+
+**Lessons:** (1) a cut described as "same frame, the clock jumps" gives Seedance
+nothing to cut TO — it renders continuous motion; a cut needs a visible change
+of framing or subject. (2) Separating two characters is done with distance and
+ownership ("two paces nearer the lens … the ledger is his alone"), the same
+rule as S16's guards and S15b's workman. (3) Head turns rendered as motion only
+once they were written as motion inside the shot, never as a before/after.
+
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
 
 
