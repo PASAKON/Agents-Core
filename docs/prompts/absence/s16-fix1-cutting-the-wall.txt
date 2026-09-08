@@ -1,0 +1,202 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S16 · THEY SAW THE WALL OUT · 8s
+Rewritten from SCENE 16 on the CEO's order 2026-09-08. Two changes, and only
+two: the script had TWO workmen mirroring each other and a long-bladed HAND saw;
+the CEO wants ONE contractor doing the cutting, with an ELECTRIC saw. Everything
+else about the shot is kept exactly as written — the locked symmetrical wide,
+Valder centred in the foreground with his back to camera, the grandmother parked
+to one side watching her wall being cut free, the press filming, the guards at a
+distance, Dupe apart holding his mop and not helping.
+Also updated: the room now holds twenty-one people (CEO 2026-09-08), where the old
+script capped it at ten; the press is the four-person chip, not the retired
+press_a/press_b pair; the location is loc_hall_big_d, not loc_hall_big_e.
+There is no saw plate — the electric saw is prose, on the CEO's instruction.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+💚 UNLIMITED (FREE) unless the CEO says credits. Spec: 8s / 720p / 16:9 /
+Seedance 2.5 / High / 1/4 / Sound ON, Unlimited ON, zoom the button and confirm
+ZERO digits. ⚠️ The duration slider defaults to 5s silently — set 8s and read it
+back, then re-check Unlimited because changing the duration resets it.
+
+⚠️ 12 CHIPS. The six members of the public are PROSE, never a chip:
+project_valder_char_villagers_poor (written here without the @ so it does not
+inflate the count) carries the protected-content warning triangle, and with it
+bound Higgsfield REFUSES the Generate click outright — no charge, no card.
+
+⚠️ THE CONTRACTOR WEARS NAVY, not slate-blue (CEO 2026-09-08, from the Element
+register: the plate shows navy overalls and every older prompt was wrong).
+
+⚠️ CEO 2026-09-08, applied to this whole run: the room holds TWENTY-ONE people in
+every scene; the location is @project_absence_loc_hall_big_d and nothing else; the
+electric saw is prose because there is no saw plate.
+
+Previz: NONE.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+8s · 720p · 16:9 · ONE LOCKED SYMMETRICAL WIDE. The camera never moves, never
+pans, never tilts, never zooms, and there are NO CUTS for the whole eight seconds.
+NO DIALOGUE. Sound On · High.
+
+REFERENCES — each with a job:
+@project_absence_loc_hall_big_d — THE HALL, and the only location reference:
+  warm cream walls, orange cove light washing the ceiling, polished terracotta
+  terrazzo underfoot, tall chromium trumpet columns in matched pairs down both
+  sides, white plinths and the collection along both walls, the brass plaque on
+  the hero wall on the axis. It is a four-panel sheet — take NOTHING of its
+  arrangement or layout, and never reproduce a grid.
+  THE MARK ABOVE THE PLAQUE IS A CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK:
+  one short thick black line about as wide as a man's hand, with three or four
+  shorter thick black lines breaking off it, every line solid and heavy like ink
+  and dark for its whole length, ending where it ends. It is masonry damage —
+  thick, black, angular, flat against the wall and part of the plaster.
+@project_absence_char_workman — THE CONTRACTOR: NAVY overalls, a rag over one
+  shoulder, a float in one hand and a bucket of wet plaster in the other. The
+  overalls are DARK NAVY BLUE, the colour of his reference picture, deep and close
+  to black in shadow.
+@project_absence_char_valder — VALDER: a blazer panelled in flat blocks of
+  magenta, yellow, green, blue and red, a red waistcoat, a long mustard-yellow
+  scarf, purple trousers, small round tinted sunglasses, two different shoes.
+@project_absence_char_cleaner_c — DUPE: white uniform, orange trim, gold V, cap,
+  moustache, mop in hand.
+@prop_cart_b — his cart at the edge, painting face-out.
+@project_absence_char_grandmother — THE BUYER: very old, small, in a powered
+  wheelchair, grey knitted headscarf and layered knits.
+@project_absence_char_registrar_b — THE REGISTRAR: a formal BLACK suit, white
+  gloves, a GOLD V, the leather ledger. THERE IS EXACTLY ONE REGISTRAR — one man,
+  and he is the only person in the entire frame wearing a black suit with white
+  gloves and a gold V.
+@gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
+  stand-collar suit, white shoes, a black cane with a gold lion head, two gold
+  front teeth.
+@project_absence_char_woman_c — MADAME THIBAULT: elderly, tall and rail-straight,
+  a floor-length gown of glossy mid-green leather panelled in chevron leaf-vein
+  seams, sharply pointed shoulder caps, a tall standing collar to the jaw, long
+  green leather opera gloves, a towering pompadour streaked blue, green and
+  silver-white, black cat-eye sunglasses.
+@project_valder_char_press — THE PRESS, FOUR of them: news crews with shoulder
+  cameras, a boom microphone, a stills photographer, filming everything.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V on the chest, black belts with gold
+  buckles, navy trousers, navy peaked caps, black shoes. One tall and thin, the
+  other short and heavy. This one picture is both of them.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: a very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves on both hands, an
+  all-black suit with a black shirt and black tie. No weapon, no earpiece, no
+  holster, no gold V. He never speaks.
+
+THE THREE BODYGUARDS STAND AT THE LEFT EDGE OF FRAME, and there are THREE BODIES
+there, not four and not five — count them along the wall from the left edge
+inwards: FIRST the tall thin navy guard, SECOND the short heavy navy guard with
+his shoulder against the first, THIRD Carrington's man in black with the white
+gloves against the second, and then NOBODY ELSE in uniform, only guests. Two navy
+uniforms and one black suit, in that order. There are exactly two navy uniforms in
+this entire film and both of them are the two named above. The RIGHT side of frame
+belongs to the guests — Madame Thibault in her green leather gown, the registrar
+in his black suit and white gloves, and the visitors in their overcoats.
+SIX ORDINARY PEOPLE (no picture — describe them, do not look for one): six
+members of the public standing among the guests in the rows, in ordinary modern
+street clothes — overcoats, jackets, cardigans, jeans, a scarf or two — and no
+gold V on any of them. Each of the six is a different person with their own face,
+own hair and own clothes. With them the room holds TWENTY-ONE people in total.
+
+THE ELECTRIC SAW (no picture — describe it, do not look for one): a hand-held
+electric wall saw with a round toothed blade and a moulded grip, cutting through
+plaster and leaving a clean kerf. It is a plain, ordinary, workmanlike tool.
+
+THE FRAME, unchanging for eight seconds: a locked symmetrical wide of the hall.
+A SQUARE LINE HAS BEEN RULED AROUND THE CRACK on the hero wall and sits dead
+centre in the picture, the brass plaque inside it, the small black crack inside it.
+
+ONE MAN IS CUTTING AND ONLY ONE. THE CONTRACTOR in his NAVY overalls stands at the
+wall alone, holding the electric saw in both hands, running its blade along the
+ruled square line. He is the only person in the entire frame touching the wall and
+the only person holding a tool. Nobody assists him, nobody stands beside him at
+the wall, and nobody else is cutting.
+
+VALDER stands CENTRED IN THE FOREGROUND WITH HIS BACK TO CAMERA, perfectly
+straight, hands at his sides, a still dark silhouette against the bright wall,
+watching his wall become cargo. His face is never seen in this clip.
+
+THE GRANDMOTHER is parked to ONE SIDE in her wheelchair, small and perfectly
+still, watching the same cut — the buyer and the seller in one frame, both silent,
+watching the same rectangle of plaster.
+
+DUPE stands apart from all of it at the edge of frame, holding his mop, not
+helping, not asked to help.
+
+THE PRESS film the saw from the edge. The three bodyguards keep a respectful
+distance from the work. PLASTER DUST HANGS IN THE WARM ORANGE LIGHT and drifts
+slowly across the picture.
+
+[0s-5s] The saw runs along the ruled line. The cut edge behind it is clean —
+timber, dust and the ordinary guts of a building visible inside the kerf. Nothing
+in the picture moves except the saw, the dust, and the contractor's arms.
+
+[5s-8s] THE SAW STOPS. Hold the final frame in the new silence: the room, the
+square cut, the still silhouette, the dust still hanging. Cut.
+
+AUDIO: the electric saw, plaster dust, room tone, then the silence after the motor
+stops. No music. NO DIALOGUE — nobody speaks in this clip.
+NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no intro
+sting or riser, and simply stops with no tail, swell or fade.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and
+clothing, and no face is repeated anywhere; no opening sound, no intro sting, no
+whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no
+fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of
+the character's state, no speaking anything outside the quotation marks; no crowd
+beyond twenty-one people; no dialogue, no second man cutting, no
+assistant at the wall, no hand saw, no long-bladed saw, no crane, no forklift, no
+hard hat, no hi-vis vest, no scaffolding, no ladder, no demolition, no collapse,
+no danger, no rubble beyond fine plaster dust, no Valder's face, no anyone
+walking, no anyone looking at the camera, no cut of any kind, no camera move of
+any kind; no spiderweb, no fine radiating fractures, no tapering spikes, no curling
+tendril, no pale, grey, brown or tan mark, no glowing mark, no second mark, no
+painting on the hero wall.
+
+House negatives: no extra dialogue, no invented lines, no improvised speech, no
+voiceover, no narration, no subtitles, no captions, no on-screen text, no readable
+text anywhere except the brass plaque, no wall labels, no signage, no timecode, no
+watermark, no logos of real brands, no music, no score, no laugh track, no comedy
+sting, no gold V on any visitor, no duplicate characters, no twins, no repeated
+faces, no cloned people, no anyone looking at the camera, no smiling to camera, no
+winking, no knowing looks to camera, no comic expressions, no smartphones, no
+screens, no LEDs, no digital displays, no modern technology, no dissolve, no
+crossfade, no fade to black, no wipe, no morph, no slow motion, no speed ramp, no
+camera shake, no handheld wobble, no dutch angle, no tilted horizon, no whip pan,
+no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls,
+no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed
+faces, no beauty filter, no dirt, no grime, no grey skin, no waxy skin, no horror
+imagery, no rain, no fog, no night, no darkness, no dim moody lighting, no brown
+murky colour grade, no ultramarine walls, no blue walls, no wooden floor.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. ONE MAN CUTS. Count the people touching the wall — expect exactly one, the
+   contractor in navy. A second cutter is the defect this rewrite exists to fix.
+2. IT IS AN ELECTRIC SAW, round blade and motor, not a long hand saw.
+3. VALDER'S BACK IS TO CAMERA and his face is never seen.
+4. THE GRANDMOTHER IS IN FRAME to one side, watching. She is the buyer; without
+   her the shot loses its point.
+5. DUPE IS APART, holding his mop, not helping.
+6. THE CAMERA NEVER MOVES AND THERE ARE NO CUTS. Measure it: extract the first
+   and last frames and give the mean absolute difference and the max. Anything
+   beyond film grain means the camera moved.
+7. COUNT THE PEOPLE. Expect twenty-one. COUNT THE NAVY UNIFORMS: exactly two,
+   plus the contractor's navy overalls, which are not a uniform.
+8. THE MARK is inside the ruled square: measure it against canon rule 8 and give
+   the three numbers.
+File the take whatever the verdict, named for its scene only — never a verdict in
+the filename. If a take already filed under that name passed a criterion yours
+fails, do not upload over it; report the comparison instead.
+
+TAKE LOG:
+(none yet)
+
+=== END NOTES ===
