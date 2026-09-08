@@ -1,0 +1,212 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S14 · THE PLASTERER AND THE SCREAM · 20s · ONE SCENE, replaces S14a + S14b
+CEO 2026-09-08, second brief, in his own words: the plasterer walks in while
+NOBODY is looking at the wall any more; ONLY VALDER sees him doing something —
+the float about to sweep onto the wall — and then Valder's voice stops him, and
+Valder looks angry the same way as before. He asked for 20s if it could be done,
+so it is one continuous scene instead of the 8s pair.
+
+⚠️ WHY THIS REPLACES THE PAIR. S14a and S14b were shot as two 8s clips and both
+landed usable, but the CEO's second brief changes the story on one point: it is
+not that nobody notices, it is that ONLY VALDER notices. That single change is
+what makes the scream his and only his, and it reads better in one unbroken take
+than across a cut. S14a/S14b stay on Drive as the fallback if this take fails.
+
+⚠️ VALDER HAS NO GOLD TEETH — CEO 2026-09-08. Take 1 of S14b rendered gold-
+coloured upper front teeth on Valder during the scream. The cause was in this
+sheet: Carrington's description carried "two gold front teeth", and with both men
+chipped in the same block that attribute bled onto the man whose mouth was open.
+Carrington is background in this scene and his teeth are never seen, so the words
+are gone. Do not re-add them, and do not add a line saying Valder's teeth are
+ordinary — naming a banned thing is what puts it on screen.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+💚 UNLIMITED (FREE) unless the CEO says credits. Spec: 20s / 720p / 16:9 /
+Seedance 2.5 / High / 1/4 / Sound ON, Unlimited ON, zoom the button and confirm
+ZERO digits. ⚠️ The duration slider defaults to 5s silently — set 20s and read it
+back, then RE-CHECK Unlimited because changing the duration resets it.
+
+⚠️ 12 CHIPS. The six members of the public are PROSE, never a chip:
+project_valder_char_villagers_poor carries the protected-content warning triangle
+and with it bound Higgsfield REFUSES the Generate click outright.
+
+⚠️ THE ROOM RENDERS SMALLER THAN THE SHEET ASKS. S14a and S14b both came back with
+10-14 people against twenty-one, and the six prose-only public did not appear at
+all — the org's own "1 REF / 1 person" rule. That is a known tool limit awaiting
+the CEO's decision, NOT a reason to re-fire this clip.
+
+Previz: NONE.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE CONTINUOUS LOCKED SHOT for the first seventeen seconds,
+then ONE fast snap zoom named at the end. No cuts. No pan, no tilt, no handheld,
+no drift. Sound On · High.
+
+REFERENCES — each with a job:
+@project_absence_loc_hall_big_d — THE HALL, and the only location reference:
+  warm cream walls, orange cove light washing the ceiling, polished terracotta
+  terrazzo underfoot, tall chromium trumpet columns in matched pairs down both
+  sides, white plinths and the collection along both walls, the brass plaque on
+  the hero wall on the axis. It is a four-panel sheet — take NOTHING of its
+  arrangement or layout, and never reproduce a grid.
+  THE MARK ABOVE THE PLAQUE IS A CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK:
+  one short thick black line about as wide as a man's hand, with three or four
+  shorter thick black lines breaking off it, every line solid and heavy like ink
+  and dark for its whole length, ending where it ends. It is masonry damage —
+  thick, black, angular, flat against the wall and part of the plaster.
+@project_absence_char_workman — THE CONTRACTOR: NAVY overalls, a rag over one
+  shoulder, a float in one hand and a bucket of wet plaster in the other. The
+  overalls are DARK NAVY BLUE, the colour of his reference picture, deep and close
+  to black in shadow.
+@project_absence_char_valder — VALDER: a blazer panelled in flat blocks of
+  magenta, yellow, green, blue and red, a red waistcoat, a long mustard-yellow
+  scarf, purple trousers, small round tinted sunglasses, two different shoes.
+@project_absence_char_cleaner_c — DUPE: white uniform, orange trim, gold V, cap,
+  moustache, mop in hand.
+@prop_cart_b — his cart at the edge, painting face-out.
+@project_absence_char_grandmother — THE BUYER: very old, small, in a powered
+  wheelchair, grey knitted headscarf and layered knits.
+@project_absence_char_registrar_b — THE REGISTRAR: a formal BLACK suit, white
+  gloves, a GOLD V, the leather ledger. THERE IS EXACTLY ONE REGISTRAR — one man,
+  and he is the only person in the entire frame wearing a black suit with white
+  gloves and a gold V.
+@gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
+  stand-collar suit, white shoes, a black cane with a gold lion head. He is at the
+  back of the room here and his mouth is closed throughout.
+@project_absence_char_woman_c — MADAME THIBAULT: elderly, tall and rail-straight,
+  a floor-length gown of glossy mid-green leather panelled in chevron leaf-vein
+  seams, sharply pointed shoulder caps, a tall standing collar to the jaw, long
+  green leather opera gloves, a towering pompadour streaked blue, green and
+  silver-white, black cat-eye sunglasses.
+@project_valder_char_press — THE PRESS, FOUR of them: news crews with shoulder
+  cameras, a boom microphone, a stills photographer, filming everything.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V on the chest, black belts with gold
+  buckles, navy trousers, navy peaked caps, black shoes. One tall and thin, the
+  other short and heavy. This one picture is both of them.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: a very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves on both hands, an
+  all-black suit with a black shirt and black tie. No weapon, no earpiece, no
+  holster, no gold V. He never speaks.
+
+THE THREE BODYGUARDS STAND AT THE LEFT EDGE OF FRAME, and there are THREE BODIES
+there, not four and not five — count them along the wall from the left edge
+inwards: FIRST the tall thin navy guard, SECOND the short heavy navy guard with
+his shoulder against the first, THIRD Carrington's man in black with the white
+gloves against the second, and then NOBODY ELSE in uniform, only guests. Two navy
+uniforms and one black suit, in that order. There are exactly two navy uniforms in
+this entire film and both of them are the two named above. The RIGHT side of frame
+belongs to the guests — Madame Thibault in her green leather gown, the registrar
+in his black suit and white gloves, and the visitors in their overcoats.
+SIX ORDINARY PEOPLE (no picture — describe them, do not look for one): six
+members of the public standing among the guests in the rows, in ordinary modern
+street clothes — overcoats, jackets, cardigans, jeans, a scarf or two — and no
+gold V on any of them. Each of the six is a different person with their own face,
+own hair and own clothes. With them the room holds TWENTY-ONE people in total.
+
+[0s] Locked wide down the hall. The room is standing in the quiet AFTER an
+auction — the guests in their rows, the press with their cameras lowered, the old
+woman parked in her wheelchair, Dupe far off at the edge with his cart and mop.
+THE WALL IS OVER, as far as this room is concerned: not one face is turned to it.
+People are looking at each other, at the floor, at nothing.
+
+[3s] THE PLASTERER WALKS IN from the side of frame and crosses towards the wall,
+unhurried, a workman arriving for a small job: navy overalls, a rag over one
+shoulder, a bucket of wet plaster in one hand and a float in the other. Nobody
+turns. Nobody registers him at all.
+
+[7s] HE SETS THE BUCKET DOWN, dips the float, and LOADS IT WITH WET GREY PLASTER.
+Still nobody has looked.
+
+[10s] ONE MAN IN THE ROOM IS WATCHING HIM, AND ONLY ONE. VALDER has turned his
+head and is looking straight at the plasterer. Nobody else has. He is the only
+person in this room facing that wall, and we can see that he is the only one.
+
+[13s] THE PLASTERER RAISES THE LOADED FLOAT AND STARTS TO SWEEP IT TOWARDS THE
+CRACK — the stroke has begun, the float is moving, the plaster is about to go on.
+
+[15s] VALDER SCREAMS AT THE TOP OF HIS VOICE and the warm smile is gone, the only
+time in the whole film his face is not amused: "STOP! You are destroying a
+hundred million dollar artwork!" His mouth opens wide on it and his teeth are
+ordinary, plain and unremarkable.
+
+[17s] THE PLASTERER STOPS DEAD, the float frozen a hand's width from the wall,
+never touching it — and THE WET PLASTER DROPS OFF THE FLOAT AND SLAPS THE
+TERRAZZO FLOOR. ONE FAST SNAP ZOOM straight down to the splat of grey plaster on
+the polished terracotta, and hold it. The loudest sound in this film is a man
+shouting about art; its punchline is wet plaster on stone. Cut.
+
+AUDIO: room tone and low unintelligible conversation for the first fifteen
+seconds, then the scream, then the wet slap of plaster on stone, then ringing
+silence. No music. NO SOUND AT THE START OR THE END: the clip opens mid room-tone
+with no intro sting or riser, and simply stops with no tail, swell or fade.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair and
+clothing, and no face is repeated anywhere; no opening sound, no intro sting, no
+whoosh, no riser, no closing sound, no outro, no final chord, no audio tail, no
+fade-in or fade-out on the sound; no stage directions spoken aloud, no narration of
+the character's state, no speaking anything outside the quotation marks; no crowd
+beyond twenty-one people; no dialogue beyond Valder's one line; no second person
+turning to watch the plasterer before Valder does; no plaster touching the wall, no
+plaster covering the crack, no repair completed; no plasterer falling, no violence,
+no guards grabbing anyone, no Valder smiling in this clip; no anyone looking at the
+camera; no cut of any kind, no second angle; no zoom other than the one snap zoom
+named above; no spiderweb, no fine radiating fractures, no tapering spikes, no
+curling tendril, no pale, grey, brown or tan mark, no glowing mark, no second mark,
+no painting on the hero wall.
+
+House negatives: no extra dialogue, no invented lines, no improvised speech, no
+voiceover, no narration, no subtitles, no captions, no on-screen text, no readable
+text anywhere except the brass plaque, no wall labels, no signage, no timecode, no
+watermark, no logos of real brands, no music, no score, no laugh track, no comedy
+sting, no gold V on any visitor, no duplicate characters, no twins, no repeated
+faces, no cloned people, no anyone looking at the camera, no smiling to camera, no
+winking, no knowing looks to camera, no comic expressions, no smartphones, no
+screens, no LEDs, no digital displays, no modern technology, no dissolve, no
+crossfade, no fade to black, no wipe, no morph, no slow motion, no speed ramp, no
+camera shake, no handheld wobble, no dutch angle, no tilted horizon, no whip pan,
+no crane move, no drone shot, no lens flare, no anamorphic streak, no bokeh balls,
+no HDR, no digital gloss, no CGI sheen, no plastic skin, no smooth airbrushed
+faces, no beauty filter, no dirt, no grime, no grey skin, no waxy skin, no horror
+imagery, no rain, no fog, no night, no darkness, no dim moody lighting, no brown
+murky colour grade, no ultramarine walls, no blue walls, no wooden floor.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. ONLY VALDER LOOKS. Between 10s and 15s, count the faces turned towards the
+   plasterer. It must be exactly ONE, and it must be Valder. If two or more of
+   the room have turned, the scene's point is gone — re-fire. This is the item
+   the CEO changed the scene for, so check it first.
+2. NOBODY LOOKS BEFORE HE DOES. In the first ten seconds no face is turned to
+   the wall or to the plasterer.
+3. THE SMILE IS GONE at 15s, and VALDER'S TEETH ARE NOT GOLD. Zoom his mouth on
+   an open-mouth frame and say what colour the teeth are. Gold or brass-coloured
+   teeth on Valder is the defect this rewrite exists to remove — S14b take 1 had
+   them and they belong to Carrington.
+4. THE FLOAT STOPS SHORT AND NEVER TOUCHES THE WALL, and the plaster falls to
+   the floor. The snap zoom lands on the splat.
+5. THE STROKE HAD ALREADY BEGUN at 13s — he is mid-sweep when the voice stops
+   him, not merely standing there holding the float.
+6. NO CUTS AT ALL. Sweep the clip at 0.2s steps, take the median frame-to-frame
+   greyscale difference, and report any step above roughly three times the
+   median. The snap zoom at ~17s will show as a short cluster of high steps and
+   that is expected; anything else is a cut that should not be there.
+7. THE MARK against canon rule 8, measured on a frame where nothing occludes it,
+   and say which frame and crop: dark at threshold 80, bounding box under about
+   8% of frame width, fill ratio 0.10 or above. The mark is not deterministic
+   from the prompt — report what you measure and change nothing.
+8. COUNT THE PEOPLE, THE NAVY UNIFORMS (expect exactly 2, plus the plasterer's
+   navy overalls which are not a uniform) and THE REGISTRARS (expect 1).
+File the take whatever the verdict, as S14-Plasterer-Fix1.MP4 — scene name only,
+never a verdict in the filename.
+
+TAKE LOG:
+(none yet)
+
+=== END NOTES ===
