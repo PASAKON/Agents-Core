@@ -510,9 +510,7 @@ LESSON: do not re-edit the colour sentence on a wide shot — it is already corr
 
 ---
 
-## PENDING — Prompt A quoted now, Prompt B on the day the take passes
-
-### S15b · a bound character with no assigned position takes the most salient slot · take 2 FLAGGED 2026-09-08 20:20
+### S15b · a bound character with no assigned position takes the most salient slot · take 2 FLAGGED → take 3 PASSED 2026-09-08 22:40
 DEFECT SEEN: Dupe never rendered. The workman — bound as a chip, described with a
   float and a bucket, given NO place to stand — occupied Dupe's centre position
   at the wall for all 20 seconds, and the grandmother turned at 12s and paid a
@@ -533,7 +531,14 @@ HYPOTHESIS: two men, one slot, and the man holding the tools looked more like "t
   ledger bleed and the gold teeth: an attribute or a place with no named owner
   goes to whoever is nearest. Fix by naming who owns the slot and where the other
   man is instead — not by dropping the workman, who is in the room in the script.
-VERDICT: awaiting take 3.
+RESULT (take 3, 0c2799f, free lane, ~60 min): Dupe at the wall dead centre at 0.5s and
+  12s; the workman far left beside the guards, bucket on the floor; the grey-knit
+  grandmother turns at 12s to DUPE; registrar cream-white writing at 18s; twelve
+  words; no cuts. Only Valder is out of frame at 18s. PASS — supersedes take 2.
+WHY B HELD: both men were given a place, and the place was tied to the wardrobe the
+  model can see. Naming who owns the slot beats describing the slot.
+LESSON: a bound character with props and no position will take the most salient
+  slot in the frame. Every chip that is a person gets a WHERE, not only a WHAT.
 
 
 Only entries whose take has NOT yet been fired or judged belong under this
@@ -541,6 +546,10 @@ header. Ten finished entries had drifted below it because new material was
 appended to the end of the file, which made the section read as though the
 crack, the van and the copyright gate were still open questions. Moved back
 up on 2026-09-08; append new PASSED entries ABOVE this header from now on.
+
+---
+
+## PENDING — Prompt A quoted now, Prompt B on the day the take passes
 
 
 ### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
