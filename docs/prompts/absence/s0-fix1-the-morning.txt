@@ -1,0 +1,126 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S0 · THE MORNING · 20s · FOUR SHOTS, THREE JUMP CUTS · CEO 2026-09-09 01:00
+
+The film's very first scene, BEFORE the painting falls. CEO's brief, verbatim:
+"อยากได้ฉาก Dupe ทำความสะอาด แบบ JumpCut ใช้ฉากนี้ได้เลย (loc_hall_big_e) ทำความสะอาด
+ยิ้มแย้ม ฉากนี้เกิดก่อนฉากที่ทำรูปตก — ฉากนี้ไม่ต้องเห็นรูปนะ เห็นแค่ห้อง โถง + ประตู
+เป็นฉากที่ Dupe เปิดประตูเข้ามา เริ่มปัด เริ่มกวาด ทำเสียงฮืมๆ ในลำคอเหมือนกำลังร้อง
+ทำนองเพลง ยิ้มแย้ม มีความสุขกับสิ่งที่ทำ". Select answer (01:05): ONE clip, 20s,
+FOUR jump cuts (door → dust → sweep → column), humming throughout, no words.
+
+WHY: the film opens on a man who loves a job nobody watches. Everything that
+follows takes that away from him. The old S1 was silent; this version HUMS.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+FREE lane (Unlimited ON). Spec: 20s / 720p / 16:9 / Seedance 2.5 / High / 1/4 /
+Sound ON. Zoom the button: ZERO digits. Click ONCE. No previz.
+
+⚠️ 3 CHIPS: Dupe, the hall (loc_hall_big_e, bare id), the cart BEFORE the fall
+(prop_cart_a, rack EMPTY). No painting is handled, dusted or seen close in this
+scene — he dusts a plinth and a vitrine, never a picture. Nobody else exists.
+
+⚠️ THE HUMMING IS WANTED. Every other sheet bans humming; this one asks for it.
+Wordless, in the throat, a private tune. It is NOT music: no instruments, no
+score. Do not "fix" it against the house negatives.
+
+REVIEW ORDER:
+1. THREE HARD CUTS at ~5s, ~10s, ~15s and NO others: 0.2s sweep, full-frame
+   consecutive-frame greyscale mean-abs-diff, median + every step above ~3x;
+   expect exactly three isolated spikes >15x. Inside each shot the camera is
+   LOCKED: diff a crop the action never touches (ceiling corner) per shot.
+2. SHOT 1 IS THE DOOR: the far RED double doors open and Dupe comes through
+   with his cart. The hall is empty before he enters.
+3. HE HUMS: transcribe with faster-whisper — expect NO words at all (an empty
+   or nonsense transcript); RMS envelope shows a voiced, oscillating hum plus
+   work sounds, not a flat music bed and not silence.
+4. HE SMILES in every shot — a small contented smile, never a grin at the lens.
+5. ONE DUPE (cap, curled moustache, white uniform with orange trim, gold V),
+   nobody else in any frame, no visitor, no staff.
+6. NO PAINTING is touched or centred: he dusts a plinth/vitrine, sweeps the
+   floor, polishes a column. The cart rack is EMPTY.
+7. Warm grade, cove light, terrazzo, chromium columns — the hall of the picture.
+File the take whatever the verdict, as S0-TheMorning-Fix1.MP4 in All
+Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
+
+TAKE LOG:
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · FOUR SHOTS JOINED BY THREE HARD JUMP CUTS at 5s, 10s and
+15s — no other cuts, no dissolves. Inside every shot the camera is LOCKED: no
+pan, no zoom, no drift, no handheld. Sound On · High.
+
+THE MUSEUM IS EMPTY AND IT IS EARLY. ONE MAN IS IN THE BUILDING AND NOBODY
+ELSE — no visitor, no staff, no second cleaner, nobody at any door. He is
+happy. That is the whole scene: a man alone with a job he loves, humming to
+himself.
+
+@project_absence_char_cleaner_c — DUPE, the cleaner: an Indian man of about
+  forty, lean, dark hair, a thick dark moustache with curled tips, in a WHITE
+  mandarin-collar uniform with ORANGE piping, a gold V on the chest and on his
+  white peaked cap, white shoes. He wears a small private contented smile the
+  whole time — never a grin, never at the lens. HE HUMS A TUNE IN HIS THROAT,
+  wordless, "hmm-hmm-hmm", the way a man hums when nobody is listening. He
+  never speaks. Nobody else is in the building.
+@loc_hall_big_e — THE HALL: a long gallery with tall chromium trumpet columns
+  in two rows, warm orange cove light glowing along the ceiling, cream walls
+  with the collection along them, white plinths, glass vitrines, polished
+  terracotta terrazzo, and at the FAR END a pair of tall RED double doors. Take
+  place and light from it.
+@project_absence_prop_cart_a — his burnt-orange cleaning cart: mop, orange
+  bucket, cream bottles, folded cloths, a brush, a small folding step, a gold
+  V on the front panel, four castor wheels. THE RACK IS EMPTY — nothing leans
+  on it, nothing is carried on it.
+
+SHOT 1 · [0s-5s] · THE DOOR. A locked wide from the near end of the hall,
+straight down its axis, waist height, symmetrical: the two rows of columns
+lead the eye to the red double doors at the far end. The hall is empty and
+still. One red door opens and DUPE comes through it, small and far away,
+pushing his cart, the door swinging shut behind him. He stops, looks up the
+long empty hall, and smiles. Faintly, from far away, he begins to hum.
+
+[5s] JUMP CUT.
+SHOT 2 · [5s-10s] · THE DUSTING. A locked medium shot from the side: Dupe
+beside a white plinth with a bronze on it, wiping the plinth's top edge and
+the glass of a vitrine with a folded cloth in slow careful strokes, the cart
+parked beside him. He hums, closer now, in his throat, a little tune with no
+words. A small satisfied nod at the clean glass.
+
+[10s] JUMP CUT.
+SHOT 3 · [10s-15s] · THE FLOOR. A locked wide from a low angle near the
+terrazzo, looking along the hall between the columns: Dupe mops the floor in
+long even strokes, the wet terrazzo shining, his shoes squeaking. He hums
+louder, and his mop keeps the rhythm of the tune. He is enjoying himself.
+
+[15s] JUMP CUT.
+SHOT 4 · [15s-20s] · THE COLUMN. A locked close shot: Dupe polishes a
+chromium column with his cloth in slow circles; his own reflection looks back
+at him out of the polished metal and he smiles at it, still humming the last
+bars of his tune. He steps back, looks at the shine, gives it one small nod.
+Hold on his content face. End.
+
+AUDIO: his wordless humming, cloth on glass, the mop on wet terrazzo, castor
+wheels, his shoes, the door, room tone. No words are sung or spoken, no music,
+no instruments, no score — the only melody in the clip is his own voice
+humming. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no
+intro sting or riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+NEGATIVES: no second person, no visitor, no staff, no second cleaner, no
+duplicate Dupe, no reflection that becomes a second man, no painting handled,
+no painting dusted, no painting on the cart, no picture straightened, nothing
+falling, no crack, no damage, no plaque in close-up, no words, no lyrics, no
+singing of words, no speech, no voiceover, no narration, no subtitles, no
+captions, no text, no music, no score, no instruments, no whistling, no
+laughing, no dancing, no looking at the lens, no grin, no camera move inside
+a shot, no dissolve, no crossfade, no fade, no slow motion, no handheld, no
+dutch angle, no lens flare, no grid, no split screen, no night, no darkness.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

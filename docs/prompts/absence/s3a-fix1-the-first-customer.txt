@@ -1,0 +1,104 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S3a · THE FIRST CUSTOMER · 10s · TWO SHOTS, ONE JUMP CUT · CEO 2026-09-09 01:00
+
+CEO's brief, verbatim: "ฉากที่ลูกค้าคนแรกเข้ามา (project_absence_char_oldman) เขาเข้ามาในห้อง
+ฉากเข้าห้องใช้ Element นี้ (loc_hall_big_e) … ชายคนนี้เข้ามา ยังไม่ได้เข้ามาดูที่กำแพง เขาเข้ามา
+เดินสำรวจหลายๆ อย่าง Dupe ทำความสะอาดอยู่กลางห้อง เห็นชายคนนี้ตรงไปที่กำแพงที่มีรอยแตก".
+Select answer (01:05): TWO clips — this one is the ENTRANCE in loc_hall_big_e,
+no dialogue; S3b is the wall in loc_hall_big_d with the four lines.
+The old man appears in NO other scene of the film (CEO). After S2 (the fall)
+and before S3b. Timeline: the painting is already on Dupe's cart, face out.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+FREE lane (Unlimited ON). Spec: 10s / 720p / 16:9 / Seedance 2.5 / High / 1/4 /
+Sound ON. Zoom the button: ZERO digits. Click ONCE. No previz.
+
+⚠️ 4 CHIPS: the old man, Dupe, the hall (loc_hall_big_e, bare id), the cart with
+the painting (prop_cart_b, bare id — not the flagged car Element).
+No registrar, no guards, no other visitor — the first customer is alone.
+
+REVIEW ORDER:
+1. ONE HARD CUT at ~5s and no other: 0.2s full-frame sweep, one isolated spike
+   >15x the median; camera locked inside both shots (ceiling-corner crop flat).
+2. THE DOOR: the far red double doors open and the OLD MAN comes in — heavy,
+   white hair, long dark-green leather coat, cream gloves, a silver cane. Not
+   Carrington (white suit), not Valder. He never touches the wall in this clip.
+3. HE LOOKS AT THINGS: a vitrine, a bronze — stern, unhurried, cane tapping —
+   then turns toward the far end and walks out of shot. No smile yet.
+4. DUPE mid-hall with mop and cart, painting face-out on the cart; he looks up
+   at the man, then watches him go with a small worried straightening.
+5. NO DIALOGUE: whisper transcript empty. Cane taps, mop, room tone only.
+6. Two people in the whole clip and no more.
+File the take whatever the verdict, as S3a-FirstCustomer-Fix1.MP4 in All
+Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
+
+TAKE LOG:
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+10s · 720p · 16:9 · TWO SHOTS JOINED BY ONE HARD JUMP CUT at 5s — no other
+cut, no dissolve. Inside each shot the camera is LOCKED: no pan, no zoom, no
+drift, no handheld. Sound On · High. NO DIALOGUE — nobody speaks.
+
+THE MUSEUM HAS JUST OPENED and its FIRST VISITOR walks in. There are exactly
+TWO people in this clip: the visitor and the cleaner. Nobody else.
+
+@project_absence_char_oldman — THE FIRST CUSTOMER: a heavy, elderly white man
+  with thick white hair swept back, heavy jowls and a stern, unimpressed face;
+  a long dark-green glossy leather overcoat with a wide shawl collar, a cream
+  turtleneck, cream leather gloves, dark-green trousers, cream shoes, and a
+  slim silver walking cane with a loop handle that taps the floor as he walks.
+  He looks at everything as if it had disappointed him already. No gold V —
+  he is a visitor.
+@project_absence_char_cleaner_c — DUPE, the cleaner: an Indian man of about
+  forty, lean, dark hair, a thick dark moustache with curled tips, in a WHITE
+  mandarin-collar uniform with ORANGE piping, a gold V on the chest and on his
+  white peaked cap. He is mopping in the middle of the hall. He never speaks
+  in this clip.
+@loc_hall_big_e — THE HALL: a long gallery with tall chromium trumpet columns
+  in two rows, warm orange cove light glowing along the ceiling, cream walls
+  with the collection along them, white plinths, glass vitrines, polished
+  terracotta terrazzo, and at the FAR END a pair of tall RED double doors. Take
+  place and light from it.
+@prop_cart_b — Dupe's burnt-orange cleaning cart parked beside him, mop and
+  bucket on it, and a framed PAINTING leaning against its front, face out.
+
+SHOT 1 · [0s-5s] · THE DOOR. A locked wide from the near end of the hall,
+straight down its axis, waist height, symmetrical: the columns lead the eye to
+the red double doors at the far end. DUPE is in the middle distance, mopping
+the terrazzo beside his cart, his back half-turned to the doors. One red door
+opens and THE FIRST CUSTOMER comes through it, alone, cane first, and stops
+just inside to look the hall over. Dupe looks up from his mop.
+
+[5s] JUMP CUT.
+SHOT 2 · [5s-10s] · THE INSPECTION. A locked medium shot from the side, near
+a white plinth and a glass vitrine: the old man walks slowly past them, looks
+down at the bronze on the plinth, then at the vitrine, unhurried, unsmiling,
+the cane tapping once with each step. Behind him and out of focus, Dupe stands
+still with the mop, watching. Then the old man turns his head toward the far
+end of the hall, as if something on the far wall had caught his eye, and walks
+out of the frame that way. Dupe straightens, a little worried, and watches him
+go. End.
+
+AUDIO: the door, the cane tapping on terrazzo, the mop, his slow footsteps,
+room tone. No music, no dialogue. NO SOUND AT THE START OR THE END: the clip
+opens mid room-tone with no intro sting or riser, and simply stops with no
+tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+NEGATIVES: no third person, no registrar, no guard, no second visitor, no
+duplicate old man, no duplicate Dupe, no dialogue, no speech, no humming, no
+voiceover, no narration, no subtitles, no captions, no text, no music, no
+score, no smile from the old man, no anger yet, no touching the wall, no
+crack in frame, no plaque in close-up, no looking at the lens, no camera move
+inside a shot, no dissolve, no crossfade, no fade, no slow motion, no
+handheld, no dutch angle, no lens flare, no grid, no split screen.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
