@@ -259,3 +259,37 @@ animate a head turn — take 4 moves the turn inside each shot (heads swing on
 screen during the shot, cuts stay as time-jumps between bids) and is being
 written now; do not re-fire this sheet as-is. Full report:
 docs/reports/absence-wave-20260908-s2r-jc-t3.md.
+
+2026-09-09 TAKE 4 (browser_operator, task-3c2789e7): fired 00:55:14 ICT
+(17:55:14Z; two prior Generate attempts at 00:36:56 and 00:43:13 were refused
+by the concurrency toast while S16 held the Unlimited slot — nothing fired,
+nothing charged, re-verified fresh each retry), 13/13 chips, previz ATTACHED
+(docs/S2R-Render.MP4, byte-verified 4,528,874B against a fresh upload).
+Rendered clean, no rejection, no NSFW, no rights banner, ~42 min. HEAD SWEEP
+PASSES for the first time on this scene: 0.2s sweep test shows FOUR isolated
+spikes (4.2x-5.1x median) at ~3.2s/~6.2s/~9.4s/~12.6s — exactly the sheet's
+four designed sweep points — and nothing above threshold anywhere else,
+including a clean control check across the 15s cut (no spike, room correctly
+stops). Diff-mask overlays of the [6s-8s] and [13s-15s] windows show visible
+head-turn ghosting on all 12 figures in both windows (Dupe spot-checked
+individually: left-facing at 5.5s, forward/right-facing at 7.5s — confirmed
+distinct turn). Takes 2 and 3 both scored 0/12 on this exact test. TWELVE
+PEOPLE confirmed at t15.4, no 13th, no duplicates — the registrar and
+Carrington are cleanly TWO separate men (zoomed crop confirms distinct
+faces/builds/suits), ledger in the registrar's hands only, cane in
+Carrington's only: take 3's merge defect does not recur. Gold teeth: exactly
+once, Carrington only. Feet: pixel-identical floor/silhouette crop at t1.0
+vs t19.0, nobody walks. Audio (faster-whisper small/int8): five bids
+transcribed cleanly in order — "Ten million." / "Fifteen." / "Twenty
+million." / "Twenty-five." / "Fifty." — matching hers/his/hers/his/hers
+exactly, no other dialogue. One minor position deviation flagged for the
+CTO: Dupe and his cart render dead-centre in front of the red door rather
+than "far back on the left" as the position map states — cart props (mop,
+bucket, ladder, gold V) and distance are correct, only the lateral position
+differs; not a duplication/identity defect. Filed to Drive
+All Scene/Fix-2/S2R-JC-Fix1.MP4
+(https://drive.google.com/file/d/1GnsPHr6PD3jcFOdu-PO4PG9vhEEsfFx0/view) —
+first successful upload under this name; nothing else was ever filed to
+Fix-2 under it, so no comparison-with-a-better-take question applies. Full
+report: docs/reports/absence-wave-20260909-s2r-jc-t4.md. Do not self-certify
+— CTO reviews the file too.
