@@ -144,6 +144,25 @@ Replace the ban with a positive statement of what occupies that place instead.
   the tab closes. Release the registry claim, claim ONE fresh tab, rebuild the
   composer. Only if tabs_close itself errors do you stop and report. Nothing is lost
   as long as no Generate click was made.
+- HOW TO TEST WHETHER A CUT IS REAL — SWEEP, NEVER SAMPLE ONE PAIR (2026-09-08).
+  Seedance renders continuous seconds and places a cut NEAR the nominal timestamp, not
+  on it, so extracting one frame either side of the written time can straddle the cut
+  and report a dead cut that is actually there. That happened on S14b: sampling
+  5.4s/5.6s around a nominal 5.5s cut gave 1.35 against a 1.53 baseline, reading as
+  failed, while a sweep showed the real boundary at ~5.4s scoring 51.17 against a
+  median step of 2.39 — 21x. A false fail costs a re-fire, so use the sweep:
+
+    for t in $(seq 0.2 0.2 <duration>); do ffmpeg -v error -ss $t -i CLIP \
+        -frames:v 1 scan/f$t.png -y; done
+    # then: greyscale mean-abs-diff between consecutive frames,
+    # median = normal motion; anything above ~3x median is a real boundary
+
+  Report the boundary TIMESTAMPS you find, not a pass/fail against the nominal time.
+  A clip whose sweep shows no step above ~3x median has no working cut at all — that
+  is the S2R-JC failure, where every "cut" scored below the within-shot baseline.
+  A snap zoom also shows as a cluster of high steps; that is expected where the sheet
+  asks for one, and it is distinguishable because it spans several consecutive steps
+  rather than one.
 - NEVER quit or restart Chrome (HARD, 2026-09-07): the window is shared with the other operators; a frozen tab → close your own tabs, one fresh tab, else STOP and report. The render lives server-side and survives your tab.
 - claude-in-chrome ONLY. NEVER call computer-use (screenshot/click/type/clipboard) or ask
   for Finder / clipboardWrite: the permission dialog it raises blocks the whole pane
