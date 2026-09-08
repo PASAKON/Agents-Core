@@ -52,6 +52,28 @@ strip re-verified clean before firing. Spec: Seedance 2.5, 16:9, 720p, 20s,
 1/4, High, Sound On. Paste sha256 40ca3044d73677293f623df36c3e294726c91a1413
 0942db58e594cb9899f071 verified in-page before dispatch.
 
+Take 1 LANDED ~44 min later (asset 37fca966-8da6-4319-a450-f5c50c0c54a9,
+1280x720/20.04s/h264+aac, MD5 b3f399016af28e267d0dc0b724a780f2, 18,536,142
+bytes). Downloads: hf_20260908_214942_8d2516ed-6c16-4bf0-a308-419222760a0f.mp4.
+VERDICT: FLAGGED. Four cuts landed on time (4.2s/10.9s/12.7s/15.5s, all real
+per 0.2s greyscale sweep) but the clip hard-cuts to solid BLACK in its last
+~0.25s instead of ending on the buyer's calm face (unscripted 5th spike,
+19.6-19.8s, 101.9x median). THE MARK measures outside canon rule 8's floor
+(bbox 9.14% of frame width, fill ratio 0.018 vs required <8%/>=0.10 — thin
+hairline web, not this sheet's own "thick/solid/heavy" text). Valder smiles
+for ~0.2s at the cut into his single (12.6-12.8s) before resolving to
+unsmiling/wounded by 13.0s. His blazer sleeve intrudes into the right edge of
+the CHEQUE TWO-SHOT throughout (camera "from Valder's side of the room" puts
+him in extreme foreground). Cheque sum pattern-matches 100,000,000 but is not
+crisply legible through 6 sampled frames (9.8-10.8s, motion blur). Everything
+else on the REVIEW ORDER passes: one of each person throughout, buyer
+wardrobe clean, Valder never touches the cheque, locked camera inside every
+shot. Audio: 11 voiced bursts via RMS envelope (no transcript — no
+faster_whisper on winbox) against the sheet's own "SIX LINES" — plausibly
+intra-line pauses, not confirmed. Full detail:
+docs/reports/absence-s15e-all-fix1-take1-winbox.md. Not filed to Drive (no
+OAuth token on winbox) — left in Downloads for the CTO.
+
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
