@@ -44,6 +44,7 @@ File the take whatever the verdict, as S0-TheMorning-Fix1.MP4 in All
 Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
 
 TAKE LOG:
+- take 1 (task-bd25b3a0): staged on the Mac 01:35-02:45, never fired (slot busy, then Chrome disconnected); fire handed to winbox (CEO 02:47).
 
 === END NOTES ===
 
