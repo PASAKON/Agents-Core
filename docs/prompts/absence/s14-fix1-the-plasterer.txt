@@ -210,6 +210,16 @@ File the take whatever the verdict, as S14-Plasterer-Fix1.MP4 — scene name onl
 never a verdict in the filename.
 
 TAKE LOG:
-(none yet)
+Take 1 (2026-09-08): FREE/Unlimited lane, all gates passed (lint exit 0,
+12/12 chips bound, no error chips, no warning triangles). Fired 12:21 ICT
+(05:19:08 UTC). Card never left Processing — checked on the CEO-set 20-then-
+5-min cadence for 154 minutes straight, hard reload (cmd+shift+R, full
+server re-fetch, not soft nav) confirmed the Processing state twice
+independently (at 14:53 and again at 14:55 before cancel). No landing, no
+NSFW flag, no error banner. CTO-ordered cancel at 14:55 ICT (07:55 UTC) — it
+matched the profile of three 2026-09-07 cards that never landed (95/100/152
+min all cancelled dead) and nine other clips were queued behind the stuck
+free-lane slot. Lane confirmed clear post-cancel: fresh hard-reloaded grid,
+0 spinners, no Processing card. Nothing filed to Drive.
 
 === END NOTES ===
