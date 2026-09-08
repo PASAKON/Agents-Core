@@ -172,32 +172,6 @@ RESULT: S2N-Fix1 closed on take 4 — nine people, faces to the lens then the
 
 ---
 
-## PENDING — Prompt A quoted now, Prompt B on the day the take passes
-
-### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
-PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;
-  Valder's position given once among thirteen references.
-PROMPT B (db41c9b): numbered line order with Valder in front, "the cart WITH
-  Dupe — separation banned", review order 1b/1c added.
-VERDICT: awaiting t3.
-
-### The projector plate (image) · take 1 not Dupe (prose-only), take 2 not Dupe (image reference attached)
-PROMPT A: prose-only face description, no image reference.
-PROMPT B: the same prose with ELEMENT-dupe-interview-house.png attached — still
-  rejected by the CEO 2026-09-06. No Prompt C from us: the CEO supplies the
-  next plate. Recorded so nobody fires a third.
-
-### IV2c · the crew reveal · takes 1 → 4 → 5, verdict on take 5 not recorded
-PROMPT A (t4, 6ec846e): the man who knocked the stand over "STANDING FROZEN
-  and STARING at the floor… ARMS COMPLETELY STILL. He is not gesturing, not
-  explaining, not shrugging, not talking" (a stillness written as a list of
-  bans).
-PROMPT B (t5, 4f04928): "CROUCHED DOWN ON ONE KNEE… picking his light stand
-  back up" — an action in place of a stillness. Also from t4: the fallen
-  stand made visible ("unmistakably DOWN and on the floor") and two of Dupe's
-  furnishings required in frame so the room reads as his house.
-VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
-  the projector (IVR1/2/3), so this entry closes only if IV2c t5 is used.
 
 ### S2R · the copyright gate · fires 1-3 rejected → fire 4 rendered 2026-09-07 07:50 (S2R-Fix1.MP4)
 PROMPT A (d53060d sheet): 14 Element chips including
@@ -509,3 +483,39 @@ LESSON, and it applies to every multi-cut sheet in this film: A CUT CANNOT CARRY
   CHANGE. Anything that must happen has to be a movement the camera sees happen inside
   a shot. Use cuts for what they can do — jump the clock, change the angle — and never
   to hold the difference between two states.
+
+---
+
+## PENDING — Prompt A quoted now, Prompt B on the day the take passes
+
+Only entries whose take has NOT yet been fired or judged belong under this
+header. Ten finished entries had drifted below it because new material was
+appended to the end of the file, which made the section read as though the
+crack, the van and the copyright gate were still open questions. Moved back
+up on 2026-09-08; append new PASSED entries ABOVE this header from now on.
+
+
+### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
+PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;
+  Valder's position given once among thirteen references.
+PROMPT B (db41c9b): numbered line order with Valder in front, "the cart WITH
+  Dupe — separation banned", review order 1b/1c added.
+VERDICT: awaiting t3.
+
+### The projector plate (image) · take 1 not Dupe (prose-only), take 2 not Dupe (image reference attached)
+PROMPT A: prose-only face description, no image reference.
+PROMPT B: the same prose with ELEMENT-dupe-interview-house.png attached — still
+  rejected by the CEO 2026-09-06. No Prompt C from us: the CEO supplies the
+  next plate. Recorded so nobody fires a third.
+
+### IV2c · the crew reveal · takes 1 → 4 → 5, verdict on take 5 not recorded
+PROMPT A (t4, 6ec846e): the man who knocked the stand over "STANDING FROZEN
+  and STARING at the floor… ARMS COMPLETELY STILL. He is not gesturing, not
+  explaining, not shrugging, not talking" (a stillness written as a list of
+  bans).
+PROMPT B (t5, 4f04928): "CROUCHED DOWN ON ONE KNEE… picking his light stand
+  back up" — an action in place of a stillness. Also from t4: the fallen
+  stand made visible ("unmistakably DOWN and on the floor") and two of Dupe's
+  furnishings required in frame so the room reads as his house.
+VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
+  the projector (IVR1/2/3), so this entry closes only if IV2c t5 is used.
