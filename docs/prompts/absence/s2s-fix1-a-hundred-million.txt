@@ -365,3 +365,73 @@ the CTO to review directly if wanted. Recommendation to CTO: re-fire take 3
 WITH the @Video 1 previz (docs/S2S-Render.MP4) re-attached to restore the
 camera-distance staging, keeping the new clothes-anchor line — the two fixes
 are independent and both are needed.
+
+browser_operator (task-23004a8b) 2026-09-08 23:1x ICT: CTO CORRECTION mid-task
+— the 22:56 "take 2 landed / NOT UPLOADED" entry above reviewed asset
+ad847559 (Created 20:56), which is S2S-B's card, not S2S's. S2S's REAL take 2
+(fired 20:22, per the 09:10-equivalent take-2-fired note earlier in this log)
+had never been reviewed. Per CTO instruction, did NOT fire take 3; instead
+located and reviewed the real card first:
+IDENTIFICATION: filtered the project's "All assets" grid to Today, opened
+candidates via Open (not Rerun), matched by Info-panel Created time + prompt
+text. Card uuid 00b1bf9e-784d-4075-90c2-3f95755579f3, Created "September 8,
+2026 at 8:22 PM" (exact fire-time match), prompt opens "20s · 720p · 16:9 ·
+ONE LOCKED SHOT... the reference video (Video 1) is the CAMERA AND BLOCKING
+REFERENCE for this shot — a 20-second grey previz of this exact scene" —
+word-for-word match to this sheet's paste block (S2S-B's prompt instead reads
+"IN THE NEAR FOREGROUND... A VERY OLD WOMAN SITS IN A POWERED WHEELCHAIR",
+confirming this is NOT the B card). Downloaded as
+hf_20260908_132206_ec15173c-7890-495d-8b43-fec65e8a06ec.mp4 (md5
+0c4f71b1f309a22528d6298cc4091bfe, unique against every other file in
+~/Downloads including the S2S-B card). ffprobe: 1280x720, 20.04s, h264+aac —
+spec matches.
+REVIEW ORDER verdict — CLEAN:
+1 SHE NEVER ARRIVES — PASS. Frames pulled at 0.5/4/8/12/16/17/19/19.5s. She is
+  not visible at 0.5s (room still facing camera). By 4s the room has turned
+  and she is already visible tiny at the red door. At 8s her figure spans
+  roughly y376-y457 of a 720px-tall frame (~11% frame height), centred
+  horizontally at the far red double door. At 19s she is at essentially the
+  same size and position (~11%, same spot) — she has not moved appreciably
+  in 11 seconds of clip. Matches take 1's passing criterion exactly.
+2 VOICE BEFORE VISIBLE / SIMULTANEOUS TURN — PASS. RMS waveform analysis
+  (0.1s windows) shows a clear vocal spike from 0.8-2.0s (peak ~2800 vs a
+  ~250 baseline), well before she is visible in any frame (she first appears
+  ~3-4s). The 0.5s frame shows every figure still facing the camera; the 4s
+  frame shows the whole visible cast already turned away, consistent with
+  one simultaneous turn between those two samples (~3s, as scripted). Exact
+  line not transcribed — no ASR tool available in this environment.
+3 TWO LEAVE PAST THE LENS — PARTIAL. The art student (acid yellow-green hair)
+  is present and walking toward camera at 16s, then fills/blurs the frame at
+  17.0-17.25s passing close to the lens (this produced the sweep's one large
+  spike, see item 7) and is gone from the group by 19s — confirmed exit. The
+  second scripted exit (woman in tawny/rust fur, rightmost) was still visible
+  in every sampled frame through 19.5s; her exit was not captured in the
+  0.5s/4s/8s/12s/16s/17s/19s/19.5s sample set and is unconfirmed, not denied.
+4 REAL POWERED WHEELCHAIR, NO ATTENDANT — PASS. Chromium tubular frame, no
+  attendant beside her, at both 8s and 19s.
+5 ONE LINE OF DIALOGUE — consistent with a single early vocal spike (0.8-2.0s,
+  see item 2); not independently word-transcribed (no ASR available).
+6 THIRTEEN PEOPLE — consistent by visible count at 4s/8s/12s (gentleman,
+  registrar, bodyguard, Valder, guard x2, woman-blue-coat, woman-magenta-fur,
+  woman-green, woman-tawny-fur, Dupe+cart, art student, grandmother = 13, no
+  extras seen).
+7 CAMERA DEAD STILL — PASS. 0.2s-equivalent sweep (24fps source, 6-frame /
+  0.25s stride, 80 steps): median luma-diff step 0.587, one spike at step 68
+  (~17.25s) of 11.165 (19.0x median) — exceeds the flat 15x/median
+  cut-heuristic on its face, but frames either side of the spike (17.0s,
+  17.25s, 17.5s) show identical background/column/red-door geometry with the
+  art student's own blurred body filling most of the frame passing the lens
+  — a near-lens walker, not a camera cut. Camera lock holds.
+NEW checks: grandmother's headscarf/cardigan read GREY throughout, no
+  sunglasses on her (face partially visible at 8s/12s/16s, grey knit
+  confirmed); registrar reads cream-white with orange piping. Spec fields all
+  match (Seedance 2.5 / 720p / 16:9 / 20s / High / Sound On).
+VERDICT: PASSED item 1 (the CTO's explicit gate for this branch) and every
+other item checked is PASS or consistent-but-unconfirmed — nothing FAILED.
+Per CTO instruction: did NOT fire take 3. Uploaded to Fix-2 as S2S-Fix1.MP4
+(https://drive.google.com/file/d/1O5sBMbhmFd6FquuxEguIRv2Wp6uiVwxJ/view,
+logged to Sorry Sir/logs.txt) via scripts/gdrive-bridge/upload_fix1.py — this
+IS S2S's real take 2, filed under the take-1 name per this project's naming
+convention (one filed clip per scene name; earlier take 1 was never filed to
+Fix-2, only to the old Fix-1 tree). Full report:
+docs/reports/absence-wave-20260908-s2s-t3.md.
