@@ -212,6 +212,6 @@ File the take whatever the verdict, as S15b-MoneyFindsArtist-Fix1.MP4 — scene 
 only, never a verdict in the filename.
 
 TAKE LOG:
-(none yet)
+take 1 aborted before fire 2026-09-08 19:20 — sheet carried registrar_b, CEO ruled white registrar; sheet corrected on main, re-fire as a fresh task
 
 === END NOTES ===
