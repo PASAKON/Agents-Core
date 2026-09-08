@@ -168,6 +168,45 @@ the filename. If a take already filed under that name passed a criterion yours
 fails, do not upload over it; report the comparison instead.
 
 TAKE LOG:
-(none yet)
+Take 1 (2026-09-08, fired 04:12:30 UTC / 11:12 ICT, UNLIMITED/FREE lane,
+task-9fea9a4e) — filed as S15b1-NotBuyingAWall-Fix1.MP4
+(https://drive.google.com/file/d/1NOLpkrCPD-nE3TL_eQfY37KoxGY1BpA_/view).
+8s / 1280x720 / Seedance 2.5, price confirmed $0 before firing, rendered
+~35-38 min.
+  PASS — cuts into the ended S15a-2 frame: Dupe centred, room silent, nobody
+    re-entering/re-positioning at open.
+  PASS — she looks up at the crack, not at Dupe, while speaking the line.
+  PASS — wheelchair move: sweep found a sustained 3-5x-median plateau from
+    ~1.0s-4.0s (the camera travelling with the chair), then a single 21x-median
+    spike at ~4.2-4.4s (the real hard cut, sheet's nominal 4.5s), then flat
+    <0.4x median for the rest of the clip (shot two locked). No handheld noise
+    pattern in either shot.
+  PASS — six words, hers only: single speech burst ~5.75s-7.4s in the audio
+    RMS trace, no other spikes; start (0-1s) and end (7.4-8s) are flat room
+    tone, no intro sting, no fade tail.
+  PASS — the mark (measured on the f=5.5s frame, region x540-760/y30-180,
+    threshold-80): bbox 14x8px = 1.09% of frame width, fill ratio 0.438. Well
+    under the 8% ceiling, well over the 0.10 fill floor. (CTO's independent
+    parallel measurement on the same frame: 13x7px, 1.0%, fill 0.538 — same
+    conclusion from a tighter crop.)
+  PASS — navy uniforms: exactly 2 (tall guard + short/heavy guard, both at
+    frame-left in the opening wide shot).
+  PASS on count — exactly 1 registrar visible (black suit, white glove, small
+    gold pin, opening wide frame) — but FLAGGED: his ledger prop is not in his
+    hands; it appears instead carried by Carrington's bodyguard (all-black
+    suit, white gloves) in both shots. Attribute bleed, same class as the
+    gold-teeth bleed onto Valder the CEO caught earlier today. Zoomed and
+    confirmed (docs/reports crop).
+  COUNT (known org limitation, not this take's defect) — 13 people visible
+    across the two shots vs the sheet's 21; the six prose-only public members
+    did not render, matching S14a/S14b's already-flagged "1 REF/1 person"
+    limitation.
+  FLAGGED — shot two reads as a locked WIDE at roughly standing eye height,
+    not the sheet's specified "two-shot at wheelchair height": full-body
+    headroom-heavy composition of 5-6 people (not isolated to Dupe +
+    grandmother), no low-angle foreshortening on Dupe. CTO independently
+    flagged the same thing; do not re-fire — CEO is rewriting the scene
+    format per CTO's mid-review note.
+  No NSFW/rejection. No duplicate md5 against existing ~/Downloads mp4s.
 
 === END NOTES ===
