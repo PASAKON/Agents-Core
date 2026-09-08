@@ -268,5 +268,74 @@ TAKE LOG:
   house rule (scene-name-only filename, no verdict in name):
   Drive: All Scene/Fix-1/S16-CuttingTheWall-Fix1.MP4
   https://drive.google.com/file/d/1hhE-YHXjuEfxgj5BunQ-SMpz_WaMBF0I/view
+  (Note added 2026-09-09 by take 2: this file is now IN Fix-2, per the
+  Fix-2 seeding move recorded in the gdrive-filing skill — the path above
+  is stale, not an error in this log.)
+
+2026-09-09 · take 2 · FREE (Unlimited) lane · task-5670068e ·
+  hf_20260908_172038_fc829320-39ac-45c7-b853-dbadc7e8893e.mp4
+  Seedance 2.5 / 720p (1280x720) / 16:9 / 8.04s / High / Sound On / Unlimited ON.
+  Price struck 56→0 (zoomed, confirmed, both before staging and immediately
+  before the click). 12/12 chips bound clean (JS chip-class scan), 0 error
+  chips, no warning triangles on any of the 12 thumbnails (zoomed in two
+  halves). None of the three flagged Elements (project_valder_char_villagers_poor,
+  prop_croc_bag, prop_car) are referenced in this sheet. Fired once, one
+  Generate click, "Generation started" toast + asset count 729→730 + new
+  Processing card confirmed. Fire time 2026-09-08T17:20:27Z (2026-09-09
+  00:20:27 ICT); card's own Info-panel Created reads "September 9, 2026 at
+  12:20 AM" — matches, and prompt text starts identically to this paste
+  block — ownership confirmed by both. Landed ~35 min after fire (00:20→~00:55
+  ICT, status Processing at 20min mark, Generating at 25min, landed by 35min).
+  REVIEW ORDER:
+  1 PASS — exactly ONE person touching the wall, the contractor in navy overalls.
+  2 PASS — tool is a hand-held grinder: short red/dark cylindrical motor body,
+    a distinct grey ROUND DISC at the front held against the wall, throwing a
+    fan of sparks. No chain, no bar, no orange elongated saw body, no top
+    handle anywhere in the frame across the sampled timeline.
+  3 PASS — Valder's back to camera throughout, face never seen.
+  4 PASS — grandmother in wheelchair, parked to one side, watching.
+  5 UNCLEAR — Dupe is present, apart from the wall action, correctly
+    positioned and dressed (white uniform, orange piping, cap, moustache),
+    beside his cart with the painting face-out. But zoomed crops (t=2s and
+    t=7.4s) show no mop in frame: he holds a small dark rolled object in his
+    hand, and the object beside the cart is a folded metal luggage-trolley
+    frame, not a mop. "Apart, not helping" holds; "mop in hand" does not
+    visibly render. Not one of take 1's failing items, so not a regression
+    against what's already filed, but flagging it rather than claiming a
+    clean pass.
+  6 PASS both —
+    NO CUTS: 0.2s sweep (5fps, 40 frames), whole-frame greyscale MAD between
+      consecutive frames. Median 1.101, max step 1.998 at t=4.2s (1.82x
+      median), well under the 3x flag and the 15x cut line. Raised steady
+      run through the grinding, no isolated spike — the grinding signature,
+      not a cut.
+    CAMERA STATIC: crop = top-left ceiling/wall corner, x[0:150] y[0:50]
+      (same crop as take 1, untouched by any action). Median 0.857, max
+      1.124 (1.31x median) — flat noise, no move.
+  7 PASS — exactly TWO navy uniforms plus the contractor's overalls (not
+    counted as a uniform). Zoomed crop of the left-edge group shows: FIRST
+    the tall navy guard (glasses, upright), SECOND the short heavy navy
+    guard standing half a step in front/right of him, both navy tunics and
+    both gold V's clearly visible side by side, THIRD Carrington's bodyguard
+    in a black suit with white gloves. This is the exact defect take 1 had
+    (guards merged into one body) — fixed.
+  8 INFORMATION, NOT A GATE (per AB-LEDGER 2026-09-08). Measured on a clean
+    post-grinder frame (t=7.2s), tight crop around the mark only (x[605:700]
+    y[255:320], avoiding the contractor's head which contaminated a first,
+    wider attempt): threshold-80 dark-pixel count = 0 (darkest pixel = 124);
+    threshold-140 count = 8px in a 6x3 bbox = 0.469% of frame width, fill
+    0.444. Visually a thin grey branching crack, same size class as take 1's
+    measurement (0.55% bbox) — consistent with AB-LEDGER's finding that this
+    mark is size-dependent at this framing and cannot pass threshold 80
+    regardless of prose. Reporting the numbers only, per the sheet's
+    instruction; not treated as a fail and not re-fired over.
+  VERDICT: BETTER than take 1 — fixes items 2 and 7 (take 1's two hard
+  fails), item 8 is no longer even a gate. Item 5 carries a new soft
+  observation (no visible mop) not present in take 1's log, but it is not a
+  failure of the item's stated criterion (apart, not helping) and does not
+  reverse anything take 1 passed. Filed per the HARD "upload only when
+  better" rule.
+  Drive: All Scene/Fix-2/S16-CuttingTheWall-Fix1.MP4
+  https://drive.google.com/file/d/14q8GHnJ29SyiCM47pPtDQ363mjBv8fFe/view
 
 === END NOTES ===
