@@ -116,14 +116,16 @@ opens and THE FIRST CUSTOMER comes through it, alone, cane first, and stops
 just inside to look the hall over. Dupe looks up from his mop.
 
 [5s] JUMP CUT.
-SHOT 2 · [5s-10s] · THE INSPECTION. A locked medium shot from the side, near
-a white plinth and a glass vitrine: the old man walks slowly past them, looks
-down at the bronze on the plinth, then at the vitrine, unhurried, unsmiling,
-the cane tapping once with each step. Behind him and out of focus, Dupe stands
-still with the mop, watching. Then the old man turns his head toward the far
-end of the hall, as if something on the far wall had caught his eye, and walks
-out of the frame that way. Dupe straightens, a little worried, and watches him
-go. End.
+SHOT 2 · [5s-10s] · THE INSPECTION. THE CAMERA IS BOLTED TO A TRIPOD beside a
+white plinth and a glass vitrine, square to the side wall, and it does not
+turn, pan, follow or drift for the whole shot — the frame is the same at 10s as
+at 5s, and the man moves THROUGH it. He enters at the LEFT edge, walks slowly
+past the plinth and the vitrine, looks down at the bronze, then at the glass,
+unhurried, unsmiling, the cane tapping once with each step. Deep behind him and
+out of focus, Dupe stands still with the mop, watching. Then the old man turns
+his head toward the far end of the hall, as if something on the far wall had
+caught his eye, and walks out of the RIGHT edge of the fixed frame. Dupe
+straightens, a little worried, and watches him go. End.
 
 AUDIO: the door, the cane tapping on terrazzo, the mop, his slow footsteps,
 room tone. No music, no dialogue. NO SOUND AT THE START OR THE END: the clip
@@ -140,7 +142,7 @@ duplicate old man, no duplicate Dupe, no dialogue, no speech, no humming, no
 voiceover, no narration, no subtitles, no captions, no text, no music, no
 score, no smile from the old man, no anger yet, no touching the wall, no
 crack in frame, no plaque in close-up, no looking at the lens, no camera move
-inside a shot, no dissolve, no crossfade, no fade, no slow motion, no
+inside a shot, no following the man, no tracking, no pan, no reframe, no dissolve, no crossfade, no fade, no slow motion, no
 handheld, no dutch angle, no lens flare, no grid, no split screen.
 
 === ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
