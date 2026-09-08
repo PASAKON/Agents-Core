@@ -37,7 +37,25 @@ File the take whatever the verdict, as S15d-ArtistIsTheBuilding-Fix1.MP4 in
 All Scene/Fix-2/. The CEO reviews it.
 
 TAKE LOG:
-(none yet)
+t1 · 2026-09-08 20:11 ICT · browser_operator-task-139fdacc · Seedance 2.5 · Credit
+  lane · 720p · 16:9 · 5s · High · Sound On · Unlimited OFF · price zoomed 33
+  credits (struck 35), confirmed before click · fired once, "Generation started"
+  toast + new Processing card · landed 20:15 ICT (~4 min) · balance read 864/1000
+  (pre-fire was reported 896, expected ~863 — off by 1, recorded as observed) ·
+  1280x720, 5.05s, has audio track, md5 13df11faec7772c009c06a333a8d8f5b, no
+  collision vs ~/Downloads · sweep camera-lock: median frame-diff 0.77, max 1.58
+  (2.05x, well under 3x step / 15x spike thresholds), bg-only crop stayed flat
+  (0.43-0.77) — locked, no cut · audio RMS: room tone -42 to -45dB 0.0-1.8s, two
+  speech bursts -27 to -30dB ~2.0-2.4s and ~3.4-4.2s, back to room tone by 4.4s —
+  not a flat loud bed · visual: magenta full-length fur coat w/ wide shawl
+  collar, elderly East Asian, in the cream hall w/ chrome trumpet columns +
+  orange cove light, hall behind her soft, no wall crack in frame, no plaque in
+  frame, no other people in frame, frontal single chest-up · hair reads as a
+  swept-back dark/salt-pepper style rather than a clear chignon bun — flagging
+  for CEO's own call on REVIEW ORDER #1, not adjudicating it myself · filed
+  S15d-ArtistIsTheBuilding-Fix1.MP4 to All Scene/Fix-2
+  (https://drive.google.com/file/d/1FrAaN9oBkhobRUDX4BatdU2fXGJe4gqY/view) ·
+  CEO reviews the take.
 
 === END NOTES ===
 
