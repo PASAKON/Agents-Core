@@ -45,6 +45,7 @@ Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
 
 TAKE LOG:
 - take 1 (task-bd25b3a0): staged on the Mac 01:35-02:45, never fired (slot busy, then Chrome disconnected); fire handed to winbox (CEO 02:47).
+- take 1 fired on winbox 2026-09-09 03:32:21 ICT (2026-09-08 20:32:21 UTC), asset 733->734, "Generation started" toast. Prompt pasted via chunked synthetic ClipboardEvent, in-browser SHA-256 verified against disk hash (03128d8c54225a44c71bd2f7f427a3bca9fbf2ad6cb768cf7305faa828c4298d, 4339 chars) before dispatch. prompt-lint.py exit 0. 3/3 chips bound (@project_absence_char_cleaner_c, @loc_hall_big_e, @project_absence_prop_cart_a), 0 error chips, no warning triangles on any of the 3 reference thumbnails. Spec confirmed immediately before click: Seedance 2.5 / 16:9 / 720p / 20s / 1/4 / High / Sound On / window 1920w. Generate button read "UNLIMITED · struck 140 · 0" at click. Now waiting on the render; do not cancel per task instructions.
 
 === END NOTES ===
 
