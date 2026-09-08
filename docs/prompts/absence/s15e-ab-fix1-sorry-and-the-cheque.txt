@@ -18,10 +18,8 @@ Fire order (CEO): cheque plate → ALL → B1 → C → A → S3b → B2 → AB 
 ⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
 Spec: 20s / 720p / 16:9 / Seedance 2.5 / High / 1/4 / Sound ON. No previz.
 
-⚠️ CHIPS: 4 — Dupe, the buyer, Valder, the hall (+1 when the cheque Element exists).
-THE CHEQUE is prose in this sheet until the Element `project_absence_prop_cheque`
-exists (the plate task registers it); when it does, add the chip line from the
-block at the bottom of these NOTES and bump the expected chip count by one.
+⚠️ CHIPS: 5 — Dupe, the buyer, Valder, the hall, the cheque (Element registered 2026-09-09 04:30 on winbox).
+THE CHEQUE chip is live (Element registered 2026-09-09 04:30, lime chip confirmed).
 
 REVIEW ORDER:
 1. FIVE LINES, in order, nothing else (whisper): "I cracked the wall myself,
@@ -62,6 +60,10 @@ cleaner, and VALDER the owner. Nobody else speaks, nobody else comes close.
   lap, brown boots. NO sunglasses on her — the sunglasses in this room belong to
   other people. NO purple, NO coat, NO hat. Grey wool, head to knee. She speaks
   slowly, calmly, and never raises her voice.
+@project_absence_prop_cheque — THE CHEQUE, exactly as its picture shows: a plain
+  cream bank cheque the size of a hand on a grey knitted bag, 100,000,000 in
+  blue ink across its middle, a signature beneath, a slim black fountain pen
+  beside it.
 @project_absence_char_valder — VALDER, the owner: tall, slim, elderly, swept-back
   white hair, small round tinted sunglasses, a blazer panelled in flat blocks of
   magenta, yellow, green, blue and red, a red waistcoat, a long mustard-yellow
@@ -78,10 +80,8 @@ cleaner, and VALDER the owner. Nobody else speaks, nobody else comes close.
   shorter thick black lines breaking off it, every line solid and heavy like ink
   and dark for its whole length, ending where it ends. It is masonry damage —
   thick, black, angular, flat against the wall and part of the plaster.
-THE CHEQUE (no picture — describe it, do not look for one): a plain cream bank
-cheque the size of a hand, printed lines on it, the sum ALREADY WRITTEN large
-across its middle in blue ink — 100,000,000 — and a signature beneath the sum.
-It lives inside the knitted bag on the buyer's lap until she takes it out.
+THE CHEQUE lives inside the knitted bag on the buyer's lap until she takes it
+out; its sum is ALREADY WRITTEN.
 
 THE BLOCKING, the same in every framing: the BUYER's wheelchair is centre-left,
 turned toward Dupe; DUPE stands right of centre, a pace from the hero wall, the
