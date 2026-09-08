@@ -291,6 +291,13 @@ time + how verified, render duration, NSFW yes/no, info-icon, Drive filename +
 link, verdicts with frame paths, anything odd. Commit, submit_report, STOP.
 
 ## 5 · Pipelining (proven 2026-09-07 09:55)
+OBSERVED 2026-09-08 20:55 — TWO UNLIMITED RENDERS RAN AT ONCE. S2S fired 20:22
+and was still spinning when S2S-B's retry was ACCEPTED (asset 727→728, toast,
+card) at ~20:55 after ~30 min of refusals. So the refusal appears to gate
+QUEUED generations, not rendering ones: once the first card leaves the queue
+and is actually rendering, a second Unlimited fire can queue behind it. One
+observation, not a rule yet — keep pipelining exactly as below (the retry
+loop costs nothing) and log the next time it happens or fails to.
 The Unlimited lane renders ONE generation at a time — a second fire is refused
 with the toast "You can generate 1 unlimited video, image & audio generation at
 a time" (not queued). So the NEXT scene's worker should build its composer
