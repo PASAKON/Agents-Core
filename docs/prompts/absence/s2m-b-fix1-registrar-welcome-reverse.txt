@@ -17,6 +17,16 @@ angles, sixteen clips in total.
   B — THIS ONE. Camera out in the gallery, BEHIND the group, looking back at
       the broken wall. Location Element: loc_hall_big_d. Cut as JUMP CUTS.
 
+⚠️ THE CRACK CANON DOES NOT APPLY TO THIS SHEET, AND THAT IS NOT AN OVERSIGHT
+(checked by the CTO 2026-09-08). The standing supervision brief lists S2M-B and
+S2N-B as "still carrying old hole prose". They are not. This is a REVERSE angle:
+the camera is out in the gallery with its back to the wall, the location chip is
+loc_hall_big_d and not loc_wall_pov_e, and the mark is BEHIND THE LENS. There is
+no crack to describe, no item 0 in the REVIEW ORDER, and nothing to fix. The
+words "hole", "edges" and "star" that a grep finds here are all inside the BAN
+list and inside the note telling the model that the black mark in the reference
+video is scaffolding. Do not add crack prose to a shot that cannot see the crack.
+
 ⚠️ WHY THIS ANGLE EARNS ITS KEEP HERE. In the A version the registrar has his
 back to us for the whole scene. From this side he is the ONLY face in the
 picture — he walks in, turns, and plays the entire performance to camera while
