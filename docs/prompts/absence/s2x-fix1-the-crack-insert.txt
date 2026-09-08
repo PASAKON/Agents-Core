@@ -1,0 +1,85 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2X · THE CRACK · 5s INSERT · CTO 2026-09-09 02:55 under the CEO's overnight
+creative authority (FREE lane only)
+
+WHY: Draft 3 shows the damaged wall three different ways (a hole at 0:32, a
+different mark at 1:16, the canon crack later) — the judge review called it
+"three cracks". Fix-list #1 asked for a 5s canon insert to replace 0:32 and
+1:16. This is that insert: the hero wall, the plaque, ONE small black crack,
+nobody in frame. The editor drops it wherever the wall is shown before the
+auction.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+FREE lane (Unlimited ON). Spec: 5s / 720p / 16:9 / Seedance 2.5 / High / 1/4 /
+Sound ON. Zoom the button: ZERO digits. Click ONCE. No previz.
+
+⚠️ 1 CHIP: the hall with the plaque wall (project_absence_loc_hall_big_d). No
+people, no props. The mark is the chip's own canon prose, once (copied from
+S16). Do not describe it a second time.
+
+REVIEW ORDER:
+0. THE MARK against canon rule 8 (threshold 80, bbox <8% width, fill ≥0.10):
+   at this MEDIUM framing the mark is well over 1% of frame width, so the
+   numbers are a real gate here — report all three. Pale/grey/tan, a hole with
+   edges, a black surround, thick arms to the frame edge, or a SECOND mark →
+   FLAGGED.
+1. THE PLAQUE dead centre, the mark above it, ONE mark only.
+2. NOBODY in frame, no hand, no shadow of a person, no cart.
+3. Camera locked, no cut: 0.2s sweep, no spike >15x; a crop away from the mark
+   stays flat.
+4. Room tone only; no music, no words (whisper transcript empty).
+File the take whatever the verdict, as S2X-TheCrackInsert-Fix1.MP4 in All
+Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
+
+TAKE LOG:
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+5s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, never drifts, no cuts, for the whole five seconds. Sound On · High.
+
+AN EMPTY ROOM AND A WALL. Nobody is in this picture — no person, no hand, no
+shadow of a person, no cart, no tool. Only the wall, the plaque, the small
+crack above it, and the hall's warm light.
+
+@project_absence_loc_hall_big_d — THE HALL, and the only location reference:
+  warm cream walls, orange cove light washing the ceiling, polished terracotta
+  terrazzo underfoot, tall chromium trumpet columns in matched pairs down both
+  sides, white plinths and the collection along both walls, the brass plaque on
+  the hero wall on the axis. It is a four-panel sheet — take NOTHING of its
+  arrangement or layout, and never reproduce a grid.
+  THE MARK ABOVE THE PLAQUE IS A CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK:
+  one short thick black line about as wide as a man's hand, with three or four
+  shorter thick black lines breaking off it, every line solid and heavy like ink
+  and dark for its whole length, ending where it ends. It is masonry damage —
+  thick, black, angular, flat against the wall and part of the plaster.
+
+[0s] A locked MEDIUM shot, square to the hero wall at chest height: the brass
+  plaque dead centre in the lower half of the frame, the small black crack a
+  hand's width above it, the cream plaster filling the frame, the edge of a
+  chromium column at the very left and right, the orange cove light glowing
+  along the top. Fine plaster dust hangs in the light and drifts, slowly.
+  Nothing else moves.
+[5s] End on the same frame.
+
+AUDIO: room tone only — the faint hum of a large quiet building. No music, no
+words, no footsteps. NO SOUND AT THE START OR THE END: the clip opens mid
+room-tone with no intro sting or riser, and simply stops with no tail, swell
+or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around the cove
+light. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+NEGATIVES: no person, no hand, no shadow of a person, no cart, no mop, no
+tool, no second mark, no spiderweb of fine lines, no pale grey or tan mark, no
+hole, no rubble, no black surround, no large crack, no wall-spanning crack,
+no readable text except the plaque, no caption, no subtitle, no music, no
+words, no cut, no camera move, no zoom, no push-in, no dissolve, no fade, no
+grid, no split screen, no four-panel layout.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

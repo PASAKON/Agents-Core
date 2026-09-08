@@ -1,0 +1,92 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S18 · THE HAMMER · 8s · THE ENDING · CTO 2026-09-09 02:55 under the CEO's
+overnight creative authority ("ใช้จินตนาการของคุณได้ … ทำเพิ่มให้ได้เลย ย้ำว่าเลนฟรีเท่านั้น")
+
+WHY: Draft 3 ends on the bookend ("How did you know?" / "I dropped a painting").
+The story's fourth leg — the hammer — never lands: the man who made the
+hundred-million-dollar crack by accident stands in front of the fresh wall
+that replaced it, hammer in hand, and could make another one. He raises it. He
+stops. He lowers it. That is the whole film in eight seconds: the value was
+never in the wall. Fix-list #3 called this "the locked ending, stronger than
+the bookend". Cut order for Draft 4: bookend → THIS → black.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+FREE lane (Unlimited ON). Spec: 8s / 720p / 16:9 / Seedance 2.5 / High / 1/4 /
+Sound ON. Zoom the button: ZERO digits. Click ONCE. No previz.
+
+⚠️ 2 CHIPS: Dupe and the hall (loc_hall_big_e — the long hall, NOT the plaque
+wall). The camera stands where the new wall is, so no wall chip is wanted and no
+plaque, no mark and no crack may appear anywhere. The hammer is prose.
+
+REVIEW ORDER:
+1. ONE DUPE, alone, frontal, waist up, the hall empty behind him.
+2. THE HAMMER: a claw hammer in his right hand — hanging at 0-1s, RISING through
+   2-4s to shoulder height, STOPPED at ~4.5-5.5s, LOWERED by ~7s, at his side
+   at 8s. Frames at 0.5, 2, 3.5, 5, 6.5, 7.8s must show that arc.
+3. NO plaque, NO mark, NO crack, NO hole anywhere in any frame. A mark FAILS.
+4. Camera locked, no cut: 0.2s sweep, no spike >15x; ceiling-corner crop flat.
+5. NO words (whisper transcript empty); room tone + breath only, no music.
+6. Uniform: white with orange trim, gold V, cap on, curled moustache.
+File the take whatever the verdict, as S18-TheHammer-Fix1.MP4 in All
+Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
+
+TAKE LOG:
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+8s · 720p · 16:9 · ONE LOCKED SHOT. The camera never moves, never pans, never
+zooms, never drifts, no cuts, for the whole eight seconds. Sound On · High.
+
+CLOSING TIME. THE MUSEUM IS EMPTY AND ONE MAN IS IN IT. The camera stands
+exactly where a wall is, looking out into the hall, so that the man faces the
+lens the way a man faces a wall. Nothing is in front of the lens: no plaque,
+no mark, no crack, no hole, no frame, no object — only the man, and behind him
+the long empty hall.
+
+@project_absence_char_cleaner_c — DUPE, the cleaner: an Indian man of about
+  forty, lean, dark hair, a thick dark moustache with curled tips, in a WHITE
+  mandarin-collar uniform with ORANGE piping, a gold V on the chest and on his
+  white peaked cap, white shoes. In his RIGHT hand, hanging at his side, a
+  plain steel CLAW HAMMER with a wooden handle, the ordinary hammer of a man
+  who fixes things. His face is quiet and unreadable. He does not speak.
+@loc_hall_big_e — THE HALL behind him, soft and out of focus: the two rows of
+  chromium trumpet columns receding, the warm orange cove light along the
+  ceiling, the polished terracotta terrazzo, the red double doors far away at
+  the end. Take place and light from it. Nobody else is in it.
+
+WHAT HAPPENS, in eight seconds, in one shot:
+[0s] A locked frontal medium shot, waist up, dead centre: Dupe stands a pace
+  from the lens, facing it, still. The hammer hangs at his side. He is looking
+  at the wall — that is, straight at us — the way he looked at the other wall.
+  Room tone. His breathing.
+[2s] Slowly, his right arm RISES: the hammer comes up past his hip, past his
+  chest, to shoulder height, the head of it turned toward the lens, his grip
+  tightening. His eyes never leave the wall. His breath is shallow.
+[4.5s] HE STOPS. The hammer holds in the air at his shoulder. One second. Two.
+  The handle trembles once, barely. Nothing in his face decides anything.
+[6s] Slowly, he LOWERS it — the arm comes down the way it went up, until the
+  hammer hangs at his side again. He lets out the breath he was holding.
+[8s] End on his still face, the hammer at his side, the empty hall behind him.
+
+AUDIO: room tone, his breathing, the faint creak of the wooden handle in his
+grip, nothing else. No words. No music. NO SOUND AT THE START OR THE END: the
+clip opens mid room-tone with no intro sting or riser, and simply stops with
+no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp, the hall a little dimmer than by day. Photographed, not rendered: fine
+film grain, faint gate weave, slight colour fringing.
+
+NEGATIVES: no wall in front of him, no plaque, no mark, no crack, no hole, no
+damage, no object between him and the lens, no swing, no strike, no impact,
+no dust, no second person, no visitor, no guard, no Valder, no words, no
+voiceover, no subtitles, no captions, no text, no music, no score, no sting,
+no smile, no grin, no tears, no cut, no camera move, no zoom, no push-in, no
+dissolve, no fade, no slow motion, no handheld, no dutch angle, no lens
+flare, no grid, no split screen, no night exterior.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
