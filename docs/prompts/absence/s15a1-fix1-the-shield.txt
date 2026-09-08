@@ -76,9 +76,10 @@ REFERENCES — each with a job:
   gold V, mop in hand.
 @prop_cart_b — his cart at the edge, painting face-out.
 @project_absence_char_valder — between the workman and the wall, mid-fury.
-@project_absence_char_workman — slate-blue overalls, bucket and float, AT THE
-  WALL. Dupe puts himself in front of THIS man — he must be in frame or the
-  shield reads as nothing.
+@project_absence_char_workman — THE CONTRACTOR: overalls in DARK NAVY BLUE, the
+  colour of his reference picture, deep and close to black in shadow; bucket and
+  float, AT THE WALL. Dupe puts himself in front of THIS man — he must be in frame
+  or the shield reads as nothing.
 @project_absence_char_grandmother — in the wheelchair, present but SILENT this
   half; she speaks later.
 @project_absence_char_registrar_b — THE REGISTRAR: a formal BLACK suit, white
