@@ -277,7 +277,10 @@ killed by low memory, poll anyway). Renders took 30-55 min today. Finished
 card shows "NSFW / Credits refunded / sensitive content" → screenshot, STOP,
 report, do not re-fire. Otherwise: IDENTIFY YOUR CARD FIRST — open its Info panel and match the
 Created time to your fire time and the prompt text to your sheet; the top
-card is often another worker's clip (S2S t1 filed S2R's clip under S2S's
+card is often another worker's clip. IDENTIFY BY CREATED TIME == YOUR FIRE TIME
+(Higgsfield's Created is when the generation was queued, not when it landed —
+S2S t2's worker took a card created 34 min after its own fire, which was S2S-B's,
+2026-09-08). Sibling scenes share prompt text; the time is the discriminator. (S2S t1 filed S2R's clip under S2S's
 name, 2026-09-07 09:02). Then download → `md5` it against every mp4 already
 in ~/Downloads (a match = wrong card, start over) → ffprobe 1280x720 /
 duration → file to

@@ -549,26 +549,20 @@ up on 2026-09-08; append new PASSED entries ABOVE this header from now on.
 
 ---
 
-### S2S · the previz carries the camera DISTANCE; prose alone does not · take 1 (previz) PASSED item 1, take 2 (no previz) FAILED it · 2026-09-08 22:47
-DEFECT SEEN (take 2, free lane, 34 min): the grandmother's grey-knit back fills the
-  lower foreground at 0.5s and by 19s she has rolled INTO the group mid-hall — the
-  exact inverse of REVIEW ORDER item 1 "SHE NEVER ARRIVES, still obviously far at
-  19s". Wardrobe (grey, anchor held), registrar (cream-white), cast count, exits and
-  camera lock all passed. Withheld from Drive under the no-worse-take rule.
-PROMPT A = PROMPT B in text. The paste block was byte-identical between takes; the
-  sheet's POSITION MAP describes "every figure in the reference video". Take 1
-  (2026-09-07) was fired WITH docs/S2S-Render.MP4 attached as Video 1 and passed
-  item 1 ("tiny at the red door by 8s, still far at 19.5s"). Take 2 was fired
-  WITHOUT it because the CTO's brief said "No previz" — copied from the S15 sheets,
-  which have none — and the model, with no distance cue, put the named subject in
-  the near foreground.
-WHY A HELD AND B DID NOT: distance is not in the words. "Far away", "tiny",
-  "never arrives" are relative; the previz is the only absolute the model gets.
-LESSON: a sheet whose paste block references "the reference video" REQUIRES that
-  video attached; a brief may not say "No previz" for it. Add to the §0 gate:
-  `grep -c 'reference video' <sheet>` > 0 → the brief must name the previz file
-  and the worker must verify its byte count in the picker before firing.
-  S2S-B (fired 20:57, same omission) is expected to fail the same way.
+### S2S · RETRACTED 2026-09-08 23:12 — the "take 2" the worker reviewed was S2S-B's card, not S2S's
+WHAT ACTUALLY HAPPENED: the S2S worker (fired 20:22) identified a card "Created 8:56 PM"
+  as its own landed take and reviewed it — camera behind the grandmother, her back in
+  the foreground, rolling into the group. That is the B angle. Asset `ad847559` is
+  S2S-B's card (S2S-B fired 20:56:59; Higgsfield's Created time is the FIRE time,
+  not the landing time). The S2S-B worker later identified the same asset correctly
+  and it PASSES S2S-B's review order. S2S's real take 2 (created ~20:22) has not been
+  reviewed by anyone. The "no previz → foreground" causal story above was drawn from
+  the wrong clip and is withdrawn; whether S2S t2 needs the previz is UNKNOWN until
+  its real card is looked at.
+LESSON (this one stands): IDENTIFY A CARD BY ITS CREATED TIME EQUALLING YOUR FIRE
+  TIME, never "the newest New badge" and never "prompt looks like mine" — sibling
+  scenes share most of their prompt text. A Created time 34 minutes after your fire
+  is somebody else's card. Added to FIRE-PLAYBOOK §2.
 
 ---
 
