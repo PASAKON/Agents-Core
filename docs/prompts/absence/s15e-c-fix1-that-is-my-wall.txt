@@ -38,6 +38,13 @@ CHIP LINE TO ADD ONCE THE ELEMENT EXISTS (paste zone, after the buyer's block):
 @project_absence_prop_cheque — THE CHEQUE, exactly as its picture shows.
 
 TAKE LOG:
+- Take 1 fired 2026-09-08 23:49 UTC / 2026-09-09 06:49 ICT on winbox. Unlimited ON
+  first, then 15s/720p/16:9/Seedance 2.5/High/1/4/Sound On confirmed; duration
+  slider set 15 and read back aria-valuenow=15. Re-checked Unlimited after
+  duration change (still on). 5/5 chips bound (cleaner_c, grandmother,
+  prop_cheque, char_valder, loc_hall_big_d), 0 red/unbound tags. Generate button
+  zoomed immediately before click: UNLIMITED, struck 105, live 0. Asset count
+  738 -> 739 confirms one generation started. Clicked ONCE. Awaiting render.
 
 === END NOTES ===
 
