@@ -171,6 +171,49 @@ the filename. If a take already filed under that name passed a criterion yours
 fails, do not upload over it; report the comparison instead.
 
 TAKE LOG:
-(none yet)
+2026-09-08 17:56 ICT — take 1, CREDIT lane, 52 credits (720p/8s/Seedance 2.5/High,
+Unlimited OFF), filed All Scene/Fix-2/S15b2-ForTheArtist-Fix1.MP4 (CEO's second
+edit — CTO redirected filing from Fix-1 to Fix-2 mid-task). 12/12 chips bound, 0
+error chips, 0 flagged Elements. Balance 1000->896/1000 monthly credits.
+Verdict: FLAGGED, not clean.
+  1. She turns to Dupe: PASS. Head visibly turns from wall-facing (f0.1) to
+     Dupe-facing (f2.9) before the line; audio shows two speech bursts at
+     0.5-1.4s and 2.1-2.6s, both within shot one, matching the six words.
+  2. Six words, nobody else speaks: PASS. No dialogue-band audio energy in
+     shot 2 or shot 3 (only pen/ledger SFX at 4.1s/4.8s).
+  3. Ledger struck/rewritten/closed: PASS. Registrar (black suit, white
+     gloves, gold V, brown leather ledger) visibly writes then closes it,
+     3.3-4.8s.
+  4. Valder's smile back, unchanged: PASS. Warm/genuine smile at 5.3-6.7s,
+     no anger or loss.
+  5. Dupe does not smile/react: PASS. Neutral/tense expression at 6.9-7.5s.
+  6. THE MARK: numeric canon-8 check PASSES (bbox 4.61% of frame width,
+     fill ratio 0.202) but the SHAPE is wrong — it rendered as a thin
+     spiderweb of fine radiating/tapering lines, which is exactly what the
+     paste block's CRITICAL NEGATIVES bans ("no spiderweb, no fine
+     radiating fractures, no tapering spikes, no curling tendril"), not the
+     required thick/solid/black/angular masonry crack. FLAG.
+  7. Count: 2 navy uniforms in correct order (tall-thin, short-heavy,
+     Carrington's black-suit man third) — PASS. 1 registrar, matches the
+     ledger-closeup character — PASS. Full 21-person room count NOT
+     verifiable from shot one's locked framing alone (Valder/Carrington sit
+     outside this angle, described as elsewhere in the hall); visible count
+     in this frame was 16 + press. Press count in this frame reads as 5
+     visible camera-holders against the sheet's "FOUR of them" — minor,
+     unconfirmed (partial occlusion possible).
+  8. UNAUTHORIZED THIRD CUT, measured: sweep (0.2s steps, greyscale MAD,
+     median 0.816) shows three boundary spikes, not two — ~3.2s (82.96,
+     ~102x median), ~5.2s (70.34, ~86x median), and an unlisted ~6.8s cut
+     (51.38, ~63x median, isolated single-step, immediate return to
+     baseline) that hard-cuts Valder's face to Dupe's face mid "shot
+     three." The paste block names only two cuts (3s, 5.5s) and CRITICAL
+     NEGATIVES explicitly bans "no cut other than the two named above."
+     FLAG — this is the shot-three Valder->Dupe transition the prose
+     describes in words but the negatives forbid as a cut.
+  Audio start/end: PASS, no intro sting or outro tail (RMS ~14% of peak at
+  0.0-0.3s, ~5-7% of peak at 7.7-8.0s).
+File id: 125ET789Yfvdla3kjpa81WTdRFrx1bS42. Local copy:
+~/Downloads/hf_20260908_105638_cd83cfcf-94ec-49f3-b97f-a3257ba16a7d.mp4
+(md5 edbe44a945fb072ef5062420049b18e4, 1280x720, 8.041667s).
 
 === END NOTES ===
