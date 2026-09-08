@@ -200,6 +200,18 @@ Replace the ban with a positive statement of what occupies that place instead.
   `[...document.querySelectorAll('[contenteditable="true"] span.text-font-brand')].filter(e => !e.querySelector('span') && e.textContent.trim().startsWith('@')).length`
   — count unique names, 0 red/unresolved '@'. If the paste leaves names
   unresolved, bind each by typing @ and selecting (slow — say so).
+- THREE ELEMENTS ARE FLAGGED AND MAKE HIGGSFIELD REFUSE THE GENERATE CLICK
+  OUTRIGHT (warning triangle on the tile): `project_valder_char_villagers_poor`,
+  `prop_croc_bag`, `prop_car`. They are not "risky", they are a hard stop — the
+  fire never starts. Carry what they held as PROSE in the paste block instead,
+  and never re-add the chip "to be safe".
+  MATCH THEM ON A WORD BOUNDARY. `prop_car` is flagged; **`prop_cart_b` is a
+  DIFFERENT, UNFLAGGED Element** — it is Dupe's cart with the painting on it,
+  and it is load-bearing in S15b / S15c / S16 (the grandmother is buying what
+  is on that cart). A grep for `prop_car` with no boundary reports it as
+  flagged and would delete the scene's subject. Use
+  `grep -E 'project_valder_char_villagers_poor|prop_croc_bag|prop_car([^t]|$)'`
+  (CTO, 2026-09-08 — caught this on my own gate before it reached a sheet).
 - PREVIZ (if the brief names one): attach via the reference panel's file
   input, verify the platform's reported size equals `ls -l`'s byte count (the
   picker's "Last used" sort shows a stale asset first). readyState 0 /
