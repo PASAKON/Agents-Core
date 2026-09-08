@@ -192,6 +192,22 @@ Replace the ban with a positive statement of what occupies that place instead.
   hit a cover — `document.elementFromPoint(x,y)`, close the cover by its own
   control, click the real toggle via javascript_tool. The zoomed screenshot is
   the authority; a JS scrape can read a decoy element.
+- A LONG RENDER IS NOT A DEAD RENDER, AND CANCELLING IS WHY WE CANNOT TELL.
+  The only long card ever allowed to finish was S2I take 1: 185 minutes, then it
+  landed CLEAN — 20.04s, 17.5 MB, green "Ready", filed as S2I-Fix1.MP4
+  (docs/reports/absence-wave-20260907-s2i-t1.md). Every other long card on this
+  lane (95, 100, 152 min on 2026-09-07; S14 at 154 min on 2026-09-08) was
+  CANCELLED before it finished, so not one of them is evidence of failure — the
+  cancel is precisely what destroyed the evidence. As of 2026-09-08 there is NO
+  observed case of a card on this lane failing on its own, and one clear case of
+  one landing at 185 minutes.
+  So the default is TO LET IT RUN. Report at 60 minutes because the number is
+  useful, but do not read it as "the lane is stalled" — that inference is exactly
+  backwards, and it cost the CTO a 154-minute S14 render on 2026-09-08 that was
+  plausibly ~30 minutes from landing.
+  Cancel ONLY as a throughput decision the CTO makes explicitly with the
+  arithmetic stated: clips remaining x expected minutes against the hours left.
+  Never cancel on the theory that the card is dead.
 - EVERY DURATION IS FREE ON UNLIMITED, INCLUDING 20s (measured 2026-09-08 12:13
   on S14). The button read `UNLIMITED · ~~140~~ · 0` at 20s — the strike-through
   number rises with duration and the charged number stays 0. So a long take is
