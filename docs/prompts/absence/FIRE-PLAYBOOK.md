@@ -248,6 +248,11 @@ Replace the ban with a positive statement of what occupies that place instead.
   flagged and would delete the scene's subject. Use
   `grep -E 'project_valder_char_villagers_poor|prop_croc_bag|prop_car([^t]|$)'`
   (CTO, 2026-09-08 — caught this on my own gate before it reached a sheet).
+- A SHEET THAT SAYS "the reference video" REQUIRES ITS PREVIZ (S2S t2, 2026-09-08):
+  before the browser, `grep -c 'reference video' <sheet>`; if > 0 the previz file
+  named in the sheet's NOTES (e.g. docs/S2S-Render.MP4) MUST be attached and its
+  byte count verified, whatever the brief says. Without it the model has no
+  distance cue and puts the named subject in the near foreground.
 - PREVIZ (if the brief names one): attach via the reference panel's file
   input, verify the platform's reported size equals `ls -l`'s byte count (the
   picker's "Last used" sort shows a stale asset first). readyState 0 /
