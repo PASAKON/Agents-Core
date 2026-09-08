@@ -192,6 +192,11 @@ Replace the ban with a positive statement of what occupies that place instead.
   hit a cover — `document.elementFromPoint(x,y)`, close the cover by its own
   control, click the real toggle via javascript_tool. The zoomed screenshot is
   the authority; a JS scrape can read a decoy element.
+- EVERY DURATION IS FREE ON UNLIMITED, INCLUDING 20s (measured 2026-09-08 12:13
+  on S14). The button read `UNLIMITED · ~~140~~ · 0` at 20s — the strike-through
+  number rises with duration and the charged number stays 0. So a long take is
+  not a credit decision: pick the duration the scene needs. On the CREDIT lane
+  the same fire would be 140, which is why a non-zero digit is always a STOP.
 - PROMPT: paste ONLY the block between "PASTE FROM HERE" and "PASTE STOPS
   HERE" with the base64 synthetic paste, then the End→space→Backspace tap so
   Lexical binds the chips (worked on S2L t6, S2K t2, S2M t4). Chip gate:
