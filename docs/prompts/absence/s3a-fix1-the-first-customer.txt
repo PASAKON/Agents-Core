@@ -34,6 +34,11 @@ File the take whatever the verdict, as S3a-FirstCustomer-Fix1.MP4 in All
 Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
 
 TAKE LOG:
+- 2026-09-09 02:12 ICT: composer fully staged on Mac (4/4 chips bound, no
+  warning triangles, 10s/720p/16:9/Seedance 2.5/High/1/4/Sound On, Unlimited
+  ON, price struck 70→0), Generate clicked once — refused with "1 unlimited
+  generation at a time" (S9b rendering). Nothing fired, asset count unchanged
+  at 732. staged on Mac, not fired, moved to winbox (CEO 02:16).
 
 === END NOTES ===
 
