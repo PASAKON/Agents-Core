@@ -89,7 +89,7 @@ REFERENCES — each with a job:
 @char_registrar — THE REGISTRAR: a CREAM-WHITE mandarin-collar suit with thin ORANGE piping, white
   gloves, a GOLD V, the leather ledger. THERE IS EXACTLY ONE REGISTRAR — one man,
   standing on the RIGHT side of the room, still, holding the ledger. He is the
-  only person in the entire frame wearing a black suit with white gloves and a
+  only person in the entire frame wearing a cream-white suit with white gloves and a
   gold V; every other guest wears something different.
 @gentleman_e — the room, planted at the frame edge.
 @project_valder_char_press — THE PRESS, FOUR of them, FILMING ALL OF THIS:
