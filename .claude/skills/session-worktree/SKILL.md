@@ -3,114 +3,137 @@ name: session-worktree
 owner: CTO
 origin: mooniex-org
 scope: >-
-  Prints the current session as an emoji work-breakdown tree, each node tagged by
-  work type (READ / BUILD / FIX / DESIGN / TEST / SHIP), then a plain-language
-  summary for the CEO, then the same tree as a picture — rendered by
-  tools/session_diagram.py in the diagram-design system and published as an
-  Artifact whose link is the last line. Chat stays text and emoji — CTO chat
-  renders no inline images; the picture lives behind the link. Absorbed the
-  former /session-summary. Enforces the §35 one-problem view.
-description: Show what this session has done, is doing, is blocked on, and has left — as a text tree, a plain recap, and a diagram published as an Artifact link. Trigger on /session-worktree and when the CEO asks "ทำถึงไหนแล้ว", "เหลืออะไร", "ติด blocker ตรงไหน", "สรุป session", "อธิบายแบบบ้านๆ", "progress", "where are we", "recap", "ขอ diagram session", "ส่งรูป worktree".
+  Answers "ทำถึงไหนแล้ว" with a session MAP: one JSON per session that the C-level
+  patches with only what changed, tools/session_diagram.py draws it in the
+  diagram-design system (START → goal blocks with task checklists → dependent
+  goals, separate lines, detours, ◀ HERE, minutes per block), and the Artifact
+  tool republishes one link per session. Chat gets a short status block, a plain
+  recap and the link — never the picture, never the full tree unless asked.
+  Absorbed the former /session-summary. Enforces the §35 one-problem view.
+description: Show what this session has done, is doing, is blocked on, and has left — a session map (Artifact link) plus a short status block and a plain recap. Trigger on /session-worktree and when the CEO asks "ทำถึงไหนแล้ว", "เหลืออะไร", "ติด blocker ตรงไหน", "สรุป session", "อธิบายแบบบ้านๆ", "progress", "where are we", "recap", "ขอแผนที่ session", "ขอ diagram session". Do NOT fire at /session-open or on your own — the map exists only once the CEO asks for a worktree.
 created_by: human
 audience: [cxo]
 ---
 
-# Session Worktree — what's done / doing / blocked / left (+ plain recap)
+# Session Worktree — the session map (+ short status + plain recap)
 
-On `/session-worktree` (or "ทำถึงไหนแล้ว", "session status", "progress", "เหลืออะไร",
-"ติด blocker ตรงไหน", and the merged-in "สรุป session", "recap", "summarize", "วันนี้ทำอะไรไปบ้าง"),
-reconstruct the CURRENT session from the conversation so far and print TWO stacked views as
-**text + emoji** (Thai-safe; never an image inline — the CTO chat is a terminal REPL, see
-[[cto-chat-text-output]]), then send the SAME tree as a picture (view 3):
+On `/session-worktree` (or "ทำถึงไหนแล้ว", "session status", "progress", "เหลืออะไร", "ติด blocker
+ตรงไหน", "สรุป session", "recap", "วันนี้ทำอะไรไปบ้าง"), reconstruct the CURRENT session and answer
+in three parts, in this order:
 
-1. 🌳 **the worktree tree** — technical, every node tagged by work type, with sha/file/approve evidence.
-2. 📋 **the plain recap** — zero-jargon business summary for the CEO (the former `/session-summary`).
-3. 🖼 **the picture** — the tree rendered by `tools/session_diagram.py` in the `diagram-design`
-   system and published as an Artifact; its **link is the last line**.
+1. 📊 **status block** — printed by the script (counts · 📍 where we are · 🔴 blockers). Paste as-is.
+2. 📋 **plain recap** — 5–8 lines, zero jargon, for a CEO with no coding knowledge.
+3. 🖼 **the map** — the Artifact link, the **last line**. Every detail lives there.
 
-Same facts, three readers: the tree is for the CTO (detail), the recap is for a CEO with zero coding
-knowledge (the "so what"), the picture is the whole session at a glance from any device
-(CEO 2026-09-08: "เราจะได้เห็นภาพรวมของทั้ง session เป็น diagram เลย"; 2026-09-09: the link, not a
-Telegram photo — it opens anywhere, zooms crisply, and never lands in the SomPong chat). Always
-print tree first, recap second, link last.
+Chat stays text + emoji (the CTO chat is a terminal REPL — [[cto-chat-text-output]]). The full
+🌳 tree is no longer printed: the CEO chose "short + link" (2026-09-09) because a tree retyped
+on every run was this skill's single biggest token cost. `show --tree` exists for the moment the
+CEO explicitly asks for the text tree.
 
 This is a **read of progress**, not new work. Don't start a task here — just mirror state.
 
-## Colour vs emoji
+## What the map is (CEO 2026-09-09)
 
-- **Emoji: yes.** iTerm2 renders emoji — use them as the status + type markers (below).
-- **ANSI colour: no** (in this skill). The output is text Claude types into the chat, which
-  is markdown, not a TTY stream — raw `\033[..m` codes would print literally. Emoji carry the
-  visual weight instead. (True ANSI colour only exists in `session_tree.py`, which is a real
-  script printing to the terminal.)
+A left→right picture of the session: **START** (what the CEO asked) → **goal blocks** → **FINISH**
+(the charter's Definition of Done under a flag; every line runs into it, green when complete). A
+goal that needs an earlier goal follows it with an arrow; a goal on its own line sits on its own
+row; each block lists its tasks 1-2-3 with a status icon, the block's `start→finish · minutes`,
+and the task being worked on is amber with a map-pin `HERE`. Work that left the path hangs under
+its block as a **DETOUR** (came back, ↩) or **PARKED** (dead end ⊥, LungNote). **Workers** this
+session delegated hang under the goal they serve (read live from `state/tasks.db`). Colours are
+status — done green · doing amber · blocked red — icons are Tabler, never emoji; the standard is
+`org:playbooks/session-map.md` (colours, icons, vocabulary) and is the same for every C-level.
+One map, one link per session; on a phone it scrolls sideways — horizontal only (CEO 2026-09-09).
 
-## Build the tree
+Vocabulary, so every session's map reads the same:
 
-1. **main** = the session's Entry Problem (from the `/session-open` charter; if none was
-   set, infer the single problem this session is solving — IRON §35: one session, one problem).
-2. **nodes** = the concrete work items tackled, in order, numbered `#1, #2 … #N` (sub-steps
-   `#4.1 … #4.5`). Nest as deep as the work actually branched.
-3. Each node carries TWO orthogonal markers:
-   - **status emoji** (scanned first): ✅ done · 🔄 in-progress · ⬜ not started · 🔴 blocked
-   - **work-type tag** (glyph + WORD): what KIND of work it was — see the taxonomy below.
-     A node's type and status are independent (a BUILD can be done, doing, or blocked).
-4. Put `⬅️ อยู่ตรงนี้` on the node currently in progress.
-5. **Blocked node (🔴):** append `· BLOCKED: รอ <what>` inline, and list every blocker in a
-   `🔴 BLOCKERS` summary under the tree. Name the wait precisely — a CEO decision, an env/secret
-   (e.g. FAL_KEY), a dependency task, prod creds, or an external party. Per the org rule, every
-   real blocker also gets a GitHub issue — note the issue # if one exists.
-6. Last node = 🏁 CLOSE — reachable only when every node above is ✅ (a 🔴 blocks the close).
+- **Goal** = one thing the CEO asked for in this session (เรื่องที่ CEO สั่ง). The charter's Entry
+  Problem is usually `G1`; a second ask mid-session is a new goal. `depends_on` when a goal needs
+  another finished first; no `depends_on` = a separate line.
+- **Task** = a step inside a goal — the worktree nodes, numbered by the script. `type` is one of
+  READ · RESEARCH · ANALYZE · BUILD · FIX · DESIGN · SETUP · TEST · SHIP · DOC; `evidence` (sha,
+  file, "CEO approve") on done ones — no node is done by narration; `blocked_on` on blocked ones.
+  The charter's DoD items become tasks of their goal.
+- **Detour** = work that left the path. `interrupt` = had to be done, then back on the line (an
+  incident, a fix, a CEO question); `parked` = raised, not done here, sent to LungNote (`note` =
+  the todo id, IRON §35). Both hang under the goal they interrupted.
+- **here** = `G2.3` (a task) or `G2` (a goal). Omit it and the script points at the first `doing`.
+- **DoD** = the charter's Definition of Done items, `F.1 … F.n`, shown in the FINISH block; tick
+  them with `set: {"F.2": "done"}` as they are verified — same honesty bar as `/session-close`.
+- **Worker** = a task this session delegated (`tasks.owner_cto` = this session). The script reads
+  every one of them at every render — role, task id, tmux name, worker session, host, status,
+  runtime — you only say which goal it serves, once: `"workers": {"G2": ["task-149e6c86"]}`.
+  Unassigned workers show in a band under the rows; finished ones stay (green / grey).
+- **Times** are stamped by the script when a status changes (doing/blocked start the clock, done
+  stops it) — never type times; the map derives each block's minutes from its tasks.
 
-## Work-type taxonomy (the node tag)
+## Steps
 
-Pick the one tag that best fits each node. Core five used most: READ · BUILD · FIX · TEST · SHIP.
+### First /session-worktree of the session → `map`
 
-| glyph | TYPE | when |
-|:--:|---|---|
-| 🔍 | READ / RECON | reading code, surveying existing state, reconnaissance |
-| 📚 | RESEARCH | external lookup (web, docs, a spec, an API) |
-| 🧠 | ANALYZE / DECIDE | analysis, answering a CEO question, go/no-go, planning |
-| 🔨 | BUILD | new thing created (code / feature / script) |
-| 🔧 | FIX | bug fix, repair, recover something broken |
-| 🎨 | DESIGN | UI / visual / redesign |
-| ⚙️ | SETUP | env, creds, infra, deploy plumbing |
-| 🧪 | TEST / VERIFY | testing, proving, live verification |
-| 🚀 | SHIP | push to prod / merge / deploy |
-| 📝 | DOC | documentation, wiki, memory |
-| 🏁 | CLOSE | the session-close node |
-
-Use only the types that actually occur. Don't force a tag — if a node is genuinely mixed,
-tag it by its dominant outcome.
-
-## Format — view 1: the tree (print straight to chat)
-
-```
-🌳 SESSION WORKTREE — <date>
-🎯 main: <entry problem · one line>
-│
-├─ ✅ #1  🔧 FIX     — <what> ............. <evidence: sha / file / CEO approve>
-├─ 🔄 #2  🔨 BUILD   — <what>                ⬅️ อยู่ตรงนี้
-│  ├─ ✅ #2.1 🔍 READ   — <sub>
-│  └─ ⬜ #2.2 🧪 TEST   — <sub>
-├─ 🔴 #3  🚀 SHIP    — <what> · BLOCKED: รอ <CEO อนุมัติ / FAL_KEY / dep task-XYZ>
-└─ ⬜ #N  🏁 CLOSE   — <what's left before close>
-   └─ 🏁 Done · Close Session
-
-📊 ✅ <done>/<total>   🔄 <doing>   ⬜ <todo>   🔴 <blocked>
-📈 ตามชนิดงาน: 🔨 BUILD ×<n> · 🔧 FIX ×<n> · 🧠 ANALYZE ×<n> · <… types present>
-
-🔴 BLOCKERS (<n>)
-  • #3 — รอ <what> · <GH issue #NN ถ้ามี>
+```bash
+.venv/bin/python tools/session_diagram.py map <<'EOF'
+{"entry_problem": "<the charter sentence>",
+ "start": "<what the CEO asked, in their words, ≤ 2 lines>",
+ "dod": [{"text": "<charter DoD item>", "done": false}],
+ "workers": {"G1": ["task-<id the session delegated>"]},
+ "goals": [
+   {"id": "G1", "title": "…", "type": "BUILD", "tasks": [
+      {"title": "…", "status": "done", "type": "SETUP", "evidence": "sha:…"},
+      {"title": "…", "status": "doing"},
+      {"title": "…", "status": "todo", "type": "TEST"}],
+    "detours": [{"title": "…", "kind": "interrupt", "status": "done"}]},
+   {"id": "G2", "title": "…", "depends_on": ["G1"], "tasks": [{"title": "…"}]},
+   {"id": "G3", "title": "a separate line", "tasks": [{"title": "…", "status": "blocked", "blocked_on": "รอ CEO …"}]}
+ ],
+ "here": "G1.2"}
+EOF
 ```
 
-If there are no blockers, drop the `🔴 BLOCKERS` block entirely (don't print an empty one).
-The `📈 ตามชนิดงาน` line tallies the type tags so the CEO sees what the session mostly was
-(building? firefighting? researching?). Drop it if there are only one or two nodes.
+Schema by example: `.venv/bin/python tools/session_diagram.py sample`. The session id comes
+from the launcher env (`<role>-<id>`); files land in `state/session-diagrams/<session>.{json,html,artifact.html}`
+(gitignored). `map` on an existing session replaces the map — only do that when the CEO asks
+to start the map over.
 
-## Format — view 2: the plain recap (append after the tree)
+### Every later /session-worktree → `patch` (only what changed)
 
-Print a separator, then recap the WHOLE session so a CEO with **zero coding knowledge** gets
-it in ~30 seconds. This is the merged-in `/session-summary` — same honesty bar, business-first.
+```bash
+.venv/bin/python tools/session_diagram.py patch <<'EOF'
+{"set": {"G1.2": "done", "G1.3": "doing", "F.1": "done"}, "evidence": {"G1.2": "sha:abc1234"}, "here": "G1.3",
+ "workers": {"G2": ["task-149e6c86"]},
+ "add": {"tasks": {"G2": [{"title": "a new step"}]},
+         "goals": [{"id": "G4", "title": "a new ask from the CEO", "tasks": [{"title": "…"}]}],
+         "detours": {"G1": [{"title": "…", "kind": "parked", "note": "LungNote <todo id>"}]}},
+ "blocked": {"G2.1": "รอ FAL_KEY"}}
+EOF
+```
+
+Refs: `G2` goal · `G2.3` task · `D1` detour · `F.2` DoD item. `set` takes any status; `blocked`
+sets the status and the reason in one go; `add` appends (tasks get the next number, detours the
+next `D` id, `dod` the next `F`); `workers` ties delegated tasks to a goal. A typical patch is
+1–3 lines; never resend the whole map. `sample-patch` prints an example.
+
+### Then, every run
+
+1. **Paste the script's status block** (the `📊` / `📍` / `🔴` lines) — that is part 1.
+2. **Write the plain recap** (below) — part 2.
+3. **Publish:** `Artifact(file_path="state/session-diagrams/<session>.artifact.html",
+   description="Session map · <date> · <session>", favicon="🗺️")` on the session's first run; later
+   runs call it with the same path and no favicon, which republishes the same URL.
+4. **Last line = the link:** `🖼 https://claude.ai/code/artifact/<id>`. No Artifact tool in this
+   runtime (the inline `cto_chat` REPL) → the last line is the file path and why:
+   `🖼 state/session-diagrams/<session>.html · runtime นี้ไม่มี Artifact tool`.
+5. **Titlebar:** `bash scripts/tab-main.sh "" <goals done>/<goals>` (numbers from the 📊 line) and
+   `bash scripts/session-rename.sh "<entry problem, short>"` (silent when unchanged).
+
+The script's `check:` line is diagram-design's own `self_check.py` — `check: FAIL` means fix
+before publishing. Telegram (`--png --send`) is opt-in only, when the CEO asks for the picture in
+SomPong; then the script's `telegram: ok` is the only "sent" ([[report_outcome_not_intent]]).
+
+## Part 2 — the plain recap
+
+Recap the WHOLE session so a CEO with **zero coding knowledge** gets it in ~30 seconds. This is
+the merged-in `/session-summary` — same honesty bar, business-first.
 
 ### The one rule: translate everything
 
@@ -132,112 +155,76 @@ Lead with what changed for the company; the technical thing goes in parentheses 
 Rule of thumb: **"ลูกค้า/ธุรกิจได้อะไร"** มาก่อนเสมอ.
 
 ```
+📊 goals 2/4 · tasks 9/14 · 🔴 1 · ↪ 1 detour · ⏱ 1h 25m        ← the script's lines, as-is
+📍 G2.3 — <task title>
+🔴 G4.1 — รอ <what>
 ────────────────────────────────────────────────────────
 📋 สรุปแบบบ้านๆ — <date>   (อ่าน ~30 วิ)
-
 🎯 เรื่องหลัก: <ประโยคเดียว ภาษาคน>
-
-✅ เสร็จแล้ว
-  • <ผลลัพธ์ที่ธุรกิจได้ ภาษาบ้านๆ>
-  • <…>
-
-🔄 กำลังทำ / รอผล
-  • <อะไร · รออะไรอยู่>
-
-🔴 ต้องให้ CEO ตัดสินใจ
-  • <ปัญหาแบบเข้าใจง่าย> → ขอ: <อนุมัติ / กุญแจ / เงิน $X / คำตอบ>
-
-💡 แปลว่า: <ผลต่อธุรกิจ 1 บรรทัด — ขายได้ขึ้น? ลูกค้าลื่นขึ้น? กันพังไว้?>
+✅ เสร็จแล้ว: <ผลลัพธ์ที่ธุรกิจได้> · <…>
+🔄 กำลังทำ: <อะไร · รออะไรอยู่>
+🔴 ต้องให้ CEO ตัดสินใจ: <ปัญหาแบบเข้าใจง่าย> → ขอ: <อนุมัติ / กุญแจ / เงิน $X / คำตอบ>
+💡 แปลว่า: <ผลต่อธุรกิจ 1 บรรทัด>
 💰 ค่าใช้จ่าย: ~<N> งานเอเจนต์ / $<X>   (ใส่เมื่อรู้ตัวเลขจริงเท่านั้น)
+🖼 https://claude.ai/code/artifact/<id>
 ```
 
-Keep the recap to roughly one screen. If a section is empty, **drop it** (don't print "ไม่มี").
-A small **table** is fine instead of bullets when clearer (e.g. before/after, or a few items
-each with a status emoji).
+If a section is empty, **drop it** (don't print "ไม่มี"). Keep the recap to 5–8 lines.
 
-## Format — view 3: the picture (last line)
+## Work-type taxonomy (task `type`)
 
-One source for text and picture: write the tree as JSON, let the script draw it. The model
-owns the facts, the script owns the geometry — a hand-drawn diagram costs ~15 minutes of SVG
-per picture, the script costs 5 seconds and cannot disagree with view 1.
+| glyph | TYPE | when |
+|:--:|---|---|
+| 🔍 | READ / RECON | reading code, surveying existing state, reconnaissance |
+| 📚 | RESEARCH | external lookup (web, docs, a spec, an API) |
+| 🧠 | ANALYZE / DECIDE | analysis, answering a CEO question, go/no-go, planning |
+| 🔨 | BUILD | new thing created (code / feature / script) |
+| 🔧 | FIX | bug fix, repair, recover something broken |
+| 🎨 | DESIGN | UI / visual / redesign |
+| ⚙️ | SETUP | env, creds, infra, deploy plumbing |
+| 🧪 | TEST / VERIFY | testing, proving, live verification |
+| 🚀 | SHIP | push to prod / merge / deploy |
+| 📝 | DOC | documentation, wiki, memory |
 
-1. **Feed the tree as JSON on stdin** — one Bash call, no file to write by hand. Schema by
-   example: `.venv/bin/python tools/session_diagram.py --sample`. Same nodes, ids, statuses
-   (`done|doing|todo|blocked`), type tags, evidence and `blocked_on` as view 1;
-   `entry_problem` = the charter's sentence; `dod` = the charter's items with their current
-   `done`. Omit `session` — the script reads the session id from the env and names every
-   output after it (`state/session-diagrams/<session>.*`, gitignored), so a later run of the
-   same session overwrites the files and the Artifact keeps its URL.
-2. **Render** — do this BEFORE typing view 1, and paste the script's tree as view 1:
-   ```bash
-   .venv/bin/python tools/session_diagram.py - --print-tree --check <<'EOF'
-   {"entry_problem": "…", "dod": [{"text": "…", "done": true}],
-    "nodes": [{"status": "done", "type": "BUILD", "title": "…", "evidence": "sha:…"}]}
-   EOF
-   ```
-   `--print-tree` prints view 1 in this skill's exact format · `--check` runs diagram-design's
-   own `self_check.py` (must say `check: OK`) · the `artifact:` line names the file to publish.
-3. **Publish the picture with the Artifact tool** — `Artifact(file_path=<the artifact: path>,
-   description="Session worktree · <date> · <session>", favicon="🌳")` on the session's first
-   run; later runs call it again with the same path and no favicon, which republishes the
-   same URL. The URL the tool returns is the **last line** of the whole output:
-   ```
-   🖼 https://claude.ai/code/artifact/<id>
-   ```
-   The link is private until the CEO shares it from the page. No Artifact tool in this runtime
-   (the inline `cto_chat` REPL) → print the file path instead and say why:
-   ```
-   🖼 state/session-diagrams/<session>.html · runtime นี้ไม่มี Artifact tool เปิดไฟล์ดูเอง
-   ```
-   Telegram is opt-in only — `--png --send` — when the CEO explicitly asks for the picture in
-   SomPong; then the script's `telegram: ok` is the only "sent" ([[report_outcome_not_intent]]).
+Use only the types that actually occur; tag a mixed step by its dominant outcome.
 
-## After printing: push the count to the Main Tab
+## The text tree — only when asked
 
-The tree already counted `✅ done / total`. Send that same pair to the window
-titlebar so the CEO reads progress off the tab bar without opening anything:
-
-```bash
-bash scripts/tab-main.sh "" <done>/<total>   # "" keeps the goal set at /session-open
-bash scripts/session-rename.sh "<entry problem, short>"
-```
-
-Use the numbers already in the `📊` line — never invent a percentage. This is
-the routine moment the bar moves; skipping it leaves the titlebar showing a
-stale count until close.
-
-`session-rename.sh` is normally **silent** here — it prints nothing worth
-reading (`unchanged: <topic>`) on the vast majority of calls, because it only
-sends `/rename` when the entry problem's short form has actually drifted from
-what the session is already named. That's the same category of exception as
-the `tab-main.sh` call right above it: `/session-worktree` documents itself
-as read-only, and pushing an unchanged display name is exactly as much "new
-work" as pushing an unchanged progress count — a display-layer sync, not a
-task. Skip it only if the session never charter'd a topic at all.
+`.venv/bin/python tools/session_diagram.py show --tree` prints the classic 🌳 tree (goals as
+nodes, tasks and detours as children, ⬅️ อยู่ตรงนี้, ⏱ per line, 🔴 BLOCKERS) from the same map.
+Print it only when the CEO asks for the text tree — it costs the tokens the map was built to save.
 
 ## Rules
 
-- **Print both text views, every time, then the picture line.** Tree first (technical), plain
-  recap second (business), the `🖼` line last.
-- **Chat stays text + emoji.** Never paste an image into the chat — the terminal shows nothing
-  inline. The picture lives behind the Artifact link (view 3); the chat shows the link.
-- **Two markers per node:** status emoji (state) + type tag (kind). Don't collapse them.
-- **Evidence on ✅ items** (sha, file, "CEO approve") — same honesty bar as `/session-close`;
-  no node marked done by narration. A side-effect (post sent, money spent, email out) counts
-  as done only if verified in the real world ([[orphan_recovery_verify_external_state]]).
-- **Blockers are loud.** A 🔴 node must say what it's waiting on, surface in the summary, and
-  (for real external blockers) carry a GitHub issue. A session with an open 🔴 cannot 🏁.
-- **Recap = zero jargon.** Every line passes the "CEO ไม่ต้อง Google" test. Outcome first,
-  mechanism never. Code register stays normal inside code/commits — nothing technical leaks here.
-- **🔴 in the recap = an ask, stated plainly.** Name exactly what you need: a yes/no, a budget
-  ($ amount — never spend before the OK, [[ask_before_paid_api]]), a key, or an answer.
-- **One main per tree.** If the session drifted into a second problem, show the entry problem's
-  tree and note the drift as a parked item (it belongs in a new session).
-- **Don't over-nest trivia.** Group tiny steps; nest only where the work genuinely branched.
-- **Read-only.** This prints a recap; it changes nothing in the work — the files under
-  `state/session-diagrams/` and the Artifact publish are display-layer, like the tab title.
-  Want it saved for next time? That's
-  [[session-save]]. Want the exit gate? [[session-close]]. Pairs with [[session-open]] (sets
-  the main + first nodes). `session_tree.py` is the *other* tree — DB tasks across all projects,
-  not this single conversation.
+1. **HARD — Never create the map on your own.** It exists only after the CEO asks for a
+   worktree; `/session-open` does not create it and a mid-session status question that the CEO
+   did not phrase as a worktree does not either.
+
+   **Why hard:** scope of authorisation — the CEO set this boundary on 2026-09-09 ("ถ้าไม่สั่ง
+   สร้างก็ห้ามทำ"), and every unrequested map spends tokens the design exists to save.
+
+2. **Short + link, every time.** Status block → recap → link. The map carries the detail; the
+   chat carries the "so what". One horizontal layout on every device (a phone scrolls sideways) —
+   the CEO's choice, not a gap.
+3. **Patch, don't resend.** After the first run, the map file is the source of truth; send only
+   the deltas. Resending the whole map costs the tokens the design exists to save and can
+   silently drop times the script stamped.
+4. **Evidence on ✅ items** (sha, file, "CEO approve") — same honesty bar as `/session-close`. A
+   side-effect (post sent, money spent, email out) counts as done only if verified in the real
+   world ([[orphan_recovery_verify_external_state]]).
+5. **Blockers are loud.** A blocked task carries `blocked_on`; the status block lists every 🔴;
+   a real external blocker also carries a GitHub issue. A session with an open 🔴 cannot 🏁.
+6. **Recap = zero jargon.** Every line passes the "CEO ไม่ต้อง Google" test. Outcome first,
+   mechanism never. Code register stays normal inside code/commits.
+7. **🔴 in the recap = an ask, stated plainly.** Name exactly what you need: a yes/no, a budget
+   ($ amount — never spend before the OK, [[ask_before_paid_api]]), a key, or an answer.
+8. **One entry problem per map.** A second ask from the CEO is a new goal on the same map (its
+   own line, or `depends_on` if it needs the first); a topic that does not belong to this session
+   is a `parked` detour → LungNote, not a new map.
+9. **Read-only.** This mirrors state; the files under `state/session-diagrams/` and the Artifact
+   publish are display-layer, like the tab title. Saved for next time? That's [[session-save]].
+   The exit gate? [[session-close]]. Pairs with [[session-open]] (which sets the entry problem).
+10. **The look is the org standard, not yours.** Colours, icons, chips and vocabulary come from
+    `org:playbooks/session-map.md` via the script; every C-level's map reads the same. Want a
+    change? Change the playbook and the script, not one session's output.
 ```

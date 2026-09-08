@@ -592,6 +592,44 @@ LESSON: a bound character with no wardrobe sentence will be dressed from the res
 
 ---
 
+## S16 THEY SAW THE WALL OUT — take 1 → take 2 (2026-09-09, PASSED)
+
+**Defect seen (take 1, credit lane 2026-09-08):** the cutting tool rendered as a
+CHAINSAW (orange body, long bar, chain, top handle); the two navy guards merged
+into ONE body at the left edge; the mark measured grey (size-dependent, see the
+mark entry above).
+
+**Prompt A (0f5f5ff):**
+> THE ELECTRIC SAW (no picture — describe it, do not look for one): a hand-held
+> electric wall saw with a round toothed blade and a moulded grip, cutting through
+> plaster and leaving a clean kerf.
+> … SECOND the short heavy navy guard with his shoulder against the first …
+
+**Prompt B (608a6e2):**
+> THE CUTTING TOOL (no picture — describe it, do not look for one): a hand-held
+> ANGLE GRINDER — a short grey motor body gripped in both hands, and at its front a
+> FLAT ROUND STEEL DISC as wide as a man's spread hand, spinning inside a
+> half-moon guard, its rim biting into the plaster and throwing a low fan of sparks
+> … the tool has no bar, no chain, no orange body and no top handle.
+> … SECOND the short heavy navy guard, a full head shorter and twice as wide,
+> standing half a step IN FRONT of the tall one so that BOTH navy tunics and BOTH
+> gold V's are seen whole, side by side, neither hiding the other …
+
+The word "saw" was removed from the whole paste block ("the grinder", "its
+spinning disc", "THE GRINDER STOPS").
+
+**Why B held (take 2, FREE lane, 00:20 → 00:55):** a grinder with a fan of
+sparks rendered exactly; three distinct bodies at the left edge (tall navy, short
+heavy navy, black-suited bodyguard); items 1, 3, 4, 6 unchanged from take 1.
+
+**Lesson:** "electric wall saw" is a WORD the model resolves to its most common
+picture (a chainsaw) — name a tool by its unmistakable SILHOUETTE (angle grinder,
+flat disc, sparks) and never use the generic word again in the block. And two
+characters sharing one reference picture need two POSITIONS, not a count:
+"shoulder against the first" invited the merge; "half a step in front, both
+tunics whole" gave each man his own place. Same family as the S15b "every
+person-chip gets a WHERE" entry.
+
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
 
 

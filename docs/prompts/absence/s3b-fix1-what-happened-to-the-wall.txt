@@ -1,0 +1,142 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S3b · WHAT HAPPENED TO THE WALL · 20s · THREE SHOTS, TWO JUMP CUTS · CEO
+2026-09-09 01:00
+
+CEO's brief, verbatim: "ฉากที่ Dupe ทำความสะอาดอยู่ใกล้รอยร้าว คือฉากนี้ (loc_hall_big_d)
+ใช้กล้องแบบ Jump Cut ได้เลย ฉากจะได้ไม่เพี้ยน … เห็นชายคนนี้ตรงไปที่กำแพงที่มีรอยแตก → เขาพูดว่า
+Excuse me sir ประมาณว่าอย่าเดินไปตรงนั้น เพื่อดึงไว้ แต่ชายคนนั้นก็ยังจะเดินไปอยู่ดี … อยากให้เขาพูด
+What happened to the wall เหมือนเขาจะโกรธมาก Dupe พูดขอโทษครั้งแรก Sorry Sir ชายคนนั้นจากหน้า
+นิ่งๆ เครียดๆ ก็ยิ้มขึ้นมาทันทีเลย แล้วบอกว่า นี่มันศิลปะชัดๆ ฉันชอบมันนะ". Select answers
+(01:05): lines = "Excuse me, sir." / "What happened to the wall?" / "Sorry,
+sir." / "That is art. I like it."; framing "as the existing prompts do, leave
+the crack to the picture — the model must not be asked to invent it".
+This is the film's FIRST "Sorry, sir" — the title line. The old man is in no
+other scene.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+FREE lane (Unlimited ON). Spec: 20s / 720p / 16:9 / Seedance 2.5 / High / 1/4 /
+Sound ON. Zoom the button: ZERO digits. Click ONCE. No previz.
+
+⚠️ 4 CHIPS: the old man, Dupe, the hall with the plaque wall
+(project_absence_loc_hall_big_d), the cart with the painting (prop_cart_b —
+not the flagged car Element). Nobody else.
+⚠️ THE MARK: the location chip's own canon prose, copied from S16, once. Do not
+add crack prose anywhere else, do not describe it a second time.
+
+REVIEW ORDER:
+0. THE MARK on the wall above the plaque: present, small, dark, one mark;
+   measure against canon rule 8 and report the numbers (size-dependent at a
+   medium-wide — information, not a gate; the CEO judges).
+1. TWO HARD CUTS at ~12s and ~17s and no others (0.2s full-frame sweep, two
+   isolated spikes >15x); camera locked inside every shot (ceiling crop flat).
+2. FOUR LINES, in order, and nothing else spoken (faster-whisper): Dupe
+   "Excuse me, sir" (~1s) · old man "What happened to the wall?" (~6s, angry)
+   · Dupe "Sorry, sir." (~9s) · old man "That is art. I like it." (~14s,
+   smiling). Any extra word FAILS.
+3. THE FLIP: the old man's face is stern and angry through "What happened to
+   the wall?" and turns into a broad delighted smile within about one second
+   before "That is art." Frames at 11.5s and 13.5s side by side must show two
+   different faces on the same man.
+4. THE OLD MAN reaches the wall and stops a pace from it; he never touches it.
+   Dupe stays behind him, mop in hand, and never steps between him and the
+   wall.
+5. Two people only; the old man is the green-leather man with the cane, not
+   Carrington, not Valder; Dupe wears the cap throughout.
+6. The painting stays on the cart, face out, at the edge — never handled.
+File the take whatever the verdict, as S3b-WhatHappenedToTheWall-Fix1.MP4 in
+All Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO
+reviews it.
+
+TAKE LOG:
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · THREE SHOTS JOINED BY TWO HARD JUMP CUTS at 12s and 17s —
+no other cuts, no dissolves. Inside every shot the camera is LOCKED: no pan,
+no zoom, no drift, no handheld. Sound On · High.
+
+TWO PEOPLE ONLY: the museum's first visitor and its cleaner, at the wall that
+carries the brass plaque. Nobody else is in the building.
+
+@project_absence_char_oldman — THE FIRST CUSTOMER: a heavy, elderly white man
+  with thick white hair swept back, heavy jowls and a stern face; a long
+  dark-green glossy leather overcoat with a wide shawl collar, a cream
+  turtleneck, cream leather gloves, dark-green trousers, cream shoes, and a
+  slim silver walking cane with a loop handle. No gold V — he is a visitor. He
+  walks straight to the wall, and when he sees the mark he is ANGRY — a loud,
+  offended anger, the anger of a man who has paid to see a museum. Then, in a
+  single second, the anger becomes DELIGHT: a broad, sudden, sincere smile.
+@project_absence_char_cleaner_c — DUPE, the cleaner: an Indian man of about
+  forty, lean, dark hair, a thick dark moustache with curled tips, in a WHITE
+  mandarin-collar uniform with ORANGE piping, a gold V on the chest and on his
+  white peaked cap, a mop in his hands. He is frightened of what the man will
+  find on the wall, and he is polite to the end.
+@project_absence_loc_hall_big_d — THE HALL, and the only location reference:
+  warm cream walls, orange cove light washing the ceiling, polished terracotta
+  terrazzo underfoot, tall chromium trumpet columns in matched pairs down both
+  sides, white plinths and the collection along both walls, the brass plaque on
+  the hero wall on the axis. It is a four-panel sheet — take NOTHING of its
+  arrangement or layout, and never reproduce a grid.
+  THE MARK ABOVE THE PLAQUE IS A CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK:
+  one short thick black line about as wide as a man's hand, with three or four
+  shorter thick black lines breaking off it, every line solid and heavy like ink
+  and dark for its whole length, ending where it ends. It is masonry damage —
+  thick, black, angular, flat against the wall and part of the plaster.
+@prop_cart_b — Dupe's burnt-orange cleaning cart, parked at the edge of the
+  frame, a framed painting leaning against its front, face out. Nobody touches
+  it.
+
+SHOT 1 · [0s-12s] · THE WALL. A locked medium-wide, waist height, square to
+the hero wall: the brass plaque dead centre and the small black mark above it,
+the cream wall filling the frame, a chromium column at each side, the cart at
+the far edge. THE OLD MAN walks into the frame from the left, cane tapping,
+heading straight for the wall. DUPE hurries in two steps behind him, the mop
+in one hand, the other hand half raised as if to hold him back, and says,
+quietly, pleading:
+  "Excuse me, sir."
+The old man does not stop and does not look at him. [4s] He reaches the wall,
+stops a pace from it, and looks up at the mark above the plaque. His face
+hardens. His jaw sets. [6s] He turns his head to Dupe and says, loud, angry,
+offended:
+  "What happened to the wall?"
+[9s] Dupe drops his eyes to the floor, both hands on the mop, and says, low:
+  "Sorry, sir."
+The old man turns back to the mark and stares at it, furious, breathing hard.
+
+[12s] JUMP CUT.
+SHOT 2 · [12s-17s] · THE FLIP. A locked close-up of the old man's face, from
+Dupe's side, the wall soft behind him. He is still glaring at the mark, brows
+down, mouth tight. Then — in one single second — the glare breaks: his
+eyebrows lift, his eyes soften, and a broad, delighted, sincere smile spreads
+across his whole face. [14s] He says, warm, pleased, almost laughing:
+  "That is art. I like it."
+
+[17s] JUMP CUT.
+SHOT 3 · [17s-20s] · THE HOLD. Back to the locked medium-wide of Shot 1: the
+old man beaming at the wall, leaning on his cane, nodding slowly at the mark
+like a man who has found what he came for. Behind him DUPE stands frozen with
+the mop, cap on, mouth slightly open, not understanding anything. Hold. End.
+
+AUDIO: the cane on terrazzo, footsteps, the mop handle, the four spoken lines
+and nothing else, room tone. No music. NO SOUND AT THE START OR THE END: the
+clip opens mid room-tone with no intro sting or riser, and simply stops with
+no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+NEGATIVES: no third person, no registrar, no guard, no Valder, no Carrington,
+no second visitor, no duplicate old man, no duplicate Dupe, no extra line, no
+improvised speech, no voiceover, no narration, no subtitles, no captions, no
+text, no music, no score, no touching the wall, no pointing at the mark with
+the cane, no handling the painting, no cap removed, no looking at the lens,
+no camera move inside a shot, no dissolve, no crossfade, no fade, no slow
+motion, no handheld, no dutch angle, no lens flare, no grid, no split screen,
+no four-panel layout, no second mark on the wall, no large crack, no hole.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

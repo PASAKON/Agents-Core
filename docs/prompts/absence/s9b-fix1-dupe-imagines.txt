@@ -1,0 +1,137 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S9b · WHAT HAPPENS TO ME · 20s INSERT INSIDE S9 · CEO 2026-09-09 00:35
+
+CEO's brief, verbatim: "ตอนนี้ อยากให้ฉาก Dupe จินตนาการ ถึงตัวเอง ตอนถูกจับได้ และ
+ศาลตัดสินต้องติดคุก — ขอเป็นฉากหน้าของ Dupe ประมาณ 60% ของจอ และเปลี่ยนฉากหลังอย่างเดียว
+ถ้าจะวิ่งหนี หรืออยู่ศาล หรือติดคุก Position หน้าของ Dupe จะต้องอยู่จุดเดิม ฉากหลัง
+สามารถ Transform ได้เลย". Answers (select, 00:40): placed INSIDE S9 between "HE
+OPENS HIS MOUTH" and "HE CLOSES IT"; backgrounds RUN → COURT → PRISON; Dupe's
+fear RISES TO TEARS; the judge says "Guilty." once, nobody else speaks. CTO's
+own calls: 20s, dissolves between backgrounds (a hard change would read as a
+cut), the chase runs through the hall's own columns so the grade stays warm.
+
+WHY: Draft 3 never shows why Dupe stays silent. This is the reason — he sees
+the whole sentence before he says a word, and swallows it. It is the film's
+moral-compass leg. The story stays exactly as written on either side of it.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+FREE lane (Unlimited ON, every duration is free). Spec: 20s / 720p / 16:9 /
+Seedance 2.5 / High / 1/4 / Sound ON. Zoom the button: ZERO digits. Click ONCE.
+
+⚠️ 2 CHIPS ONLY: Dupe and the hall. The judge, the guards' hands, the court and
+the cell are PROSE — there is no reference for them and none is wanted; the
+judge has no readable face on purpose. Do not add chips.
+
+⚠️ THIS SHEET ALLOWS DISSOLVES. The house negatives in s7-s9.txt ban dissolves
+and morphs; this scene IS a background morph on the CEO's instruction. The face
+never dissolves — only what is behind it. Do not paste the house negatives.
+
+REVIEW ORDER:
+0. THE FACE IS NAILED. Crop the centre of frame (x 30-70%, y 15-85%) and a
+   background strip (x 0-20%, full height). Sweep both at 0.2s, greyscale
+   mean-abs-diff between consecutive frames. The FACE crop must stay low and
+   flat for all 20s (its median well under the background crop's median, no
+   spike >3x its own median); the BACKGROUND crop must show three raised runs
+   where it dissolves (~3s, ~8s, ~13s) and one more at ~18s. Face bbox by eye
+   on frames at 1, 6, 10, 15, 19.5s: same size (about 60% of frame height),
+   same place, dead centre. A face that drifts, shrinks or re-frames FAILS.
+1. FOUR BACKGROUNDS IN ORDER: hall → running through the hall's columns
+   (streaking past, guards' hands on his shoulders by ~7s) → courtroom (high
+   dark bench, robed figure above, no readable face) → cell (barred door slides
+   shut behind him, cold light) → hall again by 19s.
+2. "Guilty." ONCE, off-screen, low, around 11s — and no other word in the clip.
+   Transcribe (faster-whisper, .venv/bin/python, small int8). A second word or
+   a second speaker FAILS.
+3. TEARS: dry eyes at 1s, wet by ~16s, a tear on the cheek by 18s.
+4. ONE DUPE: the cap, the moustache, the white uniform with orange trim and the
+   gold V. No second man, no mirror, no crowd in sharp focus.
+5. NO HARD CUT: the full-frame 0.2s sweep has no isolated spike >15x its median.
+   Dissolves are raised RUNS, expected; a single spike is a cut and FAILS.
+6. Audio has no music: RMS envelope oscillates with breath and the two hits
+   (gavel, iron door), not a flat bed.
+File the take whatever the verdict, as S9b-DupeImagines-Fix1.MP4 in All
+Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
+
+TAKE LOG:
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT, ONE MAN, ONE FACE THAT NEVER MOVES. The
+camera never moves, never pans, never zooms, never drifts, and there are no
+cuts for the whole twenty seconds. Sound On · High.
+
+A FRONTAL CLOSE-UP, straight down the lens: the face of one man fills the
+centre of the frame, about sixty percent of the picture's height from his chin
+to the top of his cap, dead centre, and IT STAYS EXACTLY THAT SIZE AND EXACTLY
+THAT PLACE FOR ALL TWENTY SECONDS. Everything that changes in this shot changes
+BEHIND him. The world behind his head dissolves from one place into the next,
+like a daydream, while his face is nailed to the frame. Nothing ever passes in
+front of his face.
+
+@project_absence_char_cleaner_c — DUPE, the cleaner: a lean man of about
+  forty-five in a WHITE cleaner's uniform with ORANGE trim and a small gold V on
+  the chest, a white peaked cap, a neat dark moustache, brown eyes. His face is
+  filmed as a portrait. He has just closed his mouth on a confession, and now he
+  is seeing what would happen if he said it. Sweat on his temple. He does not
+  speak, not once, in the whole clip.
+
+@loc_hall_big_e — THE HALL where it starts and ends: warm cream walls, orange
+  cove light along the ceiling, chromium trumpet columns, polished terracotta
+  terrazzo. Behind him it is soft and out of focus at the start; at the end it
+  returns exactly as it was.
+
+WHAT HAPPENS, in twenty seconds, in one shot:
+[0s] The warm hall behind him, soft. His eyes are wide and dry, his breathing
+  shallow and audible. A heartbeat, slow. His lips are pressed shut.
+[3s] THE HALL BEHIND HIM STRETCHES AND STARTS TO RUSH PAST — the chromium
+  columns streak backwards faster and faster as if he were running down the
+  building, the orange light smearing. His cap brim and collar flutter, his
+  breath jolts into gasps, his eyes dart — BUT HIS FACE DOES NOT MOVE IN THE
+  FRAME. He is running and going nowhere.
+[7s] Two hands in NAVY sleeves with gold buttons close on his shoulders from
+  the left and right edges of the frame and hold him. The columns stop dead.
+  The heartbeat quickens.
+[8s] THE HALL DISSOLVES INTO A COURTROOM behind him: a high dark-wood bench
+  towering above and behind his head, a single figure in a black robe seated
+  up there, too high and too shadowed for a face, cold grey light. His eyes
+  fill. His lower lip trembles.
+[11s] A gavel strikes once, hard. A low voice from behind him, off-screen,
+  says one word:
+  "Guilty."
+  Nobody else speaks in this clip, before or after.
+[13s] THE COURTROOM DISSOLVES INTO A CELL: bare grey concrete behind him, and a
+  door of black iron bars SLIDES SHUT across the background behind his head
+  with a heavy iron clang. The light goes cold and hard. The heartbeat is
+  loud.
+[16s] The first tear runs down his cheek. His face is still nailed to the
+  frame, still the same size, still dead centre. He blinks once. A second tear.
+[18s] THE CELL DISSOLVES BACK INTO THE WARM HALL, soft, exactly as it was at
+  the start. The heartbeat slows. His mouth is shut. He swallows.
+[20s] End on his held, wet face in the warm hall.
+
+AUDIO: his breathing, a heartbeat that quickens and slows, one gavel strike,
+one iron door clang, one spoken word "Guilty.", room tone. No music. NO SOUND
+AT THE START OR THE END: the clip opens mid room-tone with no intro sting or
+riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white in the hall: amber-orange highlights and
+mids, whites pushed slightly cool, shadows deep red-brown, halation around the
+lamps; the courtroom and the cell are cold grey by contrast, the face lit the
+same way throughout. Photographed, not rendered: fine film grain, faint gate
+weave, slight colour fringing.
+
+NEGATIVES: no cut, no camera move, no zoom, no push-in, no pull-out, no
+re-framing of the face, no change in the size of the face, no second man, no
+mirror image, no readable face on the judge, no jury, no lawyer, no crowd in
+sharp focus, no guards' faces, no weapon, no handcuffs in front of his face,
+no bars in front of his face, no hands over his face, no words from Dupe, no
+second spoken word, no subtitle, no caption, no text, no music, no score, no
+sting, no slow motion, no speed ramp, no camera shake, no handheld, no dutch
+angle, no lens flare, no grid, no split screen, no four-panel layout, no
+smile, no laugh, no comic expression, no looking away from the lens for long,
+no wall crack in frame, no plaque in frame, no mop in frame, no cart in frame.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
