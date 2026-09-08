@@ -5,6 +5,7 @@ state/tasks.db
 state/tasks.db-journal
 state/tasks.db-wal
 state/tasks.db-shm
+state/session-diagrams/
 state/logs/*.log
 state/logs/*_latest.log
 state/locks/*.lock

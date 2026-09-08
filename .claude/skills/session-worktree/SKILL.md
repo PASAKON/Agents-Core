@@ -5,9 +5,12 @@ origin: mooniex-org
 scope: >-
   Prints the current session as an emoji work-breakdown tree, each node tagged by
   work type (READ / BUILD / FIX / DESIGN / TEST / SHIP), then a plain-language
-  summary for the CEO. Text and emoji only — CTO chat renders no inline images.
-  Absorbed the former /session-summary. Enforces the §35 one-problem view.
-description: Show what this session has done, is doing, is blocked on, and has left. Trigger on /session-worktree and when the CEO asks "ทำถึงไหนแล้ว", "เหลืออะไร", "ติด blocker ตรงไหน", "สรุป session", "อธิบายแบบบ้านๆ", "progress", "where are we", "recap".
+  summary for the CEO, then sends the same tree as a picture — rendered by
+  tools/session_diagram.py in the diagram-design system and pushed to the CEO's
+  Telegram as a PNG. Chat stays text and emoji — CTO chat renders no inline
+  images; the picture travels out-of-band. Absorbed the former /session-summary.
+  Enforces the §35 one-problem view.
+description: Show what this session has done, is doing, is blocked on, and has left — as a text tree, a plain recap, and a diagram sent to the CEO's Telegram. Trigger on /session-worktree and when the CEO asks "ทำถึงไหนแล้ว", "เหลืออะไร", "ติด blocker ตรงไหน", "สรุป session", "อธิบายแบบบ้านๆ", "progress", "where are we", "recap", "ขอ diagram session", "ส่งรูป worktree".
 created_by: human
 audience: [cxo]
 ---
@@ -17,13 +20,18 @@ audience: [cxo]
 On `/session-worktree` (or "ทำถึงไหนแล้ว", "session status", "progress", "เหลืออะไร",
 "ติด blocker ตรงไหน", and the merged-in "สรุป session", "recap", "summarize", "วันนี้ทำอะไรไปบ้าง"),
 reconstruct the CURRENT session from the conversation so far and print TWO stacked views as
-**text + emoji** (Thai-safe; never an image — the CTO chat is a terminal REPL, see [[cto-chat-text-output]]):
+**text + emoji** (Thai-safe; never an image inline — the CTO chat is a terminal REPL, see
+[[cto-chat-text-output]]), then send the SAME tree as a picture (view 3):
 
 1. 🌳 **the worktree tree** — technical, every node tagged by work type, with sha/file/approve evidence.
 2. 📋 **the plain recap** — zero-jargon business summary for the CEO (the former `/session-summary`).
+3. 🖼 **the picture** — the tree rendered by `tools/session_diagram.py` in the `diagram-design`
+   system and sent to the CEO's Telegram as a PNG; its path + send status is the **last line**.
 
-Same facts, two readers: the tree is for the CTO (detail), the recap is for a CEO with zero coding
-knowledge (the "so what"). Always print **both**, tree first, recap last.
+Same facts, three readers: the tree is for the CTO (detail), the recap is for a CEO with zero coding
+knowledge (the "so what"), the picture is the whole session at a glance on the CEO's phone
+(CEO 2026-09-08: "เราจะได้เห็นภาพรวมของทั้ง session เป็น diagram เลย"). Always print tree first,
+recap second, picture line last.
 
 This is a **read of progress**, not new work. Don't start a task here — just mirror state.
 
@@ -146,6 +154,38 @@ Keep the recap to roughly one screen. If a section is empty, **drop it** (don't 
 A small **table** is fine instead of bullets when clearer (e.g. before/after, or a few items
 each with a status emoji).
 
+## Format — view 3: the picture (last line)
+
+One source for text and picture: write the tree as JSON, let the script draw it. The model
+owns the facts, the script owns the geometry — a hand-drawn diagram costs ~15 minutes of SVG
+per picture, the script costs 5 seconds and cannot disagree with view 1.
+
+1. **Feed the tree as JSON on stdin** — one Bash call, no file to write by hand. Schema by
+   example: `.venv/bin/python tools/session_diagram.py --sample`. Same nodes, ids, statuses
+   (`done|doing|todo|blocked`), type tags, evidence and `blocked_on` as view 1;
+   `entry_problem` = the charter's sentence; `dod` = the charter's items with their current
+   `done`. Omit `session` — the script reads the session id from the env. The script keeps a
+   copy as `state/session-diagrams/<session>-<yyyymmdd-HHMM>.json` (the dir is gitignored).
+2. **Render + send** — do this BEFORE typing view 1, and paste the script's tree as view 1:
+   ```bash
+   .venv/bin/python tools/session_diagram.py - --print-tree --check --png --send <<'EOF'
+   {"entry_problem": "…", "dod": [{"text": "…", "done": true}],
+    "nodes": [{"status": "done", "type": "BUILD", "title": "…", "evidence": "sha:…"}]}
+   EOF
+   ```
+   `--print-tree` prints view 1 in this skill's exact format · `--check` runs diagram-design's
+   own `self_check.py` · `--png` renders with headless Chrome · `--send` pushes the PNG to the
+   CEO's Telegram as a real file (CEO order #38, never a link).
+3. **Read the script's `telegram:` line and report exactly that**, as the last line of the
+   whole output:
+   ```
+   🖼 state/session-diagrams/<file>.png · ส่งเข้า Telegram แล้ว ✓                 ← telegram: ok
+   🖼 state/session-diagrams/<file>.png · Telegram ส่งไม่ผ่าน: <reason>            ← telegram: FAILED
+   🖼 state/session-diagrams/<file>.html · เครื่องนี้ไม่มี Chrome ส่งเป็นไฟล์ HTML แทน  ← png: skipped
+   ```
+   `ok` is the only thing that counts as sent ([[report_outcome_not_intent]]). No Chrome on
+   the box (Contabo today) → the script skips the PNG and sends the HTML as a document; say so.
+
 ## After printing: push the count to the Main Tab
 
 The tree already counted `✅ done / total`. Send that same pair to the window
@@ -171,8 +211,10 @@ task. Skip it only if the session never charter'd a topic at all.
 
 ## Rules
 
-- **Print both views, every time.** Tree first (technical), plain recap last (business).
-- **Text + emoji only.** Never render an image — the terminal shows nothing inline.
+- **Print both text views, every time, then the picture line.** Tree first (technical), plain
+  recap second (business), the `🖼` line last.
+- **Chat stays text + emoji.** Never paste an image into the chat — the terminal shows nothing
+  inline. The picture goes to Telegram (view 3); the chat shows its path and the send verdict.
 - **Two markers per node:** status emoji (state) + type tag (kind). Don't collapse them.
 - **Evidence on ✅ items** (sha, file, "CEO approve") — same honesty bar as `/session-close`;
   no node marked done by narration. A side-effect (post sent, money spent, email out) counts
@@ -186,7 +228,9 @@ task. Skip it only if the session never charter'd a topic at all.
 - **One main per tree.** If the session drifted into a second problem, show the entry problem's
   tree and note the drift as a parked item (it belongs in a new session).
 - **Don't over-nest trivia.** Group tiny steps; nest only where the work genuinely branched.
-- **Read-only.** This prints a recap; it changes nothing. Want it saved for next time? That's
+- **Read-only.** This prints a recap; it changes nothing in the work — the JSON/PNG under
+  `state/session-diagrams/` and the Telegram message are display-layer, like the tab title.
+  Want it saved for next time? That's
   [[session-save]]. Want the exit gate? [[session-close]]. Pairs with [[session-open]] (sets
   the main + first nodes). `session_tree.py` is the *other* tree — DB tasks across all projects,
   not this single conversation.
