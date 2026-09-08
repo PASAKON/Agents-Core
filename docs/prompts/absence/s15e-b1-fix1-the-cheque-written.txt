@@ -39,6 +39,75 @@ CHIP LINE TO ADD ONCE THE ELEMENT EXISTS (paste zone, after the buyer's block):
 
 TAKE LOG:
 
+Take 1 (winbox, task-1fc5ba70) — FLAGGED-valder-smiling+three-shot-wrong-bg.
+Fired 2026-09-08 22:53:44 UTC / 2026-09-09 05:53:44 ICT on
+https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3, Unlimited
+(struck 140 -> 0, zoom-verified before click), 20s/720p/16:9/Seedance 2.5/
+High/1/4/Sound On. 5/5 chips bound (cleaner_c, grandmother, prop_cheque,
+valder, loc_hall_big_d), 0 error chips, no warning triangles on any
+thumbnail. Asset count 737 -> 738. Landed ~35 min later (2026-09-08 ~23:29
+UTC), no concurrency toast, one clip only.
+Downloaded: C:\Users\UsEr\Downloads\hf_20260908_225339_d1a3a886-fd4b-4d91-af5d-2d26c8886c82.mp4
+(18,029,765 bytes / ~17.2 MB, md5 e05131071a04619ef74b9bc0c961028d).
+ffprobe: h264 1280x720 24fps + aac 32kHz stereo, duration 20.04s. Matches
+spec. NOT uploaded to Drive (winbox has no Drive token per task brief) —
+left in Downloads for the CEO/CTO to file to All Scene/Fix-2/
+(1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw) as
+S15e-B1-TheChequeWritten-Fix1-FLAGGED-valder-smiling.MP4.
+
+REVIEW (against the sheet's numbered order):
+1. Three lines, RMS envelope only (no faster_whisper on winbox — cannot
+   transcribe): exactly 3 voiced bursts, in order, at ~0.2-2.0s, ~3.4-4.4s,
+   ~14.9-15.8s. Nothing before 0.2s or after 15.8s (room tone only, no
+   tail/swell at the very end — matches spec). NOTE: the third burst lands
+   ~2-3s later than the sheet's [12s] cue for "One hundred million" — a
+   timing drift, not a missing line.
+2. Cheque already written, out of the knitted bag: confirmed at ~9.5-10.5s.
+   Zoomed frame at 10.5s: "100,000,000" clearly legible, cream/tan paper,
+   a signature beneath. No writing-on-camera. PASS.
+3. ONE hard cut, ffmpeg scene-detection (threshold 0.1) found exactly one
+   cut, at 11.667s (~12s as scripted), none other anywhere in the clip.
+   No literal grey/white flash frame at the cut (signalstats YAVG shows a
+   clean brightness step 100.6->93.0, not a spike) — reading "isolated
+   spike" as the scene-cut score itself, which is isolated and >>0 vs an
+   all-zero baseline elsewhere. Locked camera confirmed inside both shots
+   (no push/zoom/drift visible across sampled frames in each).
+4. Dupe takes it with both hands (visible from ~12.2s on) and looks down at
+   it (bow read as a small head-down, not a full bow) — close but a soft
+   miss on "bows his head a little", not a clean pass. It is a limp CREAM
+   PAPER cheque, thin, bending in his fingers — the known gold-plaque trap
+   from the ALL take did NOT recur. PASS on paper-not-plaque.
+   FLAG: Valder is visibly SMILING in the three-shot from the hard cut at
+   11.667s through at least 14s (screenshotted at 12.2s and 14s) — his
+   smile is only gone by ~17s. The prompt states "his smile is gone" as a
+   trait of the whole shot and the negatives explicitly ban "no Valder
+   smiling, no laughing" with no exception window. ~2-3s of a visible smile
+   right after the cut is a real violation of an explicit negative, not
+   framing ambiguity.
+   FLAG: the three-shot's background is the general hallway/column
+   corridor (chromium trumpet columns, orange cove light), NOT "the hero
+   wall... and the plaque wall" the framing spec calls for. The brass
+   plaque and the black crack mark on the wall (both clearly visible for
+   the whole cheque two-shot, 0-11.6s) are absent for the whole three-shot,
+   12-20s. This breaks the location continuity the sheet's framing section
+   asks for.
+5. Buyer: grey knitted headscarf + cardigan throughout, no sunglasses, no
+   purple, no coat, no hat — confirmed across all sampled frames. One Dupe,
+   one Valder, one buyer, no duplicates anywhere. PASS.
+6. Mark on the wall (canon rule 8, information only): a single thin
+   branching crack line above the plaque, visible 0-11.6s only (see flag
+   above re: absent in the three-shot) — drawn thinner/more sketch-like
+   than the sheet's "thick... solid black... like ink" description, for
+   the record, not a verdict.
+Valder never touches the cheque at any sampled frame (2, 7, 9, 9.5, 10,
+10.5, 11, 11.5, 11.8, 12.0, 12.2, 14, 17, 19, 19.8s) — confirmed clean.
+
+VERDICT: FLAGGED, not clean. Two real defects (Valder smiling for ~2-3s
+right after the cut; three-shot background drops the hero-wall/plaque/crack
+that the framing spec calls for), filed anyway per the sheet's own rule.
+The known gold-plaque trap from the ALL take did not recur — cheque reads
+correctly as cream paper both takes.
+
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
