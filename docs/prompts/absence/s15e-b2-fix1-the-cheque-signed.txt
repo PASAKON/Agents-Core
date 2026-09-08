@@ -1,0 +1,144 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S15e-B2 · THE CHEQUE, WRITTEN ON CAMERA · 20s (alternate for the editor) · CEO 2026-09-09 03:35 (after the editor meeting), sheets by the CTO under
+the overnight authority. FREE lane only (Unlimited ON, zero digits, click ONCE).
+
+CEO brief (verbatim): "เรายังไม่มีฉากที่ Valder โกรธเลย Valder ไม่มีทางยอมให้เงินกับ Dupe
+แน่ๆ … ต่อกันกับฉากที่ยายบอก Dupe ว่าฉันซื้อศิลปะ … หลังจากที่ Dupe สารภาพว่าเป็นคนทำกำแพงแตกเอง
+และผมยินดีชดใช้ความเสียหายทั้งหมด ผมขอโทษครับ … ต้องมีคำว่า ฉันไม่ได้ซื้อรอยร้าวของกำแพง แต่ฉันซื้อ
+งานศิลปะ และซื้อเช็คที่เขียนว่า 100,000,000 ให้ … Valder โกรธแล้วบอกว่า แต่นั่นมันกำแพงของฉันนะ
+ฉันควรได้มัน … ยายบอก Valder ว่า ฉันไม่ได้จ่ายเงินให้กำแพง ฉันจ่ายมันให้ศิลปินที่สร้างมัน".
+English lines approved by the CEO 03:40 (select): Dupe "I cracked the wall myself,
+sir. I will pay for all the damage. I am sorry." · the buyer "I did not buy a
+crack in a wall. I bought a work of art." + "One hundred million." · Valder "But
+that is MY wall! I should have it!" · the buyer "I did not pay for the wall. I
+paid the artist who made it."
+Fire order (CEO): cheque plate → ALL → B1 → C → A → S3b → B2 → AB → S18 → S2X.
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+Spec: 20s / 720p / 16:9 / Seedance 2.5 / High / 1/4 / Sound ON. No previz.
+
+⚠️ CHIPS: 4 — Dupe, the buyer, Valder, the hall (+1 when the cheque Element exists).
+THE CHEQUE is prose in this sheet until the Element `project_absence_prop_cheque`
+exists (the plate task registers it); when it does, add the chip line from the
+block at the bottom of these NOTES and bump the expected chip count by one.
+
+REVIEW ORDER:
+1. TWO LINES + the sum, in order, nothing else (whisper): "I did not buy a
+   crack in a wall. I bought a work of art." / "One hundred million."
+2. THE LAP INSERT (4-11s): her hands write 100,000,000 on the cheque with a pen;
+   zoom the frame at ~10s: the sum legible, blue ink.
+3. TWO hard cuts at ~4s and ~11s (two isolated spikes >15x), none other;
+   locked in each shot.
+4. Dupe takes it with both hands; Valder's smile gone, no touching.
+5. The buyer: grey knit, no sunglasses, no purple. One Dupe, one Valder.
+6. The mark on the wall: report canon rule 8 numbers (information).
+File the take whatever the verdict, as S15e-B2-TheChequeSigned-Fix1.MP4 in All Scene/Fix-2/ (folder id
+1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
+
+CHIP LINE TO ADD ONCE THE ELEMENT EXISTS (paste zone, after the buyer's block):
+@project_absence_prop_cheque — THE CHEQUE, exactly as its picture shows.
+
+TAKE LOG:
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · THREE FRAMINGS JOINED BY TWO HARD CUTS at 4s and 11s; locked camera in each. Sound On · High.
+
+AT THE HERO WALL, A MOMENT AFTER THE CONFESSION. Three people matter and the
+rest of the room is far back and soft: THE BUYER in her wheelchair, DUPE the
+cleaner, and VALDER the owner. Nobody else speaks, nobody else comes close.
+
+@project_absence_char_cleaner_c — DUPE, the cleaner: an Indian man of about
+  forty, lean, dark hair, a thick dark moustache with curled tips, in a WHITE
+  mandarin-collar uniform with ORANGE piping, a gold V on the chest and on his
+  white peaked cap. He has just confessed. He stands a pace from the wall,
+  hands empty, and speaks quietly and honestly, without pleading.
+@project_absence_char_grandmother — THE BUYER: very old, small, in a powered
+  wheelchair, grey knitted headscarf and layered knits.
+  SHE WEARS EXACTLY WHAT HER PICTURE SHOWS AND NOTHING ELSE: a GREY knitted
+  headscarf tied under the chin, a GREY knitted cardigan, a knitted bag on her
+  lap, brown boots. NO sunglasses on her — the sunglasses in this room belong to
+  other people. NO purple, NO coat, NO hat. Grey wool, head to knee. She speaks
+  slowly, calmly, and never raises her voice.
+@project_absence_char_valder — VALDER, the owner: tall, slim, elderly, swept-back
+  white hair, small round tinted sunglasses, a blazer panelled in flat blocks of
+  magenta, yellow, green, blue and red, a red waistcoat, a long mustard-yellow
+  scarf, purple trousers, two different shoes. For the first time in the film
+  his smile is gone.
+@project_absence_loc_hall_big_d — THE HALL, and the only location reference:
+  warm cream walls, orange cove light washing the ceiling, polished terracotta
+  terrazzo underfoot, tall chromium trumpet columns in matched pairs down both
+  sides, white plinths and the collection along both walls, the brass plaque on
+  the hero wall on the axis. It is a four-panel sheet — take NOTHING of its
+  arrangement or layout, and never reproduce a grid.
+  THE MARK ABOVE THE PLAQUE IS A CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK:
+  one short thick black line about as wide as a man's hand, with three or four
+  shorter thick black lines breaking off it, every line solid and heavy like ink
+  and dark for its whole length, ending where it ends. It is masonry damage —
+  thick, black, angular, flat against the wall and part of the plaster.
+THE CHEQUE (no picture — describe it, do not look for one): a plain cream bank
+cheque the size of a hand, printed lines on it, the sum line EMPTY until she
+writes on it. A slim black fountain pen lives in the knitted bag beside it. When
+she has written, the middle of the cheque reads 100,000,000 in blue ink, large.
+
+THE BLOCKING, the same in every framing: the BUYER's wheelchair is centre-left,
+turned toward Dupe; DUPE stands right of centre, a pace from the hero wall, the
+plaque and the small black mark on the wall behind and between him and Valder;
+VALDER stands at the right, half a step behind Dupe. Nobody walks. The framings
+below are the only things that change.
+
+FRAMINGS — locked camera in every one, no move inside a shot; a change of framing
+is a HARD CUT and the only kind of cut in this clip:
+- THREE-SHOT: a locked medium-wide square to the hero wall, the three of them
+  and the plaque wall, the buyer centre-left, Dupe right of centre, Valder right.
+- DUPE SINGLE: a locked frontal medium close-up of Dupe, chest up, the wall soft
+  behind him, the buyer's grey shoulder soft at the left edge of frame.
+- CHEQUE TWO-SHOT: a locked medium two-shot from Valder's side of the room: the
+  buyer in her chair on the left, her lap and hands and the knitted bag in
+  frame, Dupe standing on the right, the wall behind them.
+- VALDER SINGLE: a locked medium close-up of Valder, chest up, the panelled
+  blazer filling the frame, the hall soft behind him.
+- BUYER SINGLE: a locked medium close-up of the buyer in her chair, the grey
+  headscarf, her face level and calm, the wall soft behind her.
+
+WHAT HAPPENS:
+[0s] CHEQUE TWO-SHOT. The buyer looks up at Dupe and says, slowly:
+  "I did not buy a crack in a wall. I bought a work of art."
+[4s] HARD CUT to a LAP INSERT: a locked close shot looking down at her lap — the
+  knitted bag, her old hands taking out the blank cheque and the fountain pen,
+  laying the cheque flat on the bag, uncapping the pen, and WRITING the sum
+  across the middle of it, digit by digit, in blue ink: 100,000,000. The pen
+  lifts. The sum is large and legible.
+[11s] HARD CUT to the THREE-SHOT. She holds the cheque out; Dupe steps half a
+  pace forward and takes it with BOTH hands and bows his head a little. She
+  says, level:
+  "One hundred million."
+[15s] At the right edge, Valder's face stiffens: the smile is gone, the jaw
+  sets, he stares at the cheque in Dupe's hands and says nothing.
+[20s] End on the three of them, the cheque in Dupe's hands.
+
+AUDIO: room tone, the spoken lines above and nothing else, the soft rustle of
+the knitted bag and the paper of the cheque. No music. NO SOUND AT THE START OR
+THE END: the clip opens mid room-tone with no intro sting or riser, and simply
+stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+NEGATIVES: no extra line, no improvised speech, no voiceover, no narration, no
+subtitles, no captions, no on-screen text except the sum on the cheque, no
+music, no score, no sting, no second cheque, no cash, no coins, no wallet, no
+sunglasses on the buyer, no purple on the buyer, no second buyer, no second
+Dupe, no second Valder, no registrar close, no guard close, no press close, no
+crowd in sharp focus, no grabbing, no snatching, no touching between Valder
+and the cheque, no Valder smiling, no laughing, no looking at the lens, no
+camera move inside a shot, no zoom, no push-in, no dissolve, no fade, no slow
+motion, no handheld, no dutch angle, no lens flare, no grid, no split screen,
+no four-panel layout, no second mark on the wall, no large crack, no hole.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
