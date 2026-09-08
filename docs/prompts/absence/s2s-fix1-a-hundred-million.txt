@@ -280,3 +280,25 @@ one dialogue line at 0.8-2.4s, correct 13-person cast throughout, camera lock he
 Re-uploaded correctly as a second S2S-Fix1.MP4 (the wrong file left in Drive for the
 CTO to trash after CEO OK, not deleted by the operator). Full report:
 docs/reports/absence-wave-20260907-s2s-t1.md. Not re-fired (one fire/task).
+
+browser_operator (task-20f5c644) 2026-09-08 20:22 ICT: S2S-Fix1 take 2 fired
+(re-fire ordered by CEO 20260908 19:30, "20 วิเต็ม ใช้ฟรีก่อนได้", to fix take 1's
+DRAFT-3 defect — grandmother rendered in a PURPLE headscarf + dark sunglasses at
+4:33/5:42 in the cut instead of her canon GREY knit — by adding the missing
+clothes-anchor line "SHE WEARS EXACTLY WHAT HER PICTURE SHOWS AND NOTHING ELSE").
+Pre-flight: git merge main at 66ac452 (past "the registrar's suit is cream-white
+in every sentence"), black-suit grep = bodyguard only, clothes-anchor grep = 1,
+Thibault = 0, gold-teeth = 0, flagged-Element grep = 0, §0 gate = 0, prompt-lint
+exit 0, 14/14 chips. Fields: Seedance 2.5 / 16:9 / 720p / 20s / High / 1/4 /
+Sound On. Unlimited ON first, six fields set, RE-CHECKED after — Generate read
+`UNLIMITED · struck 140 · 0` (zoomed, confirmed visually). Paste: sha256
+hash-verified 8-chunk base64 assembly (b64 sha256 10a699b9...cb3a, raw sha256
+2f1a7a30...37978, both matched before ClipboardEvent), End→space→Backspace
+sync tap. 14/14 chips bound lime, 0 red/unresolved, 0 warning-triangle
+thumbnails; grandmother thumbnail shows grey knit correctly. No previz (per
+task brief — sheet's stale Video-1 prose left un-pasted-around, per hard rule
+not to hand-edit the paste block). Fired once: "Generation started" toast + new
+Processing card + asset count 726→727 (exactly +1, read immediately before
+click). The S15b Unlimited slot (expected busy per brief) was apparently free
+by fire time — no refusal toast, clean first-attempt fire. Waiting on render;
+will identify card by Created-time + prompt text before download.
