@@ -210,6 +210,43 @@ the filename. If a take already filed under that name passed a criterion yours
 fails, do not upload over it; report the comparison instead.
 
 TAKE LOG:
-(none yet)
+2026-09-08 · take 1 · CREDIT lane · task-34db4f68 · hf_20260908_104503_5b8a4a3a-1691-4ccc-bee8-8b35d77df53a.mp4
+  Seedance 2.5 / 720p (1280x720) / 16:9 / 8.04s / High / Sound On / Unlimited OFF.
+  Price 56→52 credits (zoomed, confirmed). Balance 1000→948 (Plus plan monthly
+  credits), exactly -52. 12/12 chips bound clean, no warning triangles, no
+  flagged Elements. Fired once, one Generate click, "Generation started" toast
+  + new Processing card confirmed. Landed ~6 min after fire (5:39pm→5:45pm).
+  REVIEW ORDER:
+  1 PASS — exactly ONE person touching the wall, the contractor in navy overalls.
+  2 FAIL — the tool is a CHAINSAW: orange body, long straight bar with visible
+    chain, top handle. Not a round toothed blade as the prose demanded.
+  3 PASS — Valder's back to camera throughout, face never seen.
+  4 PASS — grandmother in wheelchair, parked to one side, watching.
+  5 PASS — Dupe apart at the edge with his mop/cart, not helping.
+  6 PASS both —
+    NO CUTS: 0.2s sweep, whole-frame greyscale MAD between consecutive frames.
+      Median 0.736, max step 1.103 at t=3.2s (1.5x median, well under the 3x
+      flag and the 15x cut line). Raised steady run during the 0-5s saw work,
+      settling lower after 5s — the sawing signature, not a cut.
+    CAMERA STATIC: crop = top-left ceiling/wall corner, x[0:150] y[0:50] (untouched
+      by any action). Median 0.547, max 0.684 (1.25x median) — flat noise, no move.
+  7 FAIL — navy-uniform guard count is ONE, not two. Left-edge group (zoomed)
+    shows only the tall navy guard + Carrington's black-suited bodyguard —
+    the second ("short and heavy") navy guard from the shared reference is
+    missing. Contractor's navy overalls correctly not counted as a uniform.
+    Full 21-person headcount not verifiable at this resolution (many background
+    figures partly occluded); the 2-navy-uniform miscount is the concrete finding.
+  8 FAIL — the mark is NOT solid black. Threshold-80 dark-pixel test on the
+    crack region (frame 0.5s, crop x[570:720] y[250:340]): 0 pixels below 80
+    (darkest pixel = 117). At threshold 140 only a 7x6px core qualifies
+    (bbox 0.55% of frame width, fill 0.405) — the radiating "legs" are all
+    lighter than that. Visually it reads as a thin grey/tan spiderweb/tapering
+    crack, i.e. exactly what the prompt's own negatives ban ("no spiderweb, no
+    fine radiating fractures, no tapering spikes... no pale, grey, brown or tan
+    mark"), not the "solid black... dark for its whole length" the prose asked for.
+  VERDICT: FLAGGED — 3 of 8 review items fail (2, 7, 8). Filed anyway per
+  house rule (scene-name-only filename, no verdict in name):
+  Drive: All Scene/Fix-1/S16-CuttingTheWall-Fix1.MP4
+  https://drive.google.com/file/d/1hhE-YHXjuEfxgj5BunQ-SMpz_WaMBF0I/view
 
 === END NOTES ===
