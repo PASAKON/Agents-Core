@@ -5,11 +5,14 @@ What the CEO asked for (2026-09-09): a left→right picture of the session —
 "ซ้ายคือเริ่มต้น session: CEO ต้องการอะไร → มี task อะไรบ้าง ในแต่ละ block มี task ย่อย
 1 2 3 4 5 แต่ละอันเสร็จหรือยัง → block ต่อไปติด task ก่อนหน้า … goal อาจต่อกัน หรือ
 แยกกันคนละเส้น … บอกได้ว่าตอนนี้อยู่จุดไหน ออกนอกเส้นทางไปทางไหน" — with time per
-block, built to spend as few tokens as possible while staying complete.
+block, a FINISH block carrying the session's Definition of Done under a flag,
+status colours (done green · doing amber · blocked red), icons instead of
+emoji, and the workers this session delegated shown under the goal they serve.
+Built to spend as few tokens as possible while staying complete.
 
-    START ──▶ [G1 ☑☑☑ 22:39→23:04·25m] ──▶ [G2 ☑☐☐ ◀ HERE] ──▶ [G4 ☐☐]
-      └─────▶ [G3 ☑☐ ⚠ blocked]                 (separate line = separate row)
-                   ╎↩ interrupt that came back      ╎ parked → LungNote, dead end
+    START ──▶ [G1 ✓✓✓ 22:39→23:04·25m] ──▶ [G2 ✓○○ ◉ HERE] ──▶ [G4 ○○] ──▶ ⚑ FINISH (DoD)
+      └─────▶ [G3 ✓○ ▲ blocked] ───────────────────────────────────────┘
+                   ╎🤖 worker task-…      ╎↩ interrupt that came back    ╎⊥ parked → LungNote
 
 Token economy — the design rule (CEO 2026-09-09):
   * one JSON file per session, created on the FIRST /session-worktree only
@@ -18,6 +21,8 @@ Token economy — the design rule (CEO 2026-09-09):
     re-renders everything and the Artifact tool republishes the SAME URL
   * the script stamps started/finished times itself on status transitions —
     nobody types times; minutes per block are derived
+  * workers come from state/tasks.db (owner_cto = this session) at every render —
+    live status, zero tokens; the CTO only says which goal a worker serves
   * output is a short status block, never the picture and never a full tree
     unless --tree is asked
 
@@ -30,18 +35,20 @@ Commands (stdin = JSON):
 
 Outputs (basename = the session id, stable):
   <session>.json            the map (source of truth between runs)
-  <session>.html            self-contained wide page (for PNG / local viewing)
+  <session>.html            self-contained page (for PNG / local viewing)
   <session>.artifact.html   page body for the Artifact tool — the same map; a phone
                             scrolls it sideways (CEO 2026-09-09: horizontal only)
   <session>.png             opt-in --png via headless Chrome; --send = Telegram opt-in
 
 Drawn in the visual system of the `diagram-design` skill (cathrynlavery
-v2.6.17, vendored under ~/.claude/skills/diagram-design): default editorial skin,
-Instrument Serif / Geist / Geist Mono (+ Noto Thai), 4px grid, orthogonal r=8
-connectors drawn before boxes, legend strip, accessible-SVG contract, and its
-own scripts/self_check.py run on every render.
+v2.6.17, vendored under ~/.claude/skills/diagram-design): 4px grid, orthogonal
+r=8 connectors drawn before boxes, rectangular chips, legend strip,
+accessible-SVG contract, and its own scripts/self_check.py run on every
+render. The skin is the org's status palette (org wiki playbooks/session-map.md)
+over the skill's paper/ink; icons are Tabler Icons (MIT), the same source the
+skill's icon primitive uses.
 
-References inside a patch: "G2" = goal, "G2.3" = task 3 of G2, "D1" = detour.
+References inside a patch: "G2" goal · "G2.3" task · "D1" detour · "F.2" DoD item.
 Exit codes: 0 ok · 1 bad input · 2 self_check failed · 3 --send failed.
 """
 from __future__ import annotations
@@ -63,19 +70,20 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT_DIR = ROOT / "state" / "session-diagrams"
 SKILL_DIR = Path.home() / ".claude" / "skills" / "diagram-design"
 
-# ---- diagram-design default skin (references/style-guide.md) -----------------
+# ---- skin: diagram-design paper/ink + the org's status palette ------------------
 PAPER = "#f5f5f5"
 INK = "#2d3142"
 MUTED = "#4f5d75"
 SOFT = "#7a8399"
-ACCENT = "#eb6c36"
-ACCENT_TINT = "rgba(235,108,54,0.08)"
-ACCENT_05 = "rgba(235,108,54,0.05)"
 RULE = "rgba(45,49,66,0.12)"
 INK_02 = "rgba(45,49,66,0.02)"
-INK_05 = "rgba(45,49,66,0.05)"
 INK_20 = "rgba(45,49,66,0.20)"
 INK_40 = "rgba(45,49,66,0.40)"
+GREEN, GREEN_TINT = "#3a8f5c", "rgba(58,143,92,0.10)"       # done
+AMBER, AMBER_TINT = "#d4952b", "rgba(212,149,43,0.12)"      # doing · here
+RED, RED_TINT = "#c9452e", "rgba(201,69,46,0.10)"           # blocked · failed
+BLUE, BLUE_TINT = "#2e5aa8", "rgba(46,90,168,0.08)"         # detour · review
+TEAL, TEAL_TINT = "#1f8a8a", "rgba(31,138,138,0.10)"        # worker
 FONT_SANS = "'Geist', 'Noto Sans Thai', system-ui, sans-serif"
 FONT_SERIF = "'Instrument Serif', 'Noto Serif Thai', serif"
 FONT_MONO = "'Geist Mono', 'Noto Sans Thai', ui-monospace, monospace"
@@ -88,26 +96,64 @@ FONT_LINK = (
 STATUSES = ("done", "doing", "todo", "blocked")
 STATUS_EMOJI = {"done": "✅", "doing": "🔄", "todo": "⬜", "blocked": "🔴"}
 STATUS_WORD = {"done": "DONE", "doing": "DOING", "todo": "TODO", "blocked": "BLOCKED"}
+STATUS_ICON = {"done": "check", "doing": "clock", "todo": "circle-dashed", "blocked": "alert-triangle"}
+COLOR = {"done": GREEN, "doing": AMBER, "todo": SOFT, "blocked": RED}
+TREATMENT = {
+    "done": dict(fill=GREEN_TINT, stroke=GREEN, dash=None),
+    "doing": dict(fill=AMBER_TINT, stroke=AMBER, dash=None),
+    "todo": dict(fill=INK_02, stroke=INK_20, dash="4,3"),
+    "blocked": dict(fill=RED_TINT, stroke=RED, dash=None),
+}
 DETOUR_KINDS = ("interrupt", "parked")
 TYPE_GLYPH = {
     "READ": "🔍", "RECON": "🔍", "RESEARCH": "📚", "ANALYZE": "🧠", "DECIDE": "🧠",
     "BUILD": "🔨", "FIX": "🔧", "DESIGN": "🎨", "SETUP": "⚙️", "TEST": "🧪",
     "VERIFY": "🧪", "SHIP": "🚀", "DOC": "📝", "CLOSE": "🏁", "GOAL": "🎯",
 }
-# block treatment = SKILL.md §5 table + type-kanban.md card states
-TREATMENT = {
-    "done": dict(fill=INK_05, stroke=MUTED, dash=None),          # store
-    "doing": dict(fill=ACCENT_TINT, stroke=ACCENT, dash=None),   # focal
-    "todo": dict(fill=INK_02, stroke=INK_20, dash="4,3"),        # optional
-    "blocked": dict(fill=ACCENT_05, stroke=ACCENT, dash="4,4"),  # blocked card
+TYPE_ICON = {
+    "READ": "search", "RECON": "search", "RESEARCH": "book", "ANALYZE": "bulb", "DECIDE": "bulb",
+    "BUILD": "hammer", "FIX": "tool", "DESIGN": "palette", "SETUP": "settings", "TEST": "test-pipe",
+    "VERIFY": "test-pipe", "SHIP": "rocket", "DOC": "file-text",
 }
-CHIP_COLOR = {"done": MUTED, "doing": ACCENT, "todo": SOFT, "blocked": ACCENT}
+# worker task status (state/tasks.db) → (semantic kind, chip word)
+WORKER_STATUS = {
+    "pending": ("todo", "PENDING"), "in_progress": ("doing", "RUNNING"), "review": ("review", "REVIEW"),
+    "done": ("done", "DONE"), "merged": ("done", "MERGED"), "failed": ("blocked", "FAILED"),
+    "conflict": ("blocked", "CONFLICT"), "stalled": ("blocked", "STALLED"), "cancelled": ("cancelled", "CANCELLED"),
+}
+WORKER_KIND_COLOR = {"todo": SOFT, "doing": AMBER, "review": BLUE, "done": GREEN, "blocked": RED, "cancelled": SOFT}
+WORKER_KIND_ICON = {"todo": "circle-dashed", "doing": "clock", "review": "search", "done": "check",
+                    "blocked": "alert-triangle", "cancelled": "circle-dashed"}
+
+# Tabler Icons (MIT) — outline set, 24×24, stroke currentColor. Same source as
+# diagram-design's primitive-icons.md; these are the ones the map needs.
+ICONS = {
+    "alert-triangle": '<path d="M12 9v4" /> <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" /> <path d="M12 16h.01" />',
+    "arrow-back-up": '<path d="M9 14l-4 -4l4 -4" /> <path d="M5 10h11a4 4 0 1 1 0 8h-1" />',
+    "book": '<path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /> <path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /> <path d="M3 6l0 13" /> <path d="M12 6l0 13" /> <path d="M21 6l0 13" />',
+    "bulb": '<path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" /> <path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" /> <path d="M9.7 17l4.6 0" />',
+    "check": '<path d="M5 12l5 5l10 -10" />',
+    "circle-dashed": '<path d="M8.56 3.69a9 9 0 0 0 -2.92 1.95" /> <path d="M3.69 8.56a9 9 0 0 0 -.69 3.44" /> <path d="M3.69 15.44a9 9 0 0 0 1.95 2.92" /> <path d="M8.56 20.31a9 9 0 0 0 3.44 .69" /> <path d="M15.44 20.31a9 9 0 0 0 2.92 -1.95" /> <path d="M20.31 15.44a9 9 0 0 0 .69 -3.44" /> <path d="M20.31 8.56a9 9 0 0 0 -1.95 -2.92" /> <path d="M15.44 3.69a9 9 0 0 0 -3.44 -.69" />',
+    "clock": '<path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /> <path d="M12 7v5l3 3" />',
+    "file-text": '<path d="M14 3v4a1 1 0 0 0 1 1h4" /> <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /> <path d="M9 9l1 0" /> <path d="M9 13l6 0" /> <path d="M9 17l6 0" />',
+    "flag": '<path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9" /> <path d="M5 21v-7" />',
+    "hammer": '<path d="M11.414 10l-7.383 7.418a2.091 2.091 0 0 0 0 2.967a2.11 2.11 0 0 0 2.976 0l7.407 -7.385" /> <path d="M18.121 15.293l2.586 -2.586a1 1 0 0 0 0 -1.414l-7.586 -7.586a1 1 0 0 0 -1.414 0l-2.586 2.586a1 1 0 0 0 0 1.414l7.586 7.586a1 1 0 0 0 1.414 0" />',
+    "map-pin": '<path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /> <path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0" />',
+    "palette": '<path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25" /> <path d="M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /> <path d="M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /> <path d="M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />',
+    "parking": '<path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14" /> <path d="M10 16v-8h2.667c.736 0 1.333 .895 1.333 2s-.597 2 -1.333 2h-2.667" />',
+    "player-play": '<path d="M7 4v16l13 -8l-13 -8" />',
+    "robot": '<path d="M6 6a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2l0 -4" /> <path d="M12 2v2" /> <path d="M9 12v9" /> <path d="M15 12v9" /> <path d="M5 16l4 -2" /> <path d="M15 14l4 2" /> <path d="M9 18h6" /> <path d="M10 8v.01" /> <path d="M14 8v.01" />',
+    "rocket": '<path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3" /> <path d="M7 14a6 6 0 0 0 -3 6a6 6 0 0 0 6 -3" /> <path d="M14 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />',
+    "search": '<path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /> <path d="M21 21l-6 -6" />',
+    "settings": '<path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /> <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />',
+    "test-pipe": '<path d="M20 8.04l-12.122 12.124a2.857 2.857 0 1 1 -4.041 -4.04l12.122 -12.124" /> <path d="M7 13h8" /> <path d="M19 15l1.5 1.6a2 2 0 1 1 -3 0l1.5 -1.6" /> <path d="M15 3l6 6" />',
+    "tool": '<path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5" />',
+}
 
 # ---- geometry (everything on the 4px grid) -----------------------------------
-M = 40                  # wide page margin
+M = 40
 START_W, START_H = 200, 64
 GOAL_W = 320
-TASK_TIME_MIN_W = 300   # blocks at least this wide show each task's own time span
 GAP = 48                # horizontal gap between columns (edges live here)
 ROW_GAP = 32
 HEADER_H = 68           # chips · title · time line · rule
@@ -115,13 +161,20 @@ TASK_ROW = 20
 FOOT = 12
 MAX_TASK_ROWS = 8
 DETOUR_H, DETOUR_GAP = 40, 24
+WORKER_H = 60
 STUB = 8                # dead-end stub under a parked detour
 PORT_Y = 24             # edges attach at the header band, not the block centre
+TASK_TIME_MIN_W = 300
 TELEGRAM_PHOTO_MAX_SUM = 10000   # sendPhoto: width + height ≤ 10000 px
 
 SAMPLE = {
     "entry_problem": "ทำให้ /session-worktree ปิดท้ายด้วยแผนที่ session ที่ CEO เปิดดูได้จากลิงก์เดียว",
     "start": "CEO อยากเห็นภาพรวม session เป็น diagram — goal, task ย่อย, จุดที่อยู่, ทางที่ออกนอกเส้น",
+    "dod": [
+        {"text": "diagram-design ติดตั้งเป็น external skill", "done": True},
+        {"text": "renderer ผ่าน self_check + tests", "done": False},
+        {"text": "/session-worktree ส่งลิงก์แผนที่", "done": False},
+    ],
     "goals": [
         {"id": "G1", "title": "รับ diagram-design เข้าเป็น skill ของ org", "type": "SETUP",
          "tasks": [
@@ -149,16 +202,30 @@ SAMPLE = {
         {"id": "G4", "title": "แยกเส้น: ตอบคำถาม CEO เรื่องช่องทางส่ง", "type": "ANALYZE",
          "tasks": [{"title": "ทำไม SomPong / ทำไมรูป / เรื่อง token", "status": "blocked", "blocked_on": "CEO ตอบข้อ 3"}]},
     ],
+    "workers": {"G2": ["task-149e6c86"]},
     "here": "G2.2",
 }
 
 SAMPLE_PATCH = {
-    "set": {"G2.2": "done", "G2.3": "doing", "G4.1": "done"},
+    "set": {"G2.2": "done", "G2.3": "doing", "G4.1": "done", "F.2": "done"},
     "evidence": {"G2.2": "c3d5d2b"},
     "here": "G2.3",
     "add": {"tasks": {"G3": [{"title": "แก้ SKILL.md เป็น map + patch"}]},
             "detours": {"G3": [{"title": "CEO ขอถามก่อนออกแบบ", "kind": "interrupt", "status": "done"}]}},
+    "workers": {"G3": ["task-4be2de34"]},
 }
+
+SAMPLE_WORKERS = [   # the shape load_workers() returns (state/tasks.db rows) — used by tests and --sample
+    {"id": "task-149e6c86", "role": "browser_operator", "status": "in_progress", "title": "S9b WHAT HAPPENS TO ME take 3",
+     "tmux_session": "wd-149e6c86", "session_id": "f97b1d6b-ae2d-46aa-a0af-d9ebd3406b9c", "host": None,
+     "created_at": "2026-09-08T17:57:12+00:00", "spawned_at": "2026-09-08T17:57:30+00:00", "updated_at": "2026-09-08T18:01:42+00:00"},
+    {"id": "task-4be2de34", "role": "browser_operator", "status": "done", "title": "S15b THE MONEY FINDS THE ART take 3",
+     "tmux_session": "wd-4be2de34", "session_id": "b1173783-92d6-4cf3-ae9c-5243676a449b", "host": "mac",
+     "created_at": "2026-09-08T15:10:00+00:00", "spawned_at": None, "updated_at": "2026-09-08T16:02:45+00:00"},
+    {"id": "task-a0621215", "role": "developer", "status": "review", "title": "delegate owner window fix",
+     "tmux_session": "wd-a0621215", "session_id": None, "host": "winbox",
+     "created_at": "2026-09-08T12:22:49+00:00", "spawned_at": None, "updated_at": "2026-09-08T12:25:24+00:00"},
+]
 
 
 # ---- time -----------------------------------------------------------------------
@@ -181,6 +248,20 @@ def parse_ts(raw: object, day: str) -> str:
         return datetime.strptime(s[:16], "%Y-%m-%dT%H:%M").strftime("%Y-%m-%dT%H:%M")
     except ValueError as exc:
         raise ValueError(f"bad time {s!r} (use HH:MM or YYYY-MM-DDTHH:MM)") from exc
+
+
+def db_ts_local(raw: object) -> str:
+    """tasks.db stores ISO-8601 with an offset (UTC); render in local wall-clock minutes."""
+    s = str(raw or "").strip()
+    if not s:
+        return ""
+    try:
+        dt = datetime.fromisoformat(s)
+    except ValueError:
+        return ""
+    if dt.tzinfo is not None:
+        dt = dt.astimezone().replace(tzinfo=None)
+    return dt.strftime("%Y-%m-%dT%H:%M")
 
 
 def ts_dt(ts: str) -> datetime:
@@ -288,10 +369,10 @@ def _status(raw: object, where: str) -> str:
 
 
 class Item:
-    """Shared by tasks, goals and detours: status + auto-stamped times."""
+    """Shared by tasks, goals, detours and DoD items: status + auto-stamped times."""
     status: str
-    started_at: str
-    finished_at: str
+    started_at: str = ""
+    finished_at: str = ""
 
     def stamp(self, old: str | None, now: datetime, creation: bool = False) -> None:
         """Called after a status change: doing/blocked start the clock, done stops it.
@@ -356,6 +437,21 @@ class Detour(Item):
         return d
 
 
+class DoD(Item):
+    """One Definition-of-Done item of the charter — lives in the FINISH block."""
+    def __init__(self, raw: dict, n: int):
+        self.n = n
+        self.text = str(raw.get("text", "")).strip()
+        if not self.text:
+            raise ValueError(f"F.{n}: text is required")
+        raw_status = raw.get("status")
+        self.status = _status(raw_status, f"F.{n}") if raw_status else ("done" if raw.get("done") else "todo")
+        self.title = self.text
+
+    def to_dict(self) -> dict:
+        return {"text": self.text, "done": self.status == "done"}
+
+
 class Goal(Item):
     def __init__(self, raw: dict, index: int, day: str, detour_seq: list[int]):
         self.id = str(raw.get("id") or f"G{index + 1}").strip()
@@ -374,12 +470,13 @@ class Goal(Item):
                 detour_seq[0] += 1
                 did = f"D{detour_seq[0]}"
             self.detours.append(Detour(d, did, day))
-        self.status_override = _status(raw["status"], f"goal {self.id}") if raw.get("status") and not self.tasks else ""
-        if raw.get("status") and self.tasks:
-            self.status_override = _status(raw["status"], f"goal {self.id}") if raw.get("status_override") else ""
+        self.status_override = ""
+        if raw.get("status") and (not self.tasks or raw.get("status_override")):
+            self.status_override = _status(raw["status"], f"goal {self.id}")
         self.started_at = parse_ts(raw.get("started_at"), day)
         self.finished_at = parse_ts(raw.get("finished_at"), day)
         self.status = self.status_override or self.infer_status()
+        self.workers: list[dict] = []          # attached at render time from tasks.db
         self.col = self.row = self.x = self.y = self.h = 0
 
     def infer_status(self) -> str:
@@ -427,7 +524,7 @@ class Goal(Item):
         return up4(h)
 
     def footprint(self) -> int:
-        f = self.height() + len(self.detours) * (DETOUR_GAP + DETOUR_H)
+        f = self.height() + len(self.workers) * (DETOUR_GAP + WORKER_H) + len(self.detours) * (DETOUR_GAP + DETOUR_H)
         if any(d.kind == "parked" for d in self.detours):
             f += STUB
         return f
@@ -456,6 +553,7 @@ class Session:
         self.date = str(data.get("date") or now_local().strftime("%Y-%m-%d"))
         self.created_at = str(data.get("created_at") or now_local().strftime("%Y-%m-%dT%H:%M"))
         self.runs = int(data.get("runs") or 0)
+        self.dod = [DoD(d, i + 1) for i, d in enumerate(data.get("dod") or []) if str(d.get("text", "")).strip()]
         raw_goals = data.get("goals") or []
         if not isinstance(raw_goals, list) or not raw_goals:
             raise ValueError("goals must be a non-empty list")
@@ -463,6 +561,10 @@ class Session:
         self.goals = [Goal(g, i, self.date, seq) for i, g in enumerate(raw_goals)]
         used = [int(d.id[1:]) for g in self.goals for d in g.detours if d.id[:1] == "D" and d.id[1:].isdigit()]
         self._detour_seq = max([seq[0]] + used)     # a loaded map must not re-issue D1
+        self.worker_goal: dict[str, str] = {}       # task id → goal id (the CTO's assignment)
+        self.assign_workers(data.get("workers") or {})
+        self.workers: list[dict] = []               # live rows from tasks.db, attached by attach_workers()
+        self.unassigned: list[dict] = []
         self._validate()
         self.here_goal: str | None = None
         self.here_task: int | None = None
@@ -481,6 +583,9 @@ class Session:
         dids = [d.id for g in self.goals for d in g.detours]
         if len(set(dids)) != len(dids):
             raise ValueError(f"detour ids must be unique: {dids}")
+        for tid, gid in self.worker_goal.items():
+            if gid not in ids:
+                raise ValueError(f"worker {tid} assigned to unknown goal {gid!r}")
 
     def goal(self, gid: str) -> Goal:
         for g in self.goals:
@@ -489,8 +594,14 @@ class Session:
         raise ValueError(f"unknown goal {gid!r}")
 
     def ref(self, key: str):
-        """'G2' → Goal, 'G2.3' → Task, 'D1' → Detour."""
+        """'G2' → Goal, 'G2.3' → Task, 'D1' → Detour, 'F.2' → DoD item."""
         key = str(key).strip()
+        if key.startswith("F."):
+            n = key[2:]
+            for d in self.dod:
+                if str(d.n) == n:
+                    return d
+            raise ValueError(f"unknown DoD item {key!r}")
         if "." in key:
             gid, n = key.rsplit(".", 1)
             g = self.goal(gid)
@@ -503,6 +614,30 @@ class Session:
                 if d.id == key:
                     return d
         return self.goal(key)
+
+    def assign_workers(self, mapping: dict) -> None:
+        """{"G2": ["task-…", …]} — a task serves one goal; a later assignment wins."""
+        for gid, tids in (mapping or {}).items():
+            for tid in tids or []:
+                self.worker_goal[str(tid).strip()] = str(gid).strip()
+
+    def attach_workers(self, rows: list[dict]) -> None:
+        """Hang live worker rows under their goal; the rest go to the bottom band."""
+        self.workers = list(rows)
+        for g in self.goals:
+            g.workers = []
+        self.unassigned = []
+        for r in rows:
+            gid = self.worker_goal.get(str(r.get("id", "")))
+            if gid and any(g.id == gid for g in self.goals):
+                self.goal(gid).workers.append(r)
+            else:
+                self.unassigned.append(r)
+        layout(self)
+
+    def owner_short(self) -> str:
+        """tasks.owner_cto stores the bare session id (no role prefix)."""
+        return self.session.split("-", 1)[1] if "-" in self.session else self.session
 
     def set_here(self, here: object) -> None:
         if isinstance(here, dict):
@@ -517,7 +652,7 @@ class Session:
             elif isinstance(obj, Goal):
                 self.here_goal, self.here_task = obj.id, None
             else:
-                raise ValueError("here must point at a goal or a task, not a detour")
+                raise ValueError("here must point at a goal or a task")
             return
         self.here_goal = self.here_task = None
         for g in self.goals:                      # infer: the first thing in progress
@@ -574,6 +709,13 @@ class Session:
                 g.detours.append(d)
                 d.stamp(None, now)
                 changes.append(f"+ detour {d.id} ({d.kind}) {d.title}")
+        for raw in add.get("dod") or []:
+            d = DoD(raw, len(self.dod) + 1)
+            self.dod.append(d)
+            changes.append(f"+ dod F.{d.n} {d.text}")
+        if delta.get("workers"):
+            self.assign_workers(delta["workers"])
+            changes.append("workers assigned: " + ", ".join(f"{t}→{g}" for g, ts in delta["workers"].items() for t in ts))
         for key, val in (delta.get("title") or {}).items():
             self.ref(key).title = str(val).strip()
             changes.append(f"{key} title → {val}")
@@ -602,7 +744,7 @@ class Session:
                 obj.status_override = new if (not obj.tasks or new != obj.infer_status()) else ""
                 if new != "blocked":
                     obj.blocked_on = ""
-            elif new != "blocked":
+            elif isinstance(obj, Task) and new != "blocked":
                 obj.blocked_on = ""
             obj.stamp(old, now)
             if old != new:
@@ -623,22 +765,28 @@ class Session:
             self.set_here(delta.get("here"))
         else:
             cur = self.ref(f"{self.here_goal}.{self.here_task}" if self.here_task else self.here_goal) if self.here_goal else None
-            if cur is None or cur.status in ("done",):
+            if cur is None or cur.status == "done":
                 self.set_here(None)
         self.refresh()
         return changes
 
     # -- numbers -----------------------------------------------------------------
+    def finished(self) -> bool:
+        return all(g.status == "done" for g in self.goals) and all(d.status == "done" for d in self.dod)
+
     def counts(self) -> dict:
         tasks = [t for g in self.goals for t in g.tasks]
         blocked = [f"{g.id}.{t.n}" for g in self.goals for t in g.tasks if t.status == "blocked"]
         blocked += [g.id for g in self.goals if g.status == "blocked" and not any(t.status == "blocked" for t in g.tasks)]
+        running = [w for w in self.workers if WORKER_STATUS.get(str(w.get("status")), ("todo", ""))[0] in ("doing", "review", "todo")]
         return {
             "goals_done": sum(1 for g in self.goals if g.status == "done"), "goals": len(self.goals),
             "tasks_done": sum(1 for t in tasks if t.status == "done"), "tasks": len(tasks),
+            "dod_done": sum(1 for d in self.dod if d.status == "done"), "dod": len(self.dod),
             "blocked": len(blocked), "blocked_keys": blocked,
             "detours": sum(len(g.detours) for g in self.goals),
             "parked": sum(1 for g in self.goals for d in g.detours if d.kind == "parked"),
+            "workers": len(self.workers), "workers_live": len(running),
         }
 
     def elapsed(self, now: datetime) -> str:
@@ -647,9 +795,8 @@ class Session:
         if not starts:
             return ""
         first = ts_dt(min(starts))
-        all_done = all(g.status == "done" for g in self.goals)
         ends = [ts for g in self.goals for ts in [g.times()[1]] if ts]
-        last = ts_dt(max(ends)) if (all_done and ends) else now
+        last = ts_dt(max(ends)) if (self.finished() and ends) else now
         return fmt_minutes(max(0, int((last - first).total_seconds() // 60)))
 
     def type_tally(self) -> list[tuple[str, int]]:
@@ -670,10 +817,15 @@ class Session:
 
     # -- persistence -------------------------------------------------------------
     def to_dict(self) -> dict:
+        workers: dict[str, list[str]] = {}
+        for tid, gid in self.worker_goal.items():
+            workers.setdefault(gid, []).append(tid)
         return {
             "session": self.session, "date": self.date, "created_at": self.created_at, "runs": self.runs,
             "entry_problem": self.entry_problem, "start": self.start,
+            "dod": [d.to_dict() for d in self.dod],
             "goals": [g.to_dict() for g in self.goals],
+            "workers": workers,
             "here": (f"{self.here_goal}.{self.here_task}" if self.here_task else self.here_goal) or "",
         }
 
@@ -696,6 +848,38 @@ def _session_id_from_env() -> str | None:
         if len(v) >= 4:
             return f"{role}-{v}" if role else v
     return None
+
+
+# ---- workers: live rows from state/tasks.db ------------------------------------
+WORKER_COLS = ("id", "role", "status", "title", "tmux_session", "session_id", "host", "created_at", "spawned_at", "updated_at")
+
+
+def load_workers(owner_short: str) -> list[dict]:
+    """Every task this session delegated (tasks.owner_cto = <session id>), oldest
+    first. Empty list when the DB is unreachable — the map still renders."""
+    try:
+        sys.path.insert(0, str(ROOT))
+        from lib import db  # noqa: E402
+        with db.get_conn() as c:
+            rows = c.execute(
+                f"select {', '.join(WORKER_COLS)} from tasks where owner_cto = ? order by created_at", (owner_short,)
+            ).fetchall()
+        return [dict(zip(WORKER_COLS, r)) for r in rows]
+    except Exception as exc:  # noqa: BLE001 — a missing DB must never break the map
+        print(f"workers: skipped — {exc}", file=sys.stderr)
+        return []
+
+
+def worker_kind(w: dict) -> tuple[str, str]:
+    st = str(w.get("status") or "").lower()
+    return WORKER_STATUS.get(st, ("todo", st.upper() or "?"))
+
+
+def worker_span(w: dict, now: datetime) -> str:
+    started = db_ts_local(w.get("spawned_at") or w.get("created_at"))
+    kind, _ = worker_kind(w)
+    finished = db_ts_local(w.get("updated_at")) if kind in ("done", "blocked", "cancelled") else ""
+    return span_text(started, finished, now)
 
 
 # ---- layout: columns by dependency depth, rows = separate lines --------------
@@ -731,14 +915,24 @@ def col_x(c: int) -> int:
 
 
 def ordered(s: Session) -> list[Goal]:
-    """Reading order for the narrow layout and the text tree: by row, then column."""
     return sorted(s.goals, key=lambda g: (g.row, g.col, s.goals.index(g)))
 
 
+def terminals(s: Session) -> list[Goal]:
+    """Goals nothing else depends on — the ones that run into FINISH."""
+    needed = {d for g in s.goals for d in g.depends_on}
+    return [g for g in s.goals if g.id not in needed]
+
+
 # ---- text outputs ------------------------------------------------------------
-def status_text(s: Session, now: datetime, artifact: Path | None = None) -> str:
+def status_text(s: Session, now: datetime) -> str:
     c = s.counts()
-    parts = [f"goals {c['goals_done']}/{c['goals']}", f"tasks {c['tasks_done']}/{c['tasks']}", f"🔴 {c['blocked']}"]
+    parts = [f"goals {c['goals_done']}/{c['goals']}", f"tasks {c['tasks_done']}/{c['tasks']}"]
+    if c["dod"]:
+        parts.append(f"🏁 dod {c['dod_done']}/{c['dod']}")
+    parts.append(f"🔴 {c['blocked']}")
+    if c["workers"]:
+        parts.append(f"🤖 {c['workers']} worker" + ("s" if c["workers"] > 1 else "") + f" ({c['workers_live']} live)")
     if c["detours"]:
         parts.append(f"↪ {c['detours']} detour" + ("s" if c["detours"] > 1 else "") + (f" ({c['parked']} parked)" if c["parked"] else ""))
     el = s.elapsed(now)
@@ -749,6 +943,10 @@ def status_text(s: Session, now: datetime, artifact: Path | None = None) -> str:
         obj = s.ref(key)
         why = obj.blocked_on if isinstance(obj, Task) else obj.blocked_reason()
         lines.append(f"🔴 {key} — รอ {why}")
+    for w in s.workers:
+        kind, word = worker_kind(w)
+        if kind in ("blocked",):
+            lines.append(f"🔴 {w.get('id')} ({w.get('role')}) — {word}")
     return "\n".join(lines)
 
 
@@ -763,7 +961,7 @@ def tree_text(s: Session, now: datetime) -> str:
         lines.append(f"├─ {STATUS_EMOJI[g.status]} {g.id}  {TYPE_GLYPH.get(g.type, '🎯')} {g.title}{dep}"
                      + (f"  ⏱ {span}" if span else "") + here
                      + (f" · BLOCKED: รอ {g.blocked_reason()}" if g.status == "blocked" else ""))
-        kids = len(g.tasks) + len(g.detours)
+        kids = len(g.tasks) + len(g.workers) + len(g.detours)
         k = 0
         for t in g.tasks:
             k += 1
@@ -774,12 +972,24 @@ def tree_text(s: Session, now: datetime) -> str:
                          + (f" ............. {t.evidence}" if t.evidence else "")
                          + (f"  ⏱ {span}" if span else "") + here
                          + (f" · BLOCKED: รอ {t.blocked_on}" if t.status == "blocked" else ""))
+        for w in g.workers:
+            k += 1
+            pre = "│  " + ("└─ " if k == kids else "├─ ")
+            kind, word = worker_kind(w)
+            lines.append(f"{pre}🤖 {w.get('id')} · {w.get('role')} · {word} — {w.get('title')}"
+                         + (f"  ⏱ {worker_span(w, now)}" if worker_span(w, now) else ""))
         for d in g.detours:
             k += 1
             pre = "│  " + ("└─ " if k == kids else "├─ ")
             tail = " ↩ กลับเข้าเส้น" if d.kind == "interrupt" else f" ⊥ PARKED{(' · ' + d.note) if d.note else ''}"
             lines.append(f"{pre}{STATUS_EMOJI[d.status]} {d.id} ↪ {d.kind.upper()} — {d.title}{tail}")
-    lines.append(f"└─ {'✅' if all(g.status == 'done' for g in s.goals) else '⬜'} 🏁 CLOSE — Done · Close Session")
+    for w in s.unassigned:
+        kind, word = worker_kind(w)
+        lines.append(f"├─ 🤖 {w.get('id')} · {w.get('role')} · {word} — {w.get('title')} (unassigned)")
+    c = s.counts()
+    lines.append(f"└─ {'✅' if s.finished() else '⬜'} 🏁 FINISH — DoD {c['dod_done']}/{c['dod']}")
+    for d in s.dod:
+        lines.append(f"   {'├─' if d.n < len(s.dod) else '└─'} {STATUS_EMOJI[d.status]} F.{d.n} {d.text}")
     lines.append("")
     lines.append(status_text(s, now))
     return "\n".join(lines)
@@ -799,12 +1009,19 @@ def _text(x: float, y: float, s: str, size: float, fill: str, family: str, *,
     return f"<text {' '.join(attrs)}>{esc(s)}</text>"
 
 
-def _chip(x: int, y: int, label: str, color: str) -> tuple[str, int]:
-    """Rectangular type tag (rx=2, never a pill). Returns (svg, width)."""
-    w = max(28, up4(text_width(label, 8, mono=True) * 1.08 + 12))
+def _icon(name: str, x: float, y: float, size: float, color: str) -> str:
+    return f'<use href="#i-{name}" x="{x:g}" y="{y:g}" width="{size:g}" height="{size:g}" color="{color}"/>'
+
+
+def _chip(x: int, y: int, label: str, color: str, icon: str | None = None) -> tuple[str, int]:
+    """Rectangular tag (rx=2, never a pill), optional leading icon. Returns (svg, width)."""
+    pad = 14 if icon else 0
+    w = max(28, up4(text_width(label, 8, mono=True) * 1.08 + 12 + pad))
     svg = (f'<rect x="{x}" y="{y}" width="{w}" height="12" rx="2" fill="transparent" '
-           f'stroke="{color}" stroke-width="0.8"/>'
-           + _text(x + w / 2, y + 9, label, 8, color, FONT_MONO, anchor="middle", ls="0.08em"))
+           f'stroke="{color}" stroke-width="0.8"/>')
+    if icon:
+        svg += _icon(icon, x + 4, y + 1, 10, color)
+    svg += _text(x + pad / 2 + w / 2 - (2 if icon else 0), y + 9, label, 8, color, FONT_MONO, anchor="middle", ls="0.08em")
     return svg, w
 
 
@@ -820,64 +1037,63 @@ def _elbow(x1: int, y1: int, x2: int, y2: int, mid: int) -> str:
     return f'<path d="{d}" fill="none" stroke="{MUTED}" stroke-width="1.2" marker-end="url(#arrow)"/>'
 
 
-def _vline(x: int, y1: int, y2: int, dashed: bool = True, arrow: bool = True) -> str:
+def _vline(x: int, y1: int, y2: int, color: str = MUTED, dashed: bool = True, arrow: bool = True) -> str:
     dash = ' stroke-dasharray="4,3"' if dashed else ""
     mk = ' marker-end="url(#arrow)"' if arrow else ""
-    return f'<line x1="{x}" y1="{y1}" x2="{x}" y2="{y2}" stroke="{MUTED}" stroke-width="1"{dash}{mk}/>'
+    return f'<line x1="{x}" y1="{y1}" x2="{x}" y2="{y2}" stroke="{color}" stroke-width="1"{dash}{mk}/>'
+
+
+def _box(parts: list[str], x: int, y: int, w: int, h: int, fill: str, stroke: str, sw: float = 1,
+         dash: str | None = None) -> None:
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6" fill="{PAPER}"/>')
+    parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6" fill="{fill}" stroke="{stroke}" stroke-width="{sw:g}"{d}/>')
 
 
 def draw_goal(parts: list[str], g: Goal, x: int, y: int, w: int, s: Session, now: datetime) -> int:
-    """Draw one goal block (+ its detours below). Returns the footprint height."""
+    """Draw one goal block (+ its workers and detours below). Returns the footprint height."""
     h = g.height()
     is_here = s.here_goal == g.id
     status = g.status
     t = TREATMENT["doing" if (is_here and status in ("todo", "doing")) else status]
-    dash = f' stroke-dasharray="{t["dash"]}"' if t["dash"] else ""
-    parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6" fill="{PAPER}"/>')
-    parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6" fill="{t["fill"]}" '
-                 f'stroke="{t["stroke"]}" stroke-width="{1.2 if is_here else 1}"{dash}/>')
+    _box(parts, x, y, w, h, t["fill"], t["stroke"], 2 if is_here else 1, t["dash"])
     cx = x + 12
     if status == "blocked":
-        parts.append(f'<rect x="{x + 4}" y="{y + 8}" width="4" height="32" rx="1" fill="{ACCENT}"/>')
+        parts.append(f'<rect x="{x + 4}" y="{y + 8}" width="4" height="32" rx="1" fill="{RED}"/>')
         cx = x + 16
-    for label, color in [(g.id, CHIP_COLOR[status]), (STATUS_WORD[status], CHIP_COLOR[status])] \
-            + ([(g.type, INK_40)] if g.type != "GOAL" else []):
-        chip, cw = _chip(cx, y + 12, label, color)
+    chips = [(g.id, COLOR[status], None), (STATUS_WORD[status], COLOR[status], STATUS_ICON[status])]
+    if g.type != "GOAL":
+        chips.append((g.type, INK_40, TYPE_ICON.get(g.type)))
+    for label, color, icon in chips:
+        chip, cw = _chip(cx, y + 12, label, color, icon)
         parts.append(chip)
         cx += cw + 4
     if is_here and s.here_task is None:
-        parts.append(_text(x + w - 12, y + 21, "◀ HERE", 8, ACCENT, FONT_MONO, anchor="end", ls="0.12em"))
+        parts.append(_icon("map-pin", x + w - 56, y + 11, 12, AMBER))
+        parts.append(_text(x + w - 12, y + 21, "HERE", 8, AMBER, FONT_MONO, anchor="end", ls="0.12em", weight="600"))
     parts.append(_text(x + 12, y + 40, fit(g.title, 12, w - 24), 12, INK, FONT_SANS, weight="600"))
     st, fi = g.times()
     span = span_text(st, fi, now)
-    parts.append(_text(x + 12, y + 53, span or "—", 8, MUTED if span else SOFT, FONT_MONO, ls="0.04em"))
+    parts.append(_icon("clock", x + 12, y + 45, 9, MUTED if span else SOFT))
+    parts.append(_text(x + 24, y + 53, span or "—", 8, MUTED if span else SOFT, FONT_MONO, ls="0.04em"))
     parts.append(f'<line x1="{x + 12}" y1="{y + 60}" x2="{x + w - 12}" y2="{y + 60}" stroke="{RULE}" stroke-width="0.8"/>')
     rows = g.tasks if len(g.tasks) <= MAX_TASK_ROWS else g.tasks[:MAX_TASK_ROWS - 1]
     for i, tk in enumerate(rows):
         ry = y + HEADER_H + i * TASK_ROW
         here_task = is_here and s.here_task == tk.n
-        if tk.status == "done":
-            sq = f'fill="{MUTED}" stroke="{MUTED}"'
-        elif tk.status == "blocked":
-            sq = f'fill="{ACCENT}" stroke="{ACCENT}"'
-        elif tk.status == "doing" or here_task:
-            sq = f'fill="transparent" stroke="{ACCENT}"'
-        else:
-            sq = f'fill="transparent" stroke="{INK_40}"'
-        parts.append(f'<rect x="{x + 12}" y="{ry + 4}" width="8" height="8" rx="1" {sq} stroke-width="1"/>')
+        kind = "doing" if (tk.status == "todo" and here_task) else tk.status
+        parts.append(_icon(STATUS_ICON[kind], x + 12, ry + 2, 10, COLOR[kind] if kind != "todo" else INK_40))
         parts.append(_text(x + 26, ry + 11, str(tk.n), 8, SOFT, FONT_MONO))
-        label, color = tk.title, INK
+        label = tk.title
+        color = {"done": MUTED, "doing": AMBER, "blocked": RED}.get(kind, INK)
         if tk.status == "blocked":
-            label, color = f"{tk.title} · รอ {tk.blocked_on}", ACCENT
-        elif tk.status == "done":
-            color = MUTED
-        elif tk.status == "doing" or here_task:
-            color = ACCENT
+            label = f"{tk.title} · รอ {tk.blocked_on}"
         right = 12
         tspan = span_text(tk.started_at, tk.finished_at, now)
         if here_task:
-            right += up4(text_width("◀ HERE", 8, mono=True) * 1.1 + 12)
-            parts.append(_text(x + w - 12, ry + 11, "◀ HERE", 8, ACCENT, FONT_MONO, anchor="end", ls="0.12em"))
+            right += 56
+            parts.append(_icon("map-pin", x + w - 52, ry + 2, 10, AMBER))
+            parts.append(_text(x + w - 12, ry + 11, "HERE", 8, AMBER, FONT_MONO, anchor="end", ls="0.12em", weight="600"))
         elif tspan and w >= TASK_TIME_MIN_W:
             right += up4(text_width(tspan, 8, mono=True) + 12)
             parts.append(_text(x + w - 12, ry + 11, tspan, 8, SOFT, FONT_MONO, anchor="end"))
@@ -887,33 +1103,90 @@ def draw_goal(parts: list[str], g: Goal, x: int, y: int, w: int, s: Session, now
         ry = y + HEADER_H + (MAX_TASK_ROWS - 1) * TASK_ROW
         parts.append(_text(x + 40, ry + 11, f"+{len(g.tasks) - MAX_TASK_ROWS + 1} more", 9, SOFT, FONT_MONO))
     if status == "blocked":
-        parts.append(_text(x + 12, y + h - 8, fit(f"BLOCKED · รอ {g.blocked_reason()}", 9, w - 24, mono=True),
-                           9, ACCENT, FONT_MONO))
-    # detours hang below the block: interrupt = down and back up; parked = down to a dead end
+        parts.append(_text(x + 12, y + h - 8, fit(f"BLOCKED · รอ {g.blocked_reason()}", 9, w - 24, mono=True), 9, RED, FONT_MONO))
     dy = y + h
+    # workers this goal owns: a teal card each, chained below the block
+    for wr in g.workers:
+        top = dy + DETOUR_GAP
+        parts.append(_vline(x + w // 2, dy, top, TEAL))
+        draw_worker(parts, wr, x, top, w, now)
+        dy = top + WORKER_H
+    # detours hang below: interrupt = down and back up; parked = down to a dead end
     for d in g.detours:
         top = dy + DETOUR_GAP
-        parts.append(_vline(x + 24, dy, top))
+        parts.append(_vline(x + 24, dy, top, BLUE if d.kind == "interrupt" else SOFT))
         if d.kind == "interrupt":
-            parts.append(_vline(x + w - 24, top, dy))
-        parts.append(f'<rect x="{x}" y="{top}" width="{w}" height="{DETOUR_H}" rx="6" fill="{PAPER}"/>')
-        dt = TREATMENT["done" if d.status == "done" else "todo"]
-        ddash = f' stroke-dasharray="{dt["dash"]}"' if dt["dash"] else ""
-        parts.append(f'<rect x="{x}" y="{top}" width="{w}" height="{DETOUR_H}" rx="6" fill="{dt["fill"]}" '
-                     f'stroke="{dt["stroke"]}" stroke-width="1"{ddash}/>')
-        chip, cw = _chip(x + 12, top + 8, "PARKED" if d.kind == "parked" else "DETOUR", SOFT if d.kind == "parked" else MUTED)
+            parts.append(_vline(x + w - 24, top, dy, BLUE))
+        color = BLUE if d.kind == "interrupt" else SOFT
+        fill = (GREEN_TINT if d.status == "done" else BLUE_TINT) if d.kind == "interrupt" else INK_02
+        _box(parts, x, top, w, DETOUR_H, fill, GREEN if (d.kind == "interrupt" and d.status == "done") else color,
+             1, None if d.kind == "interrupt" else "4,3")
+        chip, cw = _chip(x + 12, top + 8, "PARKED" if d.kind == "parked" else "DETOUR", color,
+                         "parking" if d.kind == "parked" else "arrow-back-up")
         parts.append(chip)
-        tail = ("↩ back on the line" if d.status == "done" else "↩ returns when done") if d.kind == "interrupt" \
+        tail = ("back on the line" if d.status == "done" else "returns when done") if d.kind == "interrupt" \
             else ("⊥ " + (d.note or "parked"))
-        parts.append(_text(x + w - 12, top + 17, fit(tail, 8, w - 24 - cw - 20, mono=True), 8,
-                           SOFT, FONT_MONO, anchor="end"))
+        parts.append(_text(x + w - 12, top + 17, fit(tail, 8, w - 24 - cw - 20, mono=True), 8, SOFT, FONT_MONO, anchor="end"))
         parts.append(_text(x + 12, top + 32, fit(d.title, 10, w - 24), 10, MUTED, FONT_SANS))
         dy = top + DETOUR_H
         if d.kind == "parked":
-            parts.append(_vline(x + 24, dy, dy + STUB, arrow=False))
-            parts.append(f'<line x1="{x + 12}" y1="{dy + STUB}" x2="{x + 36}" y2="{dy + STUB}" stroke="{MUTED}" stroke-width="1.2"/>')
+            parts.append(_vline(x + 24, dy, dy + STUB, SOFT, arrow=False))
+            parts.append(f'<line x1="{x + 12}" y1="{dy + STUB}" x2="{x + 36}" y2="{dy + STUB}" stroke="{SOFT}" stroke-width="1.2"/>')
             dy += STUB
     return dy - y
+
+
+def draw_worker(parts: list[str], w: dict, x: int, y: int, width: int, now: datetime) -> None:
+    """A delegated worker: role + task id + status chip, its task title, and
+    `task · tmux · host · runtime` — all read from tasks.db, nothing typed."""
+    kind, word = worker_kind(w)
+    stroke = {"done": GREEN, "blocked": RED, "cancelled": SOFT}.get(kind, TEAL)
+    fill = {"done": GREEN_TINT, "blocked": RED_TINT, "cancelled": INK_02}.get(kind, TEAL_TINT)
+    _box(parts, x, y, width, WORKER_H, fill, stroke, 1, "4,3" if kind == "cancelled" else None)
+    cx = x + 12
+    for label, color, icon in (("WORKER", TEAL, "robot"), (str(w.get("role") or "?").upper(), TEAL, None),
+                               (word, WORKER_KIND_COLOR[kind], WORKER_KIND_ICON[kind])):
+        chip, cw = _chip(cx, y + 8, label, color, icon)
+        parts.append(chip)
+        cx += cw + 4
+    parts.append(_text(x + 12, y + 36, fit(str(w.get("title") or ""), 10, width - 24), 10, INK, FONT_SANS, weight="600"))
+    bits = [str(w.get("id") or ""), str(w.get("tmux_session") or "")]
+    if w.get("session_id"):
+        bits.append(str(w["session_id"])[:8])
+    if w.get("host"):
+        bits.append(str(w["host"]))
+    span = worker_span(w, now)
+    if span:
+        bits.append(span)
+    parts.append(_text(x + 12, y + 51, fit(" · ".join(b for b in bits if b), 8, width - 24, mono=True), 8, MUTED, FONT_MONO))
+
+
+def draw_finish(parts: list[str], s: Session, x: int, y: int, w: int, now: datetime) -> int:
+    """The FINISH block: the flag, the session's Definition of Done, total time."""
+    done = s.finished()
+    rows = s.dod[:MAX_TASK_ROWS]
+    h = up4(HEADER_H + len(rows) * TASK_ROW + FOOT)
+    color = GREEN if done else INK
+    _box(parts, x, y, w, h, GREEN_TINT if done else "#ffffff", color, 1.2 if done else 1)
+    parts.append(_icon("flag", x + 12, y + 10, 16, color))
+    chip, cw = _chip(x + 32, y + 12, "FINISH", color, None)
+    parts.append(chip)
+    c = s.counts()
+    if s.dod:
+        chip2, _cw = _chip(x + 32 + cw + 4, y + 12, f"DOD {c['dod_done']}/{c['dod']}", GREEN if done else SOFT,
+                           "check" if done else None)
+        parts.append(chip2)
+    parts.append(_text(x + 12, y + 40, fit("Definition of Done" if s.dod else s.entry_problem, 12, w - 24), 12, INK, FONT_SANS, weight="600"))
+    el = s.elapsed(now)
+    parts.append(_icon("clock", x + 12, y + 45, 9, MUTED))
+    parts.append(_text(x + 24, y + 53, f"session {el}" if el else "—", 8, MUTED, FONT_MONO, ls="0.04em"))
+    parts.append(f'<line x1="{x + 12}" y1="{y + 60}" x2="{x + w - 12}" y2="{y + 60}" stroke="{RULE}" stroke-width="0.8"/>')
+    for i, d in enumerate(rows):
+        ry = y + HEADER_H + i * TASK_ROW
+        parts.append(_icon(STATUS_ICON[d.status], x + 12, ry + 2, 10, GREEN if d.status == "done" else INK_40))
+        parts.append(_text(x + 26, ry + 11, str(d.n), 8, SOFT, FONT_MONO))
+        parts.append(_text(x + 40, ry + 11, fit(d.text, 10, w - 52), 10, MUTED if d.status == "done" else INK, FONT_SANS))
+    return h
 
 
 def draw_legend(parts: list[str], y: int, x0: int, x1: int, s: Session, now: datetime) -> int:
@@ -922,36 +1195,52 @@ def draw_legend(parts: list[str], y: int, x0: int, x1: int, s: Session, now: dat
     parts.append(_text(x0, y + 16, "LEGEND", 8, MUTED, FONT_MONO, ls="0.18em"))
     c = s.counts()
     el = s.elapsed(now)
-    counts = (f"GOALS {c['goals_done']}/{c['goals']} · TASKS {c['tasks_done']}/{c['tasks']} · "
-              f"BLOCKED {c['blocked']}" + (f" · {el.upper()}" if el else ""))
+    counts = (f"GOALS {c['goals_done']}/{c['goals']} · TASKS {c['tasks_done']}/{c['tasks']}"
+              + (f" · DOD {c['dod_done']}/{c['dod']}" if c["dod"] else "")
+              + f" · BLOCKED {c['blocked']}" + (f" · WORKERS {c['workers']}" if c["workers"] else "")
+              + (f" · {el.upper()}" if el else ""))
     parts.append(_text(x1, y + 16, counts, 8, MUTED, FONT_MONO, anchor="end", ls="0.08em"))
-    items = [("done", "Done"), ("doing", "Doing · here"), ("todo", "Not started"), ("blocked", "Blocked")]
+    items = [
+        ("check", GREEN, GREEN_TINT, GREEN, None, "Done"),
+        ("clock", AMBER, AMBER_TINT, AMBER, None, "Doing"),
+        ("map-pin", AMBER, "transparent", "transparent", None, "Here"),
+        ("circle-dashed", INK_40, INK_02, INK_20, "4,3", "Not started"),
+        ("alert-triangle", RED, RED_TINT, RED, None, "Blocked"),
+        ("robot", TEAL, TEAL_TINT, TEAL, None, "Worker"),
+        ("arrow-back-up", BLUE, BLUE_TINT, BLUE, None, "Detour, came back"),
+        ("parking", SOFT, INK_02, INK_20, "4,3", "Parked ⊥ dead end"),
+        ("flag", INK, "#ffffff", INK, None, "Finish · DoD"),
+    ]
     sw_y = y + 32
     lx = x0
-    for key, label in items:
-        t = TREATMENT[key]
-        dash = f' stroke-dasharray="{t["dash"]}"' if t["dash"] else ""
-        parts.append(f'<rect x="{lx}" y="{sw_y}" width="16" height="12" rx="2" fill="{t["fill"]}" '
-                     f'stroke="{t["stroke"]}" stroke-width="1"{dash}/>')
+    for icon, color, fill, stroke, dash, label in items:
+        need = 44 + text_width(label, 9) + 24
+        if lx + need > x1 - 200:
+            sw_y += 20
+            lx = x0
+        d = f' stroke-dasharray="{dash}"' if dash else ""
+        parts.append(f'<rect x="{lx}" y="{sw_y}" width="16" height="12" rx="2" fill="{fill}" stroke="{stroke}" stroke-width="1"{d}/>')
+        parts.append(_icon(icon, lx + 3, sw_y + 1, 10, color))
         parts.append(_text(lx + 24, sw_y + 9, label, 9, MUTED, FONT_SANS))
-        lx += 24 + up4(text_width(label, 9) + 32)
-    parts.append(f'<line x1="{lx}" y1="{sw_y + 6}" x2="{lx + 28}" y2="{sw_y + 6}" stroke="{MUTED}" stroke-width="1.2" marker-end="url(#arrow)"/>')
-    parts.append(_text(lx + 36, sw_y + 9, "Needs the previous goal", 9, MUTED, FONT_SANS))
-    lx += 36 + up4(text_width("Needs the previous goal", 9) + 32)
-    parts.append(f'<line x1="{lx}" y1="{sw_y + 6}" x2="{lx + 28}" y2="{sw_y + 6}" stroke="{MUTED}" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>')
-    parts.append(_text(lx + 36, sw_y + 9, "Detour · ⊥ parked (dead end)", 9, MUTED, FONT_SANS))
+        lx += 24 + up4(text_width(label, 9) + 24)
+    parts.append(f'<line x1="{x1 - 180}" y1="{y + 38}" x2="{x1 - 152}" y2="{y + 38}" stroke="{MUTED}" stroke-width="1.2" marker-end="url(#arrow)"/>')
+    parts.append(_text(x1 - 144, y + 41, "Needs the previous goal", 9, MUTED, FONT_SANS))
     return sw_y + 12 + 20
 
 
 def _defs() -> str:
+    syms = "".join(
+        f'<symbol id="i-{name}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+        f'stroke-linecap="round" stroke-linejoin="round">{body}</symbol>' for name, body in ICONS.items())
     return (f'<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">'
-            f'<polygon points="0 0, 8 3, 0 6" fill="{MUTED}"/></marker></defs>')
+            f'<polygon points="0 0, 8 3, 0 6" fill="{MUTED}"/></marker>{syms}</defs>')
 
 
 def _svg_open(slug: str, w: int, h: int, s: Session) -> str:
     c = s.counts()
     desc = (f"Session map: {c['goals_done']} of {c['goals']} goals done, {c['tasks_done']} of {c['tasks']} tasks done, "
-            f"{c['blocked']} blocked, {c['detours']} detours, for the entry problem: {s.entry_problem}")
+            f"{c['dod_done']} of {c['dod']} definition-of-done items, {c['blocked']} blocked, {c['workers']} workers, "
+            f"{c['detours']} detours, for the entry problem: {s.entry_problem}")
     return (f'<svg class="{slug}" viewBox="0 0 {w} {h}" width="{w}" height="{h}" xmlns="http://www.w3.org/2000/svg" '
             f'role="img" aria-labelledby="{slug}-title {slug}-desc">\n'
             f'<title id="{slug}-title">{esc(fit(s.entry_problem, 12, 700))}</title>\n'
@@ -961,7 +1250,8 @@ def _svg_open(slug: str, w: int, h: int, s: Session) -> str:
 
 # ---- the map: left → right ------------------------------------------------------
 def render_map(s: Session, now: datetime) -> tuple[str, int, int]:
-    W = col_x(s.ncols - 1) + GOAL_W + M
+    fin_x = col_x(s.ncols)
+    W = fin_x + GOAL_W + M
     parts: list[str] = []
     y = M
     el = s.elapsed(now)
@@ -978,20 +1268,27 @@ def render_map(s: Session, now: datetime) -> tuple[str, int, int]:
     for r in range(s.nrows):
         row_y.append(yy)
         yy += s.row_h[r] + ROW_GAP
+    rows_end = row_y[-1] + s.row_h[-1]
     for g in s.goals:
         g.x, g.y, g.h = col_x(g.col), row_y[g.row], g.height()
 
     roots = [g for g in s.goals if not g.depends_on]
     sx = M
     sy = roots[0].y + PORT_Y - START_H // 2 if len(roots) == 1 else up4(sum(g.y + PORT_Y for g in roots) / len(roots) - START_H // 2)
+    ends = terminals(s)
+    fin_h = up4(HEADER_H + len(s.dod[:MAX_TASK_ROWS]) * TASK_ROW + FOOT)
+    fin_y = ends[0].y if len(ends) == 1 else up4(sum(g.y + PORT_Y for g in ends) / len(ends) - PORT_Y)
+    fin_y = max(y_top, fin_y)
 
-    # edges first (behind boxes): START → roots, dep → goal; fanned on shared edges (§6 rule 4)
-    edges = [("START", g) for g in s.goals if not g.depends_on] + [(d, g) for g in s.goals for d in g.depends_on]
+    # edges first (behind boxes): START → roots, dep → goal, terminals → FINISH; fanned on shared edges
+    edges: list[tuple[str, str]] = [("START", g.id) for g in s.goals if not g.depends_on]
+    edges += [(d, g.id) for g in s.goals for d in g.depends_on]
+    edges += [(g.id, "FINISH") for g in ends]
     out_n: dict[str, int] = {}
     in_n: dict[str, int] = {}
-    for src, g in edges:
+    for src, dst in edges:
         out_n[src] = out_n.get(src, 0) + 1
-        in_n[g.id] = in_n.get(g.id, 0) + 1
+        in_n[dst] = in_n.get(dst, 0) + 1
     out_k: dict[str, int] = {}
     in_k: dict[str, int] = {}
     gap_k: dict[int, int] = {}
@@ -999,29 +1296,50 @@ def render_map(s: Session, now: datetime) -> tuple[str, int, int]:
     def port(y0: int, band: int, k: int, n: int) -> int:
         return y0 + PORT_Y if n == 1 else up4(y0 + band * (k + 1) / (n + 1))
 
-    for src, g in edges:
+    for src, dst in edges:
         ko, out_k[src] = out_k.get(src, 0), out_k.get(src, 0) + 1
-        ki, in_k[g.id] = in_k.get(g.id, 0), in_k.get(g.id, 0) + 1
+        ki, in_k[dst] = in_k.get(dst, 0), in_k.get(dst, 0) + 1
         if src == "START":
             x1 = sx + START_W
             y1 = sy + START_H // 2 if out_n[src] == 1 else port(sy, START_H, ko, out_n[src])
         else:
             sg = s.goal(src)
             x1, y1 = sg.x + GOAL_W, port(sg.y, 48, ko, out_n[src])
-        x2, y2 = g.x, port(g.y, 48, ki, in_n[g.id])
-        kg, gap_k[g.col] = gap_k.get(g.col, 0), gap_k.get(g.col, 0) + 1
+        if dst == "FINISH":
+            x2, y2, col = fin_x, port(fin_y, 48, ki, in_n[dst]), s.ncols
+        else:
+            g = s.goal(dst)
+            x2, y2, col = g.x, port(g.y, 48, ki, in_n[dst]), g.col
+        kg, gap_k[col] = gap_k.get(col, 0), gap_k.get(col, 0) + 1
         parts.append(_elbow(x1, y1, x2, y2, x2 - GAP // 2 + (12 * (kg % 3) - 12)))
 
-    parts.append(f'<rect x="{sx}" y="{sy}" width="{START_W}" height="{START_H}" rx="6" fill="{PAPER}"/>')
-    parts.append(f'<rect x="{sx}" y="{sy}" width="{START_W}" height="{START_H}" rx="6" fill="#ffffff" stroke="{INK}" stroke-width="1"/>')
-    chip, _w = _chip(sx + 12, sy + 8, "START", INK)
+    # START
+    _box(parts, sx, sy, START_W, START_H, "#ffffff", INK)
+    parts.append(_icon("player-play", sx + 12, sy + 10, 12, INK))
+    chip, _w = _chip(sx + 28, sy + 8, "START", INK, None)
     parts.append(chip)
     for i, ln in enumerate(wrap(s.start, 10, START_W - 24, 2)):
         parts.append(_text(sx + 12, sy + 36 + i * 14, ln, 10, INK, FONT_SANS, weight="500"))
     for g in s.goals:
         draw_goal(parts, g, g.x, g.y, GOAL_W, s, now)
-    y_leg = row_y[-1] + s.row_h[-1] + 28
-    H = up4(draw_legend(parts, y_leg, M, W - M, s, now))
+    draw_finish(parts, s, fin_x, fin_y, GOAL_W, now)
+    y_after = max(rows_end, fin_y + fin_h)
+
+    # unassigned workers: a band of cards below the rows
+    if s.unassigned:
+        yb = y_after + 28
+        parts.append(f'<line x1="{M}" y1="{yb}" x2="{W - M}" y2="{yb}" stroke="{RULE}" stroke-width="0.8"/>')
+        parts.append(_text(M, yb + 16, "WORKERS · NOT TIED TO A GOAL YET", 8, MUTED, FONT_MONO, ls="0.18em"))
+        per_row = max(1, (W - 2 * M + GAP) // (GOAL_W + GAP))
+        yb += 28
+        for i, wr in enumerate(s.unassigned):
+            cxw = M + (i % per_row) * (GOAL_W + GAP)
+            cyw = yb + (i // per_row) * (WORKER_H + DETOUR_GAP)
+            draw_worker(parts, wr, cxw, cyw, GOAL_W, now)
+        rows_w = (len(s.unassigned) + per_row - 1) // per_row
+        y_after = yb + rows_w * (WORKER_H + DETOUR_GAP) - DETOUR_GAP
+
+    H = up4(draw_legend(parts, y_after + 28, M, W - M, s, now))
     return _svg_open("session-map", W, H, s) + "\n".join(parts) + "\n</svg>", W, H
 
 
@@ -1186,6 +1504,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
     ap.add_argument("--tree", action="store_true", help="show/map/patch: also print the 🌳 text tree")
     ap.add_argument("--no-check", action="store_true", help="skip diagram-design's self_check.py")
+    ap.add_argument("--no-db", action="store_true", help="don't read workers from state/tasks.db")
     ap.add_argument("--png", action="store_true", help="also render a PNG with headless Chrome")
     ap.add_argument("--scale", type=int, default=2)
     ap.add_argument("--chrome", help="path to a Chrome/Chromium binary")
@@ -1235,6 +1554,8 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, ValueError, TypeError) as exc:
         print(f"bad input: {exc}", file=sys.stderr)
         return 1
+
+    s.attach_workers([] if args.no_db else load_workers(s.owner_short()))
 
     if args.command == "show":
         print(tree_text(s, now) if args.tree else status_text(s, now))

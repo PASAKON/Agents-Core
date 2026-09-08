@@ -34,13 +34,16 @@ This is a **read of progress**, not new work. Don't start a task here — just m
 
 ## What the map is (CEO 2026-09-09)
 
-A left→right picture of the session: **START** (what the CEO asked) → **goal blocks**; a goal that
-needs an earlier goal follows it with an arrow; a goal on its own line sits on its own row; each
-block lists its tasks 1-2-3 with a checkbox, the block's `start→finish · minutes`, and the
-block/task being worked on is orange with `◀ HERE`; work that left the path hangs under its
-block as a **DETOUR** (came back, ↩) or **PARKED** (dead end ⊥, LungNote). One map, left→right,
-one link per session; on a phone it scrolls sideways (pinch-zoom) — the CEO chose the horizontal
-map only (2026-09-09: "แนวนอนอย่างเดียว").
+A left→right picture of the session: **START** (what the CEO asked) → **goal blocks** → **FINISH**
+(the charter's Definition of Done under a flag; every line runs into it, green when complete). A
+goal that needs an earlier goal follows it with an arrow; a goal on its own line sits on its own
+row; each block lists its tasks 1-2-3 with a status icon, the block's `start→finish · minutes`,
+and the task being worked on is amber with a map-pin `HERE`. Work that left the path hangs under
+its block as a **DETOUR** (came back, ↩) or **PARKED** (dead end ⊥, LungNote). **Workers** this
+session delegated hang under the goal they serve (read live from `state/tasks.db`). Colours are
+status — done green · doing amber · blocked red — icons are Tabler, never emoji; the standard is
+`org:playbooks/session-map.md` (colours, icons, vocabulary) and is the same for every C-level.
+One map, one link per session; on a phone it scrolls sideways — horizontal only (CEO 2026-09-09).
 
 Vocabulary, so every session's map reads the same:
 
@@ -55,6 +58,12 @@ Vocabulary, so every session's map reads the same:
   incident, a fix, a CEO question); `parked` = raised, not done here, sent to LungNote (`note` =
   the todo id, IRON §35). Both hang under the goal they interrupted.
 - **here** = `G2.3` (a task) or `G2` (a goal). Omit it and the script points at the first `doing`.
+- **DoD** = the charter's Definition of Done items, `F.1 … F.n`, shown in the FINISH block; tick
+  them with `set: {"F.2": "done"}` as they are verified — same honesty bar as `/session-close`.
+- **Worker** = a task this session delegated (`tasks.owner_cto` = this session). The script reads
+  every one of them at every render — role, task id, tmux name, worker session, host, status,
+  runtime — you only say which goal it serves, once: `"workers": {"G2": ["task-149e6c86"]}`.
+  Unassigned workers show in a band under the rows; finished ones stay (green / grey).
 - **Times** are stamped by the script when a status changes (doing/blocked start the clock, done
   stops it) — never type times; the map derives each block's minutes from its tasks.
 
@@ -66,6 +75,8 @@ Vocabulary, so every session's map reads the same:
 .venv/bin/python tools/session_diagram.py map <<'EOF'
 {"entry_problem": "<the charter sentence>",
  "start": "<what the CEO asked, in their words, ≤ 2 lines>",
+ "dod": [{"text": "<charter DoD item>", "done": false}],
+ "workers": {"G1": ["task-<id the session delegated>"]},
  "goals": [
    {"id": "G1", "title": "…", "type": "BUILD", "tasks": [
       {"title": "…", "status": "done", "type": "SETUP", "evidence": "sha:…"},
@@ -88,7 +99,8 @@ to start the map over.
 
 ```bash
 .venv/bin/python tools/session_diagram.py patch <<'EOF'
-{"set": {"G1.2": "done", "G1.3": "doing"}, "evidence": {"G1.2": "sha:abc1234"}, "here": "G1.3",
+{"set": {"G1.2": "done", "G1.3": "doing", "F.1": "done"}, "evidence": {"G1.2": "sha:abc1234"}, "here": "G1.3",
+ "workers": {"G2": ["task-149e6c86"]},
  "add": {"tasks": {"G2": [{"title": "a new step"}]},
          "goals": [{"id": "G4", "title": "a new ask from the CEO", "tasks": [{"title": "…"}]}],
          "detours": {"G1": [{"title": "…", "kind": "parked", "note": "LungNote <todo id>"}]}},
@@ -96,9 +108,10 @@ to start the map over.
 EOF
 ```
 
-Refs: `G2` goal · `G2.3` task · `D1` detour. `set` takes any status; `blocked` sets the status and
-the reason in one go; `add` appends (tasks get the next number, detours the next `D` id). A
-typical patch is 1–3 lines; never resend the whole map. `sample-patch` prints an example.
+Refs: `G2` goal · `G2.3` task · `D1` detour · `F.2` DoD item. `set` takes any status; `blocked`
+sets the status and the reason in one go; `add` appends (tasks get the next number, detours the
+next `D` id, `dod` the next `F`); `workers` ties delegated tasks to a goal. A typical patch is
+1–3 lines; never resend the whole map. `sample-patch` prints an example.
 
 ### Then, every run
 
@@ -211,4 +224,7 @@ Print it only when the CEO asks for the text tree — it costs the tokens the ma
 9. **Read-only.** This mirrors state; the files under `state/session-diagrams/` and the Artifact
    publish are display-layer, like the tab title. Saved for next time? That's [[session-save]].
    The exit gate? [[session-close]]. Pairs with [[session-open]] (which sets the entry problem).
+10. **The look is the org standard, not yours.** Colours, icons, chips and vocabulary come from
+    `org:playbooks/session-map.md` via the script; every C-level's map reads the same. Want a
+    change? Change the playbook and the script, not one session's output.
 ```
