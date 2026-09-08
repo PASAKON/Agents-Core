@@ -139,8 +139,25 @@ def test_cli_writes_html_and_prints_path(tmp_path):
     out = buf.getvalue()
     assert rc == 0, out
     assert (Path(tmp_path) / "t.html").is_file()
+    assert (Path(tmp_path) / "t.artifact.html").is_file()
+    assert "artifact: " in out
     assert out.startswith("🌳 SESSION WORKTREE") and "\n---\n" in out
     assert out.rstrip().endswith(f"diagram: {Path(tmp_path) / 't.html'}")
+
+
+def test_artifact_body_has_no_document_wrapper():
+    body = sd.render_artifact_html(_session())
+    assert body.startswith("<title>")
+    for tag in ("<!DOCTYPE", "<html", "<head", "<body"):
+        assert tag not in body
+    assert 'role="img"' in body and "fonts.googleapis.com/css2" in body
+
+
+def test_default_basename_is_the_session_id():
+    s = _session()
+    assert sd.default_basename(s) == "cto-1234abcd"
+    stamped = sd.default_basename(s, stamp=True)
+    assert stamped.startswith("cto-1234abcd-") and len(stamped) == len("cto-1234abcd-YYYYmmdd-HHMM")
 
 
 def test_png_render_optional(tmp_path):

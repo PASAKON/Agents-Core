@@ -5,12 +5,12 @@ origin: mooniex-org
 scope: >-
   Prints the current session as an emoji work-breakdown tree, each node tagged by
   work type (READ / BUILD / FIX / DESIGN / TEST / SHIP), then a plain-language
-  summary for the CEO, then sends the same tree as a picture — rendered by
-  tools/session_diagram.py in the diagram-design system and pushed to the CEO's
-  Telegram as a PNG. Chat stays text and emoji — CTO chat renders no inline
-  images; the picture travels out-of-band. Absorbed the former /session-summary.
-  Enforces the §35 one-problem view.
-description: Show what this session has done, is doing, is blocked on, and has left — as a text tree, a plain recap, and a diagram sent to the CEO's Telegram. Trigger on /session-worktree and when the CEO asks "ทำถึงไหนแล้ว", "เหลืออะไร", "ติด blocker ตรงไหน", "สรุป session", "อธิบายแบบบ้านๆ", "progress", "where are we", "recap", "ขอ diagram session", "ส่งรูป worktree".
+  summary for the CEO, then the same tree as a picture — rendered by
+  tools/session_diagram.py in the diagram-design system and published as an
+  Artifact whose link is the last line. Chat stays text and emoji — CTO chat
+  renders no inline images; the picture lives behind the link. Absorbed the
+  former /session-summary. Enforces the §35 one-problem view.
+description: Show what this session has done, is doing, is blocked on, and has left — as a text tree, a plain recap, and a diagram published as an Artifact link. Trigger on /session-worktree and when the CEO asks "ทำถึงไหนแล้ว", "เหลืออะไร", "ติด blocker ตรงไหน", "สรุป session", "อธิบายแบบบ้านๆ", "progress", "where are we", "recap", "ขอ diagram session", "ส่งรูป worktree".
 created_by: human
 audience: [cxo]
 ---
@@ -26,12 +26,13 @@ reconstruct the CURRENT session from the conversation so far and print TWO stack
 1. 🌳 **the worktree tree** — technical, every node tagged by work type, with sha/file/approve evidence.
 2. 📋 **the plain recap** — zero-jargon business summary for the CEO (the former `/session-summary`).
 3. 🖼 **the picture** — the tree rendered by `tools/session_diagram.py` in the `diagram-design`
-   system and sent to the CEO's Telegram as a PNG; its path + send status is the **last line**.
+   system and published as an Artifact; its **link is the last line**.
 
 Same facts, three readers: the tree is for the CTO (detail), the recap is for a CEO with zero coding
-knowledge (the "so what"), the picture is the whole session at a glance on the CEO's phone
-(CEO 2026-09-08: "เราจะได้เห็นภาพรวมของทั้ง session เป็น diagram เลย"). Always print tree first,
-recap second, picture line last.
+knowledge (the "so what"), the picture is the whole session at a glance from any device
+(CEO 2026-09-08: "เราจะได้เห็นภาพรวมของทั้ง session เป็น diagram เลย"; 2026-09-09: the link, not a
+Telegram photo — it opens anywhere, zooms crisply, and never lands in the SomPong chat). Always
+print tree first, recap second, link last.
 
 This is a **read of progress**, not new work. Don't start a task here — just mirror state.
 
@@ -164,27 +165,32 @@ per picture, the script costs 5 seconds and cannot disagree with view 1.
    example: `.venv/bin/python tools/session_diagram.py --sample`. Same nodes, ids, statuses
    (`done|doing|todo|blocked`), type tags, evidence and `blocked_on` as view 1;
    `entry_problem` = the charter's sentence; `dod` = the charter's items with their current
-   `done`. Omit `session` — the script reads the session id from the env. The script keeps a
-   copy as `state/session-diagrams/<session>-<yyyymmdd-HHMM>.json` (the dir is gitignored).
-2. **Render + send** — do this BEFORE typing view 1, and paste the script's tree as view 1:
+   `done`. Omit `session` — the script reads the session id from the env and names every
+   output after it (`state/session-diagrams/<session>.*`, gitignored), so a later run of the
+   same session overwrites the files and the Artifact keeps its URL.
+2. **Render** — do this BEFORE typing view 1, and paste the script's tree as view 1:
    ```bash
-   .venv/bin/python tools/session_diagram.py - --print-tree --check --png --send <<'EOF'
+   .venv/bin/python tools/session_diagram.py - --print-tree --check <<'EOF'
    {"entry_problem": "…", "dod": [{"text": "…", "done": true}],
     "nodes": [{"status": "done", "type": "BUILD", "title": "…", "evidence": "sha:…"}]}
    EOF
    ```
    `--print-tree` prints view 1 in this skill's exact format · `--check` runs diagram-design's
-   own `self_check.py` · `--png` renders with headless Chrome · `--send` pushes the PNG to the
-   CEO's Telegram as a real file (CEO order #38, never a link).
-3. **Read the script's `telegram:` line and report exactly that**, as the last line of the
-   whole output:
+   own `self_check.py` (must say `check: OK`) · the `artifact:` line names the file to publish.
+3. **Publish the picture with the Artifact tool** — `Artifact(file_path=<the artifact: path>,
+   description="Session worktree · <date> · <session>", favicon="🌳")` on the session's first
+   run; later runs call it again with the same path and no favicon, which republishes the
+   same URL. The URL the tool returns is the **last line** of the whole output:
    ```
-   🖼 state/session-diagrams/<file>.png · ส่งเข้า Telegram แล้ว ✓                 ← telegram: ok
-   🖼 state/session-diagrams/<file>.png · Telegram ส่งไม่ผ่าน: <reason>            ← telegram: FAILED
-   🖼 state/session-diagrams/<file>.html · เครื่องนี้ไม่มี Chrome ส่งเป็นไฟล์ HTML แทน  ← png: skipped
+   🖼 https://claude.ai/code/artifact/<id>
    ```
-   `ok` is the only thing that counts as sent ([[report_outcome_not_intent]]). No Chrome on
-   the box (Contabo today) → the script skips the PNG and sends the HTML as a document; say so.
+   The link is private until the CEO shares it from the page. No Artifact tool in this runtime
+   (the inline `cto_chat` REPL) → print the file path instead and say why:
+   ```
+   🖼 state/session-diagrams/<session>.html · runtime นี้ไม่มี Artifact tool เปิดไฟล์ดูเอง
+   ```
+   Telegram is opt-in only — `--png --send` — when the CEO explicitly asks for the picture in
+   SomPong; then the script's `telegram: ok` is the only "sent" ([[report_outcome_not_intent]]).
 
 ## After printing: push the count to the Main Tab
 
@@ -214,7 +220,7 @@ task. Skip it only if the session never charter'd a topic at all.
 - **Print both text views, every time, then the picture line.** Tree first (technical), plain
   recap second (business), the `🖼` line last.
 - **Chat stays text + emoji.** Never paste an image into the chat — the terminal shows nothing
-  inline. The picture goes to Telegram (view 3); the chat shows its path and the send verdict.
+  inline. The picture lives behind the Artifact link (view 3); the chat shows the link.
 - **Two markers per node:** status emoji (state) + type tag (kind). Don't collapse them.
 - **Evidence on ✅ items** (sha, file, "CEO approve") — same honesty bar as `/session-close`;
   no node marked done by narration. A side-effect (post sent, money spent, email out) counts
@@ -228,8 +234,8 @@ task. Skip it only if the session never charter'd a topic at all.
 - **One main per tree.** If the session drifted into a second problem, show the entry problem's
   tree and note the drift as a parked item (it belongs in a new session).
 - **Don't over-nest trivia.** Group tiny steps; nest only where the work genuinely branched.
-- **Read-only.** This prints a recap; it changes nothing in the work — the JSON/PNG under
-  `state/session-diagrams/` and the Telegram message are display-layer, like the tab title.
+- **Read-only.** This prints a recap; it changes nothing in the work — the files under
+  `state/session-diagrams/` and the Artifact publish are display-layer, like the tab title.
   Want it saved for next time? That's
   [[session-save]]. Want the exit gate? [[session-close]]. Pairs with [[session-open]] (sets
   the main + first nodes). `session_tree.py` is the *other* tree — DB tasks across all projects,

@@ -14,16 +14,24 @@ Why a script and not the model drawing by hand: a hand-drawn diagram costs
 The model writes the JSON (the same facts as the emoji tree), the script owns
 the geometry — text and picture come from one source and cannot disagree.
 
-Outputs, next to each other in --out-dir (default state/session-diagrams/):
-  <basename>.html   self-contained page (CSS + inline SVG, Google Fonts only)
-  <basename>.png    optional, --png: rendered with headless Chrome at --scale
-                    (auto-lowered so Telegram's sendPhoto w+h ≤ 10000 holds)
+Outputs, next to each other in --out-dir (default state/session-diagrams/),
+under a STABLE basename — the session id — so a later run of the same session
+overwrites the files and the Artifact tool republishes the same URL:
+  <basename>.html            self-contained page (CSS + inline SVG, Google Fonts only)
+  <basename>.artifact.html   the page body only (title + fonts + style + svg) —
+                             what the Artifact tool wants; the skill publishes
+                             this one and puts the link on its last line
+                             (CEO 2026-09-09: the link, not a Telegram photo)
+  <basename>.png             optional, --png: rendered with headless Chrome at
+                             --scale (auto-lowered so Telegram's sendPhoto
+                             w+h ≤ 10000 holds)
 
 Flags:
   --print-tree      also print the 🌳 text tree in the skill's format
-  --send            push the PNG (or HTML when no Chrome) to the CEO's Telegram
-                    via lib.telegram_out.send_media_to_ceo — a real file, never
-                    a link (CEO order #38)
+  --stamp           append -YYYYmmdd-HHMM to the default basename (archival copy)
+  --send            opt-in: push the PNG (or HTML when no Chrome) to the CEO's
+                    Telegram via lib.telegram_out.send_media_to_ceo — a real
+                    file, never a link (CEO order #38). Not the default route.
   --check           run diagram-design's own scripts/self_check.py on the HTML
   --sample          print a sample JSON and exit (the schema, by example)
 
@@ -531,6 +539,29 @@ def render_html(s: Session) -> tuple[str, int]:
     return page, h
 
 
+def render_artifact_html(s: Session) -> str:
+    """Page body for the Artifact tool — no doctype/html/head/body (the tool
+    wraps it). Responsive: the SVG scales with the viewport via its viewBox."""
+    svg, _h = render_svg(s)
+    title = esc(f"Session worktree · {s.date} · {s.session}")
+    return f"""<title>{title}</title>
+<link href="{FONT_LINK}" rel="stylesheet">
+<style>
+  body {{ margin: 0; padding: 24px 16px; background: {PAPER}; color: {INK}; font-family: {FONT_SANS}; }}
+  .frame {{ max-width: {W}px; margin: 0 auto; }}
+  .frame svg {{ display: block; width: 100%; height: auto; }}
+</style>
+<div class="frame">
+{svg}
+</div>
+"""
+
+
+def default_basename(s: Session, stamp: bool = False) -> str:
+    """Stable per session (so republishing keeps one Artifact URL); --stamp for an archival copy."""
+    return f"{s.session}-{datetime.now().strftime('%Y%m%d-%H%M')}" if stamp else s.session
+
+
 # ---- PNG via headless Chrome ---------------------------------------------------
 CHROME_CANDIDATES = (
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -612,7 +643,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Render a session worktree JSON as a diagram-design tree.")
     ap.add_argument("input", nargs="?", help="session JSON file ('-' = stdin)")
     ap.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
-    ap.add_argument("--basename", help="output basename (default <session>-<YYYYmmdd-HHMM>)")
+    ap.add_argument("--basename", help="output basename (default: the session id, stable across runs)")
+    ap.add_argument("--stamp", action="store_true", help="append -YYYYmmdd-HHMM to the default basename")
     ap.add_argument("--png", action="store_true", help="also render a PNG with headless Chrome")
     ap.add_argument("--scale", type=int, default=2, help="device scale factor for the PNG (default 2)")
     ap.add_argument("--chrome", help="path to a Chrome/Chromium binary")
@@ -640,7 +672,7 @@ def main(argv: list[str] | None = None) -> int:
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    base = args.basename or f"{session.session}-{datetime.now().strftime('%Y%m%d-%H%M')}"
+    base = args.basename or default_basename(session, args.stamp)
     html_path = out_dir / f"{base}.html"
     if args.input == "-":                       # keep the stdin JSON next to the outputs
         (out_dir / f"{base}.json").write_text(raw, encoding="utf-8")
@@ -648,6 +680,9 @@ def main(argv: list[str] | None = None) -> int:
     page, h = render_html(session)
     html_path.write_text(page, encoding="utf-8")
     print(f"html: {html_path}")
+    artifact_path = out_dir / f"{base}.artifact.html"
+    artifact_path.write_text(render_artifact_html(session), encoding="utf-8")
+    print(f"artifact: {artifact_path}")
 
     rc = 0
     if args.check:
