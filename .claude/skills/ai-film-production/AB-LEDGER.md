@@ -572,6 +572,32 @@ LESSON: a sheet whose paste block references "the reference video" REQUIRES that
 
 ---
 
+### The grandmother · a character whose CLOTHES the sheet never named wore someone else's · S2S-B take 3 PASSED 2026-09-08 23:07
+DEFECT SEEN: in Draft 3 (S2S at 4:33 and 5:42) the woman who bids a hundred million
+  wore a PURPLE headscarf and dark sunglasses, while every other scene had her in
+  grey knit. Two grandmothers on screen at the climax.
+PROMPT A (S2S / S2S-B before bffdf60): the chip block described her WHEELCHAIR for
+  eight lines — "a RETROFUTURIST ELECTRIC WHEELCHAIR — a genuine powered mobility
+  chair with a chromium tubular frame…" — and her clothes for none. The only
+  sunglasses in the sheet belong to the Madame.
+PROMPT B (bffdf60, every sheet that binds her): "SHE WEARS EXACTLY WHAT HER PICTURE
+  SHOWS AND NOTHING ELSE: a GREY knitted headscarf tied under the chin, a GREY
+  knitted cardigan, a knitted bag on her lap, brown boots. NO sunglasses on her —
+  the sunglasses in this room belong to other people. NO purple, NO coat, NO hat."
+RESULT: S2S-B take 3 (free lane, ~70 min, fired WITHOUT previz): grey knit headscarf
+  and cardigan from behind for all 20 s, camera behind her, the group turns to the
+  lens at ~3 s, she rolls away, one line, no cuts — PASS, filed to Fix-2 over
+  take 2. S15b takes 2 and 3 the same evening: grey, no sunglasses, both times.
+WHY B HELD: the plate was already bound; what the model lacked was a sentence that
+  OWNED her wardrobe. Into that gap it borrowed the nearest striking attribute in
+  the prompt — the Madame's sunglasses and a saturated colour. Naming what she
+  wears, and naming whose the sunglasses are, closed the gap.
+LESSON: a bound character with no wardrobe sentence will be dressed from the rest
+  of the prompt. Every person-chip gets a WHAT-SHE-WEARS as well as a WHERE (see
+  the S15b entry above). CAST.md now carries both per character.
+
+---
+
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
 
 
