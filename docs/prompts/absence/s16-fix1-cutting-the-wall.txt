@@ -188,9 +188,19 @@ REVIEW ORDER:
 4. THE GRANDMOTHER IS IN FRAME to one side, watching. She is the buyer; without
    her the shot loses its point.
 5. DUPE IS APART, holding his mop, not helping.
-6. THE CAMERA NEVER MOVES AND THERE ARE NO CUTS. Measure it: extract the first
-   and last frames and give the mean absolute difference and the max. Anything
-   beyond film grain means the camera moved.
+6. THE CAMERA NEVER MOVES AND THERE ARE NO CUTS — and these are TWO different
+   measurements, neither of which is a first-frame-to-last-frame diff. A man is
+   sawing a wall for eight seconds, so the first and last frames differ hugely
+   from the SUBJECT moving; that number says nothing about the camera and calling
+   it a camera move is the error that cost S14b a take.
+   NO CUTS: sweep at 0.2s steps, greyscale mean-absolute-difference between
+   CONSECUTIVE frames, report the median and every step above ~3x it. A single
+   isolated spike above ~15x is a cut. Sawing gives a raised, steady run — that is
+   the work, not a cut.
+   CAMERA STATIC: crop a patch of frame that NOTHING in the action touches — a
+   ceiling corner, a doorframe, the top edge of the far wall — and diff that same
+   crop across the whole clip. Say which crop you used. Only that number is
+   evidence about the camera.
 7. COUNT THE PEOPLE. Expect twenty-one. COUNT THE NAVY UNIFORMS: exactly two,
    plus the contractor's navy overalls, which are not a uniform.
 8. THE MARK is inside the ruled square: measure it against canon rule 8 and give

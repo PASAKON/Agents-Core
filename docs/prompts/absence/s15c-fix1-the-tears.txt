@@ -169,6 +169,12 @@ REVIEW ORDER:
 4. HE DOES NOT SMILE at any point. Not once, not slightly.
 5. NO DIALOGUE ANYWHERE. Any spoken word is a fail.
 6. THE PUSH-IN IS SMOOTH. Any handheld wobble is a fail.
+6b. THE CUT INTO SHOT TWO ACTUALLY CUTS. Sweep at 0.2s steps, greyscale
+   mean-absolute-difference between consecutive frames, give the median and
+   every step above ~3x it. The cut should read as ONE isolated spike. A smooth
+   push-in with no spike anywhere means the model rendered one continuous shot
+   and the size change never happened; a sustained raised run is the push-in
+   itself, not a cut. Do not report a camera move as a cut.
 7. If the room is visible behind him, count the people and the navy uniforms.
 File the take whatever the verdict, named for its scene only — never a verdict in
 the filename. If a take already filed under that name passed a criterion yours
