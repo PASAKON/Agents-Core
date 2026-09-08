@@ -42,7 +42,8 @@ blocking. EVERY CHARACTER APPEARS EXACTLY ONCE:
 - @gentleman_e, on the LEFT
 - @project_absence_char_woman_c, on the RIGHT
 - @project_absence_char_valder, CENTRE
-- @char_registrar, near left, writing
+- @char_registrar, near left — a SEPARATE man from Carrington, standing two
+  paces nearer the lens than him and a pace further left, on his own, writing
 - @project_absence_char_guard_private_v2, behind Carrington
 - DUPE, far back on the left with his cart
 - the remaining figures are the watching visitors and the two uniformed guards
@@ -76,7 +77,10 @@ HER BAG (no picture — describe it, do not look for one): a dark crocodile-skin
   mustard-yellow scarf, purple trousers, two different shoes.
 @char_registrar — THE REGISTRAR: about sixty, cream stand-collar tunic with
   orange piping and a small gold V, white gloves, a brown leather ledger held
-  open in one hand, pen going in the other.
+  open in one hand, pen going in the other. HE IS NOT CARRINGTON AND HE DOES NOT
+  STAND WITH HIM: a second, separate man, two paces nearer the camera, no cane,
+  no white hair swept back. The ledger and the pen are his alone; Carrington's
+  hands hold nothing but the cane.
 
 @project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
   tunics with gold buttons and a large gold V, black belts, navy peaked caps.
