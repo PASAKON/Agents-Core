@@ -42,6 +42,16 @@ CHIP LINE TO ADD ONCE THE ELEMENT EXISTS (paste zone, after the buyer's block):
 
 TAKE LOG:
 
+Take 1 — fired 2026-09-09 04:49:53 ICT (2026-09-08 21:49:53 UTC) on winbox
+(task-ab2067d9), asset count 736 → 737. Unlimited zoom-verified UNLIMITED /
+struck 140 / 0 immediately before click. 5/5 chips bound (@cleaner_c,
+@grandmother, @prop_cheque, @valder, @loc_hall_big_d), 0 stray/unresolved '@'.
+Cheque thumbnail carried a warning triangle at paste time; cleared after one
+click (data-state stayed "closed", svg.text-warning-primary removed), whole
+strip re-verified clean before firing. Spec: Seedance 2.5, 16:9, 720p, 20s,
+1/4, High, Sound On. Paste sha256 40ca3044d73677293f623df36c3e294726c91a1413
+0942db58e594cb9899f071 verified in-page before dispatch.
+
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
