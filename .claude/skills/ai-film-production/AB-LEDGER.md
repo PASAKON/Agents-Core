@@ -474,3 +474,38 @@ WHAT THIS MEANS IN PRACTICE: the mark is not deterministic from the prompt. Two 
 of one sheet give opposite results, so the remedy is not another rewrite. Fire, MEASURE
 against the rule 8 numbers, and keep the take that passes. Rule 8 remains a good
 acceptance TEST; it is not a reliable recipe.
+
+### S2R-JC · nothing can change ACROSS a cut — the model has no cut · FAILED TWICE, diagnosed 2026-09-08
+DEFECT SEEN: the scene's own core beat, "THE HEADS SWING", has not rendered in three
+  takes. Take 2 was flagged for it; take 3, after a full rewrite aimed at exactly that
+  beat, failed identically.
+MEASURED, take 3, greyscale mean absolute difference between frames:
+  WITHIN one shot, as a baseline:   2.0s vs 2.9s  = 6.74
+  ACROSS the cut at 3s:             2.9s vs 3.2s  = 3.31
+  ACROSS the cut at 9s:             8.9s vs 9.2s  = 5.64
+  ACROSS the cut at 15s:           14.9s vs 15.2s = 1.76
+  Every cut is LESS different than two frames inside the same uncut shot. Nothing
+  happens at any cut. This is the cheap test for any "jump cut" sheet and it takes
+  thirty seconds: if the across-cut diff does not beat the within-shot diff, the cut
+  is not doing anything.
+PROMPT A (take 2): "EVERY HEAD IN THE ROOM SWINGS TO THE LEFT… a ragged wave of them."
+PROMPT B (take 3, d0d19f9) — MY REWRITE, AND IT MADE IT WORSE: "THE HEADS ARE THE
+  WHOLE POINT OF THIS CUT… not an animated movement but a DIFFERENCE between the frame
+  before the cut and the frame after it… Put a frame from 2s beside a frame from 4s
+  and you see the same twelve people with their heads pointing the opposite way."
+WHY B FAILED, and it is a general fact about the tool, not about this scene:
+  Seedance generates twenty CONTINUOUS seconds. It has no concept of a cut. A "hard
+  cut" in the prompt buys, at best, a small discontinuity that the model then smooths
+  over. So asking twelve people to flip head direction instantly at a cut boundary is
+  asking for a teleport — precisely the artefact a video model is trained to erase.
+  Worse, prompt B explicitly told it NOT to animate the turn, which is the one thing
+  it can do well. I steered it away from the only available mechanism.
+PROMPT C (take 4, f67e866): every swing moved INSIDE its shot — "WE WATCH THEM DO IT.
+  It takes about half a second and every part of it is on screen: the necks rotate,
+  the chins travel, the faces sweep across." The cuts stay, but they only jump the
+  clock between bids; the 15s beat becomes the one where nobody turns, so that after
+  four visible sweeps the stillness is the event.
+LESSON, and it applies to every multi-cut sheet in this film: A CUT CANNOT CARRY A
+  CHANGE. Anything that must happen has to be a movement the camera sees happen inside
+  a shot. Use cuts for what they can do — jump the clock, change the angle — and never
+  to hold the difference between two states.
