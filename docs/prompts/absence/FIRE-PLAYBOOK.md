@@ -35,6 +35,15 @@ An operator who hits a mismatch STILL stops and reports — do not adjudicate a 
 hit yourself, even one that looks obviously positional. That call is the CTO's, and
 S15a-2's operator was right to stop.
 
+- RUN EVERY §0 GATE ON FLATTENED TEXT. Pipe the paste block through `tr '\n' ' '`
+  before grepping. A phrase that wraps at a line break is invisible to a
+  single-line grep: on 2026-09-08 alone it hid "two gold front teeth", "the
+  registrar in his black suit" and "the nearest person to / the crack" from the
+  CTO's own gate, and in each case a worker's flattened grep found it. The
+  flattened form:
+  `awk '/PASTE FROM HERE/{p=1;next} /PASTE STOPS HERE/{p=0} p' <sheet> | tr '\n' ' ' | grep -oiE '.{0,60}(<pattern>).{0,60}'`
+  and read each hit in context — the gate is a prompt to look, not a verdict.
+
 ## 0b · After editing a sheet, grep the paste block for the OPPOSITE of what you just wrote
 
 A prompt describes an object ONCE. The way that rule actually gets broken is not by

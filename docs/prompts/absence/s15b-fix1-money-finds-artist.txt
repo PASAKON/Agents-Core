@@ -78,8 +78,8 @@ REFERENCES — each with a job:
   scarf, purple trousers, small round tinted sunglasses, two different shoes.
 @project_absence_char_cleaner_c — DUPE: white uniform, orange trim, gold V, cap,
   moustache, mop in hand.
-  HE IS THE MAN AT THE WALL — dead centre of the frame, the nearest person to
-  the crack, standing where he stood when he confessed. He is the man in the
+  HE IS THE MAN AT THE WALL — dead centre of the frame, closer to the wall than
+  anyone else in the room, standing where he stood when he confessed. He is the man in the
   WHITE uniform with the cap and the moustache, and he is the one the old woman
   rolls up beside and, at 12s, turns her head to. Not the man in overalls.
 @prop_cart_b — his cart at the edge, painting face-out.
