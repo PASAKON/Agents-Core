@@ -512,6 +512,30 @@ LESSON: do not re-edit the colour sentence on a wide shot — it is already corr
 
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
 
+### S15b · a bound character with no assigned position takes the most salient slot · take 2 FLAGGED 2026-09-08 20:20
+DEFECT SEEN: Dupe never rendered. The workman — bound as a chip, described with a
+  float and a bucket, given NO place to stand — occupied Dupe's centre position
+  at the wall for all 20 seconds, and the grandmother turned at 12s and paid a
+  hundred million to the plasterer. Her wardrobe, the registrar's suit, the turn,
+  the twelve words and the absence of cuts all held; only the casting of the slot
+  failed.
+PROMPT A (take 2, 69a3c8f): `@project_absence_char_workman — THE CONTRACTOR: NAVY
+  overalls, a rag over one shoulder, a float in one hand and a bucket of wet
+  plaster in the other…` — wardrobe and props, no position. Dupe's position lived
+  only in the beat line "[0s] Hold on Dupe centred".
+PROMPT B (take 3): the workman's chip gains "HE IS NOT THE MAN AT THE WALL. He
+  stands FAR LEFT beside the two navy guards, the bucket on the floor at his feet";
+  Dupe's chip gains "HE IS THE MAN AT THE WALL — dead centre … the one the old woman
+  rolls up beside and, at 12s, turns her head to. Not the man in overalls"; the
+  [12s] beat names him by wardrobe.
+HYPOTHESIS: two men, one slot, and the man holding the tools looked more like "the
+  man at the wall" to the model than the man with the mop. Same family as the
+  ledger bleed and the gold teeth: an attribute or a place with no named owner
+  goes to whoever is nearest. Fix by naming who owns the slot and where the other
+  man is instead — not by dropping the workman, who is in the room in the script.
+VERDICT: awaiting take 3.
+
+
 Only entries whose take has NOT yet been fired or judged belong under this
 header. Ten finished entries had drifted below it because new material was
 appended to the end of the file, which made the section read as though the

@@ -69,11 +69,19 @@ REFERENCES — each with a job:
   shoulder, a float in one hand and a bucket of wet plaster in the other. The
   overalls are DARK NAVY BLUE, the colour of his reference picture, deep and close
   to black in shadow.
+  HE IS NOT THE MAN AT THE WALL. He stands FAR LEFT, beside the two navy guards,
+  the bucket set down on the floor at his feet and the float tucked under his
+  arm, watching like everybody else. He does not stand beside the old woman,
+  she does not roll up to him, and she never looks at him.
 @project_absence_char_valder — VALDER: a blazer panelled in flat blocks of
   magenta, yellow, green, blue and red, a red waistcoat, a long mustard-yellow
   scarf, purple trousers, small round tinted sunglasses, two different shoes.
 @project_absence_char_cleaner_c — DUPE: white uniform, orange trim, gold V, cap,
   moustache, mop in hand.
+  HE IS THE MAN AT THE WALL — dead centre of the frame, the nearest person to
+  the crack, standing where he stood when he confessed. He is the man in the
+  WHITE uniform with the cap and the moustache, and he is the one the old woman
+  rolls up beside and, at 12s, turns her head to. Not the man in overalls.
 @prop_cart_b — his cart at the edge, painting face-out.
 @project_absence_char_grandmother — THE BUYER: very old, small, in a powered
   wheelchair, grey knitted headscarf and layered knits.
@@ -134,7 +142,8 @@ all, exactly as flatly as she bid: "I was not buying a wall."
 
 [10s] A BEAT. Nobody answers her. Dupe does not move. The room does not move.
 
-[12s] AND THEN SHE TURNS HER HEAD FROM THE WALL TO DUPE. We watch the turn happen —
+[12s] AND THEN SHE TURNS HER HEAD FROM THE WALL TO DUPE — the man in the WHITE
+  uniform and cap beside her, never the man in overalls. We watch the turn happen —
 her chin travels, her face comes round, and she is looking straight up at him. She
 says it directly to his face, as flatly as the first line: "One hundred million.
 For the artist."
