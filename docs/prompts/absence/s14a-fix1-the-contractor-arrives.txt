@@ -167,6 +167,71 @@ the filename. If a take already filed under that name passed a criterion yours
 fails, do not upload over it; report the comparison instead.
 
 TAKE LOG:
-(none yet)
+Take 1, fired 2026-09-08 08:41 ICT (01:41 UTC), Unlimited/free, landed ~09:11 ICT
+check (~30 min render). File: hf_20260908_014057_f3d46be5-08a2-4996-a5a8-aac5e8c69fcd.mp4,
+1280x720, Seedance 2.5, 720p, High, 8.05s duration. 12/12 chips bound, 0 error
+chips, no warning triangles on any reference thumbnail.
+
+1. OVERALLS: NAVY. Confirmed both visually and by sampled RGB on the overalls
+   patch in the close-up shot: mean (R,G,B) = (89, 86, 94) -- blue channel
+   highest, all channels dark/desaturated. Reads as dark navy, not slate-blue. PASS.
+2. NOBODY REACTS: confirmed in shot one (wide) -- every visible face in the room
+   is oriented away from the contractor; no head turn toward him. PASS.
+3. FLOAT STOPS SHORT: confirmed at final frame (t=7.9s) -- loaded float sits
+   beside the crack with a visible gap, plaster does not touch the wall. PASS.
+4. MARK vs canon rule 8: my FIRST measurement (on the t=2.0s WIDE shot) found
+   ZERO pixels below threshold 80 in the mark ROI -- min pixel value 118, i.e.
+   registers as NOT dark at all on that frame. Re-measured on the t=4.1s and
+   t=6.0s CLOSE-UP frames (shot two, before the float occludes the mark):
+     t=4.1s: min=34, threshold-80 mask: bbox 40x43px = 3.12% of frame width,
+       fill ratio 0.1465
+     t=6.0s: min=39, threshold-80 mask: bbox 35x42px = 2.73% of frame width,
+       fill ratio 0.1673
+   On the close-up frame the mark DOES pass all three parts of canon rule 8
+   (dark at 80, bbox well under 8%, fill ratio above 0.10). PASS on the
+   close-up frame; FAILS if measured on the wide shot alone. Frame choice
+   matters -- report both. Visually the mark still reads as a thin branching
+   spiderweb/lightning shape rather than "one thick solid black line" -- it
+   passes the numeric gate but is a soft visual miss on the prompt's own
+   description of the crack's shape.
+5. PEOPLE COUNT: my confident count across the full frame width is 12-14, not
+   twenty-one. Counted systematically left to right at 2x scale: left cluster
+   (bodyguard, 2 navy guards, contractor) = 4; right cluster (Dupe, registrar,
+   photographer, 1 boom/flash-holding press figure, Valder, Madame Thibault,
+   Carrington, grandmother) = 8 confident, plus 2 partially-occluded dark-coated
+   figures behind Valder/Thibault that may or may not be additional press/
+   villagers (too obscured to confirm). The SIX ORDINARY PEOPLE (prose-only,
+   no reference chip) do not appear as six distinct extra bodies anywhere in
+   frame. FLAGGED -- short by roughly 7-9 people against the expected 21.
+6. NAVY UNIFORMS: exactly 2 (the two navy-uniformed guards, left edge), plus
+   the contractor's navy overalls separately (not counted as a uniform).
+   Matches expectation exactly. PASS.
+7. REGISTRAR: exactly 1 (black suit, white gloves, ledger). PASS.
+8. DIALOGUE: no captions/subtitles/on-screen text observed anywhere in frame.
+   Ran ffmpeg silencedetect on the audio track: intermittent silence gaps
+   (0.3-0.9s) consistent with room tone + footstep/scuff sounds, no sustained
+   speech-shaped waveform. Did not run STT. No visible open-mouth speaking in
+   any inspected frame. PASS (best available check, no formal transcription).
+9. 4s CUT: across-cut MAD (frames at 3.9s/4.1s) = 7.51. Within-shot baseline
+   MAD (frames at 0.5s/2.0s, both inside shot one) = 3.98. 7.51 > 3.98, so the
+   cut registers as real, beating baseline by ~1.9x. PASS. Note: visually the
+   actual edit lands slightly before the nominal 4.000s mark (the 3.9s frame
+   already shows shot two's closer framing) -- minor timing drift, does not
+   affect the pass/fail of this check.
+   PRESS COUNT: expected FOUR (@project_valder_char_press, one chip). I can
+   confidently identify 2 distinct press figures (a stills photographer with
+   an old box camera, and a second figure holding a boom-mic-like pole beside
+   Valder). Two more figures are visible only as obscured slivers behind
+   Valder/Thibault and cannot be confirmed as press vs background guests.
+   FLAGGED -- not confirmed at 4.
+
+OVERALL VERDICT: FLAGGED -- overalls/reaction/float/cut/uniforms/registrar/
+dialogue all pass; the mark passes on the correct (close-up) frame but is a
+soft visual miss on shape; PEOPLE COUNT (12-14 vs 21) and PRESS COUNT (2
+confirmed vs 4) both fail. Filed to Drive regardless per standing rule (first
+take under this name, nothing to compare against). Root cause is likely the
+six prose-only villagers and 2 of 4 press members not rendering as distinct
+bodies -- a known risk for description-only (no reference chip) crowd members.
+Do not rewrite the sheet over this without the CEO's call; report as measured.
 
 === END NOTES ===
