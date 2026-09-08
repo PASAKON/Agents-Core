@@ -39,6 +39,43 @@ TAKE LOG:
   ON, price struck 70→0), Generate clicked once — refused with "1 unlimited
   generation at a time" (S9b rendering). Nothing fired, asset count unchanged
   at 732. staged on Mac, not fired, moved to winbox (CEO 02:16).
+- 2026-09-09 02:33 ICT (2026-09-08 19:33 UTC), take 1, winbox-chrome: probe
+  passed (logged in as ilag-studio, project loaded with Elements, Unlimited
+  control present, innerWidth 1920). Re-staged fresh in winbox's own Chrome:
+  prompt-lint exit 0, 4/4 chips expected == 4/4 bound (0 red/unbound, 0
+  warning triangles on the 4 thumbnails), duration slider set 20→10 via
+  ArrowLeft x10 (verified aria-valuenow=10), Unlimited toggled ON after the
+  six fields (one clean ref click, aria-checked flipped false→true), button
+  zoom-verified UNLIMITED / struck 70 / 0 immediately before the click.
+  Generate clicked ONCE — "Generation started" toast, new Processing card,
+  asset count 732→733 (+1). Rendering, awaiting landing.
+- 2026-09-09 ~03:07 ICT: LANDED, ~34 min render. Card Info panel: Created
+  "September 9, 2026 at 2:33 AM" == fire time; prompt starts "10s · 720p ·
+  16:9 · TWO SHOTS JOINED BY ONE HARD JUMP CUT" — confirmed my card.
+  Downloaded hf_20260908_193316_ab04071f-379a-474c-8d9e-e3d3ebec258d.mp4
+  (8,950,634 B, md5 018d5e3f2b984abb9b8ba1e03f801262, no match against any
+  other file in ~/Downloads). ffprobe: h264/aac, 1280x720, 10.04s — on spec.
+  Sweep (0.2s greyscale consecutive-frame diff, median 0.798): ONE isolated
+  cut at 4.8s->5.0s, 18.0x median, no other spike near it — cut is real and
+  correctly placed. Door/old-man/Dupe/cart-painting-face-out/two-people all
+  confirmed by frame inspection (0.2s, 2.4s, 4.6s, 5.2s, 7.4s, 9.2s, 9.8s).
+  FLAG: shot 2 camera is NOT locked — 5.2s is a front-facing medium shot of
+  the old man, 7.4s is over-the-shoulder from BEHIND him with Dupe visible
+  down the hall, 9.2s-9.8s is back on the wide hall axis (matches shot 1's
+  framing) with Dupe alone, mopping. Frame-diff stays elevated 3.6x-11.7x
+  median continuously from 5.0s to 9.4s (only settles to baseline 9.4-9.8s)
+  -- this is sustained camera movement through the whole shot, not held
+  motion from the walking figure. Violates the sheet's "locked medium shot
+  from the side" and the negative "no camera move inside a shot". No
+  transcript run (faster_whisper not installed on winbox, skipped per task
+  instruction) -- NO DIALOGUE not independently verified, no visible
+  speech/subtitles in any sampled frame. Filing: winbox has no Drive OAuth
+  token (GOOGLE_OAUTH_CLIENT_ID/SECRET/REFRESH_TOKEN missing) -- upload not
+  attempted further per task instruction; file left at
+  C:\Users\UsEr\Downloads\hf_20260908_193316_ab04071f-379a-474c-8d9e-e3d3ebec258d.mp4
+  for the CTO to pull over SSH and file as S3a-FirstCustomer-Fix1.MP4 in
+  All Scene/Fix-2. Verdict: FLAGGED (camera-lock defect, shot 2) -- not
+  self-certified, CTO/CEO to review frames.
 
 === END NOTES ===
 
