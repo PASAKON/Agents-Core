@@ -114,7 +114,7 @@ Replace the ban with a positive statement of what occupies that place instead.
   rule stands, the reason is duplicate names rather than lost footage, and no clip has
   ever been lost on Drive.
 - THE DRIVE FILENAME IS THE SCENE NAME AND NOTHING ELSE (HARD, 2026-09-08). Every
-  clip goes to All Scene/Fix-1/ named for its scene — S2G-Fix1.MP4,
+  clip goes to All Scene/Fix-2/ named for its scene — S2G-Fix1.MP4,
   S15a1-Shield-Fix1.MP4, S2S-B-Fix1.MP4 — and that is true of failures too. Do NOT
   append a verdict, a defect list, or anything else to the name; S2G take 2 was
   uploaded as "S2G-Fix1-FLAGGED-plaque-and-mark.mp4" on a "house convention" that
@@ -261,9 +261,14 @@ card is often another worker's clip (S2S t1 filed S2R's clip under S2S's
 name, 2026-09-07 09:02). Then download → `md5` it against every mp4 already
 in ~/Downloads (a match = wrong card, start over) → ffprobe 1280x720 /
 duration → file to
-Drive All Scene/Fix-1/ under the brief's filename with
-`scripts/gdrive-bridge/upload_fix1.py` (appends the logs.txt line). Whatever
-the verdict, it is filed.
+Drive All Scene/Fix-2/ under the brief's filename with
+`scripts/gdrive-bridge/upload_fix1.py` (appends the logs.txt line; its default
+destination is Fix-2 since 2026-09-08). Whatever the verdict, it is filed.
+- FIX-2 IS THE SECOND EDIT AND FIX-1 IS CLOSED (CEO 2026-09-08 18:30: "ฉากที่สร้าง
+  ในวันนี้จนถึงจบโปรเจคใส่ Fix-2 … เป็นการ Edit ครั้งที่ 2"). Every clip generated
+  from 2026-09-08 onward files to Fix-2 (id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw).
+  The filename keeps its -Fix1 suffix — that is the scene's name, not the folder.
+  A brief that still says Fix-1 is stale; Fix-2 wins.
 
 ## 3 · Checks (frames at 0.5s, 3s, mid, end — `ffmpeg -ss <t> -i <file> -frames:v 1 <png>`, LOOK)
 Wall-POV sheets: 0 THE MARK — one small solid-black star-shaped crack over the
