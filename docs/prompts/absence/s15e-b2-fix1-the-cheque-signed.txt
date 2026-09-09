@@ -38,6 +38,15 @@ CHIP LINE TO ADD ONCE THE ELEMENT EXISTS (paste zone, after the buyer's block):
 @project_absence_prop_cheque — THE CHEQUE, exactly as its picture shows.
 
 TAKE LOG:
+- Take 1: fired 2026-09-09 02:38 UTC (09:38 ICT), winbox, task-42cb1d46. Unlimited ON,
+  Generate button read UNLIMITED / struck 140 / 0 (zoomed, confirmed twice — first
+  read was stale/visually green while DOM read data-state="off" and the button showed
+  a live 130; reloaded the read, re-clicked the real toggle via find() ref, re-verified
+  struck-0 before commit). 5/5 chips bound (cleaner_c, grandmother, prop_cheque, valder,
+  loc_hall_big_d), no warning triangles on any of the 5 reference thumbnails. Spec at
+  fire: Seedance 2.5 / 16:9 / 720p / 20s / 1/4 / High / Sound On. Asset count 741 -> 742
+  on click ("Generation started" toast). Pasted text sha256 f2c831d3d55421cf6383613ae0
+  c3df54f77a166282f05c263d416624ef113723 (verified via crypto.subtle before paste).
 
 === END NOTES ===
 
