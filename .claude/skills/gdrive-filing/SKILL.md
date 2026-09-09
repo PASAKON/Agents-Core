@@ -315,6 +315,20 @@ through **rclone**, and rclone obeys this file exactly like every other hand.
    created; set `root_folder_id` to the approved folder) — a full-scope token is a CEO decision,
    never a default. Use the org's own Google client_id (rclone's shared one is being throttled
    in 2026); never copy the token to the Mac, a repo, a chat, or a pod.
+   **State since 2026-09-09:** winbox's `gdrive:` runs on OUR client — Google Cloud project
+   `gen-lang-client-0516233449` ("Default Gemini Project", the CEO's), OAuth client
+   `rclone-winbox` (Desktop app, id `997773077636-6sjdlu2lg1ggeh45l3dcd4g0mn7o2mdt…`), Drive
+   API enabled; the token was re-issued at full `drive` scope by the CEO's own 2026-09-08
+   decision. The shared client had 403'd `rateLimitExceeded` for hours (three dead uploads,
+   2026-09-08/09); on our client a 2.7 GB tar landed in 3 min. **Re-consent procedure (token
+   never leaves the box):** `cookierun-bot/tools/rclone_set_client.py <client json>` writes the
+   id/secret; then from the Mac
+   `printf 'y\ny\nn\n' | ssh -L 53682:127.0.0.1:53682 winbox "<rclone> config reconnect gdrive:"`
+   (detached/nohup, no `--auth-no-open-browser` — that flag is not a reconnect flag), the CEO opens
+   the printed `http://127.0.0.1:53682/auth?state=…` link in a Mac browser and clicks Allow; the
+   third `n` answers "Shared Drive?". While the app's publishing status is **Testing** the CEO's
+   address must be a test user and the refresh token expires after 7 days — publishing to
+   production (Audience → Publish app) removes that; task-2b1d4b8a is on it.
 7. **Never `rclone sync`/`delete`/`purge` against Drive.** `copy`, `copyto`, `rcat`, `moveto`
    (server-side, for filing) and `check` are the whole vocabulary. A sync would mirror a
    machine's deletions into the archive.
