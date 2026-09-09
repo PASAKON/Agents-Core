@@ -1564,3 +1564,25 @@ A reload also clears a toast but resets Unlimited to off — re-toggle after.
   Kling O1 is the recipe that has been run twice.
 - Plate recipe: three views (front 3/4 centre, side left, rear 3/4 right) on a plain
   warm-grey studio backdrop, no people, no badge/plate/text, 16:9, count 1.
+
+## Uploading project assets (audio into a project folder) — measured 2026-09-09 (task-c44853c9)
+
+The festival rules want every audio file inside the submission project. What
+actually works from a browser_operator:
+
+1. **Create the folder** from the project's LEFT sidebar "Add folder" → modal
+   "New Folder" → type the name (placeholder "My folder") → "Create". Folders
+   then show in that sidebar next to the auto-made Watermarks folder.
+2. **`mcp__claude-in-chrome__file_upload` only reads files the session may
+   read.** A path under Downloads is refused ("only files this session is
+   allowed to read can be uploaded"). Copy the file into the session's own
+   scratchpad directory first, then upload from there — no `/add-dir` prompt.
+3. **Use the top-banner Upload input** (`accept=""`) on the folder page. The
+   composer's References picker is a different file input on the same page
+   (`accept="image/*,video/mp4,...,audio/*"`) and attaches the file as a
+   generation reference instead of a project asset.
+4. **Hard cap ~10 MB per `file_upload` call**, enforced by the browser
+   bridge, not by Higgsfield; batching does not help. Anything larger must be
+   transcoded under 10 MB (WAV → MP3 320k lands a 100 s cue at ~4 MB) or
+   dragged in by a human. Uploads are free; the asset counter rises by
+   exactly the number of files landed — read it before and after.
