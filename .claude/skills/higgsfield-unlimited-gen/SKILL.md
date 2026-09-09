@@ -1490,6 +1490,32 @@ jump-cut editor — same account, same hard rules, different DOM.
    row, not just Unlimited, after any reload, since a broken video chip
    (point 2 above) is also a reason you might reload mid-task.
 
+## Video-ref upload: use the "+" → Uploads → Videos panel input, NOT the composer's direct input (measured 2026-09-09, task-d188f5bc blocked / task-dcaef051 fixed)
+
+Spawn 1 lost 35 minutes and blocked because it fed the previz to the composer's own
+`<input type=file>` (and the References picker's inputs): the tile spun, the toast
+"Your upload is being verified. You can select it once verification completes" sat
+there for 90 s+, no eligibility pill, no asset, no error — four times across three
+fresh tabs, with CDP screenshot timeouts on top. The file was fine (S2P's 4.5 MB
+previz had attached the same way earlier; a 1.5 MB re-encode changed nothing).
+
+What works, twice now (S2AJ 20:12, S2PT 22:15):
+1. Click the composer's **"+"** (references mode pill) → the reference panel opens with
+   Uploads / Elements / Generations / Liked tabs → **Uploads → Videos** sub-tab → use
+   THAT tab's own `<input type=file>` (a third input on the page; pick it by panel
+   context, not by `accept`).
+2. Verification takes **1–3 minutes** for a 20 s 720p file. Wait for the spinner tile
+   to become a real thumbnail in the Uploads grid sorted "Last created". The
+   "being verified" toast can linger after success — a red herring, not a failure.
+3. Byte-match the fresh tile: `fetch(video.currentSrc, {method:'HEAD'})` →
+   `content-length` == local file size. Then click the tile. In this path the hover
+   "Check eligibility" pill may NOT appear — "Added to prompt box" fires directly.
+4. Confirm the reference tray's `<video>` `currentSrc` byte-matches before pasting.
+
+Keep previz files small anyway (≤ ~1.5 MB, ~150–600 kbps, faststart): faster
+verification, same frames. The brief for a previz scene should name this path.
+
+
 ## Tab hygiene
 
 Lives in the `browser-operator` skill now, under "Tabs — claim what you open,
