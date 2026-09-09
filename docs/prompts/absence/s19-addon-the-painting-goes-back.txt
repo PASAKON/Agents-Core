@@ -92,7 +92,7 @@ colour fringing.
 CRITICAL NEGATIVES: no second person, no visitor, no guard, no collector, no
 Valder, no contractor, no crowd, nobody in the background; no duplicate Dupe,
 no second cart, no second painting; no crack on the wall, no mark on the wall,
-no plaque, no brass plate, no price, no written figures, no on-screen text; no
+no plaque, no brass sign, no price, no written figures, no on-screen text; no
 falling painting, no dropped painting, no breaking glass, no painting on the
 floor; no camera move of any kind, no pan, no tilt, no zoom, no dolly, no
 handheld, no reframe, no cut, no dissolve, no fade, no slow motion; no smile at
