@@ -1,0 +1,190 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2R-F SPLIT · THE BATTLE, FIVE PANELS · 20s · V1 of the CEO's 2026-09-09 12:40 auction
+redesign ("Split 5 ส่วน คล้ายกับแบบที่ Dupe โทรเรียกช่าง … เฉพาะหน้าคนที่ประมูลแข่งกัน ชายชรา |
+นกแก้ว | ชายชรา | นกแก้ว | ชายชรา → Full shot ทุกคนตกใจพร้อมกับ Valder ดีใจ … V1 Split → ทำ Previz
+มาให้ดูก่อน"). FREE lane only (Unlimited ON, zero digits, click ONCE). WITH PREVIZ.
+Fires only after the CEO approves the previz; queue position after S2R-F (V2).
+
+HOW TO STAGE: attach docs/S2RF-Split-Render.MP4 through the video picker so @Video 1
+resolves, then paste EVERYTHING between the two markers below. @Video 1 IS A CHIP EXACTLY
+ONCE — first mention only. 14 chips total: 1 video + 13 elements (the S2R-JC cast set).
+⚠️ IF THE VIDEO WILL NOT ATTACH: STOP AND REPORT. Never fire text-only — the five-panel
+layout lives in the previz.
+PREVIZ RESOLUTION: docs/S2RF-Split-Render.MP4 is 1280×720 / 480 frames / 20.0s / 24 fps,
+previz-check PASS 2026-09-09 13:04 (Blender, charlib proxies).
+
+⛳ PROJECT: https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3 ONLY.
+Spec: 20s / 720p / 16:9 / Seedance 2.5 / High / 1/4 / Sound ON.
+
+REVIEW ORDER:
+1. FIVE VERTICAL PANELS side by side for the first 15s, the whole width, every panel the
+   same height as the frame; ONE hard cut at ~15s to the full shot and no other cut
+   (0.2s sweep: one isolated spike; the panel brightness changes every 3s are not cuts).
+2. Panels 1, 3, 5 = Carrington; panels 2, 4 = the woman in green. Frames at 1.5, 4.5,
+   7.5, 10.5, 13.5s: the speaking panel bright, the other four dimmer.
+3. FIVE BIDS in order (whisper): "Ten million." / "Fifteen." / "Twenty million." /
+   "Twenty-five." / "Fifty."
+4. THE FULL SHOT (15-20s): the whole room startles at once; the young woman in cobalt
+   says "Oh my god!"; Valder delighted, rocking; twelve people, nobody extra.
+5. No crack, no plaque, no price on screen anywhere.
+File the take whatever the verdict, as S2RF-Split-TheBattleFivePanels-Fix1.MP4 in
+All Scene/Fix-2/ (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
+
+TAKE LOG:
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE FIVE-PANEL SPLIT-SCREEN COMPOSITION for fifteen seconds, then ONE
+HARD CUT at 15s to a single full shot; every camera locked, no movement of any kind.
+Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND LAYOUT REFERENCE for this entire shot —
+a 20-second grey previz of THIS exact scene. FOLLOW IT EXACTLY:
+[0-15s] the frame is divided into FIVE EQUAL VERTICAL PANELS side by side, each one the
+full height of the frame, separated by thin white lines. Every panel is a locked
+close-up of ONE face: the face fills about sixty percent of the panel's height, eyes a
+little above centre, shoulders at the bottom edge, a plain warm cream gallery wall
+softly out of focus behind. All five panels are visible the whole fifteen seconds. The
+panel whose person is speaking is bright and alive; the other four are dimmer and
+still, like paused frames;
+[15s] HARD CUT: the five panels vanish and the whole frame becomes one full shot;
+[15-20s] the locked, symmetrical view straight down the gallery at chest height.
+
+POSITION MAP — every figure in the reference video (Video 1) stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE IN THE FULL SHOT:
+- the GOLD figure = @gentleman_e — panels 1, 3 and 5, and on the LEFT of the full shot
+- the TEAL figure = @project_absence_char_woman_c — panels 2 and 4, and on the RIGHT of
+  the full shot
+- the MAGENTA figure = @project_absence_char_valder, CENTRE of the full shot, a little
+  further back
+- the figure nearest the lens on the left = @char_registrar — a SEPARATE man from
+  Carrington, two paces nearer the lens than him and a pace further left, writing
+- the dark figure behind Carrington = @project_absence_char_guard_private_v2
+- the small white figure far back on the left = DUPE, with his cart
+- every other figure is a watching visitor or one of the two uniformed guards; every
+  grey block is a prop, never a person
+
+THE COMPLETE CAST OF THIS CLIP IS TWELVE PEOPLE AND NOT ONE MORE. There are no extras
+in this film. No bystanders, no other visitors, no gallery staff, no security guards
+beyond the three named, no reporters, nobody holding a camera, nobody walking through.
+If a figure is not named below it must not exist — and inside a panel only its one
+named bidder exists at all.
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
+  The camera stands OUTSIDE the wall, in the gallery, looking down its length:
+  chromium trumpet columns receding in matched pairs on both sides, warm orange
+  cove light along the ceiling, polished terracotta terrazzo underfoot, works on
+  white plinths and framed pieces down both walls, and the tall RED DOUBLE DOOR
+  far off at the vanishing point. THE BROKEN WALL IS NOT IN THIS SHOT — no
+  crack, no star, no damaged plaster anywhere. Take the room, its surfaces and
+  its light from this picture.
+
+@gentleman_e — MR CARRINGTON: tall, elderly, swept-back white hair, a white
+  stand-collar suit, white shoes, a black cane with a gold lion head, TWO GOLD
+  FRONT TEETH. He bids like a man playing a game he expects to win.
+@project_absence_char_guard_private_v2 — HIS BODYGUARD: very heavily built
+  Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black shirt
+  and tie. Never speaks, never moves. No weapon, no earpiece, no holster.
+@project_absence_char_woman_c — THE WOMAN IN GREEN: elderly, tall, rail-straight,
+  a sculpted floor-length gown of glossy mid-green leather with chevron
+  leaf-vein seams, sharply pointed shoulder caps, a tall standing collar; long
+  green leather opera gloves; a towering pompadour streaked blue, green and
+  silver-white; black cat-eye sunglasses. She never raises her voice once.
+HER BAG (no picture — describe it, do not look for one): a dark crocodile-skin handbag, held in one gloved hand the whole
+  time: structured top-handle, polished deep OXBLOOD crocodile, gold clasp.
+@project_absence_char_valder — VALDER, between them: tall, slim, elderly,
+  swept-back white hair, small round tinted sunglasses, a blazer panelled in
+  flat blocks of magenta, yellow, green, blue and red, a red waistcoat, a long
+  mustard-yellow scarf, purple trousers, two different shoes.
+@char_registrar — THE REGISTRAR: about sixty, cream stand-collar tunic with
+  orange piping and a small gold V, white gloves, a brown leather ledger held
+  open in one hand, pen going in the other. HE IS NOT CARRINGTON AND HE DOES NOT
+  STAND WITH HIM: a second, separate man, two paces nearer the camera, no cane,
+  no white hair swept back. The ledger and the pen are his alone; Carrington's
+  hands hold nothing but the cane.
+
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V, black belts, navy peaked caps.
+  ONE TALL AND THIN, ONE SHORT AND HEAVY. This one picture is both of them.
+@project_absence_char_woman — THE YOUNG WOMAN IN COBALT: dark hair pinned up,
+  an oversized cobalt-blue overcoat with a gold V pin, a pearl cluster
+  necklace, a brown-checked skirt, black tights, brown loafers, no glasses.
+@project_absence_char_critic_b — THE ELDERLY EAST ASIAN WOMAN: silver-streaked
+  hair up, a full-length deep magenta fur coat, long cream gloves, cream heels.
+@project_absence_char_visitor_b — THE WOMAN IN THE CHESTNUT FUR: about
+  fifty-five, a brown bob, a long tawny-brown fur coat over a rust-red shift
+  dress.
+@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
+  hair, a deep maroon leather suit with a stand collar.
+@project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap,
+  gold V, moustache. Far off, watching, taking no part.
+@project_absence_prop_cart_a_painted — HIS CART: castor wheels, mop, orange
+  bucket, bottles, folding ladder, gold V.
+
+[0s] Panel 1 is bright: CARRINGTON, smiling the smile of a man who expects to win, the
+two gold front teeth showing. Calm, even, unhurried: "Ten million." The other four
+panels are dim and still.
+
+[3s] Panel 1 dims and holds. Panel 2 brightens: THE WOMAN IN GREEN, who does not raise
+her voice and moves nothing but her mouth: "Fifteen."
+
+[6s] Panel 2 dims. Panel 3 brightens: CARRINGTON, the smile a shade thinner: "Twenty
+million."
+
+[9s] Panel 3 dims. Panel 4 brightens: THE WOMAN IN GREEN lets one beat go by, purely to
+make him wait, then, flat and bored, as if correcting a waiter: "Twenty-five."
+
+[12s] Panel 4 dims. Panel 5 brightens: CARRINGTON, the smile gone. He takes a breath and
+says it quietly, the way a man throws a punch he has been saving: "Fifty."
+
+[15s] HARD CUT to THE FULL SHOT. THE WHOLE ROOM STARTLES IN THE SAME INSTANT — a single
+flinch that runs through everybody at once: mouths open, a hand flies to a mouth, the
+registrar's pen stops dead in mid-air, both uniformed guards' heads snap toward
+Carrington, Dupe far back stops mopping. Feet stay planted. The young woman in cobalt
+blurts it out loud, the only voice in the room: "Oh my god!"
+
+[16s] AND VALDER, IN THE MIDDLE, IS DELIGHTED. His whole face opens into a grin, he looks
+left at Carrington, then right at the woman in green, then left again, rocking from
+foot to foot like a man watching a rally he cannot lose. He says nothing. Carrington is
+smiling again, gold teeth bared. The woman in green has not moved a muscle:
+expressionless, still, unbeaten.
+
+[19s] Hold on the room. Cut.
+
+AUDIO: room tone; in the panels the five spoken bids and nothing else, one voice at a
+time, no overlap; at 15s one sharp collective intake of breath across the room and the
+young woman in cobalt's "Oh my god!"; a pen scratching, then stopping; no footsteps
+because nobody walks. SIX spoken lines in the whole clip and no others: his, hers, his,
+hers, his, then hers alone at the end. Valder never speaks. NO SOUND AT THE START OR THE
+END: the clip opens mid room-tone with no intro sting or riser, and simply stops with no
+tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites pushed
+slightly cool, shadows deep red-brown, halation around every lamp. Photographed, not
+rendered: fine film grain, faint gate weave, slight colour fringing.
+
+CRITICAL NEGATIVES: inside every panel there is ONE person and no other — no second
+face, no shoulder of a neighbour, no figure behind, no reflection of anybody; the two bidders never share a panel; every single person has a different
+face, build, age, hair and clothing, and no face is repeated anywhere; no opening sound,
+no intro sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no thirteenth person, no extra, no
+bystander, no other visitor, no gallery staff, no reporter, no journalist, nobody
+holding a camera, nobody filming, no children, nobody walking through; nobody stepping
+forward, nobody approaching anybody; no auctioneer, no podium, no rostrum, no gavel, no
+bidding paddle, no raised hands, no numbered card, no auction house, no lot number, no
+visible price, no written figures on screen; no shouting, no arguing, no laughing, no
+applause, no cheering; no Valder speaking, no Valder bidding, no registrar speaking; no
+third bidder, nobody else naming a price; no handshake, no money, no card, no contract,
+no papers exchanged; no weapon, no gun, no holster, no earpiece; no cracked wall, no
+crack, no brass plaque, no price plaque in frame; no camera movement of any kind, no
+pan, no tilt, no zoom, no dolly, no handheld, no drift inside a shot; no dissolve, no
+fade, no wipe, no cut other than the one hard cut at 15s; no looking at camera by anybody; no
+smartphones, no screens, no modern technology; no purple on the woman in green.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no on-screen
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
