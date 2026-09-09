@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-S2PT · THE TOUR, TOGETHER · 20s · CEO 2026-09-09 20:20 — clip A of the two that replace
+S2PT · THE TOUR, TOGETHER · 20s · v2 for take 2 · CEO 2026-09-09 20:20 — clip A of the two that replace
 Draft 5 3:18–3:52 ("ฉากนี้เป็นการอธิบายทั้งหมด อยากให้เช็คดีๆ ว่าจะมีตัวละครไหนบ้างที่ใส่
 และให้เขาเดินไปพร้อมกัน"). Same Wes Anderson lateral track as S2P, but the cast is the
 six the CEO named at 20:25 ("ใครบ้างที่ควรเดินตาม Valder แต่นอน Security ของ Valder 2 คน ->
@@ -20,6 +20,13 @@ resolves; the paste mentions Video 1 as a chip ONCE.
 char_guard_private_v2, char_guard_valder_two, char_cleaner_c, prop_cart_a_painted). Six
 people plus the room is the proven cap for this cast (S2P take 1 bound thirteen and lost
 Valder). Zoom every thumbnail for a warning triangle before Generate.
+
+TAKE 1 (22:21, task-dcaef051, Fix-2 S2PT-TourTogether-Fix1.MP4) FAILED ON CAST: the
+model rendered TWO heavily built Black men in black suits (one behind Valder, one with
+white gloves at the rear) — seven people plus Dupe. Also Carrington a half step ahead of
+Valder and a second mustard armchair passing in the near foreground at 3-6s. v2 makes
+the cast countable by clothes, says ONE man in black three ways, puts Carrington behind
+Valder's shoulder, and pins ONE chair at the far wall. Everything else unchanged.
 
 REVIEW ORDER:
 1. ONE continuous lateral track, no cut (0.2s sweep: no spike); the group holds its
@@ -58,19 +65,25 @@ head-on, unhurried. The move starts at full speed on the first frame and stops
 at full speed on the last — no acceleration, no deceleration, no easing, no
 drift, no pan, no tilt, no zoom, no handheld shake, no reframing.
 
-THE COMPLETE CAST OF THIS SHOT IS SIX PEOPLE AND NOT ONE MORE. There are no
-extras in this film. No bystanders, no other visitors, no gallery staff, no
-security guards beyond the three named, no reporters, no journalists, nobody
-holding a camera, nobody filming, nobody in the background, nobody walking
-through. If a figure is not named below it must not exist.
+THE COMPLETE CAST OF THIS SHOT IS SIX PEOPLE AND NOT ONE MORE, and they are
+countable by their clothes: ONE man in a white suit, ONE man in a panelled
+multi-colour blazer, TWO men in navy tunics, ONE man in a black suit, ONE man
+in a white cleaner's uniform. Six. THERE IS EXACTLY ONE MAN IN BLACK IN THE
+WHOLE SHOT, the bodyguard, and he is the only Black man and the only person in
+sunglasses of any kind. There are no extras in this film. No bystanders, no
+other visitors, no gallery staff, no security guards beyond the three named,
+no reporters, no journalists, nobody holding a camera, nobody filming, nobody
+in the background, nobody walking through. If a figure is not named below it
+must not exist.
 
 POSITION MAP — every figure in the reference video walks exactly where its
 character must walk, in that order along the line. EVERY CHARACTER APPEARS
 EXACTLY ONCE:
 - the MAGENTA figure labelled VALDER = @project_absence_char_valder
 - the GOLD figure labelled GENTLEMAN = @gentleman_e
-- the DARK GREY figure labelled BODYGUARD =
-  @project_absence_char_guard_private_v2
+- the DARK GREY figure labelled BODYGUARD, the ONE such figure in the
+  reference video = @project_absence_char_guard_private_v2, the one such man
+  in the shot
 - the two NAVY figures labelled GUARD_V1 and GUARD_V2 =
   @project_absence_char_guard_valder_two
 - the WHITE figure labelled DUPE = @project_absence_char_cleaner_c
@@ -124,7 +137,8 @@ THE FRONT OF THE PROCESSION TO THE BACK, AND IT IS NOT NEGOTIABLE:
   1. VALDER, AND HE IS THE FRONT-MOST PERSON IN THE WHOLE SHOT. Nobody walks
      ahead of him and nobody walks level with him except Carrington. He is
      talking and gesturing with an open hand at the works as they pass.
-  2. MR CARRINGTON at his shoulder with his cane, half a step back.
+  2. MR CARRINGTON at his shoulder with his cane, half a step BEHIND
+     Valder's shoulder, never level with his chest and never ahead of him.
   3. The bodyguard one pace behind Carrington.
   4. The two guards a pace and a half behind Valder, side by side.
   5. LAST OF ALL, three metres behind the guards, DUPE.
@@ -148,10 +162,10 @@ another piece: "Every one of them was acquired in the last two years."
 [10s] AND HE TURNS AGAIN, and again it is only Carrington: "But I kept the best
 of it for you."
 
-[13s] At the left of the frame the mustard-yellow swivel armchair on its blue
-patterned rug slides into view against the far wall, and Valder's open hand
-goes out to it as they walk, in love with the object: "This chair was in the
-room where the armistice was signed."
+[13s] At the left of the frame THE ONE mustard-yellow swivel armchair in this
+shot, on its blue patterned rug against the far wall BEHIND the party, slides
+into view, and Valder's open hand goes out to it as they walk, in love with the
+object: "This chair was in the room where the armistice was signed."
 
 [16s] The chair is level with him now; the party walks on past it without
 slowing: "Not at the table. In the corner. Nobody sat in it."
@@ -175,9 +189,12 @@ CRITICAL NEGATIVES: every single person has a different face, build, age, hair
 and clothing, and no face is repeated anywhere; no opening sound, no intro
 sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
 audio tail, no fade-in or fade-out on the sound; no seventh person, no extra,
-no bystander, no other visitor, no gallery staff, no registrar, no reporter, no
-journalist, nobody holding a camera, nobody filming, no crowd, no children,
-nobody in the background, nobody walking through; no Carrington replying, no
+no second bodyguard, no second man in black, no other black suit, no other
+person in sunglasses, no bystander, no other visitor, no gallery staff, no
+registrar, no reporter, no journalist, nobody holding a camera, nobody
+filming, no crowd, no children, nobody in the background, nobody walking
+through; no second armchair, no chair in front of the camera, no furniture
+between the camera and the party; no Carrington replying, no
 other character speaking, no conversation, no murmuring, no laughing, no
 applause; no group stopping, no group gathering around a piece, no pointing
 crowd, no huddle, nobody drifting away from the party, nobody lagging behind
