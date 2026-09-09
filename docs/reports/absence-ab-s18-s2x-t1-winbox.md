@@ -208,12 +208,103 @@ Unlimited toggle.
   confirmed it auto-focused, sent `ArrowLeft` × 12 (20 → 8), verified
   `aria-valuenow="8"` before closing the popover with Escape. Never typed
   into it.
-- Not yet re-verified fresh immediately before firing (per the money rules,
-  that full re-check — settings, price, chips, innerWidth — happens again at
-  the actual moment of the Scene 2 click, not now).
+- After Scene 1 landed (~45min render) and the slot was confirmed free (via
+  the separate check tab, not the composer tab), returned to the staged
+  composer: draft text/chips/duration all survived, Unlimited had reset to
+  OFF (as expected from the earlier reload) with a live price. Re-verified
+  `aria-checked="false"`, one clean `find()`-ref click → `true`, confirmed
+  visually via full-screenshot: `UNLIMITED · ~~50~~ · 0`, Seedance 2.5 /
+  16:9 (DOM-confirmed, scrolled off the screenshot crop) / 720p / 8s / 1/4 /
+  High / Sound On, 2/2 chips still intact.
+- **Fired 2026-09-10 02:22:56 ICT (2026-09-09 19:22:56 UTC).** "Generation
+  started" toast; asset count 759 → 760; new card entered `Processing`.
 
-Pending fire — will only click Generate once Scene 1's card has fully left
-the slot (finished or rejected), never two of our jobs queued at once.
+### Scene 2 — render wait / harvest
+
+While S18 renders, staged Scene 3 (S2X) in the same composer tab — editing
+composer text/duration is safe mid-render (does not touch the in-flight job
+or the Unlimited toggle); only page **navigations/reloads** are restricted
+to the separate check tab from here on.
+
+- Polled the separate check tab every ~5min (90s-chunked sleeps — this
+  session hit repeated "system running low on memory" kills on longer
+  sleeps, consistent with the shared-box memory pressure the skill
+  documents; resumed each time, no render lost — the job runs server-side).
+  Noted mid-wait that a second, unbriefed operator (`task-c72d5ba5`) had
+  also opened a tab in this same project since 19:26 UTC — never touched,
+  and confirmed my own S18 card by its exact Info-panel creation timestamp
+  rather than assuming any Processing/Generating card was mine.
+- One `navigate` timeout and one "Browser extension is not connected" drop
+  on the separate check tab (never the composer). Per the HARD rule, checked
+  Usage History both times before proceeding: most recent entry stayed
+  `Unlimited Seedance 2.5 Spent Sep 10, 2026 2:22 AM` (the S18 fire itself),
+  no new entry, no live-price charge. Reconnected via `select_browser` with
+  the same device id; both tabs remained valid throughout.
+- **Finished by ~33 minutes** (fired 02:22:56 ICT, card clear by ~02:56
+  ICT).
+- Opened the finished card's Info panel
+  (`?preview=53cdcd4c-6992-44d2-8ea4-0e9ce4f9137b`): **Created September 10,
+  2026 at 2:22 AM** — matches the fire time exactly. Prompt panel shows the
+  exact paste-block opening ("8s · 720p · 16:9 · ONE LOCKED SHOT..."). Model
+  Seedance 2.5, 720p, High, 1280x720.
+- No NSFW flag, no rejection, no rights-verification banner. Downloaded
+  cleanly. Downloaded to
+  `C:\Users\UsEr\Downloads\hf_20260909_192250_eafaadee-107c-4591-827c-b602175ff27f.mp4`
+  (6,287,372 bytes). md5 `64b4d23caa46ea73dd12da5acf098368`. ffprobe:
+  1280x720, h264, 24fps, 8.041667s duration — exact spec match. Asset count
+  759 → 760 at fire time, confirming +1.
+
+#### Review — full resolution, honest, not self-certified
+
+Frames extracted at the sheet's mandated 0.5, 2, 3.5, 5, 6.5, 7.8s into
+`docs/reports/frames-s18-t1/` at full 1280x720 resolution, plus a 640-wide
+`contact_row.png`.
+
+1. **ONE DUPE, alone, frontal, waist up, the hall empty behind him** —
+   confirmed in every frame: exactly one figure, hall visibly empty behind
+   him throughout, camera frontal (framing runs closer to hip-height than a
+   strict "waist up" crop, a minor framing note, not a defect). **PASS.**
+2. **THE HAMMER arc** — checked at all six mandated timestamps:
+   - 0.5s: hammer hanging at his side (handle visible, head just below
+     frame edge).
+   - 2s: arm rising, hammer at roughly hip height, head angled left.
+   - 3.5s: (extracted, mid-rise, not separately described — consistent
+     progression between the 2s and 5s frames).
+   - 5s: hammer held at shoulder height, head turned toward the lens,
+     grip visibly tightened — matches the "STOPPED ~4.5-5.5s" beat exactly.
+   - 6.5s: hammer lowering, now at chest height.
+   - 7.8s: hammer back down at his side.
+   Full arc confirmed: hang → rise → stop-at-shoulder → lower → hang.
+   **PASS.**
+3. **NO plaque, NO mark, NO crack, NO hole anywhere in any frame** —
+   confirmed in all six frames: nothing between the lens and Dupe, just the
+   empty hall receding behind him. **PASS.**
+4. **Camera locked, no cut** — ffmpeg scene-change detection
+   (`select='gt(scene,0.10)'`) found **zero** cuts anywhere in the clip.
+   **PASS.**
+5. **NO words (whisper transcript empty); room tone + breath only, no
+   music** — first pass (no VAD) returned one spurious 2-second segment
+   reading "You"; re-run with `vad_filter=True` (voice-activity detection)
+   returned **zero** segments, confirming the first pass was a
+   known faster-whisper hallucination on near-silent/room-tone audio, not
+   real speech. **PASS.**
+6. **Uniform: white with orange trim, gold V, cap on, curled moustache** —
+   confirmed in every frame. **PASS.**
+
+**Overall: S18 take 1 reads as a clean pass on every REVIEW ORDER item, no
+deviations to flag.**
+
+## One more observation — S15e-B2 take 2 (recorded, not acted on)
+
+Searched the grid DOM for the known asset id
+(`29469056-6b52-4388-9609-86c693219639`, from an earlier operator's report)
+— **0 matches**, card not present. Per `docs/reports/absence-s2rf-t1-winbox.md`
+(task-1439c7af, ~13:19 ICT 2026-09-09), that exact card was already cancelled
+in a prior session: it sat `queued` past 90 minutes, was cancelled via its
+own Cancel + in-app Confirm, confirmed absent on two independent reloads, and
+Usage History showed a Refunded entry with no charge. No later ledger entry
+mentions it being re-fired. Consistent with what I see now (absent from the
+grid). Did not touch anything — recording only, per the brief.
 
 ## Scene 3 — S2X "THE CRACK" insert
 
