@@ -1,3 +1,6 @@
+**STATUS: both scenes fired, rendered, downloaded, and frame-reviewed. See
+"Summary for the CTO" at the bottom for the one open question.**
+
 # S2PT + S2PU take 1 — winbox browser operator report (spawn 2, task-dcaef051)
 
 Project: `https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3` ("The Valder Collection No.7")
@@ -127,4 +130,85 @@ S2PT left the slot (finished) at +40min, so per the brief's "ONE SLOT" rule S2PU
 - **Fired 2026-09-09 23:20:1x ICT.** Asset count ticked **756 → 757** immediately after click.
 - Zero cost: Unlimited struck-140→0 the whole session; no priced control clicked.
 
-**Render wait in progress — will update this file with harvest details once S2PU lands.**
+### Render wait
+
+- Fired 23:20:20 ICT. Polled with fresh, position-verified tabs at ~10-min
+  cadence: Processing at +10min and +20min, Generating by +30min,
+  **DONE at +40min** — "New" badge, no moderation-rejection card. Total
+  render ≈ 40 minutes, matching S2PT's timeline closely.
+
+### Download
+
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260909_162007_a40fbfa7-836b-420c-8b24-c7ce87d9bb74.mp4`
+- **Size**: 21,812,305 bytes
+- **MD5**: `f09fe15bd062a69746cb1e79cfc3284f`
+- **Asset id**: `a40fbfa7-836b-420c-8b24-c7ce87d9bb74`
+- `ffprobe`: h264 1280×720 @24fps + aac audio, duration 20.04s — matches spec.
+- Project asset count: 756 (pre-fire) → 757 (immediately after Generate, held through completion).
+
+### Frame check (ffmpeg, scale=640 wide, `docs/reports/frames-s2pu-t1/`)
+
+Extracted at 1.5, 6, 10, 13, 16, 19.5s. Described honestly — not self-certified.
+
+- **What held, cleanly**: this take is materially cleaner than S2PT. The
+  background (columns, arches, wall art) is **pixel-identical** across all
+  six sampled frames — the camera genuinely never moves, matching "ONE LOCKED
+  SHOT, no cuts, the camera never moves." The fish trap (dark woven oval
+  basket on wires) hangs at the far left, head height, throughout, matching
+  the prose description exactly (no reference image was used for it per the
+  sheet, prose-only, and it reads correctly). By t10s the party has stopped
+  and spread in profile, in the correct order left-to-right: **Valder
+  (rainbow-panelled blazer) → Carrington (white suit, cane) → ONE bodyguard
+  (heavily built Black man, single, all-black suit) → two navy-uniformed
+  peaked-cap guards → gap → Dupe (white uniform, cart) at the right end.**
+  **Six people total, no duplicate this time** — the bodyguard-duplication
+  defect seen in S2PT did not recur here. By t16s Dupe has swung the cart a
+  quarter-turn and is bent into a mopping posture; by t19.5s he is clearly
+  head-down mopping the floor, matching the "[14s] swings the cart... starts
+  mopping" and "[19s] Hold... Dupe still mopping" beats. No red face, no
+  blush, no cartoon sparkle on Dupe at any sampled frame — matches the CEO's
+  explicit note that the reaction must not read as embarrassed-blushing.
+- **Could not confirm from static frames**: the "[9s] EVERY HEAD IN THE PARTY
+  TURNS TO DUPE AT ONCE" beat. Comparing the front group's pose across t6s
+  (before the turn) and t13s/t16s (after), no clearly different head/body
+  orientation is visible in this profile framing — a turn-of-the-head toward
+  camera-right may simply not read as a strong silhouette change from a pure
+  side angle at this frame spacing. This needs a full playback (or frames at
+  8.5s/9.5s specifically) to confirm one way or the other; flagging rather
+  than claiming either a pass or a defect.
+- No warning-triangle indicators seen on any reference chip pre-fire (0 error
+  chips, confirmed before Generate).
+
+## Summary for the CTO
+
+Both scenes fired, rendered (~40 min each), downloaded, and frame-reviewed.
+Nothing was Google Drive-filed, LINE-messaged, or edited in sheets/previz/AB-LEDGER
+(out of scope per the brief).
+
+1. **The video-ref upload blocker from spawn 1 is understood and fixed.** It
+   was the wrong file input (composer's direct reference-tray input, not the
+   "+" → Uploads panel → Videos path), not a bitrate issue. Worth folding
+   into `.claude/skills/higgsfield-unlimited-gen/SKILL.md`'s "Attaching a
+   VIDEO reference" section.
+2. **S2PT** ("The Tour, Together") landed with the camera move, cast order,
+   and armchair beat all correct, but shows a likely **duplicated bodyguard**
+   (two heavily-built Black men in dark suits/sunglasses at two different
+   locked screen depths, in every sampled frame) — see
+   `docs/reports/frames-s2pt-t1/t13s-zoom-midgroup.png` and
+   `t13s-zoom-rear.png`. 7/7 chips were bound clean before firing, so this
+   looks like model-side generation duplication, not a binding bug. **This
+   may warrant a retake** — flagging for CTO judgment, not self-certified.
+3. **S2PU** ("Are You Following Us") is the cleaner take: correct six-person
+   cast (no duplicate), correct order, genuinely locked camera, fish trap
+   correct, Dupe's mop-turn and end-hold beats land, no red-face/cartoon
+   effect. One beat — the party's synchronized head-turn to Dupe at [9s] —
+   could not be confirmed or denied from six static frames; a full playback
+   would settle it.
+4. Neither scene's audio (the six/three lines of Valder's dialogue) was
+   verified — ffprobe confirms an audio track exists on both files, but
+   content/timing needs a human listen, per the brief's own review-loop rule.
+
+Files: two MP4s in `C:\Users\UsEr\Downloads` (paths/md5/bytes above), 14 review
+frames + 2 zoom crops under `docs/reports/frames-s2pt-t1/` and
+`docs/reports/frames-s2pu-t1/`. Filing to `All Scene/Fix-2/` (Google Drive)
+is explicitly out of scope for this operator per the brief's harvest section.
