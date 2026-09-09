@@ -65,7 +65,12 @@ TAKE LOG:
   "UNLIMITED | 140 | 0" struck-price-then-zero, also confirmed by pixels in a
   full-window screenshot. Clicked once (find()-ref ref_222). "Generation
   started" toast; sidebar All-assets 743 → 744. New card asset id:
-  a0889f15-3ea1-4a8e-adab-a43ce40563ac.
+  a0889f15-3ea1-4a8e-adab-a43ce40563ac. Polled every ~5 min via reload +
+  data-job-status read; still "queued" (visible "Processing") at every
+  single check through 90 min (5, 12, 17, 22, 27, 33, 38, 43, 48, 53, 59,
+  64, 69, 74, 80, 85, 90 min), no error, no state change. Per the task
+  brief, STOPPED POLLING at the 90-minute mark — reporting rather than
+  continuing; the CTO decides the next step.
 
 === END NOTES ===
 
