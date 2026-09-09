@@ -27,7 +27,9 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -559,7 +561,14 @@ def running_server(tmp_path, monkeypatch):
     stub_holder = {"fn": lambda prompt, session_id: (
         0, json.dumps({"session_id": "unused", "result": "ok", "is_error": False}), "", False)}
 
-    def _stub(prompt, session_id):
+    def _stub(prompt, session_id, profile=ss.PROFILE_SECRETARY):
+        # profile is accepted (run_secretary_turn now passes it) but not
+        # forwarded to stub_holder["fn"] by default -- every existing
+        # fn(prompt, session_id) in this file predates the profile split.
+        # Tests that need to see which profile was used instead assert on
+        # ss._build_claude_cmd directly (see the argv tests) or on session
+        # continuity (get_session_id/set_session_id), which is what
+        # actually proves session-namespace isolation.
         return stub_holder["fn"](prompt, session_id)
 
     monkeypatch.setattr(ss, "_run_claude_once", _stub)
@@ -1210,6 +1219,186 @@ def test_ssrf_blocked_image_url_in_a_real_request_is_reported_not_dropped(
     assert status == 200
     assert ss._IMAGES_FAILED_MARK in captured["prompt"]
     assert "blocked" in captured["prompt"]
+
+
+# ---------------------------------------------------------------------------
+# 9. task-d4845940 -- model-based profile selection (claude-code-secretary /
+#    secretary / missing vs. claude-code-family vs. unknown -> 400).
+# ---------------------------------------------------------------------------
+
+def test_resolve_model_profile_maps_every_secretary_alias() -> None:
+    for model in (None, "", "  ", "secretary", "claude-code-secretary"):
+        assert ss._resolve_model_profile(model) == ss.PROFILE_SECRETARY, repr(model)
+
+
+def test_resolve_model_profile_maps_family_name() -> None:
+    assert ss._resolve_model_profile("claude-code-family") == ss.PROFILE_FAMILY
+
+
+def test_resolve_model_profile_rejects_unknown_values() -> None:
+    """Never falls back to secretary for a value it does not recognise --
+    including a non-string `model`, which is malformed input, not the same
+    thing as a missing/empty one."""
+    for model in ("gpt-4", "Secretary", "CLAUDE-CODE-FAMILY", "claude-code-familyy",
+                  123, [], {}, True):
+        assert ss._resolve_model_profile(model) is None, repr(model)
+
+
+def test_build_claude_cmd_identical_across_every_secretary_model_alias() -> None:
+    """Deliverable 1: model missing / 'secretary' / 'claude-code-secretary'
+    must all produce byte-for-byte identical argv -- existing callers
+    (claudeflow's runClaudeCode, secretary_waker.py) keep working
+    unchanged."""
+    baseline = ss._build_claude_cmd("hello", None)
+    for model in (None, "", "secretary", "claude-code-secretary"):
+        profile = ss._resolve_model_profile(model)
+        assert ss._build_claude_cmd("hello", None, profile=profile) == baseline
+
+    baseline_resumed = ss._build_claude_cmd("hello", "sess-abc-123")
+    for model in (None, "secretary", "claude-code-secretary"):
+        profile = ss._resolve_model_profile(model)
+        assert ss._build_claude_cmd("hello", "sess-abc-123", profile=profile) == baseline_resumed
+
+
+def test_family_profile_argv_has_no_mcp_config_and_no_writing_tools() -> None:
+    cmd = ss._build_claude_cmd("hi", None, profile=ss.PROFILE_FAMILY)
+
+    # No MCP servers reachable at all: no --mcp-config flag, so
+    # --strict-mcp-config's "only use MCP servers from --mcp-config"
+    # resolves to the empty set regardless of any ambient config on the box.
+    assert "--mcp-config" not in cmd
+    assert "--strict-mcp-config" in cmd
+
+    # --tools "" disables the entire built-in tool set (verified via
+    # `claude --help`, claude 2.1.266: 'Use "" to disable all tools') --
+    # zero tools, not merely zero *writing* tools.
+    assert cmd[cmd.index("--tools") + 1] == ""
+
+    # The secretary's own allowlist/system-prompt/mcp-config flags must not
+    # leak into the family profile's argv.
+    assert "--allowed-tools" not in cmd
+    assert str(ss.MCP_CONFIG_PATH) not in cmd
+    system_prompt = cmd[cmd.index("--system-prompt") + 1]
+    assert system_prompt != ss.SECRETARY_SYSTEM_PROMPT
+    assert "ตัวกลาง" not in system_prompt, (
+        "the secretary's own system prompt text must never reach the family profile")
+
+
+def test_family_profile_system_prompt_contains_frozen_bangkok_datetime(monkeypatch) -> None:
+    frozen = datetime(2026, 9, 9, 14, 5, tzinfo=ZoneInfo("Asia/Bangkok"))
+    monkeypatch.setattr(ss, "_bangkok_now", lambda: frozen)
+
+    cmd = ss._build_claude_cmd("วันนี้วันที่เท่าไหร่", None, profile=ss.PROFILE_FAMILY)
+    system_prompt = cmd[cmd.index("--system-prompt") + 1]
+
+    assert "สมพงษ์" in system_prompt
+    assert "วันพุธ" in system_prompt          # 2026-09-09 is a Wednesday
+    assert "9 กันยายน" in system_prompt
+    assert "พ.ศ. 2569" in system_prompt        # Buddhist year
+    assert "ค.ศ. 2026" in system_prompt        # Gregorian year
+    assert "14:05" in system_prompt
+
+
+def test_family_system_prompt_forbids_org_and_task_taking() -> None:
+    assert "ตอบคำถามได้อย่างเดียว" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ห้ามรับงาน" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ห้ามพูดถึงข้อมูลภายในองค์กร" in ss.FAMILY_SYSTEM_PROMPT
+
+
+def test_scoped_conversation_id_prefixes_family_only() -> None:
+    assert ss._scoped_conversation_id("line-group:abc", ss.PROFILE_SECRETARY) == "line-group:abc"
+    assert ss._scoped_conversation_id("line-group:abc", ss.PROFILE_FAMILY) == "family:line-group:abc"
+
+
+def test_unknown_model_returns_400_and_never_spawns_claude(running_server) -> None:
+    url, set_stub = running_server
+
+    def _must_not_spawn(prompt, session_id):
+        raise AssertionError("an unknown model profile must never reach _run_claude_once")
+    set_stub(_must_not_spawn)
+
+    body = {"model": "gpt-4", "messages": [{"role": "user", "content": "hi"}]}
+    status, payload = _post(url, body)
+    assert status == 400
+    assert payload == {"error": "unknown model profile"}
+
+
+def test_secretary_response_echoes_the_secretary_profile_name(running_server) -> None:
+    url, _ = running_server
+    status, payload = _post(url, _chat_body("hi"))
+    assert status == 200
+    assert payload["model"] == ss.PROFILE_SECRETARY
+
+
+def test_family_response_echoes_the_family_profile_name(running_server) -> None:
+    url, _ = running_server
+    body = {"model": "claude-code-family", "messages": [{"role": "user", "content": "สวัสดี"}]}
+    status, payload = _post(url, body)
+    assert status == 200
+    assert payload["model"] == ss.PROFILE_FAMILY
+
+
+def test_family_conversation_resumes_its_own_session_across_turns(running_server) -> None:
+    url, set_stub = running_server
+    calls: list = []
+
+    def fn(prompt, session_id):
+        calls.append(session_id)
+        return (0, json.dumps({"session_id": "fam-sess-1", "result": "reply",
+                              "is_error": False}), "", False)
+
+    set_stub(fn)
+    conv = "line-group:abc"
+    body1 = {"model": "claude-code-family", "user": conv,
+            "messages": [{"role": "user", "content": "หนึ่ง"}]}
+    body2 = {"model": "claude-code-family", "user": conv,
+            "messages": [{"role": "user", "content": "สอง"}]}
+    _post(url, body1)
+    _post(url, body2)
+
+    assert calls == [None, "fam-sess-1"], "second family turn must resume the first"
+    assert ss.get_session_id("family:" + conv) == "fam-sess-1"
+    assert ss.get_session_id(conv) is None, (
+        "the family session id must live under the family: prefixed key, "
+        "never the raw conversation_id (that key is the secretary's)")
+
+
+def test_family_request_never_resumes_the_secretary_session_for_the_same_user(
+    running_server,
+) -> None:
+    """TASK.md: 'A family request must never resume a secretary session even
+    if the caller passes the CEO's Telegram chat id as `user`' -- assert
+    this directly."""
+    url, set_stub = running_server
+    calls: list = []
+
+    def fn(prompt, session_id):
+        calls.append(session_id)
+        sid = "secretary-sess" if session_id is None and len(calls) == 1 else "family-sess"
+        return (0, json.dumps({"session_id": sid, "result": "reply",
+                              "is_error": False}), "", False)
+
+    set_stub(fn)
+    ceo_chat_id = "123456789"  # stands in for the CEO's real Telegram chat id
+
+    # First: a normal secretary turn from the CEO establishes a session.
+    status, _ = _post(url, _chat_body("สถานะงานวันนี้", ceo_chat_id))
+    assert status == 200
+    assert ss.get_session_id(ceo_chat_id) == "secretary-sess"
+
+    # Then: a family-profile request arrives carrying the SAME raw id as
+    # `user` (e.g. a misconfigured caller, or the CEO's own id reused by
+    # mistake). It must start fresh, never resume the secretary's session.
+    body = {"model": "claude-code-family", "user": ceo_chat_id,
+            "messages": [{"role": "user", "content": "วันนี้วันที่เท่าไหร่"}]}
+    status, _ = _post(url, body)
+    assert status == 200
+    assert calls == [None, None], (
+        f"family turn resumed session_id={calls[-1]!r} instead of starting fresh"
+    )
+    assert ss.get_session_id(ceo_chat_id) == "secretary-sess", (
+        "the secretary's own session record must be untouched by the family turn")
+    assert ss.get_session_id("family:" + ceo_chat_id) == "family-sess"
 
 
 if __name__ == "__main__":
