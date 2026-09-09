@@ -281,9 +281,22 @@ doesn't, a full-page capture is an acceptable substitute as long as the price te
 it — never fall back to a DOM/JS text scrape.
 
 **Fired 2026-09-09T23:07:37Z (2026-09-10 06:07:37 ICT).** Toast "Generation started"; asset count
-764→765 (+1). Rendering. This scene has a moderation history (S2R-F's five-close-up sibling was
-rejected twice — see S2AP above); if this card comes back rejected, will record the card text
-verbatim and move on per task instruction, never re-fire.
+764→765 (+1). Rendering ~36 min.
+
+**REJECTED — moderation, ~2026-09-10 06:44 ICT.** Card badges: `NSFW` · `Credits refunded`. Card
+text verbatim: **"Rejected due to copyright restrictions."** Confirmed it is my job by matching
+the card's own prompt text against the exact source: `20s · 720p · 16:9 · ONE FIVE-PANEL
+SPLIT-SCREEN COMPOSITION for fifteen seconds, then ONE HARD CUT at 15s to a single full shot;
+every camera locked, no movement of any kind. Sound On · High. the reference video (Video 1) is
+the CAMERA AND LAYOUT REFERENCE for this entire shot — a 20-second grey previz of THIS exact
+scene...` — word-for-word match to what was pasted. Asset count unchanged at 765 (no new asset
+from a rejected generation — consistent with "Credits refunded").
+
+**Per task instruction: this V1 split design now carries the SAME moderation outcome as its
+five-close-up sibling (S2R-F take 2, per AB-LEDGER 2026-09-09 21:15) — two different framings of
+this scene have now both been rejected on copyright grounds, not on prose.** Not re-fired, not
+re-tried in any form. Composer left as-is; moving on to S19. This is a CEO/CTO decision point
+(a third design for this scene, if wanted, is their call — not something to improvise here).
 
 ## Scene 5 — S19 "THE PAINTING GOES BACK"
 
