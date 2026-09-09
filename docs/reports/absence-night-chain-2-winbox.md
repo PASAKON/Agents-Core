@@ -250,7 +250,40 @@ the CTO to pull and file as `S2AP-InterpretationsPortraits-Fix1.MP4` in All Scen
 
 ## Scene 4 — S2R-F SPLIT "THE BATTLE, FIVE PANELS"
 
-_pending_
+**Pre-staged during S2AP's render.** Video 1: `78f7b1da-6f28-4cb7-bb5b-663ede0d1ed2`, byte-confirmed
+against local `docs/S2RF-Split-Render.MP4` (md5 `193e53fba3182bada9985566d82ce204` both sides).
+Fresh empty composer (new tab, no prior text to clear).
+
+**Chips:** 13/13 unique bound, 0 error: `@gentleman_e`, `@project_absence_char_woman_c`,
+`@project_absence_char_valder`, `@char_registrar`, `@project_absence_char_guard_private_v2`,
+`@loc_hall_big_e`, `@project_absence_char_guard_valder_two`, `@project_absence_char_woman`,
+`@project_absence_char_critic_b`, `@project_absence_char_visitor_b`,
+`@project_absence_char_visitor_a`, `@project_absence_char_cleaner_c`,
+`@project_absence_prop_cart_a_painted`. 13 elements + 1 video = 14 chips, matching the sheet
+exactly (raw mention count 18 — position-map + references duplicate 5 of the 13 tags, same
+known pattern as S2AW/S2AP).
+
+**A full-page reload during the wait dropped the composer to a cold app-shell load** (generic nav
+bar, no project chrome) for ~10s before the project SPA rehydrated — waited it out rather than
+re-navigating again; composer draft (video, 9992-char text incl. mention expansion, 13 chips)
+survived intact once it settled.
+
+**Settings:** 20s (was defaulted to 15s from S2AP — corrected via 5× `ArrowRight` on the
+duration slider) · 16:9 · 720p · Seedance 2.5 · High · Sound On · Unlimited re-toggled on
+(reset by the reload) via one clean `find()`-ref click, `data-state="on"`.
+
+**Zoom on the Generate button intermittently froze (`Page.captureScreenshot` timeout) three
+times in a row on this tab.** Rather than keep retrying the crop, took a full-page screenshot
+instead (which succeeded each time) — the button text `UNLIMITED / struck 140 / 0` was clearly
+legible in it at full resolution, satisfying the same pixel-read requirement a crop would have.
+Noting this as a valid fallback for the skill: when `zoom` specifically hangs but `screenshot`
+doesn't, a full-page capture is an acceptable substitute as long as the price text is legible in
+it — never fall back to a DOM/JS text scrape.
+
+**Fired 2026-09-09T23:07:37Z (2026-09-10 06:07:37 ICT).** Toast "Generation started"; asset count
+764→765 (+1). Rendering. This scene has a moderation history (S2R-F's five-close-up sibling was
+rejected twice — see S2AP above); if this card comes back rejected, will record the card text
+verbatim and move on per task instruction, never re-fire.
 
 ## Scene 5 — S19 "THE PAINTING GOES BACK"
 
