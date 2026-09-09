@@ -50,6 +50,51 @@ reviews it.
 
 TAKE LOG:
 
+Take 1 (task-34a6ce3a, winbox, 2026-09-09 08:33 ICT fire / 09:12 ICT landed,
+~38-39 min render): Unlimited/$0 verified at fire (UNLIMITED · struck 140 ·
+0, DOM computed-style checked), 4/4 chips bound
+(char_oldman/char_cleaner_c/loc_hall_big_d/prop_cart_b), 0 error chips,
+prompt sha256-verified byte-identical to this paste block before dispatch.
+Downloaded hf_20260909_013340_35e5015c-e022-4df2-ad48-ab88e19388f1.mp4,
+17,443,375 bytes, md5 2784225988914fc07a836160997f0a09, no md5 collision
+vs. other files in Downloads. ffprobe: 1280x720, video 20.04s / audio
+19.97s (Sound On held).
+REVIEW ORDER:
+0. THE MARK — FLAGGED. Renders as a thin, jointed, insect-like shape (reads
+   as a crane fly / daddy-long-legs sitting on the wall), not the canon
+   "thick black crack...solid and heavy like ink." No solid black mass
+   anywhere in the mark; consistent (same wrong shape) across all sampled
+   frames in all three shots (0.5/3/6/9/11.5/17.5/19.5s). Small and
+   correctly positioned above the plaque, but the SHAPE itself is wrong.
+   Information per the sheet's own framing — CEO to judge.
+1. Two hard cuts — PASS. 0.2s greyscale-diff sweep (99 frames) found exactly
+   two isolated spikes: t=11.8s (44.0x median) and t=16.4s (44.9x median).
+   No other cuts >15x; a moderate 5-7x cluster at 2.4-3.2s is the old man's
+   walking motion (sustained, not an isolated spike) and correctly stays
+   under threshold. Camera reads locked within each shot.
+2. Four lines — SKIPPED, no faster_whisper on winbox (confirmed unavailable
+   per task instructions). Audio track present and correct length
+   (ffprobe), content not verified.
+3. THE FLIP — PASS. 13.5s: stern, wide-eyed glare, mouth tight. 14.0s: broad
+   delighted smile. Two clearly different faces within ~0.5s, matches "That
+   is art" timing.
+4. Old man stops a pace short of the wall, never touches it; Dupe stays
+   behind with the mop, never steps between — PASS across all sampled
+   frames.
+5. Two people only; old man matches the green-leather-coat-and-cane
+   description (not Carrington/Valder); Dupe capped throughout — PASS.
+6. Painting on cart — PARTIAL. Cart itself visible at the frame's far-left
+   edge (mostly occluded by the near chromium column), burnt-orange colour
+   matches; the painting is not clearly identifiable at that crop/
+   resolution — not a confirmed fail, just unverifiable from the sampled
+   frames.
+Filed to Drive All Scene/Fix-2/ as S3b-WhatHappenedToTheWall-Fix1.MP4 via
+rclone (gdrive-bridge's upload_fix1.py has no OAuth env vars on this box;
+rclone's gdrive: remote worked and is md5-verified against the local file).
+File id 12f-h0r_G_XiLCJwcHHccGMFEzrGciQdZ. logs.txt NOT appended (no
+gdrive-bridge config on this box either) — needs an ADD line from a session
+with bridge access.
+
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
