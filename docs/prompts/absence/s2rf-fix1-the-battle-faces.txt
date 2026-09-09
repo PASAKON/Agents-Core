@@ -110,6 +110,44 @@ TAKE LOG:
   gated on STEP 1 "landing" — it did land, but as a rejection, not a
   usable clip — so STEP 2 was NOT fired; reporting instead per the
   task brief's stop condition.
+- Take 2: fired 2026-09-09 10:05:54 UTC (17:05 ICT), winbox, task-8a6c456a.
+  Prompt text unchanged from the sheet as it now reads (the CTO's
+  softened prose was already baked into this file before this take).
+  Fresh tab opened after the prior tab's viewport silently collapsed to
+  a stuck 196x103 mobile-lockup render mid-session (screenshot/zoom
+  timeouts preceded it; window.innerWidth read 196 while outerWidth
+  stayed 1920 -- the composer itself, not the OS window, per
+  higgsfield-unlimited-gen's documented failure mode) -- that tab was
+  discarded per the hard rule ("cannot be repaired, open a fresh tab")
+  without ever clicking Generate on it; Usage History checked twice via
+  a separate tab (863 credits, both times, unchanged from the pre-task
+  baseline) to confirm neither the toggle click nor the timeouts on the
+  discarded tab had charged anything. On the fresh tab (innerWidth 1920
+  confirmed via JS): Unlimited toggled ON first (one clean find()-ref
+  click, aria-checked/data-state true/on), spec verified 16:9/720p/20s/
+  Seedance 2.5/High/1-4/Sound On. Prompt pasted via synthetic
+  ClipboardEvent (text/plain only, chunked 3-way + assembled +
+  sha256-verified in-page BEFORE the paste: sha256
+  2ecbfca6b9b02c997c17d8d667cd1a8ac57852321f0f48438cf08659612cbb62,
+  10071 chars), then End->space->Backspace tap. 13/13 unique chips
+  bound (loc_hall_big_e, gentleman_e, guard_private_v2, woman_c,
+  valder, char_registrar, guard_valder_two, char_woman, critic_b,
+  visitor_b, visitor_a, cleaner_c, prop_cart_a_painted), 0 error chips
+  (span.text-font-brand leaves starting with @, filtered to visible
+  rects; the 0x0 decoy editor duplicated every chip and was excluded).
+  13/13 reference thumbnails present with matching alt text and no
+  warning icon/class found in each thumbnail's container (checked via
+  DOM since `zoom` was timing out repeatedly all session, not just one
+  tab -- CDP screenshot timeout on every zoom call this whole session;
+  full-window screenshots worked). Re-verified spec and price
+  immediately before commit via a full-window screenshot (zoom
+  unavailable all session): "UNLIMITED | 140 | 0" struck-price-then-
+  zero, matching the real visible button (DOM-confirmed distinct from
+  the known decoy `GENERATE8045`, 0x0/hidden). Clicked once (ref_311,
+  the real "Generate" button, confirmed via getBoundingClientRect
+  visible/120x80 vs the decoy's 0x0/hidden). "Generation started"
+  toast; All-assets 754 -> 755. New card asset id:
+  6fa64208-7004-484e-a050-eba2c861ea2b, data-job-status="queued".
 
 === END NOTES ===
 
