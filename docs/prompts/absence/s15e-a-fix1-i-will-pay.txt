@@ -38,6 +38,12 @@ CHIP LINE TO ADD ONCE THE ELEMENT EXISTS (paste zone, after the buyer's block):
 @project_absence_prop_cheque — THE CHEQUE, exactly as its picture shows.
 
 TAKE LOG:
+- Take 1: fired 2026-09-09 00:40:32 UTC / 2026-09-09 07:40:32 ICT (task-46aad9f5,
+  winbox). Unlimited ON, 8s/720p/16:9/Seedance 2.5/High/1/4/Sound On, Generate
+  button read UNLIMITED · struck 56 · 0 at click. 4/4 chips bound (cleaner_c,
+  grandmother, valder, hall_big_d), 0 error chips, no warning triangles on any
+  thumbnail. Asset count 739 -> 740 on fire. "Generation started" toast,
+  Processing card confirmed.
 
 === END NOTES ===
 
