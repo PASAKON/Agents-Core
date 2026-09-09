@@ -1,0 +1,109 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S19 · THE PAINTING GOES BACK · 10s · ADD-ON · CTO 2026-09-10 02:10 under the CEO's overnight
+authority ("ฝาก Generate ฉากที่คุณออกแบบเอง 5s-20s เป็นฉากเสริม … ควรเอาไปใส่ในวินาทีที่เท่าไหร่ …
+ยิ่ง Footage เยอะ เรายิ่งมีตัวเลือกเยอะ").
+
+WHY: the film opens on "I dropped a painting" and the painting rides Dupe's cart, face out,
+for seven minutes — and never goes back on the wall. After S16 the wall is cut out and
+Draft 5 shows the square hole (7:16–7:24), then the bookend. This is the missing last gag:
+Dupe hangs the dropped painting over the hole, straightens it by a finger's width (the
+callback to 0:36 "it was hanging crooked, only a little, so I straightened it"), nods once,
+and mops. WHERE: insert at 7:24, after the hole and before "How did you know?" (7:26) —
+or as the very last image before black, after the bookend. Either works; the editor picks.
+
+⛳ LANE: FREE (Unlimited ON, Generate shows no real number), winbox operator. Spec: Seedance
+2.5 / 10s / 720p / 16:9 / Sound ON / 1 video. No previz. ⚠️ CHIPS: 3 = loc_hall_big_d,
+char_cleaner_c, prop_cart_a_painted. Nobody else in the shot.
+
+REVIEW ORDER:
+1. ONE locked frontal wide, no cut; the square hole dead centre in the wall at the start.
+2. Only Dupe and the cart; he hangs the painting over the hole so the hole disappears; the
+   painting is the same abstract piece that rides the cart.
+3. The straighten-by-a-finger beat at ~7s, the nod, the mop; no dialogue.
+4. No crack on the wall, no plaque text readable, no Valder, no crowd.
+
+Filing: All Scene/Fix-2/ as S19-ThePaintingGoesBack-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+10s · 720p · 16:9 · ONE LOCKED SHOT, no cuts. The camera never moves, never
+pans, never zooms. NO DIALOGUE — nobody speaks. Sound On · High.
+
+THE FRAME: the hero wall face-on and dead centre, symmetrical, waist height,
+the way this room is always seen: warm cream plaster, the orange cove light
+along the ceiling, a chromium trumpet column at each edge of the picture,
+polished terracotta terrazzo underfoot. WHERE THE ARTWORK WAS THERE IS NOW A
+ROUGH SQUARE HOLE, about the size of a window, cut clean through the plaster
+at chest height, dead centre in the frame, dark inside, its edges raw and
+chalky, a little white plaster dust on the floor beneath it. Nothing else is on
+this wall. The room is empty. The exhibition is over.
+
+THE COMPLETE CAST OF THIS SHOT IS ONE PERSON AND NOT ONE MORE. No visitors, no
+guards, no collector, nobody in the background, nobody walking through. If a
+figure is not named below it must not exist.
+
+REFERENCES — each with a job:
+@project_absence_loc_hall_big_d — THE HALL, and the only location reference:
+  warm cream walls, orange cove light washing the ceiling, polished terracotta
+  terrazzo underfoot, tall chromium trumpet columns in matched pairs down both
+  sides, white plinths and the collection along both walls, the hero wall on
+  the axis. It is a four-panel sheet — take NOTHING of its arrangement or
+  layout, and never reproduce a grid. THE HERO WALL IN THIS SHOT HAS THE SQUARE
+  HOLE described above and nothing else on it: no mark, no plaque.
+@project_absence_char_cleaner_c — DUPE, the cleaner: an Indian man of about
+  forty, lean, dark hair, a thick dark moustache with curled tips, in a WHITE
+  mandarin-collar uniform with ORANGE piping, a gold V on the chest and on his
+  white peaked cap. Calm, tidy, exact in every movement. He never speaks.
+@project_absence_prop_cart_a_painted — HIS CART: castor wheels, mop, orange
+  bucket, bottles, folding ladder, gold V, and THE PAINTING standing upright in
+  the rack, face out — a framed abstract canvas of soft rounded blocks in dusty
+  pink, sand, olive and terracotta. This painting is the one he hangs.
+
+[0s] The wall with the hole, empty. From the LEFT edge Dupe pushes his cart in
+at an unhurried walk and stops it directly under the hole, square to the wall.
+
+[2s] He lifts the framed painting out of the cart's rack with both hands, turns
+it face out, and raises it to the wall.
+
+[4s] HE HANGS THE PAINTING OVER THE HOLE, squarely, so that the hole disappears
+behind it completely and the wall reads whole again, one painting dead centre
+where the artwork used to be. He lets go carefully. It holds.
+
+[7s] He steps back one pace, tilts his head, studies it, steps in again and
+straightens it by a finger's width with two fingertips — it was very slightly
+crooked — then steps back again and nods once, satisfied.
+
+[9s] He takes the mop from the cart and begins to mop the plaster dust from the
+floor beneath the painting. Hold. End.
+
+AUDIO: room tone; the castors on terrazzo; the small knock of the frame
+settling on the wall; the mop. No music, no dialogue. NO SOUND AT THE START OR
+THE END: the clip opens mid room-tone with no intro sting or riser, and simply
+stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: no second person, no visitor, no guard, no collector, no
+Valder, no contractor, no crowd, nobody in the background; no duplicate Dupe,
+no second cart, no second painting; no crack on the wall, no mark on the wall,
+no plaque, no brass plate, no price, no written figures, no on-screen text; no
+falling painting, no dropped painting, no breaking glass, no painting on the
+floor; no camera move of any kind, no pan, no tilt, no zoom, no dolly, no
+handheld, no reframe, no cut, no dissolve, no fade, no slow motion; no smile at
+the camera, no looking at the lens; no dutch angle, no lens flare, no grid, no
+split screen, no four-panel layout; no smartphones, no screens, no modern
+technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
