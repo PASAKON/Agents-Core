@@ -56,6 +56,30 @@ TERMINAL_STATUSES = {"review", "done", "failed", "cancelled"}
 # and 'conflict' (a pending/conflicted operator holds no Chrome tab yet).
 _BROWSER_OPERATOR_ACTIVE_STATUSES = ("in_progress", "rate_limited", "stalled")
 
+
+def _operator_counts_as_live(task: dict, resolved_host: str) -> bool:
+    """Does this browser_operator row still hold a Chrome tab, as far as the cap is concerned?
+
+    A row with no pid yet is a spawn in flight — count it. A row whose recorded pid is
+    provably gone on THIS machine holds nothing — do not count it. The watchdog deliberately
+    leaves 'stalled' rows alone (CEO 2026-09-07: stalled is a suspicion, not a verdict), so
+    by 2026-09-09 fourteen dead-since-August 'stalled' operators were counted as 14/2 live on
+    the Mac and no operator could be spawned at all. Remote hosts cannot be pid-checked from
+    here, so their rows keep counting.
+    """
+    pid = task.get("pid")
+    if not pid or resolved_host != "mac":
+        return True
+    try:
+        os.kill(int(pid), 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except (TypeError, ValueError, OSError):
+        return True
+
 # IRON-RULES §29: every spawn must ship a visible kickoff ping. Sleep
 # lets the claude TUI in the new tab finish booting before keystrokes
 # land — otherwise the message types into a still-loading shell.
@@ -870,6 +894,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                 for status in _BROWSER_OPERATOR_ACTIVE_STATUSES
                 for t in db.list_tasks(status=status, role="browser_operator", limit=500)
                 if (t.get("host") or "mac") == resolved_host
+                and _operator_counts_as_live(t, resolved_host)
             )
             if live >= cap:
                 warn(f"browser cap blocked task={task_id}: {live}/{cap} on {resolved_host}")
