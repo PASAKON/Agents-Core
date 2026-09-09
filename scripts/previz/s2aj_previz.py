@@ -33,11 +33,15 @@ def box(name, loc, dim, color):
     m.diffuse_color = color; o.data.materials.append(m); return o
 
 OFF = 40.0   # parked off-screen until the beat
-row = [("OLDMAN",      -1.60, -19.95, 1.76,   1),
-       ("VISITOR_B",   -0.75, -19.88, 1.66,  97),
-       ("CRITIC",       0.10, -19.95, 1.64, 217),
-       ("STUDENT",      0.95, -19.72, 1.70, 361),
-       ("COLLECTOR_A",  1.80, -19.90, 1.68, 601)]
+# v2 (CEO 2026-09-09 19:15): continuity with Draft 5 at 1:52-1:55 — the old man has
+# left; the row, left to right as that shot has it, is COBALT · STUDENT · FUR · MAROON ·
+# CRITIC. The fur couple are already there at 0s; the row fills OUT OF ORDER onto those
+# fixed marks: critic (5s) → student (11s) → cobalt (22s).
+row = [("VISITOR_B",   -0.20, -19.88, 1.66,   1),
+       ("VISITOR_A",    0.70, -19.80, 1.78,   1),
+       ("CRITIC",       1.60, -19.95, 1.64, 121),
+       ("STUDENT",     -1.00, -19.72, 1.70, 265),
+       ("COLLECTOR_A", -1.90, -19.90, 1.68, 529)]
 obs = {}
 for name, x, y, h, beat in row:
     ob = spawn_char(col, name, (OFF if beat > 1 else x, y), h=h, prefix="s2aj")
@@ -50,11 +54,11 @@ for name, x, y, h, beat in row:
         sc.frame_set(1); ob.location = (x, y, ob.location.z); ob.keyframe_insert("location", frame=1)
     sc.frame_set(720); ob.location = (x, y, ob.location.z); ob.keyframe_insert("location", frame=720)
 # the four argue at once, 20-25s: a small alternating bob on each of them
-for k, name in enumerate(("OLDMAN", "VISITOR_B", "CRITIC", "STUDENT")):
+for k, name in enumerate(("VISITOR_B", "VISITOR_A", "CRITIC", "STUDENT")):
     ob = obs[name]; z0 = ob.location.z; x, y = [r for r in row if r[0] == name][0][1:3]
-    for i, fr in enumerate(range(481, 601, 8)):
+    for i, fr in enumerate(range(385, 529, 8)):
         sc.frame_set(fr); ob.location = (x, y, z0 + (0.04 if (i + k) % 2 == 0 else 0.0)); ob.keyframe_insert("location", frame=fr)
-    sc.frame_set(606); ob.location = (x, y, z0); ob.keyframe_insert("location", frame=606)
+    sc.frame_set(534); ob.location = (x, y, z0); ob.keyframe_insert("location", frame=534)
 # Dupe far back with his cart, cleaning, never part of the row
 dupe = spawn_char(col, "DUPE", (-2.35, -17.20), h=1.80, prefix="s2aj")
 build_cart(col, (-3.30, -16.60), prefix="s2aj", with_painting=True)
@@ -85,7 +89,7 @@ cam_d = bpy.data.cameras.new("CAM_S2AJ"); cam_d.lens = 28
 cam = bpy.data.objects.new("CAM_S2AJ", cam_d); sc.collection.objects.link(cam); sc.camera = cam
 cam.location = (0.0, -23.60, 2.45)
 cam.rotation_euler = (R(80), 0, 0)
-for who, name in (("OLD MAN", "OLDMAN"), ("FUR", "VISITOR_B"), ("CRITIC", "CRITIC"), ("STUDENT", "STUDENT"), ("COBALT", "COLLECTOR_A")):
+for who, name in (("FUR", "VISITOR_B"), ("MAROON", "VISITOR_A"), ("CRITIC", "CRITIC"), ("STUDENT", "STUDENT"), ("COBALT", "COLLECTOR_A")):
     tag_label(col, who, obs[name], cam, prefix="s2aj")
 tag_label(col, "DUPE", dupe, cam, prefix="s2aj")
 
@@ -98,7 +102,7 @@ except Exception: pass
 sc.render.image_settings.file_format = "FFMPEG"
 sc.render.ffmpeg.format = "MPEG4"; sc.render.ffmpeg.codec = "H264"
 sc.render.ffmpeg.constant_rate_factor = "HIGH"; sc.render.ffmpeg.audio_codec = "NONE"
-sc.render.filepath = r"C:\Users\UsEr\Downloads\S2AJ-Render.MP4"
-bpy.ops.wm.save_as_mainfile(filepath=r"C:\Users\UsEr\Downloads\S2AJ_previz.blend")
+sc.render.filepath = r"C:\Users\UsEr\Downloads\S2AJ-v2-Render.MP4"
+bpy.ops.wm.save_as_mainfile(filepath=r"C:\Users\UsEr\Downloads\S2AJ_v2_previz.blend")
 sc.frame_set(1)
 bpy.ops.render.render(animation=True); print("RENDER-DONE")
