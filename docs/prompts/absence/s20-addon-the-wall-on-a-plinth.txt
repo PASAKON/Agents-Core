@@ -1,0 +1,109 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S20 · THE WALL ON A PLINTH · 8s · ADD-ON · CTO 2026-09-10 06:50 under the CEO's overnight
+authority (add-ons, one prepared ahead at a time).
+
+WHY: after S16 the square of wall is cut free and Draft 5 shows only the hole (7:16–7:24).
+Where did the wall go? This is the payoff: the cut-out square, crack and all, now stands
+upright on a white plinth in the middle of the gallery like any other work, a guard either
+side, and Dupe mops around it as he mops around everything else. Pure Anderson: symmetrical,
+deadpan, the joke is that nothing about the room has changed. WHERE: insert at ~7:22, after
+the hole and before the bookend — or right after S19 if the editor uses both.
+
+⛳ LANE: FREE (Unlimited ON, Generate shows no real number), winbox operator. Spec: Seedance
+2.5 / 8s / 720p / 16:9 / Sound ON / 1 video. No previz. ⚠️ CHIPS: 4 = loc_hall_big_e,
+char_guard_valder_two, char_cleaner_c, prop_cart_a_painted. Nobody else.
+
+REVIEW ORDER:
+1. ONE locked symmetrical wide down the hall, no cut; the plinth dead centre.
+2. On the plinth: a rough-edged square slab of cream plaster standing upright, the small
+   black crack on its face, dead centre, facing the lens; nothing else on it.
+3. Two navy guards, one each side of the plinth, at attention, motionless.
+4. Dupe with the cart mopping a slow circle around the plinth, never looking at the slab.
+5. No plaque, no price, no crowd, no dialogue.
+
+Filing: All Scene/Fix-2/ as S20-TheWallOnAPlinth-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+8s · 720p · 16:9 · ONE LOCKED SHOT, no cuts. The camera never moves, never
+pans, never zooms. NO DIALOGUE — nobody speaks. Sound On · High.
+
+THE FRAME: the locked, symmetrical view straight down the gallery at chest
+height that this room is always seen in — chromium trumpet columns receding in
+matched pairs, the warm orange cove light along the ceiling, polished
+terracotta terrazzo underfoot, the tall red double door far off at the
+vanishing point. DEAD CENTRE, a few metres from the lens, stands a tall WHITE
+PLINTH, and on the plinth, upright and facing the lens, stands A SQUARE SLAB OF
+CREAM PLASTER WALL about a metre across, its four edges rough and chalky where
+it was cut out of the building, and on its face, small and dead centre, ONE
+SHORT THICK BLACK CRACK — a few angular black lines meeting at one dark point,
+flat and part of the plaster. It is exhibited exactly like every other work in
+the room. Nothing else is on the plinth. No label, no sign.
+
+THE COMPLETE CAST OF THIS SHOT IS THREE PEOPLE AND NOT ONE MORE. No visitors,
+no collector, no press, nobody in the background, nobody walking through. If a
+figure is not named below it must not exist.
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt:
+  the gallery seen down its length, chromium trumpet columns in matched pairs,
+  warm orange cove light, terracotta terrazzo, works on white plinths along
+  both walls, the red double door at the vanishing point. Take the room, its
+  surfaces and its light from this picture.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
+  tunics with gold buttons and a large gold V, black belts, navy peaked caps,
+  ONE TALL AND THIN, ONE SHORT AND HEAVY. This one picture is both of them.
+  They stand at attention one at each side of the plinth, a pace out from it,
+  facing the lens, hands behind their backs, and do not move for eight
+  seconds.
+@project_absence_char_cleaner_c — DUPE, the cleaner: white mandarin-collar
+  uniform with orange piping, gold V on the chest and on the white peaked cap,
+  thick dark moustache with curled tips. He never speaks.
+@project_absence_prop_cart_a_painted — HIS CART: castor wheels, mop, orange
+  bucket, bottles, folding ladder, gold V, the painting upright in the rack.
+  It stands to one side of the plinth while he works.
+
+[0s] The slab on its plinth, the two guards at attention either side, the
+empty gallery behind. DUPE is already at work in front of the plinth, the cart
+parked a little to the left, mopping the terrazzo in slow, even strokes.
+
+[2s] He works his way round the plinth in a slow half circle, mop first,
+passing between the plinth and the left-hand guard, never once looking up at
+the slab, as if it had always been there.
+
+[5s] He reaches the far side, straightens for a breath, and mops on round the
+back. The guards have not moved. The slab has not moved. The crack faces the
+lens, small and black and perfectly still.
+
+[8s] Hold. End.
+
+AUDIO: room tone; the mop on terrazzo, the castors once as the cart is
+nudged; nothing else. No music, no dialogue. NO SOUND AT THE START OR THE END:
+the clip opens mid room-tone with no intro sting or riser, and simply stops
+with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: no fourth person, no visitor, no collector, no Valder, no
+press, no contractor, nobody in the background; no duplicate Dupe, no duplicate
+guard, no third guard; no plaque, no label, no sign, no price, no written
+figures, no on-screen text; no hole in the far wall in frame, no second crack,
+no crack anywhere except the small one on the slab; no camera move of any
+kind, no pan, no tilt, no zoom, no dolly, no handheld, no reframe, no cut, no
+dissolve, no fade, no slow motion; no looking at the lens by anybody; no
+smartphones, no screens, no modern technology; no dutch angle, no lens flare,
+no grid, no split screen, no four-panel layout.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
