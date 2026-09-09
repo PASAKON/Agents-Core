@@ -709,3 +709,8 @@ PROMPT B (t5, 4f04928): "CROUCHED DOWN ON ONE KNEE… picking his light stand
   furnishings required in frame so the room reads as his house.
 VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
   the projector (IVR1/2/3), so this entry closes only if IV2c t5 is used.
+
+## 2026-09-09 21:15 — S2AJ take 1 PASS · S2R-F take 2 REJECTED (moderation)
+- **S2AJ "THE INTERPRETATIONS, JUMP CUT" t1** (task-b69ade88, free lane, fired 20:28:30, asset count 754→755, rendered ~21:05): CTO review PASS — 20.04s 720p, jump cuts land (critic in by 4s, student by 8s, cobalt at ~16s), black from 19s, camera locked, six lines in order, quarrel = fur (crying) / critic / student, husband silent with the tissue, row cobalt·student·fur+maroon·critic as Draft 5 @1:52. Filed Fix-2 `S2AJ-InterpretationsJumpCut-Fix1.MP4` (id 1m7joCqg5uotB94o-jr5ZluqBCAAcgx2T, md5 21251fe0e7548eac6882b56ad04cb03c). Replaces Draft 5 1:31–1:42.
+- **S2R-F "THE BATTLE, FACES" t2** (task-8a6c456a, fired 17:05): Usage History "Unlimited Seedance 2.5 Refunded Sep 9 8:11 PM" = moderation rejection, second time for the five-close-up design with prose already softened. Reading: the close-up framing (not the words) trips the likeness check — every wide/medium clip with the same chips passes. Worker never reported; replaced. **CEO 20:35 select: retry as V1 five-strip split, LAST in the free queue after the safe clips.** No third close-up take.
+- Queue after this: S2PT → S2PU (task-d188f5bc, spawned 21:10) → AB → S18 → S2X → S3a t2 → S2R-F V1 split.
