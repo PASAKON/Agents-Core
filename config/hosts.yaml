@@ -36,8 +36,10 @@ hosts:
     agents_root: 'C:\Users\UsEr\mooniex'
     worktrees: 'C:\Users\UsEr\mooniex\worktrees'
     provides: [chrome, blender, win_gui]
-    max_workers: 1
-    max_browser_operators: 1
+    # CEO 2026-09-09: "เปิดไม่เกิน 2 Worker ก็พอแล้ว" — two on winbox is inside
+    # that rule; the second is a read-only tab (tab_registry keeps them apart).
+    max_workers: 2
+    max_browser_operators: 2
 
   contabo:
     os: linux
