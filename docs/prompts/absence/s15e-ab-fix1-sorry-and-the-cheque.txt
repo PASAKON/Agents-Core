@@ -1,5 +1,11 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
+⚠️ PLAQUE TAKE (CEO 2026-09-10 02:40: "ทุกฉากที่มีป้ายทอง ไม่เคยใส่ Ref … Text เลยเพี้ยนหมด … ต้อง Re
+generate ใหม่"): this regeneration binds the $100,000,000 plaque Element
+(project_absence_prop_tag_100m, created from docs/plates/project_absence_prop_tag_100m.png)
+so the brass reads correctly in focus. The press are prose now (chip count unchanged at the
+proven number). Everything else as the last passed take.
+
 S15e-AB · SORRY, AND THE CHEQUE · 20s (2-scene version, clip 1) · CEO 2026-09-09 03:35 (after the editor meeting), sheets by the CTO under
 the overnight authority. FREE lane only (Unlimited ON, zero digits, click ONCE).
 
@@ -48,6 +54,12 @@ AT THE HERO WALL, A MOMENT AFTER THE CONFESSION. Three people matter and the
 rest of the room is far back and soft: THE BUYER in her wheelchair, DUPE the
 cleaner, and VALDER the owner. Nobody else speaks, nobody else comes close.
 
+@project_absence_prop_tag_100m — THE BRASS PLAQUE on the hero wall, exactly as
+  its picture: a warm brass plate with two screws at the top corners, engraved
+  in serif capitals THE ABSENCE OF MEANING, then Valder, then $100,000,000,
+  every letter and digit crisp and correctly spelled, reading the right way
+  round. It is mounted at chest height beside the mark and it reads clearly
+  from the camera. Controls the plaque only.
 @project_absence_char_cleaner_c — DUPE, the cleaner: an Indian man of about
   forty, lean, dark hair, a thick dark moustache with curled tips, in a WHITE
   mandarin-collar uniform with ORANGE piping, a gold V on the chest and on his
