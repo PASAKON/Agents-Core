@@ -667,6 +667,23 @@ once they were written as motion inside the shot, never as a before/after.
 
 ## PENDING — Prompt A quoted now, Prompt B on the day the take passes
 
+### S2R-F · THE BATTLE, FACES · take 1 rejected by moderation 2026-09-09 16:30 → take 2 PENDING
+DEFECT SEEN: take 1 (fired 13:19, 20s, 13 chips = the S2R-JC t4 set that rendered on
+  this lane on 2026-09-08) sat queued 185 min, went in_progress at 16:24 and came
+  back "NSFW · Credits refunded · Rejected due to copyright restrictions" with no
+  frames. Chips ruled out by the S2R lesson (identical set rendered) → the new TEXT.
+PROMPT A (2b8c3ab): "he says it quietly, the way a man throws a punch he has been
+  saving" · "Carrington is smiling again, gold teeth bared" · "a single flinch
+  that runs through everybody at once: mouths open, a hand flies to a mouth".
+PROMPT B (bf00af7 / 12c6431 for the SPLIT twin): "the way a man lays down the card
+  he has been holding all night" · "the gold teeth showing" · "a single start …
+  a hand rises to a mouth". Nothing else changed.
+WHY B SHOULD HOLD: the gate has twice been an image (croc bag) and once a random
+  output-filter hit (S2M t3 → identical 3b rendered); this is the first case where
+  the only new variable is violence-adjacent prose. Verdict on take 2 not yet
+  recorded — if take 2 also rejects with the same chips, the prose theory is wrong
+  and the next diff is the previz-less close-up framing itself.
+
 
 ### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
 PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;
