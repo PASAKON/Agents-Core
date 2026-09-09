@@ -79,6 +79,52 @@ byte/frame comparison caught it.
   Processing card; asset count 761→762 (+1). Rendering, awaiting landing — poll cadence 20min
   then 5min per the skill.
 
+**Landed ~2026-09-10 04:19 ICT (~29 min render).** Card Info panel: "Created September 10, 2026
+at 3:50 AM" == fire time; prompt starts "10s · 720p · 16:9 · TWO SHOTS JOINED BY ONE HARD JUMP
+CUT" — confirmed my card. Asset id (preview URL) `fca001ce-4fd1-4998-b931-cae45dd2e577`.
+
+**Download:** `C:\Users\UsEr\Downloads\hf_20260909_205018_81351abb-9f5d-46d7-8715-1cd8f8d0ec3a.mp4`
+— 10,024,571 B, md5 `bb78f5ef9a008be235593a2be27cc082`. ffprobe: h264/aac, 1280x720, 10.04s — on
+spec.
+
+**Sweep** (5fps greyscale 160px-wide consecutive-frame diff, median 1.294): **ONE isolated cut at
+5.00s, 31.86× median**, nothing else above 6× in the rest of the clip. The 5.2–9.2s window shows a
+gradually elevated diff (2–7×) consistent with the walking figure crossing frame, not a camera
+move — confirmed by cropping a static background region (top-right, paintings/columns, never
+crossed by the walking man) across t6/t8/t9.7 and diffing just that crop: 1.36 and 5.34, i.e.
+noise-level, not a pan/zoom. **This is the fix for take 1's camera-lock defect** (shot 2 was
+confirmed NOT locked on take 1; this take's shot 2 background stays pixel-static).
+
+**Frame review** (full res, 1, 3, 4.5, 6, 8, 9.7s — `docs/reports/frames-s3a-t2/`, plus
+`contact-row-640.png`):
+- t1: DUPE alone, mopping mid-hall beside his cart; red double doors closed at far end. Locked
+  wide axial frame.
+- t3: one red door open; OLDMAN entering, dark-green coat, cane, alone; DUPE still mopping. Same
+  locked frame as t1.
+- t4.5: OLDMAN further in, near a bronze/vitrine on the left; DUPE unchanged. Same frame.
+- t6/t8/t9.7 (shot 2, after the 5s cut): OLDMAN walks left→right through a DIFFERENT fixed
+  medium frame (vitrine + glass case with a small bronze figure right of centre); background
+  (pedestal lamp, paintings, glass case) is pixel-static across all three frames — camera locked,
+  confirmed. Dupe visible blurred/background at t6 only, out of frame by t8/t9.7 (matches "deep
+  behind him and out of focus... watching").
+- Two people in every sampled frame, no third figure, no registrar/guard/visitor.
+- Cart: red tray/bucket structure and a leaning object beside it visible at t1, but **not clearly
+  identifiable as a framed painting face-out at this resolution/angle** — flagging for CTO
+  full-res review rather than asserting either way.
+- No crack in frame, no plaque close-up, no looking at lens, no smile, no touching the wall in
+  any sampled frame.
+- **Not independently verified:** dialogue/audio (no transcription tool on winbox, same
+  limitation as take 1 — `faster_whisper` not installed). No dialogue visible on any sampled
+  frame (no subtitles/mouth movement suggesting speech in the two mid-conversation-adjacent
+  frames), but this is a visual-only read, not an audio verification.
+
+**Verdict: NOT self-certified — visual evidence above strongly suggests the take-1 camera-lock
+defect is fixed (locked shot 2, single correctly-placed cut, correct cast/blocking), but the CTO
+reviews the actual footage** (`video-see.sh` / full-res frames in this dir) before it's called a
+pass. Filed at `C:\Users\UsEr\Downloads\hf_20260909_205018_81351abb-9f5d-46d7-8715-1cd8f8d0ec3a.mp4`
+for the CTO to pull and file as `S3a-FirstCustomer-Fix1-take2.MP4` in All Scene/Fix-2/ (no Drive
+access from winbox, per task instruction — file left on disk).
+
 ## Scene 2 — S2AW "THE INTERPRETATIONS, TABLEAU"
 
 _pending_
