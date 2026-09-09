@@ -718,4 +718,8 @@ VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
 ## 2026-09-09 22:45 — S2PT take 1 FAIL (duplicate bodyguard) → take 2 pending; S2PU t1 in flight
 - **S2PT t1** (task-dcaef051, fired 22:21, rendered ~22:30, Fix-2 `S2PT-TourTogether-Fix1.MP4` id 1FlzSY1WZwQCyCIdOt3eEPtrzrWLeBibn, md5 7b8778a39ecabf5c193368775c4420b3): track, lines, Dupe-with-cart all correct, BUT two Black bodyguards in black suits (7 people + Dupe) — the worker caught it at full resolution after the CTO had passed it on 426-px tiles. CTO verdict corrected to FAIL on cast. Carrington half a step ahead of Valder; a second mustard chair passes 3-6s. Sheet v2 (countable cast, ONE man in black, Carrington behind the shoulder, ONE chair far wall) → take 2 after S2PU lands.
 - Lesson: review frames at FULL resolution for headcounts; tiles hide a duplicate standing in line.
+## 2026-09-10 00:10 — S2PU take 1 PASS · S2PT take 2 spawned
+- **S2PU "ARE YOU FOLLOWING US" t1** (task-dcaef051, fired 23:20, asset 757, rendered ~23:50): CTO review at full resolution PASS — locked camera (corner diff mean 2.9), party walks in from the right and stops by 5s, six exactly (ONE bodyguard), three lines in order (0-5 / 5-8 / 8-12s), Valder turns to Dupe at ~9s, Dupe caught at 12s, cap-touch at 15s, mopping beside the turned cart by 19s, no blush, no twinkle. First/last frame carry a black leader (spikes at 0.2s / 19.6s) — editor trims. Filed Fix-2 `S2PU-AreYouFollowingUs-Fix1.MP4` (id 1I1tLISK9kFSBc1zjlar0Hv1O6IfRo9v8, md5 f09fe15bd062a69746cb1e79cfc3284f). Replaces Draft 5 3:39-3:52.
+- **S2PT t2** (task-ad30beb8, spawned 00:09) on sheet v2 (0b052de) — pending.
+- Skill fix shipped (2a974f3): video-ref uploads go through "+" → Uploads → Videos.
 
