@@ -222,6 +222,32 @@ without needing a reload; no click was ever retried blindly near the composer.
 **Fired 2026-09-09T22:20:06Z (2026-09-10 05:20:06 ICT).** Toast "Generation started"; asset count
 763→764 (+1). Rendering.
 
+**Landed ~2026-09-10 05:58 ICT (~38 min render).** Card Info: "Created September 10, 2026 at
+5:19 AM" (within a minute of fire — display rounding); prompt starts "15s · 720p · 16:9 · FIVE
+SHOTS JOINED BY FOUR HARD CUTS at 3s, 6s, 9s and 12s" — confirmed my card. Asset id
+`256888f6-a545-4c22-bc2b-f5780c30a1d7`.
+
+**Download:** `C:\Users\UsEr\Downloads\hf_20260909_221959_c6ca6a1a-7e26-4c20-81ef-b5b82a2e6678.mp4`
+— md5 `87c8ac6e6a9e795ccd36e6d6f7a05756`. ffprobe: h264/aac, 1280x720, 15.04s.
+
+**Sweep** (5fps greyscale diff, median 0.577): spikes at 3.00s (10.35×), ~5.6s (9.83×, one 5fps
+sample off the intended 6s — frame-quantization, not a defect), 9.00s (14.17×), 12.00s (14.61×) —
+confirms the four intended hard cuts, nothing else.
+
+**Frame review** (1.5/4.5/7.5/10.5/13.5s — `docs/reports/frames-s2ap/`): order matches the sheet
+exactly — fur → maroon → magenta/critic → student → cobalt, one person per portrait, dead centre,
+waist-up, identical framing/columns/lighting across all five. No second face, no mop/cart, no
+close-up (face reads well under a quarter of frame height in every sampled portrait) — this is
+exactly the fix the sheet exists for (S2R-F's five-close-up design was moderation-rejected twice).
+
+**Not independently verified:** the five spoken lines' exact wording/timing (no transcription
+tool on winbox); mouths are visibly mid-speech in the sampled frames, consistent with dialogue
+but not confirming content.
+
+**Verdict: NOT self-certified.** Strong visual + sweep match — CTO reviews before pass/fail.
+Filed at `C:\Users\UsEr\Downloads\hf_20260909_221959_c6ca6a1a-7e26-4c20-81ef-b5b82a2e6678.mp4` for
+the CTO to pull and file as `S2AP-InterpretationsPortraits-Fix1.MP4` in All Scene/Fix-2/.
+
 ## Scene 4 — S2R-F SPLIT "THE BATTLE, FIVE PANELS"
 
 _pending_
