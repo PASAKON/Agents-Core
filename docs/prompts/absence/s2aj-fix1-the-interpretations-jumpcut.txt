@@ -1,31 +1,35 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-S2AJ · THE INTERPRETATIONS, JUMP CUT · 30s · CEO 2026-09-09 18:40 — replaces Draft 5 1:31–1:42
+S2AJ · THE INTERPRETATIONS, JUMP CUT · 20s (v3) · CEO 2026-09-09 18:40 — replaces Draft 5 1:31–1:42
 (the three-interpreter block). ONE wall-POV angle, the five interpreters arriving by JUMP CUT
 (nobody is ever seen entering; after each cut the next person is simply already standing),
 each with a line of their own, a real quarrel that gets loud but never physical, the woman in
 cobalt shutting it down at the end. Version A chosen by the CEO 19:05 ("ลองดู A … ฉากต้อง
 ละเอียดมากๆ ห้ามมี Conflict ห้ามทำให้ Model งง … Generate 30s Credit ทุนสูงมาก").
 
-⛳ THE CEO FIRES THIS ONE HIMSELF on the Create (credit) lane: 30s / 720p / 16:9 / Seedance 2.5 /
+⛳ THE CEO FIRES THIS ONE HIMSELF on the Create (credit) lane: 20s / 720p / 16:9 / Seedance 2.5 /
 High / 1/4 / Sound ON. It is the only paid fire of the day — read the spec back twice.
-PREVIZ: attach docs/S2AJ-Render.MP4 (1280×720 · 720 frames · 30.0s · 24 fps · previz-check PASS
-2026-09-09 18:55) so @Video 1 resolves; the paste below mentions Video 1 as a chip ONCE.
+PREVIZ: attach docs/S2AJ-Render.MP4 (1280×720 · 480 frames · 20.0s · 24 fps · black from 19s ·
+previz-check PASS 2026-09-09 19:25) so @Video 1 resolves; the paste below mentions Video 1 as a chip ONCE.
 ⚠️ CHIPS: 9 = 1 video + 8 elements (loc_wall_pov_e, char_visitor_b, char_visitor_a, char_critic_b,
 char_student_c, char_woman, char_cleaner_c, prop_cart_a_painted). NO old man — he left after S3b. Zoom every thumbnail for a
 warning triangle before Generate.
 
-BEAT MAP v2 (CEO 19:15: continuity with Draft 5 at 1:52–1:55 — the old man has LEFT; the
-row must match that shot LEFT→RIGHT = cobalt · student · fur · maroon · critic; previz
-frame for frame, 24 fps):
-  0–5s    FUR WOMAN + MAN IN MAROON already there (marks 3 and 4)
-          FUR "It made me think of my mother." · MAROON, deadpan "It made me think of her mother too."
-  5s cut  + CRITIC on mark 5 (right end)   "Nobody's mother is the point. It asks who decides what labour is worth."
-  11s cut + STUDENT on mark 2              "Labour. Worth. It's anti-capitalist, obviously."
-  16–22s  the four talk over each other, rising   "My mother!" / "Her mother." / "Labour!" / "Obviously!"
-  22s cut + WOMAN IN COBALT on mark 1 (left end); the four go quiet   "I have never seen anything like this."
-  26–30s  silence; all five look at the mark. End → cuts straight into the registrar's entrance at 1:55.
-Word count 49 (the CEO accepted going over the 40-word budget for this scene).
+BEAT MAP v3 (CEO 19:20: "ไม่ต้องรอให้อีกฝ่ายพูดจบ พูดแทรกได้เลย … 20s หรือต่ำกว่า … ทะเลาะกันวุ่นวายจริง …
+ตัดฉากหันกลับไปมองรอยร้าวออก จบแบบจอดำไปเลย"). Row LEFT→RIGHT = cobalt · student · fur · maroon ·
+critic (continuity with Draft 5 1:52); previz frame for frame, 24 fps, 20s:
+  0–3s    FUR + MAROON already there (marks 3-4). FUR "It made me think of my mother." — MAROON cuts
+          in over her last word, deadpan: "…of her mother too."
+  3s cut  + CRITIC on mark 5, ALREADY TALKING as the cut lands: "Nobody's mother is the point. It
+          asks who decides what labour is worth."
+  7s cut  + STUDENT on mark 2, cutting across the critic's "worth": "Labour. Worth. Anti-capitalist,
+          obviously."
+  10–16s  the four talk over each other, rising, messy: "My mother!" / "Her mother." / "Labour!" /
+          "Obviously!" — hands up, faces turned, feet planted, nobody touching.
+  16s cut + COBALT on mark 1 (left end), speaking straight over the noise: "I have never seen
+          anything like this." — the four stop mid-word.
+  19s     HARD CUT TO BLACK. The last second is solid black and silent. No turning back to the mark.
+Word count 46 (the CEO accepted going over the 40-word budget for this scene).
 
 CANON (2026-09-06, PLATE-loc_wall_pov_e.md): the camera is the wall; the mark is the ONE small
 solid-black star-shaped break from the picture, in front of everybody, never changed, never
@@ -34,12 +38,14 @@ crossed. The previz carries camera + blocking only (CEO 2026-09-05) — no crack
 REVIEW ORDER (whoever reviews the take):
 0. THE MARK: one, small, solid black, same place and size as the picture, in front of all five,
    nobody ever in front of it; no hole, no edges, no black surround, no radiating lines.
-1. THREE HARD JUMP CUTS at ~5/11/22s and no others (0.2s sweep: three isolated spikes); the
-   16s beat is NOT a cut. Camera locked throughout (ceiling-corner crop flat).
-2. ARRIVALS: at 2s TWO people (fur + maroon, marks 3-4); 7s THREE (+critic, right end);
-   13s FOUR (+student, mark 2); 24s FIVE (+cobalt, left end) — same marks as Draft 5 at 1:52
+1. THREE HARD JUMP CUTS at ~3/7/16s and ONE cut to black at ~19s, no others (0.2s sweep);
+   the 10s beat is NOT a cut. Camera locked throughout (ceiling-corner crop flat). The
+   last ~1s must be black, not a fade; if the model fades, the editor trims it.
+2. ARRIVALS: at 1.5s TWO people (fur + maroon, marks 3-4); 4s THREE (+critic, right end);
+   8s FOUR (+student, mark 2); 17s FIVE (+cobalt, left end) — same marks as Draft 5 at 1:52
    (cobalt · student · fur · maroon · critic), nobody walking, no door ever opening.
-3. LINES in order (whisper): the six lines above; 16–22s must sound like four voices at once.
+3. LINES (whisper): the six lines above, overlapping is CORRECT here; 10–16s must sound like
+   four voices at once; nothing after 19s.
 4. Feet planted the whole clip; hands stay off other people; nobody steps in front of anybody.
 5. Dupe far back with his cart, never speaking, never joining the row.
 File as S2AJ-TheInterpretationsJumpCut-Fix1.MP4 in All Scene/Fix-2/ (1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw).
@@ -50,12 +56,13 @@ TAKE LOG:
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-30s · 720p · 16:9 · ONE LOCKED SHOT, cut only by THREE HARD JUMP CUTS at 5s, 11s and
-22s. The camera never moves, never pans, never zooms; the frame is identical on
-both sides of every cut; only time jumps. Sound On · High.
+20s · 720p · 16:9 · ONE LOCKED SHOT, cut only by THREE HARD JUMP CUTS at 3s, 7s and
+16s, and ONE HARD CUT TO BLACK at 19s. The camera never moves, never pans, never
+zooms; the frame is identical on both sides of every jump cut; only time jumps.
+Sound On · High.
 
 the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this shot —
-a 30-second grey previz of this exact scene, frame for frame. Every grey block is
+a 20-second grey previz of this exact scene, frame for frame, ending in black. Every grey block is
 a prop, never a person.
 
 THE PREVIZ CONTAINS NO BREAK IN THE WALL, AND THAT IS DELIBERATE. It gives you the
@@ -143,48 +150,47 @@ REFERENCES — each with a job:
 by side in the middle of the row, a pace back from the mark, already settled,
 looking at it. Nobody else is in the row. Far back on the left, Dupe is at his
 cart with the mop, working, taking no part. Her eyes are wet. She says, softly,
-to the mark: "It made me think of my mother." The man in maroon, her husband,
-does not look at her; dry, deadpan, he says: "It made me think of her mother
-too."
+to the mark: "It made me think of my mother." Before her last word is out, the
+man in maroon, her husband, cuts in without looking at her, dry and deadpan:
+"…of her mother too."
 
-[5s] HARD JUMP CUT, same frame. The woman in magenta is now standing at the
-right end of the row — she did not walk in, she is simply there, as if she had
-been there a minute — already looking at the couple with a critic's patience worn
-thin. Sharp, superior, one hand lifting a finger: "Nobody's mother is the point.
-It asks who decides what labour is worth." The fur woman's mouth opens to answer
-and she does not get the chance.
+[3s] HARD JUMP CUT, same frame. The woman in magenta is now standing at the
+right end of the row — she did not walk in, she is simply there — and she is
+ALREADY TALKING as the cut lands, sharp, superior, one hand lifting a finger:
+"Nobody's mother is the point. It asks who decides what labour is worth." The
+fur woman's mouth opens to answer and does not get the chance.
 
-[11s] HARD JUMP CUT, same frame. The art student is now standing second from
+[7s] HARD JUMP CUT, same frame. The art student is now standing second from
 the left, one empty mark still open at the far left — already there, sketchbook
-under one arm, chewing gum, bored by all three of them. She talks fast and flat,
-straight at the mark, not at them: "Labour. Worth. It's anti-capitalist,
-obviously." The critic's head snaps toward her.
+under one arm, chewing gum, bored by all three of them. She cuts straight across
+the critic's last word, fast and flat, at the mark, not at them: "Labour. Worth.
+Anti-capitalist, obviously." The critic's head snaps toward her.
 
-[16s] NO CUT — the same shot runs on, and now ALL FOUR OF THEM ARE TALKING AT
-ONCE, over each other, louder with every word, each one repeating their own
-verdict as if volume were the argument: the fur woman, a hand pressed to her
-chest, "My mother!" — the man in maroon, flat, still not looking at her, "Her
-mother." — the critic, the finger now jabbing at the air between them, "Labour!"
-— the student, eyes rolling, "Obviously!" It is a real quarrel: raised voices,
-faces turned toward each other, hands in the air. Nobody touches anybody. Nobody
-steps toward anybody. Every foot stays exactly where it was. This goes on for six
-seconds and gets louder.
+[10s] NO CUT — the same shot runs on, and now ALL FOUR OF THEM ARE TALKING AT
+ONCE, over each other, nobody waiting for anybody, louder with every word, each
+one repeating their own verdict as if volume were the argument: the fur woman, a
+hand pressed to her chest, "My mother!" — the man in maroon, flat, still not
+looking at her, "Her mother." — the critic, the finger now jabbing at the air
+between them, "Labour!" — the student, eyes rolling, "Obviously!" It is a real,
+messy quarrel: raised voices, faces turned toward each other, hands in the air,
+words on top of words. Nobody touches anybody. Nobody steps toward anybody.
+Every foot stays exactly where it was. Six seconds, and it only gets louder.
 
-[22s] HARD JUMP CUT, same frame — and the quarrel is gone. The young collector in
-the cobalt coat is now standing at the left end of the row, on the mark that was
-empty, already there, perfectly still, and the other four have fallen silent and
-are looking at her. She looks only at the mark. Her mouth is the only thing on
-her that moves: "I have never seen anything like this."
+[16s] HARD JUMP CUT, same frame. The young collector in the cobalt coat is now
+standing at the left end of the row, on the mark that was empty, already there,
+perfectly still, and she speaks straight over the noise, level, not raising her
+voice: "I have never seen anything like this." The four stop mid-word and turn
+their faces to her. Nobody moves a foot.
 
-[26s] Silence. One by one the four turn their faces back to the mark. Five
-people, one row, one mark, nobody moving. Hold. Cut.
+[19s] HARD CUT TO BLACK. The picture drops to solid black in a single frame and
+stays black, silent, to the end of the clip.
 
-AUDIO: room tone throughout; the spoken lines above and nothing else. From 0s to
-16s ONE voice at a time, in order: hers, his, the critic's, the student's. From
-16s to 22s FOUR voices at once, overlapping, rising — that is the only moment in
-the clip where anyone talks over anyone. From 22s one voice, hers, then silence.
-Dupe never speaks. No music, no score, no sting, no riser, no sound at the very
-start or the very end: the clip opens on room tone and simply stops.
+AUDIO: room tone throughout; the spoken lines above and nothing else. Lines
+overlap on purpose — the husband cuts in over the wife's last word, the critic is
+already mid-sentence at 3s, the student cuts across the critic, and from 10s to
+16s FOUR voices talk over each other at once. From 16s one voice, hers, over the
+dying noise; from 19s silence. Dupe never speaks. No music, no score, no sting,
+no riser, no swell, no sound at the very start; the black at the end is silent.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
 pushed slightly cool, shadows deep red-brown, halation around every lamp.
@@ -194,7 +200,8 @@ fringing.
 CRITICAL NEGATIVES: nobody walks, nobody enters, nobody arrives on screen, no
 door opens, no door in motion, nobody crosses the floor, nobody steps forward,
 nobody steps back; no dissolve, no fade, no morph, no gradual appearance — a
-person is either absent or fully standing there; no seventh person, no extra, no
+person is either absent or fully standing there; no fade to black, no fade out —
+the black at 19s is a hard cut; no seventh person, no extra, no
 bystander, no other visitor, no gallery staff, no guard, no reporter, nobody
 holding a camera, nobody behind the row except Dupe; no touching, no shoving, no
 grabbing, no slapping, no fists, no weapon, no violence of any kind — the fight
@@ -205,7 +212,8 @@ screen; nobody in front of the mark, nobody touching the mark, nobody reaching
 for the mark; no camera movement of any kind, no pan, no tilt, no zoom, no dolly,
 no handheld, no reframing across a cut, no second angle, no shot-reverse-shot; no
 cut other than the three jump cuts named and none that changes the frame; no
-looking at camera by Dupe; no smartphones, no screens, no modern technology; no
+looking at camera by Dupe; nobody turning back to the mark at the end, no closing
+hold, no group nod; no smartphones, no screens, no modern technology; no
 mop or cart in the row; no sunglasses on the woman in cobalt; no purple on anybody.
 
 House negatives: no voiceover, no narration, no subtitles, no captions, no
