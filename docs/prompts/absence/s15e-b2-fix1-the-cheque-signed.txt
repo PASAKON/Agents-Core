@@ -47,6 +47,26 @@ TAKE LOG:
   fire: Seedance 2.5 / 16:9 / 720p / 20s / 1/4 / High / Sound On. Asset count 741 -> 742
   on click ("Generation started" toast). Pasted text sha256 f2c831d3d55421cf6383613ae0
   c3df54f77a166282f05c263d416624ef113723 (verified via crypto.subtle before paste).
+- Take 2: take 1 found STILL PROCESSING at look-time (data-job-status="queued", no
+  data-asset-status yet — 90+ min past the 09:38 ICT fire, past the 35-40 min norm),
+  so per the CTO's standing decision cancelled it via the card's own Cancel button +
+  Confirm in the "Cancel generations?" dialog. Two independent full-page reloads after
+  cancel showed 0 queued/processing jobs and the card gone from the grid (the sidebar
+  "All assets" counter itself stayed at 742 across both reloads — noted as a
+  discrepancy, not treated as a blocker, since the job's removal and zero queued count
+  were the operative confirmation). Re-fired as take 2: fired 2026-09-09 04:25 UTC
+  (11:25 ICT), winbox, task-1305a0cb. Unlimited was OFF on reload (Generate read
+  140/130 live, no strike) — toggled ON via find() ref, one clean click, re-verified
+  by zoom: UNLIMITED / struck 140 / 0. 5/5 chips bound (cleaner_c, grandmother,
+  prop_cheque, valder, loc_hall_big_d) via the text-font-brand leaf-span selector
+  (old data-element-id/.element-chip selector not tested, this one confirmed working),
+  0 error chips, no warning triangles on any of the 5 reference thumbnails (zoomed).
+  Spec at fire, all carried over from the prior composer state (unchanged, no slider
+  touched): Seedance 2.5 / 16:9 / 720p / 20s / 1/4 / High / Sound On. Pasted text
+  sha256 f2c831d3d55421cf6383613ae0c3df54f77a166282f05c263d416624ef113723 — identical
+  to take 1's, verified via crypto.subtle BEFORE the paste (same prompt, unedited).
+  End→space→Backspace tap done after paste. Asset count 742 -> 743 on click
+  ("Generation started" toast, confirmed by screenshot).
 
 === END NOTES ===
 
