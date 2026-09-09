@@ -1,0 +1,218 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2AJ · THE INTERPRETATIONS, JUMP CUT · 30s · CEO 2026-09-09 18:40 — replaces Draft 5 1:31–1:42
+(the three-interpreter block). ONE wall-POV angle, the five interpreters arriving by JUMP CUT
+(nobody is ever seen entering; after each cut the next person is simply already standing),
+each with a line of their own, a real quarrel that gets loud but never physical, the woman in
+cobalt shutting it down at the end. Version A chosen by the CEO 19:05 ("ลองดู A … ฉากต้อง
+ละเอียดมากๆ ห้ามมี Conflict ห้ามทำให้ Model งง … Generate 30s Credit ทุนสูงมาก").
+
+⛳ THE CEO FIRES THIS ONE HIMSELF on the Create (credit) lane: 30s / 720p / 16:9 / Seedance 2.5 /
+High / 1/4 / Sound ON. It is the only paid fire of the day — read the spec back twice.
+PREVIZ: attach docs/S2AJ-Render.MP4 (1280×720 · 720 frames · 30.0s · 24 fps · previz-check PASS
+2026-09-09 18:55) so @Video 1 resolves; the paste below mentions Video 1 as a chip ONCE.
+⚠️ CHIPS: 9 = 1 video + 8 elements (loc_wall_pov_e, char_oldman, char_visitor_b, char_critic_b,
+char_student_c, char_woman, char_cleaner_c, prop_cart_a_painted). Zoom every thumbnail for a
+warning triangle before Generate.
+
+BEAT MAP (matches the previz frame for frame; 24 fps):
+  0–4s    OLD MAN alone (he is the S3b customer, already at the wall)   "It's about death."
+  4s cut  + FUR WOMAN on the mark to his right                          "Death? No. It made me think of my mother."
+  9s cut  + CRITIC                                                      "Your mother is not the point. It asks who decides what labour is worth."
+  15s cut + STUDENT                                                     "Labour. Worth. It's anti-capitalist, obviously."
+  20–25s  the four talk over each other, rising                         "Death." / "My mother!" / "Labour!" / "Obviously!"
+  25s cut + WOMAN IN COBALT, right end; the four go quiet               "I have never seen anything like this."
+  25–30s  silence; all five look at the mark. End.
+Word count 46 (the CEO accepted going over the 40-word budget for this scene).
+
+CANON (2026-09-06, PLATE-loc_wall_pov_e.md): the camera is the wall; the mark is the ONE small
+solid-black star-shaped break from the picture, in front of everybody, never changed, never
+crossed. The previz carries camera + blocking only (CEO 2026-09-05) — no crack proxy in it.
+
+REVIEW ORDER (whoever reviews the take):
+0. THE MARK: one, small, solid black, same place and size as the picture, in front of all five,
+   nobody ever in front of it; no hole, no edges, no black surround, no radiating lines.
+1. FOUR HARD JUMP CUTS at ~4/9/15/25s and no others (0.2s sweep: four isolated spikes); the
+   20s beat is NOT a cut. Camera locked throughout (ceiling-corner crop flat).
+2. ARRIVALS: at 1.5s ONE person; 6s TWO; 12s THREE; 18s FOUR; 27s FIVE — always the same
+   people on the same marks, filled LEFT to RIGHT, nobody walking, no door ever opening.
+3. LINES in order (whisper): the six lines above; 20–25s must sound like four voices at once.
+4. Feet planted the whole clip; hands stay off other people; nobody steps in front of anybody.
+5. Dupe far back with his cart, never speaking, never joining the row.
+File as S2AJ-TheInterpretationsJumpCut-Fix1.MP4 in All Scene/Fix-2/ (1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw).
+
+TAKE LOG:
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+30s · 720p · 16:9 · ONE LOCKED SHOT, cut only by FOUR HARD JUMP CUTS at 4s, 9s, 15s
+and 25s. The camera never moves, never pans, never zooms; the frame is identical on
+both sides of every cut; only time jumps. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this shot —
+a 30-second grey previz of this exact scene, frame for frame. Every grey block is
+a prop, never a person.
+
+THE PREVIZ CONTAINS NO BREAK IN THE WALL, AND THAT IS DELIBERATE. It gives you the
+camera position and where every person stands, and nothing else. THE SHAPE OF THE
+BREAK COMES ONLY FROM THE LOCATION PICTURE — take it from there exactly and take
+nothing about it from the video. Do not invent a hole, do not add a crack the
+picture does not show, and do not draw straight lines radiating from a centre.
+
+THE CAMERA STANDS WHERE THE WALL WAS, looking out into the gallery, exactly as in
+the location picture. THE WALL ITSELF IS NOT VISIBLE — no plaster, no edges, no
+hole, no black surround. The only trace of it is THE MARK, and the picture is the
+whole authority on it: its place in the frame, its size in the frame and its
+shape come from the picture and nothing changes them. It is in front of everyone,
+and nobody ever passes in front of it.
+
+HOW THIS SHOT WORKS — READ THIS TWICE. Nobody is ever seen arriving. Nobody walks
+into the frame, nobody comes through a door, nobody crosses the floor. Each time
+the clip cuts, one more person is SIMPLY ALREADY STANDING on their mark, as if
+they had been there for a minute, and the people who were there before are still
+exactly where they were. Five people arrive this way, one per cut, filling the row
+from LEFT to RIGHT, the row NO WIDER THAN THE RED DOOR behind them. Everybody
+faces the camera. Feet never move. What moves is faces, mouths, eyes, a hand
+raised in argument — never a step.
+
+THE COMPLETE CAST OF THIS SHOT IS SIX PEOPLE AND NOT ONE MORE: five in the row and
+Dupe far behind them. There are no extras in this film. No bystanders, no other
+visitors, no gallery staff, no security guards, no reporters, nobody holding a
+camera, nobody filming, nobody in the background beyond Dupe, nobody walking
+through. If a figure is not named below it must not exist.
+
+POSITION MAP — every figure in the reference video (Video 1) stands exactly where
+its character must stand, and appears exactly when its character appears. EVERY
+CHARACTER APPEARS EXACTLY ONCE:
+- the DARK GREEN figure labelled OLD MAN, left of the row = @project_absence_char_oldman
+- the BROWN figure labelled FUR, second from the left = @project_absence_char_visitor_b
+- the MAGENTA figure labelled CRITIC, in the middle = @project_absence_char_critic_b
+- the YELLOW-GREEN figure labelled STUDENT, second from the right = @project_absence_char_student_c
+- the BLUE figure labelled COBALT, at the right end = @project_absence_char_woman
+- the WHITE figure labelled DUPE, far back on the left with the cart = @project_absence_char_cleaner_c
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@project_absence_loc_wall_pov_e — THE ONE PICTURE THIS SHOT IS BUILT FROM.
+  Take the whole look from it: the room, the chromium trumpet columns receding
+  in pairs, the warm orange cove light along the ceiling, the polished
+  terracotta terrazzo, the works on their plinths down both sides, the tall red
+  door far off at the vanishing point, and the BREAK ITSELF. It is the only
+  room reference in this prompt — there is no second view of the gallery and
+  nothing else describes this space.
+  THE MARK, from that picture and only from it. SAME PLACE IN THE FRAME: over
+  the far red door, in the upper middle of the picture. SAME SIZE IN THE FRAME:
+  a small patch, NO WIDER THAN THE RED DOOR AND NO TALLER THAN THE RED DOOR,
+  exactly as the picture has it and not one bit larger. SAME SHAPE — thin
+  lines meeting at one small dark point — and SAME SOLID BLACK. Nothing about
+  it is enlarged, thickened, extended or redrawn, and it never touches or
+  crosses anybody's face or body.
+@project_absence_char_oldman — THE OLD MAN IN GREEN: a heavy, elderly white man
+  with thick white hair swept back, heavy jowls and a stern face; a long
+  dark-green glossy leather overcoat with a wide shawl collar, a cream
+  turtleneck, cream leather gloves, dark-green trousers, cream shoes, and a
+  slim silver walking cane with a loop handle. No gold V — he is a visitor. In
+  this shot he is already standing when it opens and never takes a step; his
+  verdict on the mark is grave, settled and certain, and nothing the others say
+  moves his eyes off it.
+@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, brown
+  bob, long tawny-brown fur coat over a rust-red shift dress.
+@project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
+  silver-streaked hair swept up, full-length deep magenta fur coat, long cream
+  gloves, cream heels.
+@project_absence_char_student_c — THE ART STUDENT: young, short curly acid
+  yellow-green hair, paint-spattered denim overshirt, dark trousers, worn
+  trainers, a black sketchbook under one arm.
+@project_absence_char_woman — THE YOUNG COLLECTOR: young, dark hair pinned up,
+  oversized cobalt-blue wool overcoat with a small gold V pin, pearl cluster
+  necklace, brown-checked midi skirt, black tights, dark brown loafers.
+  She wears NO glasses of any kind.
+@project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap,
+  gold V, moustache. Far to the left, working, silent, never joining anyone.
+@project_absence_prop_cart_a_painted — HIS CART, parked beside him and never
+  moving: castor wheels, mop, orange bucket, bottles, ladder, gold V, the
+  painting upright in the rack.
+
+[0s] ONE PERSON. The old man in green stands alone on the left of the row, a
+pace back from the mark, both hands on his cane, looking straight at the mark
+with grave, settled certainty. Nobody else is in the row. Far back on the left,
+Dupe is at his cart with the mop, working, taking no part. The old man says,
+slowly, to the mark: "It's about death."
+
+[4s] HARD JUMP CUT, same frame. The woman in the chestnut fur is now standing on
+the mark to his right — she did not walk in, she is simply there, as if she had
+been there a minute. Her eyes are wet. She turns her head to the old man, not her
+feet, and contradicts him, gently at first: "Death? No. It made me think of my
+mother." The old man does not look at her. He keeps looking at the mark.
+
+[9s] HARD JUMP CUT, same frame. The woman in magenta is now standing in the
+middle of the row — already there, already looking at the two of them with a
+critic's patience worn thin. She speaks over the fur woman's last word, sharp,
+superior, one hand lifting a finger: "Your mother is not the point. It asks who
+decides what labour is worth." The fur woman's mouth opens to answer and she
+does not get the chance.
+
+[15s] HARD JUMP CUT, same frame. The art student is now standing second from
+the right — already there, sketchbook under one arm, chewing gum, bored by all
+three of them. She talks fast and flat, straight at the mark, not at them:
+"Labour. Worth. It's anti-capitalist, obviously." The critic's head snaps
+toward her.
+
+[20s] NO CUT — the same shot runs on, and now ALL FOUR OF THEM ARE TALKING AT
+ONCE, over each other, louder with every word, each one repeating their own
+verdict as if volume were the argument: the old man, still not turning, "Death."
+— the fur woman, a hand pressed to her chest, "My mother!" — the critic, the
+finger now jabbing at the air between them, "Labour!" — the student, eyes
+rolling, "Obviously!" It is a real quarrel: raised voices, faces turned toward
+each other, hands in the air. Nobody touches anybody. Nobody steps toward
+anybody. Every foot stays exactly where it was. This goes on for five seconds
+and gets louder.
+
+[25s] HARD JUMP CUT, same frame — and the quarrel is gone. The young collector in
+the cobalt coat is now standing at the right end of the row, already there,
+perfectly still, and the other four have fallen silent and are looking at her.
+She looks only at the mark. Her mouth is the only thing on her that moves: "I
+have never seen anything like this."
+
+[27s] Silence. One by one the four turn their faces back to the mark — the old
+man last, because he never left it. Five people, one row, one mark, nobody
+moving. Hold. Cut.
+
+AUDIO: room tone throughout; the spoken lines above and nothing else. From 0s to
+20s ONE voice at a time, in order: his, hers, the critic's, the student's. From
+20s to 25s FOUR voices at once, overlapping, rising — that is the only moment in
+the clip where anyone talks over anyone. From 25s one voice, hers, then silence.
+Dupe never speaks. No music, no score, no sting, no riser, no sound at the very
+start or the very end: the clip opens on room tone and simply stops.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, halation around every lamp.
+Photographed, not rendered: fine film grain, faint gate weave, slight colour
+fringing.
+
+CRITICAL NEGATIVES: nobody walks, nobody enters, nobody arrives on screen, no
+door opens, no door in motion, nobody crosses the floor, nobody steps forward,
+nobody steps back; no dissolve, no fade, no morph, no gradual appearance — a
+person is either absent or fully standing there; no seventh person, no extra, no
+bystander, no other visitor, no gallery staff, no guard, no reporter, nobody
+holding a camera, nobody behind the row except Dupe; no touching, no shoving, no
+grabbing, no slapping, no fists, no weapon, no violence of any kind — the fight
+is voices and faces only; no laughing, no applause, no cheering, no crying out
+loud; no hole in the wall, no wall edges, no black surround, no second mark, no
+straight lines radiating from a centre, no plaque, no price, no written figures on
+screen; nobody in front of the mark, nobody touching the mark, nobody reaching
+for the mark; no camera movement of any kind, no pan, no tilt, no zoom, no dolly,
+no handheld, no reframing across a cut, no second angle, no shot-reverse-shot; no
+cut other than the four jump cuts named and none that changes the frame; no
+looking at camera by Dupe; no smartphones, no screens, no modern technology; no
+mop or cart in the row; no sunglasses on the woman in cobalt; no purple on anybody.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
