@@ -326,9 +326,15 @@ through **rclone**, and rclone obeys this file exactly like every other hand.
    `printf 'y\ny\nn\n' | ssh -L 53682:127.0.0.1:53682 winbox "<rclone> config reconnect gdrive:"`
    (detached/nohup, no `--auth-no-open-browser` — that flag is not a reconnect flag), the CEO opens
    the printed `http://127.0.0.1:53682/auth?state=…` link in a Mac browser and clicks Allow; the
-   third `n` answers "Shared Drive?". While the app's publishing status is **Testing** the CEO's
-   address must be a test user and the refresh token expires after 7 days — publishing to
-   production (Audience → Publish app) removes that; task-2b1d4b8a is on it.
+   third `n` answers "Shared Drive?". While an app's publishing status is **Testing** the CEO's
+   address must be a test user and the refresh token expires after 7 days. **Final state
+   2026-09-09 19:36:** the box now uses project `mooniex-cookierun` (OAuth app "MoonieX CookieRun
+   Archive", **In production** — Google demands a homepage + privacy URL for that, filled with
+   https://mooniex.com and https://mooniex.com/privacy), Desktop client `rclone-winbox`
+   (`578700074167-k6ittpff8t6kfhm82p1pjba0c9qj1268…`), token re-issued at full `drive` scope with the
+   CEO's own click; it does not expire. The first attempt in the Make.com project
+   (`gen-lang-client-0516233449`, client `997773077636-…`) stays as a spare; that project cannot be
+   published without app-domain URLs of its own.
 7. **Never `rclone sync`/`delete`/`purge` against Drive.** `copy`, `copyto`, `rcat`, `moveto`
    (server-side, for filing) and `check` are the whole vocabulary. A sync would mirror a
    machine's deletions into the archive.
