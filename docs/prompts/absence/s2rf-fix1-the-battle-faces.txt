@@ -71,6 +71,12 @@ TAKE LOG:
   64, 69, 74, 80, 85, 90 min), no error, no state change. Per the task
   brief, STOPPED POLLING at the 90-minute mark — reporting rather than
   continuing; the CTO decides the next step.
+- Continued (task-6540dd5a, winbox): resumed polling at ~100 min elapsed.
+  Reload + data-asset-id="a0889f15-3ea1-4a8e-adab-a43ce40563ac" DOM read
+  (card is first/most-recent in the grid): data-job-status="queued" at
+  07:58 UTC (14:58 ICT), 100 min since fire, no error, no state change.
+  Per this task's brief, polling continues every 10 minutes up to the
+  17:20 ICT (10:20 UTC) 4-hour cutoff.
 
 === END NOTES ===
 
