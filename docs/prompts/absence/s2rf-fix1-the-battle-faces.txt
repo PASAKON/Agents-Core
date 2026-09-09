@@ -40,6 +40,32 @@ File the take whatever the verdict, as S2RF-TheBattleFaces-Fix1.MP4 in All Scene
 (folder id 1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw). The CEO reviews it.
 
 TAKE LOG:
+- Take 1: fired 2026-09-09 06:19:12 UTC (13:19 ICT), winbox, task-1439c7af.
+  Preceded by clearing the S15e-B2 take-2 slot: found it still
+  data-job-status="queued" (visible "Processing") on reload+zoom past 90 min
+  for the second time (fired 11:25 ICT), cancelled via card Cancel + in-app
+  "Cancel generations?" Confirm, confirmed 0 queued jobs on two independent
+  reloads, and confirmed via Usage History (Sep 9 1:05 PM Unlimited/Refunded
+  entry, credits unchanged at 863.5) that the cancel produced no charge.
+  Unlimited ON first (one clean find()-ref toggle click, aria-checked
+  true/data-state on), then spec verified: Seedance 2.5 / 16:9 / 720p / 20s /
+  1/4 / High / Sound On. Prompt pasted via synthetic ClipboardEvent
+  (text/plain only, chunked+assembled+sha256-verified in-page BEFORE the
+  paste: sha256 6c6842cc8149d2efae2f4e8b66603397b5f95292e4688939deff7fa0fbc51cfd,
+  10049 chars), then End→space→Backspace tap. 13/13 unique chips bound
+  (loc_hall_big_e, gentleman_e, guard_private_v2, woman_c, valder,
+  char_registrar, guard_valder_two, char_woman, critic_b, visitor_b,
+  visitor_a, cleaner_c, prop_cart_a_painted), 0 error chips, checked via DOM
+  (span.text-font-brand leaves starting with @) since the `zoom` action was
+  timing out repeatedly on this tab (CDP screenshot timeout) — verified no
+  charge landed after each timeout via Usage History before continuing, per
+  the hard rule. Re-verified spec and the REAL visible Generate button
+  immediately before commit (DOM-located by geometry/visibility, not the
+  known decoy `GENERATE8045` node the naive /generate/i text-scrape matches):
+  "UNLIMITED | 140 | 0" struck-price-then-zero, also confirmed by pixels in a
+  full-window screenshot. Clicked once (find()-ref ref_222). "Generation
+  started" toast; sidebar All-assets 743 → 744. New card asset id:
+  a0889f15-3ea1-4a8e-adab-a43ce40563ac.
 
 === END NOTES ===
 
