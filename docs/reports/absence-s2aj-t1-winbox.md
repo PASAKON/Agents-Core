@@ -39,4 +39,31 @@ The prompt sheet's NOTES claim "the paste below mentions Video 1 as a chip ONCE,
 ## Render wait — poll log
 
 - 20:28:30 fired, card enters "Processing".
-- (updates appended below as polling continues; first check ~20:48 ICT per the skill's cadence — first check ~20min after Generate, then every 5min)
+- 20:48:48 (~20 min elapsed) — fresh position-verified tab: card still "Processing", untouched. Grid unchanged otherwise (the two S2R-F rejection cards still sit beside it, still untouched). Continuing at 5-min cadence.
+- ~20:54 (~25 min elapsed) — fresh tab: card advanced to "Generating". Grid otherwise unchanged.
+- ~20:59 (~30 min elapsed) — fresh tab: still "Generating".
+- **21:03:14 (~34.7 min elapsed) — fresh tab: card DONE.** "New" badge, real thumbnail showing the fur woman + maroon husband beat, matching the prompt exactly. Total render time ≈ 34.5 minutes (normal for Seedance 2.5 at this hour, per the skill's queue-depth table). No "Rights verification required" banner appeared — the download proceeded directly with no gate to confirm.
+
+## Download
+
+- Clicked the card's download icon (hover toolbar). Chrome's own "Download complete / Ready" toast confirmed.
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260909_132824_43972d75-5e5c-4851-885d-031c573f91d4.mp4`
+- **Size**: 20,998,036 bytes
+- **MD5**: `21251fe0e7548eac6882b56ad04cb03c`
+- **Asset id**: `43972d75-5e5c-4851-885d-031c573f91d4`
+- **Fire time**: 20:28:30 ICT · **Done**: ~21:03:14 ICT · **Render time**: ~34.7 min
+- `ffprobe`: video 1280×720 @ 24fps, duration 20.04s, audio track present — matches the 20s/720p/16:9/Sound-On spec fired.
+- Project asset count: 754 (pre-fire) → 755 (immediately after Generate click, held steady through completion) — **confirmed up by exactly 1**, matching the brief's requirement.
+
+## Frame check (ffmpeg, scale=640 wide, `docs/reports/frames-s2aj-t1/`)
+
+Extracted at 1.5, 4, 8, 12, 17, 19.5s. Described honestly below — **not self-certified**; full playback review is the CTO's.
+
+- **t1.5s**: Fur woman (chestnut coat) + maroon-suited husband, arm around her shoulders, dabbing her cheek with a tissue. Dupe (white uniform, cap, cart) visible far left in the background, working, uninvolved. THE MARK is visible over the red door at the vanishing point: small, thin lines meeting at a point, solid black, no surround — matches the location-picture description. Camera framing (columns, ceiling light, red door) looks consistent with the reference.
+- **t4s**: A fourth figure — magenta-coated critic — is now present at the **right end**, matching "3s cut + CRITIC on mark 5." Fur+maroon unchanged in the middle. Mark unchanged in size/position.
+- **t8s**: The art student (yellow-green curly hair, denim overshirt, sketchbook) now stands to the left of the fur/maroon/critic group — consistent with "second from the left, one empty mark still open at the far left" (the cobalt mark). Row order left→right at this point: student, fur, maroon, critic.
+- **t12s**: Same four visible; student and critic's mouths are open mid-shout, fur woman has a hand pressed to her chest — consistent with the 10–16s three-way shouting beat (wife/critic/student), husband silent and still looking at his wife, not shouting. No visible touching beyond the husband-and-wife pair.
+- **t17s**: A fifth figure — the young collector in a cobalt-blue coat — now stands at the **far left end**. Full row left→right: **cobalt · student · fur · maroon · critic**, matching the beat map's specified order exactly. Note: Dupe is not visible in this particular crop (cobalt now occupies the frame's left edge) — worth a check on full playback that Dupe is still present further back/left and not dropped from the shot.
+- **t19.5s**: Solid black frame (7.9 KB PNG vs. ~330–345 KB for the populated frames) — confirms the hard cut to black lands at/before 19.5s as specified.
+
+Overall: three jump-cut arrivals land in the correct order (critic at ~3s, student at ~7s, cobalt at ~16s) with the final row order matching the beat map exactly, the mark stays small/static/single across all populated frames, and the ending is a genuine cut to black rather than a fade. The one thing I could not confirm from six static frames alone: whether the 10–16s dialogue is audibly three overlapping voices as scripted (a full playback-with-audio check is needed for that, and for feet-planted continuity across the whole 20s, which the CTO should verify personally per the review-loop rule).
