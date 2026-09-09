@@ -24,12 +24,19 @@ critic (continuity with Draft 5 1:52); previz frame for frame, 24 fps, 20s:
           asks who decides what labour is worth."
   7s cut  + STUDENT on mark 2, cutting across the critic's "worth": "Labour. Worth. Anti-capitalist,
           obviously."
-  10–16s  the four talk over each other, rising, messy: "My mother!" / "Her mother." / "Labour!" /
-          "Obviously!" — hands up, faces turned, feet planted, nobody touching.
+  10–16s  THREE voices over each other, rising, messy: the wife (crying, shouting) "My mother!" /
+          the critic "Labour!" / the student "Obviously!" — the husband silent, dabbing her tears;
+          hands up, faces turned, feet planted, nobody touching anyone but the couple.
   16s cut + COBALT on mark 1 (left end), speaking straight over the noise: "I have never seen
           anything like this." — the four stop mid-word.
   19s     HARD CUT TO BLACK. The last second is solid black and silent. No turning back to the mark.
-Word count 46 (the CEO accepted going over the 40-word budget for this scene).
+CEO 19:40 (v4): the fur woman and her husband stand TOGETHER — he has an arm around her for
+the whole 20s and dabs her tears with a tissue himself; his only words are "…of her mother
+too."; he argues with nobody and looks only at his wife. The other three keep the UNEVEN
+spacing of Draft 5 at 1:52 (cobalt and the critic nearer the lens, the student and the couple
+a step further back). In the 10-16s quarrel the wife shouts "My mother!" through her tears;
+the husband stays silent.
+Word count 44 (the CEO accepted going over the 40-word budget for this scene).
 
 CANON (2026-09-06, PLATE-loc_wall_pov_e.md): the camera is the wall; the mark is the ONE small
 solid-black star-shaped break from the picture, in front of everybody, never changed, never
@@ -45,7 +52,7 @@ REVIEW ORDER (whoever reviews the take):
    8s FOUR (+student, mark 2); 17s FIVE (+cobalt, left end) — same marks as Draft 5 at 1:52
    (cobalt · student · fur · maroon · critic), nobody walking, no door ever opening.
 3. LINES (whisper): the six lines above, overlapping is CORRECT here; 10–16s must sound like
-   four voices at once; nothing after 19s.
+   three voices at once (never the husband); nothing after 19s.
 4. Feet planted the whole clip; hands stay off other people; nobody steps in front of anybody.
 5. Dupe far back with his cart, never speaking, never joining the row.
 File as S2AJ-TheInterpretationsJumpCut-Fix1.MP4 in All Scene/Fix-2/ (1rkCQ5SSZeOvyX-0UZXe3OvBtFhObHrkw).
@@ -85,8 +92,12 @@ they had been there for a minute, and the people who were there before are still
 exactly where they were. Two people are there when the clip opens and three more
 arrive this way, one per cut, each onto a FIXED mark of their own — the marks do
 not shift to make room — so the row builds up out of order and ends up, from the
-camera's left to right: the woman in cobalt, the art student, the woman in fur,
-the man in maroon, the woman in magenta. The finished row is NO WIDER THAN THE
+camera's left to right: the woman in cobalt, the art student, the woman in fur
+with the man in maroon pressed to her side, the woman in magenta. THE SPACING IS
+UNEVEN, exactly as the reference video has it: the woman in cobalt and the woman
+in magenta stand a step nearer the camera at the two ends, the art student a
+step further back, and the couple a step further back in the middle, the two of
+them close enough to touch and touching. The finished row is NO WIDER THAN THE
 RED DOOR behind them. Everybody
 faces the camera. Feet never move. What moves is faces, mouths, eyes, a hand
 raised in argument — never a step.
@@ -104,7 +115,7 @@ CHARACTER APPEARS EXACTLY ONCE:
 - the BLUE figure labelled COBALT, at the LEFT end = @project_absence_char_woman
 - the YELLOW-GREEN figure labelled STUDENT, second from the left = @project_absence_char_student_c
 - the BROWN figure labelled FUR, in the middle = @project_absence_char_visitor_b
-- the ORANGE figure labelled MAROON, second from the right = @project_absence_char_visitor_a
+- the ORANGE figure labelled MAROON, pressed against her right side = @project_absence_char_visitor_a
 - the MAGENTA figure labelled CRITIC, at the RIGHT end = @project_absence_char_critic_b
 - the WHITE figure labelled DUPE, far back on the left with the cart = @project_absence_char_cleaner_c
 - every grey block is a prop, never a person
@@ -128,8 +139,11 @@ REFERENCES — each with a job:
   bob, long tawny-brown fur coat over a rust-red shift dress.
 @project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
   hair, deep maroon leather suit with a stand collar.
-  He is the fur woman's husband and stands at her side; his one line is dry,
-  deadpan, delivered without looking at her.
+  He is the fur woman's husband. For the whole clip his arm is around her
+  shoulders and in his free hand is a white tissue with which he dabs the tears
+  from her cheeks, gently, again and again. He looks only at her — never at the
+  others, never at the mark, never at the camera. He speaks exactly once, dry and
+  deadpan, and he argues with nobody.
 @project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
   silver-streaked hair swept up, full-length deep magenta fur coat, long cream
   gloves, cream heels.
@@ -146,13 +160,15 @@ REFERENCES — each with a job:
   moving: castor wheels, mop, orange bucket, bottles, ladder, gold V, the
   painting upright in the rack.
 
-[0s] TWO PEOPLE. The woman in the chestnut fur and the man in maroon stand side
-by side in the middle of the row, a pace back from the mark, already settled,
-looking at it. Nobody else is in the row. Far back on the left, Dupe is at his
-cart with the mop, working, taking no part. Her eyes are wet. She says, softly,
-to the mark: "It made me think of my mother." Before her last word is out, the
-man in maroon, her husband, cuts in without looking at her, dry and deadpan:
-"…of her mother too."
+[0s] TWO PEOPLE. The woman in the chestnut fur stands in the middle of the row,
+a pace back from the mark, and the man in maroon, her husband, stands pressed to
+her right side with his arm around her shoulders. She is crying — real tears on
+her cheeks — and he is dabbing them away with a white tissue, looking only at
+her. Nobody else is in the row. Far back on the left, Dupe is at his cart with
+the mop, working, taking no part. She says, through the tears, to the mark: "It
+made me think of my mother." Before her last word is out he cuts in, dry and
+deadpan, his eyes still on her face, the tissue still at her cheek: "…of her
+mother too."
 
 [3s] HARD JUMP CUT, same frame. The woman in magenta is now standing at the
 right end of the row — she did not walk in, she is simply there — and she is
@@ -166,21 +182,24 @@ under one arm, chewing gum, bored by all three of them. She cuts straight across
 the critic's last word, fast and flat, at the mark, not at them: "Labour. Worth.
 Anti-capitalist, obviously." The critic's head snaps toward her.
 
-[10s] NO CUT — the same shot runs on, and now ALL FOUR OF THEM ARE TALKING AT
+[10s] NO CUT — the same shot runs on, and now THREE OF THEM ARE SHOUTING AT
 ONCE, over each other, nobody waiting for anybody, louder with every word, each
-one repeating their own verdict as if volume were the argument: the fur woman, a
-hand pressed to her chest, "My mother!" — the man in maroon, flat, still not
-looking at her, "Her mother." — the critic, the finger now jabbing at the air
-between them, "Labour!" — the student, eyes rolling, "Obviously!" It is a real,
-messy quarrel: raised voices, faces turned toward each other, hands in the air,
-words on top of words. Nobody touches anybody. Nobody steps toward anybody.
+one repeating their own verdict as if volume were the argument: the fur woman,
+sobbing and shouting at the same time, a hand pressed to her chest, "My mother!"
+— the critic, the finger now jabbing at the air between them, "Labour!" — the
+student, eyes rolling, "Obviously!" The husband says nothing at all: his arm
+stays around his wife, his tissue keeps dabbing her cheeks, and he looks at her
+and at nobody else. It is a real, messy quarrel: raised voices, faces turned
+toward each other, hands in the air, words on top of words. Apart from the
+husband holding his wife, nobody touches anybody. Nobody steps toward anybody.
 Every foot stays exactly where it was. Six seconds, and it only gets louder.
 
 [16s] HARD JUMP CUT, same frame. The young collector in the cobalt coat is now
 standing at the left end of the row, on the mark that was empty, already there,
 perfectly still, and she speaks straight over the noise, level, not raising her
-voice: "I have never seen anything like this." The four stop mid-word and turn
-their faces to her. Nobody moves a foot.
+voice: "I have never seen anything like this." The three stop mid-word and turn
+their faces to her. The husband does not; he is still looking at his wife.
+Nobody moves a foot.
 
 [19s] HARD CUT TO BLACK. The picture drops to solid black in a single frame and
 stays black, silent, to the end of the clip.
@@ -188,7 +207,8 @@ stays black, silent, to the end of the clip.
 AUDIO: room tone throughout; the spoken lines above and nothing else. Lines
 overlap on purpose — the husband cuts in over the wife's last word, the critic is
 already mid-sentence at 3s, the student cuts across the critic, and from 10s to
-16s FOUR voices talk over each other at once. From 16s one voice, hers, over the
+16s THREE voices talk over each other at once (the wife's through sobs). The
+husband's voice is heard exactly once, at 2s, and never again. From 16s one voice, hers, over the
 dying noise; from 19s silence. Dupe never speaks. No music, no score, no sting,
 no riser, no swell, no sound at the very start; the black at the end is silent.
 
@@ -203,9 +223,9 @@ nobody steps back; no dissolve, no fade, no morph, no gradual appearance — a
 person is either absent or fully standing there; no fade to black, no fade out —
 the black at 19s is a hard cut; no seventh person, no extra, no
 bystander, no other visitor, no gallery staff, no guard, no reporter, nobody
-holding a camera, nobody behind the row except Dupe; no touching, no shoving, no
-grabbing, no slapping, no fists, no weapon, no violence of any kind — the fight
-is voices and faces only; no laughing, no applause, no cheering, no crying out
+holding a camera, nobody behind the row except Dupe; no touching between anyone
+except the husband holding his wife, no shoving, no grabbing, no slapping, no
+fists, no weapon, no violence of any kind — the fight is voices and faces only; no laughing, no applause, no cheering, no crying out
 loud; no hole in the wall, no wall edges, no black surround, no second mark, no
 straight lines radiating from a centre, no plaque, no price, no written figures on
 screen; nobody in front of the mark, nobody touching the mark, nobody reaching
