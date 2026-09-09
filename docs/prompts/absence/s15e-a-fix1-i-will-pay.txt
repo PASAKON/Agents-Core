@@ -44,6 +44,32 @@ TAKE LOG:
   grandmother, valder, hall_big_d), 0 error chips, no warning triangles on any
   thumbnail. Asset count 739 -> 740 on fire. "Generation started" toast,
   Processing card confirmed.
+  RENDER: completed at fire+31min ("New" card appeared ~01:11:42 UTC).
+  Downloaded hf_20260909_004029_b479f27e-6dbb-47bf-8ed8-536138cb1365.mp4,
+  5,673,886 bytes, md5 89a916dd91a31960abeab874bc2e8c36, left in Downloads
+  (no Drive token, not uploaded). ffprobe: h264 1280x720 24fps + aac audio,
+  duration 8.04s. Composer detail panel confirmed Seedance 2.5 / 720p / High /
+  1280x720, created Sep 9 2026 7:40 AM, filed in The Valder Collection No.7.
+  REVIEW (PASS): 0.2s greyscale spike sweep, 40 frames, max frame-to-frame
+  ratio 3.72x (no spike >15x), no black tail (luma stayed ~121-122
+  throughout). Camera lock confirmed via static top-right corner crop, max
+  drift 0.5/255 across the clip. Frames at 0.5/2/4/6/7.5s: Dupe single
+  throughout, cap on, white uniform w/ orange trim + gold V, honest and quiet
+  (not crying, not smiling), eyes visibly lowering from 6s and fully lowered
+  by 7.5s ("End on his lowered face"); buyer's grey shoulder/headscarf at
+  left edge in every frame; Valder correctly soft in background (magenta/
+  yellow/green blazer, tinted glasses, mustard scarf); no cheque, no cash
+  visible anywhere. AUDIO (whisper transcript skipped, no faster_whisper on
+  this box): 100ms-window RMS envelope shows exactly THREE voiced bursts in
+  order, separated by quiet room-tone gaps matching the script -- burst 1
+  ~0.6-2.0s ("I cracked the wall myself, sir."), gap 2.1-3.1s, burst 2
+  ~3.2-4.4s ("I will pay for all the damage."), gap 4.5-5.4s, burst 3
+  ~5.5-6.1s ("I am sorry."), then quiet room tone 6.2-7.9s with no swell/tail
+  -- matches the [0s]/[3s]/[5.5s]/[8s] beat sheet exactly.
+  VERDICT: PASS on every REVIEW ORDER item. Filed for the CEO's review as
+  S15e-A-IWillPay-Fix1.MP4 target name in All Scene/Fix-2/ (not uploaded by
+  this operator -- no Drive token on this box; file sits in Downloads under
+  its Higgsfield-assigned name above, path + md5 recorded).
 
 === END NOTES ===
 
