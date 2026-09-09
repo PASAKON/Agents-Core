@@ -91,6 +91,9 @@ TAKE LOG:
   error, no state change.
 - 09:13 UTC (16:13 ICT), 174 min: still data-job-status="queued", no
   error, no state change.
+- 09:24 UTC (16:24 ICT), 185 min: STATE CHANGE — data-job-status now
+  "in_progress" (was "queued" every prior check). Switching to a
+  shorter poll interval to catch completion promptly.
 
 === END NOTES ===
 
