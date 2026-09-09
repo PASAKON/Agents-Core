@@ -79,6 +79,8 @@ TAKE LOG:
   17:20 ICT (10:20 UTC) 4-hour cutoff.
 - 08:09 UTC (15:09 ICT), 111 min: still data-job-status="queued", no
   error, no state change.
+- 08:20 UTC (15:20 ICT), 121 min: still data-job-status="queued", no
+  error, no state change.
 
 === END NOTES ===
 
