@@ -127,7 +127,35 @@ access from winbox, per task instruction — file left on disk).
 
 ## Scene 2 — S2AW "THE INTERPRETATIONS, TABLEAU"
 
-_pending_
+**Route:** step 5/7 as before. Applied the S3a lesson directly: `read_page` baseline UUID list →
+`file_upload` fresh → diff → `curl`+`md5sum` byte-match against local `docs/S2AW-Render.MP4`
+BEFORE attaching, no exploratory clicking in the library this time. New UUID
+`8286b72d-fccd-487b-813c-f315c7d9a0bc`, md5 `975b2172c99b0847c0ae7e67cd272111` on both sides —
+confirmed in two tool calls instead of the ~40 that S3a's reference took.
+
+**Tab hygiene:** opened a fresh tab for this scene (the S3a tab had frozen `Page.captureScreenshot`
+repeatedly after touching several video assets) — the fresh tab worked cleanly throughout.
+
+**Chip-count correction (important for the remaining scenes):** the sheet's PASTE block mentions
+each of the 8 element tags **twice** (once in the POSITION MAP list, once in the REFERENCES
+block) — this is intentional sheet authoring, not a duplicate-binding bug. A raw
+`document.querySelectorAll('span.text-font-brand')` count read **14**, which looks like a
+failure against "8 chips" until you count **unique** tags: 14 mentions → 8 unique tags, all lime
+(`rgb(209,254,23)`), 0 `.text-icon-error`. Verify by `uniqueCount`, matching the skill's own
+"`8/8 unique mentions bound`" convention — not raw chip-span count. Will apply this to S2AP,
+S2R-F split, and S19 too.
+
+**Staging:**
+- Video 1: `8286b72d-fccd-487b-813c-f315c7d9a0bc` (byte-confirmed) — 1 chip.
+- Prompt pasted via synthetic paste (9328 chars), End→space→Backspace sync.
+- Chips: 8/8 unique bound, 0 error: `@project_absence_char_woman`, `@…_student_c`,
+  `@…_visitor_b`, `@…_visitor_a`, `@…_critic_b`, `@…_cleaner_c`, `@project_absence_loc_wall_pov_e`,
+  `@project_absence_prop_cart_a_painted`. Total 8 elements + 1 video = 9 chips, matching sheet.
+- Settings zoom-verified: Seedance 2.5 · 16:9 · 720p · 20s (already defaulted correctly from the
+  prior generation's remembered setting — verified, not assumed) · batch 1/4 · High · Sound On ·
+  Unlimited `data-state="on"`. Generate button zoom: `UNLIMITED` / struck `440` / `0`.
+- **Fired 2026-09-09T21:36:53Z (2026-09-10 04:36:53 ICT).** Toast "Generation started"; asset
+  count 762→763 (+1). Rendering.
 
 ## Scene 3 — S2AP "THE INTERPRETATIONS, PORTRAITS"
 
