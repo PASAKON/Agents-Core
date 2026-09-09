@@ -288,6 +288,21 @@ projects:
     # comment above for why.
     spawn_backend: tmux
 
+  - key: cookierun-bot
+    name: Cookie Run bot (image->button model + planner, winbox game box)
+    path: /Users/gob/Projects/cookierun-bot
+    default_branch: main
+    stack: [python]
+    agents_allowed: *default_workers
+    # LOCAL-ONLY: no `remote:` key, auto_push stays false (2026-09-09, CTO). The live
+    # code is scp'd to winbox C:\Users\UsEr\cookierun-bot by the CTO after merge; the
+    # box's data (Documents\CookieRunScript) is governed by docs/DATA-STEWARD.md and
+    # is never a DEV's to touch. DEVs cannot run the game — offline tests + dry runs only.
+    auto_push: false
+    review_required: true
+    spawn_backend: tmux
+    wiki_refs: []
+
   - key: comfy-runpod-worker
     name: ComfyUI RunPod worker + Studio (MiniMax H3)
     path: /Users/gob/Projects/comfy-runpod-worker
