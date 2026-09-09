@@ -157,6 +157,38 @@ S2R-F split, and S19 too.
 - **Fired 2026-09-09T21:36:53Z (2026-09-10 04:36:53 ICT).** Toast "Generation started"; asset
   count 762→763 (+1). Rendering.
 
+**Landed ~2026-09-10 05:11 ICT (~35 min render).** Card Info: "Created September 10, 2026 at
+4:36 AM" == fire time; prompt starts "20s · 720p · 16:9 · ONE LOCKED SHOT" — confirmed my card.
+Asset id `8a02ef6a-7043-4547-9b08-1f919f950651`.
+
+**Download:** `C:\Users\UsEr\Downloads\hf_20260909_213642_3c0f258f-3a8c-4661-bd4e-653267167dcf.mp4`
+— 19,966,219 B, md5 `f54539bc4d7698df9cbb49da653fafb1`. ffprobe: h264/aac, 1280x720, 20.05s.
+
+**Sweep** (5fps greyscale diff, median 0.786, max 2.11 = 2.69× median): **no spike anywhere** —
+confirms ONE LOCKED SHOT, zero cuts, camera never moves for the full 20s.
+
+**Frame review** (1, 4, 8, 12, 16, 19.5s — `docs/reports/frames-s2aw/`): identical framing across
+every sampled frame (columns, red door, crack all pixel-static). Left→right: cobalt (blue coat,
+gold V pin), student (yellow-green curls, denim, sketchbook), fur (brown fur coat, centred on the
+crack/mark), maroon (dark red-maroon suit), critic (magenta fur coat) — matches the sheet's
+stated order exactly. **Dupe visible far back, dead centre, beside his cart**, small and
+symmetrical, behind the fur woman — matches "SIX PEOPLE AND NOT ONE MORE." The mark/crack sits
+over the red door, roughly door-width, not obviously enlarged. No huddle, no seventh person, no
+mop/cart in the line itself. At t8 the cobalt woman's mouth looks faintly open — inconclusive
+from a still frame given the script has her speaking only at 15s, not 8s; flagging rather than
+asserting a defect.
+
+**Not independently verified:** the five-line dialogue order/timing and unison head-turn beats
+(no transcription tool on winbox). Visually the poses read as attentive/facing-mark in all
+sampled frames, consistent with the "hold" beats, but the mid-speech turn choreography can't be
+confirmed from six still frames.
+
+**Verdict: NOT self-certified.** Visual + sweep evidence is strong (locked camera, correct
+cast/order/count, correct mark position) — CTO reviews the actual footage before calling it a
+pass. Filed at
+`C:\Users\UsEr\Downloads\hf_20260909_213642_3c0f258f-3a8c-4661-bd4e-653267167dcf.mp4` for the CTO
+to pull and file as `S2AW-InterpretationsTableau-Fix1.MP4` in All Scene/Fix-2/.
+
 ## Scene 3 — S2AP "THE INTERPRETATIONS, PORTRAITS"
 
 _pending_
