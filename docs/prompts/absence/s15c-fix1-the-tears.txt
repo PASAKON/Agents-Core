@@ -1,11 +1,5 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-⚠️ PLAQUE TAKE (CEO 2026-09-10 02:40: "ทุกฉากที่มีป้ายทอง ไม่เคยใส่ Ref … Text เลยเพี้ยนหมด … ต้อง Re
-generate ใหม่"): this regeneration binds the $100,000,000 plaque Element
-(project_absence_prop_tag_100m, created from docs/plates/project_absence_prop_tag_100m.png)
-so the brass reads correctly in focus. The press are prose now (chip count unchanged at the
-proven number). Everything else as the last passed take.
-
 S15c · THE TEARS · 8s · NEW BEAT, CEO 2026-09-08
 This scene did not exist in the script. The CEO asked for it in his own words:
 after the money is given, Dupe's eyes fill and he is moved — but he still does not
@@ -58,12 +52,6 @@ REFERENCES — each with a job:
   shorter thick black lines breaking off it, every line solid and heavy like ink
   and dark for its whole length, ending where it ends. It is masonry damage —
   thick, black, angular, flat against the wall and part of the plaster.
-@project_absence_prop_tag_100m — THE BRASS PLAQUE on the hero wall, exactly as
-  its picture: a warm brass rectangle with two screws at the top corners, engraved
-  in serif capitals THE ABSENCE OF MEANING, then Valder, then $100,000,000,
-  every letter and digit crisp and correctly spelled, reading the right way
-  round. It is mounted at chest height beside the mark and it reads clearly
-  from the camera. Controls the plaque only.
 @project_absence_char_workman — THE CONTRACTOR: NAVY overalls, a rag over one
   shoulder, a float in one hand and a bucket of wet plaster in the other. The
   overalls are DARK NAVY BLUE, the colour of his reference picture, deep and close
@@ -93,9 +81,8 @@ REFERENCES — each with a job:
   seams, sharply pointed shoulder caps, a tall standing collar to the jaw, long
   green leather opera gloves, a towering pompadour streaked blue, green and
   silver-white, black cat-eye sunglasses.
-THE PRESS (no picture — describe them, do not look for one): FOUR of them, news
-  crews with shoulder cameras, a boom microphone, a stills photographer,
-  filming everything.
+@project_valder_char_press — THE PRESS, FOUR of them: news crews with shoulder
+  cameras, a boom microphone, a stills photographer, filming everything.
 @project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy military-cut
   tunics with gold buttons and a large gold V on the chest, black belts with gold
   buckles, navy trousers, navy peaked caps, black shoes. One tall and thin, the
