@@ -38,6 +38,46 @@ CHIP LINE TO ADD ONCE THE ELEMENT EXISTS (paste zone, after the buyer's block):
 @project_absence_prop_cheque — THE CHEQUE, exactly as its picture shows.
 
 TAKE LOG:
+- Take 1 fired 2026-09-08 23:49 UTC / 2026-09-09 06:49 ICT on winbox. Unlimited ON
+  first, then 15s/720p/16:9/Seedance 2.5/High/1/4/Sound On confirmed; duration
+  slider set 15 and read back aria-valuenow=15. Re-checked Unlimited after
+  duration change (still on). 5/5 chips bound (cleaner_c, grandmother,
+  prop_cheque, char_valder, loc_hall_big_d), 0 red/unbound tags. Generate button
+  zoomed immediately before click: UNLIMITED, struck 105, live 0. Asset count
+  738 -> 739 confirms one generation started. Clicked ONCE. Awaiting render.
+- Take 1 LANDED 2026-09-09 06:48 ICT (created timestamp per card Info panel),
+  ~29 min render. Duration 15.041667s / 720p / 1280x720 / Seedance 2.5 / High,
+  confirmed via card Info panel. No Rights-verification banner. Downloaded to
+  C:\Users\UsEr\Downloads\hf_20260908_234829_ef727eba-9637-4ca7-86e9-2b1e46d9ad9f.mp4
+  (13,693,424 bytes, md5 8fc779d4d9eac5dba110b56905f7a746). REVIEW ORDER
+  results (ffmpeg/ffprobe/PIL, no faster_whisper on this box so no transcript):
+  1. FOUR voiced bursts on the 100ms RMS envelope, in order, at ~1.3-2.5s,
+     ~4.6-5.6s (both loud, Valder), ~7.1-8.6s, ~9.9-11.3s (both quieter, buyer)
+     — matches the four lines in order. Room tone only 0-1.2s and 11.4-14.8s,
+     no sting/swell at either end.
+  2. Greyscale full-frame diff at 5fps (64x36) found exactly TWO isolated
+     spikes: 5.8s at 22.75x baseline and 12.2s at 29.10x baseline, none other
+     anywhere in the clip; every other frame pair stayed under ~1x baseline
+     -> locked camera confirmed inside each of the three shots.
+  3. Frames 1s/4s (Valder single): panelled blazer (magenta/yellow/green/
+     blue/red visible), tinted round sunglasses, mustard scarf, mouth
+     closed/neutral at these exact marks (bursts start ~0.3-1.3s after the
+     script's nominal cue, so 1s/4s catch him just pre-speech) but NOT
+     smiling in either frame or in the three-shot (13s/14.5s) -- the B1 trap
+     did not recur. Never touches the cheque in the three-shot.
+  4. Frames 7s/10s (buyer single) and 13s/14.5s (three-shot): grey knitted
+     headscarf + cardigan, NO sunglasses, NO purple, calm/level expression.
+     Exactly one Dupe, one Valder, one buyer visible throughout -- no
+     duplicates.
+  5. Wall mark (13s frame, zoomed 3x): one solid-black main mass with 4
+     thin branch lines (one up, one left, one right, two merging into drips
+     at the bottom) -- canon rule 8 count reported as information, not
+     scored here. No second mark anywhere in frame, not large, not a hole.
+  Cheque in the three-shot: cream paper, thin, bending in Dupe's fingers,
+  "100,000,000" legible -- paper, never metal/gold/plaque, as specified.
+  VERDICT: clean take, no FLAGGED reason found against the review order.
+  Not uploaded to Drive (no Drive token on this remote worker) -- file left
+  in Downloads per this task's explicit instruction, path + md5 above.
 
 === END NOTES ===
 
