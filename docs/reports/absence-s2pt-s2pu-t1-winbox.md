@@ -116,4 +116,15 @@ playback review is the CTO's.
 
 ## S2PU · "ARE YOU FOLLOWING US" — take 1
 
-S2PT left the slot (finished) at +40min, so per the brief's "ONE SLOT" rule S2PU is now being set up and fired.
+S2PT left the slot (finished) at +40min, so per the brief's "ONE SLOT" rule S2PU was set up and fired next, same tab (had not yet touched a second video asset before this).
+
+- Sheet lint: `python scripts/prompt-lint.py docs/prompts/absence/s2pu-fix2-are-you-following-us.txt` → clean (exit 0). `--chips` → EXPECTED 7 unique Element chips (same 7 as S2PT).
+- Previz: `docs/S2PU-Render.MP4` (377,434 bytes, h264, 1280×720, 24fps, 20.0s) uploaded via the "+" → Uploads → Videos → sort "Last created" path (confirmed by a fresh, distinct tile id vs S2PT's), attach byte-verified: `content-length: 377434` matching the local file exactly.
+- Chip binding: **7/7 unique** Element chips bound (`@project_absence_char_valder`, `@gentleman_e`, `@project_absence_char_guard_private_v2`, `@project_absence_char_guard_valder_two`, `@project_absence_char_cleaner_c`, `@project_absence_prop_cart_a_painted`, `@loc_hall_big_e`), 13 total mention spans, **0 error chips**.
+- Text entry: pasted the exact `PASTE FROM HERE`…`PASTE STOPS HERE` block (9,032 bytes, base64-decoded) via synthetic `ClipboardEvent`, then `End`→`space`→`Backspace` to force Lexical sync. Sole visible contenteditable, no decoy ambiguity.
+- Settings immediately before Generate: Seedance 2.5 · References · 16:9 · 720p · 20s · batch **1/4** · High · Sound **On** · window `1920×911`. Unlimited `data-state="on"`. Generate button re-read the instant before click: `UNLIMITED / 140 / 0`.
+- Grid check before fire: no processing/generating/queued text anywhere (S2PT had already landed and left the slot).
+- **Fired 2026-09-09 23:20:1x ICT.** Asset count ticked **756 → 757** immediately after click.
+- Zero cost: Unlimited struck-140→0 the whole session; no priced control clicked.
+
+**Render wait in progress — will update this file with harvest details once S2PU lands.**
