@@ -1,0 +1,141 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2AP · THE INTERPRETATIONS, PORTRAITS · 15s · CTO 2026-09-10 02:25 under the CEO's overnight
+authority — companion to S2AW (the tableau). Five frontal, centred, waist-up portraits from
+the break's point of view, one interpreter each, deadpan, hard cuts between them: the
+editor's cutaways for the Wes Anderson cut of Draft 5 1:31–1:42. WAIST-UP ON PURPOSE: the
+S2R-F five-close-up clip was moderation-rejected twice; every wide/medium clip passes, so
+these keep the face under a quarter of the frame height.
+
+⛳ LANE: FREE (Unlimited ON, Generate shows no real number), winbox operator. Spec: Seedance
+2.5 / 15s / 720p / 16:9 / Sound ON / 1 video. Fire AFTER S2AW.
+PREVIZ: docs/S2AP-Render.MP4 (1280×720 · 360 frames · 15.0s) as @Video 1; the paste mentions
+Video 1 once. ⚠️ CHIPS: 7 = 1 video + 6 elements (loc_wall_pov_e, char_visitor_b,
+char_visitor_a, char_critic_b, char_student_c, char_woman). No Dupe, no old man.
+
+REVIEW ORDER:
+1. FIVE shots, FOUR hard cuts at 3/6/9/12s (0.2s sweep: four spikes); camera locked inside each.
+2. ONE person per shot, centred, waist-up, facing the lens; face ≤ ¼ of frame height; the
+   hall's one-point perspective behind each head.
+3. Order + lines (whisper): fur "It made me think of my mother." / maroon "…of her mother
+   too." / magenta "Nobody's mother is the point. It asks who decides what labour is worth." /
+   student "Labour. Worth. Anti-capitalist, obviously." / cobalt "I have never seen anything
+   like this."
+4. If the card is a moderation rejection: do not re-fire; the tableau stands alone.
+
+Filing: All Scene/Fix-2/ as S2AP-InterpretationsPortraits-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+15s · 720p · 16:9 · FIVE SHOTS JOINED BY FOUR HARD CUTS at 3s, 6s, 9s and 12s;
+the camera is LOCKED inside every shot — never pans, never zooms, never drifts.
+Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+clip — a 15-second grey previz of these exact five frames in this exact order.
+Every grey block is a prop, never a person.
+
+THE SHAPE OF THE CLIP: five FRONTAL PORTRAITS, one person at a time, each held
+for three seconds, cut hard against each other. In every portrait there is
+exactly ONE person, standing DEAD CENTRE, squarely facing the camera, framed
+from the waist up — head, shoulders and chest — with air above the head; the
+face takes up no more than a quarter of the height of the frame. This is a
+medium shot, never a close-up. Behind the person the gallery recedes in perfect
+one-point perspective: the chromium trumpet columns in matched pairs either side
+of the head, the warm orange cove light, the tall red door far off at the
+vanishing point directly behind the person. The same lens and the same distance
+for all five, so the five faces swap in exactly the same place on the screen.
+
+THE CAMERA STANDS WHERE THE WALL WAS, looking out into the gallery, exactly as
+in the location picture: each person is looking at the break, which is where
+the lens is. THE WALL ITSELF IS NOT VISIBLE — no plaster, no edges, no hole, no
+black surround. If the mark from the picture is in frame it stays exactly as the
+picture has it, small, over the far red door, and it never touches or crosses
+anybody's face or body.
+
+THE COMPLETE CAST OF THIS CLIP IS FIVE PEOPLE, ONE PER SHOT, AND NOT ONE MORE.
+Inside a portrait only the one named person exists: no second face, no shoulder
+of a neighbour, no figure behind, no cleaner, no guard, no visitor in the
+distance, nobody walking through. If a figure is not named below it must not
+exist.
+
+POSITION MAP — the figure in each portrait of the reference video stands where
+its character must stand, in this order. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- portrait 1 (0–3s), the BROWN figure labelled FUR = @project_absence_char_visitor_b
+- portrait 2 (3–6s), the ORANGE figure labelled MAROON = @project_absence_char_visitor_a
+- portrait 3 (6–9s), the MAGENTA figure labelled CRITIC = @project_absence_char_critic_b
+- portrait 4 (9–12s), the YELLOW-GREEN figure labelled STUDENT =
+  @project_absence_char_student_c
+- portrait 5 (12–15s), the BLUE figure labelled COBALT = @project_absence_char_woman
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@project_absence_loc_wall_pov_e — THE ONE PICTURE THIS CLIP IS BUILT FROM: the
+  room, the chromium trumpet columns receding in pairs, the warm orange cove
+  light along the ceiling, the polished terracotta terrazzo, the works on their
+  plinths down both sides, the tall red door far off at the vanishing point.
+  It is the only room reference in this prompt.
+@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, brown
+  bob, long tawny-brown fur coat over a rust-red shift dress. One tear runs
+  down her cheek and she does not wipe it.
+@project_absence_char_visitor_a — THE MAN IN MAROON: elderly, thinning grey
+  hair, deep maroon leather suit with a stand collar. Dry, deadpan, unmoving.
+@project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
+  silver-streaked hair swept up, full-length deep magenta fur coat, long cream
+  gloves, chin high.
+@project_absence_char_student_c — THE ART STUDENT: young, short curly acid
+  yellow-green hair, paint-spattered denim overshirt, a black sketchbook held
+  flat against her chest with both hands. Flat, bored, not blinking.
+@project_absence_char_woman — THE YOUNG COLLECTOR: young, dark hair pinned up,
+  oversized cobalt-blue wool overcoat with a small gold V pin, pearl cluster
+  necklace. She wears NO glasses of any kind.
+
+[0s] PORTRAIT ONE — THE WOMAN IN FUR alone, dead centre, waist-up, looking
+straight into the lens. Half a second of stillness, then flat and quiet, the
+tear on her cheek: "It made me think of my mother." Stillness to the cut.
+[3s] HARD CUT. PORTRAIT TWO — THE MAN IN MAROON alone, the same frame, the same
+place on the screen. Half a second, then, moving nothing but his mouth, dry:
+"…of her mother too." Stillness to the cut.
+[6s] HARD CUT. PORTRAIT THREE — THE WOMAN IN MAGENTA alone. Half a second, then,
+chin up, precise, as if reading a label: "Nobody's mother is the point. It asks
+who decides what labour is worth."
+[9s] HARD CUT. PORTRAIT FOUR — THE ART STUDENT alone. Half a second, then flat,
+bored: "Labour. Worth. Anti-capitalist, obviously." Stillness to the cut.
+[12s] HARD CUT. PORTRAIT FIVE — THE YOUNG COLLECTOR IN COBALT alone. Half a
+second, then level, almost tender: "I have never seen anything like this."
+Stillness to the end.
+
+AUDIO: room tone; in each portrait the one spoken line and nothing else, one
+voice at a time, never overlapping; no music, no score, no sting, no riser, no
+swell. NO SOUND AT THE START OR THE END: the clip opens mid room-tone with no
+intro sting or riser, and simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, halation around every lamp.
+Photographed, not rendered: fine film grain, faint gate weave, slight colour
+fringing.
+
+CRITICAL NEGATIVES: no close-up, no face larger than a quarter of the frame
+height, no extreme close-up, no eyes-only frame, no head cut off by the frame;
+inside every portrait there is ONE person and no other — no second face, no
+shoulder of a neighbour, no figure behind, no reflection of anybody, no cleaner,
+no cart, no guard; every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; nobody walks, nobody enters,
+nobody leaves, nobody steps; nobody smiles, nobody laughs, nobody cries out
+loud, nobody shouts; no overlapping speech; no hole in the wall, no wall edges,
+no black surround, no second mark, no plaque, no price, no written figures on
+screen; no camera movement of any kind, no pan, no tilt, no zoom, no dolly, no
+handheld, no drift inside a shot; no dissolve, no fade, no wipe, no cut other
+than the four hard cuts named; no split screen, no grid, no panels; no
+sunglasses on the woman in cobalt; no purple on anybody; no smartphones, no
+screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

@@ -45,6 +45,8 @@ keeper ignores its previz entirely unless the CEO orders a reshoot.
 | `S2PT-Render.MP4` | 20s | THE TOUR, TOGETHER (CEO 2026-09-09 20:20, replaces Draft 5 3:18-3:39): S2P lateral track, cast cut to six + cart (Valder, Carrington, bodyguard, two guards, Dupe 2.6 m behind); mustard chair on blue rug enters left ~10s; no cut |
 | `S2PU-Render.MP4` | 20s | ARE YOU FOLLOWING US (CEO 2026-09-09 20:20, replaces Draft 5 3:39-3:52): LOCKED side-on camera between the near columns; party walks in from the right, stops by 3s at the hanging trap; Dupe + cart at the right; cart quarter-turn + mop from 14s; no cut |
 | `S3A-Render.MP4` | 10s | THE FIRST CUSTOMER take 2 (CTO 2026-09-10 01:05): two LOCKED cameras bound by markers, hard cut at 5s — shot 1 wide down the hall axis from the near end (old man in through the red door, stops), shot 2 side-on between the near columns (old man walks through left→right, Dupe deep behind) |
+| `S2AW-Render.MP4` | 20s | THE INTERPRETATIONS, TABLEAU (CTO 2026-09-10 02:10, Wes Anderson cut of S2AJ): wall-POV 28 mm locked, five in ONE plane at 0.72 m spacing centred on the door, Dupe dead centre far back; no cuts |
+| `S2AP-Render.MP4` | 15s | THE INTERPRETATIONS, PORTRAITS (CTO 2026-09-10 02:10): five 85 mm waist-up portraits from the wall position, one per mark, marker-bound hard cuts at 3/6/9/12s |
 
 ## How a previz gets built (recorded 2026-09-03, so it is done once)
 

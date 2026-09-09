@@ -1,0 +1,189 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2AW · THE INTERPRETATIONS, TABLEAU · 20s · CTO 2026-09-10 02:20 under the CEO's overnight
+authority — the Wes Anderson cut of the scene that replaces Draft 5 1:31–1:42. CEO 01:55 on
+S2AJ take 1: "ตรงตามที่คิดไว้ แต่ดูแล้วยังไม่ชอบเท่าไหร่ มันหลุดธีม Wes Anderson ไปหน่อย … อยากให้คุณ
+จินตนาการออกแบบมาให้ลงตัวที่สุด จะแยก Generate กี่คลิปก็ได้ แต่ขอให้เสร็จก่อนฉันตื่น". Same camera
+(the break), same six people, same six lines — staged PLANIMETRIC: one plane, equal spacing,
+centred on the red door, everyone facing the lens, deadpan turn-taking with air between the
+lines, heads turning to each speaker in unison, and back to the mark together at the end.
+Companion clip S2AP (five frontal portraits) gives the editor cutaways.
+
+⛳ LANE: FREE (Unlimited ON, Generate shows no real number), winbox operator. Spec: Seedance
+2.5 / 20s / 720p / 16:9 / Sound ON / 1 video.
+PREVIZ: docs/S2AW-Render.MP4 (1280×720 · 480 frames · 20.0s) as @Video 1; the paste mentions
+Video 1 once. ⚠️ CHIPS: 9 = 1 video + 8 elements (loc_wall_pov_e, char_woman, char_student_c,
+char_visitor_b, char_visitor_a, char_critic_b, char_cleaner_c, prop_cart_a_painted). No old man.
+
+REVIEW ORDER:
+1. ONE locked shot, no cut (0.2s sweep flat); frame identical first to last.
+2. FIVE in one straight line at equal spacing, centred, all facing the lens, nobody nearer
+   the camera than anybody else; Dupe dead centre far back with the cart.
+3. Lines one at a time with a gap, in order (whisper): "It made me think of my mother." /
+   "…of her mother too." / "Nobody's mother is the point. It asks who decides what labour is
+   worth." / "Labour. Worth. Anti-capitalist, obviously." / "I have never seen anything like
+   this." No overlap, no shouting.
+4. Unison head-turns to each speaker and back; at 18s all five back to the mark, still.
+
+Filing: All Scene/Fix-2/ as S2AW-InterpretationsTableau-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT, no cuts. The camera never moves, never
+pans, never zooms; the frame is identical at 20s and at 0s. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE PREVIZ CONTAINS NO BREAK IN THE WALL, AND THAT IS DELIBERATE. It gives you
+the camera position and where every person stands, and nothing else. THE SHAPE
+OF THE BREAK COMES ONLY FROM THE LOCATION PICTURE — take it from there exactly
+and take nothing about it from the video. Do not invent a hole, do not add a
+crack the picture does not show, and do not draw straight lines radiating from
+a centre.
+
+THE CAMERA STANDS WHERE THE WALL WAS, looking out into the gallery, exactly as
+in the location picture. THE WALL ITSELF IS NOT VISIBLE — no plaster, no edges,
+no hole, no black surround. The only trace of it is THE MARK, and the picture is
+the whole authority on it: its place in the frame, its size in the frame and
+its shape come from the picture and nothing changes them. It is in front of
+everyone, and nobody ever passes in front of it.
+
+THE COMPOSITION IS SYMMETRICAL AND FLAT, LIKE A GROUP PHOTOGRAPH. Five people
+stand in ONE straight line, all the SAME distance from the camera, at EXACTLY
+EQUAL spacing, an arm's length apart, the line centred on the red door far
+behind them so that two stand to the left of the door's axis, one on it, and two
+to the right. Every one of them faces the camera squarely, feet together, hands
+at their sides or folded in front, and stays on that mark for the whole twenty
+seconds. Nobody is nearer the lens than anybody else. Nobody arrives, nobody
+leaves, nobody takes a step. The finished line is NO WIDER THAN THE RED DOOR
+behind them. From the camera's left to right: the woman in cobalt, the art
+student, the woman in fur, the man in maroon, the woman in magenta. Far behind
+them, dead centre under the red door, Dupe mops the floor beside his cart, tiny
+and symmetrical, taking no part.
+
+THE COMPLETE CAST OF THIS SHOT IS SIX PEOPLE AND NOT ONE MORE: five in the line
+and Dupe far behind them. The old man in the green leather coat is NOT in this
+shot — he has already left. There are no extras in this film. No bystanders, no
+other visitors, no gallery staff, no security guards, no reporters, nobody
+holding a camera, nobody filming, nobody in the background beyond Dupe, nobody
+walking through. If a figure is not named below it must not exist.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand. EVERY CHARACTER APPEARS EXACTLY ONCE:
+- the BLUE figure labelled COBALT, at the LEFT end = @project_absence_char_woman
+- the YELLOW-GREEN figure labelled STUDENT, second from the left =
+  @project_absence_char_student_c
+- the BROWN figure labelled FUR, in the middle, on the door's axis =
+  @project_absence_char_visitor_b
+- the ORANGE figure labelled MAROON, second from the right =
+  @project_absence_char_visitor_a
+- the MAGENTA figure labelled CRITIC, at the RIGHT end =
+  @project_absence_char_critic_b
+- the WHITE figure labelled DUPE, far back, dead centre, with the cart =
+  @project_absence_char_cleaner_c
+- every grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@project_absence_loc_wall_pov_e — THE ONE PICTURE THIS SHOT IS BUILT FROM.
+  Take the whole look from it: the room, the chromium trumpet columns receding
+  in pairs, the warm orange cove light along the ceiling, the polished
+  terracotta terrazzo, the works on their plinths down both sides, the tall red
+  door far off at the vanishing point, and the BREAK ITSELF. It is the only
+  room reference in this prompt — there is no second view of the gallery and
+  nothing else describes this space.
+  THE MARK, from that picture and only from it. SAME PLACE IN THE FRAME: over
+  the far red door, in the upper middle of the picture. SAME SIZE IN THE FRAME:
+  a small patch, NO WIDER THAN THE RED DOOR AND NO TALLER THAN THE RED DOOR,
+  exactly as the picture has it and not one bit larger. SAME SHAPE — thin
+  lines meeting at one small dark point — and SAME SOLID BLACK. Nothing about
+  it is enlarged, thickened, extended or redrawn, and it never touches or
+  crosses anybody's face or body.
+@project_absence_char_woman — THE YOUNG COLLECTOR: young, dark hair pinned up,
+  oversized cobalt-blue wool overcoat with a small gold V pin, pearl cluster
+  necklace, brown-checked midi skirt, black tights, dark brown loafers. She
+  wears NO glasses of any kind.
+@project_absence_char_student_c — THE ART STUDENT: young, short curly acid
+  yellow-green hair, paint-spattered denim overshirt, dark trousers, worn
+  trainers, a black sketchbook held flat against her chest with both hands.
+@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, brown
+  bob, long tawny-brown fur coat over a rust-red shift dress. One tear runs
+  down her cheek and she does not wipe it.
+@project_absence_char_visitor_a — THE MAN IN MAROON, her husband: elderly,
+  thinning grey hair, deep maroon leather suit with a stand collar, hands folded
+  in front of him. Dry, deadpan, unmoving.
+@project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian,
+  silver-streaked hair swept up, full-length deep magenta fur coat, long cream
+  gloves, cream heels, chin high.
+@project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap,
+  gold V, moustache. Far back, dead centre, mopping, silent, never joining anyone.
+@project_absence_prop_cart_a_painted — HIS CART, parked beside him and never
+  moving: castor wheels, mop, orange bucket, bottles, ladder, gold V, the
+  painting upright in the rack.
+
+[0s] ALL FIVE ARE ALREADY THERE, in their line, looking at the mark in complete
+silence for a full second. Nothing moves except Dupe's mop far behind them.
+
+[1s] The woman in fur speaks first, flat and quiet, to the mark, the tear on her
+cheek: "It made me think of my mother." AS SHE SPEAKS, THE OTHER FOUR TURN
+THEIR HEADS TO HER AT THE SAME INSTANT, like one head, and when she stops they
+turn back to the mark together.
+
+[4s] A half second of silence. Then the man in maroon, without moving anything
+but his mouth, eyes on the mark, dry: "…of her mother too." The four heads turn
+to him in unison, and back.
+
+[7s] A half second of silence. The woman in magenta, chin up, precise, as if
+reading a label: "Nobody's mother is the point. It asks who decides what labour
+is worth." The four heads turn to her, and back.
+
+[12s] A half second of silence. The art student, flat, bored, not blinking:
+"Labour. Worth. Anti-capitalist, obviously." The four heads turn to her, and
+back.
+
+[15s] A half second of silence. The young collector in cobalt, level, almost
+tender: "I have never seen anything like this." The four heads turn to her.
+
+[18s] ALL FIVE TURN BACK TO THE MARK AT THE SAME INSTANT and hold, perfectly
+still, five faces in a row, for the last two seconds. Nobody moves a foot.
+
+AUDIO: room tone throughout; the five spoken lines above, ONE AT A TIME, with a
+clear half second of silence between every two, and nothing else; Dupe's mop
+faintly, far away. Nobody speaks over anybody. Nobody raises a voice. Dupe never
+speaks. No music, no score, no sting, no riser, no swell. NO SOUND AT THE START
+OR THE END: the clip opens mid room-tone with no intro sting or riser, and
+simply stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, halation around every lamp.
+Photographed, not rendered: fine film grain, faint gate weave, slight colour
+fringing.
+
+CRITICAL NEGATIVES: no uneven spacing, nobody a step nearer the camera than the
+others, nobody a step further back, no huddle, no cluster, no second row, nobody
+turned sideways, nobody in profile; nobody walks, nobody enters, nobody leaves,
+nobody steps forward, nobody steps back; nobody touches anybody, no arm around
+anybody, no hugging, no hand on a shoulder; no overlapping speech, no talking
+over each other, no shouting, no raised voices, no quarrel, no argument, no hands
+in the air, no finger pointing, no laughing, no applause, no sobbing out loud;
+no seventh person, no extra, no bystander, no other visitor, no gallery staff, no
+guard, no reporter, nobody holding a camera, nobody behind the line except Dupe;
+no hole in the wall, no wall edges, no black surround, no second mark, no
+straight lines radiating from a centre, no plaque, no price, no written figures
+on screen; nobody in front of the mark, nobody touching the mark, nobody
+reaching for the mark; no camera movement of any kind, no pan, no tilt, no zoom,
+no dolly, no handheld, no reframing, no cut, no second angle, no shot-reverse-
+shot, no dissolve, no fade; no looking at camera by Dupe; no mop or cart in the
+line; no sunglasses on the woman in cobalt; no purple on anybody; no
+smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
