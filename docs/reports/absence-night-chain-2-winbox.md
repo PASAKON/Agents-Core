@@ -191,7 +191,36 @@ to pull and file as `S2AW-InterpretationsTableau-Fix1.MP4` in All Scene/Fix-2/.
 
 ## Scene 3 — S2AP "THE INTERPRETATIONS, PORTRAITS"
 
-_pending_
+**Pre-staged during S2AW's render** (CEO pattern: warm up the next job during the wait). Video 1:
+`42e77af7-c90c-4e16-b7a3-3a380d0d59a6`, byte-confirmed against local `docs/S2AP-Render.MP4`
+(md5 `846ad837f7dbd190dd4e39e79b55d19c` both sides) via the same upload→diff→curl method. Removed
+S2AW's video/text from the composer first (real Ctrl+A+Delete, then removed the old video chip
+via its own × before attaching the new one — attaching a second video without detaching the
+first just adds a second reference, confirmed once and reverted).
+
+**A browser-selection prompt appeared mid-session** ("Multiple Chrome browsers connected, none
+selected") while staging this scene — re-selected the task's assigned device
+(`815ddf16-36ea-4e0d-827a-f31e9ff85351`, winbox-chrome) directly rather than guessing from the
+ambiguous 2-browser list it offered (which did not even include winbox-chrome); resolved in one
+call, tab and composer state both survived intact.
+
+**Chips:** 6/6 unique bound, 0 error: `@project_absence_char_visitor_b`, `@…_visitor_a`,
+`@…_critic_b`, `@…_student_c`, `@…_woman`, `@project_absence_loc_wall_pov_e`. 6 elements + 1
+video = 7 chips, matching sheet.
+
+**Settings:** duration moved 20→15 via 5× `ArrowLeft` on the slider (verified `aria-valuenow`).
+Seedance 2.5 · 16:9 · 720p · 15s · High · Sound On confirmed by zoom immediately before Generate.
+Unlimited had reset off (reload during the wait) — one clean ref-based click (`find()` →
+`Unlimited mode` switch), re-verified `data-state="on"` and the button `UNLIMITED / struck 105 /
+0` by zoom.
+
+**Tab froze on `Page.captureScreenshot` three more times during this scene** (consistent with the
+skill's "tab misbehaves after touching several video assets" warning — this tab has now
+attach/detached 3 different videos across 2 fires). Each time, `wait` + retry recovered it
+without needing a reload; no click was ever retried blindly near the composer.
+
+**Fired 2026-09-09T22:20:06Z (2026-09-10 05:20:06 ICT).** Toast "Generation started"; asset count
+763→764 (+1). Rendering.
 
 ## Scene 4 — S2R-F SPLIT "THE BATTLE, FIVE PANELS"
 
