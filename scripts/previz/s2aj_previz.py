@@ -11,7 +11,7 @@
 import bpy, math
 from math import radians as R
 sc = bpy.context.scene
-sc.frame_start, sc.frame_end = 1, 720          # 30s
+sc.frame_start, sc.frame_end = 1, 480          # 20s (v3: CEO wants <=20s, lines interrupting, cut to black)
 sc.render.resolution_x, sc.render.resolution_y = 1280, 720
 sc.render.fps = 24
 sc.timeline_markers.clear()
@@ -39,9 +39,9 @@ OFF = 40.0   # parked off-screen until the beat
 # fixed marks: critic (5s) → student (11s) → cobalt (22s).
 row = [("VISITOR_B",   -0.20, -19.88, 1.66,   1),
        ("VISITOR_A",    0.70, -19.80, 1.78,   1),
-       ("CRITIC",       1.60, -19.95, 1.64, 121),
-       ("STUDENT",     -1.00, -19.72, 1.70, 265),
-       ("COLLECTOR_A", -1.90, -19.90, 1.68, 529)]
+       ("CRITIC",       1.60, -19.95, 1.64,  73),
+       ("STUDENT",     -1.00, -19.72, 1.70, 169),
+       ("COLLECTOR_A", -1.90, -19.90, 1.68, 385)]
 obs = {}
 for name, x, y, h, beat in row:
     ob = spawn_char(col, name, (OFF if beat > 1 else x, y), h=h, prefix="s2aj")
@@ -52,13 +52,13 @@ for name, x, y, h, beat in row:
         sc.frame_set(beat); ob.location = (x, y, ob.location.z); ob.keyframe_insert("location", frame=beat)
     else:
         sc.frame_set(1); ob.location = (x, y, ob.location.z); ob.keyframe_insert("location", frame=1)
-    sc.frame_set(720); ob.location = (x, y, ob.location.z); ob.keyframe_insert("location", frame=720)
+    sc.frame_set(480); ob.location = (x, y, ob.location.z); ob.keyframe_insert("location", frame=480)
 # the four argue at once, 20-25s: a small alternating bob on each of them
 for k, name in enumerate(("VISITOR_B", "VISITOR_A", "CRITIC", "STUDENT")):
     ob = obs[name]; z0 = ob.location.z; x, y = [r for r in row if r[0] == name][0][1:3]
-    for i, fr in enumerate(range(385, 529, 8)):
+    for i, fr in enumerate(range(241, 385, 8)):
         sc.frame_set(fr); ob.location = (x, y, z0 + (0.04 if (i + k) % 2 == 0 else 0.0)); ob.keyframe_insert("location", frame=fr)
-    sc.frame_set(534); ob.location = (x, y, z0); ob.keyframe_insert("location", frame=534)
+    sc.frame_set(390); ob.location = (x, y, z0); ob.keyframe_insert("location", frame=390)
 # Dupe far back with his cart, cleaning, never part of the row
 dupe = spawn_char(col, "DUPE", (-2.35, -17.20), h=1.80, prefix="s2aj")
 build_cart(col, (-3.30, -16.60), prefix="s2aj", with_painting=True)
@@ -102,7 +102,7 @@ except Exception: pass
 sc.render.image_settings.file_format = "FFMPEG"
 sc.render.ffmpeg.format = "MPEG4"; sc.render.ffmpeg.codec = "H264"
 sc.render.ffmpeg.constant_rate_factor = "HIGH"; sc.render.ffmpeg.audio_codec = "NONE"
-sc.render.filepath = r"C:\Users\UsEr\Downloads\S2AJ-v2-Render.MP4"
-bpy.ops.wm.save_as_mainfile(filepath=r"C:\Users\UsEr\Downloads\S2AJ_v2_previz.blend")
+sc.render.filepath = r"C:\Users\UsEr\Downloads\S2AJ-v3-Render.MP4"
+bpy.ops.wm.save_as_mainfile(filepath=r"C:\Users\UsEr\Downloads\S2AJ_v3_previz.blend")
 sc.frame_set(1)
 bpy.ops.render.render(animation=True); print("RENDER-DONE")
