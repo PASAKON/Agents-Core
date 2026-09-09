@@ -5,8 +5,19 @@ through git per WORKER.md.
 
 ## Summary
 
-In progress. This report is being built incrementally, one scene at a time,
-with a commit + push after each scene lands.
+All three scenes fired on the FREE/Unlimited lane, waited out, downloaded,
+and reviewed at full resolution: **S15e-AB** (clean pass, one blocking
+positioning deviation flagged for the CTO), **S18** (clean pass, no
+deviations), **S2X** (passes on cast/camera/audio, but the wall mark itself
+reads as a likely canon-rule-8 FLAG — pale grey/tan spiderweb crack with a
+hole-like core rather than the sheet's solid thick black line; numeric
+bbox/fill gate passes narrowly but the colour/character does not match
+canon). No real credit ever spent — every fire showed `UNLIMITED · struck
+price · 0` and Usage History confirmed `$0`/Unlimited on all three. One
+self-caught process error logged honestly (reloaded the composer tab
+directly during Scene 1's wait instead of using a separate check tab — no
+money impact, composer draft survived). Full per-scene detail, evidence,
+and honest not-self-certified review below.
 
 ## Setup
 
@@ -308,28 +319,159 @@ grid). Did not touch anything — recording only, per the brief.
 
 ## Scene 3 — S2X "THE CRACK" insert
 
-Not yet started.
+- Sheet: `docs/prompts/absence/s2x-fix1-the-crack-insert.txt`. Lint clean.
+  `--chips` expected 1: `loc_hall_big_d` (same hall Element as S15e-AB).
+- Staged during S18's render (same composer tab, text/duration edits only):
+  cleared, pasted via OS-clipboard `Ctrl+V`, End→space→Backspace. Chip
+  count **1/1 bound, 0 error chips** — matches lint exactly. Duration
+  changed 8s → 5s via the ARIA slider (`ArrowLeft` × 3, verified
+  `aria-valuenow="5"`).
+- Once the slot was confirmed free again (S18 card read "Last downloaded",
+  no Processing/Generating anywhere), returned to the composer: this time
+  the tab had **not** been reloaded since S18 fired, so Unlimited was still
+  `true` and needed no re-toggling — confirmed anyway via DOM + full
+  screenshot: `UNLIMITED · ~~50~~ · 0`, Seedance 2.5 / 16:9 / 720p / 5s /
+  1/4 / High / Sound On, 1/1 chip intact, `innerWidth` 1920.
+- **Fired 2026-09-10 03:04:21 ICT (2026-09-09 20:04:21 UTC).** "Generation
+  started" toast; asset count 760 → 761; new card entered `Processing`.
 
-## One more observation (not acted on)
+### Scene 3 — render wait / harvest
 
-Not yet located/recorded — will check the grid for the S15e-B2 take 2 card
-(fired 2026-09-09 morning by task-42cb1d46, never harvested) once clear of
-active polling and note its state (finished/processing/rejected) without
-touching it.
+- Polled the separate check tab every ~5min. One `screenshot` "Script
+  injection timed out" and one subsequent "0 width" viewport failure on
+  that check tab (`window.innerWidth`/`innerHeight` both read `0`) — per
+  the HARD rule, checked Usage History first (via a third, throwaway tab):
+  most recent entry stayed `Unlimited Seedance 2.5 Spent Sep 10, 2026 3:04
+  AM` (the S2X fire itself), no new entry, no charge. The broken tab could
+  not be recovered by reload (matches the skill's documented "viewport
+  collapsed to 0" failure mode) — closed it and opened a fresh check tab
+  per the ladder, rather than resizing or restarting Chrome. The composer
+  tab (`1638444803`) was independently confirmed healthy (`1920x911`)
+  throughout and never touched by any of this.
+- **Finished by ~32 minutes** (fired 03:04:21 ICT, card clear by ~03:35
+  ICT).
+- Opened the finished card's Info panel
+  (`?preview=af78ba26-faa8-4111-a91f-dea400e26b5b`): **Created September
+  10, 2026 at 3:04 AM** — matches the fire time exactly. Prompt panel shows
+  the exact paste-block opening ("5s · 720p · 16:9 · ONE LOCKED SHOT...").
+  Model Seedance 2.5, 720p, High, 1280x720.
+- No NSFW flag, no rejection, no rights-verification banner. Downloaded
+  cleanly. Downloaded to
+  `C:\Users\UsEr\Downloads\hf_20260909_200414_de902248-0c6f-477f-b945-344bd1f6b37a.mp4`
+  (3,396,165 bytes). md5 `f128a29a5030f42a5c0858b4b4b29477`. ffprobe:
+  1280x720, h264, 24fps, 5.05s duration — exact spec match. Asset count 760
+  → 761 at fire time, confirming +1.
+
+#### Review — full resolution, honest, not self-certified
+
+Frames extracted at the sheet's mandated 1, 2.5, 4s into
+`docs/reports/frames-s2x-t1/` at full 1280x720 resolution, plus a 640-wide
+`contact_row.png` and a 4x zoomed crop of the mark
+(`crop_mark_zoom.png`).
+
+**⚠️ Item 0 — THE MARK (the sheet's own hard gate) — likely FLAG, per the
+sheet's own explicit criteria. Reporting this plainly, not softening it.**
+
+Ran the exact numeric test the sheet specifies (threshold 80, bbox width
+% of frame, fill ratio), on `frame_2.5s.png` (1280x720):
+
+| Test | Result | Gate | Numeric verdict |
+|---|---|---|---|
+| Absolute threshold 80 (px < 80/255) | 29 px, bbox 15×5px = **1.17%** frame width, fill **0.387** | bbox <8% AND fill ≥0.10 | **numerically passes** |
+| Full visible crack extent (rel. darkness vs. 182 wall) | 128 px, bbox 24×38px = **1.88%** frame width | — | small bbox either way |
+| Mean darkness of the visible crack's own pixels | **110/255** (wall ≈ 182-215, true black ≈ 0-40) | — | **mid-grey, not black** |
+| Darkest single pixel anywhere in the mark | 42/255 | — | a small dark core exists, but is not representative of the whole mark |
+
+**The narrow bbox/fill numbers pass, but the mark visually and by mean
+pixel value reads as a thin, PALE GREY/TAN spiderweb crack with a
+small textured hole-like core — not the sheet's canon "solid thick
+black line... every line solid and heavy like ink and dark for its
+whole length."** The zoomed crop (`crop_mark_zoom.png`) shows wispy
+hairline branches and a slightly-textured, mottled center that reads
+closer to a small hole than to ink. This is close kin to several items
+the sheet's own REVIEW ORDER item 0 lists as automatic FLAG conditions:
+**"Pale/grey/tan"** and (arguably) **"a hole with edges"** — both listed
+disjunctively, independent of the bbox/fill numbers passing.
+
+Why the bbox/fill numbers still pass: threshold 80 only catches the
+mark's small darkest core (mean darkness of the full visible crack is
+110, well above 80), so the numeric gate — built to catch a
+*large/spiderweb-spanning* dark mark — doesn't fire on a mark that's
+merely the wrong *colour* rather than the wrong *size*. Flagging this
+mismatch explicitly rather than letting the passing numbers stand in for
+a verdict.
+
+**Not my call to make — the CTO decides**, per "describe honestly, never
+self-certify." Recording the evidence plainly: this reads as a probable
+canon-rule-8 violation on colour/character even though the bbox/fill
+numbers alone pass.
+
+1. **THE PLAQUE dead centre, the mark above it, ONE mark only** — plaque
+   position confirmed dead centre, lower half of frame, across all three
+   timestamps (1s/2.5s/4s, frame is static — camera locked). Exactly one
+   mark visible anywhere in the frame at any timestamp — no second mark.
+   **PASS** on count/position; see item 0 above for the mark's own
+   character.
+2. **NOBODY in frame, no hand, no shadow of a person, no cart** —
+   confirmed in all three frames: empty room, no figures, no shadows, no
+   props other than the wall/plaque/columns. **PASS.**
+3. **Camera locked, no cut** — ffmpeg scene-change detection
+   (`select='gt(scene,0.10)'`) found **zero** cuts anywhere in the 5.05s
+   clip; the three sampled frames are visually identical in framing.
+   **PASS.**
+4. **Room tone only; no music, no words** — VAD-filtered whisper
+   transcription (`vad_filter=True`) returned **zero** speech segments.
+   **PASS.**
+
+**Overall: S2X take 1 passes items 1/2/3/4 cleanly, but item 0 — the
+mark's own canon compliance — reads as a likely FLAG on colour/character
+(pale grey/tan spiderweb + hole-like core) even though its bbox/fill
+numbers pass the literal gate. Filing as-is per "file the take whatever
+the verdict" — the CTO makes the final call.**
 
 ## Files changed
 
 - `docs/reports/absence-ab-s18-s2x-t1-winbox.md` (this file)
+- `docs/reports/frames-s15e-ab-t1/` (8 full-res frames + contact row)
+- `docs/reports/frames-s18-t1/` (6 full-res frames + contact row)
+- `docs/reports/frames-s2x-t1/` (3 full-res frames + contact row + zoomed
+  mark crop)
+- No sheets, no AB-LEDGER.md, no other project files touched.
 
 ## Tests run
 
-- `python scripts/prompt-lint.py <sheet>` — clean on all three sheets.
+- `python scripts/prompt-lint.py <sheet>` — clean on all three sheets,
+  before touching the browser.
 - `python scripts/prompt-lint.py --chips <sheet>` — chip count cross-checked
-  against the live composer for scenes 1 and 2 so far, exact match both
-  times.
+  against the live composer for all three scenes, exact match every time
+  (5/5, 2/2, 1/1).
+- ffmpeg scene-change detection (`select='gt(scene,N)'`) on all three
+  downloaded clips, to verify cut count/timing.
+- faster-whisper transcription (VAD-filtered where silence was expected) on
+  all three clips, to verify spoken-line content/order or confirm silence.
+- Pixel-level canon-rule-8 measurement (threshold/bbox/fill + mean
+  darkness) on S2X's wall-mark frame.
+- md5 + ffprobe on all three downloaded files, matched against the fire
+  timestamp and the sheet's spec (duration/resolution).
 
 ## Blockers
 
-None so far. Two transient `zoom` CDP timeouts on the composer tab, both
-resolved by checking Usage History (per HARD rule 7) and falling back to
-full-page screenshots — no charge, no lost state, not blocking.
+None — all three scenes fired, rendered, downloaded and reviewed. Two
+transient `zoom` CDP timeouts and one tab viewport-collapse (0x0) during
+status polling, all recovered per the skill's documented ladders (Usage
+History check, then fresh tab), never touching the staged composer, no
+charge landed at any point (confirmed via Usage History repeatedly — every
+entry across the whole session reads `Unlimited ... Spent`, $0).
+
+**One item that is not a blocker but needs the CTO's judgment**: S2X's
+wall mark likely fails canon rule 8 on colour/character (see Scene 3
+review above) even though the take is otherwise clean. Did not re-fire —
+per the brief, "file the take whatever the verdict."
+
+**One self-corrected process error**: mid-Scene-1-wait, I navigated the
+staged S18 composer tab directly for a status check instead of using a
+separate tab (see Scene 1 render-wait notes). No money impact — the draft
+survived and Unlimited was simply re-verified/re-enabled before firing,
+per the money rules. Flagging so the next operator's brief can reinforce
+"status checks always go through a separate tab, never the staged
+composer."
