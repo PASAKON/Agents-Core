@@ -7,8 +7,11 @@ each with a line of their own, a real quarrel that gets loud but never physical,
 cobalt shutting it down at the end. Version A chosen by the CEO 19:05 ("ลองดู A … ฉากต้อง
 ละเอียดมากๆ ห้ามมี Conflict ห้ามทำให้ Model งง … Generate 30s Credit ทุนสูงมาก").
 
-⛳ THE CEO FIRES THIS ONE HIMSELF on the Create (credit) lane: 20s / 720p / 16:9 / Seedance 2.5 /
-High / 1/4 / Sound ON. It is the only paid fire of the day — read the spec back twice.
+⛳ LANE (CEO 2026-09-09 19:50, supersedes the 18:40 credit-lane plan): "ยิงเลนฟรีก่อนได้ ฉันคิดว่า ฉันรอได้นะ
+ส่งไปให้ Dev ต่อคิวฉากประมูลได้เลย" — the winbox browser operator fires this on the FREE lane
+(Unlimited toggle ON, Generate button shows NO number), queued right after S2R-F take 2 leaves
+the one Unlimited slot. Settings: Seedance 2.5 / 20s / 720p / 16:9 / Sound ON / 1 video.
+Zero credits. (Credit-lane fallback, only if the CEO orders it later: Create lane, High, 1/4.)
 PREVIZ: attach docs/S2AJ-Render.MP4 (1280×720 · 480 frames · 20.0s · 24 fps · black from 19s ·
 previz-check PASS 2026-09-09 19:25) so @Video 1 resolves; the paste below mentions Video 1 as a chip ONCE.
 ⚠️ CHIPS: 9 = 1 video + 8 elements (loc_wall_pov_e, char_visitor_b, char_visitor_a, char_critic_b,
