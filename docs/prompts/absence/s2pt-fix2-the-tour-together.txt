@@ -1,0 +1,208 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2PT · THE TOUR, TOGETHER · 20s · CEO 2026-09-09 20:20 — clip A of the two that replace
+Draft 5 3:18–3:52 ("ฉากนี้เป็นการอธิบายทั้งหมด อยากให้เช็คดีๆ ว่าจะมีตัวละครไหนบ้างที่ใส่
+และให้เขาเดินไปพร้อมกัน"). Same Wes Anderson lateral track as S2P, but the cast is the
+six the CEO named at 20:25 ("ใครบ้างที่ควรเดินตาม Valder แต่นอน Security ของ Valder 2 คน ->
+ชายชรา + Guard ร่างท้วม ผิวสี แว่นดำ ใช้ประจำใน Fix-1"): Valder, Carrington (the old man in
+white with the cane), Carrington's bodyguard, Valder's two guards, and Dupe with the cart
+at the rear. No registrar, no visitors, no crowd — Draft 5 had all of them plus Dupe
+walking AHEAD of the party, which is why the shot is being replaced.
+Lines: the first six of Valder's tour speech from Draft 5 (3:18–3:39), so the editor can
+lay the chair insert over 13–16s if he wants it. Clip B (S2PU) carries the fish trap and
+the cart joke. CEO's select 20:35: "2 คลิป × 20 วิ = 40".
+
+⛳ LANE: FREE lane (Unlimited ON, Generate button shows NO number), fired by the winbox
+operator in queue order. Spec: 20s / 720p / 16:9 / Seedance 2.5 / Sound ON / 1 video.
+PREVIZ: attach docs/S2PT-Render.MP4 (1280×720 · 480 frames · 20.0s · 24 fps) so @Video 1
+resolves; the paste mentions Video 1 as a chip ONCE.
+⚠️ CHIPS: 8 = 1 video + 7 elements (loc_hall_big_e, char_valder, gentleman_e,
+char_guard_private_v2, char_guard_valder_two, char_cleaner_c, prop_cart_a_painted). Six
+people plus the room is the proven cap for this cast (S2P take 1 bound thirteen and lost
+Valder). Zoom every thumbnail for a warning triangle before Generate.
+
+REVIEW ORDER:
+1. ONE continuous lateral track, no cut (0.2s sweep: no spike); the group holds its
+   place in frame while the columns slide past; no easing at either end.
+2. SIX people and the cart, and nobody else: Valder front-left, Carrington at his
+   shoulder, the bodyguard behind Carrington, the two guards a pace and a half back,
+   Dupe three metres behind the last guard pushing the cart. Nobody ahead of Valder.
+   Dupe's hands on the cart, nothing carried.
+3. SIX lines (whisper), all Valder's, in order: "Everything in this wing was rehung only
+   last week." / "I think you will like what I have done with it." / "Every one of them
+   was acquired in the last two years." / "But I kept the best of it for you." / "This
+   chair was in the room where the armistice was signed." / "Not at the table. In the
+   corner. Nobody sat in it." Nobody else speaks.
+4. The mustard armchair on its blue rug enters at the left at ~13s and is level with
+   Valder at ~16s; the party does not stop for it.
+5. Camera stays square and at chest height; no pan, no zoom, no reframing.
+
+Filing: All Scene/Fix-2/ as S2PT-TourTogether-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE CONTINUOUS SHOT, no cuts. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE CAMERA MOVE, and it is the only camera move in this film: a PERFECTLY FLAT
+SIDEWAYS TRACK. The camera faces the group dead square, at chest height, and
+slides sideways at exactly the speed they are walking, so the people stay
+locked in the same place in frame for the whole twenty seconds while the
+columns, plinths and artworks behind them slide steadily past. Symmetrical,
+head-on, unhurried. The move starts at full speed on the first frame and stops
+at full speed on the last — no acceleration, no deceleration, no easing, no
+drift, no pan, no tilt, no zoom, no handheld shake, no reframing.
+
+THE COMPLETE CAST OF THIS SHOT IS SIX PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards beyond the three named, no reporters, no journalists, nobody
+holding a camera, nobody filming, nobody in the background, nobody walking
+through. If a figure is not named below it must not exist.
+
+POSITION MAP — every figure in the reference video walks exactly where its
+character must walk, in that order along the line. EVERY CHARACTER APPEARS
+EXACTLY ONCE:
+- the MAGENTA figure labelled VALDER = @project_absence_char_valder
+- the GOLD figure labelled GENTLEMAN = @gentleman_e
+- the DARK GREY figure labelled BODYGUARD =
+  @project_absence_char_guard_private_v2
+- the two NAVY figures labelled GUARD_V1 and GUARD_V2 =
+  @project_absence_char_guard_valder_two
+- the WHITE figure labelled DUPE = @project_absence_char_cleaner_c
+- the orange trolley behind him = @project_absence_prop_cart_a_painted
+- the mustard block on the blue block, far side of the hall = the armchair on
+  its rug; every other grey block is a prop, never a person
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
+  The camera stands OUTSIDE the wall, in the gallery, looking down its length:
+  chromium trumpet columns receding in matched pairs on both sides, warm orange
+  cove light along the ceiling, polished terracotta terrazzo underfoot, works on
+  white plinths and framed pieces down both walls, and the tall RED DOUBLE DOOR
+  far off at the vanishing point. THE BROKEN WALL IS NOT IN THIS SHOT — no
+  crack, no star, no damaged plaster anywhere. Take the room, its surfaces and
+  its light from this picture.
+
+@project_absence_char_valder — VALDER, leading: tall, slim, elderly, swept-back
+  white hair, small round tinted sunglasses, a blazer PANELLED IN FLAT BLOCKS
+  OF COLOUR — magenta, yellow, green, blue, red — over a red waistcoat, a long
+  mustard-yellow scarf down the front, purple trousers, two DIFFERENT shoes,
+  one dark green and one burgundy. He is the only one who speaks.
+@gentleman_e — MR CARRINGTON, at his shoulder: tall, elderly, swept-back white
+  hair, a white stand-collar suit, white shoes, a black cane with a gold lion
+  head, TWO GOLD FRONT TEETH. He listens, smiling, and never answers.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black
+  shirt and tie, one pace behind his employer the whole way. No weapon, no
+  earpiece, no holster.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy
+  military-cut tunics with gold buttons and a large gold V, black belts, navy
+  peaked caps. ONE TALL AND THIN, ONE SHORT AND HEAVY. This one picture is both
+  of them. They walk a pace and a half behind Valder and never speak.
+@project_absence_char_cleaner_c — DUPE, three metres behind the last guard:
+  white uniform with orange trim, cap, gold V, moustache. Eyes on his cart, not
+  on the party.
+@project_absence_prop_cart_a_painted — HIS CART, which he pushes along with
+  both hands on its handle: castor wheels, mop, orange bucket, bottles, folding
+  ladder, gold V, a painting standing upright in the rack.
+
+THE FRAME: the party strung ACROSS the picture in a long horizontal line,
+everybody visible, everybody at a slightly different distance from the lens so
+it does not read as a flat rank. THEY WALK AS ONE PARTY: the same unhurried
+pace, close together, nobody drifting off, nobody lagging, nobody stopping.
+Behind them the gallery — chromium trumpet columns, white plinths, bronzes,
+framed works, orange cove light on the ceiling — slides past at a steady speed.
+
+[0s] They are already walking when the shot begins. THE ORDER OF THE LINE, FROM
+THE FRONT OF THE PROCESSION TO THE BACK, AND IT IS NOT NEGOTIABLE:
+
+  1. VALDER, AND HE IS THE FRONT-MOST PERSON IN THE WHOLE SHOT. Nobody walks
+     ahead of him and nobody walks level with him except Carrington. He is
+     talking and gesturing with an open hand at the works as they pass.
+  2. MR CARRINGTON at his shoulder with his cane, half a step back.
+  3. The bodyguard one pace behind Carrington.
+  4. The two guards a pace and a half behind Valder, side by side.
+  5. LAST OF ALL, three metres behind the guards, DUPE.
+
+DUPE IS PUSHING A WHEELED CLEANING CART WITH BOTH HANDS ON ITS HANDLE, and the
+cart is in shot with him for the whole twenty seconds — the orange bucket, the
+mop, the bottles, the folding ladder, the gold V, the painting standing upright
+in its rack. HE IS NOT CARRYING ANYTHING. His hands are on the cart. He is
+plainly not part of the party, and he keeps their pace exactly.
+
+Valder, to the room, warm and expansive: "Everything in this wing was rehung
+only last week."
+
+[4s] HE TURNS HIS HEAD, and he turns it to Carrington and to nobody else,
+speaking as though the other four were not there at all: "I think you will
+like what I have done with it."
+
+[7s] He faces front again and carries on narrating to the air, gesturing at
+another piece: "Every one of them was acquired in the last two years."
+
+[10s] AND HE TURNS AGAIN, and again it is only Carrington: "But I kept the best
+of it for you."
+
+[13s] At the left of the frame the mustard-yellow swivel armchair on its blue
+patterned rug slides into view against the far wall, and Valder's open hand
+goes out to it as they walk, in love with the object: "This chair was in the
+room where the armistice was signed."
+
+[16s] The chair is level with him now; the party walks on past it without
+slowing: "Not at the table. In the corner. Nobody sat in it."
+
+[19s] Hold, still moving, still walking. Cut.
+
+AUDIO: room tone, six sets of footsteps on terrazzo all at the same unhurried
+pace, the tap of a cane, the soft squeak of the cart's castors well behind
+them. SIX speeches only, all Valder's, in the order above. Nobody else says a
+word — Carrington never answers, the guards and the bodyguard never speak, and
+Dupe never speaks. NO SOUND AT THE START OR THE END: the clip opens mid
+room-tone with no intro sting or riser, and simply stops with no tail, swell or
+fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no seventh person, no extra,
+no bystander, no other visitor, no gallery staff, no registrar, no reporter, no
+journalist, nobody holding a camera, nobody filming, no crowd, no children,
+nobody in the background, nobody walking through; no Carrington replying, no
+other character speaking, no conversation, no murmuring, no laughing, no
+applause; no group stopping, no group gathering around a piece, no pointing
+crowd, no huddle, nobody drifting away from the party, nobody lagging behind
+except Dupe; no Dupe joining the party, no Dupe speaking, no Dupe leaving his
+cart; THE CART TRAVELS WITH DUPE AND ONLY WITH DUPE — no cart at the front of
+the line, no cart near Valder or Carrington or the guards, no cart separated
+from Dupe by other people, no cart moving on its own, no second cart; NO DUPE
+WITHOUT HIS CART, no Dupe with empty hands, no Dupe carrying a bottle or a
+cloth or any object instead of pushing the cart, NO DUPE AHEAD OF ANYBODY; NO
+VALDER AT THE BACK OF THE LINE, no Valder behind Carrington, no Valder behind
+the guards, nobody walking ahead of Valder; no camera easing in or out, no
+acceleration, no deceleration, no slowing at the end, no pan, no tilt, no
+zoom, no dolly toward or away, no handheld shake, no reframing, no whip, no
+cut, no second angle; no vertical composition, no group in single file toward
+the lens, no over-the-shoulder; no cracked wall, no crack, no brass plaque, no
+price plaque in frame; no running, no hurrying, no comic speed, no sped-up
+motion, no slow motion; no four-panel layout, no grid, no split screen; no
+money, no card, no contract, no papers exchanged; no weapon, no gun, no
+holster, no earpiece; no looking at camera by anybody; no smartphones, no
+screens, no modern technology.
+
+House negatives: no voiceover, no narration over the top, no subtitles, no
+captions, no on-screen text, no signage, no logos, no music, no score, no
+dutch angle, no tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI
+sheen, no plastic skin, no beauty filter, no dim moody lighting, no darkness,
+no night, no blue walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

@@ -1,0 +1,194 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S2PU · ARE YOU FOLLOWING US · 20s · CEO 2026-09-09 20:20 — clip B of the two that replace
+Draft 5 3:18–3:52. The CEO's brief for the joke: "มุขของ Dupe ที่เข็นรถตาม แล้ว Valder ทักว่า
+คุณตามฉันมาหรอ dupe -> หน้าแดงอันนี้มันแปลกเกินไป dupe เขินเหวอแล้ว ทำงานต่อแบบนั้นดีที่สุด" —
+so: NO blush, no cartoon twinkle; Dupe is caught, goes shy, and simply gets on with his
+work. Same six people as S2PT (CEO 20:25 cast). Angle by the CEO's select 20:35: SIDE-ON,
+LOCKED (the S2P camera without its move) so every face is in profile and Dupe's reaction
+reads at mid distance. Lines: the last three of Valder's tour speech from Draft 5
+(3:39–3:50): fish trap, never sold one, "Are you following us with that?"
+
+⛳ LANE: FREE lane (Unlimited ON, Generate button shows NO number), fired by the winbox
+operator in queue order after S2PT. Spec: 20s / 720p / 16:9 / Seedance 2.5 / Sound ON /
+1 video.
+PREVIZ: attach docs/S2PU-Render.MP4 (1280×720 · 480 frames · 20.0s · 24 fps) so @Video 1
+resolves; the paste mentions Video 1 as a chip ONCE.
+⚠️ CHIPS: 8 = 1 video + 7 elements (loc_hall_big_e, char_valder, gentleman_e,
+char_guard_private_v2, char_guard_valder_two, char_cleaner_c, prop_cart_a_painted). The
+fish trap is prose only (no prop chip) to stay at six people plus the room. Zoom every
+thumbnail for a warning triangle before Generate.
+
+REVIEW ORDER:
+1. ONE locked shot, no cut, no camera move at all (0.2s sweep: no spike; ceiling-corner
+   crop static).
+2. They walk in from the right and are STOPPED by ~3s in front of the hanging trap at
+   the left; six people and the cart, nobody else; Dupe at the right end with the cart.
+3. THREE lines (whisper), all Valder's: "A fish trap. It caught nothing for forty years."
+   / "The man who made it never sold a single one." / "Excuse me. Are you following us
+   with that?" Dupe says nothing.
+4. At ~9s every head turns to Dupe; ~12s Dupe frozen, hands on the handle, eyes wide;
+   ~14s he dips his head, touches his cap, swings the cart a quarter turn to the wall
+   and mops there until the end. NO red face, no sparkle, nobody laughs.
+5. ~17s Valder and the party turn back to the trap; Dupe still mopping at 19s.
+
+Filing: All Scene/Fix-2/ as S2PU-AreYouFollowingUs-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+20s · 720p · 16:9 · ONE LOCKED SHOT, no cuts, the camera never moves. Sound On · High.
+
+the reference video (Video 1) is the CAMERA AND BLOCKING REFERENCE for this
+shot — a 20-second grey previz of this exact scene. Every grey block is a prop,
+never a person.
+
+THE CAMERA: locked on a tripod, square to the hall at chest height, looking
+straight across it, and it does not move for twenty seconds — no pan, no tilt,
+no zoom, no drift, no reframing. The people walk INTO this frame from the
+right, stop, and play the whole scene inside it.
+
+THE COMPLETE CAST OF THIS SHOT IS SIX PEOPLE AND NOT ONE MORE. There are no
+extras in this film. No bystanders, no other visitors, no gallery staff, no
+security guards beyond the three named, no reporters, no journalists, nobody
+holding a camera, nobody filming, nobody in the background, nobody walking
+through. If a figure is not named below it must not exist.
+
+POSITION MAP — every figure in the reference video stands exactly where its
+character must stand once they have stopped. EVERY CHARACTER APPEARS EXACTLY
+ONCE:
+- the MAGENTA figure labelled VALDER, at the LEFT, facing the trap =
+  @project_absence_char_valder
+- the GOLD figure labelled GENTLEMAN, at his shoulder = @gentleman_e
+- the DARK GREY figure labelled BODYGUARD, behind the gentleman =
+  @project_absence_char_guard_private_v2
+- the two NAVY figures labelled GUARD_V1 and GUARD_V2, a pace and a half
+  behind Valder = @project_absence_char_guard_valder_two
+- the WHITE figure labelled DUPE, at the RIGHT, two and a half metres behind
+  the last guard = @project_absence_char_cleaner_c
+- the orange trolley beside him = @project_absence_prop_cart_a_painted
+- the pale oval hanging on a wire at the far left, head height, a little
+  beyond Valder = the fish trap; every other grey block is a prop, never a
+  person
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt.
+  The camera stands OUTSIDE the wall, in the gallery, looking straight across
+  it: chromium trumpet columns, warm orange cove light along the ceiling,
+  polished terracotta terrazzo underfoot, works on white plinths and framed
+  pieces along the far wall. THE BROKEN WALL IS NOT IN THIS SHOT — no crack, no
+  star, no damaged plaster anywhere. Take the room, its surfaces and its light
+  from this picture.
+THE FISH TRAP (no picture — describe it, do not look for one): a large woven
+  oval basket of dark rattan, about the size of a man's torso, hanging on thin
+  wires from the ceiling at head height against the far wall at the left of the
+  frame, turning very slightly.
+
+@project_absence_char_valder — VALDER, at the left, facing the trap: tall,
+  slim, elderly, swept-back white hair, small round tinted sunglasses, a blazer
+  PANELLED IN FLAT BLOCKS OF COLOUR — magenta, yellow, green, blue, red — over
+  a red waistcoat, a long mustard-yellow scarf down the front, purple trousers,
+  two DIFFERENT shoes, one dark green and one burgundy. He is the only one who
+  speaks.
+@gentleman_e — MR CARRINGTON, at his shoulder: tall, elderly, swept-back white
+  hair, a white stand-collar suit, white shoes, a black cane with a gold lion
+  head, TWO GOLD FRONT TEETH. He listens, smiling, and never answers.
+@project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD: very heavily
+  built Black man, opaque dark sunglasses, WHITE gloves, all-black suit, black
+  shirt and tie, one pace behind his employer. No weapon, no earpiece, no
+  holster.
+@project_absence_char_guard_valder_two — VALDER'S TWO GUARDS: navy
+  military-cut tunics with gold buttons and a large gold V, black belts, navy
+  peaked caps. ONE TALL AND THIN, ONE SHORT AND HEAVY. This one picture is both
+  of them. They stand a pace and a half behind Valder and never speak.
+@project_absence_char_cleaner_c — DUPE, at the right end: white uniform with
+  orange trim, cap, gold V, moustache, both hands on the handle of his cart. He
+  never speaks.
+@project_absence_prop_cart_a_painted — HIS CART: castor wheels, mop, orange
+  bucket, bottles, folding ladder, gold V, a painting standing upright in the
+  rack.
+
+[0s] The frame is empty of people for a breath, then THE PARTY WALKS IN FROM
+THE RIGHT, all six at the same unhurried pace, and by three seconds they have
+STOPPED, spread across the picture in profile: Valder at the left in front of
+the hanging trap, Carrington at his shoulder, the bodyguard a pace behind
+Carrington, the two guards a pace and a half behind Valder, and at the right
+end, two and a half metres behind the last guard, DUPE with his cart, its
+castors squeaking until it stops last. His hands stay on the handle. He is
+plainly not part of the party. Valder's open hand is already out to the trap,
+warm, in love with the object: "A fish trap. It caught nothing for forty
+years."
+
+[4s] Still facing the trap, still warm: "The man who made it never sold a
+single one."
+
+[8s] ONE MORE SQUEAK from the cart behind them. Valder's head turns — not to
+Carrington this time — back past the guards, all the way to Dupe, and the rest
+of him follows until he is facing Dupe down the line.
+
+[9s] Charming, faintly puzzled, entirely polite: "Excuse me. Are you following
+us with that?" EVERY HEAD IN THE PARTY TURNS TO DUPE AT ONCE — Carrington, the
+bodyguard, both guards — on the line. Feet stay planted.
+
+[12s] DUPE FREEZES, caught: both hands locked on the handle, eyes wide, mouth a
+little open, a man who has just been seen. Two whole seconds in which nobody
+moves and nobody speaks.
+
+[14s] Then embarrassment, small and quick: a dip of the head that is almost a
+bow, one hand up to the peak of his cap, and he swings the cart a quarter turn
+to face the near wall and starts mopping the floor right there, briskly, head
+down, as though that had been the plan all along. He does not look up again.
+
+[17s] Valder turns back to the trap, and the party turns with him, the moment
+over. Behind them Dupe keeps mopping, head down, the mop going in short quick
+strokes.
+
+[19s] Hold. Cut.
+
+AUDIO: room tone; six sets of footsteps that stop by three seconds; the tap of
+a cane; the cart's castors squeaking, then one last squeak at eight seconds;
+THREE speeches only, all Valder's, in the order above; then the mop on the
+terrazzo. Nobody else says a word — Carrington never answers, the guards and
+the bodyguard never speak, and Dupe never speaks. NO SOUND AT THE START OR THE
+END: the clip opens mid room-tone with no intro sting or riser, and simply
+stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: every single person has a different face, build, age, hair
+and clothing, and no face is repeated anywhere; no opening sound, no intro
+sting, no whoosh, no riser, no closing sound, no outro, no final chord, no
+audio tail, no fade-in or fade-out on the sound; no seventh person, no extra,
+no bystander, no other visitor, no gallery staff, no registrar, no reporter, no
+journalist, nobody holding a camera, nobody filming, no crowd, no children,
+nobody in the background, nobody walking through; no Carrington replying, no
+other character speaking, no Dupe speaking, no conversation, no murmuring, no
+laughing, no applause, nobody smiling at Dupe; no blushing, no red cheeks, no
+red face, no sparkle, no twinkle, no glow, no cartoon effect of any kind on
+Dupe's face; no Dupe joining the party, no Dupe stepping toward Valder, no Dupe
+leaving his cart, no Dupe walking out of frame; THE CART STAYS WITH DUPE AND
+ONLY WITH DUPE — no cart near Valder or Carrington or the guards, no cart
+moving on its own, no second cart; NO DUPE WITHOUT HIS CART, no Dupe with empty
+hands before the mop, no Dupe carrying a bottle or a cloth; NO VALDER AT THE
+BACK OF THE LINE, no Valder walking to Dupe, nobody walking after they have
+stopped except Dupe's quarter turn with the cart; no camera movement of any
+kind, no pan, no tilt, no zoom, no dolly, no handheld shake, no reframing, no
+whip, no push-in, no cut, no second angle, no close-up; no vertical
+composition, no group facing the lens, no over-the-shoulder; no cracked wall,
+no crack, no brass plaque, no price plaque in frame; no running, no hurrying,
+no comic speed, no sped-up motion, no slow motion; no four-panel layout, no
+grid, no split screen; no money, no card, no contract, no papers exchanged; no
+weapon, no gun, no holster, no earpiece; no looking at camera by anybody; no
+smartphones, no screens, no modern technology.
+
+House negatives: no voiceover, no narration over the top, no subtitles, no
+captions, no on-screen text, no signage, no logos, no music, no score, no
+dutch angle, no tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI
+sheen, no plastic skin, no beauty filter, no dim moody lighting, no darkness,
+no night, no blue walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

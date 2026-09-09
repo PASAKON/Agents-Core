@@ -42,6 +42,8 @@ keeper ignores its previz entirely unless the CEO orders a reshoot.
 | `S2Fix1-Render.MP4` | 20s | Fix-1 accident: locked wide → fast zoom into the crack at 8s → tilt down to the plaque at 10s → CUT close on Dupe at 12s → CUT wide, he racks the painting and wheels out while the camera stays put → CUT to the straight-on final, crack above and plaque below |
 | `S2RF-Split-Render.MP4` | 20s | five vertical close-up panels (gold = Carrington, teal = the woman in green) lit one at a time, hard cut at 15s to the S2R full shot with the startle; Blender, 480 frames |
 | `S2AJ-Render.MP4` | 20s | wall-POV locked master (S2N camera); v4 (CEO 2026-09-09 19:40): couple together — husband hugs her + tissue all 20s, silent after 2s; row uneven as Draft 5 @1:52; quarrel = fur (crying) / critic / student; black from 19s |
+| `S2PT-Render.MP4` | 20s | THE TOUR, TOGETHER (CEO 2026-09-09 20:20, replaces Draft 5 3:18-3:39): S2P lateral track, cast cut to six + cart (Valder, Carrington, bodyguard, two guards, Dupe 2.6 m behind); mustard chair on blue rug enters left ~10s; no cut |
+| `S2PU-Render.MP4` | 20s | ARE YOU FOLLOWING US (CEO 2026-09-09 20:20, replaces Draft 5 3:39-3:52): LOCKED side-on camera between the near columns; party walks in from the right, stops by 3s at the hanging trap; Dupe + cart at the right; cart quarter-turn + mop from 14s; no cut |
 
 ## How a previz gets built (recorded 2026-09-03, so it is done once)
 
