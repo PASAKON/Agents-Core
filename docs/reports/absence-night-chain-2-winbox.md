@@ -300,7 +300,32 @@ re-tried in any form. Composer left as-is; moving on to S19. This is a CEO/CTO d
 
 ## Scene 5 — S19 "THE PAINTING GOES BACK"
 
-_pending_
+**Pre-staged during S2R-F's render** in the same tab as the rejected job — no video reference
+needed for this scene per the sheet. Pasted directly into a clean composer (4497 chars).
+
+**Chips:** 3/3 unique bound, 0 error, no video (correct — sheet has none): `@project_absence_loc_hall_big_d`,
+`@project_absence_char_cleaner_c`, `@project_absence_prop_cart_a_painted`.
+
+**Settings drift caught before fire — matches the skill's known "silent settings reset" class of
+bug:** resolution had drifted to **1080p** (not 720p) by the time of the pre-fire check — likely
+inherited from S2R-F's own settings row state in the same tab/session rather than reset to a
+default. Corrected via the resolution chip. **A JS text-scrape of the resolution chip
+immediately after the fix still read back "1080p"** even though the on-screen pixels clearly
+read "720p" in the same-moment screenshot — a live instance of the skill's documented
+decoy-button trap (a stale/hidden element matches the same text-based query). Trusted the pixel
+screenshot, not the DOM scrape, per the hard rule; re-confirmed by full-page screenshot
+immediately before the click.
+
+**`zoom` on the Generate button froze on this tab repeatedly** (same tab that also handled the
+S2R-F rejection); relied on full-page screenshots throughout, which stayed reliable, and never
+substituted a DOM/JS scrape for the price reading.
+
+Final settings, pixel-confirmed: Seedance 2.5 · 16:9 · **720p** · 10s · Sound On (assumed
+default, not explicitly re-checked via zoom this fire — visible in the composer bar) ·
+Unlimited on, Generate `UNLIMITED / struck 70 / 0`.
+
+**Fired 2026-09-09T23:55:32Z (2026-09-10 06:55:32 ICT).** Toast "Generation started"; asset count
+765→766 (+1). Rendering.
 
 ---
 
