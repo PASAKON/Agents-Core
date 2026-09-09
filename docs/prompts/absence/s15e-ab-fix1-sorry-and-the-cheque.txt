@@ -55,7 +55,7 @@ rest of the room is far back and soft: THE BUYER in her wheelchair, DUPE the
 cleaner, and VALDER the owner. Nobody else speaks, nobody else comes close.
 
 @project_absence_prop_tag_100m — THE BRASS PLAQUE on the hero wall, exactly as
-  its picture: a warm brass plate with two screws at the top corners, engraved
+  its picture: a warm brass rectangle with two screws at the top corners, engraved
   in serif capitals THE ABSENCE OF MEANING, then Valder, then $100,000,000,
   every letter and digit crisp and correctly spelled, reading the right way
   round. It is mounted at chest height beside the mark and it reads clearly
