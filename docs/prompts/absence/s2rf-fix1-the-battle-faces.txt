@@ -71,6 +71,45 @@ TAKE LOG:
   64, 69, 74, 80, 85, 90 min), no error, no state change. Per the task
   brief, STOPPED POLLING at the 90-minute mark — reporting rather than
   continuing; the CTO decides the next step.
+- Continued (task-6540dd5a, winbox): resumed polling at ~100 min elapsed.
+  Reload + data-asset-id="a0889f15-3ea1-4a8e-adab-a43ce40563ac" DOM read
+  (card is first/most-recent in the grid): data-job-status="queued" at
+  07:58 UTC (14:58 ICT), 100 min since fire, no error, no state change.
+  Per this task's brief, polling continues every 10 minutes up to the
+  17:20 ICT (10:20 UTC) 4-hour cutoff.
+- 08:09 UTC (15:09 ICT), 111 min: still data-job-status="queued", no
+  error, no state change.
+- 08:20 UTC (15:20 ICT), 121 min: still data-job-status="queued", no
+  error, no state change.
+- 08:31 UTC (15:31 ICT), 132 min: still data-job-status="queued", no
+  error, no state change.
+- 08:41 UTC (15:41 ICT), 143 min: still data-job-status="queued", no
+  error, no state change.
+- 08:52 UTC (15:52 ICT), 153 min: still data-job-status="queued", no
+  error, no state change.
+- 09:02 UTC (16:02 ICT), 164 min: still data-job-status="queued", no
+  error, no state change.
+- 09:13 UTC (16:13 ICT), 174 min: still data-job-status="queued", no
+  error, no state change.
+- 09:24 UTC (16:24 ICT), 185 min: STATE CHANGE — data-job-status now
+  "in_progress" (was "queued" every prior check). Switching to a
+  shorter poll interval to catch completion promptly.
+- 09:30 UTC (16:30 ICT), 191 min: LANDED, REJECTED — data-job-status
+  now "nsfw". Card innerText: "NSFW / Credits refunded / Rejected due
+  to copyright restrictions. / Delete". Confirmed visually via zoom
+  (badges "NSFW" and "Credits refunded" both visible on the card).
+  No video was ever produced — the platform's automated moderation
+  killed this take outright before any frames existed, so there is
+  nothing to download or file under S2RF-TheBattleFaces-Fix1.MP4.
+  "Credits refunded" confirms no charge landed (also consistent with
+  Unlimited/free lane — nothing to charge in the first place). Per
+  higgsfield-unlimited-gen hard rules ("an NSFW flag repeating" is a
+  stop-and-ask condition) this is NOT self-certified — left exactly as
+  is (no Delete click) for the CTO/CEO to decide next steps (retry,
+  rewrite the prompt, or drop this take). STEP 2 (S2R-F SPLIT) is
+  gated on STEP 1 "landing" — it did land, but as a rejection, not a
+  usable clip — so STEP 2 was NOT fired; reporting instead per the
+  task brief's stop condition.
 
 === END NOTES ===
 
