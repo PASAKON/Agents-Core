@@ -40,6 +40,7 @@ keeper ignores its previz entirely unless the CEO orders a reshoot.
 | `S2F-Render.MP4` | 12s | Fix-1 the old man looks: one locked three-quarter across the hall — he walks, stops at a piece, stands and looks, moves on, stops again. Dupe is not in this scene |
 | `S2D-Render.MP4` | 20s | Fix-1 first guest: three locked shots cut at 7s and 10s — wide on the hero wall with the cart in from the left, the inside-the-wall beat (a generated plate, so the previz only holds its timing), then behind Dupe looking up the gallery as the first visitor enters at 12s |
 | `S2Fix1-Render.MP4` | 20s | Fix-1 accident: locked wide → fast zoom into the crack at 8s → tilt down to the plaque at 10s → CUT close on Dupe at 12s → CUT wide, he racks the painting and wheels out while the camera stays put → CUT to the straight-on final, crack above and plaque below |
+| `S2RF-Split-Render.MP4` | 20s | five vertical close-up panels (gold = Carrington, teal = the woman in green) lit one at a time, hard cut at 15s to the S2R full shot with the startle; Blender, 480 frames |
 
 ## How a previz gets built (recorded 2026-09-03, so it is done once)
 
