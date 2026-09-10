@@ -19,6 +19,12 @@ defines a new folder or changes a rule, edit THIS file — do not duplicate
 rules into memory, CLAUDE.md, or anywhere else. Every session reads this same
 file, so it stays consistent without re-explaining itself each time.
 
+**Deleting from a machine, not from Drive? Read `disk-hygiene` first.** It owns the
+Green list (what may go without asking), the back-up-first list, the never-touch
+list and the per-machine files for the Mac, winbox and Contabo. It defers to THIS
+file for anything that lands on Drive, and this file defers to it for what may be
+removed locally.
+
 ## Hard rules — apply to every action, no exceptions
 
 1. **Ask before doing anything.** No silent create/move/rename/delete. (Bulk uploads: see the "Bulk transfer" chapter — same rules, plus verification and a gate row.)

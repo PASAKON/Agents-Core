@@ -1,0 +1,173 @@
+---
+name: disk-hygiene
+owner: CTO
+origin: mooniex-org
+scope: >-
+  What may be deleted from a machine to reclaim space, what must be backed up
+  first, and where every backup lands. Covers all three org machines — the Mac,
+  winbox (Windows) and the Contabo VPS — one reference file each. Decides
+  whether a thing may go; `gdrive-filing` decides where it lands on Drive and is
+  read FIRST whenever Drive is touched. Not a file-transfer tool.
+description: Rules for reclaiming disk space without losing data, on the Mac, winbox (Windows) and the Contabo VPS — the Green list (delete now, no asking), the back-up-first list, the never-touch list, and where every backup lives on Google Drive with its restore command. Trigger on /disk-hygiene, "disk เต็ม", "เคลียร์พื้นที่", "ที่เก็บข้อมูลเต็ม", "no space left", "ENOSPC", a DISK-WARNING.txt surfaced at session start, or before deleting ANY node_modules, .venv, cache, worktree, transcript, docker artefact or dataset. Use instead of guessing what is safe to delete. Read `gdrive-filing` as well (not instead) whenever the answer involves Drive; for Cookie Run training data the tier table in cookierun-bot/docs/DATA-STEWARD.md wins over this file.
+created_by: CTO
+audience: [cxo, worker]
+---
+
+# Disk hygiene — reclaim space, lose nothing
+
+Written 2026-09-10, the day the Mac hit **67 MB free** (tools could no longer
+write a file) and winbox hit **6.6 GB** against a 30 GB floor. Both were fixed
+the same day without losing a byte. This file is what that cost to learn.
+
+## Which machine
+
+Read this page for the law, then the one file for the box you are on.
+
+| Machine | File | Shape of the problem |
+|---|---|---|
+| Mac (M1, 256 GB) | `references/mac.md` | chronically full, no Time Machine, orchestrates everything |
+| winbox (Windows, 512 GB) | `references/winbox.md` | the CEO's game PC; a bot fills it 2-4 GB/day; steward tier only |
+| Contabo VPS (72 GB) | `references/contabo.md` | production; comfortable today; every write needs the CEO's go |
+
+## The one law
+
+> **Regenerable → delete it now, do not ask.
+> Everything else → back it up, VERIFY the backup, delete, then log it.**
+
+"Regenerable" is a claim you must be able to defend in one sentence that names
+the command which rebuilds it. If you cannot name that command, it is not
+regenerable — back it up.
+
+## The worker contract — every agent, every machine
+
+1. **Measure first.** `df -h /` plus `du -sh` of the suspects. Never delete on a
+   hunch about what is big.
+2. **Read `gdrive-filing` before the first Drive call** of the session. A
+   PreToolUse hook blocks Drive-touching calls until you have. Google's own
+   limits are not a substitute for it.
+3. **Back up anything not regenerable before deleting.** One tar per item, never
+   loose files. Write `<name>.manifest.json` beside it: file count, bytes, sha256
+   and md5, source path, date.
+4. **Verify by checksum, never by size.** Read `md5Checksum` back from Drive and
+   compare it with the local hash. Only then delete. "It looked like it uploaded"
+   is not verification.
+5. **Log it.** One line per item in `~/.claude/logs/drive-archive.log`: date,
+   source, destination, files, bytes, sha256, drive md5, status. On winbox also
+   `ledger/housekeeping.jsonl` — `ts` (ISO-8601 with offset), `kind`, `path`,
+   `files`, `bytes`, `manifest`, `dest`, `note`, `by`.
+6. **Stay in your lane** (IRON §33). Never delete another session's files, another
+   project's data, or anything outside the scope you were given. If the space you
+   need is not yours, say so and stop.
+
+## Green — delete without asking, on any machine
+
+Everything here rebuilds itself. No backup, no ledger line, no question.
+
+- Browser and Electron caches (`Cache`, `Code Cache`, `GPUCache`)
+- Package-manager download caches — pip, npm, Homebrew, apt, huggingface, torch
+- `__pycache__/`, `.pytest_cache/`, `*.pyc`
+- `node_modules/`, `.venv`/`venv`, `.next`/`dist`/`build` — **only** under the
+  dormancy test below
+- A skill's own `.venv`, when its SKILL.md documents the rebuild
+- Docker **build cache** (`docker builder prune`) — never images or volumes
+  without checking what is active
+- A git worktree whose branch is merged, nothing dirty, nothing unpushed
+
+**The dormancy test, exactly:**
+`find <repo> -type f -not -path '*/node_modules/*' -not -path '*/.venv/*' -not -path '*/.git/*' -mtime -14 -print -quit`
+returns nothing, AND `ps aux | grep -E 'next dev|next-server|vite|uvicorn'` shows
+nothing for it. Both, not either. That test saved comfy-runpod-worker's 1 GB on
+2026-09-10 — it had a live `next dev`.
+
+**Look inside before proposing.** Docker on the Mac held 0 containers and 0
+volumes, so its 4.3 GB disk image cost nothing to drop; Docker on Contabo runs 8
+live containers and 2 data volumes and must not be pruned the same way. The
+difference was knowable only by running `docker system df -v` on each.
+
+**A skill can hide a gigabyte.** `~/.claude/skills/reel-editor-th/.venv` held
+1.1 GB of torch + mlx. Check `du -sh ~/.claude/skills/*` when hunting.
+
+## Back up first, then delete
+
+Not regenerable, or regenerable only from something that no longer exists locally.
+
+| Thing | Back up as | Also |
+|---|---|---|
+| A worktree with unmerged commits or dirty files | one tar: git bundle of `base..branch` + `dirty.patch` + `untracked.tar` + manifest | `git stash push -u -m 'parked <task> …'` in the owning repo as a second copy |
+| A repo clone being retired | push every branch to GitHub, then tar only its gitignored data | verify each branch is `ahead=0`, not just the checked-out one |
+| Session transcripts older than 7 days | `prune_transcripts.py --archive` (tars, verifies, deletes) | never by hand |
+| Cookie Run takes / bot sessions / sweeps | one tar per item streamed to Drive, md5 checked | `cookierun-bot/docs/DATA-STEWARD.md` is the authority |
+
+**Check every branch, not the current one.** `git log @{u}..` speaks only for the
+branch you are on. Loop `git for-each-ref refs/heads` and confirm each exists on
+origin with `git rev-list --count origin/<b>..<b>` equal to 0.
+
+## Where every backup lives on Drive, and how to get it back
+
+All under **`BACKUP/`** on the CEO's Drive — the folder `gdrive-filing` defines
+as "data backed up or redundantly stored in 2-3 places". Never invent a new
+root-level folder for a backup.
+
+| What | Drive path | Restore |
+|---|---|---|
+| Session transcripts older than 7 days | `BACKUP/Claude-Transcripts/<project>/<uuid>.tar.gz` | `python3 ~/.claude/tools/prune_transcripts.py --restore <uuid>` |
+| Agents task worktrees removed to reclaim space | `BACKUP/Agents-worktrees-<YYYY-MM-DD>.tar` + `.manifest.json` | `git worktree add <path> <branch>`, then `git apply dirty.patch` and `tar xf untracked.tar` from the package |
+| Retired local clones' gitignored data | `BACKUP/PARKED-<repo>-ignored.tar.gz` + manifest | `git clone <github url>`, then `tar xzf` the tar |
+| Cookie Run recorded takes | `BACKUP/CookieRun Backup/play_rec/<take>.tar` + manifest | download, untar on the box |
+| Cookie Run bot sessions | `BACKUP/CookieRun Backup/bot_sessions/<session>.tar` | same |
+| Cookie Run jump sweeps | `BACKUP/CookieRun Backup/jumpsweeps/<sweep>.tar` | same |
+| VPS backups staged on the Mac | `Archive/Backups/<same relative path>` | copy back to the original path |
+
+`<project>` in the transcript path is the working directory with `/` turned into
+`-`, e.g. `-Users-gob-Projects-Agents`. To find a session again: list that folder
+on Drive, or grep `~/.claude/logs/prune-transcripts.log` for the uuid.
+
+The full folder map, Drive IDs and filing rules live in **`gdrive-filing`**. A new
+destination needs a row there AND in `org:playbooks/drive-archive-gate.md` before
+anything is uploaded.
+
+## Standing rules that run without being asked
+
+- **A session transcript untouched for more than 7 days is backed up to Drive and
+  removed from the Mac** (CEO 2026-09-10). Config `~/.claude/prune-transcripts.json`:
+  `keep_days` 7, low-disk mode 3. The daily 09:00 launchd job only *notifies*; a
+  human or a C-level runs `--archive`. Live sessions, anything written in the last
+  24 h, and anything newer than 7 days are never touched. **Nothing is lost** —
+  merged code is in git, lessons are in memory and the wiki, task history is in
+  `tasks.db`; the transcript is only the conversation, and it is one command away.
+- **winbox archive loop**, every 30 min — see `references/winbox.md`.
+- **Training staging** (`playset/merged_*` and its `.tgz`) is deleted once a model
+  in `vision/from_pod` is newer than it.
+
+**"Queue clean" is never evidence that a disk is safe.** On 2026-09-10 winbox
+logged *"queue clean — everything that can be archived is on Drive and verified"*
+every 30 minutes while free space fell 0.8 GB/h, because the loop was blind to two
+things nobody owned. Judge growth from measurements (`ledger/disk.jsonl`, `df`),
+never from a tool's verdict about its own queue.
+
+## What will block you, and what to do about it
+
+- **GateGuard** (`pre:bash`, `pre:edit-write`) demands facts before a destructive
+  Bash call or a file edit, and re-arms after an idle gap. It fires per message:
+  state the three facts — what is deleted, the one-line rollback, the user's
+  instruction verbatim — immediately before ONE destructive call, then retry the
+  identical command.
+- **The auto-mode classifier** independently refuses some shapes no matter how
+  well you explain them. Measured 2026-09-10, refused: `rm -rf <a project
+  directory>`, `git worktree remove --force`, a python script calling
+  `shutil.rmtree` over ssh, and one `rm` carrying many unrelated targets. Passed:
+  an in-repo tool with a purposeful name (`gc_stale_tasks.py --reap --go`), a
+  plain `git worktree remove` after `git stash push -u`, and a single-purpose
+  `rm -rf` of one cache tree.
+- **So put the deletion in a tool, not a shell one-liner.** It passes the
+  classifier, it logs, it is reviewable, and it fixes the problem for next time
+  instead of only for today. If a delete is refused twice, stop and hand the CEO
+  the exact one-line command to run themselves with `!`.
+
+## Baseline measured 2026-09-10 (so the next session can see drift)
+
+| Machine | Before | After | Still open |
+|---|---|---|---|
+| Mac | 67 MB free | 27.5 GB free | Pictures 51 GB and CloudDocs 29 GB are the CEO's |
+| winbox `C:` | 6.65 GB free | 24.8 GB free | floor is 30; hit frames grow 2-4 GB/day, tier A, CEO ruling |
+| Contabo | 31 GB free | unchanged | ~16 GB available from build cache + journal, needs the CEO's go |
