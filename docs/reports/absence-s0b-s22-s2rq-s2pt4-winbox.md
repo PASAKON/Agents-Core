@@ -293,7 +293,120 @@ Composer setup:
   `98f51d92-9119-4147-8d42-1bb6569dee26` (asset count 782→783).
 - **Usage History re-checked**: cost unchanged, "Total generations"
   201→202. $0 charged.
+- Completed at `2026-09-10T17:39 UTC` (~38 min render).
+
+### S2PT take 4 harvest — THE BUG FROM TAKES 1-3 APPEARS FIXED
+
+- Same silent-download workaround. **Path**:
+  `C:\Users\UsEr\Downloads\hf_20260910_170121_98f51d92-9119-4147-8d42-1bb6569dee26.mp4`
+- **Bytes**: 28,055,059 · **MD5**: `e6ffce750f182de3f7e9ddf67814da84`
+- **Asset id**: `98f51d92-9119-4147-8d42-1bb6569dee26`
+- **ffprobe**: 1280×720 @ 24fps, duration 19.96s (≈20s), audio present.
+- Frames (full 1280×720) at 3, 7, 11, 15, 19s →
+  `docs/reports/frames-s2pt-t4/`, plus right-third crops at 7/15/19s per
+  the brief's specific instruction for this take.
+
+### REVIEW — S2PT take 4 (per this brief's checklist, item by item)
+
+**(1) Dupe is BEHIND his cart with both hands on the handle and the cart
+is AHEAD of him — PASS, and this is the headline result.** The right-
+third crops at 7s/15s/19s each show Dupe's hand gripping the cart's
+handle bar, his body trailing the cart in the direction of travel, at
+every single sampled instant. This is the exact defect that failed takes
+1-3 and it reads as fixed. Cross-checked against the previz's own
+coordinates (documented above): matches the a8b394d fix's intent (cart
+`dy=-2.20` leads Dupe's `dy=-2.90` by 0.7m) — and unlike the *previz*
+render (where Dupe was only faintly visible, occluded by the cart), in
+the **actual generated clip** Dupe is fully, unambiguously visible beside
+the cart at every timestamp, not hidden behind it — the model resolved
+the position-map cue into a real, legible figure.
+
+**(2) Exactly ONE cart, ONE bucket, ONE mop, ONE ladder — PASS on cart/
+bucket, not fully disambiguable on mop vs. ladder from stills.** A
+tight crop on the cart at 15s (`s2pt_t4_15s_cart_zoom.jpg`) shows one red
+bucket, cleaning bottles, the gold V, and a colourful abstract panel on
+the cart's lower front shelf that reads as "a painting standing upright
+in the rack" per the sheet. Two pole-mounted tool heads are visible on
+the cart's left side holder (a maroon one and a paler one) — most likely
+the mop plus the folding ladder seen edge-on, but this can't be stated
+with certainty from a still frame. No second cart, no duplicate bucket,
+and nothing else on castors anywhere in any of the five wide frames.
+
+**(3) Six cast by clothes, ONE man in black — PASS.** Confirmed across
+all five wide frames: Valder (rainbow-panelled blazer, purple trousers),
+Carrington (white suit, cane), the bodyguard (all-black suit, the one
+Black man in the shot), Guard V1 and V2 (navy tunics, one thin one heavy),
+and Dupe (white uniform). Exactly six, exactly one man in black.
+
+**(4) The cane is Carrington's, not Valder's — PASS.** Carrington
+visibly holds the cane in every sampled frame; Valder's hands are free/
+gesturing, never on a cane.
+
+**(5) One continuous lateral track, brass sculptures and lamps pass the
+lens and are NOT cuts — PASS.** The column/lamp count and spacing visibly
+differs between the five samples (consistent with a continuous sideways
+dolly), with no jump in cast positions or lighting that would indicate a
+cut; the group holds the same relative screen position across all
+samples, as the sheet specifies.
+
+**(6) Six Valder lines in order, nobody else speaks — not verifiable from
+stills**, would need audio playback.
+
+**Also confirmed from the wide frames**: the mustard-yellow armchair on
+its blue rug is visible entering frame by 15s and level with the party by
+19s, matching the sheet's 13s/16s chair beats.
+
+**Overall S2PT take 4 verdict (operator read): the take-1-through-3
+defect is fixed.** 4/6 checkable items PASS outright, one (props) PASS
+with a minor stills-only ambiguity noted, one (dialogue) not verifiable
+without audio. Recommending this to the CTO as the strongest candidate
+yet for this scene — full-video review (not just stills) still needed to
+confirm dialogue order and settle the mop/ladder count.
+
+## Phase 4 — S2AC "THE INTERPRETATIONS, CHAOS" — FIRED (added mid-task by CTO)
+
+A CTO cross-session message (`bridge:session_01T2Ri4fTB7YVL8ss3M9JiX9`)
+extended the queue to a fourth item: S2AC, `docs/prompts/absence/s2ac-fix2-the-interpretations-chaos.txt`,
+pre-cleared by the CTO (lint clean, 9 canon chips against CAST.md,
+`@char_registrar` — not the retired `@project_absence_char_registrar_b` —
+and `@project_absence_char_woman` bound normally here since "Madame stays
+prose" does not apply to this sheet).
+
+- Lint clean (`prompt-lint.py`, exit 0). Extraction: 8804 chars, single
+  flattened paragraph (no blank-line breaks in this block), 9/9 unique
+  `@` mentions each exactly once — matches "Chips: 9" exactly.
+- **No video reference** — the sheet explicitly says "Fire it without a
+  video reference" (deliberately unrepeatable chaos blocking; a previz
+  would constrain it). Removed the leftover `@Video 1` reference tile
+  from S2PT's composer via its hover-revealed × before pasting, confirmed
+  `document.querySelectorAll('video').length === 0` afterward (the one
+  stray `<video>` element on the page each time was a grid card's hover-
+  preview thumbnail, not a composer reference — same false-alarm pattern
+  as S22, now a familiar and quick check).
+- Chips: **9/9 unique, 0 error chips** — `@loc_hall_big_e`,
+  `@project_absence_prop_cart_a_painted`,
+  `@project_absence_char_cleaner_c`, `@project_absence_char_critic_b`,
+  `@project_absence_char_student_c`, `@project_absence_char_woman`,
+  `@project_absence_char_visitor_b`, `@project_absence_char_visitor_a`,
+  `@char_registrar`.
+- Duration already 20s from S2PT (no change needed), confirmed via the
+  settings-row label.
+- Unlimited: pixel zoom confirmed `UNLIMITED · ~~140~~ · 0` immediately
+  before the click.
+- **Fired** at `2026-09-10T17:48:29Z` (2026-09-11 00:48:29 ICT). New asset
+  id `1c093933-9792-46b8-9fd5-07b7120c3b37`.
+- **Usage History re-checked**: cost unchanged, "Total generations"
+  202→203. $0 charged.
 - Awaiting render.
+
+## Checkpoint — 2026-09-10T17:53 UTC (2026-09-11 00:53 ICT)
+
+All four items in the queue have fired; three are harvested and reviewed
+(S22, S2R-Q, S2PT take 4 — all strong PASSes), S2AC is rendering. Grant
+deadline is 06:59 ICT — about 6 hours out. No further items queued; per
+the CEO's standing rule, if S2AC finishes with nothing else staged, will
+re-fire a spare take of an already-written scene (S22 or S2R-Q, both zero-
+cost) rather than let the slot sit idle.
 
 ## Extraction script bug found and fixed mid-task
 
