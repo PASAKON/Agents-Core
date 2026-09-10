@@ -108,6 +108,13 @@ everything fresh (chips, duration, settings, price) immediately before the
 actual Generate click, per the skill's "staging early does not relax the
 checks at the actual click" rule.
 
+**15:24 ICT (08:24 UTC) checkpoint: S20 still `queued`.** ~129 min since the
+~13:15 ICT fire — inside this skill's own documented worst case ("137 min,
+never finished — cancelled" during a stacked-peak window) but the brief is
+explicit here: no time cap, a queued job is never cancelled or re-fired.
+Continuing to poll every ~10 min via a throwaway tab; S2PT stays staged and
+untouched in the composer tab.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
