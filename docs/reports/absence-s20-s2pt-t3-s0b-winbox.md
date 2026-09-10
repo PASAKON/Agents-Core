@@ -247,6 +247,53 @@ S20 harvest — no new tab needed since it was already clean:
 2.5/High/Sound On, 7/7 chips + 1 video ref, 1/4 batch.** Not yet harvested —
 render in progress as of this report.
 
+Usage History confirmed (separate throwaway tab): top entry
+`Unlimited · Seedance 2.5 · Spent · Sep 10, 2026 5:10 PM` — matches the fire
+time exactly, $0, no unexpected charge.
+
+## Phase 3 — S0b staging (pre-staged during S2PT's render)
+
+Following the render-wait pattern (pre-stage the next prompt while the
+current one renders), staged S0b in the same composer tab (1638444940) right
+after S2PT's fire — editing the composer text does not touch S2PT's already-
+committed server-side render.
+
+- **Note found and hand-corrected**: my first paste attempt used a
+  hand-typed base64 string instead of the verified Bash+Python-extracted one
+  — caught immediately by a length mismatch (4521 chars landed vs. 4513
+  expected from the source file), before any chip/settings verification or
+  Generate click. Cleared and re-pasted using the exact base64 read back
+  from the scratchpad file that the earlier extraction step produced;
+  confirmed landed length 4513 matched exactly this time. No sheet content
+  reached the composer incorrectly at any point a check would have missed —
+  recorded here as a process note (paste-only doesn't eliminate all risk,
+  the *source* of the pasted bytes matters too; always pipe through a
+  file-verified path, never hand-transcribe).
+- Removed the leftover S2PT video reference from the tray (S0b's sheet
+  specifies "No previz") via its hover-revealed × control; confirmed via
+  `document.querySelectorAll('video')` returning zero visible elements
+  afterward.
+- Prompt pasted (synthetic `ClipboardEvent`, verified 4513 chars in the
+  editor, landed `innerText` 4602 chars including chip label text), followed
+  by `End`/`space`/`Backspace`. **3/3 unique chips bound, 0 error chips**:
+  `@loc_hall_big_e`, `@project_absence_char_cleaner_c`,
+  `@project_absence_prop_cart_a` — matches `prompt-lint.py --chips` exactly.
+- Duration: was 20s (leftover from S2PT), changed via the `role="slider"`
+  popover, `ArrowLeft` × 12 → `aria-valuenow="8"`. Confirmed via the
+  settings-row label reading `8s`.
+- Unlimited: still `true` from S2PT's staging (not reset — no reload
+  happened on this tab since it was set). Zoom-verify pending — one
+  `Page.captureScreenshot` timeout occurred while attempting it (page stayed
+  responsive throughout per `document.readyState`/`window.innerWidth`
+  checks, and Usage History was re-checked immediately before, showing no
+  stray charge — consistent with this skill's documented CDP/screenshot
+  flakiness, not a real freeze).
+
+**Not yet fired** — S2PT still owns the Unlimited slot. Will re-verify
+everything fresh (chips, duration, video-ref absence, price via a working
+zoom) immediately before the actual Generate click, once S2PT's card leaves
+`queued`/`in_progress`.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
