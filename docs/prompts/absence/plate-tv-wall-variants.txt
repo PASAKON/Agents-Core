@@ -1,0 +1,94 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+PLATE · THE TV WALL · three design variants, pick one · CEO 2026-09-10 17:40
+("อนุมัติแค่ฉาก S21 Impact สุดแล้ว TV ขอ design ที่ไม่เหมือนกัน แนะนำว่าสร้าง Image มาก่อน 2-3 อัน
+เพื่อเอามาใช้สำหรับฉากนี้โดยเฉพาะ แนะนำใช้ Free Model Image ได้เลย")
+
+WHY: S21's first draft asked for sixteen IDENTICAL sets. The CEO wants the televisions to be
+different from each other. Rather than describe that in the video prompt and hope, we design
+the wall as a still first, let the CEO choose, register the chosen image as an Element, and
+bind it in S21 — the same order the film has used for every location and character.
+
+LANE: **image models on the 365-day Unlimited grant — ZERO credits.** The account carries
+FLUX.2 Pro, GPT Image, Seedream 4.5 and Kling O1 Image as unlimited (unlike video, where only
+Seedance 2.5 was granted and it expires 11 ก.ย. 06:59). Use whichever unlimited image model the
+picker offers; record which one produced each variant.
+RULE 00: generated on Higgsfield, inside the Film Festival project. Never composed or retouched
+anywhere else.
+
+THREE VARIANTS — fire each one ONCE, all three, then stop. They differ only in how the sets are
+arranged and how far the designs diverge; everything else (dusk, warm palette, no people) is
+identical so the CEO is comparing one variable.
+- **A · SECOND-HAND SHOP**: every era at once, stacked unevenly.
+- **B · ORDERED VARIETY**: one strict grid, every cabinet a different colour and material.
+- **C · STEPPED PYRAMID**: biggest at the bottom, tiniest at the top.
+CTO's own preference is B — variety held inside strict symmetry is the film's grammar — but
+this is the director's call, which is the whole reason three exist.
+
+AFTER THE CEO PICKS: register the winner as Element `project_absence_prop_tv_wall`, then S21's
+sheet binds it and drops its long prose description of the sets.
+NO PEOPLE IN ANY VARIANT. No readable text on any screen (the plaque lesson).
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · VARIANT A ===
+A television shop window at dusk, photographed dead-on and perfectly symmetrical from the
+pavement outside, camera at chest height and square to the glass. Behind the glass, a WALL OF
+SECOND-HAND TELEVISIONS filling the frame edge to edge, and NO TWO SETS ARE THE SAME: a huge
+walnut console on splayed wooden legs, a small cream plastic portable, a chrome space-age ball
+set on a stalk, a red lacquered cube, a boxy black-and-grey portable with a wire aerial, a
+tiny white one, a brass-cornered set in tan leatherette. Different eras, different sizes,
+different woods and plastics, stacked unevenly on top of one another the way a second-hand
+shop stacks stock, filling the window from floor to ceiling. Every screen is on and glowing
+the same warm amber, and every screen shows the same soft indistinct broadcast — a figure
+behind a desk, small and out of focus, with a coloured band along the bottom of the picture.
+Nothing on any screen is large enough or sharp enough to read. Warm light spills out of the
+window onto wet pavement. Above the window, a plain painted fascia in deep amber, blank.
+NOBODY IS IN THIS PICTURE — no shopper, no passer-by, no shopkeeper, no silhouette, no
+reflection of a person in the glass. Colour grade: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, halation around every screen. Photographed, not
+rendered: fine film grain, slight colour fringing. NEGATIVES: no people, no readable text, no
+words, no letters, no numbers, no channel logo, no brand, no signage, no modern flat-screen
+television, no computer monitor, no LED panel, no smartphone, no daylight, no neon, no dutch
+angle, no tilted horizon, no lens flare, no CGI sheen, no darkness, no night-black.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · VARIANT B ===
+A television shop window at dusk, photographed dead-on and perfectly symmetrical from the
+pavement outside, camera at chest height and square to the glass. Behind the glass, SIXTEEN
+TELEVISIONS in a PERFECT GRID, four across and four high, edge to edge, every set the same
+size and shape — and EVERY CABINET A DIFFERENT COLOUR AND MATERIAL: walnut, cream plastic,
+mustard yellow, oxblood lacquer, brushed chrome, pale birch, olive green, teal, burnt orange,
+black leatherette, ivory, dusty pink, brass, grey, deep blue, tan. Sixteen different finishes
+held in one strict symmetrical grid. Every screen is on and glowing the same warm amber, and
+every screen shows the same soft indistinct broadcast — a figure behind a desk, small and out
+of focus, with a coloured band along the bottom of the picture. Nothing on any screen is large
+enough or sharp enough to read. Warm light spills out of the window onto wet pavement. Above
+the window, a plain painted fascia in deep amber, blank.
+NOBODY IS IN THIS PICTURE — no shopper, no passer-by, no shopkeeper, no silhouette, no
+reflection of a person in the glass. Colour grade: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, halation around every screen. Photographed, not
+rendered: fine film grain, slight colour fringing. NEGATIVES: no people, no readable text, no
+words, no letters, no numbers, no channel logo, no brand, no signage, no modern flat-screen
+television, no computer monitor, no LED panel, no smartphone, no daylight, no neon, no dutch
+angle, no tilted horizon, no lens flare, no CGI sheen, no darkness, no night-black.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · VARIANT C ===
+A television shop window at dusk, photographed dead-on and perfectly symmetrical from the
+pavement outside, camera at chest height and square to the glass. Behind the glass, the
+TELEVISIONS ARE STACKED INTO A STEPPED PYRAMID, centred: the biggest sets along the bottom
+row, a row of medium sets above them, then smaller, then one tiny portable alone at the apex.
+NO TWO SETS ARE THE SAME — different woods, plastics, chromes and lacquers, different eras,
+different proportions — but the pyramid itself is exactly symmetrical, left matching right.
+Every screen is on and glowing the same warm amber, and every screen shows the same soft
+indistinct broadcast — a figure behind a desk, small and out of focus, with a coloured band
+along the bottom of the picture. Nothing on any screen is large enough or sharp enough to
+read. Warm light spills out of the window onto wet pavement. Above the window, a plain painted
+fascia in deep amber, blank.
+NOBODY IS IN THIS PICTURE — no shopper, no passer-by, no shopkeeper, no silhouette, no
+reflection of a person in the glass. Colour grade: amber-orange highlights and mids, whites
+pushed slightly cool, shadows deep red-brown, halation around every screen. Photographed, not
+rendered: fine film grain, slight colour fringing. NEGATIVES: no people, no readable text, no
+words, no letters, no numbers, no channel logo, no brand, no signage, no modern flat-screen
+television, no computer monitor, no LED panel, no smartphone, no daylight, no neon, no dutch
+angle, no tilted horizon, no lens flare, no CGI sheen, no darkness, no night-black.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
