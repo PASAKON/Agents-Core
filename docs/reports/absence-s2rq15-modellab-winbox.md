@@ -78,4 +78,47 @@ Model switched to **Seedance 2.0 Mini** (composer preserved the same pasted prom
 
 Result: toast "Generation started", new `Generating` card top-left, asset count 773→774. Fired at approximately **2026-09-10T09:12:41Z**.
 
-*(Harvest to follow after the render completes — see below.)*
+### Fire 2 — harvest
+
+**Render time: under 4 minutes** (fired 09:12:41Z; card already showed finished when checked ~3.5 min later). Even faster than Fast. No moderation rejection, no rights banner, no NSFW flag.
+
+Card detail panel confirmed: Feature `Seedance 2.0 Mini`, Quality `720p`, Size `1280x720`, Created `September 10, 2026 at 4:12 PM`. Prompt panel matched the pasted sheet verbatim.
+
+- Downloaded: `C:\Users\UsEr\Downloads\hf_20260910_091234_c6f16959-1757-4358-8bba-496bbb66c5f7.mp4`
+- Bytes: 8,140,097 (**~4x smaller than Fast's 32 MB file** — much lower bitrate for the same 1280x720/15s spec)
+- MD5: `b9571603e39b9b8c536bf6dc92cc6ddc`
+- Asset id (preview UUID): `85d21868-d7a9-43f7-b283-60373ba71085`
+- Real duration per `ffprobe`: 15.104s (matches Fast's habit of landing a hair over the requested duration, same as the documented "20.04s" quirk elsewhere in this project)
+- Frames extracted (ffmpeg, full 1280x720, `-q:v 2`) at the task's specified sample points (1.2/3.7/6.2/8.7/11.2/14s) to `docs/reports/frames-s2rq15-mini/`
+
+**Cut-timing finding (not present in Fast):** the fixed-timestamp frames above do NOT land one-per-shot the way they did for Fast, because **Mini's actual cut points drifted from the scripted 2.5/5/7.5/10/12.5s marks.** A boundary scan (1-frame-per-second plus half-second probes, deleted after use — not committed) found the real cuts at approximately: Carrington→Madame ~1.5-2s (scripted 2.5s), Madame→Carrington ~3.5-4s (scripted 5s), Carrington→Madame ~5-5.5s (scripted 7.5s), Madame→Carrington ~7.5-8s (scripted 10s), Carrington→Valder ~10-10.5s (scripted 12.5s). **Net effect: Mini front-loaded the first four close-ups into the first ~10s and gave Valder's final shot roughly double its scripted 2.5s length (~4.5-5s instead).** The cuts themselves are still hard (no dissolve/drift observed at any transition in the boundary scan) and the shot *count* is still correct (six shots, five cuts) — only the *timing* drifted. This means the six fixed-timestamp frames in this folder sample **Carrington, Carrington, Madame, Carrington, Valder, Valder** rather than one frame per shot — a real, reportable difference from Fast, not an extraction error.
+
+### Fire 2 — REVIEW ORDER answers
+
+1. **Did it cut at all?** Yes — six shots, five hard cuts, confirmed by a full boundary scan (see above), no dissolve/drift at any transition. **But cut timing drifted substantially from the prompted timestamps** (see finding above) — the clip is structurally correct but not synced to the beat sheet the way Fast's was.
+2. **Carrington's face across his three close-ups — identical or drifting?** **Identical, no drift**, and arguably a slightly better match to the prompt than Fast's: the 1.2s and 3.7s frames both clearly show **two gold front teeth** (Fast's frames showed the gold more ambiguously, possibly one tooth catching the light). Same white hair part, same suit, same face structure across all Carrington appearances in the boundary scan.
+3. **Madame across her two close-ups — consistent from prose alone?** **Identical, no drift** — same blue/green/silver pompadour, same black cat-eye sunglasses, same green leather gown with pointed shoulder caps, same pose, across both her appearances in the scan.
+4. **Exactly ONE person in every close-up?** Yes, confirmed across all 20 boundary-scan samples plus the 6 full-res frames — no second face, shoulder, or reflection anywhere.
+5. **Five bids audible and in order?** Not verified — audio was not reviewed in this pass (stills only), same caveat as Fire 1.
+6. **Camera locked inside each shot?** No visible intra-shot drift in framing across the many samples taken per shot in the boundary scan (e.g. all Madame samples show her in the same position/scale). Consistent with a locked camera, not confirmed by playback.
+7. **Detail level versus Seedance 2.5.** Visually close to Fast's — skin texture and cloth (Madame's leather sheen, Valder's blazer seams) look comparably detailed in stills despite the much smaller file size (8 MB vs 32 MB), meaning the size difference is likely bitrate/compression efficiency rather than a visible detail cut in these frames. Valder's rainbow blazer panels and stitching are crisp at 14s. **No obvious cheapening spotted**, but this is a stills-only visual judgment, not a pixel diff against a 2.5 reference.
+8. **Render time / moderation.** Under 4 minutes, no moderation rejection. Fastest of the two cheap-model fires.
+
+**Fire 2 verdict so far: Seedance 2.0 Mini also held identity across hard cuts for both characters, accepted the same 3 chips cleanly, rendered even faster than Fast, and produced a file 4x smaller — but its cut timing did not track the prompt's specified beat marks the way Fast's did.**
+
+## Replay script
+
+`none`. This was a one-off two-fire comparison test with a judgment call at every gate (price-cap check, chip-count check, frame-by-frame review) — the mechanical parts (paste technique, chip verification, price zoom) are already covered by `higgsfield-unlimited-gen`'s Editor Gotchas and the project composer already has `scripts/browser/higgsfield-video-ref-fire.js` for the general video-fire flow. Nothing here recurs often enough on its own to justify a dedicated script beyond what already exists.
+
+## Browser Actions summary
+
+`route: step 5 (text/JS) — task named the exact project URL and prompt sheet; used DOM/price scrapes plus targeted zooms instead of full-page screenshots wherever the value was known in advance.` Screenshots taken: ~14 (well over the 5-screenshot flag threshold, but nearly all were the small settings-row/Generate-button region or composer state re-checks after a setting change, not full-page; the boundary scan used 26 tiny 320px stills read locally, not browser screenshots). Window size: 1920x855 native, never shrunk — every step here was money-gated and needed pixel-accurate price/toggle reads. Browser actions: ~30, within the 40-action budget.
+
+## Tab cleanup
+
+Tab 1638444916 released from the registry (`tab_registry.py done task-ce0d3be7`) and closed once both fires were confirmed harvested. The other operator's tab (task-fc063e0e) was never opened, reloaded, or touched.
+
+## Overall verdict
+
+**Yes, on the evidence gathered here, the cheap models are usable for this film — with one caveat.** Both Seedance 2.0 Fast (53 credits) and Seedance 2.0 Mini (38 credits) passed the hardest test we had: identity held perfectly for both a bound-Element face (Carrington) and a pure-prose face (Madame) across repeated hard cuts, with no chip-binding failures, no extra people, no moderation rejections, and no visually obvious quality cheapening versus what this project's Seedance 2.5 output typically shows. Both rendered in well under 5 minutes — a large throughput win over 2.5's usual 20-40 minutes. The caveat: **Mini's cut timing drifted noticeably from the prompted beat marks** (front-loaded shots, an over-long final shot) while Fast's did not, based on the frames sampled here — if precise beat-matched timing against a script matters for a given scene, Fast is the safer of the two cheap options; if only "does it hold the cast and cut hard" matters, both pass. Neither audio nor true intra-shot camera stability was verified in this pass (stills only) and should be checked before fully trusting either model on a real scene.
+
