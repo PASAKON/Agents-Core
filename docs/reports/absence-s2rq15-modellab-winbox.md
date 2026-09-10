@@ -41,4 +41,31 @@ Settings verified immediately before click (DOM + pixel zoom):
 
 Result: toast "Generation started", a new `Generating` card appeared top-left of the asset grid, asset count 772→773. Fired at approximately **2026-09-10T09:01:15Z**.
 
-*(Report continues after harvest — see below for render-wait status.)*
+### Fire 1 — harvest
+
+**Render time: ~4.5 minutes** (fired 09:01:15Z; card showed as finished, "New" badge, thumbnail rendered, when checked at ~09:06Z). This is dramatically faster than Seedance 2.5's usual 20-40 min. No moderation rejection, no "Rights verification required" banner, no NSFW flag — clean pass.
+
+Card detail panel confirmed: Feature `Seedance 2.0 Fast`, Quality `720p`, Bitrate `High`, Size `1280x720`, Created `September 10, 2026 at 4:01 PM`. Prompt panel matched the pasted sheet verbatim (spot-checked opening line).
+
+- Downloaded: `C:\Users\UsEr\Downloads\hf_20260910_090100_37476944-8aaa-4fda-a242-78d38414d71f.mp4`
+- Bytes: 32,031,067
+- MD5: `92eda84b43fb5ce5d5a414ae3eba5820`
+- Asset id (preview UUID): `80d51cd1-1372-48ac-bbe0-a30490b02b69` (filename UUID differs: `37476944-8aaa-4fda-a242-78d38414d71f` — Higgsfield uses two different ids for the same asset, preview-modal id vs. download-filename id; both point at this one card, confirmed by matching Created timestamp and prompt)
+- Frames extracted (ffmpeg, full 1280x720 resolution, `-q:v 2`) to `docs/reports/frames-s2rq15-fast/`: `fast_1.2s.jpg`, `fast_3.7s.jpg`, `fast_6.2s.jpg`, `fast_8.7s.jpg`, `fast_11.2s.jpg`, `fast_14s.jpg`
+
+### Fire 1 — REVIEW ORDER answers
+
+1. **Did it cut at all?** Yes — six distinct, hard-cut compositions, no dissolve/drift observed at any of the 6 sampled frames. Each shot's framing (face ~60% of frame height, same lens/distance, cream wall + chromium columns softly out of focus behind) is consistent across cuts.
+2. **Carrington's face across his three close-ups (1.2s/6.2s/11.2s) — identical or drifting?** **Identical, no drift.** Same swept-back white hair part, same facial structure, same white stand-collar suit, same gold tooth position and visible glint in all three frames. This is the real test and it held.
+3. **Madame across her two close-ups (3.7s/8.7s)?** **Identical, no drift**, and held correctly from prose alone (no Element bound, per the sheet's design) — same green leather gown with pointed shoulder caps, same blue/green/silver-white pompadour, same black cat-eye sunglasses, same pose and framing both times.
+4. **Exactly ONE person in every close-up?** Yes in all 6 sampled frames — no second face, no shoulder, no reflection visible in any of the 6 stills.
+5. **Five bids audible and in order, one voice at a time?** Not verified from stills — audio was not reviewed in this pass (would need to play the clip). Flagging as unverified rather than assuming.
+6. **Camera locked inside each shot?** Cannot confirm motion from single stills — no visual evidence of framing drift between paired shots of the same character (1.2s vs 6.2s vs 11.2s all match exactly in framing/position), which is consistent with a locked camera, but true intra-shot motion needs a play-through, not done in this pass.
+7. **Detail level versus Seedance 2.5.** Skin texture, cloth folds (the leather's sheen and stitching on Madame's collar, the suit's fabric weave on Carrington) all read as comparably detailed to what this project's Seedance 2.5 output typically shows — no obvious softness, no plastic-skin artifacting, no visible compression banding in the background bokeh. **No clear cheapening visible in these 6 frames.** This is a frame-level visual judgment only, not a pixel-level diff against a 2.5 reference card (S2RF-L2 was not opened side-by-side in this pass).
+8. **Render time / moderation.** ~4.5 min, no moderation rejection.
+
+**Fire 1 verdict so far: Seedance 2.0 Fast held the hardest part of the test (identity across hard cuts, for both a bound-Element face and a prose-only face) with no visible quality compromise in these frames, and rendered in a fraction of 2.5's usual time.**
+
+## Fire 2 — Mini, 15s
+
+*(to follow, only after this milestone is committed+pushed)*
