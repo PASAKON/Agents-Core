@@ -414,6 +414,33 @@ def lint_file(path: Path, shot: str | None = None) -> list[Finding]:
                             "attached. Write it as @" + name)
                 )
 
+    # ---- whole-file: the IRON RULE OF PROMPT WRITING (CEO 2026-08-30) ----
+    # "Every prompt, no exceptions, carries BOTH halves: state the count in
+    #  words wherever a character could be inferred twice, AND the verbatim
+    #  negatives."  Nothing enforced this, so a sheet could go five versions
+    #  and six takes without it -- which is exactly what S2AC did before it
+    #  rendered two identical women (2026-09-11).
+    paste_text = "\n".join(lines[i] for i in sorted(scan_lines))
+    char_chips = {m.group(0) for m in re.finditer(r"@[a-z_0-9]*char_[a-z_0-9]+", paste_text)}
+    if len(char_chips) >= 2:
+        has_count = re.search(r"\bexactly ONE\b", paste_text) is not None
+        has_negative = re.search(
+            r"no duplicate characters|no twins|no character appearing twice|appearing twice",
+            paste_text, re.IGNORECASE) is not None
+        if not (has_count and has_negative):
+            missing = []
+            if not has_count: missing.append('a per-character count ("there is exactly ONE <who>")')
+            if not has_negative: missing.append('the verbatim negatives ("no duplicate characters, no twins, no character appearing twice")')
+            findings.append(
+                Finding(fname, 1, "IRON_RULE_DUPLICATE", "WARN",
+                        f"{len(char_chips)} character chips bound",
+                        "IRON RULE OF PROMPT WRITING is not satisfied -- missing "
+                        + " and ".join(missing)
+                        + ". A prompt that gives the model two reasons to draw the same "
+                          "person renders a twin, and the take is unusable. See "
+                          "higgsfield-unlimited-gen SKILL.md.")
+            )
+
     return findings
 
 
