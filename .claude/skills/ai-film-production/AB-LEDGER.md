@@ -762,3 +762,16 @@ VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
 - Ladder: L0 = V2 faces sheet as-is (13 chips, expected rejection) → L1 = no bidder chips (prose) → L2 = + Carrington chip → L3 = + woman-in-green chip (= V2). First rejection names the variable. Sheets: `s2rf-lab-l1-…`, `s2rf-lab-l2-…`; L0/L3 = `s2rf-fix1-the-battle-faces.txt`.
 - V3 wide (free lane, task-a9adf20c) continues in parallel as the framing test.
 
+## 2026-09-10 12:25 — EDITOR INSTRUCTIONS, collected (CEO 12:10: "เดี๋ยวค่อยใส่มาทีเดียวนะ รอฉันสั่งให้จบก่อน" — do NOT send yet)
+- CEO asked 12:20 for the clip where Dupe apologises and takes all the blame: Draft 5 only carries the 4-s Fix-1 beat "Sorry, sir. I cracked it. Last hour." at 6:32–6:36. The full apology exists in Fix-2 (ids re-read from Drive, read-only): **S15e-AB** first 6.2 s ("I cracked the wall myself, sir. I will pay for all the damage. I am sorry.", id 175BlZe-DCtng9PdkSR9Vh71iY_r-8RvT) and **S15e-A** 8 s single locked close-up, same three lines (id 1VGx4TGS9SC7qa9fmmATFBkpjoekVQhvK); S15e-ALL (1-teR9Ty1pUifVthEawiySbppd42Yl2Xg) opens with the one-line version. Plaque behind Dupe is garbled in both singles (plaque plan withdrawn 04:50).
+- Rows so far (Draft 5 timecodes; REPLACE unless marked INSERT):
+  1. 0:10–0:16 → **S0b** cart with castors — sheet a147e52, not generated yet (free lane after S20).
+  2. 1:11–1:21 → **S3a t2** (first customer, two-camera).
+  3. 1:21 → **S3b FULL 20 s** (cane-tap laugh) — CEO: "อยากใส่เต็มฉากเลย".
+  4. 1:31–1:55 → **S2AW + S2AP** (Wes Anderson interpretations; S2AJ as fallback).
+  5. 3:18–3:39 → **S2PT t2**; 3:39–3:52 → **S2PU**.
+  6. INSERT **S2X** crack insert at 0:44 / 1:36 / 1:48 / 3:58 (editor's choice of length).
+  7. 4:42–5:06 auction → pending V3 wide (free lane) or the credit-lane ladder winner.
+  8. 6:32–6:36 → **S15e-AB 0–6 s** (or S15e-A 8 s) — the full apology, NEW today.
+  9. 6:40–7:16 duplicated cheque takes → **S15e-AB 6–20 s** (keep S15d 6:36–6:40).
+  10. INSERT **S19** at 7:24 (painting goes back); INSERT **S18** after the 7:36 bookend; **S20** pending (~7:22).
