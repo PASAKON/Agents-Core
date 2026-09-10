@@ -924,3 +924,81 @@ v4 take after that per the CTO's back-to-back instruction. S17b sheet
 (commit `e774755`) is queued next after v4's current take, not yet pulled
 into the worktree. No context-tightness concern yet; will keep reporting
 each asset id and checkpoint as the night continues.
+
+**Mid-render clarification from the CTO**: the free/paid boundary is the
+pixel-zoomed price on the button *at the moment of the click*, not the
+06:59 clock — a fire that goes in at 06:55 and finishes rendering after
+07:00 is still free. Keep firing as long as the button reads
+struck-through-then-0; stop the instant it shows a live unstruck price
+(may be before or after 06:59); never click to find out if the read is
+ambiguous. Superseding the earlier "stop at 06:59" framing in this
+report — the clock was always a proxy for this real condition, not the
+condition itself.
+
+### S2AC v4 harvest and visual review
+
+Card completed after ~36 min (Processing at 20 min elapsed →
+Generating at 25 min → done by ~30-36 min). Confirmed it was the right
+asset three independent ways before harvesting: (1) it was the first
+`data-asset-id` in the grid — `7edaafbd-4ed3-4c80-b45e-0add6463c43f`,
+matching the fired id exactly; (2) the preview panel's "Created"
+timestamp read `September 11, 2026 at 4:34 AM`, matching the fire time
+to the minute; (3) the downloaded filename embeds the same id
+(`hf_20260910_213405_7edaafbd-...`).
+
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_213405_7edaafbd-4ed3-4c80-b45e-0add6463c43f.mp4`
+- **Bytes**: 23,424,577
+- **MD5**: `0cd28d0e696b93761acd2ac975f76038`
+- **Settings**: 1280x720, 24fps, 19.96s (20.00s nominal), Seedance 2.5,
+  High bitrate, Sound On
+- **Downloaded** via the `<video>.currentSrc` CloudFront-URL +
+  `ffmpeg -c copy` stream-copy workaround (Higgsfield's Download button
+  is unreliable on this build; no re-encode, byte-exact).
+- **Frames extracted** to `docs/reports/frames-s2ac-v4/` at the same
+  eight sample times used for v3 (0.5/4/7/11/14/15.5/17.5/19s), for an
+  apples-to-apples comparison.
+
+**Visual review (by eye, per the CEO's standing "judge by eye, not by
+numbers" instruction — `shot-motion.sh` not run, since nothing here
+needed a number to confirm what's plainly visible):**
+
+- **Plaque height — the v4 fix landed.** At 0.5s the brass plaque reads
+  clearly at chest/waist height, with a tall span of blank wall between
+  its top edge and the crack above — the crack is no longer crowded by
+  the plaque the way earlier revisions had it. Legible across multiple
+  frames: "THE ABSENCE OF MEANING", "Val[der]...", "$2,000,00[0]".
+- **The 0-14s "chaos" phase is genuinely dynamic, not a tableau.**
+  Compared 0.5s → 4s → 7s → 11s: the cast visibly rearranges each time —
+  different people in front, the critic (magenta coat) moves from
+  gesturing at 0.5s to mid-speech at 4s to leaning in at 7s, a new
+  visitor in a brown fur coat appears crying into a tissue at 7s, the
+  cleaner and a blue-coated visitor crowd the plaque directly at 11s.
+  This is the opposite of the take-1 finding (near-identical spatial
+  arrangement across samples) that originally drove the v2 redesign.
+- **A real freeze lands around 14-15.5s.** Those two frames are
+  near-identical — same seven-person lineup, same poses, same
+  hand-on-plaque gesture — read as a deliberate held beat, not a stutter
+  or a render glitch, consistent with what v3's review already confirmed
+  and what the sheet calls for.
+- **The camera rotation is real and finds the registrar as scripted.**
+  17.5s is mid-turn (motion-blurred gallery wall, hallway art visible)
+  and 19s resolves into the destination: the pillared, chandelier-lit
+  gallery corridor from the film's other scenes, with the registrar
+  (cream suit) standing at the far end in front of a red door. This is
+  the corridor location, not the flat-wall mistake v2 made — confirms
+  the `loc_hall_big_e` binding is still correct in v4.
+- **Two visually similar blue-coated women** appear together at 4s+
+  (presumably `char_visitor_a` and `char_visitor_b`) — expected per the
+  chip list, not a duplication error.
+- **Not verifiable from stills**: the dialogue attribution fix (which
+  named speaker says which line, and in what order) and audio elements
+  (six overlapping lines, door sound, total silence) — these are
+  audio-only and can't be judged from frames, same limitation noted for
+  v3.
+
+**Verdict (operator read): PASS.** Both v4-specific changes are visible
+and correct (plaque height, and the scene otherwise matches v3's
+already-approved blocking/camera work exactly, as expected since v4 only
+touched dialogue attribution + plaque height). No blocking issues found.
+Per the CTO's back-to-back instruction, proceeding to fire another take
+of the same v4 sheet next, since the grant is still reading free.
