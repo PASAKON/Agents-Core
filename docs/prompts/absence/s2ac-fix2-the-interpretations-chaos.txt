@@ -1,5 +1,19 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
-S2AC · THE INTERPRETATIONS, CHAOS · 20s · v3 for take 4 · CEO 2026-09-11 03:10
+S2AC · THE INTERPRETATIONS, CHAOS · 20s · v4 for take 5 · CEO 2026-09-11 05:00
+
+v3 PASSED on camera, wall and staging — CEO: "เรื่องมุมกล้อง โอเครแล้ว การแพนกล้องโอเครแล้ว".
+v4 changes exactly TWO things and nothing else:
+1. EVERY LINE IS NOW ATTRIBUTED. CEO: "ตอนที่เขียนบทพูด ตัวละครทุกตัวมันพูดมั่วไปหมดเลย คุณควร
+   ระบุชัดเจนเลยไหมว่าใครพูดประโยคอะไร" — he is right and it was my error: v3 listed the eight
+   fragments as loose quoted strings with no speaker, so the model handed them out at random.
+   Each line now names its speaker. "We are going to be late" stays but is re-read as tender:
+   the man in maroon was rewritten at 01:15 from "wants to leave" to "comforts his wife", so
+   both his lines are now said softly to her while he dabs her face, not barked at the room.
+2. THE PLAQUE MOVES DOWN to the waist height of the people in front of it; the crack stays where
+   it is — above head height, one open hand across ("รอยร้าวอยู่เหนือศีรษะ 1 ฝ่ามือ ถูกแล้ว").
+   Both heights are stated against the PEOPLE IN FRAME, never as world measurements (§7b).
+
+S2AC · THE INTERPRETATIONS, CHAOS · earlier: v3 for take 4 · CEO 2026-09-11 03:10
 (replaces S2AJ / S2AW / S2AP at 1:31–1:55).
 
 ⚠️ v2 WAS MINE AND IT WAS WRONG. I bound `@project_absence_loc_hall_big_d` as "the wall". That
@@ -82,11 +96,19 @@ only once, it ROTATES smoothly through half a turn to look the other way, and ho
 end. There is no cut, no dissolve, no second angle and no reframing at any point.
 
 @project_absence_loc_wall_crack — WHAT THE CAMERA IS LOCKED ON FOR THE FIRST SEVENTEEN SECONDS.
-A flat white gallery wall photographed dead-on and square, with ONE SMALL CRACK on it at
-picture-hanging height and a small brass plaque on the wall below the crack. Take the wall, the
-crack, the plaque, the lighting and the colours from this picture exactly as it has them and
-change nothing about any of it. THE CRACK AND THE PLAQUE ARE BOTH CLEARLY VISIBLE ON SCREEN and
-are never completely hidden by a person.
+A flat white gallery wall photographed dead-on and square. Take the wall, its surface, the
+lighting and the colours from this picture exactly as it has them.
+
+THE TWO THINGS ON THAT WALL SIT AT THESE EXACT HEIGHTS, measured against the people standing in
+front of them:
+  · THE CRACK is HIGHER THAN THE TALLEST PERSON'S HEAD — everyone has to look UP at it. It is
+    SMALL, about the size of one open hand, and it is the only mark on the wall.
+  · THE BRASS PLAQUE is LOW, at the WAIST HEIGHT of the people standing in front of it — level
+    with their belts, well below every elbow. It is nowhere near the crack and nowhere near
+    anybody's chest or shoulder.
+There is a tall empty stretch of blank white wall between the plaque down at their waists and the
+crack up above their heads. THE CRACK AND THE PLAQUE ARE BOTH CLEARLY VISIBLE ON SCREEN and are
+never completely hidden by a person.
 
 @loc_hall_big_e — WHAT THE CAMERA FINDS WHEN IT TURNS, AND NOT BEFORE. A long gallery corridor of
 polished chromium trumpet columns in matched rows, warm orange light washing the ceiling,
@@ -160,12 +182,25 @@ in front of somebody else on the way:
     middle of them, and they step around him without looking at him.
   · by 14s THE ART STUDENT has crossed back again.
 Nobody is standing where they were five seconds earlier. Between the crossings people lean in,
-step back, gesture over each other's heads, turn to each other and turn back to the wall. The
-overlapping talk runs continuously — these fragments tread on each other and nobody waits their
-turn: "It is clearly about labour." · "It is a CRACK." · "That is exactly what they want you to
-think." · "It made me think of my mother." · "Everything makes you think of your mother." · "Do
-not touch it!" · "I am measuring it." · "We are going to be late." Voices rise, overlap, cut
-across, two and three at a time. Nobody shouts anybody down and nobody wins.
+step back, gesture over each other's heads, turn to each other and turn back to the wall.
+
+EVERY LINE BELOW BELONGS TO ONE NAMED PERSON AND ONLY THAT PERSON SPEAKS IT. Nobody says anybody
+else's line. Dupe says nothing at all. The lines overlap and tread on each other — two and three
+voices at a time, nobody waiting their turn — but each voice comes out of the right mouth:
+
+  · THE WOMAN IN MAGENTA, lecturing:            "It is clearly about labour."
+  · THE YOUNG COLLECTOR IN COBALT, flatly:      "It is a CRACK."
+  · THE WOMAN IN MAGENTA, over her:             "That is exactly what they want you to think."
+  · THE WOMAN IN FUR, through tears:            "It made me think of my mother."
+  · THE MAN IN MAROON, to his wife, gently:     "Everything makes you think of your mother."
+  · THE WOMAN IN MAGENTA, sharply:              "Do not touch it!"
+  · THE ART STUDENT, not looking up:            "I am measuring it."
+  · THE MAN IN MAROON, quietly, to his wife:    "We are going to be late."
+
+The man in maroon is NOT impatient and NOT complaining — both of his lines are said softly, to
+his wife alone, while he is dabbing her face. He is trying to take her home because she is upset,
+not because he is bored. Voices rise, overlap and cut across each other. Nobody shouts anybody
+down and nobody wins.
 
 [14s] A DOOR OPENS SOMEWHERE BEHIND THE CAMERA, and EVERYTHING STOPS DEAD, ALL AT ONCE, EXACTLY
 WHERE IT IS. Every person freezes in the precise position and posture they happened to be in — a

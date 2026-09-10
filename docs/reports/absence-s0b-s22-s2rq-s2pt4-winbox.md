@@ -828,3 +828,99 @@ is inside Europe's working day, so 40-90 min is more likely than the
 to fire the moment S22 completes and the slot frees. S2PT take 4's
 prompt is extracted and verified but not yet pasted (staging it now would
 mean re-verifying it twice for no benefit, since S2R-Q must fire first).
+
+### S2AC v4 — FIRED
+
+Sheet pulled fresh via `git checkout origin/main --
+docs/prompts/absence/s2ac-fix2-the-interpretations-chaos.txt` (commit
+`b21095d`). Diffed v3→v4: only two changes present — (1) the six
+overlapping crowd lines re-attributed to specific speakers by name
+instead of being unattributed dialogue, (2) the price plaque lowered to
+waist height with a tall blank-wall gap between it and the crack (still
+above head height). No other prose, chip, or camera-note changes.
+
+- Linted clean. Extracted paste block: 11,952 chars (matches source
+  exactly).
+- Chip check: 9/9 unique `@` mentions bound, 0 error chips — exactly the
+  required set (`@char_registrar`, `@loc_hall_big_e`,
+  `@project_absence_char_cleaner_c`, `@project_absence_char_critic_b`,
+  `@project_absence_char_student_c`, `@project_absence_char_visitor_a`,
+  `@project_absence_char_visitor_b`, `@project_absence_char_woman`,
+  `@project_absence_loc_wall_crack`). Neither forbidden id
+  (`loc_hall_big_d`, `loc_wall_pov_e`) present. No stray "no camera
+  movement" line. 0 video refs (correct — S2AC carries no video
+  reference).
+- Pasted via synthetic `ClipboardEvent` with UTF-8-safe decode.
+  `sourceLen=11952` matched exactly; landed raw length 12027 is the known
+  benign Lexical paragraph-break inflation (`normalizedLen=11952` after
+  `\n{2,}` → `\n\n` normalization, exact match). End→space→Backspace sync
+  tap done.
+- Duration confirmed **20s** via the visible settings-row label (pixel
+  zoom, filtered to `visibility:visible` elements only).
+- Window confirmed desktop layout before the click: `innerWidth=1920,
+  innerHeight=855` (well above the 1280 mobile-layout threshold).
+- Real Generate button located via `getComputedStyle`+`offsetWidth/Height`
+  filter (not a bare text scrape) and confirmed with
+  `document.elementFromPoint` self-match on its own center — not the
+  known hidden-decoy duplicate.
+- Unlimited: pixel zoom confirmed `UNLIMITED · ~~140~~ · 0` immediately
+  before the click.
+- **Fired** at `2026-09-10T21:34 UTC` (2026-09-11 04:34 ICT — "Generation
+  started" toast, new Processing card, project asset grid 787→788). New
+  asset id **`7edaafbd-4ed3-4c80-b45e-0add6463c43f`** (`data-asset-id` on
+  the Processing card's ancestor — first extraction attempt mistakenly
+  matched a sibling thumbnail's `hf_20260910_202211` id, which belongs to
+  the already-harvested S2AC v3 take; corrected by walking up from the
+  "Processing" text node itself to its own `data-asset-id` attribute).
+- **Usage History re-checked** in a separate tab: cost unchanged ($75.5
+  total, 1,887.5 credits spent), top entry `Unlimited · Seedance 2.5 ·
+  Spent · Sep 11, 2026 4:34 AM` matches the fire time, "Total generations"
+  206→207. $0 charged.
+- Grant deadline 06:59 ICT is ~2.4h out from fire time.
+
+Not yet harvested — waiting for render completion. Per the CTO's
+standing instruction, will keep firing additional v4 takes back-to-back
+after harvest/review of this one, until the grant expires at 06:59 ICT or
+context tightens enough to require a clean handoff.
+
+### Queue note — new sheet on deck: S17b "THE HOLE, FROM INSIDE"
+
+CTO cross-session message (bridge:session_01T2Ri4fTB7YVL8ss3M9JiX9), CEO's
+own request dictated before sleep, film's closing image. Sheet:
+`docs/prompts/absence/s17b-addon-the-hole-from-inside.txt`. **Two
+revisions already landed on `origin/main` before any fire was attempted**:
+
+1. First pointer: commit `6394ffd`. 3 chips only —
+   `loc_wall_pov_e`, `char_visitor_a`, `prop_tag`. Camera sits inside the
+   sawn hole looking out; man bends his head in to peer at the lens; hard
+   cut to behind him revealing the plaque lying in the cavity. Two
+   deliberate rule exceptions flagged in advance: a hard cut at 10s (the
+   only clip in the film written with one — CEO-requested), and the man
+   looking straight into the lens (correct here because the camera IS the
+   hole — scoped in the sheet, not a violation of the house no-lens-look
+   rule).
+2. **Superseding revision, commit `e774755`** — arrived before the first
+   version was ever pulled, so it is the only version to fire from.
+   Changes: the chip is **`@project_absence_char_oldman`**, not
+   `char_visitor_a` — the heavy elderly man in the bottle-green leather
+   overcoat, chrome ring-handled cane, cream turtleneck, cream shoes (same
+   man as s3b at 1:21 in the film). He now speaks one line, a callback to
+   his s3b line: angry at 4s when he first sees the hole, smiling at 16s,
+   saying **"That is art. I like it."** — identical wording to s3b,
+   deliberately, so the audience's recognition is the joke. Whisper should
+   return exactly that one line and nothing else.
+
+Still 3 chips, still no crowd, still one hard cut at 10s, free lane only.
+Will pull fresh at fire time (never from a cached copy) and lint/diff
+against both commits to confirm which revision landed, per the standing
+practice for every S2AC revision this session.
+
+## Checkpoint — 2026-09-10T21:40 UTC (2026-09-11 04:40 ICT)
+
+S2AC v4 fired and rendering (asset `7edaafbd-4ed3-4c80-b45e-0add6463c43f`,
+started 04:34 ICT). Grant deadline 06:59 ICT, ~2.3h out — enough time for
+this render (~40-50 min typical) plus harvest/review, and likely one more
+v4 take after that per the CTO's back-to-back instruction. S17b sheet
+(commit `e774755`) is queued next after v4's current take, not yet pulled
+into the worktree. No context-tightness concern yet; will keep reporting
+each asset id and checkpoint as the night continues.
