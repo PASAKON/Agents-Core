@@ -338,6 +338,39 @@ were already right and the video reference was overriding them — see rule 7 an
 [[feedback-proxy-in-previz-beats-the-plate]]. Hardening prose against a
 reference that disagrees with it is the most expensive way to lose a take.
 
+### 11b · An adjective is not a direction — make the motion COUNTABLE (2026-09-11)
+
+The same failure wearing different clothes: not a banned thing that appeared,
+but a *described* thing that never did. S2AC asked for a scrum — "IT NEVER
+SETTLES AND IT NEVER PAUSES. Somebody is always crossing somebody else." The
+take came back with five people standing in the same spots at 1 s, 8 s and
+15.5 s, waving their arms. It read as a posed group photograph with busy hands.
+
+The model was not disobeying. **"Chaotic", "restless", "never settles" contain
+nothing that can be scored right or wrong**, so it satisfied them the cheapest
+way available — gestures — and left the blocking untouched. Position is
+expensive; hands are free.
+
+The fix that shipped in v2 states the arrangement changes as **counted events
+with deadlines**:
+
+> Count the crossings — THERE ARE FOUR … by 5 s the student has crossed the
+> full width; by 8 s the magenta woman and the cobalt woman **have swapped
+> sides**, passing each other mid-frame; by 12 s Dupe has mopped from one end
+> to the other through the middle; by 15 s the student has crossed back.
+
+Rules for any multi-person scene:
+
+- **Say how many position changes there are, who swaps with whom, and by when.**
+  Never "they mill about".
+- **Give the review a falsifiable test.** Here: *if the arrangement at 15 s
+  matches the arrangement at 1 s, the shot failed* — regardless of how busy the
+  hands look. A review order that only says "check it feels chaotic" passes
+  anything.
+- **Motion a reviewer cannot COUNT is motion the model will not render.** This
+  generalises past crowds: a walk, a search, a pace, a fidget — if the beat
+  matters, it needs a number and a timestamp.
+
 ## 12 · WHEN A RE-FIRE PASSES, WRITE THE A/B ENTRY (CEO 2026-09-06)
 
 Every job that had to be sent back for a fix gets a ledger entry the moment
