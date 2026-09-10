@@ -1098,3 +1098,98 @@ v5** (`2c01f30`); (3) **S2Xb** "THE CRACK, MACRO" (`58d315f`) — lowest
 urgency since S2AC already has one usable take (v3, PASSED). Will pull
 S17b next, at commit `e774755` (not the superseded `6394ffd`), the
 moment the current v4-take-2 render completes and is harvested.
+
+### Timing optimization from the CTO — stage before the slot frees
+
+Instruction: since the Unlimited slot frees the moment a render
+*completes* on the platform (not when this operator finishes
+downloading it), stage the next sheet in the composer *while the
+current render is still in flight* — editing the composer text doesn't
+touch an already-committed server-side render or the Unlimited toggle —
+then fire the instant the in-flight card shows complete, and harvest the
+just-completed take only afterward, during the new render. Followed this
+for S17b: pulled, pasted, and chip-verified (3/3, 0 errors, 0 videos,
+`normalizedLen=6165` matching source exactly) while v4 take 2 was still
+"Generating", then fired within seconds of take 2's card completing.
+
+### S2AC v4 take 2 — harvested; duplicate NOT reproduced this time
+
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_221457_ce05a30c-821f-486c-bb78-bd8c467dcc84.mp4`
+- **Bytes**: 23,318,264
+- **MD5**: `f4da5c1ae3882aeeb796b876dfeb8faa`
+- Confirmed correct asset via `<video>.currentSrc` filename
+  (`hf_20260910_221457_ce05a30c-...`) matching the fired id exactly.
+
+**Independent full-resolution check of the CTO's two findings, same
+methodology used to confirm them on take 1** — full frames pulled at
+0.5s/4s/7.9s/11.5s/14s/15.5s/19s:
+
+- **A — duplicate woman: NOT present in this take.** Only one
+  blue-coated woman appears in every sampled frame, standing alone at
+  the left of the line. Six total figures at the wall in the 14-15.5s
+  freeze (blue-coat woman, magenta critic, white-uniform staff member,
+  green-haired sketching figure, fur-coat woman, maroon-suit man) — no
+  pairing reads as the same face/hair/coat twice.
+- **B — plaque height: same as take 1, still elevated.** Reads at
+  roughly the same height relative to the cast as take 1 — this is a
+  fixed parameter in the unchanged v4 sheet, so it did not vary between
+  takes the way the duplicate did.
+- **Bonus, unprompted**: the plaque text in this take reads correctly
+  as **"Valder"**, not "Vahler" — the typo from take 1 did not
+  reproduce here either.
+
+**What this means, reported back to the CTO rather than assumed:** the
+duplicate-woman defect and the plaque-text typo both look like
+per-generation variance from the same prompt, not a deterministic
+result of the sheet — take 1 rolled both, take 2 rolled neither. This
+does **not** mean v4 is safe to keep firing: v5's own commit message
+(`2c01f30`, "kill the duplicated woman, drive the plaque down to
+waist") confirms the CTO already tightened the prompt specifically
+against the duplication risk and the height, which is the right fix
+regardless of whether any single take happens to dodge it. Plaque
+height reads the same (still too high) in both takes, consistent with
+it being a fixed, not-yet-fixed parameter.
+
+**Verdict: take 2 is a visually cleaner result than take 1 on A and C,
+unchanged on B.** Keeping the footage for comparison per instruction;
+not proposing it as a replacement PASS since B is still present and v5
+exists specifically to address it.
+
+### S17b "THE HOLE, FROM INSIDE" — FIRED
+
+Pulled at commit `e774755` (superseding revision, not the original
+`6394ffd`). Confirmed no merge-conflict markers (`<<<<<<<`/`>>>>>>>`)
+anywhere in the file before doing anything else, per the CTO's explicit
+warning. Linted (informational note only, not an error — the shot-header
+scan didn't find a `S17b` label, harmless). `prompt-lint.py --chips`
+reported 4 names because it scans the whole file including the NOTES
+zone explaining the old `char_visitor_a` mistake; **extracted the actual
+PASTE block separately and confirmed only 3 unique `@` mentions inside
+it**: `@project_absence_char_oldman`, `@project_absence_loc_wall_pov_e`,
+`@project_absence_prop_tag` — `char_visitor_a` correctly does not appear
+in the paste zone, exactly as the CTO flagged.
+
+- Sheet: 20s, 720p, 16:9, two shots joined by one hard cut at 10s
+  (deliberate, CEO-requested), Sound On, High. No video reference.
+- Extracted paste block: 6165 chars.
+- **Staged while v4 take 2 was still rendering** (see timing-optimization
+  note above) — cleared composer (`editorLen=1` confirmed), pasted via
+  synthetic `ClipboardEvent` with UTF-8-safe decode, `sourceLen=6165`
+  matched exactly, End→space→Backspace sync tap done. Verified
+  `normalizedLen=6165` (raw 6222, the known benign paragraph-inflation
+  artifact) matches source exactly. Chip check: 3/3 unique chips bound,
+  0 error chips, 0 video refs.
+- **Fired within seconds of v4 take 2's card completing** (per the CTO's
+  timing instruction to never let the freed slot sit idle). Re-verified
+  fresh immediately before the click, per the per-fire hard rule: duration
+  20s, window 1920x855, real button self-matched via `elementFromPoint`,
+  Unlimited pixel zoom `UNLIMITED · ~~140~~ · 0`.
+- **Fired** ~2026-09-10T22:57 UTC (05:57 ICT). "Generation started" toast,
+  asset grid 789→790. New asset id
+  **`5f3c3967-0bcb-4795-8581-ef7415814bc4`**.
+- **Usage History re-checked**: cost unchanged ($75.5), "Total
+  generations" 208→209. $0 charged.
+
+Not yet harvested — rendering now. Grant deadline reference: ~62 min
+remaining per the CTO's last check, well inside the "keep firing while
+the pixels read free" rule regardless of the clock.
