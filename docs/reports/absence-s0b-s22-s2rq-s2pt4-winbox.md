@@ -1002,3 +1002,41 @@ already-approved blocking/camera work exactly, as expected since v4 only
 touched dialogue attribution + plaque height). No blocking issues found.
 Per the CTO's back-to-back instruction, proceeding to fire another take
 of the same v4 sheet next, since the grant is still reading free.
+
+### S2AC v4 — take 2, FIRED
+
+Same sheet, no re-pull needed (composer still held the exact v4 text
+after closing the preview panel — verified fresh: the visible
+`[contenteditable]` element, not the hidden decoy, still read
+`textLen=12027`, `9/9 unique chips, 0 error chips, 0 video refs`).
+Re-verified duration (20s) and Unlimited pixel zoom
+(`UNLIMITED · ~~140~~ · 0`) fresh immediately before this click, per the
+hard rule that every fire gets its own check regardless of what the
+previous fire confirmed. Window confirmed 1920x855; real button
+self-matched via `elementFromPoint`.
+
+- **Fired** at (Usage History confirms immediately after, see below).
+  "Generation started" toast, new Processing card, asset grid 788→789.
+  New asset id **`ce05a30c-821f-486c-bb78-bd8c467dcc84`**.
+- **Usage History re-checked**: cost unchanged ($75.5), "Total
+  generations" 207→208. $0 charged.
+
+**Mid-render update from the CTO**: the queue is now three deep so there
+is no need to wait for confirmation between fires — S17b "THE HOLE, FROM
+INSIDE" is next (**pull at commit `e774755`, not the earlier `6394ffd`
+pointer** — the chip is `@project_absence_char_oldman`, bottle-green
+leather overcoat + chrome cane, NOT `char_visitor_a`; he speaks one
+callback line, "That is art. I like it.", angry at 4s → smiling at 16s,
+matching his s3b line at 1:21 in the film; still 3 chips total
+(`loc_wall_pov_e`, `char_oldman`, `prop_tag`), one hard cut at 10s
+(deliberate, CEO-requested), man looking into lens is correct-by-design
+here). After that, **S2Xb "THE CRACK, MACRO"** (`58d315f`,
+`docs/prompts/absence/s2xb-addon-the-crack-macro.txt`) — 1 chip only
+(`loc_wall_crack`), no cast, 8s, one slow push; lowest-risk fire
+remaining, to jump to first if anything upstream blocks. Its job is to
+read as a macro/abstract image that resolves into plaster, not a
+recognizable repeat of the standard S2X wall-crack insert — and it must
+carry no plaque/lettering/number, since it inserts as early as 0:44 in
+the edit, before the price exists in the story. Will check any pulled
+sheet for `<<<<<<<`/`>>>>>>>` conflict markers before firing and stop if
+found (CTO fixed one such conflict before pushing S2Xb).
