@@ -318,6 +318,15 @@ slot frees — the 3/3-chip, 8s, no-video-ref state that was verified earlier
 is gone with the tab, but the sheet itself is untouched and lint-clean, so
 this is pure re-work, not a data-loss risk.
 
+**Deliberate decision at the ~90-min mark (per this skill's hard rule 4):
+keep waiting, do not cancel/re-fire.** Reasoning: S20 itself sat `queued`
+for ~193 minutes today before generating, on this same account, which
+points to the whole queue being backed up right now rather than anything
+specific to S2PT's job. Cancelling and re-firing would surrender the queue
+position already earned by this wait, with no evidence a fresh fire would
+land faster — likely the opposite, given the account-wide pattern observed
+today. Continuing to poll every ~5 min.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
