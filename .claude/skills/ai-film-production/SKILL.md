@@ -429,10 +429,20 @@ against a script of 2.5 / 5 / 7.5 / 10 / 12.5, leaving a 4.6-second final shot).
 all three Elements, held both faces across every cut, and spoke all five bids in order — so it
 is usable, just not for anything a viewer looks at closely.
 
-**Never mix models inside one scene.** Beyond colour, the two tiers stage the background
-differently: asked for "a plain cream wall, softly out of focus, nothing else in frame", 2.5
-gave a plain soft wall and 2.0 Fast rendered the whole hall with its columns, sharp and
-symmetrical. Both are defensible images; cut together they jump. One model per scene, always.
+**Never mix models inside one scene** — on the colour and bitrate numbers above, which were
+measured like-for-like on an identical prompt. That part stands.
+
+**⚠️ The background argument for it is WITHDRAWN (2026-09-11, S2R-Q).** This rule used to say the
+tiers stage the background differently — that asked for "a plain cream wall, softly out of focus,
+nothing else in frame", 2.5 gave a plain soft wall while 2.0 Fast rendered the whole hall with its
+columns. **S2R-Q disproves it: one 2.5 generation rendered BOTH.** The full hall with chromium
+columns and hanging lights sits behind Carrington's three close-ups and Valder's, and a plain warm
+out-of-focus wall sits behind Madame's two — same model, same prompt, same fire, one continuous clip.
+
+So **background staging is a per-shot variable, not a model discriminator.** Never use it to infer
+which tier produced a clip, and never accept "the background looks like the hall" as evidence a
+sheet was fired on the wrong model. The original observation was a single-sample coincidence read
+as a rule.
 
 **When the free queue is jammed, render time beats price.** On a day when the Unlimited lane
 returned nothing for six hours, a paid 2.0 Fast fire came back in four and a half minutes.
