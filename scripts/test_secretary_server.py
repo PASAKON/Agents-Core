@@ -1444,6 +1444,78 @@ def test_family_system_prompt_states_the_cmd_must_start_with_slash_rule() -> Non
     assert "ห้ามแต่งคำสั่งขึ้นมาเอง" in ss.FAMILY_SYSTEM_PROMPT
 
 
+# ---------------------------------------------------------------------------
+# task-1b07112d -- memory patch channel: FAMILY_SYSTEM_PROMPT proposes
+# <<<MEMORY...MEMORY>>> upsert/verify entries; claudeflow's
+# lineSompongMemory.js (claudeflow main 3ef13488) validates and writes them.
+# Per org wiki mooniex:projects/sompong-line.md "Memory patch channel".
+# Prompt-content assertions only, no live `claude` involved.
+# ---------------------------------------------------------------------------
+
+def test_family_system_prompt_has_a_memory_section() -> None:
+    assert "หน่วยความจำ (MEMORY)" in ss.FAMILY_SYSTEM_PROMPT
+    assert "จดจำข้อมูลส่วนตัวของแต่ละคนในกลุ่มได้ด้วยตัวเอง" in ss.FAMILY_SYSTEM_PROMPT
+
+
+def test_family_system_prompt_has_the_memory_block_markers() -> None:
+    assert "<<<MEMORY" in ss.FAMILY_SYSTEM_PROMPT
+    assert "MEMORY>>>" in ss.FAMILY_SYSTEM_PROMPT
+    assert '"upsert":' in ss.FAMILY_SYSTEM_PROMPT
+    assert '"verify":' in ss.FAMILY_SYSTEM_PROMPT
+
+
+def test_family_system_prompt_lists_every_allowed_memory_key() -> None:
+    for key in ("nickname", "fullname", "birthday", "age", "email", "phone",
+                "allergy", "likes", "dislikes", "job", "school", "note"):
+        assert key in ss.FAMILY_SYSTEM_PROMPT, (
+            f"memory key {key!r} missing from FAMILY_SYSTEM_PROMPT")
+    assert "เป็น array ได้เฉพาะ allergy likes dislikes email phone เท่านั้น" in (
+        ss.FAMILY_SYSTEM_PROMPT)
+
+
+def test_family_system_prompt_states_the_low_confidence_rule() -> None:
+    """conf is a real decision -- high/med only, anything less (a joke, a
+    guess, hearsay, ambiguous) must not be proposed at all. CEO's 'ห้ามเก็บ
+    ถ้าไม่ชัวร์'."""
+    assert "high = คนนั้นพูดเรื่องตัวเองตรงๆ ชัดๆ" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ห้ามเสนอจดเด็ดขาด" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ห้ามเก็บถ้าไม่ชัวร์" in ss.FAMILY_SYSTEM_PROMPT
+
+
+def test_family_system_prompt_states_the_contradiction_and_verify_rule() -> None:
+    """A contradicting fact must never be proposed as a replacement value --
+    it goes in `verify` instead. CEO's 'ห้ามเก็บถ้าข้อมูลขัดแย้ง' + 'ถามได้
+    เพื่อ verify'."""
+    assert "ห้ามเสนอค่าใหม่ไปทับเด็ดขาด" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ให้ใส่ key นั้นลงใน verify แทน" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ห้ามเก็บถ้าข้อมูลขัดแย้ง" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ถามได้เพื่อ verify" in ss.FAMILY_SYSTEM_PROMPT
+
+
+def test_family_system_prompt_states_the_never_delete_rule() -> None:
+    assert "ลบไม่ได้" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ห้ามอ้างว่าลบให้แล้วเด็ดขาด" in ss.FAMILY_SYSTEM_PROMPT
+    assert "/forget <หมายเลข>" in ss.FAMILY_SYSTEM_PROMPT
+    assert "/forgetall" in ss.FAMILY_SYSTEM_PROMPT
+
+
+def test_family_system_prompt_forbids_writing_the_recorded_line_itself() -> None:
+    """claudeflow appends the '— จดไว้แล้ว: ...' line after the reply -- the
+    model must never write it itself and must never announce a pending
+    write."""
+    assert "จดไว้แล้ว" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ห้ามคุณเขียนบรรทัดนั้นเอง" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ห้ามพูดล่วงหน้าว่ากำลังจะจดอะไร" in ss.FAMILY_SYSTEM_PROMPT
+
+
+def test_family_system_prompt_lists_the_live_f3_commands() -> None:
+    for usage in ("/memory", "/forget <หมายเลข>", "/forgetall",
+                  "/clearchat <today|7d|all>", "/reset", "/yes", "/no"):
+        assert usage in ss.FAMILY_SYSTEM_PROMPT, (
+            f"F3 command usage {usage!r} missing from FAMILY_SYSTEM_PROMPT")
+    assert "ใช้งานได้จริงทุกตัว" in ss.FAMILY_SYSTEM_PROMPT
+
+
 def test_secretary_system_prompt_is_byte_for_byte_unchanged() -> None:
     """task-845938ff touches ONLY FAMILY_SYSTEM_PROMPT (per TASK.md). Snapshot
     guard: a sha256 of SECRETARY_SYSTEM_PROMPT catches a stray edit (a
