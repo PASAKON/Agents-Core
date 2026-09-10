@@ -1410,6 +1410,40 @@ def test_family_system_prompt_states_the_mention_instruction() -> None:
     assert "ห้ามเขียน user id" in ss.FAMILY_SYSTEM_PROMPT
 
 
+# ---------------------------------------------------------------------------
+# task-760d44b4 -- CARD DSL section: the model writes a small <<<CARD...CARD>>>
+# block, never raw Flex JSON (org wiki mooniex:projects/sompong-line.md
+# "การ์ด (Flex) — ภาษากลาง CARD"). Prompt-content assertions only.
+# ---------------------------------------------------------------------------
+
+def test_family_system_prompt_states_plain_text_is_the_default() -> None:
+    """Over-carding is the failure mode the CEO explicitly warned against --
+    the default-to-plain-text rule must be stated plainly."""
+    assert "ค่าเริ่มต้นคือข้อความธรรมดาเสมอ" in ss.FAMILY_SYSTEM_PROMPT
+    assert "ห้ามทำเป็นการ์ด" in ss.FAMILY_SYSTEM_PROMPT
+
+
+def test_family_system_prompt_has_the_card_block_markers() -> None:
+    assert "<<<CARD" in ss.FAMILY_SYSTEM_PROMPT
+    assert "CARD>>>" in ss.FAMILY_SYSTEM_PROMPT
+
+
+def test_family_system_prompt_lists_every_card_shape() -> None:
+    for shape in ("list", "card", "confirm", "receipt", "gallery"):
+        assert f"- {shape} (" in ss.FAMILY_SYSTEM_PROMPT, (
+            f"shape {shape!r} missing from FAMILY_SYSTEM_PROMPT")
+
+
+def test_family_system_prompt_states_alt_is_mandatory() -> None:
+    assert "`alt` บังคับทุกครั้ง" in ss.FAMILY_SYSTEM_PROMPT
+    assert "การ์ดที่ไม่มี alt คือคำตอบที่พัง" in ss.FAMILY_SYSTEM_PROMPT
+
+
+def test_family_system_prompt_states_the_cmd_must_start_with_slash_rule() -> None:
+    assert 'cmd ต้องขึ้นต้นด้วย "/"' in ss.FAMILY_SYSTEM_PROMPT
+    assert "ห้ามแต่งคำสั่งขึ้นมาเอง" in ss.FAMILY_SYSTEM_PROMPT
+
+
 def test_secretary_system_prompt_is_byte_for_byte_unchanged() -> None:
     """task-845938ff touches ONLY FAMILY_SYSTEM_PROMPT (per TASK.md). Snapshot
     guard: a sha256 of SECRETARY_SYSTEM_PROMPT catches a stray edit (a

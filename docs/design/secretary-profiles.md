@@ -213,6 +213,47 @@ change to one side needs the other** — new/renamed block labels on the
 claudeflow side are invisible to SomPong until this prompt is updated to
 match, and vice versa.
 
+### 3.1.1 CARD DSL (task-760d44b4)
+
+`FAMILY_SYSTEM_PROMPT` also teaches a small **CARD DSL**, per org wiki
+`mooniex:projects/sompong-line.md` §"การ์ด (Flex) — ภาษากลาง CARD" (CEO
+2026-09-10): SomPong should be free to answer with a rich LINE card when a
+card genuinely earns its place, instead of repeating one fixed template —
+but it must never write Flex JSON directly (strict schema, invisible
+render, 1-3k tokens per card). Instead it writes one small block:
+
+```
+<<<CARD
+{"shape":"list","alt":"...","title":"...","items":["...","..."]}
+CARD>>>
+```
+
+- **Default is still plain text.** A short answer, one-liner, date, or
+  yes/no stays plain text — over-carding is the failure mode the prompt
+  warns against first and most plainly.
+- **Five shapes**: `list`, `card`, `confirm`, `receipt`, `gallery` — exact
+  fields and per-shape limits as the wiki table. `receipt` and `gallery`
+  are named but their compiler features are not built yet, so the prompt
+  tells the model not to volunteer them until asked for money or photos.
+- **`alt` is mandatory** on every card — a ≤300-char plain-text fallback
+  that becomes LINE's altText and what gets sent if the compiler rejects
+  the card.
+- **Buttons type commands, never a hidden action**: `{"text":"...",
+  "cmd":"/yes"}` must start with `/` and name a real command (the prompt
+  lists the current command set so the model has something to check
+  against); link buttons are `{"text":"...","url":"https://..."}`,
+  https-only; at most 3 buttons per card.
+
+**Ownership split, load-bearing (same shape as §3.1's):** the compiler —
+`src/webhook/lineSompongCard.js` in claudeflow, out of scope for this task —
+owns turning a CARD block into valid Flex and enforcing every hard limit
+(char counts, item/row counts, JSON validity, escaping); `FAMILY_SYSTEM_PROMPT`
+owns *when* to emit one and what goes in it. **A change on one side needs
+the other** — a new/renamed shape or field in the compiler is invisible to
+SomPong until this prompt is updated to match, and a prompt that promises a
+field the compiler doesn't implement yet will just get silently dropped to
+the `alt` fallback.
+
 ## 8. Out of scope (this task)
 
 - Deploy. The rollout step, run by CTO/CEO, not this task:
