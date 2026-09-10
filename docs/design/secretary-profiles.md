@@ -254,6 +254,55 @@ SomPong until this prompt is updated to match, and a prompt that promises a
 field the compiler doesn't implement yet will just get silently dropped to
 the `alt` fallback.
 
+### 3.1.2 Memory patch channel (task-1b07112d)
+
+`FAMILY_SYSTEM_PROMPT` also teaches SomPong to record personal facts about
+family members on its own initiative — per org wiki
+`mooniex:projects/sompong-line.md` §"Memory patch channel" (CEO
+2026-09-10): "สมพงษ์มี Personal Memory ... เก็บข้อมูลด้วยตนเองอยู่เบื้องหลัง
+โดยไม่ต้องถาม ... ห้ามเก็บถ้าไม่ชัวร์ ห้ามเก็บถ้าข้อมูลขัดแย้ง". It appends
+one small block at the very end of its reply:
+
+```
+<<<MEMORY
+{"upsert":[{"uid":"U…","key":"nickname","v":"ต้น","conf":"high"}],
+ "verify":[{"uid":"U…","key":"birthday"}]}
+MEMORY>>>
+```
+
+- **Fixed key allowlist**: `nickname` `fullname` `birthday` `age` `email`
+  `phone` `allergy` `likes` `dislikes` `job` `school` `note` — arrays only
+  for `allergy` `likes` `dislikes` `email` `phone`. Any other key is
+  discarded, so the prompt does not bother teaching the model to propose
+  anything outside this list.
+- **`conf` is not decoration.** `high` = stated plainly about oneself,
+  `med` = clearly implied and unlikely to be wrong; anything less (a joke,
+  a guess, hearsay about someone else, ambiguity) must not be proposed at
+  all — this is the CEO's "ห้ามเก็บถ้าไม่ชัวร์".
+  `low` is not even a value the prompt teaches SomPong to emit.
+- **Contradiction never overwrites.** A fact that conflicts with what
+  `[ข้อมูลที่สมพงษ์จำไว้]` already shows goes into `verify`, never `upsert`
+  with a replacement value — the CEO's "ห้ามเก็บถ้าข้อมูลขัดแย้ง" plus
+  "ถามได้เพื่อ verify" (asking to resolve it becomes natural once the next
+  memory block shows the key as `? ยังไม่ชัวร์`).
+- **Silent to the model, never secret to the family.** SomPong proposes
+  with no announcement and no permission-asking; claudeflow appends the
+  visible `— จดไว้แล้ว: ...` line itself after a successful write, so the
+  prompt explicitly forbids the model from writing that line or
+  pre-announcing a pending write.
+- **No delete or overwrite-by-model, ever.** The schema has no delete
+  operation; the prompt tells SomPong to point a request to forget
+  something at `/memory` (numbered list), `/forget <หมายเลข>`, or
+  `/forgetall` instead of claiming to have deleted anything.
+
+**Ownership split, load-bearing (same shape as §3.1's and §3.1.1's):**
+claudeflow's `src/webhook/lineSompongMemory.js` (claudeflow main `3ef13488`,
+already merged, out of scope for this task) **validates and writes** every
+proposed entry — allowlist check, length cap, low-confidence drop,
+contradiction-to-`disputed` handling, the 5-entries-per-turn cap, and the
+actual `memory.json` write all happen there; `FAMILY_SYSTEM_PROMPT` only
+**proposes** — it has no tool access and cannot write anything itself.
+
 ## 8. Out of scope (this task)
 
 - Deploy. The rollout step, run by CTO/CEO, not this task:
