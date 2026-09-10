@@ -327,6 +327,17 @@ position already earned by this wait, with no evidence a fresh fire would
 land faster — likely the opposite, given the account-wide pattern observed
 today. Continuing to poll every ~5 min.
 
+**19:08 ICT (12:08 UTC) checkpoint: S2PT still `queued`/"Processing", ~118
+min since fire.** Same decision as above still holds (S20 took 193 min
+today on this same account). Background wait timers have been getting
+killed for low memory every 1-5 min this whole stretch (not full 5-min
+waits) — each kill is followed by an immediate direct status check on the
+existing tab (no new tab opened each time, to reduce load), so polling
+frequency has been somewhat tighter than planned but each check itself is a
+single cheap `javascript_tool` read. Usage History re-checked earlier in
+this stretch: still only the one Seedance 2.5 entry (5:10 PM, our own fire),
+no stray charge.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
