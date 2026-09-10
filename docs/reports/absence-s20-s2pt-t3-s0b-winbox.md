@@ -126,6 +126,10 @@ tabs.
 since fire. No change in approach — continuing to poll every ~10 min via
 disposable tabs, S2PT composer untouched, no cancel/re-fire.
 
+**16:28 ICT (09:28 UTC): S20 status changed to `in_progress` ("Generating")**
+— left `queued` after ~193 min. Polling more frequently now (~5 min) since
+completion is likely closer.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
