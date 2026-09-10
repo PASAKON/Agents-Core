@@ -39,8 +39,11 @@ which the negatives now allow instead of forbidding.
 Trimmed 10s → 8s per the CEO's cap: the inserts now change at 2s and 5s instead of 2s and 6s.
 
 CHIPS: 3 — `@project_absence_prop_tv_wall` (the shop window and its sets),
-`@project_absence_char_valder` (the insert) and `@project_absence_loc_museum`
-(the building insert). Both appear only as pictures inside a television, a few centimetres
+`@project_absence_char_valder` (the insert) and `@project_absence_loc_exterior`
+(the building insert — CORRECTED 2026-09-10 by task-01f88235: no Element exists under
+`project_absence_loc_museum`; `project_absence_loc_exterior` ("Museum Exterior") is the
+registered plate matching this prose exactly — low white curved building, mirrored balls
+on stalks, wide steps). Both appear only as pictures inside a television, a few centimetres
 tall. If either chip is refused, drop it and carry that insert in prose; the shot survives.
 MODEL: **Seedance 2.0 Fast** — skill rule 14: an imagined scene with no cast and no continuity
 against graded footage is exactly what the cheaper, more saturated tier is for. **8s ≈ 28 credits**
@@ -71,7 +74,7 @@ WHAT IS ON EVERY SCREEN, the same picture on all of them at once, changing toget
 newsreader — a man in a dark suit behind a desk, seen from the chest up, small in the screen
 and softly out of focus, his mouth moving; and beside his head a small square INSERT PICTURE
 that changes twice during the shot.
-@project_absence_loc_museum — THE FIRST INSERT, from two seconds: the museum building
+@project_absence_loc_exterior — THE FIRST INSERT, from two seconds: the museum building
 seen from outside, low and white and curved, with its mirrored ball and its wide steps. It
 appears as a small square picture inside the television screen, a few centimetres tall, soft
 and slightly grainy the way a picture inside a broadcast looks. Take the building's shape,
