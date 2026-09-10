@@ -9,7 +9,8 @@ scope: >-
   whether a thing may go; `gdrive-filing` decides where it lands on Drive and is
   read FIRST whenever Drive is touched. Not a file-transfer tool.
 description: Rules for reclaiming disk space without losing data, on the Mac, winbox (Windows) and the Contabo VPS — the Green list (delete now, no asking), the back-up-first list, the never-touch list, and where every backup lives on Google Drive with its restore command. Trigger on /disk-hygiene, "disk เต็ม", "เคลียร์พื้นที่", "ที่เก็บข้อมูลเต็ม", "no space left", "ENOSPC", a DISK-WARNING.txt surfaced at session start, or before deleting ANY node_modules, .venv, cache, worktree, transcript, docker artefact or dataset. Use instead of guessing what is safe to delete. Read `gdrive-filing` as well (not instead) whenever the answer involves Drive; for Cookie Run training data the tier table in cookierun-bot/docs/DATA-STEWARD.md wins over this file.
-created_by: CTO
+created_by: agent
+author: CTO
 audience: [cxo, worker]
 ---
 
