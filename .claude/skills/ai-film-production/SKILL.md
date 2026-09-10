@@ -371,6 +371,27 @@ Rules for any multi-person scene:
   generalises past crowds: a walk, a search, a pace, a fidget — if the beat
   matters, it needs a number and a timestamp.
 
+**Measure it instead of arguing about it — `scripts/shot-motion.sh <clip>`.** It
+compares the people-band of the opening frame against later ones and prints how
+much of that band changed. Measured 2026-09-11, and the separation is not subtle:
+
+| clip | 7 s | 12 s | 15.5 s | |
+|---|---|---|---|---|
+| S2AC take 1 (failed) | 10% | — | 10% | flat |
+| S2AC take 2 (failed) | 11% | 9% | 11% | flat |
+| S2PT take 4 (real movement) | 44% | 46% | 54% | rising |
+
+**The TREND is the signal, not the level.** A real scene drifts progressively
+further from its opening frame as it runs. A tableau sits the same distance from
+its opening forever — which is exactly what a still image with waving hands looks
+like to this measurement. Two takes of the same sheet returned 10% and 11%: that
+reproducibility is what proves the prompt is the cause and not the dice.
+
+Caveat: the number is only comparable **on a locked camera**. A tracking shot
+changes its whole background and inflates the reading (S2PT's camera moves, which
+is part of why it scores so high) — use it to compare takes of one shot, never to
+rank different shots against each other.
+
 ## 12 · WHEN A RE-FIRE PASSES, WRITE THE A/B ENTRY (CEO 2026-09-06)
 
 Every job that had to be sent back for a fix gets a ledger entry the moment
