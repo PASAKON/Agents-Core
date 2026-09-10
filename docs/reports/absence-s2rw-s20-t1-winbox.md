@@ -48,6 +48,26 @@
 10 → 5 → 3 min cadence. Will report the card's outcome (pass / reject text verbatim) here and
 push again the moment it resolves.
 
+- **11:48 ICT (04:48 UTC)** — While waiting, staged Scene 2 (S20) in the composer per the
+  render-wait pattern (safe: editing the composer text does not touch the in-flight job or the
+  Unlimited toggle). Paste-only (synthetic `ClipboardEvent`, `text/plain` only, no `text/html`),
+  base64-transferred to avoid JS string-escaping on the em-dashes/middots, into the real visible
+  `contenteditable` (decoy at index 0 filtered out via `getComputedStyle().visibility`). Verified
+  focus landed on the real editor (`document.activeElement` had `contenteditable="true"`) before
+  pasting. Applied the End→space→Backspace force-sync tap after paste.
+  - Chip count: **4/4 bound, 0 error chips** — `@loc_hall_big_e`,
+    `@project_absence_char_guard_valder_two`, `@project_absence_char_cleaner_c`,
+    `@project_absence_prop_cart_a_painted`. Matches the sheet exactly.
+  - Duration slider opened and read directly (not trusted from the collapsed pill alone):
+    `aria-valuenow="8"`, min 4 / max 30 — correct, no need to touch the ARIA slider.
+  - Settings row: Seedance 2.5, 720p, 16:9, batch 1/4, High quality, Sound On, Unlimited ON.
+  - Generate reads `UNLIMITED · struck 56 · 0` — verified live before this note.
+  - **NOT clicked.** Staged only; will not fire until Scene 1 (S2R-W) leaves the slot per the
+    brief ("Scene 2 only after Scene 1 has LEFT the slot").
+- Still checking the pre-existing job every cycle: `data-job-status` on asset
+  `d58ee0c0-3835-4c3c-b571-a324346bb426` remains `queued` as of 04:48 UTC (~106 min elapsed since
+  its 03:02:38 UTC fire).
+
 ## Files changed
 - `docs/reports/absence-s2rw-s20-t1-winbox.md` (this file)
 
