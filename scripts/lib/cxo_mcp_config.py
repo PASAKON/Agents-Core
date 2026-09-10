@@ -49,8 +49,20 @@ from pathlib import Path
 
 # Optional server locations. Overridable so a non-Mac box can point
 # elsewhere without touching this file.
-LUNGNOTE_MCP_JS = os.environ.get(
-    "LUNGNOTE_MCP_JS", "/Users/gob/LungNote Projects/mcp/index.js"
+def _first_existing(*paths: str) -> str:
+    """First path that exists, else the first candidate (so the caller's
+    is_file() check still reports it missing with a sensible name)."""
+    for candidate in paths:
+        if candidate and Path(candidate).is_file():
+            return candidate
+    return paths[0]
+
+
+# Mac dev checkout first, then the Contabo deploy under /opt. Adding a box means
+# adding a path here (or exporting LUNGNOTE_MCP_JS), not editing the launchers.
+LUNGNOTE_MCP_JS = os.environ.get("LUNGNOTE_MCP_JS") or _first_existing(
+    "/Users/gob/LungNote Projects/mcp/index.js",
+    "/opt/lungnote-mcp/index.js",
 )
 # @supabase/realtime-js needs a native `WebSocket` global, which Node gained in
 # 22. The Mac's system `node` is already 26+ (Homebrew), so this is invisible
