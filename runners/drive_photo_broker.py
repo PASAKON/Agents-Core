@@ -30,6 +30,27 @@ start sharing config, a socket, or a uid allowlist:
 The credential is never logged, echoed, or returned -- not on error paths
 either (same _redact() scheme as drive_upload_broker.py).
 
+CONTAINMENT BOUNDARY, PRECISELY (task-4307c02c, 2026-09-10): the guarantee
+this design gives is CONTAINER != DRIVE, never HOST ROOT != DRIVE.
+A compromised claudeflow container never gets this socket, this credential,
+or a network path to either -- at worst it writes garbage bytes onto a disk
+it already controls (the outbox). That property does not depend on which
+uids appear in DRIVE_PHOTO_BROKER_ALLOWED_UIDS, and it is unaffected by uid
+0 (root) being one of them. Host root is a different matter and is NOT a
+boundary this design claims to hold: on this box root already owns
+/root/projects, every credential file on disk, systemd, and every service
+user (including this one) -- a host-root compromise has the Drive
+regardless of which uid any of these processes run as, so refusing to list
+uid 0 here would not remove any real capability from root, only from an
+allowlist root can rewrite at will anyway. That is why
+runners/sompong_photo_filer.py (the broker's one caller) is allowed to run
+as root -- see that module's docstring and docs/design/sompong-photos.md
+for the full reasoning, including the alternatives that were rejected
+(chmod/ACL on /root, relocating the outbox). This broker process itself
+keeps running as its own unprivileged `photoup` user regardless -- it is
+the one process on the box that holds the Drive OAuth credential, and
+nothing about the filer's uid changes that.
+
 THE ONE NEW ATTACK SURFACE -- the "subfolder" request field:
     SomPong's photos are filed by month ("My Picture & Videos." / YYYY-MM/,
     per the gdrive-filing skill's carve-out for this one folder). The broker
@@ -67,14 +88,17 @@ systemd unit, never by this code):
                                         the shared claudeflow photo outbox
                                         (SOMPONG_PHOTO_OUTBOX)
     DRIVE_PHOTO_BROKER_ALLOWED_UIDS    comma-separated uid(s) permitted to
-                                        call in (required) -- the host filer
-                                        service's uid only. NEVER uid 0: the
-                                        container that writes into the
-                                        staging root runs as a different
-                                        identity entirely and must never be
-                                        able to reach this socket -- see
-                                        module docstring's "constraint that
-                                        shapes the design" in the task brief.
+                                        call in (required) -- the host
+                                        filer's uid, which is 0 (root) as of
+                                        task-4307c02c: see "CONTAINMENT
+                                        BOUNDARY, PRECISELY" above for why
+                                        that is safe here. The claudeflow
+                                        CONTAINER is a different identity
+                                        entirely and must never appear here
+                                        -- but it never could anyway, since
+                                        it has no socket, credential, or
+                                        network path to reach this broker in
+                                        the first place.
     DRIVE_PHOTO_BROKER_SOCKET_PATH     unix socket to listen on (default:
                                         /run/photoup/photo-broker.sock)
     DRIVE_PHOTO_BROKER_FOLDER_ID       the fixed destination folder (default:

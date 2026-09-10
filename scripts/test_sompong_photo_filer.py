@@ -171,6 +171,81 @@ def test_corrupt_json_is_quarantined(filer_env, monkeypatch):
     assert (failed_dir / "bad.json").exists()
 
 
+# --------------------------------------------------------------------------- symlink escape (task-4307c02c -- filer runs as root)
+
+def test_json_symlink_escaping_outbox_is_quarantined_without_being_read(filer_env, monkeypatch, tmp_path):
+    outbox = filer_env
+    secret = tmp_path / "secret-outside-outbox.json"
+    secret.write_text("SECRET CONTENT THAT MUST NEVER BE PARSED", encoding="utf-8")
+    link = outbox / "evil.json"
+    link.symlink_to(secret)
+
+    def fail_upload(*a, **kw):
+        raise AssertionError("must never upload for a pair behind an escaping symlink")
+    monkeypatch.setattr(filer, "_upload_via_broker", fail_upload)
+
+    counts = filer.tick()
+
+    assert counts == {"quarantined_symlink_escape": 1}
+    failed_dir = outbox / "failed"
+    assert (failed_dir / "evil.json").is_symlink()  # the symlink moved, never dereferenced
+    assert secret.exists()  # the file it pointed at was never touched
+    assert secret.read_text(encoding="utf-8") == "SECRET CONTENT THAT MUST NEVER BE PARSED"
+
+
+def test_bin_symlink_escaping_outbox_is_quarantined_without_being_hashed(filer_env, monkeypatch, tmp_path):
+    outbox = filer_env
+    secret_bytes = b"SECRET BYTES THAT MUST NEVER BE HASHED OR UPLOADED"
+    secret = tmp_path / "secret-outside-outbox.bin"
+    secret.write_bytes(secret_bytes)
+    json_path = outbox / "evil2.json"
+    json_path.write_text(json.dumps({
+        "groupId": "G1", "messageId": "evil2", "userId": "U1", "name": "attacker",
+        "ts": 1788975600, "kind": "image", "mime": "image/jpeg", "ext": ".jpg",
+        "sha256": hashlib.sha256(secret_bytes).hexdigest(),
+    }), encoding="utf-8")
+    link = outbox / "evil2.bin"
+    link.symlink_to(secret)
+
+    def fail_upload(*a, **kw):
+        raise AssertionError("must never upload for a pair behind an escaping symlink")
+    monkeypatch.setattr(filer, "_upload_via_broker", fail_upload)
+
+    counts = filer.tick()
+
+    assert counts == {"quarantined_symlink_escape": 1}
+    failed_dir = outbox / "failed"
+    assert (failed_dir / "evil2.bin").is_symlink()  # the symlink moved, never dereferenced
+    assert secret.exists()
+    assert secret.read_bytes() == secret_bytes
+
+
+def test_symlink_inside_outbox_pointing_at_another_pair_in_outbox_is_not_flagged(filer_env, monkeypatch):
+    """The check is "does this resolve OUTSIDE the outbox", not "is this a
+    symlink" -- a symlink whose target is still inside the outbox is fine."""
+    outbox = filer_env
+    content = b"real bytes, reached via an in-outbox symlink"
+    real_bin = outbox / "real.bin"
+    real_bin.write_bytes(content)
+    json_path = outbox / "aliased.json"
+    json_path.write_text(json.dumps({
+        "groupId": "G1", "messageId": "aliased", "userId": "U1", "name": "x",
+        "ts": 1788975600, "kind": "image", "mime": "image/jpeg", "ext": ".jpg",
+        "sha256": hashlib.sha256(content).hexdigest(),
+    }), encoding="utf-8")
+    link = outbox / "aliased.bin"
+    link.symlink_to(real_bin)
+
+    calls = []
+    monkeypatch.setattr(filer, "_upload_via_broker",
+                         lambda path, name, subfolder: (calls.append(path), (True, "ok"))[1])
+
+    counts = filer.tick()
+
+    assert counts == {"filed": 1}
+    assert len(calls) == 1
+
+
 # --------------------------------------------------------------------------- sha256 mismatch
 
 def test_sha_mismatch_quarantines_both_files_never_uploads(filer_env, monkeypatch):

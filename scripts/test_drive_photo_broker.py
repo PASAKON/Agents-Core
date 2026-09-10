@@ -372,6 +372,69 @@ def test_peer_uid_in_allowlist_is_accepted_over_a_real_socket(monkeypatch, tmp_p
     assert response["id"] == "ok-id"
 
 
+# --------------------------------------------------------------------------- uid 0 (task-4307c02c: the filer now runs as root)
+
+def test_uid_zero_not_in_allowlist_is_still_refused(monkeypatch, tmp_path):
+    """The allowlist is the only source of truth -- uid 0 is not
+    special-cased as always-allowed by the mechanism itself (that would
+    defeat the allowlist entirely). A broker configured WITHOUT 0 in its
+    allowlist must still refuse a uid-0 caller."""
+    cfg = _cfg(tmp_path, allowed_uids=frozenset({1001}))
+    logger = logging.getLogger("test-photo-broker-uid0-not-hardcoded-allowed")
+
+    def fail_upload(*a, **kw):
+        raise AssertionError("upload must never be reached for an unauthorized peer")
+    monkeypatch.setattr(ilag_sync, "upload", fail_upload)
+    monkeypatch.setattr(broker, "get_peer_uid", lambda conn: 0)
+
+    response = _round_trip(cfg, logger, {"op": "upload", "path": "/whatever"})
+
+    assert response["ok"] is False
+    assert "not authorized" in response["error"]
+
+
+def test_uid_zero_in_allowlist_does_not_widen_acceptance_to_other_uids(monkeypatch, tmp_path):
+    """Adding 0 (root, task-4307c02c) to the allowlist must not turn into an
+    "anything goes" wildcard -- a caller whose uid is neither 0 nor the
+    broker's other configured uid is still refused."""
+    cfg = _cfg(tmp_path, allowed_uids=frozenset({0, 1001}))
+    logger = logging.getLogger("test-photo-broker-uid0-no-wildcard")
+
+    def fail_upload(*a, **kw):
+        raise AssertionError("upload must never be reached for an unauthorized peer")
+    monkeypatch.setattr(ilag_sync, "upload", fail_upload)
+    monkeypatch.setattr(broker, "get_peer_uid", lambda conn: 999999)
+
+    response = _round_trip(cfg, logger, {"op": "upload", "path": "/whatever"})
+
+    assert response["ok"] is False
+    assert "not authorized" in response["error"]
+
+
+def test_uid_zero_caller_still_cannot_redirect_the_destination_folder(monkeypatch, tmp_path):
+    """uid 0 being an allowed caller (task-4307c02c) does not loosen
+    anything else: folder_id/parent fields from an allowed root peer are
+    still ignored, exactly like any other allowed caller (test 2 above)."""
+    cfg = _cfg(tmp_path, allowed_uids=frozenset({0}))
+    local = _staged_file(cfg)
+    logger = logging.getLogger("test-photo-broker-uid0-cannot-redirect-folder")
+
+    seen_folder_ids = []
+    monkeypatch.setattr(ilag_sync, "upload",
+                         lambda path, name, folder_id: seen_folder_ids.append(folder_id) or {"id": "x"})
+    monkeypatch.setattr(broker, "list_folder", lambda folder_id: {"photo.jpg": local.stat().st_size})
+    monkeypatch.setattr(broker, "get_peer_uid", lambda conn: 0)
+
+    response = _round_trip(cfg, logger, {
+        "op": "upload", "path": str(local),
+        "folder_id": "ATTACKER-CONTROLLED-FOLDER", "parent": "ALSO-ATTACKER-CONTROLLED",
+    })
+
+    assert response["ok"] is True
+    assert seen_folder_ids == [cfg.folder_id]
+    assert "ATTACKER-CONTROLLED-FOLDER" not in seen_folder_ids
+
+
 # --------------------------------------------------------------------------- 5. oversize rejection
 
 def test_file_over_size_cap_is_refused(tmp_path):
@@ -505,6 +568,20 @@ def test_load_config_uses_defaults_for_optional_values(tmp_path):
     assert cfg.max_upload_bytes == broker.DEFAULT_MAX_UPLOAD_BYTES
     assert cfg.max_upload_bytes == 200 * 1024 * 1024
     assert cfg.socket_path == Path(broker.DEFAULT_SOCKET_PATH)
+
+
+def test_load_config_parses_uid_zero_from_env_alongside_other_uids():
+    """DRIVE_PHOTO_BROKER_ALLOWED_UIDS is read from config, not hard-coded
+    -- 0 (root, task-4307c02c) parses through the exact same int(...) path
+    as every other uid, no special-casing anywhere in load_config()."""
+    with tempfile.TemporaryDirectory() as d:
+        env = {
+            "DRIVE_PHOTO_BROKER_ENV": str(Path(d) / "creds.env"),
+            "DRIVE_PHOTO_BROKER_STAGING_ROOT": d,
+            "DRIVE_PHOTO_BROKER_ALLOWED_UIDS": "0,1001",
+        }
+        cfg = broker.load_config(env)
+    assert cfg.allowed_uids == frozenset({0, 1001})
 
 
 def test_default_folder_and_socket_are_independent_of_the_sibling_broker():

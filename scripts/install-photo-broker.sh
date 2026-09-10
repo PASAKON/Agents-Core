@@ -24,6 +24,21 @@
 # would collide with the existing broker's (see the guard right below the
 # constants), so a copy-paste mistake here can never repoint or disable
 # `mooniex-drive-broker`/`Desktop Cloud`.
+#
+# task-4307c02c (2026-09-10): the filer runs as root. Measured on Contabo:
+# /root is mode 0700, so no non-root uid can ever traverse into
+# /root/projects -- the outbox's own leaf permissions are irrelevant, the
+# filer cannot even see the directory exists. Root already owns this whole
+# box (credential files, systemd, every service user), so root reading files
+# under /root/projects is not a new capability, just the filer's uid
+# matching what host root can already reach -- see docs/design/sompong-photos.md
+# for the full reasoning and the alternatives that were rejected. The broker
+# itself keeps running as its own unprivileged `photoup` user (it holds the
+# Drive credential, that has not changed) -- which means `photoup` remains
+# subject to the exact same /root traversal block the filer used to hit; that
+# is a pre-existing, separately-tracked dependency on the claudeflow-side
+# task that moves the outbox out from under /root, not something this script
+# or this task fixes (see the "KNOWN GAP" print in do_install below).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -47,13 +62,23 @@ REQUIRED_KEYS=(GOOGLE_OAUTH_CLIENT_ID GOOGLE_OAUTH_CLIENT_SECRET GOOGLE_OAUTH_RE
 # --- the filer (broker's one caller) ----------------------------------------
 FILER_SERVICE="mooniex-sompong-photo-filer"
 FILER_UNIT_PATH="/etc/systemd/system/${FILER_SERVICE}.service"
-FILER_USER="sompongphoto"
-FILER_GROUP="sompongphoto"
-FILER_LOG_DIR="/home/${FILER_USER}/logs"
+# Runs as root (task-4307c02c) -- see the header comment above. Root has no
+# separate home dir of its own for this feature, so log/state live under
+# dedicated paths rather than a service user's ~, matching how the broker's
+# own paths are keyed off BROKER_USER/BROKER_HOME.
+FILER_LOG_DIR="/var/log/mooniex-sompong-photo-filer"
 OUTBOX_DIR="/root/projects/mooniex-claudeflow/data/sompong/photos-outbox"   # claudeflow's shared volume -- see docs/design/sompong-photos.md
-FILER_STATE_DIR="/var/lib/${FILER_USER}/state"
+FILER_STATE_DIR="/var/lib/mooniex-sompong-photo-filer"
 FILER_POLL_SECONDS="60"
 FILER_MAX_RETRIES="5"
+
+# The filer's OLD dedicated user/group, from before task-4307c02c made it run
+# as root. Never used for anything new below -- do_install tears these down
+# (user, group, home dir) if still present, so a re-run over the
+# half-installed state this task fixed doesn't leave an orphaned account and
+# an orphaned home dir sitting around unused.
+LEGACY_FILER_USER="sompongphoto"
+LEGACY_FILER_GROUP="sompongphoto"
 
 # --- the EXISTING broker's constants (scripts/install-drive-broker.sh) --
 # Compared against ours below so a future edit here can never collide with
@@ -130,58 +155,66 @@ do_install() {
     echo "  created user '$BROKER_USER' (home: $BROKER_HOME, no shell)"
   fi
 
-  echo "== 2. ${FILER_USER} system user/group (the broker's one allowed caller) =="
-  if getent group "$FILER_GROUP" >/dev/null; then
-    echo "  group '$FILER_GROUP' already exists"
+  echo "== 2. tear down the legacy '${LEGACY_FILER_USER}' user (filer runs as root as of task-4307c02c) =="
+  systemctl stop "$FILER_SERVICE" 2>/dev/null || true
+  if id -u "$LEGACY_FILER_USER" >/dev/null 2>&1; then
+    if userdel -r "$LEGACY_FILER_USER" 2>/dev/null; then
+      echo "  removed user '$LEGACY_FILER_USER' and its home directory"
+    else
+      # -r can fail if a process still holds the account (e.g. a mail spool
+      # lock) even after the stop above -- fall back to removing the account
+      # without -r rather than leaving the whole step half-done, and say so.
+      userdel "$LEGACY_FILER_USER"
+      echo "  removed user '$LEGACY_FILER_USER' (home directory left in place -- 'userdel -r' failed, remove by hand if truly unused)"
+    fi
   else
-    groupadd --system "$FILER_GROUP"
-    echo "  created group '$FILER_GROUP'"
+    echo "  user '$LEGACY_FILER_USER' already absent -- nothing to remove"
   fi
-  if id -u "$FILER_USER" >/dev/null 2>&1; then
-    echo "  user '$FILER_USER' already exists"
+  if getent group "$LEGACY_FILER_GROUP" >/dev/null; then
+    if groupdel "$LEGACY_FILER_GROUP" 2>/dev/null; then
+      echo "  removed group '$LEGACY_FILER_GROUP'"
+    else
+      echo "  WARNING: could not remove group '$LEGACY_FILER_GROUP' (still referenced by something else?) -- left in place, unused by this feature"
+    fi
   else
-    useradd --system --gid "$FILER_GROUP" --create-home --shell /usr/sbin/nologin "$FILER_USER"
-    echo "  created user '$FILER_USER' (no shell)"
+    echo "  group '$LEGACY_FILER_GROUP' already absent -- nothing to remove"
   fi
 
-  echo "== 3. ${FILER_USER} -> ${BROKER_GROUP} group (so it can reach the socket) =="
-  if id -nG "$FILER_USER" | tr ' ' '\n' | grep -qx "$BROKER_GROUP"; then
-    echo "  '$FILER_USER' already in '$BROKER_GROUP'"
-  else
-    usermod -aG "$BROKER_GROUP" "$FILER_USER"
-    echo "  added '$FILER_USER' to '$BROKER_GROUP'"
-    echo "  *** NEW GROUP MEMBERSHIP ONLY TAKES EFFECT ON A NEW LOGIN SESSION -- this service"
-    echo "  *** picks it up fine since systemd starts it fresh, nothing to restart for this step."
-  fi
-
-  echo "== 4. outbox / staging dir (claudeflow writes, ${FILER_USER} drains, ${BROKER_USER} reads) =="
+  echo "== 3. outbox / staging dir (claudeflow writes, root-run filer drains, ${BROKER_USER} reads) =="
+  local current_owner
   if [ -d "$OUTBOX_DIR" ]; then
     echo "  already exists: $OUTBOX_DIR -- leaving ownership/mode as-is (may hold live data)"
     echo "  current: $(stat -c '%U:%G %a' "$OUTBOX_DIR" 2>/dev/null || stat -f '%Su:%Sg %Lp' "$OUTBOX_DIR")"
+    current_owner="$(stat -c '%U' "$OUTBOX_DIR" 2>/dev/null || stat -f '%Su' "$OUTBOX_DIR")"
+    if [ "$current_owner" = "$LEGACY_FILER_USER" ]; then
+      chown "root:${BROKER_GROUP}" "$OUTBOX_DIR"
+      echo "  re-owned from the now-removed '${LEGACY_FILER_USER}' to root:${BROKER_GROUP} (mode left as-is -- pairs inside are untouched, only the directory's owner changed)"
+    fi
   else
     mkdir -p "$OUTBOX_DIR"
-    chown "${FILER_USER}:${BROKER_GROUP}" "$OUTBOX_DIR"
+    chown "root:${BROKER_GROUP}" "$OUTBOX_DIR"
     chmod 2770 "$OUTBOX_DIR"
-    echo "  created: $OUTBOX_DIR (owner ${FILER_USER}:${BROKER_GROUP}, mode 2770)"
+    echo "  created: $OUTBOX_DIR (owner root:${BROKER_GROUP}, mode 2770)"
   fi
   echo "  *** KNOWN GAP (claudeflow side, separate task, see docs/design/sompong-photos.md):"
-  echo "  *** this directory sits under /root/projects/... . If /root or its parents are not"
-  echo "  *** traversable by '${FILER_USER}' (macOS/Linux default for /root is mode 700), this"
-  echo "  *** service cannot read the pairs claudeflow writes there no matter what this script"
-  echo "  *** sets on the leaf directory. Verify with: sudo -u ${FILER_USER} test -r ${OUTBOX_DIR} && echo OK"
+  echo "  *** this directory sits under /root/projects/... . The filer now runs as root"
+  echo "  *** (task-4307c02c) so IT can always reach this path regardless of /root's mode --"
+  echo "  *** but the broker (${BROKER_USER}) still cannot: if /root or its parents are not"
+  echo "  *** traversable by '${BROKER_USER}' (macOS/Linux default for /root is mode 700), the"
+  echo "  *** broker cannot open the files it's asked to upload no matter what this script sets"
+  echo "  *** on the leaf directory. Verify with: sudo -u ${BROKER_USER} test -r ${OUTBOX_DIR} && echo OK"
 
-  echo "== 5. log + state dirs =="
+  echo "== 4. log + state dirs =="
   mkdir -p "$BROKER_LOG_DIR"
   chown "${BROKER_USER}:${BROKER_GROUP}" "$BROKER_LOG_DIR"
   chmod 750 "$BROKER_LOG_DIR"
   mkdir -p "$FILER_LOG_DIR" "$FILER_STATE_DIR"
-  chown "${FILER_USER}:${FILER_GROUP}" "$FILER_LOG_DIR" "$FILER_STATE_DIR"
-  chmod 750 "$FILER_LOG_DIR" "$FILER_STATE_DIR"
+  chown root:root "$FILER_LOG_DIR" "$FILER_STATE_DIR"
+  chmod 700 "$FILER_LOG_DIR" "$FILER_STATE_DIR"
   echo "  ready: $BROKER_LOG_DIR, $FILER_LOG_DIR, $FILER_STATE_DIR"
 
-  echo "== 6. broker systemd unit =="
-  local filer_uid
-  filer_uid="$(id -u "$FILER_USER")"
+  echo "== 5. broker systemd unit =="
+  local filer_uid=0   # the filer runs as root (task-4307c02c) -- uid 0 is always 0, no need to look it up
 
   cat > "$BROKER_UNIT_PATH" <<UNIT_EOF
 [Unit]
@@ -220,18 +253,18 @@ WantedBy=multi-user.target
 UNIT_EOF
   echo "  wrote $BROKER_UNIT_PATH"
 
-  echo "== 7. filer systemd unit =="
+  echo "== 6. filer systemd unit =="
   cat > "$FILER_UNIT_PATH" <<UNIT_EOF
 [Unit]
-Description=SomPong family-photo outbox drain -- reads claudeflow's shared-volume outbox and uploads through the Drive photo broker's socket (task-a1c618db, feature F2). Never touches the Drive credential directly.
+Description=SomPong family-photo outbox drain -- reads claudeflow's shared-volume outbox and uploads through the Drive photo broker's socket (task-a1c618db, feature F2; runs as root as of task-4307c02c so it can traverse /root/projects -- see docs/design/sompong-photos.md). Never touches the Drive credential directly.
 After=network-online.target ${BROKER_SERVICE}.service
 Wants=network-online.target
 Requires=${BROKER_SERVICE}.service
 
 [Service]
 Type=simple
-User=${FILER_USER}
-Group=${FILER_GROUP}
+User=root
+Group=root
 WorkingDirectory=${ROOT}
 Environment=SOMPONG_PHOTO_OUTBOX=${OUTBOX_DIR}
 Environment=DRIVE_PHOTO_BROKER_SOCKET_PATH=${BROKER_SOCKET_PATH}
@@ -265,11 +298,11 @@ UNIT_EOF
   echo
   echo "== summary =="
   echo "  broker service:  $BROKER_SERVICE  (user ${BROKER_USER}, group ${BROKER_GROUP})"
-  echo "  filer service:   $FILER_SERVICE  (user ${FILER_USER})"
+  echo "  filer service:   $FILER_SERVICE  (user root -- task-4307c02c)"
   echo "  socket:          $BROKER_SOCKET_PATH  (0660, group ${BROKER_GROUP} only)"
   echo "  outbox:          $OUTBOX_DIR"
   echo "  folder id:       $FOLDER_ID  (\"My Picture & Videos.\", fixed, never client-supplied)"
-  echo "  allowed uid:     $filer_uid  ($FILER_USER)"
+  echo "  allowed uid:     $filer_uid  (root -- the filer; see the module docstrings for why uid 0 is safe here)"
   echo
   echo "*** REQUIRED BEFORE THE BROKER WILL ACTUALLY UPLOAD ANYTHING ***"
   echo "*** This script never writes a credential. A human must create:"
@@ -296,9 +329,9 @@ do_uninstall() {
   rm -f "$FILER_UNIT_PATH" "$BROKER_UNIT_PATH"
   systemctl daemon-reload
   echo "uninstalled: $BROKER_SERVICE, $FILER_SERVICE"
-  echo "(left in place: ${BROKER_USER}/${FILER_USER} users/groups, ${ENV_FILE}, ${OUTBOX_DIR},"
-  echo " ${FILER_STATE_DIR} -- remove by hand if truly done with this; the outbox may hold"
-  echo " un-filed photos, never delete it without checking first)"
+  echo "(left in place: ${BROKER_USER} user/group (filer runs as root -- nothing to leave there),"
+  echo " ${ENV_FILE}, ${OUTBOX_DIR}, ${FILER_STATE_DIR} -- remove by hand if truly done with this;"
+  echo " the outbox may hold un-filed photos, never delete it without checking first)"
 }
 
 do_status() {
