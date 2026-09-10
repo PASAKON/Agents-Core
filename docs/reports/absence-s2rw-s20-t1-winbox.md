@@ -84,6 +84,18 @@ push again the moment it resolves.
 - **05:31 UTC (12:31 ICT) checkpoint** — still `status:"queued"`, unchanged, ~149 minutes since
   fire. Continuing to poll; still not cancelling per the explicit "queued is never cancelled"
   rule. No other card in the grid has changed status either.
+- **05:49 UTC (12:49 ICT) checkpoint** — still `status:"queued"`, reload-verified fresh at 05:43
+  UTC (~161 min) and again unreloaded at 05:49 UTC (~167 min). **Nearly 3 hours since fire, no
+  change in status, no progress/ETA field exists on this build to distinguish "waiting behind
+  another job" from "actively rendering but stuck."** Still honouring the explicit "a QUEUED job
+  is NEVER cancelled or re-fired" rule literally and not cancelling. This is well outside any
+  render time documented anywhere in the skill (worst historical case there was 137 min, and that
+  one *was* eventually cancelled by an operator — but under different rules than this task's).
+  Flagging this prominently for the CTO: **if "queued" never transitions to a distinguishable
+  "generating" state on this Higgsfield build, the 90-minute-generating exception in this task's
+  own rules may be unreachable in practice, and CEO guidance may be needed on whether ~3h+ queued
+  jobs should ever be cancelled.** Continuing to poll regardless; not treating this as a BLOCKER
+  yet since the instruction is unambiguous and I am following it, not stuck on how to proceed.
 
 ## Files changed
 - `docs/reports/absence-s2rw-s20-t1-winbox.md` (this file)
