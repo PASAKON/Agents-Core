@@ -66,7 +66,7 @@ CANCEL_RE = re.compile(r"paste\s+(this\s+entire\s+text|the\s+entire\s+text)", re
 # composer vocabulary and editorial notes in one pass.
 GUIDANCE_GREP_RE = re.compile(
     r"⚠️|✅|\(CE[OT]|\(CTO|20[0-9]{2}-[0-9]{2}|take [0-9]|GH #|\.md|\.txt|\.MP4"
-    r"|chip|plate|Elements panel|UUID|paste|operator|spoken words|Fire |Cuts against|as S[0-9]"
+    r"|\bchips?\b|\bplates?\b|Elements panel|UUID|paste|operator|spoken words|Fire |Cuts against|as S[0-9]"
 )
 TAKE_ID_RE = re.compile(r"\b[0-9a-f]{8}\b")
 # composer mechanics the CTO's own grep (above) doesn't cover but the task
