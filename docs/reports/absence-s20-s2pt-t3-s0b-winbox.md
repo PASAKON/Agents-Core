@@ -301,6 +301,23 @@ still short of the 90-min cancel-consideration threshold. Confirmed genuine
 poll every ~5 min via disposable tabs; S0b stays staged and untouched in the
 composer tab (1638444940).
 
+**18:41 ICT (11:41 UTC): the whole tab group (including the S0b-staged
+composer tab, 1638444940) disappeared** — `tabs_create_mcp` failed with "No
+tab group exists for this session yet", and a fresh `tabs_context_mcp` came
+back with only Chrome's own blank New Tab. Consistent with the several
+"running low on memory" kills this session's background wait timers have
+already hit — most likely Chrome itself was restarted or the tab group was
+reaped by the OS under memory pressure, not anything this session did
+directly. **S2PT's render is unaffected** — checked immediately via the
+fresh tab and it is still `queued`/"Processing" at ~91 min, confirming this
+skill's own note that a generation survives the death of the tab/agent that
+started it (the server-side job doesn't care that the client tab is gone).
+Released the stale tab-registry claim on 1638444940 and claimed the new tab
+(1638445167). **S0b will need to be re-staged from scratch** once S2PT's
+slot frees — the 3/3-chip, 8s, no-video-ref state that was verified earlier
+is gone with the tab, but the sheet itself is untouched and lint-clean, so
+this is pure re-work, not a data-loss risk.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
