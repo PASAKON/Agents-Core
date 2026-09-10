@@ -1,0 +1,106 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+S0b · THE CART ROLLS IN · 8s · CEO 2026-09-10 12:20: "เพิ่มเปลี่ยนจาก 0:10–0:16 ฉากนั้นรถเข็นไม่มีล้อ
+หาฉากที่มีล้อเข้าไปแทนให้หน่อย". Draft 5 0:10–0:16 is the old S1-era shot of the cart passing close
+with NO wheels visible; nothing in Fix-1/Fix-2 shows the pre-fall cart rolling with its wheels, so
+this is a new 8 s clip: the empty cart rolls down the hall toward and past a low locked camera,
+four castor wheels turning on the terrazzo — the wheels are the whole point of the shot.
+BEFORE the painting falls: the rack is EMPTY (S0 era), the hall is empty, no plaque, no mark.
+
+⛳ LANE: FREE (Unlimited ON, Generate shows no real number), winbox operator, after S20. Spec:
+Seedance 2.5 / 8s / 720p / 16:9 / Sound ON / 1 video. No previz. ⚠️ CHIPS: 3 = loc_hall_big_e,
+char_cleaner_c, prop_cart_a (the EMPTY-rack cart, not prop_cart_a_painted).
+
+REVIEW ORDER:
+1. ONE locked low shot, no cut; the cart rolls toward and past the lens, wheels visible and
+   turning in every frame where the cart is in view.
+2. The rack is EMPTY — no painting in it, no painting on the wall in frame.
+3. Only Dupe (legs, shoes, hands on the handle); nobody else.
+4. No plaque, no mark, no crack.
+
+Filing: All Scene/Fix-2/ as S0b-TheCartRollsIn-Fix1.MP4.
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+8s · 720p · 16:9 · ONE LOCKED SHOT, no cuts. The camera never moves, never
+pans, never zooms. NO DIALOGUE — nobody speaks. Sound On · High.
+
+THE FRAME: the camera sits LOW, forty centimetres above the polished
+terracotta terrazzo, in the middle of the gallery, looking straight down its
+length toward the far red double door: chromium trumpet columns receding in
+matched pairs, the warm orange cove light along the ceiling, works on white
+plinths and framed pieces along both walls. The hall is empty. It is early
+morning and nothing has happened yet: no plaque, no mark, no crack, nothing on
+the near wall but plaster.
+
+THE CART IS THE SUBJECT OF THIS SHOT. A burnt-orange cleaning trolley on FOUR
+BLACK CASTOR WHEELS rolls toward the camera from the far end of the hall,
+pushed by Dupe, and the wheels are in plain view the whole way: four small
+black castors under the orange frame, turning on the terrazzo, catching the
+cove light, the nearest pair swivelling slightly as it comes. The trolley
+carries a mop standing upright, an orange bucket, a row of bottles, a folding
+ladder and a small gold V on its side. ITS RACK IS EMPTY — there is no painting
+in it and no painting anywhere in the shot.
+
+THE COMPLETE CAST OF THIS SHOT IS ONE PERSON AND NOT ONE MORE. No visitors, no
+guards, nobody in the background, nobody walking through. If a figure is not
+named below it must not exist.
+
+REFERENCES — each with a job:
+@loc_hall_big_e — THE ROOM, and the only location reference in this prompt:
+  the gallery seen down its length, chromium trumpet columns in matched pairs,
+  warm orange cove light, terracotta terrazzo, works on white plinths along
+  both walls, the red double door at the vanishing point. Take the room, its
+  surfaces and its light from this picture.
+@project_absence_char_cleaner_c — DUPE, the cleaner: white mandarin-collar
+  uniform with orange piping, gold V on the chest and on his white peaked cap,
+  thick dark moustache with curled tips, white shoes. Both hands on the cart's
+  handle, walking at an easy pace, content, humming under his breath. He never
+  speaks.
+@project_absence_prop_cart_a — HIS CART, exactly as its picture: burnt-orange
+  frame, FOUR BLACK CASTOR WHEELS, mop, orange bucket, bottles, folding ladder,
+  gold V, and an EMPTY rack. Controls the cart only.
+
+[0s] The empty hall, low and long. Far away at the vanishing point the cart
+appears, Dupe behind it, and starts toward the camera along the centre line.
+
+[2s] It grows steadily larger, dead centre, the four castors visible under it
+and turning, Dupe's white uniform and white shoes behind and above the handle.
+
+[5s] The cart fills the lower half of the frame as it reaches the lens — the
+nearest castors turning right in front of the camera — and rolls past to the
+RIGHT of the lens without touching it, Dupe's legs following.
+
+[7s] The cart and Dupe are gone past the camera; the empty hall and the far red
+door remain, unchanged. Hold. End.
+
+AUDIO: room tone; the soft rumble of castors on terrazzo growing louder as the
+cart approaches and fading as it passes; Dupe humming a tune under his breath,
+no words; his footsteps. No music, no dialogue. NO SOUND AT THE START OR THE
+END: the clip opens mid room-tone with no intro sting or riser, and simply
+stops with no tail, swell or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids,
+whites pushed slightly cool, shadows deep red-brown, halation around every
+lamp. Photographed, not rendered: fine film grain, faint gate weave, slight
+colour fringing.
+
+CRITICAL NEGATIVES: no cart without wheels, no cart with its base hidden, no
+cart floating, no cart sliding without its wheels turning, no second cart, no
+duplicate Dupe; no painting in the rack, no painting on the wall, no framed
+picture leaning anywhere on the cart; no plaque, no mark, no crack, no hole; no
+second person, no visitor, no guard, nobody in the background; no camera move
+of any kind, no pan, no tilt, no zoom, no dolly, no handheld, no reframe, no
+cut, no dissolve, no fade, no slow motion; no looking at the lens; no dutch
+angle, no lens flare, no grid, no split screen; no smartphones, no screens, no
+modern technology.
+
+House negatives: no voiceover, no narration, no subtitles, no captions, no
+on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic
+skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
