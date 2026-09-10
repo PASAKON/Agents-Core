@@ -1,0 +1,88 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+S2Xb · THE CRACK, MACRO · 8s · CTO 2026-09-11 04:45, chosen under the CEO's standing order to
+fill the remaining free-lane slots with whatever I judge most useful ("ที่เหลือให้คุณ Generate
+ฉากเสริม ตามใจคุณได้เลย … ช่วยเพิ่มเติมให้ฉากบทสรุปดีขึ้น หรือ แทรกช่วงไหนๆ").
+
+WHY THIS ONE, AND NOT A NEW SCENE. The editor sheet sent on 10 ก.ย. gives row 7 as:
+    "0:44 · 1:36 · 1:48 · 3:58 | แทรก ใช้ซ้ำได้ทุกจุด | S2X-TheCrackInsert-Fix1.MP4"
+**One cutaway, reused at four separate points in a seven-minute film.** That is the largest
+structural gap left in the picture and nobody had named it. A viewer will not consciously notice
+the first repeat; by the fourth they feel the film running out of material, which is the one
+impression this film cannot afford at a festival.
+
+The fix is not another scene — the story is complete. It is a SECOND ANGLE ON THE SAME SUBJECT at
+a different scale, so the editor can alternate instead of repeating. Cut wide/macro/wide/macro and
+four uses read as coverage; cut the same frame four times and they read as a shortage.
+
+WHY MACRO SPECIFICALLY. S2X is a normal insert of a crack on a wall. Pushed to macro the plaster
+stops reading as a wall and starts reading as terrain — a canyon, a river delta, an aerial
+photograph. That is the film's whole argument made in one image: look closely enough at nothing
+and it becomes a landscape worth a hundred million. The joke is in the lens, not in a line.
+
+LOWEST-RISK FIRE AVAILABLE: one chip, no cast, no face, no dialogue, no camera move beyond a slow
+push, 8 seconds. Nothing here can duplicate a character, mismatch a wardrobe or drop a line.
+
+⚠️ NO PLAQUE IN THIS SHOT. The hero-wall plate carries a brass plaque; at macro scale it must be
+out of frame entirely, or the insert stops being usable at 0:44 — the plaque and its price do not
+exist yet that early in the film. Framed on the crack alone, this insert is legal at every one of
+the four slots.
+
+Chips: 1 — loc_wall_crack.
+
+REVIEW ORDER — LOOK, DO NOT MEASURE:
+(1) it is UNRECOGNISABLE as a wall at first glance and resolves into plaster as it plays;
+(2) NO plaque, no lettering, no number anywhere in frame;
+(3) one crack only, no second fracture, no spiderweb, no impact crater;
+(4) the push is slow and continuous, no cut, no jitter;
+(5) it does not match S2X's framing — if it looks like the same shot, it has failed its only job.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+8s · 720p · 16:9 · ONE CONTINUOUS SHOT, no cuts. A VERY SLOW PUSH IN, dead straight, the only
+movement in the clip. Sound On · High. NOBODY SPEAKS AND NOBODY IS IN THIS SHOT.
+
+@project_absence_loc_wall_crack — take the wall's surface, its colour and its light from this
+picture: flat white gallery plaster, warm gallery lighting, the small dark fracture in it.
+
+THIS IS AN EXTREME CLOSE-UP OF THE PLASTER. The camera is a hand's width from the wall. The frame
+holds nothing but white plaster and the crack running through it. There is no room, no floor, no
+ceiling, no column, no doorway, no furniture, no person and no sense of scale anywhere — the
+audience cannot tell how big any of this is, and that is the point.
+
+AT THIS DISTANCE THE WALL STOPS LOOKING LIKE A WALL. The plaster reads as terrain: a dry riverbed
+seen from an aeroplane, a canyon in a desert, a fault line in cracked ground. Every grain of the
+surface is visible — the fine tooth of the paint, tiny air bubbles, a faint trowel sweep, dust
+caught in the texture. The crack itself is a dark ravine with pale hairline tributaries running
+off it and a scatter of loose plaster crumbs along its edges.
+
+THE LIGHT rakes across the surface from one side, so the crack throws a real shadow into itself
+and the texture of the plaster stands up in relief. Warm light, cool white plaster, a soft
+falloff toward the edges of the frame.
+
+[0s] The macro frame, already close. The push begins immediately and never stops.
+
+[8s] Still pushing, still closer, no resolution and no reveal. Cut.
+
+AUDIO: room tone only — the quiet air of a large empty gallery, faint and distant. No voice, no
+footsteps, no music, no score, no sting, no riser, no swell. The clip opens mid room-tone with no
+intro sound and simply stops with no tail or fade.
+
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites pushed slightly
+cool, shadows deep red-brown. Photographed, not rendered: fine film grain, faint gate weave,
+slight colour fringing, and a shallow macro depth of field where the very front and the very back
+of the surface fall softly out of focus.
+
+CRITICAL NEGATIVES: NO BRASS PLAQUE, no plate, no label, no lettering, no engraving, no numbers,
+no price, no text of any kind anywhere in frame; no person, no hand, no finger, no shadow of a
+person, no reflection of a person; no room visible, no floor, no ceiling, no skirting, no column,
+no door, no furniture, no artwork, no frame, no plinth — nothing that would give the shot a sense
+of scale; ONE crack only, no second crack, no smaller cracks elsewhere, no spiderweb, no radiating
+star, no impact crater, no bullet hole, no hole punched through; the crack does not grow, does not
+move and nothing falls off the wall; no camera movement other than the slow straight push — no
+pan, no tilt, no zoom snap, no handheld, no shake, no rack focus; no cut, no second angle, no
+dissolve, no fade, no split screen. House negatives: no voiceover, no narration, no subtitles, no
+captions, no on-screen text, no signage, no logos, no music, no dutch angle, no tilted horizon, no
+lens flare, no bokeh balls, no HDR, no CGI sheen, no beauty filter, no dim moody lighting, no
+darkness, no night, no blue walls, no wooden floor.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
