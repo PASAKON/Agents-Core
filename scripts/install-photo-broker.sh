@@ -34,11 +34,20 @@
 # matching what host root can already reach -- see docs/design/sompong-photos.md
 # for the full reasoning and the alternatives that were rejected. The broker
 # itself keeps running as its own unprivileged `photoup` user (it holds the
-# Drive credential, that has not changed) -- which means `photoup` remains
-# subject to the exact same /root traversal block the filer used to hit; that
-# is a pre-existing, separately-tracked dependency on the claudeflow-side
-# task that moves the outbox out from under /root, not something this script
-# or this task fixes (see the "KNOWN GAP" print in do_install below).
+# Drive credential, that has not changed) -- which meant `photoup` remained
+# subject to the exact same /root traversal block the filer used to hit,
+# confirmed on Contabo (task-4307c02c's own predicted residual gap):
+# mooniex-drive-photo-broker failed to start with "DRIVE_PHOTO_BROKER_STAGING_ROOT
+# does not exist ... [Errno 13] Permission denied" because that var pointed
+# straight at the outbox under /root.
+#
+# task-29744f52 (2026-09-10) fixes that gap: DRIVE_PHOTO_BROKER_STAGING_ROOT
+# now points at a SEPARATE directory this script creates, STAGING_DIR below
+# (/var/lib/photoup/staging, outside /root on purpose) -- the filer (root)
+# copies a pair's verified bytes there before calling the broker, and the
+# broker (photoup) can read that directory because it was never inside
+# /root's 0700 wall. The outbox itself is untouched by this change -- the
+# broker never opens a path under it again.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -53,6 +62,12 @@ BROKER_HOME="/home/${BROKER_USER}"
 ENV_FILE="${BROKER_HOME}/.drive-photo.env"
 BROKER_LOG_DIR="${BROKER_HOME}/logs"
 BROKER_SOCKET_PATH="/run/photoup/photo-broker.sock"      # RuntimeDirectory= recreates the parent dir every boot
+# task-29744f52: the directory both the root filer and the unprivileged
+# broker can reach -- outside /root on purpose. Same shape as
+# scripts/install-drive-broker.sh's STAGING_DIR for the sibling broker
+# (owner <caller>:<broker group>, mode 2770/setgid), never the outbox.
+STAGING_DIR="/var/lib/photoup/staging"
+FILER_MIN_FREE_MB="2048"         # headroom the staging fs must keep free, on top of a file's own size
 FOLDER_ID="1Fwir7lXpgRmMjU6hbynI-4BsQH92L6wy"             # "My Picture & Videos." -- see .claude/skills/gdrive-filing/SKILL.md
 MAX_UPLOAD_BYTES="209715200"     # 200 MiB
 MAX_REQUEST_BYTES="65536"        # 64 KiB -- one JSON line naming a path + name + subfolder
@@ -180,7 +195,7 @@ do_install() {
     echo "  group '$LEGACY_FILER_GROUP' already absent -- nothing to remove"
   fi
 
-  echo "== 3. outbox / staging dir (claudeflow writes, root-run filer drains, ${BROKER_USER} reads) =="
+  echo "== 3. outbox dir (claudeflow writes, root-run filer drains -- ${BROKER_USER} never opens a path here) =="
   local current_owner
   if [ -d "$OUTBOX_DIR" ]; then
     echo "  already exists: $OUTBOX_DIR -- leaving ownership/mode as-is (may hold live data)"
@@ -196,13 +211,17 @@ do_install() {
     chmod 2770 "$OUTBOX_DIR"
     echo "  created: $OUTBOX_DIR (owner root:${BROKER_GROUP}, mode 2770)"
   fi
-  echo "  *** KNOWN GAP (claudeflow side, separate task, see docs/design/sompong-photos.md):"
-  echo "  *** this directory sits under /root/projects/... . The filer now runs as root"
-  echo "  *** (task-4307c02c) so IT can always reach this path regardless of /root's mode --"
-  echo "  *** but the broker (${BROKER_USER}) still cannot: if /root or its parents are not"
-  echo "  *** traversable by '${BROKER_USER}' (macOS/Linux default for /root is mode 700), the"
-  echo "  *** broker cannot open the files it's asked to upload no matter what this script sets"
-  echo "  *** on the leaf directory. Verify with: sudo -u ${BROKER_USER} test -r ${OUTBOX_DIR} && echo OK"
+
+  echo "== 3b. staging dir (root-run filer writes verified copies, ${BROKER_USER} reads -- task-29744f52) =="
+  # Unlike the outbox above, this directory never holds anything durable --
+  # every file in it is a transient copy the filer removes right after one
+  # upload attempt -- so, unlike the outbox, it is safe to unconditionally
+  # re-assert ownership/mode here on every re-run rather than leaving an
+  # existing one alone.
+  mkdir -p "$STAGING_DIR"
+  chown "root:${BROKER_GROUP}" "$STAGING_DIR"
+  chmod 2770 "$STAGING_DIR"
+  echo "  ready: $STAGING_DIR (owner root:${BROKER_GROUP}, mode 2770 -- outside /root, so ${BROKER_USER} can actually traverse into it)"
 
   echo "== 4. log + state dirs =="
   mkdir -p "$BROKER_LOG_DIR"
@@ -232,7 +251,7 @@ RuntimeDirectoryMode=0750
 EnvironmentFile=-${ENV_FILE}
 Environment=DRIVE_PHOTO_BROKER_ENV=${ENV_FILE}
 Environment=DRIVE_PHOTO_BROKER_SOCKET_PATH=${BROKER_SOCKET_PATH}
-Environment=DRIVE_PHOTO_BROKER_STAGING_ROOT=${OUTBOX_DIR}
+Environment=DRIVE_PHOTO_BROKER_STAGING_ROOT=${STAGING_DIR}
 Environment=DRIVE_PHOTO_BROKER_ALLOWED_UIDS=${filer_uid}
 Environment=DRIVE_PHOTO_BROKER_FOLDER_ID=${FOLDER_ID}
 Environment=DRIVE_PHOTO_BROKER_MAX_UPLOAD_BYTES=${MAX_UPLOAD_BYTES}
@@ -246,7 +265,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=${OUTBOX_DIR} ${BROKER_LOG_DIR}
+ReadWritePaths=${STAGING_DIR} ${BROKER_LOG_DIR}
 
 [Install]
 WantedBy=multi-user.target
@@ -267,6 +286,8 @@ User=root
 Group=root
 WorkingDirectory=${ROOT}
 Environment=SOMPONG_PHOTO_OUTBOX=${OUTBOX_DIR}
+Environment=SOMPONG_PHOTO_STAGING_ROOT=${STAGING_DIR}
+Environment=SOMPONG_PHOTO_MIN_FREE_MB=${FILER_MIN_FREE_MB}
 Environment=DRIVE_PHOTO_BROKER_SOCKET_PATH=${BROKER_SOCKET_PATH}
 Environment=SOMPONG_PHOTO_FILER_POLL_SECONDS=${FILER_POLL_SECONDS}
 Environment=SOMPONG_PHOTO_FILER_MAX_RETRIES=${FILER_MAX_RETRIES}
@@ -279,7 +300,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=${OUTBOX_DIR} ${FILER_LOG_DIR} ${FILER_STATE_DIR}
+ReadWritePaths=${OUTBOX_DIR} ${STAGING_DIR} ${FILER_LOG_DIR} ${FILER_STATE_DIR}
 
 [Install]
 WantedBy=multi-user.target
@@ -300,7 +321,8 @@ UNIT_EOF
   echo "  broker service:  $BROKER_SERVICE  (user ${BROKER_USER}, group ${BROKER_GROUP})"
   echo "  filer service:   $FILER_SERVICE  (user root -- task-4307c02c)"
   echo "  socket:          $BROKER_SOCKET_PATH  (0660, group ${BROKER_GROUP} only)"
-  echo "  outbox:          $OUTBOX_DIR"
+  echo "  outbox:          $OUTBOX_DIR  (root-run filer only -- ${BROKER_USER} never opens a path here)"
+  echo "  staging:         $STAGING_DIR  (owner root:${BROKER_GROUP}, mode 2770 -- filer writes, ${BROKER_USER} reads; task-29744f52)"
   echo "  folder id:       $FOLDER_ID  (\"My Picture & Videos.\", fixed, never client-supplied)"
   echo "  allowed uid:     $filer_uid  (root -- the filer; see the module docstrings for why uid 0 is safe here)"
   echo
@@ -317,6 +339,11 @@ UNIT_EOF
   echo "*** After creating it:  systemctl restart $BROKER_SERVICE"
   echo "*** Logs:               journalctl -u $BROKER_SERVICE -f"
   echo "***                     journalctl -u $FILER_SERVICE -f"
+  echo
+  echo "== proof this install actually closed the permission gap (task-29744f52) =="
+  echo "  sudo -u ${BROKER_USER} test -r ${STAGING_DIR} && echo OK"
+  echo "  systemctl is-active ${BROKER_SERVICE}"
+  echo "  systemctl is-active ${FILER_SERVICE}"
 }
 
 do_uninstall() {
@@ -330,7 +357,7 @@ do_uninstall() {
   systemctl daemon-reload
   echo "uninstalled: $BROKER_SERVICE, $FILER_SERVICE"
   echo "(left in place: ${BROKER_USER} user/group (filer runs as root -- nothing to leave there),"
-  echo " ${ENV_FILE}, ${OUTBOX_DIR}, ${FILER_STATE_DIR} -- remove by hand if truly done with this;"
+  echo " ${ENV_FILE}, ${OUTBOX_DIR}, ${STAGING_DIR}, ${FILER_STATE_DIR} -- remove by hand if truly done with this;"
   echo " the outbox may hold un-filed photos, never delete it without checking first)"
 }
 
