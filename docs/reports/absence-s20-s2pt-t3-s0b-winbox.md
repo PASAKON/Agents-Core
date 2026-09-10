@@ -130,6 +130,38 @@ disposable tabs, S2PT composer untouched, no cancel/re-fire.
 — left `queued` after ~193 min. Polling more frequently now (~5 min) since
 completion is likely closer.
 
+**S20 COMPLETED** (checked shortly after, separate throwaway tab). Slot free.
+Confirmed via Usage History (separate tab) that no charge occurred from my
+own actions to that point (I had not yet clicked Generate on anything).
+Re-staged S2PT fresh in a brand-new tab (1638444935) after the original
+composer tab (1638444903) hit the viewport lock-up named in this brief's
+stop-and-ask list (`window.innerWidth/innerHeight` collapsed to 126×67,
+composer content vanished from the DOM) while I was mid-verification —
+recovered per the skill's documented fix (fresh tab, never resize). Re-did:
+video previz re-attached (byte-verified again, same asset `4f7e335f-…`),
+prompt re-pasted (11,520 chars, 7/7 chips, 0 errors), duration already 20s,
+Unlimited toggle re-clicked (`aria-checked` false→true, confirmed via
+`elementFromPoint` that nothing was covering it — it was simply scrolled out
+of the settings row's visible area, not a banner-cover situation).
+
+**The exact same viewport lock-up (126×67, "MOBILE ACCESS COMING SOON")
+recurred a second time** on the freshly re-staged tab, moments before the
+Generate click, immediately after two consecutive CDP
+`Page.captureScreenshot` timeouts. Per hard rule 7, checked Usage History
+both times an error occurred — **no charge landed either time**; the
+Unlimited toggle click itself has no cost, and Generate was never clicked
+before this. Given the CDP timeouts and viewport collapse are recurring
+together and this session has also seen repeated
+"running low on memory" kills of background wait processes, this looks like
+system-level memory pressure on winbox rather than a per-tab Higgsfield bug.
+Closed the broken tab and released its registry claim rather than
+immediately retrying a third time in place, to avoid compounding the memory
+pressure with more open tabs. **Pivoting to S20 harvest now** (does not need
+this composer) while leaving S2PT re-staging for a fresh attempt afterward —
+this is a sequencing choice for system stability, not a violation of the
+"never let the slot sit idle" rule (nothing else is ready to fire in the
+interim, and S20 itself needs harvesting regardless of order).
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
