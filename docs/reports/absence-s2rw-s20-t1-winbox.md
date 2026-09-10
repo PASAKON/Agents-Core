@@ -67,6 +67,20 @@ push again the moment it resolves.
 - Still checking the pre-existing job every cycle: `data-job-status` on asset
   `d58ee0c0-3835-4c3c-b571-a324346bb426` remains `queued` as of 04:48 UTC (~106 min elapsed since
   its 03:02:38 UTC fire).
+- **05:06 UTC (12:06 ICT) checkpoint** — still `status:"queued"`, `stage:"in_progress"`,
+  `media:null`, no progress/ETA/queue-position field exists on the job object at all (checked).
+  ~124 minutes elapsed. Re-verified this is not a stale-tab artifact: did a full page reload at
+  04:54 UTC and read the same asset id fresh from the server (not a cached DOM node) — still
+  `queued`. This is well past the skill's general 90-minute "stuck" reference point, but the
+  task brief is explicit and I am following it literally: **"A QUEUED job is NEVER cancelled or
+  re-fired; the 90-minute stuck rule is for GENERATING only."** The job object's `status` field
+  reads `"queued"`, not any distinct "generating" value (this Higgsfield build appears to have no
+  separate generating/processing status value — only `queued` → `completed`/`nsfw` were observed
+  across the 14 assets on this page). Given the explicit written rule and the literal field value,
+  I am continuing to wait rather than cancel, and will keep polling. Will flag this to the CTO as
+  an open question (is "queued" ever distinguishable from "actively generating" on this build,
+  and if not, does the 90-minute-generating exception ever apply in practice) rather than act on
+  my own interpretation.
 
 ## Files changed
 - `docs/reports/absence-s2rw-s20-t1-winbox.md` (this file)
