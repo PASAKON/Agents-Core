@@ -188,6 +188,111 @@ length still 4960, 0 video refs; Unlimited was OFF on this composer
   "Generation started" toast confirmed.
 - **Usage History re-checked** in a separate tab: cost unchanged ($75.5),
   "Total generations" 200→201. $0 charged.
+- Completed at `2026-09-10T16:35 UTC` (~31 min render).
+
+### S2R-Q harvest
+
+- Same silent-download workaround as S22/S0b: `<video>` element's
+  `currentSrc` read directly, `ffmpeg -c copy` remux.
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_160402_16874354-9360-4bf6-88f8-870a4d145ad2.mp4`
+- **Bytes**: 10,164,425 · **MD5**: `5cf21209684c68ca8b2eee6e6f98193e`
+- **Asset id**: `16874354-9360-4bf6-88f8-870a4d145ad2`
+- **ffprobe**: 1280×720 @ 24fps, duration 10.05s, audio present.
+- Frames (full 1280×720) at 1, 3, 5, 7, 9s → `docs/reports/frames-s2rq-t1/`.
+  **One extra diagnostic pass**: the 3s sample landed almost exactly on
+  the 3.2s cut boundary and looked like a stuck shot (still Carrington
+  when Madame was expected); pulled additional frames at 1.7/2/3.1/4.9/6.5s
+  to confirm the cut timing is correct — Madame is clearly on screen at
+  1.7s and 2s, Carrington is back by 3.1s. Recorded here so the next
+  reviewer doesn't re-diagnose the same false alarm from a single sample
+  landing near a cut point.
+
+### REVIEW — S2R-Q (per this brief's checklist)
+
+**(1) Six shots, five hard cuts, nobody but the one named face inside
+each close-up — PASS.** Confirmed shot sequence across all ten sampled
+frames: Carrington (0–1.6s) → Madame (1.6–3.2s) → Carrington (3.2–4.8s) →
+Madame (4.8–6.4s) → Carrington (6.4–8s) → Valder (8–10s). Exactly one face
+per frame throughout, matches the sheet's six-shot/five-cut structure
+exactly.
+
+**(2) Five bids audible in order, Valder silent — not verifiable from
+stills**, would need audio playback.
+
+**(3) Carrington identical across his three close-ups; Madame identical
+across her two, from prose alone — PASS.** Carrington's two gold front
+teeth clearly visible and consistent at 3s/3.1s/9s(7s); Madame's blue/
+green/silver pompadour and black cat-eye sunglasses consistent and
+correctly rendered purely from prose (no Element bound), matching the
+sheet's description exactly.
+
+**(4) Valder deadpan and silent in the last shot — PASS.** The 9s frame
+shows Valder mouth shut, no smile, no visible speaking — matches "Deadpan,
+mouth shut, not a flicker of a smile."
+
+**(5) Locked camera in every shot — consistent with all samples**, no
+visible pan/zoom/drift across any of the ten frames pulled.
+
+**(6) No plaque, no crack, no extras — PASS.** No plaque, crack, or
+additional figures in any sampled frame; backgrounds are the blurred
+gallery hall as specified.
+
+**Overall S2R-Q verdict (operator read): 4/4 checkable items PASS**, two
+items (audio bid order, full-clip camera lock) not verifiable from stills.
+
+## Phase 3 — S2PT take 4 "THE TOUR, TOGETHER" — FIRED
+
+Uploaded the re-rendered previz fresh via + → Uploads → Videos (NOT
+reusing any older upload in the panel), following the CTO's four-step
+checklist:
+
+1. Copied `C:\Users\UsEr\Downloads\S2PT-Render.mp4` into the session
+   scratchpad (file_upload refuses a Downloads path directly) — MD5
+   verified byte-identical to the source before upload.
+2. Uploaded via the Uploads panel's own file input (the "third input on
+   the page," per the skill — not the composer's direct input or the
+   References picker's input).
+3. Waited ~4 minutes for verification (spinner tile → real thumbnail).
+4. Attached it ("Added to prompt box" toast, green checkmark) and
+   **byte-verified via `fetch(video.currentSrc, {method:'HEAD'})`**:
+   `content-length` 4,157,750 — exact match to the local file, confirming
+   the newest render was attached, not a stale cloud copy.
+
+Composer setup:
+- Cleared old S2R-Q text/chips (`Ctrl+A`+`Delete` after confirming focus
+  landed on the real contenteditable, not `BODY` — one miss caught and
+  corrected before it did anything, since Ctrl+A on `BODY` only
+  page-selects and Delete is a no-op there).
+- Pasted the corrected multi-paragraph extraction (11911 chars). Landed
+  `innerText` read back as 11974/11984 (before/after the `@Video 1`
+  chip) — **63-char excess fully explained and verified non-corrupting**:
+  Lexical renders each of the sheet's 21 real paragraph breaks as three
+  newlines instead of two; normalizing runs of 2+ newlines down to
+  exactly 2 (`t.replace(/\n{2,}/g, '\n\n')`) reproduces the source
+  **exactly**, 11911 = 11911, and head/tail text matched byte-for-byte.
+  Treated as a benign, deterministic Lexical rendering artifact (same
+  class as the chip-label-inflation the S0b/S2PT-t3 reports already
+  documented), not a corruption requiring redo.
+- Added the `@Video 1` mention via the native `@Video` trigger →
+  dropdown → "Video 1" (never typed as plain text in the pasted block,
+  per the skill).
+- **Chips: 8/8 unique, 0 error chips** — the 7 sheet elements
+  (`@project_absence_char_valder`, `@gentleman_e`,
+  `@project_absence_char_guard_private_v2`,
+  `@project_absence_char_guard_valder_two`,
+  `@project_absence_char_cleaner_c`,
+  `@project_absence_prop_cart_a_painted`, `@loc_hall_big_e`) plus
+  `@Video 1` — matches the brief's "8 = 1 video + 7 elements" exactly.
+- Duration: 10s (leftover from S2R-Q) → 20s via the slider popover
+  (`ArrowRight` × 10 from 10, confirmed `aria-valuenow="20"`).
+- Unlimited: still `true` from S2R-Q's session (same tab, no reload) —
+  re-verified anyway per "re-verify at the moment you commit": **pixel
+  zoom** confirmed `UNLIMITED · ~~140~~ · 0` immediately before the click.
+- **Fired** at `2026-09-10T17:01:33Z` (2026-09-11 00:01:33 ICT — the
+  Unlimited grant's 06:59 ICT deadline is now ~7 hours out). New asset id
+  `98f51d92-9119-4147-8d42-1bb6569dee26` (asset count 782→783).
+- **Usage History re-checked**: cost unchanged, "Total generations"
+  201→202. $0 charged.
 - Awaiting render.
 
 ## Extraction script bug found and fixed mid-task
