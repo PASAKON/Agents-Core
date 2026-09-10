@@ -40,11 +40,18 @@ import runners.sompong_photo_filer as filer  # noqa: E402
 def filer_env(tmp_path, monkeypatch):
     outbox = tmp_path / "outbox"
     outbox.mkdir()
+    staging = tmp_path / "staging"
+    staging.mkdir()
     monkeypatch.setattr(filer, "OUTBOX", outbox)
+    monkeypatch.setattr(filer, "STAGING_ROOT", staging)
     monkeypatch.setattr(filer, "STATE_DIR", tmp_path / "state")
     monkeypatch.setattr(filer, "LOCK_PATH", tmp_path / "state" / "filer.lock")
     monkeypatch.setattr(filer, "FAILCOUNT_PATH", tmp_path / "state" / "failcounts.json")
     monkeypatch.setattr(filer, "MAX_RETRIES", 3)
+    # 0 so ordinary tests never depend on how much free space the test
+    # runner's disk actually has -- the dedicated low-space test below
+    # overrides this back up (or stubs _enough_free_space directly).
+    monkeypatch.setattr(filer, "MIN_FREE_MB", 0)
     return outbox
 
 
@@ -74,6 +81,7 @@ def test_complete_pair_uploads_then_deletes_locally(filer_env, monkeypatch):
     outbox = filer_env
     content = b"fake jpeg bytes"
     bin_path, json_path = _write_pair(outbox, "msg1", content)
+    sha = _sha256(content)
 
     calls = []
 
@@ -89,13 +97,20 @@ def test_complete_pair_uploads_then_deletes_locally(filer_env, monkeypatch):
     assert not json_path.exists()
     assert len(calls) == 1
     uploaded_path, uploaded_name, subfolder = calls[0]
-    assert uploaded_path == bin_path
+    # Never the outbox path -- the broker (unprivileged `photoup`) cannot
+    # traverse into the outbox at all; it is only ever handed a path under
+    # the staging root, named from the sha256, not from the outbox pair.
+    assert uploaded_path == filer.STAGING_ROOT / f"{sha}.jpg"
+    assert uploaded_path != bin_path
     assert "msg1" in uploaded_name
     assert subfolder == "2026-09"  # ts=1788975600 in Bangkok, see the tz test below
 
+    # The staged copy never survives past the (successful) upload attempt.
+    assert not uploaded_path.exists()
+
     ledger = filer._load_filed_ledger()
-    assert _sha256(content) in ledger
-    assert ledger[_sha256(content)]["date"] == "2026-09"
+    assert sha in ledger
+    assert ledger[sha]["date"] == "2026-09"
 
 
 def test_filename_format_matches_spec(filer_env, monkeypatch):
@@ -386,6 +401,127 @@ def test_upload_recovering_before_retry_cap_clears_failcount(filer_env, monkeypa
     assert "recovers" not in filer._load_failcounts(filer.FAILCOUNT_PATH)
 
 
+# --------------------------------------------------------------------------- staging copy (task-29744f52)
+
+def test_broker_is_never_handed_an_outbox_path(filer_env, monkeypatch):
+    outbox = filer_env
+    content = b"never leak the outbox path"
+    _write_pair(outbox, "staged1", content)
+
+    seen_paths = []
+
+    def fake_upload(path, name, subfolder):
+        seen_paths.append(path)
+        return True, "ok"
+    monkeypatch.setattr(filer, "_upload_via_broker", fake_upload)
+
+    filer.tick()
+
+    assert len(seen_paths) == 1
+    try:
+        seen_paths[0].relative_to(outbox)
+    except ValueError:
+        pass  # correct: not under the outbox
+    else:
+        pytest.fail(f"broker was handed an outbox path: {seen_paths[0]}")
+    seen_paths[0].relative_to(filer.STAGING_ROOT)  # must resolve under staging instead
+
+
+def test_staged_name_derives_from_sha_not_from_message_fields(filer_env, monkeypatch):
+    outbox = filer_env
+    content = b"attacker-controlled name and messageId, trustworthy bytes"
+    sha = _sha256(content)
+    # pair id stays a normal filename -- it is `name`/`messageId` (fields the
+    # message JSON controls) that must never reach the staged path.
+    _write_pair(outbox, "staged2", content, name="../evil", message_id="../../also-evil")
+
+    seen_paths = []
+    monkeypatch.setattr(filer, "_upload_via_broker",
+                         lambda path, name, subfolder: (seen_paths.append(path), (True, "ok"))[1])
+
+    filer.tick()
+
+    assert len(seen_paths) == 1
+    assert seen_paths[0].name == f"{sha}.jpg"
+    assert seen_paths[0].parent == filer.STAGING_ROOT
+
+
+def test_both_copies_deleted_only_after_confirmed_upload(filer_env, monkeypatch):
+    outbox = filer_env
+    content = b"filed for real"
+    sha = _sha256(content)
+    bin_path, json_path = _write_pair(outbox, "confirmed", content)
+    staged_path = filer.STAGING_ROOT / f"{sha}.jpg"
+
+    seen_during_upload = {}
+
+    def fake_upload(path, name, subfolder):
+        # At the moment the broker is "called", the staged copy must already
+        # exist and the outbox pair must still be there (nothing is deleted
+        # before a confirmed upload).
+        seen_during_upload["staged_exists"] = path.exists()
+        seen_during_upload["outbox_intact"] = bin_path.exists() and json_path.exists()
+        return True, "ok"
+    monkeypatch.setattr(filer, "_upload_via_broker", fake_upload)
+
+    counts = filer.tick()
+
+    assert counts == {"filed": 1}
+    assert seen_during_upload == {"staged_exists": True, "outbox_intact": True}
+    # After a confirmed upload, both copies are gone.
+    assert not staged_path.exists()
+    assert not bin_path.exists()
+    assert not json_path.exists()
+
+
+def test_broker_failure_leaves_outbox_pair_intact_and_removes_staged_copy(filer_env, monkeypatch):
+    outbox = filer_env
+    content = b"broker says no"
+    sha = _sha256(content)
+    bin_path, json_path = _write_pair(outbox, "refused", content)
+    staged_path = filer.STAGING_ROOT / f"{sha}.jpg"
+
+    monkeypatch.setattr(filer, "_upload_via_broker",
+                         lambda path, name, subfolder: (False, "caller not authorized"))
+
+    counts = filer.tick()
+
+    assert counts == {"upload_failed": 1}
+    assert bin_path.exists()
+    assert json_path.exists()
+    assert not staged_path.exists()  # never left behind on a failed attempt
+
+
+def test_low_free_space_skips_without_touching_outbox_or_staging(filer_env, monkeypatch):
+    outbox = filer_env
+    bin_path, json_path = _write_pair(outbox, "toobig", b"bytes")
+
+    monkeypatch.setattr(filer, "_enough_free_space", lambda staging_root, file_size: False)
+
+    def fail_upload(*a, **kw):
+        raise AssertionError("must never upload when the staging root is too low on free space")
+    monkeypatch.setattr(filer, "_upload_via_broker", fail_upload)
+
+    counts = filer.tick()
+
+    assert counts == {"skipped_low_disk_space": 1}
+    assert bin_path.exists()
+    assert json_path.exists()
+    assert list(filer.STAGING_ROOT.iterdir()) == []  # never staged
+    # Not a failure against the pair -- does not count toward MAX_RETRIES.
+    assert filer._load_failcounts(filer.FAILCOUNT_PATH) == {}
+
+
+def test_enough_free_space_reflects_min_free_mb_and_file_size(filer_env, monkeypatch):
+    monkeypatch.setattr(filer, "MIN_FREE_MB", 0)
+    assert filer._enough_free_space(filer.STAGING_ROOT, 1) is True
+
+    # A file "size" larger than everything currently free must fail, no
+    # matter how low MIN_FREE_MB's own headroom requirement is.
+    huge = 1024 ** 5  # 1 PiB -- no test runner has this much free
+    assert filer._enough_free_space(filer.STAGING_ROOT, huge) is False
+
+
 # --------------------------------------------------------------------------- ordering
 
 def test_pairs_processed_oldest_ts_first(filer_env, monkeypatch):
@@ -393,13 +529,18 @@ def test_pairs_processed_oldest_ts_first(filer_env, monkeypatch):
     _write_pair(outbox, "newer", b"new-bytes", ts=1788975700)
     _write_pair(outbox, "older", b"old-bytes", ts=1788975600)
 
+    # Track order via the Drive `name` (still carries the messageId, which
+    # defaults to the pair id) rather than the uploaded `path` -- the staged
+    # path is keyed off the sha256, not the pair id, so it no longer doubles
+    # as an ordering marker.
     order = []
     monkeypatch.setattr(filer, "_upload_via_broker",
-                         lambda path, name, subfolder: (order.append(path.stem), (True, "ok"))[1])
+                         lambda path, name, subfolder: (order.append(name), (True, "ok"))[1])
 
     filer.tick()
 
-    assert order == ["older", "newer"]
+    assert order[0].endswith("older.jpg")
+    assert order[1].endswith("newer.jpg")
 
 
 # --------------------------------------------------------------------------- single-flight
