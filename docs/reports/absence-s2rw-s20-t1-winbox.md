@@ -81,6 +81,9 @@ push again the moment it resolves.
   an open question (is "queued" ever distinguishable from "actively generating" on this build,
   and if not, does the 90-minute-generating exception ever apply in practice) rather than act on
   my own interpretation.
+- **05:31 UTC (12:31 ICT) checkpoint** — still `status:"queued"`, unchanged, ~149 minutes since
+  fire. Continuing to poll; still not cancelling per the explicit "queued is never cancelled"
+  rule. No other card in the grid has changed status either.
 
 ## Files changed
 - `docs/reports/absence-s2rw-s20-t1-winbox.md` (this file)
