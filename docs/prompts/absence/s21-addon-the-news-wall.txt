@@ -38,8 +38,25 @@ prose says so; A's window is deeper and holds a chrome ball and some second-hand
 which the negatives now allow instead of forbidding.
 Trimmed 10s → 8s per the CEO's cap: the inserts now change at 2s and 5s instead of 2s and 6s.
 
-CHIPS: 3 — `@project_absence_prop_tv_wall` (the shop window and its sets),
-`@project_absence_char_valder` (the insert) and `@project_absence_loc_museum`
+CHIPS: 2 — `@project_absence_prop_tv_wall` (the shop window and its sets) and
+`@project_absence_char_valder` (the insert).
+
+**TWO CORRECTIONS AFTER THE 19:00 BLOCKER (task-01f88235), both worth reading before writing
+another sheet:**
+1. **My own error: I named a chip that does not exist.** The sheet asked for
+   `@project_absence_loc_museum`; no Element has that id. The operator searched all 41
+   Location elements and found the right one is **`@project_absence_loc_exterior`**
+   ("Museum Exterior") — and that a same-sounding `@project_valder_loc_museum` exists but is
+   the gallery INTERIOR, so a careless fix would have bound the wrong picture.
+   **Never write a chip name from memory; check it against the live Elements list first.**
+2. **`@project_absence_loc_exterior` is flagged.** Firing with it bound raised "Some reference
+   elements may contain protected content. Check eligibility or remove them to proceed." and
+   the Generate click did not go through — **zero credits spent**, verified against Usage
+   History before and after. Same class of flag as the croc bag, the car, guard_private v1 and
+   both plaque plates. So the building insert is now PROSE, per this sheet's own contingency;
+   at a few centimetres tall inside a television it does not need a reference lock, and prose
+   proved it holds (Madame stayed identical across two close-ups from prose alone today).
+The old 3-chip line, for the record: `@project_absence_loc_museum`
 (the building insert). Both appear only as pictures inside a television, a few centimetres
 tall. If either chip is refused, drop it and carry that insert in prose; the shot survives.
 MODEL: **Seedance 2.0 Fast** — skill rule 14: an imagined scene with no cast and no continuity
@@ -71,11 +88,11 @@ WHAT IS ON EVERY SCREEN, the same picture on all of them at once, changing toget
 newsreader — a man in a dark suit behind a desk, seen from the chest up, small in the screen
 and softly out of focus, his mouth moving; and beside his head a small square INSERT PICTURE
 that changes twice during the shot.
-@project_absence_loc_museum — THE FIRST INSERT, from two seconds: the museum building
-seen from outside, low and white and curved, with its mirrored ball and its wide steps. It
+THE FIRST INSERT (no picture — describe it, do not look for one), from two seconds: a museum
+building seen from outside, low and white and curved, a long horizontal building with a
+polished mirrored sphere on a plinth beside its wide shallow steps, under a clear sky. It
 appears as a small square picture inside the television screen, a few centimetres tall, soft
-and slightly grainy the way a picture inside a broadcast looks. Take the building's shape,
-its whiteness and its light from this reference and nothing else.
+and slightly grainy the way a picture inside a broadcast looks.
 @project_absence_char_valder — THE SECOND INSERT, from five seconds: a still photograph
 of a tall slim elderly man with swept-back white hair, small round tinted sunglasses and a
 blazer panelled in flat blocks of magenta, yellow, green, blue and red. He is standing still,
