@@ -385,8 +385,18 @@ nothing that can be scored right or wrong**, so it satisfied them the cheapest
 way available — gestures — and left the blocking untouched. Position is
 expensive; hands are free.
 
-The fix that shipped in v2 states the arrangement changes as **counted events
-with deadlines**:
+⚠️ **THE FIX BELOW IS PROPOSED, NOT PROVEN — it has one failure against it
+already.** v2 carried all four counted crossings verbatim and the take came back
+just as static: six people in two frozen sub-groups, identical relative positions
+from 0.5 s to 15.5 s, nobody passing anybody. Do not cite this as a solved
+problem. There is a confound worth chasing before blaming the wording: v2 also
+bound the wrong location (a corridor instead of a flat wall, §7a), and a corridor
+funnels a crowd into a clump — a wide wall may be what actually lets them spread.
+Whether the crossings work is still an open question as of 2026-09-11; update this
+section the day a take settles it either way.
+
+The proposed fix states the arrangement changes as **counted events with
+deadlines**:
 
 > Count the crossings — THERE ARE FOUR … by 5 s the student has crossed the
 > full width; by 8 s the magenta woman and the cobalt woman **have swapped
