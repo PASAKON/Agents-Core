@@ -557,7 +557,44 @@ reviewed in detail below (the review effort goes to v2 from here).
   id `685bacf3-014d-4058-bea6-bda074ed7da1`.
 - **Usage History re-checked**: cost unchanged, "Total generations"
   204→205. $0 charged.
-- Awaiting render.
+- Completed at `2026-09-10T20:08 UTC` (~41 min render).
+
+### S2AC v2 harvest and visual review — CONFIRMS the CTO's location diagnosis
+
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_192725_685bacf3-014d-4058-bea6-bda074ed7da1.mp4`
+- **Bytes**: 20,139,893 · **MD5**: `62c9ad04dd6663ac67a661330517f381`
+- **Asset id**: `685bacf3-014d-4058-bea6-bda074ed7da1`
+- Frames at 0.5, 5, 8, 12, 15.5, 17, 19.5s → `docs/reports/frames-s2ac-v2/`.
+
+**Reviewed by looking, per the CEO's standing instruction — plain
+description of what's on screen, not a percentage:**
+
+The CTO's diagnosis (posting mid-render, before this landed) is
+confirmed by eye: **this is a corridor, not a flat wall.** Chromium
+columns recede into depth on both sides exactly like `loc_hall_big_e`/
+`_d`; there's a raised pale screen-like surface centred at the back
+carrying a small crack and a brass plaque, but the room reads as a hall
+seen down its length, not a hero wall shot head-on.
+
+**The group is clumped, not spread**, and clumped into two static
+sub-groups: the man in maroon + woman in fur + a third figure on the
+left, Dupe alone mopping in the centre near the wall, the woman in
+magenta + the cobalt collector on the right. **Across every sample from
+0.5s to 15.5s, all six are in the same relative positions** — no
+crossings, no side-swaps, nobody passes behind or in front of anybody
+else. This is the identical tableau failure as take 1 and take 2, not
+fixed by the v2 rewrite.
+
+**What does work, clearly**: the 17s/19.5s freeze-to-camera **reads as a
+real, striking change** — every face turns from backs to full-on stares
+into the lens, a genuine before/after the earlier takes didn't achieve.
+The weeping woman is visibly still tearful at 19.5s (fur coat, being
+dabbed by the man in maroon), consistent with "never stops."
+
+**Reported to the CTO as-is** — corridor not wall, clumped not spread, no
+crossings — before the v3 fix instructions arrived; the CTO's own
+independent diagnosis (wrong location chip bound as "wall") matches this
+exactly.
 
 ## Checkpoint — 2026-09-10T19:29 UTC (2026-09-11 02:29 ICT)
 
