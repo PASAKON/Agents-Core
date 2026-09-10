@@ -1,184 +1,220 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
-S2AC · THE INTERPRETATIONS, CHAOS · 20s · v2 for take 2 · CEO 2026-09-11 01:15
+S2AC · THE INTERPRETATIONS, CHAOS · 20s · v3 for take 4 · CEO 2026-09-11 03:10
 (replaces S2AJ / S2AW / S2AP at 1:31–1:55).
 
-TAKE 1 PASSED THE CEO'S EYE ("อันนี้ดีมากเลย") AND HE THEN ORDERED FOUR CHANGES, verbatim:
-"ขอ มุม ห้อง โถงได้เลย ให้ทุกคนหันไปทางกำแพง และ เอา รถ เข็น duepe ไปเก็บไว้ อีกอย่างเพิ่มนิดนึง
-คนที่ร้องไหร่ ต้องร้องไห้ ต่อนะ ชายคนนั้นก็ซับน้ำตาไป วุ่นวายแบบเดิมได้เลย"
-And on the wall and the camera: "กำแพงมีลอยแตกอยู่แล้ว ภาพ project_absence_loc_hall_big_d ที่เรา
-ใช้กันมาตลอด ไม่ต้องบอก model เต็มอะไรเลย เพราะฉากมันมีลอยแตกอยู่แล้ว แค่ทุกคนเถียงกันเรื่องรอยแตก
-ต่างคนต่างมีเหตุผล ก่อนประตูจะเปิด ทุกคนหันมองมาที่กล้อง (ประตูอยู่หลังกล้อง) ถ้าจะ plan กล้องไป
-ต้องใช้ภาพนี้ loc_hall_big_e เป็นตรงข้าม" · camera choice confirmed: "กล้องหันเข้ากำแพง — เห็นหลังทุกคน".
+⚠️ v2 WAS MINE AND IT WAS WRONG. I bound `@project_absence_loc_hall_big_d` as "the wall". That
+plate is HALL D — **a corridor seen down its length**, not a wall. I then wrote "THE CAMERA FACES
+THE WALL" in prose on top of it; the reference's geometry won, as it always does (§7), and the take
+came back as a corridor with no wall in it. CEO: "v2 ไม่เห็นมีกำแพงเลย ฉันบอกว่าใช้ภาพกำแพงไง".
+Every check I ran was a check on the STRING — green chip, real id, right count, clean lint. None of
+them was a check on the PICTURE. See §7a, written from this.
 
-⚠️ THIS REVERSES THE CEO'S OWN 13:50 BRIEF, DELIBERATELY. That one said "ฉากนี้ขอเปลี่ยนใหม่ไม่ต้อง
-มีรอยร้าวแล้ว ใช้ Location นี้ [loc_hall_big_e]" and take 1 was built and shot that way — five
-collectors arguing about DUPE'S CART in a crack-free hall, camera down the length toward the red
-door. Take 1 is kept, it is not a failure, and it stays on Drive. The director changed his mind
-after seeing it; the old version lives in git (see the commit before this one). §8: follow the new
-answer, never edit the old record.
+⚠️ AND I MISREAD HIS CAMERA NOTE FOR THREE HOURS. He wrote at 01:15: "ถ้าจะ plan กล้องไป ต้องใช้
+ภาพนี้ loc_hall_big_e เป็นตรงข้าม". I read that as "do not bind loc_hall_big_e". He was saying
+THE CAMERA MOVES, and that plate is what it turns to see. Confirmed 03:10: "ใช้ภาพนี้ ตอนช่วงสุดท้าย
+ที่ทุกคนหันมาหากล้องแล้วกล้องก็หมุนไป เจอคนเปิดประตูเข้ามา -> คือนาย Register นั่นเอง".
 
-WHAT CHANGED FROM TAKE 1 — five things, nothing else:
-1. THE ROOM AND THE CAMERA. `loc_hall_big_e` (down the hall, red door at the vanishing point) is
-   replaced by `@project_absence_loc_hall_big_d`, and THE CAMERA NOW FACES THE WALL. We see the
-   BACKS of the whole group. `loc_hall_big_e` is the OPPOSITE direction from this camera — the
-   CEO's own words — so it is the reverse angle and must NOT be bound here.
-2. THE CRACK IS BACK, AND IS NOT DESCRIBED. `loc_hall_big_d` already carries it. CEO: "ไม่ต้องบอก
-   model เต็มอะไรเลย". So the prompt names it only as the thing they argue about and never
-   describes its shape, size or position — the reference owns it (§7). Every "no crack" negative
-   from take 1 is DELETED; they would now fight the reference, which is the most expensive
-   mistake in this skill.
-3. THE CART IS GONE. "เอารถเข็น Dupe ไปเก็บไว้". Dupe still mops, but empty-handed of the trolley —
-   `prop_cart_a_painted` is UNBOUND and the cart is named in the negatives so it does not drift in.
-   With the cart gone the argument's object is the crack, which is what the film is actually about.
-4. THE DOOR IS BEHIND THE CAMERA. It is not in frame and neither is the registrar — `char_registrar`
-   is UNBOUND. When it opens, every head turns TOWARD THE LENS. This inverts take 1's "no looking at
-   camera" negative, which is now scoped: forbidden for the first sixteen seconds, required at the end.
-5. THE WEEPING PAIR. "คนที่ร้องไห้ต้องร้องไห้ต่อ ชายคนนั้นก็ซับน้ำตาไป" — the woman in fur weeps
-   CONTINUOUSLY for the full twenty seconds and does not stop at the freeze; the man in maroon
-   now dabs her tears with a folded handkerchief instead of trying to leave for the door.
+THE SHOT, AS THE DIRECTOR ACTUALLY DESIGNED IT — two phases, one continuous take:
+  0–14s   LOCKED, square to THE HERO WALL. We see the group's BACKS the whole time. They argue
+          about the crack. This is the only thing on screen for fourteen seconds.
+  14s     A door opens behind the camera. Everything freezes mid-gesture and EVERY HEAD TURNS TO
+          THE LENS. This is the first time in the shot we see a single face — that is the payoff
+          of holding on their backs for fourteen seconds, and it is why phase 1 must be long.
+  17–20s  THE CAMERA ROTATES 180° AWAY FROM THE WALL and finds the corridor, the red double door,
+          and the registrar one step inside it. He is small and far away. Cut.
 
-Chips: 7 — loc_hall_big_d, char_cleaner_c, char_critic_b, char_student_c, char_visitor_a,
-char_visitor_b, char_woman. Two chips from take 1 are deliberately DROPPED: char_registrar (he is
-behind the camera) and prop_cart_a_painted (the cart is put away).
-⚠️ `@project_absence_char_woman` is THE YOUNG WOMAN IN COBALT, not Madame — Madame is
-`..._woman_c` and is not in this scene. Verified against CAST.md 2026-09-10.
+⚠️ THIS SHEET NOW ALLOWS A CAMERA MOVE. Every previous version banned all camera movement in
+capitals, in three places. Those bans are DELETED and replaced with a scoped one: locked for
+0–17s, one rotation after. Do not reinstate them — a "no camera movement" negative left in the
+text would fight the one move the shot is built around (§11: the bans encode what we predicted,
+not what the shot needs).
 
-WHY NO PREVIZ: unchanged from take 1. One fixed camera taken from the location picture, and
-deliberately unrepeatable blocking — a grey previz of a scrum would constrain the chaos. Fire it
-with NO video reference, and clear any leftover video chip from the tray before pasting.
+TWO LOCATION REFERENCES, ONE PER PHASE — this is the whole point and must not be collapsed:
+  `@project_absence_loc_wall_crack` = phase 1. THE HERO WALL, flat white, seen head-on, ONE SMALL
+      CRACK at picture-hanging height and the brass plaque below it. CEO confirmed the plaque and
+      the price SHOULD be visible and must come from the ref: "มี ต้องใช้ REF".
+  `@loc_hall_big_e`               = phase 2. The corridor of chromium trumpet columns with the RED
+      DOUBLE DOOR at the vanishing point — what the camera finds when it turns. The CEO sent this
+      picture at 03:10 for exactly this beat.
 
-REVIEW ORDER: (1) camera locked, facing the wall, we see the group's BACKS for the first 16s;
-(2) SIX people and no seventh — five arguing plus Dupe mopping; no registrar, no extras, no cart;
-(3) continuous overlapping motion 0–16s, nobody standing still, nobody in a line, nobody facing
-the lens; (4) the woman in fur is weeping at 2s, at 10s, at 16s AND at 20s — it never stops — and
-the man in maroon dabs her face at least once before the freeze; (5) at ~16s everything stops in
-the exact mid-gesture pose and every head turns TO THE CAMERA, and nothing but heads moves for the
-last 4s; (6) audio: overlapping babble to 16s, one door sound, then total silence — Dupe never speaks.
+THE REGISTRAR IS BACK. v2 dropped `@char_registrar` because the door was behind camera and he was
+never in frame. The camera now turns to find him, so he is in frame at the end and is bound again.
+
+Chips: 9 — loc_wall_crack, loc_hall_big_e, char_registrar, char_cleaner_c, char_critic_b,
+char_student_c, char_visitor_a, char_visitor_b, char_woman.
+⚠️ `@project_absence_char_woman` is THE YOUNG WOMAN IN COBALT, not Madame (`..._woman_c`).
+⚠️ Do NOT bind `loc_hall_big_d` (corridor, the v2 mistake) or `loc_wall_pov_e` (the view from
+   INSIDE the wall looking out through the crack — a different shot entirely).
+
+STILL NO PREVIZ. One rotation is simple enough to write; a grey previz would constrain the scrum.
+Clear any leftover video chip from the tray before pasting.
+
+CARRIED FORWARD FROM v2, UNCHANGED: the cart is put away (`prop_cart_a_painted` UNBOUND, and the
+cart is named in the negatives so it cannot drift back in); the woman in fur cries for the whole
+twenty seconds and does not stop at the freeze; the man in maroon dabs her tears with a folded
+handkerchief instead of walking off toward the door.
+
+THE STAGING NOTE THAT TAKES 1 AND 2 BOTH FAILED ON. Both takes put the whole cast in one tight
+knot left of centre in a wide, mostly empty hall, standing in a rough line behind the cart like a
+queue at a counter — nobody circled, nobody crossed behind anybody, and the woman in magenta held
+one identical hand-to-head pose from 0.5s to 19.5s. The fix is not an adjective (§11b): four
+crossings are named below with deadlines, and the wall gives them a wide surface to spread along
+instead of a trolley to huddle round.
+
+REVIEW ORDER — LOOK AT IT, DO NOT MEASURE IT (CEO: "อย่าวัดจากตัวเลข วัดจากสายตา"):
+(1) phase 1 is the WALL, head-on, and we see BACKS — if a corridor is on screen at 5s, v3 failed
+    the same way v2 did and you stop there;
+(2) the crack and the brass plaque are visible on that wall, not buried behind people;
+(3) they SPREAD along the wall — do the four crossings happen, and is the frame used, or are they
+    clumped in one knot with the room empty around them;
+(4) the woman in fur is crying at 2s, 10s, 14s AND at 20s, and the man in maroon dabs her face;
+(5) at 14s everything stops in the exact mid-gesture pose and every head turns TO THE LENS;
+(6) the camera turns after that and finds the red door with the registrar one step inside;
+(7) six people at the wall, no seventh, no cart; the registrar appears only at the end.
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
-20s · 720p · 16:9 · ONE LOCKED SHOT, no cuts. The camera never moves, never pans, never zooms; the
-frame is identical at 20s and at 0s. Sound On · High.
+20s · 720p · 16:9 · ONE CONTINUOUS SHOT, no cuts. Sound On · High.
 
-@project_absence_loc_hall_big_d — THE ONE PICTURE THIS SHOT IS BUILT FROM, and the only room
-reference in this prompt. THE CAMERA FACES THE WALL SQUARE ON at chest height. Take the room, its
-surfaces, its colours, its light and its wall exactly as this picture has them and change nothing
-about it.
+THE CAMERA DOES EXACTLY TWO THINGS AND NOTHING ELSE. For the first seventeen seconds it is
+LOCKED — square on, chest height, never panning, never zooming, never drifting. Then, once and
+only once, it ROTATES smoothly through half a turn to look the other way, and holds there to the
+end. There is no cut, no dissolve, no second angle and no reframing at any point.
 
-THE SHAPE OF THE CLIP: sixteen seconds of a loud, overlapping, thoroughly undignified argument in a
-very elegant room, and then four seconds of absolute frozen silence. The camera watches from one
-spot like a security camera that happens to be beautifully composed.
+@project_absence_loc_wall_crack — WHAT THE CAMERA IS LOCKED ON FOR THE FIRST SEVENTEEN SECONDS.
+A flat white gallery wall photographed dead-on and square, with ONE SMALL CRACK on it at
+picture-hanging height and a small brass plaque on the wall below the crack. Take the wall, the
+crack, the plaque, the lighting and the colours from this picture exactly as it has them and
+change nothing about any of it. THE CRACK AND THE PLAQUE ARE BOTH CLEARLY VISIBLE ON SCREEN and
+are never completely hidden by a person.
 
-WE ARE BEHIND THEM. Every person stands between the camera and the wall, facing the wall, so for the
-first sixteen seconds THE CAMERA SEES THEIR BACKS AND THE BACKS OF THEIR HEADS. They are gathered
-loosely across the middle of the frame, at different distances from the wall and from each other,
-never in a line and never evenly spaced.
+@loc_hall_big_e — WHAT THE CAMERA FINDS WHEN IT TURNS, AND NOT BEFORE. A long gallery corridor of
+polished chromium trumpet columns in matched rows, warm orange light washing the ceiling,
+terracotta terrazzo floor, and a tall RED DOUBLE DOOR closed at the far end, centred at the
+vanishing point. This corridor is NOT on screen at all during the first seventeen seconds.
 
-WHAT THEY ARE ARGUING ABOUT: the mark on the wall in front of them, which the five of them have
-decided is a work of art. Each of them is completely certain and each of them means something
-different by it. They gesture at the wall, step in to peer closely, step back to take it in, and
-talk over one another without pause. The cleaner goes on mopping around them.
+WE ARE BEHIND THEM. For the whole first phase every person stands between the camera and the wall,
+facing the wall, so THE CAMERA SEES THEIR BACKS AND THE BACKS OF THEIR HEADS AND NOT ONE FACE.
+They are spread out ACROSS THE FULL WIDTH of the wall, at different distances from it, never in a
+line and never evenly spaced.
 
-THE COMPLETE CAST IS SIX PEOPLE AND NOT ONE MORE. There are no extras in this film. No bystanders,
-no other visitors, no gallery staff, no guards, no reporters, nobody holding a camera, nobody
-walking through. If a figure is not named below it must not exist.
+WHAT THEY ARE ARGUING ABOUT: the small crack on the wall in front of them, which the five of them
+have decided is a work of art. Each is completely certain and each means something different by
+it. They gesture at it, step in to peer closely, step back to take it in, and talk over one
+another without pause. The cleaner goes on mopping around them.
+
+THE COMPLETE CAST IS SEVEN PEOPLE AND NOT ONE MORE — six at the wall from the start, and the
+registrar at the very end. There are no extras in this film. No bystanders, no other visitors, no
+gallery staff, no guards, no reporters, nobody holding a camera, nobody walking through. If a
+figure is not named below it must not exist.
 
 @project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap, gold V, moustache. He
-mops steadily around the argument the entire time, unbothered, never joining in, never speaking. He
-has a mop in his hands and nothing else. When the door behind the camera opens he stops with the mop
-still in his hands and looks up like everybody else.
+mops steadily around the argument the entire time, unbothered, never joining in, never speaking. A
+mop in his hands and nothing else.
 
 @project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian, silver-streaked hair
-swept up, full-length deep magenta fur coat, long cream gloves, cream heels. She lectures the others
-with both gloved hands, walks two steps one way and two steps back, and keeps presenting the wall to
-them like an auctioneer showing a lot.
+swept up, full-length deep magenta fur coat, long cream gloves, cream heels. She lectures the
+others with both gloved hands and keeps presenting the wall to them like an auctioneer showing a
+lot. SHE DOES NOT HOLD ONE POSE — her arms, her stance and her position all change through the shot.
 
 @project_absence_char_student_c — THE ART STUDENT: young, short curly acid yellow-green hair,
-paint-spattered denim overshirt, dark trousers, worn trainers. She works the wall the whole time with
-a black sketchbook, crouching, standing, holding her thumb up to measure it, drawing hard, getting in
-everybody's way.
+paint-spattered denim overshirt, dark trousers, worn trainers. She works the wall the whole time
+with a black sketchbook, crouching, standing, holding her thumb up to measure the crack, drawing
+hard, getting in everybody's way.
 
 @project_absence_char_woman — THE YOUNG COLLECTOR IN COBALT: young, dark hair pinned up, oversized
-cobalt-blue wool overcoat with a small gold V pin, pearl cluster necklace, brown-checked midi skirt,
-black tights, dark brown loafers, NO glasses. She argues back at the woman in magenta, steps in
-between her and the wall, and will not be talked over.
+cobalt-blue wool overcoat with a small gold V pin, pearl cluster necklace, brown-checked midi
+skirt, black tights, dark brown loafers, NO glasses. She argues back at the woman in magenta,
+steps in between her and the wall, and will not be talked over.
 
-@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, brown bob, long tawny-brown fur
-coat over a rust-red shift dress. SHE IS CRYING FROM THE FIRST FRAME TO THE LAST. Her shoulders move
-with it, she wipes her own eyes with the back of one hand, and she keeps trying to get a word in and
-being cut off. SHE IS STILL CRYING AFTER EVERYTHING STOPS, and she is the only thing in the frame
-that is still moving in the final four seconds.
+@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, brown bob, long tawny-brown
+fur coat over a rust-red shift dress. SHE IS CRYING FROM THE FIRST FRAME TO THE LAST. Her
+shoulders move with it and she keeps trying to get a word in and being cut off. SHE IS STILL
+CRYING AFTER EVERYTHING STOPS, and she is the only thing in frame still moving at the end.
 
 @project_absence_char_visitor_a — THE MAN IN MAROON, her husband: elderly, thinning grey hair, deep
 maroon leather suit with a stand collar. HE IS LOOKING AFTER HER. He holds a folded white
-handkerchief and dabs her cheeks with it, twice, patient and deadpan, while the argument goes on over
-their heads. He never raises his voice and he never leaves her side.
+handkerchief and dabs her cheeks with it, twice, patient and deadpan, while the argument goes on
+over their heads. He never raises his voice and he never leaves her side.
 
-[0s] WE ARE ALREADY IN THE MIDDLE OF IT. No build-up, no calm opening: from the very first frame all
-five are up at the wall, all moving, all talking at once, hands going, the student crouched drawing,
-the magenta woman presenting, the cobalt woman blocking her, the woman in fur crying, the man in
-maroon dabbing her face, and Dupe mopping right through the middle of them.
+@char_registrar — THE REGISTRAR, seen ONLY in the last three seconds and never before: about sixty,
+cream stand-collar tunic with orange piping and a small gold V, white gloves, a brown leather
+ledger under one arm. He has opened the red door at the end of the corridor and taken ONE step
+inside. He is far away and small in frame. He does not walk down the corridor, does not speak, does
+not point. He simply stands there.
 
-[0s to 16s] THEY DO NOT STAY WHERE THEY START. This is the most important instruction in the shot:
-the group's ARRANGEMENT changes, not just their gestures. Count the crossings — THERE ARE FOUR, and
-each one is a person walking through the group from one side to the other, passing behind or in
-front of somebody else on the way:
-  · by 5s THE ART STUDENT has crossed the full width of the group from one end to the other, still
-    drawing, and is now working the wall from the far side.
-  · by 8s THE WOMAN IN MAGENTA and THE YOUNG COLLECTOR IN COBALT HAVE SWAPPED SIDES — whoever was
-    on the left at 0s is on the right at 8s, and they pass each other mid-frame to do it.
-  · by 12s DUPE has mopped his way from one end of the frame to the other, straight through the
+[0s] WE ARE ALREADY IN THE MIDDLE OF IT. No build-up, no calm opening: from the very first frame
+all five are at the wall, all moving, all talking at once, hands going, the student crouched
+drawing, the magenta woman presenting, the cobalt woman blocking her, the woman in fur crying, the
+man in maroon dabbing her face, and Dupe mopping right through the middle of them.
+
+[0s to 14s] THEY DO NOT STAY WHERE THEY START. This is the most important instruction in the shot:
+the group's ARRANGEMENT changes, not just their gestures. Count the crossings — THERE ARE FOUR,
+and each is a person walking the width of the group from one side to the other, passing behind or
+in front of somebody else on the way:
+  · by 4s THE ART STUDENT has crossed the full width of the wall from one end to the other, still
+    drawing, and is now working it from the far side.
+  · by 7s THE WOMAN IN MAGENTA and THE YOUNG COLLECTOR IN COBALT HAVE SWAPPED SIDES — whoever was
+    on the left at 0s is on the right at 7s, and they pass each other mid-frame to do it.
+  · by 11s DUPE has mopped his way from one end of the frame to the other, straight through the
     middle of them, and they step around him without looking at him.
-  · by 15s THE ART STUDENT has crossed back again.
-Nobody is standing where they were five seconds earlier. Between the crossings people lean in, step
-back, gesture over each other's heads, turn to each other and turn back to the wall. The overlapping
-talk runs continuously — these fragments tread on each
-other and nobody waits their turn: "It is clearly about labour." · "It is a MARK." · "That is exactly
-what they want you to think." · "It made me think of my mother." · "Everything makes you think of
-your mother." · "Do not touch it!" · "I am measuring it." · "We are going to be late." Voices rise,
-overlap, cut across, two and three at a time. Nobody shouts anybody down completely and nobody wins.
+  · by 14s THE ART STUDENT has crossed back again.
+Nobody is standing where they were five seconds earlier. Between the crossings people lean in,
+step back, gesture over each other's heads, turn to each other and turn back to the wall. The
+overlapping talk runs continuously — these fragments tread on each other and nobody waits their
+turn: "It is clearly about labour." · "It is a CRACK." · "That is exactly what they want you to
+think." · "It made me think of my mother." · "Everything makes you think of your mother." · "Do
+not touch it!" · "I am measuring it." · "We are going to be late." Voices rise, overlap, cut
+across, two and three at a time. Nobody shouts anybody down and nobody wins.
 
-[16s] A DOOR OPENS BEHIND THE CAMERA. The door itself is never seen.
+[14s] A DOOR OPENS SOMEWHERE BEHIND THE CAMERA, and EVERYTHING STOPS DEAD, ALL AT ONCE, EXACTLY
+WHERE IT IS. Every person freezes in the precise position and posture they happened to be in — a
+raised arm stays raised, a pointing finger stays pointing, a foot in mid-stride stays down where it
+landed, the student stays crouched, the mop stays where Dupe was pushing it, the handkerchief stays
+at the weeping woman's cheek. ONLY THEIR HEADS MOVE: every head turns away from the wall and looks
+STRAIGHT INTO THE CAMERA in the same instant. Not one person straightens up, tidies their pose,
+steps back into line or composes themselves.
 
-[16s] AND EVERYTHING STOPS DEAD, ALL AT ONCE, EXACTLY WHERE IT IS. Every person freezes in the
-precise position and posture they happened to be in — a raised arm stays raised, a pointing finger
-stays pointing, a foot in mid-stride stays down where it landed, the student stays crouched, the mop
-stays where Dupe was pushing it, the handkerchief stays at the weeping woman's cheek. ONLY THEIR
-HEADS MOVE: every head turns from the wall to look STRAIGHT INTO THE CAMERA in the same instant. Not
-one person straightens up, tidies their pose, steps back into line or composes themselves.
+[14s to 17s] THEY HOLD IT, PERFECTLY STILL. Six people caught mid-argument like a photograph, every
+face turned to the lens for the first time in the shot. Nothing moves but the crying woman's tears.
 
-[16s to 20s] THEY HOLD IT, PERFECTLY STILL, FOR THE LAST FOUR SECONDS. Six people caught mid-argument
-like a photograph, every face turned to the lens. Nothing in the frame moves except the crying woman,
-whose tears keep coming while she holds her pose. At 20s the clip simply stops.
+[17s to 20s] THE CAMERA TURNS. Smoothly and in one movement it rotates half a turn away from the
+wall, sweeping past the room, and comes to rest looking straight down the long corridor of
+chromium columns at the RED DOUBLE DOOR at the far end. The door stands open and THE REGISTRAR is
+one step inside it, small and distant and completely still, looking back down the corridor toward
+the camera. The camera holds on him. At 20s the clip stops.
 
-AUDIO: room tone; from 0s to 16s a continuous overlapping babble of the fragments above, two and
-three voices at a time, plus a mop on wet terrazzo and heels on stone; at 16s one clean wooden door
+AUDIO: room tone; from 0s to 14s a continuous overlapping babble of the fragments above, two and
+three voices at a time, plus a mop on wet terrazzo and heels on stone; at 14s one clean wooden door
 sound and then TOTAL SILENCE — no talking, no footsteps, no music, nothing but faint room tone for
-the last four seconds. Dupe never speaks. No music, no score, no sting, no riser, no swell. NO SOUND
-AT THE START OR THE END: the clip opens mid babble with no intro sting or riser, and simply stops
-with no tail, swell or fade.
+the rest of the clip, through the camera move and the final hold. Dupe never speaks. The registrar
+never speaks. No music, no score, no sting, no riser, no swell. The clip opens mid babble with no
+intro sting and simply stops with no tail, swell or fade.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites pushed slightly
 cool, shadows deep red-brown, halation around every lamp. Photographed, not rendered: fine film
 grain, faint gate weave, slight colour fringing.
 
-CRITICAL NEGATIVES: no seventh person, no extra, no bystander, no other visitor, no gallery staff, no
-guard, no reporter, nobody holding a camera, nobody filming, nobody walking through; nobody in a
-cream tunic with orange piping, nobody carrying a ledger or a book; NO CLEANING CART, no trolley, no
-bucket, no ladder, nothing on castors anywhere in this room, and nothing parked at the edge of frame;
-every person has a different face, build, age, hair and clothing, and no face is repeated anywhere;
-nobody stands in a straight line, no group photograph, no posing, no symmetry among the people,
-nobody standing still in the first sixteen seconds; NOBODY LOOKS AT THE CAMERA AT ANY POINT IN THE
-FIRST SIXTEEN SECONDS — every face is turned to the wall or to another person until the moment
-everything stops; nobody touches the wall; no violence, no shoving, no grabbing, no fighting; after
-everything stops nobody moves anything but their head, nobody straightens up, nobody steps, nobody
-resumes talking, nobody walks; the crying does not stop at any point; no door and no doorway visible
-anywhere in frame; no camera movement of any kind, no pan, no tilt, no zoom, no dolly, no handheld,
-no reframing, no cut, no second angle, no shot-reverse-shot, no dissolve, no fade; no split screen,
-no grid, no four-panel layout, no picture-in-picture; no smartphones, no screens, no modern
-technology; no sunglasses on anybody. House negatives: no voiceover, no narration, no subtitles, no
-captions, no on-screen text, no signage, no logos, no music, no score, no dutch angle, no tilted
-horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin, no beauty filter, no
-dim moody lighting, no darkness, no night, no blue walls, no wooden floor.
+CRITICAL NEGATIVES: no eighth person, no extra, no bystander, no other visitor, no gallery staff,
+no guard, no reporter, nobody holding a camera, nobody filming, nobody walking through; NO CLEANING
+CART, no trolley, no bucket, no ladder, nothing on castors anywhere in this room, and nothing
+parked at the edge of frame; every person has a different face, build, age, hair and clothing, and
+no face is repeated anywhere; there is never a second man in a cream tunic; nobody stands in a
+straight line, no group photograph, no posing, no symmetry among the people, nobody standing still
+in the first fourteen seconds, nobody holding one identical pose for the whole shot, nobody
+clustered in a single tight huddle while the rest of the frame stands empty; NOBODY LOOKS AT THE
+CAMERA AT ANY POINT IN THE FIRST FOURTEEN SECONDS — every face is turned to the wall or to another
+person until the moment everything stops; nobody touches the wall; no violence, no shoving, no
+grabbing, no fighting; after everything stops nobody moves anything but their head, nobody
+straightens up, nobody steps, nobody resumes talking, nobody walks toward the door; the registrar
+never walks down the corridor; the crying does not stop at any point; the corridor and the red door
+are not visible at all before the camera turns; the camera turns ONCE and only once, after the
+freeze, never before, and it never pans back; no cut, no second angle, no shot-reverse-shot, no
+dissolve, no fade; no split screen, no grid, no four-panel layout, no picture-in-picture; no
+smartphones, no screens, no modern technology; no sunglasses on anybody. House negatives: no
+voiceover, no narration, no subtitles, no captions, no on-screen text, no signage, no logos, no
+music, no score, no dutch angle, no tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI
+sheen, no plastic skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
+walls, no wooden floor.
 
 === ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

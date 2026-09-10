@@ -596,6 +596,38 @@ crossings — before the v3 fix instructions arrived; the CTO's own
 independent diagnosis (wrong location chip bound as "wall") matches this
 exactly.
 
+### S2AC v3 — FIRED
+
+CTO pulled a second fix (`1e98f83`) after his own review of v2: the
+camera now moves in one scoped rotation (locked 0-17s on the wall, turns
+180° at 17-20s to find the corridor and the registrar), two location
+chips instead of one (`loc_wall_crack` for phase 1, `loc_hall_big_e` for
+phase 2), `char_registrar` re-bound (dropped in v2), all three earlier
+"no camera movement" bans removed and replaced with a scoped one.
+
+- Lint clean. Extraction: 10712 chars. **9/9 unique `@` mentions each
+  exactly once**, confirmed neither forbidden id (`loc_hall_big_d`,
+  `loc_wall_pov_e`) present, confirmed no stray "no camera movement"
+  line survived in the paste block.
+- Composer had 0 leftover chips/video ref from v2 — cleared cleanly.
+- Landed `innerText` 10775 vs source 10712 — same benign paragraph-break
+  artifact, normalizing confirms exact match (10712 = 10712).
+- Chips: **9/9 unique, 0 error chips** —
+  `@project_absence_loc_wall_crack`, `@loc_hall_big_e`,
+  `@char_registrar`, plus the 6 characters (`cleaner_c`, `critic_b`,
+  `student_c`, `woman`, `visitor_b`, `visitor_a`).
+- Duration confirmed 20s via the visible settings-row label.
+- Unlimited: pixel zoom confirmed `UNLIMITED · ~~140~~ · 0` immediately
+  before the click.
+- **Fired** at `2026-09-10T20:22:24Z` (2026-09-11 03:22:24 ICT). New
+  asset id `b6abd536-5e9a-44fb-8e44-ba1547411a4e`.
+- **Usage History re-checked**: cost unchanged, "Total generations"
+  205→206. $0 charged.
+- Awaiting render. Reviewing this one by eye per the CEO's instruction:
+  first question is whether a WALL is on screen at 5s, or a corridor —
+  if corridor, v3 failed the same way v2 did and the loop stops there
+  rather than re-firing.
+
 ## Checkpoint — 2026-09-10T19:29 UTC (2026-09-11 02:29 ICT)
 
 Queue status: S22/S2R-Q/S2PT take 4 harvested and reviewed (strong
