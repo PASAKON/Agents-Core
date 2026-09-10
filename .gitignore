@@ -107,3 +107,9 @@ docs/reports/previz-contacts/
 
 # local model/tool cache — 141MB, never commit
 .cache/
+
+# winbox remote-worker runtime artifacts (written at the repo root by the spawn path;
+# not source, and they block merge_task for every session while they sit untracked)
+.launch/
+.worker.json
+WORKER.md
