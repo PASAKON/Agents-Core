@@ -180,6 +180,40 @@ idea.
 
 ---
 
+### 7a · AN ELEMENT'S NAME IS NOT ITS CONTENT — read what the plate DEPICTS before binding it (2026-09-11)
+
+Rule 7 says the model follows prose over a failed reference. This is the uglier
+sibling: **the reference bound fine, and it was the wrong picture.**
+
+S2AC v2 was written to a director's note naming `project_absence_loc_hall_big_d`
+as the wall to face. I bound it and wrote "THE CAMERA FACES THE WALL SQUARE ON"
+over the top. That plate is **HALL D, a corridor seen down its length.** The
+reference's geometry won, as it always does, and the take came back as a corridor
+with no wall in it — the director's reaction was "v2 ไม่เห็นมีกำแพงเลย".
+
+Nothing errored. The chip was green, the id was real, the count was right, the
+lint was clean. **Every check I ran was a check on the STRING.**
+
+The catch costs one command. The sheets describe their own plates, so:
+
+```bash
+grep -rh "@project_absence_loc_wall_crack" docs/prompts/<film>/*.txt | head -3
+#  -> "THE HERO WALL. Flat white, no painting on it. ONE SMALL CRACK in the
+#      MIDDLE of the wall at picture-hanging height…"   <- that is a wall
+#  -> "HALL D, the richer hall: a corridor opening…"    <- that is not
+```
+
+Rules:
+- **Before binding any location plate, read one line of prose describing it** —
+  from a sheet that already used it, from CAST.md, or by opening the image.
+  Never from the id alone.
+- **A name handed to you by anyone, including the director, is a pointer, not a
+  verification.** He is naming it from memory of a picture he can see; you are
+  binding a string. Those two things fail differently.
+- **A prose sentence that contradicts the plate's own geometry is the tell.** If
+  you find yourself writing "the camera faces X" over a reference that does not
+  face X, stop — you have the wrong plate, and no wording will fix it (§7, §11).
+
 ### 7b · Depth words are a size instruction; state size IN THE FRAME (2026-09-06)
 
 A small mark rendered 4-5x too big on two consecutive takes while the prose
