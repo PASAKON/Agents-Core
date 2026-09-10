@@ -623,10 +623,65 @@ phase 2), `char_registrar` re-bound (dropped in v2), all three earlier
   asset id `b6abd536-5e9a-44fb-8e44-ba1547411a4e`.
 - **Usage History re-checked**: cost unchanged, "Total generations"
   205→206. $0 charged.
-- Awaiting render. Reviewing this one by eye per the CEO's instruction:
-  first question is whether a WALL is on screen at 5s, or a corridor —
-  if corridor, v3 failed the same way v2 did and the loop stops there
-  rather than re-firing.
+- Completed at `2026-09-10T21:11 UTC` (~49 min render, the longest of
+  the night — plausibly the camera-rotation phase).
+
+### S2AC v3 harvest and visual review — the fix works
+
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_202211_b6abd536-5e9a-44fb-8e44-ba1547411a4e.mp4`
+- **Bytes**: 24,807,151 · **MD5**: `579fba38519dea71e51e333b86df10f7`
+- **Asset id**: `b6abd536-5e9a-44fb-8e44-ba1547411a4e`
+- Frames at 0.5, 4, 7, 11, 14, 15.5, 17.5, 19s →
+  `docs/reports/frames-s2ac-v3/` — sampled across both phases and
+  specifically at the four named crossing deadlines.
+
+**Reviewed by looking, in plain description, per the CEO's standing
+instruction:**
+
+**First question first: is there a wall on screen at 5s?** Yes,
+unambiguously. A flat white wall dead-on and square, a legible brass
+plaque ("THE ABSENCE OF MEANING / Valder / $2,000,000") directly below a
+small forked crack — both fully readable and never buried behind a
+person, across every sample from 0.5s to 15.5s. This is the fix
+working — the corridor failure from v2 is gone.
+
+**Do they spread and actually cross, or clump like v2?** They spread
+along the wall and the crossings are visible and countable:
+- At 0.5s the order left-to-right is roughly Dupe, magenta, cobalt, fur,
+  maroon, with the art student crouched at the far left below Dupe.
+- By 4s the student has visibly moved to front-centre — a real crossing,
+  not just a pose change.
+- By 11s **Dupe has moved from the far left to dead centre of the frame**,
+  mop planted upright, and the cobalt/magenta pair have swapped which
+  side of each other they're on. This is the group actually rearranging,
+  not the same six static blobs v2 and takes 1-2 produced.
+
+**Does the freeze read as a freeze?** Yes, clearly. At 14s every single
+person is looking straight into the lens, mid-gesture (Dupe's mop planted,
+the pointing hand still raised, the handkerchief still at the weeping
+woman's cheek) — a genuine, striking before/after against 14 seconds of
+backs. Held through 15.5s with tears still visible on the fur woman's
+face.
+
+**Does the camera actually turn, and does it find the registrar?** Yes —
+the 17.5s frame is a motion-blurred sweep (confirms a real continuous
+rotation, not a cut), and by 19s the camera has arrived on the long
+chromium-column corridor with the red double door at the vanishing
+point and **a small, distant, cream-uniformed figure standing in front of
+it** — the registrar, exactly as written: "small and distant... looking
+back down the corridor toward the camera."
+
+**Cast**: six at the wall throughout (Dupe, magenta, cobalt, fur, maroon,
+student), no seventh until the very end; the registrar appears only in
+the corridor phase. No cart or cleaning trolley visible anywhere. No
+face repeated.
+
+**Overall S2AC v3 verdict (operator read): this take clears every item
+on the review checklist that a still frame can check.** Wall not
+corridor, real crossings not a tableau, the freeze genuinely lands, the
+camera rotation is real and finds the registrar as scripted. The
+remaining unverified items are audio-only (the six overlapping lines,
+the door sound, total silence) and can't be judged from stills.
 
 ## Checkpoint — 2026-09-10T19:29 UTC (2026-09-11 02:29 ICT)
 
