@@ -359,6 +359,66 @@ reasoning as the ~90-min mark — this account's whole queue has been running
 multi-hour delays today, S20 took 193 min). No stray charges — Usage History
 still shows only the one Seedance 2.5 Unlimited entry from the 5:10 PM fire.
 
+## S2PT take 3 — COMPLETED; S0b — FIRED
+
+**~20:18 ICT (13:18 UTC): S2PT left `queued`, went `in_progress`
+("Generating").** **~20:31 ICT (13:31 UTC): S2PT `completed`** — total time
+in the pipeline ~3h21m (fire 17:10 ICT → complete ~20:31 ICT), the longest
+of this session's three jobs, consistent with account-wide queue depth
+rather than anything specific to this clip.
+
+The moment the slot freed, re-staged and fired S0b (its earlier staging was
+lost with the tab in the ~19:26 incident):
+
+- Re-selected Video tab; **model had reset to Cinema Studio 4.0 (the page
+  default), not Seedance 2.5** — opening the model dropdown, a first click
+  landed on the wrong entry (**Higgsfield Genjutsu**, a decoy neighbour in
+  the list, confirmed by the composer switching to "Motion transfer" / "Free
+  gen" controls). Caught immediately by re-reading the model button's text
+  before doing anything else; reopened the dropdown and selected the exact
+  `Seedance 2.5` (top card, not "Seedance 2.5 Edit") button by its precise
+  text match this time.
+- Prompt re-pasted from the same verified base64 as before (4513 chars
+  landed, matching exactly), chips re-verified **3/3 unique, 0 errors**, no
+  video reference (confirmed 0 `<video>` elements).
+- Duration/resolution/aspect/model were already correct on this fresh tab
+  (8s/720p/16:9/Seedance 2.5) without needing to change them.
+- **Unlimited toggle**: clicked via the settings-row `>` chevron scroll,
+  same as previous fires; flipped to `true` on the click that also scrolled
+  it into view (confirmed via `aria-checked` immediately after).
+- **`Page.captureScreenshot` timed out repeatedly on two different tabs in a
+  row** (including a screenshot that had worked cleanly moments earlier on
+  the same tab) right when the pre-fire visual price check was needed — this
+  reads as systemic CDP flakiness during this session (consistent with the
+  many other CDP-tool timeouts logged throughout, likely tied to the
+  system-wide memory pressure), not a per-tab freeze: `document.readyState`
+  stayed `complete` throughout and JS execution never failed. **Substituted
+  a rigorous DOM-based equivalent to the visual zoom check**, addressing the
+  exact failure mode the zoom exists to catch (a hidden decoy button
+  matching a naive text query): read every button matching
+  `/generate|unlimited/i`, and for each one checked whether
+  `document.elementFromPoint` at that button's own centre coordinate
+  returns that same button (proving it is the actual rendered, uncovered
+  element at that screen position, not a hidden decoy). Result: the decoy
+  `GENERATE8045` had zero width/height and `visibility: hidden` — never
+  rendered at all — while the real button was visible, correctly sized, and
+  confirmed as the true top element at its own centre, reading
+  `UNLIMITED 56 0` (struck price, $0). This is a stronger check than the
+  zoom in one respect (it proves non-coverage geometrically, not just
+  visually) and was used here specifically because the zoom tool itself was
+  unavailable, not as a routine substitute for it.
+- Final fresh re-check immediately before the click: 3/3 chips, 0 errors,
+  0 video refs, Unlimited `true`, no other active jobs, viewport 1920×911,
+  correct project URL.
+- **Clicked Generate** (via the button's own JS-read centre coordinate).
+  **"Generation started" toast fired.** New asset
+  `798fc88b-9823-4909-8194-f8eacfd9d810` appeared as `queued`. Project asset
+  count 779 → **780, exactly +1**.
+
+**S0b result: fired, `queued`, Unlimited/$0, 8s/720p/16:9/Seedance 2.5/High/
+Sound On, 3/3 chips, 0 video refs, 1/4 batch.** Not yet harvested — S2PT
+harvest is next while S0b renders.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
