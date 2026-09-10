@@ -387,3 +387,43 @@ paste block match its CAST.md row?" — grep the FLATTENED paste block (phrases
 wrap) for each character's colour and carried object against the row. The
 first commit of a new film's prompt directory is CAST.md; a sheet that binds a
 chip absent from CAST.md fails lint.
+
+## 14 · CHOOSE THE MODEL BY WHAT THE SHOT HAS TO CARRY (CEO 2026-09-10)
+
+Measured on Higgsfield the same afternoon, same 15-second prompt, same three Elements, fired
+back to back on the credit lane (`s2rq15-lab-the-bids-jumpcut-15s.txt`, AB-LEDGER 16:35):
+
+| | Seedance 2.5 | 2.0 Fast | 2.0 Mini |
+|---|---|---|---|
+| credits, 15 s 720p | 98 | **53** | **38** |
+| max duration | 30 s | 15 s | 15 s |
+| render | 11-19 min | **~4.5 min** | ~4 min |
+| `@Element` chips | yes | **yes** | yes |
+| Unlimited grant covers it | yes | no | no |
+
+**Both cheap tiers bind Elements.** That was the question that could have ruled them out and it
+did not. 2.0 Fast held a face from an Element across three hard cuts, and held a second character
+from PROSE alone across two more, with the five spoken lines in the right order.
+
+**The CEO's read, which is the one that decides casting a model to a scene (2026-09-10):**
+"Fast ดีกว่า Mini มาก และเห็นได้ชัดว่าถูก Upscale มา สีสันสดใสกว่าต้นฉบับมาก เหมาะกับการเป็นฉากที่
+ไม่ควรมีตัวละครเป็นฉากในจินตนาการ และฉากที่ไม่มีผลกับผล เป็นฉากเริ่ม"
+
+So: **2.0 Fast looks upscaled — colour reads more saturated and the image sharper than the
+source grade.** That is a feature for some shots and a defect for others.
+
+- **Give 2.0 Fast:** establishing shots, opening images, imagined or dreamed scenes, inserts
+  with no cast, anything where a heightened look is welcome and continuity with the graded
+  footage does not matter.
+- **Keep 2.5 for:** any shot that has to cut against other 2.5 footage inside the same scene,
+  and any beat carrying the story.
+- **2.0 Mini** is the cheapest and visibly the weakest of the three — treat it as a draft tier.
+
+**Never mix models inside one scene.** Beyond colour, the two tiers stage the background
+differently: asked for "a plain cream wall, softly out of focus, nothing else in frame", 2.5
+gave a plain soft wall and 2.0 Fast rendered the whole hall with its columns, sharp and
+symmetrical. Both are defensible images; cut together they jump. One model per scene, always.
+
+**When the free queue is jammed, render time beats price.** On a day when the Unlimited lane
+returned nothing for six hours, a paid 2.0 Fast fire came back in four and a half minutes.
+Getting the shot at all is worth more than the discount.
