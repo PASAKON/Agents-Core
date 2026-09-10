@@ -29,6 +29,7 @@ import sys
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
+import os
 from pathlib import Path
 
 TZ = timezone(timedelta(hours=7))
@@ -49,9 +50,17 @@ FOLDER_ALIASES = {
 
 IGNORE_NAMES = {".DS_Store", "Thumbs.db"}
 
+# Where claudeflow's env file lives, per host. `MOONIEX_CLAUDEFLOW_ENV` wins when set,
+# so a new box needs an env var rather than a code change. Mac paths first (the common
+# case), then the Contabo VPS, whose repo lives under /root/projects.
 ENV_CANDIDATES = [
-    Path("/Users/gob/Projects/mooniex-claudeflow/.env"),
-    Path("/Users/gob/Projects/mooniex-claudeflow/.env.local"),
+    Path(p) for p in filter(None, [
+        os.environ.get("MOONIEX_CLAUDEFLOW_ENV"),
+        "/Users/gob/Projects/mooniex-claudeflow/.env",
+        "/Users/gob/Projects/mooniex-claudeflow/.env.local",
+        "/root/projects/mooniex-claudeflow/.env",
+        "/root/projects/mooniex-claudeflow/.env.local",
+    ])
 ]
 
 DRIVE_FILES = "https://www.googleapis.com/drive/v3/files"
