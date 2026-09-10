@@ -1,5 +1,17 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
+S2PT · THE TOUR, TOGETHER · 20s · v4 for take 4 · CEO 2026-09-10 21:10: "Dupe เดินนำรถเข็นนะ
+น่าจะผิดตั้งแต่คุณใส่ใน Previz แล้ว จริงๆ Dupe ต้องอยู่หลังรถเข็นและเข็นมันตาม"
+v4 = v3 + Dupe placed BEHIND his cart. The CEO caught what all three takes and all three of my
+own reviews missed: Dupe walks AHEAD of the cart, so he cannot be pushing it. **The bug was in
+the previz, not the prose** — `scripts/previz/s2pt_previz.py` had DUPE at dy -2.90 and the cart
+at -3.60, and the party travels +Y, so the previz placed him 0.7 m in FRONT of it. Every take
+inherited that blocking from the video reference and no wording could have overridden it (skill
+rule 7 cuts both ways). Previz swapped: cart -2.90, Dupe -3.60. The prose below now states the
+relationship three ways as well, the same technique that killed the duplicate cart in v3.
+**RE-RENDER AND RE-UPLOAD THE PREVIZ BEFORE FIRING TAKE 4 — the S2PT-Render.MP4 currently in the
+Uploads panel still carries the wrong blocking.**
+Original v3 note follows.
 S2PT · THE TOUR, TOGETHER · 20s · v3 for take 3 · CEO 2026-09-10 14:25 ("ยิงเทค 3 ใส่ 'รถเข็นคันเดียว' ย้ำ 3 แบบในบท" · "ใช้เลนฟรี แทรกคิวก่อนได้เลย")
 v3 = v2 + ONE CART stated three ways. Take 2 PASSED on cast and castors but rendered a
 SECOND cleaning cart at frame right from ~7s to the end (own bottles, own bucket, own
@@ -159,8 +171,14 @@ THE FRONT OF THE PROCESSION TO THE BACK, AND IT IS NOT NEGOTIABLE:
   4. The two guards a pace and a half behind Valder, side by side.
   5. LAST OF ALL, three metres behind the guards, DUPE.
 
-DUPE IS PUSHING A WHEELED CLEANING CART WITH BOTH HANDS ON ITS HANDLE, and the
-cart is in shot with him for the whole twenty seconds — the orange bucket, the
+DUPE IS PUSHING A WHEELED CLEANING CART WITH BOTH HANDS ON ITS HANDLE, AND THE
+CART IS IN FRONT OF HIM. He walks BEHIND it and it travels ahead of him, the way
+anybody pushes a trolley — his hands are on the handle at the back of the cart and
+the cart's own front wheels lead the way. THE CART IS ALWAYS NEARER THE FRONT OF THE
+LINE THAN DUPE IS. Whenever Dupe and the cart are both in frame, the cart is the one
+further along the direction they are all walking, never Dupe. He is the last thing in
+the line and the cart is the second last. The cart is in shot with him for the whole
+twenty seconds — the orange bucket, the
 mop, the bottles, the folding ladder, the gold V, the painting standing upright
 in its rack. HE IS NOT CARRYING ANYTHING. His hands are on the cart. He is
 plainly not part of the party, and he keeps their pace exactly.
@@ -215,9 +233,10 @@ other character speaking, no conversation, no murmuring, no laughing, no
 applause; no group stopping, no group gathering around a piece, no pointing
 crowd, no huddle, nobody drifting away from the party, nobody lagging behind
 except Dupe; no Dupe joining the party, no Dupe speaking, no Dupe leaving his
-cart; THE CART TRAVELS WITH DUPE AND ONLY WITH DUPE — no cart at the front of
-the line, no cart near Valder or Carrington or the guards, no cart separated
-from Dupe by other people, no cart moving on its own, NO SECOND CART, no third
+cart; THE CART TRAVELS WITH DUPE AND ONLY WITH DUPE — no cart near Valder or Carrington
+or the guards, NO DUPE IN FRONT OF HIS OWN CART, no Dupe leading the cart, no Dupe
+walking ahead of the cart, no Dupe pulling the cart along behind him, no cart
+trailing after Dupe, no cart separated from Dupe by other people, no cart moving on its own, NO SECOND CART, no third
 cart, no spare cart, no parked cart, no extra trolley, no second bucket, no second
 mop, no second ladder, no second painting in a rack, no duplicate of any part of
 the cart, nothing on castors anywhere in the room except the one cart Dupe pushes; NO DUPE
