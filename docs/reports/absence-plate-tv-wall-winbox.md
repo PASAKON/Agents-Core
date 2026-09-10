@@ -52,6 +52,59 @@ flakiness rather than a frozen renderer; noting it for future operators rather t
   `UNLIMITED` cleanly).
 - Fired: **2026-09-10T10:43:57Z** (approx). Toast "Generation started" confirmed the fire.
   Asset count ticked 775 → 776.
-- Waiting for render before harvesting / firing B.
+
+### Variant A — mid-fire viewport collapse, recovered per brief
+
+Right after firing A, while the render was in flight, this operator's own tab collapsed to
+**120x79** — the exact "MOBILE ACCESS COMING SOON" viewport lockup the task brief warned about
+(measured on `window.innerWidth`/`innerHeight`, not just a screenshot). Per the brief and the
+higgsfield-unlimited-gen skill: **never resize, open a fresh tab.** Released the collapsed tab
+from the registry (`tab_registry.py release`), closed it, opened tab 1638444954, claimed it,
+navigated back to the project URL, confirmed 1920x911. **The render survived** — variant A had
+already completed by the time the fresh tab loaded (asset marked "New" in the grid).
+
+### Variant A — harvest
+
+- Asset id (preview URL): `a24f6cfb-7d7a-4915-8c56-30a6ee2f236e`
+- Downloaded filename: `hf_20260910_104352_1041df05-b84b-4de0-a20a-625fcff00841.png`
+- Path: `C:\Users\UsEr\Downloads\hf_20260910_104352_1041df05-b84b-4de0-a20a-625fcff00841.png`
+- Bytes: 4,976,179 · MD5: `ab7b685a5500c500aae047f095c1911a`
+- Model (per asset Details panel): **Kling O1 Image**, Quality 2K, Size 2720x1536
+- Created (per panel): September 10, 2026 at 5:43 PM
+- Copied into repo as `docs/reports/plate-tv-wall/variant-a.jpg` (ffmpeg re-encode, 364,203 bytes)
+
+### Variant A — REVIEW (PASS/FAIL per item)
+
+1. **NOBODY in the picture** — PASS. No shopper, passer-by, silhouette, or reflection of a
+   person visible anywhere in the glass or on the pavement.
+2. **Arrangement matches brief (uneven second-hand stack)** — PASS. Sets of clearly different
+   eras/materials (walnut console, chrome ball-on-stalk, red cabinet, wood-grain cabinet, boxy
+   black portables) stacked unevenly floor to ceiling, second-hand-shop style.
+3. **No two televisions identical** — **FAIL.** Zoomed both halves of the wall: several of the
+   plain black-cased sets with silver dial trim and the same proportions repeat near-identically
+   (at least 4-5 visually indistinguishable units among the ~24 screens), most visible in the
+   right half of the frame. The brief called for every set to differ; the model fell back to a
+   repeated stock TV shape to fill the grid.
+4. **Every screen lit, same soft broadcast** — PASS. All screens show the same warm, out-of-focus
+   figure-behind-a-desk broadcast with a coloured band at the bottom.
+5. **No readable text/letters/numbers/logo** — PASS, explicitly checked at zoom: no word resolves
+   anywhere — not on screens, cabinets, or the fascia above the window.
+6. **Warm amber dusk palette, wet pavement, not cold/night-black** — PASS. Amber-orange cast
+   throughout, visible wet-pavement reflections at the bottom of frame, not a dark/cold image.
+
+**Net: 5/6 PASS, 1 FAIL (duplicate TV bodies).** Per the brief this operator does not re-fire —
+reporting as-is for the CEO's review.
+
+## Variant B · ORDERED VARIETY
+
+- New composer tab (1638444954) after the viewport-collapse swap above. Re-selected Image tab,
+  Kling 01, re-toggled Unlimited ON (reset to off on the fresh tab load, as expected — reloads/
+  fresh tabs never carry it forward).
+- Source block: 1619 chars, flattened the same way as A (no blank-line paragraphs in this
+  variant either). Pasted via the same UTF-8-correct synthetic-paste + End/space/Backspace sync.
+- Landed length: **1619 = 1619 chars.** Head/tail matched. 0 chips, 0 `<video>` elements.
+- Generate button reading immediately before click, confirmed by screenshot pixels: **`UNLIMITED`**,
+  no digits.
+- Fired: **2026-09-10T10:52:01Z**. Toast "Generation started" confirmed. Asset count 776 → 777.
 
 (status in progress — filling in below as each variant fires)
