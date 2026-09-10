@@ -397,16 +397,118 @@ prose" does not apply to this sheet).
   id `1c093933-9792-46b8-9fd5-07b7120c3b37`.
 - **Usage History re-checked**: cost unchanged, "Total generations"
   202→203. $0 charged.
-- Awaiting render.
+- Completed at `2026-09-10T18:25 UTC` (~37 min render).
 
-## Checkpoint — 2026-09-10T17:53 UTC (2026-09-11 00:53 ICT)
+### CTO closed both S2PT take-4 open questions (cross-session)
 
-All four items in the queue have fired; three are harvested and reviewed
-(S22, S2R-Q, S2PT take 4 — all strong PASSes), S2AC is rendering. Grant
-deadline is 06:59 ICT — about 6 hours out. No further items queued; per
-the CEO's standing rule, if S2AC finishes with nothing else staged, will
-re-fire a spare take of an already-written scene (S22 or S2R-Q, both zero-
-cost) rather than let the slot sit idle.
+Confirmed and filed as `S2PT-TourTogether-Fix1-take4.MP4`: the cart's
+side rack carries **two mops** (red + grey-white), not a mop-and-ladder —
+settling the ambiguity noted above. Whisper-track check confirmed all six
+Valder lines land in order, nobody else speaks. Nothing to redo on take 4.
+
+### CTO queue-refill instruction — loop S2AC until the grant expires
+
+With nothing queued behind S2AC and ~5.5h of Unlimited left, the CTO
+directed: harvest each S2AC take, report the asset id (CTO files to
+Drive, not the operator), then immediately re-fire the same unchanged
+sheet and repeat until 06:59 ICT — CEO standing rule, extra takes of an
+already-written scene need no further approval. Explicitly told to keep
+going past the usual ~5-generation wave cap (that cap controls context
+growth, not lane idling) and to stop with a plain, actionable handoff the
+moment context gets tight, rather than degrade silently.
+
+### S2AC take 1 harvest
+
+- Same silent-download workaround. **Path**:
+  `C:\Users\UsEr\Downloads\hf_20260910_174817_1c093933-9792-46b8-9fd5-07b7120c3b37.mp4`
+- **Bytes**: 23,451,343 · **MD5**: `e8f973211abd6e62dbe10a56dac41139`
+- **Asset id**: `1c093933-9792-46b8-9fd5-07b7120c3b37`
+- **ffprobe**: 1280×720 @ 24fps, duration 19.96s, audio present.
+- Frames (full 1280×720) at 1, 8, 15.5, 17, 19s →
+  `docs/reports/frames-s2ac-t1/` (sampling both the chaos phase and the
+  door/freeze phase, since those are two very different beats in one
+  clip).
+
+### REVIEW — S2AC take 1
+
+**(1) The frame never moves and matches the location picture — PASS.**
+Identical framing and symmetric composition across all five samples,
+matches `loc_hall_big_e`'s hall exactly (columns, orange cove light,
+terrazzo, red double door centred at the vanishing point).
+
+**(2) Six people in the hall for the first 16s, a seventh only at the
+door — PASS.** Confirmed: the woman in magenta, the woman in cobalt, the
+man in maroon, the woman in fur, the art student, and Dupe are all
+present and countable by clothes at 1s/8s/15.5s; the registrar (cream
+tunic) appears only at 17s/19s, standing in the doorway, not in the hall
+proper before that.
+
+**(3) Real overlapping chaos in 0–16s, not five people taking turns — a
+genuine finding, not a clean PASS.** This is the one item worth flagging
+plainly: across the three chaos-phase samples (1s, 8s, 15.5s), the six
+people's **spatial arrangement relative to each other and the cart is
+nearly identical** — magenta and cobalt grouped left of the cart, maroon
+and fur right of it, the student crouched front-right, Dupe mopping far
+right. What changes between samples is gesture and head/hand pose, not
+position — nobody has visibly crossed, changed places, stepped back, or
+swapped sides, which is what the sheet explicitly asks for ("Somebody is
+always crossing somebody else. People change places around the cart...")
+and explicitly bans the alternative ("nobody standing still in the first
+sixteen seconds," "no group photograph, no posing, no symmetry"). The
+composition at 1s/8s/15.5s reads closer to a posed group arrangement than
+continuous chaotic motion. Not a duplicate-character or geometry defect —
+a motion/blocking one, and per the review loop's own rule this goes to
+the CEO as a question, not a unilateral operator fix.
+
+**(4) The red door opens once at ~16s, the registrar opens it — PASS.**
+By 17s the registrar is visible standing in the now-open doorway (bright
+light behind him where the door has swung open), holding what reads as
+the ledger; the door is shut in the 15.5s frame and open by 17s, matching
+the ~16s cue.
+
+**(5) The freeze holds to 20s with heads to the door — PASS.** At 17s and
+19s every visible person has turned to face the registrar in the
+doorway, bodies otherwise in the same general stance as the chaos phase
+(consistent with "freeze exactly where they were, only heads turn").
+
+**(6) Sound: babble → door → dead silence — not verifiable from
+stills.**
+
+**(7) No crack, no mark, no plaque, no on-screen text — PASS.** Walls
+clean throughout, matches `loc_hall_big_e` exactly.
+
+**Overall S2AC take 1 verdict (operator read): 5/7 checkable items
+PASS outright, one (audio) not verifiable from stills, one (the chaos
+choreography) flagged as a real content finding for the CEO to weigh —
+the freeze/door ending is excellent, the 0–16s argument reads more static
+than the sheet's own "never settles, never pauses" instruction wants.**
+Keeping every take per the standing rule; this is exactly the kind of
+finding extra takes exist to fix.
+
+### S2AC take 2 — fired, re-firing loop underway
+
+Per the CTO's queue-refill instruction: re-pasted the identical S2AC
+sheet into a fresh tab (rotated per the "fresh tab every 3-4 generations"
+hygiene rule — this composer tab had done 4 fires), re-verified 9/9
+chips / 0 errors / 0 video refs / textLen 8804 exact, re-verified
+Unlimited by pixel zoom (`~~140~~ · 0`), fired.
+
+- **Fired** at `2026-09-10T18:34:32Z` (2026-09-11 01:34:32 ICT). New asset
+  id `0481c314-f717-462d-84ab-7b36a1654212`.
+- **Usage History re-checked**: cost unchanged, "Total generations"
+  203→204. $0 charged.
+- Awaiting render. Will harvest, report, and re-fire again per the loop.
+
+## Checkpoint — 2026-09-10T18:38 UTC (2026-09-11 01:38 ICT)
+
+Queue status: S22/S2R-Q/S2PT take 4 all harvested and reviewed (strong
+PASSes, take 4 confirmed by CTO). S2AC take 1 harvested and reviewed (one
+real content finding: chaos phase reads too static, flagged not fixed).
+S2AC take 2 fired, rendering. Grant deadline 06:59 ICT, ~5.3h out. Looping
+S2AC takes per the CTO's standing instruction until the grant expires or
+context tightens; will report each asset id as it fires/completes and
+stop with a plain handoff (exact next action + composer state) if context
+gets tight before then.
 
 ## Extraction script bug found and fixed mid-task
 
