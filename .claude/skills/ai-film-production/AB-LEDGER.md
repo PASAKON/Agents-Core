@@ -919,3 +919,29 @@ to "prefer prose for her in this scene; if a future sheet needs the Element, exp
 - **⚠️ THIS CLIP CORRECTS RULE 14.** That rule says the background distinguishes the tiers — "asked for 'a plain cream wall… nothing else in frame', 2.5 gave a plain soft wall and 2.0 Fast rendered the whole hall with its columns". **This clip is 2.5 and it rendered BOTH, inside one continuous generation:** the full hall with chromium columns and hanging lights behind Carrington's three shots and Valder's, and a plain warm out-of-focus wall behind Madame's two. Same model, same prompt, same fire. So **background staging varies shot to shot, not model to model, and must never be used to tell which tier produced a clip.** "One model per scene" still stands on the colour and bitrate measurements, which were like-for-like on an identical prompt — but the background half of that argument is withdrawn.
 - Deviation carried forward, not re-shot: the sheet asked for the plain cream wall on all six; four of six show the hall. It reads as two bidders standing in different parts of the room, which is what an auction looks like. Not worth a scarce free slot.
 - **Verdict PASS.** Filed Fix-2 `S2RQ-TheBidsQuick-Fix1.MP4` (id 1KrYCsgVsKi22mtI2QgSutnvSerGh4rNr), logs.txt appended, Fix-2 now 43 items.
+### S2PT · takes 1-3 → 4 · 2026-09-11 · THE FIX WAS NOT IN THE PROSE
+DEFECT SEEN: across takes 1, 2 and 3, Dupe walked AHEAD of his cleaning cart, so he could not be
+pushing it — the one thing the shot exists to show. Take 2 additionally rendered a SECOND cart.
+PROMPT A: v3 hardened the prose three ways — a count ("Count the carts: ONE"), an ownership rule
+  ("if Dupe is not pushing it, it is not there") and a placement ban ("nothing on castors stands
+  parked anywhere"). Eleven negatives in total. **Take 3 still put him in front of the cart.**
+PROMPT B: the winning change was ONE COORDINATE in `scripts/previz/s2pt_previz.py` (a8b394d):
+      - ("DUPE",  0.60, -2.90, 1.80),
+      + ("DUPE", -0.15, -2.90, 1.80),   # x MATCHES the cart's x
+  plus a re-render of the previz against the correct base scene.
+WHY B HELD: `@Video 1` carries blocking, and blocking beats prose every time (§7). Takes 1-3
+  inherited "Dupe in front" from the video reference, so no wording could win. Worse, at x 0.60 he
+  sat 0.75 m deeper than the cart and was **completely occluded by it** from the side-on camera —
+  the previz had never once shown him, so nobody could see the blocking was wrong by looking.
+LESSON: when a defect survives three rounds of prose hardening, stop writing prose — the reference
+  is overriding you. §11's closing line ("check the reference before you rewrite the words at all")
+  is the rule, and this is what ignoring it costs: three free-lane slots, ~9 hours.
+
+## 2026-09-11 01:05 — S2PT "THE TOUR, TOGETHER" take 4 PASS — the previz fix holds
+- Fired ~00:20 free lane (Unlimited 2.5, **0 credits**), 8/8 chips (7 Elements + `@Video 1`), fresh previz byte-verified against the local render before attach. `hf_20260910_170121_98f51d92-….mp4`, 28,055,059 B, md5 e6ffce750f182de3f7e9ddf67814da84 (matches the operator's), 1280×720 @ 24 fps, 20.04 s.
+- **THE TAKE 1-3 DEFECT IS FIXED.** Full-res crops at 7 s and 19 s: the cart is ahead of Dupe in the direction of travel (the party moves right-to-left; the cart is on his left) and **both his hands are on the handle bar**. He is pushing it, which is what three previous takes could not produce.
+- REVIEW ORDER: (1) one continuous lateral track, no cut ✓ (objective sweep: none; no freezes) (2) SIX people and the cart and nobody else ✓ — Valder (frontmost, nobody ahead of him), Carrington with the cane, the bodyguard in black, two navy guards, Dupe at the back; **ONE cart** ✓ (3) six lines, all Valder's, in order ✓ — whisper returns them verbatim at 0/4/7/10/13/19 s, nobody else speaks (4) mustard armchair — see the deviation below (5) camera square, group holds its place while the columns slide past ✓.
+- **Two things the operator flagged as unresolvable from stills, both settled here.** (a) The cart's side rack carries **two mop heads, one red and one grey-white** — not "a mop and a folding ladder". Visible unambiguously at 19 s. (b) The six lines needed audio, which the operator had no way to run; whisper settles it.
+- **Prop count done properly this time** (the rule take 2 taught): exactly ONE mustard armchair, verified frame-by-frame at 12/13/14/15 s at full resolution in the left half. An earlier low-resolution read made it look like the chair jumped backwards between 13 s and 14 s, which would have meant a duplicate — it does not; the apparent jump was a downscaling artefact. **Count props at full res or do not count them.**
+- **Deviation, not re-shot: the armchair beat runs ~4 s early.** The sheet asks it to enter left at ~13 s and be level with Valder at ~16 s; measured, it is level with Valder at **~12 s** and has left the left third by 15 s. Valder's chair line runs 13-19 s, so he describes the chair just after passing it rather than while beside it. The chair is still in frame throughout the line (confirmed at 16 s and 19 s), so it reads as a man gesturing back at what he has just walked past — natural, arguably better than narrating a chair he has not reached. 20% timing drift on a 20 s clip is at the edge of the stated tolerance and this is take 4 of a shot that has already consumed three slots.
+- **Verdict PASS.** Filed Fix-2 `S2PT-TourTogether-Fix1-take4.MP4` (id 1al0dq3wOlZBovA2-RSFb_moUGVxEik17), logs.txt appended, Fix-2 now 44 items. **Editor row [5] (3:18-3:39) is unblocked — use the `-take4` file; the three other S2PT files in that folder are all failed takes.**
