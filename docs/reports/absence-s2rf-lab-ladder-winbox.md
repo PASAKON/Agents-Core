@@ -58,7 +58,8 @@ Window 1920x855 throughout (well above the 1280 mobile-breakpoint floor).
 |---|---|---|---|---|---|
 | L0 | s2rf-fix1-the-battle-faces.txt (V2 as-is) | 13/13, 0 error | 2026-09-10T04:57:45Z | ~2026-09-10T05:03Z | **REJECTED** (expected) |
 | L1 | s2rf-lab-l1-the-battle-faces.txt (no bidder chips) | 11/11, 0 error | 2026-09-10T05:06:29Z | 2026-09-10T05:25Z | **PASSED** |
-| L2 | s2rf-lab-l2-the-battle-faces.txt (gentleman_e chip back) | 12/12, 0 error | 2026-09-10T05:32:14Z | pending | pending |
+| L2 | s2rf-lab-l2-the-battle-faces.txt (gentleman_e chip back) | 12/12, 0 error | 2026-09-10T05:32:14Z | 2026-09-10T05:43:34Z | **PASSED** |
+| L3 | s2rf-fix1-the-battle-faces.txt again (= L0, woman_c chip back) | 13/13, 0 error | 2026-09-10T05:49:01Z | pending | pending |
 
 ### L0 — REJECTED (expected)
 
@@ -117,28 +118,55 @@ Window 1920x855 throughout (well above the 1280 mobile-breakpoint floor).
   judge — screenshots at `docs/reports/frames-s2rf-lab/L1/frame_16s.jpg`,
   `left_crop.jpg`, `mid_crop.jpg`.
 
-### L2 — fired, awaiting result
+### L2 — PASSED
 
-- Asset id `fae8b8af-2f66-4143-8797-ab94965ee73c`, `queued` at fire time.
+- Asset id `fae8b8af-2f66-4143-8797-ab94965ee73c`. Fired 05:32:14Z, landed
+  `completed` 05:43:34Z (~11 min render).
 - 12/12 unique chips bound (`@gentleman_e` back in, `@project_absence_char_woman_c`
   still absent/prose) — loc_hall_big_e, gentleman_e, guard_private_v2, valder,
   char_registrar, guard_valder_two, char_woman, critic_b, visitor_b,
   visitor_a, cleaner_c, prop_cart_a_painted. 0 error chips, 12/12 reference
   thumbnails, no warning icons.
+- Price at click: struck `140`, live `130` — **passing fire, 130 credits
+  spent**. Card details: Seedance 2.5 · 720p · High · 1280x720 · Created
+  Sep 10 2026 12:32 PM ICT (= 05:32 fire time) · filed in The Valder
+  Collection No.7.
+- **Download**: `hf_20260910_053213_fae8b8af-2f66-4143-8797-ab94965ee73c.mp4`,
+  24,208,363 bytes, md5 `07ea7a91277ade60d7505fdb5ad9c340`, copied into
+  `docs/reports/frames-s2rf-lab/L2/`. ffprobe: h264/aac, 1280x720, duration
+  20.05s — matches spec.
+- Frames extracted at the seven spec timestamps + 640-wide contact row, in
+  `docs/reports/frames-s2rf-lab/L2/`.
+- **Honest description**: the five close-ups are clean, one face per shot
+  throughout, Carrington now rendered from his actual reference plate
+  (visibly a slightly different, more "on-model" face/likeness than L1's
+  pure-prose Carrington, as expected once bound to an Element) and the
+  woman in green's prose rendering stayed consistent with L1's. **The
+  full-shot cast-merge problem noted in L1 is gone**: Carrington now
+  appears as his own distinct figure on the far left — white suit, cane,
+  gold teeth, bodyguard directly behind him — and the registrar is a
+  separate, correctly-dressed figure next to him with the ledger and pen,
+  exactly as scripted. This confirms the L1 full-shot merge was specifically
+  caused by Carrington having no reference plate, not a prompt-writing
+  defect. One minor deviation: the DUPE (cleaner) is not clearly visible in
+  this particular full-shot frame near his cart, though the cart itself is
+  in frame — not flagged as a moderation issue, noted for the CTO's cast
+  count. Screenshot at `docs/reports/frames-s2rf-lab/L2/frame_16s.jpg`.
+
+### L3 — fired, awaiting result
+
+- Asset id `380b3f37-935e-457d-858b-6da05b792cf3`, `in_progress` at fire time
+  (05:49:01Z). This is L0's sheet again verbatim (both bidder Elements bound).
+- 13/13 unique chips bound (loc_hall_big_e, gentleman_e, guard_private_v2,
+  woman_c, valder, char_registrar, guard_valder_two, char_woman, critic_b,
+  visitor_b, visitor_a, cleaner_c, prop_cart_a_painted), 0 error chips, 13/13
+  reference thumbnails, no warning icons — identical binding to L0.
 - Price at click: struck `140`, live `130`. Unlimited confirmed OFF
-  (`aria-checked=false`, `data-state=off`) immediately before the click.
+  immediately before the click.
 - Polling on the 3-min cadence; will update this report and commit again
   once it lands.
 
-## Conclusion (interim)
 
-L0 (13 chips, both bidders bound as Elements) → REJECTED as NSFW/copyright,
-as expected/reproduced. L1 (11 chips, both bidders as prose only, no
-Element binding) → PASSED moderation. This points toward **the bidder
-Element bindings themselves (not the close-up framing) as the likely
-trigger for the rejection**. L2 (Carrington's Element back, woman still
-prose) fired to isolate which bidder is responsible, per the ladder.
-Final conclusion pending L2/L3.
 
 ## Files changed
 
