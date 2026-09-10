@@ -115,6 +115,13 @@ explicit here: no time cap, a queued job is never cancelled or re-fired.
 Continuing to poll every ~10 min via a throwaway tab; S2PT stays staged and
 untouched in the composer tab.
 
+**15:57 ICT (08:57 UTC) checkpoint: S20 still `queued`.** ~162 min since
+fire, now past this skill's own worst documented example (137 min). Per the
+brief: no time cap, never cancel or re-fire a queued job — waiting is the
+job. S2PT composer (tab 1638444903) has not been touched since it was last
+verified staged; all status checks continue to use disposable throwaway
+tabs.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
