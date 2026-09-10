@@ -3,12 +3,13 @@ S2R-Q · THE BIDS, QUICK · 10s · the auction as a tennis match, bids only · C
 ("เอาแค่ฉากประมูลอย่างเดียว ตัดฉาก Valder ดีใจ เอาแบบ Cut แบบนี้เลย ใส่ Valder @Element + Madam @Element
 … สลับกันพูดไวๆ … 5s-10s ไม่เกินนี้"). Derived from s2rf-lab-l1 (the ladder sheet that PASSED
 moderation 12:25) — same close-up grammar, the full shot and the delighted-Valder beat removed.
-CREDIT lane if the CEO fires it himself; FREE lane otherwise. Chips: 4 (loc_hall_big_e,
-gentleman_e, project_absence_char_woman_c, project_absence_char_valder). No video reference.
-The CEO's clipboard copy (13:05) carries the chips in the composer's own @[name](id) form;
-this file keeps plain @names for the operators. Madame's Element in a close-up is exactly what
-ladder rung L3 is testing (fired 12:49) — if L3 is rejected, this sheet will be too; swap her
-back to prose (the L1 wording) before firing.
+CREDIT lane if the CEO fires it himself; FREE lane otherwise. Chips: 3 (loc_hall_big_e, gentleman_e, project_absence_char_valder) — MADAME IS PROSE, NEVER
+a chip: her Element `project_absence_char_woman_c` is the confirmed moderation trigger (five
+data points 2026-09-10; see the ledger). No video reference.
+The CEO's clipboard copy carries the chips in the composer's own @[name](id) form; this file
+keeps plain @names for the operators. v2 (13:20): Madame's chip REMOVED — the ladder finished
+(L3 and S2R-W both rejected) and `project_absence_char_woman_c` is the trigger; her prose here
+is the exact wording that PASSED as L1/L2.
 
 REVIEW ORDER: (1) six shots, five hard cuts, nobody but the one named face inside each close-up;
 (2) the five bids in order, one voice at a time, Valder silent; (3) Carrington and Madame match
@@ -29,10 +30,11 @@ THE COMPLETE CAST OF THIS CLIP IS THREE PEOPLE AND NOT ONE MORE, and they never 
 - @gentleman_e — MR CARRINGTON, the man bidding: tall,
   elderly, swept-back white hair, a white stand-collar suit, TWO GOLD FRONT TEETH. He bids like
   a man playing a game he expects to win.
-- @project_absence_char_woman_c — MADAME, the woman
-  bidding: elderly, tall, rail-straight, a sculpted gown of glossy mid-green leather with chevron
-  leaf-vein seams, sharply pointed shoulder caps, a tall standing collar; a towering pompadour
-  streaked blue, green and silver-white; black cat-eye sunglasses. She never raises her voice.
+- MADAME (no picture — describe her, do not look for one), the woman bidding: elderly, tall,
+  rail-straight, a sculpted gown of glossy mid-green leather with chevron leaf-vein seams,
+  sharply pointed shoulder caps, a tall standing collar; long green leather opera gloves; a
+  towering pompadour streaked blue, green and silver-white; black cat-eye sunglasses. She never
+  raises her voice.
 - @project_absence_char_valder — VALDER, the man in the
   middle who owns the room: tall, slim, elderly, swept-back white hair, small round tinted
   sunglasses, a blazer panelled in flat blocks of magenta, yellow, green, blue and red, a red

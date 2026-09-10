@@ -790,3 +790,19 @@ VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
 - Ladder worker task-1755ef77 killed on winbox (pid 26544), tab claim released, task cancelled, branch merged. **L3 (asset 380b3f37…, fired 12:49, both bidder Elements) was still in flight** — it will land on its own in the grid; nobody harvests it. If it shows `NSFW / Credits refunded` the refund is automatic and the ladder's answer is complete (Madame's Element = the trigger); if it PASSES, 130 more credits were spent and the trigger is the *pair* of bidder Elements together. Read the card later, do not re-fire either way.
 - **Credits spent today: 260** (L1 + L2, 130 each; L0 refunded). No further credit-lane fires without a new CEO order.
 - Standing rule restored: FREE lane (Unlimited) only.
+## 2026-09-10 13:20 — CAUSE FOUND: `@project_absence_char_woman_c` (Madame's Element) is the moderation trigger
+Two more cards landed and closed the question — five data points, one variable:
+
+| fire | chips | Madame's Element | framing | result |
+|---|---|---|---|---|
+| L0 (11:57) | 13 | **bound** | close-ups | REJECTED |
+| L1 (12:06) | 11 | absent (prose) | close-ups | PASSED |
+| L2 (12:32) | 12 (+Carrington) | absent (prose) | close-ups | PASSED |
+| L3 (12:49) | 13 | **bound** | close-ups | **REJECTED** (asset 380b3f37…, credits refunded) |
+| S2R-W (10:02) | 13 | **bound** | **WIDE, no close-ups** | **REJECTED** (asset d58ee0c0…, `NSFW / Credits refunded / Rejected due to copyright restrictions.`) |
+
+- Every rejection has her Element bound; every pass has it absent. **Framing is not the variable** — S2R-W was the wide test and it was rejected anyway. Carrington's Element (`gentleman_e`) is cleared by L2. This also explains the three earlier auction rejections (07-09 Sep), all of which bound her.
+- **Rule from here: never bind `@project_absence_char_woman_c` again.** Madame is written as prose — the exact L1/L2 wording, which renders her consistently (green leather gown, pompadour, cat-eye sunglasses) shot to shot. Her Element should be treated as dead; do not re-create it from the same plate.
+- Credits: **260 total** (L1 + L2). L0, L3 and S2R-W were all refunded. No credit-lane fire since the CEO's 13:15 stop order.
+- `s2rq-fix2-the-bids-quick.txt` patched to v2 the same minute: Madame's chip removed, prose in, 3 chips (loc_hall_big_e, gentleman_e, project_absence_char_valder). The CEO's clipboard was re-copied before he fired it.
+- **Free lane**: S2R-W's rejection freed the slot; harvester task-3b2070ff fired **S20** at 13:1x (asset 7a1c376d-5bc6-477e-9173-340be87c0663, 4/4 chips), S0b next.
