@@ -338,6 +338,20 @@ single cheap `javascript_tool` read. Usage History re-checked earlier in
 this stretch: still only the one Seedance 2.5 entry (5:10 PM, our own fire),
 no stray charge.
 
+**19:26–19:29 ICT (12:26–12:29 UTC): tab froze, then the whole tab group
+vanished a second time.** The tab holding the composer (by now just a
+read-only page, S0b's staging having already been lost in the earlier
+memory-pressure tab-loss) stopped responding to even a trivial
+`document.readyState` check (two consecutive `Runtime.evaluate` timeouts).
+Closed it and opened a fresh tab — S2PT read `queued`/"Processing"
+immediately and cleanly there, confirming (again) that the freeze was
+client-side tab state, not the render itself. This is now the second
+Chrome-side instability incident this session, both correlated with the
+repeated "running low on memory" kills hitting the background poll timers —
+recorded as a likely environment/system issue on this winbox host, not
+something this task caused. **~19:29 ICT / 12:29 UTC, ~139 min since S2PT
+fire, still `queued`/"Processing".**
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
