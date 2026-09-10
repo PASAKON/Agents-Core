@@ -371,9 +371,22 @@ Rules for any multi-person scene:
   generalises past crowds: a walk, a search, a pace, a fidget — if the beat
   matters, it needs a number and a timestamp.
 
-**Measure it instead of arguing about it — `scripts/shot-motion.sh <clip>`.** It
-compares the people-band of the opening frame against later ones and prints how
-much of that band changed. Measured 2026-09-11, and the separation is not subtle:
+**LOOK AT IT FIRST. The number is a footnote, never the verdict (CEO 2026-09-11:
+"อย่าวัดจากตัวเลข วัดจากสายตา").** I reported a failing take as "10% versus 44%"
+and the director corrected it, rightly. A film is judged by looking, and on this
+same production the eye has twice overruled the spec — S21 broke two written rules
+and was better for it (§ the S21 ledger entry). A metric cannot tell you that.
+
+What looking gave that the number could not, on the very same clip: the cast was
+**bunched in one knot left of centre in a wide empty hall**, standing in a rough
+line behind the cart like a queue at a counter, with the object of the argument
+the least visible thing in frame. "10% change" says *it did not move*. The eye
+says *the staging is timid, they are not using the room, and the prop is buried* —
+which is the note you can actually act on. Diagnose from the frames; reach for a
+number only to confirm what you already saw, or to compare two takes of one shot.
+
+With that established — `scripts/shot-motion.sh <clip>` compares the people-band
+of the opening frame against later ones. Measured 2026-09-11:
 
 | clip | 7 s | 12 s | 15.5 s | |
 |---|---|---|---|---|
