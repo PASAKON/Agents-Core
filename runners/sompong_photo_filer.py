@@ -36,9 +36,15 @@ read (or quarantine-move) whatever it points at otherwise.
                                     |
                     verify sha256, dedup, name, month folder
                                     |
-                     upload through drive_photo_broker.py's socket
+       copy bytes into the staging root (see "Staging copy" below) --
+       the one directory tree both this root process and the unprivileged
+       `photoup` broker can both reach
                                     |
-                  only on confirmed success: delete pair + record sha256
+              upload through drive_photo_broker.py's socket, staged path
+                                    |
+     only on confirmed success: delete staged copy + outbox pair + record
+                              sha256; any failure removes the staged copy
+                                  too, outbox pair left in place
 
 Outbox contract (claudeflow's side -- separate task, described here only so
 this loop's assumptions are traceable): for one photo/video the container
@@ -92,6 +98,26 @@ reimplemented here rather than imported, since that module carries HTTP/
 mailbox concerns this one has no use for. One bad tick logs and sleeps; the
 loop itself never dies.
 
+Staging copy (task-29744f52): this loop runs as root and can always reach
+the outbox under /root/projects, but the broker runs as the unprivileged
+`photoup` (it holds the Drive credential and must stay unprivileged) and
+therefore cannot traverse /root at all -- see docs/design/sompong-photos.md
+"Known open dependency". So DRIVE_PHOTO_BROKER_STAGING_ROOT is never the
+outbox; it is a separate directory (`/var/lib/photoup/staging`, group
+`photoup`, setgid) this root process can write into and `photoup` can read.
+Per pair, once sha256 verification has passed: copy the bytes into staging
+under a name THIS PROCESS controls (`<sha256><ext>`, never a name or path
+fragment taken from the message JSON) with mode 0640, call the broker with
+that staged path, then remove the staged copy unconditionally once the
+broker call returns -- on success the outbox pair is deleted too; on failure
+the outbox pair is left exactly where it was (existing retry discipline),
+but the staged copy never survives past one upload attempt, so a crash mid
+tick cannot leave a family photo lying around a second place beyond the
+outbox. A staging filesystem too low on free space to safely hold a second
+copy of the file (SOMPONG_PHOTO_MIN_FREE_MB headroom, default 2048) is
+grounds to skip the pair for this tick, not to fail it -- leaves both outbox
+files untouched and does not count against MAX_RETRIES.
+
 Run:  python -m runners.sompong_photo_filer          (loop)
       python -m runners.sompong_photo_filer --once   (single tick, for testing)
 """
@@ -101,6 +127,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import socket
 import sys
 import time
@@ -125,8 +152,13 @@ from runners.drive_photo_broker import DEFAULT_SOCKET_PATH as _BROKER_DEFAULT_SO
 # idiom this file's own tests copy).
 # ---------------------------------------------------------------------------
 DEFAULT_OUTBOX = "/root/projects/mooniex-claudeflow/data/sompong/photos-outbox"
+# Matches scripts/install-photo-broker.sh's STAGING_DIR -- the one directory
+# tree both this root process and the unprivileged `photoup` broker can both
+# reach (`photoup` cannot traverse /root at all, see the module docstring).
+DEFAULT_STAGING_ROOT = "/var/lib/photoup/staging"
 
 OUTBOX = Path(os.environ.get("SOMPONG_PHOTO_OUTBOX") or DEFAULT_OUTBOX)
+STAGING_ROOT = Path(os.environ.get("SOMPONG_PHOTO_STAGING_ROOT") or DEFAULT_STAGING_ROOT)
 # Same env var name the broker itself reads its bind path from -- this
 # process is the broker's one intended client, so the two must always agree
 # on where the socket lives without a second name to drift out of sync.
@@ -134,6 +166,11 @@ SOCKET_PATH = Path(os.environ.get("DRIVE_PHOTO_BROKER_SOCKET_PATH") or _BROKER_D
 
 POLL_SECONDS = int(os.environ.get("SOMPONG_PHOTO_FILER_POLL_SECONDS", "60"))
 MAX_RETRIES = int(os.environ.get("SOMPONG_PHOTO_FILER_MAX_RETRIES", "5"))
+# The staging copy doubles a file's footprint while in flight -- refuse to
+# stage (skip the pair this tick, log it, never quarantine for this reason
+# alone) when the staging filesystem doesn't have this much headroom left
+# ON TOP OF the file's own size.
+MIN_FREE_MB = int(os.environ.get("SOMPONG_PHOTO_MIN_FREE_MB", "2048"))
 # Generous: a 200 MiB upload (the broker's own per-file cap) plus Drive
 # latency, with margin -- same "don't let a client timeout race the far
 # side's own ceiling" reasoning secretary_waker.py documents for its own
@@ -320,6 +357,22 @@ def _sanitize_sender_name(name: object) -> str:
     return cleaned or "unknown"
 
 
+# The message JSON's `ext` is attacker-influenceable (claudeflow forwards
+# whatever the LINE attachment claimed) and, unlike the Drive-only fields
+# above, now also feeds a REAL filesystem path (_staged_path_for) -- so it
+# gets its own allowlist rather than the sender name's, and an ext that
+# fails it is dropped rather than kept: no `.`, no `/`, no `..`, nothing
+# that could turn a staged filename into a path fragment.
+_SAFE_EXT_RE = re.compile(r"^\.[A-Za-z0-9]{1,10}$")
+
+
+def _file_ext(data: dict) -> str:
+    ext = str(data.get("ext") or "")
+    if ext and not ext.startswith("."):
+        ext = "." + ext
+    return ext if _SAFE_EXT_RE.fullmatch(ext) else ""
+
+
 def _local_dt(ts: object) -> datetime:
     return datetime.fromtimestamp(int(ts), tz=timezone.utc).astimezone(BANGKOK_TZ)
 
@@ -335,9 +388,7 @@ def _drive_file_name(data: dict) -> str:
     date_part = f"{dt.day}-{dt.month}-{dt.year}"
     time_part = f"{dt.hour:02d}{dt.minute:02d}"
     message_id = str(data.get("messageId") or "")
-    ext = str(data.get("ext") or "")
-    if ext and not ext.startswith("."):
-        ext = "." + ext
+    ext = _file_ext(data)
     return f"({sender}) ({date_part}) ({time_part}) {message_id}{ext}"
 
 
@@ -376,6 +427,52 @@ def _sha256_of(path: Path) -> str:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Staging copy -- the bridge across the root/photoup boundary (see the module
+# docstring's "Staging copy" section). The staged name is always derived
+# from the already-verified sha256, never from any field the message JSON
+# controls, so two different pairs can never collide on (or overwrite) one
+# staged file, and a poisoned `name`/`messageId` has no path to influence
+# where the copy lands.
+# ---------------------------------------------------------------------------
+
+def _staged_path_for(sha256: str, ext: str) -> Path:
+    return STAGING_ROOT / f"{sha256}{ext}"
+
+
+def _enough_free_space(staging_root: Path, file_size: int) -> bool:
+    try:
+        usage = shutil.disk_usage(staging_root)
+    except OSError:
+        return False
+    return usage.free >= (MIN_FREE_MB * 1024 * 1024) + file_size
+
+
+def _stage_copy(bin_path: Path, staged_path: Path) -> None:
+    """Copy bin_path's bytes into staged_path, mode 0640. Write-tmp + rename
+    (same atomic-publish discipline this module uses for filed.json) so a
+    copy that dies partway through never leaves a half-written file sitting
+    at the final name for a concurrent reader (there is none today -- the
+    broker is only called once this returns -- but the discipline is cheap
+    and this file's whole design leans on it elsewhere)."""
+    staged_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = staged_path.with_name(f"{staged_path.name}.tmp-{os.getpid()}")
+    try:
+        shutil.copyfile(bin_path, tmp)
+        os.chmod(tmp, 0o640)
+        tmp.replace(staged_path)
+    except OSError:
+        tmp.unlink(missing_ok=True)
+        raise
+
+
+def _remove_staged(staged_path: Path) -> None:
+    try:
+        staged_path.unlink(missing_ok=True)
+    except OSError as e:
+        _log().error("could not remove staged copy %s: %s", staged_path, e)
 
 
 # ---------------------------------------------------------------------------
@@ -479,7 +576,35 @@ def _process_one(item: tuple[str, Path, Path, dict | None, str | None],
         _log().error("photo pair %s: could not build a destination name (%s) -- quarantined", stem, e)
         return "quarantined_corrupt"
 
-    ok, detail = _upload_via_broker(bin_path, name, month)
+    try:
+        file_size = bin_path.stat().st_size
+    except OSError as e:
+        _log().error("photo pair %s: could not stat %s (%s)", stem, bin_path, e)
+        return "skipped_read_error"
+
+    if not _enough_free_space(STAGING_ROOT, file_size):
+        _log().warning(
+            "photo pair %s: staging root %s has too little free space for a %s-byte copy "
+            "(need >= %s MiB headroom) -- skipping this tick",
+            stem, STAGING_ROOT, file_size, MIN_FREE_MB,
+        )
+        return "skipped_low_disk_space"
+
+    staged_path = _staged_path_for(sha_actual, _file_ext(data))
+    try:
+        _stage_copy(bin_path, staged_path)
+    except OSError as e:
+        _log().error("photo pair %s: could not stage a copy at %s (%s)", stem, staged_path, e)
+        return "skipped_stage_error"
+
+    try:
+        ok, detail = _upload_via_broker(staged_path, name, month)
+    finally:
+        # Unconditional: the staged copy never survives past one upload
+        # attempt, success or failure -- see the module docstring's
+        # "Staging copy" section.
+        _remove_staged(staged_path)
+
     if not ok:
         n = failcounts.get(stem, 0) + 1
         if n >= MAX_RETRIES:
@@ -540,8 +665,11 @@ def _tick_locked() -> dict[str, int]:
 
 def main() -> None:
     once = "--once" in sys.argv
-    _log().info("sompong_photo_filer starting (outbox=%s poll=%ss max_retries=%s once=%s)",
-                OUTBOX, POLL_SECONDS, MAX_RETRIES, once)
+    _log().info(
+        "sompong_photo_filer starting (outbox=%s staging_root=%s poll=%ss max_retries=%s "
+        "min_free_mb=%s once=%s)",
+        OUTBOX, STAGING_ROOT, POLL_SECONDS, MAX_RETRIES, MIN_FREE_MB, once,
+    )
     while True:
         try:
             tick()
