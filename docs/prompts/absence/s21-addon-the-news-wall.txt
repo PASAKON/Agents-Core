@@ -28,11 +28,24 @@ garbles on this platform** (the brass-plaque saga, ledger 02:40–04:50):
 
 CAST: nobody in the room. The only human is a newsreader INSIDE the screens, small, and Valder
 in an insert, smaller still — inside the CEO's "ไกลๆ หรือตัวเล็กๆ" allowance.
-CHIPS: 2 — `@project_absence_char_valder` (the insert) and `@project_absence_loc_museum`
+**CEO PICKED VARIANT A (2026-09-10 18:05, "ชอบ A มากที่สุดนะ")** — the second-hand shop, sets of
+every era stacked unevenly. The CTO and the operator had both argued for C (the pyramid); the
+director chose A and A is what ships. Variant A is registered as Element
+`project_absence_prop_tv_wall` and this sheet now BINDS it instead of describing the sets in
+prose, so the wall is locked to the picture the CEO approved rather than re-invented each fire.
+Consequences of that choice, applied below: the newsreader on A's screens is a MAN, so the
+prose says so; A's window is deeper and holds a chrome ball and some second-hand furniture,
+which the negatives now allow instead of forbidding.
+Trimmed 10s → 8s per the CEO's cap: the inserts now change at 2s and 5s instead of 2s and 6s.
+
+CHIPS: 3 — `@project_absence_prop_tv_wall` (the shop window and its sets),
+`@project_absence_char_valder` (the insert) and `@project_absence_loc_museum`
 (the building insert). Both appear only as pictures inside a television, a few centimetres
 tall. If either chip is refused, drop it and carry that insert in prose; the shot survives.
 MODEL: **Seedance 2.0 Fast** — skill rule 14: an imagined scene with no cast and no continuity
-against graded footage is exactly what the cheaper, more saturated tier is for. 10s ≈ 34 credits.
+against graded footage is exactly what the cheaper, more saturated tier is for. **8s ≈ 28 credits**
+(credit lane). It can also go on the FREE lane on Seedance 2.5 for zero credits if the CEO
+prefers to queue it behind S2PT and S0b before the grant ends 11 ก.ย. 06:59.
 
 REVIEW ORDER: (1) a grid of screens, all showing the SAME broadcast, symmetrical and locked;
 (2) nobody in the room, no shopper, no reflection of a person in the glass; (3) the building
@@ -42,43 +55,43 @@ the film's warm amber, not cold newsroom blue; (5) no legible word anywhere on a
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
-10s · 720p · 16:9 · ONE LOCKED SHOT, no cuts. The camera never moves, never pans, never zooms;
-the frame is identical at 10s and at 0s. Sound On · High.
-THE FRAME: a television shop window at dusk, photographed dead-on and perfectly symmetrical
-from the pavement outside, the camera at chest height and square to the glass. Behind the
-glass stands a WALL OF TELEVISIONS — sixteen identical wood-cased sets stacked four across and
-four high, edge to edge, filling the frame from side to side. Every screen is on. Every screen
-is showing the SAME broadcast at the same moment. The sets are old and warm: walnut cabinets,
-brass dials, a soft glow spilling out onto the wet pavement and up the shopfront. Above the
-window a plain painted fascia in deep amber. NOBODY IS IN THIS SHOT. The shop is closed and
-the street is empty.
-WHAT IS ON THE SIXTEEN SCREENS, the same picture on all of them at once, changing together:
-a newsreader behind a desk, seen from the chest up, small in the screen and softly out of
-focus, her mouth moving; and beside her head a small square INSERT PICTURE that changes twice
-during the shot.
-@project_absence_loc_museum — THE FIRST INSERT, from about two seconds: the museum building
+8s · 720p · 16:9 · ONE LOCKED SHOT, no cuts. The camera never moves, never pans, never zooms;
+the frame is identical at 8s and at 0s. Sound On · High.
+@project_absence_prop_tv_wall — THE WHOLE FRAME, and the only picture this shot is built from:
+a television shop window at dusk, photographed dead-on and perfectly symmetrical from the
+pavement outside, the camera at chest height and square to the glass. Behind the glass, a wall
+of second-hand televisions of every era stacked unevenly floor to ceiling — walnut consoles on
+splayed legs, small cream portables, a chrome ball set on a stalk, leatherette cabinets — no
+two the same, with a few pieces of second-hand furniture and a mirrored ball among them. Take
+the window, the sets, their arrangement, the wet pavement and the amber fascia from this
+picture exactly and change nothing about them. Every screen is on and every screen is showing
+the SAME broadcast at the same moment. NOBODY IS IN THIS SHOT. The shop is closed and the
+street is empty.
+WHAT IS ON EVERY SCREEN, the same picture on all of them at once, changing together: a
+newsreader — a man in a dark suit behind a desk, seen from the chest up, small in the screen
+and softly out of focus, his mouth moving; and beside his head a small square INSERT PICTURE
+that changes twice during the shot.
+@project_absence_loc_museum — THE FIRST INSERT, from two seconds: the museum building
 seen from outside, low and white and curved, with its mirrored ball and its wide steps. It
 appears as a small square picture inside the television screen, a few centimetres tall, soft
 and slightly grainy the way a picture inside a broadcast looks. Take the building's shape,
 its whiteness and its light from this reference and nothing else.
-@project_absence_char_valder — THE SECOND INSERT, from about six seconds: a still photograph
+@project_absence_char_valder — THE SECOND INSERT, from five seconds: a still photograph
 of a tall slim elderly man with swept-back white hair, small round tinted sunglasses and a
 blazer panelled in flat blocks of magenta, yellow, green, blue and red. He is standing still,
 facing the lens, saying nothing — a photograph, not footage. He too is only a small square
 picture inside the television screen, a few centimetres tall.
 THE SCREENS ALSO CARRY the furniture of a news broadcast, and NONE OF IT IS MEANT TO BE READ:
-a coloured band along the bottom of every screen in deep red with a thin gold line above it, a
-small gold shape in the top corner of every screen, and a strip along the very bottom that
-crawls slowly from right to left. These are shapes and colours only — they are far too small
-and too soft on these old screens for any word to resolve, exactly as a wall of distant
-televisions looks from the pavement.
-[0s] All sixteen screens are already showing the newsreader, her mouth moving, the red band
-along the bottom of every screen. The glow flickers very gently across all sixteen together.
-[2s] THE INSERT APPEARS beside her head on all sixteen screens at the same instant: the white
-museum building. It holds.
-[6s] THE INSERT CHANGES on all sixteen at once: the photograph of the man in the panelled
+a coloured band along the bottom of every screen, exactly as the reference picture has it.
+These are shapes and colours only — far too small and too soft on these old screens for any
+word to resolve, which is how a wall of distant televisions looks from the pavement.
+[0s] Every screen is already showing the newsreader, his mouth moving, the coloured band along
+the bottom. The glow flickers very gently across the whole wall together.
+[2s] THE INSERT APPEARS beside his head on every screen at the same instant: the white museum
+building. It holds.
+[5s] THE INSERT CHANGES on every screen at once: the photograph of the man in the panelled
 blazer. It holds to the end.
-[9s] Hold on the wall of screens. Cut.
+[7s] Hold on the wall of screens. Cut.
 AUDIO: the low hum of sixteen televisions and faint rain on the pavement; underneath, a murmur
 of overlapping news voices, none of them clear; and carrying over the top of that murmur, one
 woman's voice, flat and professional, saying exactly two sentences and nothing else: "One
@@ -93,14 +106,12 @@ the pavement, no silhouette, no reflection of any person in the glass, nobody wa
 the only people anywhere are inside the screens and they are small; no readable word anywhere,
 no legible headline, no legible ticker, no legible channel name, no network logo, no brand, no
 station identification, no letters large enough to read, no numbers large enough to read, no
-subtitles, no captions; the sixteen screens never show different pictures from each other,
-never go out of sync, never show static, never go dark, never show a test card; no screen is
-larger or nearer than the others, no single screen fills the frame; no camera movement of any
+subtitles, no captions; the screens never show different pictures from each other, never go out of sync, never show static, never go dark, never show a test card; no single screen fills the frame; no camera movement of any
 kind, no pan, no tilt, no zoom, no dolly, no handheld, no push-in on a screen, no reframing;
 no cut, no second angle, no dissolve, no fade, no wipe; no split screen of the real room, no
 grid of the room itself, no picture-in-picture outside the televisions; no crowd, no protest,
 no police, no ambulance, no fire; no modern flat-screen television, no smartphone, no computer
-monitor, no LED panel; no daylight, no bright sunshine, no blue hour, no neon.
+monitor, no LED panel; no rearranging of the sets, no set added, no set removed; no daylight, no bright sunshine, no blue hour, no neon.
 House negatives: no voiceover other than the newsreader, no narration, no subtitles, no
 captions, no on-screen text, no signage, no logos, no music, no score, no dutch angle, no
 tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin, no
