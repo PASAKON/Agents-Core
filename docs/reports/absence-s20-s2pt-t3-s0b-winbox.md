@@ -122,6 +122,10 @@ job. S2PT composer (tab 1638444903) has not been touched since it was last
 verified staged; all status checks continue to use disposable throwaway
 tabs.
 
+**16:23 ICT (09:23 UTC) checkpoint: S20 still `queued`.** ~188 min (3h8m)
+since fire. No change in approach — continuing to poll every ~10 min via
+disposable tabs, S2PT composer untouched, no cancel/re-fire.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
