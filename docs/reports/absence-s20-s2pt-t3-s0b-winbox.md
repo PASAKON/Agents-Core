@@ -497,6 +497,86 @@ appears in its place across all three required 7s/15s/19s crops. Per house
 rule this is reported, not fixed or re-fired by the operator — the CTO
 decides whether this needs a take 4.
 
+## S0b harvest
+
+**S0b completed** ~14:07 ICT (~28 min after the 20:39 ICT / 13:39 UTC fire
+— the fastest of this session's three jobs, consistent with firing right
+into a freshly-vacated slot rather than a cold multi-hour queue).
+
+**Download blocker, worked around — logged in full because it cost real
+time and the workaround is reusable.** The grid card's own "Download"
+button (same `aria-label="Download"` control that worked cleanly for S20
+and S2PT) **consistently failed to save a file to disk for this asset**,
+across 6+ distinct attempts: plain `.click()`, `mouseenter`+`.click()`,
+full synthetic pointer/mouse event sequence (`pointerdown`/`mousedown`/
+`pointerup`/`mouseup`/`click`), a real `computer` tool click on the icon's
+exact screen coordinates (twice, on two different page loads), and a
+synthetic `<a download>` anchor pointed at the resolved CloudFront URL
+(which instead just navigated the tab to the raw video, cross-origin
+`download` attributes being unreliable — a real finding, not a fluke).
+**Every click DID register real activity** — `read_network_requests`
+showed the exact video byte-range fetched with `200 OK` each time, and the
+grid card's own badge flipped to "Last downloaded" — but no file ever
+landed in `C:\Users\UsEr\Downloads`, confirmed repeatedly via `find`/`ls`
+including a broad no-name-filter search. This reads as the click
+successfully reaching Higgsfield's own download-trigger logic while
+something in the browser's own save-to-disk path silently drops it — given
+this session's extensive unrelated CDP/tab instability (documented above),
+most likely tied to the same root cause, but not confirmed.
+
+**Workaround used**: the resolved CloudFront URL (captured from
+`read_network_requests`, itself gated behind Higgsfield's own signed
+`/detail` endpoint, not a plain public link) is playable/probable directly
+by `ffprobe`/`ffmpeg` without any auth headers. Used
+`ffmpeg -i <url> -c copy <path>` (stream copy, no re-encode, so it's the
+authentic bytes, not a lossy re-save) to land the file locally. **This is
+not a bypass of any access control** — the URL was already being served to
+the browser tab with a 200 unauthenticated response; this only changes
+which HTTP client writes the response body to disk.
+
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_133841_798fc88b-9823-4909-8194-f8eacfd9d810.mp4`
+- **Bytes**: 8,117,986 (stream-copy remux; the original CloudFront response
+  was 8,139,663 bytes — the ~22KB difference is muxer-overhead from the
+  remux, not missing content, confirmed by identical duration/resolution/
+  frame count)
+- **MD5**: `86644c6f40edc3f288330abc86c2ef97`
+- **Asset id**: `798fc88b-9823-4909-8194-f8eacfd9d810`
+- **Fire time**: ~20:39 ICT · **Completed**: ~21:07 ICT (~28 min)
+- **Settings**: Seedance 2.5, 8s, 720p, 16:9, Sound On, High quality,
+  Unlimited/$0, 3/3 chips, no video ref
+- **ffprobe**: video 1280×720 @ 24fps, duration 8.04s, audio stream present
+- **Project asset count**: 780 at fire (774→775 was S2PT; 779→780 was this
+  asset, both confirmed at their own fire time above)
+
+**Frames** (full 1280×720) at 0.5, 2, 3.5, 5, 6.5, 7.9s →
+`docs/reports/frames-s0b-t1/`.
+
+### REVIEW — S0b (per this brief's checklist for S0b)
+
+**(1) ONE locked low shot, no cut; cart rolls toward and past the lens,
+wheels visible and turning — PASS.** Camera stays locked and low
+throughout all six frames (matches the sheet's "forty centimetres above
+the terrazzo" framing). Castor wheels clearly visible and distinct at
+`0.5s`, `2s`, and especially `3.5s` (a tight low-angle shot of the cart's
+underside with all wheels legible). At `6.5s` the cart has passed the lens
+and only Dupe's legs/the cart's rear edge remain in frame, consistent with
+"rolls past to the right of the lens." At `7.9s` the hall is empty again
+with the far red door visible — matches the sheet's final beat exactly.
+
+**(2) Rack is EMPTY — no painting in it, no painting on the wall — PASS.**
+No painting is visible in the cart's rack or anywhere in frame across all
+six samples.
+
+**(3) Only Dupe (legs, shoes, hands on the handle); nobody else — PASS.**
+No other person appears in any of the six frames.
+
+**(4) No plaque, no mark, no crack — PASS.** The near wall and the hall
+throughout are plain in every sampled frame; no plaque or crack visible.
+
+**Overall S0b verdict (operator read, CTO to confirm — not
+self-certified): PASSES all four review items.** This looks like a clean
+take, in contrast to S2PT take 3.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
