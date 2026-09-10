@@ -1,0 +1,109 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+S21 · THE NEWS WALL · 10s · imagination scene, no cast · CEO 2026-09-10 16:55
+("อยากให้มีฉากในจินตนาการเพิ่ม … ที่ไม่ต้องมี Character หรือถ้ามี เห็นเป็นไกลๆ หรือตัวเล็กๆ …
+โดยไม่ต้องใช้ Location ที่มีใน Fix-1 เลย … ฉากรายงานข่าว เป็นฉากทีวีหลายๆ จอ รายงานเรื่องเดียวกัน
+ใส่ภาพ Valder + อาคาร เป็นภาพ insert ในทีวี")
+
+WHERE IT GOES: replaces Draft 5 **5:19–5:27**. That slot already carries the news audio
+("One hundred million dollars for a crack in a wall." / "The collector, Maximilian Valder,
+declined to comment.") over a SINGLE vintage TV set on a cold navy-black background — the only
+shot in the film that leaves the warm palette, and the weakest image in the act. A wall of
+screens fixes both problems at once: it puts the story out in the world, and it comes back
+into the film's own amber grade.
+
+NO Fix-1 LOCATION. The room is written from scratch in prose — a shop window at dusk, not the
+gallery. No location Element is bound.
+
+⚠ **TWO DELIBERATE DEPARTURES FROM THE CEO'S BRIEF, both for the same reason — on-screen text
+garbles on this platform** (the brass-plaque saga, ledger 02:40–04:50):
+1. **No legible network name.** The CEO asked for "ABC-NEWS". ABC is a real broadcaster, and
+   this platform has rejected five of our fires today under "copyright restrictions"; a real
+   network's name and logo is the exact shape of thing that trips it. The channel identity is
+   carried instead by a coloured lower-third bar and a small gold shape, never by readable
+   letters. Say the word and I will put the name back.
+2. **Nothing in this shot asks the viewer to READ.** Chyrons and tickers are written as colour
+   blocks and moving bands, deliberately too small and too soft to resolve — which is also how
+   a real bank of distant TVs looks. The shot stays wide for the same reason: the moment we
+   push in on one screen, garbled text becomes visible and the shot dies.
+
+CAST: nobody in the room. The only human is a newsreader INSIDE the screens, small, and Valder
+in an insert, smaller still — inside the CEO's "ไกลๆ หรือตัวเล็กๆ" allowance.
+CHIPS: 2 — `@project_absence_char_valder` (the insert) and `@project_absence_loc_museum`
+(the building insert). Both appear only as pictures inside a television, a few centimetres
+tall. If either chip is refused, drop it and carry that insert in prose; the shot survives.
+MODEL: **Seedance 2.0 Fast** — skill rule 14: an imagined scene with no cast and no continuity
+against graded footage is exactly what the cheaper, more saturated tier is for. 10s ≈ 34 credits.
+
+REVIEW ORDER: (1) a grid of screens, all showing the SAME broadcast, symmetrical and locked;
+(2) nobody in the room, no shopper, no reflection of a person in the glass; (3) the building
+insert and the Valder insert both appear, both small, both inside a screen; (4) the palette is
+the film's warm amber, not cold newsroom blue; (5) no legible word anywhere on any screen;
+(6) sound is a murmur of overlapping voices with the two scripted lines carrying over the top.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+10s · 720p · 16:9 · ONE LOCKED SHOT, no cuts. The camera never moves, never pans, never zooms;
+the frame is identical at 10s and at 0s. Sound On · High.
+THE FRAME: a television shop window at dusk, photographed dead-on and perfectly symmetrical
+from the pavement outside, the camera at chest height and square to the glass. Behind the
+glass stands a WALL OF TELEVISIONS — sixteen identical wood-cased sets stacked four across and
+four high, edge to edge, filling the frame from side to side. Every screen is on. Every screen
+is showing the SAME broadcast at the same moment. The sets are old and warm: walnut cabinets,
+brass dials, a soft glow spilling out onto the wet pavement and up the shopfront. Above the
+window a plain painted fascia in deep amber. NOBODY IS IN THIS SHOT. The shop is closed and
+the street is empty.
+WHAT IS ON THE SIXTEEN SCREENS, the same picture on all of them at once, changing together:
+a newsreader behind a desk, seen from the chest up, small in the screen and softly out of
+focus, her mouth moving; and beside her head a small square INSERT PICTURE that changes twice
+during the shot.
+@project_absence_loc_museum — THE FIRST INSERT, from about two seconds: the museum building
+seen from outside, low and white and curved, with its mirrored ball and its wide steps. It
+appears as a small square picture inside the television screen, a few centimetres tall, soft
+and slightly grainy the way a picture inside a broadcast looks. Take the building's shape,
+its whiteness and its light from this reference and nothing else.
+@project_absence_char_valder — THE SECOND INSERT, from about six seconds: a still photograph
+of a tall slim elderly man with swept-back white hair, small round tinted sunglasses and a
+blazer panelled in flat blocks of magenta, yellow, green, blue and red. He is standing still,
+facing the lens, saying nothing — a photograph, not footage. He too is only a small square
+picture inside the television screen, a few centimetres tall.
+THE SCREENS ALSO CARRY the furniture of a news broadcast, and NONE OF IT IS MEANT TO BE READ:
+a coloured band along the bottom of every screen in deep red with a thin gold line above it, a
+small gold shape in the top corner of every screen, and a strip along the very bottom that
+crawls slowly from right to left. These are shapes and colours only — they are far too small
+and too soft on these old screens for any word to resolve, exactly as a wall of distant
+televisions looks from the pavement.
+[0s] All sixteen screens are already showing the newsreader, her mouth moving, the red band
+along the bottom of every screen. The glow flickers very gently across all sixteen together.
+[2s] THE INSERT APPEARS beside her head on all sixteen screens at the same instant: the white
+museum building. It holds.
+[6s] THE INSERT CHANGES on all sixteen at once: the photograph of the man in the panelled
+blazer. It holds to the end.
+[9s] Hold on the wall of screens. Cut.
+AUDIO: the low hum of sixteen televisions and faint rain on the pavement; underneath, a murmur
+of overlapping news voices, none of them clear; and carrying over the top of that murmur, one
+woman's voice, flat and professional, saying exactly two sentences and nothing else: "One
+hundred million dollars for a crack in a wall." then, after a beat, "The collector, Maximilian
+Valder, declined to comment." NO SOUND AT THE START OR THE END: the clip opens mid room-tone
+with no intro sting or riser, and simply stops with no tail, swell or fade.
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites pushed
+slightly cool, shadows deep red-brown, halation around every lamp and every screen.
+Photographed, not rendered: fine film grain, faint gate weave, slight colour fringing.
+CRITICAL NEGATIVES: nobody in the room, no shopper, no passer-by, no shopkeeper, no figure on
+the pavement, no silhouette, no reflection of any person in the glass, nobody walking through;
+the only people anywhere are inside the screens and they are small; no readable word anywhere,
+no legible headline, no legible ticker, no legible channel name, no network logo, no brand, no
+station identification, no letters large enough to read, no numbers large enough to read, no
+subtitles, no captions; the sixteen screens never show different pictures from each other,
+never go out of sync, never show static, never go dark, never show a test card; no screen is
+larger or nearer than the others, no single screen fills the frame; no camera movement of any
+kind, no pan, no tilt, no zoom, no dolly, no handheld, no push-in on a screen, no reframing;
+no cut, no second angle, no dissolve, no fade, no wipe; no split screen of the real room, no
+grid of the room itself, no picture-in-picture outside the televisions; no crowd, no protest,
+no police, no ambulance, no fire; no modern flat-screen television, no smartphone, no computer
+monitor, no LED panel; no daylight, no bright sunshine, no blue hour, no neon.
+House negatives: no voiceover other than the newsreader, no narration, no subtitles, no
+captions, no on-screen text, no signage, no logos, no music, no score, no dutch angle, no
+tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no plastic skin, no
+beauty filter, no dim moody lighting, no darkness, no night-black, no blue walls, no wooden
+floor.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
