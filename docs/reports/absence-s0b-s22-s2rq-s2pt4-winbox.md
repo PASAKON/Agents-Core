@@ -1040,3 +1040,61 @@ carry no plaque/lettering/number, since it inserts as early as 0:44 in
 the edit, before the price exists in the story. Will check any pulled
 sheet for `<<<<<<<`/`>>>>>>>` conflict markers before firing and stop if
 found (CTO fixed one such conflict before pushing S2Xb).
+
+### S2AC v4 take 1 — PASS verdict OVERTURNED
+
+The CTO caught two defects on v4 take 1 (`7edaafbd`) at full resolution
+that this operator's review missed, and flagged them before this
+operator had made the connection independently. Re-examined against the
+operator's own local file (`hf_20260910_213405_7edaafbd-...mp4`, full
+frames pulled fresh at the exact cited timestamps, not the smaller
+sample-grid crops used for the original review) — **both confirmed
+independently:**
+
+- **A — duplicated character, HARD defect.** At both 7.9s and 11.5s, the
+  two blue-coated women standing side by side are unmistakably the same
+  face, same hairstyle (bun with bangs), same coat — this is the iron
+  rule's named failure mode (a duplicated character), not two similar
+  extras. **Missed in the original review** because the operator's own
+  4s-sample note ("two visually similar blue-coated women... expected
+  per the chip list, not a duplication error") assumed similarity was
+  intentional cast design rather than checking whether the *faces*
+  matched. **Corrected practice going forward, per the CTO**: count every
+  named character in at least two full-resolution frames and confirm
+  each is visually distinct — a sheet giving a total headcount ("seven
+  and not one more") does not guarantee any one pairing is different
+  from another.
+- **B — plaque height, not fully verifiable at this operator's
+  resolution but not contradicted.** The CTO's test: if a reaching hand
+  is raised to meet the plaque, it's too high — a true waist-height
+  plaque gets a downward reach. The operator's own re-pulled frames show
+  the critic's gloved hand approaching from roughly shoulder level, which
+  is at minimum consistent with the CTO's finding even if this operator's
+  crops don't show the exact raised-hand-on-plaque moment as sharply.
+  Deferring to the CTO's full-resolution read on this one.
+- **C — "Vahler" not "Valder" on the plaque text.** Confirmed, clearly
+  legible in the operator's own frame at 7.9s. Per the CTO, this comes
+  from the reference plate and is not fixable from the prompt side —
+  flagged to the CEO, not being chased here.
+
+**What held, confirmed by the CTO and not contradicted by anything this
+operator saw**: all scripted lines land in the right order from the
+right mouths, the 14.2s freeze registers as a real freeze, the camera
+turn and above-head-height crack both hold.
+
+**Revised verdict: v4 take 1 (`7edaafbd`) — FAIL** (duplicated character
+is a hard, iron-rule-violating defect regardless of everything else that
+works). **Take 2 (`ce05a30c`), already fired and rendering when this
+correction arrived, will be let finish and harvested** — its footage may
+still be useful for review/comparison, and per the CTO it very likely
+carries the same two prompt-level defects (same sheet, same failure
+mode). **No further v4 takes of this sheet will be fired.** v5 is on
+`origin/main` at commit `2c01f30`, addressing this.
+
+**Revised queue priority for remaining grant time (CTO's stated order,
+tightest deadline first)**: (1) **S17b** "THE HOLE, FROM INSIDE" —
+CEO's own request, film's closing image, highest priority; (2) **S2AC
+v5** (`2c01f30`); (3) **S2Xb** "THE CRACK, MACRO" (`58d315f`) — lowest
+urgency since S2AC already has one usable take (v3, PASSED). Will pull
+S17b next, at commit `e774755` (not the superseded `6394ffd`), the
+moment the current v4-take-2 render completes and is harvested.
