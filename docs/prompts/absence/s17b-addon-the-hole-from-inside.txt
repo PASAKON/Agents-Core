@@ -1,91 +1,105 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
-S17b · THE HOLE, FROM INSIDE · 20s · CEO 2026-09-11 04:20, dictated while handing the night over.
+S17b · THE HOLE, FROM INSIDE · 20s · v2 · CEO 2026-09-11 04:40 — THE FILM'S CLOSING GAG.
 
-CEO's brief, verbatim: "อยากให้ยิง ฉาก ขน กำแพง หลังจากตัดกำแพงแล้ว มุมมอง ภาพใน กำแพง ซีนสุดท้ายเลย
-ที่เคยเขียนไว้แล้ว มีคนเดินเข้ามาในพิพิธภัณฑ์ มุมมอง จาก กำแพงที่แตก (สี่เหลี่ยม ไม่ตรงมาก) ชาย ก้มหัวลง
-มองเข้ามา -> ตัดไปที่ภาพ มุมมองจากข้างหลัง เข้ามองเข้าไปในรูปนั้น ข้างในเป็น ป้าย 2,000,000 (มี Prop แล้ว)"
+CEO's first brief, 04:20: "อยากให้ยิง ฉาก ขน กำแพง หลังจากตัดกำแพงแล้ว มุมมอง ภาพใน กำแพง ซีนสุดท้ายเลย
+… มีคนเดินเข้ามาในพิพิธภัณฑ์ มุมมอง จาก กำแพงที่แตก (สี่เหลี่ยม ไม่ตรงมาก) ชาย ก้มหัวลงมองเข้ามา -> ตัดไปที่
+ภาพ มุมมองจากข้างหลัง เข้ามองเข้าไปในรูปนั้น ข้างในเป็น ป้าย 2,000,000 (มี Prop แล้ว)"
 
-THIS IS NOT SCENE 17. It is its REVERSE ANGLE and it is a different joke.
-  · S17 (`s6-s18.txt` line 696, already shot) stands in the ROOM and looks AT the square hole.
-    Its own negatives say "no plaque — the brass plaque is gone with the wall."
-  · S17b stands INSIDE THE WALL and looks OUT through the hole, and it ENDS ON THE PLAQUE.
-Both can live in the cut. S17 says *the wall is gone*. S17b says *and here is what it was
-worth* — they carried off a wall that sold for a hundred million and left the two-million
-price tag lying in the cavity. That is the whole shot; nobody says it out loud.
+CEO's correction, 04:40, and it makes the shot: "visitor_a ขอคนนี้แทนนะ เพราะเขาคือคนแรก และคนสุดท้าย
+มุกเดิมที่ใช้ตอนแรกเลย what happen to the wall โกรธ -> ยิ้ม นี่มันศิลปะ ฉันชอบมันนะ เป็นมุกตลกปิดท้าย"
+— with a picture of the man in the bottle-green leather overcoat.
 
-⚠️ THE PLAQUE CONTRADICTS S17 ON PURPOSE. If anyone sweeps these two sheets for consistency,
-do not "fix" it — S17's plaque is gone from the WALL because the wall is gone; this plaque is
-sitting INSIDE the empty cavity, which is a different place. The contradiction is the gag.
+⚠️ v1 OF THIS SHEET BOUND THE WRONG MAN. I used `@project_absence_char_visitor_a` because S17's
+own notes call him "the film's first and last viewer". The CEO means somebody else, and he is
+right: the man in the green leather coat is `@project_absence_char_oldman`, and he is the one who
+already carries this exact joke.
 
-⚠️ HE LOOKS INTO THE LENS, AND THAT IS CORRECT HERE. The film's house rule bans looking at
-camera. In shot A the camera IS the hole, so a man peering into the hole is looking down the
-lens by construction. The ban is scoped, not deleted — nobody else looks at camera and he only
-does it while his head is in the opening.
+THE CALLBACK, VERIFIED IN THE SHEETS — this is why the shot works and it is not my invention.
+`s3b-fix1-what-happened-to-the-wall.txt` at 01:21 of the film runs four lines:
+    Dupe      "Excuse me, sir."
+    OLD MAN   "What happened to the wall?"   ← angry
+    Dupe      "Sorry, sir."
+    OLD MAN   "That is art. I like it."      ← the smile arrives
+S17b gives him the SAME two beats at the end of the film, in front of a hole where the wall used
+to be, and he lands on THE IDENTICAL LINE. First he is furious that something has happened to the
+wall; then he sees what is in the hole and decides it is art. **Use the exact wording "That is
+art. I like it." — the audience heard it at 1:21 and the whole gag is that they recognise it.**
 
-THE CUT. This is the only clip in the film written with a cut in it (CEO: "ตัดไปที่ภาพ").
-One hard cut at 10s, no dissolve.
+THE OTHER HALF OF THE JOKE IS THE PLAQUE. They carried off a wall that sold for a hundred million
+and left the two-million price tag lying in the cavity. He looks at the price tag and calls it
+art. Nobody explains it.
 
-Chips: 3 — loc_wall_pov_e (shot A, the room seen from inside the wall), char_visitor_a (the
-man), prop_tag (the brass plaque). Deliberately tiny: no cast to keep straight, no location to
-contradict, so this is the lowest-risk fire left in the queue.
-⚠️ `@project_absence_char_visitor_a` is the SAME MAN who stepped back from the crack in Scene 4
-and who returns in S17 — the film's first and last viewer. That rhyme is the reason he is here
-and not somebody new.
+⚠️ THE PLAQUE CONTRADICTS S17 ON PURPOSE. S17's negatives say "no plaque — it is gone with the
+wall", because it is gone from the WALL. This one is INSIDE the empty cavity. Do not "fix" it.
+
+⚠️ HE LOOKS INTO THE LENS IN SHOT A, AND THAT IS CORRECT. The house rule bans it; here the camera
+IS the hole he is peering into, so it is true by construction. Scoped: only him, only while his
+head is in the opening.
+
+THE CUT. One hard cut at 10s, the only clip in the film written with one (CEO: "ตัดไปที่ภาพ").
+
+Chips: 3 — loc_wall_pov_e (shot A, the room seen from inside the wall), char_oldman (the man),
+prop_tag (the brass plaque). No crowd, no second face, one location: the lowest-risk fire left.
 
 REVIEW ORDER — LOOK, DO NOT MEASURE:
-(1) shot A is framed BY THE HOLE — ragged plaster edges of a roughly rectangular opening around
-    the picture, not a clean rectangle, and not a normal full-frame shot of a room;
-(2) the gallery beyond is EMPTY — no crowd, no press, no guards, no rope;
-(3) ONE man walks in, stops, and BENDS HIS HEAD DOWN into the opening, looking into the lens;
-(4) hard cut at ~10s, no dissolve;
-(5) shot B is from BEHIND him, over his shoulder, looking into the hole;
-(6) THE BRASS PLAQUE IS LEGIBLE INSIDE THE CAVITY — "$2,000,000" readable, not blurred away;
-(7) no second person anywhere, no dialogue at all.
+(1) shot A is framed BY THE HOLE — torn plaster edges of a roughly rectangular opening around the
+    picture, not a clean rectangle and not a normal shot of a room;
+(2) the gallery beyond is EMPTY — no crowd, no press, no guards, no rope, no cleaner;
+(3) it is THE HEAVY OLD MAN IN THE BOTTLE-GREEN LEATHER COAT with the chrome ring-handled cane —
+    not a slim man, not a different coat, and no cane is missing;
+(4) his face is ANGRY when he first sees the hole and SMILING by the end — both, in that order,
+    or the gag has not landed;
+(5) hard cut at ~10s, no dissolve;
+(6) THE BRASS PLAQUE IS LEGIBLE INSIDE THE CAVITY — "$2,000,000" readable, not blurred;
+(7) whisper returns exactly one line, his: "That is art. I like it." Nobody else speaks.
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 20s · 720p · 16:9 · TWO SHOTS joined by ONE HARD CUT at 10s. No dissolve, no fade. Sound On · High.
-NOBODY SPEAKS IN THIS CLIP AT ALL.
 
 SHOT A — 0s to 10s. THE CAMERA IS INSIDE THE WALL, LOOKING OUT.
 
 @project_absence_loc_wall_pov_e — the gallery seen from inside the wall, looking out into the
-room: chromium trumpet columns in mirrored pairs, orange cove light on the ceiling, terracotta
-terrazzo floor, a tall RED DOUBLE DOOR closed dead centre at the vanishing point. Take the room,
-its light and its colours from this picture and change nothing about them.
+room: polished chromium trumpet columns in mirrored pairs, orange cove light washing the ceiling,
+terracotta terrazzo floor, a tall RED DOUBLE DOOR closed dead centre at the vanishing point. Take
+the room, its light and its colours from this picture and change nothing about them.
 
-THE PICTURE IS FRAMED BY THE HOLE ITSELF. A rough opening has been sawn clean through the wall
-and the camera sits inside it, so the edges of that opening border the image on all four sides:
-raw broken plaster, a bitten sawn edge, the pale dusty inside of the wall. THE OPENING IS
-ROUGHLY RECTANGULAR BUT NOT NEAT — the sides are not parallel, the corners are not square, the
-cuts wander. The room beyond is bright and sharp; the plaster edges close to the lens are dark
-and soft. We are looking out of a wound in a wall.
+THE PICTURE IS FRAMED BY THE HOLE ITSELF. A rough opening has been sawn clean through the wall and
+the camera sits inside it, so the edges of that opening border the image on all four sides: raw
+torn plaster, a bitten sawn edge, the pale dusty inside of the wall. THE OPENING IS ROUGHLY
+RECTANGULAR BUT NOT NEAT — the sides are not parallel, the corners are not square, the cuts
+wander. The room beyond is bright and sharp; the plaster edges close to the lens are dark and
+soft. We are looking out of a wound in a wall.
 
 THE GALLERY BEYOND IS COMPLETELY EMPTY. Nobody is in it. No crowd, no press, no cameras, no
 guards, no rope barriers, no stanchions, no cleaner, no cart.
 
-@project_absence_char_visitor_a — ONE MAN AND NOBODY ELSE: an ordinary balding man of about
-fifty in an oxblood leather suit, plain and unremarkable, the only person in the shot.
+@project_absence_char_oldman — ONE MAN AND NOBODY ELSE: a heavy-set elderly gentleman of about
+eighty, jowly, thin white hair, a deeply lined face. A BOTTLE-GREEN LEATHER OVERCOAT with a wide
+soft shawl collar, worn over a cream turtleneck, cream trousers turned up at the cuff, cream
+shoes, pale cream gloves, and a SLIM CHROME CANE WITH A ROUND RING HANDLE in one hand. He walks
+with the cane and leans on it.
 
-[0s] The empty room through the ragged opening. Nothing moves. Dust hangs in the light. Hold
-the emptiness for three full seconds.
+[0s] The empty room through the ragged opening. Nothing moves. Dust hangs in the light. Hold the
+emptiness for three full seconds.
 
-[4s] THE MAN WALKS IN from the side of the room, unhurried, and stops in front of the opening,
-centred, a couple of paces back. He looks at it.
+[4s] THE OLD MAN WALKS IN from the side of the room, slow and heavy on the cane, and stops in
+front of the opening, centred, a pace back. HIS FACE IS INDIGNANT — the jaw set, the brows down,
+outright annoyed that something has been done to this wall. He plants the cane.
 
 [7s] HE BENDS HIS HEAD DOWN AND FORWARD INTO THE OPENING TO SEE INSIDE — his face comes toward
-the lens and fills the middle of the frame, close, lit from the room behind him, looking
-straight into the camera because the camera is the hole he is peering into. Curious, ordinary,
-not frightened. He holds there.
+the lens and fills the middle of the frame, close, lit from the room behind him, looking straight
+into the camera because the camera is the hole he is peering into. Still frowning. He holds
+there, studying something below.
 
 [10s] HARD CUT.
 
 SHOT B — 10s to 20s. BEHIND HIM, LOOKING IN.
 
-The camera is now BEHIND THE MAN, in the gallery, over his shoulder. We see the back of his
-head and his oxblood shoulders in the near foreground, out of focus, and past him THE SQUARE
-HOLE IN THE WHITE WALL, sharp, filling the middle of the frame. He is still bent forward with
-his head at the opening, motionless.
+The camera is now BEHIND THE MAN, in the gallery, over his shoulder. We see the back of his head
+and his green leather shoulders in the near foreground, out of focus, and past him THE SQUARE
+HOLE IN THE WHITE WALL, sharp, filling the middle of the frame. He is still bent forward with his
+head at the opening.
 
 INSIDE THE CAVITY, resting against the inner face of the wall where anyone looking in would see
 it: @project_absence_prop_tag — THE BRASS PLAQUE, engraved THE ABSENCE OF MEANING / Valder /
@@ -93,35 +107,46 @@ $2,000,000. It sits in the dust and the plaster crumbs inside the hollow wall, l
 spilling in past his head, TILTED SLIGHTLY AND CLEARLY READABLE. It is the only object in the
 cavity and the only bright thing in the darkness inside.
 
-[10s to 17s] Nothing moves but the dust. The man stays bent to the hole. The plaque stays where
-it is. Let the audience read it.
+[10s to 15s] Nothing moves but the dust. He stays bent to the hole, reading it. Let the audience
+read it too.
 
-[17s] He straightens up, unhurried, and stands looking at the blank wall around the hole. He
-does not react, does not smile, does not shake his head. At 20s the clip stops.
+[15s] HE STRAIGHTENS UP AND TURNS BACK INTO THE ROOM, and as he turns his face comes round into
+the light in three-quarter view so the camera can see it clearly. THE FROWN IS GONE. He is
+SMILING — a warm, delighted, entirely satisfied smile, the smile of a man who has just decided he
+approves of something.
 
-AUDIO: room tone and the faint hollow acoustic of a space behind a wall; his unhurried
-footsteps at 4s; the small sound of his jacket as he leans in. NOTHING ELSE. No dialogue, no
-voice, no music, no score, no sting, no riser, no swell. The clip opens mid room-tone with no
-intro sound and simply stops with no tail or fade.
+[16s] Still smiling, pleased with himself, he says: "That is art. I like it."
+
+[18s] He gives the smallest nod, taps the cane once on the terrazzo, and stands there looking at
+the hole, still smiling. At 20s the clip stops.
+
+AUDIO: room tone and the faint hollow acoustic of a space behind a wall; his slow footsteps and
+the tap of the cane at 4s; his one spoken line at 16s in a warm, pleased, unhurried old voice;
+the single cane tap at 18s. NOTHING ELSE. Only that one line is spoken and nobody else speaks at
+all. No narration, no voiceover, no music, no score, no sting, no riser, no swell. The clip opens
+mid room-tone with no intro sound and simply stops with no tail or fade.
 
 Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites pushed slightly
 cool, shadows deep red-brown, halation around every lamp. Photographed, not rendered: fine film
 grain, faint gate weave, slight colour fringing.
 
 CRITICAL NEGATIVES: there is exactly ONE person in this clip and no second figure anywhere, no
-crowd, no press, no photographer, no guard, no cleaner, no cart, no rope, no stanchion; nobody
-speaks, no voice of any kind, no narration, no voiceover; the opening is NOT a neat rectangle
-and NOT a painted frame and NOT a window — it is a sawn hole with rough torn plaster edges; there is
-no crack anywhere, the hole has replaced it; no painting, no canvas, no artwork hanging in the
+crowd, no press, no photographer, no guard, no cleaner, no cart, no rope, no stanchion; he speaks
+exactly one sentence and says nothing else, and no other voice is heard; he is HEAVY and ELDERLY
+in a BOTTLE-GREEN LEATHER COAT and he keeps the chrome cane in his hand the whole time — no slim
+man, no dark suit, no black coat, no missing cane; his expression is ANGRY at 4s and SMILING at
+16s and the change happens only after he has looked inside; the opening is NOT a neat rectangle
+and NOT a painted frame and NOT a window — it is a sawn hole with rough torn plaster edges; there
+is no crack anywhere, the hole has replaced it; no painting, no canvas, no artwork hanging in the
 opening; nothing is inside the cavity except the one brass plaque — no tools, no rubble pile, no
 cables, no pipes, no wiring; the plaque is not on the outside face of the wall, it is INSIDE the
 hole; ONE hard cut only, at 10s, and no other cut, no dissolve, no fade, no split screen, no
-picture-in-picture; the camera does not pan, tilt, zoom or drift in either shot; in shot A the
-man looks into the lens ONLY while his head is in the opening and nobody else ever looks at
-camera; no smartphones, no screens, no modern technology, no sunglasses. House negatives: no
-subtitles, no captions, no on-screen text other than the engraving on the plaque, no signage, no
-logos, no music, no dutch angle, no tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI
-sheen, no plastic skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue
-walls, no wooden floor.
+picture-in-picture; the camera does not pan, tilt, zoom or drift in either shot; in shot A he
+looks into the lens ONLY while his head is in the opening, and nobody else ever looks at camera;
+no smartphones, no screens, no modern technology, no sunglasses. House negatives: no subtitles, no
+captions, no on-screen text other than the engraving on the plaque, no signage, no logos, no
+music, no dutch angle, no tilted horizon, no lens flare, no bokeh balls, no HDR, no CGI sheen, no
+plastic skin, no beauty filter, no dim moody lighting, no darkness, no night, no blue walls, no
+wooden floor.
 
 === ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
