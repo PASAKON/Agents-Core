@@ -1,7 +1,8 @@
 # Secretary profiles — `model` picks the power level
 
 Status: **Implemented** · task-d4845940 (2026-09-09) · FAMILY_SYSTEM_PROMPT
-message-shape rewrite: task-845938ff (2026-09-10)
+message-shape rewrite: task-845938ff (2026-09-10) · provider-selection OAuth
+fix: task-ad4fc9de (2026-09-10)
 
 ## 1. Why
 
@@ -264,3 +265,49 @@ the `alt` fallback.
 - The OAuth repair on the box.
 - Any change to `runners/secretary_waker.py`, the `relay` MCP server, or
   `SECRETARY_SYSTEM_PROMPT`.
+
+## 9. Provider selection: Claude OAuth usability (`_claude_auth_status`)
+
+Every turn, `_resolve_provider_env` (task-870f70f8) asks `pick_provider` which
+provider has more quota headroom, then — if the answer is `claude` — asks
+`_claude_auth_status` a separate question `pick_provider` cannot answer:
+can this box actually authenticate to it right now? Headroom and usability
+are different questions; conflating them was the root cause of two outages.
+
+**The two expiry fields in `~/.claude/.credentials.json`, under
+`claudeAiOauth`, mean different things:**
+
+- `expiresAt` — the **access** token's expiry. TTL is only ~8 hours. The
+  `claude` CLI refreshes this token by itself, silently, the moment it runs
+  — nothing in this codebase has to ask for that.
+- `refreshTokenExpiresAt` — the **refresh** token's expiry. TTL is ~30 days.
+  This is the token the CLI spends to mint a new access token. Once *this*
+  is gone, there is nothing left to refresh with and the credential is
+  genuinely dead.
+
+**Why the check keys on the refresh token, not the access token:** a stale
+`expiresAt` is not an expired credential — it is just a credential that
+has not been run through the CLI recently. `_claude_auth_status` treats
+`refreshTokenExpiresAt` as authoritative when present (valid future date →
+usable, past date → dead, regardless of what `expiresAt` says) and only
+falls back to the old `expiresAt`-only rule when a credential file has no
+`refreshTokenExpiresAt` field at all (an older shape).
+
+**The deadlock this prevents:** checking `expiresAt` alone is
+self-defeating. The access token expires every ~8h; the moment it does,
+the old check answered False, so the turn routed to the other provider
+instead of `claude`, so `claude` never ran, so nothing ever refreshed
+`expiresAt` — so the check stayed False forever, even though the refresh
+token was still good for weeks. This is exactly what happened to SomPong
+2026-08-16 → 2026-09-10: 25 days reporting Claude "logged out" on a refresh
+token that had ~3 weeks of validity left, while the fallback provider
+(Z.ai) had no balance, so the CEO just got errors the whole time.
+
+**Observability:** the per-turn log line (`secretary: provider for this
+turn — %s`) now names the specific signal that decided the answer —
+`claude available (refresh token valid until <UTC ISO date>)` or `claude
+credential unusable (refresh token expired <UTC ISO date>)` — instead of a
+generic "OAuth is missing/expired" that reads identically whether the
+credential is truly dead or merely stale. Dates only, never token
+material. Tests: `scripts/test_secretary_server.py`
+(`test_claude_auth_available_*`).

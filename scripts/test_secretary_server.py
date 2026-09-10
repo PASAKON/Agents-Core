@@ -936,7 +936,8 @@ def test_resolve_provider_env_picks_claude_and_clears_any_stale_zai_pin(monkeypa
     monkeypatch.setattr(ss, "pick_provider", lambda token: "claude")
     # Pinned, not inherited from the box: whether this machine happens to hold
     # a live Claude credential must not decide whether this test passes.
-    monkeypatch.setattr(ss, "_claude_auth_available", lambda: True)
+    monkeypatch.setattr(ss, "_claude_auth_status",
+                         lambda: (True, "claude available (refresh token valid until 2026-12-01T00:00:00+00:00)"))
     monkeypatch.setenv("ANTHROPIC_BASE_URL", "https://api.z.ai/api/anthropic")
     monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", "stale-zai-token")
     monkeypatch.setenv("ANTHROPIC_MODEL", "glm-5.2")
@@ -956,7 +957,8 @@ def test_claude_with_dead_oauth_falls_back_to_zai(monkeypatch) -> None:
     every turn died on "OAuth session expired and could not be refreshed" while
     Z.ai sat idle with a working key. Headroom is not usability."""
     monkeypatch.setattr(ss, "pick_provider", lambda token: "claude")
-    monkeypatch.setattr(ss, "_claude_auth_available", lambda: False)
+    monkeypatch.setattr(ss, "_claude_auth_status",
+                         lambda: (False, "claude credential unusable (refresh token expired 2026-01-01T00:00:00+00:00)"))
     monkeypatch.setenv(ss._PROVIDER_KEY_VAR["zai"], "live-zai-key")
 
     env, reason = ss._resolve_provider_env()
@@ -964,6 +966,7 @@ def test_claude_with_dead_oauth_falls_back_to_zai(monkeypatch) -> None:
     assert env["ANTHROPIC_BASE_URL"] == ss._PROVIDER_ENDPOINTS["zai"]
     assert env["ANTHROPIC_AUTH_TOKEN"] == "live-zai-key"
     assert "fell back to zai" in reason
+    assert "refresh token expired" in reason
     # An env token is present -> --bare is safe again, decided in this same call.
     assert ss._bare_is_safe(env) is True
 
@@ -973,7 +976,8 @@ def test_claude_dead_and_no_zai_key_keeps_inherited_env(monkeypatch) -> None:
     inherited env and say so — the turn may still fail, but it fails with the
     real upstream error rather than one this function manufactured."""
     monkeypatch.setattr(ss, "pick_provider", lambda token: "claude")
-    monkeypatch.setattr(ss, "_claude_auth_available", lambda: False)
+    monkeypatch.setattr(ss, "_claude_auth_status",
+                         lambda: (False, "claude credential unusable (refresh token expired 2026-01-01T00:00:00+00:00)"))
     monkeypatch.setattr(ss, "_read_dotenv_var", lambda name: None)
     monkeypatch.delenv(ss._PROVIDER_KEY_VAR["zai"], raising=False)
 
@@ -983,24 +987,74 @@ def test_claude_dead_and_no_zai_key_keeps_inherited_env(monkeypatch) -> None:
     assert "kept inherited env" in reason
 
 
-def test_claude_auth_available_is_false_for_an_expired_credential(monkeypatch, tmp_path) -> None:
-    """Existence is not validity. The file that caused the outage was present
-    and well formed; only its expiry gave it away."""
+def _write_creds(path: Path, **oauth_fields) -> None:
+    path.write_text(json.dumps({"claudeAiOauth": oauth_fields}))
+
+
+def test_claude_auth_available_true_when_access_expired_but_refresh_valid(monkeypatch, tmp_path) -> None:
+    """THE regression this task exists for: the access token's 8h TTL lapsed
+    hours ago, but the refresh token (~30 day TTL) is still good, and `claude`
+    refreshes the access token itself on run. The old expiresAt-only check
+    answered False here and never recovered -- this is the exact shape of the
+    2026-08-16 -> 2026-09-10 outage."""
     cred = tmp_path / "creds.json"
     monkeypatch.setenv("CLAUDE_CREDENTIALS_PATH", str(cred))
+    now_ms = time.time() * 1000
+    _write_creds(cred, expiresAt=now_ms - 8_100_000, refreshTokenExpiresAt=now_ms + 2_592_000_000)
+    assert ss._claude_auth_available() is True
 
+
+def test_claude_auth_available_true_when_both_access_and_refresh_valid(monkeypatch, tmp_path) -> None:
+    cred = tmp_path / "creds.json"
+    monkeypatch.setenv("CLAUDE_CREDENTIALS_PATH", str(cred))
+    now_ms = time.time() * 1000
+    _write_creds(cred, expiresAt=now_ms + 3_600_000, refreshTokenExpiresAt=now_ms + 2_592_000_000)
+    assert ss._claude_auth_available() is True
+
+
+def test_claude_auth_available_false_when_both_access_and_refresh_expired(monkeypatch, tmp_path) -> None:
+    cred = tmp_path / "creds.json"
+    monkeypatch.setenv("CLAUDE_CREDENTIALS_PATH", str(cred))
+    now_ms = time.time() * 1000
+    _write_creds(cred, expiresAt=now_ms - 8_100_000, refreshTokenExpiresAt=now_ms - 3_600_000)
+    assert ss._claude_auth_available() is False
+
+
+def test_claude_auth_available_true_for_older_shape_with_no_refresh_field_and_valid_access(monkeypatch, tmp_path) -> None:
+    """A credential file with no refreshTokenExpiresAt key at all (older
+    shape) falls back to the access-token rule -- unchanged behaviour."""
+    cred = tmp_path / "creds.json"
+    monkeypatch.setenv("CLAUDE_CREDENTIALS_PATH", str(cred))
+    now_ms = time.time() * 1000
+    _write_creds(cred, expiresAt=now_ms + 86_400_000)
+    assert ss._claude_auth_available() is True
+
+
+def test_claude_auth_available_false_for_older_shape_with_no_refresh_field_and_expired_access(monkeypatch, tmp_path) -> None:
+    cred = tmp_path / "creds.json"
+    monkeypatch.setenv("CLAUDE_CREDENTIALS_PATH", str(cred))
     cred.write_text(json.dumps({"claudeAiOauth": {"expiresAt": 1_000}}))  # 1970
     assert ss._claude_auth_available() is False
 
-    far_future_ms = (time.time() + 86_400) * 1000
-    cred.write_text(json.dumps({"claudeAiOauth": {"expiresAt": far_future_ms}}))
-    assert ss._claude_auth_available() is True
+
+def test_claude_auth_available_false_and_never_raises_on_bad_input(monkeypatch, tmp_path) -> None:
+    """Existence is not validity, and malformed input must never raise --
+    only ever answer False."""
+    cred = tmp_path / "creds.json"
+    monkeypatch.setenv("CLAUDE_CREDENTIALS_PATH", str(cred))
+
+    cred.unlink(missing_ok=True)
+    assert ss._claude_auth_available() is False  # missing file
 
     cred.write_text("not json at all")
-    assert ss._claude_auth_available() is False
+    assert ss._claude_auth_available() is False  # unparseable JSON
 
-    cred.unlink()
-    assert ss._claude_auth_available() is False
+    cred.write_text(json.dumps({"somethingElse": {}}))
+    assert ss._claude_auth_available() is False  # no claudeAiOauth key
+
+    cred.write_text(json.dumps({"claudeAiOauth": {"expiresAt": "not-a-number",
+                                                    "refreshTokenExpiresAt": "also-not-a-number"}}))
+    assert ss._claude_auth_available() is False  # non-numeric values
 
 
 def test_resolve_provider_env_falls_back_when_zai_key_missing(monkeypatch) -> None:

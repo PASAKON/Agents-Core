@@ -850,30 +850,84 @@ def _bare_is_safe(env: dict[str, str] | None = None) -> bool:
     return bool(env.get("ANTHROPIC_AUTH_TOKEN") or env.get("ANTHROPIC_API_KEY"))
 
 
-def _claude_auth_available() -> bool:
-    """Whether Claude's OAuth credential on this box is present and unexpired.
+def _fmt_epoch_ms(ms: float) -> str:
+    """Epoch milliseconds -> a UTC ISO date-time, for logging only (never
+    token material)."""
+    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc).isoformat(timespec="seconds")
 
-    Deliberately checks the expiry, not just the file's existence: the failure
-    that made this necessary was a credential file sitting right there, well
-    formed, holding a token that had already expired and whose refresh was
-    rejected (the copy's refresh token had been rotated out from under it by
-    the account it was copied from).
 
-    Conservative on purpose. Any doubt -- unreadable file, unparseable JSON,
-    missing field -- answers False, because the cost of a wrong False is a
-    turn served by the other provider, while the cost of a wrong True is a
-    turn the CEO does not get an answer to at all.
+def _claude_auth_status() -> tuple[bool, str]:
+    """Whether Claude's OAuth credential on this box is usable right now, and
+    the one-line, date-only signal that decided it (for the per-turn
+    provider-selection log — see `_resolve_provider_env`).
+
+    Keys on `refreshTokenExpiresAt`, not `expiresAt`. `expiresAt` is the
+    *access* token's expiry, and its TTL is only ~8 hours; `claude` (the CLI)
+    refreshes the access token by itself the moment it runs, using the
+    *refresh* token, whose TTL is ~30 days and lives in the same file as
+    `refreshTokenExpiresAt`. A stale access token is therefore not an expired
+    credential -- it is just a credential the CLI has not been run with
+    recently. Only an expired (or missing) refresh token makes the
+    credential genuinely unusable, because at that point the CLI has nothing
+    left to refresh it with.
+
+    Checking `expiresAt` alone deadlocks: once it lags into the past this
+    function answers False, so every turn routes to the other provider, so
+    `claude` never runs, so nothing ever refreshes `expiresAt`, so the answer
+    stays False forever -- a false negative that renews itself. That is
+    exactly what happened 2026-08-16 -> 2026-09-10: a perfectly good 30-day
+    refresh token sat unused for 25 days while the box reported Claude
+    "logged out" on every single turn, and the fallback provider (zai) had no
+    balance, so the CEO just got errors.
+
+    `refreshTokenExpiresAt` missing entirely (an older credential shape) is
+    the one case left to the old rule: fall back to `expiresAt`, so a
+    credential in that shape keeps behaving exactly as it always has.
+
+    Conservative on remaining doubt -- unreadable file, unparseable JSON,
+    missing `claudeAiOauth`, non-numeric fields -- answers False, because the
+    cost of a wrong False is a turn served by the other provider, while the
+    cost of a wrong True is a turn the CEO does not get an answer to at all.
     """
     path = Path(os.environ.get("CLAUDE_CREDENTIALS_PATH")
                 or Path.home() / ".claude" / ".credentials.json")
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        expires_at = data["claudeAiOauth"]["expiresAt"]
+        oauth = json.loads(path.read_text(encoding="utf-8"))["claudeAiOauth"]
     except (OSError, ValueError, KeyError, TypeError):
-        return False
+        return False, "claude credential unusable (file missing, unreadable, or malformed)"
+
+    def _as_float(value: object) -> float | None:
+        try:
+            return float(value)  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            return None
+
+    now_ms = time.time() * 1000
+    refresh_at = _as_float(oauth.get("refreshTokenExpiresAt"))
+    if refresh_at is not None:
+        if refresh_at > now_ms:
+            return True, f"claude available (refresh token valid until {_fmt_epoch_ms(refresh_at)})"
+        return False, f"claude credential unusable (refresh token expired {_fmt_epoch_ms(refresh_at)})"
+
+    # No refresh-token field on file at all -- older credential shape, so
+    # fall back to today's rule rather than guessing.
+    expires_at = _as_float(oauth.get("expiresAt"))
+    if expires_at is None:
+        return False, "claude credential unusable (no usable expiry field on file)"
+    if expires_at > now_ms:
+        return True, (f"claude available (access token valid until "
+                       f"{_fmt_epoch_ms(expires_at)}, no refresh-token field on file)")
+    return False, (f"claude credential unusable (access token expired "
+                    f"{_fmt_epoch_ms(expires_at)}, no refresh-token field on file)")
+
+
+def _claude_auth_available() -> bool:
+    """Bool-only convenience wrapper around `_claude_auth_status` -- see there
+    for the reasoning. Kept total: any exception here answers False, same
+    conservative default as the status check itself."""
     try:
-        return float(expires_at) > time.time() * 1000
-    except (TypeError, ValueError):
+        return _claude_auth_status()[0]
+    except Exception:
         return False
 
 
@@ -944,7 +998,8 @@ def _resolve_provider_env() -> tuple[dict[str, str], str]:
             # Claude Code's OAuth credential cannot be maintained here: it was
             # copied from another user's home, and refresh tokens rotate, so
             # the copy dies the moment the original refreshes.
-            if not _claude_auth_available():
+            claude_ok, claude_signal = _claude_auth_status()
+            if not claude_ok:
                 key = (os.environ.get(_PROVIDER_KEY_VAR["zai"])
                        or _read_dotenv_var(_PROVIDER_KEY_VAR["zai"]))
                 if key:
@@ -952,16 +1007,14 @@ def _resolve_provider_env() -> tuple[dict[str, str], str]:
                     env["ANTHROPIC_BASE_URL"] = _PROVIDER_ENDPOINTS["zai"]
                     env["ANTHROPIC_AUTH_TOKEN"] = key
                     env["ANTHROPIC_MODEL"] = _PROVIDER_DEFAULT_MODEL["zai"]
-                    return env, ("quota picked claude but its OAuth is missing/"
-                                 "expired on this box — fell back to zai")
-                return base_env, ("quota picked claude but its OAuth is missing/"
-                                  "expired and no ZAI_API_KEY either — kept "
-                                  "inherited env")
+                    return env, f"quota picked claude but {claude_signal} — fell back to zai"
+                return base_env, (f"quota picked claude but {claude_signal} and no "
+                                  "ZAI_API_KEY either — kept inherited env")
             env = dict(base_env)
             env.pop("ANTHROPIC_BASE_URL", None)
             env.pop("ANTHROPIC_AUTH_TOKEN", None)
             env.pop("ANTHROPIC_MODEL", None)
-            return env, "quota picked claude (more headroom)"
+            return env, f"quota picked claude (more headroom) -- {claude_signal}"
 
         return base_env, f"quota check returned unrecognised provider {provider!r} — kept inherited env"
     except Exception as exc:
