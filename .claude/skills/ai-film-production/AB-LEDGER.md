@@ -830,3 +830,9 @@ What actually survives:
    not a proven law.
 Sheets and the memory entry corrected accordingly; the "never bind her again" rule is downgraded
 to "prefer prose for her in this scene; if a future sheet needs the Element, expect a coin flip."
+### 14:05 — S2PT take 2 re-review (CEO asked whether the cart has wheels): wheels YES, but a SECOND CART I missed
+- **Wheels: correct.** Four swivel castors with rubber tyres, clearly visible at full res at 7 / 11 / 19 s (3× crop of frame 11 kept at `scratchpad/review/cart/`). The wheel-less-cart defect is specific to Draft 5's 0:10-0:16 shot, which S0b replaces — S2PT is fine on that count.
+- **DEFECT I missed on the 01:35 PASS: there are TWO carts in frame** from ~7 s to the end. Dupe pushes the red one; a second cleaning cart — its own chrome frame, its own bottles, its own orange bucket, its own painting standing in the rack, its own castors — stands at frame right beside the mustard armchair. Not a reflection: both are visible together at different depths on the blue rug in the same frame. This violates the sheet's own negative "no second cart".
+- **How I missed it:** the 01:35 review counted PEOPLE (the take-1 defect was a duplicate bodyguard) and never counted PROPS. Same class of error as the tile-level review that missed the duplicate bodyguard. **Review rule extended: count every named prop the way we count cast — by its parts, at full resolution, in at least two frames.**
+- Impact: mild on its own (frame edge, reads as another trolley parked in the gallery) but it undercuts the cart's uniqueness, which matters more now that S2AC makes the cart the object the collectors worship.
+- Options put to the CEO: accept as-is · reframe in the edit (costly, the shot is a lateral track at 720p) · take 3 with "ONE cart" stated three ways, the same fix that removed the duplicate bodyguard on the first retry (cost: one free-lane slot).
