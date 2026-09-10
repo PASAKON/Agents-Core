@@ -397,7 +397,9 @@ back to back on the credit lane (`s2rq15-lab-the-bids-jumpcut-15s.txt`, AB-LEDGE
 |---|---|---|---|
 | credits, 15 s 720p | 98 | **53** | **38** |
 | max duration | 30 s | 15 s | 15 s |
-| render | 11-19 min | **~4.5 min** | ~4 min |
+| render | 11-19 min | **~4.5 min** | **~3.5 min** |
+| bitrate, same 720p/15 s | — | **17.0 Mbps** | **4.3 Mbps** |
+| file size | — | 32 MB | 8 MB |
 | `@Element` chips | yes | **yes** | yes |
 | Unlimited grant covers it | yes | no | no |
 
@@ -417,7 +419,15 @@ source grade.** That is a feature for some shots and a defect for others.
   footage does not matter.
 - **Keep 2.5 for:** any shot that has to cut against other 2.5 footage inside the same scene,
   and any beat carrying the story.
-- **2.0 Mini** is the cheapest and visibly the weakest of the three — treat it as a draft tier.
+- **2.0 Mini** is the cheapest, the fastest and visibly the weakest — treat it as a draft tier.
+Measured against Fast on the identical prompt: **a quarter of the bitrate** (4.3 vs 17.0 Mbps),
+**16-18% less colour saturation**, higher edge energy at lower bitrate (over-sharpening and
+compression, not real detail), skin that reads waxy on a large face, and it **ignored the
+framing spec** — asked for a face filling sixty percent of frame height it pulled back to
+roughly forty-five. Its cut timing drifted furthest too (cuts at 1.7 / 3.5 / 5.4 / 7.5 / 10.4 s
+against a script of 2.5 / 5 / 7.5 / 10 / 12.5, leaving a 4.6-second final shot). It still bound
+all three Elements, held both faces across every cut, and spoke all five bids in order — so it
+is usable, just not for anything a viewer looks at closely.
 
 **Never mix models inside one scene.** Beyond colour, the two tiers stage the background
 differently: asked for "a plain cream wall, softly out of focus, nothing else in frame", 2.5
