@@ -107,4 +107,45 @@ reporting as-is for the CEO's review.
   no digits.
 - Fired: **2026-09-10T10:52:01Z**. Toast "Generation started" confirmed. Asset count 776 → 777.
 
+### Variant B — harvest
+
+- Asset id (preview URL): `c3c20ff6-a47e-4dfd-bea6-f8928638fcf4`
+- Downloaded filename: `hf_20260910_105157_08df988a-dafc-4ff5-a457-1775ea6d5bbd.png`
+- Path: `C:\Users\UsEr\Downloads\hf_20260910_105157_08df988a-dafc-4ff5-a457-1775ea6d5bbd.png`
+- Bytes: 5,670,355 · MD5: `7d23b772181544a7eb8f7639cde2c4cd`
+- Model (per asset Details panel): **Kling O1 Image**, Quality 2K, Size 2720x1536
+- Created (per panel): September 10, 2026 at 5:51 PM
+- Copied into repo as `docs/reports/plate-tv-wall/variant-b.jpg` (ffmpeg re-encode, 415,205 bytes)
+
+### Variant B — REVIEW (PASS/FAIL per item)
+
+1. **NOBODY in the picture** — PASS. No shopper, passer-by, silhouette, or reflection of a
+   person anywhere in frame.
+2. **Arrangement matches brief (strict 4×4 grid, sixteen different finishes)** — **FAIL.** The
+   model rendered an **8-columns × 3-rows grid (24 cells)**, not the requested 4×4/sixteen. Worse,
+   **5 of those 24 cells are blank cabinet-door panels with no television in them at all** —
+   confirmed by zooming the middle row: plain wood-grain, orange-lacquer and navy panels sit where
+   a TV should be, with no screen, no bezel, no glass, nothing. Only ~19 of the 24 cells are
+   actual televisions.
+3. **No two televisions identical** — PASS for the TVs that exist. Zoomed row 1 (8 TVs: black,
+   cream, mustard, pale silver, grey, maroon, silver, navy cabinets) and row 3 (8 TVs: grey,
+   silver, olive-gold, olive-grey, teal-grey, olive, navy, dark blue) — all same size/shape per
+   brief, no exact repeats spotted within or across rows at this resolution.
+4. **Every screen lit, same soft broadcast** — **FAIL**, same defect as item 2: the 5 blank-cabinet
+   cells show no screen and no broadcast at all, so "every screen" is untrue for this image. The
+   ~19 screens that do exist all show the same warm, out-of-focus figure-at-a-desk broadcast
+   correctly.
+5. **No readable text/letters/numbers/logo** — PASS at the resolution checked (full-frame and two
+   row-level zooms; fascia zoomed separately, blank). Two further close-up zooms on individual TV
+   bezels timed out (`CDP sendCommand "Page.captureScreenshot"` — checked Usage History each time
+   per hard rule, credits unaffected both times) and were not retried a third time per the
+   browser-operator "stop after 2-3 failed attempts" rule; no word resolved in any zoom that did
+   succeed.
+6. **Warm amber dusk palette, wet pavement, not cold/night-black** — PASS. Same amber cast, wet
+   pavement reflections visible, consistent with variant A.
+
+**Net: 4/6 PASS, 2 FAIL (wrong grid dimensions — 8×3 not 4×4 — and 5 of 24 cells have no
+television at all).** This is the more serious defect of the three variants; reporting as-is,
+not re-firing, per the brief.
+
 (status in progress — filling in below as each variant fires)
