@@ -806,3 +806,27 @@ Two more cards landed and closed the question — five data points, one variable
 - Credits: **260 total** (L1 + L2). L0, L3 and S2R-W were all refunded. No credit-lane fire since the CEO's 13:15 stop order.
 - `s2rq-fix2-the-bids-quick.txt` patched to v2 the same minute: Madame's chip removed, prose in, 3 chips (loc_hall_big_e, gentleman_e, project_absence_char_valder). The CEO's clipboard was re-copied before he fired it.
 - **Free lane**: S2R-W's rejection freed the slot; harvester task-3b2070ff fired **S20** at 13:1x (asset 7a1c376d-5bc6-477e-9173-340be87c0663, 4/4 chips), S0b next.
+### 13:40 — CORRECTION to the 13:20 entry (CEO challenged it: "ใช่หรอ")
+The 13:20 claim was overstated. Two counter-facts I failed to check before writing it:
+- **`@project_absence_char_woman_c` has PASSED on this lane, twice.** The S2R jump-cut sheet
+  (`s2r-fix1-the-battle-jumpcut.txt`) binds her, and it rendered — PROMPT B on 2026-09-08
+  ("13 chips, previz on. Rendered.") and again as **S2R-JC take 4** on 2026-09-09 (partial pass,
+  best of four). Same Element, same lane, same 13-chip set as today's L0/L3/S2R-W.
+- **Chip count is also perfectly correlated** with today's outcomes (13 → rejected 3/3, ≤12 →
+  passed 2/2) because her chip was always the 13th one added. The ladder never separated
+  "her Element" from "the 13th chip". Only the 8-9 Sep renders break that tie, and they break
+  it against the chip-count theory too (13 chips rendered fine then).
+What actually survives:
+1. **Framing is ruled out** — same 13 chips, wide (S2R-W) and close-up (L0/L3), all rejected;
+   L1/L2 close-ups passed. This is solid and does not depend on the rest.
+2. **Chip count is ruled out** — 13 chips rendered on 2026-09-08.
+3. **Her Element is a strong risk factor, not a proven cause.** The check reads the OUTPUT
+   (that is why the same prompt can go either way): binding her plate raises the chance the
+   rendered face trips the likeness check, but it is not deterministic. Something may also have
+   tightened on the platform between 09-09 and today — five straight rejections today vs two
+   passes on 08-09 — but that is a hypothesis, not measured.
+4. **What IS measured: the prose version passes.** L1 and L2, two for two, and the rendered
+   Madame is consistent shot to shot. That is the reason to use prose — a measured pass rate,
+   not a proven law.
+Sheets and the memory entry corrected accordingly; the "never bind her again" rule is downgraded
+to "prefer prose for her in this scene; if a future sheet needs the Element, expect a coin flip."
