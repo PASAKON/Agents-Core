@@ -1193,3 +1193,95 @@ in the paste zone, exactly as the CTO flagged.
 Not yet harvested — rendering now. Grant deadline reference: ~62 min
 remaining per the CTO's last check, well inside the "keep firing while
 the pixels read free" rule regardless of the clock.
+
+### S2AC v5 — FIRED
+
+Pulled at commit `2c01f30`. Diffed against v4 (`e774755`→`2c01f30`
+range): the NOTES header documents the CTO's own two v4-take-1 findings
+(duplicate woman, plaque height) and a "not fixable from the prompt"
+note on the "Vahler" typo; the actual paste-zone changes are (1) an
+explicit reach-DOWN-never-up plaque-height instruction replacing the
+bare "waist height" line, (2) a per-character headcount ("exactly ONE
+cleaner... SIX PEOPLE, SIX DIFFERENT FACES") replacing the old group
+total, and (3) an explicit "only one woman in a blue coat... if two
+women who look alike are visible, the shot is wrong" ban added to both
+the character list and the CRITICAL NEGATIVES block. Confirmed no
+conflict markers anywhere in the file.
+
+`prompt-lint.py --chips` reported 10 names because `loc_hall_big_d`
+(the CTO's own v2-mistake reference, in the NOTES zone) is scanned along
+with the rest — **extracted the actual paste block separately and
+confirmed exactly 9 unique `@` mentions**, `loc_hall_big_d` correctly
+absent: `@char_registrar`, `@loc_hall_big_e`,
+`@project_absence_char_cleaner_c`, `@project_absence_char_critic_b`,
+`@project_absence_char_student_c`, `@project_absence_char_visitor_a`,
+`@project_absence_char_visitor_b`, `@project_absence_char_woman`,
+`@project_absence_loc_wall_crack`.
+
+- Extracted paste block: 13,000 chars.
+- **Staged while S17b was still rendering** (same timing-optimization
+  pattern used for S17b itself) — cleared composer (`editorLen=1`
+  confirmed), pasted via synthetic `ClipboardEvent` with UTF-8-safe
+  decode, `sourceLen=13000` matched exactly, sync tap done, verified
+  `normalizedLen=13000` (raw 13081, benign paragraph-inflation artifact)
+  matches source exactly. Chip check: 9/9 unique chips bound, 0 error
+  chips, 0 video refs.
+- **Fired within seconds of S17b's card completing.** Re-verified fresh
+  immediately before the click: duration 20s, window 1920x855, real
+  button self-matched via `elementFromPoint`, Unlimited pixel zoom
+  `UNLIMITED · ~~140~~ · 0`.
+- **Fired** ~2026-09-10T23:15 UTC (06:15 ICT). New Processing card,
+  asset grid 790→791. New asset id
+  **`8d8121b3-1f44-4bab-b253-4a4f683ead5b`**.
+- **Usage History re-checked**: cost unchanged ($75.5), "Total
+  generations" 209→210. $0 charged.
+
+Not yet harvested — rendering now.
+
+### S17b "THE HOLE, FROM INSIDE" — harvested and reviewed
+
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_225334_5f3c3967-0bcb-4795-8581-ef7415814bc4.mp4`
+- **Bytes**: 19,102,837
+- **MD5**: `0521961aedbfe6134da73320357b4ae6`
+- **Settings**: 1280x720, 24fps, 19.96s, Seedance 2.5, High.
+- Confirmed correct asset via `<video>.currentSrc` filename
+  (`hf_20260910_225334_5f3c3967-...`) matching the fired id exactly.
+- Frames extracted to `docs/reports/frames-s17b/` at
+  0.5/4/7/9.5/10.5/12/15.5/16.5/18.5/19.5s — chosen to bracket the hard
+  cut at 10s and the angry→smiling turn.
+
+**Visual review, targeted at the CTO's two named checks (right man,
+face order):**
+
+- **Right man, confirmed.** 7s and 9.5s: heavy-set elderly gentleman,
+  bottle-green leather overcoat with a wide shawl collar, cream
+  turtleneck visible at the neck, thin white/grey hair — matches the
+  `char_oldman` description exactly. No slim man, no dark suit anywhere.
+- **Shot A framing, confirmed.** 0.5s: the picture is bordered on all
+  sides by the sawn hole's rough torn-plaster edges, looking out into
+  the empty pillared gallery corridor with the red double door at the
+  vanishing point — exactly as scripted. Looking into the lens at 7-9.5s
+  is correct here since the camera is the hole.
+- **Hard cut at 10s, confirmed clean.** 9.5s ends tight on his frowning
+  face; 10.5s opens on the reverse angle behind him, over his shoulder,
+  onto the brass plaque resting in the cavity — no dissolve, no fade,
+  one clean cut. This is the only clip in the film written with a hard
+  cut and it reads correctly, not as a defect.
+- **Plaque, confirmed legible and correctly spelled.** 10.5s/15.5s/16.5s:
+  "THE ABSENCE OF MEANING / Valder / $2,000,000" — reads "Valder", not
+  "Vahler" (the S2AC take-1 typo did not appear here).
+- **Face order, confirmed angry → smiling, in that order, only after he
+  looks inside.** 4s/7s/9.5s: brow down, jaw set, clearly frowning.
+  15.5s: the frown is gone, mouth turned up, softened — the turn into
+  the smile. 16.5s: mouth open mid-line, warm and delighted — matches
+  the "That is art. I like it." beat. 19.5s: still smiling, pleased,
+  consistent through to the end.
+- **Not verifiable from stills**: the actual spoken line's wording and
+  delivery, the cane-tap sound, and whether audio is otherwise silent
+  as scripted — audio-only, same limitation noted throughout this
+  report.
+
+**Verdict (operator read): PASS on both items the CTO asked about, and
+on everything else visually checkable** — right man, correct face
+order, clean hard cut, legible and correctly-spelled plaque, correct
+sawn-hole framing.

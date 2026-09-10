@@ -1,5 +1,22 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
-S2AC · THE INTERPRETATIONS, CHAOS · 20s · v4 for take 5 · CEO 2026-09-11 05:00
+S2AC · THE INTERPRETATIONS, CHAOS · 20s · v5 for take 7 · CTO 2026-09-11 05:20
+
+v5 FIXES TWO DEFECTS I FOUND IN v4 TAKE 1 THAT THE OPERATOR PASSED:
+A. **TWO IDENTICAL WOMEN IN COBALT COATS**, standing side by side in profile with the same hair
+   and the same face, clearly visible at 7.9s and 11.5s at full resolution. That breaks the film's
+   iron rule. Root cause: v4 said "the complete cast is seven and not one more" but never stated a
+   count PER CHARACTER, which the iron rule requires precisely because a group noun invites a
+   duplicate. v5 counts every person individually and bans the lookalike explicitly.
+B. **THE PLAQUE DID NOT COME DOWN.** v4 put it at shoulder height — the magenta woman touches it
+   with a RAISED hand. The CEO asked for waist. v5 states it as a reach-DOWN, not a height.
+Everything else in v4 held: eight scripted lines in the right order and the right mouths, the
+freeze to camera at 14s, the camera turn, the crack above head height.
+
+⚠️ ALSO SEEN, AND NOT FIXABLE FROM THE PROMPT: the plaque renders the name as "Vahler", not
+"Valder". That text comes off the reference plate, so no wording here will correct it — flagged
+to the CEO in the overnight brief as his call.
+
+S2AC · THE INTERPRETATIONS, CHAOS · earlier: v4 · CEO 2026-09-11 05:00
 
 v3 PASSED on camera, wall and staging — CEO: "เรื่องมุมกล้อง โอเครแล้ว การแพนกล้องโอเครแล้ว".
 v4 changes exactly TWO things and nothing else:
@@ -103,9 +120,11 @@ THE TWO THINGS ON THAT WALL SIT AT THESE EXACT HEIGHTS, measured against the peo
 front of them:
   · THE CRACK is HIGHER THAN THE TALLEST PERSON'S HEAD — everyone has to look UP at it. It is
     SMALL, about the size of one open hand, and it is the only mark on the wall.
-  · THE BRASS PLAQUE is LOW, at the WAIST HEIGHT of the people standing in front of it — level
-    with their belts, well below every elbow. It is nowhere near the crack and nowhere near
-    anybody's chest or shoulder.
+  · THE BRASS PLAQUE IS LOW ON THE WALL — DOWN AT THE WAIST OF THE PEOPLE STANDING IN FRONT OF
+    IT, level with their belts and their hands hanging at their sides. **A person reaching for it
+    REACHES DOWN, never up.** It is BELOW every elbow, BELOW every shoulder and far BELOW every
+    chin. It is not at chest height. It is not at shoulder height. If somebody's raised hand is
+    touching it, it is too high and the shot is wrong.
 There is a tall empty stretch of blank white wall between the plaque down at their waists and the
 crack up above their heads. THE CRACK AND THE PLAQUE ARE BOTH CLEARLY VISIBLE ON SCREEN and are
 never completely hidden by a person.
@@ -126,9 +145,19 @@ it. They gesture at it, step in to peer closely, step back to take it in, and ta
 another without pause. The cleaner goes on mopping around them.
 
 THE COMPLETE CAST IS SEVEN PEOPLE AND NOT ONE MORE — six at the wall from the start, and the
-registrar at the very end. There are no extras in this film. No bystanders, no other visitors, no
-gallery staff, no guards, no reporters, nobody holding a camera, nobody walking through. If a
-figure is not named below it must not exist.
+registrar at the very end. EACH OF THEM APPEARS EXACTLY ONCE. Count them at the wall: exactly ONE
+cleaner, exactly ONE woman in magenta, exactly ONE art student, exactly ONE woman in the
+cobalt-blue coat, exactly ONE woman in fur, exactly ONE man in maroon. SIX PEOPLE, SIX DIFFERENT
+FACES, SIX DIFFERENT OUTFITS, no two of them alike.
+
+**THERE IS ONLY ONE WOMAN IN A BLUE COAT IN THIS ENTIRE ROOM, AND ONLY ONE WOMAN WITH DARK HAIR
+PINNED UP.** No second blue coat. Nobody stands beside her who resembles her. No pair of similar
+women anywhere in the frame, not side by side, not one behind the other, not at the edge. If two
+women who look alike are visible, the shot is wrong.
+
+There are no extras in this film. No bystanders, no other visitors, no gallery staff, no guards,
+no reporters, nobody holding a camera, nobody walking through. If a figure is not named below it
+must not exist.
 
 @project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap, gold V, moustache. He
 mops steadily around the argument the entire time, unbothered, never joining in, never speaking. A
@@ -233,8 +262,9 @@ grain, faint gate weave, slight colour fringing.
 CRITICAL NEGATIVES: no eighth person, no extra, no bystander, no other visitor, no gallery staff,
 no guard, no reporter, nobody holding a camera, nobody filming, nobody walking through; NO CLEANING
 CART, no trolley, no bucket, no ladder, nothing on castors anywhere in this room, and nothing
-parked at the edge of frame; every person has a different face, build, age, hair and clothing, and
-no face is repeated anywhere; there is never a second man in a cream tunic; nobody stands in a
+parked at the edge of frame; every person has a different face, build, age, hair and clothing, and no face is repeated
+anywhere; no duplicate characters, no twins, no character appearing twice; NO TWO WOMEN IN BLUE
+COATS, no second woman with dark hair pinned up, no lookalike standing next to anybody; there is never a second man in a cream tunic; nobody stands in a
 straight line, no group photograph, no posing, no symmetry among the people, nobody standing still
 in the first fourteen seconds, nobody holding one identical pose for the whole shot, nobody
 clustered in a single tight huddle while the rest of the frame stands empty; NOBODY LOOKS AT THE
