@@ -259,7 +259,7 @@ Google Drive (root) — pass.gob1@gmail.com
 │       ├── ... (10 total)        from root 2026-08-04. New meta-* exports
 │       └── meta-2026-Jun-18.../  land at Drive ROOT (Meta gives no destination
 │                                 control) — move each one in here manually.
-│   └── CookieRun Backup/         NEW 2026-09-06 (CEO-approved). Raw copies of the
+│   ├── CookieRun Backup/         NEW 2026-09-06 (CEO-approved). Raw copies of the
 │       │                     Cookie Run bot's data from the Windows box (winbox),
 │       │                     uploaded by rclone as one tar per take + a sha256
 │       │                     manifest — never loose frames. Steward brief:
@@ -271,6 +271,21 @@ Google Drive (root) — pass.gob1@gmail.com
 │       │                     + manifest; rounds.jsonl/hits never leave the box
 │       └── jumpsweeps/       NEW 2026-09-08 (CEO-approved). Jump-physics sweeps: per
 │                             sweep one tar of the bursts without a human label + manifest
+│   ├── iPhone14Pro_Backup/       seen 2026-09-10 (created 2026-08-05) — UNDEFINED,
+│   │                             ask the CEO what it is for (Rule 7); do not file into it
+│   ├── Agents-worktrees-2026-09-10.tar (+ .manifest.json)   NEW 2026-09-10, CEO-approved
+│   │                             in chat ("สำรองถ้าไม่มั่นใจ ใน Skill google drive filling").
+│   │                             Restore packages of the 38 Agents task worktrees removed
+│   │                             in the Mac disk reclaim: per worktree a git bundle of the
+│   │                             unmerged commits + dirty patch + untracked files + TASK.md.
+│   │                             Filed at the BACKUP root on purpose — a `BACKUP/Agents
+│   │                             Backup/` sub-folder is PROPOSED, not yet approved; move it
+│   │                             there (server-side) once the CEO OKs the name. Gate row in
+│   │                             org:playbooks/drive-archive-gate.md.
+│   └── PARKED-<repo>-ignored.tar.gz (+ .manifest.json)   NEW 2026-09-10, same approval.
+│                                 Gitignored data of the two PARKED repos (moonx backtest
+│                                 data/out_*, video-engine renders); the code itself lives
+│                                 on GitHub PASAKON/PARKED-* (archived) — local clones deleted.
 ├── Desktop Cloud/                cross-device sync — AI never auto-files here
 └── My Picture & Videos./         personal, filed by month
 ```
@@ -728,7 +743,7 @@ needs to see at a glance which are the sharp ones.
 | `Do Not Disturb/logs.txt` | `1GVmc1Cqg-97YMcCd303_1EbNFhaiIfiO` | The project log. Append-only, 9 pipe-separated fields — see the YT: ILAG section above for the contract and the reconcile-on-entry rule. |
 | `Do Not Disturb/StoryBoard` | `18nykJSEtNPstN7-gB1VmGTjs8HAovFcivhBhAVgqdRw` | Google Doc. Short synopsis, the locked story facts, the festival constraints, and a link to the director's-notebook artifact where the volatile detail lives. |
 | `Do Not Disturb/Soundtrack` | `1BcwtvPSSGN4kQwuYnerWYyPrLF3iAwjQ` | Defined 2026-08-12 — **everything audio** for this film — music, SFX, ambience, voice. Sub-folders are split by whatever kind makes it easy for the editor to grab (`SFX`, `Ambient`, `Audio`, …), named by the director rather than by us (CEO 2026-08-12). Empty as of that date. |
-| `BACKUP` (root) | `1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq` | NEW 2026-08-04. Important data that doesn't belong to / can't be categorized into any other folder, specifically related to backing up or redundantly storing data in 2-3 places. Can be temporary or permanent. |
+| `BACKUP` (root) | `1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq` | NEW 2026-08-04. Important data that doesn't belong to / can't be categorized into any other folder, specifically related to backing up or redundantly storing data in 2-3 places. Can be temporary or permanent. **2026-09-10:** holds, directly at this root, `Agents-worktrees-2026-09-10.tar` (id `1yWF1ArtjxYyhkNNUuICskv00X1h52A4k`, 48.8 MB) and `PARKED-mooniex-moonx-ignored.tar.gz` (`1BPEG1mazutBiF2Utlx8zGXq3joJ6DQQ8`, 248 MB) + `PARKED-mooniex-video-engine-ignored.tar.gz` (`1zvbnsoHwxXvQoSTJ5-i3vckCGgukDgeN`, 7 MB), each with a `.manifest.json` beside it (sha256/md5, source, restore line) — CEO-approved in chat ("สำรองถ้าไม่มั่นใจ ใน Skill google drive filling"); gate rows in `org:playbooks/drive-archive-gate.md`; log lines in `~/.claude/logs/drive-archive.log`. A `BACKUP/Agents Backup/` sub-folder is proposed for these, not yet approved. Also contains `iPhone14Pro_Backup` (id `1L4G227DG8Tf0AQUE0iozhyAycc1JTnpk`, created 2026-08-05) with NO definition yet — ask the CEO before filing anything into it (Rule 7). |
 | `BACKUP/FaceBook Backup` | `1cNHt6bg7-ggXf8ec6DChzouUrw3nUGig` | Meta "Download Your Information" auto-export bundles — rarely actually used. Moved here from Drive root 2026-08-04 (was a root-level folder). Meta's export flow has no destination-folder setting, so new `meta-*` exports will keep landing at Drive root — move each one into this folder manually/by AI when found. The old stray `meta-2026-Jun-18-22-41-35` was merged in here 2026-08-04. |
 | `BACKUP/CookieRun Backup` | `1a5I-YVpeLelju2EY5Ey-jqDmRymfgQEl` | NEW 2026-09-06, CEO-approved in chat. Raw copies of the Cookie Run bot's data from the Windows box: the CEO's recorded takes, later the bot's own sessions and training sets. Uploaded from the box by rclone (remote `gdrive:`, scope drive.file) as one tar per item + sha256 manifest, verified with `rclone check`. Rules and lifecycle: `cookierun-bot/docs/DATA-STEWARD.md`; the move row lives in `playbooks/drive-archive-gate.md`. Created by rclone (not the bridge) so the drive.file token can still see it. |
 | `BACKUP/CookieRun Backup/play_rec` | `1U_-pog8MCHrvpVbLLbwe_sMJKDRbZphH` | `<take>.tar` + `<take>.manifest.json` per recorded take. First item 2026-09-06: `1788525250.tar` (3,494,379,520 B, 14,000 frames). 2026-09-08: `1788654527` streamed as `.part1of3.tar` … `.part3of3.tar` (19.6 GB total, split because a single 19.5 GB rcat died on `rateLimitExceeded` on 2026-09-06). |
