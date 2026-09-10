@@ -202,6 +202,51 @@ this is a sequencing choice for system stability, not a violation of the
 "never let the slot sit idle" rule (nothing else is ready to fire in the
 interim, and S20 itself needs harvesting regardless of order).
 
+## S2PT take 3 — FIRED
+
+After S20 harvest (above), re-staged S2PT from scratch on the same tab
+(1638444940, healthy 1920×855 throughout, no further lock-ups) that did the
+S20 harvest — no new tab needed since it was already clean:
+- Video tab + Seedance 2.5 model reselected.
+- Previz re-attached via `+` → Uploads (Recent tab this time, target was
+  visible without switching to the Videos sub-tab) → byte-verified again via
+  reference-tray `<video currentSrc>` matching asset `4f7e335f-…` exactly
+  (one video only — a second `<video>` element seen transiently during
+  attach was confirmed to be the picker panel's own hover-preview, not a
+  second attached reference, by re-checking after the panel closed).
+- Prompt re-pasted (synthetic `ClipboardEvent`, 11,520 chars post-paste),
+  followed by `End`/`space`/`Backspace`. **7/7 unique chips bound, 0 error
+  chips**: `@project_absence_char_valder`, `@gentleman_e`,
+  `@project_absence_char_guard_private_v2`,
+  `@project_absence_char_guard_valder_two`,
+  `@project_absence_char_cleaner_c`, `@project_absence_prop_cart_a_painted`,
+  `@loc_hall_big_e`.
+- Duration 20s / 720p / 16:9 / Seedance 2.5 confirmed via settings row.
+- Unlimited toggle: off on load, clicked once via `find()`-located ref →
+  `aria-checked="true"` on the first attempt. Before clicking, confirmed via
+  `document.elementFromPoint` at the toggle's own center that the toggle
+  itself was the top element (not covered by a banner/toast) — it had
+  simply been scrolled out of the settings row's visible slice, fixed by
+  clicking the row's own `>` chevron.
+- **Final fresh re-verification immediately before Generate** (all in one
+  check): correct project URL, 7/7 chips / 0 errors, video ref byte-matched
+  and singular, Unlimited `true`, no active queued/in_progress job of ours,
+  viewport 1920×855.
+- **Generate button read `UNLIMITED · struck 140 · 0`**, confirmed via zoom
+  screenshot of the real button (not the DOM-scrape decoy — a hidden
+  `GENERATE8045` duplicate was present in the DOM at the same time, exactly
+  as this skill documents).
+- **Clicked Generate** (real button, located via direct coordinate click at
+  its own JS-read bounding-rect center, since `find()`'s "Generate button"
+  query matched both the real button and the hidden decoy by role/label).
+  **"Generation started" toast fired.** New asset
+  `5112e5c6-1213-4085-808e-2b0beea2dc30` appeared as `queued`. Project asset
+  count 774 → **775, exactly +1**.
+
+**S2PT take 3 result: fired, `queued`, Unlimited/$0, 20s/720p/16:9/Seedance
+2.5/High/Sound On, 7/7 chips + 1 video ref, 1/4 batch.** Not yet harvested —
+render in progress as of this report.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
