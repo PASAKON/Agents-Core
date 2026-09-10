@@ -68,4 +68,14 @@ Card detail panel confirmed: Feature `Seedance 2.0 Fast`, Quality `720p`, Bitrat
 
 ## Fire 2 — Mini, 15s
 
-*(to follow, only after this milestone is committed+pushed)*
+Model switched to **Seedance 2.0 Mini** (composer preserved the same pasted prompt and 3 chips across the model switch — no re-paste needed). Settings verified immediately before click:
+
+- 16:9 · 720p · 15s · Sound On (identical to Fire 1)
+- **No separate quality-tier control (High/Medium/Low) is exposed for Mini** — it was present for Seedance 2.0 Fast and is simply absent from Mini's settings row (checked by DOM scan of the full settings-row button list, not just visually collapsed/scrolled). Noting as a model capability difference, not a blocker.
+- Unlimited: **OFF** — `aria-checked="false"`, `data-state="off"` (DOM), confirmed by pixel zoom (grey/off switch visible).
+- Chips: 3/3 bound (`@gentleman_e`, `@project_absence_char_valder`, `@loc_hall_big_e`), 0 error chips — **confirms Mini also accepts `@Element` chips**, same as Fast.
+- **Price on Generate button immediately before click: 38 credits, live (no strike-through)** — DOM scrape (`GENERATE 38`) and pixel zoom matched exactly. This is the CEO's exact stated figure. Cap was "above 55 → BLOCKER". Clicked **ONCE**.
+
+Result: toast "Generation started", new `Generating` card top-left, asset count 773→774. Fired at approximately **2026-09-10T09:12:41Z**.
+
+*(Harvest to follow after the render completes — see below.)*
