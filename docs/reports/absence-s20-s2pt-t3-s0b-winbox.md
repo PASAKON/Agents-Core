@@ -294,6 +294,13 @@ everything fresh (chips, duration, video-ref absence, price via a working
 zoom) immediately before the actual Generate click, once S2PT's card leaves
 `queued`/`in_progress`.
 
+**18:08 ICT (11:08 UTC) checkpoint: S2PT still `queued`/"Processing", ~58
+min since fire** — longer than take 2's ~35 min for the same scene, but
+still short of the 90-min cancel-consideration threshold. Confirmed genuine
+(not stale-tab state) via a fresh tab reading the same status. Continuing to
+poll every ~5 min via disposable tabs; S0b stays staged and untouched in the
+composer tab (1638444940).
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
