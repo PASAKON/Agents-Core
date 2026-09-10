@@ -1,6 +1,12 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-S2PT · THE TOUR, TOGETHER · 20s · v2 for take 2 · CEO 2026-09-09 20:20 — clip A of the two that replace
+S2PT · THE TOUR, TOGETHER · 20s · v3 for take 3 · CEO 2026-09-10 14:25 ("ยิงเทค 3 ใส่ 'รถเข็นคันเดียว' ย้ำ 3 แบบในบท" · "ใช้เลนฟรี แทรกคิวก่อนได้เลย")
+v3 = v2 + ONE CART stated three ways. Take 2 PASSED on cast and castors but rendered a
+SECOND cleaning cart at frame right from ~7s to the end (own bottles, own bucket, own
+painting in the rack, own castors) — the same defect class as take 1's duplicate
+bodyguard, which was killed by saying "ONE man in black" three ways. Take 2's file stays
+usable if take 3 fails: Fix-2 S2PT-TourTogether-Fix1-take2.MP4.
+Original brief · CEO 2026-09-09 20:20 — clip A of the two that replace
 Draft 5 3:18–3:52 ("ฉากนี้เป็นการอธิบายทั้งหมด อยากให้เช็คดีๆ ว่าจะมีตัวละครไหนบ้างที่ใส่
 และให้เขาเดินไปพร้อมกัน"). Same Wes Anderson lateral track as S2P, but the cast is the
 six the CEO named at 20:25 ("ใครบ้างที่ควรเดินตาม Valder แต่นอน Security ของ Valder 2 คน ->
@@ -70,7 +76,17 @@ countable by their clothes: ONE man in a white suit, ONE man in a panelled
 multi-colour blazer, TWO men in navy tunics, ONE man in a black suit, ONE man
 in a white cleaner's uniform. Six. THERE IS EXACTLY ONE MAN IN BLACK IN THE
 WHOLE SHOT, the bodyguard, and he is the only Black man and the only person in
-sunglasses of any kind. There are no extras in this film. No bystanders, no
+sunglasses of any kind.
+THE PROPS ARE COUNTABLE TOO, AND THERE IS EXACTLY ONE CLEANING CART IN THIS
+GALLERY. Count the carts: ONE. One orange bucket, one mop, one folding ladder,
+one set of bottles, one painting standing in a rack — one of each, because
+there is only one cart to hold them, and it is the cart Dupe is pushing.
+THE ONLY CLEANING CART IN THE WHOLE SHOT IS THE ONE IN DUPE'S HANDS. Every
+bucket, mop, ladder, bottle and rack in this room belongs to that single cart.
+If you can see a cart, Dupe is pushing it; if Dupe is not pushing it, it is not
+there. Nothing on wheels stands parked anywhere in this gallery — not by the
+armchair, not by the rug, not against a wall, not at the edge of the frame, not
+in the far distance. There are no extras in this film. No bystanders, no
 other visitors, no gallery staff, no security guards beyond the three named,
 no reporters, no journalists, nobody holding a camera, nobody filming, nobody
 in the background, nobody walking through. If a figure is not named below it
@@ -201,7 +217,10 @@ crowd, no huddle, nobody drifting away from the party, nobody lagging behind
 except Dupe; no Dupe joining the party, no Dupe speaking, no Dupe leaving his
 cart; THE CART TRAVELS WITH DUPE AND ONLY WITH DUPE — no cart at the front of
 the line, no cart near Valder or Carrington or the guards, no cart separated
-from Dupe by other people, no cart moving on its own, no second cart; NO DUPE
+from Dupe by other people, no cart moving on its own, NO SECOND CART, no third
+cart, no spare cart, no parked cart, no extra trolley, no second bucket, no second
+mop, no second ladder, no second painting in a rack, no duplicate of any part of
+the cart, nothing on castors anywhere in the room except the one cart Dupe pushes; NO DUPE
 WITHOUT HIS CART, no Dupe with empty hands, no Dupe carrying a bottle or a
 cloth or any object instead of pushing the cart, NO DUPE AHEAD OF ANYBODY; NO
 VALDER AT THE BACK OF THE LINE, no Valder behind Carrington, no Valder behind
