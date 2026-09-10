@@ -57,7 +57,7 @@ Window 1920x855 throughout (well above the 1280 mobile-breakpoint floor).
 | step | sheet | chips (unique) | fired (UTC) | landed (UTC) | result |
 |---|---|---|---|---|---|
 | L0 | s2rf-fix1-the-battle-faces.txt (V2 as-is) | 13/13, 0 error | 2026-09-10T04:57:45Z | ~2026-09-10T05:03Z | **REJECTED** (expected) |
-| L1 | s2rf-lab-l1-the-battle-faces.txt (no bidder chips) | 11/11, 0 error | 2026-09-10T05:06:29Z | pending | pending |
+| L1 | s2rf-lab-l1-the-battle-faces.txt (no bidder chips) | 11/11, 0 error | 2026-09-10T05:06:29Z | 2026-09-10T05:25Z | **PASSED** |
 
 ### L0 — REJECTED (expected)
 
@@ -73,22 +73,58 @@ Window 1920x855 throughout (well above the 1280 mobile-breakpoint floor).
   exact NSFW/copyright rejection pattern).
 - Per decision rule: L0 REJECTED (expected) → continue to L1.
 
-### L1 — fired, awaiting result
+### L1 — PASSED
 
-- Asset id `3d33d133-a919-4477-9cf7-f74e6b3fb386`, `in_progress` at fire time.
+- Asset id `3d33d133-a919-4477-9cf7-f74e6b3fb386`. Fired 05:06:29Z, `in_progress`
+  through the full poll (checked ~05:08, ~05:10, ~05:14, ~05:18, ~05:22Z —
+  all `in_progress`), landed `completed` by 05:25:24Z (~19 min render, in line
+  with the credit-lane 5–15 min estimate plus platform queue variance).
 - 11/11 unique chips bound (loc_hall_big_e, guard_private_v2, valder,
   char_registrar, guard_valder_two, char_woman, critic_b, visitor_b,
   visitor_a, cleaner_c, prop_cart_a_painted) — **no** `@gentleman_e`, **no**
   `@project_absence_char_woman_c` (both replaced with prose per the sheet),
   0 error chips, 11/11 reference thumbnails, no warning icons.
-- Price at click: struck `140`, live `130`.
-- Polling on the 3-min cadence per task brief; will update this report and
-  commit again once it lands.
+- Price at click: struck `140`, live `130` — this was a **passing fire**, so
+  **130 credits were spent** (not refunded). Card details panel confirms
+  Model Seedance 2.5 · 720p · High · 1280x720 · Created Sep 10 2026 12:06 PM
+  (ICT, = 05:06 fire time) · filed in The Valder Collection No.7.
+- **Download**: `hf_20260910_050627_3d33d133-a919-4477-9cf7-f74e6b3fb386.mp4`,
+  19,929,436 bytes, md5 `c8774351b5c8e11ddff30c289510c7dc`, copied into
+  `docs/reports/frames-s2rf-lab/L1/`. ffprobe: h264/aac, 1280x720,
+  duration 20.04s — matches spec.
+- Frames extracted at 1.5/4.5/7.5/10.5/13.5/16/19.5s (full resolution) +
+  640-wide contact row, all in `docs/reports/frames-s2rf-lab/L1/`.
+- **Honest description of the footage**: the five close-ups (1.5/4.5/7.5/
+  10.5/13.5s) are clean — exactly one face per shot, Carrington's prose
+  description and the woman-in-green's prose description both render
+  consistently across their three/two respective close-ups (same gold teeth,
+  same cream wall behind Carrington; same blue-green-silver pompadour and
+  cat-eye sunglasses for the woman), no second face or shoulder intrudes in
+  any close-up. **However, in the full shot (16s) Carrington does not appear
+  as a separate, identifiable 13th figure.** The front-left position his
+  prose said he should occupy is filled by a single cream-suited man holding
+  a ledger and pen (white gloves, small gold V) — that is the REGISTRAR's
+  described outfit exactly, not Carrington's (no cane, no visible gold
+  teeth at this distance). The bodyguard is standing directly behind this
+  same figure, i.e. positioned as if Carrington and the registrar are one
+  person. This is plausibly two near-identical prose "cream/white
+  stand-collar suit" descriptions merging in the model's read of the full
+  shot once Carrington had no reference plate to keep him visually distinct.
+  The woman in green DOES appear as a separate, correctly-dressed figure on
+  the right. Not flagged as a moderation problem (the card passed), but
+  flagged here as a full-shot cast-count/identity discrepancy for the CTO to
+  judge — screenshots at `docs/reports/frames-s2rf-lab/L1/frame_16s.jpg`,
+  `left_crop.jpg`, `mid_crop.jpg`.
 
-## Conclusion
+## Conclusion (interim)
 
-Pending — will be filled in once the ladder stops (first rejection, or all
-variants pass).
+L0 (13 chips, both bidders bound as Elements) → REJECTED as NSFW/copyright,
+as expected/reproduced. L1 (11 chips, both bidders as prose only, no
+Element binding) → PASSED moderation. This points toward **the bidder
+Element bindings themselves (not the close-up framing) as the likely
+trigger for the rejection** — continuing to L2 to isolate which of the two
+bidders (Carrington vs the woman in green) is responsible, per the ladder.
+Final conclusion pending L2/L3.
 
 ## Files changed
 
