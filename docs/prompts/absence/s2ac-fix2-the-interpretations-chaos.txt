@@ -1,0 +1,140 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+S2AC · THE INTERPRETATIONS, CHAOS · 20s · CEO 2026-09-10 13:50 — a full redesign of the
+interpretations scene (replaces S2AJ / S2AW / S2AP at 1:31–1:55).
+
+CEO's brief, verbatim: "อยากให้มันดู ตัวละครไม่นิ่งจนเกินไป และขอมุมมองแบบวุ่นวาย ตลอด 20s
+จนกว่า ชาย Register จะเข้ามา Break หลังจากเปิดประตูแดงมา ฉากนี้ขอเปลี่ยนใหม่ไม่ต้องมีรอยร้าวแล้ว
+ใช้ Location นี้ [loc_hall_big_e] ขอแบบวุ่นวายที่สุดก่อน สุดท้ายจะมีคนเปิดประตูมา ทุกคนหยุดหันไป
+ในท่าเดิมที่กำลังชุลมุนอยู่"
+
+THREE THINGS CHANGED FROM EVERY EARLIER VERSION OF THIS SCENE:
+1. NO CRACK, NO MARK, NO WALL POV. The wall-POV Element is gone; the room is the hall picture
+   the CEO attached (`loc_hall_big_e`), shot down its length toward the red double door.
+2. NOT A STILL TABLEAU. The old sheet's whole grammar was five people standing on marks in one
+   line. This one is the opposite: continuous overlapping motion for 16 seconds.
+3. WHAT THEY ARGUE ABOUT IS DUPE'S CART. With the crack gone the scene needs an object, and the
+   cart is the film's own joke — five collectors reading profound meaning into a cleaner's
+   trolley while the cleaner mops around them. If the CEO would rather they crowd a real
+   sculpture instead, change the two sentences that name the cart and nothing else moves.
+4. THE FREEZE IS THE PUNCHLINE. Door opens at 16s, everyone stops in the exact pose they were
+   in mid-gesture, heads to the door, four full seconds of held stillness and total silence.
+
+WHY NO PREVIZ: previz exists to pin a locked camera and standing marks. This shot has one fixed
+camera taken straight from the location picture and deliberately unrepeatable blocking — a grey
+previz of a scrum would constrain the chaos we are asking for. Fire it without a video reference.
+
+Chips: 9 — loc_hall_big_e, char_registrar, char_woman, char_student_c, char_visitor_b,
+char_visitor_a, char_critic_b, char_cleaner_c, prop_cart_a_painted. Madame's Element is NOT in
+this scene (see the ledger's 13:40 correction). FREE lane (Unlimited ON, zero digits, one click).
+
+REVIEW ORDER: (1) the frame never moves and matches the location picture; (2) SIX people in the
+hall for the first 16 s and a SEVENTH only when the door opens — count by clothes, nobody twice;
+(3) real overlapping chaos in 0–16 s, not five people taking turns; (4) the red door opens ONCE,
+at ~16 s, and the registrar is the one who opens it; (5) the freeze holds to 20 s with heads to
+the door and no drift; (6) sound: babble → door → dead silence; (7) no crack, no mark, no plaque,
+no on-screen text.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+20s · 720p · 16:9 · ONE LOCKED SHOT, no cuts. The camera never moves, never pans, never zooms;
+the frame is identical at 20s and at 0s. Sound On · High.
+@loc_hall_big_e — THE ONE PICTURE THIS SHOT IS BUILT FROM, and the only room reference in this
+  prompt. The camera stands in the middle of the gallery at chest height, looking straight down
+  its length, dead symmetrical: chromium trumpet columns receding in matched pairs on both
+  sides, warm orange cove light washing the ceiling, polished terracotta terrazzo underfoot,
+  sculptures on white plinths and framed works down both walls, and the tall RED DOUBLE DOOR
+  far off at the vanishing point, centred. Take the room, its surfaces, its colours and its
+  light from this picture and change nothing about it. THE WALLS ARE WHOLE AND CLEAN — there is
+  no crack, no mark, no damaged plaster, no hole and no brass plaque anywhere in this room.
+THE SHAPE OF THE CLIP: sixteen seconds of a loud, overlapping, thoroughly undignified argument
+in a very elegant room, and then four seconds of absolute frozen silence. The camera watches it
+all from one spot like a security camera that happens to be beautifully composed.
+THE COMPLETE CAST IS SEVEN PEOPLE AND NOT ONE MORE — six in the hall from the start, and the
+registrar who opens the door at the end. There are no extras in this film. No bystanders, no
+other visitors, no gallery staff, no guards, no reporters, nobody holding a camera, nobody
+walking through. If a figure is not named below it must not exist.
+WHAT THEY ARE ARGUING ABOUT: the cleaner's cart, parked in the middle of the gallery floor,
+which the five of them have decided is a work of art. They crowd it, point at it, circle it,
+photograph nothing, disagree furiously. The cleaner goes on mopping around them.
+@project_absence_prop_cart_a_painted — THE CART, in the middle of the floor a little nearer the
+  camera than the people, never moving: castor wheels, mop, orange bucket, bottles, folding
+  ladder, gold V, a framed painting standing upright in the rack.
+@project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap, gold V, moustache.
+  He mops steadily around the argument the entire time, unbothered, never joining in, never
+  speaking, never looking at the camera. When the door opens he stops with the mop still in his
+  hands and looks up like everybody else.
+@project_absence_char_critic_b — THE WOMAN IN MAGENTA: elderly, East Asian, silver-streaked hair
+  swept up, full-length deep magenta fur coat, long cream gloves, cream heels. She lectures the
+  others with both gloved hands, walks two steps one way and two steps back, and keeps
+  presenting the cart to them like an auctioneer showing a lot.
+@project_absence_char_student_c — THE ART STUDENT: young, short curly acid yellow-green hair,
+  paint-spattered denim overshirt, dark trousers, worn trainers. She circles the cart the whole
+  time with a black sketchbook, crouching, standing, holding her thumb up to measure it,
+  drawing hard, getting in everybody's way.
+@project_absence_char_woman — THE YOUNG COLLECTOR IN COBALT: young, dark hair pinned up,
+  oversized cobalt-blue wool overcoat with a small gold V pin, pearl cluster necklace,
+  brown-checked midi skirt, black tights, dark brown loafers, NO glasses. She argues back at the
+  woman in magenta, steps in between her and the cart, and will not be talked over.
+@project_absence_char_visitor_b — THE WOMAN IN FUR: about fifty-five, brown bob, long tawny-brown
+  fur coat over a rust-red shift dress. She is quietly weeping at the cart, one tear on her
+  cheek, and keeps trying to get a word in and being cut off.
+@project_absence_char_visitor_a — THE MAN IN MAROON, her husband: elderly, thinning grey hair,
+  deep maroon leather suit with a stand collar. He wants to leave. He walks three steps toward
+  the red door, is pulled back by his wife's sleeve, walks three steps again, deadpan
+  throughout, and never raises his voice.
+@char_registrar — THE REGISTRAR, who ends it: about sixty, cream stand-collar tunic with orange
+  piping and a small gold V, white gloves, a brown leather ledger under one arm. He is NOT in
+  the room at the start. He opens the red door at the far end and takes one step in, and that is
+  all he does — he does not walk down the hall, does not speak, does not point.
+[0s] WE ARE ALREADY IN THE MIDDLE OF IT. No build-up, no calm opening: from the very first frame
+all five are around the cart, all moving, all talking at once, hands going, the student
+crouched drawing, the magenta woman presenting, the cobalt woman blocking her, the woman in fur
+weeping, the man in maroon halfway to the door, and Dupe mopping right through the middle of
+them.
+[0s to 16s] IT NEVER SETTLES AND IT NEVER PAUSES. Somebody is always crossing somebody else.
+People change places around the cart, lean in, step back, gesture over each other's heads, turn
+away and turn back. The overlapping talk runs continuously — these fragments tread on each other
+and nobody waits their turn: "It is clearly about labour." · "It is a CART." · "That is exactly
+what they want you to think." · "It made me think of my mother." · "Everything makes you think of
+your mother." · "Do not touch it!" · "I am measuring it." · "We are going to be late." Voices
+rise, overlap, cut across, two and three at a time. Nobody shouts anybody down completely and
+nobody wins.
+[16s] THE RED DOOR AT THE FAR END SWINGS OPEN and the registrar steps one pace into the room.
+[16s] AND EVERYTHING STOPS DEAD, ALL AT ONCE, EXACTLY WHERE IT IS. Every person freezes in the
+precise position and posture they happened to be in — a raised arm stays raised, a pointing
+finger stays pointing, a foot in mid-stride stays down where it landed, the student stays
+crouched, the mop stays where Dupe was pushing it, the man in maroon stays stopped mid-step
+facing the door. Only their heads move: every head turns to the far door in the same instant.
+Not one person straightens up, tidies their pose, steps back into line or composes themselves.
+[16s to 20s] THEY HOLD IT, PERFECTLY STILL, FOR THE LAST FOUR SECONDS. Seven people caught
+mid-argument like a photograph, all looking at the little man in the doorway. Nothing moves in
+the whole frame. At 20s the clip simply stops.
+AUDIO: room tone; from 0s to 16s a continuous overlapping babble of the fragments above, two and
+three voices at a time, plus a mop on wet terrazzo and heels on stone; at 16s one clean wooden
+door sound and then TOTAL SILENCE — no talking, no footsteps, no music, nothing but faint room
+tone for the last four seconds. Dupe never speaks. The registrar never speaks. No music, no
+score, no sting, no riser, no swell. NO SOUND AT THE START OR THE END: the clip opens mid babble
+with no intro sting or riser, and simply stops with no tail, swell or fade.
+Colour grade — warm shadow, cold white: amber-orange highlights and mids, whites pushed slightly
+cool, shadows deep red-brown, halation around every lamp. Photographed, not rendered: fine film
+grain, faint gate weave, slight colour fringing.
+CRITICAL NEGATIVES: no eighth person, no extra, no bystander, no other visitor, no gallery staff,
+no guard, no reporter, nobody holding a camera, nobody filming, nobody walking through; every
+person has a different face, build, age, hair and clothing, and no face is repeated anywhere; the
+registrar appears ONLY at the door and ONLY at the end, and there is never a second man in a
+cream tunic; nobody stands in a straight line, no group photograph, no posing, no symmetry among
+the people, nobody standing still in the first sixteen seconds; nobody touches the cart, nobody
+pushes the cart, the cart never moves; no violence, no shoving, no grabbing, no fighting; after
+the door opens nobody moves anything but their head, nobody straightens up, nobody steps, nobody
+resumes talking, nobody walks toward the door, the registrar does not walk down the hall; the red
+door opens once and only once, at the end, and never closes; no crack, no cracked wall, no mark
+on any wall, no hole, no damaged plaster, no brass plaque, no price, no written figures on
+screen; no camera movement of any kind, no pan, no tilt, no zoom, no dolly, no handheld, no
+reframing, no cut, no second angle, no shot-reverse-shot, no dissolve, no fade; no split screen,
+no grid, no four-panel layout, no picture-in-picture; no looking at camera by anybody; no
+smartphones, no screens, no modern technology; no sunglasses on anybody.
+House negatives: no voiceover, no narration, no subtitles, no captions, no on-screen text, no
+signage, no logos, no music, no score, no dutch angle, no tilted horizon, no lens flare, no bokeh
+balls, no HDR, no CGI sheen, no plastic skin, no beauty filter, no dim moody lighting, no
+darkness, no night, no blue walls, no wooden floor.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
