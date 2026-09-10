@@ -419,6 +419,84 @@ lost with the tab in the ~19:26 incident):
 Sound On, 3/3 chips, 0 video refs, 1/4 batch.** Not yet harvested — S2PT
 harvest is next while S0b renders.
 
+## S2PT take 3 harvest
+
+Downloaded via the grid card's hover-revealed "Download" button (the
+`aria-label="Download"` control only mounts on real hover — a synthetic
+`mouseenter`/`mouseover` dispatch did not reveal it; a `computer` tool
+`hover` at the card's actual screen coordinates did).
+
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_101000_5112e5c6-1213-4085-808e-2b0beea2dc30.mp4`
+- **Bytes**: 31,972,258
+- **MD5**: `c7278064eab03ac17c271d5a8e24cccd`
+- **Asset id**: `5112e5c6-1213-4085-808e-2b0beea2dc30`
+- **Fire time**: ~17:10 ICT · **Completed**: ~20:31 ICT (~3h21m in the
+  pipeline)
+- **Settings**: Seedance 2.5, 20s, 720p, 16:9, Sound On, High quality,
+  Unlimited/$0, 7/7 chips + 1 video ref bound
+- **ffprobe**: video 1280×720 @ 24fps, duration 20.05s, audio stream present
+- **Project asset count**: 780 at S0b-fire time (after this harvest); +1
+  attributable to this asset specifically confirmed at S2PT's own fire
+  (774→775, logged above) — the harvest step itself doesn't change the
+  count.
+
+**Frames** (full 1280×720) at 3, 7, 11, 15, 19s → `docs/reports/frames-s2pt-t3/`.
+
+### REVIEW ORDER — S2PT take 3 (per this brief's explicit checklist)
+
+**(1) Cleaning cart count and Dupe's hands — FAIL.**
+Full-resolution right-third crops at 7s, 15s, 19s
+(`s2pt_t3_{7,15,19}s_rightthird.jpg`) each show **exactly ONE cart** — no
+duplicate-cart defect from take 2 has recurred. But in **all three** crops,
+**Dupe's hands are visibly holding a folded white cloth/small object
+cradled against his body, not gripping the cart's handle.** He is walking
+directly beside the cart rather than pushing it. This is exactly the
+defect the sheet's own CRITICAL NEGATIVES ban by name: *"no Dupe with empty
+hands, no Dupe carrying a bottle or a cloth or any object instead of
+pushing the cart"* and *"NO DUPE WITHOUT HIS CART... Dupe's hands are on
+the cart"* (POSITION MAP / beats). Take 3 fixed the second-cart defect from
+take 2 but introduced this one. **FLAGGED-dupe-hands-off-cart.**
+
+**(2) Cast count by clothes — PASS.** Six people total, countable in the
+wide frames (`s2pt_t3_7s.jpg` clearest): Valder (panelled multicolour
+blazer), Carrington (white suit, cane), the bodyguard (black suit — the
+only Black man, the only person in sunglasses of that type), two navy-
+uniformed guards (one visibly thinner, one heavier-set), and Dupe (white
+uniform, separate from the four-person line). **Exactly ONE man in black**
+(the bodyguard) — no second black suit anywhere across the five sampled
+frames.
+
+**(3) Castor wheels on the cart — PASS.** Visible in the `15s_rightthird`
+and `19s_rightthird` crops: four small castors under the cart's orange/red
+frame are in frame and legible.
+
+**(4) One mustard armchair on the blue rug, no second armchair — PASS
+(qualified).** A single mustard-yellow armchair on a blue patterned rug is
+visible in `s2pt_t3_7s.jpg` (background left) and `s2pt_t3_19s.jpg`
+(background centre-right, near Dupe's side) — no second armchair appears in
+any of the five sampled frames. Not checked frame-by-frame across the full
+20s, only at the five sample points.
+
+**(5) Continuous lateral track, no easing — PASS (visual read only).**
+Across all five samples the background columns and wall art shift
+progressively and the party's screen position drifts only slightly,
+consistent with a steady lateral track. **Not independently verified** with
+frame-differencing/motion measurement — a visual read of five stills can't
+rule out easing at the very start/end of the 20s the way it could be
+checked from the full video.
+
+**(6) Six Valder lines in order, nobody else speaks — NOT VERIFIED.** No
+audio-transcription tool was named for this task; `ffprobe` confirms an
+audio stream is present but its content was not checked. Same limitation
+the take-2 report noted.
+
+**Overall take 3 verdict (operator read, CTO to confirm — not
+self-certified): FAILS review item (1).** The second-cart defect from take
+2 is fixed, but a new, different defect (Dupe's hands not on the cart)
+appears in its place across all three required 7s/15s/19s crops. Per house
+rule this is reported, not fixed or re-fired by the operator — the CTO
+decides whether this needs a take 4.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
