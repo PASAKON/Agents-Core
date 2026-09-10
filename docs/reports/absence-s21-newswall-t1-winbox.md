@@ -92,22 +92,100 @@ closed and released immediately after reading): top entry reads **`28 credits ·
 Sep 10, 2026 7:03 PM`** — exact match to the price shown before the click. Fire time ≈ 2026-09-10
 12:03:53Z (19:03:53 ICT).
 
+## Render completed — ~23 min (fire 7:03:34 PM ICT → card `New` at next check ~7:23 PM ICT)
+
+Card `71ccced9-2936-45b8-879c-a0c9d8469a72` showed `New`, no `Processing`/`Generating` text, when checked
+at the first poll (~20 min after fire, per the skill's cadence). Opened its `?preview=dccc8bb8-…` modal —
+different id in the URL than the card's `data-asset-id`, but content is unambiguously the same asset: the
+video `currentSrc` filename is `hf_20260910_120334_71ccced9-…mp4` (the exact id), the prompt panel shows
+the sheet's PASTE text verbatim starting `8s · 720p · 16:9 · ONE LOCKED SHOT…` with the
+`@project_absence_prop_tv_wall` chip, and Details read Feature **Seedance 2.0 Fast**, Quality **720p**,
+Bitrate **High**, Size **1280x720**, Created **September 10, 2026 at 7:03 PM** — matching the Usage
+History entry exactly. **No rights-verification banner appeared** on this card (nothing to confirm).
+
+## Harvest
+
+- Downloaded via the preview panel's Download button → `C:\Users\UsEr\Downloads\hf_20260910_120334_71ccced9-2936-45b8-879c-a0c9d8469a72.mp4`
+- **Bytes**: 10,945,410
+- **MD5**: `8b89868b7d47d0aa10c6a58c061dd9cf`
+- **Asset id**: `71ccced9-2936-45b8-879c-a0c9d8469a72`
+- **ffprobe**: h264, 1280x720, 24 fps, aac audio, duration **8.096s**
+- **Model**: Seedance 2.0 Fast · **Settings**: 720p, 16:9, High, Sound On, batch 1/4, Unlimited OFF
+- **Fire time**: 2026-09-10 12:03:53Z (19:03 ICT) · click-to-Usage-entry match: `28 credits · Seedance 2.0 · Spent · Sep 10, 2026 7:03 PM`
+- **Credits shown before click**: `+28` (pixel-zoomed, matches the sheet's expected ≈28, well under the 45 cap)
+- **Chip count at fire**: 2/2 bound, 0 error chips
+- Frames extracted at FULL resolution (1280x720) via `ffmpeg -ss <t> -frames:v 1 -q:v 2` at 0.5, 2.2, 4,
+  5.5, 7.8s → `docs/reports/frames-s21-t1/s21-t1-<t>s.jpg`.
+
+## Review — per the brief's REVIEW ORDER
+
+**Exact prompt used** is the sheet's PASTE block verbatim (`docs/prompts/absence/s21-addon-the-news-wall.txt`,
+commit `ccc62a3`, unmodified — no edits this session), reproduced in full above under "Editor gotchas /
+Paste" and in the card's own Prompt panel.
+
+1. **Shop window and sets match the registered Element — PASS.** Compared `s21-t1-0.5s.jpg` against
+   `docs/reports/plate-tv-wall/variant-a.jpg` (the registered `project_absence_prop_tv_wall` source):
+   same uneven second-hand TV stack and arrangement, same wooden cabinet at left, same chrome ball on a
+   stalk, same red cabinet and wood drawers on the right, same wet pavement and amber fascia. No set
+   added or removed, nothing rearranged (tighter framing than the source plate but the same elements in
+   the same relative positions).
+2. **Nobody in the room — PASS.** Checked all 5 frames: no shopper, no passer-by, no silhouette, no
+   reflection of a person in the glass, at any sampled timestamp.
+3. **Every screen lit, all showing the SAME broadcast, never out of sync — FAIL.** This is a real defect,
+   not a close call. At 0.5s and 2.2s every screen correctly shows the same newsreader. **From 4s**,
+   only a **subset** of screens (4 of ~29 at 4s, 5 of ~29 at 5.5s) switch to showing the museum-building
+   insert — and by **7.8s**, screens are showing THREE different pictures simultaneously: most show the
+   Valder photograph, several still show the museum building (unchanged from the 2s cue), and at least
+   one screen (visible at roughly the composer's centre, e.g. `s21-t1-7.8s.jpg`) still shows the plain
+   newsreader with no insert at all. The wall never re-synchronizes within the clip's 8s. This directly
+   contradicts the prompt's own negative: *"the screens never show different pictures from each other,
+   never go out of sync."*
+4. **Insert delivery — FAIL, related to #3.** The prompt asks for the museum building and the Valder
+   photograph to appear as **"a small square INSERT PICTURE"** beside the newsreader's head, with the
+   newsreader still visible and talking underneath/beside it — *"small in the screen... beside his head a
+   small square insert picture."* What actually rendered on the screens that did change is the insert
+   image **replacing the entire screen content** (full-frame takeover, newsreader gone), not a small inset
+   next to him. Combined with #3, the net effect is a wall where some screens show a full-frame building,
+   some show a full-frame photograph of a man in a colourful blazer, and (briefly) some still show a
+   full-frame newsreader — the opposite of the single, synchronized broadcast the shot is built around.
+5. **No readable word/letter/number/logo — PASS on the samples checked.** Cropped/zoomed the lower-third
+   colour band at 0.5s: a soft, blurred orange/white stripe with no resolvable text, consistent with the
+   prompt's "far too small and too soft... for any word to resolve." Did not exhaustively check every
+   screen at every frame for text, only the sampled crops.
+6. **Camera dead locked, no push-in, no cut — PASS.** All 5 sampled frames show identical framing,
+   window position, and TV-wall geometry; no visible pan/tilt/zoom/cut across 0.5s→7.8s.
+7. **Audio — partial check only.** `ffprobe` confirms an AAC audio track present for the full 8.096s.
+   `ffmpeg silencedetect` (threshold ‑35dB) found **no silence at 0s** (room tone/murmur present from the
+   start, matching "opens mid room-tone with no intro sting"), and a short silence only in the final
+   ~0.3s (7.8–8.096s), consistent with "simply stops with no tail." I did **not** verify the actual
+   spoken content (the two scripted lines) — that needs a human listen; I have no transcription tool
+   available in this session.
+
+## Verdict — FLAGGED, not self-certified
+
+Per "THE REVIEW LOOP — the operator never self-certifies a clip," I am not marking this pass/fail myself
+beyond reporting what the frames show. **Items 3 and 4 are clear, verifiable defects** (out-of-sync
+screens; inserts rendering as full-screen takeovers instead of a small inset beside the newsreader) —
+the same failure class the skill's "duplicate character" and "wrong asset" precedents describe: technically
+correct fire (right chips, right settings, right price), but the model did not follow the shot's own
+explicit rules. Filing this as `-FLAGGED-inserts-out-of-sync`.
+
+- File kept exactly as downloaded, nothing deleted, nothing re-fired (task explicitly bans firing twice).
+- Frames committed below for CTO review; MP4 stays local only (`C:\Users\UsEr\Downloads\hf_20260910_120334_71ccced9-2936-45b8-879c-a0c9d8469a72.mp4`), per the brief.
+- **Did not** attempt a second generation, did not touch the sheet, did not touch any Element.
+
 ## Current state
 
-- Composer tab `1638445172` left on the project page with the fired prompt still visible; the new card
-  (`71ccced9-…`) generating.
+- Composer tab `1638445172` left on the project page (idle, nothing further staged — this is a single-clip
+  harvest task, not a wave with a next scene to pre-stage).
 - Other operator's tab (`1638445167`) never opened or touched.
 - No Element created/renamed/deleted this session.
-- **Render wait in progress** — will poll per the skill's cadence (first check ~20 min after the fire,
-  then every 5 min), never a scheduled-wake/background-timer, per the render-wait pattern (chunked
-  ≤90s sleeps via `python -c "import time; time.sleep(90)"`, not a single long block).
 
-## Next steps (to be filled in as the render completes)
+## Stop-and-ask
 
-- [ ] Confirm card completion (no `Processing` state, full metadata).
-- [ ] Rights-verification banner: confirm per standing CEO approval if it appears.
-- [ ] Download to `C:\Users\UsEr\Downloads`; record path, bytes, md5.
-- [ ] ffmpeg frames at 0.5, 2.2, 4, 5.5, 7.8s → `docs/reports/frames-s21-t1/`.
-- [ ] Review per the brief's REVIEW ORDER (shop window match, nobody in room, screens in sync, inserts at
-      the right times, no legible text, camera locked, audio).
-- [ ] Commit + push the frames and this report (never the MP4).
+None of the brief's listed stop conditions were hit (no protected-content warning, price was 28 ≤ 45,
+Unlimited stayed OFF throughout, chip count was correct, no viewport lock-up, no browser-tool error). The
+out-of-sync/insert-delivery defect above is a **creative/model-behaviour finding for the review loop**,
+not one of the brief's stop-and-ask triggers, so I did not file a `BLOCKER.md` — but I am not marking the
+task complete-and-clean either; see Verdict above for what needs a CTO/CEO call (re-fire as a spare take,
+adjust the prompt to state the sync/inset rule even more forcefully, or accept as-is).
