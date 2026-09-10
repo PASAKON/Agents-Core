@@ -426,6 +426,38 @@ Use `mcp__claude_ai_Google_Drive__search_files` / `get_file_metadata` for all
 read/lookup work (verifying a folder is empty, finding IDs, browsing) — only
 reach for the bridge when something needs to actually change.
 
+### On Contabo the bridge is ABSENT, but uploading still works (measured 2026-09-10)
+
+`~/.config/mooniex/gdrive-bridge.json` does not exist on the VPS, so **every
+bridge action fails there** — `move`, `rename`, `trash`, `create_folder`,
+`create_doc` and, the one that matters most, `append_log`. `ilag_sync.py`'s own
+`append_log()` is built on the bridge, so it fails too.
+
+**That does not mean a Contabo session cannot file a clip.** The upload path is
+separate and works: `ilag_sync.upload(local_path, name, parent_id)` talks to the
+Drive REST API directly using `GOOGLE_OAUTH_CLIENT_ID` / `_CLIENT_SECRET` /
+`_REFRESH_TOKEN` out of `/root/projects/mooniex-claudeflow/.env` (note the
+`GOOGLE_OAUTH_` prefix — grepping for `GOOGLE_REFRESH_TOKEN` finds nothing and
+wrongly reads as "no credentials"). The same token appends `logs.txt` fine with a
+plain `uploadType=media` PATCH, and reports `capabilities.canEdit: true`.
+
+So on Contabo, filing a clip is: `upload()` → PATCH `logs.txt` → verify. **Both
+halves or neither** — ILAG rule 4 forbids leaving a file on Drive with no log
+line, and a session that can upload but cannot log must not upload.
+
+Two safety steps that are not optional when appending `logs.txt` by hand,
+because a `uploadType=media` PATCH replaces the whole file and the log is
+append-only:
+
+1. **GET `?alt=media` and save the bytes locally before writing.** That copy is
+   the only undo.
+2. **After writing, re-download and assert `new.startswith(old.rstrip())`** —
+   proof no history was truncated — plus a byte-delta equal to the line you
+   added. Size alone is not verification.
+
+Measured clean this way filing `S22-TheCrate-Fix1.MP4` into `Fix-2`: 60,606 →
+61,011 bytes (+405), prefix intact, new line last.
+
 ## YT: ILAG — its own rules (CEO 2026-08-12)
 
 `ALL DRAFT/YT: ILAG` is a YouTube channel of **AI-generated short films**, made
