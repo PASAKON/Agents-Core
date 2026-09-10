@@ -31,6 +31,46 @@ is the job. Will checkpoint again every ~30 min and poll every ~10 min via a
 **separate** tab (see mistake note below), never by reloading the S2PT
 composer tab.
 
+## S20 harvest
+
+Downloaded via the grid card's own "Download" button (aria-label="Download"),
+found on the card at `[data-asset-id="7a1c376d-5bc6-477e-9173-340be87c0663"]`
+— simpler and more reliable than opening a detail modal, and avoided a
+grid-resort race that misclicked a wrong card once first (caught immediately
+via URL mismatch before anything else happened; no download or click on the
+wrong card's own controls).
+
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_062355_7a1c376d-5bc6-477e-9173-340be87c0663.mp4`
+- **Bytes**: 7,130,077
+- **MD5**: `6a5ac768e5fd6082d33f81663d9d9f7d`
+- **Asset id**: `7a1c376d-5bc6-477e-9173-340be87c0663`
+- **Fire time**: ~13:15 ICT (per brief, previous operator's session)
+- **Left queue → Generating**: 16:28 ICT (~193 min in queue)
+- **Completed**: shortly after 16:28 ICT, confirmed by this session ~16:5x ICT
+- **Settings** (per prior operator's fire log, unchanged since): Seedance 2.5,
+  8s, 720p, 16:9, Sound On, High quality, Unlimited/$0, 4/4 chips bound
+  (`@loc_hall_big_e`, `@project_absence_char_guard_valder_two`,
+  `@project_absence_char_cleaner_c`, `@project_absence_prop_cart_a_painted`)
+- **ffprobe**: video 1280×720 @ 24fps, duration 8.05s, audio stream present
+  (Sound On confirmed)
+- **Project asset count**: 774 at harvest time vs. 772 recorded before S20's
+  fire (t2 report) — **+2, not +1**. Explained by concurrent activity from
+  other operators/the CEO sharing this account during the ~3h S20 sat
+  queued (consistent with this skill's own "expect generations you did not
+  start" guidance, and with the Usage History entries for other models/times
+  seen during this session's own Usage checks). S20's own asset is
+  independently confirmed present and `completed`, which is the more
+  reliable per-clip check.
+
+**Frames** (full 1280×720, no scaling) at 0.5, 2, 3.5, 5, 6.5, 7.9s →
+`docs/reports/frames-s20-t1/`. Visual read across all six frames: two guards
+(one thin, one heavy-set, both navy uniform with gold V) flanking a cracked
+stone block on a white plinth, Dupe (white uniform, cap) working a mop at a
+red cleaning cart between them — cart position, mop, and both guards are
+consistent in every sampled frame; only one cart visible throughout. No
+formal PASS/FAIL review order was given for S20 in this brief (only S2PT
+gets one) — this is a visual read, not a certified pass.
+
 ## Phase 2 — S2PT take 3 staging (in progress)
 
 Sheet `docs/prompts/absence/s2pt-fix2-the-tour-together.txt` at commit
