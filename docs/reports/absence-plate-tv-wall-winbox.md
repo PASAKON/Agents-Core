@@ -148,4 +148,16 @@ reporting as-is for the CEO's review.
 television at all).** This is the more serious defect of the three variants; reporting as-is,
 not re-firing, per the brief.
 
+## Variant C · STEPPED PYRAMID
+
+- Same composer tab (1638444954), re-verified 1920x911 before continuing, Image tab / Kling 01 /
+  Unlimited all still set from B (no reload happened, so nothing reset this time).
+- Cleared composer (Ctrl+A + Delete, verified down to a bare `"\n"`), pasted variant C's
+  flattened, UTF-8-correct text (1577 chars) via the same synthetic-paste + End/space/Backspace
+  routine.
+- Landed length: **1577 = 1577 chars.** Head/tail matched. 0 chips, 0 `<video>` elements.
+- Generate button reading immediately before click, confirmed by screenshot pixels: **`UNLIMITED`**,
+  no digits.
+- Fired: **2026-09-10T11:01:09Z**. Toast "Generation started" confirmed. Asset count 777 → 778.
+
 (status in progress — filling in below as each variant fires)
