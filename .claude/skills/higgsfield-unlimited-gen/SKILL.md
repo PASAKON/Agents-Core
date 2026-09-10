@@ -862,6 +862,25 @@ useful "before" value: 450 struck through means the toggle is working; 450
   what's initially rendered; scroll to the true end and re-read before
   concluding "that's everything."
 
+
+- **Paste-only is not enough — the SOURCE of the bytes matters too.** An
+  operator on 2026-09-10 nearly fired S0b from a **hand-typed** base64 string
+  instead of the one its own extraction step had written to a file. It was
+  caught only because the landed text measured **4521 characters against 4513
+  in the source**, and it was caught before any chip check or Generate click.
+  A prompt corrupted this way passes every downstream check — chips still
+  bind, the price still reads zero, the clip still renders — and the defect
+  surfaces days later as "the model ignored the sheet".
+  **The rule: never hand-transcribe prompt bytes at any stage.** Extract the
+  PASTE block to a file, base64 it from that file, paste it, then read the
+  landed length back and compare it to the source length. Equal or clear and
+  redo. Length is the cheapest check there is and it is the only one that
+  catches a corrupted source.
+- **Clear a leftover video reference before a sheet that says "No previz".**
+  The reference tray survives a model switch and a re-paste. Remove it with
+  its hover-revealed × and confirm `document.querySelectorAll('video')`
+  returns nothing visible.
+
 ## The render-wait pattern (prevents silent DEV death)
 
 A DEV task once died with zero report and zero checkpoint ~34 minutes after
