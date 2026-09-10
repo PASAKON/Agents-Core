@@ -385,15 +385,20 @@ nothing that can be scored right or wrong**, so it satisfied them the cheapest
 way available — gestures — and left the blocking untouched. Position is
 expensive; hands are free.
 
-⚠️ **THE FIX BELOW IS PROPOSED, NOT PROVEN — it has one failure against it
-already.** v2 carried all four counted crossings verbatim and the take came back
-just as static: six people in two frozen sub-groups, identical relative positions
-from 0.5 s to 15.5 s, nobody passing anybody. Do not cite this as a solved
-problem. There is a confound worth chasing before blaming the wording: v2 also
-bound the wrong location (a corridor instead of a flat wall, §7a), and a corridor
-funnels a crowd into a clump — a wide wall may be what actually lets them spread.
-Whether the crossings work is still an open question as of 2026-09-11; update this
-section the day a take settles it either way.
+✅ **PROVEN 2026-09-11 — and the confound was the real story.** This fix looked
+dead: v2 carried all four counted crossings verbatim and came back exactly as
+static as the takes before it. The wording was not the problem. **v2 was also
+bound to the wrong location** — a corridor instead of a flat wall (§7a) — and a
+corridor funnels a crowd into a clump no instruction can undo. v3 changed the
+plate and nothing else about the crossings, and the group genuinely rearranged:
+the student crossed from far-left to front-centre by 4 s, Dupe walked from
+far-left to dead centre by 11 s, the magenta and cobalt pair swapped sides.
+
+**The lesson is bigger than the wording.** Before rewriting an instruction that
+failed, ask whether the SET can physically host what you are asking for. A
+narrow space, a deep corridor, a frame with one visual anchor — these stage a
+crowd for you, and they will beat any adjective and any counted list. **Staging
+is a location problem first and a prose problem second.**
 
 The proposed fix states the arrangement changes as **counted events with
 deadlines**:
