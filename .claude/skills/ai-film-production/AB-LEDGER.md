@@ -757,4 +757,8 @@ VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
 ## 2026-09-10 10:05 — S19 take 1 PASS (add-on, ending gag)
 - **S19 "THE PAINTING GOES BACK" t1** (chain 2, fired ~06:50 after a 1080p settings drift was caught, queued ~3 h in the European daytime jam, rendered ~09:55): CTO full-res review PASS — the square hole, Dupe alone with the cart, lifts the abstract painting from the rack, hangs it squarely over the hole (the hole disappears), steps back, straightens it by a fingertip, mops the dust; locked camera; no words. Filed Fix-2 `S19-ThePaintingGoesBack-Fix1.MP4` (md5 43497f0273b77946a58e29d3a791d624). Editor: insert at ~7:24 before the bookend, or as the last image.
 - Chain 2 complete (S3a t2 ✓, S2AW ✓, S2AP ✓, V1 split ✗ rejected, S19 ✓). V3 wide + S20 worker (task-a9adf20c) takes the slot next.
+## 2026-09-10 11:45 — CEO orders a paid A/B ladder for the auction rejections
+- CEO: "ลองแยกฉากประมูลมายิงเลน Create ให้เลย แล้วค่อยหยิบเข้าหยิบออกเพื่อหาสาเหตุจริง … ยิงกี่ครั้งก็ได้ เมื่อติดแล้วให้หยุด แล้วมาเทียบ Prompt" — credit lane (140 per passing fire; rejections refunded), fire variants one at a time, stop at the first rejection, compare.
+- Ladder: L0 = V2 faces sheet as-is (13 chips, expected rejection) → L1 = no bidder chips (prose) → L2 = + Carrington chip → L3 = + woman-in-green chip (= V2). First rejection names the variable. Sheets: `s2rf-lab-l1-…`, `s2rf-lab-l2-…`; L0/L3 = `s2rf-fix1-the-battle-faces.txt`.
+- V3 wide (free lane, task-a9adf20c) continues in parallel as the framing test.
 
