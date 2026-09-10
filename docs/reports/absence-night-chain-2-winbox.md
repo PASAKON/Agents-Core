@@ -327,6 +327,17 @@ Unlimited on, Generate `UNLIMITED / struck 70 / 0`.
 **Fired 2026-09-09T23:55:32Z (2026-09-10 06:55:32 ICT).** Toast "Generation started"; asset count
 765→766 (+1). Rendering.
 
+**Still "Processing" (never transitioned to "Generating") past 02:45 ICT — nearly 3 hours.**
+Confirmed genuinely stuck-in-queue, not a stale-tab illusion, via two independent fresh-tab
+checks (~81 min and ~154 min marks) that both agreed with the working tab. This coincides with
+the European/US daytime overlap window the skill documents as the platform's slowest (this is a
+10s single-shot clip with no video reference — nothing about the job itself explains the delay).
+Usage statistics show nothing anomalous (all-assets count correctly at 766, matching the fire;
+no unexpected credit spend). **Per task instruction, a job that has never shown "Generating" is
+QUEUED, not stuck-generating — the 90-minute cancel rule applies only to GENERATING, and a
+queued job is never cancelled or re-fired.** Continuing to poll on the 5-minute cadence without
+disturbing the composer or the job.
+
 ---
 
 ## Files changed
