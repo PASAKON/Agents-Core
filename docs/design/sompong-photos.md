@@ -1,7 +1,8 @@
 # SomPong family-photo backup to Drive
 
-Status: **Implemented (broker + filer), claudeflow side pending** · task-a1c618db
-(2026-09-10), root-filer fix task-4307c02c (2026-09-10) · design of record:
+Status: **Implemented (broker + filer + staging bridge), claudeflow side
+pending** · task-a1c618db (2026-09-10), root-filer fix task-4307c02c
+(2026-09-10), staging-copy fix task-29744f52 (2026-09-10) · design of record:
 org wiki `mooniex:projects/sompong-line.md` feature F2
 
 ## 1. Why
@@ -35,27 +36,86 @@ claudeflow container (Docker, on Contabo)
       │  onto the shared volume — SEPARATE TASK, not built here
       ▼
 /root/projects/mooniex-claudeflow/data/sompong/photos-outbox/   (host path,
-      │                                     bind-mounted into the container
-      │                                     at /app/data/sompong/photos-outbox)
+      │                                     under /root, bind-mounted into
+      │                                     the container at
+      │                                     /app/data/sompong/photos-outbox)
       │
       │  polled every SOMPONG_PHOTO_FILER_POLL_SECONDS (default 60s)
       ▼
-runners/sompong_photo_filer.py   (host process, NOT in Docker, no Drive
-      │                            credential of any kind)
+runners/sompong_photo_filer.py   (host process, NOT in Docker, runs as
+      │                            root, no Drive credential of any kind)
       │  verify sha256 → dedup against filed.json → month folder (Bangkok
-      │  time) → build the Drive filename → ask the broker to upload
+      │  time) → build the Drive filename → COPY the verified bytes into
+      │  the staging root under a name this process controls (task-29744f52)
+      ▼
+/var/lib/photoup/staging/<sha256><ext>   (owner root:photoup, mode 2770 dir
+      │                                    / 0640 file — OUTSIDE /root, so
+      │                                    the broker can actually reach it)
+      │
       ▼
 runners/drive_photo_broker.py's unix socket   (host process, its own
-      │                                         systemd unit, own system user)
-      │  SO_PEERCRED uid check → path-in-staging-root check → resolve-or-
-      │  create the month folder under the fixed root → upload → re-list
-      │  the destination folder to verify → respond ok/error
+      │                                         systemd unit, own system user
+      │                                         `photoup`)
+      │  SO_PEERCRED uid check → path-in-staging-root check (now the
+      │  staging root above, never the outbox) → resolve-or-create the
+      │  month folder under the fixed root → upload → re-list the
+      │  destination folder to verify → respond ok/error
       ▼
 Google Drive — "My Picture & Videos." / YYYY-MM/ <filename>
+      │
+      ▼ (only once the broker confirms ok: true)
+filer deletes BOTH the staged copy and the outbox pair, records the sha256
 ```
 
 Only the broker process ever holds the Drive OAuth credential. Neither the
-claudeflow container nor the filer ever sees it.
+claudeflow container, the filer, nor the staging copy in transit ever sees
+it.
+
+### Why a copy, not a shared mount or a loosened `/root` (task-29744f52)
+
+The gap this fixes, measured on Contabo right after task-4307c02c's fix was
+deployed: `mooniex-drive-photo-broker` still failed to start —
+`DRIVE_PHOTO_BROKER_STAGING_ROOT does not exist:
+/root/projects/mooniex-claudeflow/data/sompong/photos-outbox ([Errno 13]
+Permission denied)` — because that variable pointed straight at the outbox,
+and the outbox sits under `/root`, mode `0700`. Running the filer as root
+(task-4307c02c) fixed the filer's own read of the outbox; it did nothing for
+the broker, which is `photoup` — deliberately, since it holds the Drive
+credential and must stay unprivileged — and therefore still cannot traverse
+`/root` no matter what the outbox's leaf permissions say.
+
+The filer is the only process that can see both sides of that wall (root on
+one side, `photoup` on the other), so it becomes the bridge: it reads +
+verifies a pair in the outbox as it always did, then copies the bytes into
+`/var/lib/photoup/staging` — a directory that lives outside `/root` on
+purpose, owned `root:photoup`, mode `2770` — before ever asking the broker
+to upload. `DRIVE_PHOTO_BROKER_STAGING_ROOT` now points at that staging
+directory, never at the outbox; the broker's existing "resolve first, then
+check against the configured staging root" rule is unchanged, it is just
+finally satisfiable.
+
+Two alternatives were considered and rejected, for the same reasons
+task-4307c02c's own §3 already gives for the filer's uid:
+
+- **A shared bind mount / relocating the outbox so `photoup` can reach it
+  directly.** This is the claudeflow-side move §7's "Known open dependency"
+  used to point at — this task closes the gap from the host side instead,
+  which needs no change on the claudeflow/container side at all — a
+  coordinated change across two repos (this one and claudeflow's
+  docker-compose) buys nothing over a same-host copy the filer can make on
+  its own, today, without touching the container's mount contract.
+- **Loosening `/root`'s permissions** (`chmod 711 /root`, or an ACL granting
+  `photoup` traversal). Rejected for the identical reason task-4307c02c
+  rejected it for the filer's own access: `/root` guards every credential
+  file, systemd unit, and service user's home on the box behind that one
+  `0700` bit — spending that boundary to save one `cp` is a bad trade.
+
+The cost of the copy is a second, transient on-disk footprint per in-flight
+photo — bounded by the free-space guard (`SOMPONG_PHOTO_MIN_FREE_MB`,
+default 2048 MiB of headroom on top of the file's own size; a pair that
+would breach it is skipped, not failed, and retried next tick) and by the
+fact that the staged copy is removed immediately after every upload
+attempt, success or failure — it never accumulates.
 
 ## 3. Why the socket is not in the container
 
@@ -121,21 +181,21 @@ Rejected alternatives (recorded here so they are not re-litigated):
   credential file, systemd unit, and service user's home on the box sits
   behind that same `0700` bit.
 
-**What this does NOT fix: the broker's own access.** `runners/drive_photo_broker.py`
-keeps running as its own unprivileged `photoup` user — it is the process
-that holds the Drive OAuth credential, and that has not changed. `photoup`
-is therefore subject to the *exact same* `/root` traversal block the filer
-used to hit: every upload the broker is asked to perform requires it to
-`open()`/`stat()` a path under `/root/projects/...` directly (see
-`ilag_sync.upload()`), and no uid-allowlist change touches that. This is a
-pre-existing, already-tracked dependency (see "Known open dependency,
-claudeflow side" in §7 below) on relocating the outbox out from under
-`/root` entirely — not something task-4307c02c's uid/allowlist change
-claims to solve. Until that lands, expect `mooniex-drive-photo-broker` to
-keep failing to start with the same permission-denied error, while
-`mooniex-sompong-photo-filer` runs cleanly. Verify with:
-`sudo -u photoup test -r <outbox> && echo OK` (expected to still fail until
-the claudeflow-side relocation ships).
+**What this did NOT fix, at the time: the broker's own access.**
+`runners/drive_photo_broker.py` keeps running as its own unprivileged
+`photoup` user — it is the process that holds the Drive OAuth credential,
+and that has not changed. `photoup` was therefore subject to the *exact
+same* `/root` traversal block the filer used to hit: every upload the
+broker is asked to perform requires it to `open()`/`stat()` the path it is
+handed directly, and no uid-allowlist change touches that. Measured on
+Contabo exactly as predicted: `mooniex-drive-photo-broker` failed to start
+with `DRIVE_PHOTO_BROKER_STAGING_ROOT does not exist: .../photos-outbox
+([Errno 13] Permission denied)` while `mooniex-sompong-photo-filer` ran
+cleanly. **This residual gap is closed by task-29744f52** — see "Why a copy,
+not a shared mount or a loosened `/root`" above: the broker is no longer
+ever handed a path under `/root` at all, staged copies live in
+`/var/lib/photoup/staging` instead. Verify with:
+`sudo -u photoup test -r /var/lib/photoup/staging && echo OK`.
 
 The consequence: the container writes, a completely separate host process
 (the filer) drains, and only the filer ever talks to the broker. A container
@@ -253,20 +313,35 @@ Per pair, oldest `ts` first:
    hyphen). `D-M-YYYY` and `HHMM` are also Bangkok-local. `messageId` is
    appended raw, right before the extension, specifically so two photos
    sent in the same minute don't collide.
-5. **Upload**, through the broker only. Only once it responds `ok: true`
-   does the filer record the sha256 in `filed.json` (write-tmp + rename,
-   atomic) and only then delete the local pair. If the process dies between
-   those two writes, the next tick's dedup check (step 2) deletes the
-   still-present local pair as a duplicate instead of re-uploading it or
-   leaving it stranded — "never delete a file that hasn't been confirmed
-   uploaded" holds across a crash, not just the happy path.
-6. **Retry discipline**, same shape as `runners/secretary_waker.py`: a
-   failed upload leaves both files exactly where they were and bumps a
-   per-pair counter in `failcounts.json` (under the filer's own state dir,
-   never inside the outbox); a pair that fails `MAX_RETRIES` (default 5)
-   times in a row moves to `failed/` instead of retrying forever against a
-   paid API.
-7. **Single-flight**, a non-blocking `flock` — two ticks can never overlap,
+5. **Free-space guard** (task-29744f52): before staging, check the staging
+   filesystem has at least `SOMPONG_PHOTO_MIN_FREE_MB` (default 2048 MiB)
+   free on top of the file's own size — the staged copy briefly doubles the
+   file's on-disk footprint. Too little headroom skips the pair for this
+   tick (logged, not quarantined, not counted against `MAX_RETRIES`) and it
+   is retried next tick.
+6. **Stage** (task-29744f52): copy the verified bytes into
+   `DRIVE_PHOTO_BROKER_STAGING_ROOT` under `<sha256><ext>` — a name this
+   process derives itself, never a name or path fragment taken from the
+   message JSON — mode `0640`. This is the only directory the unprivileged
+   broker can reach; see "Why a copy" in §2 above.
+7. **Upload**, through the broker only, with the *staged* path — never the
+   outbox path. Only once it responds `ok: true` does the filer record the
+   sha256 in `filed.json` (write-tmp + rename, atomic) and only then delete
+   the outbox pair. If the process dies between those two writes, the next
+   tick's dedup check (step 2) deletes the still-present local pair as a
+   duplicate instead of re-uploading it or leaving it stranded — "never
+   delete a file that hasn't been confirmed uploaded" holds across a crash,
+   not just the happy path. The staged copy itself is removed immediately
+   after this step, success or failure — it never outlives one upload
+   attempt, so a crash mid-tick can never leave a family photo sitting in a
+   second place.
+8. **Retry discipline**, same shape as `runners/secretary_waker.py`: a
+   failed upload leaves both outbox files exactly where they were (the
+   staged copy is still removed per step 7) and bumps a per-pair counter in
+   `failcounts.json` (under the filer's own state dir, never inside the
+   outbox); a pair that fails `MAX_RETRIES` (default 5) times in a row moves
+   to `failed/` instead of retrying forever against a paid API.
+9. **Single-flight**, a non-blocking `flock` — two ticks can never overlap,
    and one bad tick logs and sleeps rather than killing the loop.
 
 ## 7. Deploy steps on Contabo
@@ -296,8 +371,12 @@ This creates (idempotently — re-running is safe):
   written with different permissions (it re-owns it from the now-removed
   `sompongphoto` to `root` if that is what it finds, without touching any
   pairs inside)
-- two systemd units, `mooniex-drive-photo-broker` and
-  `mooniex-sompong-photo-filer`, enabled and started
+- the staging directory (`/var/lib/photoup/staging`, owner `root:photoup`,
+  mode `2770`, task-29744f52) — unlike the outbox, always re-asserted on
+  every run, since it holds nothing but transient in-flight copies
+- two systemd units, `mooniex-drive-photo-broker` (now configured with
+  `DRIVE_PHOTO_BROKER_STAGING_ROOT` pointed at the staging directory above,
+  never the outbox) and `mooniex-sompong-photo-filer`, enabled and started
 
 Then, **the one manual step this script deliberately does not do**: create
 the broker's credential file by hand —
@@ -321,21 +400,27 @@ journalctl -u mooniex-drive-photo-broker -f     # confirm it's listening, no con
 journalctl -u mooniex-sompong-photo-filer -f    # confirm it's polling
 ```
 
-**Known open dependency, claudeflow side:** the outbox directory lives under
-`/root/projects/...`. `/root` is mode `700` on Contabo, which blocks every
-non-root user regardless of the leaf directory's own permissions. The filer
-(`runners/sompong_photo_filer.py`) is unaffected by this as of
-task-4307c02c — it runs as root (see §3 above), so it always traverses
-`/root` regardless of that mode. **The broker (`runners/drive_photo_broker.py`,
-running as `photoup`) is still blocked by it** — every upload it is asked to
-perform requires it to open a path under `/root/projects/...` directly, and
-nothing about the filer's uid changes that. `scripts/install-photo-broker.sh
-install` prints a one-line check for this (`sudo -u photoup test -r
-<outbox> && echo OK`) but does not attempt to fix `/root`'s permissions
-itself, since loosening them is a host-wide security decision outside this
-task's scope (see §3's rejected alternatives). Resolving it belongs to the
-claudeflow-side task that relocates the outbox out from under `/root`
-entirely.
+**Proof the staging fix actually closed the permission gap** (also printed
+at the end of `install-photo-broker.sh install`):
+
+```bash
+sudo -u photoup test -r /var/lib/photoup/staging && echo OK
+systemctl is-active mooniex-drive-photo-broker
+systemctl is-active mooniex-sompong-photo-filer
+```
+
+Expect `OK` and `active` on all three — this is the check that used to fail
+(see "Why a copy, not a shared mount or a loosened `/root`" in §3 above) and
+now cannot, since `photoup` was never asked to traverse `/root` in the first
+place.
+
+**Resolved dependency (task-29744f52):** an earlier version of this
+document tracked, here, an open dependency on a claudeflow-side change to
+relocate the outbox out from under `/root` before the broker could start.
+That dependency is now closed from the host side instead — the broker never
+opens a path under `/root` at all, regardless of where claudeflow's outbox
+ends up living. No claudeflow-side change is required for the broker to
+work.
 
 ## 8. What this task does not do
 
