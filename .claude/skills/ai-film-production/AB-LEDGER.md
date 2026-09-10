@@ -754,4 +754,7 @@ VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
 ## 2026-09-10 06:50 — S2R-F V1 split REJECTED (copyright) → V3 wide queued · add-on S20
 - **S2R-F SPLIT t1** (chain 2, fired ~06:05 with previz + 14 chips, rejected ~06:44): card "NSFW · Credits refunded · Rejected due to copyright restrictions." — third rejection for this scene, all on large-face framings (V2 close-ups ×2, V1 five strips). Not re-fired. **S2R-W wide (13 chips, no close-up) goes next** on a new worker after chain 2's S19.
 - Add-on #2 written: **S20 THE WALL ON A PLINTH** (8 s; the cut-out square with the crack exhibited on a plinth, two guards flanking, Dupe mopping round it) — queued after S2R-W.
+## 2026-09-10 10:05 — S19 take 1 PASS (add-on, ending gag)
+- **S19 "THE PAINTING GOES BACK" t1** (chain 2, fired ~06:50 after a 1080p settings drift was caught, queued ~3 h in the European daytime jam, rendered ~09:55): CTO full-res review PASS — the square hole, Dupe alone with the cart, lifts the abstract painting from the rack, hangs it squarely over the hole (the hole disappears), steps back, straightens it by a fingertip, mops the dust; locked camera; no words. Filed Fix-2 `S19-ThePaintingGoesBack-Fix1.MP4` (md5 43497f0273b77946a58e29d3a791d624). Editor: insert at ~7:24 before the bookend, or as the last image.
+- Chain 2 complete (S3a t2 ✓, S2AW ✓, S2AP ✓, V1 split ✗ rejected, S19 ✓). V3 wide + S20 worker (task-a9adf20c) takes the slot next.
 
