@@ -12,6 +12,24 @@ host `/root/projects/mooniex-claudeflow/data`) and this HOST process --
 outside Docker, never touching the credential itself -- drains that outbox
 through the photo broker's socket.
 
+Runs as root (task-4307c02c, 2026-09-10): the outbox sits under
+/root/projects/mooniex-claudeflow/data/..., and /root is mode 0700 on
+Contabo -- no non-root uid can ever traverse into it, no matter what the
+leaf outbox directory's own permissions say (measured: `sudo -u
+sompongphoto test -r <outbox>` failed even though the leaf itself was
+group-writable to that user). Root already owns this whole box -- the
+credential files, systemd, and every service user, this one included -- so
+a process that can read /root/projects grants a host-root compromise
+nothing it did not already have; see docs/design/sompong-photos.md and
+runners/drive_photo_broker.py's own docstring ("CONTAINMENT BOUNDARY,
+PRECISELY") for the full reasoning and the alternatives that were rejected.
+Running as root is exactly why every path this loop is about to open is
+resolved and checked against OUTBOX first (`_resolves_inside_outbox()`,
+same resolve-then-check discipline drive_photo_broker.py already uses for
+its own upload paths) -- a symlink dropped into the outbox pointing
+anywhere else on the host must never be followed, since root would happily
+read (or quarantine-move) whatever it points at otherwise.
+
     claudeflow container -> writes <id>.bin + <id>.json pair
                                     |
                           this loop notices it (poll)
@@ -230,10 +248,38 @@ def _bin_path_for(json_path: Path) -> Path:
     return json_path.with_name(json_path.stem + ".bin")
 
 
+# Prefix on the `parse_error` slot _load_pair() returns for a path that fails
+# this check, so _process_one() can log/count it distinctly from an actually
+# corrupt JSON body without changing the tuple shape either function passes
+# around.
+_SYMLINK_ESCAPE_PREFIX = "symlink escape: "
+
+
+def _resolves_inside_outbox(path: Path) -> bool:
+    """True iff `path` exists and its FULLY RESOLVED (symlinks followed)
+    location is inside OUTBOX. This loop runs as root (task-4307c02c), so it
+    can open anything on the host if it blindly follows wherever a symlink
+    dropped into the outbox happens to point -- every path this loop is
+    about to open is checked here first, the same resolve-then-check
+    discipline runners/drive_photo_broker.py already uses for its own
+    upload paths."""
+    try:
+        resolved = path.resolve(strict=True)
+    except OSError:
+        return False
+    try:
+        resolved.relative_to(OUTBOX.resolve())
+    except ValueError:
+        return False
+    return True
+
+
 def _load_pair(json_path: Path) -> tuple[str, Path, Path, dict | None, str | None]:
     """(id, json_path, bin_path, data_or_None, parse_error_or_None)."""
     stem = json_path.stem
     bin_path = _bin_path_for(json_path)
+    if not _resolves_inside_outbox(json_path):
+        return stem, json_path, bin_path, None, f"{_SYMLINK_ESCAPE_PREFIX}.json resolves outside the outbox"
     try:
         data = json.loads(json_path.read_text(encoding="utf-8"))
     except Exception as e:  # noqa: BLE001 -- any parse failure is "corrupt", not a crash
@@ -304,7 +350,13 @@ def _quarantine(json_path: Path, bin_path: Path) -> None:
     failed_dir.mkdir(parents=True, exist_ok=True)
     for p in (json_path, bin_path):
         try:
-            if p.exists():
+            # is_symlink() first: p.exists() follows symlinks and reports
+            # False for a dangling one, which would otherwise leave a
+            # malicious/broken symlink sitting in the outbox forever,
+            # re-glob'd and re-quarantine-attempted (but never actually
+            # moved) every tick. rename() itself never follows the link --
+            # it moves the symlink, not whatever it points at.
+            if p.is_symlink() or p.exists():
                 p.rename(failed_dir / p.name)
         except OSError as e:
             _log().error("could not quarantine %s: %s", p, e)
@@ -382,12 +434,21 @@ def _process_one(item: tuple[str, Path, Path, dict | None, str | None],
     if parse_error is not None:
         _quarantine(json_path, bin_path)
         failcounts.pop(stem, None)
+        if parse_error.startswith(_SYMLINK_ESCAPE_PREFIX):
+            _log().error("photo pair %s: %s -- quarantined", stem, parse_error)
+            return "quarantined_symlink_escape"
         _log().error("photo pair %s: corrupt JSON (%s) -- quarantined", stem, parse_error)
         return "quarantined_corrupt"
 
     if not bin_path.exists():
         _log().debug("photo pair %s: .json present but .bin missing -- skipping this tick", stem)
         return "skipped_incomplete"
+
+    if not _resolves_inside_outbox(bin_path):
+        _quarantine(json_path, bin_path)
+        failcounts.pop(stem, None)
+        _log().error("photo pair %s: .bin resolves outside the outbox (symlink?) -- quarantined", stem)
+        return "quarantined_symlink_escape"
 
     sha_expected = data.get("sha256")
     try:

@@ -1,8 +1,8 @@
 # SomPong family-photo backup to Drive
 
 Status: **Implemented (broker + filer), claudeflow side pending** · task-a1c618db
-(2026-09-10) · design of record: org wiki `mooniex:projects/sompong-line.md`
-feature F2
+(2026-09-10), root-filer fix task-4307c02c (2026-09-10) · design of record:
+org wiki `mooniex:projects/sompong-line.md` feature F2
 
 ## 1. Why
 
@@ -73,15 +73,69 @@ and in `scripts/install-photo-broker.sh`, not just by convention:
    files onto a bind-mounted volume claudeflow's compose already has
    (`./data:/app/data`) and does nothing else. It has no socket path, no
    broker address, no way to ask for an upload directly.
-2. **Uid 0 is never added to the broker's allowlist**, on either side of the
-   container boundary. Whatever uid the claudeflow container's process runs
-   as (root-in-container is common for Node images unless a compose `user:`
-   directive says otherwise) is irrelevant to the broker, because the
-   container can never reach the socket at all — but even if some future
-   change tried to change that, uid 0 must never appear in
-   `DRIVE_PHOTO_BROKER_ALLOWED_UIDS`. The one uid on that list is the host
-   filer service's own dedicated system user (`sompongphoto`), created by
-   the install script specifically so it is never root.
+2. **The claudeflow container's uid must never appear in the broker's
+   allowlist.** Whatever uid the container's process runs as (root-in-
+   container is common for Node images unless a compose `user:` directive
+   says otherwise) is irrelevant to the broker, because — per rule 1 above —
+   the container can never reach the socket at all. That property does not
+   depend on uid, and it is unaffected by uid 0 appearing in
+   `DRIVE_PHOTO_BROKER_ALLOWED_UIDS` for a completely different reason (the
+   host filer, next section).
+
+### Why the host filer is allowed to run as root (task-4307c02c, 2026-09-10)
+
+Measured on Contabo just after `install-photo-broker.sh install` first ran:
+`/root` is mode `0700`, owned by `root`. No non-root uid can ever traverse
+into it, no matter what the outbox's own leaf directory permissions say —
+`sudo -u sompongphoto test -r <outbox>` failed even though the leaf itself
+was group-writable to that user, and the broker's own `journalctl` showed
+the identical failure (`DRIVE_PHOTO_BROKER_STAGING_ROOT does not exist ...
+[Errno 13] Permission denied`) for the same reason. Both new units were
+dead on arrival.
+
+**The fix: `runners/sompong_photo_filer.py` runs as `root`, and `0` was
+added to the photo broker's uid allowlist** (`DRIVE_PHOTO_BROKER_ALLOWED_UIDS`)
+so the broker accepts the now-root filer's socket connection. That reads
+like a weakening, so here is the reasoning, on the record, rather than left
+implicit:
+
+The property this broker exists to protect is **a compromise of the
+claudeflow *container* must not reach the CEO's Drive.** That property is
+unaffected by this change — the container still has no socket, no
+credential, and no network path to either broker; it can only drop files
+onto a disk it already writes to. **Host root is a different matter.** On
+this box root already owns `/root/projects`, the credential files on disk,
+systemd, and every service user (`photoup` included) — a host-root
+compromise has the Drive regardless of which uid the filer runs as.
+Spending a uid boundary that root can cross at will, in exchange for a
+mount/permission puzzle across a `0700` home directory, buys nothing.
+
+Rejected alternatives (recorded here so they are not re-litigated):
+
+- **Moving the outbox to `/var/lib/...` plus a new bind mount in
+  `docker-compose.webhook.yml`.** Works, but adds a mount and a second path
+  convention to keep in sync across two repos (this one and claudeflow's)
+  for no security gain over running the filer as root.
+- **`chmod 711 /root` or an ACL granting a service user `x` on `/root`.**
+  Loosens a directory that guards far more than this one feature — every
+  credential file, systemd unit, and service user's home on the box sits
+  behind that same `0700` bit.
+
+**What this does NOT fix: the broker's own access.** `runners/drive_photo_broker.py`
+keeps running as its own unprivileged `photoup` user — it is the process
+that holds the Drive OAuth credential, and that has not changed. `photoup`
+is therefore subject to the *exact same* `/root` traversal block the filer
+used to hit: every upload the broker is asked to perform requires it to
+`open()`/`stat()` a path under `/root/projects/...` directly (see
+`ilag_sync.upload()`), and no uid-allowlist change touches that. This is a
+pre-existing, already-tracked dependency (see "Known open dependency,
+claudeflow side" in §7 below) on relocating the outbox out from under
+`/root` entirely — not something task-4307c02c's uid/allowlist change
+claims to solve. Until that lands, expect `mooniex-drive-photo-broker` to
+keep failing to start with the same permission-denied error, while
+`mooniex-sompong-photo-filer` runs cleanly. Verify with:
+`sudo -u photoup test -r <outbox> && echo OK` (expected to still fail until
+the claudeflow-side relocation ships).
 
 The consequence: the container writes, a completely separate host process
 (the filer) drains, and only the filer ever talks to the broker. A container
@@ -97,7 +151,9 @@ pattern, not a change to the first one: separate systemd units
 (`mooniex-drive-photo-broker` / `mooniex-sompong-photo-filer` vs. the
 existing `mooniex-drive-broker`), separate socket
 (`/run/photoup/photo-broker.sock` vs. `/run/driveup/drive-broker.sock`),
-separate system users (`photoup`/`sompongphoto` vs. `driveup`/`secretary`),
+separate system users (`photoup`/root vs. `driveup`/`secretary` — the filer
+ran as its own dedicated `sompongphoto` user until task-4307c02c moved it to
+root, see §3),
 separate env var prefix (`DRIVE_PHOTO_BROKER_*` vs. `DRIVE_BROKER_*`), and a
 separate fixed Drive folder (`My Picture & Videos.` vs. `Desktop Cloud`).
 `scripts/install-photo-broker.sh` hardcodes the existing broker's constants
@@ -227,14 +283,19 @@ sudo scripts/install-photo-broker.sh install
 
 This creates (idempotently — re-running is safe):
 
-- system users `photoup` (broker) and `sompongphoto` (filer, added to the
-  `photoup` group so it can reach the socket)
+- system user `photoup` (broker — holds the Drive credential, never root).
+  The filer runs as `root` (task-4307c02c, see §3) and needs no dedicated
+  system user of its own; re-running the script tears down the old
+  `sompongphoto` account and its home dir if a prior install left one behind
+  (and says so either way — removed, or already absent)
 - the outbox directory if it doesn't already exist
   (`/root/projects/mooniex-claudeflow/data/sompong/photos-outbox`, owner
-  `sompongphoto:photoup`, mode `2770`) — **if it already exists** (e.g. the
+  `root:photoup`, mode `2770`) — **if it already exists** (e.g. the
   claudeflow-side task created it first), the script leaves ownership/mode
   alone and prints what it found, since it may already hold live pairs
-  written with different permissions
+  written with different permissions (it re-owns it from the now-removed
+  `sompongphoto` to `root` if that is what it finds, without touching any
+  pairs inside)
 - two systemd units, `mooniex-drive-photo-broker` and
   `mooniex-sompong-photo-filer`, enabled and started
 
@@ -261,17 +322,20 @@ journalctl -u mooniex-sompong-photo-filer -f    # confirm it's polling
 ```
 
 **Known open dependency, claudeflow side:** the outbox directory lives under
-`/root/projects/...`. If `/root` (or an intermediate directory) is not
-traversable by `sompongphoto` — the common Linux default for `/root` is mode
-`700`, which blocks every non-root user regardless of the leaf directory's
-own permissions — the filer will never be able to read what claudeflow
-writes there, no matter what this install script sets on the leaf directory
-itself. `scripts/install-photo-broker.sh install` prints a one-line check
-for this (`sudo -u sompongphoto test -r <outbox> && echo OK`) but does not
-attempt to fix `/root`'s permissions itself, since loosening them is a
-host-wide security decision outside this task's scope. Resolving it belongs
-to the claudeflow-side task that actually makes the container write pairs
-into this path.
+`/root/projects/...`. `/root` is mode `700` on Contabo, which blocks every
+non-root user regardless of the leaf directory's own permissions. The filer
+(`runners/sompong_photo_filer.py`) is unaffected by this as of
+task-4307c02c — it runs as root (see §3 above), so it always traverses
+`/root` regardless of that mode. **The broker (`runners/drive_photo_broker.py`,
+running as `photoup`) is still blocked by it** — every upload it is asked to
+perform requires it to open a path under `/root/projects/...` directly, and
+nothing about the filer's uid changes that. `scripts/install-photo-broker.sh
+install` prints a one-line check for this (`sudo -u photoup test -r
+<outbox> && echo OK`) but does not attempt to fix `/root`'s permissions
+itself, since loosening them is a host-wide security decision outside this
+task's scope (see §3's rejected alternatives). Resolving it belongs to the
+claudeflow-side task that relocates the outbox out from under `/root`
+entirely.
 
 ## 8. What this task does not do
 
