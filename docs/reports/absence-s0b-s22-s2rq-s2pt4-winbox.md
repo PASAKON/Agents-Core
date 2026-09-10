@@ -499,13 +499,75 @@ Unlimited by pixel zoom (`~~140~~ · 0`), fired.
   203→204. $0 charged.
 - Awaiting render. Will harvest, report, and re-fire again per the loop.
 
-## Checkpoint — 2026-09-10T18:38 UTC (2026-09-11 01:38 ICT)
+### CTO closed both S2PT take-4 open questions — see above; and the CEO redesigned S2AC after seeing take 1
 
-Queue status: S22/S2R-Q/S2PT take 4 all harvested and reviewed (strong
-PASSes, take 4 confirmed by CTO). S2AC take 1 harvested and reviewed (one
-real content finding: chaos phase reads too static, flagged not fixed).
-S2AC take 2 fired, rendering. Grant deadline 06:59 ICT, ~5.3h out. Looping
-S2AC takes per the CTO's standing instruction until the grant expires or
+Mid-loop, the CTO relayed that the CEO watched take 1 and liked it
+("อันนี้ดีมากเลย" — keep it, not a failure) but ordered five changes,
+landed as sheet v2 (`a82fe68`, pulled via
+`git checkout origin/main -- docs/prompts/absence/s2ac-fix2-the-interpretations-chaos.txt`
+and committed at `50f4d88`): camera now faces the wall
+(`@project_absence_loc_hall_big_d`, not `_e` — the reverse angle), the
+crack is back but must not be described (the reference owns it), the
+cart is put away (`prop_cart_a_painted` unbound), the door/registrar move
+behind the camera (`char_registrar` unbound; heads turn TO the lens at
+16s, banned from looking at it before then — the exact inverse of take
+1's rule), and the woman in fur cries continuously through the freeze
+while the man in maroon dabs her tears instead of heading for the door.
+Chips drop from 9 to 7. **Directly credited**: my take-1 finding (chaos
+read as a posed group) is why v2 replaces "never settles" with four
+explicit timed crossings (student crosses by 5s, magenta/cobalt swap
+sides by 8s, Dupe mops across by 12s, student crosses back by 15s) — an
+explicit, checkable choreography instead of a vague instruction.
+
+**Stopped re-firing the old S2AC sheet immediately** on receiving this —
+S2AC take 2 (asset `0481c314-f717-462d-84ab-7b36a1654212`, fired
+`2026-09-10T18:34:32Z` before the redesign landed) was already in flight;
+per instruction, let it finish and kept it, but it is superseded and not
+reviewed in detail below (the review effort goes to v2 from here).
+
+- **Take 2 harvest** (kept, superseded, brief record only): path
+  `C:\Users\UsEr\Downloads\hf_20260910_183419_0481c314-f717-462d-84ab-7b36a1654212.mp4`,
+  20,804,571 bytes, MD5 `942ccc3a46ac4421330bda5ad693b79f`, 1280×720 @
+  24fps, 19.96s. Not reviewed frame-by-frame — same old sheet as take 1,
+  superseded before it rendered.
+
+### S2AC v2 (take 1 of the new sheet) — FIRED
+
+- Lint clean. Extraction: 9251 chars, 39 lines / multi-paragraph
+  (flattened correctly per-paragraph by the fixed extractor), **7/7
+  unique `@` mentions each exactly once** — matches the new "Chips: 7"
+  exactly, confirmed no `prop_cart_a_painted` or `char_registrar` present.
+- Composer had 0 leftover video chip (v2 never used one) — confirmed
+  `videos === 0` before pasting, no removal step needed this time.
+- Landed `innerText` 9308 vs source 9251 — same benign Lexical paragraph-
+  break artifact as before; normalizing runs of 2+ newlines to exactly 2
+  reproduces the source exactly (9251 = 9251), head/tail byte-identical.
+- Chips: **7/7 unique, 0 error chips** — `@project_absence_loc_hall_big_d`,
+  `@project_absence_char_cleaner_c`, `@project_absence_char_critic_b`,
+  `@project_absence_char_student_c`, `@project_absence_char_woman`,
+  `@project_absence_char_visitor_b`, `@project_absence_char_visitor_a`.
+- Duration confirmed 20s via the visible settings-row label (decoy check:
+  a hidden button also matched `/^\d+s$/` reading "5s" — filtered to the
+  visible one, same decoy-element pattern documented throughout this
+  session).
+- Unlimited: pixel zoom confirmed `UNLIMITED · ~~140~~ · 0` immediately
+  before the click (toggle had persisted `true` on this tab since take 2,
+  no reload happened).
+- **Fired** at `2026-09-10T19:27:38Z` (2026-09-11 02:27:38 ICT). New asset
+  id `685bacf3-014d-4058-bea6-bda074ed7da1`.
+- **Usage History re-checked**: cost unchanged, "Total generations"
+  204→205. $0 charged.
+- Awaiting render.
+
+## Checkpoint — 2026-09-10T19:29 UTC (2026-09-11 02:29 ICT)
+
+Queue status: S22/S2R-Q/S2PT take 4 harvested and reviewed (strong
+PASSes, take 4 confirmed by CTO). S2AC take 1 (old sheet) harvested and
+reviewed — kept, PASS in the CEO's eyes, drove the v2 redesign. S2AC take
+2 (old sheet) harvested but not reviewed in detail — superseded before it
+rendered, kept per instruction. **S2AC v2 fired and rendering** — this is
+the live take to review next. Grant deadline 06:59 ICT, ~4.5h out.
+Looping v2 per the CTO's standing instruction until the grant expires or
 context tightens; will report each asset id as it fires/completes and
 stop with a plain handoff (exact next action + composer state) if context
 gets tight before then.
