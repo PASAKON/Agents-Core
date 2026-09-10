@@ -160,4 +160,72 @@ not re-firing, per the brief.
   no digits.
 - Fired: **2026-09-10T11:01:09Z**. Toast "Generation started" confirmed. Asset count 777 → 778.
 
+### Variant C — harvest
+
+- Asset id (preview URL): `badf8554-9b99-4785-99a7-221f144eb3b1`
+- Downloaded filename: `hf_20260910_110103_82b902fd-02ba-4c02-84ab-89cfe151fb7c.png`
+- Path: `C:\Users\UsEr\Downloads\hf_20260910_110103_82b902fd-02ba-4c02-84ab-89cfe151fb7c.png`
+- Bytes: 4,545,344 · MD5: `91f2954b2968895a00766d57237e20c0`
+- Model (per asset Details panel): **Kling O1 Image**, Quality 2K, Size 2720x1536
+- Created (per panel): September 10, 2026 at 6:01 PM
+- Copied into repo as `docs/reports/plate-tv-wall/variant-c.jpg` (ffmpeg re-encode, 295,304 bytes)
+
+### Variant C — REVIEW (PASS/FAIL per item)
+
+1. **NOBODY in the picture** — PASS. No shopper, passer-by, silhouette, or reflection of a
+   person anywhere. Warm string-lights bokeh visible behind the glass (atmosphere, not a person).
+2. **Arrangement matches brief (stepped pyramid, centred, symmetrical)** — PASS. Clean three-tier
+   structure: 5 large sets along the bottom, 6 medium sets in the middle band, 1 small portable
+   alone at the apex — biggest at bottom, tapering up, visually left-right balanced.
+3. **No two televisions identical** — PASS. Zoomed the bottom+middle rows: every cabinet differs
+   in wood tone, trim and proportions; no exact repeats spotted (unlike variants A and B).
+4. **Every screen lit, same soft broadcast** — PASS, explicitly zoom-checked: the dark
+   side-panels next to several sets are integrated speaker grilles that are part of that
+   console's own cabinet (a real period TV/radiogram design), not separate blank units like
+   variant B's defect — every actual television in the stack, apex included, shows a lit screen
+   with the same warm out-of-focus figure-behind-a-desk broadcast.
+5. **No readable text/letters/numbers/logo** — PASS at the resolution checked (full-frame screenshot
+   plus one successful zoom of the lower two rows). A second zoom attempt for an even closer check
+   of individual screens/bezels timed out twice (`CDP sendCommand "Page.captureScreenshot"`,
+   Usage History checked and confirmed unaffected both times per hard rule) and was not retried a
+   third time per the browser-operator stop rule; no word resolved in any view that did succeed.
+6. **Warm amber dusk palette, wet pavement, not cold/night-black** — PASS. Amber cast throughout,
+   wet pavement visible, warm string-lights add to the mood without reading as neon/cold.
+
+**Net: 6/6 PASS.** This is the cleanest of the three variants — no structural defects found at
+the resolution this operator could inspect.
+
+## Summary table
+
+| Variant | Model | Generate reading | Fired (UTC) | PASS/FAIL |
+|---|---|---|---|---|
+| A · SECOND-HAND SHOP | Kling O1 Image | `UNLIMITED` | 2026-09-10T10:43:57Z | 5/6 (dup TVs) |
+| B · ORDERED VARIETY | Kling O1 Image | `UNLIMITED` | 2026-09-10T10:52:01Z | 4/6 (wrong grid, blank cells) |
+| C · STEPPED PYRAMID | Kling O1 Image | `UNLIMITED` | 2026-09-10T11:01:09Z | 6/6 |
+
+No `@Element` was created or registered for any variant, per the brief — the CEO chooses first.
+Nothing was deleted. The other operator's tab (task-fc063e0e, 1638444940) and its video-lane
+cards were never opened, clicked, or read at any point in this session.
+
+## Closing opinion (this operator's read — the CEO decides)
+
+**Variant C (STEPPED PYRAMID) is my pick.** It's the only one of the three with zero defects
+found: a genuinely symmetrical stepped structure, no two sets alike, and — critically — every
+single unit in the stack is an actual lit television, which is exactly where variant B broke
+down (5 of its 24 grid cells turned out to be blank cabinet panels with no screen at all, and
+the grid itself came out 8×3 instead of the requested 4×4). Variant A is a close, honest
+second — it nails the second-hand-shop chaos the brief asked for, and its one flaw (several
+near-identical black-cased TVs repeating within the ~24-set wall) is a much smaller miss than
+B's. If the CTO's stated preference for B ("variety held inside strict symmetry") still matters
+to the CEO, B would need at least one more generation before it's usable — as delivered, nearly
+a quarter of its "sixteen televisions" aren't televisions.
+
+## Tab / registry cleanup
+
+- Tab 1638444944 (collapsed to 120x79 mid-session): released and closed per the viewport-collapse
+  rule.
+- Tab 1638444954 (final working tab, held all three fires + harvests): released and closed at the
+  end of this session via `tab_registry.py done task-7219577b`.
+- No diagnostic tabs (Usage History checks, closed immediately after each read) were left open.
+
 (status in progress — filling in below as each variant fires)
