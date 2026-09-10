@@ -34,22 +34,25 @@ LINE = [
     ("BODYGUARD", 3.10, +0.60, 1.94),   # a pace behind his employer
     ("GUARD_V1",  1.00, +0.80, 1.84),   # tall and thin
     ("GUARD_V2",  2.40, -0.30, 1.76),   # short and heavy
-    ("DUPE",      0.60, -3.60, 1.80),   # BEHIND his cart and pushing it — the cart leads him by 0.7 m.
+    ("DUPE",      0.60, -2.90, 1.80),   # BEHIND his cart and pushing it — the cart leads him by 0.7 m.
                                         # CEO 2026-09-10: takes 1-3 all had Dupe walking AHEAD of the cart
                                         # because this dy used to be -2.90 while the cart sat at -3.60.
                                         # Dupe must always be the SMALLER dy of the two — the party walks +Y.
+                                        # First attempt swapped the two values and pushed Dupe OFF FRAME at
+                                        # -3.60 (only his label rendered). So the CART moved forward to -2.20
+                                        # instead and Dupe kept -2.90, his known in-frame mark.
 ]
 people = []
 for name, x, dy, h in LINE:
     ob = spawn_char(col, name, (x, BASE + dy), h=h, prefix="s2pt")
     people.append((ob, x, dy))
-build_cart(col, (-0.15, BASE - 2.90), prefix="s2pt", with_painting=True)
+build_cart(col, (-0.15, BASE - 2.20), prefix="s2pt", with_painting=True)
 cart = bpy.data.objects.get("s2pt_cart_base")
 if cart:
     for o in bpy.data.objects:
         if o.name.startswith("s2pt_cart_") and o is not cart:
             o.parent = cart; o.matrix_parent_inverse = cart.matrix_world.inverted()
-    box("s2pt_painting", (-0.15, BASE - 2.50, 1.35), (0.80, 0.05, 0.72), (0.45, 0.45, 0.45, 1)).parent = cart
+    box("s2pt_painting", (-0.15, BASE - 1.80, 1.35), (0.80, 0.05, 0.72), (0.45, 0.45, 0.45, 1)).parent = cart
 
 # the mustard armchair on its blue rug, against the far side of the hall (x=3.6, behind
 # the far column line). Fixed objects enter at the frame's LEFT edge and drift right as
@@ -77,8 +80,8 @@ for ob, x, dy in people:
     key(ob, 1,   x, BASE + dy)
     key(ob, 480, x, BASE + dy + TRAVEL)
 if cart:
-    key(cart, 1,   -0.15, BASE - 2.90)
-    key(cart, 480, -0.15, BASE - 2.90 + TRAVEL)
+    key(cart, 1,   -0.15, BASE - 2.20)
+    key(cart, 480, -0.15, BASE - 2.20 + TRAVEL)
 sc.frame_set(1);   cam.location = CAM0;                                    cam.keyframe_insert("location", frame=1)
 sc.frame_set(480); cam.location = (CAM0[0], CAM0[1] + TRAVEL, CAM0[2]);   cam.keyframe_insert("location", frame=480)
 
