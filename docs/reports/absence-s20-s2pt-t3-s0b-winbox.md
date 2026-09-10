@@ -352,6 +352,13 @@ recorded as a likely environment/system issue on this winbox host, not
 something this task caused. **~19:29 ICT / 12:29 UTC, ~139 min since S2PT
 fire, still `queued`/"Processing".**
 
+**20:02 ICT (13:02 UTC) checkpoint: S2PT still `queued`/"Processing", ~172
+min (2h52m) since fire.** No further tab freezes/losses since the 19:29
+incident. Decision unchanged: keep waiting, do not cancel/re-fire (same
+reasoning as the ~90-min mark — this account's whole queue has been running
+multi-hour delays today, S20 took 193 min). No stray charges — Usage History
+still shows only the one Seedance 2.5 Unlimited entry from the 5:10 PM fire.
+
 ## Phase 3 — S0b
 
 Not started. Lint pre-checked clean, `--chips` expects 3:
