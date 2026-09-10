@@ -96,6 +96,17 @@ push again the moment it resolves.
   own rules may be unreachable in practice, and CEO guidance may be needed on whether ~3h+ queued
   jobs should ever be cancelled.** Continuing to poll regardless; not treating this as a BLOCKER
   yet since the instruction is unambiguous and I am following it, not stuck on how to proceed.
+- **05:50 UTC (12:50 ICT) — filing BLOCKER.md and stopping.** Status unchanged (`queued`,
+  ~168 min). As a remote worker I have no way to receive a reply inside this session, and
+  "anything unexpected" is on my own stop-and-ask list — a 3-hour-and-counting queued job with no
+  progress signal on this build is unexpected. Rather than poll indefinitely with no way to learn
+  of a CTO/CEO decision, I'm pushing a clear blocker with full resumable state (tab claimed, S20
+  staged 4/4 chips, both sheets linted) and stopping per `WORKER.md`. See `BLOCKER.md` for the
+  decision this needs.
+
+## Final status: BLOCKED — see `BLOCKER.md`. S2R-W not fired by me (pre-existing job from
+task-a9adf20c still queued after ~3h). S20 fully staged, not fired (waiting on Scene 1 to leave
+the slot per the brief). No harvest performed — neither scene has completed.
 
 ## Files changed
 - `docs/reports/absence-s2rw-s20-t1-winbox.md` (this file)
