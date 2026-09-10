@@ -34,7 +34,10 @@ LINE = [
     ("BODYGUARD", 3.10, +0.60, 1.94),   # a pace behind his employer
     ("GUARD_V1",  1.00, +0.80, 1.84),   # tall and thin
     ("GUARD_V2",  2.40, -0.30, 1.76),   # short and heavy
-    ("DUPE",      0.60, -2.90, 1.80),   # BEHIND his cart and pushing it — the cart leads him by 0.7 m.
+    ("DUPE",     -0.15, -2.90, 1.80),   # BEHIND his cart and pushing it — the cart leads him by 0.7 m.
+                                        # x MATCHES the cart's x: at 0.60 he sat 0.75 m deeper than it and
+                                        # the cart hid him completely from this side-on camera (measured
+                                        # 2026-09-10: DUPE screen 0.76/0.32 depth 6.00 behind cart depth 5.25).
                                         # CEO 2026-09-10: takes 1-3 all had Dupe walking AHEAD of the cart
                                         # because this dy used to be -2.90 while the cart sat at -3.60.
                                         # Dupe must always be the SMALLER dy of the two — the party walks +Y.
