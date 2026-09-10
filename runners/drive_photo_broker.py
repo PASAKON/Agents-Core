@@ -85,8 +85,16 @@ systemd unit, never by this code):
                                         (required)
     DRIVE_PHOTO_BROKER_STAGING_ROOT    the only directory tree uploadable
                                         paths may resolve into (required) --
-                                        the shared claudeflow photo outbox
-                                        (SOMPONG_PHOTO_OUTBOX)
+                                        NOT the claudeflow outbox (this
+                                        unprivileged user cannot traverse
+                                        /root at all): a separate directory
+                                        (default /var/lib/photoup/staging,
+                                        task-29744f52) that the root-run
+                                        filer copies verified bytes into
+                                        before calling this broker -- see
+                                        runners/sompong_photo_filer.py's
+                                        "Staging copy" docstring section and
+                                        docs/design/sompong-photos.md
     DRIVE_PHOTO_BROKER_ALLOWED_UIDS    comma-separated uid(s) permitted to
                                         call in (required) -- the host
                                         filer's uid, which is 0 (root) as of
