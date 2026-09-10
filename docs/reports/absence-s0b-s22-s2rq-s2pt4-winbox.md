@@ -104,10 +104,57 @@ to Phase 1.
   navigated the protected composer tab): Total cost **$75.5** and credits
   **1,887.5 → unchanged**; "Total generations" **199 → 200**. Confirms
   exactly one free Unlimited generation registered, $0 charged.
-- Awaiting render (~20-50 min typical per the skill's timing notes,
-  possibly longer if Europe is awake — 2026-09-10 22:25 ICT = 15:25 UTC,
-  inside the busier stretch, so expect 40-90 min rather than the 20-25 min
-  night-window figure).
+- Completed and harvested at `2026-09-10T16:00 UTC` (~35 min render time).
+
+### S22 harvest
+
+- **Download button silently failed again** (same defect as S0b's harvest,
+  documented in `absence-s20-s2pt-t3-s0b-winbox.md`): click registered
+  ("Last downloaded" style state), no file landed in `C:\Users\UsEr\Downloads`.
+  Workaround used again: read the card's `<video>` element's `currentSrc`
+  directly via `javascript_tool` (no network-request capture needed this
+  time — the DOM already held the resolved CloudFront URL), then
+  `ffmpeg -c copy` to remux it to disk without re-encoding.
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_152453_6e3d88c5-c403-4e77-91d2-67961a34b059.mp4`
+- **Bytes**: 9,546,716 · **MD5**: `6ae906f8a7f716db14e556010efb8f65`
+- **Asset id**: `6e3d88c5-c403-4e77-91d2-67961a34b059`
+- **Fire**: `2026-09-10T15:25:35Z` (22:25:35 ICT) · **Completed**: ~16:00 UTC
+  (~35 min — inside the "Europe awake" range the skill predicts, faster
+  than the 40-90 min upper estimate)
+- **ffprobe**: 1280×720 @ 24fps, duration 7.96s, audio stream present.
+- Frames (full 1280×720) at 0.5, 2, 3.5, 5, 6.5, 7.9s →
+  `docs/reports/frames-s22-t1/`.
+
+### REVIEW — S22 (per this brief's checklist)
+
+**(1) ONE crate, wall-shaped, dead centre, symmetrical, locked camera —
+PASS.** Identical framing across all six sampled frames — zero camera
+movement, crate perfectly centred and symmetrical, matches the sheet's
+"ONE LOCKED SHOT" spec exactly.
+
+**(2) The doorway behind it is visibly SMALLER than the crate — PASS.**
+The plain door at frame-left is unambiguously smaller than the crate in
+every dimension — matches "obviously, absurdly too small."
+
+**(3) Nobody in the room, no figure, no shadow or reflection of a person
+— PASS.** All six frames show an empty room; no figure, shadow, or
+reflection anywhere.
+
+**(4) The gold V reads as a mark, not writing — PASS.** One clean gold
+"V" centred on the crate face, no other text, numbers, or marks anywhere
+in frame.
+
+**(5) Nothing moves but dust — not verifiable from still frames.** No
+camera movement or scene change is visible across the six samples
+(consistent with a locked shot), but dust motion itself can't be judged
+from stills; would need to watch the clip.
+
+**Overall S22 verdict (operator read): 4/4 checkable items PASS**, one
+item (dust) not checkable from stills. One minor deviation from spec
+worth flagging: the sheet calls for "warm shadow, cold white: amber-orange
+highlights and mids" but the rendered grade reads closer to neutral/cool
+pale-grey than warm amber — a content-quality note for the CTO/CEO to
+weigh, not a browser/tooling defect.
 
 ## Reusable script
 
@@ -116,19 +163,32 @@ byte-exact and flattens word-wrap newlines to spaces (unless the block has
 real blank-line paragraph breaks, or `--keep-newlines` is passed). Used for
 S22; will reuse for S2R-Q and S2PT take 4.
 
-## Phase 2 — S2R-Q "THE BIDS, QUICK" — STAGED, awaiting the slot
+## Phase 2 — S2R-Q "THE BIDS, QUICK" — FIRED
 
-Pasted into the composer while S22 rendered (safe — editing composer text
-does not touch an in-flight render or the Unlimited toggle). Verified:
+Staged into the composer while S22 rendered (safe — editing composer text
+does not touch an in-flight render or the Unlimited toggle). Verified at
+staging time:
 - `innerText` landed 4960 chars, matches source exactly.
 - Chips: **3/3 unique, 0 error chips** — `@gentleman_e`,
   `@project_absence_char_valder`, `@loc_hall_big_e`. Madame stays prose,
   as the sheet requires; no fourth chip appeared.
 - 0 `<video>` reference elements.
-Duration/Unlimited/model settings were NOT touched yet — those reset on
-reload/fresh-tab (documented behavior), so they'll be re-verified fresh
-at the moment of firing, per the brief's "re-verify at the moment you
-commit" rule, not trusted from staging time.
+
+**Re-verified fresh at fire time** (per "re-verify at the moment you
+commit" — nothing trusted from staging time): duration changed 8s→10s via
+the `role="slider"` popover (`ArrowRight` × 2 from 8, confirmed
+`aria-valuenow="10"`); chips re-confirmed 3/3 unique, 0 errors, text
+length still 4960, 0 video refs; Unlimited was OFF on this composer
+(reset, as always) — one clean ref-based click, confirmed
+`aria-checked="true"`, then **pixel zoom** (not DOM scrape) confirmed
+`UNLIMITED · ~~70~~ · 0`. Fired.
+
+- **Fired** at `2026-09-10T16:04:13Z` (23:04:13 ICT). New asset id
+  `16874354-9360-4bf6-88f8-870a4d145ad2` (asset count 781→782).
+  "Generation started" toast confirmed.
+- **Usage History re-checked** in a separate tab: cost unchanged ($75.5),
+  "Total generations" 200→201. $0 charged.
+- Awaiting render.
 
 ## Extraction script bug found and fixed mid-task
 
@@ -208,12 +268,50 @@ check whether it inherited a wrong hand position from this occlusion
 before writing a v5 prose fix, since the previz signal here is weak
 specifically at Dupe's own position.
 
-**Not fired yet** — waiting for the one Unlimited slot (S22, then
-S2R-Q ahead of it in the queue order the brief gives: S22 → S2R-Q →
-S2PT). Will upload this previz fresh via + → Uploads → Videos when the
-slot reaches this phase, confirm eligibility, and re-check the
+**Not fired yet** — waiting for the one Unlimited slot (S22 fired and
+completed, S2R-Q fired and rendering — see above). Will upload the
+re-rendered previz (below) fresh via + → Uploads → Videos when the slot
+reaches this phase, confirm eligibility, and re-check the
 cart-ahead-of-Dupe relationship on the freshly-attached chip before
 pasting the prompt, per the brief.
+
+### CTO cross-session message — re-render confirmed, occlusion actually FIXED
+
+A CTO session (`bridge:session_01T2Ri4fTB7YVL8ss3M9JiX9`) messaged mid-task
+with the same concern independently: don't trust the existing previz,
+re-render from the fixed script and **confirm Dupe is actually visible**
+before uploading. Acted on it:
+
+1. Confirmed Blender 5.2 is installed on winbox
+   (`C:\Program Files\Blender Foundation\Blender 5.2\blender.exe`).
+2. `git fetch origin main` — no previz commit newer than `a8b394d` exists,
+   so the repo's `scripts/previz/s2pt_previz.py` is already the fix to
+   render from.
+3. Ran it headless against the project's base scene:
+   `blender.exe -b SorrySir_hall_v41.blend --python scripts/previz/s2pt_previz.py`
+   → `C:\Users\UsEr\Downloads\S2PT-Render.mp4` (**overwriting** the file
+   analysed above — the old 1,659,245-byte file no longer exists locally).
+4. **Result is a completely different, much better previz than the file
+   that was already sitting in Downloads.** The old file rendered as a
+   bare grey block-out with no location geometry at all (matching the
+   frames analysed above); this fresh render includes the real
+   `SorrySir_hall_v41.blend` location — columns, chandelier, patterned
+   floor, wall art — and, critically, **Dupe's cylinder is now plainly,
+   unambiguously visible** standing just behind and beside the cart in
+   every sampled frame (0.5s/10s/19s), not merely a faint sliver under
+   contrast boost. The likely explanation: whoever produced the old file
+   ran the previz script standalone (default empty scene) rather than via
+   `run_s2pt.cmd`'s `-b SorrySir_hall_v41.blend` invocation, which is also
+   why `Downloads\s2pt_previz.py` (a separate, STALE copy with the
+   pre-fix `DUPE x=0.60` / cart `dy=-3.60` values — diffed and confirmed)
+   was never actually the source of that render either; something else
+   produced it.
+5. **New file**: `C:\Users\UsEr\Downloads\S2PT-Render.mp4` — 4,157,750
+   bytes, MD5 `db57cf109e231973e622a9c4a1140ccc`, 1280×720 @ 24fps, 20.00s.
+   This is the file to upload for take 4, not the one this report
+   originally analysed.
+
+Replied to the CTO session confirming this.
 
 ## Checkpoint
 
