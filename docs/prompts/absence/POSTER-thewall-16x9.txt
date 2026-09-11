@@ -1,0 +1,107 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+POSTER B — «Sorry, Sir» · "THE WALL" · the CTO's own design
+GPT Image 2.5 SUNBURST · 16:9 · 2K · Quality High
+
+CEO gave a free hand for one version. This is the argument, so it can be judged as one:
+
+Poster A (the line-up) sells the WORLD and the CRAFT — fifteen characters who stay
+themselves across eight minutes, which is this film's real technical achievement.
+Poster B sells the IDEA, which is what the film has over its competition: an absence
+gets a price tag. One vast empty wall, one hand-sized crack, one brass plate, and one
+very small man who caused all of it, dwarfed by what it became.
+
+Three reasons it is worth a shot:
+- It is the whole film in one frame and explains no joke.
+- Scale carries the emotional truth without a line of dialogue.
+- Every AI film poster in the grid is maximal. A near-empty one is the loudest thing
+  on that page — and the "reads as blank at thumbnail size" risk I raised against this
+  composition is answered by the single small figure, which gives the eye its anchor.
+
+The title is the joke: "SORRY SIR" is Dupe's only line in the film. Those two words
+above a tiny janitor on a blank wall ARE the poster.
+
+Only 3 chips, against 15 for Poster A. Far less that can go wrong.
+
+⚠️ The plaque plate carries engraved text. Deliberately kept small enough that it reads
+as a brass rectangle rather than as legible words — AI lettering garbles at small sizes
+(measured in this film: "LAKKRITORGH GIN UDNS"). The two title lines are the only text
+the prompt asks to be readable.
+
+THE 3 CHIPS
+  @project_absence_char_cleaner_c   Dupe, from behind, small, lower left of centre
+  @project_absence_loc_wall_crack   the hero wall: one small crack, brass plaque low
+  @project_absence_prop_tag         the brass plaque
+
+AFTER GENERATION — VERIFY
+  1. "SORRY SIR" and "THE VALDER COLLECTION" spelled correctly, letter by letter.
+  2. ONE figure only. ONE crack. ONE plaque.
+  3. No stray words anywhere, especially on the plaque.
+  4. The film's LUT can be applied afterwards so key art and picture match exactly.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+DELIVERABLE
+A finished 16:9 film poster, photographic, minimal, for a short film. A single vast flat
+wall fills almost the entire frame. Print quality.
+
+SUBJECT
+@project_absence_loc_wall_crack — THE WALL: one enormous flat pale wall, warm off-white,
+smooth, filling the frame edge to edge and top to bottom. It is almost completely empty.
+
+Two small things sit on it, and nothing else:
+- ONE small crack, a short jagged star no bigger than a spread hand, roughly at the
+  middle height of the wall, slightly right of the centre line. Fine chipped plaster.
+- @project_absence_prop_tag — ONE small brass plaque mounted far below the crack, down at
+  knee height, warm brass with two screws at its top corners. It is small and far enough
+  away that its engraving reads as fine texture rather than as readable words.
+
+@project_absence_char_cleaner_c — DUPE, one man, very small in the frame, standing on the
+floor at the foot of the wall, LEFT of centre, seen from BEHIND. White mandarin-collar
+uniform with thin orange trim and a small gold V, a white cap, a mop held upright beside
+him. He stands still with his head tilted slightly up, looking at the crack far above
+him. He is the only person in the picture and occupies no more than one eighth of the
+frame height.
+
+SCENE
+A gallery interior, but only the wall and a narrow strip of polished terracotta floor at
+the very bottom are visible. Soft even daylight falling from high on the left, the wall
+gently brighter at its centre and falling off toward the edges. A long soft shadow from
+the man across the floor.
+
+COMPOSITION
+Dead-on, perfectly level, flat to the wall, no perspective distortion. Enormous negative
+space. The man is small and low, the crack is small and central, the plaque is small and
+low — three tiny incidents in a vast empty field. The top half of the wall is completely
+clear and unbroken so the title can sit on it.
+
+VISUAL DIRECTION
+Already colour-graded, not raw. Warm off-white wall, saturated but restrained: the white
+uniform clean and slightly cool against the warm wall, the brass warm, the terracotta
+floor rich. Flat even light, low contrast, soft shadows rather than deep black. Quiet,
+still, formal, a little absurd. Photographed, not rendered: fine film grain, slight
+colour fringing.
+
+TEXT
+Render the following text exactly once each, and no other text anywhere:
+- "SORRY SIR" — very large, all capitals, centred, in the clear upper half of the wall.
+  A bold wide-tracked sans serif in a warm ROSE PINK. It is the dominant element of the
+  poster and sits entirely on the empty wall, touching nothing else.
+- "THE VALDER COLLECTION" — small, all capitals, centred, directly beneath "SORRY SIR",
+  a thin widely-letter-spaced sans serif in soft grey, no more than a fifth the height of
+  the title.
+Both lines crisp, evenly spaced, correctly spelled, with plain wall behind them.
+
+CONSTRAINTS
+There is exactly ONE person in the picture and he is seen from behind.
+There is exactly ONE crack in the wall.
+There is exactly ONE brass plaque.
+There is exactly ONE mop.
+No faces. No second figure. No crowd. No other people anywhere, including reflections.
+No paintings, no frames, no artworks, no furniture, no plinths, no doors, no windows.
+No additional words, letters, numbers, signage, logos, signatures or watermarks of any
+kind beyond the two text lines specified above. No readable engraving on the plaque.
+No border, no frame, no vignette, no mockup, no torn-paper or poster-on-a-wall effect.
+
+OUTPUT
+16:9 landscape, 2K, high quality, sharp throughout, edge to edge, no border.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
