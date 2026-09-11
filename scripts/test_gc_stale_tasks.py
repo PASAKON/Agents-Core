@@ -8,6 +8,15 @@ Tests:
   5. --dry-run does not write to DB.
   6. Idempotent: running GC twice on a cancelled task produces no error.
   7. Path lock held by stale pending task is released after GC.
+  8. Category 1b: pending + assigned_agent + no pid + 3h old → cancelled,
+     locks released, find_conflicts empty afterward (W3 Bug B).
+  9. Same shape at 40 min old → untouched (120min floor).
+  10. 'done' row holding locks (status set outside db.update_status,
+      simulating W3 Bug A) → locks released, status/worktree untouched.
+  11. 'in_progress' row holding locks → untouched entirely — guards the
+      live tasks this GC pass must never touch.
+  12. Lock row whose owner has no task row at all → deleted.
+  13. --dry-run writes nothing for any of the new categories either.
 
 Run via: python scripts/test_gc_stale_tasks.py
 """
@@ -162,6 +171,133 @@ def run_tests(tmp_db: Path) -> None:
         conflicts = db_mod.find_conflicts("test-proj", ["src/webhook/claude.js"])
         _mark(not conflicts,
               f"[7c] find_conflicts empty after GC (got {conflicts})")
+
+        # --- Test 8: Category 1b — spawned pending, no pid, 3h old → cancelled ---
+        with db_mod.get_conn() as conn:
+            tid8 = _insert_task(conn, status="pending", age_minutes=180,
+                                assigned_agent="developer",
+                                touches=["src/gc_test/a.py"])
+        lock_key8 = "proj:test-proj:path:src/gc_test/a.py"
+        db_mod.acquire_lock(lock_key8, owner=tid8, ttl_seconds=3600)
+
+        # --- Test 9: same shape but 40 min old → untouched (floor is 120min) ---
+        with db_mod.get_conn() as conn:
+            tid9 = _insert_task(conn, status="pending", age_minutes=40,
+                                assigned_agent="developer")
+
+        # --- Test 10: 'done' row holding locks, simulating W3 Bug A (status
+        # written outside db.update_status, so RELEASING_STATUSES never
+        # fired) → locks released, status/worktree untouched ---
+        with db_mod.get_conn() as conn:
+            tid10 = _insert_task(conn, status="done", age_minutes=1000,
+                                 touches=["src/gc_test/b.py"])
+        lock_key10 = "proj:test-proj:path:src/gc_test/b.py"
+        db_mod.acquire_lock(lock_key10, owner=tid10, ttl_seconds=3600)
+
+        # --- Test 11: 'in_progress' row holding locks → must stay fully
+        # untouched. This is the guard that protects the live tasks
+        # task-bbdfa8d1 / task-41684e16. ---
+        with db_mod.get_conn() as conn:
+            tid11 = _insert_task(conn, status="in_progress", age_minutes=5,
+                                 touches=["src/gc_test/c.py"])
+        lock_key11 = "proj:test-proj:path:src/gc_test/c.py"
+        db_mod.acquire_lock(lock_key11, owner=tid11, ttl_seconds=3600)
+
+        # --- Test 12: orphan lock — owner has no task row at all ---
+        orphan_owner = "task-" + uuid.uuid4().hex[:8]
+        lock_key12 = "proj:test-proj:path:src/gc_test/d.py"
+        db_mod.acquire_lock(lock_key12, owner=orphan_owner, ttl_seconds=3600)
+
+        cancelled3 = gc_stale_tasks(pending_minutes=30, conflict_minutes=60,
+                                    ratelimit_minutes=30)
+        cancelled3_ids = {e["task_id"] for e in cancelled3}
+
+        _mark(tid8 in cancelled3_ids,
+              f"[8] spawned pending, no pid, 3h old IS cancelled — got {cancelled3_ids}")
+        t8 = db_mod.get_task(tid8)
+        _mark(t8 is not None and t8["status"] == "cancelled",
+              f"[8b] DB status for {tid8} = cancelled (got {t8 and t8['status']})")
+        with db_mod.get_conn() as conn:
+            lock8_after = conn.execute(
+                "SELECT 1 FROM locks WHERE key=? AND owner=?", (lock_key8, tid8)
+            ).fetchone()
+        _mark(lock8_after is None,
+              "[8c] lock released for cancelled spawned-pending task")
+        conflicts8 = db_mod.find_conflicts("test-proj", ["src/gc_test/a.py"])
+        _mark(not conflicts8, f"[8d] find_conflicts empty after GC (got {conflicts8})")
+
+        _mark(tid9 not in cancelled3_ids,
+              "[9] spawned pending at 40 min NOT cancelled (floor is 120min)")
+        t9 = db_mod.get_task(tid9)
+        _mark(t9 is not None and t9["status"] == "pending",
+              f"[9b] DB status for {tid9} still pending (got {t9 and t9['status']})")
+
+        t10 = db_mod.get_task(tid10)
+        _mark(t10 is not None and t10["status"] == "done",
+              f"[10a] status for {tid10} untouched (got {t10 and t10['status']})")
+        _mark(t10 is not None and not t10.get("worktree"),
+              f"[10b] worktree for {tid10} untouched (got {t10 and t10.get('worktree')})")
+        with db_mod.get_conn() as conn:
+            lock10_after = conn.execute(
+                "SELECT 1 FROM locks WHERE key=? AND owner=?", (lock_key10, tid10)
+            ).fetchone()
+        _mark(lock10_after is None,
+              "[10c] locks released for terminal 'done' owner")
+
+        with db_mod.get_conn() as conn:
+            lock11_after = conn.execute(
+                "SELECT 1 FROM locks WHERE key=? AND owner=?", (lock_key11, tid11)
+            ).fetchone()
+        _mark(lock11_after is not None,
+              "[11a] lock for 'in_progress' owner untouched")
+        t11 = db_mod.get_task(tid11)
+        _mark(t11 is not None and t11["status"] == "in_progress",
+              f"[11b] status for {tid11} untouched (got {t11 and t11['status']})")
+
+        with db_mod.get_conn() as conn:
+            lock12_after = conn.execute(
+                "SELECT 1 FROM locks WHERE key=? AND owner=?",
+                (lock_key12, orphan_owner)
+            ).fetchone()
+        _mark(lock12_after is None,
+              "[12] orphan lock (owner has no task row) deleted")
+
+        # --- Test 13: --dry-run writes nothing for the new categories either ---
+        with db_mod.get_conn() as conn:
+            tid13 = _insert_task(conn, status="pending", age_minutes=200,
+                                 assigned_agent="developer",
+                                 touches=["src/gc_test/e.py"])
+            tid14 = _insert_task(conn, status="done", age_minutes=10,
+                                 touches=["src/gc_test/f.py"])
+        lock_key13 = "proj:test-proj:path:src/gc_test/e.py"
+        lock_key14 = "proj:test-proj:path:src/gc_test/f.py"
+        db_mod.acquire_lock(lock_key13, owner=tid13, ttl_seconds=3600)
+        db_mod.acquire_lock(lock_key14, owner=tid14, ttl_seconds=3600)
+        orphan_owner2 = "task-" + uuid.uuid4().hex[:8]
+        lock_key15 = "proj:test-proj:path:src/gc_test/g.py"
+        db_mod.acquire_lock(lock_key15, owner=orphan_owner2, ttl_seconds=3600)
+
+        result_dry2 = gc_stale_tasks(pending_minutes=30, conflict_minutes=60,
+                                     ratelimit_minutes=30, dry_run=True)
+        dry2_ids = {e["task_id"] for e in result_dry2}
+        _mark(tid13 in dry2_ids and tid14 in dry2_ids and orphan_owner2 in dry2_ids,
+              f"[13a] dry-run reports all three new-category entries — got {dry2_ids}")
+
+        t13 = db_mod.get_task(tid13)
+        _mark(t13 is not None and t13["status"] == "pending",
+              "[13b] dry-run: spawned-pending status untouched")
+        t14 = db_mod.get_task(tid14)
+        _mark(t14 is not None and t14["status"] == "done",
+              "[13c] dry-run: done status untouched")
+        with db_mod.get_conn() as conn:
+            l13 = conn.execute("SELECT 1 FROM locks WHERE key=? AND owner=?",
+                               (lock_key13, tid13)).fetchone()
+            l14 = conn.execute("SELECT 1 FROM locks WHERE key=? AND owner=?",
+                               (lock_key14, tid14)).fetchone()
+            l15 = conn.execute("SELECT 1 FROM locks WHERE key=? AND owner=?",
+                               (lock_key15, orphan_owner2)).fetchone()
+        _mark(l13 is not None and l14 is not None and l15 is not None,
+              "[13d] dry-run released/deleted no lock rows at all")
 
     finally:
         db_mod.DB_PATH = original_path

@@ -4,12 +4,22 @@ Run periodically (suggest 10 min interval). Marks tasks as 'cancelled' if:
 
   1. status='pending' AND created_at older than STALE_PENDING_MINUTES
      AND assigned_agent IS NULL  (never delegated successfully)
+  1b. status='pending' AND assigned_agent IS NOT NULL AND
+     spawned_at/created_at older than STALE_SPAWNED_PENDING_MINUTES AND
+     the DEV process is provably dead (never flipped to in_progress —
+     W3 Bug B: category 1's `assigned_agent is not None` guard used to
+     skip these forever)
   2. status='conflict' AND updated_at older than STALE_CONFLICT_MINUTES
      (caller hasn't retried — lock is dead weight)
   3. status='rate_limited' AND retry_after_ts in the past by >
      STALE_RATELIMIT_MINUTES (caller gave up)
 
-Releases path locks held by cancelled tasks.
+Releases path locks held by cancelled tasks. Also runs
+release_terminal_task_locks(), a separate pass that releases locks for
+any task that reached a terminal status (or 'review') outside
+db.update_status — e.g. a status written directly to the row, which never
+fires lib/db.py's RELEASING_STATUSES release (W3 Bug A) — and deletes any
+lock row whose owner isn't a task at all.
 
 Idempotent. Safe to run concurrently with other CTOs (uses a single UPDATE
 with a WHERE clause that re-checks the same predicates).
@@ -28,12 +38,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
+from lib.config import host as get_host
+from runners.branch_poller import remote_pid_alive
 from tools.worker_reap import _pid_alive
 from tools.worktree import remove_worktree
 
-STALE_PENDING_MINUTES   = 30
-STALE_CONFLICT_MINUTES  = 60
-STALE_RATELIMIT_MINUTES = 30
+STALE_PENDING_MINUTES         = 30
+STALE_CONFLICT_MINUTES        = 60
+STALE_RATELIMIT_MINUTES       = 30
+STALE_SPAWNED_PENDING_MINUTES = 120
 
 # Statuses whose worktree is dead weight and can be reclaimed. Includes
 # 'merged': audited 2026-08-07 (W6, org:reference/2026-08-06-agents-system-
@@ -48,6 +61,14 @@ STALE_RATELIMIT_MINUTES = 30
 # tool, not written by the app. Safe to treat as terminal like 'done'.
 # Still excludes 'reverted'/'blocked_human' (still needs a human look).
 TERMINAL_STATUSES = {"done", "cancelled", "stalled", "failed", "merged"}
+
+# Statuses whose owning task is done touching its paths — used by
+# release_terminal_task_locks. TERMINAL_STATUSES plus 'review': a task in
+# review is out of the DEV's hands even though it isn't terminal yet, same
+# rationale as lib/db.py's RELEASING_STATUSES (which this file doesn't
+# import — lib/db.py is out of scope for this task, so the set is
+# duplicated here rather than reused).
+LOCK_RELEASE_STATUSES = TERMINAL_STATUSES | {"review"}
 
 # 'review' worktrees older than this are flagged (print-only) — never
 # auto-removed, since a human may still be about to look at them.
@@ -133,6 +154,26 @@ def _reclaim_worktree(task: dict, *, dry_run: bool) -> dict | None:
                 "action": "error", "error": str(e)}
 
 
+def _alive_for_gc(t: dict) -> bool | None:
+    """True/False/None liveness for the process behind task `t`, dispatched
+    by host. None means "couldn't determine — do not act", matching
+    remote_pid_alive's own contract; a local check never returns None since
+    kill(pid, 0) is always answerable (no pid included — _pid_alive(None)
+    is False).
+    """
+    host_name = t.get("host")
+    if host_name in (None, "mac"):
+        return _pid_alive(t.get("pid"))
+    pid = t.get("pid")
+    if not pid:
+        return False
+    try:
+        host_cfg = get_host(host_name)
+    except ValueError:
+        return None
+    return remote_pid_alive(host_cfg, pid)
+
+
 def gc_stale_tasks(
     *,
     pending_minutes: int = STALE_PENDING_MINUTES,
@@ -181,6 +222,43 @@ def gc_stale_tasks(
             db.update_status(
                 t["id"], "cancelled", actor="gc_stale_tasks",
                 report=f"gc: stale pending >{pending_minutes}min without assignment",
+            )
+            entry["locks_released"] = db.release_task_locks(t["id"], t["project"])
+        entry["worktree_reclaim"] = _reclaim_worktree(t, dry_run=dry_run)
+        cancelled.append(entry)
+
+    # Category 1b: pending tasks that WERE delegated (assigned_agent set)
+    # but whose DEV process is provably dead — W3 Bug B. Category 1 above
+    # skips these forever via its `assigned_agent is not None` guard, so a
+    # spawn that died before ever reaching in_progress held its locks for
+    # good (measured: task-8b6625ff, 26 days, 17 locks).
+    #
+    # 120-minute floor, not 30: this sits on top of Category 1's own spawn-
+    # window protection (the _pid_alive live-process check), so the extra
+    # margin is purely about giving a slow-to-report spawn room, not about
+    # racing a delegate that hasn't started yet.
+    for t in db.list_tasks(status="pending", limit=500):
+        if t.get("assigned_agent") is None:
+            continue
+        age = _age_minutes(t.get("spawned_at") or t.get("created_at"))
+        if age is None or age <= STALE_SPAWNED_PENDING_MINUTES:
+            continue
+        alive = _alive_for_gc(t)
+        if alive is not False:  # True (running) or None (unknown) — never act
+            continue
+        print(f"[gc] cancelled {t['id']} (stale spawned pending "
+              f">{STALE_SPAWNED_PENDING_MINUTES}min, no live process)",
+              file=sys.stderr)
+        entry = {
+            "task_id": t["id"], "project": t["project"],
+            "kind": "spawned_pending", "age_min": round(age, 1),
+        }
+        if not dry_run:
+            db.update_status(
+                t["id"], "cancelled", actor="gc_stale_tasks",
+                report=(f"gc: stale spawned pending "
+                        f">{STALE_SPAWNED_PENDING_MINUTES}min, no live "
+                        f"process (host={t.get('host') or 'mac'})"),
             )
             entry["locks_released"] = db.release_task_locks(t["id"], t["project"])
         entry["worktree_reclaim"] = _reclaim_worktree(t, dry_run=dry_run)
@@ -235,7 +313,76 @@ def gc_stale_tasks(
         entry["worktree_reclaim"] = _reclaim_worktree(t, dry_run=dry_run)
         cancelled.append(entry)
 
+    # W3 Bug A: locks held by a task whose status went terminal (or
+    # 'review') outside db.update_status never got released. Same returned
+    # list — runners/watchdog.py:620 already calls gc_stale_tasks() and
+    # logs len(result), so this rides along with no watchdog edit.
+    cancelled.extend(release_terminal_task_locks(dry_run=dry_run))
+
     return cancelled
+
+
+def release_terminal_task_locks(dry_run: bool = False) -> list[dict]:
+    """Release path locks whose owning task is done touching its paths, and
+    delete lock rows that belong to no task row at all.
+
+    Bug A (W3): lib/db.py's update_status releases locks via
+    RELEASING_STATUSES, but only when the status transition goes through
+    that function. A status written directly to the row (measured: 8 'done'
+    owners, 24 lock rows, zero status_done event in their history) never
+    fires that release, and nothing else in the codebase cleans it up.
+
+    Uses raw SQL against db.get_conn() (the same inline-SQL idiom
+    _all_tasks_with_worktree already uses above) rather than a new
+    lib/db.py helper — lib/db.py is out of scope for this task.
+    """
+    released: list[dict] = []
+    with db.get_conn() as conn:
+        owners = [r["owner"] for r in conn.execute(
+            "SELECT DISTINCT owner FROM locks WHERE key LIKE 'proj:%:path:%'"
+        ).fetchall()]
+
+    for owner in owners:
+        t = db.get_task(owner)
+
+        if t is None:
+            with db.get_conn() as conn:
+                n = conn.execute(
+                    "SELECT COUNT(*) c FROM locks WHERE owner=?", (owner,)
+                ).fetchone()["c"]
+            if n == 0:
+                continue
+            print(f"[gc] deleted {n} orphan lock(s) for owner={owner} "
+                  f"(no task row)", file=sys.stderr)
+            entry = {"task_id": owner, "kind": "orphan_lock",
+                     "locks_released": n}
+            if not dry_run:
+                with db.get_conn() as conn:
+                    conn.execute("DELETE FROM locks WHERE owner=?", (owner,))
+            released.append(entry)
+            continue
+
+        if t["status"] not in LOCK_RELEASE_STATUSES:
+            continue
+
+        with db.get_conn() as conn:
+            n = conn.execute(
+                "SELECT COUNT(*) c FROM locks WHERE owner=? AND key LIKE ?",
+                (owner, f"proj:{t['project']}:path:%"),
+            ).fetchone()["c"]
+        if n == 0:
+            continue
+        print(f"[gc] released {n} lock(s) for {owner} "
+              f"(terminal status={t['status']})", file=sys.stderr)
+        entry = {
+            "task_id": owner, "project": t["project"], "status": t["status"],
+            "kind": "terminal_locks",
+            "locks_released": n if dry_run else db.release_task_locks(
+                owner, t["project"]),
+        }
+        released.append(entry)
+
+    return released
 
 
 def _all_tasks_with_worktree() -> list[dict]:
