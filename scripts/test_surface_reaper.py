@@ -140,6 +140,33 @@ _NO_CLAIMS = mock.patch("scripts.browser.tab_registry.all_claims",
                         mock.Mock(return_value={}))
 
 
+# subprocess.run side_effect for close_remote's two-phase SSH flow
+# (task-28866f08): an identity check (`powershell ... Win32_Process` /
+# `ps -p ... -o args=`) always runs BEFORE any kill (`taskkill` / `bash -lc
+# tmux kill-session...`) is ever attempted. Distinguishes the two by argv
+# shape rather than call order, so a test can assert "zero kill calls"
+# without caring how many identity calls preceded it. Any call this doesn't
+# recognise (e.g. lib.notify's own osascript/terminal-notifier calls, which
+# also go through the module-level-patched subprocess.run in some tests)
+# gets a harmless default rather than raising.
+def _ssh_stub(task_id: str = "", *, identity_match: bool = True,
+             identity_returncode: int = 0, kill_returncode: int = 0):
+    def _run(cmd, **kwargs):
+        if isinstance(cmd, list) and len(cmd) >= 3 and cmd[0] == "ssh":
+            if cmd[2] in ("taskkill", "bash"):
+                return mock.Mock(returncode=kill_returncode, stdout="", stderr="")
+            stdout = (f"C:\\claude.exe --task {task_id}\n" if identity_match
+                      else "BlueStacksServices.exe\n")
+            return mock.Mock(returncode=identity_returncode, stdout=stdout, stderr="")
+        return mock.Mock(returncode=0, stdout="", stderr="")
+    return _run
+
+
+def _kill_calls(fake_run: mock.Mock) -> list:
+    return [c for c in fake_run.call_args_list
+           if c.args and len(c.args[0]) >= 3 and c.args[0][2] in ("taskkill", "bash")]
+
+
 # ---------------------------------------------------------------------------
 # sweep_terminal_surfaces (1-4)
 # ---------------------------------------------------------------------------
@@ -273,7 +300,7 @@ def test_remote_command_rendering_contabo() -> bool:
 
 def test_close_remote_winbox_ssh_command() -> bool:
     tid = _insert_task(status="done", pid=4242, host="winbox")
-    fake_run = mock.Mock(return_value=mock.Mock(returncode=0, stderr=""))
+    fake_run = mock.Mock(side_effect=_ssh_stub(tid, identity_match=True))
     with mock.patch.object(worker_reap.subprocess, "run", fake_run):
         r = worker_reap.close_remote({"id": tid})
     return (r["refused"] is None and r["ssh_ok"] is True
@@ -282,7 +309,7 @@ def test_close_remote_winbox_ssh_command() -> bool:
 
 def test_close_remote_contabo_ssh_command() -> bool:
     tid = _insert_task(status="done", pid=4242, host="contabo")
-    fake_run = mock.Mock(return_value=mock.Mock(returncode=0, stderr=""))
+    fake_run = mock.Mock(side_effect=_ssh_stub(tid, identity_match=True))
     with mock.patch.object(worker_reap.subprocess, "run", fake_run):
         r = worker_reap.close_remote({"id": tid})
     return (r["refused"] is None and r["ssh_ok"] is True
@@ -323,6 +350,107 @@ def test_close_remote_missing_host_column_is_a_plain_skip() -> bool:
     assert "host" not in task_without_host_key
     r = worker_reap.close_remote(task_without_host_key)
     return r["refused"] is not None and r["host"] is None
+
+
+# ---------------------------------------------------------------------------
+# remote_pid_matches_task (task-28866f08) — the identity check itself
+# ---------------------------------------------------------------------------
+
+def test_remote_pid_matches_task_windows_match() -> bool:
+    fake_run = mock.Mock(return_value=mock.Mock(
+        returncode=0, stdout="C:\\claude.exe --task task-abc12345\n", stderr=""))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run):
+        r = worker_reap.remote_pid_matches_task(
+            {"ssh": "winbox", "os": "windows"}, 4242, "task-abc12345")
+    cmd = fake_run.call_args.args[0]
+    return r is True and cmd[0] == "ssh" and cmd[1] == "winbox" and "4242" in cmd[2]
+
+
+def test_remote_pid_matches_task_windows_recycled_pid_is_false() -> bool:
+    """The exact live bug: pid=23068 on winbox now belongs to
+    BlueStacksServices.exe, which never mentions the task id."""
+    fake_run = mock.Mock(return_value=mock.Mock(
+        returncode=0, stdout="BlueStacksServices.exe\n", stderr=""))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run):
+        r = worker_reap.remote_pid_matches_task(
+            {"ssh": "winbox", "os": "windows"}, 23068, "task-41684e16")
+    return r is False
+
+
+def test_remote_pid_matches_task_linux_match() -> bool:
+    fake_run = mock.Mock(return_value=mock.Mock(
+        returncode=0, stdout="/usr/bin/claude --task task-def45678\n", stderr=""))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run):
+        r = worker_reap.remote_pid_matches_task(
+            {"ssh": "mooniex-vps", "os": "linux"}, 999, "task-def45678")
+    return r is True and fake_run.call_args.args[0] == [
+        "ssh", "mooniex-vps", "ps", "-p", "999", "-o", "args="]
+
+
+def test_remote_pid_matches_task_unreachable_is_none() -> bool:
+    """exit 255 is OpenSSH's own 'could not connect' code — must read as
+    unknown, never as a confirmed mismatch."""
+    fake_run = mock.Mock(return_value=mock.Mock(
+        returncode=255, stdout="", stderr="ssh: connect to host winbox port 22: timed out"))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run):
+        r = worker_reap.remote_pid_matches_task(
+            {"ssh": "winbox", "os": "windows"}, 4242, "task-abc12345")
+    return r is None
+
+
+def test_remote_pid_matches_task_no_ssh_alias_is_none() -> bool:
+    with mock.patch.object(worker_reap.subprocess, "run") as run_spy:
+        r = worker_reap.remote_pid_matches_task({"ssh": None, "os": "darwin"}, 1, "task-x")
+    return r is None and run_spy.call_count == 0
+
+
+# ---------------------------------------------------------------------------
+# close_remote: identity guard before any kill argv (task-28866f08)
+# ---------------------------------------------------------------------------
+
+def test_close_remote_refuses_recycled_pid_zero_kill_commands() -> bool:
+    """The dangerous bug this task fixes: a recorded pid that is now some
+    OTHER process (BlueStacks) must never reach a taskkill/bash call."""
+    tid = _insert_task(status="done", pid=23068, host="winbox")
+    fake_run = mock.Mock(side_effect=_ssh_stub(identity_match=False))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run):
+        r = worker_reap.close_remote({"id": tid})
+    return (r["refused"] is not None and r["gone"] is True
+           and r["command"] is None and len(_kill_calls(fake_run)) == 0)
+
+
+def test_close_remote_unreachable_identity_issues_no_kill() -> bool:
+    tid = _insert_task(status="done", pid=4242, host="winbox")
+    fake_run = mock.Mock(side_effect=_ssh_stub(identity_returncode=255))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run):
+        r = worker_reap.close_remote({"id": tid})
+    return (r["ssh_ok"] is None and r["command"] is None and r["gone"] is False
+           and len(_kill_calls(fake_run)) == 0)
+
+
+def test_close_remote_matched_pid_still_kills() -> bool:
+    tid = _insert_task(status="done", pid=4242, host="winbox")
+    fake_run = mock.Mock(side_effect=_ssh_stub(tid, identity_match=True))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run):
+        r = worker_reap.close_remote({"id": tid})
+    return (r["ssh_ok"] is True and r["gone"] is False
+           and len(_kill_calls(fake_run)) == 1)
+
+
+def test_close_remote_uses_configured_hosts_not_hardcoded() -> bool:
+    """A host absent from the old hand-written _REMOTE_HOSTS dict must still
+    be reapable once it's in hosts() — proves the hardcoded dict is gone."""
+    tid = _insert_task(status="done", pid=777, host="moonhost")
+    fake_hosts = mock.Mock(return_value={
+        "mac": {"ssh": None, "os": "darwin"},
+        "moonhost": {"ssh": "moonhost-alias", "os": "linux"},
+    })
+    fake_run = mock.Mock(side_effect=_ssh_stub(tid, identity_match=True))
+    with mock.patch.object(worker_reap, "config_hosts", fake_hosts), \
+         mock.patch.object(worker_reap.subprocess, "run", fake_run):
+        r = worker_reap.close_remote({"id": tid})
+    return (r["refused"] is None and r["ssh_ok"] is True
+           and r["command"][:2] == ["ssh", "moonhost-alias"])
 
 
 # ---------------------------------------------------------------------------
@@ -508,7 +636,7 @@ def test_sweep_reaps_terminal_remote_task_via_close_remote() -> bool:
     than assuming it's the only (or the last) call recorded.
     """
     tid = _insert_task(status="done", pid=4242, host="winbox", age_minutes=10)
-    fake_run = mock.Mock(return_value=mock.Mock(returncode=0, stderr=""))
+    fake_run = mock.Mock(side_effect=_ssh_stub(tid, identity_match=True))
     with mock.patch.object(worker_reap.subprocess, "run", fake_run), \
          mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=False)), \
          mock.patch.object(watchdog, "_live_tmux_sessions", mock.Mock(return_value=set())), \
@@ -517,9 +645,9 @@ def test_sweep_reaps_terminal_remote_task_via_close_remote() -> bool:
          _NO_CLAIMS:
         out = watchdog.sweep_terminal_surfaces()
     ids = {r["task"] for r in out}
-    ssh_calls = [c for c in fake_run.call_args_list if c.args and c.args[0][:1] == ["ssh"]]
-    return (tid in ids and len(ssh_calls) == 1
-           and ssh_calls[0].args[0] == ["ssh", "winbox", "taskkill", "/PID", "4242", "/T", "/F"])
+    kill_calls = _kill_calls(fake_run)
+    return (tid in ids and len(kill_calls) == 1
+           and kill_calls[0].args[0] == ["ssh", "winbox", "taskkill", "/PID", "4242", "/T", "/F"])
 
 
 def test_sweep_remote_respects_grace_period() -> bool:
@@ -551,6 +679,45 @@ def test_sweep_remote_no_pid_is_silent_noop() -> bool:
         out = watchdog.sweep_terminal_surfaces()
     ids = {r["task"] for r in out}
     return tid not in ids and fake_run.call_count == 0
+
+
+def test_sweep_remote_gone_pid_cleared_and_two_ticks_one_log_line() -> bool:
+    """The direct regression for the 12,061-line bug: a recycled pid on a
+    terminal winbox row must be cleared after the first sweep (nothing left
+    to re-check) and must log exactly once across two ticks, not once per
+    tick forever."""
+    tid = _insert_task(status="done", pid=23068, host="winbox", age_minutes=10)
+    fake_run = mock.Mock(side_effect=_ssh_stub(identity_match=False))
+    logged: list[str] = []
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run), \
+         mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=False)), \
+         mock.patch.object(watchdog, "_live_tmux_sessions", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_live_task_tab_ids", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_log_unclaimed_org_tabs", mock.Mock()), \
+         mock.patch.object(watchdog, "warn", side_effect=lambda m: logged.append(m)), \
+         mock.patch.object(watchdog, "error", side_effect=lambda m: logged.append(m)), \
+         _NO_CLAIMS:
+        first = watchdog.sweep_terminal_surfaces()
+        second = watchdog.sweep_terminal_surfaces()
+    surface_lines = [m for m in logged if m.startswith("SURFACE-REAPED")]
+    task = db_mod.get_task(tid)
+    return (len(first) == 1 and len(second) == 0 and len(surface_lines) == 1
+           and task["pid"] is None and len(_kill_calls(fake_run)) == 0)
+
+
+def test_sweep_remote_unreachable_pid_not_cleared() -> bool:
+    tid = _insert_task(status="done", pid=4242, host="winbox", age_minutes=10)
+    fake_run = mock.Mock(side_effect=_ssh_stub(identity_returncode=255))
+    with mock.patch.object(worker_reap.subprocess, "run", fake_run), \
+         mock.patch.object(watchdog, "_pid_alive", mock.Mock(return_value=False)), \
+         mock.patch.object(watchdog, "_live_tmux_sessions", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_live_task_tab_ids", mock.Mock(return_value=set())), \
+         mock.patch.object(watchdog, "_log_unclaimed_org_tabs", mock.Mock()), \
+         _NO_CLAIMS:
+        out = watchdog.sweep_terminal_surfaces()
+    task = db_mod.get_task(tid)
+    ids = {r["task"] for r in out}
+    return tid in ids and task["pid"] == 4242 and len(_kill_calls(fake_run)) == 0
 
 
 def test_sweep_local_task_never_touches_close_remote() -> bool:
@@ -597,7 +764,7 @@ def test_close_remote_allow_review_opt_in() -> bool:
     guard (host/pid) still applies regardless."""
     tid = _insert_task(status="review", pid=4242, host="winbox")
     r_default = worker_reap.close_remote({"id": tid})
-    fake_run = mock.Mock(return_value=mock.Mock(returncode=0, stderr=""))
+    fake_run = mock.Mock(side_effect=_ssh_stub(tid, identity_match=True))
     with mock.patch.object(worker_reap.subprocess, "run", fake_run):
         r_allowed = worker_reap.close_remote({"id": tid}, allow_review=True)
     return (r_default["refused"] is not None and "not terminal" in r_default["refused"]
@@ -635,6 +802,26 @@ def main() -> int:
     _mark(test_close_remote_missing_host_column_is_a_plain_skip(),
           "missing 'host' key (pre-migration schema) is a clean skip, not a raise")
 
+    print("== remote_pid_matches_task (task-28866f08) ==")
+    _mark(test_remote_pid_matches_task_windows_match(), "windows: matching CommandLine -> True")
+    _mark(test_remote_pid_matches_task_windows_recycled_pid_is_false(),
+          "windows: recycled pid (BlueStacks) -> False")
+    _mark(test_remote_pid_matches_task_linux_match(), "linux: matching args -> True")
+    _mark(test_remote_pid_matches_task_unreachable_is_none(),
+          "ssh exit 255 (unreachable) -> None, never False")
+    _mark(test_remote_pid_matches_task_no_ssh_alias_is_none(),
+          "no ssh alias configured -> None, no subprocess call")
+
+    print("== close_remote: identity guard before any kill (task-28866f08) ==")
+    _mark(test_close_remote_refuses_recycled_pid_zero_kill_commands(),
+          "recycled pid -> zero ssh kill commands issued")
+    _mark(test_close_remote_unreachable_identity_issues_no_kill(),
+          "unreachable box -> ssh_ok is None, zero kill commands issued")
+    _mark(test_close_remote_matched_pid_still_kills(),
+          "a confirmed match still proceeds to kill")
+    _mark(test_close_remote_uses_configured_hosts_not_hardcoded(),
+          "a host injected via a patched hosts() is reachable")
+
     print("== TERMINAL_SURFACE_STATUSES ==")
     _mark(test_terminal_surface_statuses_exact_set(),
           "exactly {done, merged, failed, cancelled, reverted} in both modules")
@@ -669,6 +856,10 @@ def main() -> int:
           "a 1-minute-old terminal remote task is untouched (REAP_GRACE_S)")
     _mark(test_sweep_remote_no_pid_is_silent_noop(),
           "no pid recorded on a remote task -> silent no-op, not logged")
+    _mark(test_sweep_remote_gone_pid_cleared_and_two_ticks_one_log_line(),
+          "gone pid: cleared after tick 1, exactly one log line across two ticks")
+    _mark(test_sweep_remote_unreachable_pid_not_cleared(),
+          "unreachable box: pid NOT cleared, still surfaced")
     _mark(test_sweep_local_task_never_touches_close_remote(),
           "local (mac) task never calls close_remote")
 
