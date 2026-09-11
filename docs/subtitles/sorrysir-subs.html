@@ -1,0 +1,769 @@
+<title>Sorry, Sir — ซับไตเติล</title>
+<style>
+  :root{
+    --paper:#F5F0EA; --card:#FFFCF8; --ink:#1B1512; --muted:#7C6F66; --rule:#E7DCD2;
+    --rose:#B2325F; --brass:#8C6B2F;
+    --screen:#17120E; --screen-text:#F6F0E8; --screen-dim:#948A80;
+    --f-display:'Futura','Avenir Next','Century Gothic','Sukhumvit Set','Noto Sans Thai',sans-serif;
+    --f-body:'Sukhumvit Set','Noto Sans Thai','Thonburi',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --f-mono:'SF Mono',SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#17120F; --card:#1E1815; --ink:#EFE5DB; --muted:#9E8D80; --rule:#342A24;
+      --rose:#F2A0C0; --brass:#D4A55F;
+      --screen:#0A0806; --screen-text:#F6F0E8; --screen-dim:#877D73;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#17120F; --card:#1E1815; --ink:#EFE5DB; --muted:#9E8D80; --rule:#342A24;
+    --rose:#F2A0C0; --brass:#D4A55F;
+    --screen:#0A0806; --screen-text:#F6F0E8; --screen-dim:#877D73;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--paper); color:var(--ink); font-family:var(--f-body);
+       font-size:16px; line-height:1.68; margin:0; padding:0 1.15rem 5rem;
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:44rem; margin:0 auto}
+  header{padding:3rem 0 1.6rem; border-bottom:2px solid var(--ink);
+         display:flex; flex-direction:column; gap:.7rem}
+  .eyebrow{font-family:var(--f-mono); font-size:.68rem; letter-spacing:.18em;
+           text-transform:uppercase; color:var(--rose)}
+  h1{font-family:var(--f-display); font-size:clamp(2.4rem,9vw,3.8rem); line-height:.95;
+     letter-spacing:.02em; font-weight:700; margin:0; text-transform:uppercase;
+     text-wrap:balance; color:var(--rose)}
+  .standfirst{font-size:1rem; color:var(--muted); margin:0; max-width:32rem}
+  .meta{font-family:var(--f-mono); font-size:.7rem; letter-spacing:.04em; color:var(--muted);
+        display:flex; flex-wrap:wrap; gap:.3rem 1.2rem; padding-top:.2rem;
+        font-variant-numeric:tabular-nums}
+  .meta b{color:var(--ink); font-weight:600}
+  section{padding-top:2.6rem}
+  h2{font-family:var(--f-display); font-size:1.45rem; font-weight:700; letter-spacing:.02em;
+     text-transform:uppercase; margin:0 0 .9rem; text-wrap:balance}
+  p{margin:0 0 .8rem} p:last-child{margin-bottom:0}
+  a{color:var(--rose)} strong{font-weight:700}
+  ul{padding-left:1.05rem; margin:0 0 .8rem} li{margin-bottom:.4rem}
+  code{font-family:var(--f-mono); font-size:.85em; background:var(--card);
+       border:1px solid var(--rule); padding:.08em .34em; border-radius:2px;
+       white-space:nowrap}
+  .files{display:flex; flex-direction:column; gap:.6rem; margin-bottom:1.2rem}
+  .file{background:var(--card); border:1px solid var(--rule); border-left:4px solid var(--rose);
+        padding:.85rem 1rem; display:flex; flex-wrap:wrap; gap:.15rem .7rem; align-items:baseline}
+  .file .fn{font-family:var(--f-mono); font-size:.86rem; font-weight:600}
+  .file .fd{font-size:.88rem; color:var(--muted)}
+  .note{background:var(--card); border:1px solid var(--rule); border-left:4px solid var(--brass);
+        padding:.9rem 1.1rem; margin:0 0 .9rem}
+  .note.warn{border-left-color:var(--rose)}
+  .note p{font-size:.95rem}
+  .note .lbl{font-family:var(--f-mono); font-size:.66rem; letter-spacing:.12em;
+             text-transform:uppercase; color:var(--muted); display:block; margin-bottom:.3rem}
+  .screen{background:var(--screen); color:var(--screen-text); padding:.55rem .8rem;
+          text-align:center; font-family:var(--f-mono); font-size:.85rem; line-height:1.45;
+          border-radius:2px; margin:.5rem 0}
+  .screen.ns{color:var(--screen-dim); font-style:italic}
+  .scroll{overflow-x:auto; margin:0 0 1rem}
+  table{border-collapse:collapse; width:100%; font-size:.9rem}
+  th,td{text-align:left; padding:.45rem .7rem .45rem 0; border-bottom:1px solid var(--rule);
+        vertical-align:top}
+  th{font-family:var(--f-mono); font-size:.65rem; letter-spacing:.1em; text-transform:uppercase;
+     color:var(--muted); border-bottom:1px solid var(--ink); white-space:nowrap}
+  td.n{font-family:var(--f-mono); font-size:.72rem; color:var(--muted);
+       font-variant-numeric:tabular-nums; text-align:right; width:2.2rem; white-space:nowrap}
+  td.t{font-family:var(--f-mono); font-size:.8rem; font-variant-numeric:tabular-nums;
+       white-space:nowrap; width:4.4rem; color:var(--brass)}
+  td.c{font-family:var(--f-mono); font-size:.84rem; line-height:1.4}
+  tr.scene td{padding-top:1.3rem; border-bottom:1px solid var(--ink)}
+  .sn{font-family:var(--f-display); font-size:1rem; font-weight:700; letter-spacing:.03em;
+      text-transform:uppercase}
+  .sd{font-size:.8rem; color:var(--muted)}
+  details{border-top:1px solid var(--rule); padding-top:1rem; margin-top:1.6rem}
+  summary{cursor:pointer; font-family:var(--f-display); font-size:1rem; font-weight:600;
+          letter-spacing:.02em; text-transform:uppercase}
+  summary:focus-visible{outline:2px solid var(--rose); outline-offset:3px}
+  pre{background:var(--card); border:1px solid var(--rule); padding:.9rem; overflow-x:auto;
+      font-family:var(--f-mono); font-size:.74rem; line-height:1.5; max-height:26rem}
+  .end{margin-top:3.4rem; padding-top:1rem; border-top:2px solid var(--ink);
+       font-family:var(--f-mono); font-size:.68rem; letter-spacing:.04em; color:var(--muted)}
+</style>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">ซับไตเติล · สำหรับห้องตัด</div>
+  <h1>Sorry, Sir</h1>
+  <p class="standfirst">ทุกประโยคที่ได้ยินในหนัง พร้อมเวลา — จับจากไฟล์ Final จริง ไม่ได้กะเอา</p>
+  <div class="meta">
+    <span><b>102</b> บรรทัด</span>
+    <span>ยาว <b>8:02.5</b></span>
+    <span>ภาษา <b>อังกฤษ</b></span>
+    <span>วัดจาก Final <b>11 ก.ย.</b></span>
+  </div>
+</header>
+
+<section>
+  <h2>ไฟล์</h2>
+  <div class="files">
+    <div class="file">
+      <span class="fn">SorrySir-EN.srt</span>
+      <span class="fd">ตัวหลัก · ใช้ส่งประกวด · คำพูดอย่างเดียว 102 บรรทัด</span>
+    </div>
+    <div class="file">
+      <span class="fn">SorrySir-EN-SDH.srt</span>
+      <span class="fd">สำหรับ YouTube · เหมือนกันทุกอย่าง + ป้ายเสียง 1 จุด</span>
+    </div>
+  </div>
+  <p>ลากเข้า timeline ได้เลย เวลาเริ่มที่ 0 ตรงกับไฟล์ Final ที่ส่งมา ไม่ต้องขยับ</p>
+  <div class="note warn">
+    <span class="lbl">ข้อเดียวที่ต้องระวัง</span>
+    <p>ถ้าเติมอะไร <strong>ก่อน</strong> เฟรมแรก ต้องเลื่อนซับทั้งหมดตามด้วย<br>
+    ลายน้ำ + packshot ที่ต่อ<strong>ท้าย</strong> ไม่กระทบ ไม่ต้องเลื่อน</p>
+  </div>
+</section>
+
+<section>
+  <h2>ขอให้ตัดสินใจ 2 ข้อ</h2>
+
+  <div class="note">
+    <span class="lbl">1 · 1:49.8 — ประโยคที่ใส่ไม่ลง</span>
+    <div class="screen">Everything makes you think of your mother.</div>
+    <p>พูดจริง ได้ยินจริง แต่ทับประโยคถัดไปเลย เหลือที่แค่ 0.6 วิ อ่านไม่ทัน <strong>ตอนนี้ยังไม่ใส่</strong><br>
+    ถ้าอยากให้ขึ้น ต้องยืดช่วงนั้นอีกราว 1 วิ — บอกมาแล้วผมออกเวลาให้ใหม่</p>
+  </div>
+
+  <div class="note">
+    <span class="lbl">2 · 5:46–5:48 — สองบรรทัดที่ไม่มีในบท</span>
+    <div class="screen">Fill a crack, sir.</div>
+    <div class="screen">Yes.</div>
+    <p>ไม่ได้เขียนไว้ในบทเลย แต่ในไฟล์ได้ยินชัดมาก <strong>ใส่ไว้ให้แล้ว</strong>
+    ถ้าไม่อยากให้มี บอกมา ตัดออกได้</p>
+  </div>
+</section>
+
+<section>
+  <h2>รู้ไว้ 3 ข้อ</h2>
+
+  <div class="note warn">
+    <span class="lbl">ห้ามให้ YouTube ทำซับอัตโนมัติ</span>
+    <p>ช่วง <code>5:33–5:38</code> เป็นเสียงฝูงชน ไม่มีคำไหนฟังออก เราจึงไม่ใส่ซับ<br>
+    แต่พอเอาเครื่องถอดอัตโนมัติ มันเดาออกมาเป็น<strong>คำหยาบ</strong> ถ้าปล่อยให้ YouTube ทำเอง มันจะขึ้นแบบนั้นบนจอ
+    ต้องอัปโหลดไฟล์ <code>.srt</code> เข้าไปเองเท่านั้น</p>
+  </div>
+
+  <div class="note">
+    <span class="lbl">1:52–1:57 ตั้งใจไม่ใส่</span>
+    <p>ช่วงทุกคนพูดพร้อมกัน ฟังไม่ออกจริง ๆ ตัวหลักจึงเว้นว่าง
+    ส่วนไฟล์ SDH ขึ้นป้ายเดียว:</p>
+    <div class="screen ns">[everyone talking at once]</div>
+  </div>
+
+  <div class="note">
+    <span class="lbl">Valder พูดเร็ว — ย่อคำให้อ่านทัน 10 บรรทัด</span>
+    <p>ช่วง <code>3:12–3:32</code> เขาพูด 3 ประโยคใน 4 วินาที ถ้าพิมพ์เต็มทุกคำจะอ่านไม่ทัน
+    จึงย่อลง ความหมายเท่าเดิม (รายการอยู่ล่างสุด) ถ้าอยากได้เต็มคำ บอกได้</p>
+  </div>
+</section>
+
+<section>
+  <h2>คิวทั้งหมด</h2>
+  <p class="standfirst" style="margin-bottom:1rem">เรียงตามหนัง · ไม่ต้องพิมพ์เอง ไฟล์ <code>.srt</code> มีครบแล้ว หน้านี้ไว้ตรวจเฉย ๆ</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>#</th><th>เวลา</th><th>ขึ้นจอ</th></tr></thead>
+    <tbody>
+<tr class="scene"><td colspan="3"><span class="sn">สัมภาษณ์ Dupe</span> <span class="sd">เปิดเรื่อง พูดกับกล้อง</span></td></tr>
+<tr><td class="n">1</td><td class="t">0:09.48</td><td class="c">I dropped a painting.</td></tr>
+<tr><td class="n">2</td><td class="t">0:33.57</td><td class="c">I came in early that morning.</td></tr>
+<tr><td class="n">3</td><td class="t">0:36.50</td><td class="c">It was hanging crooked, only a little.</td></tr>
+<tr><td class="n">4</td><td class="t">0:38.90</td><td class="c">So I straightened it.</td></tr>
+<tr><td class="n">5</td><td class="t">0:42.52</td><td class="c">And, well. You can see.</td></tr>
+<tr><td class="n">6</td><td class="t">0:45.41</td><td class="c">It came off the wall.</td></tr>
+<tr><td class="n">7</td><td class="t">0:47.05</td><td class="c">There&#x27;s a hole there now.</td></tr>
+<tr><td class="n">8</td><td class="t">0:48.60</td><td class="c">I called the plasterer straight away<br>to patch it.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">โทรหาช่าง</span></td></tr>
+<tr><td class="n">9</td><td class="t">0:51.55</td><td class="c">Is this the contractor?</td></tr>
+<tr><td class="n">10</td><td class="t">0:53.00</td><td class="c">Yes. How can we help?</td></tr>
+<tr><td class="n">11</td><td class="t">0:54.24</td><td class="c">Can you come now?</td></tr>
+<tr><td class="n">12</td><td class="t">0:56.30</td><td class="c">What&#x27;s the emergency?</td></tr>
+<tr><td class="n">13</td><td class="t">0:57.62</td><td class="c">Please.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">พิพิธภัณฑ์เปิด</span></td></tr>
+<tr><td class="n">14</td><td class="t">1:01.62</td><td class="c">Good morning. The Valder Collection<br>opens to visitors in five minutes.</td></tr>
+<tr><td class="n">15</td><td class="t">1:06.76</td><td class="c">Then the first customer<br>walked into this room.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">ลูกค้าคนแรก</span> <span class="sd">เห็นรอยแตก</span></td></tr>
+<tr><td class="n">16</td><td class="t">1:19.19</td><td class="c">Excuse me, sir.</td></tr>
+<tr><td class="n">17</td><td class="t">1:23.34</td><td class="c">What happened to the wall?</td></tr>
+<tr><td class="n">18</td><td class="t">1:25.40</td><td class="c">Sorry, sir.</td></tr>
+<tr><td class="n">19</td><td class="t">1:30.39</td><td class="c">That is art. I like it.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">คนมามุง</span> <span class="sd">ทุกคนตีความรอยแตก</span></td></tr>
+<tr><td class="n">20</td><td class="t">1:35.40</td><td class="c">What are you looking at?<br>There is nothing there.</td></tr>
+<tr><td class="n">21</td><td class="t">1:38.42</td><td class="c">I am looking at art.</td></tr>
+<tr><td class="n">22</td><td class="t">1:41.66</td><td class="c">It is clearly about labour.</td></tr>
+<tr><td class="n">23</td><td class="t">1:43.98</td><td class="c">It is a crack.</td></tr>
+<tr><td class="n">24</td><td class="t">1:44.80</td><td class="c">Exactly what they want you to think.</td></tr>
+<tr><td class="n">25</td><td class="t">1:47.07</td><td class="c">It made me think of my mother.</td></tr>
+<tr><td class="n">26</td><td class="t">1:48.85</td><td class="c">Do not touch it!</td></tr>
+<tr><td class="n">27</td><td class="t">1:50.40</td><td class="c">I am measuring it.</td></tr>
+<tr><td class="n">28</td><td class="t">1:51.44</td><td class="c">We are going to be late.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">Registrar ต้อนรับ</span> <span class="sd">ขอซื้อ 2 ล้าน</span></td></tr>
+<tr><td class="n">29</td><td class="t">1:58.10</td><td class="c">Good morning.</td></tr>
+<tr><td class="n">30</td><td class="t">1:59.56</td><td class="c">Welcome, all of you,<br>to the Valder Collection.</td></tr>
+<tr><td class="n">31</td><td class="t">2:02.64</td><td class="c">Mr Valder should be with us very shortly.</td></tr>
+<tr><td class="n">32</td><td class="t">2:05.65</td><td class="c">I would like to buy this piece.</td></tr>
+<tr><td class="n">33</td><td class="t">2:07.63</td><td class="c">Two million.</td></tr>
+<tr><td class="n">34</td><td class="t">2:09.88</td><td class="c">Of course, madam. Of course.</td></tr>
+<tr><td class="n">35</td><td class="t">2:12.16</td><td class="c">I will fetch Mr Valder at once.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">Carrington 5 ล้าน</span></td></tr>
+<tr><td class="n">36</td><td class="t">2:30.91</td><td class="c">Five million.</td></tr>
+<tr><td class="n">37</td><td class="t">2:32.46</td><td class="c">I will give you five million for it.</td></tr>
+<tr><td class="n">38</td><td class="t">2:39.16</td><td class="c">Forgive me, sir.<br>May I take your name?</td></tr>
+<tr><td class="n">39</td><td class="t">2:41.22</td><td class="c">Carrington.</td></tr>
+<tr><td class="n">40</td><td class="t">2:45.00</td><td class="c">Mr Carrington, of course.</td></tr>
+<tr><td class="n">41</td><td class="t">2:48.30</td><td class="c">You did not tell us you were coming.</td></tr>
+<tr><td class="n">42</td><td class="t">2:50.76</td><td class="c">I would have received you properly.</td></tr>
+<tr><td class="n">43</td><td class="t">2:53.08</td><td class="c">I will contact Mr Valder at once.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">Valder มาถึง + ทัวร์</span></td></tr>
+<tr><td class="n">44</td><td class="t">3:07.83</td><td class="c">Good morning. Good morning, everyone.</td></tr>
+<tr><td class="n">45</td><td class="t">3:10.11</td><td class="c">It is a very good day.</td></tr>
+<tr><td class="n">46</td><td class="t">3:12.06</td><td class="c">Ah, Mr Carrington, there you are.</td></tr>
+<tr><td class="n">47</td><td class="t">3:14.25</td><td class="c">You did not tell me you were coming?</td></tr>
+<tr><td class="n">48</td><td class="t">3:16.20</td><td class="c">I&#x27;d have received you properly.</td></tr>
+<tr><td class="n">49</td><td class="t">3:17.84</td><td class="c">This room was just rearranged.</td></tr>
+<tr><td class="n">50</td><td class="t">3:19.62</td><td class="c">Come, let me show you everything.</td></tr>
+<tr><td class="n">51</td><td class="t">3:21.70</td><td class="c">Everything in this wing<br>was rehung only last week.</td></tr>
+<tr><td class="n">52</td><td class="t">3:25.44</td><td class="c">I think you will like<br>what I have done.</td></tr>
+<tr><td class="n">53</td><td class="t">3:28.14</td><td class="c">All acquired in the last two years.</td></tr>
+<tr><td class="n">54</td><td class="t">3:30.66</td><td class="c">But I kept the best of it for you.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">ห้าชิ้นงาน</span></td></tr>
+<tr><td class="n">55</td><td class="t">3:33.90</td><td class="c">This chair was there when the<br>armistice was signed.</td></tr>
+<tr><td class="n">56</td><td class="t">3:37.27</td><td class="c">Not at the table. In the corner.<br>Nobody sat in it.</td></tr>
+<tr><td class="n">57</td><td class="t">3:41.57</td><td class="c">A fish trap.<br>It caught nothing for forty years.</td></tr>
+<tr><td class="n">58</td><td class="t">3:45.05</td><td class="c">The man who made it<br>never sold a single one.</td></tr>
+<tr><td class="n">59</td><td class="t">3:48.19</td><td class="c">Excuse me. Are you following us with that?</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">And this one</span> <span class="sd">Valder เห็นรอยแตกครั้งแรก</span></td></tr>
+<tr><td class="n">60</td><td class="t">4:02.10</td><td class="c">And this one.</td></tr>
+<tr><td class="n">61</td><td class="t">4:04.54</td><td class="c">I did not commission it.<br>I did not buy it.</td></tr>
+<tr><td class="n">62</td><td class="t">4:09.30</td><td class="c">It happened to my wall<br>while nobody was looking.</td></tr>
+<tr><td class="n">63</td><td class="t">4:13.05</td><td class="c">That one decided by itself.</td></tr>
+<tr><td class="n">64</td><td class="t">4:16.69</td><td class="c">I have been collecting for forty years<br>to find something that did not need me.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">I want it</span> <span class="sd">Madame เดินเข้ามา</span></td></tr>
+<tr><td class="n">65</td><td class="t">4:23.30</td><td class="c">Mr Valder. I want it.</td></tr>
+<tr><td class="n">66</td><td class="t">4:25.78</td><td class="c">Of course you do. Everybody does.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">ประมูล</span> <span class="sd">10 → 15 → 20 → 25 → 50 → 100</span></td></tr>
+<tr><td class="n">67</td><td class="t">4:41.32</td><td class="c">There she is. At last.</td></tr>
+<tr><td class="n">68</td><td class="t">4:46.40</td><td class="c">Ten million.</td></tr>
+<tr><td class="n">69</td><td class="t">4:49.26</td><td class="c">Fifteen.</td></tr>
+<tr><td class="n">70</td><td class="t">4:52.36</td><td class="c">Twenty million.</td></tr>
+<tr><td class="n">71</td><td class="t">4:55.04</td><td class="c">Twenty-five.</td></tr>
+<tr><td class="n">72</td><td class="t">4:58.50</td><td class="c">Fifty.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">ข่าว</span></td></tr>
+<tr><td class="n">73</td><td class="t">5:10.90</td><td class="c">One hundred million.</td></tr>
+<tr><td class="n">74</td><td class="t">5:24.08</td><td class="c">One hundred million dollars<br>for a crack in a wall.</td></tr>
+<tr><td class="n">75</td><td class="t">5:28.32</td><td class="c">The collector, Maximilian Valder,<br>declined to comment.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">หลังบ้าน</span> <span class="sd">ติดสินบนช่าง</span></td></tr>
+<tr><td class="n">76</td><td class="t">5:44.30</td><td class="c">Do you know what you were about to do?</td></tr>
+<tr><td class="n">77</td><td class="t">5:46.90</td><td class="c">Fill a crack, sir.</td></tr>
+<tr><td class="n">78</td><td class="t">5:48.48</td><td class="c">Yes.</td></tr>
+<tr><td class="n">79</td><td class="t">5:49.88</td><td class="c">How much were you offered?</td></tr>
+<tr><td class="n">80</td><td class="t">5:51.98</td><td class="c">Eight hundred.</td></tr>
+<tr><td class="n">81</td><td class="t">5:53.10</td><td class="c">I will give you eight thousand.</td></tr>
+<tr><td class="n">82</td><td class="t">5:55.64</td><td class="c">To fix it?</td></tr>
+<tr><td class="n">83</td><td class="t">5:56.69</td><td class="c">To have never come.</td></tr>
+<tr><td class="n">84</td><td class="t">6:02.71</td><td class="c">Someone asked me to fix it.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">STOP!</span></td></tr>
+<tr><td class="n">85</td><td class="t">6:13.28</td><td class="c">STOP! You are destroying<br>a hundred million dollar artwork!</td></tr>
+<tr><td class="n">86</td><td class="t">6:18.49</td><td class="c">I thought they were going to fire me.</td></tr>
+<tr><td class="n">87</td><td class="t">6:35.90</td><td class="c">So I had to do something.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">Dupe สารภาพ</span> <span class="sd">เงินหาเจ้าของ</span></td></tr>
+<tr><td class="n">88</td><td class="t">6:39.80</td><td class="c">Sorry, sir.</td></tr>
+<tr><td class="n">89</td><td class="t">6:41.24</td><td class="c">I cracked it. Last hour.</td></tr>
+<tr><td class="n">90</td><td class="t">6:45.38</td><td class="c">I cracked the wall myself, sir.</td></tr>
+<tr><td class="n">91</td><td class="t">6:47.44</td><td class="c">I will pay for all the damage.</td></tr>
+<tr><td class="n">92</td><td class="t">6:49.75</td><td class="c">I am sorry.</td></tr>
+<tr><td class="n">93</td><td class="t">6:50.88</td><td class="c">Then the artist is the building.</td></tr>
+<tr><td class="n">94</td><td class="t">6:55.22</td><td class="c">I did not buy a crack in a wall.</td></tr>
+<tr><td class="n">95</td><td class="t">6:58.24</td><td class="c">I bought a work of art.</td></tr>
+<tr><td class="n">96</td><td class="t">7:04.92</td><td class="c">One hundred million.</td></tr>
+<tr><td class="n">97</td><td class="t">7:12.18</td><td class="c">But that is my wall!</td></tr>
+<tr><td class="n">98</td><td class="t">7:13.74</td><td class="c">I should have it!</td></tr>
+<tr><td class="n">99</td><td class="t">7:14.92</td><td class="c">I did not pay for the wall.</td></tr>
+<tr><td class="n">100</td><td class="t">7:16.80</td><td class="c">I paid the artist who made it.</td></tr>
+<tr class="scene"><td colspan="3"><span class="sn">จบ</span></td></tr>
+<tr><td class="n">101</td><td class="t">7:29.60</td><td class="c">Good morning.<br>The museum is now open.</td></tr>
+<tr><td class="n">102</td><td class="t">7:56.10</td><td class="c">That is art. I like it.</td></tr>    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>สเปก</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>ตั้งค่า</th><th>ค่า</th></tr></thead>
+    <tbody>
+      <tr><td>จำนวนบรรทัด</td><td>ไม่เกิน 2</td></tr>
+      <tr><td>ความยาวบรรทัด</td><td>ไม่เกิน 42 ตัวอักษร</td></tr>
+      <tr><td>เวลาค้างจอ</td><td>1–7 วินาที</td></tr>
+      <tr><td>ความเร็วอ่าน</td><td>17 ตัว/วินาที (คิวสั้นกว่า 2 วิ ยอมถึง 20)</td></tr>
+      <tr><td>ตำแหน่ง</td><td>ล่างกลาง เว้นขอบ 5%</td></tr>
+      <tr><td>สี</td><td>ขาว ขอบดำบาง ๆ</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>ขาวล้วนไม่มีขอบจะจมหายตอนพื้นหลังเป็นกำแพงครีมกับไฟส้ม ต้องมีขอบดำ</p>
+
+  <details>
+    <summary>10 บรรทัดที่ย่อคำ</summary>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>เวลา</th><th>พูดจริง</th><th>ขึ้นจอ</th></tr></thead>
+      <tbody>
+        <tr><td class="t">0:48.6</td><td>I called the plasterer straight away and asked him to come and patch it.</td><td>I called the plasterer straight away to patch it.</td></tr>
+        <tr><td class="t">0:51.6</td><td>Hello? Is this the contractor?</td><td>Is this the contractor?</td></tr>
+        <tr><td class="t">1:35.4</td><td>Excuse me. What are you looking at?</td><td>What are you looking at?</td></tr>
+        <tr><td class="t">1:44.8</td><td>That is exactly what they want you to think.</td><td>Exactly what they want you to think.</td></tr>
+        <tr><td class="t">2:48.3</td><td>You did not tell us you were coming today.</td><td>You did not tell us you were coming.</td></tr>
+        <tr><td class="t">3:14.3</td><td>Why did you not tell me you were coming today?</td><td>You did not tell me you were coming?</td></tr>
+        <tr><td class="t">3:16.2</td><td>I would have received you properly.</td><td>I'd have received you properly.</td></tr>
+        <tr><td class="t">3:17.8</td><td>This room has only just been rearranged.</td><td>This room was just rearranged.</td></tr>
+        <tr><td class="t">3:25.4</td><td>I think you will like what I have done with it.</td><td>I think you will like what I have done.</td></tr>
+        <tr><td class="t">3:28.1</td><td>Every one of them was acquired in the last two years.</td><td>All acquired in the last two years.</td></tr>
+        <tr><td class="t">3:33.9</td><td>This chair was in the room where the armistice was signed.</td><td>This chair was there when the armistice was signed.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
+
+  <details>
+    <summary>ไฟล์ SRT เต็ม (ก๊อปได้)</summary>
+    <p>ถ้าไฟล์ส่งไม่ถึง ก๊อปข้อความข้างล่างทั้งหมด วางในไฟล์เปล่า ตั้งชื่อ <code>SorrySir-EN.srt</code> บันทึกเป็น UTF-8</p>
+    <pre>1
+00:00:09,480 --&gt; 00:00:11,700
+I dropped a painting.
+
+2
+00:00:33,570 --&gt; 00:00:36,200
+I came in early that morning.
+
+3
+00:00:36,500 --&gt; 00:00:38,850
+It was hanging crooked, only a little.
+
+4
+00:00:38,900 --&gt; 00:00:41,160
+So I straightened it.
+
+5
+00:00:42,520 --&gt; 00:00:45,300
+And, well. You can see.
+
+6
+00:00:45,410 --&gt; 00:00:47,000
+It came off the wall.
+
+7
+00:00:47,050 --&gt; 00:00:48,540
+There&#x27;s a hole there now.
+
+8
+00:00:48,600 --&gt; 00:00:51,500
+I called the plasterer straight away
+to patch it.
+
+9
+00:00:51,550 --&gt; 00:00:52,940
+Is this the contractor?
+
+10
+00:00:53,000 --&gt; 00:00:54,140
+Yes. How can we help?
+
+11
+00:00:54,240 --&gt; 00:00:55,600
+Can you come now?
+
+12
+00:00:56,300 --&gt; 00:00:57,500
+What&#x27;s the emergency?
+
+13
+00:00:57,620 --&gt; 00:00:58,900
+Please.
+
+14
+00:01:01,620 --&gt; 00:01:06,300
+Good morning. The Valder Collection
+opens to visitors in five minutes.
+
+15
+00:01:06,760 --&gt; 00:01:10,000
+Then the first customer
+walked into this room.
+
+16
+00:01:19,190 --&gt; 00:01:21,000
+Excuse me, sir.
+
+17
+00:01:23,340 --&gt; 00:01:25,300
+What happened to the wall?
+
+18
+00:01:25,400 --&gt; 00:01:27,200
+Sorry, sir.
+
+19
+00:01:30,390 --&gt; 00:01:33,800
+That is art. I like it.
+
+20
+00:01:35,400 --&gt; 00:01:38,370
+What are you looking at?
+There is nothing there.
+
+21
+00:01:38,420 --&gt; 00:01:40,800
+I am looking at art.
+
+22
+00:01:41,660 --&gt; 00:01:43,950
+It is clearly about labour.
+
+23
+00:01:43,980 --&gt; 00:01:44,780
+It is a crack.
+
+24
+00:01:44,800 --&gt; 00:01:47,020
+Exactly what they want you to think.
+
+25
+00:01:47,070 --&gt; 00:01:48,800
+It made me think of my mother.
+
+26
+00:01:48,850 --&gt; 00:01:49,820
+Do not touch it!
+
+27
+00:01:50,400 --&gt; 00:01:51,400
+I am measuring it.
+
+28
+00:01:51,440 --&gt; 00:01:52,700
+We are going to be late.
+
+29
+00:01:58,100 --&gt; 00:01:59,510
+Good morning.
+
+30
+00:01:59,560 --&gt; 00:02:02,600
+Welcome, all of you,
+to the Valder Collection.
+
+31
+00:02:02,640 --&gt; 00:02:05,500
+Mr Valder should be with us very shortly.
+
+32
+00:02:05,650 --&gt; 00:02:07,350
+I would like to buy this piece.
+
+33
+00:02:07,630 --&gt; 00:02:09,200
+Two million.
+
+34
+00:02:09,880 --&gt; 00:02:11,600
+Of course, madam. Of course.
+
+35
+00:02:12,160 --&gt; 00:02:14,400
+I will fetch Mr Valder at once.
+
+36
+00:02:30,910 --&gt; 00:02:32,300
+Five million.
+
+37
+00:02:32,460 --&gt; 00:02:35,100
+I will give you five million for it.
+
+38
+00:02:39,160 --&gt; 00:02:41,100
+Forgive me, sir.
+May I take your name?
+
+39
+00:02:41,220 --&gt; 00:02:43,500
+Carrington.
+
+40
+00:02:45,000 --&gt; 00:02:47,600
+Mr Carrington, of course.
+
+41
+00:02:48,300 --&gt; 00:02:50,700
+You did not tell us you were coming.
+
+42
+00:02:50,760 --&gt; 00:02:52,950
+I would have received you properly.
+
+43
+00:02:53,080 --&gt; 00:02:55,400
+I will contact Mr Valder at once.
+
+44
+00:03:07,830 --&gt; 00:03:10,050
+Good morning. Good morning, everyone.
+
+45
+00:03:10,110 --&gt; 00:03:11,900
+It is a very good day.
+
+46
+00:03:12,060 --&gt; 00:03:14,200
+Ah, Mr Carrington, there you are.
+
+47
+00:03:14,250 --&gt; 00:03:16,150
+You did not tell me you were coming?
+
+48
+00:03:16,200 --&gt; 00:03:17,790
+I&#x27;d have received you properly.
+
+49
+00:03:17,840 --&gt; 00:03:19,570
+This room was just rearranged.
+
+50
+00:03:19,620 --&gt; 00:03:21,650
+Come, let me show you everything.
+
+51
+00:03:21,700 --&gt; 00:03:25,390
+Everything in this wing
+was rehung only last week.
+
+52
+00:03:25,440 --&gt; 00:03:28,090
+I think you will like
+what I have done.
+
+53
+00:03:28,140 --&gt; 00:03:30,610
+All acquired in the last two years.
+
+54
+00:03:30,660 --&gt; 00:03:33,200
+But I kept the best of it for you.
+
+55
+00:03:33,900 --&gt; 00:03:37,220
+This chair was there when the
+armistice was signed.
+
+56
+00:03:37,270 --&gt; 00:03:41,520
+Not at the table. In the corner.
+Nobody sat in it.
+
+57
+00:03:41,570 --&gt; 00:03:45,000
+A fish trap.
+It caught nothing for forty years.
+
+58
+00:03:45,050 --&gt; 00:03:48,040
+The man who made it
+never sold a single one.
+
+59
+00:03:48,190 --&gt; 00:03:51,600
+Excuse me. Are you following us with that?
+
+60
+00:04:02,100 --&gt; 00:04:03,500
+And this one.
+
+61
+00:04:04,540 --&gt; 00:04:08,000
+I did not commission it.
+I did not buy it.
+
+62
+00:04:09,300 --&gt; 00:04:13,000
+It happened to my wall
+while nobody was looking.
+
+63
+00:04:13,050 --&gt; 00:04:16,600
+That one decided by itself.
+
+64
+00:04:16,690 --&gt; 00:04:23,100
+I have been collecting for forty years
+to find something that did not need me.
+
+65
+00:04:23,300 --&gt; 00:04:25,700
+Mr Valder. I want it.
+
+66
+00:04:25,780 --&gt; 00:04:29,300
+Of course you do. Everybody does.
+
+67
+00:04:41,320 --&gt; 00:04:44,200
+There she is. At last.
+
+68
+00:04:46,400 --&gt; 00:04:48,300
+Ten million.
+
+69
+00:04:49,260 --&gt; 00:04:51,300
+Fifteen.
+
+70
+00:04:52,360 --&gt; 00:04:54,300
+Twenty million.
+
+71
+00:04:55,040 --&gt; 00:04:57,200
+Twenty-five.
+
+72
+00:04:58,500 --&gt; 00:05:00,600
+Fifty.
+
+73
+00:05:10,900 --&gt; 00:05:13,200
+One hundred million.
+
+74
+00:05:24,080 --&gt; 00:05:27,800
+One hundred million dollars
+for a crack in a wall.
+
+75
+00:05:28,320 --&gt; 00:05:32,300
+The collector, Maximilian Valder,
+declined to comment.
+
+76
+00:05:44,300 --&gt; 00:05:46,800
+Do you know what you were about to do?
+
+77
+00:05:46,900 --&gt; 00:05:48,400
+Fill a crack, sir.
+
+78
+00:05:48,480 --&gt; 00:05:49,600
+Yes.
+
+79
+00:05:49,880 --&gt; 00:05:51,600
+How much were you offered?
+
+80
+00:05:51,980 --&gt; 00:05:53,050
+Eight hundred.
+
+81
+00:05:53,100 --&gt; 00:05:55,300
+I will give you eight thousand.
+
+82
+00:05:55,640 --&gt; 00:05:56,640
+To fix it?
+
+83
+00:05:56,690 --&gt; 00:05:58,700
+To have never come.
+
+84
+00:06:02,710 --&gt; 00:06:04,800
+Someone asked me to fix it.
+
+85
+00:06:13,280 --&gt; 00:06:17,300
+STOP! You are destroying
+a hundred million dollar artwork!
+
+86
+00:06:18,490 --&gt; 00:06:20,700
+I thought they were going to fire me.
+
+87
+00:06:35,900 --&gt; 00:06:37,600
+So I had to do something.
+
+88
+00:06:39,800 --&gt; 00:06:41,140
+Sorry, sir.
+
+89
+00:06:41,240 --&gt; 00:06:43,300
+I cracked it. Last hour.
+
+90
+00:06:45,380 --&gt; 00:06:47,400
+I cracked the wall myself, sir.
+
+91
+00:06:47,440 --&gt; 00:06:49,600
+I will pay for all the damage.
+
+92
+00:06:49,750 --&gt; 00:06:50,830
+I am sorry.
+
+93
+00:06:50,880 --&gt; 00:06:53,600
+Then the artist is the building.
+
+94
+00:06:55,220 --&gt; 00:06:57,600
+I did not buy a crack in a wall.
+
+95
+00:06:58,240 --&gt; 00:07:00,400
+I bought a work of art.
+
+96
+00:07:04,920 --&gt; 00:07:06,900
+One hundred million.
+
+97
+00:07:12,180 --&gt; 00:07:13,700
+But that is my wall!
+
+98
+00:07:13,740 --&gt; 00:07:14,900
+I should have it!
+
+99
+00:07:14,920 --&gt; 00:07:16,600
+I did not pay for the wall.
+
+100
+00:07:16,800 --&gt; 00:07:19,600
+I paid the artist who made it.
+
+101
+00:07:29,600 --&gt; 00:07:32,900
+Good morning.
+The museum is now open.
+
+102
+00:07:56,100 --&gt; 00:07:59,600
+That is art. I like it.
+</pre>
+  </details>
+</section>
+
+<p class="end">ถอดจากไฟล์ Final เอง แล้วเทียบกับบททุกบรรทัด · 12 ก.ย. 2026</p>
+
+</div>
