@@ -33,7 +33,9 @@ die() { echo "astra: $*" >&2; exit 1; }
 
 if [[ "${1:-}" == "--ask" ]]; then
   [[ -n "${2:-}" ]] || die "usage: astra.sh --ask \"question\""
-  exec ssh "$HOST" "codex exec -s $SANDBOX --skip-git-repo-check -C $REMOTE_WS \"${2//\"/\\\"}\""
+  # -n is load-bearing: without it ssh forwards our stdin, codex exec waits on it
+  # ("Reading additional input from stdin...") and the call hangs forever.
+  exec ssh -n "$HOST" "codex exec -s $SANDBOX --skip-git-repo-check -C $REMOTE_WS \"${2//\"/\\\"}\""
 fi
 
 TASK="${1:-}"
@@ -63,9 +65,15 @@ out="$LOCAL_WS/$report"
   echo '```'
 } > "$out"
 
+# The task text is PIPED IN, never read off disk. Measured 2026-09-11: Astra's file
+# tools cannot start over SSH at all — PowerShell and Node both die with "timed out
+# connecting to the Windows sandbox runner", so it can neither read nor write. It said so
+# rather than pretending, which is the behaviour we want, but it means any task that
+# tells it to "read X" fails. `codex exec` appends piped stdin as a <stdin> block, so
+# handing it the content directly needs no tools and works.
 ssh "$HOST" "codex exec -s $SANDBOX --skip-git-repo-check -C $REMOTE_WS \
-  \"Read $base in this folder and carry it out. You cannot write files - your entire answer must be in your reply text. Be complete; nobody can ask you a follow-up.\"" \
-  2>&1 | tee -a "$out"
+  \"The task is in the stdin block below. Carry it out from that text alone - do NOT try to read or write any file, your tools cannot reach this disk. Your entire answer must be in your reply. Be complete; nobody can ask you a follow-up.\"" \
+  < "$TASK" 2>&1 | tee -a "$out"
 
 echo '```' >> "$out"
 echo "astra: captured -> $out" >&2
