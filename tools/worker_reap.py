@@ -117,6 +117,17 @@ def remote_pid_matches_task(host_cfg: dict, pid: int, task_id: str) -> bool | No
     a different, unrelated process (a Windows pid recycled onto BlueStacks
     is exactly this case, the bug this function exists to fix) — the
     caller treats both the same way: refuse to kill.
+
+    `errors="replace"` (iteration 1 review, task-28866f08): a real worker's
+    `CommandLine` is ~22 KB of prompt text written in Windows PowerShell's
+    console code page, not necessarily valid UTF-8 (bytes like 0xae/®
+    measured live). Strict decoding (the default) raised UnicodeDecodeError
+    INSIDE subprocess.run for every real worker, swallowed by the bare
+    `except Exception` below into `None` — meaning the reaper refused to
+    ever clear a genuinely finished worker's pid, reintroducing the
+    12,061-line retry loop through decoding instead of identity. The check
+    below is a substring match for an ASCII task id, so a lossy decode
+    (mangled non-ASCII bytes, task id text intact) is safe and correct.
     """
     ssh_alias = host_cfg.get("ssh")
     if not ssh_alias:
@@ -132,7 +143,8 @@ def remote_pid_matches_task(host_cfg: dict, pid: int, task_id: str) -> bool | No
     else:
         cmd = ["ssh", ssh_alias, "ps", "-p", str(int(pid)), "-o", "args="]
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        r = subprocess.run(cmd, capture_output=True, text=True,
+                           errors="replace", timeout=15)
     except Exception:
         return None
     if r.returncode == 255:
@@ -656,7 +668,14 @@ def close_remote(task: dict, *,
     ssh_cmd = ["ssh", spec["ssh"], *remote_argv]
     result["command"] = ssh_cmd
     try:
-        r = subprocess.run(ssh_cmd, capture_output=True, text=True, timeout=15)
+        # errors="replace" (iteration 1 review, task-28866f08): defensive
+        # hygiene, not the merge blocker — taskkill's stderr is short ASCII
+        # in practice (measured: `ERROR: The process "<pid>" not found.`),
+        # but a non-English Windows locale could localize it. A raised
+        # UnicodeDecodeError here would masquerade as "box unreachable"
+        # (the original ssh_ok misdiagnosis), so guard it the same way.
+        r = subprocess.run(ssh_cmd, capture_output=True, text=True,
+                           errors="replace", timeout=15)
         result["ssh_ok"] = r.returncode == 0
         result["stderr"] = (r.stderr or "")[:300]
     except Exception as e:

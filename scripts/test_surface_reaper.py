@@ -405,6 +405,60 @@ def test_remote_pid_matches_task_no_ssh_alias_is_none() -> bool:
 
 
 # ---------------------------------------------------------------------------
+# non-UTF-8 CommandLine (task-28866f08 iteration 1 review): a real worker's
+# CommandLine is ~22 KB of PowerShell console-codepage text, not necessarily
+# valid UTF-8 (0xae/® measured live) — strict decoding raised
+# UnicodeDecodeError INSIDE subprocess.run, and the bare `except Exception`
+# swallowed it into None for EVERY real worker, reintroducing the retry-loop
+# bug through decoding instead of identity. A Mock can't reproduce a real
+# decode, so these fakes key on whether errors="replace" was actually
+# passed — raising UnicodeDecodeError exactly as strict decoding would
+# unless the lenient kwarg is there.
+# ---------------------------------------------------------------------------
+
+def _strict_decode_raises(stdout_if_lenient: str, returncode: int = 0):
+    def _run(cmd, **kwargs):
+        if kwargs.get("errors") != "replace":
+            raise UnicodeDecodeError("utf-8", b"\xae", 0, 1, "invalid start byte")
+        return mock.Mock(returncode=returncode, stdout=stdout_if_lenient, stderr="")
+    return _run
+
+
+def test_remote_pid_matches_task_non_utf8_matching_returns_true() -> bool:
+    fake_run = _strict_decode_raises("...\xae...task-34f1af72...\xae...")
+    with mock.patch.object(worker_reap.subprocess, "run", side_effect=fake_run):
+        r = worker_reap.remote_pid_matches_task(
+            {"ssh": "winbox", "os": "windows"}, 22072, "task-34f1af72")
+    return r is True
+
+
+def test_remote_pid_matches_task_non_utf8_mismatch_returns_false() -> bool:
+    fake_run = _strict_decode_raises("...\xae...task-other99999...\xae...")
+    with mock.patch.object(worker_reap.subprocess, "run", side_effect=fake_run):
+        r = worker_reap.remote_pid_matches_task(
+            {"ssh": "winbox", "os": "windows"}, 22072, "task-41684e16")
+    return r is False
+
+
+def test_close_remote_kill_call_also_decodes_leniently() -> bool:
+    """Defensive hygiene (review: not the blocker, but do it anyway) — a
+    localized Windows taskkill error must not raise and masquerade as
+    ssh_ok=False-for-unrelated-reasons."""
+    tid = _insert_task(status="done", pid=4242, host="winbox")
+
+    def fake_run(cmd, **kwargs):
+        if cmd and len(cmd) >= 3 and cmd[2] == "taskkill":
+            if kwargs.get("errors") != "replace":
+                raise UnicodeDecodeError("utf-8", b"\xae", 0, 1, "invalid start byte")
+            return mock.Mock(returncode=0, stdout="", stderr="")
+        return mock.Mock(returncode=0, stdout=f"...task {tid}...", stderr="")
+
+    with mock.patch.object(worker_reap.subprocess, "run", side_effect=fake_run):
+        r = worker_reap.close_remote({"id": tid})
+    return r["ssh_ok"] is True
+
+
+# ---------------------------------------------------------------------------
 # close_remote: identity guard before any kill argv (task-28866f08)
 # ---------------------------------------------------------------------------
 
@@ -811,6 +865,14 @@ def main() -> int:
           "ssh exit 255 (unreachable) -> None, never False")
     _mark(test_remote_pid_matches_task_no_ssh_alias_is_none(),
           "no ssh alias configured -> None, no subprocess call")
+
+    print("== non-UTF-8 CommandLine (task-28866f08 iteration 1 review) ==")
+    _mark(test_remote_pid_matches_task_non_utf8_matching_returns_true(),
+          "strict-decode-raising output, matching task id -> True, never None")
+    _mark(test_remote_pid_matches_task_non_utf8_mismatch_returns_false(),
+          "strict-decode-raising output, wrong task id -> False, never None")
+    _mark(test_close_remote_kill_call_also_decodes_leniently(),
+          "close_remote's taskkill call also decodes leniently")
 
     print("== close_remote: identity guard before any kill (task-28866f08) ==")
     _mark(test_close_remote_refuses_recycled_pid_zero_kill_commands(),
