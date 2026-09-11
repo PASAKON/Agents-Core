@@ -14,9 +14,15 @@ auction.
 FREE lane (Unlimited ON). Spec: 5s / 720p / 16:9 / Seedance 2.5 / High / 1/4 /
 Sound ON. Zoom the button: ZERO digits. Click ONCE. No previz.
 
-⚠️ 1 CHIP: the hall with the plaque wall (project_absence_loc_hall_big_d). No
-people, no props. The mark is the chip's own canon prose, once (copied from
-S16). Do not describe it a second time.
+⚠️ 2 CHIPS (was 1) — CEO 2026-09-11: "เราลืมใส่ป้ายไป เพราะงั้นเพิ่ม Tag ป้าย 2,000,000
+ให้หน่อย ที่เหลือคงไว้แบบเดิม". The plaque was DESCRIBED in prose and never BOUND, so the
+model invented one — the same failure as every other unbound-but-described object on this
+film (§7: the model follows your prose over a reference that is not there). Now:
+  `project_absence_loc_hall_big_d` — the hall
+  `project_absence_prop_tag`       — THE BRASS PLAQUE itself, so its shape, its brass and
+                                     its engraving come from the plate and not from guessing
+Still NO people and no other props. The mark is the hall chip's own canon prose, once (copied
+from S16). Do not describe it a second time.
 
 REVIEW ORDER:
 0. THE MARK against canon rule 8 (threshold 80, bbox <8% width, fill ≥0.10):
@@ -51,6 +57,11 @@ crack above it, and the hall's warm light.
   sides, white plinths and the collection along both walls, the brass plaque on
   the hero wall on the axis. It is a four-panel sheet — take NOTHING of its
   arrangement or layout, and never reproduce a grid.
+@project_absence_prop_tag — THE BRASS PLAQUE ITSELF, screwed flat to the hero wall: a small
+  rectangular brass plaque, engraved THE ABSENCE OF MEANING / Valder / $2,000,000, the lettering
+  crisp and readable. Take its shape, its proportions, its brass colour and its engraving
+  from this picture exactly. THERE IS EXACTLY ONE PLAQUE AND IT IS THIS ONE.
+
   THE MARK ABOVE THE PLAQUE IS A CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK:
   one short thick black line about as wide as a man's hand, with three or four
   shorter thick black lines breaking off it, every line solid and heavy like ink
@@ -58,7 +69,8 @@ crack above it, and the hall's warm light.
   thick, black, angular, flat against the wall and part of the plaster.
 
 [0s] A locked MEDIUM shot, square to the hero wall at chest height: the brass
-  plaque dead centre in the lower half of the frame, the small black crack a
+  plaque dead centre in the lower half of the frame, its engraving legible —
+  THE ABSENCE OF MEANING / Valder / $2,000,000 — the small black crack a
   hand's width above it, the cream plaster filling the frame, the edge of a
   chromium column at the very left and right, the orange cove light glowing
   along the top. Fine plaster dust hangs in the light and drifts, slowly.
@@ -78,7 +90,8 @@ colour fringing.
 NEGATIVES: no person, no hand, no shadow of a person, no cart, no mop, no
 tool, no second mark, no spiderweb of fine lines, no pale grey or tan mark, no
 hole, no rubble, no black surround, no large crack, no wall-spanning crack,
-no readable text except the plaque, no caption, no subtitle, no music, no
+no second plaque, no other sign or label anywhere on the wall, no
+readable text except the engraving on that one plaque, no caption, no subtitle, no music, no
 words, no cut, no camera move, no zoom, no push-in, no dissolve, no fade, no
 grid, no split screen, no four-panel layout.
 
