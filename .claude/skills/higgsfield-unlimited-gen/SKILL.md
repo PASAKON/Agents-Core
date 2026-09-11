@@ -247,6 +247,32 @@ video asset must be GENERATED on Higgsfield itself.** Externally created or
 externally edited pictures are not eligible and may not be uploaded as
 Elements or used as final assets. (CEO, 2026-08-30, from the festival rules.)
 
+⚠️ **THIS BANS EXTERNAL GENERATION, NOT EXTERNAL POST-PRODUCTION. Do not read
+it as "no editing outside Higgsfield" — that reading would stop you grading
+the film, and the rules explicitly allow it.** Checked against the verbatim
+rules pulled 2026-09-09 (`docs/reports/higgsfield-festival-rules-20260909.md`,
+Official Rules §4):
+
+> "External editing rules. External tools may be used for cutting and
+> assembly, **color grading**, precise mask-based retouching, titles,
+> transitions, compositing, and traditional (non-AI) 3D and animation."
+
+> "Traditional (non-AI) tools are allowed … such as Blender, After Effects,
+> **DaVinci Resolve**, Premiere, Photoshop, and similar — may be used freely
+> at any stage of your film, **provided they are not used to generate new AI
+> imagery.** Content produced in these tools counts as your own hand-made work."
+
+So: **the cut, the grade, titles, masks and compositing are all fine outside
+the platform.** The line is GENERATION. What Rule 00 actually forbids is
+laundering outside work back INTO a generation — hand-building or retouching a
+plate and uploading it as an Element, which is what the two deleted plaque walls
+were. Grading a finished clip is not that.
+
+**Practical edge inside an allowed tool:** DaVinci Resolve ships AI features.
+Magic Mask is fine — the rules name mask-based retouching explicitly. Anything
+that *invents pixels* (generative fill, detail-hallucinating upscale) is not;
+that is AI image generation happening off-platform.
+
 Practical consequences, learned the expensive way the same night:
 - Hand-building or retouching a plate locally (PIL, Photoshop, anything) and
   uploading it is DISQUALIFYING — even when it is faster or more precise.
