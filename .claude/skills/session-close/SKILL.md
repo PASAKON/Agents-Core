@@ -108,7 +108,8 @@ Only after gates 1–4 pass:
 ```bash
 bash scripts/tab-title.sh "🏁 <entry problem solved, ≤35 chars>"
 bash scripts/tab-main.sh "" <N>/<N>          # every DoD item done -> a full bar
-bash scripts/session-rename.sh "<entry problem, short>"
+bash scripts/session-rename.sh --prefix "✅" "<entry problem, short>"   # verdict CLOSE 🏁
+bash scripts/session-rename.sh --prefix "⏸" "<entry problem, short>"   # verdict FORCE-SAVED
 ```
 Both tab layers, always. A 🏁 sub tab above a half-empty progress bar is the
 tab bar contradicting itself, and the CEO reads the bar first.
@@ -117,7 +118,13 @@ The rename call is the same display-layer sync `/session-worktree` does mid-
 session ([[session-worktree]]) — usually a silent `unchanged: <topic>` no-op,
 sent here so a closing session's Claude display name reflects what it ended
 up being about, not the entry problem it was chartered under if that topic
-drifted along the way.
+drifted along the way. `--prefix` stamps the CEO's Claude app entry with the
+verdict this gate just reached (task-bbdfa8d1, CEO 2026-09-11 "เช็คไม่ได้เลย
+ว่ามี session เปิดจริงไหม") — ✅ on a verified 🏁, ⏸ on FORCE-SAVED (unfinished
+but resumable, same "parked" reading as [[session-save]]'s ⏸). Pick the ONE
+line matching this gate's actual verdict, never both. If the rename fails
+(no `$TMUX`, or the send errors) log it and continue to step 6 regardless —
+stamping must never block the close it belongs to.
 
 ### 6. End the tmux session — LAST, on 🏁 or force_saved
 Print the report first (below), then as the final action of the whole skill:
