@@ -1,114 +1,137 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 POSTER — «Sorry, Sir» key art · the line-up
-GPT Image 2.5 Sunburst · 16:9 · 2K · Quality High
-CEO brief 2026-09-12: single row, everyone's back to camera, standing straight like
-soldiers, every character who has a part in the film, Dupe alone facing camera and at
-the HEAD of the line — not the centre. Background: the museum exterior.
+GPT Image 2.5 SUNBURST · 16:9 · 2K · Quality High
 
-BEFORE FIRING — COUNT THE CHIPS. 15 chips are named below: 14 characters + 1 location.
-Skill §7: the model follows prose when a reference silently fails to bind, and a short
-count is the only warning you get. Read the real mentions off the Elements panel and
-confirm all 15 attached. If Higgsfield caps the number of references, report the cap
-and stop — do not fire a partial set and hope.
+Rewritten 2026-09-12 to the structure GPT Image 2.5 actually wants, after reading the
+guides rather than reusing our video-prompt habits:
+  DELIVERABLE / SUBJECT / SCENE / COMPOSITION / VISUAL DIRECTION / TEXT / CONSTRAINTS / OUTPUT
+Typography rules taken from the same source: exact copy in quotation marks, "render
+exactly once" to stop duplication, placement and hierarchy stated, and an explicit ban
+on extra words, logos, signatures and watermarks.
 
-⚠️ CHECK `@project_absence_char_student_c` BEFORE FIRING. CAST.md records its content
-as "the six arrivals, ALREADY STANDING in their established costumes" — if that plate
-really shows SIX people, binding it drops six extra bodies into a fifteen-person row.
-An Element's name is not its content (§7a). Open the plate, look at it, and if it is a
-group rather than the single art student, say so and do not fire.
+REFERENCE CAP: Higgsfield accepts UP TO 16 references on GPT Image 2.5. We use 15, so
+nothing has to be dropped. Count them on the panel before firing — a chip that fails to
+attach gives no warning except a short count (§7).
 
-⚠️ `@project_absence_char_guard_valder_two` is ONE chip that contains BOTH guards
-(CAST.md: "One tall and thin, the other short and heavy. This one picture is both of
-them."). Do not expect two chips for them, and do not bind it twice.
+⚠️ CHECK `@project_absence_char_student_c` BEFORE FIRING. CAST.md records its content as
+"the six arrivals, ALREADY STANDING in their established costumes". If that plate really
+shows SIX people, binding it drops six extra bodies into the row. An Element's name is
+not its content (§7a). Look at the plate first.
 
-Every chip is followed by its wardrobe in prose, quoted from CAST.md. That is
-deliberate (§7): the prose is the fallback for whichever chip fails to attach, and it
-must never disagree with the plate.
+⚠️ `@project_absence_char_guard_valder_two` is ONE chip holding BOTH guards. Do not bind
+it twice.
 
-NO TEXT ANYWHERE IN THE IMAGE — the title and any engraving get composited afterwards,
-by hand, because AI lettering garbles (measured: a plaque in this film rendered as
-"LAKKRITORGH GIN UDNS"). Leave the stone bare.
+THE 15 CHIPS
+  @project_absence_char_cleaner_c        Dupe, facing camera, head of line
+  @project_absence_char_valder           Valder
+  @project_absence_char_guard_valder_two the two guards (ONE chip, TWO men)
+  @char_registrar                        the registrar
+  @gentleman_e                           Mr Carrington
+  @project_absence_char_guard_private_v2 Carrington's bodyguard
+  @project_absence_char_woman_c          Madame Thibault
+  @project_absence_char_critic           the art critic
+  @project_absence_char_grandmother      the buyer, wheelchair
+  @project_absence_char_woman            the woman in cobalt
+  @project_absence_char_student_c        the art student
+  @project_absence_char_visitor_a        visitor A, oxblood suit
+  @project_absence_char_workman          the contractor
+  @project_absence_char_oldman           the old man in green, far right
+  @project_absence_loc_exterior_front    the museum entrance
 
-Order left→right is chosen for colour rhythm: white · rainbow · navy · navy · cream ·
-white · black · green · magenta · grey · cobalt · yellow · oxblood · navy · dark green.
+DO NOT BIND (CAST.md retired/flagged): @project_absence_char_registrar_b,
+@project_valder_char_villagers_poor, @prop_croc_bag, @prop_car
+
+AFTER GENERATION — VERIFY, then grade
+  1. Spelling of both text lines, letter by letter.
+  2. Head count: fifteen, one face only, two peaked caps, one wheelchair.
+  3. No extra words, logos or watermarks anywhere.
+  4. The film's own LUT can be applied to the poster afterwards so the key art and the
+     picture match exactly — free, and better than hoping the model guesses the grade.
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
-A single wide symmetrical photograph, 16:9, of FIFTEEN people standing in ONE
-STRAIGHT ROW across the frame, shoulder to shoulder, evenly spaced, all at the same
-distance from the camera, like a military line-up.
+DELIVERABLE
+A finished 16:9 film poster, photographic, for a short film. Print quality, centred and
+symmetrical, with room at the top for a title.
 
-FOURTEEN of them have their BACKS FULLY TO THE CAMERA, standing bolt upright and
-motionless, facing away toward the building. ONLY ONE PERSON FACES THE CAMERA.
+SUBJECT
+FIFTEEN people stand in ONE straight row across the frame, shoulder to shoulder, evenly
+spaced, all the same distance from the camera, like a military line-up. FOURTEEN of them
+have their backs fully to the camera, bolt upright and motionless, facing the building.
+ONE person faces the camera. He is the FIRST person on the LEFT, at the head of the
+line, not in the middle, and his is the only face visible anywhere in the picture. He
+looks straight down the lens, calm and a little worried.
 
-THE ONE FACING THE CAMERA IS THE FIRST PERSON ON THE LEFT, at the head of the line,
-NOT in the middle. He looks straight down the lens, calm and a little worried. His
-face is the only face visible in the entire photograph.
+Left to right:
+1. @project_absence_char_cleaner_c — DUPE, FACING CAMERA: white mandarin-collar uniform,
+   thin orange trim, small gold V, white cap, black moustache, a mop upright at his side.
+2. @project_absence_char_valder — VALDER, from behind: a blazer panelled in flat blocks
+   of magenta, yellow, green, blue and red, a long mustard-yellow scarf hanging down his
+   back, purple trousers, white hair.
+3-4. @project_absence_char_guard_valder_two — TWO GUARDS, from behind, side by side: navy
+   military tunics with gold buttons and a large gold V, black belts, navy trousers, navy
+   peaked caps. One tall and thin, one short and heavy.
+5. @char_registrar — from behind: cream-white mandarin-collar suit, thin orange piping,
+   white gloves, a brown leather ledger at his side. The only person carrying a book.
+6. @gentleman_e — from behind: tall, elderly, swept-back white hair, white stand-collar
+   suit, white shoes, a black cane with a gold lion head.
+7. @project_absence_char_guard_private_v2 — from behind: very heavily built, all-black
+   suit and black shirt, white gloves on both hands, arms at his sides.
+8. @project_absence_char_woman_c — MADAME THIBAULT, from behind: tall and rail-straight,
+   a floor-length glossy mid-green leather gown with pointed shoulder caps, long green
+   leather opera gloves, a towering pompadour streaked blue, green and silver-white.
+9. @project_absence_char_critic — from behind: a woman of about sixty, dark grey-streaked
+   hair in a low chignon, a full-length deep magenta fur coat with a wide shawl collar,
+   long cream suede gloves.
+10. @project_absence_char_grandmother — from behind and SEATED in a powered wheelchair: a
+    grey knitted headscarf tied under the chin, grey knitted cardigan, brown boots. The
+    only seated figure; her head is much lower than the others.
+11. @project_absence_char_woman — from behind: dark hair pinned up, an oversized
+    cobalt-blue overcoat, brown-checked skirt, black tights, brown loafers.
+12. @project_absence_char_student_c — from behind: a slight young woman, short dark curly
+    bob, a chrome-yellow leather trouser suit with an oversized pointed collar, a flat
+    yellow pillbox hat, cream gloves.
+13. @project_absence_char_visitor_a — from behind: an ordinary balding man in an oxblood
+    leather suit.
+14. @project_absence_char_workman — from behind: dark navy overalls, a rag over one
+    shoulder, a bucket of wet plaster in one hand.
+15. @project_absence_char_oldman — from behind, at the far right end: a heavy dark green
+    leather overcoat, white hair, a walking cane. He closes the line as Dupe opens it.
 
-Reading left to right:
+SCENE
+@project_absence_loc_exterior_front — the museum entrance fills the upper two thirds: a
+low curved building faced in warm cream stone, a long polished chromium canopy along its
+front edge, TWO tall chromium trumpet columns holding that canopy up, a glass revolving
+door set back beneath it, mirrored chrome spheres on cylinder plinths, and a wide fan of
+shallow steps dropping toward the camera. The row stands on the forecourt at the foot of
+the steps. Late afternoon daylight, clear pale sky above the roofline, long soft shadows
+falling toward the camera.
 
-1. @project_absence_char_cleaner_c — DUPE, FACING CAMERA, at the head of the line:
-   white mandarin-collar uniform, thin orange trim, small gold V, white cap, black
-   moustache, a mop held upright at his side.
-2. @project_absence_char_valder — VALDER, seen from behind: a blazer panelled in flat
-   blocks of magenta, yellow, green, blue and red, a red waistcoat, a long
-   mustard-yellow scarf hanging down his back, purple trousers, white hair.
-3. and 4. @project_absence_char_guard_valder_two — VALDER'S TWO GUARDS, seen from
-   behind, standing side by side: navy military-cut tunics with gold buttons and a
-   large gold V, black belts with gold buckles, navy trousers, navy peaked caps, black
-   shoes. ONE TALL AND THIN, THE OTHER SHORT AND HEAVY. Exactly two of them.
-5. @char_registrar — THE REGISTRAR, seen from behind: a cream-white mandarin-collar
-   suit with thin orange piping, white gloves, a gold V, the brown leather ledger held
-   at his side. He is the only person carrying a book.
-6. @gentleman_e — MR CARRINGTON, seen from behind: tall, elderly, swept-back white
-   hair, a white stand-collar suit, white shoes, a black cane with a gold lion head.
-7. @project_absence_char_guard_private_v2 — CARRINGTON'S BODYGUARD, seen from behind:
-   a very heavily built man, all-black suit with a black shirt, white gloves on both
-   hands, arms at his sides, carrying nothing.
-8. @project_absence_char_woman_c — MADAME THIBAULT, seen from behind: tall and
-   rail-straight, a floor-length gown of glossy mid-green leather with sharply pointed
-   shoulder caps and a tall standing collar, long green leather opera gloves, a
-   towering pompadour streaked blue, green and silver-white.
-9. @project_absence_char_critic — THE ART CRITIC, seen from behind: a woman of about
-   sixty, dark grey-streaked hair in a low chignon, a full-length deep magenta fur coat
-   with a wide soft fur shawl collar, long cream suede gloves, cream heels.
-10. @project_absence_char_grandmother — THE BUYER, seen from behind and SEATED in a
-    powered wheelchair: a grey knitted headscarf tied under the chin, a grey knitted
-    cardigan, a knitted bag on her lap, brown boots. She is the only seated figure and
-    her head is much lower than everyone else's.
-11. @project_absence_char_woman — THE YOUNG WOMAN IN COBALT, seen from behind: dark
-    hair pinned up, an oversized cobalt-blue overcoat with a gold V pin, a brown-checked
-    skirt, black tights, brown loafers.
-12. @project_absence_char_student_c — THE ART STUDENT, seen from behind: a slight young
-    woman, short dark curly bob, a chrome-yellow leather trouser suit with an oversized
-    pointed collar, a flat yellow pillbox hat, cream gloves, cream ankle boots.
-13. @project_absence_char_visitor_a — seen from behind: an ordinary balding man in an
-    oxblood leather suit.
-14. @project_absence_char_workman — THE CONTRACTOR, seen from behind: dark navy
-    overalls, a rag over one shoulder, a bucket of wet plaster in one hand.
-15. @project_absence_char_oldman — THE OLD MAN IN GREEN, seen from behind, at the far
-    right end of the row: a heavy dark green leather overcoat, white hair, a walking
-    cane in one hand. He closes the line the way Dupe opens it.
+COMPOSITION
+Dead-on, perfectly level, perfectly centred. The revolving-door entrance sits exactly on
+the centre line. Long lens, everything flat and parallel to the frame. The row of people
+occupies the lower third; the stone facade and a band of pale sky fill the upper two
+thirds and stay clean and uncluttered so the title reads against them.
 
-Behind them, @project_absence_loc_exterior_front — THE MUSEUM ENTRANCE, filling the
-upper two thirds of the frame: a low curved building faced in warm cream stone, a long
-polished chromium canopy along its front edge, TWO tall chromium trumpet columns
-holding that canopy up, a glass revolving-door entrance set back beneath it, mirrored
-chrome spheres on cylinder plinths, and a wide fan of shallow steps dropping toward
-the camera. The row of people stands on the forecourt at the foot of those steps.
+VISUAL DIRECTION
+Already colour-graded, not raw. Saturated, deliberately designed colour: costume colours
+rich and clearly separate from one another, warm cream stone, polished chrome, a pale
+sky. Flat even light, low mid contrast, soft shadows rather than deep black. Skin stays
+natural. Photographed, not rendered: fine film grain, slight colour fringing.
 
-Late afternoon daylight, clear pale sky, long soft shadows falling toward the camera.
-Perfectly centred, perfectly level, dead-on symmetrical composition, the building's
-entrance exactly on the centre line. Shot on a long lens, everything flat and parallel
-to the frame.
+TEXT
+Render the following text exactly once each, and no other text anywhere:
+- "SORRY SIR" — large, all capitals, centred, across the upper area against the stone
+  and sky. A bold wide-tracked sans serif in a warm ROSE PINK, clearly the dominant
+  element of the poster, sitting well clear of the people below.
+- "THE VALDER COLLECTION" — small, all capitals, centred, directly beneath "SORRY SIR",
+  in a thin widely-letter-spaced sans serif, cream white, no more than a fifth the height
+  of the title.
+Both lines are crisp, evenly spaced and correctly spelled. The background behind them
+stays plain so they read cleanly.
 
-Colour: amber-cream stone, polished chrome, saturated costume colours reading clean
-and separate against the pale building. Photographed, not rendered: fine film grain,
-slight colour fringing.
-
-COUNT THEM. FIFTEEN PEOPLE IN TOTAL, not fourteen and not sixteen, standing in one
-row. Each of these people appears once and once only:
-
+CONSTRAINTS
+Fifteen people in total, not fourteen and not sixteen. Each appears once and once only:
 there is exactly ONE man in white with a mop, and he is the only face in the picture.
 there is exactly ONE man in the colour-block blazer with the mustard scarf.
 there are exactly TWO men in navy peaked caps, one tall and thin, one short and heavy.
@@ -124,39 +147,12 @@ there is exactly ONE balding man in an oxblood leather suit.
 there is exactly ONE man in dark navy overalls with a bucket.
 there is exactly ONE old man in a dark green leather overcoat, at the far right end.
 
-NO twins. NO duplicated faces. NO repeated costumes. NO second man in white with a
-mop. NO second colour-block blazer. NO second wheelchair. NO extra people in the
-background. NO crowd. NO cars. NO text, NO lettering, NO signage, NO writing of any
-kind anywhere in the image. NO gold V on the stone. NO plaque. NO logo. NO watermark.
-NO second row of people. NO one turning their head. NO faces visible except the man at
-the far left.
+No twins, no duplicated faces, no repeated costumes. No second row of people, no crowd
+in the background, no cars. No one turning their head. No face visible except the man at
+the far left. No additional words, letters, numbers, signage, logos, signatures or
+watermarks of any kind beyond the two text lines specified above. No gold V on the
+stone, no plaque on the building.
+
+OUTPUT
+16:9 landscape, 2K, high quality, sharp throughout, no border, no frame, no mockup.
 === ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
-
-=== NOTES · DO NOT PASTE ANY OF THIS ===
-THE 15 CHIPS, for counting against the Elements panel:
-  @project_absence_char_cleaner_c        Dupe
-  @project_absence_char_valder           Valder
-  @project_absence_char_guard_valder_two Valder's two guards (ONE chip, TWO men)
-  @char_registrar                        the registrar
-  @gentleman_e                           Mr Carrington
-  @project_absence_char_guard_private_v2 Carrington's bodyguard
-  @project_absence_char_woman_c          Madame Thibault
-  @project_absence_char_critic           the art critic
-  @project_absence_char_grandmother      the buyer, wheelchair
-  @project_absence_char_woman            the woman in cobalt
-  @project_absence_char_student          the art student
-  @project_absence_char_visitor_a        visitor A, oxblood suit
-  @project_absence_char_workman          the contractor
-  @project_absence_char_oldman           the old man in green (far right)
-  @project_absence_loc_exterior_front    the museum entrance
-
-DO NOT BIND (CAST.md "retired / do-not-use"): @project_absence_char_registrar_b,
-@project_valder_char_villagers_poor, @prop_croc_bag, @prop_car — Higgsfield refuses
-the Generate click on the flagged ones.
-
-AFTERWARDS, BY HAND (free, and the reason there is no text above)
-- title lettering "SORRY, SIR" + "The Valder Collection No.7"
-- a small brass plaque on the stone if wanted, with correct engraving
-- a tighter crop variant for the YouTube thumbnail, where fifteen figures at 320px
-  wide would be 23px each
-=== END NOTES ===
