@@ -101,46 +101,47 @@ produces false alarms: on 2026-08-13 it read 339.2 credits / $13.568 against
 a 21.8 / $0.872 baseline confirmed the day before — a 15x jump that looked
 alarming and was entirely benign.
 
-## SEEDANCE EDIT VIDEO WORKS, AND IT TAKES @Element REFERENCES (CEO 2026-09-11)
+## SEEDANCE VIDEO EDIT — IT HAS A GRAMMAR, AND GUESSING IT FAILS (2026-09-11)
 
-⚠️ **STATUS: THE FEATURE EXISTS. MY FIRST EDIT PROMPT FAILED.** I wrote this section as
-"confirmed working" within minutes of the CEO saying the feature looked good, and then his actual
-attempt produced nothing — "Prompt ที่คุณให้มา … มันใช้งานไม่ได้เลย". Whether `@Element` mentions
-truly bind inside an edit prompt is therefore **NOT established**. Do not plan around it yet.
+Seedance 2.5 can edit an already-rendered clip instead of re-shooting it. **My first edit prompt
+produced no change at all**, and the reason was not the wording quality — it was that edit mode has
+a documented instruction format I had never read. Researched afterwards against ByteDance's model
+docs and third-party API references; the three mistakes below are all mine.
 
-**Two candidate causes, both mine, neither ruled out:**
-1. **The prompt said ADD when the clip already contained the object.** An "add X" instruction
-   against a video that already shows an X is a contradiction; the model has nothing to do. If the
-   object is present and wrong, the instruction has to name it and say REPLACE or MOVE.
-2. **The prompt was mostly preservation.** One sentence of change followed by five paragraphs of
-   "keep everything else exactly as it is". Models weight mass; a text that is 80% "do not change"
-   can net out to "do nothing". **Lead with the change, spend most of the words on the change, and
-   keep the preservation list to one short block at the end.**
+**1. LEAD WITH AN EDIT VERB. This is the switch that turns edit mode on.** The model watches for
+`edit` · `remove` · `add` · `replace` · `change to` · `restyle` · `relight`. Leading with one of
+these tells it to preserve the source and modify it; without one it may treat the text as an
+ordinary generation prompt. My prompt opened "MOVE THE BRASS PLAQUE DOWN THE WALL" — **`move` is
+not on the list**, and nothing happened.
 
-A third possibility that is NOT ours: the edit surface may simply ignore reference images. Test it
-with an instruction that needs no reference before blaming the wording.
+**2. NAME THE VIDEO INSIDE THE PROMPT.** The documented shape is literally:
+`Edit @Video1: <what changes>. Keep <what stays> unchanged.`
+Attaching the clip to the composer is not enough — the instruction text itself refers to `@Video1`.
+Mine never mentioned it.
 
-**Why this matters more than it sounds.** Until now a clip with one wrong detail was a re-shoot:
-throw away everything that worked and roll the dice again on cast, blocking, dialogue and grade to
-fix a single object. Edit Video makes the defect the unit of work instead of the clip. On a film
-where a take often fails on exactly one thing — a missing prop, an object at the wrong height, a
-duplicated extra — that is the difference between a cheap fix and a lost slot.
+**3. IN EDIT MODE REFERENCES ARE `@Image1`, NOT ELEMENT NAMES.** Reference images are passed
+positionally and addressed as `@Image1`, `@Image2` — e.g. "replace the man's jacket with the one in
+@Image1". I used `@project_absence_prop_tag`, a Higgsfield Element mention, which is the composer's
+system, not the edit surface's.
 
-**How to write an edit prompt — it is NOT a generation prompt.** Ours was ~1,700 characters
-against ~13,000 for the generation sheet, and the brevity is the point:
-- **Open with the whole instruction in one sentence**: "Add X. Change nothing else about this video."
-- **Bind the thing you are adding** as an `@Element` so its shape and colour come from the plate,
-  not from the model's guess — the same §7 rule as anywhere else.
-- **Say where it goes in the FRAME** and how it is lit, shadowed and grained so it belongs.
-- **List what must not move**, explicitly: camera, framing, lens, the other objects by name,
-  lighting, grade, duration, audio. Add "nothing shifts to make room for it" — otherwise the model
-  may re-compose around the addition.
-- **Do not restate the spec, the cast, the camera move or the story.** They are already in the
-  clip; repeating them invites the model to re-render them.
+**WHAT IT CAN AND CANNOT DO — the capability list matters as much as the grammar.** Documented
+operations: **restyle · remove an element · replace an element · swap the background · time-scoped
+edits** (`between 0:02 and 0:04, add …`). The model's stated job is to preserve **subject identity,
+composition and motion**.
 
-**Still unknown, establish before relying on it:** what it costs (read the price off the button
-like any other fire), whether output quality/bitrate matches the original, and how far it can be
-pushed — adding a static object is proven, moving an existing one or changing a performance is not.
+⚠️ **"Move this object" is not on that list, and it fights the model's purpose** — repositioning is
+a change of composition, which is the thing it is built to hold still. **Decompose a move into the
+two operations it does support: REMOVE it from the old place and ADD it in the new one,** in one
+prompt, and say explicitly that the finished clip contains exactly one of the object.
+
+**Other rules from the docs worth keeping:** describe changes bidirectionally (from A to B, not
+just "make it B"); fence the edit by naming what stays, spatially and temporally; masks and region
+selection are NOT required; and it works best on short focused inputs of roughly 4–15 seconds, not
+long multi-shot clips.
+
+**Still unverified for us:** whether Higgsfield's UI exposes this grammar the same way the API does,
+what an edit costs, and whether output quality matches the original. Read the price off the button
+like any other fire.
 
 ## WHEN THE GRANT IS EXPIRING: THE BUTTON DECIDES, NOT THE CLOCK (2026-09-11)
 
