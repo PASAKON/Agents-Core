@@ -1,88 +1,78 @@
 ## Summary
 
-Fired all three TV-wall plate variants (A/SECOND-HAND SHOP, B/ORDERED VARIETY,
-C/STEPPED PYRAMID) on Higgsfield's Image lane (Kling O1 Image, 365-day
-Unlimited grant, zero credits — Credits stayed at 513 throughout). Downloaded,
-converted and filed all three, reviewed each against the brief's six-point
-checklist, and reported PASS/FAIL per item. No Element was registered, nothing
-was deleted, and the other operator's tab/lane (task-fc063e0e, video) was never
-touched. Full detail, byte-exact extraction method, and the mid-session
-viewport-collapse recovery are in `docs/reports/absence-plate-tv-wall-winbox.md`.
+Download-only task, as scoped: no Generate/Rerun/Recreate clicks, no Drive
+filing. Opened both festival submission projects' "Meta assets" sidebar item
+(labelled "Watermarks" once open) and downloaded every asset offered — 4 per
+project, both aspect ratios (16:9, 21:9), matching the brief's expectation
+exactly with nothing missing:
 
-Net result: Variant C (STEPPED PYRAMID) is 6/6 PASS and this operator's pick.
-Variant A is 5/6 (duplicate TV cabinets). Variant B is 4/6 — Higgsfield
-rendered an 8×3 grid instead of the requested 4×4, and 5 of those 24 cells are
-blank cabinet panels with no television at all.
+- **«Sorry, Sir»** → `C:\mooniex\meta-sorrysir\` — watermark_16_9.png,
+  watermark_21_9.png, packshot_16_9.mov, packshot_21_9.mov
+- **«Do Not Disturb»** → `C:\mooniex\meta-dnd\` — same 4 filenames
+
+All 8 files kept the platform's own filenames, md5-summed, and verified for
+type (transparent PNG vs. alpha-channel ProRes video, exact duration/
+resolution). Full per-file table, the verbatim watermark-usage rule quoted
+from the platform, and a finding that the two projects' packshot .mov files
+are byte-identical (their watermark .png files are not) are all in
+`docs/reports/festival-meta-assets-download.md`.
+
+MACHINE-LOCK.txt was empty at start (as expected), held `task-8e6ef54d` for
+the duration, cleared at the end.
 
 ## Files Changed
 
-- `docs/reports/absence-plate-tv-wall-winbox.md` — full report: setup, editor
-  gotcha found and fixed (word-wrap newlines → extra paragraph breaks),
-  per-variant fire/harvest/PASS-FAIL detail, closing opinion.
-- `docs/reports/plate-tv-wall/variant-a.jpg` — 364,203 bytes
-- `docs/reports/plate-tv-wall/variant-b.jpg` — 415,205 bytes
-- `docs/reports/plate-tv-wall/variant-c.jpg` — 295,304 bytes
-- `scripts/browser/extract-variant.py` — byte-exact PASTE-block extractor
-  (never hand-transcribes prompt bytes); used for all three variants.
+- `docs/reports/festival-meta-assets-download.md` — full download report:
+  per-file table (project, asset, aspect ratio, filename, size, md5, asset
+  type/duration), the verbatim platform usage-instruction text, and browser-
+  action log.
+- `REPORT.md` — this file.
+- No other repo files touched. The 8 downloaded assets live outside the
+  repo/worktree at `C:\mooniex\meta-sorrysir\` and `C:\mooniex\meta-dnd\`,
+  per the task's explicit save-location instructions.
 
 ## Commits
 
-- 5174e4f — absence: TV-wall plate — variant A fired, byte-exact extraction + flatten fix
-- 07c18bf — absence: TV-wall plate — variant A harvested (5/6 PASS, dup TVs), variant B fired
-- ab2f346 — absence: TV-wall plate — variant B harvested (4/6 PASS, wrong grid + blank cells)
-- 53261ab — absence: TV-wall plate — variant C fired (STEPPED PYRAMID)
-- (this commit) — variant C harvested, closing opinion, REPORT.md
+- (this commit) — task-8e6ef54d: download festival Meta assets (watermark +
+  packshot, both aspect ratios) for both submission projects; report only,
+  no repo code changes.
 
 ## Tests
 
-- N/A — browser-operator content task, no test suite applies. Verified instead:
-  landed-prompt length equals source length for all three variants (1735=1735,
-  1619=1619, 1577=1577), zero `@Element` chips and zero `<video>` reference
-  elements before every fire, Generate button read `UNLIMITED` (zero digits)
-  by screenshot pixels immediately before every click, and Usage History
-  credits (513) unchanged from session start to end.
+- N/A — browser-operator download task, no test suite applies. Verified
+  instead: exactly 4 assets present under "Meta assets" in each project (no
+  substitution needed), every downloaded file's on-disk byte size matches
+  the platform's own detail-panel size reading, md5sum computed and recorded
+  for all 8 files, `ffprobe` confirmed both packshot .mov files' duration
+  (9.13s), resolution, codec (ProRes 4444, alpha channel) and audio track in
+  each project, `PIL` confirmed both watermark .png files are true RGBA with
+  a real alpha range (0–255, not fully opaque) in each project.
 
 ## Issues / Blockers
 
-- None requiring CEO input. Two non-blocking findings, both handled in-session
-  per the browser-operator/higgsfield-unlimited-gen skills without escalation:
-  - The task-warned "MOBILE ACCESS COMING SOON" ~126×67 viewport collapse hit
-    this operator's own tab once, mid-render, right after firing variant A.
-    Recovered per the brief: never resized, opened a fresh tab, confirmed
-    1920×911, and the render had already completed server-side by the time
-    the fresh tab loaded.
-  - Several `zoom`/`screenshot` calls (5 total across the session) hit
-    `CDP sendCommand "Page.captureScreenshot" timed out after 30000ms`. Per
-    the higgsfield-unlimited-gen hard rule, checked Usage History in a
-    separate tab after every one — credits stayed at 513 all five times,
-    confirming no charge ever landed. A plain `screenshot` (as opposed to
-    `zoom`) succeeded immediately after each timeout on the same tab, so this
-    looks like a `zoom`-specific flakiness rather than a genuinely frozen
-    tab; flagging for whoever tunes that tool next, not escalating.
-  - Variant B's defect (wrong grid dimensions, blank cabinet cells) is a
-    content quality issue for the CEO to weigh when picking a variant, not a
-    browser/tooling blocker — reported in full per the brief's instruction not
-    to re-fire.
+None. No stuck controls, no ambiguous pricing (never touched a priced
+surface — this task never opened the Generate composer), no missing assets.
+One transient `Page.captureScreenshot` CDP timeout on the DND project,
+recovered on retry with no side effects (see the browser-action log in the
+linked report for how it was verified clean). One misclick (Meta assets →
+landed on Settings instead) on the DND project, caught immediately from the
+resulting screenshot and corrected with no side effects.
 
 ## Notes for Reviewer
 
-- SKILL-OVERRIDE: none. All HARD rules in `higgsfield-unlimited-gen` and the
-  task brief were followed as written (Unlimited-only, zero-digit check by
-  pixels not DOM scrape, no Rerun, no Element registration, never touching the
-  other operator's tab/cards, fresh tab on viewport collapse, Usage History
-  check after every tool-call timeout).
-- One technique worth carrying forward: the prompt sheet's ~90-column
-  word-wrap newlines land as extra Lexical paragraph breaks if pasted
-  verbatim (measured: 1753 landed vs 1735 source on variant A). Fixed by
-  flattening single word-wrap newlines to spaces (preserving any real
-  blank-line paragraph breaks, of which this sheet had none) before
-  base64/paste. Worth folding into `extract-variant.py` as a permanent
-  step, or into the higgsfield-unlimited-gen skill's editor-gotchas section,
-  since it will recur on any prompt sheet hard-wrapped for readability.
-- All three images are in `docs/reports/plate-tv-wall/` at repo-friendly
-  sizes (JPG, under 1.5MB each) for easy review; the full-resolution PNG
-  originals remain in `C:\Users\UsEr\Downloads` per the harvest instructions.
-- Variant B's review found a defect (blank cabinet cells / wrong grid) that a
-  visual skim would likely have missed — the per-item PASS/FAIL checklist in
-  the brief is what caught it. Worth keeping that discipline for future plate
-  reviews.
+- The task's "also report" ask — any platform text about watermark
+  placement, packshot on-screen duration, or usage instructions — turned up
+  exactly one sentence, quoted verbatim in the linked report: the watermark
+  and packshot "must appear on your final video and on the version you post
+  to social media." Nothing about *where* on frame or *how long*. Worth
+  flagging to whoever files the eligibility checklist, since the brief
+  called this text "worth more than the files."
+- The two projects' packshot `.mov` files are byte-identical to each other
+  (same MD5, same size) — almost certainly Higgsfield's shared generic
+  festival bumper rather than a per-film render. The watermark `.png` files
+  are visually identical but *not* byte-identical between projects (different
+  MD5s, slightly different file sizes, different upload timestamps per
+  project). Noted in the linked report in case it matters for verification —
+  not investigated further as it was outside this task's scope.
+- Nothing was uploaded to Drive, per the task's explicit instruction that
+  filing belongs to the requester.
