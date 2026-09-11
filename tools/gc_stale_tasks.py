@@ -249,9 +249,19 @@ def gc_stale_tasks(
         print(f"[gc] cancelled {t['id']} (stale spawned pending "
               f">{STALE_SPAWNED_PENDING_MINUTES}min, no live process)",
               file=sys.stderr)
+        # Read-only count up front so --dry-run reports the lock count too
+        # (not just which tasks would be cancelled) — the whole point of a
+        # dry-run for a bug about locks is seeing the lock numbers before
+        # committing to releasing them.
+        with db.get_conn() as conn:
+            lock_n = conn.execute(
+                "SELECT COUNT(*) c FROM locks WHERE owner=? AND key LIKE ?",
+                (t["id"], f"proj:{t['project']}:path:%"),
+            ).fetchone()["c"]
         entry = {
             "task_id": t["id"], "project": t["project"],
             "kind": "spawned_pending", "age_min": round(age, 1),
+            "locks_released": lock_n,
         }
         if not dry_run:
             db.update_status(
@@ -260,7 +270,11 @@ def gc_stale_tasks(
                         f">{STALE_SPAWNED_PENDING_MINUTES}min, no live "
                         f"process (host={t.get('host') or 'mac'})"),
             )
-            entry["locks_released"] = db.release_task_locks(t["id"], t["project"])
+            # update_status already released these locks — 'cancelled' is
+            # in lib/db.py's RELEASING_STATUSES. This call is a no-op safety
+            # net (always returns 0 here), so entry keeps the pre-release
+            # lock_n above rather than being overwritten with that 0.
+            db.release_task_locks(t["id"], t["project"])
         entry["worktree_reclaim"] = _reclaim_worktree(t, dry_run=dry_run)
         cancelled.append(entry)
 
