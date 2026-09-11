@@ -28,6 +28,7 @@ sys.path.insert(0, str(ROOT))
 import lib.config as config  # noqa: E402
 import lib.db as db_mod  # noqa: E402
 import runners.branch_poller as poller  # noqa: E402
+import runners.worker_init as worker_init  # noqa: E402
 import tools.delegate as delegate  # noqa: E402
 
 
@@ -37,7 +38,7 @@ import tools.delegate as delegate  # noqa: E402
 # ---------------------------------------------------------------------------
 
 def test_render_remote_claude_args_developer_has_no_chrome():
-    args = delegate._render_remote_claude_args("developer")
+    args = delegate._render_remote_claude_args("developer", "winbox")
     assert "--chrome" not in args
     assert "--remote-control" in args
     assert "--strict-mcp-config" in args
@@ -45,7 +46,7 @@ def test_render_remote_claude_args_developer_has_no_chrome():
 
 
 def test_render_remote_claude_args_browser_operator_gets_chrome():
-    args = delegate._render_remote_claude_args("browser_operator")
+    args = delegate._render_remote_claude_args("browser_operator", "winbox")
     assert "--chrome" in args
     assert "mcp__claude-in-chrome__navigate" in args
 
@@ -54,11 +55,32 @@ def test_render_remote_claude_args_allowed_tools_is_last():
     """--allowed-tools is variadic and swallows every following argv
     element (runners/worker_init.py's own documented rule) — it must be
     the last flag in the rendered string, nothing after it."""
-    args = delegate._render_remote_claude_args("developer")
+    args = delegate._render_remote_claude_args("developer", "winbox")
     parts = args.split()
     idx = parts.index("--allowed-tools")
     # Exactly one token follows --allowed-tools (the comma-joined list) —
     # if a later flag existed it would appear as a second token here.
+    assert idx == len(parts) - 2
+
+
+def test_render_remote_claude_args_no_remote_control_when_host_disables(monkeypatch):
+    """config/hosts.yaml's `remote_control: false` must actually suppress
+    the flag on a remote spawn — this used to be a literal `--remote-control`
+    that hosts.yaml had no way to turn off."""
+    monkeypatch.setattr(worker_init, "get_host", lambda name: {"remote_control": False})
+    args = delegate._render_remote_claude_args("developer", "some-host")
+    assert "--remote-control" not in args.split()
+
+
+def test_render_remote_claude_args_allowed_tools_still_last_without_remote_control(monkeypatch):
+    """--allowed-tools stays the last token even when --remote-control is
+    dropped (one fewer flag ahead of it) — it is variadic and swallows
+    everything after it, so nothing may follow."""
+    monkeypatch.setattr(worker_init, "get_host", lambda name: {"remote_control": False})
+    args = delegate._render_remote_claude_args("browser_operator", "some-host")
+    parts = args.split()
+    assert "--remote-control" not in parts
+    idx = parts.index("--allowed-tools")
     assert idx == len(parts) - 2
 
 
