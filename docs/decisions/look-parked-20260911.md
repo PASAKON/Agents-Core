@@ -56,6 +56,39 @@ shared LUT. That is normal grading structure, not a fault in the look, and Astra
 (per-clip correction → shared look) already accommodates it. Budget for it; do not discover it
 during the final render.
 
+## The plan for when Final arrives — APPROVED by the CEO 2026-09-11
+
+The CEO's own diagnosis, and it was correct: *"คุณใช้สมการเดียว ปรับตลอดทั้งคลิปโดยไม่ได้ดูเลย"* —
+one LUT laid over every frame cannot reconcile shots that started from different balances, and a
+shared look **amplifies** that drift instead of hiding it. The missing layer is Astra's node 01,
+the per-shot balance, which was never applied: only the shared look was.
+
+Measured on the 4:05–5:05 test minute: **19 cuts in 60 seconds**, so the full film is on the order
+of **~150 shots**. That number decides the division of labour, and the CEO approved it:
+
+| | Who | What |
+|---|---|---|
+| **Measure** | machine (`docs/astra-workspace/shotbalance.py`) | detect every cut, measure each shot's neutral point, pull all ~150 toward a common target. Pure measurement — no taste. |
+| **Judge** | **Astra — "ให้ Astra เป็นสมอง"** | only the handful of shots that still read wrong after balancing. That is a session's worth of work, not 150. |
+| **Decide** | CEO | the look (3 vs 4) and any shot he wants deliberately off-tone |
+
+`shotbalance.py` is written and committed but **has never been run.** Its safeguards: balance is
+measured on low-chroma pixels only (so a red-coat shot is never "corrected" until the coat goes
+grey), green is held so it shifts colour and never exposure, gain is clamped to ±25 % and applied
+at 75 % strength so deliberate colour survives. It writes `<out>.shots.json` with every shot's
+gain and ranks the largest corrections — that ranked list is exactly what Astra should be handed.
+
+## Two reasons nothing runs until the Final cut lands
+
+1. **Draft 6 is not final.** Balancing 150 shots of a cut that is about to change wastes most of
+   the work — the same argument the CEO used to park the look itself.
+2. **Encode quality — my error, recorded so it is not repeated.** The five 1-minute previews were
+   rendered at CRF 20 / preset faster ≈ **2 Mbps**, against Draft 6's own **~7.5 Mbps**. Nearly 4×
+   less. Resolution was never the issue (both are 1280×720); the softness was second-generation
+   H.264 at a bitrate I chose for fast delivery. **The CEO was judging picture quality on a file I
+   had degraded myself.** For anything he judges on, and for every deliverable: CRF 14–16, preset
+   slow, or a near-lossless intermediate. Never optimise a review copy for transfer size.
+
 ## Provenance
 
 The colour transform is Astra's (`docs/astra-workspace/shared-LUT-source.py`, REPORT-01,
