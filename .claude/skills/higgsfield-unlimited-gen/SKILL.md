@@ -269,9 +269,26 @@ plate and uploading it as an Element, which is what the two deleted plaque walls
 were. Grading a finished clip is not that.
 
 **Practical edge inside an allowed tool:** DaVinci Resolve ships AI features.
-Magic Mask is fine — the rules name mask-based retouching explicitly. Anything
-that *invents pixels* (generative fill, detail-hallucinating upscale) is not;
-that is AI image generation happening off-platform.
+Anything that *invents pixels* (generative fill, detail-hallucinating upscale)
+is AI image generation happening off-platform and is not allowed.
+
+**And the question does not arise in the free version anyway — verified
+2026-09-11.** Magic Mask, AI Object Removal, Super Scale and IntelliTrack are
+all **Studio-only ($295)**. The free build has no Neural Engine. So a free
+Resolve user physically cannot cross that line, which makes the free tier the
+*safer* choice for a festival entry, not a compromise.
+
+**What the free build DOES have, and it is the part that matters: the whole
+Fusion page** — a full node-based compositor with paint, planar tracking and
+rotoscoping. Manual roto-and-patch is unambiguously legal: the rules name
+"precise mask-based retouching" and state that "content produced in these tools
+counts as your own hand-made work".
+
+**The technique that makes this cheap on THIS film: most of our shots are
+locked off.** On a locked frame you do not need tracking at all — lift a clean
+patch from another frame of the same clip and hold it over whatever you are
+removing. Removing a stray figure or moving an object on a locked shot is
+minutes of compositing, against ~100 credits and a dice-roll for a re-fire.
 
 Practical consequences, learned the expensive way the same night:
 - Hand-building or retouching a plate locally (PIL, Photoshop, anything) and
