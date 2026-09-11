@@ -5,11 +5,17 @@ CEO brief 2026-09-12: single row, everyone's back to camera, standing straight l
 soldiers, every character who has a part in the film, Dupe alone facing camera and at
 the HEAD of the line — not the centre. Background: the museum exterior.
 
-BEFORE FIRING — COUNT THE CHIPS. 14 chips are named below: 13 characters + 1 location.
+BEFORE FIRING — COUNT THE CHIPS. 15 chips are named below: 14 characters + 1 location.
 Skill §7: the model follows prose when a reference silently fails to bind, and a short
 count is the only warning you get. Read the real mentions off the Elements panel and
-confirm all 14 attached. If Higgsfield caps the number of references, report the cap
+confirm all 15 attached. If Higgsfield caps the number of references, report the cap
 and stop — do not fire a partial set and hope.
+
+⚠️ CHECK `@project_absence_char_student_c` BEFORE FIRING. CAST.md records its content
+as "the six arrivals, ALREADY STANDING in their established costumes" — if that plate
+really shows SIX people, binding it drops six extra bodies into a fifteen-person row.
+An Element's name is not its content (§7a). Open the plate, look at it, and if it is a
+group rather than the single art student, say so and do not fire.
 
 ⚠️ `@project_absence_char_guard_valder_two` is ONE chip that contains BOTH guards
 (CAST.md: "One tall and thin, the other short and heavy. This one picture is both of
@@ -24,15 +30,15 @@ by hand, because AI lettering garbles (measured: a plaque in this film rendered 
 "LAKKRITORGH GIN UDNS"). Leave the stone bare.
 
 Order left→right is chosen for colour rhythm: white · rainbow · navy · navy · cream ·
-white · black · green · magenta · grey · cobalt · yellow · oxblood · navy.
+white · black · green · magenta · grey · cobalt · yellow · oxblood · navy · dark green.
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
-A single wide symmetrical photograph, 16:9, of FOURTEEN people standing in ONE
+A single wide symmetrical photograph, 16:9, of FIFTEEN people standing in ONE
 STRAIGHT ROW across the frame, shoulder to shoulder, evenly spaced, all at the same
 distance from the camera, like a military line-up.
 
-THIRTEEN of them have their BACKS FULLY TO THE CAMERA, standing bolt upright and
+FOURTEEN of them have their BACKS FULLY TO THE CAMERA, standing bolt upright and
 motionless, facing away toward the building. ONLY ONE PERSON FACES THE CAMERA.
 
 THE ONE FACING THE CAMERA IS THE FIRST PERSON ON THE LEFT, at the head of the line,
@@ -73,13 +79,16 @@ Reading left to right:
 11. @project_absence_char_woman — THE YOUNG WOMAN IN COBALT, seen from behind: dark
     hair pinned up, an oversized cobalt-blue overcoat with a gold V pin, a brown-checked
     skirt, black tights, brown loafers.
-12. @project_absence_char_student — THE ART STUDENT, seen from behind: a slight young
+12. @project_absence_char_student_c — THE ART STUDENT, seen from behind: a slight young
     woman, short dark curly bob, a chrome-yellow leather trouser suit with an oversized
     pointed collar, a flat yellow pillbox hat, cream gloves, cream ankle boots.
 13. @project_absence_char_visitor_a — seen from behind: an ordinary balding man in an
     oxblood leather suit.
 14. @project_absence_char_workman — THE CONTRACTOR, seen from behind: dark navy
     overalls, a rag over one shoulder, a bucket of wet plaster in one hand.
+15. @project_absence_char_oldman — THE OLD MAN IN GREEN, seen from behind, at the far
+    right end of the row: a heavy dark green leather overcoat, white hair, a walking
+    cane in one hand. He closes the line the way Dupe opens it.
 
 Behind them, @project_absence_loc_exterior_front — THE MUSEUM ENTRANCE, filling the
 upper two thirds of the frame: a low curved building faced in warm cream stone, a long
@@ -97,7 +106,7 @@ Colour: amber-cream stone, polished chrome, saturated costume colours reading cl
 and separate against the pale building. Photographed, not rendered: fine film grain,
 slight colour fringing.
 
-COUNT THEM. FOURTEEN PEOPLE IN TOTAL, not thirteen and not fifteen, standing in one
+COUNT THEM. FIFTEEN PEOPLE IN TOTAL, not fourteen and not sixteen, standing in one
 row. Each of these people appears once and once only:
 
 there is exactly ONE man in white with a mop, and he is the only face in the picture.
@@ -113,6 +122,7 @@ there is exactly ONE young woman in a cobalt-blue overcoat.
 there is exactly ONE young woman in a chrome-yellow leather suit and pillbox hat.
 there is exactly ONE balding man in an oxblood leather suit.
 there is exactly ONE man in dark navy overalls with a bucket.
+there is exactly ONE old man in a dark green leather overcoat, at the far right end.
 
 NO twins. NO duplicated faces. NO repeated costumes. NO second man in white with a
 mop. NO second colour-block blazer. NO second wheelchair. NO extra people in the
@@ -123,7 +133,7 @@ the far left.
 === ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
 
 === NOTES · DO NOT PASTE ANY OF THIS ===
-THE 14 CHIPS, for counting against the Elements panel:
+THE 15 CHIPS, for counting against the Elements panel:
   @project_absence_char_cleaner_c        Dupe
   @project_absence_char_valder           Valder
   @project_absence_char_guard_valder_two Valder's two guards (ONE chip, TWO men)
@@ -137,6 +147,7 @@ THE 14 CHIPS, for counting against the Elements panel:
   @project_absence_char_student          the art student
   @project_absence_char_visitor_a        visitor A, oxblood suit
   @project_absence_char_workman          the contractor
+  @project_absence_char_oldman           the old man in green (far right)
   @project_absence_loc_exterior_front    the museum entrance
 
 DO NOT BIND (CAST.md "retired / do-not-use"): @project_absence_char_registrar_b,
@@ -146,6 +157,6 @@ the Generate click on the flagged ones.
 AFTERWARDS, BY HAND (free, and the reason there is no text above)
 - title lettering "SORRY, SIR" + "The Valder Collection No.7"
 - a small brass plaque on the stone if wanted, with correct engraving
-- a tighter crop variant for the YouTube thumbnail, where fourteen figures at 320px
+- a tighter crop variant for the YouTube thumbnail, where fifteen figures at 320px
   wide would be 23px each
 === END NOTES ===
