@@ -101,6 +101,35 @@ produces false alarms: on 2026-08-13 it read 339.2 credits / $13.568 against
 a 21.8 / $0.872 baseline confirmed the day before — a 15x jump that looked
 alarming and was entirely benign.
 
+## SEEDANCE EDIT VIDEO WORKS, AND IT TAKES @Element REFERENCES (CEO 2026-09-11)
+
+**Confirmed working by the CEO on «Sorry, Sir»:** Seedance's Edit Video can modify an
+already-rendered clip, and **`@Element` mentions bind inside an edit prompt** the same way they do
+in the composer. He used it to add the brass plaque to a finished S2X insert that had rendered
+without one, binding `@project_absence_prop_tag`, and reported it worked.
+
+**Why this matters more than it sounds.** Until now a clip with one wrong detail was a re-shoot:
+throw away everything that worked and roll the dice again on cast, blocking, dialogue and grade to
+fix a single object. Edit Video makes the defect the unit of work instead of the clip. On a film
+where a take often fails on exactly one thing — a missing prop, an object at the wrong height, a
+duplicated extra — that is the difference between a cheap fix and a lost slot.
+
+**How to write an edit prompt — it is NOT a generation prompt.** Ours was ~1,700 characters
+against ~13,000 for the generation sheet, and the brevity is the point:
+- **Open with the whole instruction in one sentence**: "Add X. Change nothing else about this video."
+- **Bind the thing you are adding** as an `@Element` so its shape and colour come from the plate,
+  not from the model's guess — the same §7 rule as anywhere else.
+- **Say where it goes in the FRAME** and how it is lit, shadowed and grained so it belongs.
+- **List what must not move**, explicitly: camera, framing, lens, the other objects by name,
+  lighting, grade, duration, audio. Add "nothing shifts to make room for it" — otherwise the model
+  may re-compose around the addition.
+- **Do not restate the spec, the cast, the camera move or the story.** They are already in the
+  clip; repeating them invites the model to re-render them.
+
+**Still unknown, establish before relying on it:** what it costs (read the price off the button
+like any other fire), whether output quality/bitrate matches the original, and how far it can be
+pushed — adding a static object is proven, moving an existing one or changing a performance is not.
+
 ## WHEN THE GRANT IS EXPIRING: THE BUTTON DECIDES, NOT THE CLOCK (2026-09-11)
 
 An Unlimited grant with an end date creates a predictable way to lose free
