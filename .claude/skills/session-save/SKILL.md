@@ -114,8 +114,16 @@ The context is on disk and the trail is in LungNote, so the live session is now
 pure RAM cost. End it everywhere, as the **final action** of the whole skill —
 after the report to the CEO has printed, mirroring [[session-close]] gate 6:
 ```bash
+bash scripts/session-rename.sh --prefix "⏸" "<topic, short>"
 bash scripts/session-kill.sh --status saved
 ```
+The rename call stamps the CEO's Claude app entry with ⏸ (task-bbdfa8d1, CEO
+2026-09-11 "เช็คไม่ได้เลยว่ามี session เปิดจริงไหม") BEFORE the kill takes the
+pane away — this is the only moment left to change what the app shows, since
+a session that has already gone offline cannot be renamed. If the rename
+fails (no `$TMUX`, or the send errors) log it and run the kill anyway —
+stamping must never block the park.
+
 This records `status='saved'` in `c_level_sessions` (so [[session-list]] shows
 it as parked + resumable with its note), preserves the `.uuid` resume key, and
 kills the tmux session. `--status saved` is what makes a parked session
