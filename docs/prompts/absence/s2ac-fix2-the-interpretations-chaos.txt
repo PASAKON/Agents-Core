@@ -1,5 +1,24 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
-S2AC · THE INTERPRETATIONS, CHAOS · 20s · v5 for take 7 · CTO 2026-09-11 05:20
+S2AC · THE INTERPRETATIONS, CHAOS · 20s · v6 · CEO 2026-09-11 10:10
+
+v6 CHANGES ONE SENTENCE, AND IT IS THE ONE THAT KEPT FAILING.
+v4 and v5 both told the model where the plaque sits ON THE WALL ("waist height", then "a person
+reaches DOWN"). Three takes ignored it because **wall position is the plate's to decide, not the
+prompt's** — the plate has it at chest height and the reference wins (§7).
+
+The CEO reframed it and he is right: **"ตำแหน่งป้ายที่ติดอยู่ อยากให้มันอยู่ใน position ห่างจาก
+ขอบล่างของกล้อง ประมาณ 3-4 เซนต์"** — that is not a position on the wall, it is a position IN THE
+FRAME, which is a COMPOSITION instruction and therefore something the prompt actually controls.
+Converted to something a model can act on (never centimetres — it has no screen): **the plaque's
+centre sits in the BOTTOM FIFTH of the frame.** The wall-height wording is kept underneath as
+supporting description, not as the primary instruction.
+
+⚠️ IF THE EDITED PLATE LANDS FIRST, prefer it. `PLATE-loc_wall_crack_b-IMAGE-EDIT.txt` moves the
+plaque down in the plate itself, which fixes this at the source. When that Element exists, swap
+`@project_absence_loc_wall_crack` for `@project_absence_loc_wall_crack_b` here — and sweep every
+other sheet that binds the old one (§5: never re-point, always a new name).
+
+S2AC · THE INTERPRETATIONS, CHAOS · earlier: v5 for take 7 · CTO 2026-09-11 05:20
 
 v5 FIXES TWO DEFECTS I FOUND IN v4 TAKE 1 THAT THE OPERATOR PASSED:
 A. **TWO IDENTICAL WOMEN IN COBALT COATS**, standing side by side in profile with the same hair
@@ -120,11 +139,15 @@ THE TWO THINGS ON THAT WALL SIT AT THESE EXACT HEIGHTS, measured against the peo
 front of them:
   · THE CRACK is HIGHER THAN THE TALLEST PERSON'S HEAD — everyone has to look UP at it. It is
     SMALL, about the size of one open hand, and it is the only mark on the wall.
-  · THE BRASS PLAQUE IS LOW ON THE WALL — DOWN AT THE WAIST OF THE PEOPLE STANDING IN FRONT OF
-    IT, level with their belts and their hands hanging at their sides. **A person reaching for it
-    REACHES DOWN, never up.** It is BELOW every elbow, BELOW every shoulder and far BELOW every
-    chin. It is not at chest height. It is not at shoulder height. If somebody's raised hand is
-    touching it, it is too high and the shot is wrong.
+  · **THE BRASS PLAQUE SITS LOW IN THE PICTURE — ITS CENTRE IS IN THE BOTTOM FIFTH OF THE FRAME,
+    just above the bottom edge of the shot.** Frame the wall so that is where it lands. Below it
+    there is only a narrow strip of wall before the bottom edge of the picture; above it the wall
+    runs up empty for most of the frame's height before you reach the crack.
+    In the room itself that puts it down at the WAIST of the people standing in front of it, level
+    with their belts and their hands hanging at their sides — BELOW every elbow, BELOW every
+    shoulder, far BELOW every chin. **A person reaching for it REACHES DOWN, never up.** It is not
+    at chest height and not at shoulder height. If somebody's raised hand is touching it, or if it
+    is sitting in the middle of the frame, it is too high and the shot is wrong.
 There is a tall empty stretch of blank white wall between the plaque down at their waists and the
 crack up above their heads. THE CRACK AND THE PLAQUE ARE BOTH CLEARLY VISIBLE ON SCREEN and are
 never completely hidden by a person.

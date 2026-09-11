@@ -1,0 +1,51 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+PLATE · loc_wall_crack_b · IMAGE EDIT · CEO 2026-09-11 10:10
+
+WHY THIS EXISTS. Three video takes (S2AC v4 t1, v4 t2, v5) all put the brass plaque at
+chest/shoulder height, unchanged, after two rewrites of the video prompt — the second stating it
+as "a person reaching for it REACHES DOWN". The height never moved a millimetre. It is baked into
+the `project_absence_loc_wall_crack` plate, so it is a PLATE problem and no video prompt will fix
+it. This sheet edits the plate instead.
+
+⚠️ THE RESULT MUST BE REGISTERED AS A **NEW ELEMENT** — `project_absence_loc_wall_crack_b`.
+**NEVER re-point the existing `loc_wall_crack`.** Skill §5: a scene that already bound an Element
+keeps serving the OLD asset silently, with a green chip and no error. Every sheet that should use
+the new wall gets its mention swept by hand afterwards.
+
+⚠️ FESTIVAL RULE 00 — this edit must happen ON HIGGSFIELD. An on-platform Image Edit is a
+Higgsfield generation and is compliant. Editing the PNG locally in any tool and uploading it is
+DISQUALIFYING.
+
+WHAT TO RUN IT ON: the existing hero-wall plate (`project_absence_loc_wall_crack`) as the source
+image. One edit, one change, nothing else touched.
+
+COST: the image lane has been free and unlimited on Kling O1 (2026-09-07, twice). Check the
+button before committing — if the edit surface shows a live price, that is a real charge and it
+goes back to the CEO first.
+
+AFTER IT LANDS: compare the new plate against the old one side by side. The crack, the wall
+texture, the lighting and the colour must be indistinguishable; ONLY the plaque's height may have
+changed. If anything else moved, the edit failed and the old plate stays canon.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+Keep this photograph exactly as it is and change ONE thing only: MOVE THE BRASS PLAQUE DOWN THE
+WALL.
+
+The plaque must end up LOW — near the bottom of the wall, far below the crack, down at about the
+height of a standing person's waist or belt. There must be a tall, completely empty stretch of
+blank white wall between the plaque underneath and the crack up above.
+
+EVERYTHING ELSE IS UNCHANGED AND MUST MATCH THE ORIGINAL EXACTLY: the same wall, the same flat
+white paint and plaster texture, the same lighting and the same shadows, the same colour grade,
+the same camera position, the same framing, the same lens, the same everything in the room. The
+crack does not move, does not change size, does not change shape and does not gain or lose any
+branches — it stays exactly where it is and exactly as it looks. The plaque itself is the same
+plaque: same brass, same size, same shape, same engraving reading THE ABSENCE OF MEANING / Valder
+/ $2,000,000, same fixings. Only its position on the wall is different.
+
+Do not add anything. Do not remove anything. No second plaque, no extra marks, no new cracks, no
+people, no furniture, no text anywhere except the engraving already on the plaque. Do not
+re-light, do not re-grade, do not re-frame, do not crop, do not zoom. This is the same photograph
+with the plaque lower on the wall.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
