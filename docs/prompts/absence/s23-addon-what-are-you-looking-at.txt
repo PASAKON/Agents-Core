@@ -1,5 +1,17 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
-S23 · WHAT ARE YOU LOOKING AT · 20s · v2 · CEO 2026-09-11 12:05 — the opening of the clip.
+S23 · WHAT ARE YOU LOOKING AT · 15s · v3 · CEO 2026-09-11 12:20 — the opening of the clip.
+
+v3 TIGHTENS 20s → 15s on the CEO's ask. Nothing was cut from the story; the air was cut.
+  · opening hold on the old man 4s → 2s — four seconds of a man standing still is three too many
+    once we can see he is not moving
+  · the "they both stand there looking up together" beat at 15-17s is GONE, folded into the turn
+  · dead air between the spoken lines trimmed
+**All three lines survive intact, and her face-change beat is untouched at a full two seconds** —
+that beat is the whole scene and rushing it kills the joke. Cutting further than this would have
+to come out of it, which is why 15s is the floor and not 12s.
+Cost: 15s on Seedance 2.5 is 98 credits against 130 for 20s.
+
+S23 · earlier: 20s v2 · CEO 2026-09-11 12:05
 
 v2 DROPS @Video 1 AND DESCRIBES THE WALL IN WORDS INSTEAD.
 Take 1 used the edited 5-second wall clip as `@Video 1` to lock the crack's identity. It did not
@@ -54,13 +66,14 @@ REVIEW ORDER — LOOK, DO NOT MEASURE:
 (5) whisper returns exactly three lines in order: hers, his, hers — nobody else speaks, Dupe never
     speaks;
 (6) she is genuinely puzzled BEFORE she looks and genuinely delighted AFTER — both, in that order;
-(7) the camera turns once at ~17s and finds Dupe with his cart, sweating and appalled.
+(7) the camera turns once at ~12s and finds Dupe with his cart, sweating and appalled;
+(8) her face-change at 8-10s is not rushed — if it snaps in an instant the scene has failed.
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
-20s · 720p · 16:9 · ONE CONTINUOUS SHOT, no cuts. Sound On · High.
+15s · 720p · 16:9 · ONE CONTINUOUS SHOT, no cuts. Sound On · High.
 
-THE CAMERA DOES EXACTLY TWO THINGS AND NOTHING ELSE. For the first seventeen seconds it is
+THE CAMERA DOES EXACTLY TWO THINGS AND NOTHING ELSE. For the first twelve seconds it is
 LOCKED — square on to the wall, chest height, never panning, never zooming, never drifting. Then,
 once and only once, it ROTATES smoothly through half a turn to look the other way, and holds there
 to the end. No cut, no dissolve, no second angle, no reframing.
@@ -86,7 +99,7 @@ height and it is not at shoulder height.
 @loc_hall_big_e — WHAT THE CAMERA FINDS WHEN IT TURNS, AND NOT BEFORE. A long gallery corridor of
 polished chromium trumpet columns in matched rows, warm orange light on the ceiling, terracotta
 terrazzo floor, a tall RED DOUBLE DOOR closed at the far end at the vanishing point. **This
-corridor is not on screen at all during the first seventeen seconds.**
+corridor is not on screen at all during the first twelve seconds.**
 
 @project_absence_prop_tag — THE BRASS PLAQUE, screwed flat to the wall: a small rectangular brass
 plaque engraved THE ABSENCE OF MEANING / Valder / $2,000,000, the name spelled V-A-L-D-E-R.
@@ -106,7 +119,7 @@ fringe, an oversized COBALT-BLUE wool overcoat with a small gold V pin, a pearl 
 a brown-checked midi skirt, black tights, dark brown loafers, NO glasses.
 
 @project_absence_char_cleaner_c — DUPE: white uniform with orange trim, cap, gold V, moustache.
-**He is NOT in the first seventeen seconds at all** — not in frame, not as a shadow, not as a
+**He is NOT in the first twelve seconds at all** — not in frame, not as a shadow, not as a
 reflection. He appears only when the camera turns.
 
 @project_absence_prop_cart_a_painted — DUPE'S CLEANING CART, with him and only with him, and like
@@ -122,27 +135,24 @@ plaque stands clear of his shoulder where the camera can see it, close enough to
 brass plaque and to catch the figure on it. It is neither completely hidden behind him nor
 completely in the open.
 
-[4s] THE YOUNG WOMAN IN COBALT WALKS IN from the side of the frame, unhurried, on her way past.
-She notices him. She slows, then stops. She looks at him, then follows his eye-line up to the
-wall, then back at him — openly puzzled, faintly amused, trying to work out what on earth he is
-staring at. She steps a little closer.
+[2s] THE YOUNG WOMAN IN COBALT WALKS IN from the side of the frame and stops beside him. She
+looks at him, follows his eye-line up to the wall, then back at him — openly puzzled, faintly
+amused, trying to work out what on earth he is staring at.
 
-[6s] SHE SPEAKS, curious and not unkind: "Excuse me. What are you looking at?" A beat. "There is
+[4s] SHE SPEAKS, curious and not unkind: "Excuse me. What are you looking at?" A beat. "There is
 nothing there."
 
-[9s] HE DOES NOT TURN AROUND AND HE DOES NOT LOWER HIS HEAD. Still facing the wall, still looking
+[6s] HE DOES NOT TURN AROUND AND HE DOES NOT LOWER HIS HEAD. Still facing the wall, still looking
 up at the crack, he answers simply and warmly: "I am looking at art."
 
-[11s] SHE LOOKS AT THE WALL PROPERLY for the first time. Her eyes travel up and find the crack.
-She goes quiet. Her face changes slowly — the puzzlement drains out of it and something like
-wonder replaces it.
+[8s] SHE LOOKS AT THE WALL PROPERLY for the first time. Her eyes travel up and find the crack. She
+goes quiet. Her face changes — the puzzlement drains out of it and something like wonder replaces
+it. GIVE THIS A FULL TWO SECONDS; it is the turn the whole scene is built on and it must not be
+hurried.
 
-[13s] Softly, meaning it: "Wow. It is beautiful."
+[10s] Softly, meaning it: "Wow. It is beautiful."
 
-[15s] THEY BOTH STAND THERE LOOKING UP AT IT, side by side, silent and still, two people admiring
-a crack in a wall. Nobody moves.
-
-[17s] THE CAMERA TURNS. Smoothly and in one movement it rotates half a turn away from the wall and
+[12s] THE CAMERA TURNS. Smoothly and in one movement it rotates half a turn away from the wall and
 comes to rest looking down the long corridor of chromium columns toward the red double door.
 
 DUPE IS STANDING THERE with his cleaning cart, where the camera has been all along, and he has
@@ -151,9 +161,9 @@ eyebrows up. He drags the back of his wrist across his forehead to wipe away the
 from the camera's old position back toward the two of them, appalled — a man watching something
 get very much worse and knowing exactly whose fault it is. HE DOES NOT SPEAK.
 
-[20s] Hold on him. The clip stops.
+[15s] Hold on him. The clip stops.
 
-AUDIO: room tone, the quiet of a large gallery; her unhurried footsteps at 4s; the three spoken
+AUDIO: room tone, the quiet of a large gallery; her unhurried footsteps at 2s; the three spoken
 lines and nothing else; the small tap of the old man's cane. Dupe makes no sound and says nothing.
 No music, no score, no sting, no riser, no swell, no narration, no voiceover. The clip opens mid
 room-tone with no intro sound and simply stops with no tail or fade.
@@ -170,9 +180,9 @@ three lines are spoken, in the order written, and Dupe never speaks at all; THE 
 REDRAWN — it keeps the exact shape, size and position it has in the reference video, no second
 crack, no extra branches, no spiderweb, no hole; the old man does NOT turn around and does not
 lower his head while he speaks; the plaque is never completely hidden and never completely
-unobstructed; Dupe and the cart are NOT visible in any way during the first seventeen seconds, not
+unobstructed; Dupe and the cart are NOT visible in any way during the first twelve seconds, not
 even as a shadow or a reflection; the corridor and the red door are not visible before the camera
-turns; the camera turns ONCE, after 17s, never before, and never turns back; no cut, no second
+turns; the camera turns ONCE, after 12s, never before, and never turns back; no cut, no second
 angle, no shot-reverse-shot, no dissolve, no fade, no split screen, no picture-in-picture; nobody
 looks into the lens; nobody touches the wall; no smartphones, no screens, no modern technology, no
 sunglasses. House negatives: no subtitles, no captions, no on-screen text other than the engraving
