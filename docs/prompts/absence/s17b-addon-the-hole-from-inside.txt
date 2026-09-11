@@ -1,5 +1,27 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
-S17b · THE HOLE, FROM INSIDE · 20s · v2 · CEO 2026-09-11 04:40 — THE FILM'S CLOSING GAG.
+S17b · THE HOLE, FROM INSIDE · 20s · v3 · CEO 2026-09-11 09:55 — THE FILM'S CLOSING GAG.
+
+v3 FIXES FOUR THINGS THE CEO CALLED AFTER SEEING TAKE 1. His words: "ฉากนี้ ใส่ REF ผิด …
+ที่จริงต้องใส่อันนี้ เป็นมุมมองที่กล้องมองออกมาจากกำแพง และกำแพงเป็นกำแพงปูนที่ทาด้วยสีขาว
+ตรงกลางเป็นอิฐปูนสีเทา … ป้ายที่มองเข้าไป 2,000,000$ ในกำแพง อยากให้มันดูเก่าและไม่ได้ตั้งตรง
+แบบตั้งใจ ป้ายเหมือนกับว่ามันถูกทิ้งลืมไปจากรูกำแพง … และกำแพงถูกตัดเป็นสี่เหลี่ยม ผืนผ้าแนวตั้ง"
+
+A. **THE ROOM REFERENCE WAS WRONG AND IT WAS MY MISTAKE.** v2 bound
+   `project_absence_loc_wall_pov_e`. That plate is the view out through the CRACK — a
+   crack-shaped keyhole with the room MIRROR-REVERSED. This shot is a SAWN RECTANGULAR HOLE and
+   an un-mirrored view, so the plate fights the shot. v3 binds **`@loc_hall_big_e`**, the plain
+   straight-down-the-corridor picture the CEO sent, which is what the camera actually sees.
+   (Note the bare id — no `project_absence_` prefix. It is one of the seven bare ones.)
+B. **THE WALL HAS A CONSTRUCTION NOW.** White-painted plaster skin on the outside; GREY CONCRETE
+   BLOCK underneath. The saw cut exposes that grey core all around the opening, which is what
+   makes it read as a wall that was cut rather than a frame that was hung.
+C. **THE HOLE IS A PORTRAIT RECTANGLE** — taller than it is wide — not the landscape opening v2
+   implied. Still roughly cut, still not square.
+D. **THE PLAQUE IS DISCARDED, NOT PLACED.** v2 had it "resting… tilted slightly and clearly
+   readable", which reads as arranged. The CEO wants it looking forgotten: old, dulled, lying at
+   a careless angle where it fell, half in the dust. Still legible — but legible by accident.
+
+S17b · THE HOLE, FROM INSIDE · earlier: v2 · CEO 2026-09-11 04:40
 
 CEO's first brief, 04:20: "อยากให้ยิง ฉาก ขน กำแพง หลังจากตัดกำแพงแล้ว มุมมอง ภาพใน กำแพง ซีนสุดท้ายเลย
 … มีคนเดินเข้ามาในพิพิธภัณฑ์ มุมมอง จาก กำแพงที่แตก (สี่เหลี่ยม ไม่ตรงมาก) ชาย ก้มหัวลงมองเข้ามา -> ตัดไปที่
@@ -38,19 +60,25 @@ head is in the opening.
 
 THE CUT. One hard cut at 10s, the only clip in the film written with one (CEO: "ตัดไปที่ภาพ").
 
-Chips: 3 — loc_wall_pov_e (shot A, the room seen from inside the wall), char_oldman (the man),
-prop_tag (the brass plaque). No crowd, no second face, one location: the lowest-risk fire left.
+Chips: 3 — **loc_hall_big_e** (the corridor seen through the hole), char_oldman (the man),
+prop_tag (the brass plaque). No crowd, no second face, one location.
+⚠️ Do NOT bind `project_absence_loc_wall_pov_e` — that is the view through the CRACK, mirror-
+reversed, and it was the v2 mistake.
 
 REVIEW ORDER — LOOK, DO NOT MEASURE:
-(1) shot A is framed BY THE HOLE — torn plaster edges of a roughly rectangular opening around the
-    picture, not a clean rectangle and not a normal shot of a room;
+(1) shot A is framed BY THE HOLE, and the hole is a TALL PORTRAIT rectangle — taller than wide —
+    roughly cut, not a clean rectangle and not a normal full-frame shot of a room;
+(1b) the cut edge shows the wall's build: WHITE painted face, a band of GREY BLOCK AND MORTAR
+    where the saw went through, then dark cavity. If the edge is just white plaster it failed;
 (2) the gallery beyond is EMPTY — no crowd, no press, no guards, no rope, no cleaner;
 (3) it is THE HEAVY OLD MAN IN THE BOTTLE-GREEN LEATHER COAT with the chrome ring-handled cane —
     not a slim man, not a different coat, and no cane is missing;
 (4) his face is ANGRY when he first sees the hole and SMILING by the end — both, in that order,
     or the gag has not landed;
 (5) hard cut at ~10s, no dissolve;
-(6) THE BRASS PLAQUE IS LEGIBLE INSIDE THE CAVITY — "$2,000,000" readable, not blurred;
+(6) THE PLAQUE LOOKS DISCARDED, NOT PLACED — lying flat and crooked in the dust where it fell,
+    tarnished and dull, NOT propped upright and NOT squared to anything. Still legible
+    ("$2,000,000" readable) but legible by accident. If it looks arranged, it failed;
 (7) whisper returns exactly one line, his: "That is art. I like it." Nobody else speaks.
 === END NOTES ===
 
@@ -59,17 +87,28 @@ REVIEW ORDER — LOOK, DO NOT MEASURE:
 
 SHOT A — 0s to 10s. THE CAMERA IS INSIDE THE WALL, LOOKING OUT.
 
-@project_absence_loc_wall_pov_e — the gallery seen from inside the wall, looking out into the
-room: polished chromium trumpet columns in mirrored pairs, orange cove light washing the ceiling,
-terracotta terrazzo floor, a tall RED DOUBLE DOOR closed dead centre at the vanishing point. Take
-the room, its light and its colours from this picture and change nothing about them.
+@loc_hall_big_e — WHAT WE SEE THROUGH THE HOLE: a long gallery corridor of polished chromium
+trumpet columns standing in matched rows, orange cove light washing the ceiling, a terracotta
+terrazzo floor, sculptures on white plinths and framed works down both side walls, and a tall RED
+DOUBLE DOOR closed dead centre at the far end at the vanishing point. Take the room, its light and
+its colours from this picture and change nothing about them. The view is straight and level down
+the corridor, NOT mirrored and NOT reversed.
 
-THE PICTURE IS FRAMED BY THE HOLE ITSELF. A rough opening has been sawn clean through the wall and
-the camera sits inside it, so the edges of that opening border the image on all four sides: raw
-torn plaster, a bitten sawn edge, the pale dusty inside of the wall. THE OPENING IS ROUGHLY
-RECTANGULAR BUT NOT NEAT — the sides are not parallel, the corners are not square, the cuts
-wander. The room beyond is bright and sharp; the plaster edges close to the lens are dark and
-soft. We are looking out of a wound in a wall.
+THE PICTURE IS FRAMED BY THE HOLE ITSELF. An opening has been sawn clean through the wall and the
+camera sits inside it, so the cut edges border the image on all four sides.
+
+**THE SHAPE: A TALL UPRIGHT RECTANGLE — A PORTRAIT OPENING, clearly taller than it is wide**, like
+a doorway rather than a window. It is roughly cut: the sides are not quite parallel, the corners
+are not square, the saw wandered, and the edges are chipped and broken.
+
+**HOW THE WALL IS BUILT, AND THE CUT SHOWS IT.** The face of the wall is smooth plaster painted
+flat WHITE. Behind that thin white skin the wall is GREY CONCRETE BLOCK — plain grey masonry, the
+mortar lines between the blocks visible where the saw went through. So around the whole opening
+there is a clear band of raw GREY BLOCK AND GREY MORTAR between the white painted face and the
+dark hollow interior. White outside, grey inside the cut, dark in the cavity.
+
+The room beyond is bright and sharp; the cut edges close to the lens are dark and soft. We are
+looking out of a wound in a wall.
 
 THE GALLERY BEYOND IS COMPLETELY EMPTY. Nobody is in it. No crowd, no press, no cameras, no
 guards, no rope barriers, no stanchions, no cleaner, no cart.
@@ -101,11 +140,18 @@ and his green leather shoulders in the near foreground, out of focus, and past h
 HOLE IN THE WHITE WALL, sharp, filling the middle of the frame. He is still bent forward with his
 head at the opening.
 
-INSIDE THE CAVITY, resting against the inner face of the wall where anyone looking in would see
-it: @project_absence_prop_tag — THE BRASS PLAQUE, engraved THE ABSENCE OF MEANING / Valder /
-$2,000,000. It sits in the dust and the plaster crumbs inside the hollow wall, lit by the light
-spilling in past his head, TILTED SLIGHTLY AND CLEARLY READABLE. It is the only object in the
-cavity and the only bright thing in the darkness inside.
+INSIDE THE CAVITY: @project_absence_prop_tag — THE BRASS PLAQUE, engraved THE ABSENCE OF MEANING /
+Valder / $2,000,000.
+
+**IT LOOKS THROWN AWAY AND FORGOTTEN, NOT PUT THERE.** It is not propped up, not standing, not
+squared to anything, not arranged. It lies where it fell: dropped flat and crooked in the grey
+dust and plaster crumbs at the bottom of the hollow wall, tipped over at a careless angle, one
+corner buried in the debris and the other lifted. The brass is OLD — dull, dark, tarnished,
+fingerprinted, the shine long gone, with grey dust settled in the engraved letters. It has been in
+there a long time and nobody meant it to be seen.
+
+It catches just enough of the light spilling past his head that THE LETTERING AND THE FIGURE ARE
+STILL READABLE — readable by accident, not by arrangement. It is the only object in the cavity.
 
 [10s to 15s] Nothing moves but the dust. He stays bent to the hole, reading it. Let the audience
 read it too.
