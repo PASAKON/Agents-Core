@@ -1,5 +1,23 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
-S23 · WHAT ARE YOU LOOKING AT · 20s · CEO 2026-09-11 11:20 — the opening of the clip.
+S23 · WHAT ARE YOU LOOKING AT · 20s · v2 · CEO 2026-09-11 12:05 — the opening of the clip.
+
+v2 DROPS @Video 1 AND DESCRIBES THE WALL IN WORDS INSTEAD.
+Take 1 used the edited 5-second wall clip as `@Video 1` to lock the crack's identity. It did not
+pass. The CEO's call: drop the video reference and carry the wall in prose, using the plain
+physical way the image-edit prompt described the plaque's position — which he judged much clearer
+than my framing-fraction wording ("การระบุตำแหน่งของป้าย ดีกว่าข้างบนเยอะเลย").
+
+**He is right about why.** "Its centre is in the bottom fifth of the frame" is photographer's
+language: it asks the model to convert a fraction into a composition. "Low on the wall, far below
+the crack, at about the height of a standing person's waist, with a tall empty stretch of blank
+wall between them" is a thing you can simply SEE — it is stated against the wall and against the
+people, both of which are in the picture, and it needs no conversion. §7b, applied properly at
+last: state a position against something visible in the same frame, never as an abstraction.
+
+The crack now has to carry its own identity, so it is described in the film's canon wording
+(copied from S16/S2X) rather than pointed at.
+
+S23 · earlier: take 1 with @Video 1 · CEO 2026-09-11 11:20
 
 CEO's brief: the old man in green stands with his back to us, centre frame, PARTLY blocking the
 $2,000,000 plaque — not covering it completely — looking up at the crack, dead still. The young
@@ -9,13 +27,9 @@ the opening frame — he is BEHIND THE CAMERA, and the camera turns at the end t
 sweating, certain he is finished. Camera plan copied from S2AC: locked on the wall, then one
 rotation onto the red-door corridor.
 
-⚠️ @Video 1 IS USED DIFFERENTLY HERE THAN ANYWHERE ELSE IN THIS FILM — DO NOT "CORRECT" IT.
-The house rule (higgsfield skill) is that a video reference carries ONLY camera path, timing and
-positions and is never a style reference. **The CEO is deliberately using it the other way round
-here:** the 5-second wall insert that was just edited goes in as `@Video 1` **to lock the WALL'S
-IDENTITY — the crack exactly as it already is, unchanged** ("Video 1 ใช้เป็นเอกลักหลักของกำแพง
-รอยแตกตามนั้นได้เลย ไม่ต้องเปลี่ยนอะไรเลย"). The camera plan does NOT come from it; that comes from
-the prose, copied from S2AC. Both jobs are stated in the paste block so they cannot be confused.
+⚠️ NO VIDEO REFERENCE IN v2. Do not attach one and do not reinstate `@Video 1` — take 1 had it and
+did not pass. Clear any leftover video chip from the reference tray before pasting, and confirm
+`document.querySelectorAll('video')` shows nothing attached.
 
 ⚠️ THE PLAQUE IS PARTLY HIDDEN ON PURPOSE. He blocks some of it with his body. The audience must
 still be able to read that there is a brass plaque there and catch the figure — "บังแต่บังไม่หมด".
@@ -26,14 +40,15 @@ time somebody is CONVERTED on screen. The old man decided the crack was art back
 converts a stranger to it in nine seconds, and Dupe — who actually made the crack — watches from
 behind the camera knowing exactly what he has started. Nobody explains any of it.
 
-Chips: 8 — Video 1 + loc_wall_crack + loc_hall_big_e + char_oldman + char_woman + prop_tag +
-char_cleaner_c + prop_cart_a_painted. Within the ~10 budget.
+Chips: 7 — loc_wall_crack + loc_hall_big_e + char_oldman + char_woman + prop_tag +
+char_cleaner_c + prop_cart_a_painted. NO video reference.
 ⚠️ `@project_absence_char_woman` is THE YOUNG WOMAN IN COBALT, not Madame (`..._woman_c`).
 Verified against CAST.md and against the reference sheet the CEO sent 11:20.
 
 REVIEW ORDER — LOOK, DO NOT MEASURE:
 (1) phase 1 is the WALL, and we see the old man's BACK — if a corridor is on screen at 3s it failed;
-(2) the crack matches the Video 1 wall exactly — same shape, same size, same position, no redraw;
+(2) the crack is ONE small black mark high on the wall — thick solid black lines, no spiderweb, no
+    pale grey mark, no hole, no second crack;
 (3) the brass plaque is PARTLY behind him and PARTLY readable — not fully hidden, not fully clear;
 (4) THREE people only across the whole clip, one at a time as written, no duplicates, no extras;
 (5) whisper returns exactly three lines in order: hers, his, hers — nobody else speaks, Dupe never
@@ -50,15 +65,23 @@ LOCKED — square on to the wall, chest height, never panning, never zooming, ne
 once and only once, it ROTATES smoothly through half a turn to look the other way, and holds there
 to the end. No cut, no dissolve, no second angle, no reframing.
 
-@Video 1 — THIS IS THE WALL. It is here for ONE job only: to fix the identity of the wall and the
-mark on it. The crack in this video is the crack in this shot — the same shape, the same size, the
-same position on the wall, the same solid black lines, unchanged in every way. Do not redraw it,
-do not simplify it, do not add branches, do not move it. The wall's plaster, its colour and its
-light come from here too. **The reference video does NOT set the camera, the framing or the
-timing of this shot** — those come from the words below, and this clip's camera is different from that one's.
+@project_absence_loc_wall_crack — THE HERO WALL AND THE ROOM IT IS IN: flat pale plaster painted
+white, the warm gallery light, the chromium column edges at the far left and right of frame. Take
+the wall, its surface, its colour and its light from this picture.
 
-@project_absence_loc_wall_crack — the same hero wall in its room: flat pale plaster, the warm
-gallery light, the chromium column edges at the far left and right of frame.
+THERE ARE EXACTLY TWO THINGS ON THAT WALL — THE CRACK AND THE PLAQUE — AND THIS IS WHERE THEY SIT.
+
+THE CRACK IS HIGH ON THE WALL, higher than the tallest person's head, so anyone looking at it has
+to look UP. It is SMALL, about as wide as a man's open hand. It is a crack in plaster drawn in
+SOLID BLACK: one short thick black line with three or four shorter thick black lines breaking off
+it, every line solid and heavy like ink and dark for its whole length, flat against the wall and
+part of the plaster. It is the only mark on the wall.
+
+THE BRASS PLAQUE IS LOW — near the bottom of the wall, far below the crack, down at about the
+height of a standing person's waist or belt. **THERE IS A TALL, COMPLETELY EMPTY STRETCH OF BLANK
+WHITE WALL BETWEEN THE PLAQUE UNDERNEATH AND THE CRACK UP ABOVE.** The plaque is below every
+elbow and every shoulder; a person reaching for it reaches DOWN, never up. It is not at chest
+height and it is not at shoulder height.
 
 @loc_hall_big_e — WHAT THE CAMERA FINDS WHEN IT TURNS, AND NOT BEFORE. A long gallery corridor of
 polished chromium trumpet columns in matched rows, warm orange light on the ceiling, terracotta
