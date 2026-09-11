@@ -101,6 +101,33 @@ produces false alarms: on 2026-08-13 it read 339.2 credits / $13.568 against
 a 21.8 / $0.872 baseline confirmed the day before — a 15x jump that looked
 alarming and was entirely benign.
 
+## WHEN THE GRANT IS EXPIRING: THE BUTTON DECIDES, NOT THE CLOCK (2026-09-11)
+
+An Unlimited grant with an end date creates a predictable way to lose free
+clips, and it is the *cautious* operator who loses them.
+
+**The charge is decided at the moment you click, not while the render runs.** A
+generation fired at 06:55 against a 06:59 deadline is free even if it lands at
+07:30. So:
+
+- **Keep firing right up to the boundary.** Do not stop early to "leave room"
+  for a render to finish — that reasoning silently throws away a whole slot. On
+  the "Sorry, Sir" grant expiry this was worth one extra clip out of the last
+  hour.
+- **The stop condition is the price on the button, never the time.** Struck-through
+  price then `0` = fire, whatever the clock says. A live unstruck price = stop,
+  whatever the clock says. It may flip before the stated deadline or after; only
+  the pixels know.
+- **Never click to find out.** If the read is ambiguous, treat it as live and stop.
+- **Do not fall back to the credit lane when it flips** unless the C-level has
+  said so for that specific session. "The free window closed" is not authority
+  to start spending.
+
+Pair this with the stage-during-render pattern below: stage the next prompt while
+the current one renders, fire the instant the card completes, harvest afterwards.
+Harvesting needs no slot — doing it before firing wastes ten to fifteen minutes of
+a slot that, near a deadline, you cannot get back.
+
 ## UNLIMITED COVERS SEEDANCE 2.5 VIDEO ONLY. IMAGES ALWAYS COST CREDITS.
 
 **CEO, 2026-08-27, stated directly: "เรา Unlimited แค่ 2.5 Seedance"** — our
