@@ -35,7 +35,7 @@ for.
 
 ## The question we most need answered
 
-`S21-TheNewsWall-Fix1.MP4` came from **Seedance 2.0 Fast**. Everything else came from
+`clips/S21-newswall-2.0FAST.mp4` came from **Seedance 2.0 Fast**. Everything else came from
 **2.5**. It is more saturated and sharper than its neighbours.
 
 **Can one grade carry both, or does this film need two?**
