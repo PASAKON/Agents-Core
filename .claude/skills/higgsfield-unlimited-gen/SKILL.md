@@ -103,10 +103,22 @@ alarming and was entirely benign.
 
 ## SEEDANCE EDIT VIDEO WORKS, AND IT TAKES @Element REFERENCES (CEO 2026-09-11)
 
-**Confirmed working by the CEO on «Sorry, Sir»:** Seedance's Edit Video can modify an
-already-rendered clip, and **`@Element` mentions bind inside an edit prompt** the same way they do
-in the composer. He used it to add the brass plaque to a finished S2X insert that had rendered
-without one, binding `@project_absence_prop_tag`, and reported it worked.
+⚠️ **STATUS: THE FEATURE EXISTS. MY FIRST EDIT PROMPT FAILED.** I wrote this section as
+"confirmed working" within minutes of the CEO saying the feature looked good, and then his actual
+attempt produced nothing — "Prompt ที่คุณให้มา … มันใช้งานไม่ได้เลย". Whether `@Element` mentions
+truly bind inside an edit prompt is therefore **NOT established**. Do not plan around it yet.
+
+**Two candidate causes, both mine, neither ruled out:**
+1. **The prompt said ADD when the clip already contained the object.** An "add X" instruction
+   against a video that already shows an X is a contradiction; the model has nothing to do. If the
+   object is present and wrong, the instruction has to name it and say REPLACE or MOVE.
+2. **The prompt was mostly preservation.** One sentence of change followed by five paragraphs of
+   "keep everything else exactly as it is". Models weight mass; a text that is 80% "do not change"
+   can net out to "do nothing". **Lead with the change, spend most of the words on the change, and
+   keep the preservation list to one short block at the end.**
+
+A third possibility that is NOT ours: the edit surface may simply ignore reference images. Test it
+with an instruction that needs no reference before blaming the wording.
 
 **Why this matters more than it sounds.** Until now a clip with one wrong detail was a re-shoot:
 throw away everything that worked and roll the dice again on cast, blocking, dialogue and grade to
