@@ -97,6 +97,26 @@ pictures pile up behind you while you do it.
 If you are ever choosing between an extra screenshot and getting the answer right,
 **take the screenshot.** Being wrong is more expensive than being verbose.
 
+## HOW WE TALK TO EACH OTHER — this folder is the channel
+
+There is no live connection between you and the CTO who briefs you. **This folder is
+the whole channel**, and it works in both directions:
+
+- **Work arrives as `TASK-NN-*.md` in this folder.** When you are told to check for a
+  new task, read the highest-numbered one you have not done.
+- **You reply by writing `REPORT-NN.md`** next to it — same number as the task you are
+  answering. Put screenshots in `REPORT-NN-files/` beside it.
+- The CTO reads what you write over SSH, reviews it, and writes the next task back
+  into this folder. Turnaround is minutes, not seconds.
+
+**Write the report as if the reader has seen nothing** — no shared screen, no memory
+of your session, only the file. If a screenshot is the clearest way to say something,
+save it and reference it by filename.
+
+**If something blocks you, write the report anyway** and say what stopped you. A
+report that says "I could not do this because X" is worth far more than silence — we
+cannot see your screen and will otherwise be waiting on nothing.
+
 ## HOW TO HAND WORK OVER
 
 When you have settled on a look, produce a recipe another operator can reproduce
