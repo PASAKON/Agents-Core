@@ -35,6 +35,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
+from lib.config import hosts as config_hosts
 from lib.notify import info, warn
 from tools.itermtab import close_tab
 from tools import tmux_session
@@ -98,6 +99,57 @@ def _pid_matches_task(pid: int, task_id: str) -> bool:
     except Exception:
         return False
     return r.returncode == 0 and task_id in r.stdout
+
+
+def remote_pid_matches_task(host_cfg: dict, pid: int, task_id: str) -> bool | None:
+    """Remote twin of `_pid_matches_task`: True/False/None identity check
+    for a pid living on a winbox/contabo host, run over SSH (task-28866f08).
+
+    Windows uses the same `Win32_Process` `CommandLine` filter
+    `windows/spawn-worker.ps1` (~line 235) already uses to discover a
+    freshly spawned worker's own pid — a known-good identity test, not a
+    new one. Linux uses `ps -p <pid> -o args=`, mirroring the local check.
+
+    None means the SSH call itself failed (host unreachable, timeout, exit
+    255 — OpenSSH's own "could not connect" code) — the caller must never
+    collapse that into False: "I could not check" is not "it is safe to
+    kill". False covers BOTH a pid that is simply gone and one that is now
+    a different, unrelated process (a Windows pid recycled onto BlueStacks
+    is exactly this case, the bug this function exists to fix) — the
+    caller treats both the same way: refuse to kill.
+
+    `errors="replace"` (iteration 1 review, task-28866f08): a real worker's
+    `CommandLine` is ~22 KB of prompt text written in Windows PowerShell's
+    console code page, not necessarily valid UTF-8 (bytes like 0xae/®
+    measured live). Strict decoding (the default) raised UnicodeDecodeError
+    INSIDE subprocess.run for every real worker, swallowed by the bare
+    `except Exception` below into `None` — meaning the reaper refused to
+    ever clear a genuinely finished worker's pid, reintroducing the
+    12,061-line retry loop through decoding instead of identity. The check
+    below is a substring match for an ASCII task id, so a lossy decode
+    (mangled non-ASCII bytes, task id text intact) is safe and correct.
+    """
+    ssh_alias = host_cfg.get("ssh")
+    if not ssh_alias:
+        return None
+    os_kind = host_cfg.get("os")
+    if os_kind == "windows":
+        ps_cmd = (
+            'powershell -NoProfile -Command '
+            f'"(Get-CimInstance Win32_Process -Filter \'ProcessId={int(pid)}\')'
+            '.CommandLine"'
+        )
+        cmd = ["ssh", ssh_alias, ps_cmd]
+    else:
+        cmd = ["ssh", ssh_alias, "ps", "-p", str(int(pid)), "-o", "args="]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True,
+                           errors="replace", timeout=15)
+    except Exception:
+        return None
+    if r.returncode == 255:
+        return None
+    return task_id in (r.stdout or "")
 
 
 def _terminate_pid(pid: int) -> str:
@@ -474,15 +526,17 @@ def _print_alive(rows: list[dict]) -> None:
 # finished; nothing in this repo calls it yet.
 # ---------------------------------------------------------------------------
 
-# host column value -> (ssh alias, OS kind). The ssh alias for Contabo is
-# "mooniex-vps" (config/projects.yaml, runners/mac_agent.py SSH_HOST) even
-# though the task row's own `host` value is the short form "contabo" (see
-# docs/design/multi-host-workers.md's host table) — winbox's ssh alias
-# matches its host name exactly.
-_REMOTE_HOSTS = {
-    "winbox": {"ssh": "winbox", "os": "windows"},
-    "contabo": {"ssh": "mooniex-vps", "os": "linux"},
-}
+# host column value -> host config (ssh alias, OS kind, ...), read straight
+# from config/hosts.yaml (task-28866f08) rather than a hand-maintained dict
+# here — a new host becomes reapable the moment it's added to hosts.yaml, no
+# code change. The ssh alias for Contabo is "mooniex-vps" even though the
+# task row's own `host` value is the short form "contabo" (see
+# docs/design/multi-host-workers.md's host table); winbox's ssh alias
+# matches its host name exactly. Keyed on any host whose `ssh` is set — mac's
+# is null (it never dials out to reach itself), so it's excluded by that
+# check alone rather than a special case.
+def _remote_hosts() -> dict[str, dict]:
+    return {name: h for name, h in config_hosts().items() if h.get("ssh")}
 
 
 def _remote_kill_command(task_id: str, pid: int | None, os_kind: str) -> list[str]:
@@ -555,6 +609,14 @@ def close_remote(task: dict, *,
     thrown. This module has no way to verify a remote kill actually landed
     (no local process table to re-check) — `ssh_ok` reflects only the SSH
     command's exit code.
+
+    Identity guard (task-28866f08): when a pid is recorded, `remote_pid_
+    matches_task` is consulted BEFORE any kill argv is built — a recycled
+    pid (now some unrelated process, e.g. BlueStacksServices.exe) refuses
+    with `gone=True` and issues no kill at all; an unreachable box (`None`)
+    returns `ssh_ok=None` and issues no kill either. Only a confirmed match
+    proceeds to the kill. `stderr` is always present in the returned dict
+    (not just on failure) so a caller can log it unconditionally.
     """
     task_id = task.get("id")
     fresh = db.get_task(task_id) if task_id else None
@@ -564,7 +626,8 @@ def close_remote(task: dict, *,
     host = task.get("host")
     result = {
         "task_id": task.get("id"), "host": host, "reason": reason,
-        "command": None, "ssh_ok": None, "refused": None,
+        "command": None, "ssh_ok": None, "refused": None, "gone": False,
+        "stderr": None,
     }
 
     status = task.get("status")
@@ -577,12 +640,26 @@ def close_remote(task: dict, *,
         result["refused"] = f"host={host!r} — not a remote spoke"
         return result
 
-    spec = _REMOTE_HOSTS.get(host)
+    remote_hosts = _remote_hosts()
+    spec = remote_hosts.get(host)
     if spec is None:
-        result["refused"] = f"host={host!r} not in {sorted(_REMOTE_HOSTS)}"
+        result["refused"] = f"host={host!r} not in {sorted(remote_hosts)}"
         return result
 
     pid = task.get("pid")
+    if pid:
+        # ADDENDUM (task-28866f08): never build a kill argv against a pid
+        # this box hasn't verified still belongs to this task — a recycled
+        # Windows pid is exactly the "kill BlueStacks" bug this guards.
+        match = remote_pid_matches_task(spec, pid, task.get("id", ""))
+        if match is False:
+            result["gone"] = True
+            result["refused"] = "pid no longer this task's process"
+            return result
+        if match is None:
+            result["ssh_ok"] = None
+            return result
+
     remote_argv = _remote_kill_command(task.get("id", ""), pid, spec["os"])
     if not remote_argv:
         result["refused"] = "no pid recorded — nothing to kill"
@@ -591,10 +668,16 @@ def close_remote(task: dict, *,
     ssh_cmd = ["ssh", spec["ssh"], *remote_argv]
     result["command"] = ssh_cmd
     try:
-        r = subprocess.run(ssh_cmd, capture_output=True, text=True, timeout=15)
+        # errors="replace" (iteration 1 review, task-28866f08): defensive
+        # hygiene, not the merge blocker — taskkill's stderr is short ASCII
+        # in practice (measured: `ERROR: The process "<pid>" not found.`),
+        # but a non-English Windows locale could localize it. A raised
+        # UnicodeDecodeError here would masquerade as "box unreachable"
+        # (the original ssh_ok misdiagnosis), so guard it the same way.
+        r = subprocess.run(ssh_cmd, capture_output=True, text=True,
+                           errors="replace", timeout=15)
         result["ssh_ok"] = r.returncode == 0
-        if r.returncode != 0:
-            result["stderr"] = (r.stderr or "")[:300]
+        result["stderr"] = (r.stderr or "")[:300]
     except Exception as e:
         result["ssh_ok"] = False
         result["stderr"] = str(e)[:300]

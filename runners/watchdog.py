@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -35,6 +36,7 @@ from lib.config import host as get_host
 from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
                                close_remote, _chrome_running)
 from runners.branch_poller import remote_pid_alive
+from runners import branch_poller
 from tools.gc_stale_tasks import gc_stale_tasks
 from tools import tmux_session
 
@@ -265,26 +267,40 @@ def _sweep_remote_terminal_task(t: dict, host: str) -> dict | None:
     own re-read-and-refuse-unless-terminal guard (ADDENDUM 2) is the safety
     net instead.
 
-    Returns None (not counted toward SWEEP_CAP, not logged) when
-    close_remote had nothing to do — `command` is None whenever it refused
-    before ever building an ssh command (no pid recorded is the common case:
-    an already-reaped task, or one that never wrote one), matching the local
-    branch's "no live surface found, no log line" behaviour. When a kill was
-    actually attempted and it reported success, clears the row's `pid` so
-    the next tick's close_remote call is the same cheap no-pid no-op rather
-    than re-running `taskkill`/`kill` against an already-dead pid forever.
+    Returns None (not counted toward SWEEP_CAP, not logged) only when there
+    was truly nothing to act on — no pid ever recorded on this row, so
+    close_remote never even attempted an identity check (matching the local
+    branch's "no live surface found, no log line" behaviour). Once a pid was
+    present, every outcome is logged — including the recycled-pid refusal
+    and an unreachable box — because a "gone"/mismatched pid needs its
+    stderr/refused reason visible, not silently swallowed the way the old
+    ssh_ok-only gate used to swallow it (task-28866f08: the same `taskkill`
+    retried forever, 12,061 log lines, because a nonzero exit code from an
+    already-gone pid was indistinguishable from an unreachable box).
+
+    Clears the row's `pid` when the kill actually succeeded (`ssh_ok`) OR
+    the identity check proved the pid is no longer this task's process
+    (`gone`) — either way there is nothing left worth re-checking next tick.
+    Never clears it on `ssh_ok is None` (host unreachable): "could not
+    check" must keep being retried, not be read as "handled". Logs at
+    `warn` instead of `error` whenever nothing was actually killed (refused,
+    gone, or unreachable) — only a real kill stays at `error` severity.
     """
     reap = close_remote(t, reason="reaper: terminal status with live surface")
-    if reap.get("command") is None:
+    attempted = bool(t.get("pid")) or reap.get("command") is not None
+    if not attempted:
         return None
-    if reap.get("ssh_ok"):
+    if reap.get("ssh_ok") or reap.get("gone"):
         try:
             db.set_fields(t["id"], actor="watchdog", pid=None)
         except Exception as e:  # never let bookkeeping stop the sweep
             warn(f"could not clear pid after remote reap on {t['id']}: {e}")
-    error(
+    log = error if reap.get("ssh_ok") else warn
+    log(
         f"SURFACE-REAPED {t['id']} status={t['status']} host={host} "
-        f"command={' '.join(reap.get('command') or [])} ssh_ok={reap.get('ssh_ok')}"
+        f"command={' '.join(reap.get('command') or [])} ssh_ok={reap.get('ssh_ok')} "
+        f"gone={reap.get('gone')} refused={reap.get('refused')} "
+        f"stderr={reap.get('stderr')!r}"
     )
     return {"task": t["id"], "status": t["status"], "host": host, **reap}
 
@@ -633,6 +649,23 @@ def scan_once() -> dict:
     except Exception as e:
         warn(f"watchdog surface sweep error: {e}")
         surface_reaped = []
+
+    # Fifth pass — branch poller (task-28866f08): runners/branch_poller.py
+    # exists, is correct, and is scheduled by nothing (no launchd, no cron,
+    # no systemd, no process) — this is the first thing that would ever call
+    # it. DEFAULT OFF on purpose: task-41684e16's branch is pushed with a
+    # REPORT.md on it, so the first tick here would flip it to `review`
+    # (releasing its path locks) and then call close_remote on its recorded
+    # pid — which the CEO's ruling (2026-09-07) says must never happen to a
+    # worker that may still be working. Step 2's remote_pid_matches_task
+    # guard makes that specific call safe (that pid is now BlueStacks, which
+    # the guard refuses to kill), but the CEO still decides when to flip
+    # this on, not the code — hence the flag, default unset.
+    if os.environ.get("ORG_WATCHDOG_BRANCH_POLL") == "1":
+        try:
+            branch_poller.tick()
+        except Exception as e:
+            warn(f"watchdog branch_poll error: {e}")
 
     return {"pinged": pinged, "stalled": stalled, "reaped": reaped,
             "surface_reaped": surface_reaped,
