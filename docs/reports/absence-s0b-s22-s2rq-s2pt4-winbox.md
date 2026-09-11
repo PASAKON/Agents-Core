@@ -1236,7 +1236,46 @@ absent: `@char_registrar`, `@loc_hall_big_e`,
 - **Usage History re-checked**: cost unchanged ($75.5), "Total
   generations" 209→210. $0 charged.
 
-Not yet harvested — rendering now.
+### S2AC v5 — harvested and reviewed against the two named fixes
+
+- **Path**: `C:\Users\UsEr\Downloads\hf_20260910_232726_8d8121b3-1f44-4bab-b253-4a4f683ead5b.mp4`
+- **Bytes**: 24,996,176
+- **MD5**: `862b6edf7446246a249bc2bd6422f6a9`
+- **Settings**: 1280x720, 24fps, 19.96s, Seedance 2.5, High.
+- Confirmed correct asset via `<video>.currentSrc` filename
+  (`hf_20260910_232726_8d8121b3-...`) matching the fired id exactly.
+- Frames pulled at 0.5/4/7.9/11.5/14/15.5/19s — same timestamps used to
+  catch the v4 take-1 defects, for a direct comparison.
+
+**A — duplicate blue-coat woman: FIXED.** Checked all 7 sampled frames,
+including 7.9s and 11.5s (the exact timestamps the CTO caught the
+duplicate at on v4 take 1) and the 14s freeze (full cast visible,
+easiest frame to audit). **Exactly one woman in a blue coat, every
+time, in every frame.** No pairing anywhere reads as the same face,
+hair, or coat repeated.
+
+**B — plaque height / reach-down: NOT FIXED.** Applying the CTO's own
+test exactly as stated ("if somebody's raised hand is touching it, it
+is too high"): at the 14s freeze, the critic's gloved hand is
+**raised** — clearly above her own shoulder line, near her jaw/neck
+height — and is touching the plaque's upper edge. This is a reach UP,
+not a reach DOWN. The plaque itself sits at roughly chest-to-shoulder
+height across the group in every frame (0.5s/7.9s/11.5s/14s), not at
+the waist level the sheet now explicitly demands. **v5's height fix did
+not land, even though the wording change was substantial** (bare
+"waist height" → explicit "reaches DOWN, never up... BELOW every
+elbow... if raised hand is touching it, it is too high").
+
+**What held, unaffected by either fix:** the camera-turn payoff at
+17-20s still resolves cleanly onto the registrar in the corridor,
+exactly as in every prior take.
+
+**Verdict (operator read): PARTIAL.** One of the two named defects
+(A, the duplicate) is genuinely fixed. The other (B, plaque height) is
+not — this take fails the CTO's own stated test for it. Reporting this
+plainly rather than calling it a PASS: the duplicate was the harder,
+higher-priority fix and it worked; the height instruction needs another
+pass if a future take is fired against it.
 
 ### S17b "THE HOLE, FROM INSIDE" — harvested and reviewed
 
@@ -1285,3 +1324,82 @@ face order):**
 on everything else visually checkable** — right man, correct face
 order, clean hard cut, legible and correctly-spelled plaque, correct
 sawn-hole framing.
+
+## CLOSE-OUT — grant expired, standing down (2026-09-11, ~07:12 ICT / ~00:12 UTC)
+
+Per the CTO's final instruction: harvested and reviewed v5, posting this
+close-out, then stopping. No further fires tonight — S2Xb stays unfired
+by design (the CTO's own call: it's his idea not the CEO's, and it's
+safe on `origin/main` for whenever the CEO wants it fired fresh).
+
+### Every asset fired this session, in order
+
+| # | Scene | Asset id | Verdict |
+|---|---|---|---|
+| 1 | S22 "THE CRATE" | (fired/harvested pre-compaction, see earlier report sections) | PASS |
+| 2 | S2R-Q "THE BIDS, QUICK" | (fired/harvested pre-compaction) | PASS |
+| 3 | S2PT take 4 "THE TOUR, TOGETHER" | (fired/harvested pre-compaction) | PASS (CTO-confirmed) |
+| 4 | S2AC take 1 (old sheet) | (fired/harvested pre-compaction) | kept, drove v2 redesign |
+| 5 | S2AC take 2 (old sheet) | (fired pre-compaction) | superseded before review |
+| 6 | S2AC v2 | (fired/harvested pre-compaction) | corridor-not-wall defect found |
+| 7 | S2AC v3 | `b6abd536-5e9a-44fb-8e44-ba1547411a4e` | **PASS** — camera/wall/staging cleared |
+| 8 | S2AC v4 take 1 | `7edaafbd-4ed3-4c80-b45e-0add6463c43f` | **FAIL** — duplicate blue-coat woman, plaque too high, "Vahler" typo (own PASS overturned) |
+| 9 | S2AC v4 take 2 | `ce05a30c-821f-486c-bb78-bd8c467dcc84` | partial — duplicate and typo did not reproduce, plaque height still off |
+| 10 | S17b "THE HOLE, FROM INSIDE" | `5f3c3967-0bcb-4795-8581-ef7415814bc4` | **PASS** — right man, correct angry→smiling order, clean hard cut |
+| 11 | S2AC v5 | `8d8121b3-1f44-4bab-b253-4a4f683ead5b` | **PARTIAL** — duplicate FIXED, plaque height NOT fixed (raised hand still touches it) |
+
+All 11 fires confirmed $0 via pixel-zoom price check immediately before
+each click plus a Usage History cross-check after — zero credits spent
+across the whole session.
+
+### Sheets still unfired
+
+- **S2Xb "THE CRACK, MACRO"** (`docs/prompts/absence/s2xb-addon-the-crack-macro.txt`,
+  commit `58d315f`) — fully staged in the composer right now (see below),
+  never fired. 1 chip (`@project_absence_loc_wall_crack`), 8s, no cast,
+  lowest-risk sheet in the queue. Safe to fire whenever the CEO wants it;
+  a fresh operator can pick it up cold from `origin/main`, no context
+  needed beyond the sheet itself.
+- **S2AC v6 or later** — not written. If another pass at the plaque
+  height is wanted, v5's height instruction (explicit reach-down
+  language) demonstrably did not work in this take; a future fix likely
+  needs a different mechanism (e.g. naming an exact body-relative height
+  like "hip height" rather than "waist," or explicitly forbidding any
+  raised arm near the plaque) rather than a rephrase of the same
+  instruction.
+
+### Composer end state (exact, as left)
+
+The Cinema Studio composer at
+`https://higgsfield.ai/generate/@ilag-studio/ai-film-festival-3` is
+currently holding the **S2Xb** sheet, staged but **not fired**:
+
+- Text: extracted paste block from `s2xb-addon-the-crack-macro.txt`
+  (commit `58d315f`), pasted and verified — `normalizedLen=3245`
+  matching source exactly, 1/1 unique chip bound
+  (`@project_absence_loc_wall_crack`), 0 error chips, 0 video refs.
+- Duration: set to **8s** via the Duration slider (`aria-valuenow=8`,
+  range 4-30) — note this required a manual slider adjustment, not a
+  typeable field; the slider defaulted to 20s (carried over from the
+  previous fire) and had to be explicitly moved down.
+- Quality: High. Sound: On. Model: Seedance 2.5. Unlimited: **ON**,
+  reading `UNLIMITED · ~~56~~ · 0` at last check (price scales with the
+  shorter 8s duration, not a fixed number).
+- **Not fired.** Whoever picks this up next should re-verify duration,
+  chip count, and the Unlimited price fresh before clicking — per the
+  standing hard rule, nothing here should be trusted as still-valid
+  after a page reload or a time gap.
+
+### Grant status
+
+The CTO reported the free-lane grant expired around 07:10-07:12 ICT,
+immediately after v5's render completed. No fire was attempted after
+that point. Every fire this session was verified free at the moment of
+its own click via pixel zoom (`UNLIMITED · struck-price · 0`); none was
+ever fired on a live/unstruck price.
+
+### Standing down
+
+Per the CTO's explicit instruction: no further generation, no polling
+loop, handing off cleanly. This report and all associated frames/MD5s
+are committed and pushed to `agent/browser_operator-task-41684e16`.
