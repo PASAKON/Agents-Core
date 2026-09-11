@@ -43,9 +43,13 @@ done
 hd "3. The box must not sleep or lock itself away"
 sl=$(ps1 'powercfg /q SCHEME_CURRENT SUB_SLEEP STANDBYIDLE' | grep -i 'Current AC' | head -1)
 [[ "$sl" == *0x00000000* ]] && ok "sleep on AC = never" || bad "sleep on AC is SET — $sl"
-al=$(ps1 '(Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon").AutoAdminLogon' | tr -d '\r ')
-if [[ "$al" == "1" ]]; then ok "auto-logon ON — a reboot returns to a usable desktop"
-else note "auto-logon OFF — after a reboot SSH and Astra still work, but anything needing the DESKTOP (Chrome, Resolve) will not until someone logs in"; fi
+# Test the thing that actually matters — is somebody logged in at the console right now —
+# not the AutoAdminLogon flag. Measured 2026-09-11: the flag reads 0, and the box still
+# came back to a logged-in desktop after a real reboot in 125 s, because the account has
+# no password. Checking the flag produced a warning that was simply false.
+cu=$(ps1 '(Get-CimInstance Win32_ComputerSystem).UserName' | tr -d '\r' | tr -d ' ')
+if [[ -n "$cu" ]]; then ok "desktop session live as $cu — GUI work is possible"
+else bad "NOBODY logged in at the console — Chrome, Resolve and any GUI worker are dead until someone logs in"; fi
 
 hd "4. Disk and load"
 fr=$(ps1 '[math]::Round((Get-PSDrive C).Free/1GB,1)' | tr -d '\r ')
