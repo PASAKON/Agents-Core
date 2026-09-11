@@ -35,6 +35,8 @@ it does not poll you.
 
 2. `git add -A && git commit` any final changes.
 3. `git push -u origin <your branch>`.
+4. Run `%ORG_WORKER_FINISH%`. This ends your own session and closes your
+   window — nothing else on the box does that for you.
 
 The hub's branch poller (`runners/branch_poller.py`) sees the pushed
 branch, reads `REPORT.md` back via `git show`, and flips the task to
@@ -46,7 +48,8 @@ Write `BLOCKER.md` at the worktree root (same idea as `REPORT.md`: what's
 blocking you, what you tried, what you need) and push it on your branch.
 The poller opens a GitHub issue from its first line and marks the task
 blocked. Do not wait idle for a reply in this session — a remote worker
-has no way to receive one; push the blocker and stop.
+has no way to receive one; push the blocker, run `%ORG_WORKER_FINISH%`,
+and stop.
 
 ## Hard limits
 
