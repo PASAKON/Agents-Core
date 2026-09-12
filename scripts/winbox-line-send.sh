@@ -42,16 +42,21 @@ push_runner() {
 
 # --- run it in session 1. SSH lands in session 0, which has no desktop, so a
 # one-shot INTERACTIVE scheduled task is the only way to reach the screen
-# (proved 2026-09-11, docs/runbooks/winbox-recovery.md). All quoting lives in
-# an ASCII .cmd wrapper because PowerShell -> schtasks quoting is unreliable.
+# (proved 2026-09-11, docs/runbooks/winbox-recovery.md).
+#
+# PowerShell is launched DIRECTLY, with a hidden window. The earlier version
+# wrapped it in a .cmd so the shell could redirect output to out.txt — and that
+# console window took the foreground away from LINE roughly six seconds into
+# every run, which is precisely what made the clicks land on the wrong app.
+# The task now writes out.txt itself (Result() in line-send.ps1), so no shell
+# is needed and nothing else appears on screen. Paths here contain no spaces,
+# so the quoting that forced the wrapper is no longer a problem either.
 run_in_session1() {
   local mode="$1" extra="${2:-}"
   ssh -n "$HOST" "powershell -NoProfile -Command \"\
-    Set-Content -Path '$REMOTE_DIR\\run.cmd' -Encoding ASCII -Value '@echo off';\
-    Add-Content -Path '$REMOTE_DIR\\run.cmd' -Encoding ASCII -Value 'powershell -NoProfile -ExecutionPolicy Bypass -File \\\"$REMOTE_DIR\\line-send.ps1\\\" -Mode $mode $extra > \\\"$REMOTE_DIR\\out.txt\\\" 2>&1';\
     \$me=[Security.Principal.WindowsIdentity]::GetCurrent().Name;\
     Unregister-ScheduledTask -TaskName '$TASK' -Confirm:\$false -ErrorAction SilentlyContinue;\
-    \$a=New-ScheduledTaskAction -Execute 'cmd.exe' -Argument '/c \\\"$REMOTE_DIR\\run.cmd\\\"';\
+    \$a=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File $REMOTE_DIR\\line-send.ps1 -Mode $mode $extra';\
     \$p=New-ScheduledTaskPrincipal -UserId \$me -LogonType Interactive -RunLevel Limited;\
     \$s=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Minutes 3);\
     Register-ScheduledTask -TaskName '$TASK' -Action \$a -Principal \$p -Settings \$s -Force | Out-Null;\
@@ -120,6 +125,15 @@ case "$cmd" in
     pull_shots "attach-$stem-dialog" "attach-$stem-sent"
     [[ "$res" == OK\ sent* ]] || die "attach did not confirm — read the shots and $REMOTE_DIR\\line-send.log"
     ok "attached $base"
+    ;;
+
+  open)
+    who="${2:?usage: winbox-line-send.sh open <contact name>}"
+    push_runner
+    res=$(run_in_session1 open "-Who \\\"$who\\\""); echo "$res"
+    pull_shots open-results open
+    echo
+    echo "CHECK the shot: the chat header must read exactly the person you meant."
     ;;
 
   pin)
