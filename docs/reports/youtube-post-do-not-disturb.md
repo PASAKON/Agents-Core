@@ -40,6 +40,7 @@ Psychological horror. 16 scenes. Four minutes and fifty-one seconds.
 —
 
 Written and Directed by  PASAKON
+Edited by  Oikill
 AI Agent  Claude Code
 
 Original music generated with Suno AI
@@ -62,9 +63,7 @@ order of use.
 **The synopsis stops where it stops on purpose.** The film has exactly one turn
 and a description that gives it away spends the whole film before it starts.
 
-**No editor credit yet** — Oikill delivered the watermarked file, but nobody has
-confirmed he cut this one. Ask the CEO before adding a name; a wrong credit on a
-festival entry is worse than a missing one.
+**Editor confirmed** — Oikill, the same editor as «Sorry, Sir» (CEO, 2026-09-12).
 
 ## Tags
 
@@ -80,7 +79,7 @@ filmmaking, short horror film 2026, motel horror, twist ending
 |---|---|
 | Visibility | **Public** — required; unlisted or scheduled does not count |
 | Category | Film & Animation |
-| Thumbnail | **none yet.** 21:9 film, 16:9 thumbnail — it needs making, not cropping |
+| Thumbnail | two candidates being generated — `docs/prompts/dnd/COVER-A-the-door-16x9.txt` (the lit door) and `COVER-B-the-glass-16x9.txt` (matches the existing cover). The laurel is composited afterwards, never drawn by the model |
 | Language | English · subtitles burned in, no caption file |
 | Made for kids | No |
 | Altered content | **Yes** |

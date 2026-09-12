@@ -1,0 +1,90 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+DND COVER A — «Do Not Disturb» YouTube cover · the CTO's own design
+GPT Image 2.5 SUNBURST · 16:9 · 1K · Quality High · 1 image · <= 5 credits
+
+WHY THIS IMAGE
+The film's whole premise is one door she will not open. That is also the only
+idea that survives being shrunk to 210x118 px, which is the size a YouTube
+thumbnail actually occupies in a search result. A face behind glass reads as
+"a horror film"; a lit door at the end of a dark walkway reads as THIS horror
+film, and it asks a question the title answers.
+
+Measured on the other film today: at real thumbnail size a busy frame collapses
+into texture and an empty one keeps its subject. Dark + one lit thing is the
+strongest small-size shape there is.
+
+THE CHIPS — check each on the panel before firing (an Element's name is not its
+content; look at the plate). Count them against the prompt: 3.
+  @Motel-Walkway     the exterior walkway of the motel at night
+  @Prop-DNDTag       the Do Not Disturb tag itself
+  @Mother            the housekeeper
+
+⚠️ The laurel is NOT in this prompt. The festival watermark is added afterwards
+from the 4K PNG, top-left or right on clean ground — the same way it was done
+for Sorry Sir. Asking the model to draw a logo produces garbled lettering.
+
+AFTER GENERATION — VERIFY
+  1. "DO NOT DISTURB" spelled correctly, letter by letter.
+  2. ONE door lit. ONE tag. ONE figure, small and far.
+  3. No extra words, no logos, no watermarks anywhere.
+  4. Shrink it to 210x118 and look: door and title must still read.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+DELIVERABLE
+A finished 16:9 cover image for a horror short film. Photographic, very dark,
+built around one lit doorway. Print quality.
+
+SUBJECT
+@Motel-Walkway — the open-air walkway of an old roadside motel at night, seen
+straight down its length. A row of identical closed doors recedes into the dark.
+Every door is unlit except ONE, roughly two thirds of the way down, where a
+single caged wall lamp above it throws a hard cone of dirty amber light onto the
+concrete.
+
+@Prop-DNDTag — hanging on that one lit door's handle, a small paper DO NOT
+DISTURB tag, catching the lamplight. It is the brightest small object in the
+frame and it hangs perfectly still.
+
+@Mother — a housekeeper, very small and far away, standing in the dark near the
+lit door with her back to the camera, motionless, looking at it. She is not
+walking. She occupies no more than one eighth of the frame height.
+
+SCENE
+Deep night. No moon. The only light in the whole picture is that one caged lamp
+and a weak red EXIT glow at the far end of the walkway. Wet concrete holding a
+long amber reflection. A low iron railing along the open side, and beyond it
+total black.
+
+COMPOSITION
+Dead-on, perfectly level, one-point perspective straight down the walkway, the
+vanishing point slightly left of centre. Enormous dark negative space across the
+top half where the title sits. The lit door is the only bright area in the
+lower two thirds. Long lens, flat and still.
+
+VISUAL DIRECTION
+Already colour-graded, not raw. Near-black overall, crushed shadows, one warm
+amber pool and one cold red accent. Heavy contrast, almost no midtones. Damp,
+cheap, institutional. Photographed on film, not rendered: visible grain, slight
+halation around the lamp, faint colour fringing.
+
+TEXT
+Render the following text exactly once, and no other text anywhere:
+- "DO NOT DISTURB" — large, all capitals, centred across the dark upper third,
+  a condensed sans serif in dirty off-white, slightly weathered, sitting on
+  plain darkness and touching nothing else.
+Crisp, evenly spaced, correctly spelled.
+
+CONSTRAINTS
+Exactly ONE door is lit. Exactly ONE tag hangs on a handle. Exactly ONE person
+and she is seen from behind, small and far away.
+No face. No second figure. No blood. No hands. No ghost, no apparition, no
+figure in a window, no reflection of a person.
+No additional words, letters, numbers, room numbers, signage, logos, laurels,
+signatures or watermarks of any kind beyond the one line specified above.
+No border, no frame, no vignette added as a graphic, no mockup, no poster-on-a-
+wall effect.
+
+OUTPUT
+16:9 landscape, 1K, high quality, sharp throughout, edge to edge, no border.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

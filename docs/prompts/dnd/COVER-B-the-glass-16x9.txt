@@ -1,0 +1,91 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+DND COVER B — «Do Not Disturb» YouTube cover · matches the existing cover
+GPT Image 2.5 SUNBURST · 16:9 · 1K · Quality High · 1 image · <= 5 credits
+
+WHAT THIS IS
+The CEO asked for one cover as close as possible to the one already made. That
+existing cover lives in the DND Drive root (hf_20260817_165416_….png, 1168x880):
+a woman pressed behind wet dark glass, two bloodied handprints, "DO NOT DISTURB"
+in weathered white caps with "FINAL CUT" in red brush script beneath, and the
+festival laurel top-right.
+
+This prompt reproduces that image at 16:9 — it is NOT a crop of it. The original
+is 4:3; cropping to 16:9 would cut the hands off, and the hands are the picture.
+The frame is rebuilt wider with the hands further apart.
+
+Two deliberate differences from the original, both because this is a YouTube
+cover and not a status card:
+- "FINAL CUT" is dropped. It describes a stage of work, means nothing to a
+  viewer, and the film is finished.
+- The laurel is not drawn by the model. It is composited afterwards from the 4K
+  PNG. Asking a model for a logo produces garbled lettering — measured on this
+  production: "LAKKRITORGH GIN UDNS".
+
+THE CHIPS — check each on the panel before firing. Count them: 2.
+  @Mother       the housekeeper
+  @Prop-Glass   the glass
+
+AFTER GENERATION — VERIFY
+  1. "DO NOT DISTURB" spelled correctly, letter by letter.
+  2. ONE face. TWO hands. No third hand, no extra fingers — check the fingers.
+  3. No extra words, no logos, no watermarks.
+  4. Shrink to 210x118 and look: the face and the title must both still read.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+DELIVERABLE
+A finished 16:9 cover image for a psychological horror short film. Photographic,
+very dark, a face and two hands pressed against wet glass from the far side.
+Print quality.
+
+SUBJECT
+@Mother — a woman in her forties, dark hair, seen through @Prop-Glass from the
+outside. She is pressed close against the far side of the glass, face level with
+the camera, eyes open and fixed straight down the lens. Her expression is not a
+scream: it is exhausted, pleading, and completely still. Her face sits slightly
+behind the plane of focus, softened by the wet glass, and it is partly obscured.
+
+BOTH HANDS are flat against the glass on her side, palms toward the camera,
+fingers spread — one well to the left of her face and one well to the right, wide
+apart to fill the 16:9 frame. The hands are smeared with dark red, and that red
+has run downward in thin vertical streaks from each fingertip, mixing with the
+water on the glass. The hands are the sharpest thing in the picture.
+
+SCENE
+Night, seen from a dark exterior. The glass is streaked with rain and
+condensation. Behind her, deep in the dark, a single warm lamp is blown out into
+a soft flare, and a second dimmer glow sits far to one side. Everything else is
+black.
+
+COMPOSITION
+Dead-on, level, face centred, one hand left and one hand right with a wide gap
+between them. The lower centre of the frame stays comparatively clear so the
+title can sit across it. Shallow depth: the glass, the water and the handprints
+are sharp, her face is a step softer.
+
+VISUAL DIRECTION
+Already colour-graded, not raw. Near-black, desaturated, one warm flare and the
+dark red of the hands as the only colour. Crushed blacks, strong contrast,
+grain, heavy halation around the lamp. Cold, wet, claustrophobic.
+
+TEXT
+Render the following text exactly once, and no other text anywhere:
+- "DO NOT DISTURB" — large, all capitals, centred across the lower middle of the
+  frame, a heavy condensed sans serif in weathered off-white, its surface eroded
+  and scratched as if scraped off a wall. It overlaps the dark area below her
+  face and stays clear of both hands.
+Crisp, correctly spelled, evenly spaced.
+
+CONSTRAINTS
+Exactly ONE person. Exactly TWO hands, one either side, five fingers each.
+No third hand, no extra fingers, no second face, no reflection of another
+person, no figure behind her.
+No knife, no weapon, no wound, no blood on her face.
+No additional words, letters, numbers, signage, logos, laurels, signatures or
+watermarks of any kind beyond the one line specified above. In particular do not
+render "FINAL CUT" or any subtitle under the title.
+No border, no frame, no vignette added as a graphic, no mockup.
+
+OUTPUT
+16:9 landscape, 1K, high quality, sharp throughout, edge to edge, no border.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===
