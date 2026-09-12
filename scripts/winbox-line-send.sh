@@ -122,6 +122,18 @@ case "$cmd" in
     ok "attached $base"
     ;;
 
+  pin)
+    push_runner
+    res=$(run_in_session1 pin); echo "$res"
+    pull_shots pin
+    ;;
+
+  menu)
+    push_runner
+    res=$(run_in_session1 menu); echo "$res"
+    pull_shots menu
+    ;;
+
   clip)
     push_runner
     res=$(run_in_session1 clip); echo "$res"

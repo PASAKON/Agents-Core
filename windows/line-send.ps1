@@ -17,7 +17,7 @@
 # script never looked. Now it clicks the composer first, and compares the
 # screen before and after — if the pixels did not move, it fails loudly.
 param(
-    [ValidateSet('peek', 'send', 'attach', 'clip')] [string] $Mode = 'peek',
+    [ValidateSet('peek', 'send', 'attach', 'clip', 'menu', 'pin')] [string] $Mode = 'peek',
     [string] $MsgFile = 'C:\mooniex\line\line_msg.txt',
     [string] $AttachFile = '',
     [string] $ShotDir = 'C:\mooniex\line'
@@ -105,6 +105,62 @@ $chat = @{ x0 = [int]($r.Left + $W * 0.42); y0 = [int]($r.Top + $H * 0.10)
            x1 = [int]($r.Left + $W * 0.98); y1 = [int]($r.Top + $H * 0.85) }
 $box  = @{ x0 = [int]($r.Left + $W * 0.42); y0 = [int]($r.Top + $H * 0.85)
            x1 = [int]($r.Left + $W * 0.98); y1 = [int]($r.Top + $H * 0.96) }
+
+# Pin the top row of the chat list.
+#
+# The menu item is clicked at an offset measured off a real screenshot of this
+# exact right-click point (+41,+58), NOT at a window ratio: "Delete" sits only
+# 54px below "Pin chat" and a ratio that drifts by a few percent lands on it.
+# An offset from the click that opened the menu cannot drift, because the menu
+# is drawn relative to that click.
+#
+# Worst case is still worth naming: LINE orders the list by recency, so if
+# another chat receives a message first, this pins that one instead. Pinning is
+# reversible and it photographs the result, so that is a nuisance, not damage.
+if ($Mode -eq 'pin') {
+    Add-Type 'using System;using System.Runtime.InteropServices;public class M{[DllImport("user32.dll")]public static extern void mouse_event(uint f,uint x,uint y,uint d,int e);[DllImport("user32.dll")]public static extern bool SetCursorPos(int x,int y);public static void R(int x,int y){SetCursorPos(x,y);System.Threading.Thread.Sleep(150);mouse_event(0x0008,0,0,0,0);System.Threading.Thread.Sleep(60);mouse_event(0x0010,0,0,0,0);}}'
+    [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+    Start-Sleep -Milliseconds 600
+    [void][Win]::SetForegroundWindow($line.MainWindowHandle)
+    Start-Sleep -Milliseconds 400
+    $mx = [int]($r.Left + $W * 0.2465); $my = [int]($r.Top + $H * 0.1395)
+    $b4 = Grab
+    [M]::R($mx, $my)
+    Start-Sleep -Milliseconds 1500
+    $open = Grab
+    if ((DiffCount $b4 $open $r.Left $r.Top ($r.Left + $W) ($r.Top + $H)) -lt 100) {
+        $b4.Dispose(); $open.Dispose()
+        Say 'FAIL context menu never opened'
+        Write-Output 'FAIL no context menu'
+        exit 11
+    }
+    [Win]::Click(($mx + 41), ($my + 58))
+    Start-Sleep -Milliseconds 2000
+    $af = Grab
+    $d = DiffCount $open $af $r.Left $r.Top ($r.Left + $W) ($r.Top + $H)
+    $p = Keep $af 'pin'
+    $b4.Dispose(); $open.Dispose(); $af.Dispose()
+    Say "pin click at $($mx+41),$($my+58) diff=$d shot=$p"
+    Write-Output "OK pin clicked=$($mx+41),$($my+58) diff=$d shot=$p"
+    exit 0
+}
+
+# Diagnostic: right-click the top row of the chat list and photograph the menu
+# it opens. Opening a context menu selects nothing, so this changes nothing.
+if ($Mode -eq 'menu') {
+    Add-Type 'using System;using System.Runtime.InteropServices;public class M{[DllImport("user32.dll")]public static extern void mouse_event(uint f,uint x,uint y,uint d,int e);[DllImport("user32.dll")]public static extern bool SetCursorPos(int x,int y);public static void R(int x,int y){SetCursorPos(x,y);System.Threading.Thread.Sleep(150);mouse_event(0x0008,0,0,0,0);System.Threading.Thread.Sleep(60);mouse_event(0x0010,0,0,0,0);}}'
+    $mx = [int]($r.Left + $W * 0.2465); $my = [int]($r.Top + $H * 0.1395)
+    $b4 = Grab
+    [M]::R($mx, $my)
+    Start-Sleep -Milliseconds 1500
+    $af = Grab
+    $d = DiffCount $b4 $af $r.Left $r.Top ($r.Left + $W) ($r.Top + $H)
+    $p = Keep $af 'menu'
+    $b4.Dispose(); $af.Dispose()
+    Say "right-click at $mx,$my diff=$d shot=$p"
+    Write-Output "OK menu at=$mx,$my diff=$d shot=$p"
+    exit 0
+}
 
 # Diagnostic: click the paperclip and photograph whatever it opens. Opening a
 # file dialog sends nothing, so this is safe to run while learning the UI.
