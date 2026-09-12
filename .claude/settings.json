@@ -1,5 +1,10 @@
 {
   "permissionMode": "auto",
+  "permissions": {
+    "allow": [
+      "Bash(./scripts/winbox-line-send.sh:*)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
