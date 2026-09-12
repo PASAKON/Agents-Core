@@ -4,6 +4,8 @@
 #   ./scripts/winbox-desktop.sh shot                  # photograph the screen
 #   ./scripts/winbox-desktop.sh click <x> <y>         # click, then photograph
 #   ./scripts/winbox-desktop.sh pickfile <winpath>    # fill the open FILE DIALOG
+#   ./scripts/winbox-desktop.sh scroll [x] [y] [notches]  # read further down a page
+#   ./scripts/winbox-desktop.sh paste <file> <x> <y> [--all]  # fill a field from a FILE
 #
 # Same session-1 route as winbox-line-send.sh: SSH lands in session 0, which has
 # no desktop, so the work runs from a one-shot interactive scheduled task with a
@@ -62,9 +64,24 @@ case "${1:-shot}" in
   click)
     x="${2:?usage: winbox-desktop.sh click <x> <y>}"; y="${3:?}"
     run "-Mode click -X $x -Y $y" ; pull click ;;
+  scroll)
+    x="${2:-960}"; y="${3:-600}"; n="${4:--6}"
+    run "-Mode scroll -X $x -Y $y -Notches $n" ; pull scroll ;;
+
+  paste)
+    f="${2:?usage: winbox-desktop.sh paste <local-file> <x> <y> [--all]}"
+    px="${3:-0}"; py="${4:-0}"
+    sel=""; [[ "${5:-}" == "--all" ]] && sel=" -SelectAll"
+    scp -q "$f" "$HOST:C:\\mooniex\\desktop\\paste.txt"
+    res=$(run "-Mode paste -Path C:\\mooniex\\desktop\\paste.txt -X $px -Y $py$sel"); echo "$res"
+    pull paste-before paste-after
+    [[ "$res" == OK* ]] || die "paste failed" ;;
+
   pickfile)
     p="${2:?usage: winbox-desktop.sh pickfile '<C:\\path\\to\\file>'}"
-    res=$(run "-Mode pickfile -Path '$p'"); echo "$res"
+    printf '%s' "$p" > /tmp/_pickpath.txt
+    scp -q /tmp/_pickpath.txt "$HOST:C:\\mooniex\\desktop\\pickpath.txt"
+    res=$(run "-Mode pickfile -PathFile C:\\mooniex\\desktop\\pickpath.txt"); echo "$res"
     pull pick-before pick-typed pick-after
     [[ "$res" == OK* ]] || die "pickfile failed"
     echo
