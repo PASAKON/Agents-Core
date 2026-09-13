@@ -679,13 +679,14 @@ def _ssh_remote_url(remote: str) -> str:
     return f"git@github.com:{org}/{repo}.git"
 
 
-def _render_remote_claude_args(role_name: str) -> str:
+def _render_remote_claude_args(role_name: str, host_name: str) -> str:
     """Render the flags a remote spawn needs: model/effort (policies/
     agents.yaml) + the SAME allowed-tools/--chrome worker_tool_grants
     renders for a Mac spawn (runners/worker_init.py) — reused verbatim
     rather than hand-duplicated, minus what a remote box can't have (org
     MCP, hence no --mcp-config here at all) — plus --remote-control, which
-    every remote worker carries (ADDENDUM 1, CTO 2026-09-07) so it shows up
+    a remote worker carries when `host_name`'s `remote_control` flag in
+    config/hosts.yaml allows it (ADDENDUM 1, CTO 2026-09-07) so it shows up
     in the CEO's Claude app session list, same as win-cto.ps1 already does
     for the Windows CTO session.
 
@@ -693,7 +694,7 @@ def _render_remote_claude_args(role_name: str) -> str:
     swallows every following argv element — see runners/worker_init.py's
     own comment on this), so --remote-control goes before the chrome flags,
     not after."""
-    from runners.worker_init import worker_tool_grants
+    from runners.worker_init import remote_control_args, worker_tool_grants
     allowed, extra_flags = worker_tool_grants(role_name)
     role_cfg = get_role(role_name)
     model = role_cfg.get("model") or "claude-sonnet-5"
@@ -703,7 +704,7 @@ def _render_remote_claude_args(role_name: str) -> str:
         "--effort", effort,
         "--permission-mode", "auto",
         "--strict-mcp-config",
-        "--remote-control",
+        *remote_control_args(host_name),
         *extra_flags,
         "--allowed-tools", ",".join(allowed),
     ]
@@ -746,7 +747,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
     base = proj["default_branch"]
     remote_worktree = f"{worktree_root}\\{project_key}__{role_name}__{task_id}"
 
-    claude_args = _render_remote_claude_args(role_name)
+    claude_args = _render_remote_claude_args(role_name, host_name)
     role_cfg = get_role(role_name)
     model = role_cfg.get("model") or "claude-sonnet-5"
     effort = role_cfg.get("effort") or "high"

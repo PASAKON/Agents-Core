@@ -385,6 +385,32 @@ case "$(uname -s)" in
   *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;
 esac
 
+# config/hosts.yaml key for THIS machine -- same values runners/worker_init.py's
+# current_host()/ORG_HOST resolve to (mac/winbox/contabo), derived from the
+# label above rather than a second uname case so the two can never disagree.
+case "$MACHINE_LABEL" in
+  MAC)     HOST_KEY="mac" ;;
+  CONTABO) HOST_KEY="contabo" ;;
+  WINDOWS) HOST_KEY="winbox" ;;
+  *)       HOST_KEY="$(printf '%s' "$MACHINE_LABEL" | tr '[:upper:]' '[:lower:]')" ;;
+esac
+
+# Remote Control registration (task-bbdfa8d1, CEO 2026-09-11): "ส่งไปแก้เลย
+# ให้เป็นกฎเหล็กเลย เพราะฉันเช็คไม่ได้เลยว่ามี session เปิดจริงไหม" -- every
+# C-level session must show in the CEO's Claude app, same as workers already
+# do. Reuses runners.worker_init.remote_control_args() -- the SAME per-host
+# switch (config/hosts.yaml `remote_control`, default true) workers read --
+# instead of hardcoding the flag here, so one switch governs every role and
+# the two paths can't drift. Fails open (flag included) on any lookup error,
+# same as the function it calls.
+REMOTE_CONTROL_ARGS=()
+if [ "$(source .venv/bin/activate 2>/dev/null; python3 -c "
+from runners.worker_init import remote_control_args
+print('1' if remote_control_args('$HOST_KEY') else '0')
+" 2>/dev/null || echo 1)" != "0" ]; then
+  REMOTE_CONTROL_ARGS=(--remote-control)
+fi
+
 # `exec` would replace the shell and skip the EXIT trap, leaving a
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
@@ -394,6 +420,7 @@ claude \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \
   ${STRICT_ARGS[@]+"${STRICT_ARGS[@]}"} \
+  ${REMOTE_CONTROL_ARGS[@]+"${REMOTE_CONTROL_ARGS[@]}"} \
   --allowed-tools $ALLOWED \
   --session-id "$CTO_UUID" \
   ${FORK_ARGS[@]+"${FORK_ARGS[@]}"} \

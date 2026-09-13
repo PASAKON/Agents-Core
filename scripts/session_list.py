@@ -66,6 +66,32 @@ def parse_title(content: str) -> tuple[str, str, str, str | None]:
     return glyph, state, summary, blocker
 
 
+def tmux_lock_live(role: str, sid: str) -> bool:
+    """True if this session's tmux server session, or its lock pid, is
+    still alive (task-bbdfa8d1). Works without iTerm/osascript, so it is
+    THE liveness signal on Contabo (no iTerm there at all) and a cross-check
+    on the Mac: a tab that was closed (or force-quit) while its tmux+claude
+    process kept running is invisible to live_ids() alone -- exactly the
+    "closing the tab does NOT end the session" case scripts/session-kill.sh's
+    own docstring warns about. Never raises -- an import or file-read failure
+    reads as "not live", the safe default for a listing tool.
+    """
+    name = f"{role.lower()}-{sid.lower()}"
+    try:
+        from tools import tmux_session
+        if tmux_session.has_session(name):
+            return True
+    except Exception:
+        pass
+    lock = os.path.join(REPO, "state", "locks", f"{name}.lock")
+    try:
+        pid = int(open(lock, encoding="utf-8").read().strip())
+        os.kill(pid, 0)
+        return True
+    except Exception:
+        return False
+
+
 def live_ids():
     """Session ids of iTerm2 tabs open right now (these get excluded).
 
@@ -280,10 +306,15 @@ def main():
         last_active = max(la)
 
         dbrow = db.get((role.lower(), sid)) if db else None
+        # task-bbdfa8d1: iTerm-tab liveness OR'd with tmux/lock-pid liveness --
+        # iTerm alone is a Mac-only, tab-only signal (Contabo has no iTerm at
+        # all, and a closed tab over a still-running tmux+claude process is
+        # exactly the gap tmux_lock_live() closes). Ground truth, not a guess.
+        live_flag = (sid in live) or tmux_lock_live(role, sid)
         rows.append({
             "role": role.upper(), "id": sid, "glyph": glyph, "state": state,
             "summary": summary, "blocker": blocker, "created": created,
-            "last_active": last_active, "live": sid in live,
+            "last_active": last_active, "live": live_flag,
             "db_status": dbrow["status"] if dbrow else None,
             "db_note": dbrow["note"] if dbrow else None,
         })
@@ -301,7 +332,8 @@ def main():
     n_live = sum(1 for r in rows if r["live"])
     note = "" if live_ok else "  ⚠ iTerm query failed — live tabs NOT excluded"
     scope = "all incl closed" if show_all else "not-yet-closed"
-    print(f"# Past sessions ({scope}, excluding {n_live} live iTerm tab(s)){note}\n")
+    print(f"# Past sessions ({scope}, excluding {n_live} live session(s) — "
+          f"iTerm tab or tmux/lock pid){note}\n")
 
     if not out:
         print("_none_")
@@ -363,6 +395,19 @@ def main():
         ftally = " · ".join(f"{g}{n}" for g, n in
                             sorted(fcounts.items(), key=lambda kv: -kv[1]))
         print(f"**verify** — {ftally}")
+
+    # task-bbdfa8d1 (CEO 2026-09-11): ground truth vs. the CEO's Claude app.
+    # "live" above is now tmux/lock-pid based (tmux_lock_live), not iTerm-only
+    # -- every row printed here is confirmed NOT running on THIS machine right
+    # now, whether or not it ever had an iTerm tab.
+    print(
+        "\nℹ️ the CEO's Claude app (claude.ai/code + mobile) has no way to "
+        "delete a Remote Control entry — a stale/offline one must be removed "
+        "by hand there. An OFFLINE app entry with NO state prefix (✅ closed · "
+        "⏸ saved · ⛔ merged) is a session that crashed or was force-killed, "
+        "not one that ended cleanly — resume it (`spawn cto --resume <id>`) "
+        "or delete it by hand."
+    )
 
 
 if __name__ == "__main__":

@@ -41,11 +41,17 @@ LOCKS_DIR="$ROOT/state/locks"
 
 FORCE=0
 SHOW=0
+PREFIX=""
 TOPIC=""
+prev=""
 for arg in "$@"; do
+  if [ "$prev" = "--prefix" ]; then
+    PREFIX="$arg"; prev=""; continue
+  fi
   case "$arg" in
     --force) FORCE=1 ;;
     --show) SHOW=1 ;;
+    --prefix) prev="--prefix" ;;
     *) TOPIC="$arg" ;;
   esac
 done
@@ -73,16 +79,26 @@ if [ "$SHOW" = "1" ]; then
 fi
 
 if [ -z "$TOPIC" ]; then
-  echo "usage: session-rename.sh [--force] [--show] \"<topic>\"" >&2
+  echo "usage: session-rename.sh [--force] [--show] [--prefix \"<glyph>\"] \"<topic>\"" >&2
   exit 1
 fi
 # Keep the list scannable; the full story lives in the session itself.
 TOPIC="$(printf '%s' "$TOPIC" | cut -c1-40)"
 
+# task-bbdfa8d1 (CEO 2026-09-11): a state glyph (✅ close · ⏸ save · ⛔
+# merged) goes in front of the machine/role so the app list sorts and scans
+# by state. Folded into the same dedupe/record key as TOPIC -- a prefix
+# change alone (e.g. ⏸ -> ✅ on the same topic) must still send, and --show
+# must still report exactly what was last sent.
+RECORD_KEY="$TOPIC"
+if [ -n "$PREFIX" ]; then
+  RECORD_KEY="$PREFIX $TOPIC"
+fi
+
 if [ "$FORCE" != "1" ] && [ -n "$TOPIC_FILE" ] && [ -f "$TOPIC_FILE" ]; then
   RECORDED="$(cat "$TOPIC_FILE")"
-  if [ "$RECORDED" = "$TOPIC" ]; then
-    echo "unchanged: $TOPIC"
+  if [ "$RECORDED" = "$RECORD_KEY" ]; then
+    echo "unchanged: $RECORD_KEY"
     exit 0
   fi
 fi
@@ -98,7 +114,12 @@ esac
 
 ROLE_UP="$(printf '%s' "$ROLE" | tr '[:lower:]' '[:upper:]')"
 
-NEW_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
+BASE_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
+if [ -n "$PREFIX" ]; then
+  NEW_NAME="$PREFIX $BASE_NAME"
+else
+  NEW_NAME="$BASE_NAME"
+fi
 
 if [ -z "${TMUX:-}" ]; then
   echo "not inside tmux — rename manually: /rename $NEW_NAME"
@@ -113,5 +134,5 @@ echo "queued: /rename $NEW_NAME (executes when the current turn ends)"
 
 if [ -n "$TOPIC_FILE" ]; then
   mkdir -p "$LOCKS_DIR"
-  printf '%s' "$TOPIC" > "$TOPIC_FILE"
+  printf '%s' "$RECORD_KEY" > "$TOPIC_FILE"
 fi

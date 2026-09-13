@@ -31,7 +31,10 @@ import re
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from session_list import live_ids
+from tools import tmux_session
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TAB_DIR = os.path.join(REPO, "state", "tab-titles")
@@ -166,6 +169,42 @@ def mark_merged(role, a_id, b_id, apply_write):
     }
 
 
+def rename_live_source(role, a_id, b_id, apply_write):
+    """Best-effort: stamp session A's ACTUAL Claude Remote-Control display
+    name (not just the local tab-title file mark_merged() writes) with
+    ⛔ MERGED→#<b_id> if A's tmux session happens to still be alive
+    (task-bbdfa8d1, CEO 2026-09-11).
+
+    The live-guard in main() below only refuses when A has an open iTerm
+    tab -- it does NOT check tmux directly, so a session whose tab was
+    closed (or force-quit) while its tmux+claude process kept running is
+    exactly the case that guard misses. That's the one case where A can
+    still be renamed at all: once A's tmux session is truly gone, its app
+    entry cannot be changed anymore (renaming requires typing into a live
+    pane -- see scripts/session-rename.sh's own docstring), so a dead A is
+    a silent no-op here, not a failure.
+
+    Never raises and never blocks the merge -- same "stamping must never
+    block the transition it belongs to" rule session-rename.sh follows.
+    Returns a dict describing what happened for the caller's JSON output.
+    """
+    name = f"{role}-{a_id}"
+    if not apply_write:
+        return {"attempted": False, "reason": "dry-run"}
+    try:
+        alive = tmux_session.has_session(name)
+    except Exception as e:
+        return {"attempted": False, "reason": f"tmux check failed: {e}"}
+    if not alive:
+        return {"attempted": False, "reason": "session A not live in tmux"}
+    new_name = f"⛔ MERGED→#{b_id}"
+    try:
+        tmux_session.send_keys(name, f"/rename {new_name}")
+        return {"attempted": True, "sent": new_name}
+    except Exception as e:
+        return {"attempted": True, "sent": None, "error": str(e)}
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="Merge session A's context into session B; mark A merged."
@@ -217,12 +256,14 @@ def main():
 
     if args.dry_run:
         result["title_update"] = mark_merged(role, a_id, b_id, apply_write=False)
+        result["live_rename"] = rename_live_source(role, a_id, b_id, apply_write=False)
     else:
         if not args.yes:
             print("refuse: mutation requires --yes (get explicit user confirmation first) "
                   "or pass --dry-run to preview", file=sys.stderr)
             sys.exit(3)
         result["title_update"] = mark_merged(role, a_id, b_id, apply_write=True)
+        result["live_rename"] = rename_live_source(role, a_id, b_id, apply_write=True)
 
     print(json.dumps(result, indent=2, ensure_ascii=False))
 

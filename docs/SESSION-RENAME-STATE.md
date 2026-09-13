@@ -39,6 +39,18 @@ the full `<MACHINE> <ROLE> #<id> (<topic>)` display name. Example content
 ปิด PR #42
 ```
 
+### `--prefix` (task-bbdfa8d1, CEO 2026-09-11)
+
+State-in-the-name: `--prefix "<glyph>"` puts a state marker in front of the
+machine/role, so the app list sorts and scans by state —
+`✅ MAC CTO #c670eb50 (ปิด PR #42)`. Used by `/session-close` (`✅`, verdict
+CLOSE 🏁) and `/session-save` (`⏸`, always — saved means parked+resumable).
+The record file's content becomes `"<prefix> <topic>"` when `--prefix` is
+given (still bare `<topic>` when it's omitted, so every pre-existing caller
+is unaffected) — the dedupe/no-op check below compares that combined value,
+so a prefix change alone (e.g. `⏸` → `✅` on the same topic, a save followed
+by a close) still sends, it does not falsely read as unchanged.
+
 ## The no-op rule
 
 On every invocation (other than `--show`) the script trims the requested

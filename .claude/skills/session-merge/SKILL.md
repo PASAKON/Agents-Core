@@ -20,8 +20,15 @@ context folded in here. This skill does that: pull A's context, synthesize a car
 recap in this chat, and mark A merged so `/session-list` stops surfacing it as open.
 
 Backed by `scripts/session_merge.py <role> <A_id> [B_id]`. The script is dumb and safe —
-it only reads files and, once explicitly told to, writes ONE file (A's `.title`). Everything
-requiring judgment (which candidate is "A", what the recap actually says, whether it's safe
+it only reads files and, once explicitly told to, writes ONE file (A's `.title`) plus one
+best-effort action: if A's tmux session happens to still be alive (task-bbdfa8d1, CEO
+2026-09-11 — the live-guard above only checks iTerm tabs, not tmux itself, so a session
+whose tab was closed while its process kept running slips past it), it types
+`/rename ⛔ MERGED→#<B_id>` into A's own pane so the CEO's Claude app entry for A carries
+the merge state too, not just the local tab-title. A dead A (the common case — already
+saved/parked) is a silent no-op: once a session is offline its display name can no longer
+be changed at all. Never blocks the merge if the rename fails. Everything requiring
+judgment (which candidate is "A", what the recap actually says, whether it's safe
 to proceed) happens here, in the skill.
 
 ## Gates — work through in order
@@ -99,9 +106,11 @@ Verdict          : MERGED 🔗  /  REFUSED (<reason>)  /  HOLD (awaiting CEO con
   final for this turn — don't read A's log/session-data directly as a workaround.
 - **Synthesis, not splicing** — see the HARD LIMIT above. Say it out loud in the report, not
   just in your head.
-- **One state write, always the same file.** A's `.title` is the only thing this skill ever
-  changes. If you find yourself editing A's `.log`, `.base`, or session-data file, stop —
-  that's out of scope.
+- **One state write, always the same file — plus one best-effort rename.** A's `.title` is
+  the only FILE this skill ever changes; the only other effect is the best-effort
+  `⛔ MERGED→#<B_id>` app-name stamp when A's tmux is still alive (task-bbdfa8d1), which
+  touches nothing on disk. If you find yourself editing A's `.log`, `.base`, or session-data
+  file, stop — that's out of scope.
 - **LungNote cross-check is optional and yours, not the script's.** The script has no MCP
   access; if the recap surfaces something LungNote-worthy (an open CEO action-item from A),
   that's a judgment call for you to make here, same discipline as [[session-close]] gate 4.

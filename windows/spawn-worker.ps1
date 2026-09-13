@@ -169,7 +169,11 @@ try {
     # Cast both prompts to plain strings before serialising.
     $argList = @([string]$taskContent, '-n', [string]$SessionName, '--append-system-prompt', [string]$systemPrompt) + $claudeArgsSplit
 
-    $launchDir = Join-Path $wt '.launch'
+    # $launchDir lives BESIDE this script (agents_root), never inside the
+    # worktree -- a file dropped in the worktree gets swept up by the
+    # worker's own `git add -A` and pushed onto its branch (it used to be
+    # $wt\.launch, which had exactly that problem).
+    $launchDir = Join-Path $PSScriptRoot ".launch-$Task"
     New-Item -ItemType Directory -Force -Path $launchDir | Out-Null
     $argsJsonPath = Join-Path $launchDir 'args.json'
     # UTF-8 WITHOUT a BOM: Set-Content -Encoding UTF8 emits one on PS5.1 and a
@@ -177,9 +181,34 @@ try {
     [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
                                    (New-Object System.Text.UTF8Encoding $false))
 
+    # --- finish-<Task>.cmd/.ps1: how a worker ends ITSELF after pushing
+    # (roles/_worker_remote.md runs %ORG_WORKER_FINISH% after `git push`).
+    # The .ps1 re-resolves its own pid at call time with the same
+    # Win32_Process + "CommandLine contains the task id" query step 7 below
+    # runs -- launch.ps1 is generated here, before that pid is known (step 7
+    # polls for it further down), so there is nothing to bake in yet. ---
+    $finishPs1Path = Join-Path $launchDir "finish-$Task.ps1"
+    $finishPs1Body = @"
+`$procs = Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" |
+    Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
+if (`$procs) {
+    `$workerPid = (`$procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
+    taskkill /PID `$workerPid /T /F
+}
+"@
+    Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
+
+    $finishCmdPath = Join-Path $launchDir "finish-$Task.cmd"
+    $finishCmdBody = @"
+@echo off
+powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
+"@
+    Set-Content -Path $finishCmdPath -Value $finishCmdBody -Encoding ASCII
+
     $launcherPath = Join-Path $launchDir 'launch.ps1'
     $launcherBody = @"
 `$env:ORG_HOST = 'winbox'
+`$env:ORG_WORKER_FINISH = '$finishCmdPath'
 `$claudeExe = '$claude'
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
 & `$claudeExe @argArray
