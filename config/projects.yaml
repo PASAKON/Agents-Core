@@ -291,14 +291,31 @@ projects:
   - key: cookierun-bot
     name: Cookie Run bot (image->button model + planner, winbox game box)
     path: /Users/gob/Projects/cookierun-bot
+    paths:
+      mac: /Users/gob/Projects/cookierun-bot
+      winbox: 'C:\Users\UsEr\cookierun-bot'
+    # SSH host alias, not github.com: a GitHub deploy key may only serve ONE repo,
+    # and winbox's default key is already spoken for by MoonieX-Agents. winbox's
+    # ~/.ssh/config maps `github-cookierun` -> github.com with its own
+    # id_ed25519_cookierun, so the box keeps least-privilege access per repo.
+    # `_ssh_remote_url()` passes a git@ URL through untouched, which is what makes
+    # the alias survive to the clone command.
+    remote: git@github-cookierun:PASAKON/MoonieX-CookieRun.git
     default_branch: main
     stack: [python]
     agents_allowed: *default_workers
-    # LOCAL-ONLY: no `remote:` key, auto_push stays false (2026-09-09, CTO). The live
-    # code is scp'd to winbox C:\Users\UsEr\cookierun-bot by the CTO after merge; the
-    # box's data (Documents\CookieRunScript) is governed by docs/DATA-STEWARD.md and
-    # is never a DEV's to touch. DEVs cannot run the game — offline tests + dry runs only.
-    auto_push: false
+    # CODE ONLY, and the code's home is winbox (CEO 2026-09-13). Supersedes the
+    # 2026-09-09 LOCAL-ONLY rule: the repo now has a remote, so a DEV runs where the
+    # game runs — `delegate_task(host="winbox")` — instead of editing on the Mac and
+    # scp'ing the result. What made that possible was splitting data out of git:
+    # 1.44 GB of frames, clips and models were stripped from the history that day
+    # (pack 1.46 GiB -> 20.2 MiB, 416 files tracked), and .gitignore now refuses
+    # label_review/, vision/from_pod/ and *.onnx.
+    # Training data never enters this repo. It lives on winbox beside the game
+    # (cookierun-bot\label_review\, Documents\CookieRunScript\) under
+    # docs/DATA-STEWARD.md, backed up to Drive. Mac and Contabo clones are code-only
+    # by construction — a clone there must never gain a data directory.
+    auto_push: true
     review_required: true
     spawn_backend: tmux
     wiki_refs: []
