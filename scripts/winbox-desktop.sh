@@ -58,6 +58,17 @@ pull() {
   done
 }
 
+# Enforcement, not etiquette. A session drove this desktop for three hours with
+# Cookie Run live underneath (2026-09-14): every call returned OK, the tenant's
+# notifications stacked in its own screenshots, and it read them as noise. The
+# rule was written down in winbox-pc-lease and the document did not stop it.
+# So the script asks. ~2 s; skipped entirely when nothing is farming.
+if [[ "${WINBOX_NO_LEASE:-0}" != "1" ]]; then
+  if ! "$HERE/scripts/pc-lease.sh" gate; then
+    exit 3
+  fi
+fi
+
 case "${1:-shot}" in
   shot)
     run "-Mode shot" ; pull shot ;;
@@ -77,6 +88,15 @@ case "${1:-shot}" in
     pull paste-before paste-after
     [[ "$res" == OK* ]] || die "paste failed" ;;
 
+  open)
+    u="${2:?usage: winbox-desktop.sh open <url> [wait-seconds]}"
+    w="${3:-8}"
+    printf '%s' "$u" > /tmp/_openurl.txt
+    scp -q /tmp/_openurl.txt "$HOST:C:\\mooniex\\desktop\\openurl.txt"
+    res=$(run "-Mode open -Path C:\\mooniex\\desktop\\openurl.txt -Wait $w"); echo "$res"
+    pull open
+    [[ "$res" == OK* ]] || die "open failed" ;;
+
   pickfile)
     p="${2:?usage: winbox-desktop.sh pickfile '<C:\\path\\to\\file>'}"
     printf '%s' "$p" > /tmp/_pickpath.txt
@@ -86,5 +106,5 @@ case "${1:-shot}" in
     [[ "$res" == OK* ]] || die "pickfile failed"
     echo
     echo "Read pick-typed.png: the path must be in the File name box before Enter." ;;
-  *) die "usage: $0 {shot|click <x> <y>|pickfile <winpath>}" ;;
+  *) die "usage: $0 {shot|open <url> [wait]|click <x> <y>|scroll|paste|pickfile <winpath>}" ;;
 esac

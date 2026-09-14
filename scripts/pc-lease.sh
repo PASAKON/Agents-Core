@@ -50,4 +50,7 @@ for a in "$@"; do
   remote_args+=" \"${a//\"/\\\"}\""
 done
 
+# PIPESTATUS, not $?: the `tr` at the end of the pipe would otherwise swallow
+# the remote exit code, and `gate` communicates entirely through its exit code.
 ssh -o ConnectTimeout=20 "$HOST" "$PYEXE $REMOTE_PY$remote_args" 2>&1 | tr -d '\r'
+exit "${PIPESTATUS[0]}"

@@ -350,6 +350,36 @@ def cmd_extend(args) -> int:
     return 0
 
 
+def cmd_gate(_args) -> int:
+    """Exit 0 if it is safe to touch the screen, 3 if a tenant is farming unleased.
+
+    This is the enforcement behind rule 2. A peer session drove this desktop for
+    three hours with the bot live underneath (2026-09-14) -- every command
+    returned OK, the toasts stacked in its own screenshots, and it read them as
+    noise. The rule was written down and the document did not stop it. So the
+    scripts that touch the screen call this first.
+    """
+    s = status()
+    if s is None or s.get("esc_hold") or not s.get("bot_alive"):
+        return 0                      # nothing is farming; the screen is free
+
+    lease = read_lease()
+    if lease and remaining(lease) > 0:
+        return 0                      # somebody holds it; assume that is the caller
+
+    print("REFUSED: something is using the winbox screen and you hold no lease.")
+    print("")
+    print("  ./scripts/pc-lease.sh take --who \"<you>: <what for>\"")
+    print("  ... your work ...")
+    print("  ./scripts/pc-lease.sh give-back")
+    print("")
+    print("Takes ~5 s. You outrank the tenant -- this only stops you fighting it")
+    print("for the foreground, which is how it stalls silently while still")
+    print("reporting itself alive. See the winbox-pc-lease skill.")
+    print("Override for a genuine emergency: WINBOX_NO_LEASE=1")
+    return 3
+
+
 def cmd_tick(_args) -> int:
     """The watchdog. Resumes Cookie Run when a lease runs out."""
     lease = read_lease()
@@ -402,6 +432,7 @@ def main() -> int:
     e.add_argument("--minutes", type=int, default=60)
     e.set_defaults(fn=cmd_extend)
 
+    sub.add_parser("gate").set_defaults(fn=cmd_gate)
     sub.add_parser("tick").set_defaults(fn=cmd_tick)
 
     args = p.parse_args()

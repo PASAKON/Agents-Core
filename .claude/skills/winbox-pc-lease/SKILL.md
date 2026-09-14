@@ -80,6 +80,18 @@ are.
 
 ## Rules
 
+0. **The scripts enforce this now — you will be refused, not reminded.**
+   `winbox-desktop.sh` and `winbox-line-send.sh` call `pc-lease.sh gate` before
+   they touch anything, and exit 3 with instructions if the tenant is farming
+   and you hold no lease. `WINBOX_NO_LEASE=1` overrides it for a genuine
+   emergency.
+
+   **Why it is a gate and not a paragraph:** a session drove this desktop for
+   three hours with the tenant live underneath. Every command returned OK. The
+   tenant's notifications were stacking up inside that session's own
+   screenshots the whole time and it read them as background noise. This rule
+   already existed, in writing, and it did not fire — because nothing made it.
+
 1. **HARD — never stop the tenant by hand, and never press ESC on that
    machine.** Use `take`. Nothing else.
 
@@ -132,6 +144,13 @@ are.
   back to a login prompt, an update dialog or a crash box, it cannot clear that
   itself. `give-back` reports what it verified; believe that line over your
   expectations.
+- **It does not check for a foreign window at resume.** If a Windows toast or
+  another app's window is sitting over the game when the tenant restarts, the
+  tenant may stall on a screen it cannot parse — the exact failure the lease
+  exists to prevent, arriving through the back door. Detecting this properly
+  needs session-1 foreground inspection, which is not cheap enough to run on
+  every resume, so it is **not** done. Leave the screen as you found it:
+  close what you opened before `give-back`.
 - **It does not arbitrate between two non-tenant agents.** It shows you who
   holds the lease. Two peers sorting out who goes first is a conversation, not
   a lock.
@@ -156,10 +175,22 @@ lease — a person's stop outranks an expiring lease. After 3 failed resume
 attempts it stops retrying and writes a loud line to `pc_lease.log` rather than
 looping forever against a broken screen.
 
-**Verified 2026-09-14:** take / refuse-while-held / expiry / watchdog-reclaim /
-logging, end to end. The stop-and-resume path was exercised against an idle
-tenant; the first real stop of a *running* tenant is still unproven — if you are
-the first to run it live, check `status` after `take` and tell the CTO what you
-saw.
+**Verified 2026-09-14, against a running tenant**, by an independent session
+that borrowed the screen for 12 minutes of real browser work:
+
+| | |
+|---|---|
+| `take` while farming | 5 s — tenant parked, emulator left up |
+| `status` while held | correct on every field, holder and minutes shown |
+| 12 min of real work | no foreground fight, every click landed |
+| `give-back` | 3 s — `resume ok=True (farming)` |
+| independent re-check | `Cookie Run: RUNNING`, no lease left behind |
+
+Also verified: refuse-while-held, lease expiry, watchdog reclaim, the audit log,
+and the gate refusing an unleased caller.
+
+One thing this cost, so you know the price: the round that was in flight ended
+`end=stop-file` after 259 s — 10,300 frames and 517 presses still recorded, and
+the partial round dropped downstream. That is the intended trade, not a fault.
 
 Related: [[winbox-desktop-gui]] — how to make a click on that machine real.

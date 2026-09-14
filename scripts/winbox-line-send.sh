@@ -32,6 +32,13 @@ ps1() { ssh -o ConnectTimeout=15 -n "$HOST" "powershell -NoProfile -Command \"$1
 die() { printf '\n\033[31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
 ok()  { printf '\033[32m✓\033[0m %s\n' "$*"; }
 
+# --- the screen may already be in use. Same gate as winbox-desktop.sh: a
+# session drove this desktop for three hours with the tenant live underneath
+# because the rule lived only in a document (2026-09-14). See winbox-pc-lease.
+if [[ "${WINBOX_NO_LEASE:-0}" != "1" ]]; then
+  "$HERE/scripts/pc-lease.sh" gate || exit 3
+fi
+
 # --- push the runner, every time. A worktree's copy drifts from main and the
 # box keeps whatever was last written; re-copying costs nothing and removes a
 # whole class of "why is it running the old logic".
