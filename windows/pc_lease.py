@@ -182,14 +182,31 @@ def resume(plan: dict, why: str) -> tuple[bool, str]:
     if not r.get("ok", False):
         return False, f"app refused: {ascii_only(str(r.get('error') or r))[:200]}"
 
-    # A code change forces a dry preflight round first, so give it room.
+    # bot_alive alone is NOT proof it is farming. After a code change the app
+    # runs a dry preflight round first, and bot_alive is true for that too --
+    # so an early "running" here is a lie that survives right up until someone
+    # checks played_fraction and finds zero (measured 2026-09-14). Wait for the
+    # preflight to clear, and say plainly when it has not.
     t0 = time.time()
-    while time.time() - t0 < 180:
+    saw_preflight = False
+    while time.time() - t0 < 420:
         s = status()
-        if s and s.get("bot_alive"):
-            return True, "running"
+        if s:
+            job = s.get("job")
+            if job == "preflight":
+                saw_preflight = True
+            elif s.get("bot_alive"):
+                return True, "farming"
+            elif saw_preflight and not s.get("bot_alive"):
+                return False, ("preflight ran and did not release the bot - "
+                               "the app refused to start farming; check the app log")
         time.sleep(5)
-    return False, "started but bot_alive never went true within 180s"
+
+    s = status()
+    if s and s.get("job") == "preflight":
+        return False, ("preflight round still running after 7 min - not farming yet. "
+                       "It may still come good; check `status` and the app log")
+    return False, "started but never reached a farming state within 7 min"
 
 
 def game_running() -> bool:
@@ -254,6 +271,13 @@ def cmd_take(args) -> int:
     elif s.get("bot_alive"):
         plan = capture_resume_plan(s)
         was_running = True
+        if s.get("job") == "preflight":
+            # Stopping mid-preflight makes the dry round exit non-zero (it dies
+            # inside a GPU inference call and reports a DirectML error that reads
+            # like a hardware fault but is just the kill). The app then refuses to
+            # release the bot, and give-back has to run the whole preflight again.
+            print("note: a preflight dry round is in progress. Stopping it costs "
+                  "~3 min on give-back, when it has to run again. Taking the screen anyway.")
         if args.after_round:
             print("waiting for the current round to end (up to 4 min)...")
             if not wait_for_round_gap():
