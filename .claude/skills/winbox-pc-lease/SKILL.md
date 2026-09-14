@@ -92,6 +92,13 @@ are.
    screenshots the whole time and it read them as background noise. This rule
    already existed, in writing, and it did not fire — because nothing made it.
 
+   `WINBOX_NO_LEASE=1` is read by the consumer scripts, **not** by
+   `pc-lease.sh gate` itself — calling `gate` directly with the override set
+   still refuses. That is deliberate: the gate is an oracle and must answer
+   "is the screen free?" truthfully; the decision to proceed anyway belongs to
+   the caller. So anything that asks `gate` gets the real answer, whatever the
+   environment says.
+
 1. **HARD — never stop the tenant by hand, and never press ESC on that
    machine.** Use `take`. Nothing else.
 
@@ -151,6 +158,12 @@ are.
   needs session-1 foreground inspection, which is not cheap enough to run on
   every resume, so it is **not** done. Leave the screen as you found it:
   close what you opened before `give-back`.
+
+  One measurement, so you can calibrate rather than panic: on 2026-09-14 a
+  borrower left Chrome open on an unrelated page and gave the screen back. The
+  tenant resumed and played normally — a window *behind* the game is harmless.
+  What is not harmless is a window *over* it, which is why toasts were worth
+  killing and why "close what you opened" is still the instruction.
 - **It does not arbitrate between two non-tenant agents.** It shows you who
   holds the lease. Two peers sorting out who goes first is a conversation, not
   a lock.
