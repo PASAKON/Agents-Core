@@ -92,6 +92,18 @@ are.
    screenshots the whole time and it read them as background noise. This rule
    already existed, in writing, and it did not fire — because nothing made it.
 
+   The gate is an ssh round trip — **~3-4 s per screen-touching call**, paid
+   even while you hold a valid lease. Invisible on a single borrow; a 30-call
+   browsing session pays about 2 minutes of it. That is deliberate: a cached
+   answer that could ever wave someone through is worse than a slow correct
+   one. If you are doing many calls and it hurts, say so and it can be revisited
+   — the lease file already carries an expiry a caller could check locally.
+
+   When a lease **is** held, the gate passes but prints the holder and the
+   minutes remaining to stderr. It cannot tell who is calling, so it will not
+   refuse a peer on the holder's behalf — but you will never again click into
+   someone else's session without having been told whose it is.
+
    `WINBOX_NO_LEASE=1` is read by the consumer scripts, **not** by
    `pc-lease.sh gate` itself — calling `gate` directly with the override set
    still refuses. That is deliberate: the gate is an oracle and must answer

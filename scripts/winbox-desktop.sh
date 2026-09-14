@@ -58,15 +58,20 @@ pull() {
   done
 }
 
+# Validate the verb before paying for the gate's ssh round trip — a typo should
+# fail instantly, not three seconds later out on winbox.
+case "${1:-shot}" in
+  shot|click|scroll|paste|open|pickfile) ;;
+  *) die "usage: $0 {shot|open <url> [wait]|click <x> <y>|scroll|paste|pickfile <winpath>}" ;;
+esac
+
 # Enforcement, not etiquette. A session drove this desktop for three hours with
 # Cookie Run live underneath (2026-09-14): every call returned OK, the tenant's
 # notifications stacked in its own screenshots, and it read them as noise. The
 # rule was written down in winbox-pc-lease and the document did not stop it.
-# So the script asks. ~2 s; skipped entirely when nothing is farming.
+# So the script asks. ~3-4 s (an ssh round trip), on every screen-touching call.
 if [[ "${WINBOX_NO_LEASE:-0}" != "1" ]]; then
-  if ! "$HERE/scripts/pc-lease.sh" gate; then
-    exit 3
-  fi
+  "$HERE/scripts/pc-lease.sh" gate || exit 3
 fi
 
 case "${1:-shot}" in

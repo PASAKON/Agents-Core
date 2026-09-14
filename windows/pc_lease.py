@@ -359,13 +359,29 @@ def cmd_gate(_args) -> int:
     noise. The rule was written down and the document did not stop it. So the
     scripts that touch the screen call this first.
     """
+    lease = read_lease()
+    held = lease and remaining(lease) > 0
+
+    if held:
+        # The gate cannot tell who is calling, so it cannot refuse a peer on the
+        # holder's behalf -- and peers outrank each other only by agreement
+        # anyway. But silence here is how two agents end up clicking in the same
+        # window: a reviewer found that once anyone parks the tenant, an
+        # unleased caller sails straight through with no hint that the screen is
+        # spoken for (2026-09-14). So say who has it. stderr, so it cannot
+        # corrupt anything parsing stdout.
+        import sys
+        print(f"NOTE: the screen is held by {lease.get('who', '?')} "
+              f"until {hhmm(lease['expires_at'])} "
+              f"({int(remaining(lease) // 60)} min left).",
+              file=sys.stderr)
+        print("      If that is not you, talk to them before you click.",
+              file=sys.stderr)
+        return 0
+
     s = status()
     if s is None or s.get("esc_hold") or not s.get("bot_alive"):
         return 0                      # nothing is farming; the screen is free
-
-    lease = read_lease()
-    if lease and remaining(lease) > 0:
-        return 0                      # somebody holds it; assume that is the caller
 
     print("REFUSED: something is using the winbox screen and you hold no lease.")
     print("")
