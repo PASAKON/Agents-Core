@@ -48,6 +48,23 @@ four specific traps on this machine.
 
 ---
 
+## Before any of this: claim the screen
+
+winbox has a resident tenant — an unattended workload that holds the foreground
+all night. Taking the foreground away from it without saying so is how it stalls
+silently while still reporting itself alive.
+
+```bash
+./scripts/pc-lease.sh status     # free?
+./scripts/pc-lease.sh take --who "<you>: <what for>"
+#   ... everything below only applies once this says the screen is yours ...
+./scripts/pc-lease.sh give-back
+```
+
+Read **`winbox-pc-lease`** for the rest. You outrank the tenant; you still have
+to claim the screen rather than fight it for the foreground. Headless work (ssh,
+ffmpeg, rclone) needs no lease.
+
 ## The two facts about this machine
 
 **1 · SSH lands in session 0, which has no desktop.** From there
