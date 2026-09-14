@@ -363,6 +363,14 @@ def cmd_extend(args) -> int:
 def cmd_gate(_args) -> int:  # noqa: C901 -- _args carries --as; see main()
     """Exit 0 if it is safe to touch the screen, 3 if a tenant is farming unleased.
 
+    **This command writes nothing to stdout, ever.** It is a predicate, not a
+    reporter: the verdict is the exit code and every line of text -- refusal and
+    holder NOTE alike -- goes to stderr. Half of that was true after the first
+    review (the NOTE moved, the refusal did not), which left "a caller parsing
+    stdout is safe" holding on two paths out of three. A guarantee with an
+    exception is a guarantee nobody can rely on, so the exception went.
+    Humans lose nothing: stderr still reaches the terminal.
+
     This is the enforcement behind rule 2. A peer session drove this desktop for
     three hours with the bot live underneath (2026-09-14) -- every command
     returned OK, the toasts stacked in its own screenshots, and it read them as
@@ -400,16 +408,18 @@ def cmd_gate(_args) -> int:  # noqa: C901 -- _args carries --as; see main()
     if s is None or s.get("esc_hold") or not s.get("bot_alive"):
         return 0                      # nothing is farming; the screen is free
 
-    print("REFUSED: something is using the winbox screen and you hold no lease.")
-    print("")
-    print("  ./scripts/pc-lease.sh take --who \"<you>: <what for>\"")
-    print("  ... your work ...")
-    print("  ./scripts/pc-lease.sh give-back")
-    print("")
-    print("Takes ~5 s. You outrank the tenant -- this only stops you fighting it")
-    print("for the foreground, which is how it stalls silently while still")
-    print("reporting itself alive. See the winbox-pc-lease skill.")
-    print("Override for a genuine emergency: WINBOX_NO_LEASE=1")
+    import sys
+    say = lambda t="": print(t, file=sys.stderr)
+    say("REFUSED: something is using the winbox screen and you hold no lease.")
+    say()
+    say("  ./scripts/pc-lease.sh take --who \"<you>: <what for>\"")
+    say("  ... your work ...")
+    say("  ./scripts/pc-lease.sh give-back")
+    say()
+    say("Takes ~5 s. You outrank the tenant -- this only stops you fighting it")
+    say("for the foreground, which is how it stalls silently while still")
+    say("reporting itself alive. See the winbox-pc-lease skill.")
+    say("Override for a genuine emergency: WINBOX_NO_LEASE=1")
     return 3
 
 

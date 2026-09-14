@@ -99,6 +99,11 @@ are.
    one. If you are doing many calls and it hurts, say so and it can be revisited
    — the lease file already carries an expiry a caller could check locally.
 
+   `gate` writes **nothing to stdout, ever** — it is a predicate, not a
+   reporter. The verdict is the exit code (0 proceed, 3 refused); refusal text
+   and holder notes both go to stderr. So a script may read gate's stdout
+   safely on every path, and a human still sees everything on the terminal.
+
    When a lease **is** held, the gate passes but prints the holder and the
    minutes remaining to stderr. It cannot tell who is calling, so it will not
    refuse a peer on the holder's behalf — but you will never again click into
