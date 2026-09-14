@@ -40,6 +40,30 @@ if [[ "$local_md5" != "$remote_md5" ]]; then
   scp -q "$SRC" "$HOST:$REMOTE_PY" || die "could not copy pc_lease.py to $HOST"
 fi
 
+# Remember locally which lease THIS machine took, so `gate` can stay quiet for
+# the holder and keep the NOTE meaningful for everyone else. Only ever used to
+# suppress; if the file is missing or stale the NOTE prints, which is the safe
+# direction.
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/mooniex"
+WHO_FILE="$STATE_DIR/pc-lease-who"
+
+case "${1:-}" in
+  take)
+    # capture the --who value so the same string can identify us later
+    for ((i = 1; i <= $#; i++)); do
+      if [[ "${!i}" == "--who" ]]; then
+        j=$((i + 1)); mkdir -p "$STATE_DIR"; printf '%s' "${!j}" > "$WHO_FILE"
+      fi
+    done
+    ;;
+  give-back) rm -f "$WHO_FILE" ;;
+  gate)
+    if [[ -s "$WHO_FILE" ]]; then
+      set -- "$@" --as "$(cat "$WHO_FILE")"
+    fi
+    ;;
+esac
+
 # Re-quote every argument before it crosses ssh. "$*" loses the quoting, which
 # turns --who "harvest 4 clips" into three unrecognised arguments (measured, the
 # first time this ran). Keep --who ASCII too: it travels through a PowerShell
@@ -50,7 +74,14 @@ for a in "$@"; do
   remote_args+=" \"${a//\"/\\\"}\""
 done
 
-# PIPESTATUS, not $?: the `tr` at the end of the pipe would otherwise swallow
-# the remote exit code, and `gate` communicates entirely through its exit code.
-ssh -o ConnectTimeout=20 "$HOST" "$PYEXE $REMOTE_PY$remote_args" 2>&1 | tr -d '\r'
+# Keep the two streams apart. `gate` writes its "someone else holds the screen"
+# NOTE to stderr precisely so it cannot land in anything parsing stdout — and
+# a plain `2>&1` here would merge them again one layer up and quietly break that
+# guarantee (caught in review, 2026-09-14). ssh already keeps remote stdout and
+# stderr separate; all we add is the CR strip on each.
+#
+# PIPESTATUS, not $?: the `tr` would otherwise swallow the remote exit code, and
+# `gate` communicates entirely through its exit code.
+ssh -o ConnectTimeout=20 "$HOST" "$PYEXE $REMOTE_PY$remote_args" \
+  2> >(tr -d '\r' >&2) | tr -d '\r'
 exit "${PIPESTATUS[0]}"

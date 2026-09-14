@@ -360,7 +360,7 @@ def cmd_extend(args) -> int:
     return 0
 
 
-def cmd_gate(_args) -> int:
+def cmd_gate(_args) -> int:  # noqa: C901 -- _args carries --as; see main()
     """Exit 0 if it is safe to touch the screen, 3 if a tenant is farming unleased.
 
     This is the enforcement behind rule 2. A peer session drove this desktop for
@@ -378,8 +378,15 @@ def cmd_gate(_args) -> int:
         # anyway. But silence here is how two agents end up clicking in the same
         # window: a reviewer found that once anyone parks the tenant, an
         # unleased caller sails straight through with no hint that the screen is
-        # spoken for (2026-09-14). So say who has it. stderr, so it cannot
-        # corrupt anything parsing stdout.
+        # spoken for (2026-09-14). So say who has it.
+        #
+        # --as lets the wrapper name the caller from the lease it took locally,
+        # so the holder is not told about itself thirty times in one session. A
+        # line aimed at the one person it cannot apply to is a line people learn
+        # to skip. Any mismatch, or no --as at all, prints -- it fails toward
+        # saying something, because the silence is the failure that costs.
+        if (_args.as_who or "").strip() and _args.as_who.strip() == str(lease.get("who", "")).strip():
+            return 0
         import sys
         print(f"NOTE: the screen is held by {lease.get('who', '?')} "
               f"until {hhmm(lease['expires_at'])} "
@@ -458,7 +465,10 @@ def main() -> int:
     e.add_argument("--minutes", type=int, default=60)
     e.set_defaults(fn=cmd_extend)
 
-    sub.add_parser("gate").set_defaults(fn=cmd_gate)
+    g = sub.add_parser("gate")
+    g.add_argument("--as", dest="as_who", default="",
+                   help="who is calling; suppresses the NOTE when it is the lease holder")
+    g.set_defaults(fn=cmd_gate)
     sub.add_parser("tick").set_defaults(fn=cmd_tick)
 
     args = p.parse_args()
