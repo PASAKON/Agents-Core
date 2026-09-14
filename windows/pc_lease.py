@@ -189,17 +189,27 @@ def resume(plan: dict, why: str) -> tuple[bool, str]:
     # preflight to clear, and say plainly when it has not.
     t0 = time.time()
     saw_preflight = False
+    gap_since = None
     while time.time() - t0 < 420:
         s = status()
         if s:
             job = s.get("job")
             if job == "preflight":
                 saw_preflight = True
+                gap_since = None
             elif s.get("bot_alive"):
                 return True, "farming"
-            elif saw_preflight and not s.get("bot_alive"):
-                return False, ("preflight ran and did not release the bot - "
-                               "the app refused to start farming; check the app log")
+            elif saw_preflight:
+                # Preflight has ended and the real bot is not up *yet*. That is
+                # the normal hand-off gap, not a failure: the app launches the
+                # bot a moment after the dry round passes, and calling it dead
+                # on the first poll reported a healthy resume as failed
+                # (measured 2026-09-14 - the log said "preflight passed, bot
+                # start pid 17184" while give-back was printing FAILED).
+                gap_since = gap_since or time.time()
+                if time.time() - gap_since > 45:
+                    return False, ("preflight ended and the bot never started within 45 s - "
+                                   "the app did not release it; check the app log")
         time.sleep(5)
 
     s = status()
