@@ -30,7 +30,7 @@ MODELPLAY = DATA / "modelplay"
 STALLS = Path.home() / "cookierun-bot" / "label_review" / "stalls"
 
 ROUND_QUIET_S = 12 * 60      # a round runs ~5 min; 12 min of silence is stuck
-STALL_WINDOW_S = 2 * 60 * 60  # stall screenshots written in the last 2 h
+CHECK_WINDOW_S = 70 * 60     # one hourly check plus slack, so none slips between
 
 
 def pipe_status():
@@ -78,18 +78,29 @@ def newest_session():
 
 
 def recent_stalls(session_start: float | None):
-    """Stalls in the CURRENT bot run, not in a fixed wall-clock window.
+    """Stalls that are NEW since the last check, and in the current run.
 
-    A fixed 2-hour window keeps reporting STALLING for two hours after the
-    screen has been named and the bot restarted with the fix -- the check
-    cannot tell "this is happening now" from "this happened and was dealt
-    with", so it cries wolf at its own repair (measured 2026-09-15). Anchoring
-    to the running session makes it self-clearing: fix, restart, clean.
+    Two ways to get this wrong, both met in practice on 2026-09-15/16:
+
+    A fixed wall-clock window alone keeps reporting STALLING for hours after the
+    screen has been named and the bot restarted with the fix -- it cannot tell
+    "happening now" from "happened and was dealt with", so it cries wolf at its
+    own repair.
+
+    Run-scoping alone has the same failure with a longer fuse: this run has been
+    going four hours, so one stall at 06:30 would be re-reported on every hourly
+    check until the bot happens to restart. That is worse, because the fix for a
+    stall is often NOT a restart.
+
+    So: newer than the running session (a restart clears the slate) AND newer
+    than one check interval, with slack so nothing slips between checks. Each
+    stall is then reported exactly once -- on the check that discovers it.
     """
     if not STALLS.is_dir():
         return 0, 0
     files = list(STALLS.glob("*.png"))
-    cutoff = session_start if session_start else time.time() - STALL_WINDOW_S
+    since_last_check = time.time() - CHECK_WINDOW_S
+    cutoff = max(session_start, since_last_check) if session_start else since_last_check
     return len(files), len([f for f in files if f.stat().st_mtime > cutoff])
 
 
@@ -165,7 +176,7 @@ def main() -> int:
     elif age_min is not None and age_min > ROUND_QUIET_S / 60:
         verdict, reason = "STUCK", f"bot is alive but has written nothing for {age_min} min"
     elif stalls_recent:
-        verdict, reason = "STALLING", f"{stalls_recent} screen(s) the navigator could not name in this run"
+        verdict, reason = "STALLING", f"{stalls_recent} screen(s) the navigator could not name since the last check"
 
     lines.append(f"VERDICT: {verdict}")
     if reason:
@@ -176,7 +187,7 @@ def main() -> int:
                      f"played_24h={s.get('played_fraction_24h')}")
     lines.append(f"lease  : {'held by ' + str(lease.get('who')) if lease else 'free'}")
     lines.append(f"rounds : {sess} runs={runs} last_write={age_min} min ago")
-    lines.append(f"stalls : {stalls_total} total, {stalls_recent} in this run")
+    lines.append(f"stalls : {stalls_total} total, {stalls_recent} new since the last check")
     lines.append(f"screen : {fg or 'unknown'}" + ('' if fg in (None, GAME_PKG) else '  <-- NOT the game'))
     lines.append(f"disk   : {gb} GB free on C:")
     print("\n".join(lines))
