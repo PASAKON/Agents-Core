@@ -93,6 +93,37 @@ def recent_stalls(session_start: float | None):
     return len(files), len([f for f in files if f.stat().st_mtime > cutoff])
 
 
+ADB = r"C:\Program Files\BlueStacks_nxt\HD-Adb.exe"
+GAME_PKG = "com.devsisters.crg"
+
+
+def foreground_app() -> str | None:
+    """Which Android app owns the emulator screen, or None if we cannot tell.
+
+    Chrome's first-run page took the foreground on 2026-09-16 and the bot sat on
+    it for 25 minutes before its pixel-based stuck timer noticed. Android knows
+    the answer instantly. BlueStacks blocks `am` and `pm` over adb ("error:
+    closed") but `dumpsys` reads fine, so detection works even though control
+    does not -- which is the half that matters here.
+    """
+    try:
+        subprocess.run([ADB, "connect", "127.0.0.1:5555"], capture_output=True,
+                       timeout=20, creationflags=0x08000000)
+        out = subprocess.run(
+            [ADB, "-s", "emulator-5554", "shell", "dumpsys", "activity", "activities"],
+            capture_output=True, text=True, timeout=30,
+            creationflags=0x08000000).stdout
+    except Exception:
+        return None
+    for line in out.splitlines():
+        if "topResumedActivity" in line and "u0 " in line:
+            try:
+                return line.split("u0 ", 1)[1].split("/", 1)[0].strip()
+            except IndexError:
+                return None
+    return None
+
+
 def free_gb():
     try:
         out = subprocess.run(
@@ -111,6 +142,7 @@ def main() -> int:
     sess, runs, mtime, started = newest_session()
     stalls_total, stalls_recent = recent_stalls(started)
     gb = free_gb()
+    fg = foreground_app()
     age_min = int((time.time() - mtime) / 60) if mtime else None
 
     lines = []
@@ -128,6 +160,8 @@ def main() -> int:
         verdict, reason = "DOWN", "nobody holds the screen and the bot is not running"
     elif s.get("job") == "preflight":
         verdict, reason = "OK", "preflight dry round in progress"
+    elif fg and fg != GAME_PKG:
+        verdict, reason = "STUCK", f"a foreign app owns the emulator screen: {fg}"
     elif age_min is not None and age_min > ROUND_QUIET_S / 60:
         verdict, reason = "STUCK", f"bot is alive but has written nothing for {age_min} min"
     elif stalls_recent:
@@ -143,6 +177,7 @@ def main() -> int:
     lines.append(f"lease  : {'held by ' + str(lease.get('who')) if lease else 'free'}")
     lines.append(f"rounds : {sess} runs={runs} last_write={age_min} min ago")
     lines.append(f"stalls : {stalls_total} total, {stalls_recent} in this run")
+    lines.append(f"screen : {fg or 'unknown'}" + ('' if fg in (None, GAME_PKG) else '  <-- NOT the game'))
     lines.append(f"disk   : {gb} GB free on C:")
     print("\n".join(lines))
 
