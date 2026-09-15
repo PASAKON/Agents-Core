@@ -86,12 +86,80 @@ def state_set(d: dict) -> None:
         pass
 
 
+ADB = r"C:\Program Files\BlueStacks_nxt\HD-Adb.exe"
+GAME_PKG = "com.devsisters.crg"
+FOREIGN_GRACE_S = 5 * 60
+
+
+def foreground_app() -> str | None:
+    """Which Android app owns the emulator screen (None if adb cannot say)."""
+    import subprocess
+    try:
+        subprocess.run([ADB, "connect", "127.0.0.1:5555"], capture_output=True,
+                       timeout=20, creationflags=0x08000000)
+        out = subprocess.run(
+            [ADB, "-s", "emulator-5554", "shell", "dumpsys", "activity", "activities"],
+            capture_output=True, text=True, timeout=30,
+            creationflags=0x08000000).stdout
+    except Exception:
+        return None
+    for line in out.splitlines():
+        if "topResumedActivity" in line and "u0 " in line:
+            try:
+                return line.split("u0 ", 1)[1].split("/", 1)[0].strip()
+            except IndexError:
+                return None
+    return None
+
+
+def clear_foreign_app(fg: str) -> int:
+    """A non-game app has the screen while the bot is running. Restart the game.
+
+    Chrome's first-run page has now taken the emulator twice (01:14 and 06:30 on
+    2026-09-16) and the BlueStacks launcher once. The bot's own ladder does get
+    out of these -- it backs out, then restarts BlueStacks -- but it waits 25
+    minutes before the first step, because it can only tell it is stuck by the
+    absence of progress. Android answers instantly via dumpsys, so there is no
+    reason to buy that information with 25 minutes of dead farm.
+    """
+    st = state_get()
+    first = st.get("foreign_since")
+    now = time.time()
+    if not first or st.get("foreign_app") != fg:
+        state_set({**st, "foreign_since": now, "foreign_app": fg})
+        log(f"foreign app on screen: {fg} - watching")
+        return 0
+    if now - first < FOREIGN_GRACE_S:
+        return 0
+    if now - st.get("last_try", 0) < COOLDOWN_S:
+        return 0
+
+    state_set({**st, "last_try": now, "foreign_since": None, "foreign_app": None})
+    log(f"{fg} has owned the screen for {int((now - first) / 60)} min - restarting the game")
+    pipe("POST", "/run", {"fn": "bot_stop", "args": {}, "who": "revive"})
+    time.sleep(10)
+    r = pipe("POST", "/run", {"fn": "restart_game", "args": {}, "who": "revive"})
+    if r is None or not r.get("ok", False):
+        log(f"restart_game FAILED: {str(r)[:200]}")
+    return 1
+
+
 def main() -> int:
     s = pipe("GET", "/status", timeout=20)
     if s is None:
         log("app is not running - cannot revive from here")
         return 1
     if s.get("bot_alive"):
+        # Alive is not the same as making progress: a foreign app can own the
+        # screen while the bot sits there reading it.
+        if s.get("job") == "preflight":
+            return 0
+        fg = foreground_app()
+        if fg and fg != GAME_PKG:
+            return clear_foreign_app(fg)
+        st = state_get()
+        if st.get("foreign_since"):
+            state_set({**st, "foreign_since": None, "foreign_app": None})
         return 0
     if s.get("esc_hold"):
         log("ESC hold set - a human stopped the bot; leaving it alone")
