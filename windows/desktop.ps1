@@ -10,7 +10,10 @@
 #
 # Runs in session 1 via an interactive scheduled task; see winbox-desktop-gui.
 param(
-    [ValidateSet('shot', 'pickfile', 'click', 'scroll', 'paste')] [string] $Mode = 'shot',
+    [ValidateSet('shot', 'pickfile', 'click', 'scroll', 'paste', 'open')] [string] $Mode = 'shot',
+    # 'open' only: seconds to let the page settle before the screenshot. A signup
+    # page behind Cloudflare needs longer than a static one.
+    [int] $Wait = 8,
     [string] $Path = '',
     # The path arrives in a FILE, not as an argument: a path containing a quote
     # terminates the single-quoted -Argument string and the task dies with
@@ -154,5 +157,24 @@ switch ($Mode) {
         Start-Sleep -Milliseconds 2500
         $after = Shot 'pick-after'
         Result "OK picked='$Path' dialogWas='$title' now='$([D]::Title())' before=$before typed=$typed after=$after"
+    }
+
+    'open' {
+        # Navigate Chrome to a URL. The URL arrives in a FILE for the same reason
+        # a path does (see -PathFile above): '&' and '?' do not survive the
+        # ssh -> cmd -> powershell -Argument chain intact.
+        #
+        # Chrome is launched rather than driven through its address bar on
+        # purpose: sending ^l and typing is one more thing that can land in the
+        # wrong window, and chrome.exe <url> reuses the running instance and
+        # raises it, which is exactly the behaviour wanted here.
+        $url = (Get-Content -Raw $Path).Trim()
+        if ($url -notmatch '^https?://') { Result "FAIL not an http(s) url: '$url'"; exit 3 }
+        $chrome = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+        if (-not (Test-Path $chrome)) { Result "FAIL chrome not found at $chrome"; exit 4 }
+        Start-Process $chrome -ArgumentList '--new-window', $url
+        Start-Sleep -Seconds $Wait
+        $shot = Shot 'open'
+        Result "OK opened='$url' title='$([D]::Title())' waited=${Wait}s shot=$shot"
     }
 }

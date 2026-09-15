@@ -504,6 +504,43 @@ wrap) for each character's colour and carried object against the row. The
 first commit of a new film's prompt directory is CAST.md; a sheet that binds a
 chip absent from CAST.md fails lint.
 
+### 14b · PLATFORM COST, NORMALISED TO BAHT PER SECOND (2026-09-13)
+
+Credits are not comparable across platforms — only money per second of finished
+video is. Measured off both dashboards the same afternoon (฿34/$):
+
+| Seedance 2.0 Mini · 720p | ฿/sec | note |
+|---|---|---|
+| Dreamina Standard, first month | 0.92 | ฿748 → 13,840 cr |
+| **Dreamina Standard, normal** | **1.53** | ฿1,246 → 13,840 cr · matches their published $0.046/s |
+| Dreamina Advanced, normal | 1.38 | ฿2,490 → 30,745 cr |
+| Higgsfield PLUS ($39/mo annual) | 3.36 | 1,000 cr/mo · 38 cr per 15 s |
+| Higgsfield ULTRA ($99/mo annual) | 2.84 | 3,000 cr/mo |
+| **Higgsfield while an Unlimited promo is live** | **0.00** | nothing beats zero |
+
+**Dreamina is roughly 2.2x cheaper per second than Higgsfield on the same model
+— and that is the wrong reason to choose it.** What the cheap number does not buy:
+
+- **The free tier cannot produce one clip.** Measured: balance 80 credits, cheapest
+  video (2.0 Mini / 720p / 5 s) costs 85. Secondary sources claiming "225 free
+  credits a day / 2-3 clips" did not match the real account. Never quote a free
+  tier you have not read off the dashboard.
+- **Free-tier downloads carry a Dreamina watermark** — removing it is a paid feature.
+- **720p is the only resolution** on 2.0 Mini there; Higgsfield runs 2.5 at 1080p
+  and 2.0 at 4K.
+- **The 85 was struck through from 200.** If that is an introductory rate, the real
+  price is 40 cr/s ≈ ฿3.60/sec and the advantage disappears entirely. Re-check
+  before committing.
+- Dreamina's consistency system is "Omni reference" (2.5 advertises up to 50 refs,
+  vs Higgsfield's 16). **Unproven on this production** — do not assume it replaces
+  @Element until a scene has been shot with it.
+
+**So: Dreamina for disconnected short social clips, Higgsfield for the film.** And
+while any Unlimited window is live, per-second pricing is irrelevant — generate there.
+
+Reference point for heavy 2.5 use: Artlist $499/yr unlimited 2.5 beats Dreamina's
+2.5 rate past about **6 minutes of footage a month**, but brings no Element system.
+
 ## 14 · CHOOSE THE MODEL BY WHAT THE SHOT HAS TO CARRY (CEO 2026-09-10)
 
 Measured on Higgsfield the same afternoon, same 15-second prompt, same three Elements, fired

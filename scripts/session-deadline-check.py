@@ -37,8 +37,21 @@ from datetime import datetime, timezone, timedelta
 # lungnote-mcp was split out to its own repo (PASAKON/LungNote-MCP) on
 # 2026-08-03, so its .env now sits beside that checkout instead of inside this
 # repo. Override with LUNGNOTE_MCP_DIR when the checkout lives elsewhere.
-LUNGNOTE_MCP_DIR = os.environ.get(
-    "LUNGNOTE_MCP_DIR", "/Users/gob/LungNote Projects/mcp"
+#
+# The default is the Mac's path, so on Contabo this script found no .env, took
+# the silent `return` below, and printed nothing — on every session since the
+# split. That is indistinguishable from "no deadlines", which is why nobody
+# noticed for six weeks: the hook looked healthy because a hook that says
+# nothing is what a clear calendar looks like. Same shape as the CLAUDE.md wiki
+# roots, which cto-claude.sh already repoints per machine. Measured 2026-09-14
+# with 208 open todos and 51 overdue sitting unseen.
+_CANDIDATES = [
+    "/Users/gob/LungNote Projects/mcp",   # Mac
+    "/opt/lungnote-mcp",                  # Contabo
+]
+LUNGNOTE_MCP_DIR = os.environ.get("LUNGNOTE_MCP_DIR") or next(
+    (d for d in _CANDIDATES if os.path.exists(os.path.join(d, ".env"))),
+    _CANDIDATES[0],
 )
 ENV_PATH = os.path.join(LUNGNOTE_MCP_DIR, ".env")
 WINDOW_DAYS = int(os.environ.get("DEADLINE_WINDOW_DAYS", "7"))
@@ -65,7 +78,13 @@ def main():
     key = env.get("SUPABASE_SECRET_KEY")
     uid = env.get("LUNGNOTE_USER_ID")
     if not (url and key and uid):
-        return  # nothing to query — stay silent, never block
+        # Say so. Silence here reads exactly like "no deadlines due", and that
+        # false all-clear is the failure this script is supposed to prevent.
+        # Still exits 0 — it warns, it never blocks.
+        print(f"[deadline-check] ⚠️ cannot read LungNote creds at {ENV_PATH} "
+              "— deadlines NOT checked. This is not an all-clear. "
+              "Set LUNGNOTE_MCP_DIR or run /session-open.")
+        return
 
     now = datetime.now(timezone.utc)
     horizon = (now + timedelta(days=WINDOW_DAYS)).isoformat()

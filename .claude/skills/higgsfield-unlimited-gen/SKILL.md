@@ -170,6 +170,52 @@ the current one renders, fire the instant the card completes, harvest afterwards
 Harvesting needs no slot — doing it before firing wastes ten to fifteen minutes of
 a slot that, near a deadline, you cannot get back.
 
+## 2026-09-13 — WHAT THE PLAN PAGE ACTUALLY SAYS (read before trusting the section below)
+
+Read off `higgsfield.ai/pricing` in a logged-in browser (the page is JS-rendered —
+WebFetch returns metadata only, so this cannot be checked from a VPS):
+
+**Seedance is NOT in the unlimited list of ANY published plan.** It sits in its own
+card, `ACCESS TO SEEDANCE MODELS · Seedance 2.5 1080p Full access · Seedance 2.0 4K
+Full access` — "full access" means *allowed to use*, metered as normal. The Seedance
+2.5 Unlimited this org has been running on is a **promotional window**, not a plan
+entitlement. When it lapses, Seedance goes back to costing credits and nothing on
+the pricing page restores it.
+
+The plan-level unlimited list (Ultra Annual, `+7 unlimited & free generation models`):
+
+| Model | Grant |
+|---|---|
+| Seedream 5.0 Lite · Flux.2 Pro (1K) · Seedream 4.5 (4K) · Nano Banana · Kling O1 Image · **GPT Image** | **365 unlimited** |
+| Nano Banana Pro (2K) · Nano Banana 2 (2K) · Kling 3.0 | 7-day unlimited |
+| Soul V2 & Cinema | 10,000 free gens |
+| **Seedance 2.5 / 2.0** | **none — metered** |
+
+**Two consequences that invert older guidance in this file:**
+
+1. **On Ultra Annual, GPT Image is unlimited for 365 days.** The section below says
+   "IMAGES ALWAYS COST CREDITS" and tells operators a ~3-credit number on an image
+   generate is correct and expected. That is true on PLUS (the plan this org was on
+   when it was written) and **false on Ultra Annual**. Check which plan is live
+   before reasoning about an image price.
+2. **`Unlimited paid parallel generations` is now listed on both PLUS and Ultra.**
+   That is the serial-slot bottleneck from hard rule 4 — one 93-minute render
+   blocking every clip behind it. Re-test the concurrency claim before planning a
+   wave around serialisation.
+
+Footer caveats worth carrying: unlimited/free grants work **only on higgsfield.ai**,
+never via MCP/CLI, Canvas or Supercomputer; and "unlimited usage may be subject to
+dynamic speed adjustments during high-traffic periods."
+
+**Elsewhere, for reference** (checked same day): no provider gives Seedance unlimited
+free. Artlist $499/yr (2.5, fair-use + parallel caps) · Creaa $599/15d, $999/30d ·
+TopView ~$50/mo annual, 60-day window, 720p cap · OpenArt $175-240/mo but capped at
+**5 seconds and 480p**, useless for film · Dreamina (CapCut, ByteDance-official) 225
+free credits/day ≈ 2-3 Seedance 2.0 clips · Jimeng 即梦 260 daily credits but needs a
+Chinese phone or Douyin account.
+
+---
+
 ## UNLIMITED COVERS SEEDANCE 2.5 VIDEO ONLY. IMAGES ALWAYS COST CREDITS.
 
 **CEO, 2026-08-27, stated directly: "เรา Unlimited แค่ 2.5 Seedance"** — our
