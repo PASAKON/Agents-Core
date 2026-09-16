@@ -83,7 +83,14 @@ if [ -z "$TOPIC" ]; then
   exit 1
 fi
 # Keep the list scannable; the full story lives in the session itself.
-TOPIC="$(printf '%s' "$TOPIC" | cut -c1-40)"
+#
+# Cut by CHARACTERS, not bytes. `cut -c1-40` counts bytes under a non-UTF-8
+# locale, and Thai is 3 bytes per character -- so a Thai topic came back sliced
+# through the middle of a character, ending in a replacement glyph
+# ("Cookie Run ฟาร์มกู้ต<?>", measured 2026-09-16). The CEO names sessions in
+# Thai, so that was every rename, not an edge case. Bash's ${var:0:n} is
+# character-aware once the locale is, hence the explicit LC_ALL.
+TOPIC="$(LC_ALL=C.UTF-8 bash -c 'printf "%s" "${1:0:40}"' _ "$TOPIC")"
 
 # task-bbdfa8d1 (CEO 2026-09-11): a state glyph (✅ close · ⏸ save · ⛔
 # merged) goes in front of the machine/role so the app list sorts and scans
