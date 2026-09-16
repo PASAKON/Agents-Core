@@ -217,7 +217,10 @@ def main() -> int:
     lines.append(f"rounds : {sess} runs={runs} last_write={age_min} min ago")
     lines.append(f"stalls : {stalls_total} total, {stalls_recent} new since the last check")
     lines.append(f"screen : {fg or 'unknown'}" + ('' if fg in (None, GAME_PKG) else '  <-- NOT the game'))
-    if cred:
+    # Only when it is actually the verdict. The broker process lingers after its
+    # dialog is dismissed, so printing this on every check -- while the farm is
+    # plainly farming -- is the same cry-wolf failure as the stall window was.
+    if verdict == "BLOCKED":
         lines.append("BLOCKER: Windows credential dialog open (human must click Cancel)")
     lines.append(f"disk   : {gb} GB free on C:")
     print("\n".join(lines))
