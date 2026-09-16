@@ -141,7 +141,38 @@ def clear_foreign_app(fg: str) -> int:
     r = pipe("POST", "/run", {"fn": "restart_game", "args": {}, "who": "revive"})
     if r is None or not r.get("ok", False):
         log(f"restart_game FAILED: {str(r)[:200]}")
-    return 1
+        return 1
+
+    # Clearing the obstruction is not the job -- farming is. The first version
+    # of this stopped here, having tidied the screen and left the farm off, and
+    # then its own 30-minute cooldown blocked the down-path that would have
+    # noticed (measured 2026-09-16: cleared Chrome at 08:14, farm idle until the
+    # cooldown expired). Finish what we started, in this tick.
+    t0 = time.time()
+    while time.time() - t0 < 300:               # the game takes ~2 min to come up
+        time.sleep(15)
+        s = pipe("GET", "/status", timeout=20)
+        if s and not s.get("job"):              # restart_game has finished
+            break
+    started = start_farm("after clearing " + fg)
+    return 0 if started else 1
+
+
+def start_farm(why: str) -> bool:
+    """night + wait for the preflight to clear. Shared by both recovery paths."""
+    r = pipe("POST", "/run", {"fn": "night", "args": {"rounds": 60}, "who": "revive"})
+    if r is None or not r.get("ok", False):
+        log(f"start FAILED ({why}): {str(r)[:200]}")
+        return False
+    t0 = time.time()
+    while time.time() - t0 < 420:
+        s = pipe("GET", "/status", timeout=20)
+        if s and s.get("bot_alive") and s.get("job") != "preflight":
+            log(f"farming again ({why})")
+            return True
+        time.sleep(10)
+    log(f"started but never reached a farming state within 7 min ({why})")
+    return False
 
 
 def main() -> int:
@@ -185,22 +216,9 @@ def main() -> int:
     down_min = int(age / 60) if age else None
     log(f"farm has been down {down_min} min with nobody holding it - starting night")
 
-    r = pipe("POST", "/run", {"fn": "night", "args": {"rounds": 60}, "who": "revive"})
-    if r is None or not r.get("ok", False):
-        log(f"revive FAILED: {str(r)[:200]}")
-        return 1
-
-    # Do not claim success on the call returning. A preflight dry round can run
-    # first and bot_alive is true for that too, so wait for it to clear.
-    t0 = time.time()
-    while time.time() - t0 < 420:
-        s2 = pipe("GET", "/status", timeout=20)
-        if s2 and s2.get("bot_alive") and s2.get("job") != "preflight":
-            log("revived - farming")
-            return 0
-        time.sleep(10)
-    log("started but never reached a farming state within 7 min")
-    return 1
+    # Never claims success on the call returning: bot_alive is true during a
+    # preflight dry round too, so start_farm waits for that to clear.
+    return 0 if start_farm(f"down {down_min} min") else 1
 
 
 if __name__ == "__main__":
