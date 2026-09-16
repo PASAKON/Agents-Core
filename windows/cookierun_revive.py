@@ -175,11 +175,53 @@ def start_farm(why: str) -> bool:
     return False
 
 
+def start_app_task() -> bool:
+    """Kick CookieRunAppSrc. Safe even if it is already running -- the task's
+    own MultipleInstances=IgnoreNew makes a redundant call a no-op.
+
+    Found 2026-09-16: pythonw.exe access-violated inside _ctypes.pyd at 16:29:54
+    and took the whole app down with it -- GUI, pipe server and bot supervisor
+    all live in one process. This watchdog then logged "app is not running -
+    cannot revive from here" every 10 minutes for 2+ hours, because it only
+    ever knew how to talk to the app over its own pipe. It had no way to press
+    the button that starts the app in the first place.
+    """
+    import subprocess
+    try:
+        r = subprocess.run(["schtasks", "/run", "/tn", "CookieRunAppSrc"],
+                           capture_output=True, text=True, timeout=30,
+                           creationflags=0x08000000)
+        return r.returncode == 0
+    except Exception as e:
+        log(f"schtasks /run CookieRunAppSrc failed: {e}")
+        return False
+
+
 def main() -> int:
     s = pipe("GET", "/status", timeout=20)
     if s is None:
-        log("app is not running - cannot revive from here")
-        return 1
+        st = state_get()
+        if time.time() - st.get("app_last_try", 0) < COOLDOWN_S:
+            return 1
+        state_set({**st, "app_last_try": time.time()})
+        age = last_write_age_s()
+        down_for = f"{int(age/60)} min" if age is not None else "unknown time"
+        log(f"app is not running (down {down_for}) - starting CookieRunAppSrc")
+        if not start_app_task():
+            log("schtasks /run did not report success")
+            return 1
+        t0 = time.time()
+        while time.time() - t0 < 90:
+            time.sleep(5)
+            s = pipe("GET", "/status", timeout=20)
+            if s is not None:
+                break
+        if s is None:
+            log("app still unreachable 90s after starting the task")
+            return 1
+        log("app is back - pipe answering")
+        # fall through: the code below decides whether to also start farming
+
     if s.get("bot_alive"):
         # Alive is not the same as making progress: a foreign app can own the
         # screen while the bot sits there reading it.
