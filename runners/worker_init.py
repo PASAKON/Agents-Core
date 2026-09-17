@@ -464,6 +464,11 @@ def main() -> None:
     env["DISABLE_AUTOUPDATER"] = "1"
     env["WORKER_TASK_ID"] = task_id
     env["WORKER_ROLE"] = role
+    # Hub checkout root (never the worktree). lib/mailbox.py and lib/db.py
+    # read this to resolve state/ paths -- GH #154: a worker's own __file__
+    # points at its worktree, which has no state/ of its own, so those
+    # modules silently talked to a directory that doesn't exist.
+    env["ORG_ROOT"] = str(ROOT)
     if task.get("owner_cto"):
         env["WORKER_CTO_ID"] = task["owner_cto"]
         # owner_role picks which <role>-<id>.winid lock send_to_cto reads so
