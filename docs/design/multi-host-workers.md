@@ -333,6 +333,20 @@ derivable the same way (`agents_root` there is `/opt/mooniex-agents`, not
 under a user home) and wasn't measured, so it raises a clear error instead
 of guessing at a path.
 
+The remote PowerShell is sent via `-EncodedCommand` (base64 of UTF-16LE),
+not `-Command` with the raw script text. Measured live on winbox
+2026-09-18: `ssh` joins its remaining argv into ONE string that the box's
+outer shell re-parses before `powershell.exe` ever sees it, so a raw script
+containing `|` (needed for `Get-ChildItem ... | Sort-Object ... |
+Select-Object -First 1`) had its pipe characters consumed by that outer
+shell first — `Sort-Object`/`Select-Object` got split off as their own
+"commands" and failed with `'Sort-Object' is not recognized as an internal
+or external command`. Base64 has no shell-special characters at all, so
+nothing downstream can misparse it. First real live run (against
+task-424077a4's actual transcript) also confirmed `capture_output=True`
+keeps PowerShell's `#< CLIXML` progress noise ("Preparing modules for first
+use") isolated to stderr — stdout is clean JSONL.
+
 **Also fixed the same review round:** `HEARTBEAT` and `MAILBOX.md` (GH #150,
 #152 — the worker's liveness/mailbox files) must never be committed.
 `windows/spawn-worker.ps1` now appends both names to the clone's shared
