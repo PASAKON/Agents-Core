@@ -49,10 +49,18 @@ LAUNCHERS = ["scripts/cto-claude.sh", "scripts/cxo-claude.sh"]
 
 _HAS_VENV = (ROOT / ".venv" / "bin" / "python3").exists()
 
-# Matches the HOST_KEY case block through the closing `fi` of the
-# REMOTE_CONTROL_ARGS computation -- the exact span both launchers share.
-_BLOCK_RE = re.compile(
-    r'case "\$MACHINE_LABEL" in.*?REMOTE_CONTROL_ARGS=\(--remote-control\)\nfi\n',
+# The two pieces the dynamic test needs, extracted SEPARATELY and then joined:
+# the HOST_KEY case block, and the REMOTE_CONTROL_ARGS computation. They used
+# to be adjacent, so one span-regex worked; task-9ff9263f moved the case block
+# up (reconcile/register_cxo need HOST_KEY first), and a span from `case` to
+# the `fi` then swallowed ~200 lines of launcher in between -- reconcile,
+# register, the memory pull -- which reference $ROOT/$LOCKFILE and blew up
+# under `set -u` (2026-09-17, first seen after the merges landed on main).
+# Matching each block on its own keeps the test about what it claims to test
+# and makes it indifferent to where the launcher puts them.
+_CASE_RE = re.compile(r'case "\$MACHINE_LABEL" in.*?\nesac\n', re.S)
+_RC_RE = re.compile(
+    r'REMOTE_CONTROL_ARGS=\(\).*?REMOTE_CONTROL_ARGS=\(--remote-control\)\nfi\n',
     re.S,
 )
 
@@ -108,9 +116,11 @@ def test_no_second_unconditional_remote_control_literal(launcher: str) -> None:
 
 def _extract_block(launcher: str) -> str:
     src = (ROOT / launcher).read_text()
-    m = _BLOCK_RE.search(src)
-    assert m, f"could not extract the HOST_KEY/REMOTE_CONTROL_ARGS block from {launcher}"
-    return m.group(0)
+    case_m = _CASE_RE.search(src)
+    assert case_m, f"could not extract the HOST_KEY case block from {launcher}"
+    rc_m = _RC_RE.search(src)
+    assert rc_m, f"could not extract the REMOTE_CONTROL_ARGS block from {launcher}"
+    return case_m.group(0) + "\n" + rc_m.group(0)
 
 
 def _run_block(block: str, machine_label: str) -> list[str]:
