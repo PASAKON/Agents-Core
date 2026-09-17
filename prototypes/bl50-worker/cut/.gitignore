@@ -1,0 +1,10 @@
+# build output - regenerate with: npm run render / hyperframes snapshot
+renders/
+snapshots/
+node_modules/
+.hyperframes/
+contact-sheet-final.jpg
+# source media pulled from the CEO's Drive folder for BLACK LIQUIDITY [50]
+# (lipsync parts A/B/C, 16 generated scene plates, audio-hq) normalised to
+# 1080x1920@30 - not repo content
+media/
