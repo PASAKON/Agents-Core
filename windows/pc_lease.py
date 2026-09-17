@@ -548,8 +548,46 @@ def cmd_gate(_args) -> int:  # noqa: C901 -- _args carries --as; see main()
     return 3
 
 
+FOREGROUND = DATA / "modelplay" / "foreground.json"
+
+
+def record_foreground() -> None:
+    """Write which window owns the desktop, for readers who cannot see it.
+
+    Everything that judges the farm's health runs over ssh, which lands in
+    SESSION 0, which cannot enumerate session 1's windows. So a browser sitting
+    over BlueStacks is invisible to every check we own: Android correctly
+    reports the game as foreground (it is, underneath), the lease reads FREE,
+    and the bot presses buttons into somebody else's window. That cost hours on
+    2026-09-17, twice, and the second time it also convinced the freeze probe
+    the game had hung - it restarted a game that was fine, because a web page
+    does not move between frames.
+
+    This runs in session 1 (the tick task already does), so it can just look.
+    Readers get a timestamp and decide for themselves whether it is fresh
+    enough to trust - a stale answer here must say nothing rather than guess.
+    """
+    import ctypes
+    import ctypes.wintypes
+    u = ctypes.windll.user32
+    try:
+        hwnd = u.GetForegroundWindow()
+        n = u.GetWindowTextLengthW(hwnd)
+        buf = ctypes.create_unicode_buffer(n + 1)
+        u.GetWindowTextW(hwnd, buf, n + 1)
+        title = buf.value
+        FOREGROUND.write_text(json.dumps({
+            "t": time.time(),
+            "title": title[:120],
+            "is_tenant": bool(SKIP_TITLES(title)),
+        }), encoding="utf-8")
+    except Exception as e:
+        log(f"record_foreground failed: {e}")
+
+
 def cmd_tick(_args) -> int:
     """The watchdog. Resumes Cookie Run when a lease runs out."""
+    record_foreground()
     lease = read_lease()
     if not lease:
         return 0

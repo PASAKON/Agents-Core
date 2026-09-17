@@ -32,6 +32,8 @@ STALLS = Path.home() / "cookierun-bot" / "label_review" / "stalls"
 ROUND_QUIET_S = 12 * 60      # a round runs ~5 min; 12 min of silence is stuck
 CHECK_WINDOW_S = 70 * 60     # fallback only, for the first run / lost state
 LAST_CHECK = MODELPLAY / "health_last_check"
+FOREGROUND = MODELPLAY / "foreground.json"
+FOREGROUND_STALE_S = 8 * 60   # tick writes it every few minutes
 
 
 def pipe_status():
@@ -54,6 +56,24 @@ def lease_now():
     except (OSError, ValueError):
         return None
     return d if d.get("expires_at", 0) > time.time() else None
+
+
+def window_over_game():
+    """Title of the non-BlueStacks window holding the Windows foreground, or None.
+
+    This check runs over ssh, in session 0, which cannot see session 1's windows
+    at all - so it reads what pc_lease's tick recorded from inside session 1.
+    An answer older than FOREGROUND_STALE_S is discarded rather than trusted: a
+    check that cannot tell true from false has no business setting a verdict,
+    which is the lesson the removed CredentialUIBroker check left behind.
+    """
+    try:
+        d = json.loads(FOREGROUND.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if time.time() - float(d.get("t", 0)) > FOREGROUND_STALE_S:
+        return None
+    return None if d.get("is_tenant") else (d.get("title") or "an untitled window")
 
 
 def newest_session():
@@ -191,6 +211,7 @@ def main() -> int:
     stalls_total, stalls_recent = recent_stalls()
     gb = free_gb()
     fg = foreground_app()
+    fg_win = window_over_game()
     age_min = int((time.time() - last_progress) / 60) if last_progress else None
 
     lines = []
@@ -201,6 +222,15 @@ def main() -> int:
         verdict, reason = "NO-APP", "the Cookie Run app is not running, so nothing can drive the bot"
     elif s.get("esc_hold"):
         verdict, reason = "DOWN", "ESC hold is set - a human stopped the bot and only a human clears it"
+    elif fg_win:
+        # Someone is using the desktop. Cookie Run yields to other computer-use
+        # agents, always (CEO) - so this is PARKED, not a fault, whether or not
+        # they remembered the lease. Reporting DOWN here would send whoever
+        # reads it to go restart a farm that must not start.
+        verdict = "PARKED"
+        reason = (f"a window is over the game on the Windows side: {fg_win!r} - "
+                  f"Cookie Run yields; Android still reports the game foreground "
+                  f"because it is, underneath")
     elif lease:
         verdict = "PARKED"
         reason = f"screen lent to {lease.get('who', '?')} until {time.strftime('%H:%M', time.localtime(lease['expires_at']))}"
@@ -234,6 +264,8 @@ def main() -> int:
     lines.append(f"lease  : {'held by ' + str(lease.get('who')) if lease else 'free'}")
     lines.append(f"rounds : {sess} runs={runs} last_round={age_min} min ago")
     lines.append(f"stalls : {stalls_total} total, {stalls_recent} new since the last check")
+    if fg_win:
+        lines.append(f"window : {fg_win}  <-- over the game, Windows side")
     lines.append(f"screen : {fg or 'unknown'}" + ('' if fg in (None, GAME_PKG) else '  <-- NOT the game'))
     lines.append(f"disk   : {gb} GB free on C:")
     print("\n".join(lines))
