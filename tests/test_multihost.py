@@ -349,6 +349,9 @@ def fake_origin():
 def temp_db(monkeypatch, tmp_path):
     db_path = tmp_path / "tasks.db"
     monkeypatch.setattr(db_mod, "DB_PATH", db_path)
+    # owner_cto="test-owner" below is synthetic with no c_level_sessions row —
+    # this suite tests host/cap routing, not the charter gate, so skip it.
+    monkeypatch.setenv("ORG_CHARTER_GATE", "off")
     db_mod.init()
     return db_mod
 

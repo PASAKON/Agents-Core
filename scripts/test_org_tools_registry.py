@@ -378,6 +378,10 @@ def test_error_wrapper_format_matches_already_guarded_tool() -> bool:
 def main() -> int:
     tmp = tempfile.mkdtemp(prefix="org-tools-registry-")
     db.DB_PATH = Path(tmp) / "tasks.db"
+    # CTO_A/CTO_B below are synthetic owner_cto ids with no c_level_sessions
+    # row — this suite tests registry/dispatch equivalence, not the charter
+    # gate, so skip that gate for this isolated-DB run.
+    os.environ["ORG_CHARTER_GATE"] = "off"
     db.init()
 
     print("== registry shape ==")

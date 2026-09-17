@@ -185,6 +185,10 @@ def test_hook_log_path() -> bool:
 
 def main() -> int:
     db.init()
+    # This smoke test stamps synthetic owner_cto ids (ctoaaaaa/cfo01234/...)
+    # with no c_level_sessions row — it exercises owner_cto routing, not the
+    # charter gate, so skip that gate for the duration of this script.
+    os.environ["ORG_CHARTER_GATE"] = "off"
     created: list[str] = []
     fails = 0
     try:
