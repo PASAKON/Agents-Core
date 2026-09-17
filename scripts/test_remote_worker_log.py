@@ -305,3 +305,11 @@ def test_resolve_task_not_found_raises_value_error(monkeypatch, tmp_path):
         assert False, "expected ValueError"
     except ValueError as e:
         assert "no task matching" in str(e)
+
+def test_mask_leaves_task_ids_alone():
+    # `sk` inside `task-95803168` must not trigger the mask (live false
+    # positive on the first E2E run, 2026-09-18).
+    from tools.remote_worker_log import _mask_secrets
+    assert _mask_secrets("# Task task-95803168 on winbox") == "# Task task-95803168 on winbox"
+    assert _mask_secrets("key sk-abcdefghijkl here") == "key *** here"
+    assert _mask_secrets("token ghp_abcdefghijklmnop") == "token ***"

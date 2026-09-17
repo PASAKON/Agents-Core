@@ -42,7 +42,10 @@ _REMOTE_SSH_TIMEOUT_S = 30
 
 # Same value the CTO's review specified verbatim: sk-/ghp_/eyJ-shaped runs
 # of 8+ token chars are almost certainly an API key, a GitHub PAT, or a JWT.
-_SECRET_RE = re.compile(r"(sk|ghp|eyJ)[A-Za-z0-9_\-]{8,}")
+# Boundary-anchored: without it the `sk` inside every `task-<id>` matched
+# and the tool printed `# Task ta***` for its own subject (seen live on the
+# first E2E run, task-95803168, 2026-09-18).
+_SECRET_RE = re.compile(r"(?<![A-Za-z0-9])(sk|ghp|eyJ)[A-Za-z0-9_\-]{8,}")
 
 
 def _mask_secrets(text: str) -> str:
