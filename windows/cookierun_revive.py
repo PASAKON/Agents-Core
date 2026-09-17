@@ -88,7 +88,11 @@ def state_set(d: dict) -> None:
 
 ADB = r"C:\Program Files\BlueStacks_nxt\HD-Adb.exe"
 GAME_PKG = "com.devsisters.crg"
-FOREIGN_GRACE_S = 5 * 60
+# 2 min, not 5. Chrome has taken the emulator screen five times today; the
+# grace exists only so a legitimate brief app switch is not fought over, and
+# two minutes is still far longer than any such switch. At 5 min grace plus a
+# 10 min tick the farm was losing up to 15 minutes per occurrence.
+FOREIGN_GRACE_S = 2 * 60
 
 
 def foreground_app() -> str | None:

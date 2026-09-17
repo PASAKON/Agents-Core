@@ -135,26 +135,14 @@ def foreground_app() -> str | None:
     return None
 
 
-def credential_dialog() -> bool:
-    """Is a Windows credential prompt sitting on the screen?
-
-    A "Sign in with a passkey" dialog from CredentialUIBroker parked itself over
-    the game at 23:37 on 2026-09-16 and stayed. It cannot be clicked away by
-    script -- Windows deliberately makes credential prompts ignore synthetic
-    input -- so this is a human-only fix, and the farm is dead until someone
-    presses Cancel. Worth naming in the verdict rather than reporting a generic
-    DOWN and making the next reader rediscover it.
-    """
-    try:
-        out = subprocess.run(
-            ["powershell", "-NoProfile", "-Command",
-             "if (Get-Process -Name CredentialUIBroker -ErrorAction SilentlyContinue) "
-             "{ 'yes' } else { 'no' }"],
-            capture_output=True, text=True, timeout=25,
-            creationflags=0x08000000).stdout.strip()
-        return out == "yes"
-    except Exception:
-        return False
+# There was a credential_dialog() check here, and a BLOCKED verdict built on it.
+# Removed 2026-09-17: it tested for the CredentialUIBroker *process*, which
+# lingers long after its dialog is gone, so it reported "a dialog is on the
+# screen, a human must click Cancel" against a screenshot-verified empty lobby.
+# There is no cheap way from session 0 to tell a live dialog from a stale
+# process -- window enumeration needs session 1 -- and a check that cannot tell
+# true from false has no business setting a verdict. DOWN is accurate; go look
+# at the screen when it says so.
 
 
 def free_gb():
@@ -176,7 +164,6 @@ def main() -> int:
     stalls_total, stalls_recent = recent_stalls(started)
     gb = free_gb()
     fg = foreground_app()
-    cred = credential_dialog()
     age_min = int((time.time() - mtime) / 60) if mtime else None
 
     lines = []
@@ -190,11 +177,6 @@ def main() -> int:
     elif lease:
         verdict = "PARKED"
         reason = f"screen lent to {lease.get('who', '?')} until {time.strftime('%H:%M', time.localtime(lease['expires_at']))}"
-    elif cred and not s.get("bot_alive"):
-        verdict, reason = ("BLOCKED",
-                           "a Windows credential dialog is on the screen. It cannot be "
-                           "dismissed by script - Windows ignores synthetic clicks on "
-                           "credential prompts by design. A HUMAN must press Cancel.")
     elif not s.get("bot_alive"):
         verdict, reason = "DOWN", "nobody holds the screen and the bot is not running"
     elif s.get("job") == "preflight":
@@ -217,11 +199,6 @@ def main() -> int:
     lines.append(f"rounds : {sess} runs={runs} last_write={age_min} min ago")
     lines.append(f"stalls : {stalls_total} total, {stalls_recent} new since the last check")
     lines.append(f"screen : {fg or 'unknown'}" + ('' if fg in (None, GAME_PKG) else '  <-- NOT the game'))
-    # Only when it is actually the verdict. The broker process lingers after its
-    # dialog is dismissed, so printing this on every check -- while the farm is
-    # plainly farming -- is the same cry-wolf failure as the stall window was.
-    if verdict == "BLOCKED":
-        lines.append("BLOCKER: Windows credential dialog open (human must click Cancel)")
     lines.append(f"disk   : {gb} GB free on C:")
     print("\n".join(lines))
 
