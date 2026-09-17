@@ -321,6 +321,57 @@ def designer_kickoff_suffix(description: str) -> str:
     )
 
 
+def resolve_session_owner(
+    owner_cto: str | None = None, owner_role: str | None = None
+) -> tuple[str | None, str | None]:
+    """Resolve (owner_cto, owner_role) from explicit args, else the env vars a
+    spawned C-level session carries:
+      owner_cto  = CTO_SESSION_ID (cto sessions) or CXO_SESSION_ID (cfo/cmo/…)
+      owner_role = CXO_ROLE, else 'cto' when CTO_SESSION_ID is present
+    so a CFO-spawned task routes to the CFO tab (cfo-<id>.winid), not a CTO.
+    Shared by create_task's ownership stamp and tools/session_charter.py so
+    both agree on which c_level_sessions row a session is."""
+    if owner_cto is None:
+        owner_cto = os.environ.get("CTO_SESSION_ID") or os.environ.get("CXO_SESSION_ID")
+    if owner_role is None:
+        owner_role = os.environ.get("CXO_ROLE") or (
+            "cto" if os.environ.get("CTO_SESSION_ID") else None
+        )
+    return owner_cto, owner_role
+
+
+def _require_charter(owner_cto: str, owner_role: str | None,
+                      conn: sqlite3.Connection) -> None:
+    """Charter gate (task-a63759d5, IRON-RULES §35): a C-level session must
+    have set a one-line charter via tools/session_charter.py before it may
+    create tasks. /session-open alone can't enforce this — that skill never
+    writes to the DB, so it was skippable; this is the code-level version,
+    same lesson as the merge gate (a rule that isn't code isn't a rule).
+
+    Only called when owner_cto is truthy — the ownerless path (ad-hoc rows,
+    tests without a session env) is unchanged in create_task below."""
+    if os.environ.get("ORG_CHARTER_GATE", "").strip().lower() == "off":
+        print(
+            f"[db] WARNING: ORG_CHARTER_GATE=off — charter gate skipped for "
+            f"session ({owner_role}, {owner_cto}). Escape hatch for setup/repair "
+            f"only — never for production task creation.",
+            file=sys.stderr,
+        )
+        return
+    row = conn.execute(
+        "SELECT charter FROM c_level_sessions WHERE role=? AND session_id=?",
+        (owner_role, owner_cto),
+    ).fetchone()
+    charter = (row["charter"] if row else None) or ""
+    if not charter.strip():
+        raise RuntimeError(
+            f"session ({owner_role}, {owner_cto}) has no charter set — cannot "
+            f"create a task. Run /session-open, then set one: "
+            f'python3 -m tools.session_charter set "<one-line entry problem>". '
+            f"Escape hatch for setup/repair only: ORG_CHARTER_GATE=off."
+        )
+
+
 def create_task(
     project: str,
     role: str,
@@ -335,17 +386,8 @@ def create_task(
 ) -> str:
     validate_designer_context(role, description)
     # Stamp the spawning C-level session so DEV reports route back to that
-    # session's tab instead of broadcasting to every open CTO chat. When not
-    # passed explicitly, fall back to the creating process env:
-    #   owner_cto  = CTO_SESSION_ID (cto sessions) or CXO_SESSION_ID (cfo/cmo/…)
-    #   owner_role = CXO_ROLE, else 'cto' when CTO_SESSION_ID is present
-    # so a CFO-spawned task routes to the CFO tab (cfo-<id>.winid), not a CTO.
-    if owner_cto is None:
-        owner_cto = os.environ.get("CTO_SESSION_ID") or os.environ.get("CXO_SESSION_ID")
-    if owner_role is None:
-        owner_role = os.environ.get("CXO_ROLE") or (
-            "cto" if os.environ.get("CTO_SESSION_ID") else None
-        )
+    # session's tab instead of broadcasting to every open CTO chat.
+    owner_cto, owner_role = resolve_session_owner(owner_cto, owner_role)
     tid = new_task_id()
     if not owner_cto:
         # Don't hard-fail (tests + ad-hoc rows create ownerless tasks), but make
@@ -357,6 +399,8 @@ def create_task(
         )
     ts = now_iso()
     with get_conn() as conn:
+        if owner_cto:
+            _require_charter(owner_cto, owner_role, conn)
         conn.execute(
             """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,owner_role,host,created_at,updated_at)
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
