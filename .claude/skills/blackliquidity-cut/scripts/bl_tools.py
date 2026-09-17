@@ -346,7 +346,7 @@ def main():
     v.add_argument("render")
     v.add_argument("--audio", help="master voice track to check sync against")
     v.add_argument("--duration", help="expected duration in seconds")
-    v.add_argument("--seat", nargs="*", metavar="LABEL=FILE=AT",
+    v.add_argument("--seat", nargs="+", action="extend", metavar="LABEL=FILE=AT",
                    help="check a lipsync clip is seated where you think")
     v.set_defaults(fn=cmd_verify)
 

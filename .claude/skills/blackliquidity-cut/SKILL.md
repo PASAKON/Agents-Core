@@ -131,6 +131,11 @@ be used (e.g. #48 has readable Thai text baked in — never full-frame). Avatar 
 (`AV`) are non-speaking poses and are fine as cutaways; see trap 8.
 
 ### 6. Copy the template and write the cut
+The kit background `#bg` is always on and sits under the clips (z-index 0): a
+footage plate covers it, a text-only plate shows it. Do not window it with
+`show/hide` — the list goes stale the moment you add a plate (BL50 round 4: new
+B-roll rendered invisible behind the grid while `npm run check` stayed green).
+
 ```bash
 cp -r <skill>/template <workdir> && cd <workdir>
 ```

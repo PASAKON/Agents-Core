@@ -124,7 +124,7 @@
       .clip { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
       video.clip { object-fit: cover; }
 
-      .bl-bg { position: absolute; inset: 0; z-index: 2; opacity: 0;
+      .bl-bg { position: absolute; inset: 0; z-index: 0; opacity: 1;   /* under the clips: footage covers it, text plates show it */
                background: radial-gradient(130% 62% at 50% 6%, rgba(224,32,47,.20), transparent 62%),
                            var(--ink); }
       .bl-bg .grid { position: absolute; inset: 0; opacity: .5;
@@ -256,8 +256,7 @@
       /* CONTENT: the background is only up where no video plate is underneath.
          One [start, end] pair per uncovered stretch. If no plate returns before
          the end of the cut, use a bare show() with no matching hide(). */
-      // [[18.30, 62.71]].forEach(function (w) {
-      //   show("#bg", w[0] - 0.12); hide("#bg", w[1] - 0.12); });
+      // #bg is always on and under the clips (z 0) - no window list, see the CSS note.
 
       var B = 0;
       function block(cls, top, at, out) {
