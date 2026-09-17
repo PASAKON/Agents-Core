@@ -113,6 +113,18 @@ Write it as a single sentence.
   - ✅ "TM poster t009–t011 ผ่าน reject criteria แล้ว merge ปิด 3 ตัว"
   - ❌ "ดูเรื่อง poster กับ funnel แล้วก็เคลียร์ของค้าง" (activity, multi-topic)
 
+### 1b. Write the charter to the DB (mandatory)
+`/session-open` itself never touches the DB, which is why it used to be
+skippable (2026-09-17: a CTO session skipped it and fanned into 5 unrelated
+threads). This command is the actual enforcement — skipping it does not fail
+quietly: the **next** `create_task` call this session makes (any task spawn)
+raises a `RuntimeError` and refuses to create the task.
+```bash
+python3 -m tools.session_charter set "<Entry Problem, one sentence, from step 1>"
+```
+Escape hatch for setup/repair sessions only, never for normal work:
+`ORG_CHARTER_GATE=off`.
+
 ### 2. Define Done — observable, tied to the entry problem
 List 1–4 DoD items, each one **checkable**: a prod query result, a green test,
 a merged sha, a deployed URL, an explicit CEO "approve". Ban "discussed" /
