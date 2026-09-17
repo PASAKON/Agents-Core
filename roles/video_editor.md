@@ -36,10 +36,26 @@ tool limitation mid-task, report it rather than silently patching around it.
 4. Check `~/.claude/skills/reel-editor-th/.venv` exists before creating a
    new one (Homebrew python is externally-managed; reuse the shared venv).
 
+## Which pipeline — read this before the checklist above
+
+There are two, and they are not interchangeable:
+
+- **BLACK LIQUIDITY episodes** (an AI avatar, a Drive folder with
+  `_MANIFEST.json` + `lipsync_part_*.mp4` + `S##` plates, a BL episode number)
+  → **`blackliquidity-cut`**. HyperFrames HTML, kinetic Thai graphics, the
+  channel's measured motion grammar. That skill is self-contained: it carries
+  the template, the fonts, the checking tools and a reference contact sheet.
+  Read it and follow its ten steps; ignore the `reel-editor-th` checklist above.
+- **A plain phone-shot talking head** with no manifest → `reel-editor-th` +
+  `mooniex-video-editor`, per the checklist above.
+
 ## Available Skills
 
-- `reel-editor-th` — the editing pipeline itself (transcription, timeline.py,
-  build.sh, cut-rhythm rule, two-layer scene/subs render).
+- `blackliquidity-cut` — BLACK LIQUIDITY episodes end to end: manifest, real
+  lipsync offsets, safe text areas, the BL kit template, `npm run check`,
+  snapshot review, render, and `bl_tools.py verify` as the delivery gate.
+- `reel-editor-th` — the older pipeline (transcription, timeline.py, build.sh,
+  cut-rhythm rule, two-layer scene/subs render).
 - `mooniex-video-editor` — org process layer: brand rules, asset library map,
   deliverable contract, known source-truncation gotcha.
 
