@@ -236,6 +236,13 @@
              data-start="16.72"  data-duration="1.48" data-media-start="0"     data-track-index="0"></video>
       <video class="clip" id="v10" src="media/S12-context_n.mp4"    muted playsinline
              data-start="20.60"  data-duration="4.78" data-media-start="0"     data-track-index="0"></video>
+      <!-- step 5b coverage fill: catalogue fit=BL clips matching the on-screen
+           claim (sealed-letter = "คำตัดสิน...ธันวาคม 2024", spheres-multiply =
+           "เกลื่อนแล้ว 30 กว่าตัว" spread/outbreak) - see report -->
+      <video class="clip" id="v10b" src="media/sealed-letter_n.mp4" muted playsinline
+             data-start="25.38"  data-duration="4.57" data-media-start="0"     data-track-index="0"></video>
+      <video class="clip" id="v10c" src="media/spheres-multiply_n.mp4" muted playsinline
+             data-start="29.95"  data-duration="4.53" data-media-start="0"     data-track-index="0"></video>
       <video class="clip" id="v11" src="media/S15-urgency_n.mp4"    muted playsinline
              data-start="34.48"  data-duration="3.14" data-media-start="0"     data-track-index="0"></video>
       <video class="clip" id="v12" src="media/S17-education_n.mp4"  muted playsinline
@@ -256,6 +263,16 @@
              data-start="89.06"  data-duration="3.10" data-media-start="0"     data-track-index="0"></video>
       <video class="clip" id="v20" src="media/S42-escalation_n.mp4" muted playsinline
              data-start="108.78" data-duration="4.18" data-media-start="0"     data-track-index="0"></video>
+      <!-- step 5b coverage fill: catalogue fit=BL clips matching the check()
+           checklist items in "เช็กก่อนโอน" - one plate per item that has a
+           direct match (item 4, celebrity/LINE-OA endorsement, has none in
+           the catalogue and is left as text-only per the skill's own rule) -->
+      <video class="clip" id="v20b" src="media/phone-percent-grows_n.mp4" muted playsinline
+             data-start="129.75" data-duration="4.00" data-media-start="0"     data-track-index="0"></video>
+      <video class="clip" id="v20c" src="media/magnifier-doc_n.mp4" muted playsinline
+             data-start="133.75" data-duration="3.80" data-media-start="0"     data-track-index="0"></video>
+      <video class="clip" id="v20d" src="media/lock-icon_n.mp4" muted playsinline
+             data-start="137.55" data-duration="2.30" data-media-start="0"     data-track-index="0"></video>
       <video class="clip" id="v21" src="media/lipsync_part_c_145s-160s_n.mp4" muted playsinline
              data-start="145.49" data-duration="14.94" data-media-start="0"    data-track-index="0"></video>
 
@@ -409,10 +426,13 @@
 
       tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);
 
-      /* CONTENT: background only where no video plate is underneath. */
-      [[18.20, 20.60], [25.38, 34.48], [40.90, 44.44], [47.52, 53.20],
+      /* CONTENT: background only where no video plate is underneath.
+         step 5b coverage fill (see report) added plates at 25.38-34.48 and
+         129.75-139.85, so those stretches drop out of this list; the
+         [112.96,145.49] hole splits around the new plates instead. */
+      [[18.20, 20.60], [40.90, 44.44], [47.52, 53.20],
        [55.70, 58.98], [61.82, 66.12], [69.36, 72.74], [84.45, 89.06],
-       [92.16, 108.78], [112.96, 145.49]].forEach(function (w) {
+       [92.16, 108.78], [112.96, 129.75], [139.85, 145.49]].forEach(function (w) {
         show("#bg", w[0] - 0.12); hide("#bg", w[1] - 0.12); });
 
       // kinetic(top, in, out, [{c,h,d,g}], ruleWidth)
