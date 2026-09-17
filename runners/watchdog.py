@@ -409,6 +409,68 @@ def sweep_terminal_surfaces() -> list[dict]:
     return reaped
 
 
+# GH #152: a remote worker's pid can be alive while it's genuinely stuck
+# (waiting on the CEO, wedged on a page, etc.) — pid-alive alone proves
+# nothing. The HEARTBEAT file the worker touches before every tool call
+# (roles/_worker_remote.md) is the actual progress signal; this long past
+# no movement means it has stopped working, not just stopped talking.
+HEARTBEAT_STALE_S = 20 * 60
+
+
+def _heartbeat_age_seconds(raw: str) -> float | None:
+    """Seconds since an ISO-8601 UTC HEARTBEAT timestamp, or None if `raw`
+    doesn't parse — a malformed value must read as "cannot judge", never as
+    fresh or stale."""
+    try:
+        ts = datetime.fromisoformat(raw.strip().replace("Z", "+00:00"))
+    except (ValueError, AttributeError):
+        return None
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - ts).total_seconds()
+
+
+def _remote_worktree_dir(host_cfg: dict, task: dict) -> str | None:
+    """`<host's worktrees root>/<project>__<role>__<task-id>` in the host's
+    own path style — the same slug windows/spawn-worker.ps1 builds `$wt`
+    from. None when hosts.yaml has no `worktrees` root configured for this
+    host, or the task row is missing a field the slug needs (e.g. a legacy
+    row created before `host`/`project`/`role` were all populated)."""
+    root = host_cfg.get("worktrees")
+    if not root or not task.get("project") or not task.get("role") or not task.get("id"):
+        return None
+    slug = f"{task['project']}__{task['role']}__{task['id']}"
+    sep = "\\" if host_cfg.get("os") == "windows" else "/"
+    return f"{root.rstrip(chr(92)).rstrip('/')}{sep}{slug}"
+
+
+def read_remote_heartbeat(host_cfg: dict, task: dict) -> str | None:
+    """Raw content of `<worktree>/HEARTBEAT` over ssh, or None when the host
+    is unreachable, the worktree path can't be built, or the file simply
+    doesn't exist yet — a worker from before GH #152, or one that hasn't
+    reached its first tool call. All three cases must read as "cannot
+    judge staleness", never as "stale"; only the caller comparing a
+    successfully-read timestamp's age may decide that.
+    """
+    ssh_alias = host_cfg.get("ssh")
+    if not ssh_alias:
+        return None
+    wt_dir = _remote_worktree_dir(host_cfg, task)
+    if not wt_dir:
+        return None
+    if host_cfg.get("os") == "windows":
+        cmd = ["ssh", ssh_alias, "type", f"{wt_dir}\\HEARTBEAT"]
+    else:
+        cmd = ["ssh", ssh_alias, "cat", f"{wt_dir}/HEARTBEAT"]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+    except Exception:
+        return None
+    if r.returncode != 0:
+        return None
+    return r.stdout.strip() or None
+
+
 def _check_remote_stall(t: dict, host_name: str) -> dict | None:
     """GAP 3 (task-59780ac3): a remote in_progress task whose worker died
     mid-task used to be invisible forever — this box's own process table
@@ -420,9 +482,15 @@ def _check_remote_stall(t: dict, host_name: str) -> dict | None:
     failed. None must never collapse into False here: an unreachable box is
     "unknown", not "dead", and flipping a task to stalled on a Wi-Fi/Tailscale
     hiccup would be exactly the false-positive branch_poller.py already
-    guards against on its own dead-pid path. Only a definite False — the box
-    answered and the pid is provably gone — marks the task stalled and files
-    the same GH issue the local path files.
+    guards against on its own dead-pid path.
+
+    Two ways to land on `stalled` (GH #152 adds the second):
+      - pid confirmed dead (alive is False) — the original GAP 3 fix.
+      - pid alive, but its HEARTBEAT file (roles/_worker_remote.md) hasn't
+        moved in HEARTBEAT_STALE_S — a live-but-stuck worker, invisible to
+        any pid check. A missing HEARTBEAT file (old worker, or one that
+        hasn't reached its first tool call yet) is logged only, never
+        treated as evidence of a stall either way.
 
     Never touches a task with no recorded pid (nothing to ask the box about)
     or one silent for less than STALL_AFTER_S. Returns the stall record dict
@@ -439,7 +507,45 @@ def _check_remote_stall(t: dict, host_name: str) -> dict | None:
     except ValueError:
         return None
     alive = remote_pid_alive(host_cfg, pid)
-    if alive is not False:  # True (working) or None (ssh unreachable) — never act
+    if alive is None:  # ssh unreachable — unknown, never treated as dead
+        return None
+
+    if alive is False:
+        issue = _file_stalled_issue(t, silent)
+        try:
+            review = json.loads(t.get("review") or "{}")
+        except json.JSONDecodeError:
+            review = {}
+        review.update({
+            "watchdog": "stalled",
+            "host": host_name,
+            "silent_seconds": int(silent),
+            "issue": issue,
+            "pid": pid,
+            "pid_alive": False,
+        })
+        db.update_status(t["id"], "stalled", actor="watchdog", review=json.dumps(review))
+        error(
+            f"STALLED-REMOTE {t['id']} host={host_name} silent={int(silent/60)}min "
+            f"pid={pid} alive=False issue={issue}"
+        )
+        return {"task": t["id"], "silent_s": int(silent), "issue": issue,
+               "pid": pid, "pid_alive": False, "host": host_name}
+
+    # alive is True: pid alive proves nothing about progress (GH #152) —
+    # check the worker's own heartbeat.
+    hb_raw = read_remote_heartbeat(host_cfg, t)
+    if hb_raw is None:
+        info(f"remote task {t['id']} host={host_name}: no HEARTBEAT file "
+             "yet (old worker, or none reached its first tool call) — "
+             "cannot judge staleness, leaving in_progress")
+        return None
+    hb_age = _heartbeat_age_seconds(hb_raw)
+    if hb_age is None:
+        warn(f"remote task {t['id']} host={host_name}: unparseable "
+             f"HEARTBEAT content {hb_raw!r} — cannot judge staleness")
+        return None
+    if hb_age < HEARTBEAT_STALE_S:
         return None
     issue = _file_stalled_issue(t, silent)
     try:
@@ -452,15 +558,21 @@ def _check_remote_stall(t: dict, host_name: str) -> dict | None:
         "silent_seconds": int(silent),
         "issue": issue,
         "pid": pid,
-        "pid_alive": False,
+        "pid_alive": True,
+        "heartbeat_age_seconds": int(hb_age),
     })
-    db.update_status(t["id"], "stalled", actor="watchdog", review=json.dumps(review))
+    db.update_status(
+        t["id"], "stalled", actor="watchdog", review=json.dumps(review),
+        delegate_log=(f"heartbeat stale {int(hb_age/60)}min (pid {pid} alive) "
+                      f"on {host_name}"),
+    )
     error(
-        f"STALLED-REMOTE {t['id']} host={host_name} silent={int(silent/60)}min "
-        f"pid={pid} alive=False issue={issue}"
+        f"STALLED-REMOTE-HEARTBEAT {t['id']} host={host_name} pid={pid} "
+        f"alive=True heartbeat_age={int(hb_age/60)}min issue={issue}"
     )
     return {"task": t["id"], "silent_s": int(silent), "issue": issue,
-           "pid": pid, "pid_alive": False, "host": host_name}
+           "pid": pid, "pid_alive": True, "heartbeat_age_s": int(hb_age),
+           "host": host_name}
 
 
 def scan_once() -> dict:
