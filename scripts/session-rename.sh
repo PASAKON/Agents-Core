@@ -90,7 +90,17 @@ fi
 # ("Cookie Run ฟาร์มกู้ต<?>", measured 2026-09-16). The CEO names sessions in
 # Thai, so that was every rename, not an edge case. Bash's ${var:0:n} is
 # character-aware once the locale is, hence the explicit LC_ALL.
-TOPIC="$(LC_ALL=C.UTF-8 bash -c 'printf "%s" "${1:0:40}"' _ "$TOPIC")"
+#
+# ...but hardcoding C.UTF-8 did not fix it on the Mac: **macOS ships no
+# C.UTF-8 locale** (`locale -a` has no such entry), so LC_ALL fell back to C,
+# byte semantics returned, and the very next Thai rename came back as
+# "ซ่อม SSH ข้ามเคร<?>" (measured 2026-09-17). C.UTF-8 is a glibc thing;
+# this repo runs on macOS, Windows and Linux. Ask the box which UTF-8 locale it
+# actually has instead of assuming, and fall back to en_US.UTF-8, which every
+# macOS carries.
+UTF8_LOCALE="$(locale -a 2>/dev/null | grep -ixE 'C\.UTF-?8|en_US\.UTF-?8' | head -1)"
+: "${UTF8_LOCALE:=en_US.UTF-8}"
+TOPIC="$(LC_ALL="$UTF8_LOCALE" bash -c 'printf "%s" "${1:0:40}"' _ "$TOPIC")"
 
 # task-bbdfa8d1 (CEO 2026-09-11): a state glyph (✅ close · ⏸ save · ⛔
 # merged) goes in front of the machine/role so the app list sorts and scans
