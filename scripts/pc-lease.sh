@@ -30,7 +30,13 @@ die() { printf '\033[31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
 
 # Deploy only when the local file is newer than what the box has — an md5
 # compare, because mtime does not survive scp the way you would hope.
-local_md5=$(md5sum "$SRC" | cut -d' ' -f1)
+# macOS ships `md5`, not GNU `md5sum` (bit a Mac CTO 2026-09-17: the wrapper
+# died before `status` could even run). Both print lowercase hex.
+if command -v md5sum >/dev/null 2>&1; then
+  local_md5=$(md5sum "$SRC" | cut -d' ' -f1)
+else
+  local_md5=$(md5 -q "$SRC")
+fi
 remote_md5=$(ssh -o BatchMode=yes -o ConnectTimeout=20 -n "$HOST" \
   "powershell -NoProfile -Command \"if (Test-Path '$REMOTE_PY') { (Get-FileHash '$REMOTE_PY' -Algorithm MD5).Hash.ToLower() } else { 'none' }\"" \
   2>/dev/null | tr -d '\r' || echo none)
