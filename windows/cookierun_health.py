@@ -207,7 +207,16 @@ def main() -> int:
     elif not s.get("bot_alive"):
         verdict, reason = "DOWN", "nobody holds the screen and the bot is not running"
     elif s.get("job") == "preflight":
-        verdict, reason = "OK", "preflight dry round in progress"
+        # A preflight in progress is normal. A preflight still in progress hours
+        # after the last finished round is a loop, and calling that OK is how
+        # this check reported green through a three-hour outage on 2026-09-17
+        # while played_24h sat frozen at 0.167. The gate is allowed to take a
+        # while; it is not allowed to become the steady state.
+        if age_min is not None and age_min > 45:
+            verdict, reason = ("STUCK", f"preflight has been cycling for {age_min} min "
+                                        f"without a finished round - it is looping, not starting")
+        else:
+            verdict, reason = "OK", "preflight dry round in progress"
     elif fg and fg != GAME_PKG:
         verdict, reason = "STUCK", f"a foreign app owns the emulator screen: {fg}"
     elif age_min is not None and age_min >= ROUND_QUIET_S / 60:
