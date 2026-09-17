@@ -244,6 +244,100 @@ stated plainly: `read_console_messages` was never called this session, so a
 silent console-only warning cannot be ruled out. The claim is limited to
 "nothing appeared in the UI," not "nothing was logged."
 
+## CTO follow-up #3: post-hoc ingredient panel, actually checked (zero generations)
+
+Per the CTO's instruction to go look rather than infer. Navigated to shot 2's
+and shot 3's own edit pages and read the ingredient-record panel below the
+video thumbnail.
+
+**Shot 3** (`.../edit/bc9d78aa-615d-446a-83e3-908d907a2015`, "Man watching
+father in shop"): panel showed **3 icons**. DOM read (via the
+`aria-label="องค์ประกอบ"` buttons in that panel) confirmed the exact
+composition: `["addaccessibility_new", "addaccessibility_new",
+"addvoice_selection"]` — two character-type elements and one voice-type
+element, matching the intended 2 characters + 1 voice for this shot. Zoomed
+screenshot of the icon row: first icon is a young man's face matching
+@nong_daeng's reference photo, second is the noodle-shop interior matching
+@noodle_shop's reference thumbnail, third is the pink musical-note voice
+icon. **The panel does not expose @handle names anywhere in its DOM** — both
+character icons carry only the generic `alt="รูปภาพองค์ประกอบตัวละคร"`
+("character element image"). The identity match is therefore a **visual
+match against the reference thumbnails seen at attach time, not a
+name-labeled confirmation** — stated plainly, not blurred with the DOM
+count check, which only proves *type* and *count*, not *which* character.
+
+**Shot 2** (`.../edit/26d5c9db-0db8-4455-b2ba-90f482d3055e`, "Man silencing
+phone making..."): same check, same result. DOM read:
+`["addaccessibility_new", "addaccessibility_new", "addvoice_selection"]` —
+2 characters + 1 voice, matching the intended @lung_somchai + @noodle_shop +
+voice. Zoomed screenshot: first icon is an older grey-haired man in an apron
+matching @lung_somchai's reference, second is the noodle-shop interior
+matching @noodle_shop, third the voice icon. Same caveat: visual match, not
+a name label.
+
+**Neither panel was "not visible"** — both rendered normally and were
+screenshotted; no inference was needed for the count, only for the specific
+identity match.
+
+## CTO follow-up #4: model dropdown survey (zero generations, Submit never clicked)
+
+Opened the composer's settings pill → model dropdown. **Complete list, exact
+UI labels, no translation:**
+
+```
+Omni 1.1 Flash
+Veo 3.1 - Lite
+Veo 3.1 - Fast
+Veo 3.1 - Quality
+```
+
+For each, selected it (cost nothing), read the panel, moved on — never
+touched Submit.
+
+| Model (verbatim) | Cost @ 720p/8s/9:16/x1 | Duration options shown | Resolution options shown | เฟรม / องค์ประกอบ toggle | Ingredient chips | Warning / wall |
+|---|---|---|---|---|---|---|
+| Omni 1.1 Flash | **12 เครดิต** | 4/6/8/10 วินาที | 360p, 720p | both available | available | none |
+| Veo 3.1 - Lite | **10 เครดิต** | **none shown — row absent** | **none shown — row absent** | both available | available | none |
+| Veo 3.1 - Fast | **20 เครดิต** | none shown — row absent | none shown — row absent | both available | available | **`aria-label="คำเตือนเครดิตไม่เพียงพอ"`** (insufficient-credit warning) on the submit control — 20 > current 14cr balance |
+| Veo 3.1 - Quality | **100 เครดิต** | none shown — row absent | none shown — row absent | both available | available | same insufficient-credit warning — 100 > 14cr |
+
+**Notes, exactly what was observed:**
+
+- **Only Omni 1.1 Flash exposes resolution and duration pickers in this UI.**
+  All three Veo 3.1 tiers hide both rows entirely the moment they're
+  selected — not greyed out, the rows are removed from the panel. What
+  duration/resolution a Veo generation actually renders at is **not
+  observed** from this panel; the settings pill still read "720p · 8 วินาที"
+  behind the open panel, but that may just be stale text from the last
+  Omni selection, not a live readout for Veo. Not verified either way — flag
+  for whoever eventually fires a Veo shot to check the *actual* output file.
+- **No model was greyed out and no upgrade wall appeared for any of the
+  four**, including Quality. The only account-tier signal seen anywhere was
+  the pre-existing "เครดิต Google Flow เหลือน้อย" (low-credit) banner and the
+  insufficient-credit icon on Fast/Quality — both are balance warnings, not
+  tier walls. No wall text to quote because none appeared.
+- **The insufficient-credit icon is balance-relative, not a fixed
+  threshold**: Lite at 10 credits did *not* show it (10 < 14 remaining);
+  Fast (20) and Quality (100) did. This confirms the check is a live
+  `cost > current balance` comparison, evaluated fresh per model.
+- **เฟรม/องค์ประกอบ toggle and the ingredient "+" picker stayed available and
+  clickable for all four models** — nothing about model choice disabled
+  ingredients in the UI.
+- Corrects the skill file: `google-flow-ops` currently records Veo 3.1 Lite
+  as "10 (published, not yet measured here)" — **now measured live on this
+  account: 10 เครดิต, confirmed.** Veo 3.1 Quality "never selected" — **now
+  selected and read: 100 เครดิต, confirmed**, no wall, no grey-out.
+- **Left the account in a safe default before finishing**: switched the
+  model back to Omni 1.1 Flash (12 เครดิต baseline) rather than leaving Quality
+  selected for whoever opens this project next. Balance re-verified at 14
+  throughout this whole check (before opening the panel, and again at the
+  end) — nothing was spent.
+- One tab (`1638446523`) became visibly render-corrupted (repeating tiled
+  garbage on screenshot, unrelated to any of the above) partway through this
+  survey; abandoned it for a fresh tab rather than keep fighting it, per the
+  skill's stuck-element guidance. No data lost — the Fast/Quality readings
+  above came from the fresh tab.
+
 ## Traps that fired, and what I did
 
 1. **Tab group destroyed mid-action, three times** (not once — this session
