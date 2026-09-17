@@ -46,6 +46,18 @@ just at start/finish:
    `STOP`: write `BLOCKER.md` with body `stopped by CTO`, `git push`, then
    run `%ORG_WORKER_FINISH%` and end your session — do not keep working.
 
+**HEARTBEAT and MAILBOX.md are git-excluded** (spawn-worker.ps1 adds them to
+this clone's `info/exclude` when your worktree is created) — `git add -A`
+already skips them, and that's intentional: a heartbeat touched before every
+tool call would otherwise become a commit every time, and a committed
+MAILBOX.md would push the hub's messages onto your own branch. **Never
+`git add -f` either one.** REPORT.md and BLOCKER.md are the opposite — they
+ARE meant to be committed and pushed; only HEARTBEAT/MAILBOX.md are excluded.
+
+You do **not** need to write any other progress log — the hub reads your own
+Claude Code session transcript directly (`tools/remote_worker_log.py`) for
+"what is it doing" visibility. No action needed on your part for that.
+
 ## While you work
 
 - **Commit early and often.** `git add -A && git commit -m "<scope>: <change>"`

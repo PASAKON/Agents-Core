@@ -282,3 +282,61 @@ scp windows/spawn-worker.ps1 winbox:'C:\Users\UsEr\mooniex\spawn-worker.ps1'
   does), just not yet through the MCP tool surface.
 - Live end-to-end acceptance against the real winbox box — see the
   developer's task report for what was actually run (dry-run vs. real).
+
+## 8. Visibility: what a remote worker is doing (GH #150-153, task-3009a00d)
+
+**Iteration 1 mistake, reverted (2026-09-18 CTO review):** an early fix for
+"the hub is blind while a remote worker is stuck" (GH #152) piped
+`claude.exe`'s stdout+stderr through `| Tee-Object -FilePath worker.log`.
+Claude Code is an Ink TUI; a non-TTY stdout makes it silently drop into
+`--print` mode and exit within seconds ("Input must be provided either
+through stdin or as a prompt argument when using --print"), even with a
+prompt already given positionally. That line would have killed **every**
+winbox spawn. Never pipe `claude.exe`'s own stdout/stderr in the launcher.
+
+**What ships instead:** Claude Code already writes a full JSONL transcript
+per session, with no launcher change needed, under
+
+```
+<home>\.claude\projects\<cwd-slug>\<session-uuid>.jsonl
+```
+
+`<cwd-slug>` is the worktree's absolute path with every `\`, `/`, `:`, `_`
+replaced 1:1 with `-` — measured on winbox 2026-09-18:
+`C:\Users\UsEr\mooniex\worktrees\mooniex-agents__browser_operator__task-424077a4`
+became `C--Users-UsEr-mooniex-worktrees-mooniex-agents--browser-operator--task-424077a4`
+(`ssh winbox dir C:\Users\UsEr\.claude\projects`). `<home>` is resolved live
+via `$env:USERPROFILE` over ssh, not hardcoded, so this doesn't assume any
+particular Windows username.
+
+`tools/remote_worker_log.py` reads it:
+
+```
+python -m tools.remote_worker_log <task-id> [-n 30] [--raw]
+```
+
+Resolves host + worktree from `tasks.db` via the same slug rule as
+`runners.watchdog._remote_worktree_dir` (not duplicated), finds the newest
+`.jsonl` in that directory over one ssh round trip, and prints the last N
+entries as `<HH:MM:SS> <type> <summary>` (`assistant-text` /
+`tool_use(<tool>, <input preview>)` / `tool_result(ok|error, <preview>)` /
+`user`), masking anything secret-shaped
+(`(sk|ghp|eyJ)[A-Za-z0-9_-]{8,}` → `***`). `--raw` dumps the raw tail
+instead. Exit codes are never "probably": `0` printed something, `1` usage
+error (bad task id, or the task's host has no ssh alias — e.g. `mac`,
+where the transcript is already local), `2` ssh reached the box but no
+transcript exists yet, `3` ssh itself failed.
+
+Windows-only today (mirrors `tools/send_to_worker._send_remote`'s existing
+`os != "windows"` guard) — a Contabo/Linux worker's home directory isn't
+derivable the same way (`agents_root` there is `/opt/mooniex-agents`, not
+under a user home) and wasn't measured, so it raises a clear error instead
+of guessing at a path.
+
+**Also fixed the same review round:** `HEARTBEAT` and `MAILBOX.md` (GH #150,
+#152 — the worker's liveness/mailbox files) must never be committed.
+`windows/spawn-worker.ps1` now appends both names to the clone's shared
+`info/exclude` (not the project's own `.gitignore`, which must stay generic
+across any repo cloned on the box) right after `worktree add`, once per
+clone. `REPORT.md`/`BLOCKER.md` are unaffected — they ARE the hub's channel
+and are meant to be committed+pushed.

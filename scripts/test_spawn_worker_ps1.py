@@ -9,6 +9,14 @@ contains the required steps, in the required order — a regression that
 silently deletes one of these lines is exactly the kind of thing a human
 skimming a large diff misses.
 
+Iteration 1 (2026-09-18 CTO review): the launcher piped claude.exe's output
+through `| Tee-Object` for a worker.log. Claude Code is an Ink TUI -- a
+non-TTY stdout makes it silently drop into --print mode and exit immediately,
+killing every winbox spawn. Reverted; `test_launcher_line_is_not_piped` below
+is the regression test for exactly this. worker.log and its tee are gone for
+good -- #152's "what is it doing" is served by tools/remote_worker_log.py
+(reads Claude Code's own JSONL transcript) instead.
+
 Run via: pytest scripts/test_spawn_worker_ps1.py
 """
 from __future__ import annotations
@@ -19,23 +27,44 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "windows" / "spawn-worker.ps1"
 
-STALE_FILES = ("REPORT.md", "BLOCKER.md", "MAILBOX.md", "worker.log", "HEARTBEAT")
+STALE_FILES = ("REPORT.md", "BLOCKER.md", "MAILBOX.md", "HEARTBEAT")
 
 
 def _text() -> str:
     return SCRIPT.read_text(encoding="utf-8")
 
 
+def _code_only() -> str:
+    """`_text()` with full-line `#` comments stripped -- so a check for
+    whether some pattern is actually USED can't be defeated (or falsely
+    tripped) by an explanatory comment merely mentioning it."""
+    return "\n".join(
+        ln for ln in _text().splitlines() if not ln.strip().startswith("#")
+    )
+
+
 def test_script_exists():
     assert SCRIPT.is_file()
 
 
-def test_all_five_stale_files_named_for_cleanup():
-    """GH #151: every one of the 5 stale-file names must appear literally
-    (defense against a copy-paste that drops one)."""
+def test_all_stale_files_named_for_cleanup():
+    """GH #151: every one of the 4 stale-file names must appear literally
+    (defense against a copy-paste that drops one). worker.log is NOT one of
+    them (iteration 1 review): nothing writes it any more."""
     text = _text()
     for name in STALE_FILES:
         assert name in text, f"{name!r} not found in spawn-worker.ps1 at all"
+
+
+def test_worker_log_is_gone():
+    """Iteration 1 regression guard: worker.log (and its tee) must not come
+    back without also reverting the Ink-TUI-killing pipe. Checks actual
+    usage (variable/cmdlet), not the word appearing in an explanatory
+    comment about why it was removed."""
+    code = _code_only()
+    assert "Tee-Object" not in code
+    assert "$workerLogPath" not in code
+    assert "worker.log" not in code
 
 
 def test_stale_file_cleanup_step_exists():
@@ -82,21 +111,55 @@ def test_dirty_check_precedes_force_remove():
     assert refuse_idx < remove_idx
 
 
-def test_worker_log_tee_present():
-    """GH #152: claude's stdout+stderr must be teed to worker.log while
-    still rendering on the visible console (CEO watches the screen)."""
+def test_launcher_line_is_not_piped():
+    """CTO review 2026-09-18: the launcher's `& $claudeExe @argArray` call
+    must be a bare invocation, never piped into anything. Claude Code (Ink
+    TUI) treats a non-TTY stdout as --print mode and exits immediately with
+    "Input must be provided either through stdin or as a prompt argument
+    when using --print" -- measured to kill every winbox spawn within ~12s.
+    """
     text = _text()
-    assert "worker.log" in text
-    assert "Tee-Object" in text or "Start-Transcript" in text
-    # The tee/transcript must actually wrap the claude.exe invocation, not
-    # some unrelated command.
-    assert re.search(r"claudeExe\s+@argArray\s+2>&1\s*\|\s*Tee-Object", text) or (
-        "Start-Transcript" in text and "claudeExe" in text
+    m = re.search(r"^&\s*`\$claudeExe\s+@argArray.*$", text, re.MULTILINE)
+    assert m, "launcher invocation of $claudeExe not found"
+    assert "|" not in m.group(0), (
+        f"launcher line pipes claude.exe's output -- this kills the worker: {m.group(0)!r}"
     )
 
 
-def test_worker_log_path_is_inside_worktree():
-    """worker.log must live at the worktree root (same place REPORT.md/
-    BLOCKER.md/HEARTBEAT/MAILBOX.md live), not beside the launcher scripts."""
+def test_heartbeat_and_mailbox_added_to_info_exclude():
+    """GH #150/#152 review: HEARTBEAT and MAILBOX.md must be git-excluded
+    via the clone's shared info/exclude (never the project's own .gitignore,
+    which must stay generic across any repo cloned on this box), so neither
+    ever gets swept into a `git add -A` commit."""
     text = _text()
-    assert re.search(r"workerLogPath\s*=\s*Join-Path\s+\$wt\s+'worker\.log'", text)
+    assert "rev-parse --git-path info/exclude" in text
+    exclude_idx = text.index("rev-parse --git-path info/exclude")
+    tail = text[exclude_idx:exclude_idx + 800]
+    assert "HEARTBEAT" in tail
+    assert "MAILBOX.md" in tail
+    # Must not touch the project's own .gitignore for this (only mentioned
+    # in the explaining comment, never as an actual write target).
+    assert ".gitignore" not in _code_only()
+
+
+def test_info_exclude_step_happens_after_worktree_add():
+    text = _text()
+    add_idx = text.index('worktree add -b $Branch $wt "origin/$Base"')
+    exclude_idx = text.index("rev-parse --git-path info/exclude")
+    assert add_idx < exclude_idx
+
+
+def test_info_exclude_path_is_resolved_against_repopath():
+    """Regression guard (measured live on winbox 2026-09-18): `git -C
+    $RepoPath rev-parse --git-path info/exclude` returns a path RELATIVE TO
+    $RepoPath, not to this process's own cwd -- using it bare resolved to
+    the ssh session's home dir instead of the real .git\\info\\exclude, and
+    Add-Content failed silently (HEARTBEAT/MAILBOX.md still showed up in
+    `git status`). The result must be joined against $RepoPath whenever it
+    isn't already rooted."""
+    code = _code_only()
+    assert "IsPathRooted" in code, (
+        "info/exclude path must be checked for IsPathRooted and joined "
+        "against $RepoPath when relative -- see FEEDBACK-1.md follow-up"
+    )
+    assert re.search(r"Join-Path\s+\$RepoPath\s+\$excludeRel", code)
