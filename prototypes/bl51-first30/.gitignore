@@ -1,0 +1,8 @@
+# build output - regenerate with: npm run render / hyperframes snapshot
+renders/
+snapshots/
+node_modules/
+.hyperframes/
+# source media comes from the CEO's Drive folder for BLACK LIQUIDITY [51]
+# (lipsync_part_a, S02/S04/S05, audio-hq) normalised to 1080x1920@30 - not repo content
+media/
