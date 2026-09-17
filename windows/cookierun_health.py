@@ -288,7 +288,9 @@ def main() -> int:
     elif age_min is not None and age_min >= ROUND_QUIET_S / 60:
         verdict, reason = "STUCK", f"bot is alive but has finished no round for {age_min} min"
     elif stalls_recent:
-        verdict, reason = "STALLING", f"{stalls_recent} screen(s) the navigator could not name since the last check"
+        verdict, reason = "STALLING", (
+            f"{stalls_recent} screen(s) the navigator got stuck on and saved "
+            f"since the last check (it may well know them - see below)")
 
     lines.append(f"VERDICT: {verdict}")
     if reason:
@@ -299,7 +301,15 @@ def main() -> int:
                      f"played_24h={s.get('played_fraction_24h')}")
     lines.append(f"lease  : {'held by ' + str(lease.get('who')) if lease else 'free'}")
     lines.append(f"rounds : {sess} runs={runs} last_round={age_min} min ago")
-    lines.append(f"stalls : {stalls_total} total, {stalls_recent} new since the last check")
+    # These files are NOT all unrecognised screens, whatever the function that
+    # writes them is called. engine saves one from the stalls>=3 branch, which
+    # fires when the SAME screen is seen three times running - so a screen the
+    # navigator names perfectly lands here too, purely for taking a few passes
+    # to clear. On 2026-09-18 one of these sent me looking for an unknown screen
+    # and it turned out to be the card mini-game, matching at 1.0000.
+    # Run cookierun_match_test.py on the file before assuming it is unknown.
+    lines.append(f"stalls : {stalls_total} total, {stalls_recent} new since the last check"
+                 + ("  (run match_test on it - stuck != unrecognised)" if stalls_recent else ""))
     if fg_win:
         lines.append(f"window : {fg_win}  <-- over the game, Windows side")
     lines.append(f"screen : {fg or 'unknown'}" + ('' if fg in (None, GAME_PKG) else '  <-- NOT the game'))
