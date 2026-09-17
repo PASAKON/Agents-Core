@@ -185,6 +185,96 @@ def clear_foreign_app(fg: str) -> int:
 STALLED_S = 14 * 60
 
 
+# How long a foreign window may sit over the game before we assume it was
+# forgotten rather than being used. Below this, the farm stands down.
+FOREIGN_WINDOW_GRACE_S = 30 * 60
+
+
+def foreign_window_over_game():
+    """(title, is_foreground) of a non-BlueStacks window covering the game.
+
+    Windows-side obstruction is invisible to every other check we have, because
+    they all ask Android -- and Android answers correctly that the game is in
+    the foreground, on the Android side, underneath somebody's browser. That is
+    how five preflights in a row failed on 2026-09-17 while the navigator
+    matched the Result panel at 0.998 and pressed an OK that went into Chrome.
+
+    Foreground matters more than presence. A peer DRIVING a browser keeps it
+    foreground; a window someone forgot to close sits behind. The first must be
+    left alone -- CEO's rule is that Cookie Run yields to other computer-use
+    agents, always -- and the second must not be allowed to park the farm
+    forever, which is exactly what happened when a peer released the screen
+    lease correctly but left a maximised Chrome behind.
+    """
+    import ctypes
+    import ctypes.wintypes
+    u = ctypes.windll.user32
+    fg = u.GetForegroundWindow()
+    found = []
+
+    def title_of(hwnd):
+        n = u.GetWindowTextLengthW(hwnd)
+        if n == 0:
+            return ""
+        buf = ctypes.create_unicode_buffer(n + 1)
+        u.GetWindowTextW(hwnd, buf, n + 1)
+        return buf.value
+
+    def visit(hwnd, _):
+        if not u.IsWindowVisible(hwnd) or u.IsIconic(hwnd):
+            return True
+        t = title_of(hwnd)
+        if not t or "BlueStacks" in t or "Cookie Run Script" in t:
+            return True
+        found.append((t[:50], hwnd == fg))
+        return True
+
+    CB = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM)
+    try:
+        u.EnumWindows(CB(visit), 0)
+    except Exception as e:
+        log(f"foreign_window_over_game failed: {e}")
+        return None
+    if not found:
+        return None
+    for t, is_fg in found:
+        if is_fg:
+            return (t, True)
+    return (found[0][0], False)
+
+
+def minimise_foreign_windows() -> str:
+    """Minimise non-BlueStacks windows. Only ever called on a window that has
+    been sitting there, unused, past the grace -- never on one a peer is
+    driving. Minimise, never close: it belongs to whoever opened it."""
+    import ctypes
+    import ctypes.wintypes
+    u = ctypes.windll.user32
+    touched = []
+
+    def visit(hwnd, _):
+        if not u.IsWindowVisible(hwnd) or u.IsIconic(hwnd):
+            return True
+        n = u.GetWindowTextLengthW(hwnd)
+        if n == 0:
+            return True
+        buf = ctypes.create_unicode_buffer(n + 1)
+        u.GetWindowTextW(hwnd, buf, n + 1)
+        t = buf.value
+        if "BlueStacks" in t or "Cookie Run Script" in t:
+            return True
+        u.ShowWindow(hwnd, 6)
+        touched.append(t[:40])
+        return True
+
+    CB = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM)
+    try:
+        u.EnumWindows(CB(visit), 0)
+    except Exception as e:
+        log(f"minimise_foreign_windows failed: {e}")
+    return ", ".join(touched) if touched else ""
+
+
 def dismiss_windows_dialog() -> bool:
     """Close any Windows credential prompt sitting on top of the game.
 
@@ -260,6 +350,28 @@ def clear_stall_while_alive(age_s: float) -> int:
 
 def start_farm(why: str) -> bool:
     """night + wait for the preflight to clear. Shared by both recovery paths."""
+    # Never start the farm underneath somebody else's window. A bot started
+    # there looks alive, matches every screen, presses confidently and changes
+    # nothing -- the most expensive kind of healthy.
+    fw = foreign_window_over_game()
+    if fw:
+        title, is_fg = fw
+        st = state_get()
+        since = st.get("fwin_since")
+        if not since or st.get("fwin_title") != title:
+            state_set({**st, "fwin_since": time.time(), "fwin_title": title})
+            log(f"a window is over the game ({title}) - standing down, not starting")
+            return False
+        if is_fg or time.time() - since < FOREIGN_WINDOW_GRACE_S:
+            log(f"{title} still over the game - Cookie Run yields, not starting")
+            return False
+        state_set({**st, "fwin_since": None, "fwin_title": None})
+        log(f"minimising forgotten windows after "
+            f"{int((time.time() - since) / 60)} min: {minimise_foreign_windows()}")
+    else:
+        st = state_get()
+        if st.get("fwin_since"):
+            state_set({**st, "fwin_since": None, "fwin_title": None})
     r = pipe("POST", "/run", {"fn": "night", "args": {"rounds": 60}, "who": "revive"})
     if r is None or not r.get("ok", False):
         log(f"start FAILED ({why}): {str(r)[:200]}")
