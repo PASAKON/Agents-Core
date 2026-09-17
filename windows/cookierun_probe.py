@@ -90,6 +90,51 @@ def press_vk(vk: int, times: int = 1) -> None:
     _send(ev)
 
 
+def clear_screen() -> str:
+    """Minimise every visible window that is not BlueStacks, then raise it.
+
+    A peer agent finished with the desktop and released the lease but left a
+    maximised Chrome over the game (2026-09-17). The lease said FREE, the game
+    was invisible, and the preflight dry round that follows a code change could
+    not see a thing. Releasing a lease and clearing the screen are not the same
+    act, and only one of them is enforced.
+
+    Minimise, never close: the window belongs to whoever opened it, and they may
+    still want it. BlueStacks' own windows are matched by title so the player,
+    the keymap overlay and any BlueStacks dialog all survive.
+    """
+    import ctypes.wintypes
+    u = ctypes.windll.user32
+    touched = []
+
+    def visit(hwnd, _):
+        if not u.IsWindowVisible(hwnd) or u.IsIconic(hwnd):
+            return True
+        n = u.GetWindowTextLengthW(hwnd)
+        if n == 0:
+            return True                      # untitled: tray/host windows
+        buf = ctypes.create_unicode_buffer(n + 1)
+        u.GetWindowTextW(hwnd, buf, n + 1)
+        title = buf.value
+        # "Cookie Run Script" is the bot's own app window. Minimising it does not
+        # stop anything (the pipe and supervisor are threads), but a tool that
+        # tidies the desktop should not tidy away the thing it is tidying for.
+        if "BlueStacks" in title or "Cookie Run Script" in title:
+            return True
+        u.ShowWindow(hwnd, 6)                # SW_MINIMIZE
+        touched.append(title[:40])
+        return True
+
+    CB = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM)
+    u.EnumWindows(CB(visit), 0)
+
+    w = core.find_window(core.PLAYER_WINDOW) or core.find_window(core.GAME_WINDOW)
+    if w:
+        u.ShowWindow(w[0], 9)                # SW_RESTORE
+        u.SetForegroundWindow(w[0])
+    return ", ".join(touched) if touched else "nothing to minimise"
+
+
 def main() -> int:
     plan_path, outdir = Path(sys.argv[1]), Path(sys.argv[2])
     outdir.mkdir(parents=True, exist_ok=True)
@@ -122,6 +167,8 @@ def main() -> int:
             core.click(x, y, why=step.get("why", "probe"))
             say(f"[{i}] click ({nx:.4f},{ny:.4f}) -> screen ({x},{y})"
                 f"  {step.get('why', '')}")
+        if "clear_screen" in step:
+            say(f"[{i}] minimised: {clear_screen()}")
         if "vk" in step:
             press_vk(int(step["vk"]), int(step.get("times", 1)))
             say(f"[{i}] vk 0x{int(step['vk']):02X} x{step.get('times', 1)}"
