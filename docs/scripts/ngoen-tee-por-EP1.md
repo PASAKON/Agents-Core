@@ -1,7 +1,15 @@
 # «เงินที่พ่อตั้งใจหา» — EP1 Production Script
 
 Format: Google Flow / Veo 3.1, vertical 9:16, 8-second bricks.
-Runtime: 480s = 8:00 = 60 shots × 8s. No shot exceeds 8 seconds.
+Runtime: 720s = 12:00 = 90 shots × 8s. No shot exceeds 8 seconds.
+
+**v2 (2026-09-17): expanded from 8:00/60 shots to 12:00/90 shots per CEO
+order.** Not a trim, not a split — every added shot carries jeopardy (see
+§8 chain-check appendix). The dead zone the structure audit flagged
+(old shots 3–11) is rebuilt, not padded; the inert payoff reversal (old
+54–55) is fixed by restaging around it, not by rewriting the title line;
+ต้น, ประนอม and เชิด all get more of the episode. Full rationale and the
+six-mark ad-timing map are in §8.
 
 ---
 
@@ -143,94 +151,131 @@ daylight through the open shutter, sharp focus, no legible text anywhere,
 
 ## 3. Scene map
 
-One continuous day, pre-dawn to late night.
+One continuous day, pre-dawn to late night. 12 scenes, 90 shots, 720s.
 
 | # | Scene | Timecode | Shots | For | What changed by the end |
 |---|---|---|---|---|---|
 | 1 | Cold open — the wall | 0:00–0:16 | 1–2 | Wordless hook: father takes a hit, envelope hits ground | Audience knows danger + money are already in motion, before meeting anyone properly |
-| 2 | Morning opens the shop | 0:16–1:04 | 3–8 | Establish daily rhythm, father and son working side by side | Ordinary life established — contrast for later |
-| 3 | Rush, and the phone in his pocket | 1:04–2:00 | 9–15 | Show economic pressure + son's job search running under the surface | Micro-hook: 12th rejection email, father sees, says nothing |
-| 4 | Upstairs, the witness | 2:00–2:56 | 16–22 | Establish grandma as someone who hears everything but can say nothing | Plants the cliffhanger's engine early |
-| 5 | Counting the day | 2:56–4:00 | 23–30 | Father secretly sets aside the bigger pile | Micro-hook: an unmarked envelope, held on |
-| 6 | Dinner rush, a polite man walks in | 4:00–4:48 | 31–36 | Introduce lender in public; politeness as threat | Shop's mood curdles under the son's eyes |
-| 7 | Out back | 4:48–5:36 | 37–42 | Private violence, still quiet-voiced | Son overhears: the debt is four years old |
-| 8 | The number lands | 5:36–6:00 | 43–45 | THE BIG TURN | Son connects: every tuition payment was borrowed |
-| 9 | Give it back | 6:00–7:04 | 46–53 | Son tries to refuse the money | Standoff — father will not take it |
-| 10 | The line, and the noodles | 7:04–7:44 | 54–58 | PAYOFF — theme lands, cost made visible | Envelope is now irreversibly the son's; the debt is never spoken of again |
-| 11 | What the witness reaches for | 7:44–8:00 | 59–60 | CLIFFHANGER (REVELATION) | Grandma, believed to understand nothing, moves toward something hidden — cut to black |
+| 2 | **NEW** — Before dawn, upstairs | 0:16–1:04 | 3–8 | Establish ประนอม and the SECOND debt (her monthly care) before the plot needs her | Audience now holds two financial threats at once: the loan AND her clinic bill — AD MARK 1 lands on the unresolved arithmetic |
+| 3 | Morning opens the shop (rebuilt) | 1:04–3:04 | 9–23 | Ordinary rhythm carries a physical wince-motif + ต้น's own voice + the job-rejection thread, planted earlier and given a second beat | No dead air: every shot in this block now has a live question under it — AD MARK 2 lands on ต้น hiding the rejection from his father |
+| 4 | Upstairs, the witness | 3:04–3:20 | 24–25 | Father's private worry, silent | Contrast beat between the rebuilt morning and the fuller grandma scene that follows |
+| 5 | Upstairs, ประนอม held longer | 3:20–4:24 | 26–33 | Full grandma scene, extended one beat: she holds his sleeve, unwilling to let go | Plants that she wants to say more — paid off at the cliffhanger |
+| 6 | Counting the day (rebuilt) | 4:24–5:52 | 34–44 | Father secretly splits the money three ways — debt, shop, ย่า's clinic; ต้น's suspicion now has a second beat | AD MARK 3 lands on ต้น's own follow-up question, unanswered |
+| 7 | Dinner rush, a polite man walks in (rebuilt) | 5:52–7:04 | 45–53 | เชิด gets an extra beat of public needling before the alley; ต้น gets a line in the rush | AD MARK 4 lands on the door to the alley clicking shut — nothing resolved yet |
+| 8 | Out back (rebuilt) | 7:04–8:24 | 54–63 | เชิด adds ย่า's clinic bill to the threat; ต้น's Big Turn gets a second line of his own | The threat is now personal to the whole family, not just the debt |
+| 9 | The walk back, the witness above | 8:24–8:56 | 64–67 | ประนอม insert: she hears something happened tonight too | Deepens her presence right before the confrontation |
+| 10 | Give it back (rebuilt) | 8:56–9:44 | 68–73 | ต้น pushes harder before naming the truth; standoff escalates | AD MARK 5 lands on the father's frozen hand — the standoff is open, not resolved |
+| 11 | The line, restaged | 9:44–10:16 | 74–77 | Father adds ONE new piece of information before the (unchanged) title line — this is the fix for the inert reversal | The title line now lands as a turn: it was already the last payment, and he still hid that too |
+| 12 | The noodles, and the witness reaches | 10:16–12:00 | 78–90 | PAYOFF settles; ต้น physically accepts the envelope; ประนอม's finale is given real runway | AD MARK 6 lands on her breathed "...เงียบ..." — CLIFFHANGER (REVELATION), fully earned by presence built across the episode |
 
 ---
 
-## 4. Shot table (60 shots)
+## 4. Shot table (90 shots)
 
-Legend: SS = shot size, Cam = camera move, ToD = time of day, Syl = syllable count of the Thai line (SILENT = no dialogue).
+Legend: SS = shot size, Cam = camera move, ToD = time of day, Syl = syllable
+count of the Thai line (SILENT = no dialogue). **NEW** marks a shot with no
+v1 equivalent. **●** marks the six ad-break marks (1:00, 3:00, 5:00, 7:00,
+9:00, 11:00).
 
 | # | Timecode | s | SS | Cam | @handles | Location | ToD | Dialogue (Thai) | Syl | Tone | Sound |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | 0:00–0:08 | 8 | Medium | Static, slight handheld sway | @lung_somchai, @noodle_shop | Side wall, shophouse exterior | Pre-dawn | SILENT | – | Shock, pain | Impact thud, distant traffic hum |
 | 2 | 0:08–0:16 | 8 | Close-up | Static, low angle | @lung_somchai, @noodle_shop | Side wall, shophouse exterior | Pre-dawn | SILENT | – | Fear, resolve | Envelope hitting wet pavement, retreating footsteps |
-| 3 | 0:16–0:24 | 8 | Wide | Slow pan left to right | @noodle_shop | Noodle shop, interior | Morning | SILENT | – | Calm, ordinary | Shutter chain rattling up, birds |
-| 4 | 0:24–0:32 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop | Morning | "สวัสดีครับ นั่งได้เลยครับ" | 8 | Warm, tired | Chair scrape, broth simmer |
-| 5 | 0:32–0:40 | 8 | Close-up | Static, rack focus | @nong_daeng, @noodle_shop | Noodle shop | Morning | SILENT | – | Focused | Ladle against metal, steam hiss |
-| 6 | 0:40–0:48 | 8 | Medium | Slight handheld | @nong_daeng, @noodle_shop | Noodle shop | Morning | "เส้นเล็กหรือเส้นใหญ่ครับ" | 6 | Polite | Kitchen clatter |
-| 7 | 0:48–0:56 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop | Morning | SILENT | – | Tired focus | Knife on board, wok hiss |
-| 8 | 0:56–1:04 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop | Morning | "ต้น เก็บโต๊ะสองทีนึง" | 6 | Brisk | Dish clatter, street murmur |
-| 9 | 1:04–1:12 | 8 | Medium | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop | Morning | "อย่าลืมเติมน้ำซุปด้วยนะ" | 7 | Routine | Broth pouring |
-| 10 | 1:12–1:20 | 8 | Wide | Static, deep focus | @noodle_shop | Street outside shop | Morning | SILENT | – | Bustle | Motorbike engines, vendor cart bell |
-| 11 | 1:20–1:28 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop | Morning | "ขอบคุณครับ แวะมาเรื่อยๆนะ" | 8 | Pleased, weary | Bowl set down, chatter |
-| 12 | 1:28–1:36 | 8 | Close-up | Static | @nong_daeng, @noodle_shop | Noodle shop | Morning | SILENT | – | Tired | Rag on table, phone buzz (muffled) |
-| 13 | 1:36–1:44 | 8 | Close-up | Slow push-in | @nong_daeng, @noodle_shop | Noodle shop | Morning | SILENT | – | Sinking | Ambient shop noise fades slightly |
-| 14 | 1:44–1:52 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop | Morning | SILENT | – | Concealed worry | Wok sizzle continues |
-| 15 | 1:52–2:00 | 8 | Wide | Static, locked-off | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop | Morning | SILENT | – | Quiet tension | Steam hiss, distant traffic |
-| 16 | 2:00–2:08 | 8 | Medium | Handheld, following | @nong_daeng | Narrow staircase | Late morning | SILENT | – | Dutiful | Footsteps on wood, bowl clinking |
-| 17 | 2:08–2:16 | 8 | Medium | Static | @nong_daeng, @grandma_pranom | Upstairs bedroom | Late morning | "ย่า กินข้าวก่อนนะครับ" | 6 | Soft | Spoon against bowl |
-| 18 | 2:16–2:24 | 8 | Close-up | Static | @grandma_pranom | Upstairs bedroom | Late morning | SILENT | – | Alert, trapped | Ceiling fan creak |
-| 19 | 2:24–2:32 | 8 | Close-up | Static, slow push-in | @grandma_pranom | Upstairs bedroom | Late morning | "...ต้น..." | 1 | Trembling | Fan creak, faint shop noise from below |
-| 20 | 2:32–2:40 | 8 | Medium | Static | @nong_daeng, @grandma_pranom | Upstairs bedroom | Late morning | "อร่อยไหมครับย่า" | 5 | Tender | Spoon, breathing |
-| 21 | 2:40–2:48 | 8 | Close-up | Slow tilt down | @grandma_pranom | Upstairs bedroom, floor gap | Late morning | SILENT | – | Listening | Faint clatter rising through the floor |
-| 22 | 2:48–2:56 | 8 | Wide | Static | @nong_daeng, @grandma_pranom | Upstairs bedroom | Late morning | SILENT | – | Gentle, unaware | Curtain shifting in breeze |
-| 23 | 2:56–3:04 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Private focus | Cash drawer, bills rustling |
-| 24 | 3:04–3:12 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Deliberate | Bills counted by hand |
-| 25 | 3:12–3:20 | 8 | Medium | Static | @nong_daeng, @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | "พ่อนับเงินอยู่เหรอ" | 5 | Curious | Fan whirring |
-| 26 | 3:20–3:28 | 8 | Medium | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop, back counter | Afternoon | "เปล่า เช็คยอดเฉยๆ" | 5 | Deflecting, light | Bills stacked quickly |
-| 27 | 3:28–3:36 | 8 | Close-up | Static, rack focus | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Careful | Paper folding sound |
-| 28 | 3:36–3:44 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Quiet resolve | Envelope crease |
-| 29 | 3:44–3:52 | 8 | Medium | Static, over-the-shoulder | @nong_daeng, @noodle_shop | Noodle shop, stairwell view | Afternoon | SILENT | – | Watchful | Distant street traffic |
-| 30 | 3:52–4:00 | 8 | Close-up | Slow push-in | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Held tension | Tin box lid closing softly |
-| 31 | 4:00–4:08 | 8 | Wide | Static, deep focus | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop | Evening | "ลูกชิ้นพิเศษโต๊ะห้า" | 6 | Busy, routine | Full-shop dinner chatter |
-| 32 | 4:08–4:16 | 8 | Medium | Slow dolly in | @lender_cherd, @noodle_shop | Noodle shop, entrance | Evening | SILENT | – | Calm, scanning | Shutter chain, street noise |
-| 33 | 4:16–4:24 | 8 | Medium | Static | @lender_cherd, @lung_somchai, @noodle_shop | Noodle shop | Evening | "สวัสดีครับพี่ชาย มาทานก๋วยเตี๋ยวหน่อย" | 11 | Friendly, chilling | Dinner-rush ambience |
-| 34 | 4:24–4:32 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop | Evening | SILENT | – | Frozen smile | Ambience continues under |
-| 35 | 4:32–4:40 | 8 | Medium | Static | @lung_somchai, @lender_cherd, @noodle_shop | Noodle shop | Evening | "เชิญนั่งก่อนครับ เดี๋ยวผมมา" | 7 | Strained politeness | Bowls clinking |
-| 36 | 4:40–4:48 | 8 | Medium | Handheld | @nong_daeng, @noodle_shop | Noodle shop | Evening | "ครับ เดี๋ยวเอาไปให้ครับ" | 6 | Distracted, polite | Kitchen noise, his own held breath |
-| 37 | 4:48–4:56 | 8 | Wide | Static | @lung_somchai, @lender_cherd | Back alley | Evening | SILENT | – | Grim | Door latch, alley hum |
-| 38 | 4:56–5:04 | 8 | Medium | Static | @lender_cherd, @lung_somchai | Back alley | Evening | "งวดนี้พี่ช้าไปสามวันแล้วนะครับ" | 10 | Calm menace | Distant traffic, insects |
-| 39 | 5:04–5:12 | 8 | Close-up | Static | @lung_somchai, @lender_cherd | Back alley | Evening | "พรุ่งนี้ผมหาให้ครบแน่นอน" | 8 | Pleading control | Same low ambience |
-| 40 | 5:12–5:20 | 8 | Medium | Static, slight handheld shake | @lung_somchai, @lender_cherd | Back alley | Evening | SILENT | – | Pain, restraint | Body against wall, sharp breath |
-| 41 | 5:20–5:28 | 8 | Close-up | Static | @nong_daeng | Back alley doorway | Evening | SILENT | – | Horror, stillness | Bare bulb hum, muffled voices |
-| 42 | 5:28–5:36 | 8 | Medium | Static | @lender_cherd, @lung_somchai | Back alley | Evening | "สี่ปีแล้วนะพี่ ดอกมันไม่รอใคร" | 10 | Pleasant threat | Same low ambience |
-| 43 | 5:36–5:44 | 8 | Close-up | Static, slow push-in | @nong_daeng | Back alley doorway | Evening | "...สี่ปี... ค่าเทอมผม..." | 5 | Trembling whisper | His own breath, distant traffic |
-| 44 | 5:44–5:52 | 8 | Close-up | Static | @nong_daeng | Back alley | Evening | SILENT | – | Reeling | Hand against rough wall, breathing |
-| 45 | 5:52–6:00 | 8 | Wide | Slow dolly back | @nong_daeng, @noodle_shop | Noodle shop, entrance from alley | Evening | SILENT | – | Numb | Dinner rush swelling back in |
-| 46 | 6:00–6:08 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop | Night | "เหนื่อยจัง" | 2 | Exhausted, alone | Wok simmer, empty street |
-| 47 | 6:08–6:16 | 8 | Wide | Static, following | @nong_daeng, @noodle_shop | Noodle shop, staircase | Night | SILENT | – | Resolved | Footsteps down wooden stairs |
-| 48 | 6:16–6:24 | 8 | Medium | Static | @nong_daeng, @lung_somchai, @noodle_shop | Noodle shop, counter | Night | "พ่อ ผมไม่เอาเงินนี้" | 6 | Firm, guilty | Envelope set on counter |
-| 49 | 6:24–6:32 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop, counter | Night | SILENT | – | Tightening | Wok simmer |
-| 50 | 6:32–6:40 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop, counter | Night | "เอาไปเถอะ" | 3 | Quiet refusal | Simmer continues |
-| 51 | 6:40–6:48 | 8 | Medium | Static | @nong_daeng, @noodle_shop | Noodle shop, counter | Night | "ผมรู้เรื่องเชิดแล้ว" | 5 | Breaking control | Silence under his voice |
-| 52 | 6:48–6:56 | 8 | Close-up | Static, slow push-in | @lung_somchai, @noodle_shop | Noodle shop, counter | Night | SILENT | – | Frozen | Steam rising, distant dog bark |
-| 53 | 6:56–7:04 | 8 | Medium | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop, counter | Night | SILENT | – | Held eye contact | Simmer, street quiet |
-| 54 | 7:04–7:12 | 8 | Medium | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop, counter | Night | "เงินนี้พ่อตั้งใจหามาให้ลูก" | 9 | Soft, absolute | Simmer under |
-| 55 | 7:12–7:20 | 8 | Close-up | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop, counter | Night | "ไม่ต้องรู้ว่ามันมาจากไหน แค่ใช้มันให้คุ้ม" | 13 | Tender finality | Simmer under |
-| 56 | 7:20–7:28 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop, wok station | Night | SILENT | – | Composed, cost hidden | Noodles dropped into boiling water |
-| 57 | 7:28–7:36 | 8 | Close-up | Static | @nong_daeng, @noodle_shop | Noodle shop, counter | Night | SILENT | – | Grief, gratitude unspoken | Distant simmer, street quiet |
-| 58 | 7:36–7:44 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop, wok station | Night | "กินก่อนไปสมัครงานนะ" | 7 | Gentle, ordinary | Ladle in broth |
-| 59 | 7:44–7:52 | 8 | Wide | Static | @grandma_pranom | Upstairs bedroom | Late night | SILENT | – | Still | Fan creak, distant street hum |
-| 60 | 7:52–8:00 | 8 | Close-up | Slow push-in | @grandma_pranom | Upstairs bedroom | Late night | SILENT | – | Deliberate, revelation | Fan creak, sheet rustling — cut to black |
+| 3 **NEW** | 0:16–0:24 | 8 | Medium | Handheld, following | @lung_somchai | Narrow staircase | Pre-dawn | SILENT | – | Quiet care | Bare feet on wood, house still |
+| 4 **NEW** | 0:24–0:32 | 8 | Medium | Static | @lung_somchai, @grandma_pranom | Upstairs bedroom | Pre-dawn | SILENT | – | Tender routine | Pill bottle set on tray, fan creak |
+| 5 **NEW** | 0:32–0:40 | 8 | Close-up | Static | @grandma_pranom | Upstairs bedroom | Pre-dawn | "...ลูก..." | 1 | Weak recognition | Breath, fan creak |
+| 6 **NEW** | 0:40–0:48 | 8 | Medium | Static | @lung_somchai, @grandma_pranom | Upstairs bedroom | Pre-dawn | "เดี๋ยวพรุ่งนี้พาไปหาหมอนะแม่" | 9 | Gentle | Blanket pulled up, breath |
+| 7 **NEW** | 0:48–0:56 | 8 | Close-up | Static | @lung_somchai | Upstairs bedroom | Pre-dawn | SILENT | – | Quiet strain | Coins and bills counted softly |
+| 8 **NEW ●** | 0:56–1:04 | 8 | Close-up | Static | @lung_somchai | Upstairs bedroom | Pre-dawn | SILENT | – | Held worry | Fan creak, distant street waking |
+| 9 | 1:04–1:12 | 8 | Wide | Slow pan left to right | @noodle_shop | Noodle shop, interior | Morning | SILENT | – | Calm, ordinary, one wince | Shutter chain rattling up, birds |
+| 10 | 1:12–1:20 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop | Morning | "สวัสดีครับ นั่งได้เลยครับ" | 8 | Warm, tired | Chair scrape, broth simmer |
+| 11 **NEW** | 1:20–1:28 | 8 | Medium | Static | @nong_daeng, @noodle_shop | Noodle shop | Morning | "ส่งใบสมัครไปอีกสองที่เมื่อคืน ยังไม่มีใครติดต่อกลับเลยพ่อ" | 18 | Tired, half-hopeful | Apron strings tied, shop waking |
+| 12 **NEW** | 1:28–1:36 | 8 | Medium | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop | Morning | "ใจเย็นๆ ของแบบนี้ต้องรอ" | 8 | Warm, reassuring | Ladle set down |
+| 13 | 1:36–1:44 | 8 | Close-up | Static, rack focus | @nong_daeng, @noodle_shop | Noodle shop | Morning | SILENT | – | Focused | Ladle against metal, steam hiss |
+| 14 | 1:44–1:52 | 8 | Medium | Slight handheld | @nong_daeng, @noodle_shop | Noodle shop | Morning | "เส้นเล็กหรือเส้นใหญ่ครับ" | 6 | Polite, distracted | Phone buzzing once (muffled), kitchen clatter |
+| 15 | 1:52–2:00 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop | Morning | SILENT | – | Tired focus | Knife on board, wok hiss |
+| 16 | 2:00–2:08 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop | Morning | "ต้น เก็บโต๊ะสองทีนึง" | 6 | Brisk | Dish clatter, street murmur |
+| 17 **NEW** | 2:08–2:16 | 8 | Medium | Handheld | @nong_daeng, @noodle_shop | Noodle shop | Morning | "พ่อสั่งงานเก่งกว่าใครในซอยเลยนะเนี่ย" | 12 | Wry, tired smile | Chair stacked |
+| 18 | 2:16–2:24 | 8 | Medium | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop | Morning | "อย่าลืมเติมน้ำซุปด้วยนะ" | 7 | Routine | Broth pouring |
+| 19 | 2:24–2:32 | 8 | Wide | Static, deep focus | @noodle_shop | Street outside shop | Morning | SILENT | – | Bustle | Motorbike engines, vendor cart bell |
+| 20 | 2:32–2:40 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop | Morning | "ขอบคุณครับ แวะมาเรื่อยๆนะ" | 8 | Pleased, weary | Bowl set down, chatter |
+| 21 | 2:40–2:48 | 8 | Close-up | Static | @nong_daeng, @noodle_shop | Noodle shop | Morning | SILENT | – | Tired | Rag on table, phone glow catching his eye |
+| 22 | 2:48–2:56 | 8 | Close-up | Slow push-in | @nong_daeng, @noodle_shop | Noodle shop | Morning | SILENT | – | Sinking | Ambient shop noise fades slightly |
+| 23 **NEW ●** | 2:56–3:04 | 8 | Close-up | Static | @nong_daeng, @noodle_shop | Noodle shop | Morning | SILENT | – | Withheld, forced calm | Phone screen dimming, dish set down |
+| 24 | 3:04–3:12 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop | Morning | SILENT | – | Concealed worry | Wok sizzle continues |
+| 25 | 3:12–3:20 | 8 | Wide | Static, locked-off | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop | Morning | SILENT | – | Quiet tension | Steam hiss, distant traffic |
+| 26 | 3:20–3:28 | 8 | Medium | Handheld, following | @nong_daeng | Narrow staircase | Late morning | SILENT | – | Dutiful | Footsteps on wood, bowl clinking |
+| 27 | 3:28–3:36 | 8 | Medium | Static | @nong_daeng, @grandma_pranom | Upstairs bedroom | Late morning | "ย่า กินข้าวก่อนนะครับ" | 6 | Soft | Spoon against bowl |
+| 28 | 3:36–3:44 | 8 | Close-up | Static | @grandma_pranom | Upstairs bedroom | Late morning | SILENT | – | Alert, trapped | Ceiling fan creak |
+| 29 | 3:44–3:52 | 8 | Close-up | Static, slow push-in | @grandma_pranom | Upstairs bedroom | Late morning | "...ต้น..." | 1 | Trembling | Fan creak, faint shop noise from below |
+| 30 | 3:52–4:00 | 8 | Medium | Static | @nong_daeng, @grandma_pranom | Upstairs bedroom | Late morning | "อร่อยไหมครับย่า" | 5 | Tender | Spoon, breathing |
+| 31 | 4:00–4:08 | 8 | Close-up | Slow tilt down | @grandma_pranom | Upstairs bedroom, floor gap | Late morning | SILENT | – | Listening | Faint clatter rising through the floor |
+| 32 **NEW** | 4:08–4:16 | 8 | Close-up | Static | @grandma_pranom, @nong_daeng | Upstairs bedroom | Late morning | SILENT | – | Yearning, unable to speak | Fabric of sleeve gripped, breath catching |
+| 33 | 4:16–4:24 | 8 | Wide | Static | @nong_daeng, @grandma_pranom | Upstairs bedroom | Late morning | SILENT | – | Gentle, unaware | Curtain shifting in breeze |
+| 34 | 4:24–4:32 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Private focus | Cash drawer, bills rustling |
+| 35 | 4:32–4:40 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Deliberate | Bills counted by hand |
+| 36 **NEW** | 4:40–4:48 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Quiet burden | A third, smaller stack of bills set apart |
+| 37 | 4:48–4:56 | 8 | Medium | Static | @nong_daeng, @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | "พ่อนับเงินอยู่เหรอ" | 5 | Curious | Fan whirring |
+| 38 **NEW ●** | 4:56–5:04 | 8 | Medium | Static | @nong_daeng, @noodle_shop | Noodle shop, back counter | Afternoon | "มีเก็บเยอะขนาดนี้เลยเหรอพ่อ" | 10 | Half-teasing, genuinely curious | Fan whirring continues |
+| 39 | 5:04–5:12 | 8 | Medium | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop, back counter | Afternoon | "เปล่า เช็คยอดเฉยๆ" | 5 | Deflecting, light | Bills stacked quickly |
+| 40 **NEW** | 5:12–5:20 | 8 | Close-up | Static | @nong_daeng, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Unconvinced, lets it go | Paper sliding under a ledger |
+| 41 | 5:20–5:28 | 8 | Close-up | Static, rack focus | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Careful | Paper folding sound |
+| 42 | 5:28–5:36 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Quiet resolve | Envelope crease |
+| 43 | 5:36–5:44 | 8 | Medium | Static, over-the-shoulder | @nong_daeng, @noodle_shop | Noodle shop, stairwell view | Afternoon | SILENT | – | Watchful | Distant street traffic |
+| 44 | 5:44–5:52 | 8 | Close-up | Slow push-in | @lung_somchai, @noodle_shop | Noodle shop, back counter | Afternoon | SILENT | – | Held tension | Tin box lid closing softly |
+| 45 | 5:52–6:00 | 8 | Wide | Static, deep focus | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop | Evening | "ลูกชิ้นพิเศษโต๊ะห้า" | 6 | Busy, routine | Full-shop dinner chatter |
+| 46 **NEW** | 6:00–6:08 | 8 | Medium | Handheld | @nong_daeng, @noodle_shop | Noodle shop | Evening | "ได้ครับ! เดี๋ยวก่อนนะ" | 6 | Breathless, busy | Bowls juggled, dinner-rush noise |
+| 47 | 6:08–6:16 | 8 | Medium | Slow dolly in | @lender_cherd, @noodle_shop | Noodle shop, entrance | Evening | SILENT | – | Calm, scanning | Shutter chain, street noise |
+| 48 | 6:16–6:24 | 8 | Medium | Static | @lender_cherd, @lung_somchai, @noodle_shop | Noodle shop | Evening | "สวัสดีครับพี่ชาย มาทานก๋วยเตี๋ยวหน่อย" | 11 | Friendly, chilling | Dinner-rush ambience |
+| 49 | 6:24–6:32 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop | Evening | SILENT | – | Frozen smile | Ambience continues under |
+| 50 | 6:32–6:40 | 8 | Medium | Static | @lung_somchai, @lender_cherd, @noodle_shop | Noodle shop | Evening | "เชิญนั่งก่อนครับ เดี๋ยวผมมา" | 7 | Strained politeness | Bowls clinking |
+| 51 | 6:40–6:48 | 8 | Medium | Handheld | @nong_daeng, @noodle_shop | Noodle shop | Evening | "ครับ เดี๋ยวเอาไปให้ครับ" | 6 | Distracted, polite | Kitchen noise, his own held breath |
+| 52 **NEW** | 6:48–6:56 | 8 | Close-up | Static | @lender_cherd, @noodle_shop | Noodle shop | Evening | "ร้านนี้คนแน่นดีนะ...งวดนี้ไม่น่ามีปัญหาอะไรเนอะ" | 15 | Smooth, needling | Ambience under, unbothered |
+| 53 **NEW ●** | 6:56–7:04 | 8 | Wide | Static | @lung_somchai, @lender_cherd | Back alley | Evening | SILENT | – | Grim, unresolved | Door latch, alley hum |
+| 54 | 7:04–7:12 | 8 | Medium | Static | @lender_cherd, @lung_somchai | Back alley | Evening | "งวดนี้พี่ช้าไปสามวันแล้วนะครับ" | 10 | Calm menace | Distant traffic, insects |
+| 55 | 7:12–7:20 | 8 | Close-up | Static | @lung_somchai, @lender_cherd | Back alley | Evening | "พรุ่งนี้ผมหาให้ครบแน่นอน" | 8 | Pleading control | Same low ambience |
+| 56 **NEW** | 7:20–7:28 | 8 | Medium | Static | @lender_cherd, @lung_somchai | Back alley | Evening | "ผมรู้นะว่าที่บ้านพี่มีคนป่วยอยู่ชั้นบน...ค่าหมอเดือนหน้าคงไม่อยากให้สะดุดใช่ไหม" | 22 | Smooth, surgical | Same low ambience |
+| 57 | 7:28–7:36 | 8 | Medium | Static, slight handheld shake | @lung_somchai, @lender_cherd | Back alley | Evening | SILENT | – | Pain, restraint | Body against wall, sharp breath |
+| 58 | 7:36–7:44 | 8 | Close-up | Static | @nong_daeng | Back alley doorway | Evening | SILENT | – | Horror, stillness | Bare bulb hum, muffled voices |
+| 59 | 7:44–7:52 | 8 | Medium | Static | @lender_cherd, @lung_somchai | Back alley | Evening | "สี่ปีแล้วนะพี่ ดอกมันไม่รอใคร" | 10 | Pleasant threat | Same low ambience |
+| 60 | 7:52–8:00 | 8 | Close-up | Static, slow push-in | @nong_daeng | Back alley doorway | Evening | "...สี่ปี... ค่าเทอมผม..." | 5 | Trembling whisper | His own breath, distant traffic |
+| 61 **NEW** | 8:00–8:08 | 8 | Close-up | Static, slow push-in | @nong_daeng | Back alley doorway | Evening | "...ทุกเทอม... พ่อ..." | 4 | Breaking | His own breath catching |
+| 62 | 8:08–8:16 | 8 | Close-up | Static | @nong_daeng | Back alley | Evening | SILENT | – | Reeling | Hand against rough wall, breathing |
+| 63 | 8:16–8:24 | 8 | Wide | Slow dolly back | @nong_daeng, @noodle_shop | Noodle shop, entrance from alley | Evening | SILENT | – | Numb | Dinner rush swelling back in |
+| 64 | 8:24–8:32 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop | Night | "เหนื่อยจัง" | 2 | Exhausted, alone | Wok simmer, empty street |
+| 65 **NEW** | 8:32–8:40 | 8 | Wide | Static | @grandma_pranom | Upstairs bedroom | Night | SILENT | – | Listening, alone | Fan creak, faint voices rising through the floor |
+| 66 | 8:40–8:48 | 8 | Wide | Static, following | @nong_daeng, @noodle_shop | Noodle shop, staircase | Night | SILENT | – | Resolved | Footsteps down wooden stairs |
+| 67 | 8:48–8:56 | 8 | Medium | Static | @nong_daeng, @lung_somchai, @noodle_shop | Noodle shop, counter | Night | "พ่อ ผมไม่เอาเงินนี้" | 6 | Firm, guilty | Envelope set on counter |
+| 68 **●** | 8:56–9:04 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop, counter | Night | SILENT | – | Tightening | Wok simmer |
+| 69 | 9:04–9:12 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop, counter | Night | "เอาไปเถอะ" | 3 | Quiet refusal | Simmer continues |
+| 70 **NEW** | 9:12–9:20 | 8 | Medium | Static | @nong_daeng, @noodle_shop | Noodle shop, counter | Night | "พ่อไม่ต้องปกป้องผมแบบนี้ก็ได้" | 11 | Pleading, angry | Counter edge gripped |
+| 71 | 9:20–9:28 | 8 | Medium | Static | @nong_daeng, @noodle_shop | Noodle shop, counter | Night | "ผมรู้เรื่องเชิดแล้ว" | 5 | Breaking control | Silence under his voice |
+| 72 | 9:28–9:36 | 8 | Close-up | Static, slow push-in | @lung_somchai, @noodle_shop | Noodle shop, counter | Night | SILENT | – | Frozen | Steam rising, distant dog bark |
+| 73 | 9:36–9:44 | 8 | Medium | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop, counter | Night | SILENT | – | Held eye contact | Simmer, street quiet |
+| 74 **NEW** | 9:44–9:52 | 8 | Close-up | Static | @lung_somchai, @noodle_shop | Noodle shop, counter | Night | "งวดนี้...งวดสุดท้ายแล้ว" | 6 | Quiet, relief and grief at once | Pot lid set down softly |
+| 75 **NEW** | 9:52–10:00 | 8 | Close-up | Static | @nong_daeng, @noodle_shop | Noodle shop, counter | Night | SILENT | – | Stunned, re-processing | Simmer under, his own breath |
+| 76 | 10:00–10:08 | 8 | Medium | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop, counter | Night | "เงินนี้พ่อตั้งใจหามาให้ลูก" | 9 | Soft, absolute | Simmer under |
+| 77 | 10:08–10:16 | 8 | Close-up | Static | @lung_somchai, @nong_daeng, @noodle_shop | Noodle shop, counter | Night | "ไม่ต้องรู้ว่ามันมาจากไหน แค่ใช้มันให้คุ้ม" | 13 | Tender finality | Simmer under |
+| 78 | 10:16–10:24 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop, wok station | Night | SILENT | – | Composed, cost hidden | Noodles dropped into boiling water |
+| 79 | 10:24–10:32 | 8 | Close-up | Static | @nong_daeng, @noodle_shop | Noodle shop, counter | Night | SILENT | – | Grief, gratitude unspoken | Distant simmer, street quiet |
+| 80 | 10:32–10:40 | 8 | Medium | Static | @lung_somchai, @noodle_shop | Noodle shop, wok station | Night | "กินก่อนไปสมัครงานนะ" | 7 | Gentle, ordinary | Ladle in broth |
+| 81 **NEW** | 10:40–10:48 | 8 | Close-up | Static | @nong_daeng, @noodle_shop | Noodle shop, counter | Night | SILENT | – | Quiet acceptance | Envelope set down gently on wood |
+| 82 | 10:48–10:56 | 8 | Wide | Static | @grandma_pranom | Upstairs bedroom | Late night | SILENT | – | Still, waiting | Fan creak, distant street hum |
+| 83 **NEW ●** | 10:56–11:04 | 8 | Close-up | Static | @grandma_pranom | Upstairs bedroom | Late night | "...เงียบ..." | 2 | Breathy, testing | Fan creak fading, house gone quiet |
+| 84 **NEW** | 11:04–11:12 | 8 | Close-up | Static | @grandma_pranom | Upstairs bedroom | Late night | SILENT | – | Testing her own strength | Sheet rustling faintly |
+| 85 **NEW** | 11:12–11:20 | 8 | Medium | Static | @grandma_pranom | Upstairs bedroom | Late night | SILENT | – | Effort, resolve | Mattress creaking under weight shift |
+| 86 **NEW** | 11:20–11:28 | 8 | Close-up | Static | @grandma_pranom | Upstairs bedroom | Late night | SILENT | – | Strained breath, undeterred | Quickened breathing |
+| 87 | 11:28–11:36 | 8 | Wide | Static | @grandma_pranom | Upstairs bedroom | Late night | SILENT | – | Deliberate | Sheet sliding |
+| 88 **NEW** | 11:36–11:44 | 8 | Close-up | Static | @grandma_pranom | Upstairs bedroom | Late night | SILENT | – | Focused | Fingers finding fabric edge |
+| 89 **NEW** | 11:44–11:52 | 8 | Close-up | Slow push-in | @grandma_pranom | Upstairs bedroom | Late night | SILENT | – | Clear-eyed, purposeful | Fan creak, held breath |
+| 90 | 11:52–12:00 | 8 | Close-up | Slow push-in | @grandma_pranom | Upstairs bedroom | Late night | SILENT | – | Revelation | Fan creak, sheet rustling — cut to black |
 
 ---
 
-## 5. Veo prompts — all 60 shots
+## 5. Veo prompts — all 90 shots
+
+Shots unchanged from v1 keep their original prompt text verbatim, renumbered.
+New shots are marked **NEW**.
 
 ```
 [SHOT 1 - 8s - 9:16]
@@ -260,31 +305,125 @@ out. No music.
 ```
 
 ```
-[SHOT 3 - 8s - 9:16]
+[SHOT 3 - 8s - 9:16] NEW
+INGREDIENTS: @lung_somchai
+
+Medium shot, handheld, following from behind. A man climbs a narrow wooden
+staircase in bare feet, a small cloth pouch in one hand, moving carefully so
+the steps don't creak. Inside a narrow stairwell of a shophouse, just before
+dawn. A single dim bulb above, the house otherwise dark. Contemporary Thai
+realist drama, shot on 35mm, muted colour.
+Ambient noise: bare feet on wood, the house holding still. No music.
+```
+
+```
+[SHOT 4 - 8s - 9:16] NEW
+INGREDIENTS: @lung_somchai, @grandma_pranom
+
+Medium shot, static camera. A man sits at a bedside and sets small pill
+bottles out on a tray, careful and practiced. An elderly woman in the bed
+stirs, waking slowly. Small upstairs bedroom above the shop, just before
+dawn. Dim lamp light, curtains still dark. Contemporary Thai realist drama,
+shot on 35mm, muted colour.
+Ambient noise: pill bottle set on a tray, ceiling fan creaking. No music.
+```
+
+```
+[SHOT 5 - 8s - 9:16] NEW
+INGREDIENTS: @grandma_pranom
+
+Close-up, static camera. An elderly woman's cloudy eyes focus slowly on the
+man beside her bed, recognition arriving, her lips parting around a single
+weak word. Upstairs bedroom, just before dawn. Dim lamp light. Contemporary
+Thai realist drama, shot on 35mm, muted colour.
+@grandma_pranom speaks in Thai. She says, in Thai: "...ลูก..." weak, recognizing tone.
+Ambient noise: breath, ceiling fan creak. No music.
+```
+
+```
+[SHOT 6 - 8s - 9:16] NEW
+INGREDIENTS: @lung_somchai, @grandma_pranom
+
+Medium shot, static camera. A man pulls a blanket up over an elderly woman's
+shoulders, his voice low and reassuring. Upstairs bedroom, just before dawn.
+Dim lamp light. Contemporary Thai realist drama, shot on 35mm, muted colour.
+@lung_somchai speaks in Thai. He says, in Thai: "เดี๋ยวพรุ่งนี้พาไปหาหมอนะแม่" gentle tone.
+Ambient noise: blanket pulled up, slow breathing. No music.
+```
+
+```
+[SHOT 7 - 8s - 9:16] NEW
+INGREDIENTS: @lung_somchai
+
+Close-up, static camera. A man's hands count a small stack of coins and bills
+into a worn cloth pouch, then add two more folded bills from his own shirt
+pocket. Upstairs bedroom, just before dawn. Dim lamp light. Contemporary Thai
+realist drama, shot on 35mm, muted colour.
+Ambient noise: coins and bills counted softly. No music.
+```
+
+```
+[SHOT 8 - 8s - 9:16] NEW
+INGREDIENTS: @lung_somchai
+
+Close-up, static camera. A man exhales slowly, glancing toward the doorway
+that leads down to the shop, doing arithmetic no one else can see. Upstairs
+bedroom, just before dawn. Dim lamp light. Contemporary Thai realist drama,
+shot on 35mm, muted colour.
+Ambient noise: ceiling fan creak, the street beginning to wake below. No music.
+```
+
+```
+[SHOT 9 - 8s - 9:16]
 INGREDIENTS: @noodle_shop
 
-Wide shot, slow pan left to right. A roll-up shutter is pulled open by an
-unseen hand, morning light flooding into a small noodle shop, steam already
-rising from a soup pot on the cart. Interior of the shop, empty of people,
-early morning. Warm low sun angling through the doorway, soft haze in the
-air. Contemporary Thai realist drama, shot on 35mm, muted colour.
+Wide shot, slow pan left to right. A roll-up shutter is pulled open by a
+man's hand, the last foot lifted with a visible wince quickly smoothed over,
+morning light flooding into a small noodle shop, steam already rising from a
+soup pot on the cart. Interior of the shop, early morning. Warm low sun
+angling through the doorway, soft haze in the air. Contemporary Thai realist
+drama, shot on 35mm, muted colour.
 Ambient noise: shutter chain rattling upward, birds outside. No music.
 ```
 
 ```
-[SHOT 4 - 8s - 9:16]
+[SHOT 10 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Medium shot, static camera. A man in an apron gestures a customer toward an
-empty table with an open palm, smiling. Inside the noodle shop, mid-morning.
-Warm daylight through the open shutter, soft even light. Contemporary Thai
-realist drama, shot on 35mm, muted colour.
+empty table with an open palm, smiling — the smile catches for one frame as
+he turns back toward the kitchen, a hand brushing his side, then it's gone.
+Inside the noodle shop, mid-morning. Warm daylight through the open shutter,
+soft even light. Contemporary Thai realist drama, shot on 35mm, muted colour.
 @lung_somchai speaks in Thai. He says, in Thai: "สวัสดีครับ นั่งได้เลยครับ" warm but tired tone.
 Ambient noise: chair scraping the floor, broth simmering. No music.
 ```
 
 ```
-[SHOT 5 - 8s - 9:16]
+[SHOT 11 - 8s - 9:16] NEW
+INGREDIENTS: @nong_daeng, @noodle_shop
+
+Medium shot, static camera. A young man ties his apron strings behind his
+back, speaking to his father across the counter, tired but trying to sound
+light. Inside the noodle shop, mid-morning. Warm daylight. Contemporary Thai
+realist drama, shot on 35mm, muted colour.
+@nong_daeng speaks in Thai. He says, in Thai: "ส่งใบสมัครไปอีกสองที่เมื่อคืน ยังไม่มีใครติดต่อกลับเลยพ่อ" tired, half-hopeful tone.
+Ambient noise: apron strings tied, shop waking around them. No music.
+```
+
+```
+[SHOT 12 - 8s - 9:16] NEW
+INGREDIENTS: @lung_somchai, @nong_daeng, @noodle_shop
+
+Medium shot, static camera. A man sets down a ladle and glances at his son
+with a small, warm reassurance. Inside the noodle shop, mid-morning. Warm
+daylight. Contemporary Thai realist drama, shot on 35mm, muted colour.
+@lung_somchai speaks in Thai. He says, in Thai: "ใจเย็นๆ ของแบบนี้ต้องรอ" warm, reassuring tone.
+Ambient noise: ladle set down against the counter. No music.
+```
+
+```
+[SHOT 13 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @noodle_shop
 
 Close-up, static camera with a rack focus from the ladle to the bowl. A young
@@ -295,19 +434,20 @@ Ambient noise: ladle scraping metal, steam hissing. No music.
 ```
 
 ```
-[SHOT 6 - 8s - 9:16]
+[SHOT 14 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @noodle_shop
 
 Medium shot, slight handheld movement. A young man leans toward a seated
-customer, asking a question with a small notepad in hand. Inside the noodle
-shop, mid-morning. Warm daylight, soft shadow. Contemporary Thai realist
-drama, shot on 35mm, muted colour.
+customer, asking a question with a small notepad in hand; his phone buzzes
+once in his apron pocket and a flicker crosses his face before he refocuses
+on the customer. Inside the noodle shop, mid-morning. Warm daylight, soft
+shadow. Contemporary Thai realist drama, shot on 35mm, muted colour.
 @nong_daeng speaks in Thai. He says, in Thai: "เส้นเล็กหรือเส้นใหญ่ครับ" polite tone.
-Ambient noise: kitchen clatter, distant chatter. No music.
+Ambient noise: phone buzzing once, muffled, kitchen clatter. No music.
 ```
 
 ```
-[SHOT 7 - 8s - 9:16]
+[SHOT 15 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Close-up, static camera. A man's hands chop roasted pork on a worn wooden
@@ -318,7 +458,7 @@ Ambient noise: knife tapping the board, wok hissing. No music.
 ```
 
 ```
-[SHOT 8 - 8s - 9:16]
+[SHOT 16 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Medium shot, static camera. A man calls out over his shoulder toward the
@@ -330,7 +470,18 @@ Ambient noise: dish clatter, street murmur through the shutter. No music.
 ```
 
 ```
-[SHOT 9 - 8s - 9:16]
+[SHOT 17 - 8s - 9:16] NEW
+INGREDIENTS: @nong_daeng, @noodle_shop
+
+Medium shot, handheld. A young man stacks empty chairs onto a table, calling
+back with a tired, wry half-smile. Inside the noodle shop, mid-morning. Warm
+daylight. Contemporary Thai realist drama, shot on 35mm, muted colour.
+@nong_daeng speaks in Thai. He says, in Thai: "พ่อสั่งงานเก่งกว่าใครในซอยเลยนะเนี่ย" wry, affectionate tone.
+Ambient noise: chair legs stacked on a table. No music.
+```
+
+```
+[SHOT 18 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @nong_daeng, @noodle_shop
 
 Medium two-shot, static camera. A man pours broth into a large pot while
@@ -342,7 +493,7 @@ Ambient noise: broth pouring, kitchen clatter. No music.
 ```
 
 ```
-[SHOT 10 - 8s - 9:16]
+[SHOT 19 - 8s - 9:16]
 INGREDIENTS: @noodle_shop
 
 Wide shot, static camera, deep focus. Motorbikes and a street food cart pass
@@ -353,7 +504,7 @@ Ambient noise: motorbike engines, a vendor cart bell. No music.
 ```
 
 ```
-[SHOT 11 - 8s - 9:16]
+[SHOT 20 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Medium shot, static camera. A man sets down a bowl in front of a seated
@@ -366,7 +517,7 @@ Ambient noise: bowl set on wood, background chatter. No music.
 ```
 
 ```
-[SHOT 12 - 8s - 9:16]
+[SHOT 21 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @noodle_shop
 
 Close-up, static camera. A young man's hand wipes down a table with a damp
@@ -377,7 +528,7 @@ Ambient noise: rag against wood, a muffled phone buzz. No music.
 ```
 
 ```
-[SHOT 13 - 8s - 9:16]
+[SHOT 22 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @noodle_shop
 
 Close-up, slow push-in. A young man's face falls as he reads something on
@@ -389,7 +540,19 @@ Ambient noise: shop ambience thinning under him. No music.
 ```
 
 ```
-[SHOT 14 - 8s - 9:16]
+[SHOT 23 - 8s - 9:16] NEW
+INGREDIENTS: @nong_daeng, @noodle_shop
+
+Close-up, static camera. A young man's thumb hovers over the dimming phone
+screen, glancing toward his father across the room — then he pockets it,
+forcing his face neutral as a customer calls for the bill. Behind the counter
+of the noodle shop, late morning. Warm daylight. Contemporary Thai realist
+drama, shot on 35mm, muted colour.
+Ambient noise: phone screen dimming, a dish set down nearby. No music.
+```
+
+```
+[SHOT 24 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Close-up, static camera. A man glances up from the wok, catching sight of his
@@ -401,7 +564,7 @@ Ambient noise: wok sizzle continuing under him. No music.
 ```
 
 ```
-[SHOT 15 - 8s - 9:16]
+[SHOT 25 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @nong_daeng, @noodle_shop
 
 Wide shot, locked-off camera. A man and a younger man work at opposite ends
@@ -412,7 +575,7 @@ Ambient noise: steam hiss, distant traffic. No music.
 ```
 
 ```
-[SHOT 16 - 8s - 9:16]
+[SHOT 26 - 8s - 9:16]
 INGREDIENTS: @nong_daeng
 
 Medium shot, handheld, following from behind. A young man climbs a narrow
@@ -424,7 +587,7 @@ Ambient noise: footsteps on creaking wood, faint clinking bowl. No music.
 ```
 
 ```
-[SHOT 17 - 8s - 9:16]
+[SHOT 27 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @grandma_pranom
 
 Medium shot, static camera. A young man sits at a bedside, spooning porridge
@@ -436,7 +599,7 @@ Ambient noise: spoon against ceramic bowl. No music.
 ```
 
 ```
-[SHOT 18 - 8s - 9:16]
+[SHOT 28 - 8s - 9:16]
 INGREDIENTS: @grandma_pranom
 
 Close-up, static camera. An elderly woman's eyes track slowly across the room,
@@ -447,7 +610,7 @@ Ambient noise: ceiling fan creaking. No music.
 ```
 
 ```
-[SHOT 19 - 8s - 9:16]
+[SHOT 29 - 8s - 9:16]
 INGREDIENTS: @grandma_pranom
 
 Close-up, slow push-in. An elderly woman strains to speak, her mouth
@@ -459,7 +622,7 @@ Ambient noise: fan creak, faint shop noise rising from below. No music.
 ```
 
 ```
-[SHOT 20 - 8s - 9:16]
+[SHOT 30 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @grandma_pranom
 
 Medium shot, static camera. A young man smiles gently and wipes a drop from
@@ -471,7 +634,7 @@ Ambient noise: spoon set down, quiet breathing. No music.
 ```
 
 ```
-[SHOT 21 - 8s - 9:16]
+[SHOT 31 - 8s - 9:16]
 INGREDIENTS: @grandma_pranom
 
 Close-up, slow tilt down toward the floorboards. An elderly woman's gaze
@@ -483,18 +646,30 @@ Ambient noise: faint clatter and voices rising from the shop below. No music.
 ```
 
 ```
-[SHOT 22 - 8s - 9:16]
+[SHOT 32 - 8s - 9:16] NEW
+INGREDIENTS: @grandma_pranom, @nong_daeng
+
+Close-up, static camera. An elderly woman's thin fingers close around a young
+man's sleeve as he starts to rise, gripping a beat longer than she needs to,
+her breath catching as if there's more she wants to say. Upstairs bedroom,
+early afternoon. Soft filtered light. Contemporary Thai realist drama, shot
+on 35mm, muted colour.
+Ambient noise: fabric gripped, a catch of breath. No music.
+```
+
+```
+[SHOT 33 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @grandma_pranom
 
-Wide shot, static camera. A young man sits quietly beside the bed for a
-moment, then rises and gathers the empty bowl to leave. Upstairs bedroom,
-early afternoon. Soft light through a shifting curtain. Contemporary Thai
-realist drama, shot on 35mm, muted colour.
+Wide shot, static camera. A young man gently pats an elderly woman's hand,
+easing his sleeve free with care, then rises and gathers the empty bowl to
+leave. Upstairs bedroom, early afternoon. Soft light through a shifting
+curtain. Contemporary Thai realist drama, shot on 35mm, muted colour.
 Ambient noise: curtain shifting in the breeze, floor creak. No music.
 ```
 
 ```
-[SHOT 23 - 8s - 9:16]
+[SHOT 34 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Medium shot, static camera. A man sits alone at the back counter with a small
@@ -505,7 +680,7 @@ Ambient noise: bills rustling, distant fan. No music.
 ```
 
 ```
-[SHOT 24 - 8s - 9:16]
+[SHOT 35 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Close-up, static camera. A man's hands separate a stack of bills into two
@@ -516,7 +691,18 @@ Ambient noise: bills being counted and stacked. No music.
 ```
 
 ```
-[SHOT 25 - 8s - 9:16]
+[SHOT 36 - 8s - 9:16] NEW
+INGREDIENTS: @lung_somchai, @noodle_shop
+
+Close-up, static camera. A man's hands set apart a third, smaller stack of
+bills, folding it differently from the other two before tucking it aside.
+Back counter of the noodle shop, afternoon lull. Soft warm light. Contemporary
+Thai realist drama, shot on 35mm, muted colour.
+Ambient noise: bills folded and set down quietly. No music.
+```
+
+```
+[SHOT 37 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @lung_somchai, @noodle_shop
 
 Medium shot, static camera. A young man leans against the doorway to the back
@@ -528,7 +714,19 @@ Ambient noise: ceiling fan whirring. No music.
 ```
 
 ```
-[SHOT 26 - 8s - 9:16]
+[SHOT 38 - 8s - 9:16] NEW
+INGREDIENTS: @nong_daeng, @noodle_shop
+
+Medium shot, static camera. A young man tilts his head, one eyebrow raised,
+half-teasing but genuinely curious, waiting on an answer. Back counter of the
+noodle shop, afternoon lull. Soft warm light. Contemporary Thai realist
+drama, shot on 35mm, muted colour.
+@nong_daeng speaks in Thai. He says, in Thai: "มีเก็บเยอะขนาดนี้เลยเหรอพ่อ" half-teasing, curious tone.
+Ambient noise: ceiling fan whirring continues. No music.
+```
+
+```
+[SHOT 39 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @nong_daeng, @noodle_shop
 
 Medium shot, static camera. A man quickly stacks the bills together and slides
@@ -540,7 +738,18 @@ Ambient noise: bills stacked quickly, paper sliding. No music.
 ```
 
 ```
-[SHOT 27 - 8s - 9:16]
+[SHOT 40 - 8s - 9:16] NEW
+INGREDIENTS: @nong_daeng, @noodle_shop
+
+Close-up, static camera. A young man's eyes linger on the ledger book a beat
+too long, unconvinced but choosing to let it go, and turns back toward the
+dining room. Back counter of the noodle shop, afternoon lull. Soft warm
+light. Contemporary Thai realist drama, shot on 35mm, muted colour.
+Ambient noise: paper sliding under a ledger. No music.
+```
+
+```
+[SHOT 41 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Close-up, static camera with a rack focus onto the hands. A man's hands fold
@@ -551,7 +760,7 @@ Ambient noise: paper folding. No music.
 ```
 
 ```
-[SHOT 28 - 8s - 9:16]
+[SHOT 42 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Close-up, static camera. A man presses a firm crease into the folded envelope
@@ -562,7 +771,7 @@ Ambient noise: envelope crease, quiet room tone. No music.
 ```
 
 ```
-[SHOT 29 - 8s - 9:16]
+[SHOT 43 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @noodle_shop
 
 Medium shot, over-the-shoulder from the stairwell. A young man watches from
@@ -573,7 +782,7 @@ Ambient noise: distant street traffic. No music.
 ```
 
 ```
-[SHOT 30 - 8s - 9:16]
+[SHOT 44 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Close-up, slow push-in. A man tucks the envelope into a small tin box on a
@@ -584,7 +793,7 @@ Ambient noise: tin lid closing softly. No music.
 ```
 
 ```
-[SHOT 31 - 8s - 9:16]
+[SHOT 45 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @nong_daeng, @noodle_shop
 
 Wide shot, static camera, deep focus. A man and a younger man move quickly
@@ -596,7 +805,18 @@ Ambient noise: full dinner-rush chatter and clatter. No music.
 ```
 
 ```
-[SHOT 32 - 8s - 9:16]
+[SHOT 46 - 8s - 9:16] NEW
+INGREDIENTS: @nong_daeng, @noodle_shop
+
+Medium shot, handheld. A young man juggles two bowls, calling back over the
+noise without breaking stride. Inside the crowded noodle shop, early evening.
+Warm bulb light. Contemporary Thai realist drama, shot on 35mm, muted colour.
+@nong_daeng speaks in Thai. He says, in Thai: "ได้ครับ! เดี๋ยวก่อนนะ" breathless, busy tone.
+Ambient noise: bowls juggled, dinner-rush noise swelling. No music.
+```
+
+```
+[SHOT 47 - 8s - 9:16]
 INGREDIENTS: @lender_cherd, @noodle_shop
 
 Medium shot, slow dolly in. A well-dressed man steps through the open
@@ -607,7 +827,7 @@ Ambient noise: shutter chain, street noise briefly louder as he enters. No music
 ```
 
 ```
-[SHOT 33 - 8s - 9:16]
+[SHOT 48 - 8s - 9:16]
 INGREDIENTS: @lender_cherd, @lung_somchai, @noodle_shop
 
 Medium shot, static camera. A well-dressed man greets a man in an apron with
@@ -619,7 +839,7 @@ Ambient noise: dinner-rush ambience continuing. No music.
 ```
 
 ```
-[SHOT 34 - 8s - 9:16]
+[SHOT 49 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Close-up, static camera. A man's warm smile freezes for a beat before he
@@ -630,7 +850,7 @@ Ambient noise: shop ambience continuing under him. No music.
 ```
 
 ```
-[SHOT 35 - 8s - 9:16]
+[SHOT 50 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @lender_cherd, @noodle_shop
 
 Medium shot, static camera. A man gestures a well-dressed customer toward a
@@ -642,7 +862,7 @@ Ambient noise: bowls clinking nearby. No music.
 ```
 
 ```
-[SHOT 36 - 8s - 9:16]
+[SHOT 51 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @noodle_shop
 
 Medium shot, handheld. A young man, bowl in hand, glances across the crowded
@@ -654,7 +874,19 @@ Ambient noise: kitchen noise, his own breath held. No music.
 ```
 
 ```
-[SHOT 37 - 8s - 9:16]
+[SHOT 52 - 8s - 9:16] NEW
+INGREDIENTS: @lender_cherd, @noodle_shop
+
+Close-up, static camera. A well-dressed man sits unhurried at his table,
+scanning the crowded room with quiet approval, speaking as if to no one in
+particular. Inside the noodle shop, early evening. Warm bulb light. Contemporary
+Thai realist drama, shot on 35mm, muted colour.
+@lender_cherd speaks in Thai. He says, in Thai: "ร้านนี้คนแน่นดีนะ...งวดนี้ไม่น่ามีปัญหาอะไรเนอะ" smooth, needling tone.
+Ambient noise: dinner-rush ambience continuing under him, unbothered. No music.
+```
+
+```
+[SHOT 53 - 8s - 9:16] NEW
 INGREDIENTS: @lung_somchai, @lender_cherd
 
 Wide shot, static camera. A man leads a well-dressed man out through a rear
@@ -665,7 +897,7 @@ Ambient noise: door latch, alley ambience, distant insects. No music.
 ```
 
 ```
-[SHOT 38 - 8s - 9:16]
+[SHOT 54 - 8s - 9:16]
 INGREDIENTS: @lender_cherd, @lung_somchai
 
 Medium shot, static camera. A well-dressed man speaks quietly and evenly,
@@ -677,7 +909,7 @@ Ambient noise: distant traffic, insects. No music.
 ```
 
 ```
-[SHOT 39 - 8s - 9:16]
+[SHOT 55 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @lender_cherd
 
 Close-up, static camera. A man's face strains to stay composed, his hands
@@ -689,7 +921,19 @@ Ambient noise: same low alley ambience. No music.
 ```
 
 ```
-[SHOT 40 - 8s - 9:16]
+[SHOT 56 - 8s - 9:16] NEW
+INGREDIENTS: @lender_cherd, @lung_somchai
+
+Medium shot, static camera. A well-dressed man tilts his head slightly,
+voice still even, delivering something far more pointed than his posture
+suggests. Back alley behind the shophouse, early evening. Single bare bulb
+overhead. Contemporary Thai realist drama, shot on 35mm, desaturated colour.
+@lender_cherd speaks in Thai. He says, in Thai: "ผมรู้นะว่าที่บ้านพี่มีคนป่วยอยู่ชั้นบน...ค่าหมอเดือนหน้าคงไม่อยากให้สะดุดใช่ไหม" smooth, surgical tone.
+Ambient noise: same low alley ambience. No music.
+```
+
+```
+[SHOT 57 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @lender_cherd
 
 Medium shot, static camera with a slight handheld shake. A well-dressed man's
@@ -701,7 +945,7 @@ Ambient noise: body against wall, sharp intake of breath. No music.
 ```
 
 ```
-[SHOT 41 - 8s - 9:16]
+[SHOT 58 - 8s - 9:16]
 INGREDIENTS: @nong_daeng
 
 Close-up, static camera. A young man stands frozen at a doorway, lit by a
@@ -712,7 +956,7 @@ Ambient noise: bulb hum, muffled voices nearby. No music.
 ```
 
 ```
-[SHOT 42 - 8s - 9:16]
+[SHOT 59 - 8s - 9:16]
 INGREDIENTS: @lender_cherd, @lung_somchai
 
 Medium shot, static camera. A well-dressed man straightens the collar he has
@@ -724,7 +968,7 @@ Ambient noise: same low alley ambience. No music.
 ```
 
 ```
-[SHOT 43 - 8s - 9:16]
+[SHOT 60 - 8s - 9:16]
 INGREDIENTS: @nong_daeng
 
 Close-up, slow push-in. A young man's lips part, his eyes fixed on nothing,
@@ -736,7 +980,19 @@ Ambient noise: his own breath, distant traffic. No music.
 ```
 
 ```
-[SHOT 44 - 8s - 9:16]
+[SHOT 61 - 8s - 9:16] NEW
+INGREDIENTS: @nong_daeng
+
+Close-up, slow push-in continues. A young man's voice catches, the arithmetic
+completing itself against his will, his eyes filling. Back alley doorway
+behind the shophouse, early evening. Harsh single bulb light. Contemporary
+Thai realist drama, shot on 35mm, desaturated colour.
+@nong_daeng speaks in Thai. He says, in Thai: "...ทุกเทอม... พ่อ..." breaking, whispering tone.
+Ambient noise: his own breath catching. No music.
+```
+
+```
+[SHOT 62 - 8s - 9:16]
 INGREDIENTS: @nong_daeng
 
 Close-up, static camera. A young man presses one hand flat against the rough
@@ -747,7 +1003,7 @@ Ambient noise: heavy breathing, distant traffic. No music.
 ```
 
 ```
-[SHOT 45 - 8s - 9:16]
+[SHOT 63 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @noodle_shop
 
 Wide shot, slow dolly back. A young man steps back through the rear doorway
@@ -759,7 +1015,7 @@ Ambient noise: dinner-rush noise swelling back in around him. No music.
 ```
 
 ```
-[SHOT 46 - 8s - 9:16]
+[SHOT 64 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Medium shot, static camera. A man stands alone at the wok station after
@@ -772,7 +1028,19 @@ Ambient noise: wok simmer, empty street outside. No music.
 ```
 
 ```
-[SHOT 47 - 8s - 9:16]
+[SHOT 65 - 8s - 9:16] NEW
+INGREDIENTS: @grandma_pranom
+
+Wide shot, static camera. An elderly woman lies alone in a dark bedroom, her
+head tilted slightly toward the floor, listening to faint voices rising
+through the boards below. Upstairs bedroom, night. Near-darkness, thin
+streaks of streetlight. Contemporary Thai realist drama, shot on 35mm,
+desaturated colour.
+Ambient noise: ceiling fan creaking, faint voices rising through the floor. No music.
+```
+
+```
+[SHOT 66 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @noodle_shop
 
 Wide shot, static camera, following. A young man descends the narrow
@@ -783,7 +1051,7 @@ Ambient noise: footsteps on wooden stairs. No music.
 ```
 
 ```
-[SHOT 48 - 8s - 9:16]
+[SHOT 67 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @lung_somchai, @noodle_shop
 
 Medium shot, static camera. A young man sets an envelope down firmly on the
@@ -795,7 +1063,7 @@ Ambient noise: envelope set on wood, wok simmer. No music.
 ```
 
 ```
-[SHOT 49 - 8s - 9:16]
+[SHOT 68 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Close-up, static camera. A man's shoulders tighten, his hand pausing over
@@ -806,7 +1074,7 @@ Ambient noise: wok simmer continuing. No music.
 ```
 
 ```
-[SHOT 50 - 8s - 9:16]
+[SHOT 69 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Close-up, static camera. A man speaks quietly without turning from the pot,
@@ -817,7 +1085,19 @@ Ambient noise: simmer continuing under him. No music.
 ```
 
 ```
-[SHOT 51 - 8s - 9:16]
+[SHOT 70 - 8s - 9:16] NEW
+INGREDIENTS: @nong_daeng, @noodle_shop
+
+Medium shot, static camera. A young man steps closer, gripping the edge of
+the counter, his voice tightening further, pleading now more than accusing.
+Counter of the noodle shop, late night. Single overhead bulb. Contemporary
+Thai realist drama, shot on 35mm, muted colour.
+@nong_daeng speaks in Thai. He says, in Thai: "พ่อไม่ต้องปกป้องผมแบบนี้ก็ได้" pleading, angry tone.
+Ambient noise: counter edge gripped. No music.
+```
+
+```
+[SHOT 71 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @noodle_shop
 
 Medium shot, static camera. A young man's voice rises, his control breaking,
@@ -829,7 +1109,7 @@ Ambient noise: near silence under his voice. No music.
 ```
 
 ```
-[SHOT 52 - 8s - 9:16]
+[SHOT 72 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Close-up, slow push-in. A man's hand goes still over the simmering pot, steam
@@ -840,7 +1120,7 @@ Ambient noise: steam rising, a distant dog barking. No music.
 ```
 
 ```
-[SHOT 53 - 8s - 9:16]
+[SHOT 73 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @nong_daeng, @noodle_shop
 
 Medium two-shot, static camera. A man turns slowly from the wok to face his
@@ -851,7 +1131,31 @@ Ambient noise: simmer fading, street gone quiet. No music.
 ```
 
 ```
-[SHOT 54 - 8s - 9:16]
+[SHOT 74 - 8s - 9:16] NEW
+INGREDIENTS: @lung_somchai, @noodle_shop
+
+Close-up, static camera. A man sets a pot lid down with quiet deliberateness,
+his face unreadable — relief and grief arriving at once — before he speaks,
+almost as much to himself as to his son. Counter of the noodle shop, late
+night. Single overhead bulb. Contemporary Thai realist drama, shot on 35mm,
+muted colour.
+@lung_somchai speaks in Thai. He says, in Thai: "งวดนี้...งวดสุดท้ายแล้ว" quiet, relief-and-grief tone.
+Ambient noise: pot lid set down softly. No music.
+```
+
+```
+[SHOT 75 - 8s - 9:16] NEW
+INGREDIENTS: @nong_daeng, @noodle_shop
+
+Close-up, static camera. A young man's face goes still, the new information
+landing somewhere he wasn't braced for, his mouth opening slightly with
+nothing to say yet. Counter of the noodle shop, late night. Single overhead
+bulb. Contemporary Thai realist drama, shot on 35mm, muted colour.
+Ambient noise: simmer under him, his own breath. No music.
+```
+
+```
+[SHOT 76 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @nong_daeng, @noodle_shop
 
 Medium shot, static camera. A man presses the envelope firmly back into his
@@ -863,7 +1167,7 @@ Ambient noise: simmer continuing under him. No music.
 ```
 
 ```
-[SHOT 55 - 8s - 9:16]
+[SHOT 77 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @nong_daeng, @noodle_shop
 
 Close-up, static camera on both faces in profile. A man holds his son's
@@ -875,7 +1179,7 @@ Ambient noise: simmer under them. No music.
 ```
 
 ```
-[SHOT 56 - 8s - 9:16]
+[SHOT 78 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Medium shot, static camera. A man turns back to the wok station and drops a
@@ -887,7 +1191,7 @@ Ambient noise: noodles dropping into boiling water. No music.
 ```
 
 ```
-[SHOT 57 - 8s - 9:16]
+[SHOT 79 - 8s - 9:16]
 INGREDIENTS: @nong_daeng, @noodle_shop
 
 Close-up, static camera. A young man stands alone at the counter, envelope
@@ -898,7 +1202,7 @@ Ambient noise: distant simmer, street gone quiet. No music.
 ```
 
 ```
-[SHOT 58 - 8s - 9:16]
+[SHOT 80 - 8s - 9:16]
 INGREDIENTS: @lung_somchai, @noodle_shop
 
 Medium shot, static camera. A man ladles broth into a bowl without turning
@@ -910,25 +1214,119 @@ Ambient noise: ladle in broth. No music.
 ```
 
 ```
-[SHOT 59 - 8s - 9:16]
+[SHOT 81 - 8s - 9:16] NEW
+INGREDIENTS: @nong_daeng, @noodle_shop
+
+Close-up, static camera. A young man sets the envelope down gently on the
+wood counter beside him, no longer holding it away from himself — a small,
+quiet act of acceptance. Counter of the noodle shop, late night. Single
+overhead bulb. Contemporary Thai realist drama, shot on 35mm, muted colour.
+Ambient noise: envelope set down gently on wood. No music.
+```
+
+```
+[SHOT 82 - 8s - 9:16]
 INGREDIENTS: @grandma_pranom
 
 Wide shot, static camera. An elderly woman lies still in a dark bedroom,
-faint light through window slats crossing the bed, her breathing slow and
-even. Upstairs bedroom, late night. Near-darkness, thin streaks of streetlight.
+faint light through window slats crossing the bed, her eyes open, waiting.
+Upstairs bedroom, late night. Near-darkness, thin streaks of streetlight.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour.
 Ambient noise: ceiling fan creaking, distant street hum. No music.
 ```
 
 ```
-[SHOT 60 - 8s - 9:16]
+[SHOT 83 - 8s - 9:16] NEW
 INGREDIENTS: @grandma_pranom
 
-Close-up, slow push-in. An elderly woman's eyes open slowly in the dark, deliberate and
-clear, and her hand begins to move across the sheet toward the edge of her
-pillow. Upstairs bedroom, late night. Near-darkness, a single streak of
-streetlight crossing her face. Contemporary Thai realist drama, shot on
-35mm, desaturated colour. Cut to black before her hand reaches its target.
+Close-up, static camera. An elderly woman's eyes shift toward the doorway,
+listening as the last sounds from the shop below fade out. Her lips move
+around a single breathy word, testing the silence. Upstairs bedroom, late
+night. Near-darkness, a single streak of streetlight crossing her face.
+Contemporary Thai realist drama, shot on 35mm, desaturated colour.
+@grandma_pranom speaks in Thai. She says, in Thai: "...เงียบ..." breathy, testing tone.
+Ambient noise: fan creak fading, the house gone quiet. No music.
+```
+
+```
+[SHOT 84 - 8s - 9:16] NEW
+INGREDIENTS: @grandma_pranom
+
+Close-up, static camera. An elderly woman's hand twitches against the
+bedsheet, then flattens deliberately, testing her own strength for the first
+time. Upstairs bedroom, late night. Near-darkness, a single streak of
+streetlight. Contemporary Thai realist drama, shot on 35mm, desaturated
+colour.
+Ambient noise: sheet rustling faintly. No music.
+```
+
+```
+[SHOT 85 - 8s - 9:16] NEW
+INGREDIENTS: @grandma_pranom
+
+Medium shot, static camera. An elderly woman pushes herself up slightly onto
+one elbow, more effort and movement than she has shown all episode. Upstairs
+bedroom, late night. Near-darkness, a single streak of streetlight. Contemporary
+Thai realist drama, shot on 35mm, desaturated colour.
+Ambient noise: mattress creaking under the weight shift. No music.
+```
+
+```
+[SHOT 86 - 8s - 9:16] NEW
+INGREDIENTS: @grandma_pranom
+
+Close-up, static camera. An elderly woman's breathing quickens with the
+effort, a wince crossing her face — she does not stop. Upstairs bedroom,
+late night. Near-darkness, a single streak of streetlight. Contemporary Thai
+realist drama, shot on 35mm, desaturated colour.
+Ambient noise: quickened breathing. No music.
+```
+
+```
+[SHOT 87 - 8s - 9:16]
+INGREDIENTS: @grandma_pranom
+
+Wide shot, static camera. An elderly woman's eyes open wider in the dark,
+deliberate and clear, and her hand begins to move across the sheet toward the
+edge of her pillow. Upstairs bedroom, late night. Near-darkness, a single
+streak of streetlight crossing her face. Contemporary Thai realist drama,
+shot on 35mm, desaturated colour.
+Ambient noise: sheet sliding. No music.
+```
+
+```
+[SHOT 88 - 8s - 9:16] NEW
+INGREDIENTS: @grandma_pranom
+
+Close-up, static camera. An elderly woman's fingers find the edge of
+something hidden beneath the pillow's edge, fabric or a firm corner, unseen
+in full. Upstairs bedroom, late night. Near-darkness, a single streak of
+streetlight. Contemporary Thai realist drama, shot on 35mm, desaturated
+colour.
+Ambient noise: fingers finding a fabric edge. No music.
+```
+
+```
+[SHOT 89 - 8s - 9:16] NEW
+INGREDIENTS: @grandma_pranom
+
+Close-up, slow push-in. An elderly woman's face, for the first time all
+episode, reads decisive rather than helpless — clear-eyed, purposeful.
+Upstairs bedroom, late night. Near-darkness, a single streak of streetlight
+crossing her face. Contemporary Thai realist drama, shot on 35mm, desaturated
+colour.
+Ambient noise: ceiling fan creak, her breath held. No music.
+```
+
+```
+[SHOT 90 - 8s - 9:16]
+INGREDIENTS: @grandma_pranom
+
+Close-up, slow push-in. An elderly woman's hand closes around the hidden
+object, beginning to pull it free. Upstairs bedroom, late night. Near-darkness,
+a single streak of streetlight crossing her face. Contemporary Thai realist
+drama, shot on 35mm, desaturated colour. Cut to black before her hand reaches
+its target.
 Ambient noise: fan creak, sheet rustling. No music.
 ```
 
@@ -939,17 +1337,18 @@ carrying weight by episode 5.
 
 ---
 
-## 6. Continuity audit
+## 6. Continuity audit (v2)
 
-Violations found during drafting, and the fix applied — nothing below reached
-the final shot list unfixed:
+Violations found during drafting, and the fix applied — nothing below
+reached the final shot list unfixed. Items 1–13 are carried over from v1
+(still true after renumbering); items 14–19 are new to the expansion.
 
 1. **On-screen text risk — the envelope's name.** The brief calls for "an
    envelope with the son's name on it." Legible handwriting is on-screen text,
    which Veo renders unreliably and the template forbids outright. Fix: the
    envelope stays unmarked. The meaning — "this one is for you" — is carried
    entirely by father's action of visibly separating the larger pile (shots
-   23–30) and by his line at the payoff ("เงินนี้พ่อตั้งใจหามาให้ลูก", shot 54). No
+   34–44) and by his line at the payoff ("เงินนี้พ่อตั้งใจหามาให้ลูก", shot 76). No
    story meaning is lost; the visual promise is fulfilled without text.
 2. **On-screen text risk — the shop's menu board.** The `@noodle_shop`
    Ingredient originally described "hand-written menu boards." Even
@@ -958,14 +1357,14 @@ the final shot list unfixed:
    menu board with worn, illegible lettering" and the Ingredient reference
    prompt explicitly states "no legible text anywhere."
 3. **Flashback risk — the tuition-payment memory.** A flashback insert was
-   considered for shot 44 (a younger version of father and son, four years
+   considered for shot 62 (a younger version of father and son, four years
    ago, signing enrollment paperwork). Cut it: Flow has no de-aging control,
    and a "younger" wardrobe/face for either character would break the single
    locked APPEARANCE LOCK per Ingredient and drift the reference. Fix:
-   replaced with a present-tense reaction shot (44, son steadying himself
-   against a wall) preceded by a confirming whispered line (43, "...สี่ปี...
-   ค่าเทอมผม...") that lands the Big Turn without ever needing a second face for
-   either character.
+   replaced with a present-tense reaction shot (62, son steadying himself
+   against a wall) preceded by two confirming whispered lines (60–61,
+   "...สี่ปี... ค่าเทอมผม..." / "...ทุกเทอม... พ่อ...") that land the Big Turn without
+   ever needing a second face for either character.
 4. **Character visible without an Ingredient tag — the attacker in the HOOK.**
    Shots 1–2 needed a stranger's stakes to land in 3 seconds without showing
    the lender's face, per the brief. An unnamed body or silhouette that reads
@@ -974,7 +1373,7 @@ the final shot list unfixed:
    arm doing the shoving, retreating footsteps — so no character beyond
    `@lung_somchai` is "visible" in the sense the rule means, and no
    Ingredient is owed for someone the audience is never meant to identify yet.
-5. **Misattributed dialogue caught during drafting (shot 11).** An early draft
+5. **Misattributed dialogue caught during drafting (shot 20).** An early draft
    put a customer's compliment line directly in `@lung_somchai`'s mouth
    ("ร้านลุงอร่อยเหมือนเดิมเลย" — "your shop is still as good as ever," which is
    grammatically the customer speaking about the shop, not the owner). Since
@@ -984,56 +1383,348 @@ the final shot list unfixed:
    for coming back), with the customer's compliment implied rather than
    quoted.
 6. **Depth-cue size language.** Checked every shot for "closest to the lens" /
-   "in the foreground" — none used. Size is anchored to counter width, doorway
-   frame, wok diameter, or the other person in a two-shot instead.
-7. **One action per shot.** Checked all 60 — each shot names exactly one
+   "in the foreground" — none used, including all 30 new shots. Size is
+   anchored to counter width, doorway frame, wok diameter, bedsheet, or the
+   other person in a two-shot instead.
+7. **One action per shot.** Checked all 90 — each shot names exactly one
    physical action (a crease, a shove, a step, a line of dialogue with its one
-   supporting gesture). No shot combines two.
+   supporting gesture, a hand closing around a hidden object). No shot combines
+   two.
 8. **Every visible cast member appears on the INGREDIENTS line.** Checked all
-   60 rows against the shot table — no mismatches found.
+   90 rows against the shot table — no mismatches found.
 9. **Dialogue length vs. shot length.** Every spoken line was syllable-counted
-   at write time (table in Section 4). Longest line is 13 syllables (shot 55,
-   "ไม่ต้องรู้ว่ามันมาจากไหน แค่ใช้มันให้คุ้ม") — well inside the ~30–35 syllable
-   ceiling for an 8-second shot. No line needed trimming.
-10. **Runtime.** 60 shots × 8s = 480s = 8:00 exactly. No shot exceeds 8 seconds.
+   at write time (table in §4). Longest line is 22 syllables (shot 56,
+   "ผมรู้นะว่าที่บ้านพี่มีคนป่วยอยู่ชั้นบน...ค่าหมอเดือนหน้าคงไม่อยากให้สะดุดใช่ไหม") —
+   well inside the ~30–35 syllable ceiling for an 8-second shot. No line
+   needed trimming.
+10. **Runtime.** 90 shots × 8s = 720s = 12:00 exactly. No shot exceeds 8
+    seconds.
 11. **Time-of-day continuity.** The whole episode is one calendar day:
-    pre-dawn (HOOK) → morning (Block A) → late morning/afternoon (Block B) →
-    early evening/dinner rush (Block C) → night (Block D, Payoff,
-    Cliffhanger). Every time-of-day change is a natural cut forward within the
-    same day — none is unmotivated.
+    pre-dawn (HOOK + the new upstairs scene) → morning (Block, rebuilt) →
+    late morning/afternoon (upstairs + counting) → early evening/dinner rush
+    → night (Give it back, Payoff, Aftermath, Cliffhanger). Every time-of-day
+    change is a natural cut forward within the same day — none is unmotivated.
 12. **Wardrobe continuity.** Because the episode never crosses a day boundary,
     every character wears the single outfit locked in their APPEARANCE LOCK
     for the entire episode — no wardrobe changes are called for or possible to
     contradict.
-13. **Props.** The envelope (introduced shot 27) and the tin box (shot 30) are
-    the only recurring props; both are established before their payoff use
-    (shots 47–58). No prop appears unestablished.
+13. **Props.** The envelope (introduced shot 41), the tin box (shot 44), the
+    cloth medicine pouch (introduced shot 7, paralleled by the third stack of
+    bills at shot 36), and the unnamed object under ประนอม's pillow (shots
+    88–90) are the only recurring props; each is established before its
+    payoff use. No prop appears unestablished.
+14. **NEW — on-screen text risk, the medicine pouch and pill bottles (shots
+    4–7).** Pill bottles routinely carry printed labels. Fix: the reference
+    text for these shots never calls for legible labels, and the Ingredient
+    lock for `@lung_somchai` doesn't add one — the pouch and bottles are
+    described only by shape and material, never by printed content.
+15. **NEW — เชิด's clinic threat (shot 56) must not introduce a fact the
+    audience hasn't earned.** เชิด states he knows someone upstairs is sick.
+    Checked against §1–2: this is consistent with him being a neighbourhood
+    lender who has almost certainly cased the family before extending credit
+    — it is intimidation built from ordinary due diligence, not a new
+    supernatural or implausible knowledge source. No new Ingredient or plot
+    device required.
+16. **NEW — grandma's new dialogue (shots 5, 83) stays inside her VOICE LOCK.**
+    Both new lines are one to two syllables, breathy, and gapped by silence —
+    checked against the Gacrux performance note ("thin, breathy, slow. Short
+    phrases, running out of air") word for word. Neither line exceeds what a
+    dying woman with failing breath could plausibly manage.
+17. **NEW — the "last payment" reveal (shot 74) does not contradict the
+    premise engine's clock.** §0 of the premise engine specifies daily
+    compounding interest as the clock, not a fixed number of installments; a
+    principal that finally clears on a given day is consistent with an
+    ordinary loan schedule ending while daily interest was still accruing on
+    the balance until then. No retcon of §0 required.
+18. **NEW — the locked title line (shots 76–77) is untouched.** Diffed
+    character-for-character against the v1 text: "เงินนี้พ่อตั้งใจหามาให้ลูก" and
+    "ไม่ต้องรู้ว่ามันมาจากไหน แค่ใช้มันให้คุ้ม" appear verbatim, with no clause added,
+    removed, or reordered. The new information that recontextualizes the line
+    (shot 74) sits entirely in an adjacent, separate shot.
+19. **NEW — ต้น's interview thread (shots 11–12) is not a dangling promise.**
+    Checked whether planting "ยังไม่มีใครติดต่อกลับเลย" this early creates an
+    expectation the episode must pay off with a specific interview result.
+    It doesn't: the line is phrased as an ongoing situation ("ยังไม่มีใครติดต่อกลับ"),
+    not a scheduled event, so the existing closer at shot 80 ("กินก่อนไปสมัครงานนะ")
+    resolves it exactly as it always did — general encouragement to keep
+    trying, not a specific callback that would need its own scene.
 
 ---
 
 ## 7. Teaser cut — 7 shots, 56 seconds
 
-**Shots: 1, 2 (HOOK) + 54, 55, 56, 57, 58 (PAYOFF).**
+**Shots: 1, 2 (HOOK) + 74, 76, 77, 78, 80 (PAYOFF, incl. the restaged
+reversal).**
 
 Why these seven work as a standalone 56-second teaser with none of the
-middle six minutes:
+middle eleven minutes:
 
 - **1–2** give a stranger everything they need in 16 seconds: a man is hurt
   over money, at night, alone. No names, no context — just stakes.
-- **54–58** deliver the emotional payload without needing to have earned it
+- **74** is new to this cut and load-bearing: it delivers the "last payment"
+  reveal in one original line, so even in isolation the teaser's payoff reads
+  as a turn, not just a sad line.
+- **76–78** deliver the emotional payload without needing to have earned it
   first: a father presses money into his son's hands, says the one line that
   is the whole show ("เงินนี้พ่อตั้งใจหามาให้ลูก... ไม่ต้องรู้ว่ามันมาจากไหน แค่ใช้มันให้คุ้ม"),
   then goes back to work as if it cost him nothing — while the boiling pot and
-  his silence say otherwise. The son's held stillness (57) and the father's
-  ordinary parting line (58) close it on warmth, not violence.
+  his silence say otherwise.
+- **80** closes it on warmth, not violence: the father's ordinary parting
+  line.
 - Cut together, the seven shots form a complete three-beat unit on their own:
-  **threat → unexplained tenderness → normal life resuming** — the same
-  shape as the full episode, compressed. A viewer is left with exactly one
-  question ("why does he keep giving, after that?"), which is the hook for
-  the whole series, not just this episode.
-- All spoken lines in this subset (54, 55, 58) were already counted at 9, 13,
-  and 7 syllables — short enough that pacing does not need to change for the
-  cut to read as its own finished piece.
-- This is the set the CEO can afford to shoot first: 7 generations covers the
-  cold open and the ending, the two highest-value shots in the episode, before
-  committing budget to the other 53.
+  **threat → unexplained tenderness, now with a private cost the audience
+  alone knows → normal life resuming** — the same shape as the full episode,
+  compressed, and sharper than the v1 teaser because the reveal at 74 gives
+  the middle beat an actual turn instead of just a sad line.
+- All spoken lines in this subset (74, 76, 77, 80) were already
+  syllable-counted at write time — short enough that pacing does not need to
+  change for the cut to read as its own finished piece.
+- This is the set the CEO can afford to shoot first: 5 generations covers the
+  cold open and the fixed ending, the highest-value shots in the episode,
+  before committing budget to the other 85.
+
+---
+
+## 8. tig-scene-engine re-audit (proof, per IRON-RULES §51)
+
+Full chain check ran per `.claude/skills/tig-scene-engine/SKILL.md` AUDIT
+mode against the expanded script. Only new or materially changed sequences
+are re-audited below; every sequence not listed here is unchanged from the
+structure audit at `research/ngoen-tee-por-EP1-structure-audit.md` and its
+verdict still holds under the new shot numbers.
+
+### New/changed sequence 1 — Before dawn, upstairs (shots 3–8)
+```
+SEQUENCE: The second debt (3–8) — opening beat of ประนอม's season-length
+sequence, moved forward from its old position at 16–22
+
+CHAIN CHECK
+• Goal — สมชาย's goal, unchanged, applied to a second front: keep everyone he
+  loves provided for without either of them carrying the cost. This is the
+  SAME fixed goal from §0 of the story audit, not a new one — the removal
+  test below checks it as a link in that same chain.
+• Obstacle — Two, stacked: (a) LOCAL — his mother's illness needs care today,
+  visible via the pill routine; (b) GLOBAL, newly dramatized — the money for
+  her care and the money for the debt draw from the same finite pocket. This
+  is not new information to the STORY (§0's premise engine already named
+  "ค่ารักษาย่ารายเดือน" as part of the clock) but it was never dramatized on
+  screen in v1; it is now, which is the point of adding it.
+• Tactic — He pays her clinic cost first, in private, before the shop even
+  opens (shot 7), then visibly weighs what's left (shot 8) — forced by her
+  condition, reasonable given what he knows, and it returns real information
+  to the audience: the "how does he cover both" question that the rest of
+  the episode is, in part, answering.
+• Reversal — Not owed here; this sequence opens a season-length thread (same
+  status as old 16–22) and doesn't resolve until the finale block (82–90).
+• Value Shift — Not owed yet; this scene DEEPENS the baseline verdict the
+  audience will carry into S1 rather than moving it — "hardworking, honest"
+  now also reads as "already stretched before the day even starts."
+
+REMOVAL TEST: Cut 3–8 — does the chain to the story goal still hold? NO.
+Two things depend on it: (a) shot 56 (เชิด's threat naming her illness) has no
+weight if the audience has never seen her cared for; (b) the finale block
+(82–90) needs an established relationship and established stakes to be worth
+nine shots of runtime — exactly the failure the structure audit warned a
+generic "more atmosphere" expansion would repeat. PASSES.
+```
+
+### New/changed sequence 2 — Morning opens the shop, rebuilt (shots 9–23)
+```
+SEQUENCE: Ordinary rhythm, now load-bearing throughout (9–23)
+
+CHAIN CHECK
+• Goal — ต้น's job-search thread (his own minor goal: land steady work) now
+  opens at shot 11 instead of shot ~21 (old numbering), giving it more runway
+  and two lines of his own voice instead of zero.
+• Obstacle — Every one of the nine previously-zero-jeopardy shots (old 3–11)
+  now carries at least a LOCAL tell: a physical wince (9), a private cost
+  behind a public smile (10), a live personal stake spoken aloud (11–12,
+  17), or the planted phone-buzz that pays off at 21–23. Nothing in this
+  block is atmosphere-only anymore.
+• Tactic — Silence as protection (father not mentioning his wince, not
+  reacting to the rejection at 24) is the same established tactic from v1,
+  now given more instances to reinforce the pattern the finale depends on
+  (shot 74's "quiet even in relief" beat). ต้น's tactic — pocketing the phone
+  rather than telling his father (23) — is forced by the situation (a
+  customer needs the bill) and returns real information: he's now actively
+  concealing something from his father, mirroring his father's own
+  concealment, which the audience will only recognize as ironic in
+  hindsight.
+• Reversal — None claimed; correctly a build sequence, not a resolving one
+  (matches the skill's allowance for pure-escalation scenes).
+• Value Shift — None new; reinforces baseline without oscillating.
+
+REMOVAL TEST, shot by shot: every shot in 9–23 now carries a jeopardy tell
+or a causal payoff dependency (11–12/17 feed 80's closer; 14/21/22/23 feed
+the "both men conceal" pattern the finale needs). No shot in this block fails
+the removal test — this is the direct fix for the audit's "HARD FAIL" finding
+on old shots 3, 5, 6, 7, 9, 10. PASSES, block-wide.
+```
+
+### New/changed sequence 3 — Out back, extended (shots 53–63)
+```
+SEQUENCE: Out back / the number lands, now carrying a second threat (53–63)
+
+CHAIN CHECK
+• Goal — Unchanged from the structure audit: father pacifies the lender, buys
+  one more day.
+• Obstacle — GLOBAL, now doubled: physical threat + informational threat
+  (as before) PLUS a named, personal threat against ประนอม's care (shot 56).
+  This raises the scale of what's at risk without adding a new goal — it's
+  the same jeopardy, sharper.
+• Tactic — Unchanged mechanics from the structure audit (father's plea fails
+  locally but the failure leaks information to ต้น). The new line (56) adds a
+  second failure point: เชิด's threat forces ต้น (silently watching) to
+  understand the debt isn't just about him — it's also about his
+  grandmother. This is new information that reshapes ต้น's understanding
+  of the stakes going into S6, satisfying the Tactic rule's "returns
+  information that narrows the search."
+• Reversal — Same HIDDEN AGENCY REVEALED as the structure audit found,
+  strengthened: the money ต้น believed was ordinary is now known to be
+  protecting two people, not one.
+• Value Shift — BEFORE (carried from S1): "a tired, hardworking, honest
+  noodle-shop dad." AFTER: "he has been absorbing violence and debt for four
+  years to protect BOTH his son and his dying mother, in total silence." This
+  is a deepened version of the structure audit's original finding, not a
+  contradiction of it — the trajectory in §5 of the structure audit gains
+  weight at this rung without needing a new one.
+
+REMOVAL TEST: PASSES — same verdict as the structure audit, strengthened by
+the added threat.
+```
+
+### New/changed sequence 4 — The line, restaged (shots 73–77) — THE FIX
+```
+SEQUENCE: The payoff, restaged around the unchanged title line (73–77)
+
+This is the direct fix for the structure audit's Finding #4 (§4: "S7 payoff
+line — INERT AS A REVERSAL").
+
+CHAIN CHECK
+• Goal — Unchanged: resolution of both goals (father's money must still mean
+  what he intended; ต้น's wish to relieve him of it) colliding, father's
+  wins.
+• Obstacle — None new; same standoff obstacle from S6 being resolved here.
+• Tactic — NEW: father's line at shot 74 ("งวดนี้...งวดสุดท้ายแล้ว") is a tactic
+  the moment forces — his composure has just been asked to hold against his
+  son's raw accusation (71), and instead of doubling down on silence, he
+  gives ONE true fact before closing the subject for good. It returns real,
+  new information to both ต้น and the audience simultaneously.
+• Reversal — HIDDEN AGENCY REVEALED, now present where the structure audit
+  found none. The audience (and, in the same beat, ต้น) believed — right up
+  through shot 73's held eye contact — that the debt is open-ended, that this
+  gift is one instance of an ongoing, unresolved sacrifice. Shot 74 reveals
+  it was already over. He still chose to hide that, and still chose to give
+  the money as if nothing had changed. The truth gap the whole engine runs on
+  closes in this exact beat, which is precisely where the structure audit
+  said the reversal needed to land and currently didn't.
+• Value Shift — BEFORE (carried from S5–S6, per the structure audit's §5
+  trajectory): "he must now watch his own protection backfire in front of
+  him, and still won't yield" (ดื้อรั้นจนน่าห่วง / รักที่ปฏิเสธไม่ได้). AFTER (NEW
+  rung, previously missing): "the sacrifice was already complete — he wasn't
+  protecting the debt, he was protecting me from ever knowing it existed at
+  all, even now that it's gone." This is the fifth rung the structure audit's
+  §5 explicitly asked for ("Fixing S7 to add one more rung... would make this
+  a clean five-stage arc instead of four-stages-plus-an-echo") — supplied
+  without touching a single character of the locked title line, which
+  follows unchanged at shots 76–77 and now lands as confirmation of a turn
+  the audience has already felt, rather than the turn itself trying and
+  failing to be one.
+
+REMOVAL TEST: shot 74 — cut it, does the chain hold? NO. Without it, shots
+76–77 revert to exactly the structure audit's finding: real writing, real
+theme, no reversal. Shot 74 is the single new shot the whole restructure
+was built to justify. PASSES, and is load-bearing by design.
+```
+
+### New/changed sequence 5 — The witness's finale, extended (shots 82–90)
+```
+SEQUENCE: What the witness reaches for, given real runway (82–90) — same
+resolution beat of the season-length sequence opened at shots 3–8 and
+continued at 26–33, 65
+
+CHAIN CHECK
+• Goal — ประนอม's private goal (warn / act), unchanged, now built on three
+  prior appearances instead of one — the removal test on the WHOLE episode
+  now depends on 3–8, 26–33, and 65 as well as this block.
+• Obstacle — Same physical incapacity, now apparently being overcome for the
+  first time — GLOBAL, cross-episode, unchanged from the structure audit.
+• Tactic — Extended into discrete, escalating beats (83 testing the silence →
+  84 testing her hand → 85 pushing up → 86 straining through pain → 87–88
+  reaching → 89–90 taking hold) rather than compressed into two shots. Each
+  beat is a genuine escalation with its own small return of information (she
+  CAN move; it costs her; she doesn't stop) rather than repeating the same
+  beat — this satisfies the Tactic rule's "each failed/forced attempt must
+  return information," now demonstrated at finer grain instead of skipped
+  over.
+• Reversal — Same HIDDEN AGENCY REVEALED the structure audit found, now
+  earned by nine shots of buildup instead of landing cold in two.
+• Value Shift — BEFORE (now reinforced across FOUR appearances — 3–8, 26–33,
+  65, and the opening of this block — instead of one): "frail, trapped,
+  purely passive, sympathetic and helpless." AFTER: "she has been quietly
+  capable of more than anyone assumed — what does she know, what is she
+  about to do?" Same verdict shift as the structure audit named, now
+  supported by presence the CTO's brief specifically asked for ("build her in
+  earlier so the ending hits something the audience already cares about").
+
+REMOVAL TEST: PASSES — without this, and without its three earlier setup
+appearances, the episode still ends with no reason to return for EP2, exactly
+as the structure audit warned. The expansion strengthens this ending rather
+than diluting it with unrelated new material.
+```
+
+### Removal-test confirmation
+
+**No new scene or shot failed the removal test.** Every added shot (30 total:
+3–8, 11–12, 17, 23, 32, 36, 38, 40, 46, 52–53, 56, 61, 70, 74–75, 81, 83–86,
+88–89) was checked individually against the chain above; each either (a)
+supplies information a later shot depends on (the medicine-pouch/clinic
+thread feeds shot 56 and the finale block; the phone-buzz/rejection thread
+feeds the closer at shot 80; the "last payment" reveal at 74 is load-bearing
+for 76–77's reversal to land), or (b) is the direct escalation beat inside a
+sequence already confirmed to pass (ต้น's extra lines in the alley and
+"give it back" sequences deepen an existing PASS rather than sitting outside
+it; ประนอม's extra finale beats are the fine-grained version of a sequence
+that already passed in compressed form). None was cut.
+
+### Updated value-shift trajectory — สมชาย (whole episode)
+
+```
+หาเลี้ยงลูกอย่างซื่อสัตย์ (baseline, S1 — now also carrying the unseen cost
+of caring for his mother, established at shots 3–8)
+  → กำลังปิดบังบางอย่าง (S3/counting-the-day, mild suspicion, still
+  sympathetic — now visibly splitting money three ways, not two)
+  → พลีชีพเงียบๆ มา 4 ปี เพื่อทั้งลูกและแม่ (Back-alley Big Turn — the major
+  shift, now doubled in scale by เชิด's shot-56 threat against ย่า)
+  → ดื้อรั้นจนน่าห่วง / รักที่ปฏิเสธไม่ได้ (Give-it-back standoff — deepens,
+  doesn't repeat)
+  → [NEW RUNG] มันจบไปแล้ว และเขาก็ยังเลือกจะไม่บอก — the sacrifice was already
+  over, and he chose silence anyway, even about the good news (shot 74,
+  paid off at 76–77)
+```
+
+Five clean stages instead of the structure audit's four-plus-an-echo. The
+new rung is exactly the one §5 of the structure audit asked for, and it sits
+where the audit said it had to: at the payoff, without touching the locked
+line.
+
+### Six-mark ad-timing map
+
+Facebook mid-roll marks at 1:00, 3:00, 5:00, 7:00, 9:00, 11:00 fall inside
+8-second shots at :56–:04 of the mark's minute in every case (a mark at
+`60k` seconds lands inside the shot spanning `[60k-4, 60k+4)`). All six land
+on unresolved tension, not atmosphere:
+
+| Mark | Time | Shot | What's unresolved at that instant |
+|---|---|---|---|
+| 1 | 1:00 | 8 | Father has just paid for ย่า's medicine before the shop even opens — the audience holds an unanswered question: how does today's take cover both her care and what's owed on the debt? |
+| 2 | 3:00 | 23 | ต้น has just hidden a job rejection from his father mid-shift — will he tell him? The concealment mirrors his father's, unrecognized by either of them yet. |
+| 3 | 5:00 | 38 | ต้น has just asked his father, half-teasing, whether he's got money stashed away — the question hangs, unanswered, into the break. |
+| 4 | 7:00 | 53 | The rear door has just clicked shut on father and เชิด alone in the alley — nothing has happened yet; the audience knows something will. |
+| 5 | 9:00 | 68 | Father's hand has just frozen over the pot at his son's refusal — the standoff is fully open, not resolved, going into the break. |
+| 6 | 11:00 | 83 | ประนอม has just breathed "...เงียบ..." into the dark, testing whether the house has truly gone silent — the cliffhanger's own cliffhanger, mid-build. |
+
+Every mark lands on a live question, a threat, or a turn-in-progress — never
+a lull. None of the six falls inside the rebuilt dead zone (now fully
+eliminated) or inside atmosphere-only material, because no atmosphere-only
+material remains in the script.

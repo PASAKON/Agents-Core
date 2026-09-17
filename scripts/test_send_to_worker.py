@@ -228,12 +228,17 @@ def test_wake_nudge_never_contains_message_body(
 def test_send_to_dev_has_no_tab_matching_helpers():
     """The whole `full_id[:6]` iTerm AppleScript fallback -- `_send`,
     `_run_osascript`, `PREFIX`, the tmux-typing helper -- is deleted, not
-    kept dead or as a fallback."""
+    kept dead or as a fallback.
+
+    `subprocess` itself is back in the module as of task-e40fc5a1 (GH #150)
+    -- a legitimate, unrelated import for the ssh-based remote MAILBOX.md
+    delivery path, not a revival of the deleted AppleScript/tmux-typing
+    machinery this test guards against, so it is deliberately not asserted
+    absent here anymore."""
     assert not hasattr(sd, "_send")
     assert not hasattr(sd, "_run_osascript")
     assert not hasattr(sd, "_send_tmux")
     assert not hasattr(sd, "PREFIX")
-    assert not hasattr(sd, "subprocess")
 
 
 def test_gh65_shared_six_char_prefix_resolves_to_distinct_mailboxes(

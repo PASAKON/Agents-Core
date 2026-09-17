@@ -82,7 +82,7 @@ CREATE INDEX IF NOT EXISTS idx_c_level_sessions_task
 
 VALID_STATUS = {"pending", "in_progress", "review", "done", "failed",
                 "cancelled", "rate_limited", "stalled", "conflict",
-                "blocked_human", "reverted", "merged"}
+                "blocked_human", "blocked_host", "reverted", "merged"}
 
 # Columns added after initial release. init() runs idempotent ALTER TABLE
 # ADD COLUMN for each so existing DBs migrate forward without losing data.
@@ -155,7 +155,8 @@ _C_LEVEL_SESSION_MIGRATION = [
 ]
 
 # Statuses where touched paths are no longer being modified — release locks.
-RELEASING_STATUSES = {"review", "done", "failed", "cancelled", "stalled"}
+RELEASING_STATUSES = {"review", "done", "failed", "cancelled", "stalled",
+                      "blocked_host"}
 
 
 def now_iso() -> str:
