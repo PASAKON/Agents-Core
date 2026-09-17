@@ -42,6 +42,56 @@ W, H = 192, 80                      # half our 384x160 crop; the cookie is still
 OFFSETS_S = (-0.11, -0.055, 0.0, 0.055, 0.11)
 
 
+def augment(stack, rng):
+    """Break the model's assumption that every frame comes from our capture.
+
+    Gate 2 failed because of exactly that assumption. Trained on one BlueStacks
+    pipeline, the model met a phone recording and its probabilities collapsed
+    into the middle - floor up from 0.05 to 0.21, ceiling never reaching 0.9,
+    confident about nothing. It had no reason to believe the game could look any
+    other way.
+
+    Each transform here targets a difference measured between the two sources
+    rather than a generic image trick:
+
+      scale/shift  registration lands the crop within a few px, not exactly
+      brightness   a phone screen grab is not a desktop framebuffer
+      contrast     recompression flattens it
+      JPEG         YouTube frames have been encoded twice; ours once
+      blur         downscaling from a different source resolution softens edges
+
+    Applied per STACK, not per frame: all five frames of a sample share one
+    transform, because the real difference between sources is constant within a
+    clip. Jittering frames independently would teach it that the camera shakes.
+    """
+    import cv2 as _cv
+    out = stack.astype(np.float32)
+
+    if rng.random() < 0.8:                       # geometry
+        k = 1.0 + rng.uniform(-0.06, 0.06)
+        dx, dy = rng.integers(-4, 5), rng.integers(-3, 4)
+        M = np.float32([[k, 0, dx], [0, k, dy]])
+        for c in range(out.shape[0]):
+            out[c] = _cv.warpAffine(out[c], M, (W, H), borderMode=_cv.BORDER_REPLICATE)
+
+    if rng.random() < 0.8:                       # photometry
+        out = out * rng.uniform(0.75, 1.30) + rng.uniform(-28, 28)
+
+    if rng.random() < 0.5:                       # recompression
+        q = int(rng.integers(35, 80))
+        for c in range(out.shape[0]):
+            ok, enc = _cv.imencode(".jpg", np.clip(out[c], 0, 255).astype(np.uint8),
+                                   [int(_cv.IMWRITE_JPEG_QUALITY), q])
+            if ok:
+                out[c] = _cv.imdecode(enc, _cv.IMREAD_GRAYSCALE).astype(np.float32)
+
+    if rng.random() < 0.3:                       # resample softness
+        for c in range(out.shape[0]):
+            out[c] = _cv.GaussianBlur(out[c], (3, 3), rng.uniform(0.4, 1.1))
+
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
 class Net(nn.Module):
     """Small on purpose. If the task needs a big model to work at all, it is not
     the easy problem this plan assumes it is, and that is worth finding out now
@@ -157,6 +207,8 @@ def main() -> int:
     ap.add_argument("--epochs", type=int, default=6)
     ap.add_argument("--batch", type=int, default=64)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--augment", action="store_true",
+                    help="train against the domain gap, not just the data")
     a = ap.parse_args()
 
     torch.manual_seed(0)
@@ -183,6 +235,7 @@ def main() -> int:
     lossf = nn.BCEWithLogitsLoss(pos_weight=w)
 
     rng = random.Random(0)
+    aug_rng = np.random.default_rng(0)
     for ep in range(a.epochs):
         model.train()
         order = [(ri, i) for ri, r in enumerate(train) for i in range(len(r[0]))]
@@ -193,6 +246,8 @@ def main() -> int:
             xs, ys = [], []
             for ri, i in chunk:
                 x, y = stacks_for(train[ri], [i])
+                if a.augment:
+                    x = augment(x[0], aug_rng)[None]
                 xs.append(x)
                 ys.append(y)
             x = torch.from_numpy(np.concatenate(xs)).float() / 255.0

@@ -88,6 +88,40 @@ def type_text(s: str) -> None:
     _send(ev)
 
 
+MOUSEEVENTF_MOVE_ABS = 0x8001          # MOVE | ABSOLUTE
+MOUSEEVENTF_LEFTDOWN = 0x0002
+MOUSEEVENTF_LEFTUP = 0x0004
+
+
+def drag(x0, y0, x1, y1, steps=24, hold=0.04) -> None:
+    """Press at (x0,y0), move to (x1,y1), release. Screen coordinates.
+
+    The Episode Map scrolls horizontally and Episode 1 sits off the left edge,
+    so there is no click that reaches it. Moved in steps rather than jumped:
+    a single teleport between down and up reads as a tap at the destination in
+    most touch layers, not as a swipe.
+    """
+    u = ctypes.windll.user32
+    sw = u.GetSystemMetrics(0)
+    sh = u.GetSystemMetrics(1)
+
+    def to_abs(x, y):
+        return int(x * 65535 / (sw - 1)), int(y * 65535 / (sh - 1))
+
+    ax, ay = to_abs(x0, y0)
+    u.mouse_event(MOUSEEVENTF_MOVE_ABS, ax, ay, 0, 0)
+    time.sleep(0.08)
+    u.mouse_event(MOUSEEVENTF_LEFTDOWN, ax, ay, 0, 0)
+    for i in range(1, steps + 1):
+        cx = x0 + (x1 - x0) * i / steps
+        cy = y0 + (y1 - y0) * i / steps
+        ax, ay = to_abs(cx, cy)
+        u.mouse_event(MOUSEEVENTF_MOVE_ABS, ax, ay, 0, 0)
+        time.sleep(hold)
+    time.sleep(0.12)
+    u.mouse_event(MOUSEEVENTF_LEFTUP, ax, ay, 0, 0)
+
+
 def press_vk(vk: int, times: int = 1) -> None:
     """Press a virtual key (backspace, enter) -- what UNICODE events cannot do."""
     ev = []
@@ -178,6 +212,13 @@ def main() -> int:
             core.click(x, y, why=step.get("why", "probe"))
             say(f"[{i}] click ({nx:.4f},{ny:.4f}) -> screen ({x},{y})"
                 f"  {step.get('why', '')}")
+        if "drag" in step:
+            (nx0, ny0, nx1, ny1) = step["drag"]
+            X0, Y0 = core.win_point(core.GAME_WINDOW, float(nx0), float(ny0))
+            X1, Y1 = core.win_point(core.GAME_WINDOW, float(nx1), float(ny1))
+            drag(X0, Y0, X1, Y1)
+            say(f"[{i}] drag ({nx0:.3f},{ny0:.3f})->({nx1:.3f},{ny1:.3f}) "
+                f"screen ({X0},{Y0})->({X1},{Y1})  {step.get('why','')}")
         if "clear_screen" in step:
             say(f"[{i}] minimised: {clear_screen()}")
         if "vk" in step:
