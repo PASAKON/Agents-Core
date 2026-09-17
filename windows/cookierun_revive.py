@@ -62,14 +62,31 @@ def pipe(method: str, path: str, body: dict | None = None, timeout: int = 90):
         return None
 
 
-def last_write_age_s() -> float | None:
+def last_round_age_s() -> float | None:
+    """Seconds since the farm last finished a ROUND -- not since a file moved.
+
+    These part company at exactly the wrong moment. When the bot crashes, the
+    supervisor opens a fresh session directory, and that write makes the farm
+    look busy to anything measuring directory mtime. On 2026-09-17 a Windows
+    passkey dialog sat over the game from 11:40; the bot crashed at 12:13 and
+    reopened a session, and both this watchdog and the hourly health check read
+    that restart as thirteen minutes of healthy work. Rounds are the only thing
+    that cannot be faked by a restart.
+    """
     try:
         dirs = [p for p in (DATA / "modelplay").glob("session-*") if p.is_dir()]
     except OSError:
         return None
     if not dirs:
         return None
-    return time.time() - max(d.stat().st_mtime for d in dirs)
+    newest = max(dirs, key=lambda p: p.stat().st_mtime)
+    runs = [x for x in newest.iterdir() if x.is_dir()]
+    if runs:
+        return time.time() - max(x.stat().st_mtime for x in runs)
+    try:                                   # no rounds yet: age the session itself
+        return time.time() - float(newest.name.split("-", 1)[1])
+    except (IndexError, ValueError):
+        return time.time() - newest.stat().st_mtime
 
 
 def state_get() -> dict:
@@ -162,6 +179,85 @@ def clear_foreign_app(fg: str) -> int:
     return 0 if started else 1
 
 
+# A round is ~5 min. Fourteen is past any legitimate round plus the navigation
+# either side of it, and sits just above the hourly health check's 12 so the two
+# never argue about the same minute.
+STALLED_S = 14 * 60
+
+
+def dismiss_windows_dialog() -> bool:
+    """Close any Windows credential prompt sitting on top of the game.
+
+    On 2026-09-17 a "Sign in with a passkey" dialog appeared at 11:40 and the
+    farm did nothing for fifty minutes. Android reported the game in the
+    foreground the whole time and was right -- the obstruction was a Windows
+    modal over BlueStacks, which owns the keyboard and mouse, so every press the
+    bot made went into the dialog.
+
+    A previous attempt to DETECT this failed and had to be reverted: from
+    session 0 there is no way to tell a live dialog from a CredentialUIBroker
+    process that has outlived its window, and a check that cannot tell true from
+    false has no business setting a verdict. Acting is a different question from
+    reporting. Ending that process is harmless when there is no dialog and is
+    the fix when there is one, so we do not need to know which case we are in --
+    only that the farm is stalled, which we already know by then.
+
+    Never clicks. Synthetic clicks aimed at this dialog on 2026-09-16 passed
+    through it into the game and flipped the Jump/Slide button layout.
+    """
+    import subprocess
+    try:
+        r = subprocess.run(
+            ["powershell", "-NoProfile", "-Command",
+             "$p = Get-Process CredentialUIBroker -ErrorAction SilentlyContinue; "
+             "if ($p) { $p | Stop-Process -Force; 'closed' } else { 'none' }"],
+            capture_output=True, text=True, timeout=30, creationflags=0x08000000)
+        return "closed" in r.stdout
+    except Exception as e:
+        log(f"dismiss_windows_dialog failed: {e}")
+        return False
+
+
+def clear_stall_while_alive(age_s: float) -> int:
+    """The bot is running, the game is in front, and no round has finished.
+
+    Nothing Android-side is wrong or the foreground check would have caught it,
+    so the obstruction is above the emulator. Try the cheap, harmless remedy
+    first and only restart the farm if the next tick finds it still stuck --
+    a restart throws away a round in progress, and some stalls do end on their
+    own once whatever stole the foreground goes away.
+    """
+    st = state_get()
+    now = time.time()
+    if now - st.get("stall_last_try", 0) < COOLDOWN_S:
+        return 0
+
+    mins = int(age_s / 60)
+    if not st.get("stall_dismissed"):
+        state_set({**st, "stall_dismissed": now})
+        closed = dismiss_windows_dialog()
+        log(f"alive but no round for {mins} min - "
+            + ("closed a Windows credential dialog" if closed
+               else "no Windows dialog to close; watching"))
+        return 0
+
+    state_set({**st, "stall_last_try": now, "stall_dismissed": None})
+    log(f"still no round after {mins} min - restarting the game")
+    pipe("POST", "/run", {"fn": "bot_stop", "args": {}, "who": "revive"})
+    time.sleep(10)
+    r = pipe("POST", "/run", {"fn": "restart_game", "args": {}, "who": "revive"})
+    if r is None or not r.get("ok", False):
+        log(f"restart_game FAILED: {str(r)[:200]}")
+        return 1
+    t0 = time.time()
+    while time.time() - t0 < 300:
+        time.sleep(15)
+        s = pipe("GET", "/status", timeout=20)
+        if s and not s.get("job"):
+            break
+    return 0 if start_farm(f"stalled {mins} min") else 1
+
+
 def start_farm(why: str) -> bool:
     """night + wait for the preflight to clear. Shared by both recovery paths."""
     r = pipe("POST", "/run", {"fn": "night", "args": {"rounds": 60}, "who": "revive"})
@@ -208,7 +304,7 @@ def main() -> int:
         if time.time() - st.get("app_last_try", 0) < COOLDOWN_S:
             return 1
         state_set({**st, "app_last_try": time.time()})
-        age = last_write_age_s()
+        age = last_round_age_s()
         down_for = f"{int(age/60)} min" if age is not None else "unknown time"
         log(f"app is not running (down {down_for}) - starting CookieRunAppSrc")
         if not start_app_task():
@@ -237,6 +333,14 @@ def main() -> int:
         st = state_get()
         if st.get("foreign_since"):
             state_set({**st, "foreign_since": None, "foreign_app": None})
+        # The game is in front and the bot is running, and that is still not
+        # the same as farming: a Windows modal over BlueStacks looks exactly
+        # like this from every angle Android can see.
+        age = last_round_age_s()
+        if age is not None and age > STALLED_S:
+            return clear_stall_while_alive(age)
+        if st.get("stall_dismissed"):
+            state_set({**st, "stall_dismissed": None})
         return 0
     if s.get("esc_hold"):
         log("ESC hold set - a human stopped the bot; leaving it alone")
@@ -249,7 +353,7 @@ def main() -> int:
     except (OSError, ValueError):
         pass
 
-    age = last_write_age_s()
+    age = last_round_age_s()
     if age is not None and age < DOWN_GRACE_S:
         return 0                           # only just stopped; give it room
 
