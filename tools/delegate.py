@@ -804,6 +804,61 @@ async def _spawn_remote(task: dict, host_name: str, *,
     r = subprocess.run(cmd, capture_output=True, text=True,
                        timeout=REMOTE_LAUNCH_TIMEOUT_S)
     lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
+
+    for ln in lines:
+        if ln.startswith("GITHUB_SSH_ROUTE="):
+            info(f"task={task_id} host={host_name} {ln}")
+
+    # GH #153: the probe's own verdict must GATE success, not just get
+    # logged. spawn-worker.ps1's current version never exits early on
+    # GITHUB_SSH_ROUTE=unreachable (the probe there is advisory-only) — it
+    # can keep going and still print a valid pid on the last line, which
+    # would otherwise read as a clean spawn. Checked before the returncode
+    # branch below so it also wins when the dead route later makes git
+    # itself fail (non-zero exit) — "unreachable" is the more specific,
+    # more actionable diagnosis either way.
+    route_line = next(
+        (ln for ln in lines if ln.startswith("GITHUB_SSH_ROUTE=unreachable")), None,
+    )
+    if route_line is not None:
+        kill_note = ""
+        maybe_pid = lines[-1].strip() if lines else ""
+        if maybe_pid.isdigit():
+            # ps1 launched a worker despite the dead route (current
+            # version) — coordination note in the task brief: since ps1 is
+            # the paired task's file (not touched here), the hub kills
+            # what it launched instead of relying on ps1 to refuse first.
+            try:
+                kr = subprocess.run(
+                    ["ssh", ssh_alias, "taskkill", "/PID", maybe_pid, "/T", "/F"],
+                    capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S,
+                )
+                kill_ok = kr.returncode == 0
+                kill_detail = "ok" if kill_ok else (kr.stderr or kr.stdout or "").strip()[:200]
+            except (OSError, subprocess.SubprocessError) as e:
+                kill_ok, kill_detail = False, str(e)[:200]
+            kill_note = f"; killed leaked pid {maybe_pid} on {host_name} ({kill_detail})"
+            info(f"task={task_id} host={host_name} killed leaked pid={maybe_pid} "
+                f"(route unreachable) ok={kill_ok}")
+        detail = (
+            f"{route_line} — git route from {host_name} dead — fix "
+            f"network/keys, then delegate again{kill_note}"
+        )
+        error(f"remote spawn blocked task={task_id} host={host_name}: {detail}")
+        db.update_status(task_id, "blocked_host", delegate_log=detail, actor="cto")
+        return db.get_task(task_id)
+
+    refused_line = next((ln for ln in lines if ln.startswith("SPAWN_REFUSED=")), None)
+    if refused_line is not None:
+        reason = refused_line[len("SPAWN_REFUSED="):]
+        warn(f"remote spawn refused task={task_id} host={host_name}: {reason}")
+        db.update_status(
+            task_id, "conflict",
+            delegate_log=f"remote spawn refused ({host_name}): {reason}",
+            actor="cto",
+        )
+        return db.get_task(task_id)
+
     if r.returncode != 0 or not lines:
         detail = (r.stderr or r.stdout or "").strip()[:1000]
         error(f"remote spawn failed task={task_id} host={host_name}: {detail}")
@@ -811,10 +866,6 @@ async def _spawn_remote(task: dict, host_name: str, *,
                          delegate_log=f"remote spawn ({host_name}) failed: {detail}",
                          actor="cto")
         return db.get_task(task_id)
-
-    for ln in lines[:-1]:
-        if ln.startswith("GITHUB_SSH_ROUTE="):
-            info(f"task={task_id} host={host_name} {ln}")
 
     try:
         pid = int(lines[-1].strip())
