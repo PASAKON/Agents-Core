@@ -123,7 +123,12 @@ data-media-start>`; the audio is one separate `<audio>`. Put `#bg` up only over
 the stretches where no plate is underneath.
 
 A worked cut with all five types and real timings lives in the Agents repo at
-`prototypes/bl51-first30/index.html`.
+`prototypes/bl51-first30/index.html`. **It is there to read, not to copy.** On the
+second test run a worker found it in its worktree and reused it wholesale, which
+produced a perfect BL51 and proved nothing about cutting the next episode. The one
+case where reuse is right: the task is a re-render of the *same* episode that
+composition was built for — then say so in your report and reuse it. For any
+other episode, author from the template.
 
 ### 7. Gate the composition
 ```bash
@@ -206,6 +211,10 @@ though the script says ten. Call it "2 ตัวแรก" instead.
 8. **An avatar clip with no matching lipsync is unusable.** The mouth will not
    match and viewers catch it. Cover that stretch with a block instead, unless
    a task says otherwise.
+9. **A finished sibling composition is not a starting point.** It carries that
+   episode's plates, offsets and copy; every one of them is wrong for yours, and
+   the ones that look right (a 62.71 s seat, a "10 ตัว" header) are the most
+   dangerous because they pass the gates.
 
 ## What this cannot do
 
