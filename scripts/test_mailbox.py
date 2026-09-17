@@ -110,6 +110,33 @@ def _insert_dev_task(conn, *, owner_role: str, owner_cto: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# ROOT resolution (GH #154): ORG_ROOT wins when set, __file__ otherwise.
+# In-process only -- proves the branch exists; scripts/test_hook_inbox.py
+# proves it closes the real worktree-vs-hub bug via a subprocess.
+# ---------------------------------------------------------------------------
+
+def test_org_root_set_repoints_inbox_root_and_db_path(monkeypatch):
+    fake_hub = "/tmp/fake-hub-org-root-test"
+    monkeypatch.setenv("ORG_ROOT", fake_hub)
+    assert mailbox._resolve_root() == Path(fake_hub)
+    assert db_mod._resolve_root() == Path(fake_hub)
+
+
+def test_org_root_unset_falls_back_to_file(monkeypatch):
+    monkeypatch.delenv("ORG_ROOT", raising=False)
+    assert mailbox._resolve_root() == Path(mailbox.__file__).resolve().parent.parent
+    assert db_mod._resolve_root() == Path(db_mod.__file__).resolve().parent.parent
+
+
+def test_org_root_empty_string_falls_back_to_file(monkeypatch):
+    """An empty ORG_ROOT (e.g. exported but unset by a shell) must not win
+    over a real __file__ resolution -- 'set and non-empty' per the task."""
+    monkeypatch.setenv("ORG_ROOT", "")
+    assert mailbox._resolve_root() == Path(mailbox.__file__).resolve().parent.parent
+    assert db_mod._resolve_root() == Path(db_mod.__file__).resolve().parent.parent
+
+
+# ---------------------------------------------------------------------------
 # lib.mailbox: storage shape
 # ---------------------------------------------------------------------------
 
