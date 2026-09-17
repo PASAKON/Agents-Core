@@ -1,0 +1,113 @@
+================================================================
+POST 1 - YouTube Community (EN) - วันนี้
+================================================================
+Thank you for watching SORRY SIR.
+
+That 8 minutes 53 seconds took 781 generations and 9.1 GB.
+Most of them were wrong.
+
+Next week I'm going to start posting what actually happened
+behind each scene. What broke, how I fixed it, what it cost.
+
+Which scene do you want first? Tell me in the comments.
+
+
+================================================================
+POST 2 - Facebook page ILAG (TH) - วันนี้ - ปักหมุด
+================================================================
+พนักงานทำความสะอาดคนหนึ่ง ทำผนังพิพิธภัณฑ์ร้าว
+
+รอยร้าวยาวเท่าฝ่ามือ
+
+แล้วทั้งวงการศิลปะก็ตัดสินใจว่า มันคืองานศิลปะ
+
+SORRY, SIR
+หนังสั้น 8 นาที สร้างด้วย AI ทั้งเรื่อง
+ส่งเข้า Higgsfield Global Film Festival 2026
+
+ดูเต็มเรื่อง youtu.be/pXU_DRBOVIw
+
+
+================================================================
+POST 3 - Facebook page ILAG (TH) - +2 วัน
+================================================================
+เธอเป็นแม่บ้านโรงแรม
+
+มีห้องหนึ่งที่แขวนป้าย ห้ามรบกวน ไว้ 3 วันแล้ว
+เธอไม่เคาะ ไม่เปิด ไม่ถาม
+
+จนคืนที่สี่
+
+DO NOT DISTURB
+หนังสั้น 5 นาที สร้างด้วย AI ทั้งเรื่อง
+
+ดูเต็มเรื่อง youtu.be/rkeRgvCUHB8
+
+
+================================================================
+POST 4 - Facebook page ILAG (TH) - +4 วัน
+================================================================
+หนัง 8 นาที 53 วินาที
+ใช้ไป 781 คลิป และ 9.1 GB
+
+แปลว่าคลิปที่ได้ใช้จริง มีไม่ถึง 1 ใน 10
+
+ที่เหลือคือ ตัวละครหน้าเปลี่ยน
+กล้องเดินผิดทาง
+คนวิ่งทั้งที่สั่งว่าห้ามวิ่ง
+
+อาทิตย์หน้าผมจะเริ่มเล่าทีละเรื่อง
+ว่าอันไหนพัง แก้ยังไง แล้วเสียเงินไปเท่าไหร่
+
+อยากรู้เรื่องไหนก่อน คอมเมนต์บอกได้เลยครับ
+
+
+================================================================
+POST 5 - Facebook page ILAG (TH) - +6 วัน - คลิปสั้น
+================================================================
+รอยร้าวยาวเท่าฝ่ามือ
+
+ราคา 40 ล้าน
+
+(รอ CEO เลือกช่วง 15-20 วินาที)
+
+
+================================================================
+POST 6 - Hacker News (EN) - +4 วัน ถ้าสองอันแรกไปได้ดี
+================================================================
+Title:
+Show HN: What 781 AI generations actually cost to make a 9-minute film
+
+Text:
+I made two AI short films and submitted them to a film festival.
+I kept notes on everything that broke.
+
+Same prompt, same references, fired back to back:
+
+  Seedance 2.5:      98 credits, 11-19 min render
+  Seedance 2.0 Fast: 53 credits, 4.5 min, 17.0 Mbps
+  Seedance 2.0 Mini: 38 credits, 3.5 min, 4.3 Mbps
+
+Both cheap tiers bind character references. That was the thing I
+assumed would rule them out, and it did not.
+
+Things that cost real money:
+
+1. One button fires a generation with no confirmation step. It is
+   next to the one that only loads the prompt. That mistake was 130
+   credits.
+
+2. Reference plates die retroactively. One passed the content scan
+   at 10:41 and was permanently dead at 11:47 with nothing changed.
+   A plate is never banked.
+
+3. A clip was refused twice for copyright. Everyone assumed it was
+   the image. It was the character's NAME. The refusal never tells
+   you which string it objected to. I found it by checking which
+   names had already rendered successfully somewhere else.
+
+4. "No running" in the prompt produced running. What fixed it was
+   giving a number (metres per second) and "one foot always on the
+   ground". A prohibition with nothing put in its place does not hold.
+
+Films: youtu.be/pXU_DRBOVIw and youtu.be/rkeRgvCUHB8

@@ -19,9 +19,11 @@ content; look at the plate). Count them against the prompt: 3.
   @Prop-DNDTag       the Do Not Disturb tag itself
   @Mother            the housekeeper
 
-⚠️ The laurel is NOT in this prompt. The festival watermark is added afterwards
-from the 4K PNG, top-left or right on clean ground — the same way it was done
-for Sorry Sir. Asking the model to draw a logo produces garbled lettering.
+⚠️ The laurel now comes from a BOUND REFERENCE (@higgsfield-global-film-2026),
+not from the model's imagination. That is the whole difference — a model asked
+to draw a logo produced "LAKKRITORGH GIN UDNS" on this production; a model given
+the mark and told to copy it does not have to invent anything. Still zoom in and
+read its words before accepting the image.
 
 AFTER GENERATION — VERIFY
   1. "DO NOT DISTURB" spelled correctly, letter by letter.
@@ -49,6 +51,22 @@ frame and it hangs perfectly still.
 @Mother — a housekeeper, very small and far away, standing in the dark near the
 lit door with her back to the camera, motionless, looking at it. She is not
 walking. She occupies no more than one eighth of the frame height.
+
+@higgsfield-global-film-2026 — the official festival laurel mark, and DIRECTLY
+BENEATH IT the words "AI SHORT FILM". These two form ONE locked badge, not two
+separate elements: the laurel on top, the words centred under it and close
+enough that the eye reads them as a single stamp. Reproduce the laurel EXACTLY
+as the reference shows it, including every word inside it. Do not redraw,
+re-letter, translate or restyle its text, and do not invent extra words inside
+or around it.
+
+YOU CHOOSE the badge's position, size and colour — put it wherever it sits best
+in this composition. Three things are not yours to choose:
+- The laurel and the words under it are the SAME colour as each other, the same
+  weight, and close together. They must never read as two separate marks.
+- Whatever colour you pick must stay clearly legible against this very dark
+  picture, and must not fight the title.
+- The badge MUST NOT cover the lit door, the tag, or the figure. It sits on empty darkness only.
 
 SCENE
 Deep night. No moon. The only light in the whole picture is that one caged lamp
@@ -80,8 +98,9 @@ Exactly ONE door is lit. Exactly ONE tag hangs on a handle. Exactly ONE person
 and she is seen from behind, small and far away.
 No face. No second figure. No blood. No hands. No ghost, no apparition, no
 figure in a window, no reflection of a person.
-No additional words, letters, numbers, room numbers, signage, logos, laurels,
-signatures or watermarks of any kind beyond the one line specified above.
+No additional words, letters, numbers, room numbers, signage, logos, signatures
+or watermarks beyond the one line specified above and the words inside
+@higgsfield-global-film-2026.
 No border, no frame, no vignette added as a graphic, no mockup, no poster-on-a-
 wall effect.
 

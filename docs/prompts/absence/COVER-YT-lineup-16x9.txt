@@ -1,0 +1,190 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+«Sorry, Sir» YouTube cover — THE LINE-UP, with the laurel built in
+GPT Image 2.5 SUNBURST · 16:9 · 1K · Quality High · 1 image · <= 5 credits
+
+COUNT CHECKED, NOT ASSUMED: the approved poster on Drive
+(SorrySir-Poster-A-Lineup-16x9-2K.png) holds FIFTEEN people, and its two guards
+DO carry the gold V on their backs. The CEO recalled fourteen and a missing V,
+which most likely describes a later generation rather than that file. This
+prompt keeps fifteen, matching the approved artwork and CAST.md. If a character
+is to be dropped, that is the director's call and the list below changes first.
+
+THE V IS THE KNOWN FAILURE HERE. It is stated three times below — in the guards'
+line, in its own sentence, and in CONSTRAINTS. If it still comes back missing,
+the plate is overriding the prose and the fix is the PLATE, not more words
+(ai-film-production §7: when a bound reference and the text disagree, the
+reference wins).
+
+THE CHIPS — 16. Count them on the panel before firing.
+  @higgsfield-global-film-2026            the festival laurel
+  @project_absence_char_cleaner_c         Dupe
+  @project_absence_char_valder            Valder
+  @project_absence_char_guard_valder_two  BOTH guards — ONE chip, TWO men
+  @char_registrar                         the registrar
+  @gentleman_e                            Mr Carrington
+  @project_absence_char_guard_private_v2  the bodyguard
+  @project_absence_char_woman_c           Madame Thibault
+  @project_absence_char_critic            the critic
+  @project_absence_char_grandmother       the buyer, wheelchair
+  @project_absence_char_woman             the woman in cobalt
+  @project_absence_char_student_c         the art student
+  @project_absence_char_visitor_a         visitor A
+  @project_absence_char_workman           the contractor
+  @project_absence_char_oldman            the old man in green
+  @project_absence_loc_exterior_front     the museum entrance
+
+⚠️ Do not bind the guard chip twice — it is one plate holding two men.
+⚠️ Higgsfield accepts up to 16 references. This uses exactly 16, so nothing can
+be added without dropping something.
+
+AFTER GENERATION — VERIFY, then SHRINK
+  1. Zoom the two guards first. GOLD V ON BOTH BACKS. That is the thing that
+     failed last time.
+  2. Zoom the laurel and read its words. A model asked to draw a logo produced
+     "LAKKRITORGH GIN UDNS" on this production.
+  3. Head count: fifteen. One face only (Dupe). Two peaked caps. One wheelchair.
+  4. Spelling of both text lines and the badge, letter by letter.
+  5. At 210x118 px — the real thumbnail size — "SORRY SIR" must still read.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+DELIVERABLE
+A finished 16:9 YouTube cover image for a short film. Photographic, centred and
+symmetrical, a formal line-up of people outside a museum. It must stay readable
+shrunk to thumbnail size, so the title is large and the sky above stays clean.
+
+SUBJECT
+FIFTEEN people stand in ONE straight row across the frame, shoulder to shoulder,
+evenly spaced, all the same distance from the camera, like a military line-up.
+FOURTEEN of them have their backs fully to the camera, bolt upright and
+motionless, facing the building. ONE person faces the camera: the FIRST person on
+the LEFT, at the head of the line, and his is the only face visible anywhere in
+the picture. He looks straight down the lens, calm and a little worried.
+
+Left to right:
+1. @project_absence_char_cleaner_c — DUPE, FACING CAMERA: white mandarin-collar
+   uniform, thin orange trim, small gold V, white cap, black moustache, a mop
+   upright at his side.
+2. @project_absence_char_valder — VALDER, from behind: a blazer panelled in flat
+   blocks of magenta, yellow, green, blue and red, a long mustard-yellow scarf
+   hanging down his back, purple trousers, white hair.
+3-4. @project_absence_char_guard_valder_two — TWO GUARDS, from behind, side by
+   side: navy military tunics, gold buttons, black belts, navy trousers, navy
+   peaked caps. One tall and thin, one short and heavy. EACH GUARD HAS A LARGE
+   GOLD LETTER V ON THE BACK OF HIS TUNIC, between the shoulder blades, clearly
+   visible and unobstructed.
+5. @char_registrar — from behind: cream-white mandarin-collar suit, thin orange
+   piping, white gloves, a brown leather ledger at his side. The only person
+   carrying a book.
+6. @gentleman_e — from behind: tall, elderly, swept-back white hair, white
+   stand-collar suit, white shoes, a black cane with a gold lion head.
+7. @project_absence_char_guard_private_v2 — from behind: very heavily built,
+   all-black suit and black shirt, white gloves on both hands, arms at his sides.
+8. @project_absence_char_woman_c — MADAME THIBAULT, from behind: tall and
+   rail-straight, a floor-length glossy mid-green leather gown with pointed
+   shoulder caps, long green leather opera gloves, a towering pompadour streaked
+   blue, green and silver-white.
+9. @project_absence_char_critic — from behind: a woman of about sixty, dark
+   grey-streaked hair in a low chignon, a full-length deep magenta fur coat with
+   a wide shawl collar, long cream suede gloves.
+10. @project_absence_char_grandmother — from behind and SEATED in a powered
+    wheelchair: a grey knitted headscarf tied under the chin, grey knitted
+    cardigan, brown boots. The only seated figure; her head is much lower.
+11. @project_absence_char_woman — from behind: dark hair pinned up, an oversized
+    cobalt-blue overcoat, brown-checked skirt, black tights, brown loafers.
+12. @project_absence_char_student_c — from behind: a slight young woman, short
+    dark curly bob, a chrome-yellow leather trouser suit with an oversized
+    pointed collar, a flat yellow pillbox hat, cream gloves.
+13. @project_absence_char_visitor_a — from behind: an ordinary balding man in an
+    oxblood leather suit.
+14. @project_absence_char_workman — from behind: dark navy overalls, a rag over
+    one shoulder, a bucket of wet plaster in one hand.
+15. @project_absence_char_oldman — from behind, at the far right end: a heavy
+    dark green leather overcoat, white hair, a walking cane.
+
+THE GUARDS' GOLD V IS NOT OPTIONAL. Both navy-uniformed guards must show a large
+gold letter V on the back of the tunic. A guard whose back is plain navy is
+wrong.
+
+@higgsfield-global-film-2026 — the official festival laurel mark, and DIRECTLY
+BENEATH IT the words "AI SHORT FILM". These two form ONE locked badge, not two
+separate elements: the laurel on top, the words centred under it and close
+enough that the eye reads them as a single stamp. Reproduce the laurel EXACTLY
+as the reference shows it, including every word inside it. Do not redraw,
+re-letter, translate or restyle its text, and do not invent extra words inside
+or around it.
+
+YOU CHOOSE the badge's position, size and colour — put it wherever it sits best
+in this composition. Three things are not yours to choose:
+- The laurel and the words under it are the SAME colour as each other, the same
+  weight, and close together. They must never read as two separate marks.
+- Whatever colour you pick must be clearly legible against whatever is behind
+  it, and must not fight the title.
+- The badge MUST NOT overlap or obscure ANY person, and above all must not cover
+  a face. It sits on empty sky, empty stone or empty ground only.
+
+SCENE
+@project_absence_loc_exterior_front — the museum entrance fills the upper two
+thirds: a low curved building faced in warm cream stone, a long polished chromium
+canopy along its front edge, TWO tall chromium trumpet columns holding it up, a
+glass revolving door set back beneath, mirrored chrome spheres on cylinder
+plinths, and a wide fan of shallow steps dropping toward the camera. The row
+stands on the forecourt at the foot of the steps. Late afternoon daylight, clear
+pale sky above the roofline, long soft shadows falling toward the camera.
+
+COMPOSITION
+Dead-on, perfectly level, perfectly centred, the revolving door exactly on the
+centre line. Long lens, everything flat and parallel to the frame. The row of
+people occupies the lower third; the facade and a band of pale sky fill the upper
+two thirds and stay clean so the title reads against them.
+
+VISUAL DIRECTION
+Already colour-graded, not raw. Saturated, deliberately designed colour: costume
+colours rich and clearly separate from one another, warm cream stone, polished
+chrome, a pale sky. Flat even light, low mid contrast, soft shadows rather than
+deep black. Skin stays natural. Photographed, not rendered: fine film grain,
+slight colour fringing.
+
+TEXT
+Render the following text exactly once each, and no other text anywhere.
+("AI SHORT FILM" is NOT listed here — it belongs to the festival badge above.)
+Both lines are the same warm ROSE PINK, hex #CE6973, set FLAT: no drop shadow,
+no outline, no glow, no bevel, no added weight. Clean flat colour on the wall,
+exactly as a printed poster would be. The shadow belongs to the festival badge
+alone and must not appear on the title or the subtitle.
+- "SORRY SIR" — large, all capitals, centred across the upper area against the
+  stone and sky, the same bold wide-tracked sans serif the poster already uses —
+  do not thicken, outline or restyle it. Clearly the dominant element, sitting
+  well clear of the people below.
+- "THE VALDER COLLECTION" — small, all capitals, centred directly beneath
+  "SORRY SIR", thin and widely letter-spaced, no more than a fifth its height.
+Both lines crisp, evenly spaced, correctly spelled, on plain background.
+
+CONSTRAINTS
+Fifteen people in total, not fourteen and not sixteen, each appearing once only.
+BOTH navy guards show a large gold V on the back of the tunic.
+Exactly ONE man in white with a mop, and he is the only face in the picture.
+Exactly ONE man in the colour-block blazer with the mustard scarf.
+Exactly TWO men in navy peaked caps, one tall and thin, one short and heavy.
+Exactly ONE cream-white suit carrying a brown leather ledger.
+Exactly ONE tall elderly man in a white stand-collar suit with a black cane.
+Exactly ONE very heavily built man in an all-black suit with white gloves.
+Exactly ONE tall woman in a green leather gown with a towering pompadour.
+Exactly ONE woman in a deep magenta fur coat.
+Exactly ONE seated woman in a wheelchair in grey knits.
+Exactly ONE young woman in a cobalt-blue overcoat.
+Exactly ONE young woman in a chrome-yellow leather suit and pillbox hat.
+Exactly ONE balding man in an oxblood leather suit.
+Exactly ONE man in dark navy overalls with a bucket.
+Exactly ONE old man in a dark green leather overcoat, at the far right end.
+No twins, no duplicated faces, no repeated costumes. No second row of people, no
+crowd in the background, no cars. Nobody turns their head. No face visible except
+the man at the far left.
+No additional words, letters, numbers, signage, logos, signatures or watermarks
+of any kind beyond the two lines specified above and the words already inside
+@higgsfield-global-film-2026. No gold V on the stone, no plaque on the building.
+No border, no frame, no vignette, no mockup.
+
+OUTPUT
+16:9 landscape, 1K, high quality, sharp throughout, no border.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

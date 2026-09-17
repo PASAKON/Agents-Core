@@ -113,3 +113,8 @@ docs/reports/previz-contacts/
 .launch/
 .worker.json
 WORKER.md
+
+# dependency + tool caches that landed at the repo root (34 MB of node_modules,
+# pytest scratch) - not source, and they make every git status unreadable
+mcp/node_modules/
+.pytest_cache/

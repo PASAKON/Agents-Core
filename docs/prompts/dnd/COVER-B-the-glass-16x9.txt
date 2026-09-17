@@ -17,9 +17,9 @@ Two deliberate differences from the original, both because this is a YouTube
 cover and not a status card:
 - "FINAL CUT" is dropped. It describes a stage of work, means nothing to a
   viewer, and the film is finished.
-- The laurel is not drawn by the model. It is composited afterwards from the 4K
-  PNG. Asking a model for a logo produces garbled lettering — measured on this
-  production: "LAKKRITORGH GIN UDNS".
+- The laurel is bound as a reference (@higgsfield-global-film-2026) so the model
+  copies it rather than inventing it. Asking a model to DRAW a logo produced
+  "LAKKRITORGH GIN UDNS" on this production; copying a bound one is safe.
 
 THE CHIPS — check each on the panel before firing. Count them: 2.
   @Mother       the housekeeper
@@ -51,6 +51,22 @@ apart to fill the 16:9 frame. The hands are smeared with dark red, and that red
 has run downward in thin vertical streaks from each fingertip, mixing with the
 water on the glass. The hands are the sharpest thing in the picture.
 
+@higgsfield-global-film-2026 — the official festival laurel mark, and DIRECTLY
+BENEATH IT the words "AI SHORT FILM". These two form ONE locked badge, not two
+separate elements: the laurel on top, the words centred under it and close
+enough that the eye reads them as a single stamp. Reproduce the laurel EXACTLY
+as the reference shows it, including every word inside it. Do not redraw,
+re-letter, translate or restyle its text, and do not invent extra words inside
+or around it.
+
+YOU CHOOSE the badge's position, size and colour — put it wherever it sits best
+in this composition. Three things are not yours to choose:
+- The laurel and the words under it are the SAME colour as each other, the same
+  weight, and close together. They must never read as two separate marks.
+- Whatever colour you pick must stay clearly legible against this very dark
+  picture, and must not fight the title.
+- The badge MUST NOT cover her face, her hands, or any part of her. It sits on empty darkness only.
+
 SCENE
 Night, seen from a dark exterior. The glass is streaked with rain and
 condensation. Behind her, deep in the dark, a single warm lamp is blown out into
@@ -81,9 +97,10 @@ Exactly ONE person. Exactly TWO hands, one either side, five fingers each.
 No third hand, no extra fingers, no second face, no reflection of another
 person, no figure behind her.
 No knife, no weapon, no wound, no blood on her face.
-No additional words, letters, numbers, signage, logos, laurels, signatures or
-watermarks of any kind beyond the one line specified above. In particular do not
-render "FINAL CUT" or any subtitle under the title.
+No additional words, letters, numbers, signage, logos, signatures or watermarks
+beyond the one line specified above and the words inside
+@higgsfield-global-film-2026. In particular do not render "FINAL CUT" or any
+subtitle under the title.
 No border, no frame, no vignette added as a graphic, no mockup.
 
 OUTPUT

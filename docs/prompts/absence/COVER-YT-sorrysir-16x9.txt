@@ -1,0 +1,124 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+«Sorry, Sir» YouTube cover — built entirely by the model, laurel included
+GPT Image 2.5 SUNBURST · 16:9 · 1K · Quality High · 1 image · <= 5 credits
+
+WHY THIS REPLACES THE COMPOSITE
+The previous cover was a finished poster with the festival laurel pasted on top.
+It never looked designed, because it was not — the mark sat on the picture
+instead of in it. Handing the model the laurel as a bound reference and letting
+it lay the whole frame out solves that in one pass.
+
+THE CHIPS — 4. Count them on the panel before firing; a chip that fails to
+attach gives no warning except a short count.
+  @higgsfield-global-film-2026                            the Higgsfield festival laurel (CEO uploads)
+  @project_absence_char_cleaner_c     Dupe, the cleaner
+  @project_absence_loc_wall_crack     the hero wall with its crack
+  @project_absence_prop_tag           the brass plaque
+
+⚠️ @higgsfield-global-film-2026 carries LETTERING. The model must copy it, never re-letter it — this
+production has already produced "LAKKRITORGH GIN UDNS" from a model asked to
+draw a logo. The prompt says this twice on purpose.
+
+⚠️ Check @project_absence_char_cleaner_c before firing. We want him from BEHIND;
+the plate is a front-facing portrait, so the prose has to carry the back view.
+
+THE PINK IS NOT A GUESS: #CE6973, the median of 41,644 title pixels sampled off
+the approved poster. Same colour for every text element and the laurel, which is
+what makes the frame read as one design.
+
+AFTER GENERATION — VERIFY, then SHRINK
+  1. Both text lines spelled correctly, letter by letter. Zoom in.
+  2. The laurel's own words legible and correct — that is the one thing a model
+     is most likely to quietly wreck.
+  3. ONE figure, seen from behind, no face. ONE crack. ONE plaque.
+  4. View it at 210x118 px, the size YouTube actually shows. If "SORRY SIR"
+     stops reading there, the cover has failed its only job however good it
+     looks full screen.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+DELIVERABLE
+A finished 16:9 YouTube cover image for a short film. Photographic, minimal,
+almost entirely one vast pale gallery wall. It must stay readable when shrunk to
+the size of a thumbnail, so keep it simple: one big title, one small figure, a
+lot of empty wall.
+
+SUBJECT
+@project_absence_loc_wall_crack — THE WALL: one enormous flat pale wall, warm
+off-white, smooth, filling the frame edge to edge and top to bottom. It is almost
+completely empty. Two small things sit on it and nothing else:
+- ONE small crack, a short jagged star no bigger than a spread hand, at about the
+  middle height of the wall and slightly right of the centre line.
+- @project_absence_prop_tag — ONE small brass plaque mounted well below the
+  crack, at knee height, warm brass with two screws at its top corners. It is
+  small enough that its engraving reads as fine texture, not as words.
+
+@project_absence_char_cleaner_c — DUPE, one man, small in the frame, standing on
+the floor at the foot of the wall, LEFT of centre, seen from BEHIND. White
+mandarin-collar uniform with thin orange trim and a small gold V, a white cap, a
+mop held upright beside him. He stands still, head tilted slightly up, looking at
+the crack far above him. He is the only person in the picture and takes up no
+more than one eighth of the frame height.
+
+@higgsfield-global-film-2026 — the official festival laurel mark, and DIRECTLY
+BENEATH IT the words "AI SHORT FILM". These two form ONE locked badge, not two
+separate elements: the laurel on top, the words centred under it and close
+enough that the eye reads them as a single stamp. Reproduce the laurel EXACTLY
+as the reference shows it, including every word inside it. Do not redraw,
+re-letter, translate or restyle its text, and do not invent extra words inside
+or around it. The whole badge — laurel and the words under it — is the same warm
+rose pink as the title, #CE6973, carrying the same hard-edged two-pixel shadow.
+The badge is about one fifth of the frame width. Place it where it balances the
+composition — clear of the title, clear of the man, on plain wall — with nothing overlapping it.
+
+SCENE
+A gallery interior, but only the wall and a narrow strip of polished terracotta
+floor at the very bottom are visible. Soft even daylight from high on the left,
+the wall gently brighter at its centre and falling off toward the edges. A long
+soft shadow from the man across the floor.
+
+COMPOSITION
+Dead-on, perfectly level, flat to the wall, no perspective distortion. Enormous
+negative space. Four small incidents in a vast empty field: the title, the man,
+the crack, the laurel. Keep them well apart — nothing overlapping anything else.
+The upper half of the wall stays clear and unbroken for the title.
+
+VISUAL DIRECTION
+Already colour-graded, not raw. Warm off-white wall, restrained but saturated:
+the white uniform clean and slightly cool against the warm wall, the brass warm,
+the terracotta floor rich. Flat even light, low contrast, soft shadows rather
+than deep black. Quiet, still, formal, faintly absurd. Photographed, not
+rendered: fine film grain, slight colour fringing.
+
+TEXT
+Render the following text exactly once each, and no other text anywhere.
+("AI SHORT FILM" is NOT listed here — it belongs to the festival badge above.)
+Both lines are the same warm ROSE PINK, hex #CE6973, set FLAT: no drop shadow,
+no outline, no glow, no bevel, no added weight. Clean flat colour on the wall,
+exactly as a printed poster would be. The shadow belongs to the festival badge
+alone and must not appear on the title or the subtitle.
+- "SORRY SIR" — very large, all capitals, centred in the clear upper half of the
+  wall. The same bold wide-tracked sans serif the poster already uses — do not
+  thicken, outline or restyle it. It is the dominant element and touches
+  nothing else.
+- "THE VALDER COLLECTION" — small, all capitals, centred directly beneath
+  "SORRY SIR", thin and widely letter-spaced, no more than a fifth the height of
+  the title.
+Both lines crisp, evenly spaced, correctly spelled, on plain wall.
+
+CONSTRAINTS
+There is exactly ONE person and he is seen from behind. No face, no second
+figure, no crowd, no reflection of a person.
+Exactly ONE crack. Exactly ONE brass plaque. Exactly ONE mop. Exactly ONE laurel.
+No paintings, frames, artworks, furniture, plinths, doors or windows.
+No readable engraving on the plaque.
+No additional words, letters, numbers, signage, logos, signatures or watermarks
+of any kind beyond the two lines specified above and the words already inside
+@higgsfield-global-film-2026. Do not add a festival name, a year, a date, a director credit or a
+laurel of your own invention.
+No border, no frame, no vignette, no mockup, no torn-paper or poster-on-a-wall
+effect.
+
+OUTPUT
+16:9 landscape, 1K, high quality, sharp throughout, edge to edge, no border.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

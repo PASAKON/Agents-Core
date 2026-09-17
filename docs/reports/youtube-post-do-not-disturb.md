@@ -54,6 +54,14 @@ Every frame was generated. Nothing was filmed.
 #HiggsfieldGlobalFilmFestival #AIFilm #ILAGStudio
 ```
 
+**STATUS 2026-09-13:** the model list is still missing from the live description.
+The Stack panel is not in the project's ⋮ menu, and the public project page is
+JS-rendered so it cannot be read from the VPS. The cheapest fix by far is a
+screenshot of the DND project's Details tab from whoever has the browser — it
+took one screenshot to get Sorry Sir's ten models. Do not guess the list: a
+disclosure that does not match the platform's own record is worse than a short
+one, and "Generated on Higgsfield · Cinema Studio" is true as it stands.
+
 **Where the blanks come from:** the project is `@ilag-studio/ai-film-festival`
 — **not** `ai-film-festival-3`, which is the other film; the URLs differ by one
 character, so read the whole path. Open its Details tab and copy the "Powered
