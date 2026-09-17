@@ -7,6 +7,15 @@ BLOCKER.md opens a GitHub issue and marks it `blocked_human`; and if the
 remote worker died before pushing either, the task fails with a clear
 `delegate_log`.
 
+Effective 2026-09-17 (GH #151): REPORT.md/BLOCKER.md must open with a
+`# REPORT task-<id>` / `# BLOCKER task-<id>` header naming the EXACT task
+id being polled — see `_header_task_id`. A file missing that header, or
+naming a different task, is never flipped on; a stale/wrong-task file
+(task-424077a4 inherited a stray Higgsfield report checked out from a
+committed-on-main REPORT.md) must never be read as this task's own report
+again. No grandfather clause for pre-2026-09-17 branches — the header is
+required unconditionally from here on.
+
 Git is the only cross-machine channel (design doc §3 rule 2) — this is the
 hub-side half of that contract. tools/delegate.py's `_spawn_remote` is the
 spoke-side half: it clones the worktree in and hands off; this file is what
@@ -18,6 +27,7 @@ Run:  python -m runners.branch_poller          (loop, POLL_SECONDS)
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import time
@@ -201,6 +211,22 @@ def parse_worker_json(text: str) -> dict:
     return data
 
 
+_HEADER_RE_TEMPLATE = r"^#\s*{kind}\s+(task-\S+)\s*$"
+
+
+def _header_task_id(content: str, kind: str) -> str | None:
+    """The task id named on a REPORT.md/BLOCKER.md's first line, or None if
+    that line is missing or doesn't match `# {kind} task-<id>` exactly
+    (`kind` is "REPORT" or "BLOCKER"). Whitespace-only content and a blank
+    first line both read as "no header" rather than raising."""
+    stripped = content.strip()
+    if not stripped:
+        return None
+    first_line = stripped.splitlines()[0].strip()
+    m = re.match(_HEADER_RE_TEMPLATE.format(kind=kind), first_line)
+    return m.group(1) if m else None
+
+
 def check_task(task: dict) -> None:
     """One task's tick. Never raises — a bad/malformed row must not kill
     the loop for every other task."""
@@ -226,6 +252,22 @@ def check_task(task: dict) -> None:
 
         report = read_remote_file(repo_path, branch, "REPORT.md")
         if report is not None:
+            header_id = _header_task_id(report, "REPORT")
+            if header_id != task_id:
+                found = header_id or "no header"
+                _log().warning(
+                    "task %s: REPORT.md header mismatch (%s) on %s — refusing",
+                    task_id, found, branch,
+                )
+                db.set_fields(
+                    task_id, actor="branch_poller",
+                    delegate_log=(
+                        f"REPORT.md header mismatch on {branch}: found "
+                        f"{found!r}, expected 'task {task_id}' — refusing to "
+                        "flip to review"
+                    ),
+                )
+                return
             db.update_status(task_id, "review", report=report, actor="branch_poller")
             _log().info("task %s -> review (REPORT.md on %s)", task_id, branch)
             _maybe_close_finished_remote_worker(task_id, repo_path, branch)
@@ -233,7 +275,26 @@ def check_task(task: dict) -> None:
 
         blocker = read_remote_file(repo_path, branch, "BLOCKER.md")
         if blocker is not None:
-            first_line = blocker.strip().splitlines()[0] if blocker.strip() else "blocked"
+            header_id = _header_task_id(blocker, "BLOCKER")
+            if header_id != task_id:
+                found = header_id or "no header"
+                _log().warning(
+                    "task %s: BLOCKER.md header mismatch (%s) on %s — refusing",
+                    task_id, found, branch,
+                )
+                db.set_fields(
+                    task_id, actor="branch_poller",
+                    delegate_log=(
+                        f"BLOCKER.md header mismatch on {branch}: found "
+                        f"{found!r}, expected 'task {task_id}' — refusing to "
+                        "flip to blocked_human"
+                    ),
+                )
+                return
+            # First line is the mandatory header; the issue title/body come
+            # from the worker's actual blocker text, the line after it.
+            body_lines = [ln for ln in blocker.strip().splitlines() if ln.strip()]
+            first_line = body_lines[1] if len(body_lines) > 1 else "blocked"
             issue_url = open_blocker_issue(task_id, first_line, blocker)
             log_line = f"remote worker blocked: {first_line}"
             if issue_url:

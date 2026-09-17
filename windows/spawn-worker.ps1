@@ -113,7 +113,29 @@ try {
     # --- 2. Worktree on a fresh task branch (idempotent: this launcher may
     # run more than once for the same task while the pipe is being tested) ---
     $wt = Join-Path $WorktreeRoot "$Project`__$Role`__$Task"
+    # GH #151: files a worker writes at its own worktree root and never
+    # cleans up — a stale one here means a NEW worker inherits another
+    # task's report/blocker/mailbox/heartbeat. worker.log is NOT in this list
+    # (iteration 1 review, 2026-09-18): nothing writes it any more since the
+    # Tee-Object launcher line was reverted (see step 6 below).
+    $staleFiles = @('REPORT.md', 'BLOCKER.md', 'MAILBOX.md', 'HEARTBEAT')
     if (Test-Path $wt) {
+        # GH #151: this path can be reused across tasks (same slug pattern).
+        # If it still holds TRACKED, uncommitted changes, that's a previous
+        # worker's real unfinished work -- refuse instead of silently force-
+        # removing it. $staleFiles never count as dirty here even when
+        # untracked: REPORT.md/BLOCKER.md are meant to be committed+pushed on
+        # the WORKER's own branch (they ARE the hub's channel); HEARTBEAT/
+        # MAILBOX.md are git-excluded (see info/exclude below) so `git status`
+        # would show them as untracked anyway, never as a reason to refuse.
+        if (Test-Path (Join-Path $wt '.git')) {
+            $dirty = @(git -C $wt status --porcelain 2>$null |
+                Where-Object { $_ -and -not $_.StartsWith('??') })
+            if ($dirty.Count -gt 0) {
+                Write-Output "SPAWN_REFUSED=dirty-worktree $wt"
+                exit 1
+            }
+        }
         git -C $RepoPath worktree remove --force $wt 2>$null
         if (Test-Path $wt) { Remove-Item -Recurse -Force $wt }
     }
@@ -123,6 +145,48 @@ try {
     }
     git -C $RepoPath worktree add -b $Branch $wt "origin/$Base" 2>&1 | ForEach-Object { "$_" } | Select-Object -Last 3
     Assert-Git "worktree add"
+
+    # GH #151 defense-in-depth: `worktree add` checks out whatever is
+    # COMMITTED on $Base (a stale REPORT.md committed to main by mistake is
+    # exactly how task-424077a4 inherited one) plus anything left over from
+    # a prior occupant of this same path. Delete all four BEFORE TASK.md is
+    # written, so a fresh worker never starts holding another task's
+    # report/blocker/mailbox/heartbeat.
+    foreach ($stale in $staleFiles) {
+        $staleP = Join-Path $wt $stale
+        if (Test-Path $staleP) { Remove-Item -Force $staleP }
+    }
+
+    # GH #150/#152 review (2026-09-18): HEARTBEAT and MAILBOX.md must NEVER be
+    # committed. roles/_worker_remote.md tells the worker to `git add -A &&
+    # git commit`; REPORT.md/BLOCKER.md are meant to be committed (they ARE
+    # the hub's channel), but a HEARTBEAT touched before every tool call would
+    # turn into a commit every time, and a committed MAILBOX.md would push the
+    # hub's messages onto the worker's own branch and trip merge_task's touches
+    # gate on every merge. `info/exclude` is per-CLONE (shared by every
+    # worktree of $RepoPath, unlike .gitignore which lives in the tracked tree
+    # itself) and is the right place for a machine-local exclusion that must
+    # work for ANY project repo cloned on this box, not just this one.
+    # `git -C $RepoPath rev-parse --git-path ...` returns a path RELATIVE TO
+    # $RepoPath (its own -C target), not relative to this process's actual
+    # working directory -- using it bare here resolved to
+    # C:\Users\UsEr\.git\info\exclude (this ssh session's home dir) instead
+    # of the repo's real .git\info\exclude, and Add-Content failed silently
+    # under $ErrorActionPreference='Continue' (measured live on winbox
+    # 2026-09-18: HEARTBEAT/MAILBOX.md still showed up in `git status`).
+    # Resolve it against $RepoPath ourselves whenever it comes back relative.
+    $excludeRel = git -C $RepoPath rev-parse --git-path info/exclude
+    if ([System.IO.Path]::IsPathRooted($excludeRel)) {
+        $excludePath = $excludeRel
+    } else {
+        $excludePath = Join-Path $RepoPath $excludeRel
+    }
+    $excludeLines = @()
+    if (Test-Path $excludePath) { $excludeLines = @(Get-Content -Path $excludePath -Encoding ASCII) }
+    $toAdd = @('HEARTBEAT', 'MAILBOX.md') | Where-Object { $excludeLines -notcontains $_ }
+    if ($toAdd.Count -gt 0) {
+        Add-Content -Path $excludePath -Value $toAdd -Encoding ASCII
+    }
 
     # --- 3. TASK.md: from -TaskFile (scp'd ahead of this call) or stdin ---
     if ($TaskFile -and (Test-Path $TaskFile)) {
@@ -212,6 +276,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 "@
     Set-Content -Path $finishCmdPath -Value $finishCmdBody -Encoding ASCII
 
+    # GH #152 iteration 1 (REVERTED, CTO review 2026-09-18): piping claude.exe's
+    # output through `| Tee-Object` makes stdout a non-TTY pipe. Claude Code is
+    # an Ink TUI -- when stdout isn't a TTY it silently drops into --print mode
+    # and immediately exits ("Input must be provided either through stdin or as
+    # a prompt argument when using --print"), even though a prompt WAS given
+    # positionally. Measured on the Mac 2026-09-18 with the same Ink code path:
+    # `claude ... 2>&1 | tee tee.log` -> process gone within 12s. This killed
+    # EVERY winbox spawn while the tee'd script was live. Never pipe this call;
+    # #152's "what is it doing" need is served by tools/remote_worker_log.py
+    # instead (reads Claude Code's own JSONL transcript, no launcher change).
     $launcherPath = Join-Path $launchDir 'launch.ps1'
     $launcherBody = @"
 `$env:ORG_HOST = 'winbox'

@@ -10,6 +10,54 @@ you**. Do not try to call them; they will not resolve.
 Git is your only channel back to the hub. The hub polls for your branch —
 it does not poll you.
 
+## Before every tool call: heartbeat + mailbox
+
+Two files at your **worktree root** are the hub's only visibility into you
+while you work (GH #152, #150). Touch both before every tool call — not
+just at start/finish:
+
+1. **HEARTBEAT** — overwrite it with the current UTC time, ISO-8601:
+
+   ```
+   date -u +%Y-%m-%dT%H:%M:%SZ > HEARTBEAT
+   ```
+
+   Run this exact command before every tool call, at the very start of your
+   session, and again right before you `git push`. The watchdog reads this
+   file over ssh; if it goes 20+ minutes without moving while your process
+   is still alive, it marks your task `stalled`.
+
+2. **MAILBOX.md** — the hub's ONLY channel to reach you mid-task. It does
+   not exist until the hub sends you a first message, so check for it
+   (it may be absent) at the same moment you touch HEARTBEAT.
+
+   Format: append-only, one message per line —
+   `<ISO-8601 UTC> | <from, e.g. cto-4a904905> | <message, no embedded newline>`
+
+   Example line:
+   ```
+   2026-09-17T23:10:00Z | cto-4a904905 | scope change: Supabase has no Google sign-in, drop that step
+   ```
+
+   Remember how many lines you've already read (just count them). Each
+   time you check, if the file now has more lines than last time, read only
+   the new ones and act on them immediately — don't wait for a natural
+   stopping point in your current work. If a new line's message is exactly
+   `STOP`: write `BLOCKER.md` with body `stopped by CTO`, `git push`, then
+   run `%ORG_WORKER_FINISH%` and end your session — do not keep working.
+
+**HEARTBEAT and MAILBOX.md are git-excluded** (spawn-worker.ps1 adds them to
+this clone's `info/exclude` when your worktree is created) — `git add -A`
+already skips them, and that's intentional: a heartbeat touched before every
+tool call would otherwise become a commit every time, and a committed
+MAILBOX.md would push the hub's messages onto your own branch. **Never
+`git add -f` either one.** REPORT.md and BLOCKER.md are the opposite — they
+ARE meant to be committed and pushed; only HEARTBEAT/MAILBOX.md are excluded.
+
+You do **not** need to write any other progress log — the hub reads your own
+Claude Code session transcript directly (`tools/remote_worker_log.py`) for
+"what is it doing" visibility. No action needed on your part for that.
+
 ## While you work
 
 - **Commit early and often.** `git add -A && git commit -m "<scope>: <change>"`
@@ -21,10 +69,16 @@ it does not poll you.
 
 ## When you are done
 
-1. Write `REPORT.md` at the **worktree root** in the exact shape workers
+1. Write `REPORT.md` at the **worktree root**. The **first line MUST be**
+   `# REPORT task-<your full task id>` (e.g. `# REPORT task-424077a4`,
+   full id, not truncated) — since 2026-09-17 (GH #151) the hub's poller
+   refuses to flip your task to `review` on a REPORT.md that doesn't open
+   with this exact header naming YOUR task id. Then the exact shape workers
    already use:
 
    ```
+   # REPORT task-<id>
+
    ## Summary
    ## Files Changed
    ## Commits
@@ -44,12 +98,13 @@ branch, reads `REPORT.md` back via `git show`, and flips the task to
 
 ## If you are blocked
 
-Write `BLOCKER.md` at the worktree root (same idea as `REPORT.md`: what's
-blocking you, what you tried, what you need) and push it on your branch.
-The poller opens a GitHub issue from its first line and marks the task
-blocked. Do not wait idle for a reply in this session — a remote worker
-has no way to receive one; push the blocker, run `%ORG_WORKER_FINISH%`,
-and stop.
+Write `BLOCKER.md` at the worktree root. The **first line MUST be**
+`# BLOCKER task-<your full task id>` (same header rule as `REPORT.md`,
+GH #151) — after that, the same idea: what's blocking you, what you tried,
+what you need. Push it on your branch. The poller opens a GitHub issue from
+the first line AFTER the header and marks the task blocked. Do not wait
+idle for a reply in this session — a remote worker has no way to receive
+one; push the blocker, run `%ORG_WORKER_FINISH%`, and stop.
 
 ## Hard limits
 
