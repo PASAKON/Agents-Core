@@ -38,7 +38,8 @@ def _conflict_files(repo: Path) -> list[str]:
         return []
 
 
-def _touches_violation(worktree: str, base: str, touches: list[str]) -> list[str]:
+def _touches_violation(worktree: str, base: str, touches: list[str],
+                       ref: str = "HEAD") -> list[str]:
     """Return files the branch changed (vs base) that fall outside `touches`.
 
     A file is "covered" if it exactly matches a declared path, sits under a
@@ -47,7 +48,7 @@ def _touches_violation(worktree: str, base: str, touches: list[str]) -> list[str
     scope claim and is not gated (matches check_collisions semantics).
     """
     try:
-        out = _run(["git", "diff", "--name-only", f"{base}...HEAD"], cwd=worktree)
+        out = _run(["git", "diff", "--name-only", f"{base}...{ref}"], cwd=worktree)
     except GitOpsError:
         return []
     changed = [line for line in out.splitlines() if line.strip()]
@@ -75,6 +76,37 @@ def _is_ancestor(repo: Path, ancestor: str, descendant: str) -> bool:
     # exit 0 = is ancestor; 1 = not; other = bad ref / error (treat as "not"
     # so the subsequent merge surfaces the real failure).
     return r.returncode == 0
+
+
+def _resolve_merge_ref(repo: Path, branch: str) -> str:
+    """The ref `git merge` should consume for `branch`.
+
+    A Mac worker's branch exists locally (its worktree lives in this clone).
+    A REMOTE worker (winbox, Contabo) pushes from its own clone, so the hub
+    only ever has `origin/<branch>` — and `git merge <branch>` fails with
+    "not something we can merge" (E2E task-95803168, 2026-09-18; the same
+    hand-merge workaround had sat in memory since 2026-09-09). Prefer the
+    local branch when it exists; otherwise fetch it from origin and merge the
+    remote-tracking ref. Raises GitOpsError when neither exists.
+    """
+    r = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", f"refs/heads/{branch}"],
+        cwd=str(repo), capture_output=True, text=True,
+    )
+    if r.returncode == 0:
+        return branch
+    subprocess.run(["git", "fetch", "origin", branch], cwd=str(repo),
+                   capture_output=True, text=True)  # best effort; verified next
+    r = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", f"refs/remotes/origin/{branch}"],
+        cwd=str(repo), capture_output=True, text=True,
+    )
+    if r.returncode == 0:
+        return f"origin/{branch}"
+    raise GitOpsError(
+        f"branch {branch} exists neither locally nor on origin — nothing to "
+        f"merge (remote worker never pushed?)"
+    )
 
 
 def _blocking_dirty_paths(porcelain: str, branch_paths: set[str]) -> tuple[list[str], list[str]]:
@@ -140,6 +172,7 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
     base = proj["default_branch"]
     branch = task["branch"] or branch_name(task["role"], task_id)
     worktree = task.get("worktree")
+    merge_ref = _resolve_merge_ref(repo, branch)
 
     if worktree and not override_touches_check:
         try:
@@ -147,7 +180,15 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
         except (TypeError, json.JSONDecodeError):
             declared_touches = []
         if declared_touches:
-            extra = _touches_violation(worktree, base, declared_touches)
+            if Path(worktree).exists():
+                extra = _touches_violation(worktree, base, declared_touches)
+            else:
+                # Remote worker: its worktree is on another box. Diff the
+                # fetched ref inside the hub clone instead of silently
+                # skipping the gate (the old call raised inside _run and
+                # returned [] -- no gate at all for winbox tasks).
+                extra = _touches_violation(str(repo), base, declared_touches,
+                                           ref=merge_ref)
             if extra:
                 shown = extra[:20]
                 msg = (f"branch {branch} changed {len(extra)} file(s) outside declared "
@@ -207,7 +248,7 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
     dirty = _run(["git", "status", "--porcelain"], cwd=repo)
     if dirty:
         branch_paths = set(
-            _run(["git", "diff", "--name-only", f"{base}...{branch}"], cwd=repo).splitlines()
+            _run(["git", "diff", "--name-only", f"{base}...{merge_ref}"], cwd=repo).splitlines()
         )
         blocking, ignored = _blocking_dirty_paths(dirty, branch_paths)
         if ignored:
@@ -234,7 +275,7 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
     # reported as merged=true (line below hardcoded it) AND triggered destructive
     # cleanup (delete branch + worktree) while nothing landed — losing the work.
     # An ancestor branch means it carries no new commits (stale/empty/wrong ref).
-    if _is_ancestor(repo, branch, "HEAD"):
+    if _is_ancestor(repo, merge_ref, "HEAD"):
         msg = (f"branch {branch} is already an ancestor of {base} at "
                f"{pre_sha[:8]} — nothing to merge (empty/stale branch ref?). "
                f"Refusing to report success; branch + worktree preserved for retry.")
@@ -247,7 +288,7 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                 "branch": branch, "base": base, "project": proj["key"]}
 
     merge_args = ["git", "merge", "--no-ff" if strategy == "no-ff" else "--ff",
-                  "-m", f"Merge {branch} (task {task_id})", branch]
+                  "-m", f"Merge {branch} (task {task_id})", merge_ref]
     try:
         _run(merge_args, cwd=repo)
     except GitOpsError as merge_err:
