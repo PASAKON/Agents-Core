@@ -11,7 +11,21 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+def _resolve_root() -> Path:
+    """Hub checkout root. `ORG_ROOT` (set by runners/worker_init.py on every
+    worker spawn, GH #154) wins when present -- a worker's own `__file__`
+    resolves to its worktree, so an ad-hoc `python3 -c '...from lib import
+    db...'` run from inside a worktree would otherwise create/read a
+    worktree-local `state/tasks.db` instead of the hub's shared one. A
+    hub-side process never has `ORG_ROOT` set and falls back to `__file__`
+    exactly as before."""
+    org_root = os.environ.get("ORG_ROOT")
+    if org_root and org_root.strip():
+        return Path(org_root)
+    return Path(__file__).resolve().parent.parent
+
+
+ROOT = _resolve_root()
 DB_PATH = ROOT / "state" / "tasks.db"
 
 SCHEMA = """

@@ -37,7 +37,22 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+def _resolve_root() -> Path:
+    """Hub checkout root. `ORG_ROOT` (set by runners/worker_init.py on every
+    worker spawn, GH #154) wins when present -- a worker's own `__file__`
+    resolves to its worktree, which has no `state/` of its own, so a hook
+    invoked as `${CLAUDE_PROJECT_DIR}/scripts/hook-inbox.py` from inside a
+    worktree would otherwise import THIS module from the worktree's own
+    `lib/` copy and drain a directory that doesn't exist. A hub-side process
+    (CTO session, worker MCP server) never has `ORG_ROOT` set and falls back
+    to `__file__` exactly as before."""
+    org_root = os.environ.get("ORG_ROOT")
+    if org_root and org_root.strip():
+        return Path(org_root)
+    return Path(__file__).resolve().parent.parent
+
+
+ROOT = _resolve_root()
 
 # Referenced via the module global at call time (never bound as a default
 # argument value) so a test can monkeypatch `mailbox.INBOX_ROOT` and have
