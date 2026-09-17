@@ -600,3 +600,15 @@ as a rule.
 **When the free queue is jammed, render time beats price.** On a day when the Unlimited lane
 returned nothing for six hours, a paid 2.0 Fast fire came back in four and a half minutes.
 Getting the shot at all is worth more than the discount.
+
+---
+
+## Scene structure comes first — IRON-RULES §51
+
+This skill covers the shot. It does not decide whether the scene deserves to
+exist. Before any scene here is prompted or generated, it must have passed
+`tig-scene-engine`: Goal, Obstacle, Tactic, Reversal, Value Shift, with the
+audience's before-verdict and after-verdict named. A scene that survives the
+removal test — cut it and the chain to the story goal still holds — does not get
+generated. Mandatory for films, branded shorts and narrative video; not for
+15-30s ad clips, explainers or single standalone shots.
