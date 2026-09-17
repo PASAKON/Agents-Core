@@ -199,6 +199,26 @@ STALLED_S = 14 * 60
 # forgotten rather than being used. Below this, the farm stands down.
 FOREIGN_WINDOW_GRACE_S = 30 * 60
 
+# ...but only for windows a PERSON or an AGENT might be working in.
+#
+# The foreground heuristic could not tell "a peer is driving this" from "this
+# launched itself and took focus", because those look identical from outside.
+# On 2026-09-17 the answer came back 'Steam' - which had grabbed the desktop on
+# its own at night with nobody at the keyboard - and standing down 30 minutes
+# for it would have been 30 minutes of farm paid to an updater.
+#
+# Every computer-use agent in this org works through a browser (browser_operator
+# drives Chrome), and a human at this machine uses one too. So a browser in the
+# foreground means "possibly someone working, yield". Anything else that seized
+# focus by itself gets a short grace and then a minimise.
+AGENT_SURFACES = ("chrome", "edge", "firefox", "brave", "chromium", "opera")
+SELF_LAUNCH_GRACE_S = 3 * 60
+
+
+def looks_like_someone_working(title: str) -> bool:
+    t = (title or "").lower()
+    return any(b in t for b in AGENT_SURFACES)
+
 
 def foreign_window_over_game():
     """(title, is_foreground) of a non-BlueStacks window covering the game.
@@ -373,8 +393,18 @@ def start_farm(why: str) -> bool:
             state_set({**st, "fwin_since": time.time(), "fwin_title": title})
             log(f"a window is over the game ({title}) - standing down, not starting")
             return False
-        if is_fg or time.time() - since < FOREIGN_WINDOW_GRACE_S:
-            log(f"{title} still over the game - Cookie Run yields, not starting")
+        working = looks_like_someone_working(title)
+        grace = FOREIGN_WINDOW_GRACE_S if working else SELF_LAUNCH_GRACE_S
+        if time.time() - since < grace:
+            log(f"{title} over the game - "
+                + ("a browser, so possibly an agent at work; yielding"
+                   if working else
+                   f"not an agent surface; giving it {int(grace / 60)} min")
+                + " - not starting")
+            return False
+        if working and is_fg:
+            log(f"{title} still in the foreground after "
+                f"{int((time.time() - since) / 60)} min - still yielding")
             return False
         state_set({**st, "fwin_since": None, "fwin_title": None})
         log(f"minimising forgotten windows after "

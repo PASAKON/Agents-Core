@@ -76,6 +76,23 @@ def window_over_game():
     return None if d.get("is_tenant") else (d.get("title") or "an untitled window")
 
 
+def emulator_missing() -> bool:
+    """True when the BlueStacks player process is gone.
+
+    Deliberately checks the PROCESS, not a window: this runs in session 0 where
+    windows are invisible, and a process either exists or does not.
+    """
+    try:
+        out = subprocess.run(
+            ["powershell", "-NoProfile", "-Command",
+             "(Get-Process HD-Player -ErrorAction SilentlyContinue | Measure-Object).Count"],
+            capture_output=True, text=True, timeout=25,
+            creationflags=0x08000000).stdout.strip()
+        return out.isdigit() and int(out) == 0
+    except Exception:
+        return False        # cannot tell -> say nothing, do not invent a fault
+
+
 def newest_session():
     """(name, runs, last_progress, started) for the session the bot is writing to.
 
@@ -222,6 +239,14 @@ def main() -> int:
         verdict, reason = "NO-APP", "the Cookie Run app is not running, so nothing can drive the bot"
     elif s.get("esc_hold"):
         verdict, reason = "DOWN", "ESC hold is set - a human stopped the bot and only a human clears it"
+    elif emulator_missing():
+        # Checked BEFORE the window verdict. On 2026-09-17 a PARKED for 'Steam'
+        # sat on top of the real story: BlueStacks itself had closed, so there
+        # was no game at all. A window over the game explains a stalled farm;
+        # it cannot explain a missing emulator, and letting it try hides the
+        # one fault nobody else will notice.
+        verdict, reason = "DOWN", ("BlueStacks (HD-Player) is not running - there is "
+                                   "no game to drive, whatever is on the screen")
     elif fg_win:
         # Someone is using the desktop. Cookie Run yields to other computer-use
         # agents, always (CEO) - so this is PARKED, not a fault, whether or not
