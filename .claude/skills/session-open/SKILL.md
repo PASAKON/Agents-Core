@@ -49,6 +49,11 @@ has a clear thing to close. Enforces [IRON-RULES §35](../../../../LLMs/IRON-RUL
 Before asking what to work on, pull the candidate list so the CEO picks from
 **real state, not memory**. This is the opening menu.
 
+Belt-and-braces memory pull (task-8d37c0f1) — the launcher already pulled
+before this process started; this just covers a `--resume`/`--continue` that
+skipped the launcher: `python3 -m tools.memory_sync pull` (best-effort,
+never blocks the charter).
+
 1. **LungNote todos** — call `mcp__lungnote__list_todos` → the CEO's open
    action items (incl. anything parked by past `/session-close`).
 2. **GitHub issue deadlines** — scan OPEN issues across every CEO repo and

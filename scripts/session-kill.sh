@@ -134,6 +134,14 @@ if [ -z "$NAME" ]; then
   NAME="$ROLE-$SID"
 fi
 
+# Best-effort auto-memory push (task-8d37c0f1) — the safety net for a session
+# ended by calling this script directly instead of going through
+# session-close/session-save (which already push their own copy). Never
+# blocks teardown: memory_sync.py bounds its own git calls and this whole
+# step is `|| true` on top of that.
+(cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
+  python3 -m tools.memory_sync push) || true
+
 if ! tmux has-session -t "$NAME" 2>/dev/null; then
   # No tmux to kill, but the lock family may have outlived it (the launcher's
   # EXIT trap does not always fire). Reap it so state/locks/<name>.* is not

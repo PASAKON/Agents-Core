@@ -112,11 +112,18 @@ it (step 5) when there is genuinely nothing left to resume.
 
 The context is on disk and the trail is in LungNote, so the live session is now
 pure RAM cost. End it everywhere, as the **final action** of the whole skill —
-after the report to the CEO has printed, mirroring [[session-close]] gate 6:
+after the report to the CEO has printed, mirroring [[session-close]] gate 6.
+Push the auto-memory repo first (task-8d37c0f1) — a session that's about to
+park has already written this run's lessons to `MEMORY.md`, and those are
+lost the moment the process ends if they never left this machine:
 ```bash
+python3 -m tools.memory_sync push
 bash scripts/session-rename.sh --prefix "⏸" "<topic, short>"
 bash scripts/session-kill.sh --status saved
 ```
+A non-zero `memory_sync push` doesn't block the park (the CEO's "walk away
+and free RAM" still happens) — name the failure in the report instead, same
+as any other best-effort step here.
 The rename call stamps the CEO's Claude app entry with ⏸ (task-bbdfa8d1, CEO
 2026-09-11 "เช็คไม่ได้เลยว่ามี session เปิดจริงไหม") BEFORE the kill takes the
 pane away — this is the only moment left to change what the app shows, since
