@@ -594,6 +594,17 @@ def cmd_tick(_args) -> int:
     if remaining(lease) > 0:
         return 0
 
+    # An EXPIRED lease never ran give-back, so the screen-clearing that hangs
+    # off give-back never happened either. The CEO borrowed the screen on
+    # 2026-09-17, let it lapse rather than returning it, and left a Chrome
+    # window over the game - the exact condition give-back was taught to
+    # prevent, arriving by the one door that skips it.
+    #
+    # This runs IN session 1 already, so it can just do it.
+    cleared = minimise_foreign_windows()
+    if cleared and not cleared.startswith("FAILED"):
+        log(f"tick: lease lapsed - minimised {cleared}")
+
     who = lease.get("who", "?")
     if not lease.get("was_running"):
         clear_lease()
