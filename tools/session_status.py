@@ -35,10 +35,15 @@ LOCKS = ROOT / "state" / "locks"
 from lib.db import get_conn, now_iso  # noqa: E402
 from tools.session_name import lock_basename  # noqa: E402
 
-# The four values ``c_level_sessions.status`` may legally hold.
-STATUSES = ("open", "closed", "saved", "force_saved")
+# The five values ``c_level_sessions.status`` may legally hold. ``abandoned``
+# (task-9ff9263f) is written only by tools/session_reconcile.py — never by
+# record_close below — for a row that was never closed properly and whose
+# tmux/lock is confirmed dead. Unlike ``saved`` (parked on purpose, resumable)
+# it is NOT resumable: nobody knows when it died or what was left mid-flight.
+STATUSES = ("open", "closed", "saved", "force_saved", "abandoned")
 # record_close ENDS a session, so ``open`` is not a legal close target —
-# the three values a close may set.
+# the three values a close may set. ``abandoned`` is deliberately excluded:
+# it means "ended without going through this writer at all".
 CLOSE_STATUSES = ("closed", "saved", "force_saved")
 
 # Mirrors tools.session_name.KEEP_SUFFIXES — the ``.uuid`` the launcher

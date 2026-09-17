@@ -139,11 +139,19 @@ _MIGRATION_COLUMNS = [
 # existing 76-row DB migrates without a migration framework. `status` carries
 # a constant DEFAULT so SQLite backfills every existing row with 'open'
 # the moment the column is added — no row-by-row fixup needed.
+#
+# host/charter (task-9ff9263f): host is the config/hosts.yaml key (mac/
+# winbox/contabo) the session was spawned on — NULL on every pre-migration
+# row, which tools/session_reconcile.py treats as "legacy, check on this
+# machine" rather than "unknown, skip". charter is created here but left
+# unused on purpose — the next task (the charter gate) owns its logic.
 _C_LEVEL_SESSION_MIGRATION = [
     ("status", "TEXT NOT NULL DEFAULT 'open'"),
     ("closed_at", "TEXT"),
     ("note", "TEXT"),
     ("resume_uuid", "TEXT"),
+    ("host", "TEXT"),
+    ("charter", "TEXT"),
 ]
 
 # Statuses where touched paths are no longer being modified — release locks.
@@ -652,14 +660,20 @@ db_conn = get_conn
 # c_level_sessions helpers
 # ---------------------------------------------------------------------------
 
-def register_cxo_session(role: str, session_id: str) -> None:
+def register_cxo_session(role: str, session_id: str, host: str | None = None) -> None:
+    """Upsert a c_level_sessions row at spawn. `host` (config/hosts.yaml key)
+    is optional so every pre-existing caller keeps working unchanged; when
+    given on a re-register it overwrites, when omitted the existing column
+    value (if any) is kept rather than clobbered to NULL."""
     ts = now_iso()
     with get_conn() as conn:
         conn.execute(
-            """INSERT INTO c_level_sessions (role, session_id, spawned_at)
-               VALUES (?, ?, ?)
-               ON CONFLICT(role, session_id) DO UPDATE SET spawned_at=excluded.spawned_at""",
-            (role, session_id, ts),
+            """INSERT INTO c_level_sessions (role, session_id, spawned_at, host)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(role, session_id) DO UPDATE SET
+                 spawned_at=excluded.spawned_at,
+                 host=COALESCE(excluded.host, c_level_sessions.host)""",
+            (role, session_id, ts, host),
         )
 
 
