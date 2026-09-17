@@ -235,55 +235,54 @@ def main() -> int:
     verdict = "OK"
     reason = ""
 
-    if lease and s is None:
-        # A held lease outranks even a dead app. On 2026-09-17 the CEO borrowed
-        # the screen to log into Gmail and this reported NO-APP, which reads as
-        # "go fix it" - and fixing it means launching a window on the desktop he
-        # is typing passwords into. Cookie Run yields to a human, always; the
-        # app can be restarted when the screen comes back. Still SAID, so it is
-        # not forgotten, just not acted on.
+    # Order matters more than any single test here, and getting it wrong is how
+    # a check tells you to do the wrong thing confidently.
+    #
+    # A HELD LEASE COMES FIRST, ALWAYS. Everything below is a fault someone
+    # would act on, and acting means putting a window on a desktop somebody else
+    # is using. On 2026-09-17 this reported DOWN / "BlueStacks is not running"
+    # while the CEO was typing passwords into Gmail on that screen - correct
+    # about the emulator, and an instruction to go interrupt him. Faults found
+    # while the screen is lent are NAMED in the reason and acted on later.
+    faults = []
+    if s is None:
+        faults.append("the Cookie Run app is not running")
+    elif s.get("esc_hold"):
+        faults.append("ESC hold is set - only a human clears it")
+    if emulator_missing():
+        faults.append("BlueStacks (HD-Player) is not running")
+    elif s is not None and not s.get("bot_alive") and not s.get("job"):
+        faults.append("the bot is not running")
+
+    if lease:
         verdict = "PARKED"
         reason = (f"screen lent to {lease.get('who', '?')} until "
-                  f"{time.strftime('%H:%M', time.localtime(lease['expires_at']))} "
-                  f"- NOTE: the app is also down and will need restarting once "
-                  f"the screen is free")
+                  f"{time.strftime('%H:%M', time.localtime(lease['expires_at']))}")
+        if faults:
+            reason += " - NOTE, to deal with once the screen is free: " + "; ".join(faults)
     elif s is None:
         verdict, reason = "NO-APP", "the Cookie Run app is not running, so nothing can drive the bot"
     elif s.get("esc_hold"):
         verdict, reason = "DOWN", "ESC hold is set - a human stopped the bot and only a human clears it"
     elif emulator_missing():
-        # Checked BEFORE the window verdict. On 2026-09-17 a PARKED for 'Steam'
-        # sat on top of the real story: BlueStacks itself had closed, so there
-        # was no game at all. A window over the game explains a stalled farm;
-        # it cannot explain a missing emulator, and letting it try hides the
-        # one fault nobody else will notice.
         verdict, reason = "DOWN", ("BlueStacks (HD-Player) is not running - there is "
                                    "no game to drive, whatever is on the screen")
     elif fg_win:
-        # Someone is using the desktop. Cookie Run yields to other computer-use
-        # agents, always (CEO) - so this is PARKED, not a fault, whether or not
-        # they remembered the lease. Reporting DOWN here would send whoever
-        # reads it to go restart a farm that must not start.
         verdict = "PARKED"
         reason = (f"a window is over the game on the Windows side: {fg_win!r} - "
                   f"Cookie Run yields; Android still reports the game foreground "
                   f"because it is, underneath")
-    elif lease:
-        verdict = "PARKED"
-        reason = f"screen lent to {lease.get('who', '?')} until {time.strftime('%H:%M', time.localtime(lease['expires_at']))}"
     elif not s.get("bot_alive"):
         verdict, reason = "DOWN", "nobody holds the screen and the bot is not running"
     elif s.get("job") == "preflight":
-        # A preflight in progress is normal. A preflight still in progress hours
-        # after the last finished round is a loop, and calling that OK is how
-        # this check reported green through a three-hour outage on 2026-09-17
-        # while played_24h sat frozen at 0.167. The gate is allowed to take a
-        # while; it is not allowed to become the steady state.
         if age_min is not None and age_min > 45:
             verdict, reason = ("STUCK", f"preflight has been cycling for {age_min} min "
                                         f"without a finished round - it is looping, not starting")
         else:
             verdict, reason = "OK", "preflight dry round in progress"
+    elif fg_win:
+        verdict = "PARKED"
+        reason = f"a window is over the game on the Windows side: {fg_win!r}"
     elif fg and fg != GAME_PKG:
         verdict, reason = "STUCK", f"a foreign app owns the emulator screen: {fg}"
     elif age_min is not None and age_min >= ROUND_QUIET_S / 60:
