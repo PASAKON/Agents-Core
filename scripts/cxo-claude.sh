@@ -240,11 +240,45 @@ if [ -z "$SESSION_OVERRIDE" ]; then
   echo "$CXO_SESSION_ID" >"$ACTIVE_FILE"
 fi
 
+# Machine prefix for the Claude session display name (CEO 2026-08-30) —
+# same block as cto-claude.sh: the mobile app lists Remote Control sessions
+# from every box in one flat list, so the name must carry the machine.
+# Session name only; TAB_TITLE (iTerm tab strip) stays unprefixed.
+#
+# Computed here (moved up from its original spot further below) so HOST_KEY
+# is ready in time for the reconcile + register_cxo calls right after it —
+# both need to know which machine this is before they touch c_level_sessions.
+case "$(uname -s)" in
+  Darwin) MACHINE_LABEL="MAC" ;;
+  Linux)  if [ -d /opt/mooniex-agents ]; then MACHINE_LABEL="CONTABO"
+          else MACHINE_LABEL="$(hostname -s 2>/dev/null | tr '[:lower:]' '[:upper:]')"; fi ;;
+  MINGW*|MSYS*|CYGWIN*) MACHINE_LABEL="WINDOWS" ;;
+  *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;
+esac
+
+# config/hosts.yaml key for THIS machine -- same values runners/worker_init.py's
+# current_host()/ORG_HOST resolve to (mac/winbox/contabo), derived from the
+# label above rather than a second uname case so the two can never disagree.
+case "$MACHINE_LABEL" in
+  MAC)     HOST_KEY="mac" ;;
+  CONTABO) HOST_KEY="contabo" ;;
+  WINDOWS) HOST_KEY="winbox" ;;
+  *)       HOST_KEY="$(printf '%s' "$MACHINE_LABEL" | tr '[:upper:]' '[:lower:]')" ;;
+esac
+
+# Reconcile c_level_sessions BEFORE registering this new row (task-9ff9263f):
+# marks any 'open' row on this host whose tmux is actually dead as
+# 'abandoned', so stale rows don't pile up forever. Backgrounded + swallowed
+# exactly like the register call right after it -- a reconcile failure or
+# slow run must never delay or block this spawn.
+(cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
+  python3 -m tools.session_reconcile --apply 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
+
 # Register session in c_level_sessions DB so gate 4 can query it later.
 # stdio detached: a backgrounded child holding our stdout/stderr pipes
 # makes programmatic callers (tests, capture_output) hang until it exits.
 (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
-  python3 -m tools.register_cxo --role "$ROLE" --session "$CXO_SESSION_ID" 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
+  python3 -m tools.register_cxo --role "$ROLE" --session "$CXO_SESSION_ID" --host "$HOST_KEY" 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
 
 # Launch idle-ping watcher — EPHEMERAL sessions only (--session set by
 # send_to_cxo --spawn). Primary CEO<->CXO tabs must never be idle-pinged:
@@ -421,27 +455,9 @@ if [ -n "${INITIAL_PROMPT:-}" ]; then
   CLAUDE_POSITIONAL+=("$INITIAL_PROMPT")
 fi
 
-# Machine prefix for the Claude session display name (CEO 2026-08-30) —
-# same block as cto-claude.sh: the mobile app lists Remote Control sessions
-# from every box in one flat list, so the name must carry the machine.
-# Session name only; TAB_TITLE (iTerm tab strip) stays unprefixed.
-case "$(uname -s)" in
-  Darwin) MACHINE_LABEL="MAC" ;;
-  Linux)  if [ -d /opt/mooniex-agents ]; then MACHINE_LABEL="CONTABO"
-          else MACHINE_LABEL="$(hostname -s 2>/dev/null | tr '[:lower:]' '[:upper:]')"; fi ;;
-  MINGW*|MSYS*|CYGWIN*) MACHINE_LABEL="WINDOWS" ;;
-  *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;
-esac
-
-# config/hosts.yaml key for THIS machine -- same values runners/worker_init.py's
-# current_host()/ORG_HOST resolve to (mac/winbox/contabo), derived from the
-# label above rather than a second uname case so the two can never disagree.
-case "$MACHINE_LABEL" in
-  MAC)     HOST_KEY="mac" ;;
-  CONTABO) HOST_KEY="contabo" ;;
-  WINDOWS) HOST_KEY="winbox" ;;
-  *)       HOST_KEY="$(printf '%s' "$MACHINE_LABEL" | tr '[:upper:]' '[:lower:]')" ;;
-esac
+# MACHINE_LABEL/HOST_KEY are computed earlier now (right before the reconcile
+# + register_cxo calls) so both have the host key ready in time -- see that
+# block, above the "Register session in c_level_sessions" comment.
 
 # Remote Control registration (task-bbdfa8d1, CEO 2026-09-11): "ส่งไปแก้เลย
 # ให้เป็นกฎเหล็กเลย เพราะฉันเช็คไม่ได้เลยว่ามี session เปิดจริงไหม" -- every

@@ -239,17 +239,35 @@ def db_statuses():
     return {(r["role"].lower(), r["session_id"].lower()): r for r in rows}
 
 
+def _run_reconcile():
+    """Mark dead 'open' rows 'abandoned' before every list (task-9ff9263f) so
+    the table below reflects reality instead of 93 rows nobody ever swept.
+    Best-effort: a reconcile failure must never break the listing itself —
+    it just means this run shows whatever the DB already had."""
+    try:
+        from tools.session_reconcile import reconcile
+        reconcile(apply=True)
+    except Exception as e:
+        print(f"⚠ reconcile failed, showing DB as-is: {e}", file=sys.stderr)
+
+
 def _overlay_db(glyph, state, blocker, db_status, db_note):
     """Fold the DB lifecycle status into the display state + blocker cells.
 
     force_saved is made loud and glyph-agnostic — it is the one the CEO needs to
     find again, so it gets its own `🚨 FORCE_SAVED` cell regardless of the stale
-    tab glyph. saved is appended so a parked session reads as parked. closed and
-    open fall through to the glyph-derived cells. Returns (state_cell, blocker).
+    tab glyph. saved is appended so a parked session reads as parked. abandoned
+    (task-9ff9263f) is likewise made loud and glyph-agnostic — it's the group
+    that used to hide inside a stale "open", so it needs to read as clearly
+    NOT open and NOT resumable. closed and open fall through to the
+    glyph-derived cells. Returns (state_cell, blocker).
     """
     if db_status == "force_saved":
         note = db_note or "(unfinished — no note recorded)"
         return "🚨 FORCE_SAVED", f"⚠ {note}"
+    if db_status == "abandoned":
+        note = db_note or "(tmux gone, never closed)"
+        return "🪦 ABANDONED", note
     if db_status == "saved":
         cell = f"{glyph} {state}".strip() + " · saved"
         return cell, (f"saved: {db_note}" if db_note else blocker)
@@ -259,6 +277,7 @@ def _overlay_db(glyph, state, blocker, db_status, db_note):
 def main():
     show_all = "--all" in sys.argv          # include 🏁 closed too (default hides them)
     verify = "--verify" in sys.argv         # cross-check title vs log/transcript
+    _run_reconcile()                         # task-9ff9263f: sweep dead 'open' rows first
     now = datetime.now().timestamp()
     live, live_ok = live_ids()
     db = db_statuses()                       # task-728e4741 lifecycle overlay
@@ -317,6 +336,7 @@ def main():
             "last_active": last_active, "live": live_flag,
             "db_status": dbrow["status"] if dbrow else None,
             "db_note": dbrow["note"] if dbrow else None,
+            "host": (dbrow["host"] if dbrow else None) or "-",
         })
 
     out = [r for r in rows if not r["live"]]
@@ -347,12 +367,12 @@ def main():
                     r["blocker"] = "(title stale)"
             else:
                 r["evidence"], r["flag"] = "title-only", "✓"
-        print("| session | state | blocker | created | last active (ago) "
+        print("| session | host | state | blocker | created | last active (ago) "
               "| evidence | flag |")
-        print("|---|---|---|---|---|---|---|")
+        print("|---|---|---|---|---|---|---|---|")
     else:
-        print("| session | state | blocker | created | last active (ago) |")
-        print("|---|---|---|---|---|")
+        print("| session | host | state | blocker | created | last active (ago) |")
+        print("|---|---|---|---|---|---|")
 
     for r in out:
         c = datetime.fromtimestamp(r["created"]).strftime("%Y-%m-%d %H:%M")
@@ -362,7 +382,8 @@ def main():
             r["glyph"], r["state"], r["blocker"],
             r.get("db_status"), r.get("db_note"))
         b = disp_blocker.replace("|", "/")
-        row = f"| {r['role']} #{r['id']} | {disp_state} | {b} | {c} | {la} ({age}) |"
+        row = (f"| {r['role']} #{r['id']} | {r['host']} | {disp_state} | {b} "
+               f"| {c} | {la} ({age}) |")
         if verify:
             row += f" {r['evidence']} | {r['flag']} |"
         print(row)
@@ -386,6 +407,13 @@ def main():
         if sv:
             parts.append(f"💤 {sv} saved")
         print(f"**parked (resumable)** — " + " · ".join(parts))
+
+    # abandoned tally (task-9ff9263f): kept visually separate from the
+    # resumable parked group above — abandoned means "died without anyone
+    # knowing when, or what was left mid-flight", NOT resumable.
+    ab = sum(1 for r in out if r.get("db_status") == "abandoned")
+    if ab:
+        print(f"**🪦 {ab} abandoned** (tmux gone, never properly closed — not resumable)")
 
     if verify:
         fcounts = {}
