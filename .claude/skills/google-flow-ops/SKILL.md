@@ -667,3 +667,84 @@ browser_operator and developer sessions live in the same Chrome. Each recovery
 followed the existing protocol — fresh tab, re-navigate, re-verify composer state
 from scratch — and none of them cost a generation. **Treat it as weather, not as
 an incident**, but never assume composer state survived one.
+
+## Prompt syntax: Omni is not Seedance — `<IMAGE_REF_N>` goes INSIDE the sentence (2026-09-18)
+
+Three shots were fired on 2026-09-18 with chips correctly attached — Flow's own
+post-hoc ingredient panel confirmed all of them, voice included — and the
+character's face, hair and the entire location still drifted between shots.
+
+The chips were never the problem. **The prompts were written in Seedance
+grammar.** We wrote `@nong_daeng speaks in Thai` and attached chips without
+telling the model what each one was for. Google's own Omni guide names that as
+the common failure: *"uploading several references and assuming the model knows
+which one controls the face, which one controls the outfit, which one controls
+the scene."*
+
+**Omni's documented convention is `<IMAGE_REF_N>` written inline, at the point in
+the sentence where that subject is mentioned.** Google's own example:
+
+```
+"in the style of <IMAGE_REF_0> a woman <IMAGE_REF_1> is walking"
+"[0-3s] Starting with woman <IMAGE_REF_0>, she is holding <IMAGE_REF_1>
+ [3-6s] Then we see the man <IMAGE_REF_2>"
+```
+
+Four rules follow, and all four were being broken:
+
+1. **`<IMAGE_REF_N>` is indexed by ATTACH ORDER.** Attach deliberately, in the
+   order the prompt references them, and verify each one landed before the next.
+2. **Say what each reference is for** — "use `<IMAGE_REF_0>` as the character
+   reference for the face and hair, `<IMAGE_REF_1>` as the location reference for
+   the interior and its layout."
+3. **The chip is a hint, not a lock. Describe the appearance in text anyway** —
+   hair length, clothing, build, the set's fixed features. The shot that came out
+   right had a rich set description; the shot that drifted had a thin one, and
+   neither described the character at all.
+4. **Drop "No music."** Google's guide says describe what you want rather than
+   instruct with negatives, and naming music invites it. Our prompts carried that
+   line for months.
+
+Up to **10 image references and 3 video references** per generation are allowed —
+far more than the 3 we assumed. And *"attach everything before the first
+generation, because adding references mid-conversation destabilizes a scene that
+was holding together."*
+
+## The APPEARANCE LOCK is the ground truth, not the neighbouring shot
+
+When three shots disagree, "which one is wrong" is unanswerable by comparing them
+to each other — there is no reference among them. The script's `APPEARANCE LOCK`
+line for that character IS the reference. Check each shot against that text, item
+by item (apron colour, whether it is over or under the shirt, hair, stubble,
+watch, which wrist), and the answer is a count, not an opinion.
+
+This costs nothing and can be run retroactively on every clip ever shot.
+
+## Voice: the API cannot do it at all, so Flow's UI is the only path
+
+`gemini-omni-1.1-flash` went GA on 2026-08-27 and its documentation states
+**"Uploading audio references is unsupported"** and **"Voice editing is not
+supported."** The API does accept `<IMAGE_REF_N>`, `<FIRST_FRAME>` and
+`<LAST_FRAME>` together, which the Flow UI refuses to do — so the trade is real
+and it cuts both ways:
+
+| | face + set lock together | voice lock |
+|---|---|---|
+| Flow UI | no — `เฟรม` and `องค์ประกอบ` are mutually exclusive | yes, via the chip |
+| Gemini API | **yes** | **no, documented as unsupported** |
+
+A dialogue-driven series therefore cannot use the API for its speaking shots, and
+cannot frame-lock them in Flow. If voice lock turns out unreliable in practice,
+the better architecture is silent generation with frame lock plus a TTS voice we
+own — which locks the voice completely instead of steering it.
+
+### Price, for the same model, measured 2026-09-18
+
+| route | per second of finished video |
+|---|---|
+| Flow on Ultra (฿3,500 / 10,000 credits, Omni at 1.5 cr/s) | **฿0.53** |
+| Flow on Pro (฿750 / 1,000 credits) | ฿1.13 |
+| Gemini Omni API, 720p | $0.10 ≈ **฿3.50** |
+
+**The subscription is several times cheaper than the API for the same model.**
+Going API-first is a capability decision (frame lock), never a cost one.
