@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Gabarito';
+        font-style: normal;
+        font-weight: 700;
+        font-display: block;
+        src: url('assets/fonts/gabarito-700-bdb04253.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Gabarito';
+        font-style: normal;
+        font-weight: 700;
+        font-display: block;
+        src: url('assets/fonts/gabarito-700-6589b6cd.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Gabarito';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/gabarito-800-bdb04253.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Gabarito';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/gabarito-800-6589b6cd.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Thai Looped';
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url('assets/fonts/ibm-plex-sans-thai-looped-400-20e9cc7b.woff2') format('woff2');
+        unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Thai Looped';
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url('assets/fonts/ibm-plex-sans-thai-looped-400-ed4f3bcf.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Thai Looped';
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url('assets/fonts/ibm-plex-sans-thai-looped-400-3b72ccc5.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Thai Looped';
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url('assets/fonts/ibm-plex-sans-thai-looped-400-5580385e.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Thai Looped';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/ibm-plex-sans-thai-looped-600-3b787589.woff2') format('woff2');
+        unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Thai Looped';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/ibm-plex-sans-thai-looped-600-d92a6322.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Thai Looped';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/ibm-plex-sans-thai-looped-600-4a149b4d.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Thai Looped';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/ibm-plex-sans-thai-looped-600-f0a8e2d3.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      /* ---- measured palette (see DESIGN.md) ---- */
+      :root {
+        --ground:  #F1F4E3;
+        --ink:     #3B4E32;
+        --card:    #253721;
+        --capink:  #F0F8E5;
+        --muted:   #818773;
+        --surface: #FBFCF2;
+        --accent:  #2F4A2B;
+        --warn:    #E8DFC0;
+        --line:    #DCE1CC;
+        --shadow:  0 18px 40px rgba(37, 55, 33, 0.10);
+      }
+
+      html, body {
+        width: 1080px; height: 1920px; overflow: hidden;
+        background: var(--ground);
+      }
+
+      #root {
+        position: relative;
+        width: 100%; height: 100%;
+        background: var(--ground);
+        font-family: "IBM Plex Sans Thai Looped", sans-serif;
+        color: var(--ink);
+      }
+
+      /* ---------- scene layers (stacked, opacity-driven) ---------- */
+      .scene { position: absolute; inset: 0; opacity: 0; }
+      .scene-content {
+        width: 100%; height: 100%;
+        padding: 170px 86px 300px;
+        display: flex; flex-direction: column; gap: 0;
+        box-sizing: border-box;
+      }
+
+      /* ---------- masthead ---------- */
+      .kicker {
+        font-family: Gabarito, sans-serif;
+        font-size: 26px; font-weight: 800;
+        letter-spacing: 0.14em; text-transform: uppercase;
+        color: var(--muted);
+      }
+      .h-th {
+        font-size: 70px; font-weight: 600;
+        line-height: 1.15; margin-top: 34px;
+      }
+      .h-en {
+        font-family: Gabarito, sans-serif;
+        font-size: 150px; font-weight: 800;
+        letter-spacing: -0.03em; line-height: 0.92;
+        margin-top: 6px;
+      }
+
+      /* ---------- decorative loop glyph (top right) ---------- */
+      .glyph { position: absolute; top: 336px; right: 210px; width: 112px; height: 112px; }
+      .glyph svg { width: 100%; height: 100%; overflow: visible; }
+
+      /* ---------- stage ---------- */
+      .stage {
+        flex: 1; display: flex; align-items: flex-start; justify-content: center;
+        margin-top: 74px;
+      }
+      .stage.mid { align-items: center; }
+
+      /* --- S1: device mock + pulled-out callout --- */
+      .device {
+        position: relative;
+        width: 540px; height: 820px;
+        background: #0C0F0E; border-radius: 44px;
+        border: 8px solid #1B211A;
+        padding: 34px 26px; box-shadow: var(--shadow);
+      }
+      .dev-top {
+        display: flex; justify-content: space-between;
+        font-family: Gabarito, sans-serif; font-size: 22px;
+        color: #8C9B86; margin-bottom: 26px;
+        font-variant-numeric: tabular-nums;
+      }
+      .dev-title {
+        font-family: Gabarito, sans-serif; font-size: 26px; font-weight: 700;
+        color: #E6EEDD; text-align: center; margin-bottom: 30px;
+      }
+      .dev-label { font-size: 21px; color: #7E8E78; margin: 0 0 14px 4px; }
+      .dev-row {
+        background: #161C15; border-radius: 16px;
+        padding: 18px 20px; margin-bottom: 12px;
+        font-size: 22px; color: #C9D6BF;
+        display: flex; justify-content: space-between; align-items: center;
+      }
+      .dev-row .tick { color: #6FBF7A; font-size: 20px; }
+      .callout {
+        position: absolute; left: -150px; top: 408px;
+        width: 700px; background: #0F1410;
+        border: 2px solid #2C3A28; border-radius: 22px;
+        padding: 22px 30px; box-shadow: 0 26px 56px rgba(20, 30, 18, 0.34);
+        display: flex; justify-content: space-between; align-items: center;
+      }
+      .callout .co-main {
+        font-family: Gabarito, sans-serif; font-size: 40px;
+        font-weight: 700; color: #EAF2E2;
+      }
+      .callout .co-sub { font-size: 25px; color: #7FC08A; margin-top: 4px; }
+      .callout .co-time {
+        font-family: Gabarito, sans-serif; font-size: 34px;
+        color: #8A9A84; font-variant-numeric: tabular-nums;
+      }
+
+      /* --- S2: hub diagram --- */
+      .hub { position: relative; width: 860px; height: 860px; }
+      .hub-core {
+        position: absolute; left: 50%; top: 50%;
+        transform: translate(-50%, -50%);
+        width: 250px; height: 250px; border-radius: 38px;
+        background: var(--surface); border: 2px solid var(--line);
+        box-shadow: var(--shadow);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 10px;
+      }
+      .hub-core .mark {
+        width: 74px; height: 74px; border-radius: 20px;
+        background: var(--accent);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .hub-core .nm {
+        font-family: Gabarito, sans-serif; font-size: 26px; font-weight: 700;
+      }
+      .anchor { position: absolute; transform: translate(-50%, -50%); }
+      .anchor.n1 { left: 25.3%; top: 25.3%; }
+      .anchor.n2 { left: 74.7%; top: 25.3%; }
+      .anchor.n3 { left: 25.3%; top: 74.7%; }
+      .anchor.n4 { left: 74.7%; top: 74.7%; }
+      .node {
+        background: var(--surface);
+        border: 2px solid var(--line); border-radius: 20px;
+        padding: 18px 26px; font-size: 27px; box-shadow: var(--shadow);
+        white-space: nowrap;
+      }
+      .hub-ring { position: absolute; inset: 0; }
+      .hub-ring svg { width: 100%; height: 100%; overflow: visible; }
+
+      /* --- S3: light data card --- */
+      .panel {
+        width: 780px; background: var(--surface);
+        border: 2px solid var(--line); border-radius: 30px;
+        padding: 34px; box-shadow: var(--shadow);
+      }
+      .panel-head {
+        font-family: Gabarito, sans-serif; font-size: 24px;
+        color: var(--muted); letter-spacing: 0.06em;
+        text-transform: uppercase; margin-bottom: 26px;
+      }
+      .task {
+        display: flex; align-items: center; gap: 20px;
+        border: 2px solid var(--line); border-radius: 18px;
+        padding: 22px 24px; margin-bottom: 14px; font-size: 28px;
+      }
+      .task .dot {
+        width: 16px; height: 16px; border-radius: 50%;
+        background: var(--muted); flex: none;
+      }
+      .task.ok  { background: var(--accent); border-color: var(--accent); color: #EEF5E3; }
+      .task.ok .dot { background: #8FD39A; }
+      .task .chip {
+        margin-left: auto; font-family: Gabarito, sans-serif;
+        font-size: 21px; padding: 7px 15px; border-radius: 11px;
+        background: var(--warn); color: #5D5A33;
+      }
+      .task.ok .chip { background: #1B2E19; color: #D6EDD9; }
+
+      /* ---------- subtitle card: centred on y=1587, fit-content ---------- */
+      .caplayer { position: absolute; left: 0; right: 0; top: 1587px; height: 0; }
+      .cap {
+        position: absolute; left: 0; right: 0; top: 0;
+        transform: translateY(-50%);
+        text-align: center; opacity: 0;
+      }
+      .capcard {
+        display: inline-block; max-width: 840px;
+        background: var(--card); color: var(--capink);
+        border-radius: 22px; padding: 24px 38px;
+        font-size: 52px; font-weight: 600; line-height: 1.25;
+        text-align: center; overflow: visible;
+      }
+
+      /* ---------- watermark ---------- */
+      .mark-th {
+        position: absolute; left: 84px; top: 1752px;
+        font-size: 34px; font-style: italic; color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <!-- ========================= SCENE 1 ========================= -->
+      <div class="scene" id="s1">
+        <div class="glyph" id="s1-glyph">
+          <svg viewBox="0 0 120 120" fill="none">
+            <path d="M104 60a44 44 0 0 1-70 35" stroke="#3B4E32" stroke-width="7"
+                  stroke-linecap="round" />
+            <path d="M16 60a44 44 0 0 1 70-35" stroke="#3B4E32" stroke-width="7"
+                  stroke-linecap="round" />
+            <path d="M88 8v20H68" stroke="#3B4E32" stroke-width="7"
+                  stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M32 112V92h20" stroke="#3B4E32" stroke-width="7"
+                  stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div class="scene-content">
+          <div class="kicker" id="s1-kick">CTO AGENT</div>
+          <div class="h-th" id="s1-th">ผมให้</div>
+          <div class="h-en" id="s1-en">Agent</div>
+          <div class="stage">
+            <div class="device" id="s1-dev" data-layout-allow-occlusion data-layout-allow-overlap>
+              <div class="dev-top"><span>09:41</span><span>LTD-OS</span></div>
+              <div class="dev-title">Sessions</div>
+              <div class="dev-label">วันนี้</div>
+              <div class="dev-row s1r" data-layout-allow-overlap data-layout-allow-occlusion><span data-layout-allow-overlap data-layout-allow-occlusion>อ่านงานค้าง</span><span class="tick" data-layout-allow-overlap data-layout-allow-occlusion>done</span></div>
+              <div class="dev-row s1r" data-layout-allow-overlap data-layout-allow-occlusion><span data-layout-allow-overlap data-layout-allow-occlusion>เลือกหนึ่งเรื่อง</span><span class="tick" data-layout-allow-overlap data-layout-allow-occlusion>done</span></div>
+              <div class="dev-row s1r" data-layout-allow-overlap data-layout-allow-occlusion><span data-layout-allow-overlap data-layout-allow-occlusion>แตกเป็นทาสก์</span><span class="tick" data-layout-allow-overlap data-layout-allow-occlusion>done</span></div>
+              <div class="dev-row s1r" data-layout-allow-overlap data-layout-allow-occlusion><span data-layout-allow-overlap data-layout-allow-occlusion>ล็อกไฟล์ที่ชนกัน</span><span class="tick" data-layout-allow-overlap data-layout-allow-occlusion>done</span></div>
+              <div class="dev-row s1r" data-layout-allow-overlap data-layout-allow-occlusion><span data-layout-allow-overlap data-layout-allow-occlusion>ส่งให้ DEV</span><span class="tick" data-layout-allow-overlap data-layout-allow-occlusion>run</span></div>
+              <div class="dev-row s1r" data-layout-allow-overlap data-layout-allow-occlusion><span data-layout-allow-overlap data-layout-allow-occlusion>รอรีวิว</span><span class="tick" data-layout-allow-overlap data-layout-allow-occlusion>2</span></div>
+              <div class="callout" id="s1-co" data-layout-allow-overlap data-layout-allow-occlusion>
+                <div>
+                  <div class="co-main">cto-session</div>
+                  <div class="co-sub">connected · 1 problem</div>
+                </div>
+                <div class="co-time">22m</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================= SCENE 2 ========================= -->
+      <div class="scene" id="s2">
+        <div class="scene-content">
+          <div class="kicker" id="s2-kick">Workflow</div>
+          <div class="h-th" id="s2-th">ทั้งวัน</div>
+          <div class="stage">
+            <div class="hub">
+              <div class="hub-ring" id="s2-ring">
+                <svg viewBox="0 0 860 860" fill="none">
+                  <circle cx="430" cy="430" r="300" stroke="#C8D1B6"
+                          stroke-width="3" stroke-dasharray="10 14" />
+                </svg>
+              </div>
+              <div class="hub-core" id="s2-core">
+                <div class="mark">
+                  <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+                    <path d="M17 3v28M3 17h28M7 7l20 20M27 7L7 27" stroke="#EAF2E2"
+                          stroke-width="3.5" stroke-linecap="round" />
+                  </svg>
+                </div>
+                <div class="nm">CTO</div>
+              </div>
+              <div class="anchor n1"><div class="node s2n">backend</div></div>
+              <div class="anchor n2"><div class="node s2n">frontend</div></div>
+              <div class="anchor n3"><div class="node s2n">devops</div></div>
+              <div class="anchor n4"><div class="node s2n">qa</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================= SCENE 3 ========================= -->
+      <div class="scene" id="s3">
+        <div class="scene-content">
+          <div class="kicker" id="s3-kick">ผลลัพธ์</div>
+          <div class="h-en" id="s3-en" style="margin-top: 34px">Merged</div>
+          <div class="stage mid">
+            <div class="panel" id="s3-panel">
+              <div class="panel-head">main · วันนี้</div>
+              <div class="task ok s3t"><span class="dot"></span>ตัดคลิปเป็นรีล<span class="chip">merged</span></div>
+              <div class="task ok s3t"><span class="dot"></span>เก็บงานค้างเข้าคิว<span class="chip">merged</span></div>
+              <div class="task ok s3t"><span class="dot"></span>ล็อกไฟล์ที่ชนกัน<span class="chip">merged</span></div>
+              <div class="task ok s3t"><span class="dot"></span>ไล่ทาสก์ค้างใน LungNote<span class="chip">merged</span></div>
+              <div class="task s3t"><span class="dot"></span>เทสต์ไม่ผ่าน<span class="chip">blocked</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================= SUBTITLES ========================= -->
+      <div class="caplayer" id="caps"></div>
+
+      <div class="mark-th">ลงทุน Diary</div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      // (start, end, text) — median gap 1.85s, matching the 1.77s measured on the reference
+      var CAPTIONS = [
+        [0.60,  2.45, "ผมให้ CTO agent คุมงานทั้งวัน"],
+        [2.45,  4.30, "ไม่ต้องรอผมสั่งทีละอย่าง"],
+        [4.30,  6.15, "เปิดเช้ามา มันอ่านงานค้างเองเลย"],
+        [6.15,  8.05, "แล้วเลือกมาเรื่องเดียว ทำให้จบ"],
+        [8.05,  9.95, "ที่เหลือพักไว้ ไม่เอามาปนกัน"],
+        [10.25, 12.05, "พอได้เรื่องแล้ว มันแตกเป็นทาสก์"],
+        [12.05, 13.85, "ส่งให้ DEV คนละตัว วิ่งขนานกัน"],
+        [13.85, 15.70, "ใครแตะไฟล์ชนกัน มันล็อกไว้ก่อน"],
+        [15.70, 17.60, "ผมไม่ต้องไล่ merge conflict เอง"],
+        [17.60, 19.95, "หน้าที่ผมคือดูว่าอันไหนผ่าน"],
+        [20.25, 22.10, "งานที่เทสต์ไม่ผ่าน มันไม่ merge ให้"],
+        [22.10, 23.95, "ต่อให้ผมสั่ง มันก็เถียงกลับ"],
+        [23.95, 25.85, "สามงานวันนี้ ขึ้น main หมดแล้ว"],
+        [25.85, 27.70, "ผมไม่ได้เปิด editor เลยสักครั้ง"],
+        [27.70, 29.80, "นี่คือวันทำงานปกติของผมตอนนี้"]
+      ];
+
+      var capsHost = document.getElementById("caps");
+      for (var i = 0; i < CAPTIONS.length; i++) {
+        var wrap = document.createElement("div");
+        wrap.className = "cap";
+        wrap.id = "cap" + i;
+        var card = document.createElement("span");
+        card.className = "capcard";
+        card.textContent = CAPTIONS[i][2];
+        wrap.appendChild(card);
+        capsHost.appendChild(wrap);
+      }
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* ---------------- SCENE 1 (0 - 10.15) ---------------- */
+      tl.set("#s1", { opacity: 1 }, 0);
+      tl.from("#s1-kick", { y: 26, opacity: 0, duration: 0.55, ease: "power3.out" }, 0.15);
+      tl.from("#s1-th",   { y: 44, opacity: 0, duration: 0.65, ease: "power3.out" }, 0.28);
+      tl.from("#s1-en",   { y: 70, opacity: 0, duration: 0.8,  ease: "expo.out"   }, 0.40);
+      tl.from("#s1-glyph", { scale: 0.7, opacity: 0, duration: 0.7, ease: "back.out(1.4)",
+                             transformOrigin: "50% 50%" }, 0.62);
+      tl.from("#s1-dev",  { y: 90, opacity: 0, duration: 0.9,  ease: "power2.out" }, 0.55);
+      tl.from(".s1r",     { opacity: 0, duration: 0.30, ease: "power2.out" }, 1.15);
+      tl.from(".s1r",     { x: 34, duration: 0.5, ease: "sine.out", stagger: 0.14 }, 1.15);
+      tl.from("#s1-co",   { x: -70, opacity: 0, scale: 0.94, duration: 0.7,
+                            ease: "back.out(1.2)", transformOrigin: "0% 50%" }, 2.10);
+
+      /* ---------------- transition 1 -> 2 @10.0 (instant, 0.15s) ---------------- */
+      tl.to("#s1", { opacity: 0, duration: 0.15, ease: "expo.inOut" }, 10.0);
+      tl.to("#s2", { opacity: 1, duration: 0.15, ease: "expo.inOut" }, 10.0);
+
+      /* ---------------- SCENE 2 (10.0 - 20.15) ---------------- */
+      tl.from("#s2-kick", { y: 26, opacity: 0, duration: 0.55, ease: "power3.out" }, 10.20);
+      tl.from("#s2-th",   { y: 44, opacity: 0, duration: 0.65, ease: "power3.out" }, 10.32);
+      tl.from("#s2-ring", { scale: 0.62, opacity: 0, duration: 0.9, ease: "power2.out",
+                            transformOrigin: "50% 50%" }, 10.50);
+      tl.from("#s2-core", { scale: 0.5, opacity: 0, duration: 0.7, ease: "back.out(1.5)",
+                            transformOrigin: "50% 50%" }, 10.75);
+      tl.from(".s2n",     { opacity: 0, duration: 0.30, ease: "power2.out" }, 11.25);
+      tl.from(".s2n",     { scale: 0.7, duration: 0.55, ease: "back.out(1.6)",
+                            stagger: 0.12, transformOrigin: "50% 50%" }, 11.25);
+      tl.to("#s2-ring",   { rotation: 360, duration: 4.2, ease: "none",
+                            repeat: 1, transformOrigin: "50% 50%" }, 11.6);
+
+      /* ---------------- transition 2 -> 3 @20.0 (instant, 0.15s) ---------------- */
+      tl.to("#s2", { opacity: 0, duration: 0.15, ease: "expo.inOut" }, 20.0);
+      tl.to("#s3", { opacity: 1, duration: 0.15, ease: "expo.inOut" }, 20.0);
+
+      /* ---------------- SCENE 3 (20.0 - 30.0, final) ---------------- */
+      tl.from("#s3-kick",  { y: 26, opacity: 0, duration: 0.55, ease: "power3.out" }, 20.20);
+      tl.from("#s3-en",    { y: 70, opacity: 0, duration: 0.8,  ease: "expo.out"   }, 20.32);
+      tl.from("#s3-panel", { y: 80, opacity: 0, duration: 0.85, ease: "power2.out" }, 20.55);
+      tl.from(".s3t",      { opacity: 0, duration: 0.30, ease: "power2.out" }, 20.95);
+      tl.from(".s3t",      { x: 40, duration: 0.5, ease: "sine.out", stagger: 0.13 }, 20.95);
+      // final scene only: allowed to fade out
+      tl.to("#s3",      { opacity: 0, duration: 0.6, ease: "power2.in" }, 29.4);
+      tl.to(".mark-th", { opacity: 0, duration: 0.6, ease: "power2.in" }, 29.4);
+
+      /* ---------------- subtitle track ---------------- */
+      for (var j = 0; j < CAPTIONS.length; j++) {
+        var sel = "#cap" + j;
+        var s = CAPTIONS[j][0];
+        var e = CAPTIONS[j][1];
+        tl.fromTo(sel, { opacity: 0, y: 14 },
+                       { opacity: 1, y: 0, duration: 0.14, ease: "power2.out" }, s);
+        tl.to(sel, { opacity: 0, duration: 0.06, ease: "power1.in" }, e - 0.06);
+      }
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

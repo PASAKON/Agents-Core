@@ -1,0 +1,5 @@
+# build output - regenerate with: npm run render / hyperframes snapshot
+renders/
+snapshots/
+node_modules/
+.hyperframes/
