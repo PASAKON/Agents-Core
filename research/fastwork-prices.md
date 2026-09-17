@@ -251,3 +251,42 @@ thing to (b):
 
 (This bans self-hiring/fake-job schemes for promo abuse — not subcontracting
 or AI-work resale specifically.)
+
+---
+
+## ADDENDUM 2026-09-17 — demand, not just supply (CTO)
+
+The first pass ranked categories by how **few sellers** they had. That was the
+wrong axis. The search index also carries `purchase_count` (lifetime units sold
+per listing), which measures whether anyone actually **buys**.
+
+GMV below = `sum(base_price × purchase_count)`. `base_price` is the listing's
+STARTING price and `purchase_count` is lifetime-to-date, so this is a floor on
+real money, not a monthly figure. Treat it as a ranking signal, not an estimate
+of anyone's income.
+
+| category | listings | lifetime buys | buys per listing | GMV floor THB | listings with 0 sales |
+|---|---|---|---|---|---|
+| seo | 428 | 15,024 | **35.1** | 47,667,660 | 68% |
+| web-development | 6,481 | 10,827 | 1.7 | 45,658,860 | 86% |
+| video-editing | 9,060 | 15,795 | 1.7 | 19,608,696 | 89% |
+| ai-video | 604 | 1,416 | 2.3 | 1,494,761 | 88% |
+| ai-video-editing | 151 | 36 | 0.2 | **24,500** | 95% |
+| ai-tool-and-saas | 84 | 28 | 0.3 | **17,785** | 92% |
+
+**What this overturns.** `ai-tool-and-saas` and `ai-video-editing` looked like
+the best lanes because almost nobody competes there. The demand data says the
+reason nobody competes is that nobody buys: between them, the two categories
+have moved roughly ฿42,000 in their entire history, and 92-95% of their
+listings have never sold once. The top-ranked `ai-tool-and-saas` listing is not
+an AI tool at all — it resells ChatGPT Plus accounts at ฿399/month.
+
+Low competition is not evidence of opportunity on its own. An empty category
+has two possible causes and "nobody has noticed it yet" is the less likely one.
+
+**What survives.** `ai-video` is the only one of the three AI lanes with real
+turnover (1,416 lifetime sales, one seller at 288). `seo` has the best
+demand-per-seller ratio of all six by a factor of 15, and the lowest share of
+dead listings — though a single seller accounts for ฿8.5M of its GMV floor, so
+the ratio is skewed and should be re-checked against the median seller before
+committing to it.
