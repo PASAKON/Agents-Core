@@ -116,6 +116,47 @@ def register(frame, debug=False):
     return crop, rep
 
 
+def lock_transform(frames, sample=9):
+    """One crop box for a whole video, from a sample of its frames.
+
+    Sweeping the scale per frame is both slow (~2 s each) and wrong. The UI does
+    not move within a recording, so the transform is a property of the VIDEO,
+    not of the frame - and a per-frame answer that wobbles by a pixel produces a
+    frame stack whose frames do not line up with each other, which is precisely
+    what a stacked-input model cannot tolerate.
+
+    Measured on a 517 s clip: 23 of 26 samples registered and every one returned
+    scale 0.7827. So take the median of what agrees and apply it to everything.
+    """
+    boxes = []
+    step = max(1, len(frames) // sample)
+    for f in frames[::step][:sample]:
+        img = cv2.imread(str(f)) if not isinstance(f, np.ndarray) else f
+        if img is None:
+            continue
+        _, rep = register(img)
+        if rep.get("ok"):
+            boxes.append(rep["source_box"])
+    if len(boxes) < 3:
+        return None, {"ok": False, "why": f"only {len(boxes)} of {sample} samples registered"}
+    box = [int(np.median([b[i] for b in boxes])) for i in range(4)]
+    spread = max(max(abs(b[i] - box[i]) for i in range(4)) for b in boxes)
+    if spread > 8:
+        # Frames of one video disagreeing by more than a few pixels means the
+        # landmarks are not being found reliably, and a median of unreliable
+        # answers is still unreliable.
+        return None, {"ok": False, "why": f"sampled boxes disagree by {spread}px", "boxes": boxes}
+    return box, {"ok": True, "box": box, "samples": len(boxes), "spread_px": spread}
+
+
+def apply_box(frame, box):
+    x0, y0, x1, y1 = box
+    H, W = frame.shape[:2]
+    if x0 < 0 or y0 < 0 or x1 > W or y1 > H:
+        return None
+    return cv2.resize(frame[y0:y1, x0:x1], (OUT_W, OUT_H), interpolation=cv2.INTER_AREA)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("frame")
