@@ -95,6 +95,24 @@ ffmpeg -i s04.mp4 -an -vf "scale=-2:1920:flags=lanczos,crop=1080:1920,fps=30" ..
 ```
 Keep the ORIGINAL lipsync files too: step 9 needs their audio.
 
+### 5b. Pull B-roll from the channel's catalogue — grep, do not browse
+The channel has 65 catalogued Seedance clips (plus the 21 Kling ones). They live
+in Drive `AI Assets/BLACK LIQUIDITY (9:16)`, but you never list that folder:
+```bash
+C=/Users/gob/Projects/Agents/prototypes/bl-broll-catalog
+grep -i "ล็อกถอน\|deadline\|lock" $C/CATALOG.md        # Thai or English, either works
+```
+Shortlist at most three. Open ONE `$C/sheets/<hf-id>.jpg` (4 frames, ~40 KB) to
+confirm — that is the whole "look", never the video. Then fetch ONE clip by the
+`drive_id` column of that same catalogue line:
+```bash
+curl -sL "https://drive.google.com/uc?export=download&id=<drive_id>" -o media/raw/<purpose>.mp4
+```
+Normalise it like any plate (step 5). Rules: `fit=BL` first for this channel;
+`fit=GEN` only when nothing BL fits; a row with `caution` says exactly how it may
+be used (e.g. #48 has readable Thai text baked in — never full-frame). Avatar rows
+(`AV`) are non-speaking poses and are fine as cutaways; see trap 8.
+
 ### 6. Copy the template and write the cut
 ```bash
 cp -r <skill>/template <workdir> && cd <workdir>
@@ -159,8 +177,18 @@ by audio because frame differencing waves a 9-frame error through — a talking
 head barely moves in 9 frames. Pass the ORIGINAL lipsync files here; the
 normalised copies were made with `-an` and have no audio to compare.
 
-### 10. Deliver
-The MP4, plus `bl_tools.py sheet` output so a reviewer reads one image.
+### 10. Deliver — outside the worktree, before you report
+`merge_task` deletes the worktree and `renders/` is gitignored, so an MP4 left
+there is gone the moment the task is accepted. On BL51 the worker's render was
+lost exactly this way. Before `submit_report`:
+```bash
+mkdir -p ~/Projects/Agents/output/bl/<episode>
+cp renders/<final>.mp4 ~/Projects/Agents/output/bl/<episode>/<episode>-WORKER.mp4
+python3 <skill>/scripts/bl_tools.py sheet ~/Projects/Agents/output/bl/<episode>/<episode>-WORKER.mp4 \
+  --at 5,20,40,60,80,100,120,135 --out ~/Projects/Agents/output/bl/<episode>/<episode>-WORKER-sheet.jpg
+```
+Never `git add` anything under `output/`. Name both paths in your report so the
+reviewer reads one image and opens one file.
 
 ## The constants — measured, not chosen
 
@@ -208,9 +236,11 @@ though the script says ten. Call it "2 ตัวแรก" instead.
    drops everything after the first node; wrap it in one `<div>`.
 7. **Don't put copy over a busy plate.** Rule text over a bright laptop screen
    was unreadable despite the outline; the rules now run on a clean ground.
-8. **An avatar clip with no matching lipsync is unusable.** The mouth will not
-   match and viewers catch it. Cover that stretch with a block instead, unless
-   a task says otherwise.
+8. **An avatar clip whose mouth moves without matching lipsync is unusable.**
+   Viewers catch it instantly. That is the episode's own `S##` avatar plates,
+   which are generated mid-speech. The catalogue's `AV` rows are different: the
+   avatar walking, arms crossed, drawing in the air — mouth closed. Those are
+   proper cutaways. Check the sheet; if the mouth is open in any frame, skip it.
 9. **A finished sibling composition is not a starting point.** It carries that
    episode's plates, offsets and copy; every one of them is wrong for yours, and
    the ones that look right (a 62.71 s seat, a "10 ตัว" header) are the most

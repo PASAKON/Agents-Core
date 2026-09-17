@@ -186,6 +186,10 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │   │                         video), named for subject — not tied to
 │   │   │                         one channel or broker
 │   │   ├── AI Assets/            AI-generated B-roll, VIDEO ONLY —
+│   │   │                     id 14uc0nxq0ZmaS0GZuCq7hZOl1ROeUYRbV (added 2026-09-18).
+│   │   │                     2026-09-18: +65 Seedance 2.0 B-roll into BL (9:16), each
+│   │   │                     named (purpose) (date) (Seedance 2.0); catalogue + drive ids in
+│   │   │                     Agents/prototypes/bl-broll-catalog/ — workers grep that, not this tree
 │   │   │   ├── BLACK LIQUIDITY (9:16)/   ← naming order CONFIRMED as
 │   │   │   └── BLACK LIQUIDITY (16:9)/     "CHANNEL (ratio)", not "ratio
 │   │   │                                   CHANNEL" (reverted 2026-08-04).
@@ -758,7 +762,8 @@ StoryBoard      Doc · last edited 12-08-2026
 | `PROJECT/LINKREED` | `1bHC9Zmtg3M_M8I-cwV8Dvmlxl17FVPjh` | Empty, awaiting first files. |
 | `ALL DRAFT` (root) | `138qB8fRfv6Yo_2mBY2aObDcw1A1IRZ7q` | Video projects for every channel: AI-generated footage + b-roll. **Video lives here, never in `PROJECT`.** |
 | `ALL DRAFT/ASSETS` | `1LJreOD8H3jUNzypxTnPwvq-pS7jkQNRd` | Shared assets usable across every channel. `ALL Assets` = general cross-project media, named for subject, image or video. `AI Assets` = AI-generated B-roll, VIDEO ONLY, sub-folders named `<CHANNEL> (ratio)` e.g. `BLACK LIQUIDITY (9:16)` (always both ratios per channel), files named `(scene/purpose) (D-M-YYYY) (AI model)` — see "AI Assets footage naming" above. `XM Assets` / `Exness Assets` = one sub-folder per real-world event (e.g. "XM GALA DINER 2024"), holding every photo/video shot during that event — both already matched this pattern before any fix was needed. |
-| `ALL DRAFT/AI Assets/BLACK LIQUIDITY (9:16)` | `1vg8j7DY_hPE-X3yyTsp6ZrM8Gf72cfVG` | 21 real Kling V3 Pro clips renamed 2026-08-04 to `(scene) (date) (Kling V3 Pro)` pattern; `CHARACTER+THEME.png` left untouched (reference asset, not footage). |
+| `ALL DRAFT/ASSETS/AI Assets` | `14uc0nxq0ZmaS0GZuCq7hZOl1ROeUYRbV` | The parent of the four `<CHANNEL> (ratio)` folders. Id recorded 2026-09-18 — it had been missing from this table, and the CEO pointed at it by link when asked where B-roll belongs ("ในนี้มีอยู่แล้ว"). Definition is on the `ALL DRAFT/ASSETS` row above. |
+| `ALL DRAFT/AI Assets/BLACK LIQUIDITY (9:16)` | `1vg8j7DY_hPE-X3yyTsp6ZrM8Gf72cfVG` | 21 real Kling V3 Pro clips renamed 2026-08-04 to `(scene) (date) (Kling V3 Pro)` pattern; `CHARACTER+THEME.png` left untouched (reference asset, not footage). **2026-09-18:** +65 Seedance 2.0 clips (Higgsfield Unlimited, 3–7 Aug 2026) named `(purpose) (D-M-YYYY) (Seedance 2.0).mp4`, purpose in English kebab; ~17 % of them are general-use rather than red/black and are kept here anyway, told apart by the `fit` column in `Agents/prototypes/bl-broll-catalog/CATALOG.md` (CEO chose one folder + tags over a new GENERAL folder). One clip (#48 chat bubbles) carries baked-in Thai text and is tagged `caution`. Gate row in `playbooks/drive-archive-gate.md`. |
 | `ALL DRAFT/AI Assets/BLACK LIQUIDITY (16:9)` | `1Fad43yAblQvTrqAv07-16VugdStbMg0f` | Empty, created 2026-08-04, ready for future 16:9 footage. |
 | `ALL DRAFT/AI Assets/MYPASAKON (9:16)` | `1TYQbXsEduH-gWMtfpwrMZq2r6x0PiU51` | Empty, awaiting first footage. |
 | `ALL DRAFT/AI Assets/MYPASAKON (16:9)` | `1jpsoZi11u9WVZmmR0UxBQDCRKvATolRE` | Empty, created 2026-08-04, ready for future 16:9 footage. |
