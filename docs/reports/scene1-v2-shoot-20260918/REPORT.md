@@ -93,6 +93,50 @@ own three beats fine, but it is not yet the test the CEO's rule described**
 (watching five clips and getting the whole scene) — that verdict has to wait
 for a session that shoots 4 and 5 against the remaining true balance.
 
+## CTO follow-up: chip-count audit (asked after the first report, no generation fired to answer this)
+
+**Q: Were chip counts verified before each of the three shots, and what were
+the counts?**
+
+Yes, every time, in the same step as the Submit click (screenshot or DOM
+read taken immediately before firing, never carried over from earlier in
+the session):
+
+| Shot | Chips at fire | Matches script's ingredient list? |
+|---|---|---|
+| 1 | 4 — Iapetus (voice) + @nong_daeng + @lung_somchai + @noodle_shop | yes, exactly |
+| 2 | 3 — Algenib (voice) + @lung_somchai + @noodle_shop | yes, exactly |
+| 3 | 3 — Iapetus (voice) + @nong_daeng + @noodle_shop | yes, exactly |
+
+**Q: Which shot was fired closest in time to the stale-tab recovery, and can
+you rule out that it fired with the wrong chip set?**
+
+The stale tab (3 leftover chips — @nong_daeng + @lung_somchai +
+@noodle_shop, **no voice chip**) was left over from my *first, abandoned*
+attempt at building shot 1's composer, before the first tab-group
+destruction. It surfaced again — as a *different* tab-group-recovery
+artifact — while I was setting up **shot 2**, i.e. after shot 1 had already
+fired successfully from a separate, freshly-rebuilt tab.
+
+I caught the staleness via `get_page_text` (it showed the 3-chip,
+no-voice pattern, which didn't match what shot 2 needed) **before trusting
+any state on that tab**, and forced a full reload rather than build on top
+of it. That reload cleared the composer to empty. When the same tab then
+started timing out on screenshots (renderer unresponsive), I abandoned it
+entirely and opened a brand-new tab, rebuilt shot 2's 3 chips from scratch
+there, and fired from that new tab — with the chip count and identity
+confirmed by screenshot in the same breath as the Submit click (see the
+table above).
+
+**I can rule out any shot firing with the stale chip set.** The stale tab
+never reached a Submit click — the moment I found its composer didn't match
+what I was about to shoot, I discarded its state rather than reconcile it.
+Every one of the three actual generations was preceded by a fresh
+verification of exactly the chips it needed, on the tab it was fired from,
+in the same tool-call sequence as the fire itself. No generation happened
+to answer this question — it's reconstructed entirely from the record of
+what was verified at the time.
+
 ## Traps that fired, and what I did
 
 1. **Tab group destroyed mid-action, three times** (not once — this session
