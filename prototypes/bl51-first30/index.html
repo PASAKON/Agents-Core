@@ -266,9 +266,7 @@
       function slide(s, at, d) { tl.fromTo(s, { opacity: 0, x: -64 }, { opacity: 1, x: 0, duration: d || 0.7, ease: E }, at); }
       function drop(s, at, d)  { tl.fromTo(s, { opacity: 0, y: 44 }, { opacity: 1, y: 0, duration: d || 0.6, ease: "power3.out" }, at); }
 
-      /* background is only up where no video plate is underneath */
-      [[18.30, 62.71], [79.40, 120.40]].forEach(function (w) {
-        show("#bg", w[0] - 0.12); hide("#bg", w[1] - 0.12); });
+      /* #bg is always on and under the clips (z 0): footage covers it, text plates show it. */
 
       var B = 0;
       function block(cls, top, at, out) {

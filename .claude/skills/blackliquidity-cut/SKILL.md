@@ -119,7 +119,8 @@ in Drive `AI Assets/BLACK LIQUIDITY (9:16)`, but you never list that folder:
 C=/Users/gob/Projects/Agents/prototypes/bl-broll-catalog
 grep -i "ล็อกถอน\|deadline\|lock" $C/CATALOG.md        # Thai or English, either works
 ```
-Shortlist at most three. Open ONE `$C/sheets/<hf-id>.jpg` (4 frames, ~40 KB) to
+Shortlist at most three. Open ONE `$C/sheets/<drive_id>.jpg` (4 frames, ~40 KB;
+the file is named by the row's `drive_id`, every one of the 84 rows has one) to
 confirm — that is the whole "look", never the video. Then fetch ONE clip by the
 `drive_id` column of that same catalogue line:
 ```bash

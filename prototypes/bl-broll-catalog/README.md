@@ -8,7 +8,7 @@ for CEO review (`REVIEW-flagged.jpg`, `review` field in the JSON).
   subject / motion / mood, `fit` (visual: BL / BORDER / GEN), `avatar`,
   measured palette (`dark_pct`, `red_pct`, `blue_pct`, `palette_fit`), `review`.
 - `CATALOG.md` — the same, one grep-able line per clip. This is what a worker reads.
-- `sheets/<hf-id>.jpg` — 4 frames (0.3 / 2.7 / 5.4 / 7.8 s), ~40 KB each. A worker
+- `sheets/<drive_id>.jpg` — named by the row's `drive_id` (all 84 rows) — 4 frames (0.3 / 2.7 / 5.4 / 7.8 s), ~40 KB each. A worker
   opens ONE of these to confirm a pick; it never opens the video.
 - `index/index-N.jpg` — 10 clips per image, the naming pass input.
 
