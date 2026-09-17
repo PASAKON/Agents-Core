@@ -137,6 +137,113 @@ in the same tool-call sequence as the fire itself. No generation happened
 to answer this question — it's reconstructed entirely from the record of
 what was verified at the time.
 
+## CTO follow-up #2: chip-exclusion evidence audit (zero generations fired to answer this)
+
+**Q1: @lung_somchai on shot 2 — quote what you actually saw confirming the
+picker excluded it after attach.**
+
+Before attaching (screenshot `ss_43220w5s1`, "+" picker, ทั้งหมด category),
+the list read, top to bottom:
+```
+@noodle_shop        / ตัวละคร
+@lung_somchai        / ตัวละคร
+@nong_daeng          / ตัวละคร
+Man standing in alley 9…  / รูปภาพ
+Envelope in puddle on …    / รูปภาพ
+Man standing in alley      / รูปภาพ
+Young man ignoring bu…     / วิดีโอ
+Young man holding env…     / วิดีโอ
+Man holding son's hands    / วิดีโอ
+Man gives envelope to …    / วิดีโอ
+```
+After clicking @lung_somchai's row and then "เพิ่มไปยังพรอมต์" and reopening
+the "+" picker (screenshot `ss_9144xqjeq`), the same list read:
+```
+@noodle_shop        / ตัวละคร
+@nong_daeng          / ตัวละคร
+Man standing in alley 9…  / รูปภาพ
+Envelope in puddle on …    / รูปภาพ
+Man standing in alley      / รูปภาพ
+Young man ignoring bu…     / วิดีโอ
+Young man holding env…     / วิดีโอ
+Man holding son's hands    / วิดีโอ
+Man gives envelope to …    / วิดีโอ
+```
+The @lung_somchai row is gone; every other row shifted up one slot and
+nothing else changed. Directly observed, not inferred.
+
+**Q2: same test for @nong_daeng and @noodle_shop on shot 3.**
+
+@nong_daeng — before attach (`ss_93120cqoa`):
+```
+Man silencing phone m…  / วิดีโอ
+@noodle_shop        / ตัวละคร
+@lung_somchai        / ตัวละคร
+Young man ignoring bu…     / วิดีโอ
+@nong_daeng          / ตัวละคร
+Young man holding env…     / วิดีโอ
+Man holding son's hands    / วิดีโอ
+Man gives envelope to …    / วิดีโอ
+Man ladles broth into b…   / วิดีโอ
+Man shoved against co…     / วิดีโอ
+Man standing in alley 9…  / รูปภาพ
+```
+After attach (`ss_4794r10ig`):
+```
+Man silencing phone m…  / วิดีโอ
+@noodle_shop        / ตัวละคร
+@lung_somchai        / ตัวละคร
+Young man ignoring bu…     / วิดีโอ
+Young man holding env…     / วิดีโอ
+Man holding son's hands    / วิดีโอ
+Man gives envelope to …    / วิดีโอ
+Man ladles broth into b…   / วิดีโอ
+Man shoved against co…     / วิดีโอ
+Man standing in alley 9…  / รูปภาพ
+```
+@nong_daeng's row is gone, list closed up by exactly one slot. Directly
+observed.
+
+@noodle_shop — **not tested this way, on either shot 2 or shot 3.** It was
+the last ingredient attached before I moved straight to typing the prompt
+each time, so I never reopened the picker afterward to check its
+list-exclusion. The only evidence it bound is the avatar icon visibly
+present in the composer's chip row in the pre-submit screenshots already
+in this report (the "3 chips" / "4 chips" counts). That is *presence in the
+composer*, not a list-exclusion re-test — weaker evidence than Q1/Q2, and I
+am flagging the difference rather than blurring it. The same caveat applies
+to both voice chips (Iapetus, Algenib): their bound-state evidence is the
+composer chip icon plus the `disabled`-attribute DOM check reported earlier
+in this document, not a list-exclusion re-test.
+
+**Q3: did you check the generation's own post-hoc ingredient record on the
+clip detail page, for any of the three shots?**
+
+**Shot 1 only: yes.** Its edit page's right-side panel showed 4 small avatar
+icons matching the attached set, plus the full prompt text underneath —
+already described earlier in this report ("4 avatars: 3 chars + voice chip,
+prompt text confirmed correct").
+
+**Shots 2 and 3: not observed.** For both, I opened the edit page only to
+click Play and capture the CDN video URL from `read_network_requests` — I
+did not screenshot or otherwise read their ingredient-record panels. This is
+a genuine gap: shots 2 and 3 were never cross-checked against Flow's own
+after-the-fact ingredient record, only against what I verified going in.
+
+**Q4: was the 4-chips-shot-1 vs 3-chips-shot-3 difference deliberate, and
+was any reference-limit warning seen?**
+
+**Deliberate**, driven by the script's own `INGREDIENTS:` line, not an
+accident: shot 1 lists `@nong_daeng, @lung_somchai, @noodle_shop` (3
+characters + 1 voice = 4 total); shot 3 lists `@nong_daeng, @noodle_shop` (2
+characters + 1 voice = 3 total).
+
+**No reference-limit warning was observed** — no error toast, no greyed
+control, nothing in any screenshot or DOM read taken this session. Caveat,
+stated plainly: `read_console_messages` was never called this session, so a
+silent console-only warning cannot be ruled out. The claim is limited to
+"nothing appeared in the UI," not "nothing was logged."
+
 ## Traps that fired, and what I did
 
 1. **Tab group destroyed mid-action, three times** (not once — this session
