@@ -113,7 +113,25 @@ try {
     # --- 2. Worktree on a fresh task branch (idempotent: this launcher may
     # run more than once for the same task while the pipe is being tested) ---
     $wt = Join-Path $WorktreeRoot "$Project`__$Role`__$Task"
+    # GH #151: files a worker writes at its own worktree root and never
+    # cleans up — a stale one here means a NEW worker inherits another
+    # task's report/blocker/mailbox/log/heartbeat.
+    $staleFiles = @('REPORT.md', 'BLOCKER.md', 'MAILBOX.md', 'worker.log', 'HEARTBEAT')
     if (Test-Path $wt) {
+        # GH #151: this path can be reused across tasks (same slug pattern).
+        # If it still holds TRACKED, uncommitted changes, that's a previous
+        # worker's real unfinished work -- refuse instead of silently force-
+        # removing it. Untracked leftovers ($staleFiles are never gitignored,
+        # they're meant to be committed+pushed on the WORKER's own branch) do
+        # not count as dirty here; they're deleted unconditionally below.
+        if (Test-Path (Join-Path $wt '.git')) {
+            $dirty = @(git -C $wt status --porcelain 2>$null |
+                Where-Object { $_ -and -not $_.StartsWith('??') })
+            if ($dirty.Count -gt 0) {
+                Write-Output "SPAWN_REFUSED=dirty-worktree $wt"
+                exit 1
+            }
+        }
         git -C $RepoPath worktree remove --force $wt 2>$null
         if (Test-Path $wt) { Remove-Item -Recurse -Force $wt }
     }
@@ -123,6 +141,17 @@ try {
     }
     git -C $RepoPath worktree add -b $Branch $wt "origin/$Base" 2>&1 | ForEach-Object { "$_" } | Select-Object -Last 3
     Assert-Git "worktree add"
+
+    # GH #151 defense-in-depth: `worktree add` checks out whatever is
+    # COMMITTED on $Base (a stale REPORT.md committed to main by mistake is
+    # exactly how task-424077a4 inherited one) plus anything left over from
+    # a prior occupant of this same path. Delete all five BEFORE TASK.md is
+    # written, so a fresh worker never starts holding another task's
+    # report/blocker/mailbox/log/heartbeat.
+    foreach ($stale in $staleFiles) {
+        $staleP = Join-Path $wt $stale
+        if (Test-Path $staleP) { Remove-Item -Force $staleP }
+    }
 
     # --- 3. TASK.md: from -TaskFile (scp'd ahead of this call) or stdin ---
     if ($TaskFile -and (Test-Path $TaskFile)) {
@@ -212,13 +241,23 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 "@
     Set-Content -Path $finishCmdPath -Value $finishCmdBody -Encoding ASCII
 
+    # GH #152: tee claude's stdout+stderr to worker.log beside TASK.md/WORKER.md
+    # so `ssh winbox type worker.log` answers "what is it doing" from the Mac
+    # side, without taking away the CEO's own view of the same tab.
+    $workerLogPath = Join-Path $wt 'worker.log'
     $launcherPath = Join-Path $launchDir 'launch.ps1'
     $launcherBody = @"
 `$env:ORG_HOST = 'winbox'
 `$env:ORG_WORKER_FINISH = '$finishCmdPath'
 `$claudeExe = '$claude'
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
-& `$claudeExe @argArray
+# GH #152: Tee-Object writes every line to worker.log AND still passes it
+# through to the success stream, which the console host renders -- so the
+# tab stays visible for the CEO exactly as before. `2>&1` on a NATIVE
+# command merges stderr text into that same stream (PowerShell's own
+# behavior for external processes, not a cmdlet parameter), so both streams
+# land in one file.
+& `$claudeExe @argArray 2>&1 | Tee-Object -FilePath '$workerLogPath'
 # Windows Terminal's default closeOnExit is "graceful": the tab stays open
 # when its process exits NON-zero, which is exactly what a hub-side
 # `taskkill /T /F` produces. Exit 0 here so the tab closes with the worker
