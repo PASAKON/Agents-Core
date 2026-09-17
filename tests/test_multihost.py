@@ -382,7 +382,7 @@ def test_remote_branch_exists_false_then_true(fake_origin):
 def test_check_task_report_flips_to_review(fake_origin, temp_db, monkeypatch):
     branch = "agent/developer-task-poll02"
     fake_origin.push_branch(branch, {
-        "REPORT.md": "## Summary\nAppended one line.\n## Files Changed\n- docs/hosts-smoke.md\n",
+        "REPORT.md": "# REPORT task-poll02\n## Summary\nAppended one line.\n## Files Changed\n- docs/hosts-smoke.md\n",
     })
     monkeypatch.setattr(poller, "get_project",
                         lambda key: {"path": str(fake_origin.work)})
@@ -398,7 +398,7 @@ def test_check_task_report_flips_to_review(fake_origin, temp_db, monkeypatch):
 
 def test_check_task_blocker_flips_to_blocked_human(fake_origin, temp_db, monkeypatch):
     branch = "agent/developer-task-poll03"
-    fake_origin.push_branch(branch, {"BLOCKER.md": "missing credentials\nneed API key\n"})
+    fake_origin.push_branch(branch, {"BLOCKER.md": "# BLOCKER task-poll03\nmissing credentials\nneed API key\n"})
     monkeypatch.setattr(poller, "get_project",
                         lambda key: {"path": str(fake_origin.work)})
     monkeypatch.setattr(poller, "open_blocker_issue",
@@ -471,7 +471,7 @@ def test_check_task_review_close_skips_fresh_commit(fake_origin, temp_db, monkey
     time) — must NOT close the remote worker yet; it could still be
     mid-push. The task still flips to review either way."""
     branch = "agent/developer-task-poll08"
-    fake_origin.push_branch(branch, {"REPORT.md": "## Summary\nok\n"})
+    fake_origin.push_branch(branch, {"REPORT.md": "# REPORT task-poll08\n## Summary\nok\n"})
     monkeypatch.setattr(poller, "get_project",
                         lambda key: {"path": str(fake_origin.work)})
     fake_close_remote = mock.Mock()
@@ -491,7 +491,7 @@ def test_check_task_review_close_fires_on_old_commit(fake_origin, temp_db, monke
     allow_review=True (no other caller in the codebase passes that)."""
     branch = "agent/developer-task-poll09"
     old_epoch = int(time.time()) - 600
-    fake_origin.push_branch(branch, {"REPORT.md": "## Summary\nok\n"},
+    fake_origin.push_branch(branch, {"REPORT.md": "# REPORT task-poll09\n## Summary\nok\n"},
                             committer_date=f"{old_epoch} +0000")
     monkeypatch.setattr(poller, "get_project",
                         lambda key: {"path": str(fake_origin.work)})
@@ -540,6 +540,96 @@ def test_check_task_skips_mac_and_hostless_tasks(fake_origin, temp_db, monkeypat
 
     assert temp_db.get_task("task-poll07a")["status"] == "in_progress"
     assert temp_db.get_task("task-poll07b")["status"] == "in_progress"
+
+
+# ---------------------------------------------------------------------------
+# 6. GH #151: REPORT.md/BLOCKER.md header must name the exact task id being
+#    polled — a mismatched or missing header must never flip status.
+# ---------------------------------------------------------------------------
+
+def test_check_task_report_wrong_header_refuses_flip(fake_origin, temp_db, monkeypatch):
+    """A REPORT.md naming a DIFFERENT task's id (task-424077a4 inheriting a
+    stray Higgsfield report, the real incident behind GH #151) must never
+    flip this task to review."""
+    branch = "agent/developer-task-poll11"
+    fake_origin.push_branch(branch, {
+        "REPORT.md": "# REPORT task-somebody-elses-task\n## Summary\nTV-wall plates\n",
+    })
+    monkeypatch.setattr(poller, "get_project",
+                        lambda key: {"path": str(fake_origin.work)})
+    _insert_remote_task(temp_db, task_id="task-poll11", branch=branch,
+                        host="winbox", project="fake-proj", pid=999)
+
+    poller.check_task(temp_db.get_task("task-poll11"))
+
+    t = temp_db.get_task("task-poll11")
+    assert t["status"] == "in_progress"
+    assert "header mismatch" in t["delegate_log"]
+    assert "task-somebody-elses-task" in t["delegate_log"]
+
+
+def test_check_task_report_no_header_refuses_flip(fake_origin, temp_db, monkeypatch):
+    """A REPORT.md with no header at all (pre-2026-09-17 shape) must also be
+    refused — no grandfather clause."""
+    branch = "agent/developer-task-poll12"
+    fake_origin.push_branch(branch, {"REPORT.md": "## Summary\nok, no header\n"})
+    monkeypatch.setattr(poller, "get_project",
+                        lambda key: {"path": str(fake_origin.work)})
+    _insert_remote_task(temp_db, task_id="task-poll12", branch=branch,
+                        host="winbox", project="fake-proj", pid=999)
+
+    poller.check_task(temp_db.get_task("task-poll12"))
+
+    t = temp_db.get_task("task-poll12")
+    assert t["status"] == "in_progress"
+    assert "no header" in t["delegate_log"]
+
+
+def test_check_task_blocker_wrong_header_refuses_flip(fake_origin, temp_db, monkeypatch):
+    branch = "agent/developer-task-poll13"
+    fake_origin.push_branch(branch, {
+        "BLOCKER.md": "# BLOCKER task-wrong-one\nneed a password\n",
+    })
+    monkeypatch.setattr(poller, "get_project",
+                        lambda key: {"path": str(fake_origin.work)})
+    fake_open_issue = mock.Mock()
+    monkeypatch.setattr(poller, "open_blocker_issue", fake_open_issue)
+    _insert_remote_task(temp_db, task_id="task-poll13", branch=branch,
+                        host="winbox", project="fake-proj", pid=999)
+
+    poller.check_task(temp_db.get_task("task-poll13"))
+
+    t = temp_db.get_task("task-poll13")
+    assert t["status"] == "in_progress"
+    assert "header mismatch" in t["delegate_log"]
+    assert fake_open_issue.call_count == 0
+
+
+def test_check_task_blocker_no_header_refuses_flip(fake_origin, temp_db, monkeypatch):
+    branch = "agent/developer-task-poll14"
+    fake_origin.push_branch(branch, {"BLOCKER.md": "need a password\n"})
+    monkeypatch.setattr(poller, "get_project",
+                        lambda key: {"path": str(fake_origin.work)})
+    fake_open_issue = mock.Mock()
+    monkeypatch.setattr(poller, "open_blocker_issue", fake_open_issue)
+    _insert_remote_task(temp_db, task_id="task-poll14", branch=branch,
+                        host="winbox", project="fake-proj", pid=999)
+
+    poller.check_task(temp_db.get_task("task-poll14"))
+
+    t = temp_db.get_task("task-poll14")
+    assert t["status"] == "in_progress"
+    assert "no header" in t["delegate_log"]
+    assert fake_open_issue.call_count == 0
+
+
+def test_header_task_id_accepts_matching_report_header():
+    assert poller._header_task_id("# REPORT task-abc123\n## Summary\n", "REPORT") == "task-abc123"
+
+
+def test_header_task_id_none_on_wrong_kind():
+    # A BLOCKER-shaped header must not match when checking for REPORT.
+    assert poller._header_task_id("# BLOCKER task-abc123\n", "REPORT") is None
 
 
 def test_tick_only_polls_remote_in_progress_tasks(fake_origin, temp_db, monkeypatch):
