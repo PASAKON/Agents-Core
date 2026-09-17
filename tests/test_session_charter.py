@@ -78,6 +78,62 @@ def test_create_task_passes_with_charter_cxo_env(monkeypatch):
     assert tid.startswith("task-")
 
 
+_PRE_MIGRATION_DDL = """
+CREATE TABLE c_level_sessions (
+    role             TEXT NOT NULL,
+    session_id       TEXT NOT NULL,
+    active_task_id   TEXT,
+    spawned_at       TEXT NOT NULL,
+    status           TEXT NOT NULL DEFAULT 'open',
+    closed_at        TEXT,
+    note             TEXT,
+    resume_uuid      TEXT,
+    PRIMARY KEY (role, session_id)
+)
+"""
+
+
+def _downgrade_to_pre_charter_schema(session_id: str) -> None:
+    """Recreate c_level_sessions WITHOUT the host/charter columns and insert
+    one registered session — the state of a box that pulled the code but
+    never ran db.init() (Contabo, 2026-09-17)."""
+    with db_mod.get_conn() as conn:
+        conn.execute("DROP TABLE IF EXISTS c_level_sessions")
+        conn.execute(_PRE_MIGRATION_DDL)
+        conn.execute(
+            "INSERT INTO c_level_sessions (role, session_id, spawned_at) VALUES (?,?,?)",
+            ("cto", session_id, "2026-09-17T00:00:00+00:00"),
+        )
+
+
+def test_gate_on_pre_migration_db_names_the_fix(monkeypatch):
+    # The gate must still fail closed, but tell the operator to run db.init()
+    # instead of surfacing a bare `no such column: charter`.
+    monkeypatch.setenv("CTO_SESSION_ID", "ctoold1")
+    _downgrade_to_pre_charter_schema("ctoold1")
+    with pytest.raises(RuntimeError) as ei:
+        _create()
+    msg = str(ei.value)
+    assert "db.init()" in msg
+    assert "session_charter set" in msg
+    assert "no such column" in msg  # the underlying cause stays visible
+
+
+def test_cli_migrates_before_touching_charter(monkeypatch, capsys):
+    # tools.session_charter's entry point runs db.init() first, so `get` on a
+    # pre-migration DB adds the column and reports the (empty) charter rather
+    # than crashing on the missing column.
+    monkeypatch.setenv("CTO_SESSION_ID", "ctoold2")
+    _downgrade_to_pre_charter_schema("ctoold2")
+    rc = session_charter.main(["get"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "(empty)" in out
+    with db_mod.get_conn() as conn:
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(c_level_sessions)")}
+    assert "charter" in cols and "host" in cols
+
+
 def test_set_charter_rejects_empty_and_short(monkeypatch):
     monkeypatch.setenv("CTO_SESSION_ID", "ctotest4")
     db_mod.register_cxo_session("cto", "ctotest4")

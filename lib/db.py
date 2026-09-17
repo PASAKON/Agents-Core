@@ -358,10 +358,25 @@ def _require_charter(owner_cto: str, owner_role: str | None,
             file=sys.stderr,
         )
         return
-    row = conn.execute(
-        "SELECT charter FROM c_level_sessions WHERE role=? AND session_id=?",
-        (owner_role, owner_cto),
-    ).fetchone()
+    try:
+        row = conn.execute(
+            "SELECT charter FROM c_level_sessions WHERE role=? AND session_id=?",
+            (owner_role, owner_cto),
+        ).fetchone()
+    except sqlite3.OperationalError as e:
+        if "no such column" not in str(e):
+            raise
+        # A box that pulled the code but whose DB predates the `charter`
+        # column: the gate must still fail closed, but with the fix in the
+        # message instead of a bare sqlite error (Contabo, 2026-09-17).
+        raise RuntimeError(
+            "charter gate: this tasks.db predates the `charter` column, so the "
+            "gate cannot check anything. Apply the pending migration once — "
+            "python3 -c 'import sys; sys.path.insert(0, \".\"); from lib import db; db.init()' "
+            "— then set the charter: python3 -m tools.session_charter set "
+            '"<one-line entry problem>". '
+            f"(underlying error: {e})"
+        ) from e
     charter = (row["charter"] if row else None) or ""
     if not charter.strip():
         raise RuntimeError(

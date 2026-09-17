@@ -102,6 +102,12 @@ def main(argv: list[str]) -> int:
         print(__doc__, file=sys.stderr)
         return 1
     cmd, rest = argv[0], argv[1:]
+    # Apply pending schema migrations first. `charter` arrived with the
+    # registry work (851b0d5) as an idempotent ADD COLUMN inside db.init(),
+    # but nothing on a plain `git pull` calls init() — the Contabo CTO hit
+    # `sqlite3.OperationalError: no such column: charter` on 2026-09-17 and
+    # had to spelunk for the one-liner. Cheap, idempotent, so run it always.
+    db.init()
     try:
         if cmd == "set":
             if not rest:
