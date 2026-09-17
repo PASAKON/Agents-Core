@@ -59,6 +59,13 @@ function Ensure-GithubSshRoute {
         if ($sshCmd) { $env:GIT_SSH_COMMAND = $sshCmd }
         try {
             $p = Start-Process -FilePath git -ArgumentList @('ls-remote','--exit-code',$RepoUrl,'HEAD') -NoNewWindow -PassThru -RedirectStandardOutput "$env:TEMP\gitprobe-out.txt" -RedirectStandardError "$env:TEMP\gitprobe-err.txt"
+            # Windows PowerShell 5.1 quirk: unless the process handle is touched
+            # BEFORE the process exits, $p.ExitCode stays $null afterwards, and
+            # ($null -eq 0) is $false — so every probe read as "unreachable"
+            # while the ls-remote had in fact succeeded (stdout held HEAD's sha).
+            # Measured on winbox 2026-09-17: waited=True exit=<empty>. Caching
+            # the handle makes the exit code observable.
+            $null = $p.Handle
             if (-not $p.WaitForExit(20000)) { try { $p.Kill() } catch {}; return $false }
             return ($p.ExitCode -eq 0)
         } catch { return $false }
