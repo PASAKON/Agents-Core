@@ -7,6 +7,7 @@ All git and subprocess calls are mocked — no real git/ssh executed.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -63,9 +64,16 @@ class RevertTaskTests(unittest.TestCase):
         self.db_path = Path(self.tmpdir) / "test.db"
         self._db_patcher = patch.object(db_module, "DB_PATH", self.db_path)
         self._db_patcher.start()
+        # _insert_task() lets create_task() resolve its owner from the caller's
+        # env. Run from a C-level shell (CTO_SESSION_ID set, no charter row in
+        # this temp DB) that hits the charter gate before the revert logic under
+        # test ever runs. This suite tests revert_task(), not the gate.
+        self._gate_patcher = patch.dict(os.environ, {"ORG_CHARTER_GATE": "off"})
+        self._gate_patcher.start()
         db_module.init()
 
     def tearDown(self):
+        self._gate_patcher.stop()
         self._db_patcher.stop()
         shutil.rmtree(self.tmpdir)
 
