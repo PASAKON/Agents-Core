@@ -20,6 +20,9 @@ from . import recall as r
 @pytest.fixture(autouse=True)
 def _isolated_db(monkeypatch, tmp_path):
     monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
+    # owner_cto="test" below is a synthetic id with no c_level_sessions row —
+    # this suite tests recall(), not the charter gate, so skip it here.
+    monkeypatch.setenv("ORG_CHARTER_GATE", "off")
     db_mod.init()
     tid = db_mod.create_task(
         project="test-proj", role="developer",
