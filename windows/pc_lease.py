@@ -44,6 +44,16 @@ MAX_MINUTES = 480
 RESUME_TRIES = 3               # tick gives up after this, loudly, instead of looping
 
 
+
+def SKIP_TITLES(t) -> bool:
+    """Windows we must never minimise: the game, the app driving it, and
+    "Program Manager" -- the shell's own window, which is the desktop
+    itself and not anybody's app."""
+    t = t[0] if isinstance(t, tuple) else t
+    return ("BlueStacks" in t or "Cookie Run Script" in t
+            or t == "Program Manager")
+
+
 def log(msg: str) -> None:
     line = f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}"
     try:
@@ -318,8 +328,121 @@ def cmd_take(args) -> int:
     return 0
 
 
+
+# ---------------------------------------------------------------- screen tidy
+# A borrow ends with two obligations and only one of them was enforced. Peer
+# CTO #e1e3d3ef ran take -> work -> give-back correctly three times on
+# 2026-09-17 and left a maximised Chrome over BlueStacks after each one. The
+# lease read FREE, Android still reported the game foreground -- correctly, it
+# was, underneath a browser -- and the bot spent 2.5 hours pressing buttons into
+# somebody else's window. Their own sessions were fooled the same way from the
+# other side: every `take` answered "bot already idle", which they read as the
+# farm being broken.
+#
+# Their conclusion, and it is right: a rule the borrower has to remember gets
+# skipped, and they are the proof twice over. give-back already knows the borrow
+# is ending and already reaches session 1; minimising there costs one more call
+# on a path we already run, and nobody has to be told anything.
+#
+# Two traps they hit and paid for, kept here so the next person does not:
+#   * ssh lands in SESSION 0 and cannot see session 1's windows. Enumerating
+#     from here returns a clean "minimised 0 windows" that did nothing. It has
+#     to go through the interactive scheduled task.
+#   * inline `Add-Type` with a P/Invoke signature does not survive the
+#     ssh -> cmd -> powershell quoting chain. We use ctypes from Python instead,
+#     which has no quoting to survive.
+CLEAR_TASK = "MooniexPCLeaseClear"
+
+
+def minimise_foreign_windows() -> str:
+    """Minimise every visible window that is not the game or the app.
+
+    Runs in SESSION 1 only -- see the note above. Minimise, never close: the
+    window belongs to whoever opened it and they may want it back.
+    """
+    import ctypes
+    import ctypes.wintypes
+
+    u = ctypes.windll.user32
+    touched = []
+
+    def visit(hwnd, _):
+        if not u.IsWindowVisible(hwnd) or u.IsIconic(hwnd):
+            return True
+        n = u.GetWindowTextLengthW(hwnd)
+        if n == 0:
+            return True
+        buf = ctypes.create_unicode_buffer(n + 1)
+        u.GetWindowTextW(hwnd, buf, n + 1)
+        t = buf.value
+        if SKIP_TITLES((t)):
+            return True
+        u.ShowWindow(hwnd, 6)                 # SW_MINIMIZE
+        touched.append(t[:40])
+        return True
+
+    saw_tenant = []
+
+    def note_tenant(hwnd, _):
+        if not u.IsWindowVisible(hwnd):
+            return True
+        n = u.GetWindowTextLengthW(hwnd)
+        if n == 0:
+            return True
+        buf = ctypes.create_unicode_buffer(n + 1)
+        u.GetWindowTextW(hwnd, buf, n + 1)
+        if "BlueStacks" in buf.value:
+            saw_tenant.append(buf.value)
+        return True
+
+    CB = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM)
+    try:
+        u.EnumWindows(CB(note_tenant), 0)
+        # If we cannot see BlueStacks either, we are not looking at the desktop
+        # that has it -- almost certainly session 0, where ssh lands. Reporting
+        # "minimised 0 windows" from there is a clean success that did nothing,
+        # which is precisely how this went undiagnosed. Say so instead.
+        if not saw_tenant:
+            raise RuntimeError(
+                "cannot see the BlueStacks window - this is not the session that "
+                "owns the desktop (ssh lands in session 0). Run it through the "
+                f"{CLEAR_TASK} scheduled task.")
+        u.EnumWindows(CB(visit), 0)
+    except Exception as e:
+        log(f"minimise_foreign_windows failed: {e}")
+        return f"FAILED: {e}"
+    return ", ".join(touched)
+
+
+def request_screen_clear() -> None:
+    """Ask session 1 to tidy the desktop, and wait for it.
+
+    Fire-and-forget would race the farm restart that follows: the bot would take
+    its first look at the screen while the browser is still on top, which is the
+    exact failure this exists to prevent.
+    """
+    import subprocess
+    try:
+        subprocess.run(["schtasks", "/run", "/tn", CLEAR_TASK],
+                       capture_output=True, timeout=30, creationflags=0x08000000)
+        time.sleep(6)
+    except Exception as e:
+        log(f"could not trigger {CLEAR_TASK}: {e}")
+
+
+def cmd_clear_screen(_args) -> int:
+    """Session-1 entry point for the scheduled task."""
+    done = minimise_foreign_windows()
+    log(f"screen clear: {done or 'nothing to minimise'}")
+    print(done or "nothing to minimise")
+    return 0
+
+
 def cmd_give_back(_args) -> int:
     lease = read_lease()
+    # Before anything else, and on every path out of here -- including the two
+    # early returns below, which are the ones that let this happen unnoticed.
+    request_screen_clear()
     if not lease:
         print("No lease was held. Nothing to give back.")
         s = status()
@@ -331,8 +454,10 @@ def cmd_give_back(_args) -> int:
     if not lease.get("was_running"):
         clear_lease()
         log(f"give-back by {who} - Cookie Run was not running when taken; left as is")
-        print("OK - lease released. Cookie Run was not running when you took it, "
-              "so nothing was restarted.")
+        print("OK - lease released, screen cleared. Cookie Run was not running "
+              "when you took it, so nothing was restarted.")
+        print("If you expected it to be running, say so - three borrows in a row "
+              "reporting this is how 2026-09-17 went unnoticed for hours.")
         return 0
 
     ok, why = resume(lease.get("resume") or {"fn": "night", "args": {"rounds": 60}}, "give-back")
@@ -470,6 +595,7 @@ def main() -> int:
     t.set_defaults(fn=cmd_take)
 
     sub.add_parser("give-back").set_defaults(fn=cmd_give_back)
+    sub.add_parser("clear-screen").set_defaults(fn=cmd_clear_screen)
 
     e = sub.add_parser("extend")
     e.add_argument("--minutes", type=int, default=60)

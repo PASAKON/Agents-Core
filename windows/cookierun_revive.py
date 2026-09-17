@@ -37,6 +37,16 @@ COOLDOWN_S = 30 * 60          # never retry a failed revive faster than this
 STATE = DATA / "modelplay" / "revive_state.json"
 
 
+
+def SKIP_TITLES(t) -> bool:
+    """Windows we must never minimise: the game, the app driving it, and
+    "Program Manager" -- the shell's own window, which is the desktop
+    itself and not anybody's app."""
+    t = t[0] if isinstance(t, tuple) else t
+    return ("BlueStacks" in t or "Cookie Run Script" in t
+            or t == "Program Manager")
+
+
 def log(msg: str) -> None:
     try:
         LOG.parent.mkdir(parents=True, exist_ok=True)
@@ -208,6 +218,7 @@ def foreign_window_over_game():
     """
     import ctypes
     import ctypes.wintypes
+
     u = ctypes.windll.user32
     fg = u.GetForegroundWindow()
     found = []
@@ -261,7 +272,7 @@ def minimise_foreign_windows() -> str:
         buf = ctypes.create_unicode_buffer(n + 1)
         u.GetWindowTextW(hwnd, buf, n + 1)
         t = buf.value
-        if "BlueStacks" in t or "Cookie Run Script" in t:
+        if SKIP_TITLES((t)):
             return True
         u.ShowWindow(hwnd, 6)
         touched.append(t[:40])

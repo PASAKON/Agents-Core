@@ -51,6 +51,16 @@ VK_BACK = 0x08
 VK_RETURN = 0x0D
 
 
+
+def SKIP_TITLES(t) -> bool:
+    """Windows we must never minimise: the game, the app driving it, and
+    "Program Manager" -- the shell's own window, which is the desktop
+    itself and not anybody's app."""
+    t = t[0] if isinstance(t, tuple) else t
+    return ("BlueStacks" in t or "Cookie Run Script" in t
+            or t == "Program Manager")
+
+
 def _send(ev_list) -> None:
     n = len(ev_list)
     arr = (_INPUT * n)(*ev_list)
@@ -104,6 +114,7 @@ def clear_screen() -> str:
     the keymap overlay and any BlueStacks dialog all survive.
     """
     import ctypes.wintypes
+
     u = ctypes.windll.user32
     touched = []
 
@@ -119,7 +130,7 @@ def clear_screen() -> str:
         # "Cookie Run Script" is the bot's own app window. Minimising it does not
         # stop anything (the pipe and supervisor are threads), but a tool that
         # tidies the desktop should not tidy away the thing it is tidying for.
-        if "BlueStacks" in title or "Cookie Run Script" in title:
+        if SKIP_TITLES((title)):
             return True
         u.ShowWindow(hwnd, 6)                # SW_MINIMIZE
         touched.append(title[:40])
