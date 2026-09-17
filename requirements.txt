@@ -12,6 +12,12 @@ requests>=2.31,<3
 # Test runner — ADR 0021 standardises on pytest (added 2026-08-13).
 pytest>=8,<9
 
+# Postgres backend for lib/db.py, selected by ORG_DB_URL (task-02ecbdea,
+# docs/design/tasks-db-hub.md §3.1). Binary wheel — no local libpq/build
+# toolchain needed. Importing lib.db_pg is always safe without this
+# installed; only lib.db_pg.connect() (i.e. ORG_DB_URL actually set) needs it.
+psycopg[binary]>=3.1,<4
+
 # Security floors on transitive dependencies (ADR 0020 osv_check, 2026-08-13).
 # We do not import these directly — idna arrives via requests/httpx/anyio and
 # python-multipart via mcp. osv-scanner resolves the LOWEST version our
