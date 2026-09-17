@@ -58,3 +58,13 @@ usage/billing ของ mooniex.com วิ่งคนละเลนกับ�
 ## เปิด session
 `bash scripts/spawn-cto.sh --new` แล้ว `/session-open` ด้วย Entry Problem:
 "ย้าย mooniex.com (Vercel + Supabase) ไปบัญชี mooniexofficials@gmail.com และกลับมาเสิร์ฟบน Free โดยบอท LINE ไม่สะดุด"
+
+## UPDATE 2026-09-17 23:20 — Supabase อยู่ที่เดิม, P1 = Vercel อย่างเดียว
+
+CEO พบว่า Supabase dashboard ไม่มี "Sign in with Google" (มี GitHub / email) → สมัครด้วยบัญชี official ต้องมี GitHub เพิ่มอีกชั้น
+ตรวจแล้ว (Management API, read-only, token ของ pass.gob1): org MoonieX / LungNote / arna-ai = **plan free ทั้งหมด** ·
+project `tlokhyqpthvxabweekps` (MoonieX) และ `qkaxvockysyazmtormvf` (LungNote) = **ACTIVE_HEALTHY** · ไม่มี project ถูก pause
+→ Supabase **ไม่ได้ติด limit** และไม่ได้จ่ายเงินอยู่ (ประวัติการจ่ายย้อนหลังต้องดูใน dashboard — API ไม่บอก) · gob2 (Chatudo/LinkReed) ตรวจจาก Mac ไม่ได้ ไม่มี token
+
+**CEO ตัดสิน:** Supabase คงไว้ที่ pass.gob1/gob2 ตาม P2++ ("ย้ายเมื่อติด limit") · **เฟส 1 (org transfer) ยกเลิก** ·
+P1 เหลือ = Gmail official + **Vercel project ใหม่** (1 project / 1 mail) · เฟส 2 (cron→Contabo) ลงแล้ว: webapp `0268f8dc`, claudeflow `c9750282`

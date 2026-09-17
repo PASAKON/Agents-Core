@@ -49,3 +49,6 @@ Supabase `qkaxvockysyazmtormvf` ใต้ pass.gob1 · deps = Next + Supabase + 
 อย่าย้ายหลายแถวพร้อมกัน — ทุกแถวมี re-consent/DNS ของตัวเอง ชนกันแล้วหาสาเหตุยาก
 
 ตัวชี้อื่น: โน้ต LungNote "แผนแยกบัญชีต่อโปรเจกต์ (account split)" · memory `reference_mooniex_accounts_and_domain.md`
+
+**UPDATE 2026-09-17 23:20:** Supabase ไม่มี Sign-in-with-Google → **ไม่ย้าย Supabase** (อยู่ pass.gob1/gob2, plan free, ACTIVE_HEALTHY — ตรวจแล้ว)
+P1 หดเหลือ **1 Gmail + 1 Vercel ต่อโปรเจกต์** · Supabase ไปอยู่ตาราง P2++ (ทริกเกอร์: เกิน 2 free project ต่อบัญชี หรืออยากแยกบิล → สมัครด้วย email/password หรือ GitHub ของ official แล้ว org transfer)
