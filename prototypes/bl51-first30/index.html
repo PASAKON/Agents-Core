@@ -185,7 +185,8 @@
 
       .bl-stat .big { font-family: Archivo, sans-serif; font-weight: 800; font-size: 156px;
                       line-height: .96; color: var(--neon); text-shadow: var(--outline), var(--glow-m); }
-      .bl-stat .lb  { font-weight: 600; font-size: 42px; color: #D7DCE0; margin-top: 12px; }
+      .bl-stat .lb  { font-weight: 600; font-size: 42px; color: #D7DCE0; margin-top: 12px;
+                      text-shadow: var(--outline); }   /* was missing; failed contrast over bright plates (BL50) */
 
       .bug { position: absolute; left: 84px; top: 150px; z-index: 40;
              display: flex; align-items: flex-end; gap: 26px; }

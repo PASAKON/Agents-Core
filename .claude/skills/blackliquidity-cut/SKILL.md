@@ -58,8 +58,13 @@ python3 <skill>/scripts/bl_tools.py offsets \
 ```
 On BL51 the names said 0 s / 63 s / 125 s and the parts really sat at
 **0.00 / 62.71 / 125.42** — 9 and 13 frames of lip error if you believe the
-name. If a part comes back with `r < 0.9` the tool warns; stop and ask,
-because that part may be from a different take.
+name. If a part comes back with `r < 0.9` the tool warns. Before assuming a
+different take, correlate the part directly at its filename's nominal offset
+(the tool's own `pcm`/`nrm` helpers, 10 s window): on BL50 the scan returned
+84.39 s at r=0.031 for a part that really sat at 145.49 s (r=0.999) because it
+ran to the last sample of the track — fixed in the tool 2026-09-18, and the
+worker who caught it did exactly this. If the direct check is also weak, stop
+and ask.
 
 ### 3. Transcribe for timing
 ```bash
@@ -96,7 +101,19 @@ ffmpeg -i s04.mp4 -an -vf "scale=-2:1920:flags=lanczos,crop=1080:1920,fps=30" ..
 Keep the ORIGINAL lipsync files too: step 9 needs their audio.
 
 ### 5b. Pull B-roll from the channel's catalogue — grep, do not browse
-The channel has 65 catalogued Seedance clips (plus the 21 Kling ones). They live
+The manifest's own scene clips cover about half the runtime; the rest is text on
+the kit background, and that is the approved look (BL51 ran 61 % that way). But a
+long text-only stretch whose claim has a matching clip is a hole, so start by
+listing them:
+```bash
+python3 <skill>/scripts/bl_tools.py coverage cut/index.html
+```
+For every flagged hole grep the catalogue for the claim on screen at that time.
+A match with `fit=BL` goes in; no match means keep the kinetic plate — never
+force an unrelated clip in to fill time (BL50 round 3: 16 s and 32 s holes on
+"Deepfake" and "เช็กก่อนโอน", both of which the catalogue covers).
+
+The channel has 65 catalogued Seedance clips (plus the 19 Kling ones). They live
 in Drive `AI Assets/BLACK LIQUIDITY (9:16)`, but you never list that folder:
 ```bash
 C=/Users/gob/Projects/Agents/prototypes/bl-broll-catalog
@@ -245,6 +262,11 @@ though the script says ten. Call it "2 ตัวแรก" instead.
    episode's plates, offsets and copy; every one of them is wrong for yours, and
    the ones that look right (a 62.71 s seat, a "10 ตัว" header) are the most
    dangerous because they pass the gates.
+
+10. **The manifest is not the whole B-roll.** Round 3 of BL50 used the 16 scene
+   clips it was given and left 83 s of text on black, including one 32 s stretch,
+   while the catalogue held clips for exactly those claims. The folder you are
+   given is the editor's material; the channel's library is step 5b, every time.
 
 ## What this cannot do
 

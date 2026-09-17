@@ -143,24 +143,35 @@ def cmd_offsets(a):
     then refine at sample level.
     """
     total = float(probe(a.master)["format"]["duration"])
-    M_env = envelope(pcm(a.master, rate=4000))
+    M_raw = pcm(a.master, rate=4000)
+    # Pad the tail so a part that runs to the very last sample still fits the
+    # scan. BL50's part C ended exactly where the track ended, the old
+    # range(len-n) stopped one window short of its true start, and the scan
+    # returned a spurious max at 84 s with r=0.03. The worker caught it by
+    # hand; this is the fix.
+    M_env = envelope(np.concatenate([M_raw, np.zeros(4000 * 3)]))
+    Mfull = None
     results, weak = [], []
     for spec in a.parts:
         label, path = spec.split("=", 1)
-        L_env = envelope(pcm(path, rate=4000))
+        # coarse-match on the part's first 10 s only, so its length can never
+        # push the true start outside the searchable range
+        L_env = envelope(pcm(path, 0, 10, rate=4000))
         n = len(L_env)
         if n >= len(M_env):
             print(f"  {label}: part is longer than the master, skipped"); continue
         coarse = max((float(np.dot(L_env, M_env[i:i + n]) / n), i * 0.05)
-                     for i in range(len(M_env) - n))[1]
+                     for i in range(len(M_env) - n + 1))[1]
         # decode the master once and slice it in numpy; calling ffmpeg per
         # candidate offset turns a 3-second check into several minutes
-        L = nrm(pcm(path, 0, 12))
-        Mfull = pcm(a.master)
+        if Mfull is None:
+            Mfull = pcm(a.master)
+        fine_len = max(4.0, min(12.0, total - coarse - 0.9))
+        L = nrm(pcm(path, 0, fine_len))
         win = len(L)
         best = (0.0, -9.0)
         lo = int(max(0.0, coarse - 0.8) * 16000)
-        hi = int(min(total - 12, coarse + 0.8) * 16000)
+        hi = int(min(total - fine_len, coarse + 0.8) * 16000)
         for i in range(lo, hi, 160):                       # 10 ms steps
             M = Mfull[i:i + win]
             if len(M) < win:
@@ -256,6 +267,40 @@ def cmd_verify(a):
 
 
 # ------------------------------------------------------------------ sheet
+def cmd_coverage(a):
+    """Where the cut has no footage at all — a lipsync part or a plate — and
+    text is carrying the frame alone. The channel's approved cuts run about
+    half their length that way (BL51: 61 %, longest 44 s), so this is not a
+    gate; it is the list step 5b works from. Fill a hole when a catalogued clip
+    matches the claim on screen; keep the kinetic plate when nothing does."""
+    import re
+    html = open(a.composition, encoding="utf-8").read()
+    dur = float(re.search(r'data-composition-id="[^"]+"[^>]*data-duration="([\d.]+)"', html).group(1)) \
+        if re.search(r'data-composition-id="[^"]+"[^>]*data-duration="([\d.]+)"', html) else a.duration
+    iv = []
+    for m in re.finditer(r"<video[^>]*>", html):
+        t = m.group(0)
+        st = re.search(r'data-start="([\d.]+)"', t); du = re.search(r'data-duration="([\d.]+)"', t)
+        if st and du:
+            iv.append((float(st.group(1)), float(st.group(1)) + float(du.group(1))))
+    iv.sort()
+    cur, holes = 0.0, []
+    for s0, s1 in iv:
+        if s0 - cur >= a.min_gap:
+            holes.append((cur, s0))
+        cur = max(cur, s1)
+    if dur and dur - cur >= a.min_gap:
+        holes.append((cur, dur))
+    total = sum(b - x for x, b in holes)
+    print(f"  {len(iv)} video clips, composition {dur:.2f}s")
+    for x, b in holes:
+        flag = "  <- fill from the catalogue if a clip matches the claim" if b - x >= a.fill_from else ""
+        print(f"  no footage {x:7.2f}-{b:7.2f}s  ({b - x:5.1f}s){flag}")
+    if dur:
+        print(f"  TOTAL without footage {total:.1f}s = {total / dur * 100:.0f}%   (BL51 approved cut: 61 %, longest hole 44 s)")
+    print("  coverage is a list to work from, not a gate; see SKILL.md step 5b")
+
+
 def cmd_sheet(a):
     from PIL import ImageDraw
     times = [float(t) for t in a.at.split(",")]
@@ -304,6 +349,13 @@ def main():
     v.add_argument("--seat", nargs="*", metavar="LABEL=FILE=AT",
                    help="check a lipsync clip is seated where you think")
     v.set_defaults(fn=cmd_verify)
+
+    g = sub.add_parser("coverage", help="stretches of the cut with no footage (what 5b fills)")
+    g.add_argument("composition", help="cut/index.html")
+    g.add_argument("--duration", type=float, default=0.0, help="only if the root has no data-duration")
+    g.add_argument("--min-gap", type=float, default=3.0)
+    g.add_argument("--fill-from", type=float, default=8.0, help="holes this long or longer get flagged")
+    g.set_defaults(fn=cmd_coverage)
 
     c = sub.add_parser("sheet", help="contact sheet of N frames")
     c.add_argument("render")
