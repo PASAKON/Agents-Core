@@ -39,7 +39,6 @@ import argparse
 import base64
 import json
 import re
-import sqlite3
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -47,6 +46,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from lib import db as db_lib
 from lib.config import hosts as get_hosts
 
 ADR_POINTER = "org:decisions/0024-split-brain-task-database.md"
@@ -181,15 +181,13 @@ def local_db_path() -> Path:
 
 def read_local_tasks(db_path: Path) -> dict[str, str] | None:
     """id -> status for every row in the local tasks.db. None if the file
-    doesn't exist or can't be read -- never raises. Opened read-only
-    (mirrors lib/db.py's own resolve_od_project helper) so this report can
-    never create or modify a database as a side effect of looking."""
-    if not db_path.exists():
-        return None
+    doesn't exist or can't be read -- never raises. Opened read-only so this
+    report can never create or modify a database as a side effect of
+    looking (under ORG_DB_URL, `db_path` is ignored -- ignored anyway,
+    since a read-only Postgres connection can't "create" anything either)."""
     try:
-        con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=5)
-        rows = con.execute("SELECT id, status FROM tasks").fetchall()
-        con.close()
+        with db_lib.get_conn(path=db_path, readonly=True, timeout=10) as conn:
+            rows = conn.execute("SELECT id, status FROM tasks").fetchall()
     except Exception:
         return None
     return {r[0]: r[1] for r in rows}

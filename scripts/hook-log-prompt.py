@@ -22,14 +22,23 @@ from __future__ import annotations
 import json
 import os
 import re
-import sqlite3
 import sys
 from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from lib import db as db_lib  # noqa: E402
+
 LOG = ROOT / "state" / "logs" / "cto.log"
-DB_PATH = ROOT / "state" / "tasks.db"
+
+# Fail-open budget for the (now possibly remote) registry -- ADR pending,
+# docs/design/tasks-db-hub.md §2: this hook already treats "can't determine
+# owners" as "keep every line" (see _task_owners' except clause below), so
+# the only thing a slow/unreachable hub could do wrong is hang this
+# UserPromptSubmit hook for the CEO's whole prompt -- capped here instead.
+HUB_TIMEOUT_S = 3.0
 
 SID = os.environ.get("CTO_SESSION_ID") or ""
 STATE = ROOT / "state" / (f".cto_log_pos-{SID}" if SID else ".cto_log_pos")
@@ -73,21 +82,24 @@ def _pending_lines(offset: int, size: int) -> list[str]:
 
 
 def _task_owners(task_ids: set[str]) -> dict[str, str | None]:
-    """Map task_id → owner_cto (None when unowned/unknown)."""
-    if not task_ids or not DB_PATH.exists():
+    """Map task_id → owner_cto (None when unowned/unknown). Any failure --
+    missing DB, unreadable, or (now the hub may be remote) an unreachable/
+    slow ORG_DB_URL server -- degrades to "no filtering data", never a
+    hang or a raise; _filter_for_session already treats an empty map as
+    "keep every line"."""
+    if not task_ids:
         return {}
     try:
-        conn = sqlite3.connect(str(DB_PATH))
-        try:
+        with db_lib.get_conn(readonly=True, timeout=HUB_TIMEOUT_S) as conn:
             placeholders = ",".join("?" * len(task_ids))
             rows = conn.execute(
                 f"SELECT id, owner_cto FROM tasks WHERE id IN ({placeholders})",
                 sorted(task_ids),
             ).fetchall()
-        finally:
-            conn.close()
         return {r[0]: r[1] for r in rows}
-    except Exception:
+    except Exception as exc:
+        print(f"[hook-log-prompt] registry unreachable, skipping owner "
+              f"filter: {exc}", file=sys.stderr)
         return {}
 
 
