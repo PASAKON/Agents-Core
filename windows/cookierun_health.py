@@ -235,7 +235,19 @@ def main() -> int:
     verdict = "OK"
     reason = ""
 
-    if s is None:
+    if lease and s is None:
+        # A held lease outranks even a dead app. On 2026-09-17 the CEO borrowed
+        # the screen to log into Gmail and this reported NO-APP, which reads as
+        # "go fix it" - and fixing it means launching a window on the desktop he
+        # is typing passwords into. Cookie Run yields to a human, always; the
+        # app can be restarted when the screen comes back. Still SAID, so it is
+        # not forgotten, just not acted on.
+        verdict = "PARKED"
+        reason = (f"screen lent to {lease.get('who', '?')} until "
+                  f"{time.strftime('%H:%M', time.localtime(lease['expires_at']))} "
+                  f"- NOTE: the app is also down and will need restarting once "
+                  f"the screen is free")
+    elif s is None:
         verdict, reason = "NO-APP", "the Cookie Run app is not running, so nothing can drive the bot"
     elif s.get("esc_hold"):
         verdict, reason = "DOWN", "ESC hold is set - a human stopped the bot and only a human clears it"
