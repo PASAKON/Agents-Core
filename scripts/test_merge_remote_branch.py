@@ -79,3 +79,28 @@ def test_touches_violation_against_a_fetched_ref(repos):
     ref = _resolve_merge_ref(hub, BR)
     assert _touches_violation(str(hub), "main", ["docs/", "REPORT.md"], ref=ref) == []
     assert _touches_violation(str(hub), "main", ["docs/"], ref=ref) == ["REPORT.md"]
+
+
+def test_drop_channel_files_removes_only_what_the_merge_added(repos):
+    from tools.git_ops import _drop_channel_files
+    hub = repos
+    pre = _git(hub, "rev-parse", "HEAD")
+    ref = _resolve_merge_ref(hub, BR)
+    _git(hub, "merge", "--no-ff", "-qm", "merge", ref)
+    assert (hub / "REPORT.md").exists()
+    assert _drop_channel_files(hub, pre) == ["REPORT.md"]
+    assert not (hub / "REPORT.md").exists()
+    assert (hub / "docs" / "x.md").exists()          # real content untouched
+    assert _git(hub, "status", "--porcelain") == ""   # removal is committed
+    assert "drop worker channel file" in _git(hub, "log", "-1", "--format=%s")
+
+
+def test_drop_channel_files_keeps_a_preexisting_one(repos):
+    from tools.git_ops import _drop_channel_files
+    hub = repos
+    (hub / "BLOCKER.md").write_text("pre-existing on main\n")
+    _git(hub, "add", "BLOCKER.md"); _git(hub, "commit", "-qm", "base has BLOCKER.md")
+    pre = _git(hub, "rev-parse", "HEAD")
+    _git(hub, "merge", "--no-ff", "-qm", "merge", _resolve_merge_ref(hub, BR))
+    assert _drop_channel_files(hub, pre) == ["REPORT.md"]
+    assert (hub / "BLOCKER.md").exists()

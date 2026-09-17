@@ -109,6 +109,34 @@ def _resolve_merge_ref(repo: Path, branch: str) -> str:
     )
 
 
+CHANNEL_FILES = ("REPORT.md", "BLOCKER.md")
+
+
+def _drop_channel_files(repo: Path, pre_sha: str) -> list[str]:
+    """After a merge, remove REPORT.md / BLOCKER.md that the merge introduced
+    at the repo root and commit the removal. They are a remote worker's
+    channel to the hub (roles/_worker_remote.md), not repository content --
+    a REPORT.md left on main was the #151 root cause (every fresh worktree
+    checked it out). Files that already existed at `pre_sha` are left alone.
+    Returns the paths removed."""
+    dropped = []
+    for name in CHANNEL_FILES:
+        if not (repo / name).exists():
+            continue
+        was_there = subprocess.run(
+            ["git", "cat-file", "-e", f"{pre_sha}:{name}"],
+            cwd=str(repo), capture_output=True, text=True,
+        ).returncode == 0
+        if not was_there:
+            dropped.append(name)
+    if dropped:
+        _run(["git", "rm", "-q", "--", *dropped], cwd=repo)
+        _run(["git", "commit", "-q", "-m",
+              f"merge: drop worker channel file(s) {', '.join(dropped)} (not repo content)"],
+             cwd=repo)
+    return dropped
+
+
 def _blocking_dirty_paths(porcelain: str, branch_paths: set[str]) -> tuple[list[str], list[str]]:
     """Split `git status --porcelain` output into (blocking, ignored) for the
     merge pre-flight.
@@ -359,6 +387,10 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
         )
         return {"merged": False, "no_op": True, "reason": msg,
                 "branch": branch, "base": base, "project": proj["key"]}
+
+    dropped = _drop_channel_files(repo, pre_sha)
+    if dropped:
+        info(f"dropped worker channel file(s) from {base}: {dropped}")
 
     result = {"merged": True, "branch": branch, "base": base, "project": proj["key"],
               "merge_sha": merge_sha}
