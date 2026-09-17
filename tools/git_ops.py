@@ -77,6 +77,35 @@ def _is_ancestor(repo: Path, ancestor: str, descendant: str) -> bool:
     return r.returncode == 0
 
 
+def _blocking_dirty_paths(porcelain: str, branch_paths: set[str]) -> tuple[list[str], list[str]]:
+    """Split `git status --porcelain` output into (blocking, ignored) for the
+    merge pre-flight.
+
+    Tracked modifications always block: `git merge` refuses to overwrite
+    local changes. Untracked paths (`??`) block only when the branch brings
+    the same path, or a path under an untracked directory — otherwise git
+    merges around them untouched. Refusing on EVERY untracked path (the
+    original #42 check) stalled merges for as long as any concurrent session
+    kept a scratch directory in the shared main checkout: on 2026-09-18
+    another CTO's `prototypes/bl51-first30/` held up two unrelated merges.
+    """
+    blocking: list[str] = []
+    ignored: list[str] = []
+    for line in porcelain.splitlines():
+        if not line.strip():
+            continue
+        path = line[3:]
+        if not line.startswith("??"):
+            blocking.append(path)
+            continue
+        prefix = path if path.endswith("/") else path + "/"
+        if path in branch_paths or any(bp.startswith(prefix) for bp in branch_paths):
+            blocking.append(path)
+        else:
+            ignored.append(path)
+    return blocking, ignored
+
+
 def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                push: bool | None = None, cleanup: bool = True,
                gate_tests: bool = False, override_touches_check: bool = False) -> dict:
@@ -177,7 +206,15 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
     # there's nothing to misreport as conflict:true with an empty file list.
     dirty = _run(["git", "status", "--porcelain"], cwd=repo)
     if dirty:
-        dirty_files = [line[3:] for line in dirty.splitlines() if line.strip()]
+        branch_paths = set(
+            _run(["git", "diff", "--name-only", f"{base}...{branch}"], cwd=repo).splitlines()
+        )
+        blocking, ignored = _blocking_dirty_paths(dirty, branch_paths)
+        if ignored:
+            info(f"merge pre-flight on {task_id}: ignoring {len(ignored)} untracked "
+                 f"path(s) in base the branch does not touch: {ignored[:5]}")
+    if dirty and blocking:
+        dirty_files = blocking
         msg = (f"base repo working tree is dirty ({len(dirty_files)} file(s)) — "
                f"refusing to attempt merge. Likely a concurrent session mid-edit; "
                f"wait for it to finish, then retry merge_task.")
