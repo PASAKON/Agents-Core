@@ -620,3 +620,50 @@ black-and-white while the rest of the teaser is colour. A shot only passes if it
 also matches the neighbouring shots' colour and grade, and a plate generated from
 a prompt that does not pin the look will drift. Say the look in the plate prompt,
 and compare frame 0 against a neighbouring shot before calling a re-fire good.
+
+## The download button is dead — go straight to the CDN URL (2026-09-18, task-860620fc)
+
+**On this account the toolbar download icon is a silent no-op.** Across roughly
+six attempts in one session — ref-based clicks, DOM text-node clicks, and
+coordinate clicks, including the resolution flyout (270p/720p/1080p/4K) —
+**Chrome's own downloads history recorded zero entries.** No error, no toast, no
+feedback of any kind.
+
+This is **not** the documented "export hangs, reload and retry" trap. That one
+at least shows `Exporting your scene…`. This shows nothing at all, which means
+an operator can spend ten minutes believing a download is in flight when nothing
+was ever started.
+
+**Do not use the download button. Do this instead:**
+
+1. Play the clip. Flow's own player fetches a signed CDN URL
+   (`flow-content.google/video/<id>?...`).
+2. `read_network_requests` to capture that URL.
+3. `curl` it.
+4. `ffprobe` the result to confirm it is the clip you wanted.
+
+Verified byte-identical to what the player streams. Three clips pulled this way
+on 2026-09-18 with no failures, against a download button that never produced a
+single file.
+
+## Chip attach is inconsistent, not fixed (correction to the 2026-09-08 note)
+
+The 2026-09-08 entry says single-clicking an asset row opens a preview pane with
+its own `เพิ่มไปยังพรอมต์` button, three first-try successes. **Both behaviours
+occur, in the same session, on the same account:** the first attach of a session
+on a fresh tab attached the chip immediately with no preview pane and no second
+click; every attach after that opened the preview pane and needed the documented
+second click.
+
+So: **click the row, then look at what actually happened** rather than assuming
+either path. Count the chips afterwards — the picker hides what is already
+attached, so a successful attach is an item that has disappeared from the list.
+Neither behaviour is a failure; assuming one of them is what cost time.
+
+## Chrome tab-group destruction is routine when sessions share a browser
+
+The tab group was destroyed three times in one session on 2026-09-18, with other
+browser_operator and developer sessions live in the same Chrome. Each recovery
+followed the existing protocol — fresh tab, re-navigate, re-verify composer state
+from scratch — and none of them cost a generation. **Treat it as weather, not as
+an incident**, but never assume composer state survived one.
