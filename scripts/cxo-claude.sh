@@ -475,6 +475,20 @@ print('1' if remote_control_args('$HOST_KEY') else '0')
   REMOTE_CONTROL_ARGS=(--remote-control)
 fi
 
+# Pull the auto-memory repo BEFORE claude starts (task-8d37c0f1) — same
+# reasoning as cto-claude.sh's identical block: the harness loads MEMORY.md
+# into context at process start, before any skill can run, so this is the
+# only place a fresh pull lands in time. Foreground (not backgrounded like
+# reconcile/register_cxo above); memory_sync.py bounds every git call
+# internally (GIT_TIMEOUT_SECONDS) and pull() never returns non-zero, so
+# `|| true` here is a second belt, not the only one. cxo-claude.sh has no
+# CTO_CLAUDE_TEST_MODE early-exit of its own (only cto-claude.sh does), so
+# this guard is the actual skip for that env var, not just a mirror of one.
+if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ]; then
+  (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
+    python3 -m tools.memory_sync pull) || true
+fi
+
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
   -n "$MACHINE_LABEL $TAB_TITLE" \

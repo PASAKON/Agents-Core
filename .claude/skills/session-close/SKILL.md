@@ -106,6 +106,19 @@ The loop only closes cleanly if what's unfinished is visible at the next open.
       surfaces items that have a real `due_at` — an undated "remember later" is
       invisible to the loop. If it has a date, it MUST have `due_at`.
 
+### 4e. Push the auto-memory repo (task-8d37c0f1)
+`MEMORY.md` gains nothing this session wrote until it leaves this machine —
+push is the exit gate for memory the same way it already is for any other
+DEV's work ("push คือด่านออกของ spoke").
+```bash
+python3 -m tools.memory_sync push
+```
+- **Exit 0** (incl. "nothing changed") → continue normally.
+- **Non-zero** → this is **not** a 🏁. Record it as `force_saved` with the
+  reason named, same as any other unmet gate — don't silently drop to
+  `session-kill.sh --status closed` anyway. Name the exact `memory_sync`
+  error in the report's Verdict line.
+
 ### 5. Flip BOTH tab layers + final report
 Only after gates 1–4 pass:
 ```bash

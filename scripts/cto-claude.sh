@@ -429,6 +429,20 @@ print('1' if remote_control_args('$HOST_KEY') else '0')
   REMOTE_CONTROL_ARGS=(--remote-control)
 fi
 
+# Pull the auto-memory repo BEFORE claude starts (task-8d37c0f1): the harness
+# loads MEMORY.md into context at process start, before any skill (incl.
+# session-open's belt-and-braces pull) can run — so this is the only place
+# that actually lands a fresh pull in time. Foreground, not backgrounded like
+# reconcile/register_cxo above, but memory_sync.py itself bounds every git
+# call (GIT_TIMEOUT_SECONDS) and pull() never returns non-zero, so `|| true`
+# here is a second belt on top of that, not the only one. Skipped under
+# CTO_CLAUDE_TEST_MODE the same way reconcile/register_cxo are (this whole
+# branch is unreachable there anyway — see the early exit above).
+if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ]; then
+  (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
+    python3 -m tools.memory_sync pull) || true
+fi
+
 # `exec` would replace the shell and skip the EXIT trap, leaving a
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
