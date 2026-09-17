@@ -30,7 +30,8 @@ MODELPLAY = DATA / "modelplay"
 STALLS = Path.home() / "cookierun-bot" / "label_review" / "stalls"
 
 ROUND_QUIET_S = 12 * 60      # a round runs ~5 min; 12 min of silence is stuck
-CHECK_WINDOW_S = 70 * 60     # one hourly check plus slack, so none slips between
+CHECK_WINDOW_S = 70 * 60     # fallback only, for the first run / lost state
+LAST_CHECK = MODELPLAY / "health_last_check"
 
 
 def pipe_status():
@@ -56,11 +57,20 @@ def lease_now():
 
 
 def newest_session():
-    """(name, runs, last_write, started) for the session the bot is writing to.
+    """(name, runs, last_progress, started) for the session the bot is writing to.
 
     `started` comes from the session name -- session-<epoch> -- rather than
     ctime, which Windows preserves across a copy and would quietly mis-date a
     restored directory.
+
+    `last_progress` is the newest ROUND, not the session directory's mtime.
+    Those are not the same thing, and the difference hid a 50-minute outage on
+    2026-09-17: a Windows passkey dialog covered the game, the bot crashed, the
+    supervisor opened a fresh session directory -- and that write refreshed the
+    very timestamp this check reads to decide whether anything is happening. A
+    farm that had produced nothing since 11:40 measured twelve minutes old and
+    the verdict came back OK. A round is the work; nothing else counts as
+    progress, least of all a restart.
     """
     try:
         dirs = [p for p in MODELPLAY.glob("session-*") if p.is_dir()]
@@ -69,39 +79,56 @@ def newest_session():
     if not dirs:
         return None, 0, None, None
     d = max(dirs, key=lambda p: p.stat().st_mtime)
-    runs = len([x for x in d.iterdir() if x.is_dir()])
+    run_dirs = [x for x in d.iterdir() if x.is_dir()]
     try:
         started = float(d.name.split("-", 1)[1])
     except (IndexError, ValueError):
         started = d.stat().st_ctime
-    return d.name, runs, d.stat().st_mtime, started
+    # No rounds yet is not "no information": a session that has been open for
+    # half an hour without finishing one is exactly the case worth catching.
+    last_progress = max([x.stat().st_mtime for x in run_dirs], default=started)
+    return d.name, len(run_dirs), last_progress, started
 
 
-def recent_stalls(session_start: float | None):
-    """Stalls that are NEW since the last check, and in the current run.
+def recent_stalls():
+    """Stalls that have appeared since the previous run of this check.
 
-    Two ways to get this wrong, both met in practice on 2026-09-15/16:
+    Third attempt, and the first one that is actually about "new".
 
-    A fixed wall-clock window alone keeps reporting STALLING for hours after the
+    A fixed wall-clock window keeps reporting STALLING for hours after the
     screen has been named and the bot restarted with the fix -- it cannot tell
     "happening now" from "happened and was dealt with", so it cries wolf at its
-    own repair.
+    own repair (2026-09-15).
 
-    Run-scoping alone has the same failure with a longer fuse: this run has been
-    going four hours, so one stall at 06:30 would be re-reported on every hourly
-    check until the bot happens to restart. That is worse, because the fix for a
-    stall is often NOT a restart.
+    Scoping to the running session fixes that and breaks the opposite way: a
+    restart clears the slate, so the stalls that happened in the minute BEFORE
+    it -- the ones that caused the restart -- are the ones it throws away. On
+    2026-09-17 two stalls were saved at 12:04 and 12:12, the bot crashed and
+    reopened a session at 12:13, and this reported "0 new" over the top of an
+    hour-long outage.
 
-    So: newer than the running session (a restart clears the slate) AND newer
-    than one check interval, with slack so nothing slips between checks. Each
-    stall is then reported exactly once -- on the check that discovers it.
+    Both of those are proxies for the only question worth asking: has anything
+    happened that I have not already seen? So ask it directly -- remember when
+    this last ran. Each stall is then reported exactly once, on the check that
+    discovers it, whatever the bot did in between.
+
+    The cost of remembering is that a second run in the same minute reports 0:
+    this check consumes what it reports. That is the contract, and it is why
+    only one caller should be running it on a schedule.
     """
     if not STALLS.is_dir():
         return 0, 0
+    try:
+        since = float(LAST_CHECK.read_text().strip())
+    except (OSError, ValueError):
+        since = time.time() - CHECK_WINDOW_S     # first run, or state lost
     files = list(STALLS.glob("*.png"))
-    since_last_check = time.time() - CHECK_WINDOW_S
-    cutoff = max(session_start, since_last_check) if session_start else since_last_check
-    return len(files), len([f for f in files if f.stat().st_mtime > cutoff])
+    new = len([f for f in files if f.stat().st_mtime > since])
+    try:
+        LAST_CHECK.write_text(str(time.time()))
+    except OSError:
+        pass                                      # degrade to the window, never crash
+    return len(files), new
 
 
 ADB = r"C:\Program Files\BlueStacks_nxt\HD-Adb.exe"
@@ -160,11 +187,11 @@ def free_gb():
 def main() -> int:
     s = pipe_status()
     lease = lease_now()
-    sess, runs, mtime, started = newest_session()
-    stalls_total, stalls_recent = recent_stalls(started)
+    sess, runs, last_progress, started = newest_session()
+    stalls_total, stalls_recent = recent_stalls()
     gb = free_gb()
     fg = foreground_app()
-    age_min = int((time.time() - mtime) / 60) if mtime else None
+    age_min = int((time.time() - last_progress) / 60) if last_progress else None
 
     lines = []
     verdict = "OK"
@@ -180,11 +207,20 @@ def main() -> int:
     elif not s.get("bot_alive"):
         verdict, reason = "DOWN", "nobody holds the screen and the bot is not running"
     elif s.get("job") == "preflight":
-        verdict, reason = "OK", "preflight dry round in progress"
+        # A preflight in progress is normal. A preflight still in progress hours
+        # after the last finished round is a loop, and calling that OK is how
+        # this check reported green through a three-hour outage on 2026-09-17
+        # while played_24h sat frozen at 0.167. The gate is allowed to take a
+        # while; it is not allowed to become the steady state.
+        if age_min is not None and age_min > 45:
+            verdict, reason = ("STUCK", f"preflight has been cycling for {age_min} min "
+                                        f"without a finished round - it is looping, not starting")
+        else:
+            verdict, reason = "OK", "preflight dry round in progress"
     elif fg and fg != GAME_PKG:
         verdict, reason = "STUCK", f"a foreign app owns the emulator screen: {fg}"
-    elif age_min is not None and age_min > ROUND_QUIET_S / 60:
-        verdict, reason = "STUCK", f"bot is alive but has written nothing for {age_min} min"
+    elif age_min is not None and age_min >= ROUND_QUIET_S / 60:
+        verdict, reason = "STUCK", f"bot is alive but has finished no round for {age_min} min"
     elif stalls_recent:
         verdict, reason = "STALLING", f"{stalls_recent} screen(s) the navigator could not name since the last check"
 
@@ -196,7 +232,7 @@ def main() -> int:
                      f"guard={s.get('night_guard')} esc_hold={s.get('esc_hold')} "
                      f"played_24h={s.get('played_fraction_24h')}")
     lines.append(f"lease  : {'held by ' + str(lease.get('who')) if lease else 'free'}")
-    lines.append(f"rounds : {sess} runs={runs} last_write={age_min} min ago")
+    lines.append(f"rounds : {sess} runs={runs} last_round={age_min} min ago")
     lines.append(f"stalls : {stalls_total} total, {stalls_recent} new since the last check")
     lines.append(f"screen : {fg or 'unknown'}" + ('' if fg in (None, GAME_PKG) else '  <-- NOT the game'))
     lines.append(f"disk   : {gb} GB free on C:")
