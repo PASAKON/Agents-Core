@@ -56,54 +56,91 @@ shots 76–77, byte-verified against v1. Nothing in this rework touches it.
 
 ---
 
-## 3. The witness — the thing this story has that the format usually does not
+## 3. The reversal — carried by dialogue, using the cast we already have
 
-`ย่าประนอม` is bedridden upstairs. She hears everything through the floorboards.
-She cannot speak and cannot tell anyone. That was already in the script's
-PREMISE ENGINE as the source of dramatic irony.
+**Correction to the first draft of this treatment.** It staged the reversal as an
+image — a bedframe of tally marks that "carries the whole reversal with no line
+of exposition" — and invented a nephew to deliver the number. Both were wrong.
+The first breaks this production's own governing rule (the spoken lines must
+carry the story; the transcript alone must read like the film). The second adds
+a character the story does not need. Neither survives.
 
-In the ฟ้ามีตา shape she becomes the reversal, and the mechanism is this:
+The reversal is **ต้น**, and it is the payoff of who he already is.
 
-> **She has been counting. One scratch on the bedframe for every Thursday เชิด
-> came. Four years. Two hundred and eight marks.**
+ต้น is 24, just graduated, cannot find work, and spends the episode being the
+one person in the house with nothing to contribute. He is also the only person in
+the house who has a bank app.
 
-She cannot say it. She does not have to. The marks are a ledger kept by the one
-person in the house who was never allowed to hold the money, and they are the
-only record that exists on either side.
+> **เชิด took cash every Thursday for four years, and insisted on cash, so that
+> nothing would be written down anywhere. But สมชาย had to get that cash from
+> somewhere — and the bank wrote down every single withdrawal.**
 
-Why this beats a talking witness:
-- It needs no dialogue from her at all, which is what the character already is.
-- It is **visual** — one insert of a bedframe covered in scratches carries the
-  whole reversal with no line of exposition.
-- It pays off the title twice over: หนี้ไม่มีบัญชี แต่มีคนนับ.
-- It is the literal meaning of ฟ้ามีตา — the one who sees is the one who cannot
-  speak.
+เชิด controlled his own ledger. He never thought about the other end of it.
 
-The marks alone are not proof of the *amount*, only of the *count*. So the
-second half of the reversal comes from **เชิด's own side**: the teenage nephew
-who writes his receipts brings the real figure. That mirrors ศาลเตี้ย, where the
-wrongdoer's own sister is the one who testifies.
+ต้น scrolls back four years and reads the withdrawals out loud. Same day, same
+amount, 208 times. The debt closed fourteen months ago. **The reversal is a young
+man reading numbers off a phone to his father**, which is dialogue, and it is
+also the moment the useless son becomes the one who saves the house.
 
----
+### ย่าประนอม corroborates — in the few words she has
 
-## 4. Karma — poetic, not legal
+She is bedridden upstairs and hears everything through the floor. The script
+already establishes she can push out a word or two and no more (shot 83,
+`"...เงียบ..."`). That is exactly enough.
+
+The bank only goes back to when the account was opened. The first months of the
+debt are before it. **Those are the ones ย่าประนอม counted** — a scratch on the
+bedframe for every Thursday, from the very beginning.
+
+So the marks stay, and they matter, but they are **corroboration for the part
+the bank cannot reach**, not the reversal itself. They are introduced by her
+broken words, not by a silent insert:
+
+```
+ย่า:  ...พฤ...หัส...
+ต้น:  ย่าพูดอะไรนะ
+ย่า:  ...ย่า...นับ...ไว้...
+```
+
+Three fragments from a woman who has said nothing all episode. Then the camera
+finds what she is looking at.
+
+### Why the modern setting is doing the work
+
+This is where the episode stops being a 2007 ฟ้ามีตา and becomes 2026:
+
+- The shop takes **PromptPay QR** from customers. It is on the counter in act 1.
+- เชิด will not touch it. Cash only, always, and he has a friendly reason —
+  "ผมไม่เล่นกับธนาคาร".
+- That one refusal, visible in the first five minutes, is the whole power gap:
+  no contract, no receipt, no trace.
+- And it is exactly what destroys him, because the money still had to come out
+  of a bank on the other side.
+
+A loan shark who avoided paper in 2007 was safe. In 2026 he is not, and he has
+not noticed. **The generation gap is the weapon** — the father cannot prove
+anything and does not think to try; the son does it in ninety seconds on a phone.
+
+## 4. Karma — poetic, not legal, and spoken
 
 **No police. No court.** ฟ้ามีตา almost never ends that way, and it would be
 false here: there is no contract to sue on, which is the whole point.
 
-เชิด's punishment is to become what he made of สมชาย:
+เชิด's punishment is to be asked his own question by the man above him:
 
-- The man above him collects from him in an alley, at night, with no paper.
-- His nephew — the only person who wrote anything down for him, the only person
-  loyal to him — is gone.
-- He counts money into another man's hand and has nothing to show that he ever
-  paid it.
+```
+เจ้าหนี้:  ครบไหม
+เชิด:     ขาดอยู่นิดหนึ่ง อาทิตย์หน้าผมเอามาให้
+เจ้าหนี้:  มีจดไว้ไหม ว่าจ่ายมาเท่าไหร่แล้ว
+เชิด:     ...ไม่มี
+```
+
+Four lines. The exact question he refused สมชาย, put to him, in an alley, at
+night, with nothing to show.
 
 The mirror that carries the moral: **two men are in the same trap.** One kept
 silent to protect the person below him. The other passed the weight down. The
-episode never says this; it shows the two alleys and lets them rhyme.
-
----
+episode never states this; it shows the two alleys and lets them rhyme.
 
 ## 5. Closing line
 
@@ -128,6 +165,55 @@ it. It is the cheapest possible brand anchor and it does the host's whole job.
 It lives in `_Shared Element/`, not in this story's folder.
 
 ---
+
+## 6b. TRANSCRIPT TEST — the new acts, spoken lines only
+
+Per the production's governing rule, the new material has to read as a story
+with everything but the dialogue stripped away. Acts 4 through 6, in order:
+
+```
+วันพฤหัสแล้วนะพี่
+ขอดูสมุดหน่อยได้ไหม
+สมุดอะไร
+ที่เชิดจดว่าผมจ่ายไปเท่าไหร่แล้ว
+ผมจำได้หมดในหัว พี่ไม่เชื่อผมเหรอ
+สี่ปีแล้วเชิด
+ก็ดอกมันเดินทุกวันไง
+งวดนี้ผมยังไม่จ่าย
+พี่พูดจริงหรือเปล่า
+จริง
+
+ยาย่าหมดตั้งแต่เมื่อวานแล้วพ่อ
+เดี๋ยวพ่อหาให้
+ร้านไม่มีคนมาสามวันแล้วนะ
+พ่อรู้
+
+พ่อถอนเงินทุกวันพฤหัส ตั้งแต่ผมปีหนึ่ง
+ปิดเถอะลูก
+สองพันทุกอาทิตย์ ไม่เคยขาดสักครั้ง
+ต้น
+ผมนับแล้ว มันเกินมานานแล้วพ่อ
+เกินอะไร
+หนี้พ่อหมดตั้งแต่กรกฎาปีที่แล้ว
+...
+พ่อจ่ายเกินไปสิบสี่เดือน
+
+...พฤ...หัส...
+ย่าพูดอะไรนะ
+...ย่า...นับ...ไว้...
+
+ครบไหม
+ขาดอยู่นิดหนึ่ง อาทิตย์หน้าผมเอามาให้
+มีจดไว้ไหม ว่าจ่ายมาเท่าไหร่แล้ว
+...ไม่มี
+```
+
+Read cold, with no images and no stage directions: a man stops paying and asks
+for a book that does not exist; the house is punished for it; his son finds four
+years of Thursdays in a bank app and works out the debt ended fourteen months
+ago; the grandmother who has not spoken all episode says she counted the rest;
+and the collector is asked, by his own creditor, the question he would not
+answer. **It reads like the film.** That is the bar.
 
 ## 7. Beat map — 138 shots, nine ad marks
 
@@ -159,12 +245,11 @@ order, so the bulk of shots 1–90 should carry over with dialogue intact. Acts 
 Known to be safe either way:
 - Shots 76–77, the locked line — untouched, same position, same minute.
 - Every APPEARANCE LOCK and VOICE LOCK in §2 — no character changes look or
-  voice. เชิด gains a nephew, who is a new character needing a full entry.
+  voice. **No new speaking character is added.** The creditor above เชิด
+  appears once, in the last act, and needs an entry.
 - The world, the shop, the alley, the tone reference — unchanged.
 
 Needs writing:
-- `@cherd_nephew` — ~17, writes เชิด's receipts. Full character entry, appearance
-  lock, voice lock, wardrobe.
 - The narrator voice — voice lock only, no image, lives in `_Shared Element/`.
 - ย่าประนอม's bedframe as a prop asset: the marks must be consistent across
   every insert, so it is a **prop plate**, not something a prompt re-invents.
