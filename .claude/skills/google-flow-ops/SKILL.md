@@ -63,10 +63,11 @@ clips = 111 min raw**. Finished film is set by the keep rate, not the credits:
 ฿1,167/EP); 1-in-2 = ~55 min. The keep rate is an estimate until someone logs
 it per shoot — the 12-credit figure is measured, the ratio is not.
 
-Ultra also lists "Google Flow with highest filmmaking tool limits". What that
-changes (1080p? reference-slot cap? model list?) is being measured by a
-READ-ONLY audit brief (docs/ops/google-flow-ultra-audit.md when it lands); the
-"no 1080p" entry below is from the Pro-era account and stands until then.
+Ultra also lists "Google Flow with highest filmmaking tool limits". Measured
+2026-09-18 (task-68653632, docs/ops/google-flow-ultra-audit.md): it changed
+**nothing visible** — same 4 models, no 1080p, reference-chip cap 10, Omni
+10 s / Veo 8 s ceilings unchanged. Balance read 9,413 that day after another
+session's 48 shots (48 x 12 = 576), which is the pacing arithmetic in practice.
 
 Beyond Flow, Ultra bundles Colab premium GPU (1,000–2,000 CU), Jules and
 Antigravity at their highest limits, YouTube Premium Individual ("limited
@@ -83,8 +84,8 @@ notes on those live in docs/ops/ (antigravity-cli-test.md, the benefits audit).
 | Generate a SCENE / LOCATION plate | **0** — confirmed 2026-09-07, task-46e7c41b, cost-probe first |
 | Attach ingredient chips | 0 |
 | Navigate any tab (Scenes, Tools, Agent) | 0 |
-| **Veo 3.1 Fast — 8s, 720p, 9:16, x1** | **20** — measured twice, matched the published table exactly |
-| Veo 3.1 Lite | 10 (published, not yet measured here) |
+| **Veo 3.1 Fast — 8s, 720p, 9:16, x1** | **10** — live panel read on the Ultra account 2026-09-18 (task-68653632). Was **20** on 2026-09-07, measured twice. One read so far: confirm before re-planning budgets |
+| Veo 3.1 Lite | **5** — live panel read 2026-09-18 (task-68653632); the published table said 10 |
 | Veo 3.1 Quality | 100 (published; visible in the panel, never selected) |
 | Download / re-export a clip | 0 |
 
@@ -227,6 +228,9 @@ So:
    The earlier recon (task-796a93f6) attached chips, including four at once,
    without difficulty — so this is flaky, not impossible. Treat a failed
    attach as normal and retry rather than as a blocker.
+8b. **Reference-chip cap is 10** (measured 2026-09-18 without spending: attach
+   one character at a time from the picker; the 11th attach is silently
+   absorbed — no error, no chip). Plan shots to ≤10 references.
 9. **Count the chips before you fire.** The picker hides characters that are
    already attached, so an attached character is one that has *disappeared*
    from the list. A missing chip means the shot generates with no reference
@@ -267,13 +271,23 @@ An operator that reports "it took a while" has failed the reporting bar.
 | **Export hangs** | "Exporting your scene…" can sit forever. | Full page reload, then click download again. Costs nothing but time. |
 | **resize_window is late** | Applies only after a navigation; early screenshots come out at ~1456x840 and cost far more visual tokens. | Resize, navigate, then screenshot. |
 | **The viewport reverts mid-session** | A correctly-resized tab silently went back to 2280x722 with no navigation in between. Screenshot pixels and `window.innerWidth` then disagreed by a ~0.688 scale factor (1568px shot for a 2280px CSS viewport). | Never click from raw `getBoundingClientRect()` coordinates. Click by element handle, or convert by the measured ratio. |
+| **Settings panel and ingredient picker are overlays that text reads miss** | `get_page_text` / `body.innerText` frequently return the page *underneath* the open panel, not the dropdown values. task-68653632 burned ~22 screenshots (budget 5) falling back to pixels to read four prices. | Read dropdown state by element handle (`find`/`read_page` on the overlay node) or take ONE screenshot per open panel and read everything from it; budget the screenshots up front. |
+| **The model dropdown closes after every pick** | Reading N model prices costs ~3N clicks (open, pick, read). | Read all prices from one open dropdown if it shows them; otherwise accept 3 clicks per model and budget for it. |
 | **A focused contenteditable still drops the first keystroke** | A `.ProseMirror` composer confirmed as `document.activeElement` lost the next keystroke about half the time — text stayed as the placeholder, no error, no state change. | `el.focus()` via `javascript_tool` and the first keystroke via `computer` **in the same `browser_batch` call**, with no intervening tool call, not even a read. This single behaviour cost most of one task's budget. |
 
 ## Google Flow Music — a different product, do not look for it inside Flow
 
-**URL: `flowmusic.google`** (from blog.google's Flow updates post). The first
-page of search results is clone sites — `flowmusic.app`, `flow-music.app` and
-similar are NOT Google; never send the CEO one of those.
+**URL: `flowmusic.app`** — and that IS Google's domain: `flowmusic.google`
+(the URL in blog.google's post) 301-redirects to `flowmusic.app` →
+`www.flowmusic.app`, and Flow's own top-nav "Flow Music" button links to
+`www.flowmusic.app/?utm_source=flow`, page title "Google Flow Music"
+(task-68653632, 2026-09-18). An earlier version of this section called
+`flowmusic.app` a clone — that was an inference from a search-result page,
+never verified, and it was wrong. Verify a product domain by following the
+official link's redirect (`curl -sIL`), not by comparing domain names.
+It is a **separate sign-in** from Flow; the audit stopped at the login wall
+(credentials are a hard stop for a worker), so balance/price/download are
+still unmeasured.
 
 From the official pages only (blog.google, deepmind.google/models/lyria),
 read 2026-09-18 — nothing below is measured on our account yet:
@@ -304,11 +318,12 @@ player, model dropdown and filter panel:
   API-only, and the CEO found the control himself in about a minute. Do not
   repeat the mistake: an operator not mentioning a feature is not evidence the
   feature is absent.
-- **No 1080p and no upscale control** on the account tested. The asset
-  resolution facet offers only 720p and 360p, and both exports came out
+- **No 1080p and no upscale control** — re-verified on the **Ultra** account
+  2026-09-18 (task-68653632): composer resolution facet, asset filter facet,
+  clip toolbar and right-click menu all offer only 720p/360p; exports are
   720x1280. Google's own credit table lists "1080p upscale = 0 credits" — it
-  could not be reproduced. Treat 1080p in Flow as unavailable until someone
-  finds the control.
+  cannot be reproduced on Pro or Ultra. 1080p+ means Topaz (or equivalent)
+  outside Flow.
 - **No shot-list style storyboard.** There is still no way to type a shot list
   or order empty slots. But the Scenes ("ฉาก") tab is **not** the passive
   gallery the first recon called it — it is where the frames that feed the
@@ -723,7 +738,7 @@ actually listened.
 | เงินที่พ่อตั้งใจหา | @lung_somchai (M, 58) | Algenib | 0 | pending ear — heard in shot58-omni |
 | เงินที่พ่อตั้งใจหา | @nong_daeng (M, 24) | Iapetus | **+1** | **KEPT — CEO listened 2026-09-18, "เสียงถูกแล้ว"** |
 | เงินที่พ่อตั้งใจหา | @grandma_pranom (F, 79) | Gacrux | 0 | pending ear |
-| เงินที่พ่อตั้งใจหา | @lender_cherd (M, 45) | Umbriel | 0 | pending ear |
+| เงินที่พ่อตั้งใจหา | @lender_cherd (M, 45) | **algieba** — live account 2026-09-18 (task-68653632 + banchi-assets REPORT); the ledger said Umbriel and was wrong. Re-bind to Umbriel or accept algieba: CEO ear-check before any of his dialogue is shot | 0 | ledger≠account, pending ear |
 
 Shortlist held in reserve for an older-sounding man, if Algenib is rejected:
 Enceladus (breathy, lower), Charon (informative, lower). Sadachbia is the only
