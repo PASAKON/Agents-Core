@@ -17,7 +17,8 @@ Omni 1.1 Flash · 9:16 · 8 วินาทีทุกช็อต · **720p �
 - **สมชาย** `a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist`
 - **ต้น** `a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt and a thin silver chain`
 - **ย่าประนอม** `a frail Thai woman of 79, thin, with silver-white hair cropped short and thinning at the temples, deeply wrinkled papery skin, sunken cheeks and cloudy but alert dark eyes, in a faded floral-print cotton nightgown, propped on two stacked pillows, a thin nasal cannula looped over her ears and a small brass amulet on a string at her neck`
-- **วิทย์** `[FILL FROM ASSET SHEET — task-a55713c5 กำลังสร้าง @cop_wit อยู่ ห้ามเดา]`
+- **วิทย์** `medium athletic build, short neat black hair, clean-shaven, calm steady eyes, wearing a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist`
+  *(อ่านจากรูปจริงที่ worker สร้าง ไม่ได้เดา — รูปยังมีแขนกอดอกและพื้นหลังไล่เฉด ซึ่งไม่ได้สั่ง แต่ไม่ต้องเขียนลง prompt ช็อต เพราะท่าทางเปลี่ยนทุกช็อตอยู่แล้ว)*
 - **ร้าน** `a narrow Bangkok shophouse ground floor turned noodle shop: five worn wooden tables with mismatched plastic stools, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, a narrow wooden staircase at the back, bare bulbs strung overhead, walls stained pale yellow with age`
 
 **STYLE** (ต่อท้ายทุก prompt) `Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.`
@@ -78,15 +79,19 @@ Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light
 Sound: bare feet on wood, the house completely still.
 ```
 
-### SHOT 4 · 0:24–0:32 · Medium · static
+### SHOT 4 · 0:24–0:32 · Medium · static  ★ FINDING 1 — ปลูกขอบเตียงครั้งที่ 1
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@grandma_pranom`→REF_1 · 3) `@upstairs_bedroom`→REF_2
+> รอยขีดอยู่หลังมือพ่อ เบลอ ไม่มีใครมอง **ห้ามโฟกัส ห้ามพูดถึง** — คนดูต้องรู้สึกตอนองก์ 5 ว่า "เห็นมาตลอดแต่ไม่ได้มอง"
 ```
 Use <IMAGE_REF_0> as the character reference for the man's face and clothing.
 Use <IMAGE_REF_1> as the character reference for the old woman's face and hair.
 Use <IMAGE_REF_2> as the location reference for the bedroom and its furniture.
 
 A Thai man of 58 <IMAGE_REF_0> sits at a bedside in a small upstairs bedroom
-<IMAGE_REF_2> and sets small pill bottles out on a tray, careful and practiced. In
+<IMAGE_REF_2> and sets small pill bottles out on a tray, careful and practiced.
+His free hand rests on the bed's wooden side rail; behind his fingers the rail is
+covered in dense little scratches, soft and out of focus, and nobody looks at
+them. In
 the bed a frail Thai woman of 79 <IMAGE_REF_1>, silver-white hair cropped short,
 deeply wrinkled skin, a thin nasal cannula looped over her ears, stirs and wakes
 slowly. Just before dawn, dim lamp light, the curtains still dark.
@@ -558,8 +563,9 @@ Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light
 Sound: faint clatter and voices rising from the shop below.
 ```
 
-### SHOT 32 · 4:08–4:16 · Close-up · static
+### SHOT 32 · 4:08–4:16 · Close-up · static  ★ FINDING 1 — ปลูกขอบเตียงครั้งที่ 2
 **ATTACH** 1) `@grandma_pranom`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@upstairs_bedroom`→REF_2
+> มืออีกข้างวางบนรอยขีด **ยังห้ามอธิบาย** นี่คือครั้งสุดท้ายที่คนดูเห็นมันก่อนองก์ 5
 ```
 Use <IMAGE_REF_0> as the character reference for the old woman's hands and face.
 Use <IMAGE_REF_1> as the character reference for the young man's sleeve and arm.
@@ -568,7 +574,9 @@ Use <IMAGE_REF_2> as the location reference for the bedroom.
 The thin fingers of a frail Thai woman of 79 <IMAGE_REF_0> close around the sleeve
 of a Thai man of 24 <IMAGE_REF_1> as he starts to rise from her bedside in a small
 upstairs bedroom <IMAGE_REF_2>, gripping a beat longer than she needs to, her
-breath catching as if there is more she wants to say. Early afternoon, soft
+breath catching as if there is more she wants to say. Her other hand lies on the
+bed's wooden side rail, her fingertips resting on the dense little scratches cut
+into it. She does not look at them and neither does he. Early afternoon, soft
 filtered light.
 
 Close-up, static camera.
@@ -683,7 +691,7 @@ Sound: the ceiling fan whirring on.
 ## ★ ฉาก G — พี่วิทย์ (ช็อต 39–48) — ของใหม่ ทั้งตอนจบอยู่ที่ฉากนี้
 
 ⚠️ **ทุกช็อตในฉากนี้ใช้ `@cop_wit` ซึ่ง task-a55713c5 กำลังสร้างอยู่**
-บล็อกหน้าตาของวิทย์ยังเป็น `[FILL FROM ASSET SHEET]` — **ห้ามยิงฉากนี้จนกว่าจะเติมจาก
+บล็อกหน้าตาของวิทย์ยังเป็น `medium athletic build, short neat black hair, clean-shaven, calm steady eyes, wearing a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist` — **ห้ามยิงฉากนี้จนกว่าจะเติมจาก
 รูปจริง** ถ้าเดาหน้าเขาตอนนี้ รูปที่เพิ่งสร้างจะไร้ความหมาย เพราะ prompt ชนะรูป
 
 ### SHOT 39 · 5:04–5:12 · Medium · static
@@ -692,10 +700,12 @@ Sound: the ceiling fan whirring on.
 Use <IMAGE_REF_0> as the character reference for the man's face, hair and clothing.
 Use <IMAGE_REF_1> as the location reference for the shop and its tables.
 
-A Thai man of 32 <IMAGE_REF_0>, [FILL FROM ASSET SHEET], steps in off the street
+A Thai man of 32 <IMAGE_REF_0>, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, wearing a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist, steps in off the street
 into a noodle shop <IMAGE_REF_1> and sits down at the same corner table without
 looking for one, the way someone does in a place they have been coming to for
-twenty years. Late afternoon, warm low light through the shutter.
+twenty years. He turns the stool before he sits so that he is facing the open
+street door, and settles with his bag still on his shoulder. Late afternoon, warm
+low light through the shutter.
 
 Medium shot, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -709,7 +719,7 @@ Sound: a plastic stool dragged out, street noise easing as he sits.
 Use <IMAGE_REF_0> as the character reference for the man's face and clothing.
 Use <IMAGE_REF_1> as the location reference for the shop.
 
-A Thai man of 32 <IMAGE_REF_0>, [FILL FROM ASSET SHEET], calls his order toward the
+A Thai man of 32 <IMAGE_REF_0>, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, wearing a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist, calls his order toward the
 counter of a noodle shop <IMAGE_REF_1> without picking up a menu. He speaks Thai,
 easy and familiar, and says: "ลุง เส้นเล็กน้ำใสครับ". Late afternoon, warm low light.
 
@@ -742,7 +752,7 @@ Sound: the wok hissing, a ladle against metal.
 Use <IMAGE_REF_0> as the character reference for the man's face.
 Use <IMAGE_REF_1> as the location reference for the shop behind him.
 
-The face of a Thai man of 32 <IMAGE_REF_0>, [FILL FROM ASSET SHEET], breaks into an
+The face of a Thai man of 32 <IMAGE_REF_0>, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, wearing a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist, breaks into an
 easy smile at a corner table in a noodle shop <IMAGE_REF_1>. He speaks Thai and
 says: "ลุงจำได้ทุกทีเลย". Late afternoon, warm low light.
 
@@ -776,7 +786,7 @@ Use <IMAGE_REF_0> as the character reference for the younger man.
 Use <IMAGE_REF_1> as the character reference for the older man in the apron.
 Use <IMAGE_REF_2> as the location reference for the counter.
 
-A Thai man of 32 <IMAGE_REF_0>, [FILL FROM ASSET SHEET], stands at the counter of a
+A Thai man of 32 <IMAGE_REF_0>, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, wearing a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist, stands at the counter of a
 noodle shop <IMAGE_REF_2> with a worn wallet half open. He speaks Thai and says:
 "เท่าไหร่ครับลุง". A Thai man of 58 <IMAGE_REF_1> in a dark-blue apron waves it off
 without looking at the wallet and answers in Thai: "เอาไว้ก่อน วันหลังค่อยจ่าย".
@@ -795,7 +805,7 @@ Use <IMAGE_REF_0> as the character reference for the younger man.
 Use <IMAGE_REF_1> as the character reference for the older man.
 Use <IMAGE_REF_2> as the location reference for the counter.
 
-A Thai man of 32 <IMAGE_REF_0>, [FILL FROM ASSET SHEET], and a Thai man of 58
+A Thai man of 32 <IMAGE_REF_0>, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, wearing a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist, and a Thai man of 58
 <IMAGE_REF_1> in a dark-blue apron stand on opposite sides of the counter of a
 noodle shop <IMAGE_REF_2>. The younger one speaks Thai, half laughing, and says:
 "ลุงพูดแบบนี้ทุกทีนะ". The older one answers in Thai, unbothered: "ก็จริงทุกที".
@@ -879,6 +889,6 @@ Sound: a cloth on wood, the street outside, no reply expected.
 | Location | `@side_wall` `@staircase` `@upstairs_bedroom` `@noodle_shop` `@street_front` |
 | Prop | `@money_fold` (ช็อต 46–47) |
 | ยิงได้เลย | ช็อต 1–38 — asset ครบทุกตัวแล้ว |
-| **ยังยิงไม่ได้** | ช็อต 39–48 — รอ `@cop_wit` จาก task-a55713c5 แล้วเติม `[FILL FROM ASSET SHEET]` |
+| **ยังยิงไม่ได้** | ช็อต 39–48 — รอ `@cop_wit` จาก task-a55713c5 แล้วเติม `medium athletic build, short neat black hair, clean-shaven, calm steady eyes, wearing a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist` |
 
 **เครดิต** 48 ช็อต × 12 = 576 · ทดสอบที่ 360p = 6/ช็อต
