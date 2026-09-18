@@ -158,6 +158,17 @@ C-level, in the same class as casting.
 
 Silence is a beat between lines, never a stretch of the film.
 
+**These numbers are the CEO's and they bend to the story** — *"กฎนี้เปลี่ยนได้
+ทุกเมื่อ ขึ้นอยู่กับเนื้อเรื่อง ตามประสงค์ของฉัน"*. A sheet that needs different
+thresholds carries them on one line near its top, and that line must name the
+CEO and the date, or the linter ignores it:
+
+```
+<!-- lint: min_spoken=0.70 max_silent_run=2 (CEO 2026-10-02: ฉากไล่ล่าเงียบ) -->
+```
+
+Nobody loosens the rule for convenience; the CEO loosens it for a scene.
+
 **The test:** strip every image, every caption, every stage direction. Read the
 dialogue cold. If it does not read like the film, the script fails — no matter
 how good the shots are.

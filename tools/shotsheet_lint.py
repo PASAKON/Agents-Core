@@ -35,6 +35,26 @@ SPOKEN = "บทพูด"
 MIN_SPOKEN_RATIO = 0.80   # CEO 2026-09-18: at least 80-90% of shots carry a line
 MAX_SILENT_RUN = 1        # CEO 2026-09-18: one silent shot is allowed; the next MUST speak
 
+# The thresholds belong to the CEO and bend to the story ("กฎนี้เปลี่ยนได้ทุกเมื่อ
+# ขึ้นอยู่กับเนื้อเรื่อง ตามประสงค์ของฉัน", 2026-09-18). A sheet may carry its own
+# values on one line near the top, and MUST say who ruled it and when, so nobody
+# quietly loosens the rule for their own convenience:
+#
+#   <!-- lint: min_spoken=0.70 max_silent_run=2 (CEO 2026-10-02: ฉากไล่ล่าเงียบ) -->
+#
+# A line without "(CEO" in it is ignored and the defaults apply.
+OVERRIDE = re.compile(r"<!--\s*lint:([^>]*?)\(CEO[^>]*-->")
+
+
+def thresholds(text: str):
+    m = OVERRIDE.search(text)
+    if not m:
+        return MIN_SPOKEN_RATIO, MAX_SILENT_RUN, None
+    kv = dict(re.findall(r"(\w+)=([\d.]+)", m.group(1)))
+    ratio = float(kv.get("min_spoken", MIN_SPOKEN_RATIO))
+    run = int(kv.get("max_silent_run", MAX_SILENT_RUN))
+    return ratio, run, m.group(0)
+
 
 def audit(path: Path):
     text = path.read_text(encoding="utf-8")
@@ -51,8 +71,12 @@ def audit(path: Path):
         if SPOKEN not in head:
             silent.append(int(num))
 
+    min_ratio, max_run, ruling = thresholds(text)
+    if ruling:
+        print(f"CEO override in sheet: {ruling}")
     ratio = 1 - len(silent) / len(total)
-    print(f"{path.name}: {len(total)} shots, {len(silent)} silent, {ratio:.0%} spoken")
+    print(f"{path.name}: {len(total)} shots, {len(silent)} silent, {ratio:.0%} spoken "
+          f"(floor {min_ratio:.0%}, max silent run {max_run})")
 
     # Consecutive silent shots are the defect the CEO named "dead air":
     # one silent shot is allowed, the shot after it must speak.
@@ -66,15 +90,14 @@ def audit(path: Path):
             run = [n]
     if run:
         runs.append(run)
-    dead_air = [r for r in runs if len(r) > MAX_SILENT_RUN]
+    dead_air = [r for r in runs if len(r) > max_run]
 
     fail = False
-    if ratio < MIN_SPOKEN_RATIO:
-        print(f"FAIL — only {ratio:.0%} of shots speak; the floor is {MIN_SPOKEN_RATIO:.0%}.")
+    if ratio < min_ratio:
+        print(f"FAIL — only {ratio:.0%} of shots speak; the floor is {min_ratio:.0%}.")
         fail = True
     if dead_air:
-        print("FAIL — dead air: silent shots back to back. One silent shot is allowed,")
-        print("       the next one MUST carry a line.")
+        print(f"FAIL — dead air: more than {max_run} silent shot(s) back to back.")
         for r in sorted(dead_air, key=len, reverse=True):
             print(f"         shots {r[0]}-{r[-1]}  {len(r)} shots  {len(r) * 8}s of no one speaking")
         fail = True
