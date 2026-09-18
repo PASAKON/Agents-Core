@@ -104,6 +104,16 @@ Every browser brief carries these:
    task-cda4f469 — a `PROMPTS.md` carrying ten generation prompts ended the
    operator's repeated requests for prompt text permanently.
 
+10. **A live secret can never be typed into a worker.** The worker sandbox's
+   Bash classifier refuses any command containing a credential-shaped string
+   (`Auto-Mode Bypass`, then `Credential Leakage`), no matter who authorised
+   it — measured 2026-09-18 on task-13bfcd4d, where two single-use OAuth
+   codes from the CEO expired unused (GH #156). OAuth, 2FA and device-flow
+   steps therefore end at "hand the human a runnable command"; write the
+   brief that way from the start instead of relaying codes mid-task. Also:
+   PKCE-style logins bind the code to the process that printed the URL, so a
+   code pasted into a *different* run fails even without the classifier.
+
 Costly signs in a draft brief: no URL, "check whether…", "make sure everything
 looks right", "explore", "and report anything interesting".
 
