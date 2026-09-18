@@ -1,0 +1,136 @@
+{
+ "threshold": 0.5,
+ "val_shards": [
+  "val_000.npz",
+  "val_001.npz",
+  "val_002.npz",
+  "val_003.npz",
+  "val_004.npz",
+  "val_005.npz",
+  "val_006.npz"
+ ],
+ "in_domain": {
+  "frames": 118214,
+  "jump_onsets": 13640,
+  "slide_onsets": 1146,
+  "A_baseline": {
+   "jump": {
+    "precision": 0.4698,
+    "recall": 0.9183,
+    "f1": 0.6216,
+    "tp": 12525,
+    "fp": 14135,
+    "fn": 1115,
+    "confidence": {
+     "mean": 0.2769,
+     "p90": 0.879,
+     "over_0.7_pct": 17.45,
+     "over_0.9_pct": 9.43
+    },
+    "timing": {
+     "matched": 13390,
+     "on_time_pct": 93.54,
+     "within_1_pct": 98.33,
+     "early_pct": 4.41,
+     "late_pct": 2.05,
+     "median_offset": 0,
+     "p10": 0,
+     "p90": 0
+    }
+   },
+   "slide": {
+    "precision": 0.3096,
+    "recall": 0.7321,
+    "f1": 0.4352,
+    "tp": 839,
+    "fp": 1871,
+    "fn": 307,
+    "confidence": {
+     "mean": 0.041,
+     "p90": 0.068,
+     "over_0.7_pct": 1.48,
+     "over_0.9_pct": 0.43
+    },
+    "timing": {
+     "matched": 1061,
+     "on_time_pct": 79.08,
+     "within_1_pct": 94.63,
+     "early_pct": 12.72,
+     "late_pct": 8.2,
+     "median_offset": 0,
+     "p10": -1,
+     "p90": 0
+    }
+   }
+  },
+  "B_full": {
+   "jump": {
+    "precision": 0.5217,
+    "recall": 0.9325,
+    "f1": 0.6691,
+    "tp": 12719,
+    "fp": 11659,
+    "fn": 921,
+    "confidence": {
+     "mean": 0.2033,
+     "p90": 0.9291,
+     "over_0.7_pct": 15.51,
+     "over_0.9_pct": 10.96
+    },
+    "timing": {
+     "matched": 13399,
+     "on_time_pct": 94.92,
+     "within_1_pct": 99.35,
+     "early_pct": 3.01,
+     "late_pct": 2.07,
+     "median_offset": 0,
+     "p10": 0,
+     "p90": 0
+    }
+   },
+   "slide": {
+    "precision": 0.3779,
+    "recall": 0.8063,
+    "f1": 0.5146,
+    "tp": 924,
+    "fp": 1521,
+    "fn": 222,
+    "confidence": {
+     "mean": 0.0228,
+     "p90": 0.0161,
+     "over_0.7_pct": 1.26,
+     "over_0.9_pct": 0.24
+    },
+    "timing": {
+     "matched": 1073,
+     "on_time_pct": 86.11,
+     "within_1_pct": 95.9,
+     "early_pct": 7.64,
+     "late_pct": 6.24,
+     "median_offset": 0,
+     "p10": 0,
+     "p90": 0
+    }
+   }
+  }
+ },
+ "youtube": {
+  "frames": 3277,
+  "A_baseline": {
+   "jump_confidence": {
+    "mean": 0.2417,
+    "p90": 0.6457,
+    "over_0.7_pct": 7.38,
+    "over_0.9_pct": 1.46
+   }
+  },
+  "B_full": {
+   "jump_confidence": {
+    "mean": 0.2523,
+    "p90": 0.7681,
+    "over_0.7_pct": 13.03,
+    "over_0.9_pct": 4.3
+   }
+  }
+ }
+}
