@@ -782,16 +782,7 @@ type and count, not which character"* — and nobody acted on that sentence.
 Count, type and exclusion together still do not tell you *which* asset bound.
 Only the image does.
 
-### What this costs the earlier conclusion
+### Both, every time
 
-The retake that fixed the drift changed **two** things at once — the prompt
-syntax *and* the chip-verification method — so the fix is proven but its cause is
-not attributed. The wrong-asset bug is the likelier culprit. Do not write "prompt
-syntax was the cause" anywhere until a shoot isolates it.
-
-**This is a note about attribution, not a licence to drop either practice.** Do
-both, always. The `<IMAGE_REF_N>` grammar is what Google's own Omni guide
-prescribes, so it is followed because it is the documented method, not because a
-shoot of ours proved it. The thumbnail check is followed because a shoot of ours
-proved it. Both are free. Spending credits to find out whether the documented
-method can be skipped would be a bad trade even if the answer came back yes.
+Write the prompt in Omni grammar **and** verify every chip by its thumbnail.
+Neither replaces the other. Both are free.
