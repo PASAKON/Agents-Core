@@ -22,6 +22,15 @@ Where a number is unmeasured it says so.
 This file is the Flow equivalent of `higgsfield-unlimited-gen`. It exists so the
 second worker does not have to rediscover what the first one paid to learn.
 
+## ⛔ Mute the page before you do anything else
+
+`browser-operator` carries the rule and the paste-once snippet. Short version:
+**a worker has no ears, so audio is never information — it is only noise in the
+room where the CEO is working.** Silence every Flow page as the first action
+after it loads, not at the moment you press play, and re-run the snippet after
+every navigation. Reviewing a clip by ear is a human's job; capture the file and
+say so.
+
 ## Money — the rules that come before everything
 
 - Flow spends the CEO's **monthly Google AI credit pool**. There is no separate

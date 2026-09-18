@@ -430,6 +430,41 @@ so this is not left to memory. It fails open: a broken guard must never be able
 to stall a queue.
 
 
+## ⛔ HARD — silence the page before you touch it. Always. (CEO 2026-09-19)
+
+**You have no ears.** Audio tells you nothing, can never tell you anything, and
+costs you nothing to remove. It is pure output into a room where a person is
+working. The CEO sits beside the Mac these workers run on, and clips playing out
+loud interrupt him — repeatedly, on this project's own shoot.
+
+So this is not "remember to mute before you press play". It is:
+
+> **Mute every page you open, as the first action after it loads, whether or not
+> you intend to play anything.**
+
+Do not rely on remembering it at the moment you press play. Paste this once per
+page — it silences what is already there, silences anything the app adds later,
+and re-silences on every `play` event, so a media element created after you look
+away cannot get through:
+
+```js
+(() => {
+  const mute = el => { el.muted = true; el.volume = 0; };
+  const all = () => document.querySelectorAll('video,audio');
+  all().forEach(mute);
+  document.addEventListener('play', e => mute(e.target), true);
+  new MutationObserver(() => all().forEach(mute))
+    .observe(document.documentElement, { childList: true, subtree: true });
+})()
+```
+
+**Re-run it after every navigation** — a page load wipes it.
+
+If a task genuinely turns on whether something is audible, that is not your call
+to make: capture the file and say so in the report. **A human decides by ear; you
+never do.** Reporting that something "sounded right" is a fabrication — see the
+casting rules in `google-flow-ops`, which say the same thing about voices.
+
 ## Hard stops
 
 Credentials, account creation, real-money payments, accepting terms, granting
