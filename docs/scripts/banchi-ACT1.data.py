@@ -20,8 +20,7 @@ CHAR = {
    "clean-shaven, in a plain grey short-sleeved polo shirt and a thin silver chain",
    "The 24-year-old man in the grey polo shirt"),
  "ya": ("@grandma_pranom",
-   "a frail Thai woman of 79, thin, silver-white hair cropped very short and thinning at the "
-   "temples, deeply wrinkled papery skin, sunken cheeks, cloudy but alert dark eyes, no glasses, "
+   "a frail Thai woman of 79, thin, silver-white hair in a thick short bob, deeply wrinkled papery skin, sunken cheeks, cloudy but alert dark eyes, no glasses, "
    "in a faded floral-print cotton nightgown, lying propped on two stacked pillows with a thin "
    "nasal cannula looped over her ears and a small brass amulet on a string at her neck",
    "The 79-year-old woman in the bed"),
@@ -38,10 +37,11 @@ APRON = ", with a dark canvas apron tied over it"
 LOC = {
  "shop": ("@noodle_shop",
    "a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with "
-   "mismatched plastic stools, a stainless-steel soup cart with a steaming broth pot against the "
-   "left wall, an open roll-up shutter onto a busy street, a narrow wooden staircase at the back, "
-   "bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on "
-   "the counter"),
+   "bright red, blue and green plastic stools, a square structural pillar standing in the middle "
+   "of the room, a narrow wooden staircase rising from the middle of the room beside that pillar, "
+   "a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up "
+   "shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a "
+   "laminated payment sign on the counter"),
  "room": ("@upstairs_bedroom",
    "a small upstairs bedroom in an old Bangkok shophouse — a single low wooden bed with a "
    "scratched wooden side rail against a bare plaster wall marked with cracks and water stains, a "
