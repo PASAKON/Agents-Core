@@ -38,6 +38,42 @@ second worker does not have to rediscover what the first one paid to learn.
 - Never select **Quality** unless the task names it. One Quality click is 100
   credits — five Fast shots.
 
+## Google AI Ultra — what the CEO is actually paying for (2026-09-18)
+
+Read off the CEO's own one.google.com page and Google's plan page
+(support.google.com/googleone/answer/16286513) on 2026-09-18, the day he
+subscribed. Not marketing copy from a blog.
+
+| | Pro | **Ultra** |
+|---|---|---|
+| THB/month | 750 | **3,500** |
+| Flow video credits/month | 1,000 | **10,000** (฿0.35/credit — 2.1x cheaper than Pro) |
+| **Flow Music** credits/month | — | **30,000** (separate pool, separate product — see below) |
+| Storage | 5 TB | 20 TB (30 TB on some variants) |
+
+**Credits do not roll over.** ฿3,500 is charged whether 10,000 or 300 are used.
+On 2026-09-17 the READ-ONLY audit (task-9e2dadfd) read the balance at **0** —
+so the org's real failure mode is forgetting Flow for three weeks, not
+overspending. **Pace: ~2,325 credits/week.** A week under ~1,500 means the
+month will expire credit.
+
+What 10,000 buys at the measured rates: Omni 1.1 Flash 720p 8 s = 12 → **833
+clips = 111 min raw**. Finished film is set by the keep rate, not the credits:
+1-in-3 keep = ~37 min/month (three 12-min episodes at ~3,240 credits each,
+฿1,167/EP); 1-in-2 = ~55 min. The keep rate is an estimate until someone logs
+it per shoot — the 12-credit figure is measured, the ratio is not.
+
+Ultra also lists "Google Flow with highest filmmaking tool limits". What that
+changes (1080p? reference-slot cap? model list?) is being measured by a
+READ-ONLY audit brief (docs/ops/google-flow-ultra-audit.md when it lands); the
+"no 1080p" entry below is from the Pro-era account and stands until then.
+
+Beyond Flow, Ultra bundles Colab premium GPU (1,000–2,000 CU), Jules and
+Antigravity at their highest limits, YouTube Premium Individual ("limited
+availability"), Gemini Deep Think — none of which is Flow's concern, but a
+C-level planning spend should know the same ฿3,500 covers them. Measured
+notes on those live in docs/ops/ (antigravity-cli-test.md, the benefits audit).
+
 ## Measured costs (2026-09-07)
 
 | Action | Credits |
@@ -232,6 +268,30 @@ An operator that reports "it took a while" has failed the reporting bar.
 | **resize_window is late** | Applies only after a navigation; early screenshots come out at ~1456x840 and cost far more visual tokens. | Resize, navigate, then screenshot. |
 | **The viewport reverts mid-session** | A correctly-resized tab silently went back to 2280x722 with no navigation in between. Screenshot pixels and `window.innerWidth` then disagreed by a ~0.688 scale factor (1568px shot for a 2280px CSS viewport). | Never click from raw `getBoundingClientRect()` coordinates. Click by element handle, or convert by the measured ratio. |
 | **A focused contenteditable still drops the first keystroke** | A `.ProseMirror` composer confirmed as `document.activeElement` lost the next keystroke about half the time — text stayed as the placeholder, no error, no state change. | `el.focus()` via `javascript_tool` and the first keystroke via `computer` **in the same `browser_batch` call**, with no intervening tool call, not even a read. This single behaviour cost most of one task's budget. |
+
+## Google Flow Music — a different product, do not look for it inside Flow
+
+**URL: `flowmusic.google`** (from blog.google's Flow updates post). The first
+page of search results is clone sites — `flowmusic.app`, `flow-music.app` and
+similar are NOT Google; never send the CEO one of those.
+
+From the official pages only (blog.google, deepmind.google/models/lyria),
+read 2026-09-18 — nothing below is measured on our account yet:
+- Model: Lyria 3 Pro / Lyria 3.5. Songs with vocals in many languages;
+  lengths of 60 s, half, or full ~3 min; section-level edits (highlight a
+  part, rewrite/translate lyrics, restyle the drop); style transform keeping
+  the melody; iOS app shipped, Android "coming soon".
+- **Every track carries a SynthID watermark.** Commercial-use rights are NOT
+  stated on the official pages — verify before putting a track on a
+  monetised page.
+- **It does not do sound effects or foley.** Neither official page mentions
+  SFX at all. Ambience/foley for a shot comes baked into Omni/Veo output;
+  anything else is a free SFX library, not a model.
+- Ultra grants 30,000 Flow Music credits/month; per-track cost, download
+  format and stem export are unmeasured until the audit opens it.
+
+The org already has a Suno baseline to A/B against: task-f69d6442 (three
+horror cues, on Drive). Listening beats reading reviews.
 
 ## What Flow does NOT have — stop looking for these
 
