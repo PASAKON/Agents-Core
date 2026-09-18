@@ -68,7 +68,7 @@ You are a worker agent. The CTO assigned you a single task. Stay in scope.
     two bugs that reading it could not, and one of them corrupted filenames
     (`p_one.mp4` became `q_one.mq4`, because the extension was in scope).
 
-12. **Shell scripts on this Mac.** Four traps, all of which fail silently
+12. **Shell scripts on this Mac.** Five traps, all of which fail silently
     rather than loudly:
     - **macOS ships bash 3.2.57**, not 5.x. An empty array plus `set -u` is an
       immediate `unbound variable`, and there are no associative arrays.
