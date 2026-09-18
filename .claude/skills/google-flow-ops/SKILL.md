@@ -748,3 +748,43 @@ own — which locks the voice completely instead of steering it.
 
 **The subscription is several times cheaper than the API for the same model.**
 Going API-first is a capability decision (frame lock), never a cost one.
+
+## ⛔ Verify a chip by its THUMBNAIL, never by its row label (2026-09-18, task-8ea0576a)
+
+**Flow tags the location plate as `ตัวละคร` (character) in this project.** All
+three of `@nong_daeng`, `@lung_somchai` and `@noodle_shop` carry the identical
+category label in the `+` picker, and the composer's ingredient panel exposes
+**no `@handle` name anywhere in its DOM** — every character icon carries only the
+generic `alt="รูปภาพองค์ประกอบตัวละคร"`.
+
+So a natural-language or label-based click picks the wrong asset **silently**.
+Measured: a `find()` match for "the @nong_daeng row" attached the **noodle-shop
+interior plate** instead, and every check that had been trusted up to that point
+still passed — the chip count was right, the type was right, the picker-exclusion
+was right. Only zooming into the chip's thumbnail showed it was the wrong image.
+
+**This almost certainly explains the character drift blamed on prompt syntax.**
+An earlier shoot verified its chips by count and type, reported "3 chips, matches
+the script exactly", and came back with the wrong character in the wrong shop.
+Its own report had already admitted the limit — *"the DOM count check only proves
+type and count, not which character"* — and nobody acted on that sentence.
+
+### The rule
+
+1. **Use the picker's search box**, not a label match or a natural-language row
+   reference. Type the handle.
+2. **Look at the preview image before you click add**, and at the chip's
+   thumbnail after. Zoom if the thumbnail is small. A face must look like a face,
+   a location like a location.
+3. **Then** confirm picker-exclusion (the item disappears from the list).
+4. Record the attach ORDER, because `<IMAGE_REF_N>` is indexed by it.
+
+Count, type and exclusion together still do not tell you *which* asset bound.
+Only the image does.
+
+### What this costs the earlier conclusion
+
+The retake that fixed the drift changed **two** things at once — the prompt
+syntax *and* the chip-verification method — so the fix is proven but its cause is
+not attributed. The wrong-asset bug is now the likelier culprit. Do not write
+"prompt syntax was the cause" anywhere until a shoot isolates it.
