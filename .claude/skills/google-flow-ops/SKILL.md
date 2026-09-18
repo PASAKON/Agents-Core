@@ -420,6 +420,20 @@ it needs **two assets generated from the same prompt** — one saved as an
 Ingredient, one left as a plain image. Decide which a given location needs
 before generating it, and generate both when in doubt; images are free.
 
+## Never press play (CEO 2026-09-18)
+
+A clip played inside Flow comes out of the machine's speakers, and the CEO works
+at that machine. Two operators downloading 48 clips turned the office into a
+noodle shop for an hour.
+
+**Playback is not part of any task.** An operator has no ears and is forbidden
+from judging a take; the CTO checks clips with ffmpeg on the downloaded file. So:
+
+- never click play, never scrub the timeline to "check" a clip
+- if a preview autoplays, mute and pause it at once:
+  `document.querySelectorAll('video').forEach(v=>{v.muted=true;v.pause()})`
+- get the file via the CDN pull; look at nothing in the player
+
 ## The in-page video player can fail completely — pull from the CDN instead (2026-09-18)
 
 Distinct from the dead download button. On task-115ae41c the clip editor never
