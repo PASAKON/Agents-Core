@@ -1129,6 +1129,37 @@ matters when a viewer is meant to *read* something.
 12 credits across two runs. The first proved an unnamed sign is invented; the
 second proved a named one is written correctly. Rule 4 above carries both.
 
+## The set drifts exactly as much as the face does, and for the same reason (2026-09-18, Act 1 shoot)
+
+First 15 shots of «บัญชี» Act 1, checked frame by frame:
+
+| what drifted | count | why |
+|---|---|---|
+| a character's face | **0** | every prompt carried the full appearance block |
+| the **set**, same location chip, adjacent shots | 1 (bedroom: plaster+lamp+grey blanket → concrete+beams+bulb+red plaid) | the location got 5–6 words, different ones each shot |
+| a character's **posture** | 1 (bedridden grandmother sat up on the bed edge) | the shot never restated "lying propped on pillows" |
+| an accessory the plate does not have | 1 (glasses) | nothing said "no glasses" |
+| a prop the story forbids | 1 (a ledger and pen under the hands of a man who never writes anything down) | "counting money" let the model add what counting usually needs |
+
+Same rule every time — **what the prompt does not say, the model decides** — but
+the shoot proved it applies with equal force to the set, the posture and the
+props, not only to the face. Writing the face out in full every shot worked
+perfectly. Writing the location out in six words did not.
+
+### So: three fixed blocks, pasted verbatim into every shot that uses them
+
+- **SET BLOCK** per location — walls, light source, bedding, furniture, window.
+  Identical text in every shot in that room. Not paraphrased, not shortened.
+- **POSTURE BLOCK** per character whose body state is part of the story —
+  "lying propped on two pillows, nasal cannula over her ears" in every
+  grandmother shot until the episode's epilogue changes it.
+- **NOT-LIST** per scene — the things the model reaches for and must not:
+  `no glasses` on the grandmother, `no notebook, no pen, no paper` wherever
+  money is counted, `no readable text` on anything the audience must not read.
+
+A shot sheet whose location line is shorter than its character line is a shot
+sheet that will drift.
+
 ## ⛔ Verify a chip by its THUMBNAIL, never by its row label (2026-09-18, task-8ea0576a)
 
 **Flow tags the location plate as `ตัวละคร` (character) in this project.** All
