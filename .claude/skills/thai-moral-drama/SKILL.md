@@ -145,10 +145,18 @@ C-level, in the same class as casting.
 > "ตัวละครขับเนื้อเรื่อง คนดูเข้าใจแม้ไม่ได้ดูภาพ บทพูดต้องสมเหตุสมผล
 > คนดูได้รับข่าวสารตรงไปตรงมา เป็นเส้นตรง"
 
-**THE RULE, and it is a rule and not a guideline: every shot carries a spoken
-line.** Long or short, a sentence or a single word, but every shot. Silence lives
-*inside* a line's delivery — the pause before an answer, the breath after one —
-never *instead* of it.
+**THE RULE (CEO 2026-09-18, refined the same day), three parts:**
+
+1. **At least 80–90% of shots carry a spoken line.** Not 100% — that over-corrects
+   into chatter. A line can be one word.
+2. **Never two silent shots in a row.** One silent shot is allowed; the shot
+   after it MUST speak. The CEO's phrase is *dead air*: `S1 พูด · S2 เงียบ · S3
+   บังคับพูด · S4 แล้วแต่` — the moment there is silence, the next shot owes a line.
+3. **A character doing something says what they are doing.** Carrying a bowl up
+   to the grandmother? They talk on the way up. It re-explains the scene on a
+   second channel, and a viewer who is only half-watching still follows.
+
+Silence is a beat between lines, never a stretch of the film.
 
 **The test:** strip every image, every caption, every stage direction. Read the
 dialogue cold. If it does not read like the film, the script fails — no matter
@@ -172,8 +180,8 @@ script rather than a paragraph:
 python3 tools/shotsheet_lint.py docs/scripts/<sheet>.md
 ```
 
-It exits non-zero on any shot with no line and prints the unbroken silent
-stretches worst-first. **Run it before a single credit is spent.**
+It exits non-zero if fewer than 80% of shots speak OR any two silent shots sit
+back to back, and prints the dead-air stretches worst-first. **Run it before a single credit is spent.**
 
 ### The rule makes the script better, it does not pad it
 

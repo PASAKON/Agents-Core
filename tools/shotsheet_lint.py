@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Refuse a shot sheet that has a shot with no spoken line.
+"""Refuse a shot sheet that breaks the CEO's dialogue rule.
+
+The rule (CEO 2026-09-18, refined the same day):
+  - at least 80-90% of shots carry a spoken line
+  - never two silent shots in a row - one is allowed, the next must speak
+  - a character doing something says what they are doing while they do it
+
 
 Why this exists as a script rather than a paragraph in a skill:
 
@@ -26,6 +32,10 @@ SHOT = re.compile(r"^### SHOT (\d+)\b", re.M)
 SPOKEN = "บทพูด"
 
 
+MIN_SPOKEN_RATIO = 0.80   # CEO 2026-09-18: at least 80-90% of shots carry a line
+MAX_SILENT_RUN = 1        # CEO 2026-09-18: one silent shot is allowed; the next MUST speak
+
+
 def audit(path: Path):
     text = path.read_text(encoding="utf-8")
     marks = [(m.group(1), m.start()) for m in SHOT.finditer(text)]
@@ -41,33 +51,42 @@ def audit(path: Path):
         if SPOKEN not in head:
             silent.append(int(num))
 
-    print(f"{path.name}: {len(total)} shots, {len(silent)} with no spoken line")
-    if not silent:
-        print("PASS — every shot carries dialogue.")
-        return 0
+    ratio = 1 - len(silent) / len(total)
+    print(f"{path.name}: {len(total)} shots, {len(silent)} silent, {ratio:.0%} spoken")
 
-    # Consecutive silent shots are the real defect: a listener loses the thread.
-    runs, run = [], [silent[0]]
-    for n in silent[1:]:
-        if n == run[-1] + 1:
+    # Consecutive silent shots are the defect the CEO named "dead air":
+    # one silent shot is allowed, the shot after it must speak.
+    runs, run = [], []
+    for n in silent:
+        if run and n == run[-1] + 1:
             run.append(n)
         else:
-            runs.append(run)
+            if run:
+                runs.append(run)
             run = [n]
-    runs.append(run)
-    runs.sort(key=len, reverse=True)
+    if run:
+        runs.append(run)
+    dead_air = [r for r in runs if len(r) > MAX_SILENT_RUN]
 
-    print("\nSilent shots:", ", ".join(str(n) for n in silent))
-    print("\nUnbroken silent stretches, worst first:")
-    for r in runs:
-        print(f"  shots {r[0]}-{r[-1]}  {len(r)} shots  {len(r) * 8}s of no one speaking")
+    fail = False
+    if ratio < MIN_SPOKEN_RATIO:
+        print(f"FAIL — only {ratio:.0%} of shots speak; the floor is {MIN_SPOKEN_RATIO:.0%}.")
+        fail = True
+    if dead_air:
+        print("FAIL — dead air: silent shots back to back. One silent shot is allowed,")
+        print("       the next one MUST carry a line.")
+        for r in sorted(dead_air, key=len, reverse=True):
+            print(f"         shots {r[0]}-{r[-1]}  {len(r)} shots  {len(r) * 8}s of no one speaking")
+        fail = True
 
-    print(
-        "\nFAIL — the CEO's rule is that every shot carries a spoken line, however\n"
-        "short. Silence is allowed inside a line's delivery, not instead of it.\n"
-        "Fix the sheet before spending a single credit."
-    )
-    return 1
+    if silent:
+        print("Silent shots (each must be followed by a speaking one):",
+              ", ".join(str(n) for n in silent))
+    if fail:
+        print("\nFix the sheet before spending a single credit.")
+        return 1
+    print("PASS — spoken ratio and dead-air rule both satisfied.")
+    return 0
 
 
 if __name__ == "__main__":
