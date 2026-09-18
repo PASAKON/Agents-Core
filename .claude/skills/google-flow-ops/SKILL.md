@@ -128,20 +128,34 @@ the charge lands at submit or at completion is still unknown.)
 Quantity gives **N variants of ONE prompt**, never N different shots — Flow has
 no control for that at all. So:
 
-- **Do not read this as "fire the whole episode at once."** Different shots still
-  go one at a time from one tab.
-- **Do read it as: a variant costs a credit, not a round trip.** The expensive
-  part of a re-fire is not the 6 or 12 credits, it is re-entering the composer,
-  re-selecting the model, re-attaching every chip and re-verifying every
-  thumbnail, with the UI fighting back the whole way.
-- **Policy: x2 on any shot where drift is likely** — dialogue, two or more
-  characters in frame, a face held in close-up — and x1 on everything else.
-  Firing x2 on all 180 shots of an episode costs more than firing x1 and
-  re-doing the third that need it; firing x2 on the risky ones costs less than
-  discovering them at review.
-- The ~3 ceiling is per account, so **two operators on two machines sharing one
-  Google account will both run** — that, not the quantity control, is the path
-  to shooting different shots in parallel.
+**CEO 2026-09-18, correcting a policy first written here and wrong:**
+
+> "การ Generate x2 x3 x4 มันคือการ Generate Video ซ้ำจากเดิม ซึ่งความเป็นจริงไม่ควรทำ
+> เพราะเราจะ Generate แบบ x1 แบบ parallel 2 tab 3 tab maximum"
+
+**Quantity is the wrong lever for this production, and the ceiling is the right
+number for the right lever.** An episode is 180 *different* shots. We are not
+choosing the best of several takes of one shot — we are trying to finish 180 of
+them. Paying double for a second version of a shot that was already fine is
+waste, and it does not move the only number that matters, which is how many
+distinct shots exist by the end of the day.
+
+So:
+
+- **Default is x1.** Reach for x2 only when a specific shot has already failed
+  review once and the fault looks like a dice roll rather than a prompt problem.
+  Never x4 — the fourth slot fails.
+- **Throughput comes from firing different shots at once**, and the measured
+  ~3-concurrent ceiling is per ACCOUNT, not per tab or per machine. So two
+  operators on two machines sharing one Google account both render, and that is
+  the path.
+- Sequential, 180 shots at ~90 s of real handling each is roughly 4.5 hours per
+  episode. Three in flight brings that to about 1.5.
+- **The org's tab guard allows one tab per task** (`scripts/browser/tab_guard.py`,
+  `MAX_TABS_PER_TASK = 1`) and that limit exists because twenty-five Higgsfield
+  tabs once accumulated behind it. Raising it is a CEO decision, not something an
+  operator or a C-level routes around for convenience. Two machines, one tab
+  each, needs no change to anything.
 
 ## The shortest path — 12 steps, do them in this order
 
