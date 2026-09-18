@@ -24,6 +24,14 @@ CHAR = {
    "in a faded floral-print cotton nightgown, lying propped on two stacked pillows with a thin "
    "nasal cannula looped over her ears and a small brass amulet on a string at her neck",
    "The 79-year-old woman in the bed"),
+ # ต้น dressed to go looking for work — CEO 2026-09-18: "ชุดสูทไม่หรูมาก ล็อกหน้าเดิม".
+ # The face block is word-for-word identical to "ton" on purpose: only the clothes
+ # change, so the model has nothing to reinterpret about who he is.
+ "ton_suit": ("@nong_daeng_suit",
+   "a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, "
+   "clean-shaven, in a plain inexpensive dark-grey suit jacket over a white shirt with an "
+   "open collar and no tie, the jacket a little loose on the shoulders",
+   "The 24-year-old man in the grey suit jacket"),
  "wit": ("@cop_wit",
    "a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady "
    "eyes, in a plain dark-grey polo shirt with an open two-button collar and a simple steel "
@@ -57,8 +65,10 @@ VOICE = {
    "the even, mid-pitched voice of a calm man in his early thirties"),
 }
 
-# ต้น wears a canvas apron only inside the shop. CEO to confirm; change here, rebuild.
-APRON = ", with a dark canvas apron tied over it"
+# CEO 2026-09-18: ต้น wears NO apron, ever. "เขาแค่ช่วยงานพ่อแปปเดียว เขาต้องหางาน
+# ข้างนอกบ้านทำด้วย" — the apron would read as a man who works here, and the whole
+# story is that he is trying not to be. Kept as a constant so the reason survives.
+APRON = ""
 
 LOC = {
  "shop": ("@noodle_shop",
