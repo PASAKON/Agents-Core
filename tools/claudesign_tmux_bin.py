@@ -22,14 +22,16 @@ from __future__ import annotations
 
 import os
 import shutil
-import sqlite3
 import sys
 import threading
 from pathlib import Path
 from subprocess import PIPE, Popen
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "state" / "tasks.db"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from lib import db as db_lib  # noqa: E402
+
 MIRROR_DIR = Path("/tmp")
 def _resolve_claude_bin() -> str:
     """Locate the real `claude` CLI.
@@ -64,33 +66,25 @@ def _resolve_task(cwd: Path) -> tuple[str | None, str | None]:
 
     Walks parents in case daemon passes a subdir of the worktree.
     """
-    if not DB_PATH.exists():
-        return None, None
-    conn = None
     try:
-        conn = sqlite3.connect(str(DB_PATH))
-        conn.row_factory = sqlite3.Row
-        candidate = cwd
-        for _ in range(8):
-            row = conn.execute(
-                "SELECT id, tmux_session FROM tasks "
-                "WHERE worktree=? AND role='web_designer' "
-                "AND status IN ('in_progress','pending','review') "
-                "ORDER BY updated_at DESC LIMIT 1",
-                (str(candidate),),
-            ).fetchone()
-            if row:
-                return row["id"], row["tmux_session"]
-            if candidate.parent == candidate:
-                break
-            candidate = candidate.parent
+        with db_lib.get_conn(readonly=True, timeout=10) as conn:
+            candidate = cwd
+            for _ in range(8):
+                row = conn.execute(
+                    "SELECT id, tmux_session FROM tasks "
+                    "WHERE worktree=? AND role='web_designer' "
+                    "AND status IN ('in_progress','pending','review') "
+                    "ORDER BY updated_at DESC LIMIT 1",
+                    (str(candidate),),
+                ).fetchone()
+                if row:
+                    return row["id"], row["tmux_session"]
+                if candidate.parent == candidate:
+                    break
+                candidate = candidate.parent
+            return None, None
+    except Exception:
         return None, None
-    finally:
-        if conn is not None:
-            try:
-                conn.close()
-            except Exception:
-                pass
 
 
 def _pump_stdin(proc: Popen) -> None:

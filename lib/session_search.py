@@ -103,12 +103,15 @@ def _now_iso() -> str:
 
 def _open(index_path: Path) -> sqlite3.Connection:
     """Open (creating the parent dir) the index DB. No WAL pragma: keeps the
-    index a single file under state/ (no -wal/-shm sidecars to clean up)."""
+    index a single file under state/ (no -wal/-shm sidecars to clean up).
+
+    Own database (a derived FTS5 index, not the task registry) -- lib.db
+    .sqlite_connect just centralises the raw sqlite3 connect() call, it
+    does not follow ORG_DB_URL."""
     index_path = Path(index_path)
     index_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(index_path))
-    conn.row_factory = sqlite3.Row
-    return conn
+    from lib import db as db_lib
+    return db_lib.sqlite_connect(index_path)
 
 
 def _drop_index(index_path: Path) -> None:

@@ -1,4 +1,11 @@
-"""SQLite task queue. Single source of truth for org work state."""
+"""Task queue -- SQLite by default, Postgres when ORG_DB_URL is set.
+
+docs/design/tasks-db-hub.md §3.1: ORG_DB_URL unset means exactly today's
+sqlite3 behaviour (unchanged). Set to a `postgresql://...` URL, every caller
+that goes through get_conn() (directly or via the bypassers routed in this
+task) talks to the Postgres hub instead -- see lib/db_pg.py for the
+SQL-translation wrapper that makes that transparent.
+"""
 from __future__ import annotations
 
 import json
@@ -10,6 +17,8 @@ import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+
+from lib import db_pg
 
 def _resolve_root() -> Path:
     """Hub checkout root. `ORG_ROOT` (set by runners/worker_init.py on every
@@ -177,9 +186,46 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def _connect() -> sqlite3.Connection:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(DB_PATH))
+def pg_url() -> str | None:
+    """ORG_DB_URL, stripped, or None when unset/blank -- the one switch
+    between the SQLite and Postgres backends (docs/design/tasks-db-hub.md)."""
+    url = os.environ.get("ORG_DB_URL")
+    return url.strip() if url and url.strip() else None
+
+
+def _connect(*, timeout: float | None = None, readonly: bool = False,
+             path: str | Path | None = None) -> sqlite3.Connection:
+    """SQLite connection -- unchanged behaviour from before the Postgres
+    backend existed, plus three additive options no pre-existing caller
+    passes (so every pre-existing call site is byte-for-byte unaffected):
+
+      timeout  -- sqlite3's own busy-timeout; also threaded into the pg
+                  branch of get_conn() as connect_timeout, so a single
+                  kwarg gives both backends a fail-open budget.
+      readonly -- open `file:<path>?mode=ro` instead of read-write, and
+                  never create the file. Raises FileNotFoundError up front
+                  if it doesn't exist (a caller like the self-repo-guard
+                  hook needs "not found" distinguished from "found but
+                  unreadable").
+      path     -- connect to this file instead of the module's own
+                  DB_PATH. Lets a caller address a *specific* checkout's
+                  tasks.db (scripts/hook-self-repo-guard.py, which resolves
+                  a DEV worktree's own hub root) without trusting this
+                  process's ORG_ROOT/__file__ resolution -- and lets its
+                  tests inject a throwaway fixture path. Ignored entirely
+                  under the Postgres backend, which is one global registry
+                  regardless of which checkout asks (see get_conn).
+    """
+    db_path = Path(path) if path is not None else DB_PATH
+    kwargs = {"timeout": timeout} if timeout is not None else {}
+    if readonly:
+        if not db_path.exists():
+            raise FileNotFoundError(f"tasks.db not found at {db_path}")
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, **kwargs)
+        conn.row_factory = sqlite3.Row
+        return conn
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(db_path), **kwargs)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA foreign_keys=ON;")
@@ -187,8 +233,25 @@ def _connect() -> sqlite3.Connection:
 
 
 @contextmanager
-def get_conn():
-    conn = _connect()
+def get_conn(*, timeout: float | None = None, readonly: bool = False,
+             path: str | Path | None = None):
+    """Commit on clean exit, rollback on exception, close always -- same
+    contract regardless of backend (the reason Postgres was chosen over
+    alternatives that couldn't keep it, per the design doc).
+
+    timeout/readonly/path: see _connect's docstring for the SQLite meaning.
+    Under Postgres (ORG_DB_URL set) `readonly`/`path` are no-ops -- a single
+    global registry has no per-checkout path to distinguish -- and `timeout`
+    becomes psycopg's connect_timeout (default 10s; pass a small value, e.g.
+    3, for a caller that must fail open rather than block on a slow/
+    unreachable hub -- see scripts/hook-self-repo-guard.py and
+    scripts/hook-log-prompt.py).
+    """
+    url = pg_url()
+    if url:
+        conn = db_pg.connect(url, timeout=timeout)
+    else:
+        conn = _connect(timeout=timeout, readonly=readonly, path=path)
     try:
         yield conn
         conn.commit()
@@ -199,11 +262,33 @@ def get_conn():
         conn.close()
 
 
+def sqlite_connect(path: str | Path, *, row_factory: bool = True,
+                    timeout: float | None = None,
+                    readonly: bool = False) -> sqlite3.Connection:
+    """Plain SQLite connection, ALWAYS SQLite regardless of ORG_DB_URL --
+    for a database other than the task registry (lib.ceo_report's
+    relay_queue.db, lib.session_search's FTS index), or for a specific
+    SQLite tasks.db file scripts/migrate_tasks_db.py needs to read as the
+    *source* of a migration even while ORG_DB_URL names the *target*
+    (get_conn() would be backend-switching and wrong for that read).
+    Centralises the literal sqlite3.connect() call here so every such call
+    in the codebase lives in this one file (see scripts/migrate_tasks_db
+    .py's acceptance grep in the task brief)."""
+    kwargs = {"timeout": timeout} if timeout is not None else {}
+    if readonly:
+        conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True, **kwargs)
+    else:
+        conn = sqlite3.connect(str(path), **kwargs)
+    if row_factory:
+        conn.row_factory = sqlite3.Row
+    return conn
+
+
 def init():
     """Create schema. Idempotent. Also runs forward-only column migrations
     for tables that predate _MIGRATION_COLUMNS."""
     with get_conn() as conn:
-        conn.executescript(SCHEMA)
+        conn.executescript(db_pg.PG_SCHEMA if pg_url() else SCHEMA)
         existing = {r["name"] for r in conn.execute(
             "PRAGMA table_info(tasks)").fetchall()}
         for col, coltype in _MIGRATION_COLUMNS:
@@ -245,7 +330,7 @@ def init():
                     OR report LIKE 'iTerm spawn failed%'
                     OR report LIKE 'DEV timed out%')
         """)
-    print(f"[db] initialized at {DB_PATH}")
+    print(f"[db] initialized at {pg_url() or DB_PATH}")
 
 
 def new_task_id() -> str:
