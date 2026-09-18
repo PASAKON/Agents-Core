@@ -1082,6 +1082,34 @@ one location.** A fourth reference goes into the prompt as text, never as a chip
 generation, because adding references mid-conversation destabilizes a scene that
 was holding together."*
 
+## ⛔ A speaker whose face is not in frame gets a random voice (CEO 2026-09-18)
+
+The CEO heard it first, on the grandmother scene: the grandson's chip was
+attached, he spoke from off-frame, and the voice was not his. A pitch check on
+all 38 Act 1 clips (median f0 per clip, grouped by scripted speaker) points the
+same way:
+
+| speaker | in-frame shots | off-frame / face-absent shots |
+|---|---|---|
+| ต้น (Iapetus, ~148 Hz) | 126–160 Hz | **28: 175 Hz · 31: 172 Hz** — both off-frame, both the two highest |
+| สมชาย (Algenib, ~132 Hz) | 108–162 Hz | **9: 185 Hz** — only his hand and arm in frame when he speaks |
+| วิทย์ (Achird, ~150 Hz) | 127–155 Hz | **39: 296 Hz** — his entrance, spoken while walking in from the street |
+
+Hands-only shots where the body and apron were still in frame (7, 15, 35, 36,
+47) held the right pitch — the model knows who is there. What breaks it is a
+speaker the model cannot see.
+
+**So the chip is necessary but not sufficient.** For a line to come out in the
+bound voice:
+
+1. the speaker's chip is attached, **and**
+2. **the speaker's face is in frame while the line is spoken.**
+
+Which is also what the 1.9M-view reference reel does on almost every shot: the
+camera is on the face of whoever is talking. Off-frame dialogue, voice-over
+across a cutaway, and "he calls from the next room" are not available in this
+product. Write the shot so the camera is on the mouth.
+
 ## ⛔ A voice belongs to the CHARACTER, not to the shot (CEO 2026-09-18)
 
 This is the step every worker so far has missed, and it invalidates the
