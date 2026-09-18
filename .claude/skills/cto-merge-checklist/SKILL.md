@@ -36,6 +36,16 @@ Run these gates before `merge_task(task_id)`. **Refuse merge if any gate fails.*
 - [ ] Each criterion has explicit pass evidence in the DEV report.
 - [ ] No "should also do X" creep — only what was asked.
 
+### 4b. A guard must be ON THE PATH, not merely present — born from EP52, 2026-09-19
+Applies whenever the task adds a limit, gate, precheck, budget, lock or kill-switch.
+- [ ] Name the entry point a real run uses (`scripts/<x>.js`, the cron, the route), and trace from it to the guard. Paste the call chain into the gate output.
+- [ ] `grep` for the guard and check which FUNCTION each hit sits in, not just which file:
+      `awk '/^async function |^function /{fn=$0} /<guardName>/{print NR": "fn}' <file>`
+- [ ] A test that calls the guard directly proves the guard works. It does not prove the guard runs. The test must enter through the same door production does.
+- If the guard is only on a legacy or unused path → REOPEN. The branch is not wrong, it is inert.
+
+Why this is a gate: task-2329c6ce added `EP_BUDGET_USD` with `assertBudget()` blocking before the crossing call, three call sites, tests green, 1178 passing. I reviewed the blocking logic and passed it. All three call sites were inside `processVideoProject()` — the old Notion-cron flow. The path a run actually takes is `resume-video.js → stage-runner → runTTS/runScenePrompts/runLipsync`, and those had none. The ceiling I had told the CEO was protecting a live $2 run would never have fired. A DEV found it on the first real run, before any money moved. One `awk` over the file would have caught it at review.
+
 ### 5. No GH blocker issue open
 - [ ] If DEV opened a GH issue mid-task, confirm it's closed or explicitly deferred.
 - [ ] Memory rule: GH issue on every blocker — closed means real fix, not "ignored".
@@ -65,6 +75,7 @@ Gate 1 (DEV report)           : PASS — status=done, files=N, tests=ok
 Gate 2 (Tests green)          : PASS — 113 passed, 0 failed
 Gate 3 (Path conflicts)       : PASS — no overlap with in-flight
 Gate 4 (Acceptance criteria)  : PASS — all 3 criteria met
+Gate 4b (Guard is on the path) : PASS — resume-video.js -> stage-runner -> runTTS -> assertBudget / N/A — no guard added
 Gate 5 (GH blockers)          : N/A — none opened
 Gate 6 (Wiki ADR)             : DEFERRED — no arch change
 Gate 7 (External state)       : PASS — queried claudeflow_posts: 0 prior rows / N/A — repo-only task
