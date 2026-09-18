@@ -31,6 +31,7 @@ from pathlib import Path
 sys.path.insert(0, r"C:\Users\UsEr\cookierun-bot")
 
 import cv2                      # noqa: E402
+import numpy as np              # noqa: E402
 # core is where the geometry actually lives. engine re-exports click/grab/
 # win_point but NOT game_rect, so importing only engine dies at the first call
 # with AttributeError -- import the module that owns them.
@@ -191,16 +192,34 @@ def main() -> int:
         log.flush()
         print(line)
 
-    rect = core.game_rect()
-    if not rect:
-        say("ABORT: BlueStacks window not found -- is the game running?")
-        return 2
-    say(f"game rect: {rect}")
-
-    region = core.resolve_region({"rel": [0, 0, 1, 1], "window": core.GAME_WINDOW})
     steps = json.loads(plan_path.read_text(encoding="utf-8"))
 
+    # Only demand the game window if a step actually needs it. A full-desktop
+    # screenshot does not, and refusing to take one because BlueStacks is closed
+    # is a precondition borrowed from a different job - which is exactly when it
+    # was needed: to see why a worker had stalled, with the game shut down.
+    needs_game = any(k in st for st in steps for k in ("click", "shot", "drag"))
+    rect = core.game_rect()
+    if needs_game and not rect:
+        say("ABORT: BlueStacks window not found, and this plan needs it")
+        return 2
+    say(f"game rect: {rect}")
+    region = (core.resolve_region({"rel": [0, 0, 1, 1], "window": core.GAME_WINDOW})
+              if rect else None)
+
     for i, step in enumerate(steps):
+        if "fullshot" in step:
+            # The whole desktop, not the game rect. A worker that stalled is
+            # stalled in its own terminal window, which resolve_region() has no
+            # reason to include -- and from session 0 there is no other way to
+            # read what it is waiting on.
+            import mss
+            with mss.mss() as _s:
+                raw = _s.grab(_s.monitors[1])
+            full = cv2.cvtColor(np.asarray(raw), cv2.COLOR_BGRA2BGR)
+            p2 = outdir / f"{step['fullshot']}.png"
+            cv2.imwrite(str(p2), full)
+            say(f"[{i}] fullshot -> {p2.name}  ({full.shape[1]}x{full.shape[0]})")
         if "shot" in step:
             img = core.grab(region)
             p = outdir / f"{step['shot']}.png"
