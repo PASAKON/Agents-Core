@@ -454,13 +454,25 @@ write it to the report table next to the shot number. Download from that URL,
 by id, never by hunting the feed.
 
 **The cache trap, which is the other half of the loss:** a clip that has been
-played once in a tab is served from disk cache on every later play, with **no
-network entry at all** — not in `read_network_requests`, not in
+played once **in this Chrome profile** is served from disk cache on every later
+play, with **no network entry at all** — not in `read_network_requests`, not in
 `performance.getEntriesByType('resource')`. The CDN-sniff method then finds
 nothing and looks exactly like the "player never loads" trap from the opposite
-side. So: **capture the `flow-content.google/video/...` URL the first time the
-clip is ever fetched**, muted (`HTMLMediaElement.prototype.play` overridden to
-mute first), and keep it. A URL captured at first play still curls later.
+side.
+
+**A later "fresh session" does not fix it** (task-f93e0f84, 0/10 recovered).
+Chrome's disk cache is keyed by URL and shared by every tab and every operator
+in the profile; a new Claude session is not a new cache. The only fix is
+**capture the `flow-content.google/video/...` URL the first time the clip is
+ever fetched, by whoever fetches it first**, muted
+(`HTMLMediaElement.prototype.play` overridden to mute first), and keep it. A URL
+captured at first play still curls later. Clearing site data would also work and
+is not something an operator does to a shared browser.
+
+**And some clips never surface at all:** five of operator A's shots showed zero
+`<video>` elements and zero requests on a direct `/edit/<id>` open, in three
+separate runs across an hour. That is Flow-side, not ours. Two attempts, then
+it is a re-fire decision for the C-level, not a retrieval problem.
 
 **Two attempts, then stop.** If a clip will not surface after one reload and one
 fresh tab, it is stuck for this session. Report the ids and move on — thirty
