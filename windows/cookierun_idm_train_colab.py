@@ -115,6 +115,15 @@ OFFSETS_S = (-0.11, -0.055, 0.0, 0.055, 0.11)
 ALLOW_PAID = False      # flip only with a reason; see the docstring
 
 
+# One core per worker, not the whole box each. cv2 defaults to every core it can
+# see, so N DataLoader workers each open N threads and a 4-core machine ends up
+# scheduling ~12 -- measured as load 7.9 on 4 cores while throughput sat at
+# 112 stacks/s. The threads were fighting each other, not doing more work.
+cv2.setNumThreads(1)
+if DEVICE == "cpu":
+    torch.set_num_threads(max(1, (os.cpu_count() or 4) - WORKERS))
+
+
 def say(m):
     print(m, flush=True)
 
@@ -242,6 +251,32 @@ def fetch_shards():
     return tr, va
 
 
+def verify_shards(paths):
+    """Split shards into (good, bad) before a single gradient step is taken.
+
+    A shard that arrived truncated -- an interrupted copy, a killed scp -- is a
+    file of the right name and roughly the right size, and the first run found
+    one only by crashing 30 seconds in with BadZipFile. Opening the zip is
+    enough to catch it: a zip's central directory lives at the END of the file,
+    so a truncated one cannot be opened at all, and this costs no decompression.
+
+    Bad shards are reported and SKIPPED, not fatal. Refusing to run would mean
+    nothing trains overnight over one bad file out of forty-seven; but the loss
+    is named and counted here, because a run that quietly trains on less than it
+    claims is the failure nobody catches afterwards.
+    """
+    import zipfile
+    good, bad = [], []
+    for p in paths:
+        try:
+            with zipfile.ZipFile(p):
+                pass
+            good.append(p)
+        except Exception as e:
+            bad.append((p, type(e).__name__))
+    return good, bad
+
+
 def evaluate(model, dev, val_shards, thr_list=(0.3, 0.5, 0.7, 0.9)):
     model.eval()
     counts = {t: [0, 0, 0, 0] for t in thr_list}
@@ -273,8 +308,15 @@ def main():
 
     # ------------------------------------------------------------ the card
     if DEVICE == "cpu":
-        gpu = "cpu (smoke test)"
-        say("running on CPU -- smoke test only, this is not the real run")
+        # Label the DEVICE, not an assumption about intent. This said
+        # "cpu (smoke test)" and went into report.json, where it would have told
+        # anyone reading the A/B later that the baseline arm was a throwaway --
+        # it was a real 6-epoch run that happens to have no GPU. A smoke test is
+        # identified by its limits, so let the limits say so.
+        gpu = f"cpu x{os.cpu_count()}"
+        smoke = bool(MAX_SHARDS or MAX_BATCHES)
+        say(f"running on {gpu}" + (" -- LIMITED, this is a smoke test" if smoke
+                                   else " (no GPU; a real run, just slower)"))
     else:
         if not torch.cuda.is_available():
             say("STOP: no GPU. Runtime > Change runtime type > T4 GPU, then rerun.")
@@ -289,7 +331,13 @@ def main():
 
     # ------------------------------------------------------------ the data
     train_shards, val_shards = fetch_shards()
-    say(f"{len(train_shards)} train shards, {len(val_shards)} val shards")
+    train_shards, bad_t = verify_shards(train_shards)
+    val_shards, bad_v = verify_shards(val_shards)
+    for p, why in bad_t + bad_v:
+        say(f"SKIPPING UNREADABLE SHARD: {p.name} ({why}) -- re-copy it and rerun "
+            f"to train on the whole corpus")
+    say(f"{len(train_shards)} train shards, {len(val_shards)} val shards"
+        + (f"  ({len(bad_t) + len(bad_v)} SKIPPED as unreadable)" if bad_t or bad_v else ""))
     if not train_shards or not val_shards:
         say("STOP: a split is missing -- expected train_*.npz and val_*.npz")
         return 1
