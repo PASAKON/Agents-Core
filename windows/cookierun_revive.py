@@ -515,7 +515,13 @@ def main() -> int:
     if since < COOLDOWN_S:
         return 0
 
-    state_set({"last_try": time.time()})
+    # {**st, ...}, not a fresh dict. Writing a bare {"last_try": ...} here
+    # discarded fwin_since, so the foreign-window grace restarted on every
+    # down-path tick and the window could never age out of it. Measured
+    # 2026-09-18: a FINISHED worker's terminal sat over the game and this stood
+    # down from it indefinitely, because it kept re-learning the window as if it
+    # had just appeared. state_set replaces; every caller must merge.
+    state_set({**st, "last_try": time.time()})
     down_min = int(age / 60) if age else None
     log(f"farm has been down {down_min} min with nobody holding it - starting night")
 
