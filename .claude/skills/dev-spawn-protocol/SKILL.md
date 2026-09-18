@@ -174,7 +174,26 @@ Run it with `persistent: true`. It emits only on change, so a quiet DEV
 produces zero notifications.
 
 **What the Monitor does not catch:** a process that is alive but internally
-wedged. Detect that from the *absence* of expected state changes against the
+wedged. **The most common cause by far is a permission dialog** — the worker
+asked for access to something (a desktop app, a new tool) and is sitting on
+`Enter to confirm · Esc to cancel` forever. The pid is alive, the status is
+`in_progress`, the tmux session is healthy, and nothing whatsoever is happening.
+Measured 2026-09-18: 25 minutes lost this way on a task with a deadline, while
+the Monitor reported `proc=alive` the whole time.
+
+Two cheap fixes, both worth doing:
+
+- **Watch progress, not liveness.** Add the task's own output to the Monitor —
+  a line count of the file it is supposed to be filling — so a flat number is
+  visible even while the process looks fine:
+  `n=0; [ -f "$W/out.tsv" ] && n=$(wc -l < "$W/out.tsv")`
+- **Detect the dialog directly**, since it has a fixed string:
+  `tmux capture-pane -p -t wd-<id> | grep -q "Enter to confirm" && echo BLOCKED`
+
+To clear one: `tmux send-keys -t wd-<id> Enter` confirms the highlighted option,
+which is **Deny** by default. `Escape` alone did not clear it on the measured
+occasion. Then send the worker a message saying what to do instead — a denial
+with no redirection just stalls it again. Detect that from the *absence* of expected state changes against the
 job's known per-item duration — if a step normally lands every ~25 minutes and
 90 minutes have passed with nothing, intervene. Do not solve this by
 re-introducing heartbeats.
