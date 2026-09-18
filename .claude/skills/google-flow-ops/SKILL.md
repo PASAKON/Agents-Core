@@ -949,6 +949,29 @@ own — which locks the voice completely instead of steering it.
 **The subscription is several times cheaper than the API for the same model.**
 Going API-first is a capability decision (frame lock), never a cost one.
 
+## ⛔ The model cannot write. Design the shot so nothing has to be read (2026-09-18)
+
+Omni, Veo and Nano Banana all render Thai script and digits as convincing
+garbage. A sign, a screen, a receipt, a ledger or a document that the audience is
+supposed to *read* will come back wrong, and no amount of prompt wording fixes
+it.
+
+Do not fight it. Design it out:
+
+| you want | do this instead |
+|---|---|
+| a bank balance on a phone screen | the phone lies **face down**; the number is spoken |
+| a payment sign on the counter | plain, sun-faded, shallow depth of field, never legible |
+| a debt ledger | **scratches**, not writing |
+| an amount, a date, a count | **a character says it out loud** |
+
+Every prop prompt should carry `no text, no numbers, no writing of any kind`
+unless the thing is deliberately meant to be illegible.
+
+This costs nothing here, because the story rule already says the spoken lines
+carry every figure — see the `thai-moral-drama` skill. The two rules are the same
+rule arriving from opposite directions.
+
 ## ⛔ Verify a chip by its THUMBNAIL, never by its row label (2026-09-18, task-8ea0576a)
 
 **Flow tags the location plate as `ตัวละคร` (character) in this project.** All

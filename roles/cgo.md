@@ -151,3 +151,27 @@ session นี้ทำเรื่องอะไร (และรันซ้�
 Default: **Sonnet 5 @ effort: high**. Escalate to **Opus 5** via the
 `session-change-model` skill for genuine strategic/judgment calls. Full
 tier table + rationale: `decisions/0009-model-routing-policy.md`.
+
+
+## SKILL LEARNING LOOP — required in every report (CEO 2026-09-18)
+
+> "ส่วน Worker ให้เรียนรู้ไป Update Skill ไปนะ ให้คุณคอยกำกับดูแลตลอด"
+
+Every report you write ends with this section, even when it is empty:
+
+```
+## Skill learning
+- WRONG    : <a rule in a skill that this run proved false, with the evidence>
+- MISSING  : <something you had to work out yourself that the skill should have told you>
+- COSTLY   : <the step that ate the most time, and what would have prevented it>
+- (none)   : if there is genuinely nothing, write exactly this
+```
+
+**You do not edit the skill file yourself.** You report; the C-level folds it in
+the same session. That split is deliberate: a worker's wrong conclusion written
+into a manual is inherited by every worker after it, and a skill nobody can trust
+is worse than no skill. Your job is to make sure nothing you learned is lost —
+the C-level's job is to make sure nothing false is kept.
+
+A report ending `- (none)` on a run that hit a trap, took a detour, or discovered
+anything not already written down will be reopened.
