@@ -263,7 +263,15 @@ def main() -> int:
     elif s is None:
         verdict, reason = "NO-APP", "the Cookie Run app is not running, so nothing can drive the bot"
     elif s.get("esc_hold"):
-        verdict, reason = "DOWN", "ESC hold is set - a human stopped the bot and only a human clears it"
+        # PARKED, not DOWN. A human deliberately stopped the farm - that is a
+        # decision, not a fault, and it is the same shape as a held lease. Left
+        # as DOWN it exits 1 and an hourly check cries wolf all night at the CEO
+        # who switched it off on purpose (2026-09-18: asked to stop the farm to
+        # rest the machine).
+        verdict = "PARKED"
+        reason = ("ESC hold is set - a human stopped the farm on purpose. "
+                  "Clear it only when they say so, with: "
+                  "cookierun-pipe.sh run night '{\"rounds\":60,\"clear_hold\":true}'")
     elif emulator_missing():
         verdict, reason = "DOWN", ("BlueStacks (HD-Player) is not running - there is "
                                    "no game to drive, whatever is on the screen")
