@@ -115,7 +115,15 @@ def build(d) -> str:
         out.append("")
         for sp, direction, line in lines:
             idx = chars.index(sp)
-            out.append(f'{d.CHAR[sp][2]} <IMAGE_REF_{idx}> speaks Thai, {direction}, and says: "{line}"')
+            # The voice description is restated on every single line on purpose.
+            # Flow cannot save a customised voice (the save button is disabled —
+            # three runs, three methods, 2026-09-18), so the only place a voice
+            # can be characterised is the prompt, and a prompt only governs its
+            # own shot. Say it every time or the voice is whatever the preset
+            # happens to give that day.
+            voice = d.VOICE[sp][1] if hasattr(d, "VOICE") and sp in d.VOICE else None
+            spoken = f"speaks Thai in {voice}, {direction}" if voice else f"speaks Thai, {direction}"
+            out.append(f'{d.CHAR[sp][2]} <IMAGE_REF_{idx}> {spoken}, and says: "{line}"')
         out.append("")
         out.append("The face of whoever is speaking stays in frame for the whole line.")
         if nots:

@@ -31,6 +31,32 @@ CHAR = {
    "The 32-year-old man in the dark-grey polo shirt"),
 }
 
+# ── VOICE ────────────────────────────────────────────────────────────────────
+# Flow's own "save a customised voice" button is dead (proved 3 ways, 2026-09-18:
+# task-36507a6a, task-881f8f0c). So the customisation the CEO asked for lives
+# HERE instead, and the builder pastes it into every line that character speaks.
+# Same effect in the ear, and it stays in the script under version control
+# rather than inside Google's account state.
+#
+# key: (bound Flow preset, the voice description pasted into every line)
+# The presets are cast as far apart as this set allows — low / mid-low / mid for
+# the three men who share scenes, because Achird measured 150 Hz against ต้น's
+# 148 and the two read as one person.
+# The block describes WHO the voice is — timbre, pitch, age. It must never
+# describe pace or mood: that is the per-line direction's job, and a voice block
+# saying "unhurried" under a line marked "fast and placating" is two orders to
+# the model at once.
+VOICE = {
+ "somchai": ("Algenib",
+   "the worn, low, gravelly voice of a tired man in his late fifties"),
+ "ton": ("Iapetus",
+   "the clear, light voice of a man in his twenties, higher than his father's"),
+ "ya": ("Vindemiatrix",
+   "the thin, breathy, faintly wavering voice of a very frail woman near eighty"),
+ "wit": ("Rasalgethi",
+   "the even, mid-pitched voice of a calm man in his early thirties"),
+}
+
 # ต้น wears a canvas apron only inside the shop. CEO to confirm; change here, rebuild.
 APRON = ", with a dark canvas apron tied over it"
 
