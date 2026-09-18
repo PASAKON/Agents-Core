@@ -834,6 +834,33 @@ needs to see at a glance which are the sharp ones.
 | `Do Not Disturb/StoryBoard` | `18nykJSEtNPstN7-gB1VmGTjs8HAovFcivhBhAVgqdRw` | Google Doc. Short synopsis, the locked story facts, the festival constraints, and a link to the director's-notebook artifact where the volatile detail lives. |
 | `Do Not Disturb/Soundtrack` | `1BcwtvPSSGN4kQwuYnerWYyPrLF3iAwjQ` | Defined 2026-08-12 — **everything audio** for this film — music, SFX, ambience, voice. Sub-folders are split by whatever kind makes it easy for the editor to grab (`SFX`, `Ambient`, `Audio`, …), named by the director rather than by us (CEO 2026-08-12). Empty as of that date. |
 | `ALL DRAFT/FB: ละครสั้นคุณธรรม` | `1zu3azrqtw22X0n72fJfREDWQb_kjLm4K` | Created 2026-09-18, CEO approved the whole tree in chat ("ตามนั้น Approve") after being shown it. The Facebook channel «ละครสั้นคุณธรรม by ILAG Studio» (page id 61594116376333, which lives on the **Dorsine Gobb** profile — see the two-Facebook-accounts note). Thai moral short dramas in the ฟ้ามีตา format: **one complete story per episode**, villain punished, family visibly comes through. Named `<platform>: <channel>` like every other channel row. **Follows the YT: ILAG branch rules in full** — the CEO pointed at `YT: ILAG` by link when asked for a pattern — so: one `logs.txt` per project, append-only, `S<n>` scene folders, exactly one `Element/`, nothing in the branch ever deleted, and plate/sub-folder names are the director's to choose. |
+### «บัญชี» — the download → verify → delete loop (CEO 2026-09-19)
+
+The CEO's words: *"ตรวจเสร็จแล้ว Upload ลง Drive แล้ว เชคแล้วว่า Upload แล้ว ให้ลบ
+ที่โหลดมาในเครื่องนี้ด้วยนะ จะได้ไม่มีไฟล์ซ้ำๆ"* — and separately, that **test
+takes and failed takes go up too**, not in the bin.
+
+The order is fixed and the third step is not optional:
+
+1. **Review it locally** — the CTO watches the clip and runs `tools/clip_review.py`.
+2. **Upload to Drive**, into this project's `All Scene/S<n>/`.
+3. **Verify it is actually there** — list the folder and match the size. Drive's
+   own listing, not the upload call's return value.
+4. **Only then delete the local copy.** Not before, not on faith.
+5. Append the `logs.txt` line in the same turn as the upload, per the branch rule.
+
+**Failed and test takes are uploaded, never deleted.** This branch keeps
+superseded takes as generation history, and a take that came out wrong is the
+most useful thing to compare the fix against. A stuttered line, a wrong voice, a
+drifted face — those go to Drive beside the good take, and `logs.txt`'s `note`
+says what was wrong with it.
+
+**The one local copy that stays: `Element/` plates.** `tools/build_shotsheet.py`
+refuses to render a sheet whose handles have no local plate, so deleting them
+breaks the build. All twenty together are ~12 MB; the delete-local rule exists
+for 500 MB of renders, not for that. Drive is the archive, `~/Desktop/banchi-plates/`
+is the working copy, and both are correct.
+
 | `FB: ละครสั้นคุณธรรม/EP1 บัญชี` | `1TqUWgJuvrLsePuhFqFsj35NtdDQdoVLy` | The first episode. Children: `All Scene` `1N4VfSl4ZUtCi2bNf4BOfNrSLOA2BlyHY`, `Element` `1atBkEGmvH-EAIUgRUxNEEyQcPPXDGDN9` (→ `Character` `1mQ5HxUwPS-bNqT7d7bgTLMhxGBayeEGM`, `Location` `1DlzY-QJ3QnGk_EEwIrIOb8gRckOt15JS`, `Prop` `1ZgN1FS-tWrxFVVhIIEQrFDbkHOLzARLP`), `Soundtrack` `1XBQ_P4gdYqtgEjDUH1RMpRwMz6vaexzv`, `Final Draft` `1aq3B9g8NQyAhgXlim-WywmtZmGrWQ7dy`, `logs.txt` `1bbSIUxnVoM7V5492dBW1vcoUYrp-ibNE`, `StoryBoard` (Doc) `1jGDHb4RAJxtwN6U8Hu7N5D9kNtRYrboSJoGKrlTxzrk`. Episodes are numbered `EP<n> <title>` because this is a recurring show and bare titles stop sorting once there are twenty. **Exception to the branch's delete-local-after-upload rule, stated by the CTO and approved in the same message:** the `Element/` plates stay on the Mac as well as on Drive. `tools/build_shotsheet.py` refuses to render a shot sheet whose handles have no local plate, so deleting them would break the build; the rule exists for 500 MB of renders, and all 20 plates together are ~12 MB. |
 | `BACKUP` (root) | `1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq` | NEW 2026-08-04. Important data that doesn't belong to / can't be categorized into any other folder, specifically related to backing up or redundantly storing data in 2-3 places. Can be temporary or permanent. **2026-09-10:** holds, directly at this root, `Agents-worktrees-2026-09-10.tar` (id `1yWF1ArtjxYyhkNNUuICskv00X1h52A4k`, 48.8 MB) and `PARKED-mooniex-moonx-ignored.tar.gz` (`1BPEG1mazutBiF2Utlx8zGXq3joJ6DQQ8`, 248 MB) + `PARKED-mooniex-video-engine-ignored.tar.gz` (`1zvbnsoHwxXvQoSTJ5-i3vckCGgukDgeN`, 7 MB), each with a `.manifest.json` beside it (sha256/md5, source, restore line) — CEO-approved in chat ("สำรองถ้าไม่มั่นใจ ใน Skill google drive filling"); gate rows in `org:playbooks/drive-archive-gate.md`; log lines in `~/.claude/logs/drive-archive.log`. A `BACKUP/Agents Backup/` sub-folder is proposed for these, not yet approved. Also contains `iPhone14Pro_Backup` (id `1L4G227DG8Tf0AQUE0iozhyAycc1JTnpk`, created 2026-08-05) with NO definition yet — ask the CEO before filing anything into it (Rule 7). |
 | `BACKUP/FaceBook Backup` | `1cNHt6bg7-ggXf8ec6DChzouUrw3nUGig` | Meta "Download Your Information" auto-export bundles — rarely actually used. Moved here from Drive root 2026-08-04 (was a root-level folder). Meta's export flow has no destination-folder setting, so new `meta-*` exports will keep landing at Drive root — move each one into this folder manually/by AI when found. The old stray `meta-2026-Jun-18-22-41-35` was merged in here 2026-08-04. |
