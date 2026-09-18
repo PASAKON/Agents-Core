@@ -158,6 +158,35 @@ C-level, in the same class as casting.
 
 Silence is a beat between lines, never a stretch of the film.
 
+### DENSITY, not presence — measured the hard way, 2026-09-18
+
+Act 1 was rewritten so that **every one of 48 shots carried a line**, the linter
+said PASS, the words came out of the model correctly (84% verbatim by
+speech-to-text), and the CEO watched the rough cut and said *"ดูไม่รู้เรื่องเลย"* —
+the same verdict as the teaser the day before.
+
+The measurement that explained it:
+
+```
+บทที่เขียน   ~7 พยางค์ ต่อช็อต 8 วินาที   =  พูด ~2 วิ  เงียบ ~6 วิ
+คนไทยคุยปกติ  ~4-5 พยางค์/วินาที          =  ช็อต 8 วิ พูดเต็มได้ ~32-40 พยางค์
+→ พูดแค่ 21% ของเวลา  ·  26 จาก 38 ช็อต มีบทไม่เกิน 8 พยางค์
+```
+
+**One short line per shot is dead air with a word in it.** The rule the CEO gave —
+*"ตัวละครทำอะไรอยู่ให้พูดไปด้วย"* — was about **time**, not shot count: a
+character talks for most of the shot, narrating what they do, replying, adding
+the second thought. Three or four short lines, or one long one, **20–34
+syllables per 8-second shot.**
+
+The ceiling is real too: shot 48 carried ~40 syllables in four lines and the
+model dropped the last two. Stay under ~34.
+
+`tools/shotsheet_lint.py` now fails a shot under 20 syllables and warns over 34,
+counted from the quoted Thai in the shot header. A sheet can pass the presence
+rule and the dead-air rule and still be unwatchable; this is the check that
+catches it.
+
 ### Two more, from the same day, both about *what* the line says
 
 **Say it plainly. The listener never decodes.** `"...อีกแล้ว"` asks the audience to

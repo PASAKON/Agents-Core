@@ -33,6 +33,10 @@ SPOKEN = "บทพูด"
 
 
 MIN_SPOKEN_RATIO = 0.80   # CEO 2026-09-18: at least 80-90% of shots carry a line
+MIN_SYLLABLES = 20        # per 8-second shot. Measured 2026-09-18: Act 1 averaged 7 and
+                          # was unwatchable; Thai conversation runs ~4-5 syl/s, so an
+                          # 8s shot carries ~32-40 at full talk. 20 = speech fills ~5s.
+MAX_SYLLABLES = 34        # shot 48 carried ~40 and the model dropped the last two lines
 MAX_SILENT_RUN = 1        # CEO 2026-09-18: one silent shot is allowed; the next MUST speak
 
 # The thresholds belong to the CEO and bend to the story ("กฎนี้เปลี่ยนได้ทุกเมื่อ
@@ -63,13 +67,21 @@ def audit(path: Path):
         print(f"{path}: no '### SHOT n' headings found — is this a shot sheet?")
         return 2
 
-    silent, total = [], []
+    silent, total, thin, fat = [], [], [], []
     for i, (num, start) in enumerate(marks):
         end = marks[i + 1][1] if i + 1 < len(marks) else len(text)
         head = text[start:end].split("```", 1)[0]
         total.append(int(num))
         if SPOKEN not in head:
             silent.append(int(num))
+            continue
+        # every quoted Thai line in the header, summed; ~1 syllable per 1.6 Thai letters
+        lines = re.findall(r'`"([^"]+)"`', head)
+        syl = round(sum(len(re.findall(r"[ก-ฮ]", l)) for l in lines) / 1.6)
+        if syl < MIN_SYLLABLES:
+            thin.append((int(num), syl))
+        elif syl > MAX_SYLLABLES:
+            fat.append((int(num), syl))
 
     min_ratio, max_run, ruling = thresholds(text)
     if ruling:
@@ -102,6 +114,15 @@ def audit(path: Path):
             print(f"         shots {r[0]}-{r[-1]}  {len(r)} shots  {len(r) * 8}s of no one speaking")
         fail = True
 
+    if thin:
+        print(f"FAIL — {len(thin)} shot(s) speak for under ~5 of their 8 seconds "
+              f"(< {MIN_SYLLABLES} syllables). One short line per shot is dead air with a word in it.")
+        print("       " + ", ".join(f"{n}({k})" for n, k in thin))
+        fail = True
+    if fat:
+        print(f"WARN — {len(fat)} shot(s) carry more than the model reliably delivers in 8s "
+              f"(> {MAX_SYLLABLES} syllables; shot 48 dropped its last two lines at ~40):")
+        print("       " + ", ".join(f"{n}({k})" for n, k in fat))
     if silent:
         print("Silent shots (each must be followed by a speaking one):",
               ", ".join(str(n) for n in silent))
