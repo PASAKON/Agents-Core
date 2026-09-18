@@ -949,28 +949,55 @@ own — which locks the voice completely instead of steering it.
 **The subscription is several times cheaper than the API for the same model.**
 Going API-first is a capability decision (frame lock), never a cost one.
 
-## ⛔ The model cannot write. Design the shot so nothing has to be read (2026-09-18)
+## Thai text: the IMAGE model can write, the VIDEO model is unproven (2026-09-18)
 
-Omni, Veo and Nano Banana all render Thai script and digits as convincing
-garbage. A sign, a screen, a receipt, a ledger or a document that the audience is
-supposed to *read* will come back wrong, and no amount of prompt wording fixes
-it.
+**Corrected the same day it was written.** The first version of this section said
+flatly that the model cannot write Thai. That is wrong for stills, and the CEO
+caught it by reading a plate off his own screen.
 
-Do not fight it. Design it out:
+### What Nano Banana Pro actually does with Thai
 
-| you want | do this instead |
+Measured on `@street_front`, a Bangkok street plate:
+
+| element | result |
 |---|---|
-| a bank balance on a phone screen | the phone lies **face down**; the number is spoken |
-| a payment sign on the counter | plain, sun-faded, shallow depth of field, never legible |
-| a debt ledger | **scratches**, not writing |
-| an amount, a date, a count | **a character says it out loud** |
+| the large central shop sign `ก๋วยเตี๋ยว - เครื่องดื่ม` | **correct and fully legible** |
+| the second sign, a shop name | name right, the tail of the phrase drifts |
+| every small distant sign | Thai-shaped, reads as nonsense |
 
-Every prop prompt should carry `no text, no numbers, no writing of any kind`
-unless the thing is deliberately meant to be illegible.
+The pattern is consistent and useful: **the model gets ONE short, prominent,
+common phrase right, and degrades into convincing gibberish for everything
+smaller or further away.**
 
-This costs nothing here, because the story rule already says the spoken lines
-carry every figure — see the `thai-moral-drama` skill. The two rules are the same
-rule arriving from opposite directions.
+That failure is not a problem in itself — real signage at that distance is
+unreadable anyway, so the gibberish is set dressing doing its job. It only
+matters when a viewer is meant to *read* something.
+
+### So the rule is now
+
+1. **Thai text in a still plate is a real tool. Use it.** Shop signs, menu
+   boards, a price list on the wall — they make the world specific in a way a
+   description cannot. Generate them in the plate, not in the shot.
+2. **Whatever must be readable gets ONE short common phrase, placed prominently**,
+   and is verified by actually reading it back off the generated image. Never
+   assume; look.
+3. **Anything smaller is decoration.** Do not fight it, do not re-fire for it.
+4. **The video model is a separate question and is UNMEASURED.** An image holding
+   correct Thai has to survive ~200 frames of motion to stay correct, and nothing
+   here has tested that yet. Until it is tested, do not write a shot whose
+   meaning depends on the audience reading text in the video.
+5. **Numbers a plot turns on stay in the dialogue.** Amounts, dates, counts. Not
+   because the model cannot draw them but because a spoken number cannot warp,
+   cannot be missed by a viewer scrolling with sound on and no attention, and
+   costs nothing to re-fire. This one is a story rule, not a model limitation —
+   see `thai-moral-drama`.
+
+### The open question, and what it would cost to settle
+
+Attach a plate carrying correct Thai as an ingredient, generate 8 seconds at
+360p, and read the sign in the last frame. **6 credits.** If the text holds,
+signage becomes available inside shots and the production gets noticeably
+richer. If it warps, rule 4 stands permanently.
 
 ## ⛔ Verify a chip by its THUMBNAIL, never by its row label (2026-09-18, task-8ea0576a)
 
