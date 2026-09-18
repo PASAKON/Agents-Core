@@ -87,6 +87,62 @@ So: **real footage, real duration, lower detail.** Half the credits, same answer
 
 Only go to 720p once the behaviour is settled and the shot is being kept.
 
+## Concurrency: the backend runs ~3 at once (measured 2026-09-18, task-6403cbb4)
+
+Measured on the Ultra account at 360p / 8s, everything held identical except
+quantity:
+
+| quantity | wall-clock | credits |
+|---|---|---|
+| x1 | **~30 s** | 6 |
+| x2 | **~20–25 s**, both | 12 |
+| x4 | **~26–36 s** for three of them | 18 charged, not 24 |
+
+If this were serialised, x4 would take four times x1. It does not. While x4 ran,
+all four progress badges advanced in lockstep in the same ~8 s window
+(5/6/5/6 % → 11/12/12/12 %), which is what concurrent rendering looks like.
+
+**But there is a ceiling, and it is about three.** In the x4 run, three clips
+finished in ~30 s and the fourth stalled at 56–58 %, jumped to 99 %, sat there,
+and then failed outright. Flow never used the words queued, waiting or in line
+anywhere — the only signal was a percentage that stopped moving.
+
+So: **x3 is the useful maximum. x4 buys a failure.**
+
+### A failed generation is not charged
+
+The failure card reads, verbatim:
+
+```
+ล้มเหลว
+ขออภัย สร้างวิดีโอนี้ไม่สำเร็จ
+ระบบไม่ได้เรียกเก็บเงินจากคุณสำหรับการสร้างครั้งนี้
+```
+
+The credit maths confirms it: x4 should have cost 24 and only 18 was deducted.
+(For successful clips the balance was only read after they appeared, so whether
+the charge lands at submit or at completion is still unknown.)
+
+### What this does and does not license
+
+Quantity gives **N variants of ONE prompt**, never N different shots — Flow has
+no control for that at all. So:
+
+- **Do not read this as "fire the whole episode at once."** Different shots still
+  go one at a time from one tab.
+- **Do read it as: a variant costs a credit, not a round trip.** The expensive
+  part of a re-fire is not the 6 or 12 credits, it is re-entering the composer,
+  re-selecting the model, re-attaching every chip and re-verifying every
+  thumbnail, with the UI fighting back the whole way.
+- **Policy: x2 on any shot where drift is likely** — dialogue, two or more
+  characters in frame, a face held in close-up — and x1 on everything else.
+  Firing x2 on all 180 shots of an episode costs more than firing x1 and
+  re-doing the third that need it; firing x2 on the risky ones costs less than
+  discovering them at review.
+- The ~3 ceiling is per account, so **two operators on two machines sharing one
+  Google account will both run** — that, not the quantity control, is the path
+  to shooting different shots in parallel.
+
 ## The shortest path — 12 steps, do them in this order
 
 1. Open a **fresh tab**. `flow.google.com` (labs.google/fx/tools/flow redirects
@@ -184,7 +240,10 @@ player, model dropdown and filter panel:
   gallery the first recon called it — it is where the frames that feed the
   start/end slots are made. See below.
 - **No whole-episode export.** Per-clip download only. Assembly happens outside.
-- **No batch or queue.** One fire, one wait, every time.
+- ~~No batch or queue~~ — **WRONG, retracted 2026-09-18 (task-6403cbb4).** There is
+  no way to submit two DIFFERENT prompts together, but the quantity control fires
+  several generations of one prompt and the backend renders them concurrently.
+  See "Concurrency" below.
 - **No saved prompt templates.** Google's example cards are presets, not
   user-savable.
 - **No audio upload.** Dialogue and ambience are prompt text only; you cannot
@@ -982,22 +1041,33 @@ matters when a viewer is meant to *read* something.
    and is verified by actually reading it back off the generated image. Never
    assume; look.
 3. **Anything smaller is decoration.** Do not fight it, do not re-fire for it.
-4. **The video model is a separate question and is UNMEASURED.** An image holding
-   correct Thai has to survive ~200 frames of motion to stay correct, and nothing
-   here has tested that yet. Until it is tested, do not write a shot whose
-   meaning depends on the audience reading text in the video.
+4. **SETTLED 2026-09-18 (task-6403cbb4): the plate's text does NOT reach the
+   video at all.** `@street_front` carries a legible `ก๋วยเตี๋ยว - เครื่องดื่ม`.
+   A clip generated with that plate attached, in a prompt that never named the
+   sign's words, came back with Thai-shaped nonsense on the **first frame** —
+   not a degraded version of the plate's text, a different invented string. By
+   the last frame it was a different invented string again.
+
+   The mechanism matters: **Omni does not copy the reference image's pixels, it
+   re-renders the scene.** A sign whose words are not in the prompt is a sign
+   the model makes up, twice. This is the same "omission is surrender" rule as
+   everything else, arriving through signage.
+
+   So: **anything a viewer must read has to be written into the prompt as
+   words** — and whether the model then renders those exact words legibly in
+   video is still untested. Until someone tests it, no shot's meaning may depend
+   on reading text on screen.
 5. **Numbers a plot turns on stay in the dialogue.** Amounts, dates, counts. Not
    because the model cannot draw them but because a spoken number cannot warp,
    cannot be missed by a viewer scrolling with sound on and no attention, and
    costs nothing to re-fire. This one is a story rule, not a model limitation —
    see `thai-moral-drama`.
 
-### The open question, and what it would cost to settle
+### Settled, and what it cost
 
-Attach a plate carrying correct Thai as an ingredient, generate 8 seconds at
-360p, and read the sign in the last frame. **6 credits.** If the text holds,
-signage becomes available inside shots and the production gets noticeably
-richer. If it warps, rule 4 stands permanently.
+6 credits, task-6403cbb4. The text did not hold — it was never there. Rule 4
+above now carries the measurement. The remaining open question is narrower:
+whether naming the exact words in the prompt produces legible Thai in video.
 
 ## ⛔ Verify a chip by its THUMBNAIL, never by its row label (2026-09-18, task-8ea0576a)
 
