@@ -353,6 +353,62 @@ already carry. If it costs shots, it is the first thing cut.
 
 ---
 
+## ⛔ The character acts WHILE speaking, never before speaking (measured 2026-09-19)
+
+Dead air does not come from short dialogue. It comes from the **action line**.
+
+Twelve Act 1 shots were rendered and measured. The one shot that matched the
+1.9M-view reference reel for silence was the one whose action happens *during*
+the line. Every shot with a gap had an action the model performed first, in
+silence, before anyone spoke:
+
+| shot | action as written | result |
+|---|---|---|
+| 8 | "hauls the roll-up shutter open **and** turns to the street" — while calling out | **11% silent** ✅ |
+| 12 | "leans toward a customer with a notepad, **then** calls the order back" | 56% silent |
+| 7 | "**lets a breath out and** looks toward the doorway" | 44% |
+| 10 | "**sets down a ladle and turns to face** his son properly" | 43% |
+| 9 | three lines = two speaker changes | 40% |
+
+Counter-evidence worth keeping in view: by a *second* measure (whisper speech
+spans) every one of those shots carried **more** speech than the reference —
+66–80% against its 49%, at 2.0–2.9 syllables per second against its 1.7. So this
+is not "write more words". The dialogue is already denser than the thing that
+worked. What differs is where the model puts the performance.
+
+**So, when writing an action line:**
+
+1. **Never write "then".** A "then" is a sequence, and the model renders the
+   first half in silence. If two things genuinely happen in order, that is two
+   shots.
+2. **Put the action and the line in the same instant** — he says it *while*
+   hauling the shutter, *while* ladling, *while* writing. Not after.
+3. **No action that is itself a silence.** "lets a breath out", "pauses",
+   "looks up and considers" — the model performs exactly that, and it costs a
+   second every time.
+4. **Every speaker change costs a beat.** Two speakers in a 6s shot is fine;
+   three lines across two changes needs 10s, not 8.
+5. One more, from the same measurement: the reference reel runs music and
+   ambience under everything, so its gaps never sound empty. Ours are bare
+   dialogue over room tone. **Some of the remaining difference is a score, not a
+   script** — do not keep cutting the script to fix something the edit fixes.
+
+## ⛔ Thai TTS stutters when a numeral, a classifier and a vocative collide
+
+Rendered, then heard by the CEO, then confirmed by transcribing the clip:
+
+- written: `เมื่อคืนผมส่งใบสมัครไปอีกสองที่พ่อ`
+- spoken: `เมื่อคืนผมส่งใบสมัครไปอีก 2 ไปอีก 2 ที่พ่อ`
+
+`สอง` + `ที่` + `พ่อ` run together with nothing between them, and the synthesiser
+repeated the fragment. Rewritten as `…ไปอีกสองแห่งแล้วนะพ่อ` — a particle
+between the count and the vocative.
+
+**Put a particle between a number and the person being addressed.** A scan of
+every other line in that act found no second instance, so this is a trap to
+avoid rather than a common failure — but it is invisible on the page and costs a
+re-shoot when it fires.
+
 ## Length, and where the money is
 
 **18–24 minutes** (CEO: *"คนดูระหว่างกินข้าวไปด้วยได้"*). At 8-second shots:
