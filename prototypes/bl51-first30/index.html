@@ -188,6 +188,18 @@
       .bl-stat .lb  { font-weight: 600; font-size: 42px; color: #D7DCE0; margin-top: 12px;
                       text-shadow: var(--outline); }   /* was missing; failed contrast over bright plates (BL50) */
 
+
+      /* Standing legal label — on every frame of every episode, never animated.
+         The CEO ruled on 2026-09-17 that a ป้ายเตือน goes on every Forex surface,
+         and the statute this answers to is the one aimed at the marketing layer:
+         BOT's 25 Jun 2026 statement puts anyone who "โฆษณา ประกาศ หรือชักชวน
+         ประชาชน" to trade FOREX under พ.ร.ก. การกู้ยืมเงินที่เป็นการฉ้อโกงประชาชน
+         2527, with no carve-out for promising no returns. A label does not cure
+         conduct — it states intent, and the script has to match it. */
+      .bl-legal { position: absolute; left: 62px; right: 62px; top: 1790px; z-index: 45;
+                  font-family: Kanit, sans-serif; font-weight: 400; font-size: 24px;
+                  line-height: 1.35; text-align: center; color: #B9C0C6;
+                  text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 2px rgba(0,0,0,1); }
       .bug { position: absolute; left: 84px; top: 150px; z-index: 40;
              display: flex; align-items: flex-end; gap: 26px; }
       .bug .b1 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
@@ -238,6 +250,9 @@
              data-track-index="5" data-volume="1"></audio>
 
       <div class="bl-bg" id="bg"><div class="grid"></div><div class="scan"></div></div>
+    <!-- legal label: present on every frame, never animated, never moved -->
+    <div class="bl-legal">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำหรือการชักชวนลงทุน · การลงทุนมีความเสี่ยง</div>
+
       <div class="stage" id="stage"></div>
 
       <div class="bug" id="bug">

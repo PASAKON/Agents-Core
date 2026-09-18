@@ -171,6 +171,35 @@ case where reuse is right: the task is a re-render of the *same* episode that
 composition was built for — then say so in your report and reuse it. For any
 other episode, author from the template.
 
+### 6b. The legal label — every clip, no exceptions
+
+The kit carries `.bl-legal`, a one-line label at y=1790 that is present on every
+frame and is never animated, never moved, never faded and never covered:
+
+> เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำหรือการชักชวนลงทุน · การลงทุนมีความเสี่ยง
+
+It is already in the template. Do not remove it to make room, do not shorten it,
+do not schedule it. A cut that ships without it is not finished.
+
+**Why it is not decoration.** The CEO made it a requirement on every Forex
+surface on 2026-09-17, and the statute it answers to aims at the marketing layer
+specifically: BOT's 25 Jun 2026 statement puts anyone who "โฆษณา ประกาศ หรือ
+ชักชวนประชาชน" to trade FOREX under พ.ร.ก. การกู้ยืมเงินที่เป็นการฉ้อโกงประชาชน
+2527, and it writes no carve-out for people who promise no returns.
+
+**What the label cannot do.** It states intent; it does not change conduct. If
+the script itself offers an affiliate link in a public post — "เปิดผ่านลิงก์กู
+รีเบทเต็ม …" — the label does not cover that, and the CEO's own rule from the
+same ruling says those links belong in closed channels only. If the script you
+were handed does that, say so in your report rather than cutting around it.
+
+The full-length version belongs in the post caption, where there is room:
+
+> คลิปนี้จัดทำเพื่อให้ความรู้และวิเคราะห์ข้อมูลสาธารณะเท่านั้น ไม่ใช่คำแนะนำการลงทุน
+> และไม่มีเจตนาชักชวนให้ลงทุนหรือซื้อขายผลิตภัณฑ์ทางการเงินใด ๆ ผู้จัดทำไม่ได้รับ
+> ใบอนุญาตเป็นที่ปรึกษาการลงทุนจาก ก.ล.ต. การลงทุนมีความเสี่ยง ผู้ลงทุนควรศึกษาข้อมูล
+> และตรวจสอบใบอนุญาตของผู้ให้บริการก่อนตัดสินใจทุกครั้ง
+
 ### 7. Gate the composition
 ```bash
 npm run check          # lint + runtime + layout + motion + contrast
@@ -179,6 +208,8 @@ Fix every error. This catches overlap, occlusion and WCAG failures you will
 not see by reading the code.
 
 ### 8. Look at it — the gates do not see everything
+
+First thing to look for: the legal label is on the frame and nothing covers it.
 ```bash
 npx hyperframes snapshot --at 5,12,20,35,50,65,80,95,110,125,135 --no-end -o snapshots
 ```
