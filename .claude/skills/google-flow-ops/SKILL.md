@@ -475,8 +475,29 @@ in the profile; a new Claude session is not a new cache. The only fix is
 **capture the `flow-content.google/video/...` URL the first time the clip is
 ever fetched, by whoever fetches it first**, muted
 (`HTMLMediaElement.prototype.play` overridden to mute first), and keep it. A URL
-captured at first play still curls later. Clearing site data would also work and
-is not something an operator does to a shared browser.
+captured at first play still curls later.
+
+**If the first play was already missed, the clip is unrecoverable by an operator
+— and a C-level must not brief one to try.** That happened on 2026-09-19: the
+CTO sent an operator after seven clips that earlier operators had already
+played, which this very paragraph says cannot work, and the run returned 0/7.
+The rule existed; the brief was written without reading it.
+
+**The C-level escape hatch, which is a CTO action and never an operator's:**
+Chrome's disk cache is a directory. Quit Chrome, delete it, restart, then play
+the clip once — the fetch is real again and the URL is capturable.
+
+```bash
+# Nothing may be driving Chrome while this runs, or you kill that run.
+osascript -e 'tell application "Google Chrome" to quit'; sleep 4
+pkill -9 -f "Google Chrome"; sleep 2
+rm -rf ~/Library/Caches/Google/Chrome/Default/Cache
+open -a "Google Chrome"
+```
+
+This removes cached **assets only** — not cookies, not logins, not history, not
+site data — so the Flow session survives it. It is still the CEO's browser: do it
+when no operator is mid-run, and say afterwards that you did.
 
 **And some clips never surface at all:** five of operator A's shots showed zero
 `<video>` elements and zero requests on a direct `/edit/<id>` open, in three
