@@ -110,6 +110,36 @@ has no medicine is the reason the ending is allowed to happen.
 
 ---
 
+## ⛔ Thai banknotes: never render one (2026-09-18)
+
+A prop plate was asked for as "a small folded stack of worn Thai banknotes... no
+people, no readable text". What came back was a fully legible 20-baht note:
+`รัฐบาลไทย` readable, the denomination readable, serial numbers readable, and a
+detailed, recognisable portrait of King Rama IX.
+
+**This is not a continuity problem, it is a legal and cultural one**, and it is
+not fixable by asking for blur or by re-firing with a stronger negative — **every
+Thai banknote carries a royal portrait.** There is no prompt that yields
+something that still reads as Thai money and is safe.
+
+Money is in nearly every story this page will tell. So the rule is structural,
+decided once, and applied to every script:
+
+| instead of | shoot |
+|---|---|
+| a fanned or face-up stack of notes | **a closed hand around them** |
+| counting notes on a counter | **the edge of the fold**, or hands only |
+| an amount on screen | **a sealed envelope**, and the figure is spoken |
+| a wallet open to camera | a wallet closing, or the pocket it goes into |
+
+Write it into the shot from the start rather than discovering it at review. A
+prop prompt for money carries `no faces, no portraits, no denomination markings,
+no serial numbers, the notes folded so no face of a note is visible`.
+
+The operator who generated it stopped and reported rather than deleting or
+re-firing on its own initiative. That was right — this is a judgement call for a
+C-level, in the same class as casting.
+
 ## The spoken lines carry everything (CEO, and this is the hard one)
 
 > "ตัวละครขับเนื้อเรื่อง คนดูเข้าใจแม้ไม่ได้ดูภาพ บทพูดต้องสมเหตุสมผล
