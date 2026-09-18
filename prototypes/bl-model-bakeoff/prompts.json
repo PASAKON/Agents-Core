@@ -1,0 +1,22 @@
+{
+  "A": {
+    "label": "objects-hands-chart (no text)",
+    "why": "baseline: the kind of plate the catalogue is full of — motion + mood, zero glyphs",
+    "prompt": "Vertical 9:16. A hand slides a stack of banknotes across a black glass table under a single red neon strip. Behind it, an out-of-focus candlestick chart glows red on a monitor. Slow dolly-in, shallow depth of field, cinematic. Pure black background, red neon rim light, no on-screen text, no letters, no numbers, no logos, no watermark."
+  },
+  "B": {
+    "label": "phone screen, English UI text",
+    "why": "the claim 'RETURN 35%/MONTH' needs legible English on a phone",
+    "prompt": "Vertical 9:16. Close-up of a hand holding a smartphone in a dark room lit by red neon. The phone screen shows a trading app with the large English text 'RETURN 35% / MONTH' and a green 'DEPOSIT' button below it. Slow push-in on the screen, text stays sharp and readable. Black background, red rim light, cinematic."
+  },
+  "C": {
+    "label": "court document, English",
+    "why": "legal-notice beat — does a printed page hold letterforms",
+    "prompt": "Vertical 9:16. Overhead shot of an official English-language court summons on a dark desk, header reading 'NOTICE OF SEIZURE', a rubber stamp and a pen beside it. A hand enters frame and slides the paper forward. Hard red neon from the side, deep shadows, cinematic, text sharp and legible."
+  },
+  "D": {
+    "label": "bank transfer screen, English",
+    "why": "the 'check before you transfer' beat",
+    "prompt": "Vertical 9:16. Close-up of a laptop screen in a dark room showing an English bank transfer confirmation: 'TRANSFER FAILED' in red, an account number partly blurred, and a 'RETRY' button. Camera drifts slowly right. Red neon glow on black, cinematic, on-screen text sharp and readable."
+  }
+}

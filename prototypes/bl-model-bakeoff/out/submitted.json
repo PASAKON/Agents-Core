@@ -1,0 +1,65 @@
+[
+  [
+    "BL-A-Kling",
+    "A objects/hands/chart \u00b7 Kling 1080p",
+    "fal-ai/kling-video/v3/pro/text-to-video",
+    "01a0b2bb-b88d-7c63-9427-b29cfac08167",
+    0.56
+  ],
+  [
+    "BL-A-Wan",
+    "A objects/hands/chart \u00b7 Wan 1080p",
+    "alibaba/wan-3.0/text-to-video",
+    "01a0b2bb-bb43-7930-8d1b-8349c8203e64",
+    1.0
+  ],
+  [
+    "BL-A-Wan720up",
+    "A \u00b7 Wan 720p (-> Topaz 1.5x)",
+    "alibaba/wan-3.0/text-to-video",
+    "01a0b2bb-bdf7-76d3-a553-8dbf652cd975",
+    0.6
+  ],
+  [
+    "BL-Phone-Kling",
+    "B phone screen, English UI text \u00b7 Kling 1080p",
+    "fal-ai/kling-video/v3/pro/text-to-video",
+    "01a0b2bb-c0be-7e33-8d01-954e72c15658",
+    0.56
+  ],
+  [
+    "BL-Phone-Wan",
+    "B phone screen, English UI text \u00b7 Wan 1080p",
+    "alibaba/wan-3.0/text-to-video",
+    "01a0b2bb-c382-71f2-b933-f46dc9b3cb71",
+    1.0
+  ],
+  [
+    "BL-Court-Kling",
+    "C court document, English \u00b7 Kling 1080p",
+    "fal-ai/kling-video/v3/pro/text-to-video",
+    "01a0b2bb-c638-7060-8103-ed40a609d422",
+    0.56
+  ],
+  [
+    "BL-Court-Wan",
+    "C court document, English \u00b7 Wan 1080p",
+    "alibaba/wan-3.0/text-to-video",
+    "01a0b2bb-c8eb-7a93-a742-fb44ae4d9b24",
+    1.0
+  ],
+  [
+    "BL-Bank-Kling",
+    "D bank transfer screen, English \u00b7 Kling 1080p",
+    "fal-ai/kling-video/v3/pro/text-to-video",
+    "01a0b2bb-cba0-7ab3-8455-5954b6df4f2b",
+    0.56
+  ],
+  [
+    "BL-Bank-Wan",
+    "D bank transfer screen, English \u00b7 Wan 1080p",
+    "alibaba/wan-3.0/text-to-video",
+    "01a0b2bb-ce5b-7290-9eb7-76c433483dbf",
+    1.0
+  ]
+]
