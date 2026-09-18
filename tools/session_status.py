@@ -23,10 +23,20 @@ the record survives even if the file is later removed by hand.
 Reader side: :func:`get` / :func:`list_sessions` / :func:`resume_target`.
 ``resume_target`` falls back to the ``.uuid`` file for rows created before
 this column shipped (the column is NULL but the file is still there).
+
+``python -m tools.session_status resume --role <role> --session-id <id>``
+is what ``scripts/spawn-cto.sh``/``spawn-cxo.sh`` shell out to when a
+session's ``.uuid`` file is missing (task-a98788d7): it prints
+``resume_target()``'s answer and exits 0 only if that answer actually looks
+like a uuid (:func:`looks_like_uuid`), else exits 1 with nothing on stdout —
+the launcher treats either "no file, no DB row" or "found something that
+isn't a uuid" as a hard refusal, never as license to fall back to the short
+id `claude -r` would silently misinterpret as a request for a new session.
 """
 from __future__ import annotations
 
 import argparse
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -34,6 +44,21 @@ LOCKS = ROOT / "state" / "locks"
 
 from lib.db import get_conn, now_iso  # noqa: E402
 from tools.session_name import lock_basename  # noqa: E402
+
+# What `claude -r` actually needs — the full RFC4122-shaped uuid, never the
+# org's 8-hex short id. `claude -r <short-id>` does not error: it silently
+# falls into a fresh session, which is how task-a98788d7's bug hid as a
+# success line. Every resume target (file or DB) is checked against this
+# before being handed to `claude -r`, in scripts/spawn-cto.sh and
+# scripts/spawn-cxo.sh and in the `resume` CLI subcommand below.
+UUID_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+)
+
+
+def looks_like_uuid(value: str | None) -> bool:
+    return bool(value) and bool(UUID_RE.match(value.strip()))
+
 
 # The five values ``c_level_sessions.status`` may legally hold. ``abandoned``
 # (task-9ff9263f) is written only by tools/session_reconcile.py — never by
@@ -153,10 +178,12 @@ def resume_target(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """CLI entry — drives :func:`record_close` from the shell.
+    """CLI entry — drives :func:`record_close` and :func:`resume_target`.
 
     ``python -m tools.session_status close --role cto --session-id <id>
        --status saved [--note "..."] [--locks-dir <dir>]``
+    ``python -m tools.session_status resume --role cto --session-id <id>
+       [--locks-dir <dir>]``
 
     Mirrors the ``-m tools.<mod>`` convention every other launcher script uses.
     """
@@ -179,6 +206,17 @@ def main(argv: list[str] | None = None) -> int:
         help="read the .uuid here instead of the default state/locks",
     )
 
+    r = sub.add_parser(
+        "resume",
+        help="print the resumable uuid for a session, or exit 1 with nothing",
+    )
+    r.add_argument("--role", required=True)
+    r.add_argument("--session-id", required=True)
+    r.add_argument(
+        "--locks-dir", default=None,
+        help="read the .uuid here instead of the default state/locks",
+    )
+
     args = ap.parse_args(argv)
     if args.cmd == "close":
         record_close(
@@ -186,6 +224,14 @@ def main(argv: list[str] | None = None) -> int:
             note=args.note, locks_dir=args.locks_dir,
         )
         return 0
+    if args.cmd == "resume":
+        target = resume_target(
+            args.role, args.session_id, locks_dir=args.locks_dir
+        )
+        if looks_like_uuid(target):
+            print(target)
+            return 0
+        return 1
     return 2  # unreachable: argparse enforces a subcommand
 
 

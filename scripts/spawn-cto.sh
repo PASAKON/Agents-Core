@@ -54,15 +54,32 @@ case "${ARGS[0]:-}" in
   --last) CLAUDE_ARGS="-c" ;;
   --resume)
     # `claude -r/--resume` needs an exact session-ID match (or falls into
-    # picker mode) — the org's short id is only the trailing 8 hex chars
-    # of the real UUID, so look up the full UUID written by cto-claude.sh.
-    # Falls back to the short id for pre-rollout sessions with no .uuid file.
+    # picker mode) — the org's short id is only the trailing 8 hex chars of
+    # the real UUID. Resolution order: the .uuid file this launcher writes
+    # at spawn time, then c_level_sessions.resume_uuid (copied from that same
+    # file at close time — tools/session_status.record_close), which is what
+    # survives the file being deleted (measured 2026-09-18: 41 of 42 closed
+    # sessions with a DB resume_uuid had no .uuid file left on disk — a
+    # disk-cleanup sweep, not this launcher, is the presumed cause). Neither
+    # source is trusted blindly: the result is validated against the real
+    # uuid shape before being handed to `claude -r`, because `claude -r
+    # <short-id>` does not error — it silently opens a brand-new session,
+    # which is exactly how this bug hid as a normal success line
+    # (task-a98788d7). A bare short id must never reach `claude -r`.
     RESUME_ID="${ARGS[1]:-}"
     RESUME_UUID_FILE="$ROOT/state/locks/cto-$RESUME_ID.uuid"
     if [ -f "$RESUME_UUID_FILE" ]; then
       RESUME_TARGET="$(tr -d '[:space:]' <"$RESUME_UUID_FILE")"
     else
-      RESUME_TARGET="$RESUME_ID"
+      RESUME_TARGET="$(cd "$ROOT" && python3 -m tools.session_status resume \
+        --role cto --session-id "$RESUME_ID" 2>/dev/null || true)"
+    fi
+    if ! [[ "$RESUME_TARGET" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+      echo "refuse to resume cto-$RESUME_ID: no resumable UUID found." >&2
+      echo "  checked: $RESUME_UUID_FILE" >&2
+      echo "  checked: c_level_sessions.resume_uuid (role=cto, session_id=$RESUME_ID) in $ROOT/state/tasks.db" >&2
+      echo "  a short id is not a valid 'claude -r' target — refusing rather than silently opening a new session." >&2
+      exit 1
     fi
     CLAUDE_ARGS="-r $RESUME_TARGET"
     ;;
