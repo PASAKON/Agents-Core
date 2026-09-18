@@ -6,18 +6,24 @@ the CEO could not follow it. This is what the second one obeys.
 ## 1. Duration follows the line — never the other way round
 
 Flow offers 4 · 6 · 8 · 10 seconds. Pick the length that fits the speech, then
-add one beat of air at most. Thai conversation runs ~4–5 syllables/second; keep
-the model comfortable at **~3–4 syl/s**:
+add one beat of air at most.
+
+Measured on the reference reel (1.9M views, 2:03): **~1.8 syllables/second over
+the whole clip, ~3/s while someone is talking, 26 lines in 123 s, longest gap
+1.7 s.** Their lines are short; what makes it dense is that the next line comes
+at once and the cut lands when the line ends. So the bands are:
 
 | shot length | syllables carried | cost (720p) |
 |---|---|---|
-| 4 s | 10–16 | 6 |
-| 6 s | 16–24 | 9 |
-| 8 s | 22–32 | 12 |
-| 10 s | 28–40 | 15 |
+| 4 s | 8–14 | 6 |
+| 6 s | 12–20 | 9 |
+| 8 s | 16–28 | 12 |
+| 10 s | 22–36 | 15 |
 
-Measured ceilings: 8 s carried ~30 cleanly (shot 11); ~40 dropped the last two
-lines (shot 48). Never exceed the top of the band.
+Ours averaged **7 per 8 s** with ~6 s of air. Ceilings measured on our model:
+8 s carried ~30 cleanly (shot 11); ~40 dropped the last two lines (shot 48).
+Never exceed the top of the band; **never leave air after the last word** —
+choose the shortest length that holds the line.
 
 ## 2. Air is a beat, never a stretch
 
