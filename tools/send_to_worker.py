@@ -266,7 +266,7 @@ def send(task_id: str, message: str) -> str:
         from lib.db import get_conn
         with get_conn() as conn:
             row = conn.execute(
-                "SELECT id FROM tasks WHERE id LIKE ? LIMIT 1",
+                "SELECT id FROM tasks WHERE UPPER(id) LIKE UPPER(?) LIMIT 1",
                 (f"{task_id}%",),
             ).fetchone()
         if not row:
