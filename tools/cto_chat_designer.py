@@ -77,7 +77,7 @@ def _resolve_task(needle: str) -> dict:
     with db.get_conn() as conn:
         row = conn.execute(
             "SELECT id FROM tasks WHERE role='web_designer' "
-            "AND (id=? OR id LIKE ? OR id LIKE ?) "
+            "AND (id=? OR UPPER(id) LIKE UPPER(?) OR UPPER(id) LIKE UPPER(?)) "
             "ORDER BY updated_at DESC LIMIT 1",
             (needle, f"{needle}%", f"%{needle}"),
         ).fetchone()

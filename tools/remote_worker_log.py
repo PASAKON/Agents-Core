@@ -74,7 +74,7 @@ def _resolve_task(needle: str) -> dict:
     from lib.db import get_conn
     with get_conn() as conn:
         rows = conn.execute(
-            "SELECT id FROM tasks WHERE id LIKE ? LIMIT 2", (f"{needle}%",),
+            "SELECT id FROM tasks WHERE UPPER(id) LIKE UPPER(?) LIMIT 2", (f"{needle}%",),
         ).fetchall()
     if not rows:
         raise ValueError(f"no task matching {needle!r}")
