@@ -796,14 +796,25 @@ confirmed on the character pages by task-70d351e4):
 | narrator (voice only, `_Shared Element`) | **Sulafat** — Female, warm, mid pitch | pending ear |
 | `@lender_cherd` | currently bound to **algieba**, the script records Umbriel — a CEO decision is open | — |
 
-⛔ **A row in this ledger means a voice was CAST, never that the character
-exists.** On 2026-09-18 task-36507a6a went to bind `@cop_wit`'s voice and found
-no such asset in the project at all — the casting decision had been written down
-weeks before anyone made the plate. `@side_wall` was missing the same way. Both
-were referenced by a finished Act 1 shot sheet. Before binding a voice or
-writing a chip into a prompt, confirm the asset is on the `ตัวละคร` tab;
-`tools/build_shotsheet.py` now refuses to render a sheet whose handles have no
-downloaded plate, which closes this at the other end.
+⛔ **An asset that the `ตัวละคร` grid does not show may still exist.** On
+2026-09-18 task-36507a6a scrolled that grid top to bottom **twice** and reported
+`@cop_wit` and `@side_wall` absent from the project. Both were there the whole
+time; task-75926848 found them on the next run. The cause is the same
+`document.hidden` virtual-scroll freeze already recorded above for the voice
+picker: **in a background tab the grid stops re-rendering, so scrolling walks
+past rows that are never painted.** A `scrollTop` assignment does not thaw it —
+only a real wheel-scroll through the `computer` tool forces the re-render.
+
+So: **a negative from that grid is not evidence.** Confirm an asset is missing
+with the tab in the foreground and a real scroll, or do not claim it at all.
+This cost a briefed generation of two assets that did not need generating, and
+it is the second time this exact freeze has produced a false "not found" — the
+rule existed for the voice picker and nobody carried it across to the grid.
+
+The weaker claim is still true and still worth checking: a row in the cast
+ledger means a voice was **cast**, never that the character asset exists.
+`tools/build_shotsheet.py` closes this at the other end — it refuses to render a
+sheet whose handles have no downloaded plate.
 
 
 Update this the moment the CEO reacts to a voice. Score starts at 0 and moves
@@ -1007,6 +1018,34 @@ black-and-white while the rest of the teaser is colour. A shot only passes if it
 also matches the neighbouring shots' colour and grade, and a plate generated from
 a prompt that does not pin the look will drift. Say the look in the plate prompt,
 and compare frame 0 against a neighbouring shot before calling a re-fire good.
+
+## ⛔ Chrome itself can block downloads, and it looks exactly like Flow being broken (2026-09-18, task-75926848)
+
+A *different* failure from the CDN trap below, with an identical symptom: you
+click download, nothing lands, no error anywhere.
+
+After a handful of files in one session, Chrome trips its per-site
+**"automatic downloads blocked"** permission for `flow.google.com`. Once it
+trips, **every** download path dies at once — Flow's own per-tile button, a
+blob anchor, a burst of anchors — and it **survives a full page reload**. On
+task-75926848 it stopped an image harvest dead at 2 of 20.
+
+**How to tell it apart from the CDN trap:** the CDN trap is video-only and the
+CDN pull still works. This one kills image downloads too, and no page-side
+method works, because the block is in the browser, not the page.
+
+**The fix is a one-time human click and there is no way around it.** A person
+clicks the blocked-downloads indicator in Chrome's address bar and chooses
+*"Always allow multiple automatic downloads from flow.google.com"*. No agent
+tool can reach it: `claude-in-chrome` only ever sees page content, and
+computer-use holds browsers at read tier, so it cannot click browser chrome
+either. **Do not build a workaround for this** — a local HTTP sink was tried on
+that task and is exactly the kind of route-around a security permission that
+does not get kept. Stop, say what click is needed, and hand it to the CEO.
+
+Budget note: diagnosing this cost ~15 of that task's ~20 minutes. Recognise it
+from the symptom — *several downloads worked, then all of them stopped* — and
+stop immediately.
 
 ## The download button is dead — go straight to the CDN URL (2026-09-18, task-860620fc)
 
