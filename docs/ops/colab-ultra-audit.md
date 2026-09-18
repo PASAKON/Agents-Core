@@ -89,6 +89,63 @@ again.
    Flow production; RunPod loses a $0.30 pod. Cookie Run training is the safe
    workload — plain notebook, no web UI, no faces, no adult content.
 
+## Round 2 — free lane vs paid lane, benchmarked on our own model
+
+Asked by the CEO, and deliberately not answered from spec sheets: our IDM is a
+small CNN on 192x80 five-channel stacks, and a job that small is often bound by
+data feeding rather than by the GPU. Benchmarked with our real `Net()`, real
+tensor shape (B=64, 5x80x192), real forward/backward/step.
+
+| lane | GPU obtained | steps/s | samples/s | CU |
+|---|---|---|---|---|
+| free | **Tesla T4** (asked T4, got T4) | 83.6 | **5,348** | 998.48 → 998.48, **unmoved** |
+| paid | **RTX PRO 6000 Blackwell (G4)** (asked H100, bumped) | 632.0 | **40,451** | moved on connect |
+
+**Ratio 7.56x.** And Colab answers (a) too: this is not a shell with an idle GPU
+attached — our architecture ran end to end on both cards.
+
+**There is no free/paid toggle in the UI.** The runtime dialog lists every
+accelerator as a plain radio button with no cost labelling whatsoever. The lane
+was found empirically: T4 ran the full benchmark with the balance unmoved;
+anything above it draws CU **the moment you connect**, not when compute starts.
+Colab's own FAQ does not exempt T4 in writing, so it was tested rather than
+assumed.
+
+### What the 7.56x is worth to us: almost nothing
+
+Full IDM retrain = 799,300 frames x 6 epochs = 4.8M sample-passes.
+
+| | pure GPU time |
+|---|---|
+| free T4 | **14.9 min** |
+| paid G4 | **2.0 min** |
+
+Both are trivial. The GPU was never the constraint — feeding it is. Our own CPU
+pipeline manages 58 samples/s end to end today, and the benchmark deliberately
+did **not** measure a real DataLoader: it timed a single fixed batch already
+resident on the GPU. The operator flagged this himself, and it is the whole
+point.
+
+| if we can feed | T4 | G4 |
+|---|---|---|
+| 2,000/s | 40 min | **40 min** |
+| 5,000/s | 16 min | **16 min** |
+| 20,000/s | 14.9 min | 4 min |
+
+**Below about 5,300 samples/s of data feeding, the expensive card finishes at
+exactly the same time as the free one.** So: **use the free T4 lane**, and keep
+the 1,000 CU for work that is actually GPU-bound. Revisit only if a profile
+shows the loader feeding faster than T4 can consume.
+
+### Two operational findings from the same run
+
+- **Typing multi-line code into a Colab cell via simulated keystrokes corrupts
+  it** — each line's indentation stacks on the previous one, a cascading runaway
+  indent. Write to the clipboard and Ctrl+V instead; paste preserves whitespace.
+- **Cell output and the CU balance are not readable via `get_page_text`** —
+  canvas/iframe rendered, so verifying any printed number costs a screenshot.
+  Budget browser tasks on this site accordingly.
+
 ## Still open
 
 - **Storage.** The 20 TB Drive plausibly settles LungNote a86c1bc6 (winbox
