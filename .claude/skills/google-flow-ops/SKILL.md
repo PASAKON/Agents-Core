@@ -439,7 +439,7 @@ actually listened.
 | Story | Character | Voice | Score | Verdict |
 |---|---|---|---|---|
 | เงินที่พ่อตั้งใจหา | @lung_somchai (M, 58) | Algenib | 0 | pending ear — heard in shot58-omni |
-| เงินที่พ่อตั้งใจหา | @nong_daeng (M, 24) | Iapetus | 0 | pending ear |
+| เงินที่พ่อตั้งใจหา | @nong_daeng (M, 24) | Iapetus | **+1** | **KEPT — CEO listened 2026-09-18, "เสียงถูกแล้ว"** |
 | เงินที่พ่อตั้งใจหา | @grandma_pranom (F, 79) | Gacrux | 0 | pending ear |
 | เงินที่พ่อตั้งใจหา | @lender_cherd (M, 45) | Umbriel | 0 | pending ear |
 
