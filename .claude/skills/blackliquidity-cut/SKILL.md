@@ -193,6 +193,10 @@ the script itself offers an affiliate link in a public post — "เปิดผ
 same ruling says those links belong in closed channels only. If the script you
 were handed does that, say so in your report rather than cutting around it.
 
+The script you were handed should already obey the compliance rules in the
+`blackliquidity-script` skill — no broker the channel earns from, no link, no
+account CTA. If it does not, say so in your report instead of cutting around it.
+
 The full-length version belongs in the post caption, where there is room:
 
 > คลิปนี้จัดทำเพื่อให้ความรู้และวิเคราะห์ข้อมูลสาธารณะเท่านั้น ไม่ใช่คำแนะนำการลงทุน

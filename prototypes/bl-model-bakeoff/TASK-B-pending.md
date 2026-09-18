@@ -91,3 +91,17 @@ budget.
 
 `VIDEO_GEN_MOCK_MODE=1 npm run test:mock` green, plus tests for the budget block
 and for the catalogue-before-generate decision. No live generation.
+
+## 6. `videoscript.js`'s prompt must mirror the script skill
+
+`src/video/videoscript.js:46` carries the system prompt that writes every
+episode. It currently says nothing about compliance, so the automated writer is
+free to produce exactly the CTA that the CEO's own rule forbids — and an earlier
+episode did, offering a rebate link in a public post.
+
+Mirror the rules from the `blackliquidity-script` skill into that prompt:
+no broker the channel earns from may be named, no link, no account CTA, no
+mention of the channel's own rebate; a CTA points at a piece of content, never at
+opening an account; and if a broker is named at all the next line says the
+channel is not recommending anyone. The skill is the source of truth — when the
+two disagree, the skill wins and the prompt is what changes.
