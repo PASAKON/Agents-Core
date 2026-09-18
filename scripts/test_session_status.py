@@ -12,6 +12,10 @@ copied out of state/locks/<role>-<id>.uuid at close time. These pin:
   6. resume_target falls back to the .uuid file when the column is empty
   7. list_sessions('saved') returns only saved rows
   8. the CLI main() (what scripts/session-kill.sh drives) records the row
+  9. looks_like_uuid rejects short ids, accepts real uuids (task-a98788d7)
+  10. the CLI `resume` subcommand (what spawn-cto.sh/spawn-cxo.sh --resume
+      shell out to) falls back to the DB and refuses cleanly when neither
+      source has a usable uuid
 
 Run via:  .venv/bin/python scripts/test_session_status.py
 """
@@ -195,6 +199,38 @@ def test_list_sessions_filters_by_status() -> None:
             _mark(True, "list_sessions rejects an invalid status")
 
 
+def test_looks_like_uuid() -> None:
+    print("looks_like_uuid rejects short ids, accepts real uuids")
+    _mark(ss.looks_like_uuid("11111111-2222-3333-4444-555555feed00") is True,
+          "a real RFC4122-shaped uuid passes")
+    _mark(ss.looks_like_uuid("0aef5968") is False,
+          "an 8-hex short id (the org's session id, NOT a uuid) is rejected")
+    _mark(ss.looks_like_uuid("") is False, "empty string is rejected")
+    _mark(ss.looks_like_uuid(None) is False, "None is rejected")
+
+
+def test_cli_resume_prefers_db_then_refuses() -> None:
+    print("CLI resume: DB fallback when file is missing, refusal when neither exists")
+    with tempfile.TemporaryDirectory() as t:
+        locks = _fresh(Path(t))
+        uuid = "22222222-3333-4444-5555-666666600001"
+        # Closed session whose .uuid file was deleted after close — the exact
+        # shape of task-a98788d7's bug (measured live: 41 of 42 closed cto
+        # sessions were in this state on 2026-09-18).
+        ss.record_close("cto", "gap00001", "closed", locks_dir=locks)
+        with sqlite3.connect(str(db.DB_PATH)) as con:
+            con.execute(
+                "UPDATE c_level_sessions SET resume_uuid=? "
+                "WHERE role='cto' AND session_id='gap00001'", (uuid,))
+        rc = ss.main(["resume", "--role", "cto", "--session-id", "gap00001",
+                      "--locks-dir", str(locks)])
+        _mark(rc == 0, "resume subcommand exits 0 when the DB has the uuid")
+
+        rc = ss.main(["resume", "--role", "cto", "--session-id", "ghost999",
+                      "--locks-dir", str(locks)])
+        _mark(rc == 1, "resume subcommand exits 1 for a session with no uuid anywhere")
+
+
 def test_cli_main_records_row() -> None:
     """The CLI scripts/session-kill.sh drives (python -m tools.session_status)."""
     print("CLI main() records the row the same way record_close does")
@@ -221,6 +257,8 @@ if __name__ == "__main__":
     test_resume_uuid_copied_from_uuid_fixture()
     test_resume_target_falls_back_to_file()
     test_list_sessions_filters_by_status()
+    test_looks_like_uuid()
+    test_cli_resume_prefers_db_then_refuses()
     test_cli_main_records_row()
     print()
     print("ALL PASS" if not _failures else f"FAILED — {_failures} failure(s)")
