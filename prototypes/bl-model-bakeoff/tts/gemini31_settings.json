@@ -1,0 +1,6 @@
+{
+  "engine": "replicate google/gemini-3.1-flash-tts",
+  "language_code": "th-TH",
+  "style_prompt": "Speak as a Thai man in his early twenties, Thai-American, street-smart and blunt. Clear Thai pronunciation, confident, fast but not rushed. Breathe naturally between clauses.",
+  "text_file": "tts/v5.txt"
+}

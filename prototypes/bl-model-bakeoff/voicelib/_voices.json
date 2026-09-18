@@ -1,0 +1,242 @@
+[
+  {
+    "n": 1,
+    "voice": "Achernar",
+    "label": "Soft",
+    "file": "Gemini31-Thai-01-Achernar-Soft.mp3",
+    "start": 0.0,
+    "dur": 37.1
+  },
+  {
+    "n": 2,
+    "voice": "Achird",
+    "label": "Friendly",
+    "file": "Gemini31-Thai-02-Achird-Friendly.mp3",
+    "start": 37.9,
+    "dur": 39.8
+  },
+  {
+    "n": 3,
+    "voice": "Algenib",
+    "label": "Gravelly",
+    "file": "Gemini31-Thai-03-Algenib-Gravelly.mp3",
+    "start": 78.4,
+    "dur": 39.6
+  },
+  {
+    "n": 4,
+    "voice": "Algieba",
+    "label": "Smooth",
+    "file": "Gemini31-Thai-04-Algieba-Smooth.mp3",
+    "start": 118.8,
+    "dur": 36.7
+  },
+  {
+    "n": 5,
+    "voice": "Alnilam",
+    "label": "Firm",
+    "file": "Gemini31-Thai-05-Alnilam-Firm.mp3",
+    "start": 156.3,
+    "dur": 38.3
+  },
+  {
+    "n": 6,
+    "voice": "Aoede",
+    "label": "Breezy",
+    "file": "Gemini31-Thai-06-Aoede-Breezy.mp3",
+    "start": 195.4,
+    "dur": 39.7
+  },
+  {
+    "n": 7,
+    "voice": "Autonoe",
+    "label": "Bright",
+    "file": "Gemini31-Thai-07-Autonoe-Bright.mp3",
+    "start": 235.9,
+    "dur": 37.3
+  },
+  {
+    "n": 8,
+    "voice": "Callirrhoe",
+    "label": "Easy-going",
+    "file": "Gemini31-Thai-08-Callirrhoe-Easy-going.mp3",
+    "start": 274.0,
+    "dur": 37.2
+  },
+  {
+    "n": 9,
+    "voice": "Charon",
+    "label": "Informative",
+    "file": "Gemini31-Thai-09-Charon-Informative.mp3",
+    "start": 312.0,
+    "dur": 35.2
+  },
+  {
+    "n": 10,
+    "voice": "Despina",
+    "label": "Smooth",
+    "file": "Gemini31-Thai-10-Despina-Smooth.mp3",
+    "start": 348.0,
+    "dur": 35.9
+  },
+  {
+    "n": 11,
+    "voice": "Enceladus",
+    "label": "Breathy",
+    "file": "Gemini31-Thai-11-Enceladus-Breathy.mp3",
+    "start": 384.7,
+    "dur": 38.2
+  },
+  {
+    "n": 12,
+    "voice": "Erinome",
+    "label": "Clear",
+    "file": "Gemini31-Thai-12-Erinome-Clear.mp3",
+    "start": 423.8,
+    "dur": 38.7
+  },
+  {
+    "n": 13,
+    "voice": "Fenrir",
+    "label": "Excitable",
+    "file": "Gemini31-Thai-13-Fenrir-Excitable.mp3",
+    "start": 463.2,
+    "dur": 35.8
+  },
+  {
+    "n": 14,
+    "voice": "Gacrux",
+    "label": "Mature",
+    "file": "Gemini31-Thai-14-Gacrux-Mature.mp3",
+    "start": 499.8,
+    "dur": 38.5
+  },
+  {
+    "n": 15,
+    "voice": "Iapetus",
+    "label": "Clear",
+    "file": "Gemini31-Thai-15-Iapetus-Clear.mp3",
+    "start": 539.1,
+    "dur": 35.0
+  },
+  {
+    "n": 16,
+    "voice": "Kore",
+    "label": "Firm",
+    "file": "Gemini31-Thai-16-Kore-Firm.mp3",
+    "start": 574.9,
+    "dur": 39.4
+  },
+  {
+    "n": 17,
+    "voice": "Laomedeia",
+    "label": "Upbeat",
+    "file": "Gemini31-Thai-17-Laomedeia-Upbeat.mp3",
+    "start": 615.2,
+    "dur": 41.2
+  },
+  {
+    "n": 18,
+    "voice": "Leda",
+    "label": "Youthful",
+    "file": "Gemini31-Thai-18-Leda-Youthful.mp3",
+    "start": 657.2,
+    "dur": 36.2
+  },
+  {
+    "n": 19,
+    "voice": "Orus",
+    "label": "Firm",
+    "file": "Gemini31-Thai-19-Orus-Firm.mp3",
+    "start": 694.2,
+    "dur": 35.4
+  },
+  {
+    "n": 20,
+    "voice": "Pulcherrima",
+    "label": "Forward",
+    "file": "Gemini31-Thai-20-Pulcherrima-Forward.mp3",
+    "start": 730.4,
+    "dur": 31.8
+  },
+  {
+    "n": 21,
+    "voice": "Puck",
+    "label": "Upbeat",
+    "file": "Gemini31-Thai-21-Puck-Upbeat.mp3",
+    "start": 763.0,
+    "dur": 34.0
+  },
+  {
+    "n": 22,
+    "voice": "Rasalgethi",
+    "label": "Informative",
+    "file": "Gemini31-Thai-22-Rasalgethi-Informative.mp3",
+    "start": 797.8,
+    "dur": 35.6
+  },
+  {
+    "n": 23,
+    "voice": "Sadachbia",
+    "label": "Lively",
+    "file": "Gemini31-Thai-23-Sadachbia-Lively.mp3",
+    "start": 834.1,
+    "dur": 35.6
+  },
+  {
+    "n": 24,
+    "voice": "Sadaltager",
+    "label": "Knowledgeable",
+    "file": "Gemini31-Thai-24-Sadaltager-Knowledgeable.mp3",
+    "start": 870.5,
+    "dur": 37.6
+  },
+  {
+    "n": 25,
+    "voice": "Schedar",
+    "label": "Even",
+    "file": "Gemini31-Thai-25-Schedar-Even.mp3",
+    "start": 908.9,
+    "dur": 34.4
+  },
+  {
+    "n": 26,
+    "voice": "Sulafat",
+    "label": "Warm",
+    "file": "Gemini31-Thai-26-Sulafat-Warm.mp3",
+    "start": 944.2,
+    "dur": 39.6
+  },
+  {
+    "n": 27,
+    "voice": "Umbriel",
+    "label": "Easy-going",
+    "file": "Gemini31-Thai-27-Umbriel-Easy-going.mp3",
+    "start": 984.6,
+    "dur": 34.4
+  },
+  {
+    "n": 28,
+    "voice": "Vindemiatrix",
+    "label": "Gentle",
+    "file": "Gemini31-Thai-28-Vindemiatrix-Gentle.mp3",
+    "start": 1019.8,
+    "dur": 36.7
+  },
+  {
+    "n": 29,
+    "voice": "Zephyr",
+    "label": "Bright",
+    "file": "Gemini31-Thai-29-Zephyr-Bright.mp3",
+    "start": 1057.3,
+    "dur": 35.5
+  },
+  {
+    "n": 30,
+    "voice": "Zubenelgenubi",
+    "label": "Casual",
+    "file": "Gemini31-Thai-30-Zubenelgenubi-Casual.mp3",
+    "start": 1093.6,
+    "dur": 36.2
+  }
+]
