@@ -97,6 +97,15 @@ class HubUnreachable(Exception):
     answered but something about the data was wrong (see load_touches)."""
 
 
+class ArchivedHub(Exception):
+    """The canonical tasks.db is a directory (scripts/hub/cutover-mac.sh
+    step 5 tombstones it there once the hub cutover is done). This session
+    predates the cutover and hasn't been restarted onto ORG_DB_URL yet.
+    Handled as fail-OPEN by decide(), same shape as HubUnreachable --
+    refusing every Edit/Write/Bash until a human restarts the session is
+    not this guard's job."""
+
+
 # --------------------------------------------------------------------------
 # location
 # --------------------------------------------------------------------------
@@ -159,6 +168,8 @@ def load_touches(db: Path, task_id: str) -> list[str]:
             row = conn.execute(
                 "SELECT touches FROM tasks WHERE id=?", (task_id,)
             ).fetchone()
+    except db_lib.ArchivedDB as exc:
+        raise ArchivedHub(str(exc)) from exc
     except Exception as exc:              # noqa: BLE001 — any failure = refuse
         if not connected and os.environ.get("ORG_DB_URL", "").strip():
             raise HubUnreachable(str(exc)) from exc
@@ -445,6 +456,10 @@ def decide(event: dict | None, *, cwd: str | None = None,
     except HubUnreachable as exc:
         print(f"[self_repo_guard] hub unreachable within {HUB_TIMEOUT_S}s, "
               f"failing OPEN (allow): {exc}", file=sys.stderr)
+        return 0, ""
+    except ArchivedHub:
+        print(f"[self_repo_guard] {db_lib.ARCHIVED_TASKS_DB_MSG}",
+              file=sys.stderr)
         return 0, ""
     except GuardError as exc:
         return 2, _refusal_undecidable(str(exc), tool)
