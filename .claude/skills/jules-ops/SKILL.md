@@ -99,8 +99,12 @@ Gates a script answers for free (they caught 4 of 5 defects on session 1):
   lockfile changes unless line 2 allowed them
 - diff size cap (the good session was 3 KB; the bad one 1.1 MB)
 - PR body names the root cause and the files
-- verdict command run locally on the pinned runtime when CI is unavailable
-  (`npx --yes -p node@20 -c '<test script>'`)
+- verdict command run locally on the pinned runtime **with CI's own env values**
+  (copy the `env:` block from the workflow; never the repo's `.env`) when CI is
+  unavailable: `npx --yes -p node@20 -c '<test script>'` — flags before the file
+  list. Measured 2026-09-19: cfoTrack passed 5/5 with `.env` on Node 20 and 26
+  and failed on both with CI's dummy env — the failure was env-specific, and a
+  local run with `.env` had wrongly cleared it as "VM-only" for a whole review
 
 Then one model reads the packet (brief + facts + `diff --stat` + diff, logs
 truncated). Blind A/B on session 1's diff, answer key of 5 defects:
