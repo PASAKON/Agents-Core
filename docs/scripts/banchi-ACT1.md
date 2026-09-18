@@ -13,6 +13,8 @@ Omni 1.1 Flash · 9:16 · 8 วินาทีทุกช็อต · **720p �
 5. ตัวหนังสือที่ต้องอ่านออก **ต้องเขียนคำนั้นลง prompt ในเครื่องหมายคำพูด** (พิสูจน์แล้ว) ที่ไม่ได้เขียน = โมเดลแต่งเอง
 6. **ทุกช็อตมีบทพูด** ไม่มีข้อยกเว้น — `python3 tools/shotsheet_lint.py` ต้อง PASS ก่อนใช้เครดิตแม้แต่หน่วยเดียว
 7. **คนพูดต้องถูกแนบเป็น chip เสมอ** แม้อยู่นอกจอ — ไม่แนบ = เสียงสุ่ม ไม่ใช่เสียงที่ล็อกไว้
+8. **พูดตรง ไม่ให้คนดูตีความ** — `"โดนปฏิเสธอีกแล้ว"` ไม่ใช่ `"...อีกแล้ว"`
+9. **ใครอยู่ในระยะได้ยินบ้าง** — ก่อนให้ตัวละครพูดความลับ ถามว่าอีกคนในฉากได้ยินไหม ถ้าไม่ควรได้ยิน ย้ายเขาออกไปก่อน
 
 ## บล็อกหน้าตา — คัดลอกจากที่นี่เท่านั้น ห้ามเขียนจากความจำ
 
@@ -175,7 +177,7 @@ Sound: coins and paper counted softly.
 
 ### SHOT 8 · 0:56–1:04 · Close-up · static  ⟵ **จุดโฆษณา 1:00**
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@upstairs_bedroom`→REF_1
-**บทพูด** สมชาย `"ไม่พอ"` — คำเดียว เรียบ
+**บทพูด** สมชาย `"เดือนนี้...ไม่พออีกแล้ว"` — เรียบ พูดกับตัวเอง ย่าได้ยิน (ตั้งใจ)
 ```
 Use <IMAGE_REF_0> as the character reference for the man's face.
 Use <IMAGE_REF_1> as the location reference for the bedroom doorway behind him.
@@ -184,7 +186,7 @@ A Thai man of 58 <IMAGE_REF_0>, weathered square face, deep-set brown eyes, ligh
 stubble, exhales slowly in an upstairs bedroom <IMAGE_REF_1> and glances toward
 the doorway that leads down to the shop, doing arithmetic nobody else can see.
 Just before dawn, dim lamp light.
-He lets the breath out and says one word in Thai: "ไม่พอ".
+He lets the breath out and says quietly in Thai, to himself: "เดือนนี้...ไม่พออีกแล้ว".
 
 
 Close-up, static camera.
@@ -430,24 +432,27 @@ Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light
 Sound: the rag dragging on wood, a muffled phone buzz.
 ```
 
-### SHOT 22 · 2:48–2:56 · Close-up · slow push-in
-**ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@noodle_shop`→REF_1
-**บทพูด** ต้น `"...อีกแล้ว"` — แผ่ว พูดกับตัวเอง
+### SHOT 22 · 2:48–2:56 · Close-up · slow push-in  ★ ย้ายออกนอกระยะได้ยินของพ่อ
+**ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@staircase`→REF_1
+**บทพูด** ต้น `"โดนปฏิเสธอีกแล้ว...เฮ้อ ที่นี่ก็ไม่รับ"` — พูดกับตัวเอง ตรงๆ ไม่ต้องตีความ
+> อยู่ที่บันไดหลังร้าน **พ่อไม่ได้ยิน** — ถ้าพูดในร้าน ช็อต 23 ที่ลูกปิดข่าวจะพังทันที
 ```
 Use <IMAGE_REF_0> as the character reference for the young man's face.
-Use <IMAGE_REF_1> as the location reference for the counter behind him.
+Use <IMAGE_REF_1> as the location reference for the stairwell behind him.
 
-The face of a Thai man of 24 <IMAGE_REF_0>, thick black hair swept back, falls as
-he reads something on a phone cupped in his hand behind the counter of a noodle
-shop <IMAGE_REF_1>. His jaw tightens, his eyes lower. The screen is angled away
-from camera and never legible. Late morning, the warm daylight dimming slightly as
-he turns from the window.
-He speaks Thai under his breath, to himself: "...อีกแล้ว".
+A Thai man of 24 <IMAGE_REF_0>, thick black hair swept back, in a grey polo shirt
+under an apron, has stepped out of the shop into the narrow back stairwell
+<IMAGE_REF_1> to read something on the phone cupped in his hand, out of sight and
+earshot of the shop. His face falls, his jaw tightens, his eyes lower. The screen
+is angled away from camera and never legible. Late morning, the stairwell's
+single bulb, shop noise muffled behind him.
 
+Alone, he says it out loud in Thai, flatly, to himself: "โดนปฏิเสธอีกแล้ว...เฮ้อ
+ที่นี่ก็ไม่รับ".
 
 Close-up, slow push-in.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
-Sound: the shop's noise thinning under him.
+Sound: shop noise muffled through a wall, the phone screen clicking off.
 ```
 
 ### SHOT 23 · 2:56–3:04 · Close-up · static  ⟵ **จุดโฆษณา 3:00**
@@ -457,10 +462,9 @@ Sound: the shop's noise thinning under him.
 Use <IMAGE_REF_0> as the character reference for the young man's face and hand.
 Use <IMAGE_REF_1> as the location reference for the counter.
 
-The thumb of a Thai man of 24 <IMAGE_REF_0> hovers over a dimming phone screen
-behind the counter of a noodle shop <IMAGE_REF_1>. He glances toward his father
-across the room, then pockets the phone and forces his face neutral as a customer
-calls for the bill. The screen is never legible. Late morning, warm daylight.
+A Thai man of 24 <IMAGE_REF_0> steps back in from the rear stairwell into the
+noodle shop <IMAGE_REF_1>, pocketing the phone as he comes, and forces his face
+neutral as a customer calls for the bill. He does not look toward his father. The screen is never legible. Late morning, warm daylight.
 He answers the room in Thai, voice level and face not: "ได้ครับ กำลังไป".
 
 
@@ -477,8 +481,8 @@ Use <IMAGE_REF_0> as the character reference for the man's face.
 Use <IMAGE_REF_1> as the location reference for the wok station.
 
 A Thai man of 58 <IMAGE_REF_0>, deep-set brown eyes, light stubble, glances up
-from the wok in his noodle shop <IMAGE_REF_1>, catching sight of his son's face
-across the room, then lowers his eyes back to his work without a word. Late
+from the wok in his noodle shop <IMAGE_REF_1> as his son comes back in from out
+the back, reads the changed face in one look, and lowers his eyes to his work. Late
 morning, warm daylight, wok steam rising past his face.
 He starts to speak in Thai, gets one word out and changes his mind: "ต้น...ไม่มีอะไร".
 
@@ -706,7 +710,7 @@ Sound: notes counted and stacked.
 
 ### SHOT 36 · 4:40–4:48 · Close-up · static
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
-**บทพูด** สมชาย `"แล้วอันนี้..."` — พูดค้างไว้ ไม่จบประโยค
+**บทพูด** สมชาย `"แล้วอันนี้...เก็บไว้ก่อน"` — พูดค้าง แล้วปัดจบ ต้นได้ยินจากประตู (ตั้งใจ — นำไปสู่ช็อต 37)
 ```
 Use <IMAGE_REF_0> as the character reference for the man's hands.
 Use <IMAGE_REF_1> as the location reference for the counter.
@@ -715,7 +719,7 @@ The hands of a Thai man of 58 <IMAGE_REF_0> set apart a third, smaller stack of
 worn banknotes on the back counter of a noodle shop <IMAGE_REF_1>, folding it
 differently from the other two before tucking it aside. Afternoon lull, soft warm
 light. No numbers or text legible.
-He begins a third sentence in Thai and does not finish it: "แล้วอันนี้...".
+He begins a third sentence in Thai, stops, and closes it off: "แล้วอันนี้...เก็บไว้ก่อน".
 
 
 Close-up, static camera.
