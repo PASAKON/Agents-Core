@@ -61,6 +61,11 @@ VOICE = {
    "the clear, light voice of a man in his twenties, higher than his father's"),
  "ya": ("Vindemiatrix",
    "the thin, breathy, faintly wavering voice of a very frail woman near eighty"),
+ # Same man as "ton", so the same voice, word for word. A wardrobe variant with
+ # its own CHAR key silently fell through the builder's VOICE lookup and would
+ # have spoken with no voice block at all in every Act 2/3 shot he wears the suit.
+ "ton_suit": ("Iapetus",
+   "the clear, light voice of a man in his twenties, higher than his father's"),
  "wit": ("Rasalgethi",
    "the even, mid-pitched voice of a calm man in his early thirties"),
 }

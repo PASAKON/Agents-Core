@@ -121,7 +121,13 @@ def build(d) -> str:
             # can be characterised is the prompt, and a prompt only governs its
             # own shot. Say it every time or the voice is whatever the preset
             # happens to give that day.
-            voice = d.VOICE[sp][1] if hasattr(d, "VOICE") and sp in d.VOICE else None
+            # Hard failure, not a silent fallback. A character with no VOICE block
+            # renders "speaks Thai, <direction>" and reads as a missing line only
+            # if someone happens to look — @nong_daeng_suit slipped through
+            # exactly that way on 2026-09-18.
+            if sp not in getattr(d, "VOICE", {}):
+                raise SystemExit(f"shot {n}: speaker {sp!r} has no VOICE block")
+            voice = d.VOICE[sp][1]
             spoken = f"speaks Thai in {voice}, {direction}" if voice else f"speaks Thai, {direction}"
             out.append(f'{d.CHAR[sp][2]} <IMAGE_REF_{idx}> {spoken}, and says: "{line}"')
         out.append("")
