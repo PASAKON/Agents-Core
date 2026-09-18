@@ -140,6 +140,56 @@ The operator who generated it stopped and reported rather than deleting or
 re-firing on its own initiative. That was right — this is a judgement call for a
 C-level, in the same class as casting.
 
+## ⛔ Look at every plate before writing a shot sheet (CEO 2026-09-18)
+
+> "คุณเขียนบทหนัง แต่คุณไม่เคยดูภาพจริงของตัวละครและสถานที่นั้นๆ เลย"
+
+Act 1 was written twice — 48 shots, then 34 — from appearance blocks I had typed
+myself. Those blocks were my memory of the plates, not the plates. Opening one
+montage afterwards found three errors in ninety seconds:
+
+- the grandmother's hair was written "cropped very short and thinning"; the plate
+  has a thick short white bob
+- the lender was written "going soft at the waist" with "slicked-back" hair; the
+  plate is a lean man with ordinary short hair
+- **the shop's staircase was written "at the back"; in the plate it is in the
+  middle of the room** — and the plate's loudest features, a central pillar and
+  bright red, blue and green plastic stools, appear nowhere in any prompt
+
+The last one is the dangerous kind: every prompt was describing a room that does
+not exist, and the model was filling the gap by inventing one. That is exactly
+the bedroom-drift we spent the day chasing.
+
+**The rule: before writing or revising any shot sheet, look at every plate the
+episode uses — characters, locations, props — at least once.**
+
+### How to look, without burning the context
+
+Do NOT open plates one at a time. An image costs context whether or not it
+earned it, and fifteen separate looks cost fifteen times one look.
+
+```bash
+python3 tools/plate_montage.py <out.jpg> docs/reports/<plate-dir>/ [more dirs...]
+```
+
+It tiles everything into one labelled sheet, sized so faces stay readable — it
+picks the column count from the plate count and targets ~1600px wide. Look at
+that single image, write the appearance blocks **from what you see**, then write
+the sheet.
+
+If the montage has fallen out of context by the time you are revising, build it
+and look again. Once per writing session is the cost, and it is cheap.
+
+### Where the plates live
+
+Plates are downloaded **once** and kept — the repo for now, Drive under the ILAG
+rules once the folder is approved. Do not send an operator to re-download them
+for every script; that is a paid browser run to fetch files we already have.
+
+**When a character or location plate is regenerated, the stored copy must be
+replaced in the same turn.** A stale plate is worse than none: it will be
+believed, and every later script inherits the error.
+
 ## The spoken lines carry everything (CEO, and this is the hard one)
 
 > "ตัวละครขับเนื้อเรื่อง คนดูเข้าใจแม้ไม่ได้ดูภาพ บทพูดต้องสมเหตุสมผล
