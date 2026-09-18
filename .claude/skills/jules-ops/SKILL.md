@@ -115,8 +115,13 @@ truncated). Blind A/B on session 1's diff, answer key of 5 defects:
 | beyond the key | — | +2 (test edit *masks* failures; dead env-order bug) |
 | tokens / wall | 107k / 110 s | **92k / 43 s** |
 
-**Use Opus 5 (xhigh) for every Jules PR review** — deeper and, on this
-diff, cheaper. Merge is a human/CTO act after the checklist
+Second data point (PR #211, a 3-line clean fix): Opus 5 alone → MERGE + two
+non-blocking nits (partial run output in the PR body; a pre-existing unguarded
+env restore), and it correctly argued *against* a source-side fix because prod
+stores the key under the second name — 77k tokens / 87 s.
+
+**Use Opus 5 (xhigh) for every Jules PR review** — deeper and, on both
+diffs so far, no more expensive than Sonnet. Merge is a human/CTO act after the checklist
 (`cto-merge-checklist`); Jules PRs into prod-adjacent repos (claudeflow,
 webapp) need the CEO's per-repo OK like any other merge.
 
@@ -128,7 +133,17 @@ repo access (§1.1) · Jules never merges by design · a watchdog tripwire that
 alerts when `main` HEAD's author is outside the allowlist · the app is
 uninstallable in one click and every push carries its session id.
 
-## 6. Not-yet-measured
+## 6. Outcome of the first job (2026-09-19)
+
+"CI red since 2026-07-19" on MoonieX-ClaudeFlow, three sessions, ~2 h wall:
+#1 right test, wrong discipline (reopened) · #2 hygiene PR #210 · #3 the real
+cause, PR #211 — the test's telemetry-off setup deleted `SUPABASE_SERVICE_ROLE_KEY`
+while CI sets `SUPABASE_SERVICE_KEY`, so a real POST leaked into the next test's
+one-shot nock interceptor. Merged; main on Node 20 with CI's env 1,150/1,150.
+The CTO's own mis-call ("VM-only", from a local run with `.env`) cost one
+session — hence the §4 rule about CI's env block.
+
+## 7. Not-yet-measured
 
 Concurrency limit · Flash-tier quality · whether `sendMessage` works on an
 IN_PROGRESS session · Jules behaviour when CI is blocked (2026-09-19: GitHub
