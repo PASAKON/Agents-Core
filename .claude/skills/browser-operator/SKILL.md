@@ -495,6 +495,43 @@ reload/fresh-tab readings is incomplete. Send it back, or spawn a two-minute
 probe. "I cannot drive the browser myself" is never a reason to accept an
 untested blocker — it is a reason to delegate the test.
 
+## A greyed-out button is a message, not a wall (2026-09-18)
+
+A disabled control almost always means **the app is waiting for something you
+have not given it.** Treat it as a question, not as a broken feature.
+
+Google Flow's "save this custom voice" button cost **four separate runs** before
+anyone got it. Each run filled the two fields that looked required, pressed
+preview, saw the button stay grey, and reported the feature dead. The CTO wrote
+"SETTLED: this cannot be done" into a skill and told the CEO twice. The CEO — who
+had used the feature — corrected it in one line. A **third** field was mandatory,
+and nothing in the UI said so. The button had been telling the truth all along.
+
+**What to do when a control will not enable:**
+
+1. **Fill in every field in the dialog, including the ones that look optional.**
+   Placeholder text, an empty character counter and the word "optional" are all
+   just claims. Filling a field costs one action; concluding wrongly costs a run.
+2. **Watch the control while you change each field**, and say which change moved
+   it. That turns "it is disabled" into "it enables when X is set", which is the
+   actual finding.
+3. **Read the state it mirrors.** A spinner, an hourglass or a progress icon
+   beside it usually governs it. In Flow the save button was grey exactly while
+   the preview showed an hourglass and turned white the moment it showed play.
+4. **Never conclude a feature is impossible.** Report what you filled, what you
+   waited for, and what stayed disabled. Absence of success is not proof of
+   impossibility, and a report that says "cannot be done" ends everyone else's
+   thinking too.
+
+**And the part that actually caused it:** one early report described that third
+field as "optional, not required for preview or save state". Every later brief
+inherited that sentence and nobody retested it. **A claim in a prior report is
+not a measurement.** When a run fails against an instruction you inherited,
+suspect the instruction.
+
+Reproducing a failure four times proves nothing when all four share one wrong
+assumption. Vary the assumption, not the attempt.
+
 ## Paid controls (2026-09-06)
 
 The "no toast after 5 s = no-op, retry" habit belongs to the $0 Unlimited

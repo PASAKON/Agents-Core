@@ -930,12 +930,13 @@ generation. Check it before firing.
   **attach the plain preset, and write the performance direction into the shot's
   own prompt text.** That is better anyway — the direction then lives in the
   script, under version control, instead of inside Google's account state.
-  **Confirmed dead twice more on 2026-09-18** (task-36507a6a, task-881f8f0c),
-  from the character page and with real keystrokes, on ULTRA rather than PLUS —
-  so it is not a tier gate and not an input-method artefact. Full evidence in
-  the "Custom voices" section. I briefly retracted this note on 2026-09-18 on
-  the strength of the CEO having found the customisation UI; the UI is real,
-  the save is not, and the retraction was wrong.
+  ⛔ **RETRACTED 2026-09-18 — this whole bullet was wrong.** The save works; the
+  runs behind it all left `ตัวอย่างบทสนทนา` empty, which is mandatory even
+  though the UI never says so. **Attaching a plain preset is still a perfectly
+  good option**, and the direction-in-the-prompt technique is still correct and
+  still lives in the script under version control. But it is a choice now, not a
+  workaround for something broken. See the "Custom voices" section for the real
+  procedure and for how four runs talked themselves into the opposite.
 - **One "not found" is not proof a preset is gone.** A search for Algenib
   returned ไม่พบชิ้นงาน and the list skipped it alphabetically; a freshly opened
   picker minutes later showed it in place. Same `document.hidden` virtual-scroll
@@ -1145,43 +1146,63 @@ was holding together."*
 
 ## Custom voices — build one per character, off a base preset (CEO 2026-09-18)
 
->  ⛔ **SETTLED 2026-09-18: a custom voice CANNOT BE SAVED on this account.
-> Do not spend another run on it.** The path below is what the product appears
-> to offer. The last step of it does not work.
+> ✅ **This works. It took four runs to find out how, because three fields must
+> be filled and only two of them look required.** Everything below was read off
+> the CEO's own screen on 2026-09-18.
 >
-> Three independent runs, three different methods, one result:
+> ### Fill ALL THREE fields BEFORE pressing preview
 >
-> | run | path | how fields were filled | `บันทึกเสียงใหม่` |
-> |---|---|---|---|
-> | 2026-09-08 | composer `+` picker | typing | disabled |
-> | task-36507a6a 2026-09-18 | character page `เลือกเสียง` | `form_input` / DOM writes | disabled |
-> | task-881f8f0c 2026-09-18 | character page `เลือกเสียง` | **real keystrokes only**, values read back off the live elements | **disabled, all 6 states** |
+> | field | what goes in it |
+> |---|---|
+> | `ตัวอย่างบทสนทนา` (example dialogue, `0/120`) | **MANDATORY, and nothing in the UI says so.** A real line the character speaks. This is the text the preview actually synthesises. **Leaving it empty is why four runs concluded the feature was broken.** |
+> | `ปรับแต่งประสิทธิภาพ` (customize performance) | the voice description — **in English** |
+> | `ชื่อของเสียง` | pre-filled `<Preset> คัสตอม`. Replace with `<base preset> @<handle>`, e.g. `Algenib @lung_somchai` |
 >
-> The third run was built specifically to kill the obvious excuse — that
-> Angular never saw a programmatic `.value` write. It did not survive contact:
-> its Variant B never touched the name field at all, typed only the
-> description with real keys, ran a successful preview, and still read
-> `disabled: true`. And there is nothing to diagnose: the button carries no
-> `title`, no `aria-label`, no `aria-disabled`, no tooltip, the dialog renders
-> no validation error anywhere, and `btn.closest('form')` is **`null`** — the
-> dialog is not a form, so there is no validity state that could be gating it.
-> It is simply hard-coded `disabled="true"`.
+> ### Then, and the order matters
 >
-> Everything before the save works and is free: the preset list, the
-> description field, and the preview (which produces real audio, 0 credits,
-> measured 9,413 → 9,413 twice).
+> 1. Press **`แสดงตัวอย่าง`** — the big gradient tile.
+> 2. Its icon goes **hourglass → play**. While the hourglass shows,
+>    `บันทึกเสียงใหม่` is grey. When the play icon returns, **the save button
+>    turns white and is clickable.** The button is a faithful mirror of the
+>    preview state — it was never "hardcoded disabled", it was correctly
+>    disabled for a form that was incomplete.
+> 3. Press **`บันทึกเสียงใหม่`**.
+> 4. The saved voice appears as a **new row at the top of the preset list**, and
+>    the button changes to **`เพิ่มลงในตัวละคร`**. Press that to bind it.
+>    **Saving and binding are two separate steps** — a saved voice that was never
+>    bound does nothing.
+> 5. Reload and read the binding back. A voice that does not survive a reload did
+>    not save.
 >
-> **What to do instead — this is the supported path, not a consolation:**
-> attach the plain preset to the character, and write the performance
-> direction into the shot prompt beside the line
-> (`says, tired and gentle, with long pauses: "…"`). That is already how every
-> shot in this production carries emotion, and it works today.
+> ### Two real bugs in this dialog, both measured
 >
-> **The casting problem a custom voice was meant to solve does not go away**:
-> three of our men measured 132 / 148 / 150 Hz and read as one person. With
-> customisation unavailable, the fix is to re-cast onto presets from genuinely
-> different pitch bands — see the preset table and the cast ledger below —
-> and let the CEO's ear pick, since only he has one.
+> - **`ชื่อของเสียง` defaults to the wrong preset.** With Umbriel selected it
+>   pre-filled `Achernar คัสตอม` — Achernar being merely first alphabetically.
+>   It seems to latch the first preset viewed in that dialog session and never
+>   re-sync. **Always read the name field back before saving.**
+> - **`Escape` closes the whole dialog**, not just the `@`-autocomplete popup.
+>   Losing everything typed. Dismiss the autocomplete some other way.
+>
+> ### ⚠ How four runs got this wrong, so nobody repeats it
+>
+> Runs on 2026-09-08, task-36507a6a, task-881f8f0c and task-f7bb8a7b all left
+> `ตัวอย่างบทสนทนา` empty — an early report had called it "optional, not
+> required for preview or save state" and every later run inherited that line.
+> With it empty the preview still appears to run and returns in ~18 s, so each
+> run watched the icon, called it complete, found the save button disabled, and
+> reported the feature dead. The last of them waited **120–147 seconds** to rule
+> out a slow backend, which only made the wrong conclusion look better tested.
+>
+> The CTO then wrote "SETTLED: a custom voice CANNOT BE SAVED on this account"
+> into this file, into a commit message, and told the CEO twice. **The CEO, who
+> uses the feature, corrected it.** Three lessons, all cheap to apply:
+>
+> 1. **A first-hand user beats N runs of your own probe.** Their one real
+>    observation outranks your instrument.
+> 2. **"Optional" in an old report is a claim, not a fact.** This one was wrong
+>    and propagated through four briefs unchallenged.
+> 3. **Reproducing something four times proves nothing if all four share one
+>    wrong assumption.** Vary the assumption, not the attempt.
 
 The 30 presets are raw material, not the cast. Two of our men measured 148 and
 150 Hz and read as the same person; the grandmother's preset reads decades too
