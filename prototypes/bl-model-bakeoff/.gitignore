@@ -1,0 +1,20 @@
+
+# fal's request-history dumps carry `auth_method: key=<the API key>` on every
+# record. They are useful for recovering a lost render and must never be
+# committed — gitleaks caught 46 of them on 2026-09-18.
+_fal_requests.json
+_omni_requests.json
+*_requests.json
+
+# Generated media lives on Drive (md5-verified), not in git. This repo's .git
+# is already 3.8 GB; a 16 MB reference video that is also file id
+# 1jTFDDm3f8MLVGubSo9xubIyX8AYJCR47 has no business being in both places.
+# Keep the small evidence JPGs - those are the argument, not the asset.
+*.mp4
+*.mp3
+avatar/*.png
+voicelib/*.mp3
+tts/*.mp3
+out/*.mp4
+t1/*
+

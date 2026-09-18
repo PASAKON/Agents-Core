@@ -1,0 +1,30 @@
+[
+  {
+    "name": "(BL-avatar-crop-source) (18-9-2026) (crop from CEO 1408x768).png",
+    "id": "15I_yczk2AnvMqMzWdu7ytACj9j_bqQvv",
+    "md5": "2fafa51ba4c4d644dc8eb4b4763d3a24",
+    "bytes": 393183,
+    "verified": true
+  },
+  {
+    "name": "(BL-avatar-master-9x16) (18-9-2026) (Topaz upscale 2.5x).png",
+    "id": "1iaXUkq8NUeQzABZLnSRoXMuQlLRFl1YH",
+    "md5": "dd508688b67551b4c9c07c90d992a5e4",
+    "bytes": 394963,
+    "verified": true
+  },
+  {
+    "name": "(BL-avatar-master-9x16-alt) (18-9-2026) (Clarity upscale 2.5x).png",
+    "id": "1gkdtMMiKmKpTZGxkoCILLkxbfrfk_vHr",
+    "md5": "fcbe99ba8297a1fb114ea2d3c6c9d89f",
+    "bytes": 2418377,
+    "verified": true
+  },
+  {
+    "name": "(BL-avatar-original-16x9) (18-9-2026) (CEO source).png",
+    "id": "11t-Q_ktVLJubpk9tbPiYlaoVHy0nmhXK",
+    "md5": "01279dd0ed4d46efe6629961ba759df6",
+    "bytes": 1379987,
+    "verified": true
+  }
+]
