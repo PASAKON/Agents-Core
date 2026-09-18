@@ -62,6 +62,31 @@ unmeasured: whether Lite video is really 10.
 
 **Every still this production needs is free.** Spend credits only on video.
 
+## Test fires run at 360p / 8 seconds — never at full quality (CEO 2026-09-18)
+
+When the thing being tested is **behaviour** — does the character speak, does
+the voice bind, does the reference hold, does the prompt grammar work — shoot it
+at **360p and the real 8 seconds**. Not 720p. Not a shortened 4 s.
+
+| | credits, Omni 1.1 Flash, 8 s | |
+|---|---|---|
+| 720p | **12** | production |
+| 360p | **6** | every test |
+
+**Why 360p:** the only thing that changes is detail. Framing, motion, timing,
+lip-sync, audio and whether the model obeys the prompt all come out identical.
+Testing those at 720p pays double for pixels nobody looks at.
+
+**Why the full 8 seconds and not 4:** a short clip is not the same experiment.
+The model fills whatever runtime it is given, so a 4 s test can stay silent
+purely because it ran out of time, and the same prompt then talks at 8 s in
+production. The test length must be the production length or the result does
+not transfer.
+
+So: **real footage, real duration, lower detail.** Half the credits, same answer.
+
+Only go to 720p once the behaviour is settled and the shot is being kept.
+
 ## The shortest path — 12 steps, do them in this order
 
 1. Open a **fresh tab**. `flow.google.com` (labs.google/fx/tools/flow redirects
