@@ -68,25 +68,16 @@ print(f"{u.hostname}:{u.port or 5432}{u.path}")
 
 # --- step 1: refuse if live work is in flight -------------------------
 # Read-only; always runs (dry-run and --apply alike) -- it's a safety gate,
-# not an action to preview.
+# not an action to preview. Liveness logic lives in scripts/hub/
+# cutover_gate.py (task-7ad6ad8a) -- a `review` row with a pid only refuses
+# when that pid is alive AND identity-matched to the task (same check
+# tools/worker_reap.py uses before ever signalling a pid); a dead/recycled
+# pid is the ordinary state after reaping and is reported as an info count,
+# not a refusal.
 step 1 "refuse if any live work is in flight"
-LIVE_TASKS="$("$PYTHON" - <<'PYEOF'
-import sys
-sys.path.insert(0, ".")
-from lib import db
-live = [r for r in db.list_tasks(limit=2000)
-        if r["status"] == "in_progress"
-        or (r["status"] == "review" and r.get("pid"))]
-for r in live:
-    print(f"{r['id']}\t{r['status']}\t{r['role']}\t{r['title']}")
-PYEOF
-)"
-if [ -n "$LIVE_TASKS" ]; then
-  say "REFUSING: tasks still in flight:"
-  say "$LIVE_TASKS"
+if ! "$PYTHON" scripts/hub/cutover_gate.py; then
   exit 1
 fi
-say "ok: no in_progress / live-pid review tasks."
 
 WD_SESSIONS="$(tmux list-sessions -F '#{session_name}' 2>/dev/null | grep -E '^wd-' || true)"
 if [ -n "$WD_SESSIONS" ]; then
@@ -95,6 +86,17 @@ if [ -n "$WD_SESSIONS" ]; then
   exit 1
 fi
 say "ok: no wd-* tmux sessions."
+
+# Not a refusal -- every live C-level session keeps talking to its OLD
+# backend until restarted (§3.3 step 7), so this is a reminder of who to
+# restart after the flip, not a reason to block it.
+CLEVEL_SESSIONS="$(tmux list-sessions -F '#{session_name}' 2>/dev/null | grep -E '^(cto|cxo)-' || true)"
+if [ -n "$CLEVEL_SESSIONS" ]; then
+  say "reminder: restart these after the flip (they keep their old backend until then):"
+  say "$CLEVEL_SESSIONS"
+else
+  say "ok: no live cto-*/cxo-* tmux sessions."
+fi
 
 # --- step 2: freeze the watchdog ---------------------------------------
 step 2 "freeze the watchdog (restored on exit, success or failure)"
@@ -176,9 +178,22 @@ print(f"round trip ok: {tid}")
 PYEOF
   mv state/tasks.db "$ARCHIVE_PATH"
   ls -la "$ARCHIVE_PATH"
+  # Loud tombstone: a directory at this path makes sqlite3.connect() raise
+  # instead of silently creating a fresh empty tasks.db -- the exact split
+  # brain this cutover removes, for any process still on the SQLite backend
+  # (a C-level session not yet restarted onto ORG_DB_URL). lib/db.py's
+  # _connect() and the self-repo-guard/log-prompt hooks recognise this
+  # directory and fail loud/open respectively instead of crashing blind.
+  mkdir "$ROOT/state/tasks.db"
+  say "tombstoned: state/tasks.db is now a directory (was archived to $ARCHIVE_PATH)."
+  say "to undo: rmdir state/tasks.db && mv $ARCHIVE_PATH state/tasks.db"
 else
   say "would run: create_task()+get_task() round trip via lib.db with ORG_DB_URL set"
   say "would then run: mv state/tasks.db $ARCHIVE_PATH && ls -la $ARCHIVE_PATH"
+  say "would then run: mkdir $ROOT/state/tasks.db (tombstone -- makes a"
+  say "  pre-cutover session's sqlite connect attempt fail loudly instead of"
+  say "  silently recreating an empty tasks.db)"
+  say "to undo after --apply: rmdir state/tasks.db && mv $ARCHIVE_PATH state/tasks.db"
 fi
 
 say ""
@@ -186,9 +201,10 @@ say "== summary =="
 say "what changed:   ORG_DB_URL now flows through config/{cto,worker}.mcp.json,"
 say "                the watchdog + mac-agent launchd plists, and"
 say "                scripts/cto-claude.sh; state/tasks.db archived to"
-say "                $ARCHIVE_PATH (no writer left)."
+say "                $ARCHIVE_PATH and replaced with a tombstone directory"
+say "                (no writer can silently recreate an empty one)."
 say "how to roll back: git checkout -- config/cto.mcp.json config/worker.mcp.json"
 say "                scripts/cto-claude.sh; restore the two plists (git-untracked --"
 say "                Time Machine, or re-run cutover_flip.py's logic in reverse);"
-say "                mv $ARCHIVE_PATH state/tasks.db."
+say "                rmdir state/tasks.db && mv $ARCHIVE_PATH state/tasks.db."
 say "watchdog:       restarts automatically when this script exits (see step 2 cleanup)."

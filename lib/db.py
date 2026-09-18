@@ -37,6 +37,23 @@ def _resolve_root() -> Path:
 ROOT = _resolve_root()
 DB_PATH = ROOT / "state" / "tasks.db"
 
+# scripts/hub/cutover-mac.sh step 5 (docs/design/tasks-db-hub.md §3.3)
+# replaces state/tasks.db with a directory once the hub cutover is done and
+# the file has been archived -- a directory makes sqlite3.connect() raise
+# instead of silently creating a fresh empty database at that path (the
+# exact split-brain the cutover removes). ArchivedDB lets callers (the
+# self-repo-guard/log-prompt hooks) distinguish this from every other
+# connect failure and fail OPEN instead of refusing forever.
+ARCHIVED_TASKS_DB_MSG = (
+    "tasks.db is archived (hub cutover done) — this session predates the "
+    "cutover: restart it (/terminal-restart) so it talks to the hub"
+)
+
+
+class ArchivedDB(RuntimeError):
+    """Raised by _connect() when the resolved sqlite path is a directory."""
+
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS tasks (
     id              TEXT PRIMARY KEY,
@@ -217,6 +234,22 @@ def _connect(*, timeout: float | None = None, readonly: bool = False,
                   regardless of which checkout asks (see get_conn).
     """
     db_path = Path(path) if path is not None else DB_PATH
+    if db_path.is_dir():
+        raise ArchivedDB(ARCHIVED_TASKS_DB_MSG)
+    if os.environ.get("PYTEST_CURRENT_TEST") and (
+        db_path.parent.parent / ".git"
+    ).exists():
+        # ADR 0021 addendum (2026-09-18): a test process inherits whatever
+        # ORG_ROOT its shell carries -- a worker's own shell sets it to the
+        # real hub checkout (runners/worker_init.py) -- so a test that
+        # doesn't monkeypatch DB_PATH/path to a tmp location would otherwise
+        # silently open the real tasks.db (29 test-proj rows + 13 events
+        # landed there this way). A real checkout/worktree always has a
+        # `.git` entry (file for a worktree's gitdir pointer, dir for a full
+        # clone); a tmp_path fixture never does.
+        raise RuntimeError(
+            "tests must not touch a real checkout's tasks.db (ADR 0021)"
+        )
     kwargs = {"timeout": timeout} if timeout is not None else {}
     if readonly:
         if not db_path.exists():

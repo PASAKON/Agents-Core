@@ -53,3 +53,29 @@ def _clean_session_env(monkeypatch):
     for var in ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE",
                 "CTO_SESSION", "CXO_SESSION", "ORG_DB_URL"):
         monkeypatch.delenv(var, raising=False)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_org_root(tmp_path, monkeypatch):
+    """ADR 0021 addendum (2026-09-18): a worker's own shell exports ORG_ROOT
+    pointing at the real hub checkout (runners/worker_init.py, GH #154) so
+    lib.db can find state/ from inside a worktree -- which means a test run
+    from a worker shell inherits that same ORG_ROOT. A subprocess-based test
+    that spawns a fresh `python3 -c '...from lib import db...'` then has
+    that fresh import's lib.db._resolve_root() resolve to the REAL checkout
+    and write there -- measured: 29 test-proj rows + 13 events landed in the
+    live Mac tasks.db this way, cleaned up by hand.
+
+    Pinning ORG_ROOT to a per-test tmp_path here gives any subprocess a test
+    spawns an isolated, nonexistent root instead -- its own fresh lib.db
+    import creates state/tasks.db under tmp_path, never the real one.
+
+    This does NOT touch this process's own already-imported `lib.db` module
+    (its ROOT/DB_PATH were computed once, at first import, before any test
+    ran) -- a test that calls lib.db directly still monkeypatches
+    `db.DB_PATH` itself (existing convention, e.g. scripts/test_dev_message
+    .py). lib/db.py's own _connect() carries the backstop for anything that
+    doesn't: it refuses outright, under pytest, to open a sqlite file whose
+    resolved root is a real checkout (has a `.git` entry).
+    """
+    monkeypatch.setenv("ORG_ROOT", str(tmp_path))
