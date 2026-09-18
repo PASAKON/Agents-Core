@@ -78,4 +78,4 @@ Verdict: MERGE  /  REOPEN with feedback  /  HOLD pending <reason>
 - **Never paraphrase the gate as passed without evidence.** Quote the DEV report.
 - **One iteration of feedback is normal, three is a smell.** If DEV is on iteration 3, escalate to CEO instead of looping further.
 - **Cross-project dependencies** — DEVs never reach across projects. If gate 3 reveals one, refuse and rewrite scope.
-- **Memory:** Agents meta-repo auto-commit+push is allowed; other projects need explicit confirmation per repo.
+- **Merges are the CTO's call on every repo** (CEO 2026-09-19: "Coding คือหน้าที่คุณ เห็นสมควรจัดการได้เลย ฉันมีหน้าที่วางแผน"). A gate-clean PR is merged and reported in one line — never "ขออนุมัติ merge". Spend, prod deploys, migrations and secrets keep their own gates; those are consequences, not code decisions.
