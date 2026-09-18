@@ -61,9 +61,17 @@ LOC = {
 }
 
 NOT = {
- "money": "No note face is visible anywhere in frame: the banknotes stay folded backs-out, inside "
-          "the cloth pouch, or covered by a hand. No portraits, no denomination markings, no serial "
-          "numbers. No notebook, no pen, no paper, no ledger of any kind.",
+ # CEO 2026-09-18: the money in this film is invented prop money, not currency.
+ # Not "hide the notes" — change what the notes ARE, so a counting scene can be
+ # shot openly. Foreign currency is NOT the safer option: dollars, euro, yen and
+ # yuan all carry portraits and protected designs of their own.
+ "money": "The banknotes are plain fictional prop money, not the currency of any real "
+          "country: soft pastel paper in even tones, a simple printed numeral in one "
+          "corner, a plain abstract line pattern at the edges, and nothing else. No "
+          "portrait or face of any kind on the notes. No national emblem, crest, seal, "
+          "flag or country name. No real-world currency symbol, no serial numbers, no "
+          "signatures, no microtext, no watermark. Worn and soft with handling. Also in "
+          "this shot: no notebook, no pen, no paper, no ledger of any kind.",
  "ya":    "She stays lying propped on the pillows and does not sit up. She wears no glasses. The "
           "nasal cannula stays on.",
 }

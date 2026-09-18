@@ -110,35 +110,45 @@ has no medicine is the reason the ending is allowed to happen.
 
 ---
 
-## ⛔ Thai banknotes: never render one (2026-09-18)
+## ⛔ Money on screen is invented prop money (CEO 2026-09-18)
 
-A prop plate was asked for as "a small folded stack of worn Thai banknotes... no
-people, no readable text". What came back was a fully legible 20-baht note:
-`รัฐบาลไทย` readable, the denomination readable, serial numbers readable, and a
-detailed, recognisable portrait of King Rama IX.
+A prop plate asked for "worn folded Thai banknotes, no readable text" came back
+as a fully legible 20-baht note — `รัฐบาลไทย` readable, the denomination
+readable, serial numbers readable, and a recognisable portrait of King Rama IX.
+Four of four money shots in the first Act 1 shoot did the same thing: the model
+draws a real Thai note whenever a prompt says "banknotes", whether or not a money
+chip is attached.
 
-**This is not a continuity problem, it is a legal and cultural one**, and it is
-not fixable by asking for blur or by re-firing with a stronger negative — **every
-Thai banknote carries a royal portrait.** There is no prompt that yields
-something that still reads as Thai money and is safe.
+My first fix was to hide the money — closed hands, sealed envelopes, the edge of
+a fold. The CEO replaced it with a better one:
 
-Money is in nearly every story this page will tell. So the rule is structural,
-decided once, and applied to every script:
+> "เราไม่ต้องทำเหมือนของจริงก็ได้ มันเหมือนเกินไป ... ให้เป็นเงินกาโม้แทนได้เลย"
 
-| instead of | shoot |
-|---|---|
-| a fanned or face-up stack of notes | **a closed hand around them** |
-| counting notes on a counter | **the edge of the fold**, or hands only |
-| an amount on screen | **a sealed envelope**, and the figure is spoken |
-| a wallet open to camera | a wallet closing, or the pocket it goes into |
+**Change what the notes ARE, and the scene can be shot openly.** A father
+counting money at his counter is good drama; hiding it in every shot was solving
+a legal problem by amputating a storytelling one.
 
-Write it into the shot from the start rather than discovering it at review. A
-prop prompt for money carries `no faces, no portraits, no denomination markings,
-no serial numbers, the notes folded so no face of a note is visible`.
+The block, pasted into every shot where money appears:
 
-The operator who generated it stopped and reported rather than deleting or
-re-firing on its own initiative. That was right — this is a judgement call for a
-C-level, in the same class as casting.
+```
+The banknotes are plain fictional prop money, not the currency of any real
+country: soft pastel paper in even tones, a simple printed numeral in one corner,
+a plain abstract line pattern at the edges, and nothing else. No portrait or face
+of any kind on the notes. No national emblem, crest, seal, flag or country name.
+No real-world currency symbol, no serial numbers, no signatures, no microtext, no
+watermark. Worn and soft with handling.
+```
+
+**Foreign currency is not the safer option.** Dollars, euro, yen and yuan all
+carry portraits, landmarks and protected security designs; swapping one country's
+note for another's trades a Thai problem for someone else's. Invented money
+belongs to nobody.
+
+Two things this does not change: the amount is still **spoken**, never read off a
+note — a spoken number cannot warp and cannot be missed. And a man whose whole
+story is that he never writes anything down still gets `no notebook, no pen, no
+paper` in the same block, because the model reaches for a ledger whenever someone
+counts.
 
 ## ⛔ Look at every plate before writing a shot sheet (CEO 2026-09-18)
 

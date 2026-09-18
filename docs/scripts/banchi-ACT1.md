@@ -116,7 +116,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai, counting u
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai, flat, and says: "ค่ายาแม่เดือนนี้ยังขาดอีกสามร้อย"
 
 The face of whoever is speaking stays in frame for the whole line.
-No note face is visible anywhere in frame: the banknotes stay folded backs-out, inside the cloth pouch, or covered by a hand. No portraits, no denomination markings, no serial numbers. No notebook, no pen, no paper, no ledger of any kind.
+The banknotes are plain fictional prop money, not the currency of any real country: soft pastel paper in even tones, a simple printed numeral in one corner, a plain abstract line pattern at the edges, and nothing else. No portrait or face of any kind on the notes. No national emblem, crest, seal, flag or country name. No real-world currency symbol, no serial numbers, no signatures, no microtext, no watermark. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium shot, static camera, his face and the tray both in frame. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -415,7 +415,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai, counting, 
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai, firm with himself, and says: "อันนี้ค่ายาแม่ ห้ามแตะเด็ดขาด"
 
 The face of whoever is speaking stays in frame for the whole line.
-No note face is visible anywhere in frame: the banknotes stay folded backs-out, inside the cloth pouch, or covered by a hand. No portraits, no denomination markings, no serial numbers. No notebook, no pen, no paper, no ledger of any kind.
+The banknotes are plain fictional prop money, not the currency of any real country: soft pastel paper in even tones, a simple printed numeral in one corner, a plain abstract line pattern at the edges, and nothing else. No portrait or face of any kind on the notes. No national emblem, crest, seal, flag or country name. No real-world currency symbol, no serial numbers, no signatures, no microtext, no watermark. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium shot, static camera, his face in frame above the counter. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -432,7 +432,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai, trailing o
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai, flat, closing it off, and says: "เก็บไว้ก่อน วันพฤหัสค่อยว่ากัน"
 
 The face of whoever is speaking stays in frame for the whole line.
-No note face is visible anywhere in frame: the banknotes stay folded backs-out, inside the cloth pouch, or covered by a hand. No portraits, no denomination markings, no serial numbers. No notebook, no pen, no paper, no ledger of any kind.
+The banknotes are plain fictional prop money, not the currency of any real country: soft pastel paper in even tones, a simple printed numeral in one corner, a plain abstract line pattern at the edges, and nothing else. No portrait or face of any kind on the notes. No national emblem, crest, seal, flag or country name. No real-world currency symbol, no serial numbers, no signatures, no microtext, no watermark. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Close-up, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -451,7 +451,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai, quick, and
 The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai, half-teasing, and says: "มีเก็บเยอะขนาดนี้เลยเหรอพ่อ"
 
 The face of whoever is speaking stays in frame for the whole line.
-No note face is visible anywhere in frame: the banknotes stay folded backs-out, inside the cloth pouch, or covered by a hand. No portraits, no denomination markings, no serial numbers. No notebook, no pen, no paper, no ledger of any kind.
+The banknotes are plain fictional prop money, not the currency of any real country: soft pastel paper in even tones, a simple printed numeral in one corner, a plain abstract line pattern at the edges, and nothing else. No portrait or face of any kind on the notes. No national emblem, crest, seal, flag or country name. No real-world currency symbol, no serial numbers, no signatures, no microtext, no watermark. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -466,7 +466,7 @@ In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wood
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai, deflecting, through a smile, and says: "เยอะที่ไหนล่ะ พอค่าเส้นพรุ่งนี้ก็หมดแล้ว"
 
 The face of whoever is speaking stays in frame for the whole line.
-No note face is visible anywhere in frame: the banknotes stay folded backs-out, inside the cloth pouch, or covered by a hand. No portraits, no denomination markings, no serial numbers. No notebook, no pen, no paper, no ledger of any kind.
+The banknotes are plain fictional prop money, not the currency of any real country: soft pastel paper in even tones, a simple printed numeral in one corner, a plain abstract line pattern at the edges, and nothing else. No portrait or face of any kind on the notes. No national emblem, crest, seal, flag or country name. No real-world currency symbol, no serial numbers, no signatures, no microtext, no watermark. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Close-up, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -539,7 +539,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai, flat and f
 The 32-year-old man in the dark-grey polo shirt <IMAGE_REF_0> speaks Thai, one more try, and says: "ลุงครับ..."
 
 The face of whoever is speaking stays in frame for the whole line.
-No note face is visible anywhere in frame: the banknotes stay folded backs-out, inside the cloth pouch, or covered by a hand. No portraits, no denomination markings, no serial numbers. No notebook, no pen, no paper, no ledger of any kind.
+The banknotes are plain fictional prop money, not the currency of any real country: soft pastel paper in even tones, a simple printed numeral in one corner, a plain abstract line pattern at the edges, and nothing else. No portrait or face of any kind on the notes. No national emblem, crest, seal, flag or country name. No real-world currency symbol, no serial numbers, no signatures, no microtext, no watermark. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera, both faces in frame above the counter. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -556,7 +556,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai, not angry,
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai, warm, and says: "วิทย์กินให้อร่อยก็พอแล้ว ลุงพอใจแล้ว"
 
 The face of whoever is speaking stays in frame for the whole line.
-No note face is visible anywhere in frame: the banknotes stay folded backs-out, inside the cloth pouch, or covered by a hand. No portraits, no denomination markings, no serial numbers. No notebook, no pen, no paper, no ledger of any kind.
+The banknotes are plain fictional prop money, not the currency of any real country: soft pastel paper in even tones, a simple printed numeral in one corner, a plain abstract line pattern at the edges, and nothing else. No portrait or face of any kind on the notes. No national emblem, crest, seal, flag or country name. No real-world currency symbol, no serial numbers, no signatures, no microtext, no watermark. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Close-up, static camera, his face and his hand both in frame. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
