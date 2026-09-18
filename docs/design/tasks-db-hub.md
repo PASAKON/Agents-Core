@@ -73,6 +73,18 @@ per-tool-call hooks get a 3 s timeout and **fail open** with a log line.
 - No change to `/opt/mooniex-agents` tree while sessions 6ebacd0e / e1e3d3ef are live.
 
 ### 3.3 Cutover runbook (Mac first, Contabo sessions last)
+
+Steps 1-5 are automated by `scripts/hub/cutover-mac.sh` (task-78586938) --
+dry-run by default (prints what every step would do, touches nothing),
+`--apply` to execute for real. Reads `ORG_DB_URL` from
+`~/.config/mooniex/org-db.env` at run time (refuses if that file is
+missing); routes it into `config/cto.mcp.json`, `config/worker.mcp.json`,
+the watchdog + mac-agent launchd plists, and `scripts/cto-claude.sh` via
+`scripts/hub/with-org-db-env.sh` (`scripts/hub/cutover_flip.py` does the
+file edits and prints a diff) -- a wrapper indirection, not the literal
+value, so the secret never lands in the two git-tracked JSON files. Steps
+6-7 below (Contabo's own delta) are not yet automated.
+
 1. Freeze Mac writers: `launchctl bootout` the watchdog; no `delegate_task` during the window
    (worker tasks in flight keep running — they write through their MCP server, so pick a
    moment with none pending; 2 are live now).

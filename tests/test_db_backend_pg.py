@@ -263,3 +263,117 @@ def test_migrate_round_trip_counts(tmp_path, monkeypatch):
     with db_mod.get_conn() as conn:
         pg_tasks_again = conn.execute("SELECT COUNT(*) AS c FROM tasks").fetchone()["c"]
     assert pg_tasks_again == 2
+
+
+def test_migrate_creates_schema_on_fresh_target(tmp_path, monkeypatch):
+    """Reproduces the CTO's measured rehearsal failure: a target with no
+    tables at all used to make _counts() silently print 0 for `tasks`, then
+    the first real INSERT raised psycopg.errors.InFailedSqlTransaction. The
+    _pg_registry fixture above already ran db_mod.init() against
+    ORG_TEST_DB_URL, so drop everything again here to get a genuinely bare
+    target before migrating into it."""
+    _drop_all(ORG_TEST_DB_URL)
+
+    src = tmp_path / "src_tasks.db"
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    monkeypatch.setattr(db_mod, "DB_PATH", src)
+    db_mod.init()
+    tid = db_mod.create_task("projA", "developer", "s1", "d1")
+
+    monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    assert rc == 0
+
+    with db_mod.get_conn() as conn:
+        n = conn.execute("SELECT COUNT(*) AS c FROM tasks").fetchone()["c"]
+    assert n == 1
+    assert db_mod.get_task(tid) is not None
+
+
+def test_migrate_advances_events_identity_sequence(tmp_path, monkeypatch):
+    src = tmp_path / "src_tasks.db"
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    monkeypatch.setattr(db_mod, "DB_PATH", src)
+    db_mod.init()
+    tid = db_mod.create_task("projA", "developer", "s1", "d1")
+    for _ in range(5):
+        db_mod.update_status(tid, "in_progress", force=True)  # more events rows
+
+    monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    assert rc == 0
+
+    # Insert one more event through the *normal* lib.db API -- must not
+    # collide with a copied-over id (measured failure item 3).
+    with db_mod.get_conn() as conn:
+        db_mod.log_event(conn, tid, "test", "post_migration_check", {})
+    with db_mod.get_conn() as conn:
+        n = conn.execute(
+            "SELECT COUNT(*) AS c FROM events WHERE kind='post_migration_check'"
+        ).fetchone()["c"]
+    assert n == 1
+
+
+def test_migrate_bad_row_default_aborts_and_reports_pk(tmp_path, monkeypatch, capsys):
+    src = tmp_path / "src_tasks.db"
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    monkeypatch.setattr(db_mod, "DB_PATH", src)
+    db_mod.init()
+    t1 = db_mod.create_task("projA", "developer", "s1", "d1")
+    t2 = db_mod.create_task("projA", "developer", "s2", "d2")
+
+    monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)
+
+    real_execute = db_pg.Connection.execute
+
+    def flaky_execute(self, sql, params=()):
+        if "INSERT INTO tasks" in sql and params and params[0] == t2:
+            raise RuntimeError("simulated constraint violation")
+        return real_execute(self, sql, params)
+
+    monkeypatch.setattr(db_pg.Connection, "execute", flaky_execute)
+
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    assert rc == 1
+
+    captured = capsys.readouterr()
+    assert "table=tasks" in captured.err
+    assert t2 in captured.err
+
+    # Default mode rolls back the whole table on any failing row -- t1 (which
+    # copied fine before t2 blew up) must NOT have been left half-committed.
+    with db_mod.get_conn() as conn:
+        n = conn.execute("SELECT COUNT(*) AS c FROM tasks").fetchone()["c"]
+    assert n == 0
+
+
+def test_migrate_skip_bad_rows_continues_and_lists_skipped(tmp_path, monkeypatch, capsys):
+    src = tmp_path / "src_tasks.db"
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    monkeypatch.setattr(db_mod, "DB_PATH", src)
+    db_mod.init()
+    t1 = db_mod.create_task("projA", "developer", "s1", "d1")
+    t2 = db_mod.create_task("projA", "developer", "s2", "d2")
+
+    monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)
+
+    real_execute = db_pg.Connection.execute
+
+    def flaky_execute(self, sql, params=()):
+        if "INSERT INTO tasks" in sql and params and params[0] == t2:
+            raise RuntimeError("simulated constraint violation")
+        return real_execute(self, sql, params)
+
+    monkeypatch.setattr(db_pg.Connection, "execute", flaky_execute)
+
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                        "--apply", "--skip-bad-rows"])
+    assert rc == 0
+
+    captured = capsys.readouterr()
+    assert "skipped 1 row(s)" in captured.out
+    assert t2 in captured.out
+
+    with db_mod.get_conn() as conn:
+        ids = {r["id"] for r in conn.execute("SELECT id FROM tasks").fetchall()}
+    assert ids == {t1}
