@@ -50,6 +50,16 @@ EVENT_PREFIX = "] CTO-event"
 EVENT_SID_RE = re.compile(r"\] CTO-event\[[A-Z]+\]\[([0-9a-fA-F-]+)\]")
 TASK_ID_RE = re.compile(r"task-[0-9a-fA-F]{6,}")
 MAX_LINES = 50
+# A dev_message body is multi-line. Only its FIRST line carries the
+# "] <role> task-<id>:" prefix, so a per-line filter surfaces the header and
+# silently drops the report. Measured 2026-09-19 on task-2e5cd54e: the DEV
+# wrote a full blocker report -- what was done, the Drive folder it had already
+# built, the exact 402 text, zero fal spend -- and the CTO saw four words,
+# "Blocked. Summary:". The body was in the log the whole time.
+TS_RE = re.compile(r"^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\]")
+# Per-record cap, so one enormous report cannot crowd out the others. The
+# remainder is never lost, only left in the log with a pointer to it.
+MAX_BODY_LINES = 30
 
 
 def _read_offset(log_size: int) -> int:
@@ -130,6 +140,24 @@ def _filter_for_session(lines: list[str]) -> list[str]:
     return keep
 
 
+def _group_records(lines: list[str]) -> list[list[str]]:
+    """Group raw log lines into records: one timestamped line plus every line
+    after it until the next timestamped one. Leading orphans (a body whose
+    header was already surfaced in an earlier turn) are dropped."""
+    records: list[list[str]] = []
+    cur: list[str] | None = None
+    for l in lines:
+        if TS_RE.match(l):
+            if cur:
+                records.append(cur)
+            cur = [l]
+        elif cur is not None:
+            cur.append(l)
+    if cur:
+        records.append(cur)
+    return records
+
+
 def main() -> int:
     if os.environ.get("CTO_SESSION") != "1":
         return 0
@@ -147,13 +175,30 @@ def main() -> int:
         size_before = 0
     offset_before = _read_offset(size_before)
     pending = _pending_lines(offset_before, size_before)
-    surfaced = [
-        l for l in pending
-        if DEV_LINE_RE.search(l) or EVENT_PREFIX in l
+    records = [
+        r for r in _group_records(pending)
+        if DEV_LINE_RE.search(r[0]) or EVENT_PREFIX in r[0]
     ]
-    surfaced = _filter_for_session(surfaced)
-    if len(surfaced) > MAX_LINES:
-        surfaced = surfaced[-MAX_LINES:]
+    # Session ownership is decided by the header line, then the whole record
+    # follows it -- a body must never be routed away from its own header.
+    kept_headers = set(_filter_for_session([r[0] for r in records]))
+    records = [r for r in records if r[0] in kept_headers]
+
+    # Trim whole records from the front, never a header away from its body.
+    rendered: list[list[str]] = []
+    budget = MAX_LINES
+    for r in reversed(records):
+        body = r[1:]
+        if len(body) > MAX_BODY_LINES:
+            body = body[:MAX_BODY_LINES] + [
+                f"    ... +{len(r) - 1 - MAX_BODY_LINES} more lines - full text in {LOG}"
+            ]
+        block = [r[0]] + body
+        if budget - len(block) < 0 and rendered:
+            break
+        budget -= len(block)
+        rendered.append(block)
+    surfaced = [l for block in reversed(rendered) for l in block]
 
     LOG.parent.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")

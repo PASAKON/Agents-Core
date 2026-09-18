@@ -157,8 +157,19 @@ def test_browser_operator_below_cap_is_not_blocked(temp_db):
     assert "[dry-run]" in (result.get("delegate_log") or "")
 
 
-def test_browser_operator_cap_winbox_is_one(temp_db):
+def test_browser_operator_cap_winbox_is_two(temp_db):
+    """winbox allows TWO browser operators, not one.
+
+    The CEO raised it on 2026-09-09 ("ไม่เกิน 2 Worker", commit b9370bd9 --
+    the second slot is a read-only tab) and config/hosts.yaml has carried
+    max_browser_operators: 2 ever since. This test kept asserting 1/1 and so
+    stayed red for ten days, which is worse than having no test: a suite with
+    a familiar failure in it is a suite nobody reads. The cap the test asserts
+    must come from the same place the code reads it.
+    """
     _insert_task(temp_db, task_id="task-bo10", role="browser_operator",
+                status="in_progress", host="winbox")
+    _insert_task(temp_db, task_id="task-bo11", role="browser_operator",
                 status="in_progress", host="winbox")
     new_id = temp_db.create_task(
         project="mooniex-agents", role="browser_operator", title="t2",
@@ -168,7 +179,21 @@ def test_browser_operator_cap_winbox_is_one(temp_db):
     result = asyncio.run(delegate.delegate_task(new_id, host="winbox", dry_run=True))
 
     assert result["status"] == "conflict"
-    assert "browser cap: 1/1 operators live on winbox" in result["delegate_log"]
+    assert "browser cap: 2/2 operators live on winbox" in result["delegate_log"]
+
+
+def test_browser_operator_one_live_on_winbox_still_passes(temp_db):
+    """One live operator is BELOW winbox's cap of two -- it must not block."""
+    _insert_task(temp_db, task_id="task-bo12", role="browser_operator",
+                status="in_progress", host="winbox")
+    new_id = temp_db.create_task(
+        project="mooniex-agents", role="browser_operator", title="t3",
+        description="d", owner_cto="test-owner", host="winbox",
+    )
+
+    result = asyncio.run(delegate.delegate_task(new_id, host="winbox", dry_run=True))
+
+    assert result["status"] == "pending"
 
 
 def test_ssh_remote_url_converts_https():
