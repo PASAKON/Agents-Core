@@ -185,10 +185,17 @@ substitute a CSS text version):
 </div>
 ```
 
-`left: 84px; top: 150px`, logo `height: 118px`. **These numbers do not change
-between episodes.** The audience recognises the mark by where it sits; a bug
-that drifts reads as a different channel. If a text block would collide with it,
-move the text, never the bug.
+`right: 240px; top: 270px`, logo `height: 60px`, date stacked underneath,
+right-aligned. **These numbers do not change between episodes.** The audience
+recognises the mark by where it sits; a bug that drifts reads as a different
+channel. If a text block would collide with it, move the text, never the bug.
+
+It used to be `left: 84px; top: 150px` at `height: 118px`. On 2026-09-18 the CEO
+sent a screenshot of a real post and the bug was sitting directly under TikTok's
+own `เพื่อน | กำลังติดตาม | สำหรับคุณ` nav — the app's text and the channel's mark
+overlapping each other. The top right is the one part of the frame the app's
+chrome leaves alone above the rail, so that is where it now lives, at half the
+height. See 6c for the box it has to stay inside.
 
 **The date is the day the episode was MADE, not the day it is posted.** Posting
 lands zero to two days later, and every other record — the Drive folder, the
@@ -200,7 +207,7 @@ LIQUIDITY`, beside the lipsync reference videos.
 
 ### 6b. The legal label — every clip, no exceptions
 
-The kit carries `.bl-legal`, a one-line label at y=1790 that is present on every
+The kit carries `.bl-legal`, a one-line label at y=1430 that is present on every
 frame and is never animated, never moved, never faded and never covered:
 
 > เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำหรือการชักชวนลงทุน · การลงทุนมีความเสี่ยง
@@ -231,9 +238,56 @@ The full-length version belongs in the post caption, where there is room:
 > ใบอนุญาตเป็นที่ปรึกษาการลงทุนจาก ก.ล.ต. การลงทุนมีความเสี่ยง ผู้ลงทุนควรศึกษาข้อมูล
 > และตรวจสอบใบอนุญาตของผู้ให้บริการก่อนตัดสินใจทุกครั้ง
 
+### 6c. The TikTok safe area — the frame is not what the viewer sees
+
+A 9:16 video on a 19.5:9 phone is scaled to **cover** the screen, not to fit it.
+Measured on the CEO's own device from a real post (1188x2576, 2026-09-18):
+
+| what | in this canvas's pixels |
+|---|---|
+| cropped off each side, never rendered | `x < 97` and `x > 983` |
+| app nav (For You / Following / search) | `y 138-186` |
+| right rail (avatar, like, comment, share) | `x 873-983`, from `y ~960` down |
+| caption + username block | `y 1550-1700` |
+| scrub bar | `y ~1789` |
+
+TikTok's published safe area is a 540x960 reference with margins 126 top / 60
+left / 120 right / 378 bottom. Doubled onto this canvas and widened at the
+bottom to the measured organic figure (the spec's 378 exists to clear an ad
+unit's CTA button, which an organic post does not have):
+
+```
+--safe-left: 120px    --safe-top: 252px
+--safe-right: 240px   (content ends at x=840)
+--safe-bottom:        (content ends at y=1500)
+```
+
+`.blk` is already bound to those variables, so a block written the normal way is
+safe by construction. `.blk.wide` pulls the right margin back to 120 and is only
+for a block that **ends above y=900**, before the rail starts.
+
+Three real defects this found the day it was written, all of them invisible in
+the preview and obvious on the phone:
+
+- `.blk` sat at `left: 62px` — inside the 97px the phone crops, so the first
+  characters of every left-aligned line were cut off the screen entirely
+- the legal label sat at `y=1790`, which is the scrub bar
+- the subtitle layer sat at `y=1600`, inside TikTok's own caption block
+
+Check it, do not eyeball it:
+
+```bash
+python3 scripts/bl_tools.py safezone cut/index.html
+```
+
+It reads every absolutely-positioned rule in the composition and names each one
+that leaves the box. Descendant rules (`.bl-card .badge`) are positioned against
+their own parent and are skipped.
+
 ### 7. Gate the composition
 ```bash
-npm run check          # lint + runtime + layout + motion + contrast
+npm run check                                        # lint + runtime + layout + motion + contrast
+python3 scripts/bl_tools.py safezone cut/index.html  # nothing under the app's own UI
 ```
 Fix every error. This catches overlap, occlusion and WCAG failures you will
 not see by reading the code.

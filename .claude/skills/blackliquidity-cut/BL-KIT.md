@@ -19,6 +19,25 @@ can extend the kit without reading the whole composition.
 Red is **always** emissive: anything using `--neon` carries a `--glow-*` shadow and a
 `text-shadow`. A flat red line is off-theme.
 
+## Safe area — the phone crops the frame (measured 2026-09-18)
+
+| token | value | means |
+|---|---|---|
+| `--safe-left` | `120px` | below this the phone crops it away (`x < 97` is not rendered at all) |
+| `--safe-top` | `252px` | above this is TikTok's own For You / Following nav |
+| `--safe-right` | `240px` | content ends at `x = 840`; the like/comment rail owns `x 873-983` |
+| safe bottom | `y = 1500` | TikTok's caption block starts at `y ~1550`, its scrub bar at `y ~1789` |
+
+A 9:16 video is scaled to **cover** a 19.5:9 screen — it is not letterboxed, so
+97px of each side is gone. `.blk` is bound to these variables; `.blk.wide` pulls
+the right margin back to 120 and is only legal for a block that ends above
+`y = 900`. Gate it with `python3 scripts/bl_tools.py safezone cut/index.html`,
+never by looking at the preview — the preview shows the whole frame and the
+phone does not.
+
+Fixed positions that follow from it: brand bug `right: 240px; top: 270px`, logo
+`height: 60px`; legal label `y = 1430`; subtitle layer `y = 1300`.
+
 ## Motion grammar — not negotiable, it is measured
 
 Taken frame by frame off the editor the CEO paid ฿1300 (see the memory note

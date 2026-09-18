@@ -71,6 +71,16 @@ calls and let the idempotent layer do its job — it was written for this.
   gemini-tts, Wan or fal whisper. Correct it, and add a per-episode ceiling:
   `EP_BUDGET_USD=3.00`, blocking when the running estimate would cross it.
 
+The STT bucket moved provider in task A but its accounting did not. Rename it
+here, all three places at once: `videogen.js:528` `ledger.record('deepgram', …)`,
+`lib/cost-ledger.js` (the `deepgram` entry and its `$0.0125/min`), and
+`lib/mock-provider.js`'s `'deepgram-stt'` key — `cost-ledger.test.js` pins the
+`'deepgram='` breakdown label, so that test changes with them. Task A's DEV was
+told to leave these alone on purpose: they are shared files and belong in one
+change, not two. **Do not invent a price for fal whisper** — nobody has found it
+published. Leave the rate at 0 with a comment saying it is unpriced until a real
+run is billed, rather than guessing a number the ledger will then report as fact.
+
 Measured prices to use, all from the providers' own pages or a live response
 on 2026-09-18:
 

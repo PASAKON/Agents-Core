@@ -364,6 +364,68 @@ def cmd_sheet(a):
     return 0
 
 
+# ------------------------------------------------------------------- safezone
+# TikTok's own published safe area is a 540x960 reference with margins
+# 126 top / 60 left / 120 right / 378 bottom. Doubled onto this canvas:
+SAFE = {"left": 120, "top": 252, "right": 840, "bottom": 1500}
+# bottom is the MEASURED organic one: TikTok's caption block starts at y~1550
+# on a real post. The published spec says 1164, but that margin exists to clear
+# an ad unit's CTA button, which an organic post does not have.
+# And what a real phone does to the frame, measured on a post of the CEO's own
+# (1188x2576, 2026-09-18): a 9:16 video is scaled to COVER a 19.5:9 screen, so
+# 97px of EACH SIDE is cropped away and never rendered at all. Anything at
+# x<97 or x>983 does not exist for that viewer.
+CROP_X = 97
+TIKTOK_UI = [
+    ("app nav (For You / Following)", "y", 138, 186),
+    ("right rail (avatar, like, comment)", "x", 873, 983),
+    ("caption + username block", "y", 1550, 1700),
+    ("scrub bar", "y", 1770, 1810),
+]
+
+
+def cmd_safezone(a):
+    """Flag every absolutely-positioned overlay that leaves the TikTok safe box."""
+    import re as _re
+    html = pathlib.Path(a.composition).read_text(encoding="utf-8")
+    # left/right/top on a rule that also carries position:absolute, plus inline styles
+    bad, seen = [], 0
+    for m in _re.finditer(r"\n\s*((?:[.#][\w-]+\s*)+)\{([^}]*position:\s*absolute[^}]*)\}", html, _re.S):
+        sel, body = m.group(1).strip(), m.group(2)
+        if sel in (".clip", ".bl-bg"):
+            continue
+        if " " in sel:          # a descendant rule is positioned against its own
+            continue            # parent box, not against the frame
+        seen += 1
+        def num(prop):
+            mm = _re.search(prop + r":\s*(-?\d+)px", body)
+            return int(mm.group(1)) if mm else None
+        left, right, top = num("left"), num("right"), num("top")
+        if left is not None and left < SAFE["left"]:
+            bad.append(f"{sel}: left {left} < {SAFE['left']}"
+                       + ("  (BELOW x=97 — physically cropped off the phone)" if left < CROP_X else ""))
+        if right is not None and right < 1080 - SAFE["right"]:
+            bad.append(f"{sel}: right {right} < {1080 - SAFE['right']} (runs under the like/comment rail)")
+        if top is not None and top < SAFE["top"]:
+            bad.append(f"{sel}: top {top} < {SAFE['top']} (sits under the app's own nav)")
+        if top is not None and top > SAFE["bottom"]:
+            for name, axis, lo, hi in TIKTOK_UI:
+                if axis == "y" and lo <= top <= hi:
+                    bad.append(f"{sel}: top {top} lands on TikTok's {name}")
+                    break
+            else:
+                bad.append(f"{sel}: top {top} > {SAFE['bottom']} (past the safe bottom)")
+    print(f"  safe box  x {SAFE['left']}-{SAFE['right']}   y {SAFE['top']}-{SAFE['bottom']}"
+          f"   (frame is cropped outside x {CROP_X}-{1080 - CROP_X})")
+    print(f"  checked {seen} absolutely-positioned rules")
+    if not bad:
+        print("  OK - nothing leaves the safe box")
+        return 0
+    for b in bad:
+        print("  FAIL " + b)
+    return 1
+
+
 # ------------------------------------------------------------------- main
 def main():
     p = argparse.ArgumentParser(description=__doc__,
@@ -402,6 +464,10 @@ def main():
     c.add_argument("--out", default="sheet.jpg")
     c.add_argument("--cols", type=int)
     c.set_defaults(fn=cmd_sheet)
+
+    z = sub.add_parser("safezone", help="overlays that leave the TikTok safe box")
+    z.add_argument("composition", help="cut/index.html")
+    z.set_defaults(fn=cmd_safezone)
 
     a = p.parse_args()
     sys.exit(a.fn(a))

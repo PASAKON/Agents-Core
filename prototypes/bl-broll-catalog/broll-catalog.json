@@ -223,10 +223,10 @@
     "purpose": "avatar-trading-desk-turn-to-camera",
     "tags_th": "avatar โต๊ะเทรด หันมากล้อง จอกราฟ",
     "tags_en": "avatar trading desk monitors turn to camera",
-    "subject": "BL avatar at desk",
+    "subject": "man at desk — NOT the BL avatar (different face)",
     "motion": "sits then stands and turns",
     "mood": "red noir",
-    "fit": "BL",
+    "fit": "GEN",
     "avatar": true,
     "dark_pct": 73,
     "red_pct": 2.4,
@@ -236,11 +236,12 @@
     "res": "1080x1920@24",
     "model": "Seedance 2.0",
     "sheet": "sheets/hf_20260804_101213_049.jpg",
-    "review": null,
+    "review": "CTO 2026-09-18: face mismatch, downgraded BL->GEN",
     "local_md5": "192085e6b233081d633f435f42e960c1",
     "local_bytes": 18619481,
     "drive_id": "14ksqdJ0O5M-luBi5KwcVWM5W0hsOLsyz",
-    "drive_md5": "192085e6b233081d633f435f42e960c1"
+    "drive_md5": "192085e6b233081d633f435f42e960c1",
+    "caution": "face does not match the BL avatar — never cut beside a lipsync part; generic trader only"
   },
   {
     "n": 10,

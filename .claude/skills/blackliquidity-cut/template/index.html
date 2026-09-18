@@ -115,6 +115,20 @@
         --outline: 0 0 10px rgba(0,0,0,.95), 0 4px 18px rgba(0,0,0,.9),
                    2px 2px 0 rgba(0,0,0,.92), -2px 2px 0 rgba(0,0,0,.92),
                    2px -2px 0 rgba(0,0,0,.92), -2px -2px 0 rgba(0,0,0,.92);
+
+        /* TikTok safe area, in this canvas's own pixels. TikTok's published
+           spec is a 540x960 reference with margins 126 top / 60 left /
+           120 right / 378 bottom; doubled, that is what sits below. Measured
+           against a real post on the CEO's phone (1188x2576, 2026-09-18):
+           a 9:16 video is scaled to COVER a 19.5:9 screen, so 97px of each
+           side is cropped off the frame entirely and never seen, the app's
+           own top nav sits over y 138-186, the right rail over x 873-983
+           below y ~960, and the scrub bar over y ~1789. Nothing the audience
+           must read may leave this box. */
+        --safe-top:    252px;
+        --safe-left:   120px;
+        --safe-right:  240px;   /* right rail: content must end by x=840 */
+        --safe-bottom: 756px;   /* caption + scrub bar: end by y=1164 */
       }
 
       html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ink); }
@@ -135,7 +149,15 @@
         background: repeating-linear-gradient(rgba(255,255,255,.035) 0 2px, transparent 2px 6px); }
 
       .stage { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
-      .blk { position: absolute; left: 62px; right: 62px; opacity: 0; text-align: center; }
+      /* Every overlay block lives inside the TikTok safe box. left was 62 and
+         right was 62 until 2026-09-18: 62 is inside the 97px the phone crops,
+         so the first characters of a left-aligned line were physically cut
+         off the screen, and the right edge ran under the like/comment rail. */
+      .blk { position: absolute; left: var(--safe-left); right: var(--safe-right);
+             opacity: 0; text-align: center; }
+      /* Only for a block that ENDS above y=900 — above the rail the right
+         margin can come back in to 120. Never on anything lower. */
+      .blk.wide { right: var(--safe-left); }
       .blk.l { text-align: left; }
 
       .bl-xl { font-weight: 800; font-size: 104px; line-height: 1.26; text-shadow: var(--outline); }
@@ -196,7 +218,13 @@
          ประชาชน" to trade FOREX under พ.ร.ก. การกู้ยืมเงินที่เป็นการฉ้อโกงประชาชน
          2527, with no carve-out for promising no returns. A label does not cure
          conduct — it states intent, and the script has to match it. */
-      .bl-legal { position: absolute; left: 62px; right: 62px; top: 1790px; z-index: 45;
+      /* y was 1790 until 2026-09-18. Measured on a real post on the CEO's own
+         phone that same day: TikTok's scrub bar sits at video y~1789 and its
+         caption block starts at y~1550, so a label at 1790 is drawn under the
+         player's own chrome and cannot be read. 1430 is the lowest line that
+         is still clear of both and still inside the frame the CEO drew. */
+      .bl-legal { position: absolute; left: var(--safe-left); right: var(--safe-right);
+                  top: 1430px; z-index: 45;
                   font-family: Kanit, sans-serif; font-weight: 400; font-size: 24px;
                   line-height: 1.35; text-align: center; color: #B9C0C6;
                   text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 2px rgba(0,0,0,1); }
@@ -206,22 +234,26 @@
          a different channel. The date is the day the episode was MADE, not the
          day it is posted — posting lands 0-2 days later and the made-on date is
          what everything else references. */
-      .bug { position: absolute; left: 84px; top: 150px; z-index: 40;
-             display: flex; align-items: flex-end; gap: 26px; }
-      .bug .logo { height: 118px; width: auto; display: block;
+      .bug { position: absolute; right: var(--safe-right); top: 270px; z-index: 40;
+             display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+      .bug .logo { height: 60px; width: auto; display: block;
                    filter: drop-shadow(0 3px 10px rgba(0,0,0,.85)); }
       .bug .b1 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
                  letter-spacing: .06em; color: #fff; text-shadow: var(--outline); line-height: .92; }
       .bug .b2 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 54px;
                  letter-spacing: .10em; color: var(--neon); line-height: .92;
                  text-shadow: var(--outline), var(--glow-s); }
-      .bug .rl { width: 7px; height: 92px; background: var(--neon); border-radius: 2px;
-                 box-shadow: var(--glow-m); }
-      .bug .dt2 { font-weight: 600; font-size: 30px; color: #E8EAEC; padding-bottom: 8px;
+      .bug .rl { width: 74px; height: 5px; background: var(--neon); border-radius: 3px;
+                 box-shadow: var(--glow-s); }
+      .bug .dt2 { font-weight: 600; font-size: 24px; color: #E8EAEC; letter-spacing: .02em;
                   text-shadow: var(--outline); }
 
-      .caplayer { position: absolute; left: 0; right: 0; top: 1600px; height: 0; z-index: 35; }
-      .cap { position: absolute; left: 70px; right: 70px; top: 0; transform: translateY(-50%);
+      /* y was 1600: that is inside TikTok's own caption + username block
+         (measured y 1550-1700 on a real post, 2026-09-18), so the subtitle was
+         being read through the app's text. 1300 keeps it low in frame and clear. */
+      .caplayer { position: absolute; left: 0; right: 0; top: 1300px; height: 0; z-index: 35; }
+      .cap { position: absolute; left: var(--safe-left); right: var(--safe-right);
+             top: 0; transform: translateY(-50%);
              text-align: center; opacity: 0; font-weight: 600; font-size: 48px;
              line-height: 1.28; text-shadow: var(--outline); }
     </style>
