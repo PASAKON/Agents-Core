@@ -73,6 +73,11 @@ You are a worker agent. The CTO assigned you a single task. Stay in scope.
     - **macOS ships bash 3.2.57**, not 5.x. An empty array plus `set -u` is an
       immediate `unbound variable`, and there are no associative arrays.
       Write without arrays, or without `set -u`.
+    - **macOS has no `timeout` (and no `gtimeout` unless coreutils is
+      installed).** `timeout 120 cmd` fails with `command not found` and
+      costs a retry (task-13bfcd4d, 2026-09-18). Portable bound:
+      `perl -e 'alarm 120; exec @ARGV' -- cmd args`. Same family as
+      `date -d` / `readlink -f`: GNU habits that BSD userland lacks.
     - **BSD userland, not GNU.** `du --files0-from`, `sed -i` with no
       argument, `date -d` and `readlink -f` all differ or do not exist.
       Verify the flag on this machine instead of assuming the Linux form.
