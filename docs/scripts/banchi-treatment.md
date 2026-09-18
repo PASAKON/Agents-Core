@@ -56,70 +56,115 @@ shots 76–77, byte-verified against v1. Nothing in this rework touches it.
 
 ---
 
-## 3. The reversal — carried by dialogue, using the cast we already have
+## 3. The reversal — spoken, logical, and it needs both the app and the grandmother
 
 **Correction to the first draft of this treatment.** It staged the reversal as an
 image — a bedframe of tally marks that "carries the whole reversal with no line
 of exposition" — and invented a nephew to deliver the number. Both were wrong.
-The first breaks this production's own governing rule (the spoken lines must
-carry the story; the transcript alone must read like the film). The second adds
-a character the story does not need. Neither survives.
+The first breaks this production's governing rule (the spoken lines carry the
+story; a viewer who only *hears* the episode must follow it completely). The
+second adds a character the story does not need. Neither survives.
 
 The reversal is **ต้น**, and it is the payoff of who he already is.
 
-ต้น is 24, just graduated, cannot find work, and spends the episode being the
-one person in the house with nothing to contribute. He is also the only person in
-the house who has a bank app.
+### The crime, stated plainly
 
-> **เชิด took cash every Thursday for four years, and insisted on cash, so that
-> nothing would be written down anywhere. But สมชาย had to get that cash from
-> somewhere — and the bank wrote down every single withdrawal.**
+เชิด lent per term — eight terms, four years of tuition — and **he alone kept the
+running total.** สมชาย never knew what he owed; he only knew what to pay each
+week. That is not a detail, it *is* the crime, and it is said out loud:
 
-เชิด controlled his own ledger. He never thought about the other end of it.
+```
+ต้น:    แล้วรวมทั้งหมดเท่าไหร่
+สมชาย:  ไม่รู้ เชิดเป็นคนคิด
+```
 
-ต้น scrolls back four years and reads the withdrawals out loud. Same day, same
-amount, 208 times. The debt closed fourteen months ago. **The reversal is a young
-man reading numbers off a phone to his father**, which is dialogue, and it is
-also the moment the useless son becomes the one who saves the house.
+### The arithmetic is done by ear, on screen, out loud
 
-### ย่าประนอม corroborates — in the few words she has
+Every number a viewer needs is spoken. Nothing is read off a screen, nothing is
+inferred from an image:
+
+```
+ต้น:    พ่อกู้มาทั้งหมดเท่าไหร่
+สมชาย:  เทอมละสองหมื่นห้า แปดเทอม
+ต้น:    สองแสน
+สมชาย:  เชิดบอกรวมดอกแล้วเป็นสามแสน
+ต้น:    แล้วพ่อจ่ายอาทิตย์ละเท่าไหร่
+สมชาย:  สองพัน
+ต้น:    สามแสน หารสองพัน เท่ากับร้อยห้าสิบงวด
+```
+
+150 instalments. The whole episode now rests on one missing number: **how many
+times did he actually pay?** Nobody in the house knows. สมชาย never counted — a
+man paying off a debt counts what is left, not what is gone.
+
+### Why the bank app alone is not enough — and why that matters
+
+ต้น set up mobile banking on his father's phone years ago; สมชาย has never
+opened it. When the shop money runs out, **สมชาย hands his son the phone himself**
+to check whether anything is left. He hands over the evidence without knowing it.
+That is how ต้น gets access, and it needs no contrivance.
+
+But the app only goes back **two years** — which is what Thai banking apps
+actually show. It gives him 104 Thursdays. The first two years are gone.
+
+```
+ต้น:    แอปย้อนได้แค่สองปี ร้อยสี่ครั้ง
+ต้น:    ก่อนหน้านั้นไม่มีใครรู้เลย
+```
+
+### ย่าประนอม supplies exactly the half the technology cannot reach
 
 She is bedridden upstairs and hears everything through the floor. The script
 already establishes she can push out a word or two and no more (shot 83,
-`"...เงียบ..."`). That is exactly enough.
-
-The bank only goes back to when the account was opened. The first months of the
-debt are before it. **Those are the ones ย่าประนอม counted** — a scratch on the
-bedframe for every Thursday, from the very beginning.
-
-So the marks stay, and they matter, but they are **corroboration for the part
-the bank cannot reach**, not the reversal itself. They are introduced by her
-broken words, not by a silent insert:
+`"...เงียบ..."`). That is enough, and it is all she needs:
 
 ```
-ย่า:  ...พฤ...หัส...
-ต้น:  ย่าพูดอะไรนะ
-ย่า:  ...ย่า...นับ...ไว้...
+ย่า:    ...พฤ...หัส...
+ต้น:    ย่าพูดอะไรนะ
+ย่า:    ...ย่า...นับ...ไว้...
 ```
 
-Three fragments from a woman who has said nothing all episode. Then the camera
-finds what she is looking at.
+A scratch on the bedframe for every Thursday, from the first one. 104 of them
+predate the bank account. Added to the app's 104: **208**.
 
-### Why the modern setting is doing the work
+```
+ต้น:    สองร้อยแปด
+ต้น:    พ่อจ่ายเกินมาห้าสิบแปดงวด หนึ่งแสนหนึ่งหมื่นหกพัน
+```
+
+**Neither source is sufficient alone.** The app cannot reach the early years; the
+grandmother cannot speak the number. The son needed both, which is the better
+theme by far: the new tool and the old woman, each holding half.
+
+### Why the modern setting is doing the work, not decorating it
 
 This is where the episode stops being a 2007 ฟ้ามีตา and becomes 2026:
 
 - The shop takes **PromptPay QR** from customers. It is on the counter in act 1.
-- เชิด will not touch it. Cash only, always, and he has a friendly reason —
-  "ผมไม่เล่นกับธนาคาร".
-- That one refusal, visible in the first five minutes, is the whole power gap:
-  no contract, no receipt, no trace.
-- And it is exactly what destroys him, because the money still had to come out
-  of a bank on the other side.
+- เชิด will not touch it. Cash only, always, with a friendly reason —
+  `"ผมไม่เล่นกับธนาคาร"`.
+- That refusal, heard in the first five minutes, *is* the power gap: no contract,
+  no receipt, no trace.
+- And it is exactly what ends him, because the cash still had to be withdrawn
+  from a bank on the other side. เชิด kept his own ledger clean and never
+  considered the other end of it.
 
-A loan shark who avoided paper in 2007 was safe. In 2026 he is not, and he has
-not noticed. **The generation gap is the weapon** — the father cannot prove
-anything and does not think to try; the son does it in ninety seconds on a phone.
+A collector who avoided paper in 2007 was safe. In 2026 he is not, and he has not
+noticed.
+
+## 3b. Straight line, and where a flashback is allowed
+
+The spine runs **forward, one day after another, no reordering.** A viewer joining
+at any minute is never behind.
+
+One flashback is permitted and only one: **the first loan, four years ago**,
+placed inside act 3 at the moment สมชาย finally explains it to his son. It is
+motivated — a man telling his son what he did — and it returns immediately. It
+adds no information the dialogue does not already give; it only lets the audience
+see the day the trap closed. If it costs shots the script needs elsewhere, cut it
+first.
+
+Nothing else moves in time.
 
 ## 4. Karma — poetic, not legal, and spoken
 
@@ -168,8 +213,8 @@ It lives in `_Shared Element/`, not in this story's folder.
 
 ## 6b. TRANSCRIPT TEST — the new acts, spoken lines only
 
-Per the production's governing rule, the new material has to read as a story
-with everything but the dialogue stripped away. Acts 4 through 6, in order:
+The bar: **a viewer who never sees the picture must follow the whole thing.**
+Acts 4 through 6, in order, nothing but what is said:
 
 ```
 วันพฤหัสแล้วนะพี่
@@ -185,22 +230,32 @@ with everything but the dialogue stripped away. Acts 4 through 6, in order:
 
 ยาย่าหมดตั้งแต่เมื่อวานแล้วพ่อ
 เดี๋ยวพ่อหาให้
-ร้านไม่มีคนมาสามวันแล้วนะ
+ร้านไม่มีคนมาสามวันแล้วนะพ่อ
 พ่อรู้
+ในบัญชีเหลือเท่าไหร่ ลองเปิดดูให้พ่อที
 
 พ่อถอนเงินทุกวันพฤหัส ตั้งแต่ผมปีหนึ่ง
 ปิดเถอะลูก
 สองพันทุกอาทิตย์ ไม่เคยขาดสักครั้ง
 ต้น
-ผมนับแล้ว มันเกินมานานแล้วพ่อ
-เกินอะไร
-หนี้พ่อหมดตั้งแต่กรกฎาปีที่แล้ว
-...
-พ่อจ่ายเกินไปสิบสี่เดือน
+พ่อกู้มาทั้งหมดเท่าไหร่
+เทอมละสองหมื่นห้า แปดเทอม
+สองแสน
+เชิดบอกรวมดอกแล้วเป็นสามแสน
+แล้วรวมทั้งหมดเท่าไหร่ พ่อรู้ไหม
+ไม่รู้ เชิดเป็นคนคิด
+สามแสน หารอาทิตย์ละสองพัน เท่ากับร้อยห้าสิบงวด
+แล้วพ่อจ่ายมากี่งวดแล้ว
+พ่อไม่เคยนับ
+แอปย้อนได้แค่สองปี ร้อยสี่ครั้ง
+ก่อนหน้านั้นไม่มีใครรู้เลย
 
 ...พฤ...หัส...
 ย่าพูดอะไรนะ
 ...ย่า...นับ...ไว้...
+ร้อยสี่ ก่อนหน้านั้นย่านับไว้ครบ
+สองร้อยแปด
+พ่อจ่ายเกินมาห้าสิบแปดงวด หนึ่งแสนหนึ่งหมื่นหกพัน
 
 ครบไหม
 ขาดอยู่นิดหนึ่ง อาทิตย์หน้าผมเอามาให้
@@ -209,11 +264,14 @@ with everything but the dialogue stripped away. Acts 4 through 6, in order:
 ```
 
 Read cold, with no images and no stage directions: a man stops paying and asks
-for a book that does not exist; the house is punished for it; his son finds four
-years of Thursdays in a bank app and works out the debt ended fourteen months
-ago; the grandmother who has not spoken all episode says she counted the rest;
-and the collector is asked, by his own creditor, the question he would not
-answer. **It reads like the film.** That is the bar.
+for a book that does not exist; the house is punished for it; his son works out
+that the debt was 150 instalments, finds 104 of them in a bank app that only
+reaches back two years, and gets the missing 104 from a grandmother who has not
+spoken all episode; the total is 208, fifty-eight too many; and the collector is
+asked, by his own creditor, the question he would not answer.
+
+**Every number is spoken. Every step follows from the one before. A blind viewer
+loses nothing.** That is the bar.
 
 ## 7. Beat map — 138 shots, nine ad marks
 
