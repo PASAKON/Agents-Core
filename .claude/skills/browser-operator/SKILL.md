@@ -538,3 +538,15 @@ The "no toast after 5 s = no-op, retry" habit belongs to the $0 Unlimited
 video button ONLY. On a paid control (any price above a struck-through zero)
 it fired four images instead of one. One click, wait 60 s, reload, count the
 assets — no retry without a count. Details in `higgsfield-unlimited-gen`.
+
+## Two traps from the first Jules run (task-0250ccdf, 2026-09-19)
+
+- **ProseMirror / contenteditable composers double blank lines in `innerText`.**
+  A byte-for-byte compare of what you pasted against `innerText` or `.value`
+  false-fails on every multi-paragraph prompt. Verify a paste with a
+  paragraph-level DOM diff — `querySelectorAll('p')` text joined — or you will
+  "fix" a paste that was already correct.
+- **Read pickers before you look at them.** Model dropdowns, repo pickers and
+  expanding textareas are text: `read_page` / `find` returns every option in
+  one call. The run spent 9 screenshots (budget 4) confirming layouts a text
+  read would have answered. Reserve screenshots for the final submitted state.
