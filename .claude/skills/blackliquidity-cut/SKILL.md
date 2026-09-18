@@ -171,6 +171,33 @@ case where reuse is right: the task is a re-render of the *same* episode that
 composition was built for — then say so in your report and reuse it. For any
 other episode, author from the template.
 
+### 6a. The brand bug — same logo, same place, every clip
+
+The template carries the channel's real logo as an image, `assets/bl-logo.png`
+(698x256, already transparent — do not re-key it, do not recolour it, do not
+substitute a CSS text version):
+
+```html
+<div class="bug" id="bug">
+  <img class="logo" src="assets/bl-logo.png" alt="BLACK LIQUIDITY">
+  <div class="rl"></div>
+  <div class="dt2">D MMM YY</div>
+</div>
+```
+
+`left: 84px; top: 150px`, logo `height: 118px`. **These numbers do not change
+between episodes.** The audience recognises the mark by where it sits; a bug
+that drifts reads as a different channel. If a text block would collide with it,
+move the text, never the bug.
+
+**The date is the day the episode was MADE, not the day it is posted.** Posting
+lands zero to two days later, and every other record — the Drive folder, the
+manifest, the file names — references the made-on date. Take it from the
+project's `created_at`, Thai short form with the Buddhist year: `20 พ.ค. 69`.
+
+Source file and its uncropped original are on Drive in `ALL DRAFT/BLACK
+LIQUIDITY`, beside the lipsync reference videos.
+
 ### 6b. The legal label — every clip, no exceptions
 
 The kit carries `.bl-legal`, a one-line label at y=1790 that is present on every

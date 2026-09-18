@@ -200,8 +200,16 @@
                   font-family: Kanit, sans-serif; font-weight: 400; font-size: 24px;
                   line-height: 1.35; text-align: center; color: #B9C0C6;
                   text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 2px rgba(0,0,0,1); }
+      /* Brand bug — the channel's real logo, same place on every clip.
+         `left/top` and the logo height are fixed: the audience recognises the
+         mark by where it sits, and a bug that drifts between episodes reads as
+         a different channel. The date is the day the episode was MADE, not the
+         day it is posted — posting lands 0-2 days later and the made-on date is
+         what everything else references. */
       .bug { position: absolute; left: 84px; top: 150px; z-index: 40;
              display: flex; align-items: flex-end; gap: 26px; }
+      .bug .logo { height: 118px; width: auto; display: block;
+                   filter: drop-shadow(0 3px 10px rgba(0,0,0,.85)); }
       .bug .b1 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
                  letter-spacing: .06em; color: #fff; text-shadow: var(--outline); line-height: .92; }
       .bug .b2 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 54px;
@@ -256,7 +264,7 @@
       <div class="stage" id="stage"></div>
 
       <div class="bug" id="bug">
-        <div><div class="b1">BLACK</div><div class="b2">LIQUIDITY</div></div>
+        <img class="logo" src="assets/bl-logo.png" alt="BLACK LIQUIDITY">
         <div class="rl"></div>
         <div class="dt2">20 พ.ค. 69</div>
       </div>
