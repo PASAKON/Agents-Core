@@ -154,7 +154,7 @@ Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desat
 
 ### SHOT 9 · 0:56–1:06 · 10s · Medium two-shot across the counter, static camera
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
-**บทพูด** nong_daeng `"เมื่อคืนผมส่งใบสมัครไปอีกสองที่พ่อ"` — tired but forcing cheerfulness
+**บทพูด** nong_daeng `"เมื่อคืนผมส่งใบสมัครไปอีกสองแห่งแล้วนะพ่อ"` — tired but forcing cheerfulness
 **บทพูด** lung_somchai `"ที่ไหนบ้างล่ะ"` — not looking up
 **บทพูด** nong_daeng `"โรงงานแถวบางนา กับบริษัทขนส่ง"` — matter-of-fact
 ```
@@ -162,7 +162,7 @@ Use <IMAGE_REF_0> as the character reference for nong_daeng. Use <IMAGE_REF_1> a
 
 In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, mid-morning. a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — ties his apron behind his back while the older man works the pot beside him, both facing each other.
 
-The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, tired but forcing cheerfulness, and says: "เมื่อคืนผมส่งใบสมัครไปอีกสองที่พ่อ"
+The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, tired but forcing cheerfulness, and says: "เมื่อคืนผมส่งใบสมัครไปอีกสองแห่งแล้วนะพ่อ"
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, not looking up, and says: "ที่ไหนบ้างล่ะ"
 The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, matter-of-fact, and says: "โรงงานแถวบางนา กับบริษัทขนส่ง"
 

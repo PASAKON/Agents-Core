@@ -165,7 +165,7 @@ SHOTS = [
    ("somchai","easy","วันนี้มาเช้ากันจังนะครับ")], []),
  (9, 10, "Medium two-shot across the counter, static camera", ["ton","somchai"], "shop", "mid-morning",
   "ties his apron behind his back while the older man works the pot beside him, both facing each other",
-  [("ton","tired but forcing cheerfulness","เมื่อคืนผมส่งใบสมัครไปอีกสองที่พ่อ"),
+  [("ton","tired but forcing cheerfulness","เมื่อคืนผมส่งใบสมัครไปอีกสองแห่งแล้วนะพ่อ"),
    ("somchai","not looking up","ที่ไหนบ้างล่ะ"),
    ("ton","matter-of-fact","โรงงานแถวบางนา กับบริษัทขนส่ง")], []),
  (10, 8, "Medium two-shot, static camera", ["somchai","ton"], "shop", "mid-morning",
