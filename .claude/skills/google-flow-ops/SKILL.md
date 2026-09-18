@@ -346,6 +346,39 @@ The live estimate reads `การสร้างใช้ 20 เครดิต
 mode for the same Veo 3.1 Fast / 9:16 / x1 config. Measured with both slots
 empty; a before/after delta with an image actually attached is still unmeasured.
 
+## Two assets per location, if a location must also be a start frame (2026-09-18)
+
+Confirmed a second time, on `@street_front`, in task-115ae41c: the เฟรม picker
+`เลือกรูปภาพเฟรม` shows **only plain, untagged images.** Searching for a plate
+that was created as a Character/Ingredient returns `ไม่พบชิ้นงาน`.
+
+So a location cannot be both. If a production wants a location that is
+- referenceable as a chip in `องค์ประกอบ` (to lock the set while faces are locked), **and**
+- usable as a frame-locked start image in `เฟรม`,
+
+it needs **two assets generated from the same prompt** — one saved as an
+Ingredient, one left as a plain image. Decide which a given location needs
+before generating it, and generate both when in doubt; images are free.
+
+## The in-page video player can fail completely — pull from the CDN instead (2026-09-18)
+
+Distinct from the dead download button. On task-115ae41c the clip editor never
+rendered a frame: black box, and `document.querySelector('video')` returned
+`null` across seek, play and retry, while the timeline's filmstrip thumbnails
+loaded normally. The render itself was fine.
+
+**The workaround is better than the UI anyway, and should be the default way to
+check a clip:**
+
+1. `read_network_requests` on the tab — the `flow-content.google/video/<id>`
+   URL is requested even when the player never shows it.
+2. `curl` it.
+3. `ffprobe` to confirm duration, `ffmpeg` to extract the exact frames you need.
+
+Reading frame 0 and the last frame locally with ffmpeg is frame-accurate.
+Scrubbing Flow's own timeline is not, and a report that says "the last frame
+looks right" after scrubbing a UI is not evidence. **Verify clips with ffmpeg.**
+
 ## Left sidebar — what each tab is for
 
 `สื่อทั้งหมด` all media · `วิดีโอ` videos · `ตัวละคร` characters (Ingredients) ·
@@ -1055,22 +1088,36 @@ matters when a viewer is meant to *read* something.
    and is verified by actually reading it back off the generated image. Never
    assume; look.
 3. **Anything smaller is decoration.** Do not fight it, do not re-fire for it.
-4. **SETTLED 2026-09-18 (task-6403cbb4): the plate's text does NOT reach the
-   video at all.** `@street_front` carries a legible `ก๋วยเตี๋ยว - เครื่องดื่ม`.
+4. **SETTLED, in two runs. Quote the words and you get them.**
+
+   *task-6403cbb4:* `@street_front` carries a legible `ก๋วยเตี๋ยว - เครื่องดื่ม`.
    A clip generated with that plate attached, in a prompt that never named the
    sign's words, came back with Thai-shaped nonsense on the **first frame** —
-   not a degraded version of the plate's text, a different invented string. By
-   the last frame it was a different invented string again.
+   not a degraded version of the plate's text, a different invented string, and
+   a different one again by the last frame.
 
-   The mechanism matters: **Omni does not copy the reference image's pixels, it
-   re-renders the scene.** A sign whose words are not in the prompt is a sign
-   the model makes up, twice. This is the same "omission is surrender" rule as
-   everything else, arriving through signage.
+   *task-115ae41c:* the same plate, the same mode, the same everything — except
+   the prompt now said the sign reads exactly `"ก๋วยเตี๋ยว - เครื่องดื่ม"`, in
+   quotation marks. Frame 0 and t=7.0s both came back **correct, every
+   consonant, vowel and tone mark clean.** The final frame lost the top of the
+   glyphs only because the push-in had physically carried the sign's top edge
+   out of frame — cropped, not garbled.
 
-   So: **anything a viewer must read has to be written into the prompt as
-   words** — and whether the model then renders those exact words legibly in
-   video is still untested. Until someone tests it, no shot's meaning may depend
-   on reading text on screen.
+   **The mechanism is the same rule as everything else here: Omni does not copy
+   the plate's pixels, it re-renders the scene. An unnamed sign is a sign the
+   model invents. A named one is a sign it writes.**
+
+   So Thai signage inside a shot is **available**, on three conditions:
+   - **the exact words are in the prompt, in quotation marks**
+   - **the sign stays inside frame for as long as it must be read** — a push-in
+     that crops it is a composition problem, not a model problem
+   - **you verify by reading the rendered frame**, never by assuming
+
+   No caption or subtitle side effect appeared from the quotes. Google's older
+   Veo guidance warned that quotation marks get rendered as on-screen text;
+   that did not fire in this Omni 1.1 Flash / องค์ประกอบ configuration. One
+   clip, so treat it as a data point rather than a settled rule.
+
 5. **Numbers a plot turns on stay in the dialogue.** Amounts, dates, counts. Not
    because the model cannot draw them but because a spoken number cannot warp,
    cannot be missed by a viewer scrolling with sound on and no attention, and
@@ -1079,9 +1126,8 @@ matters when a viewer is meant to *read* something.
 
 ### Settled, and what it cost
 
-6 credits, task-6403cbb4. The text did not hold — it was never there. Rule 4
-above now carries the measurement. The remaining open question is narrower:
-whether naming the exact words in the prompt produces legible Thai in video.
+12 credits across two runs. The first proved an unnamed sign is invented; the
+second proved a named one is written correctly. Rule 4 above carries both.
 
 ## ⛔ Verify a chip by its THUMBNAIL, never by its row label (2026-09-18, task-8ea0576a)
 
