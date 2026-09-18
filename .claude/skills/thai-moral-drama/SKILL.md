@@ -158,6 +158,29 @@ C-level, in the same class as casting.
 
 Silence is a beat between lines, never a stretch of the film.
 
+### Two more, from the same day, both about *what* the line says
+
+**Say it plainly. The listener never decodes.** `"...อีกแล้ว"` asks the audience to
+work out that a job was refused; `"โดนปฏิเสธอีกแล้ว...เฮ้อ ที่นี่ก็ไม่รับ"` tells them.
+A line that needs interpreting is a line that half the audience will miss. Put
+the meaning in the character's mouth, in full.
+
+**Before a character speaks, ask who is in earshot.** A plain line is a loud
+line, and if two characters share a room, the other one hears it. That is the
+trap the plain-speaking rule sets: the son saying "rejected again" out loud at
+the counter would hand his secret to the father he is hiding it from, and the
+next shot — him hiding it — collapses. The fix is staging, not mumbling: **move
+the speaker out of earshot first** (he reads the phone in the back stairwell),
+then let him say it in full.
+
+The same question runs the other way, on purpose: the father counting coins
+aloud in his mother's room is *meant* to be overheard — it is why she starts
+counting too. So the check is not "is anyone listening" but "should this person
+hear this, and does the story know it."
+
+Both are in the shot sheet's header rules and are checked at the ledger stage
+(who is in the room is a column, not an afterthought).
+
 **These numbers are the CEO's and they bend to the story** — *"กฎนี้เปลี่ยนได้
 ทุกเมื่อ ขึ้นอยู่กับเนื้อเรื่อง ตามประสงค์ของฉัน"*. A sheet that needs different
 thresholds carries them on one line near its top, and that line must name the
