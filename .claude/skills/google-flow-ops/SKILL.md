@@ -919,6 +919,12 @@ generation. Check it before firing.
   **attach the plain preset, and write the performance direction into the shot's
   own prompt text.** That is better anyway — the direction then lives in the
   script, under version control, instead of inside Google's account state.
+  **Confirmed dead twice more on 2026-09-18** (task-36507a6a, task-881f8f0c),
+  from the character page and with real keystrokes, on ULTRA rather than PLUS —
+  so it is not a tier gate and not an input-method artefact. Full evidence in
+  the "Custom voices" section. I briefly retracted this note on 2026-09-18 on
+  the strength of the CEO having found the customisation UI; the UI is real,
+  the save is not, and the retraction was wrong.
 - **One "not found" is not proof a preset is gone.** A search for Algenib
   returned ไม่พบชิ้นงาน and the list skipped it alphabetically; a freshly opened
   picker minutes later showed it in place. Same `document.hidden` virtual-scroll
@@ -1100,24 +1106,43 @@ was holding together."*
 
 ## Custom voices — build one per character, off a base preset (CEO 2026-09-18)
 
-> ⚠ **STATUS: the save step is unsettled. Read this before you follow the path
-> below.** Two runs (2026-09-08 via the composer picker, task-36507a6a
-> 2026-09-18 via the character page) reached a completed preview and then found
-> `บันทึกเสียงใหม่` **disabled**, in every state either operator tried. Zero
-> custom voices have ever been saved on this account.
+>  ⛔ **SETTLED 2026-09-18: a custom voice CANNOT BE SAVED on this account.
+> Do not spend another run on it.** The path below is what the product appears
+> to offer. The last step of it does not work.
 >
-> That is not yet a verdict on the product. Both runs set the description and
-> name with `form_input` / direct DOM value writes — which Angular Material
-> does not observe, so the `FormControl` stays pristine and empty and the form
-> stays invalid, while a preview built from the DOM value still works
-> perfectly. That single detail explains every symptom seen and had not been
-> tested as of 2026-09-18. task-881f8f0c is settling it by re-running the flow
-> with **real keystrokes only**.
+> Three independent runs, three different methods, one result:
 >
-> **Until that returns: do not re-run the old method.** Repeating a
-> programmatic-value-write attempt produces no new information and costs a run.
-> If you need a voice today, the fallback is the one that works — attach the
-> plain preset and put the performance direction in the shot prompt.
+> | run | path | how fields were filled | `บันทึกเสียงใหม่` |
+> |---|---|---|---|
+> | 2026-09-08 | composer `+` picker | typing | disabled |
+> | task-36507a6a 2026-09-18 | character page `เลือกเสียง` | `form_input` / DOM writes | disabled |
+> | task-881f8f0c 2026-09-18 | character page `เลือกเสียง` | **real keystrokes only**, values read back off the live elements | **disabled, all 6 states** |
+>
+> The third run was built specifically to kill the obvious excuse — that
+> Angular never saw a programmatic `.value` write. It did not survive contact:
+> its Variant B never touched the name field at all, typed only the
+> description with real keys, ran a successful preview, and still read
+> `disabled: true`. And there is nothing to diagnose: the button carries no
+> `title`, no `aria-label`, no `aria-disabled`, no tooltip, the dialog renders
+> no validation error anywhere, and `btn.closest('form')` is **`null`** — the
+> dialog is not a form, so there is no validity state that could be gating it.
+> It is simply hard-coded `disabled="true"`.
+>
+> Everything before the save works and is free: the preset list, the
+> description field, and the preview (which produces real audio, 0 credits,
+> measured 9,413 → 9,413 twice).
+>
+> **What to do instead — this is the supported path, not a consolation:**
+> attach the plain preset to the character, and write the performance
+> direction into the shot prompt beside the line
+> (`says, tired and gentle, with long pauses: "…"`). That is already how every
+> shot in this production carries emotion, and it works today.
+>
+> **The casting problem a custom voice was meant to solve does not go away**:
+> three of our men measured 132 / 148 / 150 Hz and read as one person. With
+> customisation unavailable, the fix is to re-cast onto presets from genuinely
+> different pitch bands — see the preset table and the cast ledger below —
+> and let the CEO's ear pick, since only he has one.
 
 The 30 presets are raw material, not the cast. Two of our men measured 148 and
 150 Hz and read as the same person; the grandmother's preset reads decades too
