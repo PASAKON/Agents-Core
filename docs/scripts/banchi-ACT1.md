@@ -10,7 +10,9 @@ Omni 1.1 Flash · 9:16 · 8 วินาทีทุกช็อต · **720p �
 2. **หน้าตาต้องเขียนเป็นข้อความเสมอ** ต่อให้แนบ chip แล้ว — prompt ชนะรูป สิ่งที่ไม่พูดถึงจะถูกเปลี่ยนเงียบๆ
 3. **ห้ามแนบ voice chip** เสียงผูกกับตัวละครแล้ว แนบตัวละคร = ได้เสียงนั้นมาด้วย
 4. **ไม่มีคำว่า "No music."** Google บอกให้บรรยายสิ่งที่อยากได้ ไม่ใช่สั่งห้าม
-5. **ห้ามมีตัวหนังสือหรือตัวเลขที่อ่านออกในเฟรม** โมเดลเขียนไทยไม่ได้
+5. ตัวหนังสือที่ต้องอ่านออก **ต้องเขียนคำนั้นลง prompt ในเครื่องหมายคำพูด** (พิสูจน์แล้ว) ที่ไม่ได้เขียน = โมเดลแต่งเอง
+6. **ทุกช็อตมีบทพูด** ไม่มีข้อยกเว้น — `python3 tools/shotsheet_lint.py` ต้อง PASS ก่อนใช้เครดิตแม้แต่หน่วยเดียว
+7. **คนพูดต้องถูกแนบเป็น chip เสมอ** แม้อยู่นอกจอ — ไม่แนบ = เสียงสุ่ม ไม่ใช่เสียงที่ล็อกไว้
 
 ## บล็อกหน้าตา — คัดลอกจากที่นี่เท่านั้น ห้ามเขียนจากความจำ
 
@@ -29,6 +31,7 @@ Omni 1.1 Flash · 9:16 · 8 วินาทีทุกช็อต · **720p �
 
 ### SHOT 1 · 0:00–0:08 · Medium · handheld sway
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@side_wall`→REF_1
+**บทพูด** สมชาย `"ผมหาให้ครับ...พรุ่งนี้"` — เค้น เจ็บ
 ```
 Use <IMAGE_REF_0> as the character reference for the man's face, hair and build.
 Use <IMAGE_REF_1> as the location reference for the wall and the alley.
@@ -39,6 +42,8 @@ is shoved hard against the rough concrete side wall of a shophouse <IMAGE_REF_1>
 his body jolting against it, an arm from off-frame doing the shoving. Just before
 dawn, nobody else in sight. Near-total darkness lit only by a distant streetlamp,
 a harsh side shadow across his face.
+Winded, he speaks Thai and says: "ผมหาให้ครับ...พรุ่งนี้" — forced out against the pain.
+
 
 Medium shot, static camera with a slight handheld sway.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -47,6 +52,7 @@ Sound: a dull impact thud, late-night traffic humming far off.
 
 ### SHOT 2 · 0:08–0:16 · Close-up · low angle, static
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@side_wall`→REF_1
+**บทพูด** สมชาย `"...พรุ่งนี้จริงๆ"` — แผ่ว พูดกับความมืด
 ```
 Use <IMAGE_REF_0> as the character reference for the man's face and clothing.
 Use <IMAGE_REF_1> as the location reference for the wall and wet pavement.
@@ -55,6 +61,8 @@ The same Thai man of 58 <IMAGE_REF_0> slides down the wall <IMAGE_REF_1> into a
 crouch, breathing hard, as a folded envelope drops out of frame and lands in a
 shallow puddle beside his feet. Just before dawn. One distant streetlamp, deep
 shadow, wet pavement catching the light.
+He speaks Thai, barely audible, to nobody: "...พรุ่งนี้จริงๆ".
+
 
 Close-up, static camera at a low angle.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -65,6 +73,7 @@ Sound: the envelope hitting wet pavement, footsteps retreating and fading.
 
 ### SHOT 3 · 0:16–0:24 · Medium · handheld, follow from behind
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@staircase`→REF_1
+**บทพูด** สมชาย `"เบาๆ...เบาๆ"` — กระซิบกับตัวเอง
 ```
 Use <IMAGE_REF_0> as the character reference for the man's face, hair and clothing.
 Use <IMAGE_REF_1> as the location reference for the staircase and stairwell.
@@ -73,6 +82,8 @@ A Thai man of 58 <IMAGE_REF_0> in a dark-blue apron over a white shirt climbs a
 narrow wooden staircase <IMAGE_REF_1> in bare feet, a small cloth pouch in one
 hand, placing each foot carefully so the steps do not creak. Just before dawn. A
 single dim bulb above, the rest of the house dark.
+He murmurs to himself in Thai: "เบาๆ...เบาๆ", coaching his own feet.
+
 
 Medium shot, handheld, following from behind.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -81,6 +92,7 @@ Sound: bare feet on wood, the house completely still.
 
 ### SHOT 4 · 0:24–0:32 · Medium · static  ★ FINDING 1 — ปลูกขอบเตียงครั้งที่ 1
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@grandma_pranom`→REF_1 · 3) `@upstairs_bedroom`→REF_2
+**บทพูด** สมชาย `"เม็ดนี้ก่อนนอน เม็ดนี้ตอนเช้า"` — ทบทวนความจำ
 > รอยขีดอยู่หลังมือพ่อ เบลอ ไม่มีใครมอง **ห้ามโฟกัส ห้ามพูดถึง** — คนดูต้องรู้สึกตอนองก์ 5 ว่า "เห็นมาตลอดแต่ไม่ได้มอง"
 ```
 Use <IMAGE_REF_0> as the character reference for the man's face and clothing.
@@ -95,6 +107,8 @@ them. In
 the bed a frail Thai woman of 79 <IMAGE_REF_1>, silver-white hair cropped short,
 deeply wrinkled skin, a thin nasal cannula looped over her ears, stirs and wakes
 slowly. Just before dawn, dim lamp light, the curtains still dark.
+He speaks Thai quietly as he sets them out, reciting the schedule to himself: "เม็ดนี้ก่อนนอน เม็ดนี้ตอนเช้า".
+
 
 Medium shot, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -141,6 +155,7 @@ Sound: a blanket drawn up, slow breathing.
 
 ### SHOT 7 · 0:48–0:56 · Close-up · static
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@upstairs_bedroom`→REF_1
+**บทพูด** สมชาย `"สี่สิบ...ห้าสิบ...หกสิบ"` — นับเบาๆ ใต้ลมหายใจ
 ```
 Use <IMAGE_REF_0> as the character reference for the man's hands and sleeves.
 Use <IMAGE_REF_1> as the location reference for the bedside table.
@@ -150,6 +165,8 @@ under a dark-blue apron, count a small stack of coins and worn banknotes into a
 soft cloth pouch at a bedside in an upstairs bedroom <IMAGE_REF_1>, then add two
 more folded notes taken from his own shirt pocket. No writing or numbers visible
 anywhere. Just before dawn, dim lamp light.
+He counts under his breath in Thai as the coins go in: "สี่สิบ...ห้าสิบ...หกสิบ".
+
 
 Close-up, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -158,6 +175,7 @@ Sound: coins and paper counted softly.
 
 ### SHOT 8 · 0:56–1:04 · Close-up · static  ⟵ **จุดโฆษณา 1:00**
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@upstairs_bedroom`→REF_1
+**บทพูด** สมชาย `"ไม่พอ"` — คำเดียว เรียบ
 ```
 Use <IMAGE_REF_0> as the character reference for the man's face.
 Use <IMAGE_REF_1> as the location reference for the bedroom doorway behind him.
@@ -166,6 +184,8 @@ A Thai man of 58 <IMAGE_REF_0>, weathered square face, deep-set brown eyes, ligh
 stubble, exhales slowly in an upstairs bedroom <IMAGE_REF_1> and glances toward
 the doorway that leads down to the shop, doing arithmetic nobody else can see.
 Just before dawn, dim lamp light.
+He lets the breath out and says one word in Thai: "ไม่พอ".
+
 
 Close-up, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -175,15 +195,19 @@ Sound: the ceiling fan creaking, the street beginning to wake below.
 ## ฉาก C — เปิดร้าน (ช็อต 9–20)
 
 ### SHOT 9 · 1:04–1:12 · Wide · slow pan L→R
-**ATTACH** 1) `@noodle_shop`→REF_0
+**ATTACH** 1) `@noodle_shop`→REF_0 · 2) `@lung_somchai`→REF_1
+**บทพูด** สมชาย `"เปิดแล้วครับ"` — ร้องบอกถนน
 ```
 Use <IMAGE_REF_0> as the location reference for the shop, its tables, soup cart
-and shutter.
+and shutter. Use <IMAGE_REF_1> as the character reference for the man's hand,
+arm and apron.
 
-A roll-up shutter is pulled open by a man's hand inside a narrow Bangkok noodle
-shop <IMAGE_REF_0>, the last foot lifted with a wince quickly smoothed over.
+A roll-up shutter is pulled open by the hand of a Thai man of 58 <IMAGE_REF_1>
+inside a narrow Bangkok noodle shop <IMAGE_REF_0>, the last foot lifted with a wince quickly smoothed over.
 Morning light floods in; steam is already rising from the broth pot on the cart.
 Early morning, warm low sun angling through the doorway, soft haze in the air.
+A Thai man of 58 <IMAGE_REF_1> in a dark-blue apron calls out to the street in Thai as the shutter goes up: "เปิดแล้วครับ".
+
 
 Wide shot, slow pan left to right.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -248,6 +272,7 @@ Sound: a ladle set down against the counter.
 
 ### SHOT 13 · 1:36–1:44 · Close-up · rack focus ladle→bowl
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** ต้น `"สองชามครับ"` — ตอบรับออเดอร์
 ```
 Use <IMAGE_REF_0> as the character reference for the young man's hands and sleeves.
 Use <IMAGE_REF_1> as the location reference for the counter and soup pot.
@@ -255,6 +280,8 @@ Use <IMAGE_REF_1> as the location reference for the counter and soup pot.
 The hands of a Thai man of 24 <IMAGE_REF_0> in a grey polo shirt ladle hot broth
 from a steaming pot into a ceramic bowl behind the counter of a noodle shop
 <IMAGE_REF_1>. Mid-morning, warm daylight, steam catching the light.
+He calls back over his shoulder in Thai: "สองชามครับ".
+
 
 Close-up, static camera with a rack focus from the ladle to the bowl.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -281,6 +308,7 @@ Sound: one muffled phone buzz, kitchen clatter.
 
 ### SHOT 15 · 1:52–2:00 · Close-up · static
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** สมชาย `"หมูหมดแล้วนะ เดี๋ยวสั่งเพิ่ม"` — พูดกับตัวเอง ไม่หยุดมือ
 ```
 Use <IMAGE_REF_0> as the character reference for the man's hands, forearms and brow.
 Use <IMAGE_REF_1> as the location reference for the counter.
@@ -288,6 +316,8 @@ Use <IMAGE_REF_1> as the location reference for the counter.
 The hands of a Thai man of 58 <IMAGE_REF_0> chop roasted pork on a worn wooden
 board behind the counter of a noodle shop <IMAGE_REF_1>, sweat on his brow, eyes
 fixed on the blade. Mid-morning, warm daylight, wok steam drifting through frame.
+Without stopping the knife he says in Thai: "หมูหมดแล้วนะ เดี๋ยวสั่งเพิ่ม".
+
 
 Close-up, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -348,12 +378,15 @@ Sound: broth pouring, kitchen clatter.
 
 ### SHOT 19 · 2:24–2:32 · Wide · static, deep focus
 **ATTACH** 1) `@street_front`→REF_0
+**บทพูด** เสียงรถเข็นนอกจอ `"ขนมจีบ ซาลาเปา!"` — เสียงประกาศจากรถเข็น ไม่เห็นตัว *(ไม่ใช่ตัวละคร ไม่ต้องล็อกเสียง เสียงสุ่มถูกต้องแล้ว)*
 ```
 Use <IMAGE_REF_0> as the location reference for the street, shopfronts and cables.
 
 Motorbikes and a street-food cart pass along a narrow Bangkok street
 <IMAGE_REF_0> in front of an open shophouse shutter, the morning crowd moving
 past. Mid-morning, bright open daylight. Any faces are distant and out of focus.
+A vendor's recorded call carries in from off-frame in Thai: "ขนมจีบ ซาลาเปา!".
+
 
 Wide shot, static camera, deep focus.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -381,6 +414,7 @@ Sound: a bowl set on wood, background chatter.
 
 ### SHOT 21 · 2:40–2:48 · Close-up · static
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** ต้น `"เดี๋ยวครับ"` — ตอบลูกค้าโดยไม่เงยหน้า
 ```
 Use <IMAGE_REF_0> as the character reference for the young man's hand and sleeve.
 Use <IMAGE_REF_1> as the location reference for the table and shop.
@@ -388,6 +422,8 @@ Use <IMAGE_REF_1> as the location reference for the table and shop.
 The hand of a Thai man of 24 <IMAGE_REF_0> wipes down a table with a damp rag
 inside a noodle shop <IMAGE_REF_1>, his eyes flicking toward a faint glow coming
 from his apron pocket. Late morning, warm daylight.
+Without looking up he answers a customer in Thai: "เดี๋ยวครับ".
+
 
 Close-up, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -396,6 +432,7 @@ Sound: the rag dragging on wood, a muffled phone buzz.
 
 ### SHOT 22 · 2:48–2:56 · Close-up · slow push-in
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** ต้น `"...อีกแล้ว"` — แผ่ว พูดกับตัวเอง
 ```
 Use <IMAGE_REF_0> as the character reference for the young man's face.
 Use <IMAGE_REF_1> as the location reference for the counter behind him.
@@ -405,6 +442,8 @@ he reads something on a phone cupped in his hand behind the counter of a noodle
 shop <IMAGE_REF_1>. His jaw tightens, his eyes lower. The screen is angled away
 from camera and never legible. Late morning, the warm daylight dimming slightly as
 he turns from the window.
+He speaks Thai under his breath, to himself: "...อีกแล้ว".
+
 
 Close-up, slow push-in.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -413,6 +452,7 @@ Sound: the shop's noise thinning under him.
 
 ### SHOT 23 · 2:56–3:04 · Close-up · static  ⟵ **จุดโฆษณา 3:00**
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** ต้น `"ได้ครับ กำลังไป"` — เสียงปกติ หน้าไม่ปกติ
 ```
 Use <IMAGE_REF_0> as the character reference for the young man's face and hand.
 Use <IMAGE_REF_1> as the location reference for the counter.
@@ -421,6 +461,8 @@ The thumb of a Thai man of 24 <IMAGE_REF_0> hovers over a dimming phone screen
 behind the counter of a noodle shop <IMAGE_REF_1>. He glances toward his father
 across the room, then pockets the phone and forces his face neutral as a customer
 calls for the bill. The screen is never legible. Late morning, warm daylight.
+He answers the room in Thai, voice level and face not: "ได้ครับ กำลังไป".
+
 
 Close-up, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -429,6 +471,7 @@ Sound: a phone screen going dark, a dish set down nearby.
 
 ### SHOT 24 · 3:04–3:12 · Close-up · static
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** สมชาย `"ต้น...ไม่มีอะไร"` — เริ่มจะถาม แล้วเปลี่ยนใจ
 ```
 Use <IMAGE_REF_0> as the character reference for the man's face.
 Use <IMAGE_REF_1> as the location reference for the wok station.
@@ -437,6 +480,8 @@ A Thai man of 58 <IMAGE_REF_0>, deep-set brown eyes, light stubble, glances up
 from the wok in his noodle shop <IMAGE_REF_1>, catching sight of his son's face
 across the room, then lowers his eyes back to his work without a word. Late
 morning, warm daylight, wok steam rising past his face.
+He starts to speak in Thai, gets one word out and changes his mind: "ต้น...ไม่มีอะไร".
+
 
 Close-up, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -445,6 +490,7 @@ Sound: the wok sizzling under him.
 
 ### SHOT 25 · 3:12–3:20 · Wide · locked off
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop`→REF_2
+**บทพูด** ต้น `"เดี๋ยวผมเอาข้าวไปให้ย่านะพ่อ"` — เรียบ ไม่มองหน้า
 ```
 Use <IMAGE_REF_0> as the character reference for the older man.
 Use <IMAGE_REF_1> as the character reference for the younger man.
@@ -454,6 +500,8 @@ A Thai man of 58 <IMAGE_REF_0> and a Thai man of 24 <IMAGE_REF_1> work at opposi
 ends of the counter of a noodle shop <IMAGE_REF_2> without speaking, steam
 drifting in the space between them. Late morning, warm daylight through the
 shutter.
+The younger man <IMAGE_REF_1> says in Thai, without looking across: "เดี๋ยวผมเอาข้าวไปให้ย่านะพ่อ".
+
 
 Wide shot, locked-off camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -464,6 +512,7 @@ Sound: steam hissing, distant traffic.
 
 ### SHOT 26 · 3:20–3:28 · Medium · handheld, follow from behind
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@staircase`→REF_1
+**บทพูด** ต้น `"ย่าครับ ต้นเองครับ"` — ร้องบอกล่วงหน้า
 ```
 Use <IMAGE_REF_0> as the character reference for the young man.
 Use <IMAGE_REF_1> as the location reference for the staircase.
@@ -471,6 +520,8 @@ Use <IMAGE_REF_1> as the location reference for the staircase.
 A Thai man of 24 <IMAGE_REF_0> in a grey polo shirt climbs a narrow wooden
 staircase <IMAGE_REF_1> carrying a covered bowl of rice porridge on a small tray.
 Early afternoon, dim light from a single bulb above.
+He calls ahead up the stairs in Thai: "ย่าครับ ต้นเองครับ".
+
 
 Medium shot, handheld, following from behind.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -497,7 +548,8 @@ Sound: a spoon against a ceramic bowl.
 ```
 
 ### SHOT 28 · 3:36–3:44 · Close-up · static
-**ATTACH** 1) `@grandma_pranom`→REF_0 · 2) `@upstairs_bedroom`→REF_1
+**ATTACH** 1) `@grandma_pranom`→REF_0 · 2) `@upstairs_bedroom`→REF_1 · 3) `@nong_daeng`→REF_2 *(นอกจอ แต่ต้องแนบเพื่อให้ได้เสียง Iapetus)*
+**บทพูด** ต้น `"วันนี้ย่าดูสดใสนะครับ"` — อ่อนโยน จากนอกจอ
 ```
 Use <IMAGE_REF_0> as the character reference for the old woman's face and eyes.
 Use <IMAGE_REF_1> as the location reference for the bedroom.
@@ -506,6 +558,8 @@ A frail Thai woman of 79 <IMAGE_REF_0>, silver-white hair, deeply wrinkled paper
 skin, cloudy but alert dark eyes, lies in a small upstairs bedroom <IMAGE_REF_1>.
 Her eyes track slowly across the room, alert but unable to form clear words, her
 lips parting slightly. Early afternoon, soft filtered light.
+From just off-frame her grandson <IMAGE_REF_2> says in Thai: "วันนี้ย่าดูสดใสนะครับ".
+
 
 Close-up, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -548,7 +602,8 @@ Sound: a spoon set down, quiet breathing.
 ```
 
 ### SHOT 31 · 4:00–4:08 · Close-up · slow tilt down
-**ATTACH** 1) `@grandma_pranom`→REF_0 · 2) `@upstairs_bedroom`→REF_1
+**ATTACH** 1) `@grandma_pranom`→REF_0 · 2) `@upstairs_bedroom`→REF_1 · 3) `@nong_daeng`→REF_2 *(นอกจอ แต่ต้องแนบเพื่อให้ได้เสียง Iapetus)*
+**บทพูด** ต้น `"ข้างล่างเสียงดังไปไหมครับย่า"` — ถามเบาๆ
 ```
 Use <IMAGE_REF_0> as the character reference for the old woman's face and gaze.
 Use <IMAGE_REF_1> as the location reference for the floorboards under the bed.
@@ -557,6 +612,8 @@ The gaze of a frail Thai woman of 79 <IMAGE_REF_0> drifts downward in a small
 upstairs bedroom <IMAGE_REF_1>, fixing on a narrow gap between the wooden
 floorboards beneath her bed. Early afternoon, soft filtered light, a sliver of
 light rising through the gap.
+Off-frame, her grandson <IMAGE_REF_2> asks in Thai: "ข้างล่างเสียงดังไปไหมครับย่า".
+
 
 Close-up, slow tilt down toward the floorboards.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -565,6 +622,7 @@ Sound: faint clatter and voices rising from the shop below.
 
 ### SHOT 32 · 4:08–4:16 · Close-up · static  ★ FINDING 1 — ปลูกขอบเตียงครั้งที่ 2
 **ATTACH** 1) `@grandma_pranom`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@upstairs_bedroom`→REF_2
+**บทพูด** ต้น `"ย่าจะบอกอะไรผมเหรอครับ"` — นิ่ง รอคำตอบที่ไม่มา
 > มืออีกข้างวางบนรอยขีด **ยังห้ามอธิบาย** นี่คือครั้งสุดท้ายที่คนดูเห็นมันก่อนองก์ 5
 ```
 Use <IMAGE_REF_0> as the character reference for the old woman's hands and face.
@@ -578,6 +636,8 @@ breath catching as if there is more she wants to say. Her other hand lies on the
 bed's wooden side rail, her fingertips resting on the dense little scratches cut
 into it. She does not look at them and neither does he. Early afternoon, soft
 filtered light.
+The young man <IMAGE_REF_1> stops and asks in Thai: "ย่าจะบอกอะไรผมเหรอครับ". No answer comes.
+
 
 Close-up, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -586,6 +646,7 @@ Sound: fabric gripped, a catch of breath.
 
 ### SHOT 33 · 4:16–4:24 · Wide · static
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@grandma_pranom`→REF_1 · 3) `@upstairs_bedroom`→REF_2
+**บทพูด** ต้น `"เดี๋ยวผมขึ้นมาใหม่นะครับ"` — อ่อนโยน
 ```
 Use <IMAGE_REF_0> as the character reference for the young man.
 Use <IMAGE_REF_1> as the character reference for the old woman.
@@ -595,6 +656,8 @@ A Thai man of 24 <IMAGE_REF_0> pats the hand of a frail Thai woman of 79
 <IMAGE_REF_1> gently, eases his sleeve free with care, then rises and gathers the
 empty bowl to leave a small upstairs bedroom <IMAGE_REF_2>. Early afternoon, soft
 light through a shifting curtain.
+He says in Thai as he gathers the bowl: "เดี๋ยวผมขึ้นมาใหม่นะครับ".
+
 
 Wide shot, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -605,6 +668,7 @@ Sound: the curtain shifting in a breeze, a floorboard creaking.
 
 ### SHOT 34 · 4:24–4:32 · Medium · static
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** สมชาย `"ค่าเส้น...ค่าหมู...ค่าน้ำแข็ง"` — นับงานประจำ
 ```
 Use <IMAGE_REF_0> as the character reference for the man's face and clothing.
 Use <IMAGE_REF_1> as the location reference for the back counter.
@@ -613,6 +677,8 @@ A Thai man of 58 <IMAGE_REF_0> sits alone at the back counter of his noodle shop
 <IMAGE_REF_1> with a small cash drawer open in front of him, sorting worn
 banknotes between his fingers. Afternoon lull, soft warm light, the shop otherwise
 empty. No writing or numbers legible anywhere.
+He works through it aloud in Thai: "ค่าเส้น...ค่าหมู...ค่าน้ำแข็ง".
+
 
 Medium shot, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -621,6 +687,7 @@ Sound: notes rustling, a fan somewhere behind him.
 
 ### SHOT 35 · 4:32–4:40 · Close-up · static
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** สมชาย `"อันนี้ค่ายาแม่"` — เรียบ แน่นอน
 ```
 Use <IMAGE_REF_0> as the character reference for the man's hands.
 Use <IMAGE_REF_1> as the location reference for the counter surface.
@@ -629,6 +696,8 @@ The hands of a Thai man of 58 <IMAGE_REF_0> separate a stack of worn banknotes
 into two distinct piles on the back counter of a noodle shop <IMAGE_REF_1>, one
 visibly larger than the other. Afternoon lull, soft warm light. No numbers or text
 legible.
+He sets the second pile down and says in Thai: "อันนี้ค่ายาแม่".
+
 
 Close-up, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -637,6 +706,7 @@ Sound: notes counted and stacked.
 
 ### SHOT 36 · 4:40–4:48 · Close-up · static
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** สมชาย `"แล้วอันนี้..."` — พูดค้างไว้ ไม่จบประโยค
 ```
 Use <IMAGE_REF_0> as the character reference for the man's hands.
 Use <IMAGE_REF_1> as the location reference for the counter.
@@ -645,6 +715,8 @@ The hands of a Thai man of 58 <IMAGE_REF_0> set apart a third, smaller stack of
 worn banknotes on the back counter of a noodle shop <IMAGE_REF_1>, folding it
 differently from the other two before tucking it aside. Afternoon lull, soft warm
 light. No numbers or text legible.
+He begins a third sentence in Thai and does not finish it: "แล้วอันนี้...".
+
 
 Close-up, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
@@ -696,6 +768,7 @@ Sound: the ceiling fan whirring on.
 
 ### SHOT 39 · 5:04–5:12 · Medium · static
 **ATTACH** 1) `@cop_wit`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** วิทย์ `"ลุงครับ"` — ทักทายแบบคนคุ้นเคย
 ```
 Use <IMAGE_REF_0> as the character reference for the man's face, hair and clothing.
 Use <IMAGE_REF_1> as the location reference for the shop and its tables.
@@ -706,6 +779,8 @@ looking for one, the way someone does in a place they have been coming to for
 twenty years. He turns the stool before he sits so that he is facing the open
 street door, and settles with his bag still on his shoulder. Late afternoon, warm
 low light through the shutter.
+He calls toward the counter in Thai as he sits: "ลุงครับ".
+
 
 Medium shot, static camera.
 Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
