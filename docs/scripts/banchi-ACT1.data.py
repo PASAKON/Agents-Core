@@ -17,10 +17,10 @@ CHAR = {
    "The 58-year-old man in the dark-blue apron"),
  "ton": ("@nong_daeng",
    "a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, "
-   "clean-shaven, in a plain grey short-sleeved polo shirt and a thin silver chain",
+   "clean-shaven, in a plain grey short-sleeved polo shirt",
    "The 24-year-old man in the grey polo shirt"),
  "ya": ("@grandma_pranom",
-   "a frail Thai woman of 79, thin, silver-white hair in a thick short bob, deeply wrinkled papery skin, sunken cheeks, cloudy but alert dark eyes, no glasses, "
+   "a frail Thai woman of 79, thin, fine wispy silver-white hair in a short bob, deeply wrinkled papery skin, sunken cheeks, cloudy but alert dark eyes, no glasses, "
    "in a faded floral-print cotton nightgown, lying propped on two stacked pillows with a thin "
    "nasal cannula looped over her ears and a small brass amulet on a string at her neck",
    "The 79-year-old woman in the bed"),
@@ -35,7 +35,7 @@ CHAR = {
  "wit": ("@cop_wit",
    "a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady "
    "eyes, in a plain dark-grey polo shirt with an open two-button collar and a simple steel "
-   "wristwatch on his left wrist, a canvas bag still on his shoulder",
+   "wristwatch on his left wrist",
    "The 32-year-old man in the dark-grey polo shirt"),
 }
 
@@ -83,7 +83,8 @@ LOC = {
  "room": ("@upstairs_bedroom",
    "a small upstairs bedroom in an old Bangkok shophouse — a single low wooden bed with a "
    "scratched wooden side rail against a bare plaster wall marked with cracks and water stains, a "
-   "grey folded blanket, a small side table holding medicine bottles and a glass of water, an "
+   "folded reddish-brown striped blanket, a small side table holding medicine bottles and a "
+   "glass of water, an "
    "oscillating pedestal fan, one bare bulb hanging from the ceiling and no table lamp, a piece of "
    "cloth hanging on the wall near the window, wooden floorboards with visible gaps, a shuttered "
    "window letting in one thin band of daylight"),
