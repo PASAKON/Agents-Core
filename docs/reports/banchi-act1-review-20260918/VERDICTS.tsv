@@ -1,0 +1,39 @@
+shot	verdict	character	location	action	note
+01	PASS	ok	ok	ok	mouth open = speaking
+02	PASS	ok	ok	ok	envelope in puddle landed
+03	PASS	ok	ok	ok	bare feet, pouch, watch all present
+24	PASS	ok	ok	unconfirmed	glance-up not in sampled frames; needs video
+31	DRIFT	drift	ok	ok	plate has NO glasses, hair cropped short; clip added round wire glasses + fuller white bob. Face itself matches. Fix in prompts: add 'no glasses' and restate 'hair cropped very short' on every grandmother shot; re-shoot only if other grandmother shots come back without glasses (continuity)
+37	FAIL	ok	ok	WRONG	father writing in a NOTEBOOK with a pen - never in prompt, contradicts theme (he never writes anything down). Re-shoot with "no notebook, no pen, no paper"
+43	PASS	ok	ok	ok	got the flat-palm height gesture
+47	AMBER	ok	ok	ok	banknote face visible, numerals "500" legible, NO portrait in any of 8 sampled seconds; re-stage as closed hand on the repair pass per skill rule
+48	PASS	ok	ok	ok	two-shot correct; 4-line density needs ear
+25	PASS	ok	ok	ok	wide two-shot correct, son speaks; camera drifted from locked-off to a push-in on the father by the last frame - usable, cut before 6s if needed
+04	PASS	ok	ok	ok	pills on tray, grandma stirs; bedrail-scratch plant not visible at this size (hand is on the tray) - acceptable, it was meant to be unremarked
+05	PASS	ok	ok	ok	grandmother NO glasses, cannula, floral gown, amulet; recognition smile lands -> this settles 31: glasses there are a continuity break
+06	DRIFT	ok	drift	ok	SAME @upstairs_bedroom chip as shot 4 but a different room: bare concrete + beams + bare bulb + red plaid blanket vs shot 4's plaster wall + lamp + grey blanket. Set drifted between adjacent shots. Re-shoot 6 (or 4) once the plate says which is right; every bedroom prompt must carry the full fixed-set description
+26	PASS	ok	ok*	ok	son with covered bowl on stairs, calls ahead; *staircase reads narrower with a blue door vs shot 3's wide dark stair - same chip, mild set drift, likely survives a cut with 25 frames between
+32	DRIFT	drift	ok	ok	SCRATCHES ON THE BEDRAIL ARE VISIBLE under her hand - the plant landed. But she is SITTING UP on the bed edge, feet down, not bedridden/propped on pillows: prompt never restated her posture and the model sat her up. Re-shoot with 'lying propped on two pillows, nasal cannula' stated, keep the hand-on-rail
+08	PASS	ok	ok	ok	close-up, weathered face, stubble, mouth open on the line, bedroom shelving behind
+09	PASS	ok	ok	ok	shutter closed -> up, cart steaming, father in apron, street behind
+10	PASS	ok	ok	ok	welcomes to the room, smile, turns back to kitchen by last frame; no customer actually in frame (minor)
+44	PASS	ok	ok	ok	@cop_wit first two-shot: dark-grey polo, neat hair, wallet in hand; father's flat hand waves it off - matches plate and sheet
+07	FAIL	ok	ok	ok	LEGAL: a face-up 1000-baht note with a visible portrait lies on the table for the full 8s, foreground, static. @money_fold was NOT attached - the model drew it from the word "banknotes". Re-shoot with the not-list: notes folded face-down inside the pouch, no note face visible, no portraits, no denomination
+11	PASS	ok	ok	ok	son ties apron behind his back, speaks, picks up bowls; shop + street correct
+35	FAIL	ok	ok	ok	LEGAL: a fan of 100-baht notes held FACE UP to camera, portrait large and in focus, then laid on the counter still face up. Worst of the money shots. Re-shoot: notes folded, backs only, hands closing over them
+40	PASS	ok	ok	ok	@cop_wit seated, dark-grey polo, steel watch LEFT wrist visible, smiles on the line; shop + fans + street correct
+45	PASS	ok	ok	ok	two-shot across the counter, steam between them, วิทย์ speaking; both faces match plates
+15	PASS	ok	ok	ok	chops pork on the board, watch on wrist, speaks mid-shot, steam
+17	PASS	ok	ok	ok	son stacks a stool onto a table, speaks, shop + street behind
+18	PASS	ok	ok	ok	father pours broth, son stacks bowls beside him, steam between them - exactly the sheet
+19	PASS	-	ok	ok	street wide: cables, shophouses, bikes, a cart under an umbrella; passers-by mid-distance rather than distant (minor)
+41	PASS	ok	ok	ok	father at the wok answers without looking up, mouth moving, steam
+20	PASS	ok	ok	ok	sets a bowl before a seated regular, smiles on the line; other diners and Thai wall signs in the shop
+22	PASS	ok	ok*	ok	THE EARSHOT FIX RENDERED AS STAGED: alone in the back stairwell, phone in hand, mouth open on the line, eyes drop by the last frame. *stairwell is teal peeling plaster here vs dark wood (shot 3) vs blue door (shot 26) - three staircases on one chip; SET BLOCK needed for @staircase
+23	DRIFT	drift	ok	ok	WARDROBE: son wears a work apron in 22 and NO apron in 23, eight story-seconds apart. Prompt 22 said "under an apron", prompt 23 said nothing, and the lock has no apron at all. Decide: son wears an apron in every shop shot -> add to his block; re-shoot 23 (or 22) to match
+36	FAIL	ok	ok	ok	LEGAL: two stacks of 1000-baht notes FACE UP, portraits large and in focus, plus one held up to camera. Same class as 35. No notebook this time. Re-shoot: notes folded backs-out, hands covering, third pile set aside as a closed fold
+39	PASS	ok	ok	ok	FINDING-2 plant landed: walks in off the street with the bag on his shoulder, sits by the open shutter facing out, strap still on, speaks. Face matches plate
+28	DRIFT	drift	ok	ok	grandmother: cropped white hair (better than 31), NO glasses, floral gown - but the NASAL CANNULA is missing, while 5 and 29 on either side have it. Adjacent close-ups will show it appear/vanish. Re-shoot with the cannula restated, or accept and cut around
+29	PASS	ok	ok	ok	cannula, amulet, gown all present; mid-shot insert of her hand twitching on the sheet, then back to her face straining on the word
+34	FAIL	ok	ok	ok	LEGAL: 1000-baht notes face up in the open cash drawer for the whole shot, denomination and a small portrait visible, plus a note held face-out in his hands. Same class as 7/35/36, smaller. Re-shoot: drawer holds folded notes backs-out, hands close over what he lifts
+42	PASS	ok	ok	ok	close-up, easy smile on the line, dark-grey polo, steel watch; face matches plate

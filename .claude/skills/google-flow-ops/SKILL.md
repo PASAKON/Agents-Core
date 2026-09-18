@@ -435,6 +435,50 @@ it needs **two assets generated from the same prompt** — one saved as an
 Ingredient, one left as a plain image. Decide which a given location needs
 before generating it, and generate both when in doubt; images are free.
 
+## Capture each clip's id at SUBMIT, not in a second pass (2026-09-18, Act 1 shoot)
+
+Two operators shot 24 shots each into one project. Both finished the shoot phase
+cleanly. Both then lost **five clips each** in the download phase — ten paid
+clips sitting in Flow that neither could retrieve — and both reported that
+re-locating their own shots cost more than the entire shoot had.
+
+Why: the project feed is one reverse-chronological list with no shot number,
+mixing both operators' clips and older tests; the search box does not reliably
+filter prompt text; the grid virtualises to ~7 visible items; and two operators'
+prompts share boilerplate for the same characters. "Shoot all, then download
+all" was the brief's design, and it was the mistake.
+
+**The rule:** the moment a shot's Submit is accepted, in the same tool-call
+sequence, capture its `/edit/<uuid>` URL (the composer navigates to it) and
+write it to the report table next to the shot number. Download from that URL,
+by id, never by hunting the feed.
+
+**The cache trap, which is the other half of the loss:** a clip that has been
+played once in a tab is served from disk cache on every later play, with **no
+network entry at all** — not in `read_network_requests`, not in
+`performance.getEntriesByType('resource')`. The CDN-sniff method then finds
+nothing and looks exactly like the "player never loads" trap from the opposite
+side. So: **capture the `flow-content.google/video/...` URL the first time the
+clip is ever fetched**, muted (`HTMLMediaElement.prototype.play` overridden to
+mute first), and keep it. A URL captured at first play still curls later.
+
+**Two attempts, then stop.** If a clip will not surface after one reload and one
+fresh tab, it is stuck for this session. Report the ids and move on — thirty
+tool calls were spent on five stuck clips because the skill implied the CDN
+pull always works eventually. It does not.
+
+**Finding your own clip when you must:** search the feed for a distinctive
+fragment of the shot's Thai dialogue line, not its prompt. Dialogue is unique
+per shot; prompt openings are not.
+
+## Clips do not live in git (2026-09-18)
+
+48 clips at 720p is ~120 MB. Two shoots landed 49 MB of mp4 in the repo under
+`docs/reports/` before anyone said otherwise. Video goes to Drive under the
+ILAG rules in `gdrive-filing`; the repo keeps the report, the shot table and
+the review ledger. A worker's `clips/` directory is a staging area that the
+C-level files and then removes from the branch before merge.
+
 ## Never press play (CEO 2026-09-18)
 
 A clip played inside Flow comes out of the machine's speakers, and the CEO works
@@ -496,7 +540,7 @@ wrong. Neither is a constraint any more.
 
 | what we believed | what is true |
 |---|---|
-| **3 references per generation** (Google's blog, the API's `referenceImages`) | **10 image references** + 3 video references |
+| **3 references per generation** | **still 3 in the Flow UI** (the 4th chip is silently disabled) — the API's 10 is API-only; see the Omni grammar section |
 | **one speaking character per shot** | **every character in frame can speak** — it is decided by the prompt |
 
 So a shot can now carry a cast, a location AND props together, and a scene with
@@ -728,6 +772,18 @@ supported language, with nothing said per voice.
 | Zubenelgenubi | Male, casual, mid-low pitch |
 
 ### Cast ledger
+
+Added 2026-09-18 (cast by the CTO in the asset brief, bound by task-a55713c5,
+confirmed on the character pages by task-70d351e4):
+
+| character | preset | verdict |
+|---|---|---|
+| `@cop_wit` วิทย์ | **Achird** — Male, friendly, mid pitch | pending ear |
+| `@jae_muay` เจ๊หมวย | **Laomedeia** — Female, upbeat, mid-high pitch | pending ear |
+| `@staff_a` น้องเอ | **Achernar** — Female, soft, high pitch | pending ear |
+| narrator (voice only, `_Shared Element`) | **Sulafat** — Female, warm, mid pitch | pending ear |
+| `@lender_cherd` | currently bound to **algieba**, the script records Umbriel — a CEO decision is open | — |
+
 
 Update this the moment the CEO reacts to a voice. Score starts at 0 and moves
 ±1 per verdict; the "verdict" column stays "pending ear" until a human has
@@ -1002,8 +1058,15 @@ Four rules follow, and all four were being broken:
    instruct with negatives, and naming music invites it. Our prompts carried that
    line for months.
 
-Up to **10 image references and 3 video references** per generation are allowed —
-far more than the 3 we assumed. And *"attach everything before the first
+~~Up to 10 image references per generation~~ — **WRONG for the Flow UI, retracted
+2026-09-18 (task-f0f67322, shot 46).** Ten is the Gemini API's ceiling. In this
+Flow project the composer **silently disables the 4th ingredient chip**: it
+renders as `chip-image-wrapper inactive` with a `disabled-error-icon` overlay,
+no banner, no change to the chip count, and the picker still hides it as
+"attached". A shot written for four references fires with three honoured and
+one ignored, and nothing tells you which. **Plan every shot for at most three
+chips: usually two characters and one location, or one character, one prop and
+one location.** A fourth reference goes into the prompt as text, never as a chip. And *"attach everything before the first
 generation, because adding references mid-conversation destabilizes a scene that
 was holding together."*
 
