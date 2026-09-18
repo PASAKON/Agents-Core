@@ -1166,6 +1166,11 @@ was holding together."*
 >    turns white and is clickable.** The button is a faithful mirror of the
 >    preview state — it was never "hardcoded disabled", it was correctly
 >    disabled for a form that was incomplete.
+>
+>    **Measured: ~18–20 s** (still disabled at a 10 s poll, enabled by 20 s, three
+>    timed runs, 5/5 saved). **Do not wait a minute** — an earlier brief guessed
+>    30–60 s from the CEO's description and a run burned 120–147 s per voice
+>    proving nothing. The wait was never the problem; the empty field was.
 > 3. Press **`บันทึกเสียงใหม่`**.
 > 4. The saved voice appears as a **new row at the top of the preset list**, and
 >    the button changes to **`เพิ่มลงในตัวละคร`**. Press that to bind it.
@@ -1178,10 +1183,15 @@ was holding together."*
 >
 > - **`ชื่อของเสียง` defaults to the wrong preset.** With Umbriel selected it
 >   pre-filled `Achernar คัสตอม` — Achernar being merely first alphabetically.
->   It seems to latch the first preset viewed in that dialog session and never
->   re-sync. **Always read the name field back before saving.**
+>   **Did NOT reproduce across 5 saves once all three fields were filled**, so it
+>   may itself have been a symptom of the incomplete form rather than a separate
+>   bug. Cheap either way: **always read the name field back before saving.**
 > - **`Escape` closes the whole dialog**, not just the `@`-autocomplete popup.
 >   Losing everything typed. Dismiss the autocomplete some other way.
+> - **The MCP tab group can die mid-dialog** and take everything typed with it
+>   (hit once on `@cop_wit`). Recover the documented way — fresh tab, re-navigate,
+>   and **re-verify the character's bound voice from scratch** to confirm nothing
+>   half-saved — then redo that voice. It worked on the second attempt.
 >
 > ### ⚠ How four runs got this wrong, so nobody repeats it
 >
