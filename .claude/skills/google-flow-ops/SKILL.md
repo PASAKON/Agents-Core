@@ -294,14 +294,87 @@ paragraph in this file that plans a shoot "against 200" was written on the PLUS
 plan and is obsolete. Credits still do not roll over, and every rule under
 "Money" still binds — a bigger pool is not permission to spend loosely.
 
-## Contested — do not state these as fact
+## Two ceilings that were never real — SETTLED 2026-09-18
 
-- **The 3-ingredient ceiling.** Google's blog says up to three references per
-  prompt, and the API documents `referenceImages` max 3. But the Flow UI
-  accepted **four** chips with no error, no greying and no silent drop
-  (confirmed by DOM inspection and a page-wide search for limit language).
-  Whether a ceiling is enforced at *generation* time is **untested** — settling
-  it costs one Lite generation (10 credits) and is worth doing.
+Both of these shaped how every scene in this project was written, and both were
+wrong. Neither is a constraint any more.
+
+| what we believed | what is true |
+|---|---|
+| **3 references per generation** (Google's blog, the API's `referenceImages`) | **10 image references** + 3 video references |
+| **one speaking character per shot** | **every character in frame can speak** — it is decided by the prompt |
+
+So a shot can now carry a cast, a location AND props together, and a scene with
+three people talking is one generation, not three cuts stitched around the
+limit. Any scene broken up to dodge either ceiling should be reconsidered.
+
+## ⛔ THE PROMPT OVERRIDES THE REFERENCE IMAGE — this is the most important rule in this file (CEO 2026-09-18)
+
+A reference chip is not a lock on appearance. **Where the prompt and the picture
+disagree, the prompt wins, silently, every time.**
+
+Measured on the CEO's own characters:
+
+- The character image wears sunglasses pushed up on his head. The prompt does
+  not mention them → **they are gone.**
+- The character image has long hair. The prompt says short hair → **the hair is
+  short.**
+
+Nothing errors. Nothing warns. The chip is attached, the face is broadly right,
+and one detail after another quietly drifts away from the character we built —
+which is exactly the "drift" this project has been chasing for two weeks.
+
+### What follows: the ASSET SHEET, and the rule that every prompt quotes it
+
+> **Look at each asset once. Write down what is in it. From then on, every
+> prompt describes that asset by quoting the sheet — never from memory, never
+> from imagination, never by omission.**
+
+**Omission is the trap.** A detail you do not mention is not "left as the
+image" — it is left to the model, and the model will change it. The sheet must
+therefore be complete enough that a prompt built from it has nothing to invent.
+
+One sheet per production, holding, for every character, location and prop:
+
+```
+@lung_somchai
+  face / build   : <exactly what the reference image shows>
+  hair           : <length, colour, how it sits>
+  carried items  : <glasses on head? watch? apron ties?>
+  default outfit : <the wardrobe item, by name>
+```
+
+Then a prompt for that character is assembled from the sheet, not written fresh.
+The sheet is the single source of truth about how anyone looks, the same way the
+script's APPEARANCE LOCK is the ground truth about which shot is wrong.
+
+### Wardrobe — a character needs several outfits, and the model must never guess
+
+One character appears in different places, at different times, in different
+roles. Clothing changes with all three, and **an unspecified outfit is an
+invented outfit**.
+
+The obvious fix — generate a second character image wearing the other clothes —
+**does not work: a regenerated character comes back with a different face.**
+Faces are the one thing we cannot afford to lose.
+
+So build the wardrobe as its own assets instead:
+
+- Make each outfit a **prop / image asset** in Flow, generated once.
+- Keep the character asset untouched, so the face stays fixed.
+- In the prompt, name the character AND describe the outfit from the sheet —
+  and where the outfit matters, attach it as one of the (now 10) references.
+
+Every shot in the script therefore carries an explicit costume. "He is wearing
+the same as before" is not a costume; the model has no "before".
+
+### Why this is the difference between AI slop and a real short film
+
+Everything above is bookkeeping, and bookkeeping is the entire gap. A drama
+where the father's hair length changes between two shots of the same
+conversation reads as AI slop no matter how good any single frame is. A drama
+where it never changes reads as a film. The sheet is what makes the second one
+possible, and it is cheap — it is written once and read forever.
 
 ## Mid-session Google sign-out — it looks exactly like Flow being flaky
 
@@ -755,6 +828,20 @@ after:    [ (♪) algieba            ▶   นำออก      ]
 ```
 
 `นำออก` removes it. `▶` plays the sample. That is the whole control.
+
+### Binding a voice does NOT make the character talk (tested 2026-09-18)
+
+The obvious fear, and the CEO's own first hypothesis: a character carrying a
+voice will be *made* to speak whenever it is on screen, even with no dialogue
+written. **Tested and false.** A voice-bound `@lung_somchai` in a prompt that
+described him working in silence stayed silent.
+
+The rule the test actually produced is bigger than the question it answered:
+
+> **The model follows the prompt. Write the prompt strongly enough and it obeys.**
+
+So binding voices costs nothing in scenes where nobody speaks. There is no need
+for a second, voiceless copy of any character.
 
 ### Why this matters more than it looks
 
