@@ -46,7 +46,11 @@ CHAR = {
 # Same effect in the ear, and it stays in the script under version control
 # rather than inside Google's account state.
 #
-# key: (bound Flow preset, the voice description pasted into every line)
+# key: (the CUSTOM voice bound in Flow, the description pasted into every line)
+# Custom voices exist and are bound as of 2026-09-18 (task-989c3527), 5/5 verified
+# after reload. The per-line description is KEPT for now even though the bound voice
+# already encodes the identity — whether it reinforces or over-steers is decided by
+# looking at this batch, not by guessing.
 # The presets are cast as far apart as this set allows — low / mid-low / mid for
 # the three men who share scenes, because Achird measured 150 Hz against ต้น's
 # 148 and the two read as one person.
@@ -55,18 +59,18 @@ CHAR = {
 # saying "unhurried" under a line marked "fast and placating" is two orders to
 # the model at once.
 VOICE = {
- "somchai": ("Algenib",
+ "somchai": ("Algenib @lung_somchai",
    "the worn, low, gravelly voice of a tired man in his late fifties"),
- "ton": ("Iapetus",
+ "ton": ("Iapetus @nong_daeng",
    "the clear, light voice of a man in his twenties, higher than his father's"),
- "ya": ("Vindemiatrix",
+ "ya": ("Vindemiatrix @grandma_pranom",
    "the thin, breathy, faintly wavering voice of a very frail woman near eighty"),
  # Same man as "ton", so the same voice, word for word. A wardrobe variant with
  # its own CHAR key silently fell through the builder's VOICE lookup and would
  # have spoken with no voice block at all in every Act 2/3 shot he wears the suit.
- "ton_suit": ("Iapetus",
+ "ton_suit": ("Iapetus @nong_daeng",
    "the clear, light voice of a man in his twenties, higher than his father's"),
- "wit": ("Rasalgethi",
+ "wit": ("Rasalgethi @cop_wit",
    "the even, mid-pitched voice of a calm man in his early thirties"),
 }
 
