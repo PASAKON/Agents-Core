@@ -1,0 +1,133 @@
+---
+name: jules-ops
+owner: CTO
+origin: mooniex-org
+scope: >-
+  Dispatching repo-only, test-verifiable work to Jules (Google's async coding
+  agent, included in the CEO's Google AI Ultra plan) and reviewing what comes
+  back. Measured on the first two sessions, 2026-09-18/19.
+description: >-
+  How the org uses Jules — which work qualifies, the 7-line brief that keeps it
+  disciplined, the API calls (create with AUTO_CREATE_PR, read the diff without
+  a browser), and the review pipeline (script gates first, then Opus 5). Trigger
+  on /jules-ops, "Jules", "jules.google.com", "ส่งให้ Jules", "งานให้ Jules",
+  "Google coding agent", or when a C-level is about to spawn a `developer` for
+  a bounded repo-only task whose verdict is a command exiting 0 — use this
+  instead of a local DEV for that class of work. Not for anything that needs a
+  browser, winbox, tmux, tasks.db, LINE, secrets, deploys, or human taste.
+created_by: human
+audience: [cxo]
+---
+
+# Jules ops — dispatch + review
+
+**What it is.** An async coding agent on Google's cloud: give it a repo + a
+brief, it clones into its own VM, edits, runs tests, and pushes a branch
+`<slug>-<sessionId>` + opens a PR. It never merges. Plan "Jules in Ultra":
+300 sessions/day; concurrency not shown. Composer models: `Gemini 3.1 Pro`
+(default) and `Gemini 3.6 Flash`.
+
+**Why the org uses it.** Zero Mac RAM, zero Claude quota, survives the Mac
+sleeping. The binding constraints of this org are all three.
+
+## 1. What qualifies — all four must hold
+
+1. Repo is on GitHub and the Jules app can see it (least privilege: keep the
+   app on 2–3 repos, never "all" — it can read every private repo it is given,
+   including Agents-Memory).
+2. The verdict is a command that exits 0 (tests, lint, build) or a diff a
+   script can validate. "Looks right" is not a verdict.
+3. Nothing under deploy scripts, `.env`/secrets, auth, payments, or prod data.
+4. Bounded: ≤ ~10 files, one repo, no cross-repo reasoning.
+
+Good: CI/toolchain fixes with a known lead · dependency bumps with tests ·
+lint / link / wiki-lint · tests for existing behaviour · rename or migrate
+call sites · docs generated from code · small refactors under coverage.
+Bad: design decisions · anything needing Higgsfield/Flow/LINE/winbox ·
+anything the org DB or tmux is part of · brand/content · "make it better".
+
+## 2. The 7-line brief — the discipline lives here, not in the model
+
+Measured: the first session (Gemini 3.1 Pro, brief without lines 2/3/7) found
+the right root cause in 15 min and then shipped a 1.1 MB change set with 3
+scratch patch files, 5 scratch scripts, six 7,593-line logs, an unrequested
+`nock` bump and an edit to a test to fit its VM — and ended with a question,
+no PR. The second session, same model, brief with all seven lines: four
+one-line changes, one PR, 2,996 bytes.
+
+```
+1. GOAL as the command that must pass       ("`npm test` green on Node 20 in CI")
+2. FILES you may touch (name them)          + "no other file"
+3. FORBIDDEN: scratch/log files, dependency or lockfile edits, test edits
+   (unless the task IS tests), skipping/loosening tests
+4. KNOWN LEAD / why the previous attempt was rejected
+5. ENV NOTE: "failures caused by your VM lacking ffmpeg/a package → report,
+   do not fix; CI installs them"
+6. DELIVERABLE: one PR, title given, description = root cause + files
+7. "No questions needed; proceed."
+```
+
+Model: **3.1 Pro** for "find/diagnose"; **3.6 Flash** for "apply exactly this".
+
+## 3. API — never the web UI for dispatch
+
+Key: `~/.config/mooniex/jules.env` → `JULES_API_KEY` (registered in
+`mooniex:playbooks/api-key-registry.md`; load with `set -a; . <file>; set +a`
+so the value never appears in a command). Base
+`https://jules.googleapis.com/v1alpha`, header `X-Goog-Api-Key`.
+
+```bash
+# create — automationMode is what makes a PR appear at all
+POST /sessions {"prompt":..., "title":..., "sourceContext":{"source":"sources/github/PASAKON/<repo>",
+  "githubRepoContext":{"startingBranch":"main"}}, "automationMode":"AUTO_CREATE_PR", "requirePlanApproval":false}
+GET  /sessions/{id}                       # state, outputs[].pullRequest.url, outputs[].changeSet
+GET  /sessions/{id}/activities?pageSize=100   # agentMessaged = its questions/report;
+                                              # artifacts[].changeSet.gitPatch.unidiffPatch = cumulative diff
+```
+
+Traps: a UI-created session has no automation mode → it ends with a diff and
+no PR. `:sendMessage` on a COMPLETED session returns **404** — a finished
+session cannot be re-instructed; open a new one carrying the rejection
+reasons (line 4). The web session page is browser work: reading it from a
+C-level tab counts against IRON §42.
+
+## 4. Review pipeline — script gates, then one model pass
+
+Gates a script answers for free (they caught 4 of 5 defects on session 1):
+- changed files ⊆ allowed files (exactly the org's touches check)
+- no `*.log`, `patch_*`, `test_*.js` at repo root, no `package*.json` /
+  lockfile changes unless line 2 allowed them
+- diff size cap (the good session was 3 KB; the bad one 1.1 MB)
+- PR body names the root cause and the files
+- verdict command run locally on the pinned runtime when CI is unavailable
+  (`npx --yes -p node@20 -c '<test script>'`)
+
+Then one model reads the packet (brief + facts + `diff --stat` + diff, logs
+truncated). Blind A/B on session 1's diff, answer key of 5 defects:
+
+| | Sonnet 5 | Opus 5 |
+|---|---|---|
+| verdict / 5-of-5 | REOPEN / ✓ | REOPEN / ✓ |
+| beyond the key | — | +2 (test edit *masks* failures; dead env-order bug) |
+| tokens / wall | 107k / 110 s | **92k / 43 s** |
+
+**Use Opus 5 (xhigh) for every Jules PR review** — deeper and, on this
+diff, cheaper. Merge is a human/CTO act after the checklist
+(`cto-merge-checklist`); Jules PRs into prod-adjacent repos (claudeflow,
+webapp) need the CEO's per-repo OK like any other merge.
+
+## 5. Guardrails without GitHub Pro
+
+Branch protection and rulesets both return 403 on private repos under the
+free plan (measured 2026-09-19); the CEO declined Pro. So: least-privilege
+repo access (§1.1) · Jules never merges by design · a watchdog tripwire that
+alerts when `main` HEAD's author is outside the allowlist · the app is
+uninstallable in one click and every push carries its session id.
+
+## 6. Not-yet-measured
+
+Concurrency limit · Flash-tier quality · whether `sendMessage` works on an
+IN_PROGRESS session · Jules behaviour when CI is blocked (2026-09-19: GitHub
+Actions were suspended for billing — "recent account payments have failed or
+your spending limit needs to be increased" — and Jules correctly reported it
+rather than faking a green).
