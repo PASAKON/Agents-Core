@@ -796,6 +796,15 @@ confirmed on the character pages by task-70d351e4):
 | narrator (voice only, `_Shared Element`) | **Sulafat** — Female, warm, mid pitch | pending ear |
 | `@lender_cherd` | currently bound to **algieba**, the script records Umbriel — a CEO decision is open | — |
 
+⛔ **A row in this ledger means a voice was CAST, never that the character
+exists.** On 2026-09-18 task-36507a6a went to bind `@cop_wit`'s voice and found
+no such asset in the project at all — the casting decision had been written down
+weeks before anyone made the plate. `@side_wall` was missing the same way. Both
+were referenced by a finished Act 1 shot sheet. Before binding a voice or
+writing a chip into a prompt, confirm the asset is on the `ตัวละคร` tab;
+`tools/build_shotsheet.py` now refuses to render a sheet whose handles have no
+downloaded plate, which closes this at the other end.
+
 
 Update this the moment the CEO reacts to a voice. Score starts at 0 and moves
 ±1 per verdict; the "verdict" column stays "pending ear" until a human has
@@ -939,10 +948,17 @@ report: `docs/reports/teaser-shoot-winbox-20260907.md`.
 - **Money buttons need a trusted click.** JS `element.click()` opens pickers
   and menus but did NOT fire เริ่มสร้าง (no card, no balance change). Submit
   with the `computer` tool's click, then confirm the balance moved.
-- **Inline `@handle` in a prompt truncates `computer` typing** — the
-  ProseMirror @-autocomplete swallows everything after the `@`. Type prompts
-  that contain `@handle` with `document.execCommand('insertText', false, text)`
-  after placing the caret at the end; verify `innerText` before submit.
+- **An `@` eats typed text in ANY field, on any platform** — not just the
+  ProseMirror composer. The @-autocomplete swallows the typing around the `@`:
+  in the composer it drops everything after it, and in the plain `<input>` for
+  a custom voice's name it dropped everything *before* it, leaving
+  `@lung_somchai` out of `Algenib @lung_somchai` (task-36507a6a, Mac Chrome).
+  Originally recorded as a ProseMirror/winbox trap; it is neither.
+  For prompt text, place the caret at the end and use
+  `document.execCommand('insertText', false, text)`, then verify `innerText`
+  before submit. **But not in a form you intend to submit** — a programmatic
+  write leaves an Angular form invalid (see the custom-voice status banner).
+  There, type with real keys and dismiss the autocomplete with `Escape`.
 - **Agent mode can be ON by default** (chip text exactly `Agent`,
   aria-pressed true). While on, the settings icon opens การตั้งค่า Agent, not
   the per-shot panel. Click the Agent chip off first.
@@ -1083,6 +1099,25 @@ generation, because adding references mid-conversation destabilizes a scene that
 was holding together."*
 
 ## Custom voices — build one per character, off a base preset (CEO 2026-09-18)
+
+> ⚠ **STATUS: the save step is unsettled. Read this before you follow the path
+> below.** Two runs (2026-09-08 via the composer picker, task-36507a6a
+> 2026-09-18 via the character page) reached a completed preview and then found
+> `บันทึกเสียงใหม่` **disabled**, in every state either operator tried. Zero
+> custom voices have ever been saved on this account.
+>
+> That is not yet a verdict on the product. Both runs set the description and
+> name with `form_input` / direct DOM value writes — which Angular Material
+> does not observe, so the `FormControl` stays pristine and empty and the form
+> stays invalid, while a preview built from the DOM value still works
+> perfectly. That single detail explains every symptom seen and had not been
+> tested as of 2026-09-18. task-881f8f0c is settling it by re-running the flow
+> with **real keystrokes only**.
+>
+> **Until that returns: do not re-run the old method.** Repeating a
+> programmatic-value-write attempt produces no new information and costs a run.
+> If you need a voice today, the fallback is the one that works — attach the
+> plain preset and put the performance direction in the shot prompt.
 
 The 30 presets are raw material, not the cast. Two of our men measured 148 and
 150 Hz and read as the same person; the grandmother's preset reads decades too

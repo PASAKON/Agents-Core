@@ -14,10 +14,17 @@ them. A set cannot drift between two shots unless someone edits the set itself.
                                      docs/scripts/banchi-ACT1.md
 """
 import importlib.util
+import os
 import sys
 from pathlib import Path
 
 COST = {4: 6, 6: 9, 8: 12, 10: 15}
+
+# Where the downloaded plates live. The CEO's rule (2026-09-18) is that no shot
+# sheet gets written until every plate in it has actually been looked at, once,
+# as one montage — after two Act 1 drafts were written from memory and the real
+# plates then contradicted them three ways in ninety seconds.
+PLATE_DIR = Path(os.environ.get("BANCHI_PLATES", Path.home() / "Desktop" / "banchi-plates"))
 
 
 def load(path: Path):
@@ -25,6 +32,36 @@ def load(path: Path):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def check_plates(d) -> None:
+    """Refuse to build a sheet that references a plate nobody has on disk.
+
+    This is the rule the CEO wrote on 2026-09-18 ("ในการเขียนบทหนัง จะต้องดูภาพ
+    ของตัวละครก่อน อย่างน้อย 1 ครั้ง ให้ครบทุกตัวละคร"), made mechanical. A
+    remembered rule gets skipped; this one cannot be. Two handles in the first
+    draft — @cop_wit and @side_wall — turned out never to have existed as assets
+    at all, and nothing caught it until an operator scrolled the project by hand.
+
+    There is deliberately no flag to skip this. A rule with an opt-out is not a
+    rule; that lesson cost a merge gate once already.
+    """
+    used = set()
+    for shot in d.SHOTS:
+        _, _, _, chars, loc, *_ = shot
+        used.update(d.CHAR[c][0] for c in chars)
+        used.add(d.LOC[loc][0])
+
+    missing = sorted(h for h in used if not (PLATE_DIR / f"{h.lstrip('@')}.png").exists())
+    if missing:
+        raise SystemExit(
+            "refusing to build: no downloaded plate for "
+            + ", ".join(missing)
+            + f"\n  looked in: {PLATE_DIR}"
+            + "\n  a sheet may not be written for an asset nobody has looked at."
+            + "\n  fix: run the plate harvest (docs/briefs/banchi-plates-harvest.md),"
+            + " or point BANCHI_PLATES at the folder that holds them."
+        )
 
 
 def build(d) -> str:
@@ -94,5 +131,7 @@ def build(d) -> str:
 
 if __name__ == "__main__":
     data, dest = Path(sys.argv[1]), Path(sys.argv[2])
-    dest.write_text(build(load(data)), encoding="utf-8")
+    d = load(data)
+    check_plates(d)
+    dest.write_text(build(d), encoding="utf-8")
     print(f"built {dest} from {data}")
