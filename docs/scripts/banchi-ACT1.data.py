@@ -74,7 +74,9 @@ LOC = {
  "shop": ("@noodle_shop",
    "a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with "
    "bright red, blue and green plastic stools, a square structural pillar standing in the middle "
-   "of the room, a narrow wooden staircase rising from the middle of the room beside that pillar, "
+   "of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from "
+   "the middle of the room beside that pillar, the room deep and narrow with the street at the "
+   "far end, "
    "a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up "
    "shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a "
    "laminated payment sign on the counter"),
