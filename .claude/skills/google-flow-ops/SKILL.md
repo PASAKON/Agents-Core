@@ -1082,6 +1082,31 @@ one location.** A fourth reference goes into the prompt as text, never as a chip
 generation, because adding references mid-conversation destabilizes a scene that
 was holding together."*
 
+## Custom voices — build one per character, off a base preset (CEO 2026-09-18)
+
+The 30 presets are raw material, not the cast. Two of our men measured 148 and
+150 Hz and read as the same person; the grandmother's preset reads decades too
+young. The fix is Flow's own voice customisation, reached from the **character
+page's `เลือกเสียง` flow**, not from the picker.
+
+The path, as the CEO describes it:
+
+1. Open the character → `เลือกเสียง`.
+2. **Pick the base preset closest to the character** — do not wait to be told
+   which; the C-level casts, and the base only has to be in the right register.
+3. **Describe the voice in English, in detail**: age, build of the voice, pace,
+   what it does under pressure, and what it must NOT sound like.
+4. Press preview and **wait for the model to finish**.
+5. **Name it `<base preset> @<character handle>`** — e.g. `Aoede @grandma_pranom`
+   — so the origin is readable months later, and save.
+
+Naming this way matters: the base is what you fall back to when a custom voice
+drifts, and a bare nickname loses it.
+
+**Separate the bands on purpose.** Cast the register first (low / mid / younger),
+then let the description do the character work. Two characters in the same band
+will read as one person however different the adjectives are.
+
 ## ⛔ A speaker whose face is not in frame gets a random voice (CEO 2026-09-18)
 
 The CEO heard it first, on the grandmother scene: the grandson's chip was
