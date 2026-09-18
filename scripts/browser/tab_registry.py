@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import json
 import os
-import sqlite3
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -52,8 +51,11 @@ def _repo_root() -> Path:
 
 
 ROOT = _repo_root()
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from lib import db as db_lib  # noqa: E402
+
 REG = ROOT / "state" / "browser-tabs"
-DB = ROOT / "state" / "tasks.db"
 LIVE = ("pending", "in_progress")
 
 
@@ -84,15 +86,17 @@ def _task_alive(task_id: str) -> tuple[bool, str]:
     died with their parent session while the row still read in_progress — so
     the pid is checked too.
     """
-    if not DB.exists():
-        # FAIL SAFE, not fail open. If liveness cannot be established the
-        # honest answer is "unknown", and unknown must mean hands off — the
-        # cost of wrongly keeping a dead tab is a stale tab; the cost of
-        # wrongly closing a live one is half an hour of somebody's staged work.
-        return True, f"UNKNOWN — no tasks db at {DB}, treating as live"
-    con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
-    row = con.execute("select status, pid from tasks where id=?", (task_id,)).fetchone()
-    con.close()
+    # FAIL SAFE, not fail open. If liveness cannot be established the
+    # honest answer is "unknown", and unknown must mean hands off — the
+    # cost of wrongly keeping a dead tab is a stale tab; the cost of
+    # wrongly closing a live one is half an hour of somebody's staged work.
+    try:
+        with db_lib.get_conn(readonly=True, timeout=10) as conn:
+            row = conn.execute(
+                "select status, pid from tasks where id=?", (task_id,)
+            ).fetchone()
+    except Exception as exc:
+        return True, f"UNKNOWN — cannot read tasks db ({exc}), treating as live"
     if not row:
         return False, "no such task"
     status, pid = row

@@ -22,14 +22,14 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sqlite3
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "state" / "tasks.db"
+sys.path.insert(0, str(ROOT))
+from lib import db as db_lib  # noqa: E402
 
 # status -> (mermaid class, human bucket)
 STATUS_CLASS = {
@@ -56,10 +56,6 @@ CLASSDEFS = [
 ]
 
 
-def _connect_ro() -> sqlite3.Connection:
-    conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True, timeout=5)
-    conn.row_factory = sqlite3.Row
-    return conn
 
 
 def _parse_ts(value: str | None) -> datetime | None:
@@ -239,15 +235,12 @@ def main() -> int:
     ap.add_argument("--no-color", action="store_true", help="plain ASCII, no ANSI colour")
     args = ap.parse_args()
 
-    if not DB_PATH.exists():
-        print(f"tasks.db not found at {DB_PATH}", file=sys.stderr)
+    if not db_lib.pg_url() and not db_lib.DB_PATH.exists():
+        print(f"tasks.db not found at {db_lib.DB_PATH}", file=sys.stderr)
         return 1
 
-    conn = _connect_ro()
-    try:
+    with db_lib.get_conn(readonly=True, timeout=10) as conn:
         tasks = fetch_tasks(conn, args.status, args.days, args.project, args.session)
-    finally:
-        conn.close()
 
     note = (f"status={args.status} days={args.days} "
             f"project={args.project or 'all'} -> {len(tasks)} tasks")

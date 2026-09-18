@@ -37,6 +37,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from lib import db as db_lib  # noqa: E402
 from lib import mailbox  # noqa: E402
 from tools.agent_transport import current_identity  # noqa: E402
 from tools.org_inspector import detect_host  # noqa: E402
@@ -87,7 +88,11 @@ SECRETARY_TO_SESSION_ID = "sompong"
 
 def _local_conn() -> sqlite3.Connection:
     QUEUE_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(QUEUE_DB_PATH)
+    # Own database (relay_queue.db, shared only with relay_mcp_server.py,
+    # which is out of scope for the ORG_DB_URL migration -- not the task
+    # registry) -- lib.db.sqlite_connect just centralises the raw sqlite3
+    # connect() call, it does not follow ORG_DB_URL.
+    conn = db_lib.sqlite_connect(QUEUE_DB_PATH, row_factory=False)
     conn.execute(
         """CREATE TABLE IF NOT EXISTS ceo_orders (
             id                INTEGER PRIMARY KEY AUTOINCREMENT,

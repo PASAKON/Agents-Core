@@ -40,6 +40,17 @@ import sqlite3
 import sys
 from pathlib import Path
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+_REPO_ROOT = _SCRIPTS_DIR.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from lib import db as db_lib  # noqa: E402
+
+# Per-call fail-open budget for the (now possibly remote, tailnet-hop) hub --
+# docs/design/tasks-db-hub.md §2: blocking every Edit/Write/Bash because the
+# hub is briefly slow/unreachable is worse than skipping this guard once.
+HUB_TIMEOUT_S = 3.0
+
 # A worktree is ".../worktrees/mooniex-agents__<role>__task-XXXXXXXX".
 WORKTREE_PARENT_DIR = "worktrees"
 WORKTREE_PREFIX = "mooniex-agents__"
@@ -77,6 +88,13 @@ _REDIRECT_RE = re.compile(r"\d?>>?\s*([^\s;&|<>()]+)")
 
 class GuardError(Exception):
     """Raised when the guard cannot decide. Always becomes a refusal."""
+
+
+class HubUnreachable(Exception):
+    """ORG_DB_URL is set and the registry could not even be connected to
+    within HUB_TIMEOUT_S. Handled as fail-OPEN by decide() -- distinct from
+    GuardError (fail-CLOSED), which stays for every case where the hub
+    answered but something about the data was wrong (see load_touches)."""
 
 
 # --------------------------------------------------------------------------
@@ -120,33 +138,38 @@ def db_path_for(root: Path) -> Path:
 # --------------------------------------------------------------------------
 
 def load_touches(db: Path, task_id: str) -> list[str]:
-    """Declared touches for `task_id`. Raises GuardError on any doubt."""
-    if not db.exists():
-        raise GuardError(f"tasks.db not found at {db}")
-    row = None
-    last_err: Exception | None = None
-    # mode=ro needs the -shm of a WAL database; immutable=1 is the fallback for
-    # a WAL db with no live writer. An immutable read can be stale, which can
-    # only cost a false block (loud), never a false allow (silent).
-    for uri in (f"file:{db}?mode=ro", f"file:{db}?mode=ro&immutable=1"):
-        try:
-            conn = sqlite3.connect(uri, uri=True, timeout=2.0)
-            try:
-                row = conn.execute(
-                    "SELECT touches FROM tasks WHERE id=?", (task_id,)
-                ).fetchone()
-            finally:
-                conn.close()
-            break
-        except Exception as exc:          # noqa: BLE001 — any failure = refuse
-            last_err = exc
-    else:
-        raise GuardError(f"cannot read {db}: {last_err}")
+    """Declared touches for `task_id`. Raises GuardError on any doubt --
+    fails CLOSED, this hook's original contract -- once a connection to the
+    registry actually exists. Raises HubUnreachable instead when ORG_DB_URL
+    is set and the registry could not even be connected to within
+    HUB_TIMEOUT_S; the caller (decide()) treats that one case as fail-OPEN
+    (docs/design/tasks-db-hub.md #2) rather than a refusal.
+
+    `db` is passed explicitly (db_path_for(root), this DEV worktree's own
+    checkout) rather than trusting this process's ORG_ROOT/__file__
+    resolution -- under SQLite that is the one thing that tells this hook
+    which checkout's tasks.db to read (and lets its tests inject a fixture
+    path); under Postgres it is ignored, since ORG_DB_URL names one global
+    registry regardless of which checkout asks (see lib.db.get_conn).
+    """
+    connected = False
+    try:
+        with db_lib.get_conn(path=db, readonly=True, timeout=HUB_TIMEOUT_S) as conn:
+            connected = True
+            row = conn.execute(
+                "SELECT touches FROM tasks WHERE id=?", (task_id,)
+            ).fetchone()
+    except Exception as exc:              # noqa: BLE001 — any failure = refuse
+        if not connected and os.environ.get("ORG_DB_URL", "").strip():
+            raise HubUnreachable(str(exc)) from exc
+        if not db.exists():
+            raise GuardError(f"tasks.db not found at {db}") from exc
+        raise GuardError(f"cannot read {db}: {exc}") from exc
 
     if row is None:
         raise GuardError(f"no task row {task_id!r} in {db}")
     try:
-        declared = json.loads(row[0] or "[]")
+        declared = json.loads(row["touches"] or "[]")
     except Exception as exc:              # noqa: BLE001
         raise GuardError(f"touches for {task_id} is not valid JSON: {exc}") from exc
     if not isinstance(declared, list):
@@ -419,6 +442,10 @@ def decide(event: dict | None, *, cwd: str | None = None,
     try:
         task_id = task_id_of(root)
         touches = load_touches(db_path_for(root), task_id)
+    except HubUnreachable as exc:
+        print(f"[self_repo_guard] hub unreachable within {HUB_TIMEOUT_S}s, "
+              f"failing OPEN (allow): {exc}", file=sys.stderr)
+        return 0, ""
     except GuardError as exc:
         return 2, _refusal_undecidable(str(exc), tool)
 

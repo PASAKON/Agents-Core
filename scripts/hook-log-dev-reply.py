@@ -24,7 +24,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import sqlite3
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -32,7 +31,6 @@ from pathlib import Path
 
 ROOT = Path("/Users/gob/Projects/Agents")
 LOG = ROOT / "state" / "logs" / "cto.log"
-DB_PATH = ROOT / "state" / "tasks.db"
 
 
 def _log_for(cto_id: str | None) -> Path:
@@ -106,12 +104,11 @@ def _scan_records(transcript: Path) -> tuple[str, bool]:
 
 
 def _persist(task_id: str, session_id: str, rate_limited: bool) -> None:
-    if not DB_PATH.exists():
-        return
     now = _now_iso()
     try:
-        conn = sqlite3.connect(str(DB_PATH))
-        try:
+        sys.path.insert(0, str(ROOT))
+        from lib import db as db_lib
+        with db_lib.get_conn() as conn:
             conn.execute(
                 "UPDATE tasks SET session_id=?, last_checkpoint=?, updated_at=? "
                 "WHERE id=?",
@@ -127,9 +124,6 @@ def _persist(task_id: str, session_id: str, rate_limited: bool) -> None:
                     "updated_at=? WHERE id=?",
                     (retry_after, now, task_id),
                 )
-            conn.commit()
-        finally:
-            conn.close()
     except Exception:
         pass
 
