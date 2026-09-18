@@ -4,9 +4,9 @@ Rework of «เงินที่พ่อตั้งใจหา» into the �
 This is the treatment only. The 138-shot production script is the next step and
 is not written yet.
 
-Runtime **1104s = 18:24 = 138 shots × 8s**. Nine Facebook mid-roll marks
-(1:00 · 3:00 · 5:00 · 7:00 · 9:00 · 11:00 · 13:00 · 15:00 · 17:00) against six
-at the old 12:00 length.
+Runtime **1360s = 22:40 = 170 shots × 8s** (revised up from 138 on 2026-09-18:
+the first ending resolved nothing and had to be replaced with a real one — see
+§10). Eleven Facebook mid-roll marks against six at the old 12:00 length.
 
 ---
 
@@ -320,3 +320,61 @@ Needs writing:
 2. Closing line: `คนที่พูดไม่ได้ ไม่ได้แปลว่าไม่ได้นับ` / `หนี้ที่ไม่มีใครจด ไม่ได้แปลว่าไม่มีใครจำ`
 3. Narrator as a voice-only channel asset — yes or no
 4. Greenlight to write all 138 shots
+
+
+---
+
+## 10. The ending was wrong, and what replaced it (CEO 2026-09-18)
+
+The first version ended with สมชาย telling เชิด he knew, refusing the money back
+and walking away. The CEO rejected it, correctly:
+
+> "เรื่องนี้ไม่มีบทสรุปเลย ... คนดูรู้สึกให้ครอบครัวนี้ผ่านมันไปให้ได้ และคนร้ายต้องถูกลงโทษ
+> ไม่งั้นคนดูจะนั่งดูทำไม"
+
+Two real failures, not one:
+
+1. **Nothing was resolved for the family.** Still broke, shop empty, no medicine,
+   son still unemployed. An audience that invests twenty minutes in a family is
+   owed the family getting through it.
+2. **The villain was not punished, only informed.** "อย่ามาอีก" costs เชิด nothing,
+   and the line `"ผมไม่เอาเงินคืนหรอกเชิด"` threw the win away on purpose. Dignity
+   without restitution reads as the good man losing.
+
+### What replaced it, and why there is no coincidence in it
+
+The instrument is **เชิด's own creditor**, and he arrives as a direct consequence
+of สมชาย's act, not by chance:
+
+```
+สมชาย หยุดจ่าย  →  เชิด ส่งเฮียไม่ครบ  →  เฮียลงมาตรวจซอยเอง
+```
+
+So the tactic that appeared to destroy the family is the only thing that saves
+it. That is a reversal of the first form — my own act flips on me — running in
+the audience's favour for once, and it retires the coincidence problem entirely.
+
+The creditor's arithmetic is the kill, and it is two crimes in one breath: เชิด
+over-collected 208 instalments on a 150-instalment debt **and** only remitted
+100 upward. He robbed both ends. He is made to count the overpayment into
+สมชาย's hand on the spot — the inversion of the film's opening image — still
+owes the creditor the shortfall, and loses the soi, which is his livelihood.
+
+**เฮียไม่ใช่คนดี.** `"ผมไม่ได้มาช่วยพี่นะ"` — he is protecting his own business.
+The villain is destroyed by his own world, not by a hero and not by the police.
+That is the ฟ้ามีตา move.
+
+### The family, resolved concretely
+
+- ฿116,000 back — the wrong materially undone, not symbolically.
+- ย่า gets her medicine; `"...นับ...ครบ...แล้ว..."` closes her four years.
+- The soi returns the moment เชิด is finished; one line of เจ๊หมวย does it.
+- **ต้น stops job-hunting and takes over the shop's books** — the graduate who
+  thought his degree meant leaving finds his worth at home, and becomes the one
+  who keeps the บัญชี. `"จะได้ไม่มีใครมาคิดให้เราอีก"` answers `"เดี๋ยวผมคิดให้"`
+  and closes the title.
+
+### Cost of the change
+
++32 shots (138 → 170), +5:20 of runtime, +2 mid-roll marks. At 12 credits a shot
+that is ~384 more credits per episode.
