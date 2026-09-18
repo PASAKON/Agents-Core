@@ -22,6 +22,16 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+import sys
+
+# Windows defaults stdout to cp1252, and everything here prints text that
+# came from somewhere else -- a lease holder's name, a window title, a
+# screen name. On 2026-09-18 a lease taken with a U+25D1 in it crashed
+# this whole check on the print, so the farm's health was unreadable
+# because of a character in somebody's label. Third instance of this same
+# cp1252 fault today (esc's ESC_HOLD write, session-rename, this).
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 DATA = Path.home() / "Documents" / "CookieRunScript"
 TOKEN = DATA / "modelplay" / "pipe_token"
