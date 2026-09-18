@@ -284,52 +284,61 @@ def sqlite_connect(path: str | Path, *, row_factory: bool = True,
     return conn
 
 
+def init_schema(conn, *, is_pg: bool) -> None:
+    """Create schema + run forward-only column migrations on an already-open
+    `conn`. Idempotent. Split out of init() (task-78586938) so
+    scripts/migrate_tasks_db.py can initialise a specific --to target that
+    `get_conn()`/ORG_DB_URL may not point at, reusing this exact column list
+    instead of hand-duplicating it."""
+    conn.executescript(db_pg.PG_SCHEMA if is_pg else SCHEMA)
+    existing = {r["name"] for r in conn.execute(
+        "PRAGMA table_info(tasks)").fetchall()}
+    for col, coltype in _MIGRATION_COLUMNS:
+        if col not in existing:
+            conn.execute(f"ALTER TABLE tasks ADD COLUMN {col} {coltype}")
+    # W8 (audit 2026-08-06, reference/2026-08-06-agents-system-audit.md):
+    # claudesign_project_id was added out-of-band, was never wired into
+    # _MIGRATION_COLUMNS/VALID_COLUMNS, has zero code references and zero
+    # non-null values across every row. Drop it. Guarded by the same
+    # existence check the ADD-COLUMN loop uses above, so this is
+    # idempotent — safe to run twice, and safe on a DB where the column
+    # is already gone (fresh db.init() never had it to begin with).
+    if "claudesign_project_id" in existing:
+        conn.execute("ALTER TABLE tasks DROP COLUMN claudesign_project_id")
+    # c_level_sessions lifecycle (task-728e4741): idempotent ADD COLUMN so
+    # the existing 76-row DB gains status/closed_at/note/resume_uuid on the
+    # next init(). CREATE TABLE IF NOT EXISTS above is a no-op against a
+    # pre-existing table, so the ALTERs are what actually carry an old DB
+    # forward. status's DEFAULT 'open' backfills every existing row.
+    cls_existing = {r["name"] for r in conn.execute(
+        "PRAGMA table_info(c_level_sessions)").fetchall()}
+    for col, coltype in _C_LEVEL_SESSION_MIGRATION:
+        if col not in cls_existing:
+            conn.execute(
+                f"ALTER TABLE c_level_sessions ADD COLUMN {col} {coltype}")
+    # Backfill: move runner-generated messages out of report into
+    # delegate_log so DEV completion reports are never overwritten.
+    conn.execute("""
+        UPDATE tasks
+           SET delegate_log = report,
+               report = NULL
+         WHERE report IS NOT NULL
+           AND delegate_log IS NULL
+           AND (   report LIKE 'path collision with%'
+                OR report LIKE 'kickoff failed%'
+                OR report LIKE 'lock contested%'
+                OR report LIKE 'path locks held by%'
+                OR report LIKE 'tmux create failed%'
+                OR report LIKE 'iTerm spawn failed%'
+                OR report LIKE 'DEV timed out%')
+    """)
+
+
 def init():
     """Create schema. Idempotent. Also runs forward-only column migrations
     for tables that predate _MIGRATION_COLUMNS."""
     with get_conn() as conn:
-        conn.executescript(db_pg.PG_SCHEMA if pg_url() else SCHEMA)
-        existing = {r["name"] for r in conn.execute(
-            "PRAGMA table_info(tasks)").fetchall()}
-        for col, coltype in _MIGRATION_COLUMNS:
-            if col not in existing:
-                conn.execute(f"ALTER TABLE tasks ADD COLUMN {col} {coltype}")
-        # W8 (audit 2026-08-06, reference/2026-08-06-agents-system-audit.md):
-        # claudesign_project_id was added out-of-band, was never wired into
-        # _MIGRATION_COLUMNS/VALID_COLUMNS, has zero code references and zero
-        # non-null values across every row. Drop it. Guarded by the same
-        # existence check the ADD-COLUMN loop uses above, so this is
-        # idempotent — safe to run twice, and safe on a DB where the column
-        # is already gone (fresh db.init() never had it to begin with).
-        if "claudesign_project_id" in existing:
-            conn.execute("ALTER TABLE tasks DROP COLUMN claudesign_project_id")
-        # c_level_sessions lifecycle (task-728e4741): idempotent ADD COLUMN so
-        # the existing 76-row DB gains status/closed_at/note/resume_uuid on the
-        # next init(). CREATE TABLE IF NOT EXISTS above is a no-op against a
-        # pre-existing table, so the ALTERs are what actually carry an old DB
-        # forward. status's DEFAULT 'open' backfills every existing row.
-        cls_existing = {r["name"] for r in conn.execute(
-            "PRAGMA table_info(c_level_sessions)").fetchall()}
-        for col, coltype in _C_LEVEL_SESSION_MIGRATION:
-            if col not in cls_existing:
-                conn.execute(
-                    f"ALTER TABLE c_level_sessions ADD COLUMN {col} {coltype}")
-        # Backfill: move runner-generated messages out of report into
-        # delegate_log so DEV completion reports are never overwritten.
-        conn.execute("""
-            UPDATE tasks
-               SET delegate_log = report,
-                   report = NULL
-             WHERE report IS NOT NULL
-               AND delegate_log IS NULL
-               AND (   report LIKE 'path collision with%'
-                    OR report LIKE 'kickoff failed%'
-                    OR report LIKE 'lock contested%'
-                    OR report LIKE 'path locks held by%'
-                    OR report LIKE 'tmux create failed%'
-                    OR report LIKE 'iTerm spawn failed%'
-                    OR report LIKE 'DEV timed out%')
-        """)
+        init_schema(conn, is_pg=bool(pg_url()))
     print(f"[db] initialized at {pg_url() or DB_PATH}")
 
 
