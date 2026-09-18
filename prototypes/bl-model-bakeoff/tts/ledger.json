@@ -1,0 +1,22 @@
+[
+  {
+    "engine": "minimax-speech-02-hd",
+    "voice": "Casual_Guy",
+    "file": "TTS-MiniMax-CasualGuy.mp3"
+  },
+  {
+    "engine": "minimax-speech-02-hd",
+    "voice": "Decent_Boy",
+    "file": "TTS-MiniMax-DecentBoy.mp3"
+  },
+  {
+    "engine": "minimax-speech-02-hd",
+    "voice": "Young_Knight",
+    "file": "TTS-MiniMax-YoungKnight.mp3"
+  },
+  {
+    "engine": "minimax-speech-02-hd",
+    "voice": "Determined_Man",
+    "file": "TTS-MiniMax-DeterminedMan.mp3"
+  }
+]
