@@ -261,9 +261,13 @@ and the submit arrow. 720p is the ceiling shown on a PLUS account.
 
 ## Account tier
 
-The CEO's account badge reads **PLUS** (Google AI Plus), not Pro — visible
-top-right beside the avatar. That means **200 credits per month**, i.e. ten
-Veo 3.1 Fast clips. Plan every shoot against 200, not 1,000.
+**ULTRA since 2026-09-18** — the CEO paid ฿3,500 and the badge top-right beside
+the avatar now reads `ULTRA`. That is **10,000 credits per month**, not 200.
+
+Read the badge; do not carry a number in from a previous run. Every earlier
+paragraph in this file that plans a shoot "against 200" was written on the PLUS
+plan and is obsolete. Credits still do not roll over, and every rule under
+"Money" still binds — a bigger pool is not permission to spend loosely.
 
 ## Contested — do not state these as fact
 
@@ -709,6 +713,90 @@ Up to **10 image references and 3 video references** per generation are allowed 
 far more than the 3 we assumed. And *"attach everything before the first
 generation, because adding references mid-conversation destabilizes a scene that
 was holding together."*
+
+## ⛔ A voice belongs to the CHARACTER, not to the shot (CEO 2026-09-18)
+
+This is the step every worker so far has missed, and it invalidates the
+"attach a voice chip per shot" habit written further up this file.
+
+Open a character — click it in `ตัวละคร`, or in the media picker — and its own
+page carries a **`เลือกเสียง`** button on the left, directly above the
+`ข้อมูลตัวละคร (ไม่บังคับ)` box. Pick a voice there and it is **bound to that
+character permanently**:
+
+```
+before:   [  ♪) เลือกเสียง                        ]
+after:    [ (♪) algieba            ▶   นำออก      ]
+```
+
+`นำออก` removes it. `▶` plays the sample. That is the whole control.
+
+### Why this matters more than it looks
+
+**A shot with two people talking cannot be solved with voice chips.** One voice
+chip in a prompt is one voice for the generation — it cannot tell the father
+from the son. Bind the voice to the character and the model knows which mouth
+each voice belongs to, however many characters are in frame. Any scene with
+more than one speaker REQUIRES this path.
+
+### The rules that follow
+
+1. **Bind the voice at character-creation time, before any shot is fired.** It
+   is part of building the character, like the reference image — not part of
+   setting up a generation.
+2. **Verify it from the picker, not from memory.** Selecting a character in the
+   media picker shows its bound voice in the preview pane, with its own `▶`.
+   A character whose preview pane shows no voice row has no voice bound, no
+   matter what any report claims.
+3. **The character page also has a free-text `ข้อมูลตัวละคร` box** —
+   "อธิบายบุคลิกของตัวละคร…". Flow's own hint says Agent Flow uses it to help
+   build scenes with that character. Put the APPEARANCE LOCK's personality
+   line there.
+4. `เสร็จสิ้น` (top right) commits the character page.
+
+## ⛔ `<IMAGE_REF_N>` is numbered by ADD ORDER — and the UI will not tell you (CEO 2026-09-18)
+
+The numbering is positional and starts at zero:
+
+```
+the 1st chip you add  ->  <IMAGE_REF_0>
+the 2nd chip you add  ->  <IMAGE_REF_1>
+the 3rd chip you add  ->  <IMAGE_REF_2>
+```
+
+### How a chip is added
+
+`+` in the composer → the media picker opens with its own tabs
+(`ทั้งหมด · รูปภาพ · วิดีโอ · เสียง · ตัวละคร · รูปโปรไฟล์ · การอัปโหลด`) →
+click the **row** → the preview pane fills on the right → press the white
+**`เพิ่มไปยังพรอมต์`** button at the bottom of that pane.
+
+Added chips appear as small thumbnails in a row above the prompt text. **That
+row is the index.** Leftmost is `<IMAGE_REF_0>`.
+
+### The trap, demonstrated by the CEO's own screen
+
+The thumbnail row showed, left to right: the **shop interior**, then the
+**young man**. The prompt read:
+
+```
+Use <IMAGE_REF_0> as the character reference for the young man's face and hair.
+Use <IMAGE_REF_1> as the location reference for the shop interior and its …
+```
+
+So `<IMAGE_REF_0>` pointed at the location and `<IMAGE_REF_1>` at the person —
+**both references inverted**, while the chip count, the chip types and the
+prompt's own wording all look perfectly correct. Nothing in the UI flags it.
+The face drifts and the set drifts and every check still passes. This is the
+same class of silent failure as binding a chip by its row label.
+
+### The rule
+
+**Decide the order first, add in that order, then write the prompt to match —
+and re-read the thumbnail row against the prompt before Submit.**
+
+The thumbnail row is the only evidence of the mapping. Reading the prompt back
+proves nothing: the prompt is what you *believe*, the row is what is *true*.
 
 ## The APPEARANCE LOCK is the ground truth, not the neighbouring shot
 
