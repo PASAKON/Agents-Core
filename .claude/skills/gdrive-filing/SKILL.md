@@ -274,6 +274,24 @@ Google Drive (root) — pass.gob1@gmail.com
 │           │                      16:9 ONLY — this film is 1280×720. The 21:9 pair
 │           │                      lives under Do Not Disturb, which is 1470×630
 │           └── Final Draft/       the editor's cut comes back here
+├── FB: ละครสั้นคุณธรรม/          NEW 2026-09-18 (CEO approved in chat, "ตามนั้น
+│   │                          Approve"). Facebook page «ละครสั้นคุณธรรม by ILAG
+│   │                          Studio» (id 61594116376333). Thai moral short
+│   │                          dramas, ONE COMPLETE STORY PER EPISODE (ฟ้ามีตา
+│   │                          format) — not a serial. Same brand as YT: ILAG,
+│   │                          different platform and different show, so it is a
+│   │                          sibling channel, not a folder inside it.
+│   │                          ⚠ RUNS ON THE YT: ILAG BRANCH RULES — read that
+│   │                          section: mandatory per-project logs.txt, S<n>
+│   │                          scene naming, append-only, nothing ever deleted,
+│   │                          and plate names belong to the director not to us.
+│   └── EP1 บัญชี/             one EP = one film. Numbered because this is a
+│       ├── logs.txt           recurring show; YT: ILAG's bare titles do not sort
+│       ├── All Scene/         once there are twenty of them.
+│       ├── Element/           → Character/, Location/, Prop/
+│       ├── Soundtrack/
+│       ├── Final Draft/
+│       └── StoryBoard (Doc)
 ├── BACKUP/                       NEW 2026-08-04. Important data that doesn't
 │   │                             fit any other folder / can't be categorized,
 │   │                             or redundant copies the CEO wants kept in
@@ -492,6 +510,12 @@ Everything in this section applies to **this branch only**. The CEO's reason,
 in his words: *"เพราะโปรเจคนี้ค่อนข้างละเอียดอ่อน"*. Do not generalise these
 rules to `MYPASAKON`, `BLACK LIQUIDITY`, `YT: TRADER UNCUT` or any other
 channel — they keep the ordinary per-clip production-stage layout.
+
+**One exception, added 2026-09-18: `ALL DRAFT/FB: ละครสั้นคุณธรรม` runs on these
+same rules.** The CEO answered a request for a folder pattern by sending the
+`YT: ILAG` link, and approved a tree built to match. So everything below —
+`logs.txt`, `S<n>`, append-only, one `Element/`, nothing deleted, names belong
+to the director — binds that channel too. Read "this branch" as both.
 
 ### Layout
 
@@ -809,6 +833,8 @@ needs to see at a glance which are the sharp ones.
 | `Do Not Disturb/logs.txt` | `1GVmc1Cqg-97YMcCd303_1EbNFhaiIfiO` | The project log. Append-only, 9 pipe-separated fields — see the YT: ILAG section above for the contract and the reconcile-on-entry rule. |
 | `Do Not Disturb/StoryBoard` | `18nykJSEtNPstN7-gB1VmGTjs8HAovFcivhBhAVgqdRw` | Google Doc. Short synopsis, the locked story facts, the festival constraints, and a link to the director's-notebook artifact where the volatile detail lives. |
 | `Do Not Disturb/Soundtrack` | `1BcwtvPSSGN4kQwuYnerWYyPrLF3iAwjQ` | Defined 2026-08-12 — **everything audio** for this film — music, SFX, ambience, voice. Sub-folders are split by whatever kind makes it easy for the editor to grab (`SFX`, `Ambient`, `Audio`, …), named by the director rather than by us (CEO 2026-08-12). Empty as of that date. |
+| `ALL DRAFT/FB: ละครสั้นคุณธรรม` | `1zu3azrqtw22X0n72fJfREDWQb_kjLm4K` | Created 2026-09-18, CEO approved the whole tree in chat ("ตามนั้น Approve") after being shown it. The Facebook channel «ละครสั้นคุณธรรม by ILAG Studio» (page id 61594116376333, which lives on the **Dorsine Gobb** profile — see the two-Facebook-accounts note). Thai moral short dramas in the ฟ้ามีตา format: **one complete story per episode**, villain punished, family visibly comes through. Named `<platform>: <channel>` like every other channel row. **Follows the YT: ILAG branch rules in full** — the CEO pointed at `YT: ILAG` by link when asked for a pattern — so: one `logs.txt` per project, append-only, `S<n>` scene folders, exactly one `Element/`, nothing in the branch ever deleted, and plate/sub-folder names are the director's to choose. |
+| `FB: ละครสั้นคุณธรรม/EP1 บัญชี` | `1TqUWgJuvrLsePuhFqFsj35NtdDQdoVLy` | The first episode. Children: `All Scene` `1N4VfSl4ZUtCi2bNf4BOfNrSLOA2BlyHY`, `Element` `1atBkEGmvH-EAIUgRUxNEEyQcPPXDGDN9` (→ `Character` `1mQ5HxUwPS-bNqT7d7bgTLMhxGBayeEGM`, `Location` `1DlzY-QJ3QnGk_EEwIrIOb8gRckOt15JS`, `Prop` `1ZgN1FS-tWrxFVVhIIEQrFDbkHOLzARLP`), `Soundtrack` `1XBQ_P4gdYqtgEjDUH1RMpRwMz6vaexzv`, `Final Draft` `1aq3B9g8NQyAhgXlim-WywmtZmGrWQ7dy`, `logs.txt` `1bbSIUxnVoM7V5492dBW1vcoUYrp-ibNE`, `StoryBoard` (Doc) `1jGDHb4RAJxtwN6U8Hu7N5D9kNtRYrboSJoGKrlTxzrk`. Episodes are numbered `EP<n> <title>` because this is a recurring show and bare titles stop sorting once there are twenty. **Exception to the branch's delete-local-after-upload rule, stated by the CTO and approved in the same message:** the `Element/` plates stay on the Mac as well as on Drive. `tools/build_shotsheet.py` refuses to render a shot sheet whose handles have no local plate, so deleting them would break the build; the rule exists for 500 MB of renders, and all 20 plates together are ~12 MB. |
 | `BACKUP` (root) | `1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq` | NEW 2026-08-04. Important data that doesn't belong to / can't be categorized into any other folder, specifically related to backing up or redundantly storing data in 2-3 places. Can be temporary or permanent. **2026-09-10:** holds, directly at this root, `Agents-worktrees-2026-09-10.tar` (id `1yWF1ArtjxYyhkNNUuICskv00X1h52A4k`, 48.8 MB) and `PARKED-mooniex-moonx-ignored.tar.gz` (`1BPEG1mazutBiF2Utlx8zGXq3joJ6DQQ8`, 248 MB) + `PARKED-mooniex-video-engine-ignored.tar.gz` (`1zvbnsoHwxXvQoSTJ5-i3vckCGgukDgeN`, 7 MB), each with a `.manifest.json` beside it (sha256/md5, source, restore line) — CEO-approved in chat ("สำรองถ้าไม่มั่นใจ ใน Skill google drive filling"); gate rows in `org:playbooks/drive-archive-gate.md`; log lines in `~/.claude/logs/drive-archive.log`. A `BACKUP/Agents Backup/` sub-folder is proposed for these, not yet approved. Also contains `iPhone14Pro_Backup` (id `1L4G227DG8Tf0AQUE0iozhyAycc1JTnpk`, created 2026-08-05) with NO definition yet — ask the CEO before filing anything into it (Rule 7). |
 | `BACKUP/FaceBook Backup` | `1cNHt6bg7-ggXf8ec6DChzouUrw3nUGig` | Meta "Download Your Information" auto-export bundles — rarely actually used. Moved here from Drive root 2026-08-04 (was a root-level folder). Meta's export flow has no destination-folder setting, so new `meta-*` exports will keep landing at Drive root — move each one into this folder manually/by AI when found. The old stray `meta-2026-Jun-18-22-41-35` was merged in here 2026-08-04. |
 | `BACKUP/CookieRun Backup` | `1a5I-YVpeLelju2EY5Ey-jqDmRymfgQEl` | NEW 2026-09-06, CEO-approved in chat. Raw copies of the Cookie Run bot's data from the Windows box: the CEO's recorded takes, later the bot's own sessions and training sets. Uploaded from the box by rclone (remote `gdrive:`, scope drive.file) as one tar per item + sha256 manifest, verified with `rclone check`. Rules and lifecycle: `cookierun-bot/docs/DATA-STEWARD.md`; the move row lives in `playbooks/drive-archive-gate.md`. Created by rclone (not the bridge) so the drive.file token can still see it. **2026-09-13:** also holds, at this root, `from_pod-mac-only-2026-09-13.tar` (486,183,936 B, 27 models, sha256 `d2052f85…`, Drive md5 `cf692c4e…`, `rclone check --one-way` → 0 differences) + its `.manifest.json` — the models that existed only on the Mac when `cookierun-bot` was split into code-on-GitHub (`PASAKON/MoonieX-CookieRun`) and data-on-winbox. The other 31 files in that directory were byte-identical to winbox's own copies and were not uploaded: **compare by md5 before uploading a model directory**, or you ship 763 MB to preserve 464 MB. The Mac could not upload it itself — the rclone token is confined to winbox by rule 6 above — so the tar was scp'd to the box and copied from there. |

@@ -13,8 +13,9 @@ relies on the author remembering it gets skipped.
 Only numpy + Pillow + ffmpeg/ffprobe. No venv needed.
 """
 import argparse, json, os, subprocess, sys
+import pathlib
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 # ----------------------------------------------------------------- helpers
@@ -69,8 +70,20 @@ def face_box(rgb):
     'face' the whole frame and the safe area meaningless.
     """
     R, G, B = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    # R-B is what separates skin from this channel's backgrounds. Measured on
+    # the 2026-09-18 reference: cheek 56, chin 67, neon wall 30-36, white polo
+    # 1, black suit 4. The old threshold of 28 let the neon wall through, the
+    # "face" became the whole frame, and safearea returned y>=1975 on a clip
+    # whose chin is at 1030. 45 sits in the gap with room on both sides.
     skin = ((R > 95) & (R < 240) & (R - G > 12) & (R - G < 70) &
-            (G - B > 8) & (G - B < 60) & (R - B > 28))
+            (G - B > 8) & (G - B < 60) & (R - B > 45))
+    # A face lives in the upper part of a 9:16 talking-head frame. Hands do not
+    # always, and a hand raised into frame is a second skin blob that drags the
+    # bottom of the bounding box down past the chin - that is the other way
+    # this function used to lie.
+    h = rgb.shape[0]
+    skin = skin.copy()
+    skin[int(h * 0.72):, :] = False
     colcount = skin.sum(axis=0)
     cols = np.where(colcount > 3)[0]
     if len(cols) < 4:
@@ -82,6 +95,9 @@ def face_box(rgb):
         else:
             runs.append(cur); cur = [c]
     runs.append(cur)
+    # widest run, but a run spanning most of the frame is background bleeding
+    # through, not a face - drop those and take the widest plausible one
+    runs = [r for r in runs if len(r) <= rgb.shape[1] * 0.70] or runs
     run = max(runs, key=len)
     sub = skin[:, run[0]:run[-1] + 1]
     ys = np.where(sub.any(axis=1))[0]
@@ -94,7 +110,13 @@ def face_box(rgb):
     # widest row and call it the chin where the width drops under 60% of that.
     width = sub.sum(axis=1)
     widest = int(np.argmax(width))
-    thresh = width[widest] * 0.60
+    # 0.50, not 0.60: calibrated 2026-09-18 against two references whose
+    # chins were read off a pixel ruler by eye (old 800, new 940). No single
+    # fraction fits both - 0.60 reads the lips as the chin on a wide-jawed
+    # face, 0.45 walks down into the neck on a narrow one. 0.50 is the best
+    # compromise and is still allowed to be ~50px high, which is why this
+    # command now draws the answer instead of only printing it.
+    thresh = width[widest] * 0.50
     chin = ys.max()
     for r in range(widest, ys.max() + 1):
         if width[r] < thresh:
@@ -123,12 +145,29 @@ def cmd_safearea(a):
         print("\n  no face on this clip — text may sit anywhere")
         return 0
     chin = max(chins)
-    print(f"\n  lowest chin across samples : y={chin}")
+    print(f"\n  lowest chin across samples : y={chin}   (estimate, can read ~50px high)")
     print(f"  SAFE TEXT TOP              : y >= {chin + 60}")
-    print("  a block whose `top` is above this WILL cross the face on some frame.")
-    print("  measure every clip you intend to put text over — framing can differ")
-    print("  between parts of the same lipsync set, and eyeballing two frames is")
-    print("  how you end up with a rule that is wrong for the third.")
+
+    # The number alone has lied before, in both directions, so draw it. One look
+    # at this image settles what no threshold reliably can: a line through the
+    # lips is too high, a line on the collar is too low, a line on the jaw edge
+    # is right.
+    out = pathlib.Path(a.clip).with_suffix("").name + "-safearea.jpg"
+    t_low = times[int(np.argmax(chins))] if len(chins) == len(times) else times[-1]
+    rgb = frame(a.clip, t_low)
+    im = Image.fromarray(rgb.astype("uint8")).resize((1080, 1920))
+    d = ImageDraw.Draw(im)
+    for y, col, lab in ((chin, (255, 90, 90), f"chin {chin}"),
+                        (chin + 60, (90, 220, 255), f"SAFE TOP {chin + 60}")):
+        d.line([0, y, 1080, y], fill=col, width=6)
+        d.rectangle([8, y - 24, 430, y + 24], fill=(0, 0, 0))
+        d.text((16, y - 14), lab, fill=col)
+    im.save(out, quality=90)
+    print(f"  drawn on            : {out}   <- LOOK AT THIS")
+    print("  the red line must sit on the jaw edge. Through the lips = too high,")
+    print("  on the collar = too low; in either case set the value by eye and say so.")
+    print("  measure every clip you intend to put text over — framing differs")
+    print("  between parts of the same lipsync set.")
     return 0
 
 
