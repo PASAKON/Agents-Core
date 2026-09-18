@@ -147,20 +147,34 @@ learn one bit of information. A Monitor gets the same bit from the process
 table for free. Measured on task-cda4f469: 52 of 65 DEV messages carried no
 new information, and the Monitor caught a killed operator immediately.
 
-Arm this right after `delegate_task` returns, substituting the task id:
+**Watch three things, not one: the status, the PROGRESS, and the dialog.**
+A pid answers "alive" for a worker that is working, a worker that is wedged, and
+a worker sitting on a permission prompt. It cannot tell them apart, so on its own
+it is close to useless. Measured 2026-09-18 across 41 workers in one session:
+**not one died on its own**, but two stalled for 50 and 25 minutes while this
+check reported `proc=alive` the entire time.
+
+Arm this right after `delegate_task` returns. Substitute the task id, the tmux
+name, and `OUT` — **the file the task is supposed to be filling.** A flat line
+count next to a live pid is what a stall actually looks like.
 
 ```bash
 DB=/Users/gob/Projects/Agents/state/tasks.db
+W=/Users/gob/Projects/Agents/worktrees/<project>__<role>__task-XXXXXXXX
+OUT="$W/<the file this task produces>"     # progress, not liveness
 prev=""
 while true; do
   row=$(sqlite3 "$DB" "SELECT status||'~'||COALESCE(pid,0) FROM tasks WHERE id='task-XXXXXXXX';" 2>/dev/null || echo "dberror~0")
   st=${row%%~*}; p=${row##*~}
   alive=dead
   if [ "$p" != "0" ] && kill -0 "$p" 2>/dev/null; then alive=alive; fi
-  cur="$st/$p/$alive"
-  if [ "$cur" != "$prev" ]; then echo "task status=$st pid=$p proc=$alive"; prev="$cur"; fi
+  n=0; [ -f "$OUT" ] && n=$(wc -l < "$OUT" | tr -d ' ')
+  blocked=no
+  tmux capture-pane -p -t wd-XXXXXXXX 2>/dev/null | grep -q "Enter to confirm" && blocked=PERMISSION-DIALOG
+  cur="$st/$alive/$n/$blocked"
+  if [ "$cur" != "$prev" ]; then echo "task status=$st proc=$alive progress=$n blocked=$blocked"; prev="$cur"; fi
   case "$st" in
-    done|review|failed|cancelled|conflict) echo "TERMINAL state=$st"; break;;
+    done|review|failed|cancelled|conflict) echo "TERMINAL state=$st progress=$n"; break;;
     dberror) echo "DB READ FAILED"; break;;
   esac
   if [ "$alive" = "dead" ] && [ "$st" = "in_progress" ]; then
@@ -169,6 +183,10 @@ while true; do
   sleep 45
 done
 ```
+
+If a task produces no file until the end, give it one — ask the brief for an
+append-as-you-go log. A task whose only output arrives at the end is a task you
+cannot supervise, and it is also a task that loses everything when it stalls.
 
 Run it with `persistent: true`. It emits only on change, so a quiet DEV
 produces zero notifications.
