@@ -145,9 +145,49 @@ C-level, in the same class as casting.
 > "ตัวละครขับเนื้อเรื่อง คนดูเข้าใจแม้ไม่ได้ดูภาพ บทพูดต้องสมเหตุสมผล
 > คนดูได้รับข่าวสารตรงไปตรงมา เป็นเส้นตรง"
 
+**THE RULE, and it is a rule and not a guideline: every shot carries a spoken
+line.** Long or short, a sentence or a single word, but every shot. Silence lives
+*inside* a line's delivery — the pause before an answer, the breath after one —
+never *instead* of it.
+
 **The test:** strip every image, every caption, every stage direction. Read the
 dialogue cold. If it does not read like the film, the script fails — no matter
 how good the shots are.
+
+### The rule and the test are not the same thing, and confusing them cost a day
+
+This file used to carry only the test. On 2026-09-18 that was enough to let Act 1
+of «บัญชี» reach camera **50% silent, with two unbroken 48-second stretches** in
+which a job rejection was hidden and a debt was split into three piles — both
+plot the audience could only get by watching.
+
+A test you run afterwards does not stop you building it wrong. And the artefact
+used to run it — a transcript file holding only the spoken lines — **cannot show a
+gap. It passes by construction.** The check could never fail, so it never did.
+
+So the check now reads the SHOT SHEET, where gaps are visible, and it is a
+script rather than a paragraph:
+
+```bash
+python3 tools/shotsheet_lint.py docs/scripts/<sheet>.md
+```
+
+It exits non-zero on any shot with no line and prints the unbroken silent
+stretches worst-first. **Run it before a single credit is spent.**
+
+### The rule makes the script better, it does not pad it
+
+Every silent shot that had to be given a line came back stronger, because a shot
+that cannot justify one line is usually a shot that is not doing anything:
+
+- hands counting coins → the father counting **aloud**, which plants that he
+  never writes a single figure down — the whole theme, in a mutter
+- a face falling at a phone screen → `"...อีกแล้ว"`, and now a listener knows
+  the son was rejected again
+- an old woman staring at a gap in the floorboards → her grandson asking
+  `"ข้างล่างเสียงดังไปไหมครับย่า"`, which plants that she hears everything below
+- her hand gripping his sleeve → `"ย่าจะบอกอะไรผมเหรอ"`, which plants the
+  reversal in words instead of hoping the audience reads a gesture
 
 Consequences that bite in practice:
 
