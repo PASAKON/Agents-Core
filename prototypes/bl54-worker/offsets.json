@@ -1,0 +1,20 @@
+[
+ {
+  "part": "A",
+  "file": "lipsync_part_a_0s-16s.mp4",
+  "true_s": 0.0,
+  "r": 1.0
+ },
+ {
+  "part": "B",
+  "file": "lipsync_part_b_59s-72s.mp4",
+  "true_s": 58.94,
+  "r": 1.0
+ },
+ {
+  "part": "C",
+  "file": "lipsync_part_c_115s-129s.mp4",
+  "true_s": 115.27,
+  "r": 1.0
+ }
+]
