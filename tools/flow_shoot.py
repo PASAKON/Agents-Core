@@ -90,6 +90,19 @@ def credit_cap_exceeded(spent_this_run: int, estimate: int, cap: int) -> bool:
     return spent_this_run + estimate > cap
 
 
+def normalize_prompt_whitespace(text: str) -> str:
+    """The composer's contenteditable box re-normalizes every run of one or
+    more newlines to its own paragraph-break rendering — confirmed live
+    2026-09-19 (task-a09ed18a): a single '\\n' between two dialogue lines
+    and a blank-line '\\n\\n' between two paragraphs both round-trip through
+    the DOM as a different, but internally consistent, number of newlines.
+    Every character of actual TEXT survives; only the exact newline COUNT
+    does not. Comparing raw strings after a paste therefore always reports
+    a false mismatch — this collapses newline runs on both sides so the
+    comparison checks content, the thing that can actually go wrong."""
+    return re.sub(r"\n+", "\n", text).strip()
+
+
 def effective_duration(sheet_dur_s: int, force_duration: int | None) -> int:
     """--force-duration (proof shots only) overrides the sheet's per-shot
     duration for BOTH the composer's duration setting and verify_clip's
@@ -208,117 +221,237 @@ class FlowBrowser:
     def set_settings(self, dur_s: int, resolution: str = "720p") -> dict:
         """Set model=Omni 1.1 Flash, mode=องค์ประกอบ, aspect=9:16, qty=x1,
         resolution, duration=dur_s, then read every one of them back off the
-        DOM — NONE of them are sticky (BANCHI-SHOOT-BRIEF.md). The settings
-        row itself reads `วิดีโอ · 720p · 8 วินาที · 9:16 · x1`
-        (google-flow-ops) — resolution is a facet alongside duration/aspect,
-        offering only 720p/360p; the exact control is unverified until the
-        first --dry-run against the live UI confirms or corrects it."""
+        DOM — NONE of them are sticky (BANCHI-SHOOT-BRIEF.md).
+
+        CORRECTED 2026-09-19 (task-a09ed18a, live --dry-run against the
+        automation Chrome): the composer's collapsed pill (aria-label
+        "ทริกเกอร์การตั้งค่า") only ever shows facets as flattened TEXT —
+        there are no per-facet aria-labels ("Ratio"/"Duration"/"Resolution")
+        anywhere in the DOM; the original guesses always timed out. Every
+        real facet control lives inside the `<flow-prompt-box-settings>`
+        overlay panel that button opens, as an Angular Material
+        `mat-button-toggle` group per facet (image/video, เฟรม/องค์ประกอบ,
+        aspect, resolution, duration, quantity), matched here by each
+        option's own visible text — none of them carry a stable aria-label
+        either. The panel defaults to the "รูปภาพ" (Image) tab on a fresh
+        open; "วิดีโอ" must be clicked first or every later facet click hits
+        the wrong (image-mode) panel.
+        """
         page = self.page
         for _ in range(3):
             page.keyboard.press("Escape")
             page.wait_for_timeout(150)
+        panel = page.locator("flow-prompt-box-settings")
+        # Opening the panel is racy in the same way chip-attach is
+        # documented as racy (google-flow-ops) — a single click does not
+        # reliably land. Poll instead of trusting one click+wait.
+        for _ in range(5):
+            if panel.count():
+                break
+            try:
+                page.locator('button[aria-label="ทริกเกอร์การตั้งค่า"]').first.click(timeout=3000)
+            except Exception as e:
+                _log(f"  settings panel open err: {e!r}")
+            page.wait_for_timeout(400)
+        if panel.count() == 0:
+            _log("  settings panel never opened after 5 attempts")
+        # The panel can reopen on either the "รูปภาพ" (Image) or "วิดีโอ"
+        # tab depending on what it last showed in this page session — check
+        # the actual state (duration buttons only exist in video mode)
+        # instead of assuming one click is needed.
+        for _ in range(3):
+            try:
+                txt = panel.evaluate("el => el.innerText") if panel.count() else ""
+            except Exception:
+                txt = ""
+            if "วินาที" in txt:
+                break
+            try:
+                panel.get_by_text("วิดีโอ", exact=True).first.click(timeout=2000)
+            except Exception as e:
+                _log(f"  video-tab select err: {e!r}")
+            page.wait_for_timeout(300)
         try:
-            page.get_by_text("Omni 1.1 Flash", exact=False).first.click(timeout=3000)
+            panel.locator('button[aria-label="เลือกกลุ่มผลิตภัณฑ์โมเดล"]').first.click(timeout=3000)
+            page.wait_for_timeout(300)
+            page.locator("[role=menuitem]").filter(has_text="Omni 1.1 Flash").first.click(timeout=3000)
         except Exception as e:
             _log(f"  model select err: {e!r}")
         try:
-            mode_toggle = page.get_by_text("องค์ประกอบ", exact=True).first
-            if mode_toggle.count():
-                mode_toggle.click(timeout=3000)
+            panel.locator("mat-button-toggle").filter(has_text="องค์ประกอบ").first.click(timeout=3000)
         except Exception as e:
             _log(f"  mode select err: {e!r}")
         try:
-            page.locator('button[aria-label="Ratio"], button[aria-label="อัตราส่วน"]').first.click(timeout=3000)
-            page.wait_for_timeout(300)
-            page.locator('[class*="group/item"]').filter(has_text="9:16").first.click(timeout=3000)
+            panel.locator("mat-button-toggle").filter(has_text="9:16").first.click(timeout=3000)
         except Exception as e:
             _log(f"  ratio select err: {e!r}")
         try:
-            page.locator(
-                'button[aria-label="Resolution"], button[aria-label="ความละเอียด"]'
-            ).first.click(timeout=3000)
-            page.wait_for_timeout(300)
-            page.locator('[class*="group/item"]').filter(has_text=resolution).first.click(timeout=3000)
+            panel.locator("mat-button-toggle").filter(has_text=resolution).first.click(timeout=3000)
         except Exception as e:
             _log(f"  resolution select err: {e!r}")
         try:
-            page.locator('button[aria-label="Duration"], button[aria-label="ระยะเวลา"]').first.click(timeout=3000)
-            page.wait_for_timeout(300)
-            dur = page.locator('[role=slider]').first
-            dur.click(timeout=3000)
-            page.keyboard.press("Home")
-            for _ in range(20):
-                if dur.evaluate("el=>el.getAttribute('aria-valuenow')") == str(dur_s):
-                    break
-                page.keyboard.press("ArrowRight")
-                page.wait_for_timeout(70)
-            page.keyboard.press("Escape")
+            panel.locator("mat-button-toggle").filter(has_text=f"{dur_s} วินาที").first.click(timeout=3000)
         except Exception as e:
-            _log(f"  duration set err: {e!r}")
-        return self.read_settings(dur_s, resolution)
+            _log(f"  duration select err: {e!r}")
+        try:
+            panel.locator("mat-button-toggle").filter(has_text="x1").first.click(timeout=3000)
+        except Exception as e:
+            _log(f"  quantity select err: {e!r}")
+        page.wait_for_timeout(200)
+        settings = self.read_settings(dur_s, resolution)
+        page.keyboard.press("Escape")
+        page.wait_for_timeout(200)
+        return settings
+
+    def _toggle_checked(self, panel, label_text: str) -> bool:
+        """mat-button-toggle labels (720p/360p, x1..x4, เฟรม/องค์ประกอบ, every
+        aspect ratio, every duration) are ALL rendered at once regardless of
+        which is selected — `"720p" in body` is true whether or not 720p is
+        the active choice. The selected option alone carries the
+        `mat-button-toggle-checked` class on the <mat-button-toggle> wrapper,
+        one level above the clickable <button>; that class is the only
+        reliable read-back."""
+        el = panel.locator("mat-button-toggle").filter(has_text=label_text).first
+        if el.count() == 0:
+            return False
+        return "mat-button-toggle-checked" in (el.get_attribute("class") or "")
 
     def read_settings(self, dur_s: int, resolution: str = "720p") -> dict:
         page = self.page
-        body = page.evaluate("() => document.body.innerText")
+        panel = page.locator("flow-prompt-box-settings")
+        if panel.count() == 0:
+            # Panel already closed — the collapsed pill's flattened text is
+            # the only signal left for facets it actually renders (model,
+            # aspect, resolution, duration); mode/quantity aren't shown
+            # collapsed at all, so they can't be contradicted from here.
+            body = page.evaluate("() => document.body.innerText")
+            return {
+                "model_omni": "Omni 1.1 Flash" in body,
+                "mode_ingredients": True,
+                "aspect_9_16": "9:16" in body,
+                "qty_x1": True,
+                "resolution": resolution in body,
+                "duration": f"{dur_s} วินาที" in body,
+            }
+        body = panel.evaluate("el => el.innerText")
         return {
             "model_omni": "Omni 1.1 Flash" in body,
-            "mode_ingredients": "องค์ประกอบ" in body,
-            "aspect_9_16": "9:16" in body,
-            "qty_x1": "x1" in body,
-            "resolution": resolution in body,
-            "duration": f"{dur_s}" in body,
+            "mode_ingredients": self._toggle_checked(panel, "องค์ประกอบ"),
+            "aspect_9_16": self._toggle_checked(panel, "9:16"),
+            "qty_x1": self._toggle_checked(panel, "x1"),
+            "resolution": self._toggle_checked(panel, resolution),
+            "duration": self._toggle_checked(panel, f"{dur_s} วินาที"),
         }
 
     def chip_count(self) -> int:
-        return self.page.locator('span.mention-chip[data-entity-id]').count()
+        """CORRECTED 2026-09-19 (task-a09ed18a, live dry-run): a chip is
+        <flow-ingredient-chip><flow-*-ingredient-chip>...</...>, not the
+        outdated `span.mention-chip[data-entity-id]` (0 matches, always).
+        `flow-ingredient-chip` alone is page-wide — every past generation
+        card in the feed renders its own (19+ on a modest project) — so this
+        must scope to the composer's own bar, `<flow-ingredient-bar
+        class="prompt-ingredient-bar">`, confirmed to appear exactly once."""
+        return self.page.locator("flow-ingredient-bar flow-ingredient-chip").count()
 
     def attach_chip(self, handle: str) -> bool:
-        """Two documented paths, tried in order — the ⋮ menu (BANCHI-SHOOT-
-        BRIEF.md) and the single-click-row + preview-pane button the
-        google-flow-ops skill measured replacing it on 2026-09-08. Which one
-        is live on any given day is unverified until a --dry-run checks it."""
+        """CORRECTED 2026-09-19 (task-a09ed18a, live dry-run): the picker is
+        NOT open by default — it must be opened via the composer's own "+"
+        button (aria-label เพิ่มองค์ประกอบลงในช่องพรอมต์) every time; it
+        auto-closes after one attach, so this reopens it on every call. Once
+        open, a matching `.asset-item` row (confirmed class, google-flow-ops
+        2026-09-08) is single-clicked, which opens a preview pane with its
+        own เพิ่มไปยังพรอมต์ button — click that to actually attach. The
+        brief's older "⋮ more options" menu path was not found live and is
+        dropped rather than kept as a silently-dead fallback."""
         page = self.page
         name = handle.lstrip("@")
-        tile = page.locator('[data-entity-id], .asset-item').filter(has_text=name).first
-        if tile.count() == 0:
+        try:
+            page.locator('button[aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์"]').first.click(timeout=3000)
+            page.wait_for_timeout(400)
+        except Exception as e:
+            _log(f"  attach_chip({handle}) open picker err: {e!r}")
             return False
         try:
-            more = tile.locator('[aria-label="more options"], [aria-label*="ตัวเลือกเพิ่มเติม"]').first
-            if more.count():
-                more.click(timeout=2000)
-                page.locator('span.label', has_text="เพิ่มไปยังพรอมต์").first.click(timeout=2000)
-                return True
-        except Exception:
-            pass
-        try:
-            tile.click(timeout=2000)
+            row = page.locator(".asset-item").filter(has_text=f"@{name}").first
+            if row.count() == 0:
+                _log(f"  attach_chip({handle}): no matching .asset-item row")
+                return False
+            row.click(timeout=2000)
+            page.wait_for_timeout(300)
             page.get_by_text("เพิ่มไปยังพรอมต์", exact=False).first.click(timeout=2000)
             return True
         except Exception as e:
-            _log(f"  attach_chip({handle}) both paths failed: {e!r}")
+            _log(f"  attach_chip({handle}) failed: {e!r}")
             return False
 
     def paste_prompt(self, text: str) -> None:
+        """CORRECTED 2026-09-19 (task-a09ed18a, live dry-run): typing the
+        prompt character-by-character (`keyboard.type`) mashed the sheet's
+        blank-line paragraph breaks together with NO separator at all
+        ("staircase.In a narrow...", one word run-on) — CDP key events don't
+        drive this editor's own paragraph-insertion logic the way a real
+        paste does. `keyboard.insert_text()` (CDP Input.insertText, the same
+        primitive a paste uses) reproduces every paragraph break correctly.
+        The editor still re-normalizes blank-line COUNT on its own terms —
+        see normalize_prompt_whitespace() for why the mismatch check must
+        compare content, not exact newline counts."""
         box = self.page.locator('[contenteditable="true"]').first
         box.click()
         self.page.keyboard.press("Meta+A")
         self.page.keyboard.press("Backspace")
         box.evaluate("el => el.focus()")
-        self.page.keyboard.type(text[0])
-        self.page.keyboard.type(text[1:])
+        self.page.keyboard.insert_text(text)
 
     def read_prompt_text(self) -> str:
         return self.page.locator('[contenteditable="true"]').first.inner_text()
 
     def read_credit_estimate(self) -> int:
-        body = self.page.evaluate("() => document.body.innerText")
-        est = parse_credit_estimate(body)
+        """The estimate ("การสร้างจะใช้ N เครดิต") is rendered ONLY inside the
+        `<flow-prompt-box-settings>` overlay panel — confirmed live
+        2026-09-19: it is present in document.body.innerText while the panel
+        is open and gone the instant it closes. BANCHI-SHOOT-BRIEF.md calls
+        for reading it "immediately before Submit", so this reopens the
+        panel fresh each time rather than reusing a value cached from
+        set_settings, and leaves the page exactly as it found it (closes
+        the panel again if it opened it)."""
+        page = self.page
+        panel = page.locator("flow-prompt-box-settings")
+        opened_here = panel.count() == 0
+        if opened_here:
+            for _ in range(5):
+                if panel.count():
+                    break
+                try:
+                    page.locator('button[aria-label="ทริกเกอร์การตั้งค่า"]').first.click(timeout=3000)
+                except Exception:
+                    pass
+                page.wait_for_timeout(400)
+            for _ in range(3):
+                try:
+                    txt = panel.evaluate("el => el.innerText") if panel.count() else ""
+                except Exception:
+                    txt = ""
+                if "วินาที" in txt:
+                    break
+                try:
+                    panel.get_by_text("วิดีโอ", exact=True).first.click(timeout=2000)
+                except Exception:
+                    pass  # already on วิดีโอ from an earlier open this session
+                page.wait_for_timeout(300)
+        try:
+            text = panel.evaluate("el => el.innerText") if panel.count() else ""
+        except Exception:
+            text = ""
+        if opened_here:
+            page.keyboard.press("Escape")
+            page.wait_for_timeout(200)
+        est = parse_credit_estimate(text)
         if est is None:
             raise RuntimeError("could not read live credit estimate from the panel")
         return est
 
     def submit(self) -> None:
-        self.page.locator('button[aria-label="Submit"], button[type=submit]').first.click()
+        self.page.locator('button[aria-label="เริ่มสร้าง"]').first.click()
 
     def poll_result(self, timeout_s: int = COMPLETION_TIMEOUT_S) -> dict:
         page = self.page
@@ -429,10 +562,10 @@ def cmd_run(args: argparse.Namespace) -> int:
 
                 browser.paste_prompt(shot["prompt"])
                 actual = browser.read_prompt_text()
-                if actual.rstrip() != shot["prompt"].rstrip():
+                if normalize_prompt_whitespace(actual) != normalize_prompt_whitespace(shot["prompt"]):
                     browser.paste_prompt(shot["prompt"])
                     actual = browser.read_prompt_text()
-                    if actual.rstrip() != shot["prompt"].rstrip():
+                    if normalize_prompt_whitespace(actual) != normalize_prompt_whitespace(shot["prompt"]):
                         row["status"], row["note"] = "needs_model", "prompt mismatch after retry"
                         flow_ledger.save_ledger(ledger_path, rows)
                         _log(f"shot {n}: needs_model — prompt mismatch")

@@ -170,6 +170,30 @@ def test_parse_credit_estimate_extracts_number():
     assert flow_shoot.parse_credit_estimate("no credits mentioned here") is None
 
 
+def test_normalize_prompt_whitespace_collapses_newline_runs():
+    # Confirmed live 2026-09-19: the composer's contenteditable box
+    # re-normalizes blank-line count on round-trip (a single '\n' and a
+    # blank-line '\n\n' both come back as some other run of newlines) while
+    # every character of actual text survives — so the mismatch check must
+    # compare on newline-collapsed text, not raw strings.
+    single = "line one\nline two"
+    blank = "line one\n\nline two"
+    five = "line one\n\n\n\n\nline two"
+    assert flow_shoot.normalize_prompt_whitespace(single) == "line one\nline two"
+    assert flow_shoot.normalize_prompt_whitespace(blank) == "line one\nline two"
+    assert flow_shoot.normalize_prompt_whitespace(five) == "line one\nline two"
+    assert (flow_shoot.normalize_prompt_whitespace(single)
+            == flow_shoot.normalize_prompt_whitespace(blank)
+            == flow_shoot.normalize_prompt_whitespace(five))
+
+
+def test_normalize_prompt_whitespace_still_catches_a_real_content_change():
+    original = "says: \"เบาๆ... อย่าให้แม่ตื่น\""
+    dropped_a_word = "says: \"เบาๆ... แม่ตื่น\""
+    assert (flow_shoot.normalize_prompt_whitespace(original)
+            != flow_shoot.normalize_prompt_whitespace(dropped_a_word))
+
+
 def test_effective_duration_override_wins():
     assert flow_shoot.effective_duration(8, 4) == 4
 
@@ -252,39 +276,142 @@ def test_first_dialogue_line_none_when_no_dialogue():
 
 
 # ── settings dict: read_settings reads resolution back like every other
-#    setting (no browser — page is a fake with a canned innerText) ─────────
+#    setting. Live 2026-09-19: every mat-button-toggle LABEL (720p, 360p,
+#    x1..x4, every duration, every aspect) is always rendered regardless of
+#    which is selected — only the wrapper's mat-button-toggle-checked class
+#    says which one is active. These fakes model exactly that, so a test
+#    that only fakes "label present in text" (the old, wrong assumption)
+#    can't accidentally pass again. ────────────────────────────────────────
+
+ALL_TOGGLE_LABELS = {
+    "360p", "720p", "4 วินาที", "6 วินาที", "8 วินาที", "10 วินาที",
+    "9:16", "16:9", "องค์ประกอบ", "เฟรม", "x1", "x2", "x3", "x4",
+}
+
+
+class _FakeToggleLocator:
+    def __init__(self, present: bool, checked: bool):
+        self._present = present
+        self._checked = checked
+
+    @property
+    def first(self):
+        return self
+
+    def count(self) -> int:
+        return 1 if self._present else 0
+
+    def get_attribute(self, _name: str) -> str:
+        return "mat-button-toggle-checked" if self._checked else "mat-button-toggle"
+
+
+class _FakePanel:
+    """Stands in for the <flow-prompt-box-settings> overlay locator."""
+
+    def __init__(self, checked_labels: set[str], known_labels=ALL_TOGGLE_LABELS,
+                 inner_text: str = ""):
+        self._checked_labels = checked_labels
+        self._known_labels = known_labels
+        self._inner_text = inner_text
+
+    def count(self) -> int:
+        return 1
+
+    def evaluate(self, _script: str) -> str:
+        return self._inner_text
+
+    def locator(self, _selector: str) -> "_FakePanel":
+        return self
+
+    def filter(self, has_text: str) -> _FakeToggleLocator:
+        present = any(has_text in label for label in self._known_labels)
+        checked = any(has_text in label for label in self._checked_labels)
+        return _FakeToggleLocator(present, checked)
+
+
+class _MissingPanel:
+    def count(self) -> int:
+        return 0
+
 
 class _FakePage:
-    def __init__(self, body: str):
+    def __init__(self, panel=None, body: str = ""):
+        self._panel = panel
         self._body = body
+
+    def locator(self, selector: str):
+        assert selector == "flow-prompt-box-settings"
+        return self._panel if self._panel is not None else _MissingPanel()
 
     def evaluate(self, _script: str) -> str:
         return self._body
 
 
 def test_read_settings_confirms_matching_resolution_and_duration():
+    panel = _FakePanel(
+        checked_labels={"360p", "4 วินาที", "9:16", "องค์ประกอบ", "x1"},
+        inner_text="Omni 1.1 Flash",
+    )
     browser = flow_shoot.FlowBrowser()
-    browser.page = _FakePage("Agent   วิดีโอ · 360p · 4 วินาที · 9:16 · x1")
+    browser.page = _FakePage(panel=panel)
     settings = browser.read_settings(dur_s=4, resolution="360p")
-    assert settings["resolution"] is True
-    assert settings["duration"] is True
-    assert settings["aspect_9_16"] is True
-    assert settings["qty_x1"] is True
+    assert settings == {
+        "model_omni": True,
+        "mode_ingredients": True,
+        "aspect_9_16": True,
+        "qty_x1": True,
+        "resolution": True,
+        "duration": True,
+    }
 
 
 def test_read_settings_flags_resolution_mismatch():
-    # panel still shows the account default 720p — the click didn't take.
+    # panel shows the account default 720p checked — the 360p click didn't take.
+    panel = _FakePanel(
+        checked_labels={"720p", "4 วินาที", "9:16", "องค์ประกอบ", "x1"},
+        inner_text="Omni 1.1 Flash",
+    )
     browser = flow_shoot.FlowBrowser()
-    browser.page = _FakePage("Agent   วิดีโอ · 720p · 4 วินาที · 9:16 · x1")
+    browser.page = _FakePage(panel=panel)
     settings = browser.read_settings(dur_s=4, resolution="360p")
     assert settings["resolution"] is False
 
 
-def test_read_settings_defaults_resolution_to_720p():
+def test_read_settings_ignores_unselected_labels_that_are_merely_present():
+    # 720p, 360p, x2, x3, x4, every OTHER duration/aspect are all always
+    # rendered in the panel regardless of selection — presence alone must
+    # not read back as "confirmed".
+    panel = _FakePanel(
+        checked_labels={"360p", "4 วินาที", "9:16", "องค์ประกอบ", "x1"},
+        inner_text="Omni 1.1 Flash",
+    )
     browser = flow_shoot.FlowBrowser()
-    browser.page = _FakePage("Agent   วิดีโอ · 720p · 8 วินาที · 9:16 · x1")
-    settings = browser.read_settings(dur_s=8)
+    browser.page = _FakePage(panel=panel)
+    settings = browser.read_settings(dur_s=8, resolution="720p")  # neither is checked
+    assert settings["resolution"] is False
+    assert settings["duration"] is False
+
+
+def test_read_settings_defaults_resolution_to_720p():
+    panel = _FakePanel(
+        checked_labels={"720p", "8 วินาที", "9:16", "องค์ประกอบ", "x1"},
+        inner_text="Omni 1.1 Flash",
+    )
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage(panel=panel)
+    settings = browser.read_settings(dur_s=8)  # resolution omitted -> default "720p"
     assert settings["resolution"] is True
+
+
+def test_read_settings_falls_back_to_collapsed_pill_text_when_panel_is_closed():
+    # set_settings closes the panel before returning; a caller reading
+    # settings afterwards only has the collapsed pill's flattened text.
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage(body="Agent   วิดีโอ · 720p · 8 วินาที · 9:16 · x1")
+    settings = browser.read_settings(dur_s=8, resolution="720p")
+    assert settings["resolution"] is True
+    assert settings["duration"] is True
+    assert settings["model_omni"] is False  # "Omni 1.1 Flash" not in this fixture
 
 
 # ── zip-vs-mp4 handling ──────────────────────────────────────────────────────
