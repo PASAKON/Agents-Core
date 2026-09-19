@@ -10,7 +10,7 @@ audience: [browser_operator]
 Browser work is expensive for one reason: **screenshots accumulate and nothing
 caps them.** Everything below follows from that.
 
-## ⛔ Repetition means a script, not you (IRON-RULES §43, CEO 2026-09-19)
+## ⛔ Repetition means a script, not you (IRON-RULES §53, CEO 2026-09-19)
 
 If your task repeats the same operation more than 3 times, your job is to produce a runnable script on the first pass and hand the loop to it — not to perform the loop. A script compiles (`python3 tools/check_replay_script.py <path>` exits 0); notes in a `.js` are refused at merge. Every screenshot you take stays in your context for the rest of the task; measured 2026-09-19, that is ~80M context tokens per clip. The existing runner pattern: `scripts/higgsfield/gen_loop.py`.
 
