@@ -1,0 +1,11 @@
+# build output - regenerate with: npm run render / hyperframes snapshot
+renders/
+snapshots/
+node_modules/
+.hyperframes/
+# source media comes from the CEO's Drive folder for BLACK LIQUIDITY [53] - not repo content
+media/
+project/
+# delivered artifacts - large binaries, do not belong in the git branch
+/bl53-full.mp4
+/bl53-full-contact-sheet.jpg

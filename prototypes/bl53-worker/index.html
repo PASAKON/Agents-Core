@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-10d9bd15.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-87937726.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-23599068.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-b4b6e60e.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-9895ee29.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-fc0bae07.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-0c71a5b8.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-aa86a0cb.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f99e92e2.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f57eab15.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-1bf17218.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      /* ============================ BL KIT ============================
+         BLACK LIQUIDITY video kit. Catalogue and rationale: BL-KIT.md
+         Theme (CEO 2026-09-18): black / red / white, red always emissive neon.
+         Motion grammar is measured off the reference edit, not chosen:
+         every reveal is expo.out, text arrives by clip-path wipe (never a
+         fade), rules scale from a left or top origin.
+         ================================================================ */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      :root {
+        --ink:    #07080A;
+        --red:    #E0202F;
+        --neon:   #FF2D40;
+        --white:  #F4F6F7;
+        --yellow: #F4DF14;
+        --muted:  #98A0A8;
+        --line:   rgba(255,255,255,.12);
+        --glow-s: 0 0 10px rgba(255,45,64,.55);
+        --glow-m: 0 0 22px rgba(255,45,64,.55), 0 0 44px rgba(255,45,64,.22);
+        --outline: 0 0 10px rgba(0,0,0,.95), 0 4px 18px rgba(0,0,0,.9),
+                   2px 2px 0 rgba(0,0,0,.92), -2px 2px 0 rgba(0,0,0,.92),
+                   2px -2px 0 rgba(0,0,0,.92), -2px -2px 0 rgba(0,0,0,.92);
+
+        /* TikTok safe area, in this canvas's own pixels. TikTok's published
+           spec is a 540x960 reference with margins 126 top / 60 left /
+           120 right / 378 bottom; doubled, that is what sits below. Measured
+           against a real post on the CEO's phone (1188x2576, 2026-09-18):
+           a 9:16 video is scaled to COVER a 19.5:9 screen, so 97px of each
+           side is cropped off the frame entirely and never seen, the app's
+           own top nav sits over y 138-186, the right rail over x 873-983
+           below y ~960, and the scrub bar over y ~1789. Nothing the audience
+           must read may leave this box. */
+        --safe-top:    252px;
+        --safe-left:   120px;
+        --safe-right:  240px;   /* right rail: content must end by x=840 */
+        --safe-bottom: 756px;   /* caption + scrub bar: end by y=1164 */
+      }
+
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ink); }
+      #root { position: relative; width: 100%; height: 100%;
+              background: var(--ink); color: var(--white); font-family: Kanit, sans-serif; }
+
+      .clip { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+      video.clip { object-fit: cover; }
+
+      .bl-bg { position: absolute; inset: 0; z-index: 0; opacity: 1;   /* under the clips: footage covers it, text plates show it */
+               background: radial-gradient(130% 62% at 50% 6%, rgba(224,32,47,.20), transparent 62%),
+                           var(--ink); }
+      .bl-bg .grid { position: absolute; inset: 0; opacity: .5;
+        background-image: linear-gradient(rgba(255,45,64,.07) 2px, transparent 2px),
+                          linear-gradient(90deg, rgba(255,45,64,.07) 2px, transparent 2px);
+        background-size: 108px 108px; }
+      .bl-bg .scan { position: absolute; inset: 0; opacity: .35;
+        background: repeating-linear-gradient(rgba(255,255,255,.035) 0 2px, transparent 2px 6px); }
+
+      .stage { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+      /* Every overlay block lives inside the TikTok safe box. left was 62 and
+         right was 62 until 2026-09-18: 62 is inside the 97px the phone crops,
+         so the first characters of a left-aligned line were physically cut
+         off the screen, and the right edge ran under the like/comment rail. */
+      .blk { position: absolute; left: var(--safe-left); right: var(--safe-right);
+             opacity: 0; text-align: center; }
+      /* Only for a block that ENDS above y=900 — above the rail the right
+         margin can come back in to 120. Never on anything lower. */
+      .blk.wide { right: var(--safe-left); }
+      .blk.l { text-align: left; }
+
+      .bl-xl { font-weight: 800; font-size: 104px; line-height: 1.26; text-shadow: var(--outline); }
+      .bl-lg { font-weight: 800; font-size:  82px; line-height: 1.28; text-shadow: var(--outline); }
+      .bl-md { font-weight: 800; font-size:  62px; line-height: 1.32; text-shadow: var(--outline); }
+      .bl-sm { font-weight: 600; font-size:  44px; line-height: 1.38; text-shadow: var(--outline); }
+      .bl-xs { font-weight: 600; font-size:  34px; line-height: 1.30; color: var(--muted); }
+      .y { color: var(--yellow); }
+      .n { color: var(--neon); text-shadow: var(--outline), var(--glow-s); }
+      .wipe { display: inline-block; clip-path: inset(0 100% 0 0); }
+
+      .bl-rule  { display: block; height: 8px; border-radius: 4px; background: var(--neon);
+                  box-shadow: var(--glow-m); transform: scaleX(0); transform-origin: left center; }
+      .bl-vline { position: absolute; width: 7px; border-radius: 4px;
+                  background: linear-gradient(var(--red), var(--neon));
+                  box-shadow: var(--glow-s); transform: scaleY(0); transform-origin: top center; }
+
+      .bl-card { position: relative; background: rgba(10,11,13,.78);
+                 border: 2px solid var(--line); border-left: 10px solid var(--neon);
+                 border-radius: 20px; padding: 26px 32px; text-align: left;
+                 box-shadow: 0 22px 50px rgba(0,0,0,.55), -14px 0 26px -12px rgba(255,45,64,.55); }
+      .bl-card .nm { font-family: Archivo, sans-serif; font-weight: 800; font-size: 52px;
+                     letter-spacing: -.01em; line-height: 1.20; }
+      .bl-card .cl { font-weight: 600; font-size: 38px; color: #D7DCE0; margin-top: 6px; }
+      .bl-card .badge { position: absolute; right: 24px; top: 22px; background: var(--red);
+                        color: #fff; font-weight: 800; font-size: 24px; padding: 7px 15px;
+                        border-radius: 10px; letter-spacing: .04em; box-shadow: var(--glow-s); }
+
+      .bl-rulecard .idx { width: 118px; height: 118px; border-radius: 50%;
+                          background: rgba(7,8,10,.72);   /* was missing a fill; failed contrast over a
+                                     bright plate (EP53, S28's white paper chart at t=73.55s, 2.44:1) */
+                          border: 4px solid var(--neon); box-shadow: var(--glow-m);
+                          display: flex; align-items: center; justify-content: center;
+                          font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
+                          color: var(--neon); }
+      .bl-rulecard .hd  { font-weight: 800; font-size: 72px; line-height: 1.30;
+                          margin-top: 28px; text-shadow: var(--outline); }
+      .bl-rulecard .dt  { font-weight: 600; font-size: 44px; line-height: 1.34;
+                          color: #CBD2D8; margin-top: 18px; }
+
+      .bl-row { display: flex; align-items: flex-start; gap: 22px; text-align: left;
+                background: rgba(10,11,13,.78); border: 2px solid var(--line);
+                border-radius: 18px; padding: 22px 26px; }
+      .bl-row .tick { flex: none; width: 46px; height: 46px; border-radius: 50%;
+                      background: var(--neon); box-shadow: var(--glow-s); color: #12060A;
+                      font-family: Archivo, sans-serif; font-weight: 800; font-size: 26px;
+                      display: flex; align-items: center; justify-content: center; margin-top: 4px; }
+      .bl-row .tx { font-weight: 600; font-size: 42px; line-height: 1.26; }
+
+      .bl-stat .big { font-family: Archivo, sans-serif; font-weight: 800; font-size: 156px;
+                      line-height: .96; color: var(--neon); text-shadow: var(--outline), var(--glow-m); }
+      .bl-stat .lb  { font-weight: 600; font-size: 42px; color: #D7DCE0; margin-top: 12px;
+                      text-shadow: var(--outline); }   /* was missing; failed contrast over bright plates (BL50) */
+
+
+      /* Standing legal label — on every frame of every episode, never animated.
+         The CEO ruled on 2026-09-17 that a ป้ายเตือน goes on every Forex surface,
+         and the statute this answers to is the one aimed at the marketing layer:
+         BOT's 25 Jun 2026 statement puts anyone who "โฆษณา ประกาศ หรือชักชวน
+         ประชาชน" to trade FOREX under พ.ร.ก. การกู้ยืมเงินที่เป็นการฉ้อโกงประชาชน
+         2527, with no carve-out for promising no returns. A label does not cure
+         conduct — it states intent, and the script has to match it. */
+      /* y was 1790 until 2026-09-18. Measured on a real post on the CEO's own
+         phone that same day: TikTok's scrub bar sits at video y~1789 and its
+         caption block starts at y~1550, so a label at 1790 is drawn under the
+         player's own chrome and cannot be read. 1430 is the lowest line that
+         is still clear of both and still inside the frame the CEO drew. */
+      .bl-legal { position: absolute; left: var(--safe-left); right: var(--safe-right);
+                  top: 1430px; z-index: 45;
+                  font-family: Kanit, sans-serif; font-weight: 400; font-size: 24px;
+                  line-height: 1.35; text-align: center; color: #B9C0C6;
+                  text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 2px rgba(0,0,0,1); }
+      /* Brand bug — the channel's real logo, same place on every clip.
+         `left/top` and the logo height are fixed: the audience recognises the
+         mark by where it sits, and a bug that drifts between episodes reads as
+         a different channel. The date is the day the episode was MADE, not the
+         day it is posted — posting lands 0-2 days later and the made-on date is
+         what everything else references. */
+      .bug { position: absolute; right: 150px; top: 310px; z-index: 40;
+             display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+      .bug .logo { height: 60px; width: auto; display: block;
+                   filter: drop-shadow(0 3px 10px rgba(0,0,0,.85)); }
+      .bug .b1 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
+                 letter-spacing: .06em; color: #fff; text-shadow: var(--outline); line-height: .92; }
+      .bug .b2 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 54px;
+                 letter-spacing: .10em; color: var(--neon); line-height: .92;
+                 text-shadow: var(--outline), var(--glow-s); }
+      .bug .rl { width: 74px; height: 5px; background: var(--neon); border-radius: 3px;
+                 box-shadow: var(--glow-s); }
+      .bug .dt2 { font-weight: 600; font-size: 24px; color: #E8EAEC; letter-spacing: .02em;
+                  text-shadow: var(--outline); }
+
+      /* y was 1600: that is inside TikTok's own caption + username block
+         (measured y 1550-1700 on a real post, 2026-09-18), so the subtitle was
+         being read through the app's text. 1300 keeps it low in frame and clear. */
+      .caplayer { position: absolute; left: 0; right: 0; top: 1300px; height: 0; z-index: 35; }
+      .cap { position: absolute; left: var(--safe-left); right: var(--safe-right);
+             top: 0; transform: translateY(-50%);
+             text-align: center; opacity: 0; font-weight: 600; font-size: 48px;
+             line-height: 1.28; text-shadow: var(--outline); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="147.39"
+         data-width="1080" data-height="1920">
+
+      <!-- Video track. Offsets measured via bl_tools.py offsets against audio-hq.mp3:
+           part A true_s=0.00 (r=1.0), part B true_s=65.49 (r=1.0), part C true_s=133.51 (r=1.0).
+           Line boundaries measured by aligning the manifest's script_text against the
+           mlx-whisper word-level timestamps (project/line_timing_raw.json), never the
+           manifest's recommended_sec. Each of the 50 scenes has its own S## plate, mapped
+           1:1 to its script line; lines 2-7, 26, 29 and 47-50 use the real lipsync footage
+           instead where the line is a direct-to-camera narration beat inside a seated
+           window. -->
+      <video class="clip" id="v1" src="media/norm/S01.mp4" muted playsinline
+             data-start="0" data-duration="3.76" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v2" src="media/norm/lipsync_part_a_0s-16s.mp4" muted playsinline
+             data-start="3.76" data-duration="12.44" data-media-start="3.76" data-track-index="0"></video>
+      <video class="clip" id="v3" src="media/norm/S08.mp4" muted playsinline
+             data-start="16.2" data-duration="2.18" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v4" src="media/norm/S09.mp4" muted playsinline
+             data-start="18.38" data-duration="2.72" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v5" src="media/norm/S10.mp4" muted playsinline
+             data-start="21.1" data-duration="3.26" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v6" src="media/norm/S11.mp4" muted playsinline
+             data-start="24.36" data-duration="3.26" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v7" src="media/norm/S12.mp4" muted playsinline
+             data-start="27.62" data-duration="1.34" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v8" src="media/norm/S13.mp4" muted playsinline
+             data-start="28.96" data-duration="3.18" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v9" src="media/norm/S14.mp4" muted playsinline
+             data-start="32.14" data-duration="1.58" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v10" src="media/norm/S15.mp4" muted playsinline
+             data-start="33.72" data-duration="2.72" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v11" src="media/norm/S16.mp4" muted playsinline
+             data-start="36.44" data-duration="3.12" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v12" src="media/norm/S17.mp4" muted playsinline
+             data-start="39.56" data-duration="3.82" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v13" src="media/norm/S18.mp4" muted playsinline
+             data-start="43.38" data-duration="2.38" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v14" src="media/norm/S19.mp4" muted playsinline
+             data-start="45.76" data-duration="3.7" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v15" src="media/norm/S20.mp4" muted playsinline
+             data-start="49.46" data-duration="3.02" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v16" src="media/norm/S21.mp4" muted playsinline
+             data-start="52.48" data-duration="2.52" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v17" src="media/norm/S22.mp4" muted playsinline
+             data-start="55.0" data-duration="2.64" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v18" src="media/norm/S23.mp4" muted playsinline
+             data-start="57.64" data-duration="2.7" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v19" src="media/norm/S24.mp4" muted playsinline
+             data-start="60.34" data-duration="3.06" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v20" src="media/norm/S25.mp4" muted playsinline
+             data-start="63.4" data-duration="2.54" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v21" src="media/norm/lipsync_part_b_65s-78s.mp4" muted playsinline
+             data-start="65.94" data-duration="3.7" data-media-start="0.45" data-track-index="0"></video>
+      <video class="clip" id="v22" src="media/norm/S27.mp4" muted playsinline
+             data-start="69.64" data-duration="2.9" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v23" src="media/norm/S28.mp4" muted playsinline
+             data-start="72.54" data-duration="2.94" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v24" src="media/norm/lipsync_part_b_65s-78s.mp4" muted playsinline
+             data-start="75.48" data-duration="2.7" data-media-start="9.99" data-track-index="0"></video>
+      <video class="clip" id="v25" src="media/norm/S30.mp4" muted playsinline
+             data-start="78.18" data-duration="3.94" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v26" src="media/norm/S31.mp4" muted playsinline
+             data-start="82.12" data-duration="2.3" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v27" src="media/norm/S32.mp4" muted playsinline
+             data-start="84.42" data-duration="3.94" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v28" src="media/norm/S33.mp4" muted playsinline
+             data-start="88.36" data-duration="2.62" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v29" src="media/norm/S34.mp4" muted playsinline
+             data-start="90.98" data-duration="2.68" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v30" src="media/norm/S35.mp4" muted playsinline
+             data-start="93.66" data-duration="4.0" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v31" src="media/norm/S36.mp4" muted playsinline
+             data-start="97.66" data-duration="3.72" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v32" src="media/norm/S37.mp4" muted playsinline
+             data-start="101.38" data-duration="3.38" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v33" src="media/norm/S38.mp4" muted playsinline
+             data-start="104.76" data-duration="2.76" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v34" src="media/norm/S39.mp4" muted playsinline
+             data-start="107.52" data-duration="3.14" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v35" src="media/norm/S40.mp4" muted playsinline
+             data-start="110.66" data-duration="3.14" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v36" src="media/norm/S41.mp4" muted playsinline
+             data-start="113.8" data-duration="3.24" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v37" src="media/norm/S42.mp4" muted playsinline
+             data-start="117.04" data-duration="4.4" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v38" src="media/norm/S43.mp4" muted playsinline
+             data-start="121.44" data-duration="3.42" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v39" src="media/norm/S44.mp4" muted playsinline
+             data-start="124.86" data-duration="1.72" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v40" src="media/norm/S45.mp4" muted playsinline
+             data-start="126.58" data-duration="4.18" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v41" src="media/norm/S46.mp4" muted playsinline
+             data-start="130.76" data-duration="3.07" data-media-start="0" data-track-index="0"></video>
+      <!-- shifted 0.21s earlier vs. line47's true start (134.04) so the clip's full 13.56s
+           duration reaches the audio's real end (147.39) instead of stopping at 147.07 -->
+      <video class="clip" id="v42" src="media/norm/lipsync_part_c_134s-147s.mp4" muted playsinline
+             data-start="133.83" data-duration="13.56" data-media-start="0.32" data-track-index="0"></video>
+
+      <audio id="va" src="project/audio-hq.mp3" data-start="0" data-duration="147.39"
+             data-track-index="5" data-volume="1"></audio>
+
+      <div class="bl-bg" id="bg"><div class="grid"></div><div class="scan"></div></div>
+    <!-- legal label: present on every frame, never animated, never moved -->
+    <div class="bl-legal">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำหรือการชักชวนลงทุน · การลงทุนมีความเสี่ยง</div>
+
+      <div class="stage" id="stage"></div>
+
+      <div class="bug" id="bug">
+        <img class="logo" src="assets/bl-logo.png" alt="BLACK LIQUIDITY">
+        <div class="rl"></div>
+        <div class="dt2">19 ก.ย. 69</div>
+      </div>
+
+      <div class="caplayer" id="caps"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var stage = document.getElementById("stage");
+      var tl = gsap.timeline({ paused: true });
+      var E = "expo.out";
+
+      function el(h) { var d = document.createElement("div"); d.innerHTML = h; return d.firstElementChild; }
+      function show(s, at) { tl.to(s, { opacity: 1, duration: 0.12, ease: "power1.out" }, at); }
+      function hide(s, at) { tl.to(s, { opacity: 0, duration: 0.18, ease: "power1.in" }, at); }
+      function wipe(s, at, d) {
+        tl.fromTo(s, { clipPath: "inset(0 100% 0 0)" },
+                     { clipPath: "inset(0 0% 0 0)", duration: d || 0.60, ease: E }, at); }
+      function sweep(s, at, d) { tl.fromTo(s, { scaleX: 0 }, { scaleX: 1, duration: d || 0.8, ease: E }, at); }
+      function grow(s, at, d)  { tl.fromTo(s, { scaleY: 0 }, { scaleY: 1, duration: d || 0.9, ease: E }, at); }
+      function slide(s, at, d) { tl.fromTo(s, { opacity: 0, x: -64 }, { opacity: 1, x: 0, duration: d || 0.7, ease: E }, at); }
+      function drop(s, at, d)  { tl.fromTo(s, { opacity: 0, y: 44 }, { opacity: 1, y: 0, duration: d || 0.6, ease: "power3.out" }, at); }
+
+      /* CONTENT: the background is only up where no video plate is underneath.
+         One [start, end] pair per uncovered stretch. If no plate returns before
+         the end of the cut, use a bare show() with no matching hide(). */
+      // #bg is always on and under the clips (z 0) - no window list, see the CSS note.
+
+      var B = 0;
+      function block(cls, top, at, out) {
+        var id = "b" + (++B);
+        // rule (2026-09-19): every block whose top < 900 gets .wide, no exceptions -
+        // below 900 the right rail hasn't started yet, so nothing is there to hide under.
+        var wide = (top < 900) ? " wide" : "";
+        var d = el('<div class="blk ' + (cls || "") + wide + '" id="' + id + '" style="top:' + top + 'px"></div>');
+        stage.appendChild(d); show("#" + id, at); if (out) hide("#" + id, out);
+        return { id: id, node: d };
+      }
+
+      function kinetic(top, at, out, lines, ruleW) {
+        var b = block("", top, at, out), t = at + 0.05;
+        lines.forEach(function (ln, i) {
+          var w = b.id + "w" + i;
+          b.node.appendChild(el('<div class="' + ln.c + '" style="margin-top:' + (i ? 18 : 0) + 'px">' +
+            '<span class="wipe" id="' + w + '">' + ln.h + '</span></div>'));
+          wipe("#" + w, t, ln.d || 0.60); t += (ln.g || 0.62); });
+        if (ruleW) {
+          var r = b.id + "r";
+          b.node.appendChild(el('<div style="position:relative;height:8px;margin:24px auto 0;width:' +
+            ruleW + 'px"><span class="bl-rule" id="' + r + '"></span></div>'));
+          sweep("#" + r, t, 0.85); }
+        return b;
+      }
+
+      function cards(top, at, out, title, items, visible) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        /* the stack scrolls; without a clipped window the oldest cards ride up
+           over the brand bug, which the layout inspector catches as overlap */
+        var wrap = el('<div style="margin-top:30px;overflow:hidden"></div>');
+        var inner = el('<div id="' + b.id + 'i" style="display:flex;flex-direction:column;gap:18px"></div>');
+        wrap.appendChild(inner); b.node.appendChild(wrap);
+        items.forEach(function (it, i) {
+          var c = b.id + "c" + i;
+          inner.appendChild(el('<div class="bl-card" id="' + c + '"><div class="badge">อ้าง</div>' +
+            '<div class="nm">' + it.n + '</div><div class="cl">' + it.c + '</div></div>'));
+          tl.set("#" + c, { opacity: 0 }, 0);
+          slide("#" + c, it.t, 0.62);
+          if (i > 0) tl.to("#" + b.id + "c" + (i - 1), { opacity: 0.4, duration: 0.4, ease: "power2.inOut" }, it.t);
+        });
+        /* pitch has to come from the rendered card, not a guess - see the clipped
+           half-cards the layout pass caught when this was hard-coded */
+        var pitch = inner.children.length > 1
+          ? inner.children[1].offsetTop - inner.children[0].offsetTop
+          : inner.children[0].offsetHeight + 18;
+        wrap.style.height = (pitch * visible) + "px";
+        items.forEach(function (it, i) {
+          if (i >= visible) tl.to("#" + b.id + "i",
+            { y: -(i - visible + 1) * pitch, duration: 0.6, ease: E }, it.t); });
+        return b;
+      }
+
+      function check(top, at, out, title, items) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        var box = el('<div style="margin-top:28px;display:flex;flex-direction:column;gap:16px"></div>');
+        b.node.appendChild(box);
+        items.forEach(function (it, i) {
+          var r = b.id + "r" + i;
+          box.appendChild(el('<div class="bl-row" id="' + r + '"><div class="tick">' +
+            (it.k || (i + 1)) + '</div><div class="tx">' + it.x + '</div></div>'));
+          tl.set("#" + r, { opacity: 0 }, 0); slide("#" + r, it.t, 0.55); });
+        return b;
+      }
+
+      function rules(top, items) {
+        items.forEach(function (it) {
+          var b = block("l", top, it.t - 0.10, it.o);
+          var i2 = b.id + "i", h2 = b.id + "h", d2 = b.id + "d", r2 = b.id + "u";
+          b.node.appendChild(el('<div class="bl-rulecard">' +
+            '<div class="idx" id="' + i2 + '">' + it.n + '</div>' +
+            '<div class="hd"><span class="wipe" id="' + h2 + '">' + it.h + '</span></div>' +
+            '<div class="dt"><span class="wipe" id="' + d2 + '">' + it.d + '</span></div>' +
+            '<div style="position:relative;height:8px;margin-top:26px;width:460px">' +
+            '<span class="bl-rule" id="' + r2 + '"></span></div></div>'));
+          tl.fromTo("#" + i2, { scale: 0.55, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.6)", transformOrigin: "50% 50%" }, it.t);
+          wipe("#" + h2, it.t + 0.22, 0.62);
+          wipe("#" + d2, it.t + 0.72, 0.60);
+          sweep("#" + r2, it.t + 1.10, 0.8); });
+      }
+
+      function stats(top, at, out, title, items) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        var row = el('<div style="margin-top:44px;display:flex;justify-content:center;gap:54px"></div>');
+        b.node.appendChild(row);
+        items.forEach(function (it, i) {
+          var s = b.id + "s" + i;
+          row.appendChild(el('<div class="bl-stat" id="' + s + '"><div class="big">' + it.b +
+            '</div><div class="lb">' + it.l + '</div></div>'));
+          tl.set("#" + s, { opacity: 0 }, 0);
+          tl.fromTo("#" + s, { opacity: 0, y: 40, scale: 0.86 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.4)", transformOrigin: "50% 50%" }, it.t); });
+        return b;
+      }
+
+      /* ======================== THE CUT ========================
+         Everything above is the kit and stays as it is. Everything below is
+         this clip's content: video plates, background windows and blocks.
+         Replace it, do not rewrite the generators.
+
+         Worked example with all five block types and real timings:
+         Agents repo, prototypes/bl51-first30/index.html
+         ========================================================== */
+
+      tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);
+
+      // Beat map: line numbers are the manifest's 50 script lines, timed against
+      // project/line_timing_raw.json (ASR word timestamps aligned to script_text,
+      // never the manifest's recommended_sec). top<900 blocks are auto-wide (see
+      // block()). Avatar-window blocks (lines 2-7, 26, 29, 47-50) sit at top>=955/
+      // 1080/935 per bl_tools.py safearea for parts A/B/C - never above the chin.
+
+      // HOOK - lines 1-3, over S01 then avatar A
+      kinetic(640, 0.15, 7.28, [
+        { c: "bl-xl", h: 'ออเดอร์ที่มึงกด', d: 0.65, g: 0.70 },
+        { c: "bl-lg", h: '<span class="n">ไม่เคยถึงตลาด</span> สักครั้ง', d: 0.65 }], 480);
+
+      // lines 4-6, avatar A (safe top >= 955)
+      kinetic(1000, 7.28, 14.96, [
+        { c: "bl-lg", h: 'กูจะบอกให้มึงเห็น<span class="n">ภาพจริง</span>', d: 0.65 }]);
+
+      // lines 7-8, avatar A tail -> S08
+      kinetic(1000, 14.96, 18.38, [
+        { c: "bl-md", h: 'อาจไม่ใช่ตลาด', d: 0.60, g: 0.60 },
+        { c: "bl-md", h: '<span class="n">คนอีกฝั่งจอ</span>มึงเอง', d: 0.60 }]);
+
+      // A-book / B-book - lines 9-11
+      kinetic(620, 18.38, 27.62, [
+        { c: "bl-md", h: 'โบรกเกอร์ มี 2 แบบ', d: 0.60, g: 0.62 },
+        { c: "bl-md", h: '<span class="y">A-book</span> - ส่งออกจริง', d: 0.55, g: 0.60 },
+        { c: "bl-md", h: '<span class="n">B-book</span> - เก็บไว้เอง', d: 0.55 }]);
+
+      // lines 12-14
+      kinetic(620, 27.62, 33.72, [
+        { c: "bl-md", h: 'ฟังดูเป็นศัพท์เทคนิค', d: 0.60, g: 0.62 },
+        { c: "bl-sm", h: 'จริงๆคือเส้นแบ่ง <span class="n">เทรดกับตลาด</span> หรือ <span class="n">เทรดกับโบรกเกอร์</span>', d: 0.65 }]);
+
+      // lines 15-16
+      kinetic(620, 33.72, 39.56, [
+        { c: "bl-md", h: 'อีกฝั่ง <span class="n">ไม่อยากให้มึงชนะ</span>', d: 0.60, g: 0.62 },
+        { c: "bl-sm", h: 'เงินที่มึงเสีย เข้า<span class="y">กระเป๋าเขา</span>ตรงๆ', d: 0.60 }]);
+
+      // THE SEVEN MECHANICS - lines 17,20,24,27,30,32,35 as numbered rule cards.
+      // Each card holds through its supporting lines (footage keeps cutting under
+      // it) until the next numbered header - the card is the anchor, not every
+      // spoken sentence.
+      rules(980, [
+        { n: "1", t: 39.56,  o: 49.46,  h: 'B-book',        d: 'โบรกเป็นคู่สัญญากับมึงเอง' },
+        { n: "2", t: 49.46,  o: 60.34,  h: 'สลิปเปจ',        d: 'เบี้ยวข้างเดียว ได้ราคาแย่เสมอ' },
+        { n: "3", t: 60.34,  o: 69.64,  h: 'สเปรดถ่างตอนข่าว', d: 'ถ่างพอดีจังหวะที่ Stop มึงตั้งไว้' },
+        { n: "4", t: 69.64,  o: 78.18,  h: 'ล่า Stop',        d: 'ไส้เทียนแม่นยำ ลงไปเก็บ Stop มึง' },
+        { n: "5", t: 78.18,  o: 84.42,  h: 'โบนัสเงินฝาก',     d: 'เงื่อนไขวอลุ่ม ถอนจริงไม่ได้เลย' },
+        { n: "6", t: 84.42,  o: 93.66,  h: 'Leverage สูง',    d: 'ล้างพอร์ตเร็ว = ฝากใหม่เร็ว' },
+        { n: "7", t: 93.66,  o: 101.38, h: 'ค่าคอม 0 บาท',    d: 'ต้นทุนซ่อนอยู่ในสเปรดแทน' }]);
+
+      // THE TURN - lines 37-39
+      kinetic(620, 101.38, 110.66, [
+        { c: "bl-md", h: 'มึงอาจคิดว่า นี่มันโกงชัดๆ', d: 0.60, g: 0.62 },
+        { c: "bl-md", h: 'แต่ข้อที่เจ็บที่สุด', d: 0.55, g: 0.60 },
+        { c: "bl-lg", h: '<span class="n">ถูกกฎหมายทั้งหมด</span>', d: 0.65 }], 560);
+
+      // legal, one by one - lines 40-42
+      kinetic(620, 110.66, 121.44, [
+        { c: "bl-sm", h: 'B-book ก็ถูกกฎหมาย', d: 0.55, g: 0.58 },
+        { c: "bl-sm", h: 'สเปรดถ่างก็ถูกกฎหมาย', d: 0.55, g: 0.58 },
+        { c: "bl-sm", h: 'โบนัสมีเงื่อนไขก็ถูกกฎหมาย', d: 0.55 }]);
+
+      // line 43 - the gut punch
+      kinetic(620, 121.44, 124.86, [
+        { c: "bl-md", h: 'มึงเสียเงิน แบบไม่มีใคร', d: 0.55, g: 0.55 },
+        { c: "bl-md", h: '<span class="n">ทำผิดกฎหมาย</span>เลยสักคน', d: 0.60 }]);
+
+      // lines 44-46 - the summary before the CTA
+      kinetic(560, 124.86, 134.04, [
+        { c: "bl-md", h: 'สรุปให้มึงฟังแบบไม่มีน้ำ', d: 0.60, g: 0.62 },
+        { c: "bl-sm", h: 'ไม่ใช่ทุกโบรกเป็นแบบนี้ แต่กลไกพวกนี้มีจริง และตรวจได้', d: 0.60, g: 0.62 },
+        { c: "bl-sm", h: 'มึงต้องแยกให้ออก อะไรคือความผันผวนปกติของตลาด', d: 0.60 }]);
+
+      // line 47-50 run clean on avatar C, no overlay, except the CTA chip on 48
+      // (safe top >= 935 for part C)
+      kinetic(980, 137.30, 140.88, [
+        { c: "bl-md", h: 'คอมเมนต์ <span class="y">"เช็คโบรค"</span>', d: 0.60 }], 420);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
