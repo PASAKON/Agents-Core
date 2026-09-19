@@ -117,14 +117,14 @@ Medium two-shot across the counter, static camera. Contemporary Thai realist dra
 
 ### SHOT 41 · 0:46–0:54 · 8s · Close-up on the seated man, static camera
 **ATTACH** 1) `@lender_cherd`→REF_0 · 2) `@noodle_shop`→REF_1
-**บทพูด** lender_cherd `"ผมไม่ชอบทวงหรอกนะครับ ไม่ใช่นิสัยผม"` — easy, almost kind
+**บทพูด** lender_cherd `"ผมไม่ชอบมากวนใครหรอกครับ ไม่ใช่นิสัยผม"` — easy, almost kind
 **บทพูด** lender_cherd `"ผมชอบให้ทุกคนสบายใจกันทุกฝ่ายมากกว่า"` — smiling
 ```
 Use <IMAGE_REF_0> as the character reference for lender_cherd. Use <IMAGE_REF_1> as the location reference for noodle_shop.
 
 In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_1>, midday. a Thai man of 45, lean, with an even unlined face, short ordinary black hair, sunglasses pushed up onto the top of his head, in a plain navy polo shirt, grey trousers and a silver bracelet on his right wrist <IMAGE_REF_0> — stirs his bowl slowly while he talks, looking up at someone standing off to the side.
 
-The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, easy, almost kind, and says: "ผมไม่ชอบทวงหรอกนะครับ ไม่ใช่นิสัยผม"
+The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, easy, almost kind, and says: "ผมไม่ชอบมากวนใครหรอกครับ ไม่ใช่นิสัยผม"
 The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, smiling, and says: "ผมชอบให้ทุกคนสบายใจกันทุกฝ่ายมากกว่า"
 
 The face of whoever is speaking stays in frame for the whole line.
@@ -266,7 +266,7 @@ Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desat
 
 ### SHOT 50 · 1:54–2:04 · 10s · Medium two-shot, static camera
 **ATTACH** 1) `@lender_cherd`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@back_alley`→REF_2
-**บทพูด** lender_cherd `"งวดนี้พี่ช้าไปสามวันแล้วนะครับ"` — friendly, unhurried
+**บทพูด** lender_cherd `"งวดนี้ช้าไปสามวันนะครับพี่ ผมเลยแวะมาเอง"` — friendly, unhurried
 **บทพูด** lung_somchai `"พรุ่งนี้ผมหาให้ครบแน่นอนครับ"` — fast
 **บทพูด** lender_cherd `"พี่พูดแบบนี้ทุกงวดเลยนะครับ"` — gently
 ```
@@ -274,7 +274,7 @@ Use <IMAGE_REF_0> as the character reference for lender_cherd. Use <IMAGE_REF_1>
 
 In a narrow service alley behind an old Bangkok shophouse at night — a steel rear door with a small barred window, stacked plastic crates against one wall, a bicycle leaning, cables strung overhead, wet uneven concrete, one weak bulb over the door and the alley falling away into darkness behind <IMAGE_REF_2>, night. a Thai man of 45, lean, with an even unlined face, short ordinary black hair, sunglasses pushed up onto the top of his head, in a plain navy polo shirt, grey trousers and a silver bracelet on his right wrist <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — walks up out of the dark and stops close, hands in his pockets, talking while the older man stands very still.
 
-The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, friendly, unhurried, and says: "งวดนี้พี่ช้าไปสามวันแล้วนะครับ"
+The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, friendly, unhurried, and says: "งวดนี้ช้าไปสามวันนะครับพี่ ผมเลยแวะมาเอง"
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, fast, and says: "พรุ่งนี้ผมหาให้ครบแน่นอนครับ"
 The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, gently, and says: "พี่พูดแบบนี้ทุกงวดเลยนะครับ"
 
@@ -285,17 +285,17 @@ Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, d
 
 ### SHOT 51 · 2:04–2:14 · 10s · Medium two-shot, static camera
 **ATTACH** 1) `@lender_cherd`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@back_alley`→REF_2
-**บทพูด** lender_cherd `"ผมรู้ว่าบ้านพี่มีคนป่วยอยู่ข้างบน"` — conversational
-**บทพูด** lender_cherd `"ค่าหมอเดือนหน้าคงไม่อยากให้สะดุดนะครับ"` — softer, worse for being soft
-**บทพูด** lung_somchai `"อย่าพูดถึงแม่ผมครับ"` — tight
+**บทพูด** lender_cherd `"ผมได้ยินว่าคุณแม่พี่ไม่ค่อยสบายนะครับ"` — conversational
+**บทพูด** lender_cherd `"เดือนหน้าค่าหมอคงต้องใช้อีก ผมเป็นห่วงแทนพี่นะครับ"` — softer, worse for being soft
+**บทพูด** lung_somchai `"แม่ผมสบายดีครับ ไม่ต้องห่วง"` — tight
 ```
 Use <IMAGE_REF_0> as the character reference for lender_cherd. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for back_alley.
 
 In a narrow service alley behind an old Bangkok shophouse at night — a steel rear door with a small barred window, stacked plastic crates against one wall, a bicycle leaning, cables strung overhead, wet uneven concrete, one weak bulb over the door and the alley falling away into darkness behind <IMAGE_REF_2>, night. a Thai man of 45, lean, with an even unlined face, short ordinary black hair, sunglasses pushed up onto the top of his head, in a plain navy polo shirt, grey trousers and a silver bracelet on his right wrist <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — takes the folded money and counts it against his thumb while he talks, the older man watching his hands.
 
-The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, conversational, and says: "ผมรู้ว่าบ้านพี่มีคนป่วยอยู่ข้างบน"
-The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, softer, worse for being soft, and says: "ค่าหมอเดือนหน้าคงไม่อยากให้สะดุดนะครับ"
-The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, tight, and says: "อย่าพูดถึงแม่ผมครับ"
+The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, conversational, and says: "ผมได้ยินว่าคุณแม่พี่ไม่ค่อยสบายนะครับ"
+The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, softer, worse for being soft, and says: "เดือนหน้าค่าหมอคงต้องใช้อีก ผมเป็นห่วงแทนพี่นะครับ"
+The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, tight, and says: "แม่ผมสบายดีครับ ไม่ต้องห่วง"
 
 The face of whoever is speaking stays in frame for the whole line.
 The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind. Also in this shot: no notebook, no ledger, no receipt book, no paper of any kind changes hands. Nothing is written down by anyone.
@@ -304,14 +304,14 @@ Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, d
 
 ### SHOT 52 · 2:14–2:22 · 8s · Close-up on the younger man, static camera
 **ATTACH** 1) `@lender_cherd`→REF_0 · 2) `@back_alley`→REF_1
-**บทพูด** lender_cherd `"สี่ปีแล้วนะครับพี่ ดอกมันไม่รอใครหรอก"` — matter-of-fact
+**บทพูด** lender_cherd `"สี่ปีแล้วนะครับพี่ เวลามันไม่รอใครเลย"` — matter-of-fact
 **บทพูด** lender_cherd `"อาทิตย์หน้าเวลาเดิมนะครับ"` — warm again
 ```
 Use <IMAGE_REF_0> as the character reference for lender_cherd. Use <IMAGE_REF_1> as the location reference for back_alley.
 
 In a narrow service alley behind an old Bangkok shophouse at night — a steel rear door with a small barred window, stacked plastic crates against one wall, a bicycle leaning, cables strung overhead, wet uneven concrete, one weak bulb over the door and the alley falling away into darkness behind <IMAGE_REF_1>, night. a Thai man of 45, lean, with an even unlined face, short ordinary black hair, sunglasses pushed up onto the top of his head, in a plain navy polo shirt, grey trousers and a silver bracelet on his right wrist <IMAGE_REF_0> — folds the money into his shirt pocket while he speaks, unbothered, already easing back a step.
 
-The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, matter-of-fact, and says: "สี่ปีแล้วนะครับพี่ ดอกมันไม่รอใครหรอก"
+The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, matter-of-fact, and says: "สี่ปีแล้วนะครับพี่ เวลามันไม่รอใครเลย"
 The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, warm again, and says: "อาทิตย์หน้าเวลาเดิมนะครับ"
 
 The face of whoever is speaking stays in frame for the whole line.

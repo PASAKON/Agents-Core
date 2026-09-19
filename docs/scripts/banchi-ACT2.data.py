@@ -89,7 +89,7 @@ SHOTS = [
 
  (41, 8, "Close-up on the seated man, static camera", ["cherd"], "shop", "midday",
   "stirs his bowl slowly while he talks, looking up at someone standing off to the side",
-  [("cherd","easy, almost kind","ผมไม่ชอบทวงหรอกนะครับ ไม่ใช่นิสัยผม"),
+  [("cherd","easy, almost kind","ผมไม่ชอบมากวนใครหรอกครับ ไม่ใช่นิสัยผม"),
    ("cherd","smiling","ผมชอบให้ทุกคนสบายใจกันทุกฝ่ายมากกว่า")], []),
 
  (42, 10, "Medium two-shot, static camera", ["somchai","cherd"], "shop", "midday",
@@ -135,19 +135,19 @@ SHOTS = [
 
  (50, 10, "Medium two-shot, static camera", ["cherd","somchai"], "alley", "night",
   "walks up out of the dark and stops close, hands in his pockets, talking while the older man stands very still",
-  [("cherd","friendly, unhurried","งวดนี้พี่ช้าไปสามวันแล้วนะครับ"),
+  [("cherd","friendly, unhurried","งวดนี้ช้าไปสามวันนะครับพี่ ผมเลยแวะมาเอง"),
    ("somchai","fast","พรุ่งนี้ผมหาให้ครบแน่นอนครับ"),
    ("cherd","gently","พี่พูดแบบนี้ทุกงวดเลยนะครับ")], ["nobook"]),
 
  (51, 10, "Medium two-shot, static camera", ["cherd","somchai"], "alley", "night",
   "takes the folded money and counts it against his thumb while he talks, the older man watching his hands",
-  [("cherd","conversational","ผมรู้ว่าบ้านพี่มีคนป่วยอยู่ข้างบน"),
-   ("cherd","softer, worse for being soft","ค่าหมอเดือนหน้าคงไม่อยากให้สะดุดนะครับ"),
-   ("somchai","tight","อย่าพูดถึงแม่ผมครับ")], ["money","nobook"]),
+  [("cherd","conversational","ผมได้ยินว่าคุณแม่พี่ไม่ค่อยสบายนะครับ"),
+   ("cherd","softer, worse for being soft","เดือนหน้าค่าหมอคงต้องใช้อีก ผมเป็นห่วงแทนพี่นะครับ"),
+   ("somchai","tight","แม่ผมสบายดีครับ ไม่ต้องห่วง")], ["money","nobook"]),
 
  (52, 8, "Close-up on the younger man, static camera", ["cherd"], "alley", "night",
   "folds the money into his shirt pocket while he speaks, unbothered, already easing back a step",
-  [("cherd","matter-of-fact","สี่ปีแล้วนะครับพี่ ดอกมันไม่รอใครหรอก"),
+  [("cherd","matter-of-fact","สี่ปีแล้วนะครับพี่ เวลามันไม่รอใครเลย"),
    ("cherd","warm again","อาทิตย์หน้าเวลาเดิมนะครับ")], ["money","nobook"]),
 
  (53, 8, "Medium shot, static camera", ["somchai"], "alley", "night",
