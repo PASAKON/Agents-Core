@@ -376,6 +376,9 @@ SAFE = {"left": 120, "top": 252, "right": 840, "bottom": 1500}
 # 97px of EACH SIDE is cropped away and never rendered at all. Anything at
 # x<97 or x>983 does not exist for that viewer.
 CROP_X = 97
+# The like/comment rail starts here. Anything whose top is above it is judged
+# against the left margin on both sides, not against the rail's 240.
+RAIL_TOP = 900
 TIKTOK_UI = [
     ("app nav (For You / Following)", "y", 138, 186),
     ("right rail (avatar, like, comment)", "x", 873, 983),
@@ -404,8 +407,24 @@ def cmd_safezone(a):
         if left is not None and left < SAFE["left"]:
             bad.append(f"{sel}: left {left} < {SAFE['left']}"
                        + ("  (BELOW x=97 — physically cropped off the phone)" if left < CROP_X else ""))
-        if right is not None and right < 1080 - SAFE["right"]:
-            bad.append(f"{sel}: right {right} < {1080 - SAFE['right']} (runs under the like/comment rail)")
+        # The 240 right margin exists for the like/comment rail, and the rail
+        # starts at y~960. A rule that lives ABOVE it may come back in to 120 --
+        # that is what .blk.wide is, and it is why the brand bug sits at
+        # right:150. Judging every rule by the same margin flagged the bug as a
+        # rail collision at y=310, which is 650px clear of the rail.
+        # `right: N` is a MARGIN, so the element's right edge sits at 1080-N.
+        # Compare margin against required margin -- the old form compared the
+        # margin against a coordinate (right < 1080 - 240 = 840) and so failed
+        # almost any numeric margin. It only ever looked correct because every
+        # real offender happened to be a small number.
+        above_rail = top is not None and top < RAIL_TOP
+        # SAFE["right"] is the EDGE coordinate (840); the margin is 1080 minus it.
+        min_right = SAFE["left"] if above_rail else (1080 - SAFE["right"])
+        if right is not None and right < min_right:
+            where = ("above the rail, but past the crop edge at x=983"
+                     if above_rail else "runs under the like/comment rail")
+            bad.append(f"{sel}: right margin {right} < {min_right} "
+                       f"-> right edge x{1080 - right} ({where})")
         if top is not None and top < SAFE["top"]:
             bad.append(f"{sel}: top {top} < {SAFE['top']} (sits under the app's own nav)")
         if top is not None and top > SAFE["bottom"]:

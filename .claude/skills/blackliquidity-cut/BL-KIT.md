@@ -35,8 +35,10 @@ the right margin back to 120 and is only legal for a block that ends above
 never by looking at the preview — the preview shows the whole frame and the
 phone does not.
 
-Fixed positions that follow from it: brand bug `right: 240px; top: 270px`, logo
-`height: 60px`; legal label `y = 1430`; subtitle layer `y = 1300`.
+Fixed positions that follow from it: brand bug `right: 150px; top: 310px`, logo
+`height: 60px`; legal label `y = 1430`; subtitle layer `y = 1300`. A text block
+whose `top` is under 900 carries `.blk.wide` (right margin back to 120) so it is
+centred on the frame; everything lower keeps 240 and stays clear of the rail.
 
 ## Motion grammar — not negotiable, it is measured
 

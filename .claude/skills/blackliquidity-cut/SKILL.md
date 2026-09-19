@@ -185,7 +185,7 @@ substitute a CSS text version):
 </div>
 ```
 
-`right: 240px; top: 270px`, logo `height: 60px`, date stacked underneath,
+`right: 150px; top: 310px`, logo `height: 60px`, date stacked underneath,
 right-aligned. **These numbers do not change between episodes.** The audience
 recognises the mark by where it sits; a bug that drifts reads as a different
 channel. If a text block would collide with it, move the text, never the bug.
@@ -196,6 +196,15 @@ own `เพื่อน | กำลังติดตาม | สำหรับ
 overlapping each other. The top right is the one part of the frame the app's
 chrome leaves alone above the rail, so that is where it now lives, at half the
 height. See 6c for the box it has to stay inside.
+
+**Why 150 and not 240** (measured on the CEO's phone, then approved on a render
+of the real cut, 2026-09-19). The 240 margin exists for the like/comment rail,
+and the rail only starts at `y≈960`. Up here the sole obstacle is TikTok's
+search icon at `x 904-946, y 146-186`. At `right: 150` the mark ends at `x 930`
+and still leaves **54px** of visible frame before the crop edge at `x 983` — the
+CEO's words were "จดเกือบชิดขอบจอ แต่ห้ามชิดจนเกินไป ให้มีช่องว่างดูลอดผ่านได้".
+At `top: 310` it clears the nav by 109px. A first attempt at `top: 350` was
+rejected as too low, and 310 is exactly half that move — do not drift back.
 
 **The date is the day the episode was MADE, not the day it is posted.** Posting
 lands zero to two days later, and every other record — the Drive folder, the
@@ -265,6 +274,21 @@ unit's CTA button, which an organic post does not have):
 `.blk` is already bound to those variables, so a block written the normal way is
 safe by construction. `.blk.wide` pulls the right margin back to 120 and is only
 for a block that **ends above y=900**, before the rail starts.
+
+**Apply `wide` from the block's own top, do not decide it by eye.** The right
+margin of 240 is there for the rail; above the rail it only pushes the line
+off-centre. On EP52 every block sat in the narrow box, so an upper line was
+centred on 480 while the frame's centre is 540 — the CEO saw it immediately as
+"เบี้ยวไปทางซ้าย" and asked why the right-hand space was going unused. Put the
+rule in the `block()` helper so it cannot be forgotten:
+
+```js
+var wide = (top < 900) ? " wide" : "";
+```
+
+Measured on EP52: 18 of 40 blocks are above the rail and belong wide; the other
+22 sit at y 1090-1320 and must keep 240 or they run under the like/comment
+icons. Widening all of them is not the fix — that was the first wrong attempt.
 
 Three real defects this found the day it was written, all of them invisible in
 the preview and obvious on the phone:
