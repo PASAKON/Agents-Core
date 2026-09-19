@@ -1,6 +1,6 @@
-# «บัญชี» — องก์ 1 (rework)
+# «บัญชี» — องก์ 2
 
-**สร้างจาก `docs/scripts/banchi-ACT1.data.py` ด้วย `tools/build_shotsheet.py` — ห้ามแก้ไฟล์นี้ตรงๆ แก้ที่ data แล้ว build ใหม่**
+**สร้างจาก `docs/scripts/banchi-ACT2.data.py` ด้วย `tools/build_shotsheet.py` — ห้ามแก้ไฟล์นี้ตรงๆ แก้ที่ data แล้ว build ใหม่**
 
 Omni 1.1 Flash · 9:16 · 720p (ทดสอบ 360p) · โหมด `องค์ประกอบ` · x1
 

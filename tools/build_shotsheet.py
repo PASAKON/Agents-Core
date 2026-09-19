@@ -15,6 +15,7 @@ them. A set cannot drift between two shots unless someone edits the set itself.
 """
 import importlib.util
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -64,11 +65,11 @@ def check_plates(d) -> None:
         )
 
 
-def build(d) -> str:
+def build(d, act: str = "?") -> str:
     out, t = [], 0.0
     total_cost = 0
-    out.append("# «บัญชี» — องก์ 1 (rework)\n")
-    out.append("**สร้างจาก `docs/scripts/banchi-ACT1.data.py` ด้วย `tools/build_shotsheet.py` — "
+    out.append(f"# «บัญชี» — องก์ {act}\n")
+    out.append(f"**สร้างจาก `docs/scripts/banchi-ACT{act}.data.py` ด้วย `tools/build_shotsheet.py` — "
                "ห้ามแก้ไฟล์นี้ตรงๆ แก้ที่ data แล้ว build ใหม่**\n")
     out.append("Omni 1.1 Flash · 9:16 · 720p (ทดสอบ 360p) · โหมด `องค์ประกอบ` · x1\n")
     out.append("""## กฎที่ไฟล์นี้ถูกสร้างมาให้เชื่อฟัง
@@ -116,11 +117,11 @@ def build(d) -> str:
         for sp, direction, line in lines:
             idx = chars.index(sp)
             # The voice description is restated on every single line on purpose.
-            # Flow cannot save a customised voice (the save button is disabled —
-            # three runs, three methods, 2026-09-18), so the only place a voice
-            # can be characterised is the prompt, and a prompt only governs its
-            # own shot. Say it every time or the voice is whatever the preset
-            # happens to give that day.
+            # A prompt governs only its own shot, so the voice is restated on
+            # every line. (An earlier version of this comment claimed Flow cannot
+            # save a custom voice at all — that was wrong and was corrected the
+            # same day: the save button works once ตัวอย่างบทสนทนา is filled, and
+            # five voices were saved that way on 2026-09-18.)
             # Hard failure, not a silent fallback. A character with no VOICE block
             # renders "speaks Thai, <direction>" and reads as a missing line only
             # if someone happens to look — @nong_daeng_suit slipped through
@@ -147,5 +148,6 @@ if __name__ == "__main__":
     data, dest = Path(sys.argv[1]), Path(sys.argv[2])
     d = load(data)
     check_plates(d)
-    dest.write_text(build(d), encoding="utf-8")
+    m = re.search(r"ACT(\w+)", data.stem)
+    dest.write_text(build(d, m.group(1) if m else "?"), encoding="utf-8")
     print(f"built {dest} from {data}")

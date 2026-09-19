@@ -1,4 +1,4 @@
-# «บัญชี» — องก์ 1 (rework)
+# «บัญชี» — องก์ 1
 
 **สร้างจาก `docs/scripts/banchi-ACT1.data.py` ด้วย `tools/build_shotsheet.py` — ห้ามแก้ไฟล์นี้ตรงๆ แก้ที่ data แล้ว build ใหม่**
 
