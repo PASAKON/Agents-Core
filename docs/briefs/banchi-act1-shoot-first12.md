@@ -56,30 +56,44 @@ Do not read the credit balance from the account menu — it is flaky and cost an
 earlier run 25 minutes. Read the **live estimate in the settings panel** instead,
 immediately before each submit. That is the number that matters anyway.
 
-## Getting the clips out
+## Getting the clips out — use the download button
 
-**Do not press play with sound.** The CEO is working next to this machine. Before
-playing anything, mute the page's media:
+**This reverses an earlier version of this brief.** It used to forbid the
+download button and tell you to sniff the signed CDN URL out of the network log.
+That was wrong and it cost four runs: this player never fetches a video file at
+all — it renders from ~30 filmstrip images, so there is no URL to catch. The
+download button was then measured working on 10 of 12 clips in a single pass,
+with no Chrome block.
+
+**Mute the page first, every time**, before anything else. The CEO may be asleep
+beside this machine:
 
 ```js
-document.querySelectorAll('video').forEach(v => { v.muted = true; v.volume = 0; });
+(() => { const m=e=>{e.muted=true;e.volume=0}; const a=()=>document.querySelectorAll('video,audio');
+  a().forEach(m); document.addEventListener('play',e=>m(e.target),true);
+  new MutationObserver(()=>a().forEach(m)).observe(document.documentElement,{childList:true,subtree:true}); })()
 ```
 
-**Do not click the download button.** Chrome's per-tab automatic-downloads gate
-has stopped three runs at 1–2 files. Instead do what worked for the plates today:
-collect the **signed CDN URL as text** and let the CTO fetch the bytes.
+Then, once a shot has finished rendering:
 
-Capture each clip's id **at submit time** — it is in the submit response and in
-the card — and use `read_network_requests` to catch the
-`flow-content.google/video/<id>` URL at its **first** fetch. Write one line per
-shot into `clips.tsv` at your worktree root:
+1. Click its download control with a **real click** (the `computer` tool), not a
+   synthetic JS `.click()`. A genuine user gesture is what keeps this from
+   looking like an automated burst.
+2. **Wait at least 8 seconds before the next download.** The pause is the whole
+   reason this works — Chrome's per-site gate fires on rapid automatic
+   downloads, not on a person clicking.
+3. The file lands in `~/Downloads` with a descriptive auto-generated name.
+   Append `<shot><TAB><exact filename>` to your deliverable tsv **immediately**,
+   per shot. Never batch the writing to the end.
 
-```
-<shot number><TAB><full absolute signed URL>
-```
+`~/Downloads` already holds many unrelated `.mp4`s — report the exact filename
+per shot so the CTO can tell yours apart, and **do not move, rename or delete
+anything in there.**
 
-Absolute and complete, query string and all. A signed URL dies if one character
-is dropped.
+**If Chrome's blocked-downloads indicator appears, STOP** and report it with the
+shot number you reached. Do not open extra tabs to get around it and do not
+build a workaround — one run wrote a local HTTP sink for exactly that and it was
+deleted rather than merged.
 
 ## Report per shot
 
