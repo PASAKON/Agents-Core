@@ -107,14 +107,18 @@ confirming revert:
 
 1. a dependent named alongside a demand — *"อย่าเพิ่งไปที่ร้านเลยครับ ลูกผมอยู่ที่นั่น"*
 2. money stated as an absolute prohibition — *"ห้ามแตะเด็ดขาด"*
-3. **NEW, 19 Sep:** a character counting cash while saying **ค่ายา** in the same
-   shot. Medicine ALONE is fine — a shot naming white and yellow pills passed.
-   Medicine plus cash reads as a drug purchase. Both refused shots said ค่ายา
-   over a money count; they now say ค่ารักษาแม่ and ค่าหมอ.
+3. ~~a character counting cash while saying ค่ายา~~ — **RETRACTED the same day.**
+   I claimed this as proven from one natural experiment. Then shots 6 and 24,
+   carrying exactly that wording, refused three times each the day before,
+   rendered on the first try (15:13 and 15:28, 19 Sep). **A refusal is not
+   reproducible from wording alone.** One pass/fail is not a bisection.
 
-If a shot is refused: **report the exact refusal text verbatim and move on to the
-next shot.** Do not rewrite. Do not change two things at once. The CTO decides
-the rewrite.
+So the rule, which is the CEO's own method with the first step made explicit:
+
+**If a shot is refused, RE-FIRE THE IDENTICAL PROMPT ONCE, unchanged.** Refusals
+are refunded, so this costs nothing. Only a second refusal of byte-identical
+text says the text is the cause. Report both attempts verbatim and move on —
+do not rewrite, do not change two things at once. The CTO decides any rewrite.
 
 ## Budgets
 

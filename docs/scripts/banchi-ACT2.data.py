@@ -33,10 +33,14 @@ CHAR["cherd"] = ("@lender_cherd",
   "trousers and a silver bracelet on his right wrist",
   "The 45-year-old man in the navy polo shirt")
 
-# Flow audit task-68653632 (18 Sep) measured the REAL binding on @lender_cherd as
-# the preset "algieba", not the "Umbriel" this ledger claimed. The measurement wins
-# over our own record. CEO to judge by ear on the first shot and rebind if he wants.
-VOICE["cherd"] = ("algieba @lender_cherd",
+# 19 Sep: the operator read the LIVE binding on @lender_cherd as Umbriel, which is
+# what this ledger said all along — so the 18 Sep audit (task-68653632) that reported
+# "algieba" is an audit error, and this line is back to Umbriel. Note the preset name
+# is bookkeeping only: build_shotsheet writes VOICE[1] (the description) into prompts
+# and never VOICE[0], so no shot was ever affected either way.
+# The CEO's standing instruction (19 Sep) is that เชิด gets a CUSTOM voice based on
+# this preset, not the bare preset — "บางที AI ลืม".
+VOICE["cherd"] = ("Umbriel @lender_cherd — custom voice, base preset Umbriel",
   "the smooth, low, unhurried voice of a man of forty-five who never has to raise it")
 
 LOC["alley"] = ("@back_alley",

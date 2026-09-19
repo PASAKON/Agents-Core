@@ -90,6 +90,14 @@ surface improved the scene.**
 
 ### How to work when a shot is refused
 
+0. **Re-fire the byte-identical prompt once, unchanged, before touching anything.**
+   It is refunded, so it is free, and it is the only way to learn whether the
+   refusal repeats at all. A single refusal of a prompt is an observation, not a
+   finding. (Added 2026-09-19 after the CTO floated "medicine + cash in one shot"
+   as a trigger from n=1 per arm and retracted it the same afternoon — the
+   wording in question had in fact already passed in the table above and was
+   simply never shot at 720p. Do not let that hypothesis back in without a
+   repeat.)
 1. **Do not reword and re-fire.** That is what cost eight refusals and taught
    nothing, because each rewrite changed several things at once.
 2. **Bisect, one variable per attempt**, at 360p so a pass costs 6 credits.
