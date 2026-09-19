@@ -20,7 +20,8 @@ CEO's main Chrome, never Higgsfield's 9222.
 python3 tools/flow_ledger.py init  <sheet.md> <ledger.tsv>       # or let `run`/`pull` do this for you
 python3 tools/flow_shoot.py status --ledger <ledger.tsv>
 python3 tools/flow_shoot.py run    --sheet <sheet.md> --ledger <ledger.tsv> \
-    --dest <download-folder> --credit-cap <N> [--only 37-46] [--dry-run]
+    --dest <download-folder> --credit-cap <N> [--only 37-46] [--dry-run] \
+    [--resolution {720p,360p}] [--force-duration N]
 python3 tools/flow_shoot.py pull   --sheet <sheet.md> --ledger <ledger.tsv> \
     --dest <download-folder> [--only 53-58]
 ```
@@ -32,6 +33,11 @@ python3 tools/flow_shoot.py pull   --sheet <sheet.md> --ledger <ledger.tsv> \
   you confirm the selectors still match the live UI before spending anything.
   `--credit-cap` is the only money safety in the loop; the run stops the
   moment the next shot would cross it, with a `CAP REACHED` line, not a crash.
+  `--resolution {720p,360p}` (default `720p`) sets the composer's resolution
+  facet and reads it back like every other setting. `--force-duration N` is
+  **proof shots only**: it overrides the sheet's per-shot duration for both
+  the duration setting and `verify_clip`'s tolerance, and the runner logs the
+  override loudly at the top of the run.
 - **`pull`** — download-only. For clips already generated in Flow (found by
   the shot's own dialogue line, not the prompt text — see google-flow-ops on
   why), download and verify without submitting anything new.

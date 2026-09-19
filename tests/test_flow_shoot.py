@@ -170,6 +170,63 @@ def test_parse_credit_estimate_extracts_number():
     assert flow_shoot.parse_credit_estimate("no credits mentioned here") is None
 
 
+def test_normalize_prompt_whitespace_collapses_newline_runs():
+    # Confirmed live 2026-09-19: the composer's contenteditable box
+    # re-normalizes blank-line count on round-trip (a single '\n' and a
+    # blank-line '\n\n' both come back as some other run of newlines) while
+    # every character of actual text survives — so the mismatch check must
+    # compare on newline-collapsed text, not raw strings.
+    single = "line one\nline two"
+    blank = "line one\n\nline two"
+    five = "line one\n\n\n\n\nline two"
+    assert flow_shoot.normalize_prompt_whitespace(single) == "line one\nline two"
+    assert flow_shoot.normalize_prompt_whitespace(blank) == "line one\nline two"
+    assert flow_shoot.normalize_prompt_whitespace(five) == "line one\nline two"
+    assert (flow_shoot.normalize_prompt_whitespace(single)
+            == flow_shoot.normalize_prompt_whitespace(blank)
+            == flow_shoot.normalize_prompt_whitespace(five))
+
+
+def test_normalize_prompt_whitespace_still_catches_a_real_content_change():
+    original = "says: \"เบาๆ... อย่าให้แม่ตื่น\""
+    dropped_a_word = "says: \"เบาๆ... แม่ตื่น\""
+    assert (flow_shoot.normalize_prompt_whitespace(original)
+            != flow_shoot.normalize_prompt_whitespace(dropped_a_word))
+
+
+def test_effective_duration_override_wins():
+    assert flow_shoot.effective_duration(8, 4) == 4
+
+
+def test_effective_duration_no_override_uses_sheet_duration():
+    assert flow_shoot.effective_duration(8, None) == 8
+
+
+def test_run_arg_parsing_defaults_resolution_720p_no_force_duration():
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args(["run", "--sheet", "s.md", "--ledger", "l.tsv",
+                           "--dest", "d", "--credit-cap", "10"])
+    assert args.resolution == "720p"
+    assert args.force_duration is None
+
+
+def test_run_arg_parsing_accepts_resolution_and_force_duration():
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args(["run", "--sheet", "s.md", "--ledger", "l.tsv",
+                           "--dest", "d", "--credit-cap", "10",
+                           "--resolution", "360p", "--force-duration", "4"])
+    assert args.resolution == "360p"
+    assert args.force_duration == 4
+
+
+def test_run_arg_parsing_rejects_unknown_resolution():
+    ap = flow_shoot.build_parser()
+    with pytest.raises(SystemExit):
+        ap.parse_args(["run", "--sheet", "s.md", "--ledger", "l.tsv",
+                        "--dest", "d", "--credit-cap", "10",
+                        "--resolution", "1080p"])
+
+
 def test_parse_only_ranges_and_lists():
     assert flow_shoot.parse_only("37-46") == set(range(37, 47))
     assert flow_shoot.parse_only("37,40,52") == {37, 40, 52}
@@ -216,6 +273,145 @@ def test_first_dialogue_line_extracts_the_thai_quote():
 
 def test_first_dialogue_line_none_when_no_dialogue():
     assert flow_shoot.first_dialogue_line("no dialogue markers here") is None
+
+
+# ── settings dict: read_settings reads resolution back like every other
+#    setting. Live 2026-09-19: every mat-button-toggle LABEL (720p, 360p,
+#    x1..x4, every duration, every aspect) is always rendered regardless of
+#    which is selected — only the wrapper's mat-button-toggle-checked class
+#    says which one is active. These fakes model exactly that, so a test
+#    that only fakes "label present in text" (the old, wrong assumption)
+#    can't accidentally pass again. ────────────────────────────────────────
+
+ALL_TOGGLE_LABELS = {
+    "360p", "720p", "4 วินาที", "6 วินาที", "8 วินาที", "10 วินาที",
+    "9:16", "16:9", "องค์ประกอบ", "เฟรม", "x1", "x2", "x3", "x4",
+}
+
+
+class _FakeToggleLocator:
+    def __init__(self, present: bool, checked: bool):
+        self._present = present
+        self._checked = checked
+
+    @property
+    def first(self):
+        return self
+
+    def count(self) -> int:
+        return 1 if self._present else 0
+
+    def get_attribute(self, _name: str) -> str:
+        return "mat-button-toggle-checked" if self._checked else "mat-button-toggle"
+
+
+class _FakePanel:
+    """Stands in for the <flow-prompt-box-settings> overlay locator."""
+
+    def __init__(self, checked_labels: set[str], known_labels=ALL_TOGGLE_LABELS,
+                 inner_text: str = ""):
+        self._checked_labels = checked_labels
+        self._known_labels = known_labels
+        self._inner_text = inner_text
+
+    def count(self) -> int:
+        return 1
+
+    def evaluate(self, _script: str) -> str:
+        return self._inner_text
+
+    def locator(self, _selector: str) -> "_FakePanel":
+        return self
+
+    def filter(self, has_text: str) -> _FakeToggleLocator:
+        present = any(has_text in label for label in self._known_labels)
+        checked = any(has_text in label for label in self._checked_labels)
+        return _FakeToggleLocator(present, checked)
+
+
+class _MissingPanel:
+    def count(self) -> int:
+        return 0
+
+
+class _FakePage:
+    def __init__(self, panel=None, body: str = ""):
+        self._panel = panel
+        self._body = body
+
+    def locator(self, selector: str):
+        assert selector == "flow-prompt-box-settings"
+        return self._panel if self._panel is not None else _MissingPanel()
+
+    def evaluate(self, _script: str) -> str:
+        return self._body
+
+
+def test_read_settings_confirms_matching_resolution_and_duration():
+    panel = _FakePanel(
+        checked_labels={"360p", "4 วินาที", "9:16", "องค์ประกอบ", "x1"},
+        inner_text="Omni 1.1 Flash",
+    )
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage(panel=panel)
+    settings = browser.read_settings(dur_s=4, resolution="360p")
+    assert settings == {
+        "model_omni": True,
+        "mode_ingredients": True,
+        "aspect_9_16": True,
+        "qty_x1": True,
+        "resolution": True,
+        "duration": True,
+    }
+
+
+def test_read_settings_flags_resolution_mismatch():
+    # panel shows the account default 720p checked — the 360p click didn't take.
+    panel = _FakePanel(
+        checked_labels={"720p", "4 วินาที", "9:16", "องค์ประกอบ", "x1"},
+        inner_text="Omni 1.1 Flash",
+    )
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage(panel=panel)
+    settings = browser.read_settings(dur_s=4, resolution="360p")
+    assert settings["resolution"] is False
+
+
+def test_read_settings_ignores_unselected_labels_that_are_merely_present():
+    # 720p, 360p, x2, x3, x4, every OTHER duration/aspect are all always
+    # rendered in the panel regardless of selection — presence alone must
+    # not read back as "confirmed".
+    panel = _FakePanel(
+        checked_labels={"360p", "4 วินาที", "9:16", "องค์ประกอบ", "x1"},
+        inner_text="Omni 1.1 Flash",
+    )
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage(panel=panel)
+    settings = browser.read_settings(dur_s=8, resolution="720p")  # neither is checked
+    assert settings["resolution"] is False
+    assert settings["duration"] is False
+
+
+def test_read_settings_defaults_resolution_to_720p():
+    panel = _FakePanel(
+        checked_labels={"720p", "8 วินาที", "9:16", "องค์ประกอบ", "x1"},
+        inner_text="Omni 1.1 Flash",
+    )
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage(panel=panel)
+    settings = browser.read_settings(dur_s=8)  # resolution omitted -> default "720p"
+    assert settings["resolution"] is True
+
+
+def test_read_settings_falls_back_to_collapsed_pill_text_when_panel_is_closed():
+    # set_settings closes the panel before returning; a caller reading
+    # settings afterwards only has the collapsed pill's flattened text.
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage(body="Agent   วิดีโอ · 720p · 8 วินาที · 9:16 · x1")
+    settings = browser.read_settings(dur_s=8, resolution="720p")
+    assert settings["resolution"] is True
+    assert settings["duration"] is True
+    assert settings["model_omni"] is False  # "Omni 1.1 Flash" not in this fixture
 
 
 # ── zip-vs-mp4 handling ──────────────────────────────────────────────────────
@@ -308,6 +504,26 @@ def test_verify_clip_missing_file():
     assert reason == "file missing"
 
 
+def test_verify_clip_tolerance_uses_force_duration_override_not_sheet_dur(tmp_path):
+    # Sheet says this shot is 8s; --force-duration 4 (the proof-shot flag)
+    # renders it at 4s. verify_clip must be checked against the override,
+    # not the sheet's original duration, or a correctly-rendered proof clip
+    # would fail its own verification.
+    clip = tmp_path / "shot-03.mp4"
+    _make_clip(clip, duration=4.0, silent=False)
+    sheet_dur_s, force_duration = 8, 4
+
+    overridden = flow_shoot.effective_duration(sheet_dur_s, force_duration)
+    ok, reason = flow_shoot.verify_clip(clip, expected_dur=overridden)
+    assert ok is True
+
+    # Without the override (i.e. checked against the sheet's own duration)
+    # the same clip correctly fails — proving the override is load-bearing.
+    ok_unoverridden, reason_unoverridden = flow_shoot.verify_clip(clip, expected_dur=sheet_dur_s)
+    assert ok_unoverridden is False
+    assert "DURATION" in reason_unoverridden
+
+
 def test_sha256_file_is_stable(tmp_path):
     f = tmp_path / "a.bin"
     f.write_bytes(b"same bytes")
@@ -326,3 +542,110 @@ def test_check_replay_script_accepts_flow_shoot():
         capture_output=True, text=True,
     )
     assert r.returncode == 0, r.stdout + r.stderr
+
+
+# ── chip-count hard gate (CTO, 19 Sep, task-a09ed18a): a shot must never
+#    reach Submit unless the LIVE chip count exactly matches what the shot
+#    needs. Found live: attach_chip(@staircase) logged a timeout, yet the
+#    run still reached "submitted" a second later — _attempt_chip's
+#    per-handle "count increased from before" check is not proof the RIGHT
+#    total ended up attached. These exercise cmd_run's real control flow
+#    against a stub FlowBrowser (injected via the new browser_factory
+#    param) rather than a pure helper, because what must be proven is that
+#    submit() itself is never called, not just that some boolean is False. ─
+
+class _GateStubBrowser:
+    """chip_count() plays back a scripted sequence of return values, one
+    per call, decoupled from attach_chip() — this is what lets a test
+    reproduce the live bug exactly: every per-handle
+    "count increased since before" check in _attempt_chip can pass while
+    the TOTAL the hard gate re-reads afterwards still does not match what
+    the shot needs (a transient over-count during polling that reverts by
+    the time of the final authoritative read)."""
+
+    def __init__(self, chip_count_sequence: list[int]):
+        self._seq = list(chip_count_sequence)
+        self._idx = 0
+        self._pasted = ""
+        self.submit_called = False
+        self.download_called = False
+
+    def attach(self) -> None:
+        pass
+
+    def mute_all_media(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+    def set_settings(self, dur_s, resolution="720p") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+                "qty_x1": True, "resolution": True, "duration": True}
+
+    def chip_count(self) -> int:
+        val = self._seq[min(self._idx, len(self._seq) - 1)]
+        self._idx += 1
+        return val
+
+    def attach_chip(self, _handle: str) -> bool:
+        return True  # the click itself "succeeds" from attach_chip's own POV
+
+    def paste_prompt(self, text: str) -> None:
+        self._pasted = text
+
+    def read_prompt_text(self) -> str:
+        return self._pasted
+
+    def read_credit_estimate(self) -> int:
+        return 4
+
+    def submit(self) -> None:
+        self.submit_called = True
+
+    def poll_result(self, timeout_s: int = 0) -> dict:
+        return {"status": "refusal", "text": "ล้มเหลว (stub, positive-control test)"}
+
+    def download(self):
+        self.download_called = True
+        raise AssertionError("download() must never be reached in this test")
+
+
+def _run_args(tmp_path: Path, ledger_name: str) -> object:
+    ap = flow_shoot.build_parser()
+    return ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET),
+        "--ledger", str(tmp_path / ledger_name),
+        "--dest", str(tmp_path / "dest"),
+        "--credit-cap", "999", "--only", "35",
+    ])
+
+
+def test_chip_count_mismatch_blocks_submit(tmp_path):
+    # Shot 35 needs 3 chips. Each per-handle attach appears to succeed
+    # (chip_count keeps rising across the 3 attempts, briefly touching 3),
+    # but the hard gate's own re-read afterwards sees only 2 — must refuse
+    # to proceed, and submit() must never be called.
+    args = _run_args(tmp_path, "gate_mismatch.tsv")
+    stub = _GateStubBrowser(chip_count_sequence=[0, 1, 1, 2, 2, 3, 2])
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    assert stub.submit_called is False
+    assert stub.download_called is False
+    rows = flow_ledger.load_ledger(tmp_path / "gate_mismatch.tsv")
+    assert rows[35]["status"] == "needs_model"
+    assert "chip count mismatch" in rows[35]["note"]
+    assert rc == 1  # this row left "todo" without reaching "verified"
+
+
+def test_chip_count_match_reaches_submit(tmp_path):
+    # Positive control: when the final re-read DOES match, the gate must
+    # not false-block a correct attach — the run proceeds to Submit.
+    args = _run_args(tmp_path, "gate_match.tsv")
+    stub = _GateStubBrowser(chip_count_sequence=[0, 1, 1, 2, 2, 3, 3])
+    flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    assert stub.submit_called is True
+    rows = flow_ledger.load_ledger(tmp_path / "gate_match.tsv")
+    assert rows[35]["status"] == "refused"  # stub's poll_result() always refuses
+    assert rows[35]["note"] == "ล้มเหลว (stub, positive-control test)"
