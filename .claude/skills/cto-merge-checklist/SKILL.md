@@ -64,6 +64,7 @@ Applies when the task's deliverable touches anything OUTSIDE the repo: DB writes
 ### 8. Repetition → script (born from the 2026-08-12 Higgsfield wave)
 Applies to any task whose report shows the **same operation performed more than 3 times** — browser_operator especially, but any role.
 - [ ] The report's `## Replay Script` section names a real path, not `none`.
+- [ ] **`python3 tools/check_replay_script.py <that path>` exits 0.** It compiles the file (py_compile / node --check / bash -n) and refuses comment-only files. A path that exists is not the test — on 2026-09-19 a 128-line prose `.js` was delivered as the script (cc16c251). IRON-RULES §43.
 - [ ] The script covers the mechanical steps; only genuine judgement calls are left to a model.
 - If it says `Replay Script: none` → **REFUSE the merge** and reopen asking for the script. The one accepted exception is the operator stating in writing which specific step cannot be scripted and why.
 - Why this is a gate and not a suggestion: `roles/browser_operator.md` and `dev-spawn-protocol` §3c.8 already required the script, and both were satisfied by writing `none`. On task-cda4f469 that cost roughly 5 model turns per clip across 20 near-identical clips. A rule with an opt-out phrase is not a rule.

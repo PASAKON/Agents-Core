@@ -65,6 +65,10 @@ When role is `web_designer`, the kickoff brief MUST include all four, or the age
 4. **Deliverable** — what to build.
 Full spec + template line: `playbooks/web-designer.md §9`.
 
+### 3c0. Before ANY browser_operator spawn — does a runner already exist? (IRON-RULES §43, CEO 2026-09-19)
+
+If the task repeats the same operation more than 3 times, the model may not do the repetitions. Check for an existing zero-model runner first — the pattern is `scripts/higgsfield/gen_loop.py` (Playwright over CDP on a dedicated Chrome profile, resumable ledger) and the Flow port is `docs/ops/flow-operator-design.md` / `tools/flow_shoot.py`. If none exists, the first task is a `developer` task that BUILDS the runner, not an operator that clicks. Measured 2026-09-19: two operators, 650M context tokens, 405 screenshots, 8 clips.
+
 ### 3c. Browser Operator spawns — the brief is where the cost is (CEO 2026-08-10)
 
 A browser task's token cost is set by **how you wrote it**, not by how clever the
