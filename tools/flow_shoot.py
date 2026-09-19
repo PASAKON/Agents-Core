@@ -63,6 +63,71 @@ new MutationObserver(() => document.querySelectorAll('video,audio')
 _DIALOGUE_RE = re.compile(r'says:\s*"([^"]+)"')
 _CREDIT_RE = re.compile(r"(\d+)\s*เครดิต")
 
+# CORRECTED 2026-09-19 (task-04851451, live check against the automation
+# Chrome, read-only, on the project's 11 already-charged clips):
+# [aria-label="Download"]/[aria-label="ดาวน์โหลด"] confirmed to match ZERO
+# elements — the only "download" mat-icon anywhere on the page is nested
+# inside a per-batch "ดาวน์โหลดแบบกลุ่ม" (bulk download) button, not a
+# per-clip control. There is no per-clip download button in this UI at all.
+# The real, verified mechanism (matches google-flow-ops' "the download
+# button is dead" section): Flow itself fetches this signed CDN URL to
+# render/play a clip; capture that network response and pull the bytes
+# directly. Proven live: navigated to an existing clip's /edit/<uuid>,
+# nudged a muted play(), captured this URL, fetched it via
+# page.request.get() with no extra auth, got 200 / 381529 bytes / a real
+# 4.01s h264+aac mp4 confirmed by ffprobe.
+CDN_VIDEO_RE = re.compile(r"flow-content\.google/video/")
+
+
+class EstimateUnreadable(RuntimeError):
+    """Raised by FlowBrowser.read_credit_estimate() when the live panel's
+    credit text cannot be parsed. Deliberately its own type, not a plain
+    RuntimeError, so cmd_run can catch it specifically and STOP THE WHOLE
+    RUN rather than silently moving on to the next shot — an unreadable
+    price is not a free price (task-04851451: the previous behaviour fell
+    into the generic per-shot exception handler, which marks one row
+    failed and continues to the next todo shot, exactly the "quietly
+    proceed past an unknown cost" failure this must not do)."""
+
+
+class ChipCountMismatch(RuntimeError):
+    """Raised by FlowBrowser.submit() itself when handed an
+    expected_chip_count that doesn't match the live count it re-reads at
+    that instant. task-04851451, incident 2: a proof-shot run logged
+    attach_chip() TimeoutErrors for BOTH handles and still reached
+    'submitted' — the caller-side hard gate (cmd_run comparing
+    live_chip_count to len(shot['chips']) before calling submit) had
+    already covered this class of bug once (see the existing
+    test_chip_count_mismatch_blocks_submit, from iteration 2) and a
+    read-only pull of the actual clip afterward showed both references had
+    in fact rendered correctly — attach_chip()'s own return value is
+    decoupled from reality (a Playwright click-wait can time out on a
+    confirm button that the browser still processes a moment later; the
+    DOM chip count is the ground truth, not that boolean). Still: a guard
+    that lives only in the caller is one edit away from being skipped.
+    This makes the same check unavoidable at the only place credits can be
+    spent, exactly like the dry_run guard above."""
+
+    def __init__(self, expected: int, actual: int):
+        super().__init__(
+            f"expected {expected} chip(s) attached, found {actual} — refusing to submit")
+        self.expected = expected
+        self.actual = actual
+
+
+class CreditCapExceeded(RuntimeError):
+    """Raised by _submit_or_raise() as a backstop if browser.submit() is
+    ever reached despite the cap already being exceeded — belt-and-braces
+    alongside cmd_run's own pre-submit check, so a future refactor that
+    adds a second path to Submit still cannot spend past the cap."""
+
+    def __init__(self, spent_this_run: int, estimate: int, cap: int):
+        super().__init__(
+            f"spent={spent_this_run} + estimate={estimate} > cap={cap}")
+        self.spent_this_run = spent_this_run
+        self.estimate = estimate
+        self.cap = cap
+
 
 # ── pure helpers (no browser — these are what tests/test_flow_shoot.py covers) ──
 
@@ -186,6 +251,24 @@ class FlowBrowser:
         self._pw = None
         self._browser = None
         self.page = None
+        # Set by cmd_run right after construction. submit() checks this
+        # itself (see below) so dry-run is structurally incapable of
+        # spending — not just "the caller happens not to call submit()".
+        self.dry_run = False
+        # Every flow-content.google/video/<id> response observed on this
+        # page, in order — see CDN_VIDEO_RE. This is the runner's only
+        # download mechanism (the UI has no per-clip download button).
+        self._captured_video_urls: list[str] = []
+        self._pending_download: Path | None = None
+        self._last_dialogue: str | None = None
+        # Stable project/composer route captured at attach time. Submit moves
+        # the live page to /edit/<uuid>; later shots must navigate back here,
+        # not reload the clip editor.
+        self._project_url: str | None = None
+
+    def _on_response(self, response) -> None:
+        if CDN_VIDEO_RE.search(response.url):
+            self._captured_video_urls.append(response.url)
 
     def attach(self):
         from playwright.sync_api import sync_playwright
@@ -200,7 +283,11 @@ class FlowBrowser:
             page.bring_to_front()
         except Exception:
             pass
+        page.on("response", self._on_response)
         self.page = page
+        # A prior interrupted run may have left the tab on a clip editor.
+        # Flow's project composer is the same URL prefix before /edit/<uuid>.
+        self._project_url = re.sub(r"/edit/[^/?#]+.*$", "", page.url)
         return page
 
     def close(self) -> None:
@@ -217,6 +304,47 @@ class FlowBrowser:
 
     def mute_all_media(self) -> None:
         self.page.evaluate(MUTE_JS)
+
+    def _close_settings_panel(self) -> None:
+        """Close the settings overlay without pressing Escape.
+
+        winbox reserves Escape for the resident CookieRun controller, so the
+        Flow runner must use the UI's own controls.  The settings trigger is a
+        true toggle (confirmed live on 2026-09-20) and removes both the panel
+        and its backdrop when clicked a second time.
+        """
+        panel = self.page.locator("flow-prompt-box-settings")
+        if panel.count():
+            self.page.locator(
+                'button[aria-label="ทริกเกอร์การตั้งค่า"]'
+            ).first.click(timeout=3000, force=True)
+            panel.wait_for(state="detached", timeout=3000)
+
+    def _close_account_panel(self) -> None:
+        panel = self.page.locator("flow-account-panel")
+        if panel.count():
+            panel.locator('.close-btn[aria-label="ปิดแผงบัญชี"]').first.click(
+                timeout=3000)
+            panel.wait_for(state="detached", timeout=3000)
+
+    def reset_composer(self) -> None:
+        """Reload the current project route before each shot.
+
+        Flow keeps prompt and ingredient chips in the page session across
+        separate runner processes. The picker then hides an already-attached
+        asset, making a clean retry report ``no matching .asset-item row``;
+        worse, stale chips from another shot can satisfy the count-only gate.
+        A reload clears composer state at zero credits. Settings are deliberately
+        applied after this call because Flow resets them during navigation.
+        """
+        if not self._project_url:
+            raise RuntimeError("project URL unavailable — attach() must run first")
+        self.page.goto(self._project_url, wait_until="domcontentloaded", timeout=60_000)
+        self.mute_all_media()
+        self.page.locator(
+            'button[aria-label="ทริกเกอร์การตั้งค่า"]'
+        ).first.wait_for(state="visible", timeout=60_000)
+        self.mute_all_media()
 
     def set_settings(self, dur_s: int, resolution: str = "720p") -> dict:
         """Set model=Omni 1.1 Flash, mode=องค์ประกอบ, aspect=9:16, qty=x1,
@@ -238,9 +366,11 @@ class FlowBrowser:
         the wrong (image-mode) panel.
         """
         page = self.page
-        for _ in range(3):
-            page.keyboard.press("Escape")
-            page.wait_for_timeout(150)
+        # Never press Escape on winbox: it writes a persistent human-hold
+        # marker for the resident CookieRun farm. Close known Flow overlays by
+        # their explicit controls instead.
+        self._close_account_panel()
+        self._close_settings_panel()
         panel = page.locator("flow-prompt-box-settings")
         # Opening the panel is racy in the same way chip-attach is
         # documented as racy (google-flow-ops) — a single click does not
@@ -249,7 +379,8 @@ class FlowBrowser:
             if panel.count():
                 break
             try:
-                page.locator('button[aria-label="ทริกเกอร์การตั้งค่า"]').first.click(timeout=3000)
+                page.locator('button[aria-label="ทริกเกอร์การตั้งค่า"]').first.click(
+                    timeout=3000, force=True)
             except Exception as e:
                 _log(f"  settings panel open err: {e!r}")
             page.wait_for_timeout(400)
@@ -272,11 +403,26 @@ class FlowBrowser:
                 _log(f"  video-tab select err: {e!r}")
             page.wait_for_timeout(300)
         try:
-            panel.locator('button[aria-label="เลือกกลุ่มผลิตภัณฑ์โมเดล"]').first.click(timeout=3000)
+            panel.locator('button[aria-label="เลือกกลุ่มผลิตภัณฑ์โมเดล"]').first.click(
+                timeout=3000, force=True)
             page.wait_for_timeout(300)
-            page.locator("[role=menuitem]").filter(has_text="Omni 1.1 Flash").first.click(timeout=3000)
+            page.locator("[role=menuitem]").filter(
+                has_text="Omni 1.1 Flash"
+            ).first.click(timeout=3000, force=True)
         except Exception as e:
             _log(f"  model select err: {e!r}")
+            # Close the model menu through its own backdrop so it cannot
+            # intercept every following settings click. Never use Escape on
+            # winbox: that key is reserved by the resident farm controller.
+            try:
+                backdrop = page.locator(
+                    ".cdk-overlay-backdrop.settings-menu-backdrop"
+                ).last
+                if backdrop.count():
+                    backdrop.click(timeout=3000, force=True)
+                    page.wait_for_timeout(200)
+            except Exception:
+                pass
         try:
             panel.locator("mat-button-toggle").filter(has_text="องค์ประกอบ").first.click(timeout=3000)
         except Exception as e:
@@ -299,7 +445,7 @@ class FlowBrowser:
             _log(f"  quantity select err: {e!r}")
         page.wait_for_timeout(200)
         settings = self.read_settings(dur_s, resolution)
-        page.keyboard.press("Escape")
+        self._close_settings_panel()
         page.wait_for_timeout(200)
         return settings
 
@@ -354,34 +500,96 @@ class FlowBrowser:
         return self.page.locator("flow-ingredient-bar flow-ingredient-chip").count()
 
     def attach_chip(self, handle: str) -> bool:
-        """CORRECTED 2026-09-19 (task-a09ed18a, live dry-run): the picker is
-        NOT open by default — it must be opened via the composer's own "+"
-        button (aria-label เพิ่มองค์ประกอบลงในช่องพรอมต์) every time; it
-        auto-closes after one attach, so this reopens it on every call. Once
-        open, a matching `.asset-item` row (confirmed class, google-flow-ops
-        2026-09-08) is single-clicked, which opens a preview pane with its
-        own เพิ่มไปยังพรอมต์ button — click that to actually attach. The
-        brief's older "⋮ more options" menu path was not found live and is
-        dropped rather than kept as a silently-dead fallback."""
+        """Attach one ingredient by searching the picker's full dataset.
+
+        Live DOM probe 2026-09-19: the picker renders only ten virtualized
+        ``.asset-item`` rows, so scanning rendered rows reports valid assets as
+        missing. Its search field is the unique page-level
+        ``input[aria-label=ค้นหา]``; it is not a DOM descendant of the visible
+        ``[role=dialog]`` overlay. The separate project search uses
+        ``aria-label=ค้นหาเนื้อหา``. Search forces the matching asset to render.
+        Row click may attach directly or
+        open a preview with เพิ่มไปยังพรอมต์, so success is always the live
+        composer chip count increasing, never merely a click returning.
+        """
         page = self.page
         name = handle.lstrip("@")
+        before = self.chip_count()
+
+        def close_picker() -> None:
+            try:
+                dialog = page.locator('[role="dialog"]:visible').last
+                if dialog.count():
+                    dialog.locator('button[aria-label="ปิด"]').first.click(
+                        timeout=3000, force=True)
+                    dialog.wait_for(state="hidden", timeout=3000)
+                page.wait_for_timeout(200)
+            except Exception:
+                pass
+
         try:
-            page.locator('button[aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์"]').first.click(timeout=3000)
-            page.wait_for_timeout(400)
-        except Exception as e:
-            _log(f"  attach_chip({handle}) open picker err: {e!r}")
-            return False
-        try:
-            row = page.locator(".asset-item").filter(has_text=f"@{name}").first
-            if row.count() == 0:
-                _log(f"  attach_chip({handle}): no matching .asset-item row")
+            page.locator(
+                'button[aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์"]'
+            ).first.click(timeout=3000)
+            dialog = page.locator('[role="dialog"]').last
+            dialog.wait_for(state="visible", timeout=3000)
+            # Current mobile layout labels the picker search "ค้นหาเนื้อหา";
+            # older desktop builds used "ค้นหา". Scope both the search and
+            # result rows to the dialog so the project-feed search cannot be
+            # mistaken for the ingredient picker.
+            search = dialog.locator(
+                'input[aria-label="ค้นหาเนื้อหา"], input[aria-label="ค้นหา"]'
+            ).first
+            search.wait_for(state="visible", timeout=3000)
+
+            row = dialog.locator(".asset-item").filter(has_text=handle).first
+            matched_query = None
+            for query in (handle, name):
+                search.fill("")
+                search.fill(query)
+                try:
+                    row.wait_for(state="visible", timeout=4000)
+                    matched_query = query
+                    break
+                except Exception:
+                    pass
+            if matched_query is None:
+                rendered_rows = []
+                rows = dialog.locator(".asset-item:visible")
+                for i in range(min(rows.count(), 20)):
+                    rendered_rows.append(rows.nth(i).inner_text(timeout=1000))
+                _log(
+                    f"  attach_chip({handle}): no matching row after picker "
+                    f"queries={[handle, name]!r} value={search.input_value()!r} "
+                    f"rows={rendered_rows!r}"
+                )
+                close_picker()
                 return False
-            row.click(timeout=2000)
-            page.wait_for_timeout(300)
-            page.get_by_text("เพิ่มไปยังพรอมต์", exact=False).first.click(timeout=2000)
-            return True
+
+            row.click(timeout=3000)
+            for _ in range(4):
+                if self.chip_count() > before:
+                    return True
+                page.wait_for_timeout(250)
+
+            page.get_by_text(
+                "เพิ่มไปยังพรอมต์", exact=False
+            ).first.click(timeout=3000)
+            for _ in range(12):
+                if self.chip_count() > before:
+                    return True
+                page.wait_for_timeout(250)
+
+            _log(f"  attach_chip({handle}): click landed but chip count did not increase")
+            close_picker()
+            return False
         except Exception as e:
+            # A direct attach can close its dialog while a pending locator is
+            # resolving; trust the effect at the composer, not that stale UI.
+            if self.chip_count() > before:
+                return True
             _log(f"  attach_chip({handle}) failed: {e!r}")
+            close_picker()
             return False
 
     def paste_prompt(self, text: str) -> None:
@@ -401,6 +609,7 @@ class FlowBrowser:
         self.page.keyboard.press("Backspace")
         box.evaluate("el => el.focus()")
         self.page.keyboard.insert_text(text)
+        self._last_dialogue = first_dialogue_line(text)
 
     def read_prompt_text(self) -> str:
         return self.page.locator('[contenteditable="true"]').first.inner_text()
@@ -422,7 +631,9 @@ class FlowBrowser:
                 if panel.count():
                     break
                 try:
-                    page.locator('button[aria-label="ทริกเกอร์การตั้งค่า"]').first.click(timeout=3000)
+                    page.locator(
+                        'button[aria-label="ทริกเกอร์การตั้งค่า"]'
+                    ).first.click(timeout=3000, force=True)
                 except Exception:
                     pass
                 page.wait_for_timeout(400)
@@ -443,49 +654,200 @@ class FlowBrowser:
         except Exception:
             text = ""
         if opened_here:
-            page.keyboard.press("Escape")
+            self._close_settings_panel()
             page.wait_for_timeout(200)
         est = parse_credit_estimate(text)
         if est is None:
-            raise RuntimeError("could not read live credit estimate from the panel")
+            raise EstimateUnreadable(
+                "could not read live credit estimate from the panel — "
+                "STOP, not a zero: an unreadable price is not a free price")
         return est
 
-    def submit(self) -> None:
+    def submit(self, expected_chip_count: int | None = None) -> None:
+        if self.dry_run:
+            raise RuntimeError(
+                "BUG: FlowBrowser.submit() called while dry_run is set — "
+                "dry-run must be structurally incapable of spending credits "
+                "(task-04851451: 15 real generations fired past two "
+                "control-flow-only guards while iteration 2 edited this "
+                "file between manual runs)")
+        if expected_chip_count is not None:
+            actual = self.chip_count()
+            if actual != expected_chip_count:
+                raise ChipCountMismatch(expected_chip_count, actual)
         self.page.locator('button[aria-label="เริ่มสร้าง"]').first.click()
 
     def poll_result(self, timeout_s: int = COMPLETION_TIMEOUT_S) -> dict:
+        """CORRECTED 2026-09-19 (task-04851451, live read-only check):
+        [aria-label="Download"]/[aria-label="ดาวน์โหลด"] match ZERO elements
+        on this account — a run polling for them times out after
+        COMPLETION_TIMEOUT_S on every success, exactly as REPORT-iter2
+        documented happening to its own proof shot. Submit navigates to the
+        clip's own /edit/<uuid> page (google-flow-ops, "capture each clip's
+        id at SUBMIT"); Flow itself fetches the signed CDN URL to render
+        that page's <video>, which _on_response captures. Nudging a muted
+        play() every poll is what reliably triggers that fetch — proven
+        live against an already-completed clip (200, 381529 bytes, ffprobe
+        confirmed 4.01s h264+aac)."""
         page = self.page
         start = time.time()
+        baseline = len(self._captured_video_urls)
         while time.time() - start < timeout_s:
             body = page.evaluate("() => document.body.innerText")
             if is_refusal_text(body):
                 m = re.search(r"ล้มเหลว[^\n]*\n[^\n]*", body)
                 return {"status": "refusal", "text": m.group(0) if m else "ล้มเหลว"}
-            if page.locator('[aria-label="Download"], [aria-label="ดาวน์โหลด"]').count():
+            if len(self._captured_video_urls) > baseline:
                 return {"status": "download", "text": ""}
+            # The editor may load the video before poll_result() installs its
+            # baseline, or serve it entirely from Chrome's disk cache. In both
+            # cases there is no *new* response event, but currentSrc still
+            # exposes the same signed CDN URL used by download_card().
+            try:
+                current_src = page.locator("video").first.evaluate(
+                    "v => v.currentSrc || v.src")
+                if current_src and CDN_VIDEO_RE.search(current_src):
+                    self._captured_video_urls.append(current_src)
+                    return {"status": "download", "text": ""}
+            except Exception:
+                pass
+            # Current Flow mobile layout stays on the project feed after
+            # Submit instead of navigating to /edit/<uuid>. Once the new card
+            # appears, identify it by the shot's unique dialogue, open it, and
+            # capture/download its CDN URL using the same cache-safe path as
+            # `pull`.
+            if self._last_dialogue and "/edit/" not in page.url:
+                prompt_match = page.get_by_text(
+                    self._last_dialogue, exact=False
+                ).first
+                if prompt_match.count():
+                    batch = prompt_match.locator(
+                        'xpath=ancestor::div[contains(@class,"batch-container")]'
+                    ).first
+                    card = batch.locator("flow-grid-tile-container").first
+                    if card.count():
+                        try:
+                            self._pending_download = self.download_card(card)
+                            return {"status": "download", "text": ""}
+                        except Exception as e:
+                            _log(f"  completed card found but download not ready: {e!r}")
+            try:
+                page.evaluate(
+                    "() => { const v = document.querySelector('video'); "
+                    "if (v) { v.muted = true; v.play().catch(() => {}); } }")
+            except Exception:
+                pass
             time.sleep(POLL_S)
         return {"status": "timeout", "text": ""}
 
-    def download(self) -> Path:
-        with self.page.expect_download() as dl_info:
-            self.page.locator('[aria-label="Download"], [aria-label="ดาวน์โหลด"]').first.click()
-        dl = dl_info.value
+    def _fetch_captured_video(self) -> Path:
+        if not self._captured_video_urls:
+            raise RuntimeError(
+                "no flow-content.google/video/ response ever observed on "
+                "this page — nothing to download")
+        url = self._captured_video_urls[-1]
+        resp = self.page.request.get(url)
+        if resp.status != 200:
+            raise RuntimeError(f"CDN fetch failed: HTTP {resp.status} for {url}")
         import tempfile
-        path = Path(tempfile.mkdtemp()) / dl.suggested_filename
-        dl.save_as(str(path))
+        path = Path(tempfile.mkdtemp()) / "clip.mp4"
+        path.write_bytes(resp.body())
         return path
 
+    def download(self) -> Path:
+        """No per-clip download button exists (see poll_result's docstring
+        and CDN_VIDEO_RE) — poll_result() already observed the CDN response
+        for the clip that was just generated; pull that."""
+        if self._pending_download is not None:
+            path = self._pending_download
+            self._pending_download = None
+            return path
+        return self._fetch_captured_video()
+
     def find_card_by_dialogue(self, fragment: str):
+        # `pull` may start on an editor URL left by a previous target. Return
+        # to the project feed, then use its search input so virtualized cards
+        # outside the rendered viewport can be found. Searching by dialogue is
+        # the production's documented unique-key convention.
         page = self.page
-        el = page.get_by_text(fragment, exact=False).first
-        return el if el.count() else None
+        if not self._project_url:
+            raise RuntimeError("project URL unavailable — attach() must run first")
+        # Navigate even when already on the feed: this clears a stale search,
+        # picker, or other overlay left by an interrupted retrieval.
+        page.goto(self._project_url, wait_until="domcontentloaded", timeout=60_000)
+        self.mute_all_media()
+        search = page.locator('input[aria-label="ค้นหา"]')
+        search.first.wait_for(state="visible", timeout=30_000)
+        search.first.fill(fragment)
+        prompt_match = page.get_by_text(fragment, exact=False).first
+        try:
+            prompt_match.wait_for(state="visible", timeout=10_000)
+        except Exception:
+            return None
+        batch = prompt_match.locator(
+            'xpath=ancestor::div[contains(@class,"batch-container")]'
+        ).first
+        card = batch.locator("flow-grid-tile-container").first
+        return card if card.count() else None
 
     def download_card(self, card) -> Path:
+        """`pull` starts from a feed card, not a fresh Submit, so there is
+        no prior poll_result() to have already captured the URL — click the
+        card (Flow navigates to its /edit/<uuid>, same as after Submit),
+        mute, then nudge/wait for the same CDN response poll_result() waits
+        for."""
+        baseline = len(self._captured_video_urls)
         card.click()
-        return self.download()
+        self.page.wait_for_timeout(1000)
+        try:
+            self.page.evaluate(MUTE_JS)
+        except Exception:
+            pass
+        deadline = time.time() + COMPLETION_TIMEOUT_S
+        while time.time() < deadline and len(self._captured_video_urls) <= baseline:
+            # A clip already played in this Chrome profile may come entirely
+            # from disk cache, producing no response event. The signed CDN URL
+            # is still exposed as video.currentSrc, so capture that directly.
+            try:
+                current_src = self.page.locator("video").first.evaluate(
+                    "v => v.currentSrc || v.src")
+                if current_src and CDN_VIDEO_RE.search(current_src):
+                    self._captured_video_urls.append(current_src)
+                    break
+            except Exception:
+                pass
+            try:
+                self.page.evaluate(
+                    "() => { const v = document.querySelector('video'); "
+                    "if (v) { v.muted = true; v.play().catch(() => {}); } }")
+            except Exception:
+                pass
+            self.page.wait_for_timeout(1000)
+        return self._fetch_captured_video()
 
 
 # ── the runner ───────────────────────────────────────────────────────────────
+
+def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
+                      cap: int, expected_chip_count: int) -> None:
+    """The ONLY call site for browser.submit() in the whole runner. All
+    three money/correctness guards are re-checked here, immediately before
+    the call — task-04851451: cmd_run already had a cap check and a
+    dry-run check ahead of its one submit() call, in that same order, and
+    15 real generations still fired while iteration 2 edited the
+    surrounding code between manual runs. Centralizing the check into the
+    only function that can spend means a future edit has to remove a guard
+    from inside this function, not just avoid tripping over one two lines
+    above a call. expected_chip_count is forwarded into submit() itself
+    (see ChipCountMismatch) rather than checked only here, so a caller
+    skipping this wrapper entirely still can't spend with the wrong
+    references attached."""
+    if browser.dry_run:
+        raise RuntimeError("BUG: _submit_or_raise called while dry_run is set")
+    if credit_cap_exceeded(spent_this_run, estimate, cap):
+        raise CreditCapExceeded(spent_this_run, estimate, cap)
+    browser.submit(expected_chip_count=expected_chip_count)
+
 
 def _attempt_chip(browser: FlowBrowser, handle: str) -> bool:
     before = browser.chip_count()
@@ -524,6 +886,10 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
              f"never use this for a production run ***")
 
     browser = browser_factory()
+    # Set immediately after construction, before anything else can touch
+    # the browser — FlowBrowser.submit() itself refuses while this is set
+    # (structural, not "the control flow happens not to call it").
+    browser.dry_run = args.dry_run
     spent_this_run = 0
     try:
         try:
@@ -549,6 +915,11 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
             # status, reading as if the CURRENT attempt was the broken one.
             row["note"] = ""
             try:
+                # Flow composer state outlives this Python process. Reset at
+                # every shot boundary so retries cannot inherit prompt/chips
+                # from a prior dry-run or another shot. This must precede
+                # set_settings(): navigation resets those facets too.
+                browser.reset_composer()
                 settings = browser.set_settings(dur_s, args.resolution)
                 bad = [k for k, v in settings.items() if not v]
                 if bad:
@@ -609,7 +980,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                          f"prompt_verified=True estimate={estimate} credits — stopping before Submit")
                     return 0
 
-                browser.submit()
+                _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
+                                  expected_chip_count=len(shot["chips"]))
                 row["attempts"] = str(int(row.get("attempts") or 0) + 1)
                 row["status"] = "submitted"
                 flow_ledger.save_ledger(ledger_path, rows)
@@ -619,7 +991,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 result = browser.poll_result()
                 if result["status"] == "refusal" and int(row["attempts"]) == 1:
                     _log(f"shot {n}: refused — re-firing identical prompt once (refunded)")
-                    browser.submit()
+                    _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
+                                  expected_chip_count=len(shot["chips"]))
                     row["attempts"] = "2"
                     flow_ledger.save_ledger(ledger_path, rows)
                     result = browser.poll_result()
@@ -657,6 +1030,27 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 flow_ledger.save_ledger(ledger_path, rows)
                 _log(f"shot {n}: {row['status']} — {reason}")
 
+            except ChipCountMismatch as e:
+                # Same severity as the pre-check hard gate above (needs_model,
+                # try the next shot) — this is a per-shot reference problem,
+                # not a run-wide money-safety issue like the two below.
+                row["status"], row["note"] = "needs_model", f"chip count mismatch at submit: {e!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: needs_model — chip count mismatch caught inside "
+                     f"submit() itself: {e!r}")
+                continue
+            except EstimateUnreadable as e:
+                row["status"], row["note"] = "failed", f"estimate unreadable: {e!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: CREDIT ESTIMATE UNREADABLE — STOPPING THE WHOLE "
+                     f"RUN, not just this shot (an unreadable price is not a "
+                     f"free price): {e!r}")
+                break
+            except CreditCapExceeded as e:
+                row["status"], row["note"] = "failed", f"cap exceeded: {e!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: CAP REACHED (backstop) — stopping the whole run: {e!r}")
+                break
             except Exception as e:
                 row["status"], row["note"] = "failed", f"exception: {e!r}"
                 flow_ledger.save_ledger(ledger_path, rows)

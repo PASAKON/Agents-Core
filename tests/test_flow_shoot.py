@@ -12,7 +12,9 @@ as tests/test_multihost.py.)
 """
 from __future__ import annotations
 
+import os
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
@@ -536,10 +538,14 @@ def test_sha256_file_is_stable(tmp_path):
 # ── check_replay_script.py gate (the thing that actually blocks merge) ──────
 
 def test_check_replay_script_accepts_flow_shoot():
+    env = os.environ.copy()
+    git_bash_bin = Path(r"C:\Program Files\Git\bin")
+    if git_bash_bin.exists():
+        env["PATH"] = str(git_bash_bin) + os.pathsep + env.get("PATH", "")
     r = subprocess.run(
-        ["python3", "tools/check_replay_script.py", "tools/flow_shoot.py",
+        [sys.executable, "tools/check_replay_script.py", "tools/flow_shoot.py",
          "tools/flow_ledger.py", "scripts/flow/launch-chrome-debug.sh"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, env=env,
     )
     assert r.returncode == 0, r.stdout + r.stderr
 
@@ -576,6 +582,9 @@ class _GateStubBrowser:
     def mute_all_media(self) -> None:
         pass
 
+    def reset_composer(self) -> None:
+        pass
+
     def close(self) -> None:
         pass
 
@@ -600,7 +609,7 @@ class _GateStubBrowser:
     def read_credit_estimate(self) -> int:
         return 4
 
-    def submit(self) -> None:
+    def submit(self, expected_chip_count=None) -> None:
         self.submit_called = True
 
     def poll_result(self, timeout_s: int = 0) -> dict:
@@ -649,3 +658,113 @@ def test_chip_count_match_reaches_submit(tmp_path):
     rows = flow_ledger.load_ledger(tmp_path / "gate_match.tsv")
     assert rows[35]["status"] == "refused"  # stub's poll_result() always refuses
     assert rows[35]["note"] == "ล้มเหลว (stub, positive-control test)"
+
+
+# ── live picker DOM contract (winbox, 20 Sep) ──────────────────────────────
+
+class _PickerDOM:
+    def __init__(self, row_found=True):
+        self.row_found = row_found
+        self.chips = 0
+        self.fills = []
+        self.dialog_selectors = []
+        self.close_clicked = False
+
+
+class _PickerLocator:
+    def __init__(self, dom, kind):
+        self.dom = dom
+        self.kind = kind
+
+    @property
+    def first(self):
+        return self
+
+    @property
+    def last(self):
+        return self
+
+    def locator(self, selector):
+        self.dom.dialog_selectors.append(selector)
+        if selector.startswith('input[aria-label="ค้นหาเนื้อหา"]'):
+            return _PickerLocator(self.dom, "search")
+        if selector == ".asset-item":
+            return _PickerLocator(self.dom, "row")
+        if selector == ".asset-item:visible":
+            return _PickerLocator(self.dom, "rows")
+        if selector == 'button[aria-label="ปิด"]':
+            return _PickerLocator(self.dom, "close")
+        raise AssertionError(f"unexpected dialog selector: {selector}")
+
+    def filter(self, has_text=None):
+        return self
+
+    def click(self, **_kwargs):
+        if self.kind == "row":
+            self.dom.chips = 1
+        elif self.kind == "close":
+            self.dom.close_clicked = True
+
+    def wait_for(self, **_kwargs):
+        if self.kind == "row" and not self.dom.row_found:
+            raise TimeoutError("not rendered")
+
+    def fill(self, value):
+        self.dom.fills.append(value)
+
+    def input_value(self):
+        return self.dom.fills[-1] if self.dom.fills else ""
+
+    def count(self):
+        return 0 if self.kind == "rows" else 1
+
+    def inner_text(self, **_kwargs):
+        return ""
+
+
+class _PickerPage:
+    def __init__(self, dom):
+        self.dom = dom
+
+    def locator(self, selector):
+        if selector == 'button[aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์"]':
+            return _PickerLocator(self.dom, "opener")
+        if selector in ('[role="dialog"]', '[role="dialog"]:visible'):
+            return _PickerLocator(self.dom, "dialog")
+        raise AssertionError(
+            f"picker assets/search must be scoped to the dialog, got: {selector}")
+
+    def get_by_text(self, *_args, **_kwargs):
+        return _PickerLocator(self.dom, "add")
+
+    def wait_for_timeout(self, _ms):
+        pass
+
+
+def _picker_browser(row_found=True):
+    dom = _PickerDOM(row_found=row_found)
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _PickerPage(dom)
+    browser.chip_count = lambda: dom.chips
+    return browser, dom
+
+
+def test_attach_chip_searches_full_picker_dataset_and_verifies_chip_count():
+    browser, dom = _picker_browser(row_found=True)
+
+    assert browser.attach_chip("@nong_daeng") is True
+    assert dom.fills == ["", "@nong_daeng"]
+    assert (
+        'input[aria-label="ค้นหาเนื้อหา"], input[aria-label="ค้นหา"]'
+        in dom.dialog_selectors
+    )
+    assert ".asset-item" in dom.dialog_selectors
+    assert dom.chips == 1
+
+
+def test_attach_chip_closes_picker_when_search_has_no_result():
+    browser, dom = _picker_browser(row_found=False)
+
+    assert browser.attach_chip("@missing_asset") is False
+    assert dom.fills == ["", "@missing_asset", "", "missing_asset"]
+    assert dom.close_clicked is True
