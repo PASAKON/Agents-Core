@@ -170,6 +170,39 @@ def test_parse_credit_estimate_extracts_number():
     assert flow_shoot.parse_credit_estimate("no credits mentioned here") is None
 
 
+def test_effective_duration_override_wins():
+    assert flow_shoot.effective_duration(8, 4) == 4
+
+
+def test_effective_duration_no_override_uses_sheet_duration():
+    assert flow_shoot.effective_duration(8, None) == 8
+
+
+def test_run_arg_parsing_defaults_resolution_720p_no_force_duration():
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args(["run", "--sheet", "s.md", "--ledger", "l.tsv",
+                           "--dest", "d", "--credit-cap", "10"])
+    assert args.resolution == "720p"
+    assert args.force_duration is None
+
+
+def test_run_arg_parsing_accepts_resolution_and_force_duration():
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args(["run", "--sheet", "s.md", "--ledger", "l.tsv",
+                           "--dest", "d", "--credit-cap", "10",
+                           "--resolution", "360p", "--force-duration", "4"])
+    assert args.resolution == "360p"
+    assert args.force_duration == 4
+
+
+def test_run_arg_parsing_rejects_unknown_resolution():
+    ap = flow_shoot.build_parser()
+    with pytest.raises(SystemExit):
+        ap.parse_args(["run", "--sheet", "s.md", "--ledger", "l.tsv",
+                        "--dest", "d", "--credit-cap", "10",
+                        "--resolution", "1080p"])
+
+
 def test_parse_only_ranges_and_lists():
     assert flow_shoot.parse_only("37-46") == set(range(37, 47))
     assert flow_shoot.parse_only("37,40,52") == {37, 40, 52}
@@ -216,6 +249,42 @@ def test_first_dialogue_line_extracts_the_thai_quote():
 
 def test_first_dialogue_line_none_when_no_dialogue():
     assert flow_shoot.first_dialogue_line("no dialogue markers here") is None
+
+
+# ── settings dict: read_settings reads resolution back like every other
+#    setting (no browser — page is a fake with a canned innerText) ─────────
+
+class _FakePage:
+    def __init__(self, body: str):
+        self._body = body
+
+    def evaluate(self, _script: str) -> str:
+        return self._body
+
+
+def test_read_settings_confirms_matching_resolution_and_duration():
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage("Agent   วิดีโอ · 360p · 4 วินาที · 9:16 · x1")
+    settings = browser.read_settings(dur_s=4, resolution="360p")
+    assert settings["resolution"] is True
+    assert settings["duration"] is True
+    assert settings["aspect_9_16"] is True
+    assert settings["qty_x1"] is True
+
+
+def test_read_settings_flags_resolution_mismatch():
+    # panel still shows the account default 720p — the click didn't take.
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage("Agent   วิดีโอ · 720p · 4 วินาที · 9:16 · x1")
+    settings = browser.read_settings(dur_s=4, resolution="360p")
+    assert settings["resolution"] is False
+
+
+def test_read_settings_defaults_resolution_to_720p():
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _FakePage("Agent   วิดีโอ · 720p · 8 วินาที · 9:16 · x1")
+    settings = browser.read_settings(dur_s=8)
+    assert settings["resolution"] is True
 
 
 # ── zip-vs-mp4 handling ──────────────────────────────────────────────────────
@@ -306,6 +375,26 @@ def test_verify_clip_missing_file():
     ok, reason = flow_shoot.verify_clip(Path("/does/not/exist.mp4"), expected_dur=6)
     assert ok is False
     assert reason == "file missing"
+
+
+def test_verify_clip_tolerance_uses_force_duration_override_not_sheet_dur(tmp_path):
+    # Sheet says this shot is 8s; --force-duration 4 (the proof-shot flag)
+    # renders it at 4s. verify_clip must be checked against the override,
+    # not the sheet's original duration, or a correctly-rendered proof clip
+    # would fail its own verification.
+    clip = tmp_path / "shot-03.mp4"
+    _make_clip(clip, duration=4.0, silent=False)
+    sheet_dur_s, force_duration = 8, 4
+
+    overridden = flow_shoot.effective_duration(sheet_dur_s, force_duration)
+    ok, reason = flow_shoot.verify_clip(clip, expected_dur=overridden)
+    assert ok is True
+
+    # Without the override (i.e. checked against the sheet's own duration)
+    # the same clip correctly fails — proving the override is load-bearing.
+    ok_unoverridden, reason_unoverridden = flow_shoot.verify_clip(clip, expected_dur=sheet_dur_s)
+    assert ok_unoverridden is False
+    assert "DURATION" in reason_unoverridden
 
 
 def test_sha256_file_is_stable(tmp_path):

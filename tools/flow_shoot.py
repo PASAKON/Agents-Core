@@ -12,7 +12,8 @@ non-verified row, and a verified row is never re-fired.
 
     python3 tools/flow_shoot.py run    --sheet docs/scripts/banchi-ACT2.md \
         --ledger state/banchi/ACT2.tsv --dest ~/Desktop/banchi-ACT2 \
-        --credit-cap 300 [--only 37-46] [--dry-run]
+        --credit-cap 300 [--only 37-46] [--dry-run] \
+        [--resolution {720p,360p}] [--force-duration N]
     python3 tools/flow_shoot.py pull   --sheet docs/scripts/banchi-ACT2.md \
         --ledger state/banchi/ACT2.tsv --dest ~/Desktop/banchi-ACT2 [--only 53-58]
     python3 tools/flow_shoot.py status --ledger state/banchi/ACT2.tsv
@@ -87,6 +88,14 @@ def is_refusal_text(text: str) -> bool:
 
 def credit_cap_exceeded(spent_this_run: int, estimate: int, cap: int) -> bool:
     return spent_this_run + estimate > cap
+
+
+def effective_duration(sheet_dur_s: int, force_duration: int | None) -> int:
+    """--force-duration (proof shots only) overrides the sheet's per-shot
+    duration for BOTH the composer's duration setting and verify_clip's
+    tolerance — the two must never disagree, or a shot generated at the
+    override length would fail verification against the sheet's length."""
+    return force_duration if force_duration is not None else sheet_dur_s
 
 
 def parse_credit_estimate(text: str) -> int | None:
@@ -196,10 +205,14 @@ class FlowBrowser:
     def mute_all_media(self) -> None:
         self.page.evaluate(MUTE_JS)
 
-    def set_settings(self, dur_s: int) -> dict:
+    def set_settings(self, dur_s: int, resolution: str = "720p") -> dict:
         """Set model=Omni 1.1 Flash, mode=องค์ประกอบ, aspect=9:16, qty=x1,
-        duration=dur_s, then read every one of them back off the DOM —
-        NONE of them are sticky (BANCHI-SHOOT-BRIEF.md)."""
+        resolution, duration=dur_s, then read every one of them back off the
+        DOM — NONE of them are sticky (BANCHI-SHOOT-BRIEF.md). The settings
+        row itself reads `วิดีโอ · 720p · 8 วินาที · 9:16 · x1`
+        (google-flow-ops) — resolution is a facet alongside duration/aspect,
+        offering only 720p/360p; the exact control is unverified until the
+        first --dry-run against the live UI confirms or corrects it."""
         page = self.page
         for _ in range(3):
             page.keyboard.press("Escape")
@@ -221,6 +234,14 @@ class FlowBrowser:
         except Exception as e:
             _log(f"  ratio select err: {e!r}")
         try:
+            page.locator(
+                'button[aria-label="Resolution"], button[aria-label="ความละเอียด"]'
+            ).first.click(timeout=3000)
+            page.wait_for_timeout(300)
+            page.locator('[class*="group/item"]').filter(has_text=resolution).first.click(timeout=3000)
+        except Exception as e:
+            _log(f"  resolution select err: {e!r}")
+        try:
             page.locator('button[aria-label="Duration"], button[aria-label="ระยะเวลา"]').first.click(timeout=3000)
             page.wait_for_timeout(300)
             dur = page.locator('[role=slider]').first
@@ -234,9 +255,9 @@ class FlowBrowser:
             page.keyboard.press("Escape")
         except Exception as e:
             _log(f"  duration set err: {e!r}")
-        return self.read_settings(dur_s)
+        return self.read_settings(dur_s, resolution)
 
-    def read_settings(self, dur_s: int) -> dict:
+    def read_settings(self, dur_s: int, resolution: str = "720p") -> dict:
         page = self.page
         body = page.evaluate("() => document.body.innerText")
         return {
@@ -244,6 +265,7 @@ class FlowBrowser:
             "mode_ingredients": "องค์ประกอบ" in body,
             "aspect_9_16": "9:16" in body,
             "qty_x1": "x1" in body,
+            "resolution": resolution in body,
             "duration": f"{dur_s}" in body,
         }
 
@@ -359,6 +381,12 @@ def cmd_run(args: argparse.Namespace) -> int:
         _log("nothing to do")
         return 0
 
+    if args.force_duration is not None:
+        _log(f"*** FORCE-DURATION OVERRIDE ACTIVE: {args.force_duration}s overrides "
+             f"every shot's sheet duration in this run, for BOTH the composer's "
+             f"duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, "
+             f"never use this for a production run ***")
+
     browser = FlowBrowser()
     spent_this_run = 0
     try:
@@ -378,8 +406,9 @@ def cmd_run(args: argparse.Namespace) -> int:
             if shot is None:
                 _log(f"shot {n}: not in sheet — skip")
                 continue
+            dur_s = effective_duration(shot["dur_s"], args.force_duration)
             try:
-                settings = browser.set_settings(shot["dur_s"])
+                settings = browser.set_settings(dur_s, args.resolution)
                 bad = [k for k, v in settings.items() if not v]
                 if bad:
                     row["status"], row["note"] = "needs_model", f"settings not confirmed: {bad}"
@@ -417,6 +446,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 
                 if args.dry_run:
                     _log(f"DRY-RUN shot {n}: settings={settings} chips={shot['chips']} "
+                         f"resolution={args.resolution} dur_s={dur_s} "
                          f"prompt_verified=True estimate={estimate} credits — stopping before Submit")
                     return 0
 
@@ -456,7 +486,7 @@ def cmd_run(args: argparse.Namespace) -> int:
                 row["status"] = "downloaded"
                 flow_ledger.save_ledger(ledger_path, rows)
 
-                ok, reason = verify_clip(clip_path, shot["dur_s"])
+                ok, reason = verify_clip(clip_path, dur_s)
                 row["sha256"] = sha256_file(clip_path)
                 row["got_dur"] = reason
                 if ok:
@@ -550,7 +580,7 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=__doc__,
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -562,6 +592,13 @@ def main() -> int:
     p_run.add_argument("--credit-cap", type=int, required=True)
     p_run.add_argument("--only", default=None)
     p_run.add_argument("--dry-run", action="store_true")
+    p_run.add_argument("--resolution", choices=["720p", "360p"], default="720p",
+                        help="Composer resolution facet — read back off the "
+                             "settings row like the other settings.")
+    p_run.add_argument("--force-duration", type=int, default=None,
+                        help="PROOF SHOTS ONLY. Overrides the sheet's per-shot "
+                             "duration for both the composer's duration setting "
+                             "and verify_clip's tolerance.")
     p_run.set_defaults(func=cmd_run)
 
     p_pull = sub.add_parser("pull")
@@ -575,6 +612,11 @@ def main() -> int:
     p_status.add_argument("--ledger", required=True)
     p_status.set_defaults(func=cmd_status)
 
+    return ap
+
+
+def main() -> int:
+    ap = build_parser()
     args = ap.parse_args()
     return args.func(args)
 
