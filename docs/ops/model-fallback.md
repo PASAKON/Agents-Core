@@ -1,5 +1,24 @@
 # Model fallback — what runs on what when the subscription is spent
 
+> ## ⛔ SUPERSEDED 2026-09-20 — Z.ai and 9Router are both being removed
+>
+> The CEO cancelled Z.ai (never paid) and retired 9Router the next day. The
+> proxy approach is over: driving a GPT model inside Claude Code underperforms,
+> because the harness and every skill are tuned for Claude — "มันไม่เป็นตัวของ
+> ตัวเอง". Antigravity's own quota also proved shallow: resuming one 51 MB
+> session compacted twice and exhausted a $100 plan for 4.5 hours without doing
+> any work.
+>
+> **What replaces it:** C-level stays on Claude, billed to API credit. Mechanical
+> work leaves as a written brief for Codex or Antigravity to run in their OWN
+> tool — see the `delegate-external-agent` skill and
+> `docs/briefs/CODEX-winbox-shoot.md`.
+>
+> Removal is tracked in LungNote 95a70905 and touches `lib/config.py`,
+> `lib/quota_router.py`, four spawn scripts, `.env` and this file. Do not wire
+> anything new to either provider. The sections below are kept only until that
+> cleanup lands.
+
 Written 2026-09-19, the day the weekly subscription limit reached 97 % with
 three days left on the clock. Two lanes, decided by the CEO the same day:
 
