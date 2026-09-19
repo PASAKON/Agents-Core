@@ -1,0 +1,730 @@
+{
+  "schema_version": "1.1",
+  "project_id": "BLACK LIQUIDITY [54] | Rebate เงินที่เป็นของมึง แต่มึงไม่เคยขอ",
+  "channel": "BLACK LIQUIDITY",
+  "number": 54,
+  "title": "Rebate เงินที่เป็นของมึง แต่มึงไม่เคยขอ",
+  "created_at": "2026-09-19T16:24:41+07:00",
+  "updated_at": "2026-09-19T16:36:52+07:00",
+  "stage": "editor_handoff",
+  "stages": {
+    "drive_setup": {
+      "status": "done",
+      "at": "2026-09-19T16:24:43+07:00"
+    },
+    "script": {
+      "status": "done",
+      "writer_invoked": false,
+      "line_count": 47,
+      "input_hash": null,
+      "at": "2026-09-19T16:25:49+07:00"
+    },
+    "tts": {
+      "status": "done",
+      "input_chars": null,
+      "duration_sec": null,
+      "audio_hq_id": "1FOROpjUs57VXK7hRfu0x7_U-5og6_t_m",
+      "audio_lq_id": null,
+      "at": "2026-09-19T16:27:39+07:00"
+    },
+    "transcript": {
+      "status": "done",
+      "word_count": null,
+      "duration_sec": null,
+      "at": "2026-09-19T16:28:31+07:00"
+    },
+    "scene_prompts": {
+      "status": "done",
+      "expected": 47,
+      "received": 47,
+      "tokens_used": null,
+      "cost_usd": null,
+      "at": "2026-09-19T16:30:16+07:00",
+      "items": [
+        {
+          "prompt": "Close-up shot of a confident male presenter in dark casual streetwear, sitting in a dim trading-themed studio with monitors showing candlestick charts behind him, speaking directly and intensely to camera, dramatic lighting, serious expression",
+          "keywords": [
+            "presenter",
+            "hook",
+            "trading",
+            "serious tone"
+          ],
+          "category": "hook",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 1,
+          "script_text": "ทุกครั้งที่มึงกดออเดอร์ มีเงินก้อนนึงถูกจ่ายออกไป"
+        },
+        {
+          "prompt": "Animated graphic of money flowing out of a wallet icon and disappearing into a dark void, red arrows indicating loss, minimalist dark background",
+          "keywords": [
+            "money flow",
+            "loss",
+            "graphic"
+          ],
+          "category": "hook",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 2,
+          "script_text": "และมันไม่ได้เข้ากระเป๋ามึง"
+        },
+        {
+          "prompt": "Same presenter leaning forward toward camera, raising eyebrows, emphasizing point with hand gesture, trading charts glowing behind him",
+          "keywords": [
+            "presenter",
+            "emphasis",
+            "unaware"
+          ],
+          "category": "hook",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 3,
+          "script_text": "มันจ่ายออกไปทุกครั้ง ไม่ว่ามึงจะรู้ตัวหรือไม่"
+        },
+        {
+          "prompt": "Bold glowing question mark graphic hovering over a pile of stacked cash icons, dark cinematic background, mystery tone",
+          "keywords": [
+            "question",
+            "mystery",
+            "money"
+          ],
+          "category": "question",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 4,
+          "script_text": "คำถามคือ เงินก้อนนั้นไปอยู่กับใคร"
+        },
+        {
+          "prompt": "Presenter staring directly into camera with intense focus, dramatic low-key lighting, shadows across face, whisper-like intensity, trading room background blurred",
+          "keywords": [
+            "truth",
+            "reveal",
+            "intense"
+          ],
+          "category": "reveal",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 5,
+          "script_text": "กูจะบอกความจริงที่ไม่มีใครอยากให้มึงรู้"
+        },
+        {
+          "prompt": "Red X mark stamped over a glowing 'PROMOTION' tag icon, dark background, bold typography animation",
+          "keywords": [
+            "promotion",
+            "denial",
+            "text overlay"
+          ],
+          "category": "clarification",
+          "has_character": false,
+          "recommended_sec": 2,
+          "line": 6,
+          "script_text": "นี่ไม่ใช่โปรโมชั่น"
+        },
+        {
+          "prompt": "Gift box icon with a red cross over it, falling apart animation, dark minimal background, bold sans-serif text below",
+          "keywords": [
+            "gift",
+            "denial",
+            "graphic"
+          ],
+          "category": "clarification",
+          "has_character": false,
+          "recommended_sec": 2,
+          "line": 7,
+          "script_text": "ไม่ใช่ของแถม"
+        },
+        {
+          "prompt": "Presenter gesturing with both hands as if explaining a structure, blueprint-style price diagram graphic overlay appearing beside him",
+          "keywords": [
+            "price structure",
+            "explanation",
+            "presenter"
+          ],
+          "category": "explanation",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 8,
+          "script_text": "มันคือโครงสร้างราคาที่ถูกตั้งไว้อยู่แล้ว"
+        },
+        {
+          "prompt": "Bold glowing word 'REBATE' animating into frame with financial icons like coins and percentage signs orbiting it, dark cinematic background",
+          "keywords": [
+            "rebate",
+            "text reveal",
+            "finance"
+          ],
+          "category": "definition",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 9,
+          "script_text": "สิ่งที่กูจะพูดถึงคือ Rebate"
+        },
+        {
+          "prompt": "Presenter tilting head slightly, casual skeptical expression, trading screens with blurred numbers behind him",
+          "keywords": [
+            "presenter",
+            "casual",
+            "familiar term"
+          ],
+          "category": "explanation",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 10,
+          "script_text": "คำนี้มึงอาจเคยได้ยินผ่านๆ"
+        },
+        {
+          "prompt": "Silhouette of a confused person surrounded by scattered question marks and unclear chart symbols, dim lighting, no face visible",
+          "keywords": [
+            "confusion",
+            "lack of explanation",
+            "silhouette"
+          ],
+          "category": "explanation",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 11,
+          "script_text": "แต่ไม่มีใครอธิบายให้มึงเข้าใจจริงๆ"
+        },
+        {
+          "prompt": "Presenter pointing at camera firmly, confident stance, dramatic shadow lighting emphasizing his face",
+          "keywords": [
+            "presenter",
+            "confident",
+            "pointing"
+          ],
+          "category": "explanation",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 12,
+          "script_text": "เพราะถ้ามึงเข้าใจ มึงจะถามหาเงินก้อนนี้"
+        },
+        {
+          "prompt": "Dark graphic of a padlock over a stack of money, shadowy hands trying to hide it, secretive mysterious tone",
+          "keywords": [
+            "secret",
+            "lock",
+            "hidden money"
+          ],
+          "category": "reveal",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 13,
+          "script_text": "และนั่นคือสิ่งที่บางคนไม่อยากให้เกิด"
+        },
+        {
+          "prompt": "Presenter standing up slightly, arms crossed then opening wide as if revealing something big, dramatic lighting flash behind him",
+          "keywords": [
+            "expose",
+            "reveal",
+            "presenter"
+          ],
+          "category": "reveal",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 14,
+          "script_text": "วันนี้กูจะแฉกลไกทั้งหมด"
+        },
+        {
+          "prompt": "Blurred logos of generic broker icons with a 'NO NAMES' text stamp overlay, dark neutral background",
+          "keywords": [
+            "broker",
+            "anonymous",
+            "text overlay"
+          ],
+          "category": "clarification",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 15,
+          "script_text": "ไม่เอ่ยชื่อโบรกไหนทั้งนั้น"
+        },
+        {
+          "prompt": "Presenter holding a tablet showing a checklist graphic, teaching gesture, confident tone, studio lighting",
+          "keywords": [
+            "teaching",
+            "checklist",
+            "presenter"
+          ],
+          "category": "explanation",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 16,
+          "script_text": "กูจะสอนมึงตรวจเองเป็น"
+        },
+        {
+          "prompt": "Diagram showing a pie chart split into 'Spread' and 'Commission' sections, with one slice highlighted labeled 'Rebate', clean infographic style",
+          "keywords": [
+            "spread",
+            "commission",
+            "diagram"
+          ],
+          "category": "definition",
+          "has_character": false,
+          "recommended_sec": 4,
+          "line": 17,
+          "script_text": "Rebate คือส่วนหนึ่งของสเปรดหรือค่าคอม"
+        },
+        {
+          "prompt": "Animated arrow flowing from a broker icon to a referrer icon, coins moving along the path, clean financial diagram",
+          "keywords": [
+            "broker",
+            "referrer",
+            "money flow"
+          ],
+          "category": "explanation",
+          "has_character": false,
+          "recommended_sec": 4,
+          "line": 18,
+          "script_text": "ที่โบรกจ่ายคืนให้คนที่พามึงเข้ามา"
+        },
+        {
+          "prompt": "Presenter shaking head slightly with a skeptical smirk, arms crossed, trading charts glowing behind him",
+          "keywords": [
+            "skeptical",
+            "presenter",
+            "denial"
+          ],
+          "category": "clarification",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 19,
+          "script_text": "มันไม่ใช่เงินที่โบรกใจดีแจกฟรี"
+        },
+        {
+          "prompt": "Price tag graphic with a hidden fee section highlighted in red, magnifying glass zooming into the fine print, dark background",
+          "keywords": [
+            "price",
+            "hidden fee",
+            "graphic"
+          ],
+          "category": "explanation",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 20,
+          "script_text": "มันถูกตั้งไว้ในราคาที่มึงจ่ายอยู่แล้ว"
+        },
+        {
+          "prompt": "Presenter using open palm gesture as if simplifying a complex idea, calm but firm expression, studio lighting",
+          "keywords": [
+            "simplify",
+            "presenter",
+            "explanation"
+          ],
+          "category": "explanation",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 21,
+          "script_text": "พูดง่ายๆ มึงจ่ายราคานี้ไม่ว่าใครจะรับส่วนแบ่งหรือไม่"
+        },
+        {
+          "prompt": "Glowing question mark hovering above an empty referral icon slot, dark mysterious background, financial theme",
+          "keywords": [
+            "question",
+            "referral",
+            "mystery"
+          ],
+          "category": "question",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 22,
+          "script_text": "คำถามคือ ถ้ามึงไม่มีคนแนะนำ เงินก้อนนั้นหายไปไหน"
+        },
+        {
+          "prompt": "Presenter shaking head slowly with a knowing look, direct eye contact with camera, dim serious lighting",
+          "keywords": [
+            "answer",
+            "presenter",
+            "serious"
+          ],
+          "category": "reveal",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 23,
+          "script_text": "คำตอบคือ มันไม่หายไปไหน"
+        },
+        {
+          "prompt": "Animated vault door closing over a large pile of coins, broker logo silhouette on the vault, dark dramatic lighting",
+          "keywords": [
+            "broker",
+            "vault",
+            "money kept"
+          ],
+          "category": "reveal",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 24,
+          "script_text": "โบรกเก็บไว้เองทั้งหมด"
+        },
+        {
+          "prompt": "Presenter raising one finger firmly, serious face, emphasizing point, blurred trading screens in background",
+          "keywords": [
+            "presenter",
+            "emphasis",
+            "no discount"
+          ],
+          "category": "clarification",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 25,
+          "script_text": "ไม่ได้แปลว่ามึงจ่ายถูกลงแม้แต่บาทเดียว"
+        },
+        {
+          "prompt": "Side-by-side comparison graphic showing two identical price tags, one with a referral arrow and one without, both same price",
+          "keywords": [
+            "comparison",
+            "price",
+            "referral"
+          ],
+          "category": "comparison",
+          "has_character": false,
+          "recommended_sec": 4,
+          "line": 26,
+          "script_text": "มึงยังจ่ายราคาเดิม แค่ไม่มีใครมารับส่วนแบ่งแทนมึง"
+        },
+        {
+          "prompt": "Presenter shrugging with a sarcastic expression, raised eyebrows, direct camera address, dim moody lighting",
+          "keywords": [
+            "presenter",
+            "rhetorical",
+            "sarcasm"
+          ],
+          "category": "question",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 27,
+          "script_text": "ทำไมไม่มีใครบอกมึงเรื่องนี้"
+        },
+        {
+          "prompt": "Graphic of a lightbulb turning off above a silhouette figure, symbolizing lack of motivation, dark muted tones",
+          "keywords": [
+            "motivation",
+            "silence",
+            "graphic"
+          ],
+          "category": "explanation",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 28,
+          "script_text": "เพราะไม่มีใครมีแรงจูงใจจะบอก"
+        },
+        {
+          "prompt": "Dark silhouette of a person hiding money behind their back, secretive posture, shadowy lighting",
+          "keywords": [
+            "secrecy",
+            "referrer",
+            "silhouette"
+          ],
+          "category": "reveal",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 29,
+          "script_text": "คนที่รับส่วนแบ่งอยู่ ก็ไม่อยากให้มึงรู้"
+        },
+        {
+          "prompt": "Broker icon with arms crossed, a closed vault beside it, spotlight showing withheld money, dark tone",
+          "keywords": [
+            "broker",
+            "withholding",
+            "graphic"
+          ],
+          "category": "reveal",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 30,
+          "script_text": "โบรกก็ไม่ต้องจ่ายให้มึงถ้ามึงไม่ถาม"
+        },
+        {
+          "prompt": "Presenter gesturing upward with hands showing growth, energetic tone, trading chart rising behind him",
+          "keywords": [
+            "presenter",
+            "growth",
+            "trading"
+          ],
+          "category": "explanation",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 31,
+          "script_text": "ยิ่งมึงเทรดถี่ ก้อนนี้ยิ่งโต"
+        },
+        {
+          "prompt": "Animated stack of coins growing taller and wider rapidly, dynamic financial motion graphic, dark background",
+          "keywords": [
+            "lot size",
+            "money growth",
+            "graphic"
+          ],
+          "category": "explanation",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 32,
+          "script_text": "ยิ่งล็อตใหญ่ ก้อนนี้ยิ่งอ้วน"
+        },
+        {
+          "prompt": "Presenter with serious concerned expression, leaning in closer to camera, dim dramatic lighting",
+          "keywords": [
+            "presenter",
+            "loss",
+            "trading volume"
+          ],
+          "category": "reveal",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 33,
+          "script_text": "คนที่เทรดเยอะที่สุด คือคนที่เสียเงินก้อนนี้มากที่สุด"
+        },
+        {
+          "prompt": "Ironic graphic of a trader figure smiling while surrounded by unnoticed money leaking away, dark satirical tone",
+          "keywords": [
+            "irony",
+            "unaware",
+            "trader graphic"
+          ],
+          "category": "reveal",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 34,
+          "script_text": "ตลกร้ายตรงที่ คนเทรดหนักกลับเป็นคนไม่รู้ตัวที่สุด"
+        },
+        {
+          "prompt": "Presenter speaking with steady confident tone, hand chopping motion for emphasis, trading data screens behind",
+          "keywords": [
+            "presenter",
+            "order",
+            "money flow"
+          ],
+          "category": "explanation",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 35,
+          "script_text": "เงินก้อนนี้ถูกจ่ายออกไปทุกออเดอร์อยู่แล้ว"
+        },
+        {
+          "prompt": "Glowing question mark over two silhouettes, one labeled 'referrer' and one labeled 'you', dark contrasting lighting",
+          "keywords": [
+            "question",
+            "who gets paid",
+            "graphic"
+          ],
+          "category": "question",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 36,
+          "script_text": "คำถามเดียวคือ จ่ายให้ใคร"
+        },
+        {
+          "prompt": "Presenter pointing first outward then to himself, illustrating two choices, direct engaging expression",
+          "keywords": [
+            "presenter",
+            "choice",
+            "self vs referrer"
+          ],
+          "category": "explanation",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 37,
+          "script_text": "จ่ายให้คนแนะนำมึงเข้ามา หรือจ่ายให้ตัวมึงเอง"
+        },
+        {
+          "prompt": "Graphic of a trading account icon connected by a glowing chain to an unknown silhouette figure, mysterious tone",
+          "keywords": [
+            "account",
+            "link",
+            "mystery"
+          ],
+          "category": "question",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 38,
+          "script_text": "บัญชีมึงตอนนี้ผูกอยู่กับใครหรือเปล่า มึงรู้ไหม"
+        },
+        {
+          "prompt": "Presenter holding up fingers as if questioning a percentage rate, curious raised eyebrow expression, studio lighting",
+          "keywords": [
+            "presenter",
+            "rate",
+            "question"
+          ],
+          "category": "question",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 39,
+          "script_text": "อัตราที่จ่ายอยู่คือเท่าไหร่ มึงเคยถามหรือยัง"
+        },
+        {
+          "prompt": "Presenter shaking head slowly with a serious knowing look, direct eye contact, dim lighting for emphasis",
+          "keywords": [
+            "presenter",
+            "consequence",
+            "serious"
+          ],
+          "category": "reveal",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 40,
+          "script_text": "ถ้ามึงไม่เคยถาม แปลว่ามึงไม่เคยได้"
+        },
+        {
+          "prompt": "Presenter straightening posture, preparing to summarize, confident firm tone, studio lighting with trading charts behind",
+          "keywords": [
+            "presenter",
+            "summary",
+            "realistic tone"
+          ],
+          "category": "summary",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 41,
+          "script_text": "สรุปแบบไม่โลกสวย"
+        },
+        {
+          "prompt": "Bold text overlay animation: 'REBATE = YOUR MONEY, ALREADY ALLOCATED' with glowing coin icons around the text, dark background",
+          "keywords": [
+            "text overlay",
+            "rebate",
+            "summary"
+          ],
+          "category": "summary",
+          "has_character": false,
+          "recommended_sec": 4,
+          "line": 42,
+          "script_text": "Rebate ไม่ใช่ของแถม มันคือเงินของมึงที่ถูกจัดสรรไว้แล้ว"
+        },
+        {
+          "prompt": "Presenter with a firm, serious face, slow head nod, dim lighting emphasizing the seriousness of the statement",
+          "keywords": [
+            "presenter",
+            "disadvantage",
+            "serious"
+          ],
+          "category": "summary",
+          "has_character": true,
+          "recommended_sec": 3,
+          "line": 43,
+          "script_text": "คนที่ไม่รู้ คือคนที่เสียเปรียบตลอดเวลา"
+        },
+        {
+          "prompt": "Bold text overlay animation: 'NO ASK = NO GAIN' with a fading coin icon, minimalist dark background",
+          "keywords": [
+            "text overlay",
+            "summary",
+            "consequence"
+          ],
+          "category": "summary",
+          "has_character": false,
+          "recommended_sec": 3,
+          "line": 44,
+          "script_text": "คนที่ไม่ถาม คือคนที่ไม่เคยได้"
+        },
+        {
+          "prompt": "Presenter pointing directly at camera with intense focus, close-up shot, dramatic lighting, trading screens blurred behind",
+          "keywords": [
+            "presenter",
+            "direct address",
+            "awareness"
+          ],
+          "category": "cta",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 45,
+          "script_text": "เงินทุกล็อตที่มึงกด มึงต้องรู้ว่ามันไปอยู่กับใคร"
+        },
+        {
+          "prompt": "Animated comment box graphic with text 'เช็ครีเบต' typing in, notification bell icon popping, bright call-to-action style over dark background",
+          "keywords": [
+            "comment",
+            "cta",
+            "graphic"
+          ],
+          "category": "cta",
+          "has_character": false,
+          "recommended_sec": 4,
+          "line": 46,
+          "script_text": "คอมเมนต์คำว่า เช็ครีเบต ถ้าอยากได้ลิสต์คำถามที่ถามโบรกเองได้"
+        },
+        {
+          "prompt": "Presenter standing confidently, arms crossed, final determined expression looking straight into camera, dramatic closing lighting with trading charts glowing behind him",
+          "keywords": [
+            "presenter",
+            "final cta",
+            "determined"
+          ],
+          "category": "cta",
+          "has_character": true,
+          "recommended_sec": 4,
+          "line": 47,
+          "script_text": "อย่าปล่อยให้คนอื่นกินเงียบๆ จากทุกออเดอร์ที่มึงกด"
+        }
+      ]
+    },
+    "scenes": {
+      "status": "done",
+      "expected": 47,
+      "completed": 47,
+      "items": [],
+      "at": "2026-09-19T16:30:49+07:00"
+    },
+    "lipsync": {
+      "status": "done",
+      "parts": [
+        {
+          "label": "A",
+          "success": true,
+          "drive_id": "1o72mQ8YdC-9O2KoUn2e_yMD4FQqSquWM",
+          "error": null,
+          "start": 0,
+          "end": 15.64,
+          "fal_request_id": "01a0b901-3430-79b1-a8cf-4f8438dbcf41"
+        },
+        {
+          "label": "B",
+          "success": true,
+          "drive_id": "14WYNHk-ntHfAOyUPqtaIM643DT2juLRu",
+          "error": null,
+          "start": 58.94,
+          "end": 71.94,
+          "fal_request_id": "01a0b901-36b2-7430-b3af-6aeb2ec0e8de"
+        },
+        {
+          "label": "C",
+          "success": true,
+          "drive_id": "170ouQM2kDE92vKBsxq_7fOsmhLgKw7Sv",
+          "error": null,
+          "start": 115.27,
+          "end": 129.25,
+          "fal_request_id": "01a0b901-36b0-7d42-8ccc-ced59594d04f"
+        }
+      ],
+      "at": "2026-09-19T16:36:45+07:00"
+    },
+    "editor_handoff": {
+      "status": "done",
+      "at": "2026-09-19T16:36:51+07:00"
+    },
+    "published": {
+      "status": "pending"
+    }
+  },
+  "folder_ids": {
+    "main": "1LH1WCd3wEDeAzspUPMxEZYgJ4XI0PE5k",
+    "audio": "1Xc4MqU0uubMEWEWk2-pn6nxkvmjKN1fg",
+    "ai_drafts": "1fVGoiQLl1kzrdsaET_Xg-EoJ7cZSAd4z",
+    "finals": "1YWfd1e-6AHBUdLZoPrOznLViqXXhmfpw"
+  },
+  "links": {
+    "doc": "https://docs.google.com/document/d/1FCREEiNU8O3dksW_7rUQHH_7zA6xTTVMxHPPd1dT7qE/edit",
+    "drive": "https://drive.google.com/drive/folders/1LH1WCd3wEDeAzspUPMxEZYgJ4XI0PE5k"
+  },
+  "agents": {
+    "owner": "videodrive.js",
+    "last_writer": "videogen.js",
+    "last_writer_version": "1.0.0"
+  },
+  "errors": [],
+  "notes": [],
+  "cost_summary": {
+    "openrouter_usd": 0,
+    "fal_tts_usd": 0,
+    "fal_kling_usd": 0,
+    "deepgram_usd": 0,
+    "total_usd": 0
+  }
+}
