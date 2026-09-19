@@ -308,6 +308,27 @@ It reads every absolutely-positioned rule in the composition and names each one
 that leaves the box. Descendant rules (`.bl-card .badge`) are positioned against
 their own parent and are skipped.
 
+### 6b. Thai breaks mid-word unless you choose the break points
+
+The kit sets `word-break: keep-all` on `.blk`. That is deliberate and must stay.
+
+Thai writes without spaces between words, so a renderer with no ICU Thai
+dictionary breaks a line wherever it runs out of room. On EP54 that split
+**สเปรด** across two lines as `...ของส` / `เปรด...`. `lang="th"` was set and did
+not help — the break happens in the render's Chrome, not in ours. No gate caught
+it: the frame was correct in every other way.
+
+`keep-all` turns that silent wrong into a loud one — a line that no longer fits
+now OVERFLOWS, and `hyperframes inspect` already fails on overflow. So:
+
+- if `inspect` reports overflow on a text block, the line is too long — **split
+  it in the `kinetic()` call at a real word boundary**, or insert `\u200b`
+  (zero-width space) where the break belongs
+- never "fix" an overflow by deleting `keep-all`; that brings the mid-word
+  break back and nothing will tell you
+
+Read every Thai line in the contact sheet (step 8) as words, not as pixels.
+
 ### 7. Gate the composition
 ```bash
 npm run check                                        # lint + runtime + layout + motion + contrast
