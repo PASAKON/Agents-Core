@@ -70,6 +70,25 @@ the repo already uses: a one-shot scheduled task with `LogonType Interactive`
 running as the desktop user (`New-ScheduledTaskPrincipal -LogonType Interactive`).
 A Codex adapter reuses that launcher rather than inventing one.
 
+**Proven 2026-09-20.** The identical `codex exec` that writes nothing over ssh,
+launched instead through an interactive scheduled task as
+`DESKTOP-3NQB2QO\UsEr`:
+
+```
+type PONG3.txt   ->  SESSION1-OK
+s1.log           ->  +++ b/PONG3.txt / +SESSION1-OK      (codex's own diff)
+                     tokens used 6,390
+```
+
+So session 0 is the cause, full stop — not Defender (its exclusions are empty
+and its event log shows no codex block in 24 h), not `unified_exec`, not config.
+`#43327`'s reporter asked for a fix that avoids "Desktop switching"; switching to
+the desktop is exactly what works, and this repo already has the mechanism.
+
+Footnote worth keeping: on that successful run the wrapper's trailing
+`EXITCODE=` line never made it into the log. The artefact was the only honest
+signal in both directions — failure *and* success. Gate on it.
+
 ## 4. 🔴 `codex exec` returns exit 0 after total failure
 
 Every file write failed, the agent said so in plain English, and the process
