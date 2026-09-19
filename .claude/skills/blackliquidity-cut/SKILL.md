@@ -328,6 +328,17 @@ every beat printed its line twice, and the card stack was sliced in half. None
 of that is machine-detectable; all of it is obvious in one image.
 
 ### 9. Render and verify the FILE, not the preview
+
+`verify` also measures **loudness** and fails outside **-16..-12 LUFS**. TikTok
+and YouTube normalise toward -14: a quieter file gets turned UP by the platform,
+which lifts its noise floor, and in a feed it just sounds weak beside everything
+else. EP52 shipped at -20.2 with every other gate green because nothing measured
+it — while the hired TRADER UNCUT edit we criticised on craft hit -14.0 exactly.
+Fix it on the master, never by touching the mix:
+
+```bash
+ffmpeg -i in.mp4 -af loudnorm=I=-14:TP=-1.5:LRA=11 -c:v copy out.mp4
+```
 ```bash
 npm run render
 python3 <skill>/scripts/bl_tools.py verify <render.mp4> \

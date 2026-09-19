@@ -12,7 +12,7 @@ relies on the author remembering it gets skipped.
 
 Only numpy + Pillow + ffmpeg/ffprobe. No venv needed.
 """
-import argparse, json, os, subprocess, sys
+import argparse, json, os, re, subprocess, sys
 import pathlib
 import numpy as np
 from PIL import Image, ImageDraw
@@ -253,6 +253,31 @@ def cmd_verify(a):
         fail.append(f"frame rate is {v['r_frame_rate']}, must be 30/1")
     if not au:
         fail.append("no audio stream")
+    else:
+        # Loudness. TikTok and YouTube both normalise toward -14 LUFS, so a
+        # quieter file is turned UP by the platform -- lifting its noise floor --
+        # and in a feed it simply sounds weak beside everything else. EP52
+        # shipped at -20.2 LUFS, 6 dB under, with every other gate green,
+        # because nothing here measured it. The hired TRADER UNCUT edit we
+        # judged harshly on craft hit -14.0 exactly.
+        try:
+            _out = subprocess.run(
+                ["ffmpeg", "-hide_banner", "-nostats", "-i", a.render,
+                 "-af", "ebur128", "-f", "null", "-"],
+                capture_output=True, text=True).stderr
+            _m = re.search(r"Integrated loudness:\s*\n\s*I:\s*(-?[\d.]+)\s*LUFS", _out)
+            if _m:
+                _l = float(_m.group(1))
+                print(f"  loudness  {_l:.1f} LUFS (target -14, tolerance 2)")
+                if abs(_l + 14.0) > 2.0:
+                    fail.append(
+                        f"loudness {_l:.1f} LUFS is outside -16..-12 - normalise the "
+                        f"master, never the mix: "
+                        f"ffmpeg -i in.mp4 -af loudnorm=I=-14:TP=-1.5:LRA=11 -c:v copy out.mp4")
+            else:
+                print("  loudness  NOT MEASURED (ebur128 returned no reading)")
+        except FileNotFoundError:
+            print("  loudness  skipped (ffmpeg not on PATH)")
     if a.duration and abs(dur - float(a.duration)) > 0.2:
         fail.append(f"duration {dur:.2f}s is not the expected {a.duration}s")
 
