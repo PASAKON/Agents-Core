@@ -1,6 +1,8 @@
 # TASK — build the phone login relay in MoonieX Console
 
-Repo: **`/Users/gob/Projects/mooniex-console`** (GitHub `PASAKON/MoonieX-Console`).
+Repo: **`C:\mooniex\console`** on this Windows machine (winbox). Upstream is
+GitHub `PASAKON/MoonieX-Console`; the Mac copy lives at
+`/Users/gob/Projects/mooniex-console` and is NOT what you edit.
 Node ≥22.5, Express + `ws`, ESM. Deployed to Contabo, served at
 `https://terminal.mooniex.com`, reachable over Tailscale only.
 
@@ -100,8 +102,8 @@ for three method calls.
 
 | name | CDP endpoint | note |
 |---|---|---|
-| `mac` | `http://100.64.2.37:9223` | profile `~/.flow-automation/chrome-profile`, launched by `scripts/flow/launch-chrome-debug.sh` in the Agents repo |
-| `winbox` | `http://100.123.83.75:9223` | **a bot owns that desktop.** The relay must not start Chrome there; assume a human or another tool did |
+| `mac` | `http://100.64.2.37:9223` | reachable only through an SSH tunnel — Chrome binds loopback. Not your test target |
+| `winbox` | `http://127.0.0.1:9223` | **this machine — your test target.** A bot owns this desktop: take the screen lease before starting Chrome (`bash scripts/pc-lease.sh take --who "antigravity: relay test"`), give it back after, and **never press ESC on this machine** |
 | `contabo` | `http://127.0.0.1:9223` | not set up yet — headless Chrome is fine, `Page.startScreencast` works without a display |
 
 Chrome binds its debug port to localhost by default, so reaching it across the
@@ -149,9 +151,12 @@ transfer, clipboard sync, multi-tab, or a full desktop view.
 1. `npm test` green, including new tests for: auth is required; a tap maps 1:1
    at 390-width; `Input.insertText` is used rather than per-key events; idle
    timeout closes the socket; an unreachable target degrades instead of hanging.
-2. A short manual check against the **Mac** target (it is running now): open
-   `/relay`, pick `mac`, see the page, tap a link, type into a field. Describe
-   exactly what you saw.
+2. A short manual check against the **winbox** target — this machine, over
+   `127.0.0.1:9223`, so no tunnel is involved. Take the screen lease first.
+   Launch a Chrome with
+   `--remote-debugging-port=9223 --user-data-dir=C:\mooniex\relay-test-profile`,
+   open `/relay`, pick `winbox`, see the page, tap a link, type into a field.
+   Describe exactly what you saw, then give the lease back.
 3. Nothing deployed, nothing merged to `main`.
 
 ---
@@ -179,3 +184,18 @@ the underlying number was right — so if you did not watch it happen, say so.
 - anything that would make Chrome listen on a non-loopback address
 - touching auth, deploy config, or `main`
 - any change that widens this beyond a login relay
+
+
+---
+
+## 10. Notes for this machine (winbox)
+
+- `npm install` in `C:\mooniex\console` — `node_modules` was not shipped.
+- **There is no `.env` here, and that is deliberate.** Create a throwaway one for
+  local runs if the server needs it; never copy the real one from another
+  machine, and never commit it.
+- **There is no `.git` here yet.** Initialise one, or ask for a clone — your work
+  must end up on a branch that can be pushed, not only on this disk. A previous
+  handoff lost that detail and the fixes lived on one box for hours.
+- A resident bot owns this desktop. Screen lease before Chrome, lease back
+  after, and ESC is forbidden — it writes a hold file only a human can clear.
