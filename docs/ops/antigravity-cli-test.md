@@ -1,3 +1,11 @@
+> **SUPERSEDED 2026-09-20 — the verdict below is out of date.** The OAuth was
+> completed on the Ultra account and `agy` is now **proven to run fully
+> headless**: no TTY, no human, stdin closed, no `GEMINI_API_KEY`, and it writes
+> files. See `docs/ops/agent-runners.md` §6 for the measurements, the models the
+> subscription exposes, and the one sign-in route that actually works. Everything
+> below is still accurate as a record of *why it was blocked*, and §"Spawner
+> delta" is still the right starting point for an adapter.
+
 # Antigravity CLI — scriptability test (2026-09-18)
 
 Question: can Antigravity CLI be driven by a script, on the Google AI Ultra

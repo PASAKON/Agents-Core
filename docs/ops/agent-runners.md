@@ -9,8 +9,14 @@ expires and installs drift.
 |---|---|---|---|---|
 | `claude` | `claude -p` / positional prompt | Mac ✅, winbox ✅ (`%USERPROFILE%\.local\bin\claude.exe`) | signed in both | **working** — this is what `windows/spawn-worker.ps1` drives |
 | `codex` (codex-cli 0.153.4) | `codex exec [PROMPT]` | **winbox only** (`%APPDATA%\npm\codex.cmd`) — NOT on the Mac | `Logged in using ChatGPT` | **model runs; file/shell tools blocked over SSH** — see §3 |
-| `agy` (Antigravity CLI 1.2.6) | `agy -p --output-format json` | **Mac only** (`~/.local/bin/agy`) — NOT on winbox | ❌ OAuth never completed | blocked — see `antigravity-cli-test.md` |
+| `agy` (Antigravity CLI 1.2.6) | `agy -p "<prompt>" --mode accept-edits --add-dir <dir> < /dev/null` | **Mac only** (`~/.local/bin/agy`) — NOT on winbox | ✅ signed in 2026-09-20 on the Ultra account | **WORKING — writes files headless, no API key** — see §6 |
 | Antigravity **IDE** | none (GUI) | winbox (`%LOCALAPPDATA%\Programs\antigravity`) | — | no CLI surface; install `agy` there instead of automating the GUI |
+
+Codex `mcp-server` is a dead end: deprecated in v0.149.1, **removed in v0.154.0**
+(PR #42993). It still exists on winbox's 0.153.4 and is gone from the Mac's
+0.154.0 — verified side by side. Never build on it. Codex is an MCP **client**
+only; the supported route into Claude Code is the official `openai/codex-plugin-cc`
+plugin, or shelling out to `codex exec`.
 
 Useful `codex exec` flags (verified present): `-s {read-only,workspace-write,danger-full-access}`,
 `-C <dir>`, `--skip-git-repo-check`, `--json` (JSONL events), `-o <file>`
@@ -49,6 +55,16 @@ Same root cause `windows/spawn-worker.ps1:317` already documents for `claude.exe
 Windows session 0 and never reaches the logged-in desktop (session 1).** Codex's
 sandbox helper cannot connect its named pipe across that boundary.
 
+**This is an open upstream bug, not our misconfiguration**: `openai/codex#43327`
+(2026-09-07, no maintainer response), plus `#22834` and `#7466` in the same
+family. There is no config key that fixes it — `--disable unified_exec` was
+tried and failed identically (2026-09-20).
+
+The one clue that narrows it: `LAST.txt` (written by the CLI itself via `-o`)
+**does** land, while every file the sandboxed tool runner tries to write does
+not. So it is not permissions, not the path, and not Defender blocking
+`codex.exe` — it is specifically the sandbox helper failing to spawn a process.
+
 **The fix is not `--dangerously-bypass-approvals-and-sandbox`.** It is the channel
 the repo already uses: a one-shot scheduled task with `LogonType Interactive`
 running as the desktop user (`New-ScheduledTaskPrincipal -LogonType Interactive`).
@@ -80,6 +96,53 @@ ssh winbox 'cd C:\mooniex\codex-probe && dir /b'      # the only honest check
 
 macOS has no `timeout`/`gtimeout`; bound long probes with
 `perl -e 'alarm N; exec @ARGV' -- <cmd>`.
+
+## 6. `agy` on the Ultra subscription, headless — PROVEN 2026-09-20
+
+The thing `antigravity-cli-test.md` could not settle. Three measured steps:
+
+```
+agy -p "Reply with exactly: PONG-AGY" < /dev/null   →  PONG-AGY   exit 0
+agy models < /dev/null                              →  full list (see below)
+agy -p "<create a file>" --mode accept-edits --add-dir <dir> < /dev/null
+                                                    →  file on disk, exact content
+```
+
+No TTY, no human, stdin closed, **no `GEMINI_API_KEY`, no separate billing, no
+`--dangerously-skip-permissions`.** The session persists after one sign-in.
+
+**Getting signed in is the only human step, and it has exactly one working
+shape.** The OAuth URL carries a PKCE challenge bound to *that process*, the
+auto-callback window is 60 s, and the fallback is pasting a code into the same
+process's stdin. So:
+
+| route | result |
+|---|---|
+| Claude runs `agy`, user pastes the code into chat | ✗ the sandbox refuses any command carrying a credential-shaped string; chat is not connected to that process's stdin |
+| `! agy -p …` from inside Claude Code | ✗ `!` runs to completion, it is not an interactive stdin — always times out at 60 s |
+| **a real Terminal window** | ✅ `osascript -e 'tell application "Terminal" to do script "agy -p \"…\""'`, then the user pastes the code there |
+
+Opening the OAuth URL in the user's Chrome for them (`navigate` + one screenshot)
+removes the copy/paste race; **let the user click the consent button** — granting
+OAuth consent is theirs, not ours.
+
+**Models reachable through the subscription** (`agy models`, 2026-09-20):
+`gemini-3.8-flash` (high/medium/low), `gemini-3.7-flash`, `gemini-3.6-flash`,
+`gemini-3.1-pro` (high/low), **`claude-sonnet-4-6`**, **`claude-opus-4-6-thinking`**,
+`gpt-oss-120b-medium`. The two Claude models here do **not** draw on the
+Anthropic quota.
+
+**Permissions**: the default is `toolPermission=request-review`, and in print
+mode a `RunCommand` step is soft-denied with
+`no output produced — a tool required the "command" permission`. `--mode
+accept-edits` covers the *edit* tools but not shell. Prefer steering the prompt
+at the file-editing tool ("use your file-editing tool, not a shell command") over
+loosening permissions; if shell is genuinely needed, add a narrow
+`permissions.allow` entry (`command(<target>)`) rather than
+`--dangerously-skip-permissions`.
+
+**Failure signalling beats Codex's**: `agy` exits non-zero and prints the reason
+(v1.2.6 added `AGY_ERROR` JSON on stderr and exit 3). Codex exits 0 — see §4.
 
 ## Related
 
