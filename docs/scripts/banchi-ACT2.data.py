@@ -33,7 +33,10 @@ CHAR["cherd"] = ("@lender_cherd",
   "trousers and a silver bracelet on his right wrist",
   "The 45-year-old man in the navy polo shirt")
 
-VOICE["cherd"] = ("Umbriel @lender_cherd",
+# Flow audit task-68653632 (18 Sep) measured the REAL binding on @lender_cherd as
+# the preset "algieba", not the "Umbriel" this ledger claimed. The measurement wins
+# over our own record. CEO to judge by ear on the first shot and rebind if he wants.
+VOICE["cherd"] = ("algieba @lender_cherd",
   "the smooth, low, unhurried voice of a man of forty-five who never has to raise it")
 
 LOC["alley"] = ("@back_alley",
@@ -141,9 +144,9 @@ SHOTS = [
 
  (51, 10, "Medium two-shot, static camera", ["cherd","somchai"], "alley", "night",
   "takes the folded money and counts it against his thumb while he talks, the older man watching his hands",
-  [("cherd","conversational","ผมได้ยินว่าคุณแม่พี่ไม่ค่อยสบายนะครับ"),
-   ("cherd","softer, worse for being soft","เดือนหน้าค่าหมอคงต้องใช้อีก ผมเป็นห่วงแทนพี่นะครับ"),
-   ("somchai","tight","แม่ผมสบายดีครับ ไม่ต้องห่วง")], ["money","nobook"]),
+  [("cherd","conversational","ได้ยินว่าคุณแม่ไม่ค่อยสบายนะครับ"),
+   ("cherd","softer, worse for being soft","เดือนหน้าค่าหมอคงอีกก้อน ผมห่วงแทนพี่ครับ"),
+   ("somchai","tight","แม่ผมสบายดีครับ")], ["money","nobook"]),
 
  (52, 8, "Close-up on the younger man, static camera", ["cherd"], "alley", "night",
   "folds the money into his shirt pocket while he speaks, unbothered, already easing back a step",

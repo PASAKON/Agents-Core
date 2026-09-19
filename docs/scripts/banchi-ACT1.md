@@ -105,15 +105,15 @@ Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, d
 
 ### SHOT 6 · 0:36–0:44 · 8s · Medium shot, static camera, his face and the tray both in frame
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@upstairs_bedroom`→REF_1
-**บทพูด** lung_somchai `"สี่สิบ ห้าสิบ หกสิบ เจ็ดสิบห้า"` — counting under his breath
-**บทพูด** lung_somchai `"อีกสามร้อยก็ครบค่ายาเดือนนี้แล้ว"` — flat
+**บทพูด** lung_somchai `"สี่สิบ ห้าสิบ หกสิบ เจ็ดสิบห้าบาท"` — counting under his breath
+**บทพูด** lung_somchai `"อีกสามร้อยก็ครบค่ารักษาแม่เดือนนี้แล้ว"` — flat
 ```
 Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the location reference for upstairs_bedroom.
 
 In a small upstairs bedroom in an old Bangkok shophouse — a single low wooden bed with a scratched wooden side rail against a bare plaster wall marked with cracks and water stains, a folded reddish-brown striped blanket, a small side table holding medicine bottles and a glass of water, an oscillating pedestal fan, one bare bulb hanging from the ceiling and no table lamp, a piece of cloth hanging on the wall near the window, wooden floorboards with visible gaps, a shuttered window letting in one thin band of daylight <IMAGE_REF_1>, just before dawn. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0> — counts coins and folded notes into the cloth pouch at the bedside, his lips moving with the count.
 
-The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, counting under his breath, and says: "สี่สิบ ห้าสิบ หกสิบ เจ็ดสิบห้า"
-The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, flat, and says: "อีกสามร้อยก็ครบค่ายาเดือนนี้แล้ว"
+The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, counting under his breath, and says: "สี่สิบ ห้าสิบ หกสิบ เจ็ดสิบห้าบาท"
+The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, flat, and says: "อีกสามร้อยก็ครบค่ารักษาแม่เดือนนี้แล้ว"
 
 The face of whoever is speaking stays in frame for the whole line.
 The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
@@ -404,7 +404,7 @@ Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desat
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** lung_somchai `"ค่าเส้น ค่าหมู ค่าน้ำแข็ง แล้วก็ค่าแก๊ส"` — muttering, working through it
 **บทพูด** lung_somchai `"วันนี้ได้มาสามพันสอง เหลือเท่านี้"` — counting
-**บทพูด** lung_somchai `"อันนี้แยกไว้เป็นค่ายาเดือนนี้นะ"` — firm with himself
+**บทพูด** lung_somchai `"อันนี้แยกไว้เป็นค่ารักษาแม่เดือนนี้นะ"` — firm with himself
 ```
 Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the location reference for noodle_shop.
 
@@ -412,7 +412,7 @@ In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wood
 
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, muttering, working through it, and says: "ค่าเส้น ค่าหมู ค่าน้ำแข็ง แล้วก็ค่าแก๊ส"
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, counting, and says: "วันนี้ได้มาสามพันสอง เหลือเท่านี้"
-The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, firm with himself, and says: "อันนี้แยกไว้เป็นค่ายาเดือนนี้นะ"
+The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, firm with himself, and says: "อันนี้แยกไว้เป็นค่ารักษาแม่เดือนนี้นะ"
 
 The face of whoever is speaking stays in frame for the whole line.
 Medium shot, static camera, his face in frame above the counter. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.

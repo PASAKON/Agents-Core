@@ -285,17 +285,17 @@ Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, d
 
 ### SHOT 51 · 2:04–2:14 · 10s · Medium two-shot, static camera
 **ATTACH** 1) `@lender_cherd`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@back_alley`→REF_2
-**บทพูด** lender_cherd `"ผมได้ยินว่าคุณแม่พี่ไม่ค่อยสบายนะครับ"` — conversational
-**บทพูด** lender_cherd `"เดือนหน้าค่าหมอคงต้องใช้อีก ผมเป็นห่วงแทนพี่นะครับ"` — softer, worse for being soft
-**บทพูด** lung_somchai `"แม่ผมสบายดีครับ ไม่ต้องห่วง"` — tight
+**บทพูด** lender_cherd `"ได้ยินว่าคุณแม่ไม่ค่อยสบายนะครับ"` — conversational
+**บทพูด** lender_cherd `"เดือนหน้าค่าหมอคงอีกก้อน ผมห่วงแทนพี่ครับ"` — softer, worse for being soft
+**บทพูด** lung_somchai `"แม่ผมสบายดีครับ"` — tight
 ```
 Use <IMAGE_REF_0> as the character reference for lender_cherd. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for back_alley.
 
 In a narrow service alley behind an old Bangkok shophouse at night — a steel rear door with a small barred window, stacked plastic crates against one wall, a bicycle leaning, cables strung overhead, wet uneven concrete, one weak bulb over the door and the alley falling away into darkness behind <IMAGE_REF_2>, night. a Thai man of 45, lean, with an even unlined face, short ordinary black hair, sunglasses pushed up onto the top of his head, in a plain navy polo shirt, grey trousers and a silver bracelet on his right wrist <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — takes the folded money and counts it against his thumb while he talks, the older man watching his hands.
 
-The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, conversational, and says: "ผมได้ยินว่าคุณแม่พี่ไม่ค่อยสบายนะครับ"
-The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, softer, worse for being soft, and says: "เดือนหน้าค่าหมอคงต้องใช้อีก ผมเป็นห่วงแทนพี่นะครับ"
-The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, tight, and says: "แม่ผมสบายดีครับ ไม่ต้องห่วง"
+The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, conversational, and says: "ได้ยินว่าคุณแม่ไม่ค่อยสบายนะครับ"
+The 45-year-old man in the navy polo shirt <IMAGE_REF_0> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, softer, worse for being soft, and says: "เดือนหน้าค่าหมอคงอีกก้อน ผมห่วงแทนพี่ครับ"
+The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, tight, and says: "แม่ผมสบายดีครับ"
 
 The face of whoever is speaking stays in frame for the whole line.
 The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind. Also in this shot: no notebook, no ledger, no receipt book, no paper of any kind changes hands. Nothing is written down by anyone.
