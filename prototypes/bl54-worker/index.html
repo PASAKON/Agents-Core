@@ -154,7 +154,13 @@
          so the first characters of a left-aligned line were physically cut
          off the screen, and the right edge ran under the like/comment rail. */
       .blk { position: absolute; left: var(--safe-left); right: var(--safe-right);
-             opacity: 0; text-align: center; }
+             opacity: 0; text-align: center;
+             /* Thai has no spaces, and the render's Chrome has no Thai
+                dictionary, so it breaks a line anywhere it runs out of room —
+                it split สเปรด at 42s. keep-all forbids that; put U+200B where a
+                break IS wanted. An overflow here is caught by inspect; a
+                mid-word break is caught by nothing. */
+             word-break: keep-all; overflow-wrap: normal; }
       /* Only for a block that ENDS above y=900 — above the rail the right
          margin can come back in to 120. Never on anything lower. */
       .blk.wide { right: var(--safe-left); }
@@ -559,7 +565,7 @@
 
       // lines 17-18 - what rebate is
       kinetic(620, 37.20, 42.48, [
-        { c: "bl-md", h: '<span class="y">Rebate</span> คือส่วนหนึ่งของสเปรดหรือค่าคอม', d: 0.6, g: 0.62 },
+        { c: "bl-md", h: '<span class="y">Rebate</span> คือส่วนหนึ่งของ<span style="white-space:nowrap">สเปรด</span>หรือค่าคอม', d: 0.6, g: 0.62 },
         { c: "bl-sm", h: 'ที่โบรกจ่ายคืนให้<span class="n">คนที่พามึงเข้ามา</span>', d: 0.6 }]);
 
       // lines 19-20 - not free, already priced in
