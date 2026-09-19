@@ -154,18 +154,20 @@
          so the first characters of a left-aligned line were physically cut
          off the screen, and the right edge ran under the like/comment rail. */
       .blk { position: absolute; left: var(--safe-left); right: var(--safe-right);
-             opacity: 0; text-align: center;
-             /* Thai has no spaces between words, so a renderer without an ICU
-                Thai dictionary breaks wherever the line runs out. On EP54 that
-                split สเปรด into "ของส" / "เปรด" — wrong, and invisible to every
-                gate because the frame was otherwise fine. `lang="th"` is set and
-                did not save us: the render's Chrome does the breaking, not ours.
-                keep-all forbids arbitrary breaks, so a line that no longer fits
-                OVERFLOWS instead — and `hyperframes inspect` already fails on
-                overflow. A loud wrong is worth far more than a quiet one.
-                Where a break IS wanted, put U+200B (zero-width space) at the
-                real word boundary, or split the line in the kinetic() call. */
-             word-break: keep-all; overflow-wrap: normal; }
+             opacity: 0; text-align: center; }
+      /* Thai writes without spaces between words, and the render's Chrome has no
+         ICU Thai dictionary, so it breaks a line wherever it runs out of room —
+         on EP54 that split สเปรด as "...ของส" / "เปรด...". `lang="th"` is set and
+         does NOT prevent this: the breaking happens in the render's Chrome.
+         `word-break: keep-all` does not prevent it either — CSS Text 3 scopes
+         keep-all to the CJK line-break classes (NU/AL/AI/ID); Thai is class SA
+         and is untouched. Measured, not assumed: the identical break rendered
+         with and without keep-all, and a ZWSP only ADDS a break opportunity
+         without removing the others.
+         What works is white-space: nowrap on the run itself. Wrap any Thai word
+         that must never split in <span class="nb">…</span>. No gate can see a
+         mid-word break — read the Thai in the rendered frame, as words. */
+      .nb { white-space: nowrap; }
       /* Only for a block that ENDS above y=900 — above the rail the right
          margin can come back in to 120. Never on anything lower. */
       .blk.wide { right: var(--safe-left); }

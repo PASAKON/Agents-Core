@@ -308,26 +308,34 @@ It reads every absolutely-positioned rule in the composition and names each one
 that leaves the box. Descendant rules (`.bl-card .badge`) are positioned against
 their own parent and are skipped.
 
-### 6b. Thai breaks mid-word unless you choose the break points
+### 6b. Thai breaks mid-word, and only `nowrap` stops it
 
-The kit sets `word-break: keep-all` on `.blk`. That is deliberate and must stay.
+Thai writes without spaces between words. The render's Chrome has no ICU Thai
+dictionary, so it breaks a line wherever it runs out of room. On EP54 that split
+**สเปรด** across two lines as `...ของส` / `เปรด...`.
 
-Thai writes without spaces between words, so a renderer with no ICU Thai
-dictionary breaks a line wherever it runs out of room. On EP54 that split
-**สเปรด** across two lines as `...ของส` / `เปรด...`. `lang="th"` was set and did
-not help — the break happens in the render's Chrome, not in ours. No gate caught
-it: the frame was correct in every other way.
+Two things that look like the fix and are NOT, both measured on that frame:
 
-`keep-all` turns that silent wrong into a loud one — a line that no longer fits
-now OVERFLOWS, and `hyperframes inspect` already fails on overflow. So:
+- **`lang="th"`** — already set on the template and on every delivered cut. The
+  breaking happens in the render's Chrome, not in ours.
+- **`word-break: keep-all`** — CSS Text 3 scopes it to the CJK line-break
+  classes (NU / AL / AI / ID). Thai is class SA and is untouched. The identical
+  break rendered with and without it. A ZWSP does not help either: it *adds* a
+  break opportunity without removing the others.
 
-- if `inspect` reports overflow on a text block, the line is too long — **split
-  it in the `kinetic()` call at a real word boundary**, or insert `\u200b`
-  (zero-width space) where the break belongs
-- never "fix" an overflow by deleting `keep-all`; that brings the mid-word
-  break back and nothing will tell you
+What works is `white-space: nowrap` on the run itself. The template carries a
+`.nb` utility for this — wrap any Thai word that must never split:
 
-Read every Thai line in the contact sheet (step 8) as words, not as pixels.
+```js
+{ c: "bl-md", h: '<span class="y">Rebate</span> คือส่วนหนึ่งของ<span class="nb">สเปรด</span>หรือค่าคอม' }
+```
+
+**No gate can see this defect.** `npm run check`, `hyperframes inspect`,
+`bl_tools.py safezone` and the contrast audit all passed the EP54 frame before
+and after the fix — the frame was correct in every respect except which
+characters sat on which line. The only check that works is step 8: read the Thai
+in the rendered frame **as words**, not as pixels, and read it off the encoded
+MP4 (`ffmpeg -ss <t> -frames:v 1`), not off a DOM snapshot.
 
 ### 7. Gate the composition
 ```bash
