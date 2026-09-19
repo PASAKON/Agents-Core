@@ -86,11 +86,23 @@ Claude Code's auto-mode classifier blocks `npm install 9router` as
 third parties. So it is installed by hand, once:
 
 ```
-! npm install -g 9router && 9router
+! npm install -g 9router
 ```
 
-The dashboard opens on http://localhost:20128. Configure providers there, then
-set the two `.env` lines above and spawn a worker to test.
+Installed 2026-09-19. **Start it only through `scripts/ninerouter-up.sh`**, never
+as a bare `9router`: with no flags it binds `0.0.0.0` and says so itself —
+"Network-exposed: reachable at http://192.168.1.149:20128". That is every device
+on the house WiFi able to spend the CEO's provider quota through an
+unauthenticated proxy. The script pins `--host 127.0.0.1` and refuses to start
+any other way.
+
+```
+bash scripts/ninerouter-up.sh            # foreground
+bash scripts/ninerouter-up.sh --tray     # background
+```
+
+Then open http://127.0.0.1:20128, configure providers there, set the two `.env`
+lines above, and spawn one worker to test before trusting a batch to it.
 
 ## The rule this serves
 
