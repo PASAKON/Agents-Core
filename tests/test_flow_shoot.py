@@ -768,3 +768,24 @@ def test_attach_chip_closes_picker_when_search_has_no_result():
     assert browser.attach_chip("@missing_asset") is False
     assert dom.fills == ["", "@missing_asset", "", "missing_asset"]
     assert dom.close_clicked is True
+
+
+def test_download_card_never_reuses_a_prior_clip_url(monkeypatch):
+    class Card:
+        def click(self):
+            pass
+
+    class Page:
+        def wait_for_timeout(self, _ms):
+            pass
+
+        def evaluate(self, _script):
+            pass
+
+    browser = flow_shoot.FlowBrowser()
+    browser.page = Page()
+    browser._captured_video_urls = ["https://flow-content.google/video/old"]
+    monkeypatch.setattr(flow_shoot, "COMPLETION_TIMEOUT_S", 0)
+
+    with pytest.raises(RuntimeError, match="refusing to reuse a prior clip URL"):
+        browser.download_card(Card())

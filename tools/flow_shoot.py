@@ -823,6 +823,10 @@ class FlowBrowser:
             except Exception:
                 pass
             self.page.wait_for_timeout(1000)
+        if len(self._captured_video_urls) <= baseline:
+            raise RuntimeError(
+                "card opened but no new flow-content.google/video/ URL "
+                "appeared before timeout — refusing to reuse a prior clip URL")
         return self._fetch_captured_video()
 
 
