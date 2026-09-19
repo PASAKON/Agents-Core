@@ -63,6 +63,71 @@ new MutationObserver(() => document.querySelectorAll('video,audio')
 _DIALOGUE_RE = re.compile(r'says:\s*"([^"]+)"')
 _CREDIT_RE = re.compile(r"(\d+)\s*เครดิต")
 
+# CORRECTED 2026-09-19 (task-04851451, live check against the automation
+# Chrome, read-only, on the project's 11 already-charged clips):
+# [aria-label="Download"]/[aria-label="ดาวน์โหลด"] confirmed to match ZERO
+# elements — the only "download" mat-icon anywhere on the page is nested
+# inside a per-batch "ดาวน์โหลดแบบกลุ่ม" (bulk download) button, not a
+# per-clip control. There is no per-clip download button in this UI at all.
+# The real, verified mechanism (matches google-flow-ops' "the download
+# button is dead" section): Flow itself fetches this signed CDN URL to
+# render/play a clip; capture that network response and pull the bytes
+# directly. Proven live: navigated to an existing clip's /edit/<uuid>,
+# nudged a muted play(), captured this URL, fetched it via
+# page.request.get() with no extra auth, got 200 / 381529 bytes / a real
+# 4.01s h264+aac mp4 confirmed by ffprobe.
+CDN_VIDEO_RE = re.compile(r"flow-content\.google/video/")
+
+
+class EstimateUnreadable(RuntimeError):
+    """Raised by FlowBrowser.read_credit_estimate() when the live panel's
+    credit text cannot be parsed. Deliberately its own type, not a plain
+    RuntimeError, so cmd_run can catch it specifically and STOP THE WHOLE
+    RUN rather than silently moving on to the next shot — an unreadable
+    price is not a free price (task-04851451: the previous behaviour fell
+    into the generic per-shot exception handler, which marks one row
+    failed and continues to the next todo shot, exactly the "quietly
+    proceed past an unknown cost" failure this must not do)."""
+
+
+class ChipCountMismatch(RuntimeError):
+    """Raised by FlowBrowser.submit() itself when handed an
+    expected_chip_count that doesn't match the live count it re-reads at
+    that instant. task-04851451, incident 2: a proof-shot run logged
+    attach_chip() TimeoutErrors for BOTH handles and still reached
+    'submitted' — the caller-side hard gate (cmd_run comparing
+    live_chip_count to len(shot['chips']) before calling submit) had
+    already covered this class of bug once (see the existing
+    test_chip_count_mismatch_blocks_submit, from iteration 2) and a
+    read-only pull of the actual clip afterward showed both references had
+    in fact rendered correctly — attach_chip()'s own return value is
+    decoupled from reality (a Playwright click-wait can time out on a
+    confirm button that the browser still processes a moment later; the
+    DOM chip count is the ground truth, not that boolean). Still: a guard
+    that lives only in the caller is one edit away from being skipped.
+    This makes the same check unavoidable at the only place credits can be
+    spent, exactly like the dry_run guard above."""
+
+    def __init__(self, expected: int, actual: int):
+        super().__init__(
+            f"expected {expected} chip(s) attached, found {actual} — refusing to submit")
+        self.expected = expected
+        self.actual = actual
+
+
+class CreditCapExceeded(RuntimeError):
+    """Raised by _submit_or_raise() as a backstop if browser.submit() is
+    ever reached despite the cap already being exceeded — belt-and-braces
+    alongside cmd_run's own pre-submit check, so a future refactor that
+    adds a second path to Submit still cannot spend past the cap."""
+
+    def __init__(self, spent_this_run: int, estimate: int, cap: int):
+        super().__init__(
+            f"spent={spent_this_run} + estimate={estimate} > cap={cap}")
+        self.spent_this_run = spent_this_run
+        self.estimate = estimate
+        self.cap = cap
+
 
 # ── pure helpers (no browser — these are what tests/test_flow_shoot.py covers) ──
 
@@ -186,6 +251,18 @@ class FlowBrowser:
         self._pw = None
         self._browser = None
         self.page = None
+        # Set by cmd_run right after construction. submit() checks this
+        # itself (see below) so dry-run is structurally incapable of
+        # spending — not just "the caller happens not to call submit()".
+        self.dry_run = False
+        # Every flow-content.google/video/<id> response observed on this
+        # page, in order — see CDN_VIDEO_RE. This is the runner's only
+        # download mechanism (the UI has no per-clip download button).
+        self._captured_video_urls: list[str] = []
+
+    def _on_response(self, response) -> None:
+        if CDN_VIDEO_RE.search(response.url):
+            self._captured_video_urls.append(response.url)
 
     def attach(self):
         from playwright.sync_api import sync_playwright
@@ -200,6 +277,7 @@ class FlowBrowser:
             page.bring_to_front()
         except Exception:
             pass
+        page.on("response", self._on_response)
         self.page = page
         return page
 
@@ -447,33 +525,75 @@ class FlowBrowser:
             page.wait_for_timeout(200)
         est = parse_credit_estimate(text)
         if est is None:
-            raise RuntimeError("could not read live credit estimate from the panel")
+            raise EstimateUnreadable(
+                "could not read live credit estimate from the panel — "
+                "STOP, not a zero: an unreadable price is not a free price")
         return est
 
-    def submit(self) -> None:
+    def submit(self, expected_chip_count: int | None = None) -> None:
+        if self.dry_run:
+            raise RuntimeError(
+                "BUG: FlowBrowser.submit() called while dry_run is set — "
+                "dry-run must be structurally incapable of spending credits "
+                "(task-04851451: 15 real generations fired past two "
+                "control-flow-only guards while iteration 2 edited this "
+                "file between manual runs)")
+        if expected_chip_count is not None:
+            actual = self.chip_count()
+            if actual != expected_chip_count:
+                raise ChipCountMismatch(expected_chip_count, actual)
         self.page.locator('button[aria-label="เริ่มสร้าง"]').first.click()
 
     def poll_result(self, timeout_s: int = COMPLETION_TIMEOUT_S) -> dict:
+        """CORRECTED 2026-09-19 (task-04851451, live read-only check):
+        [aria-label="Download"]/[aria-label="ดาวน์โหลด"] match ZERO elements
+        on this account — a run polling for them times out after
+        COMPLETION_TIMEOUT_S on every success, exactly as REPORT-iter2
+        documented happening to its own proof shot. Submit navigates to the
+        clip's own /edit/<uuid> page (google-flow-ops, "capture each clip's
+        id at SUBMIT"); Flow itself fetches the signed CDN URL to render
+        that page's <video>, which _on_response captures. Nudging a muted
+        play() every poll is what reliably triggers that fetch — proven
+        live against an already-completed clip (200, 381529 bytes, ffprobe
+        confirmed 4.01s h264+aac)."""
         page = self.page
         start = time.time()
+        baseline = len(self._captured_video_urls)
         while time.time() - start < timeout_s:
             body = page.evaluate("() => document.body.innerText")
             if is_refusal_text(body):
                 m = re.search(r"ล้มเหลว[^\n]*\n[^\n]*", body)
                 return {"status": "refusal", "text": m.group(0) if m else "ล้มเหลว"}
-            if page.locator('[aria-label="Download"], [aria-label="ดาวน์โหลด"]').count():
+            if len(self._captured_video_urls) > baseline:
                 return {"status": "download", "text": ""}
+            try:
+                page.evaluate(
+                    "() => { const v = document.querySelector('video'); "
+                    "if (v) { v.muted = true; v.play().catch(() => {}); } }")
+            except Exception:
+                pass
             time.sleep(POLL_S)
         return {"status": "timeout", "text": ""}
 
-    def download(self) -> Path:
-        with self.page.expect_download() as dl_info:
-            self.page.locator('[aria-label="Download"], [aria-label="ดาวน์โหลด"]').first.click()
-        dl = dl_info.value
+    def _fetch_captured_video(self) -> Path:
+        if not self._captured_video_urls:
+            raise RuntimeError(
+                "no flow-content.google/video/ response ever observed on "
+                "this page — nothing to download")
+        url = self._captured_video_urls[-1]
+        resp = self.page.request.get(url)
+        if resp.status != 200:
+            raise RuntimeError(f"CDN fetch failed: HTTP {resp.status} for {url}")
         import tempfile
-        path = Path(tempfile.mkdtemp()) / dl.suggested_filename
-        dl.save_as(str(path))
+        path = Path(tempfile.mkdtemp()) / "clip.mp4"
+        path.write_bytes(resp.body())
         return path
+
+    def download(self) -> Path:
+        """No per-clip download button exists (see poll_result's docstring
+        and CDN_VIDEO_RE) — poll_result() already observed the CDN response
+        for the clip that was just generated; pull that."""
+        return self._fetch_captured_video()
 
     def find_card_by_dialogue(self, fragment: str):
         page = self.page
@@ -481,11 +601,52 @@ class FlowBrowser:
         return el if el.count() else None
 
     def download_card(self, card) -> Path:
+        """`pull` starts from a feed card, not a fresh Submit, so there is
+        no prior poll_result() to have already captured the URL — click the
+        card (Flow navigates to its /edit/<uuid>, same as after Submit),
+        mute, then nudge/wait for the same CDN response poll_result() waits
+        for."""
+        baseline = len(self._captured_video_urls)
         card.click()
-        return self.download()
+        self.page.wait_for_timeout(1000)
+        try:
+            self.page.evaluate(MUTE_JS)
+        except Exception:
+            pass
+        deadline = time.time() + COMPLETION_TIMEOUT_S
+        while time.time() < deadline and len(self._captured_video_urls) <= baseline:
+            try:
+                self.page.evaluate(
+                    "() => { const v = document.querySelector('video'); "
+                    "if (v) { v.muted = true; v.play().catch(() => {}); } }")
+            except Exception:
+                pass
+            self.page.wait_for_timeout(1000)
+        return self._fetch_captured_video()
 
 
 # ── the runner ───────────────────────────────────────────────────────────────
+
+def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
+                      cap: int, expected_chip_count: int) -> None:
+    """The ONLY call site for browser.submit() in the whole runner. All
+    three money/correctness guards are re-checked here, immediately before
+    the call — task-04851451: cmd_run already had a cap check and a
+    dry-run check ahead of its one submit() call, in that same order, and
+    15 real generations still fired while iteration 2 edited the
+    surrounding code between manual runs. Centralizing the check into the
+    only function that can spend means a future edit has to remove a guard
+    from inside this function, not just avoid tripping over one two lines
+    above a call. expected_chip_count is forwarded into submit() itself
+    (see ChipCountMismatch) rather than checked only here, so a caller
+    skipping this wrapper entirely still can't spend with the wrong
+    references attached."""
+    if browser.dry_run:
+        raise RuntimeError("BUG: _submit_or_raise called while dry_run is set")
+    if credit_cap_exceeded(spent_this_run, estimate, cap):
+        raise CreditCapExceeded(spent_this_run, estimate, cap)
+    browser.submit(expected_chip_count=expected_chip_count)
+
 
 def _attempt_chip(browser: FlowBrowser, handle: str) -> bool:
     before = browser.chip_count()
@@ -524,6 +685,10 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
              f"never use this for a production run ***")
 
     browser = browser_factory()
+    # Set immediately after construction, before anything else can touch
+    # the browser — FlowBrowser.submit() itself refuses while this is set
+    # (structural, not "the control flow happens not to call it").
+    browser.dry_run = args.dry_run
     spent_this_run = 0
     try:
         try:
@@ -609,7 +774,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                          f"prompt_verified=True estimate={estimate} credits — stopping before Submit")
                     return 0
 
-                browser.submit()
+                _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
+                                  expected_chip_count=len(shot["chips"]))
                 row["attempts"] = str(int(row.get("attempts") or 0) + 1)
                 row["status"] = "submitted"
                 flow_ledger.save_ledger(ledger_path, rows)
@@ -619,7 +785,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 result = browser.poll_result()
                 if result["status"] == "refusal" and int(row["attempts"]) == 1:
                     _log(f"shot {n}: refused — re-firing identical prompt once (refunded)")
-                    browser.submit()
+                    _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
+                                  expected_chip_count=len(shot["chips"]))
                     row["attempts"] = "2"
                     flow_ledger.save_ledger(ledger_path, rows)
                     result = browser.poll_result()
@@ -657,6 +824,27 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 flow_ledger.save_ledger(ledger_path, rows)
                 _log(f"shot {n}: {row['status']} — {reason}")
 
+            except ChipCountMismatch as e:
+                # Same severity as the pre-check hard gate above (needs_model,
+                # try the next shot) — this is a per-shot reference problem,
+                # not a run-wide money-safety issue like the two below.
+                row["status"], row["note"] = "needs_model", f"chip count mismatch at submit: {e!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: needs_model — chip count mismatch caught inside "
+                     f"submit() itself: {e!r}")
+                continue
+            except EstimateUnreadable as e:
+                row["status"], row["note"] = "failed", f"estimate unreadable: {e!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: CREDIT ESTIMATE UNREADABLE — STOPPING THE WHOLE "
+                     f"RUN, not just this shot (an unreadable price is not a "
+                     f"free price): {e!r}")
+                break
+            except CreditCapExceeded as e:
+                row["status"], row["note"] = "failed", f"cap exceeded: {e!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: CAP REACHED (backstop) — stopping the whole run: {e!r}")
+                break
             except Exception as e:
                 row["status"], row["note"] = "failed", f"exception: {e!r}"
                 flow_ledger.save_ledger(ledger_path, rows)
