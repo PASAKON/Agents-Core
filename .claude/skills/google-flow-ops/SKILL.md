@@ -31,6 +31,77 @@ after it loads, not at the moment you press play, and re-run the snippet after
 every navigation. Reviewing a clip by ear is a human's job; capture the file and
 say so.
 
+## ⛔ A policy refusal comes from the DIALOGUE, not from your reference chips (measured 2026-09-19)
+
+Three shots were refused **eight times between them**, always with the same card
+that explains nothing:
+
+```
+ล้มเหลว
+การสร้างนี้อาจละเมิดนโยบายของเรา โปรดลองใช้พรอมต์อื่นหรือส่งความคิดเห็น
+ระบบไม่ได้เรียกเก็บเงินจากคุณสำหรับการสร้างครั้งนี้
+```
+
+**Every refusal is refunded**, so finding the cause costs time and nothing else.
+That is what makes bisection the right tool and guessing the wrong one.
+
+### What was measured
+
+| test | result |
+|---|---|
+| baseline, unchanged | refused |
+| **all spoken dialogue removed**, both chips still attached, everything else byte-identical | **passed** |
+| dialogue put back, nothing else changed | refused again, immediately |
+| dialogue reworded, chips and everything else held identical | **passed, all three shots** |
+
+So: **the chips were never the trigger.** Two reference chips stayed attached
+right through the passing runs. Anyone reaching for "detach the plate and write
+it as prose" — the fix that worked on Higgsfield for a different failure — is
+solving the wrong problem here and losing face consistency for nothing.
+
+### The two phrasings that actually tripped it
+
+1. **A dependent named alongside a demand or a warning.**
+   `อย่าเพิ่งไปที่ร้านเลยครับ ลูกผมอยู่ที่นั่น` — "don't go to the shop, my son
+   is there." Nobody is threatened on screen and no child appears; the sentence
+   alone is enough.
+2. **Money framed as an absolute prohibition.**
+   `อันนี้ค่ายาแม่ ห้ามแตะเด็ดขาด` — "this is mother's medicine money, never
+   touch it." The absolute is what reads badly, not the money and not the mother.
+
+### The fix: same beat, positive surface
+
+Say the same thing forward instead of backward. This is the CEO's instruction
+and it produced better dialogue, not weaker:
+
+| refused | passed |
+|---|---|
+| don't come to the shop, my son is there | **I'll bring it to you myself tomorrow** |
+| still 300 short for mother's medicine | **another 300 and this month's medicine is covered** |
+| this is medicine money, never touch it | **this is set aside for this month's medicine** |
+| I don't like having to chase people | I don't like bothering anyone |
+| the interest doesn't wait for anyone | time doesn't wait for anyone |
+| I know there's a sick woman upstairs … the doctor's bill next month | **I heard your mother isn't well … I worry on your behalf** |
+
+That last pair is the important one. A villain who says he is *worried about
+you* while naming your weak point is more frightening than one who threatens,
+and polite menace is what this format's villains do anyway. **Softening the
+surface improved the scene.**
+
+### How to work when a shot is refused
+
+1. **Do not reword and re-fire.** That is what cost eight refusals and taught
+   nothing, because each rewrite changed several things at once.
+2. **Bisect, one variable per attempt**, at 360p so a pass costs 6 credits.
+   Remove all dialogue first — it is the most likely half and the cheapest cut.
+3. **Confirm by reverting.** A pass that does not re-fail when you put the thing
+   back proves nothing; the classifier could simply be noisy.
+4. Google publishes **no list** of what Flow refuses. Its Generative AI
+   Prohibited Use Policy names "harassment, bullying, intimidation, abuse" among
+   four broad categories, and nothing matching "a poor man counting money for a
+   sick parent" — so the policy text will not tell you which line to change.
+   Only the ladder will.
+
 ## Money — the rules that come before everything
 
 - Flow spends the CEO's **monthly Google AI credit pool**. There is no separate
