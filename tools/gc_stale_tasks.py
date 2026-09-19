@@ -310,7 +310,20 @@ def gc_stale_tasks(
             age = _age_minutes(t.get("updated_at"))
             if age is None or age <= ratelimit_minutes:
                 continue
-        print(f"[gc] cancelled {t['id']} (stale rate_limited >{ratelimit_minutes}min)",
+        # A rate limit is not a death. `retry_after` is what the API says it
+        # will accept next, not when the underlying allowance clears: a WEEKLY
+        # Claude quota reports retry_after=300s and then keeps refusing, so
+        # this branch fires on a worker that is alive and correctly waiting.
+        # On 2026-09-19 it cancelled task-2e5cd54e mid-episode and reclaimed
+        # its worktree; four commits survived only because git had them.
+        # Every other category here already checks liveness before acting.
+        alive = _alive_for_gc(t)
+        if alive is True:
+            print(f"[gc] keeping {t['id']} — rate_limited but its process is alive "
+                  f"(pid {t.get('pid')}); a waiting worker is not a stale one",
+                  file=sys.stderr)
+            continue
+        print(f"[gc] cancelled {t['id']} (stale rate_limited >{ratelimit_minutes}min, process not alive)",
               file=sys.stderr)
         entry = {
             "task_id": t["id"], "project": t["project"],
