@@ -127,7 +127,7 @@ NOT = {
 # action, [(speaker key, direction, thai line), ...], [not-list keys]
 SHOTS = [
  (1, 8, "Medium shot, static camera with a slight handheld sway", ["somchai"], "wall", "just before dawn",
-  "stands backed against the wall with both hands open and placating, talking fast and upward to someone just off-frame whose long shadow falls across him",
+  "presses his back against the wall in the dark, alone, both hands open in front of him, talking fast and quietly toward the empty street",
   [("somchai","fast and placating","ผมหาให้ครับ พรุ่งนี้เช้าผมหาให้ครบแน่นอน"),
    ("somchai","lower, pleading","อย่าเพิ่งไปที่ร้านเลยครับ ลูกผมอยู่ที่นั่น")], []),
  (2, 6, "Close-up, static camera at a low angle", ["somchai"], "wall", "just before dawn",
@@ -228,10 +228,10 @@ SHOTS = [
   [("ton","tender","เดี๋ยวผมขึ้นมาใหม่นะครับย่า พักก่อนนะครับ")], ["ya"]),
 
  (24, 10, "Medium shot, static camera, his face in frame above the counter", ["somchai"], "shop", "afternoon lull",
-  "sits alone at the back counter with the day's takings in front of him, moving one note aside with a fingertip, lips moving",
+  "sits alone at the back counter with nothing on it but a glass of water, counting off costs on his fingers, lips moving",
   [("somchai","muttering, working through it","ค่าเส้น ค่าหมู ค่าน้ำแข็ง แล้วก็ค่าแก๊ส"),
    ("somchai","counting","วันนี้ได้มาสามพันสอง เหลือเท่านี้"),
-   ("somchai","firm with himself","อันนี้ค่ายาแม่ ห้ามแตะเด็ดขาด")], ["money"]),
+   ("somchai","firm with himself","อันนี้ค่ายาแม่ ห้ามแตะเด็ดขาด")], []),
  (25, 8, "Close-up, static camera", ["somchai"], "shop", "afternoon lull",
   "begins to separate a third, smaller fold and stops, then tucks it aside without finishing the sentence",
   [("somchai","trailing off","แล้วอันนี้..."),
