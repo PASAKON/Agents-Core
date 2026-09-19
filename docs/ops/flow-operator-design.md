@@ -29,8 +29,11 @@ the model out of the per-shot loop does.
  shot sheet (banchi-ACTn.md, built from .data.py)      ← the only prompt source
         │
         ▼
- ledger  state/banchi/shots.tsv   one row per shot, the runner's memory
-        │   shot · act · status · flow_clip_id · file · sha256 · dur · attempts · note
+ ledger  state/banchi/ACT<n>.tsv  one row per shot, the runner's memory — one
+        │   file per act, not one shared file (built as task-6eabea66's
+        │   ledger; see tools/flow_ledger.py for the actual field list)
+        │   shot · act · dur_s · chips · prompt_sha · status · flow_clip_id ·
+        │   file · sha256 · got_dur · attempts · note
         ▼
  runner  tools/flow_shoot.py  (Playwright over CDP, port 9222, dedicated Chrome profile)
         │   for each row with status ∉ {verified}:
