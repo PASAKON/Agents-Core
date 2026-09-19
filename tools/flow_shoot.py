@@ -90,6 +90,31 @@ class EstimateUnreadable(RuntimeError):
     proceed past an unknown cost" failure this must not do)."""
 
 
+class ChipCountMismatch(RuntimeError):
+    """Raised by FlowBrowser.submit() itself when handed an
+    expected_chip_count that doesn't match the live count it re-reads at
+    that instant. task-04851451, incident 2: a proof-shot run logged
+    attach_chip() TimeoutErrors for BOTH handles and still reached
+    'submitted' — the caller-side hard gate (cmd_run comparing
+    live_chip_count to len(shot['chips']) before calling submit) had
+    already covered this class of bug once (see the existing
+    test_chip_count_mismatch_blocks_submit, from iteration 2) and a
+    read-only pull of the actual clip afterward showed both references had
+    in fact rendered correctly — attach_chip()'s own return value is
+    decoupled from reality (a Playwright click-wait can time out on a
+    confirm button that the browser still processes a moment later; the
+    DOM chip count is the ground truth, not that boolean). Still: a guard
+    that lives only in the caller is one edit away from being skipped.
+    This makes the same check unavoidable at the only place credits can be
+    spent, exactly like the dry_run guard above."""
+
+    def __init__(self, expected: int, actual: int):
+        super().__init__(
+            f"expected {expected} chip(s) attached, found {actual} — refusing to submit")
+        self.expected = expected
+        self.actual = actual
+
+
 class CreditCapExceeded(RuntimeError):
     """Raised by _submit_or_raise() as a backstop if browser.submit() is
     ever reached despite the cap already being exceeded — belt-and-braces
@@ -505,7 +530,7 @@ class FlowBrowser:
                 "STOP, not a zero: an unreadable price is not a free price")
         return est
 
-    def submit(self) -> None:
+    def submit(self, expected_chip_count: int | None = None) -> None:
         if self.dry_run:
             raise RuntimeError(
                 "BUG: FlowBrowser.submit() called while dry_run is set — "
@@ -513,6 +538,10 @@ class FlowBrowser:
                 "(task-04851451: 15 real generations fired past two "
                 "control-flow-only guards while iteration 2 edited this "
                 "file between manual runs)")
+        if expected_chip_count is not None:
+            actual = self.chip_count()
+            if actual != expected_chip_count:
+                raise ChipCountMismatch(expected_chip_count, actual)
         self.page.locator('button[aria-label="เริ่มสร้าง"]').first.click()
 
     def poll_result(self, timeout_s: int = COMPLETION_TIMEOUT_S) -> dict:
@@ -599,20 +628,24 @@ class FlowBrowser:
 # ── the runner ───────────────────────────────────────────────────────────────
 
 def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
-                      cap: int) -> None:
-    """The ONLY call site for browser.submit() in the whole runner. Both
-    money guards are re-checked here, immediately before the call — task-
-    04851451: cmd_run already had a cap check and a dry-run check ahead of
-    its one submit() call, in that same order, and 15 real generations
-    still fired while iteration 2 edited the surrounding code between
-    manual runs. Centralizing the check into the only function that can
-    spend means a future edit has to remove a guard from inside this
-    function, not just avoid tripping over one two lines above a call."""
+                      cap: int, expected_chip_count: int) -> None:
+    """The ONLY call site for browser.submit() in the whole runner. All
+    three money/correctness guards are re-checked here, immediately before
+    the call — task-04851451: cmd_run already had a cap check and a
+    dry-run check ahead of its one submit() call, in that same order, and
+    15 real generations still fired while iteration 2 edited the
+    surrounding code between manual runs. Centralizing the check into the
+    only function that can spend means a future edit has to remove a guard
+    from inside this function, not just avoid tripping over one two lines
+    above a call. expected_chip_count is forwarded into submit() itself
+    (see ChipCountMismatch) rather than checked only here, so a caller
+    skipping this wrapper entirely still can't spend with the wrong
+    references attached."""
     if browser.dry_run:
         raise RuntimeError("BUG: _submit_or_raise called while dry_run is set")
     if credit_cap_exceeded(spent_this_run, estimate, cap):
         raise CreditCapExceeded(spent_this_run, estimate, cap)
-    browser.submit()
+    browser.submit(expected_chip_count=expected_chip_count)
 
 
 def _attempt_chip(browser: FlowBrowser, handle: str) -> bool:
@@ -741,7 +774,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                          f"prompt_verified=True estimate={estimate} credits — stopping before Submit")
                     return 0
 
-                _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap)
+                _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
+                                  expected_chip_count=len(shot["chips"]))
                 row["attempts"] = str(int(row.get("attempts") or 0) + 1)
                 row["status"] = "submitted"
                 flow_ledger.save_ledger(ledger_path, rows)
@@ -751,7 +785,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 result = browser.poll_result()
                 if result["status"] == "refusal" and int(row["attempts"]) == 1:
                     _log(f"shot {n}: refused — re-firing identical prompt once (refunded)")
-                    _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap)
+                    _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
+                                  expected_chip_count=len(shot["chips"]))
                     row["attempts"] = "2"
                     flow_ledger.save_ledger(ledger_path, rows)
                     result = browser.poll_result()
@@ -789,6 +824,15 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 flow_ledger.save_ledger(ledger_path, rows)
                 _log(f"shot {n}: {row['status']} — {reason}")
 
+            except ChipCountMismatch as e:
+                # Same severity as the pre-check hard gate above (needs_model,
+                # try the next shot) — this is a per-shot reference problem,
+                # not a run-wide money-safety issue like the two below.
+                row["status"], row["note"] = "needs_model", f"chip count mismatch at submit: {e!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: needs_model — chip count mismatch caught inside "
+                     f"submit() itself: {e!r}")
+                continue
             except EstimateUnreadable as e:
                 row["status"], row["note"] = "failed", f"estimate unreadable: {e!r}"
                 flow_ledger.save_ledger(ledger_path, rows)

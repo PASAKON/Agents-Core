@@ -626,7 +626,7 @@ class _GateStubBrowser:
     def read_credit_estimate(self) -> int:
         return 4
 
-    def submit(self) -> None:
+    def submit(self, expected_chip_count: int | None = None) -> None:
         self.submit_called = True
 
     def poll_result(self, timeout_s: int = 0) -> dict:
@@ -736,7 +736,7 @@ class _DryRunAwareStubBrowser:
     def read_credit_estimate(self) -> int:
         return 4
 
-    def submit(self) -> None:
+    def submit(self, expected_chip_count: int | None = None) -> None:
         if self.dry_run:
             raise RuntimeError("BUG: submit() called while dry_run is set")
         self.submit_called = True
@@ -853,7 +853,7 @@ class _EstimateUnreadableStubBrowser:
         raise flow_shoot.EstimateUnreadable(
             "panel text unreadable, stub reproducing the live failure mode")
 
-    def submit(self) -> None:
+    def submit(self, expected_chip_count: int | None = None) -> None:
         self.submit_called = True
 
     def poll_result(self, timeout_s: int = 0) -> dict:
@@ -928,3 +928,139 @@ def test_flowbrowser_read_credit_estimate_raises_the_specific_type():
     browser.page = _FakePageNoEstimate()
     with pytest.raises(flow_shoot.EstimateUnreadable):
         browser.read_credit_estimate()
+
+
+# ── chip-count guard, made structural (task-04851451, incident 2, 2026-09-19
+#    20:05): a proof-shot run logged attach_chip() TimeoutErrors for BOTH
+#    handles of shot 3 and still reached "submitted" a second later. A
+#    read-only pull of the actual clip afterward (frame 0, visually
+#    inspected) showed both references — @lung_somchai's face/wardrobe and
+#    @staircase's location — HAD rendered correctly: attach_chip()'s own
+#    return value is decoupled from reality by design (chip_count() is the
+#    ground truth _attempt_chip polls, not that boolean; see the class
+#    docstring on _GateStubBrowser above), and this run's real live chip
+#    count genuinely was 2-of-2 by the time the pre-existing hard gate
+#    checked it — the existing test_chip_count_mismatch_blocks_submit
+#    already proves that gate refuses a genuine mismatch. What this section
+#    adds is the CTO's explicit ask: make the same check unavoidable
+#    INSIDE submit() itself, not only in the caller, and reproduce the
+#    exact "zero chips" framing end to end. ──────────────────────────────
+
+def test_flowbrowser_submit_raises_chip_count_mismatch():
+    # Unit test on the REAL class: even with no cmd_run control flow
+    # involved, handing submit() an expected count that doesn't match the
+    # live DOM read must refuse.
+    browser = flow_shoot.FlowBrowser()
+
+    class _FakeChipLocator:
+        def count(self):
+            return 0  # live DOM says zero chips attached
+
+    class _FakePage:
+        def locator(self, selector):
+            assert selector == "flow-ingredient-bar flow-ingredient-chip"
+            return _FakeChipLocator()
+
+    browser.page = _FakePage()
+    with pytest.raises(flow_shoot.ChipCountMismatch) as exc_info:
+        browser.submit(expected_chip_count=2)
+    assert exc_info.value.expected == 2
+    assert exc_info.value.actual == 0
+
+
+def test_flowbrowser_submit_with_matching_chip_count_does_not_raise():
+    # Positive control: submit() must not false-block a genuine match —
+    # this is what the pulled shot-3 clip actually was (2-of-2, visually
+    # confirmed), so the guard must let that case through.
+    browser = flow_shoot.FlowBrowser()
+
+    class _FakeChipLocator:
+        def count(self):
+            return 2
+
+    class _FakePage:
+        def locator(self, selector):
+            return _FakeChipLocator()
+
+        def evaluate(self, _script):
+            return None
+
+    class _FakeButtonLocator:
+        @property
+        def first(self):
+            return self
+
+        def click(self):
+            pass
+
+    page = _FakePage()
+    page.locator = lambda selector: (
+        _FakeButtonLocator() if selector.startswith('button[aria-label')
+        else _FakeChipLocator())
+    browser.page = page
+    browser.submit(expected_chip_count=2)  # must not raise
+
+
+class _ZeroChipsStubBrowser:
+    """Reproduces CTO's exact framing of the 20:05 incident, as read from
+    the log alone (before the actual clip was pulled and visually
+    inspected): attach_chip() reports failure for EVERY handle and
+    chip_count() never leaves zero. submit() also carries the real
+    class's expected_chip_count guard, so a run against this stub proves
+    both layers hold in the literal worst case named."""
+
+    def __init__(self):
+        self.dry_run = False
+        self.submit_called = False
+        self._pasted = ""
+
+    def attach(self) -> None:
+        pass
+
+    def mute_all_media(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+    def set_settings(self, dur_s, resolution="720p") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+                "qty_x1": True, "resolution": True, "duration": True}
+
+    def chip_count(self) -> int:
+        return 0
+
+    def attach_chip(self, _handle: str) -> bool:
+        return False
+
+    def paste_prompt(self, text: str) -> None:
+        self._pasted = text
+
+    def read_prompt_text(self) -> str:
+        return self._pasted
+
+    def read_credit_estimate(self) -> int:
+        return 4
+
+    def submit(self, expected_chip_count: int | None = None) -> None:
+        if expected_chip_count is not None and self.chip_count() != expected_chip_count:
+            raise flow_shoot.ChipCountMismatch(expected_chip_count, self.chip_count())
+        self.submit_called = True
+
+    def poll_result(self, timeout_s: int = 0) -> dict:
+        raise AssertionError("poll_result() must never be reached")
+
+    def download(self):
+        raise AssertionError("download() must never be reached")
+
+
+def test_zero_chips_attached_never_reaches_submit(tmp_path):
+    args = _cap_args(tmp_path, "zero_chips.tsv", cap=999)
+    stub = _ZeroChipsStubBrowser()
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    assert stub.submit_called is False
+    rows = flow_ledger.load_ledger(tmp_path / "zero_chips.tsv")
+    assert rows[35]["status"] == "needs_model"
+    assert "chip never attached" in rows[35]["note"]
+    assert rc == 1
