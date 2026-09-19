@@ -113,12 +113,11 @@ NOT = {
  # Not "hide the notes" — change what the notes ARE, so a counting scene can be
  # shot openly. Foreign currency is NOT the safer option: dollars, euro, yen and
  # yuan all carry portraits and protected designs of their own.
- "money": "The banknotes are plain fictional prop money, not the currency of any real "
-          "country: soft pastel paper in even tones, a simple printed numeral in one "
-          "corner, a plain abstract line pattern at the edges, and nothing else. No "
-          "portrait or face of any kind on the notes. No national emblem, crest, seal, "
-          "flag or country name. No real-world currency symbol, no serial numbers, no "
-          "signatures, no microtext, no watermark. Worn and soft with handling. Also in "
+ "money": "The banknotes are obvious theatrical prop money of an invented place: soft "
+          "pastel paper in even tones, one plain printed numeral in a corner, a simple "
+          "abstract line pattern at the edges, and nothing else on them. No portrait or "
+          "face of any kind, and no national emblem, crest, flag or country name — this "
+          "is not the currency of any real country. Worn and soft with handling. Also in "
           "this shot: no notebook, no pen, no paper, no ledger of any kind.",
  "ya":    "She stays lying propped on the pillows and does not sit up. She wears no glasses. The "
           "nasal cannula stays on.",
@@ -128,7 +127,7 @@ NOT = {
 # action, [(speaker key, direction, thai line), ...], [not-list keys]
 SHOTS = [
  (1, 8, "Medium shot, static camera with a slight handheld sway", ["somchai"], "wall", "just before dawn",
-  "is shoved back against the wall and held there, an arm from off-frame pinning him, his own hands open and placating",
+  "stands backed against the wall with both hands open and placating, talking fast and upward to someone just off-frame whose long shadow falls across him",
   [("somchai","fast and placating","ผมหาให้ครับ พรุ่งนี้เช้าผมหาให้ครบแน่นอน"),
    ("somchai","lower, pleading","อย่าเพิ่งไปที่ร้านเลยครับ ลูกผมอยู่ที่นั่น")], []),
  (2, 6, "Close-up, static camera at a low angle", ["somchai"], "wall", "just before dawn",
@@ -229,7 +228,7 @@ SHOTS = [
   [("ton","tender","เดี๋ยวผมขึ้นมาใหม่นะครับย่า พักก่อนนะครับ")], ["ya"]),
 
  (24, 10, "Medium shot, static camera, his face in frame above the counter", ["somchai"], "shop", "afternoon lull",
-  "sits alone at the back counter sorting worn banknotes into piles, hands below the frame line, lips moving",
+  "sits alone at the back counter with the day's takings in front of him, moving one note aside with a fingertip, lips moving",
   [("somchai","muttering, working through it","ค่าเส้น ค่าหมู ค่าน้ำแข็ง แล้วก็ค่าแก๊ส"),
    ("somchai","counting","วันนี้ได้มาสามพันสอง เหลือเท่านี้"),
    ("somchai","firm with himself","อันนี้ค่ายาแม่ ห้ามแตะเด็ดขาด")], ["money"]),
