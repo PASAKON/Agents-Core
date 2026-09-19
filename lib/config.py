@@ -211,16 +211,39 @@ def _read_dotenv_var(name: str) -> str | None:
     return None
 
 
-# Anthropic-compatible coding endpoint (Z.ai Coding Plan quota).
-# BytePlus ModelArk removed 2026-08-01 — org now on Z.ai only.
+# Anthropic-compatible coding endpoints.
+# BytePlus ModelArk removed 2026-08-01.
+#
+# "ninerouter" is 9Router (MIT, https://github.com/decolua/9router) running as a
+# LOCAL proxy on this machine, added 2026-09-19 on the CEO's instruction as a
+# fallback for when the Claude subscription's weekly limit is spent. It is a
+# router, not a model: whatever provider it forwards to is configured inside
+# 9Router itself, so a prompt sent this way may reach a company nobody in this
+# repo chose. Two consequences, both deliberate:
+#
+#   * It is NOT in the "auto" quota path and never will be. Reaching it takes a
+#     human setting WORKER_MODEL_PROVIDER=ninerouter, so no automatic decision
+#     can ever route a prompt to an unknown third party.
+#   * Anything touching secrets, production or money stays on Claude — set
+#     tasks.model_hint='claude' (see worker_provider_overrides). The roles that
+#     handle those (security_engineer, devops) are already outside the pilot
+#     default_roles and so never offload at all.
+#
+# The base URL points at localhost on purpose: if 9Router is not running the
+# spawn fails fast against a dead local port instead of silently reaching the
+# internet. NINEROUTER_API_KEY doubles as the on-switch — a local proxy needs no
+# real key, so set it to anything (e.g. "local") to declare the intent.
 _PROVIDER_ENDPOINTS = {
     "zai": "https://api.z.ai/api/anthropic",
+    "ninerouter": "http://127.0.0.1:20128",
 }
 _PROVIDER_KEY_VAR = {
     "zai": "ZAI_API_KEY",
+    "ninerouter": "NINEROUTER_API_KEY",
 }
 _PROVIDER_DEFAULT_MODEL = {
     "zai": "glm-5.2",
+    "ninerouter": "claude-sonnet-4-5",
 }
 
 
@@ -259,7 +282,11 @@ def _provider_overrides(
                            or _read_dotenv_var("ZAI_USAGE_TOKEN"))
         provider = pick_provider(zai_usage_token)
         if provider != "zai":
-            return None  # quota check picked Claude
+            # The quota router only ever chooses between Claude and Z.ai. Any
+            # other answer (including "ninerouter", which it must never return)
+            # falls back to Claude: an automatic path may not send a prompt to a
+            # provider a human did not name. CEO 2026-09-19.
+            return None
     if provider not in _PROVIDER_ENDPOINTS:
         return None
     key = (os.environ.get(_PROVIDER_KEY_VAR[provider])

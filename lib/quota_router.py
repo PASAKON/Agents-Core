@@ -50,7 +50,7 @@ def fetch_claude_headroom() -> dict | None:
             "five_hour": _headroom(data["five_hour"]["utilization"]),
             "seven_day": _headroom(data["seven_day"]["utilization"]),
         }
-    except (subprocess.SubprocessError, ValueError, KeyError, OSError):
+    except (subprocess.SubprocessError, ValueError, KeyError, TypeError, OSError):
         return None
 
 
@@ -66,7 +66,7 @@ def fetch_zai_headroom(usage_token: str | None) -> dict | None:
             "five_hour": _headroom(data["five_hour"]["utilization"]),
             "seven_day": _headroom(data["seven_day"]["utilization"]),
         }
-    except (URLError, TimeoutError, ValueError, KeyError, OSError):
+    except (URLError, TimeoutError, ValueError, KeyError, TypeError, OSError):
         return None
 
 
