@@ -173,6 +173,7 @@ notes on those live in docs/ops/ (antigravity-cli-test.md, the benefits audit).
 | Attach ingredient chips | 0 |
 | Navigate any tab (Scenes, Tools, Agent) | 0 |
 | **Veo 3.1 Fast — 8s, 720p, 9:16, x1** | **10** — live panel read on the Ultra account 2026-09-18 (task-68653632). Was **20** on 2026-09-07, measured twice. One read so far: confirm before re-planning budgets |
+| **Omni 1.1 Flash — 4s, 360p, 9:16, x1** | **4** — measured 2026-09-19 (task-a09ed18a) by balance delta 8,552 → 8,548, not by the panel's estimate. Five times cheaper than a 720p/8s fire: use this for every selector and plumbing test. |
 | Veo 3.1 Lite | **5** — live panel read 2026-09-18 (task-68653632); the published table said 10 |
 | Veo 3.1 Quality | 100 (published; visible in the panel, never selected) |
 | Download / re-export a clip | 0 |
@@ -348,6 +349,33 @@ So:
 
 **Every Flow task must record wall-clock per action and append to this table.**
 An operator that reports "it took a while" has failed the reporting bar.
+
+## The settings panel — measured against the live DOM (2026-09-19, task-a09ed18a)
+
+Everything below was wrong in this file until a Playwright dry-run checked it.
+
+- The composer's collapsed pill has **no per-facet aria-labels.** "Ratio",
+  "Duration", "Resolution" never existed. Every real control lives in the
+  `<flow-prompt-box-settings>` overlay, opened by `aria-label="ทริกเกอร์การตั้งค่า"`.
+- **That panel opens on the `รูปภาพ` (Image) tab.** `วิดีโอ` must be selected
+  first or you are setting an image's options. Both the open and the tab switch
+  are racy — poll, never trust one click.
+- **Every toggle label is always in the DOM** — 720p and 360p, x1 through x4,
+  every duration. Only the wrapper's `mat-button-toggle-checked` class says which
+  is active. So "is '360p' in the body text?" answers **true no matter what is
+  selected**; a read-back written that way confirms whatever you hoped for.
+- **The credit estimate exists only while the panel is open** — genuinely absent
+  from the DOM when closed, not merely hard to find. Reopen, read, close.
+- **The submit button is `aria-label="เริ่มสร้าง"`**, never "Submit".
+- **`[aria-label="Download"]` / `[aria-label="ดาวน์โหลด"]` match ZERO elements.**
+  A runner waiting on them reports a clip as failed while Google has generated it
+  and charged for it. Verify the real control before believing any "it failed"
+  that came from automation.
+- **A stray `.cdk-overlay-backdrop` left open by an earlier script blocks every
+  later click**, chip attach included, with Playwright reporting "element is
+  visible, enabled and stable" and then "subtree intercepts pointer events".
+  Read that twice: the "chip attach works about 1 in 15 times" folklore in this
+  file may be partly this. Close what you opened.
 
 ## Traps — each one silently costs a generation
 
