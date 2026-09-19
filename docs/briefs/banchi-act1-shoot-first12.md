@@ -56,6 +56,27 @@ Do not read the credit balance from the account menu — it is flaky and cost an
 earlier run 25 minutes. Read the **live estimate in the settings panel** instead,
 immediately before each submit. That is the number that matters anyway.
 
+## ⛔ Identify a clip by its PROMPT before you download it (2026-09-19)
+
+The project feed shows every operator's clips mixed together, ordered by
+completion, **with no shot number on any of them.** Two operators shooting the
+same act at the same time will see each other's work interleaved with their own.
+
+On 2026-09-19 an operator downloaded a clip its parallel partner had just
+produced and filed it as its own shot. The file was byte-identical to the other
+operator's, so the finished cut would have played one shot twice and silently
+dropped another. It was caught only by checksumming the folder afterwards.
+
+**So, before every download:** open the clip's own `/edit/<id>` page and confirm
+the prompt text there matches the shot you are claiming — specifically the
+`Use <IMAGE_REF_0> as the character reference for …` opening AND a distinctive
+Thai line from further down. Auto-generated card titles are not identification:
+two different shots can both be titled "Man speaking in noodle shop", and two
+shots with the same chips have identical prompt openings.
+
+Never identify a clip by its position in the feed, by its thumbnail, or by its
+title alone.
+
 ## Getting the clips out — use the download button
 
 **This reverses an earlier version of this brief.** It used to forbid the
