@@ -542,3 +542,110 @@ def test_check_replay_script_accepts_flow_shoot():
         capture_output=True, text=True,
     )
     assert r.returncode == 0, r.stdout + r.stderr
+
+
+# ── chip-count hard gate (CTO, 19 Sep, task-a09ed18a): a shot must never
+#    reach Submit unless the LIVE chip count exactly matches what the shot
+#    needs. Found live: attach_chip(@staircase) logged a timeout, yet the
+#    run still reached "submitted" a second later — _attempt_chip's
+#    per-handle "count increased from before" check is not proof the RIGHT
+#    total ended up attached. These exercise cmd_run's real control flow
+#    against a stub FlowBrowser (injected via the new browser_factory
+#    param) rather than a pure helper, because what must be proven is that
+#    submit() itself is never called, not just that some boolean is False. ─
+
+class _GateStubBrowser:
+    """chip_count() plays back a scripted sequence of return values, one
+    per call, decoupled from attach_chip() — this is what lets a test
+    reproduce the live bug exactly: every per-handle
+    "count increased since before" check in _attempt_chip can pass while
+    the TOTAL the hard gate re-reads afterwards still does not match what
+    the shot needs (a transient over-count during polling that reverts by
+    the time of the final authoritative read)."""
+
+    def __init__(self, chip_count_sequence: list[int]):
+        self._seq = list(chip_count_sequence)
+        self._idx = 0
+        self._pasted = ""
+        self.submit_called = False
+        self.download_called = False
+
+    def attach(self) -> None:
+        pass
+
+    def mute_all_media(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+    def set_settings(self, dur_s, resolution="720p") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+                "qty_x1": True, "resolution": True, "duration": True}
+
+    def chip_count(self) -> int:
+        val = self._seq[min(self._idx, len(self._seq) - 1)]
+        self._idx += 1
+        return val
+
+    def attach_chip(self, _handle: str) -> bool:
+        return True  # the click itself "succeeds" from attach_chip's own POV
+
+    def paste_prompt(self, text: str) -> None:
+        self._pasted = text
+
+    def read_prompt_text(self) -> str:
+        return self._pasted
+
+    def read_credit_estimate(self) -> int:
+        return 4
+
+    def submit(self) -> None:
+        self.submit_called = True
+
+    def poll_result(self, timeout_s: int = 0) -> dict:
+        return {"status": "refusal", "text": "ล้มเหลว (stub, positive-control test)"}
+
+    def download(self):
+        self.download_called = True
+        raise AssertionError("download() must never be reached in this test")
+
+
+def _run_args(tmp_path: Path, ledger_name: str) -> object:
+    ap = flow_shoot.build_parser()
+    return ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET),
+        "--ledger", str(tmp_path / ledger_name),
+        "--dest", str(tmp_path / "dest"),
+        "--credit-cap", "999", "--only", "35",
+    ])
+
+
+def test_chip_count_mismatch_blocks_submit(tmp_path):
+    # Shot 35 needs 3 chips. Each per-handle attach appears to succeed
+    # (chip_count keeps rising across the 3 attempts, briefly touching 3),
+    # but the hard gate's own re-read afterwards sees only 2 — must refuse
+    # to proceed, and submit() must never be called.
+    args = _run_args(tmp_path, "gate_mismatch.tsv")
+    stub = _GateStubBrowser(chip_count_sequence=[0, 1, 1, 2, 2, 3, 2])
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    assert stub.submit_called is False
+    assert stub.download_called is False
+    rows = flow_ledger.load_ledger(tmp_path / "gate_mismatch.tsv")
+    assert rows[35]["status"] == "needs_model"
+    assert "chip count mismatch" in rows[35]["note"]
+    assert rc == 1  # this row left "todo" without reaching "verified"
+
+
+def test_chip_count_match_reaches_submit(tmp_path):
+    # Positive control: when the final re-read DOES match, the gate must
+    # not false-block a correct attach — the run proceeds to Submit.
+    args = _run_args(tmp_path, "gate_match.tsv")
+    stub = _GateStubBrowser(chip_count_sequence=[0, 1, 1, 2, 2, 3, 3])
+    flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    assert stub.submit_called is True
+    rows = flow_ledger.load_ledger(tmp_path / "gate_match.tsv")
+    assert rows[35]["status"] == "refused"  # stub's poll_result() always refuses
+    assert rows[35]["note"] == "ล้มเหลว (stub, positive-control test)"

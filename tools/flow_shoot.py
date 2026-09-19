@@ -497,7 +497,10 @@ def _attempt_chip(browser: FlowBrowser, handle: str) -> bool:
     return False
 
 
-def cmd_run(args: argparse.Namespace) -> int:
+def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
+    """browser_factory is overridable so tests can exercise this control
+    flow (e.g. the chip-count hard gate) against a stub instead of a real
+    Playwright/CDP connection — nothing else about the CLI changes."""
     sheet_path = Path(args.sheet)
     ledger_path = Path(args.ledger)
     dest = Path(args.dest).expanduser()
@@ -520,7 +523,7 @@ def cmd_run(args: argparse.Namespace) -> int:
              f"duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, "
              f"never use this for a production run ***")
 
-    browser = FlowBrowser()
+    browser = browser_factory()
     spent_this_run = 0
     try:
         try:
@@ -540,6 +543,11 @@ def cmd_run(args: argparse.Namespace) -> int:
                 _log(f"shot {n}: not in sheet — skip")
                 continue
             dur_s = effective_duration(shot["dur_s"], args.force_duration)
+            # Clear any note from a prior failed attempt on this row before
+            # trying again — CTO, 19 Sep: a stale "chip never attached" note
+            # from an earlier run survived next to a fresh "submitted"
+            # status, reading as if the CURRENT attempt was the broken one.
+            row["note"] = ""
             try:
                 settings = browser.set_settings(dur_s, args.resolution)
                 bad = [k for k, v in settings.items() if not v]
@@ -556,6 +564,24 @@ def cmd_run(args: argparse.Namespace) -> int:
                         break
                 if attach_fail:
                     row["status"], row["note"] = "needs_model", f"chip never attached: {attach_fail}"
+                    flow_ledger.save_ledger(ledger_path, rows)
+                    _log(f"shot {n}: needs_model — {row['note']}")
+                    continue
+
+                # HARD GATE (CTO, 19 Sep, live proof run task-a09ed18a): a
+                # per-handle "count increased" check is not proof the RIGHT
+                # count is attached — a shot submitted 2026-09-19T19:03:31
+                # despite an attach_chip() timeout logged one second
+                # earlier, because _attempt_chip's polling loop alone
+                # decided the count had moved. Re-verify the TOTAL live
+                # chip count against what this shot needs, one last time,
+                # right before anything that can spend credits. A mismatch
+                # here is needs_model and MUST NOT reach submit.
+                live_chip_count = browser.chip_count()
+                if live_chip_count != len(shot["chips"]):
+                    row["status"] = "needs_model"
+                    row["note"] = (f"chip count mismatch after attach: expected "
+                                    f"{len(shot['chips'])}, found {live_chip_count}")
                     flow_ledger.save_ledger(ledger_path, rows)
                     _log(f"shot {n}: needs_model — {row['note']}")
                     continue
