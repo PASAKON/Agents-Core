@@ -2,6 +2,10 @@
 
 Multi-agent orchestration. Hierarchical: CEO (you) → CTO → DEVs.
 
+> Repository boundaries and the proposed source/private-project separation are
+> documented in [`STRUCTURE.md`](STRUCTURE.md). New top-level content must also
+> be classified in [`config/repository-boundaries.yaml`](config/repository-boundaries.yaml).
+
 Lives at `/Users/gob/Projects/Agents/` — single top-level home for all
 agent control + infra.
 

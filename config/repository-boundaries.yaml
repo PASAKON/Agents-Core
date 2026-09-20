@@ -1,0 +1,81 @@
+version: 1
+purpose: "Classify every tracked top-level path and stop new source/project mixing."
+
+zones:
+  core_source:
+    description: "MoonieX control-plane behavior and entrypoints."
+    lifecycle: keep
+    paths: [lib, runners, tools, main.py, dashboard.py]
+
+  shared_configuration:
+    description: "Versioned, non-secret defaults, roles, prompts and policy."
+    lifecycle: keep
+    paths: [config, policies, roles, playbooks, prompts]
+
+  operations:
+    description: "Repeatable setup, launch, migration and platform operations."
+    lifecycle: keep
+    paths: [scripts, windows, requirements.txt]
+
+  tests:
+    description: "Automated verification isolated from live state."
+    lifecycle: keep
+    paths: [tests, conftest.py, pytest.ini]
+
+  documentation:
+    description: "Shared product and architecture documentation."
+    lifecycle: keep
+    paths: [README.md, STRUCTURE.md, docs]
+
+  repository_governance:
+    description: "Repository, agent and automation metadata."
+    lifecycle: keep
+    paths:
+      - .agents
+      - .claude
+      - .github
+      - .gitignore
+      - .mcp.json
+      - CLAUDE.md
+      - PROMPTS.md
+      - skills-lock.json
+
+  runtime_legacy:
+    description: "Runtime/generated locations still partly tracked; migrate outside the checkout."
+    lifecycle: migrate
+    destination: "../runtime"
+    paths: [state, output]
+
+  personal_project_legacy:
+    description: "Personal knowledge, research, assets and project deliverables mixed into the old root."
+    lifecycle: migrate
+    destination: "../mooniex-private or ../projects/<project>"
+    paths:
+      - assets
+      - data
+      - knowledge
+      - prototypes
+      - questline
+      - research
+      - RUNPOD-BLACKWELL-SURVEY.md
+      - RUNPOD-SURVEY.md
+      - clip-urls.tsv
+      - clips-b.tsv
+      - clips-batch1.tsv
+      - clips.tsv
+      - downloads-b2.tsv
+      - downloads-b3.tsv
+      - downloads-b4.tsv
+      - downloads-b5.tsv
+      - downloads-s2.tsv
+      - downloads.tsv
+      - plate-urls.tsv
+
+policy:
+  require_all_tracked_top_level_paths_classified: true
+  forbid_duplicate_classification: true
+  new_root_file_patterns:
+    # Existing matching files are explicitly classified above. New ones fail validation.
+    - "*.tsv"
+    - "RUNPOD-*.md"
+  secrets_allowed: false

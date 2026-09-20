@@ -1,0 +1,15 @@
+version: 1
+
+# Logical roots only. Copy this file to machine-local configuration and replace
+# values for each node. The application does not consume this contract yet.
+roots:
+  control_plane: "."
+  private_knowledge: "../mooniex-private"
+  projects: "../projects"
+  runtime: "../runtime"
+  worktrees: "../worktrees"
+
+rules:
+  shared_source_may_contain_secrets: false
+  runtime_is_versioned: false
+  personal_projects_are_part_of_control_plane_repo: false
