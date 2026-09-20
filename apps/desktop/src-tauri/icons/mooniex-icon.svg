@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="80" x2="900" y2="950" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.48" stop-color="#E8E8FF"/>
+      <stop offset="1" stop-color="#C7DDF8"/>
+    </linearGradient>
+    <linearGradient id="orbit" x1="260" y1="245" x2="770" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8A83FF"/>
+      <stop offset="1" stop-color="#5751C7"/>
+    </linearGradient>
+    <radialGradient id="core">
+      <stop stop-color="#FFF8D4"/>
+      <stop offset="0.55" stop-color="#F5C969"/>
+      <stop offset="1" stop-color="#DD9F30"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="28" stdDeviation="34" flood-color="#47428F" flood-opacity=".24"/>
+    </filter>
+  </defs>
+  <rect x="44" y="44" width="936" height="936" rx="236" fill="url(#bg)"/>
+  <rect x="61" y="61" width="902" height="902" rx="219" fill="none" stroke="white" stroke-opacity=".8" stroke-width="18"/>
+  <g filter="url(#shadow)" fill="none" stroke="url(#orbit)" stroke-width="58">
+    <ellipse cx="512" cy="512" rx="334" ry="148" transform="rotate(34 512 512)"/>
+    <ellipse cx="512" cy="512" rx="334" ry="148" transform="rotate(-34 512 512)"/>
+  </g>
+  <circle cx="512" cy="512" r="112" fill="url(#core)" stroke="white" stroke-opacity=".72" stroke-width="18"/>
+  <circle cx="474" cy="468" r="30" fill="white" fill-opacity=".58"/>
+</svg>

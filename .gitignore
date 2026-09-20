@@ -123,3 +123,4 @@ mcp/node_modules/
 apps/**/node_modules/
 apps/**/dist/
 apps/**/src-tauri/target/
+apps/**/src-tauri/gen/

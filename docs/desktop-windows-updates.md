@@ -19,7 +19,9 @@ passive mode, and the Windows app restarts into the new version.
 |---|---|
 | `TAURI_SIGNING_PRIVATE_KEY` | Signs Windows updater artifacts |
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Unlocks the signing key during CI |
-| `TAURI_UPDATER_PUBLIC_KEY` | Embedded into the application updater configuration |
+
+The public key is safe to distribute and is committed in `tauri.conf.json`. Only the
+private key and its password are secrets.
 
 Generate the production key once on a trusted owner machine. Keep an encrypted backup;
 losing it means already-installed applications cannot trust future update packages.

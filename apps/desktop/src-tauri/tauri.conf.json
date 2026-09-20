@@ -28,9 +28,20 @@
       "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src ipc: http://ipc.localhost"
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI2OTJFODY0NEM2MTQyOEIKUldTTFFtRk1aT2lTdHZVZmZGRlBBRytqWjZGemxPTnlUalVLMHhVakhSSDdxTVIzam5aK0xDdzEK",
+      "endpoints": [
+        "https://github.com/PASAKON/MoonieX-Agents/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
     "createUpdaterArtifacts": true,
     "category": "Productivity",
     "shortDescription": "Control people, agents, and MoonieX Nodes from one workspace."
