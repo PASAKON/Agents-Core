@@ -32,7 +32,9 @@ import argparse
 import hashlib
 import re
 import shutil
+import subprocess
 import sys
+import tempfile
 import time
 import zipfile
 from datetime import datetime
@@ -47,6 +49,7 @@ LOG_PATH = Path("state/banchi/flow_shoot.log")
 DOWNLOAD_GAP_S = 8  # brief's rule: never fire two downloads closer than this
 POLL_S = 8
 COMPLETION_TIMEOUT_S = 8 * 60
+UPSCALE_TIMEOUT_S = 3 * 60
 DURATION_TOLERANCE_S = 0.6
 MIN_AUDIO_DB = -60.0
 
@@ -68,14 +71,9 @@ _CREDIT_RE = re.compile(r"(\d+)\s*เครดิต")
 # [aria-label="Download"]/[aria-label="ดาวน์โหลด"] confirmed to match ZERO
 # elements — the only "download" mat-icon anywhere on the page is nested
 # inside a per-batch "ดาวน์โหลดแบบกลุ่ม" (bulk download) button, not a
-# per-clip control. There is no per-clip download button in this UI at all.
-# The real, verified mechanism (matches google-flow-ops' "the download
-# button is dead" section): Flow itself fetches this signed CDN URL to
-# render/play a clip; capture that network response and pull the bytes
-# directly. Proven live: navigated to an existing clip's /edit/<uuid>,
-# nudged a muted play(), captured this URL, fetched it via
-# page.request.get() with no extra auth, got 200 / 381529 bytes / a real
-# 4.01s h264+aac mp4 confirmed by ffprobe.
+# per-clip control in the project feed. The signed CDN URL remains useful for
+# completion detection and the explicit legacy 720p mode. Production exports
+# now open the clip editor and use Flow's free 1080p upscale menu instead.
 CDN_VIDEO_RE = re.compile(r"flow-content\.google/video/")
 
 
@@ -215,7 +213,33 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def verify_clip(path: Path, expected_dur: float) -> tuple[bool, str]:
+def probe_video_dimensions(path: Path) -> tuple[int, int]:
+    """Return the first video stream's width/height via ffprobe."""
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "stream=width,height", "-of", "csv=p=0",
+         str(path)],
+        check=True, capture_output=True, text=True,
+    )
+    width, height = result.stdout.strip().split(",", 1)
+    return int(width), int(height)
+
+
+def validate_download_option(text: str, resolution: str) -> None:
+    """Refuse any paid or mismatched export option before clicking it."""
+    normalized = " ".join((text or "").split())
+    if resolution != "1080p":
+        raise ValueError(f"unsupported upscale resolution: {resolution!r}")
+    if "1080p" not in normalized or "เพิ่มความละเอียดแล้ว" not in normalized:
+        raise RuntimeError(
+            f"live Flow menu is not the expected free 1080p upscale: {normalized!r}")
+    if "เครดิต" in normalized:
+        raise RuntimeError(
+            f"refusing a credit-bearing download option: {normalized!r}")
+
+
+def verify_clip(path: Path, expected_dur: float,
+                expected_resolution: str | None = None) -> tuple[bool, str]:
     """ffprobe duration within tolerance, audio present. Reuses
     clip_review's own probes so the two tools never disagree on what a
     passing clip looks like."""
@@ -227,6 +251,19 @@ def verify_clip(path: Path, expected_dur: float) -> tuple[bool, str]:
     db = clip_review.mean_db(path)
     if db is None or db < MIN_AUDIO_DB:
         return False, "NO AUDIO"
+    if expected_resolution:
+        try:
+            width, height = probe_video_dimensions(path)
+        except (OSError, ValueError, subprocess.SubprocessError) as e:
+            return False, f"RESOLUTION unreadable: {e!r}"
+        expected = {"720p": (720, 1280), "1080p": (1080, 1920)}.get(
+            expected_resolution)
+        if expected is None:
+            return False, f"RESOLUTION unsupported target {expected_resolution!r}"
+        if (width, height) != expected:
+            return False, (f"RESOLUTION got {width}x{height} want "
+                           f"{expected[0]}x{expected[1]}")
+        return True, f"{got:.1f}s {width}x{height}"
     return True, f"{got:.1f}s"
 
 
@@ -255,9 +292,14 @@ class FlowBrowser:
         # itself (see below) so dry-run is structurally incapable of
         # spending — not just "the caller happens not to call submit()".
         self.dry_run = False
+        # Production exports default to Flow's free 1080p upscale. 720p is
+        # retained only as an explicit legacy/debug choice. 4K is deliberately
+        # unsupported because the live menu labels it as a 50-credit action.
+        self.download_resolution = "1080p"
         # Every flow-content.google/video/<id> response observed on this
-        # page, in order — see CDN_VIDEO_RE. This is the runner's only
-        # download mechanism (the UI has no per-clip download button).
+        # page, in order — see CDN_VIDEO_RE. This detects completion and
+        # supports explicit legacy 720p downloads; normal exports use the
+        # editor's free 1080p upscale menu.
         self._captured_video_urls: list[str] = []
         self._pending_download: Path | None = None
         self._last_dialogue: str | None = None
@@ -754,14 +796,85 @@ class FlowBrowser:
         path.write_bytes(resp.body())
         return path
 
+    def _close_download_menus(self) -> None:
+        """Dismiss Material menus explicitly, never with Escape."""
+        backdrop = self.page.locator(
+            ".cdk-overlay-backdrop.cdk-overlay-backdrop-showing")
+        if backdrop.count() and backdrop.last.is_visible():
+            backdrop.last.click(force=True)
+
+    def _open_enabled_download_menu(self):
+        """Open More and wait until Flow has made Download available.
+
+        The editor route renders before its media model. During that gap the
+        genuine Download item exists but carries ``disabled=true`` and cannot
+        open the resolution submenu. Reopen the menu while the clip finishes
+        initializing instead of mistaking that transient DOM for a selector
+        failure.
+        """
+        page = self.page
+        more = page.locator('button[aria-label="ตัวเลือกเพิ่มเติม"]').first
+        more.wait_for(state="visible", timeout=30_000)
+        deadline = time.time() + 60
+        while time.time() < deadline:
+            self._close_download_menus()
+            more.click()
+            download_menu = page.locator('[role="menuitem"]').filter(
+                has_text=re.compile(r"ดาวน์โหลด(?:สื่อ|คลิป)")).first
+            download_menu.wait_for(state="visible", timeout=5_000)
+            if download_menu.is_enabled():
+                return download_menu
+            self._close_download_menus()
+            page.wait_for_timeout(1_000)
+        raise RuntimeError(
+            "Download stayed disabled for 60s; the editor media did not load")
+
+    def _download_1080p_from_editor(self) -> Path:
+        """Use Flow's free 1080p export and wait for the real download.
+
+        Live DOM, 2026-09-20: editor More -> `ดาวน์โหลดสื่อ` (hover) ->
+        `1080p / เพิ่มความละเอียดแล้ว`. The neighbouring 4K option says
+        `50 เครดิต`; validate_download_option() makes it structurally
+        impossible for this path to click a paid entry.
+        """
+        page = self.page
+        if "/edit/" not in page.url:
+            raise RuntimeError(
+                "1080p upscale requires the clip editor /edit/<id> route")
+        try:
+            download_menu = self._open_enabled_download_menu()
+            option = None
+            for _ in range(3):
+                download_menu.hover()
+                page.wait_for_timeout(500)
+                candidate = page.locator(
+                    '[role="menuitem"]', has_text="1080p").first
+                if candidate.count() and candidate.is_visible():
+                    option = candidate
+                    break
+            if option is None:
+                raise RuntimeError(
+                    "1080p submenu did not appear after hovering Download")
+            validate_download_option(option.inner_text(), "1080p")
+            with page.expect_download(timeout=UPSCALE_TIMEOUT_S * 1000) as info:
+                option.click()
+            download = info.value
+            suffix = Path(download.suggested_filename).suffix or ".mp4"
+            path = Path(tempfile.mkdtemp()) / f"flow-1080p{suffix}"
+            download.save_as(str(path))
+            return path
+        except Exception:
+            self._close_download_menus()
+            raise
+
     def download(self) -> Path:
-        """No per-clip download button exists (see poll_result's docstring
-        and CDN_VIDEO_RE) — poll_result() already observed the CDN response
-        for the clip that was just generated; pull that."""
+        """Download the configured export, defaulting to free 1080p upscale."""
         if self._pending_download is not None:
             path = self._pending_download
             self._pending_download = None
             return path
+        if self.download_resolution == "1080p":
+            return self._download_1080p_from_editor()
         return self._fetch_captured_video()
 
     def find_card_by_dialogue(self, fragment: str):
@@ -791,11 +904,11 @@ class FlowBrowser:
         return card if card.count() else None
 
     def download_card(self, card) -> Path:
-        """`pull` starts from a feed card, not a fresh Submit, so there is
-        no prior poll_result() to have already captured the URL — click the
-        card (Flow navigates to its /edit/<uuid>, same as after Submit),
-        mute, then nudge/wait for the same CDN response poll_result() waits
-        for."""
+        """Open a feed card and download the configured export.
+
+        Normal 1080p uses the editor's free upscale menu. Explicit legacy
+        720p mode captures the signed CDN response/currentSrc.
+        """
         baseline = len(self._captured_video_urls)
         card.click()
         self.page.wait_for_timeout(1000)
@@ -803,6 +916,9 @@ class FlowBrowser:
             self.page.evaluate(MUTE_JS)
         except Exception:
             pass
+        if self.download_resolution == "1080p":
+            self.page.wait_for_url(re.compile(r"/edit/"), timeout=30_000)
+            return self._download_1080p_from_editor()
         deadline = time.time() + COMPLETION_TIMEOUT_S
         while time.time() < deadline and len(self._captured_video_urls) <= baseline:
             # A clip already played in this Chrome profile may come entirely
@@ -894,6 +1010,7 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
     # the browser — FlowBrowser.submit() itself refuses while this is set
     # (structural, not "the control flow happens not to call it").
     browser.dry_run = args.dry_run
+    browser.download_resolution = getattr(args, "download_resolution", "1080p")
     spent_this_run = 0
     try:
         try:
@@ -1022,7 +1139,9 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 row["status"] = "downloaded"
                 flow_ledger.save_ledger(ledger_path, rows)
 
-                ok, reason = verify_clip(clip_path, dur_s)
+                ok, reason = verify_clip(
+                    clip_path, dur_s,
+                    expected_resolution=browser.download_resolution)
                 row["sha256"] = sha256_file(clip_path)
                 row["got_dur"] = reason
                 if ok:
@@ -1087,6 +1206,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
         return 0
 
     browser = FlowBrowser()
+    browser.download_resolution = getattr(args, "download_resolution", "1080p")
     try:
         try:
             browser.attach()
@@ -1113,7 +1233,9 @@ def cmd_pull(args: argparse.Namespace) -> int:
             downloaded = browser.download_card(card)
             time.sleep(DOWNLOAD_GAP_S)
             clip_path = extract_clip(downloaded, dest, n)
-            ok, reason = verify_clip(clip_path, shot["dur_s"])
+            ok, reason = verify_clip(
+                clip_path, shot["dur_s"],
+                expected_resolution=browser.download_resolution)
             row["file"] = str(clip_path)
             row["sha256"] = sha256_file(clip_path)
             row["got_dur"] = reason
@@ -1152,6 +1274,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--resolution", choices=["720p", "360p"], default="720p",
                         help="Composer resolution facet — read back off the "
                              "settings row like the other settings.")
+    p_run.add_argument(
+        "--download-resolution", choices=["1080p", "720p"], default="1080p",
+        help="Export resolution. Defaults to Flow's free 1080p upscale; 4K "
+             "is intentionally unsupported because it costs 50 credits.")
     p_run.add_argument("--force-duration", type=int, default=None,
                         help="PROOF SHOTS ONLY. Overrides the sheet's per-shot "
                              "duration for both the composer's duration setting "
@@ -1163,6 +1289,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_pull.add_argument("--ledger", required=True)
     p_pull.add_argument("--dest", required=True)
     p_pull.add_argument("--only", default=None)
+    p_pull.add_argument(
+        "--download-resolution", choices=["1080p", "720p"], default="1080p",
+        help="Export resolution. Defaults to Flow's free 1080p upscale.")
     p_pull.set_defaults(func=cmd_pull)
 
     p_status = sub.add_parser("status")

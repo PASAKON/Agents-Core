@@ -204,11 +204,12 @@ def test_effective_duration_no_override_uses_sheet_duration():
     assert flow_shoot.effective_duration(8, None) == 8
 
 
-def test_run_arg_parsing_defaults_resolution_720p_no_force_duration():
+def test_run_arg_parsing_defaults_generation_720p_and_download_1080p():
     ap = flow_shoot.build_parser()
     args = ap.parse_args(["run", "--sheet", "s.md", "--ledger", "l.tsv",
                            "--dest", "d", "--credit-cap", "10"])
     assert args.resolution == "720p"
+    assert args.download_resolution == "1080p"
     assert args.force_duration is None
 
 
@@ -227,6 +228,27 @@ def test_run_arg_parsing_rejects_unknown_resolution():
         ap.parse_args(["run", "--sheet", "s.md", "--ledger", "l.tsv",
                         "--dest", "d", "--credit-cap", "10",
                         "--resolution", "1080p"])
+
+
+def test_download_resolution_allows_only_free_upscale_or_legacy_720p():
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args(["pull", "--sheet", "s.md", "--ledger", "l.tsv",
+                          "--dest", "d", "--download-resolution", "720p"])
+    assert args.download_resolution == "720p"
+    with pytest.raises(SystemExit):
+        ap.parse_args(["pull", "--sheet", "s.md", "--ledger", "l.tsv",
+                       "--dest", "d", "--download-resolution", "4K"])
+
+
+def test_validate_download_option_accepts_free_1080p_and_rejects_paid_4k():
+    flow_shoot.validate_download_option(
+        "1080p\nเพิ่มความละเอียดแล้ว", "1080p")
+    with pytest.raises((ValueError, RuntimeError)):
+        flow_shoot.validate_download_option(
+            "4K\nเพิ่มความละเอียดแล้ว · 50 เครดิต", "4K")
+    with pytest.raises(RuntimeError, match="credit-bearing"):
+        flow_shoot.validate_download_option(
+            "1080p\nเพิ่มความละเอียดแล้ว · 50 เครดิต", "1080p")
 
 
 def test_parse_only_ranges_and_lists():
@@ -498,6 +520,24 @@ def test_verify_clip_fails_on_silence(tmp_path):
     ok, reason = flow_shoot.verify_clip(clip, expected_dur=4)
     assert ok is False
     assert reason == "NO AUDIO"
+
+
+def test_verify_clip_checks_requested_upscale_resolution(tmp_path, monkeypatch):
+    clip = tmp_path / "shot-01.mp4"
+    _make_clip(clip, duration=4.0, silent=False)
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions",
+                        lambda _path: (1080, 1920))
+    ok, reason = flow_shoot.verify_clip(
+        clip, expected_dur=4, expected_resolution="1080p")
+    assert ok is True
+    assert "1080x1920" in reason
+
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions",
+                        lambda _path: (720, 1280))
+    ok, reason = flow_shoot.verify_clip(
+        clip, expected_dur=4, expected_resolution="1080p")
+    assert ok is False
+    assert reason == "RESOLUTION got 720x1280 want 1080x1920"
 
 
 def test_verify_clip_missing_file():
@@ -783,6 +823,7 @@ def test_download_card_never_reuses_a_prior_clip_url(monkeypatch):
             pass
 
     browser = flow_shoot.FlowBrowser()
+    browser.download_resolution = "720p"  # exercise the legacy CDN guard
     browser.page = Page()
     browser._captured_video_urls = ["https://flow-content.google/video/old"]
     monkeypatch.setattr(flow_shoot, "COMPLETION_TIMEOUT_S", 0)
