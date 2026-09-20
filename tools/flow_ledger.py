@@ -73,7 +73,14 @@ def parse_sheet(sheet_path: Path) -> list[dict]:
 
 
 def _row_to_line(row: dict) -> str:
-    return "\t".join(str(row.get(f, "")) for f in FIELDS)
+    # TSV is one physical line per shot. Flow error/refusal messages can
+    # contain newlines; allowing those through corrupts the next load by
+    # turning the continuation into a fake row. Tabs/newlines are display
+    # formatting only, so collapse them to spaces before the atomic write.
+    return "\t".join(
+        re.sub(r"[\t\r\n]+", " ", str(row.get(f, ""))).strip()
+        for f in FIELDS
+    )
 
 
 def _line_to_row(line: str) -> dict:

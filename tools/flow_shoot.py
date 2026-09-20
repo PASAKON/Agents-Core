@@ -735,9 +735,21 @@ class FlowBrowser:
         start = time.time()
         baseline = len(self._captured_video_urls)
         while time.time() - start < timeout_s:
-            body = page.evaluate("() => document.body.innerText")
-            if is_refusal_text(body):
-                m = re.search(r"ล้มเหลว[^\n]*\n[^\n]*", body)
+            # A project feed may contain refusal text from older shots. Scope
+            # policy detection to the batch containing this shot's unique
+            # dialogue so historical cards cannot trigger a false retry.
+            result_text = ""
+            if self._last_dialogue:
+                current_prompt = page.get_by_text(
+                    self._last_dialogue, exact=False).first
+                if current_prompt.count():
+                    current_batch = current_prompt.locator(
+                        'xpath=ancestor::div[contains(@class,"batch-container")]'
+                    ).first
+                    if current_batch.count():
+                        result_text = current_batch.inner_text()
+            if is_refusal_text(result_text):
+                m = re.search(r"ล้มเหลว[^\n]*\n[^\n]*", result_text)
                 return {"status": "refusal", "text": m.group(0) if m else "ล้มเหลว"}
             if len(self._captured_video_urls) > baseline:
                 return {"status": "download", "text": ""}
@@ -798,10 +810,28 @@ class FlowBrowser:
 
     def _close_download_menus(self) -> None:
         """Dismiss Material menus explicitly, never with Escape."""
-        backdrop = self.page.locator(
-            ".cdk-overlay-backdrop.cdk-overlay-backdrop-showing")
-        if backdrop.count() and backdrop.last.is_visible():
-            backdrop.last.click(force=True)
+        page = self.page
+        for _ in range(3):
+            backdrops = page.locator(
+                ".cdk-overlay-backdrop.cdk-overlay-backdrop-showing")
+            visible = [backdrops.nth(i) for i in range(backdrops.count())
+                       if backdrops.nth(i).is_visible()]
+            if not visible:
+                return
+            visible[-1].click(force=True)
+            page.wait_for_timeout(150)
+            # Some Material submenu backdrops consume the click without
+            # closing the parent menu. Toggle the editor's already-expanded
+            # More button directly; this is the menu's own close action.
+            expanded = page.locator(
+                'button[aria-label="ตัวเลือกเพิ่มเติม"][aria-expanded="true"]')
+            if expanded.count() and expanded.first.is_visible():
+                expanded.first.click(force=True)
+                page.wait_for_timeout(150)
+        remaining = page.locator(
+            ".cdk-overlay-backdrop.cdk-overlay-backdrop-showing:visible")
+        if remaining.count():
+            raise RuntimeError("download menu backdrop would not close")
 
     def _open_enabled_download_menu(self):
         """Open More and wait until Flow has made Download available.

@@ -127,6 +127,22 @@ def test_save_ledger_is_atomic_no_tmp_file_left_behind(tmp_path):
     assert not tmp_marker.exists()
 
 
+def test_save_ledger_collapses_tabs_and_newlines_inside_fields(tmp_path):
+    ledger = tmp_path / "safe.tsv"
+    rows = {
+        35: {
+            "shot": 35, "act": 2, "dur_s": 6, "chips": "@a",
+            "prompt_sha": "abc", "status": "refused", "flow_clip_id": "",
+            "file": "", "sha256": "", "got_dur": "", "attempts": "2",
+            "note": "ล้มเหลว\npolicy\tmessage",
+        }
+    }
+    flow_ledger.save_ledger(ledger, rows)
+    assert len(ledger.read_text(encoding="utf-8").splitlines()) == 2
+    assert flow_ledger.load_ledger(ledger)[35]["note"] == (
+        "ล้มเหลว policy message")
+
+
 def test_status_summary_counts_and_next_todo(tmp_path):
     ledger = tmp_path / "ACT2.tsv"
     flow_ledger.init_ledger(FIXTURE_SHEET, ledger)

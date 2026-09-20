@@ -90,7 +90,13 @@ def select_targets(sheet: Path, ledger: Path, only: str, max_clips: int) -> list
 
 
 def _matching_batches(browser: FlowBrowser, shot: dict):
-    """Return current-page batches matching full prompt and sheet duration."""
+    """Return candidate batches and whether their full prompt is current.
+
+    Shots 53-58 were generated before the script upgrade, so their historical
+    Flow prompt differs from today's sheet. Search always starts from the
+    unique dialogue and duration; prefer an exact current full prompt, but
+    expose legacy candidates for mandatory source-SHA disambiguation.
+    """
     page = browser.page
     page.goto(browser._project_url, wait_until="domcontentloaded", timeout=60_000)
     browser.mute_all_media()
@@ -99,31 +105,57 @@ def _matching_batches(browser: FlowBrowser, shot: dict):
     dialogue = first_dialogue_line(shot["prompt"])
     if not dialogue:
         raise RuntimeError(f"shot {shot['shot']}: prompt has no dialogue key")
+    # Flow updates the filtered feed asynchronously.  Clear the prior query
+    # first, then wait for the complete result set to settle; observing only
+    # the first visible match can under-count duplicate historical renders.
+    search.fill("")
+    page.wait_for_timeout(250)
     search.fill(dialogue)
     page.get_by_text(dialogue, exact=False).first.wait_for(
         state="visible", timeout=15_000)
 
+    deadline = time.time() + 10
+    stable_signature = None
+    stable_polls = 0
+    while time.time() < deadline and stable_polls < 3:
+        batches = page.locator("div.batch-container")
+        signature = tuple(
+            normalize_prompt_whitespace(batches.nth(i).inner_text())
+            for i in range(batches.count())
+        )
+        if signature and signature == stable_signature:
+            stable_polls += 1
+        else:
+            stable_signature = signature
+            stable_polls = 0
+        page.wait_for_timeout(500)
+
     expected = normalize_prompt_whitespace(shot["prompt"])
     batches = page.locator("div.batch-container")
     exact = []
+    duration_matches = []
+    duration_re = re.compile(rf"(?:^|\s){shot['dur_s']}\s*วินาที(?:\s|$)")
     for i in range(batches.count()):
         batch = batches.nth(i)
         actual = normalize_prompt_whitespace(batch.inner_text())
+        if duration_re.search(batch.inner_text()):
+            duration_matches.append(batch)
         if expected in actual:
             exact.append(batch)
     # A prompt can legitimately have multiple historical generations.  The
     # production had several forced-4s proof runs of shot 35, for example,
     # while the real sheet shot is 6s.  Use the card metadata's duration as a
     # second independent key; never choose the first matching prompt.
-    duration_re = re.compile(rf"(?:^|\s){shot['dur_s']}\s*วินาที(?:\s|$)")
-    return [batch for batch in exact if duration_re.search(batch.inner_text())]
+    exact_duration = [
+        batch for batch in exact if duration_re.search(batch.inner_text())]
+    return (exact_duration, True) if exact_duration else (duration_matches, False)
 
 
 def _open_batch_card(browser: FlowBrowser, shot: dict, ordinal: int):
-    matches = _matching_batches(browser, shot)
+    matches, exact_prompt = _matching_batches(browser, shot)
     if ordinal >= len(matches):
         raise RuntimeError(
-            f"shot {shot['shot']}: exact prompt+duration match count is "
+            f"shot {shot['shot']}: prompt+duration candidate count is "
             f"{len(matches)}, cannot open candidate {ordinal}")
     cards = matches[ordinal].locator("flow-grid-tile-container")
     if cards.count() != 1:
@@ -148,11 +180,11 @@ def find_exact_editor(browser: FlowBrowser, shot: dict,
     case fetch each candidate's original 720p CDN bytes and require exactly
     one SHA-256 match with the already-verified local source clip.
     """
-    matches = _matching_batches(browser, shot)
+    matches, exact_prompt = _matching_batches(browser, shot)
     if not matches:
         raise RuntimeError(
-            f"shot {shot['shot']}: exact prompt+duration match count is 0")
-    if len(matches) == 1:
+            f"shot {shot['shot']}: dialogue+duration candidate count is 0")
+    if len(matches) == 1 and exact_prompt:
         card = matches[0].locator("flow-grid-tile-container")
         if card.count() != 1:
             raise RuntimeError(
@@ -175,7 +207,7 @@ def find_exact_editor(browser: FlowBrowser, shot: dict,
         browser.download_resolution = prior_resolution
     if len(sha_matches) != 1:
         raise RuntimeError(
-            f"shot {shot['shot']}: {len(matches)} prompt+duration candidates, "
+            f"shot {shot['shot']}: {len(matches)} dialogue+duration candidates, "
             f"but {len(sha_matches)} match the verified source SHA-256")
     return sha_matches[0]
 
