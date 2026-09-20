@@ -50,3 +50,25 @@ jobs:
           releaseBody: "Signed Windows installer and automatic-update metadata. Publish this draft after validation."
           releaseDraft: true
           prerelease: false
+
+      - name: Normalize updater download URL
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          $tag = "desktop-v$version"
+          $metadataPath = Join-Path $env:RUNNER_TEMP "latest.json"
+          gh release download $tag --pattern latest.json --dir $env:RUNNER_TEMP --clobber
+
+          $release = gh release view $tag --json assets | ConvertFrom-Json
+          $installer = $release.assets | Where-Object { $_.name -like "*.exe" } | Select-Object -First 1
+          if (-not $installer) {
+            throw "No Windows installer was attached to $tag"
+          }
+
+          $downloadUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$tag/$($installer.name)"
+          $metadata = Get-Content $metadataPath -Raw | ConvertFrom-Json
+          $metadata.platforms.PSObject.Properties.Value | ForEach-Object { $_.url = $downloadUrl }
+          $metadata | ConvertTo-Json -Depth 8 | Set-Content $metadataPath -Encoding utf8
+          gh release upload $tag "$metadataPath#latest.json" --clobber
