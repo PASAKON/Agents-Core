@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { getVersion } from "@tauri-apps/api/app";
 import {
   Activity,
   Bell,
@@ -102,6 +103,7 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(true);
   const [updateOpen, setUpdateOpen] = useState(false);
+  const [appVersion, setAppVersion] = useState("0.1.1");
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = window.localStorage.getItem("mooniex-theme");
     return saved === "dark" ? "dark" : "light";
@@ -111,6 +113,12 @@ function App() {
     window.localStorage.setItem("mooniex-theme", theme);
     document.documentElement.style.colorScheme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    if ("__TAURI_INTERNALS__" in window) {
+      void getVersion().then(setAppVersion).catch(() => undefined);
+    }
+  }, []);
 
   const room = useMemo(() => rooms.find((item) => item.id === activeRoom) ?? rooms[0], [activeRoom]);
   const onlineCount = fleet.filter((node) => node.status !== "sleeping").length;
@@ -272,7 +280,7 @@ function App() {
           </div>
         </section>
         <button className="manage-button"><Settings2 size={15} /> Manage nodes & permissions</button>
-        <div className="core-status"><span><i />Core connected</span><button onClick={() => setUpdateOpen(true)}>v0.1.0 · Check update</button></div>
+        <div className="core-status"><span><i />Core connected</span><button onClick={() => setUpdateOpen(true)}>v{appVersion} · Check update</button></div>
       </aside>
       {updateOpen ? <UpdateDialog onClose={() => setUpdateOpen(false)} /> : null}
     </div>

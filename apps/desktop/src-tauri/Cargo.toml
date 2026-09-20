@@ -1,6 +1,6 @@
 [package]
 name = "mooniex-desktop"
-version = "0.1.0"
+version = "0.1.1"
 description = "MoonieX control surface for people, agents, and distributed nodes"
 authors = ["MoonieX"]
 edition = "2021"
