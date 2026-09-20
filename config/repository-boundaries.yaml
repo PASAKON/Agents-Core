@@ -5,7 +5,7 @@ zones:
   core_source:
     description: "MoonieX control-plane behavior and entrypoints."
     lifecycle: keep
-    paths: [lib, runners, tools, main.py, dashboard.py]
+    paths: [apps, lib, runners, tools, main.py, dashboard.py]
 
   shared_configuration:
     description: "Versioned, non-secret defaults, roles, prompts and policy."

@@ -118,3 +118,8 @@ WORKER.md
 # pytest scratch) - not source, and they make every git status unreadable
 mcp/node_modules/
 .pytest_cache/
+
+# Desktop application dependencies and build artifacts
+apps/**/node_modules/
+apps/**/dist/
+apps/**/src-tauri/target/

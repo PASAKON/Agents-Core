@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Minimal permissions for the MoonieX desktop control surface",
+  "windows": ["main"],
+  "permissions": ["core:default", "updater:default"]
+}
