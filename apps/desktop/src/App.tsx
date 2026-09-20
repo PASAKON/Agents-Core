@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   Bell,
@@ -16,6 +16,7 @@ import {
   Menu,
   MessageSquareText,
   Mic,
+  Moon,
   MonitorCog,
   MoreHorizontal,
   Network,
@@ -26,6 +27,7 @@ import {
   Settings2,
   ShieldCheck,
   Sparkles,
+  Sun,
   TerminalSquare,
   Users,
   X,
@@ -40,6 +42,8 @@ const statusCopy: Record<NodeStatus, string> = {
   busy: "Working",
   sleeping: "Sleeping",
 };
+
+type Theme = "light" | "dark";
 
 function BrandMark() {
   return (
@@ -98,6 +102,15 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(true);
   const [updateOpen, setUpdateOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = window.localStorage.getItem("mooniex-theme");
+    return saved === "dark" ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem("mooniex-theme", theme);
+    document.documentElement.style.colorScheme = theme;
+  }, [theme]);
 
   const room = useMemo(() => rooms.find((item) => item.id === activeRoom) ?? rooms[0], [activeRoom]);
   const onlineCount = fleet.filter((node) => node.status !== "sleeping").length;
@@ -122,7 +135,7 @@ function App() {
   }
 
   return (
-    <div className={`app-shell ${rightPanelOpen ? "" : "right-closed"}`}>
+    <div className={`app-shell ${rightPanelOpen ? "" : "right-closed"}`} data-theme={theme}>
       <header className="titlebar" data-tauri-drag-region>
         <div className="window-controls" aria-hidden="true">
           <span className="window-dot close" /><span className="window-dot minimize" /><span className="window-dot maximize" />
@@ -132,6 +145,9 @@ function App() {
         </div>
         <div className="titlebar-actions">
           <button className="icon-button mobile-only" onClick={() => setSidebarOpen((value) => !value)} aria-label="Toggle menu"><Menu size={17} /></button>
+          <button className="icon-button theme-toggle" onClick={() => setTheme((value) => value === "light" ? "dark" : "light")} aria-label={`Switch to ${theme === "light" ? "dark" : "light"} appearance`} title={`Use ${theme === "light" ? "dark" : "light"} appearance`}>
+            {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
           <button className="icon-button" aria-label="Search"><Search size={16} /></button>
           <button className="icon-button notification" aria-label="Notifications"><Bell size={16} /><span /></button>
         </div>
