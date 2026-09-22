@@ -12,6 +12,7 @@ as tests/test_flow_shoot.py.)
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 import yaml
@@ -21,6 +22,17 @@ from tools import decide as decide_mod
 
 REAL_SITES = ("browser.page_state", "browser.moderation_action",
               "sompong.route", "skill.route")
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+# Text that matches none of browser.page_state.yaml's rules patterns, so
+# every ladder test here reaches the jev/openrouter rungs instead of
+# resolving on the free `rules` provider.
+NEUTRAL_STATE = "totally unrelated page text seen by the operator"
+
+
+def _jev_fixture() -> dict:
+    return json.loads((FIXTURES_DIR / "jev_decisions_response.json").read_text())
 
 
 @pytest.fixture(autouse=True)
@@ -34,8 +46,14 @@ def _redirect_ledger(tmp_path, monkeypatch):
 @pytest.fixture(autouse=True)
 def _clean_decide_env(monkeypatch):
     for var in ("DECIDE_PROVIDER", "OPENROUTER_API_KEY", "DECIDE_BUDGET_USD",
-                "JEV_API_KEY", "JEV_API_URL"):
+                "DECIDE_JEV_MODEL", "JEV_API_KEY", "JEV_API_URL"):
         monkeypatch.delenv(var, raising=False)
+    # `_env()` falls back to the gitignored repo-root .env when an env var
+    # is unset — real for production, but a test asserting "no key set"
+    # must never see the real .env (it has a live OPENROUTER_API_KEY +
+    # DECIDE_PROVIDER=jev, task-a6129a75: two tests hit the LIVE API before
+    # this line existed). Neutralize the fallback itself, not just the vars.
+    monkeypatch.setattr(decide_mod, "_read_dotenv_var", lambda name: None)
 
 
 def _write_site(tmp_path, monkeypatch, name: str, cfg: dict) -> None:
@@ -129,11 +147,40 @@ def test_budget_refused_when_decide_budget_usd_is_zero(monkeypatch):
     assert "decision_budget_refused" in rows[0]["error"]
 
 
+def test_budget_refusal_counts_prior_jev_spend(monkeypatch):
+    # First call spends jev's real (fixture) cost; the second call's
+    # pre-flight estimate then pushes cumulative spend over a budget sized
+    # to allow exactly one call — proving the gate sums across calls, not
+    # just within one (task-a6129a75 deliverable 3).
+    _enable_jev(monkeypatch, budget="0.00002")
+    resp = _FakeResp(_jev_fixture())
+    calls = []
+
+    def fake_post(url, **kw):
+        calls.append(url)
+        return resp
+
+    d1 = decide_mod.decide(
+        "browser.page_state", NEUTRAL_STATE, provider="jev", _http_post=fake_post,
+    )
+    assert d1.choice == "moderated"
+    assert d1.cost_usd == pytest.approx(1.995e-05)
+
+    d2 = decide_mod.decide(
+        "browser.page_state", NEUTRAL_STATE, provider="jev", _http_post=fake_post,
+    )
+    assert d2.choice is None
+    assert "decision_budget_refused" in d2.error
+    assert len(calls) == 1  # the second call never reached HTTP
+
+
 # ── openrouter provider (monkeypatched HTTP client) ─────────────────────
 
 class _FakeResp:
-    def __init__(self, data: dict):
+    def __init__(self, data: dict, status_code: int = 200):
         self._data = data
+        self.status_code = status_code
+        self.text = json.dumps(data)
 
     def raise_for_status(self):
         pass
@@ -146,6 +193,14 @@ def _enable_openrouter(monkeypatch, budget="10.00"):
     monkeypatch.setenv("DECIDE_PROVIDER", "openrouter")
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
     monkeypatch.setenv("DECIDE_BUDGET_USD", budget)
+
+
+def _enable_jev(monkeypatch, budget="10.00", model=None):
+    monkeypatch.setenv("DECIDE_PROVIDER", "jev")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.setenv("DECIDE_BUDGET_USD", budget)
+    if model:
+        monkeypatch.setenv("DECIDE_JEV_MODEL", model)
 
 
 def test_openrouter_good_json_returns_choice(monkeypatch):
@@ -198,18 +253,153 @@ def test_openrouter_disabled_by_default_falls_through():
     assert "disabled" in d.error or "OPENROUTER_API_KEY" in d.error
 
 
-# ── jev provider ─────────────────────────────────────────────────────────
+# ── jev provider (real OpenRouter /api/alpha/decisions endpoint) ────────
 
-def test_jev_raises_provider_unavailable_without_key():
-    cfg = decide_mod.load_site("browser.page_state")
-    with pytest.raises(decide_mod.ProviderUnavailable, match="JEV_API_KEY"):
-        decide_mod._jev_provider(cfg, "some state")
-
-
-def test_jev_via_decide_yields_null_choice_without_key():
+def test_jev_via_decide_yields_null_choice_without_key(monkeypatch):
+    monkeypatch.setenv("DECIDE_PROVIDER", "jev")
     d = decide_mod.decide("browser.page_state", "x", provider="jev")
     assert d.choice is None
-    assert "JEV_API_KEY" in d.error
+    assert "OPENROUTER_API_KEY" in d.error
+
+
+def test_jev_good_response_matches_measured_fixture(monkeypatch):
+    # tests/fixtures/jev_decisions_response.json is the verbatim response
+    # from the CTO's live probe, 2026-09-22 (research/2026-09-22-typesafe-
+    # jev-system-one-models.md § "MEASURED 2026-09-22").
+    _enable_jev(monkeypatch)
+    resp = _FakeResp(_jev_fixture())
+    d = decide_mod.decide(
+        "browser.page_state", NEUTRAL_STATE,
+        provider="jev", _http_post=lambda *a, **k: resp,
+    )
+    assert d.provider == "jev"
+    assert d.calibrated is True
+    assert d.choice == "moderated"
+    assert d.cost_usd == pytest.approx(1.995e-05)  # usage.cost, exact — not the price-table estimate
+    assert d.tokens_in == 475 and d.tokens_out == 80
+    assert set(d.probs) == {
+        "idle", "generating", "done", "moderated",
+        "rate_limited", "signed_out", "error", "unknown",
+    }
+
+
+def test_jev_400_zod_error_choice_none_when_only_jev_allowed(monkeypatch):
+    _enable_jev(monkeypatch)  # DECIDE_PROVIDER=jev -> openrouter/haiku not allowed
+    jev_400 = _FakeResp({"error": {"message": "questions.browser.page_state.criteria: Required"}}, status_code=400)
+    d = decide_mod.decide(
+        "browser.page_state", NEUTRAL_STATE, _http_post=lambda *a, **k: jev_400,
+    )
+    assert d.choice is None
+    assert "jev" in d.error and "openrouter" in d.error
+    assert "criteria" in d.error or "HTTP 400" in d.error
+
+
+def test_jev_model_id_overridable_via_decide_jev_model(monkeypatch):
+    _enable_jev(monkeypatch, model="typesafe/jev-2.0-experimental")
+    seen_payload = {}
+
+    def fake_post(url, **kw):
+        seen_payload.update(kw.get("json") or {})
+        return _FakeResp(_jev_fixture())
+
+    decide_mod.decide(
+        "browser.page_state", NEUTRAL_STATE, provider="jev", _http_post=fake_post,
+    )
+    assert seen_payload["model"] == "typesafe/jev-2.0-experimental"
+
+
+# ── ladder selection by DECIDE_PROVIDER value ───────────────────────────
+
+def test_ladder_rules_setting_disables_all_paid_rungs(monkeypatch):
+    monkeypatch.setenv("DECIDE_PROVIDER", "rules")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.setenv("DECIDE_BUDGET_USD", "10.00")
+
+    def _boom(*a, **k):
+        raise AssertionError("no paid rung may call HTTP when DECIDE_PROVIDER=rules")
+
+    d = decide_mod.decide("browser.page_state", NEUTRAL_STATE, _http_post=_boom)
+    assert d.choice is None
+    assert "jev" in d.error and "openrouter" in d.error
+
+
+def test_ladder_jev_setting_allows_only_jev(monkeypatch):
+    _enable_jev(monkeypatch)
+    resp = _FakeResp(_jev_fixture())
+    calls = []
+
+    def fake_post(url, **kw):
+        calls.append(url)
+        return resp
+
+    d = decide_mod.decide("browser.page_state", NEUTRAL_STATE, _http_post=fake_post)
+    assert d.provider == "jev"
+    assert calls == [decide_mod.JEV_DECISIONS_URL]
+
+
+def test_ladder_openrouter_setting_allows_jev_then_haiku_on_jev_failure(monkeypatch):
+    _enable_openrouter(monkeypatch)  # DECIDE_PROVIDER=openrouter -> jev THEN haiku
+    jev_400 = _FakeResp({"error": {"message": "bad request"}}, status_code=400)
+    haiku_content = json.dumps({"choice": "generating", "confidence": 0.9})
+    haiku_resp = _FakeResp({
+        "choices": [{"message": {"content": haiku_content}}],
+        "usage": {"prompt_tokens": 30, "completion_tokens": 4},
+    })
+    calls = []
+
+    def fake_post(url, **kw):
+        calls.append(url)
+        return jev_400 if url == decide_mod.JEV_DECISIONS_URL else haiku_resp
+
+    d = decide_mod.decide("browser.page_state", NEUTRAL_STATE, _http_post=fake_post)
+    assert calls == [decide_mod.JEV_DECISIONS_URL, decide_mod.OPENROUTER_URL]
+    assert d.provider == "openrouter"
+    assert d.choice == "generating"
+
+
+def test_provider_gate_error_names_decide_provider(monkeypatch):
+    monkeypatch.delenv("DECIDE_PROVIDER", raising=False)
+    with pytest.raises(decide_mod.ProviderUnavailable, match="DECIDE_PROVIDER"):
+        decide_mod._provider_gate("jev")
+
+
+# ── env var fallback: os.environ -> gitignored repo-root .env ──────────
+
+def test_env_prefers_os_environ_over_dotenv(monkeypatch):
+    monkeypatch.setenv("SOME_DECIDE_VAR", "env-value")
+    monkeypatch.setattr(decide_mod, "_read_dotenv_var", lambda name: "dotenv-value")
+    assert decide_mod._env("SOME_DECIDE_VAR") == "env-value"
+
+
+def test_env_falls_back_to_dotenv_when_unset(monkeypatch):
+    monkeypatch.delenv("SOME_DECIDE_VAR", raising=False)
+    monkeypatch.setattr(decide_mod, "_read_dotenv_var", lambda name: "dotenv-value")
+    assert decide_mod._env("SOME_DECIDE_VAR") == "dotenv-value"
+
+
+def test_env_empty_value_counts_as_absent(monkeypatch):
+    monkeypatch.setenv("SOME_DECIDE_VAR", "")
+    monkeypatch.setattr(decide_mod, "_read_dotenv_var", lambda name: None)
+    assert decide_mod._env("SOME_DECIDE_VAR") is None
+
+
+def test_read_dotenv_var_reads_tmp_env_file(tmp_path, monkeypatch):
+    from lib import config as config_mod
+
+    monkeypatch.setattr(config_mod, "ROOT", tmp_path)
+    (tmp_path / ".env").write_text(
+        "OPENROUTER_API_KEY=sk-test-tmp-only\nDECIDE_BUDGET_USD=5\n"
+    )
+    assert config_mod._read_dotenv_var("OPENROUTER_API_KEY") == "sk-test-tmp-only"
+    assert config_mod._read_dotenv_var("DECIDE_BUDGET_USD") == "5"
+    assert config_mod._read_dotenv_var("NO_SUCH_VAR") is None
+
+
+def test_providers_yaml_has_jev_openrouter_price_entry():
+    prices = decide_mod._provider_prices()
+    entry = prices["openrouter"][decide_mod.DEFAULT_JEV_MODEL]
+    assert entry["in"] == 0.042
+    assert entry["out"] == 0.0
 
 
 # ── counterfactual arithmetic ─────────────────────────────────────────────

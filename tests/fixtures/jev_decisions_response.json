@@ -1,0 +1,27 @@
+{
+  "model": "typesafe/jev-1.13-20260917",
+  "answers": {
+    "browser.page_state": {
+      "type": "choice",
+      "choice": "moderated",
+      "probabilities": {
+        "idle": 0,
+        "generating": 0,
+        "done": 0,
+        "moderated": 1,
+        "rate_limited": 0,
+        "signed_out": 0,
+        "error": 0,
+        "unknown": 0
+      },
+      "confidence": 1
+    }
+  },
+  "usage": {
+    "input_tokens": 475,
+    "output_tokens": 80,
+    "cost": 1.995e-05
+  },
+  "id": "gen-dec-test0001",
+  "provider": "TypeSafe"
+}

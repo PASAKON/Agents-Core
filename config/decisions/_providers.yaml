@@ -20,7 +20,24 @@ openrouter:
       OpenRouter list price for anthropic/claude-haiku-4-5, matching
       Anthropic's own first-party Haiku 4.5 API rate ($1.00/$5.00 per MTok)
       per the claude-api skill's Current Models table (cached 2026-06-24).
+  typesafe/jev-1.13:
+    in: 0.042
+    out: 0.0
+    asof: "2026-09-22"
+    source: >-
+      MEASURED 2026-09-22 via OpenRouter's endpoints API
+      (GET /api/v1/models/typesafe/jev-1.13/endpoints) and confirmed by a
+      live /api/alpha/decisions call — see
+      research/2026-09-22-typesafe-jev-system-one-models.md § "MEASURED
+      2026-09-22". Jev is served over OpenRouter (not a separate TypeSafe
+      endpoint); tools/decide.py's jev provider uses this key, overridable
+      by DECIDE_JEV_MODEL.
 
+# Superseded by openrouter."typesafe/jev-1.13" above (task-a6129a75,
+# 2026-09-22) — T1's guessed direct-vendor endpoint (JEV_API_URL/JEV_API_KEY)
+# never shipped a live call; Jev is confirmed live on OpenRouter instead.
+# Left in place only as a historical price note; tools/decide.py no longer
+# reads this key.
 jev:
   system-one:
     in: 0.042
@@ -30,9 +47,7 @@ jev:
       TypeSafe's "System One models + Jev" launch post, 2026-09-15
       (recorded in Agents-Wikis research/2026-09-22-typesafe-jev-system-one-models.md):
       "$0.042 / MTok input, output free". Early access / waitlist — pricing
-      sustainability explicitly unproven by the vendor's own words. The
-      endpoint itself is unverified (see tools/decide.py's jev provider and
-      docs/design/decision-layer.md § Jev status).
+      sustainability explicitly unproven by the vendor's own words.
 
 # Used by lib/decision_ledger.py / tools/decide.py to compute
 # counterfactual_usd — "what would this decision have cost inside the big

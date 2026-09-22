@@ -12,12 +12,28 @@ heuristics this generalizes, not code this file imports).
 
 Provider ladder per site's provider_policy:
   rules-only      -> [rules]
-  rules-then-llm  -> [rules, openrouter, jev]
+  rules-then-llm  -> [rules, jev, openrouter]
 
-`rules` is free and always available. `openrouter` and `jev` are gated off
-by default (env vars unset / no key) — a decide() call is safe-by-default,
-matching the org's "ask before paid API" rule; nothing here spends money
-unless an operator has explicitly turned a paid provider on.
+`rules` is free and always available. `jev` and `openrouter` are gated off
+by default (a decide() call is safe-by-default, matching the org's "ask
+before paid API" rule) — `DECIDE_PROVIDER` is the switch an operator sets
+to name the HIGHEST paid rung allowed:
+  DECIDE_PROVIDER unset / "rules" -> no paid rung runs
+  DECIDE_PROVIDER=jev             -> jev only
+  DECIDE_PROVIDER=openrouter      -> jev, then openrouter/haiku if jev errors
+Jev runs before openrouter/haiku because it is ~25x cheaper on input, free
+on output, and returns a calibrated probability distribution (TypeSafe's
+Jev on OpenRouter, measured 2026-09-22 — see
+research/2026-09-22-typesafe-jev-system-one-models.md); haiku is the
+LLM-judgment fallback for when jev errors or is off. `OPENROUTER_API_KEY`
+serves both rungs (Jev is served over OpenRouter's alpha decisions API,
+not a separate vendor endpoint).
+
+`OPENROUTER_API_KEY`, `DECIDE_PROVIDER`, `DECIDE_BUDGET_USD` and
+`DECIDE_JEV_MODEL` are read from os.environ first, then from the
+gitignored repo-root .env (lib.config._read_dotenv_var) — a var present
+but empty counts as absent, same as unset. The monthly budget gate
+(DECIDE_BUDGET_USD) applies to every paid rung, summed across providers.
 
 CLI:
     python tools/decide.py <site> --state-file f.txt [--provider rules|openrouter|jev]
@@ -45,17 +61,51 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))  # so `python tools/decide.py ...` finds lib/
 
 from lib import decision_ledger  # noqa: E402
+from lib.config import _read_dotenv_var  # noqa: E402
 
 DECISIONS_DIR = ROOT / "config" / "decisions"
 PROVIDERS_FILE = DECISIONS_DIR / "_providers.yaml"
 
 MAX_OPTIONS = 255  # Jev's cardinality cap (research/2026-09-22-typesafe-jev-system-one-models.md)
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+JEV_DECISIONS_URL = "https://openrouter.ai/api/alpha/decisions"
+# typesafe/jev-1.13, served over OpenRouter (config/decisions/_providers.yaml
+# openrouter."typesafe/jev-1.13") — measured 2026-09-22, see
+# research/2026-09-22-typesafe-jev-system-one-models.md.
+DEFAULT_JEV_MODEL = "typesafe/jev-1.13"
 
 LADDERS = {
     "rules-only": ["rules"],
-    "rules-then-llm": ["rules", "openrouter", "jev"],
+    "rules-then-llm": ["rules", "jev", "openrouter"],
 }
+
+# DECIDE_PROVIDER names the HIGHEST paid rung an operator has turned on;
+# the value maps to every rung that's allowed to run. Anything else
+# (unset, "rules", a typo) allows no paid rung — safe by default.
+_PAID_RUNGS_ALLOWED = {
+    "jev": {"jev"},
+    "openrouter": {"jev", "openrouter"},
+}
+
+
+def _env(name: str) -> str | None:
+    """os.environ first, then the gitignored repo-root .env. A value that
+    is present but empty (`FOO=`) counts as absent, same as unset —
+    matches how a human clearing a var in .env expects it to behave."""
+    val = os.environ.get(name)
+    if not val:
+        val = _read_dotenv_var(name)
+    return val or None
+
+
+def _provider_gate(rung: str) -> None:
+    setting = (_env("DECIDE_PROVIDER") or "").strip().lower()
+    if rung not in _PAID_RUNGS_ALLOWED.get(setting, set()):
+        raise ProviderUnavailable(
+            f"{rung} disabled (DECIDE_PROVIDER="
+            f"{setting or '(unset)'!r}; set DECIDE_PROVIDER=jev or "
+            f"openrouter to enable {rung})"
+        )
 
 
 class DecisionError(Exception):
@@ -243,11 +293,8 @@ def _rules_provider(cfg: dict, state_text: str) -> dict | None:
 def _openrouter_provider(
     cfg: dict, state_text: str, *, http_post: Callable[..., Any] | None = None,
 ) -> dict:
-    if os.environ.get("DECIDE_PROVIDER") != "openrouter":
-        raise ProviderUnavailable(
-            "openrouter disabled (set DECIDE_PROVIDER=openrouter to enable)"
-        )
-    api_key = os.environ.get("OPENROUTER_API_KEY")
+    _provider_gate("openrouter")
+    api_key = _env("OPENROUTER_API_KEY")
     if not api_key:
         raise ProviderUnavailable("OPENROUTER_API_KEY not set")
 
@@ -256,7 +303,7 @@ def _openrouter_provider(
     est_tokens_in = len(state_text) // 4 + 200  # +schema/system overhead, rough
     est_cost = (est_tokens_in / 1_000_000) * prices["in"]
 
-    budget = float(os.environ.get("DECIDE_BUDGET_USD", "0") or 0)
+    budget = float(_env("DECIDE_BUDGET_USD") or 0)
     spent = decision_ledger.month_paid_cost_usd()
     if spent + est_cost > budget:
         raise ProviderUnavailable(
@@ -311,51 +358,104 @@ def _openrouter_provider(
     return {**base, "choice": choice, "probs": {choice: confidence}, "error": None}
 
 
+def _jev_model_id() -> str:
+    return _env("DECIDE_JEV_MODEL") or DEFAULT_JEV_MODEL
+
+
+def _jev_price_in(model_id: str) -> float:
+    table = _provider_prices().get("openrouter", {})
+    entry = table.get(model_id) or table.get(DEFAULT_JEV_MODEL) or {}
+    return float(entry.get("in", 0.042))
+
+
+def _response_error_text(resp: Any) -> str:
+    """Best-effort extraction of a provider's error message, zod-style or
+    otherwise — whatever body it sent back, never a guessed reason."""
+    try:
+        data = resp.json()
+    except Exception:
+        return (getattr(resp, "text", "") or "")[:300]
+    if isinstance(data, dict):
+        err = data.get("error", data)
+        if isinstance(err, dict):
+            return str(err.get("message") or err)[:300]
+        return str(err)[:300]
+    return str(data)[:300]
+
+
 def _jev_provider(
-    cfg: dict, state_text: str, *, http_post: Callable[..., Any] | None = None,
+    cfg: dict, state_text: str, *, site: str = "decision",
+    http_post: Callable[..., Any] | None = None,
 ) -> dict:
-    api_key = os.environ.get("JEV_API_KEY")
+    """Real endpoint, measured 2026-09-22 (research/2026-09-22-typesafe-
+    jev-system-one-models.md): POST https://openrouter.ai/api/alpha/decisions
+    with the site's question as a single `choice` question. `usage.cost` is
+    exact (provider-reported) and always preferred over the price-table
+    estimate when present."""
+    _provider_gate("jev")
+    api_key = _env("OPENROUTER_API_KEY")
     if not api_key:
-        raise ProviderUnavailable(
-            "JEV_API_KEY not set — Jev is early access (TypeSafe waitlist, "
-            "see research/2026-09-22-typesafe-jev-system-one-models.md); "
-            "ladder falls through"
-        )
-    api_url = os.environ.get("JEV_API_URL")
-    if not api_url:
-        raise ProviderUnavailable(
-            "JEV_API_URL not set — the endpoint is UNVERIFIED (the vendor's "
-            "API is referenced, not detailed, as of the 2026-09-15 launch "
-            "post); refusing to invent a URL, see docs/design/decision-layer.md"
-        )
+        raise ProviderUnavailable("OPENROUTER_API_KEY not set")
 
     options = _resolve_options(cfg)
-    prices = _provider_prices()["jev"]["system-one"]
-    post = http_post or (lambda url, **kw: requests.post(url, timeout=10, **kw))
+    model_id = _jev_model_id()
+    price_in = _jev_price_in(model_id)
+
+    est_tokens_in = len(state_text) // 4 + 200  # +schema/criteria overhead, rough
+    est_cost = (est_tokens_in / 1_000_000) * price_in
+    budget = float(_env("DECIDE_BUDGET_USD") or 0)
+    spent = decision_ledger.month_paid_cost_usd()
+    if spent + est_cost > budget:
+        raise ProviderUnavailable(
+            f"decision_budget_refused: spent=${spent:.4f} + est=${est_cost:.4f} "
+            f"> cap=${budget:.4f} (DECIDE_BUDGET_USD)"
+        )
+
+    payload = {
+        "model": model_id,
+        "state": state_text,
+        "questions": {
+            site: {
+                "type": "choice",
+                "instructions": cfg["question"],
+                "criteria": {o["id"]: o["meaning"] for o in options},
+            }
+        },
+    }
+    post = http_post or (lambda url, **kw: requests.post(url, timeout=15, **kw))
     t0 = time.monotonic()
-    resp = post(
-        api_url,
-        headers={"Authorization": f"Bearer {api_key}"},
-        json={"state": state_text, "schema": {"options": [o["id"] for o in options]}},
-    )
+    resp = post(JEV_DECISIONS_URL, headers={"Authorization": f"Bearer {api_key}"}, json=payload)
     latency_ms = (time.monotonic() - t0) * 1000
-    resp.raise_for_status()
-    data = resp.json()
-    probs = data.get("probs") or {}
-    tokens_in = int(data.get("tokens_in", len(state_text) // 4))
-    if not probs:
-        return {
-            "choice": None, "probs": {}, "provider": "jev",
-            "tokens_in": tokens_in, "tokens_out": 0, "latency_ms": latency_ms,
-            "cost_usd": 0.0, "calibrated": True,
-            "error": "jev: no probs in response (unverified endpoint shape)",
-        }
-    choice = max(probs, key=probs.get)
-    cost_usd = (tokens_in / 1_000_000) * prices["in"]  # Jev output is free
+
+    status = getattr(resp, "status_code", 200)
+    if status != 200:
+        raise ProviderUnavailable(f"jev: HTTP {status}: {_response_error_text(resp)}")
+
+    try:
+        data = resp.json()
+    except Exception as e:  # noqa: BLE001 - any malformed body is a provider failure
+        raise ProviderUnavailable(f"jev: non-JSON response: {e}") from e
+
+    answer = (data.get("answers") or {}).get(site) or {}
+    probs = answer.get("probabilities")
+    choice = answer.get("choice")
+    if not probs or choice is None:
+        raise ProviderUnavailable(
+            f"jev: off-schema response (no answers.{site}.choice/probabilities): "
+            f"{_response_error_text(resp) if status != 200 else data}"
+        )
+
+    usage = data.get("usage") or {}
+    tokens_in = int(usage.get("input_tokens", est_tokens_in))
+    tokens_out = int(usage.get("output_tokens", 0))
+    cost = usage.get("cost")
+    cost_usd = float(cost) if cost is not None else (tokens_in / 1_000_000) * price_in
+
     return {
-        "choice": choice, "probs": probs, "provider": "jev",
-        "tokens_in": tokens_in, "tokens_out": 0, "latency_ms": latency_ms,
+        "choice": choice, "probs": dict(probs), "provider": "jev",
+        "tokens_in": tokens_in, "tokens_out": tokens_out, "latency_ms": latency_ms,
         "cost_usd": cost_usd, "calibrated": True, "error": None,
+        "extra": {"confidence": answer.get("confidence")},
     }
 
 
@@ -424,7 +524,7 @@ def decide(
             elif name == "openrouter":
                 r = _openrouter_provider(cfg, state_text, http_post=_http_post)
             else:  # jev
-                r = _jev_provider(cfg, state_text, http_post=_http_post)
+                r = _jev_provider(cfg, state_text, site=site, http_post=_http_post)
         except ProviderUnavailable as e:
             errors.append(f"{name}: {e}")
             continue
@@ -464,6 +564,7 @@ def decide(
         "session_id": os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID"),
         "task_id": os.environ.get("WORKER_TASK_ID"),
         "error": result.get("error"),
+        "extra": result.get("extra"),
     }
     decision_ledger.append(row)
 
