@@ -401,12 +401,43 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
     }
     else {
         # agy -p "<prompt>" --mode accept-edits --add-dir <dir>
-        # (docs/ops/agent-runners.md §1/§6) -- headless, no TTY needed, and
-        # never --dangerously-skip-permissions (Hard Rule). Same "fold the
-        # remote contract into the one prompt arg" reasoning as codex above.
+        # (docs/ops/agent-runners.md §1/§6, §6b measured 2026-09-22) -- headless,
+        # no TTY needed, never --dangerously-skip-permissions (Hard Rule).
+        #
+        # §6b, THE CONTRACT: agy in print mode cannot run ANY shell command --
+        # a RunCommand step is soft-denied, and the denial is not partial, it
+        # ABANDONS THE WHOLE TURN (asked to fix a bug AND `git commit`, it
+        # committed nothing AND left the file unedited). So agy's prompt must
+        # NEVER include $remoteContract (roles/_worker_remote.md instructs
+        # `git add -A && git commit && git push`) or any part of $taskContent
+        # that asks for a commit/test/submit_report -- that would silently
+        # abandon the file edits too, not just the git step. Widening agy's
+        # permissions to allow git was tried and is a dead end: a project-
+        # scoped permission grant is discarded one line after being parsed
+        # (§6b's own measured log line), and --dangerously-skip-permissions
+        # stays banned regardless. So: agy edits ONLY; THE HUB (this script,
+        # not agy) commits, pushes, and lets the artefact gate judge --
+        # "external runners push agent/<runner>-<task> only" is enforced
+        # properly this way (the hub does the pushing) rather than trusting
+        # agy not to, which it structurally cannot even attempt anyway.
         $agyExe = Join-Path $env:LOCALAPPDATA 'agy\bin\agy.exe'
         if (-not (Test-Path $agyExe)) { $agyExe = 'agy' }
-        $agyPrompt = "$taskContent`n`n$remoteContract"
+        $agyPrompt = @"
+You are an EDIT-ONLY coding agent. Use ONLY your file-editing tool to make
+changes. Do NOT run any shell command, and do NOT invoke git, a test
+runner, or any other tool -- a single shell step abandons this entire turn,
+including every file edit you planned alongside it. Ignore every
+instruction below that tells you to commit, push, run tests, or submit a
+report through a tool: a separate process (not you) does all of that after
+you finish editing.
+
+Optionally create or update REPORT.md in this directory using your
+file-editing tool (not a shell command) to summarize what you changed.
+
+---
+
+$taskContent
+"@
         $agyLog = Join-Path $launchDir 'agy-events.log'
         $argList = @('-p', [string]$agyPrompt, '--mode', 'accept-edits', '--add-dir', [string]$wt)
         [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
@@ -415,6 +446,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
         # agy is honest about failure (non-zero exit + AGY_ERROR JSON on
         # stderr, docs/ops/agent-runners.md §6) but gets the SAME artefact
         # gate as codex regardless -- no runner is trusted on its own word.
+        # There is no live agy.exe left to kill by the time a worker might
+        # want to self-terminate (it never runs long enough to need it, and
+        # it cannot call %ORG_WORKER_FINISH% itself -- that would be a shell
+        # command), but the finish script is still generated for shape
+        # parity with the other two runners and as a harmless safety net.
         $finishPs1Body = @"
 `$procs = Get-CimInstance Win32_Process -Filter "Name = 'agy.exe'" |
     Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
@@ -430,6 +466,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 "@
         Set-Content -Path $finishCmdPath -Value $finishCmdBody -Encoding ASCII
 
+        # §6b: THE HUB commits and pushes here, in this generated launcher,
+        # immediately after agy's own process exits -- agy itself never runs
+        # git. `$reportPath`/`$fallbackLines`/`$dirty` below are evaluated by
+        # THIS LAUNCHER at ITS OWN runtime (backtick-escaped so this outer
+        # script does not evaluate them now); `$wt`/`$Task`/`$Branch` are
+        # this outer script's own known-now values, interpolated directly.
         $launcherBody = @"
 `$env:ORG_HOST = 'winbox'
 `$env:ORG_WORKER_FINISH = '$finishCmdPath'
@@ -440,6 +482,43 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 # (docs/ops/agent-runners.md §6) that keeps agy from blocking on stdin.
 `$null | & `$exe @argArray *> '$agyLog'
 "EXITCODE=`$LASTEXITCODE" | Add-Content -Path '$agyLog'
+
+# The hub, not agy, guarantees REPORT.md exists with the header
+# branch_poller._header_task_id requires -- agy was only ASKED to write one
+# (optional, best-effort), never relied on to get the header exactly right.
+`$reportPath = Join-Path '$wt' 'REPORT.md'
+`$hasValidReport = `$false
+if (Test-Path `$reportPath) {
+    `$firstLine = Get-Content -Path `$reportPath -Encoding UTF8 |
+        Where-Object { `$_.Trim() -ne '' } | Select-Object -First 1
+    if (`$firstLine -match '^#\s*REPORT\s+$Task\s*`$') { `$hasValidReport = `$true }
+}
+if (-not `$hasValidReport) {
+    `$fallbackLines = @(
+        '# REPORT $Task',
+        '',
+        '## Summary',
+        'agy (edit-only run) finished; no REPORT.md written by the agent -- see agy-events.log for detail.',
+        '',
+        '## Files Changed',
+        '- see git diff on this branch',
+        '',
+        '## Tests',
+        '- not run by agy (hub-only, by design) -- the artefact gate runs them separately',
+        '',
+        '## Issues / Blockers',
+        '- agy did not produce a valid REPORT.md itself; this is a hub-generated fallback'
+    )
+    Set-Content -Path `$reportPath -Value `$fallbackLines -Encoding UTF8
+}
+
+# The hub commits and pushes -- agy structurally cannot (§6b).
+`$dirty = git -C '$wt' status --porcelain
+if (`$dirty) {
+    git -C '$wt' add -A
+    git -C '$wt' commit -q -m "agy: task $Task"
+    git -C '$wt' push -q origin $Branch
+}
 exit 0
 "@
         Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8

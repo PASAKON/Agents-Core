@@ -163,6 +163,77 @@ def test_agy_argv_matches_measured_table():
     assert "--dangerously-skip-permissions" not in agy_branch
 
 
+def test_agy_prompt_never_includes_the_git_remote_contract():
+    """docs/ops/agent-runners.md §6b (2026-09-22): agy in print mode cannot
+    run ANY shell command -- a RunCommand step is soft-denied and the denial
+    is not partial, it abandons the WHOLE turn (planned edits included).
+    $remoteContract (roles/_worker_remote.md) instructs `git add -A && git
+    commit && git push` -- if that text ever reaches agy's prompt, a single
+    run silently loses every file edit it also planned. Regression guard for
+    exactly that."""
+    code = _code_only()
+    codex_start = code.index("elseif ($Runner -eq 'codex')")
+    agy_start = code.index("else {", codex_start)
+    agy_branch = code[agy_start:code.index("$stAct = New-ScheduledTaskAction")]
+    assert "$remoteContract" not in agy_branch
+    assert "$agyPrompt" in agy_branch
+
+
+def test_agy_prompt_forbids_shell_and_names_the_edit_tool():
+    """The exact verified-working shape from docs/ops/agent-runners.md §6b:
+    'Use your file-editing tool to ... Do not run any shell command.'"""
+    text = _text()
+    agy_start = text.index("else {\n        # agy")
+    agy_branch = text[agy_start:text.index("$stAct = New-ScheduledTaskAction")]
+    assert "EDIT-ONLY" in agy_branch
+    assert "Do NOT run any shell command" in agy_branch
+    assert "file-editing tool" in agy_branch
+    assert "commit, push, run tests" in agy_branch
+
+
+def test_agy_launcher_has_the_hub_commit_push_not_the_agent():
+    """§6b's core fix: THE HUB commits and pushes agy's edits, in the
+    generated launcher, after agy's own process exits -- agy structurally
+    cannot do this itself. Must appear AFTER the agy invocation line, not
+    before (agy has to finish editing first)."""
+    text = _text()
+    agy_start = text.index("else {\n        # agy")
+    agy_branch = text[agy_start:text.index("$stAct = New-ScheduledTaskAction")]
+    invoke_idx = agy_branch.index("$null | & `$exe @argArray")
+    commit_idx = agy_branch.index("git -C '$wt' commit")
+    push_idx = agy_branch.index("git -C '$wt' push")
+    assert invoke_idx < commit_idx < push_idx
+    assert "git -C '$wt' status --porcelain" in agy_branch
+
+
+def test_agy_launcher_only_commits_when_something_changed():
+    """A run where agy planned nothing (or its one shell-touching plan
+    abandoned every edit, per §6b) must not push an empty commit -- `git
+    commit` would itself fail noisily, and an empty branch is exactly the
+    'nothing to trust' case the artefact gate must see as never pushed."""
+    text = _text()
+    agy_start = text.index("else {\n        # agy")
+    agy_branch = text[agy_start:text.index("$stAct = New-ScheduledTaskAction")]
+    dirty_idx = agy_branch.index("$dirty = git -C '$wt' status --porcelain")
+    if_idx = agy_branch.index("if (`$dirty)", dirty_idx)
+    commit_idx = agy_branch.index("git -C '$wt' commit", if_idx)
+    assert dirty_idx < if_idx < commit_idx
+
+
+def test_agy_launcher_guarantees_a_valid_report_md_header():
+    """The hub, not agy, guarantees REPORT.md carries the exact header
+    branch_poller._header_task_id requires (`# REPORT <task_id>`) -- agy is
+    only ever ASKED for one (optional, best-effort, via its file-editing
+    tool), never relied on to get the header right."""
+    text = _text()
+    agy_start = text.index("else {\n        # agy")
+    agy_branch = text[agy_start:text.index("$stAct = New-ScheduledTaskAction")]
+    assert "REPORT.md" in agy_branch
+    assert "hasValidReport" in agy_branch
+    assert "'# REPORT $Task'" in agy_branch
+    assert "fallbackLines" in agy_branch
+
+
 def test_agy_uses_pipe_not_angle_bracket_for_stdin():
     """PowerShell has no '<' input-redirect operator (that's cmd.exe syntax)
     -- a literal '< NUL' or '< $null' in a .ps1 here-string body would throw
