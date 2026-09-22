@@ -40,28 +40,53 @@ rules:
   # English moderation strings — google-flow-ops SKILL.md § "A policy refusal
   # comes from the DIALOGUE" + higgsfield-unlimited-gen SKILL.md's Face/IP
   # scanner section ("the same automated Face/IP scanner that terminally
-  # killed three healthy plates").
-  - pattern: 'content polic|violates? .*polic|flagged|face/ip scanner|resemblance'
+  # killed three healthy plates") + its NSFW stop-and-ask condition (§ "Rule
+  # checklist", "any number on the Generate button, an NSFW ...").
+  - pattern: 'content polic|violates? .*polic|flagged|face/ip scanner|resemblance|nsfw'
     option: moderated
-  - pattern: 'rights verification required'
+  # higgsfield-unlimited-gen SKILL.md § HARD rule 3: "Rights verification
+  # required" banner, click-Confirm-Rights flow — "confirm rights" is the
+  # button label extract_state() surfaces alongside the banner text.
+  - pattern: 'rights verification required|confirm rights'
     option: moderated
   # Sign-out — google-flow-ops SKILL.md § "Mid-session Google sign-out":
   # redirects to /about, or a bare "Sign in" control; accounts.google.com
-  # ServiceLogin confirms it.
+  # ServiceLogin confirms it. Higgsfield's own signed-out indicator
+  # (scripts/higgsfield/gen_loop.py's `.hfnav-auth-login` check, already
+  # live-verified there) is surfaced by extract_state() as this same
+  # "sign in" wording rather than a second rule.
   - pattern: '\bsign in\b|accounts\.google\.com/ServiceLogin|myaccount\.google\.com|/about\b.*splash'
     option: signed_out
   # Rate limiting — HTTP 429 / slot-busy wording (memory:
-  # reference_rate_limited_false_positive_from_higgsfield_429.md).
-  - pattern: '\b429\b|too many requests|rate limit|slot.?busy'
+  # reference_rate_limited_false_positive_from_higgsfield_429.md), plus
+  # Higgsfield's own concurrency toast (higgsfield-unlimited-gen SKILL.md
+  # § HARD rule 4, "1 unlimited generation at a time") — not a real block,
+  # same as a 429: wait, don't re-fire.
+  - pattern: '\b429\b|too many requests|rate limit|slot.?busy|1 unlimited generation at a time'
     option: rate_limited
+  # Idle/ready-to-submit — Higgsfield's own button-state table
+  # (higgsfield-unlimited-gen SKILL.md § HARD rule 2, "the button's price
+  # is the money check"): bare "Generate" or "Unlimited ... 0" (struck
+  # price) both mean nothing is in flight and Unlimited is correctly
+  # applied. Only matches extract_state()'s own `button="..." disabled=...`
+  # framing, so it cannot fire on raw page prose.
+  - pattern: 'button="(generate|unlimited[^"]*)"\s*disabled=false'
+    option: idle
   # In-flight generation — button/spinner text on Flow + Higgsfield.
-  - pattern: 'generating|in queue|queued|rendering'
+  # "processing"/"in progress" added from gen_loop.py's own pre-existing
+  # ad hoc regex (`/generating|processing|queued|rendering|in progress/i`,
+  # the exact heuristic this site replaces).
+  - pattern: 'generating|in queue|queued|rendering|processing|in progress'
     option: generating
   # Finished asset — download control visible.
   - pattern: '\bdownload\b|ready to download|generation complete'
     option: done
-  # Generic error — last, so a moderation/rate-limit match above always wins.
-  - pattern: 'something went wrong|failed to generate|\berror\b'
+  # Generic error — last, so a moderation/rate-limit/idle match above always
+  # wins. "\bfailed\b" is Higgsfield's own bare card-status text
+  # (gen_loop.py's pre-existing, unused failed_count() heuristic); "prompt
+  # is required" is Higgsfield's measured composer error (higgsfield-
+  # unlimited-gen SKILL.md, "Prompt > Instruction: Prompt is required").
+  - pattern: 'something went wrong|failed to generate|\berror\b|\bfailed\b|prompt is required'
     option: error
 counterfactual:
   images: 1
