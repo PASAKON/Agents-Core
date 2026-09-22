@@ -117,16 +117,20 @@ NOT = {
  # of one. A description of a specific existing image beats a description of a
  # category: the earlier wording asked for "pastel paper, no portrait" in the
  # abstract and lost to the model's prior for Thai banknotes in a Thai shop.
- "money": "The banknotes are a single invented denomination, all identical: soft "
-          "matte paper in dusty rose fading to pale sage at one end, worn round at "
-          "the corners and limp from handling. A plain printed numeral 25 sits in "
-          "one corner in dark ink, the only number on the note. A thin geometric "
-          "diamond border runs along the long edges in faded ochre. The rest of the "
-          "note is empty paper. No face, no portrait, no bust, no silhouette of a "
-          "person anywhere on it; no crest, seal, emblem, flag, map, building or "
-          "monument; no country name and no readable script of any language. It "
-          "resembles no real currency of any country. Also in this shot: no "
-          "notebook, no pen, no paper, no ledger of any kind.",
+ # Act 3's money scenes are ENVELOPE scenes — the action lines say so and the
+ # notes are never meant to be seen. Says where the money is rather than only
+ # what it must not look like, because a prohibition alone lost to the model's
+ # prior six times (2026-09-22).
+ "money": "The money is inside a plain brown paper envelope, folded once, and "
+          "stays inside it: the envelope is never opened in this shot and not a "
+          "single banknote is visible — no note in a hand, none protruding from "
+          "the flap, none on the counter, none anywhere in frame. If any edge of "
+          "a note shows at all it is plain soft pastel paper, dusty rose or pale "
+          "sage, blank, with no printing on the visible part. No face, portrait "
+          "or bust; no crest, seal, emblem, flag or monument; no country name "
+          "and no readable script. It resembles no real currency of any country. "
+          "Also in this shot: no notebook, no pen, no paper, no ledger of any "
+          "kind.",
  "ya":    "She stays lying propped on the pillows and does not sit up. She wears no glasses. The "
           "nasal cannula stays on.",
  # Keeps her out of frame WITHOUT handing her sickroom equipment to whoever is
@@ -144,6 +148,22 @@ NOT = {
 # that declares NOT["money"] has banknotes in frame, so the builder attaches
 # @money_fold to it automatically — keyed off the declaration the writer already
 # makes, so nobody has to remember a second list.
+# Props attached PER SHOT, decided by reading the action line — never derived
+# from a flag. Audited 2026-09-22: NOT["money"] is a prohibition carried by 22
+# shots, most with no money in frame, so keying off it would have put banknotes
+# into scenes written to be empty of them.
+#
+# Act 3's money scenes are the case that matters: every one of their action
+# lines says ENVELOPE — "takes a folded envelope from his apron", "pushes the
+# envelope back", "puts the envelope into his son's shirt pocket". The notes are
+# meant to stay inside it and never be seen. Six clips rendered a real Thai
+# 500-baht note with the royal portrait instead, because the only thing bound
+# was nothing at all and the model filled the gap with its prior.
+PROPS_BY_SHOT = {
+    68: ["@prop_envelope"], 70: ["@prop_envelope"], 73: ["@prop_envelope"],
+    74: ["@prop_envelope"], 75: ["@prop_envelope"], 76: ["@prop_envelope"],
+}
+
 PROP_FOR_NOT = {
     "money": "@money_fold",
 }

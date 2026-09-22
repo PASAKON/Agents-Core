@@ -289,7 +289,7 @@ The 32-year-old man in the dark-grey polo shirt <IMAGE_REF_0> speaks Thai in the
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, firm, and says: "วิทย์"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -308,7 +308,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn
 The 32-year-old man in the dark-grey polo shirt <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, quiet, and says: "ลุง ร้านมันเงียบขนาดนี้..."
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -323,7 +323,7 @@ In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wood
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, warm, final, and says: "ลุงยังไหวอยู่ครับวิทย์"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Close-up on the father, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -356,7 +356,7 @@ The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clea
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, quiet, and says: "พ่อกำลังคิดอยู่"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 

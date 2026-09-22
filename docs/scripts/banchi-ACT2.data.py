@@ -22,6 +22,7 @@ LOC = dict(_a1.LOC)
 VOICE = dict(_a1.VOICE)
 NOT = dict(_a1.NOT)
 PROP_FOR_NOT = dict(_a1.PROP_FOR_NOT)
+PROPS_BY_SHOT = dict(_a1.PROPS_BY_SHOT)
 APRON = _a1.APRON
 
 # ── NEW IN ACT 2 ─────────────────────────────────────────────────────────────
