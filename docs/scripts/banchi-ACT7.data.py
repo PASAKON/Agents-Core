@@ -100,7 +100,7 @@ SHOTS = [
    ("somchai","open","ถามมาสิลูก")], ["noya"]),
 
  (169, 10, "Medium two-shot, static camera", ["ton","somchai"], "room", "afternoon",
-  "turns on the bed to face his father properly, the older man letting his hand fall from the rail",
+  "stays sitting upright on the edge of the bed beside his father, both feet on the floor, and turns only his shoulders to face him properly, the older man letting his hand fall from the rail",
   [("ton","quiet","ตอนนั้นพ่อบอกผมว่าไม่ต้องรู้ว่าเงินมาจากไหน"),
    ("somchai","without flinching","พ่อจำได้ลูก")], ["noya"]),
 
