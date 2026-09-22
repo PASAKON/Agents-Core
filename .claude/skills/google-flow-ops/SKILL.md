@@ -178,6 +178,46 @@ notes on those live in docs/ops/ (antigravity-cli-test.md, the benefits audit).
 | Veo 3.1 Quality | 100 (published; visible in the panel, never selected) |
 | Download / re-export a clip | 0 |
 
+## Anything that must look a specific way needs an Element, not a sentence
+
+**Measured 2026-09-22, «จุดจบของเจ้าหนี้นอกระบบ», 6 clips lost.** Every money
+shot in Act 3 rendered a **recognisable Thai 500-baht note carrying the royal
+portrait** — in a drama about illegal moneylending. The prompt had asked for the
+opposite, positively *and* negatively, in 40 careful words:
+
+> The banknotes are obvious theatrical prop money of an invented place: soft
+> pastel paper in even tones, one plain printed numeral in a corner, a simple
+> abstract line pattern at the edges, and nothing else on them. No portrait or
+> face of any kind, and no national emblem, crest, flag or country name — this is
+> not the currency of any real country.
+
+That wording is not the problem. What it was up against is: a Bangkok shophouse,
+Thai dialogue, a Thai cast, Thai signage. The model's prior for "banknotes in a
+Thai noodle shop" is Thai banknotes, and no amount of description outweighs it.
+
+**The same film proves the fix.** Its three characters and six locations render
+correctly across all 74 clips, because each is bound to an `@chip` and attached
+as `<IMAGE_REF_N>`. The money was words only — shot 75 attached exactly two
+chips, both of them people and places. Cast and sets got references; the prop got
+a paragraph; only the prop went wrong.
+
+**So, before any shoot:** list everything the prompt merely *describes*, and ask
+which of those the scene's own context would pull toward a default — currency,
+signage, uniforms, food, vehicles, documents, anything with a strong local prior.
+Each one needs an Element.
+
+**And the Elements are free.** A still costs nothing (see below), so there is no
+budget argument for describing a prop instead of binding it. Generate the plate,
+make it an Element, attach it. The CEO's rule, 2026-09-22: *"ต้องแก้ตั้งแต่ Prop
+Element เลย — ถ้าแก้ที่ต้นตอ ต่อให้ Generate Video ยังไง ก็จะได้ตาม Prop ใหม่"*
+— fix the source and every later generation inherits it; fix the prompt and you
+are re-arguing with the model's prior on every single shot.
+
+Generalises beyond props: a **time of day** behaves the same way. The word
+`night` appended to a 60-word description of a lit, open, busy shop produced
+daylight in all 71 clips of the same film. A cue that contradicts the paragraph
+around it loses to the paragraph.
+
 **Image generation being free is the most valuable fact in this file.** Make
 every character, prop and location plate in Flow, download them, and spend
 credits only on video.
