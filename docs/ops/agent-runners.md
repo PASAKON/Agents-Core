@@ -163,6 +163,35 @@ loosening permissions; if shell is genuinely needed, add a narrow
 **Failure signalling beats Codex's**: `agy` exits non-zero and prints the reason
 (v1.2.6 added `AGY_ERROR` JSON on stderr and exit 3). Codex exits 0 — see §4.
 
+### 6a. On Windows, `agy`'s sign-in is session-scoped (2026-09-22)
+
+`agy.exe` installed on winbox from `https://antigravity.google/cli/install.ps1`
+(download and inspect it, then run the file — the classifier refuses a raw
+`irm … | iex`). It lands in `%LOCALAPPDATA%\agy\bin` and updates the user PATH
+registry.
+
+Two facts that will otherwise waste an hour:
+
+- **The CLI does not inherit the Antigravity IDE's sign-in.** The IDE was logged
+  in on that box the whole time; `agy models` still said "Please sign in". Each
+  binary signs in for itself.
+- **After signing in, `agy models` succeeds in session 1 and still says
+  "Please sign in" over `ssh`.** The credential lives in the logon session's
+  keyring, which session 0 cannot read. So the screen saying
+  `AGY IS SIGNED IN` and ssh saying otherwise are *both* true — check it the way
+  you will actually run it, through `windows/s1probe.ps1`, not over ssh.
+
+This is the same session-0 boundary as §3, reached through auth instead of a
+sandbox pipe. Every runner on that box goes through session 1; nothing changes
+in the launcher.
+
+**Signing in without a race**: put a loop in the .cmd — `agy models` as the
+success probe, otherwise print a fresh OAuth URL and wait — and launch it with
+`s1probe.ps1 -Cmd "start cmd /k …"` so it is a visible, persistent window on the
+desktop. The user reads the URL there, approves, and pastes the code into that
+same window. An expired URL is simply replaced by the next loop, which removes
+the 60 s clock the earlier attempts kept losing to.
+
 ## Related
 
 `delegate-external-agent` skill (the brief contract and the review discipline),
