@@ -98,6 +98,11 @@ def match_path(path, glob_pattern, home):
     if glob_pattern.startswith("~/"):
         glob_pattern = str(home) + glob_pattern[1:]
 
+    # "X/**" also covers X itself: a NEVER folder must be NEVER at its own
+    # root, or a folder-level scan would see ~/Pictures as UNCLASSIFIED.
+    if glob_pattern.endswith("/**") and fnmatch.fnmatch(path.rstrip("/"), glob_pattern[:-3]):
+        return True
+
     if Path(path).match(glob_pattern):
         return True
 

@@ -209,3 +209,16 @@ def test_load_negative_gauge(tmp_path):
     p.write_text(yaml.dump(data))
     with pytest.raises(sp.PolicyError, match="gauge color .* must be >= 0"):
         sp.load(p)
+
+
+def test_never_glob_covers_its_own_root():
+    policy = {"tiers": {"NEVER": ["~/Pictures/**", "/private/tmp/claude-501/**"],
+                        "HOT": ["~/**"], "COLD": [], "REBUILD": []}}
+    home = Path("/Users/test")
+    assert sp.classify("/Users/test/Pictures", policy, home) == "NEVER"
+    assert sp.classify("/Users/test/Pictures/", policy, home) == "NEVER"
+    assert sp.classify("/Users/test/Pictures/lib/x.jpg", policy, home) == "NEVER"
+    assert sp.classify("/Users/test/PicturesOld", policy, home) == "HOT"
+    assert sp.classify("/private/tmp/claude-501/other-session/x", policy, home) == "NEVER"
+    policy["tiers"]["NEVER"].append("~/.claude/projects/*/memory/**")
+    assert sp.classify("/Users/test/.claude/projects/-p/memory", policy, home) == "NEVER"
