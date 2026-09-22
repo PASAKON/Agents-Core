@@ -70,3 +70,7 @@ $PY ~/MoonieXHQ/scripts/hq.py show Projects/LungNote/Mcp
 `gdrive-filing` (Drive side of rule 5 and 7) · `disk-hygiene` (what may be deleted locally) ·
 `Agents/Rules/playbooks/project-layout.md` (inside a project) · `Agents/Rules/IRON-RULES.md` §54 ·
 ADR 0028 · `Agents/Wikis/research/README.md` (the research cache — search it before the web).
+
+## Field notes
+
+- 2026-09-22 [MISSING] §Migration — a duplicate clone the CEO approved as "safe to delete" held 4 branches that existed nowhere else (the survey's `ahead=0` was against a stale remote-tracking ref). The migration script's live `git ls-remote` + `merge-base --is-ancestor` check caught it; rule to fold: a dup is deletable only when every local branch sha is on origin or an ancestor of origin's default branch — never from cached refs, never from the CEO's read alone · evidence: task-ad534f86 iteration 1, WarpClip-webapp · status: pending

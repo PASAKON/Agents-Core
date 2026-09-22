@@ -251,3 +251,8 @@ re-introducing heartbeats.
   - `feedback_dev_role_selection.md`
   - `feedback_task_queue_serial.md`
   - `feedback_designer_spawn_inputs.md`
+
+## Field notes
+
+- 2026-09-22 [MISSING] §6b — `reopen_task` + `delegate_task` on a LIVE worker re-sends only the generic kickoff; the worker answered "same kickoff, already handled" and the 25 s watchdog stamped `failed` with the pid alive. Repair that worked: `UPDATE tasks SET status='in_progress' WHERE id=… AND status='failed'` (keeps the surface reaper off the live pid) → write `<worktree>/CTO-FEEDBACK.md` (send_to_worker delivers header only, #136/#154) → `tmux send-keys -t wd-<id> C-u 'read CTO-FEEDBACK.md and continue' Enter` · evidence: task-ad534f86 21:23–21:26, worker resumed in its own context · status: pending
+- 2026-09-22 [MISSING] §3c.9 — a line typed into a worker's tmux pane that wraps past one screen line is never submitted: Enter is eaten and the text sits in the input box ("Press up to edit queued messages" when the worker is mid-turn). Keep the pane message under ~100 chars and put the substance in a worktree file · evidence: two workers the same evening (ad534f86, df0541aa), both fixed by C-u + a short line · status: pending
