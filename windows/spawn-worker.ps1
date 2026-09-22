@@ -31,7 +31,15 @@ param(
     [Parameter(Mandatory = $true)][string]$RepoUrl,
     [Parameter(Mandatory = $true)][string]$RepoPath,
     [Parameter(Mandatory = $true)][string]$WorktreeRoot,
-    [Parameter(Mandatory = $true)][string]$ClaudeArgs,
+    # AllowEmptyString: codex and agy have no claude-style flags, so
+    # tools/delegate.py's _render_remote_runner_args returns '' for them — and
+    # a Mandatory [string] rejects '' at bind time, before the script runs a
+    # single line. The first real agy spawn (task-22f3579a, 2026-09-22) died
+    # here with "Cannot bind argument to parameter 'ClaudeArgs' because it is
+    # an empty string". Static text tests could not see it; only a real spawn
+    # could. Still Mandatory — the hub must always pass the parameter, it just
+    # may be empty.
+    [Parameter(Mandatory = $true)][AllowEmptyString()][string]$ClaudeArgs,
     [Parameter(Mandatory = $true)][string]$Model,
     [Parameter(Mandatory = $true)][string]$Effort,
     [Parameter(Mandatory = $true)][string]$SessionName,
