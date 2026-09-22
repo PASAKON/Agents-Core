@@ -29,12 +29,48 @@ options:
 max_state_chars: 2000
 provider_policy: rules-then-llm
 rules:
+  # task-3de56f59: secretary_waker.py's digest turn (DIGEST_TURN_MARKER,
+  # "[C-LEVEL DIGEST]") is the ONLY caller anywhere in this codebase that
+  # ever sends this literal marker, always on profile=secretary. The
+  # "spam,profile=secretary -> full lane" rule in runners/secretary_server.py
+  # already protects it from the silent-spam lane, but not from a confident
+  # `chitchat` verdict, which routes to the light lane (haiku, zero tools,
+  # --max-turns 1) regardless of profile — that would silently break the
+  # digest instead of summarising it. Free, deterministic, first in the
+  # list so it always wins; zero false-positive risk (nothing else emits
+  # this exact string).
+  - pattern: '^\[C-LEVEL DIGEST\]'
+    option: order_for_cto
   - pattern: 'สั่งงาน|order #|มอบหมาย|ให้ cto|ให้ทีมพัฒนา'
     option: order_for_cto
   - pattern: 'ให้ cfo|ให้ cmo|ให้ cgo|เรื่องการเงิน|เรื่องการตลาด|เรื่องเติบโต'
     option: order_for_other_cxo
   - pattern: '\?$|ไหม\s*$|หรือเปล่า\s*$|มั้ย\s*$'
     option: question
+  # Below: task-3de56f59 D3 additions. Each is anchored (^...$) over the
+  # WHOLE message, never a substring match — "ขอบคุณครับ แล้วช่วยทำ X ให้
+  # หน่อย" must keep falling through to the LLM rung / full lane, never get
+  # shortcut to chitchat just because it contains a thank-you. Conservative
+  # on purpose: a wrong `chitchat` on a real order is the failure mode that
+  # matters, a wrong non-match just costs today's full-lane price.
+  - pattern: '^\s*(ขอบคุณ(ครับ|ค่ะ|นะ|มาก|ครับผม)?|ขอบใจ)\s*[!.๐-๙]*\s*$'
+    option: chitchat
+  - pattern: '^\s*(โอเค|okay|ok)\s*[!.]*\s*$'
+    option: chitchat
+  - pattern: '^5{3,}$'
+    option: chitchat
+  # Pure emoji (+ whitespace), nothing else — common Unicode emoji blocks.
+  - pattern: '^[\s\U0001F300-\U0001FAFF☀-➿←-⇿⬀-⯿]+$'
+    option: chitchat
+  # A message that is ONLY a bare URL, nothing else (no Thai, no other
+  # text). Safe even on profile=secretary because "spam,profile=secretary
+  # -> full lane" always wins there (the CEO is never treated as spam); on
+  # the family profile a wrong call here just means a neutral reply instead
+  # of engaging the link, never a broken order. Deliberately NOT trying to
+  # detect "unknown sender" here — that is not part of the state text this
+  # site ever receives, so a rule claiming to check it would be undefendable.
+  - pattern: '^https?://\S+$'
+    option: spam
 counterfactual:
   extra_input_chars: 14362
   big_model_tokens_out: 150

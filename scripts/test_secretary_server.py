@@ -38,9 +38,39 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import runners.secretary_server as ss  # noqa: E402
+from lib import decision_ledger  # noqa: E402
 
 API_KEY = "test-secret-key"
 URL_PATH = "/v1/chat/completions"
+
+# ---------------------------------------------------------------------------
+# task-3de56f59 -- run_secretary_turn now calls tools.decide.decide() on
+# EVERY turn before its stubbed _run_claude_once, which means every test in
+# this file (all 101 pre-existing ones, plus the new ones below) now
+# exercises the real decide() ladder unless routing is off. This file lives
+# under scripts/, outside tests/conftest.py's autouse dotenv-sealing fixture
+# (that one only covers the tests/ tree) -- so without the fixture below, a
+# real gitignored .env with DECIDE_PROVIDER=jev set (task-a6129a75 shipped
+# exactly that) would let every HTTP test here make a live paid Jev call.
+# Same sealing tests/conftest.py does, reproduced locally: strip the paid
+# vars AND neutralise the .env fallback reader so a test can't fall through
+# to the real repo .env either. Also redirects the decision ledger to
+# tmp_path (tests/test_flow_shoot.py's `_redirect_decision_ledger` pattern)
+# so a "rules"-only decide() call here never appends to the real
+# state/decisions/*.jsonl.
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _no_dotenv_no_paid_decide_calls(monkeypatch) -> None:
+    for var in ("OPENROUTER_API_KEY", "DECIDE_PROVIDER", "DECIDE_BUDGET_USD",
+                "DECIDE_JEV_MODEL", "JEV_API_KEY", "JEV_API_URL", "SOMPONG_ROUTE"):
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.setattr(ss.decide_tool, "_read_dotenv_var", lambda name: None)
+
+
+@pytest.fixture(autouse=True)
+def _redirect_decision_ledger(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(decision_ledger, "LEDGER_DIR", tmp_path / "decisions")
 
 # Forbidden per TASK.md Deliverable 3 (unchanged by SPEC-CHANGE.md Change 2):
 # fs/exec tools and every org task-lifecycle tool. LungNote's delete_todo/
@@ -562,13 +592,13 @@ def running_server(tmp_path, monkeypatch):
     stub_holder = {"fn": lambda prompt, session_id: (
         0, json.dumps({"session_id": "unused", "result": "ok", "is_error": False}), "", False)}
 
-    def _stub(prompt, session_id, profile=ss.PROFILE_SECRETARY):
-        # profile is accepted (run_secretary_turn now passes it) but not
-        # forwarded to stub_holder["fn"] by default -- every existing
-        # fn(prompt, session_id) in this file predates the profile split.
-        # Tests that need to see which profile was used instead assert on
-        # ss._build_claude_cmd directly (see the argv tests) or on session
-        # continuity (get_session_id/set_session_id), which is what
+    def _stub(prompt, session_id, profile=ss.PROFILE_SECRETARY, lane=ss.LANE_FULL):
+        # profile/lane are accepted (run_secretary_turn now passes both) but
+        # not forwarded to stub_holder["fn"] by default -- every existing
+        # fn(prompt, session_id) in this file predates the profile/lane
+        # split. Tests that need to see which profile/lane was used instead
+        # assert on ss._build_claude_cmd directly (see the argv tests) or on
+        # session continuity (get_session_id/set_session_id), which is what
         # actually proves session-namespace isolation.
         return stub_holder["fn"](prompt, session_id)
 
@@ -1621,6 +1651,68 @@ def test_family_request_never_resumes_the_secretary_session_for_the_same_user(
     assert ss.get_session_id(ceo_chat_id) == "secretary-sess", (
         "the secretary's own session record must be untouched by the family turn")
     assert ss.get_session_id("family:" + ceo_chat_id) == "family-sess"
+
+
+# ---------------------------------------------------------------------------
+# task-3de56f59 D2/D3 -- the light lane's argv shape + the `model` field
+# still refusing it. Lane-selection logic itself (decide() outcomes x
+# profile x confidence) is covered in tests/test_sompong_route.py; this
+# file only covers what _build_claude_cmd/_resolve_model_profile do with
+# `lane`/`profile` once already resolved.
+# ---------------------------------------------------------------------------
+
+def test_light_lane_argv_uses_haiku_no_mcp_config_max_turns_1_no_resume() -> None:
+    for profile in (ss.PROFILE_SECRETARY, ss.PROFILE_FAMILY):
+        # session_id IS passed in, to prove the light lane drops it rather
+        # than merely never being given one.
+        cmd = ss._build_claude_cmd("ขอบคุณครับ", "some-existing-session-id",
+                                   profile=profile, lane=ss.PROFILE_LIGHT)
+        assert cmd[cmd.index("--model") + 1] == ss.LIGHT_MODEL, profile
+        assert "--mcp-config" not in cmd, profile
+        assert "--strict-mcp-config" in cmd, profile
+        assert cmd[cmd.index("--max-turns") + 1] == "1", profile
+        assert "--resume" not in cmd, profile
+        assert "some-existing-session-id" not in cmd, profile
+        # Zero built-in tools too, same stronger guarantee as the family
+        # profile's full-lane argv (--tools "" beats an empty --allowed-tools).
+        assert cmd[cmd.index("--tools") + 1] == "", profile
+
+
+def test_light_lane_argv_differs_by_public_profile() -> None:
+    """The light lane still has two voices (family vs secretary) -- the
+    system prompt must actually differ, not just the profile label."""
+    family_cmd = ss._build_claude_cmd("โอเค", None, profile=ss.PROFILE_FAMILY, lane=ss.PROFILE_LIGHT)
+    secretary_cmd = ss._build_claude_cmd("โอเค", None, profile=ss.PROFILE_SECRETARY, lane=ss.PROFILE_LIGHT)
+    family_prompt = family_cmd[family_cmd.index("--system-prompt") + 1]
+    secretary_prompt = secretary_cmd[secretary_cmd.index("--system-prompt") + 1]
+    assert family_prompt != secretary_prompt
+    assert family_prompt == ss.LIGHT_SYSTEM_PROMPT_FAMILY
+    assert secretary_prompt == ss.LIGHT_SYSTEM_PROMPT_SECRETARY
+
+
+def test_light_lane_system_prompts_are_under_600_chars_and_claim_no_capability() -> None:
+    for prompt in (ss.LIGHT_SYSTEM_PROMPT_FAMILY, ss.LIGHT_SYSTEM_PROMPT_SECRETARY):
+        assert len(prompt) <= 600, len(prompt)
+    # Mirrors test_family_system_prompt_forbids_org_and_task_taking's "never
+    # claim unused capability" rule -- the light lane has zero tools, so its
+    # prompts must say so, not imply memory/notes/lookups it cannot do.
+    assert "ห้ามอ้างว่า" in ss.LIGHT_SYSTEM_PROMPT_FAMILY
+    assert "ห้ามอ้างว่า" in ss.LIGHT_SYSTEM_PROMPT_SECRETARY
+
+
+def test_resolve_model_profile_rejects_light_model_name() -> None:
+    """PROFILE_LIGHT is an internal lane, never an HTTP-selectable `model` --
+    a mistyped/leaked value of "light" must 400 exactly like any other
+    unrecognised model, never silently resolve to a profile."""
+    assert ss._resolve_model_profile("light") is None
+    assert ss._resolve_model_profile(ss.PROFILE_LIGHT) is None
+
+
+def test_http_model_light_returns_400_not_a_silent_profile(running_server) -> None:
+    url, _ = running_server
+    status, payload = _post(url, {"model": "light", "messages": [{"role": "user", "content": "hi"}]})
+    assert status == 400
+    assert payload["error"] == "unknown model profile"
 
 
 if __name__ == "__main__":

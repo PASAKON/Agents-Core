@@ -102,6 +102,19 @@ of tool calls made during the run; per-tool-call events only exist in
 switch to just for this ("do not build a wrapper... that is a separate
 task"). Documented here and in the task report rather than skipped silently.
 
+task-3de56f59 (CEO 2026-09-22, ADR 0029) -- lane selection. Every inbound
+message used to become one full `claude -p` carrying SECRETARY_SYSTEM_PROMPT
+(~14k chars) + the LungNote/relay MCP tools, whatever it said. `run_secretary_
+turn` now calls the decision layer (`tools/decide.py`, `config/decisions/
+sompong.route.yaml`) first and routes a confident `chitchat` verdict to a
+cheap, tool-less PROFILE_LIGHT lane (haiku, --max-turns 1, no --resume) and a
+confident `spam` verdict on the family profile to a fixed reply with no model
+call at all -- everything else (including any low-confidence or failed
+decide() call) takes exactly today's full lane, byte for byte. See
+docs/ops/sompong-routing-decide.md and _decision_is_confident below (mirrors
+tools/flow_shoot.py's money-guard gate: act only on a free rule or >=0.9
+confidence). Kill switch: SOMPONG_ROUTE=off (env, via tools.decide._env).
+
 Run:  python -m runners.secretary_server
 """
 from __future__ import annotations
@@ -128,6 +141,7 @@ import requests
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from lib import db  # noqa: E402
 from lib.config import (  # noqa: E402
     _PROVIDER_DEFAULT_MODEL,
     _PROVIDER_ENDPOINTS,
@@ -137,6 +151,7 @@ from lib.config import (  # noqa: E402
 from lib.link_reader import check_url_safe  # noqa: E402
 from lib.logger import get_logger  # noqa: E402
 from lib.quota_router import pick_provider  # noqa: E402
+from tools import decide as decide_tool  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Config — all env-overridable, defaults per TASK.md deliverables 1-2.
@@ -575,6 +590,72 @@ def _resolve_model_profile(model: object) -> str | None:
     if name == _FAMILY_MODEL_NAME:
         return PROFILE_FAMILY
     return None
+
+
+# ---------------------------------------------------------------------------
+# task-3de56f59 -- lane selection. `profile` (above) answers "which persona/
+# capability set" (secretary vs family); `lane` answers "how much model do
+# we spend on THIS turn" (full vs light) and is orthogonal to it -- both a
+# secretary-profile and a family-profile turn can land in either lane. The
+# HTTP `model` field only ever resolves to a `profile` (never a `lane`):
+# PROFILE_LIGHT is not in _SECRETARY_MODEL_NAMES / _FAMILY_MODEL_NAME above,
+# so _resolve_model_profile("light") returns None -> 400, same as any other
+# unrecognised value.
+# ---------------------------------------------------------------------------
+LANE_FULL = "full"
+PROFILE_LIGHT = "light"  # the light lane's internal identifier -- never
+                          # accepted as HTTP `model`, never returned by
+                          # _resolve_model_profile. Doubles as the `lane`
+                          # value passed to _build_claude_cmd/_run_claude_once.
+LANE_SPAM_SILENT = "spam_silent"  # decided -> no claude invocation at all
+
+LIGHT_MODEL = "claude-haiku-4-5"
+
+# One-line neutral reply for a confident `spam` verdict on the FAMILY
+# profile -- the shim must still return *some* content (the webhook posts
+# it), so this stands in for a model call that never happens. Deliberately
+# generic: it must never look like an answer to whatever the spam message
+# said, and must claim no capability the family profile doesn't have.
+SPAM_REPLY_TEXT = "รับทราบครับผม"
+
+# <=600 chars each (task-3de56f59 D2), one per PUBLIC profile so the light
+# lane's persona still matches which "voice" is answering. Deliberately
+# short: no memory feature, no CARD protocol, no tool list -- there are no
+# tools in this lane, so nothing here may claim one (mirrors the "never
+# claim unused capability" rule scripts/test_secretary_server.py already
+# asserts on SECRETARY_SYSTEM_PROMPT).
+LIGHT_SYSTEM_PROMPT_FAMILY = (
+    "คุณคือ \"สมพงษ์\" ผู้ช่วยของครอบครัว ชายอายุ 46 ปี ชาวใต้ นิสัยใจเย็น สุภาพ เป็นกันเอง "
+    "ตอบสั้นๆ เป็นภาษาไทย ลงท้ายด้วย \"ครับผม\" หรือ \"เน้อ\" บ้างเป็นบางครั้ง\n"
+    "นี่เป็นแค่ข้อความทักทาย/ขอบคุณ/พูดคุยเล่นสั้นๆ ไม่ใช่คำถามหรืองานที่ต้องทำ "
+    "ให้ตอบรับสั้นๆ เป็นกันเองแค่ประโยคเดียวพอ\n"
+    "ห้ามอ้างว่าจำอะไรได้ ห้ามอ้างว่าจดบันทึก ค้นข้อมูล ดูปฏิทิน หรือทำงานใดๆ ให้ได้ "
+    "เพราะตอนนี้คุณตอบได้แค่คำทักทายสั้นๆ เท่านั้น ไม่มีความสามารถอื่นเลย"
+)
+LIGHT_SYSTEM_PROMPT_SECRETARY = (
+    "คุณคือเลขาส่วนตัวของ CEO ข้อความนี้เป็นแค่คำทักทายหรือขอบคุณสั้นๆ "
+    "ไม่ใช่คำสั่งงานหรือคำถามที่ต้องค้นข้อมูล ให้ตอบรับสั้นๆ สุภาพ เป็นภาษาไทย แค่ประโยคเดียวพอ\n"
+    "ห้ามอ้างว่าจดบันทึก ทำงาน ค้นข้อมูล หรือใช้เครื่องมือใดๆ เพราะตอนนี้ไม่มีเครื่องมือให้ใช้เลย"
+)
+_LIGHT_SYSTEM_PROMPTS = {
+    PROFILE_SECRETARY: LIGHT_SYSTEM_PROMPT_SECRETARY,
+    PROFILE_FAMILY: LIGHT_SYSTEM_PROMPT_FAMILY,
+}
+
+
+def _decision_is_confident(d) -> bool:
+    """Same conservative gate as tools/flow_shoot.py's _decision_is_confident
+    (task-b8a9a714 money guard): act on a decide() result only when it came
+    from a free deterministic rule (prob 1.0) or a paid provider reported
+    >=0.9 confidence for its own choice. Everything softer -- including
+    choice=None -- must not drive a lane change; the full lane is always
+    safe to fall back to (it's today's behaviour), so there is no downside
+    to being conservative here."""
+    if d.choice is None:
+        return False
+    if d.provider == "rules":
+        return True
+    return d.probs.get(d.choice, 0.0) >= 0.9
 
 
 # Thai weekday/month names -- datetime.strftime("%A"/"%B") is locale-bound and
@@ -1051,7 +1132,27 @@ def _resolve_provider_env() -> tuple[dict[str, str], str]:
 
 def _build_claude_cmd(prompt: str, session_id: str | None,
                        env: dict[str, str] | None = None,
-                       profile: str = PROFILE_SECRETARY) -> list[str]:
+                       profile: str = PROFILE_SECRETARY,
+                       lane: str = LANE_FULL) -> list[str]:
+    if lane == PROFILE_LIGHT:
+        # task-3de56f59 D2 -- deliberately minimal and NOT the profile's
+        # normal cmd shape: haiku (the subscription, no API key), the
+        # profile's own <=600-char system prompt, zero tools (--tools "" is
+        # the same "stronger than an empty --allowed-tools list" guarantee
+        # FAMILY uses below), zero MCP servers (--strict-mcp-config with no
+        # --mcp-config at all), one turn, and NEVER --resume -- a chat turn
+        # in this lane must not grow a session (session_id is ignored on
+        # purpose, not merely unset by the caller).
+        return [
+            CLAUDE_BIN, "-p", prompt,
+            "--model", LIGHT_MODEL,
+            "--output-format", "json",
+            "--permission-mode", "dontAsk",
+            "--tools", "",
+            "--system-prompt", _LIGHT_SYSTEM_PROMPTS[profile],
+            "--strict-mcp-config",
+            "--max-turns", "1",
+        ]
     cmd = [
         CLAUDE_BIN, "-p", prompt,
         "--output-format", "json",
@@ -1087,7 +1188,8 @@ def _build_claude_cmd(prompt: str, session_id: str | None,
 
 
 def _run_claude_once(prompt: str, session_id: str | None,
-                      profile: str = PROFILE_SECRETARY) -> tuple[int, str, str, bool]:
+                      profile: str = PROFILE_SECRETARY,
+                      lane: str = LANE_FULL) -> tuple[int, str, str, bool]:
     """Run one `claude -p` invocation. Returns (returncode, stdout, stderr,
     timed_out). Never raises for a subprocess-level failure — only for
     something like the binary not existing at all, which the caller catches.
@@ -1102,7 +1204,7 @@ def _run_claude_once(prompt: str, session_id: str | None,
     env, reason = _resolve_provider_env()
     _log().info("secretary: provider for this turn — %s", reason)
     proc = subprocess.Popen(
-        _build_claude_cmd(prompt, session_id, env, profile),
+        _build_claude_cmd(prompt, session_id, env, profile, lane),
         cwd=SECRETARY_WORKDIR,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -1177,6 +1279,28 @@ def _extract_api_error(stdout: str) -> str | None:
     return result[:API_ERROR_MAX_CHARS]
 
 
+def _log_light_lane_usage(data: dict, conversation_id: str, profile: str) -> None:
+    """Best-effort telemetry only (task-3de56f59 D2) -- a DB hiccup must
+    never fail a turn that already has its answer. Logged for the light
+    lane only: it's the new, cost-saving path whose real usage is worth
+    checking against tools/decide.py's counterfactual later; the full lane
+    is unchanged behaviour with no new number to track."""
+    try:
+        usage = data.get("usage") or {}
+        payload = {
+            "conversation_id": conversation_id,
+            "profile": profile,
+            "lane": PROFILE_LIGHT,
+            "tokens_in": usage.get("input_tokens"),
+            "tokens_out": usage.get("output_tokens"),
+        }
+        with db.get_conn() as conn:
+            db.log_event(conn, os.environ.get("WORKER_TASK_ID") or None,
+                        "secretary", "sompong_lane", payload)
+    except Exception:
+        _log().exception("secretary: could not log sompong_lane usage event (non-fatal)")
+
+
 def run_secretary_turn(prompt: str, conversation_id: str,
                         profile: str = PROFILE_SECRETARY) -> str:
     """Run one turn for conversation_id under the given profile. Never
@@ -1187,14 +1311,63 @@ def run_secretary_turn(prompt: str, conversation_id: str,
     `session_key` (not the raw conversation_id) is what --resume continuity
     is keyed on -- see _scoped_conversation_id: the family profile stores
     its session ids under a `family:` prefixed key so it can never resume
-    (or collide with) the secretary's session for the same raw id.
+    (or collide with) the secretary's session for the same raw id. The
+    LIGHT lane (task-3de56f59) never reads or writes this at all — it must
+    not grow a session, per --max-turns 1 with no --resume.
     """
     logger = _log()
+
+    # task-3de56f59 D1 — decide() the lane for this turn BEFORE any `claude`
+    # subprocess (call chain: Handler.do_POST -> run_secretary_turn ->
+    # decide("sompong.route") -> lane -> _run_claude_once(profile)).
+    # Conservative by construction: anything that isn't a confident
+    # chitchat/spam verdict (SOMPONG_ROUTE=off, an unconfident decide()
+    # result, or decide() raising outright) resolves to LANE_FULL —
+    # byte-for-byte today's behaviour. `prompt` is passed as-is (images are
+    # never part of it — the caller only ever hands this function text);
+    # config/decisions/sompong.route.yaml's own max_state_chars=2000
+    # truncates it before any provider ever sees it.
+    lane = LANE_FULL
+    kill_switch = (decide_tool._env("SOMPONG_ROUTE") or "").strip().lower()
+    if kill_switch == "off":
+        logger.info("secretary: sompong_route: off (SOMPONG_ROUTE=off, profile=%s)", profile)
+    else:
+        try:
+            decision = decide_tool.decide("sompong.route", prompt)
+        except Exception as exc:  # decide() must never make a turn worse than today
+            logger.warning("secretary: sompong_route: decide() raised %r — full lane "
+                           "(profile=%s)", exc, profile)
+        else:
+            if not _decision_is_confident(decision):
+                logger.info("secretary: sompong_route: not confident (provider=%s choice=%s) "
+                           "— full lane (profile=%s)",
+                           decision.provider, decision.choice, profile)
+            elif decision.choice == "chitchat":
+                lane = PROFILE_LIGHT
+                logger.info("secretary: sompong_route: chitchat -> light lane "
+                           "(profile=%s, provider=%s)", profile, decision.provider)
+            elif decision.choice == "spam":
+                if profile == PROFILE_FAMILY:
+                    lane = LANE_SPAM_SILENT
+                    logger.info("secretary: sompong_route: spam -> silent reply, no model "
+                               "call (profile=family, provider=%s)", decision.provider)
+                else:
+                    logger.info("secretary: sompong_route: spam but profile=secretary — "
+                               "the CEO is never spam — full lane (provider=%s)",
+                               decision.provider)
+            else:
+                # order_for_cto / order_for_other_cxo / question — full lane, unchanged.
+                logger.info("secretary: sompong_route: %s -> full lane (profile=%s, "
+                           "provider=%s)", decision.choice, profile, decision.provider)
+
+    if lane == LANE_SPAM_SILENT:
+        return SPAM_REPLY_TEXT
+
     session_key = _scoped_conversation_id(conversation_id, profile)
-    session_id = get_session_id(session_key)
+    session_id = get_session_id(session_key) if lane != PROFILE_LIGHT else None
 
     try:
-        rc, stdout, stderr, timed_out = _run_claude_once(prompt, session_id, profile)
+        rc, stdout, stderr, timed_out = _run_claude_once(prompt, session_id, profile, lane)
     except Exception as exc:  # binary missing, permission error, etc.
         logger.error("secretary: could not launch claude subprocess: %r", exc)
         return _friendly_error("เรียกใช้งานไม่สำเร็จ")
@@ -1226,7 +1399,7 @@ def run_secretary_turn(prompt: str, conversation_id: str,
                        "stderr=%s) - retrying with a fresh session",
                        conversation_id, rc, stderr[:300])
         try:
-            rc, stdout, stderr, timed_out = _run_claude_once(prompt, None, profile)
+            rc, stdout, stderr, timed_out = _run_claude_once(prompt, None, profile, lane)
         except Exception as exc:
             logger.error("secretary: retry launch failed: %r", exc)
             return _friendly_error("เรียกใช้งานไม่สำเร็จ")
@@ -1253,8 +1426,11 @@ def run_secretary_turn(prompt: str, conversation_id: str,
         return _friendly_error("อ่านผลลัพธ์ไม่ได้")
 
     new_session_id = data.get("session_id")
-    if new_session_id:
+    if new_session_id and lane != PROFILE_LIGHT:
         set_session_id(session_key, new_session_id)
+
+    if lane == PROFILE_LIGHT:
+        _log_light_lane_usage(data, conversation_id, profile)
 
     if data.get("is_error"):
         logger.error("secretary: claude reported is_error (conversation=%s): %s",
