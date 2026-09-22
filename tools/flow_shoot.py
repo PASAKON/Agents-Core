@@ -1309,6 +1309,13 @@ def cmd_pull(args: argparse.Namespace) -> int:
             row = rows[n]
             shot = sheet_shots.get(n)
             dialogue = card_fragment(shot["prompt"]) if shot else None
+            if getattr(args, "search", None):
+                if len(targets) != 1:
+                    raise SystemExit("--search needs exactly one target shot (--only N)")
+                if shot and args.search not in shot["prompt"]:
+                    raise SystemExit(f"--search text is not in shot {n}'s current prompt — "
+                                     "it would find some other card")
+                dialogue = args.search
             if not dialogue:
                 row["status"], row["note"] = "needs_model", "no dialogue line to search for"
                 flow_ledger.save_ledger(ledger_path, rows)
@@ -1381,6 +1388,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_pull.add_argument(
         "--download-resolution", choices=["1080p", "720p"], default="1080p",
         help="Export resolution. Defaults to Flow's free 1080p upscale.")
+    p_pull.add_argument(
+        "--search", default=None,
+        help="Search text instead of the shot's dialogue, for ONE shot. A re-shoot "
+             "keeps its dialogue, so a dialogue search returns the OLD take's card "
+             "(banchi 149/151, 2026-09-23). Pass a phrase only the new prompt has.")
     p_pull.set_defaults(func=cmd_pull)
 
     p_status = sub.add_parser("status")
