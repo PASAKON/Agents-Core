@@ -185,6 +185,52 @@ This is the same session-0 boundary as §3, reached through auth instead of a
 sandbox pipe. Every runner on that box goes through session 1; nothing changes
 in the launcher.
 
+### 6b. How to drive `agy` as a worker — measured 2026-09-22
+
+**The contract: `agy` edits files. The hub does everything else.**
+
+`agy` in print mode cannot run a shell command. A `RunCommand` step is
+soft-denied, and the denial is not partial — **it abandons the whole turn**. Asked
+to fix a bug *and* `git commit`, it committed nothing *and left the file
+unedited*, having planned the command into the same turn.
+
+Attempting to widen this failed and is a dead end for now: a global
+`~/.gemini/antigravity-cli/settings.json` with
+`{"permissions":{"allow":["command(git)"]}}` **is parsed**
+(`permissions=&{Allow:[command(git)] …}` in the CLI's own log) and then
+**discarded one line later**:
+
+```
+ApplyProjectPermissionGrants: no grants for project "CLI Project", cleared project permissions
+```
+
+Grants are project-scoped (`~/.gemini/config/projects/default-cli-project.json`,
+`"projectResources": {}`); the global allow-list does not survive. The grant
+schema for that file is undocumented and was not reverse-engineered — it does
+not need to be, because the edit-only split is better anyway:
+
+- the hub already owns `git` and the test run (the artefact gate's `run_tests`
+  callback is the hub's, by design);
+- "external runners push `agent/<runner>-<task>` only" is enforced properly when
+  the hub does the pushing, rather than trusting the runner not to;
+- nothing widens, so `--dangerously-skip-permissions` is never needed (the
+  auto-mode classifier refuses it anyway, as "Create Unsafe Agents").
+
+**Prompt shapes that work** (each verified against the file on disk, never
+against the model's summary):
+
+| shape | result |
+|---|---|
+| "Use your **file-editing tool** to … **Do not run any shell command.**" | ✅ works |
+| Several files, several bugs, one prompt | ✅ both fixed in one turn |
+| Name the symptom precisely ("`add()` subtracts instead of adding") | ✅ correct fix |
+| Any step needing shell — `git`, `pytest`, `ls` | ❌ **whole turn abandoned**, file left untouched |
+| No tool named ("create a file …") | ❌ it picks `RunCommand` and dies |
+
+So a worker brief for `agy` names the editing tool, forbids shell explicitly, and
+never asks it to commit, test, or verify. The hub commits, the hub tests, the
+artefact gate judges.
+
 **Signing in without a race**: put a loop in the .cmd — `agy models` as the
 success probe, otherwise print a fresh OAuth URL and wait — and launch it with
 `s1probe.ps1 -Cmd "start cmd /k …"` so it is a visible, persistent window on the
