@@ -32,10 +32,10 @@ const HEARTBEAT_MIN_INTERVAL_MS = 60_000;
 
 // Parse "Desk-X" from "mooniex-webapp (Desk-X)" OR detect special cwds
 // that map to a fixed desk:
-//   /Users/gob/projects/LLMs        → Desk-CTO  (CTO works on the wiki)
+//   /Users/gob/MoonieXHQ/Agents/Wikis        → Desk-CTO  (CTO works on the wiki)
 // Returns the desk_id string or null if cwd is not a desk.
 function deskFromFolder(folder, cwd) {
-  if (cwd === "/Users/gob/projects/LLMs" || cwd.startsWith("/Users/gob/projects/LLMs/")) {
+  if (cwd === "/Users/gob/MoonieXHQ/Agents/Wikis" || cwd.startsWith("/Users/gob/MoonieXHQ/Agents/Wikis/")) {
     return "Desk-CTO";
   }
   const m = folder.match(/^mooniex-webapp \(([^)]+)\)$/);

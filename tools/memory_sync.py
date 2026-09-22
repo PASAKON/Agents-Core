@@ -4,7 +4,7 @@ task-8d37c0f1. Auto-memory (``~/.claude/projects/<slug>/memory``) used to live
 only on the Mac — Contabo had a stale rsync snapshot, winbox had nothing. The
 CTO split it into its own private repo and, on the Mac, replaced the real
 `memory/` directory with a symlink into a sibling checkout
-(``/Users/gob/Projects/Agents-Memory``). This module is the sync half: pull it
+(``/Users/gob/MoonieXHQ/Agents/Memory``). This module is the sync half: pull it
 fresh before a C-level session reads `MEMORY.md` into context, push it before
 one ends so the next session (on ANY host) sees what this one learned.
 

@@ -30,7 +30,7 @@ import re
 import sys
 
 LIBRARY = os.environ.get(
-    "RESEARCH_LIBRARY", "/Users/gob/Projects/Agents-Wikis/research"
+    "RESEARCH_LIBRARY", "/Users/gob/MoonieXHQ/Agents/Rules/research"
 )
 TASK_DIRS = glob.glob(
     "/private/tmp/claude-501/-Users-gob-Projects-Agents/*/tasks"
