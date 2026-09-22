@@ -34,5 +34,21 @@
  "T10": {
   "repo": "Agents-Wikis",
   "title": "markdown + wikilink checker (report only)"
+ },
+ "T07": {
+  "repo": "Agents-Core",
+  "title": "LungNote 9280082d browser-guard: count DEVs too, warn not block"
+ },
+ "T11": {
+  "repo": "Agents-Core",
+  "title": "LungNote 04eac0d7 / GH #65 send_to_dev tab fallback matches 1 char of entropy"
+ },
+ "T12": {
+  "repo": "Agents-Core",
+  "title": "LungNote 95a70905 remove Z.ai + 9Router from the repo (CEO 2026-09-20)"
+ },
+ "T13": {
+  "repo": "Agents-Core",
+  "title": "LungNote ebc80915 delegate on a task whose worktree is gone must refuse loudly"
  }
 }
