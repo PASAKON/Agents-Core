@@ -28,6 +28,10 @@ plus his voice, in English and Thai. It grows every time he answers a sample.
 2. **First round only:** translate them into Thai for the CEO, he answers a few.
 3. His answers become the samples below. Extract the voice from them, do not invent it.
 4. After that, reply to the rest in that voice, no review. Log every reply sent.
+5. Build the replies file from `yt-comments.py --json`, never type a comment id
+   by hand: on 2026-09-23 the first draft carried 23 invented ids that looked
+   right and matched nothing. Post with `scripts/yt-reply.py post <file>`
+   (YouTube Data API, resumable ledger `<file>.sent.json`, 25-60 s apart).
 
 ## What his replies do (read this before writing a word)
 
