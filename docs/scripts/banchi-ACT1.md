@@ -4,7 +4,7 @@
 
 Omni 1.1 Flash · 9:16 · 720p (ทดสอบ 360p) · โหมด `องค์ประกอบ` · x1
 
-**34 ช็อต · 256 วินาที = 4:16 · ~384 เครดิต ที่ 720p**
+**34 ช็อต · 258 วินาที = 4:18 · ~387 เครดิต ที่ 720p**
 
 ## กฎที่ไฟล์นี้ถูกสร้างมาให้เชื่อฟัง
 
@@ -17,39 +17,43 @@ Omni 1.1 Flash · 9:16 · 720p (ทดสอบ 360p) · โหมด `องค
 7. **อารมณ์เสียงอยู่ข้างบรรทัด** ตามรูปแบบของ Google เอง — `says, <direction>: "…"`
 
 
-### SHOT 1 · 0:00–0:08 · 8s · Medium shot, static camera with a slight handheld sway
-**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@side_wall`→REF_1
-**บทพูด** lung_somchai `"ผมจัดการให้ครับ พรุ่งนี้เช้าเรียบร้อยแน่นอนครับ"` — fast and placating
-**บทพูด** lung_somchai `"พรุ่งนี้ผมเอาไปส่งให้เองนะครับ ไม่ต้องลำบากมาถึงร้าน"` — lower, pleading
+### SHOT 1 · 0:00–0:10 · 10s · Medium two-shot in the rain, static camera with a slight handheld sway
+**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@lender_cherd`→REF_1 · 3) `@side_wall`→REF_2 · 4) `@prop_envelope`→REF_3
+**บทพูด** lender_cherd `"งวดนี้ขาดอีกแล้วนะครับพี่"` — quiet, pleasant, cold
+**บทพูด** lung_somchai `"พรุ่งนี้ผมหาให้ครบครับ ผมสัญญา"` — pleading
+**บทพูด** lender_cherd `"ร้านนี้ แม่พี่ ลูกพี่ ผมรู้จักหมดนะครับ"` — leaning a little closer, very calm
 ```
-Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the location reference for side_wall.
+Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the character reference for lender_cherd. Use <IMAGE_REF_2> as the location reference for side_wall. Use <IMAGE_REF_3> as the character reference for prop_envelope.
 
-In the side exterior wall of an old Bangkok shophouse before dawn — rough grey concrete with peeling paint and long water stains, an air-conditioner bracket, a rusted pipe running down to the ground, wet pavement, a single distant streetlamp <IMAGE_REF_1>, just before dawn. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0> — presses his back against the wall in the dark, alone, both hands open in front of him, talking fast and quietly toward the empty street.
+In the side exterior wall of an old Bangkok shophouse before dawn — rough grey concrete with peeling paint and long water stains, an air-conditioner bracket, a rusted pipe running down to the ground, wet pavement, a single distant streetlamp <IMAGE_REF_2>, just before dawn, in pouring rain. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0>, a Thai man of 45, lean, with an even unlined face, short ordinary black hair, sunglasses pushed up onto the top of his head, in a plain navy polo shirt, grey trousers and a silver bracelet on his right wrist <IMAGE_REF_1> — stands with his back to the wet wall, soaked through, while the younger man stands close in front of him under a black umbrella, completely dry; heavy rain hammering the pavement and thunder rolling overhead, both faces angled three-quarters toward the camera.
 
-The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, fast and placating, and says: "ผมจัดการให้ครับ พรุ่งนี้เช้าเรียบร้อยแน่นอนครับ"
-The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, lower, pleading, and says: "พรุ่งนี้ผมเอาไปส่งให้เองนะครับ ไม่ต้องลำบากมาถึงร้าน"
+The 45-year-old man in the navy polo shirt <IMAGE_REF_1> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, quiet, pleasant, cold, and says: "งวดนี้ขาดอีกแล้วนะครับพี่"
+The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, pleading, and says: "พรุ่งนี้ผมหาให้ครบครับ ผมสัญญา"
+The 45-year-old man in the navy polo shirt <IMAGE_REF_1> speaks Thai in the smooth, low, unhurried voice of a man of forty-five who never has to raise it, leaning a little closer, very calm, and says: "ร้านนี้ แม่พี่ ลูกพี่ ผมรู้จักหมดนะครับ"
 
 The face of whoever is speaking stays in frame for the whole line.
-Medium shot, static camera with a slight handheld sway. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind. The younger man never touches him: he stands close and speaks quietly, and that is all. No hitting, pushing, grabbing, shoving or pinning, no raised hand and no weapon anywhere in the frame. No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
+Medium two-shot in the rain, static camera with a slight handheld sway. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 2 · 0:08–0:14 · 6s · Close-up, static camera at a low angle
-**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@side_wall`→REF_1
-**บทพูด** lung_somchai `"พรุ่งนี้... ผมสัญญา"` — out of breath
-**บทพูด** lung_somchai `"ขอแค่อย่าให้ลูกรู้"` — barely audible
+### SHOT 2 · 0:10–0:16 · 6s · Close-up, static camera at a low angle
+**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@side_wall`→REF_1 · 3) `@prop_envelope`→REF_2
+**บทพูด** lung_somchai `"พรุ่งนี้... ผมสัญญาครับ"` — hoarse, calling after him
+**บทพูด** lung_somchai `"ขอแค่อย่าให้ลูกผมรู้นะครับ"` — louder, desperate
 ```
-Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the location reference for side_wall.
+Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the location reference for side_wall. Use <IMAGE_REF_2> as the character reference for prop_envelope.
 
-In the side exterior wall of an old Bangkok shophouse before dawn — rough grey concrete with peeling paint and long water stains, an air-conditioner bracket, a rusted pipe running down to the ground, wet pavement, a single distant streetlamp <IMAGE_REF_1>, just before dawn. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0> — slides down the wall into a crouch as a folded envelope drops into a shallow puddle beside his feet, his face turned up toward whoever is leaving.
+In the side exterior wall of an old Bangkok shophouse before dawn — rough grey concrete with peeling paint and long water stains, an air-conditioner bracket, a rusted pipe running down to the ground, wet pavement, a single distant streetlamp <IMAGE_REF_1>, just before dawn, in pouring rain. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0> — watches a thin brown envelope drop from above into the puddle at his feet, then crouches in the rain to pick it up, calling after someone walking away out of frame, a flash of lightning lighting his wet face and thunder cracking overhead.
 
-The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, out of breath, and says: "พรุ่งนี้... ผมสัญญา"
-The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, barely audible, and says: "ขอแค่อย่าให้ลูกรู้"
+The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, hoarse, calling after him, and says: "พรุ่งนี้... ผมสัญญาครับ"
+The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, louder, desperate, and says: "ขอแค่อย่าให้ลูกผมรู้นะครับ"
 
 The face of whoever is speaking stays in frame for the whole line.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind. No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
 Close-up, static camera at a low angle. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 3 · 0:14–0:18 · 4s · Medium shot, static camera, from above on the landing
+### SHOT 3 · 0:16–0:20 · 4s · Medium shot, static camera, from above on the landing
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@staircase`→REF_1
 **บทพูด** lung_somchai `"เบาๆ... อย่าให้แม่ตื่น"` — whispered to himself
 **บทพูด** lung_somchai `"ยังไม่ทันสว่างเลย"` — under his breath
@@ -65,7 +69,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium shot, static camera, from above on the landing. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 4 · 0:18–0:28 · 10s · Medium two-shot, static camera
+### SHOT 4 · 0:20–0:30 · 10s · Medium two-shot, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@grandma_pranom`→REF_1 · 3) `@upstairs_bedroom`→REF_2
 **บทพูด** lung_somchai `"แม่ ตื่นแล้วเหรอ นี่ยาเม็ดขาวก่อนนอน เม็ดเหลืองตอนเช้า"` — gentle, unhurried
 **บทพูด** grandma_pranom `"...ลูก..."` — running out of air mid-sentence
@@ -84,7 +88,7 @@ She stays lying propped on the pillows and does not sit up. She wears no glasses
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 5 · 0:28–0:36 · 8s · Medium two-shot, static camera
+### SHOT 5 · 0:30–0:38 · 8s · Medium two-shot, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@grandma_pranom`→REF_1 · 3) `@upstairs_bedroom`→REF_2
 **บทพูด** lung_somchai `"เดี๋ยวพรุ่งนี้พาไปหาหมอนะแม่"` — warm
 **บทพูด** grandma_pranom `"...ไม่ต้อง... เปลือง..."` — weak, protesting
@@ -103,7 +107,7 @@ She stays lying propped on the pillows and does not sit up. She wears no glasses
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 6 · 0:36–0:44 · 8s · Medium shot, static camera, his face and the tray both in frame
+### SHOT 6 · 0:38–0:46 · 8s · Medium shot, static camera, his face and the tray both in frame
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@upstairs_bedroom`→REF_1
 **บทพูด** lung_somchai `"สี่สิบ ห้าสิบ หกสิบ เจ็ดสิบห้าบาท"` — counting under his breath
 **บทพูด** lung_somchai `"อีกสามร้อยก็ครบค่ารักษาแม่เดือนนี้แล้ว"` — flat
@@ -120,7 +124,7 @@ The money is inside a plain brown paper envelope, folded once, and stays inside 
 Medium shot, static camera, his face and the tray both in frame. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 7 · 0:44–0:50 · 6s · Close-up, static camera
+### SHOT 7 · 0:46–0:52 · 6s · Close-up, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@upstairs_bedroom`→REF_1
 **บทพูด** lung_somchai `"เดือนนี้ไม่พออีกแล้ว"` — flat, to himself
 **บทพูด** lung_somchai `"ต้องหาทางอื่น"` — quiet, deciding
@@ -136,7 +140,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Close-up, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 8 · 0:50–0:56 · 6s · Medium shot, static camera
+### SHOT 8 · 0:52–0:58 · 6s · Medium shot, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** lung_somchai `"เปิดแล้วครับ เชิญเลยครับ"` — calling out, warm
 **บทพูด** lung_somchai `"วันนี้มาเช้ากันจังนะครับ"` — easy
@@ -152,7 +156,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 9 · 0:56–1:06 · 10s · Medium two-shot across the counter, static camera
+### SHOT 9 · 0:58–1:08 · 10s · Medium two-shot across the counter, static camera
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
 **บทพูด** nong_daeng `"เมื่อคืนผมส่งใบสมัครไปอีกสองแห่งแล้วนะพ่อ"` — tired but forcing cheerfulness
 **บทพูด** lung_somchai `"ที่ไหนบ้างล่ะ"` — not looking up
@@ -170,7 +174,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium two-shot across the counter, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 10 · 1:06–1:14 · 8s · Medium two-shot, static camera
+### SHOT 10 · 1:08–1:16 · 8s · Medium two-shot, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop`→REF_2
 **บทพูด** lung_somchai `"ดีแล้ว ค่อยๆหาไป อย่าไปเร่ง"` — reassuring
 **บทพูด** nong_daeng `"ผมเรียนจบมาปีนึงแล้วนะพ่อ"` — tight, held back
@@ -186,7 +190,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 11 · 1:14–1:22 · 8s · Close-up, static camera, steam drifting past him
+### SHOT 11 · 1:16–1:24 · 8s · Close-up, static camera, steam drifting past him
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** lung_somchai `"พ่อขายก๋วยเตี๋ยวมาสามสิบปี ไม่เห็นต้องรีบไปไหน"` — unhurried
 **บทพูด** lung_somchai `"กินข้าวยังลูก"` — through a smile
@@ -202,7 +206,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Close-up, static camera, steam drifting past him. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 12 · 1:22–1:28 · 6s · Medium shot, slight handheld
+### SHOT 12 · 1:24–1:30 · 6s · Medium shot, slight handheld
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** nong_daeng `"เส้นเล็กหรือเส้นใหญ่ครับ"` — polite
 **บทพูด** nong_daeng `"ได้ครับ สองชาม เดี๋ยวมาครับ"` — brisk
@@ -218,7 +222,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium shot, slight handheld. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 13 · 1:28–1:36 · 8s · Medium two-shot, static camera
+### SHOT 13 · 1:30–1:38 · 8s · Medium two-shot, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop`→REF_2
 **บทพูด** lung_somchai `"ต้น เก็บโต๊ะสองทีนึง แล้วเติมน้ำซุปด้วยนะ"` — brisk, routine
 **บทพูด** nong_daeng `"พ่อสั่งงานเก่งกว่าใครในซอยเลยนะเนี่ย"` — wry, affectionate
@@ -234,7 +238,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 14 · 1:36–1:42 · 6s · Medium shot, static camera
+### SHOT 14 · 1:38–1:44 · 6s · Medium shot, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** lung_somchai `"ขอบคุณครับ แวะมาเรื่อยๆนะครับ"` — pleased but weary
 **บทพูด** lung_somchai `"พรุ่งนี้มีต้มยำด้วยนะ"` — warm
@@ -250,7 +254,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 15 · 1:42–1:50 · 8s · Close-up, slow push-in
+### SHOT 15 · 1:44–1:52 · 8s · Close-up, slow push-in
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@staircase`→REF_1
 **บทพูด** nong_daeng `"ขอบคุณที่ให้ความสนใจ แต่ตำแหน่งนี้เต็มแล้ว"` — reading aloud, flat
 **บทพูด** nong_daeng `"...อีกแล้ว"` — to himself
@@ -266,7 +270,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Close-up, slow push-in. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 16 · 1:50–1:56 · 6s · Close-up, static camera
+### SHOT 16 · 1:52–1:58 · 6s · Close-up, static camera
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@staircase`→REF_1
 **บทพูด** nong_daeng `"ที่นี่ก็ไม่รับ สามที่แล้วเดือนนี้"` — quiet, resigned
 **บทพูด** nong_daeng `"เรียนมาสี่ปี ทำไมมันยากขนาดนี้"` — to himself, flat
@@ -282,7 +286,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Close-up, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 17 · 1:56–2:02 · 6s · Medium shot, static camera
+### SHOT 17 · 1:58–2:04 · 6s · Medium shot, static camera
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** nong_daeng `"มาแล้วครับ คิดเงินโต๊ะสามใช่ไหมครับ"` — level, face not matching
 ```
@@ -296,7 +300,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 18 · 2:02–2:10 · 8s · Medium two-shot, static camera
+### SHOT 18 · 2:04–2:12 · 8s · Medium two-shot, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop`→REF_2
 **บทพูด** lung_somchai `"ต้น... มีอะไรหรือเปล่าลูก"` — careful
 **บทพูด** nong_daeng `"ไม่มีอะไรพ่อ ร้อนน่ะ"` — quick, deflecting
@@ -314,7 +318,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 19 · 2:10–2:14 · 4s · Medium shot, static camera, from the landing above
+### SHOT 19 · 2:12–2:16 · 4s · Medium shot, static camera, from the landing above
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@staircase`→REF_1
 **บทพูด** nong_daeng `"ย่าครับ ต้นเองครับ ขึ้นมาแล้วนะครับ"` — calling ahead
 ```
@@ -328,7 +332,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium shot, static camera, from the landing above. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 20 · 2:14–2:24 · 10s · Medium two-shot, static camera
+### SHOT 20 · 2:16–2:26 · 10s · Medium two-shot, static camera
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@grandma_pranom`→REF_1 · 3) `@upstairs_bedroom`→REF_2
 **บทพูด** nong_daeng `"วันนี้ย่าดูสดใสนะครับ กินข้าวต้มก่อนนะครับ"` — soft
 **บทพูด** grandma_pranom `"...ต้น..."` — running out of air
@@ -347,7 +351,7 @@ She stays lying propped on the pillows and does not sit up. She wears no glasses
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 21 · 2:24–2:32 · 8s · Medium two-shot, static camera
+### SHOT 21 · 2:26–2:34 · 8s · Medium two-shot, static camera
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@grandma_pranom`→REF_1 · 3) `@upstairs_bedroom`→REF_2
 **บทพูด** nong_daeng `"ข้างล่างเสียงดังไปไหมครับย่า"` — deliberately cheerful
 **บทพูด** grandma_pranom `"...ได้ยิน... หมด..."` — barely audible
@@ -366,7 +370,7 @@ She stays lying propped on the pillows and does not sit up. She wears no glasses
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 22 · 2:32–2:40 · 8s · Close-up two-shot, static camera, her hand and the bed rail in frame
+### SHOT 22 · 2:34–2:42 · 8s · Close-up two-shot, static camera, her hand and the bed rail in frame
 **ATTACH** 1) `@grandma_pranom`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@upstairs_bedroom`→REF_2
 **บทพูด** grandma_pranom `"...ต้น... ย่า..."` — straining, halting
 **บทพูด** nong_daeng `"ย่าจะบอกอะไรผมเหรอครับ"` — stopping, gentle
@@ -385,7 +389,7 @@ She stays lying propped on the pillows and does not sit up. She wears no glasses
 Close-up two-shot, static camera, her hand and the bed rail in frame. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 23 · 2:40–2:46 · 6s · Medium shot, static camera
+### SHOT 23 · 2:42–2:48 · 6s · Medium shot, static camera
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@grandma_pranom`→REF_1 · 3) `@upstairs_bedroom`→REF_2
 **บทพูด** nong_daeng `"เดี๋ยวผมขึ้นมาใหม่นะครับย่า พักก่อนนะครับ"` — tender
 ```
@@ -400,7 +404,7 @@ She stays lying propped on the pillows and does not sit up. She wears no glasses
 Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 24 · 2:46–2:56 · 10s · Medium shot, static camera, his face in frame above the counter
+### SHOT 24 · 2:48–2:58 · 10s · Medium shot, static camera, his face in frame above the counter
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** lung_somchai `"ค่าเส้น ค่าหมู ค่าน้ำแข็ง แล้วก็ค่าแก๊ส"` — muttering, working through it
 **บทพูด** lung_somchai `"วันนี้ได้มาสามพันสอง เหลือเท่านี้"` — counting
@@ -418,7 +422,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium shot, static camera, his face in frame above the counter. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 25 · 2:56–3:04 · 8s · Close-up, static camera
+### SHOT 25 · 2:58–3:06 · 8s · Close-up, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** lung_somchai `"แล้วอันนี้..."` — trailing off
 **บทพูด** lung_somchai `"เก็บไว้ก่อน วันพฤหัสค่อยว่ากัน"` — flat, closing it off
@@ -435,7 +439,7 @@ The money is inside a plain brown paper envelope, folded once, and stays inside 
 Close-up, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 26 · 3:04–3:12 · 8s · Medium two-shot, static camera
+### SHOT 26 · 3:06–3:14 · 8s · Medium two-shot, static camera
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
 **บทพูด** nong_daeng `"พ่อนับเงินอยู่เหรอ"` — casual
 **บทพูด** lung_somchai `"เปล่า เช็คยอดเฉยๆ"` — quick
@@ -454,7 +458,7 @@ The money is inside a plain brown paper envelope, folded once, and stays inside 
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 27 · 3:12–3:18 · 6s · Close-up, static camera
+### SHOT 27 · 3:14–3:20 · 6s · Close-up, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** lung_somchai `"เยอะที่ไหนล่ะ พอค่าเส้นพรุ่งนี้ก็หมดแล้ว"` — deflecting, through a smile
 ```
@@ -469,7 +473,7 @@ The money is inside a plain brown paper envelope, folded once, and stays inside 
 Close-up, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 28 · 3:18–3:26 · 8s · Medium shot, static camera
+### SHOT 28 · 3:20–3:28 · 8s · Medium shot, static camera
 **ATTACH** 1) `@cop_wit`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** cop_wit `"ลุงครับ เส้นเล็กน้ำใสเหมือนเดิมครับ"` — easy, familiar
 **บทพูด** cop_wit `"วันนี้คนเยอะนะครับลุง"` — conversational
@@ -485,7 +489,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 29 · 3:26–3:34 · 8s · Medium two-shot across the counter, static camera
+### SHOT 29 · 3:28–3:36 · 8s · Medium two-shot across the counter, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@cop_wit`→REF_1 · 3) `@noodle_shop`→REF_2
 **บทพูด** lung_somchai `"ไม่ใส่ถั่วงอกใช่ไหมวิทย์"` — matter-of-fact
 **บทพูด** cop_wit `"ลุงจำได้ทุกทีเลย"` — smiling
@@ -504,7 +508,7 @@ No subtitles, no captions and no on-screen text of any kind appear anywhere in t
 Medium two-shot across the counter, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 30 · 3:34–3:44 · 10s · Medium two-shot at the counter, static camera
+### SHOT 30 · 3:36–3:46 · 10s · Medium two-shot at the counter, static camera
 **ATTACH** 1) `@cop_wit`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
 **บทพูด** cop_wit `"เท่าไหร่ครับลุง"` — polite
 **บทพูด** lung_somchai `"เอาไว้ก่อน วันหลังค่อยจ่าย"` — waving it away
@@ -524,7 +528,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium two-shot at the counter, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 31 · 3:44–3:52 · 8s · Medium two-shot, static camera, both faces in frame above the counter
+### SHOT 31 · 3:46–3:54 · 8s · Medium two-shot, static camera, both faces in frame above the counter
 **ATTACH** 1) `@cop_wit`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
 **บทพูด** cop_wit `"ผมวางไว้ตรงนี้นะลุง"` — insisting gently
 **บทพูด** lung_somchai `"วิทย์ เอาคืนไป"` — flat and final
@@ -543,7 +547,7 @@ The money is inside a plain brown paper envelope, folded once, and stays inside 
 Medium two-shot, static camera, both faces in frame above the counter. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 32 · 3:52–4:00 · 8s · Close-up, static camera, his face and his hand both in frame
+### SHOT 32 · 3:54–4:02 · 8s · Close-up, static camera, his face and his hand both in frame
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** lung_somchai `"เอาคืนไป ลุงไม่รับหรอก"` — not angry, not negotiating
 **บทพูด** lung_somchai `"วิทย์กินให้อร่อยก็พอแล้ว ลุงพอใจแล้ว"` — warm
@@ -560,7 +564,7 @@ The money is inside a plain brown paper envelope, folded once, and stays inside 
 Close-up, static camera, his face and his hand both in frame. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 33 · 4:00–4:10 · 10s · Medium two-shot, static camera
+### SHOT 33 · 4:02–4:12 · 10s · Medium two-shot, static camera
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
 **บทพูด** nong_daeng `"พ่อไม่เคยเก็บตังค์พี่วิทย์เลยใช่ไหม"` — curious
 **บทพูด** lung_somchai `"ตั้งแต่เขายังไม่สูงเท่าเคาน์เตอร์"` — without stopping
@@ -578,7 +582,7 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 34 · 4:10–4:16 · 6s · Close-up, static camera
+### SHOT 34 · 4:12–4:18 · 6s · Close-up, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
 **บทพูด** lung_somchai `"ก็แค่ก๋วยเตี๋ยวชามเดียวลูก"` — matter-of-fact
 **บทพูด** lung_somchai `"ไม่เห็นต้องจดไว้"` — quiet

@@ -29,11 +29,8 @@ APRON = _a1.APRON
 # เชิด. Everything the film does later depends on the audience liking him here.
 # His plate: lean, navy polo, grey trousers, sunglasses pushed up on his head,
 # a silver bracelet, ordinary short hair. Written from the plate, not from memory.
-CHAR["cherd"] = ("@lender_cherd",
-  "a Thai man of 45, lean, with an even unlined face, short ordinary black hair, "
-  "sunglasses pushed up onto the top of his head, in a plain navy polo shirt, grey "
-  "trousers and a silver bracelet on his right wrist",
-  "The 45-year-old man in the navy polo shirt")
+# CHAR["cherd"] moved to Act 1 (2026-09-23): the rain opening, shots 1-2, now shows him.
+# Inherited through CHAR = dict(_a1.CHAR); one definition, so the two can never drift.
 
 # 19 Sep: the operator read the LIVE binding on @lender_cherd as Umbriel, which is
 # what this ledger said all along — so the 18 Sep audit (task-68653632) that reported
@@ -42,8 +39,7 @@ CHAR["cherd"] = ("@lender_cherd",
 # and never VOICE[0], so no shot was ever affected either way.
 # The CEO's standing instruction (19 Sep) is that เชิด gets a CUSTOM voice based on
 # this preset, not the bare preset — "บางที AI ลืม".
-VOICE["cherd"] = ("Umbriel @lender_cherd — custom voice, base preset Umbriel",
-  "the smooth, low, unhurried voice of a man of forty-five who never has to raise it")
+# VOICE["cherd"] moved to Act 1 with him — same reason.
 
 LOC["alley"] = ("@back_alley",
   "a narrow service alley behind an old Bangkok shophouse at night — a steel rear door "

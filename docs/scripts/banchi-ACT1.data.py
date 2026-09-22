@@ -108,6 +108,21 @@ LOC = {
    "the ground, wet pavement, a single distant streetlamp"),
 }
 
+# เชิด, defined here since 2026-09-23 because the rain opening (shots 1-2) shows
+# him. Everything the film does later still depends on the audience liking him
+# in Act 2 — the opening makes that dramatic irony: they have seen who he is.
+# His plate: lean, navy polo, grey trousers, sunglasses pushed up on his head,
+# a silver bracelet, ordinary short hair. Written from the plate, not from memory.
+CHAR["cherd"] = ("@lender_cherd",
+  "a Thai man of 45, lean, with an even unlined face, short ordinary black hair, "
+  "sunglasses pushed up onto the top of his head, in a plain navy polo shirt, grey "
+  "trousers and a silver bracelet on his right wrist",
+  "The 45-year-old man in the navy polo shirt")
+# 19 Sep: live binding read as Umbriel (the 18 Sep "algieba" audit was an error).
+# build_shotsheet writes VOICE[1] into prompts, never VOICE[0].
+VOICE["cherd"] = ("Umbriel @lender_cherd — custom voice, base preset Umbriel",
+  "the smooth, low, unhurried voice of a man of forty-five who never has to raise it")
+
 NOT = {
  # CEO 2026-09-18: the money in this film is invented prop money, not currency.
  # Not "hide the notes" — change what the notes ARE, so a counting scene can be
@@ -138,6 +153,12 @@ NOT = {
  # breath") — a hypothesis, n=2, so those lines were also rewritten as spoken
  # aloud. Used on the re-shoots and the new police shots only, so the other
  # 170 prompts stay exactly as they were rendered.
+ # CEO 2026-09-23 on the rain opening: "ไม่มีการทำร้ายร่างกายนะ". A threat in
+ # words only. Said as what DOES happen (he stands close, never touches) as well
+ # as what does not, because a bare prohibition has lost to context before.
+ "noviolence": "The younger man never touches him: he stands close and speaks "
+               "quietly, and that is all. No hitting, pushing, grabbing, shoving or "
+               "pinning, no raised hand and no weapon anywhere in the frame.",
  "nosubs": "No subtitles, no captions and no on-screen text of any kind appear "
            "anywhere in the frame.",
  "ya":    "She stays lying propped on the pillows and does not sit up. She wears no glasses. The "
@@ -169,6 +190,7 @@ NOT = {
 # 500-baht note with the royal portrait instead, because the only thing bound
 # was nothing at all and the model filled the gap with its prior.
 PROPS_BY_SHOT = {
+    1: ["@prop_envelope"], 2: ["@prop_envelope"],   # rain opening, CEO 2026-09-23
     68: ["@prop_envelope"], 70: ["@prop_envelope"], 73: ["@prop_envelope"],
     74: ["@prop_envelope"], 75: ["@prop_envelope"], 76: ["@prop_envelope"],
 }
@@ -180,14 +202,20 @@ PROP_FOR_NOT = {
 # n, seconds, framing, [character keys in attach order], location key, time of day,
 # action, [(speaker key, direction, thai line), ...], [not-list keys]
 SHOTS = [
- (1, 8, "Medium shot, static camera with a slight handheld sway", ["somchai"], "wall", "just before dawn",
-  "presses his back against the wall in the dark, alone, both hands open in front of him, talking fast and quietly toward the empty street",
-  [("somchai","fast and placating","ผมจัดการให้ครับ พรุ่งนี้เช้าเรียบร้อยแน่นอนครับ"),
-   ("somchai","lower, pleading","พรุ่งนี้ผมเอาไปส่งให้เองนะครับ ไม่ต้องลำบากมาถึงร้าน")], []),
- (2, 6, "Close-up, static camera at a low angle", ["somchai"], "wall", "just before dawn",
-  "slides down the wall into a crouch as a folded envelope drops into a shallow puddle beside his feet, his face turned up toward whoever is leaving",
-  [("somchai","out of breath","พรุ่งนี้... ผมสัญญา"),
-   ("somchai","barely audible","ขอแค่อย่าให้ลูกรู้")], []),
+ # Rain opening, CEO 2026-09-23: "ฉากเปิดเรื่องอยากให้เป็น Hook หน่อยๆ เรียกคน
+ # ดูมีการขู่จริง และฝนตกด้วย มีเสียงฝน ฟ้าร้องจริง" — "แต่ไม่มีการทำร้ายร่างกายนะ".
+ # The lender is now on screen, dry under his umbrella while the father is soaked:
+ # the audience knows who he is before Act 2 introduces him as a friendly regular.
+ (1, 10, "Medium two-shot in the rain, static camera with a slight handheld sway", ["somchai","cherd"], "wall", "just before dawn, in pouring rain",
+  "stands with his back to the wet wall, soaked through, while the younger man stands close in front of him under a black umbrella, completely dry; heavy rain hammering the pavement and thunder rolling overhead, both faces angled three-quarters toward the camera",
+  [("cherd","quiet, pleasant, cold","งวดนี้ขาดอีกแล้วนะครับพี่"),
+   ("somchai","pleading","พรุ่งนี้ผมหาให้ครบครับ ผมสัญญา"),
+   ("cherd","leaning a little closer, very calm","ร้านนี้ แม่พี่ ลูกพี่ ผมรู้จักหมดนะครับ")], ["money","noviolence","nosubs"]),
+
+ (2, 6, "Close-up, static camera at a low angle", ["somchai"], "wall", "just before dawn, in pouring rain",
+  "watches a thin brown envelope drop from above into the puddle at his feet, then crouches in the rain to pick it up, calling after someone walking away out of frame, a flash of lightning lighting his wet face and thunder cracking overhead",
+  [("somchai","hoarse, calling after him","พรุ่งนี้... ผมสัญญาครับ"),
+   ("somchai","louder, desperate","ขอแค่อย่าให้ลูกผมรู้นะครับ")], ["money","nosubs"]),
 
  (3, 4, "Medium shot, static camera, from above on the landing", ["somchai"], "stairs", "just before dawn",
   "stops halfway up the stairs in bare feet and looks back down toward the dark shop, a small cloth pouch in one hand",
