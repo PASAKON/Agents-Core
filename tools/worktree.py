@@ -5,14 +5,29 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import yaml
+
 from lib.config import get_project
 
 ROOT = Path(__file__).resolve().parent.parent
 WORKTREE_DIR = ROOT / "worktrees"
+STORAGE_POLICY = ROOT / "config" / "storage-policy.yaml"
 
 
 class GitError(Exception):
     pass
+
+
+def _sparse_worktree_policy() -> dict:
+    """Tiny private loader for config/storage-policy.yaml's `sparse_worktree`
+    section (ADR 0030). A shared tools/storage_policy.py loader is being
+    built separately — do not create/import it here (task brief); this
+    stays a one-off private read scoped to this module."""
+    try:
+        data = yaml.safe_load(STORAGE_POLICY.read_text())
+    except OSError:
+        return {}
+    return (data or {}).get("sparse_worktree") or {}
 
 
 def _run(cmd: list[str], cwd: str | Path | None = None) -> str:
@@ -134,7 +149,29 @@ def create_worktree(project_key: str, role: str, task_id: str) -> dict:
     except GitError:
         pass
 
-    _run(["git", "worktree", "add", "-b", branch, str(wt), start_point], cwd=repo)
+    # Sparse worktrees (ADR 0030, storage-policy.yaml `sparse_worktree`):
+    # media-heavy paths (measured: 738 of 867 MB of an Agents-Core worktree
+    # is docs/ media) never hit disk for a role that doesn't need them. A
+    # role in `full_checkout_roles` (e.g. video_editor) gets today's
+    # unchanged full checkout. The sparse config is written into THIS
+    # worktree's own git-dir (extensions.worktreeConfig + `--worktree`
+    # scope) — never the main checkout's, which stays untouched.
+    policy = _sparse_worktree_policy()
+    exclude = policy.get("exclude") or []
+    full_roles = set(policy.get("full_checkout_roles") or [])
+
+    if role in full_roles or not exclude:
+        _run(["git", "worktree", "add", "-b", branch, str(wt), start_point], cwd=repo)
+    else:
+        _run(["git", "config", "extensions.worktreeConfig", "true"], cwd=repo)
+        _run(["git", "worktree", "add", "--no-checkout", "-b", branch, str(wt),
+              start_point], cwd=repo)
+        _run(["git", "sparse-checkout", "init", "--no-cone"], cwd=wt)
+        # Non-cone gitignore-style patterns: include everything, then
+        # subtract the excluded globs. "docs/reports/**" -> "!/docs/reports/".
+        patterns = ["/*"] + [f"!/{g.rstrip('*')}" for g in exclude]
+        _run(["git", "sparse-checkout", "set", "--no-cone", *patterns], cwd=wt)
+        _run(["git", "checkout", branch], cwd=wt)
 
     # Bare worktrees lack gitignored runtime deps (node_modules/.env) so the DEV
     # — and the merge gate_tests — can't run anything env/dep-dependent. Symlink
