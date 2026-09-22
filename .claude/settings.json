@@ -70,6 +70,24 @@
             "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-gdrive-skill-gate.py"
           }
         ]
+      },
+      {
+        "matcher": "WebSearch|WebFetch|mcp__org__wiki_search|Read|Grep|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-research-gate.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-cwd-guard.py"
+          }
+        ]
       }
     ],
     "PostToolUse": [],
