@@ -486,3 +486,6 @@ model, which is not part of this skill.
 Sound effects are deliberately out of scope until the channel has a licensed,
 human-annotated library. An AI placing SFX blind is what made earlier attempts
 sound wrong.
+
+## Field notes
+- 2026-09-23 [RULE] §5a — CEO ruling: real footage (broker logo, real site, real WikiFX page with real numbers, partly censored) outranks B-roll; the runner is task-67f82679 (tools/bl_realfootage.py). Written into the rule body directly because it is a CEO ruling, not an n=1 sighting · evidence: CEO message 2026-09-23 "Realfootage สำคัญกว่า B-Roll", commit 6f4a7658 · status: applied
