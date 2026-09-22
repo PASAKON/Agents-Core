@@ -17,6 +17,12 @@ winbox was offline 2026-09-20 and this suite must never depend on it):
      turn.completed event). Uses real local git repos standing in for
      GitHub (bare origin + clone), same no-network pattern
      tests/test_multihost.py's _FakeOrigin uses.
+  5. runners.branch_poller.check_task — THE REAL ENTRY POINT (CTO iter-2
+     review, 2026-09-22: "a test that calls the guard directly proves the
+     guard works; it does not prove the guard runs"). artefact_gate has
+     zero production call sites unless something in the real REPORT.md ->
+     review flip path actually calls it; these tests go in through that
+     door, not by calling artefact_gate directly.
 
 Run via:  pytest tests/test_spawn_worker_ps1.py
 (tests/ is not in pytest.ini's default testpaths — run explicitly, same
@@ -35,6 +41,8 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+import lib.db as db_mod  # noqa: E402
+import runners.branch_poller as branch_poller  # noqa: E402
 import tools.delegate as delegate  # noqa: E402
 from lib.config import host as get_host  # noqa: E402
 
@@ -500,3 +508,183 @@ def test_hosts_yaml_winbox_lists_all_three_runners():
 
 def test_hosts_yaml_mac_lists_only_claude():
     assert get_host("mac").get("runners", ["claude"]) == ["claude"]
+
+
+# ---------------------------------------------------------------------------
+# 5. runners.branch_poller.check_task — the REAL entry point (CTO iter-2
+#    review, 2026-09-22). check_task is what flips a pushed branch to
+#    'review'; it must refuse to do that for an external runner whose gate
+#    fails, using the exact same tiny_origin git fixture as section 3 above
+#    (no network, no winbox).
+# ---------------------------------------------------------------------------
+
+@pytest.fixture()
+def temp_db_for_poller(monkeypatch, tmp_path):
+    db_path = tmp_path / "tasks.db"
+    monkeypatch.setattr(db_mod, "DB_PATH", db_path)
+    monkeypatch.setenv("ORG_CHARTER_GATE", "off")
+    db_mod.init()
+    return db_mod
+
+
+def _insert_external_runner_task(db_mod_, *, task_id: str, branch: str, runner: str,
+                                 host: str = "winbox", project: str = "fake-proj") -> None:
+    with db_mod_.get_conn() as conn:
+        ts = db_mod_.now_iso()
+        conn.execute(
+            """INSERT INTO tasks
+               (id, project, role, status, title, description,
+                touches, depends_on, branch, host, runner, pid,
+                created_at, updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (task_id, project, "developer", "in_progress", "t", "d",
+             "[]", "[]", branch, host, runner, 999, ts, ts),
+        )
+        conn.commit()
+
+
+def _push_branch_with_report(origin: "_TinyOrigin", branch: str, task_id: str) -> None:
+    origin.push_branch_with_commit(branch)
+    _git(origin.worker, "checkout", "-q", branch)
+    (origin.worker / "REPORT.md").write_text(f"# REPORT {task_id}\n## Summary\nok\n")
+    _git(origin.worker, "add", "-A")
+    _git(origin.worker, "commit", "-q", "-m", "report")
+    _git(origin.worker, "push", "-q", "origin", branch)
+    _git(origin.worker, "checkout", "-q", "main")
+
+
+def test_check_task_real_entry_point_refuses_codex_without_transcript(
+    tiny_origin, temp_db_for_poller, monkeypatch,
+):
+    """THE demonstration the iter-2 review asked for, through the real door:
+    branch_poller.check_task (not a direct artefact_gate call) must refuse
+    to accept a codex task even though REPORT.md landed with a valid header,
+    because there is no proof the run actually completed (no --json
+    transcript here — the doc's own "exits 0 after writing nothing" failure
+    mode leaves exactly this: nothing to show for the run, whatever REPORT.md
+    claims).
+
+    Note on "no commit": once REPORT.md itself is committed and pushed, a
+    commit trivially exists (that's the file's own commit) — so at THIS
+    layer the equivalent, actually-reachable "nothing to trust" case is a
+    missing/failing transcript, not a literal zero-commit branch (that case
+    is exercised directly against gate_commit_landed in section 3 above,
+    where an empty branch is constructible without a REPORT.md read gating
+    it first)."""
+    branch = "agent/codex-task-real01"
+    _push_branch_with_report(tiny_origin, branch, "task-real01")
+
+    monkeypatch.setattr(branch_poller, "get_project", lambda key: {
+        "path": str(tiny_origin.work), "default_branch": "main", "test_command": None,
+    })
+    monkeypatch.setattr(branch_poller, "get_host",
+                        lambda name: {"ssh": None, "agents_root": "C:\\x"})
+    _insert_external_runner_task(temp_db_for_poller, task_id="task-real01",
+                                 branch=branch, runner="codex")
+
+    branch_poller.check_task(temp_db_for_poller.get_task("task-real01"))
+
+    t = temp_db_for_poller.get_task("task-real01")
+    assert t["status"] == "failed"
+    assert "artefact gate refused" in t["delegate_log"]
+    assert "no codex --json transcript" in t["delegate_log"]
+
+
+def test_check_task_real_entry_point_accepts_codex_when_gate_passes(
+    tiny_origin, temp_db_for_poller, monkeypatch,
+):
+    """Positive case through the same real door: commit landed, test_command
+    ("exit 0") actually runs in a real scratch git worktree (not mocked —
+    exercises _run_project_tests_on_branch for real against tiny_origin's
+    local git), and a passing transcript is supplied -- check_task must
+    still flip the task to review exactly as it did before this gate
+    existed."""
+    branch = "agent/codex-task-real02"
+    _push_branch_with_report(tiny_origin, branch, "task-real02")
+
+    monkeypatch.setattr(branch_poller, "get_project", lambda key: {
+        "path": str(tiny_origin.work), "default_branch": "main", "test_command": "exit 0",
+    })
+    monkeypatch.setattr(branch_poller, "get_host",
+                        lambda name: {"ssh": "winbox", "agents_root": "C:\\x"})
+    monkeypatch.setattr(branch_poller, "_fetch_remote_text",
+                        lambda host_cfg, path: '{"type": "turn.completed"}\n')
+    _insert_external_runner_task(temp_db_for_poller, task_id="task-real02",
+                                 branch=branch, runner="codex")
+
+    branch_poller.check_task(temp_db_for_poller.get_task("task-real02"))
+
+    assert temp_db_for_poller.get_task("task-real02")["status"] == "review"
+
+
+def test_check_task_real_entry_point_refuses_agy_when_tests_fail(
+    tiny_origin, temp_db_for_poller, monkeypatch,
+):
+    """agy has no --json transcript concept, so its only gate beyond commit
+    presence is the test run — a failing test_command must still refuse the
+    accept, exercised through the real door."""
+    branch = "agent/agy-task-real03"
+    _push_branch_with_report(tiny_origin, branch, "task-real03")
+
+    monkeypatch.setattr(branch_poller, "get_project", lambda key: {
+        "path": str(tiny_origin.work), "default_branch": "main", "test_command": "exit 1",
+    })
+    monkeypatch.setattr(branch_poller, "get_host",
+                        lambda name: {"ssh": "winbox", "agents_root": "C:\\x"})
+    _insert_external_runner_task(temp_db_for_poller, task_id="task-real03",
+                                 branch=branch, runner="agy")
+
+    branch_poller.check_task(temp_db_for_poller.get_task("task-real03"))
+
+    t = temp_db_for_poller.get_task("task-real03")
+    assert t["status"] == "failed"
+    assert "test suite failed" in t["delegate_log"]
+
+
+def test_check_task_claude_runner_bypasses_gate_entirely(
+    tiny_origin, temp_db_for_poller, monkeypatch,
+):
+    """Regression: claude is not an external runner (EXTERNAL_RUNNERS =
+    codex, agy only) — its REPORT.md -> review flip must be completely
+    unaffected by this gate, exactly as it worked before task-adbc6f43."""
+    branch = "agent/developer-task-real04"
+    _push_branch_with_report(tiny_origin, branch, "task-real04")
+
+    monkeypatch.setattr(branch_poller, "get_project", lambda key: {
+        "path": str(tiny_origin.work), "default_branch": "main",
+    })
+
+    def _must_not_be_called(*a, **k):
+        raise AssertionError("artefact gate must never run for the claude runner")
+
+    monkeypatch.setattr(branch_poller, "_artefact_gate_for_external_runner", _must_not_be_called)
+    _insert_external_runner_task(temp_db_for_poller, task_id="task-real04",
+                                 branch=branch, runner="claude")
+
+    branch_poller.check_task(temp_db_for_poller.get_task("task-real04"))
+
+    assert temp_db_for_poller.get_task("task-real04")["status"] == "review"
+
+
+def test_check_task_null_runner_bypasses_gate_like_claude(
+    tiny_origin, temp_db_for_poller, monkeypatch,
+):
+    """A pre-migration row with runner=NULL must behave exactly like
+    runner='claude' -- not like an external runner."""
+    branch = "agent/developer-task-real05"
+    _push_branch_with_report(tiny_origin, branch, "task-real05")
+
+    monkeypatch.setattr(branch_poller, "get_project", lambda key: {
+        "path": str(tiny_origin.work), "default_branch": "main",
+    })
+
+    def _must_not_be_called(*a, **k):
+        raise AssertionError("artefact gate must never run for a NULL (pre-migration) runner")
+
+    monkeypatch.setattr(branch_poller, "_artefact_gate_for_external_runner", _must_not_be_called)
+    _insert_external_runner_task(temp_db_for_poller, task_id="task-real05",
+                                 branch=branch, runner=None)
+
+    branch_poller.check_task(temp_db_for_poller.get_task("task-real05"))
+
+    assert temp_db_for_poller.get_task("task-real05")["status"] == "review"

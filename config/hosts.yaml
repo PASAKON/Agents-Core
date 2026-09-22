@@ -46,16 +46,16 @@ hosts:
     # that rule; the second is a read-only tab (tab_registry keeps them apart).
     max_workers: 2
     max_browser_operators: 2
-    # Measured 2026-09-20 (task-adbc6f43 brief, verify before trusting again --
-    # auth/installs drift): claude.exe (.local\bin, working), codex.cmd
+    # Measured 2026-09-20, RECONCILED 2026-09-22 (CTO REVIEW-ITER2.md, doc
+    # commit 0d8490f9): claude.exe (.local\bin, working), codex.cmd
     # (%APPDATA%\npm, codex-cli 0.153.4, signed in), agy.exe
-    # (%LOCALAPPDATA%\agy\bin, Antigravity 1.2.6, binary present but NOT yet
-    # signed in -- that's a runtime auth failure the artefact gate catches
-    # (no commit), not a "not installed" case this list is for. NOTE:
-    # docs/ops/agent-runners.md's own broader sweep says agy is Mac-only and
-    # NOT on winbox -- contradicts this task's own table; flagged for the CTO
-    # to reconcile with a fresh probe (see that doc's §5) before relying on
-    # agy here.
+    # (%LOCALAPPDATA%\agy\bin, Antigravity 1.2.6) -- ALL THREE confirmed
+    # present and signed in on winbox, `agy models` returns all 14 models
+    # when run in session 1. docs/ops/agent-runners.md §1's old "Mac only"
+    # line for agy was stale (fixed in §6a); the credential lives in the
+    # session-1 logon keyring, same session-0 boundary as codex's sandbox
+    # pipe -- over plain ssh agy still says "Please sign in", which is
+    # expected, not a sign of absence.
     runners: [claude, codex, agy]
 
   contabo:
