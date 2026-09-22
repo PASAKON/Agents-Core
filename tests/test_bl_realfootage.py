@@ -177,6 +177,33 @@ def test_nine_sixteen_crop_contains_the_source_box_when_it_fits():
     assert left <= bl and top <= bt and right >= br and bottom >= bb
 
 
+def test_nine_sixteen_crop_never_exceeds_max_frame_fraction():
+    """Regression: task-67f82679 EP55, 2026-09-23. A crop target whose tight
+    text match failed upstream and fell back to a whole paragraph element
+    (measured live: 617x81 CSS px) exploded through the old formula to
+    (0, 0, 1080, 1920) -- literally the entire frame. That frame happened to
+    also contain an unrelated embedded screenshot with what looked like a
+    real account number, uncensored. The cap must hold even for a box this
+    disproportionate, and the result must still be smaller than the full
+    frame -- "not zoomed enough" is an acceptable degraded output, "shows
+    the whole page" is not."""
+    box = (70, 992, 687, 1073)  # the exact box that triggered the incident
+    crop = rf.nine_sixteen_crop_around(box, img_w=1080, img_h=1920, pad=2.0)
+    left, top, right, bottom = crop
+    w, h = right - left, bottom - top
+    assert crop != (0, 0, 1080, 1920)
+    assert w <= 1080 * 0.7 + 1 and h <= 1920 * 0.7 + 1
+
+
+def test_nine_sixteen_crop_cap_is_configurable():
+    box = (70, 992, 687, 1073)
+    tight_cap = rf.nine_sixteen_crop_around(box, img_w=1080, img_h=1920, pad=2.0, max_frame_fraction=0.3)
+    loose_cap = rf.nine_sixteen_crop_around(box, img_w=1080, img_h=1920, pad=2.0, max_frame_fraction=0.7)
+    tight_area = (tight_cap[2] - tight_cap[0]) * (tight_cap[3] - tight_cap[1])
+    loose_area = (loose_cap[2] - loose_cap[0]) * (loose_cap[3] - loose_cap[1])
+    assert tight_area < loose_area
+
+
 # ─────────────────────────── lerp_rect ───────────────────────────────────────
 
 def test_lerp_rect_endpoints():
@@ -228,6 +255,56 @@ def test_shot_from_dict_resolves_censor_profile():
     assert len(shot.censor) == 1
     assert shot.censor[0].label == "signup"
     assert shot.censor[0].text == "สมัคร"
+
+
+# ─────────────────────────── _rule_target anchor fallback ───────────────────
+# Regression test for a real bug found in the EP55 live run 2026-09-23: a PII
+# censor rule with only `ancestor`+`region` (no `text`/`selector` of its own,
+# e.g. "walk up from wherever we're already zooming and pixelate the top
+# strip") silently resolved to {ok: false} in the browser -- it had nothing to
+# find -- so the complaint-card PII rule censored NOTHING. The fix: a rule
+# with no anchor of its own inherits the shot's own crop anchor.
+
+def test_rule_target_falls_back_to_shot_crop_anchor(tmp_path):
+    runner = rf.RealFootageRunner("t", tmp_path)
+    rule = rf.CensorRule(label="pii", kind="region", ancestor="nearest_with_img",
+                          region={"top": 0, "bottom": 0.15})
+    shot = rf.Shot(id="s", url="https://x", covers=["A"],
+                    crop={"text": "48,994.87", "pad": 1.6})
+    target = runner._rule_target(rule, shot)
+    assert target["text"] == "48,994.87"
+    assert target["selector"] is None
+    assert target["ancestor"] == "nearest_with_img"
+
+
+def test_rule_target_keeps_its_own_anchor_when_it_has_one(tmp_path):
+    runner = rf.RealFootageRunner("t", tmp_path)
+    rule = rf.CensorRule(label="cta", kind="full", text="สมัคร")
+    shot = rf.Shot(id="s", url="https://x", covers=["A"], crop={"text": "some other text"})
+    target = runner._rule_target(rule, shot)
+    assert target["text"] == "สมัคร"  # NOT overridden by the shot's crop text
+
+
+def test_rule_target_avatar_heuristic_ignores_crop_fallback(tmp_path):
+    # regression: an avatar_heuristic rule scans the WHOLE page by shape and
+    # must never accidentally inherit the shot's crop text/selector as its
+    # own anchor (that would turn a site-wide PII sweep into a single-spot
+    # search, same class of bug as the original ancestor-fallback miss).
+    runner = rf.RealFootageRunner("t", tmp_path)
+    rule = rf.CensorRule(label="avatars", avatar_heuristic=True)
+    shot = rf.Shot(id="s", url="https://x", covers=["A"], crop={"text": "1.69"})
+    target = runner._rule_target(rule, shot)
+    assert target["text"] is None
+    assert target["selector"] is None
+    assert target["avatar_heuristic"] is True
+
+
+def test_rule_target_stays_unresolved_with_no_anchor_and_no_crop(tmp_path):
+    runner = rf.RealFootageRunner("t", tmp_path)
+    rule = rf.CensorRule(label="pii", kind="region", ancestor="nearest_with_img")
+    shot = rf.Shot(id="s", url="https://x", covers=["A"])  # action=capture, no crop
+    target = runner._rule_target(rule, shot)
+    assert target["text"] is None and target["selector"] is None
 
 
 def test_shot_from_dict_merges_explicit_censor_and_profile():

@@ -136,16 +136,37 @@ def pixelate_region(img: Image.Image, box: tuple[int, int, int, int], block: int
 
 
 def nine_sixteen_crop_around(box: tuple[int, int, int, int], img_w: int, img_h: int,
-                              pad: float = 1.8) -> tuple[int, int, int, int]:
+                              pad: float = 1.8, max_frame_fraction: float = 0.7
+                              ) -> tuple[int, int, int, int]:
     """A 9:16 crop rect centered on box, padded by `pad`x the box's own size,
-    clamped to the image. Used for evidence zoom stills / Ken-Burns end frames."""
+    clamped to the image. Used for evidence zoom stills / Ken-Burns end frames.
+
+    max_frame_fraction is a SAFETY CAP: the crop never exceeds this fraction
+    of the frame in either dimension, no matter how large box is. Without
+    it, a box whose tight-text match failed upstream and fell back to a wide
+    containing element (a whole paragraph, or worse) silently explodes this
+    "zoom in" into ~the entire raw screenshot -- exactly the bug that once
+    let an unrelated embedded evidence screenshot with what looked like a
+    real account number sit in a captured frame uncensored (task-67f82679,
+    EP55, wikifx-article-leverage-deposit, 2026-09-23). Some zoom always
+    happens; a bad upstream match degrades to "not zoomed enough" instead of
+    "shows the whole page."
+    """
     left, top, right, bottom = box
     bw, bh = right - left, bottom - top
     cx, cy = (left + right) / 2, (top + bottom) / 2
     target_ratio = 9 / 16
 
-    half_h = max(bh, bw / target_ratio) * pad / 2
-    half_w = half_h * target_ratio
+    want_h = max(bh, bw / target_ratio) * pad
+    want_w = want_h * target_ratio
+
+    cap_h = img_h * max_frame_fraction
+    cap_w = img_w * max_frame_fraction  # frame is exactly 9:16, so this equals cap_h * target_ratio
+    scale = min(1.0,
+                cap_h / want_h if want_h > 0 else 1.0,
+                cap_w / want_w if want_w > 0 else 1.0)
+    half_h = (want_h * scale) / 2
+    half_w = (want_w * scale) / 2
 
     crop_left = cx - half_w
     crop_right = cx + half_w
@@ -216,11 +237,13 @@ class CensorRule:
     min_h: float = 0
     ancestor: str | None = None   # "nearest_with_img" -- walk up to the nearest ancestor holding an <img>
     region: dict | None = None    # {"top","bottom","left","right"} fractions of the (possibly ancestor-walked) box
+    regex: str | None = None      # shape-based match (e.g. a dollar bonus figure that differs every scrape)
+    avatar_heuristic: bool = False  # site-wide sweep for review/complaint avatar+name rows, by shape not anchor
 
     @classmethod
     def from_dict(cls, d: dict) -> "CensorRule":
         return cls(
-            label=d.get("label", d.get("selector") or d.get("text") or "?"),
+            label=d.get("label", d.get("selector") or d.get("text") or d.get("regex") or "?"),
             kind=d.get("kind", "full"),
             selector=d.get("selector"),
             text=d.get("text"),
@@ -230,6 +253,8 @@ class CensorRule:
             min_h=d.get("min_h", 0),
             ancestor=d.get("ancestor"),
             region=d.get("region"),
+            regex=d.get("regex"),
+            avatar_heuristic=bool(d.get("avatar_heuristic", False)),
         )
 
 
@@ -247,6 +272,9 @@ class Shot:
     animate: bool = False
     scroll_to_frac: float = 0.6  # scroll shots: how far down the page to travel, 0..1
     censor: list[CensorRule] = field(default_factory=list)
+    also_clean: bool = False    # also deliver an UNCENSORED reference copy (e.g. the broker logo)
+    hide_selectors: list[str] = field(default_factory=list)  # CSS selectors to hide before capture
+    hide_texts: list[str] = field(default_factory=list)      # text-anchored hides (unstable build-hash classes)
     source_note: str | None = None
     note: str = ""
 
@@ -268,6 +296,9 @@ class Shot:
             animate=bool(d.get("animate", False)),
             scroll_to_frac=float(d.get("scroll_to_frac", 0.6)),
             censor=[CensorRule.from_dict(c) for c in censor_dicts],
+            also_clean=bool(d.get("also_clean", False)),
+            hide_selectors=list(d.get("hide_selectors") or []),
+            hide_texts=list(d.get("hide_texts") or []),
             source_note=d.get("source_note"),
             note=d.get("note", ""),
         )
@@ -277,7 +308,8 @@ class Shot:
             "id": self.id, "url": self.url, "covers": self.covers, "action": self.action,
             "kind": self.kind, "duration": self.duration, "wait_selector": self.wait_selector,
             "wait_ms": self.wait_ms, "crop": self.crop, "animate": self.animate,
-            "scroll_to_frac": self.scroll_to_frac,
+            "scroll_to_frac": self.scroll_to_frac, "also_clean": self.also_clean,
+            "hide_selectors": self.hide_selectors, "hide_texts": self.hide_texts,
             "censor": [c.__dict__ for c in self.censor],
         }
 
@@ -293,11 +325,18 @@ def load_shots(path: Path) -> tuple[list[Shot], dict]:
 # Browser-side measurement JS (batched: one round trip per capture instant)
 # ═══════════════════════════════════════════════════════════════════════════
 
-MEASURE_JS = r"""
-(targets) => {
+_FIND_HELPERS_JS = r"""
   function visibleRect(el) {
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) return null;
+    // must actually overlap the CURRENT viewport -- a hidden dropdown/
+    // carousel item can have real layout size while sitting off-canvas or
+    // behind overflow:hidden; getBoundingClientRect doesn't know that, so a
+    // plain width/height>0 check happily matches it and censors nothing
+    // real (measured 2026-09-23 on bingx.com's nav sub-menu items).
+    const vw = window.innerWidth, vh = window.innerHeight;
+    if (r.right <= 0 || r.left >= vw || r.bottom <= 0 || r.top >= vh) return null;
+    if (el.checkVisibility && !el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return null;
     return r;
   }
   function findByText(needle) {
@@ -326,6 +365,48 @@ MEASURE_JS = r"""
     }
     return null;
   }
+  function findTarget(t) {
+    if (t.text) return findByText(t.text);
+    if (t.selector) return findBySelectors(t.selector, t.min_w, t.min_h);
+    return null;
+  }
+  function findAllByText(needle) {
+    // every visible element containing needle, EXCLUDING one whose own
+    // descendant is also a match (keep leaves only, e.g. two separate
+    // "ลงทะเบียน" buttons on screen at once must both come back -- a
+    // single-match findByText would silently censor only one of them).
+    const all = [];
+    const stack = [document.body];
+    while (stack.length) {
+      const el = stack.pop();
+      if (el.children) for (const c of el.children) stack.push(c);
+      const t = el.innerText || el.textContent || "";
+      if (!t || !t.includes(needle)) continue;
+      if (!visibleRect(el)) continue;
+      all.push(el);
+    }
+    return all.filter(el => !all.some(other => other !== el && el.contains(other)));
+  }
+  function findAllBySelectors(selCsv, minW, minH) {
+    const sels = selCsv.split(",").map(s => s.trim()).filter(Boolean);
+    const out = [];
+    const seen = new Set();
+    for (const sel of sels) {
+      let nodes;
+      try { nodes = document.querySelectorAll(sel); } catch (e) { continue; }
+      for (const el of nodes) {
+        if (seen.has(el)) continue;
+        const r = visibleRect(el);
+        if (r && r.width >= (minW || 0) && r.height >= (minH || 0)) { out.push(el); seen.add(el); }
+      }
+    }
+    return out;
+  }
+  function findAllTargets(t) {
+    if (t.text) return findAllByText(t.text);
+    if (t.selector) return findAllBySelectors(t.selector, t.min_w, t.min_h);
+    return [];
+  }
   function walkToAncestorWithImg(el) {
     let cur = el;
     for (let i = 0; i < 10 && cur; i++) {
@@ -334,19 +415,217 @@ MEASURE_JS = r"""
     }
     return el;
   }
+  function findAllAvatarRows() {
+    // site-wide PII sweep: every reviewer/complainant avatar+name row on a
+    // WikiFX page, wherever it sits (a "featured reviews" carousel above
+    // the fold, or a complaint-list card far down the page) -- found by
+    // SHAPE (small, square, class contains "rounded", has a real alt text)
+    // rather than by which specific card a shot happens to be zoomed on.
+    // Confirmed against the real page 2026-09-23: WikiFX's own avatars are
+    // img.rounded-44 / img.rounded-20 with alt=<username>; flags are
+    // landscape (~18x12, excluded by the aspect check) and WikiFX's/the
+    // broker's own logos use "-logo" classes, not "rounded-*".
+    const SAFE_ALTS = new Set(["WikiFX", "BingX", "license", "Customer Service", "Download App", ""]);
+    const imgs = Array.from(document.querySelectorAll('img[alt]'));
+    const rows = [];
+    for (const img of imgs) {
+      const alt = (img.getAttribute('alt') || "").trim();
+      if (SAFE_ALTS.has(alt)) continue;
+      const cls = img.className;
+      if (typeof cls !== "string" || !/rounded/.test(cls)) continue;
+      const r = visibleRect(img);
+      if (!r) continue;
+      if (r.width < 14 || r.width > 90) continue;
+      const ratio = r.width / r.height;
+      if (ratio < 0.75 || ratio > 1.35) continue;  // excludes landscape flag icons
+      let row = img;
+      for (let i = 0; i < 4 && row.parentElement; i++) {
+        const pr = row.parentElement.getBoundingClientRect();
+        if (pr.width > 400) break;  // stop before the row swallows the whole page width
+        row = row.parentElement;
+      }
+      rows.push(row);
+    }
+    return rows.filter(el => !rows.some(other => other !== el && el.contains(other)));
+  }
+  function findAllByTextThenWiden(needle, maxWidth) {
+    // for a popup/bar whose own class names are unstable build hashes --
+    // find it by its message text, then walk up to the smallest ancestor
+    // under maxWidth (the popup's own container, not the whole <body>).
+    const hits = findAllByText(needle);
+    return hits.map(el => {
+      let cur = el;
+      for (let i = 0; i < 8 && cur.parentElement; i++) {
+        const pr = cur.parentElement.getBoundingClientRect();
+        if (pr.width > maxWidth) break;
+        cur = cur.parentElement;
+      }
+      return cur;
+    });
+  }
+  function tightTextRects(container, needle) {
+    // findByText/findTarget return the smallest CONTAINING element, which
+    // for running prose can be an entire paragraph -- far too wide to be a
+    // usable "zoom onto this number" / "censor this word" target, AND the
+    // needle can occur MORE THAN ONCE inside it (a promo banner repeating
+    // "รางวัล" twice in one line only got its first occurrence pixelated
+    // until this walked every occurrence -- measured 2026-09-23). Narrow to
+    // the exact rendered glyphs of EVERY occurrence via Range.
+    const out = [];
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      let from = 0, idx;
+      while ((idx = node.nodeValue.indexOf(needle, from)) >= 0) {
+        const range = document.createRange();
+        range.setStart(node, idx);
+        range.setEnd(node, idx + needle.length);
+        const r = range.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) out.push(r);
+        from = idx + needle.length;
+      }
+    }
+    return out;
+  }
+  function tightTextRect(container, needle) {
+    const rects = tightTextRects(container, needle);
+    return rects.length ? rects[0] : null;
+  }
+  function findAllByRegex(pattern, flags) {
+    // for content with no fixed keyword (a bonus banner's dollar figure
+    // changes every scrape) -- match by SHAPE instead of exact text, on
+    // LEAF text nodes only so each match gets its own tight box.
+    const re = new RegExp(pattern, flags || "");
+    const out = [];
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const text = node.nodeValue;
+      re.lastIndex = 0;
+      let m;
+      while ((m = re.exec(text))) {
+        const range = document.createRange();
+        range.setStart(node, m.index);
+        range.setEnd(node, m.index + m[0].length);
+        const r = range.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) out.push(r);
+        if (!re.global) break;
+        if (m.index === re.lastIndex) re.lastIndex++;
+      }
+    }
+    return out.filter(r => {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      return !(r.right <= 0 || r.left >= vw || r.bottom <= 0 || r.top >= vh);
+    });
+  }
+"""
+
+# NOTE: Playwright's page.evaluate() requires the whole string to parse as
+# ONE function (expression or declaration) -- helpers can't be concatenated
+# as sibling top-level statements before it. _FIND_HELPERS_JS is spliced
+# INSIDE each outer function's braces instead, by plain string concatenation
+# (not .format()/f-string -- the helpers are full of literal { } already).
+
+# Scrolls ONE target (the shot's primary framing anchor) into view before any
+# measurement happens. Capture shots never scroll otherwise, so a claim that
+# sits below the first screen (most WikiFX profile claims do) would silently
+# get measured/screenshotted at scrollY=0 -- nowhere near it -- without this.
+#
+# Computes the target scrollY directly instead of calling scrollIntoView()
+# -- measured 2026-09-23 on the real page: scrollIntoView({block:"center"})
+# landed the target one line below the viewport's TOP edge, not its center,
+# on a page with sticky headers/complex layout. That left the crop box
+# anchored near the top of a mostly-arbitrary viewport instead of framing
+# the claim, which is what pulled an unrelated embedded evidence screenshot
+# into a "wikifx-article-score-reason" frame. Direct math has no such quirk.
+SCROLL_INTO_VIEW_JS = (
+    "(target) => {\n" + _FIND_HELPERS_JS + r"""
+  const el = findTarget(target);
+  if (!el) return false;
+  const r = el.getBoundingClientRect();
+  const docY = r.top + window.scrollY + r.height / 2;
+  const targetScrollY = Math.max(0, docY - window.innerHeight / 2);
+  window.scrollTo(0, targetScrollY);
+  return true;
+}
+"""
+)
+
+# Hides page furniture that has no business being in a recorded frame at
+# all -- a broker-comparison ad widget, a language-switch popup, a "install
+# our Chrome extension" banner. visibility:hidden (not display:none) keeps
+# layout space reserved so nothing else on the page reflows into a
+# different position mid-measurement.
+HIDE_JS = (
+    "(spec) => {\n" + _FIND_HELPERS_JS + r"""
+  let n = 0;
+  for (const sel of (spec.selectors || [])) {
+    let nodes;
+    try { nodes = document.querySelectorAll(sel); } catch (e) { continue; }
+    for (const el of nodes) { el.style.setProperty("visibility", "hidden", "important"); n++; }
+  }
+  for (const spec_text of (spec.texts || [])) {
+    for (const el of findAllByTextThenWiden(spec_text, spec.max_width || 700)) {
+      el.style.setProperty("visibility", "hidden", "important"); n++;
+    }
+  }
+  return n;
+}
+"""
+)
+
+MEASURE_JS = (
+    "(targets) => {\n" + _FIND_HELPERS_JS + r"""
   const scrollX = window.scrollX, scrollY = window.scrollY, dpr = window.devicePixelRatio || 1;
+  function toBox(r) { return { x: r.x + scrollX, y: r.y + scrollY, width: r.width, height: r.height }; }
   const out = targets.map(t => {
-    let el = null;
-    if (t.text) el = findByText(t.text);
-    else if (t.selector) el = findBySelectors(t.selector, t.min_w, t.min_h);
+    if (t.regex) {
+      // shape-based match (e.g. a bonus banner's dollar figure, which is
+      // different every scrape so no fixed keyword can catch it)
+      const boxes = findAllByRegex(t.regex, t.regex_flags || "g").map(toBox);
+      return { ok: boxes.length > 0, boxes };
+    }
+    if (t.avatar_heuristic) {
+      const boxes = findAllAvatarRows().map(el => toBox(el.getBoundingClientRect()));
+      return { ok: boxes.length > 0, boxes };
+    }
+    if (t.multi) {
+      // censor rules: cover EVERY visible match, not just the smallest one
+      // -- two separate "ลงทะเบียน" buttons on screen at once must both be
+      // censored. Uses each match's whole CONTAINING element (a button, a
+      // banner line), not a tight text span around just the keyword --
+      // pixelating only the word "รางวัล" inside "...รางวัลรวม $5,000,000!"
+      // and leaving the dollar figure sitting right next to it in the
+      // clear defeats the point. Tight text ranges are for the crop
+      // target below (zooming onto a specific evidence number), not for
+      // blanking an ad line.
+      const els = findAllTargets(t);
+      if (!els.length) return { ok: false, boxes: [] };
+      const boxes = els.map(el =>
+        toBox(t.ancestor === "nearest_with_img" ? walkToAncestorWithImg(el).getBoundingClientRect()
+                                                 : el.getBoundingClientRect()));
+      return { ok: true, boxes };
+    }
+    const el = findTarget(t);
     if (!el) return { ok: false };
-    if (t.ancestor === "nearest_with_img") el = walkToAncestorWithImg(el);
-    const r = el.getBoundingClientRect();
+    let r;
+    if (t.ancestor === "nearest_with_img") {
+      // PII/region rules want the whole card, not a tight text span
+      r = walkToAncestorWithImg(el).getBoundingClientRect();
+    } else if (t.text) {
+      // tight glyph-level box around the matched text, not its whole
+      // containing paragraph -- falls back to the element box if the
+      // needle spans multiple text nodes.
+      r = tightTextRect(el, t.text) || el.getBoundingClientRect();
+    } else {
+      r = el.getBoundingClientRect();
+    }
     return { ok: true, x: r.x + scrollX, y: r.y + scrollY, width: r.width, height: r.height };
   });
   return { scrollX, scrollY, dpr, targets: out };
 }
 """
+)
 
 BLOCKED_MARKERS = re.compile(
     r"just a moment|attention required|verify you are human|cf-browser-verification",
@@ -452,6 +731,13 @@ class RealFootageRunner:
                 pass
         page.wait_for_timeout(shot.wait_ms)
 
+        if shot.hide_selectors or shot.hide_texts:
+            try:
+                page.evaluate(HIDE_JS, {"selectors": shot.hide_selectors, "texts": shot.hide_texts})
+                page.wait_for_timeout(150)  # let layout settle now that hidden elements freed no space (visibility only)
+            except Exception:
+                pass
+
         if shot.action == "scroll":
             return self._run_scroll(page, shot)
         return self._run_capture(page, shot)
@@ -459,16 +745,16 @@ class RealFootageRunner:
     def _measure(self, page, targets: list[dict]) -> dict:
         return page.evaluate(MEASURE_JS, targets)
 
-    def _censor_image(self, img: Image.Image, censor_boxes: list[tuple[str, tuple, tuple]]
+    def _censor_image(self, img: Image.Image, censor_boxes: list[tuple[CensorRule, tuple, tuple]]
                        ) -> tuple[Image.Image, list[dict]]:
-        censored_meta = []
+        censored_meta: dict[str, dict] = {}
         for rule, raw_box, applied_box in censor_boxes:
             if applied_box is None:
                 continue
             img = pixelate_region(img, applied_box, block=18)
-            censored_meta.append({"what": rule.label, "rule": f"{rule.kind}"
-                                   + (f" {rule.fraction:.0%} {rule.side}" if rule.kind == "partial" else "")})
-        return img, censored_meta
+            censored_meta[rule.label] = {"what": rule.label, "rule": f"{rule.kind}"
+                                          + (f" {rule.fraction:.0%} {rule.side}" if rule.kind == "partial" else "")}
+        return img, list(censored_meta.values())
 
     def _resolve_censor_boxes(self, measured: dict, shot: Shot, crop_target_idx: int | None,
                                img_w: int, img_h: int):
@@ -477,32 +763,80 @@ class RealFootageRunner:
         boxes = []
         for i, rule in enumerate(shot.censor):
             t = measured["targets"][i]
-            if not t["ok"]:
+            if not t.get("ok"):
                 continue
-            pixel_box = compute_censor_pixel_box(
-                {"x": t["x"], "y": t["y"], "width": t["width"], "height": t["height"]}, scroll, dpr)
-            if rule.kind == "partial":
-                pixel_box = partial_box(pixel_box, rule.fraction, rule.side)
-            elif rule.kind == "region" and rule.region:
-                pixel_box = region_box(pixel_box, **rule.region)
-            clamped = clamp_box(pixel_box, img_w, img_h)
-            boxes.append((rule, pixel_box, clamped))
+            for raw in t.get("boxes", []):
+                pixel_box = compute_censor_pixel_box(
+                    {"x": raw["x"], "y": raw["y"], "width": raw["width"], "height": raw["height"]}, scroll, dpr)
+                if rule.kind == "partial":
+                    pixel_box = partial_box(pixel_box, rule.fraction, rule.side)
+                elif rule.kind == "region" and rule.region:
+                    pixel_box = region_box(pixel_box, **rule.region)
+                clamped = clamp_box(pixel_box, img_w, img_h)
+                boxes.append((rule, pixel_box, clamped))
         crop_pixel_box = None
         if crop_target_idx is not None:
             t = measured["targets"][crop_target_idx]
-            if t["ok"]:
+            if t.get("ok"):
                 crop_pixel_box = compute_censor_pixel_box(
                     {"x": t["x"], "y": t["y"], "width": t["width"], "height": t["height"]}, scroll, dpr)
         return boxes, crop_pixel_box
 
+    def _rule_target(self, rule: CensorRule, shot: Shot) -> dict:
+        """A censor rule with no anchor of its own (text/selector) -- e.g. a
+        PII rule that only says "walk up to the card and pixelate the top
+        strip" -- piggybacks on the shot's own crop anchor: it IS the thing
+        being zoomed on, so it's the natural default anchor to walk up from."""
+        selector, text = rule.selector, rule.text
+        if not selector and not text and not rule.regex and not rule.avatar_heuristic and shot.crop:
+            selector, text = shot.crop.get("selector"), shot.crop.get("text")
+        return {"selector": selector, "text": text, "min_w": rule.min_w, "min_h": rule.min_h,
+                "ancestor": rule.ancestor, "multi": True, "regex": rule.regex,
+                "avatar_heuristic": rule.avatar_heuristic}
+
     def _run_capture(self, page, shot: Shot) -> dict:
-        targets = [{"selector": r.selector, "text": r.text, "min_w": r.min_w, "min_h": r.min_h,
-                    "ancestor": r.ancestor} for r in shot.censor]
+        targets = [self._rule_target(r, shot) for r in shot.censor]
         crop_idx = None
         if shot.crop:
             crop_idx = len(targets)
             targets.append({"selector": shot.crop.get("selector"), "text": shot.crop.get("text"),
                              "min_w": shot.crop.get("min_w", 0), "min_h": shot.crop.get("min_h", 0)})
+
+        # bring the shot's own framing target into view BEFORE measuring/
+        # screenshotting -- a still capture never scrolls otherwise, so a
+        # claim below the first screen (most WikiFX profile claims are) would
+        # get measured at scrollY=0, nowhere near it.
+        scroll_anchor = shot.crop or (targets[0] if targets else None)
+        scrolled = False
+        if scroll_anchor and (scroll_anchor.get("text") or scroll_anchor.get("selector")):
+            scrolled = page.evaluate(SCROLL_INTO_VIEW_JS, scroll_anchor)
+            if scrolled:
+                page.wait_for_timeout(900)  # let scroll-triggered lazy content (charts etc.) settle -- measured
+                # 2026-09-23: 500ms was flaky, wikifx-profile-score-reason lost its crop target one run in a few
+
+        if shot.hide_selectors or shot.hide_texts:
+            # run again AFTER scrolling -- some widgets (WikiFX's own
+            # "users who viewed this also viewed" broker row) only mount
+            # once they're scrolled near, so the first hide pass in
+            # run_shot() (which runs before any scrolling) can't see them
+            # yet. Measured 2026-09-23: .wiki-direct was invisible to
+            # querySelectorAll at page-load time and only appeared after
+            # scroll_into_view brought the article body into view.
+            try:
+                page.evaluate(HIDE_JS, {"selectors": shot.hide_selectors, "texts": shot.hide_texts})
+                page.wait_for_timeout(150)
+                if scroll_anchor and scrolled:
+                    # CSS scroll anchoring can silently re-adjust scrollY
+                    # while lazy content above the viewport finishes loading
+                    # during the waits above -- measured 2026-09-23, scrollY
+                    # drifted back near a completely different position
+                    # between the first scroll and the final measurement.
+                    # Re-issuing the same scroll right before measuring
+                    # corrects any such drift.
+                    page.evaluate(SCROLL_INTO_VIEW_JS, scroll_anchor)
+                    page.wait_for_timeout(200)
+            except Exception:
+                pass
 
         measured = self._measure(page, targets) if targets else {"scrollX": 0, "scrollY": 0, "dpr": 1, "targets": []}
         png_bytes = page.screenshot(type="png")
@@ -511,9 +845,9 @@ class RealFootageRunner:
         raw_path = shot_dir / "raw.png"
         raw_path.write_bytes(png_bytes)
 
-        img = Image.open(raw_path).convert("RGB")
-        censor_boxes, crop_box = self._resolve_censor_boxes(measured, shot, crop_idx, img.width, img.height)
-        img, censored_meta = self._censor_image(img, censor_boxes)
+        raw_img = Image.open(raw_path).convert("RGB")
+        censor_boxes, crop_box = self._resolve_censor_boxes(measured, shot, crop_idx, raw_img.width, raw_img.height)
+        img, censored_meta = self._censor_image(raw_img.copy(), censor_boxes)
 
         outputs = []
         manifest_entries = []
@@ -535,6 +869,18 @@ class RealFootageRunner:
             "covers": shot.covers, "source_url": shot.url, "captured_at": captured_at,
             "seconds": 0, "censored": censored_meta,
         })
+
+        if shot.also_clean:
+            clean_frame = raw_img.crop(final_crop) if final_crop else raw_img
+            clean_frame = clean_frame.resize((FRAME_W, FRAME_H), Image.LANCZOS)
+            clean_path = shot_dir / f"{shot.id}-clean.png"
+            clean_frame.save(clean_path)
+            outputs.append(str(clean_path.relative_to(self.out_dir)))
+            manifest_entries.append({
+                "file": f"{self.drive_real_prefix}/{shot.id}-clean.png", "kind": "still",
+                "covers": shot.covers, "source_url": shot.url, "captured_at": captured_at,
+                "seconds": 0, "censored": [], "note": "clean reference copy -- not for on-screen use",
+            })
 
         if shot.kind == "clip" and shot.duration > 0:
             clip_path = shot_dir / f"{shot.id}.mp4"
@@ -578,8 +924,7 @@ class RealFootageRunner:
         target_y = max(0, int((page_height - FRAME_H) * shot.scroll_to_frac))
         in_fps = 8
         n_frames = max(1, int(shot.duration * in_fps))
-        targets = [{"selector": r.selector, "text": r.text, "min_w": r.min_w, "min_h": r.min_h,
-                    "ancestor": r.ancestor} for r in shot.censor]
+        targets = [self._rule_target(r, shot) for r in shot.censor]
         all_censored_meta: dict[str, dict] = {}
 
         for i in range(n_frames):
