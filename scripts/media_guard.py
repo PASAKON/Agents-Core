@@ -1,14 +1,13 @@
 import argparse
 import fnmatch
-import os
-import subprocess
 import sys
+import subprocess
 from pathlib import Path
 import yaml
 
 def get_staged_files(repo_path: Path):
     result = subprocess.run(
-        ["git", "diff", "--cached", "--name-only", "--diff-filter=AM", "-z"],
+        ["git", "diff", "--cached", "--name-only", "--diff-filter=AM", "-M", "-z"],
         cwd=repo_path,
         capture_output=True,
         check=True
@@ -16,7 +15,6 @@ def get_staged_files(repo_path: Path):
     if not result.stdout:
         return []
 
-    # Split on null byte and decode. The last element might be empty if the string ends with \x00.
     files = result.stdout.split(b'\x00')
     return [f.decode('utf-8') for f in files if f]
 
@@ -61,10 +59,8 @@ def main():
         size = get_staged_size(args.repo, filepath)
 
         if size > max_bytes:
-            # Check against allow_globs
             is_allowed = False
             for glob in allow_globs:
-                # fnmatch handles basic globs, for ** we can just use fnmatch since Python's fnmatch allows * to cross directories.
                 if fnmatch.fnmatch(filepath, glob):
                     is_allowed = True
                     break
