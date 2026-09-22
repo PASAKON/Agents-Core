@@ -4,7 +4,7 @@
 
 Omni 1.1 Flash · 9:16 · 720p (ทดสอบ 360p) · โหมด `องค์ประกอบ` · x1
 
-**24 ช็อต · 196 วินาที = 3:16 · ~294 เครดิต ที่ 720p**
+**29 ช็อต · 234 วินาที = 3:54 · ~351 เครดิต ที่ 720p**
 
 ## กฎที่ไฟล์นี้ถูกสร้างมาให้เชื่อฟัง
 
@@ -288,55 +288,145 @@ The face of whoever is speaking stays in frame for the whole line.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 149 · 2:12–2:20 · 8s · Medium two-shot, static camera
-**ATTACH** 1) `@cop_wit`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
-**บทพูด** cop_wit `"ลุงครับ เขาเคยบอกลุงไหมว่าเงินใคร"` — conversational
+### SHOT 178 · 2:12–2:18 · 6s · Medium two-shot, static camera
+**ATTACH** 1) `@cop_wit`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop`→REF_2
+**บทพูด** cop_wit `"บ่ายนี้พี่จะกลับมาคุยกับพ่อนะ"` — even
+**บทพูด** nong_daeng `"พ่อไม่ยอมคุยหรอกครับพี่"` — doubtful
+**บทพูด** cop_wit `"ครั้งนี้ลุงจะยอมครับ"` — certain
+```
+Use <IMAGE_REF_0> as the character reference for cop_wit. Use <IMAGE_REF_1> as the character reference for nong_daeng. Use <IMAGE_REF_2> as the location reference for noodle_shop.
+
+In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, midday. a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, in a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist <IMAGE_REF_0>, a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_1> — slides the phone back across the counter to the young man and gets up from the stool.
+
+The 32-year-old man in the dark-grey polo shirt <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, even, and says: "บ่ายนี้พี่จะกลับมาคุยกับพ่อนะ"
+The 24-year-old man in the grey polo shirt <IMAGE_REF_1> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, doubtful, and says: "พ่อไม่ยอมคุยหรอกครับพี่"
+The 32-year-old man in the dark-grey polo shirt <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, certain, and says: "ครั้งนี้ลุงจะยอมครับ"
+
+The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
+Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
+```
+
+### SHOT 179 · 2:18–2:24 · 6s · Wide shot from behind the counter toward the street, static camera
+**ATTACH** 1) `@cop_wit_uniform_A`→REF_0 · 2) `@noodle_shop`→REF_1
+**บทพูด** cop_wit_uniform_A `"สวัสดีครับลุง"` — quiet, formal
+```
+Use <IMAGE_REF_0> as the character reference for cop_wit_uniform_A. Use <IMAGE_REF_1> as the location reference for noodle_shop.
+
+In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_1>, afternoon. a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, in a Royal Thai Police everyday duty uniform: a khaki-brown short-sleeved uniform shirt with shoulder boards, a police badge above the left pocket and a blank name plate above the right pocket, khaki-brown trousers and a black belt <IMAGE_REF_0> — walks in through the open roll-up shutter wearing a khaki peaked police cap and stops one step inside, the empty shop going still around him.
+
+The 32-year-old man in the khaki police uniform <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, quiet, formal, and says: "สวัสดีครับลุง"
+
+The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
+Wide shot from behind the counter toward the street, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
+```
+
+### SHOT 180 · 2:24–2:32 · 8s · Medium two-shot behind the counter, static camera
+**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop`→REF_2
+**บทพูด** lung_somchai `"วิทย์..."` — almost no voice
+**บทพูด** nong_daeng `"พี่วิทย์... เป็นตำรวจเหรอครับ"` — disbelieving
+```
+Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the character reference for nong_daeng. Use <IMAGE_REF_2> as the location reference for noodle_shop.
+
+In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, afternoon. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0>, a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_1> — both stop dead behind the counter staring toward the door, the father's ladle held still over the pot, the son slowly lowering the tray in his hands.
+
+The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, almost no voice, and says: "วิทย์..."
+The 24-year-old man in the grey polo shirt <IMAGE_REF_1> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, disbelieving, and says: "พี่วิทย์... เป็นตำรวจเหรอครับ"
+
+The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
+Medium two-shot behind the counter, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
+```
+
+### SHOT 181 · 2:32–2:42 · 10s · Medium two-shot across the counter, static camera
+**ATTACH** 1) `@cop_wit_uniform_A`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
+**บทพูด** cop_wit_uniform_A `"ผมขอโทษที่ต้องปิดลุงมาตลอดครับ"` — apologetic, steady
+**บทพูด** cop_wit_uniform_A `"ผมตามคนปล่อยเงินกู้สายนี้มาปีกว่าแล้ว"` — plain
+**บทพูด** cop_wit_uniform_A `"ไม่มีใครในซอยยอมพูดสักคนครับ"` — quieter
+```
+Use <IMAGE_REF_0> as the character reference for cop_wit_uniform_A. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop.
+
+In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, afternoon. a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, in a Royal Thai Police everyday duty uniform: a khaki-brown short-sleeved uniform shirt with shoulder boards, a police badge above the left pocket and a blank name plate above the right pocket, khaki-brown trousers and a black belt <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — takes off his peaked cap and holds it in both hands as he comes up to the counter, facing the older man.
+
+The 32-year-old man in the khaki police uniform <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, apologetic, steady, and says: "ผมขอโทษที่ต้องปิดลุงมาตลอดครับ"
+The 32-year-old man in the khaki police uniform <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, plain, and says: "ผมตามคนปล่อยเงินกู้สายนี้มาปีกว่าแล้ว"
+The 32-year-old man in the khaki police uniform <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, quieter, and says: "ไม่มีใครในซอยยอมพูดสักคนครับ"
+
+The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
+Medium two-shot across the counter, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
+```
+
+### SHOT 182 · 2:42–2:50 · 8s · Medium two-shot across the counter, static camera
+**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@cop_wit_uniform_A`→REF_1 · 3) `@noodle_shop`→REF_2
+**บทพูด** lung_somchai `"ยี่สิบปีที่วิทย์มากินร้านลุง..."` — slow, moved
+**บทพูด** cop_wit_uniform_A `"ผมมากินก๋วยเตี๋ยวจริงๆ ครับลุง"` — a small smile
+```
+Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the character reference for cop_wit_uniform_A. Use <IMAGE_REF_2> as the location reference for noodle_shop.
+
+In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, afternoon. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0>, a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, in a Royal Thai Police everyday duty uniform: a khaki-brown short-sleeved uniform shirt with shoulder boards, a police badge above the left pocket and a blank name plate above the right pocket, khaki-brown trousers and a black belt <IMAGE_REF_1> — sets the ladle down and looks the younger man in the face for a long moment, the cap still in the younger man's hands.
+
+The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, slow, moved, and says: "ยี่สิบปีที่วิทย์มากินร้านลุง..."
+The 32-year-old man in the khaki police uniform <IMAGE_REF_1> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, a small smile, and says: "ผมมากินก๋วยเตี๋ยวจริงๆ ครับลุง"
+
+The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
+Medium two-shot across the counter, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
+```
+
+### SHOT 149 · 2:50–2:58 · 8s · Medium two-shot, static camera
+**ATTACH** 1) `@cop_wit_uniform_A`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
+**บทพูด** cop_wit_uniform_A `"ลุงครับ เขาเคยบอกลุงไหมว่าเงินใคร"` — conversational
 **บทพูด** lung_somchai `"เขาบอกว่าเงินเขาเองครับ ไม่มีเจ้านาย"` — remembering
 ```
-Use <IMAGE_REF_0> as the character reference for cop_wit. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop.
+Use <IMAGE_REF_0> as the character reference for cop_wit_uniform_A. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop.
 
-In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, afternoon. a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, in a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — sits down across the counter from the older man, both with their hands on the wood.
+In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, afternoon. a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, in a Royal Thai Police everyday duty uniform: a khaki-brown short-sleeved uniform shirt with shoulder boards, a police badge above the left pocket and a blank name plate above the right pocket, khaki-brown trousers and a black belt <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — sits down across the counter from the older man, both with their hands on the wood.
 
-The 32-year-old man in the dark-grey polo shirt <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, conversational, and says: "ลุงครับ เขาเคยบอกลุงไหมว่าเงินใคร"
+The 32-year-old man in the khaki police uniform <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, conversational, and says: "ลุงครับ เขาเคยบอกลุงไหมว่าเงินใคร"
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, remembering, and says: "เขาบอกว่าเงินเขาเองครับ ไม่มีเจ้านาย"
 
 The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 150 · 2:20–2:26 · 6s · Medium two-shot, static camera
-**ATTACH** 1) `@cop_wit`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
-**บทพูด** cop_wit `"นั่นแหละครับที่ไม่จริง"` — plain
+### SHOT 150 · 2:58–3:04 · 6s · Medium two-shot, static camera
+**ATTACH** 1) `@cop_wit_uniform_A`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
+**บทพูด** cop_wit_uniform_A `"นั่นแหละครับที่ไม่จริง"` — plain
 **บทพูด** lung_somchai `"แล้วเงินเป็นของใครครับ"` — slowly
 ```
-Use <IMAGE_REF_0> as the character reference for cop_wit. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop.
+Use <IMAGE_REF_0> as the character reference for cop_wit_uniform_A. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop.
 
-In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, afternoon. a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, in a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — leans back slightly and lets that sit between them, the older man looking up at him.
+In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, afternoon. a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, in a Royal Thai Police everyday duty uniform: a khaki-brown short-sleeved uniform shirt with shoulder boards, a police badge above the left pocket and a blank name plate above the right pocket, khaki-brown trousers and a black belt <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — leans back slightly and lets that sit between them, the older man looking up at him.
 
-The 32-year-old man in the dark-grey polo shirt <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, plain, and says: "นั่นแหละครับที่ไม่จริง"
+The 32-year-old man in the khaki police uniform <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, plain, and says: "นั่นแหละครับที่ไม่จริง"
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, slowly, and says: "แล้วเงินเป็นของใครครับ"
 
 The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 151 · 2:26–2:34 · 8s · Medium two-shot, static camera
-**ATTACH** 1) `@cop_wit`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
-**บทพูด** cop_wit `"ผมขอให้ลุงนัดเขาอีกครั้งเดียวครับ"` — direct
+### SHOT 151 · 3:04–3:12 · 8s · Medium two-shot, static camera
+**ATTACH** 1) `@cop_wit_uniform_A`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
+**บทพูด** cop_wit_uniform_A `"ผมขอให้ลุงนัดเขาอีกครั้งเดียวครับ"` — direct
 **บทพูด** lung_somchai `"ได้ครับ"` — after a moment
 ```
-Use <IMAGE_REF_0> as the character reference for cop_wit. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop.
+Use <IMAGE_REF_0> as the character reference for cop_wit_uniform_A. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop.
 
-In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, afternoon. a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, in a plain dark-grey polo shirt with an open two-button collar and a simple steel wristwatch on his left wrist <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — puts both hands flat on the counter and asks it straight, the older man very still.
+In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, afternoon. a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady eyes, in a Royal Thai Police everyday duty uniform: a khaki-brown short-sleeved uniform shirt with shoulder boards, a police badge above the left pocket and a blank name plate above the right pocket, khaki-brown trousers and a black belt <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — puts both hands flat on the counter and asks it straight, the older man very still.
 
-The 32-year-old man in the dark-grey polo shirt <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, direct, and says: "ผมขอให้ลุงนัดเขาอีกครั้งเดียวครับ"
+The 32-year-old man in the khaki police uniform <IMAGE_REF_0> speaks Thai in the even, mid-pitched voice of a calm man in his early thirties, direct, and says: "ผมขอให้ลุงนัดเขาอีกครั้งเดียวครับ"
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, after a moment, and says: "ได้ครับ"
 
 The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 152 · 2:34–2:40 · 6s · Medium shot, static camera
+### SHOT 152 · 3:12–3:18 · 6s · Medium shot, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@back_alley`→REF_1
 **บทพูด** lung_somchai `"ครั้งสุดท้ายแล้วนะ"` — to himself
 **บทพูด** lung_somchai `"แปดปีแล้ว วันนี้ผมจะถามเขาสักคำ"` — steadying himself
@@ -353,7 +443,7 @@ The money is inside a plain brown paper envelope, folded once, and stays inside 
 Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 153 · 2:40–2:48 · 8s · Medium two-shot, static camera
+### SHOT 153 · 3:18–3:26 · 8s · Medium two-shot, static camera
 **ATTACH** 1) `@lender_cherd`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@back_alley`→REF_2
 **บทพูด** lender_cherd `"ผมดีใจนะครับที่พี่เปลี่ยนใจ"` — pleased
 **บทพูด** lung_somchai `"ผมขอดูบัญชีก่อนครับ"` — even
@@ -370,7 +460,7 @@ There is no notebook, no ledger, no printed receipt and no paperwork anywhere in
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 154 · 2:48–2:58 · 10s · Medium two-shot, static camera
+### SHOT 154 · 3:26–3:36 · 10s · Medium two-shot, static camera
 **ATTACH** 1) `@lender_cherd`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@back_alley`→REF_2
 **บทพูด** lender_cherd `"พี่ไม่เคยขอดูมาแปดปีนะครับ"` — amused
 **บทพูด** lung_somchai `"วันนี้ผมขอครับ"` — steady
@@ -389,7 +479,7 @@ There is no notebook, no ledger, no printed receipt and no paperwork anywhere in
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 155 · 2:58–3:06 · 8s · Medium two-shot, static camera
+### SHOT 155 · 3:36–3:44 · 8s · Medium two-shot, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@lender_cherd`→REF_1 · 3) `@back_alley`→REF_2
 **บทพูด** lung_somchai `"งั้นผมจดให้ครับ"` — clear
 **บทพูด** lung_somchai `"สองร้อยแปดครั้งครับ"` — unhurried
@@ -406,7 +496,7 @@ There is no notebook, no ledger, no printed receipt and no paperwork anywhere in
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
-### SHOT 156 · 3:06–3:16 · 10s · Medium two-shot, static camera
+### SHOT 156 · 3:44–3:54 · 10s · Medium two-shot, static camera
 **ATTACH** 1) `@cop_wit`→REF_0 · 2) `@lender_cherd`→REF_1 · 3) `@back_alley`→REF_2
 **บทพูด** cop_wit `"ผมขอเชิญคุณไปคุยที่สถานีครับ"` — calm
 **บทพูด** lender_cherd `"ผมแค่เก็บให้เขาครับ"` — the smile gone

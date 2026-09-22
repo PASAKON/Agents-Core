@@ -40,7 +40,7 @@ PROPS_BY_SHOT = dict(_a2.PROPS_BY_SHOT)
 # (task-f78ca70e: @cop_wit_uniform_A reference-led, _B description-only). Until
 # then it names a plate that cannot exist, so check_plates refuses the build
 # instead of guessing.
-WIT_UNIFORM_HANDLE = "@cop_wit_uniform_UNPICKED"
+WIT_UNIFORM_HANDLE = "@cop_wit_uniform_A"   # picked by eye 2026-09-23: same hair, jaw, brows as @cop_wit; B was a different man
 CHAR["wit_uniform"] = (WIT_UNIFORM_HANDLE,
   "a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady "
   "eyes, in a Royal Thai Police everyday duty uniform: a khaki-brown short-sleeved uniform "

@@ -151,17 +151,18 @@ Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, d
 
 ### SHOT 43 · 1:04–1:10 · 6s · Close-up, static camera
 **ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@noodle_shop`→REF_1
-**บทพูด** nong_daeng `"เงินเขาทั้งนั้น... เงินตัวเองแท้ๆ"` — low, to himself
+**บทพูด** nong_daeng `"เงินเขาทั้งนั้น... เงินตัวเองแท้ๆ"` — low but clearly audible
 **บทพูด** nong_daeng `"แล้วมานั่งกินร้านเราทุกอาทิตย์ทำไม"` — slower, working it out
 ```
 Use <IMAGE_REF_0> as the character reference for nong_daeng. Use <IMAGE_REF_1> as the location reference for noodle_shop.
 
-In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_1>, midday. a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_0> — wipes the next table down without looking away from the two men across the room, talking to himself.
+In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_1>, midday. a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_0> — wipes the next table down without looking away from the two men across the room, saying it aloud in a low voice.
 
-The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, low, to himself, and says: "เงินเขาทั้งนั้น... เงินตัวเองแท้ๆ"
+The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, low but clearly audible, and says: "เงินเขาทั้งนั้น... เงินตัวเองแท้ๆ"
 The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, slower, working it out, and says: "แล้วมานั่งกินร้านเราทุกอาทิตย์ทำไม"
 
 The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
 Close-up, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 

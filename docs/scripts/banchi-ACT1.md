@@ -500,6 +500,7 @@ The 32-year-old man in the dark-grey polo shirt <IMAGE_REF_1> speaks Thai in the
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, unhurried, and says: "ก็กินมาตั้งแต่ตัวเท่านี้"
 
 The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
 Medium two-shot across the counter, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
