@@ -886,3 +886,21 @@ def test_log_leaves_an_ordinary_console_untouched(tmp_path, capsys, monkeypatch)
     monkeypatch.setattr(flow_shoot, "LOG_PATH", tmp_path / "run.log")
     flow_shoot._log("shot 129: verified — 8.0s 1080x1920 ผ่าน")
     assert "ผ่าน" in capsys.readouterr().out
+
+
+# ── picker row matching: exact asset, never a prefix of another ──
+
+@pytest.mark.parametrize("handle,row_text,expected", [
+    ("@cop_wit", "@cop_wit", True),
+    ("@cop_wit", "cop_wit\nตัวละคร", True),
+    ("@cop_wit", "@cop_wit_uniform_A", False),
+    ("@cop_wit", "cop_wit_uniform_A\nรูปภาพ", False),
+    ("@cop_wit_uniform_A", "cop_wit_uniform_A\nรูปภาพ", True),
+    ("@cop_wit_uniform_A", "@cop_wit_uniform_AB", False),
+    ("@noodle_shop", "@noodle_shop_thriving", False),
+    ("@noodle_shop", "@noodle_shop", True),
+    ("@noodle_shop_thriving", "@noodle_shop_thriving", True),
+    ("@nong_daeng", "@nong_daeng_suit", False),
+])
+def test_picker_row_pattern_matches_the_exact_asset_only(handle, row_text, expected):
+    assert bool(flow_shoot.picker_row_pattern(handle).search(row_text)) is expected

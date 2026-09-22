@@ -144,6 +144,23 @@ def parse_only(spec: str) -> set[int]:
     return out
 
 
+def picker_row_pattern(handle: str) -> "re.Pattern[str]":
+    """Match a picker row for exactly this asset, never for one whose name
+    merely starts with it.
+
+    ``filter(has_text="@cop_wit")`` is a substring match, so it also matched
+    ``@cop_wit_uniform_A`` — added 2026-09-23 — and ``.first`` then attached
+    whichever row the picker happened to list first. The same trap was
+    already live for ``@noodle_shop`` vs ``@noodle_shop_thriving``. The name
+    must be bounded by a non-word character or the end of the text, and the
+    ``@`` is optional because image assets renamed from a tile show no ``@``.
+    ASCII word characters only: handles are ASCII, and Playwright evaluates
+    this pattern as a JavaScript RegExp, where ``\\w`` is ASCII.
+    """
+    name = re.escape(handle.lstrip("@"))
+    return re.compile(rf"(?:^|[^A-Za-z0-9_]){name}(?:[^A-Za-z0-9_]|$)")
+
+
 def is_refusal_text(text: str) -> bool:
     t = (text or "").strip()
     return t.startswith("ล้มเหลว") or "อาจละเมิดนโยบาย" in t
@@ -594,7 +611,8 @@ class FlowBrowser:
             ).first
             search.wait_for(state="visible", timeout=3000)
 
-            row = dialog.locator(".asset-item").filter(has_text=handle).first
+            row = dialog.locator(".asset-item").filter(
+                has_text=picker_row_pattern(handle)).first
             matched_query = None
             for query in (handle, name):
                 search.fill("")
