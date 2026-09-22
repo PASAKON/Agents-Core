@@ -75,7 +75,7 @@ SHOTS = [
  (164, 8, "Medium shot, static camera", ["somchai"], "room", "afternoon",
   "stands just inside the doorway of the quiet upstairs room looking at the stripped, empty bed",
   [("somchai","to himself","เงียบจังเลยนะห้องนี้"),
-   ("somchai","quieter","ผมยังเผลอเดินขึ้นมาทุกเช้าเลยแม่")], ["ya","noledger"]),
+   ("somchai","quieter","ผมยังเผลอเดินขึ้นมาทุกเช้าเลยแม่")], ["noya","noledger"]),
 
  (165, 8, "Medium shot, static camera, his hand and the marks both in frame", ["somchai"], "bedrail", "afternoon",
   "sits on the edge of the bare bed and lays his palm flat over the scratched patch on the rail",
@@ -85,32 +85,32 @@ SHOTS = [
  (166, 8, "Medium two-shot, static camera", ["ton","somchai"], "room", "afternoon",
   "comes in and stands beside the bed, his father not getting up from the edge of it",
   [("ton","careful","พ่อยังไม่ทาสีทับเหรอครับ"),
-   ("somchai","certain","ไม่ทาหรอกลูก")], ["ya","noledger"]),
+   ("somchai","certain","ไม่ทาหรอกลูก")], ["noya","noledger"]),
 
  (167, 8, "Medium two-shot, static camera", ["somchai","ton"], "room", "afternoon",
   "keeps his hand on the rail and looks up at his son as he says it",
   [("somchai","plain","ย่าไม่อยู่แล้ว แต่รอยยังอยู่"),
-   ("somchai","steady","นี่บัญชีเล่มแรกของบ้านเรานะลูก")], ["ya","noledger"]),
+   ("somchai","steady","นี่บัญชีเล่มแรกของบ้านเรานะลูก")], ["noya","noledger"]),
 
  (168, 8, "Medium two-shot, static camera", ["ton","somchai"], "room", "afternoon",
   "sits down on the bed beside his father, both looking at the rail and not at each other",
   [("ton","tentative","พ่อครับ ผมขอถามอะไรสักอย่าง"),
-   ("somchai","open","ถามมาสิลูก")], ["ya"]),
+   ("somchai","open","ถามมาสิลูก")], ["noya"]),
 
  (169, 10, "Medium two-shot, static camera", ["ton","somchai"], "room", "afternoon",
   "turns on the bed to face his father properly, the older man letting his hand fall from the rail",
   [("ton","quiet","ตอนนั้นพ่อบอกผมว่าไม่ต้องรู้ว่าเงินมาจากไหน"),
-   ("somchai","without flinching","พ่อจำได้ลูก")], ["ya"]),
+   ("somchai","without flinching","พ่อจำได้ลูก")], ["noya"]),
 
  (170, 8, "Medium two-shot, static camera", ["ton","somchai"], "room", "afternoon",
   "says it without any edge in it, his father listening with both hands on his knees",
   [("ton","simple","ผมอยากรู้ครับพ่อ ทุกบาทเลย"),
-   ("somchai","after a beat","พ่อก็อยากให้ลูกรู้เหมือนกันลูก")], ["ya"]),
+   ("somchai","after a beat","พ่อก็อยากให้ลูกรู้เหมือนกันลูก")], ["noya"]),
 
  (171, 10, "Medium two-shot, static camera", ["somchai","ton"], "room", "afternoon",
   "turns to his son and says the whole thing to his face, not to the room",
   [("somchai","even","เงินที่พ่อตั้งใจหามาให้ลูก"),
-   ("somchai","steady","มันไม่ควรต้องปิดบังลูกเลยสักบาทเดียว")], ["ya"]),
+   ("somchai","steady","มันไม่ควรต้องปิดบังลูกเลยสักบาทเดียว")], ["noya"]),
 
  (172, 8, "Medium two-shot, static camera", ["ton","somchai"], "shop2", "evening",
   "stands at the counter in the full shop writing in the open notebook, his father working beside him",

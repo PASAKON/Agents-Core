@@ -134,6 +134,23 @@ def build(d, act: str = "?") -> str:
         out.append("")
         out.append("The face of whoever is speaking stays in frame for the whole line.")
         if nots:
+            # A key that is also a CHARACTER key is a continuity rule for that
+            # character ("she stays propped on the pillows, the cannula stays
+            # on"), so it only means anything in a shot she is actually in. Ten
+            # shots once listed "ya" intending to keep her OUT and were handed
+            # her sickroom continuity instead: shot 65 rendered the son wearing
+            # her nasal cannula at her bedside, and nine more were queued to do
+            # the same, including Act 7, set a year after she dies. Exclusions
+            # are spelled "no<character>" and carry no such trap.
+            for k in nots:
+                if k in d.CHAR and k not in chars:
+                    sys.exit(
+                        f"shot {n}: negatives list '{k}', which is {k}'s continuity "
+                        f"rule, but {k} is not in this shot's cast {list(chars)}. "
+                        f"That rule describes how {k} looks while present — emitting "
+                        f"it here tells the model to put {k}'s wardrobe and equipment "
+                        f"on whoever IS in frame. To keep {k} out, use 'no{k}'."
+                    )
             out.append(" ".join(d.NOT[k] for k in nots))
         out.append(f"{framing}. {d.STYLE}")
         out.append("```")

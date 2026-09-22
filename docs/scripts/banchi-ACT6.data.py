@@ -92,12 +92,12 @@ SHOTS = [
  (142, 8, "Medium two-shot, static camera", ["somchai","ton"], "room", "morning",
   "stands in the doorway with one hand still on the frame, his son turning from the bedside to answer",
   [("somchai","tired","ลูกจะเอารอยขีดไปให้ใครดูล่ะ"),
-   ("ton","level","ให้คนที่เขาดูเป็นครับพ่อ")], ["ya"]),
+   ("ton","level","ให้คนที่เขาดูเป็นครับพ่อ")], ["noya"]),
 
  (143, 8, "Medium two-shot, static camera", ["somchai","ton"], "room", "morning",
   "comes one step into the room and stops, his son standing up from the bedside to face him",
   [("somchai","gently","ไม่มีใครเชื่อคนแก่หรอกลูก"),
-   ("ton","firm","ผมเชื่อครับพ่อ")], ["ya"]),
+   ("ton","firm","ผมเชื่อครับพ่อ")], ["noya"]),
 
  (144, 8, "Medium two-shot, static camera", ["ton","wit"], "shop", "midday",
   "puts the phone flat on the counter and turns it around, the officer leaning in over it",

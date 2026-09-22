@@ -119,8 +119,19 @@ NOT = {
           "face of any kind, and no national emblem, crest, flag or country name — this "
           "is not the currency of any real country. Worn and soft with handling. Also in "
           "this shot: no notebook, no pen, no paper, no ledger of any kind.",
+ # A CONTINUITY rule, not a prohibition — it only makes sense in a shot where
+ # she is actually in frame. Use "noya" below to keep her OUT of one.
  "ya":    "She stays lying propped on the pillows and does not sit up. She wears no glasses. The "
           "nasal cannula stays on.",
+ # Keeps her out of frame WITHOUT handing her sickroom equipment to whoever is
+ # left in it. Measured 2026-09-22: ten shots listed "ya" meaning "exclude her"
+ # and got the continuity rule instead, so shot 65 rendered the son wearing her
+ # nasal cannula at her bedside. Nine of the ten were unshot, including Act 7,
+ # which is set a year after she dies.
+ "noya":  "The grandmother is not in this shot: no second person in the bed, no face on the "
+          "pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. "
+          "The young man and his father wear nothing on their faces — no tube, no cannula, "
+          "no mask, no medical equipment of any kind on either of them.",
 }
 
 # n, seconds, framing, [character keys in attach order], location key, time of day,

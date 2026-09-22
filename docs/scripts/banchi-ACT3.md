@@ -135,7 +135,7 @@ The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clea
 The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, quieter, and says: "ผมนั่งนับเองอยู่ข้างล่างเมื่อกี้"
 
 The face of whoever is speaking stays in frame for the whole line.
-She stays lying propped on the pillows and does not sit up. She wears no glasses. The nasal cannula stays on.
+The grandmother is not in this shot: no second person in the bed, no face on the pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. The young man and his father wear nothing on their faces — no tube, no cannula, no mask, no medical equipment of any kind on either of them.
 Close-up, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 

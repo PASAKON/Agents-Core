@@ -69,7 +69,7 @@ SHOTS = [
  (65, 8, "Close-up, static camera", ["ton"], "room", "night",
   "lets go of her hand slowly and sits back, talking to her without looking at her",
   [("ton","flat","ผมรู้แล้วครับย่า"),
-   ("ton","quieter","ผมนั่งนับเองอยู่ข้างล่างเมื่อกี้")], ["ya"]),
+   ("ton","quieter","ผมนั่งนับเองอยู่ข้างล่างเมื่อกี้")], ["noya"]),
 
  (66, 6, "Medium shot, static camera", ["somchai"], "shop", "night",
   "comes in through the rear door and leans both hands on the counter, talking to the empty shop",
