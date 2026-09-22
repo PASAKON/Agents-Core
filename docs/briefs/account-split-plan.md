@@ -29,7 +29,7 @@ Supabase `qkaxvockysyazmtormvf` ใต้ pass.gob1 · deps = Next + Supabase + 
 
 - ย้ายเฉพาะ **Gmail/Vercel/Supabase** เหมือน P1 (org transfer + project ใหม่)
 - **Google Cloud project / OAuth / Pub-Sub อยู่ pass.gob1 ต่อ** (P2) — mailbox ที่อ่านคือของ CEO อยู่แล้ว ทำงานต่อได้
-- โฟลเดอร์จริง: `/Users/gob/LungNote Projects/webapp` (นอก `/Users/gob/Projects/`)
+- โฟลเดอร์จริง: `/Users/gob/MoonieXHQ/Projects/LungNote/Webapp` (นอก `/Users/gob/Projects/`)
 
 ## P2++ — ย้ายเมื่อติด limit เท่านั้น (ตารางทริกเกอร์)
 

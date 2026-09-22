@@ -61,7 +61,7 @@ def _first_existing(*paths: str) -> str:
 # Mac dev checkout first, then the Contabo deploy under /opt. Adding a box means
 # adding a path here (or exporting LUNGNOTE_MCP_JS), not editing the launchers.
 LUNGNOTE_MCP_JS = os.environ.get("LUNGNOTE_MCP_JS") or _first_existing(
-    "/Users/gob/LungNote Projects/mcp/index.js",
+    "/Users/gob/MoonieXHQ/Projects/LungNote/Mcp/index.js",
     "/opt/lungnote-mcp/index.js",
 )
 # @supabase/realtime-js needs a native `WebSocket` global, which Node gained in

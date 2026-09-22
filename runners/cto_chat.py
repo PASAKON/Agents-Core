@@ -158,7 +158,7 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
             "lungnote": {
                 "type": "stdio",
                 "command": "node",
-                "args": ["/Users/gob/LungNote Projects/mcp/index.js"],
+                "args": ["/Users/gob/MoonieXHQ/Projects/LungNote/Mcp/index.js"],
                 "env": {},
             },
         },

@@ -46,7 +46,7 @@ from datetime import datetime, timezone, timedelta
 # roots, which cto-claude.sh already repoints per machine. Measured 2026-09-14
 # with 208 open todos and 51 overdue sitting unseen.
 _CANDIDATES = [
-    "/Users/gob/LungNote Projects/mcp",   # Mac
+    "/Users/gob/MoonieXHQ/Projects/LungNote/Mcp",   # Mac
     "/opt/lungnote-mcp",                  # Contabo
 ]
 LUNGNOTE_MCP_DIR = os.environ.get("LUNGNOTE_MCP_DIR") or next(
