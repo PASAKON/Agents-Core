@@ -52,8 +52,8 @@ carries no prefix.
 
 | | Mac | Contabo |
 |---|---|---|
-| `org:` | ✅ `/Users/gob/Projects/Agents-Wikis` | ✅ `/opt/agents-wikis` |
-| `mooniex:` | ✅ `/Users/gob/Projects/LLMs` | ✅ `/opt/mooniex-wikis` (CEO 2026-08-09) |
+| `org:` | ✅ `/Users/gob/MoonieXHQ/Agents/Rules` | ✅ `/opt/agents-wikis` |
+| `mooniex:` | ✅ `/Users/gob/MoonieXHQ/Agents/Wikis` | ✅ `/opt/mooniex-wikis` (CEO 2026-08-09) |
 
 **Both namespaces resolve on Contabo.** `org:` landed 2026-08-03 with the
 ADR-0013 split; `mooniex:` followed on 2026-08-09, which also fixed every
@@ -74,8 +74,8 @@ sync silently overwrites. Treat Contabo wikis as **read-only** and refresh after
 any significant wiki change (run from the Mac):
 
 ```bash
-rsync -aH --delete --exclude '.git/' /Users/gob/Projects/LLMs/         mooniex-vps:/opt/mooniex-wikis/
-rsync -aH --delete --exclude '.git/' /Users/gob/Projects/Agents-Wikis/ mooniex-vps:/opt/agents-wikis/
+rsync -aH --delete --exclude '.git/' /Users/gob/MoonieXHQ/Agents/Wikis/         mooniex-vps:/opt/mooniex-wikis/
+rsync -aH --delete --exclude '.git/' /Users/gob/MoonieXHQ/Agents/Rules/ mooniex-vps:/opt/agents-wikis/
 ```
 
 ## Maintenance

@@ -64,13 +64,13 @@ def test_block_for_loop_cd_with_variable_is_unknown(monkeypatch: pytest.MonkeyPa
 
 def test_block_leading_cd_counts_heredoc_body_does_not(monkeypatch: pytest.MonkeyPatch) -> None:
     command = (
-        "cd /Users/gob/Projects/Agents-Memory && cat > f <<'MD'\n"
+        "cd /Users/gob/MoonieXHQ/Agents/Memory && cat > f <<'MD'\n"
         "…cd inside heredoc…\n"
         "MD"
     )
     rc, err = _run(monkeypatch, command, home="/repo")
     assert rc == 2
-    assert "Agents-Memory" in err
+    assert "Agents/Memory" in err
 
 
 def test_block_cd_variable_is_unknown(monkeypatch: pytest.MonkeyPatch) -> None:

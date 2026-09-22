@@ -33,6 +33,22 @@ NOT = dict(_a2.NOT); APRON = _a2.APRON
 PROP_FOR_NOT = dict(_a2.PROP_FOR_NOT)
 PROPS_BY_SHOT = dict(_a2.PROPS_BY_SHOT)
 
+# วิทย์ in uniform — the reveal (CEO 2026-09-23, docs/scripts/banchi-police-insert-DRAFT.md).
+# The face block is word for word the plainclothes "wit" block: only the clothes
+# change, so the model has nothing to reinterpret about who he is.
+# WIT_UNIFORM_HANDLE is set by the CTO after looking at the worker's two stills
+# (task-f78ca70e: @cop_wit_uniform_A reference-led, _B description-only). Until
+# then it names a plate that cannot exist, so check_plates refuses the build
+# instead of guessing.
+WIT_UNIFORM_HANDLE = "@cop_wit_uniform_UNPICKED"
+CHAR["wit_uniform"] = (WIT_UNIFORM_HANDLE,
+  "a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady "
+  "eyes, in a Royal Thai Police everyday duty uniform: a khaki-brown short-sleeved uniform "
+  "shirt with shoulder boards, a police badge above the left pocket and a blank name plate "
+  "above the right pocket, khaki-brown trousers and a black belt",
+  "The 32-year-old man in the khaki police uniform")
+VOICE["wit_uniform"] = VOICE["wit"]
+
 LOC["bedrail"] = ("@bedrail_marks",
   "a close view along the painted steel side rail of an old bed in a dim upstairs room, "
   "the paint worn down to bare metal in one patch where dozens of short scratch marks "
@@ -127,20 +143,48 @@ SHOTS = [
   [("wit","careful","แต่รอยขีดที่ตรงกับวันโอนเงินทุกครั้ง อันนี้ใช้ได้ครับ"),
    ("wit","quieter","สองร้อยแปดครั้ง มันมากเกินไปครับ")], []),
 
- (149, 8, "Medium two-shot, static camera", ["wit","somchai"], "shop", "afternoon",
+ # ── Police line: the reveal. Numbered past 173 so no existing number moves. ──
+ (178, 6, "Medium two-shot, static camera", ["wit","ton"], "shop", "midday",
+  "slides the phone back across the counter to the young man and gets up from the stool",
+  [("wit","even","บ่ายนี้พี่จะกลับมาคุยกับพ่อนะ"),
+   ("ton","doubtful","พ่อไม่ยอมคุยหรอกครับพี่"),
+   ("wit","certain","ครั้งนี้ลุงจะยอมครับ")], ["nosubs"]),
+
+ (179, 6, "Wide shot from behind the counter toward the street, static camera", ["wit_uniform"], "shop", "afternoon",
+  "walks in through the open roll-up shutter wearing a khaki peaked police cap and stops one step inside, the empty shop going still around him",
+  [("wit_uniform","quiet, formal","สวัสดีครับลุง")], ["nosubs"]),
+
+ (180, 8, "Medium two-shot behind the counter, static camera", ["somchai","ton"], "shop", "afternoon",
+  "both stop dead behind the counter staring toward the door, the father's ladle held still over the pot, the son slowly lowering the tray in his hands",
+  [("somchai","almost no voice","วิทย์..."),
+   ("ton","disbelieving","พี่วิทย์... เป็นตำรวจเหรอครับ")], ["nosubs"]),
+
+ (181, 10, "Medium two-shot across the counter, static camera", ["wit_uniform","somchai"], "shop", "afternoon",
+  "takes off his peaked cap and holds it in both hands as he comes up to the counter, facing the older man",
+  [("wit_uniform","apologetic, steady","ผมขอโทษที่ต้องปิดลุงมาตลอดครับ"),
+   ("wit_uniform","plain","ผมตามคนปล่อยเงินกู้สายนี้มาปีกว่าแล้ว"),
+   ("wit_uniform","quieter","ไม่มีใครในซอยยอมพูดสักคนครับ")], ["nosubs"]),
+
+ (182, 8, "Medium two-shot across the counter, static camera", ["somchai","wit_uniform"], "shop", "afternoon",
+  "sets the ladle down and looks the younger man in the face for a long moment, the cap still in the younger man's hands",
+  [("somchai","slow, moved","ยี่สิบปีที่วิทย์มากินร้านลุง..."),
+   ("wit_uniform","a small smile","ผมมากินก๋วยเตี๋ยวจริงๆ ครับลุง")], ["nosubs"]),
+
+ # 149-151 re-shot in uniform: same words, he is now in the uniform the father just saw.
+ (149, 8, "Medium two-shot, static camera", ["wit_uniform","somchai"], "shop", "afternoon",
   "sits down across the counter from the older man, both with their hands on the wood",
-  [("wit","conversational","ลุงครับ เขาเคยบอกลุงไหมว่าเงินใคร"),
-   ("somchai","remembering","เขาบอกว่าเงินเขาเองครับ ไม่มีเจ้านาย")], []),
+  [("wit_uniform","conversational","ลุงครับ เขาเคยบอกลุงไหมว่าเงินใคร"),
+   ("somchai","remembering","เขาบอกว่าเงินเขาเองครับ ไม่มีเจ้านาย")], ["nosubs"]),
 
- (150, 6, "Medium two-shot, static camera", ["wit","somchai"], "shop", "afternoon",
+ (150, 6, "Medium two-shot, static camera", ["wit_uniform","somchai"], "shop", "afternoon",
   "leans back slightly and lets that sit between them, the older man looking up at him",
-  [("wit","plain","นั่นแหละครับที่ไม่จริง"),
-   ("somchai","slowly","แล้วเงินเป็นของใครครับ")], []),
+  [("wit_uniform","plain","นั่นแหละครับที่ไม่จริง"),
+   ("somchai","slowly","แล้วเงินเป็นของใครครับ")], ["nosubs"]),
 
- (151, 8, "Medium two-shot, static camera", ["wit","somchai"], "shop", "afternoon",
+ (151, 8, "Medium two-shot, static camera", ["wit_uniform","somchai"], "shop", "afternoon",
   "puts both hands flat on the counter and asks it straight, the older man very still",
-  [("wit","direct","ผมขอให้ลุงนัดเขาอีกครั้งเดียวครับ"),
-   ("somchai","after a moment","ได้ครับ")], []),
+  [("wit_uniform","direct","ผมขอให้ลุงนัดเขาอีกครั้งเดียวครับ"),
+   ("somchai","after a moment","ได้ครับ")], ["nosubs"]),
 
  (152, 6, "Medium shot, static camera", ["somchai"], "alley", "night",
   "stands under the bulb by the steel door with his hands empty at his sides, talking to no one",

@@ -134,3 +134,6 @@ need to be hand-formatted, but a writer who knows the rules writes cleaner input
 - claims that name a person, company or number are checkable, and the script
   says where they came from
 - the caption carries the long disclaimer (`blackliquidity-cut` §6b)
+
+## Field notes
+- 2026-09-23 [MISSING] §structure — how long a script will run: measured speech-only rate on the channel's Gemini voice is **16.6 chars/s** (EP54 16.64, EP55 16.62, silencedetect on the real TTS files). EP55: 2,470 spoken chars → a 167.66 s TTS track. Estimate from that, never from a finished cut's length divided by the script's characters. That shortcut gave the CTO 22 chars/s and a 110 s forecast that was 52 %% off · evidence: task-77a2e043 RUNLOG.md · status: pending

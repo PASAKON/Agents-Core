@@ -43,7 +43,7 @@ would silently erase that machine's memory. Merge first, symlink second.
    git clone https://github.com/PASAKON/Agents-Memory <path>
    ```
    `<path>` is any sibling checkout location, e.g. `/opt/Agents-Memory` on
-   Contabo (matching the Mac's `/Users/gob/Projects/Agents-Memory`
+   Contabo (matching the Mac's `/Users/gob/MoonieXHQ/Agents/Memory`
    convention loosely — the exact path doesn't matter since
    `tools/memory_sync.py` reads it back from the symlink, never hardcodes it).
 
@@ -76,7 +76,7 @@ would silently erase that machine's memory. Merge first, symlink second.
 ## Current state (as of 2026-09-17)
 
 - **Mac**: wired. `~/.claude/projects/-Users-gob-Projects-Agents/memory` is a
-  symlink to `/Users/gob/Projects/Agents-Memory`; the pre-migration directory
+  symlink to `/Users/gob/MoonieXHQ/Agents/Memory`; the pre-migration directory
   is preserved at `memory.pre-git-2026-09-17` (never delete either per this
   task's brief).
 - **Contabo**: not yet wired. Has an old 48-file rsync-style copy of memory —
@@ -90,7 +90,7 @@ would silently erase that machine's memory. Merge first, symlink second.
 
 ## Never touch these directly
 
-- `/Users/gob/Projects/Agents-Memory` (the real repo checkout) and
+- `/Users/gob/MoonieXHQ/Agents/Memory` (the real repo checkout) and
   `memory.pre-git-2026-09-17` (the preserved pre-migration snapshot) are
   live/backup state, not build artifacts — this task's brief explicitly
   forbids touching either.

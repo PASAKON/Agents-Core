@@ -57,7 +57,7 @@ async function loadConfig() {
 async function resolveSelfAgentId() {
   const cache = await readJson(CACHE_PATH);
   if (cache?.agent_id) return cache.agent_id;
-  if (CWD === "/Users/gob/projects/LLMs" || CWD.startsWith("/Users/gob/projects/LLMs/")) {
+  if (CWD === "/Users/gob/MoonieXHQ/Agents/Wikis" || CWD.startsWith("/Users/gob/MoonieXHQ/Agents/Wikis/")) {
     return CTO_AGENT_ID;
   }
   return null;
@@ -188,7 +188,7 @@ async function tool_send_message(args) {
   const from = await resolveSelfAgentId();
   if (!from) {
     return text(
-      "error: cannot resolve sender agent_id (no office cache + cwd is not /Users/gob/projects/LLMs)",
+      "error: cannot resolve sender agent_id (no office cache + cwd is not /Users/gob/MoonieXHQ/Agents/Wikis)",
     );
   }
   const payload = {
