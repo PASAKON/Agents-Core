@@ -131,6 +131,15 @@ NOT = {
           "and no readable script. It resembles no real currency of any country. "
           "Also in this shot: no notebook, no pen, no paper, no ledger of any "
           "kind.",
+ # Per-shot, never global. Veo burned mangled Thai captions into 3 of 173
+ # shots (29, 43, 115, measured by tools/burned_text_scan.py 2026-09-23), and
+ # a re-fire of 43 came back captioned again. Two of the three described
+ # speech meant not to be heard ("talking to himself", "counting under his
+ # breath") — a hypothesis, n=2, so those lines were also rewritten as spoken
+ # aloud. Used on the re-shoots and the new police shots only, so the other
+ # 170 prompts stay exactly as they were rendered.
+ "nosubs": "No subtitles, no captions and no on-screen text of any kind appear "
+           "anywhere in the frame.",
  "ya":    "She stays lying propped on the pillows and does not sit up. She wears no glasses. The "
           "nasal cannula stays on.",
  # Keeps her out of frame WITHOUT handing her sickroom equipment to whoever is
@@ -298,7 +307,7 @@ SHOTS = [
   "answers from the wok without looking up and without pausing his hands, then holds a flat palm low beside his hip showing a height",
   [("somchai","matter-of-fact","ไม่ใส่ถั่วงอกใช่ไหมวิทย์"),
    ("wit","smiling","ลุงจำได้ทุกทีเลย"),
-   ("somchai","unhurried","ก็กินมาตั้งแต่ตัวเท่านี้")], []),
+   ("somchai","unhurried","ก็กินมาตั้งแต่ตัวเท่านี้")], ["nosubs"]),
  (30, 10, "Medium two-shot at the counter, static camera", ["wit","somchai"], "shop", "late afternoon",
   "stands with a worn wallet half open while the older man waves it off without looking at it",
   [("wit","polite","เท่าไหร่ครับลุง"),
