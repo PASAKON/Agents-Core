@@ -1048,13 +1048,23 @@ def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
     browser.submit(expected_chip_count=expected_chip_count)
 
 
-def _attempt_chip(browser: FlowBrowser, handle: str) -> bool:
+def _attempt_chip(browser: FlowBrowser, handle: str, tries: int = 2) -> bool:
+    """One retry, and only while the chip count has not moved.
+
+    2026-09-23: attach_chip found the @cop_wit_uniform_A row and then timed out
+    clicking it on 3 of 5 shots, while the same handle attached cleanly on the
+    other 2 — a flaky click, not a missing asset. Each failure cost nothing but
+    sent the shot to needs_model. A retry is safe because it runs only when the
+    count is unchanged, and the pre-submit hard gate still compares the TOTAL
+    count to the sheet, so a late double attach can never reach Submit.
+    """
     before = browser.chip_count()
-    browser.attach_chip(handle)
-    for _ in range(5):
-        if browser.chip_count() > before:
-            return True
-        time.sleep(1.5)
+    for _ in range(tries):
+        browser.attach_chip(handle)
+        for _ in range(5):
+            if browser.chip_count() > before:
+                return True
+            time.sleep(1.5)
     return False
 
 
