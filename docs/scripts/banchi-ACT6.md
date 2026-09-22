@@ -30,7 +30,7 @@ The 60-year-old woman in the floral blouse <IMAGE_REF_0> speaks Thai in the brig
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, flat, and says: "สามวันแล้วครับเจ๊"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The banknotes are a single invented denomination, all identical: soft matte paper in dusty rose fading to pale sage at one end, worn round at the corners and limp from handling. A plain printed numeral 25 sits in one corner in dark ink, the only number on the note. A thin geometric diamond border runs along the long edges in faded ochre. The rest of the note is empty paper. No face, no portrait, no bust, no silhouette of a person anywhere on it; no crest, seal, emblem, flag, map, building or monument; no country name and no readable script of any language. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -47,7 +47,7 @@ The 60-year-old woman in the floral blouse <IMAGE_REF_0> speaks Thai in the brig
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, even, and says: "ผมรู้ครับเจ๊"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The banknotes are a single invented denomination, all identical: soft matte paper in dusty rose fading to pale sage at one end, worn round at the corners and limp from handling. A plain printed numeral 25 sits in one corner in dark ink, the only number on the note. A thin geometric diamond border runs along the long edges in faded ochre. The rest of the note is empty paper. No face, no portrait, no bust, no silhouette of a person anywhere on it; no crest, seal, emblem, flag, map, building or monument; no country name and no readable script of any language. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -64,7 +64,7 @@ The 60-year-old woman in the floral blouse <IMAGE_REF_0> speaks Thai in the brig
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, plain, and says: "คนที่ผมเลิกจ่ายเขาแล้วครับ"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The banknotes are a single invented denomination, all identical: soft matte paper in dusty rose fading to pale sage at one end, worn round at the corners and limp from handling. A plain printed numeral 25 sits in one corner in dark ink, the only number on the note. A thin geometric diamond border runs along the long edges in faded ochre. The rest of the note is empty paper. No face, no portrait, no bust, no silhouette of a person anywhere on it; no crest, seal, emblem, flag, map, building or monument; no country name and no readable script of any language. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -185,7 +185,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn
 The 24-year-old man in the grey polo shirt <IMAGE_REF_1> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, level, and says: "ให้คนที่เขาดูเป็นครับพ่อ"
 
 The face of whoever is speaking stays in frame for the whole line.
-She stays lying propped on the pillows and does not sit up. She wears no glasses. The nasal cannula stays on.
+The grandmother is not in this shot: no second person in the bed, no face on the pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. The young man and his father wear nothing on their faces — no tube, no cannula, no mask, no medical equipment of any kind on either of them.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -202,7 +202,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn
 The 24-year-old man in the grey polo shirt <IMAGE_REF_1> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, firm, and says: "ผมเชื่อครับพ่อ"
 
 The face of whoever is speaking stays in frame for the whole line.
-She stays lying propped on the pillows and does not sit up. She wears no glasses. The nasal cannula stays on.
+The grandmother is not in this shot: no second person in the bed, no face on the pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. The young man and his father wear nothing on their faces — no tube, no cannula, no mask, no medical equipment of any kind on either of them.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -349,7 +349,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, steadying himself, and says: "แปดปีแล้ว วันนี้ผมจะถามเขาสักคำ"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The banknotes are a single invented denomination, all identical: soft matte paper in dusty rose fading to pale sage at one end, worn round at the corners and limp from handling. A plain printed numeral 25 sits in one corner in dark ink, the only number on the note. A thin geometric diamond border runs along the long edges in faded ochre. The rest of the note is empty paper. No face, no portrait, no bust, no silhouette of a person anywhere on it; no crest, seal, emblem, flag, map, building or monument; no country name and no readable script of any language. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 

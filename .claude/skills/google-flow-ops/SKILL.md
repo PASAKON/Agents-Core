@@ -218,6 +218,42 @@ Generalises beyond props: a **time of day** behaves the same way. The word
 daylight in all 71 clips of the same film. A cue that contradicts the paragraph
 around it loses to the paragraph.
 
+### Which things get a chip when slots are scarce
+
+**Measured on the live product 2026-09-22: four chips attach and all four bind.**
+`tools/build_shotsheet.py` had refused anything past three with the comment "the
+4th is silently disabled" — a number with no source, while this file's own Ultra
+audit (task-68653632) had already recorded a **reference-chip cap of 10**. Never
+inherit a limit from a comment; the DOM will tell you.
+
+When slots genuinely run out, the CEO's rule (2026-09-22) is to spend them on
+**what is biggest in frame and reused most**, because that is where drift shows:
+
+| | shots | in frame | verdict |
+|---|---|---|---|
+| `@noodle_shop` | **97 of 173** | fills it | chip, always |
+| `@upstairs_bedroom` | 36 | fills it | chip |
+| a location used **once** | 1 | fills it | prose is fine |
+| a banknote | — | centimetres, in a hand | prose is fine |
+
+His reasoning, and it is right: *"ใช้ซ้ำจะดูปลอมทันที"* — prose gives a slightly
+different shop every time, and across 97 shots that reads as fake immediately. A
+prop seen for a second in someone's hand survives being described. **Characters
+are never the thing you drop:** a wrong face is the one error no viewer forgives.
+
+### A prohibition is not an inventory
+
+Do not automate "this shot declares X, therefore attach X's Element". Tried and
+reverted the same day: `NOT["money"]` looks like a marker for shots containing
+banknotes and is carried by 22 of them, but it is a **prohibition** — its text
+ends *"also no notebook, no pen, no paper, no ledger of any kind"* — and most of
+those 22 have no money in frame at all. Shot 133 is two people looking at empty
+tables. Attaching the money Element to all 22 would have put banknotes into
+scenes written to be empty of them: worse than the bug it was meant to fix.
+
+**Which shots actually hold a prop is a reading of the action line, and belongs
+to a human.**
+
 **Image generation being free is the most valuable fact in this file.** Make
 every character, prop and location plate in Flow, download them, and spend
 credits only on video.

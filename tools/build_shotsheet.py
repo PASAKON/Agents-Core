@@ -35,6 +35,9 @@ def load(path: Path):
     return mod
 
 
+CHIP_CAP = 10   # measured on the live product, task-68653632 2026-09-18
+
+
 def check_plates(d) -> None:
     """Refuse to build a sheet that references a plate nobody has on disk.
 
@@ -90,8 +93,33 @@ def build(d, act: str = "?") -> str:
                 desc += d.APRON
             return desc
         chips = [(d.CHAR[c][0], full(c)) for c in chars] + [(lochandle, locdesc)]
-        if len(chips) > 3:
-            raise SystemExit(f"shot {n}: {len(chips)} chips — the 4th is silently disabled")
+        # Props ride on the shot's own declaration that it contains them: a shot
+        # listing NOT["money"] is a shot with banknotes in frame, so it gets the
+        # money Element rather than forty words hoping for one. Describing a prop
+        # loses to the scene's context; binding it does not (2026-09-22: six Act 3
+        # clips rendered a real Thai note with the royal portrait, while every
+        # chip-bound character and location stayed correct across 148 clips).
+        # No getattr default here on purpose. The first version of this used
+        # `getattr(d, "PROP_FOR_NOT", {})`, ACT6 inherits only named symbols from
+        # ACT1 and so did not have it, and the whole feature silently did nothing
+        # — the sheet built clean with no money chip on any money shot. A lookup
+        # that defaults to empty cannot tell you it found nothing.
+        # NO automatic prop attachment. The first version of this keyed off
+        # NOT["money"] on the theory that it marked a shot containing banknotes.
+        # It does not: that entry is a PROHIBITION ("...also no notebook, no pen,
+        # no paper, no ledger of any kind"), carried by 22 shots, most of which
+        # have no money in frame at all — shot 133 is two people looking at empty
+        # tables. Attaching the money Element to all of them would have put
+        # banknotes into scenes written to be empty of them, which is worse than
+        # the bug it was meant to fix. Which shots actually hold money in frame is
+        # a reading of the action line, and belongs to a human.
+        prop_map = d.PROP_FOR_NOT
+
+        # The ceiling is Flow's, not ours. The Ultra audit (task-68653632,
+        # 2026-09-18) read a reference-chip cap of 10 off the live product; the 3
+        # written here before that was never sourced.
+        if len(chips) > CHIP_CAP:
+            raise SystemExit(f"shot {n}: {len(chips)} chips — Flow's cap is {CHIP_CAP}")
         start = f"{int(t)//60}:{int(t)%60:02d}"
         t += dur
         end = f"{int(t)//60}:{int(t)%60:02d}"

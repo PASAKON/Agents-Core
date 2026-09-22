@@ -113,14 +113,20 @@ NOT = {
  # Not "hide the notes" — change what the notes ARE, so a counting scene can be
  # shot openly. Foreign currency is NOT the safer option: dollars, euro, yen and
  # yuan all carry portraits and protected designs of their own.
- "money": "The banknotes are obvious theatrical prop money of an invented place: soft "
-          "pastel paper in even tones, one plain printed numeral in a corner, a simple "
-          "abstract line pattern at the edges, and nothing else on them. No portrait or "
-          "face of any kind, and no national emblem, crest, flag or country name — this "
-          "is not the currency of any real country. Worn and soft with handling. Also in "
-          "this shot: no notebook, no pen, no paper, no ledger of any kind.",
- # A CONTINUITY rule, not a prohibition — it only makes sense in a shot where
- # she is actually in frame. Use "noya" below to keep her OUT of one.
+ # Describes the ACTUAL @money_fold plate (regenerated 2026-09-22), not an idea
+ # of one. A description of a specific existing image beats a description of a
+ # category: the earlier wording asked for "pastel paper, no portrait" in the
+ # abstract and lost to the model's prior for Thai banknotes in a Thai shop.
+ "money": "The banknotes are a single invented denomination, all identical: soft "
+          "matte paper in dusty rose fading to pale sage at one end, worn round at "
+          "the corners and limp from handling. A plain printed numeral 25 sits in "
+          "one corner in dark ink, the only number on the note. A thin geometric "
+          "diamond border runs along the long edges in faded ochre. The rest of the "
+          "note is empty paper. No face, no portrait, no bust, no silhouette of a "
+          "person anywhere on it; no crest, seal, emblem, flag, map, building or "
+          "monument; no country name and no readable script of any language. It "
+          "resembles no real currency of any country. Also in this shot: no "
+          "notebook, no pen, no paper, no ledger of any kind.",
  "ya":    "She stays lying propped on the pillows and does not sit up. She wears no glasses. The "
           "nasal cannula stays on.",
  # Keeps her out of frame WITHOUT handing her sickroom equipment to whoever is
@@ -132,6 +138,14 @@ NOT = {
           "pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. "
           "The young man and his father wear nothing on their faces — no tube, no cannula, "
           "no mask, no medical equipment of any kind on either of them.",
+}
+
+# Props that must LOOK a specific way get an Element, not a paragraph. A shot
+# that declares NOT["money"] has banknotes in frame, so the builder attaches
+# @money_fold to it automatically — keyed off the declaration the writer already
+# makes, so nobody has to remember a second list.
+PROP_FOR_NOT = {
+    "money": "@money_fold",
 }
 
 # n, seconds, framing, [character keys in attach order], location key, time of day,

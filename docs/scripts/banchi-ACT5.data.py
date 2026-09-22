@@ -26,6 +26,7 @@ _a2 = _il.module_from_spec(_s2); _s2.loader.exec_module(_a2)
 STYLE = _a1.STYLE
 CHAR = dict(_a2.CHAR); LOC = dict(_a2.LOC); VOICE = dict(_a2.VOICE)
 NOT = dict(_a2.NOT); APRON = _a1.APRON
+PROP_FOR_NOT = dict(_a2.PROP_FOR_NOT)
 
 SHOTS = [
  (107, 6, "Close-up on the two of them over the phone, static camera", ["ton","somchai"], "shop", "night",

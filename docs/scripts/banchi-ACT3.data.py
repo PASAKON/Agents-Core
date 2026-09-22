@@ -23,6 +23,7 @@ CHAR = dict(_a2.CHAR)        # Act 2's CHAR already carries เชิด
 LOC = dict(_a2.LOC)          # and the alley
 VOICE = dict(_a2.VOICE)
 NOT = dict(_a2.NOT)
+PROP_FOR_NOT = dict(_a2.PROP_FOR_NOT)
 APRON = _a1.APRON
 
 # The wording rules this act obeys, all proved on this production's own footage

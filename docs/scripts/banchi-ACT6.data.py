@@ -30,6 +30,7 @@ _a4 = _il.module_from_spec(_s4); _s4.loader.exec_module(_a4)
 STYLE = _a2.STYLE
 CHAR = dict(_a4.CHAR); LOC = dict(_a2.LOC); VOICE = dict(_a4.VOICE)
 NOT = dict(_a2.NOT); APRON = _a2.APRON
+PROP_FOR_NOT = dict(_a2.PROP_FOR_NOT)
 
 LOC["bedrail"] = ("@bedrail_marks",
   "a close view along the painted steel side rail of an old bed in a dim upstairs room, "

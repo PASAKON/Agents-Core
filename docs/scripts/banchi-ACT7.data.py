@@ -25,6 +25,7 @@ _a6 = _il.module_from_spec(_s6); _s6.loader.exec_module(_a6)
 STYLE = _a6.STYLE
 CHAR = dict(_a6.CHAR); LOC = dict(_a6.LOC); VOICE = dict(_a6.VOICE)
 NOT = dict(_a6.NOT); APRON = _a6.APRON
+PROP_FOR_NOT = dict(_a6.PROP_FOR_NOT)
 
 LOC["shop2"] = ("@noodle_shop_thriving",
   "the same deep old Bangkok shophouse noodle restaurant, a year on and full — every "
