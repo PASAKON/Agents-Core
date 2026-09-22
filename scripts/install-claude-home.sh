@@ -144,7 +144,10 @@ if [ -d "$SRC/launchd" ]; then
 fi
 
 echo "— reel-editor-th (venv from requirements.txt; assets are NOT in git)"
-RE="$REPO/.claude/skills/reel-editor-th"
+# Keyed off the repo that OWNS claude-home (SRC/..), not this script's repo: a tmp fixture
+# SRC then skips the section, and a worktree checks its own skill dir (assets are gitignored,
+# so a worktree legitimately reports them MISSING — install from the main checkout).
+RE="$(cd "$(dirname "$SRC")" && pwd)/.claude/skills/reel-editor-th"
 if [ -d "$RE" ]; then
   if [ -x "$RE/.venv/bin/python" ]; then ok "venv     reel-editor-th/.venv"
   elif [ -f "$RE/requirements.txt" ]; then
