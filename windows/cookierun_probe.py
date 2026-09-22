@@ -228,9 +228,19 @@ def main() -> int:
         if "click" in step:
             nx, ny = step["click"]
             x, y = core.win_point(core.GAME_WINDOW, float(nx), float(ny))
-            core.click(x, y, why=step.get("why", "probe"))
-            say(f"[{i}] click ({nx:.4f},{ny:.4f}) -> screen ({x},{y})"
-                f"  {step.get('why', '')}")
+            # core.click RETURNS SILENTLY under the CEO's ESC hold - by design,
+            # "no click leaves this process". This line used to log "click ...
+            # -> screen (x,y)" regardless, so on 2026-09-23 three clicks on the
+            # boost screen's Multi button were reported as made while none were,
+            # and the time went into hunting a coordinate bug that did not exist.
+            # Say REFUSED when it is refused.
+            if core.esc_hold():
+                say(f"[{i}] click ({nx:.4f},{ny:.4f}) REFUSED - ESC hold is on "
+                    f"(modelplay/ESC_HOLD); nothing was pressed  {step.get('why', '')}")
+            else:
+                core.click(x, y, why=step.get("why", "probe"))
+                say(f"[{i}] click ({nx:.4f},{ny:.4f}) -> screen ({x},{y})"
+                    f"  {step.get('why', '')}")
         if "drag" in step:
             (nx0, ny0, nx1, ny1) = step["drag"]
             X0, Y0 = core.win_point(core.GAME_WINDOW, float(nx0), float(ny0))
