@@ -79,7 +79,7 @@
       "/Users/gob"
     ]
   },
-  "model": "claude-fable-5-1[1m]",
+  "model": "opus[1m]",
   "skillOverrides": {},
   "hooks": {
     "SessionStart": [
@@ -251,6 +251,9 @@
       "effortLevel": "high"
     },
     "claude-fable-5-1": {
+      "effortLevel": "xhigh"
+    },
+    "claude-opus-5-5": {
       "effortLevel": "xhigh"
     }
   },
