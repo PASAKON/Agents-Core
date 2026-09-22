@@ -21,6 +21,7 @@ from lib import db
 from lib import toon
 from lib.logger import get_logger
 from lib.notify import info
+from tools import decide as decide_tool
 from tools import wiki as wiki_tools
 from tools.gh_issue import create_issue as gh_create_issue
 from tools.skill_objection import raise_objection as _raise_skill_objection
@@ -55,6 +56,33 @@ def wiki_search(query: str) -> str:
     """Grep wiki for a query string."""
     try:
         return toon.encode(wiki_tools.wiki_search(query))
+    except Exception as e:
+        return f"ERROR: {e}"
+
+
+@mcp.tool()
+def decide(site: str, state: str, provider: str = "") -> str:
+    """Answer a fixed-schema typed question from unstructured text — 'what
+    state is this page in', 'which skill fires', 'route this message' —
+    via config/decisions/<site>.yaml's declared options, instead of
+    reasoning it out in context. See docs/design/decision-layer.md.
+
+    `site` must be a declared decision site (python tools/decide.py sites
+    lists them). `state` is the smallest sufficient text state — never a
+    screenshot; Jev/System One models take no images. `provider` optionally
+    forces one rung of the site's provider ladder (rules|openrouter|jev).
+
+    Tries `rules` (free, regex, always on) first; the paid rungs
+    (openrouter, jev) are OFF by default and only run when their own env
+    gates are explicitly set — a bare call never spends money.
+
+    Every call writes one row to the decision ledger
+    (state/decisions/<month>.jsonl), tagged with this task's WORKER_TASK_ID.
+    Returns the Decision as a JSON string.
+    """
+    try:
+        d = decide_tool.decide(site, state, provider=(provider.strip() or None))
+        return json.dumps(d.to_dict())
     except Exception as e:
         return f"ERROR: {e}"
 

@@ -46,6 +46,9 @@ state/locks/*.spawned_by
 state/inbox/
 state/backups/
 state/skill-curator-backups/
+# Decision ledger (lib/decision_ledger.py, tools/decide.py) — append-only
+# JSONL runtime state, one file per calendar month. Never source.
+state/decisions/
 # Per-session turn counter for scripts/hook-memory-nudge.py (ADR 0019 §1).
 # Runtime state; state/*.db already covers the search index beside it.
 state/session-nudge-counters.json

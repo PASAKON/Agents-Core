@@ -52,6 +52,7 @@ from lib import toon
 from lib.config import get_project, projects
 from lib.notify import info, warn
 from lib.task_ownership import is_mine, foreign_msg
+from tools import decide as decide_tool
 from tools import wiki as wiki_tools
 from tools.delegate import delegate_task as do_delegate, delegate_parallel
 from tools.worker_reap import close_dev as do_close_dev
@@ -281,6 +282,11 @@ def _h_send_media_to_ceo(*, path: str, caption: str = "") -> dict:
 
 def _h_send_media_batch_to_ceo(*, paths: str, caption: str = "") -> dict:
     return telegram_out.send_media_batch_to_ceo(_parse_list_arg(paths), caption=caption)
+
+
+def _h_decide(*, site: str, state: str, provider: str = "") -> dict:
+    d = decide_tool.decide(site, state, provider=(provider.strip() or None))
+    return d.to_dict()
 
 
 REGISTRY: tuple[ToolSpec, ...] = (
@@ -606,6 +612,35 @@ REGISTRY: tuple[ToolSpec, ...] = (
         ),
         params=(Param("paths", str), Param("caption", str, "")),
         handler=_h_send_media_batch_to_ceo,
+    ),
+    ToolSpec(
+        name="decide",
+        description=(
+            "Answer a fixed-schema typed question from unstructured text — "
+            "'what state is this page in', 'which skill fires', 'route this "
+            "message' — via config/decisions/<site>.yaml's declared options, "
+            "instead of an agent reasoning it out in context. See "
+            "docs/design/decision-layer.md for the full spec.\n\n"
+            "`site` must be a declared decision site (python tools/decide.py "
+            "sites lists them). `state` is the smallest sufficient text state "
+            "— never a screenshot; Jev/System One models take no images. "
+            "`provider` optionally forces one rung of the site's provider "
+            "ladder (rules|openrouter|jev) instead of running it in order.\n\n"
+            "Tries `rules` (free, regex, always on) first; the paid rungs "
+            "(openrouter, jev) are OFF by default and only run when their own "
+            "env gates are explicitly set (DECIDE_PROVIDER=openrouter + "
+            "OPENROUTER_API_KEY + DECIDE_BUDGET_USD>0 for openrouter; "
+            "JEV_API_KEY + JEV_API_URL for jev, which is early-access and "
+            "unverified) — a bare call never spends money.\n\n"
+            "Every call writes one row to the decision ledger "
+            "(state/decisions/<month>.jsonl), whatever the outcome, tagged "
+            "with this session's CTO_SESSION_ID and any WORKER_TASK_ID."
+        ),
+        params=(
+            Param("site", str), Param("state", str), Param("provider", str, ""),
+        ),
+        handler=_h_decide,
+        response_format="toon",
     ),
 )
 

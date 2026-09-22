@@ -214,6 +214,11 @@ def send_media_batch_to_ceo(paths: str, caption: str = "") -> str:
     return json.dumps(result)
 
 
+@mcp.tool(description=reg.BY_NAME["decide"].description)
+def decide(site: str, state: str, provider: str = "") -> str:
+    return reg.dispatch_sync("decide", site=site, state=state, provider=provider)
+
+
 if __name__ == "__main__":
     db.init()
     mcp.run()
