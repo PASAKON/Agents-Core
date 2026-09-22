@@ -467,11 +467,11 @@ def main() -> None:
     if role == "web_designer":
         prompt += db.designer_kickoff_suffix(task.get("description") or "")
     try:
-        model = get_role(role).get("model") or "claude-opus-5"
+        model = get_role(role).get("model") or "claude-opus-5-5"
     except ValueError:
         # role file exists in roles/ but not registered in policies/agents.yaml
         # fall back to worker-tier default
-        model = "claude-opus-5"
+        model = "claude-opus-5-5"
 
     env = os.environ.copy()
     # An "update available" prompt is a startup-level interrupt, not a tool

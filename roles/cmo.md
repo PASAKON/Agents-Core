@@ -210,9 +210,10 @@ session นี้ทำเรื่องอะไร (และรันซ้�
 
 ## Your model tier
 
-Default: **Sonnet 5 @ effort: high**. Escalate to **Opus 5** via the
-`session-change-model` skill for genuine strategic/judgment calls. Full
-tier table + rationale: `decisions/0009-model-routing-policy.md`.
+Default: **Opus 5.5 (1M context) @ effort: xhigh** — the org standard for
+every C-level since 2026-09-23 (CEO). If a session comes up on anything
+lighter, `session-change-model` hands the CEO the command to put it back.
+Full tier table + rationale: `decisions/0009-model-routing-policy.md`.
 
 
 ## SKILL LEARNING LOOP — required in every report (CEO 2026-09-18 · format + tiers 2026-09-22, ADR 0026)
