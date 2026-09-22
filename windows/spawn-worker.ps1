@@ -35,7 +35,15 @@ param(
     [Parameter(Mandatory = $true)][string]$Model,
     [Parameter(Mandatory = $true)][string]$Effort,
     [Parameter(Mandatory = $true)][string]$SessionName,
-    [string]$TaskFile = ''
+    [string]$TaskFile = '',
+    # task-adbc6f43: which CLI drives this worker. 'claude' is the default and
+    # its entire launch path (below) is BYTE-IDENTICAL to before this param
+    # existed — every other step (worktree/git/clone/pid/teardown) is shared
+    # by all three, only the launch line (step 6) and the pid-poll filter
+    # (step 7) branch on this. ValidateSet is defense-in-depth: the hub
+    # (tools/delegate.py's _validate_runner) already refuses an unknown
+    # runner before ssh is ever called.
+    [ValidateSet('claude', 'codex', 'agy')][string]$Runner = 'claude'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -217,49 +225,68 @@ try {
     $roleDoc = Get-Content -Raw -Path $roleDocPath -Encoding UTF8
     $systemPrompt = "$sharedDoc`n`n$roleDoc`n`n$remoteContract"
 
-    # --- 6. Launch claude.exe --remote-control inside a Windows Terminal
-    # tab (ADDENDUM 1). Prompt goes first (positional), --allowed-tools
-    # (inside $ClaudeArgs, rendered on the Mac side via worker_tool_grants)
-    # stays LAST with nothing after it — same rule runners/worker_init.py
-    # documents: it is variadic and swallows every following argv element.
+    # --- 6. Launch the worker CLI via a one-shot interactive scheduled task
+    # (session-0 rule: SSH lands in Windows session 0, never the logged-in
+    # desktop/session 1 that wt.exe/claude.exe/codex/agy all need — see
+    # docs/ops/agent-runners.md §3). task-adbc6f43: -Runner dispatches
+    # binary + argv here; 'claude' keeps its ORIGINAL Windows Terminal tab
+    # launch byte-identical below. codex/agy are headless CLIs (no TUI, no
+    # window needed) so they run straight inside the scheduled task via a
+    # generated launcher.ps1 — the same session-1 mechanism
+    # windows/s1probe.ps1 proved for codex (2026-09-20), reused rather than
+    # reinvented, not the wt.exe tab claude needs.
     #
-    # The full arg list (including the system prompt, which can be
-    # thousands of characters of quotes/newlines/non-ASCII) is written to a
-    # JSON file and read back by a tiny generated launcher script, instead
-    # of being inlined into the wt.exe command line — that line would go
-    # through THREE layers of shell re-quoting (wt.exe -> `powershell
-    # -Command` -> `& claude.exe`) and is not a safe place for that text. ---
-    $claude = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
-    if (-not (Test-Path $claude)) { $claude = 'claude' }
-
-    $claudeArgsSplit = @($ClaudeArgs -split '\s+' | Where-Object { $_ -ne '' })
-    # Get-Content -Raw returns a string decorated with NoteProperties (PSPath,
-    # ReadCount...). ConvertTo-Json serialises such a string as an OBJECT
-    # {"value": "...", "PSPath": ...}, so claude.exe received the literal text
-    # "@{value=# Task ..." as its first prompt (every Windows worker so far).
-    # Cast both prompts to plain strings before serialising.
-    $argList = @([string]$taskContent, '-n', [string]$SessionName, '--append-system-prompt', [string]$systemPrompt) + $claudeArgsSplit
-
     # $launchDir lives BESIDE this script (agents_root), never inside the
     # worktree -- a file dropped in the worktree gets swept up by the
     # worker's own `git add -A` and pushed onto its branch (it used to be
     # $wt\.launch, which had exactly that problem).
     $launchDir = Join-Path $PSScriptRoot ".launch-$Task"
     New-Item -ItemType Directory -Force -Path $launchDir | Out-Null
+    $logsDir = Join-Path (Split-Path $WorktreeRoot -Parent) 'logs'
+    if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir -Force | Out-Null }
     $argsJsonPath = Join-Path $launchDir 'args.json'
-    # UTF-8 WITHOUT a BOM: Set-Content -Encoding UTF8 emits one on PS5.1 and a
-    # leading BOM makes ConvertFrom-Json fail on the read side below.
-    [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
-                                   (New-Object System.Text.UTF8Encoding $false))
-
-    # --- finish-<Task>.cmd/.ps1: how a worker ends ITSELF after pushing
-    # (roles/_worker_remote.md runs %ORG_WORKER_FINISH% after `git push`).
-    # The .ps1 re-resolves its own pid at call time with the same
-    # Win32_Process + "CommandLine contains the task id" query step 7 below
-    # runs -- launch.ps1 is generated here, before that pid is known (step 7
-    # polls for it further down), so there is nothing to bake in yet. ---
     $finishPs1Path = Join-Path $launchDir "finish-$Task.ps1"
-    $finishPs1Body = @"
+    $finishCmdPath = Join-Path $launchDir "finish-$Task.cmd"
+    $launcherPath = Join-Path $launchDir 'launch.ps1'
+    $wrapper = Join-Path $PSScriptRoot ("launch-" + $Task + ".cmd")   # beside this script, like win-cto.ps1
+    $stName = "mooniex-worker-" + $Task
+    $me = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue
+
+    if ($Runner -eq 'claude') {
+        # Prompt goes first (positional), --allowed-tools (inside
+        # $ClaudeArgs, rendered on the Mac side via worker_tool_grants)
+        # stays LAST with nothing after it — same rule runners/worker_init.py
+        # documents: it is variadic and swallows every following argv element.
+        #
+        # The full arg list (including the system prompt, which can be
+        # thousands of characters of quotes/newlines/non-ASCII) is written to a
+        # JSON file and read back by a tiny generated launcher script, instead
+        # of being inlined into the wt.exe command line — that line would go
+        # through THREE layers of shell re-quoting (wt.exe -> `powershell
+        # -Command` -> `& claude.exe`) and is not a safe place for that text. ---
+        $claude = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
+        if (-not (Test-Path $claude)) { $claude = 'claude' }
+
+        $claudeArgsSplit = @($ClaudeArgs -split '\s+' | Where-Object { $_ -ne '' })
+        # Get-Content -Raw returns a string decorated with NoteProperties (PSPath,
+        # ReadCount...). ConvertTo-Json serialises such a string as an OBJECT
+        # {"value": "...", "PSPath": ...}, so claude.exe received the literal text
+        # "@{value=# Task ..." as its first prompt (every Windows worker so far).
+        # Cast both prompts to plain strings before serialising.
+        $argList = @([string]$taskContent, '-n', [string]$SessionName, '--append-system-prompt', [string]$systemPrompt) + $claudeArgsSplit
+        # UTF-8 WITHOUT a BOM: Set-Content -Encoding UTF8 emits one on PS5.1 and a
+        # leading BOM makes ConvertFrom-Json fail on the read side below.
+        [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
+                                       (New-Object System.Text.UTF8Encoding $false))
+
+        # --- finish-<Task>.cmd/.ps1: how a worker ends ITSELF after pushing
+        # (roles/_worker_remote.md runs %ORG_WORKER_FINISH% after `git push`).
+        # The .ps1 re-resolves its own pid at call time with the same
+        # Win32_Process + "CommandLine contains the task id" query step 7 below
+        # runs -- launch.ps1 is generated here, before that pid is known (step 7
+        # polls for it further down), so there is nothing to bake in yet. ---
+        $finishPs1Body = @"
 `$procs = Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" |
     Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
 if (`$procs) {
@@ -267,27 +294,25 @@ if (`$procs) {
     taskkill /PID `$workerPid /T /F
 }
 "@
-    Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
+        Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
 
-    $finishCmdPath = Join-Path $launchDir "finish-$Task.cmd"
-    $finishCmdBody = @"
+        $finishCmdBody = @"
 @echo off
 powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 "@
-    Set-Content -Path $finishCmdPath -Value $finishCmdBody -Encoding ASCII
+        Set-Content -Path $finishCmdPath -Value $finishCmdBody -Encoding ASCII
 
-    # GH #152 iteration 1 (REVERTED, CTO review 2026-09-18): piping claude.exe's
-    # output through `| Tee-Object` makes stdout a non-TTY pipe. Claude Code is
-    # an Ink TUI -- when stdout isn't a TTY it silently drops into --print mode
-    # and immediately exits ("Input must be provided either through stdin or as
-    # a prompt argument when using --print"), even though a prompt WAS given
-    # positionally. Measured on the Mac 2026-09-18 with the same Ink code path:
-    # `claude ... 2>&1 | tee tee.log` -> process gone within 12s. This killed
-    # EVERY winbox spawn while the tee'd script was live. Never pipe this call;
-    # #152's "what is it doing" need is served by tools/remote_worker_log.py
-    # instead (reads Claude Code's own JSONL transcript, no launcher change).
-    $launcherPath = Join-Path $launchDir 'launch.ps1'
-    $launcherBody = @"
+        # GH #152 iteration 1 (REVERTED, CTO review 2026-09-18): piping claude.exe's
+        # output through `| Tee-Object` makes stdout a non-TTY pipe. Claude Code is
+        # an Ink TUI -- when stdout isn't a TTY it silently drops into --print mode
+        # and immediately exits ("Input must be provided either through stdin or as
+        # a prompt argument when using --print"), even though a prompt WAS given
+        # positionally. Measured on the Mac 2026-09-18 with the same Ink code path:
+        # `claude ... 2>&1 | tee tee.log` -> process gone within 12s. This killed
+        # EVERY winbox spawn while the tee'd script was live. Never pipe this call;
+        # #152's "what is it doing" need is served by tools/remote_worker_log.py
+        # instead (reads Claude Code's own JSONL transcript, no launcher change).
+        $launcherBody = @"
 `$env:ORG_HOST = 'winbox'
 `$env:ORG_WORKER_FINISH = '$finishCmdPath'
 `$claudeExe = '$claude'
@@ -299,33 +324,131 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 # (CEO rule 2026-09-07: closing a worker closes its window).
 exit 0
 "@
-    Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8
+        Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8
 
-    $logsDir = Join-Path (Split-Path $WorktreeRoot -Parent) 'logs'
-    if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir -Force | Out-Null }
-
-    # No -NoExit (CTO correction 2026-09-07): the tab's lifetime must equal
-    # claude.exe's lifetime — when the process ends (naturally, or via
-    # `ssh winbox taskkill /PID <pid> /T /F` from the hub), this powershell
-    # has nothing left to run and exits, and Windows Terminal closes the
-    # tab with it. CEO rule: closing a worker closes its window too, never
-    # just the process.
-    # A process started from an SSH shell lives in Windows session 0 and never
-    # reaches the logged-in desktop (session 1): wt.exe silently opened nothing
-    # and claude.exe never appeared (2026-09-07, task-1289db7b). The only way in
-    # from SSH is a one-shot scheduled task with an INTERACTIVE logon type run as
-    # the desktop user. All quoting lives inside a wrapper .cmd so the task
-    # action is one bare path (PowerShell -> schtasks quoting is unreliable).
-    $SessionName = ($SessionName -replace "[^\x20-\x7E]", "-")   # .cmd is ASCII; keep the title readable
-    $wtExe = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\wt.exe'
-    $wrapper = Join-Path $PSScriptRoot ("launch-" + $Task + ".cmd")   # beside this script, like win-cto.ps1
-    @"
+        # No -NoExit (CTO correction 2026-09-07): the tab's lifetime must equal
+        # claude.exe's lifetime — when the process ends (naturally, or via
+        # `ssh winbox taskkill /PID <pid> /T /F` from the hub), this powershell
+        # has nothing left to run and exits, and Windows Terminal closes the
+        # tab with it. CEO rule: closing a worker closes its window too, never
+        # just the process.
+        # A process started from an SSH shell lives in Windows session 0 and never
+        # reaches the logged-in desktop (session 1): wt.exe silently opened nothing
+        # and claude.exe never appeared (2026-09-07, task-1289db7b). The only way in
+        # from SSH is a one-shot scheduled task with an INTERACTIVE logon type run as
+        # the desktop user. All quoting lives inside a wrapper .cmd so the task
+        # action is one bare path (PowerShell -> schtasks quoting is unreliable).
+        $SessionName = ($SessionName -replace "[^\x20-\x7E]", "-")   # .cmd is ASCII; keep the title readable
+        $wtExe = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\wt.exe'
+        @"
 @echo off
 start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
 "@ | Set-Content -Path $wrapper -Encoding ASCII
-    $stName = "mooniex-worker-" + $Task
-    $me = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-    Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue
+    }
+    elseif ($Runner -eq 'codex') {
+        # codex exec [PROMPT] -C <dir> -s workspace-write --skip-git-repo-check
+        # --json -o <file> (docs/ops/agent-runners.md §1). No --model/
+        # --effort/--allowed-tools equivalent exists for codex, so none are
+        # invented here ($ClaudeArgs is empty for this runner —
+        # tools/delegate.py's _render_remote_runner_args). codex also has no
+        # --append-system-prompt flag, so the remote worker contract is
+        # folded into the one prompt argument it does take instead of being
+        # silently dropped.
+        $codexExe = Join-Path $env:APPDATA 'npm\codex.cmd'
+        if (-not (Test-Path $codexExe)) { $codexExe = 'codex' }
+        $codexPrompt = "$taskContent`n`n$remoteContract"
+        $codexFinalMsg = Join-Path $launchDir 'codex-final.txt'
+        $codexJsonLog = Join-Path $launchDir 'codex-events.jsonl'
+        $argList = @('exec', [string]$codexPrompt, '-C', [string]$wt, '-s', 'workspace-write',
+                     '--skip-git-repo-check', '--json', '-o', [string]$codexFinalMsg)
+        [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
+                                       (New-Object System.Text.UTF8Encoding $false))
+
+        $finishPs1Body = @"
+`$procs = Get-CimInstance Win32_Process -Filter "Name = 'node.exe' OR Name = 'codex.exe'" |
+    Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
+if (`$procs) {
+    `$workerPid = (`$procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
+    taskkill /PID `$workerPid /T /F
+}
+"@
+        Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
+        $finishCmdBody = @"
+@echo off
+powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
+"@
+        Set-Content -Path $finishCmdPath -Value $finishCmdBody -Encoding ASCII
+
+        # Never gate on this process's own exit code (docs/ops/agent-runners.md
+        # §4: codex exits 0 after writing nothing) -- $codexJsonLog is the
+        # artefact lib/artefact_gate.py actually reads (turn.completed /
+        # turn.failed events). The EXITCODE line is diagnostic only, same
+        # convention windows/s1probe.ps1 already uses.
+        $launcherBody = @"
+`$env:ORG_HOST = 'winbox'
+`$env:ORG_WORKER_FINISH = '$finishCmdPath'
+`$exe = '$codexExe'
+`$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
+& `$exe @argArray *> '$codexJsonLog'
+"EXITCODE=`$LASTEXITCODE" | Add-Content -Path '$codexJsonLog'
+exit 0
+"@
+        Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8
+        @"
+@echo off
+powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
+"@ | Set-Content -Path $wrapper -Encoding ASCII
+    }
+    else {
+        # agy -p "<prompt>" --mode accept-edits --add-dir <dir>
+        # (docs/ops/agent-runners.md §1/§6) -- headless, no TTY needed, and
+        # never --dangerously-skip-permissions (Hard Rule). Same "fold the
+        # remote contract into the one prompt arg" reasoning as codex above.
+        $agyExe = Join-Path $env:LOCALAPPDATA 'agy\bin\agy.exe'
+        if (-not (Test-Path $agyExe)) { $agyExe = 'agy' }
+        $agyPrompt = "$taskContent`n`n$remoteContract"
+        $agyLog = Join-Path $launchDir 'agy-events.log'
+        $argList = @('-p', [string]$agyPrompt, '--mode', 'accept-edits', '--add-dir', [string]$wt)
+        [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
+                                       (New-Object System.Text.UTF8Encoding $false))
+
+        # agy is honest about failure (non-zero exit + AGY_ERROR JSON on
+        # stderr, docs/ops/agent-runners.md §6) but gets the SAME artefact
+        # gate as codex regardless -- no runner is trusted on its own word.
+        $finishPs1Body = @"
+`$procs = Get-CimInstance Win32_Process -Filter "Name = 'agy.exe'" |
+    Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
+if (`$procs) {
+    `$workerPid = (`$procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
+    taskkill /PID `$workerPid /T /F
+}
+"@
+        Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
+        $finishCmdBody = @"
+@echo off
+powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
+"@
+        Set-Content -Path $finishCmdPath -Value $finishCmdBody -Encoding ASCII
+
+        $launcherBody = @"
+`$env:ORG_HOST = 'winbox'
+`$env:ORG_WORKER_FINISH = '$finishCmdPath'
+`$exe = '$agyExe'
+`$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
+# PowerShell has no '<' input-redirect operator (that's cmd.exe syntax) --
+# piping `$null` in is the equivalent of the proven `< /dev/null`
+# (docs/ops/agent-runners.md §6) that keeps agy from blocking on stdin.
+`$null | & `$exe @argArray *> '$agyLog'
+"EXITCODE=`$LASTEXITCODE" | Add-Content -Path '$agyLog'
+exit 0
+"@
+        Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8
+        @"
+@echo off
+powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
+"@ | Set-Content -Path $wrapper -Encoding ASCII
+    }
+
     $stAct = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument "/c `"$wrapper`""
     $stPri = New-ScheduledTaskPrincipal -UserId $me -LogonType Interactive -RunLevel Limited
     $stSet = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 5)
@@ -333,24 +456,32 @@ start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" p
     Start-ScheduledTask -TaskName $stName
     Write-Output "launched via interactive scheduled task $stName as $me"
 
-    # --- 7. Capture the claude.exe pid. wt.exe hands the new-tab request to
-    # the running Terminal instance and returns almost immediately — it is
-    # not claude.exe's parent process, so there is no Start-Process handle
-    # to read a pid from. Poll instead, matching on the task id, which
-    # appears in claude's own command line (both the prompt text and -n). ---
+    # --- 7. Capture the worker pid. wt.exe (claude only) hands the new-tab
+    # request to the running Terminal instance and returns almost
+    # immediately, and codex/agy run straight inside the scheduled task
+    # itself -- neither is this process's own child, so there is no
+    # Start-Process handle to read a pid from either way. Poll instead,
+    # matching on the task id, which appears in every runner's own command
+    # line one way or another (claude: prompt text + -n; codex/agy: the
+    # -C/--add-dir worktree path, itself named "$Project__$Role__$Task"). ---
+    $procFilter = @{
+        claude = "Name = 'claude.exe'"
+        codex  = "Name = 'node.exe' OR Name = 'codex.exe'"
+        agy    = "Name = 'agy.exe'"
+    }[$Runner]
     $workerPid = $null
     $deadline = (Get-Date).AddSeconds(60)
     while ((Get-Date) -lt $deadline -and -not $workerPid) {
         Start-Sleep -Milliseconds 500
-        $procs = Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" |
+        $procs = Get-CimInstance Win32_Process -Filter $procFilter |
             Where-Object { $_.CommandLine -and $_.CommandLine -like "*$Task*" }
         if ($procs) {
             $workerPid = ($procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
         }
     }
     if (-not $workerPid) {
-        throw ("claude.exe did not appear within 60s for task $Task -- the " +
-               "Windows Terminal tab may not have opened (wt.exe needs an " +
+        throw ("$Runner did not appear within 60s for task $Task -- the " +
+               "interactive scheduled task may not have started (needs an " +
                "interactive desktop session; verify one exists over this " +
                "SSH connection type). See ADDENDUM 1 in the task brief.")
     }

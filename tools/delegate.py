@@ -73,6 +73,139 @@ def _runner_branch_name(runner: str, role_name: str, task_id: str) -> str:
         return branch_name(role_name, task_id)
     return f"agent/{runner}-{task_id}"
 
+
+# ---------------------------------------------------------------------------
+# Artefact gate (task-adbc6f43) — a runner is finished only when what it
+# actually PRODUCED says so, never its own process exit code. `codex exec`
+# returns exit 0 after writing nothing (docs/ops/agent-runners.md §4;
+# upstream openai/codex#19309, #46246, #9091 are all open reports of the
+# same). `agy` is more honest (non-zero + AGY_ERROR JSON on stderr) but gets
+# the identical gate — no runner is trusted on its own word (Hard Rule).
+#
+# Kept in this module (not lib/) since lib/ is not a declared `touches` path
+# for this task (ADR 0020 self_repo_guard) and tools/delegate.py already
+# owns the rest of the runner machinery above. Read-only beyond git
+# ls-remote/fetch/rev-list — never checks anything out, never merges, never
+# runs `run_tests` itself beyond calling the injected callback. Wiring this
+# into an automatic loop (branch_poller, merge_task) is a separate decision
+# left to the caller: running an arbitrary repo's test suite unattended on
+# every poll tick has its own safety/perf tradeoffs this function does not
+# make for you.
+# ---------------------------------------------------------------------------
+
+class GateResult:
+    """`bool(result)` is the pass/fail; `.reasons` is the ordered trail of
+    every check that ran, so a failure log always says WHICH check failed,
+    not just that one did."""
+
+    def __init__(self, ok: bool, reasons: list[str] | None = None):
+        self.ok = ok
+        self.reasons = reasons or []
+
+    def __bool__(self) -> bool:
+        return self.ok
+
+    def __repr__(self) -> str:
+        return f"GateResult(ok={self.ok}, reasons={self.reasons!r})"
+
+
+def _git(cmd: list[str], *, cwd: str | None = None,
+        timeout: float = 20) -> subprocess.CompletedProcess:
+    """subprocess.run that never raises — a bad/offline git remote must read
+    as a clean gate failure, never an unhandled exception."""
+    try:
+        return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True,
+                              timeout=timeout)
+    except (OSError, subprocess.SubprocessError) as e:
+        return subprocess.CompletedProcess(cmd, 1, "", str(e))
+
+
+def gate_commit_landed(repo_path: str, branch: str, base: str) -> tuple[bool, str]:
+    """True iff `branch` exists on origin AND carries >=1 commit ahead of
+    `base`. Fetches both refs first (read-only beyond that — never checks
+    anything out)."""
+    r = _git(["git", "ls-remote", "origin", f"refs/heads/{branch}"], cwd=repo_path)
+    if r.returncode != 0 or not r.stdout.strip():
+        return False, f"branch {branch!r} not found on origin"
+
+    fr = _git(["git", "fetch", "origin", branch, base], cwd=repo_path)
+    if fr.returncode != 0:
+        return False, f"git fetch origin {branch} {base} failed: {(fr.stderr or '').strip()[:300]}"
+
+    cr = _git(["git", "rev-list", "--count", f"origin/{base}..origin/{branch}"], cwd=repo_path)
+    if cr.returncode != 0:
+        return False, f"git rev-list failed: {(cr.stderr or '').strip()[:300]}"
+    out = cr.stdout.strip()
+    try:
+        n = int(out) if out else 0
+    except ValueError:
+        return False, f"unparseable rev-list count: {out!r}"
+    if n < 1:
+        return False, f"branch {branch!r} has 0 commits ahead of {base!r}"
+    return True, f"{n} commit(s) ahead of {base}"
+
+
+def gate_codex_turn_completed(transcript_text: str | None) -> tuple[bool, str]:
+    """Scan a codex --json JSONL transcript for a `turn.completed` event
+    with no `turn.failed` seen before it. Never trusts codex's own process
+    exit code — this is the honest signal instead (docs/ops/agent-runners.md
+    §3-4). A missing/empty transcript is a failure, not "unknown": no
+    transcript means no proof the run ever completed.
+
+    Non-JSON lines (stderr noise interleaved into the same log file by
+    spawn-worker.ps1's `*>` redirect) are skipped rather than treated as an
+    error — the events are still JSONL even when other text surrounds them."""
+    if not transcript_text or not transcript_text.strip():
+        return False, "no codex --json transcript found"
+    saw_failed = False
+    for line in transcript_text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(event, dict):
+            continue
+        etype = event.get("type") or (event.get("msg") or {}).get("type")
+        if etype == "turn.failed":
+            saw_failed = True
+        elif etype == "turn.completed":
+            if saw_failed:
+                return False, "turn.failed seen before turn.completed"
+            return True, "turn.completed with no preceding turn.failed"
+    return False, "no turn.completed event in transcript"
+
+
+def artefact_gate(*, runner: str, repo_path: str, branch: str, base: str,
+                  run_tests, codex_transcript: str | None = None) -> GateResult:
+    """The full gate. Every check must pass; the first failure short-
+    circuits (no point running the test suite against a branch with no
+    commit on it). `run_tests` is `Callable[[], tuple[int, str]]`, injected
+    so this function enforces WHAT must be true without deciding HOW the
+    suite is run (checkout strategy, which command, which host)."""
+    reasons: list[str] = []
+
+    ok_commit, commit_msg = gate_commit_landed(repo_path, branch, base)
+    reasons.append(commit_msg)
+    if not ok_commit:
+        return GateResult(False, reasons)
+
+    if runner == "codex":
+        ok_codex, codex_msg = gate_codex_turn_completed(codex_transcript)
+        reasons.append(codex_msg)
+        if not ok_codex:
+            return GateResult(False, reasons)
+
+    rc, output = run_tests()
+    if rc != 0:
+        reasons.append(f"test suite failed (exit {rc}): {output[-500:]}")
+        return GateResult(False, reasons)
+    reasons.append("test suite passed")
+    return GateResult(True, reasons)
+
+
 ROOT = Path(__file__).resolve().parent.parent
 
 # How a worker is started, held as a STABLE path rather than as the command
