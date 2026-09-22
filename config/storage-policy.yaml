@@ -53,7 +53,7 @@ tiers:
     - "~/Downloads/**"
     - "~/Movies/**"
     - "~/.claude/projects/*/memory/**"
-    - "/private/tmp/claude-501/<another session>/**"
+    - "/private/tmp/claude-501/**"          # every session's scratch; a session cleans only its own, by hand
 
 # Per-task work dir. Every download, intermediate and output of a task lives
 # under one folder named by the task id, and the task cannot close while it
