@@ -4,7 +4,7 @@ from pathlib import Path
 import tools.storage_policy as sp
 
 def test_load_valid_policy(tmp_path):
-    policy_path = Path("config/storage-policy.yaml")
+    policy_path = Path(__file__).resolve().parent.parent / "config" / "storage-policy.yaml"
     data = sp.load(policy_path)
     assert isinstance(data, dict)
     assert "gauge" in data
@@ -132,3 +132,80 @@ def test_classify_placeholder_skipped():
     home = Path("/Users/test")
     assert sp.classify("/work/123/in/file", policy, home) is None
 
+
+def test_classify_node_modules():
+    policy = {
+        "tiers": {
+            "NEVER": [], "HOT": ["~/MoonieXHQ/**"], "COLD": [],
+            "REBUILD": [{"glob": "**/node_modules", "rebuild": "x"}]
+        }
+    }
+    home = Path("/Users/test")
+    assert sp.classify("/Users/test/MoonieXHQ/Projects/LungNote/Web/node_modules", policy, home) == "REBUILD"
+
+def test_classify_venv():
+    policy = {
+        "tiers": {
+            "NEVER": [], "HOT": ["~/MoonieXHQ/**"], "COLD": [],
+            "REBUILD": [{"glob": "**/.venv", "rebuild": "x"}]
+        }
+    }
+    home = Path("/Users/test")
+    assert sp.classify("/Users/test/MoonieXHQ/Projects/Test/.venv", policy, home) == "REBUILD"
+
+def test_classify_desktop_pycache():
+    policy = {
+        "tiers": {
+            "NEVER": ["~/Desktop/**"], "HOT": [], "COLD": [],
+            "REBUILD": [{"glob": "**/__pycache__", "rebuild": "x"}]
+        }
+    }
+    home = Path("/Users/test")
+    assert sp.classify("/Users/test/Desktop/project/__pycache__", policy, home) == "NEVER"
+
+def test_classify_transcript_age():
+    policy = {
+        "tiers": {
+            "NEVER": [], "REBUILD": [],
+            "COLD": [{"glob": "~/.claude/projects/*/*.jsonl", "older_than_days": 7, "dest": "x"}],
+            "HOT": ["~/.claude/projects/*/*.jsonl"]
+        }
+    }
+    home = Path("/Users/test")
+    # Age 3 -> HOT
+    assert sp.classify("/Users/test/.claude/projects/p1/abc.jsonl", policy, home, age_days=3) == "HOT"
+    # Age 10 -> COLD
+    assert sp.classify("/Users/test/.claude/projects/p1/abc.jsonl", policy, home, age_days=10) == "COLD"
+    # Age None -> HOT
+    assert sp.classify("/Users/test/.claude/projects/p1/abc.jsonl", policy, home, age_days=None) == "HOT"
+
+def test_classify_cold_when():
+    policy = {
+        "tiers": {
+            "NEVER": [], "HOT": [], "REBUILD": [],
+            "COLD": [{"glob": "<work_root>/<task-id>/in/**", "when": "task closed", "dest": "x"}]
+        }
+    }
+    home = Path("/Users/test")
+    assert sp.classify("/work/123/in/file", policy, home) is None
+
+def test_load_invalid_hot_entry(tmp_path):
+    p = tmp_path / "bad_hot.yaml"
+    data = {"gauge": {"green": 20, "yellow": 10, "orange": 5, "red": 0}, "tiers": {"HOT": [{"a": "b"}], "REBUILD": [], "COLD": [], "NEVER": []}}
+    p.write_text(yaml.dump(data))
+    with pytest.raises(sp.PolicyError, match="HOT entries must be strings"):
+        sp.load(p)
+
+def test_load_empty_rebuild(tmp_path):
+    p = tmp_path / "bad_rebuild.yaml"
+    data = {"gauge": {"green": 20, "yellow": 10, "orange": 5, "red": 0}, "tiers": {"HOT": [], "REBUILD": [{"glob": "x", "rebuild": ""}], "COLD": [], "NEVER": []}}
+    p.write_text(yaml.dump(data))
+    with pytest.raises(sp.PolicyError, match="REBUILD entry missing or empty rebuild"):
+        sp.load(p)
+
+def test_load_negative_gauge(tmp_path):
+    p = tmp_path / "bad_gauge.yaml"
+    data = {"gauge": {"green": 20, "yellow": 10, "orange": -5, "red": -10}, "tiers": {"HOT": [], "REBUILD": [], "COLD": [], "NEVER": []}}
+    p.write_text(yaml.dump(data))
+    with pytest.raises(sp.PolicyError, match="gauge color .* must be >= 0"):
+        sp.load(p)
