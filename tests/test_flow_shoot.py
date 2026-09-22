@@ -904,3 +904,22 @@ def test_log_leaves_an_ordinary_console_untouched(tmp_path, capsys, monkeypatch)
 ])
 def test_picker_row_pattern_matches_the_exact_asset_only(handle, row_text, expected):
     assert bool(flow_shoot.picker_row_pattern(handle).search(row_text)) is expected
+
+
+# ── card key for a shot with no dialogue ──
+
+def test_card_fragment_prefers_dialogue():
+    p = ('In a shop — five tables. a man <IMAGE_REF_0> — walks in.\n\n'
+         'The man speaks Thai, and says: "สวัสดีครับลุง"')
+    assert flow_shoot.card_fragment(p) == "สวัสดีครับลุง"
+
+
+def test_card_fragment_falls_back_to_the_action_not_the_location():
+    p = ('Use <IMAGE_REF_0> as the character reference for cop_wit.\n\n'
+         'In a narrow Bangkok shophouse ground floor turned noodle shop — five worn '
+         'wooden tables, night. a Thai man of 32 <IMAGE_REF_0> — sits alone at the '
+         'corner table facing the door with a bowl in front of him, saying nothing.\n\n'
+         'Medium close shot on him alone, static camera.')
+    frag = flow_shoot.card_fragment(p)
+    assert frag.startswith("sits alone at the corner table")
+    assert "five worn" not in frag and len(frag) <= 60

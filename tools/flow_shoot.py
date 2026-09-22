@@ -203,6 +203,27 @@ def first_dialogue_line(prompt: str) -> str | None:
     return m.group(1) if m else None
 
 
+def card_fragment(prompt: str) -> str | None:
+    """The text the runner tracks a shot's card by, in submit and in `pull`.
+
+    Dialogue first, because it is unique per shot. A shot with NO dialogue —
+    «บัญชี» 175, a silent reaction shot, 2026-09-23 — used to have no key at
+    all: submit never found its card, logged "failed — timeout" after eight
+    minutes while the clip was being generated and paid for, and `pull` then
+    refused it too. Fall back to the start of the action clause: the text
+    after the LAST " — " in the prompt. The first one belongs to the location
+    block, which every shot in that room repeats word for word.
+    """
+    d = first_dialogue_line(prompt)
+    if d:
+        return d
+    cut = prompt.rfind(" — ")
+    if cut < 0:
+        return None
+    action = prompt[cut + 3:].split("\n", 1)[0].strip().rstrip(".")
+    return action[:60] or None
+
+
 def extract_clip(downloaded: Path, dest_dir: Path, shot_no: int) -> Path:
     """Flow's download arrives as a .zip with one .mp4, or a bare .mp4."""
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -679,7 +700,7 @@ class FlowBrowser:
         self.page.keyboard.press("Backspace")
         box.evaluate("el => el.focus()")
         self.page.keyboard.insert_text(text)
-        self._last_dialogue = first_dialogue_line(text)
+        self._last_dialogue = card_fragment(text)
 
     def read_prompt_text(self) -> str:
         return self.page.locator('[contenteditable="true"]').first.inner_text()
@@ -1277,7 +1298,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
         for n in targets:
             row = rows[n]
             shot = sheet_shots.get(n)
-            dialogue = first_dialogue_line(shot["prompt"]) if shot else None
+            dialogue = card_fragment(shot["prompt"]) if shot else None
             if not dialogue:
                 row["status"], row["note"] = "needs_model", "no dialogue line to search for"
                 flow_ledger.save_ledger(ledger_path, rows)
