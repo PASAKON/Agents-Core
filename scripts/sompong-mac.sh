@@ -25,7 +25,7 @@ SERVER_LOG="$ROOT/state/secretary-server.out"
 POLL_LOG="$ROOT/state/secretary-telegram.out"
 
 WAKER_LOG="$ROOT/state/secretary-waker.out"
-ENV_FILE="${CLAUDEFLOW_ENV:-/Users/gob/Projects/mooniex-claudeflow/.env}"
+ENV_FILE="${CLAUDEFLOW_ENV:-/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env}"
 
 if [[ "${1:-start}" == "stop" ]]; then
   pkill -f "runners.secretary_telegram_poll" 2>/dev/null || true

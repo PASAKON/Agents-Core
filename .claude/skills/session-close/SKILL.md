@@ -221,3 +221,4 @@ Verdict        : CLOSE 🏁 (status=closed)
 ## Field notes
 
 - 2026-09-22 [MISSING] §2b — no gate caught a C-level's own `## Skill learning` lines; they stayed in chat and were lost at session end, so gate 2b was added · evidence: session cto-0e8d80b8, CEO OK 2026-09-22, ADR 0026 · status: promoted
+- 2026-09-23 [MISSING] §2b — `python scripts/skill-curator.py notes` as written cannot run in a C-level Bash shell: `python` is not on PATH (`command not found`) and system `python3` dies on `import yaml` (ModuleNotFoundError, exit 1, output looks like "no findings" if grepped). Works as `.venv/bin/python scripts/skill-curator.py notes` · evidence: session cto-01c3a0e8, VIRTUAL_ENV unset · status: pending

@@ -21,6 +21,7 @@ LOC = dict(_a2.LOC)
 VOICE = dict(_a2.VOICE)
 NOT = dict(_a2.NOT)
 PROP_FOR_NOT = dict(_a2.PROP_FOR_NOT)
+PROPS_BY_SHOT = dict(_a2.PROPS_BY_SHOT)
 APRON = _a1.APRON
 
 # เจ๊หมวย, the neighbour who carries the rumour. Written from her plate.
@@ -81,6 +82,19 @@ SHOTS = [
   [("somchai","ordinary","จริงครับ"),
    ("cherd","flat, pleasant again","พี่คิดดีแล้วนะครับ")], []),
 
+ # ── Police line, CEO 2026-09-23 (docs/scripts/banchi-police-insert-DRAFT.md) ──
+ # วิทย์ has been sitting in the shop the whole time, facing the door; the
+ # threat is the thing he came back about at 97. Numbered past 173 so no
+ # existing shot number moves; the cut follows this list's order.
+ (174, 8, "Medium two-shot across the counter, static camera", ["cherd","somchai"], "shop", "midday",
+  "leans in over the counter until his face is close to the older man's and drops his voice so the tables cannot hear, the older man keeping his hands on the ladle",
+  [("cherd","low, flat","ถ้างวดนี้พี่ไม่จ่าย พี่เจอดีแน่ครับ"),
+   ("cherd","the smile coming back","ผมพูดดีๆ แล้วนะครับพี่")], ["nosubs"]),
+
+ (175, 4, "Medium close shot on him alone, static camera, the counter out of frame", ["wit"], "shop", "midday",
+  "sits alone at the corner table facing the door with a bowl in front of him, his spoon stopped halfway, watching something off to one side over the rim of the bowl without moving his head, saying nothing",
+  [], ["nosubs"]),
+
  (93, 4, "Medium shot, static camera", ["ton","somchai"][:2], "shop", "midday",
   "comes out from the back with a tray and stops halfway when he sees the two men, his father speaking without turning",
   [("ton","uncertain","พ่อ..."),
@@ -128,6 +142,19 @@ SHOTS = [
   "folds the money back into the young man's hand and closes his fingers over it",
   [("somchai","warm, final","ลุงยังไหวอยู่ครับวิทย์")], ["money"]),
 
+ # วิทย์ asked the father and got nothing (97-101), so he asks the son.
+ (176, 10, "Medium two-shot at the half-open shutter, static camera", ["wit","ton"], "shop", "evening",
+  "steps out under the half-lowered roll-up shutter and stops the young man, who is carrying a crate of empty bottles in from the street",
+  [("wit","low","ต้น เมื่อกลางวันพี่เห็นนะ ลุงคนนั้นขู่พ่อ"),
+   ("ton","caught off guard","พี่วิทย์เห็นด้วยเหรอครับ"),
+   ("wit","quiet, steady","เขาเป็นใครกันแน่ต้น")], ["nosubs"]),
+
+ (177, 10, "Medium two-shot at the half-open shutter, static camera", ["ton","wit"], "shop", "evening",
+  "sets the crate down and glances back into the shop toward his father before answering, keeping his voice down, the man in the dark-grey polo resting a hand on the young man's shoulder for a moment at the end",
+  [("ton","low","พ่อติดเงินเขามาสี่ปีแล้วครับพี่"),
+   ("ton","unsure","ผมก็ไม่รู้ว่าเหลืออีกเท่าไหร่ พ่อไม่เคยเล่าเลย"),
+   ("wit","quiet","ถ้ามีอะไร มาบอกพี่นะต้น")], ["nosubs"]),
+
  (102, 8, "Medium two-shot, static camera", ["ton","somchai"], "shop", "night",
   "holds up an empty pill strip to the light while his father counts the day's takings at the counter",
   [("ton","flat","ยาย่าหมดตั้งแต่เมื่อวานแล้วนะครับพ่อ"),
@@ -149,8 +176,14 @@ SHOTS = [
   [("somchai","ordinary","ต้น ในบัญชีพ่อเหลือเท่าไหร่ ลองเปิดดูให้พ่อทีลูก"),
    ("ton","surprised","พ่อจำรหัสไม่ได้เหรอครับ")], []),
 
- (106, 10, "Close-up on the two of them over the phone, static camera", ["somchai","ton"], "shop", "night",
-  "takes the phone and turns it toward himself while his father watches the screen over his hands",
+ # Cast order flipped 2026-09-23: ต้น's hair drifted (longer, fringe forward)
+ # in BOTH takes with him as REF_1 in profile over the phone. 107 — same
+ # framing, same room, same two men — held his plate with him as REF_0 and
+ # facing the camera. Hypothesis, not proven: in a close-up the second
+ # reference gets the weaker hold (shot 22, the only other close-up with him
+ # as REF_1, pushed him to the frame edge).
+ (106, 10, "Close-up on the two of them over the phone, static camera", ["ton","somchai"], "shop", "night",
+  "holds his father's phone up between them with the screen toward his father, his own face turned toward the camera, while his father watches the screen over his hands",
   [("somchai","plain","พ่อไม่เคยเปิดเลยลูก ตั้งแต่วันที่ลูกลงให้"),
    ("ton","quiet","สี่ปีไม่เคยเปิดเลยเหรอครับ"),
    ("somchai","even","พ่อไม่มีอะไรจะดูนี่ลูก")], []),

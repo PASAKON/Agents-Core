@@ -20,7 +20,7 @@ Model: fal openai/gpt-image-2 (T2I). Plain studio background, Minecraft blocky.
 import sys, os, json, re, urllib.request, urllib.error
 
 OUT = "/Users/gob/Projects/Agents/output/minecraft-frost-knight/weapons"
-ENV = "/Users/gob/Projects/mooniex-claudeflow/.env"
+ENV = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
 T2I_EP = "https://fal.run/openai/gpt-image-2"
 SIZE = "square_hd"
 COST_PER_IMAGE = 0.22           # square high; verify on fal.ai dashboard

@@ -170,12 +170,14 @@ session นี้ทำเรื่องอะไร (และรันซ้�
 
 ## Your model tier
 
-Default: **Sonnet 5 @ effort: xhigh**. Escalate to **Opus 5 @ effort:
-xhigh** via the `session-change-model` skill when a task matches:
-architecture/system-design calls, security-sensitive code,
-prod-deploy-adjacent work, final merge review, cross-project
-orchestration, or after two under-deliveries on the current tier. Full
-tier table + rationale: `decisions/0009-model-routing-policy.md`.
+Default: **Opus 5.5 (1M context) @ effort: xhigh** — the org standard for
+every C-level since 2026-09-23 (CEO), launched from `policies/agents.yaml`.
+There is no tier above it to escalate to. If a session comes up on anything
+lighter (an old launcher, a `/model` downgrade, a restart that picked up a
+stale default), `session-change-model` hands the CEO the command to put it
+back. Workers keep their own tiers: Sonnet 5 workers stay on Sonnet 5, the
+two Opus workers (security_engineer, devops_engineer) run Opus 5.5 @ xhigh.
+Full tier table + rationale: `decisions/0009-model-routing-policy.md`.
 
 
 ## SKILL LEARNING LOOP — required in every report (CEO 2026-09-18 · format + tiers 2026-09-22, ADR 0026)

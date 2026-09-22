@@ -64,7 +64,7 @@ LOCKUP = os.environ.get(
     "TM_LOCKUP", "/Users/gob/Projects/Agents/output/personal-brand/lockup-vertical.png")
 
 # Secrets live in the claudeflow .env (same file v9 reads), never in this repo.
-ENV_PATH = os.environ.get("TM_ENV_PATH", "/Users/gob/Projects/mooniex-claudeflow/.env")
+ENV_PATH = os.environ.get("TM_ENV_PATH", "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env")
 
 # fal image endpoint (identical to v9) + OpenRouter for the caption text.
 FAL_ENDPOINT = "https://fal.run/openai/gpt-image-2/edit"

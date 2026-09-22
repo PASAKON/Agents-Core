@@ -102,7 +102,7 @@ def test_arms_on_read_research_path(monkeypatch: pytest.MonkeyPatch) -> None:
     mod = _load_hook()
     _feed_stdin(monkeypatch, {
         "session_id": "s3", "tool_name": "Read",
-        "tool_input": {"file_path": "/Users/gob/Projects/LLMs/research/2026-09-03-x.md"},
+        "tool_input": {"file_path": "/Users/gob/MoonieXHQ/Agents/Wikis/research/2026-09-03-x.md"},
     })
     assert mod.main() == 0
     assert (Path.home() / ".gateguard" / "research-gate-s3.ok").is_file()
@@ -112,7 +112,7 @@ def test_arms_on_read_research_index(monkeypatch: pytest.MonkeyPatch) -> None:
     mod = _load_hook()
     _feed_stdin(monkeypatch, {
         "session_id": "s4", "tool_name": "Read",
-        "tool_input": {"file_path": "/Users/gob/Projects/LLMs/research/RESEARCH-INDEX.md"},
+        "tool_input": {"file_path": "/Users/gob/MoonieXHQ/Agents/Wikis/research/RESEARCH-INDEX.md"},
     })
     assert mod.main() == 0
     assert (Path.home() / ".gateguard" / "research-gate-s4.ok").is_file()
@@ -122,7 +122,7 @@ def test_arms_on_grep_research_path(monkeypatch: pytest.MonkeyPatch) -> None:
     mod = _load_hook()
     _feed_stdin(monkeypatch, {
         "session_id": "s5", "tool_name": "Grep",
-        "tool_input": {"pattern": "seedance", "path": "/Users/gob/Projects/LLMs/research/"},
+        "tool_input": {"pattern": "seedance", "path": "/Users/gob/MoonieXHQ/Agents/Wikis/research/"},
     })
     assert mod.main() == 0
     assert (Path.home() / ".gateguard" / "research-gate-s5.ok").is_file()
@@ -132,7 +132,7 @@ def test_arms_on_bash_mentioning_research(monkeypatch: pytest.MonkeyPatch) -> No
     mod = _load_hook()
     _feed_stdin(monkeypatch, {
         "session_id": "s6", "tool_name": "Bash",
-        "tool_input": {"command": "ls /Users/gob/Projects/LLMs/research/"},
+        "tool_input": {"command": "ls /Users/gob/MoonieXHQ/Agents/Wikis/research/"},
     })
     assert mod.main() == 0
     assert (Path.home() / ".gateguard" / "research-gate-s6.ok").is_file()

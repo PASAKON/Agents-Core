@@ -40,7 +40,7 @@ _default_workers: &default_workers
 projects:
   - key: mooniex-claudeflow
     name: mooniex-claudeflow
-    path: /Users/gob/Projects/mooniex-claudeflow
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow
     remote: git@github.com:PASAKON/MoonieX-ClaudeFlow.git
     default_branch: main
     stack: [node, typescript]
@@ -57,7 +57,7 @@ projects:
     # availability table); winbox is not cloned yet, so it is left out
     # (project_path_for_host raises rather than guessing).
     paths:
-      mac: /Users/gob/Projects/mooniex-claudeflow
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow
       contabo: /root/projects/mooniex-claudeflow
     # task-2f04a8ca (CEO 2026-08-14): tmux-backed so send_to_dev's mailbox+
     # wake can actually reach a spawned DEV (a wake only lands via
@@ -86,7 +86,7 @@ projects:
 
   - key: mooniex-webapp
     name: mooniex-webapp
-    path: /Users/gob/Projects/mooniex-webapp
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/WebApp
     remote: git@github.com:PASAKON/MoonieX-WebApp.git   # renamed 2026-09-22 (ADR 0028)
     # Canonical trunk is bootstrap/landing-mvp (IRON-RULES §"shared branch";
     # GitHub origin/HEAD points here). main is a divergent line — do not target.
@@ -107,7 +107,7 @@ projects:
     # winbox is a real clone already (CLAUDE.md's Contabo/winbox tables) —
     # spawn-worker.ps1 will `git fetch` it rather than clone from scratch.
     paths:
-      mac: /Users/gob/Projects/mooniex-webapp
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/WebApp
       winbox: 'C:\Users\UsEr\Projects\mooniex-webapp'
     wiki_refs:
       - playbooks/frontend.md
@@ -115,7 +115,7 @@ projects:
 
   - key: mooniex-claudesign
     name: mooniex-claudesign (Web Designer)
-    path: /Users/gob/Projects/mooniex-claudesign
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeSign
     # fork ของ nexu-io/open-design — upstream remote = readonly sync source
     # mooniex remote (push target) = PASAKON/mooniex-claudesign
     remote: https://github.com/PASAKON/MoonieX-ClaudeSign.git
@@ -232,7 +232,7 @@ projects:
 
   - key: mooniex-console
     name: MoonieX Console (mobile web console)
-    path: /Users/gob/Projects/mooniex-console
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/Console
     remote: https://github.com/PASAKON/MoonieX-Console.git
     default_branch: main
     stack: [node, express, xterm.js, webauthn, sqlite]
@@ -253,7 +253,7 @@ projects:
 
   - key: mooniex-scriptable
     name: Mooniex Scriptable (iOS widgets)
-    path: /Users/gob/Projects/mooniex-scriptable
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/Scriptable
     remote: https://github.com/PASAKON/mooniex-scriptable.git
     default_branch: main
     stack: [scriptable, javascript, python]
@@ -272,7 +272,7 @@ projects:
 
   - key: linkreed-webapp
     name: LinkReed.com webapp
-    path: /Users/gob/Projects/LinkReed-Webapp
+    path: /Users/gob/MoonieXHQ/Projects/LinkReed/Webapp
     remote: https://github.com/PASAKON/LinkReed-Webapp.git
     default_branch: main
     stack: [static]
@@ -290,9 +290,9 @@ projects:
 
   - key: cookierun-bot
     name: Cookie Run bot (image->button model + planner, winbox game box)
-    path: /Users/gob/Projects/cookierun-bot
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/CookierunBot
     paths:
-      mac: /Users/gob/Projects/cookierun-bot
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/CookierunBot
       winbox: 'C:\Users\UsEr\cookierun-bot'
     # SSH host alias, not github.com: a GitHub deploy key may only serve ONE repo,
     # and winbox's default key is already spoken for by MoonieX-Agents. winbox's
@@ -322,7 +322,7 @@ projects:
 
   - key: comfy-runpod-worker
     name: ComfyUI RunPod worker + Studio (MiniMax H3)
-    path: /Users/gob/Projects/comfy-runpod-worker
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/ComfyRunpod
     default_branch: main
     stack: [python, typescript, next]
     agents_allowed: *default_workers

@@ -72,8 +72,8 @@ from ilag_sync import upload, ts, mb, ACTOR_DEFAULT  # noqa: E402
 from ilag_mirror import list_folder  # noqa: E402
 
 CF_ENV_CANDIDATES = [
-    Path("/Users/gob/Projects/mooniex-claudeflow/.env"),
-    Path("/Users/gob/Projects/mooniex-claudeflow/.env.local"),
+    Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"),
+    Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env.local"),
 ]
 
 # task-c7d455aa D4 -- where GOOGLE_OAUTH_CLIENT_ID/SECRET/REFRESH_TOKEN come

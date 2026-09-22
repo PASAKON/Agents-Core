@@ -82,12 +82,12 @@ function fmtMessage(m) {
 
 async function main() {
   // Resolve agent_id: prefer office cache (per-cwd); fall back to CTO id when
-  // sitting in /Users/gob/projects/LLMs (CTO cross-desk default per §15).
+  // sitting in /Users/gob/MoonieXHQ/Agents/Wikis (CTO cross-desk default per §15).
   let agentId = null;
   const cache = await readJson(CACHE_PATH);
   if (cache?.agent_id) {
     agentId = cache.agent_id;
-  } else if (CWD === "/Users/gob/projects/LLMs" || CWD.startsWith("/Users/gob/projects/LLMs/")) {
+  } else if (CWD === "/Users/gob/MoonieXHQ/Agents/Wikis" || CWD.startsWith("/Users/gob/MoonieXHQ/Agents/Wikis/")) {
     agentId = CTO_AGENT_ID;
   } else {
     return; // not in a known Mooniex context

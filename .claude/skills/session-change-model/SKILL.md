@@ -3,134 +3,114 @@ name: session-change-model
 owner: CTO
 origin: mooniex-org
 scope: >-
-  Proposes an escalation and hands the human the exact /model command to type — no
-  tool lets the assistant switch models directly, and /model preserves full session
-  history. Enforces the tier table in decisions/0009-model-routing-policy.md.
-  Shared by CTO/CFO/CGO/CMO, all defaulting to Sonnet 5.
-description: Propose a mid-session model escalation (Sonnet 5 → Opus 5) and wait for CEO confirmation. Trigger on /session-change-model and when a session on a lighter tier hits architecture, security, prod-deploy, final-merge, or cross-project work, or under-delivers twice.
+  Puts a C-level session back on the org standard model (Opus 5.5, 1M context,
+  effort xhigh — CEO 2026-09-23) when it is running on anything lighter, by
+  handing the CEO the exact /model and /effort commands to type. No tool lets
+  the assistant switch its own model, and /model keeps the full session
+  history. Shared by CTO/CFO/CGO/CMO. Tier table in
+  decisions/0009-model-routing-policy.md.
+description: Put a C-level session back on the org standard model (Opus 5.5 1M @ xhigh) when it is running lighter, and wait for CEO confirmation. Trigger on /session-change-model, when a C-level notices it is on Sonnet/an older Opus/GLM (old launcher, restart onto a stale default, a /model downgrade), or when a new model ships and the CEO asks to move to it.
 created_by: human
 audience: [cxo]
 ---
 
 # Session Change Model — propose, confirm, hand off the exact command
 
-CTO/CXO sessions now default to Sonnet 5 (see `decisions/0009-model-routing-policy.md`
-— cheaper, "near-Opus on coding," fine for routine orchestration). Some tasks
-genuinely need Opus 5. This skill is the calibrated bridge: recommend
-escalation out loud, get an explicit yes, then tell the CEO exactly what to
-type. It never silently escalates and never silently stays under-powered
-either.
+**Standard since 2026-09-23 (CEO):** every C-level runs **Opus 5.5 with the 1M
+context window at effort xhigh** (`claude-opus-5-5[1m]`, `policies/agents.yaml`).
+Workers keep their own tiers — Sonnet 5 workers stay on Sonnet 5; the two
+Opus workers (security_engineer, devops_engineer) run `claude-opus-5-5` @ xhigh.
+
+So there is nothing to escalate *to* any more. This skill exists for the
+cases where a C-level session is **below** the standard and should be put
+back, and for the day a newer model ships and the CEO wants to move.
 
 ## Hard technical constraint — read this first
 
 **No tool exists for the assistant to switch its own running model.** `/model`
-is a local command the Claude Code CLI intercepts before it ever reaches the
-model as a turn — same mechanism as `/clear`, `/help`. This skill cannot
-"execute" a switch on the CEO's behalf. Its entire value is in the propose →
-confirm → tell-them-the-keystroke sequence below. Do not imply or claim the
-switch happens automatically once the CEO says yes — it happens the moment
-they type the command themselves.
+and `/effort` are local commands the Claude Code CLI intercepts before they
+ever reach the model as a turn — same mechanism as `/clear`, `/help`. This
+skill cannot "execute" a switch on the CEO's behalf. Its entire value is in
+the notice → confirm → tell-them-the-keystroke sequence below. Never claim
+the switch happened until the CEO has typed it.
 
-## Escalation triggers — check before proposing
+## When a session is below the standard — check before proposing
 
-Match against `decisions/0009-model-routing-policy.md` § Tier criteria:
+- [ ] Launched before 2026-09-23 on `claude-sonnet-5` (every C-level spawned
+      that morning was; `ps -axo command | grep -- '--model'` shows the flag)
+- [ ] Came back from `/terminal-restart` or a resume onto an older default
+- [ ] Someone switched it down with `/model` for a cheap stretch of work
+- [ ] Running on a GLM/other-provider offload (`CXO_MODEL_PROVIDER` set)
+- [ ] Effort below xhigh (`/effort` shows the live value)
 
-- [ ] Architecture/system design call
-- [ ] Security-sensitive code
-- [ ] Anything prod-deploy-adjacent
-- [ ] Final merge review / go—no-go decision
-- [ ] Wiki/ADR writing requiring judgment
-- [ ] Cross-project orchestration reasoning
-- [ ] **Self-detected**: already attempted the same subtask twice at the
-      current tier without a result you'd stand behind — this is the
-      "Sonnet recognizes its own struggle" case, not just a static topic match
-
-One match is enough to propose. Don't wait for several — surfacing it early
-costs nothing (the CEO can decline), staying silent on a Tier-1 task costs
-quality.
-
-## What NOT to do
-
-- Don't keep working a Tier-1-shaped task at the current tier without ever
-  asking — that's the failure mode this skill exists to close.
-- Don't propose more than once per threshold crossing. If the CEO already
-  said no for this task, don't re-ask on the same task — flag it again only
-  if the task's scope genuinely changes.
-- Don't claim the switch is "done" before the CEO has actually typed it.
+One match is enough to mention it. Surfacing it costs one line; the CEO can
+decline.
 
 ## Propose — exact format
 
 ```
-งานนี้เริ่ม [เหตุผลสั้นๆ ตรงกับ trigger ที่ match — เช่น "แตะ prod deploy",
-"ต้องตัดสินใจ architecture", "ลองมา 2 รอบบน Sonnet ยังไม่ได้ผลที่มั่นใจ"]
-
-แนะนำเปลี่ยนเป็น Opus 5, effort: xhigh
+session นี้วิ่งอยู่บน <โมเดล/effort ปัจจุบัน> — ต่ำกว่ามาตรฐาน org
+(Opus 5.5 1M @ xhigh ตั้งแต่ 23 ก.ย.)
 ต้องการให้เปลี่ยนไหม?
 ```
 
-Then **stop and wait**. Do not proceed with the heavy work on the current
-tier while waiting for an answer — that defeats the point.
+Then **stop and wait** for a yes or no.
 
 ## On CEO confirm
 
-Hand over the literal command — this is the one step only the human can do:
+Hand over the literal commands — this is the one step only the human can do:
 
 ```
 พิมพ์ตอนนี้ได้เลย:
-  /model opus
+  /model claude-opus-5-5[1m]
+  /effort xhigh
 
-(ไม่แน่ใจ alias ตรง — พิมพ์ /model เปล่าๆ แล้วเลือก "Opus 5" จาก picker ก็ได้)
-
-History เต็มไหลต่อ ไม่หาย — แค่ prompt cache รีเซ็ต รอบแรกหลัง switch
-อาจช้า/แพงขึ้นนิดนึงเพราะอ่าน history ใหม่ทั้งหมด ไม่ใช่บั๊ก
-
-Effort: พอ switch ครั้งแรกในเซสชันนี้ Opus จะใช้ effort default ของตัวเอง
-(ปกติคือ xhigh ตรงกับที่แนะนำอยู่แล้ว) — เช็คอีกทีถ้าต้องการระดับอื่นเจาะจง
-(Opus 5 default effort ยังไม่ verify ว่าเปลี่ยนจาก 4.8 หรือไม่ — เช็คใน picker ถ้าไม่ชัวร์)
-[ยังไม่ verify ว่ามีวิธีตั้ง effort สดระหว่าง session นอกจากค่า default ของโมเดล —
-ถ้าต้องการ effort เจาะจงจริงๆ อาจต้อง relaunch ด้วย --effort flag แทน]
+(หรือพิมพ์ /model เปล่าๆ แล้วเลือก "Opus 5.5 (1M context)" จาก picker)
 ```
+
+History carries over in full; only the prompt cache resets, so the first
+turn after the switch is slower and costs more — that is expected, not a bug.
+`/effort` changes the live effort directly (verified 2026-09-23: the CEO ran
+`/effort` → xhigh and it applied to the running session).
 
 ## On CEO decline
 
-Continue at the current tier. Say so plainly if it affects confidence in the
-output ("ทำต่อบน Sonnet — ถ้าผลออกมาไม่ชัวร์ จะแจ้งอีกที"). Don't re-propose
-on the same task unless its scope changes.
+Continue at the current model. Say so plainly if it affects confidence in the
+output. Don't re-propose on the same task unless its scope changes.
 
 ## After the switch lands
 
-One short acknowledgment, then continue normally — don't re-litigate the
-decision or repeat context the history already carries:
+One short acknowledgment, then continue:
 
 ```
-อยู่บน Opus 5 ต่อจากนี้
+อยู่บน Opus 5.5 (1M) @ xhigh ต่อจากนี้
 ```
 
 ## Output format
 
 ```
-🔼 MODEL ESCALATION — <trigger matched>
-Current : Sonnet 5
-Proposed: Opus 5 @ xhigh
-Reason  : <one line, specific to this task>
+🔼 MODEL — below org standard
+Current : <model> @ <effort>
+Standard: Opus 5.5 (1M) @ xhigh
 Status  : PROPOSED — waiting for CEO confirm
 ```
 
-After resolution, append one line: `Resolved: SWITCHED` / `Resolved: DECLINED (stayed Sonnet 5)`.
+After resolution, append one line: `Resolved: SWITCHED` / `Resolved: DECLINED`.
 
 ## Operating rules
 
-- Source of truth for tiers and effort levels: `decisions/0009-model-routing-policy.md`.
-  If that ADR's table changes, this skill's trigger list and recommended
-  effort value should be re-checked against it.
-- Shared across CTO/CFO/CGO/CMO — all four C-level roles default to Sonnet 5
-  with Opus 5 escalation per the ADR, so this skill applies to any of them,
-  not just CTO.
-- This skill governs **interactive CTO/CXO ↔ CEO sessions only**. Worker
-  (DEV) tier escalation mid-task is a different mechanism — non-interactive
-  workers can't pause to ask the CEO live. That path is: DEV flags "exceeded
-  what I could handle at this tier" in its completion report → CTO re-delegates
-  the task at a higher tier on the next iteration (extension of the existing
-  CTO review step in `roles/cto.md`, not this skill).
-- One proposal per escalation. Wait for an explicit yes/no — never assume
-  silence means either answer.
+- Source of truth: `policies/agents.yaml` (what the launchers actually pass)
+  and `decisions/0009-model-routing-policy.md` (why). If they disagree, the
+  yaml is what runs — fix the ADR.
+- A newer model shipping is **not** a reason to switch on your own: the CEO
+  decides the standard; this skill only hands over the command once he has.
+- Worker tiers are set per role in `policies/agents.yaml` and apply on the
+  next spawn. A worker that feels under-powered says so in its report and the
+  CTO re-delegates it at a higher tier (see `roles/_worker_shared.md`) — not
+  this skill.
+- One proposal per session state. Wait for an explicit yes/no.
+
+## Field notes
+
+- 2026-09-23 [WRONG] whole skill — it assumed C-levels default to Sonnet 5 and escalate to Opus 5; the CEO made Opus 5.5 (1M) @ xhigh the C-level default and moved the Opus workers to Opus 5.5 @ xhigh, Sonnet workers unchanged. Rewritten from "escalate" to "restore the standard" · evidence: CEO order in session cto-a29c7576 (fork 7f03193e); `policies/agents.yaml` now resolves cto/cfo/cgo/cmo → `claude-opus-5-5[1m]` xhigh; `claude -p --model claude-opus-5-5[1m] --effort xhigh` answered OK headless · status: promoted
+- 2026-09-23 [MISSING] §On CEO confirm — the old text said effort could not be changed live ("may need a relaunch with --effort"); `/effort` does change it in the running session · evidence: CEO ran `/effort` → "Set effort level to xhigh" in this session · status: promoted

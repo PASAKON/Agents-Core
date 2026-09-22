@@ -34,7 +34,7 @@ OUT = "/Users/gob/Projects/Agents/output/mooniex-posters"
 SCENE = os.path.join(OUT, "spcx_scene.png")
 FINAL = os.path.join(OUT, "spcx_musk_final.png")
 LOCKUP = "/Users/gob/Projects/Agents/output/personal-brand/lockup-moon-text.png"
-ENV = "/Users/gob/Projects/mooniex-claudeflow/.env"
+ENV = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
 EDIT_EP = "https://fal.run/openai/gpt-image-2/edit"
 COST = 0.19
 

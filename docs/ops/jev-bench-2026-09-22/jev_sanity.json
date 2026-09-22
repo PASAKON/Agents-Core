@@ -1,0 +1,32 @@
+{
+ "mode": "fresh",
+ "latency_ms": {
+  "n": 1,
+  "min": 692.6,
+  "p50": 692.6,
+  "p90": 692.6,
+  "p99": 692.6,
+  "max": 692.6,
+  "mean": 692.6
+ },
+ "calls": [
+  {
+   "i": 0,
+   "ms": 692.6,
+   "http": 200,
+   "choice": "jump",
+   "confidence": 0.47,
+   "tokens_in": 429,
+   "tokens_out": 46,
+   "cost": 1.8018e-05
+  }
+ ],
+ "cost_usd": {
+  "total": 1.8018e-05,
+  "per_call_mean": 1.8018e-05,
+  "per_call_min": 1.8018e-05,
+  "per_call_max": 1.8018e-05
+ },
+ "tokens_in_mean": 429,
+ "answered": 1
+}

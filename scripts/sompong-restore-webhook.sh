@@ -10,7 +10,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-ENV_FILE="${CLAUDEFLOW_ENV:-/Users/gob/Projects/mooniex-claudeflow/.env}"
+ENV_FILE="${CLAUDEFLOW_ENV:-/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env}"
 WEBHOOK_URL="${SOMPONG_WEBHOOK_URL:-https://webhook.mooniex.com/telegram/@sompong}"
 
 TOKEN="$(grep -hE '^SECRETARY_BOT_TOKEN=' "$ENV_FILE" | head -1 | cut -d= -f2- | tr -d '"'"'"' \r')"

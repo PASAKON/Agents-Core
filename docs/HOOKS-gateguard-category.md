@@ -62,8 +62,8 @@ still fires normally.
 ## Smoke test
 
 1. Open a fresh Claude Code session.
-2. Edit any file under `/Users/gob/Projects/LLMs/` — ECC fact gate fires (expected).
-3. Edit a second file under `/Users/gob/Projects/LLMs/` — gate should NOT fire again.
+2. Edit any file under `/Users/gob/MoonieXHQ/Agents/Wikis/` — ECC fact gate fires (expected).
+3. Edit a second file under `/Users/gob/MoonieXHQ/Agents/Wikis/` — gate should NOT fire again.
 4. Check `~/.claude/state/mooniex-gateguard-*.json` to confirm `wiki_edit` appears in `categories`.
 
 ## Add a new category

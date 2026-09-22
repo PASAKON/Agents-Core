@@ -21,9 +21,11 @@ roles:
     # Default = Claude. GLM-5.1 offload is opt-in + flag-gated via
     # CXO_MODEL_PROVIDER (see lib.config.cxo_provider_overrides); leaving a
     # non-Claude id here would leak to the Anthropic API on the REPL path.
-    # Sonnet 5 default + Opus 5 escalation via the session-change-model
-    # skill (decisions/0009-model-routing-policy.md).
-    model: "claude-sonnet-5"
+    # Org standard since 2026-09-23 (CEO): every C-level runs Opus 5.5 with
+    # the 1M context window at xhigh — the same pick the CEO makes with
+    # /model. Workers already on Sonnet stay on Sonnet. ADR 0009 addendum
+    # 2026-09-23 (decisions/0009-model-routing-policy.md).
+    model: "claude-opus-5-5[1m]"
     fallback_model: "claude-fable-5"
     effort: "xhigh"
     can_write_wiki: true
@@ -39,9 +41,9 @@ roles:
   cfo:
     display: CFO
     level: c
-    model: "claude-sonnet-5"
+    model: "claude-opus-5-5[1m]"   # org standard 2026-09-23, see cto
     fallback_model: "claude-fable-5"
-    effort: "high"
+    effort: "xhigh"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -52,9 +54,9 @@ roles:
   cgo:
     display: CGO
     level: c
-    model: "claude-sonnet-5"
+    model: "claude-opus-5-5[1m]"   # org standard 2026-09-23, see cto
     fallback_model: "claude-fable-5"
-    effort: "high"
+    effort: "xhigh"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -65,9 +67,9 @@ roles:
   cmo:
     display: CMO
     level: c
-    model: "claude-sonnet-5"
+    model: "claude-opus-5-5[1m]"   # org standard 2026-09-23, see cto
     fallback_model: "claude-fable-5"
-    effort: "high"
+    effort: "xhigh"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -146,8 +148,8 @@ roles:
   devops_engineer:
     display: DevOps Engineer
     level: w
-    model: "claude-opus-5"
-    effort: "high"
+    model: "claude-opus-5-5"   # Opus workers -> Opus 5.5 xhigh (CEO 2026-09-23); plain 200k window
+    effort: "xhigh"
     can_write_wiki: false
     can_create_task: false
     can_merge: false
@@ -158,7 +160,7 @@ roles:
   security_engineer:
     display: Security Engineer
     level: w
-    model: "claude-opus-5"
+    model: "claude-opus-5-5"   # Opus workers -> Opus 5.5 xhigh (CEO 2026-09-23); plain 200k window
     effort: "xhigh"
     can_write_wiki: false
     can_create_task: false

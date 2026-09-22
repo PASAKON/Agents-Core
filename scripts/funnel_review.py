@@ -4,7 +4,7 @@ Reads creds from webapp/.env.local, never prints secret values. No writes."""
 import urllib.request, urllib.error, json
 from pathlib import Path
 
-ENV = Path("/Users/gob/Projects/mooniex-webapp/.env.local")
+ENV = Path("/Users/gob/MoonieXHQ/Projects/MoonieX/WebApp/.env.local")
 SINCE = "2026-06-05T00:00:00Z"
 
 def load_env(p):

@@ -71,8 +71,8 @@ if not is_c_level('$ROLE'):
     print(f'role $ROLE is not a C-level role', file=sys.stderr)
     sys.exit(2)
 r = get_role('$ROLE')
-model = r.get('model') or 'claude-opus-5'
-effort = r.get('effort') or 'high'
+model = r.get('model') or 'claude-opus-5-5[1m]'
+effort = r.get('effort') or 'xhigh'
 print(display_for('$ROLE'), model, effort)
 ")"
 [ -n "$DISPLAY" ] || exit 2

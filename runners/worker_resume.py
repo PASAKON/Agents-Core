@@ -75,9 +75,9 @@ def main() -> None:
         + (ROOT / "roles" / f"{role}.md").read_text()
     )
     try:
-        model = get_role(role).get("model") or "claude-opus-5"
+        model = get_role(role).get("model") or "claude-opus-5-5"
     except ValueError:
-        model = "claude-opus-5"
+        model = "claude-opus-5-5"
 
     env = os.environ.copy()
     # Mirror worker_init: an update prompt is a startup interrupt that no

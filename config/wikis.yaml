@@ -17,11 +17,11 @@
 default: mooniex
 wikis:
   - ns: org
-    name: Agents Rules   # repo PASAKON/Agents-Rules (renamed 2026-09-22, ADR 0028); folder rename comes at HQ step 4
-    path: /Users/gob/Projects/Agents-Wikis
+    name: Agents Rules   # repo PASAKON/Agents-Rules (renamed 2026-09-22, ADR 0028); folder moved to Agents/Rules at HQ step 4a (2026-09-23)
+    path: /Users/gob/MoonieXHQ/Agents/Rules
   - ns: mooniex
-    name: Agents Wikis   # repo PASAKON/Agents-Wikis (was MoonieX-Wikis; local folder still LLMs/ until HQ step 4)
-    path: /Users/gob/Projects/LLMs
+    name: Agents Wikis   # repo PASAKON/Agents-Wikis (was MoonieX-Wikis; folder moved to Agents/Wikis at HQ step 4a (2026-09-23))
+    path: /Users/gob/MoonieXHQ/Agents/Wikis
   - ns: lungnote
     name: LungNote Wikis
     path: /Users/gob/MoonieXHQ/Projects/LungNote/Wikis

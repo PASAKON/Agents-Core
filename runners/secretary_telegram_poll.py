@@ -61,7 +61,7 @@ from lib.logger import get_logger  # noqa: E402
 # Config
 # --------------------------------------------------------------------------
 CLAUDEFLOW_ENV = Path(
-    os.environ.get("CLAUDEFLOW_ENV", "/Users/gob/Projects/mooniex-claudeflow/.env")
+    os.environ.get("CLAUDEFLOW_ENV", "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env")
 )
 OFFSET_FILE = ROOT / "state" / "secretary-telegram-offset.json"
 

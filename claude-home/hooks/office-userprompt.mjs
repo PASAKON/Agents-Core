@@ -31,7 +31,7 @@ const CONFIG_PATH = path.join(os.homedir(), ".claude", "office.json");
 const HEARTBEAT_MIN_INTERVAL_MS = 60_000;
 
 function deskFromFolder(folder, cwd = CWD) {
-  if (cwd === "/Users/gob/projects/LLMs" || cwd.startsWith("/Users/gob/projects/LLMs/")) {
+  if (cwd === "/Users/gob/MoonieXHQ/Agents/Wikis" || cwd.startsWith("/Users/gob/MoonieXHQ/Agents/Wikis/")) {
     return "Desk-CTO";
   }
   const m = folder.match(/^mooniex-webapp \(([^)]+)\)$/);

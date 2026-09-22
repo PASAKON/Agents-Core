@@ -27,6 +27,7 @@ STYLE = _a1.STYLE
 CHAR = dict(_a2.CHAR); LOC = dict(_a2.LOC); VOICE = dict(_a2.VOICE)
 NOT = dict(_a2.NOT); APRON = _a1.APRON
 PROP_FOR_NOT = dict(_a2.PROP_FOR_NOT)
+PROPS_BY_SHOT = dict(_a2.PROPS_BY_SHOT)
 
 SHOTS = [
  (107, 6, "Close-up on the two of them over the phone, static camera", ["ton","somchai"], "shop", "night",
@@ -71,10 +72,10 @@ SHOTS = [
   [("somchai","quiet","พ่อไม่เคยนับเลยลูก")], []),
 
  (115, 10, "Close-up on the son, static camera", ["ton"], "shop", "night",
-  "scrolls back through the app with his thumb, counting under his breath as the screen moves",
+  "scrolls back through the app with his thumb, counting aloud as the screen moves",
   [("ton","reading, tight","แอปย้อนได้แค่สองปีครับ"),
    ("ton","counting","หนึ่งร้อยสี่ครั้งพอดีเลย"),
-   ("ton","flat","ก่อนหน้านั้นไม่มีใครรู้เลยครับ")], []),
+   ("ton","flat","ก่อนหน้านั้นไม่มีใครรู้เลยครับ")], ["nosubs"]),
 
  (116, 4, "Medium shot, static camera", ["ya"], "room", "night",
   "lies with her eyes open in the dark, speaking toward the sound of the voices below",
@@ -108,9 +109,12 @@ SHOTS = [
    ("ton","quiet, certain","สองร้อยแปดงวดครับ")], []),
 
  (122, 4, "Close-up on the father in the doorway, static camera", ["somchai"], "room", "night",
-  "stands in the bedroom doorway with one hand on the frame, repeating the number back",
-  [("somchai","hollow","สองร้อยแปดงวด..."),
-   ("somchai","barely out","สองร้อยแปด...")], []),
+  # 2026-09-23: was two lines, both saying the number, inside four seconds — it
+  # played as a stutter rather than as shock (transcript read "208 งวด" then
+  # "208"). One line and the silence after it does the same job: a man who cannot
+  # get the rest of the sentence out is more stunned than one who repeats himself.
+  "stands in the bedroom doorway with one hand on the frame, hearing the number without moving, his mouth open on a sentence he never finishes",
+  [("somchai","hollow, trailing off","สองร้อยแปดงวด...")], []),
 
  (123, 10, "Medium two-shot, static camera", ["ton","somchai"], "room", "night",
   "stands up from the bed and faces his father in the doorway, holding the phone at his side",

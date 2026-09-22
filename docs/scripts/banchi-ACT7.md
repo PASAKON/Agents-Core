@@ -151,7 +151,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, quieter, and says: "ผมยังเผลอเดินขึ้นมาทุกเช้าเลยแม่"
 
 The face of whoever is speaking stays in frame for the whole line.
-She stays lying propped on the pillows and does not sit up. She wears no glasses. The nasal cannula stays on. There is no notebook, no ledger, no printed receipt and no paperwork anywhere in the frame.
+The grandmother is not in this shot: no second person in the bed, no face on the pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. The young man and his father wear nothing on their faces — no tube, no cannula, no mask, no medical equipment of any kind on either of them. There is no notebook, no ledger, no printed receipt and no paperwork anywhere in the frame.
 Medium shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -185,7 +185,7 @@ The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clea
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, certain, and says: "ไม่ทาหรอกลูก"
 
 The face of whoever is speaking stays in frame for the whole line.
-She stays lying propped on the pillows and does not sit up. She wears no glasses. The nasal cannula stays on. There is no notebook, no ledger, no printed receipt and no paperwork anywhere in the frame.
+The grandmother is not in this shot: no second person in the bed, no face on the pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. The young man and his father wear nothing on their faces — no tube, no cannula, no mask, no medical equipment of any kind on either of them. There is no notebook, no ledger, no printed receipt and no paperwork anywhere in the frame.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -202,7 +202,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, steady, and says: "นี่บัญชีเล่มแรกของบ้านเรานะลูก"
 
 The face of whoever is speaking stays in frame for the whole line.
-She stays lying propped on the pillows and does not sit up. She wears no glasses. The nasal cannula stays on. There is no notebook, no ledger, no printed receipt and no paperwork anywhere in the frame.
+The grandmother is not in this shot: no second person in the bed, no face on the pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. The young man and his father wear nothing on their faces — no tube, no cannula, no mask, no medical equipment of any kind on either of them. There is no notebook, no ledger, no printed receipt and no paperwork anywhere in the frame.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -219,7 +219,7 @@ The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clea
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, open, and says: "ถามมาสิลูก"
 
 The face of whoever is speaking stays in frame for the whole line.
-She stays lying propped on the pillows and does not sit up. She wears no glasses. The nasal cannula stays on.
+The grandmother is not in this shot: no second person in the bed, no face on the pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. The young man and his father wear nothing on their faces — no tube, no cannula, no mask, no medical equipment of any kind on either of them.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -230,13 +230,13 @@ Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, d
 ```
 Use <IMAGE_REF_0> as the character reference for nong_daeng. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for upstairs_bedroom.
 
-In a small upstairs bedroom in an old Bangkok shophouse — a single low wooden bed with a scratched wooden side rail against a bare plaster wall marked with cracks and water stains, a folded reddish-brown striped blanket, a small side table holding medicine bottles and a glass of water, an oscillating pedestal fan, one bare bulb hanging from the ceiling and no table lamp, a piece of cloth hanging on the wall near the window, wooden floorboards with visible gaps, a shuttered window letting in one thin band of daylight <IMAGE_REF_2>, afternoon. a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — turns on the bed to face his father properly, the older man letting his hand fall from the rail.
+In a small upstairs bedroom in an old Bangkok shophouse — a single low wooden bed with a scratched wooden side rail against a bare plaster wall marked with cracks and water stains, a folded reddish-brown striped blanket, a small side table holding medicine bottles and a glass of water, an oscillating pedestal fan, one bare bulb hanging from the ceiling and no table lamp, a piece of cloth hanging on the wall near the window, wooden floorboards with visible gaps, a shuttered window letting in one thin band of daylight <IMAGE_REF_2>, afternoon. a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — stays sitting upright on the edge of the bed beside his father, both feet on the floor, and turns only his shoulders to face him properly, the older man letting his hand fall from the rail.
 
 The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, quiet, and says: "ตอนนั้นพ่อบอกผมว่าไม่ต้องรู้ว่าเงินมาจากไหน"
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, without flinching, and says: "พ่อจำได้ลูก"
 
 The face of whoever is speaking stays in frame for the whole line.
-She stays lying propped on the pillows and does not sit up. She wears no glasses. The nasal cannula stays on.
+The grandmother is not in this shot: no second person in the bed, no face on the pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. The young man and his father wear nothing on their faces — no tube, no cannula, no mask, no medical equipment of any kind on either of them.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -253,7 +253,7 @@ The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clea
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, after a beat, and says: "พ่อก็อยากให้ลูกรู้เหมือนกันลูก"
 
 The face of whoever is speaking stays in frame for the whole line.
-She stays lying propped on the pillows and does not sit up. She wears no glasses. The nasal cannula stays on.
+The grandmother is not in this shot: no second person in the bed, no face on the pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. The young man and his father wear nothing on their faces — no tube, no cannula, no mask, no medical equipment of any kind on either of them.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -270,7 +270,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, steady, and says: "มันไม่ควรต้องปิดบังลูกเลยสักบาทเดียว"
 
 The face of whoever is speaking stays in frame for the whole line.
-She stays lying propped on the pillows and does not sit up. She wears no glasses. The nasal cannula stays on.
+The grandmother is not in this shot: no second person in the bed, no face on the pillow. Any oxygen tubing runs away under the blanket and touches nobody's face. The young man and his father wear nothing on their faces — no tube, no cannula, no mask, no medical equipment of any kind on either of them.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 

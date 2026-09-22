@@ -39,8 +39,8 @@ FILES = [
 NOTE = "Suno AI horror score cue, inspired by Doctor Sleep/The Shining, instrumental"
 
 ENV_CANDIDATES = [
-    Path("/Users/gob/Projects/mooniex-claudeflow/.env"),
-    Path("/Users/gob/Projects/mooniex-claudeflow/.env.local"),
+    Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"),
+    Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env.local"),
 ]
 
 DRIVE_FILES = "https://www.googleapis.com/drive/v3/files"

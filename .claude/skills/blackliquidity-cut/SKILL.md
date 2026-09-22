@@ -36,6 +36,7 @@ A Google Drive folder containing:
 | `audio-hq-*.mp3` | the full voice track — **this is the clock** |
 | `lipsync_part_*.mp4` | the avatar with a matched mouth, usually 3 × 15 s |
 | `S## - <role> (~Ns).mp4` | generated scene plates, some with the avatar, some pure b-roll |
+| `real/` + `real/REAL_MANIFEST.json` | REAL footage (from EP55 on): the broker's logo, its website and the WikiFX pages, already censored; see step 5a |
 | `Finals/` | a previous editor's cut — **ignore it, it is not the bar** |
 
 Read `_MANIFEST.json` first: `stages.scene_prompts.items[]` gives every script
@@ -99,6 +100,27 @@ unsharp=5:5:0.7:5:5:0.0,fps=30" -c:v libx264 -crf 16 -pix_fmt yuv420p out.mp4
 ffmpeg -i s04.mp4 -an -vf "scale=-2:1920:flags=lanczos,crop=1080:1920,fps=30" ...
 ```
 Keep the ORIGINAL lipsync files too: step 9 needs their audio.
+
+### 5a. Real footage first — `real/` outranks every plate and every B-roll clip
+**CEO, 2026-09-23: "Realfootage สำคัญกว่า B-Roll".** From EP55 on, the project
+folder can carry a `real/` subfolder: screen recordings and stills of the named
+broker's logo, its real website and the real WikiFX page with the real numbers.
+They are produced by `tools/bl_realfootage.py` and are already censored. Signup
+buttons, bonus offers, promo codes and complainants' names are pixelated, and
+part of the logo is too.
+
+Before placing any scene plate or catalogue clip, read `real/REAL_MANIFEST.json`.
+Every entry lists the script tags it proves (`covers: ["CONTEXT-3"]`). Wherever a
+tag has real footage, the real clip or still goes on screen for that line.
+A generated plate or a B-roll clip may fill only the lines no real footage covers.
+A real still of a number (the WikiFX score, a complaint amount) is the strongest
+shot the episode has. Give it the full frame long enough to read, and never shrink
+it into a corner behind a kinetic text block.
+
+Never re-crop a real clip in a way that pulls a censored region back into view or
+cuts a censor box off the element it hides. Never add an uncensored copy from
+anywhere else. If a censor looks wrong, stop and report it. Do not fix it in the
+cut.
 
 ### 5b. Pull B-roll from the channel's catalogue — grep, do not browse
 The manifest's own scene clips cover about half the runtime; the rest is text on
@@ -464,3 +486,6 @@ model, which is not part of this skill.
 Sound effects are deliberately out of scope until the channel has a licensed,
 human-annotated library. An AI placing SFX blind is what made earlier attempts
 sound wrong.
+
+## Field notes
+- 2026-09-23 [MISSING] §5a — CEO ruling: real footage (broker logo, real site, real WikiFX page with real numbers, partly censored) outranks B-roll; the runner is task-67f82679 (tools/bl_realfootage.py). Written into the rule body directly because it is a CEO ruling, not an n=1 sighting · evidence: CEO message 2026-09-23 "Realfootage สำคัญกว่า B-Roll", commit 6f4a7658 · status: promoted

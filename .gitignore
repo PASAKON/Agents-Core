@@ -131,3 +131,8 @@ mcp/node_modules/
 state/claude-home-migration-*.json
 state/hq-step2-migration-*.json
 state/hq-step2-yaml-backup-*.yaml
+state/hq-step3-migration-*.json
+state/hq-step3-yaml-backup-*.yaml
+state/hq-step3-plist-backup-*
+state/hq-step4a-migration-*.json
+state/hq-step4a-yaml-backup-*.yaml

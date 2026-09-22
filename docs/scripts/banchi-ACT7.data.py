@@ -26,6 +26,7 @@ STYLE = _a6.STYLE
 CHAR = dict(_a6.CHAR); LOC = dict(_a6.LOC); VOICE = dict(_a6.VOICE)
 NOT = dict(_a6.NOT); APRON = _a6.APRON
 PROP_FOR_NOT = dict(_a6.PROP_FOR_NOT)
+PROPS_BY_SHOT = dict(_a6.PROPS_BY_SHOT)
 
 LOC["shop2"] = ("@noodle_shop_thriving",
   "the same deep old Bangkok shophouse noodle restaurant, a year on and full — every "
@@ -99,7 +100,7 @@ SHOTS = [
    ("somchai","open","ถามมาสิลูก")], ["noya"]),
 
  (169, 10, "Medium two-shot, static camera", ["ton","somchai"], "room", "afternoon",
-  "turns on the bed to face his father properly, the older man letting his hand fall from the rail",
+  "stays sitting upright on the edge of the bed beside his father, both feet on the floor, and turns only his shoulders to face him properly, the older man letting his hand fall from the rail",
   [("ton","quiet","ตอนนั้นพ่อบอกผมว่าไม่ต้องรู้ว่าเงินมาจากไหน"),
    ("somchai","without flinching","พ่อจำได้ลูก")], ["noya"]),
 

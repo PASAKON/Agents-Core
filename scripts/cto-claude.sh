@@ -351,7 +351,7 @@ disown $!
 IFS=' ' read -r CTO_MODEL CTO_FALLBACK CTO_EFFORT <<<"$(source "$ROOT/.venv/bin/activate" 2>/dev/null && python3 -c "
 from lib.config import role as get_role
 r = get_role('cto')
-print(r.get('model') or 'claude-sonnet-5', r.get('fallback_model') or 'claude-fable-5', r.get('effort') or 'xhigh')
+print(r.get('model') or 'claude-opus-5-5[1m]', r.get('fallback_model') or 'claude-fable-5', r.get('effort') or 'xhigh')
 ")"
 
 # Flag-gated GLM offload (CXO_MODEL_PROVIDER, set by spawn-cto.sh --glm).

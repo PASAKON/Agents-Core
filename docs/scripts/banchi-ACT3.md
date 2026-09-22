@@ -174,12 +174,12 @@ Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, d
 ```
 
 ### SHOT 68 · 1:12–1:22 · 10s · Medium two-shot, static camera
-**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop`→REF_2
+**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop`→REF_2 · 4) `@prop_envelope`→REF_3
 **บทพูด** lung_somchai `"นี่ลูก เอาไว้ค่ารถไปสัมภาษณ์"` — gentle
 **บทพูด** nong_daeng `"ผมไม่เอาเงินนี้ครับพ่อ"` — not taking it
 **บทพูด** lung_somchai `"เอาไปเถอะลูก"` — light, tired
 ```
-Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the character reference for nong_daeng. Use <IMAGE_REF_2> as the location reference for noodle_shop.
+Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the character reference for nong_daeng. Use <IMAGE_REF_2> as the location reference for noodle_shop. Use <IMAGE_REF_3> as the character reference for prop_envelope.
 
 In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, night. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0>, a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_1> — takes a folded envelope from his apron and holds it out across the counter while his son stands with his hands at his sides.
 
@@ -188,7 +188,7 @@ The 24-year-old man in the grey polo shirt <IMAGE_REF_1> speaks Thai in the clea
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, light, tired, and says: "เอาไปเถอะลูก"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -209,11 +209,11 @@ Close-up on the son, static camera. Contemporary Thai realist drama, shot on 35m
 ```
 
 ### SHOT 70 · 1:30–1:34 · 4s · Close-up on the father, static camera
-**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
+**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1 · 3) `@prop_envelope`→REF_2
 **บทพูด** lung_somchai `"ใครบอกลูก"` — quiet
 **บทพูด** lung_somchai `"ย่าเหรอ"` — softer
 ```
-Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the location reference for noodle_shop.
+Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the location reference for noodle_shop. Use <IMAGE_REF_2> as the character reference for prop_envelope.
 
 In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_1>, night. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0> — lowers the envelope to the counter and keeps his hand flat on top of it while he answers.
 
@@ -221,7 +221,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, softer, and says: "ย่าเหรอ"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Close-up on the father, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
@@ -260,12 +260,12 @@ Close-up on the son, static camera. Contemporary Thai realist drama, shot on 35m
 ```
 
 ### SHOT 73 · 1:52–2:02 · 10s · Close-up on the father, static camera
-**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1
+**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@noodle_shop`→REF_1 · 3) `@prop_envelope`→REF_2
 **บทพูด** lung_somchai `"ตอนนั้นพ่อมีทางเลือกอยู่สองทางลูก"` — even
 **บทพูด** lung_somchai `"ทางหนึ่งคือบอกลูกว่าไม่มี"` — steady
 **บทพูด** lung_somchai `"พ่อเลือกอีกทาง"` — quiet
 ```
-Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the location reference for noodle_shop.
+Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the location reference for noodle_shop. Use <IMAGE_REF_2> as the character reference for prop_envelope.
 
 In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_1>, night. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0> — keeps his palm on the envelope and answers looking straight at his son.
 
@@ -274,16 +274,16 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn
 The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, quiet, and says: "พ่อเลือกอีกทาง"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Close-up on the father, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
 ### SHOT 74 · 2:02–2:08 · 6s · Medium two-shot, static camera
-**ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2
+**ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop`→REF_2 · 4) `@prop_envelope`→REF_3
 **บทพูด** nong_daeng `"งวดนี้เท่าไหร่ครับ"` — low
 **บทพูด** lung_somchai `"ลูกไม่ต้องรู้"` — flat
 ```
-Use <IMAGE_REF_0> as the character reference for nong_daeng. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop.
+Use <IMAGE_REF_0> as the character reference for nong_daeng. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop. Use <IMAGE_REF_3> as the character reference for prop_envelope.
 
 In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, night. a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — pushes the envelope back across the counter toward his father with two fingers while his father watches his hand.
 
@@ -291,16 +291,16 @@ The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clea
 The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, flat, and says: "ลูกไม่ต้องรู้"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
 ### SHOT 75 · 2:08–2:16 · 8s · Close-up on the son, static camera
-**ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@noodle_shop`→REF_1
+**ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@noodle_shop`→REF_1 · 3) `@prop_envelope`→REF_2
 **บทพูด** nong_daeng `"ผมจะหางานให้ได้ครับ"` — quiet
 **บทพูด** nong_daeng `"แล้วผมจะเป็นคนจ่ายเอง"` — firmer
 ```
-Use <IMAGE_REF_0> as the character reference for nong_daeng. Use <IMAGE_REF_1> as the location reference for noodle_shop.
+Use <IMAGE_REF_0> as the character reference for nong_daeng. Use <IMAGE_REF_1> as the location reference for noodle_shop. Use <IMAGE_REF_2> as the character reference for prop_envelope.
 
 In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_1>, night. a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_0> — keeps his fingers on the envelope where he pushed it and talks down at it.
 
@@ -308,17 +308,17 @@ The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clea
 The 24-year-old man in the grey polo shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, firmer, and says: "แล้วผมจะเป็นคนจ่ายเอง"
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Close-up on the son, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 
 ### SHOT 76 · 2:16–2:26 · 10s · Medium two-shot, static camera
-**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop`→REF_2
+**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop`→REF_2 · 4) `@prop_envelope`→REF_3
 **บทพูด** lung_somchai `"งวดนี้เป็นงวดสุดท้ายแล้วลูก"` — gentle, final
 **บทพูด** lung_somchai `"พ่อจ่ายมาสี่ปี อีกงวดเดียวพ่อก็ไหว"` — warm
 **บทพูด** nong_daeng `"พ่อ..."` — thin
 ```
-Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the character reference for nong_daeng. Use <IMAGE_REF_2> as the location reference for noodle_shop.
+Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the character reference for nong_daeng. Use <IMAGE_REF_2> as the location reference for noodle_shop. Use <IMAGE_REF_3> as the character reference for prop_envelope.
 
 In a narrow Bangkok shophouse ground floor turned noodle shop — five worn wooden tables with bright red, blue and green plastic stools, a square structural pillar standing in the middle of the room with a small chalkboard menu hung on it, a narrow wooden staircase rising from the middle of the room beside that pillar, the room deep and narrow with the street at the far end, a stainless-steel soup cart with a steaming broth pot against the left wall, an open roll-up shutter onto a busy street, bare bulbs strung overhead, walls stained pale yellow with age, a laminated payment sign on the counter <IMAGE_REF_2>, night. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0>, a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a plain grey short-sleeved polo shirt <IMAGE_REF_1> — picks the envelope up and puts it into his son's shirt pocket himself, keeping his hand there while he talks.
 
@@ -327,7 +327,7 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn
 The 24-year-old man in the grey polo shirt <IMAGE_REF_1> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, thin, and says: "พ่อ..."
 
 The face of whoever is speaking stays in frame for the whole line.
-The banknotes are obvious theatrical prop money of an invented place: soft pastel paper in even tones, one plain printed numeral in a corner, a simple abstract line pattern at the edges, and nothing else on them. No portrait or face of any kind, and no national emblem, crest, flag or country name — this is not the currency of any real country. Worn and soft with handling. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
+The money is inside a plain brown paper envelope, folded once, and stays inside it: the envelope is never opened in this shot and not a single banknote is visible — no note in a hand, none protruding from the flap, none on the counter, none anywhere in frame. If any edge of a note shows at all it is plain soft pastel paper, dusty rose or pale sage, blank, with no printing on the visible part. No face, portrait or bust; no crest, seal, emblem, flag or monument; no country name and no readable script. It resembles no real currency of any country. Also in this shot: no notebook, no pen, no paper, no ledger of any kind.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```
 

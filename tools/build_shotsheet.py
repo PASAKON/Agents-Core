@@ -114,6 +114,13 @@ def build(d, act: str = "?") -> str:
         # the bug it was meant to fix. Which shots actually hold money in frame is
         # a reading of the action line, and belongs to a human.
         prop_map = d.PROP_FOR_NOT
+        # Per-shot props, chosen by a human from the action line (see
+        # PROPS_BY_SHOT). No getattr default: a missing map must fail loudly,
+        # not silently attach nothing — that exact silence cost a whole feature
+        # on 2026-09-22.
+        for handle in d.PROPS_BY_SHOT.get(n, []):
+            if handle not in [h for h, _ in chips]:
+                chips.append((handle, ""))
 
         # The ceiling is Flow's, not ours. The Ultra audit (task-68653632,
         # 2026-09-18) read a reference-chip cap of 10 off the live product; the 3

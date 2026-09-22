@@ -2,7 +2,7 @@
 """PreToolUse hook — no web search before the research cache is checked.
 
 ADR 0028 §6 (session cto-0e8d80b8, 2026-09-22): `Agents/Wikis/research/`
-(today `/Users/gob/Projects/LLMs/research/`, contract in its README) is where
+(today `/Users/gob/MoonieXHQ/Agents/Wikis/research/`, contract in its README) is where
 every answered question lives, dated with `refresh_after`. An agent must
 search it BEFORE any web search, and write the file after. Prose alone did
 not stop sessions re-searching the internet — memory said "put the rule in

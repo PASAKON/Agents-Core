@@ -22,6 +22,7 @@ LOC = dict(_a1.LOC)
 VOICE = dict(_a1.VOICE)
 NOT = dict(_a1.NOT)
 PROP_FOR_NOT = dict(_a1.PROP_FOR_NOT)
+PROPS_BY_SHOT = dict(_a1.PROPS_BY_SHOT)
 APRON = _a1.APRON
 
 # ── NEW IN ACT 2 ─────────────────────────────────────────────────────────────
@@ -107,9 +108,9 @@ SHOTS = [
    ("somchai","quiet","อือ")], []),
 
  (43, 6, "Close-up, static camera", ["ton"], "shop", "midday",
-  "wipes the next table down without looking away from the two men across the room, talking to himself",
-  [("ton","low, to himself","เงินเขาทั้งนั้น... เงินตัวเองแท้ๆ"),
-   ("ton","slower, working it out","แล้วมานั่งกินร้านเราทุกอาทิตย์ทำไม")], []),
+  "wipes the next table down without looking away from the two men across the room, saying it aloud in a low voice",
+  [("ton","low but clearly audible","เงินเขาทั้งนั้น... เงินตัวเองแท้ๆ"),
+   ("ton","slower, working it out","แล้วมานั่งกินร้านเราทุกอาทิตย์ทำไม")], ["nosubs"]),
 
  (44, 8, "Medium shot, static camera", ["cherd","somchai"], "shop", "midday",
   "stands and slides a folded note under the edge of his empty bowl while the older man watches him do it",

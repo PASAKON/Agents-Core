@@ -56,8 +56,8 @@ IGNORE_NAMES = {".DS_Store", "Thumbs.db"}
 ENV_CANDIDATES = [
     Path(p) for p in filter(None, [
         os.environ.get("MOONIEX_CLAUDEFLOW_ENV"),
-        "/Users/gob/Projects/mooniex-claudeflow/.env",
-        "/Users/gob/Projects/mooniex-claudeflow/.env.local",
+        "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env",
+        "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env.local",
         "/root/projects/mooniex-claudeflow/.env",
         "/root/projects/mooniex-claudeflow/.env.local",
     ])

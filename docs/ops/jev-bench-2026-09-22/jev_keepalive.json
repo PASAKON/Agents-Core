@@ -1,0 +1,272 @@
+{
+ "mode": "keepalive",
+ "latency_ms": {
+  "n": 25,
+  "min": 256.7,
+  "p50": 341.1,
+  "p90": 377.3,
+  "p99": 405.0,
+  "max": 405.0,
+  "mean": 332.3
+ },
+ "calls": [
+  {
+   "i": 0,
+   "ms": 300.5,
+   "http": 200,
+   "choice": "jump",
+   "confidence": 0.49,
+   "tokens_in": 429,
+   "tokens_out": 46,
+   "cost": 1.8018e-05
+  },
+  {
+   "i": 1,
+   "ms": 343.2,
+   "http": 200,
+   "choice": "none",
+   "confidence": 0.51,
+   "tokens_in": 431,
+   "tokens_out": 46,
+   "cost": 1.8102e-05
+  },
+  {
+   "i": 2,
+   "ms": 352.6,
+   "http": 200,
+   "choice": "slide",
+   "confidence": 0.3,
+   "tokens_in": 433,
+   "tokens_out": 46,
+   "cost": 1.8186e-05
+  },
+  {
+   "i": 3,
+   "ms": 274.8,
+   "http": 200,
+   "choice": "jump",
+   "confidence": 0.34,
+   "tokens_in": 429,
+   "tokens_out": 46,
+   "cost": 1.8018e-05
+  },
+  {
+   "i": 4,
+   "ms": 348.6,
+   "http": 200,
+   "choice": "none",
+   "confidence": 0.35,
+   "tokens_in": 431,
+   "tokens_out": 46,
+   "cost": 1.8102e-05
+  },
+  {
+   "i": 5,
+   "ms": 377.3,
+   "http": 200,
+   "choice": "slide",
+   "confidence": 0.27,
+   "tokens_in": 433,
+   "tokens_out": 46,
+   "cost": 1.8186e-05
+  },
+  {
+   "i": 6,
+   "ms": 346.1,
+   "http": 200,
+   "choice": "jump",
+   "confidence": 0.46,
+   "tokens_in": 429,
+   "tokens_out": 46,
+   "cost": 1.8018e-05
+  },
+  {
+   "i": 7,
+   "ms": 314.9,
+   "http": 200,
+   "choice": "none",
+   "confidence": 0.37,
+   "tokens_in": 431,
+   "tokens_out": 46,
+   "cost": 1.8102e-05
+  },
+  {
+   "i": 8,
+   "ms": 364.9,
+   "http": 200,
+   "choice": "slide",
+   "confidence": 0.24,
+   "tokens_in": 433,
+   "tokens_out": 46,
+   "cost": 1.8186e-05
+  },
+  {
+   "i": 9,
+   "ms": 345.4,
+   "http": 200,
+   "choice": "jump",
+   "confidence": 0.47,
+   "tokens_in": 429,
+   "tokens_out": 46,
+   "cost": 1.8018e-05
+  },
+  {
+   "i": 10,
+   "ms": 341.1,
+   "http": 200,
+   "choice": "none",
+   "confidence": 0.38,
+   "tokens_in": 431,
+   "tokens_out": 46,
+   "cost": 1.8102e-05
+  },
+  {
+   "i": 11,
+   "ms": 356.2,
+   "http": 200,
+   "choice": "slide",
+   "confidence": 0.35,
+   "tokens_in": 433,
+   "tokens_out": 46,
+   "cost": 1.8186e-05
+  },
+  {
+   "i": 12,
+   "ms": 304.2,
+   "http": 200,
+   "choice": "jump",
+   "confidence": 0.43,
+   "tokens_in": 429,
+   "tokens_out": 46,
+   "cost": 1.8018e-05
+  },
+  {
+   "i": 13,
+   "ms": 256.7,
+   "http": 200,
+   "choice": "none",
+   "confidence": 0.36,
+   "tokens_in": 431,
+   "tokens_out": 46,
+   "cost": 1.8102e-05
+  },
+  {
+   "i": 14,
+   "ms": 394.1,
+   "http": 200,
+   "choice": "slide",
+   "confidence": 0.27,
+   "tokens_in": 433,
+   "tokens_out": 46,
+   "cost": 1.8186e-05
+  },
+  {
+   "i": 15,
+   "ms": 302.2,
+   "http": 200,
+   "choice": "jump",
+   "confidence": 0.41,
+   "tokens_in": 429,
+   "tokens_out": 46,
+   "cost": 1.8018e-05
+  },
+  {
+   "i": 16,
+   "ms": 405.0,
+   "http": 200,
+   "choice": "none",
+   "confidence": 0.38,
+   "tokens_in": 431,
+   "tokens_out": 46,
+   "cost": 1.8102e-05
+  },
+  {
+   "i": 17,
+   "ms": 351.7,
+   "http": 200,
+   "choice": "slide",
+   "confidence": 0.24,
+   "tokens_in": 433,
+   "tokens_out": 46,
+   "cost": 1.8186e-05
+  },
+  {
+   "i": 18,
+   "ms": 323.1,
+   "http": 200,
+   "choice": "jump",
+   "confidence": 0.42,
+   "tokens_in": 429,
+   "tokens_out": 46,
+   "cost": 1.8018e-05
+  },
+  {
+   "i": 19,
+   "ms": 278.1,
+   "http": 200,
+   "choice": "none",
+   "confidence": 0.37,
+   "tokens_in": 431,
+   "tokens_out": 46,
+   "cost": 1.8102e-05
+  },
+  {
+   "i": 20,
+   "ms": 313.2,
+   "http": 200,
+   "choice": "slide",
+   "confidence": 0.25,
+   "tokens_in": 433,
+   "tokens_out": 46,
+   "cost": 1.8186e-05
+  },
+  {
+   "i": 21,
+   "ms": 334.5,
+   "http": 200,
+   "choice": "jump",
+   "confidence": 0.39,
+   "tokens_in": 429,
+   "tokens_out": 46,
+   "cost": 1.8018e-05
+  },
+  {
+   "i": 22,
+   "ms": 311.8,
+   "http": 200,
+   "choice": "none",
+   "confidence": 0.36,
+   "tokens_in": 431,
+   "tokens_out": 46,
+   "cost": 1.8102e-05
+  },
+  {
+   "i": 23,
+   "ms": 326.4,
+   "http": 200,
+   "choice": "slide",
+   "confidence": 0.32,
+   "tokens_in": 433,
+   "tokens_out": 46,
+   "cost": 1.8186e-05
+  },
+  {
+   "i": 24,
+   "ms": 341.4,
+   "http": 200,
+   "choice": "jump",
+   "confidence": 0.4,
+   "tokens_in": 429,
+   "tokens_out": 46,
+   "cost": 1.8018e-05
+  }
+ ],
+ "cost_usd": {
+  "total": 0.000452466,
+  "per_call_mean": 1.809864e-05,
+  "per_call_min": 1.8018e-05,
+  "per_call_max": 1.8186e-05
+ },
+ "tokens_in_mean": 430.92,
+ "answered": 25
+}

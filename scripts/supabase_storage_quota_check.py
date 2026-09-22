@@ -39,7 +39,7 @@ from pathlib import Path
 
 import requests
 
-CLAUDEFLOW_ENV = Path("/Users/gob/Projects/mooniex-claudeflow/.env")
+CLAUDEFLOW_ENV = Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env")
 DEFAULT_BUCKET = "claudeflow-media"
 DEFAULT_QUOTA_BYTES = 1 * 1024 * 1024 * 1024  # 1 GiB, Supabase free-tier cap
 DEFAULT_THRESHOLD_PCT = 80

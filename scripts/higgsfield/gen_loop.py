@@ -34,7 +34,7 @@ from tools import decide as decide_tool  # noqa: E402
 
 # ── config ──────────────────────────────────────────────────────────────────
 CDP = "http://127.0.0.1:9222"
-CF_ENV = Path("/Users/gob/Projects/mooniex-claudeflow/.env")
+CF_ENV = Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env")
 LOCAL_ROOT = Path("/Users/gob/Projects/Agents/output/higgsfield-broll")
 INDEX = LOCAL_ROOT / "00_INDEX.csv"
 DRIVE_CACHE = LOCAL_ROOT / ".drive_cache.json"
