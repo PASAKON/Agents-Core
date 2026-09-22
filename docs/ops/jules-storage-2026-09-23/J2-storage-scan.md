@@ -1,0 +1,19 @@
+Context: `tools/storage_policy.py` (read it first — `load`, `classify(path, policy, home, age_days)`, precedence NEVER > REBUILD > COLD > HOT) sorts a path into a tier from `config/storage-policy.yaml`. Build the scan that answers "how many GB sit in each tier on this machine, and where". Read-only: it never deletes, moves or writes anything outside its own stdout.
+
+1. GOAL — the command that must pass: `python -m pytest tests/test_storage_scan.py -q` exits 0, AND `python tools/storage_scan.py --root <a tmp dir> --json` prints valid JSON and exits 0 from any cwd.
+2. FILES you may touch: `tools/storage_scan.py` (new), `tests/test_storage_scan.py` (new). No other file. Do not edit `tools/storage_policy.py` or the config.
+3. FORBIDDEN: scratch/log/patch files anywhere, dependency or lockfile edits, editing any other test, skipping or loosening an assertion, network calls, deleting/moving/writing any file outside tmp_path in tests, following symlinks.
+4. SPEC:
+   - `scan(roots, policy, home=None, size_never=False, now=None) -> dict`. Walk each root top-down with `os.scandir`, never following symlinks (`follow_symlinks=False` everywhere; a symlink is neither sized nor descended — on the target Mac `~/Projects/*` are symlinks into `~/MoonieXHQ`, following them double-counts).
+   - Directories: classify with `age_days=None`. REBUILD / COLD / NEVER → this directory is one entry: size it (recursively, no symlinks) and do NOT classify inside it. HOT and UNCLASSIFIED → descend (a HOT project can contain REBUILD `node_modules`/`.venv`/`__pycache__`, which must be counted as REBUILD, not HOT — never count a byte twice).
+   - Files: classify with `age_days` from the file's mtime (`now` injectable for tests).
+   - NEVER directories are reported with `bytes: null` unless `size_never=True` (walking the CEO's Photos library is slow and not ours to measure by default).
+   - Size = allocated bytes `st_blocks * 512` (matches `du`; evicted iCloud files are 0). Count a hard-linked inode once (track `(st_dev, st_ino)`).
+   - `PermissionError` / `FileNotFoundError` while walking: count per root in `errors`, keep going, never crash.
+   - Result: `{"roots": [...], "tiers": {"HOT": bytes, "REBUILD": bytes, "COLD": bytes, "NEVER": bytes|null, "UNCLASSIFIED": bytes}, "top": {tier: [{"path", "bytes"}] (10 largest entries per tier; entries = the classified dirs above, or top-level children for HOT/UNCLASSIFIED)}, "errors": int, "elapsed_s": float}`.
+   - CLI: `python tools/storage_scan.py [--root PATH ...] [--size-never] [--json] [--policy PATH]`. Default root = home; default policy resolved from the script location like `tools/storage_policy.py` does. Without `--json` print a short table: tier, GB (1 decimal), then the top entries.
+   - Tests build a fake home in tmp_path and pass `home=`: a HOT project containing `node_modules` (counted REBUILD, not HOT); a NEVER dir unsized by default and sized with `size_never=True`; a symlink to a big dir is not counted; a hard link counted once; a transcript file with mtime 10 days old → COLD and 3 days old → HOT (use `os.utime` + `now=`); an unreadable dir (chmod 000; `pytest.skip` if running as root) increments `errors`; the CLI subprocess test uses `sys.executable`, never bare `python` (the target Mac has no `python` on PATH).
+5. ENV NOTE: if your VM lacks something the repo already declares, report it — do not add dependencies.
+6. DELIVERABLE: one PR titled `storage: scan — GB per tier (ADR 0030 J2)`; body = what it does + the exact, unedited output of the goal commands.
+7. FACTS, NOT GUESSES: every claim in the PR body cites the command output or file:line that proves it; paste real output only — never a placeholder such as "x.xxs"; anything you could not establish is written as "unknown — not verified". Do not state which model you are.
+8. No questions needed; proceed.
