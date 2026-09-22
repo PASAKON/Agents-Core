@@ -79,3 +79,32 @@ def _isolate_org_root(tmp_path, monkeypatch):
     resolved root is a real checkout (has a `.git` entry).
     """
     monkeypatch.setenv("ORG_ROOT", str(tmp_path))
+
+
+# --- .env seal for EVERY test (moved here from tests/conftest.py 2026-09-22, task-3de56f59 found
+# that scripts/ tests were outside the tests/ seal). tools/decide.py and lib/config.py read paid
+# keys from os.environ then the gitignored .env; a test that only delenv()s them still goes LIVE.
+# The reader itself is neutralised; a test ABOUT the reader opts out with @pytest.mark.allow_dotenv
+# and must point it at a tmp .env. Live smoke is a CLI verb (DECIDE_LIVE=1), never pytest.
+import importlib as _importlib
+import pytest as _pytest
+
+_PAID_VARS = ("OPENROUTER_API_KEY", "DECIDE_PROVIDER", "DECIDE_BUDGET_USD", "DECIDE_JEV_MODEL", "JEV_API_KEY", "JEV_API_URL")
+
+
+@_pytest.fixture(autouse=True)
+def _no_dotenv_no_paid_calls(request, monkeypatch):
+    if request.node.get_closest_marker("allow_dotenv"):
+        yield
+        return
+    for var in _PAID_VARS:
+        monkeypatch.delenv(var, raising=False)
+    for modname in ("tools.decide", "lib.config"):
+        try:
+            mod = _importlib.import_module(modname)
+        except Exception:
+            continue
+        if hasattr(mod, "_read_dotenv_var"):
+            monkeypatch.setattr(mod, "_read_dotenv_var", lambda name: None)
+    yield
+
