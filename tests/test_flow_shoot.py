@@ -1064,3 +1064,183 @@ def test_zero_chips_attached_never_reaches_submit(tmp_path):
     assert rows[35]["status"] == "needs_model"
     assert "chip never attached" in rows[35]["note"]
     assert rc == 1
+
+
+# ── decide()-backed poll_result (task-b8a9a714): the old full-body
+#    is_refusal_text() scan is replaced by decide('browser.page_state',
+#    extract_state(page)) each cycle. These exercise the REAL FlowBrowser.
+#    poll_result() against a fake page (no browser, no network — rules
+#    provider only, same env-stripping convention as tests/test_decide.py). ─
+
+from lib import decision_ledger  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _redirect_decision_ledger(tmp_path, monkeypatch):
+    monkeypatch.setattr(decision_ledger, "LEDGER_DIR", tmp_path / "decisions")
+
+
+@pytest.fixture(autouse=True)
+def _clean_decide_env(monkeypatch):
+    for var in ("DECIDE_PROVIDER", "OPENROUTER_API_KEY", "DECIDE_BUDGET_USD",
+                "JEV_API_KEY", "JEV_API_URL"):
+        monkeypatch.delenv(var, raising=False)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_sleep_in_poll(monkeypatch):
+    # poll_result()'s inner loop sleeps POLL_S (8s) every cycle — make this
+    # whole suite instant without touching the real timeout arithmetic.
+    monkeypatch.setattr(flow_shoot.time, "sleep", lambda _s: None)
+
+
+class _StatePage:
+    """Feeds a fixed state string to extract_state() via its EXTRACT_STATE_JS
+    call; every other evaluate() call (the mute/nudge-play snippet
+    poll_result() issues each cycle) is a no-op."""
+
+    def __init__(self, state_text: str):
+        self.state_text = state_text
+
+    def evaluate(self, script):
+        if script == flow_shoot.EXTRACT_STATE_JS:
+            return self.state_text
+        return None
+
+
+def test_poll_result_flow_refusal_card_returns_refusal_with_rewrite_dialogue():
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _StatePage(REFUSAL_CARD)
+    result = browser.poll_result(timeout_s=5)
+    assert result["status"] == "refusal"
+    assert result["moderation_choice"] == "rewrite_dialogue"
+
+
+def test_poll_result_face_ip_scanner_text_escalates():
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _StatePage("Face/IP scanner flagged this clip for resemblance")
+    result = browser.poll_result(timeout_s=5)
+    assert result["status"] == "refusal"
+    assert result["moderation_choice"] == "escalate_ceo"
+
+
+def test_poll_result_signed_out_text_stops():
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _StatePage("Sign in")
+    result = browser.poll_result(timeout_s=5)
+    assert result == {"status": "stopped", "text": "Sign in", "reason": "signed_out"}
+
+
+def test_poll_result_error_text_stops():
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _StatePage("something went wrong")
+    result = browser.poll_result(timeout_s=5)
+    assert result["status"] == "stopped"
+    assert result["reason"] == "error"
+
+
+def test_poll_result_generating_text_keeps_polling_to_timeout():
+    # A confident-but-benign classification (generating) must NOT stop the
+    # loop early — only moderated/signed_out/error short-circuit the wait.
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _StatePage('button="เริ่มสร้าง" disabled=true | generating')
+    result = browser.poll_result(timeout_s=0.001)
+    assert result == {"status": "timeout", "text": ""}
+
+
+def test_poll_result_unknown_text_keeps_polling_to_timeout():
+    # No confident rule match at all (choice=None) is treated the same as
+    # "keep waiting", not "stop" — stopping is reserved for a CONFIDENT
+    # signed_out/error/moderated read, per the conservative action-mapping
+    # gate (never guess a healthy run into stopping early).
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _StatePage("nothing recognizable here")
+    result = browser.poll_result(timeout_s=0.001)
+    assert result == {"status": "timeout", "text": ""}
+
+
+class _DownloadArrivesMidPollPage:
+    """Simulates the CDN response arriving between two poll cycles — the
+    captured-URL check runs first every iteration, so this proves decide()
+    never blocks or delays the real completion signal."""
+
+    def __init__(self, urls_list):
+        self._urls = urls_list
+        self._armed = False
+
+    def evaluate(self, script):
+        if script == flow_shoot.EXTRACT_STATE_JS:
+            if not self._armed:
+                self._armed = True
+                self._urls.append("https://flow-content.google/video/captured")
+            return "generating"
+        return None
+
+
+def test_poll_result_download_wins_once_url_is_captured_mid_poll():
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _DownloadArrivesMidPollPage(browser._captured_video_urls)
+    result = browser.poll_result(timeout_s=5)
+    assert result == {"status": "download", "text": ""}
+
+
+# ── cmd_run's hazard handling: stop the whole run / escalate, never guess ──
+
+class _StoppedPollStubBrowser(_GateStubBrowser):
+    def poll_result(self, timeout_s: int = 0) -> dict:
+        return {"status": "stopped", "text": "Sign in", "reason": "signed_out"}
+
+
+def test_stopped_page_state_halts_the_whole_run_not_just_this_shot(tmp_path):
+    args = _cap_args(tmp_path, "stopped.tsv", cap=999, only="35,36")
+    stub = _StoppedPollStubBrowser(chip_count_sequence=[0, 1, 1, 2, 2, 3, 3])
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    assert stub.submit_called is True  # submit already happened before the poll observed the hazard
+    rows = flow_ledger.load_ledger(tmp_path / "stopped.tsv")
+    assert rows[35]["status"] == "failed"
+    assert "signed_out" in rows[35]["note"]
+    assert rows[36]["status"] == "todo"  # never even started — the run halted
+    assert rc == 1
+
+
+class _EscalateCeoStubBrowser(_GateStubBrowser):
+    def poll_result(self, timeout_s: int = 0) -> dict:
+        return {"status": "refusal", "text": "Rights verification required",
+                "moderation_choice": "escalate_ceo"}
+
+
+def test_escalate_ceo_exits_the_runner_and_never_re_fires(tmp_path):
+    args = _cap_args(tmp_path, "escalate.tsv", cap=999)
+    stub = _EscalateCeoStubBrowser(chip_count_sequence=[0, 1, 1, 2, 2, 3, 3])
+    with pytest.raises(SystemExit):
+        flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    assert stub.submit_called is True  # the one submit already made — no re-fire happened
+
+
+# ── money guards stay inert regardless of decide() (task-b8a9a714) ─────────
+
+def test_dry_run_never_calls_decide(tmp_path, monkeypatch):
+    def _boom(*_a, **_kw):
+        raise AssertionError("decide() must never be called under --dry-run — "
+                              "dry-run returns before submit()/poll_result() at all")
+    monkeypatch.setattr(flow_shoot.decide_tool, "decide", _boom)
+    args = _dry_run_args(tmp_path, "dry_no_decide.tsv")
+    stub = _DryRunAwareStubBrowser(chip_count_value=3)
+    flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+    assert stub.submit_called is False
+
+
+def test_credit_cap_zero_never_calls_decide(tmp_path, monkeypatch):
+    def _boom(*_a, **_kw):
+        raise AssertionError("decide() must never be called when credit-cap=0 "
+                              "blocks the run before submit()/poll_result()")
+    monkeypatch.setattr(flow_shoot.decide_tool, "decide", _boom)
+    args = _cap_args(tmp_path, "cap0_no_decide.tsv", cap=0)
+    stub = _GateStubBrowser(chip_count_sequence=[0, 1, 1, 2, 2, 3, 3])
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+    assert stub.submit_called is False
+    rows = flow_ledger.load_ledger(tmp_path / "cap0_no_decide.tsv")
+    assert rows[35]["status"] == "todo"
+    assert rc == 0
