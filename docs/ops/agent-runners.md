@@ -185,6 +185,14 @@ This is the same session-0 boundary as §3, reached through auth instead of a
 sandbox pipe. Every runner on that box goes through session 1; nothing changes
 in the launcher.
 
+**Re-signing in on Contabo (2026-09-23).** Both CLIs are signed in on the VPS
+for the usage widgets. When either drops out, do not relay codes through chat:
+`bash mooniex-scriptable/server/contabo-usage/login.sh agy|codex` opens a real
+Terminal that owns the process (the CTO pops it with `osascript … do script`).
+It waits for Enter on the Mac *before* connecting — an ssh session idling at a
+prompt died with `client_loop: send disconnect: Broken pipe` — and keeps the
+connection alive every 15 s. The CEO signed off on the pattern the same night.
+
 ### 6b. How to drive `agy` as a worker — measured 2026-09-22
 
 **The contract: `agy` edits files. The hub does everything else.**
