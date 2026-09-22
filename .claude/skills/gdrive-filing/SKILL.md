@@ -927,3 +927,7 @@ is the working copy, and both are correct.
    is the only place it needs to go.
 2. If it's a brand-new folder that doesn't exist in Drive yet, create it with
    `create_folder` (after asking), then record the returned ID here.
+
+## Field notes
+
+- 2026-09-23 [WRONG] §Film work — the «บัญชี» row says the Element plates live on Drive AND on the Mac ("Drive is the archive, ~/Desktop/banchi-plates/ is the working copy"). The bridge lists Element/Character, /Location, /Prop as EMPTY, so the Mac folder was the only copy; it was deleted in a disk clear-up and tools/build_shotsheet.py then refused every sheet. Fix: after the re-harvest, upload the plates to Element/<kind>/ and verify by name+size before trusting the row again. · evidence: session cto-8c06958c, drive_get.find on 1mQ5Hx…/1DlzY…/1ZgN1F… → 0 files, task-f78ca70e · status: pending
