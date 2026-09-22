@@ -32,9 +32,11 @@ sleeping. The binding constraints of this org are all three.
 
 ## 1. What qualifies — all four must hold
 
-1. Repo is on GitHub and the Jules app can see it (least privilege: keep the
-   app on 2–3 repos, never "all" — it can read every private repo it is given,
-   including Agents-Memory).
+1. Repo is on GitHub, the Jules app can see it, **and it is on the dispatch
+   allowlist** `config/jules.yaml` (CEO 2026-09-23: the app may SEE every repo;
+   what it may WORK on is decided by us, per repo). The dispatch path refuses any
+   repo not listed, and the review gate rejects a PR from an unlisted repo. Visibility
+   is not permission — Jules can read Agents-Memory; nothing ever dispatches to it.
 2. The verdict is a command that exits 0 (tests, lint, build) or a diff a
    script can validate. "Looks right" is not a verdict.
 3. Nothing under deploy scripts, `.env`/secrets, auth, payments, or prod data.
@@ -46,7 +48,7 @@ call sites · docs generated from code · small refactors under coverage.
 Bad: design decisions · anything needing Higgsfield/Flow/LINE/winbox ·
 anything the org DB or tmux is part of · brand/content · "make it better".
 
-## 2. The 7-line brief — the discipline lives here, not in the model
+## 2. The 8-line brief — the discipline lives here, not in the model
 
 Measured: the first session (Gemini 3.1 Pro, brief without lines 2/3/7) found
 the right root cause in 15 min and then shipped a 1.1 MB change set with 3
@@ -64,10 +66,15 @@ one-line changes, one PR, 2,996 bytes.
 5. ENV NOTE: "failures caused by your VM lacking ffmpeg/a package → report,
    do not fix; CI installs them"
 6. DELIVERABLE: one PR, title given, description = root cause + files
-7. "No questions needed; proceed."
+7. FACTS, NOT GUESSES: every claim in the PR body cites the command output or
+   file:line that proves it; anything you could not establish is written as
+   "unknown — not verified", never guessed (CEO 2026-09-23: "ห้ามเดา")
+8. "No questions needed; proceed."
 ```
 
-Model: **3.1 Pro** for "find/diagnose"; **3.6 Flash** for "apply exactly this".
+Model: **Gemini 3.6 Flash for every session** (CEO 2026-09-23: "3.6 Flash
+เก่งกว่า 3.1 Pro"). 3.1 Pro only when a *measured* Flash failure on that class of
+task says so — record the failure first; never switch on a hunch.
 
 ## 3. API — never the web UI for dispatch
 
@@ -150,3 +157,8 @@ IN_PROGRESS session · Jules behaviour when CI is blocked (2026-09-19: GitHub
 Actions were suspended for billing — "recent account payments have failed or
 your spending limit needs to be increased" — and Jules correctly reported it
 rather than faking a green).
+
+## Field notes
+
+- 2026-09-23 [SUPERSEDED] §1.1 — "least privilege: keep the app on 2–3 repos, never 'all'" · evidence: replaced by the CEO's ruling 2026-09-23 (visibility may be all; permission = the dispatch allowlist in config/jules.yaml) · status: superseded
+- 2026-09-23 [SUPERSEDED] §2 Model — "3.1 Pro for find/diagnose; 3.6 Flash for apply exactly this" · evidence: CEO ruling 2026-09-23 "3.6 Flash เก่งกว่า 3.1 Pro"; Pro only after a measured Flash failure · status: superseded
