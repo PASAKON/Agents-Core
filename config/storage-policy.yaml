@@ -1,0 +1,84 @@
+# Storage policy — where every byte an agent writes belongs, and when it leaves.
+# ADR 0030 (org: decisions/0030-agent-storage-every-byte-has-a-tier-and-an-end.md).
+#
+# v0, 2026-09-23. Written the morning the Mac hit 0 bytes free (04:05) and every
+# tool died. Source of truth for: the free-space gauge in delegate, the storage
+# scan, the media guard, and the task close gate. Change it here, nowhere else.
+#
+# Paths are globs; "~" is the running user's home. A path matching no tier is
+# UNCLASSIFIED — the scan reports it; nothing acts on it.
+version: 0
+
+# Free space on "/" in GB. Each band keeps every action of the bands above it.
+gauge:
+  green:  20   # >= 20 GB: normal
+  yellow: 10   # < 20: notify the CEO once a day, list COLD candidates
+  orange: 5    # < 10: delete REBUILD automatically; no new download/video task spawns
+  red:    0    # < 5:  delegate refuses EVERY spawn until space is back above 5
+
+tiers:
+  # In use right now. Stays on the Mac.
+  HOT:
+    - "~/MoonieXHQ/Projects/**"
+    - "~/MoonieXHQ/Agents/**"
+    - "~/Projects/Agents/**"            # Agents-Core until HQ step 4b moves it
+    - "~/.claude/projects/*/*.jsonl"    # transcripts < 7 days (older = COLD, see below)
+  # Rebuilds itself from a named command. Delete without asking (disk-hygiene Green list).
+  REBUILD:
+    - {glob: "~/Library/Caches/Google/Chrome/*/Cache",      rebuild: "Chrome refills it"}
+    - {glob: "~/Library/Caches/Google/Chrome/*/Code Cache", rebuild: "Chrome refills it"}
+    - {glob: "~/Library/Caches/pip",                        rebuild: "pip install"}
+    - {glob: "~/.npm/_cacache",                             rebuild: "npm install"}
+    - {glob: "~/Library/Caches/Homebrew",                   rebuild: "brew fetch"}
+    - {glob: "~/.cache/huggingface",                        rebuild: "model re-download"}
+    - {glob: "~/.cache/torch",                              rebuild: "model re-download"}
+    - {glob: "**/__pycache__",                              rebuild: "python re-imports"}
+    - {glob: "**/.pytest_cache",                            rebuild: "pytest"}
+    - {glob: "**/node_modules",  rebuild: "npm ci",            dormancy: true}
+    - {glob: "**/.venv",         rebuild: "uv sync / pip -r", dormancy: true}
+    - {glob: "**/.next",         rebuild: "next build",       dormancy: true}
+    - {glob: "/private/tmp/runner-review/**", rebuild: "git checkout of docs/"}
+  # Not regenerable, not in use. Tar + manifest → Drive BACKUP/ (gdrive-filing), md5 verified, then deleted.
+  COLD:
+    - {glob: "~/.claude/projects/*/*.jsonl", older_than_days: 7,
+       dest: "BACKUP/Claude-Transcripts/<project>/", tool: "prune_transcripts.py --archive"}
+    - {glob: "<work_root>/<task-id>/in/**", when: "task closed",
+       dest: "proposed — CEO picks the Drive folder (gdrive-filing)"}
+  # The CEO's own. No agent deletes, moves or archives these. Ever.
+  NEVER:
+    - "~/Pictures/**"
+    - "~/Library/Application Support/CloudDocs/**"
+    - "~/Library/Mobile Documents/**"
+    - "~/Desktop/**"
+    - "~/Downloads/**"
+    - "~/Movies/**"
+    - "~/.claude/projects/*/memory/**"
+    - "/private/tmp/claude-501/<another session>/**"
+
+# Per-task work dir. Every download, intermediate and output of a task lives
+# under one folder named by the task id, and the task cannot close while it
+# holds unfiled bytes. Location is a NEW path under HQ → CEO approval first
+# (IRON §54). Until approved, nothing creates it.
+work_dir:
+  root: "~/MoonieXHQ/Work"          # PROPOSED 2026-09-23 — not approved, not created
+  layout: {in: "downloads + references", tmp: "intermediates", out: "deliverables"}
+  on_close:
+    tmp: delete
+    in:  "delete if every file is re-downloadable from a URL in in/SOURCES.txt, else COLD"
+    out: "move to the project's Assets folder (hq-filing), else COLD"
+
+# Runners (flow_shoot, gen_loop, …) must not default their output under a NEVER path.
+runner_dest:
+  forbidden_defaults: ["~/Desktop/**", "~/Downloads/**", "~/Movies/**"]
+
+# Git: no new media into a repo. Existing media stays (no history rewrite on a shared repo).
+media_guard:
+  max_bytes: 1048576                  # 1 MiB per added file
+  extensions: [mp4, mov, webm, mkv, wav, mp3, m4a, png, jpg, jpeg, webp, gif, psd, zip, tar, gz]
+  allow: []                           # repo-relative globs a project explicitly opts in
+
+# Worker worktrees check out without committed media (measured: 738 of 867 MB of
+# an Agents-Core worktree is docs/ media). A role that needs media opts out per task.
+sparse_worktree:
+  exclude: ["docs/reports/**", "docs/prompts/**", "output/**"]
+  full_checkout_roles: [video_editor]

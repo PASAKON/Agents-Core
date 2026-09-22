@@ -34,9 +34,12 @@ sleeping. The binding constraints of this org are all three.
 
 1. Repo is on GitHub, the Jules app can see it, **and it is on the dispatch
    allowlist** `config/jules.yaml` (CEO 2026-09-23: the app may SEE every repo;
-   what it may WORK on is decided by us, per repo). The dispatch path refuses any
-   repo not listed, and the review gate rejects a PR from an unlisted repo. Visibility
-   is not permission — Jules can read Agents-Memory; nothing ever dispatches to it.
+   what it may WORK on is decided by us, per repo). The dispatch path must refuse
+   any repo not listed and the review gate must reject a PR from an unlisted repo —
+   **not yet enforced in code** (2026-09-23: `tools/jules_batch.py` takes any
+   `--repo`; the check belongs in `tools/jules.py`, which the A/B batch is building).
+   Until then the dispatcher checks the file by hand. Visibility is not permission —
+   Jules can read Agents-Memory; nothing ever dispatches to it.
 2. The verdict is a command that exits 0 (tests, lint, build) or a diff a
    script can validate. "Looks right" is not a verdict.
 3. Nothing under deploy scripts, `.env`/secrets, auth, payments, or prod data.
@@ -75,6 +78,11 @@ one-line changes, one PR, 2,996 bytes.
 Model: **Gemini 3.6 Flash for every session** (CEO 2026-09-23: "3.6 Flash
 เก่งกว่า 3.1 Pro"). 3.1 Pro only when a *measured* Flash failure on that class of
 task says so — record the failure first; never switch on a hunch.
+**The API cannot choose the model** (measured 2026-09-23: `POST /sessions` with
+`model`, `modelId` or `agentModel` → `400 Unknown name … Cannot find field`; a
+session's GET carries no model field). Which model an API session runs on is
+unknown — not verified; write it that way in every ledger and report until the
+web settings or a session's own report proves it.
 
 ## 3. API — never the web UI for dispatch
 
