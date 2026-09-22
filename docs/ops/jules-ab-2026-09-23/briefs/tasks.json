@@ -1,0 +1,38 @@
+{
+ "T01": {
+  "repo": "Agents-Core",
+  "title": "CI red: mcp 2.x removed mcp.server.fastmcp"
+ },
+ "T02": {
+  "repo": "Agents-Core",
+  "title": "anyio floor 4.9.0 carries 2 osv advisories"
+ },
+ "T03": {
+  "repo": "Agents-Core",
+  "title": "#159 close_dev leaves path locks on the remote path"
+ },
+ "T04": {
+  "repo": "Agents-Core",
+  "title": "#158 part 1 reopen_task must rewrite TASK.md"
+ },
+ "T05": {
+  "repo": "Agents-Core",
+  "title": "#147 verify: foreign worktree gets the hook-inbox hook"
+ },
+ "T06": {
+  "repo": "Agents-Core",
+  "title": "#155 watchdog plist has no EnvironmentVariables"
+ },
+ "T08": {
+  "repo": "Agents-Core",
+  "title": "build tools/jules.py API client with review gates"
+ },
+ "T09": {
+  "repo": "MoonieX-Scriptable",
+  "title": "first pytest suite for the codex feeds (pure functions)"
+ },
+ "T10": {
+  "repo": "Agents-Wikis",
+  "title": "markdown + wikilink checker (report only)"
+ }
+}
