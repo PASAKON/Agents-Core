@@ -1,0 +1,11 @@
+---
+name: real-footage-capture
+description: "Capture REAL web footage for a video \u2014 a company's logo, its live website, a watchdog page such as WikiFX with the real numbers \u2014 as vertical clips and stills, censored partially and by position so viewers still recognise what they see, then hand them to the edit keyed to script lines. Holds the CEO-approved censor rules (2026-09-23): users' personal data, faces of minors and uninvolved people, ads and unrelated banners, promo/signup offers, other brokers. Trigger on /real-footage-capture and whenever a task says Cap \u0e2b\u0e19\u0e49\u0e32\u0e08\u0e2d, \u0e08\u0e31\u0e1a\u0e20\u0e32\u0e1e\u0e2b\u0e19\u0e49\u0e32\u0e40\u0e27\u0e47\u0e1a, \u0e16\u0e48\u0e32\u0e22\u0e2b\u0e19\u0e49\u0e32\u0e40\u0e27\u0e47\u0e1a\u0e08\u0e23\u0e34\u0e07, footage \u0e08\u0e23\u0e34\u0e07, Realfootage, \u0e40\u0e2d\u0e32\u0e42\u0e25\u0e42\u0e01\u0e49\u0e21\u0e32 Censor, \u0e40\u0e1a\u0e25\u0e2d\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19, show the real WikiFX page, screen-record a broker site, or plans a BLACK LIQUIDITY episode that names a broker. Do NOT use it to generate footage (Seedance, Flow, Higgsfield own that), to pull catalogue B-roll, or to cut the episode (that is blackliquidity-cut)."
+created_by: agent
+author: {role: cto, date: "2026-09-22"}
+audience: [cto, developer, browser_operator, video_editor]
+---
+
+# real-footage-capture
+
+Capture REAL web footage for a video — a company's logo, its live website, a watchdog page such as WikiFX with the real numbers — as vertical clips and stills, censored partially and by position so viewers still recognise what they see, then hand them to the edit keyed to script lines. Holds the CEO-approved censor rules (2026-09-23): users' personal data, faces of minors and uninvolved people, ads and unrelated banners, promo/signup offers, other brokers. Trigger on /real-footage-capture and whenever a task says Cap หน้าจอ, จับภาพหน้าเว็บ, ถ่ายหน้าเว็บจริง, footage จริง, Realfootage, เอาโลโก้มา Censor, เบลอบางส่วน, show the real WikiFX page, screen-record a broker site, or plans a BLACK LIQUIDITY episode that names a broker. Do NOT use it to generate footage (Seedance, Flow, Higgsfield own that), to pull catalogue B-roll, or to cut the episode (that is blackliquidity-cut).
