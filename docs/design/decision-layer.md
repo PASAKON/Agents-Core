@@ -209,3 +209,36 @@ Prints one row per site for the month: call count, provider mix (e.g.
 (labelled ESTIMATE in the header), and `saved_usd` (`counterfactual - cost`).
 Backed by `lib/decision_ledger.summarize_month()`, which reads the raw JSONL
 — there is no separate aggregate store to fall out of sync.
+
+## Jev is live on OpenRouter (measured 2026-09-22, task-a6129a75)
+
+touch that file, it's T2's)
+
+Replace the "## Provider ladder + budget rule" section's ladder order and
+jev description with:
+
+> Provider ladder per `provider_policy`:
+> ```
+> rules-only      -> [rules]
+> rules-then-llm  -> [rules, jev, openrouter]
+> ```
+> `DECIDE_PROVIDER` names the highest paid rung an operator has turned on:
+> unset/`rules` → no paid rung runs; `jev` → jev only; `openrouter` → jev,
+> then openrouter/haiku if jev errors. Jev runs first because it's ~25x
+> cheaper on input, free on output, and calibrated by construction.
+>
+> **jev** — TypeSafe's Jev, live on OpenRouter (measured 2026-09-22,
+> `research/2026-09-22-typesafe-jev-system-one-models.md`): `POST
+> https://openrouter.ai/api/alpha/decisions`, `Authorization: Bearer
+> OPENROUTER_API_KEY` (same key as the openrouter/haiku rung — Jev is served
+> over OpenRouter, not a separate TypeSafe endpoint). `calibrated: true`.
+> Any non-200 response or an off-schema answer (`answers.<site>` missing
+> `choice`/`probabilities`) raises `ProviderUnavailable` with the server's
+> message and falls through to openrouter/haiku (if `DECIDE_PROVIDER=openrouter`)
+> — never a guessed choice. `cost_usd` is `usage.cost` from the response
+> (exact) when present, else the `_providers.yaml` price-table estimate.
+> Model id defaults to `typesafe/jev-1.13`, overridable via `DECIDE_JEV_MODEL`.
+>
+> Remove the old "## Jev status (2026-09-22)" section's "no confirmed endpoint
+> URL" language — it's now confirmed and live; the endpoint URL, request/response
+> shape and pricing above are all measured, not vendor-claimed.
