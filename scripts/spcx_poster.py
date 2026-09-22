@@ -15,9 +15,9 @@ import sys, os, json, base64, re, urllib.request, urllib.error
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mooniex_logo import stamp_corner
 
-BASE = "/Users/gob/Projects/Agents/output/personal-brand"
+BASE = "/Users/gob/MoonieXHQ/Agents/Core/output/personal-brand"
 CROP = os.path.join(BASE, "_ref_crop.png")
-OUT = "/Users/gob/Projects/Agents/output/mooniex-posters"
+OUT = "/Users/gob/MoonieXHQ/Agents/Core/output/mooniex-posters"
 ENV = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
 EDIT_EP = "https://fal.run/openai/gpt-image-2/edit"
 T2I_EP = "https://fal.run/openai/gpt-image-2"

@@ -21,7 +21,7 @@ import os
 from PIL import Image
 from playwright.sync_api import sync_playwright
 
-ROOT = "/Users/gob/Projects/Agents"
+ROOT = "/Users/gob/MoonieXHQ/Agents/Core"
 SRC = "/Users/gob/Desktop/720655493_1566045434883239_2334179446712343628_n.jpg"
 LOCKUP = os.path.join(ROOT, "output/personal-brand/lockup-moon-text.png")
 OUT = os.path.join(ROOT, "output/mooniex-posters/spcx_musk_card.png")

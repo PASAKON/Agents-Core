@@ -174,7 +174,7 @@ projects:
 
   - key: mooniex-agents
     name: Mooniex Agents (meta-repo)
-    path: /Users/gob/Projects/Agents
+    path: /Users/gob/MoonieXHQ/Agents/Core
     remote: https://github.com/PASAKON/mooniex-agents.git
     default_branch: main
     stack: [python]
@@ -191,7 +191,7 @@ projects:
     # use (this task's acceptance run). contabo is a real clone (CLAUDE.md's
     # Contabo availability table).
     paths:
-      mac: /Users/gob/Projects/Agents
+      mac: /Users/gob/MoonieXHQ/Agents/Core
       winbox: 'C:\Users\UsEr\mooniex\repo\MoonieX-Agents'
       contabo: /opt/mooniex-agents
     wiki_refs:

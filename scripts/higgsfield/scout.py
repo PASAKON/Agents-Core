@@ -3,7 +3,7 @@
 
 Usage: ensure Chrome is running with --remote-debugging-port=9222 and you are logged
 into higgsfield.ai with the seedance gen page open (or this will open it).
-Run: /Users/gob/Projects/Agents/.venv/bin/python scripts/higgsfield/scout.py
+Run: /Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python scripts/higgsfield/scout.py
 """
 import json
 import sys

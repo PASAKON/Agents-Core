@@ -33,13 +33,13 @@ from pathlib import Path
 try:
     import yaml
 except ImportError:  # pragma: no cover
-    sys.exit("hq_migrate_step2.py needs PyYAML — run with /Users/gob/Projects/Agents/.venv/bin/python")
+    sys.exit("hq_migrate_step2.py needs PyYAML — run with /Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python")
 
 ROOT = Path(__file__).resolve().parent.parent
 HQ_ROOT = Path(os.environ.get("HQ_ROOT", "/Users/gob/MoonieXHQ"))
 TRASH_ROOT = Path(os.environ.get("TRASH_ROOT", str(Path.home() / ".Trash")))
 STATE_DIR = Path(os.environ.get("HQ_STEP2_STATE_DIR", str(ROOT / "state")))
-HQ_PYTHON = os.environ.get("HQ_PYTHON", "/Users/gob/Projects/Agents/.venv/bin/python")
+HQ_PYTHON = os.environ.get("HQ_PYTHON", "/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python")
 
 EXCLUDE_DIFF = ["node_modules", ".next", ".git", ".obsidian", ".DS_Store"]
 UMBRELLA_SKIP_TOP = {".claude"}  # handled specially (stray worktree check)

@@ -26,7 +26,7 @@ Usage:
     python scripts/supabase_storage_quota_check.py [--bucket NAME] [--threshold-pct N]
 
 Suggested cron (daily, alert-only — add to crontab or a systemd timer):
-    0 9 * * * cd /Users/gob/Projects/Agents && \
+    0 9 * * * cd /Users/gob/MoonieXHQ/Agents/Core && \
         source .venv/bin/activate && \
         python scripts/supabase_storage_quota_check.py >> state/logs/storage-quota-check.log 2>&1
 """

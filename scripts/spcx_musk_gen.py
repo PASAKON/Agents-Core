@@ -30,10 +30,10 @@ from PIL import Image
 from playwright.sync_api import sync_playwright
 
 SRC = "/Users/gob/Desktop/720655493_1566045434883239_2334179446712343628_n.jpg"
-OUT = "/Users/gob/Projects/Agents/output/mooniex-posters"
+OUT = "/Users/gob/MoonieXHQ/Agents/Core/output/mooniex-posters"
 SCENE = os.path.join(OUT, "spcx_scene.png")
 FINAL = os.path.join(OUT, "spcx_musk_final.png")
-LOCKUP = "/Users/gob/Projects/Agents/output/personal-brand/lockup-moon-text.png"
+LOCKUP = "/Users/gob/MoonieXHQ/Agents/Core/output/personal-brand/lockup-moon-text.png"
 ENV = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
 EDIT_EP = "https://fal.run/openai/gpt-image-2/edit"
 COST = 0.19

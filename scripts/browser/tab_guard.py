@@ -20,7 +20,7 @@ just this repo:
     "PreToolUse": [
       { "matcher": "mcp__claude-in-chrome__tabs_(close|create)_mcp",
         "hooks": [{ "type": "command",
-                    "command": "python3 /Users/gob/Projects/Agents/scripts/browser/tab_guard.py" }] }
+                    "command": "python3 /Users/gob/MoonieXHQ/Agents/Core/scripts/browser/tab_guard.py" }] }
     ]
   }
 

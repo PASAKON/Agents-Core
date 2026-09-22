@@ -9,8 +9,8 @@ fal.ai openai/gpt-image-2/edit, medium quality, $0.053/image.
 """
 import base64, json, re, urllib.request, urllib.error, os
 
-OUT = "/Users/gob/Projects/Agents/output/pok-pok-klued"
-ENV = "/Users/gob/Projects/Agents/.env"
+OUT = "/Users/gob/MoonieXHQ/Agents/Core/output/pok-pok-klued"
+ENV = "/Users/gob/MoonieXHQ/Agents/Core/.env"
 DEST = os.path.join(OUT, "location-hallway.png")
 EDIT_EP = "https://fal.run/openai/gpt-image-2/edit"
 

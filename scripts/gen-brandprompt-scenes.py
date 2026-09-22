@@ -12,8 +12,8 @@ the BrandPrompt TH BRAND.md sample image).
 """
 import sys, os, json, re, urllib.request, urllib.error
 
-OUT = "/Users/gob/Projects/Agents/output/brandprompt-th/scenes"
-ENV = "/Users/gob/Projects/Agents/.env"
+OUT = "/Users/gob/MoonieXHQ/Agents/Core/output/brandprompt-th/scenes"
+ENV = "/Users/gob/MoonieXHQ/Agents/Core/.env"
 T2I_EP = "https://fal.run/openai/gpt-image-2"
 COST_PER_IMAGE = 0.053  # medium, 1024x1024 (fal.ai pricing table, checked 2026-07-20)
 

@@ -64,10 +64,10 @@ def _symlink_memory_dir(tmp_path: Path, target: Path) -> Path:
 # --------------------------------------------------------------------------
 
 def test_claude_project_slug_matches_observed_convention(tmp_path: Path) -> None:
-    got = memory_sync._claude_project_slug(Path("/Users/gob/Projects/Agents"))
+    got = memory_sync._claude_project_slug(Path("/Users/gob/MoonieXHQ/Agents/Core"))
     assert got == "-Users-gob-Projects-Agents"
     got_wt = memory_sync._claude_project_slug(
-        Path("/Users/gob/Projects/Agents/worktrees/mooniex-agents__developer__task-8d37c0f1")
+        Path("/Users/gob/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-8d37c0f1")
     )
     assert got_wt == (
         "-Users-gob-Projects-Agents-worktrees-mooniex-agents--developer--task-8d37c0f1"

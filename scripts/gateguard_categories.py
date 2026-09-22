@@ -65,10 +65,20 @@ def _wiki_edit_pattern() -> re.Pattern:
     return re.compile(rf"^(?:{alternation})/")
 
 
+def _agents_subdir_pattern(subdir: str) -> re.Pattern:
+    """Matches `<subdir>/` under THIS repo's own root — derived from ROOT
+    (computed from this file's own location), never a hardcoded
+    `/Users/gob/Projects/Agents` string. ADR 0028 step 4b: once Agents-Core
+    moves to /Users/gob/MoonieXHQ/Agents/Core, ROOT recomputes to the new
+    path automatically on the next process start; no edit needed here."""
+    real_root = os.path.realpath(str(ROOT)).rstrip("/")
+    return re.compile(rf"^{re.escape(real_root)}/{re.escape(subdir)}/")
+
+
 CATEGORIES = [
     ("wiki_edit",     _wiki_edit_pattern()),
-    ("agents_config", re.compile(r"^/Users/gob/Projects/Agents/config/")),
-    ("agents_roles",  re.compile(r"^/Users/gob/Projects/Agents/roles/")),
+    ("agents_config", _agents_subdir_pattern("config")),
+    ("agents_roles",  _agents_subdir_pattern("roles")),
     ("memory",        re.compile(r"/\.claude/projects/.*/memory/")),
     ("claudemd",      re.compile(r"^/Users/gob/(Projects/)?CLAUDE\.md$|^/Users/gob/\.claude/CLAUDE\.md$")),
 ]
@@ -78,8 +88,15 @@ STATE_DIR = Path(os.environ.get("HOME", "/tmp")) / ".claude" / "state"
 
 
 def category_for(file_path: str) -> str | None:
+    """Checks `file_path` as given AND its realpath (ADR 0028 step 4b hazard
+    #2): a path reached through a compat symlink (the OLD, logical location,
+    kept working after a migration step) won't textually match a pattern
+    built from the NEW physical root, or vice versa, unless both forms are
+    tried. The raw string is checked first (cheap, no syscall) before
+    resolving."""
+    real_path = os.path.realpath(file_path)
     for name, pattern in CATEGORIES:
-        if pattern.search(file_path):
+        if pattern.search(file_path) or (real_path != file_path and pattern.search(real_path)):
             return name
     return None
 

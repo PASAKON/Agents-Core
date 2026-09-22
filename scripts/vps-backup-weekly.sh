@@ -5,7 +5,7 @@
 # Scheduled by ~/Library/LaunchAgents/com.mooniex.vps-backup-weekly.plist
 set -euo pipefail
 
-AGENTS_DIR="/Users/gob/Projects/Agents"
+AGENTS_DIR="/Users/gob/MoonieXHQ/Agents/Core"
 ENGINE="$AGENTS_DIR/scripts/vps-backup.sh"
 DEST_ROOT="$HOME/Backups/mooniex-vps"
 DRIVE_DIR="$HOME/Library/CloudStorage/GoogleDrive-pass.gob1@gmail.com/ไดรฟ์ของฉัน/MoonieX/Project Backup/MoonieX/vps-hostinger"

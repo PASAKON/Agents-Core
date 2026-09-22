@@ -15,7 +15,7 @@ CAT, MAN = ROOT / "broll-catalog.json", ROOT / "drive-manifest.json"
 SRC = Path("/Users/gob/Desktop/archive")
 DEST = "1vg8j7DY_hPE-X3yyTsp6ZrM8Gf72cfVG"      # AI Assets/BLACK LIQUIDITY (9:16) — by id, never by name
 LOG = Path.home() / ".claude/logs/drive-archive.log"
-spec = importlib.util.spec_from_file_location("ilag", "/Users/gob/Projects/Agents/scripts/gdrive-bridge/ilag_sync.py")
+spec = importlib.util.spec_from_file_location("ilag", "/Users/gob/MoonieXHQ/Agents/Core/scripts/gdrive-bridge/ilag_sync.py")
 ilag = importlib.util.module_from_spec(spec); spec.loader.exec_module(ilag)
 TZ = timezone(timedelta(hours=7))
 now = lambda: datetime.now(TZ).isoformat(timespec="seconds")

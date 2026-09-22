@@ -40,7 +40,7 @@ from pathlib import Path
 try:
     import yaml
 except ImportError:  # pragma: no cover
-    sys.exit("hq_migrate_step3.py needs PyYAML — run with /Users/gob/Projects/Agents/.venv/bin/python")
+    sys.exit("hq_migrate_step3.py needs PyYAML — run with /Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hq_migrate_step2 import (  # noqa: E402  (reuse, do not copy — task instruction)
@@ -55,7 +55,7 @@ from hq_migrate_step2 import (  # noqa: E402  (reuse, do not copy — task instr
 ROOT = Path(__file__).resolve().parent.parent
 HQ_ROOT = Path(os.environ.get("HQ_ROOT", "/Users/gob/MoonieXHQ"))
 STATE_DIR = Path(os.environ.get("HQ_STEP3_STATE_DIR", str(ROOT / "state")))
-HQ_PYTHON = os.environ.get("HQ_PYTHON", "/Users/gob/Projects/Agents/.venv/bin/python")
+HQ_PYTHON = os.environ.get("HQ_PYTHON", "/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python")
 REPO_ROOT = Path(os.environ.get("HQ_STEP3_REPO_ROOT", str(ROOT)))
 
 _DEFAULT_PLISTS = ":".join(str(Path.home() / "Library" / "LaunchAgents" / n) for n in (

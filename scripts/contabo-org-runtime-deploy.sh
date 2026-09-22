@@ -17,7 +17,7 @@
 # Do NOT actually run `python -m runners.cto_chat` from this script — needs Phase B auth.
 #
 # Source of truth = the repo this script lives in (works from the canonical
-# /Users/gob/Projects/Agents checkout OR a git worktree). The exclude list
+# /Users/gob/MoonieXHQ/Agents/Core checkout OR a git worktree). The exclude list
 # below keeps secrets/state/junk off the box regardless of which source runs it.
 set -euo pipefail
 
