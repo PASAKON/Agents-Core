@@ -80,7 +80,7 @@ they decide where the model is allowed to restart.
 
 **Gemini silently swallows `นะครับ` and `ครับ`.** Same sentence, same whisper pass:
 MiniMax and Seed Audio both return them, Gemini returns neither. That particle runs
-at 14.9 per 1,000 characters in the CEO's real speech — it is his breath, not his
+at 9.11 per 1,000 characters in the CEO's real speech — it is his breath, not his
 politeness — so a model that eats it can never sound like him.
 
 Timbre drift is the spread in boxiness *between* chunks. It halved when the reference
@@ -127,8 +127,16 @@ spectral score.
 
 MYPASAKON is **ผม / เพื่อนๆ / ครับ**. Never `กู` or `มึง`; those belong to BLACK
 LIQUIDITY's avatar and putting them in the CEO's cloned voice makes him swear at his
-own audience. Measured in his real speech: `นะครับ` 14.9 per 1,000 characters,
-`เนี่ย` 2.1, `ก็คือ` 1.5, `กู`/`มึง` exactly 0.
+own audience. Measured across 19 rawcut transcripts plus two samples — **45,998 characters**:
+`นะครับ` **9.11** per 1,000, `เนี่ย` 0.59, `ก็คือ` 0.48, `ผม` **1.85**, `คุณ` 2.43,
+`กู`/`มึง` exactly 0. A **bare `ครับ` is 0.39** — over 95 % of every `ครับ` he says
+is glued to `นะ`, so bare `ครับ` is the sound of written Thai, not of him.
+
+An earlier version of this file said 14.9 for `นะครับ`. That came from measuring
+only the two sample files (6,693 characters) and was **39 % too high**; the figure
+above is from the full corpus. The same small sample also hid that `ผม` should be
+rare — a script that says `ผม` in every sentence is the single loudest tell that a
+line was written rather than spoken.
 
 Written scripts in the channel's Drive folders are NOT a style guide — they run
 `นะครับ` at 0.4 per 1,000. He adds the spoken texture live. Write from transcripts.
