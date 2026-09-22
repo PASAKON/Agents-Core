@@ -158,9 +158,9 @@ def migrate() -> int:
     # cap-P rule (Projects/CLAUDE.md): the one lowercase path in the hooks
     sj = SRC / "settings.json"
     if sj.is_file():
-        s = sj.read_text(); s2 = s.replace("/Users/gob/projects/LLMs", "/Users/gob/Projects/LLMs")
+        s = sj.read_text(); s2 = s.replace("/Users/gob/MoonieXHQ/Agents/Wikis", "/Users/gob/MoonieXHQ/Agents/Wikis")
         if s2 != s:
-            sj.write_text(s2); print("  settings.json: /Users/gob/projects/LLMs -> /Users/gob/Projects/LLMs")
+            sj.write_text(s2); print("  settings.json: /Users/gob/MoonieXHQ/Agents/Wikis -> /Users/gob/MoonieXHQ/Agents/Wikis")
 
     for name in REAL_SKILLS:
         _move(HOME / "skills" / name, SKILLS_DST / name, manifest, ts_backup)

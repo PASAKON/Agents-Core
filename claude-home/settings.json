@@ -98,7 +98,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "git -C /Users/gob/Projects/LLMs pull --ff-only --quiet 2>/dev/null || true",
+            "command": "git -C /Users/gob/MoonieXHQ/Agents/Wikis pull --ff-only --quiet 2>/dev/null || true",
             "timeout": 5,
             "statusMessage": "Syncing LLMs wiki..."
           }
