@@ -218,6 +218,45 @@ Generalises beyond props: a **time of day** behaves the same way. The word
 daylight in all 71 clips of the same film. A cue that contradicts the paragraph
 around it loses to the paragraph.
 
+### ⛔ Never diagnose audio you have not read back. Transcribe it.
+
+**The rule: if a claim is about what a clip SAYS, produce the transcript first.**
+`tools/film_transcript.py` does it — faster-whisper, already installed, on the
+CPU, ~3 seconds a clip, no credits, no network. The whole 173-shot film reads
+back in ten minutes. There is no budget excuse for guessing.
+
+**What guessing cost, 2026-09-23.** The only audio signal in use was
+`silencedetect` — where sound is, never what it is. Every conclusion built on it
+was an inference presented as a measurement:
+
+| claim | reality |
+|---|---|
+| "shot 139 probably repeats a line" | the CEO listened: it is clean |
+| "shot 122's repeated number is deliberate, good writing" | it is a man saying "208 งวด" then "208" in four seconds — **the actual defect** |
+| "111 shots repeat the speaker block, that is the cause" | the community documents the opposite: the speaker description *should* be restated per line |
+
+On the strength of that reading I rewrote `build_shotsheet.py`, fired five paid
+proof shots, and picked all five from a text analysis rather than from anything
+anyone had heard. The proof shots landed on scenes that did not have the problem.
+One transcript of one clip settled it afterwards in three seconds.
+
+**So, before any claim about dialogue:**
+
+1. `python3 tools/film_transcript.py <clip-dir> --out transcript.tsv` — gives
+   `shot · t_start · t_end · heard · scripted · match` for every line.
+2. **Read the `heard` column against the `scripted` column.** Three different
+   defects fall out, and they have three different fixes:
+   - heard ≈ scripted, and the script itself says it twice → **the script is
+     wrong**, fix the writing, do not touch the prompt.
+   - heard repeats something the script says once → **the render is wrong**,
+     re-fire, then look at the prompt.
+   - a scripted line has nothing heard for it → **a line was dropped**, which no
+     silence-based check can see at all.
+3. Only then reach for a prompt change, and say which of the three you are fixing.
+
+A script can read beautifully on the page and land as a stutter in four seconds
+of audio. Reading it is not hearing it. Related: [[judge-craft-by-eye-not-metrics]].
+
 ### Which things get a chip when slots are scarce
 
 **Measured on the live product 2026-09-22: four chips attach and all four bind.**
@@ -1764,4 +1803,5 @@ Neither replaces the other. Both are free.
 - 2026-09-22 [COSTLY] §A prohibition is not an inventory — automated "shot declares X therefore attach X's Element", keyed off `NOT["money"]`. That key is a prohibition ("…also no notebook, no pen, no paper, no ledger of any kind") carried by 22 shots, most with no money in frame. Caught by shooting shot 133 at 360p (4 credits): two people looking at empty tables. Reverted the same day. Cost would have been banknotes inserted into 22 scenes written to be empty of them. · evidence: f563c707 / tools/build_shotsheet.py · status: rejected
 - 2026-09-22 [MISSING] §Anything that must look a specific way needs an Element — six Act 3 clips rendered a real Thai 500-baht note with the royal portrait, in a drama about illegal moneylending, against 40 words of prompt forbidding exactly that. The project's 3 characters and 6 locations were correct across 148 clips because each is chip-bound; the money was the one thing described rather than referenced. Five of the six prop Elements in the project had never been attached to any shot. · evidence: task-e960f3ca / 3f57cd1e / docs/scripts/banchi-ACT1.data.py · status: promoted
 - 2026-09-22 [MISSING] §time of day — the word `night` appended to a 60-word description of a lit, open, busy shop produced daylight in all 71 clips shot to that point. Every automated check passed; a frame-0 look found it in seconds. CEO ruled the film stays daylight rather than re-shoot. · evidence: LungNote 87c9507d / docs/scripts/banchi-ACT5.md · status: pending
+- 2026-09-23 [WRONG] §Never diagnose audio you have not read back — spent an evening attributing a dialogue defect to prompt structure using `silencedetect` (where sound is, not what it is). Rewrote the sheet builder, fired five paid proof shots chosen from a text analysis, and contradicted the published Veo guidance, all before transcribing a single clip. faster-whisper was already installed: 3s per clip settled it. The real defect was the script telling a character to say "208 งวด" then "208" in a four-second shot. · evidence: research/veo-dialogue-repeats.md / tools/film_transcript.py · status: promoted
 
