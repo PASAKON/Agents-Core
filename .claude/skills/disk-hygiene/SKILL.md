@@ -172,3 +172,7 @@ never from a tool's verdict about its own queue.
 | Mac | 67 MB free | 27.5 GB free | Pictures 51 GB and CloudDocs 29 GB are the CEO's |
 | winbox `C:` | 6.65 GB free | 24.8 GB free | floor is 30; hit frames grow 2-4 GB/day, tier A, CEO ruling |
 | Contabo | 31 GB free | unchanged | ~16 GB available from build cache + journal, needs the CEO's go |
+
+## Field notes
+
+- 2026-09-22 [MISSING] §mac — `~/.claude` held org config with no copy anywhere (settings.json with 11 hooks, CLAUDE.md, hooks/, commands/, 13 real skills incl. cookierun-labeling + mooniex-video-editor + reel-editor-th); a disk clean-up could have deleted it. Now derived from `Agents/claude-home/` + `.claude/skills/` by `scripts/install-claude-home.sh` (`--check` = doctor); only `~/.claude/projects/` transcripts (9.5 GB) and reel-editor-th `.venv`/`assets` remain local · evidence: session cto-0e8d80b8, ADR 0027 · status: pending

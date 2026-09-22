@@ -118,3 +118,11 @@ WORKER.md
 # pytest scratch) - not source, and they make every git status unreadable
 mcp/node_modules/
 .pytest_cache/
+
+# reel-editor-th lives in .claude/skills/ (ADR 0027) but its venv is rebuilt from
+# requirements.txt by scripts/install-claude-home.sh and its 210 MB b-roll is
+# media -> Assets/ + Drive (gdrive-filing), never git.
+.claude/skills/reel-editor-th/.venv/
+.claude/skills/reel-editor-th/assets/
+# one-time migration manifests (rollback input), machine-local
+state/claude-home-migration-*.json
