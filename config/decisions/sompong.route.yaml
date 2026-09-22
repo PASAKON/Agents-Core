@@ -1,0 +1,40 @@
+# Decision site: route one inbound SomPong message. (task-2a29d27e, CEO
+# ruling 2026-09-22). Counterfactual = the CURRENT implementation, a full
+# `claude -p` invocation carrying SECRETARY_SYSTEM_PROMPT on every call
+# (runners/secretary_server.py:1074-1091) — never touched by this task.
+#
+# extra_input_chars below is that system prompt's measured char count
+# (2026-09-22: `len(re.search(r'SECRETARY_SYSTEM_PROMPT = \(([\s\S]*?)\n\)\n',
+# open('runners/secretary_server.py').read()).group(1))` = 14362), added to
+# state_chars in lib/decision_ledger.py's counterfactual formula so this
+# site's "what would the big model have paid" number reflects the prompt
+# that's actually resent on every call today — not just the message text.
+# This is a source-literal proxy (concatenated string syntax included), not
+# the exact runtime string; ESTIMATE, not measured usage.
+site: sompong.route
+question: >-
+  What should happen to this one inbound message: is it a CEO order for the
+  CTO, an order for another C-level, a plain question, chitchat, or spam?
+options:
+  - id: order_for_cto
+    meaning: "A CEO instruction/order that belongs to the CTO (engineering work)."
+  - id: order_for_other_cxo
+    meaning: "A CEO instruction/order that belongs to a different C-level (CFO/CMO/CGO)."
+  - id: question
+    meaning: "A question expecting an answer, not a work order."
+  - id: chitchat
+    meaning: "Small talk / no action needed."
+  - id: spam
+    meaning: "Unsolicited/irrelevant — no action, no reply needed."
+max_state_chars: 2000
+provider_policy: rules-then-llm
+rules:
+  - pattern: 'สั่งงาน|order #|มอบหมาย|ให้ cto|ให้ทีมพัฒนา'
+    option: order_for_cto
+  - pattern: 'ให้ cfo|ให้ cmo|ให้ cgo|เรื่องการเงิน|เรื่องการตลาด|เรื่องเติบโต'
+    option: order_for_other_cxo
+  - pattern: '\?$|ไหม\s*$|หรือเปล่า\s*$|มั้ย\s*$'
+    option: question
+counterfactual:
+  extra_input_chars: 14362
+  big_model_tokens_out: 150

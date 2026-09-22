@@ -1,0 +1,29 @@
+# Decision site: which org skill (if any) should fire for this prompt?
+# (task-2a29d27e, CEO ruling 2026-09-22). A per-prompt hook may NEVER make a
+# paid call — hence provider_policy: rules-only, no LLM fallback, ever. Jev
+# is the intended provider for this site once access exists (cheap enough to
+# run on every prompt); until then this site is rules-only or nothing.
+#
+# Unlike the other three sites, options are NOT hardcoded: skills are added
+# and archived over time, and a static list here would silently drift from
+# .claude/skills/. `options_source: skills_dir` tells tools/decide.py to
+# read every .claude/skills/*/SKILL.md frontmatter at call time instead
+# (name -> option id, description -> option meaning), capped at 255 (Jev's
+# ceiling — this repo currently has ~45 org skills, well under it).
+#
+# rules_source: skill_description does the same for rules — each skill's
+# OWN frontmatter description already states its trigger phrases ("Trigger
+# on X, Y, and Z."); tools/decide.py's extract_trigger_patterns() pulls that
+# comma-separated clause out verbatim rather than us re-typing/duplicating
+# trigger phrases here, which would drift the moment a skill's own
+# description changes.
+site: skill.route
+question: "Which org skill (by name) should handle this user prompt, if any?"
+options_source: skills_dir
+skills_dir: .claude/skills
+max_state_chars: 4000
+provider_policy: rules-only
+rules_source: skill_description
+counterfactual:
+  images: 0
+  big_model_tokens_out: 10
