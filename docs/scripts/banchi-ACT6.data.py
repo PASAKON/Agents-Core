@@ -36,6 +36,10 @@ PROPS_BY_SHOT = dict(_a2.PROPS_BY_SHOT)
 # วิทย์ in uniform — the reveal (CEO 2026-09-23, docs/scripts/banchi-police-insert-DRAFT.md).
 # The face block is word for word the plainclothes "wit" block: only the clothes
 # change, so the model has nothing to reinterpret about who he is.
+# Staging, 2026-09-23: every two-shot in this scene keeps both faces angled
+# three-quarters to camera. A character seen only in profile lost his plate in
+# 106 (hair, twice), old 149 and new 149/150 (the father's white shirt and
+# apron became a grey T-shirt); old 150/151, faces toward camera, held.
 # WIT_UNIFORM_HANDLE is set by the CTO after looking at the worker's two stills
 # (task-f78ca70e: @cop_wit_uniform_A reference-led, _B description-only). Until
 # then it names a plate that cannot exist, so check_plates refuses the build
@@ -155,34 +159,34 @@ SHOTS = [
   [("wit_uniform","quiet, formal","สวัสดีครับลุง")], ["nosubs"]),
 
  (180, 8, "Medium two-shot behind the counter, static camera", ["somchai","ton"], "shop", "afternoon",
-  "both stop dead behind the counter staring toward the door, the father's ladle held still over the pot, the son slowly lowering the tray in his hands",
+  "both stop dead behind the counter, facing the camera as they stare past it toward the door, the father's ladle held still over the pot, the son slowly lowering the tray in his hands",
   [("somchai","almost no voice","วิทย์..."),
    ("ton","disbelieving","พี่วิทย์... เป็นตำรวจเหรอครับ")], ["nosubs"]),
 
  (181, 10, "Medium two-shot across the counter, static camera", ["wit_uniform","somchai"], "shop", "afternoon",
-  "takes off his peaked cap and holds it in both hands as he comes up to the counter, facing the older man",
+  "takes off his peaked cap and holds it in both hands as he comes up to the counter, facing the older man, the two of them angled three-quarters toward the camera so both faces stay clearly visible",
   [("wit_uniform","apologetic, steady","ผมขอโทษที่ต้องปิดลุงมาตลอดครับ"),
    ("wit_uniform","plain","ผมตามคนปล่อยเงินกู้สายนี้มาปีกว่าแล้ว"),
    ("wit_uniform","quieter","ไม่มีใครในซอยยอมพูดสักคนครับ")], ["nosubs"]),
 
  (182, 8, "Medium two-shot across the counter, static camera", ["somchai","wit_uniform"], "shop", "afternoon",
-  "sets the ladle down and looks the younger man in the face for a long moment, the cap still in the younger man's hands",
+  "sets the ladle down and looks the younger man in the face for a long moment, the cap still in the younger man's hands, the two of them angled three-quarters toward the camera so both faces stay clearly visible",
   [("somchai","slow, moved","ยี่สิบปีที่วิทย์มากินร้านลุง..."),
    ("wit_uniform","a small smile","ผมมากินก๋วยเตี๋ยวจริงๆ ครับลุง")], ["nosubs"]),
 
  # 149-151 re-shot in uniform: same words, he is now in the uniform the father just saw.
  (149, 8, "Medium two-shot, static camera", ["wit_uniform","somchai"], "shop", "afternoon",
-  "sits down across the counter from the older man, both with their hands on the wood",
+  "sits down across the counter from the older man, both with their hands on the wood, the two of them angled three-quarters toward the camera so both faces stay clearly visible",
   [("wit_uniform","conversational","ลุงครับ เขาเคยบอกลุงไหมว่าเงินใคร"),
    ("somchai","remembering","เขาบอกว่าเงินเขาเองครับ ไม่มีเจ้านาย")], ["nosubs"]),
 
  (150, 6, "Medium two-shot, static camera", ["wit_uniform","somchai"], "shop", "afternoon",
-  "leans back slightly and lets that sit between them, the older man looking up at him",
+  "leans back slightly and lets that sit between them, the older man looking up at him, the two of them angled three-quarters toward the camera so both faces stay clearly visible",
   [("wit_uniform","plain","นั่นแหละครับที่ไม่จริง"),
    ("somchai","slowly","แล้วเงินเป็นของใครครับ")], ["nosubs"]),
 
  (151, 8, "Medium two-shot, static camera", ["wit_uniform","somchai"], "shop", "afternoon",
-  "puts both hands flat on the counter and asks it straight, the older man very still",
+  "puts both hands flat on the counter and asks it straight, the older man very still, the two of them angled three-quarters toward the camera so both faces stay clearly visible",
   [("wit_uniform","direct","ผมขอให้ลุงนัดเขาอีกครั้งเดียวครับ"),
    ("somchai","after a moment","ได้ครับ")], ["nosubs"]),
 
