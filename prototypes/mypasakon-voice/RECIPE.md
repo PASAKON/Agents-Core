@@ -1,5 +1,17 @@
 # MYPASAKON — the CEO's cloned voice, the recipe that got approved
 
+**Run it with `tts_clone.py`, do not re-implement it by hand:**
+
+```bash
+python3 prototypes/mypasakon-voice/tts_clone.py <script.md> \
+        prototypes/mypasakon-voice/reference/REF-D2-approved.mp3 out.mp3
+```
+
+It refuses a band-limited reference, refuses a script containing `กู`/`มึง`,
+re-splits any chunk that renders over 25 s, strips dead air, and refuses to hand back
+a file that still has a silence over 0.6 s in it. The prose below is why each of those
+exists.
+
 CEO signed off on `reference/APPROVED-sample-120s.mp3` on 2026-09-23 ("Perfect เคาะ
 อันนี้ผ่าน"). Everything below is what produced it. Every number here was measured,
 not estimated.
@@ -77,12 +89,39 @@ is what reads as hollow** — the average of the rejected take was actually *bet
 than the two 8 s takes the CEO had already approved, which is how we learned the mean
 was measuring the wrong thing.
 
+## Dead air — the defect that the first approved take still had
+
+The CEO listened again and heard a long gap. It was **12.50 s of silence, from 86.96 s
+to 99.46 s**, and it was NOT a join: the joins we make are clean (all seven chunks'
+head and tail silence together came to 3.0 s of a 120 s file). **Seed Audio invents
+silent holes inside a single long generation.** Chunk 6 ran 27.09 s and contained
+14.83 s of speech; chunk 4 ran 28.20 s and hid eight smaller holes worth 3.01 s.
+
+Every chunk under 19 s came back with none.
+
+So the cap is a duration, not a character count. Characters were the wrong unit all
+along — the same 330-character budget produced chunks between 8.1 s and 28.9 s,
+because the model's speaking rate swings by a factor of three.
+
+`tts_clone.py` enforces this: any chunk that renders longer than **25 s** is split at
+the nearest `นะครับ`/`ครับ` and re-fired, every chunk is stripped of head/tail silence
+and of any internal pause over 0.55 s, and the joined file is re-measured — if any
+silence over 0.6 s survives, the script refuses to hand it over.
+
+Stripping the existing take took it from 120.58 s to 104.38 s with no speech touched.
+
+**A measurement trap worth remembering:** when boxiness was measured per 5 s window,
+chunk 6 scored `1.40 · 0.05 · 1.31 · 1.28 · 1.10` and the 0.05 was read as "this
+chunk got better". Silence has almost no energy at 200-500 Hz, so it scores as
+excellent on a ratio metric. The dead air was in the numbers the whole time, wearing
+the costume of a good result. Always check for silence before interpreting a
+spectral score.
+
 ## Still open
 
 - `Claude Code` renders as "Cloud Code" and `Grok` as "Grog" every time. Fix by
   respelling them phonetically in the script; not yet tested.
 - Per-chunk spectral matching before the join, to close the remaining 0.44 spread.
-- One single call for the whole script, which would remove joins entirely.
 
 ## Register — non-negotiable
 
