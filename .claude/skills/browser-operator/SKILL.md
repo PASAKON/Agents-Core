@@ -392,7 +392,11 @@ So, every time:
   toggles in one stroke. Measured 2026-09-07 13:56 (task-0c309025): one
   operator "escalated to a full Chrome restart per skill" over a frozen tab and
   wiped a fully staged S2N-B composer plus a credit-lane render watch that
-  belonged to two other workers. The ladder for a frozen tab is: hard-reload →
+  belonged to two other workers.
+  **Why hard:** a Chrome restart is never a local recovery, because the window
+  is shared — one operator's "fix" silently destroys other workers' staged,
+  unrecoverable work, and nothing in that operator's own view shows the loss.
+  The ladder for a frozen tab is: hard-reload →
   close YOUR OWN tabs and open one fresh tab → if that freezes too, STOP and
   report (`submit_report` with the exact state) — the CTO decides whether Chrome
   restarts, because only the CTO can see who else is inside it. Before even
@@ -589,3 +593,7 @@ assets — no retry without a count. Details in `higgsfield-unlimited-gen`.
   expanding textareas are text: `read_page` / `find` returns every option in
   one call. The run spent 9 screenshots (budget 4) confirming layouts a text
   read would have answered. Reserve screenshots for the final submitted state.
+
+## Field notes
+
+- 2026-09-22 [MISSING] §Chrome-restart HARD rule — the block carried the whole 2026-09-07 incident but never the literal `Why hard:` marker the doctrine lint requires, so `test_real_corpus_reports_zero_defects` sat red on main for days. Clause added; no rule text changed. This was the one-line edit handed to the first agy worker through the runner adapter (task-22f3579a) — the pipeline ran end to end and agy edited nothing, so the CTO closed it by hand · evidence: `pytest scripts/test_skill_doctrine_lint.py::test_real_corpus_reports_zero_defects` exit 0, session cto-a29c7576 · status: promoted

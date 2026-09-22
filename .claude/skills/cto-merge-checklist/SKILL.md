@@ -102,3 +102,8 @@ Verdict: MERGE  /  REOPEN with feedback  /  HOLD pending <reason>
 - **One iteration of feedback is normal, three is a smell.** If DEV is on iteration 3, escalate to CEO instead of looping further.
 - **Cross-project dependencies** — DEVs never reach across projects. If gate 3 reveals one, refuse and rewrite scope.
 - **Merges are the CTO's call on every repo** (CEO 2026-09-19: "Coding คือหน้าที่คุณ เห็นสมควรจัดการได้เลย ฉันมีหน้าที่วางแผน"). A gate-clean PR is merged and reported in one line — never "ขออนุมัติ merge". Spend, prod deploys, migrations and secrets keep their own gates; those are consequences, not code decisions.
+
+## Field notes
+
+- 2026-09-22 [MISSING] §0 — `merge_task` refused twice in one evening on a dirty base that was another live session's WIP (`tests/test_flow_shoot.py`, then `claude-home/settings.json`); no gate said what to do with it, and the natural moves (checkout, bare stash, commit-for-them) all destroy or misattribute someone's work. Gate 0 added: fingerprint → path-limited tagged stash → merge → apply-not-pop → md5 must match → drop by re-found index; configs the org runs on go to the CEO instead · evidence: sessions cto-a29c7576 + cto-8c06958c, both md5 round-trips matched (ff175ec3…), ADR 0026 · status: promoted
+- 2026-09-22 [MISSING] §4b — the awk "which function is the guard in" step passed a branch whose `artefact_gate` had one definition and zero production call sites (only tests called it). The faster, decisive first check is call-site count outside tests: `grep -rn "<guard>(" <src dirs> | grep -v "/tests/" | grep -v "def <guard>"` — empty means inert, reopen · evidence: task-adbc6f43 iteration 1→2, caught before merge · status: pending
