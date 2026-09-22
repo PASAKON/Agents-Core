@@ -1,0 +1,296 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "true"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(absence *)",
+      "Bash(afplay *)",
+      "Bash(cards *)",
+      "Bash(claude *)",
+      "Bash(crontab *)",
+      "Bash(defaults read *)",
+      "Bash(export *)",
+      "Bash(ffprobe *)",
+      "Bash(for d *)",
+      "Bash(for n *)",
+      "Bash(for repo *)",
+      "Bash(git checkout *)",
+      "Bash(git commit *)",
+      "Bash(git fetch *)",
+      "Bash(git merge-base *)",
+      "Bash(git push *)",
+      "Bash(memory *)",
+      "Bash(mooniex-agents__developer__task-f4c64dc6 *)",
+      "Bash(mooniex-console__developer__task-a1fdd83e *)",
+      "Bash(nc *)",
+      "Bash(nohup caffeinate *)",
+      "Bash(npm config *)",
+      "Bash(npm i *)",
+      "Bash(npm test *)",
+      "Bash(npm view *)",
+      "Bash(npx tsc *)",
+      "Bash(osascript *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm exec tsc *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm tsc *)",
+      "Bash(pnpm typecheck *)",
+      "Bash(previz *)",
+      "Bash(pytest *)",
+      "Bash(rev-parse *)",
+      "Bash(scratchpad *)",
+      "Bash(sdef *)",
+      "Bash(sips *)",
+      "Bash(source *)",
+      "Bash(sqlite3 *)",
+      "Bash(sysctl *)",
+      "Bash(tmux set-option *)",
+      "Bash(tmux show-options *)",
+      "Bash(unlink *)",
+      "Bash(until *)",
+      "Bash(until cd *)",
+      "Bash(until curl *)",
+      "Bash(until ssh *)",
+      "Bash(until tmux *)",
+      "Bash(until vercel *)",
+      "Bash(vercel env ls *)",
+      "Bash(vercel inspect *)",
+      "Bash(vercel logs *)",
+      "Bash(vercel ls *)",
+      "Bash(vercel rollback *)",
+      "Bash(vercel whoami *)",
+      "Bash(whois *)",
+      "mcp__Claude_Preview__preview_screenshot",
+      "mcp__Claude_in_Chrome__find",
+      "mcp__Claude_in_Chrome__get_page_text",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "mcp__Claude_in_Chrome__read_console_messages",
+      "mcp__Claude_in_Chrome__read_network_requests",
+      "mcp__Claude_in_Chrome__read_page",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__mooniex-coord__list_active_agents",
+      "mcp__mooniex-coord__read_inbox"
+    ],
+    "defaultMode": "auto",
+    "additionalDirectories": [
+      "/Users/gob"
+    ]
+  },
+  "model": "opus[1m]",
+  "skillOverrides": {},
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/gob/.claude/hooks/caveman-activate.js\"",
+            "timeout": 5,
+            "statusMessage": "Loading caveman mode..."
+          }
+        ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git -C /Users/gob/Projects/LLMs pull --ff-only --quiet 2>/dev/null || true",
+            "timeout": 5,
+            "statusMessage": "Syncing LLMs wiki..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/gob/.claude/hooks/caveman-mode-tracker.js\"",
+            "timeout": 5,
+            "statusMessage": "Tracking caveman mode..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/gob/.claude/hooks/allowlist-notify.mjs\"",
+            "timeout": 3,
+            "statusMessage": "Allowlist: scanning candidates..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/gob/Projects/Agents/scripts/hook-gateguard-category-pre.py",
+            "timeout": 5,
+            "statusMessage": "GateGuard: category check..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/gob/.claude/plugins/cache/cost-guardian-marketplace/cost-guardian/2.0.0/hooks/budget-guard.sh\"",
+            "timeout": 10,
+            "statusMessage": "cost-guardian: budget check..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__claude-in-chrome__tabs_(close|create)_mcp",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/gob/Projects/Agents/scripts/browser/tab_guard.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/gob/.claude/hooks/allowlist-tracker.mjs\"",
+            "timeout": 3
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/gob/Projects/Agents/scripts/hook-gateguard-category-post.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/gob/.claude/plugins/cache/cost-guardian-marketplace/cost-guardian/2.0.0/hooks/track-usage.sh\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ORG_SKILL_LOG=/Users/gob/Projects/Agents/state/skill-usage.log python3 /Users/gob/Projects/Agents/scripts/hook-skill-log.py"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"/Users/gob/Projects/Agents/scripts/statusline.sh\""
+  },
+  "enabledPlugins": {
+    "ecc@ecc": true,
+    "finance@knowledge-work-plugins": true,
+    "cost-guardian@cost-guardian-marketplace": true,
+    "meigen@meigen-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "ecc": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/affaan-m/everything-claude-code.git"
+      }
+    },
+    "knowledge-work-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/knowledge-work-plugins"
+      }
+    },
+    "cost-guardian-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "Manavarya09/cost-guardian"
+      }
+    },
+    "meigen-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "jau123/MeiGen-AI-Design-MCP"
+      }
+    }
+  },
+  "effortLevel": "xhigh",
+  "modelSettings": {
+    "claude-opus-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-fable-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-opus-4-8": {
+      "effortLevel": "xhigh"
+    },
+    "claude-sonnet-5": {
+      "effortLevel": "high"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "xhigh"
+    }
+  },
+  "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "theme": "dark",
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "autoMode": {
+    "soft_deny": [
+      "$defaults",
+      "Bash(sqlite3 state/tasks.db \"DELETE * ; DROP *\")"
+    ],
+    "environment": [
+      "### Org-wide",
+      "**Organization**: MoonieX / mooniex-org — solo-founder virtual org (CEO + AI agent roles: CTO, CFO, CMO, CGO), repo `PASAKON/MoonieX-Agents`",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: Private — `PASAKON/MoonieX-Agents` (confirmed via gh)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: `.env` files (repo root, `questline/.env`, plus timestamped `.env.bak-*` backups) and `config/secretary.mcp.json` — treat as sensitive paths, never print or commit contents; CI secret `GITHUB_TOKEN` referenced in workflows",
+      "**Default / protected branches**: default branch unknown (origin/HEAD unset); no protected branches listed via gh, but this is not conclusive — verify before force-pushing or deleting branches on `PASAKON/MoonieX-Agents`",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Source control**: The trusted repo (`PASAKON/MoonieX-Agents`, this working directory) and its `origin` remote (`https://github.com/PASAKON/MoonieX-Agents.git`) only — no additional orgs configured",
+      "**Trusted internal domains**: `terminal.mooniex.com`, `webhook.mooniex.com` (contacted repeatedly in this project's transcripts)",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: MoonieX Console / CTO orchestration runtime (this repo — `runners/`, `state/tasks.db`), LungNote (todo/reminder MCP), Contabo VPS (`/opt/mooniex-agents`, prod-adjacent orchestrator host, reached via `scripts/cto-claude.sh`)",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: `.env` / `.env.bak-*` files, `config/secretary.mcp.json`, `state/logs/secretary.log` — credentials and API keys; CEO's personal Google Drive (pass.gob1@gmail.com) filing tree described in `gdrive-filing` skill — share only with the CEO or explicitly cleared roles",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace/host/container with `prod` or `production` as a whole word/segment; Contabo VPS (`mooniex-vps`, `/opt/mooniex-agents`) is treated as a live prod-adjacent orchestrator per repo docs",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: multi-agent orchestration / software development for a solo-founder AI product org (MoonieX)",
+      "**Trusted repo**: `/Users/gob/Projects/Agents` (this repo, working directory), remote `origin` → `https://github.com/PASAKON/MoonieX-Agents.git` (private) — confidential org material is fine to commit here; content ported from other repos/hosts is not this repo's own work",
+      "**Org-specific CLIs**: `sqlite3` (routine — task queue at `state/tasks.db`), `osascript` (routine — macOS/iTerm automation for spawning agent tabs)",
+      "routine under `/Users/gob/Projects/` prefix — this Mac is the CEO's full dev machine per `./CLAUDE.md`, all sub-projects under this path are reachable without restriction; the Contabo VPS mirror at `/opt/mooniex-agents` and `/root/projects/mooniex-*` is scoped only to repos actually cloned there"
+    ]
+  }
+}
