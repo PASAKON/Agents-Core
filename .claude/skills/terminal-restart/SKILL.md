@@ -109,3 +109,7 @@ human can `bash scripts/spawn-cto.sh --resume <id>` by hand.
 State: whether the check passed or was `--force`d (and over what), the
 resume-cost + in-flight-loss warnings given, and the verify result (pid
 found, or the loud failure + UUID).
+
+## Field notes
+
+- 2026-09-23 [MISSING] §What this actually does — the resumed pane comes back on `policies/agents.yaml`'s model (`--model claude-sonnet-5` for cto), not on the model the session was running before. A `/model` pick is dropped by the restart, and `/model`'s "saved as your default" never reaches an org session at all, because the launcher's `--model` flag outranks settings. Restarting *to pick up a new model* (e.g. after `claude update` unlocks one) needs a `/model` once the pane is back · evidence: session cto-01c3a0e8, respawned pid 48009 cmdline `--model claude-sonnet-5`, CEO re-ran /model → Opus 5.5 after the restart · status: pending
