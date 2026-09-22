@@ -39,7 +39,7 @@ ROOT = Path(__file__).resolve().parent.parent
 HQ_ROOT = Path(os.environ.get("HQ_ROOT", "/Users/gob/MoonieXHQ"))
 TRASH_ROOT = Path(os.environ.get("TRASH_ROOT", str(Path.home() / ".Trash")))
 STATE_DIR = Path(os.environ.get("HQ_STEP2_STATE_DIR", str(ROOT / "state")))
-HQ_PYTHON = os.environ.get("HQ_PYTHON", str(ROOT / ".venv" / "bin" / "python"))
+HQ_PYTHON = os.environ.get("HQ_PYTHON", "/Users/gob/Projects/Agents/.venv/bin/python")
 
 EXCLUDE_DIFF = ["node_modules", ".next", ".git", ".obsidian", ".DS_Store"]
 UMBRELLA_SKIP_TOP = {".claude"}  # handled specially (stray worktree check)
@@ -180,7 +180,9 @@ def handle_umbrella_leftovers(umbrella_dir: Path, moved: dict[str, Path], target
             if not wt.is_dir():
                 continue
             if _run(["git", "-C", str(wt), "status"]).returncode == 0:
-                blockers.append(f"{wt}: a real git worktree, not a stray copy — leave for normal worktree GC")
+                msg = f"{wt}: a real git worktree, not a stray copy — leave for normal worktree GC"
+                blockers.append(msg)
+                m.note(f"BLOCKER: {msg}")
                 continue
             diffs: list[str] = []
             for sub in sorted(wt.iterdir()):
@@ -191,7 +193,9 @@ def handle_umbrella_leftovers(umbrella_dir: Path, moved: dict[str, Path], target
                 cmp_b = target / "src" if cmp_a.name == "src" else target
                 diffs.extend(_dir_diff(cmp_a, cmp_b))
             if diffs:
-                blockers.append(f"{wt}: differs from the moved repo(s) in {len(diffs)} line(s) — CTO decides (sample: {diffs[:5]})")
+                msg = f"{wt}: differs from the moved repo(s) in {len(diffs)} line(s) — CTO decides (sample: {diffs[:5]})"
+                blockers.append(msg)
+                m.note(f"BLOCKER: {msg}")
             else:
                 dest = trash(wt, ts, subdir=umbrella_dir.name.replace(" ", "-"))
                 m.add(op="move", from_=str(wt), to=str(dest))
@@ -211,7 +215,9 @@ def handle_umbrella_leftovers(umbrella_dir: Path, moved: dict[str, Path], target
         m.note(f"umbrella leftover trashed: {entry} -> {dest}")
 
     if umbrella_dir.is_dir() and any(umbrella_dir.iterdir()):
-        blockers.append(f"{umbrella_dir}: not empty after cleanup — symlink skipped")
+        msg = f"{umbrella_dir}: not empty after cleanup — symlink skipped"
+        blockers.append(msg)
+        m.note(f"BLOCKER: {msg}")
         return False, blockers
 
     if umbrella_dir.is_dir():
@@ -411,21 +417,24 @@ def cmd_apply(hq_root: Path) -> int:
     m.add(op="yaml_edit", path=str(hq_yaml), rows=[r["path"] for r in moved_rows])
     m.note(f"hq.yaml updated for {len(moved_rows)} row(s); backup at {backup}")
 
-    # ---- hq.py map + doctor (best-effort) ----
+    # ---- hq.py map + doctor (best-effort — must never crash a completed migration) ----
     hq_py = hq_root / "scripts" / "hq.py"
     if hq_py.exists():
         print("\nhq.py map / doctor:\n")
-        mo = _run([HQ_PYTHON, str(hq_py), "map"], cwd=hq_root)
-        print(mo.stdout + mo.stderr)
-        do = _run([HQ_PYTHON, str(hq_py), "doctor"], cwd=hq_root)
-        print(do.stdout + do.stderr)
-        m.note(f"hq doctor exit={do.returncode}: {do.stdout.strip().splitlines()[-1] if do.stdout.strip() else ''}")
+        try:
+            mo = _run([HQ_PYTHON, str(hq_py), "map"], cwd=hq_root)
+            print(mo.stdout + mo.stderr)
+            do = _run([HQ_PYTHON, str(hq_py), "doctor"], cwd=hq_root)
+            print(do.stdout + do.stderr)
+            m.note(f"hq doctor exit={do.returncode}: {do.stdout.strip().splitlines()[-1] if do.stdout.strip() else ''}")
+        except OSError as e:
+            m.note(f"hq.py map/doctor could not run (non-fatal, migration already completed): {e}")
+            print(f"  WARN: hq.py map/doctor could not run: {e}")
 
     if all_blockers:
         print("\nBlockers left for the CTO:")
         for b in all_blockers:
             print(f"  ! {b}")
-            m.note(f"BLOCKER: {b}")
 
     print(f"\nmanifest: {m.path}  ({len(m.ops)} ops)")
     return 0
