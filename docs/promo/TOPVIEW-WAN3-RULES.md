@@ -47,6 +47,21 @@ Shareability 15% · Audio-visual quality 10%.
 "Video length, the creator's follower count, and absolute view count do not
 directly determine the cash-prize results."
 
+### The judging weights ARE the film's design brief (CEO, 2026-09-23)
+
+> จดไว้เลย เราจะใช้มาเป็นเกณฑ์ในการทำหนังเลย
+
+Every concept, shot list and cut for this entry is scored against these five
+before it is shown to the CEO. A concept that cannot answer a row is not ready.
+
+| Weight | Criterion | The question each draft must answer |
+|---|---|---|
+| 30% | Creativity | What here has the judge not seen in the other 155 entries? |
+| 25% | Use of Wan3 | Which shot could only be made because Wan3 can do X? Name X |
+| 20% | Story and emotion | What does the viewer feel at the last frame, in one word? |
+| 15% | Shareability | Why would someone send this to a friend? The one moment they would clip |
+| 10% | Audio and visual quality | 720p+ clean, no visible AI failure on a face, licensed sound |
+
 ## Rights
 
 We keep copyright. TopView gets a "non-exclusive, worldwide, royalty-free"
@@ -62,6 +77,9 @@ licence to judge and promote the challenge; commercial ad use needs separate con
 | First 100 approved entries | +5 (probably gone) |
 
 Granted within 2 days of approval, **expire 7 days after grant.**
+
+**CEO 2026-09-23: the 20k route is out.** His large TikTok is a trading
+channel, not ILAG. We are on the standard route (2) plus the plugin (5) at most.
 
 ## Competition
 
