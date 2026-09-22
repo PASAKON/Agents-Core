@@ -172,3 +172,6 @@ The editor looks footage up by `covers`. A script tag with no entry falls back t
 - Where it goes in the cut: `blackliquidity-cut` §5a. Real footage outranks B-roll.
 - Compliance background: `blackliquidity-script` §Compliance.
 - Drive: `gdrive-filing`.
+
+## Field notes
+- 2026-09-23 [MISSING] §Censor rules — the whole skill is a CEO ruling after reviewing EP55's draft stills: approach approved, censor personal data / minors' and uninvolved faces / ads and unrelated banners, partially and by position. Written as rules directly because it is a CEO ruling · evidence: CEO message 2026-09-23, task-67f82679, commit fb85d135 · status: promoted
