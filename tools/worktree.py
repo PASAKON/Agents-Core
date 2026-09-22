@@ -5,19 +5,105 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import yaml
+
 from lib.config import get_project
 
 ROOT = Path(__file__).resolve().parent.parent
 WORKTREE_DIR = ROOT / "worktrees"
+STORAGE_POLICY = ROOT / "config" / "storage-policy.yaml"
 
 
 class GitError(Exception):
     pass
 
 
+def _load_storage_policy() -> dict:
+    """Tiny private loader for config/storage-policy.yaml (ADR 0030). A
+    shared tools/storage_policy.py loader is being built separately — do
+    not create/import it here (task brief); this stays a one-off private
+    read scoped to this module."""
+    try:
+        return yaml.safe_load(STORAGE_POLICY.read_text()) or {}
+    except OSError:
+        return {}
+
+
+def _sparse_worktree_policy() -> dict:
+    return _load_storage_policy().get("sparse_worktree") or {}
+
+
+def _media_guard_extensions() -> set[str]:
+    """Reused, not duplicated: `sparse_worktree` filters by the same media
+    extensions `media_guard` already declares (CTO reopen feedback,
+    task-bfa778ab iter1)."""
+    exts = (_load_storage_policy().get("media_guard") or {}).get("extensions") or []
+    return {str(e).lower() for e in exts}
+
+
+def _escape_sparse_pattern(path: str) -> str:
+    """Escape `path` for use as the tail of a non-cone gitignore-style
+    sparse-checkout negation line ("!/" + this). Backslash-escapes: a
+    leading `!` or `#` (line-start comment/negation meaning), `*`/`?`/`[`
+    wherever they occur (glob metacharacters), and trailing spaces
+    (gitignore strips unescaped trailing whitespace). Paths with Thai
+    characters pass through unchanged — only ASCII metacharacters above
+    are special to gitignore pattern syntax."""
+    out = []
+    for i, ch in enumerate(path):
+        if ch in ("*", "?", "["):
+            out.append("\\" + ch)
+        elif i == 0 and ch in ("!", "#"):
+            out.append("\\" + ch)
+        else:
+            out.append(ch)
+    escaped = "".join(out)
+    stripped = escaped.rstrip(" ")
+    n_trailing = len(escaped) - len(stripped)
+    if n_trailing:
+        escaped = stripped + ("\\ " * n_trailing)
+    return escaped
+
+
+def _large_tracked_media(repo: Path, start_point: str, min_bytes: int,
+                         extensions: set[str]) -> list[str]:
+    """Exact repo-relative paths of tracked files at `start_point` larger
+    than `min_bytes` with a `media_guard.extensions` extension. `-z` NUL-
+    terminates records so filenames with spaces/Thai characters parse
+    correctly (never split a path on whitespace)."""
+    r = subprocess.run(
+        ["git", "ls-tree", "-r", "-l", "-z", start_point],
+        cwd=str(repo), capture_output=True, text=True, encoding="utf-8",
+    )
+    if r.returncode != 0:
+        raise GitError(f"git ls-tree -r -l -z {start_point}\n{r.stderr}")
+
+    out: list[str] = []
+    for record in r.stdout.split("\0"):
+        if not record:
+            continue
+        meta, sep, path = record.partition("\t")
+        if not sep:
+            continue
+        fields = meta.split()
+        if len(fields) < 4:
+            continue
+        try:
+            size = int(fields[3])
+        except ValueError:
+            continue
+        if size <= min_bytes:
+            continue
+        basename = path.rsplit("/", 1)[-1]
+        ext = basename.rsplit(".", 1)[-1].lower() if "." in basename else ""
+        if ext in extensions:
+            out.append(path)
+    return out
+
+
 def _run(cmd: list[str], cwd: str | Path | None = None) -> str:
     r = subprocess.run(cmd, cwd=str(cwd) if cwd else None,
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0:
         raise GitError(f"{' '.join(cmd)}\n{r.stderr}")
     return r.stdout.strip()
@@ -134,7 +220,40 @@ def create_worktree(project_key: str, role: str, task_id: str) -> dict:
     except GitError:
         pass
 
-    _run(["git", "worktree", "add", "-b", branch, str(wt), start_point], cwd=repo)
+    # Sparse worktrees (ADR 0030, storage-policy.yaml `sparse_worktree`).
+    # A role in `full_checkout_roles` (e.g. video_editor) gets today's
+    # unchanged full checkout. Otherwise, exclude only EXISTING tracked
+    # files above `min_bytes` with a media extension, by EXACT PATH — never
+    # a directory. A directory-level exclude was tried and reverted:
+    # git refuses `git add -A` for any NEW file under an excluded directory
+    # ("paths ... outside of your sparse-checkout definition", exit 1),
+    # which would break nearly every browser_operator commit under
+    # docs/reports (see storage-policy.yaml's comment for the measurement).
+    # Excluding by exact path keeps every directory inside the sparse
+    # definition, so a brand-new file anywhere is always addable. The
+    # sparse config is written into THIS worktree's own git-dir
+    # (extensions.worktreeConfig + per-worktree scope) — never the main
+    # checkout's, which stays untouched.
+    policy = _sparse_worktree_policy()
+    min_bytes = policy.get("min_bytes")
+    full_roles = set(policy.get("full_checkout_roles") or [])
+
+    large_media: list[str] = []
+    if role not in full_roles and min_bytes:
+        extensions = _media_guard_extensions()
+        if extensions:
+            large_media = _large_tracked_media(repo, start_point, int(min_bytes), extensions)
+
+    if not large_media:
+        _run(["git", "worktree", "add", "-b", branch, str(wt), start_point], cwd=repo)
+    else:
+        _run(["git", "config", "extensions.worktreeConfig", "true"], cwd=repo)
+        _run(["git", "worktree", "add", "--no-checkout", "-b", branch, str(wt),
+              start_point], cwd=repo)
+        _run(["git", "sparse-checkout", "init", "--no-cone"], cwd=wt)
+        patterns = ["/*"] + [f"!/{_escape_sparse_pattern(p)}" for p in large_media]
+        _run(["git", "sparse-checkout", "set", "--no-cone", *patterns], cwd=wt)
+        _run(["git", "checkout", branch], cwd=wt)
 
     # Bare worktrees lack gitignored runtime deps (node_modules/.env) so the DEV
     # — and the merge gate_tests — can't run anything env/dep-dependent. Symlink

@@ -13,10 +13,13 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+import yaml
 
 from lib import db
 from lib.config import (
@@ -207,6 +210,28 @@ def artefact_gate(*, runner: str, repo_path: str, branch: str, base: str,
 
 
 ROOT = Path(__file__).resolve().parent.parent
+
+STORAGE_POLICY = ROOT / "config" / "storage-policy.yaml"
+DEFAULT_DISK_ORANGE_GB = 5.0
+
+
+def _disk_orange_floor_gb() -> float:
+    """Tiny private loader for config/storage-policy.yaml `gauge.orange`
+    (GB) — ADR 0030. A shared tools/storage_policy.py loader is being built
+    separately (task brief) — do not create/import it here."""
+    try:
+        data = yaml.safe_load(STORAGE_POLICY.read_text())
+        return float((data or {}).get("gauge", {}).get("orange", DEFAULT_DISK_ORANGE_GB))
+    except (OSError, ValueError, TypeError):
+        return DEFAULT_DISK_ORANGE_GB
+
+
+def _free_gb(path: str = "/") -> float:
+    """Free space on `path` in GB. Module-level seam so tests can inject a
+    fake value directly (monkeypatch this function) rather than an env var
+    — an env var could disable the guard in prod (ADR 0030)."""
+    return shutil.disk_usage(path).free / (1024 ** 3)
+
 
 # How a worker is started, held as a STABLE path rather than as the command
 # itself. This is the root-cause fix for a failure that recurred across
@@ -1120,6 +1145,24 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             f"task {task_id} already {task['status']} — refusing to re-delegate "
             f"merged work (use reopen_task if a redo is intended)"
         )
+
+    # Disk floor (ADR 0030): the Mac hit 0 bytes free on 2026-09-23 and every
+    # tool died. Checked before anything else touches this task's row — no
+    # locks, no worktree, no status write — so a refusal here leaves the row
+    # exactly as it was and is trivially retried once space is back. Returns
+    # the task row dict (not a bare string) like every other refusal path
+    # here (depends_on, touches collision) — lib/org_tools_registry.py:196
+    # does `_slim_task(await do_delegate(...))` and delegate_parallel_tasks
+    # gathers results, both of which assume a dict (CTO reopen feedback,
+    # task-bfa778ab iter1: a str return broke the MCP tool on a low-disk spawn).
+    free_gb = _free_gb()
+    orange_gb = _disk_orange_floor_gb()
+    if free_gb < orange_gb:
+        msg = (f"disk red: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
+               f"— spawn refused (ADR 0030)")
+        warn(f"disk floor blocked task={task_id}: {msg}")
+        db.set_fields(task_id, delegate_log=msg, actor="cto")
+        return db.get_task(task_id)
 
     role_name = task["role"]
     project_key = task["project"]
