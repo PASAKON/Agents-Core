@@ -383,6 +383,7 @@ def test_env_empty_value_counts_as_absent(monkeypatch):
     assert decide_mod._env("SOME_DECIDE_VAR") is None
 
 
+@pytest.mark.allow_dotenv
 def test_read_dotenv_var_reads_tmp_env_file(tmp_path, monkeypatch):
     from lib import config as config_mod
 
