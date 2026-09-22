@@ -842,6 +842,43 @@ needs to see at a glance which are the sharp ones.
 | `Do Not Disturb/StoryBoard` | `18nykJSEtNPstN7-gB1VmGTjs8HAovFcivhBhAVgqdRw` | Google Doc. Short synopsis, the locked story facts, the festival constraints, and a link to the director's-notebook artifact where the volatile detail lives. |
 | `Do Not Disturb/Soundtrack` | `1BcwtvPSSGN4kQwuYnerWYyPrLF3iAwjQ` | Defined 2026-08-12 — **everything audio** for this film — music, SFX, ambience, voice. Sub-folders are split by whatever kind makes it easy for the editor to grab (`SFX`, `Ambient`, `Audio`, …), named by the director rather than by us (CEO 2026-08-12). Empty as of that date. |
 | `ALL DRAFT/FB: ละครสั้นคุณธรรม` | `1zu3azrqtw22X0n72fJfREDWQb_kjLm4K` | Created 2026-09-18, CEO approved the whole tree in chat ("ตามนั้น Approve") after being shown it. The Facebook channel «ละครสั้นคุณธรรม by ILAG Studio» (page id 61594116376333, which lives on the **Dorsine Gobb** profile — see the two-Facebook-accounts note). Thai moral short dramas in the ฟ้ามีตา format: **one complete story per episode**, villain punished, family visibly comes through. Named `<platform>: <channel>` like every other channel row. **Inside it, one story = one folder named `เรื่อง<ชื่อเรื่อง>`** (CEO 2026-09-19 — the word เรื่อง always first; not `EP<n>`), each holding `All Scene/ACT<n>/`. **Follows the YT: ILAG branch rules in full** — the CEO pointed at `YT: ILAG` by link when asked for a pattern — so: one `logs.txt` per project, append-only, `S<n>` scene folders, exactly one `Element/`, nothing in the branch ever deleted, and plate/sub-folder names are the director's to choose. |
+### Film work: what stays on disk, what goes to Drive, what is simply deleted (CEO 2026-09-23)
+
+**Standing rule — do not ask again.** The CEO's words when the Mac hit 3.7 GB free
+of 228 GB: *"งานคุณทำแล้ว สำรองขึ้น Drive แล้วเคลียร์ด้วย อย่าให้สั่งบ่อยๆ
+เขียนเป็นกฎไว้เลย"* — and, on what deserves backing up at all: *"เรามีพื้นที่
+Google Drive เยอะ แต่ก็ไม่ควรสำรองไฟล์ 1.3 GB เยอะๆ เพียงแค่ปรับ 1-2 ฉาก
+มันเปลือง คุณฉลาดพอที่จะตัดสินใจได้."*
+
+So decide, do not ask:
+
+| what | where it belongs |
+|---|---|
+| **Individual shot clips** (`shot-NN.mp4`) | **Drive, always.** Every take, good or bad — the branch keeps generation history. They are 2–6 MB each. |
+| **One working folder of the current clips** | **Keep on disk** while the film is in production (`~/Desktop/banchi-ALL/`), because assembling reads them. |
+| **Staging folders** the runner wrote into (`banchi-ACT<n>/`, `banchi-FIX/`, `banchi-TEST/`, comparison folders) | **Delete** once their clips are copied into the working folder AND verified on Drive. They are duplicates by construction. |
+| **The assembled full cut** (~1.3 GB) | **Do NOT back up every version.** Re-assembling from the clips is a two-minute ffmpeg run, so an old cut is a cheap thing to recreate and an expensive thing to store. Upload a cut to `Final Draft/` only when it is one the CEO has signed off, or the last one of the day. |
+| **A superseded cut** (`-v1` when `-v2` exists) | **Delete it as soon as the new one verifies.** Do not keep both. |
+
+**The order never changes, and step 3 is not optional:**
+
+1. Copy the new clips into the working folder.
+2. Upload to `All Scene/ACT<n>/`; if a clip of that name already exists and the
+   bytes differ, **trash the old one first** — Drive will otherwise keep two
+   files with the same name and the next reader cannot tell which is current.
+3. **Verify from Drive's own listing**: name present AND size equal, for every
+   file. Not the upload call's return value.
+4. Only then delete the staging copy.
+
+**Verify before deleting means verify, every time.** On 2026-09-23 a check found
+13 clips on Drive still holding the pre-fix version after a re-shoot — deleting
+the local copies at that moment would have destroyed the only good take of nine
+scenes. The check is two minutes; the loss is unrecoverable.
+
+Reference implementation: `docs/ops/` and the `checkdrive`/`refresh` pattern used
+that day — list the folder, compare `name → size` against the local file, upload
+and trash only what differs, then re-list to prove the diff is empty.
+
 ### «บัญชี» — the download → verify → delete loop (CEO 2026-09-19)
 
 The CEO's words: *"ตรวจเสร็จแล้ว Upload ลง Drive แล้ว เชคแล้วว่า Upload แล้ว ให้ลบ
