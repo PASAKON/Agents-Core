@@ -1,0 +1,68 @@
+# Decision site: what state is a browser_operator's page in right now?
+# Replaces the ad hoc heuristics in tools/flow_shoot.py:149 (is_refusal_text)
+# and scripts/higgsfield/gen_loop.py's inline Unlimited-mode / refusal-card
+# text checks (task-2a29d27e, CEO ruling 2026-09-22).
+#
+# Input state: the smallest sufficient page text — a button's innerText, a
+# refusal card's text, a URL — NOT a screenshot. Extracting that text is the
+# caller's job (javascript_tool per browser-operator skill); this site never
+# takes an image.
+site: browser.page_state
+question: >-
+  What is the current state of the browser page a browser_operator is
+  looking at, given the page text/state it extracted?
+options:
+  - id: idle
+    meaning: "Composer/queue empty, no generation in flight, nothing to wait on."
+  - id: generating
+    meaning: "A job is queued or actively rendering (spinner, 'Generating', 'In queue')."
+  - id: done
+    meaning: "A finished asset is ready to review/download."
+  - id: moderated
+    meaning: "The platform refused/flagged the content (policy, copyright, face/IP scan)."
+  - id: rate_limited
+    meaning: "HTTP 429 / 'too many requests' / a slot-busy message, not a real block."
+  - id: signed_out
+    meaning: "The account session is gone (login page, marketing splash redirect)."
+  - id: error
+    meaning: "A generic failure/error state unrelated to moderation or rate limiting."
+  - id: unknown
+    meaning: "None of the above rules matched — needs a human or the LLM fallback."
+max_state_chars: 2000
+provider_policy: rules-then-llm
+rules:
+  # Thai refusal text, verbatim from tools/flow_shoot.py:149 is_refusal_text
+  # ("ล้มเหลว" = failed / "อาจละเมิดนโยบาย" = may violate policy).
+  - pattern: '^\s*ล้มเหลว'
+    option: moderated
+  - pattern: 'อาจละเมิดนโยบาย'
+    option: moderated
+  # English moderation strings — google-flow-ops SKILL.md § "A policy refusal
+  # comes from the DIALOGUE" + higgsfield-unlimited-gen SKILL.md's Face/IP
+  # scanner section ("the same automated Face/IP scanner that terminally
+  # killed three healthy plates").
+  - pattern: 'content polic|violates? .*polic|flagged|face/ip scanner|resemblance'
+    option: moderated
+  - pattern: 'rights verification required'
+    option: moderated
+  # Sign-out — google-flow-ops SKILL.md § "Mid-session Google sign-out":
+  # redirects to /about, or a bare "Sign in" control; accounts.google.com
+  # ServiceLogin confirms it.
+  - pattern: '\bsign in\b|accounts\.google\.com/ServiceLogin|myaccount\.google\.com|/about\b.*splash'
+    option: signed_out
+  # Rate limiting — HTTP 429 / slot-busy wording (memory:
+  # reference_rate_limited_false_positive_from_higgsfield_429.md).
+  - pattern: '\b429\b|too many requests|rate limit|slot.?busy'
+    option: rate_limited
+  # In-flight generation — button/spinner text on Flow + Higgsfield.
+  - pattern: 'generating|in queue|queued|rendering'
+    option: generating
+  # Finished asset — download control visible.
+  - pattern: '\bdownload\b|ready to download|generation complete'
+    option: done
+  # Generic error — last, so a moderation/rate-limit match above always wins.
+  - pattern: 'something went wrong|failed to generate|\berror\b'
+    option: error
+counterfactual:
+  images: 1
+  big_model_tokens_out: 20

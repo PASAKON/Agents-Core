@@ -1,0 +1,49 @@
+# Provider + counterfactual price list for tools/decide.py.
+#
+# Prices are USD per 1,000,000 tokens (MTok). CFO/CTO: edit a price in place
+# when a vendor's list price changes, and update its `asof` date next to the
+# edit — docs/design/decision-layer.md's staleness note points back here.
+#
+# No CFO-owned cost tracker exists in this repo yet to copy from — searched
+# per the task brief (`grep -rn 'fable|per_mtok|USD' scripts/cfo-*.sh
+# lib/cost*.py tools/cost*.py`, task-2a29d27e, 2026-09-22) and none of those
+# paths exist. Every price below is sourced from the `claude-api` skill's
+# "Current Models" table (cached 2026-06-24) or the vendor's own post — see
+# each `source` field.
+
+openrouter:
+  anthropic/claude-haiku-4-5:
+    in: 1.00
+    out: 5.00
+    asof: "2026-09-22"
+    source: >-
+      OpenRouter list price for anthropic/claude-haiku-4-5, matching
+      Anthropic's own first-party Haiku 4.5 API rate ($1.00/$5.00 per MTok)
+      per the claude-api skill's Current Models table (cached 2026-06-24).
+
+jev:
+  system-one:
+    in: 0.042
+    out: 0.0
+    asof: "2026-09-22"
+    source: >-
+      TypeSafe's "System One models + Jev" launch post, 2026-09-15
+      (recorded in Agents-Wikis research/2026-09-22-typesafe-jev-system-one-models.md):
+      "$0.042 / MTok input, output free". Early access / waitlist — pricing
+      sustainability explicitly unproven by the vendor's own words. The
+      endpoint itself is unverified (see tools/decide.py's jev provider and
+      docs/design/decision-layer.md § Jev status).
+
+# Used by lib/decision_ledger.py / tools/decide.py to compute
+# counterfactual_usd — "what would this decision have cost inside the big
+# model instead of a typed decision".
+counterfactual:
+  claude-fable-5-1:
+    in: 10.00
+    out: 50.00
+    asof: "2026-09-22"
+    source: >-
+      claude-api skill's Current Models table (cached 2026-06-24):
+      claude-fable-5-1 $10.00 / $50.00 per 1M tokens. This is Anthropic's
+      published first-party rate, not a CFO-tracker copy (none exists yet —
+      see the header note above).

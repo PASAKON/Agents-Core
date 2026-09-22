@@ -1,0 +1,44 @@
+# Decision site: given a refusal/moderation message's text, what should the
+# operator do next? (task-2a29d27e, CEO ruling 2026-09-22)
+#
+# Input state: the refusal/moderation card's own text (not a screenshot).
+site: browser.moderation_action
+question: >-
+  Given this refusal/moderation message text, what should the operator do
+  next?
+options:
+  - id: retry_same
+    meaning: "Transient glitch, not a real moderation decision — try again unchanged."
+  - id: rewrite_dialogue
+    meaning: "A Flow-style policy refusal — the DIALOGUE is the cause, not the reference chips."
+  - id: rewrite_chips
+    meaning: "A copyright/IP flag on reference material — rewrite the Element/chip, not the dialogue."
+  - id: skip
+    meaning: "Not worth another attempt right now; move to the next shot."
+  - id: escalate_ceo
+    meaning: "Face/IP resemblance scanner or a rights-verification block — human call only."
+max_state_chars: 1000
+provider_policy: rules-then-llm
+rules:
+  # higgsfield-unlimited-gen SKILL.md: "the same automated Face/IP scanner
+  # that terminally killed three healthy plates in one day" — fires on
+  # resemblance, not real infringement; escalate, never auto-retry.
+  - pattern: 'face/ip scanner|resemblance|rights verification required'
+    option: escalate_ceo
+  # Higgsfield: a copyright/IP claim on reference material — rewrite the
+  # chip/reference, not the spoken line.
+  - pattern: 'copyright|intellectual property|trademark'
+    option: rewrite_chips
+  # Flow's own measured finding, google-flow-ops SKILL.md § "A policy
+  # refusal comes from the DIALOGUE, not from your reference chips":
+  # Thai refusal text from tools/flow_shoot.py:149 is_refusal_text, plus the
+  # generic English policy-violation wording — default action is to rewrite
+  # the dialogue line, never the chips.
+  - pattern: '^\s*ล้มเหลว|อาจละเมิดนโยบาย|content polic|violates? .*polic'
+    option: rewrite_dialogue
+  # Rate-limit / slot-busy text is not a moderation decision at all — retry.
+  - pattern: '\b429\b|too many requests|rate limit|slot.?busy'
+    option: retry_same
+counterfactual:
+  images: 1
+  big_model_tokens_out: 400
