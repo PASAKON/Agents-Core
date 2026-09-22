@@ -172,6 +172,13 @@ _MIGRATION_COLUMNS = [
     # resolves the effective host as: explicit delegate_task(host=...) arg >
     # this column > 'mac' (docs/design/multi-host-workers.md Phase 1).
     ("host", "TEXT"),
+    # Which CLI drives this task's worker: claude|codex|agy (task-adbc6f43).
+    # NULL means "claude" — every pre-migration row, and every row created
+    # before runner selection existed, keeps working unchanged. Validated
+    # against lib.config.KNOWN_RUNNERS and the target host's config/hosts.yaml
+    # `runners:` list at delegate_task() time (the hub), not here — never
+    # trust a runner blind at spawn time (docs/ops/agent-runners.md §4).
+    ("runner", "TEXT"),
 ]
 
 # c_level_sessions lifecycle columns (task-728e4741). Same forward-only
@@ -540,6 +547,7 @@ def create_task(
     owner_cto: str | None = None,
     owner_role: str | None = None,
     host: str | None = None,
+    runner: str | None = None,
 ) -> str:
     validate_designer_context(role, description)
     # Stamp the spawning C-level session so DEV reports route back to that
@@ -559,10 +567,10 @@ def create_task(
         if owner_cto:
             _require_charter(owner_cto, owner_role, conn)
         conn.execute(
-            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,owner_role,host,created_at,updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,owner_role,host,runner,created_at,updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (tid, project, role, "pending", title, description, parent_task,
-             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, owner_role, host, ts, ts),
+             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, owner_role, host, runner, ts, ts),
         )
         log_event(conn, tid, "system", "task_created",
                   {"role": role, "title": title, "touches": touches or []})
@@ -589,7 +597,7 @@ VALID_COLUMNS = {
     "iteration", "description", "title",
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
     "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto", "owner_role",
-    "delegate_log", "spawned_at", "host",
+    "delegate_log", "spawned_at", "host", "runner",
 }
 
 

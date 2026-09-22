@@ -22,6 +22,12 @@ hosts:
     worktrees: /Users/gob/Projects/Agents/worktrees
     provides: [chrome, macos_cu, blender_bridge]
     max_workers: 4
+    # Worker CLI(s) this host can spawn (task-adbc6f43). runners/worker_init.py
+    # (the Mac-local launcher) only execs claude today — codex/agy on Mac is
+    # docs/ops/agent-runners.md's own future work, not wired into this repo
+    # yet. Defaults to [claude] when absent (lib.config.host_runners /
+    # tools.delegate._host_runners), so leaving this out changes nothing.
+    runners: [claude]
     # ADDENDUM 3 (CTO 2026-09-07): CEO rule — one operator, one Chrome tab,
     # never a pile-up. Four operators sharing the Mac's Chrome produced a
     # destroyed tab group, a sign-out, and two blocked runs the same day.
@@ -40,6 +46,17 @@ hosts:
     # that rule; the second is a read-only tab (tab_registry keeps them apart).
     max_workers: 2
     max_browser_operators: 2
+    # Measured 2026-09-20, RECONCILED 2026-09-22 (CTO REVIEW-ITER2.md, doc
+    # commit 0d8490f9): claude.exe (.local\bin, working), codex.cmd
+    # (%APPDATA%\npm, codex-cli 0.153.4, signed in), agy.exe
+    # (%LOCALAPPDATA%\agy\bin, Antigravity 1.2.6) -- ALL THREE confirmed
+    # present and signed in on winbox, `agy models` returns all 14 models
+    # when run in session 1. docs/ops/agent-runners.md §1's old "Mac only"
+    # line for agy was stale (fixed in §6a); the credential lives in the
+    # session-1 logon keyring, same session-0 boundary as codex's sandbox
+    # pipe -- over plain ssh agy still says "Please sign in", which is
+    # expected, not a sign of absence.
+    runners: [claude, codex, agy]
 
   contabo:
     os: linux
@@ -50,3 +67,8 @@ hosts:
     provides: [always_on, api]
     max_workers: 3
     max_browser_operators: 0
+    # No launcher wired for Contabo yet (tools.delegate._spawn_remote raises
+    # NotImplementedError for any non-windows host) -- claude listed only so
+    # host_runners()/_validate_runner() have a sane default; not reachable
+    # via delegate_task until a Contabo launcher exists (Phase 2).
+    runners: [claude]

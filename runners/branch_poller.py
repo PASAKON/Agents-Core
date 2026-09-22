@@ -30,6 +30,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -39,11 +40,21 @@ sys.path.insert(0, str(ROOT))
 from lib import db  # noqa: E402
 from lib.config import get_project, host as get_host  # noqa: E402
 from lib.logger import get_logger  # noqa: E402
+from tools import delegate as delegate_mod  # noqa: E402
+from tools.git_ops import _run_shell  # noqa: E402
 from tools.worker_reap import close_remote  # noqa: E402
+from tools.worktree import provision_worktree  # noqa: E402
 
 POLL_SECONDS = 60
 SSH_TIMEOUT_S = 20
 GIT_TIMEOUT_S = 20
+
+# task-adbc6f43: runners whose "REPORT.md landed" claim is never trusted on
+# its own -- claude follows WORKER.md and its own MCP submit_report contract
+# on the Mac; codex/agy are headless CLIs whose only signal is git, and
+# codex specifically exits 0 after writing nothing (docs/ops/agent-runners.md
+# §4). See _artefact_gate_for_external_runner below.
+EXTERNAL_RUNNERS = ("codex", "agy")
 
 # GAP 2 (task-59780ac3): how long the newest commit on a finished remote
 # branch must sit untouched before branch_poller will close that worker's
@@ -211,6 +222,99 @@ def parse_worker_json(text: str) -> dict:
     return data
 
 
+def _fetch_remote_text(host_cfg: dict, remote_path: str) -> str | None:
+    """Read a text file already sitting on a Windows spoke, over ssh,
+    read-only. None on any failure (unreachable host, missing file, no ssh
+    alias) — never raises, same "can't confirm -> treat as absent" shape as
+    tools.delegate._remote_sha256's probe."""
+    ssh_alias = host_cfg.get("ssh")
+    if not ssh_alias:
+        return None
+    escaped = remote_path.replace("'", "''")
+    cmd = f"if (Test-Path '{escaped}') {{ Get-Content -Raw -Encoding UTF8 '{escaped}' }}"
+    r = _run(["ssh", ssh_alias, "powershell", "-NoProfile", "-Command", cmd],
+            timeout=SSH_TIMEOUT_S)
+    if r.returncode != 0:
+        return None
+    return r.stdout or None
+
+
+def _codex_transcript_remote_path(host_cfg: dict, task_id: str) -> str:
+    """windows/spawn-worker.ps1's codex branch writes its --json events to
+    `$launchDir/codex-events.jsonl`, where `$launchDir` is
+    `<agents_root>\\.launch-<task>` — beside the script, never inside the
+    worktree (a file there would get swept into the worker's own
+    `git add -A`)."""
+    agents_root = host_cfg["agents_root"].rstrip("\\")
+    return f"{agents_root}\\.launch-{task_id}\\codex-events.jsonl"
+
+
+def _run_project_tests_on_branch(repo_path: str, branch: str,
+                                 test_cmd: str) -> tuple[int, str]:
+    """Materialise `origin/<branch>` into a scratch git worktree beside
+    `repo_path` and run `test_cmd` there — the SAME `test_command` field and
+    the SAME provision_worktree/_run_shell helpers tools.git_ops.merge_task's
+    gate_tests already uses, so this gate and the merge-time gate can never
+    judge a branch's tests differently (CTO: "make sure the two cannot
+    disagree; do not add new surface"). Always tears the scratch worktree
+    down, even on failure."""
+    scratch = Path(tempfile.mkdtemp(prefix="mooniex-gate-"))
+    scratch.rmdir()  # `git worktree add` creates the dir itself; must not pre-exist
+    try:
+        add = _run(["git", "-C", repo_path, "worktree", "add", "--detach",
+                   str(scratch), f"origin/{branch}"], timeout=60)
+        if add.returncode != 0:
+            return 1, f"git worktree add failed: {(add.stderr or '').strip()[:500]}"
+        try:
+            provision_worktree(Path(repo_path), scratch)
+        except OSError as e:  # never let a provisioning bug block the gate itself
+            _log().warning("gate: provision_worktree failed for %s: %s", branch, e)
+        return _run_shell(test_cmd, cwd=scratch)
+    finally:
+        _run(["git", "-C", repo_path, "worktree", "remove", "--force", str(scratch)])
+
+
+def _artefact_gate_for_external_runner(task: dict, repo_path: str,
+                                       branch: str) -> "delegate_mod.GateResult":
+    """The gate task-adbc6f43's iter-2 review demanded be wired into a real
+    entry point, called from check_task right before an external runner's
+    task would flip to review. Builds the `run_tests` callback and (for
+    codex) fetches the --json transcript, then defers the actual pass/fail
+    logic to tools.delegate.artefact_gate — never reimplemented here.
+
+    A project with no `test_command` configured skips the test-run check
+    (returns success for it) rather than failing — matches
+    tools.git_ops.merge_task's own `if gate and test_cmd and worktree`
+    skip-when-absent behaviour, for the same "cannot disagree" reason."""
+    task_id = task["id"]
+    runner = (task.get("runner") or "claude").strip().lower()
+    proj = get_project(task["project"])
+    base = proj["default_branch"]
+    test_cmd = proj.get("test_command")
+
+    if test_cmd:
+        def run_tests() -> tuple[int, str]:
+            return _run_project_tests_on_branch(repo_path, branch, test_cmd)
+    else:
+        def run_tests() -> tuple[int, str]:
+            return 0, "no test_command configured for this project — skipped"
+
+    codex_transcript = None
+    if runner == "codex":
+        try:
+            host_cfg = get_host(task["host"])
+            remote_path = _codex_transcript_remote_path(host_cfg, task_id)
+            codex_transcript = _fetch_remote_text(host_cfg, remote_path)
+        except ValueError as e:
+            _log().warning("task %s: could not resolve host for codex transcript: %s",
+                           task_id, e)
+
+    return delegate_mod.artefact_gate(
+        runner=runner, repo_path=repo_path, branch=branch, base=base,
+        run_tests=run_tests, codex_transcript=codex_transcript,
+    )
+
+
 _HEADER_RE_TEMPLATE = r"^#\s*{kind}\s+(task-\S+)\s*$"
 
 
@@ -268,6 +372,25 @@ def check_task(task: dict) -> None:
                     ),
                 )
                 return
+
+            runner = (task.get("runner") or "claude").strip().lower()
+            if runner in EXTERNAL_RUNNERS:
+                gate = _artefact_gate_for_external_runner(task, repo_path, branch)
+                if not gate:
+                    reason = "; ".join(gate.reasons)
+                    _log().warning(
+                        "task %s: artefact gate REFUSED runner=%s on %s: %s",
+                        task_id, runner, branch, reason,
+                    )
+                    db.update_status(
+                        task_id, "failed",
+                        delegate_log=f"artefact gate refused (runner={runner}): {reason}",
+                        actor="branch_poller",
+                    )
+                    return
+                _log().info("task %s: artefact gate passed runner=%s (%s)",
+                           task_id, runner, "; ".join(gate.reasons))
+
             db.update_status(task_id, "review", report=report, actor="branch_poller")
             _log().info("task %s -> review (REPORT.md on %s)", task_id, branch)
             _maybe_close_finished_remote_worker(task_id, repo_path, branch)

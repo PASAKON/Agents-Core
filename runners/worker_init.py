@@ -398,6 +398,24 @@ def main() -> None:
         print(f"worktree missing for task {task_id}", file=sys.stderr)
         sys.exit(4)
 
+    # Runner (task-adbc6f43): NULL on the row means "claude" (every
+    # pre-migration/local task, unchanged). This launcher only ever execs
+    # claude.exe/claude — codex and agy are winbox-only today
+    # (windows/spawn-worker.ps1's job), gated at config/hosts.yaml's `mac`
+    # entry (`runners: [claude]`) so tools.delegate._validate_runner already
+    # refuses a codex/agy task before it reaches this file. This is a second,
+    # local check — never trust a runner blind at exec time either.
+    runner = (task.get("runner") or "claude").strip().lower()
+    if runner != "claude":
+        db.update_status(
+            task_id, "failed",
+            report=f"runner={runner!r} not supported by local Mac spawn "
+                    f"(runners/worker_init.py) — winbox-only today",
+            actor=role,
+        )
+        print(f"runner {runner!r} not supported for local spawn", file=sys.stderr)
+        sys.exit(5)
+
     project = get_project(task["project"])
     backend = (project.get("spawn_backend") or "iterm").lower()
 
