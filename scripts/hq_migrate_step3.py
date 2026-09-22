@@ -85,11 +85,19 @@ def build_path_mapping(hq_root: Path, rows: list[dict]) -> dict[str, str]:
 # ─────────────────────────── worktree repair ─────────────────────────────────
 
 def list_attached_worktrees(path: Path) -> list[str]:
-    """Every OTHER worktree attached to the repo at `path` (excludes the repo itself)."""
+    """Every OTHER worktree attached to the repo at `path` that still exists on
+    disk (excludes the repo itself, and excludes a dangling/prunable entry —
+    e.g. a scratch review checkout under /tmp that was already deleted without
+    `git worktree remove`; there is nothing to repair there, `repair` just
+    errors "not a valid path". `git worktree prune` clears the stale entry."""
     r = _run(["git", "-C", str(path), "worktree", "list", "--porcelain"])
     all_paths = [line[len("worktree "):].strip() for line in r.stdout.splitlines() if line.startswith("worktree ")]
     main = str(path.resolve())
-    return [p for p in all_paths if str(Path(p).resolve()) != main]
+    live = [p for p in all_paths if str(Path(p).resolve()) != main]
+    missing = [p for p in live if not Path(p).exists()]
+    if missing:
+        _run(["git", "-C", str(path), "worktree", "prune"])
+    return [p for p in live if Path(p).exists()]
 
 
 def repair_worktree(new_repo: Path, worktree_path: Path) -> None:
@@ -229,6 +237,9 @@ def cmd_plan(hq_root: Path) -> int:
     for r in rows:
         target = hq_root / r["path"]
         src = Path(r["current"])
+        if src.resolve() == target.resolve():
+            print(f"  ALREADY MIGRATED  {src}  ->  {target}  (compat symlink already in place)")
+            continue
         info = git_preflight(src)
         wts = list_attached_worktrees(src)
         push_note = ""
@@ -262,8 +273,18 @@ def cmd_apply(hq_root: Path) -> int:
     problems: list[str] = []
     preflights: dict[str, dict] = {}
     worktrees: dict[str, list[str]] = {}
+    already_done: set[str] = set()
     for r in rows:
         src = Path(r["current"])
+        target = hq_root / r["path"]
+        # resumability: a prior --apply may have already moved+symlinked this
+        # row (crashed on a LATER row) — `src` then resolves straight through
+        # the compat symlink to `target`. Nothing left to do for it here.
+        if src.resolve() == target.resolve():
+            already_done.add(r["path"])
+            m.note(f"already migrated (symlink -> target already in place), skipping: {r['path']}")
+            print(f"  {r['path']}: already migrated, skipping")
+            continue
         info = git_preflight(src)
         preflights[r["path"]] = info
         worktrees[r["path"]] = list_attached_worktrees(src)
@@ -297,20 +318,24 @@ def cmd_apply(hq_root: Path) -> int:
     for r in rows:
         src = Path(r["current"])
         target = hq_root / r["path"]
-        info = preflights[r["path"]]
-        move_and_verify(src, target, info["sha"], info["remotes"])
-        m.add(op="move", from_=str(src), to=str(target), sha=info["sha"])
-        m.note(f"moved: {src} -> {target}")
 
-        for wt in worktrees[r["path"]]:
-            repair_worktree(target, Path(wt))
-            m.add(op="worktree_repair", row=r["path"], worktree=wt, target=str(target), original_repo=str(src))
-            m.note(f"worktree repaired: {wt} -> {target}")
+        if r["path"] not in already_done:
+            info = preflights[r["path"]]
+            move_and_verify(src, target, info["sha"], info["remotes"])
+            m.add(op="move", from_=str(src), to=str(target), sha=info["sha"])
+            m.note(f"moved: {src} -> {target}")
 
-        create_compat_symlink(src, target)
-        m.add(op="symlink", path=str(src), target=str(target))
-        m.note(f"compat symlink: {src} -> {target}")
+            for wt in worktrees[r["path"]]:
+                repair_worktree(target, Path(wt))
+                m.add(op="worktree_repair", row=r["path"], worktree=wt, target=str(target), original_repo=str(src))
+                m.note(f"worktree repaired: {wt} -> {target}")
 
+            create_compat_symlink(src, target)
+            m.add(op="symlink", path=str(src), target=str(target))
+            m.note(f"compat symlink: {src} -> {target}")
+
+        # already-done rows still need their hq.yaml current/compat_links
+        # recorded — a prior crashed run never reached Phase D for them.
         r["_target"] = target
         r["_orig_current"] = r["current"]
         moved_rows.append(r)

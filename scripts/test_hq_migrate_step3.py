@@ -336,6 +336,83 @@ def test_rollback_restores_yaml_and_plist_byte_for_byte(tmp_path: Path) -> None:
     assert f["plist"].read_text() == plist_before
 
 
+# ─────────────────────────── resumability (crash mid-migration) ─────────────
+
+def test_apply_resumes_after_a_row_already_migrated(tmp_path: Path) -> None:
+    """Real incident (2026-09-23): --apply moved+symlinked two rows, then
+    crashed on a third row's stale worktree before Phase D ever ran. A
+    re-run must skip the already-done rows (their old path now resolves
+    straight through the compat symlink to the target) rather than trying
+    to move them again, and must still fold them into hq.yaml on this run."""
+    f = _build_fixture(tmp_path)
+    one_sha = _head(f["one"])
+    target_one = f["hq"] / "Projects" / "Alpha" / "One"
+    target_one.parent.mkdir(parents=True)
+    shutil.move(str(f["one"]), str(target_one))
+    os.symlink(str(target_one), str(f["one"]))  # simulate a prior completed row
+
+    r = _run_cli(tmp_path, f, "--apply")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "already migrated" in r.stdout
+
+    assert f["one"].is_symlink() and os.readlink(f["one"]) == str(target_one)
+    assert _head(target_one) == one_sha
+    # the other three rows still got moved normally in this same run
+    assert (f["hq"] / "Projects" / "Alpha" / "Two").is_dir()
+    data = yaml.safe_load((f["hq"] / "hq.yaml").read_text())
+    rows = {row["path"]: row for row in data["folders"]}
+    assert rows["Projects/Alpha/One"]["current"] == str(target_one)
+    links = {c["path"]: c for c in data["compat_links"]}
+    assert links[str(f["one"])]["target"] == str(target_one)
+
+
+def test_plan_reports_already_migrated_row_without_erroring(tmp_path: Path) -> None:
+    f = _build_fixture(tmp_path)
+    target_one = f["hq"] / "Projects" / "Alpha" / "One"
+    target_one.parent.mkdir(parents=True)
+    shutil.move(str(f["one"]), str(target_one))
+    os.symlink(str(target_one), str(f["one"]))
+
+    r = _run_cli(tmp_path, f, "--plan")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "ALREADY MIGRATED" in r.stdout
+    assert "MOVE" in r.stdout and str(f["two"]) in r.stdout  # row Two still pending
+
+
+# ─────────────────────────── stale worktree tolerance ────────────────────────
+
+def test_list_attached_worktrees_prunes_a_dangling_entry(tmp_path: Path) -> None:
+    """Real incident: a scratch review checkout under /tmp had been deleted
+    without `git worktree remove`, leaving a dangling admin entry whose
+    `repair` fails with "not a valid path". list_attached_worktrees must
+    drop it (nothing to repair) rather than hand it to repair_worktree."""
+    f = _build_fixture(tmp_path)
+    stray = tmp_path / "stray-worktree"
+    _git(["worktree", "add", str(stray), "-b", "stray-branch"], f["one"])
+    shutil.rmtree(stray)  # deleted without `git worktree remove` — now dangling
+
+    live = mod.list_attached_worktrees(f["one"])
+    assert live == []
+    # and the dangling admin entry is gone, not just skipped
+    listing = _git(["worktree", "list", "--porcelain"], f["one"]).stdout
+    assert "stray-worktree" not in listing
+
+
+def test_apply_survives_a_dangling_worktree_alongside_a_real_one(tmp_path: Path) -> None:
+    f = _build_fixture(tmp_path)
+    stray = tmp_path / "stray-worktree-two"
+    _git(["worktree", "add", str(stray), "-b", "stray-branch-two"], f["two"])
+    shutil.rmtree(stray)  # dangling, same as the real repair_worktree crash
+
+    r = _run_cli(tmp_path, f, "--apply")
+    assert r.returncode == 0, r.stdout + r.stderr
+    target_two = f["hq"] / "Projects" / "Alpha" / "Two"
+    assert target_two.is_dir()
+    # the real (non-dangling) worktree still got repaired correctly
+    st = _git(["status"], f["wt_path"])
+    assert st.returncode == 0
+
+
 # ─────────────────────────── unit tests on pure helpers ─────────────────────
 
 def test_list_attached_worktrees(tmp_path: Path) -> None:
