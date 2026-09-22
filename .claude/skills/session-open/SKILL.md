@@ -188,3 +188,7 @@ Then start WORK. From here, anything off-topic is **parked, not pivoted to**
   isn't a DoD.
 - **Don't pre-load future waves.** Charter THIS problem only; downstream work is
   a separate session (and, for tasks with overlapping `touches`, IRON §-serial).
+
+## Field notes
+
+- 2026-09-22 [MISSING] §0 Pre-flight — when the CEO opens the session with the problem already stated, the A/B/C menu adds nothing: the SessionStart hook has already surfaced the deadlines, and `list_todos` returned 80 rows (60 KB) that were never read; charter from the CEO's sentence and skip to step 1 · evidence: session cto-0e8d80b8 · status: pending

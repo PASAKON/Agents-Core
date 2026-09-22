@@ -37,6 +37,19 @@ CEO's explicit "I'm still working."
       query result, CEO "approve"). Quote the evidence inline.
 - [ ] No item marked done by narration ("should be working") — that's a FAIL.
 
+### 2b. Skill learning folded (ADR 0026)
+Every `## Skill learning` line this session produced — yours and every worker
+report you reviewed — has left the chat. A line still only in chat is lost the
+moment the session ends (measured 2026-09-22).
+- [ ] Each WRONG / MISSING / COSTLY line is filed: a Field note appended to the
+      skill it names (`skill(<name>): note — …`), a rule change carrying its
+      evidence (`skill(<name>): rule|flip — …`), a memory file, or a new-skill
+      proposal. Quote the sha(s) / memory path.
+- [ ] `python scripts/skill-curator.py notes` — nothing MALFORMED; anything
+      CONTESTED is named in the report for the CEO to rule on.
+- [ ] Unfiled lines → no 🏁. The session force-saves with the unfiled lines
+      named in the note.
+
 ### 3. External-state verified (side-effect work)
 Applies if the entry problem touched anything outside the repo — DB write, social
 post, deploy, email, payment, upload.
@@ -177,6 +190,7 @@ DoD:
   [x] <item 1> — evidence: <sha / test / query>
   [x] <item 2> — evidence: <...>
 External state : VERIFIED — <query result>  /  N/A repo-only  /  HOLD <reason>
+Skill learning : filed — <skill> sha:<abc1234>, <skill> sha:…  /  none this session  /  CONTESTED: <skill> (CEO)
 Saved → LungNote (todo · due):
   CEO action-items / reminders:
     - <thing CEO must do> · due <ISO date or "—">
@@ -203,3 +217,7 @@ Verdict        : CLOSE 🏁 (status=closed)
   force_saved (closed unfinished), not 🏁.
 - **Parking is mandatory, not optional.** An off-topic idea that's only in the
   chat log is lost; in LungNote it's a job for a future session.
+
+## Field notes
+
+- 2026-09-22 [MISSING] §2b — no gate caught a C-level's own `## Skill learning` lines; they stayed in chat and were lost at session end, so gate 2b was added · evidence: session cto-0e8d80b8, CEO OK 2026-09-22, ADR 0026 · status: promoted

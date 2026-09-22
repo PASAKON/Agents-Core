@@ -49,6 +49,7 @@ python scripts/skill-curator.py archive <name>       # move to the archive dir (
 python scripts/skill-curator.py restore <name>       # bring an archived skill back
 python scripts/skill-curator.py pin <name>           # exempt from every future transition
 python scripts/skill-curator.py unpin <name>         # undo pin
+python scripts/skill-curator.py notes               # Field notes: pending / stale / contested per skill (ADR 0026)
 ```
 
 `propose` is the default-safe verb — run it first, always. `archive` is the
@@ -84,3 +85,7 @@ written, and pin state now lives with the skill it protects.
 - Does not run on a schedule. If you want the "N proposed for archive" nudge,
   that's `/session-close` calling `propose` at close time, not this CLI
   running unattended.
+
+## Field notes
+
+- 2026-09-22 [MISSING] §Verbs — nothing listed pending / stale / contested Field notes across the portfolio, so `notes` was added · evidence: session cto-0e8d80b8, ADR 0026 · status: promoted

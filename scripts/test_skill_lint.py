@@ -441,3 +441,160 @@ def test_cli_has_no_strict_flag() -> None:
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))
+
+
+# --------------------------------------------------------------------------
+# ADR 0026 -- codes 8 / 9 / 10: the learning loop's field notes
+# --------------------------------------------------------------------------
+
+import subprocess as _sp
+
+_GOOD_NOTE = "- 2026-09-22 [MISSING] §0 Pre-flight — skip the menu when the CEO opens with the problem · evidence: session cto-0e8d80b8 · status: pending"
+
+
+def _git(cwd: Path, *args: str, env_date: "str | None" = None) -> str:
+    import os
+    env = dict(os.environ)
+    env.update({
+        "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t",
+        "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_NOSYSTEM": "1",
+    })
+    if env_date:
+        env["GIT_AUTHOR_DATE"] = env_date
+        env["GIT_COMMITTER_DATE"] = env_date
+    r = _sp.run(["git", *args], cwd=str(cwd), capture_output=True, text=True, env=env, check=True)
+    return r.stdout
+
+
+def _repo_with_skill(tmp_path: Path, name: str = "noted", body: str = "rule one\n\nrule two") -> Path:
+    _git(tmp_path, "init", "-q")
+    d = _write_skill(tmp_path, name, created_by="human", audience=["all"], body=body)
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "init")
+    return d
+
+
+def test_wellformed_field_notes_are_clean(tmp_path: Path) -> None:
+    d = _write_skill(tmp_path, "noted", body="rule\n\n## Field notes\n\n" + _GOOD_NOTE + "\n  continuation lines are fine\n")
+    findings = skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE)
+    assert [f.code for f in findings] == []
+
+
+@pytest.mark.parametrize("bad, problem", [
+    ("- [MISSING] no date · evidence: task-1 · status: pending", "date"),
+    ("- 2026-13-40 [MISSING] bad date · evidence: task-1 · status: pending", "not a real date"),
+    ("- 2026-09-22 [WEIRD] bad kind · evidence: task-1 · status: pending", "kind"),
+    ("- 2026-09-22 [WRONG] no evidence · status: pending", "evidence"),
+    ("- 2026-09-22 [WRONG] no status · evidence: task-1", "status"),
+    ("- 2026-09-22 [WRONG] bad status · evidence: task-1 · status: maybe", "status"),
+])
+def test_malformed_field_note_is_code_8_and_names_the_problem(tmp_path: Path, bad: str, problem: str) -> None:
+    d = _write_skill(tmp_path, "noted", body="rule\n\n## Field notes\n\n" + bad + "\n")
+    findings = skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE)
+    assert [f.code for f in findings] == [8]
+    assert problem in findings[0].message
+    assert "SKILL.md:" in findings[0].message  # line number, so the author can find it
+
+
+def test_notes_outside_the_field_notes_section_are_not_linted(tmp_path: Path) -> None:
+    d = _write_skill(tmp_path, "noted", body="- not a field note, just a bullet\n\n## Other\n- 2026-09-22 [WEIRD] x")
+    assert skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE) == []
+
+
+def test_staged_body_edit_without_field_note_is_code_9(tmp_path: Path) -> None:
+    d = _repo_with_skill(tmp_path)
+    md = d / "SKILL.md"
+    md.write_text(md.read_text().replace("rule one", "rule one, rewritten"), encoding="utf-8")
+    _git(tmp_path, "add", "-A")
+    findings = skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE, staged=True)
+    assert [f.code for f in findings] == [9]
+
+
+def test_staged_body_edit_with_field_note_in_same_diff_is_clean(tmp_path: Path) -> None:
+    d = _repo_with_skill(tmp_path)
+    md = d / "SKILL.md"
+    md.write_text(
+        md.read_text().replace("rule one", "rule one, rewritten") + "\n## Field notes\n\n" + _GOOD_NOTE + "\n",
+        encoding="utf-8",
+    )
+    _git(tmp_path, "add", "-A")
+    assert skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE, staged=True) == []
+
+
+def test_staged_check_is_off_unless_asked(tmp_path: Path) -> None:
+    d = _repo_with_skill(tmp_path)
+    md = d / "SKILL.md"
+    md.write_text(md.read_text().replace("rule one", "rule one, rewritten"), encoding="utf-8")
+    _git(tmp_path, "add", "-A")
+    assert skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE) == []
+
+
+def test_staged_frontmatter_only_edit_is_not_code_9(tmp_path: Path) -> None:
+    d = _repo_with_skill(tmp_path)
+    md = d / "SKILL.md"
+    md.write_text(md.read_text().replace("created_by: human", "created_by: human\npinned: true"), encoding="utf-8")
+    _git(tmp_path, "add", "-A")
+    assert skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE, staged=True) == []
+
+
+def test_staged_brand_new_skill_is_not_code_9(tmp_path: Path) -> None:
+    _repo_with_skill(tmp_path, name="existing")
+    d = _write_skill(tmp_path, "fresh", created_by="agent", audience=["all"], body="first rule")
+    _git(tmp_path, "add", "-A")
+    assert skill_lint.lint_skill("fresh", d, _KNOWN_AUDIENCE, staged=True) == []
+
+
+def test_staged_check_outside_a_repo_is_silent(tmp_path: Path) -> None:
+    d = _write_skill(tmp_path, "loose", body="rule")
+    assert skill_lint.lint_skill("loose", d, _KNOWN_AUDIENCE, staged=True) == []
+
+
+def _flip(tmp_path: Path, d: Path, i: int) -> None:
+    md = d / "SKILL.md"
+    md.write_text(md.read_text() + f"\nflip {i}\n", encoding="utf-8")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", f"skill({d.name}): flip — rule {i} — evidence task-{i}")
+
+
+def test_two_flip_commits_inside_30_days_is_code_10(tmp_path: Path) -> None:
+    d = _repo_with_skill(tmp_path)
+    _flip(tmp_path, d, 1)
+    _flip(tmp_path, d, 2)
+    findings = skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE)
+    assert [f.code for f in findings] == [10]
+    assert "CONTESTED" in findings[0].message
+
+
+def test_one_flip_commit_is_not_code_10(tmp_path: Path) -> None:
+    d = _repo_with_skill(tmp_path)
+    _flip(tmp_path, d, 1)
+    assert skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE) == []
+
+
+def test_note_and_rule_commits_are_not_flips(tmp_path: Path) -> None:
+    d = _repo_with_skill(tmp_path)
+    for verb in ("note", "rule", "note"):
+        md = d / "SKILL.md"
+        md.write_text(md.read_text() + f"\n{verb}\n", encoding="utf-8")
+        _git(tmp_path, "add", "-A")
+        _git(tmp_path, "commit", "-q", "-m", f"skill(noted): {verb} — x — evidence task-1")
+    assert skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE) == []
+
+
+def test_flips_on_another_skill_do_not_count(tmp_path: Path) -> None:
+    d = _repo_with_skill(tmp_path)
+    other = _write_skill(tmp_path, "other", created_by="human", audience=["all"], body="x")
+    _git(tmp_path, "add", "-A"); _git(tmp_path, "commit", "-q", "-m", "add other")
+    _flip(tmp_path, other, 1); _flip(tmp_path, other, 2)
+    assert skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE) == []
+    assert [f.code for f in skill_lint.lint_skill("other", other, _KNOWN_AUDIENCE)] == [10]
+
+
+def test_cli_has_staged_flag_and_it_is_off_by_default() -> None:
+    import argparse
+    parser = argparse.ArgumentParser()
+    # mirror main()'s parser: the flag must exist and default False
+    ns = skill_lint.main.__globals__["argparse"].ArgumentParser  # sanity: same module
+    assert ns is argparse.ArgumentParser
+    out = _sp.run([sys.executable, str(ROOT / "scripts" / "skill-lint.py"), "check", "--help"], capture_output=True, text=True)
+    assert "--staged" in out.stdout

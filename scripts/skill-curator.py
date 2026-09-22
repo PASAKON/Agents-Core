@@ -56,6 +56,7 @@ import argparse
 import importlib.util
 import json
 import shutil
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -757,6 +758,186 @@ def detect_drift(paths: CuratorPaths) -> str:
 
 
 # --------------------------------------------------------------------------
+# Field notes — the learning loop's first tier (ADR 0026)
+#
+# A run that learns something appends ONE bullet under `## Field notes` at the
+# bottom of the skill it names. It is a sighting, not a rule: status `pending`
+# until a second independent run, a CEO ruling, or an artefact promotes it.
+# The body above the heading changes only then, and the old line moves down
+# here as [SUPERSEDED] — evidence is never deleted, so the next agent who
+# wants to flip the rule back sees what it has to beat. Two `flip` commits on
+# one skill inside 30 days = CONTESTED: frozen until the CEO rules.
+#
+# Canonical line (skill-lint code 8 rejects anything else):
+#   - 2026-09-22 [MISSING] §0 Pre-flight — <what> · evidence: session cto-0e8d80b8 · status: pending
+# --------------------------------------------------------------------------
+
+FIELD_NOTES_HEADING = "## Field notes"
+FIELD_NOTE_KINDS = ("WRONG", "MISSING", "COSTLY", "SUPERSEDED")
+FIELD_NOTE_STATUSES = ("pending", "promoted", "rejected", "superseded")
+FLIP_WINDOW_DAYS = 30
+FLIP_CONTESTED_AT = 2
+STALE_NOTE_DAYS = 30
+
+
+@dataclass
+class FieldNote:
+    skill: str
+    line_no: int          # 1-based, in SKILL.md
+    date: Optional[str]
+    kind: Optional[str]
+    text: str
+    evidence: Optional[str]
+    status: Optional[str]
+    problems: list        # [] when well-formed
+
+
+def field_notes_section(text: str) -> tuple[int, list[str]]:
+    """(1-based line number of the `## Field notes` heading, lines after it up
+    to the next `## ` heading). (0, []) when the skill has no such section."""
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if line.rstrip() == FIELD_NOTES_HEADING:
+            body = []
+            for later in lines[i + 1:]:
+                if later.startswith("## "):
+                    break
+                body.append(later)
+            return i + 1, body
+    return 0, []
+
+
+def parse_field_notes(skill: str, text: str) -> list[FieldNote]:
+    """Every top-level bullet under `## Field notes`, well-formed or not — a
+    malformed one comes back with `problems` filled so the lint can name it.
+    Indented lines are continuations of the bullet above and are ignored."""
+    start, body = field_notes_section(text)
+    notes: list[FieldNote] = []
+    if not start:
+        return notes
+    for offset, line in enumerate(body):
+        if not line.startswith("- "):
+            continue
+        line_no = start + 1 + offset
+        problems: list[str] = []
+        m_date = re.match(r"^- (\d{4}-\d{2}-\d{2}) ", line)
+        date = m_date.group(1) if m_date else None
+        if date is None:
+            problems.append("no leading YYYY-MM-DD date")
+        else:
+            try:
+                datetime.strptime(date, "%Y-%m-%d")
+            except ValueError:
+                problems.append(f"date {date!r} is not a real date")
+        m_kind = re.search(r"\[([A-Z]+)\]", line)
+        kind = m_kind.group(1) if m_kind else None
+        if kind is None:
+            problems.append("no [KIND] tag")
+        elif kind not in FIELD_NOTE_KINDS:
+            problems.append(f"kind {kind!r} not in {'/'.join(FIELD_NOTE_KINDS)}")
+        m_ev = re.search(r" · evidence: (.+?)(?: · status: |\s*$)", line)
+        evidence = m_ev.group(1).strip() if m_ev else None
+        if not evidence:
+            problems.append("no ' · evidence: <task-id / sha / path>'")
+        m_st = re.search(r" · status: ([a-z]+)\s*$", line)
+        status = m_st.group(1) if m_st else None
+        if status is None:
+            problems.append("no trailing ' · status: pending|promoted|rejected|superseded'")
+        elif status not in FIELD_NOTE_STATUSES:
+            problems.append(f"status {status!r} not in {'/'.join(FIELD_NOTE_STATUSES)}")
+        m_text = re.match(r"^- (?:\d{4}-\d{2}-\d{2} )?(?:\[[A-Z]+\] )?(.*?)(?: · evidence: .*)?$", line)
+        text_part = (m_text.group(1) if m_text else line[2:]).strip()
+        notes.append(FieldNote(skill, line_no, date, kind, text_part, evidence, status, problems))
+    return notes
+
+
+def flip_commits_for(skill_md: Path, since_days: int = FLIP_WINDOW_DAYS) -> Optional[list[str]]:
+    """Subjects of commits in the last `since_days` on this SKILL.md whose
+    subject starts with `skill(<name>): flip`. None when git cannot answer
+    (not a repo, git missing) — the caller decides whether silence matters."""
+    name = skill_md.parent.name
+    try:
+        result = subprocess.run(
+            ["git", "log", f"--since={since_days}.days", "--format=%s", "--", skill_md.name],
+            cwd=str(skill_md.parent), capture_output=True, text=True, timeout=15,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode != 0:
+        return None
+    prefix = f"skill({name}): flip"
+    return [line for line in result.stdout.splitlines() if line.startswith(prefix)]
+
+
+def collect_field_notes(paths: CuratorPaths, today: Optional[datetime] = None) -> list[dict]:
+    """One row per owned skill that has any note or any flip commit."""
+    today = today or datetime.now()
+    rows: list[dict] = []
+    if not paths.owned_skills_dir.is_dir():
+        return rows
+    for d in sorted(paths.owned_skills_dir.iterdir()):
+        if d.is_symlink() or not d.is_dir():
+            continue
+        skill_md = d / "SKILL.md"
+        if not skill_md.is_file():
+            continue
+        notes = parse_field_notes(d.name, skill_md.read_text(encoding="utf-8"))
+        flips = flip_commits_for(skill_md) or []
+        if not notes and not flips:
+            continue
+        pending = [n for n in notes if n.status == "pending"]
+        oldest_days = 0
+        for n in pending:
+            if n.date:
+                try:
+                    age = (today - datetime.strptime(n.date, "%Y-%m-%d")).days
+                except ValueError:
+                    continue
+                oldest_days = max(oldest_days, age)
+        flags = []
+        if len(pending) >= 2:
+            flags.append("PROMOTE?")
+        if oldest_days > STALE_NOTE_DAYS:
+            flags.append("STALE")
+        if len(flips) >= FLIP_CONTESTED_AT:
+            flags.append("CONTESTED")
+        if any(n.problems for n in notes):
+            flags.append("MALFORMED")
+        rows.append({
+            "skill": d.name, "pending": len(pending), "malformed": sum(1 for n in notes if n.problems),
+            "oldest_days": oldest_days, "flips": len(flips), "flags": flags, "notes": notes,
+        })
+    return rows
+
+
+def cmd_notes(paths: CuratorPaths, today: Optional[datetime] = None) -> int:
+    rows = collect_field_notes(paths, today=today)
+    print()
+    print(f"  Field notes  (ADR 0026 — one sighting is a note, not a rule; under {paths.owned_skills_dir})")
+    if not rows:
+        print("  (no field notes and no flip commits anywhere yet)")
+        print()
+        return 0
+    print(f"  {'skill':<32} {'pending':>7} {'malformed':>9} {'oldest':>7} {'flips30d':>8}  flags")
+    print(f"  {'-'*32} {'-'*7} {'-'*9} {'-'*7} {'-'*8}  -----")
+    for r in rows:
+        print(
+            f"  {r['skill'][:32]:<32} {r['pending']:>7} {r['malformed']:>9} {r['oldest_days']:>6}d {r['flips']:>8}  "
+            f"{' '.join(r['flags'])}"
+        )
+    print()
+    print("  PROMOTE?  = ≥2 pending on one skill — same point? then a rule change WITH evidence, else leave them")
+    print(f"  STALE     = a pending note older than {STALE_NOTE_DAYS} days — fold it or mark it rejected")
+    print(f"  CONTESTED = ≥{FLIP_CONTESTED_AT} `skill(<name>): flip` commits in {FLIP_WINDOW_DAYS} days — frozen; only the CEO unfreezes")
+    print("  MALFORMED = a note skill-lint code 8 rejects — fix the line, the note is not lost")
+    contested = [r["skill"] for r in rows if "CONTESTED" in r["flags"]]
+    print(f"  {len(rows)} skill(s) with notes · {sum(r['pending'] for r in rows)} pending · "
+          f"{len(contested)} contested{': ' + ', '.join(contested) if contested else ''}")
+    print()
+    return 0
+
+
+# --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
 
@@ -829,6 +1010,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_undo = sub.add_parser("undo", help="git revert a skill-curator commit")
     p_undo.add_argument("sha")
     sub.add_parser("drift", help="git status --porcelain over .claude/skills")
+    sub.add_parser("notes", help="Field notes across the portfolio: pending / stale / contested (ADR 0026)")
 
     args = parser.parse_args(argv)
     paths = CuratorPaths.default()
@@ -868,6 +1050,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         if args.verb == "drift":
             print(detect_drift(paths), end="")
             return 0
+        if args.verb == "notes":
+            return cmd_notes(paths)
     except CuratorError as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 1

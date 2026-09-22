@@ -15,6 +15,9 @@ finding codes:
   5. `audience` token not a known role or group (all|cxo|worker)
   6. `pinned` present but not a boolean
   7. `lifecycle` present but not "active" or "archived"
+  8. a `## Field notes` bullet is malformed (ADR 0026: date, [KIND], evidence, status)
+  9. `--staged` only: the rule body changed but no Field note was added in the same diff
+ 10. ≥2 `skill(<name>): flip` commits on one skill inside 30 days — CONTESTED, CEO rules
 
 `archived_at` is not format-checked — it is a free-form timestamp stamped
 by skill-curator.py itself, never hand-typed.
@@ -47,6 +50,8 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
+import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -67,6 +72,9 @@ CODES = {
     5: "unknown-audience",
     6: "bad-pinned",
     7: "bad-lifecycle",
+    8: "field-note-malformed",
+    9: "body-edit-without-field-note",
+    10: "contested-rule",
 }
 
 # The two additional group tokens `audience:` may use besides a real role key.
@@ -87,6 +95,92 @@ def _load_curator():
     sys.modules[spec.name] = mod
     spec.loader.exec_module(mod)
     return mod
+
+
+_CUR = None
+
+
+def _cur():
+    """The curator module, loaded once — `parse_field_notes` / `flip_commits_for`
+    live there so `skill-curator.py notes` and this lint can never disagree
+    about what a well-formed note is."""
+    global _CUR
+    if _CUR is None:
+        _CUR = _load_curator()
+    return _CUR
+
+
+def _git_out(cwd: Path, *args: str) -> Optional[str]:
+    try:
+        r = subprocess.run(["git", *args], cwd=str(cwd), capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return r.stdout if r.returncode == 0 else None
+
+
+def _frontmatter_end(lines: list[str]) -> int:
+    """1-based line number of the closing `---`, or 0 when there is no frontmatter."""
+    if not lines or lines[0].strip() != "---":
+        return 0
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            return i + 1
+    return 0
+
+
+def staged_body_edit_without_note(skill_md: Path) -> Optional[str]:
+    """Code 9. Looks at the STAGED version of SKILL.md: a hunk that touches the
+    rule body (after the frontmatter, before `## Field notes`) with no `+` line
+    landing in the Field notes section = a learning written straight into the
+    manual with nothing to show for it. A brand-new skill is exempt (nothing to
+    fold yet); a frontmatter-only edit (curator pin/archive) is exempt. Returns
+    the finding message, or None. Not a repo / nothing staged → None."""
+    top = _git_out(skill_md.parent, "rev-parse", "--show-toplevel")
+    if top is None:
+        return None
+    # Every git call below runs from the repo ROOT with a root-relative
+    # pathspec. A pathspec is cwd-relative: run from the skill dir it silently
+    # matches nothing, the diff comes back empty, and this check can never
+    # fire (the first cut of this function did exactly that, 2026-09-22).
+    root = Path(top.strip()).resolve()
+    rel = skill_md.resolve().relative_to(root).as_posix()
+    added = _git_out(root, "diff", "--cached", "--name-only", "--diff-filter=A", "--", rel)
+    if added and added.strip():
+        return None
+    diff = _git_out(root, "diff", "--cached", "-U0", "--", rel)
+    if not diff or not diff.strip():
+        return None
+    staged = _git_out(root, "show", f":{rel}")
+    if staged is None:
+        return None
+    lines = staged.splitlines()
+    fm_end = _frontmatter_end(lines)
+    notes_start, _ = _cur().field_notes_section(staged)
+    if not notes_start:
+        notes_start = len(lines) + 1
+    body_changed = False
+    note_added = False
+    start = end = 0
+    for line in diff.splitlines():
+        if line.startswith("@@"):
+            hm = re.match(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", line)
+            if not hm:
+                continue
+            start = int(hm.group(1))
+            count = int(hm.group(2)) if hm.group(2) is not None else 1
+            end = start + max(count, 1) - 1
+            if start <= notes_start - 1 and end >= fm_end + 1:
+                body_changed = True
+            continue
+        if line.startswith("+") and not line.startswith("+++") and start and end >= notes_start:
+            note_added = True
+    if body_changed and not note_added:
+        return (
+            "staged diff changes the rule body but adds no `## Field notes` line "
+            "-- a learning goes in as a note first (ADR 0026); a rule change carries "
+            "its evidence as a note in the same commit"
+        )
+    return None
 
 
 @dataclass
@@ -149,7 +243,7 @@ def _parse_frontmatter(skill_md: Path) -> tuple[Optional[dict], Optional[str]]:
     return data, None
 
 
-def lint_skill(name: str, skill_dir: Path, known_audience: set[str]) -> list[Finding]:
+def lint_skill(name: str, skill_dir: Path, known_audience: set[str], *, staged: bool = False) -> list[Finding]:
     findings: list[Finding] = []
     skill_md = skill_dir / "SKILL.md"
     if not skill_md.is_file():
@@ -202,6 +296,27 @@ def lint_skill(name: str, skill_dir: Path, known_audience: set[str]) -> list[Fin
                 f"lifecycle={lc!r} is not 'active' or 'archived'",
             ))
 
+    # --- ADR 0026: the learning loop's field notes -------------------------
+    for note in _cur().parse_field_notes(name, skill_md.read_text(encoding="utf-8")):
+        if note.problems:
+            findings.append(Finding(
+                name, 8, CODES[8],
+                f"SKILL.md:{note.line_no}: {'; '.join(note.problems)} "
+                "(canonical: `- YYYY-MM-DD [WRONG|MISSING|COSTLY|SUPERSEDED] <what> "
+                "· evidence: <task-id / sha / path> · status: pending`)",
+            ))
+    if staged:
+        msg = staged_body_edit_without_note(skill_md)
+        if msg:
+            findings.append(Finding(name, 9, CODES[9], msg))
+    flips = _cur().flip_commits_for(skill_md)
+    if flips is not None and len(flips) >= _cur().FLIP_CONTESTED_AT:
+        findings.append(Finding(
+            name, 10, CODES[10],
+            f"{len(flips)} `skill({name}): flip` commits in the last {_cur().FLIP_WINDOW_DAYS} days "
+            "-- CONTESTED: the rule is frozen until the CEO rules (ADR 0026 section 3)",
+        ))
+
     return findings
 
 
@@ -226,7 +341,8 @@ def discover_skills(owned_dir: Path, curator) -> tuple[list[str], list[str]]:
 
 
 def run_check(
-    owned_dir: Optional[Path] = None, agents_yaml: Path = AGENTS_YAML
+    owned_dir: Optional[Path] = None, agents_yaml: Path = AGENTS_YAML,
+    staged: bool = False,
 ) -> tuple[list[Finding], list[str]]:
     curator = _load_curator()
     if owned_dir is None:
@@ -235,7 +351,7 @@ def run_check(
     names, refused = discover_skills(owned_dir, curator)
     findings: list[Finding] = []
     for name in names:
-        findings.extend(lint_skill(name, owned_dir / name, known_audience))
+        findings.extend(lint_skill(name, owned_dir / name, known_audience, staged=staged))
     return findings, refused
 
 
@@ -271,12 +387,16 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("verb", choices=["check"], help="check: lint every skill under .claude/skills/")
     parser.add_argument("--json", action="store_true", help="machine-readable output")
     parser.add_argument(
+        "--staged", action="store_true",
+        help="also run code 9 against the staged diff (pre-commit wiring passes this)",
+    )
+    parser.add_argument(
         "--skills-dir", type=Path, default=None,
         help="override the owned skills dir (tests only)",
     )
     args = parser.parse_args(argv)
 
-    findings, refused = run_check(owned_dir=args.skills_dir)
+    findings, refused = run_check(owned_dir=args.skills_dir, staged=args.staged)
 
     if args.json:
         print(json.dumps({

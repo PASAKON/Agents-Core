@@ -108,7 +108,7 @@ if git diff --cached --name-only | grep -q '^\.claude/skills/'; then
   # rather than crash or fall back to a yaml-less bare python3.
   py="$main_root/.venv/bin/python"
   if [ -x "$py" ] && [ -f "$lint_script" ]; then
-    "$py" "$lint_script" check || true
+    "$py" "$lint_script" check --staged || true
   fi
 fi
 # --- END skill-lint ---

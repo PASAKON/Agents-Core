@@ -742,3 +742,61 @@ def test_drift_detects_a_hand_edited_skill(tmp_path: Path, monkeypatch: pytest.M
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))
+
+
+# --------------------------------------------------------------------------
+# ADR 0026 -- field notes: parser + `notes` verb
+# --------------------------------------------------------------------------
+
+def test_parse_field_notes_reads_only_the_section_and_flags_problems() -> None:
+    text = (
+        "---\nname: x\n---\n# x\n- a body bullet\n\n## Field notes\n\n"
+        "- 2026-09-22 [MISSING] §0 — skip the menu · evidence: session cto-0e8d80b8 · status: pending\n"
+        "  continuation\n"
+        "- 2026-09-01 [SUPERSEDED] old rule text · evidence: task-abc · status: superseded\n"
+        "- broken line\n"
+        "\n## After\n- 2026-09-22 [WRONG] not a note · evidence: t · status: pending\n"
+    )
+    notes = curator.parse_field_notes("x", text)
+    assert [n.kind for n in notes] == ["MISSING", "SUPERSEDED", None]
+    assert notes[0].evidence == "session cto-0e8d80b8" and notes[0].status == "pending" and notes[0].problems == []
+    assert notes[0].text.startswith("§0 — skip the menu")
+    assert notes[1].status == "superseded" and notes[1].problems == []
+    assert notes[2].problems and notes[2].line_no == 12
+
+
+def test_notes_verb_flags_promote_stale_contested_and_malformed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture) -> None:
+    from datetime import datetime as _dt
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-notes")
+    paths = _make_paths(tmp_path)
+    for name in ("promote-me", "stale-one", "contested", "malformed", "quiet"):
+        curator.create_skill(paths, name, description="d", audience=["all"])
+    md = paths.owned_skills_dir / "promote-me" / "SKILL.md"
+    md.write_text(md.read_text() + "\n## Field notes\n\n- 2026-09-20 [WRONG] a · evidence: t1 · status: pending\n- 2026-09-21 [WRONG] a again · evidence: t2 · status: pending\n")
+    md = paths.owned_skills_dir / "stale-one" / "SKILL.md"
+    md.write_text(md.read_text() + "\n## Field notes\n\n- 2026-07-01 [COSTLY] old · evidence: t · status: pending\n")
+    md = paths.owned_skills_dir / "malformed" / "SKILL.md"
+    md.write_text(md.read_text() + "\n## Field notes\n\n- no date no evidence\n")
+    md = paths.owned_skills_dir / "contested" / "SKILL.md"
+    for i in (1, 2):
+        md.write_text(md.read_text() + f"\nflip {i}\n")
+        subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-q", "-m", f"skill(contested): flip — r{i} — evidence t{i}"], cwd=tmp_path, check=True, capture_output=True)
+
+    rows = {r["skill"]: r for r in curator.collect_field_notes(paths, today=_dt(2026, 9, 22))}
+    assert "quiet" not in rows
+    assert rows["promote-me"]["flags"] == ["PROMOTE?"] and rows["promote-me"]["pending"] == 2
+    assert rows["stale-one"]["flags"] == ["STALE"] and rows["stale-one"]["oldest_days"] == 83
+    assert rows["contested"]["flags"] == ["CONTESTED"] and rows["contested"]["flips"] == 2
+    assert rows["malformed"]["flags"] == ["MALFORMED"]
+
+    assert curator.cmd_notes(paths, today=_dt(2026, 9, 22)) == 0
+    out = capsys.readouterr().out
+    assert "CONTESTED" in out and "contested" in out and "1 contested: contested" in out
+    assert "quiet" not in out
+
+
+def test_notes_verb_on_an_empty_portfolio_says_so(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    paths = _make_paths(tmp_path)
+    assert curator.cmd_notes(paths) == 0
+    assert "no field notes" in capsys.readouterr().out
