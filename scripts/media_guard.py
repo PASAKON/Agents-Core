@@ -1,3 +1,9 @@
+"""
+Guard to prevent large media files from being committed directly to the repository.
+It checks staged files against the storage policy (ADR 0030) and rejects commits
+containing media files exceeding the specified byte limit or not matching allowed globs.
+Exits 0 if no violations are found, and 1 if there are media files that violate the policy.
+"""
 import argparse
 import fnmatch
 import os
@@ -8,7 +14,7 @@ import yaml
 
 def get_staged_files(repo_path: Path):
     result = subprocess.run(
-        ["git", "diff", "--cached", "--name-only", "--diff-filter=AM", "-z"],
+        ["git", "diff", "--cached", "--name-only", "--diff-filter=AM", "-M", "-z"],
         cwd=repo_path,
         capture_output=True,
         check=True
