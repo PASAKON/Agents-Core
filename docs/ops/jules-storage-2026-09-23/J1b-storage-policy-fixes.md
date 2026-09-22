@@ -1,0 +1,16 @@
+Context: you are on branch `jules/storage-j1` — `tools/storage_policy.py` + `tests/test_storage_policy.py`, delivered by an earlier session (its 13 tests pass). Review found the defects below by classifying REAL paths on the target Mac. Item a is a spec error by the reviewer, not by that session. Fix exactly these.
+
+1. GOAL — the command that must pass: `python -m pytest tests/test_storage_policy.py -q` exits 0, AND from a directory OUTSIDE the repo, `python <repo>/tools/storage_policy.py check` prints `ok` and exits 0, AND `python <repo>/tools/storage_policy.py classify <repo>/x/node_modules` prints `REBUILD` wherever `<repo>` sits under a HOT glob.
+2. FILES you may touch: `tools/storage_policy.py`, `tests/test_storage_policy.py`. No other file. Do not edit `config/storage-policy.yaml`.
+3. FORBIDDEN: scratch/log/patch files anywhere, dependency or lockfile edits, editing any other test, skipping or loosening an assertion, network calls, anything outside tmp_path in tests.
+4. WHY REJECTED (fix each):
+   a. Precedence must be NEVER > REBUILD > COLD > HOT (was NEVER > HOT > COLD > REBUILD). Measured with the real config: `/Users/gob/MoonieXHQ/Projects/LungNote/Web/node_modules` → HOT, because the broad HOT glob `~/MoonieXHQ/Projects/**` beat `**/node_modules`. Specific cache globs must win over broad project globs; NEVER still wins over everything.
+   b. COLD entries carry conditions that classify ignored. Add `age_days: float | None = None` to `classify`. An entry with `older_than_days: N` matches only when `age_days is not None and age_days > N`. An entry with a `when:` key never matches in classify (it is an event, not a path fact). The CLI `classify` computes `age_days` from the path's mtime when the path exists, else None. Measured: `~/.claude/projects/<p>/abc.jsonl` → HOT regardless of age; after the fix, age 3 → HOT, age 10 → COLD.
+   c. CLI `--policy` default is relative to the cwd; resolve it from the script (`Path(__file__).resolve().parent.parent / "config" / "storage-policy.yaml"`). `test_load_valid_policy` must use the same resolution, not a cwd-relative path.
+   d. Remove trailing whitespace (21 lines had it per `git apply`).
+   e. Add tests: node_modules under a HOT tree → REBUILD; `.venv` under a HOT tree → REBUILD; a path under `~/Desktop/**` containing `__pycache__` → NEVER; transcript age 3 → HOT, age 10 → COLD, age None → HOT; a `when:` COLD entry never matches; validation rejects a non-string HOT entry, an empty `rebuild`, and a negative gauge value.
+   f. Add a module docstring to `tools/storage_policy.py` (purpose, precedence, CLI, ADR 0030).
+5. ENV NOTE: if your VM lacks something the repo already declares, report it — do not add dependencies.
+6. DELIVERABLE: one PR (the previous session ended without one — a PR is required) titled `storage: policy loader + classifier (ADR 0030 J1)`; body = one line per item a–f saying what changed + the exact output of the three goal commands.
+7. FACTS, NOT GUESSES: every claim in the PR body cites the command output or file:line that proves it; anything you could not establish is written as "unknown — not verified", never guessed. Do not state which model you are.
+8. No questions needed; proceed.
