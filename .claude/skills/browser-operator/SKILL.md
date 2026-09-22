@@ -141,6 +141,57 @@ Never `select_browser` a deviceId the host config does not name and the list
 does not mark as local: driving another machine's Chrome is how a task on the
 wrong computer clicks a paid button the CEO cannot see.
 
+## A typed question about the page is answered by `decide`, never by a screenshot (CEO 2026-09-22, ADR 0028 §6)
+
+**HARD.** Before asking "is it still generating?", "is that card a
+refusal?", or "am I signed out?" on Google Flow or Higgsfield, extract the
+smallest sufficient page text with `javascript_tool` and call
+`mcp__org__decide`. Never re-derive the answer from a fresh screenshot or a
+full `innerText` dump.
+
+**Why hard:** a wrong guess here can re-fire a paid generation (a refusal
+is refunded; a wrongly re-submitted generation is not) — ADR 0022 §7's
+first HARD test ("does breaking this rule spend money or consume a
+paid/limited resource") is met directly.
+
+**The snippet** (same shape `tools/flow_shoot.extract_state()` /
+`scripts/higgsfield/gen_loop.extract_state()` use — adapt the button
+selector per site):
+
+```js
+() => {
+  const clip = (s, n) => (s || '').replace(/\s+/g, ' ').trim().slice(0, n);
+  const body = document.body.innerText || '';
+  const parts = [];
+  const btn = document.querySelector('button[type=submit]'); // Higgsfield
+  // const btn = document.querySelector('button[aria-label="เริ่มสร้าง"]'); // Flow
+  if (btn) parts.push('button="' + clip(btn.innerText, 60) + '" disabled=' + !!btn.disabled);
+  const markers = [
+    /(rights verification required|confirm rights)[^\n]{0,80}/i,
+    /(sign in|accounts\.google\.com\/ServiceLogin)[^\n]{0,80}/i,
+    /(429|too many requests|rate limit|slot.?busy|1 unlimited generation at a time)[^\n]{0,80}/i,
+    /(generating|processing|queued|rendering|in progress)[^\n]{0,40}/i,
+    /(something went wrong|failed to generate|\bfailed\b|prompt is required)[^\n]{0,80}/i,
+    /ล้มเหลว[^\n]*\n?[^\n]*/,
+  ];
+  for (const re of markers) { const m = body.match(re); if (m) parts.push(clip(m[0], 200)); }
+  return parts.join(' | ').slice(0, 1500);
+}
+```
+
+Then: `mcp__org__decide(site="browser.page_state", state=<the returned text>)`.
+
+| outcome | what to do |
+|---|---|
+| `idle` / `generating` / `rate_limited` / `done` (any confident, or no confident match) | keep waiting — none of these are a hazard; do not stop or escalate on a guess |
+| `moderated`, confident | call `mcp__org__decide(site="browser.moderation_action", state=<same card/toast text>)` |
+| → `escalate_ceo` | **stop. File a blocker. Never re-fire.** Human call only (Face/IP resemblance, rights verification). |
+| → anything else confident (`retry_same`/`rewrite_dialogue`/`rewrite_chips`/`skip`) | act on it; a refusal is refunded so a single re-fire is safe |
+| `signed_out` / `error`, confident | **stop.** File a blocker with the extracted state text. Do not sign in, do not retry blind. |
+| any decision where `provider != "rules"` and `probs[choice] < 0.9` | treat exactly like "no confident match" — never act on a guess, whatever the site |
+
+Measured basis: the five browser_operator transcripts before this rule took 343 / 239 / 147 / 139 / 3 screenshots each, almost all to answer one of these three questions. The runners (`tools/flow_shoot.py`, `scripts/higgsfield/gen_loop.py`) already do this (task-b8a9a714); an operator does the same by hand.
+
 ## Step order — do not skip ahead
 
 This ladder *is* the cost plan. Do not write your own — a paragraph of
@@ -597,3 +648,4 @@ assets — no retry without a count. Details in `higgsfield-unlimited-gen`.
 ## Field notes
 
 - 2026-09-22 [MISSING] §Chrome-restart HARD rule — the block carried the whole 2026-09-07 incident but never the literal `Why hard:` marker the doctrine lint requires, so `test_real_corpus_reports_zero_defects` sat red on main for days. Clause added; no rule text changed. This was the one-line edit handed to the first agy worker through the runner adapter (task-22f3579a) — the pipeline ran end to end and agy edited nothing, so the CTO closed it by hand · evidence: `pytest scripts/test_skill_doctrine_lint.py::test_real_corpus_reports_zero_defects` exit 0, session cto-a29c7576 · status: promoted
+- 2026-09-22 [MISSING] §A typed question… — rule promoted straight to HARD, not a note: CEO ruling 2026-09-22 ("อันนี้สำคัญสุด … ให้ browser_operator ทำตาม") + measured 343/239/147/139 screenshots per task; text drafted by task-b8a9a714, wired in the runners the same day · evidence: session cto-0e8d80b8, merge 9aaa11b2 · status: promoted
