@@ -28,6 +28,51 @@ from lib.notify import info, success, error, warn
 from tools import tmux_session as tmux
 from tools.worktree import branch_name, create_worktree
 
+# Every CLI the org knows how to drive a worker with (task-adbc6f43). Kept
+# local to this module rather than lib/config.py — that file is not a
+# declared `touches` path for this task (ADR 0020 self_repo_guard); adding a
+# fourth runner means updating this tuple AND at least one host's
+# `runners:` list in config/hosts.yaml, neither alone is enough to spawn one.
+KNOWN_RUNNERS = ("claude", "codex", "agy")
+
+
+def _host_runners(host_name: str) -> list[str]:
+    """Runners `host_name` can spawn (config/hosts.yaml `runners:` list).
+
+    Defaults to `['claude']` when a host declares no list at all — fails
+    CLOSED (unlike remote_control_args' fail-open default), because an
+    unlisted runner on an unverified host is exactly the "discovering it at
+    spawn time" failure mode this column exists to prevent."""
+    return list(get_host(host_name).get("runners") or ["claude"])
+
+
+def _validate_runner(runner: str, host_name: str) -> None:
+    """Raise ValueError (loud, before spawning) unless `runner` is known AND
+    available on `host_name`. Two distinct messages on purpose — "codex
+    doesn't exist" and "codex exists but not on this host" point at two
+    different fixes."""
+    if runner not in KNOWN_RUNNERS:
+        raise ValueError(f"unknown runner: {runner!r}. Known: {list(KNOWN_RUNNERS)}")
+    available = _host_runners(host_name)
+    if runner not in available:
+        raise ValueError(
+            f"runner {runner!r} not available on host {host_name!r}. "
+            f"Available there: {available}"
+        )
+
+
+def _runner_branch_name(runner: str, role_name: str, task_id: str) -> str:
+    """Branch a worker pushes to. `claude` keeps today's role-based scheme
+    (`agent/<role>-<task>`, unchanged — regression risk if renamed, every
+    existing merge/poller path keys on it). An external runner (codex, agy)
+    gets `agent/<runner>-<task>` instead (Hard Rule: "External runners push
+    agent/<runner>-<task> only") — named by WHICH CLI produced it, since
+    codex/agy are less trusted than our own WORKER.md-following claude
+    (docs/ops/agent-runners.md §4: codex exits 0 after doing nothing)."""
+    if runner == "claude":
+        return branch_name(role_name, task_id)
+    return f"agent/{runner}-{task_id}"
+
 ROOT = Path(__file__).resolve().parent.parent
 
 # How a worker is started, held as a STABLE path rather than as the command
@@ -711,6 +756,24 @@ def _render_remote_claude_args(role_name: str, host_name: str) -> str:
     return " ".join(parts)
 
 
+def _render_remote_runner_args(role_name: str, host_name: str, runner: str) -> str:
+    """Flags rendered on the Mac and handed to spawn-worker.ps1 as
+    `-ClaudeArgs` for `runner`.
+
+    `claude` reuses `_render_remote_claude_args` UNCHANGED — same code path,
+    same output, byte-identical regression guard (task-adbc6f43 scope: "claude
+    argv unchanged from today"). codex and agy take no equivalent flags from
+    here: neither CLI has claude's --model/--effort/--allowed-tools shape
+    (docs/ops/agent-runners.md §1), and inventing flags neither measured
+    invocation actually uses would be guessing, not threading through what's
+    proven. spawn-worker.ps1 builds their full argv itself from -Task/-Role/
+    the worktree path it already computes (positional prompt, -C/--add-dir,
+    etc.) — see its Runner dispatch in the launch step."""
+    if runner == "claude":
+        return _render_remote_claude_args(role_name, host_name)
+    return ""
+
+
 async def _spawn_remote(task: dict, host_name: str, *,
                         dry_run: bool = False) -> dict:
     """Spawn a DEV on a remote spoke host (winbox today; a Contabo launcher
@@ -736,6 +799,13 @@ async def _spawn_remote(task: dict, host_name: str, *,
     if not ssh_alias:
         raise ValueError(f"host {host_name!r} has no ssh alias configured")
 
+    # Runner resolution + validation (task-adbc6f43). NULL on the task row
+    # means "claude" (every pre-migration row, unchanged). Validated here —
+    # loudly, before spawning — rather than discovered as a missing binary
+    # on winbox after ssh has already fired.
+    runner = (task.get("runner") or "claude").strip().lower()
+    _validate_runner(runner, host_name)
+
     proj = get_project(project_key)
     repo_url = proj.get("remote")
     if not repo_url:
@@ -743,11 +813,11 @@ async def _spawn_remote(task: dict, host_name: str, *,
     repo_url = _ssh_remote_url(repo_url)
     repo_path = project_path_for_host(project_key, host_name)  # raises if not routable
     worktree_root = host_cfg["worktrees"]
-    branch = branch_name(role_name, task_id)
+    branch = _runner_branch_name(runner, role_name, task_id)
     base = proj["default_branch"]
     remote_worktree = f"{worktree_root}\\{project_key}__{role_name}__{task_id}"
 
-    claude_args = _render_remote_claude_args(role_name, host_name)
+    claude_args = _render_remote_runner_args(role_name, host_name, runner)
     role_cfg = get_role(role_name)
     model = role_cfg.get("model") or "claude-sonnet-5"
     effort = role_cfg.get("effort") or "high"
@@ -771,7 +841,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
         f"-RepoPath {_ps_quote(repo_path)} -WorktreeRoot {_ps_quote(worktree_root)} "
         f"-ClaudeArgs {_ps_quote(claude_args)} -Model {_ps_quote(model)} "
         f"-Effort {_ps_quote(effort)} -TaskFile {_ps_quote(remote_task_file)} "
-        f"-SessionName {_ps_quote(session_name)}"
+        f"-SessionName {_ps_quote(session_name)} -Runner {_ps_quote(runner)}"
     )
     cmd = ["ssh", ssh_alias, remote_cmd]
 
@@ -879,9 +949,9 @@ async def _spawn_remote(task: dict, host_name: str, *,
     db.update_status(
         task_id, "in_progress",
         pid=pid, host=host_name, worktree=remote_worktree, branch=branch,
-        assigned_agent=role_name, actor="cto",
+        assigned_agent=role_name, runner=runner, actor="cto",
     )
-    success(f"remote DEV spawned task={task_id} host={host_name} pid={pid}")
+    success(f"remote DEV spawned task={task_id} host={host_name} runner={runner} pid={pid}")
     return db.get_task(task_id)
 
 
@@ -930,6 +1000,20 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # check right after this needs to know the TARGET host, not just
     # whether it's remote.
     resolved_host = host if host is not None else (task.get("host") or "mac")
+
+    # Runner pre-flight (task-adbc6f43): reject an unknown/unavailable runner
+    # loudly, here, before any worktree/ssh/iTerm work starts — not discovered
+    # later as a missing binary on the spoke. NULL on the row means "claude"
+    # (every pre-migration task, unchanged). Applies to EVERY host, not just
+    # remote spokes: a bad runner value must never reach runners/worker_init.py
+    # either.
+    resolved_runner = (task.get("runner") or "claude").strip().lower()
+    try:
+        _validate_runner(resolved_runner, resolved_host)
+    except ValueError as e:
+        warn(f"runner rejected task={task_id}: {e}")
+        db.update_status(task_id, "failed", delegate_log=f"runner rejected: {e}", actor="cto")
+        return db.get_task(task_id)
 
     # ADDENDUM 3 (CTO 2026-09-07) — CEO rule: one browser_operator, one
     # Chrome tab, never a pile-up. Four operators sharing the Mac's Chrome
