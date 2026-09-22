@@ -25,7 +25,12 @@ import urllib.request
 from datetime import date
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+# Playwright is imported lazily, inside main(), not here — same convention as
+# tools/flow_shoot.py's FlowBrowser.attach(): keeps this module importable
+# (and its pure functions/poll_for_result unit-testable, see
+# tests/test_higgsfield_gen_loop.py) without Playwright installed.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from tools import decide as decide_tool  # noqa: E402
 
 # ── config ──────────────────────────────────────────────────────────────────
 CDP = "http://127.0.0.1:9222"
@@ -236,6 +241,135 @@ def failed_count(page):
     }""")
 
 
+# ── decide()-backed page state (task-b8a9a714) ──────────────────────────────
+# extract_state() replaces the ad hoc inline check this loop used to run
+# post-submit (`/generating|processing|queued|rendering|in progress/i.test
+# (document.body.innerText)`) and adds moderation/sign-out/error detection
+# the old loop never had at all (it silently timed out and logged "no
+# result in timeout — skip (slow or failed)" for every one of those cases).
+# The JS below returns ONLY the Generate button's label/disabled state plus
+# small regex-matched excerpts — never a full innerText dump
+# (browser-operator SKILL.md §"What each way of looking costs") — bounded
+# to <=1500 chars to match config/decisions/browser.page_state.yaml's
+# max_state_chars.
+#
+# Selector/marker verification table:
+# | marker                                    | verified                   | source |
+# |---------------------------------------------|-----------------------------|--------|
+# | button[type=submit]                          | 2026-09-19 (this file, ensure_config/type_prompt/main all click/read it) | the Generate/Unlimited button |
+# | .hfnav-auth-login                            | 2026-09-19 (this file, main()'s NOT_LOGGED_IN check) | signed-out indicator |
+# | "Rights verification required"/"Confirm Rights" | unverified 2026-09-22   | higgsfield-unlimited-gen SKILL.md § HARD rule 3 — no live browser session available this task |
+# | "1 unlimited generation at a time"           | unverified 2026-09-22       | higgsfield-unlimited-gen SKILL.md § HARD rule 4 concurrency toast |
+# | "NSFW"                                       | unverified 2026-09-22       | higgsfield-unlimited-gen SKILL.md stop-and-ask checklist |
+# | "Prompt is required"                         | unverified 2026-09-22       | higgsfield-unlimited-gen SKILL.md, measured composer error text |
+# | bare "Failed" card text                      | unverified 2026-09-22 (carried over from this file's own pre-existing, previously-unused failed_count() heuristic above) | |
+# | generating/processing/queued/rendering/in progress | 2026-09-19 (this file's own pre-existing ad hoc regex, moved here) | |
+EXTRACT_STATE_JS = r"""
+() => {
+  const clip = (s, n) => (s || '').replace(/\s+/g, ' ').trim().slice(0, n);
+  const body = document.body.innerText || '';
+  const parts = [];
+  const btn = document.querySelector('button[type=submit]');
+  if (btn) parts.push('button="' + clip(btn.innerText, 60) + '" disabled=' + !!btn.disabled);
+  if (document.querySelector('.hfnav-auth-login')) parts.push('sign in required (not logged in)');
+  const markers = [
+    /(rights verification required|confirm rights)[^\n]{0,80}/i,
+    /(1 unlimited generation at a time)[^\n]{0,80}/i,
+    /(nsfw)[^\n]{0,80}/i,
+    /(prompt is required)[^\n]{0,80}/i,
+    /(generating|processing|queued|rendering|in progress)[^\n]{0,40}/i,
+    /\bfailed\b[^\n]{0,80}/i,
+  ];
+  for (const re of markers) {
+    const m = body.match(re);
+    if (m) parts.push(clip(m[0], 200));
+  }
+  return parts.join(' | ').slice(0, 1500);
+}
+""".strip()
+
+
+def extract_state(page) -> str:
+    """Smallest-sufficient state for decide('browser.page_state', ...) — see
+    EXTRACT_STATE_JS's verification table above. Never raises: a page that
+    can't evaluate JS yields an empty state, which decide() resolves to
+    choice=None ("unknown"), the safe default poll_for_result() already
+    treats as "keep waiting"."""
+    try:
+        return page.evaluate(EXTRACT_STATE_JS) or ""
+    except Exception:
+        return ""
+
+
+def _decision_is_confident(d) -> bool:
+    """Conservative action-mapping gate (task-b8a9a714 money guard, Decision
+    dataclass from tools/decide.py) — identical rule to
+    tools/flow_shoot.py's own _decision_is_confident (duplicated rather than
+    imported: this task's declared touches do not include tools/decide.py,
+    and the two runners are otherwise independent, zero-model scripts).
+    Act on a decide() result only when it came from a free deterministic
+    rule (prob 1.0) or a paid provider reported >=0.9 confidence for its
+    own choice. Anything softer — and every `unknown`/None — must not
+    drive an action: a wrongly-skipped refusal costs nothing, a wrongly
+    re-fired generation does."""
+    if d.choice is None:
+        return False
+    if d.provider == "rules":
+        return True
+    return d.probs.get(d.choice, 0.0) >= 0.9
+
+
+def _ts_from_url(u):
+    m = re.search(r'/hf_(\d{8}_\d{6})_', u)
+    return m.group(1) if m else ''
+
+
+def _hf_urls(page):
+    try:
+        page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+    except Exception:
+        pass
+    page.wait_for_timeout(400)
+    return [u for u in video_urls(page) if 'cloudfront' in u and '/hf_' in u]
+
+
+def poll_for_result(page, t0_max, timeout_s=COMPLETION_TIMEOUT_S):
+    """Watches history for a new hf_<timestamp> CDN url newer than t0_max
+    (the pre-submit baseline) — the real completion signal, unchanged from
+    the original inline loop. Also calls decide('browser.page_state',
+    extract_state(page)) each cycle so a CONFIDENT moderated/signed_out/
+    error state is caught immediately instead of waiting the full
+    COMPLETION_TIMEOUT_S to time out silently (task-b8a9a714 — replaces the
+    old "no result in timeout — skip" guess). Mirrors tools/flow_shoot.py's
+    FlowBrowser.poll_result: only a confident classification short-circuits
+    the wait; idle/generating/rate_limited/unknown/low-confidence all
+    safely keep polling to timeout, exactly like the pre-decide() loop did
+    for every case it didn't recognize."""
+    start = time.time()
+    while time.time() - start < timeout_s:
+        cur = _hf_urls(page)
+        cur_max = max([_ts_from_url(u) for u in cur] + [''])
+        if cur_max and cur_max > t0_max:
+            new_url = [u for u in cur if _ts_from_url(u) == cur_max][0]
+            return {"status": "download", "url": new_url}
+
+        state_text = extract_state(page)
+        decision = decide_tool.decide("browser.page_state", state_text)
+        choice = decision.choice if _decision_is_confident(decision) else None
+        if choice == "moderated":
+            action = decide_tool.decide("browser.moderation_action", state_text)
+            action_choice = action.choice if _decision_is_confident(action) else None
+            return {"status": "refusal", "text": state_text, "moderation_choice": action_choice}
+        if choice in ("signed_out", "error"):
+            return {"status": "stopped", "text": state_text, "reason": choice}
+
+        el = int(time.time() - start)
+        if el and el % 30 == 0:
+            print(f"  ...{el}s (hf={len(cur)} max={cur_max})")
+        time.sleep(POLL_S)
+    return {"status": "timeout"}
+
+
 def download(url, path, page):
     headers = {"User-Agent": "Mozilla/5.0"}
     try:
@@ -301,6 +435,8 @@ def main():
     lib_id = drive_folder(token, "Mooniex B-Roll Library", parent, cache)
     print("Drive lib folder:", lib_id)
 
+    from playwright.sync_api import sync_playwright
+
     with sync_playwright() as p:
         browser = p.chromium.connect_over_cdp(CDP)
         ctx = browser.contexts[0]
@@ -333,31 +469,29 @@ def main():
                 try: page.locator('button:has-text("History")').first.click(timeout=2000)
                 except Exception: pass
                 # timestamp-based detection: scroll history to bottom (render lazy videos),
-                # watch for a NEW hf_ timestamp newer than the before-gen max.
-                def _ts(u):
-                    m = re.search(r'/hf_(\d{8}_\d{6})_', u)
-                    return m.group(1) if m else ''
-                def _hf():
-                    try: page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                    except Exception: pass
-                    page.wait_for_timeout(400)
-                    return [u for u in video_urls(page) if 'cloudfront' in u and '/hf_' in u]
-                t0_max = max([_ts(u) for u in _hf()] + [''])
-                start = time.time(); new_url = None
-                while time.time() - start < COMPLETION_TIMEOUT_S:
-                    cur = _hf()
-                    cur_max = max([_ts(u) for u in cur] + [''])
-                    if cur_max and cur_max > t0_max:
-                        new_url = [u for u in cur if _ts(u) == cur_max][0]; break
-                    el = int(time.time() - start)
-                    if el % 30 == 0:
-                        print(f"  ...{el}s (hf={len(cur)} max={cur_max})")
-                    time.sleep(POLL_S)
+                # watch for a NEW hf_ timestamp newer than the before-gen max. Also calls
+                # decide('browser.page_state', ...) each cycle (task-b8a9a714) — see
+                # poll_for_result()'s docstring for why only a confident
+                # moderated/signed_out/error classification short-circuits the wait.
+                t0_max = max([_ts_from_url(u) for u in _hf_urls(page)] + [''])
+                poll_start = time.time()
+                result = poll_for_result(page, t0_max)
                 try: page.evaluate("window.scrollTo(0, 0)")
                 except Exception: pass
-                if not new_url:
+
+                if result["status"] == "stopped":
+                    print(f"  STOPPED (decide: {result['reason']}) — {result.get('text', '')!r} "
+                          f"— halting the whole run, never guess past this")
+                    break
+                if result.get("moderation_choice") == "escalate_ceo":
+                    print(f"  ESCALATE_CEO — {result.get('text', '')!r} — human call only, exiting")
+                    sys.exit(f"escalate_ceo — {result.get('text', '')!r}")
+                if result["status"] == "refusal":
+                    print(f"  refused — {result.get('text', '')!r}"); fail_count_n += 1; continue
+                if result["status"] != "download":
                     print("  no result in timeout — skip (slow or failed)"); fail_count_n += 1; continue
-                elapsed = int(time.time() - start)
+                new_url = result["url"]
+                elapsed = int(time.time() - poll_start)
                 folder_name = CATEGORY_FOLDERS.get(r['category'], r['category'])
                 cat_id = drive_folder(token, folder_name, lib_id, cache)
                 DRIVE_CACHE.write_text(json.dumps(cache))

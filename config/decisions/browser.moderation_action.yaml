@@ -23,7 +23,7 @@ rules:
   # higgsfield-unlimited-gen SKILL.md: "the same automated Face/IP scanner
   # that terminally killed three healthy plates in one day" — fires on
   # resemblance, not real infringement; escalate, never auto-retry.
-  - pattern: 'face/ip scanner|resemblance|rights verification required'
+  - pattern: 'face/ip scanner|resemblance|rights verification required|confirm rights'
     option: escalate_ceo
   # Higgsfield: a copyright/IP claim on reference material — rewrite the
   # chip/reference, not the spoken line.

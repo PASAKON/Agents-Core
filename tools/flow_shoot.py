@@ -41,6 +41,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from tools import clip_review, flow_ledger  # noqa: E402
+from tools import decide as decide_tool  # noqa: E402
 
 CDP = "http://127.0.0.1:9223"
 LOG_PATH = Path("state/banchi/flow_shoot.log")
@@ -149,6 +150,89 @@ def parse_only(spec: str) -> set[int]:
 def is_refusal_text(text: str) -> bool:
     t = (text or "").strip()
     return t.startswith("ล้มเหลว") or "อาจละเมิดนโยบาย" in t
+
+
+# ── decide()-backed page state (task-b8a9a714) ──────────────────────────────
+# extract_state() replaces poll_result()'s old full document.body.innerText
+# scan (is_refusal_text() above stays as a thin wrapper for existing callers/
+# tests — its two patterns now also live as rules in
+# config/decisions/browser.page_state.yaml). The JS below returns ONLY the
+# submit button's label/disabled state plus small regex-matched excerpts —
+# never a full innerText dump (browser-operator SKILL.md §"What each way of
+# looking costs") — bounded to <=1500 chars to match
+# config/decisions/browser.page_state.yaml's max_state_chars.
+#
+# Selector/marker verification table:
+# | marker                                          | verified                     | source |
+# |--------------------------------------------------|-------------------------------|--------|
+# | button[aria-label="เริ่มสร้าง"]                   | 2026-09-19 (task-04851451)   | same selector FlowBrowser.submit() already clicks live |
+# | "ล้มเหลว" / "อาจละเมิดนโยบาย" body substrings     | 2026-09-19 (is_refusal_text) | refusal card text, moved into browser.page_state.yaml |
+# | "sign in" / accounts.google.com/ServiceLogin      | unverified 2026-09-22        | google-flow-ops SKILL.md §"Mid-session Google sign-out" — no live browser session available this task |
+# | 429 / rate limit / slot-busy                      | unverified 2026-09-22        | memory: reference_rate_limited_false_positive_from_higgsfield_429.md (Higgsfield-observed wording, applied defensively here) |
+# | generating / in queue / queued / rendering        | unverified 2026-09-22        | heuristic wording, no confirmed Flow UI string |
+# | download / ready to download / generation complete | unverified 2026-09-22       | heuristic; the REAL completion signal stays the captured CDN URL (CDN_VIDEO_RE), checked first and separately in poll_result() |
+EXTRACT_STATE_JS = r"""
+() => {
+  const clip = (s, n) => (s || '').replace(/\s+/g, ' ').trim().slice(0, n);
+  const body = document.body.innerText || '';
+  const parts = [];
+  const btn = document.querySelector('button[aria-label="เริ่มสร้าง"]');
+  if (btn) parts.push('button="' + clip(btn.innerText, 40) + '" disabled=' + !!btn.disabled);
+  const markers = [
+    /ล้มเหลว[^\n]*\n?[^\n]*/,
+    /(sign in|accounts\.google\.com\/ServiceLogin|myaccount\.google\.com)[^\n]{0,80}/i,
+    /(429|too many requests|rate limit|slot.?busy)[^\n]{0,80}/i,
+    /(generating|in queue|queued|rendering)[^\n]{0,40}/i,
+    /(download|ready to download|generation complete)[^\n]{0,40}/i,
+    /(something went wrong|failed to generate)[^\n]{0,80}/i,
+  ];
+  for (const re of markers) {
+    const m = body.match(re);
+    if (m) parts.push(clip(m[0], 200));
+  }
+  return parts.join(' | ').slice(0, 1500);
+}
+""".strip()
+
+
+def extract_state(page) -> str:
+    """Smallest-sufficient state for decide('browser.page_state', ...) — see
+    EXTRACT_STATE_JS's verification table above. Never raises: a page that
+    can't evaluate JS (closed tab, navigation mid-flight) yields an empty
+    state, which decide() resolves to choice=None ("unknown"), the safe
+    default poll_result() already treats as "keep waiting"."""
+    try:
+        return page.evaluate(EXTRACT_STATE_JS) or ""
+    except Exception:
+        return ""
+
+
+def _decision_is_confident(d) -> bool:
+    """Conservative action-mapping gate (task-b8a9a714 money guard, Decision
+    dataclass from tools/decide.py): act on a decide() result only when it
+    came from a free deterministic rule (prob 1.0) or a paid provider
+    reported >=0.9 confidence for its own choice. Anything softer — and
+    every `unknown`/None — must not drive an action: a wrongly-skipped
+    refusal costs nothing (it's refunded), a wrongly re-fired generation
+    does not."""
+    if d.choice is None:
+        return False
+    if d.provider == "rules":
+        return True
+    return d.probs.get(d.choice, 0.0) >= 0.9
+
+
+def _poll_hazard_or_none(result: dict) -> str | None:
+    """Given a poll_result() dict, returns a short reason string if this
+    result demands the whole run stop right here (escalate_ceo, or a
+    confident signed_out/error classification), else None. Centralized so
+    both the first poll and the one-time re-fire's poll in cmd_run apply
+    the exact same conservative check."""
+    if result.get("moderation_choice") == "escalate_ceo":
+        return "escalate_ceo"
+    if result["status"] == "stopped":
+        return result.get("reason", "unknown")
+    return None
 
 
 def credit_cap_exceeded(spent_this_run: int, estimate: int, cap: int) -> bool:
@@ -555,17 +639,35 @@ class FlowBrowser:
         that page's <video>, which _on_response captures. Nudging a muted
         play() every poll is what reliably triggers that fetch — proven
         live against an already-completed clip (200, 381529 bytes, ffprobe
-        confirmed 4.01s h264+aac)."""
+        confirmed 4.01s h264+aac).
+
+        UPDATED task-b8a9a714: the old full-body is_refusal_text() scan is
+        replaced by decide('browser.page_state', extract_state(page)) each
+        cycle. Only a CONFIDENT moderated/signed_out/error classification
+        short-circuits the wait (moderated additionally asks
+        decide('browser.moderation_action', ...) what to do next, and
+        surfaces its choice as moderation_choice for the caller to act on
+        conservatively — see _decision_is_confident). Everything else
+        (idle/generating/rate_limited/done-text-without-a-captured-URL-yet/
+        unknown/low-confidence) is treated exactly like the old "no signal
+        yet" case: keep polling until either the CDN URL capture fires or
+        timeout_s elapses — this never guesses its way into stopping a
+        healthy run early."""
         page = self.page
         start = time.time()
         baseline = len(self._captured_video_urls)
         while time.time() - start < timeout_s:
-            body = page.evaluate("() => document.body.innerText")
-            if is_refusal_text(body):
-                m = re.search(r"ล้มเหลว[^\n]*\n[^\n]*", body)
-                return {"status": "refusal", "text": m.group(0) if m else "ล้มเหลว"}
             if len(self._captured_video_urls) > baseline:
                 return {"status": "download", "text": ""}
+            state_text = extract_state(page)
+            decision = decide_tool.decide("browser.page_state", state_text)
+            choice = decision.choice if _decision_is_confident(decision) else None
+            if choice == "moderated":
+                action = decide_tool.decide("browser.moderation_action", state_text)
+                action_choice = action.choice if _decision_is_confident(action) else None
+                return {"status": "refusal", "text": state_text, "moderation_choice": action_choice}
+            if choice in ("signed_out", "error"):
+                return {"status": "stopped", "text": state_text, "reason": choice}
             try:
                 page.evaluate(
                     "() => { const v = document.querySelector('video'); "
@@ -783,13 +885,39 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 _log(f"shot {n}: submitted (attempt {row['attempts']}, est {estimate} credits)")
 
                 result = browser.poll_result()
-                if result["status"] == "refusal" and int(row["attempts"]) == 1:
+                hazard = _poll_hazard_or_none(result)
+                if hazard == "escalate_ceo":
+                    flow_ledger.save_ledger(ledger_path, rows)
+                    _log(f"shot {n}: ESCALATE_CEO — {result['text']!r} — "
+                         f"human call only, never auto-retry — exiting")
+                    sys.exit(f"shot {n}: escalate_ceo — {result['text']!r}")
+                elif hazard:
+                    row["status"] = "failed"
+                    row["note"] = f"decide: {hazard} — {result['text']!r}"
+                    flow_ledger.save_ledger(ledger_path, rows)
+                    _log(f"shot {n}: STOPPED (decide: {hazard}) — halting the "
+                         f"whole run, never guess past this: {result['text']!r}")
+                    break
+                elif result["status"] == "refusal" and int(row["attempts"]) == 1:
                     _log(f"shot {n}: refused — re-firing identical prompt once (refunded)")
                     _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
                                   expected_chip_count=len(shot["chips"]))
                     row["attempts"] = "2"
                     flow_ledger.save_ledger(ledger_path, rows)
                     result = browser.poll_result()
+                    hazard = _poll_hazard_or_none(result)
+                    if hazard == "escalate_ceo":
+                        flow_ledger.save_ledger(ledger_path, rows)
+                        _log(f"shot {n}: ESCALATE_CEO — {result['text']!r} — "
+                             f"human call only, never auto-retry — exiting")
+                        sys.exit(f"shot {n}: escalate_ceo — {result['text']!r}")
+                    elif hazard:
+                        row["status"] = "failed"
+                        row["note"] = f"decide: {hazard} — {result['text']!r}"
+                        flow_ledger.save_ledger(ledger_path, rows)
+                        _log(f"shot {n}: STOPPED (decide: {hazard}) after re-fire "
+                             f"— halting the whole run: {result['text']!r}")
+                        break
 
                 if result["status"] == "refusal":
                     row["status"], row["note"] = "refused", result["text"]
