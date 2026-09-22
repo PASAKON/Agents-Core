@@ -269,7 +269,17 @@ def verify_clip(path: Path, expected_dur: float,
 
 def _log(msg: str) -> None:
     line = f"{datetime.now().isoformat(timespec='seconds')}  {msg}"
-    print(line)
+    # The log file is UTF-8, but stdout on Windows defaults to cp1252 and every
+    # shot in this production carries Thai dialogue. An un-encodable character
+    # raised UnicodeEncodeError out of print() and killed a run mid-shoot
+    # (measured 2026-09-22: 18 shots in, Act 5 stopped at shot 128). Reporting
+    # progress must never be able to stop the work, so the console write degrades
+    # and the file keeps the real text.
+    try:
+        print(line)
+    except UnicodeEncodeError:
+        enc = getattr(sys.stdout, "encoding", None) or "ascii"
+        print(line.encode(enc, errors="replace").decode(enc, errors="replace"))
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(LOG_PATH, "a", encoding="utf-8") as f:
         f.write(line + "\n")

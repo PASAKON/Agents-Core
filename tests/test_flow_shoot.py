@@ -846,3 +846,43 @@ def test_download_card_never_reuses_a_prior_clip_url(monkeypatch):
 
     with pytest.raises(RuntimeError, match="refusing to reuse a prior clip URL"):
         browser.download_card(Card())
+
+
+# ── a log write must never be able to stop a shoot ──────────────────────────
+# 2026-09-22: Act 5 died at shot 128 after 18 good ones. The log file was UTF-8,
+# but stdout on Windows is cp1252 and every line of this film is Thai, so one
+# un-encodable character raised UnicodeEncodeError straight out of print().
+class _Cp1252Stdout:
+    """stdout that behaves like a Windows console: cp1252, and it raises."""
+    encoding = "cp1252"
+
+    def __init__(self):
+        self.written = []
+
+    def write(self, s):
+        s.encode("cp1252")          # raises UnicodeEncodeError on Thai
+        self.written.append(s)
+        return len(s)
+
+    def flush(self):
+        pass
+
+
+def test_log_survives_a_console_that_cannot_encode_thai(tmp_path, monkeypatch):
+    monkeypatch.setattr(flow_shoot, "LOG_PATH", tmp_path / "run.log")
+    fake = _Cp1252Stdout()
+    monkeypatch.setattr(sys, "stdout", fake)
+
+    flow_shoot._log('shot 128: submitted "ผมแค่จะไม่จ่ายอีกแล้ว"')
+
+    # the console got something rather than an exception
+    assert any("shot 128" in w for w in fake.written)
+    # and the file kept the real Thai, undamaged
+    written = (tmp_path / "run.log").read_text(encoding="utf-8")
+    assert "ผมแค่จะไม่จ่ายอีกแล้ว" in written
+
+
+def test_log_leaves_an_ordinary_console_untouched(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(flow_shoot, "LOG_PATH", tmp_path / "run.log")
+    flow_shoot._log("shot 129: verified — 8.0s 1080x1920 ผ่าน")
+    assert "ผ่าน" in capsys.readouterr().out
