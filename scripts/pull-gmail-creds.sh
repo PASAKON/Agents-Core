@@ -3,7 +3,7 @@
 # claudeflow .env into the local claudeflow .env so the TraderMindset email
 # approval loop can send. Values are never printed. Safe to re-run (dedups).
 set -euo pipefail
-CF=/Users/gob/Projects/mooniex-claudeflow
+CF=/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow
 cp "$CF/.env" "$CF/.env.bak-gmail" 2>/dev/null || true
 # drop any half-applied lines from earlier attempts, then append fresh
 grep -vE '^(GMAIL_CLIENT_ID|GMAIL_CLIENT_SECRET|GMAIL_REFRESH_TOKEN|TM_APPROVAL_EMAIL)=' "$CF/.env" > "$CF/.env.tmp"

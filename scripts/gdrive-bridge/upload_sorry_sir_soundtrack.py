@@ -35,8 +35,8 @@ FILES = [
 NOTE = "soundtrack upload for Sorry, Sir project setup"
 
 ENV_CANDIDATES = [
-    Path("/Users/gob/Projects/mooniex-claudeflow/.env"),
-    Path("/Users/gob/Projects/mooniex-claudeflow/.env.local"),
+    Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"),
+    Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env.local"),
 ]
 
 DRIVE_UPLOAD = "https://www.googleapis.com/upload/drive/v3/files"

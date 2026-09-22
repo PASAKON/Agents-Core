@@ -7,7 +7,7 @@ fal's queue splits the two paths: you SUBMIT to the full endpoint
 a dead job when the render is fine.
 """
 import re, json, time, urllib.request, pathlib, shutil
-k = re.search(r'^FAL_API_KEY=(.+)$', open("/Users/gob/Projects/mooniex-claudeflow/.env").read(), re.M).group(1).strip()
+k = re.search(r'^FAL_API_KEY=(.+)$', open("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env").read(), re.M).group(1).strip()
 H = {"Authorization": "Key " + k}
 BASE = {"fal-ai/kling-video/v3/pro/text-to-video": "fal-ai/kling-video",
         "alibaba/wan-3.0/text-to-video": "alibaba/wan-3.0",

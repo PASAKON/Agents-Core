@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Wait on the already-submitted OmniHuman render and save it."""
 import re, json, time, urllib.request, pathlib, shutil
-k=re.search(r'^FAL_API_KEY=(.+)$',open("/Users/gob/Projects/mooniex-claudeflow/.env").read(),re.M).group(1).strip()
+k=re.search(r'^FAL_API_KEY=(.+)$',open("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env").read(),re.M).group(1).strip()
 H={"Authorization":"Key "+k,"Accept":"application/json"}
 RID=json.load(open("_last_request.json"))["request_id"]
 B="fal-ai/bytedance"

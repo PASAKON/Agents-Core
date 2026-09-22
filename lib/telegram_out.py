@@ -77,7 +77,7 @@ EXPECTED_BOT_USERNAME = "SSomPongBot"
 # only claudeflow's SECRETARY_* vars are. On Contabo the secretary service
 # sets TELEGRAM_BOT_TOKEN/TELEGRAM_CEO_CHAT_ID directly, so this fallback
 # read never triggers there. Overridable so tests never touch the real file.
-CLAUDEFLOW_ENV_DEFAULT = "/Users/gob/Projects/mooniex-claudeflow/.env"
+CLAUDEFLOW_ENV_DEFAULT = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
 
 FFPROBE_BIN = os.environ.get("FFPROBE_BIN", "ffprobe")
 

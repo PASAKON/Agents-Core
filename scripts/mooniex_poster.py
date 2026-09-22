@@ -21,7 +21,7 @@ from mooniex_logo import stamp_corner  # logo workflow node
 BASE = "/Users/gob/Projects/Agents/output/personal-brand"
 CROP = os.path.join(BASE, "_ref_crop.png")
 OUT = "/Users/gob/Projects/Agents/output/mooniex-posters"
-ENV = "/Users/gob/Projects/mooniex-claudeflow/.env"
+ENV = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
 ENDPOINT = "https://fal.run/openai/gpt-image-2/edit"
 COST_PER_IMAGE = 0.19
 WORKFLOW_KEY = "trader_mindset"  # ClaudeFlow workflow name (after economic_calendar, tradetech)
