@@ -17,6 +17,16 @@ Run these gates before `merge_task(task_id)`. **Refuse merge if any gate fails.*
 
 ## Required gates
 
+### 0. Dirty base — park another session's WIP without touching it (born 2026-09-22, hit twice in one evening)
+`merge_task` refuses when the base checkout has uncommitted changes (`merged: false · base_dirty: true`). Those files are almost always **another live session's work**. Never `git checkout --`, never bare `git stash`, never commit them for the owner.
+- [ ] Identify the owner if you can (`git log -1 -- <path>`, mtime, the org logs). Not yours → it is data, not an obstacle.
+- [ ] **Fingerprint before you move anything**: `git diff -- <path> > <scratch>/wip.patch && md5 -q <path>`.
+- [ ] Path-limited, tagged stash: `git stash push -m "<sid>-<slug>" -- <path>` (untracked dirs the branch does not touch are ignored by the pre-flight and need no stash).
+- [ ] `merge_task`, then `git stash apply <sha from git stash list --format='%H %gs'>` — **apply, not pop** — and `md5 -q <path>` must equal the fingerprint. Only then `git stash drop stash@{n}` (re-find n by tag; the stack is shared with every other session and worktree).
+- [ ] Tell the owner what you did, with the md5. Two sessions did this round-trip on `tests/test_flow_shoot.py` on 2026-09-22 and both fingerprints matched — that line in the message is what lets them not worry.
+- A file that is a **config the org runs on** (`claude-home/settings.json`, a model default, a remote) goes to the CEO, not into anyone's commit — the 2026-09-22 case was a harness-written model switch nobody had chosen.
+- If `merge_task` instead says *"branch is already an ancestor of main — refusing to report success"*, that is not a dirty-base problem: the branch carries nothing to land (a worker whose deliverable lived outside the repo). Close the task honestly rather than forcing a no-op merge to look like one.
+
 ### 1. DEV report present + structured
 - [ ] Report includes: files changed, tests run, blockers.
 - [ ] Status is `done` (not `failed`, not `conflict`, not `in_progress`).
@@ -72,6 +82,7 @@ Applies to any task whose report shows the **same operation performed more than 
 ## Output format
 
 ```
+Gate 0 (Dirty base)           : PASS — clean / parked <path> md5=… restored identical / N/A
 Gate 1 (DEV report)           : PASS — status=done, files=N, tests=ok
 Gate 2 (Tests green)          : PASS — 113 passed, 0 failed
 Gate 3 (Path conflicts)       : PASS — no overlap with in-flight
