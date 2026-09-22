@@ -276,7 +276,7 @@
       "**Default / protected branches**: default branch unknown (origin/HEAD unset); no protected branches listed via gh, but this is not conclusive — verify before force-pushing or deleting branches on `PASAKON/MoonieX-Agents`",
       "**CI/CD deploy targets**: None configured",
       "**Network posture**: None configured",
-      "**Source control**: The trusted repo (`PASAKON/MoonieX-Agents`, this working directory) and its `origin` remote (`https://github.com/PASAKON/MoonieX-Agents.git`) only — no additional orgs configured",
+      "**Source control**: The trusted repo (`PASAKON/MoonieX-Agents`, this working directory) and its `origin` remote (`https://github.com/PASAKON/Agents-Core.git`) only — no additional orgs configured",
       "**Trusted internal domains**: `terminal.mooniex.com`, `webhook.mooniex.com` (contacted repeatedly in this project's transcripts)",
       "**Trusted cloud buckets**: None configured",
       "**Key internal services**: MoonieX Console / CTO orchestration runtime (this repo — `runners/`, `state/tasks.db`), LungNote (todo/reminder MCP), Contabo VPS (`/opt/mooniex-agents`, prod-adjacent orchestrator host, reached via `scripts/cto-claude.sh`)",
@@ -288,7 +288,7 @@
       "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
       "### User-specific",
       "**Primary use of Claude Code**: multi-agent orchestration / software development for a solo-founder AI product org (MoonieX)",
-      "**Trusted repo**: `/Users/gob/Projects/Agents` (this repo, working directory), remote `origin` → `https://github.com/PASAKON/MoonieX-Agents.git` (private) — confidential org material is fine to commit here; content ported from other repos/hosts is not this repo's own work",
+      "**Trusted repo**: `/Users/gob/Projects/Agents` (this repo, working directory), remote `origin` → `https://github.com/PASAKON/Agents-Core.git` (private) — confidential org material is fine to commit here; content ported from other repos/hosts is not this repo's own work",
       "**Org-specific CLIs**: `sqlite3` (routine — task queue at `state/tasks.db`), `osascript` (routine — macOS/iTerm automation for spawning agent tabs)",
       "routine under `/Users/gob/Projects/` prefix — this Mac is the CEO's full dev machine per `./CLAUDE.md`, all sub-projects under this path are reachable without restriction; the Contabo VPS mirror at `/opt/mooniex-agents` and `/root/projects/mooniex-*` is scoped only to repos actually cloned there"
     ]

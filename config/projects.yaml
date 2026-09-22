@@ -41,7 +41,7 @@ projects:
   - key: mooniex-claudeflow
     name: mooniex-claudeflow
     path: /Users/gob/Projects/mooniex-claudeflow
-    remote: git@github.com:PASAKON/mooniex-claudeflow.git
+    remote: git@github.com:PASAKON/MoonieX-ClaudeFlow.git
     default_branch: main
     stack: [node, typescript]
     agents_allowed: *default_workers
@@ -87,7 +87,7 @@ projects:
   - key: mooniex-webapp
     name: mooniex-webapp
     path: /Users/gob/Projects/mooniex-webapp
-    remote: git@github.com:PASAKON/mooniex-webapp.git
+    remote: git@github.com:PASAKON/MoonieX-WebApp.git   # renamed 2026-09-22 (ADR 0028)
     # Canonical trunk is bootstrap/landing-mvp (IRON-RULES §"shared branch";
     # GitHub origin/HEAD points here). main is a divergent line — do not target.
     default_branch: bootstrap/landing-mvp
@@ -118,7 +118,7 @@ projects:
     path: /Users/gob/Projects/mooniex-claudesign
     # fork ของ nexu-io/open-design — upstream remote = readonly sync source
     # mooniex remote (push target) = PASAKON/mooniex-claudesign
-    remote: https://github.com/PASAKON/mooniex-claudesign.git
+    remote: https://github.com/PASAKON/MoonieX-ClaudeSign.git
     upstream: https://github.com/nexu-io/open-design.git
     default_branch: mooniex-main
     stack: [next.js, typescript, electron, pnpm]
