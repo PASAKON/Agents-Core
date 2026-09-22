@@ -1117,11 +1117,8 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                          timeout_s: float = DEFAULT_TIMEOUT_S,
                          kickoff: str | None = None,
                          host: str | None = None,
-                         dry_run: bool = False) -> dict | str:
+                         dry_run: bool = False) -> dict:
     """Open DEV in a new iTerm tab. Fire-and-forget by default.
-
-    Returns a plain error string (not a dict) only for the disk-floor
-    refusal (ADR 0030) — every other path returns the task row dict.
 
     With the Stop-hook relay + cto.log auto-inject + DB poll, the CTO no
     longer needs to block waiting for the DEV to finish. Pass wait=True
@@ -1152,7 +1149,12 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # Disk floor (ADR 0030): the Mac hit 0 bytes free on 2026-09-23 and every
     # tool died. Checked before anything else touches this task's row — no
     # locks, no worktree, no status write — so a refusal here leaves the row
-    # exactly as it was and is trivially retried once space is back.
+    # exactly as it was and is trivially retried once space is back. Returns
+    # the task row dict (not a bare string) like every other refusal path
+    # here (depends_on, touches collision) — lib/org_tools_registry.py:196
+    # does `_slim_task(await do_delegate(...))` and delegate_parallel_tasks
+    # gathers results, both of which assume a dict (CTO reopen feedback,
+    # task-bfa778ab iter1: a str return broke the MCP tool on a low-disk spawn).
     free_gb = _free_gb()
     orange_gb = _disk_orange_floor_gb()
     if free_gb < orange_gb:
@@ -1160,7 +1162,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                f"— spawn refused (ADR 0030)")
         warn(f"disk floor blocked task={task_id}: {msg}")
         db.set_fields(task_id, delegate_log=msg, actor="cto")
-        return msg
+        return db.get_task(task_id)
 
     role_name = task["role"]
     project_key = task["project"]

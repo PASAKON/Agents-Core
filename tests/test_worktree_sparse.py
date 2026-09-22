@@ -1,13 +1,19 @@
 """Sparse worktrees (ADR 0030, task-bfa778ab) — tools/worktree.py create_worktree.
 
-Builds a throwaway git repo in tmp_path with a docs/reports/big.bin (stands
-in for the media that made a real Agents-Core worktree 867 MB, 738 of it
-docs/) and a tracked src/a.py. Verifies: a role NOT in `full_checkout_roles`
-gets a sparse worktree that excludes docs/reports/; a role IN
-`full_checkout_roles` gets today's unchanged full checkout; the main
-checkout's own sparse-checkout state is never touched; `commit_worktree`
-still commits a changed file from a sparse worktree; and a merge of that
-branch into a full (non-sparse) checkout keeps docs/reports intact.
+iter1 rewrite: a directory-level exclude ("docs/reports/**") broke `git add
+-A` for any NEW file under that directory (git refuses anything outside the
+sparse-checkout definition, exit 1) — 304 browser_operator tasks/30d write
+new files under docs/reports, so nearly every one of those commits would
+have failed. Fixed by excluding only EXISTING tracked files above
+`min_bytes` with a `media_guard.extensions` extension, by EXACT PATH —
+every directory (including docs/reports itself) stays inside the sparse
+definition, so a brand-new file there is always addable.
+
+Builds a throwaway git repo in tmp_path with: a small tracked src/a.py, a
+large tracked docs/reports/big_video.mp4, a small tracked
+docs/reports/small_icon.png, and three large tracked files exercising the
+sparse-checkout pattern escaping this needs — a leading `!`, a `[` inside
+the name, and a Thai filename with a space.
 
 Run via:  pytest tests/test_worktree_sparse.py
 (not in pytest.ini's default `testpaths` [scripts, lib] — run explicitly,
@@ -26,6 +32,13 @@ sys.path.insert(0, str(ROOT))
 
 import tools.worktree as worktree_mod  # noqa: E402
 
+LARGE = b"\0" * (2 * 1024 * 1024)   # 2 MiB, well above the 256 KiB min_bytes
+SMALL = b"\x89PNG\r\n\x1a\n" + b"\0" * 64  # a few dozen bytes, below min_bytes
+
+BANG_FILE = "!weird.mp4"                    # leading '!' — line-start negation char
+BRACKET_FILE = "docs/reports/clip[1].mp4"   # '[' — glob metacharacter
+THAI_FILE = "docs/reports/แผนที่ ใหม่.mp4"      # Thai + internal space
+
 
 def _git(cmd: list[str], cwd: Path) -> str:
     r = subprocess.run(["git", *cmd], cwd=str(cwd), capture_output=True, text=True)
@@ -33,18 +46,28 @@ def _git(cmd: list[str], cwd: Path) -> str:
     return r.stdout.strip()
 
 
+def _write(repo: Path, rel: str, data: bytes) -> None:
+    p = repo / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_bytes(data)
+
+
 def _init_origin_repo(tmp_path: Path) -> Path:
-    """A bare-ish 'origin' repo with docs/reports/big.bin + src/a.py on main,
-    matching create_worktree's `origin/<base>` start-point path."""
+    """A bare-ish 'origin' repo, matching create_worktree's `origin/<base>`
+    start-point path."""
     repo = tmp_path / "origin"
     repo.mkdir()
     _git(["init", "-b", "main"], repo)
     _git(["config", "user.email", "t@example.com"], repo)
     _git(["config", "user.name", "Test"], repo)
-    (repo / "src").mkdir()
-    (repo / "src" / "a.py").write_text("print('hi')\n")
-    (repo / "docs" / "reports").mkdir(parents=True)
-    (repo / "docs" / "reports" / "big.bin").write_bytes(b"\0" * (2 * 1024 * 1024))
+
+    _write(repo, "src/a.py", b"print('hi')\n")
+    _write(repo, "docs/reports/big_video.mp4", LARGE)
+    _write(repo, "docs/reports/small_icon.png", SMALL)
+    _write(repo, BANG_FILE, LARGE)
+    _write(repo, BRACKET_FILE, LARGE)
+    _write(repo, THAI_FILE, LARGE)
+
     _git(["add", "-A"], repo)
     _git(["commit", "-m", "init"], repo)
     return repo
@@ -67,8 +90,10 @@ def policy_file(tmp_path):
     p.write_text(
         "gauge:\n"
         "  orange: 5\n"
+        "media_guard:\n"
+        "  extensions: [mp4, png]\n"
         "sparse_worktree:\n"
-        "  exclude: [\"docs/reports/**\"]\n"
+        "  min_bytes: 262144\n"
         "  full_checkout_roles: [\"video_editor\"]\n"
     )
     return p
@@ -92,16 +117,28 @@ def wired(tmp_path, policy_file, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Sparse role excludes docs/reports; full role includes it.
+# Sparse role excludes only the large tracked media, by exact path; small
+# files and text stay on disk. Covers the leading-'!', '[', and Thai+space
+# escaping cases.
 # ---------------------------------------------------------------------------
 
-def test_sparse_role_excludes_configured_globs(wired):
+def test_sparse_role_excludes_only_large_tracked_media(wired):
     info = worktree_mod.create_worktree("testproj", "developer", "t1")
     wt = Path(info["worktree"])
 
     assert (wt / "src" / "a.py").exists()
-    assert not (wt / "docs" / "reports").exists()
-    assert not (wt / "docs" / "reports" / "big.bin").exists()
+    assert (wt / "docs" / "reports" / "small_icon.png").exists(), \
+        "a small tracked png must stay on disk"
+
+    assert not (wt / "docs" / "reports" / "big_video.mp4").exists(), \
+        "a large tracked mp4 must be absent from disk"
+    assert not (wt / BANG_FILE).exists(), "leading '!' path must still be excluded"
+    assert not (wt / BRACKET_FILE).exists(), "'[' in path must still be excluded"
+    assert not (wt / THAI_FILE).exists(), "Thai filename with a space must still be excluded"
+
+    # the directories themselves must NOT be excluded (that was the bug) —
+    # only the exact large files inside them.
+    assert (wt / "docs" / "reports").is_dir()
 
 
 def test_full_checkout_role_includes_everything(wired):
@@ -109,7 +146,34 @@ def test_full_checkout_role_includes_everything(wired):
     wt = Path(info["worktree"])
 
     assert (wt / "src" / "a.py").exists()
-    assert (wt / "docs" / "reports" / "big.bin").exists()
+    assert (wt / "docs" / "reports" / "big_video.mp4").exists()
+    assert (wt / BANG_FILE).exists()
+    assert (wt / BRACKET_FILE).exists()
+    assert (wt / THAI_FILE).exists()
+
+
+# ---------------------------------------------------------------------------
+# The actual regression: a NEW file under a directory that also holds
+# excluded large media must still be addable and committable.
+# ---------------------------------------------------------------------------
+
+def test_new_files_under_docs_reports_are_addable_and_committable(wired):
+    info = worktree_mod.create_worktree("testproj", "developer", "t3")
+    wt = Path(info["worktree"])
+
+    (wt / "docs" / "reports" / "NEW_REPORT.md").write_text("a new report\n")
+    (wt / "docs" / "reports" / "new_screenshot.png").write_bytes(SMALL)
+
+    r = subprocess.run(["git", "add", "-A"], cwd=str(wt), capture_output=True, text=True)
+    assert r.returncode == 0, f"git add -A failed:\n{r.stdout}\n{r.stderr}"
+
+    status = subprocess.run(["git", "status", "--porcelain"], cwd=str(wt),
+                            capture_output=True, text=True).stdout
+    assert "NEW_REPORT.md" in status
+    assert "new_screenshot.png" in status
+
+    result = worktree_mod.commit_worktree(str(wt), "test: add new report + screenshot")
+    assert result["committed"] is True
 
 
 # ---------------------------------------------------------------------------
@@ -123,7 +187,7 @@ def test_main_checkout_stays_non_sparse(wired):
         capture_output=True, text=True,
     )
 
-    worktree_mod.create_worktree("testproj", "developer", "t3")
+    worktree_mod.create_worktree("testproj", "developer", "t4")
 
     after = subprocess.run(
         ["git", "sparse-checkout", "list"], cwd=str(repo),
@@ -138,16 +202,16 @@ def test_main_checkout_stays_non_sparse(wired):
         capture_output=True, text=True,
     )
     assert cfg.returncode != 0, f"core.sparseCheckout leaked into main checkout: {cfg.stdout!r}"
-    assert (repo / "docs" / "reports" / "big.bin").exists(), \
+    assert (repo / "docs" / "reports" / "big_video.mp4").exists(), \
         "main checkout must keep its own full working tree"
 
 
 # ---------------------------------------------------------------------------
-# commit_worktree still commits a changed file from a sparse worktree.
+# commit_worktree still commits a changed tracked file from a sparse worktree.
 # ---------------------------------------------------------------------------
 
 def test_commit_worktree_from_sparse_worktree(wired):
-    info = worktree_mod.create_worktree("testproj", "developer", "t4")
+    info = worktree_mod.create_worktree("testproj", "developer", "t5")
     wt = Path(info["worktree"])
 
     (wt / "src" / "a.py").write_text("print('changed')\n")
@@ -158,14 +222,14 @@ def test_commit_worktree_from_sparse_worktree(wired):
 
 
 # ---------------------------------------------------------------------------
-# Merging a sparse branch into a full (non-sparse) checkout keeps
-# docs/reports intact — files outside the sparse set are not deleted.
+# Merging a sparse branch into a full (non-sparse) checkout keeps the large
+# excluded media intact — files outside the sparse set are not deleted.
 # ---------------------------------------------------------------------------
 
-def test_merge_of_sparse_branch_keeps_excluded_files_intact(wired):
+def test_merge_of_sparse_branch_keeps_large_media_intact(wired):
     repo = wired["repo"]
 
-    info = worktree_mod.create_worktree("testproj", "developer", "t5")
+    info = worktree_mod.create_worktree("testproj", "developer", "t6")
     wt = Path(info["worktree"])
     branch = info["branch"]
 
@@ -180,6 +244,9 @@ def test_merge_of_sparse_branch_keeps_excluded_files_intact(wired):
     _git(["checkout", "-b", "scratch"], repo)
     _git(["merge", "--no-ff", branch, "-m", "merge sparse branch"], repo)
 
-    assert (repo / "docs" / "reports" / "big.bin").exists(), \
-        "docs/reports must survive a merge of a branch built in a sparse worktree"
+    assert (repo / "docs" / "reports" / "big_video.mp4").exists(), \
+        "large tracked media must survive a merge of a branch built in a sparse worktree"
+    assert (repo / BANG_FILE).exists()
+    assert (repo / BRACKET_FILE).exists()
+    assert (repo / THAI_FILE).exists()
     assert (repo / "NEW_FROM_SPARSE.md").exists()

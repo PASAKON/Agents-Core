@@ -3,7 +3,10 @@
 The Mac hit 0 bytes free on 2026-09-23 and every tool died. delegate_task
 now measures free space on "/" before spawning; below `gauge.orange` GB
 (config/storage-policy.yaml) it refuses the spawn, leaves the task's status
-untouched, writes a delegate_log line, and returns an error string. Above
+untouched, writes a delegate_log line, and returns the task row dict (same
+shape as every other delegate_task refusal path — a bare string here would
+break lib/org_tools_registry.py:196's `_slim_task(await do_delegate(...))`
+and delegate_parallel_tasks' gather, per CTO reopen feedback iter1). Above
 the floor, behaviour is unchanged.
 
 `tools.delegate._free_gb` is the injection seam (module-level function,
@@ -60,10 +63,12 @@ def test_low_disk_refuses_spawn_and_leaves_status_unchanged(temp_db, monkeypatch
 
     result = asyncio.run(delegate.delegate_task(tid))
 
-    assert isinstance(result, str)
-    assert "disk red" in result
-    assert "4.0" in result
-    assert "5.0" in result  # gauge.orange floor from config/storage-policy.yaml
+    assert isinstance(result, dict)  # task row dict, not a bare string
+    assert result["id"] == tid
+    assert result["status"] == "pending"  # unchanged, per ADR 0030
+    assert "disk red" in result["delegate_log"]
+    assert "4.0" in result["delegate_log"]
+    assert "5.0" in result["delegate_log"]  # gauge.orange floor from config/storage-policy.yaml
 
     after = temp_db.get_task(tid)
     assert after["status"] == "pending"  # unchanged, per ADR 0030
