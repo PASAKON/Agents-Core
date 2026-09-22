@@ -268,15 +268,13 @@ Close-up on the son, static camera. Contemporary Thai realist drama, shot on 35m
 
 ### SHOT 122 · 1:48–1:52 · 4s · Close-up on the father in the doorway, static camera
 **ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@upstairs_bedroom`→REF_1
-**บทพูด** lung_somchai `"สองร้อยแปดงวด..."` — hollow
-**บทพูด** lung_somchai `"สองร้อยแปด..."` — barely out
+**บทพูด** lung_somchai `"สองร้อยแปดงวด..."` — hollow, trailing off
 ```
 Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the location reference for upstairs_bedroom.
 
-In a small upstairs bedroom in an old Bangkok shophouse — a single low wooden bed with a scratched wooden side rail against a bare plaster wall marked with cracks and water stains, a folded reddish-brown striped blanket, a small side table holding medicine bottles and a glass of water, an oscillating pedestal fan, one bare bulb hanging from the ceiling and no table lamp, a piece of cloth hanging on the wall near the window, wooden floorboards with visible gaps, a shuttered window letting in one thin band of daylight <IMAGE_REF_1>, night. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0> — stands in the bedroom doorway with one hand on the frame, repeating the number back.
+In a small upstairs bedroom in an old Bangkok shophouse — a single low wooden bed with a scratched wooden side rail against a bare plaster wall marked with cracks and water stains, a folded reddish-brown striped blanket, a small side table holding medicine bottles and a glass of water, an oscillating pedestal fan, one bare bulb hanging from the ceiling and no table lamp, a piece of cloth hanging on the wall near the window, wooden floorboards with visible gaps, a shuttered window letting in one thin band of daylight <IMAGE_REF_1>, night. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0> — stands in the bedroom doorway with one hand on the frame, hearing the number without moving, his mouth open on a sentence he never finishes.
 
-The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, hollow, and says: "สองร้อยแปดงวด..."
-The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, barely out, and says: "สองร้อยแปด..."
+The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, hollow, trailing off, and says: "สองร้อยแปดงวด..."
 
 The face of whoever is speaking stays in frame for the whole line.
 Close-up on the father in the doorway, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.

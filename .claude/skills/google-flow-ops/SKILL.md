@@ -218,6 +218,43 @@ Generalises beyond props: a **time of day** behaves the same way. The word
 daylight in all 71 clips of the same film. A cue that contradicts the paragraph
 around it loses to the paragraph.
 
+### ⛔ Every shoot ends with a mechanical audit. Look at frames to CONFIRM, never to FIND.
+
+**Standing rule, CEO 2026-09-23:** *"ต้องเชคตลอด Audit แบบไม่ต้องดูภาพ หรือดูให้
+น้อยที่สุด"* — after every batch, before anything is assembled or uploaded as
+final, run the three free local checks below. Frames are opened only for the
+shots a check has already named.
+
+| check | tool | catches | cost |
+|---|---|---|---|
+| what the clip **says** | `tools/film_transcript.py` | line said twice, line dropped, script repeating itself | ~3 s/clip |
+| text **burned into the picture** | `tools/burned_text_scan.py` | Veo writing its own Thai captions, mangled | ~1 s/clip |
+| duration / audio present | `tools/clip_review.py` | wrong length, silent clip | fast |
+
+```bash
+python3 tools/burned_text_scan.py <act dirs...> --out audit/burned.tsv
+python3 tools/film_transcript.py  <act dirs...> --out audit/transcript.tsv
+```
+
+**Why this is not optional.** On 2026-09-23 the finished film had **14 of 173
+shots (8%) carrying mangled Thai subtitles Veo invented** — «ไม่ใส่ถั่วทอกใช่ไห
+เวิทย์», «แล้วมูลนนั่ติกินหู้ร้กาอกิทย์» — and nobody had asked for subtitles.
+The CEO found them by watching. The scan found all 14 in two minutes with two
+frame-looks total, and **it survives a re-shoot**: shot 43 was re-fired for this
+exact defect and came back with different garbage in the same place, so a
+re-fire alone is not a fix and every re-fire has to be re-scanned.
+
+**How the scan stays cheap — keep these when changing it:**
+- **crop first**: captions live in the bottom 18%; the other 82% is never read.
+- **sample, don't sweep**: a caption is on screen for seconds, so 4 frames a clip
+  find it and 240 is waste. Sample above the rate the defect persists.
+- **no model in the filter**: tesseract + a character count. A model is only for
+  the shortlist, and usually the shortlist is obvious enough without one.
+
+**What none of these can see:** the wrong person in frame, wrong wardrobe, a
+prop that should not be there, a character lying down who should be sitting.
+Those still need eyes. Keep the eyes for exactly those questions.
+
 ### ⛔ Never diagnose audio you have not read back. Transcribe it.
 
 **The rule: if a claim is about what a clip SAYS, produce the transcript first.**
@@ -1804,4 +1841,5 @@ Neither replaces the other. Both are free.
 - 2026-09-22 [MISSING] §Anything that must look a specific way needs an Element — six Act 3 clips rendered a real Thai 500-baht note with the royal portrait, in a drama about illegal moneylending, against 40 words of prompt forbidding exactly that. The project's 3 characters and 6 locations were correct across 148 clips because each is chip-bound; the money was the one thing described rather than referenced. Five of the six prop Elements in the project had never been attached to any shot. · evidence: task-e960f3ca / 3f57cd1e / docs/scripts/banchi-ACT1.data.py · status: promoted
 - 2026-09-22 [MISSING] §time of day — the word `night` appended to a 60-word description of a lit, open, busy shop produced daylight in all 71 clips shot to that point. Every automated check passed; a frame-0 look found it in seconds. CEO ruled the film stays daylight rather than re-shoot. · evidence: LungNote 87c9507d / docs/scripts/banchi-ACT5.md · status: pending
 - 2026-09-23 [WRONG] §Never diagnose audio you have not read back — spent an evening attributing a dialogue defect to prompt structure using `silencedetect` (where sound is, not what it is). Rewrote the sheet builder, fired five paid proof shots chosen from a text analysis, and contradicted the published Veo guidance, all before transcribing a single clip. faster-whisper was already installed: 3s per clip settled it. The real defect was the script telling a character to say "208 งวด" then "208" in a four-second shot. · evidence: research/veo-dialogue-repeats.md / tools/film_transcript.py · status: promoted
+- 2026-09-23 [MISSING] §Every shoot ends with a mechanical audit — 14 of 173 finished shots carried Thai captions Veo invented and mangled; found by the CEO watching, not by any check. A crop-and-OCR scan (bottom 18%, 4 frames a clip, tesseract) found all 14 in two minutes. Shot 43 had already been re-fired for this defect and came back with different garbage, so re-fires need re-scanning. · evidence: tools/burned_text_scan.py · status: promoted
 

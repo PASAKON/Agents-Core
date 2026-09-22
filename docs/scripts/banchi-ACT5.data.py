@@ -109,9 +109,12 @@ SHOTS = [
    ("ton","quiet, certain","สองร้อยแปดงวดครับ")], []),
 
  (122, 4, "Close-up on the father in the doorway, static camera", ["somchai"], "room", "night",
-  "stands in the bedroom doorway with one hand on the frame, repeating the number back",
-  [("somchai","hollow","สองร้อยแปดงวด..."),
-   ("somchai","barely out","สองร้อยแปด...")], []),
+  # 2026-09-23: was two lines, both saying the number, inside four seconds — it
+  # played as a stutter rather than as shock (transcript read "208 งวด" then
+  # "208"). One line and the silence after it does the same job: a man who cannot
+  # get the rest of the sentence out is more stunned than one who repeats himself.
+  "stands in the bedroom doorway with one hand on the frame, hearing the number without moving, his mouth open on a sentence he never finishes",
+  [("somchai","hollow, trailing off","สองร้อยแปดงวด...")], []),
 
  (123, 10, "Medium two-shot, static camera", ["ton","somchai"], "room", "night",
   "stands up from the bed and faces his father in the doorway, holding the phone at his side",
