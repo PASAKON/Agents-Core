@@ -394,7 +394,7 @@ def new_task_id() -> str:
 # name/skill/path. See playbooks/web-designer.md §9 + memory
 # designer-spawn-inputs.
 _DESIGNER_ROLE = "web_designer"
-OD_ROOT = Path("/Users/gob/Projects/mooniex-claudesign/.od")
+OD_ROOT = Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeSign/.od")
 UUID_RE = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 )

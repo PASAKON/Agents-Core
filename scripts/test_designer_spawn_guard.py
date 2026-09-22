@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib import db  # noqa: E402
 
 ID = "7b4becb9-65dd-4b89-b15f-b7b0ec35c607"
-SRC = f"/Users/gob/Projects/mooniex-claudesign/.od/projects/{ID}/"
+SRC = f"/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeSign/.od/projects/{ID}/"
 
 
 def expect_raises(fn, exc=ValueError):

@@ -17,8 +17,8 @@ import os, argparse
 from PIL import Image, ImageFilter
 
 # brand source assets
-MOON = "/Users/gob/Projects/mooniex-webapp/public/brand/logo-mark.png"        # gold crescent+pagoda
-WORDMARK = "/Users/gob/Projects/mooniex-claudeflow/assets/mooniex-footer.png"  # gold MOONIEX wordmark
+MOON = "/Users/gob/MoonieXHQ/Projects/MoonieX/WebApp/public/brand/logo-mark.png"        # gold crescent+pagoda
+WORDMARK = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/assets/mooniex-footer.png"  # gold MOONIEX wordmark
 LOCKUP_CACHE = "/Users/gob/Projects/Agents/output/personal-brand/lockup-vertical.png"
 
 

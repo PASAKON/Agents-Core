@@ -15,7 +15,7 @@
  */
 'use strict';
 
-const CF = '/Users/gob/Projects/mooniex-claudeflow';
+const CF = '/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow';
 const AG = '/Users/gob/Projects/Agents';
 require(CF + '/node_modules/dotenv').config({ path: CF + '/.env' });
 const fs = require('fs');

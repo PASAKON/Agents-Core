@@ -19,7 +19,7 @@
 #   bash scripts/spawn-web-designer.sh --no-open   # start but don't open browser
 set -euo pipefail
 
-PROJECT_DIR="/Users/gob/Projects/mooniex-claudesign"
+PROJECT_DIR="/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeSign"
 STATE_DIR="/Users/gob/Projects/Agents/state/web-designer"
 LOG_DAEMON="$STATE_DIR/daemon.log"
 LOG_WEB="$STATE_DIR/web.log"

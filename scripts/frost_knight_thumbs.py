@@ -16,7 +16,7 @@ Original characters — NOT GrandChase, NOT Lich King (IP-safe).
 import sys, os, json, re, urllib.request, urllib.error
 
 OUT = "/Users/gob/Projects/Agents/output/minecraft-frost-knight"
-ENV = "/Users/gob/Projects/mooniex-claudeflow/.env"
+ENV = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
 T2I_EP = "https://fal.run/openai/gpt-image-2"
 SIZE = "landscape_16_9"          # YouTube cover ratio
 COST_PER_IMAGE = 0.25           # landscape high; verify on fal.ai dashboard

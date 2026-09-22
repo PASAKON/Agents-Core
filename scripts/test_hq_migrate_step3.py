@@ -373,8 +373,11 @@ def test_repoint_rewrites_tracked_files_and_leaves_docs_alone(tmp_path: Path) ->
     repo = tmp_path / "fake-agents-repo"
     repo.mkdir()
     _git(["init", "-b", "main"], repo)
-    old = "/Users/gob/Projects/mooniex-webapp"
-    new = "/Users/gob/MoonieXHQ/Projects/MoonieX/WebApp"
+    # deliberately NOT one of the eleven real step-3 repo names — this test
+    # exercises the rewrite mechanism itself, and a real name here would get
+    # caught by this task's own verification grep against these fixtures.
+    old = "/Users/gob/Projects/widget-service"
+    new = "/Users/gob/MoonieXHQ/Projects/MoonieX/WidgetService"
     (repo / "config").mkdir()
     (repo / "config" / "projects.yaml").write_text(f"webapp:\n  path: {old}\n")
     (repo / "docs").mkdir()
@@ -395,7 +398,7 @@ def test_repoint_is_idempotent(tmp_path: Path) -> None:
     repo = tmp_path / "fake-agents-repo2"
     repo.mkdir()
     _git(["init", "-b", "main"], repo)
-    old, new = "/Users/gob/Projects/cookierun-bot", "/Users/gob/MoonieXHQ/Projects/MoonieX/CookierunBot"
+    old, new = "/Users/gob/Projects/gadget-service", "/Users/gob/MoonieXHQ/Projects/MoonieX/GadgetService"
     (repo / "lib.py").write_text(f'ROOT = "{old}"\n')
     _git(["add", "-A"], repo)
     _git(["commit", "-m", "init"], repo)

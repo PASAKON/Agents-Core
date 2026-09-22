@@ -14,7 +14,7 @@ Params that are NOT defaults, and why:
 """
 import argparse, json, os, re, sys, time, urllib.request, pathlib
 
-ROOT, ENV = pathlib.Path(__file__).parent, "/Users/gob/Projects/mooniex-claudeflow/.env"
+ROOT, ENV = pathlib.Path(__file__).parent, "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
 OUT, DESKTOP = ROOT / "out", pathlib.Path.home() / "Desktop"
 BALANCE_URL, QUEUE = "https://rest.fal.ai/billing/user_balance", "https://queue.fal.run"
 KLING = "fal-ai/kling-video/v3/pro/text-to-video"

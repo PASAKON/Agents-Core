@@ -17,7 +17,7 @@ on 2026-09-18:
 """
 import json, re, time, urllib.request, mimetypes, pathlib, shutil
 
-KEY = re.search(r'^FAL_API_KEY=(.+)$', open("/Users/gob/Projects/mooniex-claudeflow/.env").read(), re.M).group(1).strip()
+KEY = re.search(r'^FAL_API_KEY=(.+)$', open("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env").read(), re.M).group(1).strip()
 H = {"Authorization": "Key " + KEY, "Content-Type": "application/json"}
 APP = "fal-ai/bytedance/omnihuman/v1.5"
 # Poll the first TWO path segments of the app id, not the app id and not one
