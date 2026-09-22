@@ -79,7 +79,7 @@
       "/Users/gob"
     ]
   },
-  "model": "opus[1m]",
+  "model": "claude-fable-5-1[1m]",
   "skillOverrides": {},
   "hooks": {
     "SessionStart": [
