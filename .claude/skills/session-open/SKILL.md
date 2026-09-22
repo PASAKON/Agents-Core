@@ -192,3 +192,4 @@ Then start WORK. From here, anything off-topic is **parked, not pivoted to**
 ## Field notes
 
 - 2026-09-22 [MISSING] §0 Pre-flight — when the CEO opens the session with the problem already stated, the A/B/C menu adds nothing: the SessionStart hook has already surfaced the deadlines, and `list_todos` returned 80 rows (60 KB) that were never read; charter from the CEO's sentence and skip to step 1 · evidence: session cto-0e8d80b8 · status: pending
+- 2026-09-23 [WRONG] §3 — `scripts/session-rename.sh` does not always land: after a `/terminal-restart` its typed `/rename …` arrived in the pane as `//rename …` (an ordinary prompt, not a command) and the session kept its old name; the script had already recorded the name as set, so a re-run could no-op. Verify the name in the app/`/status` after the turn; if it did not change, the CEO types `/rename <name>` once · evidence: session cto-0e8d80b8 03:0x, CEO's manual /rename succeeded · status: pending
