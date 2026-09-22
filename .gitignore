@@ -126,3 +126,5 @@ mcp/node_modules/
 .claude/skills/reel-editor-th/assets/
 # one-time migration manifests (rollback input), machine-local
 state/claude-home-migration-*.json
+state/hq-step2-migration-*.json
+state/hq-step2-yaml-backup-*.yaml

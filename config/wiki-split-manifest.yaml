@@ -194,7 +194,7 @@ moves:
 # instead.
 destinations:
   lungnote:
-    path: /Users/gob/LungNote Projects/wikis
+    path: /Users/gob/MoonieXHQ/Projects/LungNote/Wikis
     # LungNote is not served by wiki_read()/wiki_write() (not a registered
     # wiki-tools namespace), so a crossing link INTO it omits the backticked
     # `ns:path` segment entirely — URL only. ADR 0013 §"Cross-wiki link

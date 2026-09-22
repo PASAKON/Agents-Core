@@ -143,7 +143,7 @@ projects:
 
   - key: lungnote-webapp
     name: LungNote Webapp
-    path: "/Users/gob/LungNote Projects/webapp"
+    path: "/Users/gob/MoonieXHQ/Projects/LungNote/Webapp"
     remote: https://github.com/PASAKON/LungNote-webapp.git
     default_branch: main
     stack: [next.js, typescript, supabase]
@@ -199,7 +199,7 @@ projects:
 
   - key: warpclip-webapp
     name: WarpClip Webapp
-    path: /Users/gob/WarpClip Projects/webapp
+    path: /Users/gob/MoonieXHQ/Projects/WarpClip/Webapp
     remote: https://github.com/PASAKON/WarpClip-webapp.git
     default_branch: main
     stack: [next.js, typescript, tailwind]

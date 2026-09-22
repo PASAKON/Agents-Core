@@ -186,7 +186,7 @@ CLAUDE_BIN = os.environ.get("SECRETARY_CLAUDE_BIN", "claude")
 
 # Mac path is the fallback default; ensure_mcp_config() re-resolves this
 # (env LUNGNOTE_MCP_PATH first) and rewrites the generated config at startup.
-DEFAULT_LUNGNOTE_MCP_PATH = "/Users/gob/LungNote Projects/mcp/index.js"
+DEFAULT_LUNGNOTE_MCP_PATH = "/Users/gob/MoonieXHQ/Projects/LungNote/Mcp/index.js"
 
 # Both of these are rewritten at runtime, so a deployment must be able to put
 # them outside the checkout. Under systemd the server runs as a service user
