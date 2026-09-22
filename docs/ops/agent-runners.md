@@ -238,6 +238,50 @@ desktop. The user reads the URL there, approves, and pastes the code into that
 same window. An expired URL is simply replaced by the next loop, which removes
 the 60 s clock the earlier attempts kept losing to.
 
+## 7. Reading each runner's quota without spending it (2026-09-22)
+
+Both numbers below feed the Scriptable widgets in `mooniex-scriptable`
+(`server/codex-usage/feed.py`, `server/agy-usage/feed.py`). Recorded here because
+each one was found the expensive way and the wrong way was plausible.
+
+**Codex — the live figure is in the session rollout files, not the sqlite cache.**
+
+```
+%USERPROFILE%\.codex\sessions\YYYY\MM\DD\rollout-*.jsonl
+  ... "payload":{"type":"token_count","info":{...},
+                 "rate_limits":{"primary":{"used_percent":96.0,"window_minutes":10080,
+                                            "resets_at":1790593204},"secondary":null}}
+```
+
+Every `token_count` event carries `rate_limits`; the newest event across recent
+files is the current state. `~/.codex/logs_2.sqlite` also holds the `x-codex-*`
+response headers, but on 2026-09-22 that copy sat a full day stale (9% used)
+while the session files — and the desktop app, and the CEO's own eyes — said
+96%. Same window, same reset time. Read the JSONL. Note `rate_limits` is a
+sibling of `info` under `payload`, not inside it. `primary` on this plan is the
+**weekly** window (10080 min); `secondary` is unused — label from
+`window_minutes`, never from the name.
+
+**agy — `/usage` is a slash command, and print mode expands slash commands.**
+
+```
+agy -p "/usage" --output-format json
+  -> command.data.groups[]: "Gemini Models" | "Claude and GPT models"
+       buckets[]: window "weekly" | "5h", remaining_fraction, reset_time
+```
+
+Zero tokens (`usage.total_tokens: 0`), and the CLI does its own sign-in and
+refresh. This is the answer to the question §6a left open. The RPC route
+(`v1internal:retrieveUserQuotaSummary` on `cloudcode-pa.googleapis.com`) does
+exist — 403 not 404, empty body is correct — but refuses a consumer
+subscription with *"You do not have a valid license of this product"*, and
+`loadCodeAssist` returns only tier eligibility. Do not chase it again.
+
+**Two habits that would have shortened both hunts:** `strings <binary> |
+grep -oE "v1internal:[A-Za-z]+"` lists a compiled CLI's RPCs in seconds, and a
+403 means "found it, not allowed" while a 404 means "keep looking" — treat them
+as different answers.
+
 ## Related
 
 `delegate-external-agent` skill (the brief contract and the review discipline),
