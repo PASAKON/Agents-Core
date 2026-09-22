@@ -176,8 +176,14 @@ SHOTS = [
   [("somchai","ordinary","ต้น ในบัญชีพ่อเหลือเท่าไหร่ ลองเปิดดูให้พ่อทีลูก"),
    ("ton","surprised","พ่อจำรหัสไม่ได้เหรอครับ")], []),
 
- (106, 10, "Close-up on the two of them over the phone, static camera", ["somchai","ton"], "shop", "night",
-  "takes the phone and turns it toward himself while his father watches the screen over his hands",
+ # Cast order flipped 2026-09-23: ต้น's hair drifted (longer, fringe forward)
+ # in BOTH takes with him as REF_1 in profile over the phone. 107 — same
+ # framing, same room, same two men — held his plate with him as REF_0 and
+ # facing the camera. Hypothesis, not proven: in a close-up the second
+ # reference gets the weaker hold (shot 22, the only other close-up with him
+ # as REF_1, pushed him to the frame edge).
+ (106, 10, "Close-up on the two of them over the phone, static camera", ["ton","somchai"], "shop", "night",
+  "holds his father's phone up between them with the screen toward his father, his own face turned toward the camera, while his father watches the screen over his hands",
   [("somchai","plain","พ่อไม่เคยเปิดเลยลูก ตั้งแต่วันที่ลูกลงให้"),
    ("ton","quiet","สี่ปีไม่เคยเปิดเลยเหรอครับ"),
    ("somchai","even","พ่อไม่มีอะไรจะดูนี่ลูก")], []),
