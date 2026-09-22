@@ -81,6 +81,9 @@ def test_registry_names_match_prod() -> bool:
         # logic to diff against, so they're covered by name-set equality
         # here rather than a dedicated byte-parity test like the 18 above.
         "send_to_cxo", "report_to_ceo",
+        # Added task-2a29d27e: same shape as send_to_cxo/report_to_ceo above
+        # (registry-only, no hand-duplicated logic to diff).
+        "decide",
     }
     names = set(reg.BY_NAME)
     return names == expected and all(callable(getattr(srv, n, None)) for n in names)
