@@ -1,54 +1,115 @@
 {
  "T01": {
   "repo": "Agents-Core",
-  "title": "CI red: mcp 2.x removed mcp.server.fastmcp"
+  "title": "CI red: mcp 2.x removed mcp.server.fastmcp",
+  "allow": [
+   "requirements.txt"
+  ]
  },
  "T02": {
   "repo": "Agents-Core",
-  "title": "anyio floor 4.9.0 carries 2 osv advisories"
+  "title": "anyio floor 4.9.0 carries 2 osv advisories",
+  "allow": [
+   "requirements.txt"
+  ]
  },
  "T03": {
   "repo": "Agents-Core",
-  "title": "#159 close_dev leaves path locks on the remote path"
+  "title": "#159 close_dev leaves path locks on the remote path",
+  "allow": [
+   "tools/worker_reap.py",
+   "tests/test_close_dev_releases_locks.py"
+  ]
  },
  "T04": {
   "repo": "Agents-Core",
-  "title": "#158 part 1 reopen_task must rewrite TASK.md"
+  "title": "#158 part 1 reopen_task must rewrite TASK.md",
+  "allow": [
+   "runners/cto_mcp_server.py",
+   "runners/*.py",
+   "tests/test_reopen_task_rewrites_taskmd.py"
+  ]
  },
  "T05": {
   "repo": "Agents-Core",
-  "title": "#147 verify: foreign worktree gets the hook-inbox hook"
+  "title": "#147 verify: foreign worktree gets the hook-inbox hook",
+  "allow": [
+   "tests/test_worker_init_hook_inbox.py",
+   "runners/worker_init.py"
+  ]
  },
  "T06": {
   "repo": "Agents-Core",
-  "title": "#155 watchdog plist has no EnvironmentVariables"
+  "title": "#155 watchdog plist has no EnvironmentVariables",
+  "allow": [
+   "scripts/com.mooniex.agents-watchdog.plist",
+   "tests/test_watchdog_plist.py"
+  ]
  },
  "T08": {
   "repo": "Agents-Core",
-  "title": "build tools/jules.py API client with review gates"
+  "title": "build tools/jules.py API client with review gates",
+  "allow": [
+   "tools/jules.py",
+   "tests/test_jules.py",
+   "docs/ops/jules-client.md"
+  ]
  },
  "T09": {
   "repo": "MoonieX-Scriptable",
-  "title": "first pytest suite for the codex feeds (pure functions)"
+  "title": "first pytest suite for the codex feeds (pure functions)",
+  "allow": [
+   "tests/*",
+   "pytest.ini"
+  ]
  },
  "T10": {
   "repo": "Agents-Wikis",
-  "title": "markdown + wikilink checker (report only)"
+  "title": "markdown + wikilink checker (report only)",
+  "allow": [
+   "tools/check_links.py",
+   "README.md"
+  ]
  },
  "T07": {
   "repo": "Agents-Core",
-  "title": "LungNote 9280082d browser-guard: count DEVs too, warn not block"
+  "title": "LungNote 9280082d browser-guard: count DEVs too, warn not block",
+  "allow": [
+   "scripts/hook-browser-guard.py",
+   "tests/test_hook_browser_guard.py"
+  ]
  },
  "T11": {
   "repo": "Agents-Core",
-  "title": "LungNote 04eac0d7 / GH #65 send_to_dev tab fallback matches 1 char of entropy"
+  "title": "LungNote 04eac0d7 / GH #65 send_to_dev tab fallback matches 1 char of entropy",
+  "allow": [
+   "tools/send_to_worker.py",
+   "tests/test_send_to_worker_tab_resolver.py"
+  ]
  },
  "T12": {
   "repo": "Agents-Core",
-  "title": "LungNote 95a70905 remove Z.ai + 9Router from the repo (CEO 2026-09-20)"
+  "title": "LungNote 95a70905 remove Z.ai + 9Router from the repo (CEO 2026-09-20)",
+  "allow": [
+   "lib/config.py",
+   "lib/quota_router.py",
+   "scripts/test_quota_router.py",
+   "scripts/ninerouter-up.sh",
+   "scripts/cto-claude.sh",
+   "scripts/cxo-claude.sh",
+   "scripts/spawn-cto.sh",
+   "scripts/spawn-cxo.sh",
+   "scripts/install-secretary-waker.sh",
+   "scripts/test_secretary_server.py",
+   "docs/ops/model-fallback.md"
+  ]
  },
  "T13": {
   "repo": "Agents-Core",
-  "title": "LungNote ebc80915 delegate on a task whose worktree is gone must refuse loudly"
+  "title": "LungNote ebc80915 delegate on a task whose worktree is gone must refuse loudly",
+  "allow": [
+   "tools/delegate.py",
+   "tests/test_delegate_missing_worktree.py"
+  ]
  }
 }

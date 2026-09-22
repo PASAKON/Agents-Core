@@ -20,6 +20,7 @@ Ledger: state/jules/<batch>.jsonl — one JSON object per created session:
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import json
 import sys
 import urllib.error
@@ -99,13 +100,18 @@ def activities(sid: str) -> list[dict]:
             return out
 
 
-def cmd_diff(a) -> None:
+def latest_patch(sid: str) -> str | None:
     patch = None
-    for act in activities(a.session):
+    for act in activities(sid):
         for art in act.get("artifacts", []):
             p = art.get("changeSet", {}).get("gitPatch", {}).get("unidiffPatch")
             if p:
                 patch = p          # artifacts are cumulative; keep the last one
+    return patch
+
+
+def cmd_diff(a) -> None:
+    patch = latest_patch(a.session)
     if patch is None:
         sys.exit("no changeSet in activities")
     if a.out:
@@ -113,6 +119,55 @@ def cmd_diff(a) -> None:
         print(f"wrote {a.out} ({len(patch)} bytes)")
     else:
         sys.stdout.write(patch)
+
+
+# Review gate — the script half of jules-ops §4. Applied to BOTH arms of the A/B
+# with the allowlist taken from the disciplined brief, so the loose arm is
+# measured against the same scope it was never told about.
+FORBIDDEN_BASENAMES = ("*.log", "patch_*", "*.patch", "package.json", "package-lock.json",
+                       "*.lock", "requirements*.txt")
+
+
+def _diff_files(patch: str) -> list[str]:
+    files = []
+    for line in patch.splitlines():
+        if line.startswith("diff --git "):
+            head, _, tail = line.partition(" b/")
+            if tail:
+                files.append(tail.strip())
+    return files
+
+
+def cmd_gate(a) -> None:
+    tasks = json.loads(Path(a.tasks).read_text())
+    for rec in ledger(a.batch):
+        if a.task and rec["task"] != a.task:
+            continue
+        allow = tasks.get(rec["task"], {}).get("allow", [])
+        s = call("GET", f"/sessions/{rec['session']}")
+        prs = [o["pullRequest"].get("url", "") for o in s.get("outputs", []) if o.get("pullRequest")]
+        patch = latest_patch(rec["session"])
+        tag = f"{rec['task']}-{rec['arm']}"
+        if patch is None:
+            print(f"{tag} {s.get('state', '?'):<12} NO-DIFF  pr={len(prs)}")
+            continue
+        files = _diff_files(patch)
+        viol = []
+        for f in files:
+            allowed = any(fnmatch.fnmatch(f, g) for g in allow)
+            if allow and not allowed:
+                viol.append(f"outside-allowlist: {f}")
+            if not allowed and any(fnmatch.fnmatch(f.rsplit('/', 1)[-1], g) for g in FORBIDDEN_BASENAMES):
+                viol.append(f"forbidden-pattern: {f}")
+        if len(patch) > a.max_bytes:
+            viol.append(f"too-big: {len(patch)} B > {a.max_bytes}")
+        verdict = "GATE-OK  " if not viol else "GATE-FAIL"
+        print(f"{tag} {s.get('state', '?'):<12} {verdict} files={len(files)} bytes={len(patch)} pr={len(prs)} {' '.join(prs)}")
+        for v in viol:
+            print("    ! " + v)
+        if a.files:
+            for f in files:
+                print("    - " + f)
 
 
 def cmd_report(a) -> None:
@@ -154,6 +209,10 @@ def main() -> int:
     d = sub.add_parser("diff"); d.add_argument("--session", required=True); d.add_argument("--out"); d.set_defaults(fn=cmd_diff)
     r = sub.add_parser("report"); r.add_argument("--session", required=True); r.set_defaults(fn=cmd_report)
     l = sub.add_parser("list"); l.add_argument("-n", type=int, default=20); l.set_defaults(fn=cmd_list)
+    g = sub.add_parser("gate"); g.add_argument("--batch", required=True); g.add_argument("--task")
+    g.add_argument("--tasks", default="docs/ops/jules-ab-2026-09-23/briefs/tasks.json")
+    g.add_argument("--max-bytes", type=int, default=65536); g.add_argument("--files", action="store_true")
+    g.set_defaults(fn=cmd_gate)
     a = ap.parse_args()
     a.fn(a)
     return 0
