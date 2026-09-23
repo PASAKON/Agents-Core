@@ -280,6 +280,16 @@
              top: 0; transform: translateY(-50%);
              text-align: center; opacity: 0; font-weight: 600; font-size: 48px;
              line-height: 1.28; text-shadow: var(--outline); }
+      /* CTO review 15:10: the standing vignette alone was not enough — on a
+         real WikiFX/BingX page the caption sat directly on the page's own
+         text (a tab row, a heading, a paragraph) and was unreadable ("มีตัว
+         หนังสือ ไม่ผ่าน อ่านไม่ได้"). A solid band behind the caption, full
+         width of the safe box, fixes it regardless of what is under it. Only
+         applied to captions over a real-footage plate — avatar/S## captions
+         already read fine against the vignette and don't need the extra
+         weight. */
+      .cap.band { background: rgba(5,6,8,.90); padding: 20px 30px;
+                  border-radius: 18px; box-shadow: 0 10px 28px rgba(0,0,0,.55); }
     </style>
   </head>
   <body>
@@ -461,13 +471,13 @@
          BL EP55 — ชื่อดังไม่ได้แปลว่ามีใบอนุญาต. 40 script lines, v2 audio
          (133.13s), v2 lipsync (A/B/C, offsets confirmed r>=0.999).
 
-         Caption text below is deliberately NOT a verbatim transcript on 9
-         lines (4,5,13,14,26,27,28,38,40): the v2 VO script (already recorded,
-         cannot be re-cut) uses กู/มึง repeatedly. IRON-RULES §37/39 forbid
-         crude pronouns in on-screen text even when the source script uses
-         them, so every caption/kinetic line below is paraphrased clean —
-         see the report for the full list. The spoken audio itself still
-         contains them; that is flagged separately, not fixed here.
+         Caption/kinetic text on 9 lines (4,5,13,14,26,27,28,38,40) carries
+         กู/มึง verbatim, matching the recorded v2 audio word for word. IRON
+         §37 carries a CEO-confirmed carve-out (2026-08-03/04) for this
+         channel's มึง/กู voice — approved on EP53/EP54 — so this is not a
+         §37 violation; CTO ruling 2026-09-23 15:10 overrode an earlier pass
+         that had paraphrased these lines clean. The em-dash rule (§39) still
+         applies throughout.
 
          S32 and S39 carry no scene clip on purpose (rule 3): S32 is kinetic
          (L32), S39 falls inside lipsync window C so it plays as avatar.
@@ -477,10 +487,13 @@
       tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);
 
       // ---- caption rail: plain text under every non-kinetic beat ----
+      // band=true gets a solid dark band behind it (real-footage plates only —
+      // see the .cap.band CSS note).
       var CAPN = 0;
-      function caption(at, out, text) {
+      function caption(at, out, text, band) {
         var id = "cap" + (++CAPN);
-        var d = el('<div class="cap" id="' + id + '">' + text + '</div>');
+        var cls = band ? "cap band" : "cap";
+        var d = el('<div class="' + cls + '" id="' + id + '">' + text + '</div>');
         document.getElementById("caps").appendChild(d);
         show("#" + id, at); hide("#" + id, out - 0.20);
         return { id: id };
@@ -489,63 +502,65 @@
       // L1 — avatar A
       caption(0.10, 1.08, "เป็นเรื่องแล้วไง");
       // L2 — real: BingX/WikiFX logo still
-      caption(1.15, 4.32, "โบรกชื่อดัง ก็ไม่ได้แปลว่าปลอดภัยเสมอไป");
+      caption(1.15, 4.32, "โบรกชื่อดัง ก็ไม่ได้แปลว่าปลอดภัยเสมอไป", true);
       // L3 — real: WikiFX article hook (no license + complaints)
-      caption(4.40, 9.46, "เปิดปมโบรกไร้ใบอนุญาตชัดเจน แถมมีเคสร้องเรียนจากผู้ใช้งานอีกเพียบ");
-      // L4 — avatar A (cleaned: dropped กู)
-      caption(9.55, 11.60, "เดี๋ยววันนี้จะมาแฉให้ฟัง");
-      // L5 — real: BingX logo still (cleaned: dropped กู)
-      caption(11.70, 15.85, "ที่เพิ่งพูดไปคือพาดหัวของวิกิเอฟเอ็กซ์เอง เขาพูดถึงบิงเอ็กซ์");
+      caption(4.40, 9.46, "เปิดปมโบรกไร้ใบอนุญาตชัดเจน แถมมีเคสร้องเรียนจากผู้ใช้งานอีกเพียบ", true);
+      // L4 — avatar A. CTO ruling 2026-09-23 15:10: IRON §37 carries a
+      // CEO-confirmed carve-out (2026-08-03/04) for this channel's มึง/กู
+      // voice — captions follow the recorded audio verbatim, not paraphrased.
+      caption(9.55, 11.60, "เดี๋ยววันนี้กูจะมาแฉให้ฟัง");
+      // L5 — real: BingX logo still (verbatim)
+      caption(11.70, 15.85, "ที่กูเพิ่งพูดไปคือพาดหัวของวิกิเอฟเอ็กซ์เอง เขาพูดถึงบิงเอ็กซ์", true);
       // L6 — real: WikiFX founded/HQ article
-      caption(15.95, 19.34, "บริษัทตั้งอยู่ที่เซเชลส์ เกาะเล็กกลางมหาสมุทรอินเดีย");
+      caption(15.95, 19.34, "บริษัทตั้งอยู่ที่เซเชลส์ เกาะเล็กกลางมหาสมุทรอินเดีย", true);
       // L7 is kinetic — see below
       // L8 — real: WikiFX min-deposit article
-      caption(23.45, 25.76, "ฝากแค่ดอลเดียวก็เข้าไปเล่นได้แล้ว");
+      caption(23.45, 25.76, "ฝากแค่ดอลเดียวก็เข้าไปเล่นได้แล้ว", true);
       // L9 — real: WikiFX no-license profile
-      caption(25.85, 29.50, "วิกิเอฟเอ็กซ์ค้นแล้ว ไม่เจอใบอนุญาตฟอเร็กซ์สักใบ");
+      caption(25.85, 29.50, "วิกิเอฟเอ็กซ์ค้นแล้ว ไม่เจอใบอนุญาตฟอเร็กซ์สักใบ", true);
       // L10 — real: WikiFX no-regulation profile
-      caption(29.60, 32.98, "เขียนไว้ชัดๆเลยว่าไม่มีการกำกับดูแลที่ถูกต้อง");
+      caption(29.60, 32.98, "เขียนไว้ชัดๆเลยว่าไม่มีการกำกับดูแลที่ถูกต้อง", true);
       // L11 — real: WikiFX score profile (1.69/10) — REQUIRED shot
-      caption(33.05, 35.82, "คะแนนความน่าเชื่อถือ ไม่ถึงสองเต็มสิบ");
+      caption(33.05, 35.82, "คะแนนความน่าเชื่อถือ ไม่ถึงสองเต็มสิบ", true);
       // L12 — real: WikiFX score-reason article
-      caption(35.90, 39.04, "เหตุผลคือเรื่องร้องเรียนที่ค้างอยู่ ไม่มีใครแก้");
+      caption(35.90, 39.04, "เหตุผลคือเรื่องร้องเรียนที่ค้างอยู่ ไม่มีใครแก้", true);
       // L13, L14 kinetic — see below
       // L15 — S15 scene plate (no real footage covers CONTEXT-5/MAIN-2)
       caption(46.88, 49.78, "ไม่มีหน่วยงานไหนบังคับให้เขาคืนเงินได้สักบาท");
       // L16+L17 — real: WikiFX complaint amounts ($48,994.87 / $53,451.43) — REQUIRED shot, held across both lines
-      caption(49.88, 53.02, "มีผู้ใช้ร้องเรียนว่าโดนขโมยกำไรไปเกือบห้าหมื่นดอล");
-      caption(53.10, 55.66, "อีกบัญชีก็อ้างว่าเสียหายไปห้าหมื่นกว่า");
+      caption(49.88, 53.02, "มีผู้ใช้ร้องเรียนว่าโดนขโมยกำไรไปเกือบห้าหมื่นดอล", true);
+      caption(53.10, 55.66, "อีกบัญชีก็อ้างว่าเสียหายไปห้าหมื่นกว่า", true);
       // L18 — real: WikiFX Taiwan police complaint — REQUIRED shot
-      caption(55.75, 59.26, "มีเรื่องร้องเรียนไปถึงตำรวจไต้หวัน ว่ายักยอกเงินลูกค้า");
+      caption(55.75, 59.26, "มีเรื่องร้องเรียนไปถึงตำรวจไต้หวัน ว่ายักยอกเงินลูกค้า", true);
       // L19+L20 — real: WikiFX withdrawal-restriction article, held across both
-      caption(59.35, 63.44, "แพทเทิร์นเดิมซ้ำๆ พอทำกำไรได้ บัญชีโดนจำกัดการถอน");
-      caption(63.53, 66.86, "ตามที่คนร้องเรียน กำไรมีแต่ในจอ ถอนจริงไม่ได้");
+      caption(59.35, 63.44, "แพทเทิร์นเดิมซ้ำๆ พอทำกำไรได้ บัญชีโดนจำกัดการถอน", true);
+      caption(63.53, 66.86, "ตามที่คนร้องเรียน กำไรมีแต่ในจอ ถอนจริงไม่ได้", true);
       // L21 — real: WikiFX leverage article
-      caption(66.95, 69.00, "แล้วยังให้เลเวอเรจเป็นร้อยเท่า");
+      caption(66.95, 69.00, "แล้วยังให้เลเวอเรจเป็นร้อยเท่า", true);
       // L22 — avatar B
       caption(69.10, 72.60, "เลเวอเรจสูงบวกไม่มีคนกำกับ คือพังได้ในคืนเดียว");
       // L23 — real: WikiFX min-deposit article (reused, "ประตูเข้า" gateway framing)
-      caption(72.70, 77.58, "ประตูเข้ากว้างมาก แต่ก่อนใส่เงินก้อนใหญ่ ดูประตูออกให้ดี");
+      caption(72.70, 77.58, "ประตูเข้ากว้างมาก แต่ก่อนใส่เงินก้อนใหญ่ ดูประตูออกให้ดี", true);
       // L24+L25 — real: BingX homepage scroll — REQUIRED shot, held across both
-      caption(77.68, 81.04, "คนส่วนใหญ่เห็นแค่ชื่อดัง เห็นโฆษณาเยอะ ก็เชื่อไปแล้ว");
-      caption(81.12, 84.08, "แต่ดังในโลกคริปโต ไม่เท่ากับมีคนกำกับ");
+      caption(77.68, 81.04, "คนส่วนใหญ่เห็นแค่ชื่อดัง เห็นโฆษณาเยอะ ก็เชื่อไปแล้ว", true);
+      caption(81.12, 84.08, "แต่ดังในโลกคริปโต ไม่เท่ากับมีคนกำกับ", true);
       // L26 kinetic — see below
-      // L27 — S27 scene plate (cleaned: dropped มึง)
-      caption(87.88, 90.60, "รู้ไหม ใบอนุญาตแต่ละที่ตรวจไม่เหมือนกัน");
-      // L28 — S28 scene plate (cleaned: dropped มึง)
-      caption(90.70, 94.28, "บางใบตรวจแค่ว่ามีบริษัทจริง ไม่ได้ดูว่าเงินปลอดภัยหรือเปล่า");
+      // L27 — S27 scene plate (verbatim)
+      caption(87.88, 90.60, "มึงรู้ไหม ใบอนุญาตแต่ละที่ตรวจไม่เหมือนกัน");
+      // L28 — S28 scene plate (verbatim)
+      caption(90.70, 94.28, "บางใบตรวจแค่ว่ามีบริษัทจริง ไม่ได้ดูว่าเงินมึงปลอดภัย");
       // L29 — S29 scene plate
       caption(94.38, 97.28, "บางเกาะจ่ายค่าธรรมเนียมรายปีก็ได้ใบแล้ว");
       // L30 kinetic — see below
       // L31 — S31 scene plate
       caption(100.86, 104.32, "เพราะงั้นโลโก้สวยบนหน้าเว็บ พิสูจน์อะไรไม่ได้เลย");
       // L32,L33,L34 kinetic / L35-37 rules() — see below
-      // L38 — avatar C (cleaned: dropped กู)
-      caption(122.56, 127.06, "ไม่ได้แนะนำให้ใช้หรือเลิกใช้เจ้าไหน แค่ชี้วิธีดูให้เป็น");
+      // L38 — avatar C (verbatim)
+      caption(122.56, 127.06, "กูไม่ได้แนะนำให้ใช้หรือเลิกใช้เจ้าไหน แค่ชี้วิธีดูให้เป็น");
       // L39 — avatar C (S39 mandatory avatar/kinetic per rule 3 — falls inside window C)
       caption(127.16, 131.00, "คอมเมนต์คำว่า เช็กก่อนฝาก ถ้าอยากได้ลิสต์เว็บเช็กใบอนุญาต");
-      // L40 — avatar C (cleaned: dropped มึง)
-      caption(131.10, 133.13, "อย่าให้ความดังหลอกเงินไป");
+      // L40 — avatar C (verbatim)
+      caption(131.10, 133.13, "อย่าให้ความดังหลอกเงินมึงไป");
 
       // ---- kinetic beats: character lines with no real footage and outside
       //      the three lipsync windows (A 0-14.01 / B 58.72-73.92 / C 115.44-132.68) ----
@@ -556,25 +571,29 @@
         { c: "bl-md", h: 'แต่คนกำกับ<span class="n nb">จริงหายาก</span>', d: 0.55, g: 0.6 }
       ], 420);
 
-      // L13 — cleaned: dropped กู/มึง
-      kinetic(680, 39.14, 43.26, [
-        { c: "bl-md", h: 'ไม่ใช่พูดเอง วิกิเอฟเอ็กซ์เขียนไว้', d: 0.6, g: 0.68 },
-        { c: "bl-md", h: '<span class="n nb">เข้าไปดูเองได้</span>', d: 0.55, g: 0.6 }
+      // L13 — verbatim (CTO ruling 15:10: IRON §37 carve-out for this
+      // channel's มึง/กู voice, approved on EP53/EP54). Split into 3 short
+      // nb-wrapped lines rather than one long line: "วิกิเอฟเอ็กซ์" is the
+      // one compound in here that could break mid-word without it (trap 6b).
+      kinetic(660, 39.14, 43.26, [
+        { c: "bl-md", h: 'ไม่ใช่<span class="nb">กูพูดเอง</span>', d: 0.55, g: 0.62 },
+        { c: "bl-md", h: '<span class="nb">วิกิเอฟเอ็กซ์</span>เขียนไว้', d: 0.55, g: 0.6 },
+        { c: "bl-md", h: '<span class="n nb">มึงเข้าไปดูเองได้</span>', d: 0.55, g: 0.6 }
       ]);
 
-      // L14 — cleaned: "ตามให้มึง" -> "ตามคืนให้"
+      // L14 — verbatim
       kinetic(680, 43.36, 46.78, [
         { c: "bl-md", h: 'ไม่มีใบอนุญาต แปลว่าถ้า<span class="nb">เงินหาย</span>', d: 0.6, g: 0.7 },
-        { c: "bl-md", h: '<span class="n nb">ไม่มีใครตามคืนให้</span>', d: 0.55, g: 0.6 }
+        { c: "bl-md", h: '<span class="n nb">ไม่มีใครตามให้มึง</span>', d: 0.55, g: 0.6 }
       ]);
 
-      // L26 — cleaned: dropped กู×2. Split across 3 short lines: the single
-      // nb-wrapped "เช็กก่อนฝากเงินก้อนแรก" (22 chars) overflowed the 720px
-      // safe width at bl-md — nowrap prevents a mid-word break but does not
-      // shrink to fit, so an oversized nb chunk runs off-frame instead.
+      // L26 — verbatim. Split across 3 short lines: a single nb-wrapped
+      // "เช็กก่อนฝากเงินก้อนแรก" (22 chars) overflowed the 720px safe width
+      // at bl-md — nowrap prevents a mid-word break but does not shrink to
+      // fit, so an oversized nb chunk runs off-frame instead.
       kinetic(660, 84.18, 87.78, [
-        { c: "bl-md", h: 'ไม่ได้บอกว่า<span class="nb">ห้ามใช้</span>', d: 0.55, g: 0.62 },
-        { c: "bl-md", h: 'แค่บอกว่า<span class="y nb">เช็กก่อน</span>', d: 0.55, g: 0.6 },
+        { c: "bl-md", h: 'กูไม่ได้บอกว่า<span class="nb">ห้ามใช้</span>', d: 0.55, g: 0.62 },
+        { c: "bl-md", h: 'กูบอกว่า<span class="y nb">เช็กก่อน</span>', d: 0.55, g: 0.6 },
         { c: "bl-md", h: '<span class="y nb">ฝากเงินก้อนแรก</span>', d: 0.55, g: 0.6 }
       ]);
 
