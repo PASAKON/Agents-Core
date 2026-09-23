@@ -1,13 +1,13 @@
   uploaded image + audio
   submitted 01a0b472-485f-7570-aad7-d052e2e67d3b
 Traceback (most recent call last):
-  File "/Users/gob/Projects/Agents/prototypes/bl-model-bakeoff/avatar/omni_run.py", line 75, in <module>
+  File "/Users/gob/MoonieXHQ/Agents/Core/prototypes/bl-model-bakeoff/avatar/omni_run.py", line 75, in <module>
     main()
     ~~~~^^
-  File "/Users/gob/Projects/Agents/prototypes/bl-model-bakeoff/avatar/omni_run.py", line 61, in main
+  File "/Users/gob/MoonieXHQ/Agents/Core/prototypes/bl-model-bakeoff/avatar/omni_run.py", line 61, in main
     st = get(f"https://queue.fal.run/{BASE}/requests/{rid}/status")["status"]
          ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/gob/Projects/Agents/prototypes/bl-model-bakeoff/avatar/omni_run.py", line 42, in get
+  File "/Users/gob/MoonieXHQ/Agents/Core/prototypes/bl-model-bakeoff/avatar/omni_run.py", line 42, in get
     return json.loads(urllib.request.urlopen(urllib.request.Request(url, headers=H), timeout=t).read())
                       ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 187, in urlopen

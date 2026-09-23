@@ -210,7 +210,7 @@ def test_ordinary_skill_dirs_are_discovered(tmp_path: Path) -> None:
 
 def test_root_is_derived_from_file_location_not_hardcoded(tmp_path: Path) -> None:
     """Same proof shape as test_skill_lint.py's equivalent test: copies the
-    module into a throwaway tree that is NOT /Users/gob/Projects/Agents and
+    module into a throwaway tree that is NOT /Users/gob/MoonieXHQ/Agents/Core and
     NOT /opt/mooniex-agents, and asserts its ROOT tracks the copy."""
     fake_repo = tmp_path / "not-the-real-repo-root"
     fake_scripts = fake_repo / "scripts"
@@ -229,7 +229,7 @@ def test_root_is_derived_from_file_location_not_hardcoded(tmp_path: Path) -> Non
 
     assert module.ROOT == fake_repo
     assert module.ROOT != ROOT
-    assert str(module.ROOT) not in ("/Users/gob/Projects/Agents", "/opt/mooniex-agents")
+    assert str(module.ROOT) not in ("/Users/gob/MoonieXHQ/Agents/Core", "/opt/mooniex-agents")
 
     curator_copy = module._load_curator()
     assert curator_copy.CuratorPaths.default().owned_skills_dir == fake_repo / ".claude" / "skills"

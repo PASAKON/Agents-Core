@@ -1,9 +1,9 @@
 """Worktree cleanup, CEO order 2026-09-05, split into auditable steps: dupes | preserve | remove | gate"""
 import subprocess, os, sys, json
-sys.path.insert(0, "/Users/gob/Projects/Agents")
+sys.path.insert(0, "/Users/gob/MoonieXHQ/Agents/Core")
 from lib.config import get_project
 STEP = sys.argv[1]
-ROOT = "/Users/gob/Projects/Agents/worktrees"
+ROOT = "/Users/gob/MoonieXHQ/Agents/Core/worktrees"
 NEVER = {"mooniex-agents__browser_operator__task-5c88321f"}
 A = ["mooniex-agents__browser_operator__task-0d531808","mooniex-agents__developer__task-2a175884",
  "mooniex-claudeflow__developer__task-65398390","mooniex-claudeflow__developer__task-bfa50f99",
@@ -31,7 +31,7 @@ if STEP=="dupes":
     for l in git(wt,"status","--porcelain")[1].splitlines():
         p=l[3:].strip()
         if l.startswith("??") and p.lower().endswith(".mp4"):
-            m=os.path.join("/Users/gob/Projects/Agents",p)
+            m=os.path.join("/Users/gob/MoonieXHQ/Agents/Core",p)
             assert os.path.isfile(m) and subprocess.run(["cmp","-s",os.path.join(wt,p),m]).returncode==0, p
             os.remove(os.path.join(wt,p)); n+=1
     print("removed duplicate MP4 copies:",n)

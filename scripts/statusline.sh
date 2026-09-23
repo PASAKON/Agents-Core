@@ -11,7 +11,7 @@
 #
 # Wire in ~/.claude/settings.json:
 #   "statusLine": { "type": "command",
-#                   "command": "bash \"/Users/gob/Projects/Agents/scripts/statusline.sh\"" }
+#                   "command": "bash \"/Users/gob/MoonieXHQ/Agents/Core/scripts/statusline.sh\"" }
 
 set -u
 CONFIG_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"

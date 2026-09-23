@@ -35,10 +35,10 @@ attach` gives the CEO the process that is still executing.
 ## Run it
 
 ```bash
-bash /Users/gob/Projects/Agents/scripts/terminal-open.sh            # THIS session
-bash /Users/gob/Projects/Agents/scripts/terminal-open.sh --orphan   # newest one with no client
-bash /Users/gob/Projects/Agents/scripts/terminal-open.sh --list     # inventory
-bash /Users/gob/Projects/Agents/scripts/terminal-open.sh 8172e36d   # a specific id
+bash /Users/gob/MoonieXHQ/Agents/Core/scripts/terminal-open.sh            # THIS session
+bash /Users/gob/MoonieXHQ/Agents/Core/scripts/terminal-open.sh --orphan   # newest one with no client
+bash /Users/gob/MoonieXHQ/Agents/Core/scripts/terminal-open.sh --list     # inventory
+bash /Users/gob/MoonieXHQ/Agents/Core/scripts/terminal-open.sh 8172e36d   # a specific id
 ```
 
 Bare `/terminal-open` → **no flag**. That attaches the session the command was

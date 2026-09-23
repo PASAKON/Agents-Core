@@ -18,8 +18,8 @@ hosts:
     os: darwin
     remote_control: true   # session shows in the CEO Claude app
     ssh: null
-    agents_root: /Users/gob/Projects/Agents
-    worktrees: /Users/gob/Projects/Agents/worktrees
+    agents_root: /Users/gob/MoonieXHQ/Agents/Core
+    worktrees: /Users/gob/MoonieXHQ/Agents/Core/worktrees
     provides: [chrome, macos_cu, blender_bridge]
     max_workers: 4
     # Worker CLI(s) this host can spawn (task-adbc6f43). runners/worker_init.py

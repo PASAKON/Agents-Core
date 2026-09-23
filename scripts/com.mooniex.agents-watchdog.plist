@@ -7,7 +7,7 @@
 
   <key>ProgramArguments</key>
   <array>
-    <string>/Users/gob/Projects/Agents/.venv/bin/python</string>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python</string>
     <string>-m</string>
     <string>runners.watchdog</string>
     <string>--loop</string>
@@ -26,9 +26,9 @@
   <true/>
 
   <key>StandardOutPath</key>
-  <string>/Users/gob/Projects/Agents/state/watchdog.log</string>
+  <string>/Users/gob/MoonieXHQ/Agents/Core/state/watchdog.log</string>
 
   <key>StandardErrorPath</key>
-  <string>/Users/gob/Projects/Agents/state/watchdog.log</string>
+  <string>/Users/gob/MoonieXHQ/Agents/Core/state/watchdog.log</string>
 </dict>
 </plist>

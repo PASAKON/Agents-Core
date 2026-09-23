@@ -11,7 +11,7 @@ Exit code is the number of problems found, so it can gate a queue release.
 import re
 import sys
 
-PROMPTS = '/Users/gob/Projects/Agents/PROMPTS.md'
+PROMPTS = '/Users/gob/MoonieXHQ/Agents/Core/PROMPTS.md'
 
 # Plates that block generation or were cancelled by the CEO.
 FORBIDDEN = [

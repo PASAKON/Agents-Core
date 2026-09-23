@@ -6,7 +6,7 @@ authorship-audit.md, org:playbooks/skill-governance-implementation.md §Wave 0):
   0.1 log destination — ORG_SKILL_LOG env override, and proof that the
       worktree-relative default is *derived* from the script's own __file__
       rather than a hardcoded repo root (hard constraint: never hardcode
-      /Users/gob/Projects/Agents — the same repo also lives at
+      /Users/gob/MoonieXHQ/Agents/Core — the same repo also lives at
       /opt/mooniex-agents on the Contabo VPS).
   0.3 role column — WORKER_ROLE first, CXO_ROLE fallback, "-" when neither is
       set; and that scripts/skill-report.py's reader still parses the 422
@@ -60,7 +60,7 @@ def _load_hook(script_path: Path = HOOK_SRC):
 
 def _copy_hook_into(dest_root: Path) -> Path:
     """Copy the real hook script under dest_root/scripts/, so its own
-    __file__ resolves somewhere that is neither /Users/gob/Projects/Agents
+    __file__ resolves somewhere that is neither /Users/gob/MoonieXHQ/Agents/Core
     nor /opt/mooniex-agents — proving the default log path is derived from
     __file__, not hardcoded to either known repo root.
     """
@@ -100,7 +100,7 @@ def test_default_log_path_derives_from_script_location_not_hardcoded(tmp_path: P
 
     resolved = mod._default_log_path()
     assert resolved == fake_root / "state" / "skill-usage.log"
-    assert "/Users/gob/Projects/Agents" not in str(resolved)
+    assert "/Users/gob/MoonieXHQ/Agents/Core" not in str(resolved)
     assert "/opt/mooniex-agents" not in str(resolved)
 
 

@@ -76,7 +76,7 @@ across multiple production scripts, not a workaround.
 - Auth: header `Authorization: Key <FAL_API_KEY>` — **variable name is
   `FAL_API_KEY`, not `FAL_KEY`** (a generic fal.ai skill/MCP config may
   assume the wrong name).
-- Key location (this org): `/Users/gob/Projects/Agents/.env`, line
+- Key location (this org): `/Users/gob/MoonieXHQ/Agents/Core/.env`, line
   `FAL_API_KEY=...`
 - Payload: `{"prompt": ..., "image_size": "square_hd", "quality": "medium",
   "num_images": 1, "output_format": "png"}`
@@ -120,7 +120,7 @@ across multiple production scripts, not a workaround.
   white/neutral before generating.
 - **Never swap the image model** without the user explicitly asking to.
 - **Always confirm the `.env` key exists** (`grep FAL_API_KEY
-  /Users/gob/Projects/Agents/.env`) before assuming the call will work — if
+  /Users/gob/MoonieXHQ/Agents/Core/.env`) before assuming the call will work — if
   missing, stop and say so rather than let the API call fail silently.
 - **State the exact cost before every generation.** Standing authorization
   for one character does not carry over to the next character.

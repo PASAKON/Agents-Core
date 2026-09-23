@@ -1,5 +1,5 @@
-# Source this from ~/.zshrc:    source /Users/gob/Projects/Agents/scripts/aliases.sh
-AGENTS_ROOT="/Users/gob/Projects/Agents"
+# Source this from ~/.zshrc:    source /Users/gob/MoonieXHQ/Agents/Core/scripts/aliases.sh
+AGENTS_ROOT="/Users/gob/MoonieXHQ/Agents/Core"
 
 alias agents="cd $AGENTS_ROOT"
 alias agents-watch="bash $AGENTS_ROOT/scripts/watch.sh"

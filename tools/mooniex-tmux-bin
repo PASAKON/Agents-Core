@@ -2,5 +2,5 @@
 # Thin shim — lets claudesign daemon spawn the bridge as a "binary" without
 # having to know our virtualenv path. PATH-detection (`which claude`) inside
 # the Python bridge picks up the real claude CLI from the user's shell PATH.
-exec /Users/gob/Projects/Agents/.venv/bin/python \
-  /Users/gob/Projects/Agents/tools/claudesign_tmux_bin.py "$@"
+exec /Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python \
+  /Users/gob/MoonieXHQ/Agents/Core/tools/claudesign_tmux_bin.py "$@"

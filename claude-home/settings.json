@@ -133,7 +133,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/gob/Projects/Agents/scripts/hook-gateguard-category-pre.py",
+            "command": "/Users/gob/MoonieXHQ/Agents/Core/scripts/hook-gateguard-category-pre.py",
             "timeout": 5,
             "statusMessage": "GateGuard: category check..."
           }
@@ -154,7 +154,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /Users/gob/Projects/Agents/scripts/browser/tab_guard.py"
+            "command": "python3 /Users/gob/MoonieXHQ/Agents/Core/scripts/browser/tab_guard.py"
           }
         ]
       }
@@ -175,7 +175,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/gob/Projects/Agents/scripts/hook-gateguard-category-post.py",
+            "command": "/Users/gob/MoonieXHQ/Agents/Core/scripts/hook-gateguard-category-post.py",
             "timeout": 5
           }
         ]
@@ -194,7 +194,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "ORG_SKILL_LOG=/Users/gob/Projects/Agents/state/skill-usage.log python3 /Users/gob/Projects/Agents/scripts/hook-skill-log.py"
+            "command": "ORG_SKILL_LOG=/Users/gob/MoonieXHQ/Agents/Core/state/skill-usage.log python3 /Users/gob/MoonieXHQ/Agents/Core/scripts/hook-skill-log.py"
           }
         ]
       }
@@ -202,7 +202,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash \"/Users/gob/Projects/Agents/scripts/statusline.sh\""
+    "command": "bash \"/Users/gob/MoonieXHQ/Agents/Core/scripts/statusline.sh\""
   },
   "enabledPlugins": {
     "ecc@ecc": true,

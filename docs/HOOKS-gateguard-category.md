@@ -26,7 +26,7 @@ short-circuit before ECC fires.
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/gob/Projects/Agents/scripts/hook-gateguard-category-pre.py",
+            "command": "/Users/gob/MoonieXHQ/Agents/Core/scripts/hook-gateguard-category-pre.py",
             "timeout": 5,
             "statusMessage": "GateGuard: category check..."
           }
@@ -39,7 +39,7 @@ short-circuit before ECC fires.
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/gob/Projects/Agents/scripts/hook-gateguard-category-post.py",
+            "command": "/Users/gob/MoonieXHQ/Agents/Core/scripts/hook-gateguard-category-post.py",
             "timeout": 5
           }
         ]

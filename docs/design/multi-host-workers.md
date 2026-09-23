@@ -12,7 +12,7 @@ pieces of code:
 |---|---|---|
 | Spawn = open an iTerm tab via AppleScript | `tools/delegate.py` `_spawn_iterm_tab` | macOS + iTerm on this machine |
 | Worktree = `Agents/worktrees/<...>` from `projects.yaml` `path:` | `tools/worktree.py` | absolute `/Users/gob/...` paths |
-| Worker reaches the org via stdio MCP | `config/worker.mcp.json` | `/Users/gob/Projects/Agents/.venv/bin/python` on the same box as `state/tasks.db` |
+| Worker reaches the org via stdio MCP | `config/worker.mcp.json` | `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python` on the same box as `state/tasks.db` |
 
 Consequences seen today: four `browser_operator`s in one Chrome (limit is two)
 → tab group destroyed mid-submit, a Google sign-out, two teaser runs blocked.

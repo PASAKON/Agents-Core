@@ -138,7 +138,7 @@ force an unrelated clip in to fill time (BL50 round 3: 16 s and 32 s holes on
 The channel has 65 catalogued Seedance clips (plus the 19 Kling ones). They live
 in Drive `AI Assets/BLACK LIQUIDITY (9:16)`, but you never list that folder:
 ```bash
-C=/Users/gob/Projects/Agents/prototypes/bl-broll-catalog
+C=/Users/gob/MoonieXHQ/Agents/Core/prototypes/bl-broll-catalog
 grep -i "ล็อกถอน\|deadline\|lock" $C/CATALOG.md        # Thai or English, either works
 ```
 Shortlist at most three. Open ONE `$C/sheets/<drive_id>.jpg` (4 frames, ~40 KB;

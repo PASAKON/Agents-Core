@@ -1,9 +1,9 @@
 {
   "mcpServers": {
     "org": {
-      "command": "/Users/gob/Projects/Agents/.venv/bin/python",
+      "command": "/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python",
       "args": ["-m", "runners.cto_mcp_server"],
-      "cwd": "/Users/gob/Projects/Agents",
+      "cwd": "/Users/gob/MoonieXHQ/Agents/Core",
       "env": {
         "PYTHONUNBUFFERED": "1"
       }

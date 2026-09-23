@@ -9,7 +9,7 @@
 # duplicates it. Safe to run from the main checkout or any worktree -- both
 # share the same common .git/hooks dir, resolved below via `git
 # rev-parse --git-common-dir` rather than a hardcoded repo path (the same
-# repo is /Users/gob/Projects/Agents on the Mac and /opt/mooniex-agents on
+# repo is /Users/gob/MoonieXHQ/Agents/Core on the Mac and /opt/mooniex-agents on
 # Contabo).
 #
 # Install with:

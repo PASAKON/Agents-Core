@@ -217,7 +217,7 @@ def test_silence_alone_never_archives_a_skill(tmp_path: Path) -> None:
 
 
 # --------------------------------------------------------------------------
-# hard constraint #1 — never hardcode /Users/gob/Projects/Agents
+# hard constraint #1 — never hardcode /Users/gob/MoonieXHQ/Agents/Core
 # --------------------------------------------------------------------------
 
 def test_root_is_derived_from_file_location_not_hardcoded() -> None:

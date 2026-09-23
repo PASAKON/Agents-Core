@@ -14,7 +14,7 @@ Palette per BRAND.md: navy #0c1c2b, champagne gold #cdac65, green=up. Thai=Promp
 import os
 from playwright.sync_api import sync_playwright
 
-OUT = "/Users/gob/Projects/Agents/output/mooniex-posters/spcx_layout_mock.png"
+OUT = "/Users/gob/MoonieXHQ/Agents/Core/output/mooniex-posters/spcx_layout_mock.png"
 
 HTML = """<!doctype html><html lang="th"><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">

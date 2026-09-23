@@ -2,7 +2,7 @@
 
 Multi-agent orchestration. Hierarchical: CEO (you) → CTO → DEVs.
 
-Lives at `/Users/gob/Projects/Agents/` — single top-level home for all
+Lives at `/Users/gob/MoonieXHQ/Agents/Core/` — single top-level home for all
 agent control + infra.
 
 ## Architecture
@@ -35,7 +35,7 @@ Add a project: append to `config/projects.yaml`.
 ## Quick Start
 
 ```bash
-cd /Users/gob/Projects/Agents
+cd /Users/gob/MoonieXHQ/Agents/Core
 source .venv/bin/activate            # one-time: bash scripts/setup.sh
 python main.py --init                # one-time
 python main.py "build /health endpoint for mooniex-claudeflow"
@@ -48,7 +48,7 @@ tail -F state/logs/cto.log           # raw log stream
 
 Optional shell aliases:
 ```bash
-echo 'source /Users/gob/Projects/Agents/scripts/aliases.sh' >> ~/.zshrc
+echo 'source /Users/gob/MoonieXHQ/Agents/Core/scripts/aliases.sh' >> ~/.zshrc
 # then: agents-run "..."  agents-dash  agents-watch  agents-status
 #       agents-chat       — interactive CTO REPL in current terminal
 #       agents-spawn      — open iTerm window: CTO chat + 2 log tabs
@@ -102,7 +102,7 @@ Full matrix: `policies/permissions.md`.
 ## Layout
 
 ```
-/Users/gob/Projects/Agents/
+/Users/gob/MoonieXHQ/Agents/Core/
 ├── runners/             python entrypoints
 │   ├── cto.py             orchestrator
 │   └── dev.py             generic worker

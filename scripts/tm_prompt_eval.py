@@ -22,7 +22,7 @@ Dry vs real
           and use an LLM judge. Run by the CTO after the CEO confirms budget.
 
 Usage:
-  PY=/Users/gob/Projects/Agents/.venv/bin/python
+  PY=/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python
   $PY scripts/tm_prompt_eval.py --dry                      # A=v1 B=v2 on golden set
   $PY scripts/tm_prompt_eval.py --dry --a v1 --b v2
   $PY scripts/tm_prompt_eval.py --a v1 --b v2              # REAL (CTO only)

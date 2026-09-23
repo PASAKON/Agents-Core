@@ -12,7 +12,7 @@ deliberately conservative about somebody else's settings file:
 
 Run it, then start one new session for the hook to take effect:
 
-    python3 /Users/gob/Projects/Agents/scripts/browser/install_tab_guard_hook.py
+    python3 /Users/gob/MoonieXHQ/Agents/Core/scripts/browser/install_tab_guard_hook.py
 """
 from __future__ import annotations
 

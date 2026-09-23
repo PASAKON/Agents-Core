@@ -10,7 +10,7 @@ HTML text layer — brand-strict rule: never let gen bake $15/$8 or Thai/logos).
 """
 import sys, os, json, re, urllib.request, urllib.error
 
-OUT = "/Users/gob/Projects/Agents/output/mooniex-rebate-c1"
+OUT = "/Users/gob/MoonieXHQ/Agents/Core/output/mooniex-rebate-c1"
 ENV = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
 T2I_EP = "https://fal.run/openai/gpt-image-2"
 COST_PER_IMAGE = 0.19

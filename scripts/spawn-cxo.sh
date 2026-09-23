@@ -22,7 +22,7 @@
 # from inside an existing C-level chat would otherwise duplicate the id.
 set -euo pipefail
 
-ROOT="/Users/gob/Projects/Agents"
+ROOT="/Users/gob/MoonieXHQ/Agents/Core"
 
 ROLE=""
 WITH_LOGS=0

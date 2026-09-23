@@ -7,7 +7,7 @@
 	<key>ProgramArguments</key>
 	<array>
 		<string>/bin/bash</string>
-		<string>/Users/gob/Projects/Agents/scripts/cfo-claude-usage-feed.sh</string>
+		<string>/Users/gob/MoonieXHQ/Agents/Core/scripts/cfo-claude-usage-feed.sh</string>
 	</array>
 	<!-- Daily 06:30 local (ICT) — ก่อน cfo-rollup cron 00:05 UTC = 07:05 ICT -->
 	<key>StartCalendarInterval</key>

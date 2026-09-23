@@ -124,7 +124,7 @@ sh scripts/install-git-hooks.sh
 Idempotent (marker-guarded, safe to re-run), and resolves the shared
 `.git/hooks/` directory via `git rev-parse --git-common-dir` rather than a
 hardcoded repo path — works identically from the main checkout or any
-worktree, and on the Mac (`/Users/gob/Projects/Agents`) or Contabo
+worktree, and on the Mac (`/Users/gob/MoonieXHQ/Agents/Core`) or Contabo
 (`/opt/mooniex-agents`) alike.
 
 The hook it writes runs `scripts/skill-lint.py check` **only when staged
@@ -167,7 +167,7 @@ missing, the stanza silently no-ops, same failure style as gitleaks' own
 $ sh scripts/install-git-hooks.sh
 installed: gitleaks guard stanza
 installed: skill-lint stanza
-pre-commit hook ready: /Users/gob/Projects/Agents/.git/hooks/pre-commit
+pre-commit hook ready: /Users/gob/MoonieXHQ/Agents/Core/.git/hooks/pre-commit
 
 $ git add .claude/skills/browser-operator/SKILL.md
 $ sh "$(git rev-parse --git-common-dir)/hooks/pre-commit"
@@ -274,7 +274,7 @@ independently, symlink refusal (including a symlink pointing *inside* the
 owned dir, not only one escaping it), role/group derivation from both the
 real `policies/agents.yaml` and a synthetic fixture, root-derivation
 portability (copies the tool to a throwaway directory that is neither
-`/Users/gob/Projects/Agents` nor `/opt/mooniex-agents` and asserts it tracks
+`/Users/gob/MoonieXHQ/Agents/Core` nor `/opt/mooniex-agents` and asserts it tracks
 its own new location), the CLI end-to-end (`check`, `--json`,
 `--skills-dir`), and that no `--strict` flag exists.
 

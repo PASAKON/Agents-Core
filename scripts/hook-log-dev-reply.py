@@ -29,7 +29,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-ROOT = Path("/Users/gob/Projects/Agents")
+ROOT = Path("/Users/gob/MoonieXHQ/Agents/Core")
 LOG = ROOT / "state" / "logs" / "cto.log"
 
 
