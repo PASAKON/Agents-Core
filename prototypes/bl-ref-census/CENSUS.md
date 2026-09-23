@@ -34,6 +34,31 @@ connection to us" — it is the org's own brand; that line is retracted.
 **P1 shot count: 16 → 18.** Every number below is recomputed from the fixed
 `census.json`, not hand-carried from the rejected version.
 
+## CORRECTION NOTICE 2 (2026-09-23 22:45, CTO review 2)
+
+`groundtruth.tsv`'s `class` column had been set by judgement (per-shot,
+mostly `show`) instead of mechanically from P1, so it barely used `verdict`
+at all. Re-derived every row mechanically, per the CTO's exact rule: `hook`
+for shot 1's lines; `cta` for every line from 64.40s on; otherwise the
+`avatar_mode` of the P1 shot covering the line's **midpoint** — `composite`
+→ `show`, `full` → `verdict`. `entry_type` is now `shrink` wherever a P2
+`avatar_shrink` starts inside the line, `cut` wherever a P1 hard cut lands at
+or inside the line, else `-`. This also surfaced and fixed a real bug: 3
+focus events (the 51.27 avatar_shrink, the 15.2 coin pop, the 34.4 REBATE
+highlighter) were being attached to *two* consecutive lines each — their real
+home line plus a neighboring line's "nearest within 0.3s" fallback. Each now
+appears on exactly one line, the one whose span actually contains it.
+
+Result, verified by diffing old vs new class columns row-by-row (11 lines
+changed): 8 lines flipped `show`→`verdict` (5.24s, 7.24s, 14.08s, 15.16s,
+16.30s, 17.76s, 46.20s, 59.40s), 1 flipped `verdict`→`show` (51.10s — the
+shrink-transition line, correctly composite-at-midpoint), 2 flipped
+`verdict`→`cta` (64.40s, 82.46s — the CTA section had been mislabeled
+`verdict` for its full-frame lines). 3 lines gained `entry_type: shrink`
+they were missing entirely (9.20s, 19.00s, 51.10s). Class column now: 1 hook
+/ 23 show / 13 verdict / 8 cta (was 1 hook / 30 show / 8 verdict / 6 cta
+before).
+
 ## Counts per phase
 
 | Phase | Count | Notes |

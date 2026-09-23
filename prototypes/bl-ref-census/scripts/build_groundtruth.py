@@ -69,14 +69,58 @@ def shot_at(t):
             return s
     return census["p1_shots"][-1]
 
-def entry_type_if_boundary(t0):
+CTA_START = 64.40  # per CTO review 2: cta for every line from here on
+
+def classify(t0, t1):
+    """MECHANICAL per CTO review 2 (2026-09-23 22:45), not judgement:
+    hook = shot 1 (cold open); cta = every line from 64.40s on; otherwise
+    the avatar_mode of the P1 shot covering the line's MIDPOINT decides:
+    composite -> show, full -> verdict."""
+    if t0 < 1.867:
+        return "hook"
+    if t0 >= CTA_START:
+        return "cta"
+    mid_shot = shot_at((t0 + t1) / 2)
+    return "show" if mid_shot["avatar_mode"] == "composite" else "verdict"
+
+def entry_type(t0, t1):
+    """MECHANICAL per CTO review 2: shrink if a P2 avatar_shrink starts
+    inside [t0,t1); else cut if a P1 hard-cut boundary falls at or inside
+    [t0,t1); else '-'."""
+    for e in census["p2_focus_events"]:
+        if e["type"] == "avatar_shrink" and e["t0"] is not None and t0 <= e["t0"] < t1:
+            return "shrink"
     for s in census["p1_shots"]:
-        if abs(s["t0"] - t0) < 0.05:
-            return s["entry"]
+        if s["entry"] == "cut" and (abs(s["t0"] - t0) < 0.05 or t0 < s["t0"] < t1):
+            return "cut"
     return "-"
 
+# An event with a real t0 belongs to exactly one line -- whichever line's
+# span contains it. Computed once so a nearby-fallback on an adjacent line
+# can never re-claim an event that already has a proper home (this is what
+# CTO review 2 meant by "attached to the wrong line": the 51.27 avatar_shrink
+# was showing on both 49.34-51.10 AND its real home 51.10-52.26 before this
+# fix).
+_CLAIMED_EVENT_IDS = set()
+for _e in census["p2_focus_events"]:
+    if _e["t0"] is not None:
+        for _t0, _t1, _ in LINES:
+            if _t0 <= _e["t0"] < _t1:
+                _CLAIMED_EVENT_IDS.add(id(_e))
+                break
+
 def focus_event_near(t0, t1):
+    """An event whose own t0 falls inside this line's span always wins.
+    Only if none does, fall back to the nearest event within 0.3s outside
+    the span -- and only among events with no proper home elsewhere, so an
+    event already claimed by its real line never duplicates onto a neighbor."""
+    inside = [e for e in census["p2_focus_events"] if e["t0"] is not None and t0 <= e["t0"] < t1]
+    if inside:
+        e = inside[0]
+        return e["type"], e.get("target", "-"), e.get("spoken_word") or "-"
     for e in census["p2_focus_events"]:
+        if id(e) in _CLAIMED_EVENT_IDS:
+            continue
         if e["t0"] is not None and t0 - 0.3 <= e["t0"] <= t1 + 0.3:
             return e["type"], e.get("target", "-"), e.get("spoken_word") or "-"
     return "-", "-", "-"
@@ -89,9 +133,8 @@ def sfx_near(t0, t1):
 
 print("t0\tt1\ttext\tclass\tentry_type\tfocus_device\ttarget\thighlighted_word\tsfx")
 for t0, t1, text in LINES:
-    shot = shot_at(t0)
-    cls = shot["line_class"]
-    entry = entry_type_if_boundary(t0)
+    cls = classify(t0, t1)
+    entry = entry_type(t0, t1)
     focus, target, hlword = focus_event_near(t0, t1)
     sfx = sfx_near(t0, t1)
     print(f"{t0:.2f}\t{t1:.2f}\t{text}\t{cls}\t{entry}\t{focus}\t{target}\t{hlword}\t{sfx}")
