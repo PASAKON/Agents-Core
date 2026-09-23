@@ -116,7 +116,10 @@ inside it — measured 2026-09-18, the same lines ran 47.8s spaced out against
 Spend a space only where a person draws breath.
 
 **Transliterate Latin brand words**: ติ๊กต๊อก, เฟซบุ๊ก, ไลน์, เซนต์วินเซนต์,
-วิกิเอฟเอ็กซ์. **But leave short letter+digit names alone** — V2, V3, 3D came
+วิกิเอฟเอ็กซ์. The Thai spelling is **for the voice only** (CEO 2026-09-23: "ตอนเรียกชื่อหรือใน
+Script เขียนไทยได้เพราะโมเดลจะได้ออกเสียงถูก"). On screen the brand keeps its real spelling
+(`WikiFX`, never `วิกิเอฟเอ็กซ์`). Every transliterated brand in a script must have a row
+in `.claude/skills/blackliquidity-cut/brand-display.yaml`, the map the editor applies to captions. **But leave short letter+digit names alone** — V2, V3, 3D came
 back worse transliterated ("วีทู" was read as "วิทูล").
 
 **Write numbers as closed-up Thai words**: เก้าพันแปดร้อยยี่สิบห้า, not 9825 and
@@ -138,3 +141,4 @@ need to be hand-formatted, but a writer who knows the rules writes cleaner input
 ## Field notes
 - 2026-09-23 [MISSING] §structure — how long a script will run: measured speech-only rate on the channel's Gemini voice is **16.6 chars/s** (EP54 16.64, EP55 16.62, silencedetect on the real TTS files). EP55: 2,470 spoken chars → a 167.66 s TTS track. Estimate from that, never from a finished cut's length divided by the script's characters. That shortcut gave the CTO 22 chars/s and a 110 s forecast that was 52 % off · evidence: task-77a2e043 RUNLOG.md · status: pending
 - 2026-09-23 [WRONG] §structure — correction to the note above: 16.6 chars/s is SPEECH-ONLY. The full TTS track also carries the breath gaps between the 40 lines, so the whole-track rate is lower. It is ~13.2–14.7 chars/s: EP55 v1 2,470 chars → 167.66 s, v2 1,750 chars → 133.1 s. Forecast track length from the whole-track rate. The CTO used 16.6 and forecast v2 at 105 s against 133 s · evidence: task-77a2e043 RUNLOG.md (tts v2 line) · status: pending
+- 2026-09-23 [MISSING] §Writing Thai for TTS — a transliterated brand was also shown on screen in Thai; the CEO ruled the Thai spelling is for the voice only and the screen shows the real brand spelling · evidence: CEO ruling 2026-09-23 (WikiFX) · status: promoted

@@ -477,6 +477,25 @@ though the script says ten. Call it "2 ตัวแรก" instead.
    while the catalogue held clips for exactly those claims. The folder you are
    given is the editor's material; the channel's library is step 5b, every time.
 
+### 6e. Brand names and image credits on screen (CEO rulings 2026-09-23)
+
+**A brand appears on screen in its real spelling, even when the voice reads a
+Thai transliteration.** The script spells `วิกิเอฟเอ็กซ์` so the TTS pronounces
+it right, but the caption shows `WikiFX`. The captions otherwise still follow
+the audio word for word (the BL carve-out in `mooniex-video-editor`); a
+brand's spelling is the one exception. Apply
+`brand-display.yaml` (spoken form → display form) to every caption and text
+block. When a script introduces a brand that has no row yet, add the row
+rather than hand-fixing one caption.
+
+**A picture taken from someone else carries a credit in its own top-left
+corner**, small: `ขอบคุณภาพจาก <source>` (e.g. `ขอบคุณภาพจาก WikiFX`). The credit sits
+on the image plate, not on the frame. That keeps it clear of the brand bug,
+which lives top-right (§6a), and it stays attached to the image when the
+image zooms. Use the same dark backing as `.bl-legal`, so it reads on a light
+image. Screenshots we captured ourselves (`real/`) need no credit. A
+publisher's own artwork (a WikiFX review card, a news graphic) always does.
+
 ### 6d. Avatar composite — matte the avatar, lower it onto a plate
 
 The reference edit (the CEO's ฿1300 editor cut, `reference/avatar-composite-reference.jpg`,
@@ -689,3 +708,4 @@ sound wrong.
 - 2026-09-23 [MISSING] §6d — CTO caught the avatar covering a WikiFX 1.69/10 score on the first cut of the demo by reading 6 frames; the HARD evidence-overlap rule above and `reference/avatar-composite-evidence-clear.jpg` came from fixing it. Fixing it by shifting the still up then re-introduced the exact same bug one level up — a kinetic caption placed in the newly-freed space landed on the relocated score box · evidence: task-4bce29e5, CTO-FEEDBACK.md 17:40 review; fix verified `hyperframes check` 10/10 contrast, DEMO-avatar-composite-v2.mp4 (Drive, EP55 folder) read at 9 timestamps full-res · status: promoted
 - 2026-09-23 [COSTLY] no owner — `hyperframes render` stalled twice at the identical frame (353/466) with the exact same composition, both times with the Mac down to ~110-150 MB free RAM (`top -l 1`, PhysMem). Not a composition bug — a clean retry on the third attempt, unchanged, completed in 5m29s (vs ~2m30s when memory is free). If a render stalls ("no frame progress for 60000ms"), check system memory before touching the composition · evidence: task-4bce29e5, render_v2.log timestamps 17:47-17:57, renderJobIds be0a6e61/ca6082c3 · status: pending
 - 2026-09-23 [WRONG] §6d — "composite mode is a hard cut, don't tween scale/position" was false. Frame-by-frame head tracking of the reference shows 3 of 4 entries into composite are 21-27-frame sine.out shrinks after the plate swaps behind the full avatar; only exits (and one section-change entry) are hard cuts. Rule flipped to the measured motion; the old line is kept [SUPERSEDED] in §6d · evidence: CEO ruling 2026-09-23 ("เอาลงแบบ smooth ด้วย มี Animation") + reference/avatar-shrink-motion.jpg, commit 1eb280fa · status: promoted
+- 2026-09-23 [MISSING] §6e — no rule for a brand's on-screen spelling (captions showed the TTS transliteration) or for crediting a third-party image; both set by the CEO for EP57 (WikiFX XXLMARKETS review card) · evidence: CEO ruling 2026-09-23 · status: promoted

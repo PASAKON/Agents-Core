@@ -1,0 +1,12 @@
+# Spoken (TTS) spelling -> on-screen spelling. CEO ruling 2026-09-23:
+# the script transliterates brands so the voice pronounces them right;
+# the screen always shows the brand's real spelling. See SKILL.md §6e.
+# Add a row whenever a script introduces a new transliterated brand.
+วิกิเอฟเอ็กซ์: WikiFX
+ติ๊กต๊อก: TikTok
+เฟซบุ๊ก: Facebook
+เอ็กซ์เอ็ม: XM
+เอ็กซ์เนส: Exness
+เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์: XXLMARKETS
+# Not mapped on purpose: ไลน์ (too common a Thai word to substring-replace safely),
+# place names (they may stay in Thai).
