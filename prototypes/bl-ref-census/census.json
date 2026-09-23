@@ -1,0 +1,1007 @@
+{
+  "source": {
+    "url": "https://www.tiktok.com/@black_liquidity/video/7612158317695159573",
+    "duration_s": 85.240454,
+    "resolution": "1080x1920",
+    "fps": 30,
+    "file_bytes": 4452286
+  },
+  "p1_shots": [
+    {
+      "id": 1,
+      "t0": 0.0,
+      "t1": 1.867,
+      "plate_kind": "red studio",
+      "avatar_mode": "full",
+      "avatar_box": {
+        "height_pct": 88.7,
+        "top_pct": 11.3,
+        "x_center_pct": 52.4
+      },
+      "entry": "cold_open",
+      "exit": "cut",
+      "line_class": "hook",
+      "spoken_words": [
+        {
+          "t0": 0.0,
+          "t1": 1.74,
+          "text": "มึงเคยใช้ XM Trade Forex ไหม?"
+        }
+      ],
+      "notes": "Hook. Avatar slides down 0.23-1.43s (power1.out, +298px, see P2). Hook headline 'คุณโดนเอาเปรียบ ถ้าไม่ขอ REBATE' top; XM logo pops at 0.60s exactly on the spoken word 'XM' (0.600-0.940)."
+    },
+    {
+      "id": 2,
+      "t0": 1.867,
+      "t1": 5.233,
+      "plate_kind": "real web screenshot",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "cut",
+      "exit": "cut",
+      "line_class": "show",
+      "spoken_words": [
+        {
+          "t0": 1.94,
+          "t1": 5.08,
+          "text": "แล้วมึงรู้ไหมว่าบัญชีสแตนดาร์ดของ XM สเปรดแม่งสูงชิบหาย?"
+        }
+      ],
+      "notes": "XM registration flow (account-type card -> feature checklist -> min-deposit+spread-compare modal), continuously panned/pushed in (not held), per SKILL. Ends in spotlight circle 4.40-5.20s on 'สเปรดต่ำสุด GOLD 3' (verified: spotlight starts exactly 4.400, holds to 5.200, cut at 5.233 — confirms SKILL's 4.40-5.15 to within 0.05s)."
+    },
+    {
+      "id": 3,
+      "t0": 5.233,
+      "t1": 20.267,
+      "plate_kind": "red studio",
+      "avatar_mode": "full",
+      "avatar_box": {
+        "height_pct": 88.7,
+        "top_pct": 11.3,
+        "x_center_pct": 52.4
+      },
+      "entry": "cut",
+      "exit": "cut",
+      "line_class": "show",
+      "spoken_words": [
+        {
+          "t0": 5.24,
+          "t1": 7.24,
+          "text": "คำถามคือ ทำไมมันต้องสูง?"
+        },
+        {
+          "t0": 7.24,
+          "t1": 9.2,
+          "text": "คุณจะบอกความจริงที่ไม่มีใครบอกมึง"
+        },
+        {
+          "t0": 9.2,
+          "t1": 11.34,
+          "text": "สเปรดที่สูง ไม่ได้สูงเพราะตลาด"
+        },
+        {
+          "t0": 11.34,
+          "t1": 14.08,
+          "text": "แต่มันสูงเพราะมีเงินบางส่วนถูกกักไว้"
+        },
+        {
+          "t0": 14.08,
+          "t1": 15.16,
+          "text": "กักไว้ทำอะไร?"
+        },
+        {
+          "t0": 15.16,
+          "t1": 16.3,
+          "text": "กักไว้เป็นรีเบต"
+        },
+        {
+          "t0": 16.3,
+          "t1": 17.76,
+          "text": "แต่มึงเคยได้คืนเต็มไหม?"
+        },
+        {
+          "t0": 17.76,
+          "t1": 19.0,
+          "text": "ส่วนใหญ่ ไม่"
+        },
+        {
+          "t0": 19.0,
+          "t1": 20.24,
+          "text": "มึงดูตัวอย่างนี้"
+        }
+      ],
+      "notes": "Longest single full-frame shot (15s). Kinetic header block builds cumulatively: 'ค่า SPREAD สูงเพราะ?' -> wrong-answer checkbox (struck through ~14.0) -> right-answer 'เพราะมีเงินถูกกักไว้' w/ coin-icon pop ~15.2. Bottom caption line replaces per utterance underneath. TRACKER DRIFT WARNING: seed/track.py loses the head lock twice here (9.5-14.0s and 19.3-20.267s, scale falsely drops to 0.66-0.7 matching composite level) — confirmed false by direct frame reads at 0.2-0.5s steps showing the avatar stays full-frame, centered, static the whole shot. Root cause: the tracker's NCC search matches the kinetic text block instead of the head once enough of it is on screen, same failure mode the seed/README already documented for frame 0. Do not trust track_full.txt scale/cy in these two windows."
+    },
+    {
+      "id": 4,
+      "t0": 20.267,
+      "t1": 24.6,
+      "plate_kind": "real web screenshot",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "cut",
+      "exit": "cut",
+      "line_class": "show",
+      "spoken_words": [
+        {
+          "t0": 20.24,
+          "t1": 22.88,
+          "text": "บัญชี IB ที่ให้รีเบตทองคำสูงสุดจริง"
+        },
+        {
+          "t0": 22.88,
+          "t1": 24.64,
+          "text": "คือ 15 ดอลลาร์ต่อ 1 ลอต"
+        }
+      ],
+      "notes": "my.xm.com EURUSD live-chart page."
+    },
+    {
+      "id": 5,
+      "t0": 24.6,
+      "t1": 27.2,
+      "plate_kind": "real web screenshot",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "cut",
+      "exit": "dissolve",
+      "line_class": "show",
+      "spoken_words": [
+        {
+          "t0": 24.64,
+          "t1": 26.26,
+          "text": "แต่ถ้ามึงเทรดบัญชีสแตนดาร์ด"
+        }
+      ],
+      "notes": "XM rebate/commission table screenshot, GOLD.XAUEUR row already yellow. ESTIMATE: exit is a soft dissolve back to the EURUSD chart — no clean frame-diff spike found (checked every frame 26.8-27.6s, max diff 0.007), so t1=27.2 and 'dissolve' are both estimates (±0.3s) inferred from the visual bracket (27.0s still table, 27.5s already chart)."
+    },
+    {
+      "id": 6,
+      "t0": 27.2,
+      "t1": 46.233,
+      "plate_kind": "real web screenshot",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "dissolve",
+      "exit": "cut",
+      "line_class": "show",
+      "spoken_words": [
+        {
+          "t0": 27.2,
+          "t1": 28.3,
+          "text": "แค่เปิดไม้แรก 0.01 ลอต"
+        },
+        {
+          "t0": 28.3,
+          "t1": 30.12,
+          "text": "มึงก็ติดลบไปแล้ว 30 เซนต์"
+        },
+        {
+          "t0": 30.12,
+          "t1": 31.16,
+          "text": "ถ้ามึงกด 1 ลอต"
+        },
+        {
+          "t0": 31.16,
+          "t1": 33.2,
+          "text": "มึงติดลบ 30 ดอลลาร์ทั้งที"
+        },
+        {
+          "t0": 33.2,
+          "t1": 34.2,
+          "text": "คำถามคือ"
+        },
+        {
+          "t0": 34.2,
+          "t1": 35.9,
+          "text": "ถ้ารีเบตมันมี $15"
+        },
+        {
+          "t0": 35.9,
+          "t1": 37.74,
+          "text": "แล้วอีก $15 หายไปไหน?"
+        },
+        {
+          "t0": 37.74,
+          "t1": 38.66,
+          "text": "กูตอบให้"
+        },
+        {
+          "t0": 38.66,
+          "t1": 40.7,
+          "text": "มันไปอยู่กับ IB ที่ชวนมึงมาเทรด"
+        },
+        {
+          "t0": 40.7,
+          "t1": 42.1,
+          "text": "และที่หน้าเท่ากว่าคือ"
+        },
+        {
+          "t0": 42.1,
+          "t1": 44.2,
+          "text": "IB พวกนั้นคืนให้มึงนิดเดียว"
+        },
+        {
+          "t0": 44.2,
+          "t1": 46.2,
+          "text": "หรือบางคนไม่คืนให้มึงเลย"
+        }
+      ],
+      "notes": "Longest shot overall (19s). SAME my.xm.com EURUSD chart plate throughout — no plate cut, only overlaid graphics build/replace on top (all P2/P3 events): red trade-ticket stack ('เปิด GOLD 0.01 LOT'->'ลบ -0.30$'->LOT 1->'เงินลบ -30$'), yellow REBATE -15.3$ chip (onset 34.400, lands on the word 'รีเบต' at 34.400 — exact), 'ส่วนเงินที่หายไป -14.7$', businessman-icon pop (~41.5), growing crowd-icon group as 'เงินที่เหลือ' counts down 14.7$->13.7$->12.7$->11.7$."
+    },
+    {
+      "id": 7,
+      "t0": 46.233,
+      "t1": 51.27,
+      "plate_kind": "red studio",
+      "avatar_mode": "full",
+      "avatar_box": {
+        "height_pct": 88.7,
+        "top_pct": 11.3,
+        "x_center_pct": 52.4
+      },
+      "entry": "cut",
+      "exit": "shrink",
+      "line_class": "verdict",
+      "spoken_words": [
+        {
+          "t0": 46.2,
+          "t1": 47.34,
+          "text": "แปลกตรงๆคือ"
+        },
+        {
+          "t0": 47.34,
+          "t1": 48.34,
+          "text": "มึงเป็นคนกด"
+        },
+        {
+          "t0": 48.34,
+          "t1": 49.34,
+          "text": "มึงเป็นคนเสี่ยง"
+        },
+        {
+          "t0": 49.34,
+          "t1": 51.1,
+          "text": "แต่คนอื่นกินเงินมึงเงียบ"
+        }
+      ],
+      "notes": "Cut confirmed by both frame-diff (clean single-frame 0.276 spike, next frame back to baseline) and tracker (scale jumps 1.0->composite range exactly at this boundary in earlier switches' pattern)."
+    },
+    {
+      "id": 8,
+      "t0": 51.27,
+      "t1": 57.2,
+      "plate_kind": "real web screenshot",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "shrink",
+      "exit": "dissolve",
+      "line_class": "show",
+      "spoken_words": [
+        {
+          "t0": 51.1,
+          "t1": 52.26,
+          "text": "หูพูดตรงนี้เลยนะ"
+        },
+        {
+          "t0": 52.26,
+          "t1": 55.3,
+          "text": "ใครใช้ XM แล้วได้รีเบตไม่ถึง $15 ต่อหลอด"
+        },
+        {
+          "t0": 55.3,
+          "t1": 56.54,
+          "text": "มึงกำลังเสียเปรียบ"
+        }
+      ],
+      "notes": "Entry: animated shrink 51.27->52.17 (SKILL, sine.out RMSE 0.032 best, power1.out 0.062 second; scale 1.12->0.67, head cy 572->1051px, cx 493->327px). Same XM rebate table as shot 5. ESTIMATE: exit ~57.2 is a soft dissolve into a different (Exness-style) comparison table — no diff spike (checked 56.7-57.8s, all <0.006), timing anchored instead to the yellow-onset measurement below."
+    },
+    {
+      "id": 9,
+      "t0": 57.2,
+      "t1": 59.5,
+      "plate_kind": "real web screenshot",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "dissolve",
+      "exit": "cut",
+      "line_class": "show",
+      "spoken_words": [
+        {
+          "t0": 56.54,
+          "t1": 59.4,
+          "text": "ใครใช้ X-ness แล้วได้คืนไม่ถึง $8 ต่อหลอด"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "t0": 59.5,
+      "t1": 64.533,
+      "plate_kind": "red studio",
+      "avatar_mode": "full",
+      "avatar_box": {
+        "height_pct": 88.7,
+        "top_pct": 11.3,
+        "x_center_pct": 52.4
+      },
+      "entry": "cut",
+      "exit": "cut",
+      "line_class": "verdict",
+      "spoken_words": [
+        {
+          "t0": 59.4,
+          "t1": 61.2,
+          "text": "มึงก็เสียผลประโยชน์เหมือนกัน"
+        },
+        {
+          "t0": 61.2,
+          "t1": 62.6,
+          "text": "ตลาดมันหลอกพอแล้ว"
+        },
+        {
+          "t0": 62.6,
+          "t1": 64.4,
+          "text": "อย่ามาโง่เสียเงินให้ระบบอีก"
+        }
+      ],
+      "notes": "Both cuts (59.500 in, 64.533 out) are clean single-frame spikes, 0 in-between frames — matches SKILL's '64.5s: hard cut, 0 in-between frames'."
+    },
+    {
+      "id": 11,
+      "t0": 64.533,
+      "t1": 68.8,
+      "plate_kind": "app UI",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "cut",
+      "exit": "dissolve",
+      "line_class": "cta",
+      "spoken_words": [
+        {
+          "t0": 64.4,
+          "t1": 65.8,
+          "text": "ใครฟังมาถึงตรงนี้"
+        },
+        {
+          "t0": 65.8,
+          "t1": 68.26,
+          "text": "กูเชื่อว่ามึงไม่อยากเสียเงินฟรีอีกต่อไป"
+        }
+      ],
+      "notes": "MyWallet app popup, balance $11.15. ESTIMATE: exit ~68.8 dissolve to transaction-history list, no clean diff spike found 68.0-69.0s (max 0.048 at 68.267, a soft ramp not a spike)."
+    },
+    {
+      "id": 12,
+      "t0": 68.8,
+      "t1": 71.1,
+      "plate_kind": "app UI",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "dissolve",
+      "exit": "cut",
+      "line_class": "cta",
+      "spoken_words": [
+        {
+          "t0": 68.26,
+          "t1": 71.96,
+          "text": "ใครอยากได้ XM หรือ X-ness เรียบเต็ม ทักกูมา"
+        }
+      ],
+      "notes": "'ประวัติการทำธุรกรรม' transaction-history list, XM entries then an Exness ('ex', yellow icon) entry pops in ~69.6 with 'REBATE เต็ม' tag ~70.5-71.0."
+    },
+    {
+      "id": 13,
+      "t0": 71.1,
+      "t1": 72.05,
+      "plate_kind": "app UI",
+      "avatar_mode": "full",
+      "avatar_box": {
+        "height_pct": 88.7,
+        "top_pct": 11.3,
+        "x_center_pct": 52.4
+      },
+      "entry": "cut",
+      "exit": "flash",
+      "line_class": "cta",
+      "spoken_words": [],
+      "notes": "COMPLIANCE FLAG (see CENSUS.md / report): plate is the channel's OWN public TikTok profile page (Follow/Message buttons, 3 Following/1,459 Followers/12.8K Likes) with bio text as an explicit rebate-link CTA overlay: 'คืน Rebate 90% เคยได้มาเท่าไหร่? เราให้ได้มากกว่า ติดต่อไลน์ @mooniex (มี@) หรือคลิก https://www.openlink.co/mooniex Email' — read verbatim off a full-res frame at 71.3s. SKILL §6b: this class of public rebate link belongs in closed channels only; flagging per the task brief's instruction, not fixing (this is the reference video, nothing here is being cut)."
+    },
+    {
+      "id": 14,
+      "t0": 72.05,
+      "t1": 72.3,
+      "plate_kind": "logo card",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "flash",
+      "exit": "dissolve",
+      "line_class": "cta",
+      "spoken_words": [],
+      "notes": "Very brief (~0.2s) insert: 'MoonieX -- From Earth to The Moon' branded rebate-signup card, moon icon, 'ติดต่อรับ Rebate คืน' button + two '15$' QR boxes. NOTE (surprise, not a fix): this is a coincidental brand-name match with the org's own 'MoonieX' -- an unrelated third-party rebate/IB service using the same name, seen only inside this reference video. Timing is an ESTIMATE (~72.05-72.3s): single-frame grabs at 72.05s and 72.15s both landed just outside this card's window in two attempts; the window itself is confirmed from a 0.1s-step contact sheet (visible at t=72.1 and t=72.2, gone by t=72.3)."
+    },
+    {
+      "id": 15,
+      "t0": 72.3,
+      "t1": 80.333,
+      "plate_kind": "app UI",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "dissolve",
+      "exit": "cut",
+      "line_class": "cta",
+      "spoken_words": [
+        {
+          "t0": 71.96,
+          "t1": 73.66,
+          "text": "บโรคอื่นก็มีคืนเหมือนกัน"
+        },
+        {
+          "t0": 73.66,
+          "t1": 77.1,
+          "text": "เพราะกูดีลตรงกับโบรกเกอร์ ไม่ผ่านเอเย่นต์ ไม่ผ่านคนกลาง"
+        },
+        {
+          "t0": 77.1,
+          "t1": 80.26,
+          "text": "ไม่กักเงินมึง มึงดูตัวเลขมึงตัดสินใจเอง"
+        }
+      ],
+      "notes": "XM member app, ONE continuous vertical scroll for 8s through: VIP $80/lot header -> circular progress ring (1,207.61 / 292.39/1500) -> FX-lots stats table -> tier-ladder graphic (Bronze $17 / Silver $35 / Gold $50 / Platinum $70 / VIP $80 per lot). No internal cuts found."
+    },
+    {
+      "id": 16,
+      "t0": 80.333,
+      "t1": 85.24,
+      "plate_kind": "red studio",
+      "avatar_mode": "full",
+      "avatar_box": {
+        "height_pct": 88.7,
+        "top_pct": 11.3,
+        "x_center_pct": 52.4
+      },
+      "entry": "cut",
+      "exit": "video_end",
+      "line_class": "verdict",
+      "spoken_words": [
+        {
+          "t0": 80.26,
+          "t1": 82.46,
+          "text": "แต่จำไว้ เงินทุกล็อตที่มึงกด"
+        },
+        {
+          "t0": 82.46,
+          "t1": 85.12,
+          "text": "มันควรเป็นของมึง ไม่ใช่ของคนอื่น"
+        }
+      ],
+      "notes": "Closing verdict. Video ends hard at 85.240s with NO fade-to-black -- confirmed by reading the frame at 85.15s: still full brightness, caption 'ไม่ใช่ของคนอื่น' clearly up, no vignette/darkening."
+    }
+  ],
+  "p2_focus_events": [
+    {
+      "t0": 0.23,
+      "t1": 1.43,
+      "type": "avatar_slide",
+      "target": "avatar box (whole)",
+      "easing_candidates": [
+        [
+          "power1.out",
+          0.056
+        ],
+        [
+          "sine.out",
+          0.072
+        ]
+      ],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "SKILL-measured (verified, not re-derived): head cy 839->1137px (+298px, +15.5% of frame), scale unchanged 1.00, peak 20px/frame early. Opens the space above the head for the hook headline."
+    },
+    {
+      "t0": 0.6,
+      "t1": 0.6,
+      "type": "pop",
+      "target": "XM logo insert, upper text area",
+      "easing_candidates": [],
+      "spoken_word": "XM",
+      "offset_s": 0.0,
+      "notes": "Logo pops in exactly on the spoken word 'XM' (word span 0.600-0.940). SKILL-verified."
+    },
+    {
+      "t0": 2.0,
+      "t1": 4.4,
+      "type": "pan+zoom",
+      "target": "webpage content box (XM registration flow)",
+      "easing_candidates": [],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "ESTIMATE (eye, not independently re-measured -- matches SKILL's existing note 'panned and pushed in continuously, not held', zoom amount not quantified here either)."
+    },
+    {
+      "t0": 4.4,
+      "t1": 5.2,
+      "type": "spotlight",
+      "target": "'สเปรดต่ำสุด GOLD 3' row, x~25% y~28%, r~20% width",
+      "easing_candidates": [],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "Timing re-measured independently via frame_diff.csv (isolated spike at 4.400, then held-low-diff until cut at 5.233) -- confirms SKILL's 4.40-5.15 to within 0.05s."
+    },
+    {
+      "t0": 14.0,
+      "t1": 14.4,
+      "type": "strike+reveal",
+      "target": "header block, wrong-answer line",
+      "easing_candidates": [],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "NOT a P1 cut (see shot 3 notes) -- a fast strikethrough on 'เพราะตลาดการเงิน' plus the new correct-answer line revealing underneath, inside the same full-frame shot. This is what caused the false hard-cut candidate at 14.033 in frame_diff.csv (diff 0.301, single frame) -- same magnitude as a real cut despite no plate/avatar change; disambiguated only by the direct frame read."
+    },
+    {
+      "t0": 15.2,
+      "t1": 15.5,
+      "type": "pop",
+      "target": "coin icon beside 'เพราะมีเงินถูกกักไว้'",
+      "easing_candidates": [],
+      "spoken_word": "กักไว้",
+      "offset_s": 0.02,
+      "notes": "ESTIMATE timing (0.3s sampling); lands within the word 'กักไว้' (15.180-15.560)."
+    },
+    {
+      "t0": 34.4,
+      "t1": 35.067,
+      "type": "highlighter_sweep",
+      "target": "'ค่า REBATE -15.3$' chip, left-to-right",
+      "easing_candidates": [],
+      "spoken_word": "รีเบต",
+      "offset_s": 0.0,
+      "notes": "Directly measured via measurements/yellow_signal.csv (kit --yellow pixel-fraction onset, rising edge 34.400, holds by 34.967) -- lands exactly on the word 'รีเบต' (34.400-34.660). Matches SKILL's own '34.47 vs spoken 34.40' to within one video frame."
+    },
+    {
+      "t0": 41.5,
+      "t1": 41.8,
+      "type": "pop",
+      "target": "businessman icon beside 'เงินที่เหลือ 14.7$'",
+      "easing_candidates": [],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "ESTIMATE timing (0.5s sampling)."
+    },
+    {
+      "t0": 43.4,
+      "t1": 44.0,
+      "type": "pop (repeated, group growing)",
+      "target": "crowd-icon cluster beside the shrinking dollar figure",
+      "easing_candidates": [],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "ESTIMATE: icons visibly increase in count as the figure drops 14.7$->13.7$->12.7$->11.7$ across ~43.5-51s; exact per-icon pop times not individually isolated."
+    },
+    {
+      "t0": 51.27,
+      "t1": 52.17,
+      "type": "avatar_shrink",
+      "target": "avatar box (whole)",
+      "easing_candidates": [
+        [
+          "sine.out",
+          0.032
+        ],
+        [
+          "power1.out",
+          0.062
+        ]
+      ],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "SKILL-measured (verified, not re-derived): scale 1.12->0.67, head cy 572->1051px, cx 493->327px, 27 frames."
+    },
+    {
+      "t0": 57.167,
+      "t1": 57.767,
+      "type": "highlighter_sweep",
+      "target": "XAUUSD row, Exness comparison table",
+      "easing_candidates": [],
+      "spoken_word": "X-ness",
+      "offset_s": 0.02,
+      "notes": "Directly measured via yellow_signal.csv, rising edge 57.167-57.2. SKILL-verified against '57.20 vs spoken 57.18'."
+    },
+    {
+      "t0": 69.6,
+      "t1": 70.0,
+      "type": "pop",
+      "target": "'ex' (Exness) yellow logo icon, transaction row",
+      "easing_candidates": [],
+      "spoken_word": "xnes",
+      "offset_s": 0.4,
+      "notes": "ESTIMATE / low confidence: yellow-pixel onset (69.600, peak 0.029, the 2nd-largest in the file) coincides loosely with an app-UI icon pop, not a highlighter tied tightly to speech -- offset to the nearest plausible word ('xnes', 69.86-70.18) is 0.26-0.4s, wider than the two confirmed highlighter syncs above."
+    },
+    {
+      "t0": 76.23,
+      "t1": 76.6,
+      "type": "pop (low confidence)",
+      "target": "unidentified small yellow UI element, scrolling app screen",
+      "easing_candidates": [],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "yellow_signal.csv shows a small onset (peak 0.0047, near the detection floor) here; could not confirm what specifically turns yellow at normal contact-sheet resolution. Recorded as an estimate, not confirmed by eye."
+    },
+    {
+      "t0": 72.3,
+      "t1": 80.333,
+      "type": "scroll",
+      "target": "app UI content, vertical",
+      "easing_candidates": [],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "ESTIMATE (eye) -- one continuous ~8s scroll through the VIP/tier-ladder screen, not independently speed-measured."
+    }
+  ],
+  "p3_text_blocks": [
+    {
+      "t_in": 0.0,
+      "t_out": 1.867,
+      "text": "คุณโดนเอาเปรียบ ถ้าไม่ขอ REBATE",
+      "box": "top area, ~y8-20%, full width, 2 lines",
+      "style": "headline",
+      "entrance": "static (already up at shot start)",
+      "exit": "cut (with shot)",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate: sits directly above the avatar's slid-down head, ~40-60px gap",
+      "dist_to_edges_px": "estimate: standard side margins, not measured against safe-area vars"
+    },
+    {
+      "t_in": 7.0,
+      "t_out": 20.267,
+      "text": "ค่า SPREAD สูงเพราะ?",
+      "box": "upper-middle, ~y18-26%",
+      "style": "headline",
+      "entrance": "estimate: pop/reveal ~7.0-7.3s (coincides with frame_diff spike at 7.200, diff=0.084)",
+      "exit": "cut (with shot)",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate: clears the head by a wide margin, header sits well above",
+      "dist_to_edges_px": "estimate: centered, generous side margins"
+    },
+    {
+      "t_in": 9.4,
+      "t_out": 14.0,
+      "text": "✅ เพราะตลาดการเงิน",
+      "box": "below header, ~y26-32%",
+      "style": "caption chip (checkbox line)",
+      "entrance": "estimate: pop ~9.3-9.5s",
+      "exit": "strikethrough animation ~14.0-14.3s (see P2), then removed/replaced",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate",
+      "dist_to_edges_px": "estimate"
+    },
+    {
+      "t_in": 15.0,
+      "t_out": 20.267,
+      "text": "เพราะมีเงินถูกกักไว้ (w/ coin icon)",
+      "box": "below header, ~y26-34%",
+      "style": "caption chip (data label)",
+      "entrance": "expo-style reveal ~14.0-14.4s (fast, matches kit constant)",
+      "exit": "cut (with shot)",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate",
+      "dist_to_edges_px": "estimate"
+    },
+    {
+      "t_in": 7.28,
+      "t_out": 9.04,
+      "text": "คุณจะบอกความจริงที่ไม่มีใครบอกมึง",
+      "box": "bottom rail, chest height",
+      "style": "caption",
+      "entrance": "cut-in with utterance",
+      "exit": "replaced by next line",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate",
+      "dist_to_edges_px": "estimate",
+      "notes": "representative of the per-utterance bottom-caption pattern; NOT individually itemized for every one of the ~85 short captions across the file -- see CENSUS.md 'could not measure'."
+    },
+    {
+      "t_in": 14.08,
+      "t_out": 14.84,
+      "text": "กักไว้ทำอะไร?",
+      "box": "bottom rail",
+      "style": "caption",
+      "entrance": "cut-in with utterance",
+      "exit": "replaced",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate",
+      "dist_to_edges_px": "estimate"
+    },
+    {
+      "t_in": 15.16,
+      "t_out": 16.3,
+      "text": "กักไว้เป็น REBATE",
+      "box": "bottom rail",
+      "style": "caption",
+      "entrance": "cut-in with utterance",
+      "exit": "replaced",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate",
+      "dist_to_edges_px": "estimate"
+    },
+    {
+      "t_in": 17.76,
+      "t_out": 19.0,
+      "text": "ส่วนใหญ่ ไม่",
+      "box": "bottom rail",
+      "style": "caption",
+      "entrance": "cut-in with utterance",
+      "exit": "replaced",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate",
+      "dist_to_edges_px": "estimate"
+    },
+    {
+      "t_in": 29.0,
+      "t_out": 32.5,
+      "text": "เปิด GOLD 0.01 LOT / ลบ -0.30$ ทันที!",
+      "box": "upper-left over chart, ~y18-30%",
+      "style": "data label (simulated trade ticket)",
+      "entrance": "pop, red icon leads",
+      "exit": "value updates in place (LOT 0.01->1, -0.30$->-30$)",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate: clears composite avatar (bottom-left) comfortably, sits upper-left",
+      "dist_to_edges_px": "estimate"
+    },
+    {
+      "t_in": 34.4,
+      "t_out": 46.233,
+      "text": "ค่า REBATE -15.3$ (yellow chip) / ส่วนเงินที่หายไป -14.7$ / เงินที่เหลือ 14.7$->11.7$ (w/ growing crowd icons)",
+      "box": "upper-left over chart, stacking downward, ~y30-55%",
+      "style": "data label stack (kinetic)",
+      "entrance": "each line pops in turn, icons multiply",
+      "exit": "cut (with shot, whole stack clears at 46.233)",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate: stack grows toward the composite avatar's box but this reference does not visibly violate the HARD evidence-overlap rule -- no overlap observed in any sampled frame",
+      "dist_to_edges_px": "estimate"
+    },
+    {
+      "t_in": 46.5,
+      "t_out": 51.1,
+      "text": "แปลกตรงๆคือ / มึงเป็นคนกด / มึงเป็นคนเสี่ยง / แต่คนอื่นกินเงินมึงเงียบๆ",
+      "box": "bottom rail, chest height",
+      "style": "caption (sequential, 4 lines)",
+      "entrance": "cut-in with each utterance",
+      "exit": "replaced / cut with shot",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate",
+      "dist_to_edges_px": "estimate"
+    },
+    {
+      "t_in": 59.7,
+      "t_out": 64.4,
+      "text": "มึงก็เสียผลประโยชน์เหมือนกัน / ตลาดมันหลอกพอแล้ว / อย่ามาโง่ / เสียเงินให้ระบบอีก",
+      "box": "bottom rail, chest height",
+      "style": "caption (sequential, 4 lines)",
+      "entrance": "cut-in with each utterance",
+      "exit": "replaced / cut with shot",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate",
+      "dist_to_edges_px": "estimate"
+    },
+    {
+      "t_in": 70.5,
+      "t_out": 71.0,
+      "text": "REBATE เต็ม",
+      "box": "over the 'ex' transaction row, app UI",
+      "style": "caption chip",
+      "entrance": "pop with the yellow icon",
+      "exit": "cut (with shot at 71.100)",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate",
+      "dist_to_edges_px": "estimate"
+    },
+    {
+      "t_in": 80.5,
+      "t_out": 85.12,
+      "text": "แต่จำไว้ / เงินทุกล็อต / ที่มึงกด / มันควรเป็นของมึง / ไม่ใช่ของคนอื่น",
+      "box": "bottom rail, chest height",
+      "style": "caption (sequential, 5 lines)",
+      "entrance": "cut-in with each utterance",
+      "exit": "video ends (no exit animation, hard stop)",
+      "dist_to_focus_px": null,
+      "dist_to_avatar_top_px": "estimate",
+      "dist_to_edges_px": "estimate"
+    }
+  ],
+  "p4_sfx": [
+    {
+      "t": 1.962,
+      "aligned_to": "cut@1.867",
+      "offset_s": 0.095,
+      "rough_class": "other/unclear",
+      "evidence": "flux_score=0.397, centroid=1603Hz, low_ratio=0.05, high_ratio=0.01 -- mid-heavy, not a clean whoosh or click signature."
+    },
+    {
+      "t": 4.458,
+      "aligned_to": "spotlight_onset@4.400",
+      "offset_s": 0.058,
+      "rough_class": "whoosh/shimmer",
+      "evidence": "flux_score=0.507, centroid=6566Hz, high_ratio=0.914 -- strongly broadband-high, classic bright whoosh/sparkle signature."
+    },
+    {
+      "t": 5.341,
+      "aligned_to": "cut@5.233",
+      "offset_s": 0.108,
+      "rough_class": "other/unclear",
+      "evidence": "flux_score=0.317, centroid=2364Hz, mixed band."
+    },
+    {
+      "t": 13.874,
+      "aligned_to": "text_strike@14.033",
+      "offset_s": -0.159,
+      "rough_class": "other/weak",
+      "evidence": "flux_score=0.097 (weak) -- low confidence, may just be a speech consonant."
+    },
+    {
+      "t": 20.387,
+      "aligned_to": "cut@20.267",
+      "offset_s": 0.12,
+      "rough_class": "impact/thud",
+      "evidence": "flux_score=0.571 (2nd strongest in file), centroid=1261Hz, low_ratio=0.09, high_ratio=0.001 -- low-mid dominant, thud-like."
+    },
+    {
+      "t": 24.625,
+      "aligned_to": "cut@24.600",
+      "offset_s": 0.025,
+      "rough_class": "whoosh",
+      "evidence": "flux_score=0.083 (weak), centroid=7158Hz, high_ratio=0.531 -- bright but low energy."
+    },
+    {
+      "t": 46.335,
+      "aligned_to": "cut@46.233",
+      "offset_s": 0.102,
+      "rough_class": "impact/thud",
+      "evidence": "flux_score=0.266, centroid=870Hz, low_ratio=0.228 -- clear low-frequency thud."
+    },
+    {
+      "t": 50.828,
+      "aligned_to": "icon_buildup~50.8",
+      "offset_s": 0.0,
+      "rough_class": "pop/click",
+      "evidence": "flux_score=0.251, centroid=1837Hz."
+    },
+    {
+      "t": 57.342,
+      "aligned_to": "highlighter@57.167",
+      "offset_s": 0.175,
+      "rough_class": "ding/sparkle",
+      "evidence": "flux_score=0.353, centroid=7489Hz, high_ratio=0.990 -- almost pure high-frequency, ding/sparkle-like, fits a yellow highlight reveal."
+    },
+    {
+      "t": 59.373,
+      "aligned_to": "cut@59.500",
+      "offset_s": -0.127,
+      "rough_class": "other/weak",
+      "evidence": "flux_score=0.094 (weak)."
+    },
+    {
+      "t": 69.625,
+      "aligned_to": "icon_pop@69.60",
+      "offset_s": 0.025,
+      "rough_class": "ding",
+      "evidence": "flux_score=0.857 (strongest onset in the whole file), centroid=1435Hz, both low_ratio and high_ratio near 0 (mid-band-only energy) -- a narrow-band tone, consistent with a single 'ding'."
+    },
+    {
+      "t": 71.645,
+      "aligned_to": "cluster~71.6 (UI micro-anim, not a real cut)",
+      "offset_s": null,
+      "rough_class": "impact/thud",
+      "evidence": "flux_score=0.186, centroid=962Hz, low_ratio=0.584 -- strong low content."
+    },
+    {
+      "t": 72.086,
+      "aligned_to": "flash_transition@72.05-72.1",
+      "offset_s": 0.02,
+      "rough_class": "whoosh",
+      "evidence": "flux_score=0.218, centroid=7682Hz, high_ratio=0.678 -- bright whoosh, fits a flash-wipe transition well."
+    },
+    {
+      "t": 76.266,
+      "aligned_to": "pop(low confidence)@76.23",
+      "offset_s": 0.036,
+      "rough_class": "impact/thud",
+      "evidence": "flux_score=0.352, centroid=923Hz, low_ratio=0.343."
+    },
+    {
+      "t": 80.353,
+      "aligned_to": "cut@80.333",
+      "offset_s": 0.02,
+      "rough_class": "whoosh (moderate)",
+      "evidence": "flux_score=0.225, centroid=4611Hz, high_ratio=0.216."
+    }
+  ],
+  "p4_silences": [
+    {
+      "where": "highlighter@9.07 (SPREAD word)",
+      "note": "No audio onset found within 0.2s of the SPREAD highlighter -- a sound would be expected by the pattern set at 34.4/57.2 but is absent here. Recorded as silence, not a measurement gap."
+    },
+    {
+      "where": "hard cut@64.533 (SKILL's '0 in-between frames' cut)",
+      "note": "No audio onset found within 0.2s -- this hard cut is visually the sharpest in the file but carries no matching SFX."
+    }
+  ],
+  "p4_music_bed": {
+    "present": "likely yes, low-level",
+    "method": "Compared low(40-250Hz)/mid(250-3400Hz, ~speech band)/high(4-12kHz) band dB (measurements/audio_bands.csv) across speech spans (from measurements/lines.tsv) vs the brief inter-line gaps.",
+    "finding": "Mid-band (speech) dB dominates throughout with no clearly separate, sustained low-band bed level during the gaps (e.g. 14.84-15.18s, 45.94-46.2s) -- gaps show the SAME low low-band level as speech spans, not a held bed continuing under a dip in mid-band. No confident evidence of a continuous music bed distinct from the voice track and incidental SFX.",
+    "ducking": "Not established -- see above; there is no clear bed to measure ducking against.",
+    "confidence": "ESTIMATE / inconclusive -- did not run full source separation (torch demucs was available per the task brief but not used, given time budget); a proper vocal-isolation pass could resolve this more confidently than the band-energy comparison used here."
+  },
+  "p5_watermark": {
+    "present_from_s": 0.0,
+    "present_to_s": 85.240454,
+    "constant": true,
+    "description": "'BLACK LIQUIDITY' wordmark (BLACK in white, LIQUIDITY in red) + red vertical divider + episode date in Thai short form w/ Buddhist year (read as '29 กพ. 69' -- Feb 29 2026 BE, which does not exist in the real Gregorian calendar; recorded as read, not corrected)",
+    "approx_box_px": {
+      "x0": 64,
+      "y0": 140,
+      "x1": 330,
+      "y1": 220,
+      "note": "ESTIMATE +/-10px from a 450x280 crop read at full res, not pixel-edge-measured"
+    },
+    "date_box_px": {
+      "x0": 345,
+      "y0": 150,
+      "x1": 450,
+      "y1": 215,
+      "note": "ESTIMATE, same crop"
+    },
+    "tiktok_own_watermark": "none found -- every frame checked (10 contact sheets across the full 85s) shows no TikTok repost/username watermark; likely stripped by the yt-dlp download or never present on this original upload."
+  }
+}
