@@ -322,3 +322,56 @@ def test_load_brand_map_reads_the_real_shipped_file():
         pytest.skip("blackliquidity-cut brand-display.yaml not in this sparse checkout")
     brand_map = lib.load_brand_map(real_path)
     assert brand_map.get("เอ็กซ์เอ็ม") == "XM"
+
+
+# ──────────────────────────────────────────────────── recommend_gate ───────
+
+def test_recommend_gate_finds_smallest_all_correct_threshold():
+    rows = [(0.3, False), (0.5, True), (0.6, False), (0.72, True), (0.9, True)]
+    assert lib.recommend_gate(rows) == 0.72
+
+
+def test_recommend_gate_none_when_top_confidence_is_wrong():
+    rows = [(0.5, True), (0.99, False)]
+    assert lib.recommend_gate(rows) is None
+
+
+def test_recommend_gate_none_for_empty_rows():
+    assert lib.recommend_gate([]) is None
+
+
+def test_recommend_gate_all_correct_returns_lowest():
+    rows = [(0.2, True), (0.6, True), (0.9, True)]
+    assert lib.recommend_gate(rows) == 0.2
+
+
+# ───────────────────────────────────────── census groundtruth (task-82380776) ─
+
+def test_parse_census_groundtruth_reads_rows(tmp_path):
+    p = tmp_path / "groundtruth.tsv"
+    p.write_text(
+        "t0\tt1\ttext\tclass\tentry_type\tfocus_device\ttarget\thighlighted_word\tsfx\n"
+        "0.00\t1.90\tข้อความ\thook\tcut\tavatar_slide\tavatar box (whole)\t-\tother@1.96\n",
+        encoding="utf-8",
+    )
+    rows = lib.parse_census_groundtruth(p)
+    assert len(rows) == 1
+    assert rows[0]["class"] == "hook"
+    assert rows[0]["entry_type"] == "cut"
+
+
+def test_census_line_id_uses_t0():
+    assert lib.census_line_id({"t0": "9.20", "t1": "11.34"}) == "t9.20"
+
+
+def test_entry_type_map_known_values():
+    assert lib.ENTRY_TYPE_MAP["cut"] == "hard_cut"
+    assert lib.ENTRY_TYPE_MAP["shrink"] == "shrink"
+    assert "-" not in lib.ENTRY_TYPE_MAP
+
+
+def test_focus_device_map_only_covers_matching_concepts():
+    assert lib.FOCUS_DEVICE_MAP["highlighter_sweep"] == "highlight_sweep"
+    assert lib.FOCUS_DEVICE_MAP["pan+zoom"] == "zoom_only"
+    for unmapped in ("avatar_shrink", "avatar_slide", "plate_dissolve", "pop", "scroll"):
+        assert unmapped not in lib.FOCUS_DEVICE_MAP

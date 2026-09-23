@@ -204,3 +204,102 @@ this task.
 **440 `bl.*` calls, $0.014011** — under the $0.05/2,000-call cap for
 everything (sample run + EP57 v1 baseline + v2 contaminated-criteria +
 v3 held-out-criteria, combined).
+
+## 2026-09-23 23:05 — real eval, against the corrected census groundtruth
+
+CTO: census (task-82380776) merged (`fcc405a8`), `groundtruth.tsv` corrected.
+Merged `origin/main` into this branch to pick it up.
+
+**`groundtruth.tsv`'s real shape is NOT what this tool originally guessed
+at** (a speculative `tag/question/expected/state` TSV, written before the
+file existed) — it's one row per reference-video timespan: `t0, t1, text,
+class, entry_type, focus_device, target, highlighted_word, sfx`. Rewrote
+`cmd_eval` to consume this real format directly rather than keep a dead
+format no real file will ever use: `jev_edit_lib.py` gained
+`parse_census_groundtruth`, `ENTRY_TYPE_MAP` (`cut`→`hard_cut`,
+`shrink`→`shrink`), `FOCUS_DEVICE_MAP` (`highlighter_sweep`→
+`highlight_sweep`, `pan+zoom`→`zoom_only` — `avatar_shrink`/`avatar_slide`/
+`plate_dissolve`/`pop*`/`scroll` are real P2 events but not evidence-focus
+devices this site's vocabulary was built to answer, left unmapped rather
+than force-fit to `other`), and `recommend_gate` (smallest observed
+confidence where every case at/above it was correct). Also fixed the
+`en`-state screen-hint derivation: `target: "avatar box (whole)"` /
+"...avatar still full-size" means no real evidence, same as `"-"` — not a
+screen hint (4+2 of 45 census rows).
+
+Also made `plan`/`eval`'s default `--max-usd` budget-aware: reads this
+worktree's own `state/decisions/*.jsonl` ledger and defaults to
+`$0.05 - (sum of every bl.* cost_usd so far)`, so the task's overall $0.05
+cap holds across multiple invocations instead of resetting every run.
+
+**Real eval run** (`--reps 2`, real Jev, `$WORK_DIR/out/eval-run-1.log`):
+
+```
+site: bl.beat [state=en]   cases 90     right 18/90 (20%)
+  conf 0.00-0.50: n=26 acc=0.04 | 0.50-0.70: n=50 acc=0.14
+  conf 0.70-0.85: n=2  acc=1.00 | 0.85-1.00: n=12 acc=0.67
+  recommended gate: NONE — even the highest-confidence case was wrong
+
+site: bl.beat [state=th]   cases 90     right 38/90 (42%)
+  conf 0.00-0.50: n=10 acc=0.40 | 0.50-0.70: n=29 acc=0.24
+  conf 0.70-0.85: n=39 acc=0.44 | 0.85-1.00: n=12 acc=0.83
+  recommended gate: 0.95
+
+site: bl.entry             cases 32     right 20/32 (62.5%)
+  conf 0.70-0.85: n=4  acc=1.00 | 0.85-1.00: n=28 acc=0.57
+  recommended gate: NONE — even the highest-confidence case was wrong
+
+bl.focus_device: SKIPPED — only 3 census rows share this site's vocabulary
+(below the jev-ops ≥12-case minimum to trust an accuracy number).
+
+total eval spend: $0.007685 over 212 calls
+```
+
+**The state-lang comparison the task asked for has a clear, if unwelcome,
+answer: 42% (th) beats 20% (en) by a wide margin — the line's actual
+meaning, not structural position/screen-hint flags, is what decides its
+beat.** This contradicts jev-ops' general cost advice ("write state in
+English, Thai costs ~3.4x") for this specific site — cost is not the
+deciding factor at these volumes (CEO/task brief), and the `en` variant
+isn't just more expensive, it's categorically worse (20% vs 42%, `recommend_gate`
+literally finds no safe threshold at all for `en`). **Switching `plan`'s
+default `--state-lang` for `bl.beat` to `th` is the right call** — not yet
+done, since it changes the tool's default behavior and deserves a separate,
+visible commit rather than folding it into this measurement pass.
+
+**Neither number clears jev-ops' own "stop and rewrite criteria if accuracy
+< 90%" bar.** 42% is real progress over the unusable 20%, but this site is
+NOT production-ready. `bl.entry` is more concerning: its confident
+(0.85-1.00) answers are only 57% accurate — a maximally-confident (1.00)
+wrong answer (`t1.90`: truth `hard_cut`, got `shrink`) is exactly the
+"confident-and-wrong" failure jev-ops HARD rule 2 exists to catch. Its
+current criteria (framed around `mode_change`) don't match how the census
+actually assigns `cut` vs `shrink` — real redesign work, not a tuning pass.
+
+**Deliberately did not iterate criteria against this eval data.** The
+groundtruth is now the ONLY real ground truth this pipeline has; hand-
+tuning criteria against it would be the exact contamination mistake from
+the last round, just against a different (and now irreplaceable) test set.
+Real criteria work belongs in a follow-up task that builds a SEPARATE
+held-out validation slice before touching `bl.beat`/`bl.entry` again.
+
+**EP57 flagged share, re-measured with real data** (not an estimate):
+
+| run | state | gate | bl.beat flagged |
+|---|---|---|---|
+| v3 | en | 0.7 (untested default) | 30/40 (75%) — but `en`'s own eval found NO safe gate; this 75% is not a safety number |
+| v4 | th | 0.95 (measured, `bl.beat[th]` only) | 38/40 (95%) |
+
+v4 applied the single measured gate (0.95) uniformly to ALL six sites in
+one `plan` run for a quick comparison — `bl.entry` came out 21/39 (54%)
+flagged at 0.95, but its own `recommend_gate` is `NONE`, so that 54% is
+**not** a safety number either; the other 46% are not actually trustworthy
+at any confidence level per this eval. `highlight_word`/`text_slot`/
+`focus_device`/`focus_target` were pushed to 100% flagged by the same
+blanket 0.95 (they were never calibrated this round — the tool has one
+global `--gate`, not a per-site map; a real per-site default table is
+follow-up work).
+
+**Total spend, this session (final, authoritative
+`state/decisions/2026-09.jsonl`): 797 `bl.*` calls, $0.027112** — under the
+$0.05 task cap, $0.022888 remaining.

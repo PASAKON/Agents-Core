@@ -250,6 +250,22 @@ def needs_review(choice: str | None, confidence_value: float, gate: float) -> bo
     return choice is None or confidence_value < gate
 
 
+def recommend_gate(rows: list[tuple[float, bool]]) -> float | None:
+    """The smallest OBSERVED confidence value T such that every case with
+    confidence >= T was correct — jev-ops SKILL.md's own methodology ("Gate
+    at 0.7 kept 80% of answers and let zero wrong ones through"), but
+    derived from this site's actual eval data rather than borrowed as a
+    constant. None if no threshold achieves zero wrong answers above it
+    (even the single highest-confidence case was wrong)."""
+    if not rows:
+        return None
+    for t in sorted({round(c, 6) for c, _ in rows}):
+        kept = [correct for conf, correct in rows if conf >= t]
+        if kept and all(kept):
+            return t
+    return None
+
+
 CONFIDENCE_BUCKETS = ((0.0, 0.5), (0.5, 0.7), (0.7, 0.85), (0.85, 1.0 + 1e-9))
 
 
@@ -264,3 +280,46 @@ def bucket_confidence(rows: list[tuple[float, bool]]) -> dict[str, dict[str, Any
         acc = (sum(1 for c in bucket_rows if c) / n) if n else None
         out[label] = {"n": n, "accuracy": acc}
     return out
+
+
+# ───────────────────── real ground truth: prototypes/bl-ref-census format ──
+# task-82380776's groundtruth.tsv (the reference cut, frame-by-frame census)
+# is NOT the tag/question/expected/state shape this tool originally guessed
+# at before the file existed — it's one row per reference-video timespan:
+# t0, t1, text, class, entry_type, focus_device, target, highlighted_word,
+# sfx. `class` already uses this site's own vocabulary (hook/show/verdict/
+# cta); entry_type/focus_device use the census's own vocabulary and need
+# mapping onto this tool's option ids (see the two maps below).
+
+CENSUS_COLUMNS = (
+    "t0", "t1", "text", "class", "entry_type", "focus_device", "target",
+    "highlighted_word", "sfx",
+)
+
+# entry_type "-" means no entry event this line (not applicable, excluded —
+# same as jev_edit.py only asking bl.entry when the line index isn't 0).
+ENTRY_TYPE_MAP = {"cut": "hard_cut", "shrink": "shrink"}
+
+# Only the census values that are genuinely the same concept as one of
+# bl.focus_device's options get mapped. avatar_shrink/avatar_slide/
+# plate_dissolve/pop*/scroll are real P2 events but NOT evidence-focus
+# devices in this site's sense (they're avatar motion or a different kind
+# of pop-in/transition this site was never designed to answer) — mapping
+# them to "other" would score "other" as correct ground truth for a
+# question this site's vocabulary was never meant to cover, which is a
+# different claim than "none of our four devices fit this evidence". Left
+# unmapped on purpose; the caller filters these rows out rather than force
+# a lossy label.
+FOCUS_DEVICE_MAP = {"highlighter_sweep": "highlight_sweep", "pan+zoom": "zoom_only"}
+
+
+def parse_census_groundtruth(path: Path) -> list[dict[str, str]]:
+    """Raw rows from groundtruth.tsv, in file order. Each value is the
+    stripped string cell; callers derive per-site expected labels/state."""
+    with Path(path).open(newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        return [{k: (v or "").strip() for k, v in row.items()} for row in reader]
+
+
+def census_line_id(row: dict[str, str]) -> str:
+    return f"t{row.get('t0', '?')}"

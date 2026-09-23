@@ -34,7 +34,6 @@ CLI:
 from __future__ import annotations
 
 import argparse
-import csv
 import html
 import json
 import sys
@@ -56,13 +55,43 @@ DEFAULT_GATE = 0.7
 
 # HARD (jev-ops rule 1 / task brief): every loop that calls Jev carries its
 # own call ceiling and dollar cap, on top of tools/decide.py's monthly
-# DECIDE_BUDGET_USD. `eval`'s defaults are the task's own hard numbers
-# ($0.05, 2000 calls); `plan` gets a much smaller default sized for one
-# episode (~40-80 lines x up to 6 questions).
-EVAL_MAX_USD = 0.05
+# DECIDE_BUDGET_USD. TASK_BUDGET_CAP_USD is the task's own hard number —
+# $0.05 for EVERYTHING this task spends, not per invocation (CTO review
+# 2026-09-23: "Cap: $0.05 total for this task, including the $0.014 already
+# spent"). Both `plan` and `eval` size their default --max-usd off the
+# TRUE remaining balance (task cap minus this task's own ledger spend so
+# far), not a fresh $0.05 every run.
+TASK_BUDGET_CAP_USD = 0.05
 EVAL_MAX_CALLS = 2000
-PLAN_MAX_USD_DEFAULT = 0.05
 PLAN_MAX_CALLS_DEFAULT = 2000
+
+
+def _task_spend_so_far_usd() -> float:
+    """Sum of cost_usd across every bl.* row this worktree's ledger has ever
+    written (state/decisions/*.jsonl) — the same authoritative source the
+    task's reports have summed by hand each round. Missing/unreadable
+    ledger files count as 0 spend, never an error (a fresh worktree has no
+    ledger yet)."""
+    total = 0.0
+    decisions_dir = ROOT / "state" / "decisions"
+    if not decisions_dir.exists():
+        return 0.0
+    for path in decisions_dir.glob("*.jsonl"):
+        try:
+            for line in path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                row = json.loads(line)
+                if str(row.get("site", "")).startswith("bl."):
+                    total += float(row.get("cost_usd") or 0.0)
+        except (OSError, json.JSONDecodeError):
+            continue
+    return total
+
+
+def _remaining_task_budget_usd() -> float:
+    return max(0.0, TASK_BUDGET_CAP_USD - _task_spend_so_far_usd())
 
 
 class BudgetExceeded(RuntimeError):
@@ -410,6 +439,75 @@ def cmd_storyboard(args: argparse.Namespace) -> int:
 
 
 # ──────────────────────────────────────────────────────────────────── eval
+# Ground truth is prototypes/bl-ref-census/groundtruth.tsv's shape
+# (task-82380776), not a tag/question/expected/state file someone hand-
+# writes — see jev_edit_lib.py's "census groundtruth" section for the two
+# label maps and why focus_device's vocabulary only partially overlaps.
+
+def _no_real_evidence(target: str) -> bool:
+    # "-" = nothing named; "avatar box (whole)" / "...avatar still full-size"
+    # = the avatar itself is the P2 target, not a piece of evidence — same
+    # as no screen hint for bl.beat's purposes (census: 4+2 of 45 rows).
+    return target in ("-", "") or "avatar" in target.lower()
+
+
+def _beat_case(row: dict, index: int, total: int, state_lang: str) -> dict:
+    target = row.get("target", "")
+    screen = "" if _no_real_evidence(target) else target
+    state = {
+        "line_index": index, "total_lines": total, "shot": "", "screen": screen,
+        "has_screen_hint": bool(screen),
+    }
+    if state_lang == "th":
+        state["spoken"] = row.get("text", "")
+    return {"line_id": lib.census_line_id(row), "expected": row.get("class", ""), "state": state}
+
+
+def _entry_cases(rows: list[dict]) -> list[dict]:
+    cases = []
+    prev_beat: str | None = None
+    prev_mode: str | None = None
+    for i, row in enumerate(rows):
+        this_beat = row.get("class", "")
+        this_mode = lib.mode_for_beat(this_beat)
+        mapped = lib.ENTRY_TYPE_MAP.get(row.get("entry_type", ""))
+        if mapped and i > 0:
+            state = {
+                "line_index": i, "prev_beat": prev_beat, "this_beat": this_beat,
+                "mode_change": lib.entry_mode_change(prev_mode, this_mode),
+            }
+            cases.append({"line_id": lib.census_line_id(row), "expected": mapped, "state": state})
+        prev_beat, prev_mode = this_beat, this_mode
+    return cases
+
+
+def _focus_device_cases(rows: list[dict]) -> list[dict]:
+    cases = []
+    for row in rows:
+        raw = row.get("focus_device", "")
+        mapped = lib.FOCUS_DEVICE_MAP.get(raw.split(" (")[0].strip()) or lib.FOCUS_DEVICE_MAP.get(raw)
+        if not mapped:
+            continue
+        target = row.get("target", "")
+        state = {"shot": "", "screen": "" if _no_real_evidence(target) else target}
+        cases.append({"line_id": lib.census_line_id(row), "expected": mapped, "state": state})
+    return cases
+
+
+def _run_eval_cases(site: str, cases: list[dict], reps: int, tracker: SpendTracker, misses: list[str]) -> list[tuple[float, bool]]:
+    scored: list[tuple[float, bool]] = []
+    for rep in range(reps):
+        for case in cases:
+            d = _ask(site, case["state"], tracker)
+            conf = lib.confidence_of(d.probs)
+            correct = d.choice == case["expected"]
+            scored.append((conf, correct))
+            if not correct:
+                misses.append(
+                    f"{case['line_id']}/{site} rep{rep}: truth={case['expected']} got={d.choice} conf={conf:.2f}"
+                )
+    return scored
+
 
 def cmd_eval(args: argparse.Namespace) -> int:
     gt_path = Path(args.groundtruth)
@@ -422,54 +520,72 @@ def cmd_eval(args: argparse.Namespace) -> int:
         )
         return 2
 
-    cases: list[dict] = []
-    with gt_path.open(newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f, delimiter="\t")
-        for row in reader:
-            cases.append(row)
-    if not cases:
+    rows = lib.parse_census_groundtruth(gt_path)
+    if not rows:
         print(f"groundtruth file {gt_path} has no rows", file=sys.stderr)
         return 1
 
-    tracker = SpendTracker(EVAL_MAX_CALLS, EVAL_MAX_USD)
-    per_site: dict[str, list[tuple[float, bool]]] = {}
+    tracker = SpendTracker(args.max_calls, args.max_usd)
     misses: list[str] = []
+    total = len(rows)
 
-    for rep in range(args.reps):
-        for case in cases:
-            site = case["question"]
-            expected = case["expected"]
-            state = json.loads(case["state"]) if case.get("state") else {}
-            try:
-                d = _ask(site, state, tracker)
-            except BudgetExceeded as e:
-                print(f"eval stopped: {e}", file=sys.stderr)
-                _print_eval_report(per_site, tracker, misses)
-                return 3
-            conf = lib.confidence_of(d.probs)
-            correct = d.choice == expected
-            per_site.setdefault(site, []).append((conf, correct))
-            if not correct:
-                misses.append(f"{case.get('line_id', '?')}/{site} rep{rep}: truth={expected} got={d.choice} conf={conf:.2f}")
+    beat_en_cases = [_beat_case(r, i, total, "en") for i, r in enumerate(rows)]
+    beat_th_cases = [_beat_case(r, i, total, "th") for i, r in enumerate(rows)]
+    entry_cases = _entry_cases(rows)
+    focus_cases = _focus_device_cases(rows)
 
-    _print_eval_report(per_site, tracker, misses)
-    return 0
+    print(f"groundtruth: {total} rows ({gt_path})")
+    print(f"budget: max_calls={args.max_calls} max_usd=${args.max_usd:.5f} "
+          f"(task spend so far this ledger: ${_task_spend_so_far_usd():.6f})")
+    if len(focus_cases) < 12:
+        print(
+            f"bl.focus_device: SKIPPED — only {len(focus_cases)} rows share this "
+            "site's vocabulary with the census (highlighter_sweep/pan+zoom); "
+            "avatar_shrink/avatar_slide/plate_dissolve/pop*/scroll are real P2 "
+            "events but not evidence-focus devices this site models. Below the "
+            "jev-ops ≥12-case minimum to trust an accuracy number."
+        )
 
+    variants = [
+        ("bl.beat [state=en]", "bl.beat", beat_en_cases),
+        ("bl.beat [state=th]", "bl.beat", beat_th_cases),
+        ("bl.entry", "bl.entry", entry_cases),
+    ]
+    if len(focus_cases) >= 12:
+        variants.append(("bl.focus_device", "bl.focus_device", focus_cases))
 
-def _print_eval_report(per_site: dict, tracker: SpendTracker, misses: list[str]) -> None:
-    for site, rows in sorted(per_site.items()):
-        right = sum(1 for _, c in rows if c)
-        buckets = lib.bucket_confidence(rows)
-        print(f"site: {site}   cases {len(rows)}")
-        print(f"right {right}/{len(rows)}")
-        for label, b in buckets.items():
-            acc = f"{b['accuracy']:.2f}" if b["accuracy"] is not None else "—"
-            print(f"  conf {label}: n={b['n']} acc={acc}")
-    print(f"spend: ${tracker.cost_usd:.6f} over {tracker.calls} calls")
+    for label, site, cases in variants:
+        try:
+            scored = _run_eval_cases(site, cases, args.reps, tracker, misses)
+        except BudgetExceeded as e:
+            print(f"eval stopped before {label}: {e}", file=sys.stderr)
+            print(f"spend so far: ${tracker.cost_usd:.6f} over {tracker.calls} calls")
+            if misses:
+                print("misses:")
+                for m in misses:
+                    print(f"  {m}")
+            return 3
+        _report_variant(label, scored)
+
+    print(f"total eval spend: ${tracker.cost_usd:.6f} over {tracker.calls} calls")
     if misses:
         print("misses:")
         for m in misses:
             print(f"  {m}")
+    return 0
+
+
+def _report_variant(label: str, scored: list[tuple[float, bool]]) -> None:
+    right = sum(1 for _, c in scored if c)
+    n = len(scored)
+    buckets = lib.bucket_confidence(scored)
+    gate = lib.recommend_gate(scored)
+    print(f"site: {label}   cases {n}")
+    print(f"right {right}/{n}" if n else "right 0/0")
+    for lbl, b in buckets.items():
+        acc = f"{b['accuracy']:.2f}" if b["accuracy"] is not None else "—"
+        print(f"  conf {lbl}: n={b['n']} acc={acc}")
+    print(f"  recommended gate: {gate if gate is not None else 'NONE — even the highest-confidence case was wrong'}")
 
 
 # ───────────────────────────────────────────────────────────────────── CLI
@@ -484,7 +600,7 @@ def main(argv: list[str]) -> int:
     p_plan.add_argument("--gate", type=float, default=DEFAULT_GATE)
     p_plan.add_argument("--state-lang", choices=["en", "th"], default="en")
     p_plan.add_argument("--max-calls", type=int, default=PLAN_MAX_CALLS_DEFAULT)
-    p_plan.add_argument("--max-usd", type=float, default=PLAN_MAX_USD_DEFAULT)
+    p_plan.add_argument("--max-usd", type=float, default=_remaining_task_budget_usd())
     p_plan.add_argument("--out", required=True)
 
     p_story = sub.add_parser("storyboard")
@@ -494,8 +610,8 @@ def main(argv: list[str]) -> int:
     p_eval = sub.add_parser("eval")
     p_eval.add_argument("groundtruth")
     p_eval.add_argument("--reps", type=int, default=2)
-    p_eval.add_argument("--gate", type=float, default=DEFAULT_GATE)
-    p_eval.add_argument("--state-lang", choices=["en", "th"], default="en")
+    p_eval.add_argument("--max-calls", type=int, default=EVAL_MAX_CALLS)
+    p_eval.add_argument("--max-usd", type=float, default=_remaining_task_budget_usd())
 
     args = parser.parse_args(argv)
     if args.cmd == "plan":

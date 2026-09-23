@@ -96,11 +96,18 @@ id — this skill does not write those layers itself.
    answers become that line's P1 `avatar_mode`, P2 focus event, and P3 text
    position, mapped by the shared `tag`/`line_id`. This skill does not write
    `p1_layout.json` etc. itself.
-5. **Re-measure the gate periodically:** `eval` against a hand-labelled TSV
-   (`tag, question, expected, state` columns — state is the exact JSON this
-   tool would have built, so eval and plan stay in lockstep) whenever the
-   real ground truth grows enough to matter. Report accuracy per site, the
-   confidence table, and the exact dollars spent (sum of `usage.cost`,
+5. **Re-measure the gate periodically:** `eval` against
+   `prototypes/bl-ref-census/groundtruth.tsv`'s own format
+   (`t0/t1/text/class/entry_type/focus_device/target/highlighted_word/sfx`
+   — one row per reference-video timespan, task-82380776) whenever the
+   census grows or gets corrected. `jev_edit_lib.py`'s `ENTRY_TYPE_MAP`/
+   `FOCUS_DEVICE_MAP` translate the census's own vocabulary onto each
+   site's option ids; a census value with no matching option is excluded
+   from that site's eval, never force-mapped to `other`. Report accuracy
+   per site (and per `--state-lang` variant for `bl.beat`), the confidence
+   table, the recommended gate (`recommend_gate`: the smallest observed
+   confidence where nothing above it was wrong), and the exact dollars
+   spent (sum of `usage.cost`,
    never an estimate).
 
 ## Rules
@@ -130,24 +137,38 @@ id — this skill does not write those layers itself.
    options are.
 
 3. **HARD — a site is not trusted above the confidence gate until it has
-   been measured on a labelled set (jev-ops rule 2).** The gate ships at
-   jev-ops' own measured 0.7 and every answer under it is `needs_review`.
-   Until `eval` has run against a real ground truth for this pipeline (as of
-   this build, it has not — see RUNLOG.md), treat every answer from these
-   six sites as provisional; do not wire `decisions.jsonl` into an
-   irreversible render step without a human confirming the flagged rows.
+   been measured on a labelled set (jev-ops rule 2).** `eval` has now run
+   against `prototypes/bl-ref-census/groundtruth.tsv` (task-82380776) and
+   found **no safe confidence threshold at all** for `bl.beat` with the
+   default `en` state or for `bl.entry` — `recommend_gate` returned `NONE`
+   for both (a maximally-confident 1.00 `bl.entry` answer was still wrong).
+   `bl.beat` with `--state-lang=th` has a measured safe gate of **0.95**,
+   not the jev-ops-borrowed 0.7 default — but at 0.95 it flags ~95% of a
+   real episode (RUNLOG.md), and 42% raw accuracy is still well under
+   jev-ops' own "rewrite criteria if < 90%" bar. `bl.focus_device`/
+   `bl.focus_target`/`bl.highlight_word`/`bl.text_slot` remain unmeasured
+   (the groundtruth only fully/partly labels `bl.beat`/`bl.entry`).
+   **Do not wire `decisions.jsonl` into an irreversible render step** —
+   every one of these six sites needs a human on every answer right now,
+   not just the flagged ones, until real criteria redesign work (a
+   follow-up task, not more tuning against this same groundtruth) changes
+   that.
 
    **Why hard:** irreversible — jev-ops: "a wrong-but-confident answer from
-   unvalidated criteria is indistinguishable from a right one."
+   unvalidated criteria is indistinguishable from a right one" — confirmed
+   in this pipeline's own measured data, not hypothetical.
 
-4. State is computed upstream, not raw (jev-ops lever 1) — `bl.beat` and
-   `bl.focus_device` see structured `shot`/`screen`/position fields by
-   default, never the raw Thai `spoken` line, unless `--state-lang=th` is
-   passed. The task calls for measuring Thai-line state against this
-   English-gloss default on a real eval set and keeping whichever wins;
-   that measurement is pending the ground truth file (RUNLOG.md) — until
-   then `en` (the default) is jev-ops' own general advice ("Thai costs
-   ~3.4x English for the same meaning").
+4. State is computed upstream, not raw (jev-ops lever 1) — but **measured,
+   not assumed, this pipeline is the exception**: `bl.beat`'s `en`
+   (computed-flags-only) state scored 20% against the real groundtruth,
+   `--state-lang=th` (raw spoken text included) scored 42% — categorically
+   better, not just marginally, and `recommend_gate` found zero safe
+   threshold for `en` at all. jev-ops' general cost advice ("write state in
+   English, Thai costs ~3.4x") does not hold for `bl.beat`: the line's
+   actual meaning, not structural position/screen-hint flags, decides its
+   beat. `plan`'s CLI default is still `en` as of this build — switching it
+   to `th` is recommended but deliberately left for a separate commit
+   (RUNLOG.md), since it changes the tool's default behavior.
 5. The writer's own `beat` column in `SCRIPT.tsv` is compared against Jev's
    `bl.beat` answer and flagged on disagreement — never overridden. If a
    writer has already made the call, that's a fact about the line worth
