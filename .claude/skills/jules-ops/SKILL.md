@@ -90,8 +90,10 @@ cross-repo work · "make it better".
 4. WHAT IS KNOWN — verified facts only, dated. Where you do not know the location,
    give a REPRODUCTION and the pass condition, not a guessed file. Name every
    interface it cannot see (API field names, response shapes) verbatim.
-5. ENV NOTE: where tests go and how they run (Agents-Core: `scripts/`, not `tests/`;
-   `assert`, never return True/False) · "no `python` on PATH — use sys.executable" ·
+5. ENV NOTE: where tests go and how they run — read `testpaths` in pytest.ini on
+   current main the day you write the brief, never from memory (Agents-Core collected
+   only `scripts lib` until bde67a10 added `tests` on 2026-09-23) · `assert`, never
+   return True/False · "no `python` on PATH — use sys.executable" ·
    "your VM lacking a package → report it, do not work around it; CI installs it"
 6. DELIVERABLE: one PR, title given, description = root cause + files + the verdict's
    output line
@@ -111,7 +113,7 @@ Why each line exists — the failure it prevented or would have prevented:
 | 4 reproduction, not location | T11-A followed the brief to the wrong file and wrote a test-only "already fixed" |
 | 4 name interfaces | T08-A sent `brief`/`branch` to an API that wants `prompt`/`startingBranch`, and its mocked tests asserted the wrong field |
 | 4 stated values | T06-B set `ORG_WATCHDOG_BRANCH_POLL=1`; T07-B invented caps 150/100 |
-| 5 test location | every A brief said `tests/` — pytest.ini collects only `scripts lib`; five test files would never have run in CI |
+| 5 test location | every A brief said `tests/` while pytest.ini collected only `scripts lib` that day; five test files would never have run in CI |
 | 5 sys.executable | #163 spawned bare `python`: passed in its VM, failed on the Mac |
 | 7 facts | #164's PR body printed a placeholder "1 passed" — still not proof (§4) |
 | 8 proceed | T04-B, T12-B, T13-B asked for plan approval and stalled; A arms asked only when a fact was false |
@@ -169,7 +171,7 @@ bad one 1.1 MB). Then, on current main — every one of these caught something r
 
 - **Run the full suite and compare the COLLECTED count with main.** A config change can hide
   tests: Scriptable #2's `pytest.ini` (`testpaths = tests`) silently dropped 11 existing tests;
-  Agents-Core's `tests/` folder (29 files) is not collected at all.
+  Agents-Core's `tests/` folder (29 files, 26 failing) went uncollected until 2026-09-23.
 - **Run script-style tests directly** (`python scripts/test_x.py` → `ALL PASS`): tests that
   return True/False pass under pytest whatever they return.
 - **Any client of an external API: one live, read-only call per subcommand.** T08-A's six mocked
@@ -230,3 +232,4 @@ task (the API cannot choose).
 - 2026-09-23 [MISSING] §4 — a config edit can silently drop existing tests (Scriptable #2 `testpaths = tests` hid 11); compare the collected count, not just pass/fail · evidence: MoonieX-Scriptable 30a555b · status: promoted
 - 2026-09-23 [MISSING] §3 — `:archive` does not stop the comment-restart; with a "superseded — stop" comment the run pushed nothing but read IN_PROGRESS ~3 h · evidence: sessions 16219304773989610776, 9864990311807445479 · status: promoted
 - 2026-09-23 [MISSING] §1 — hot files break a correct diff within a day: T13-A applied cleanly and failed after `delegate.py` changed 5× in 20 h · evidence: git log tools/delegate.py since 2026-09-22 19:15 · status: promoted
+- 2026-09-23 [WRONG] §2 line 5 — the first rewrite (a8f54540) hard-coded "Agents-Core: `scripts/`, not `tests/`"; hours later bde67a10 (CTO 0e8d80b8) added `tests` to testpaths. A repo fact written into a skill goes stale; the durable rule is "read testpaths on current main when writing the brief" · evidence: pytest.ini on main after bde67a10 · status: promoted
