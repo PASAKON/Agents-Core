@@ -12,7 +12,7 @@ relies on the author remembering it gets skipped.
 
 Only numpy + Pillow + ffmpeg/ffprobe. No venv needed.
 """
-import argparse, json, os, re, subprocess, sys
+import argparse, json, os, re, subprocess, sys, time
 import pathlib
 import numpy as np
 from PIL import Image, ImageDraw
@@ -470,6 +470,85 @@ def cmd_safezone(a):
     return 1
 
 
+# --------------------------------------------------------------------- matte
+def cmd_matte(a):
+    """Matte the avatar out of a baked-background lipsync clip -> alpha WebM.
+
+    Needs torch (+ MPS). bl_tools.py's other commands stay numpy+Pillow-only
+    on purpose; this one command is the exception. Run it with a Python that
+    has torch, e.g. the venv this task built:
+      /Users/gob/.claude/skills/reel-editor-th/.venv/bin/python3 bl_tools.py matte ...
+    Compared 2026-09-23 against rembg(u2net) and attempted mediapipe on the
+    EP55 real lipsync files: RVM mobilenetv3 on MPS won on both edge quality
+    (rembg leaked alpha over ~15-17% of the frame on the red-lit set vs RVM's
+    ~1%) and speed. See the skill's field notes for the full comparison.
+    """
+    try:
+        import torch
+    except ImportError:
+        print("no torch in this interpreter. Run with a venv that has it, e.g.:")
+        print("  /Users/gob/.claude/skills/reel-editor-th/.venv/bin/python3 " + sys.argv[0] + " matte ...")
+        return 1
+    import numpy as np
+
+    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    info = probe(a.input)
+    vstream = next(s for s in info["streams"] if s["codec_type"] == "video")
+    W, H = int(vstream["width"]), int(vstream["height"])
+    num, den = (vstream.get("r_frame_rate") or "25/1").split("/")
+    fps = float(num) / float(den or 1)
+    out = a.out or (os.path.splitext(a.input)[0] + "-matte.webm")
+
+    print(f"  loading RVM ({a.model}) on {device} ...")
+    model = torch.hub.load("PeterL1n/RobustVideoMatting", a.model, trust_repo=True)
+    model = model.eval().to(device)
+
+    reader = subprocess.Popen(
+        ["ffmpeg", "-v", "error", "-i", a.input,
+         "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+        stdout=subprocess.PIPE)
+    writer = subprocess.Popen(
+        ["ffmpeg", "-y", "-v", "error",
+         "-f", "rawvideo", "-pix_fmt", "rgba", "-s", f"{W}x{H}", "-r", str(fps), "-i", "-",
+         "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-b:v", "0", "-crf", str(a.crf),
+         "-auto-alt-ref", "0", "-disposition:v", "default", out],
+        stdin=subprocess.PIPE)
+
+    frame_bytes = W * H * 3
+    rec = [None] * 4
+    n = 0
+    t0 = time.time()
+    with torch.no_grad():
+        while True:
+            if a.max_frames and n >= a.max_frames:
+                break
+            raw = reader.stdout.read(frame_bytes)
+            if len(raw) < frame_bytes:
+                break
+            rgb = np.frombuffer(raw, dtype=np.uint8).reshape(H, W, 3)
+            t = torch.from_numpy(rgb).permute(2, 0, 1).float().div(255).unsqueeze(0).to(device)
+            fgr, pha, *rec = model(t, *rec, downsample_ratio=a.downsample)
+            fgr_np = (fgr[0].permute(1, 2, 0).clamp(0, 1).cpu().numpy() * 255).astype(np.uint8)
+            pha_np = (pha[0, 0].clamp(0, 1).cpu().numpy() * 255).astype(np.uint8)
+            rgba = np.dstack([fgr_np, pha_np])
+            writer.stdin.write(rgba.tobytes())
+            n += 1
+            if n % 30 == 0:
+                print(f"  {n} frames ({n / fps:.1f}s) ...")
+    reader.stdout.close(); reader.wait()
+    writer.stdin.close(); writer.wait()
+    dt = time.time() - t0
+    size = os.path.getsize(out) if os.path.exists(out) else 0
+    print(f"  {n} frames -> {out}  ({size / 1e6:.1f} MB)  "
+          f"{dt:.1f}s total, {dt / max(n, 1) * 1000:.0f} ms/frame, {n / max(dt, 1e-9):.1f} fps")
+    if a.preview:
+        subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", out,
+                        "-vf", "format=rgba,pad=iw:ih:0:0:color=0x2c2c2cff",
+                        "-frames:v", "1", a.preview], check=False)
+        print(f"  preview frame -> {a.preview}")
+    return 0
+
+
 # ------------------------------------------------------------------- main
 def main():
     p = argparse.ArgumentParser(description=__doc__,
@@ -512,6 +591,16 @@ def main():
     z = sub.add_parser("safezone", help="overlays that leave the TikTok safe box")
     z.add_argument("composition", help="cut/index.html")
     z.set_defaults(fn=cmd_safezone)
+
+    m = sub.add_parser("matte", help="matte the avatar out of a baked-bg clip (needs torch)")
+    m.add_argument("input")
+    m.add_argument("--out", help="default: <input>-matte.webm")
+    m.add_argument("--model", default="mobilenetv3", choices=["mobilenetv3", "resnet50"])
+    m.add_argument("--downsample", type=float, default=0.5, help="RVM internal downsample ratio")
+    m.add_argument("--crf", type=int, default=32, help="libvpx-vp9 CRF, lower = better quality/bigger")
+    m.add_argument("--max-frames", type=int, help="stop early, for a quick test")
+    m.add_argument("--preview", help="save one composited preview frame here")
+    m.set_defaults(fn=cmd_matte)
 
     a = p.parse_args()
     sys.exit(a.fn(a))
