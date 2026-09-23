@@ -210,6 +210,11 @@ def plan(db_path: str | Path, policy: dict, owners: list[str]) -> list[dict]:
         worktree = task.get("worktree")
         if not worktree or not os.path.isdir(worktree):
             continue
+        # Fail closed: only a real task worktree (a direct child of a
+        # `worktrees/` dir) is ever walked. A row whose worktree points at a
+        # repo root or anywhere else is skipped, whatever tasks.db says.
+        if os.path.islink(worktree) or Path(worktree).resolve().parent.name != "worktrees":
+            continue
         dormant: bool | None = None
         for dirpath, entry in _iter_rebuild_dirs(worktree, policy, home):
             if entry.get("dormancy"):

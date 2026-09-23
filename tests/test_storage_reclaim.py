@@ -318,3 +318,18 @@ def test_delegate_reclaim_failure_does_not_block_spawn(delegate_db, monkeypatch)
     result = asyncio.run(delegate.delegate_task(tid))
 
     assert result["worktree"] == f"/tmp/fake-{tid}", "spawn must proceed despite the reclaim exception"
+
+
+def test_plan_skips_a_pilot_row_whose_worktree_is_not_under_worktrees(temp_db, tmp_path):
+    """Fail closed (CTO hardening after task-44963fee): a pilot task row whose
+    `worktree` points at a repo root — or anything that is not a direct child
+    of a `worktrees/` dir — is never walked, even though it holds REBUILD dirs."""
+    repo_root = tmp_path / "Core"
+    _mkfile(repo_root / "src" / "main.py", OLD_MTIME)
+    _mkfile(repo_root / "__pycache__" / "a.pyc", OLD_MTIME)
+    _mkfile(repo_root / "node_modules" / "pkg" / "index.js", OLD_MTIME)
+    _mk_task(temp_db, repo_root, "pilot-owner")
+
+    items = storage_reclaim.plan(str(temp_db.DB_PATH), _policy(), ["pilot-owner"])
+
+    assert items == []
