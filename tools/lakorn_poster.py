@@ -32,6 +32,7 @@ import argparse
 import sys
 from pathlib import Path
 
+import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, features
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -97,6 +98,22 @@ def draw_title(canvas, text, f, cx, top, stops, stroke=5, shadow=14):
     return y + h
 
 
+def logo_from_black(path, max_w, max_h):
+    """A title logo drawn on pure black -> RGBA. Light-on-black is 'screened' in:
+    alpha = the brightest channel (a small floor drops JPEG-ish noise), colour =
+    pixel / alpha, which is exact when the ground really is black."""
+    rgb = np.asarray(Image.open(path).convert("RGB")).astype("float32")
+    peak = rgb.max(axis=2)
+    alpha = np.clip((peak - 18) * 255.0 / 200.0, 0, 255)
+    col = np.clip(rgb / np.maximum(alpha[..., None] / 255.0, 1e-3), 0, 255)
+    out = Image.fromarray(np.dstack([col, alpha]).astype("uint8"), "RGBA")
+    box = out.getchannel("A").getbbox()
+    if box:
+        out = out.crop(box)
+    k = min(max_w / out.width, max_h / out.height)
+    return out.resize((int(out.width * k), int(out.height * k)), Image.LANCZOS)
+
+
 def draw_plain(canvas, text, f, cx, top, fill, spacing=0, shadow=6, anchor_left=None):
     d = ImageDraw.Draw(canvas)
     if spacing:
@@ -114,8 +131,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("src", type=Path)
     ap.add_argument("out", type=Path)
-    ap.add_argument("--line1", required=True)
-    ap.add_argument("--line2", required=True)
+    ap.add_argument("--line1", default="", help="typed title, small line (ignored with --logo)")
+    ap.add_argument("--line2", default="", help="typed title, big line (ignored with --logo)")
+    ap.add_argument("--logo", type=Path, help="a title LOGO drawn on pure black (e.g. by ChatGPT) — used instead of typed lines")
+    ap.add_argument("--cta", default="", help="the airtime line of a lakorn poster, e.g. 'ดูจบในตอนเดียว'")
+    ap.add_argument("--tagline-top", action="store_true", help="put the quoted tagline at the top, under the corner marks")
     ap.add_argument("--english", default="")
     ap.add_argument("--tagline", default="")
     ap.add_argument("--brand", default="ILAG STUDIO")
@@ -170,17 +190,47 @@ def main() -> int:
     l, t, r, b = fs.getbbox(args.show)
     draw_plain(canvas, args.show, fs, 0, 40, (236, 214, 160), anchor_left=W - 44 - (r - l))
 
-    title_font = FONTS[args.font]
+    tagline = args.tagline
+    if tagline and not tagline.startswith(("“", '"')):
+        tagline = f"“{tagline}”"  # lakorn taglines sit in quotes
+    if tagline and args.tagline_top:
+        draw_plain(canvas, tagline, font(SMALL_TH, 34), W / 2, 92, (245, 240, 230))
+        tagline = ""
+
     y = args.title_top
-    f1 = fit(title_font, args.line1, 620, 92)
-    y = draw_title(canvas, args.line1, f1, W / 2, y, SILVER, stroke=4, shadow=10) + 8
-    f2 = fit(title_font, args.line2, 990, 170)
-    y = draw_title(canvas, args.line2, f2, W / 2, y, GOLD, stroke=6, shadow=16) + 16
+    if args.logo:
+        logo = logo_from_black(args.logo, 1000, 260)  # 260 keeps logo+English+airtime inside the 4:5 crop
+        x = (W - logo.width) // 2
+        shadow = Image.new("L", canvas.size)
+        shadow.paste(logo.getchannel("A"), (x, y + 6))
+        # spread, then blur: a pale letter over a pale shirt still gets a dark halo
+        halo = shadow.filter(ImageFilter.MaxFilter(11)).filter(ImageFilter.GaussianBlur(16))
+        canvas.paste((0, 0, 0), (0, 0), halo.point(lambda v: min(255, int(v * 1.25))))
+        canvas.paste(logo, (x, y), logo)
+        y += logo.height + 14
+    else:
+        if not (args.line1 and args.line2):
+            print("REFUSED: give --logo, or both --line1 and --line2", file=sys.stderr)
+            return 2
+        title_font = FONTS[args.font]
+        f1 = fit(title_font, args.line1, 620, 92)
+        y = draw_title(canvas, args.line1, f1, W / 2, y, SILVER, stroke=4, shadow=10) + 8
+        f2 = fit(title_font, args.line2, 990, 170)
+        y = draw_title(canvas, args.line2, f2, W / 2, y, GOLD, stroke=6, shadow=16) + 16
     if args.english:
         y = draw_plain(canvas, "  ".join(args.english.upper().split(" ")), ImageFont.truetype(LATIN, 30),
                        W / 2, y, (238, 206, 140)) + 16
-    if args.tagline:
-        y = draw_plain(canvas, args.tagline, font(SMALL_TH, 36), W / 2, y, (245, 240, 230)) + 10
+    if tagline:
+        y = draw_plain(canvas, tagline, font(SMALL_TH, 36), W / 2, y, (245, 240, 230)) + 10
+    if args.cta:
+        fc = font(SMALL_TH, 34)
+        l, t, r, b = fc.getbbox(args.cta)
+        pw, ph = (r - l) + 56, (b - t) + 26
+        px, py = (W - pw) // 2, y + 8
+        ImageDraw.Draw(canvas).rounded_rectangle((px, py, px + pw, py + ph), radius=ph // 2,
+                                                 fill=(150, 20, 24), outline=(236, 196, 110), width=2)
+        ImageDraw.Draw(canvas).text((px + 28 - l, py + 13 - t), args.cta, font=fc, fill=(255, 244, 220))
+        y = py + ph
     if y > FEED_BOTTOM:
         print(f"WARN: title block ends at y={y}, below the 4:5 feed crop ({FEED_BOTTOM}) — lower --title-top")
 

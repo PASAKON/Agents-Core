@@ -42,6 +42,22 @@ block (not exercised by any brief seen so far — the JSON format is the
 tested way to pass a reference), then the prompt verbatim between
 `PROMPT START` / `PROMPT END` lines.
 
+Follow-up in the SAME chat (CEO 2026-09-24: "รองรับการ Regenerate ซ้ำใน Chat
+เดิม … สั่งให้เขา Edit ภาพตาม Prompt ได้โดยไม่ต้องแนบภาพ ถ้าใน Tab นั้นมีภาพอยู่
+แล้ว"): an image with `continue: <earlier name>` (JSON key, or a `CONTINUE:
+<name>` line in a markdown block) opens that image's chat from the ledger and
+sends only the text — ChatGPT edits the picture already in the thread. The
+previous image's src is excluded while waiting, so the old picture is never
+taken for the new one, and the MD5 guard refuses an unchanged copy. Chains
+work (b continues a, c continues b). Ad hoc, without a brief file:
+
+    .venv/bin/python tools/chatgpt_images.py --cdp-url http://127.0.0.1:9223 \\
+        --out <dir> --name logo-a2 --continue logo-a --prompt "make the red stroke thinner"
+
+Send is confirmed by the user-turn count rising, not the URL changing — in an
+existing chat the URL stays put, and a blind second click would land on the
+same button after it has turned into Stop and cancel the generation.
+
 Any of {logged out, usage limit, paywall, a turn that ends with no image —
 refusal, clarifying question, or anything else this zero-model runner
 cannot judge} **stops the whole run cleanly** (brief's own list) — the
@@ -76,7 +92,10 @@ if hasattr(sys.stdout, "reconfigure"):
 CDP_DEFAULT = "http://127.0.0.1:9224"
 COMPLETION_TIMEOUT_S = 6 * 60
 POLL_S = 5
-POST_SEND_GRACE_S = 8  # give ChatGPT time to start streaming before "no image, no stop button" counts as a refusal
+POST_SEND_GRACE_S = 45  # a reply counts as a refusal only after this long ...
+REFUSAL_STABLE_POLLS = 6  # ... AND with the same non-empty text, no image, no stop button for 6 polls (30 s).
+# 8 s with no stop button was read as a refusal while the image was still being made
+# (logo-a-ledger, 2026-09-24): image generation does not always show a stop button.
 
 # Verbatim from REPLAY.md / browser-operator SKILL.md's HARD mute rule — a
 # worker (and this runner) has no ears, and re-run after every navigation.
@@ -119,15 +138,22 @@ POLL_JS = """
 () => {
   const stopBtn = document.querySelector('button[data-testid="stop-button"]');
   const composer = document.querySelector('#prompt-textarea, div[contenteditable="true"]');
-  const messages = [...document.querySelectorAll('[data-message-author-role="assistant"]')];
+  // A turn is section[data-turn]; an IMAGE reply has no [data-message-author-role]
+  // inside it at all (measured 2026-09-24 on a Thai-UI Plus account), so the
+  // role selector alone reads a finished picture as "no reply".
+  const turns = [...document.querySelectorAll('[data-turn="assistant"]')];
+  const messages = turns.length ? turns : [...document.querySelectorAll('[data-message-author-role="assistant"]')];
+  const userTurnEls = document.querySelectorAll('[data-turn="user"]');
   const lastMsg = messages.length ? messages[messages.length - 1] : null;
   const lastAssistant = lastMsg ? lastMsg.innerText : '';
   // Only the newest assistant turn: an attached reference image sits in the
   // user turn above it and must never be taken for the result.
-  const imgs = lastMsg ? [...lastMsg.querySelectorAll('img[src*="oaiusercontent"], img[alt*="Generated" i], img[alt*="สร้าง" i]')] : [];
+  const imgs = lastMsg ? [...lastMsg.querySelectorAll('img[src*="oaiusercontent"], img[src*="estuary"], img[alt*="Generated" i], img[alt*="สร้าง" i]')] : [];
   const img = imgs.length ? imgs.reduce((a, b) => (b.naturalWidth > a.naturalWidth ? b : a)) : null;
   return {
     stillGenerating: !!stopBtn,
+    assistantTurns: messages.length,
+    userTurns: userTurnEls.length || document.querySelectorAll('[data-message-author-role="user"]').length,
     imgPresent: !!img,
     imgLoaded: img ? (img.complete && img.naturalWidth > 0) : false,
     naturalW: img ? img.naturalWidth : null,
@@ -181,6 +207,7 @@ def normalize_ws(text: str) -> str:
 _HEADING_RE = re.compile(r"^##\s*Image\s+\d+\s*:\s*(.+?)\s*$", re.MULTILINE)
 _ATTACH_RE = re.compile(r"^ATTACH:\s*(.+?)\s*$", re.MULTILINE)
 _PROMPT_RE = re.compile(r"PROMPT START\s*\n(.*?)\nPROMPT END", re.DOTALL)
+_CONTINUE_RE = re.compile(r"^CONTINUE:\s*(\S+)\s*$", re.MULTILINE)
 
 
 def _check_unique_names(images: list[dict]) -> None:
@@ -201,6 +228,7 @@ def parse_markdown_brief(text: str) -> list[dict]:
         end = headings[i + 1].start() if i + 1 < len(headings) else len(text)
         block = text[hm.end():end]
         attach_m = _ATTACH_RE.search(block)
+        continue_m = _CONTINUE_RE.search(block)
         prompt_m = _PROMPT_RE.search(block)
         if not prompt_m:
             raise ValueError(f"image {name!r}: no PROMPT START/END block found")
@@ -208,6 +236,7 @@ def parse_markdown_brief(text: str) -> list[dict]:
             "name": name,
             "prompt": prompt_m.group(1).strip(),
             "attach": attach_m.group(1) if attach_m else None,
+            **({"continue": continue_m.group(1)} if continue_m else {}),
         })
     _check_unique_names(images)
     return images
@@ -225,6 +254,7 @@ def parse_json_brief(text: str) -> list[dict]:
             "name": item["name"],
             "prompt": item["prompt"],
             "attach": item.get("attach"),
+            **({"continue": item["continue"]} if item.get("continue") else {}),
         })
     _check_unique_names(images)
     return images
@@ -319,10 +349,41 @@ class ChatGPTBrowser:
     def mute_all_media(self) -> None:
         self.page.evaluate(MUTE_JS)
 
+    def open_chat(self, url: str) -> None:
+        """Re-open an earlier chat so a text-only prompt edits the picture in it."""
+        if self.page.url.split("?")[0] != url.split("?")[0]:
+            self.page.goto(url, wait_until="domcontentloaded", timeout=30_000)
+        self.mute_all_media()
+        # the thread paints after load — take the baseline only once its image is there
+        for _ in range(40):
+            if self.page.evaluate(POLL_JS)["imgLoaded"]:
+                break
+            self.page.wait_for_timeout(500)
+
+    def baseline(self) -> dict:
+        """What is on the page before sending: the newest image and the turn counts."""
+        state = self.page.evaluate(POLL_JS)
+        return {"src": state["imgSrc"], "assistant_turns": state["assistantTurns"],
+                "user_turns": state["userTurns"]}
+
     def new_chat(self) -> None:
         self.page.goto("https://chatgpt.com/", wait_until="domcontentloaded", timeout=30_000)
         self.mute_all_media()
-        self.page.wait_for_timeout(500)
+        try:  # a paste into a composer that is not mounted yet lands nowhere, or half
+            self.page.locator(COMPOSER_SEL).first.wait_for(state="visible", timeout=15_000)
+        except Exception:
+            pass  # process_one's composer_present() check reports it
+        self.page.wait_for_timeout(1200)
+
+    def clear_composer(self) -> None:
+        self.page.evaluate("""() => {
+          const el = document.querySelector('#prompt-textarea, div[contenteditable="true"]');
+          if (!el) return;
+          el.focus();
+          document.execCommand('selectAll', false, null);
+          document.execCommand('delete', false, null);
+        }""")
+        self.page.wait_for_timeout(300)
 
     def composer_present(self) -> bool:
         return self.page.locator(COMPOSER_SEL).count() > 0
@@ -351,9 +412,23 @@ class ChatGPTBrowser:
         page.wait_for_timeout(1500)
 
     def paste_prompt(self, text: str) -> None:
-        ok = self.page.evaluate(PASTE_JS, text)
-        if not ok:
-            raise RuntimeError("paste failed: composer not found")
+        # The first paste of a run landed NOTHING twice (logo-b, 2026-09-24: "got 0
+        # chars") while later ones worked: the editor is painted before it listens.
+        # Retry only when the box is still empty — a partial paste is left for
+        # process_one to clear and redo, so text never doubles here.
+        for _ in range(3):
+            ok = self.page.evaluate(PASTE_JS, text)
+            if not ok:
+                raise RuntimeError("paste failed: composer not found")
+            self.page.wait_for_timeout(400)
+            if normalize_ws(self.read_composer_text()):
+                return
+            self.page.wait_for_timeout(1500)
+            try:
+                self.page.locator(COMPOSER_SEL).first.click(timeout=3000)
+            except Exception:
+                pass
+        self.page.keyboard.insert_text(text)
 
     def read_composer_text(self) -> str:
         paragraphs = self.page.evaluate(READ_PARAGRAPHS_JS)
@@ -362,32 +437,49 @@ class ChatGPTBrowser:
     def send(self) -> None:
         page = self.page
         before_url = page.url
+        before_turns = page.evaluate(POLL_JS)["userTurns"]
         try:
             page.locator(SEND_SEL).first.click(timeout=5000)
         except Exception:
             pass
-        if not self._wait_url_changed(before_url, timeout_s=4):
-            # REPLAY.md: a ref/pixel click can silently not register; a
-            # direct JS click on the real DOM element is what worked there.
+        if self._wait_sent(before_url, before_turns, timeout_s=4):
+            return
+        # REPLAY.md: a ref/pixel click can silently not register; a direct JS
+        # click on the real DOM element is what worked there. Never when a stop
+        # button is showing: the send button has become Stop, and the first
+        # click DID send — in an existing chat the URL never changes.
+        if page.locator('button[data-testid="stop-button"]').count() == 0:
             page.evaluate(
                 "() => { const b = document.querySelector("
                 f"'{SEND_SEL}'"
                 "); if (b) b.click(); }")
-            self._wait_url_changed(before_url, timeout_s=4)
+        if not self._wait_sent(before_url, before_turns, timeout_s=6):
+            raise RuntimeError("send did not register: no new user turn, no URL change")
 
-    def _wait_url_changed(self, before: str, timeout_s: float) -> bool:
+    def _wait_sent(self, before_url: str, before_turns: int, timeout_s: float) -> bool:
         t0 = time.time()
         while time.time() - t0 < timeout_s:
-            if self.page.url != before:
+            state = self.page.evaluate(POLL_JS)
+            if (self.page.url != before_url or state["userTurns"] > before_turns
+                    or state["stillGenerating"]):
                 return True
             time.sleep(0.3)
         return False
 
-    def wait_for_result(self, timeout_s: int = COMPLETION_TIMEOUT_S) -> dict:
+    def wait_for_result(self, timeout_s: int = COMPLETION_TIMEOUT_S,
+                        exclude_src: str | None = None, min_assistant_turns: int = 0) -> dict:
+        """exclude_src / min_assistant_turns: in a continued chat the previous
+        reply, with its finished image, is the newest turn until the new one
+        appears — it must never be taken for the result."""
         start = time.time()
         last_src, stable = None, 0
+        last_text, text_stable = None, 0
         while time.time() - start < timeout_s:
             state = self.page.evaluate(POLL_JS)
+            if state["assistantTurns"] < min_assistant_turns or (
+                    exclude_src and state["imgSrc"] == exclude_src):
+                time.sleep(POLL_S)
+                continue
             hazard = classify_hazard(state["bodySnippet"], state["composerPresent"])
             if hazard:
                 kind, excerpt = hazard
@@ -404,10 +496,14 @@ class ChatGPTBrowser:
             else:
                 last_src, stable = None, 0
             elapsed = time.time() - start
-            if (not state["stillGenerating"] and not state["imgPresent"]
-                    and elapsed > POST_SEND_GRACE_S):
-                return {"status": "refusal",
-                         "text": state["lastAssistantText"] or "(no assistant text found)"}
+            text = (state["lastAssistantText"] or "").strip()
+            if not state["stillGenerating"] and not state["imgPresent"] and text:
+                text_stable = text_stable + 1 if text == last_text else 1
+                last_text = text
+                if text_stable >= REFUSAL_STABLE_POLLS and elapsed > POST_SEND_GRACE_S:
+                    return {"status": "refusal", "text": text}
+            else:
+                last_text, text_stable = None, 0
             time.sleep(POLL_S)
         return {"status": "timeout"}
 
@@ -434,7 +530,21 @@ def process_one(browser: ChatGPTBrowser, image: dict, out_dir: Path,
     if out_path.exists():
         return _fail("failed", f"{out_path} already exists — refusing to overwrite")
 
-    browser.new_chat()
+    parent = image.get("continue")
+    resume_url = image.get("chat_url")
+    if parent:
+        prow = ledger.get(parent) or {}
+        if prow.get("status") != "done" or "/c/" not in (prow.get("chat_url") or ""):
+            return _fail("failed", f"cannot continue {parent!r}: no finished ledger row with a chat_url")
+        resume_url = prow["chat_url"]
+
+    if resume_url:
+        browser.open_chat(resume_url)
+        before = browser.baseline()
+        wait_kw = {"exclude_src": before["src"], "min_assistant_turns": before["assistant_turns"] + 1}
+    else:
+        browser.new_chat()
+        wait_kw = {}
 
     if image.get("attach"):
         try:
@@ -451,16 +561,24 @@ def process_one(browser: ChatGPTBrowser, image: dict, out_dir: Path,
         browser.paste_prompt(image["prompt"])
         got = browser.read_composer_text()
         if normalize_ws(got) != normalize_ws(image["prompt"]):
+            # clear first: a second paste APPENDS, so the retry could never match
+            # (logo-b-cracked-gold, 2026-09-24)
+            browser.clear_composer()
             browser.paste_prompt(image["prompt"])
             got = browser.read_composer_text()
         if normalize_ws(got) != normalize_ws(image["prompt"]):
-            raise RuntimeError("composer text does not match the prompt after 2 paste attempts")
+            raise RuntimeError(
+                f"composer text does not match the prompt after 2 paste attempts "
+                f"(got {len(normalize_ws(got))} chars, want {len(normalize_ws(image['prompt']))}: "
+                f"{normalize_ws(got)[:60]!r})")
         browser.send()
     except Exception as e:
         return _fail("failed", f"send failed: {e!r}")
 
+    result = browser.wait_for_result(timeout_s=timeout_s, **wait_kw)
+    # read the URL only now: a new chat gets its /c/<id> address a moment after
+    # the user turn appears, and a follow-up needs that address, not chatgpt.com/
     chat_url = browser.page.url
-    result = browser.wait_for_result(timeout_s=timeout_s)
 
     if result["status"] == "hazard":
         return _fail("stopped", result["text"], hazard_kind=result["hazard_kind"], chat_url=chat_url)
@@ -491,14 +609,66 @@ def process_one(browser: ChatGPTBrowser, image: dict, out_dir: Path,
         "bytes": len(data), "width": result.get("width"), "height": result.get("height"),
         "time": now_iso(), "note": "",
     }
+    if parent or resume_url:
+        row["continued_from"] = parent or resume_url
     ledger[name] = row
     save_ledger(ledger_path, ledger)
     return row
 
 
+def recover_one(browser: ChatGPTBrowser, name: str, out_dir: Path,
+                ledger_path: Path, ledger: dict) -> dict:
+    """Take a picture that finished AFTER the runner gave up (timeout, early
+    refusal): reopen the ledger row's chat and save its newest image. Sends nothing."""
+    row = ledger.get(name) or {}
+    url = row.get("chat_url") or ""
+    out_path = out_dir / f"{name}.png"
+    if "/c/" not in url:
+        return {"name": name, "status": "failed", "note": "no chat_url in the ledger to recover from"}
+    if row.get("status") == "done" or out_path.exists():
+        return {"name": name, "status": "failed", "note": "already done / file exists — nothing to recover"}
+    browser.open_chat(url)
+    src = browser.baseline()["src"]
+    if not src:
+        return {"name": name, "status": "failed", "note": "no finished image in that chat"}
+    data = browser.fetch_image_bytes(src)
+    md5 = md5_bytes(data)
+    dupes = existing_md5s(out_dir)
+    if md5 in dupes:
+        return {"name": name, "status": "failed", "note": f"MD5 matches {dupes[md5].name}"}
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path.write_bytes(data)
+    new = {**row, "name": name, "status": "done", "md5": md5, "bytes": len(data),
+           "time": now_iso(), "note": f"recovered after '{row.get('status')}': {row.get('note', '')}"[:300]}
+    ledger[name] = new
+    save_ledger(ledger_path, ledger)
+    return new
+
+
 def cmd_run(args) -> int:
-    src = Path(args.brief) if args.brief else Path(args.json)
-    images = load_images(src)
+    if getattr(args, "recover", None):
+        out_dir = Path(args.out)
+        ledger_path = out_dir / "ledger.json"
+        ledger = load_ledger(ledger_path)
+        browser = ChatGPTBrowser(cdp_url=args.cdp_url)
+        browser.attach()
+        try:
+            row = recover_one(browser, args.recover, out_dir, ledger_path, ledger)
+        finally:
+            browser.close()
+        print(f"{args.recover}: {row['status']} {row.get('note', '')}")
+        return 0 if row["status"] == "done" else 1
+
+    if getattr(args, "prompt", None):
+        if not getattr(args, "name", None):
+            print("--prompt needs --name (the output file is <name>.png)")
+            return 2
+        src = "the command line"
+        images = [{"name": args.name, "prompt": args.prompt, "attach": args.attach,
+                   "continue": args.continue_from, "chat_url": args.chat_url}]
+    else:
+        src = Path(args.brief) if args.brief else Path(args.json)
+        images = load_images(src)
 
     if args.one:
         images = [im for im in images if im["name"] == args.one]
@@ -515,6 +685,7 @@ def cmd_run(args) -> int:
         for im in images:
             first_line = im["prompt"].splitlines()[0][:100]
             attach = f" attach={im['attach']}" if im.get("attach") else ""
+            attach += f" continue={im['continue']}" if im.get("continue") else ""
             done = ledger.get(im["name"], {}).get("status") == "done"
             tag = " [already done]" if done else ""
             print(f"  - {im['name']}{attach}: {first_line}...{tag}")
@@ -549,7 +720,15 @@ def build_parser() -> argparse.ArgumentParser:
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
     src = ap.add_mutually_exclusive_group(required=True)
     src.add_argument("--brief", help="brief markdown with PROMPT START/END blocks")
-    src.add_argument("--json", help="JSON file: a list of {name, prompt, attach?}")
+    src.add_argument("--json", help="JSON file: a list of {name, prompt, attach?, continue?}")
+    src.add_argument("--prompt", help="one image straight from the command line (needs --name)")
+    src.add_argument("--recover", metavar="NAME",
+                     help="save the finished image from NAME's chat (the runner gave up too early); sends nothing")
+    ap.add_argument("--name", help="with --prompt: output name")
+    ap.add_argument("--continue", dest="continue_from",
+                     help="with --prompt: edit in the chat of this earlier ledger name, text only")
+    ap.add_argument("--chat-url", help="with --prompt: edit in this chat URL, text only")
+    ap.add_argument("--attach", help="with --prompt: reference image to attach")
     ap.add_argument("--out", required=True,
                      help="output dir for <name>.png and ledger.json")
     ap.add_argument("--one", help="only process this one image name")

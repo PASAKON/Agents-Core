@@ -164,6 +164,8 @@ class StubBrowser:
         self.attached = False
         self.seen_names: list[str] = []
         self.page = argparse.Namespace(url="https://chatgpt.com/c/stub")
+        self.calls: list[tuple] = []
+        self.wait_kwargs: list[dict] = []
 
     def attach(self):
         self.attached = True
@@ -172,7 +174,14 @@ class StubBrowser:
         self.closed = True
 
     def new_chat(self):
-        pass
+        self.calls.append(("new_chat",))
+
+    def open_chat(self, url):
+        self.calls.append(("open_chat", url))
+        self.page.url = url
+
+    def baseline(self):
+        return {"src": "http://x/previous.png", "assistant_turns": 1, "user_turns": 1}
 
     def composer_present(self):
         name = self._current
@@ -186,7 +195,15 @@ class StubBrowser:
             raise RuntimeError("no file input")
 
     def paste_prompt(self, text):
-        self._pasted = text
+        # a real composer APPENDS a second paste; model that so the retry path is honest
+        self._pastes = getattr(self, "_pastes", 0) + 1
+        first_bad = self.script.get(getattr(self, "_current", ""), {}).get("first_paste_garbled")
+        garbled = text[:10] if (first_bad and self._pastes == 1) else text
+        self._pasted = getattr(self, "_pasted", "") + garbled if self._pastes > 1 else garbled
+
+    def clear_composer(self):
+        self.calls.append(("clear_composer",))
+        self._pasted = ""
 
     def read_composer_text(self):
         return self._pasted
@@ -194,8 +211,12 @@ class StubBrowser:
     def send(self):
         pass
 
-    def wait_for_result(self, timeout_s):
-        return self.script[self._current]["result"]
+    def wait_for_result(self, timeout_s, **kw):
+        self.wait_kwargs.append(kw)
+        result = self.script[self._current]["result"]
+        if self.script[self._current].get("new_chat_url"):
+            self.page.url = self.script[self._current]["new_chat_url"]
+        return result
 
     def fetch_image_bytes(self, url):
         return self.script[self._current]["bytes"]
@@ -328,3 +349,91 @@ def test_process_one_records_signed_out_when_composer_missing(tmp_path):
                           tmp_path / "ledger.json", ledger, timeout_s=1)
     assert row["status"] == "stopped"
     assert row["hazard_kind"] == "signed_out"
+
+
+# ── follow-up in the same chat (CEO 2026-09-24) ──────────────────────────────
+
+def _done(src, data):
+    return {"result": {"status": "done", "src": src, "width": 10, "height": 10}, "bytes": data}
+
+
+def test_parse_json_and_markdown_carry_continue():
+    j = ci.parse_json_brief(json.dumps([{"name": "a", "prompt": "x"},
+                                        {"name": "b", "prompt": "y", "continue": "a"}]))
+    assert [im.get("continue") for im in j] == [None, "a"]
+    md = ci.parse_markdown_brief(
+        "## Image 1: a\nPROMPT START\nx\nPROMPT END\n"
+        "## Image 2: b\nCONTINUE: a\nPROMPT START\ny\nPROMPT END\n")
+    assert [im.get("continue") for im in md] == [None, "a"]
+
+
+def test_continue_reopens_the_parent_chat_and_excludes_its_image(tmp_path):
+    ledger = {"a": {"name": "a", "status": "done", "chat_url": "https://chatgpt.com/c/AAA"}}
+    browser = StubBrowser({"b": _done("http://x/new.png", b"NEW")})
+    browser._current = "b"
+    row = ci.process_one(browser, {"name": "b", "prompt": "thinner stroke", "continue": "a"},
+                          tmp_path, tmp_path / "ledger.json", ledger, timeout_s=1)
+    assert row["status"] == "done"
+    assert row["continued_from"] == "a"
+    assert ("open_chat", "https://chatgpt.com/c/AAA") in browser.calls
+    assert ("new_chat",) not in browser.calls
+    assert browser.wait_kwargs[-1] == {"exclude_src": "http://x/previous.png",
+                                       "min_assistant_turns": 2}
+
+
+def test_continue_refuses_a_parent_that_is_not_done(tmp_path):
+    ledger = {"a": {"name": "a", "status": "failed"}}
+    browser = StubBrowser({"b": {}})
+    browser._current = "b"
+    row = ci.process_one(browser, {"name": "b", "prompt": "y", "continue": "a"},
+                          tmp_path, tmp_path / "ledger.json", ledger, timeout_s=1)
+    assert row["status"] == "failed"
+    assert "cannot continue 'a'" in row["note"]
+    assert browser.calls == []  # never touched the page
+
+
+def test_a_chain_of_edits_runs_in_one_batch(tmp_path):
+    images = [{"name": "a", "prompt": "logo"},
+              {"name": "b", "prompt": "bolder", "continue": "a"},
+              {"name": "c", "prompt": "redder", "continue": "b"}]
+    script = {"a": {**_done("http://x/a.png", b"A"), "new_chat_url": "https://chatgpt.com/c/AAA"},
+              "b": _done("http://x/b.png", b"B"),
+              "c": _done("http://x/c.png", b"C")}
+    code, browser = _run(images, script, tmp_path)
+    assert code == 0
+    ledger = ci.load_ledger(tmp_path / "ledger.json")
+    assert [ledger[n]["status"] for n in "abc"] == ["done"] * 3
+    assert ledger["b"]["chat_url"] == ledger["c"]["chat_url"] == "https://chatgpt.com/c/AAA"
+    assert browser.calls.count(("new_chat",)) == 1
+
+
+def test_prompt_mode_needs_a_name(tmp_path, capsys):
+    args = ci.build_parser().parse_args(["--prompt", "x", "--out", str(tmp_path)])
+    assert ci.cmd_run(args) == 2
+    assert "--name" in capsys.readouterr().out
+
+
+def test_recover_saves_the_image_already_in_the_chat(tmp_path):
+    ledger = {"a": {"name": "a", "status": "stopped", "note": "refusal",
+                    "chat_url": "https://chatgpt.com/c/AAA"}}
+    browser = StubBrowser({"a": {"bytes": b"FINISHED"}})
+    browser._current = "a"
+    row = ci.recover_one(browser, "a", tmp_path, tmp_path / "ledger.json", ledger)
+    assert row["status"] == "done"
+    assert (tmp_path / "a.png").read_bytes() == b"FINISHED"
+    assert ("open_chat", "https://chatgpt.com/c/AAA") in browser.calls
+    assert "recovered" in ci.load_ledger(tmp_path / "ledger.json")["a"]["note"]
+
+
+def test_recover_refuses_without_a_chat_url(tmp_path):
+    row = ci.recover_one(StubBrowser({}), "a", tmp_path, tmp_path / "ledger.json", {"a": {"status": "failed"}})
+    assert row["status"] == "failed"
+
+
+def test_a_garbled_first_paste_is_cleared_before_the_retry(tmp_path):
+    browser = StubBrowser({"b": {**_done("http://x/b.png", b"B"), "first_paste_garbled": True}})
+    browser._current = "b"
+    row = ci.process_one(browser, {"name": "b", "prompt": "a long prompt text"}, tmp_path,
+                          tmp_path / "ledger.json", {}, timeout_s=1)
+    assert row["status"] == "done"
+    assert ("clear_composer",) in browser.calls
