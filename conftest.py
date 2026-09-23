@@ -51,8 +51,14 @@ def _clean_session_env(monkeypatch):
     after this fixture runs, which layers on top within the same test's
     monkeypatch stack -- same pattern as _pin_tmux_bin above.
     """
+    # WORK_DIR / WORKER_CTO_ID / WORK_EXPECT_GB (ADR 0030): delegate exports
+    # them into every worker's shell, and flow_shoot / gen_loop / the
+    # media-guard hook change behaviour when they are set — a test run from a
+    # worker must not inherit them (26 runner tests failed that way,
+    # 2026-09-23). Tests that need them set them with monkeypatch.
     for var in ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE",
-                "CTO_SESSION", "CXO_SESSION", "ORG_DB_URL"):
+                "CTO_SESSION", "CXO_SESSION", "ORG_DB_URL",
+                "WORK_DIR", "WORKER_CTO_ID", "WORK_EXPECT_GB"):
         monkeypatch.delenv(var, raising=False)
 
 

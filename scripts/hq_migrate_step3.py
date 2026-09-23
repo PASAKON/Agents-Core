@@ -165,10 +165,23 @@ def rewrite_plist_paths(plist_path: Path, mapping: dict[str, str], ts: str, m: M
     m.add(op="plist_backup", from_=str(plist_path), to=str(backup))
     tmp = plist_path.with_suffix(plist_path.suffix + ".tmp")
     tmp.write_text(text)
-    lint = _run(["plutil", "-lint", str(tmp)])
-    if lint.returncode != 0:
+    if shutil.which("plutil"):
+        lint = _run(["plutil", "-lint", str(tmp)])
+        lint_ok, lint_msg = lint.returncode == 0, f"{lint.stdout}{lint.stderr}"
+    else:
+        # No plutil (Linux CI runner): parse with plistlib instead, so the
+        # tests exercise the same rewrite on every platform. On the Mac,
+        # where this actually runs, plutil is always present.
+        import plistlib
+        try:
+            with open(tmp, "rb") as fh:
+                plistlib.load(fh)
+            lint_ok, lint_msg = True, ""
+        except Exception as e:  # noqa: BLE001 — any parse failure = invalid plist
+            lint_ok, lint_msg = False, repr(e)
+    if not lint_ok:
         tmp.unlink(missing_ok=True)
-        raise RuntimeError(f"plutil -lint failed for {plist_path}: {lint.stdout}{lint.stderr}")
+        raise RuntimeError(f"plist lint failed for {plist_path}: {lint_msg}")
     shutil.move(str(tmp), str(plist_path))
     m.add(op="plist_edit", path=str(plist_path))
     m.note(f"plist rewritten: {plist_path}")
