@@ -28,6 +28,8 @@ from lib.config import (
     worker_session_name as get_worker_session_name,
 )
 from lib.notify import info, success, error, warn
+from tools import disk_queue
+from tools import send_to_cto
 from tools import storage_policy
 from tools import tmux_session as tmux
 from tools import workdir
@@ -1271,10 +1273,29 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     free_gb = _free_gb()
     orange_gb = _disk_orange_floor_gb()
     if disk_floor_applies and free_gb < orange_gb:
+        # ADR 0030 §D / task-dbe47b9b (CEO 2026-09-23: "สั่งเป็นกฎอย่างเดียว
+        # ไม่ได้ ต้องทำระบบเข้าคิวไว้ด้วย รันตามคิว"): a refused spawn no
+        # longer just dies here — it joins tools/disk_queue.py's FIFO queue
+        # (state/disk_queue.jsonl) and runners/watchdog.py's scan_once drains
+        # it, oldest first, one per tick, once free space clears
+        # gauge.orange + 1 GB. Status is left exactly as it was (pending),
+        # matching the pre-queue behaviour this branch already had.
+        ahead = disk_queue.enqueue(task_id, task.get("owner_cto"))
         msg = (f"disk red: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
-               f"— spawn refused (ADR 0030)")
+               f"— spawn refused (ADR 0030) — queued for disk ({ahead} ahead)")
         warn(f"disk floor blocked task={task_id}: {msg}")
         db.set_fields(task_id, delegate_log=msg, actor="cto")
+        try:
+            send_to_cto.send(
+                task_id,
+                f"queued for disk ({ahead} ahead) — {free_gb:.1f} GB free, "
+                f"needs {orange_gb:.1f} GB. Will spawn automatically once "
+                f"space clears.",
+                role=task.get("role"), cto_id=task.get("owner_cto"),
+                owner_role=task.get("owner_role") or "cto",
+            )
+        except Exception as e:  # never let a mailbox failure break the refusal
+            warn(f"disk queue: notify owner failed task={task_id}: {e}")
         return db.get_task(task_id)
 
     role_name = task["role"]

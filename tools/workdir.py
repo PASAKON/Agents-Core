@@ -284,15 +284,40 @@ def close(task_id: str, *, dry_run: bool = False,
 
 # -------------------------------------------------------------------- orphans
 
+def _abandon_days() -> float:
+    """`work_dir.abandon_days` from config/storage-policy.yaml (ADR 0030 §D,
+    task-dbe47b9b) — how long an orphaned folder sits with its alert/LungNote
+    to-do open before it counts as a disk-hygiene Green candidate. Same
+    minimal direct-YAML-read pattern as `_default_root()` above, for the same
+    reason (a test fixture's minimal policy file may declare only `work_dir`,
+    which the full `tools.storage_policy` loader would reject)."""
+    try:
+        data = yaml.safe_load(STORAGE_POLICY.read_text()) or {}
+    except (OSError, yaml.YAMLError):
+        data = {}
+    try:
+        return float((data.get("work_dir") or {}).get("abandon_days", 14))
+    except (TypeError, ValueError):
+        return 14.0
+
+
 def orphans(db: str | Path, *, root: str | Path | None = None,
             now: datetime | None = None) -> list[dict]:
     """Work/ folders whose task is done/merged/cancelled/failed or absent
     from `db` (a tasks.db sqlite path) — rule 8. Read-only; never touches a
     folder. Flags any folder whose task's updated_at is > 24h old, or whose
     task id isn't in `db` at all (nothing to measure age from, so it is
-    always flagged)."""
+    always flagged).
+
+    Each result also carries `green` (task-dbe47b9b, ADR 0030 §D): True once
+    `age_hours` clears `work_dir.abandon_days` (default 14) worth of hours —
+    a disk-hygiene Green *candidate* only (`tools/work_watch.py` logs it,
+    `workdir.py orphans --green` lists it); this function never deletes
+    anything, and a folder with no measurable age (task id absent from `db`)
+    is conservatively never Green — there is no timestamp to judge it by."""
     root_dir = _resolve_root(root)
     now = now or datetime.now(timezone.utc)
+    abandon_hours = _abandon_days() * 24
 
     status_by_id: dict[str, str] = {}
     updated_by_id: dict[str, str] = {}
@@ -338,6 +363,7 @@ def orphans(db: str | Path, *, root: str | Path | None = None,
             "updated_at": updated_at,
             "age_hours": age_hours,
             "flagged": age_hours is None or age_hours > 24,
+            "green": age_hours is not None and age_hours >= abandon_hours,
         })
 
     return results
@@ -372,6 +398,10 @@ def _cli(argv: list[str]) -> int:
     p_orphans.add_argument("--db", default=None,
                            help="tasks.db path (default state/tasks.db)")
     p_orphans.add_argument("--root", default=None)
+    p_orphans.add_argument("--green", action="store_true",
+                           help="only list disk-hygiene Green candidates "
+                                "(work_dir.abandon_days elapsed) — never "
+                                "deletes; archive via `workdir.py close --archive`")
 
     args = parser.parse_args(argv)
 
@@ -396,7 +426,10 @@ def _cli(argv: list[str]) -> int:
 
     if args.cmd == "orphans":
         db_path = args.db or str(ROOT / "state" / "tasks.db")
-        _print_json(orphans(db_path, root=args.root))
+        results = orphans(db_path, root=args.root)
+        if args.green:
+            results = [r for r in results if r.get("green")]
+        _print_json(results)
         return 0
 
     return 1
