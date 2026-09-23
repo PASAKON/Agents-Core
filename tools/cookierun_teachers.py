@@ -131,6 +131,28 @@ def b64(path: Path) -> str:
     return base64.b64encode(path.read_bytes()).decode()
 
 
+def mime(path: Path) -> str:
+    return "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
+
+
+def image_parts(item: dict, style: str) -> list:
+    """The pictures of one question, in order. `ref` (optional) is the bot's own
+    template -- a small crop of the element it looks for -- shown first, so a
+    teacher can check ANY screen without a hand-written description of it."""
+    pics = ([("Image 1 (reference):", GOLD / item["ref"])] if item.get("ref") else []) + \
+           [(("Image 2 (screenshot):" if item.get("ref") else ""), GOLD / item["image"])]
+    out = []
+    for label, path in pics:
+        if label:
+            out.append({"type": "text", "text": label})
+        if style == "openai":
+            out.append({"type": "image_url", "image_url": {"url": f"data:{mime(path)};base64,{b64(path)}"}})
+        else:
+            out.append({"type": "image", "source": {"type": "base64", "media_type": mime(path),
+                                                    "data": b64(path)}})
+    return out
+
+
 # ---------------------------------------------------------------- gold set
 def cmd_build_gold(_a) -> int:
     import cv2
@@ -175,6 +197,29 @@ def cmd_build_gold(_a) -> int:
     return 0
 
 
+# Which of the bot's templates stands for each labelled screen (config.json).
+TEMPLATE_OF = {"lobby": "play_button", "result": "result_showoff", "mystery": "mystery",
+               "card_tries": "card_tries", "showoff_list": "showoff_list",
+               "playerprofile": "playerprofile", "launcher": "launcher", "in_run": "anchor",
+               "boost": "boost", "ad": "bluestacks_prime_ad"}
+
+
+def bot_templates() -> dict:
+    """config screen name -> template path relative to GOLD (copied from winbox)."""
+    cfg = json.loads((GOLD / "config.json").read_text(encoding="utf-8"))
+    out = {s["name"]: s["template"] for s in cfg["screens"]}
+    out["anchor"] = cfg["anchor"]["template"]
+    return out
+
+
+def ref_question(name: str) -> str:
+    nice = name.replace("_", " ")
+    return (f"Image 1 is a small reference picture the bot uses to recognise the '{nice}' screen "
+            f"of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the "
+            f"'{nice}' screen. Does image 2 contain the element shown in image 1, as a real "
+            f"on-screen element (not hidden or covered)?")
+
+
 def gold_items() -> list[dict]:
     return [json.loads(l) for l in (GOLD / "gold.jsonl").read_text().splitlines() if l.strip()]
 
@@ -198,9 +243,7 @@ class OpenRouterTeacher:
         body = {"model": self.model, "max_tokens": 400, "usage": {"include": True},
                 "messages": [{"role": "system", "content": SYSTEM},
                              {"role": "user", "content": [
-                                 {"type": "text", "text": item["question"]},
-                                 {"type": "image_url", "image_url": {
-                                     "url": "data:image/jpeg;base64," + b64(GOLD / item["image"])}}]}],
+                                 {"type": "text", "text": item["question"]}] + image_parts(item, "openai")}],
                 **self.PARAMS.get(self.model, {})}
         # 429 is the provider's own rate limit (7 of 186 qwen calls at 8
         # threads, 2026-09-23) -- a pause and a retry, not a wrong answer.
@@ -247,9 +290,7 @@ def ask_sonnet(item: dict) -> dict:
     if spent >= SONNET_DAY_USD:
         return {"answer": "SKIPPED", "why": f"Sonnet day cap ${SONNET_DAY_USD} reached (spent ${spent:.4f})"}
     msg = {"type": "user", "message": {"role": "user", "content": [
-        {"type": "text", "text": item["question"]},
-        {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
-                                     "data": b64(GOLD / item["image"])}}]}}
+        {"type": "text", "text": item["question"]}] + image_parts(item, "anthropic")}}
     cmd = ["claude", "-p", "--model", T3, "--input-format", "stream-json",
            "--output-format", "stream-json", "--verbose", "--system-prompt", SYSTEM_T3,
            "--tools", "", "--strict-mcp-config", "--setting-sources", "",
@@ -421,11 +462,11 @@ def human_payload(r: dict) -> dict:
     """The last rung: one question in the CEO's existing review queue
     (vision/ask_human.py on winbox, kind 'verify'). He answers YES/NO and
     writes WHY in the note box; the reason is what improves the questions."""
-    votes = [f"T1 {r['t1']['answer']}", f"T2 {r['t2']['answer']}"]
+    votes = [f"{k.upper()} {r[k]['answer']}" for k in ("t1", "t2") if r.get(k)]
     if r.get("t3"):
         votes.append(f"T3 {r['t3']['answer']} ({(r['t3'].get('text') or '').splitlines()[-1][:120]})")
     return {"kind": "verify",
-            "prompt": (f"{r['question']}\nครูตอบ: {' · '.join(votes)}\n"
+            "prompt": (f"{r['question']}\nครูตอบ: {' · '.join(votes) or '(ยังไม่มีคำอธิบายหน้านี้ ครูเลยถามไม่ได้)'}\n"
                        "ตอบ ใช่/ไม่ใช่ แล้วพิมพ์เหตุผลในช่องหมายเหตุ (ใช่ เพราะ… / ไม่ใช่ เพราะ…)"),
             "choices": [{"k": "yes", "label": "ใช่"}, {"k": "no", "label": "ไม่ใช่"}],
             "image": r["image"], "src": {"from": "teacher_ladder", "item": r["id"]}}
@@ -433,11 +474,14 @@ def human_payload(r: dict) -> dict:
 
 def cmd_human_push(a) -> int:
     d = json.loads(Path(a.file).read_text())
-    todo = [r for r in d["rows"] if r.get("label") == "HUMAN"]
+    return push_human([r for r in d["rows"] if r.get("label") == "HUMAN"], a.dry_run)
+
+
+def push_human(todo: list[dict], dry_run: bool) -> int:
     print(f"{len(todo)} item(s) need the human rung")
     for r in todo:
         pl = human_payload(r)
-        if a.dry_run:
+        if dry_run:
             print(json.dumps(pl, ensure_ascii=False)[:400])
             continue
         remote_img = f"{WINBOX_BOT}/label_review/teacher/{Path(r['image']).name}"
@@ -457,6 +501,184 @@ def cmd_human_push(a) -> int:
     return 0
 
 
+def cmd_ab_ref(a) -> int:
+    """Same gold screen questions, asked the generic way: the bot's own template
+    as image 1 instead of a hand-written description. If this holds up, the
+    daily loop can check any of the 39 screens without writing 39 descriptions."""
+    key = load_key()
+    spend = {"usd": 0.0, "lock": threading.Lock()}
+    tpl = bot_templates()
+    items = []
+    for i in gold_items():
+        if i["kind"] != "screen":
+            continue
+        cfg_name = TEMPLATE_OF[i["guess"]]
+        items.append({**i, "id": i["id"] + "-ref", "ref": tpl[cfg_name], "question": ref_question(cfg_name)})
+    teachers = {m: OpenRouterTeacher(m, key, spend) for m in (T1, T2)}
+    rows = {i["id"]: dict(i) for i in items}
+    with cf.ThreadPoolExecutor(6) as ex:
+        futs = {ex.submit(teachers[m].ask, i): (i["id"], m) for i in items for m in (T1, T2)}
+        for f in cf.as_completed(futs):
+            iid, m = futs[f]
+            rows[iid]["t1" if m == T1 else "t2"] = f.result()
+    splits = [r for r in rows.values() if not (r["t1"]["answer"] in ("YES", "NO")
+                                               and r["t1"]["answer"] == r["t2"]["answer"])]
+    for r in splits[:a.t3_max]:
+        r["t3"] = ask_sonnet(r)
+    for r in rows.values():
+        r["label"], r["how"] = verdict(r["t1"]["answer"], r["t2"]["answer"],
+                                       (r.get("t3") or {}).get("answer"))
+    out = STATE / f"abref-{time.strftime('%Y%m%d-%H%M%S')}.json"
+    STATE.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "t1": T1, "t2": T2, "t3": T3,
+                               "openrouter_usd": spend["usd"], "rows": list(rows.values())}, indent=1))
+    print(f"-> {out}")
+    report(out)
+    return 0
+
+# ---------------------------------------------------------------- daily loop
+# Descriptions the teachers check a guess against, keyed by config screen name.
+# Seeded from what was labelled by eye 2026-09-23; the human rung's reasons are
+# how the rest get written ("ใช่ เพราะ…" is a description). A guess with no
+# description goes straight to the human rung -- asking a teacher to compare the
+# bot's own template instead was measured and failed: the boost template (the
+# teal panel frame) is also in the lobby, so both teachers said YES on 14 of 14
+# lobby frames (abref run, 2026-09-23, 118/136 vs 186/186 with descriptions).
+SEED_DESC = {"play_button": SCREENS["lobby"], "result": SCREENS["result"],
+             "result_showoff": SCREENS["result"], "mystery": SCREENS["mystery"],
+             "card_tries": SCREENS["card_tries"], "card": SCREENS["card_tries"],
+             "showoff_list": SCREENS["showoff_list"], "playerprofile": SCREENS["playerprofile"],
+             "launcher": SCREENS["launcher"], "anchor": SCREENS["in_run"], "boost": SCREENS["boost"],
+             "bluestacks_prime_ad": SCREENS["ad"],
+             "congrats": "a 'Congratulations!' reward panel over the game with a green 'Confirm' button"}
+OR_DAY_USD = float(os.environ.get("TEACHER_OR_DAY_USD", "0.05"))
+WIN_COLLECT = "C:/mooniex/pclease/cookierun_teacher_collect.py"
+WIN_PY = "C:/Users/UsEr/cookierun-bot/.venv/Scripts/python.exe"
+
+
+def descriptions() -> dict:
+    p = GOLD / "screen_descriptions.json"
+    if not p.exists():
+        p.write_text(json.dumps(SEED_DESC, indent=1, ensure_ascii=False), encoding="utf-8")
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+def or_spent_today() -> float:
+    p = STATE / "or_ledger.jsonl"
+    day = datetime.now().strftime("%Y-%m-%d")
+    if not p.exists():
+        return 0.0
+    return sum(json.loads(l)["usd"] for l in p.read_text().splitlines()
+               if l.strip() and json.loads(l).get("day") == day)
+
+
+def lungnote_todo(text: str) -> None:
+    """Fail-open: the report file is the record; LungNote is the nudge."""
+    try:
+        env = dict(os.environ, LUNGNOTE_MCP_NODE=os.environ.get("LUNGNOTE_MCP_NODE", "/opt/node-v22/bin/node"))
+        subprocess.run(["python3", str(ROOT / "scripts" / "lib" / "mcp_call.py"), "--server", "lungnote",
+                        "--root", str(ROOT), "--tool", "add_todo", "--args", json.dumps({"text": text})],
+                       capture_output=True, text=True, timeout=60, env=env)
+    except Exception:
+        pass
+
+
+def cmd_daily(a) -> int:
+    global OR_RUN_USD
+    STATE.mkdir(parents=True, exist_ok=True)
+    wm_file = STATE / "daily_watermark"
+    since = a.since or (float(wm_file.read_text()) if wm_file.exists() else time.time() - 86400)
+    started = time.time()
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    # 1. winbox keeps only the frames that were a real problem, packs them
+    subprocess.run(["scp", "-q", str(ROOT / "windows" / "cookierun_teacher_collect.py"),
+                    f"winbox:{WIN_COLLECT}"], check=True)
+    remote_out = f"C:/mooniex/pclease/teach_{stamp}"
+    settled = f" {a.settled_s}" if a.settled_s is not None else ""
+    r = subprocess.run(["ssh", "winbox", f"{WIN_PY} {WIN_COLLECT} {since:.0f} {remote_out}{settled}"],
+                       capture_output=True, text=True, timeout=600)
+    info = json.loads((r.stdout.strip().splitlines() or ["{}"])[-1])
+    print(f"collect since {datetime.fromtimestamp(since):%m-%d %H:%M}: {info}")
+    day_dir = GOLD / "daily" / stamp
+    day_dir.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["scp", "-q", f"winbox:{remote_out}.zip", str(day_dir / "pack.zip")], check=True)
+    import zipfile
+    zipfile.ZipFile(day_dir / "pack.zip").extractall(day_dir)
+    (day_dir / "pack.zip").unlink()
+    # our own temp pack on winbox: gone once it is here
+    win = remote_out.replace("/", "\\")
+    subprocess.run(["ssh", "winbox", f'rmdir /s /q "{win}" & del /q "{win}.zip"'], capture_output=True)
+    manifest = json.loads((day_dir / "manifest.json").read_text())
+    # 2. one YES/NO question per frame: "is the bot's best guess right?"
+    desc = descriptions()
+    items, no_desc = [], []
+    for m in manifest:
+        top = (m.get("top") or [{}])[0]
+        guess = top.get("name") or "unknown"
+        base = {"id": f"D-{m['frame'][:-4]}", "kind": "screen", "image": f"daily/{stamp}/{m['frame']}",
+                "guess": guess, "score": top.get("score"), "threshold": top.get("threshold"),
+                "resolved_s": m.get("resolved_s"), "restart_followed": m.get("restart_followed")}
+        if guess in desc:
+            items.append({**base, "question": f"The bot thinks this is {desc[guess]}. Is that right?"})
+        else:
+            no_desc.append({**base, "label": "HUMAN", "how": "no description for this screen yet",
+                            "question": (f"บอทจำหน้านี้ไม่ได้ เดาว่าเป็นหน้า '{guess}' (คะแนน "
+                                         f"{top.get('score')} เกณฑ์ {top.get('threshold')}). ใช่หน้านี้ไหม?")})
+    # 3. the ladder, under today's OpenRouter cap
+    OR_RUN_USD = min(OR_RUN_USD, max(0.0, OR_DAY_USD - or_spent_today()))
+    spend = {"usd": 0.0, "lock": threading.Lock()}
+    key = load_key() if items else ""
+    teachers = {m: OpenRouterTeacher(m, key, spend) for m in (T1, T2)} if items else {}
+    for it in items:
+        it["t1"], it["t2"] = teachers[T1].ask(it), teachers[T2].ask(it)
+        if not (it["t1"]["answer"] in ("YES", "NO") and it["t1"]["answer"] == it["t2"]["answer"]):
+            it["t3"] = ask_sonnet(it)
+        it["label"], it["how"] = verdict(it["t1"]["answer"], it["t2"]["answer"],
+                                         (it.get("t3") or {}).get("answer"))
+    with (STATE / "or_ledger.jsonl").open("a") as fh:
+        fh.write(json.dumps({"day": datetime.now().strftime("%Y-%m-%d"), "t": time.time(),
+                             "run": stamp, "usd": spend["usd"]}) + "\n")
+    rows = items + no_desc
+    # 4. what it means for the bot
+    missed = {}
+    for r in rows:
+        if r["label"] == "YES":
+            e = missed.setdefault(r["guess"], {"n": 0, "scores": [], "threshold": r["threshold"]})
+            e["n"] += 1
+            e["scores"].append(r["score"])
+    proposals = [f"{g}: on screen but scored {min(e['scores'])}-{max(e['scores'])} under its threshold "
+                 f"{e['threshold']} on {e['n']} frame(s) -> recut the template or lower the threshold"
+                 for g, e in missed.items()]
+    human = [r for r in rows if r["label"] in ("HUMAN", "NO")]
+    for r in human:
+        if r["label"] == "NO":
+            r["question"] = (f"ครูบอกว่าไม่ใช่หน้า '{r['guess']}'. นี่คือหน้าอะไร และบอทควรกดอะไร? "
+                             f"(ตอบ ใช่ = บอทเดาถูก / ไม่ใช่ = เดาผิด แล้วพิมพ์ชื่อหน้า+ปุ่มที่ควรกด)")
+    with (GOLD / "labels.jsonl").open("a") as fh:
+        for r in rows:
+            if r["label"] in ("YES", "NO"):
+                fh.write(json.dumps({"image": r["image"], "guess": r["guess"], "label": r["label"],
+                                     "how": r["how"], "run": stamp}) + "\n")
+    report = {"run": stamp, "since": since, "collected": info, "openrouter_usd": spend["usd"],
+              "sonnet_today_usd": sonnet_spent_today(), "proposals": proposals,
+              "human": [r["id"] for r in human], "rows": rows}
+    (STATE / f"daily-{stamp}.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
+    print(f"frames {len(manifest)} (dropped as settled {info.get('dropped_as_settled')}); "
+          f"labelled {len(items)}; human {len(human)}; openrouter ${spend['usd']:.6f}")
+    for pr in proposals:
+        print("  PROPOSAL", pr)
+    # 5. the human rung, and a nudge only when there is something to act on
+    if human:
+        push_human(human, a.dry_run)
+    if (proposals or human) and not a.dry_run:
+        lungnote_todo(f"[SID:cookierun-teachers] Cookie Run teacher loop {stamp}: "
+                      f"{len(proposals)} bot fix(es) proposed, {len(human)} screen(s) for your review in "
+                      f"the ask_human page - report state/cookierun_teachers/daily-{stamp}.json")
+    if not a.dry_run:
+        wm_file.write_text(f"{started:.0f}")
+    return 0
+
+
 def cmd_report(a) -> int:
     runs = sorted(STATE.glob("ab-*.json"))
     report(Path(a.file) if a.file else runs[-1])
@@ -471,6 +693,12 @@ def main() -> int:
     p = sp.add_parser("ab")
     p.add_argument("--limit", type=int, default=0)
     p.add_argument("--t3-max", type=int, default=40)
+    p = sp.add_parser("daily")
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--since", type=float, help="epoch; default = last run's watermark")
+    p.add_argument("--settled-s", type=float, help="override the collector's settled window (tests)")
+    p = sp.add_parser("ab-ref")
+    p.add_argument("--t3-max", type=int, default=10)
     p = sp.add_parser("human-push")
     p.add_argument("file")
     p.add_argument("--dry-run", action="store_true")
@@ -481,7 +709,8 @@ def main() -> int:
     a = ap.parse_args()
     return {"build-gold": cmd_build_gold, "smoke": cmd_smoke, "ab": cmd_ab,
             "report": cmd_report, "candidates": cmd_candidates,
-            "human-push": cmd_human_push}[a.verb](a)
+            "human-push": cmd_human_push, "ab-ref": cmd_ab_ref,
+            "daily": cmd_daily}[a.verb](a)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,4229 @@
+{
+ "at": "2026-09-23T17:57:28+0200",
+ "t1": "google/gemma-4-26b-a4b-it",
+ "t2": "qwen/qwen3.7-flash",
+ "t3": "claude-sonnet-5",
+ "openrouter_usd": 0.010256782000000013,
+ "rows": [
+  {
+   "id": "S-20260923-055325-lobby-ref",
+   "kind": "screen",
+   "image": "frames/20260923-055325.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2054,
+    "tok_in": 705,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3317,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260923-055325-boost-ref",
+   "kind": "screen",
+   "image": "frames/20260923-055325.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 5129,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 5573,
+    "tok_in": 703,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 2.9966e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055324-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055324.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 865,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.038e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3358,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055324-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055324.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3276,
+    "tok_in": 703,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 2.9966e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 4284,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055316-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055316.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1390,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.686e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3837,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055316-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055316.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2353,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3087,
+    "tok_in": 703,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 2.9966e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nImage 2 shows the Episode/Leaderboard screen with a Shop icon in a different layout, not the boost screen's Shop/diamond/red-arrow banner element from image 1.",
+    "ms": 4486,
+    "cost": 0.005696,
+    "tok_in": 1260,
+    "tok_out": 66
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-065855-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-065855.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1246,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.686e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2666,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065855-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-065855.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 404,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.984e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3163,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nImage 2 shows the leaderboard/rankings screen with Friends/League/Cookies tabs and Play button, not the boost screen with a red arrow marker as in the reference.",
+    "ms": 7106,
+    "cost": 0.008646000000000001,
+    "tok_in": 1260,
+    "tok_out": 361
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-20260923-065912-lobby-ref",
+   "kind": "screen",
+   "image": "frames/20260923-065912.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2155,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 4420,
+    "tok_in": 705,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260923-065912-boost-ref",
+   "kind": "screen",
+   "image": "frames/20260923-065912.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 815,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.984e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2176,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055331-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055331.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2471,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 4291,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055331-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055331.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2181,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.681e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3025,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055406-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055406.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1140,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.018e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3247,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055406-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055406.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1620,
+    "tok_in": 656,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 9.96e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3453,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065845-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-065845.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2802,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2590,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065845-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-065845.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1071,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2426,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nImage 2 shows the main menu/leaderboard screen with \"Play!\" button, not the boost screen with the red arrow icon from image 1.",
+    "ms": 4006,
+    "cost": 0.005546,
+    "tok_in": 1260,
+    "tok_out": 51
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-055350-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055350.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2010,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.686e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3166,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055350-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055350.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1339,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3204,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055334-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055334.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2709,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2450,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055334-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-055334.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 852,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3085,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070435-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-070435.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2505,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3008,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070435-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-070435.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1103,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3607,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nImage 2 is a leaderboard/friends screen with Shop button styled differently and no matching red-flag/boost icon combo from image 1.",
+    "ms": 4121,
+    "cost": 0.005546,
+    "tok_in": 1260,
+    "tok_out": 51
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-070011-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-070011.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2437,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3780,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070011-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-070011.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 895,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 4288,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-045434-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-045434.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 672,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.074e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1858,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-045434-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-045434.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2091,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 8142,
+    "tok_in": 703,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 2.9966e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-112736-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-112736.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 947,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.764e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3479,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-112736-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-112736.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 4059,
+    "tok_in": 703,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 2.9966e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2734,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070936-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-070936.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1579,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.764e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2018,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070936-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-070936.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2582,
+    "tok_in": 703,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 2.9966e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1981,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-073413-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-073413.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1377,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.764e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1736,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-073413-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-073413.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1849,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.894e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2053,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nImage 2 is a \"Result\" screen, not a \"Mystery Box\" banner like in the reference.",
+    "ms": 4169,
+    "cost": 0.00583,
+    "tok_in": 1366,
+    "tok_out": 37
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-072427-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-072427.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1855,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2195,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-072427-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-072427.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1300,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.134e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2457,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070932-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-070932.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1629,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2535,
+    "tok_in": 707,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.0134e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070932-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-070932.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3279,
+    "tok_in": 703,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 2.9966e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3055,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-071729-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-071729.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1959,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.764e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1568,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-071729-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-071729.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1438,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.134e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2887,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nImage 2 is a \"Result\" screen with coins/XP breakdown, not a \"Mystery Box\" banner screen.",
+    "ms": 4689,
+    "cost": 0.005892,
+    "tok_in": 1364,
+    "tok_out": 44
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-115748-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-115748.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1661,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2491,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-115748-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-115748.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1240,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.162e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1995,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-071723-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-071723.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2721,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2147,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-071723-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-071723.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 695,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.134e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1748,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nImage 2 is a \"Result\" screen showing rewards from a stage, not a \"Mystery Box\" screen banner.",
+    "ms": 4036,
+    "cost": 0.00589,
+    "tok_in": 1366,
+    "tok_out": 43
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-073421-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-073421.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2028,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2228,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-073421-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-073421.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 609,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.134e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2210,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-072920-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-072920.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1558,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2341,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-072920-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-072920.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1783,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.894e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3344,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nImage 2 shows a \"Result\" screen with stage rewards, not a \"Mystery Box\" banner titled screen as in the reference.",
+    "ms": 6175,
+    "cost": 0.00594,
+    "tok_in": 1366,
+    "tok_out": 48
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-065409-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-065409.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1751,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.764e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1995,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065409-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-065409.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 982,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3782,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nImage 2 is a \"Result\" screen with a stage completion summary, not a \"Mystery Box\" banner screen.",
+    "ms": 5641,
+    "cost": 0.00588,
+    "tok_in": 1366,
+    "tok_out": 42
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-074539-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-074539.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2174,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.134e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3160,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-074539-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-074539.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 5026,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3394,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-232100-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-232100.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 868,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.894e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1721,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-232100-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-232100.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1355,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2334,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-224219-mystery-ref",
+   "kind": "screen",
+   "image": "frames/20260921-224219.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 944,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2095,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-224219-result-ref",
+   "kind": "screen",
+   "image": "frames/20260921-224219.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1512,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1913,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-105015-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-105015.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 897,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3912,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-105015-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-105015.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1599,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.764e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2666,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-221137-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-221137.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 838,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1845,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-221137-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-221137.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1658,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1582,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-091002-mystery-ref",
+   "kind": "screen",
+   "image": "frames/20260921-091002.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1171,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2743,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-091002-result-ref",
+   "kind": "screen",
+   "image": "frames/20260921-091002.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1812,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3004,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-042414-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-042414.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1572,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2560,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-042414-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-042414.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1648,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1491,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-110144-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-110144.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1267,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2696,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-110144-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-110144.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1444,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1909,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.764e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-110609-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-110609.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 901,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1626,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-110609-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-110609.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2112,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.764e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1785,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-074049-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-074049.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1355,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 5144,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-074049-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-074049.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1596,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2691,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-042411-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-042411.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1515,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3099,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-042411-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-042411.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1424,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2308,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065833-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-065833.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 787,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2002,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065833-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-065833.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1838,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1912,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-224717-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/dialog-224717.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2299,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3404,
+    "tok_in": 705,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-224717-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-224717.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1023,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2994,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-224714-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/dialog-224714.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2580,
+    "tok_in": 705,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3923,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-224714-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-224714.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 827,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3003,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234055-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/dialog-234055.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 593,
+    "tok_in": 671,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.092e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2380,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234055-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-234055.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1348,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2560,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-100747-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/20260921-100747.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1015,
+    "tok_in": 671,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.092e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1457,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-100747-mystery-ref",
+   "kind": "screen",
+   "image": "frames/20260921-100747.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 875,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2129,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234014-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/dialog-234014.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 752,
+    "tok_in": 674,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 0.0001023
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2149,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234014-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-234014.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 919,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1764,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-231504-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/dialog-231504.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 818,
+    "tok_in": 670,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.76e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3113,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-231504-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-231504.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1370,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2429,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-100745-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/dialog-100745.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1218,
+    "tok_in": 671,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.092e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2763,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-100745-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-100745.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 865,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1694,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-234034-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/20260921-234034.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1848,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3558,
+    "tok_in": 705,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-234034-mystery-ref",
+   "kind": "screen",
+   "image": "frames/20260921-234034.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1422,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1632,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-224711-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/dialog-224711.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1970,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 4129,
+    "tok_in": 705,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-224711-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-224711.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 779,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2933,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234011-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/dialog-234011.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1512,
+    "tok_in": 671,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.803e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1638,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234011-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-234011.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 854,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3171,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-100741-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/dialog-100741.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1644,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3672,
+    "tok_in": 705,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-100741-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-100741.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 964,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2814,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234020-card_tries-ref",
+   "kind": "screen",
+   "image": "frames/dialog-234020.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'card tries' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'card tries' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_card_tries.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2171,
+    "tok_in": 705,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2610,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234020-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-234020.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1286,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2250,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114914-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-114914.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2087,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.686e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3146,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114914-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-114914.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1240,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.937e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2392,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-221414-lobby-ref",
+   "kind": "screen",
+   "image": "frames/20260921-221414.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3070,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3354,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-221414-boost-ref",
+   "kind": "screen",
+   "image": "frames/20260921-221414.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 843,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3320,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nImage 2 shows the standard main/lobby screen (Episode, Play button, leaderboard) with no star/skull \"boost\" banner or red flag icon like in the reference image.",
+    "ms": 5557,
+    "cost": 0.005656,
+    "tok_in": 1260,
+    "tok_out": 62
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-230612-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-230612.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1805,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2112,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-230612-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-230612.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 888,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1893,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114821-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-114821.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1938,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2084,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114821-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-114821.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 859,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2953,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-114838-lobby-ref",
+   "kind": "screen",
+   "image": "frames/20260921-114838.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2687,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2469,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-114838-boost-ref",
+   "kind": "screen",
+   "image": "frames/20260921-114838.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 759,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2469,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-114904-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-114904.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2787,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 8.686e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2885,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114904-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-114904.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1230,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2007,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114920-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-114920.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1857,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1842,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114920-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-114920.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1192,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2599,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-230602-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-230602.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2567,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3204,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-230602-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-230602.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 899,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2890,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-221407-lobby-ref",
+   "kind": "screen",
+   "image": "frames/20260921-221407.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2870,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3278,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-221407-boost-ref",
+   "kind": "screen",
+   "image": "frames/20260921-221407.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 716,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2858,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-114827-lobby-ref",
+   "kind": "screen",
+   "image": "frames/20260921-114827.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2863,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3655,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-114827-boost-ref",
+   "kind": "screen",
+   "image": "frames/20260921-114827.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 862,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3271,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-221416-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-221416.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2459,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2640,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-221416-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-221416.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 820,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2618,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-075112-showoff_list-ref",
+   "kind": "screen",
+   "image": "frames/dialog-075112.jpg",
+   "truth_screen": "showoff_list",
+   "guess": "showoff_list",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'showoff list' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'showoff list' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_showoff_list.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1741,
+    "tok_in": 707,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.0134e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1855,
+    "tok_in": 574,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.748e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-075112-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-075112.jpg",
+   "truth_screen": "showoff_list",
+   "guess": "lobby",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1738,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2458,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-221131-showoff_list-ref",
+   "kind": "screen",
+   "image": "frames/20260921-221131.jpg",
+   "truth_screen": "showoff_list",
+   "guess": "showoff_list",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'showoff list' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'showoff list' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_showoff_list.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1600,
+    "tok_in": 672,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.108e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1896,
+    "tok_in": 574,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.748e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-221131-lobby-ref",
+   "kind": "screen",
+   "image": "frames/20260921-221131.jpg",
+   "truth_screen": "showoff_list",
+   "guess": "lobby",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2422,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3544,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114834-playerprofile-ref",
+   "kind": "screen",
+   "image": "frames/dialog-114834.jpg",
+   "truth_screen": "playerprofile",
+   "guess": "playerprofile",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'playerprofile' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'playerprofile' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_playerprofile.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 466,
+    "tok_in": 676,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.122e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1930,
+    "tok_in": 570,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.736e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114834-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-114834.jpg",
+   "truth_screen": "playerprofile",
+   "guess": "lobby",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1589,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2664,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-114830-playerprofile-ref",
+   "kind": "screen",
+   "image": "frames/20260921-114830.jpg",
+   "truth_screen": "playerprofile",
+   "guess": "playerprofile",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'playerprofile' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'playerprofile' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_playerprofile.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2426,
+    "tok_in": 705,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2065,
+    "tok_in": 570,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.736e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-114830-lobby-ref",
+   "kind": "screen",
+   "image": "frames/20260921-114830.jpg",
+   "truth_screen": "playerprofile",
+   "guess": "lobby",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3125,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2665,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-093854-launcher-ref",
+   "kind": "screen",
+   "image": "frames/dialog-093854.jpg",
+   "truth_screen": "launcher",
+   "guess": "launcher",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'launcher' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'launcher' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/launcher_icon.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1062,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.134e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1442,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-093854-ad-ref",
+   "kind": "screen",
+   "image": "frames/dialog-093854.jpg",
+   "truth_screen": "launcher",
+   "guess": "ad",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'bluestacks prime ad' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'bluestacks prime ad' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_bs_prime.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 522,
+    "tok_in": 686,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.182e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2540,
+    "tok_in": 575,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.751e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-093859-launcher-ref",
+   "kind": "screen",
+   "image": "frames/dialog-093859.jpg",
+   "truth_screen": "launcher",
+   "guess": "launcher",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'launcher' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'launcher' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/launcher_icon.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1974,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 9.572e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2034,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-093859-ad-ref",
+   "kind": "screen",
+   "image": "frames/dialog-093859.jpg",
+   "truth_screen": "launcher",
+   "guess": "ad",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'bluestacks prime ad' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'bluestacks prime ad' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_bs_prime.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1181,
+    "tok_in": 686,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.182e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1822,
+    "tok_in": 575,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.751e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-044737-in_run-ref",
+   "kind": "screen",
+   "image": "frames/dialog-044737.jpg",
+   "truth_screen": "in_run",
+   "guess": "in_run",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'anchor' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'anchor' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/anchor_pause.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1272,
+    "tok_in": 663,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.044e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2423,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-044737-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-044737.jpg",
+   "truth_screen": "in_run",
+   "guess": "lobby",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1874,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 4280,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-072500-boost-ref",
+   "kind": "screen",
+   "image": "frames/dialog-072500.jpg",
+   "truth_screen": "boost",
+   "guess": "boost",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'boost' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'boost' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_boost.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1008,
+    "tok_in": 653,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.465e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3628,
+    "tok_in": 560,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.706e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-072500-lobby-ref",
+   "kind": "screen",
+   "image": "frames/dialog-072500.jpg",
+   "truth_screen": "boost",
+   "guess": "lobby",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'play button' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'play button' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_play.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2655,
+    "tok_in": 662,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.126e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2742,
+    "tok_in": 566,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.724e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-225237-mystery-ref",
+   "kind": "screen",
+   "image": "frames/dialog-225237.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'mystery' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'mystery' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_mystery.png",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 873,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.334e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3069,
+    "tok_in": 584,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.778e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-225237-result-ref",
+   "kind": "screen",
+   "image": "frames/dialog-225237.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'result showoff' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'result showoff' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_result_showoff_ok.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1396,
+    "tok_in": 668,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 6.204e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1599,
+    "tok_in": 576,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.754e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-195334-ad-ref",
+   "kind": "screen",
+   "image": "frames/20260921-195334.jpg",
+   "truth_screen": "ad",
+   "guess": "ad",
+   "truth": true,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'bluestacks prime ad' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'bluestacks prime ad' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/scr_bs_prime.png",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3166,
+    "tok_in": 575,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.751e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 4420,
+    "tok_in": 711,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 3.0302e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-195334-launcher-ref",
+   "kind": "screen",
+   "image": "frames/20260921-195334.jpg",
+   "truth_screen": "ad",
+   "guess": "launcher",
+   "truth": false,
+   "question": "Image 1 is a small reference picture the bot uses to recognise the 'launcher' screen of the game. Image 2 is the current screenshot. The bot thinks image 2 IS the 'launcher' screen. Does image 2 contain the element shown in image 1, as a real on-screen element (not hidden or covered)?",
+   "ref": "templates/launcher_icon.png",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1328,
+    "tok_in": 678,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 4.134e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3066,
+    "tok_in": 564,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.718e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  }
+ ]
+}
