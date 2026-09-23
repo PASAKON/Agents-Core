@@ -110,6 +110,28 @@ id — this skill does not write those layers itself.
    spent (sum of `usage.cost`,
    never an estimate).
 
+## Who decides — CEO ruling 2026-09-23
+
+"ใช้ JEV ตัดสินใจเฉพาะที่ 95% ส่วนอันไหนไม่มั่นใจ ให้ Editor ตัดสินใจแทนไปก่อน".
+Per line and per question:
+
+| Jev's answer | who decides |
+|---|---|
+| confidence ≥ 0.95 **and** the site has a measured safe gate | Jev: the editor applies it as-is |
+| anything else | **the editor**: Jev's answer is shown as a hint only |
+
+Sites without a measured safe gate go to the editor every time, whatever the
+confidence. At the 2026-09-23 eval that is **bl.entry** (a wrong answer at
+1.00) and **bl.beat with the  state**.  has gate 0.95.
+
+**Every editor decision on a flagged line is a new labelled example.** Record the
+editor's final choice next to Jev's answer (a  field in decisions.jsonl) and
+append it to the episode's labels. Re-run  on the growing set every few
+episodes. That is the only way Jev gets better here: it has no memory and no
+training. What improves it is sharper state (computed facts, the line's meaning),
+criteria examples drawn from real, held-out lines, and a gate re-measured on more
+labels. More raw data alone does not help; irrelevant detail measured worse (jev-ops lever 1).
+
 ## Rules
 
 1. **HARD — every `plan`/`eval` run carries its own call ceiling and dollar
@@ -244,3 +266,6 @@ episode are in RUNLOG.md.
 - `.claude/skills/blackliquidity-cut/edl/SCHEMA.md` — the P1-P4 layer format
   `decisions.jsonl` is meant to be mappable into, by the shared line id.
 - `RUNLOG.md` — build progress, the eval-blocked status, measured costs.
+
+## Field notes
+- 2026-09-23 [MISSING] §who decides — the CEO ruled Jev decides only at ≥0.95 on a site with a measured gate; everything else goes to the editor, and editor decisions become new labels · evidence: CEO ruling 2026-09-23 after the eval (bl.beat th 42 %, bl.entry 62.5 %) · status: promoted
