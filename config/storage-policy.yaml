@@ -64,10 +64,13 @@ tiers:
 
 # Per-task work dir. Every download, intermediate and output of a task lives
 # under one folder named by the task id, and the task cannot close while it
-# holds unfiled bytes. Location is a NEW path under HQ → CEO approval first
-# (IRON §54). Until approved, nothing creates it.
+# holds unfiled bytes. APPROVED by the CEO 2026-09-23 ("อนุมัติสร้าง ~/MoonieXHQ/Work/
+# และเขียนกฎอย่างเข้มงวด"); the law is ~/MoonieXHQ/Work/RULES.md, IRON §55.
 work_dir:
-  root: "~/MoonieXHQ/Work"          # PROPOSED 2026-09-23 — not approved, not created
+  root: "~/MoonieXHQ/Work"          # approved + created 2026-09-23 (HQ f7fe47a)
+  rules: "~/MoonieXHQ/Work/RULES.md"
+  big_download_gb: 1                # rule 9: before pulling more than this…
+  keep_free_gb: 10                  # …leave at least this much free, else stop and report
   layout: {in: "downloads + references", tmp: "intermediates", out: "deliverables"}
   on_close:
     tmp: delete
