@@ -19,6 +19,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import os
 import re
@@ -37,6 +38,10 @@ from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
                                close_remote, _chrome_running)
 from runners.branch_poller import remote_pid_alive
 from runners import branch_poller
+from tools import delegate
+from tools import disk_queue
+from tools import send_to_cto
+from tools import work_watch
 from tools.gc_stale_tasks import gc_stale_tasks
 from tools import tmux_session
 
@@ -575,6 +580,64 @@ def _check_remote_stall(t: dict, host_name: str) -> dict | None:
            "host": host_name}
 
 
+# Disk-queue drain headroom above the disk-red floor (ADR 0030 §D,
+# task-dbe47b9b, CEO 2026-09-23): a spawn refused below gauge.orange is
+# queued (tools/disk_queue.py) rather than dropped; this margin is how much
+# free space must return before scan_once tries the oldest queued task
+# again. +1 GB, not exactly `orange`, so a drain doesn't spawn a worker
+# right at the same line that would immediately re-refuse the NEXT one.
+DISK_QUEUE_RESUME_MARGIN_GB = 1.0
+
+
+def _drain_disk_queue() -> dict | None:
+    """Pop and spawn at most ONE queued task per scan_once tick, oldest
+    first, through the same `tools.delegate.delegate_task` path the original
+    spawn attempt used — never several at once (a burst of spawns the moment
+    space returns is exactly the kind of thing that emptied the disk on
+    2026-09-23; the next tick re-measures and drains one more).
+
+    A task cancelled/closed while it waited is dropped from the queue
+    without being spawned (checked here, not just left for `delegate_task`
+    to refuse again) and the scan continues to the next-oldest entry within
+    the SAME tick — only an actual `delegate_task` call counts against the
+    "one per tick" limit, so skipping dead entries first doesn't cost extra
+    ticks. Returns None when nothing was spawned (empty queue, space still
+    below the resume margin, or every queued entry was dead), else a small
+    dict describing what was spawned."""
+    if not disk_queue.all_entries():
+        return None
+    free_gb = delegate._free_gb()
+    orange_gb = delegate._disk_orange_floor_gb()
+    if free_gb < orange_gb + DISK_QUEUE_RESUME_MARGIN_GB:
+        return None
+
+    for entry in disk_queue.all_entries():
+        task_id = entry["task_id"]
+        task = db.get_task(task_id)
+        if task is None or task["status"] != "pending":
+            disk_queue.pop(task_id)  # cancelled/closed/reset elsewhere meanwhile
+            continue
+        disk_queue.pop(task_id)
+        try:
+            asyncio.run(delegate.delegate_task(task_id))
+        except Exception as e:
+            error(f"watchdog: disk queue spawn failed for {task_id}: {e}")
+            return {"task": task_id, "error": str(e)}
+        success(f"watchdog: disk queue spawning {task_id} "
+               f"(free {free_gb:.1f} GB >= {orange_gb + DISK_QUEUE_RESUME_MARGIN_GB:.1f} GB)")
+        try:
+            send_to_cto.send(
+                task_id,
+                f"disk queue: spawning now — {free_gb:.1f} GB free",
+                role=task.get("role"), cto_id=task.get("owner_cto"),
+                owner_role=task.get("owner_role") or "cto",
+            )
+        except Exception as e:
+            warn(f"watchdog: disk queue notify-start failed for {task_id}: {e}")
+        return {"task": task_id, "free_gb": free_gb}
+    return None
+
+
 def scan_once() -> dict:
     pinged = []
     stalled = []
@@ -779,10 +842,32 @@ def scan_once() -> dict:
         except Exception as e:
             warn(f"watchdog branch_poll error: {e}")
 
+    # Sixth pass — disk queue drain (ADR 0030 §D, task-dbe47b9b): spawn at
+    # most one task queued by tools/delegate.py's disk-floor refusal, once
+    # free space clears gauge.orange + DISK_QUEUE_RESUME_MARGIN_GB. See
+    # _drain_disk_queue()'s docstring.
+    try:
+        disk_queue_spawned = _drain_disk_queue()
+    except Exception as e:
+        warn(f"watchdog disk queue drain error: {e}")
+        disk_queue_spawned = None
+
+    # Seventh pass — Work/ watcher (Work/RULES.md rules 7-8, ADR 0030 §D,
+    # task-dbe47b9b): alert the owning CTO or raise a LungNote to-do for any
+    # Work/<task-id>/ folder whose task ended (or whose worker died) with
+    # bytes still unfiled. See tools/work_watch.py's module docstring.
+    try:
+        work_watch_result = work_watch.watch()
+    except Exception as e:
+        warn(f"watchdog work watch error: {e}")
+        work_watch_result = {"alerted": [], "lungnote_filed": [], "green": []}
+
     return {"pinged": pinged, "stalled": stalled, "reaped": reaped,
             "surface_reaped": surface_reaped,
             "scanned": len(rows) + len(human_rows),
-            "gc_cancelled": len(gc_cancelled)}
+            "gc_cancelled": len(gc_cancelled),
+            "disk_queue_spawned": disk_queue_spawned,
+            "work_watch": work_watch_result}
 
 
 def main() -> int:
