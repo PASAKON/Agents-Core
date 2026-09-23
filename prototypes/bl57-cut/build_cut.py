@@ -113,6 +113,22 @@ def pick_lip(t0):
     if t0 < 84: return "lip_b"
     return "lip_c"
 
+# ---- hold-until-next: no beat may go empty before the next one starts -----
+# CTO review 2026-09-24: 35 empty stretches (16.8s, 11% of the episode) where
+# a plate/block ended at its own line's t1 but the next line's TTS pause ran
+# past it. The reference never goes empty - a plate holds until the next cut.
+# Build one merged, absolute-time timeline (BEATS + the CHECK block as one
+# pseudo-entry) and give every entry an EXT_END = the next entry's own start
+# (or TOTAL_DUR for the last one), so duration/hold times extend to cover
+# the pause instead of stopping at the spoken line's own end.
+_tl_markers = [(t0, tag) for tag, t0, t1, mode, ex in BEATS]
+_tl_markers.append((CHECK_ITEMS[0]["t0"], "__CHECK__"))
+_tl_markers.sort(key=lambda m: m[0])
+EXT_END = {}
+for i, (t0, tag) in enumerate(_tl_markers):
+    nxt = _tl_markers[i + 1][0] if i + 1 < len(_tl_markers) else TOTAL_DUR
+    EXT_END[tag] = nxt
+
 # ---- image sizing: native px -> canvas placement -------------------------
 def img_placement(extra):
     """Returns (disp_w, disp_h, top, left, scale) for the plate at native res."""
@@ -160,7 +176,8 @@ for tag, abs_t0, abs_t1, mode, ex in BEATS:
     if abs_t0 < WINDOW_START - 0.001 or abs_t0 >= WINDOW_END - 0.001:
         continue
     t0 = round(abs_t0 - WINDOW_START, 3)
-    t1 = round(abs_t1 - WINDOW_START, 3)
+    abs_t1_ext = min(EXT_END[tag], WINDOW_END)  # hold until the next beat starts
+    t1 = round(abs_t1_ext - WINDOW_START, 3)
     dur = round(t1 - t0, 3)
     safe_id = tag.lower().replace("-", "")
     if mode == "FF":
@@ -248,15 +265,49 @@ for tag, abs_t0, abs_t1, mode, ex in BEATS:
 
 print(f"plates: {len(plates)}  script_lines: {len(script_lines)}  captions: {len(cap_entries)}")
 
-# ---- CHECK block (SUMMARY-4/5/6) — only if this window covers it ----------
-_ci = [it for it in CHECK_ITEMS if it["t0"] >= WINDOW_START - 0.001 and it["t0"] < WINDOW_END - 0.001]
-if _ci:
+# ---- CHECK block (SUMMARY-4/5/6) — may itself be split across ≤9s windows.
+# CTO 2026-09-24 03:00: windows must stay <=9s/270 frames, but the block spans
+# 11.6s. An item/the block already due before this window starts must appear
+# ALREADY REVEALED, not re-animate (same continuation problem as the #bug
+# logo re-entering at a seam).
+#
+# First attempt gave GSAP a negative "at"/"t", reasoning a tween positioned
+# before t=0 would already be resolved by the time playback reaches 0. WRONG,
+# verified by reading the actual rendered frames: a GSAP tween scheduled at a
+# NEGATIVE timeline position never fires during forward playback from t=0 - it
+# is not "pre-resolved", it is skipped outright, so the whole block stayed at
+# its CSS opacity:0 for the window's entire 3.1s (task-501f1d89, window w21,
+# t=138.5-141.25 read back as fully empty). GSAP tl.set(...) AT t=0 (not
+# negative) is what actually worked for the #bug logo fix above - so here too:
+# still call check() with harmless real numbers (nothing renders wrong even if
+# its own tweens fire, because the block only reaches t=0 already time-shifted
+# past them), then override with plain DOM writes (not GSAP, so nothing later
+# can skip or undo them) forcing anything already-due to its resting state.
+# check_call is always emitted FIRST in assemble.py, so its block() call is
+# always the page's first "b" counter value - id "b1" is reliable to target.
+CHECK_ABS_START = CHECK_ITEMS[0]["t0"]
+_ci = [it for it in CHECK_ITEMS if it["t0"] < WINDOW_END - 0.001]
+check_override_js = []
+if _ci and CHECK_ABS_START < WINDOW_END - 0.001 and EXT_END["__CHECK__"] > WINDOW_START + 0.001:
+    is_continuation = WINDOW_START > CHECK_ABS_START + 0.001
     check_items_js = ", ".join(
-        '{x:%s, t:%s}' % (json.dumps(it["x"], ensure_ascii=False), round(it["t0"] - WINDOW_START, 3))
+        '{x:%s, t:%s}' % (json.dumps(it["x"], ensure_ascii=False),
+                           0 if it["t0"] < WINDOW_START - 0.001 else round(it["t0"] - WINDOW_START, 3))
         for it in _ci
     )
-    check_call = (f'check(560, {round(_ci[0]["t0"]-WINDOW_START,3)}, '
-                  f'{round(_ci[-1]["t1"]-WINDOW_START,3)}, \'เช็ก 3 อย่างก่อนฝากเงิน\', [{check_items_js}]);')
+    _check_at = 0 if is_continuation else round(CHECK_ABS_START - WINDOW_START, 3)
+    _check_end = round(min(EXT_END["__CHECK__"], WINDOW_END) - WINDOW_START, 3)
+    check_call = (f'check(560, {_check_at}, {_check_end}, '
+                  f'\'เช็ก 3 อย่างก่อนฝากเงิน\', [{check_items_js}]);')
+    if is_continuation:
+        check_override_js.append(
+            'document.getElementById("b1").style.opacity = 1;'
+            ' document.getElementById("b1t").style.clipPath = "inset(0 0% 0 0)";')
+        for idx, it in enumerate(_ci):
+            if it["t0"] < WINDOW_START - 0.001:
+                check_override_js.append(
+                    f'var _r{idx} = document.getElementById("b1r{idx}"); '
+                    f'if (_r{idx}) {{ _r{idx}.style.opacity = 1; _r{idx}.style.transform = "translateX(0px)"; }}')
 else:
     check_call = ""
 
@@ -274,7 +325,13 @@ with open(OUT, "w") as f:
         "plates": plates,
         "script_lines": script_lines,
         "check_call": check_call,
+        "check_override_js": check_override_js,
         "caps_js": caps_js,
-        "total_dur": round(WINDOW_END - WINDOW_START, 3),
+        # CTO 2026-09-24: each window's duration must land EXACTLY on a 30fps frame
+        # boundary from the renderer's own point of view, or it ceils up an extra
+        # frame per window and 24 windows' worth of that drifts audio ~300ms out
+        # of lipsync. Float rounding alone still left values like 215.00001 (still
+        # ceils to 216) - bias just under the target frame count to be safe.
+        "total_dur": round((round((WINDOW_END - WINDOW_START) * 30) / 30) - 0.0003, 6),
     }, f, ensure_ascii=False, indent=2)
 print("wrote", OUT)

@@ -14,6 +14,7 @@ plates_html = "\n      ".join(data["plates"])
 script_lines = "\n      ".join(data["script_lines"])
 caps_js = "\n      ".join(data["caps_js"])
 check_call = data["check_call"]
+check_override_js = "\n      ".join(data.get("check_override_js", []))
 total_dur = data["total_dur"]
 
 # 1) data-duration on #root
@@ -52,9 +53,13 @@ helpers = '''      // --- EP57 helpers: evidence spotlight, image credit, footag
         hide("#" + id, out - 0.1);
       }
       function credit(id, at, out, text) {
-        var d = el('<div id="' + id + '" style="position:absolute;left:24px;top:24px;z-index:36;' +
+        // CTO review 2026-09-24: left:24px sat inside TikTok's own x<97 crop,
+        // clipping the credit to a fragment ("...WikiFX") on a real phone.
+        // Anchor to the safe box instead, same left edge every other overlay uses.
+        var d = el('<div id="' + id + '" style="position:absolute;left:var(--safe-left);top:40px;z-index:36;' +
           'font-family:Kanit,sans-serif;font-weight:600;font-size:22px;color:#D7DCE0;' +
-          'background:rgba(7,8,10,.72);padding:6px 14px;border-radius:8px;opacity:0">' + text + '</div>');
+          'background:rgba(7,8,10,.72);padding:6px 14px;border-radius:8px;opacity:0;' +
+          'width:fit-content">' + text + '</div>');
         stage.appendChild(d);
         show("#" + id, at); hide("#" + id, out - 0.1);
       }
@@ -77,8 +82,13 @@ helpers = '''      // --- EP57 helpers: evidence spotlight, image credit, footag
         // rail / chip-ff: the standing bottom caption rail. A real-footage plate
         // (rail kind) can be bright, so give it the same opaque backing .bl-legal
         // needed (text-shadow alone fails WCAG contrast over a white screenshot).
+        // CTO review 2026-09-24: a fit-content chip (centered, ~x90-990) left the
+        // last letter of the wikifx-xxlmarkets-review.jpg card's own "WikiFX"
+        // watermark (x~880-1040) exposed past its right edge at 98s. The chip's
+        // own text still centers safely; only the opaque backing goes full-bleed
+        // so it always covers a watermark row regardless of where one sits.
         var style = kind === "rail"
-          ? "background:rgba(7,8,10,.78);padding:8px 24px;border-radius:10px;width:fit-content;margin:0 auto;left:0;right:0"
+          ? "background:rgba(7,8,10,.78);padding:8px 24px;left:0;right:0;width:auto"
           : "";
         var d = el('<div class="cap" id="' + id + '" style="' + style + '">' + text + '</div>');
         capHost.appendChild(d);
@@ -97,8 +107,8 @@ src = src.replace(anchor, helpers + anchor)
 old_cut_marker = 'tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);'
 bug_line = (old_cut_marker if AUDIO_MEDIA_START == 0.0
             else 'tl.set("#bug", { x: 0, opacity: 1 }, 0);')
-new_cut = (bug_line + "\n\n      " + check_call + "\n\n      " + script_lines +
-           "\n\n      " + caps_js)
+new_cut = (bug_line + "\n\n      " + check_call + "\n\n      " + check_override_js +
+           "\n\n      " + script_lines + "\n\n      " + caps_js)
 src = src.replace(old_cut_marker, new_cut)
 
 open(OUT, "w").write(src)

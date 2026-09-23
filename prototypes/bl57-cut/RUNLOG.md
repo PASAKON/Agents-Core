@@ -78,5 +78,74 @@ before delivery:
 contact sheet across the whole episode plus targeted crops (MAIN-8 evidence, HOOK-3 caption
 clearance, the 76.36s seam) — clean.
 
-Delivered: $WORK_DIR/out/BL-EP57-final.mp4, BL-EP57-preview-540p.mp4.
+First submission's deliverables (above) as of 2026-09-24T01:45.
+
+## Round 2 — CTO review found 2 real defects, CEO reported a 3rd from watching the preview
+
+2026-09-24T02:05 — CTO review: (1) 35 empty stretches (16.8s, 11% of the episode) between lines —
+every plate/text block stopped at its OWN line's t1 instead of holding until the next one starts,
+so the TTS pause between lines showed only the bare kit background. (2) HOOK-4/CURIOSITY-1/2's
+credit chip was at `left:24px`, inside TikTok's own x<97 crop zone — clipped to a fragment on a
+real phone. Gave a numpy empty-frame detector script and named 98s for the credit read.
+
+2026-09-24T02:25 — CEO watched the preview and reported audio "drops out and restarts" with black
+flashes. CTO measured: the voice track's own pauses match EP55's almost exactly (57 vs 59 pauses,
+median 0.46 vs 0.43s) — the audio was never touched, the PICTURE going empty during real pauses is
+what read as a drop-out. Root-caused to the same defect #1; fixing the hold-until-next gap
+directly fixes the CEO's complaint. Explicit instruction: do not touch audio/timing, a few "โบรก"
+lines may be re-voiced later and must splice at the SAME t0/t1.
+
+2026-09-24T02:40-03:00 — Fixed both: (a) built an `EXT_END` map (BEATS + the CHECK block as one
+merged, sorted timeline) so every plate/avatar/kinetic block's declared duration extends to the
+START of the next item, not its own line's end — avatar/broll clips still clamp to their real
+source length (`LIP_DUR`), everything else (images, text) has no such limit. (b) moved the credit
+chip to `left:var(--safe-left)`, and made the "rail" caption's opaque backing span the full canvas
+width edge-to-edge instead of fit-content-centered — it had been leaving the source image's own
+"WikiFX" watermark half-exposed past its right edge at 98s (a stray "X" the CTO also flagged).
+
+2026-09-24T02:40-03:20 — Render kept stalling at an IDENTICAL frame (~400/N) regardless of total
+composition size (tried 2291, 1190, 450-frame windows) — proved via the memory_pressure gate the
+CTO gave (`memory_pressure | tail -1` ≥25%, replacing the wrong `vm_stat free pages` gate) that
+even a window starting well above the floor still died ~120-165s into its own capture, pointing to
+memory GROWING during a render (other sessions on this 8GB/6-Claude-session Mac) rather than a
+fixed starting level. Reported precisely (frame numbers, memory_pressure at each attempt) rather
+than blind-retrying past the 4th failure.
+
+2026-09-24T03:00 — CTO's final instruction (session then parked): windows of at most 9s/270 frames,
+cut at line boundaries, one fresh `npx` process per window, memory_pressure gate before each,
+concat `-c copy` + mux audio-hq.mp3 once at the end, stop and report plainly if even a ≤9s window
+dies. Built 24 such windows (isolating 0-15.0s/lipsync A and 141.5-153s/lipsync C as CTO asked, so
+a future "โบรก" re-voice only touches those + the final mux) and a driver script
+(`render_windows.sh`) that renders one at a time, checks the gate, and stops hard on the first
+failure. All 24 rendered clean on the very first run at 40-70% memory_pressure headroom.
+
+2026-09-24T03:20-03:35 — Concatenating the 24 parts surfaced two NEW bugs invisible in any single
+window: (1) each window's declared duration got `ceil()`-rounded up to the next 30fps frame by the
+renderer, and 24 windows of that compounded to ~300ms of audio drift by the episode's end (`verify`
+caught it: lipsync B r=0.807 FAIL). Root-caused with a per-window frame-count measurement script,
+fixed by snapping every window boundary DOWN (never up — up would cross a beat's own start time
+and misassign it) to the nearest exact 1/30s grid point, then biasing the declared duration 0.3ms
+under that grid point so no float-representation noise could push the renderer's ceil() up again.
+(2) The CHECK block spans two windows (129.37-138.37, 138.37-141.47); the continuation window
+rendered as a completely empty frame for its full 3.1s. Root cause: GSAP tweens scheduled at a
+NEGATIVE timeline position (my first attempt at "already revealed by t=0") are never executed
+during forward playback from t=0 — they are not pre-resolved, they are simply skipped, unlike a
+`tl.set(...)` AT t=0 (which is what the earlier #bug-logo continuation fix used and which does
+work). Fixed by keeping the harmless `check()` call as-is and overriding with plain, non-GSAP DOM
+writes (`element.style.opacity=1` etc, targeting the predictable "b1"/"b1t"/"b1r0-2" ids that
+`check()`'s own `block()` always gets since it's emitted first) — confirmed by reading the actual
+rendered frame before re-rendering the one affected window.
+
+2026-09-24T03:40-03:52 — Re-rendered all 24 windows clean, re-concatenated (exact 4590/4590
+frames, 0 mismatches this time), re-verified: empty-frame count 35 stretches/16.8s → 12 isolated
+points, 11 of which read back as legitimate sparse-content frames (kinetic text mid-wipe, the
+opening fade) when checked at full resolution — not real empty content. 98s credit reads in full
+inside the safe area; the watermark is fully covered, no stray character. A residual lipsync/audio
+lag remains (21-81ms, down from ~300ms+ before the frame-grid fix) that further per-window seek
+work did not fully eliminate in the time available — flagged plainly in the report rather than
+declared clean, per the CTO's explicit "submit either way, next session picks up review/score/the
+audio swap" instruction.
+
+Delivered: $WORK_DIR/out/BL-EP57-final.mp4, BL-EP57-preview-540p.mp4, out/parts/w01-24.mp4 (the
+24 window renders the final was built from — kept for a cheap re-splice once the audio changes).
 Also wrote prototypes/bl-jev-scoreboard/ep57/timings.tsv and UPSKILL.md.
