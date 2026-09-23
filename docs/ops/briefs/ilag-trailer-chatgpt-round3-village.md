@@ -14,6 +14,19 @@ Chrome right now. The CEO said to run in parallel ("ยิงขนานกั�
   Run is on a human ESC hold anyway.
 - Open your own new tab and touch no other tab. Close only your tab at the end.
 
+## How to save (MANDATORY, added after the first run saved the wrong file)
+
+The first run of this brief (task-f34224d9) copied an OLD image out of Downloads
+and saved it as a village plate; its own download had never landed. Downloads is
+shared with other workers. So, for every image:
+1. Before clicking download, record the list of files in `%USERPROFILE%\Downloads`.
+2. Click download, then wait until a file appears that was NOT in that list.
+   Only that new file is yours. If nothing new appears within 60 s, download again.
+3. Before copying, compute its MD5 and compare with every file already in
+   `C:\mooniex\ilag-trailer\plates\`. If it matches any of them, it is not
+   yours: stop and report.
+4. Copy it to the target name and report the MD5 in REPORT.md.
+
 ## Job
 
 Three generations on https://chatgpt.com/ (logged in), a NEW chat each, prompts
