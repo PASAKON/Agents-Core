@@ -40,6 +40,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib import db
 from lib.config import host as get_host
 from runners.branch_poller import remote_pid_alive
+from tools import disk_queue
 from tools.worker_reap import _pid_alive
 from tools.worktree import remove_worktree
 
@@ -187,6 +188,16 @@ def gc_stale_tasks(
     # Category 1: pending tasks never delegated (no assigned_agent)
     for t in db.list_tasks(status="pending", limit=500):
         if t.get("assigned_agent") is not None:
+            continue
+        # ADR 0030 §D (task-dbe47b9b): a task sitting in tools/disk_queue.py's
+        # FIFO queue (tools/delegate.py's disk_floor refusal path) is
+        # deliberately pending with no assigned_agent for as long as the
+        # disk stays below the floor — runners/watchdog.py's scan_once drain
+        # is what eventually spawns it, not this GC. Without this exemption
+        # the 30-minute floor below would cancel it long before space
+        # returns; disk_queue.pop() is what actually drops a queued entry
+        # once its task is cancelled/closed elsewhere.
+        if disk_queue.is_queued(t["id"]):
             continue
         # Never reap a task whose DEV is still running. A task stays
         # 'pending' for the whole spawn window — dev_init flips it to
