@@ -15,8 +15,10 @@ Usage:
 import argparse
 import csv
 import json
+import os
 import random
 import re
+import shutil
 import sys
 import time
 import urllib.error
@@ -31,6 +33,7 @@ from pathlib import Path
 # tests/test_higgsfield_gen_loop.py) without Playwright installed.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from tools import decide as decide_tool  # noqa: E402
+from tools import storage_policy  # noqa: E402
 
 # ── config ──────────────────────────────────────────────────────────────────
 CDP = "http://127.0.0.1:9222"
@@ -41,6 +44,82 @@ DRIVE_CACHE = LOCAL_ROOT / ".drive_cache.json"
 COMPLETION_TIMEOUT_S = 900
 POLL_S = 8
 CATEGORY_FOLDERS = {"trading": "01_trading-finance"}  # add more categories here
+POLICY_PATH = Path(__file__).resolve().parent.parent.parent / "config" / "storage-policy.yaml"
+
+
+# ── Work/ dest + free-space guards (task-2b587031, WORK_DIR pilot only) ─────
+# Mirrors tools/flow_shoot.py's own guards exactly (duplicated rather than
+# imported — same convention as this file's own _decision_is_confident:
+# this task's declared touches do not include tools/flow_shoot.py itself for
+# this shared logic, and the two runners are otherwise independent,
+# zero-model scripts). WORK_DIR unset: every function below is a no-op —
+# gen_loop has no --dest flag today, so LOCAL_ROOT stays exactly as it is.
+
+class DestForbidden(RuntimeError):
+    """Output dir resolves under a path Work/RULES.md rule 2 forbids a
+    runner from defaulting output to (config runner_dest.forbidden_defaults)."""
+
+
+class InsufficientFreeSpace(RuntimeError):
+    """A download would leave free space under the Work/RULES.md rule 9
+    floor (config work_dir.keep_free_gb)."""
+
+
+def _work_dir() -> str | None:
+    return os.environ.get("WORK_DIR") or None
+
+
+def check_forbidden_dest(dest: Path, policy_path: Path = POLICY_PATH) -> None:
+    policy = storage_policy.load(policy_path)
+    forbidden = policy.get("runner_dest", {}).get("forbidden_defaults", [])
+    home = str(Path.home())
+    for pattern in forbidden:
+        if storage_policy.match_path(str(dest), pattern, home):
+            raise DestForbidden(
+                f"output dir {dest} resolves under a forbidden path ({pattern}) — "
+                f"IRON §55 rule 2 / Work/RULES.md rule 2: a task's downloads go "
+                f"into its Work folder, never ~/Desktop, ~/Downloads or ~/Movies")
+
+
+def resolve_local_root() -> Path:
+    """Where downloaded clips are written (line 38's LOCAL_ROOT, used at the
+    local_dir/local_path build in main() below). $WORK_DIR/out when WORK_DIR
+    is set (Work/RULES.md rule 2); unchanged LOCAL_ROOT otherwise — this
+    file has no --dest flag, so this is the only place that decides."""
+    wd = _work_dir()
+    if not wd:
+        return LOCAL_ROOT
+    dest = Path(wd).expanduser() / "out"
+    check_forbidden_dest(dest, POLICY_PATH)
+    return dest
+
+
+def check_free_space(expected_bytes: float | None = None,
+                      policy_path: Path = POLICY_PATH, free_bytes_fn=None) -> None:
+    """Work/RULES.md rule 9: before each download, if WORK_DIR is set, refuse
+    when there isn't enough free space. expected_bytes is always unknown here
+    — download() (below) only learns the real size after urlopen() finishes
+    reading the body — so this always takes the "unknown size" branch: refuse
+    only when free is already under keep_free_gb. free_bytes_fn is a seam for
+    tests; defaults to a real shutil.disk_usage("/") read."""
+    wd = _work_dir()
+    if not wd:
+        return
+    policy = storage_policy.load(policy_path)
+    big_gb = policy["work_dir"]["big_download_gb"]
+    keep_free_gb = policy["work_dir"]["keep_free_gb"]
+    free_bytes = (free_bytes_fn or (lambda: shutil.disk_usage("/").free))()
+    free_gb = free_bytes / (1024 ** 3)
+    if expected_bytes is not None:
+        expected_gb = expected_bytes / (1024 ** 3)
+        if expected_gb > big_gb and (free_gb - expected_gb) < keep_free_gb:
+            raise InsufficientFreeSpace(
+                f"expected download {expected_gb:.2f} GB, {free_gb:.2f} GB free — "
+                f"would leave < {keep_free_gb} GB free (Work/RULES.md rule 9)")
+    elif free_gb < keep_free_gb:
+        raise InsufficientFreeSpace(
+            f"{free_gb:.2f} GB free < {keep_free_gb} GB floor, download size "
+            f"unknown ahead of the fetch (Work/RULES.md rule 9)")
 
 
 # ── env / drive ─────────────────────────────────────────────────────────────
@@ -415,6 +494,12 @@ def main():
     ap.add_argument('--delay-max', type=int, default=180)
     args = ap.parse_args()
 
+    try:
+        output_root = resolve_local_root()
+    except DestForbidden as e:
+        print(f"REFUSED: {e}")
+        sys.exit(1)
+
     rows = []
     with open(args.csv, newline='', encoding='utf-8') as f:
         for r in csv.DictReader(f):
@@ -495,16 +580,20 @@ def main():
                 folder_name = CATEGORY_FOLDERS.get(r['category'], r['category'])
                 cat_id = drive_folder(token, folder_name, lib_id, cache)
                 DRIVE_CACHE.write_text(json.dumps(cache))
-                local_dir = LOCAL_ROOT / folder_name
+                local_dir = output_root / folder_name
                 local_dir.mkdir(parents=True, exist_ok=True)
                 fname = f"{cid}-{r['duration']}-1080p-916.mp4"
                 local_path = local_dir / fname
+                check_free_space()
                 size = download(new_url, local_path, page)
                 did, dsize = drive_upload(token, local_path, fname, cat_id)
                 append_index([cid, r['category'], r['subcategory'], r['prompt'], r['palette'],
                               r['duration'], "1080p", date.today().isoformat(), fname], did)
                 print(f"  OK {elapsed}s | {size/1_048_576:.1f}MB local | drive:{did} | {fname}")
                 ok_count += 1
+            except InsufficientFreeSpace as e:
+                print(f"  REFUSED (space) — stopping the whole run: {e}")
+                break
             except Exception as e:
                 print("  CLIP_ERR:", repr(e)); fail_count_n += 1
             DRIVE_CACHE.write_text(json.dumps(cache))

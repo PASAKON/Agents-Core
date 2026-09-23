@@ -18,6 +18,13 @@ non-verified row, and a verified row is never re-fired.
         --ledger state/banchi/ACT2.tsv --dest ~/Desktop/banchi-ACT2 [--only 53-58]
     python3 tools/flow_shoot.py status --ledger state/banchi/ACT2.tsv
 
+--dest is required unless $WORK_DIR is set (task-2b587031, WORK_DIR pilot
+scope, IRON §55 / Work/RULES.md rule 2): with $WORK_DIR set, --dest defaults
+to $WORK_DIR/out and any --dest under ~/Desktop, ~/Downloads or ~/Movies is
+refused. $WORK_DIR unset (the default today) leaves every runner byte-for-
+byte unchanged — --dest stays required, no forbidden-path or free-space
+check runs.
+
 All Playwright/CDP calls live behind FlowBrowser below, so every decision the
 runner makes (credit cap, refusal handling, zip vs. bare mp4, duration
 tolerance, sheet parsing) is unit-testable without a browser — see
@@ -30,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 import re
 import shutil
 import sys
@@ -42,9 +50,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from tools import clip_review, flow_ledger  # noqa: E402
 from tools import decide as decide_tool  # noqa: E402
+from tools import storage_policy  # noqa: E402
 
 CDP = "http://127.0.0.1:9223"
 LOG_PATH = Path("state/banchi/flow_shoot.log")
+POLICY_PATH = Path(__file__).resolve().parent.parent / "config" / "storage-policy.yaml"
 DOWNLOAD_GAP_S = 8  # brief's rule: never fire two downloads closer than this
 POLL_S = 8
 COMPLETION_TIMEOUT_S = 8 * 60
@@ -312,6 +322,89 @@ def verify_clip(path: Path, expected_dur: float) -> tuple[bool, str]:
     if db is None or db < MIN_AUDIO_DB:
         return False, "NO AUDIO"
     return True, f"{got:.1f}s"
+
+
+# ── Work/ dest + free-space guards (task-2b587031, WORK_DIR pilot only) ─────
+# WORK_DIR unset: every function below is a no-op (returns/raises nothing new)
+# — other sessions mid-shoot with --dest ~/Desktop/... must see byte-for-byte
+# today's behaviour. WORK_DIR set: --dest becomes optional (defaults to
+# $WORK_DIR/out), and both the dest and each download are checked against
+# config/storage-policy.yaml (IRON §55 / Work/RULES.md rules 2 and 9).
+
+class DestForbidden(RuntimeError):
+    """--dest resolves under a path Work/RULES.md rule 2 forbids a runner
+    from defaulting output to (config runner_dest.forbidden_defaults)."""
+
+
+class InsufficientFreeSpace(RuntimeError):
+    """A download would leave free space under the Work/RULES.md rule 9
+    floor (config work_dir.keep_free_gb)."""
+
+
+def _work_dir() -> str | None:
+    return os.environ.get("WORK_DIR") or None
+
+
+def check_forbidden_dest(dest: Path, policy_path: Path = POLICY_PATH) -> None:
+    policy = storage_policy.load(policy_path)
+    forbidden = policy.get("runner_dest", {}).get("forbidden_defaults", [])
+    home = str(Path.home())
+    for pattern in forbidden:
+        if storage_policy.match_path(str(dest), pattern, home):
+            raise DestForbidden(
+                f"--dest {dest} resolves under a forbidden path ({pattern}) — "
+                f"IRON §55 rule 2 / Work/RULES.md rule 2: a task's downloads go "
+                f"into its Work folder, never ~/Desktop, ~/Downloads or ~/Movies")
+
+
+def resolve_dest(raw_dest: str | None) -> Path:
+    """Central --dest resolution for both `run` and `pull`. WORK_DIR unset:
+    raw_dest is never None here (build_parser keeps --dest required=True in
+    that case, the same argparse error as today) and no forbidden-path check
+    runs — identical to today's behaviour. WORK_DIR set: --dest omitted
+    defaults to $WORK_DIR/out; either way the resolved path is checked
+    against runner_dest.forbidden_defaults."""
+    wd = _work_dir()
+    if raw_dest is None:
+        if not wd:
+            raise RuntimeError("--dest is required when WORK_DIR is unset")
+        dest = Path(wd).expanduser() / "out"
+    else:
+        dest = Path(raw_dest).expanduser()
+    if wd:
+        check_forbidden_dest(dest, POLICY_PATH)
+    return dest
+
+
+def check_free_space(expected_bytes: float | None = None,
+                      policy_path: Path = POLICY_PATH, free_bytes_fn=None) -> None:
+    """Work/RULES.md rule 9: before each download, if WORK_DIR is set, refuse
+    when there isn't enough free space. expected_bytes known and its GB size
+    exceeds work_dir.big_download_gb -> refuse when free - expected leaves
+    less than work_dir.keep_free_gb. expected_bytes unknown (both runners'
+    download mechanisms only learn the real size once the fetch completes —
+    see FlowBrowser._fetch_captured_video / scripts/higgsfield/gen_loop.py's
+    download()) -> refuse only when free is already under keep_free_gb, since
+    there is nothing else to check the download against. free_bytes_fn is a
+    seam for tests; defaults to a real shutil.disk_usage("/") read."""
+    wd = _work_dir()
+    if not wd:
+        return
+    policy = storage_policy.load(policy_path)
+    big_gb = policy["work_dir"]["big_download_gb"]
+    keep_free_gb = policy["work_dir"]["keep_free_gb"]
+    free_bytes = (free_bytes_fn or (lambda: shutil.disk_usage("/").free))()
+    free_gb = free_bytes / (1024 ** 3)
+    if expected_bytes is not None:
+        expected_gb = expected_bytes / (1024 ** 3)
+        if expected_gb > big_gb and (free_gb - expected_gb) < keep_free_gb:
+            raise InsufficientFreeSpace(
+                f"expected download {expected_gb:.2f} GB, {free_gb:.2f} GB free — "
+                f"would leave < {keep_free_gb} GB free (Work/RULES.md rule 9)")
+    elif free_gb < keep_free_gb:
+        raise InsufficientFreeSpace(
+            f"{free_gb:.2f} GB free < {keep_free_gb} GB floor, download size "
+            f"unknown ahead of the fetch (Work/RULES.md rule 9)")
 
 
 def _log(msg: str) -> None:
@@ -766,7 +859,11 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
     Playwright/CDP connection — nothing else about the CLI changes."""
     sheet_path = Path(args.sheet)
     ledger_path = Path(args.ledger)
-    dest = Path(args.dest).expanduser()
+    try:
+        dest = resolve_dest(args.dest)
+    except DestForbidden as e:
+        _log(f"REFUSED: {e}")
+        return 1
     only = parse_only(args.only) if args.only else None
 
     flow_ledger.init_ledger(sheet_path, ledger_path)
@@ -933,6 +1030,7 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 row["status"] = "generated"
                 flow_ledger.save_ledger(ledger_path, rows)
 
+                check_free_space()
                 downloaded = browser.download()
                 time.sleep(DOWNLOAD_GAP_S)
                 clip_path = extract_clip(downloaded, dest, n)
@@ -973,6 +1071,11 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 flow_ledger.save_ledger(ledger_path, rows)
                 _log(f"shot {n}: CAP REACHED (backstop) — stopping the whole run: {e!r}")
                 break
+            except InsufficientFreeSpace as e:
+                row["status"], row["note"] = "failed", f"space: {e!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: REFUSED (space) — stopping the whole run: {e!r}")
+                break
             except Exception as e:
                 row["status"], row["note"] = "failed", f"exception: {e!r}"
                 flow_ledger.save_ledger(ledger_path, rows)
@@ -991,7 +1094,11 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
 def cmd_pull(args: argparse.Namespace) -> int:
     sheet_path = Path(args.sheet)
     ledger_path = Path(args.ledger)
-    dest = Path(args.dest).expanduser()
+    try:
+        dest = resolve_dest(args.dest)
+    except DestForbidden as e:
+        _log(f"REFUSED: {e}")
+        return 1
     only = parse_only(args.only) if args.only else None
 
     flow_ledger.init_ledger(sheet_path, ledger_path)
@@ -1028,6 +1135,13 @@ def cmd_pull(args: argparse.Namespace) -> int:
                 flow_ledger.save_ledger(ledger_path, rows)
                 _log(f"shot {n}: needs_model — card not found")
                 continue
+            try:
+                check_free_space()
+            except InsufficientFreeSpace as e:
+                row["status"], row["note"] = "failed", f"space: {e!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: REFUSED (space) — stopping the whole pull: {e!r}")
+                break
             downloaded = browser.download_card(card)
             time.sleep(DOWNLOAD_GAP_S)
             clip_path = extract_clip(downloaded, dest, n)
@@ -1056,6 +1170,10 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    # --dest is required unless $WORK_DIR is set, in which case it defaults
+    # to $WORK_DIR/out (resolve_dest) — WORK_DIR unset keeps argparse's own
+    # "required" error byte-for-byte identical to before this task.
+    dest_required = not _work_dir()
     ap = argparse.ArgumentParser(description=__doc__,
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1063,7 +1181,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_run = sub.add_parser("run")
     p_run.add_argument("--sheet", required=True)
     p_run.add_argument("--ledger", required=True)
-    p_run.add_argument("--dest", required=True)
+    p_run.add_argument("--dest", required=dest_required,
+                        help="Output dir for downloaded clips. Optional when "
+                             "$WORK_DIR is set (defaults to $WORK_DIR/out); "
+                             "required otherwise.")
     p_run.add_argument("--credit-cap", type=int, required=True)
     p_run.add_argument("--only", default=None)
     p_run.add_argument("--dry-run", action="store_true")
@@ -1079,7 +1200,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_pull = sub.add_parser("pull")
     p_pull.add_argument("--sheet", required=True)
     p_pull.add_argument("--ledger", required=True)
-    p_pull.add_argument("--dest", required=True)
+    p_pull.add_argument("--dest", required=dest_required,
+                         help="Output dir for downloaded clips. Optional when "
+                              "$WORK_DIR is set (defaults to $WORK_DIR/out); "
+                              "required otherwise.")
     p_pull.add_argument("--only", default=None)
     p_pull.set_defaults(func=cmd_pull)
 
