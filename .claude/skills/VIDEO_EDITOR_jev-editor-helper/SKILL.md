@@ -122,10 +122,10 @@ Per line and per question:
 
 Sites without a measured safe gate go to the editor every time, whatever the
 confidence. At the 2026-09-23 eval that is **bl.entry** (a wrong answer at
-1.00) and **bl.beat with the  state**.  has gate 0.95.
+1.00) and **bl.beat with the `en` state**. `bl.beat --state-lang=th` has gate 0.95.
 
 **Every editor decision on a flagged line is a new labelled example.** Record the
-editor's final choice next to Jev's answer (a  field in decisions.jsonl) and
+editor's final choice next to Jev's answer (a `final` field in decisions.jsonl) and
 append it to the episode's labels. Re-run  on the growing set every few
 episodes. That is the only way Jev gets better here: it has no memory and no
 training. What improves it is sharper state (computed facts, the line's meaning),
