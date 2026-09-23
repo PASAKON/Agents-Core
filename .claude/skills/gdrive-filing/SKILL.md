@@ -345,6 +345,10 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │                             delete. First: task-95439aa8 (HQ step 4b rollback manifests), id
 │   │                             1uPnam5aoLWqZEgQH7kFOpBMmCkhU_STr, 51,200 B, md5 731889bf…. Gate row in
 │   │                             org:playbooks/drive-archive-gate.md.
+│   ├── Contabo-mooniex-agents-pre-20260807.tar (+ .manifest.json)   NEW 2026-09-23, CEO-approved
+│   │                             in chat ("ถ้าไม่ชัวร์ สำรองก่อน"). Two 2026-08-07 self-backups of
+│   │                             Contabo's /opt/mooniex-agents (pre git swap/sync), deleted from the
+│   │                             box after the md5 check by id. Gate row in org:playbooks/drive-archive-gate.md.
 │   └── PARKED-<repo>-ignored.tar.gz (+ .manifest.json)   NEW 2026-09-10, same approval.
 │                                 Gitignored data of the two PARKED repos (moonx backtest
 │                                 data/out_*, video-engine renders); the code itself lives
@@ -940,3 +944,4 @@ is the working copy, and both are correct.
 - 2026-09-23 [WRONG] §Film work — the «บัญชี» row says the Element plates live on Drive AND on the Mac ("Drive is the archive, ~/Desktop/banchi-plates/ is the working copy"). The bridge lists Element/Character, /Location, /Prop as EMPTY, so the Mac folder was the only copy; it was deleted in a disk clear-up and tools/build_shotsheet.py then refused every sheet. Fix: after the re-harvest, upload the plates to Element/<kind>/ and verify by name+size before trusting the row again. · evidence: session cto-8c06958c, drive_get.find on 1mQ5Hx…/1DlzY…/1ZgN1F… → 0 files, task-f78ca70e · status: pending
 - 2026-09-23 [SUPERSEDED] §Film work — "one working folder of the current clips … ~/Desktop/banchi-ALL/" · evidence: CEO ruling 2026-09-23 (the CEO had asked for Desktop only to view clips easily): clips stay in the task's Work/<task-id>/out/ until reviewed, then Drive · status: superseded
 - 2026-09-23 [MISSING] §BACKUP — no row for closed-task Work/ archives; now `Agents-Work-<task>-<date>.tar` at the BACKUP root (first: task-95439aa8, id 1uPnam5a…, md5 verified by id) · evidence: CEO approval 2026-09-23 "ส่งไฟล์ขึ้น Drive ครั้งแรก (workdir.py close --archive) … จัดการได้เลย", gate row a043428 · status: promoted
+- 2026-09-23 [MISSING] §BACKUP — no row for a box's own self-backup tarballs; now `Contabo-mooniex-agents-pre-20260807.tar` at the BACKUP root (id 1lj-dbuC5YiNz3Zf2qRRj9M1NVtGS6rui, md5 read back by id) · evidence: CEO 2026-09-23 "ถ้าไม่ชัวร์ สำรองก่อน", gate row in org:playbooks/drive-archive-gate.md · status: promoted

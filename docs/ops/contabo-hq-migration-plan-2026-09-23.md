@@ -39,8 +39,9 @@ already does).
 ├── Assets/MoonieX/CookierunBot/   ← /root/cookierun-gold, /root/idm-yt, idm-full, idm-baseline,
 │                                    dataset-stage, idm-*.{log,json,sh}, cookierun-gold-2026-09-23.tgz
 ├── Work/                          created by delegate on the first worker after sessions restart
-└── Archive/                       ← /root/restore, /root/backups, backup-lunar-hotfix-20260704,
-                                     *-bundle/, old mooniex-agents-pre*.tgz, /Users/gob/Projects/LLMs.stale-20260803
+└── Archive/                       ← mooniex-vps/20260613T193125Z (was /root/restore — MOVED 2026-09-23),
+                                     /root/backups, backup-lunar-hotfix-20260704, *-bundle/,
+                                     /Users/gob/Projects/LLMs.stale-20260803
 ```
 
 Names are not a decision: they come from MAP.md's rule (CEO 2026-09-23: "โครงสร้างชื่อมีแล้ว
@@ -55,8 +56,9 @@ min) has no brand → `UNKNOWN/arb`, the map's own fallback.
 `/opt/disk-monitor`, `/opt/containerd`, `/docker/n8n`, `/root/.acme.sh`, `/root/idm-venv`
 (regenerable venv), Docker volumes (org-postgres etc.), `~/.cache`, `~/.npm`.
 
-Z.ai leftovers — `/opt/zai-usage-monitor`, `zai-usage-monitor.service`, container
-`zai-usage-serve` — Z.ai was dropped by the CEO 2026-09-20. Proposed for removal, separate go.
+Z.ai — `/opt/zai-usage-monitor`, `zai-usage-monitor.service`, container `zai-usage-serve`:
+**kept** (CEO 2026-09-23: keep it so a future Z.ai model can be wired back through the API).
+It is a tool, so it stays outside `/root/MoonieXHQ`.
 
 ## What must be repointed (measured 2026-09-23)
 
@@ -91,11 +93,8 @@ Downtime estimate (not measured): about a minute per service while it restarts.
 
 1. Go to execute (service restarts on production) — steps 1–3 have no services.
 2. Which project `arb` belongs to (until then `UNKNOWN/arb`).
-3. `/root/restore` (2.4 GB, June-13 restore bundle incl. an env bundle with secrets): archive
-   (secrets → Infisical first) or delete?
-4. Remove the Z.ai leftovers?
-5. Delete the two old tarballs `mooniex-agents-preGitSwap-20260807-093707.tgz` (119 MB) and
-   `mooniex-agents-preSync-20260807-074856.tgz` (32 MB)?
+Answered 2026-09-23: `/root/restore` → Archive for now (done); Z.ai → keep; old tarballs →
+delete, back up first if unsure (done, backed up).
 
 ## Done the same day (CEO go 2026-09-23)
 
@@ -106,4 +105,11 @@ Downtime estimate (not measured): about a minute per service while it restarts.
   `play_rec` with `windows/cookierun_pack_for_colab.py`.
 - Free space 17 GB → 42 GB.
 - `/opt/mooniex-agents`: remote → `git@github.com:PASAKON/Agents-Core.git`, fast-forward
-  44a8a525 → aaf07343. Services were **not** restarted; they run the old code until their next restart.
+  44a8a525 → ee423c2c. Services were **not** restarted; they run the old code until their next restart.
+- `/root/restore` → `/root/MoonieXHQ/Archive/mooniex-vps/20260613T193125Z` (same-disk rename; 2,410 files,
+  2,542,551,604 bytes before and after). The Mac original `~/Backups/mooniex-vps/` no longer exists, so this
+  may be the only copy; the Archive rule (Drive backup, then delete) stays open — its `_env-bundle` secrets go
+  to Infisical first. Row in `hq.yaml` Archive items.
+- Old tarballs `mooniex-agents-pre{GitSwap-20260807-093707,Sync-20260807-074856}.tgz` → Drive
+  `BACKUP/Contabo-mooniex-agents-pre-20260807.tar` (id `1lj-dbuC5YiNz3Zf2qRRj9M1NVtGS6rui`, md5 by id =
+  local) + manifest, then deleted from the box. Gate row in `org:playbooks/drive-archive-gate.md`.
