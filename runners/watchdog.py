@@ -625,15 +625,10 @@ def _drain_disk_queue() -> dict | None:
             return {"task": task_id, "error": str(e)}
         success(f"watchdog: disk queue spawning {task_id} "
                f"(free {free_gb:.1f} GB >= {orange_gb + DISK_QUEUE_RESUME_MARGIN_GB:.1f} GB)")
-        try:
-            send_to_cto.send(
-                task_id,
-                f"disk queue: spawning now — {free_gb:.1f} GB free",
-                role=task.get("role"), cto_id=task.get("owner_cto"),
-                owner_role=task.get("owner_role") or "cto",
-            )
-        except Exception as e:
-            warn(f"watchdog: disk queue notify-start failed for {task_id}: {e}")
+        # No letter here (CEO 2026-09-23: permanent watchdog letters only when
+        # critical or risky). The start is a good-news event: it is recorded
+        # in the task's own delegate_log and the worker's kickoff; the owner
+        # was already told once, at queue time, when its spawn was refused.
         return {"task": task_id, "free_gb": free_gb}
     return None
 

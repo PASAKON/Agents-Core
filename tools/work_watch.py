@@ -74,6 +74,27 @@ from tools.worker_reap import _pid_alive  # noqa: E402
 STATE_PATH = ROOT / "state" / "work_watch_state.json"
 MCP_CALL = ROOT / "scripts" / "lib" / "mcp_call.py"
 ALERT_INTERVAL_S = 24 * 3600
+# CEO 2026-09-23: a permanent watchdog letter interrupts a working CTO and costs
+# tokens, so it is sent only when it is a real risk — "ส่งเฉพาะตอน Critical จริงๆ
+# เท่านั้น หรือตอนที่มีความเสี่ยง". Risk = the Mac is in the orange/red band
+# (free < gauge.yellow) or the leftover folder is this large on its own. And
+# at most ONE letter per folder, ever. A quiet orphan stays visible in
+# `workdir.py orphans`; an owner-gone orphan still goes to LungNote.
+RISK_FOLDER_BYTES = 1 << 30
+
+
+def _free_gb() -> float:
+    import shutil
+    return shutil.disk_usage("/").free / (1024 ** 3)
+
+
+def _disk_at_risk() -> bool:
+    try:
+        from tools import storage_policy
+        policy = storage_policy.load(str(ROOT / "config" / "storage-policy.yaml"))
+        return storage_policy.band(_free_gb(), policy) in ("orange", "red")
+    except Exception:  # noqa: BLE001 — an unreadable policy never makes noise
+        return False
 
 
 def _load_state(path: Path | None = None) -> dict:
@@ -207,18 +228,23 @@ def watch(*, root=None, db_path=None, state_path: Path | None = None,
         total_bytes, unfiled = _folder_stats(task_id, root=root)
 
         if _owner_alive(owner_cto, owner_role, live):
-            msg = (f"Work/{task_id} orphaned (status={cand['status']}) — "
-                   f"{total_bytes} bytes, {len(unfiled)} unfiled file(s)")
-            try:
-                ok = send_to_cto.send(
-                    task_id, msg, role=task.get("role"),
-                    cto_id=owner_cto, owner_role=owner_role or "cto",
-                )
-            except Exception as e:
-                warn(f"work_watch: send_to_cto failed for {task_id}: {e}")
-                ok = False
-            if ok:
-                alerted.append(task_id)
+            risky = total_bytes >= RISK_FOLDER_BYTES or _disk_at_risk()
+            if risky and not entry.get("alerted_at"):
+                msg = (f"Work/{task_id} orphaned (status={cand['status']}) — "
+                       f"{total_bytes} bytes, {len(unfiled)} unfiled file(s); "
+                       f"disk at risk — close it: `python tools/workdir.py close "
+                       f"{task_id} --archive`")
+                try:
+                    ok = send_to_cto.send(
+                        task_id, msg, role=task.get("role"),
+                        cto_id=owner_cto, owner_role=owner_role or "cto",
+                    )
+                except Exception as e:
+                    warn(f"work_watch: send_to_cto failed for {task_id}: {e}")
+                    ok = False
+                if ok:
+                    alerted.append(task_id)
+                    entry["alerted_at"] = now.isoformat(timespec="seconds")
         elif not entry.get("lungnote_todo"):
             due_at = now.date().isoformat() + "T00:00:00+00:00"
             text = (f"[CRITICAL] Work/{task_id} orphaned, owner session "

@@ -77,6 +77,7 @@ def _stub_lungnote(monkeypatch, calls: list) -> None:
 # ---------------------------------------------------------------------------
 
 def test_alert_when_owner_alive(env, monkeypatch, tmp_path):
+    monkeypatch.setattr(work_watch, "_disk_at_risk", lambda: True)
     tid = _orphan_task(env, owner_cto="sess1", owner_role="cto")
     basename = session_name.lock_basename("cto", "sess1")
     monkeypatch.setattr(work_watch.session_cap, "live_sessions", lambda: [basename])
@@ -132,6 +133,7 @@ def test_ownerless_task_goes_to_lungnote(env, monkeypatch, tmp_path):
 # ---------------------------------------------------------------------------
 
 def test_rate_limited_within_24h(env, monkeypatch, tmp_path):
+    monkeypatch.setattr(work_watch, "_disk_at_risk", lambda: True)
     tid = _orphan_task(env, owner_cto="sess1", owner_role="cto")
     basename = session_name.lock_basename("cto", "sess1")
     monkeypatch.setattr(work_watch.session_cap, "live_sessions", lambda: [basename])
@@ -148,7 +150,9 @@ def test_rate_limited_within_24h(env, monkeypatch, tmp_path):
     assert len(sent) == 1  # second tick skipped entirely
 
 
-def test_rechecks_after_24h(env, monkeypatch, tmp_path):
+def test_never_alerts_twice_for_the_same_folder(env, monkeypatch, tmp_path):
+    """CEO 2026-09-23: one letter per folder, ever — no daily repeats."""
+    monkeypatch.setattr(work_watch, "_disk_at_risk", lambda: True)
     tid = _orphan_task(env, owner_cto="sess1", owner_role="cto")
     basename = session_name.lock_basename("cto", "sess1")
     monkeypatch.setattr(work_watch.session_cap, "live_sessions", lambda: [basename])
@@ -162,7 +166,7 @@ def test_rechecks_after_24h(env, monkeypatch, tmp_path):
     work_watch.watch(state_path=sp, now=now0)
     work_watch.watch(state_path=sp, now=now0 + timedelta(hours=25))
 
-    assert len(sent) == 2  # eligible again past the 24h window
+    assert len(sent) == 1  # rechecked past 24h, but never a second letter
 
 
 def test_lungnote_never_filed_twice_for_same_folder(env, monkeypatch, tmp_path):
@@ -259,3 +263,37 @@ def test_watch_never_deletes_the_folder(env, monkeypatch, tmp_path):
 
     assert folder.is_dir()
     assert (folder / "in" / "clip.mp4").exists()
+
+
+def test_no_letter_when_owner_alive_and_nothing_at_risk(env, monkeypatch, tmp_path):
+    """CEO 2026-09-23: a permanent watchdog letter only when critical/risky.
+    Healthy disk + small folder -> recorded, no letter, no LungNote."""
+    tid = _orphan_task(env, owner_cto="sess1", owner_role="cto")
+    basename = session_name.lock_basename("cto", "sess1")
+    monkeypatch.setattr(work_watch.session_cap, "live_sessions", lambda: [basename])
+    monkeypatch.setattr(work_watch, "_disk_at_risk", lambda: False)
+    sent = []
+    monkeypatch.setattr(work_watch.send_to_cto, "send",
+                        lambda *a, **k: sent.append(1) or True)
+    lungnote_calls: list = []
+    _stub_lungnote(monkeypatch, lungnote_calls)
+
+    result = work_watch.watch(state_path=_state_path(tmp_path))
+
+    assert sent == [] and result["alerted"] == [] and lungnote_calls == []
+
+
+def test_large_folder_is_a_risk_even_on_a_healthy_disk(env, monkeypatch, tmp_path):
+    tid = _orphan_task(env, owner_cto="sess1", owner_role="cto")
+    basename = session_name.lock_basename("cto", "sess1")
+    monkeypatch.setattr(work_watch.session_cap, "live_sessions", lambda: [basename])
+    monkeypatch.setattr(work_watch, "_disk_at_risk", lambda: False)
+    monkeypatch.setattr(work_watch, "RISK_FOLDER_BYTES", 50)  # folder holds 100 bytes
+    sent = []
+    monkeypatch.setattr(work_watch.send_to_cto, "send",
+                        lambda *a, **k: sent.append(1) or True)
+    _stub_lungnote(monkeypatch, [])
+
+    result = work_watch.watch(state_path=_state_path(tmp_path))
+
+    assert result["alerted"] == [tid] and len(sent) == 1
