@@ -1,6 +1,6 @@
 # Contabo → `/root/MoonieXHQ` migration plan — DRAFT
 
-Status: **steps 0–4 executed 2026-09-23** (CEO: "ย้ายได้เลย"). Step 5 (`Agents/Core`) waits for both Contabo CTO sessions to be idle.
+Status: **all 5 steps executed** (0–4 on 2026-09-23, step 5 `Agents/Core` on 2026-09-24). What is left is removing the compat links after a clean week.
 Author: CTO 0e8d80b8, 2026-09-23. Survey read-only over ssh the same day.
 
 ## Why
@@ -153,3 +153,20 @@ idm-baseline, dataset-stage, idm_colab_out.zip, idm-*.{json,log,sh}, idm-full.lo
 an hourly Cookie Run count loop at the time). Then `mv` + link, repoint the 5 agents units, restart them,
 and handle the Claude transcript slug (`-opt-mooniex-agents` → `-opt-MoonieXHQ-Agents-Core`: Node's cwd is
 the physical path) before either session is resumed.
+
+## Step 5 executed 2026-09-24 (CEO: "ส่ง message หาเขาเองได้เลย")
+
+Handshake: cto-6ebacd0e was woken and asked for a window. It answered by touching
+`state/core-move-ok` within a minute, and waited on `state/core-move-done`, which carries the result.
+
+In one Python call: `os.rename(/opt/mooniex-agents, /opt/MoonieXHQ/Agents/Core)` + `os.symlink` back.
+It then repointed the 5 agents units, the `cookierun_teachers` cron line and the Console `.env` `ORG_ROOT`.
+Claude slug: `/root/.claude/projects/-opt-MoonieXHQ-Agents-Core/` is a **real** dir holding **hard links** to
+all 7 transcripts, so both slugs see the same growing files. This avoids the Mac 4b symlink-alias, which broke
+tool-result spill. `/root/.claude.json` got a trust row for the new path. `git worktree repair` was a no-op
+(no worktrees). Backups: `Archive/hq-migration-20260923/core-move-20260924/`.
+Verified: all 7 units active, with cwd on the new path; no error lines in the journal after restart;
+secretary on 172.18.0.1:8643, brokers on their /run sockets; Console 302; both tmux sessions alive.
+
+Add to the link-removal list: `/opt/mooniex-agents`. First rebuild `.venv` (shebangs name the old path),
+and check both Contabo sessions have been relaunched from the new path.

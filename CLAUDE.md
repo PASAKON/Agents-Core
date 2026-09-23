@@ -9,7 +9,7 @@ Read it to know which machine you're on and which projects you can actually touc
 - **Mac**: repo lives at `/Users/gob/Projects/Agents`. Every project under
   `/Users/gob/Projects/` is reachable — no restriction.
 - **Contabo VPS** (mobile Console sessions): repo lives at
-  `/opt/mooniex-agents`. Only repos actually cloned onto this box are
+  `/opt/MoonieXHQ/Agents/Core` (`/opt/mooniex-agents` is a compat link until ~2026-10-01). Only repos actually cloned onto this box are
   reachable — everything else needs `git clone` onto the box first.
   Confirm with `hostname` / `pwd` if unsure.
 
@@ -23,7 +23,7 @@ Plan + record: `docs/ops/contabo-hq-migration-plan-2026-09-23.md`.
 
 | Project | Path on Contabo | Old path (link) |
 |---|---|---|
-| Agents-Core (this org repo) | `/opt/mooniex-agents` — moves to `Agents/Core` last | — |
+| Agents-Core (this org repo) | `/opt/MoonieXHQ/Agents/Core` (moved 2026-09-24) | `/opt/mooniex-agents` |
 | MoonieX-Console | `/opt/MoonieXHQ/Projects/MoonieX/Console` | `/opt/mooniex-console` |
 | MoonieX-ClaudeFlow | `/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow` | `/root/projects/mooniex-claudeflow` |
 | MoonieX-Option | `/opt/MoonieXHQ/Projects/MoonieX/Option` | `/root/projects/mooniex-option` |
