@@ -206,3 +206,19 @@ Chrome direct-visit captures that closed the gap.
 4. Use the same two tools (WikiFX + a free domain-history tool) to check
    any other broker before depositing — this is exactly the checklist
    SUMMARY-4/5/6 walks through.
+
+## v2.1: the CEO's review, 2026-09-23 23:25 (edited by the CTO)
+
+CEO: "Script ขาดเล็กน้อย เราไม่ได้เฉลยว่าคือโบรกอะไร … เราสอนเขาก็จริง เราต้องบอกเขาด้วยว่าคืออะไร แต่ถ้าภาพ
+บอกอยู่แล้วอาจจะให้ภาพเป็นตัวเล่าเรื่องได้ เราใช้คำว่ามึงดูภาพเอาเองประมาณนั้น"
+
+- HOOK-1 now opens on the XXLMARKETS name + logo (WikiFX profile header), so the viewer sees WHICH
+  broker from the first frame.
+- HOOK-3 ("นี่คือหลักฐาน…") shows the 22:50 error page as it is said. HOOK-2 stays full frame.
+- HOOK-4 → "โบรกตัวนี้ชื่อ เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ มึงดูภาพเอาเอง" over the CEO's WikiFX card (credit on screen).
+- PATTERN-1 is new: what it is, from WikiFX's own company profile ("เป็นโบรกฟอเร็กซ์ ที่วิกิเอฟเอ็กซ์บอกว่า
+  เปิดที่อังกฤษตั้งแต่ปีสองพันยี่สิบเอ็ด ให้เทรดทั้งค่าเงิน หุ้น และสินค้า"). Leverage and spread are deliberately
+  not said, because they read as promotion. The old PATTERN-1/2 are merged into PATTERN-2.
+- Totals: 40 lines, show 23 / verdict 15 / hook 1 / cta 1, 2,088 spoken chars (≈126 s speech-only, 142-158 s whole track).
+- Editor note: PATTERN-1's evidence_box must cover the company-profile paragraph of
+  `wikifx-profile-website-inaccessible`, not only the "Note" line. Measure it on the still at the cut.
