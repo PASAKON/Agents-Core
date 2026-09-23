@@ -106,3 +106,35 @@ transcript-usage dedup (the real bug above) + distinct-id summing, the
 per-minute normalisation, baseline median-over-measured-only, and all
 three hypothesis verdicts (pass/fail/in-progress, including the
 baseline-missing case).
+
+## 2026-09-23 (CTO review) — metric flip: new-work tokens, not total
+
+CTO review, pre-registered in skill main `56f562c0` before any EP57 result:
+`cache_read` alone is 98.3% of task-52c669bb's total (54.5M of 55.5M) — a
+total-tokens metric drowns any real Jev signal. Fixed:
+
+- `sum_transcript_usage` now returns the four components separately
+  (`input`, `output`, `cache_read`, `cache_write` — renamed from
+  `cache_creation` to match the CTO's field name) on every row, never
+  pre-summed into one opaque total.
+- New `new_work_tokens(usage)` = input + output + cache_write, excluding
+  cache_read. This is the **primary** metric everywhere: `score`'s
+  `editor_new_tokens_per_video_min`, the BASELINE row, the pass/fail
+  hypothesis, and the CEO summary line. `editor_total_tokens_per_video_min`
+  (incl. cache_read) is kept as a **secondary** column, shown beside it,
+  never driving the verdict.
+- Reproduced the CTO's own numbers exactly against task-52c669bb's real
+  transcript: 969,238 new-work tokens over 133.13s = **436,823/min**
+  (primary), 24,999,576/min (secondary) — both now match to the token.
+- BASELINE is explicitly `n=1` (BL55/task-52c669bb only) in both
+  `scoreboard.jsonl` (`n_measured: 1`) and `SCOREBOARD.md`'s "Baseline
+  detail" heading. BL52/BL54 keep their real durations but stay `MISSING
+  (transcript)`; BL53 stays `MISSING (transcript,duration)` — none
+  estimated.
+- `tests/test_jev_edit.py`: 93 tests (was 89), all green. Added: the
+  four-component split, `new_work_tokens` excludes cache_read, a
+  primary/secondary maths test that reproduces the CTO's exact 436,823 and
+  24,999,576 numbers from raw usage components, and a baseline n=1 test.
+- Regenerated both the real `scoreboard.jsonl`/`SCOREBOARD.md` (BASELINE +
+  REF-1300, still `IN PROGRESS (0/4)` — no real cut episodes yet) and the
+  `example/` synthetic-fixture demo under the new schema.

@@ -580,7 +580,42 @@ def test_sum_transcript_usage_dedupes_by_message_id():
     }}}
     lines = [one, one, one]
     totals = lib.sum_transcript_usage(lines)
-    assert totals == {"input": 2, "output": 88, "cache_read": 0, "cache_creation": 88284, "total": 88374}
+    assert totals == {"input": 2, "output": 88, "cache_read": 0, "cache_write": 88284, "total": 88374}
+
+
+def test_sum_transcript_usage_returns_four_components_separately():
+    # CTO review 2026-09-23: cache_read must be its own component, kept
+    # separate from cache_write/input/output, so a caller can exclude it
+    # from the primary (new-work) metric.
+    lines = [
+        {"message": {"id": "m1", "usage": {"input_tokens": 5, "output_tokens": 7,
+                                            "cache_read_input_tokens": 1000, "cache_creation_input_tokens": 20}}},
+    ]
+    totals = lib.sum_transcript_usage(lines)
+    assert totals == {"input": 5, "output": 7, "cache_read": 1000, "cache_write": 20, "total": 1032}
+
+
+def test_new_work_tokens_excludes_cache_read():
+    usage = {"input": 5, "output": 7, "cache_read": 1000, "cache_write": 20, "total": 1032}
+    assert lib.new_work_tokens(usage) == 32  # 5+7+20, NOT +1000
+
+
+def test_primary_and_secondary_metric_maths_matches_real_bl55_numbers():
+    # CTO's own dedup count of task-52c669bb's real 31MB transcript
+    # (deduped by message.id): 336 in, 168884 out, 800018 cache_write,
+    # 54500654 cache_read, over a 133.13s render. Primary must reproduce
+    # the CTO's own 969,238 new-work tokens = 436,823/min exactly; the
+    # secondary (incl. cache) is the same total this task measured before.
+    usage = {"input": 336, "output": 168884, "cache_read": 54500654, "cache_write": 800018,
+              "total": 336 + 168884 + 54500654 + 800018}
+    duration_s = 133.13
+    new_total = lib.new_work_tokens(usage)
+    assert new_total == 969238
+    primary = lib.tokens_per_video_minute(new_total, duration_s)
+    secondary = lib.tokens_per_video_minute(usage["total"], duration_s)
+    assert primary == pytest.approx(436_823, abs=1)
+    assert secondary == pytest.approx(24_999_576, abs=5)
+    assert secondary > primary * 50  # cache reads dominate the total, as measured (98.3%)
 
 
 def test_sum_transcript_usage_sums_distinct_ids_and_skips_lines_without_usage():
@@ -616,18 +651,39 @@ def test_median_odd_and_even():
 
 def test_build_baseline_row_medians_only_measured_episodes():
     episodes = [
-        {"episode": "BL52", "task_id": "task-a", "editor_tokens_per_video_min": None, "missing": "transcript"},
-        {"episode": "BL53", "task_id": "task-b", "editor_tokens_per_video_min": 1000.0, "missing": None},
-        {"episode": "BL54", "task_id": "task-c", "editor_tokens_per_video_min": 3000.0, "missing": None},
+        {"episode": "BL52", "task_id": "task-a", "editor_new_tokens_per_video_min": None,
+         "editor_total_tokens_per_video_min": None, "missing": "transcript"},
+        {"episode": "BL53", "task_id": "task-b", "editor_new_tokens_per_video_min": 1000.0,
+         "editor_total_tokens_per_video_min": 50000.0, "missing": None},
+        {"episode": "BL54", "task_id": "task-c", "editor_new_tokens_per_video_min": 3000.0,
+         "editor_total_tokens_per_video_min": 70000.0, "missing": None},
     ]
     row = lib.build_baseline_row(episodes)
-    assert row["editor_tokens_per_video_min"] == 2000.0
+    assert row["editor_new_tokens_per_video_min"] == 2000.0
+    assert row["editor_total_tokens_per_video_min"] == 60000.0
     assert row["n_measured"] == 2
     assert row["n_total"] == 3
 
 
+def test_build_baseline_row_n_equals_one_matches_real_bl55():
+    # CTO review 2026-09-23: BASELINE = BL55 only, n=1.
+    episodes = [
+        {"episode": "BL52", "task_id": "task-b2d369ed", "editor_new_tokens_per_video_min": None,
+         "editor_total_tokens_per_video_min": None, "missing": "transcript"},
+        {"episode": "BL53", "task_id": "task-f52b76c4", "editor_new_tokens_per_video_min": None,
+         "editor_total_tokens_per_video_min": None, "missing": "transcript,duration"},
+        {"episode": "BL54", "task_id": "task-1499ecd7", "editor_new_tokens_per_video_min": None,
+         "editor_total_tokens_per_video_min": None, "missing": "transcript"},
+        {"episode": "BL55", "task_id": "task-52c669bb", "editor_new_tokens_per_video_min": 436823.0,
+         "editor_total_tokens_per_video_min": 24999576.0, "missing": None},
+    ]
+    row = lib.build_baseline_row(episodes)
+    assert row["n_measured"] == 1
+    assert row["editor_new_tokens_per_video_min"] == 436823.0
+
+
 def _episode(ep, tpm, applied_pct, wrong=0):
-    return {"episode": ep, "editor_tokens_per_video_min": tpm, "jev_applied_pct": applied_pct, "jev_wrong_at_gate": wrong}
+    return {"episode": ep, "editor_new_tokens_per_video_min": tpm, "jev_applied_pct": applied_pct, "jev_wrong_at_gate": wrong}
 
 
 def test_evaluate_hypothesis_in_progress_before_four_episodes():
@@ -698,7 +754,7 @@ def test_render_scoreboard_md_smoke(tmp_path):
         "episode": "EP57", "kind": "cut", "decisions_total": 175, "jev_applied": 8,
         "jev_applied_pct": 4.6, "jev_seconds": 12.3, "jev_frames": 369, "jev_wrong_at_gate": 0,
         "jev_usd": 0.004573, "jev_raw_accuracy": {"bl.beat[th]": {"n": 40, "correct": 20, "accuracy": 0.5}},
-        "editor_tokens_per_video_min": None,
+        "editor_new_tokens_per_video_min": None, "editor_total_tokens_per_video_min": None,
     }]
     verdict = {"verdict": "IN_PROGRESS", "n": 1, "of": 4, "reasons": ["1/4 episodes scored"]}
     md = lib.render_scoreboard_md(rows, verdict)

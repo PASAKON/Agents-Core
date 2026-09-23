@@ -607,7 +607,7 @@ def total_usd(rows: list[dict]) -> float:
 #   jev_usd/jev_tokens        EXACT   — this plan's own decide-ledger rows
 #   counterfactual_usd/tokens ESTIMATE — what an AI editor call would have
 #                                        cost, tools/decide.py's own formula
-#   editor_tokens_per_video_min MEASURED — real Claude session transcripts
+#   editor_new/total_tokens_per_video_min MEASURED — real Claude transcripts
 # Never blend these into one number without saying which is which.
 
 def index_ledger_by_id(ledger_rows: list[dict]) -> dict[str, dict]:
@@ -674,9 +674,16 @@ def sum_transcript_usage(usage_lines: list[dict]) -> dict[str, int]:
     (106.2M raw tokens vs 55.5M deduped, 143 of 168 message ids repeated,
     every repeat byte-identical). Keeping the last write per id is a safe
     tie-break if a future transcript ever has a repeat with DIFFERENT
-    usage; every repeat observed so far was identical."""
+    usage; every repeat observed so far was identical.
+
+    Returns the four components separately (`input`, `output`,
+    `cache_read`, `cache_write` — `cache_write` = the transcript's
+    `cache_creation_input_tokens`) plus `total`. CTO review 2026-09-23:
+    on task-52c669bb's real transcript `cache_read` alone is 98.3% of
+    `total` (54.5M of 55.5M) — see `new_work_tokens`, the metric that
+    excludes it."""
     by_id: dict[str, dict[str, int]] = {}
-    unkeyed = {"input": 0, "output": 0, "cache_read": 0, "cache_creation": 0}
+    unkeyed = {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0}
     for line in usage_lines:
         msg = line.get("message") or {}
         usage = msg.get("usage")
@@ -686,7 +693,7 @@ def sum_transcript_usage(usage_lines: list[dict]) -> dict[str, int]:
             "input": int(usage.get("input_tokens") or 0),
             "output": int(usage.get("output_tokens") or 0),
             "cache_read": int(usage.get("cache_read_input_tokens") or 0),
-            "cache_creation": int(usage.get("cache_creation_input_tokens") or 0),
+            "cache_write": int(usage.get("cache_creation_input_tokens") or 0),
         }
         mid = msg.get("id")
         if mid:
@@ -696,10 +703,19 @@ def sum_transcript_usage(usage_lines: list[dict]) -> dict[str, int]:
                 unkeyed[k] += row[k]
     totals = dict(unkeyed)
     for row in by_id.values():
-        for k in ("input", "output", "cache_read", "cache_creation"):
+        for k in ("input", "output", "cache_read", "cache_write"):
             totals[k] += row[k]
-    totals["total"] = totals["input"] + totals["output"] + totals["cache_read"] + totals["cache_creation"]
+    totals["total"] = totals["input"] + totals["output"] + totals["cache_read"] + totals["cache_write"]
     return totals
+
+
+def new_work_tokens(usage: dict[str, int]) -> int:
+    """PRIMARY metric input (CTO review 2026-09-23): input + output +
+    cache_write, excluding cache_read. A session with heavy context reuse
+    is mostly cache_read (98.3% measured on task-52c669bb) — a total-
+    tokens metric is swamped by cache hits and hides any real Jev signal;
+    this is the editor's own new work only."""
+    return int(usage.get("input", 0)) + int(usage.get("output", 0)) + int(usage.get("cache_write", 0))
 
 
 def tokens_per_video_minute(total_tokens: int | float, video_seconds: float | None) -> float | None:
@@ -716,20 +732,30 @@ def median(values: list[float]) -> float | None:
 
 def build_baseline_row(episodes: list[dict]) -> dict:
     """episodes: [{"episode": "BL52", "task_id": "task-b2d369ed",
-    "editor_tokens_per_video_min": float|None, "missing": str|None}, ...].
-    The median is taken over the episodes with a MEASURED value only — a
-    missing transcript or duration is reported, never estimated (CTO
-    addition 2: "If a transcript or a duration is missing, say which one;
-    never estimate it")."""
-    values = [
-        e["editor_tokens_per_video_min"] for e in episodes
-        if e.get("editor_tokens_per_video_min") is not None
+    "editor_new_tokens_per_video_min": float|None,
+    "editor_total_tokens_per_video_min": float|None, "missing":
+    str|None}, ...]. Medians (separately, primary and secondary) are taken
+    over the episodes with a MEASURED value only — a missing transcript or
+    duration is reported, never estimated (CTO addition 2: "If a
+    transcript or a duration is missing, say which one; never estimate
+    it"). CTO review 2026-09-23: as of this build that is BL55 only
+    (task-52c669bb) — BL52/54 have a duration but no surviving transcript,
+    BL53 has neither — so n_measured is 1, not silently padded to look
+    like more data than there is."""
+    new_values = [
+        e["editor_new_tokens_per_video_min"] for e in episodes
+        if e.get("editor_new_tokens_per_video_min") is not None
+    ]
+    total_values = [
+        e["editor_total_tokens_per_video_min"] for e in episodes
+        if e.get("editor_total_tokens_per_video_min") is not None
     ]
     return {
         "episode": "BASELINE",
         "kind": "baseline",
-        "editor_tokens_per_video_min": median(values),
-        "n_measured": len(values),
+        "editor_new_tokens_per_video_min": median(new_values),
+        "editor_total_tokens_per_video_min": median(total_values),
+        "n_measured": len(new_values),
         "n_total": len(episodes),
         "episodes": episodes,
     }
@@ -742,10 +768,14 @@ FAIL_WRONG_AT_GATE_THRESHOLD = 2
 
 def evaluate_hypothesis(episodes: list[dict], baseline_tokens_per_min: float | None) -> dict:
     """The pre-registered pass/fail rule, SKILL.md "Goal and test" / IRON
-    §57 (2026-09-23, before any episode result). `episodes` are `score`
-    rows in episode order (EP57, EP58, ...); only the last 4 are judged.
+    §57 (2026-09-23, before any episode result; metric flipped to NEW-work
+    tokens 2026-09-23 CTO review, still before any EP57 result). `episodes`
+    are `score` rows in episode order (EP57, EP58, ...); only the last 4
+    are judged. The metric throughout is the PRIMARY one —
+    `editor_new_tokens_per_video_min` (input+output+cache_write, excludes
+    cache_read) — never the secondary total-incl-cache figure.
 
-    pass: mean(EP59,EP60 editor tokens/min) <= baseline
+    pass: mean(EP59,EP60 editor NEW tokens/min) <= baseline
           AND EP57->EP60 trends down (EP60 < EP57)
           AND jev_wrong_at_gate totals 0 across the four
           AND jev_applied_pct rises EP57->EP60 (EP60 > EP57)
@@ -758,14 +788,14 @@ def evaluate_hypothesis(episodes: list[dict], baseline_tokens_per_min: float | N
         return {"verdict": "IN_PROGRESS", "n": n, "of": 4, "reasons": [f"{n}/4 episodes scored"]}
 
     last4 = episodes[-4:]
-    tokens = [e.get("editor_tokens_per_video_min") for e in last4]
+    tokens = [e.get("editor_new_tokens_per_video_min") for e in last4]
     applied = [e.get("jev_applied_pct") for e in last4]
     wrong_total = sum(e.get("jev_wrong_at_gate") or 0 for e in last4)
 
     if baseline_tokens_per_min is None or any(t is None for t in tokens):
         return {
             "verdict": "IN_PROGRESS", "n": n, "of": 4,
-            "reasons": ["missing measured editor tokens/min for one or more episodes, or no baseline yet"],
+            "reasons": ["missing measured editor new-work tokens/min for one or more episodes, or no baseline yet"],
         }
 
     mean_59_60 = (tokens[2] + tokens[3]) / 2.0
@@ -814,8 +844,10 @@ def previous_row(rows: list[dict], index: int) -> dict | None:
 
 def thai_summary_line(row: dict, prev: dict | None) -> str:
     """The CEO's one-line-per-episode summary, IRON §57 shape: applied
-    count/%, frames, Jev's exact spend, the editor's measured tokens/min
-    with its delta, then the safety count. Any field this row didn't
+    count/%, frames, Jev's exact spend, the editor's measured PRIMARY
+    (new-work) tokens/min with its delta, then the safety count. CTO
+    review 2026-09-23: the CEO line quotes the primary metric only, never
+    the secondary total-incl-cache figure. Any field this row didn't
     measure (kind=eval/baseline rows, or an episode missing --editor-task)
     is left out of the line rather than printed as a fake zero."""
     ep = row.get("episode", "?")
@@ -832,9 +864,9 @@ def thai_summary_line(row: dict, prev: dict | None) -> str:
     jev_usd = row.get("jev_usd")
     if jev_usd is not None:
         parts.append(f"· ใช้ Jev ${jev_usd:.4f}")
-    epm = row.get("editor_tokens_per_video_min")
+    epm = row.get("editor_new_tokens_per_video_min")
     if epm is not None:
-        d = format_delta(epm, prev.get("editor_tokens_per_video_min") if prev else None, fmt="{:.0f}")
+        d = format_delta(epm, prev.get("editor_new_tokens_per_video_min") if prev else None, fmt="{:.0f}")
         d_s = f" {d} จาก {prev.get('episode')}" if d and prev else ""
         parts.append(f"· editor ใช้ {epm:,.0f} token/นาทีวิดีโอ{d_s}")
     wrong = row.get("jev_wrong_at_gate")
@@ -849,7 +881,7 @@ def hypothesis_line(verdict: dict) -> str:
         return f"IN PROGRESS ({verdict.get('n', 0)}/{verdict.get('of', 4)})"
     if v == "PASS":
         return (
-            f"PASS — mean(EP59,EP60)={verdict['mean_ep59_60']:.0f} tokens/min "
+            f"PASS — mean(EP59,EP60)={verdict['mean_ep59_60']:.0f} new tokens/min "
             f"<= baseline={verdict['baseline']:.0f}, trending down, "
             f"wrong_at_gate={verdict['wrong_at_gate_total']}, applied% rising"
         )
@@ -870,11 +902,13 @@ def render_scoreboard_md(rows: list[dict], verdict: dict | None = None) -> str:
 
     lines.append("## Episodes")
     lines.append("")
-    lines.append(
-        "| Episode | Kind | Decisions | Jev applied | Applied % | Δ applied % "
-        "| Jev seconds | Jev frames | Δ frames | Wrong@gate | Jev $ | Editor tok/min | Δ tok/min |"
-    )
-    lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    episode_columns = [
+        "Episode", "Kind", "Decisions", "Jev applied", "Applied %", "Δ applied %",
+        "Jev seconds", "Jev frames", "Δ frames", "Wrong@gate", "Jev $",
+        "New tok/min (primary)", "Δ new tok/min", "Total tok/min (secondary)",
+    ]
+    lines.append("| " + " | ".join(episode_columns) + " |")
+    lines.append("|" + "---|" * len(episode_columns))
     for i, row in enumerate(rows):
         prev = previous_row(rows, i)
 
@@ -884,18 +918,19 @@ def render_scoreboard_md(rows: list[dict], verdict: dict | None = None) -> str:
         pct_delta = format_delta(row.get("jev_applied_pct"), prev.get("jev_applied_pct") if prev else None)
         frames_delta = format_delta(row.get("jev_frames"), prev.get("jev_frames") if prev else None, fmt="{:.0f}")
         epm_delta = format_delta(
-            row.get("editor_tokens_per_video_min"),
-            prev.get("editor_tokens_per_video_min") if prev else None, fmt="{:.0f}",
+            row.get("editor_new_tokens_per_video_min"),
+            prev.get("editor_new_tokens_per_video_min") if prev else None, fmt="{:.0f}",
         )
         lines.append(
-            "| {ep} | {kind} | {tot} | {app} | {pct} | {pctd} | {sec} | {fr} | {frd} | {wrong} | {usd} | {epm} | {epmd} |".format(
+            "| {ep} | {kind} | {tot} | {app} | {pct} | {pctd} | {sec} | {fr} | {frd} | {wrong} | {usd} | {epm} | {epmd} | {tot_epm} |".format(
                 ep=row.get("episode", "?"), kind=row.get("kind", "cut"),
                 tot=cell(row.get("decisions_total")), app=cell(row.get("jev_applied")),
                 pct=cell(row.get("jev_applied_pct"), "{:.1f}%"), pctd=pct_delta or "—",
                 sec=cell(row.get("jev_seconds"), "{:.0f}"), fr=cell(row.get("jev_frames")),
                 frd=frames_delta or "—", wrong=cell(row.get("jev_wrong_at_gate")),
                 usd=cell(row.get("jev_usd"), "${:.4f}"),
-                epm=cell(row.get("editor_tokens_per_video_min"), "{:,.0f}"), epmd=epm_delta or "—",
+                epm=cell(row.get("editor_new_tokens_per_video_min"), "{:,.0f}"), epmd=epm_delta or "—",
+                tot_epm=cell(row.get("editor_total_tokens_per_video_min"), "{:,.0f}"),
             )
         )
     lines.append("")
@@ -903,23 +938,27 @@ def render_scoreboard_md(rows: list[dict], verdict: dict | None = None) -> str:
     baseline_rows = [r for r in rows if r.get("kind") == "baseline"]
     if baseline_rows:
         b = baseline_rows[-1]
+        n_measured = b.get("n_measured", 0)
         lines.append("## Baseline detail (BL52-BL55, cut without Jev)")
         lines.append("")
         lines.append(
-            f"Median over {b.get('n_measured', 0)}/{b.get('n_total', 0)} measured episodes: "
-            f"**{cell(b.get('editor_tokens_per_video_min'), '{:,.0f}')} tokens/min**. "
+            f"**n={n_measured}** — median over {n_measured}/{b.get('n_total', 0)} measured episodes: "
+            f"**{cell(b.get('editor_new_tokens_per_video_min'), '{:,.0f}')} new tok/min (primary)**, "
+            f"{cell(b.get('editor_total_tokens_per_video_min'), '{:,.0f}')} total tok/min (secondary, incl. cache reads). "
             "A missing transcript or duration is reported below, never estimated."
         )
         lines.append("")
-        lines.append("| Episode | Task | Duration (s) | Editor tok/min | Status |")
-        lines.append("|---|---|---|---|---|")
+        lines.append("| Episode | Task | Duration (s) | New tok/min | Total tok/min | Status |")
+        lines.append("|---|---|---|---|---|---|")
         for e in b.get("episodes") or []:
             status = f"MISSING ({e['missing']})" if e.get("missing") else "measured"
             lines.append(
-                "| {ep} | {task} | {dur} | {epm} | {status} |".format(
+                "| {ep} | {task} | {dur} | {epm} | {tot_epm} | {status} |".format(
                     ep=e.get("episode", "?"), task=e.get("task_id", "?"),
                     dur=cell(e.get("duration_seconds"), "{:.2f}"),
-                    epm=cell(e.get("editor_tokens_per_video_min"), "{:,.0f}"), status=status,
+                    epm=cell(e.get("editor_new_tokens_per_video_min"), "{:,.0f}"),
+                    tot_epm=cell(e.get("editor_total_tokens_per_video_min"), "{:,.0f}"),
+                    status=status,
                 )
             )
         lines.append("")
@@ -981,7 +1020,8 @@ REF_1300_ROW: dict[str, Any] = {
     "jev_wrong_at_gate": None,
     "jev_usd": 0.007685,
     "site_yaml_sha": None,
-    "editor_tokens_per_video_min": None,
+    "editor_new_tokens_per_video_min": None,
+    "editor_total_tokens_per_video_min": None,
     "note": (
         "reference census eval, not a cut — today's honest baseline before "
         "the up-skill loop starts (bl.beat th 42%, en 20%, entry 62.5%)"

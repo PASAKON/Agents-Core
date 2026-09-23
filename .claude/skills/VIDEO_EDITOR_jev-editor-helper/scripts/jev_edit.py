@@ -670,7 +670,8 @@ def cmd_score(args: argparse.Namespace) -> int:
         ct = lib.counterfactual_tokens(site_cfg_cache[q], int(led.get("state_chars") or 0))
         counterfactual_tokens_total += ct["tokens_total"]
 
-    editor_tokens_per_min = None
+    editor_new_tpm = None
+    editor_total_tpm = None
     editor_usage = None
     missing_editor_tasks: list[str] = []
     if args.editor_task:
@@ -678,9 +679,9 @@ def cmd_score(args: argparse.Namespace) -> int:
         result = _editor_usage_for_tasks(task_ids, Path(args.projects_dir))
         editor_usage = result["usage"]
         missing_editor_tasks = result["missing_tasks"]
-        editor_tokens_per_min = lib.tokens_per_video_minute(
-            editor_usage["total"], lib.video_duration_seconds(timings),
-        )
+        video_seconds = lib.video_duration_seconds(timings)
+        editor_new_tpm = lib.tokens_per_video_minute(lib.new_work_tokens(editor_usage), video_seconds)
+        editor_total_tpm = lib.tokens_per_video_minute(editor_usage["total"], video_seconds)
 
     row = {
         "episode": args.episode,
@@ -698,7 +699,8 @@ def cmd_score(args: argparse.Namespace) -> int:
         "counterfactual_usd": spend["counterfactual_usd"],
         "counterfactual_tokens": counterfactual_tokens_total,
         "net_saved_usd": spend["counterfactual_usd"] - spend["jev_usd"],
-        "editor_tokens_per_video_min": editor_tokens_per_min,
+        "editor_new_tokens_per_video_min": editor_new_tpm,
+        "editor_total_tokens_per_video_min": editor_total_tpm,
         "editor_usage": editor_usage,
         "editor_task": args.editor_task,
         "site_yaml_sha": frozen.get("site_yaml_sha") if frozen else None,
@@ -748,13 +750,17 @@ def cmd_baseline(args: argparse.Namespace) -> int:
             missing.append("transcript")
         if duration is None:
             missing.append("duration")
-        tokens_per_min = None
+        new_tpm = total_tpm = None
+        usage = None
         if not missing:
             usage = lib.sum_transcript_usage(list(_iter_transcript_usage_records(paths)))
-            tokens_per_min = lib.tokens_per_video_minute(usage["total"], duration)
+            new_tpm = lib.tokens_per_video_minute(lib.new_work_tokens(usage), duration)
+            total_tpm = lib.tokens_per_video_minute(usage["total"], duration)
         resolved.append({
             "episode": ep["episode"], "task_id": ep["task_id"], "duration_seconds": duration,
-            "editor_tokens_per_video_min": tokens_per_min, "missing": ",".join(missing) or None,
+            "editor_new_tokens_per_video_min": new_tpm,
+            "editor_total_tokens_per_video_min": total_tpm,
+            "usage": usage, "missing": ",".join(missing) or None,
         })
 
     baseline_row = lib.build_baseline_row(resolved)
@@ -762,11 +768,15 @@ def cmd_baseline(args: argparse.Namespace) -> int:
     _write_jsonl(scoreboard_jsonl, [baseline_row] + others)
 
     print(
-        f"baseline: median over {baseline_row['n_measured']}/{baseline_row['n_total']} "
-        f"measured episodes = {baseline_row['editor_tokens_per_video_min']} tokens/min -> {scoreboard_jsonl}"
+        f"baseline: n={baseline_row['n_measured']} (of {baseline_row['n_total']} listed) — "
+        f"new tok/min (primary) = {baseline_row['editor_new_tokens_per_video_min']}, "
+        f"total tok/min (secondary) = {baseline_row['editor_total_tokens_per_video_min']} -> {scoreboard_jsonl}"
     )
     for e in resolved:
-        status = f"MISSING ({e['missing']})" if e["missing"] else f"{e['editor_tokens_per_video_min']:.0f} tok/min"
+        status = (
+            f"MISSING ({e['missing']})" if e["missing"]
+            else f"{e['editor_new_tokens_per_video_min']:.0f} new / {e['editor_total_tokens_per_video_min']:.0f} total tok/min"
+        )
         print(f"  {e['episode']} ({e['task_id']}): {status}")
     return 0
 
@@ -780,7 +790,7 @@ def cmd_report(args: argparse.Namespace) -> int:
 
     cut_rows = [r for r in rows if r.get("kind") == "cut"]
     baseline_rows = [r for r in rows if r.get("kind") == "baseline"]
-    baseline_tpm = baseline_rows[-1].get("editor_tokens_per_video_min") if baseline_rows else None
+    baseline_tpm = baseline_rows[-1].get("editor_new_tokens_per_video_min") if baseline_rows else None
     verdict = lib.evaluate_hypothesis(cut_rows, baseline_tpm)
 
     scoreboard_md.parent.mkdir(parents=True, exist_ok=True)
