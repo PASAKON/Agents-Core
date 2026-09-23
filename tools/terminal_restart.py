@@ -235,7 +235,7 @@ def default_run_file_text(name: str, root: Path | str) -> str:
     repo root, so rebuild it rather than depend on the file surviving.
 
     Mirrors what `spawn-cto.sh` / `spawn-cxo.sh` write. It does NOT carry any
-    ENV_PREFIX / GLM_PREFIX / extra CLAUDE_ARGS the original spawn may have
+    ENV_PREFIX / extra CLAUDE_ARGS the original spawn may have
     had, so a session launched with e.g. `--glm` comes back without it —
     callers that fall back to this must say so rather than restart silently.
     """

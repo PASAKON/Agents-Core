@@ -22,7 +22,6 @@ set -euo pipefail
 ROOT="/Users/gob/MoonieXHQ/Agents/Core"
 
 WITH_LOGS=0
-USE_GLM=0
 EXPLICIT_ID=""
 ARGS=()
 prev=""
@@ -34,7 +33,6 @@ for a in "$@"; do
   fi
   case "$a" in
     --with-logs) WITH_LOGS=1 ;;
-    --glm) USE_GLM=1 ;;
     --id) prev="--id" ;;
     *) ARGS+=("$a") ;;
   esac
@@ -212,26 +210,15 @@ CTO_LOG="$ROOT/state/logs/cto-$CTO_SESSION_ID.log"
 mkdir -p "$ROOT/state/logs"
 touch "$CTO_LOG"
 
-# --glm: flip the flag-gated GLM offload ON for this launch only. cto-claude.sh
-# reads CXO_MODEL_PROVIDER via lib.config.cxo_provider_overrides and routes the
-# whole session to the chosen GLM provider — zero Claude weekly-limit consumption.
-# Provider: "zai" (Z.ai direct).
-GLM_PREFIX=""
-if [ "$USE_GLM" = "1" ]; then
-  GLM_PROVIDER="${GLM_PROVIDER:-zai}"
-  GLM_PREFIX="export CXO_MODEL_PROVIDER=$GLM_PROVIDER && "
-fi
 
 # osascript `write text` runs CHAT_CMD in a FRESH login shell, so anything the
 # caller exported is already gone by the time cto-claude.sh reads it. That is
 # why `CXO_EXTRA_MCP=meigen bash scripts/spawn-cto.sh` silently launched with
 # the stock role set — the documented per-launch overrides only ever worked
 # when cto-claude.sh was run directly. Re-export them inside the command
-# string. GLM_PREFIX stays last so an explicit --glm still wins over an
-# inherited CXO_MODEL_PROVIDER.
 ENV_PREFIX=""
 for v in CXO_EXTRA_MCP CXO_SKIP_MCP CXO_STRICT_MCP CXO_SUPABASE_PROJECT_REF \
-         CXO_SUPABASE_WRITE CXO_MODEL_PROVIDER; do
+         CXO_SUPABASE_WRITE; do
   [ -n "${!v:-}" ] || continue
   ENV_PREFIX="${ENV_PREFIX}export $v=$(printf '%q' "${!v}") && "
 done
@@ -249,7 +236,7 @@ TMUX_SESSION="cto-$CTO_SESSION_ID"
 # command that already contains quoted paths and `&&`.
 RUN_FILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.run"
 printf '#!/usr/bin/env bash\n%s\n' \
-  "${ENV_PREFIX}${GLM_PREFIX}export CTO_SESSION_ID='$CTO_SESSION_ID' && exec bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS" \
+  "${ENV_PREFIX}export CTO_SESSION_ID='$CTO_SESSION_ID' && exec bash '$ROOT/scripts/cto-claude.sh' $CLAUDE_ARGS" \
   >"$RUN_FILE"
 chmod +x "$RUN_FILE"
 
@@ -327,9 +314,6 @@ end tell
 APPLESCRIPT
 
 PROVIDER_NOTE=""
-if [ "$USE_GLM" = "1" ]; then
-  PROVIDER_NOTE=" [GLM/${GLM_PROVIDER:-zai} — no Claude quota]"
-fi
 if [ "$WITH_LOGS" = "1" ]; then
   echo "spawned iTerm window id=$CTO_SESSION_ID (CTO chat + log + dev logs).$PROVIDER_NOTE"
 else

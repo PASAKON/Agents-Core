@@ -134,6 +134,33 @@ def get_project(key: str) -> dict:
     return p
 
 
+def _read_dotenv_var(name: str) -> str | None:
+    """Read a single KEY=value from the gitignored repo-root .env.
+
+    Tiny parser so we don't pull in python-dotenv just for one secret.
+    Returns None if the file or key is absent.
+    """
+    env_file = ROOT / ".env"
+    if not env_file.exists():
+        return None
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, _, v = line.partition("=")
+        if k.strip() == name:
+            v = v.strip()
+            # Strip a trailing inline comment (`value   # note`) — only
+            # outside quotes, so quoted values may contain literal '#'.
+            if v and v[0] not in "\"'":
+                hash_idx = v.find(" #")
+                if hash_idx != -1:
+                    v = v[:hash_idx].strip()
+            return v.strip('"').strip("'")
+    return None
+
+
+
 @lru_cache(maxsize=1)
 def hosts() -> dict[str, dict]:
     """Host registry (config/hosts.yaml, ADR-shaped like projects/agents).
@@ -178,13 +205,6 @@ def project_path_for_host(project_key: str, host_name: str) -> str:
     return p
 
 
-# --- DEV model provider override (flag-gated, reversible) -----------------
-# When WORKER_MODEL_PROVIDER is set, worker DEVs spawn against an alternative
-# Anthropic-compatible endpoint instead of Claude, to offload grunt coding
-# work to a cheaper model while C-level orchestration stays on Claude.
-# Provider: "zai" (Z.ai direct).
-# Flag unset -> 100% original Claude behaviour.
-
 def _read_dotenv_var(name: str) -> str | None:
     """Read a single KEY=value from the gitignored repo-root .env.
 
@@ -211,139 +231,4 @@ def _read_dotenv_var(name: str) -> str | None:
     return None
 
 
-# Anthropic-compatible coding endpoints.
-# BytePlus ModelArk removed 2026-08-01.
-#
-# "ninerouter" is 9Router (MIT, https://github.com/decolua/9router) running as a
-# LOCAL proxy on this machine, added 2026-09-19 on the CEO's instruction as a
-# fallback for when the Claude subscription's weekly limit is spent. It is a
-# router, not a model: whatever provider it forwards to is configured inside
-# 9Router itself, so a prompt sent this way may reach a company nobody in this
-# repo chose. Two consequences, both deliberate:
-#
-#   * It is NOT in the "auto" quota path and never will be. Reaching it takes a
-#     human setting WORKER_MODEL_PROVIDER=ninerouter, so no automatic decision
-#     can ever route a prompt to an unknown third party.
-#   * Anything touching secrets, production or money stays on Claude — set
-#     tasks.model_hint='claude' (see worker_provider_overrides). The roles that
-#     handle those (security_engineer, devops) are already outside the pilot
-#     default_roles and so never offload at all.
-#
-# The base URL points at localhost on purpose: if 9Router is not running the
-# spawn fails fast against a dead local port instead of silently reaching the
-# internet. NINEROUTER_API_KEY doubles as the on-switch — a local proxy needs no
-# real key, so set it to anything (e.g. "local") to declare the intent.
-_PROVIDER_ENDPOINTS = {
-    "zai": "https://api.z.ai/api/anthropic",
-    "ninerouter": "http://127.0.0.1:20128",
-}
-_PROVIDER_KEY_VAR = {
-    "zai": "ZAI_API_KEY",
-    "ninerouter": "NINEROUTER_API_KEY",
-}
-_PROVIDER_DEFAULT_MODEL = {
-    "zai": "glm-5.2",
-    "ninerouter": "claude-sonnet-4-5",
-}
 
-
-def _provider_overrides(
-    role_name: str,
-    *,
-    flag_var: str,
-    roles_var: str,
-    default_roles: str,
-    model_var: str,
-) -> dict | None:
-    """Shared spawn-override resolver for the cheaper Anthropic-compatible
-    provider path (Z.ai -> GLM-5.2).
-
-    Returns {"model": str, "env": dict, "effort": str | None} or None to
-    use the default Claude path. Fails safe to None (Claude) when the
-    provider is unknown, the role is outside the pilot scope, or the API
-    key is missing — never spawns against a broken/unauthed endpoint.
-    """
-    provider = (os.environ.get(flag_var)
-                or _read_dotenv_var(flag_var) or "").strip().lower()
-    if not provider:
-        return None
-    # Pilot scope: only these roles offload; others stay on Claude.
-    pilot = os.environ.get(roles_var, default_roles)
-    allowed_roles = {r.strip() for r in pilot.split(",") if r.strip()}
-    if role_name not in allowed_roles:
-        return None
-    if provider == "auto":
-        # Quota-aware routing (GH mooniex-agents#38) — checks live headroom
-        # instead of a human toggling this flag by hand. Local import keeps
-        # the SSH/network dependency out of the hot path for every spawn
-        # that isn't using "auto".
-        from lib.quota_router import pick_provider
-        zai_usage_token = (os.environ.get("ZAI_USAGE_TOKEN")
-                           or _read_dotenv_var("ZAI_USAGE_TOKEN"))
-        provider = pick_provider(zai_usage_token)
-        if provider != "zai":
-            # The quota router only ever chooses between Claude and Z.ai. Any
-            # other answer (including "ninerouter", which it must never return)
-            # falls back to Claude: an automatic path may not send a prompt to a
-            # provider a human did not name. CEO 2026-09-19.
-            return None
-    if provider not in _PROVIDER_ENDPOINTS:
-        return None
-    key = (os.environ.get(_PROVIDER_KEY_VAR[provider])
-           or _read_dotenv_var(_PROVIDER_KEY_VAR[provider]))
-    if not key:
-        return None  # no key -> fall back to Claude rather than spawn broken
-    model = os.environ.get(model_var) or _PROVIDER_DEFAULT_MODEL[provider]
-    return {
-        "model": model,
-        "env": {
-            "ANTHROPIC_BASE_URL": _PROVIDER_ENDPOINTS[provider],
-            "ANTHROPIC_AUTH_TOKEN": key,
-            "ANTHROPIC_MODEL": model,
-        },
-        "effort": None,  # Z.ai GLM endpoint doesn't accept Claude --effort
-    }
-
-
-def worker_provider_overrides(role_name: str, model_hint: str | None = None) -> dict | None:
-    """Spawn overrides for a worker DEV when WORKER_MODEL_PROVIDER is set.
-
-    Flag-gated + reversible: unset WORKER_MODEL_PROVIDER -> original Claude path.
-    WORKER_MODEL_PROVIDER=zai -> always Z.ai. WORKER_MODEL_PROVIDER=auto -> live
-    quota check (lib.quota_router) picks whichever provider has more
-    headroom right now (GH mooniex-agents#38).
-
-    `model_hint` is the per-task escape hatch (tasks.model_hint). The auto
-    router sees quota headroom and nothing else — it cannot know that a given
-    task is one where a cheap miss is expensive. 'claude' forces the original
-    Claude path regardless of quota; the CTO sets it for work that reviews or
-    repairs someone else's code, or touches security. Any other value is
-    ignored, so an unrecognised hint degrades to normal routing rather than to
-    a provider nobody chose (CEO 2026-08-10).
-    """
-    if (model_hint or "").strip().lower() == "claude":
-        return None
-    return _provider_overrides(
-        role_name,
-        flag_var="WORKER_MODEL_PROVIDER",
-        roles_var="WORKER_PROVIDER_ROLES",
-        default_roles="developer,tester,web_designer,data_analyst,prompt_engineer,ads_manager,content_strategist",
-        model_var="WORKER_PROVIDER_MODEL",
-    )
-
-
-def cxo_provider_overrides(role_name: str) -> dict | None:
-    """Spawn overrides for a C-level (cto/cmo/cgo/cfo) when CXO_MODEL_PROVIDER
-    is set. Independent flag from worker DEVs so C-level orchestration can be
-    offloaded to GLM (to dodge the Claude weekly cap) separately.
-
-    Flag-gated + reversible: unset CXO_MODEL_PROVIDER -> original Claude path.
-    Default pilot scope is all four C-levels; narrow via CXO_PROVIDER_ROLES.
-    """
-    return _provider_overrides(
-        role_name,
-        flag_var="CXO_MODEL_PROVIDER",
-        roles_var="CXO_PROVIDER_ROLES",
-        default_roles="cto,cmo,cgo,cfo",
-        model_var="CXO_PROVIDER_MODEL",
-    )

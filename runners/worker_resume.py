@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import get_project, role as get_role, worker_provider_overrides, worker_session_name
+from lib.config import get_project, role as get_role, worker_session_name
 from runners.worker_init import (  # type: ignore
     _write_dev_settings,
     _symlink_knowledge,
@@ -102,15 +102,7 @@ def main() -> None:
         "skim TASK.md, then continue. Submit report when finished."
     )
 
-    # DEV model provider override (flag-gated) — mirror worker_init so a
-    # resumed worker DEV keeps the same model/endpoint it was spawned on.
-    _ov = worker_provider_overrides(role, task.get("model_hint"))
     effort_args = ["--effort", "max"]
-    if _ov:
-        model = _ov["model"]
-        env.update(_ov["env"])
-        if _ov["effort"] is None:
-            effort_args = []
 
     host_name = current_host()
     session_name = worker_session_name(host_name, role, task_id, clean_title(task.get("title")))
