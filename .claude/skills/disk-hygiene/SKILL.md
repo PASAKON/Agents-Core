@@ -74,6 +74,13 @@ Everything here rebuilds itself. No backup, no ledger line, no question.
   without checking what is active
 - A git worktree whose branch is merged, nothing dirty, nothing unpushed
 
+- An **abandoned Work/ folder** (CEO 2026-09-23: "นับเป็น Green ได้ ถ้าไม่ได้ทำต่อแล้วนานมากๆ หรือฉันลืม"):
+  `python tools/workdir.py orphans --green` lists folders whose task ended more than
+  `work_dir.abandon_days` (14) ago with the owner alerted and a LungNote Critical to-do open.
+  Clear each with `python tools/workdir.py close <task> --archive` — no asking, but never a
+  plain delete: out/ and unsourced in/ go to Drive BACKUP (md5 verified) first, tmp/ and
+  re-downloadable in/ are deleted. Check this list on every disk clean-up.
+
 **The dormancy test, exactly:**
 `find <repo> -type f -not -path '*/node_modules/*' -not -path '*/.venv/*' -not -path '*/.git/*' -mtime -14 -print -quit`
 returns nothing, AND `ps aux | grep -E 'next dev|next-server|vite|uvicorn'` shows
