@@ -1,0 +1,6 @@
+{
+  "messages": [
+    {"id": "m-9001", "text": "สวัสดีครับ อยากสอบถามเรื่องคลิป", "sender": {"unique_id": "dm_user_x"}, "create_time": 1758610000},
+    {"id": "m-9002", "text": "ขอบคุณสำหรับข้อมูลนะครับ", "sender": {"unique_id": "dm_user_y"}, "create_time": 1758610500}
+  ]
+}

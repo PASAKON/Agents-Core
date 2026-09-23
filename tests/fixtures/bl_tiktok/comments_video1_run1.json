@@ -1,0 +1,6 @@
+{
+  "comments": [
+    {"id": "c-1001", "text": "เช็คโบรคยังไงคะ", "user": {"unique_id": "user_a"}, "create_time": 1758600000},
+    {"id": "c-1002", "text": "อยากรู้เหมือนกัน", "user": {"unique_id": "user_b"}, "create_time": 1758600100}
+  ]
+}
