@@ -763,6 +763,70 @@ def _seconds_since(iso_ts: str | None) -> float | None:
     return (datetime.now(timezone.utc) - then).total_seconds()
 
 
+def _live_worker_alive(task: dict) -> bool:
+    """True when the worker that last claimed `task` is still running here:
+    the pid it stamped at claim is alive and, on the tmux backend, its
+    session still exists. The session check is what keeps a recycled pid
+    (an unrelated process that inherited the number) from passing."""
+    if not _pid_alive(task.get("pid")):
+        return False
+    sess = task.get("tmux_session")
+    if not sess:
+        return True
+    try:
+        return tmux.has_session(sess)
+    except Exception:
+        return False
+
+
+REOPEN_LIVE_MSG = (
+    "The CTO reopened this task (iteration {iteration}). TASK.md was rewritten "
+    "with the CTO feedback on top -- re-read it, act on the feedback, then "
+    "submit_report again."
+)
+
+
+async def _resume_live_worker(task: dict, role_name: str) -> dict | None:
+    """GH #158 part 3: hand a reopened task back to the worker still running it.
+
+    reopen_task leaves the row pending + unassigned but keeps the pid the
+    worker stamped at claim. Spawning from there claims nothing: tmux.create
+    returns early for a session that already exists, and the iTerm path
+    reuses the tab and skips the kickoff. _verify_claimed then marked the live
+    worker `failed` 25 s later -- and `failed` is terminal, so the surface
+    reaper closes the live process after REAP_GRACE_S. Measured 3x in 7 days:
+    task-a63759d5 (2026-09-17), task-adbc6f43 and task-ad534f86 (2026-09-22).
+
+    Returns None when no live worker owns the row (the caller spawns as
+    before); otherwise restores the claim, queues the reopen pointer to the
+    worker's mailbox, and returns the row -- no spawn, no claim watchdog.
+    """
+    task_id = task["id"]
+    if not _live_worker_alive(task):
+        return None
+    # claim_task is atomic on status='pending' AND assigned_agent IS NULL, so
+    # a racing delegate or a genuine claim wins cleanly and we just report it.
+    if not db.claim_task(task_id, agent=role_name):
+        return db.get_task(task_id)
+    from tools.send_to_worker import send as send_to_worker_send
+    msg = REOPEN_LIVE_MSG.format(iteration=task.get("iteration"))
+    try:
+        await asyncio.to_thread(send_to_worker_send, task_id, msg)
+        note = "reopen pointer queued to its mailbox"
+    except Exception as e:  # the claim stands; the CTO must message it
+        note = f"mailbox send FAILED ({e}) -- message the worker yourself"
+        warn(f"task={task_id}: {note}")
+    info(f"task={task_id} reopened on a live worker pid={task.get('pid')}: "
+         f"claim restored, no respawn; {note}")
+    db.set_fields(
+        task_id,
+        delegate_log=(f"reopened on a live worker (pid {task.get('pid')}): "
+                      f"claim restored instead of a respawn; {note}"),
+        actor="cto",
+    )
+    return db.get_task(task_id)
+
+
 async def _verify_claimed(task_id: str, role_name: str,
                           owner_cto: str | None,
                           owner_role: str | None = None, *,
@@ -1468,6 +1532,13 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         # first try. See GH #51 and #53.
         #
         # NULL means no spawn on record — never read it as "long ago".
+        #
+        # Before any of that: a reopened task whose worker is still running
+        # goes back to that worker, not to a spawn that cannot claim
+        # (GH #158 part 3 — see _resume_live_worker).
+        resumed = await _resume_live_worker(task, role_name)
+        if resumed is not None:
+            return resumed
         since = _seconds_since(task.get("spawned_at"))
         if since is not None and since < CLAIM_VERIFY_DELAY_S:
             info(f"skip duplicate spawn task={task_id}: spawned {since:.0f}s "
