@@ -11,7 +11,7 @@
       "id": 1,
       "t0": 0.0,
       "t1": 1.867,
-      "plate_kind": "red studio",
+      "plate_kind": "chart b-roll",
       "avatar_mode": "full",
       "avatar_box": {
         "height_pct": 88.7,
@@ -28,7 +28,7 @@
           "text": "มึงเคยใช้ XM Trade Forex ไหม?"
         }
       ],
-      "notes": "Hook. Avatar slides down 0.23-1.43s (power1.out, +298px, see P2). Hook headline 'คุณโดนเอาเปรียบ ถ้าไม่ขอ REBATE' top; XM logo pops at 0.60s exactly on the spoken word 'XM' (0.600-0.940)."
+      "notes": "CORRECTED 2026-09-23 (CTO review): plate is a dark navy chart with faint red/green candlesticks, not the flat 'red studio' backdrop -- re-classified chart b-roll. Hook. Avatar slides down 0.23-1.43s (power1.out, +298px, see P2). Hook headline 'คุณโดนเอาเปรียบ ถ้าไม่ขอ REBATE' top; XM logo pops at 0.60s exactly on the spoken word 'XM' (0.600-0.940)."
     },
     {
       "id": 2,
@@ -57,7 +57,7 @@
     {
       "id": 3,
       "t0": 5.233,
-      "t1": 20.267,
+      "t1": 8.93,
       "plate_kind": "red studio",
       "avatar_mode": "full",
       "avatar_box": {
@@ -66,7 +66,7 @@
         "x_center_pct": 52.4
       },
       "entry": "cut",
-      "exit": "cut",
+      "exit": "dissolve",
       "line_class": "show",
       "spoken_words": [
         {
@@ -76,9 +76,28 @@
         },
         {
           "t0": 7.24,
-          "t1": 9.2,
-          "text": "คุณจะบอกความจริงที่ไม่มีใครบอกมึง"
-        },
+          "t1": 8.93,
+          "text": "คุณจะบอกความจริงที่ไม่มีใครบอกมึง (partial)"
+        }
+      ],
+      "notes": "CORRECTED 2026-09-23 (CTO review, previously merged into one wrong 5.233-20.267 shot). Red studio with a decorative red 'RRR' letter graphic ~7-8s. Exit: plate dissolves to a chart background 8.93-9.13 while the avatar is still full size (SKILL-verified, matches reference/avatar-shrink-motion.jpg row 1)."
+    },
+    {
+      "id": 4,
+      "t0": 8.93,
+      "t1": 14.033,
+      "plate_kind": "chart b-roll",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "dissolve+shrink",
+      "exit": "cut",
+      "line_class": "show",
+      "spoken_words": [
         {
           "t0": 9.2,
           "t1": 11.34,
@@ -87,8 +106,26 @@
         {
           "t0": 11.34,
           "t1": 14.08,
-          "text": "แต่มันสูงเพราะมีเงินบางส่วนถูกกักไว้"
-        },
+          "text": "แต่มันสูงเพราะมีเงินบางส่วนถูกกักไว้ (partial, cut lands at 14.033)"
+        }
+      ],
+      "notes": "CORRECTED 2026-09-23 (CTO review). Was wrongly folded into the previous full-frame shot and its avatar_shrink dismissed as 'tracker drift' -- the drift claim was WRONG; re-verified against reference/avatar-shrink-motion.jpg (CTO-supplied) and track_full.txt: plate dissolves in 8.93-9.13 behind the still-full avatar, then avatar SHRINKS 9.33->10.23 (SKILL-verified: sine.out RMSE 0.035, power1.out 0.040, scale 1.04->0.69, cy 608->1056px, cx 564->349px) into this composite. Plate is a decorative candlestick chart (no browser chrome/URL visible -- generic time-axis labels only), not a real webpage -- classified chart b-roll, not real web screenshot. Kinetic header 'ค่า SPREAD สูงเพราะ?' + checkbox 'เพราะตลาดการเงิน' build on top; the checkbox is ALREADY struck through by t=12.0 (confirmed via full-res frame) -- exact strike timing not pinned down, estimated ~10.5-11s, earlier than this report previously claimed (14.0). Exit: HARD CUT at 14.033 (tracker scale jumps 0.66->1.12 instantly) -- CORRECTED from this report's earlier, wrong claim that 14.033 was 'just a text reveal, not a cut'."
+    },
+    {
+      "id": 5,
+      "t0": 14.033,
+      "t1": 18.87,
+      "plate_kind": "red studio",
+      "avatar_mode": "full",
+      "avatar_box": {
+        "height_pct": 88.7,
+        "top_pct": 11.3,
+        "x_center_pct": 52.4
+      },
+      "entry": "cut",
+      "exit": "dissolve",
+      "line_class": "show",
+      "spoken_words": [
         {
           "t0": 14.08,
           "t1": 15.16,
@@ -106,19 +143,38 @@
         },
         {
           "t0": 17.76,
-          "t1": 19.0,
-          "text": "ส่วนใหญ่ ไม่"
-        },
+          "t1": 18.87,
+          "text": "ส่วนใหญ่ ไม่ (partial)"
+        }
+      ],
+      "notes": "CORRECTED 2026-09-23 (CTO review) -- previously this whole span was wrongly merged with shots 3+4 into one 5.233-20.267 shot. Red studio, same style as shot 3. Exit: plate dissolves to the EURUSD chart 18.87-18.93 while avatar is still full (SKILL-verified)."
+    },
+    {
+      "id": 6,
+      "t0": 18.87,
+      "t1": 20.267,
+      "plate_kind": "real web screenshot",
+      "avatar_mode": "composite",
+      "avatar_box": {
+        "height_pct": 55.8,
+        "top_pct": 44.2,
+        "x_center_pct": 37.0,
+        "note": "cut off by frame bottom, chest-up"
+      },
+      "entry": "dissolve+shrink",
+      "exit": "cut",
+      "line_class": "show",
+      "spoken_words": [
         {
           "t0": 19.0,
           "t1": 20.24,
           "text": "มึงดูตัวอย่างนี้"
         }
       ],
-      "notes": "Longest single full-frame shot (15s). Kinetic header block builds cumulatively: 'ค่า SPREAD สูงเพราะ?' -> wrong-answer checkbox (struck through ~14.0) -> right-answer 'เพราะมีเงินถูกกักไว้' w/ coin-icon pop ~15.2. Bottom caption line replaces per utterance underneath. TRACKER DRIFT WARNING: seed/track.py loses the head lock twice here (9.5-14.0s and 19.3-20.267s, scale falsely drops to 0.66-0.7 matching composite level) — confirmed false by direct frame reads at 0.2-0.5s steps showing the avatar stays full-frame, centered, static the whole shot. Root cause: the tracker's NCC search matches the kinetic text block instead of the head once enough of it is on screen, same failure mode the seed/README already documented for frame 0. Do not trust track_full.txt scale/cy in these two windows."
+      "notes": "CORRECTED 2026-09-23. Real my.xm.com EURUSD chart page (browser chrome/URL bar visible, unlike shot 4's decorative chart). Avatar shrinks 19.13->19.83 (SKILL-verified: sine.out RMSE 0.067, linear 0.088, scale 1.11->0.68, cy 581->1040px, cx 528->318px). Exit: HARD CUT at 20.267 (frame-diff spike 0.642, tracker already stable composite before and after -- confirms this is a PLATE cut, not an avatar-mode cut)."
     },
     {
-      "id": 4,
+      "id": 7,
       "t0": 20.267,
       "t1": 24.6,
       "plate_kind": "real web screenshot",
@@ -140,39 +196,15 @@
         },
         {
           "t0": 22.88,
-          "t1": 24.64,
+          "t1": 24.6,
           "text": "คือ 15 ดอลลาร์ต่อ 1 ลอต"
         }
       ],
-      "notes": "my.xm.com EURUSD live-chart page."
+      "notes": "CORRECTED 2026-09-23: this report previously had the identities of this shot and shot 8 SWAPPED (said this was the EURUSD chart and shot 8 the rebate table -- backwards). Frame-exact check at t=20.10-20.40 confirms: this shot is the XM REBATE/commission table, GOLD.XAUEUR row already yellow-highlighted."
     },
     {
-      "id": 5,
+      "id": 8,
       "t0": 24.6,
-      "t1": 27.2,
-      "plate_kind": "real web screenshot",
-      "avatar_mode": "composite",
-      "avatar_box": {
-        "height_pct": 55.8,
-        "top_pct": 44.2,
-        "x_center_pct": 37.0,
-        "note": "cut off by frame bottom, chest-up"
-      },
-      "entry": "cut",
-      "exit": "dissolve",
-      "line_class": "show",
-      "spoken_words": [
-        {
-          "t0": 24.64,
-          "t1": 26.26,
-          "text": "แต่ถ้ามึงเทรดบัญชีสแตนดาร์ด"
-        }
-      ],
-      "notes": "XM rebate/commission table screenshot, GOLD.XAUEUR row already yellow. ESTIMATE: exit is a soft dissolve back to the EURUSD chart — no clean frame-diff spike found (checked every frame 26.8-27.6s, max diff 0.007), so t1=27.2 and 'dissolve' are both estimates (±0.3s) inferred from the visual bracket (27.0s still table, 27.5s already chart)."
-    },
-    {
-      "id": 6,
-      "t0": 27.2,
       "t1": 46.233,
       "plate_kind": "real web screenshot",
       "avatar_mode": "composite",
@@ -182,12 +214,17 @@
         "x_center_pct": 37.0,
         "note": "cut off by frame bottom, chest-up"
       },
-      "entry": "dissolve",
+      "entry": "cut",
       "exit": "cut",
       "line_class": "show",
       "spoken_words": [
         {
-          "t0": 27.2,
+          "t0": 24.64,
+          "t1": 26.26,
+          "text": "แต่ถ้ามึงเทรดบัญชีสแตนดาร์ด"
+        },
+        {
+          "t0": 26.26,
           "t1": 28.3,
           "text": "แค่เปิดไม้แรก 0.01 ลอต"
         },
@@ -247,10 +284,10 @@
           "text": "หรือบางคนไม่คืนให้มึงเลย"
         }
       ],
-      "notes": "Longest shot overall (19s). SAME my.xm.com EURUSD chart plate throughout — no plate cut, only overlaid graphics build/replace on top (all P2/P3 events): red trade-ticket stack ('เปิด GOLD 0.01 LOT'->'ลบ -0.30$'->LOT 1->'เงินลบ -30$'), yellow REBATE -15.3$ chip (onset 34.400, lands on the word 'รีเบต' at 34.400 — exact), 'ส่วนเงินที่หายไป -14.7$', businessman-icon pop (~41.5), growing crowd-icon group as 'เงินที่เหลือ' counts down 14.7$->13.7$->12.7$->11.7$."
+      "notes": "CORRECTED 2026-09-23: merges this report's old shots 5+6, which had wrongly split one continuous shot into two with a fabricated ~27.2s dissolve boundary (full re-scan of frame_diff.csv 19.8-27.5s found exactly 2 real spikes -- 20.267 and 24.600 -- nothing near 27.2; frame-exact check at 24.60-27.30 confirms one unbroken my.xm.com EURUSD chart, w/ 'XM เทรดโบนัส STANDARD' badge overlay, from the 24.600 cut through to 46.233). Longest shot overall (21.6s). Red trade-ticket stack builds on top starting ~27.15s ('เปิด GOLD 0.01 LOT'->'ลบ -0.30$'->LOT 1->'เงินลบ -30$'), yellow REBATE -15.3$ chip (onset 34.400, lands on the word 'รีเบต' at 34.400 — exact), 'ส่วนเงินที่หายไป -14.7$', businessman-icon pop (~41.5), growing crowd-icon group as 'เงินที่เหลือ' counts down 14.7$->13.7$->12.7$->11.7$."
     },
     {
-      "id": 7,
+      "id": 9,
       "t0": 46.233,
       "t1": 51.27,
       "plate_kind": "red studio",
@@ -288,9 +325,9 @@
       "notes": "Cut confirmed by both frame-diff (clean single-frame 0.276 spike, next frame back to baseline) and tracker (scale jumps 1.0->composite range exactly at this boundary in earlier switches' pattern)."
     },
     {
-      "id": 8,
+      "id": 10,
       "t0": 51.27,
-      "t1": 57.2,
+      "t1": 56.633,
       "plate_kind": "real web screenshot",
       "avatar_mode": "composite",
       "avatar_box": {
@@ -300,7 +337,7 @@
         "note": "cut off by frame bottom, chest-up"
       },
       "entry": "shrink",
-      "exit": "dissolve",
+      "exit": "cut",
       "line_class": "show",
       "spoken_words": [
         {
@@ -316,14 +353,14 @@
         {
           "t0": 55.3,
           "t1": 56.54,
-          "text": "มึงกำลังเสียเปรียบ"
+          "text": "มึงกำลังเสียเปรียบ (partial)"
         }
       ],
-      "notes": "Entry: animated shrink 51.27->52.17 (SKILL, sine.out RMSE 0.032 best, power1.out 0.062 second; scale 1.12->0.67, head cy 572->1051px, cx 493->327px). Same XM rebate table as shot 5. ESTIMATE: exit ~57.2 is a soft dissolve into a different (Exness-style) comparison table — no diff spike (checked 56.7-57.8s, all <0.006), timing anchored instead to the yellow-onset measurement below."
+      "notes": "CORRECTED 2026-09-23: exit was wrongly estimated as 'a soft dissolve ~57.2, no diff spike' -- re-scanned frame_diff.csv with a relative-baseline detector (not just an absolute threshold) and found a real, small-magnitude spike at 56.633 (diff 0.059, score 0.054) that a flat 0.12 threshold had filtered out because both plates are white/bright (low-contrast cut, not a low-confidence one). Frame-exact check confirms a genuine 1-frame hard cut between 56.600 and 56.667. Entry: animated shrink 51.27->52.17 (SKILL, sine.out RMSE 0.032 best, power1.out 0.062 second; scale 1.12->0.67, head cy 572->1051px, cx 493->327px). Same XM rebate table (GOLD.XAUEUR) as shot 7."
     },
     {
-      "id": 9,
-      "t0": 57.2,
+      "id": 11,
+      "t0": 56.633,
       "t1": 59.5,
       "plate_kind": "real web screenshot",
       "avatar_mode": "composite",
@@ -333,7 +370,7 @@
         "x_center_pct": 37.0,
         "note": "cut off by frame bottom, chest-up"
       },
-      "entry": "dissolve",
+      "entry": "cut",
       "exit": "cut",
       "line_class": "show",
       "spoken_words": [
@@ -342,10 +379,11 @@
           "t1": 59.4,
           "text": "ใครใช้ X-ness แล้วได้คืนไม่ถึง $8 ต่อหลอด"
         }
-      ]
+      ],
+      "notes": "CORRECTED 2026-09-23: entry re-timed from ~57.2 (estimate) to 56.633 (measured hard cut, see shot 10 notes)."
     },
     {
-      "id": 10,
+      "id": 12,
       "t0": 59.5,
       "t1": 64.533,
       "plate_kind": "red studio",
@@ -378,9 +416,9 @@
       "notes": "Both cuts (59.500 in, 64.533 out) are clean single-frame spikes, 0 in-between frames — matches SKILL's '64.5s: hard cut, 0 in-between frames'."
     },
     {
-      "id": 11,
+      "id": 13,
       "t0": 64.533,
-      "t1": 68.8,
+      "t1": 68.267,
       "plate_kind": "app UI",
       "avatar_mode": "composite",
       "avatar_box": {
@@ -390,7 +428,7 @@
         "note": "cut off by frame bottom, chest-up"
       },
       "entry": "cut",
-      "exit": "dissolve",
+      "exit": "cut",
       "line_class": "cta",
       "spoken_words": [
         {
@@ -404,11 +442,11 @@
           "text": "กูเชื่อว่ามึงไม่อยากเสียเงินฟรีอีกต่อไป"
         }
       ],
-      "notes": "MyWallet app popup, balance $11.15. ESTIMATE: exit ~68.8 dissolve to transaction-history list, no clean diff spike found 68.0-69.0s (max 0.048 at 68.267, a soft ramp not a spike)."
+      "notes": "MyWallet app popup, balance $11.15. CORRECTED 2026-09-23: exit was wrongly estimated as 'a soft dissolve ~68.8' -- relative-baseline re-scan found a real small-magnitude spike at 68.267 (diff 0.048, score 0.043, same low-contrast-cut pattern as shot 10 -- both plates are dark navy). Frame-exact check confirms MyWallet is gone and the transaction-history list is already up by 68.267."
     },
     {
-      "id": 12,
-      "t0": 68.8,
+      "id": 14,
+      "t0": 68.267,
       "t1": 71.1,
       "plate_kind": "app UI",
       "avatar_mode": "composite",
@@ -418,7 +456,7 @@
         "x_center_pct": 37.0,
         "note": "cut off by frame bottom, chest-up"
       },
-      "entry": "dissolve",
+      "entry": "cut",
       "exit": "cut",
       "line_class": "cta",
       "spoken_words": [
@@ -428,12 +466,12 @@
           "text": "ใครอยากได้ XM หรือ X-ness เรียบเต็ม ทักกูมา"
         }
       ],
-      "notes": "'ประวัติการทำธุรกรรม' transaction-history list, XM entries then an Exness ('ex', yellow icon) entry pops in ~69.6 with 'REBATE เต็ม' tag ~70.5-71.0."
+      "notes": "CORRECTED 2026-09-23: entry re-timed from ~68.8 (estimate) to 68.267 (measured hard cut, see shot 13 notes). 'ประวัติการทำธุรกรรม' transaction-history list, XM entries then an Exness ('ex', yellow icon) entry pops in ~69.6 with 'REBATE เต็ม' tag ~70.5-71.0."
     },
     {
-      "id": 13,
+      "id": 15,
       "t0": 71.1,
-      "t1": 72.05,
+      "t1": 72.067,
       "plate_kind": "app UI",
       "avatar_mode": "full",
       "avatar_box": {
@@ -445,11 +483,11 @@
       "exit": "flash",
       "line_class": "cta",
       "spoken_words": [],
-      "notes": "COMPLIANCE FLAG (see CENSUS.md / report): plate is the channel's OWN public TikTok profile page (Follow/Message buttons, 3 Following/1,459 Followers/12.8K Likes) with bio text as an explicit rebate-link CTA overlay: 'คืน Rebate 90% เคยได้มาเท่าไหร่? เราให้ได้มากกว่า ติดต่อไลน์ @mooniex (มี@) หรือคลิก https://www.openlink.co/mooniex Email' — read verbatim off a full-res frame at 71.3s. SKILL §6b: this class of public rebate link belongs in closed channels only; flagging per the task brief's instruction, not fixing (this is the reference video, nothing here is being cut)."
+      "notes": "COMPLIANCE FLAG (see CENSUS.md / report): plate is the channel's OWN public TikTok profile page (Follow/Message buttons, 3 Following/1,459 Followers/12.8K Likes) with bio text as an explicit rebate-link CTA overlay: 'คืน Rebate 90% เคยได้มาเท่าไหร่? เราให้ได้มากกว่า ติดต่อไลน์ @mooniex (มี@) หรือคลิก https://www.openlink.co/mooniex Email' — read verbatim off a full-res frame at 71.3s. SKILL §6b: this class of public rebate link belongs in closed channels only; flagging per the task brief's instruction, not fixing (this is the reference video, nothing here is being cut). t1 corrected from 72.050 (estimate) to 72.067 (measured frame-diff spike, matches the white-flash frame directly observed)."
     },
     {
-      "id": 14,
-      "t0": 72.05,
+      "id": 16,
+      "t0": 72.067,
       "t1": 72.3,
       "plate_kind": "logo card",
       "avatar_mode": "composite",
@@ -463,10 +501,10 @@
       "exit": "dissolve",
       "line_class": "cta",
       "spoken_words": [],
-      "notes": "Very brief (~0.2s) insert: 'MoonieX -- From Earth to The Moon' branded rebate-signup card, moon icon, 'ติดต่อรับ Rebate คืน' button + two '15$' QR boxes. NOTE (surprise, not a fix): this is a coincidental brand-name match with the org's own 'MoonieX' -- an unrelated third-party rebate/IB service using the same name, seen only inside this reference video. Timing is an ESTIMATE (~72.05-72.3s): single-frame grabs at 72.05s and 72.15s both landed just outside this card's window in two attempts; the window itself is confirmed from a 0.1s-step contact sheet (visible at t=72.1 and t=72.2, gone by t=72.3)."
+      "notes": "Very brief (~0.2s) insert: 'MoonieX -- From Earth to The Moon' branded rebate-signup card, moon icon, 'ติดต่อรับ Rebate คืน' button + two '15$' QR boxes. CORRECTED 2026-09-23 (CTO review): this IS the org's own MoonieX brand -- the reference is the CEO's own old post. This report previously and wrongly called it 'an unrelated third-party rebate/IB service, no connection to us' -- that claim is deleted; retract it. Timing is still an ESTIMATE (~72.07-72.3s): single-frame grabs at 72.05s and 72.15s both landed just outside this card's window in two attempts; the window itself is confirmed from a 0.1s-step contact sheet (visible at t=72.1 and t=72.2, gone by t=72.3)."
     },
     {
-      "id": 15,
+      "id": 17,
       "t0": 72.3,
       "t1": 80.333,
       "plate_kind": "app UI",
@@ -500,7 +538,7 @@
       "notes": "XM member app, ONE continuous vertical scroll for 8s through: VIP $80/lot header -> circular progress ring (1,207.61 / 292.39/1500) -> FX-lots stats table -> tier-ladder graphic (Bronze $17 / Silver $35 / Gold $50 / Platinum $70 / VIP $80 per lot). No internal cuts found."
     },
     {
-      "id": 16,
+      "id": 18,
       "t0": 80.333,
       "t1": 85.24,
       "plate_kind": "red studio",
@@ -579,14 +617,43 @@
       "notes": "Timing re-measured independently via frame_diff.csv (isolated spike at 4.400, then held-low-diff until cut at 5.233) -- confirms SKILL's 4.40-5.15 to within 0.05s."
     },
     {
-      "t0": 14.0,
-      "t1": 14.4,
+      "t0": 8.93,
+      "t1": 9.13,
+      "type": "plate_dissolve",
+      "target": "background plate (red studio -> chart b-roll), avatar still full-size",
+      "easing_candidates": [],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "ADDED 2026-09-23 (CTO review corrected this report's earlier wrong dismissal of the whole 9-20s switch as tracker drift). SKILL-verified quick dissolve (~0.2s) that precedes the avatar_shrink below; matches reference/avatar-shrink-motion.jpg row 1 exactly."
+    },
+    {
+      "t0": 9.33,
+      "t1": 10.23,
+      "type": "avatar_shrink",
+      "target": "avatar box (whole)",
+      "easing_candidates": [
+        [
+          "sine.out",
+          0.035
+        ],
+        [
+          "power1.out",
+          0.04
+        ]
+      ],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "ADDED 2026-09-23 (CTO review). SKILL-measured (verified, not re-derived): scale 1.04->0.69, head cy 608->1056px, cx 564->349px, 27 frames. This report previously and WRONGLY claimed this was seed/track.py 'drift' onto kinetic text and that the avatar 'never moves' 5.2-20.3s -- that claim is retracted; the shrink is real, confirmed against both the tracker and a fresh 15fps frame read."
+    },
+    {
+      "t0": 10.5,
+      "t1": 11.2,
       "type": "strike+reveal",
       "target": "header block, wrong-answer line",
       "easing_candidates": [],
       "spoken_word": null,
       "offset_s": null,
-      "notes": "NOT a P1 cut (see shot 3 notes) -- a fast strikethrough on 'เพราะตลาดการเงิน' plus the new correct-answer line revealing underneath, inside the same full-frame shot. This is what caused the false hard-cut candidate at 14.033 in frame_diff.csv (diff 0.301, single frame) -- same magnitude as a real cut despite no plate/avatar change; disambiguated only by the direct frame read."
+      "notes": "RE-TIMED 2026-09-23: previously placed at 14.0 and described as 'not a P1 cut, causes the false 14.033 spike' -- WRONG on both counts. 14.033 is a real hard cut (see shot 4/5 boundary). A full-res frame at t=12.0 shows the strikethrough on 'เพราะตลาดการเงิน' ALREADY applied, so it happens sometime before 12.0, not at 14.0 -- re-estimated to ~10.5-11.2s (the checkbox line's own arrival window) but NOT independently re-measured frame-by-frame; flagged as a still-approximate estimate, not a confirmed number."
     },
     {
       "t0": 15.2,
@@ -597,6 +664,35 @@
       "spoken_word": "กักไว้",
       "offset_s": 0.02,
       "notes": "ESTIMATE timing (0.3s sampling); lands within the word 'กักไว้' (15.180-15.560)."
+    },
+    {
+      "t0": 18.87,
+      "t1": 18.93,
+      "type": "plate_dissolve",
+      "target": "background plate (red studio -> EURUSD chart), avatar still full-size",
+      "easing_candidates": [],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "ADDED 2026-09-23 (CTO review). SKILL-verified quick dissolve preceding the avatar_shrink below; matches reference/avatar-shrink-motion.jpg row 2."
+    },
+    {
+      "t0": 19.13,
+      "t1": 19.83,
+      "type": "avatar_shrink",
+      "target": "avatar box (whole)",
+      "easing_candidates": [
+        [
+          "sine.out",
+          0.067
+        ],
+        [
+          "linear",
+          0.088
+        ]
+      ],
+      "spoken_word": null,
+      "offset_s": null,
+      "notes": "ADDED 2026-09-23 (CTO review). SKILL-measured (verified, not re-derived): scale 1.11->0.68, head cy 581->1040px, cx 528->318px, 21 frames. Part of the same switch this report previously wrongly called drift -- retracted, see the 9.33-10.23 event's notes."
     },
     {
       "t0": 34.4,
@@ -702,37 +798,38 @@
       "dist_to_edges_px": "estimate: standard side margins, not measured against safe-area vars"
     },
     {
-      "t_in": 7.0,
-      "t_out": 20.267,
+      "t_in": 9.0,
+      "t_out": 14.033,
       "text": "ค่า SPREAD สูงเพราะ?",
       "box": "upper-middle, ~y18-26%",
       "style": "headline",
-      "entrance": "estimate: pop/reveal ~7.0-7.3s (coincides with frame_diff spike at 7.200, diff=0.084)",
-      "exit": "cut (with shot)",
+      "entrance": "estimate: pop/reveal ~9.0s, as the plate dissolves and the avatar shrinks (see P2)",
+      "exit": "cut (with shot 4->5 at 14.033)",
       "dist_to_focus_px": null,
       "dist_to_avatar_top_px": "estimate: clears the head by a wide margin, header sits well above",
-      "dist_to_edges_px": "estimate: centered, generous side margins"
+      "dist_to_edges_px": "estimate: centered, generous side margins",
+      "notes": "CORRECTED 2026-09-23: t_in was wrongly placed at 7.0 (that time is still shot 3, red-studio, before the chart plate even appears) and t_out at 20.267 (the header does not survive the 14.033 cut back to red studio -- confirmed by the reference/avatar-shrink-motion.jpg frames, which show plain red studio at 14.13-14.5, no header text). The 7.200 frame_diff spike this entry previously cited belongs to a bottom-caption swap within shot 3, not this header."
     },
     {
       "t_in": 9.4,
-      "t_out": 14.0,
-      "text": "✅ เพราะตลาดการเงิน",
+      "t_out": 14.033,
+      "text": "✅ เพราะตลาดการเงิน (struck through partway through)",
       "box": "below header, ~y26-32%",
       "style": "caption chip (checkbox line)",
       "entrance": "estimate: pop ~9.3-9.5s",
-      "exit": "strikethrough animation ~14.0-14.3s (see P2), then removed/replaced",
+      "exit": "strikethrough ~10.5-11.2s (RE-TIMED, see P2 -- was wrongly placed at 14.0), then cut with shot at 14.033",
       "dist_to_focus_px": null,
       "dist_to_avatar_top_px": "estimate",
       "dist_to_edges_px": "estimate"
     },
     {
-      "t_in": 15.0,
-      "t_out": 20.267,
+      "t_in": 11.0,
+      "t_out": 14.033,
       "text": "เพราะมีเงินถูกกักไว้ (w/ coin icon)",
       "box": "below header, ~y26-34%",
       "style": "caption chip (data label)",
-      "entrance": "expo-style reveal ~14.0-14.4s (fast, matches kit constant)",
-      "exit": "cut (with shot)",
+      "entrance": "reveal ~10.5-11.2s, right after the strikethrough (RE-TIMED, was wrongly 14.0-14.4)",
+      "exit": "cut (with shot 4->5 at 14.033)",
       "dist_to_focus_px": null,
       "dist_to_avatar_top_px": "estimate",
       "dist_to_edges_px": "estimate"
@@ -882,11 +979,46 @@
       "evidence": "flux_score=0.317, centroid=2364Hz, mixed band."
     },
     {
+      "t": 8.858,
+      "aligned_to": "plate_dissolve@8.93",
+      "offset_s": -0.072,
+      "rough_class": "impact/thud",
+      "evidence": "flux_score=0.148, centroid=764Hz, low_ratio=0.841 -- strong low content, fits the plate-dissolve-behind-full-avatar moment. ADDED 2026-09-23 (CTO review re-timed this whole switch)."
+    },
+    {
+      "t": 9.369,
+      "aligned_to": "avatar_shrink_onset@9.33",
+      "offset_s": 0.039,
+      "rough_class": "whoosh (moderate)",
+      "evidence": "flux_score=0.447, centroid=1588Hz. ADDED 2026-09-23."
+    },
+    {
       "t": 13.874,
-      "aligned_to": "text_strike@14.033",
+      "aligned_to": "cut@14.033 (RE-LABELED 2026-09-23 -- previously mislabeled 'text_strike', but 14.033 is a real hard cut, not a text reveal)",
       "offset_s": -0.159,
       "rough_class": "other/weak",
       "evidence": "flux_score=0.097 (weak) -- low confidence, may just be a speech consonant."
+    },
+    {
+      "t": 19.168,
+      "aligned_to": "plate_dissolve@18.87 / avatar_shrink_onset@19.13",
+      "offset_s": null,
+      "rough_class": "impact/thud",
+      "evidence": "flux_score=0.281, centroid=703Hz, low_ratio=0.155. ADDED 2026-09-23."
+    },
+    {
+      "t": 56.483,
+      "aligned_to": "cut@56.633",
+      "offset_s": -0.15,
+      "rough_class": "other (weak-moderate)",
+      "evidence": "flux_score=0.144, centroid=1564Hz. ADDED 2026-09-23 alongside the re-timed cut (was missing when this cut was mis-timed at ~57.2)."
+    },
+    {
+      "t": 68.569,
+      "aligned_to": "cut@68.267",
+      "offset_s": 0.302,
+      "rough_class": "other (moderate)",
+      "evidence": "flux_score=0.230, centroid=1442Hz, low_ratio=0.202. ADDED 2026-09-23 alongside the re-timed cut (was missing when this cut was mis-timed at ~68.8); offset is wide (0.3s) so confidence is lower than the other cut-aligned onsets."
     },
     {
       "t": 20.387,

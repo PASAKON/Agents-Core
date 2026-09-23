@@ -36,7 +36,7 @@ ICON_SFX = '<svg viewBox="0 0 16 16" width="10" height="10"><polygon points="8,1
 
 PLATE_COLOR = {
     "red studio": "#5a1a1a", "real web screenshot": "#1a3a5a",
-    "app UI": "#1a5a3a", "logo card": "#5a4a1a", "other": "#444",
+    "chart b-roll": "#3a1a5a", "app UI": "#1a5a3a", "logo card": "#5a4a1a", "other": "#444",
 }
 
 shots_html = []
@@ -124,6 +124,7 @@ p.sub {{ color:var(--muted); margin:0 0 16px; font-size:12px; }}
 <div class="legend">
   <span><span class="sw" style="background:#5a1a1a"></span>red studio</span>
   <span><span class="sw" style="background:#1a3a5a"></span>real web screenshot</span>
+  <span><span class="sw" style="background:#3a1a5a"></span>chart b-roll</span>
   <span><span class="sw" style="background:#1a5a3a"></span>app UI</span>
   <span><span class="sw" style="background:#5a4a1a"></span>logo card</span>
   <span>{ICON_FOCUS} P2 focus event</span>
