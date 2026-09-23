@@ -488,10 +488,87 @@ switches, shot by shot, between two modes:
 | **full-frame avatar** | pure talking-head beats, no evidence to show | height **88.7%** of the 1920 frame, top at **11.3%**, x-center **52.4%** (n=2) |
 | **composited avatar** | a website screenshot, chart, or other evidence has to stay on screen while the avatar keeps talking | height **55.8% ± 3.1** (min 52.9 max 64.0), top at **44.2% ± 3.1** (y≈850px), x-center **≈37%** (left of centre), **always cut off by the frame bottom** — chest-up, never full body (n=10) |
 
-Composite mode is a **hard cut**, not an animated shrink — a shot is either
-fully full-frame or fully composited; there's no crossfade or scale tween
-between the two states in the reference. Build it that way: swap `.clip`
-plates and toggle `.avatar-comp` at the cut point, don't tween scale/position.
+#### How the avatar moves — measured frame by frame (2026-09-23, CEO-directed)
+
+Tracked on every frame of the reference (TikTok `@black_liquidity/video/7612158317695159573`,
+85 s) with a multi-scale head matcher (beanie + sunglasses, NCC 0.77-0.91 on every
+frame). Strips: `reference/avatar-shrink-motion.jpg` (four switches, every 2nd
+frame) and `reference/hook-avatar-drop.jpg`.
+
+**Going INTO composite = an animated shrink, not a cut** (3 of 4 switches):
+
+| switch | plate swaps behind the full avatar | shrink runs | frames | scale | head centre y | head centre x | best easing (RMSE) |
+|---|---|---|---|---|---|---|---|
+| 9 s | 8.93-9.13 | 9.33 → 10.23 | 27 | 1.04 → 0.69 | 608 → 1056 px | 564 → 349 px | sine.out 0.035 · power1.out 0.040 |
+| 19 s | 18.87-18.93 | 19.13 → 19.83 | 21 | 1.11 → 0.68 | 581 → 1040 px | 528 → 318 px | sine.out 0.067 · linear 0.088 |
+| 51 s | 50.87-51.13 | 51.27 → 52.17 | 27 | 1.12 → 0.67 | 572 → 1051 px | 493 → 327 px | sine.out 0.032 · power1.out 0.062 |
+| 64.5 s | — | hard cut | 0 | 1.07 → 0.68 | 603 → 1085 px | 539 → 321 px | — |
+
+Build it this way:
+1. **The plate changes first, behind the still full-size avatar** (a quick
+   dissolve, ~0.2 s). The headline or question for that section lands too
+   ("ค่า SPREAD สูงเพราะ?" at 9.07 s). The viewer sees that something new is
+   behind the presenter.
+2. **~0.2 s later the avatar shrinks out of the way.** Tween scale + position
+   together over **0.7-0.9 s** with **`sine.out`** (`power1.out` is the close second).
+   It ends at **~62% of its full size**, moves down by about a quarter of the
+   frame, and moves left to a head centre at x≈30% (≈320-350 px). The first
+   frames move fastest: 32-36 px per frame, with a visible motion blur.
+3. **Coming back to full frame is a hard cut** (46.2 s: 0 in-between frames).
+   The return lands on a new spoken sentence in the red studio plate.
+4. A hard cut *into* composite also happens once (64.5 s). It sits where a new
+   section starts ("ใครฟังมาถึงตรงนี้", the CTA block). Use the animated shrink
+   by default, and a hard cut when the script turns to a new section.
+
+**The hook opening is a third move, a slide rather than a shrink.** From
+0.23 → 1.43 s the avatar slides straight down at the same size: scale
+1.00 → 1.00, x unchanged, head centre y 839 → 1137 px (+298 px ≈ 15.5% of the
+frame). The curve is **`power1.out`** (RMSE 0.056, sine.out 0.072), with a peak of
+20 px/frame in the first frames. The space it opens above the head is where the
+hook text sits, and the brand logo pops into it at 0.60 s, on the frame the
+voice says "XM". It then holds until the hard cut to the first evidence plate
+at 1.87 s.
+
+- [SUPERSEDED 2026-09-23] "Composite mode is a **hard cut**, not an animated
+  shrink … don't tween scale/position." Beaten by frame-by-frame tracking of
+  the reference (3 of 4 entries are 21-27-frame `sine.out` shrinks). The CEO
+  also saw it by eye: "การเอาลง เอาลงแบบ smooth ด้วย มี Animation". The
+  original n=10 measurement sampled the settled shots, not the transitions.
+
+#### Focus devices on the evidence plate — measured
+
+The plate is never just placed behind the avatar. Every screenshot is worked
+so that the viewer's eye lands on one spot at the moment the voice names it:
+
+- **Scroll and zoom the page so the focus row sits in the free band above the
+  head**, at **25-40% of the frame height**. Across the clip the yellow focus marks
+  centre at y 25-33% and x 45-60%. The centre of the space the avatar left
+  open, not the centre of the whole frame. The XM page (2.0-4.4 s) is panned
+  and pushed in continuously, not held (zoom amount read by eye, not measured).
+- **Spotlight circle.** The page dims to grey except a bright circle around
+  the one value being talked about ("สเปรดต่ำสุด GOLD 3", 4.40-5.15 s, circle
+  centre ≈ x 25% / y 28%, radius ≈ 20% of the width), with the recorded mouse
+  cursor resting on the number. See `reference/focus-spotlight-circle.jpg`.
+- **Yellow highlighter, left → right, on the spoken word.** Table rows get a
+  yellow bar that sweeps left to right in ~0.9 s (the centroid runs x 40% → 55-60%).
+  Measured onset against the word: SPREAD 9.07 vs spoken 9.22 · REBATE chip
+  34.47 vs 34.40 · Exness row 57.20 vs 57.18 · logo pop 0.60 vs 0.60. **Land the
+  highlight on the word, ±0.15 s, never late.** The only yellow is the kit's
+  `--yellow` #F4DF14.
+- **In composite mode the spoken caption is a small dark chip just above the
+  head** (≈37-40% of the height), directly under the focus spot. In full-frame
+  mode it sits at chest height. The chip reads as a label on the evidence, not
+  as a subtitle.
+
+**Why the switch happens (script → mode), from the transcript:** the avatar
+is full frame for **verdict and emotion** lines ("ผมบอกความจริงที่ไม่มีใครบอกมึง",
+"มึงเป็นคนกด มึงเป็นคนเสี่ยง แต่คนอื่นกินเงินมึงเงียบ", the closing "เงินทุกล็อต…
+ควรเป็นของมึง"). Those blocks run 4-5 s each and total ~24 s of 85 (28%), all on
+the same red studio plate. It is composited for every line that names
+something that can be **shown**: a website, a number, a table row, a wallet
+balance, a tier ladder (~61 s, 72%). The rhythm is show (composite) → verdict
+(full frame) → show again. Tag each script line as show or verdict before
+cutting, and the modes follow from the tags.
 
 **Where the text goes:** always above the avatar's head (above y≈850px on the
 1920 canvas), never overlapping it — the composite exists precisely to free
