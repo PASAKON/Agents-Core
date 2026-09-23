@@ -327,7 +327,17 @@ def _write_dev_settings(worktree: str, role: str | None = None) -> None:
                         }
                     ]
                 }
-            ]
+            ],
+            "UserPromptSubmit": [
+                {
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": f"python3 {ROOT / 'scripts' / 'hook-inbox.py'}",
+                        }
+                    ]
+                }
+            ],
         },
     }
     inherited = _root_mcp_server_names()
