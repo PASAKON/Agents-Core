@@ -32,7 +32,9 @@ import argparse
 import hashlib
 import re
 import shutil
+import subprocess
 import sys
+import tempfile
 import time
 import zipfile
 from datetime import datetime
@@ -48,6 +50,8 @@ LOG_PATH = Path("state/banchi/flow_shoot.log")
 DOWNLOAD_GAP_S = 8  # brief's rule: never fire two downloads closer than this
 POLL_S = 8
 COMPLETION_TIMEOUT_S = 8 * 60
+NO_CARD_S = 120  # a submit that has changed nothing in the feed by now made no card
+UPSCALE_TIMEOUT_S = 3 * 60
 DURATION_TOLERANCE_S = 0.6
 MIN_AUDIO_DB = -60.0
 
@@ -69,14 +73,9 @@ _CREDIT_RE = re.compile(r"(\d+)\s*เครดิต")
 # [aria-label="Download"]/[aria-label="ดาวน์โหลด"] confirmed to match ZERO
 # elements — the only "download" mat-icon anywhere on the page is nested
 # inside a per-batch "ดาวน์โหลดแบบกลุ่ม" (bulk download) button, not a
-# per-clip control. There is no per-clip download button in this UI at all.
-# The real, verified mechanism (matches google-flow-ops' "the download
-# button is dead" section): Flow itself fetches this signed CDN URL to
-# render/play a clip; capture that network response and pull the bytes
-# directly. Proven live: navigated to an existing clip's /edit/<uuid>,
-# nudged a muted play(), captured this URL, fetched it via
-# page.request.get() with no extra auth, got 200 / 381529 bytes / a real
-# 4.01s h264+aac mp4 confirmed by ffprobe.
+# per-clip control in the project feed. The signed CDN URL remains useful for
+# completion detection and the explicit legacy 720p mode. Production exports
+# now open the clip editor and use Flow's free 1080p upscale menu instead.
 CDN_VIDEO_RE = re.compile(r"flow-content\.google/video/")
 
 
@@ -145,6 +144,33 @@ def parse_only(spec: str) -> set[int]:
         else:
             out.add(int(part))
     return out
+
+
+def picker_row_pattern(handle: str) -> "re.Pattern[str]":
+    """Match a picker row for exactly this asset, never for one whose name
+    merely starts with it.
+
+    ``filter(has_text="@cop_wit")`` is a substring match, so it also matched
+    ``@cop_wit_uniform_A`` — added 2026-09-23 — and ``.first`` then attached
+    whichever row the picker happened to list first. The same trap was
+    already live for ``@noodle_shop`` vs ``@noodle_shop_thriving``. The name
+    must be bounded by a non-word character or the end of the text, and the
+    ``@`` is optional because image assets renamed from a tile show no ``@``.
+    ASCII word characters only: handles are ASCII, and Playwright evaluates
+    this pattern as a JavaScript RegExp, where ``\\w`` is ASCII.
+    """
+    name = re.escape(handle.lstrip("@"))
+    return re.compile(rf"(?:^|[^A-Za-z0-9_]){name}(?:[^A-Za-z0-9_]|$)")
+
+
+def feed_changed(before: tuple[int, str], after: tuple[int, str]) -> bool:
+    """Has a new batch landed at the top of the feed since Submit?
+
+    More batches, or a different newest batch, both mean yes. A failed read
+    (-1) is never taken as a change: that is how a stale card gets accepted."""
+    if before[0] < 0 or after[0] < 0:
+        return False
+    return after[0] > before[0] or (after[0] > 0 and after[1] != before[1])
 
 
 def is_refusal_text(text: str) -> bool:
@@ -272,6 +298,27 @@ def first_dialogue_line(prompt: str) -> str | None:
     return m.group(1) if m else None
 
 
+def card_fragment(prompt: str) -> str | None:
+    """The text the runner tracks a shot's card by, in submit and in `pull`.
+
+    Dialogue first, because it is unique per shot. A shot with NO dialogue —
+    «บัญชี» 175, a silent reaction shot, 2026-09-23 — used to have no key at
+    all: submit never found its card, logged "failed — timeout" after eight
+    minutes while the clip was being generated and paid for, and `pull` then
+    refused it too. Fall back to the start of the action clause: the text
+    after the LAST " — " in the prompt. The first one belongs to the location
+    block, which every shot in that room repeats word for word.
+    """
+    d = first_dialogue_line(prompt)
+    if d:
+        return d
+    cut = prompt.rfind(" — ")
+    if cut < 0:
+        return None
+    action = prompt[cut + 3:].split("\n", 1)[0].strip().rstrip(".")
+    return action[:60] or None
+
+
 def extract_clip(downloaded: Path, dest_dir: Path, shot_no: int) -> Path:
     """Flow's download arrives as a .zip with one .mp4, or a bare .mp4."""
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -299,7 +346,33 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def verify_clip(path: Path, expected_dur: float) -> tuple[bool, str]:
+def probe_video_dimensions(path: Path) -> tuple[int, int]:
+    """Return the first video stream's width/height via ffprobe."""
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "stream=width,height", "-of", "csv=p=0",
+         str(path)],
+        check=True, capture_output=True, text=True,
+    )
+    width, height = result.stdout.strip().split(",", 1)
+    return int(width), int(height)
+
+
+def validate_download_option(text: str, resolution: str) -> None:
+    """Refuse any paid or mismatched export option before clicking it."""
+    normalized = " ".join((text or "").split())
+    if resolution != "1080p":
+        raise ValueError(f"unsupported upscale resolution: {resolution!r}")
+    if "1080p" not in normalized or "เพิ่มความละเอียดแล้ว" not in normalized:
+        raise RuntimeError(
+            f"live Flow menu is not the expected free 1080p upscale: {normalized!r}")
+    if "เครดิต" in normalized:
+        raise RuntimeError(
+            f"refusing a credit-bearing download option: {normalized!r}")
+
+
+def verify_clip(path: Path, expected_dur: float,
+                expected_resolution: str | None = None) -> tuple[bool, str]:
     """ffprobe duration within tolerance, audio present. Reuses
     clip_review's own probes so the two tools never disagree on what a
     passing clip looks like."""
@@ -311,12 +384,35 @@ def verify_clip(path: Path, expected_dur: float) -> tuple[bool, str]:
     db = clip_review.mean_db(path)
     if db is None or db < MIN_AUDIO_DB:
         return False, "NO AUDIO"
+    if expected_resolution:
+        try:
+            width, height = probe_video_dimensions(path)
+        except (OSError, ValueError, subprocess.SubprocessError) as e:
+            return False, f"RESOLUTION unreadable: {e!r}"
+        expected = {"720p": (720, 1280), "1080p": (1080, 1920)}.get(
+            expected_resolution)
+        if expected is None:
+            return False, f"RESOLUTION unsupported target {expected_resolution!r}"
+        if (width, height) != expected:
+            return False, (f"RESOLUTION got {width}x{height} want "
+                           f"{expected[0]}x{expected[1]}")
+        return True, f"{got:.1f}s {width}x{height}"
     return True, f"{got:.1f}s"
 
 
 def _log(msg: str) -> None:
     line = f"{datetime.now().isoformat(timespec='seconds')}  {msg}"
-    print(line)
+    # The log file is UTF-8, but stdout on Windows defaults to cp1252 and every
+    # shot in this production carries Thai dialogue. An un-encodable character
+    # raised UnicodeEncodeError out of print() and killed a run mid-shoot
+    # (measured 2026-09-22: 18 shots in, Act 5 stopped at shot 128). Reporting
+    # progress must never be able to stop the work, so the console write degrades
+    # and the file keeps the real text.
+    try:
+        print(line)
+    except UnicodeEncodeError:
+        enc = getattr(sys.stdout, "encoding", None) or "ascii"
+        print(line.encode(enc, errors="replace").decode(enc, errors="replace"))
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(LOG_PATH, "a", encoding="utf-8") as f:
         f.write(line + "\n")
@@ -339,10 +435,21 @@ class FlowBrowser:
         # itself (see below) so dry-run is structurally incapable of
         # spending — not just "the caller happens not to call submit()".
         self.dry_run = False
+        # Production exports default to Flow's free 1080p upscale. 720p is
+        # retained only as an explicit legacy/debug choice. 4K is deliberately
+        # unsupported because the live menu labels it as a 50-credit action.
+        self.download_resolution = "1080p"
         # Every flow-content.google/video/<id> response observed on this
-        # page, in order — see CDN_VIDEO_RE. This is the runner's only
-        # download mechanism (the UI has no per-clip download button).
+        # page, in order — see CDN_VIDEO_RE. This detects completion and
+        # supports explicit legacy 720p downloads; normal exports use the
+        # editor's free 1080p upscale menu.
         self._captured_video_urls: list[str] = []
+        self._pending_download: Path | None = None
+        self._last_dialogue: str | None = None
+        # Stable project/composer route captured at attach time. Submit moves
+        # the live page to /edit/<uuid>; later shots must navigate back here,
+        # not reload the clip editor.
+        self._project_url: str | None = None
 
     def _on_response(self, response) -> None:
         if CDN_VIDEO_RE.search(response.url):
@@ -363,6 +470,9 @@ class FlowBrowser:
             pass
         page.on("response", self._on_response)
         self.page = page
+        # A prior interrupted run may have left the tab on a clip editor.
+        # Flow's project composer is the same URL prefix before /edit/<uuid>.
+        self._project_url = re.sub(r"/edit/[^/?#]+.*$", "", page.url)
         return page
 
     def close(self) -> None:
@@ -379,6 +489,47 @@ class FlowBrowser:
 
     def mute_all_media(self) -> None:
         self.page.evaluate(MUTE_JS)
+
+    def _close_settings_panel(self) -> None:
+        """Close the settings overlay without pressing Escape.
+
+        winbox reserves Escape for the resident CookieRun controller, so the
+        Flow runner must use the UI's own controls.  The settings trigger is a
+        true toggle (confirmed live on 2026-09-20) and removes both the panel
+        and its backdrop when clicked a second time.
+        """
+        panel = self.page.locator("flow-prompt-box-settings")
+        if panel.count():
+            self.page.locator(
+                'button[aria-label="ทริกเกอร์การตั้งค่า"]'
+            ).first.click(timeout=3000, force=True)
+            panel.wait_for(state="detached", timeout=3000)
+
+    def _close_account_panel(self) -> None:
+        panel = self.page.locator("flow-account-panel")
+        if panel.count():
+            panel.locator('.close-btn[aria-label="ปิดแผงบัญชี"]').first.click(
+                timeout=3000)
+            panel.wait_for(state="detached", timeout=3000)
+
+    def reset_composer(self) -> None:
+        """Reload the current project route before each shot.
+
+        Flow keeps prompt and ingredient chips in the page session across
+        separate runner processes. The picker then hides an already-attached
+        asset, making a clean retry report ``no matching .asset-item row``;
+        worse, stale chips from another shot can satisfy the count-only gate.
+        A reload clears composer state at zero credits. Settings are deliberately
+        applied after this call because Flow resets them during navigation.
+        """
+        if not self._project_url:
+            raise RuntimeError("project URL unavailable — attach() must run first")
+        self.page.goto(self._project_url, wait_until="domcontentloaded", timeout=60_000)
+        self.mute_all_media()
+        self.page.locator(
+            'button[aria-label="ทริกเกอร์การตั้งค่า"]'
+        ).first.wait_for(state="visible", timeout=60_000)
+        self.mute_all_media()
 
     def set_settings(self, dur_s: int, resolution: str = "720p") -> dict:
         """Set model=Omni 1.1 Flash, mode=องค์ประกอบ, aspect=9:16, qty=x1,
@@ -400,9 +551,11 @@ class FlowBrowser:
         the wrong (image-mode) panel.
         """
         page = self.page
-        for _ in range(3):
-            page.keyboard.press("Escape")
-            page.wait_for_timeout(150)
+        # Never press Escape on winbox: it writes a persistent human-hold
+        # marker for the resident CookieRun farm. Close known Flow overlays by
+        # their explicit controls instead.
+        self._close_account_panel()
+        self._close_settings_panel()
         panel = page.locator("flow-prompt-box-settings")
         # Opening the panel is racy in the same way chip-attach is
         # documented as racy (google-flow-ops) — a single click does not
@@ -411,7 +564,8 @@ class FlowBrowser:
             if panel.count():
                 break
             try:
-                page.locator('button[aria-label="ทริกเกอร์การตั้งค่า"]').first.click(timeout=3000)
+                page.locator('button[aria-label="ทริกเกอร์การตั้งค่า"]').first.click(
+                    timeout=3000, force=True)
             except Exception as e:
                 _log(f"  settings panel open err: {e!r}")
             page.wait_for_timeout(400)
@@ -434,11 +588,26 @@ class FlowBrowser:
                 _log(f"  video-tab select err: {e!r}")
             page.wait_for_timeout(300)
         try:
-            panel.locator('button[aria-label="เลือกกลุ่มผลิตภัณฑ์โมเดล"]').first.click(timeout=3000)
+            panel.locator('button[aria-label="เลือกกลุ่มผลิตภัณฑ์โมเดล"]').first.click(
+                timeout=3000, force=True)
             page.wait_for_timeout(300)
-            page.locator("[role=menuitem]").filter(has_text="Omni 1.1 Flash").first.click(timeout=3000)
+            page.locator("[role=menuitem]").filter(
+                has_text="Omni 1.1 Flash"
+            ).first.click(timeout=3000, force=True)
         except Exception as e:
             _log(f"  model select err: {e!r}")
+            # Close the model menu through its own backdrop so it cannot
+            # intercept every following settings click. Never use Escape on
+            # winbox: that key is reserved by the resident farm controller.
+            try:
+                backdrop = page.locator(
+                    ".cdk-overlay-backdrop.settings-menu-backdrop"
+                ).last
+                if backdrop.count():
+                    backdrop.click(timeout=3000, force=True)
+                    page.wait_for_timeout(200)
+            except Exception:
+                pass
         try:
             panel.locator("mat-button-toggle").filter(has_text="องค์ประกอบ").first.click(timeout=3000)
         except Exception as e:
@@ -461,7 +630,7 @@ class FlowBrowser:
             _log(f"  quantity select err: {e!r}")
         page.wait_for_timeout(200)
         settings = self.read_settings(dur_s, resolution)
-        page.keyboard.press("Escape")
+        self._close_settings_panel()
         page.wait_for_timeout(200)
         return settings
 
@@ -516,34 +685,97 @@ class FlowBrowser:
         return self.page.locator("flow-ingredient-bar flow-ingredient-chip").count()
 
     def attach_chip(self, handle: str) -> bool:
-        """CORRECTED 2026-09-19 (task-a09ed18a, live dry-run): the picker is
-        NOT open by default — it must be opened via the composer's own "+"
-        button (aria-label เพิ่มองค์ประกอบลงในช่องพรอมต์) every time; it
-        auto-closes after one attach, so this reopens it on every call. Once
-        open, a matching `.asset-item` row (confirmed class, google-flow-ops
-        2026-09-08) is single-clicked, which opens a preview pane with its
-        own เพิ่มไปยังพรอมต์ button — click that to actually attach. The
-        brief's older "⋮ more options" menu path was not found live and is
-        dropped rather than kept as a silently-dead fallback."""
+        """Attach one ingredient by searching the picker's full dataset.
+
+        Live DOM probe 2026-09-19: the picker renders only ten virtualized
+        ``.asset-item`` rows, so scanning rendered rows reports valid assets as
+        missing. Its search field is the unique page-level
+        ``input[aria-label=ค้นหา]``; it is not a DOM descendant of the visible
+        ``[role=dialog]`` overlay. The separate project search uses
+        ``aria-label=ค้นหาเนื้อหา``. Search forces the matching asset to render.
+        Row click may attach directly or
+        open a preview with เพิ่มไปยังพรอมต์, so success is always the live
+        composer chip count increasing, never merely a click returning.
+        """
         page = self.page
         name = handle.lstrip("@")
+        before = self.chip_count()
+
+        def close_picker() -> None:
+            try:
+                dialog = page.locator('[role="dialog"]:visible').last
+                if dialog.count():
+                    dialog.locator('button[aria-label="ปิด"]').first.click(
+                        timeout=3000, force=True)
+                    dialog.wait_for(state="hidden", timeout=3000)
+                page.wait_for_timeout(200)
+            except Exception:
+                pass
+
         try:
-            page.locator('button[aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์"]').first.click(timeout=3000)
-            page.wait_for_timeout(400)
-        except Exception as e:
-            _log(f"  attach_chip({handle}) open picker err: {e!r}")
-            return False
-        try:
-            row = page.locator(".asset-item").filter(has_text=f"@{name}").first
-            if row.count() == 0:
-                _log(f"  attach_chip({handle}): no matching .asset-item row")
+            page.locator(
+                'button[aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์"]'
+            ).first.click(timeout=3000)
+            dialog = page.locator('[role="dialog"]').last
+            dialog.wait_for(state="visible", timeout=3000)
+            # Current mobile layout labels the picker search "ค้นหาเนื้อหา";
+            # older desktop builds used "ค้นหา". Scope both the search and
+            # result rows to the dialog so the project-feed search cannot be
+            # mistaken for the ingredient picker.
+            search = dialog.locator(
+                'input[aria-label="ค้นหาเนื้อหา"], input[aria-label="ค้นหา"]'
+            ).first
+            search.wait_for(state="visible", timeout=3000)
+
+            row = dialog.locator(".asset-item").filter(
+                has_text=picker_row_pattern(handle)).first
+            matched_query = None
+            for query in (handle, name):
+                search.fill("")
+                search.fill(query)
+                try:
+                    row.wait_for(state="visible", timeout=4000)
+                    matched_query = query
+                    break
+                except Exception:
+                    pass
+            if matched_query is None:
+                rendered_rows = []
+                rows = dialog.locator(".asset-item:visible")
+                for i in range(min(rows.count(), 20)):
+                    rendered_rows.append(rows.nth(i).inner_text(timeout=1000))
+                _log(
+                    f"  attach_chip({handle}): no matching row after picker "
+                    f"queries={[handle, name]!r} value={search.input_value()!r} "
+                    f"rows={rendered_rows!r}"
+                )
+                close_picker()
                 return False
-            row.click(timeout=2000)
-            page.wait_for_timeout(300)
-            page.get_by_text("เพิ่มไปยังพรอมต์", exact=False).first.click(timeout=2000)
-            return True
+
+            row.click(timeout=3000)
+            for _ in range(4):
+                if self.chip_count() > before:
+                    return True
+                page.wait_for_timeout(250)
+
+            page.get_by_text(
+                "เพิ่มไปยังพรอมต์", exact=False
+            ).first.click(timeout=3000)
+            for _ in range(12):
+                if self.chip_count() > before:
+                    return True
+                page.wait_for_timeout(250)
+
+            _log(f"  attach_chip({handle}): click landed but chip count did not increase")
+            close_picker()
+            return False
         except Exception as e:
+            # A direct attach can close its dialog while a pending locator is
+            # resolving; trust the effect at the composer, not that stale UI.
+            if self.chip_count() > before:
+                return True
             _log(f"  attach_chip({handle}) failed: {e!r}")
+            close_picker()
             return False
 
     def paste_prompt(self, text: str) -> None:
@@ -563,6 +795,7 @@ class FlowBrowser:
         self.page.keyboard.press("Backspace")
         box.evaluate("el => el.focus()")
         self.page.keyboard.insert_text(text)
+        self._last_dialogue = card_fragment(text)
 
     def read_prompt_text(self) -> str:
         return self.page.locator('[contenteditable="true"]').first.inner_text()
@@ -584,7 +817,9 @@ class FlowBrowser:
                 if panel.count():
                     break
                 try:
-                    page.locator('button[aria-label="ทริกเกอร์การตั้งค่า"]').first.click(timeout=3000)
+                    page.locator(
+                        'button[aria-label="ทริกเกอร์การตั้งค่า"]'
+                    ).first.click(timeout=3000, force=True)
                 except Exception:
                     pass
                 page.wait_for_timeout(400)
@@ -605,7 +840,7 @@ class FlowBrowser:
         except Exception:
             text = ""
         if opened_here:
-            page.keyboard.press("Escape")
+            self._close_settings_panel()
             page.wait_for_timeout(200)
         est = parse_credit_estimate(text)
         if est is None:
@@ -626,7 +861,56 @@ class FlowBrowser:
             actual = self.chip_count()
             if actual != expected_chip_count:
                 raise ChipCountMismatch(expected_chip_count, actual)
+        self._feed_before = self.feed_signature()
         self.page.locator('button[aria-label="เริ่มสร้าง"]').first.click()
+        self._submit_notice = self._capture_submit_notice()
+
+    FEED_BATCH = 'div[class*="batch-container"]'
+
+    def feed_signature(self) -> tuple[int, str]:
+        """(rendered batch count, start of the newest batch's text). The feed
+        lists newest first, so a submit that produced a card changes this."""
+        try:
+            batches = self.page.locator(self.FEED_BATCH)
+            n = batches.count()
+            head = batches.first.inner_text()[:300] if n else ""
+            return n, head
+        except Exception:
+            return -1, ""
+
+    def _capture_submit_notice(self) -> str:
+        """What Flow said right after Submit, kept for the ledger note.
+
+        2026-09-23: four submits (banchi 149, 151, 179 x2) left no card in the
+        feed at all, and nothing recorded why — the runner only ever looked
+        for a finished clip. A screenshot and any alert/snackbar text are the
+        evidence an A/B needs."""
+        page = self.page
+        try:
+            page.wait_for_timeout(4000)
+        except Exception:
+            pass
+        texts = []
+        for sel in ('[role="alert"]', "mat-snack-bar-container", ".mdc-snackbar",
+                    '[role="status"]', "simple-snack-bar"):
+            try:
+                loc = page.locator(sel)
+                for i in range(min(loc.count(), 3)):
+                    t = loc.nth(i).inner_text().strip()
+                    if t and t not in texts:
+                        texts.append(t[:200])
+            except Exception:
+                pass
+        try:
+            shots = LOG_PATH.parent / "submit-shots"
+            shots.mkdir(parents=True, exist_ok=True)
+            page.screenshot(path=str(shots / f"{datetime.now():%Y%m%d-%H%M%S}.png"))
+        except Exception:
+            pass
+        note = " | ".join(texts)
+        if note:
+            _log(f"  flow said after submit: {note!r}")
+        return note
 
     def poll_result(self, timeout_s: int = COMPLETION_TIMEOUT_S) -> dict:
         """CORRECTED 2026-09-19 (task-04851451, live read-only check):
@@ -641,33 +925,97 @@ class FlowBrowser:
         live against an already-completed clip (200, 381529 bytes, ffprobe
         confirmed 4.01s h264+aac).
 
-        UPDATED task-b8a9a714: the old full-body is_refusal_text() scan is
-        replaced by decide('browser.page_state', extract_state(page)) each
-        cycle. Only a CONFIDENT moderated/signed_out/error classification
-        short-circuits the wait (moderated additionally asks
-        decide('browser.moderation_action', ...) what to do next, and
-        surfaces its choice as moderation_choice for the caller to act on
-        conservatively — see _decision_is_confident). Everything else
-        (idle/generating/rate_limited/done-text-without-a-captured-URL-yet/
-        unknown/low-confidence) is treated exactly like the old "no signal
-        yet" case: keep polling until either the CDN URL capture fires or
-        timeout_s elapses — this never guesses its way into stopping a
-        healthy run early."""
+        MERGED 2026-09-23 (main's task-b8a9a714 decide layer + the branch's
+        new-batch check): a refusal counts only when it is in the NEWEST batch,
+        after the feed changed since Submit — main's whole-page scan would read
+        an old refused card anywhere in the feed as this shot being moderated.
+        decide('browser.page_state', extract_state(page)) is kept for the
+        page-level states it exists for: a CONFIDENT signed_out or error stops
+        the wait; everything else keeps polling."""
         page = self.page
         start = time.time()
         baseline = len(self._captured_video_urls)
+        before = getattr(self, "_feed_before", None)
         while time.time() - start < timeout_s:
-            if len(self._captured_video_urls) > baseline:
-                return {"status": "download", "text": ""}
+            # CORRECTED 2026-09-23: only the NEWEST batch, and only once the
+            # feed has actually changed since Submit, may count as this shot.
+            # The old check took the first element on the page carrying the
+            # shot's dialogue — for a re-shot scene that is the OLD take's
+            # finished card, so four submits that produced no card at all
+            # (149, 151, 179 x2) read as "completed card found but download
+            # not ready" for eight minutes each, and a later pull fetched the
+            # old plainclothes takes as if they were the new ones.
+            result_text = ""
+            newest = None
+            now = self.feed_signature()
+            if before is None or feed_changed(before, now):
+                try:
+                    batch0 = page.locator(self.FEED_BATCH).first
+                    if batch0.count():
+                        t = batch0.inner_text()
+                        if not self._last_dialogue or self._last_dialogue in t:
+                            newest, result_text = batch0, t
+                except Exception:
+                    pass
+            elif ("/edit/" not in getattr(page, "url", "/edit/")
+                  and time.time() - start > NO_CARD_S):
+                return {"status": "no_card",
+                        "text": getattr(self, "_submit_notice", "") or ""}
+            if is_refusal_text(result_text):
+                m = re.search(r"ล้มเหลว[^\n]*\n[^\n]*", result_text)
+                return {"status": "refusal", "text": m.group(0) if m else "ล้มเหลว"}
             state_text = extract_state(page)
             decision = decide_tool.decide("browser.page_state", state_text)
             choice = decision.choice if _decision_is_confident(decision) else None
-            if choice == "moderated":
-                action = decide_tool.decide("browser.moderation_action", state_text)
-                action_choice = action.choice if _decision_is_confident(action) else None
-                return {"status": "refusal", "text": state_text, "moderation_choice": action_choice}
             if choice in ("signed_out", "error"):
                 return {"status": "stopped", "text": state_text, "reason": choice}
+            if choice == "moderated":
+                # With a feed on the page, only THIS shot's batch may be read
+                # as moderated — an older refused card anywhere in the feed
+                # must not stop a healthy shot. Without a feed (the clip
+                # editor, or a page that cannot report one) main's page-level
+                # reading stands.
+                if now[0] < 0:
+                    scoped = state_text
+                elif newest is not None:
+                    scoped = result_text
+                else:
+                    scoped = ""
+                if scoped:
+                    sd = decision if scoped is state_text else decide_tool.decide(
+                        "browser.page_state", scoped[:1500])
+                    if (sd.choice if _decision_is_confident(sd) else None) == "moderated":
+                        action = decide_tool.decide("browser.moderation_action", scoped[:1500])
+                        action_choice = action.choice if _decision_is_confident(action) else None
+                        return {"status": "refusal", "text": scoped,
+                                "moderation_choice": action_choice}
+            if len(self._captured_video_urls) > baseline:
+                return {"status": "download", "text": ""}
+            # The editor may load the video before poll_result() installs its
+            # baseline, or serve it entirely from Chrome's disk cache. In both
+            # cases there is no *new* response event, but currentSrc still
+            # exposes the same signed CDN URL used by download_card().
+            try:
+                current_src = page.locator("video").first.evaluate(
+                    "v => v.currentSrc || v.src")
+                if current_src and CDN_VIDEO_RE.search(current_src):
+                    self._captured_video_urls.append(current_src)
+                    return {"status": "download", "text": ""}
+            except Exception:
+                pass
+            # Current Flow mobile layout stays on the project feed after
+            # Submit instead of navigating to /edit/<uuid>. Once the new card
+            # appears, identify it by the shot's unique dialogue, open it, and
+            # capture/download its CDN URL using the same cache-safe path as
+            # `pull`.
+            if newest is not None and "/edit/" not in page.url:
+                card = newest.locator("flow-grid-tile-container").first
+                if card.count():
+                    try:
+                        self._pending_download = self.download_card(card)
+                        return {"status": "download", "text": ""}
+                    except Exception as e:
+                        _log(f"  new card found but download not ready: {e!r}")
             try:
                 page.evaluate(
                     "() => { const v = document.querySelector('video'); "
@@ -691,23 +1039,137 @@ class FlowBrowser:
         path.write_bytes(resp.body())
         return path
 
+    def _close_download_menus(self) -> None:
+        """Dismiss Material menus explicitly, never with Escape."""
+        page = self.page
+        for _ in range(3):
+            backdrops = page.locator(
+                ".cdk-overlay-backdrop.cdk-overlay-backdrop-showing")
+            visible = [backdrops.nth(i) for i in range(backdrops.count())
+                       if backdrops.nth(i).is_visible()]
+            if not visible:
+                return
+            visible[-1].click(force=True)
+            page.wait_for_timeout(150)
+            # Some Material submenu backdrops consume the click without
+            # closing the parent menu. Toggle the editor's already-expanded
+            # More button directly; this is the menu's own close action.
+            expanded = page.locator(
+                'button[aria-label="ตัวเลือกเพิ่มเติม"][aria-expanded="true"]')
+            if expanded.count() and expanded.first.is_visible():
+                expanded.first.click(force=True)
+                page.wait_for_timeout(150)
+        remaining = page.locator(
+            ".cdk-overlay-backdrop.cdk-overlay-backdrop-showing:visible")
+        if remaining.count():
+            raise RuntimeError("download menu backdrop would not close")
+
+    def _open_enabled_download_menu(self):
+        """Open More and wait until Flow has made Download available.
+
+        The editor route renders before its media model. During that gap the
+        genuine Download item exists but carries ``disabled=true`` and cannot
+        open the resolution submenu. Reopen the menu while the clip finishes
+        initializing instead of mistaking that transient DOM for a selector
+        failure.
+        """
+        page = self.page
+        more = page.locator('button[aria-label="ตัวเลือกเพิ่มเติม"]').first
+        more.wait_for(state="visible", timeout=30_000)
+        deadline = time.time() + 60
+        while time.time() < deadline:
+            self._close_download_menus()
+            more.click()
+            download_menu = page.locator('[role="menuitem"]').filter(
+                has_text=re.compile(r"ดาวน์โหลด(?:สื่อ|คลิป)")).first
+            download_menu.wait_for(state="visible", timeout=5_000)
+            if download_menu.is_enabled():
+                return download_menu
+            self._close_download_menus()
+            page.wait_for_timeout(1_000)
+        raise RuntimeError(
+            "Download stayed disabled for 60s; the editor media did not load")
+
+    def _download_1080p_from_editor(self) -> Path:
+        """Use Flow's free 1080p export and wait for the real download.
+
+        Live DOM, 2026-09-20: editor More -> `ดาวน์โหลดสื่อ` (hover) ->
+        `1080p / เพิ่มความละเอียดแล้ว`. The neighbouring 4K option says
+        `50 เครดิต`; validate_download_option() makes it structurally
+        impossible for this path to click a paid entry.
+        """
+        page = self.page
+        if "/edit/" not in page.url:
+            raise RuntimeError(
+                "1080p upscale requires the clip editor /edit/<id> route")
+        try:
+            download_menu = self._open_enabled_download_menu()
+            option = None
+            for _ in range(3):
+                download_menu.hover()
+                page.wait_for_timeout(500)
+                candidate = page.locator(
+                    '[role="menuitem"]', has_text="1080p").first
+                if candidate.count() and candidate.is_visible():
+                    option = candidate
+                    break
+            if option is None:
+                raise RuntimeError(
+                    "1080p submenu did not appear after hovering Download")
+            validate_download_option(option.inner_text(), "1080p")
+            with page.expect_download(timeout=UPSCALE_TIMEOUT_S * 1000) as info:
+                option.click()
+            download = info.value
+            suffix = Path(download.suggested_filename).suffix or ".mp4"
+            path = Path(tempfile.mkdtemp()) / f"flow-1080p{suffix}"
+            download.save_as(str(path))
+            return path
+        except Exception:
+            self._close_download_menus()
+            raise
+
     def download(self) -> Path:
-        """No per-clip download button exists (see poll_result's docstring
-        and CDN_VIDEO_RE) — poll_result() already observed the CDN response
-        for the clip that was just generated; pull that."""
+        """Download the configured export, defaulting to free 1080p upscale."""
+        if self._pending_download is not None:
+            path = self._pending_download
+            self._pending_download = None
+            return path
+        if self.download_resolution == "1080p":
+            return self._download_1080p_from_editor()
         return self._fetch_captured_video()
 
     def find_card_by_dialogue(self, fragment: str):
+        # `pull` may start on an editor URL left by a previous target. Return
+        # to the project feed, then use its search input so virtualized cards
+        # outside the rendered viewport can be found. Searching by dialogue is
+        # the production's documented unique-key convention.
         page = self.page
-        el = page.get_by_text(fragment, exact=False).first
-        return el if el.count() else None
+        if not self._project_url:
+            raise RuntimeError("project URL unavailable — attach() must run first")
+        # Navigate even when already on the feed: this clears a stale search,
+        # picker, or other overlay left by an interrupted retrieval.
+        page.goto(self._project_url, wait_until="domcontentloaded", timeout=60_000)
+        self.mute_all_media()
+        search = page.locator('input[aria-label="ค้นหา"]')
+        search.first.wait_for(state="visible", timeout=30_000)
+        search.first.fill(fragment)
+        prompt_match = page.get_by_text(fragment, exact=False).first
+        try:
+            prompt_match.wait_for(state="visible", timeout=10_000)
+        except Exception:
+            return None
+        batch = prompt_match.locator(
+            'xpath=ancestor::div[contains(@class,"batch-container")]'
+        ).first
+        card = batch.locator("flow-grid-tile-container").first
+        return card if card.count() else None
 
     def download_card(self, card) -> Path:
-        """`pull` starts from a feed card, not a fresh Submit, so there is
-        no prior poll_result() to have already captured the URL — click the
-        card (Flow navigates to its /edit/<uuid>, same as after Submit),
-        mute, then nudge/wait for the same CDN response poll_result() waits
-        for."""
+        """Open a feed card and download the configured export.
+
+        Normal 1080p uses the editor's free upscale menu. Explicit legacy
+        720p mode captures the signed CDN response/currentSrc.
+        """
         baseline = len(self._captured_video_urls)
         card.click()
         self.page.wait_for_timeout(1000)
@@ -715,8 +1177,22 @@ class FlowBrowser:
             self.page.evaluate(MUTE_JS)
         except Exception:
             pass
+        if self.download_resolution == "1080p":
+            self.page.wait_for_url(re.compile(r"/edit/"), timeout=30_000)
+            return self._download_1080p_from_editor()
         deadline = time.time() + COMPLETION_TIMEOUT_S
         while time.time() < deadline and len(self._captured_video_urls) <= baseline:
+            # A clip already played in this Chrome profile may come entirely
+            # from disk cache, producing no response event. The signed CDN URL
+            # is still exposed as video.currentSrc, so capture that directly.
+            try:
+                current_src = self.page.locator("video").first.evaluate(
+                    "v => v.currentSrc || v.src")
+                if current_src and CDN_VIDEO_RE.search(current_src):
+                    self._captured_video_urls.append(current_src)
+                    break
+            except Exception:
+                pass
             try:
                 self.page.evaluate(
                     "() => { const v = document.querySelector('video'); "
@@ -724,6 +1200,10 @@ class FlowBrowser:
             except Exception:
                 pass
             self.page.wait_for_timeout(1000)
+        if len(self._captured_video_urls) <= baseline:
+            raise RuntimeError(
+                "card opened but no new flow-content.google/video/ URL "
+                "appeared before timeout — refusing to reuse a prior clip URL")
         return self._fetch_captured_video()
 
 
@@ -750,13 +1230,23 @@ def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
     browser.submit(expected_chip_count=expected_chip_count)
 
 
-def _attempt_chip(browser: FlowBrowser, handle: str) -> bool:
+def _attempt_chip(browser: FlowBrowser, handle: str, tries: int = 2) -> bool:
+    """One retry, and only while the chip count has not moved.
+
+    2026-09-23: attach_chip found the @cop_wit_uniform_A row and then timed out
+    clicking it on 3 of 5 shots, while the same handle attached cleanly on the
+    other 2 — a flaky click, not a missing asset. Each failure cost nothing but
+    sent the shot to needs_model. A retry is safe because it runs only when the
+    count is unchanged, and the pre-submit hard gate still compares the TOTAL
+    count to the sheet, so a late double attach can never reach Submit.
+    """
     before = browser.chip_count()
-    browser.attach_chip(handle)
-    for _ in range(5):
-        if browser.chip_count() > before:
-            return True
-        time.sleep(1.5)
+    for _ in range(tries):
+        browser.attach_chip(handle)
+        for _ in range(5):
+            if browser.chip_count() > before:
+                return True
+            time.sleep(1.5)
     return False
 
 
@@ -791,6 +1281,7 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
     # the browser — FlowBrowser.submit() itself refuses while this is set
     # (structural, not "the control flow happens not to call it").
     browser.dry_run = args.dry_run
+    browser.download_resolution = getattr(args, "download_resolution", "1080p")
     spent_this_run = 0
     try:
         try:
@@ -816,6 +1307,11 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
             # status, reading as if the CURRENT attempt was the broken one.
             row["note"] = ""
             try:
+                # Flow composer state outlives this Python process. Reset at
+                # every shot boundary so retries cannot inherit prompt/chips
+                # from a prior dry-run or another shot. This must precede
+                # set_settings(): navigation resets those facets too.
+                browser.reset_composer()
                 settings = browser.set_settings(dur_s, args.resolution)
                 bad = [k for k, v in settings.items() if not v]
                 if bad:
@@ -924,6 +1420,14 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                     flow_ledger.save_ledger(ledger_path, rows)
                     _log(f"shot {n}: refused — {result['text']!r}")
                     continue
+                if result["status"] == "no_card":
+                    row["status"] = "failed"
+                    row["note"] = ("submit produced no card"
+                                   + (f": {result['text']}" if result["text"] else "")
+                                   + " — see state/banchi/submit-shots/")
+                    flow_ledger.save_ledger(ledger_path, rows)
+                    _log(f"shot {n}: failed — {row['note']}")
+                    continue
                 if result["status"] == "timeout":
                     row["status"], row["note"] = "failed", "timeout"
                     flow_ledger.save_ledger(ledger_path, rows)
@@ -940,7 +1444,9 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 row["status"] = "downloaded"
                 flow_ledger.save_ledger(ledger_path, rows)
 
-                ok, reason = verify_clip(clip_path, dur_s)
+                ok, reason = verify_clip(
+                    clip_path, dur_s,
+                    expected_resolution=browser.download_resolution)
                 row["sha256"] = sha256_file(clip_path)
                 row["got_dur"] = reason
                 if ok:
@@ -1005,6 +1511,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
         return 0
 
     browser = FlowBrowser()
+    browser.download_resolution = getattr(args, "download_resolution", "1080p")
     try:
         try:
             browser.attach()
@@ -1017,7 +1524,14 @@ def cmd_pull(args: argparse.Namespace) -> int:
         for n in targets:
             row = rows[n]
             shot = sheet_shots.get(n)
-            dialogue = first_dialogue_line(shot["prompt"]) if shot else None
+            dialogue = card_fragment(shot["prompt"]) if shot else None
+            if getattr(args, "search", None):
+                if len(targets) != 1:
+                    raise SystemExit("--search needs exactly one target shot (--only N)")
+                if shot and args.search not in shot["prompt"]:
+                    raise SystemExit(f"--search text is not in shot {n}'s current prompt — "
+                                     "it would find some other card")
+                dialogue = args.search
             if not dialogue:
                 row["status"], row["note"] = "needs_model", "no dialogue line to search for"
                 flow_ledger.save_ledger(ledger_path, rows)
@@ -1031,7 +1545,9 @@ def cmd_pull(args: argparse.Namespace) -> int:
             downloaded = browser.download_card(card)
             time.sleep(DOWNLOAD_GAP_S)
             clip_path = extract_clip(downloaded, dest, n)
-            ok, reason = verify_clip(clip_path, shot["dur_s"])
+            ok, reason = verify_clip(
+                clip_path, shot["dur_s"],
+                expected_resolution=browser.download_resolution)
             row["file"] = str(clip_path)
             row["sha256"] = sha256_file(clip_path)
             row["got_dur"] = reason
@@ -1070,6 +1586,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--resolution", choices=["720p", "360p"], default="720p",
                         help="Composer resolution facet — read back off the "
                              "settings row like the other settings.")
+    p_run.add_argument(
+        "--download-resolution", choices=["1080p", "720p"], default="1080p",
+        help="Export resolution. Defaults to Flow's free 1080p upscale; 4K "
+             "is intentionally unsupported because it costs 50 credits.")
     p_run.add_argument("--force-duration", type=int, default=None,
                         help="PROOF SHOTS ONLY. Overrides the sheet's per-shot "
                              "duration for both the composer's duration setting "
@@ -1081,6 +1601,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_pull.add_argument("--ledger", required=True)
     p_pull.add_argument("--dest", required=True)
     p_pull.add_argument("--only", default=None)
+    p_pull.add_argument(
+        "--download-resolution", choices=["1080p", "720p"], default="1080p",
+        help="Export resolution. Defaults to Flow's free 1080p upscale.")
+    p_pull.add_argument(
+        "--search", default=None,
+        help="Search text instead of the shot's dialogue, for ONE shot. A re-shoot "
+             "keeps its dialogue, so a dialogue search returns the OLD take's card "
+             "(banchi 149/151, 2026-09-23). Pass a phrase only the new prompt has.")
     p_pull.set_defaults(func=cmd_pull)
 
     p_status = sub.add_parser("status")
