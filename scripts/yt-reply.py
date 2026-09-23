@@ -100,6 +100,12 @@ def api(method, path, body=None):
 
 def post(path, dry):
     plan = json.loads(Path(path).read_text())
+    mine = api("GET", "channels?part=snippet&mine=true").get("items", [])
+    got = [(c["id"], c["snippet"]["title"]) for c in mine]
+    if [c for c, _ in got] != [plan["channel_id"]]:
+        sys.exit(f"REFUSED: the token acts as {got or 'no channel'}, the replies are for "
+                 f"{plan['channel_id']} ({plan['channel']}). Nothing was posted.")
+    print(f"posting as {got[0][1]} ({got[0][0]})")
     ledger_p = Path(path).with_suffix(".sent.json")
     ledger = json.loads(ledger_p.read_text()) if ledger_p.exists() else {}
     todo = [r for r in plan["replies"] if r["ref"] not in ledger]
