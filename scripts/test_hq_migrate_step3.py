@@ -258,8 +258,13 @@ def test_apply_rewrites_plist_in_place_and_lints(tmp_path: Path) -> None:
     text = f["plist"].read_text()
     assert str(target) in text
     assert str(f["two"]) not in text
-    lint = subprocess.run(["plutil", "-lint", str(f["plist"])], capture_output=True, text=True)
-    assert lint.returncode == 0, lint.stdout + lint.stderr
+    if shutil.which("plutil"):
+        lint = subprocess.run(["plutil", "-lint", str(f["plist"])], capture_output=True, text=True)
+        assert lint.returncode == 0, lint.stdout + lint.stderr
+    else:  # Linux CI runner: no plutil — the plist must still parse
+        import plistlib
+        with open(f["plist"], "rb") as fh:
+            plistlib.load(fh)
     # plist2 has no matching old path literal — left untouched
     assert f["plist2"].read_text() == PLIST_TEMPLATE.format(repo=tmp_path / "unrelated")
 

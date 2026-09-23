@@ -89,6 +89,17 @@ def _isolate_org_root(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _isolate_trash_root(tmp_path, monkeypatch):
+    """The HQ migration scripts "delete" by moving into TRASH_ROOT (default
+    ~/.Trash). scripts/test_hq_migrate_step4a.py never overrode it, so every
+    full run parked a hq-step4a-<ts>/ folder in the CEO's real Trash (258 of
+    them by 2026-09-23 19:00) and two runs in one second collided on CI
+    ("Destination path ... already exists"). Every test — and every script a
+    test spawns with os.environ — now trashes into tmp_path."""
+    monkeypatch.setenv("TRASH_ROOT", str(tmp_path / "Trash"))
+
+
+@pytest.fixture(autouse=True)
 def _isolate_workdir_root(tmp_path, monkeypatch):
     """ADR 0030 / Work/RULES.md (task-36aaa3c4, iteration 1 fix): a test
     whose synthetic pilot owner passes `_storage_applies` -- e.g. tests/
