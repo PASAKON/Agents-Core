@@ -23,6 +23,28 @@ gauge:
 # only on the CEO's word. Missing key = applies to nobody.
 pilot_owner_cto: ["0e8d80b8"]
 
+# Per-feature scope (CEO 2026-09-23, after the pilot): which owner_cto each
+# feature applies to. "all" = every task of every session. Code reads this
+# map (task C7); until C7 merges, `pilot_owner_cto` above is still the key the
+# code reads. The CEO widened A-D + E; F (media_guard) stays pilot.
+scope:
+  disk_floor:      all              # A: no new worker under gauge.orange free
+  sparse_worktree: all              # B: worker checkouts without large tracked media (video_editor still full)
+  reclaim:         all              # C: under 10 GB, delete REBUILD dirs inside task worktrees
+  work_dir:        all              # D: Work/<task>/ + WORK_DIR + close gate + watcher
+  space_check:     all              # E: estimate-based check before a paid generation / download
+  media_guard:     ["0e8d80b8"]     # F: not widened — CEO did not approve it yet
+
+# E, as the CEO ruled 2026-09-23: not a fixed 10 GB floor. Before creating,
+# the project's worker/CTO estimates the output size; proceed only if at least
+# `min_free_after_gb` would remain afterwards ("คำนวณแล้วว่าสร้างแล้วจะเหลือพื้นที่
+# อย่างน้อย 3-5 GB ก็ทำได้เลย ... ให้ worker และ CTO โปรเจคนั้นๆ เป็นคนประเมิน").
+space_check:
+  min_free_after_gb: 5              # CEO range 3-5 GB; 5 = the delegate floor, so the two never disagree
+  estimate_sources: [--expect-gb flag, WORK_EXPECT_GB env, per-project estimate below]
+  default_estimate_gb: 1            # used only when nobody estimated; the runner logs that it guessed
+  estimates_gb: {}                  # filled by each project's CTO, e.g. {banchi-flow: 0.05}
+
 tiers:
   # In use right now. Stays on the Mac.
   HOT:
@@ -71,6 +93,7 @@ work_dir:
   rules: "~/MoonieXHQ/Work/RULES.md"
   big_download_gb: 1                # rule 9: before pulling more than this…
   keep_free_gb: 10                  # …leave at least this much free, else stop and report
+  abandon_days: 14                  # D watcher: a folder whose task ended this long ago, owner alerted + LungNote Critical open, counts as Green for disk-hygiene (archive out/ + unsourced in/ first)
   layout: {in: "downloads + references", tmp: "intermediates", out: "deliverables"}
   on_close:
     tmp: delete
