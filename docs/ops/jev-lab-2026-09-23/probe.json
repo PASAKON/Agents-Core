@@ -1,0 +1,709 @@
+{
+ "verb": "probe",
+ "model": "typesafe/jev-1.13",
+ "at": "2026-09-23T08:26:36+0200",
+ "calls": 36,
+ "cost_usd": 0.000403788,
+ "summary": {},
+ "first_raw_response": {
+  "model": "typesafe/jev-1.13-20260917",
+  "answers": {
+   "q": {
+    "type": "choice",
+    "choice": "jump",
+    "probabilities": {
+     "jump": 0.97,
+     "none": 0.03
+    },
+    "confidence": 0.93
+   }
+  },
+  "usage": {
+   "input_tokens": 345,
+   "output_tokens": 31,
+   "cost": 1.449e-05
+  },
+  "id": "gen-dec-1790144791-F35W6SHnuYvXoEmQl3tI",
+  "provider": "TypeSafe"
+ },
+ "rows": [
+  {
+   "ms": 407.4,
+   "http": 200,
+   "case": "baseline choice",
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 31,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "jump": 0.97,
+      "none": 0.03
+     },
+     "confidence": 0.93
+    }
+   }
+  },
+  {
+   "ms": 17.6,
+   "http": 400,
+   "case": "type=boolean",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 22.4,
+   "http": 400,
+   "case": "type=bool",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 14.7,
+   "http": 400,
+   "case": "type=binary",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 13.6,
+   "http": 400,
+   "case": "type=yes_no",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 15.9,
+   "http": 400,
+   "case": "type=number",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 20.6,
+   "http": 400,
+   "case": "type=integer",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 14.3,
+   "http": 400,
+   "case": "type=float",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 15.0,
+   "http": 400,
+   "case": "type=score",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"expected\\\": \\\"array\\\",\\n    \\\"code\\\": \\\"invalid_type\\\",\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"criteria\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid input: expected array, received object\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 13.6,
+   "http": 400,
+   "case": "type=scale",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 13.7,
+   "http": 400,
+   "case": "type=rating",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 14.3,
+   "http": 400,
+   "case": "type=multi",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 14.3,
+   "http": 400,
+   "case": "type=multi_choice",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 12.5,
+   "http": 400,
+   "case": "type=multiple_choice",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 15.8,
+   "http": 400,
+   "case": "type=multiselect",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 13.1,
+   "http": 400,
+   "case": "type=tags",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 17.2,
+   "http": 400,
+   "case": "type=rank",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 13.9,
+   "http": 400,
+   "case": "type=ranking",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 13.4,
+   "http": 400,
+   "case": "type=text",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 12.9,
+   "http": 400,
+   "case": "type=string",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 10.7,
+   "http": 400,
+   "case": "type=extract",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [],\\n    \\\"note\\\": \\\"No matching discriminator\\\",\\n    \\\"discriminator\\\": \\\"type\\\",\\n    \\\"options\\\": [\\n      \\\"noul\\\",\\n      \\\"choice\\\",\\n      \\\"score\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"questions\\\",\\n      \\\"q\\\",\\n      \\\"type\\\"\\n    ],\\n    \\\"message\\\": \\\"Invalid discriminator value. Expected 'noul' | 'choice' | 'score'\\\"\\n  }\\n]\", \"code\": 400}"
+  },
+  {
+   "ms": 306.3,
+   "http": 200,
+   "case": "extra=temperature",
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 31,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "jump": 0.98,
+      "none": 0.02
+     },
+     "confidence": 0.95
+    }
+   }
+  },
+  {
+   "ms": 320.9,
+   "http": 200,
+   "case": "extra=seed",
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 31,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "jump": 0.96,
+      "none": 0.04
+     },
+     "confidence": 0.92
+    }
+   }
+  },
+  {
+   "ms": 348.4,
+   "http": 200,
+   "case": "extra=provider",
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 31,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "jump": 0.96,
+      "none": 0.04
+     },
+     "confidence": 0.92
+    }
+   }
+  },
+  {
+   "ms": 340.3,
+   "http": 200,
+   "case": "extra=examples_top",
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 31,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "none": 0.04,
+      "jump": 0.96
+     },
+     "confidence": 0.92
+    }
+   }
+  },
+  {
+   "ms": 342.2,
+   "http": 200,
+   "case": "extra=context",
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 31,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "none": 0.02,
+      "jump": 0.98
+     },
+     "confidence": 0.96
+    }
+   }
+  },
+  {
+   "ms": 273.2,
+   "http": 200,
+   "case": "q.examples",
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 31,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "none": 0.04,
+      "jump": 0.96
+     },
+     "confidence": 0.92
+    }
+   }
+  },
+  {
+   "ms": 294.9,
+   "http": 200,
+   "case": "q.default",
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 31,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "jump": 0.96,
+      "none": 0.04
+     },
+     "confidence": 0.93
+    }
+   }
+  },
+  {
+   "ms": 355.2,
+   "http": 200,
+   "case": "q.allow_other",
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 31,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "jump": 0.95,
+      "none": 0.05
+     },
+     "confidence": 0.89
+    }
+   }
+  },
+  {
+   "ms": 303.0,
+   "http": 200,
+   "case": "state=list",
+   "usage": {
+    "input_tokens": 332,
+    "output_tokens": 31,
+    "cost": 1.3944e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "none": 0.41,
+      "jump": 0.59
+     },
+     "confidence": 0.18
+    }
+   }
+  },
+  {
+   "ms": 17.6,
+   "http": 400,
+   "case": "state=number",
+   "error": "{\"message\": \"[\\n  {\\n    \\\"code\\\": \\\"invalid_union\\\",\\n    \\\"errors\\\": [\\n      [\\n        {\\n          \\\"expected\\\": \\\"string\\\",\\n          \\\"code\\\": \\\"invalid_type\\\",\\n          \\\"path\\\": [],\\n          \\\"message\\\": \\\"Invalid input: expected string, received number\\\"\\n        }\\n      ],\\n      [\\n        {\\n          \\\"expected\\\": \\\"record\\\",\\n          \\\"code\\\": \\\"invalid_type\\\",\\n          \\\"path\\\": [],\\n          \\\"message\\\": \\\"Invalid input: expected record, received number\\\"\\n        }\\n"
+  },
+  {
+   "ms": 280.6,
+   "http": 200,
+   "case": "state=empty",
+   "usage": {
+    "input_tokens": 317,
+    "output_tokens": 31,
+    "cost": 1.3314e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "jump": 0.07,
+      "none": 0.93
+     },
+     "confidence": 0.87
+    }
+   }
+  },
+  {
+   "ms": 426.6,
+   "http": 200,
+   "case": "state=nested",
+   "usage": {
+    "input_tokens": 342,
+    "output_tokens": 31,
+    "cost": 1.4364e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "jump": 0.22,
+      "none": 0.78
+     },
+     "confidence": 0.55
+    }
+   }
+  },
+  {
+   "ms": 292.0,
+   "http": 200,
+   "case": "options=1",
+   "usage": {
+    "input_tokens": 327,
+    "output_tokens": 26,
+    "cost": 1.3734e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "o0",
+     "probabilities": {
+      "o0": 1
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 315.2,
+   "http": 200,
+   "case": "options=255",
+   "usage": {
+    "input_tokens": 5191,
+    "output_tokens": 2458,
+    "cost": 0.000218022
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "o0",
+     "probabilities": {
+      "o152": 0,
+      "o178": 0,
+      "o182": 0,
+      "o214": 0,
+      "o202": 0,
+      "o151": 0,
+      "o113": 0,
+      "o218": 0,
+      "o72": 0.01,
+      "o81": 0.01,
+      "o238": 0,
+      "o46": 0,
+      "o60": 0,
+      "o115": 0,
+      "o154": 0,
+      "o211": 0,
+      "o193": 0,
+      "o62": 0,
+      "o69": 0.01,
+      "o125": 0,
+      "o97": 0.01,
+      "o94": 0.01,
+      "o213": 0,
+      "o204": 0,
+      "o64": 0,
+      "o141": 0,
+      "o138": 0,
+      "o143": 0,
+      "o239": 0,
+      "o142": 0,
+      "o99": 0.01,
+      "o116": 0,
+      "o163": 0,
+      "o98": 0.01,
+      "o5": 0.02,
+      "o236": 0,
+      "o156": 0,
+      "o180": 0,
+      "o66": 0.01,
+      "o87": 0.01,
+      "o229": 0,
+      "o195": 0,
+      "o77": 0.01,
+      "o227": 0,
+      "o177": 0,
+      "o253": 0,
+      "o16": 0,
+      "o137": 0,
+      "o58": 0,
+      "o189": 0,
+      "o13": 0,
+      "o139": 0,
+      "o186": 0.02,
+      "o159": 0,
+      "o56": 0,
+      "o205": 0,
+      "o190": 0,
+      "o2": 0.02,
+      "o222": 0,
+      "o107": 0,
+      "o140": 0,
+      "o130": 0,
+      "o7": 0.01,
+      "o221": 0,
+      "o243": 0,
+      "o225": 0,
+      "o241": 0,
+      "o52": 0,
+      "o164": 0,
+      "o24": 0,
+      "o144": 0,
+      "o185": 0,
+      "o167": 0,
+      "o215": 0,
+      "o31": 0,
+      "o148": 0,
+      "o11": 0,
+      "o136": 0,
+      "o95": 0.01,
+      "o165": 0,
+      "o174": 0,
+      "o104": 0,
+      "o170": 0,
+      "o10": 0.02,
+      "o172": 0,
+      "o212": 0,
+      "o208": 0,
+      "o44": 0,
+      "o145": 0,
+      "o196": 0,
+      "o54": 0,
+      "o91": 0.01,
+      "o123": 0,
+      "o134": 0,
+      "o9": 0.01,
+      "o247": 0,
+      "o65": 0.01,
+      "o1": 0.14,
+      "o201": 0,
+      "o252": 0,
+      "o21": 0,
+      "o237": 0,
+      "o223": 0,
+      "o184": 0,
+      "o224": 0,
+      "o57": 0,
+      "o179": 0,
+      "o160": 0,
+      "o120": 0,
+      "o27": 0,
+      "o135": 0,
+      "o100": 0,
+      "o50": 0,
+      "o200": 0,
+      "o216": 0,
+      "o30": 0,
+      "o19": 0,
+      "o176": 0,
+      "o181": 0,
+      "o8": 0.01,
+      "o119": 0,
+      "o84": 0.01,
+      "o90": 0.01,
+      "o169": 0,
+      "o128": 0,
+      "o217": 0,
+      "o153": 0,
+      "o251": 0,
+      "o110": 0,
+      "o49": 0,
+      "o51": 0,
+      "o147": 0.02,
+      "o232": 0.02,
+      "o132": 0,
+      "o12": 0,
+      "o88": 0.01,
+      "o34": 0,
+      "o74": 0.01,
+      "o20": 0,
+      "o23": 0,
+      "o249": 0,
+      "o48": 0,
+      "o233": 0,
+      "o14": 0,
+      "o161": 0,
+      "o226": 0,
+      "o254": 0,
+      "o210": 0,
+      "o158": 0,
+      "o244": 0,
+      "o175": 0,
+      "o187": 0,
+      "o75": 0.01,
+      "o191": 0,
+      "o131": 0.02,
+      "o78": 0.01,
+      "o82": 0.01,
+      "o18": 0,
+      "o35": 0,
+      "o108": 0,
+      "o102": 0,
+      "o3": 0.02,
+      "o199": 0,
+      "o235": 0,
+      "o209": 0,
+      "o242": 0,
+      "o129": 0,
+      "o63": 0,
+      "o111": 0,
+      "o118": 0,
+      "o183": 0,
+      "o234": 0,
+      "o70": 0.01,
+      "o203": 0,
+      "o197": 0,
+      "o40": 0,
+      "o231": 0,
+      "o121": 0,
+      "o106": 0,
+      "o150": 0,
+      "o101": 0,
+      "o38": 0,
+      "o228": 0,
+      "o37": 0,
+      "o4": 0.02,
+      "o86": 0.01,
+      "o73": 0.01,
+      "o188": 0,
+      "o61": 0,
+      "o22": 0,
+      "o146": 0,
+      "o45": 0,
+      "o166": 0,
+      "o194": 0,
+      "o39": 0,
+      "o59": 0,
+      "o240": 0,
+      "o198": 0,
+      "o79": 0.01,
+      "o168": 0,
+      "o114": 0,
+      "o33": 0,
+      "o42": 0,
+      "o55": 0,
+      "o220": 0,
+      "o68": 0.01,
+      "o80": 0.01,
+      "o41": 0,
+      "o250": 0,
+      "o26": 0,
+      "o112": 0,
+      "o76": 0.01,
+      "o126": 0,
+      "o124": 0,
+      "o83": 0.01,
+      "o85": 0.01,
+      "o105": 0,
+      "o53": 0,
+      "o32": 0,
+      "o96": 0.01,
+      "o155": 0,
+      "o122": 0,
+      "o171": 0,
+      "o15": 0,
+      "o109": 0,
+      "o28": 0,
+      "o149": 0,
+      "o6": 0,
+      "o117": 0,
+      "o36": 0,
+      "o93": 0.01,
+      "o25": 0,
+      "o17": 0,
+      "o127": 0,
+      "o92": 0.01,
+      "o230": 0,
+      "o206": 0,
+      "o207": 0,
+      "o192": 0,
+      "o47": 0,
+      "o67": 0.01,
+      "o173": 0,
+      "o248": 0,
+      "o133": 0,
+      "o219": 0,
+      "o71": 0.01,
+      "o162": 0,
+      "o43": 0,
+      "o89": 0.01,
+      "o0": 0.3,
+      "o157": 0,
+      "o246": 0,
+      "o103": 0,
+      "o245": 0,
+      "o29": 0
+     },
+     "confidence": 0.29
+    }
+   }
+  },
+  {
+   "ms": 231.3,
+   "http": 400,
+   "case": "options=256",
+   "error": "{\"message\": \"HTTP 400: {\\\"detail\\\":\\\"Too many choices. Must have at most 255 choices.\\\"}\", \"code\": 400}"
+  }
+ ]
+}

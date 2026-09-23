@@ -1,0 +1,1514 @@
+{
+ "verb": "noul",
+ "model": "typesafe/jev-1.13",
+ "at": "2026-09-23T08:31:43+0200",
+ "calls": 72,
+ "cost_usd": 0.000995652,
+ "summary": {},
+ "first_raw_response": {
+  "model": "typesafe/jev-1.13-20260917",
+  "answers": {
+   "q": {
+    "type": "noul",
+    "noul": 0.85
+   }
+  },
+  "usage": {
+   "input_tokens": 303,
+   "output_tokens": 20,
+   "cost": 1.2726e-05
+  },
+  "id": "gen-dec-1790145079-aFVgdFnYWxcr5r4xZaSE",
+  "provider": "TypeSafe"
+ },
+ "rows": [
+  {
+   "ms": 494.9,
+   "http": 200,
+   "case": "bare",
+   "id": "Y1",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 303,
+    "output_tokens": 20,
+    "cost": 1.2726e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.85
+    }
+   }
+  },
+  {
+   "ms": 523.3,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y1",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 20,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.85
+    }
+   }
+  },
+  {
+   "ms": 1079.2,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y1",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 351,
+    "output_tokens": 31,
+    "cost": 1.4742e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "no": 0.02,
+      "yes": 0.98
+     },
+     "confidence": 0.96
+    }
+   }
+  },
+  {
+   "ms": 351.4,
+   "http": 200,
+   "case": "bare",
+   "id": "N1",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 298,
+    "output_tokens": 20,
+    "cost": 1.2516e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.07
+    }
+   }
+  },
+  {
+   "ms": 325.0,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N1",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 340,
+    "output_tokens": 20,
+    "cost": 1.428e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.06
+    }
+   }
+  },
+  {
+   "ms": 317.4,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N1",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 31,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "no": 1,
+      "yes": 0
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 404.0,
+   "http": 200,
+   "case": "bare",
+   "id": "Y2",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 295,
+    "output_tokens": 20,
+    "cost": 1.239e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.94
+    }
+   }
+  },
+  {
+   "ms": 314.2,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y2",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 337,
+    "output_tokens": 20,
+    "cost": 1.4154e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.97
+    }
+   }
+  },
+  {
+   "ms": 300.8,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y2",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 343,
+    "output_tokens": 31,
+    "cost": 1.4406e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "no": 0,
+      "yes": 1
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 324.2,
+   "http": 200,
+   "case": "bare",
+   "id": "N2",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 295,
+    "output_tokens": 20,
+    "cost": 1.239e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.07
+    }
+   }
+  },
+  {
+   "ms": 319.9,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N2",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 337,
+    "output_tokens": 20,
+    "cost": 1.4154e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.05
+    }
+   }
+  },
+  {
+   "ms": 284.5,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N2",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 343,
+    "output_tokens": 31,
+    "cost": 1.4406e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "no": 0.99,
+      "yes": 0.01
+     },
+     "confidence": 0.98
+    }
+   }
+  },
+  {
+   "ms": 293.7,
+   "http": 200,
+   "case": "bare",
+   "id": "Y3",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 302,
+    "output_tokens": 20,
+    "cost": 1.2684e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.97
+    }
+   }
+  },
+  {
+   "ms": 300.3,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y3",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 344,
+    "output_tokens": 20,
+    "cost": 1.4448e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.98
+    }
+   }
+  },
+  {
+   "ms": 285.9,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y3",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 350,
+    "output_tokens": 31,
+    "cost": 1.47e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "yes": 1,
+      "no": 0
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 302.4,
+   "http": 200,
+   "case": "bare",
+   "id": "N3",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 302,
+    "output_tokens": 20,
+    "cost": 1.2684e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.01
+    }
+   }
+  },
+  {
+   "ms": 291.1,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N3",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 344,
+    "output_tokens": 20,
+    "cost": 1.4448e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.03
+    }
+   }
+  },
+  {
+   "ms": 265.1,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N3",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 350,
+    "output_tokens": 31,
+    "cost": 1.47e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "no": 1,
+      "yes": 0
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 403.5,
+   "http": 200,
+   "case": "bare",
+   "id": "Y4",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 314,
+    "output_tokens": 20,
+    "cost": 1.3188e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.99
+    }
+   }
+  },
+  {
+   "ms": 309.0,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y4",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 356,
+    "output_tokens": 20,
+    "cost": 1.4952e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.98
+    }
+   }
+  },
+  {
+   "ms": 326.1,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y4",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 362,
+    "output_tokens": 31,
+    "cost": 1.5204e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "no": 0,
+      "yes": 1
+     },
+     "confidence": 0.99
+    }
+   }
+  },
+  {
+   "ms": 311.1,
+   "http": 200,
+   "case": "bare",
+   "id": "N4",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 314,
+    "output_tokens": 20,
+    "cost": 1.3188e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.02
+    }
+   }
+  },
+  {
+   "ms": 304.0,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N4",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 356,
+    "output_tokens": 20,
+    "cost": 1.4952e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.04
+    }
+   }
+  },
+  {
+   "ms": 368.9,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N4",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 362,
+    "output_tokens": 31,
+    "cost": 1.5204e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "no": 1,
+      "yes": 0
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 276.7,
+   "http": 200,
+   "case": "bare",
+   "id": "Y5",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 299,
+    "output_tokens": 20,
+    "cost": 1.2558e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.99
+    }
+   }
+  },
+  {
+   "ms": 291.6,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y5",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 341,
+    "output_tokens": 20,
+    "cost": 1.4322e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.98
+    }
+   }
+  },
+  {
+   "ms": 378.2,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y5",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 347,
+    "output_tokens": 31,
+    "cost": 1.4574e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "yes": 1,
+      "no": 0
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 278.5,
+   "http": 200,
+   "case": "bare",
+   "id": "N5",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 299,
+    "output_tokens": 20,
+    "cost": 1.2558e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.03
+    }
+   }
+  },
+  {
+   "ms": 278.7,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N5",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 341,
+    "output_tokens": 20,
+    "cost": 1.4322e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.06
+    }
+   }
+  },
+  {
+   "ms": 333.9,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N5",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 347,
+    "output_tokens": 31,
+    "cost": 1.4574e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "yes": 0,
+      "no": 1
+     },
+     "confidence": 0.99
+    }
+   }
+  },
+  {
+   "ms": 296.5,
+   "http": 200,
+   "case": "bare",
+   "id": "Y6",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 285,
+    "output_tokens": 20,
+    "cost": 1.197e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.95
+    }
+   }
+  },
+  {
+   "ms": 426.7,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y6",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 327,
+    "output_tokens": 20,
+    "cost": 1.3734e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.97
+    }
+   }
+  },
+  {
+   "ms": 278.2,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y6",
+   "truth": true,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 333,
+    "output_tokens": 31,
+    "cost": 1.3986e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "no": 0,
+      "yes": 1
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 281.6,
+   "http": 200,
+   "case": "bare",
+   "id": "N6",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 285,
+    "output_tokens": 20,
+    "cost": 1.197e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.06
+    }
+   }
+  },
+  {
+   "ms": 291.8,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N6",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 327,
+    "output_tokens": 20,
+    "cost": 1.3734e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.06
+    }
+   }
+  },
+  {
+   "ms": 309.5,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N6",
+   "truth": false,
+   "rep": 0,
+   "usage": {
+    "input_tokens": 333,
+    "output_tokens": 31,
+    "cost": 1.3986e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "yes": 0.03,
+      "no": 0.97
+     },
+     "confidence": 0.94
+    }
+   }
+  },
+  {
+   "ms": 340.6,
+   "http": 200,
+   "case": "bare",
+   "id": "Y1",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 303,
+    "output_tokens": 20,
+    "cost": 1.2726e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.87
+    }
+   }
+  },
+  {
+   "ms": 360.0,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y1",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 345,
+    "output_tokens": 20,
+    "cost": 1.449e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.88
+    }
+   }
+  },
+  {
+   "ms": 291.9,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y1",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 351,
+    "output_tokens": 31,
+    "cost": 1.4742e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "no": 0.04,
+      "yes": 0.96
+     },
+     "confidence": 0.93
+    }
+   }
+  },
+  {
+   "ms": 301.3,
+   "http": 200,
+   "case": "bare",
+   "id": "N1",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 298,
+    "output_tokens": 20,
+    "cost": 1.2516e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.07
+    }
+   }
+  },
+  {
+   "ms": 334.6,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N1",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 340,
+    "output_tokens": 20,
+    "cost": 1.428e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.07
+    }
+   }
+  },
+  {
+   "ms": 316.2,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N1",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 31,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "yes": 0,
+      "no": 1
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 306.3,
+   "http": 200,
+   "case": "bare",
+   "id": "Y2",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 295,
+    "output_tokens": 20,
+    "cost": 1.239e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.93
+    }
+   }
+  },
+  {
+   "ms": 374.1,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y2",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 337,
+    "output_tokens": 20,
+    "cost": 1.4154e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.97
+    }
+   }
+  },
+  {
+   "ms": 354.4,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y2",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 343,
+    "output_tokens": 31,
+    "cost": 1.4406e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "no": 0,
+      "yes": 1
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 414.8,
+   "http": 200,
+   "case": "bare",
+   "id": "N2",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 295,
+    "output_tokens": 20,
+    "cost": 1.239e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.07
+    }
+   }
+  },
+  {
+   "ms": 339.9,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N2",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 337,
+    "output_tokens": 20,
+    "cost": 1.4154e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.06
+    }
+   }
+  },
+  {
+   "ms": 372.1,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N2",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 343,
+    "output_tokens": 31,
+    "cost": 1.4406e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "no": 0.99,
+      "yes": 0.01
+     },
+     "confidence": 0.97
+    }
+   }
+  },
+  {
+   "ms": 368.6,
+   "http": 200,
+   "case": "bare",
+   "id": "Y3",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 302,
+    "output_tokens": 20,
+    "cost": 1.2684e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.97
+    }
+   }
+  },
+  {
+   "ms": 335.6,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y3",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 344,
+    "output_tokens": 20,
+    "cost": 1.4448e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.98
+    }
+   }
+  },
+  {
+   "ms": 279.1,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y3",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 350,
+    "output_tokens": 31,
+    "cost": 1.47e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "yes": 1,
+      "no": 0
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 329.9,
+   "http": 200,
+   "case": "bare",
+   "id": "N3",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 302,
+    "output_tokens": 20,
+    "cost": 1.2684e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.01
+    }
+   }
+  },
+  {
+   "ms": 374.4,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N3",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 344,
+    "output_tokens": 20,
+    "cost": 1.4448e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.03
+    }
+   }
+  },
+  {
+   "ms": 287.5,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N3",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 350,
+    "output_tokens": 31,
+    "cost": 1.47e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "no": 1,
+      "yes": 0
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 312.2,
+   "http": 200,
+   "case": "bare",
+   "id": "Y4",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 314,
+    "output_tokens": 20,
+    "cost": 1.3188e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.99
+    }
+   }
+  },
+  {
+   "ms": 384.7,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y4",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 356,
+    "output_tokens": 20,
+    "cost": 1.4952e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.98
+    }
+   }
+  },
+  {
+   "ms": 365.6,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y4",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 362,
+    "output_tokens": 31,
+    "cost": 1.5204e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "yes": 0.99,
+      "no": 0.01
+     },
+     "confidence": 0.99
+    }
+   }
+  },
+  {
+   "ms": 284.4,
+   "http": 200,
+   "case": "bare",
+   "id": "N4",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 314,
+    "output_tokens": 20,
+    "cost": 1.3188e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.02
+    }
+   }
+  },
+  {
+   "ms": 302.0,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N4",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 356,
+    "output_tokens": 20,
+    "cost": 1.4952e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.03
+    }
+   }
+  },
+  {
+   "ms": 303.1,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N4",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 362,
+    "output_tokens": 31,
+    "cost": 1.5204e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "no": 1,
+      "yes": 0
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 289.5,
+   "http": 200,
+   "case": "bare",
+   "id": "Y5",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 299,
+    "output_tokens": 20,
+    "cost": 1.2558e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.99
+    }
+   }
+  },
+  {
+   "ms": 345.7,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y5",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 341,
+    "output_tokens": 20,
+    "cost": 1.4322e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.98
+    }
+   }
+  },
+  {
+   "ms": 403.5,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y5",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 347,
+    "output_tokens": 31,
+    "cost": 1.4574e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "no": 0,
+      "yes": 1
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 275.8,
+   "http": 200,
+   "case": "bare",
+   "id": "N5",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 299,
+    "output_tokens": 20,
+    "cost": 1.2558e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.02
+    }
+   }
+  },
+  {
+   "ms": 294.9,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N5",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 341,
+    "output_tokens": 20,
+    "cost": 1.4322e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.06
+    }
+   }
+  },
+  {
+   "ms": 319.5,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N5",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 347,
+    "output_tokens": 31,
+    "cost": 1.4574e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "no": 1,
+      "yes": 0
+     },
+     "confidence": 0.99
+    }
+   }
+  },
+  {
+   "ms": 286.1,
+   "http": 200,
+   "case": "bare",
+   "id": "Y6",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 285,
+    "output_tokens": 20,
+    "cost": 1.197e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.95
+    }
+   }
+  },
+  {
+   "ms": 322.4,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "Y6",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 327,
+    "output_tokens": 20,
+    "cost": 1.3734e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.97
+    }
+   }
+  },
+  {
+   "ms": 306.0,
+   "http": 200,
+   "case": "as_choice",
+   "id": "Y6",
+   "truth": true,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 333,
+    "output_tokens": 31,
+    "cost": 1.3986e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "yes",
+     "probabilities": {
+      "no": 0,
+      "yes": 1
+     },
+     "confidence": 1
+    }
+   }
+  },
+  {
+   "ms": 298.2,
+   "http": 200,
+   "case": "bare",
+   "id": "N6",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 285,
+    "output_tokens": 20,
+    "cost": 1.197e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.05
+    }
+   }
+  },
+  {
+   "ms": 327.6,
+   "http": 200,
+   "case": "with_criteria",
+   "id": "N6",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 327,
+    "output_tokens": 20,
+    "cost": 1.3734e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.08
+    }
+   }
+  },
+  {
+   "ms": 279.3,
+   "http": 200,
+   "case": "as_choice",
+   "id": "N6",
+   "truth": false,
+   "rep": 1,
+   "usage": {
+    "input_tokens": 333,
+    "output_tokens": 31,
+    "cost": 1.3986e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "no",
+     "probabilities": {
+      "yes": 0.02,
+      "no": 0.98
+     },
+     "confidence": 0.96
+    }
+   }
+  }
+ ]
+}
