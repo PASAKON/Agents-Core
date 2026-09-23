@@ -12,6 +12,15 @@
 # The writer's own `beat` column (SCRIPT.tsv, task-80d18826) is NEVER put
 # into this state — jev_edit.py compares Jev's independent answer against
 # it afterward and flags disagreement; it never overrides the writer.
+#
+# Criteria examples are held-out lines from prototypes/bl55-script/
+# SCRIPT-v2.tsv (a different, already-published episode) — CTO review
+# 2026-09-23: the first draft's examples were drawn from EP57
+# (prototypes/bl57-script/) and the reference transcript
+# (prototypes/bl-ref-census/), both of which are this pipeline's own test
+# sets, which inflated the informal agreement check (jev-ops SKILL.md lever
+# 2: "examples must not reuse the test values"). Never draw an example from
+# bl57-script/ or bl-ref-census/ again.
 site: bl.beat
 question: >-
   What editorial beat is this BLACK LIQUIDITY script line — given its shot
@@ -21,15 +30,14 @@ options:
   - id: hook
     meaning: >-
       The opening line(s) of the episode — sets up the problem or teases the
-      claim, before any evidence is shown. Example: the very first line of
-      an episode, "โบรกเกอร์นี้ไม่มีใบอนุญาตจริงหรือ?" (a teaser question,
-      line_index near 0, no screen/evidence yet).
+      claim, before any evidence is shown. Example: "เดี๋ยววันนี้กูจะมาแฉให้ฟัง"
+      (a teaser line, line_index near 0, no screen/evidence yet).
   - id: show
     meaning: >-
       The line names or refers to something that can be displayed alongside
       the avatar — a website, a score, a table row, a wallet balance, a
-      licence number, a chart. Example: "ดูสิ คะแนน WikiFX แค่ 1.69 เต็ม 10"
-      naming a specific number a screenshot can prove, screen mentions a
+      licence number, a chart. Example: "คะแนนความน่าเชื่อถือ ไม่ถึงสองเต็มสิบ"
+      naming a specific score a screenshot can prove, screen mentions a
       site/score/document.
   - id: verdict
     meaning: >-
@@ -37,17 +45,16 @@ options:
       reasoning, a transitional remark, or a blunt conclusion — no new
       evidence named in THIS line (it may reference evidence already shown).
       Broader than a single emotional judgment: also covers first-person
-      narration ("I checked it myself") and short connective lines that move
-      the story forward. Examples: "กูไม่เชื่อคำว่าเข้าเว็บไม่ได้เฉยๆ
-      เลยไปเช็กเองอีกที" (first-person narration, no new evidence) and
-      "ผมบอกความจริงที่ไม่มีใครบอกมึง" (a direct judgment line) — both
+      narration and short connective lines that move the story forward.
+      Example: "ไม่มีใบอนุญาต แปลว่าถ้าเงินหาย ไม่มีใครตามให้มึง" — a
+      conclusion drawn from evidence already shown, not new evidence itself,
       full-frame, chest-height address to camera, screen field empty.
   - id: cta
     meaning: >-
       A closing call-to-action or summary near the end of the episode asking
       the viewer to act, reflect, or share — not new evidence, not the
-      opening hook. Example: "ใครฟังมาถึงตรงนี้ ลองเช็กโบรกเกอร์ตัวเองดูนะ"
-      near the end of the episode (line_index close to total_lines).
+      opening hook. Example: "คอมเมนต์คำว่า เช็กก่อนฝาก ถ้าอยากได้ลิสต์เว็บเช็ก
+      ใบอนุญาต" near the end of the episode (line_index close to total_lines).
   - id: other
     meaning: None of the above fits this line.
 max_state_chars: 1500

@@ -5,6 +5,10 @@
 # answered "show" for this line. State is the line's shot/screen fields
 # (computed/structured), optionally the raw spoken text under
 # --state-lang=th.
+#
+# Criteria examples are held-out lines from prototypes/bl55-script/
+# SCRIPT-v2.tsv, not from EP57 (bl57-script/) or the reference transcript
+# (bl-ref-census/) — CTO review 2026-09-23, see bl.beat.yaml's header note.
 site: bl.focus_device
 question: >-
   For this "show" line, which focus device (if any) should draw the
@@ -14,20 +18,21 @@ options:
     meaning: >-
       The page dims to grey except a bright circle around ONE specific
       value being named. Example: the line calls out a single number —
-      "สเปรดต่ำสุด GOLD 3" — naming exactly one figure on an otherwise busy
-      page.
+      "คะแนนความน่าเชื่อถือ ไม่ถึงสองเต็มสิบ" — naming exactly one figure on
+      an otherwise busy page.
   - id: highlight_sweep
     meaning: >-
       A left-to-right yellow bar sweeps across a table row or a chip as the
-      line names it. Example: the line reads off a value that is already
-      one row/label among several similar ones — "ดูแถว Exness สิ" naming
-      one row in a comparison table.
+      line names it. Example: the line reads off one entry among several
+      similar ones — "มีผู้ใช้ร้องเรียนว่าโดนขโมยกำไรไปเกือบห้าหมื่นดอล"
+      naming one row in a list of complaint entries.
   - id: zoom_only
     meaning: >-
       A continuous pan/push on the plate with no dimming and no sweep —
       used when the line is walking through a page broadly rather than
-      naming one exact value. Example: "ลองเข้าเว็บ XM ดูเองเลย" while the
-      camera pushes into the site's homepage generally.
+      naming one exact value. Example: "บริษัทตั้งอยู่ที่เซเชลส์
+      เกาะเล็กกลางมหาสมุทรอินเดีย" while the camera pushes into the
+      company's profile page generally.
   - id: none
     meaning: >-
       The plate is shown plain, nothing further needed to draw the eye —

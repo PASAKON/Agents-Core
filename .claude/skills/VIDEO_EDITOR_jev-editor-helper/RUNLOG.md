@@ -137,3 +137,70 @@ brief and the CTO's own instruction: stopping here, not running `eval`.
 The informal writer-tag comparison above is not a substitute — it only
 checks `bl.beat`, and only against the writer's own (unvalidated) judgment,
 not a reviewed ground truth.
+
+## 2026-09-23 22:35 — CTO review round 2: three fixes
+
+### 1. Test-set contamination — the 90% was inflated, honest number is 42%
+
+CTO caught it: the `verdict`/`cta`/`spotlight`/`highlight_sweep`/`zoom_only`
+examples in `bl.beat.yaml`, `bl.entry.yaml` and `bl.focus_device.yaml` were
+drawn from EP57 itself (`prototypes/bl57-script/`) and the reference
+transcript (`prototypes/bl-ref-census/`, quoted via
+`blackliquidity-cut/SKILL.md` §6d) — both of which are this pipeline's own
+test material, so the earlier 90% agreement check was measuring
+recall-of-its-own-examples, not generalisation (jev-ops SKILL.md lever 2:
+"examples must not reuse the test values").
+
+Replaced every example across all three sites with held-out lines from
+`prototypes/bl55-script/SCRIPT-v2.tsv` (a different, already-published
+episode, not part of either test set) — checked `bl.focus_target`/
+`bl.highlight_word`/`bl.text_slot` too, they were already clean (positional
+templates, no literal content quotes). Re-ran EP57 `plan` with the fixed
+criteria (v3, `$WORK_DIR/out/ep57-decisions-v3-heldout-criteria.jsonl`):
+
+```
+bl.beat honest agreement vs writer's own tag: 17/40 (42%)
+```
+
+**Same number as the very first, unfixed pass.** The "fix" that produced
+90% was entirely an artefact of the criteria containing the exact lines
+(or lines quoting the exact same reference recording) being scored against
+— not a real improvement. With genuinely held-out examples, `bl.beat`'s
+real accuracy on this informal check is 42%, same as day one. Every
+disagreement's confidence sits at 0.38-0.60 (below the 0.7 gate) — the gate
+is correctly catching that nothing here is confident-and-wrong, but the
+site itself needs real iteration, which is exactly what the formal `eval`
+(HARD rule 3: not trusted until measured) is for. **Deliberately did not
+hand-tune the criteria again against EP57** to chase a higher number —
+that is the same contamination trap in a smaller size. Further criteria
+work waits for the real `eval` loop against real (corrected) groundtruth,
+per jev-ops' own methodology (build ≥12 labelled cases incl. borderline,
+run ≥2 reps, read accuracy, only then rewrite criteria).
+
+### 2. Eval — still waiting, now for a different reason
+
+`groundtruth.tsv` now EXISTS (task-82380776 produced it), but task-82380776
+itself is back to `in_progress` (CTO sent the census back — P1 missed two
+composite spans, 9.3-13.9s and 19.1-20.3s) — the file that exists right now
+is the WRONG version. Checked via
+`sqlite3 state/tasks.db "select status from tasks where id='task-82380776'"`
+→ `in_progress`, not `review`/`done`. Per the CTO's explicit instruction:
+waiting for that status to flip again and the file to actually change
+before running `eval --reps 2`.
+
+### 3. Output delivery — moved to $WORK_DIR/out, stopped using SendUserFile
+
+CTO: outputs go to the CTO, not the CEO — the CTO decides what reaches the
+CEO. Moved every run artifact (`sample-decisions.jsonl`/`.html`,
+`ep57-decisions-v{1,2,3}*.jsonl`, `ep57-storyboard-v3-heldout-criteria.html`)
+to `$WORK_DIR/out` (`/Users/gob/MoonieXHQ/Work/task-5cfe20b1/out/`) — outside
+the git worktree, writable (unlike `~/Projects/Agents/output/`, which
+self_repo_guard refuses for a DEV regardless of declared touches — see the
+skill-learning note in the first report). Not using `SendUserFile` again
+this task.
+
+### Total spend, this session (authoritative, `state/decisions/2026-09.jsonl`)
+
+**440 `bl.*` calls, $0.014011** — under the $0.05/2,000-call cap for
+everything (sample run + EP57 v1 baseline + v2 contaminated-criteria +
+v3 held-out-criteria, combined).
