@@ -12,6 +12,10 @@ requests>=2.31,<3
 # Test runner — ADR 0021 standardises on pytest (added 2026-08-13).
 pytest>=8,<9
 
+# CI collection broke 2026-09-22 due to mcp 2.0 renaming FastMCP to MCPServer.
+# Pinning to <2 for now; migration to mcp 2.x is tracked separately.
+mcp>=1.27,<2
+
 # Postgres backend for lib/db.py, selected by ORG_DB_URL (task-02ecbdea,
 # docs/design/tasks-db-hub.md §3.1). Binary wheel — no local libpq/build
 # toolchain needed. Importing lib.db_pg is always safe without this
