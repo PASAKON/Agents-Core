@@ -1,6 +1,7 @@
 {
  "video": "https://www.youtube.com/watch?v=pXU_DRBOVIw",
  "channel": "@ILAGStudio",
+ "channel_id": "UCrr-ePuA_M5peOw96wx5T8w",
  "note": "Source of truth for the posting worker. 'ceo' = the CEO's own words (translated only where he wrote Thai to an English commenter). 'voice' = written in his voice from REPLY-VOICE.md. Post each reply as a reply in that comment's thread. Link opens the comment highlighted: <video>&lc=<comment_id>.",
  "replies": [
   {
