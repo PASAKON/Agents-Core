@@ -934,12 +934,20 @@ def render_scoreboard_md(rows: list[dict], verdict: dict | None = None) -> str:
     if sites:
         lines.append("| Episode | " + " | ".join(sites) + " |")
         lines.append("|---|" + "---|" * len(sites))
-        for row in rows:
+        for i, row in enumerate(rows):
+            prev = previous_row(rows, i)
+            prev_acc = (prev.get("jev_raw_accuracy") or {}) if prev else {}
             acc = row.get("jev_raw_accuracy") or {}
             cells = []
             for s in sites:
                 v = acc.get(s)
-                cells.append(f"{v['accuracy']*100:.1f}% ({v['correct']}/{v['n']})" if v and v.get("accuracy") is not None else "—")
+                if not v or v.get("accuracy") is None:
+                    cells.append("—")
+                    continue
+                pv = prev_acc.get(s)
+                delta = format_delta(v["accuracy"] * 100, pv["accuracy"] * 100 if pv and pv.get("accuracy") is not None else None)
+                delta_s = f" ({delta})" if delta else ""
+                cells.append(f"{v['accuracy']*100:.1f}% ({v['correct']}/{v['n']}){delta_s}")
             lines.append(f"| {row.get('episode', '?')} | " + " | ".join(cells) + " |")
         lines.append("")
 
