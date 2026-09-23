@@ -7,8 +7,7 @@ clean. Tabs for tasks that are still pending / in_progress / review /
 blocked stay open.
 
 Tab title set by delegate is `<RoleDisplay> (<full task_id>)`. We match
-the full task_id substring, with a 6-char fallback for tabs spawned
-before the full-id title change.
+the full task_id substring.
 
 ## Safety: which tabs we will close
 
@@ -82,7 +81,7 @@ def _close_tab_by_pid(pid: int) -> bool:
     `tools/worker_reap._pid_matches_task`); callers who cannot verify must
     pass `allow_pid=False` to `close_tab` instead of reaching this path.
 
-    GH mooniex-agents#27: title-substring matching (the fallback below)
+    GH mooniex-agents#27: title-substring matching
     is fragile — once a spawned process exits (crash, manual `kill`, or
     `worker_init.py` failing before claiming), the tab's title reverts to a
     plain shell name and can no longer be found by substring, leaving a
@@ -141,7 +140,6 @@ def close_tab(task_id: str, *, allow_pid: bool = True) -> bool:
     if pid is not None and _close_tab_by_pid(pid):
         return True
 
-    fallback = task_id[:6]
     # Both title surfaces are checked (sticky tab name + session badge,
     # same as delegate's spawn matcher) — the session badge flickers to
     # the running process name, which made session-name-only closes miss.
@@ -174,25 +172,6 @@ tell application "iTerm"
       end if
     end repeat
   end repeat
-  if not closedAny then
-    repeat with w in windows
-      set tabsList to tabs of w
-      repeat with t in tabsList
-        set nm to ""
-        try
-          set nm to name of current session of t
-        end try
-        set tn to ""
-        try
-          set tn to name of t
-        end try
-        if ((nm contains "{fallback}") or (tn contains "{fallback}")) {guard} then
-          close t
-          set closedAny to true
-        end if
-      end repeat
-    end repeat
-  end if
   if closedAny then
     return "1"
   else
