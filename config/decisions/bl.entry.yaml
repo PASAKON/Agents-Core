@@ -1,0 +1,46 @@
+# Decision site: how does the avatar/plate transition INTO this line?
+# (task-5cfe20b1). Measured motion grammar:
+# .claude/skills/blackliquidity-cut/SKILL.md §6d avatar-shrink table (3 of 4
+# entries into composite are 21-27-frame sine.out shrinks; exits from
+# composite and section-change entries are hard cuts with 0 in-between
+# frames). State is jev_edit.py's own bl.beat answer for this line and the
+# previous line (not raw script text) plus the derived full/composite mode
+# change — never the writer's TSV beat column.
+#
+# Criteria examples are held-out lines from prototypes/bl55-script/
+# SCRIPT-v2.tsv, not from EP57 (bl57-script/) or the reference transcript
+# (bl-ref-census/) — CTO review 2026-09-23, see bl.beat.yaml's header note.
+site: bl.entry
+question: >-
+  Given the previous line's editorial beat and this line's editorial beat
+  (and whether the avatar's mode is changing between full-frame and
+  composite), how should this line's plate/avatar ENTER?
+options:
+  - id: shrink
+    meaning: >-
+      The default entry when the avatar is moving from full-frame into
+      composite mode and this line does NOT open a new section of the
+      script (mode_change: full_to_composite, is_new_section false).
+      Example: a "hook" line ("เดี๋ยววันนี้กูจะมาแฉให้ฟัง") is immediately
+      followed by a "show" line naming a score to display
+      ("คะแนนความน่าเชื่อถือ ไม่ถึงสองเต็มสิบ") — the avatar animates down
+      into the corner over the new plate.
+  - id: hard_cut
+    meaning: >-
+      An abrupt cut with no in-between frames: either the avatar is
+      RETURNING from composite to full-frame (mode_change:
+      composite_to_full), or this line opens a new section of the script —
+      a fresh topic, a CTA block, or a return to hook-style address
+      (this_beat is cta, or this_beat is hook/verdict but the previous beat
+      was show). Example: a long "show" stretch of evidence lines ends and
+      the next line opens the CTA block ("คอมเมนต์คำว่า เช็กก่อนฝาก
+      ถ้าอยากได้ลิสต์เว็บเช็กใบอนุญาต") — hard cut to full frame.
+  - id: other
+    meaning: None of the above fits (e.g. no meaningful transition — the
+      plate underneath is simply swapped while the avatar mode is unchanged).
+max_state_chars: 800
+provider_policy: rules-then-llm
+rules: []
+counterfactual:
+  images: 0
+  big_model_tokens_out: 20

@@ -1,0 +1,33 @@
+# Decision site: WHICH free rectangle should this line's kinetic text block
+# sit in? (task-5cfe20b1). Positional slot site — code computes the
+# candidates upstream (jev_edit.py's free_text_rects(): bands tiling the
+# TikTok-safe area that clear both the avatar's fixed composite box and the
+# chosen focus box, blackliquidity-cut SKILL.md §6c/§6d), labelled A-F top
+# to bottom; Jev only picks among them. Only asked when at least one free
+# rectangle survives the avatar/focus filtering.
+site: bl.text_slot
+question: >-
+  Given the numbered candidate text rectangles below (each one a region of
+  the frame clear of the avatar and the focus box), which one should this
+  line's caption/headline text sit in?
+options:
+  - id: A
+    meaning: "The candidate labelled 'A' in state.candidates — pick it if it best fits this line's text (closest to the focus box it explains, without crowding it)."
+  - id: B
+    meaning: "The candidate labelled 'B' in state.candidates — pick it if it best fits this line's text (closest to the focus box it explains, without crowding it)."
+  - id: C
+    meaning: "The candidate labelled 'C' in state.candidates — pick it if it best fits this line's text (closest to the focus box it explains, without crowding it)."
+  - id: D
+    meaning: "The candidate labelled 'D' in state.candidates — pick it if it best fits this line's text (closest to the focus box it explains, without crowding it)."
+  - id: E
+    meaning: "The candidate labelled 'E' in state.candidates — pick it if it best fits this line's text (closest to the focus box it explains, without crowding it)."
+  - id: F
+    meaning: "The candidate labelled 'F' in state.candidates — pick it if it best fits this line's text (closest to the focus box it explains, without crowding it)."
+  - id: other
+    meaning: "None of the listed candidates works (including when no candidate is good and the line should carry no text block at all)."
+max_state_chars: 1500
+provider_policy: rules-then-llm
+rules: []
+counterfactual:
+  images: 0
+  big_model_tokens_out: 15

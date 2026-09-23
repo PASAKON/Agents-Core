@@ -1,0 +1,14 @@
+[
+  {
+    "file": "real/wikifx-profile-score.png",
+    "kind": "still",
+    "covers": ["CONTEXT-1"],
+    "source_url": "https://example.invalid/wikifx-profile",
+    "captured_at": "2026-09-23T00:00:00+07:00",
+    "seconds": 0,
+    "censored": [],
+    "evidence_box": [
+      {"x": 260, "y": 640, "w": 420, "h": 160}
+    ]
+  }
+]
