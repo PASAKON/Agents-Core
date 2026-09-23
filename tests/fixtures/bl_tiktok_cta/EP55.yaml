@@ -1,0 +1,19 @@
+episode: EP55
+video_id: null
+cta:
+  keyword: เช็กก่อนฝาก
+  variants:
+    - เช็คก่อนฝาก
+  deliverable:
+    title: "EP55 broker check"
+    text_file: "ep55-broker-check.txt"
+    image: null
+  dm_message: >-
+    นี่คือไฟล์เช็คก่อนฝากของ EP55 ครับ
+    https://drive.google.com/ep55-broker-check
+  comment_reply_dm_sent: "ขออนุญาตส่งข้อความให้ทาง Inbox นะครับ"
+  comment_reply_dm_invite: "ทักมาทาง Inbox ได้เลยครับ เดี๋ยวส่งไฟล์ให้"
+never_say:
+  - รับประกันกำไร 100%
+escalate_to_human:
+  - โดนโกง
