@@ -14,8 +14,8 @@ not an env var — an env var could disable the guard in prod) tests
 monkeypatch to fake free-space readings, never real disk state.
 
 Run via:  pytest tests/test_delegate_disk_floor.py
-(not in pytest.ini's default `testpaths` [scripts, lib] — run explicitly,
-same convention as tests/test_delegate_probe_gate.py.)
+(collected by the default `pytest` run — pytest.ini `testpaths` now
+includes `tests` alongside `scripts lib`.)
 """
 from __future__ import annotations
 
@@ -38,8 +38,11 @@ def temp_db(monkeypatch, tmp_path):
     monkeypatch.setattr(db_mod, "DB_PATH", db_path)
     # owner_cto="test-owner" below is synthetic with no c_level_sessions row.
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
-    # Storage pilot scope (CEO 2026-09-23): only listed owners are gated.
-    monkeypatch.setattr(delegate, "_storage_pilot_owners", lambda: ["test-owner"])
+    # Storage scope (CEO 2026-09-23): "test-owner" is in scope for every
+    # ADR 0030 feature this file exercises (disk_floor, sparse_worktree,
+    # work_dir), mirroring the old single pilot_owner_cto list's effect
+    # before the per-feature scope map replaced it.
+    monkeypatch.setattr(delegate, "_scope_owners", lambda feature: ["test-owner"])
     db_mod.init()
     return db_mod
 
@@ -152,9 +155,9 @@ def test_sufficient_disk_proceeds_to_spawn_step(temp_db, monkeypatch, tmp_path):
 
 
 def test_low_disk_does_not_refuse_another_sessions_task(temp_db, monkeypatch):
-    """Pilot scope (CEO 2026-09-23: "Scope เฉพาะงานตัวเองก่อน"): a task owned
-    by a CTO session outside `pilot_owner_cto` is never refused by the floor
-    and gets a full (non-sparse) checkout."""
+    """Scope (CEO 2026-09-23: "Scope เฉพาะงานตัวเองก่อน"): a task owned by a
+    CTO session outside the `disk_floor`/`sparse_worktree` scope is never
+    refused by the floor and gets a full (non-sparse) checkout."""
     monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 1.0)
     monkeypatch.setattr(delegate, "get_project", lambda key: {
         "path": "/tmp/does-not-matter", "default_branch": "main",
@@ -177,9 +180,43 @@ def test_low_disk_does_not_refuse_another_sessions_task(temp_db, monkeypatch):
     assert seen.get("sparse") is False
 
 
-def test_missing_pilot_key_applies_to_nobody(monkeypatch, tmp_path):
+def test_missing_scope_key_applies_to_nobody(monkeypatch, tmp_path):
     p = tmp_path / "policy.yaml"
-    p.write_text("gauge: {orange: 5}\n")
+    p.write_text("gauge: {orange: 5}\n")  # no `scope` key at all
     monkeypatch.setattr(delegate, "STORAGE_POLICY", p)
-    assert delegate._storage_pilot_owners() == []
-    assert delegate._storage_applies("0e8d80b8") is False
+    assert delegate._scope_owners("disk_floor") is None
+    assert delegate._scope_applies("disk_floor", "0e8d80b8") is False
+
+
+def test_scope_present_but_feature_missing_applies_to_nobody(monkeypatch, tmp_path):
+    """`scope` exists but doesn't mention this feature — same fail-closed
+    result as no `scope` key at all. This would fail if `_scope_owners`
+    defaulted a missing feature to "all" or to the first entry it finds."""
+    p = tmp_path / "policy.yaml"
+    p.write_text("scope: {reclaim: all}\n")  # disk_floor absent
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", p)
+    assert delegate._scope_owners("disk_floor") is None
+    assert delegate._scope_applies("disk_floor", "any-owner") is False
+
+
+def test_scope_all_covers_every_owner_including_none(monkeypatch, tmp_path):
+    """This fails if `_scope_applies` were changed to require a truthy
+    owner_cto even under "all" — "all" must cover a C-level's own
+    ownerless task too, not just named CTO sessions."""
+    p = tmp_path / "policy.yaml"
+    p.write_text("scope: {disk_floor: all}\n")
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", p)
+    assert delegate._scope_applies("disk_floor", "0e8d80b8") is True
+    assert delegate._scope_applies("disk_floor", "some-random-owner") is True
+    assert delegate._scope_applies("disk_floor", None) is True
+
+
+def test_scope_list_covers_members_only(monkeypatch, tmp_path):
+    """This fails if `_scope_applies` fell back to "applies to everyone"
+    for a list scope, or matched a falsy owner_cto against the list."""
+    p = tmp_path / "policy.yaml"
+    p.write_text("scope: {disk_floor: ['owner-a', 'owner-b']}\n")
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", p)
+    assert delegate._scope_applies("disk_floor", "owner-a") is True
+    assert delegate._scope_applies("disk_floor", "owner-c") is False
+    assert delegate._scope_applies("disk_floor", None) is False

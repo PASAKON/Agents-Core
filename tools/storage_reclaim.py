@@ -1,9 +1,10 @@
-"""Reclaim REBUILD-tier disk space inside the pilot owner's own task
-worktrees — ADR 0030 §2 (orange band: REBUILD deleted automatically) and
-§8 (scope: only the pilot owner's own task worktrees, never another
-session's node_modules/.venv, never a project under ~/MoonieXHQ/Projects).
+"""Reclaim REBUILD-tier disk space inside in-scope tasks' own worktrees —
+ADR 0030 §2 (orange band: REBUILD deleted automatically) and §8 (scope:
+`scope.reclaim` from config/storage-policy.yaml — "all" or a list of
+owner_cto ids — decides whose worktrees are ever walked; never a project
+under ~/MoonieXHQ/Projects).
 
-`plan()` walks every pilot-owned task's `worktree` (from tasks.db) looking
+`plan()` walks every in-scope task's `worktree` (from tasks.db) looking
 for directories `tools/storage_policy.classify()` puts in REBUILD. A
 REBUILD entry tagged `dormancy: true` (node_modules, .venv, .next) is only
 included when the whole worktree passes the disk-hygiene "dormancy test"
@@ -54,21 +55,27 @@ _LIVE_DEV_PROCESS_RE = re.compile(r"next dev|next-server|vite|uvicorn")
 
 # --------------------------------------------------------------------- plan
 
-def _pilot_tasks(db_path: str | Path, owners: list[str]) -> list[dict]:
-    """Rows from `db_path`'s tasks table whose owner_cto is in `owners`."""
-    if not owners:
+def _pilot_tasks(db_path: str | Path, owners: str | list[str]) -> list[dict]:
+    """Rows from `db_path`'s tasks table in scope: `owners == "all"` selects
+    every task (every owner_cto, including NULL — ADR 0030 §8, widened
+    2026-09-23); a list selects only rows whose owner_cto is a member;
+    anything falsy (missing scope) selects none."""
+    if owners != "all" and not owners:
         return []
-    placeholders = ",".join("?" for _ in owners)
     try:
         conn = sqlite3.connect(str(db_path))
     except sqlite3.Error:
         return []
     try:
         conn.row_factory = sqlite3.Row
-        rows = conn.execute(
-            f"SELECT id, worktree, owner_cto FROM tasks WHERE owner_cto IN ({placeholders})",
-            list(owners),
-        ).fetchall()
+        if owners == "all":
+            rows = conn.execute("SELECT id, worktree, owner_cto FROM tasks").fetchall()
+        else:
+            placeholders = ",".join("?" for _ in owners)
+            rows = conn.execute(
+                f"SELECT id, worktree, owner_cto FROM tasks WHERE owner_cto IN ({placeholders})",
+                list(owners),
+            ).fetchall()
     except sqlite3.Error:
         return []
     finally:
@@ -201,9 +208,11 @@ def _is_dormant(worktree: str) -> bool:
     return True
 
 
-def plan(db_path: str | Path, policy: dict, owners: list[str]) -> list[dict]:
+def plan(db_path: str | Path, policy: dict, owners: str | list[str]) -> list[dict]:
     """[{path, bytes, reason, task, owner}] for every REBUILD directory
-    inside a pilot-owned task's worktree, safe to delete right now."""
+    inside an in-scope task's worktree, safe to delete right now. `owners`
+    is `scope.reclaim` from config/storage-policy.yaml: "all" walks every
+    task's worktree, a list only those owners' worktrees."""
     home = str(Path.home())
     results: list[dict] = []
     for task in _pilot_tasks(db_path, owners):
@@ -283,7 +292,9 @@ def main() -> None:
         print(f"PolicyError: {e}")
         sys.exit(1)
 
-    owners = policy.get("pilot_owner_cto") or []
+    owners = (policy.get("scope") or {}).get("reclaim")
+    if owners != "all" and not isinstance(owners, list):
+        owners = []
     db_path = args.db or str(_default_db_path())
 
     items = plan(db_path, policy, owners)

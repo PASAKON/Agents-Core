@@ -1,18 +1,21 @@
 """tools/delegate.py WORK_DIR export + tools/git_ops.py merge close-gate
-(task-36aaa3c4, Work/RULES.md, ADR 0030 §8 pilot scope).
+(task-36aaa3c4, Work/RULES.md, ADR 0030 §8 `work_dir` scope).
 
-Pilot scope only: `delegate._storage_pilot_owners` is monkeypatched to a
-known list (`temp_db` fixture below), mirroring tests/test_delegate_disk_
-floor.py's own pattern. A task owned by anyone outside that list must be
-completely untouched by this task's changes — that's the scope check the
-brief asks to prove "must fail if removed": every non-pilot test below
-would start failing (a folder appears, WORK_DIR gets exported, or a merge
-gets gated) if the `_storage_applies(owner_cto)` guard were deleted from
-`_work_dir_for` / the git_ops.py close gate.
+`work_dir` scope only: `delegate._scope_owners` is monkeypatched to return
+a known list for every feature (`temp_db` fixture below), mirroring
+tests/test_delegate_disk_floor.py's own pattern. A task owned by anyone
+outside that list must be completely untouched by this task's changes —
+that's the scope check the brief asks to prove "must fail if removed":
+every out-of-scope test below would start failing (a folder appears,
+WORK_DIR gets exported, or a merge gets gated) if the
+`_scope_applies("work_dir", owner_cto)` guard were deleted from
+`_work_dir_for` / the git_ops.py close gate. Checked directly against a
+per-feature scope map (not just the fixture's flat list) in
+`test_work_dir_for_scope_all_and_list_and_missing_key` below.
 
 Run via:  pytest tests/test_delegate_workdir.py
-(not in pytest.ini's default testpaths [scripts, lib] — run explicitly,
-same convention as tests/test_delegate_disk_floor.py.)
+(collected by the default `pytest` run — pytest.ini `testpaths` now
+includes `tests` alongside `scripts lib`.)
 """
 from __future__ import annotations
 
@@ -37,8 +40,10 @@ def temp_db(monkeypatch, tmp_path):
     db_path = tmp_path / "tasks.db"
     monkeypatch.setattr(db_mod, "DB_PATH", db_path)
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
-    # Storage pilot scope (ADR 0030 §8): only listed owners are gated.
-    monkeypatch.setattr(delegate, "_storage_pilot_owners", lambda: ["pilot-owner"])
+    # Storage scope (ADR 0030 §8): "pilot-owner" is in scope for every
+    # feature this file exercises (work_dir via _work_dir_for / the
+    # git_ops.py close gate).
+    monkeypatch.setattr(delegate, "_scope_owners", lambda feature: ["pilot-owner"])
     db_mod.init()
     return db_mod
 
@@ -74,13 +79,35 @@ def test_work_dir_for_pilot_creates_folder(temp_db, work_root):
 
 def test_work_dir_for_non_pilot_returns_none_and_creates_nothing(temp_db, work_root):
     """The scope check itself: removing the `if not
-    _storage_applies(owner_cto): return None` guard in
+    _scope_applies("work_dir", owner_cto): return None` guard in
     tools/delegate.py:_work_dir_for makes this fail — a folder would get
-    created for a non-pilot owner too."""
+    created for an out-of-scope owner too."""
     tid = _new_task("someone-else")
     path = delegate._work_dir_for(tid, "someone-else")
     assert path is None
     assert not (work_root / tid).exists()
+
+
+def test_work_dir_for_scope_all_and_list_and_missing_key(monkeypatch, tmp_path):
+    """Direct coverage of the scope map itself (not just the fixture's flat
+    list): "all" covers an arbitrary owner AND owner=None; a list covers
+    only its members; a policy with no `work_dir` scope key covers nobody.
+    Fails if `_scope_applies`/`_scope_owners` regress to the old
+    single-list `_storage_applies` semantics."""
+    policy = tmp_path / "policy.yaml"
+
+    policy.write_text("scope: {work_dir: all}\n")
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", policy)
+    assert delegate._scope_applies("work_dir", "any-owner-at-all") is True
+    assert delegate._scope_applies("work_dir", None) is True
+
+    policy.write_text("scope: {work_dir: ['pilot-owner']}\n")
+    assert delegate._scope_applies("work_dir", "pilot-owner") is True
+    assert delegate._scope_applies("work_dir", "someone-else") is False
+    assert delegate._scope_applies("work_dir", None) is False
+
+    policy.write_text("scope: {reclaim: all}\n")  # work_dir key absent
+    assert delegate._scope_applies("work_dir", "pilot-owner") is False
 
 
 # ------------------------------------------------- _spawn_iterm_tab cmd string
@@ -158,8 +185,8 @@ def test_delegate_task_exports_work_dir_for_pilot_owner(temp_db, work_root, monk
 
 def test_delegate_task_gives_non_pilot_neither_folder_nor_env(temp_db, work_root, monkeypatch):
     """Must fail if the scope check is removed: without
-    `_storage_applies` gating `_work_dir_for`, this non-pilot task would
-    also get a Work/ folder and a WORK_DIR export."""
+    `_scope_applies("work_dir", ...)` gating `_work_dir_for`, this
+    out-of-scope task would also get a Work/ folder and a WORK_DIR export."""
     monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 100.0)
     monkeypatch.setattr(delegate, "get_project", lambda key: _fake_project())
     monkeypatch.setattr(delegate, "create_worktree", _fake_create_worktree)
@@ -258,11 +285,11 @@ def test_merge_allowed_after_work_folder_is_clean(
 def test_merge_unchanged_for_non_pilot_owner_even_with_unfiled_files(
     temp_db, work_root, merge_repo, monkeypatch
 ):
-    """Scope check at the merge gate: a non-pilot owner's merge is never
-    gated by Work/, even when a folder exists with unfiled files — proves
-    `_storage_applies` (not blanket enforcement) decides. This would fail
-    if the `if _storage_applies(...)` guard were removed from
-    tools/git_ops.py's close gate."""
+    """Scope check at the merge gate: an out-of-scope owner's merge is
+    never gated by Work/, even when a folder exists with unfiled files —
+    proves `_scope_applies("work_dir", ...)` (not blanket enforcement)
+    decides. This would fail if the `if _scope_applies(...)` guard were
+    removed from tools/git_ops.py's close gate."""
     monkeypatch.setattr(git_ops, "get_project", lambda key: _fake_git_ops_project(merge_repo))
     tid, branch = _make_review_task(merge_repo, "someone-else")
     folder = workdir.create(tid, root=work_root)
