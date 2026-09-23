@@ -142,7 +142,7 @@ Code repointed (old path kept as fallback): `scripts/cto-claude.sh` + `cxo-claud
 `scripts/lib/cxo_mcp_config.py` + `scripts/session-deadline-check.py` (LungNote Mcp), `config/wikis.yaml`
 comment, root `CLAUDE.md` (table + rsync targets). `hq.yaml` rows carry `machines.contabo`.
 
-**Compat links to remove after a clean week (≈ 2026-09-30):** `/opt/{agents-wikis, mooniex-wikis,
+**Compat links to remove after a clean week (≈ 2026-09-30) — first grep each old path across systemd units, the scripts they run, every `.env*` and tracked scripts in every repo (the Mac step 5 broke Console-Mac by skipping this):** `/opt/{agents-wikis, mooniex-wikis,
 agents-memory, lungnote-mcp, mooniex-console}`, `/root/projects/*` (5), `/root/{backups,
 backup-lunar-hotfix-20260704, arb, cookierun-gold, cookierun-gold-2026-09-23.tgz, idm-yt, idm-full,
 idm-baseline, dataset-stage, idm_colab_out.zip, idm-*.{json,log,sh}, idm-full.log.crashed-1913}`,
