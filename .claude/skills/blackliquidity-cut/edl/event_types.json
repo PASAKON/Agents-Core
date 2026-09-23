@@ -1,0 +1,77 @@
+{
+  "$doc": "P2-P4 event-type registry. bl_compose.py fails loudly on a `type` not listed here (SCHEMA.md's open-but-checked-in registry). Add a type here before using it; task-82380776 (census of the reference) and later workers extend this list as they measure more of the motion grammar.",
+  "types": {
+    "hook_slide": {
+      "layer": "p2",
+      "measured": "SKILL.md §6d hook opening: 0.23->1.43s slide-down, power1.out, scale unchanged",
+      "params": ["from_y", "to_y", "ease", "duration"],
+      "refs": "none required — the hook has no earlier-layer event to bind to"
+    },
+    "avatar_shrink": {
+      "layer": "p2",
+      "measured": "SKILL.md §6d avatar-shrink table (9s/19s/51s switches)",
+      "params": ["from_scale", "to_scale", "ease", "duration"],
+      "refs": "optional: the P1 plate id of the plate being shrunk onto"
+    },
+    "hard_cut": {
+      "layer": "p2",
+      "measured": "SKILL.md §6d: 0 in-between frames, exits from composite or a section-change entry",
+      "params": [],
+      "refs": "optional: the P1 plate id either side of the cut"
+    },
+    "spotlight": {
+      "layer": "p2",
+      "measured": "SKILL.md §6d: dim-to-grey + bright circle, e.g. 4.40-5.15s circle centre x25%/y28% r20%w",
+      "params": ["cx", "cy", "radius"],
+      "refs": "required: the P1 real-footage plate id being spotlit"
+    },
+    "highlight_sweep": {
+      "layer": "p2",
+      "measured": "SKILL.md §6d: left->right yellow bar, ~0.9s, centroid x40%->55-60%",
+      "params": ["x0", "x1", "y"],
+      "refs": "required: the P1 plate id whose value is being highlighted"
+    },
+    "zoom": {
+      "layer": "p2",
+      "measured": "SKILL.md §6d: continuous pan/push on the evidence plate, e.g. XM page 2.0-4.4s",
+      "params": ["from_scale", "to_scale"],
+      "refs": "required: the P1 plate id being zoomed"
+    },
+    "fade": {
+      "layer": "p2",
+      "measured": "generic opacity in/out — not the kinetic wipe, which is P3's headline",
+      "params": ["from_opacity", "to_opacity"],
+      "refs": "required: the element (P1 plate or P2 event) being faded"
+    },
+    "caption_chip": {
+      "layer": "p3",
+      "measured": "SKILL.md §6d: small dark chip above the head in composite mode, ~37-40% of frame height",
+      "params": ["top", "text"],
+      "refs": "required: the P1 composite plate id this chip labels"
+    },
+    "headline": {
+      "layer": "p3",
+      "measured": "template's kinetic() generator — 1-3 line wipe-in headline",
+      "params": ["top", "lines"],
+      "refs": "optional: a P1/P2 event this headline explains"
+    },
+    "data_label": {
+      "layer": "p3",
+      "measured": "a label pinned to one evidence value on a real-footage plate",
+      "params": ["top", "left", "text"],
+      "refs": "required: the P1 real-footage plate id and, if lit, the P2 spotlight/highlight_sweep id"
+    },
+    "sfx": {
+      "layer": "p4",
+      "measured": "SKILL.md: sound effects out of scope until a licensed, human-annotated library exists — schema-only today",
+      "params": ["media", "gain"],
+      "refs": "required: the P1/P2/P3 event id this sound is tied to, e.g. a P2 avatar_shrink's whoosh"
+    },
+    "music_bed": {
+      "layer": "p4",
+      "measured": "continuous soundtrack under a stretch of the cut",
+      "params": ["media", "gain", "fade_in", "fade_out"],
+      "refs": "optional: the P1 plate id(s) the bed underscores"
+    }
+  }
+}

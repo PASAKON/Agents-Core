@@ -1,0 +1,134 @@
+{
+  "episode": "bl55",
+  "duration": 133.13,
+  "audio": { "media": "media/audio-hq-v2.mp3" },
+  "bug_date": "23 ก.ย. 69",
+  "lipsync_offsets": { "A": 0.00, "B": 58.72, "C": 115.44 },
+  "events": [
+    { "id": "p1-001", "t0": 0.00, "t1": 1.08, "type": "plate",
+      "params": { "role": "avatar", "kind": "video", "media": "media/lip_a.mp4",
+                  "lipsync_part": "A", "avatar_mode": "full", "darken": false } },
+
+    { "id": "p1-002", "t0": 1.08, "t1": 4.32, "type": "plate",
+      "params": { "role": "real_clip", "kind": "video", "media": "media/real-bingx-logo-a.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/bingx-logo-pushin.mp4" } },
+
+    { "id": "p1-003", "t0": 4.32, "t1": 9.46, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-hook.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-article-hook.png" } },
+
+    { "id": "p1-004", "t0": 9.46, "t1": 11.60, "type": "plate",
+      "params": { "role": "avatar", "kind": "video", "media": "media/lip_a.mp4",
+                  "lipsync_part": "A", "avatar_mode": "full", "darken": false } },
+
+    { "id": "p1-005", "t0": 11.60, "t1": 15.85, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-bingx-logo-b.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/bingx-logo-still.png" } },
+
+    { "id": "p1-006", "t0": 15.85, "t1": 19.34, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-founded-hq.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-article-founded-hq.png" } },
+
+    { "id": "p1-007", "t0": 19.34, "t1": 23.36, "type": "plate",
+      "params": { "role": "bg", "avatar_mode": "none" } },
+
+    { "id": "p1-008", "t0": 23.36, "t1": 25.76, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-min-deposit-a.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-article-min-deposit.png" } },
+
+    { "id": "p1-009", "t0": 25.76, "t1": 29.50, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-no-license.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-profile-no-license.png" } },
+
+    { "id": "p1-010", "t0": 29.50, "t1": 32.98, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-no-regulation.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-profile-no-regulation.png" } },
+
+    { "id": "p1-011", "t0": 32.98, "t1": 35.82, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-score.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-profile-score.png" } },
+
+    { "id": "p1-012", "t0": 35.82, "t1": 39.04, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-score-reason.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-article-score-reason.png" } },
+
+    { "id": "p1-013", "t0": 39.04, "t1": 46.78, "type": "plate",
+      "params": { "role": "bg", "avatar_mode": "none" } },
+
+    { "id": "p1-014", "t0": 46.78, "t1": 49.78, "type": "plate",
+      "params": { "role": "scene", "kind": "video", "media": "media/s15.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false } },
+
+    { "id": "p1-015", "t0": 49.78, "t1": 55.66, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-complaint-amounts.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-profile-complaint-amounts.png" } },
+
+    { "id": "p1-016", "t0": 55.66, "t1": 59.26, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-complaint-taiwan.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-profile-complaint-taiwan.png" } },
+
+    { "id": "p1-017", "t0": 59.26, "t1": 66.86, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-withdrawal.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-article-withdrawal-restriction.png" } },
+
+    { "id": "p1-018", "t0": 66.86, "t1": 69.00, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-leverage.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-article-leverage.png" } },
+
+    { "id": "p1-019", "t0": 69.00, "t1": 72.60, "type": "plate",
+      "params": { "role": "avatar", "kind": "video", "media": "media/lip_b.mp4",
+                  "lipsync_part": "B", "avatar_mode": "full", "darken": false } },
+
+    { "id": "p1-020", "t0": 72.60, "t1": 77.58, "type": "plate",
+      "params": { "role": "real_still", "kind": "video", "media": "media/real-min-deposit-b.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/wikifx-article-min-deposit.png" } },
+
+    { "id": "p1-021", "t0": 77.58, "t1": 84.08, "type": "plate",
+      "params": { "role": "real_clip", "kind": "video", "media": "media/real-bingx-scroll.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false,
+                  "real_source": "real/bingx-homepage-scroll.mp4" } },
+
+    { "id": "p1-022", "t0": 84.08, "t1": 87.78, "type": "plate",
+      "params": { "role": "bg", "avatar_mode": "none" } },
+
+    { "id": "p1-023", "t0": 87.78, "t1": 90.60, "type": "plate",
+      "params": { "role": "scene", "kind": "video", "media": "media/s27.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false } },
+
+    { "id": "p1-024", "t0": 90.60, "t1": 94.28, "type": "plate",
+      "params": { "role": "scene", "kind": "video", "media": "media/s28.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false } },
+
+    { "id": "p1-025", "t0": 94.28, "t1": 97.28, "type": "plate",
+      "params": { "role": "scene", "kind": "video", "media": "media/s29.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false } },
+
+    { "id": "p1-026", "t0": 97.28, "t1": 100.76, "type": "plate",
+      "params": { "role": "bg", "avatar_mode": "none" } },
+
+    { "id": "p1-027", "t0": 100.76, "t1": 104.32, "type": "plate",
+      "params": { "role": "scene", "kind": "video", "media": "media/s31.mp4",
+                  "media_start": 0.0, "avatar_mode": "none", "darken": false } },
+
+    { "id": "p1-028", "t0": 104.32, "t1": 122.46, "type": "plate",
+      "params": { "role": "bg", "avatar_mode": "none" } },
+
+    { "id": "p1-029", "t0": 122.46, "t1": 133.13, "type": "plate",
+      "params": { "role": "avatar", "kind": "video", "media": "media/lip_c.mp4",
+                  "lipsync_part": "C", "avatar_mode": "full", "darken": false } }
+  ]
+}

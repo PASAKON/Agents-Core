@@ -1,0 +1,22 @@
+{
+  "episode": "epXX",
+  "duration": 10.0,
+  "events": [
+    {
+      "id": "p2-1",
+      "t0": 1.8,
+      "t1": 2.6,
+      "type": "avatar_shrink",
+      "params": { "from_scale": 1.04, "to_scale": 0.69, "ease": "sine.out", "duration": 0.8 },
+      "refs": ["p1-2"]
+    },
+    {
+      "id": "p2-2",
+      "t0": 6.6,
+      "t1": 7.5,
+      "type": "spotlight",
+      "params": { "cx": 0.25, "cy": 0.28, "radius": 0.20 },
+      "refs": ["p1-3"]
+    }
+  ]
+}
