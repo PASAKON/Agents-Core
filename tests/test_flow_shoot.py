@@ -923,3 +923,17 @@ def test_card_fragment_falls_back_to_the_action_not_the_location():
     frag = flow_shoot.card_fragment(p)
     assert frag.startswith("sits alone at the corner table")
     assert "five worn" not in frag and len(frag) <= 60
+
+
+# ── a submit only counts once a NEW batch is at the top of the feed ──
+
+@pytest.mark.parametrize("before,after,expected", [
+    ((6, "old 176"), (7, "new 179"), True),      # one more batch
+    ((6, "old 176"), (6, "new 179"), True),      # virtualised feed: same count, new head
+    ((6, "old 176"), (6, "old 176"), False),     # nothing happened
+    ((6, "old 176"), (-1, ""), False),           # failed read is not a change
+    ((-1, ""), (7, "new 179"), False),           # unknown baseline is not a change
+    ((0, ""), (0, ""), False),
+])
+def test_feed_changed(before, after, expected):
+    assert flow_shoot.feed_changed(before, after) is expected

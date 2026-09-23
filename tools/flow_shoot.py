@@ -49,6 +49,7 @@ LOG_PATH = Path("state/banchi/flow_shoot.log")
 DOWNLOAD_GAP_S = 8  # brief's rule: never fire two downloads closer than this
 POLL_S = 8
 COMPLETION_TIMEOUT_S = 8 * 60
+NO_CARD_S = 120  # a submit that has changed nothing in the feed by now made no card
 UPSCALE_TIMEOUT_S = 3 * 60
 DURATION_TOLERANCE_S = 0.6
 MIN_AUDIO_DB = -60.0
@@ -159,6 +160,16 @@ def picker_row_pattern(handle: str) -> "re.Pattern[str]":
     """
     name = re.escape(handle.lstrip("@"))
     return re.compile(rf"(?:^|[^A-Za-z0-9_]){name}(?:[^A-Za-z0-9_]|$)")
+
+
+def feed_changed(before: tuple[int, str], after: tuple[int, str]) -> bool:
+    """Has a new batch landed at the top of the feed since Submit?
+
+    More batches, or a different newest batch, both mean yes. A failed read
+    (-1) is never taken as a change: that is how a stale card gets accepted."""
+    if before[0] < 0 or after[0] < 0:
+        return False
+    return after[0] > before[0] or (after[0] > 0 and after[1] != before[1])
 
 
 def is_refusal_text(text: str) -> bool:
@@ -766,7 +777,53 @@ class FlowBrowser:
             actual = self.chip_count()
             if actual != expected_chip_count:
                 raise ChipCountMismatch(expected_chip_count, actual)
+        self._feed_before = self.feed_signature()
         self.page.locator('button[aria-label="เริ่มสร้าง"]').first.click()
+        self._submit_notice = self._capture_submit_notice()
+
+    FEED_BATCH = 'div[class*="batch-container"]'
+
+    def feed_signature(self) -> tuple[int, str]:
+        """(rendered batch count, start of the newest batch's text). The feed
+        lists newest first, so a submit that produced a card changes this."""
+        try:
+            batches = self.page.locator(self.FEED_BATCH)
+            n = batches.count()
+            head = batches.first.inner_text()[:300] if n else ""
+            return n, head
+        except Exception:
+            return -1, ""
+
+    def _capture_submit_notice(self) -> str:
+        """What Flow said right after Submit, kept for the ledger note.
+
+        2026-09-23: four submits (banchi 149, 151, 179 x2) left no card in the
+        feed at all, and nothing recorded why — the runner only ever looked
+        for a finished clip. A screenshot and any alert/snackbar text are the
+        evidence an A/B needs."""
+        page = self.page
+        page.wait_for_timeout(4000)
+        texts = []
+        for sel in ('[role="alert"]', "mat-snack-bar-container", ".mdc-snackbar",
+                    '[role="status"]', "simple-snack-bar"):
+            try:
+                loc = page.locator(sel)
+                for i in range(min(loc.count(), 3)):
+                    t = loc.nth(i).inner_text().strip()
+                    if t and t not in texts:
+                        texts.append(t[:200])
+            except Exception:
+                pass
+        try:
+            shots = LOG_PATH.parent / "submit-shots"
+            shots.mkdir(parents=True, exist_ok=True)
+            page.screenshot(path=str(shots / f"{datetime.now():%Y%m%d-%H%M%S}.png"))
+        except Exception:
+            pass
+        note = " | ".join(texts)
+        if note:
+            _log(f"  flow said after submit: {note!r}")
+        return note
 
     def poll_result(self, timeout_s: int = COMPLETION_TIMEOUT_S) -> dict:
         """CORRECTED 2026-09-19 (task-04851451, live read-only check):
@@ -783,20 +840,32 @@ class FlowBrowser:
         page = self.page
         start = time.time()
         baseline = len(self._captured_video_urls)
+        before = getattr(self, "_feed_before", None)
         while time.time() - start < timeout_s:
-            # A project feed may contain refusal text from older shots. Scope
-            # policy detection to the batch containing this shot's unique
-            # dialogue so historical cards cannot trigger a false retry.
+            # CORRECTED 2026-09-23: only the NEWEST batch, and only once the
+            # feed has actually changed since Submit, may count as this shot.
+            # The old check took the first element on the page carrying the
+            # shot's dialogue — for a re-shot scene that is the OLD take's
+            # finished card, so four submits that produced no card at all
+            # (149, 151, 179 x2) read as "completed card found but download
+            # not ready" for eight minutes each, and a later pull fetched the
+            # old plainclothes takes as if they were the new ones.
             result_text = ""
-            if self._last_dialogue:
-                current_prompt = page.get_by_text(
-                    self._last_dialogue, exact=False).first
-                if current_prompt.count():
-                    current_batch = current_prompt.locator(
-                        'xpath=ancestor::div[contains(@class,"batch-container")]'
-                    ).first
-                    if current_batch.count():
-                        result_text = current_batch.inner_text()
+            newest = None
+            now = self.feed_signature()
+            if before is None or feed_changed(before, now):
+                batch0 = page.locator(self.FEED_BATCH).first
+                try:
+                    if batch0.count():
+                        t = batch0.inner_text()
+                        if not self._last_dialogue or self._last_dialogue in t:
+                            newest, result_text = batch0, t
+                except Exception:
+                    pass
+            elif ("/edit/" not in page.url
+                  and time.time() - start > NO_CARD_S):
+                return {"status": "no_card",
+                        "text": getattr(self, "_submit_notice", "") or ""}
             if is_refusal_text(result_text):
                 m = re.search(r"ล้มเหลว[^\n]*\n[^\n]*", result_text)
                 return {"status": "refusal", "text": m.group(0) if m else "ล้มเหลว"}
@@ -819,21 +888,14 @@ class FlowBrowser:
             # appears, identify it by the shot's unique dialogue, open it, and
             # capture/download its CDN URL using the same cache-safe path as
             # `pull`.
-            if self._last_dialogue and "/edit/" not in page.url:
-                prompt_match = page.get_by_text(
-                    self._last_dialogue, exact=False
-                ).first
-                if prompt_match.count():
-                    batch = prompt_match.locator(
-                        'xpath=ancestor::div[contains(@class,"batch-container")]'
-                    ).first
-                    card = batch.locator("flow-grid-tile-container").first
-                    if card.count():
-                        try:
-                            self._pending_download = self.download_card(card)
-                            return {"status": "download", "text": ""}
-                        except Exception as e:
-                            _log(f"  completed card found but download not ready: {e!r}")
+            if newest is not None and "/edit/" not in page.url:
+                card = newest.locator("flow-grid-tile-container").first
+                if card.count():
+                    try:
+                        self._pending_download = self.download_card(card)
+                        return {"status": "download", "text": ""}
+                    except Exception as e:
+                        _log(f"  new card found but download not ready: {e!r}")
             try:
                 page.evaluate(
                     "() => { const v = document.querySelector('video'); "
@@ -1211,6 +1273,14 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                     row["status"], row["note"] = "refused", result["text"]
                     flow_ledger.save_ledger(ledger_path, rows)
                     _log(f"shot {n}: refused — {result['text']!r}")
+                    continue
+                if result["status"] == "no_card":
+                    row["status"] = "failed"
+                    row["note"] = ("submit produced no card"
+                                   + (f": {result['text']}" if result["text"] else "")
+                                   + " — see state/banchi/submit-shots/")
+                    flow_ledger.save_ledger(ledger_path, rows)
+                    _log(f"shot {n}: failed — {row['note']}")
                     continue
                 if result["status"] == "timeout":
                     row["status"], row["note"] = "failed", "timeout"
