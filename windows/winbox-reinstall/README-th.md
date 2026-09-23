@@ -1,0 +1,56 @@
+# ลง Windows ใหม่บน winbox โดยไม่ใช้ USB — แผ่นเดียวสำหรับ CEO (2026-09-24)
+
+เครื่องนี้ลงใหม่ได้จากในตัวเอง ไม่ต้องมี USB ตรวจแล้ว 2026-09-24:
+Windows RE เปิดอยู่ · BitLocker ปิดอยู่ · C: ว่าง 37 GB · ต่อสาย LAN
+
+**ห้ามเริ่มข้อ 1 จนกว่า CTO จะบอกว่า "ลงได้"** (ด่านข้อมูล: Cookie Run + โค้ดที่ยังไม่ push + กุญแจ)
+
+## 1. สั่งลงใหม่ (ประมาณ 30–60 นาที เครื่องทำเอง)
+
+Settings → System → Recovery → **Reset this PC** → **Remove everything** →
+**Cloud download** → Next → ถ้าถาม "Clean data?" เลือก **Just remove my files** → **Reset**
+
+- Cloud download = โหลด Windows ชุดใหม่จาก Microsoft ~4 GB สะอาดกว่า Local reinstall
+- ระหว่างนี้เครื่องรีบูตเองหลายรอบ ปล่อยไว้ อย่าปิดไฟ
+
+## 2. ตั้งค่าเริ่มต้น (OOBE)
+
+| หน้าจอ | ทำอะไร |
+|---|---|
+| ภาษา/ประเทศ/คีย์บอร์ด | ตามสะดวก (English + Thai keyboard ก็ได้) |
+| Network | สาย LAN ต่ออยู่แล้ว ผ่านไปเลย |
+| Name your PC (ถ้ามี) | ตั้งชื่อ **winbox** |
+| **หน้า Sign in ของ Microsoft** | **ทำข้อ 3 ก่อน — ห้ามใส่บัญชี Microsoft ที่หน้านี้** |
+
+## 3. สร้างบัญชี local ชื่อ `UsEr` ⚠️ ขั้นพลาดไม่ได้
+
+**วิธีหลัก** (ตอนอยู่หน้า Sign in):
+1. กด **Shift + F10** → หน้าต่างดำเปิดขึ้น
+2. พิมพ์ `start ms-cxh:localonly` แล้ว Enter
+3. ขึ้นหน้าต่าง "Create a user for this PC" → ชื่อ **UsEr** → ตั้งรหัสผ่าน → ตอบคำถามความปลอดภัย 3 ข้อ → Next
+4. ทำ OOBE ต่อจนถึงหน้าจอ Desktop
+
+**ถ้าวิธีหลักไม่ขึ้นอะไร / ขึ้น error** (Microsoft ปิดทางลัดนี้ในบางเวอร์ชัน):
+1. Sign in ด้วยบัญชี Microsoft (pass.gob1@gmail.com) ทำ OOBE ให้จบ
+2. Settings → Accounts → Other users → **Add account** → "I don't have this person's sign-in information" → "**Add a user without a Microsoft account**" → ชื่อ **UsEr** + รหัสผ่าน
+3. กดที่ UsEr → **Change account type** → **Administrator**
+4. Sign out → เข้าเครื่องด้วย **UsEr** (ครั้งแรกจะสร้างโฟลเดอร์ `C:\Users\UsEr`)
+
+ตรวจ: เปิด File Explorer ไปที่ `C:\Users` ต้องเห็นโฟลเดอร์ **UsEr**
+
+## 4. เปิดทางให้ CTO (ประมาณ 10 นาที)
+
+1. เปิด **Edge** → drive.google.com → login pass.gob1 → โฟลเดอร์ **BACKUP / Winbox Reinstall 2026-09-24** → ดาวน์โหลด **winbox-bootstrap.ps1**
+2. คลิกขวาที่ไฟล์ → **Run with PowerShell** (ถ้าถาม Administrator → Yes)
+   - มันจะติดตั้ง SSH, ใส่กุญแจของ Contabo/Mac, เปิด firewall, ติดตั้ง Tailscale, ตั้งไม่ให้หลับ, เวลาไทย, และ **ถามรหัสผ่าน Windows 1 ครั้ง** เพื่อตั้ง login อัตโนมัติ
+3. ตอนท้ายจะเปิดเบราว์เซอร์ให้ **login Tailscale** (pass.gob1@gmail.com) → กด Connect
+4. หน้าต่างสคริปต์ขึ้นคำว่า **READY** พร้อม IP → **ส่งคำว่า READY + IP ให้ CTO ในแชท**
+
+ถ้าขึ้น **FAILED** บรรทัดไหน ส่งบรรทัดนั้นมาให้ CTO แล้วรันสคริปต์ซ้ำได้เสมอ ไม่พังอะไร
+
+## 5. ที่เหลือ CTO ทำทางไกล
+
+ติดตั้งโปรแกรม 57 ตัวคืน, Python, โค้ดบอท, งานตั้งเวลา 48 ตัว, BlueStacks, ทดสอบฟาร์ม
+พี่จะต้องมา login เอง: Chrome, LINE (มือถือ), BlueStacks + Cookie Run (มือถือ), ChatGPT/Claude, กด Allow ให้ rclone เข้า Drive
+
+หมายเหตุ: Windows เครื่องเดิม**ยังไม่ได้ activate** (มีลายน้ำ "Activate Windows") ลงใหม่ก็จะเป็นแบบเดิม ใช้งานได้ปกติ ถ้าจะให้หายต้องมี product key
