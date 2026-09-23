@@ -1,6 +1,6 @@
 # Contabo → `/root/MoonieXHQ` migration plan — DRAFT
 
-Status: **draft, nothing moved.** Waiting for the CEO's approval of the names and the order.
+Status: **draft, nothing moved.** Names fixed by MAP.md's rule; waiting for the CEO's go to execute.
 Author: CTO 0e8d80b8, 2026-09-23. Survey read-only over ssh the same day.
 
 ## Why
@@ -31,9 +31,9 @@ already does).
 │   │   ├── ClaudeFlow      ← /root/projects/mooniex-claudeflow       PASAKON/MoonieX-ClaudeFlow; compose + data bind
 │   │   ├── Console         ← /opt/mooniex-console                    PASAKON/MoonieX-Console; 2 units + certs/
 │   │   ├── AlphaTrader     ← /root/projects/mooniex-alphatrader      deployed copy, no .git
-│   │   ├── LineAutomation* ← /root/projects/mooniex-line-automation  no .git; unit mooniex-line-queue
-│   │   ├── LinePoster*     ← /root/projects/mooniex-line-poster      no .git, 1.6 GB
-│   │   └── Option*         ← /root/projects/mooniex-option           golfmaichai1/mooniex-option; 3 containers
+│   │   ├── LineAutomation* ← /root/projects/mooniex-line-automation  PASAKON/MoonieX-LineAutomation (box copy has no .git); unit mooniex-line-queue
+│   │   ├── LinePoster*     ← /root/projects/mooniex-line-poster      no repo on GitHub, no .git, 1.6 GB
+│   │   └── Option*         ← /root/projects/mooniex-option           PASAKON/MoonieX-Option (box remote still golfmaichai1/mooniex-option); 3 containers
 │   └── LungNote/
 │       └── Mcp             ← /opt/lungnote-mcp                       PASAKON/LungNote-MCP
 ├── Assets/MoonieX/CookierunBot/   ← /root/cookierun-gold, /root/idm-yt, idm-full, idm-baseline,
@@ -43,9 +43,11 @@ already does).
                                      *-bundle/, old mooniex-agents-pre*.tgz, /Users/gob/Projects/LLMs.stale-20260803
 ```
 
-`*` = new row, not on the Mac map yet — the name needs the CEO's yes (and whether it gets
-a `PASAKON/MoonieX-<Suffix>` repo). `/root/arb` (no git, cron every 15 min) has no brand
-yet → `UNKNOWN/` until the CEO says which project it belongs to.
+Names are not a decision: they come from MAP.md's rule (CEO 2026-09-23: "โครงสร้างชื่อมีแล้ว
+นะ ใน map.md"). `*` = no row in `hq.yaml` yet — add it with the rule-derived name and
+`machines: {contabo: …}`, same as the existing ClaudeFlow/Console rows. LinePoster has no
+repo, so its row carries `repo: null` until one exists. `/root/arb` (no git, cron every 15
+min) has no brand → `UNKNOWN/arb`, the map's own fallback.
 
 ## Stays outside (tools)
 
@@ -66,7 +68,7 @@ Z.ai leftovers — `/opt/zai-usage-monitor`, `zai-usage-monitor.service`, contai
 | Agents-Core | root `CLAUDE.md` Contabo table, `scripts/cto-claude.sh` + `cxo-claude.sh` (`WIKI_ROOT_*=/opt/...`), the Mac→Contabo rsync lines, Console config that launches C-level sessions from `/opt/mooniex-agents`, any `config/*.yaml` host paths — grep `/opt/` and `/root/projects` before the move |
 | Claude Code | transcript slug `-opt-mooniex-agents` → `-root-MoonieXHQ-Agents-Core`: same trap as Mac step ④b (a symlinked slug broke tool-result spill) — make the new slug a real dir with `memory/` linked |
 | venvs | `.venv` shebangs carry absolute paths: they keep working through the compat symlink; rebuild (`python -m venv --clear` + `pip install -r`) before the symlink is removed |
-| `hq.yaml` | every row gets a `contabo:` path so `hq.py doctor` can judge this box too |
+| `hq.yaml` | `machines: {contabo: …}` already exists on Wikis, Core, ClaudeFlow, Console — repoint those to `/root/MoonieXHQ/…` and add it to Rules, Memory, LungNote/Mcp, AlphaTrader + the new rows |
 
 ## Method (same as Mac step ④b)
 
@@ -87,8 +89,8 @@ Downtime estimate (not measured): about a minute per service while it restarts.
 
 ## Needs the CEO
 
-1. Approve the tree and names above.
-2. Names for the new rows: LineAutomation, LinePoster, Option; which project `arb` belongs to.
+1. Go to execute (service restarts on production) — steps 1–3 have no services.
+2. Which project `arb` belongs to (until then `UNKNOWN/arb`).
 3. `/root/restore` (2.4 GB, June-13 restore bundle incl. an env bundle with secrets): archive
    (secrets → Infisical first) or delete?
 4. Remove the Z.ai leftovers?
