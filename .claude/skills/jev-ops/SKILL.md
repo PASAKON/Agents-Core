@@ -34,6 +34,13 @@ $0.042 per million input tokens, output free. No images. The org's production
 path is `tools/decide.py` (budget-capped, ledgered); the experiment harness is
 `tools/jev_lab.py`, raw data in `docs/ops/jev-lab-2026-09-23/`.
 
+## Why we use it at all — IRON §57
+
+Jev is worth its place only if it measurably reduces the big model's work (tokens per
+unit of output, from real transcripts) against a baseline taken without it. Each site that
+replaces AI work pre-registers its pass/fail test in its own skill and reports every unit.
+A site that adds more work than it saves is removed.
+
 ## When it fits — and when it does not
 
 Fits: a decision from a **closed set** over state that code or a vision model has
@@ -253,3 +260,4 @@ misses: <id truth said conf>   spend: $0.00179 (sum of usage.cost)
 - 2026-09-23 [MISSING] §What a call costs — a 12,800-char state took 1,554 ms (n=1; 3,200 chars took 325 ms), so whether latency grows with state size is not established · evidence: docs/ops/jev-lab-2026-09-23/anatomy.json · status: pending
 - 2026-09-23 [MISSING] §levers 2 — criteria examples drawn from the eval set inflate the score and hide it: bl.beat read 90 % agreement until the examples were swapped for held-out lines, after which it read 42 %. Before any eval, grep every criterion's example text against the labelled set and the episode being planned · evidence: task-5cfe20b1 (config/decisions/bl.beat.yaml) · status: pending
 - 2026-09-23 [MISSING] §when it fits — editorial judgement over a script line (BLACK LIQUIDITY beat: show/verdict/hook/cta) scored 20 % with computed flags and 42 % with the Thai line in state, against a mechanically derived 45-line answer key. bl.entry scored 62.5 % with a 1.00-confidence wrong answer, and there is no safe gate at the 90 % bar. Treat "what kind of line is this" as outside Jev's fit until a site proves otherwise. Rules or the writer's own tags decide it; keep Jev for closed picks over computed candidates · evidence: task-5cfe20b1 eval, $0.027 / 797 calls, prototypes/bl-ref-census/groundtruth.tsv · status: pending
+- 2026-09-23 [MISSING] §purpose — Jev had no stated success measure; IRON §57 now makes measured AI-work saved the goal, with a pre-registered kill test per site · evidence: CEO ruling 2026-09-23, Agents-Rules 8a9cfc2 · status: promoted

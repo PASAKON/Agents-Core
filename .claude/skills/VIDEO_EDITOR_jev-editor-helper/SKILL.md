@@ -110,6 +110,29 @@ id — this skill does not write those layers itself.
    spent (sum of `usage.cost`,
    never an estimate).
 
+## Goal and test — IRON §57 (pre-registered 2026-09-23, before any episode result)
+
+**Goal (CEO):** "ประหยัด Token ช่วยลดงาน AI ได้จริง พิสูจน์ได้เป็นตัวเลข และปริมาณ". Jev is here to cut
+the video editor's AI work. Making decisions is only the means. "ถ้า JEV เอาเข้ามาแล้วแย่กว่าเดิม
+เพิ่มงานมากกว่าช่วยงาน Token Editor เพิ่มขึ้น แปลว่าสมมติฐานล้มเหลว".
+
+**Hypothesis:** with Jev in the loop, the editor's measured tokens per minute of finished video
+fall below the no-Jev baseline.
+
+| | definition |
+|---|---|
+| metric | editor tokens per minute of finished video, MEASURED from the editor task transcripts (input + output + cache, all of it). Everything Jev adds is charged to Jev: plan, freeze, final, up-skill, re-eval |
+| baseline | median of BL52-BL55 (tasks b2d369ed, f52b76c4, 1499ecd7, 52c669bb), cut without Jev. The scoreboard stores it as the `BASELINE` row |
+| units | the first four Jev episodes, EP57-EP60. EP57-58 may sit above the baseline (the editor does two jobs at first) and are not judged alone |
+| **pass** | the mean of EP59-EP60 is ≤ baseline, AND the EP57→EP60 series trends down, AND `jev_wrong_at_gate` totals 0, AND `jev_applied_pct` rises across the four |
+| **fail** | the mean of EP59-EP60 is > baseline, OR `jev_wrong_at_gate` ≥ 2 in total |
+| on fail | Jev leaves the BL edit loop (plan is not run) and the CTO reports the numbers to the CEO |
+
+A confound to watch: the layered edit (edl/, 2026-09-23) also changes editor tokens. Jev
+gets the credit only if its applied share rises alongside the drop. A drop with a flat Jev share
+belongs to the pipeline, not to Jev. The CEO may change the units or thresholds; a change is
+written here with the date, before the episode it applies to.
+
 ## Who decides — CEO ruling 2026-09-23
 
 "ใช้ JEV ตัดสินใจเฉพาะที่ 95% ส่วนอันไหนไม่มั่นใจ ให้ Editor ตัดสินใจแทนไปก่อน".
@@ -269,3 +292,4 @@ episode are in RUNLOG.md.
 
 ## Field notes
 - 2026-09-23 [MISSING] §who decides — the CEO ruled Jev decides only at ≥0.95 on a site with a measured gate; everything else goes to the editor, and editor decisions become new labels · evidence: CEO ruling 2026-09-23 after the eval (bl.beat th 42 %, bl.entry 62.5 %) · status: promoted
+- 2026-09-23 [MISSING] §goal — the skill had no goal or kill test; the CEO set it (save measured AI tokens, or the hypothesis failed), pre-registered here and in IRON §57 · evidence: CEO ruling 2026-09-23 23:18-23:20, Agents-Rules 8a9cfc2 · status: promoted
