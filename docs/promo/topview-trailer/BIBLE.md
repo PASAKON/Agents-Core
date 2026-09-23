@@ -38,6 +38,11 @@ seed-beds grow only out in the deep. That is why the heroes leave.
 
 ## Cast (CAST, one row per character)
 
+CEO 2026-09-24 on the first plates: "รูป 1-2 ผ่านแล้ว รูป 3 แก้ไข" (young and elder approved, mount to be
+revised). "สัตว์พาหนะควรมีที่นั่งด้วยนะ ทำจากไม้ เหมือนเรานั่งบนช้าง" and "ขอ Character
+อีก 1 เป็นชายเหมือนกัน แต่ร่างใหญ่ แข็งแรง ขอสีเขียวได้". The three aliens are male.
+Approved plates: `char_young`, `char_elder` (ChatGPT, task-e3000e68).
+
 The species: amphibious, cheerful, about 1.4 m tall, slender swimmer's build,
 webbed three-fingered hands, a flat tail fin, large round glossy eyes with a
 bright ring, a wide smiling mouth, and a mane of frilly external gills framing
@@ -48,7 +53,8 @@ freckles. **Gill colour follows feeling: warm when happy, fading pale when afrai
 |---|---|---|---|---|---|
 | `char_young` | THE YOUNG ONE, the lead | smaller; coral-pink skin; orange-gold gill frills; gold freckles across the cheeks | a woven kelp satchel; an empty glass-shell lantern | any weapon | curious, brave, quick to smile |
 | `char_elder` | THE ELDER, the guide | taller; deep teal-blue skin; violet gill frills, one frill torn (old scar) | a long bone steering-pole; a necklace of spent seed husks | hurry | calm, watchful, few words |
-| `char_mount` | THE MOUNT, their ride | a manta-like swimmer, wing span about 4 m, a ridge to hold on to, lime-green glow on its underside | the two riders | a face that talks | loyal, fast, skittish |
+| `char_strong` | THE STRONG ONE, the driver (new, CEO 2026-09-24) | male, the biggest of the three, broad and heavily muscled, about 1.9 m; deep moss-green skin with darker mottling on shoulders and back; lime-green glowing freckles along the arms; emerald gill frills tipped gold | a coiled kelp rope over one shoulder; a woven kelp belt | a weapon | cheerful, steady, protective |
+| `char_mount` | THE MOUNT, their ride | a manta-like swimmer, wing span about 4 m, sea-green mottled back, lime-green glow on its underside; **carries a carved wooden howdah strapped to its back ridge, like an elephant's seat** (CEO 2026-09-24) | the riders | a face that talks | loyal, fast, skittish |
 
 Villagers are the same species in other pastel colours and appear only as
 background, generated inside the shots, never as plates. Names are the CEO's to
@@ -88,7 +94,7 @@ give; screen them for collisions before any prompt uses them (ai-film-production
 
 ## Open for the CEO
 
-1. Two aliens plus the mount, or three aliens? Their names.
+1. ~~Two or three aliens~~ settled: three aliens plus the mount. Their names.
 2. Scale: kilometres (proposal) or a literal 109x (about 220 m)?
 3. Title.
 4. Where the plates are made (Google Flow on the Ultra plan vs TopView), and TopView Pro $29.
