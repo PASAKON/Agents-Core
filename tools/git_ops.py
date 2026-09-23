@@ -4,6 +4,7 @@ from __future__ import annotations
 import fnmatch
 import json
 import subprocess
+import time
 from pathlib import Path
 
 from lib import db
@@ -166,6 +167,103 @@ def _blocking_dirty_paths(porcelain: str, branch_paths: set[str]) -> tuple[list[
         else:
             ignored.append(path)
     return blocking, ignored
+
+
+_TRANSIENT_PUSH_MARKERS = (
+    "internal server error", "connection reset", "connection refused",
+    " 500 ", "http/1.1 500", "http/2 500", " 502 ", " 503 ", " 504 ",
+)
+
+
+def _is_transient_push_error(stderr: str) -> bool:
+    low = f" {stderr.lower()} "
+    return any(m in low for m in _TRANSIENT_PUSH_MARKERS)
+
+
+def _is_non_ff_rejection(stderr: str) -> bool:
+    low = stderr.lower()
+    return "[rejected]" in low or "non-fast-forward" in low or "fetch first" in low
+
+
+def _push_once(repo: Path, base: str) -> tuple[int, str, str]:
+    """Seam for tests: run `git push origin <base>` once, never --force.
+
+    Tests inject transient (HTTP 5xx-style) failures by monkeypatching this
+    function directly (real git has no way to fabricate a 500 locally).
+    """
+    r = subprocess.run(["git", "push", "origin", base], cwd=str(repo),
+                       capture_output=True, text=True)
+    return r.returncode, r.stdout, r.stderr
+
+
+def _verify_on_origin(repo: Path, base: str, merge_sha: str) -> bool:
+    """After a push, fetch and confirm merge_sha actually landed on origin/<base>."""
+    try:
+        _run(["git", "fetch", "origin", base], cwd=repo)
+    except GitOpsError:
+        return False
+    r = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", merge_sha, f"origin/{base}"],
+        cwd=str(repo), capture_output=True, text=True,
+    )
+    return r.returncode == 0
+
+
+def _push_base(repo: Path, base: str, merge_sha: str) -> dict:
+    """Push `base` to origin. Never rebases, never force-pushes.
+
+    - Non-fast-forward rejection (another session pushed first): fetch
+      origin/<base> and merge it into the local base with --no-edit, then
+      retry the push once. A conflict during that integration merge aborts
+      the merge (leaving the local merge commit in place) and is reported,
+      never forced.
+    - Transient remote errors (HTTP 5xx / "Internal Server Error" /
+      connection reset): retried up to 3 attempts total with a short
+      backoff between them.
+
+    Returns a dict always containing `pushed` and `on_origin`, plus either
+    `push_output` (success) or `push_error` (failure, last stderr trimmed —
+    prefixed so a `pushed: false` result reads as distinctly different from
+    a normal success to anyone scanning the result).
+    """
+    integrated = False
+    transient_retries = 0
+    last_stderr = ""
+    while True:
+        rc, stdout, stderr = _push_once(repo, base)
+        if rc == 0:
+            out = (stdout + stderr).strip()
+            result = {"pushed": True, "push_output": out[:300],
+                      "on_origin": _verify_on_origin(repo, base, merge_sha)}
+            if integrated:
+                result["integrated"] = True
+            return result
+
+        last_stderr = (stderr or "").strip()
+
+        if not integrated and _is_non_ff_rejection(last_stderr):
+            try:
+                _run(["git", "fetch", "origin", base], cwd=repo)
+                _run(["git", "merge", "--no-edit", f"origin/{base}"], cwd=repo)
+            except GitOpsError as merge_err:
+                try:
+                    _run(["git", "merge", "--abort"], cwd=repo)
+                except GitOpsError:
+                    pass
+                reason = f"integration merge conflict, local merge commit preserved: {str(merge_err)[:400]}"
+                return {"pushed": False, "on_origin": False,
+                        "push_error": f"merged locally, NOT pushed: {reason}"}
+            integrated = True
+            continue  # base now has origin's changes folded in — retry the push
+
+        if _is_transient_push_error(last_stderr) and transient_retries < 2:
+            transient_retries += 1
+            time.sleep(0.3 * transient_retries)
+            continue
+
+        reason = last_stderr[:400] or "unknown push error"
+        return {"pushed": False, "on_origin": False,
+                "push_error": f"merged locally, NOT pushed: {reason}"}
 
 
 def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
@@ -425,15 +523,16 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
 
     do_push = push if push is not None else proj.get("auto_push", False)
     if do_push:
-        try:
-            out = _run(["git", "push", "origin", base], cwd=repo)
-            result["pushed"] = True
-            result["push_output"] = out[:300]
-            success(f"pushed {base} on {proj['key']}")
-        except GitOpsError as e:
-            result["pushed"] = False
-            result["push_error"] = str(e)[:500]
-            error(f"push failed: {e}")
+        push_result = _push_base(repo, base, merge_sha)
+        result.update(push_result)
+        if push_result["pushed"]:
+            note = " (integrated remote changes first)" if push_result.get("integrated") else ""
+            success(f"pushed {base} on {proj['key']}{note}")
+        else:
+            error(f"{push_result['push_error']} ({proj['key']})")
+    else:
+        result["pushed"] = False
+        result["on_origin"] = False
 
     # Auto-deploy: fire-and-capture; never raise — merge result always preserved.
     auto = proj.get("auto_deploy") or {}
