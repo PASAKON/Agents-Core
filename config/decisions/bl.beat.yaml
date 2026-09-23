@@ -33,10 +33,15 @@ options:
       site/score/document.
   - id: verdict
     meaning: >-
-      A judgment or emotional statement addressed straight to camera, no new
-      evidence named — the presenter's own conclusion. Example:
-      "ผมบอกความจริงที่ไม่มีใครบอกมึง" (a direct verdict line, no screen
-      content, chest-height address to camera).
+      The presenter talking straight to camera about their own action,
+      reasoning, a transitional remark, or a blunt conclusion — no new
+      evidence named in THIS line (it may reference evidence already shown).
+      Broader than a single emotional judgment: also covers first-person
+      narration ("I checked it myself") and short connective lines that move
+      the story forward. Examples: "กูไม่เชื่อคำว่าเข้าเว็บไม่ได้เฉยๆ
+      เลยไปเช็กเองอีกที" (first-person narration, no new evidence) and
+      "ผมบอกความจริงที่ไม่มีใครบอกมึง" (a direct judgment line) — both
+      full-frame, chest-height address to camera, screen field empty.
   - id: cta
     meaning: >-
       A closing call-to-action or summary near the end of the episode asking
