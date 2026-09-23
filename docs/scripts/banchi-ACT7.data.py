@@ -119,7 +119,7 @@ SHOTS = [
    ("somchai","after a beat","พ่อก็อยากให้ลูกรู้เหมือนกันลูก")], ["noya"]),
 
  (171, 10, "Medium two-shot, static camera", ["somchai","ton"], "room", "afternoon",
-  "turns to his son and says the whole thing to his face, not to the room",
+  "turns to his son, who sits on a wooden chair beside the bed with both feet on the floor, and says the whole thing to his face, not to the room, both faces angled three-quarters toward the camera; nobody lies on the bed",
   [("somchai","even","เงินที่พ่อตั้งใจหามาให้ลูก"),
    ("somchai","steady","มันไม่ควรต้องปิดบังลูกเลยสักบาทเดียว")], ["noya"]),
 
