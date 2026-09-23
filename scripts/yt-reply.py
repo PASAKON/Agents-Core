@@ -7,6 +7,8 @@ One-time auth (the CEO runs these, each as a plain `!` command):
            The browser then fails to load a localhost page. That is expected:
            copy the WHOLE address from the address bar.
     python3 scripts/yt-reply.py auth-finish '<the address you copied>'
+        (or a path to a file holding it; the file is deleted once read, so the
+        single-use code never sits on a command line or on disk)
 
 Posting:
     python3 scripts/yt-reply.py post docs/promo/replies/<file>.json [--dry-run]
@@ -54,6 +56,9 @@ def auth_url():
 
 
 def auth_finish(pasted):
+    if Path(pasted).is_file():
+        pasted = Path(pasted).read_text()
+        Path(sys.argv[2]).unlink()
     q = urllib.parse.parse_qs(urllib.parse.urlparse(pasted.strip()).query)
     pend = json.loads(PENDING.read_text())
     if q.get("state", [""])[0] != pend["state"]:
