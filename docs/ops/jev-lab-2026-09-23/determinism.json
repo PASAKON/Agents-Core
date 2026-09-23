@@ -1,0 +1,734 @@
+{
+ "verb": "determinism",
+ "model": "typesafe/jev-1.13",
+ "at": "2026-09-23T08:30:56+0200",
+ "calls": 30,
+ "cost_usd": 0.00050652,
+ "summary": {},
+ "first_raw_response": {
+  "model": "typesafe/jev-1.13-20260917",
+  "answers": {
+   "q": {
+    "type": "choice",
+    "choice": "none",
+    "probabilities": {
+     "double_jump": 0,
+     "none": 0.53,
+     "other": 0.06,
+     "jump": 0.4,
+     "slide": 0.01
+    },
+    "confidence": 0.41
+   }
+  },
+  "usage": {
+   "input_tokens": 544,
+   "output_tokens": 53,
+   "cost": 2.2848e-05
+  },
+  "id": "gen-dec-1790145045-grOfXzFyOILr0yN1AKGE",
+  "provider": "TypeSafe"
+ },
+ "rows": [
+  {
+   "ms": 374.8,
+   "http": 200,
+   "case": "choice H4",
+   "i": 0,
+   "usage": {
+    "input_tokens": 544,
+    "output_tokens": 53,
+    "cost": 2.2848e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "double_jump": 0,
+      "none": 0.53,
+      "other": 0.06,
+      "jump": 0.4,
+      "slide": 0.01
+     },
+     "confidence": 0.41
+    }
+   }
+  },
+  {
+   "ms": 369.8,
+   "http": 200,
+   "case": "choice H4",
+   "i": 1,
+   "usage": {
+    "input_tokens": 544,
+    "output_tokens": 53,
+    "cost": 2.2848e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "jump": 0.38,
+      "slide": 0.01,
+      "none": 0.53,
+      "double_jump": 0,
+      "other": 0.08
+     },
+     "confidence": 0.41
+    }
+   }
+  },
+  {
+   "ms": 340.9,
+   "http": 200,
+   "case": "choice H4",
+   "i": 2,
+   "usage": {
+    "input_tokens": 544,
+    "output_tokens": 53,
+    "cost": 2.2848e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "jump": 0.31,
+      "other": 0.07,
+      "double_jump": 0,
+      "none": 0.61,
+      "slide": 0.01
+     },
+     "confidence": 0.51
+    }
+   }
+  },
+  {
+   "ms": 291.0,
+   "http": 200,
+   "case": "choice H4",
+   "i": 3,
+   "usage": {
+    "input_tokens": 544,
+    "output_tokens": 53,
+    "cost": 2.2848e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "jump": 0.33,
+      "slide": 0.01,
+      "double_jump": 0,
+      "other": 0.05,
+      "none": 0.61
+     },
+     "confidence": 0.51
+    }
+   }
+  },
+  {
+   "ms": 413.9,
+   "http": 200,
+   "case": "choice H4",
+   "i": 4,
+   "usage": {
+    "input_tokens": 544,
+    "output_tokens": 53,
+    "cost": 2.2848e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "jump": 0.43,
+      "slide": 0.01,
+      "none": 0.48,
+      "other": 0.08,
+      "double_jump": 0
+     },
+     "confidence": 0.34
+    }
+   }
+  },
+  {
+   "ms": 328.2,
+   "http": 200,
+   "case": "choice H4",
+   "i": 5,
+   "usage": {
+    "input_tokens": 544,
+    "output_tokens": 53,
+    "cost": 2.2848e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "jump",
+     "probabilities": {
+      "slide": 0.01,
+      "other": 0.06,
+      "double_jump": 0,
+      "none": 0.44,
+      "jump": 0.49
+     },
+     "confidence": 0.37
+    }
+   }
+  },
+  {
+   "ms": 423.3,
+   "http": 200,
+   "case": "choice H4",
+   "i": 6,
+   "usage": {
+    "input_tokens": 544,
+    "output_tokens": 53,
+    "cost": 2.2848e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "other": 0.08,
+      "none": 0.53,
+      "slide": 0.01,
+      "double_jump": 0,
+      "jump": 0.38
+     },
+     "confidence": 0.42
+    }
+   }
+  },
+  {
+   "ms": 293.0,
+   "http": 200,
+   "case": "choice H4",
+   "i": 7,
+   "usage": {
+    "input_tokens": 544,
+    "output_tokens": 53,
+    "cost": 2.2848e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "other": 0.04,
+      "none": 0.61,
+      "slide": 0.01,
+      "double_jump": 0,
+      "jump": 0.34
+     },
+     "confidence": 0.51
+    }
+   }
+  },
+  {
+   "ms": 324.8,
+   "http": 200,
+   "case": "choice H4",
+   "i": 8,
+   "usage": {
+    "input_tokens": 544,
+    "output_tokens": 53,
+    "cost": 2.2848e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "other": 0.08,
+      "none": 0.55,
+      "double_jump": 0,
+      "slide": 0.01,
+      "jump": 0.36
+     },
+     "confidence": 0.43
+    }
+   }
+  },
+  {
+   "ms": 322.4,
+   "http": 200,
+   "case": "choice H4",
+   "i": 9,
+   "usage": {
+    "input_tokens": 544,
+    "output_tokens": 53,
+    "cost": 2.2848e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "none",
+     "probabilities": {
+      "other": 0.07,
+      "double_jump": 0,
+      "none": 0.58,
+      "jump": 0.34,
+      "slide": 0.01
+     },
+     "confidence": 0.47
+    }
+   }
+  },
+  {
+   "ms": 296.6,
+   "http": 200,
+   "case": "noul H4",
+   "i": 0,
+   "usage": {
+    "input_tokens": 316,
+    "output_tokens": 20,
+    "cost": 1.3272e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.7
+    }
+   }
+  },
+  {
+   "ms": 456.5,
+   "http": 200,
+   "case": "noul H4",
+   "i": 1,
+   "usage": {
+    "input_tokens": 316,
+    "output_tokens": 20,
+    "cost": 1.3272e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.65
+    }
+   }
+  },
+  {
+   "ms": 324.4,
+   "http": 200,
+   "case": "noul H4",
+   "i": 2,
+   "usage": {
+    "input_tokens": 316,
+    "output_tokens": 20,
+    "cost": 1.3272e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.61
+    }
+   }
+  },
+  {
+   "ms": 431.6,
+   "http": 200,
+   "case": "noul H4",
+   "i": 3,
+   "usage": {
+    "input_tokens": 316,
+    "output_tokens": 20,
+    "cost": 1.3272e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.69
+    }
+   }
+  },
+  {
+   "ms": 362.9,
+   "http": 200,
+   "case": "noul H4",
+   "i": 4,
+   "usage": {
+    "input_tokens": 316,
+    "output_tokens": 20,
+    "cost": 1.3272e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.72
+    }
+   }
+  },
+  {
+   "ms": 337.9,
+   "http": 200,
+   "case": "noul H4",
+   "i": 5,
+   "usage": {
+    "input_tokens": 316,
+    "output_tokens": 20,
+    "cost": 1.3272e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.7
+    }
+   }
+  },
+  {
+   "ms": 367.1,
+   "http": 200,
+   "case": "noul H4",
+   "i": 6,
+   "usage": {
+    "input_tokens": 316,
+    "output_tokens": 20,
+    "cost": 1.3272e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.71
+    }
+   }
+  },
+  {
+   "ms": 415.4,
+   "http": 200,
+   "case": "noul H4",
+   "i": 7,
+   "usage": {
+    "input_tokens": 316,
+    "output_tokens": 20,
+    "cost": 1.3272e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.67
+    }
+   }
+  },
+  {
+   "ms": 322.3,
+   "http": 200,
+   "case": "noul H4",
+   "i": 8,
+   "usage": {
+    "input_tokens": 316,
+    "output_tokens": 20,
+    "cost": 1.3272e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.7
+    }
+   }
+  },
+  {
+   "ms": 299.9,
+   "http": 200,
+   "case": "noul H4",
+   "i": 9,
+   "usage": {
+    "input_tokens": 316,
+    "output_tokens": 20,
+    "cost": 1.3272e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.68
+    }
+   }
+  },
+  {
+   "ms": 303.6,
+   "http": 200,
+   "case": "score H4",
+   "i": 0,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 17,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 1.73,
+     "legend": {
+      "0": "not urgent at all",
+      "1": "somewhat urgent",
+      "2": "must press now"
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.23,
+      "2": 0.75
+     },
+     "confidence": 0.6
+    }
+   }
+  },
+  {
+   "ms": 550.6,
+   "http": 200,
+   "case": "score H4",
+   "i": 1,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 17,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 1.76,
+     "legend": {
+      "0": "not urgent at all",
+      "1": "somewhat urgent",
+      "2": "must press now"
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.2,
+      "2": 0.78
+     },
+     "confidence": 0.65
+    }
+   }
+  },
+  {
+   "ms": 451.7,
+   "http": 200,
+   "case": "score H4",
+   "i": 2,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 17,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 1.77,
+     "legend": {
+      "0": "not urgent at all",
+      "1": "somewhat urgent",
+      "2": "must press now"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.21,
+      "2": 0.78
+     },
+     "confidence": 0.65
+    }
+   }
+  },
+  {
+   "ms": 388.0,
+   "http": 200,
+   "case": "score H4",
+   "i": 3,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 17,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 1.73,
+     "legend": {
+      "0": "not urgent at all",
+      "1": "somewhat urgent",
+      "2": "must press now"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.25,
+      "2": 0.74
+     },
+     "confidence": 0.6
+    }
+   }
+  },
+  {
+   "ms": 363.8,
+   "http": 200,
+   "case": "score H4",
+   "i": 4,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 17,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 1.73,
+     "legend": {
+      "0": "not urgent at all",
+      "1": "somewhat urgent",
+      "2": "must press now"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.25,
+      "2": 0.74
+     },
+     "confidence": 0.59
+    }
+   }
+  },
+  {
+   "ms": 369.7,
+   "http": 200,
+   "case": "score H4",
+   "i": 5,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 17,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 1.72,
+     "legend": {
+      "0": "not urgent at all",
+      "1": "somewhat urgent",
+      "2": "must press now"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.27,
+      "2": 0.72
+     },
+     "confidence": 0.57
+    }
+   }
+  },
+  {
+   "ms": 302.5,
+   "http": 200,
+   "case": "score H4",
+   "i": 6,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 17,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 1.72,
+     "legend": {
+      "0": "not urgent at all",
+      "1": "somewhat urgent",
+      "2": "must press now"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.25,
+      "2": 0.74
+     },
+     "confidence": 0.58
+    }
+   }
+  },
+  {
+   "ms": 288.8,
+   "http": 200,
+   "case": "score H4",
+   "i": 7,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 17,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 1.74,
+     "legend": {
+      "0": "not urgent at all",
+      "1": "somewhat urgent",
+      "2": "must press now"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.23,
+      "2": 0.76
+     },
+     "confidence": 0.61
+    }
+   }
+  },
+  {
+   "ms": 293.6,
+   "http": 200,
+   "case": "score H4",
+   "i": 8,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 17,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 1.78,
+     "legend": {
+      "0": "not urgent at all",
+      "1": "somewhat urgent",
+      "2": "must press now"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.2,
+      "2": 0.79
+     },
+     "confidence": 0.67
+    }
+   }
+  },
+  {
+   "ms": 292.4,
+   "http": 200,
+   "case": "score H4",
+   "i": 9,
+   "usage": {
+    "input_tokens": 346,
+    "output_tokens": 17,
+    "cost": 1.4532e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 1.79,
+     "legend": {
+      "0": "not urgent at all",
+      "1": "somewhat urgent",
+      "2": "must press now"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.2,
+      "2": 0.79
+     },
+     "confidence": 0.68
+    }
+   }
+  }
+ ]
+}
