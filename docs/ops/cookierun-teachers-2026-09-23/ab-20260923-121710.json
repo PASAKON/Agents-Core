@@ -1,0 +1,5695 @@
+{
+ "at": "2026-09-23T12:17:10+0200",
+ "t1": "openai/gpt-5-nano",
+ "t2": "qwen/qwen3.7-flash",
+ "t3": "claude-sonnet-5",
+ "openrouter_usd": 0.008296079999999954,
+ "rows": [
+  {
+   "id": "S-20260923-055325-lobby",
+   "kind": "screen",
+   "image": "frames/20260923-055325.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1643,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2130,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t3": {
+    "answer": "YES",
+    "text": "YES\nIt matches: a friends leaderboard panel on the left, the chosen Fire Cookie standing center-right, and a large green \"Play!\" button at the bottom right.",
+    "ms": 4427,
+    "cost": 0.005094,
+    "tok_in": 1132,
+    "tok_out": 57
+   },
+   "label": "YES",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-20260923-055325-boost",
+   "kind": "screen",
+   "image": "frames/20260923-055325.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1598,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2256,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055324-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-055324.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2187,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2240,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055324-boost",
+   "kind": "screen",
+   "image": "frames/dialog-055324.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1543,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1796,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is the main map/leaderboard screen for Plum Blossom Palace with Pet/Cookie/Treasure and a Play! button, but there are no \"Buy Upgrades!\" or \"Buy some Boosts!\" items shown here.",
+    "ms": 5258,
+    "cost": 0.005332,
+    "tok_in": 1129,
+    "tok_out": 82
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-055316-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-055316.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1863,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "UNSURE",
+    "text": "UNSURE",
+    "ms": 2825,
+    "tok_in": 653,
+    "tok_out": 21,
+    "tok_reason": 0,
+    "cost": 4.105e-05
+   },
+   "t3": {
+    "answer": "YES",
+    "text": "YES\nThe leaderboard is on the left, the flame cookie is centered on the right, and a large green \"Play!\" button sits at the bottom.",
+    "ms": 3911,
+    "cost": 0.004993999999999999,
+    "tok_in": 1132,
+    "tok_out": 47
+   },
+   "label": "YES",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-055316-boost",
+   "kind": "screen",
+   "image": "frames/dialog-055316.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1537,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1893,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065855-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-065855.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1692,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1684,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t3": {
+    "answer": "YES",
+    "text": "YES\nFriends leaderboard is on the left, the flame-haired cookie stands in the middle, and a big green \"Play!\" button is at the bottom right.",
+    "ms": 3931,
+    "cost": 0.005044,
+    "tok_in": 1132,
+    "tok_out": 52
+   },
+   "label": "YES",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-065855-boost",
+   "kind": "screen",
+   "image": "frames/dialog-065855.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1468,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1913,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is the leaderboard/main menu screen (friends rankings, Episode/Pet/Cookie/Treasure options), not the pre-run shop with 'Buy Upgrades!'/'Buy some Boosts!'.",
+    "ms": 4560,
+    "cost": 0.005301999999999999,
+    "tok_in": 1129,
+    "tok_out": 79
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-20260923-065912-lobby",
+   "kind": "screen",
+   "image": "frames/20260923-065912.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "UNSURE",
+    "text": "UNSURE",
+    "ms": 1673,
+    "tok_in": 653,
+    "tok_out": 21,
+    "tok_reason": 0,
+    "cost": 4.105e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1491,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t3": {
+    "answer": "YES",
+    "text": "YES\nThe leaderboard is on the left, the chosen cookie (flame-haired character) is centered, and a large green \"Play!\" button sits at the bottom right.",
+    "ms": 4185,
+    "cost": 0.005064,
+    "tok_in": 1132,
+    "tok_out": 54
+   },
+   "label": "YES",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-20260923-065912-boost",
+   "kind": "screen",
+   "image": "frames/20260923-065912.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1356,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1682,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055331-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-055331.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2504,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 4877,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055331-boost",
+   "kind": "screen",
+   "image": "frames/dialog-055331.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1384,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1856,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is the main lobby/leaderboard screen (Friends/League/Cookies rankings), not the pre-run shop with 'Buy Upgrades!'/'Buy Boosts!' items.",
+    "ms": 4093,
+    "cost": 0.005194,
+    "tok_in": 1127,
+    "tok_out": 69
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-055406-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-055406.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1771,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2190,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055406-boost",
+   "kind": "screen",
+   "image": "frames/dialog-055406.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1325,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1218,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is the main stage-select screen (leaderboard, Episode/Party Run/Friends/Events, Pet/Cookie/Treasure, Play! button) with no \"Buy Upgrades!\" or \"Buy some Boosts!\" items visible.",
+    "ms": 4953,
+    "cost": 0.005372,
+    "tok_in": 1129,
+    "tok_out": 86
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-065845-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-065845.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1671,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1744,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065845-boost",
+   "kind": "screen",
+   "image": "frames/dialog-065845.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1909,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1867,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is the main lobby/leaderboard screen (Friends/League/Cookies rankings, Episode/Party Run/Pet/Cookie/Treasure options), not a pre-run shop screen with 'Buy Upgrades!'/'Buy some Boosts!' items.",
+    "ms": 5470,
+    "cost": 0.0054719999999999994,
+    "tok_in": 1129,
+    "tok_out": 96
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-055350-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-055350.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1999,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2848,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055350-boost",
+   "kind": "screen",
+   "image": "frames/dialog-055350.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1676,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1639,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is the main lobby/leaderboard screen (friends leaderboard, Pet/Cookie/Treasure, Episode) with a Play! button, not a pre-run shop screen with 'Buy Upgrades!'/'Buy some Boosts!' items.",
+    "ms": 3963,
+    "cost": 0.0054139999999999995,
+    "tok_in": 1127,
+    "tok_out": 91
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-055334-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-055334.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1667,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1860,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-055334-boost",
+   "kind": "screen",
+   "image": "frames/dialog-055334.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1736,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2438,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is the main lobby/episode select screen with a friends leaderboard, Pet/Cookie/Treasure tabs, and Play button \u2014 not a shop screen with 'Buy Upgrades!'/'Buy some Boosts!' items.",
+    "ms": 4437,
+    "cost": 0.0053419999999999995,
+    "tok_in": 1129,
+    "tok_out": 83
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-070435-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-070435.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1425,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1885,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070435-boost",
+   "kind": "screen",
+   "image": "frames/dialog-070435.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2093,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1583,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070011-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-070011.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2014,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3073,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070011-boost",
+   "kind": "screen",
+   "image": "frames/dialog-070011.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1804,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2446,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is the main episode/lobby screen with leaderboard, Pet/Cookie/Treasure and Play! button, not the pre-run Buy Upgrades/Boosts shop screen.",
+    "ms": 3973,
+    "cost": 0.005182,
+    "tok_in": 1129,
+    "tok_out": 67
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-045434-result",
+   "kind": "screen",
+   "image": "frames/dialog-045434.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1395,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1203,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-045434-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-045434.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1200,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1335,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-112736-result",
+   "kind": "screen",
+   "image": "frames/dialog-112736.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1402,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1960,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-112736-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-112736.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1303,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1781,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Result\" stage-clear summary screen with OK/Show Off buttons, not a Mystery Box screen with an Open all button.",
+    "ms": 4276,
+    "cost": 0.005,
+    "tok_in": 1126,
+    "tok_out": 50
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-070936-result",
+   "kind": "screen",
+   "image": "frames/dialog-070936.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1276,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1844,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070936-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-070936.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1856,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1389,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a stage \"Result\" summary screen with OK/Show Off buttons, not the Mystery Box screen with treasure boxes and an Open All button.",
+    "ms": 4728,
+    "cost": 0.00504,
+    "tok_in": 1126,
+    "tok_out": 54
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-073413-result",
+   "kind": "screen",
+   "image": "frames/dialog-073413.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1171,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1652,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-073413-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-073413.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1383,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1574,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-072427-result",
+   "kind": "screen",
+   "image": "frames/dialog-072427.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1612,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1607,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-072427-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-072427.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1496,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1745,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070932-result",
+   "kind": "screen",
+   "image": "frames/dialog-070932.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1440,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1475,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-070932-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-070932.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1268,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1414,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-071729-result",
+   "kind": "screen",
+   "image": "frames/dialog-071729.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1422,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2979,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-071729-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-071729.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1000,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1498,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-115748-result",
+   "kind": "screen",
+   "image": "frames/dialog-115748.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1277,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2935,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-115748-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-115748.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1238,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1450,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-071723-result",
+   "kind": "screen",
+   "image": "frames/dialog-071723.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1063,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1498,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-071723-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-071723.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1502,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 6441,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a Result/rewards summary screen for \"Plum Blossom Palace\" with OK/Show Off buttons, not the Mystery Box opening screen with an \"Open all\" button.",
+    "ms": 6169,
+    "cost": 0.005131999999999999,
+    "tok_in": 1124,
+    "tok_out": 64
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-073421-result",
+   "kind": "screen",
+   "image": "frames/dialog-073421.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1431,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1135,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-073421-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-073421.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1366,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1435,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a stage \"Result\" summary screen with OK/Show Off buttons, not the Mystery Box opening screen.",
+    "ms": 4145,
+    "cost": 0.00493,
+    "tok_in": 1126,
+    "tok_out": 43
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-072920-result",
+   "kind": "screen",
+   "image": "frames/dialog-072920.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1446,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1830,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-072920-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-072920.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1789,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2507,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065409-result",
+   "kind": "screen",
+   "image": "frames/dialog-065409.jpg",
+   "truth_screen": "result",
+   "guess": "result",
+   "truth": true,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1228,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1633,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065409-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-065409.jpg",
+   "truth_screen": "result",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1143,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1472,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-074539-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-074539.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "ERROR",
+    "why": "{\"message\": \"Provider returned error\", \"code\": 429, \"metadata\": {\"raw\": \"qwen/qwen3.7-flash is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations\", \"provider_name\": \"Alibaba\", \"is_byok\": false, \"pro",
+    "ms": 63.24932398274541
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1262,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t3": {
+    "answer": "YES",
+    "text": "YES\nThe image shows a \"Mystery Box\" banner with two question-mark boxes on a glowing dark background and an \"Open all\" button, matching the description exactly.",
+    "ms": 4192,
+    "cost": 0.005032,
+    "tok_in": 1124,
+    "tok_out": 54
+   },
+   "label": "YES",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-074539-result",
+   "kind": "screen",
+   "image": "frames/dialog-074539.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t2": {
+    "answer": "ERROR",
+    "why": "{\"message\": \"Provider returned error\", \"code\": 429, \"metadata\": {\"raw\": \"qwen/qwen3.7-flash is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations\", \"provider_name\": \"Alibaba\", \"is_byok\": false, \"pro",
+    "ms": 61.57897901721299
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1264,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Mystery Box\" reward screen with two boxes and an \"Open all\" button, not the end-of-run Result panel.",
+    "ms": 4145,
+    "cost": 0.004964,
+    "tok_in": 1127,
+    "tok_out": 46
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-232100-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-232100.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "ERROR",
+    "why": "{\"message\": \"Provider returned error\", \"code\": 429, \"metadata\": {\"raw\": \"qwen/qwen3.7-flash is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations\", \"provider_name\": \"Alibaba\", \"is_byok\": false, \"pro",
+    "ms": 69.2727209534496
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1352,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t3": {
+    "answer": "YES",
+    "text": "YES\nThe image clearly shows a \"Mystery Box\" banner, two question-mark boxes on a glowing dark background, and an \"Open all\" button.",
+    "ms": 3918,
+    "cost": 0.004992,
+    "tok_in": 1124,
+    "tok_out": 50
+   },
+   "label": "YES",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-232100-result",
+   "kind": "screen",
+   "image": "frames/dialog-232100.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t2": {
+    "answer": "ERROR",
+    "why": "{\"message\": \"Provider returned error\", \"code\": 429, \"metadata\": {\"raw\": \"qwen/qwen3.7-flash is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations\", \"provider_name\": \"Alibaba\", \"is_byok\": false, \"pro",
+    "ms": 61.31651799660176
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1384,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Mystery Box\" selection screen with two boxes and an \"Open all\" button, not the end-of-run Result panel.",
+    "ms": 3929,
+    "cost": 0.004956,
+    "tok_in": 1125,
+    "tok_out": 46
+   },
+   "label": "NO",
+   "how": "t3 alone (t1/t2 unusable)"
+  },
+  {
+   "id": "S-20260921-224219-mystery",
+   "kind": "screen",
+   "image": "frames/20260921-224219.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "ERROR",
+    "why": "{\"message\": \"Provider returned error\", \"code\": 429, \"metadata\": {\"raw\": \"qwen/qwen3.7-flash is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations\", \"provider_name\": \"Alibaba\", \"is_byok\": false, \"pro",
+    "ms": 106.55002295970917
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1270,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t3": {
+    "answer": "YES",
+    "text": "YES\nThe screen shows the \"Mystery Box\" title, two question-mark boxes on a glowing dark background, and an \"Open all\" button, matching the description.",
+    "ms": 4346,
+    "cost": 0.005012,
+    "tok_in": 1124,
+    "tok_out": 52
+   },
+   "label": "YES",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-20260921-224219-result",
+   "kind": "screen",
+   "image": "frames/20260921-224219.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1345,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1179,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Mystery Box\" reward screen with an \"Open all\" button, not a Result panel with score/Coins/XP and OK/Show Off buttons.",
+    "ms": 4323,
+    "cost": 0.005056000000000001,
+    "tok_in": 1125,
+    "tok_out": 56
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-105015-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-105015.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1070,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2071,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-105015-result",
+   "kind": "screen",
+   "image": "frames/dialog-105015.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1156,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1118,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Mystery Box\" reward screen with an \"Open all\" button, not the end-of-run Result panel with score/Coins/XP and OK/Show Off buttons.",
+    "ms": 3998,
+    "cost": 0.005106,
+    "tok_in": 1125,
+    "tok_out": 61
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-221137-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-221137.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 988,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1624,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-221137-result",
+   "kind": "screen",
+   "image": "frames/dialog-221137.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1644,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1837,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-091002-mystery",
+   "kind": "screen",
+   "image": "frames/20260921-091002.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1047,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1280,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-091002-result",
+   "kind": "screen",
+   "image": "frames/20260921-091002.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 990,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1689,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Mystery Box\" reward screen with a single \"Open all\" button, not the score/Coins/XP Result panel with OK and Show Off buttons.",
+    "ms": 9130,
+    "cost": 0.005064,
+    "tok_in": 1127,
+    "tok_out": 56
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-042414-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-042414.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1192,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1276,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-042414-result",
+   "kind": "screen",
+   "image": "frames/dialog-042414.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1249,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1394,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Mystery Box\" selection screen with an \"Open all\" button, not the Result panel with score/Coins/XP and OK/Show Off buttons.",
+    "ms": 4559,
+    "cost": 0.005064,
+    "tok_in": 1127,
+    "tok_out": 56
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-110144-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-110144.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1028,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1619,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-110144-result",
+   "kind": "screen",
+   "image": "frames/dialog-110144.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1154,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1418,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Mystery Box\" reward screen with an \"Open all\" button, not the Result panel with score/Coins/XP/OK/Show Off.",
+    "ms": 4794,
+    "cost": 0.005033999999999999,
+    "tok_in": 1127,
+    "tok_out": 53
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-110609-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-110609.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1322,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1127,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-110609-result",
+   "kind": "screen",
+   "image": "frames/dialog-110609.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1300,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1318,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Mystery Box\" reward screen with an \"Open all\" button, not the end-of-run Result panel with score/Coins/XP and OK/Show Off buttons.",
+    "ms": 4388,
+    "cost": 0.005114,
+    "tok_in": 1127,
+    "tok_out": 61
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-074049-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-074049.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1224,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1409,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-074049-result",
+   "kind": "screen",
+   "image": "frames/dialog-074049.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1074,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1950,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis shows a \"Mystery Box\" screen with an \"Open all\" button, not a score/Coins/XP Result panel with OK/Show Off buttons.",
+    "ms": 4184,
+    "cost": 0.005044,
+    "tok_in": 1127,
+    "tok_out": 54
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-042411-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-042411.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1613,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2962,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-042411-result",
+   "kind": "screen",
+   "image": "frames/dialog-042411.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1095,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "UNSURE",
+    "text": "UNSURE",
+    "ms": 1184,
+    "tok_in": 649,
+    "tok_out": 21,
+    "tok_reason": 0,
+    "cost": 4.085e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Mystery Box\" reward screen with two boxes and an \"Open all\" button, not the score/coins/XP Result panel with OK/Show Off buttons.",
+    "ms": 4350,
+    "cost": 0.005094,
+    "tok_in": 1127,
+    "tok_out": 59
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-065833-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-065833.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1349,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2160,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-065833-result",
+   "kind": "screen",
+   "image": "frames/dialog-065833.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1222,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1083,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Mystery Box\" selection screen with an \"Open all\" button, not the Result panel with score/Coins/XP and OK/Show Off buttons.",
+    "ms": 3859,
+    "cost": 0.005064,
+    "tok_in": 1127,
+    "tok_out": 56
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-224717-card_tries",
+   "kind": "screen",
+   "image": "frames/dialog-224717.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1191,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1273,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-224717-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-224717.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "UNSURE",
+    "text": "UNSURE",
+    "ms": 1194,
+    "tok_in": 649,
+    "tok_out": 21,
+    "tok_reason": 0,
+    "cost": 4.085e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1173,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Find the sliding card\" matching mini-game with character cards, not the Mystery Box screen with treasure boxes and an 'Open all' button.",
+    "ms": 4981,
+    "cost": 0.00505,
+    "tok_in": 1126,
+    "tok_out": 55
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-224714-card_tries",
+   "kind": "screen",
+   "image": "frames/dialog-224714.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1938,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1776,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-224714-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-224714.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1595,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2139,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Find the sliding card\" memory/matching mini-game with character cards, not the Mystery Box screen with treasure boxes and an 'Open all' button.",
+    "ms": 4040,
+    "cost": 0.00508,
+    "tok_in": 1126,
+    "tok_out": 58
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-234055-card_tries",
+   "kind": "screen",
+   "image": "frames/dialog-234055.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1453,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1557,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234055-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-234055.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1249,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1543,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-100747-card_tries",
+   "kind": "screen",
+   "image": "frames/20260921-100747.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1261,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1635,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-100747-mystery",
+   "kind": "screen",
+   "image": "frames/20260921-100747.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1590,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1794,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Find the sliding card\" matching mini-game with playing cards, not the Mystery Box screen with treasure boxes and an Open all button.",
+    "ms": 5940,
+    "cost": 0.00503,
+    "tok_in": 1126,
+    "tok_out": 53
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-234014-card_tries",
+   "kind": "screen",
+   "image": "frames/dialog-234014.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1270,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1851,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234014-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-234014.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1645,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2299,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-231504-card_tries",
+   "kind": "screen",
+   "image": "frames/dialog-231504.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1352,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1359,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-231504-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-231504.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1259,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1628,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-100745-card_tries",
+   "kind": "screen",
+   "image": "frames/dialog-100745.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1211,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2002,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-100745-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-100745.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1357,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2028,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Find the sliding card\" minigame with a grid of character cards, not the Mystery Box screen with treasure boxes and an Open All button.",
+    "ms": 3909,
+    "cost": 0.00503,
+    "tok_in": 1126,
+    "tok_out": 53
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-20260921-234034-card_tries",
+   "kind": "screen",
+   "image": "frames/20260921-234034.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1356,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1285,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-234034-mystery",
+   "kind": "screen",
+   "image": "frames/20260921-234034.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1494,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1957,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-224711-card_tries",
+   "kind": "screen",
+   "image": "frames/dialog-224711.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1283,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1310,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-224711-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-224711.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1533,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1470,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Find the sliding card\" mini-game with character cards, not a Mystery Box screen with treasure boxes.",
+    "ms": 3782,
+    "cost": 0.00494,
+    "tok_in": 1126,
+    "tok_out": 44
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-234011-card_tries",
+   "kind": "screen",
+   "image": "frames/dialog-234011.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2034,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1710,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234011-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-234011.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1217,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2037,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Find the jumping card\" minigame with a grid of cards, not the Mystery Box screen with treasure boxes and an 'Open all' button.",
+    "ms": 3828,
+    "cost": 0.00505,
+    "tok_in": 1126,
+    "tok_out": 55
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-100741-card_tries",
+   "kind": "screen",
+   "image": "frames/dialog-100741.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1206,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1673,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-100741-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-100741.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1316,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1369,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Find the sliding card\" minigame with card tiles, not the Mystery Box screen with treasure boxes and an 'Open all' button.",
+    "ms": 3850,
+    "cost": 0.00503,
+    "tok_in": 1126,
+    "tok_out": 53
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-234020-card_tries",
+   "kind": "screen",
+   "image": "frames/dialog-234020.jpg",
+   "truth_screen": "card_tries",
+   "guess": "card_tries",
+   "truth": true,
+   "question": "The bot thinks this is a card-picking mini game: a grid of cards and 'Tries left' at the top. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1272,
+    "tok_in": 439,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.343e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1979,
+    "tok_in": 643,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.975e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-234020-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-234020.jpg",
+   "truth_screen": "card_tries",
+   "guess": "mystery",
+   "truth": false,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1655,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1860,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is a \"Find the jumping card\" memory mini-game with card tiles, not the Mystery Box screen with treasure boxes and an 'Open all' button.",
+    "ms": 3894,
+    "cost": 0.00506,
+    "tok_in": 1126,
+    "tok_out": 56
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-dialog-114914-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-114914.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1949,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2617,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114914-boost",
+   "kind": "screen",
+   "image": "frames/dialog-114914.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1839,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2002,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t3": {
+    "answer": "NO",
+    "text": "NO\nThis is the main lobby/leaderboard screen with Episode, Friends leaderboard, and a Play! button, not a shop screen with Buy Upgrades/Buy Boosts items.",
+    "ms": 4493,
+    "cost": 0.0051719999999999995,
+    "tok_in": 1129,
+    "tok_out": 66
+   },
+   "label": "NO",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-20260921-221414-lobby",
+   "kind": "screen",
+   "image": "frames/20260921-221414.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1811,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2380,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t3": {
+    "answer": "YES",
+    "text": "YES\nThe screenshot shows the Friends leaderboard panel on the left, the selected cookie character centered on the right, and a large green \"Play!\" button at the bottom right, matching the described lobby layout.",
+    "ms": 6173,
+    "cost": 0.005194,
+    "tok_in": 1132,
+    "tok_out": 67
+   },
+   "label": "YES",
+   "how": "t3 broke the tie"
+  },
+  {
+   "id": "S-20260921-221414-boost",
+   "kind": "screen",
+   "image": "frames/20260921-221414.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1717,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1896,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-230612-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-230612.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1141,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1581,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-230612-boost",
+   "kind": "screen",
+   "image": "frames/dialog-230612.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1713,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3186,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114821-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-114821.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1803,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1875,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-114821-boost",
+   "kind": "screen",
+   "image": "frames/dialog-114821.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1544,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1614,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-20260921-114838-lobby",
+   "kind": "screen",
+   "image": "frames/20260921-114838.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "UNSURE",
+    "text": "UNSURE",
+    "ms": 1667,
+    "tok_in": 653,
+    "tok_out": 21,
+    "tok_reason": 0,
+    "cost": 4.105e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2981,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-20260921-114838-boost",
+   "kind": "screen",
+   "image": "frames/20260921-114838.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1384,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2142,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-114904-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-114904.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1616,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1845,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114904-boost",
+   "kind": "screen",
+   "image": "frames/dialog-114904.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1100,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1282,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-114920-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-114920.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1770,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3100,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114920-boost",
+   "kind": "screen",
+   "image": "frames/dialog-114920.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1731,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1824,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-230602-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-230602.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1505,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1431,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-230602-boost",
+   "kind": "screen",
+   "image": "frames/dialog-230602.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1712,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1750,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-20260921-221407-lobby",
+   "kind": "screen",
+   "image": "frames/20260921-221407.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1680,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1934,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-221407-boost",
+   "kind": "screen",
+   "image": "frames/20260921-221407.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1248,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1393,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-20260921-114827-lobby",
+   "kind": "screen",
+   "image": "frames/20260921-114827.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1636,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1764,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-114827-boost",
+   "kind": "screen",
+   "image": "frames/20260921-114827.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1219,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1783,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-221416-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-221416.jpg",
+   "truth_screen": "lobby",
+   "guess": "lobby",
+   "truth": true,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1384,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1218,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-221416-boost",
+   "kind": "screen",
+   "image": "frames/dialog-221416.jpg",
+   "truth_screen": "lobby",
+   "guess": "boost",
+   "truth": false,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1521,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1431,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-075112-showoff_list",
+   "kind": "screen",
+   "image": "frames/dialog-075112.jpg",
+   "truth_screen": "showoff_list",
+   "guess": "showoff_list",
+   "truth": true,
+   "question": "The bot thinks this is a list of friends, each with a green 'Show off' button. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1598,
+    "tok_in": 433,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.325e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3025,
+    "tok_in": 637,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.945e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-075112-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-075112.jpg",
+   "truth_screen": "showoff_list",
+   "guess": "lobby",
+   "truth": false,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "UNSURE",
+    "text": "UNSURE",
+    "ms": 1675,
+    "tok_in": 653,
+    "tok_out": 21,
+    "tok_reason": 0,
+    "cost": 4.105e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2216,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-20260921-221131-showoff_list",
+   "kind": "screen",
+   "image": "frames/20260921-221131.jpg",
+   "truth_screen": "showoff_list",
+   "guess": "showoff_list",
+   "truth": true,
+   "question": "The bot thinks this is a list of friends, each with a green 'Show off' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1772,
+    "tok_in": 637,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.945e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2048,
+    "tok_in": 433,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.325e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-221131-lobby",
+   "kind": "screen",
+   "image": "frames/20260921-221131.jpg",
+   "truth_screen": "showoff_list",
+   "guess": "lobby",
+   "truth": false,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1066,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1749,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-114834-playerprofile",
+   "kind": "screen",
+   "image": "frames/dialog-114834.jpg",
+   "truth_screen": "playerprofile",
+   "guess": "playerprofile",
+   "truth": true,
+   "question": "The bot thinks this is a player's profile panel showing their recent and best cookie and pet combination. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1346,
+    "tok_in": 636,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.94e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1285,
+    "tok_in": 433,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.325e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-114834-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-114834.jpg",
+   "truth_screen": "playerprofile",
+   "guess": "lobby",
+   "truth": false,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1488,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1822,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-20260921-114830-playerprofile",
+   "kind": "screen",
+   "image": "frames/20260921-114830.jpg",
+   "truth_screen": "playerprofile",
+   "guess": "playerprofile",
+   "truth": true,
+   "question": "The bot thinks this is a player's profile panel showing their recent and best cookie and pet combination. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1243,
+    "tok_in": 636,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.94e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1690,
+    "tok_in": 433,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.325e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-114830-lobby",
+   "kind": "screen",
+   "image": "frames/20260921-114830.jpg",
+   "truth_screen": "playerprofile",
+   "guess": "lobby",
+   "truth": false,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1554,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1506,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-093854-launcher",
+   "kind": "screen",
+   "image": "frames/dialog-093854.jpg",
+   "truth_screen": "launcher",
+   "guess": "launcher",
+   "truth": true,
+   "question": "The bot thinks this is the BlueStacks Android home screen with app icons - not inside the game. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1051,
+    "tok_in": 434,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.328e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1311,
+    "tok_in": 637,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.945e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-093854-ad",
+   "kind": "screen",
+   "image": "frames/dialog-093854.jpg",
+   "truth_screen": "launcher",
+   "guess": "ad",
+   "truth": false,
+   "question": "The bot thinks this is a full-screen advertisement for a different game - not Cookie Run. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1293,
+    "tok_in": 635,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.935e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1658,
+    "tok_in": 431,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.319e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-093859-launcher",
+   "kind": "screen",
+   "image": "frames/dialog-093859.jpg",
+   "truth_screen": "launcher",
+   "guess": "launcher",
+   "truth": true,
+   "question": "The bot thinks this is the BlueStacks Android home screen with app icons - not inside the game. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1292,
+    "tok_in": 637,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.945e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1310,
+    "tok_in": 434,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.328e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-093859-ad",
+   "kind": "screen",
+   "image": "frames/dialog-093859.jpg",
+   "truth_screen": "launcher",
+   "guess": "ad",
+   "truth": false,
+   "question": "The bot thinks this is a full-screen advertisement for a different game - not Cookie Run. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1020,
+    "tok_in": 431,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.319e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1260,
+    "tok_in": 635,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.935e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-044737-in_run",
+   "kind": "screen",
+   "image": "frames/dialog-044737.jpg",
+   "truth_screen": "in_run",
+   "guess": "in_run",
+   "truth": true,
+   "question": "The bot thinks this is gameplay in progress: the cookie running through a level with Jump and Slide buttons at the bottom. Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1257,
+    "tok_in": 437,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.337e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2151,
+    "tok_in": 641,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.965e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-044737-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-044737.jpg",
+   "truth_screen": "in_run",
+   "guess": "lobby",
+   "truth": false,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1346,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2389,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-072500-boost",
+   "kind": "screen",
+   "image": "frames/dialog-072500.jpg",
+   "truth_screen": "boost",
+   "guess": "boost",
+   "truth": true,
+   "question": "The bot thinks this is the pre-run shop: 'Buy Upgrades!' and 'Buy some Boosts!' items and a green 'Play!' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1779,
+    "tok_in": 648,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2016,
+    "tok_in": 444,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.358e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-072500-lobby",
+   "kind": "screen",
+   "image": "frames/dialog-072500.jpg",
+   "truth_screen": "boost",
+   "guess": "lobby",
+   "truth": false,
+   "question": "The bot thinks this is the main lobby: a friends leaderboard on the left, the chosen cookie in the middle, and a big green 'Play!' button at the bottom right. Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1763,
+    "tok_in": 449,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.373e-05
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1916,
+    "tok_in": 653,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.025e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-dialog-225237-mystery",
+   "kind": "screen",
+   "image": "frames/dialog-225237.jpg",
+   "truth_screen": "mystery",
+   "guess": "mystery",
+   "truth": true,
+   "question": "The bot thinks this is the Mystery Box screen: one or more treasure boxes with question marks on a dark glowing background, and an 'Open all' button. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1630,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 993,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-dialog-225237-result",
+   "kind": "screen",
+   "image": "frames/dialog-225237.jpg",
+   "truth_screen": "mystery",
+   "guess": "result",
+   "truth": false,
+   "question": "The bot thinks this is the end-of-run Result panel: a large score, Coins and XP rows, and two buttons 'OK' and 'Show Off'. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1298,
+    "tok_in": 649,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 4.005e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1041,
+    "tok_in": 445,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.361e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "S-20260921-195334-ad",
+   "kind": "screen",
+   "image": "frames/20260921-195334.jpg",
+   "truth_screen": "ad",
+   "guess": "ad",
+   "truth": true,
+   "question": "The bot thinks this is a full-screen advertisement for a different game - not Cookie Run. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1689,
+    "tok_in": 635,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.935e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2073,
+    "tok_in": 431,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.319e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "S-20260921-195334-launcher",
+   "kind": "screen",
+   "image": "frames/20260921-195334.jpg",
+   "truth_screen": "ad",
+   "guess": "launcher",
+   "truth": false,
+   "question": "The bot thinks this is the BlueStacks Android home screen with app icons - not inside the game. Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1459,
+    "tok_in": 637,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 3.945e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2212,
+    "tok_in": 434,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 1.328e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-110603-x1",
+   "kind": "badge",
+   "image": "crops/badge-dialog-110603.jpg",
+   "truth_n": 1,
+   "guess": 1,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x1 (1 box). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 869,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1681,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-110603-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-110603.jpg",
+   "truth_n": 1,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 826,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1167,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-115241-x1",
+   "kind": "badge",
+   "image": "crops/badge-dialog-115241.jpg",
+   "truth_n": 1,
+   "guess": 1,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x1 (1 box). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1199,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 874,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-115241-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-115241.jpg",
+   "truth_n": 1,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 956,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1248,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-110138-x1",
+   "kind": "badge",
+   "image": "crops/badge-dialog-110138.jpg",
+   "truth_n": 1,
+   "guess": 1,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x1 (1 box). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1034,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1194,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-110138-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-110138.jpg",
+   "truth_n": 1,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1002,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1544,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-20260921-225232-x1",
+   "kind": "badge",
+   "image": "crops/badge-20260921-225232.jpg",
+   "truth_n": 1,
+   "guess": 1,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x1 (1 box). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 838,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1141,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-20260921-225232-x2",
+   "kind": "badge",
+   "image": "crops/badge-20260921-225232.jpg",
+   "truth_n": 1,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 979,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1381,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-225701-x1",
+   "kind": "badge",
+   "image": "crops/badge-dialog-225701.jpg",
+   "truth_n": 1,
+   "guess": 1,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x1 (1 box). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 872,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1337,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-225701-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-225701.jpg",
+   "truth_n": 1,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 907,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1725,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-112736-x1",
+   "kind": "badge",
+   "image": "crops/badge-dialog-112736.jpg",
+   "truth_n": 1,
+   "guess": 1,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x1 (1 box). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 971,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1258,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-112736-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-112736.jpg",
+   "truth_n": 1,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 917,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1081,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-115744-x1",
+   "kind": "badge",
+   "image": "crops/badge-dialog-115744.jpg",
+   "truth_n": 1,
+   "guess": 1,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x1 (1 box). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 871,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1381,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-115744-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-115744.jpg",
+   "truth_n": 1,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 951,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2138,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-201724-x1",
+   "kind": "badge",
+   "image": "crops/badge-dialog-201724.jpg",
+   "truth_n": 1,
+   "guess": 1,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x1 (1 box). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 849,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2172,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-201724-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-201724.jpg",
+   "truth_n": 1,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1131,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1277,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-070936-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-070936.jpg",
+   "truth_n": 2,
+   "guess": 2,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 867,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1867,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-070936-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-070936.jpg",
+   "truth_n": 2,
+   "guess": 3,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 870,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1611,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "NO",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-070934-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-070934.jpg",
+   "truth_n": 2,
+   "guess": 2,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 874,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1672,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-070934-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-070934.jpg",
+   "truth_n": 2,
+   "guess": 3,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 902,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2291,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-20260921-104035-x2",
+   "kind": "badge",
+   "image": "crops/badge-20260921-104035.jpg",
+   "truth_n": 2,
+   "guess": 2,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1077,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 994,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-20260921-104035-x3",
+   "kind": "badge",
+   "image": "crops/badge-20260921-104035.jpg",
+   "truth_n": 2,
+   "guess": 3,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 889,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1161,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-070938-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-070938.jpg",
+   "truth_n": 2,
+   "guess": 2,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 823,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1347,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-070938-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-070938.jpg",
+   "truth_n": 2,
+   "guess": 3,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 917,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1442,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-095600-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-095600.jpg",
+   "truth_n": 2,
+   "guess": 2,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 837,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1257,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-095600-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-095600.jpg",
+   "truth_n": 2,
+   "guess": 3,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 994,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1790,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-233112-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-233112.jpg",
+   "truth_n": 2,
+   "guess": 2,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 978,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1187,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-233112-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-233112.jpg",
+   "truth_n": 2,
+   "guess": 3,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 922,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1331,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-073419-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-073419.jpg",
+   "truth_n": 2,
+   "guess": 2,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1158,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1223,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-073419-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-073419.jpg",
+   "truth_n": 2,
+   "guess": 3,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1287,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1053,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-042407-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-042407.jpg",
+   "truth_n": 2,
+   "guess": 2,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 869,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1916,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-042407-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-042407.jpg",
+   "truth_n": 2,
+   "guess": 3,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1742,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1805,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-071727-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-071727.jpg",
+   "truth_n": 3,
+   "guess": 3,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1118,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1950,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-071727-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-071727.jpg",
+   "truth_n": 3,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1072,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 960,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-065409-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-065409.jpg",
+   "truth_n": 3,
+   "guess": 3,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1278,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1021,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-065409-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-065409.jpg",
+   "truth_n": 3,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 977,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1948,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-071723-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-071723.jpg",
+   "truth_n": 3,
+   "guess": 3,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 852,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1358,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-071723-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-071723.jpg",
+   "truth_n": 3,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1143,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 2828,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-072936-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-072936.jpg",
+   "truth_n": 3,
+   "guess": 3,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1714,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1593,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-072936-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-072936.jpg",
+   "truth_n": 3,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 862,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1152,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-072914-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-072914.jpg",
+   "truth_n": 3,
+   "guess": 3,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 891,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1290,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-072914-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-072914.jpg",
+   "truth_n": 3,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1124,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 1587,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-075103-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-075103.jpg",
+   "truth_n": 3,
+   "guess": 3,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1494,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 3970,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-075103-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-075103.jpg",
+   "truth_n": 3,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1592,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 3897,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-055309-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-055309.jpg",
+   "truth_n": 3,
+   "guess": 3,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t2": {
+    "answer": "ERROR",
+    "why": "{\"message\": \"Provider returned error\", \"code\": 429, \"metadata\": {\"raw\": \"qwen/qwen3.7-flash is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations\", \"provider_name\": \"Alibaba\", \"is_byok\": false, \"pro",
+    "ms": 83.24677497148514
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1830,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-055309-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-055309.jpg",
+   "truth_n": 3,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t2": {
+    "answer": "ERROR",
+    "why": "{\"message\": \"Provider returned error\", \"code\": 429, \"metadata\": {\"raw\": \"qwen/qwen3.7-flash is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations\", \"provider_name\": \"Alibaba\", \"is_byok\": false, \"pro",
+    "ms": 106.73130303621292
+   },
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1192,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  },
+  {
+   "id": "B-dialog-072920-x3",
+   "kind": "badge",
+   "image": "crops/badge-dialog-072920.jpg",
+   "truth_n": 3,
+   "guess": 3,
+   "truth": true,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x3 (3 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1250,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 2548,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "YES",
+   "how": "t1+t2 agree"
+  },
+  {
+   "id": "B-dialog-072920-x2",
+   "kind": "badge",
+   "image": "crops/badge-dialog-072920.jpg",
+   "truth_n": 3,
+   "guess": 2,
+   "truth": false,
+   "question": "This is the treasure-box badge from a Cookie Run result screen. The bot reads it as x2 (2 boxes). Is that right?",
+   "t1": {
+    "answer": "YES",
+    "text": "YES",
+    "ms": 1062,
+    "tok_in": 153,
+    "tok_out": 19,
+    "tok_reason": 0,
+    "cost": 1.525e-05
+   },
+   "t2": {
+    "answer": "NO",
+    "text": "NO",
+    "ms": 994,
+    "tok_in": 159,
+    "tok_out": 2,
+    "tok_reason": 0,
+    "cost": 5.03e-06
+   },
+   "label": "HUMAN",
+   "how": "still unclear after the teachers"
+  }
+ ]
+}
