@@ -1,5 +1,39 @@
 [
   {
+    "file": "real/xxlmarkets-direct-visit-error.png",
+    "kind": "still",
+    "covers": [
+      "PATTERN-1",
+      "PATTERN-2"
+    ],
+    "source_url": "https://xxlmarkets.com/",
+    "captured_at": "2026-09-23T22:50:09+07:00",
+    "seconds": 0,
+    "censored": [],
+    "note": "captured by the CTO via headless Chrome (--headless=new --lang=th, fresh temp profile, 540x960 @2x -> 1080x1920) since Playwright's page.goto() and Claude-in-Chrome's screenshot tool both fail on NXDOMAIN -- see prototypes/bl57-script/SCRIPT.md 'What could not be captured' for the full trail of what did not work first. Chrome's own Thai-UI connection-error page for a direct visit to xxlmarkets.com.",
+    "evidence_box": [
+      {"x": 100, "y": 490, "w": 900, "h": 410, "proves": "PATTERN-1/PATTERN-2: headline ไม่สามารถเข้าถึงเว็บไซต์นี้ + ไม่พบที่อยู่ IP ของเซิร์ฟเวอร์ xxlmarkets.com + ERR_NAME_NOT_RESOLVED"}
+    ],
+    "evidence_box_source": "measured (whole-page capture, box read by eye on the full-resolution 1080x1920 still)"
+  },
+  {
+    "file": "real/xxlmarkets-www-visit-error.png",
+    "kind": "still",
+    "covers": [
+      "PATTERN-3",
+      "PATTERN-4"
+    ],
+    "source_url": "https://www.xxlmarkets.com/",
+    "captured_at": "2026-09-23T22:52:14+07:00",
+    "seconds": 0,
+    "censored": [],
+    "note": "captured by the CTO via headless Chrome, same method as xxlmarkets-direct-visit-error.png -- the second attempt (www. prefix), same NXDOMAIN result.",
+    "evidence_box": [
+      {"x": 100, "y": 490, "w": 900, "h": 410, "proves": "PATTERN-3/PATTERN-4: headline ไม่สามารถเข้าถึงเว็บไซต์นี้ + ไม่พบที่อยู่ IP ของเซิร์ฟเวอร์ www.xxlmarkets.com + ERR_NAME_NOT_RESOLVED"}
+    ],
+    "evidence_box_source": "measured (whole-page capture, box read by eye on the full-resolution 1080x1920 still)"
+  },
+  {
     "file": "third-party/wikifx-xxlmarkets-review.jpg",
     "kind": "still",
     "covers": [

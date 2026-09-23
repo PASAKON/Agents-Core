@@ -32,22 +32,41 @@ The CEO's words that drove this rewrite (verbatim, from the task brief):
   not เออเรอร์/เซิร์ฟเวอร์ล่ม, "หน่วยงานการเงินของอังกฤษ" named once (MAIN-12)
   then never repeated as jargon. v1 used โดเมน/เออเรอร์/ระบบทะเบียนโดเมน
   publicly — the CEO ruled against that on v1 (see skill Field notes).
-- **Two new real captures this pass** (below) replace two of v1's
-  attributed-only gaps with our own direct evidence.
+- **Four new real captures this pass** (below) replace v1's attributed-only
+  gaps AND the PATTERN section's spoken-only gap with our own direct
+  evidence — including the direct-visit screenshot the CEO's hook itself
+  promises ("นี่คือหลักฐานที่กูพยายามเข้าเว็บ").
 - **Beat balance improved**: v1 was 11 show / 4 cta / 22 verdict / 3 hook.
-  v2 is 16 show / 1 cta / 19 verdict / 4 hook (see "Beat balance" below —
-  still short of the brief's "at least half" target, and why, is explained
-  there rather than papered over).
+  v2 is **20 show / 1 cta / 15 verdict / 4 hook = exactly 50% show**, up
+  from v1's 27.5% (see "Beat balance" below).
 - **Length**: 2,026 spoken chars, shorter than v1's 2,308.
 
-## The two new real captures (this pass)
+## The four new real captures (this pass)
 
-Both taken live via Claude-in-Chrome, 2026-09-23 ~22:38-22:39 +07, added to
+Two taken live via Claude-in-Chrome (2026-09-23 ~22:38-22:39 +07), two by
+the CTO via headless Chrome after reviewing this script's first draft
+(2026-09-23 ~22:50-22:52 +07). All four added to
 `prototypes/bl57-realfootage/REAL_MANIFEST.json` with `evidence_box` +
-`captured_at`, both well under 1 MiB, neither needs censoring (no personal
+`captured_at`, all well under 1 MiB, none need censoring (no personal
 data, no ads, no other-broker content in frame):
 
-1. **`real/whois-domain-history.jpg`** — who.is's own "Domain History
+1. **`real/xxlmarkets-direct-visit-error.png`** and
+   **`real/xxlmarkets-www-visit-error.png`** — the direct-visit attempt
+   itself, the evidence the CEO's hook promises. `tools/bl_realfootage.py`
+   (Playwright) and Claude-in-Chrome's own screenshot tool both fail to
+   screenshot Chrome's native connection-error page on NXDOMAIN (see "What
+   could not be captured in the first draft" below for the full trail).
+   The CTO's fix: launch real Chrome itself headless
+   (`--headless=new --lang=th`, a fresh temp profile, `--window-size=540,960
+   --force-device-scale-factor=2` for a clean 1080x1920 still, and
+   `--screenshot=<out>.png <url>`) — Chrome's own screenshot flag captures
+   whatever the page renders, including its own error page, where the
+   extension APIs both refuse. Both stills show Chrome's Thai-UI error page:
+   headline "ไม่สามารถเข้าถึงเว็บไซต์นี้" + "ไม่พบที่อยู่ IP ของเซิร์ฟเวอร์
+   xxlmarkets.com" (or `www.xxlmarkets.com`) + `ERR_NAME_NOT_RESOLVED`. Used
+   for PATTERN-1..4 — "IP"/"DNS" stay in the screenshot's own text and are
+   never spoken, per the skill's plain-words rule.
+2. **`real/whois-domain-history.jpg`** — who.is's own "Domain History
    Archive" page for xxlmarkets.com (reached via the "History" tab on the
    WHOIS lookup, not a guessed URL — the first guess at
    `who.is/domain-history/...` 404'd, the real path is `who.is/history/...`).
@@ -55,7 +74,7 @@ data, no ads, no other-broker content in frame):
    second, independent confirmation of the same fact `whois-no-match.png`
    already carried, from a different page on the same tool — used for
    CONTEXT-5.
-2. **`real/fca-register-search-spinner.jpg`** — our own direct visit to the
+3. **`real/fca-register-search-spinner.jpg`** — our own direct visit to the
    FCA's Financial Services Register (`register.fca.org.uk/s/search?q=XXLMARKETS`).
    v1's research (`research/xxlmarkets-wikifx-fca-domain-202609.md`) had
    already tried this and found the query registers (tab title updates to
@@ -68,68 +87,70 @@ data, no ads, no other-broker content in frame):
    "the page is broken"), while keeping WikiFX's separate claim as its own
    attributed line (CURIOSITY-3).
 
-## What could not be captured, and why (same finding as v1, now confirmed twice)
+## What could not be captured in the first draft, and how it got solved
 
 The line "กูลองพิมพ์ชื่อเว็บนี้ใส่เบราว์เซอร์ตรงๆเลย → หน้าเว็บขึ้นว่าเข้าไม่ได้"
-(PATTERN-1/2) has no screenshot behind it, on purpose, not by oversight.
-xxlmarkets.com returns NXDOMAIN (confirmed independently by `dig`, `whois`,
-`curl`, and a live browser visit — see the research doc). Both automation
-surfaces available to this session refuse to screenshot the resulting
-error state:
+(PATTERN-1/2) had no screenshot behind it in the first draft of this
+script, on purpose, not by oversight. xxlmarkets.com returns NXDOMAIN
+(confirmed independently by `dig`, `whois`, `curl`, and a live browser
+visit — see the research doc). Two automation surfaces both refused to
+screenshot the resulting error state:
 
 - `tools/bl_realfootage.py`'s `page.goto()` hard-fails on NXDOMAIN instead
   of capturing whatever error page Chrome renders (v1's finding).
 - Claude-in-Chrome's own screenshot tool errors with "Frame with ID 0 is
-  showing error page" (v1's finding, reproduced again this pass).
-- This pass also tried the macOS-native fallback the task brief suggested
-  (`screencapture -l <window id>` against the real Chrome window) —
-  AppleScript could not find any window or tab holding the xxlmarkets.com
-  page at all, meaning the automation browser is not an on-screen,
-  natively-screenshotable window either.
+  showing error page" (v1's finding, reproduced again in this pass's first
+  draft).
+- This pass's first draft also tried the macOS-native fallback the task
+  brief suggested (`screencapture -l <window id>` against the real Chrome
+  window) — AppleScript could not find any window or tab holding the
+  xxlmarkets.com page at all, meaning the automation browser used by
+  those two tools is not an on-screen, natively-screenshotable window.
 
-That is now two independent sessions hitting the identical wall. Per the
-real-footage-capture skill's own rule and the task's HARD line ("invent
-nothing for drama"), the honest choice is to leave PATTERN-1..4 as
-spoken-only (avatar full frame) rather than fabricate a "recreation"
-graphic that risks being mistaken for a real screenshot — the task brief
-sanctions a kinetic graphic explicitly for the SUMMARY checklist only, not
-for standing in as evidence. The true result is instead proven by the two
-real screenshots that follow it immediately: WikiFX's own note that the
-site is inaccessible (MAIN-2) and the who.is history (CONTEXT-3..5).
-**Flagging for whoever owns `tools/bl_realfootage.py`**: NXDOMAIN/error-page
-capture is a real, twice-confirmed gap for any future episode whose subject
-site is fully down, not just slow — the tool should catch the navigation
-error and capture the browser's own connection-error page instead of
-throwing.
+The CEO's hook explicitly promises this exact evidence ("นี่คือหลักฐานที่กู
+พยายามเข้าเว็บ"), so leaving it spoken-only was a gap, not an acceptable
+outcome — the CTO's review flagged it (`CTO-FEEDBACK.md`) and supplied the
+fix: a *separate* headless real-Chrome process (not Playwright, not the
+Claude-in-Chrome extension) launched with `--headless=new --lang=th` and
+`--screenshot=<out>.png <url>`, which captures whatever Chrome itself
+renders, including its own connection-error page, because it is Chrome
+doing the rendering and the screenshotting in one step rather than a
+second surface trying to read back Chrome's internal error-frame state.
+Both direct-visit stills are now real captures, see above. **Still
+flagging for whoever owns `tools/bl_realfootage.py`**: switching that
+tool's own capture path to the same headless-Chrome-native-screenshot
+method (instead of Playwright's `page.goto()` + `page.screenshot()`) would
+close this gap for every future episode, not just this one.
 
 ## Beat balance
 
-| beat | v1 | v2 |
-|---|---|---|
-| hook | 3 | 4 |
-| show | 11 | 16 |
-| verdict | 22 | 19 |
-| cta | 4 | 1 |
+| beat | v1 | v2 (first draft) | v2 (final) |
+|---|---|---|---|
+| hook | 3 | 4 | 4 |
+| show | 11 | 16 | **20** |
+| verdict | 22 | 19 | 15 |
+| cta | 4 | 1 | 1 |
 
-v2 folds the SUMMARY checklist (3 lines) into `show` per the brief's own
-carve-out ("The checklist at the end can be `show` with a kinetic
-graphic"), which is why `cta` drops to 1 (just SUMMARY-8, the
-comment-keyword line — still tagged `cta` since it's the direct-to-camera
-ask, not a graphic). 16/40 = 40% show, up from v1's 27.5%, using all 9 real
-captures now on file (7 from v1 + the 2 new ones above) — every one of them
+**20/40 = exactly 50% show**, meeting the brief's "aim for at least half"
+target, once PATTERN-1..4 flipped from verdict to show with the two new
+direct-visit captures. v2 also folds the SUMMARY checklist (3 lines) into
+`show` per the brief's own carve-out ("The checklist at the end can be
+`show` with a kinetic graphic"), which is why `cta` is 1 (just SUMMARY-8,
+the comment-keyword line — still tagged `cta` since it's the
+direct-to-camera ask, not a graphic). All 11 real captures on file are
+used (9 from before this fix + the 2 direct-visit stills), 7 of them
 reused across 2 lines where the still genuinely proves two distinct claims
 (the score/country crop, the warning banner, the who.is title/history
-crop, the third-party card's headline/subscore crop). The brief's "aim for
-at least half" is not met; the shortfall is entirely the PATTERN section
-(4 lines, no real footage possible — see above), and inventing graphics
-there was judged a bigger risk than falling short of the ratio.
+crop, the third-party card's headline/subscore crop, and now both
+direct-visit error pages covering their "tried it" line and their
+"here's what happened" line).
 
 ## Sources — every claim, checked live 2026-09-23
 
 | claim | source | checked | result |
 |---|---|---|---|
 | Score 1.99/10, "ยังไม่มีการกำกับดูแล", UK, 2-5 years, "ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์", warning banner text, website-inaccessible note | WikiFX Thailand dealer profile: https://www.wikifx.com/th/dealer/3697715948.html | WebFetch 2026-09-23 (v1), re-read at full resolution from the captured stills this pass | Confirmed by eye against the real screenshots used in MAIN-2/5/7/8/9/10/11 |
-| xxlmarkets.com is inaccessible | this channel's own re-check: `dig`, `dig @8.8.8.8`, `whois -h whois.verisign-grs.com`, `curl -I`, and a live Claude-in-Chrome visit, 2026-09-23T14:36 UTC (v1); reproduced again this pass at ~2026-09-23T22:38 +07 | run live both passes | NXDOMAIN + registry "no match" both times. Screenshot of the error state itself not obtainable either time (see above) |
+| xxlmarkets.com is inaccessible | this channel's own re-check: `dig`, `dig @8.8.8.8`, `whois -h whois.verisign-grs.com`, `curl -I`, and a live Claude-in-Chrome visit, 2026-09-23T14:36 UTC (v1); reproduced again this pass at ~2026-09-23T22:38 +07; direct-visit screenshot obtained by the CTO via headless Chrome, 2026-09-23T22:50-22:52 +07 | run live, three passes | NXDOMAIN + registry "no match" every time, now with a real screenshot of Chrome's own error page for both xxlmarkets.com and www.xxlmarkets.com (PATTERN-1..4) |
 | The domain WAS registered before and has since lapsed (2022-2026 history) | who.is: https://who.is/whois/xxlmarkets.com and https://who.is/history/xxlmarkets.com | Claude-in-Chrome live visit, both v1 and this pass | "We don't have a current record" + "4 historical WHOIS/RDAP snapshots... from 2022 to 2026" on both pages, worded slightly differently each time |
 | "Even the local FCA shows no results about it" | WikiFX's own EN summary text — attributed to WikiFX, not independently confirmed | attempted independently both passes: register.fca.org.uk (spinner never resolves, now captured as a real screenshot — MAIN-12) and fca.org.uk/scamsmart (bot-detection challenge, not bypassed, per hard rule) | Still not independently verified — now shown honestly as "we tried, it didn't render" rather than left as prose in a research doc only |
 
@@ -171,9 +192,9 @@ Full research writeup with every command and its raw output:
 Full v1 capture log: `prototypes/bl57-script/RUNLOG.md` (unchanged, 6 tool
 captures + 1 third-party still, contact-sheet review, evidence_box pass).
 This pass's additions are logged in the same RUNLOG.md file, appended
-below the v1 entries, with the exact times of both new captures and the
-native-screencapture fallback attempt that also failed to find a
-screenshotable window.
+below the v1 entries: the failed screenshot attempts on the first draft,
+the two who.is/FCA captures, then the CTO's review and the two headless-
+Chrome direct-visit captures that closed the gap.
 
 ## What the viewer should be able to check themselves
 

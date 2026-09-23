@@ -2,10 +2,10 @@ HOOK-1	ใครใช้โบรกนี้อยู่ รีบเข้า
 HOOK-2	ตอนนี้แม่งปิดเว็บ เข้าไม่ได้แล้ว		hook	avatar full frame, CEO's own line verbatim
 HOOK-3	นี่คือหลักฐานตอนที่กูพยายามเข้าเว็บ		hook	avatar full frame, CEO's own line verbatim -- sets up the step-by-step that follows
 HOOK-4	เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ เดี๋ยวกูจะพาไปดูของจริงทีละขั้น		hook	avatar full frame, names the broker before the discovery starts
-PATTERN-1	กูลองพิมพ์ชื่อเว็บนี้ใส่เบราว์เซอร์ตรงๆเลย		verdict	avatar full frame -- no capturable shot exists for this exact attempt, see SCRIPT.md
-PATTERN-2	หน้าเว็บขึ้นว่าเข้าไม่ได้		verdict	avatar full frame -- true result (NXDOMAIN, confirmed dig/whois/curl), not shown as a screenshot because the browser blocks capturing its own error page
-PATTERN-3	ลองอีกทาง ใส่ www นำหน้าบ้าง ใส่ https ตรงๆบ้าง		verdict	avatar full frame
-PATTERN-4	ผลเหมือนเดิมทุกครั้ง เข้าไม่ได้		verdict	avatar full frame -- same result both ways, confirmed live 2026-09-23
+PATTERN-1	กูลองพิมพ์ชื่อเว็บนี้ใส่เบราว์เซอร์ตรงๆเลย	xxlmarkets-direct-visit-error	show	real capture, headless Chrome Thai UI -- avatar shrinks as the address bar/typing beat leads into the error page
+PATTERN-2	หน้าเว็บขึ้นว่าเข้าไม่ได้	xxlmarkets-direct-visit-error	show	same real capture -- on-screen caption "เข้าไม่ได้ · ไม่พบเว็บ xxlmarkets.com"; IP/DNS text stays on the screenshot itself, never spoken
+PATTERN-3	ลองอีกทาง ใส่ www นำหน้าบ้าง ใส่ https ตรงๆบ้าง	xxlmarkets-www-visit-error	show	real capture, headless Chrome Thai UI, www.xxlmarkets.com attempt
+PATTERN-4	ผลเหมือนเดิมทุกครั้ง เข้าไม่ได้	xxlmarkets-www-visit-error	show	same real capture -- same "เข้าไม่ได้" result, confirmed live 2026-09-23
 CONTEXT-1	กูไม่เชื่อว่าแค่เว็บล่มเฉยๆ เลยลองเช็กว่าใครเป็นเจ้าของชื่อเว็บนี้		verdict	avatar full frame, sets up the next real capture
 CONTEXT-2	เข้าเว็บเช็กชื่อเว็บฟรีๆ พิมพ์ชื่อเว็บนี้ลงไป		verdict	avatar full frame
 CONTEXT-3	เจอเลย ไม่มีใครเป็นเจ้าของชื่อเว็บนี้แล้วตอนนี้	whois-no-match	show	real capture, who.is -- "We don't have a current record for xxlmarkets.com" (title crop)

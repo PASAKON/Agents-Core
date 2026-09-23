@@ -188,3 +188,45 @@ SUMMARY-1..9 = checklist (3 kinetic-graphic shows per the brief's
 checklist carve-out) + close. 2,026 spoken chars (down from v1's 2,308),
 16/40 show (up from v1's 11/40), 0 em dashes. Wrote SCRIPT.md with the
 full "what changed" + beat-balance honesty section.
+
+---
+
+## CTO review received (task-f80f98ff, CTO-FEEDBACK.md, 2026-09-23 22:55)
+
+CTO reviewed the first draft, ruled the direct-visit screenshot cannot be
+the gap since it's the exact evidence the CEO's hook promises, and solved
+it independently: real Chrome (not Playwright, not the extension) launched
+headless (`--headless=new --lang=th`, fresh temp profile, 540x960 @2x,
+`--screenshot=<out>.png <url>`) captures Chrome's own Thai-UI error page
+where both other surfaces refuse. Two files handed off at
+`/Users/gob/MoonieXHQ/Work/task-f80f98ff/in/`:
+`direct-visit-error.png` (captured_at 2026-09-23T22:50:09+07:00,
+xxlmarkets.com) and `direct-visit-www-error.png` (captured_at
+2026-09-23T22:52:14+07:00, www.xxlmarkets.com), both 1080x1920.
+
+2026-09-23 ~23:00 | Read both at full resolution: Chrome's Thai connection-
+error page, headline "ไม่สามารถเข้าถึงเว็บไซต์นี้", subtext "ไม่พบที่อยู่ IP
+ของเซิร์ฟเวอร์ xxlmarkets.com" (or www.xxlmarkets.com), "ERR_NAME_NOT_RESOLVED"
+lower on the page. Nothing personal in frame, no censoring needed.
+
+2026-09-23 ~23:02 | Copied both into
+prototypes/bl57-realfootage/real/ as xxlmarkets-direct-visit-error.png and
+xxlmarkets-www-visit-error.png (72KB/73KB, well under 1MiB). Added both to
+REAL_MANIFEST.json with evidence_box {x:100,y:490,w:900,h:410} (headline +
+domain line + error code, per the CTO's measured region), captured_at, and
+covers: [PATTERN-1, PATTERN-2] / [PATTERN-3, PATTERN-4] respectively --
+same still reused across the "tried it" line and the "here's what
+happened" line, same pattern already used for the score/warning-banner/
+whois stills. Validated JSON, no tag double-covered (11 manifest entries,
+17 covered tags, no dupes).
+
+2026-09-23 ~23:05 | Flipped PATTERN-1..4 from verdict to show in
+SCRIPT.tsv, pointed at the two new stills. Kept the spoken lines
+unchanged (no IP/DNS jargon was ever in the spoken column) -- only the
+`screen` column gained on-screen caption notes, per the CTO's instruction
+that IP/DNS stays on the screenshot and is never spoken. Recount: 40
+lines, 2,026 spoken chars (unchanged), beats hook4/show20/verdict15/cta1
+= exactly 50% show, 0 em dashes. Updated SCRIPT.md: rewrote "What could
+not be captured" into "...and how it got solved", updated the beat-balance
+table to show first-draft vs final, updated the sources table row for
+"xxlmarkets.com is inaccessible" to note the screenshot is now real.
