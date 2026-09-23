@@ -103,6 +103,23 @@ sit the licence, affiliate with a licensed broker. **Bitkub's referral** (20% of
 referred users' trading fees) sits under SEC supervision. Neither is urgent;
 both are worth knowing exist before writing a script that wishes they did.
 
+## Say it the way the viewer says it (CEO ruling 2026-09-23)
+
+"อย่าใช้ศัพท์เทคนิคเยอะ เอาง่ายๆ ให้คนดูเข้าใจ". Write what the viewer would
+say to a friend, not what an engineer would log:
+
+| instead of | write |
+|---|---|
+| โดเมน · ทะเบียนโดเมน · WHOIS · DNS | ชื่อเว็บ · ที่จดชื่อเว็บ · "ไม่มีใครเป็นเจ้าของชื่อเว็บนี้แล้ว" |
+| หน้าเออเรอร์ · เซิร์ฟเวอร์ล่ม | หน้าเว็บขึ้นว่าเข้าไม่ได้ |
+| หน่วยงานกำกับ (on its own) | name it once ("หน่วยงานการเงินของอังกฤษ"), then plain words |
+
+**Show the attempt, not just the result.** When the episode's point is something
+we checked ourselves, the viewer follows the steps with us: "นี่คือหลักฐานตอนที่
+กูพยายามเข้าเว็บ": each try is its own line with its own screen. The EP57 hook
+the CEO wrote is the model: "ใครใช้โบรกนี้รีบเข้าเว็บเช็กด่วนเลย ตอนนี้แม่งปิดเว็บ
+เข้าไม่ได้แล้ว นี่คือหลักฐานที่กูพยายามเข้าเว็บ", followed by what was tried.
+
 ## Writing Thai that a TTS can read
 
 The script is read aloud by `fal-ai/gemini-3.1-flash-tts`, so it is an input to a
@@ -142,3 +159,4 @@ need to be hand-formatted, but a writer who knows the rules writes cleaner input
 - 2026-09-23 [MISSING] §structure — how long a script will run: measured speech-only rate on the channel's Gemini voice is **16.6 chars/s** (EP54 16.64, EP55 16.62, silencedetect on the real TTS files). EP55: 2,470 spoken chars → a 167.66 s TTS track. Estimate from that, never from a finished cut's length divided by the script's characters. That shortcut gave the CTO 22 chars/s and a 110 s forecast that was 52 % off · evidence: task-77a2e043 RUNLOG.md · status: pending
 - 2026-09-23 [WRONG] §structure — correction to the note above: 16.6 chars/s is SPEECH-ONLY. The full TTS track also carries the breath gaps between the 40 lines, so the whole-track rate is lower. It is ~13.2–14.7 chars/s: EP55 v1 2,470 chars → 167.66 s, v2 1,750 chars → 133.1 s. Forecast track length from the whole-track rate. The CTO used 16.6 and forecast v2 at 105 s against 133 s · evidence: task-77a2e043 RUNLOG.md (tts v2 line) · status: pending
 - 2026-09-23 [MISSING] §Writing Thai for TTS — a transliterated brand was also shown on screen in Thai; the CEO ruled the Thai spelling is for the voice only and the screen shows the real brand spelling · evidence: CEO ruling 2026-09-23 (WikiFX) · status: promoted
+- 2026-09-23 [MISSING] §plain words — the EP57 v1 script used โดเมน / ระบบทะเบียนโดเมนสาธารณะ / เออเรอร์; the CEO ruled plain words only and asked for the attempt to be shown step by step · evidence: CEO ruling 2026-09-23 on EP57 v1 · status: promoted
