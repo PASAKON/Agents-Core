@@ -24,6 +24,7 @@ import os
 import shutil
 import socket
 import subprocess
+import time
 from pathlib import Path
 
 DEFAULT_TTYD_BIND = "127.0.0.1"
@@ -154,7 +155,10 @@ def send_keys(session: str, text: str, *, press_enter: bool = True) -> None:
         raise RuntimeError(f"tmux session not found: {session}")
     _run([tmux_bin(), "send-keys", "-t", session, "-l", text])
     if press_enter:
-        _run([tmux_bin(), "send-keys", "-t", session, "C-m"])
+        time.sleep(0.4)
+        _run([tmux_bin(), "send-keys", "-t", session, "Enter"])
+        time.sleep(0.3)
+        _run([tmux_bin(), "send-keys", "-t", session, "Enter"])
 
 
 def capture(session: str, lines: int = 200) -> str:
