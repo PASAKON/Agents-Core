@@ -1,0 +1,72 @@
+[
+ {
+  "id": "S-20260923-055325-boost",
+  "truth": false,
+  "t3": {
+   "answer": "NO",
+   "text": "NO\nThis is the main lobby/leaderboard screen (Friends leaderboard, Episode/Party Run/Pet/Cookie/Treasure options), not a pre-run shop screen with Buy Upgrades/Boosts items.",
+   "ms": 4136,
+   "cost": 0.005312,
+   "tok_in": 1129,
+   "tok_out": 80
+  },
+  "right": true,
+  "reused": false
+ },
+ {
+  "id": "S-dialog-055350-lobby",
+  "truth": true,
+  "t3": {
+   "answer": "YES",
+   "text": "YES\nThe friends leaderboard is on the left, the chosen cookie (Dark Cacao/Fire Cookie) is centered, and a large green \"Play!\" button sits at the bottom right.",
+   "ms": 5268,
+   "cost": 0.005174,
+   "tok_in": 1132,
+   "tok_out": 65
+  },
+  "right": true,
+  "reused": false
+ },
+ {
+  "id": "S-dialog-070011-boost",
+  "truth": false,
+  "t3": {
+   "answer": "NO",
+   "text": "NO\nThis is the main episode/lobby screen with leaderboard, Pet/Cookie/Treasure and Play! button, not the pre-run Buy Upgrades/Boosts shop screen.",
+   "ms": 3973,
+   "cost": 0.005182,
+   "tok_in": 1129,
+   "tok_out": 67
+  },
+  "right": true,
+  "reused": true
+ },
+ {
+  "id": "S-dialog-224714-card_tries",
+  "truth": true,
+  "t3": {
+   "answer": "YES",
+   "text": "YES\nThe screen shows a \"Find the sliding card!\" grid of 6 cards with \"Tries left 3/3\" displayed at the top.",
+   "ms": 4975,
+   "cost": 0.0049099999999999994,
+   "tok_in": 1111,
+   "tok_out": 47
+  },
+  "right": true,
+  "reused": false
+ },
+ {
+  "id": "S-dialog-044737-in_run",
+  "truth": true,
+  "t3": {
+   "answer": "YES",
+   "text": "YES\nThe screen shows an active run with Jump/Slide controls, pause button, score/coin counters, and obstacles (bacon stacks, spike traps) on the track, confirming live gameplay.",
+   "ms": 4305,
+   "cost": 0.005124,
+   "tok_in": 1117,
+   "tok_out": 66
+  },
+  "right": true,
+  "reused": false
+ }
+]

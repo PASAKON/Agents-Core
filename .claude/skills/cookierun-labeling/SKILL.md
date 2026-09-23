@@ -580,3 +580,7 @@ So the rule for any propagation pass:
 4. Frames marked "boxes right but incomplete" are still good positives. Do not
    throw them away for missing objects; just do not treat their empty space as
    negative evidence.
+
+## Field notes
+
+- 2026-09-23 [MISSING] §Auto-labels — the distrust above is measured on colour template-matching; a VERIFY question to vision teachers ("the bot thinks this is X — right?") behaved differently: gemma-4-26b + qwen3.7-flash agreed on 181/186 screen/badge questions and all 181 were right, Sonnet 5 settled the 5 splits 5/5. Screens and box badges only — not boxes around obstacles · evidence: Agents docs/ops/cookierun-teachers-2026-09-23/ab-20260923-122814.json, sha 2cce1f51 · status: pending
