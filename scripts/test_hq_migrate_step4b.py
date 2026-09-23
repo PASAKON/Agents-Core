@@ -536,3 +536,21 @@ def test_self_repo_guard_same_verdict_logical_vs_physical(tmp_path: Path) -> Non
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))
+
+
+def test_gate_ceo_override_idle_excludes_only_named_tasks(tmp_path, monkeypatch):
+    """--ceo-override-idle (CEO 2026-09-23): a verified-idle task named on the
+    command line no longer blocks; any other in-flight task still does."""
+    import sqlite3
+    db = tmp_path / "tasks.db"
+    con = sqlite3.connect(db)
+    con.execute("CREATE TABLE tasks (id TEXT, status TEXT, role TEXT, title TEXT)")
+    con.executemany("INSERT INTO tasks VALUES (?,?,?,?)", [
+        ("task-idle0001", "rate_limited", "developer", "idle one"),
+        ("task-busy0002", "in_progress", "developer", "busy one"),
+    ])
+    con.commit(); con.close()
+    with pytest.raises(mod.GateBlocked) as e:
+        mod.check_no_other_tasks_in_flight(db, None, ("task-idle0001",))
+    assert "task-busy0002" in str(e.value) and "task-idle0001" not in str(e.value)
+    mod.check_no_other_tasks_in_flight(db, "task-busy0002", ("task-idle0001",))  # clear

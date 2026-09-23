@@ -140,7 +140,8 @@ def this_task_id(explicit: str | None) -> str | None:
     return m.group(0) if m else None
 
 
-def check_no_other_tasks_in_flight(db_path: Path, task_id: str | None) -> None:
+def check_no_other_tasks_in_flight(db_path: Path, task_id: str | None,
+                                   excluded: tuple[str, ...] = ()) -> None:
     """Raises GateBlocked if any task OTHER than `task_id` is in one of
     GATE_STATUSES, or if the registry cannot be read at all. `task_id=None`
     means no self-exclusion is possible (e.g. run outside any worktree) —
@@ -165,7 +166,10 @@ def check_no_other_tasks_in_flight(db_path: Path, task_id: str | None) -> None:
             ).fetchall()
     except Exception as exc:  # noqa: BLE001 — undecidable, refuse
         raise GateBlocked(f"cannot read {db_path}: {exc}") from exc
-    others = [dict(r) for r in rows if r["id"] != task_id]
+    others = [dict(r) for r in rows if r["id"] != task_id and r["id"] not in excluded]
+    for r in rows:
+        if r["id"] in excluded:
+            print(f"  gate: EXCLUDED by --ceo-override-idle: {r['id']} ({r['status']}) — {r['title']}")
     if others:
         listing = "; ".join(f"{t['id']} ({t['status']}, {t['role']}): {t['title']}" for t in others)
         raise GateBlocked(
@@ -371,11 +375,11 @@ def cmd_plan(hq_root: Path) -> int:
 
 # ─────────────────────────── apply ────────────────────────────────────────────
 
-def cmd_apply(hq_root: Path, task_id_arg: str | None) -> int:
+def cmd_apply(hq_root: Path, task_id_arg: str | None, excluded: tuple[str, ...] = ()) -> int:
     # ---- the hard gate, before anything else is even read ----
     task_id = this_task_id(task_id_arg)
     try:
-        check_no_other_tasks_in_flight(TASKS_DB, task_id)
+        check_no_other_tasks_in_flight(TASKS_DB, task_id, excluded)
     except GateBlocked as exc:
         print(f"BLOCKED — {exc}")
         print("Nothing was touched. Re-run --apply once those tasks are no longer in flight.")
@@ -555,13 +559,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--repoint", action="store_true", help="rewrite this repo's own hardcoded old paths")
     ap.add_argument("--rollback", type=Path, default=None, help="manifest json from a previous --apply")
     ap.add_argument("--task-id", default=None, help="override self-exclusion id for the --apply gate")
+    ap.add_argument("--ceo-override-idle", action="append", default=[], metavar="TASK_ID",
+                    help="exclude a task the CTO has verified IDLE (process at its prompt, report submitted) "
+                         "from the gate, on the CEO's explicit word; printed loudly (CEO 2026-09-23)")
     a = ap.parse_args(argv)
     if a.rollback:
         return cmd_rollback(a.rollback)
     if a.repoint:
         return cmd_repoint(HQ_ROOT, REPO_ROOT)
     if a.apply:
-        return cmd_apply(HQ_ROOT, a.task_id)
+        return cmd_apply(HQ_ROOT, a.task_id, tuple(a.ceo_override_idle))
     return cmd_plan(HQ_ROOT)
 
 
