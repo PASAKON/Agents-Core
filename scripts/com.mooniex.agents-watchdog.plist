@@ -13,6 +13,15 @@
     <string>--loop</string>
   </array>
 
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <!-- keep ORG_WATCHDOG_BRANCH_POLL at 0 (the CEO has not ruled on turning it on) -->
+    <key>ORG_WATCHDOG_BRANCH_POLL</key>
+    <string>0</string>
+  </dict>
+
   <key>WorkingDirectory</key>
   <string>/Users/gob/Projects/Agents</string>
 
