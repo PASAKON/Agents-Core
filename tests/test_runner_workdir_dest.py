@@ -193,6 +193,131 @@ def test_cmd_pull_refuses_forbidden_dest_before_touching_the_browser(monkeypatch
     assert rc == 1
 
 
+# ── cmd_run money-guard ordering (task-2b587031 iteration 1, CTO review):
+#    the free-space check must gate browser.submit() (the paid generation),
+#    not merely browser.download() — a disk-space refusal that only fires
+#    after submit() has already spent credits on a generation nobody can
+#    save is exactly the "money defect" this iteration exists to fix. This
+#    mirrors tests/test_flow_shoot.py's own money-guard stubs (e.g.
+#    _GateStubBrowser), including its reset_composer() no-op — cmd_run now
+#    calls it at every shot boundary. ──────────────────────────────────────
+
+class _SpaceGateStubBrowser:
+    """poll_result()/download() both raise AssertionError unless
+    allow_generation=True: the negative control (low disk) must never
+    reach either — proving the refusal happens strictly before submit(),
+    not merely before download(). The positive control (plenty of disk)
+    sets allow_generation=True and gets a scripted refusal card, so
+    download() still isn't exercised — same shape as test_flow_shoot.py's
+    own test_chip_count_match_reaches_submit."""
+
+    def __init__(self, allow_generation: bool = False):
+        self._allow_generation = allow_generation
+        self._chip_count = 0  # rises by one per attach_chip() call, like the real gate expects
+        self.dry_run = False
+        self.submit_called = False
+        self.download_called = False
+        self._pasted = ""
+
+    def attach(self) -> None:
+        pass
+
+    def mute_all_media(self) -> None:
+        pass
+
+    def reset_composer(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+    def set_settings(self, dur_s, resolution="720p") -> dict:
+        return {"model_omni": True, "mode_ingredients": True, "aspect_9_16": True,
+                "qty_x1": True, "resolution": True, "duration": True}
+
+    def chip_count(self) -> int:
+        return self._chip_count
+
+    def attach_chip(self, _handle: str) -> bool:
+        self._chip_count += 1
+        return True
+
+    def paste_prompt(self, text: str) -> None:
+        self._pasted = text
+
+    def read_prompt_text(self) -> str:
+        return self._pasted
+
+    def read_credit_estimate(self) -> int:
+        return 4
+
+    def submit(self, expected_chip_count: int | None = None) -> None:
+        self.submit_called = True
+
+    def poll_result(self, timeout_s: int = 0) -> dict:
+        if not self._allow_generation:
+            raise AssertionError(
+                "poll_result() must never be reached — the space refusal must "
+                "happen before submit(), which is before this is ever called")
+        return {"status": "refusal", "text": "ล้มเหลว (stub, positive-control test)"}
+
+    def download(self):
+        self.download_called = True
+        raise AssertionError("download() must never be reached by either control")
+
+
+def _space_run_args(tmp_path: Path, ledger_name: str) -> object:
+    ap = flow_shoot.build_parser()
+    return ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET), "--ledger", str(tmp_path / ledger_name),
+        "--credit-cap", "999", "--only", "35",
+    ])  # --dest omitted: $WORK_DIR is set in every test below, so it defaults to $WORK_DIR/out
+
+
+def test_cmd_run_low_disk_blocks_submit_before_any_credit_spend(monkeypatch, tmp_path):
+    monkeypatch.setenv("WORK_DIR", str(tmp_path))
+    # 1 GB free < config/storage-policy.yaml work_dir.keep_free_gb (10)
+    monkeypatch.setattr(flow_shoot.shutil, "disk_usage",
+                         lambda path: types.SimpleNamespace(free=1 * 1024 ** 3))
+    args = _space_run_args(tmp_path, "space.tsv")
+    stub = _SpaceGateStubBrowser()
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    assert stub.submit_called is False
+    assert stub.download_called is False
+    rows = flow_ledger.load_ledger(tmp_path / "space.tsv")
+    assert rows[35]["status"] == "failed"
+    assert "space" in rows[35]["note"]
+    assert rc == 1
+
+
+def test_cmd_run_plenty_of_disk_still_reaches_submit(monkeypatch, tmp_path):
+    # Positive control: the new gate must not false-block a healthy run —
+    # with ample free space, submit() is reached exactly as before.
+    monkeypatch.setenv("WORK_DIR", str(tmp_path))
+    monkeypatch.setattr(flow_shoot.shutil, "disk_usage",
+                         lambda path: types.SimpleNamespace(free=100 * 1024 ** 3))
+    args = _space_run_args(tmp_path, "space_ok.tsv")
+    stub = _SpaceGateStubBrowser(allow_generation=True)
+    flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    assert stub.submit_called is True
+    assert stub.download_called is False  # stub's poll_result() always refuses
+
+
+def test_cmd_run_free_space_check_is_noop_when_work_dir_unset(tmp_path):
+    # WORK_DIR unset (autouse fixture) — byte-for-byte unchanged: reaches
+    # submit() regardless of disk state, since check_free_space() no-ops.
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET), "--ledger", str(tmp_path / "no_workdir.tsv"),
+        "--dest", str(tmp_path / "dest"), "--credit-cap", "999", "--only", "35",
+    ])
+    stub = _SpaceGateStubBrowser(allow_generation=True)
+    flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+    assert stub.submit_called is True
+
+
 # ── scripts/higgsfield/gen_loop.py: resolve_local_root ──────────────────────
 
 def test_gen_loop_local_root_unchanged_when_work_dir_unset():
