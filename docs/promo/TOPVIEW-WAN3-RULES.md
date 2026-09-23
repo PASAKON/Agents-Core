@@ -85,3 +85,30 @@ channel, not ILAG. We are on the standard route (2) plus the plugin (5) at most.
 
 155 works in the public gallery against 16 prizes (the gallery may show only
 approved entries, so the real count may be higher).
+
+## Wan3 as TopView advertises it (read 2026-09-23 from topview.ai/wan-3)
+
+- Up to 30 s per generation, 1080p or 720p, 16:9 / 9:16 / 1:1 / 4:3 / 3:4.
+- Modes: Omni Reference, Image to Video, Text to Video. Inputs: text, image, video, audio.
+- Selling points, in TopView's words: **"Reference consistency"** (same face, outfit
+  and props across shots), "Photoreal direction", **"Audio control: Voice · Music ·
+  Sound"**, **"Shot-level direction"** (several shots in one generation; their own
+  example: "an establishing shot, two dialogue close-ups, a corridor tracking shot,
+  and a final reveal"). Their showcase includes a "cinematic concept trailer".
+- Caveat on the same page: "Alibaba's public model catalog does not currently
+  confirm these as official Wan 3.0 parameters". Whether Wan3 generates audio
+  natively is unconfirmed.
+- "The organizer may verify the creation process, Topview project, and material
+  licenses of shortlisted entries." Every Wan3 shot must live in our TopView project.
+
+## Gallery on 2026-09-23 (155 entries, from the page API; no view counts exposed)
+
+Most entries are ~30 s (one generation). 23 have JP/KR/CN titles, 12 start with
+"The Last...", 4 are Ganpati festival pieces, many are action/warrior.
+**Thriller/horror: 2. Trailers: 1.** Our genre is under-represented.
+
+## Extra credit routes (FAQ)
+
+10,000+ followers on a designated platform: 7 credits. Each referred creator who
+passes review: 2 credits, max 20. A posted entry reaching 10,000-49,999 views: 10
+credits, per platform, max 3 works.

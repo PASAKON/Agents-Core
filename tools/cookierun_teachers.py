@@ -40,7 +40,7 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-GOLD = Path(os.environ.get("TEACHER_GOLD", "/root/cookierun-gold"))
+GOLD = Path(os.environ.get("TEACHER_GOLD", "/opt/MoonieXHQ/Assets/MoonieX/CookierunBot/cookierun-gold"))
 STATE = ROOT / "state" / "cookierun_teachers"
 OR_URL = "https://openrouter.ai/api/v1/chat/completions"
 ENV_FILE = "/home/secretary/.secretary.env"

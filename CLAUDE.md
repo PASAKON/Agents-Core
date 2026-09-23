@@ -15,16 +15,26 @@ Read it to know which machine you're on and which projects you can actually touc
 
 ## Project availability on Contabo (mobile Console)
 
-| Project | Path on Contabo |
-|---|---|
-| mooniex-agents (this org repo) | `/opt/mooniex-agents` |
-| mooniex-console (own repo since 2026-08-03: `PASAKON/MoonieX-Console`) | `/opt/mooniex-console` |
-| mooniex-claudeflow | `/root/projects/mooniex-claudeflow` |
-| mooniex-option | `/root/projects/mooniex-option` |
-| mooniex-alphatrader | `/root/projects/mooniex-alphatrader` |
-| mooniex-line-automation | `/root/projects/mooniex-line-automation` |
-| mooniex-line-poster | `/root/projects/mooniex-line-poster` |
-| claude-usage-monitor (scriptable widget backend) | `/opt/claude-usage-monitor` |
+Contabo's work root is `/opt/MoonieXHQ` (same names as the Mac HQ; `/root/MoonieXHQ`
+links to it — the real folder sits under `/opt` because `/root` is 0700 and the
+secretary/driveup/photoup services must reach Agents/Core). Moved 2026-09-23; every old
+path below is a compat link for a week — write the new one.
+Plan + record: `docs/ops/contabo-hq-migration-plan-2026-09-23.md`.
+
+| Project | Path on Contabo | Old path (link) |
+|---|---|---|
+| Agents-Core (this org repo) | `/opt/mooniex-agents` — moves to `Agents/Core` last | — |
+| MoonieX-Console | `/opt/MoonieXHQ/Projects/MoonieX/Console` | `/opt/mooniex-console` |
+| MoonieX-ClaudeFlow | `/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow` | `/root/projects/mooniex-claudeflow` |
+| MoonieX-Option | `/opt/MoonieXHQ/Projects/MoonieX/Option` | `/root/projects/mooniex-option` |
+| MoonieX-AlphaTrader | `/opt/MoonieXHQ/Projects/MoonieX/AlphaTrader` | `/root/projects/mooniex-alphatrader` |
+| MoonieX-LineAutomation | `/opt/MoonieXHQ/Projects/MoonieX/LineAutomation` | `/root/projects/mooniex-line-automation` |
+| LinePoster (no repo) | `/opt/MoonieXHQ/Projects/MoonieX/LinePoster` | `/root/projects/mooniex-line-poster` |
+| LungNote-MCP | `/opt/MoonieXHQ/Projects/LungNote/Mcp` | `/opt/lungnote-mcp` |
+| claude-usage-monitor (tool, stays outside) | `/opt/claude-usage-monitor` | — |
+
+Compose projects keep their old names (`COMPOSE_PROJECT_NAME` pinned in each `.env`), so
+`docker compose` run from the new folder manages the same containers.
 
 **NOT on Contabo yet** — a mobile/Console session cannot edit these until someone
 clones them onto the box: `mooniex-webapp`,
@@ -52,8 +62,8 @@ carries no prefix.
 
 | | Mac | Contabo |
 |---|---|---|
-| `org:` | ✅ `/Users/gob/MoonieXHQ/Agents/Rules` | ✅ `/opt/agents-wikis` |
-| `mooniex:` | ✅ `/Users/gob/MoonieXHQ/Agents/Wikis` | ✅ `/opt/mooniex-wikis` (CEO 2026-08-09) |
+| `org:` | ✅ `/Users/gob/MoonieXHQ/Agents/Rules` | ✅ `/opt/MoonieXHQ/Agents/Rules` |
+| `mooniex:` | ✅ `/Users/gob/MoonieXHQ/Agents/Wikis` | ✅ `/opt/MoonieXHQ/Agents/Wikis` (CEO 2026-08-09) |
 
 **Both namespaces resolve on Contabo.** `org:` landed 2026-08-03 with the
 ADR-0013 split; `mooniex:` followed on 2026-08-09, which also fixed every
@@ -62,8 +72,8 @@ default namespace, so `wiki_read('INDEX.md')` resolved to a root that was not
 there. Prefixing with `org:` is no longer required.
 
 `config/wikis.yaml` carries Mac absolute paths; `cto-claude.sh` /
-`cxo-claude.sh` export `WIKI_ROOT_ORG=/opt/agents-wikis` and
-`WIKI_ROOT_MOONIEX=/opt/mooniex-wikis` when those directories exist, which is
+`cxo-claude.sh` export `WIKI_ROOT_ORG=/opt/MoonieXHQ/Agents/Rules` and
+`WIKI_ROOT_MOONIEX=/opt/MoonieXHQ/Agents/Wikis` (old `/opt/*-wikis` as fallback) when those directories exist, which is
 how Contabo resolves them. Any namespace can be repointed the same way with
 `WIKI_ROOT_<NS>`.
 
@@ -74,8 +84,8 @@ sync silently overwrites. Treat Contabo wikis as **read-only** and refresh after
 any significant wiki change (run from the Mac):
 
 ```bash
-rsync -aH --delete --exclude '.git/' /Users/gob/MoonieXHQ/Agents/Wikis/         mooniex-vps:/opt/mooniex-wikis/
-rsync -aH --delete --exclude '.git/' /Users/gob/MoonieXHQ/Agents/Rules/ mooniex-vps:/opt/agents-wikis/
+rsync -aH --delete --exclude '.git/' /Users/gob/MoonieXHQ/Agents/Wikis/         mooniex-vps:/opt/MoonieXHQ/Agents/Wikis/
+rsync -aH --delete --exclude '.git/' /Users/gob/MoonieXHQ/Agents/Rules/ mooniex-vps:/opt/MoonieXHQ/Agents/Rules/
 ```
 
 ## Maintenance

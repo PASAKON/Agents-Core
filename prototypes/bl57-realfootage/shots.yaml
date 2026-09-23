@@ -1,0 +1,200 @@
+# BLACK LIQUIDITY EP57 -- เว็บหาย ไม่มีใบอนุญาต -- real-footage shot list
+# Run with: python tools/bl_realfootage.py run --shots prototypes/bl57-realfootage/shots.yaml --episode bl57
+#
+# NOTE: one entry in REAL_MANIFEST.json is NOT in this file --
+# third-party/wikifx-xxlmarkets-review.jpg (covers HOOK-3, MAIN-8) is the
+# CEO's own supplied image (third-party/SOURCES.md), added to the manifest
+# by hand since it was never run through this tool.
+#
+# Sources:
+#   wikifx  = https://www.wikifx.com/th/dealer/3697715948.html (XXLMARKETS' WikiFX
+#             Thailand profile -- matches the CEO's source card exactly, verified
+#             2026-09-23, see research/xxlmarkets-wikifx-fca-domain-202609.md)
+#   xxl     = https://xxlmarkets.com/ (the broker's own site -- confirmed dead:
+#             NXDOMAIN + no whois match, 2026-09-23)
+#   icann   = https://lookup.icann.org/en/lookup?q=xxlmarkets.com (public ICANN
+#             domain-registration lookup -- shows the domain has no active
+#             registration)
+#
+# censor_profiles and the x-wikifx-hygiene hide-block are REUSED VERBATIM from
+# prototypes/bl55-realfootage/shots.yaml (same site, same DOM quirks: the score
+# badge is an odometer digit-reel, the profile page carries other-broker widgets
+# and reviewer avatar+ID rows) -- see that file's comments for the full history.
+# One addition below: wikifx-profile-score anchors on ".head-l-score" from the
+# start (not on the "1.99" text), because EP55 already found that a WikiFX score
+# badge is never plain text -- CTO review 2026-09-23, task-67f82679.
+
+censor_profiles:
+  personal_data:
+    - {label: "reviewer avatar + username", kind: full, avatar_heuristic: true}
+  faces: []
+  promo:
+    - {label: "signup/register CTA (สมัคร)", kind: full, text: "สมัคร"}
+    - {label: "register CTA (ลงทะเบียน)", kind: full, text: "ลงทะเบียน"}
+    - {label: "download app CTA", kind: full, text: "ดาวน์โหลด"}
+    - {label: "bonus/prize banner (รางวัล)", kind: full, text: "รางวัล"}
+    - {label: "gift/welcome-bonus banner (ของขวัญ)", kind: full, text: "ของขวัญ"}
+    - {label: "dollar bonus amount", kind: full, regex: "\\$[\\d,]{4,}"}
+    # who.is (whois-no-match shot) carries its own unrelated third-party
+    # website-builder upsell -- not PII, not another broker, but still an
+    # unrelated ad per the skill's "ads" rule, so it gets its own keyword.
+    - {label: "unrelated product upsell (BotBuilt)", kind: full, text: "BotBuilt"}
+  broker_logo_partial:
+    - label: "header logo (partial)"
+      kind: partial
+      selector: ".nav-logo-link, header img[alt*=logo], a[href='/'] img"
+      fraction: 0.4
+      side: right
+      min_w: 60
+
+x-wikifx-hygiene: &wikifx_hygiene
+  hide_selectors:
+    - ".advertisement-list"
+    - ".wiki-direct"
+    - ".article-r"
+    - ".head-r"
+    - ".dealer-primary-jaf-new"
+    - ".article-c img, .article-info img"
+    - ".chrome_ctx_right"
+    - ".new_chrome_down"
+    - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+  hide_texts:
+    - "切换"
+
+shots:
+  # ── WikiFX profile: website status (PATTERN-1) ──────────────────────────
+  - id: wikifx-profile-website-inaccessible
+    url: "https://www.wikifx.com/th/dealer/3697715948.html"
+    action: capture
+    kind: still
+    covers: [PATTERN-1]
+    wait_ms: 2000
+    crop:
+      text: "ไม่สามารถเข้าถึงได้อย่างปกติในขณะนี้"
+      pad: 2.2
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+    source_note: "WikiFX's own note on the profile page that the broker's website is currently unreachable -- confirmed independently below (xxlmarkets-site-down, icann-whois-no-match)"
+
+  # ── WikiFX profile: country + years (PATTERN-2) -- DROPPED, see below ───
+  # First captured as its own shot anchored on "สหราชอาณาจักร" text alone.
+  # Reviewing the full-resolution still (not just the contact sheet thumb)
+  # found the crop zoomed into the "ข้อมูลพื้นฐาน" detail box, which shows
+  # the country but NOT "2-5ปี" -- that combination only appears together in
+  # the page's header line ("สหราชอาณาจักร | 2-5ปี"), which the
+  # wikifx-profile-score shot below already captures in full. Rather than
+  # ship a still that doesn't actually prove what its line claims, PATTERN-2
+  # now points at wikifx-profile-score instead (see its covers list) and this
+  # shot is removed. Same discipline as the EP55 score-badge lesson: verify
+  # by eye, don't just trust that the runner said "ok".
+
+  # ── WikiFX profile: license + regulation status (CONTEXT-1, CONTEXT-2) ──
+  - id: wikifx-profile-no-license
+    url: "https://www.wikifx.com/th/dealer/3697715948.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-1]
+    wait_ms: 2000
+    crop:
+      text: "ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์"
+      pad: 2.5
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  - id: wikifx-profile-no-regulation
+    url: "https://www.wikifx.com/th/dealer/3697715948.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-2]
+    wait_ms: 2000
+    crop:
+      text: "ยังไม่มีการกำกับดูแล"
+      pad: 3.0
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  # ── WikiFX profile: trust score + header (CONTEXT-3, PATTERN-2) ─────────
+  # Anchored on the badge's own container selector, not on "1.99" text -- the
+  # EP55 shot list already found the score badge is an odometer digit-reel
+  # widget, not plain text (task-67f82679, see bl55-realfootage/shots.yaml).
+  # Also covers PATTERN-2 (country + years): the header block this crop pulls
+  # in shows "สหราชอาณาจักร | 2-5ปี" on one line next to the score box --
+  # confirmed by eye on the full-resolution still. MAIN-8 (subscore claim)
+  # does NOT get a shot: the Thai profile page's visible viewport never shows
+  # a Regulation/Tech/Reputation/Risk breakdown, only the single 1.99/10
+  # headline score -- that breakdown came from the EN dealer page's own
+  # summary text (research/xxlmarkets-wikifx-fca-domain-202609.md), not from
+  # anything capturable on this page, so MAIN-8 stays spoken-only.
+  - id: wikifx-profile-score
+    url: "https://www.wikifx.com/th/dealer/3697715948.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-3, PATTERN-2]
+    wait_ms: 2000
+    crop:
+      selector: ".head-l-score"
+      pad: 2.4
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  # ── WikiFX profile: warning banner (MAIN-9, MAIN-10) ────────────────────
+  - id: wikifx-profile-warning-banner
+    url: "https://www.wikifx.com/th/dealer/3697715948.html"
+    action: capture
+    kind: still
+    covers: [MAIN-9, MAIN-10]
+    wait_ms: 2000
+    crop:
+      text: "ใบอนุญาตในการกำกับดูแลกำลังถูกตั้งข้อสงสัย"
+      pad: 2.6
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  # ── xxlmarkets.com direct visit: ATTEMPTED, DROPPED ─────────────────────
+  # Tried capturing https://xxlmarkets.com/ directly for MAIN-2 (the line
+  # where the avatar says "I typed the site straight into the browser").
+  # tools/bl_realfootage.py's page.goto() uses wait_until="networkidle" with
+  # no error tolerance, so it hard-fails on NXDOMAIN (net::ERR_NAME_NOT_RESOLVED)
+  # instead of capturing Chrome's own connection-error page -- confirmed
+  # 2026-09-23, this run's own log. A Claude-in-Chrome live visit hit the same
+  # wall from a different angle: a screenshot of that error page also errors
+  # ("Frame with ID 0 is showing error page"). Neither automation surface can
+  # screenshot a page that never loaded. Per real-footage-capture skill: no
+  # capturable public page behind this specific claim today -- reporting it
+  # here rather than faking something near it. MAIN-2 stays a spoken-only verdict
+  # line with no shot; the domain's non-registration is proven instead by the
+  # ICANN Lookup shot below, which DOES render and is arguably the stronger,
+  # more authoritative source anyway.
+  #
+  # NOTE also observed: when the failed xxlmarkets-site-down goto ran
+  # immediately before icann-whois-no-match in the same browser context, the
+  # ICANN shot then failed too ("Navigation... interrupted by another
+  # navigation to chrome-error://chromewebdata/") -- a page-reuse side effect
+  # of the prior failure, not an ICANN-specific problem (confirmed by running
+  # the ICANN shot alone, which succeeds). Removing the xxlmarkets-site-down
+  # shot avoids this entirely.
+
+  # ── who.is public WHOIS lookup: no registration found (MAIN-3, CURIOSITY-2) ─
+  # First tried https://lookup.icann.org/en/lookup?q=xxlmarkets.com (ICANN's
+  # own tool) -- DROPPED after the contact sheet caught it: that tool is a
+  # client-side SPA and the ?q= URL param does not auto-run the search, so the
+  # capture was just the empty landing page with the search box unfilled --
+  # NOT evidence of anything (real-footage-capture skill rule 3: the contact
+  # sheet, read by eye, is the check, and it worked here). who.is instead
+  # resolves the domain straight from the URL path server-side and needs no
+  # interaction; confirmed live via Claude-in-Chrome 2026-09-23 that this
+  # exact URL renders "We don't have a current record for xxlmarkets.com, but
+  # we hold 4 historical WHOIS/RDAP snapshots of it from 2022 to 2026" --
+  # stronger evidence than a bare "no match" would have been, since it also
+  # proves the domain WAS registered before and has since lapsed.
+  - id: whois-no-match
+    url: "https://who.is/whois/xxlmarkets.com"
+    action: capture
+    kind: still
+    covers: [MAIN-3, CURIOSITY-2]
+    wait_ms: 2500
+    crop:
+      text: "We don't have a current record for xxlmarkets.com"
+      pad: 2.0
+    censor_profiles: [promo]
+    source_note: "public WHOIS lookup (who.is) -- confirms no current registration + 4 historical snapshots 2022-2026; promo profile censors the unrelated 'BotBuilt' upsell line lower on the page"

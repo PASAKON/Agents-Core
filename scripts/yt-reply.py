@@ -19,7 +19,7 @@ import base64, hashlib, json, os, random, secrets, sys, time
 import urllib.error, urllib.parse, urllib.request
 from pathlib import Path
 
-CLIENT_ENV = Path("/root/projects/mooniex-claudeflow/.env")
+CLIENT_ENV = Path("/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env")
 STORE = Path("/root/.config/mooniex/youtube")
 TOKEN, PENDING = STORE / "token.json", STORE / "pending.json"
 SCOPE = "https://www.googleapis.com/auth/youtube.force-ssl"

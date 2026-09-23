@@ -354,18 +354,23 @@ HIDETAB
 export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
 
 # ADR 0013 Phase 5 — org wiki root on a non-Mac box.
-# config/wikis.yaml carries Mac absolute paths; Contabo keeps its checkout at
-# /opt/agents-wikis. No-op on the Mac, where that path does not exist.
-if [ -z "${WIKI_ROOT_ORG:-}" ] && [ -d /opt/agents-wikis ]; then
-  export WIKI_ROOT_ORG=/opt/agents-wikis
+# config/wikis.yaml carries Mac absolute paths; Contabo keeps its copy at
+# /opt/MoonieXHQ/Agents/Rules since the HQ move (2026-09-23) — /opt/agents-wikis
+# is the compat link for a week. No-op on the Mac, where neither path exists.
+if [ -z "${WIKI_ROOT_ORG:-}" ]; then
+  for d in /opt/MoonieXHQ/Agents/Rules /opt/agents-wikis; do
+    if [ -d "$d" ]; then export WIKI_ROOT_ORG="$d"; break; fi
+  done
 fi
 
 # MoonieX product wiki on Contabo (CEO 2026-08-09). Previously Mac-only, which
 # made `mooniex:` fail on that box — and with it every UNPREFIXED path, since
 # mooniex is the default namespace. Same rsync-not-clone shape as agents-wikis,
 # so reads work and there is no git remote to push back to. No-op on the Mac.
-if [ -z "${WIKI_ROOT_MOONIEX:-}" ] && [ -d /opt/mooniex-wikis ]; then
-  export WIKI_ROOT_MOONIEX=/opt/mooniex-wikis
+if [ -z "${WIKI_ROOT_MOONIEX:-}" ]; then
+  for d in /opt/MoonieXHQ/Agents/Wikis /opt/mooniex-wikis; do
+    if [ -d "$d" ]; then export WIKI_ROOT_MOONIEX="$d"; break; fi
+  done
 fi
 
 # lungnote-mcp needs Node's native WebSocket (added in 22) for

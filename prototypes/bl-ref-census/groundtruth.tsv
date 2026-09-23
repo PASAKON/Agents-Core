@@ -1,0 +1,46 @@
+t0	t1	text	class	entry_type	focus_device	target	highlighted_word	sfx
+0.00	1.90	มึงเคยใช้ XM Trade Forex ไหม?	hook	cut	avatar_slide	avatar box (whole)	-	other/unclear@1.96
+1.90	5.24	แล้วมึงรู้ไหมว่าบัญชีสแตนดาร์ดของ XM สเปรดแม่งสูงชิบหาย?	show	cut	pan+zoom	webpage content box (XM registration flow)	-	other/unclear@1.96;whoosh/shimmer@4.46;other/unclear@5.34
+5.24	7.24	คำถามคือ ทำไมมันต้องสูง?	verdict	cut	-	-	-	other/unclear@5.34
+7.24	9.20	คุณจะบอกความจริงที่ไม่มีใครบอกมึง	verdict	-	plate_dissolve	background plate (red studio -> chart b-roll), avatar still full-size	-	impact/thud@8.86;whoosh (moderate)@9.37
+9.20	11.34	สเปรดที่สูง ไม่ได้สูงเพราะตลาด	show	shrink	avatar_shrink	avatar box (whole)	-	whoosh (moderate)@9.37
+11.34	14.08	แต่มันสูงเพราะมีเงินบางส่วนถูกกักไว้	show	cut	-	-	-	other/weak@13.87
+14.08	15.16	กักไว้ทำอะไร?	verdict	cut	-	-	-	other/weak@13.87
+15.16	16.30	กักไว้เป็นรีเบต	verdict	-	pop	coin icon beside 'เพราะมีเงินถูกกักไว้'	กักไว้	-
+16.30	17.76	แต่มึงเคยได้คืนเต็มไหม?	verdict	-	-	-	-	-
+17.76	19.00	ส่วนใหญ่ ไม่	verdict	-	plate_dissolve	background plate (red studio -> EURUSD chart), avatar still full-size	-	impact/thud@19.17
+19.00	20.24	มึงดูตัวอย่างนี้	show	shrink	avatar_shrink	avatar box (whole)	-	impact/thud@19.17;impact/thud@20.39
+20.24	22.88	บัญชี IB ที่ให้รีเบตทองคำสูงสุดจริง	show	cut	-	-	-	impact/thud@20.39
+22.88	24.64	คือ 15 ดอลลาร์ต่อ 1 ลอต	show	cut	-	-	-	whoosh@24.62
+24.64	26.26	แต่ถ้ามึงเทรดบัญชีสแตนดาร์ด	show	cut	-	-	-	whoosh@24.62
+26.26	28.30	แค่เปิดไม้แรก 0.01 ลอต	show	-	-	-	-	-
+28.30	30.12	มึงก็ติดลบไปแล้ว 30 เซนต์	show	-	-	-	-	-
+30.12	31.16	ถ้ามึงกด 1 ลอต	show	-	-	-	-	-
+31.16	33.20	มึงติดลบ 30 ดอลลาร์ทั้งที	show	-	-	-	-	-
+33.20	34.20	คำถามคือ	show	-	-	-	-	-
+34.20	35.90	ถ้ารีเบตมันมี 15 ดอลลาร์	show	-	highlighter_sweep	'ค่า REBATE -15.3$' chip, left-to-right	รีเบต	-
+35.90	37.74	แล้วอีก 15 ดอลลาร์ หายไปไหน?	show	-	-	-	-	-
+37.74	38.66	กูตอบให้	show	-	-	-	-	-
+38.66	40.70	มันไปอยู่กับ IB ที่ชวนมึงมาเทรด	show	-	-	-	-	-
+40.70	42.10	และที่หน้าเท่ากว่าคือ	show	-	pop	businessman icon beside 'เงินที่เหลือ 14.7$'	-	-
+42.10	44.20	IB พวกนั้นคืนให้มึงนิดเดียว	show	-	pop (repeated, group growing)	crowd-icon cluster beside the shrinking dollar figure	-	-
+44.20	46.20	หรือบางคนไม่คืนให้มึงเลย	show	-	-	-	-	impact/thud@46.34
+46.20	47.34	แปลกตรงๆคือ	verdict	cut	-	-	-	impact/thud@46.34
+47.34	48.34	มึงเป็นคนกด	verdict	-	-	-	-	-
+48.34	49.34	มึงเป็นคนเสี่ยง	verdict	-	-	-	-	-
+49.34	51.10	แต่คนอื่นกินเงินมึงเงียบ	verdict	-	-	-	-	pop/click@50.83
+51.10	52.26	หูพูดตรงนี้เลยนะ	show	shrink	avatar_shrink	avatar box (whole)	-	pop/click@50.83
+52.26	55.30	ใครใช้ XM แล้วได้รีเบตมันไม่ถึง 15 ดอลลาร์ต่อหลอด	show	-	-	-	-	-
+55.30	56.54	มึงกำลังเสียเปรียบ	show	-	-	-	-	other (weak-moderate)@56.48
+56.54	59.40	ใครใช้ X-ness แล้วได้คืนไม่ถึง 8 ดอลลาร์ต่อหลอด	show	cut	highlighter_sweep	XAUUSD row, Exness comparison table	X-ness	other (weak-moderate)@56.48;ding/sparkle@57.34;other/weak@59.37
+59.40	61.20	มึงก็เสียผลประโยชน์เหมือนกัน	verdict	cut	-	-	-	other/weak@59.37
+61.20	62.60	ตลาดมันหลอกพอแล้ว	verdict	-	-	-	-	-
+62.60	64.40	อย่ามาโง่เสียเงินให้ระบบอีก	verdict	-	-	-	-	-
+64.40	65.80	ใครฟังมาถึงตรงนี้	cta	cut	-	-	-	-
+65.80	68.26	กูเชื่อว่า มึงไม่อยากเสียเงินฟรีอีกต่อไป	cta	-	-	-	-	-
+68.26	71.96	ใครอยากได้ XM หรือ X-ness เรียบเต็ม ทักกูมา	cta	cut	pop	'ex' (Exness) yellow logo icon, transaction row	xnes	other (moderate)@68.57;ding@69.62;impact/thud@71.64;whoosh@72.09
+71.96	73.66	บโรคอื่นก็มีคืนเหมือนกัน	cta	-	scroll	app UI content, vertical	-	whoosh@72.09
+73.66	77.10	เพราะกูดีลตรงกับโบรกเกอร์ ไม่ผ่านเอเย่นต์ ไม่ผ่านคนกลาง	cta	-	pop (low confidence)	unidentified small yellow UI element, scrolling app screen	-	impact/thud@76.27
+77.10	80.26	ไม่กักเงินมึง มึงดูตัวเลขมึงตัดสินใจเอง	cta	-	-	-	-	whoosh (moderate)@80.35
+80.26	82.46	แต่จำไว้ เงินทุกล็อตที่มึงกด	cta	cut	-	-	-	whoosh (moderate)@80.35
+82.46	85.12	มันควรเป็นของมึง ไม่ใช่ของคนอื่น	cta	-	-	-	-	-
