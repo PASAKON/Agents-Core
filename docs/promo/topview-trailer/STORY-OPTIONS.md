@@ -1,4 +1,53 @@
-# TopView Wan3 Challenge: thriller trailer, story options (draft 1, 2026-09-23)
+# TopView Wan3 Challenge: trailer story options
+
+## Draft 2 (2026-09-23): the CEO's direction
+
+> ฉันอยากได้ Sifi mystery Small-action ColorFull Dream UnderWaterPlatnet เอเลี่ยน 3-4 Charactor
+
+Sci-fi mystery, small-scale action, colourful, dreamlike, an underwater planet,
+aliens, 3-4 characters. Still a trailer, 60-90 s. Draft 1 (thriller) is kept below
+for the record; the CEO moved away from it.
+
+### D. THE DREAMING SEA
+A four-person crew dives into the glowing sea of an ocean planet to find a lost
+colony. They find the colonists asleep in the reef, smiling, lit in the sea's
+colours. Everyone who sleeps near the reef dreams the same dream.
+- Cast: the captain (woman, 40s), a young biologist, an old engineer, and the
+  Listener, a translucent alien that speaks in light.
+- Mystery: what does the sea want with sleepers?
+- Small action: the biologist drifts off mid-dive; the others haul her up while
+  the reef's light reaches after them.
+- Sting: safe on the ship, the captain wakes. Her eyes glow in the reef's colours.
+  The window behind her shows fish swimming past. They never surfaced.
+
+### E. THE CORAL GARDEN
+Three divers and an alien guide. Each night one diver vanishes and a glowing coral
+statue of them grows in the alien's garden.
+- Mystery: is the guide collecting them, or saving them?
+- Small action: escape through the garden as it closes like a hand.
+- Sting: the last diver finds a statue of herself, already there, and older.
+
+### F. ECHO BLUE
+A small, bright alien child floats up to a human sea station holding a helmet
+from the station's crew. Inside is a recorded message. The three humans follow
+the child down.
+- Mystery: the helmet belongs to one of them, and it is scratched with tomorrow's date.
+- Small action: a mini-sub chase in the dark, a huge shape passing overhead.
+- Sting: the message plays in the voice of one of the three: "Don't follow the child."
+
+### CTO recommendation (draft 2)
+**D.** It carries every word of the brief (dream, underwater planet, alien, colour,
+mystery, small action, four characters), four faces held across many underwater
+shots is the strongest possible show of Wan3's reference consistency (25%), and
+its sting is the ILAG shape: the thing you escaped is where you are.
+Risks for any of the three: faces inside helmets are harder to keep lit and
+readable; four characters cost more retakes than two, so the credit budget needs
+checking before we commit; reference images for the alien should be made on
+TopView itself so the whole chain is verifiable (inferred, the rules do not say).
+
+---
+
+## Draft 1 (thriller, superseded by the CEO's direction above)
 
 Brief from the CEO: a thriller-style trailer, 1-2 minutes. The music comes from
 Google AI Ultra and drives the cut, but the story comes first. Every option below
