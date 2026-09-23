@@ -136,3 +136,8 @@ state/hq-step3-yaml-backup-*.yaml
 state/hq-step3-plist-backup-*
 state/hq-step4a-migration-*.json
 state/hq-step4a-yaml-backup-*.yaml
+
+# BL TikTok CTA loop (tools/bl_tiktok_watch.py, tools/bl_tiktok_cta.py): ledger,
+# SQLite memory and login QR. Holds commenters' handles and DM text, which are
+# personal data and must never be committed.
+state/bl-tiktok/

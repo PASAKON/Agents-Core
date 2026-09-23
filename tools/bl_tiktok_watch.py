@@ -38,7 +38,9 @@ CDP = "http://127.0.0.1:9224"
 STATE_PATH = Path("state/bl-tiktok/state.json")
 EVENTS_PATH = Path("state/bl-tiktok/events.jsonl")
 LOGIN_URL = "https://www.tiktok.com/login"
-DEFAULT_QR_OUT = Path.home() / "MoonieXHQ/Work/task-c01b0b99/out/bl-tiktok-login-qr.png"
+# Next to the ledger, not in a task Work/ folder: a per-task default recreated
+# Work/task-c01b0b99 on every login and kept it flagged as an orphan.
+DEFAULT_QR_OUT = Path("state/bl-tiktok/login-qr.png")
 
 # Same wording family as tools/flow_shoot.py's is_refusal_text / decide layer,
 # kept as a plain keyword check here — this tool is explicitly zero-model, so
