@@ -9,7 +9,7 @@
 # precedence note in tools/wiki.py's module docstring.
 #
 # `org` (Agents-Wikis) is live — its own git repo, checked out on the Mac at
-# the path below and on Contabo at /opt/agents-wikis (cto-claude.sh /
+# the path below and on Contabo at /opt/MoonieXHQ/Agents/Rules (cto-claude.sh /
 # cxo-claude.sh export WIKI_ROOT_ORG there). `mooniex` is NOT checked out on
 # Contabo, so an unprefixed path fails on that box — prefix `org:` there.
 # Any root that is genuinely missing is skipped by wiki_list/wiki_search and

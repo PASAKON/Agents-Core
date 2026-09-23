@@ -1,6 +1,6 @@
 # Contabo → `/root/MoonieXHQ` migration plan — DRAFT
 
-Status: **draft, nothing moved.** Names fixed by MAP.md's rule; waiting for the CEO's go to execute.
+Status: **steps 0–4 executed 2026-09-23** (CEO: "ย้ายได้เลย"). Step 5 (`Agents/Core`) waits for both Contabo CTO sessions to be idle.
 Author: CTO 0e8d80b8, 2026-09-23. Survey read-only over ssh the same day.
 
 ## Why
@@ -113,3 +113,43 @@ delete, back up first if unsure (done, backed up).
 - Old tarballs `mooniex-agents-pre{GitSwap-20260807-093707,Sync-20260807-074856}.tgz` → Drive
   `BACKUP/Contabo-mooniex-agents-pre-20260807.tar` (id `1lj-dbuC5YiNz3Zf2qRRj9M1NVtGS6rui`, md5 by id =
   local) + manifest, then deleted from the box. Gate row in `org:playbooks/drive-archive-gate.md`.
+
+## Executed 2026-09-23 (CEO go "ย้ายได้เลย")
+
+**Real folder is `/opt/MoonieXHQ`, and `/root/MoonieXHQ` links to it.** Found at execution time: `/root`
+is 0700, and four services run as non-root users (`mooniex-secretary` + `-waker` as `secretary`,
+`mooniex-drive-broker` as `driveup`, `mooniex-drive-photo-broker` as `photoup`). They must reach
+Agents/Core, so under `/root` they would stop. Opening `/root` would weaken the box's security, which
+was not ours to do. So the folder lives under `/opt` (world-traversable, as `/opt/mooniex-agents` is
+today), and `~/MoonieXHQ` still resolves for root sessions. `/opt/MoonieXHQ` is a clone of
+`PASAKON/MoonieX-HQ`, the same as the Mac (hq.yaml, MAP.md, CLAUDE.md, scripts/, Work/RULES.md). Folders
+that came from `/root` keep the old 0700 protection: `Archive/`, `Assets/`, `UNKNOWN/` and each moved
+`/root/projects/*` project are chmod 700.
+
+| Step | What moved (old path → compat link) | Verified |
+|---|---|---|
+| 0 | HQ clone at `/opt/MoonieXHQ`; unit files + crontab tarred to `Archive/hq-migration-20260923/` | 2,410 files in the restore bundle after the move |
+| 1 | `/root/{backups, backup-lunar-hotfix-20260704}` + `/Users/gob/Projects/LLMs.stale-20260803` → `Archive/`; 3 secretary `.bak-20260825-174911` files → `Archive/secretary-bak-20260825-174911/` (no link); Cookie Run data (cookierun-gold + its tgz, idm-yt/full/baseline, dataset-stage, idm logs/scripts/zip/json) → `Assets/MoonieX/CookierunBot/`; `/root/arb` → `UNKNOWN/arb` | arb ran via the old path, exit 0; crontab now names the new path |
+| 2 | `/opt/agents-wikis` → `Agents/Rules`, `/opt/mooniex-wikis` → `Agents/Wikis`, `/opt/agents-memory` → `Agents/Memory` | nothing had them open; `os.walk` and `grep -r` see 96 files through the link. **`find` sees 0 through a link** — tools/wiki.py `.resolve()`s its roots, so it is unaffected |
+| 3 | `/root/projects/mooniex-{alphatrader,line-poster}` → `Projects/MoonieX/{AlphaTrader,LinePoster}` | nothing had them open |
+| 4 | `/opt/lungnote-mcp` → `Projects/LungNote/Mcp`; `line-automation` → `LineAutomation` (unit repointed, restarted); `mooniex-option` → `Option`; `mooniex-claudeflow` → `ClaudeFlow`; `/opt/mooniex-console` → `Projects/MoonieX/Console` (2 units + `.env` TLS paths repointed, restarted) | line-queue `/docs` 200; Console 8443 302 (login); compose from the new folders lists the same containers (`COMPOSE_PROJECT_NAME` pinned in each `.env`); ClaudeFlow still sees `/app/data`; tmux sessions sit in a user scope, not the console cgroup, so the restart killed no session; all 7 units active |
+
+Not moved (tools, or in use by another session): `cookierun-disk-guard.sh` (running, Cookie Run CTO),
+`contabo-usage-bundle/` + `disk-monitor-bundle/` (tool deploy bundles touched on 09-22/23), `idm-venv`,
+secretary one-off scripts, dotfiles.
+
+Code repointed (old path kept as fallback): `scripts/cto-claude.sh` + `cxo-claude.sh` (WIKI_ROOT_*),
+`scripts/lib/cxo_mcp_config.py` + `scripts/session-deadline-check.py` (LungNote Mcp), `config/wikis.yaml`
+comment, root `CLAUDE.md` (table + rsync targets). `hq.yaml` rows carry `machines.contabo`.
+
+**Compat links to remove after a clean week (≈ 2026-09-30):** `/opt/{agents-wikis, mooniex-wikis,
+agents-memory, lungnote-mcp, mooniex-console}`, `/root/projects/*` (5), `/root/{backups,
+backup-lunar-hotfix-20260704, arb, cookierun-gold, cookierun-gold-2026-09-23.tgz, idm-yt, idm-full,
+idm-baseline, dataset-stage, idm_colab_out.zip, idm-*.{json,log,sh}, idm-full.log.crashed-1913}`,
+`/Users/gob/Projects/LLMs.stale-20260803`. Before removing: the LineAutomation venv's shebangs still name
+`/root/projects/mooniex-line-automation` — rebuild the venv first.
+
+**Step 5 — `Agents/Core` — still to do.** Wait until both Contabo CTOs are idle (cto-6ebacd0e was running
+an hourly Cookie Run count loop at the time). Then `mv` + link, repoint the 5 agents units, restart them,
+and handle the Claude transcript slug (`-opt-mooniex-agents` → `-opt-MoonieXHQ-Agents-Core`: Node's cwd is
+the physical path) before either session is resumed.
