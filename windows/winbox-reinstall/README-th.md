@@ -54,3 +54,28 @@ Settings → System → Recovery → **Reset this PC** → **Remove everything**
 พี่จะต้องมา login เอง: Chrome, LINE (มือถือ), BlueStacks + Cookie Run (มือถือ), ChatGPT/Claude, กด Allow ให้ rclone เข้า Drive
 
 หมายเหตุ: Windows เครื่องเดิม**ยังไม่ได้ activate** (มีลายน้ำ "Activate Windows") ลงใหม่ก็จะเป็นแบบเดิม ใช้งานได้ปกติ ถ้าจะให้หายต้องมี product key
+
+---
+
+## ภาคผนวก: สคริปต์สำรอง Cookie Run และวิธีรัน
+
+**สคริปต์:** `windows/cookierun_backup_stream.py` ใน repo Agents-Core (สำเนาบนเครื่อง: `C:\mooniex\pclease\cookierun_backup_stream.py`)
+ทำงานทีละส่วน: อัดเป็น tar ส่งขึ้น Drive ตรง ๆ (ไม่พักไฟล์ในเครื่อง) → อ่านขนาด + md5 กลับจาก Drive มาเทียบ → อัป manifest → **ผ่านครบ 3 อย่างถึงลบไฟล์ของส่วนนั้น** ส่วนที่ตรวจผ่านแล้วจะถูกข้ามเมื่อรันซ้ำ จึงหยุด/รันต่อได้ตลอด
+
+**แผน 2 ชุด** (ไฟล์บนเครื่อง `C:\mooniex\pclease\backup_plan_a.json`, `backup_plan_b.json`)
+- A = play_rec ทั้งหมด 38.4 GB → Drive `BACKUP/CookieRun Backup/{play_rec,bot_sessions,jumpsweeps}/`
+- B = modelplay + playset + label_review + โมเดล + ไฟล์บอทที่ไม่อยู่ใน git 62.1 GB → `.../{modelplay,playsets,box-extras}/`
+- ส่วนที่ติดป้าย `keep` (ESC_HOLD, pipe_token, config, templates, label_review) สำรองแต่**ไม่ลบ** เพราะบอทยังต้องใช้
+
+**วิธีรัน** (จาก Contabo ผ่าน ssh หรือพิมพ์บน winbox เอง)
+```
+ssh winbox "schtasks /Run /TN MooniexCtoBackup"      # ชุด A (ข้ามส่วนที่เสร็จแล้ว)
+ssh winbox "schtasks /Run /TN MooniexCtoBackupB"     # ชุด B (รันหลัง A จบ)
+```
+หรือบน winbox: `C:\Users\UsEr\cookierun-bot\.venv\Scripts\python.exe C:\mooniex\pclease\cookierun_backup_stream.py C:\mooniex\pclease\backup_plan_a.json --delete`
+
+**ดูความคืบหน้า:** บน winbox `type C:\mooniex\pclease\backup_progress.txt` (1 บรรทัด: กี่ส่วน/กี่ GB เสร็จ, C: ว่างเท่าไร) · log เต็ม `backup_stream.log` · สมุดบัญชี `backup_ledger.jsonl` (ทุกส่วนที่ผ่านพร้อม md5 และ Drive id) · สำเนาที่ Contabo `Agents/Core/state/winbox-cookierun-backup*.txt`
+
+**หยุดชั่วคราว:** `powershell -File C:\mooniex\pclease\pause_backup.ps1` (ฆ่า rclone ของงานนี้ก่อน แล้วค่อยฆ่า python ไฟล์บน Drive จะไม่ค้างครึ่งเดียว) แล้วรันคำสั่งข้างบนเพื่อทำต่อ
+
+**เสร็จเมื่อ:** `backup_stream.log` มีบรรทัด `plan finished: 14/14` (A) และ `21/21` (B) และ CTO ตอบว่า "ลงได้"
