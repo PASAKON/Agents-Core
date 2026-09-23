@@ -46,7 +46,6 @@ from lib.config import (
     get_project,
     host as get_host,
     role as get_role,
-    worker_provider_overrides,
     worker_session_name,
 )
 
@@ -526,20 +525,7 @@ def main() -> None:
     allowed, chrome_args = worker_tool_grants(role)
     mcp_config = ROOT / "config" / "worker.mcp.json"
 
-    # DEV model provider override (flag-gated, reversible). When
-    # WORKER_MODEL_PROVIDER is set, worker DEVs run on a cheaper Anthropic-
-    # compatible endpoint (Z.ai -> GLM-5.2) instead of
-    # C-level orchestration is unaffected. Unset -> original behaviour.
-    # tasks.model_hint='claude' overrides the quota router for this one task —
-    # see lib.config.worker_provider_overrides. Set by the CTO when a cheap miss
-    # would be expensive (reviewing/repairing someone else's work, security).
-    _ov = worker_provider_overrides(role, task.get("model_hint"))
     effort_args = ["--effort", get_role(role).get("effort") or "high"]
-    if _ov:
-        model = _ov["model"]
-        env.update(_ov["env"])
-        if _ov["effort"] is None:
-            effort_args = []
 
     host_name = current_host()
     session_name = worker_session_name(host_name, role, task_id, clean_title(task.get("title")))

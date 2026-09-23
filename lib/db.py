@@ -138,8 +138,10 @@ _MIGRATION_COLUMNS = [
     ("ttyd_pid", "INTEGER"),
     # owning CTO session id — DEV reports route back to this CTO's tab
     ("owner_cto", "TEXT"),
-    # Per-task provider override. NULL = follow WORKER_MODEL_PROVIDER (auto picks
-    # whichever pool has more quota headroom). 'claude' = force the Claude path
+    # UNUSED since 2026-09-23: the Z.ai/9Router provider switch it steered was
+    # removed (CEO 2026-09-20); kept only because SQLite columns stay. History:
+    # per-task provider override. NULL = follow WORKER_MODEL_PROVIDER (auto picked
+    # whichever pool had more quota headroom). 'claude' = force the Claude path
     # regardless of quota, for work where a cheap miss is expensive: reviewing
     # or repairing someone else's code, and anything touching security or
     # secrets. Quota headroom is all the auto router can see — it has no notion

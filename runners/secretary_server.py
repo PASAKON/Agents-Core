@@ -142,15 +142,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from lib import db  # noqa: E402
-from lib.config import (  # noqa: E402
-    _PROVIDER_DEFAULT_MODEL,
-    _PROVIDER_ENDPOINTS,
-    _PROVIDER_KEY_VAR,
-    _read_dotenv_var,
-)
+
 from lib.link_reader import check_url_safe  # noqa: E402
 from lib.logger import get_logger  # noqa: E402
-from lib.quota_router import pick_provider  # noqa: E402
 from tools import decide as decide_tool  # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -163,7 +157,6 @@ SECRETARY_WORKDIR = os.environ.get("SECRETARY_WORKDIR", str(ROOT))
 SECRETARY_TIMEOUT_SECONDS = int(os.environ.get("SECRETARY_TIMEOUT_SECONDS", "180"))
 SECRETARY_MAX_CONCURRENT = int(os.environ.get("SECRETARY_MAX_CONCURRENT", "1"))
 # GH mooniex-agents#38 D2 (task-870f70f8) -- bound on the per-turn quota
-# check (lib.quota_router.pick_provider does one SSH call + one HTTP call,
 # each with their own 8s internal timeout -- ~16s worst case). Generous
 # headroom over that so a normal check never trips it; exists purely so a
 # violation of pick_provider's own "never blocks" contract cannot also hang
@@ -968,7 +961,7 @@ def _fmt_epoch_ms(ms: float) -> str:
 def _claude_auth_status() -> tuple[bool, str]:
     """Whether Claude's OAuth credential on this box is usable right now, and
     the one-line, date-only signal that decided it (for the per-turn
-    provider-selection log — see `_resolve_provider_env`).
+    provider-selection log).
 
     Keys on `refreshTokenExpiresAt`, not `expiresAt`. `expiresAt` is the
     *access* token's expiry, and its TTL is only ~8 hours; `claude` (the CLI)
@@ -986,7 +979,6 @@ def _claude_auth_status() -> tuple[bool, str]:
     stays False forever -- a false negative that renews itself. That is
     exactly what happened 2026-08-16 -> 2026-09-10: a perfectly good 30-day
     refresh token sat unused for 25 days while the box reported Claude
-    "logged out" on every single turn, and the fallback provider (zai) had no
     balance, so the CEO just got errors.
 
     `refreshTokenExpiresAt` missing entirely (an older credential shape) is
@@ -1040,94 +1032,7 @@ def _claude_auth_available() -> bool:
         return False
 
 
-def _resolve_provider_env() -> tuple[dict[str, str], str]:
-    """Resolve which provider THIS turn should use, fresh every call, via
-    lib.quota_router.pick_provider (GH mooniex-agents#38 D2, task-870f70f8)
-    — instead of trusting whatever ANTHROPIC_BASE_URL / ANTHROPIC_AUTH_TOKEN
-    / ANTHROPIC_MODEL happen to be pinned in /home/secretary/.secretary.env
-    at service-start time. Both failure directions have hit for real, hours
-    apart: pinned to Z.ai while its window was exhausted and Claude sat
-    idle, then pinned to Claude while its OAuth credential was expired and
-    Z.ai's window had long since reset.
 
-    Returns (env, reason): env is a NEW dict built on top of a full copy of
-    os.environ (nothing outside the 3 provider keys is touched, so this
-    stays a computed override on top of the inherited env, not a filtered
-    one) with those 3 keys either set (zai) or cleared (claude, so a stale
-    Z.ai pin from the service file cannot win); reason is a one-line note
-    for the info-level log the caller writes once per turn.
-
-    Never blocks the turn: pick_provider reaches out over SSH and HTTP, so
-    it runs on a background thread bounded by SECRETARY_QUOTA_TIMEOUT_SECONDS.
-    Raising, timing out, or landing on a provider this file doesn't know how
-    to build env for all fall back to the inherited env unchanged — a
-    secretary that cannot answer because it could not measure quota is worse
-    than one on a suboptimal provider.
-    """
-    # Everything below is one try/except on purpose: a raise from the dotenv
-    # fallback reads (disk/permission hiccup) must fail safe exactly like a
-    # raise from pick_provider itself -- both are "the quota check didn't
-    # work", and both must fall through to the inherited env, not propagate
-    # and turn into a hard failure of the whole turn.
-    base_env = dict(os.environ)
-    try:
-        zai_usage_token = os.environ.get("ZAI_USAGE_TOKEN") or _read_dotenv_var("ZAI_USAGE_TOKEN")
-
-        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        try:
-            future = executor.submit(pick_provider, zai_usage_token)
-            provider = future.result(timeout=SECRETARY_QUOTA_TIMEOUT_SECONDS)
-        finally:
-            executor.shutdown(wait=False)
-
-        if provider == "zai":
-            key = (os.environ.get(_PROVIDER_KEY_VAR["zai"])
-                   or _read_dotenv_var(_PROVIDER_KEY_VAR["zai"]))
-            if not key:
-                return base_env, "quota picked zai but no ZAI_API_KEY on this box — kept inherited env"
-            env = dict(base_env)
-            env["ANTHROPIC_BASE_URL"] = _PROVIDER_ENDPOINTS["zai"]
-            env["ANTHROPIC_AUTH_TOKEN"] = key
-            env["ANTHROPIC_MODEL"] = _PROVIDER_DEFAULT_MODEL["zai"]
-            return env, "quota picked zai (more headroom)"
-
-        if provider == "claude":
-            # Headroom is not usability. pick_provider only measures how much
-            # quota each provider has left; it never asks whether this box can
-            # authenticate to it. On the secretary box those are different
-            # questions, and the gap bit within hours of shipping this router
-            # (2026-08-16): Claude had the most headroom, so it was picked
-            # every turn, and every turn died on
-            #   "Failed to authenticate: OAuth session expired and could not
-            #    be refreshed"
-            # while Z.ai sat idle with a working key. The claude branch was the
-            # only one without a usability check — the zai branch above has had
-            # one since it was written.
-            #
-            # Claude Code's OAuth credential cannot be maintained here: it was
-            # copied from another user's home, and refresh tokens rotate, so
-            # the copy dies the moment the original refreshes.
-            claude_ok, claude_signal = _claude_auth_status()
-            if not claude_ok:
-                key = (os.environ.get(_PROVIDER_KEY_VAR["zai"])
-                       or _read_dotenv_var(_PROVIDER_KEY_VAR["zai"]))
-                if key:
-                    env = dict(base_env)
-                    env["ANTHROPIC_BASE_URL"] = _PROVIDER_ENDPOINTS["zai"]
-                    env["ANTHROPIC_AUTH_TOKEN"] = key
-                    env["ANTHROPIC_MODEL"] = _PROVIDER_DEFAULT_MODEL["zai"]
-                    return env, f"quota picked claude but {claude_signal} — fell back to zai"
-                return base_env, (f"quota picked claude but {claude_signal} and no "
-                                  "ZAI_API_KEY either — kept inherited env")
-            env = dict(base_env)
-            env.pop("ANTHROPIC_BASE_URL", None)
-            env.pop("ANTHROPIC_AUTH_TOKEN", None)
-            env.pop("ANTHROPIC_MODEL", None)
-            return env, f"quota picked claude (more headroom) -- {claude_signal}"
-
-        return base_env, f"quota check returned unrecognised provider {provider!r} — kept inherited env"
-    except Exception as exc:
-        return base_env, f"quota check unavailable ({exc!r}) — kept inherited env"
 
 
 def _build_claude_cmd(prompt: str, session_id: str | None,
@@ -1195,14 +1100,9 @@ def _run_claude_once(prompt: str, session_id: str | None,
     something like the binary not existing at all, which the caller catches.
 
     cwd is always SECRETARY_WORKDIR — never caller-controlled. The base env
-    is still inherited (not copied/filtered) on purpose — see
-    _resolve_provider_env, which builds a full copy of os.environ and only
-    ever touches the 3 provider-selection keys on top of it, once per call,
-    logged at info level so a reviewer can answer "which provider did this
-    turn use, and why" from the log.
+    is still inherited (not copied/filtered) on purpose.
     """
-    env, reason = _resolve_provider_env()
-    _log().info("secretary: provider for this turn — %s", reason)
+    env = dict(os.environ)
     proc = subprocess.Popen(
         _build_claude_cmd(prompt, session_id, env, profile, lane),
         cwd=SECRETARY_WORKDIR,

@@ -54,6 +54,8 @@ from lib.notify import info, warn
 from lib.task_ownership import is_mine, foreign_msg
 from tools import decide as decide_tool
 from tools import wiki as wiki_tools
+from tools.inject_prompt import _build_task_md, _write_task_md
+from pathlib import Path
 from tools.delegate import delegate_task as do_delegate, delegate_parallel
 from tools.worker_reap import close_dev as do_close_dev
 from tools.git_ops import merge_task as do_merge
@@ -241,6 +243,16 @@ def _h_reopen_task(*, task_id: str, feedback: str) -> str:
         actor="cto",
         force=True,  # reopen is an intentional resurrection (may target done)
     )
+
+    # GH #158 part 1: the worker reads TASK.md, not the DB — rebuild it from the
+    # updated row so the feedback lands on top ("supersedes everything below"),
+    # same order as the description. Only when the worktree still exists:
+    # _write_task_md creates missing directories, and a phantom worktree dir
+    # would make delegate believe a removed worktree is still there.
+    wt = t.get("worktree")
+    if wt and Path(wt).is_dir():
+        _write_task_md(wt, _build_task_md(db.get_task(task_id)))
+
     warn(f"reopened {task_id} (iter {t['iteration']+1})")
     return "reopened"
 

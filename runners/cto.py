@@ -18,7 +18,7 @@ from claude_agent_sdk import (
 )
 
 from lib import org_tools_registry as registry
-from lib.config import role as get_role, cxo_provider_overrides
+from lib.config import role as get_role
 from lib.db import register_cxo_session
 from lib.logger import get_logger
 from lib.notify import info, success
@@ -99,18 +99,9 @@ async def run(ceo_request: str) -> str:
         tools=list(ALL_TOOLS.values()),
     )
 
-    # Flag-gated GLM offload (CXO_MODEL_PROVIDER). Default OFF -> Claude path.
-    # When set, inject the provider env + swap model; drop the Claude-only
-    # fallback id + --effort (the GLM endpoint rejects both).
-    _ov = cxo_provider_overrides("cto")
     _model = get_role("cto")["model"]
     _fallback = get_role("cto").get("fallback_model")
     _effort: str | None = "max"
-    if _ov:
-        os.environ.update(_ov["env"])
-        _model = _ov["model"]
-        _fallback = None
-        _effort = _ov["effort"]
 
     opts = dict(
         model=_model,

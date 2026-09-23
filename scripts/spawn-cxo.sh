@@ -26,7 +26,6 @@ ROOT="/Users/gob/MoonieXHQ/Agents/Core"
 
 ROLE=""
 WITH_LOGS=0
-USE_GLM=0
 EXPLICIT_ID=""
 ARGS=()
 prev=""
@@ -41,7 +40,6 @@ for a in "$@"; do
     --role) prev="--role" ;;
     --id)   prev="--id" ;;
     --with-logs) WITH_LOGS=1 ;;
-    --glm) USE_GLM=1 ;;
     *) ARGS+=("$a") ;;
   esac
 done
@@ -190,21 +188,13 @@ LOG_FILE="$ROOT/state/logs/$ROLE-$CXO_SESSION_ID.log"
 mkdir -p "$ROOT/state/logs"
 touch "$LOG_FILE"
 
-# --glm: flip the flag-gated GLM offload ON for this launch only (same
-# mechanism as spawn-cto.sh --glm, generalized to all four C-levels).
-GLM_PREFIX=""
-if [ "$USE_GLM" = "1" ]; then
-  GLM_PROVIDER="${GLM_PROVIDER:-zai}"
-  GLM_PREFIX="export CXO_MODEL_PROVIDER=$GLM_PROVIDER && "
-fi
 
 # Same fresh-login-shell problem as spawn-cto.sh: osascript `write text` drops
 # the caller's exports, so CXO_EXTRA_MCP / CXO_SKIP_MCP were no-ops through
-# this launcher. Re-export them inside the command string; --glm stays last so
-# it still overrides an inherited CXO_MODEL_PROVIDER.
+# this launcher. Re-export them inside the command string.
 ENV_PREFIX=""
 for v in CXO_EXTRA_MCP CXO_SKIP_MCP CXO_STRICT_MCP CXO_SUPABASE_PROJECT_REF \
-         CXO_SUPABASE_WRITE CXO_MODEL_PROVIDER; do
+         CXO_SUPABASE_WRITE; do
   [ -n "${!v:-}" ] || continue
   ENV_PREFIX="${ENV_PREFIX}export $v=$(printf '%q' "${!v}") && "
 done
@@ -219,7 +209,7 @@ TMUX_SESSION="$ROLE-$CXO_SESSION_ID"
 # AppleScript string literal further down.
 RUN_FILE="$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.run"
 printf '#!/usr/bin/env bash\n%s\n' \
-  "${ENV_PREFIX}${GLM_PREFIX}export CXO_SESSION_ID='$CXO_SESSION_ID' && exec bash '$ROOT/scripts/cxo-claude.sh' --role $ROLE $CLAUDE_ARGS" \
+  "${ENV_PREFIX}export CXO_SESSION_ID='$CXO_SESSION_ID' && exec bash '$ROOT/scripts/cxo-claude.sh' --role $ROLE $CLAUDE_ARGS" \
   >"$RUN_FILE"
 chmod +x "$RUN_FILE"
 
@@ -282,9 +272,6 @@ end tell
 APPLESCRIPT
 
 PROVIDER_NOTE=""
-if [ "$USE_GLM" = "1" ]; then
-  PROVIDER_NOTE=" [GLM/${GLM_PROVIDER:-zai} — no Claude quota]"
-fi
 
 if [ "$WITH_LOGS" = "1" ]; then
   echo "spawned iTerm window id=$CXO_SESSION_ID ($DISPLAY chat + log + dev logs).$PROVIDER_NOTE"
