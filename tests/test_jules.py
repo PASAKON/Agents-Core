@@ -28,6 +28,7 @@ def mock_args(monkeypatch, temp_env_file):
     monkeypatch.setenv("JULES_ENV_FILE", temp_env_file)
     
 def test_create(mock_urlopen, mock_args, tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(jules, "ALLOWLIST", _allowlist(tmp_path, "PASAKON/myrepo"))
     brief_file = tmp_path / "brief.txt"
     brief_file.write_text("Hello Brief")
     
@@ -53,8 +54,10 @@ def test_create(mock_urlopen, mock_args, tmp_path, capsys, monkeypatch):
     
     body = json.loads(req.data.decode("utf-8"))
     assert body["sourceContext"]["source"] == "sources/github/PASAKON/myrepo"
+    assert body["sourceContext"]["githubRepoContext"]["startingBranch"] == "main"
     assert body["title"] == "mytitle"
-    assert body["brief"] == "Hello Brief"
+    assert body["prompt"] == "Hello Brief"          # the API field; "brief" is rejected
+    assert "brief" not in body and "branch" not in body
 
 def test_status(mock_urlopen, mock_args, capsys, monkeypatch):
     mock_resp = MagicMock()
@@ -111,15 +114,14 @@ def test_diff_and_report(mock_urlopen, mock_args, capsys, monkeypatch):
         "activities": [
             {
                 "createTime": "2023-01-01",
-                "kind": "TEST",
-                "message": {"text": "hello"}
+                "agentMessaged": {"agentMessage": "hello"}
             }
         ]
     }).encode("utf-8")
     monkeypatch.setattr("sys.argv", ["jules.py", "report", "sess123"])
     jules.main()
     captured = capsys.readouterr()
-    assert "2023-01-01 TEST hello\n" in captured.out
+    assert "2023-01-01 agentMessaged hello\n" in captured.out
 
 def test_gate_success(mock_urlopen, mock_args, capsys, monkeypatch):
     patch_content = "+++ b/src/app.py\n--- a/src/app.py\n+print('hello')"
@@ -185,3 +187,46 @@ def test_gate_fail_max_bytes(mock_urlopen, mock_args, capsys, monkeypatch):
     with pytest.raises(SystemExit) as e:
         jules.main()
     assert e.value.code == 1
+
+
+def _allowlist(tmp_path, *repos):
+    cfg = tmp_path / "jules.yaml"
+    cfg.write_text("repos:\n" + "".join(f"  - {{repo: {r}}}\n" for r in repos)
+                   + "never:\n  - PASAKON/Agents-Memory\n")
+    return cfg
+
+
+def test_create_refuses_repo_outside_allowlist(mock_urlopen, mock_args, tmp_path, monkeypatch):
+    brief_file = tmp_path / "brief.txt"
+    brief_file.write_text("x")
+    monkeypatch.setattr(jules, "ALLOWLIST", _allowlist(tmp_path, "PASAKON/Agents-Core"))
+    for repo in ("Agents-Memory", "Some-Other-Repo"):
+        monkeypatch.setattr("sys.argv", ["jules.py", "create", "--repo", repo, "--title", "t", "--brief", str(brief_file)])
+        with pytest.raises(SystemExit) as e:
+            jules.main()
+        assert e.value.code == 2
+    assert not mock_urlopen.called                  # refused before any API call
+    assert jules.check_allowlist("Agents-Core") is None
+    assert "never-dispatch" in jules.check_allowlist("PASAKON/Agents-Memory")
+
+
+def test_real_allowlist_file_parses():
+    # the shipped config must load and keep Agents-Memory off-limits
+    assert jules.check_allowlist("Agents-Core") is None
+    assert jules.check_allowlist("Agents-Memory") is not None
+
+
+def test_report_reads_the_real_activity_shape(mock_urlopen, mock_args, capsys, monkeypatch):
+    acts = {"activities": [
+        {"createTime": "2026-09-22T19:17:16Z", "progressUpdated": {"title": "All plan steps completed"}},
+        {"createTime": "2026-09-23T06:43:32Z", "agentMessaged": {"agentMessage": "I will now stop work."}},
+        {"createTime": "2026-09-23T06:44:00Z", "sessionFailed": {"reason": "Jules was unable to complete the task."}},
+    ]}
+    resp = MagicMock(); resp.status = 200; resp.read.return_value = json.dumps(acts).encode()
+    mock_urlopen.return_value.__enter__.return_value = resp
+    monkeypatch.setattr("sys.argv", ["jules.py", "report", "sess1"])
+    jules.main()
+    out = capsys.readouterr().out
+    assert "progressUpdated All plan steps completed" in out
+    assert "agentMessaged I will now stop work." in out
+    assert "sessionFailed Jules was unable to complete the task." in out

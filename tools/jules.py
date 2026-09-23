@@ -8,6 +8,29 @@ import urllib.error
 from pathlib import Path
 
 BASE_URL = "https://jules.googleapis.com/v1alpha"
+ROOT = Path(__file__).resolve().parent.parent
+ALLOWLIST = ROOT / "config" / "jules.yaml"
+
+
+def check_allowlist(repo: str, path: Path | None = None) -> str | None:
+    """Refusal reason, or None when `repo` may be dispatched to (config/jules.yaml).
+
+    The Jules GitHub app can SEE every repo; it may only be dispatched to a repo
+    listed under `repos`, and never to one under `never` (CEO 2026-09-23).
+    """
+    import yaml
+    path = path or ALLOWLIST            # read at call time so tests can point it elsewhere
+    full = repo if "/" in repo else f"PASAKON/{repo}"
+    cfg = yaml.safe_load(path.read_text()) or {}
+    if full in (cfg.get("never") or []):
+        return f"{full} is on the never-dispatch list in {path.name}"
+    if full not in [r.get("repo") for r in (cfg.get("repos") or [])]:
+        return f"{full} is not in {path.name} — add it there (a one-line PR) before dispatching"
+    return None
+
+
+# Activity keys that are metadata, not the activity's kind.
+_META = {"name", "id", "createTime", "originator", "artifacts", "description"}
 
 def get_api_key():
     env_file = os.environ.get("JULES_ENV_FILE", os.path.expanduser("~/.config/mooniex/jules.env"))
@@ -113,15 +136,21 @@ def main():
             print(f"Error: brief file {args.brief} not found", file=sys.stderr)
             sys.exit(1)
             
+        refusal = check_allowlist(args.repo)
+        if refusal:
+            print(f"Refused: {refusal}", file=sys.stderr)
+            sys.exit(2)
+        # Field names are the API's (Session schema in the v1alpha discovery doc):
+        # the brief goes in `prompt`, the branch under githubRepoContext.
         data = {
+            "prompt": brief_content,
+            "title": args.title,
             "sourceContext": {
-                "source": f"sources/github/PASAKON/{args.repo}"
+                "source": f"sources/github/PASAKON/{args.repo.split('/')[-1]}",
+                "githubRepoContext": {"startingBranch": args.branch},
             },
             "automationMode": "AUTO_CREATE_PR",
             "requirePlanApproval": False,
-            "title": args.title,
-            "brief": brief_content,
-            "branch": args.branch
         }
         
         
@@ -167,11 +196,19 @@ def main():
         for page in make_paginated_request(f"/sessions/{args.id}/activities"):
             activities = page.get("activities", [])
             for activity in activities:
+                # Real shape: one key names the kind, e.g. {"agentMessaged": {"agentMessage": "..."}},
+                # {"progressUpdated": {"title": ..., "description": ...}}, {"sessionFailed": {"reason": ...}}.
                 create_time = activity.get("createTime", "")
-                kind = activity.get("kind", "")
-                message = activity.get("message", {})
-                text = message.get("text", "")
-                print(f"{create_time} {kind} {text}")
+                kinds = [k for k in activity if k not in _META]
+                kind = kinds[0] if kinds else ""
+                body = activity.get(kind) if kind else None
+                text = ""
+                if isinstance(body, dict):
+                    for field in ("agentMessage", "userMessage", "title", "reason", "description"):
+                        if isinstance(body.get(field), str) and body[field]:
+                            text = body[field]
+                            break
+                print(f"{create_time} {kind} {text}".rstrip())
     elif args.command == "gate":
         last_patch = None
         for page in make_paginated_request(f"/sessions/{args.id}/activities"):
