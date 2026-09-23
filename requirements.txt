@@ -1,5 +1,6 @@
 claude-agent-sdk>=0.0.20
-anyio>=4.0
+# Security floors on transitive dependencies (ADR 0020 osv_check, 2026-09-22): GHSA-82r6-8w77-94w6, GHSA-5p39-cfhj-2xmp.
+anyio>=4.14.2
 pyyaml>=6.0
 textual>=0.80
 rich>=13.0
