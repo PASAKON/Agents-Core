@@ -28,6 +28,7 @@ from lib.config import (
     worker_session_name as get_worker_session_name,
 )
 from lib.notify import info, success, error, warn
+from tools import storage_policy
 from tools import tmux_session as tmux
 from tools import workdir
 from tools.worktree import branch_name, create_worktree
@@ -243,6 +244,22 @@ def _storage_pilot_owners() -> list[str]:
 def _storage_applies(owner_cto: str | None) -> bool:
     owners = _storage_pilot_owners()
     return "all" in owners or (bool(owner_cto) and str(owner_cto) in owners)
+
+
+def _run_storage_reclaim() -> tuple[int, int]:
+    """Run tools/storage_reclaim.py's plan()+apply() for every pilot owner
+    (not just this task's own owner_cto — a pilot CTO can hold several
+    in-flight task worktrees at once). Returns (freed_bytes, item_count).
+
+    Seam for tests: monkeypatch `delegate._run_storage_reclaim` directly
+    (same pattern as `_free_gb`) rather than storage_reclaim's internals —
+    a delegate-trigger test cares whether this ran, not how it deletes."""
+    from tools import storage_reclaim
+    policy = storage_policy.load(str(STORAGE_POLICY))
+    owners = _storage_pilot_owners()
+    items = storage_reclaim.plan(str(db.DB_PATH), policy, owners)
+    deleted = storage_reclaim.apply(items)
+    return sum(i.get("bytes", 0) for i in deleted), len(deleted)
 
 
 def _work_dir_for(task_id: str, owner_cto: str | None) -> str | None:
@@ -1188,6 +1205,33 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             f"merged work (use reopen_task if a redo is intended)"
         )
 
+    # Storage reclaim (ADR 0030 §2, task-44963fee): below the orange band,
+    # REBUILD-tier directories inside the pilot owner's OWN task worktrees
+    # (node_modules, .venv, __pycache__, ...) are deleted automatically,
+    # before the disk-floor check below even takes its own reading — so a
+    # spawn that would otherwise be refused by the floor gets a chance to
+    # clear it first. Pilot scope only (ADR 0030 §8): never another
+    # session's worktree, never a project under ~/MoonieXHQ/Projects.
+    # Non-pilot tasks skip this block entirely. A reclaim failure never
+    # blocks the spawn beyond what the floor check below already decides.
+    storage_applies = _storage_applies(task.get("owner_cto"))
+    if storage_applies:
+        pre_free_gb = _free_gb()
+        try:
+            policy = storage_policy.load(str(STORAGE_POLICY))
+            pre_band = storage_policy.band(pre_free_gb, policy)
+        except storage_policy.PolicyError as e:
+            pre_band = None
+            warn(f"storage reclaim: policy load failed task={task_id}: {e}")
+        if pre_band in ("orange", "red"):
+            try:
+                freed_bytes, freed_count = _run_storage_reclaim()
+                if freed_count:
+                    info(f"storage reclaim task={task_id}: freed {freed_bytes} "
+                         f"bytes across {freed_count} item(s), band={pre_band}")
+            except Exception as e:
+                warn(f"storage reclaim failed task={task_id}: {e}")
+
     # Disk floor (ADR 0030): the Mac hit 0 bytes free on 2026-09-23 and every
     # tool died. Checked before anything else touches this task's row — no
     # locks, no worktree, no status write — so a refusal here leaves the row
@@ -1199,7 +1243,8 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # task-bfa778ab iter1: a str return broke the MCP tool on a low-disk spawn).
     # Pilot scope: only tasks whose owner_cto is in `pilot_owner_cto` — other
     # sessions' work is never refused by this gate until the CEO widens it.
-    storage_applies = _storage_applies(task.get("owner_cto"))
+    # free_gb is re-measured here (not reused from pre_free_gb above) so the
+    # floor check sees the post-reclaim reading when reclaim ran.
     free_gb = _free_gb()
     orange_gb = _disk_orange_floor_gb()
     if storage_applies and free_gb < orange_gb:
