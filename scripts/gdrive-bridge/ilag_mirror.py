@@ -14,9 +14,13 @@ size. If verification fails the local file is left alone and reported.
 Usage:
     ilag_mirror.py <folder_id> <where> <note> <file> [<file> ...]
     ilag_mirror.py --actor "AI:browser_operator-task-XXXX" \\
-        1DKJv_H9LQ7B39gpcF_8-qYRX5QE08AjD "All Scene/S9-B" \\
+        1C46LZWjVgimtPEBobFzuPHnifHNlxqMl "All Scene/S9" \\
         "uploaded from Higgsfield, mirroring sweep" \\
         ~/Downloads/hf_20260812_222133_5f012ea8-*.mp4 ...
+
+The last segment of <where> must be the real Drive name of <folder_id>
+(looked up before anything is uploaded); on a mismatch or a failed lookup the
+script exits 2 with nothing uploaded, logged or deleted (GH #58).
 
 <where> and <note> are shared across all files in one call; run it once per
 (folder, note) group. Prints one line per file: UP/SKIP/FAIL, then a final
@@ -30,6 +34,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from ilag_sync import upload, api, append_log, ts, mb, DRIVE_FILES, ACTOR_DEFAULT  # noqa: E402
+
+
+def folder_name(folder_id: str) -> str:
+    res = api(f"{DRIVE_FILES}/{folder_id}", params={"fields": "id,name"}, timeout=60)
+    return res["name"]
 
 
 def list_folder(folder_id: str) -> dict[str, int]:
@@ -57,7 +66,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("folder_id")
-    ap.add_argument("where", help='e.g. "All Scene/S9-B"')
+    ap.add_argument("where", help='e.g. "All Scene/S9" -- the last segment must equal the Drive name of folder_id')
     ap.add_argument("note")
     ap.add_argument("files", nargs="+")
     ap.add_argument("--actor", default=ACTOR_DEFAULT)
@@ -72,6 +81,17 @@ def main() -> int:
         for p in missing:
             print(" ", p)
         return 1
+
+    try:
+        drive_name = folder_name(args.folder_id)
+    except Exception as e:
+        print(f"failed to look up folder name: {e}")
+        return 2
+
+    where_segment = args.where.rstrip("/").split("/")[-1]
+    if drive_name != where_segment:
+        print(f"refusing to upload: <where> segment '{where_segment}' does not match Drive folder name '{drive_name}'")
+        return 2
 
     uploaded: list[tuple[Path, dict]] = []
     failed: list[tuple[Path, str]] = []
