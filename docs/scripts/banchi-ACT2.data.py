@@ -103,7 +103,10 @@ SHOTS = [
    ("cherd","immediate, smooth","ผมไม่มีเจ้านายหรอกพี่ เงินผมทั้งนั้น"),
    ("somchai","quiet","อือ")], []),
 
- (43, 6, "Close-up, static camera", ["ton"], "shop", "midday",
+ # 6s -> 8s, 2026-09-23: three 6s takes all burned a mangled caption in. 43
+ # speaks 10.5 Thai chars/s, second-fastest in the film; the one change here is
+ # time to say it. A guess (shot 16 is as fast and clean) — the scan decides.
+ (43, 8, "Close-up, static camera", ["ton"], "shop", "midday",
   "wipes the next table down without looking away from the two men across the room, saying it aloud in a low voice",
   [("ton","low but clearly audible","เงินเขาทั้งนั้น... เงินตัวเองแท้ๆ"),
    ("ton","slower, working it out","แล้วมานั่งกินร้านเราทุกอาทิตย์ทำไม")], ["nosubs"]),
