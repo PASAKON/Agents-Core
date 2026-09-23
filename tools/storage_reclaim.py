@@ -35,7 +35,13 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from tools import storage_policy
+try:
+    from tools import storage_policy
+except ImportError:
+    # `python tools/storage_reclaim.py` run directly only puts tools/ on
+    # sys.path, not the repo root the `tools` package lives under.
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from tools import storage_policy
 
 ROOT = Path(__file__).resolve().parent.parent
 STORAGE_POLICY = ROOT / "config" / "storage-policy.yaml"
