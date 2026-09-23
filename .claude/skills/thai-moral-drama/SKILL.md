@@ -484,6 +484,46 @@ they change what you are allowed to write:
    the plot but does not move the audience's verdict on a character — is the
    failure to hunt first.
 10. Map the mid-roll marks and check each lands on tension.
-11. Only now: shots, prompts, plates.
+11. **Pass the Structure gate below.**
+12. Only now: shots, prompts, plates — then `CTO_Flow_Omni1.1_Continuity` over the sheet.
 
-Steps 1–10 cost nothing. Step 11 costs credits. The order is the point.
+Steps 1–11 cost nothing. Step 12 costs credits. The order is the point.
+
+## Structure gate — before the first shot is written (CEO 2026-09-23)
+
+The CEO approved these after «จุดจบของเจ้าหนี้นอกระบบ», where four whole threads —
+the hook, the police line, the lender's ending, the happy ending — were ordered by
+the CEO AFTER a full cut existed, and each cost an insert, a re-shoot and a re-cut.
+Every item is about the story, so it holds on any generator; only 8 depends on
+Flow's free stills.
+
+1. **Conflict on screen in the first 10 seconds.** Not mood, not the shop at dawn — a
+   threat, a loss, a lie in progress. The film opened on a man alone at a wall; the
+   CEO asked for the lender, the rain and the threat on screen.
+2. **Every act ends on an open question — inside the episode.** At 18-24 minutes a
+   Facebook viewer decides again every few minutes; the last line of an act is a
+   reason to keep watching. This is not a cliffhanger into the next episode (rule 1
+   still holds: the episode itself always closes).
+3. **Every named character has want · turn · ending written down before shot 1** —
+   the conclusion table (step 6) extended to every name. เชิด had no on-screen ending
+   until the CEO asked for one; วิทย์'s reveal had no uniform.
+4. **Every plant has its payoff shot numbered, and every payoff its plant.** A two-
+   column table (plant shot → payoff shot); an empty cell is a hole. The scene ledger's
+   rumour thread had no payoff and was caught by reading, not by the table.
+5. **A reveal character is planted three times, without comment.** วิทย์ facing the
+   door, never taking off his bag — so "he is police" lands as "of course".
+6. **A change of place or time opens on a shot that says so.** A wide establishing
+   shot on a new place; a jump in time ("หนึ่งปีต่อมา") gets a card or an unmistakable
+   visual marker. `continuity_sheet.py` prints every such TRANSITION.
+7. **The story is checked against what the generator refuses before it is locked.** On
+   Flow: no handcuffs, no uniform next to police lights, no real currency, a night
+   plate for every night scene, nobody healthy on a sickbed (see
+   `CTO_Flow_Omni1.1_Continuity`). A beat the generator deletes is a beat to rewrite
+   on paper, not after the credits are spent.
+8. **One free still per scene before any video** (Flow's image model costs 0 credits).
+   Staging, wardrobe, who is in frame and day/night are visible in a still; seeing
+   them there is free, seeing them in a 720p clip costs ~12 credits a take.
+
+## Field notes
+
+- 2026-09-23 [MISSING] §Structure gate — four threads (hook, police line, lender's ending, happy ending) were ordered by the CEO after a full cut existed; each cost an insert + re-shoot + re-cut. Gate of 8 items added on the CEO's explicit approval ("OK เพิ่ม SKill ได้", 2026-09-23). · evidence: docs/scripts/banchi-RETRO.md, banchi shots 1-2, 174-190 · status: promoted
