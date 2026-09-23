@@ -22,6 +22,7 @@ VOICE = dict(_a2.VOICE)
 NOT = dict(_a2.NOT)
 PROP_FOR_NOT = dict(_a2.PROP_FOR_NOT)
 PROPS_BY_SHOT = dict(_a2.PROPS_BY_SHOT)
+WARDROBE = dict(_a2.WARDROBE)
 APRON = _a1.APRON
 
 # เจ๊หมวย, the neighbour who carries the rumour. Written from her plate.

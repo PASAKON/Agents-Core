@@ -4,7 +4,7 @@
 
 Omni 1.1 Flash · 9:16 · 720p (ทดสอบ 360p) · โหมด `องค์ประกอบ` · x1
 
-**17 ช็อต · 144 วินาที = 2:24 · ~216 เครดิต ที่ 720p**
+**20 ช็อต · 170 วินาที = 2:50 · ~255 เครดิต ที่ 720p**
 
 ## กฎที่ไฟล์นี้ถูกสร้างมาให้เชื่อฟัง
 
@@ -304,4 +304,55 @@ The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn
 
 The face of whoever is speaking stays in frame for the whole line.
 Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
+```
+
+### SHOT 188 · 2:24–2:32 · 8s · Medium two-shot, static camera
+**ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop_thriving`→REF_2
+**บทพูด** lung_somchai `"วันแรกเป็นไงบ้างลูก"` — delighted
+**บทพูด** nong_daeng `"ดีมากครับพ่อ หัวหน้าชมด้วย"` — bright
+```
+Use <IMAGE_REF_0> as the character reference for nong_daeng. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop_thriving.
+
+In the same deep old Bangkok shophouse noodle restaurant, a year on and full — every bright red, blue and green stool taken, the staircase in the middle of the room beside its pillar, the open street bright at the far end <IMAGE_REF_2>, evening. a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a light-blue long-sleeved office shirt tucked into dark trousers, a blank white ID card on a lanyard around his neck <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — walks in from the street at dusk into the busy shop with a laptop bag on his shoulder, his father at the pot looking up and breaking into a wide smile, both faces toward the camera.
+
+The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, delighted, and says: "วันแรกเป็นไงบ้างลูก"
+The 24-year-old man in the light-blue office shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, bright, and says: "ดีมากครับพ่อ หัวหน้าชมด้วย"
+
+The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
+Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
+```
+
+### SHOT 189 · 2:32–2:40 · 8s · Medium two-shot, static camera
+**ATTACH** 1) `@nong_daeng`→REF_0 · 2) `@lung_somchai`→REF_1 · 3) `@noodle_shop_thriving`→REF_2
+**บทพูด** nong_daeng `"พ่อพักก่อนครับ เดี๋ยวผมเสิร์ฟเอง"` — easy
+**บทพูด** lung_somchai `"ได้งานดีๆ แล้วยังกลับมาช่วยร้านอีกนะลูก"` — moved
+```
+Use <IMAGE_REF_0> as the character reference for nong_daeng. Use <IMAGE_REF_1> as the character reference for lung_somchai. Use <IMAGE_REF_2> as the location reference for noodle_shop_thriving.
+
+In the same deep old Bangkok shophouse noodle restaurant, a year on and full — every bright red, blue and green stool taken, the staircase in the middle of the room beside its pillar, the open street bright at the far end <IMAGE_REF_2>, evening. a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a light-blue long-sleeved office shirt tucked into dark trousers, a blank white ID card on a lanyard around his neck <IMAGE_REF_0>, a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_1> — sets his bag down behind the counter, rolls up his shirt sleeves and picks up two full bowls to serve, his father watching him with pride.
+
+The 24-year-old man in the light-blue office shirt <IMAGE_REF_0> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, easy, and says: "พ่อพักก่อนครับ เดี๋ยวผมเสิร์ฟเอง"
+The 58-year-old man in the dark-blue apron <IMAGE_REF_1> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, moved, and says: "ได้งานดีๆ แล้วยังกลับมาช่วยร้านอีกนะลูก"
+
+The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
+Medium two-shot, static camera. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
+```
+
+### SHOT 190 · 2:40–2:50 · 10s · Medium two-shot, static camera, slowly easing back
+**ATTACH** 1) `@lung_somchai`→REF_0 · 2) `@nong_daeng`→REF_1 · 3) `@noodle_shop_thriving`→REF_2
+**บทพูด** lung_somchai `"พ่อดีใจที่สุดเลยลูก"` — full of joy
+**บทพูด** nong_daeng `"ร้านนี้ส่งผมเรียนจนจบ ผมก็จะช่วยร้านนี้ต่อครับพ่อ"` — warm
+```
+Use <IMAGE_REF_0> as the character reference for lung_somchai. Use <IMAGE_REF_1> as the character reference for nong_daeng. Use <IMAGE_REF_2> as the location reference for noodle_shop_thriving.
+
+In the same deep old Bangkok shophouse noodle restaurant, a year on and full — every bright red, blue and green stool taken, the staircase in the middle of the room beside its pillar, the open street bright at the far end <IMAGE_REF_2>, evening. a Thai man of 58, lean, with a weathered square face, short greying black hair, deep-set brown eyes and light stubble, wearing a faded dark-blue cotton shopkeeper's apron over a plain white short-sleeved shirt and a worn leather watch on his left wrist <IMAGE_REF_0>, a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, clean-shaven, in a light-blue long-sleeved office shirt tucked into dark trousers, a blank white ID card on a lanyard around his neck <IMAGE_REF_1> — stand side by side behind the counter in the warm evening light with every table full, both smiling, the father putting an arm around his son's shoulders.
+
+The 58-year-old man in the dark-blue apron <IMAGE_REF_0> speaks Thai in the worn, low, gravelly voice of a tired man in his late fifties, full of joy, and says: "พ่อดีใจที่สุดเลยลูก"
+The 24-year-old man in the light-blue office shirt <IMAGE_REF_1> speaks Thai in the clear, light voice of a man in his twenties, higher than his father's, warm, and says: "ร้านนี้ส่งผมเรียนจนจบ ผมก็จะช่วยร้านนี้ต่อครับพ่อ"
+
+The face of whoever is speaking stays in frame for the whole line.
+No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
+Medium two-shot, static camera, slowly easing back. Contemporary Thai realist drama, shot on 35mm, desaturated colour, natural light.
 ```

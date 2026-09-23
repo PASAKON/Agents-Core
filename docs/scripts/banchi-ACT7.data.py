@@ -27,6 +27,15 @@ CHAR = dict(_a6.CHAR); LOC = dict(_a6.LOC); VOICE = dict(_a6.VOICE)
 NOT = dict(_a6.NOT); APRON = _a6.APRON
 PROP_FOR_NOT = dict(_a6.PROP_FOR_NOT)
 PROPS_BY_SHOT = dict(_a6.PROPS_BY_SHOT)
+WARDROBE = dict(_a6.WARDROBE)
+
+# ต้น with a job — same face block word for word as "ton", only the clothes change.
+CHAR["ton_office"] = ("@nong_daeng",
+  "a Thai man of 24, slim, oval-faced, with thick black hair swept back, dark brown eyes, "
+  "clean-shaven, in a light-blue long-sleeved office shirt tucked into dark trousers, a "
+  "blank white ID card on a lanyard around his neck",
+  "The 24-year-old man in the light-blue office shirt")
+VOICE["ton_office"] = VOICE["ton"]
 
 LOC["shop2"] = ("@noodle_shop_thriving",
   "the same deep old Bangkok shophouse noodle restaurant, a year on and full — every "
@@ -123,4 +132,20 @@ SHOTS = [
   "looks over at the open page his son is writing on and nods once, then goes back to the pot",
   [("somchai","warm","จดไว้เถอะลูก"),
    ("somchai","final","ต่อไปใครถามอะไร เราตอบได้หมด")], []),
+ # Happy ending, CEO 2026-09-23: "ต้น -> มีชุดทำงานเป็นพนักงานออฟฟิศ ได้งานแล้ว ทำงาน
+ # ตกเย็นมาช่วยพ่อ พ่อดีใจ และมีความสุข จบแบบ Happy Ending". Still no apron on ต้น.
+ (188, 8, "Medium two-shot, static camera", ["ton_office","somchai"], "shop2", "evening",
+  "walks in from the street at dusk into the busy shop with a laptop bag on his shoulder, his father at the pot looking up and breaking into a wide smile, both faces toward the camera",
+  [("somchai","delighted","วันแรกเป็นไงบ้างลูก"),
+   ("ton_office","bright","ดีมากครับพ่อ หัวหน้าชมด้วย")], ["nosubs"]),
+
+ (189, 8, "Medium two-shot, static camera", ["ton_office","somchai"], "shop2", "evening",
+  "sets his bag down behind the counter, rolls up his shirt sleeves and picks up two full bowls to serve, his father watching him with pride",
+  [("ton_office","easy","พ่อพักก่อนครับ เดี๋ยวผมเสิร์ฟเอง"),
+   ("somchai","moved","ได้งานดีๆ แล้วยังกลับมาช่วยร้านอีกนะลูก")], ["nosubs"]),
+
+ (190, 10, "Medium two-shot, static camera, slowly easing back", ["somchai","ton_office"], "shop2", "evening",
+  "stand side by side behind the counter in the warm evening light with every table full, both smiling, the father putting an arm around his son's shoulders",
+  [("somchai","full of joy","พ่อดีใจที่สุดเลยลูก"),
+   ("ton_office","warm","ร้านนี้ส่งผมเรียนจนจบ ผมก็จะช่วยร้านนี้ต่อครับพ่อ")], ["nosubs"]),
 ]

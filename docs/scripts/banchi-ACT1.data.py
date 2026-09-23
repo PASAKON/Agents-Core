@@ -189,6 +189,14 @@ NOT = {
 # meant to stay inside it and never be seen. Six clips rendered a real Thai
 # 500-baht note with the royal portrait instead, because the only thing bound
 # was nothing at all and the model filled the gap with its prior.
+# Wardrobe plates, per CHARACTER key (not per shot): the face comes from the
+# character's own plate, the clothes from a separate plate with no person in it.
+# A/B 2026-09-23 (360p/4s, shot 149's text): the uniformed วิทย์ as ONE full-body
+# still came back older and greying — the father's face leaking in — while his
+# face plate + a wardrobe plate held his face. google-flow-ops §Wardrobe says
+# the same. build_shotsheet attaches the plate and labels it a wardrobe reference.
+WARDROBE = {}
+
 PROPS_BY_SHOT = {
     1: ["@prop_envelope"], 2: ["@prop_envelope"],   # rain opening, CEO 2026-09-23
     68: ["@prop_envelope"], 70: ["@prop_envelope"], 73: ["@prop_envelope"],

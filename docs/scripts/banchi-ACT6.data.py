@@ -32,6 +32,7 @@ CHAR = dict(_a4.CHAR); LOC = dict(_a2.LOC); VOICE = dict(_a4.VOICE)
 NOT = dict(_a2.NOT); APRON = _a2.APRON
 PROP_FOR_NOT = dict(_a2.PROP_FOR_NOT)
 PROPS_BY_SHOT = dict(_a2.PROPS_BY_SHOT)
+WARDROBE = dict(_a2.WARDROBE)
 
 # วิทย์ in uniform — the reveal (CEO 2026-09-23, docs/scripts/banchi-police-insert-DRAFT.md).
 # The face block is word for word the plainclothes "wit" block: only the clothes
@@ -44,7 +45,9 @@ PROPS_BY_SHOT = dict(_a2.PROPS_BY_SHOT)
 # (task-f78ca70e: @cop_wit_uniform_A reference-led, _B description-only). Until
 # then it names a plate that cannot exist, so check_plates refuses the build
 # instead of guessing.
-WIT_UNIFORM_HANDLE = "@cop_wit_uniform_A"   # picked by eye 2026-09-23: same hair, jaw, brows as @cop_wit; B was a different man
+WIT_UNIFORM_HANDLE = "@cop_wit"   # 2026-09-23 A/B: his FACE plate; the uniform rides on WARDROBE below.
+# Was "@cop_wit_uniform_A" (a full-body still): in 149/151 and A/B arm A that plate
+# gave him the father's older, greying face.
 # NO WORD "police" anywhere in his block (A/B 2026-09-23, 360p/4s): with the
 # uniform plate attached AND "police" in the text, Flow began the clip and then
 # silently removed it — 179 twice, 149 and 151 once, arm A once — no card, no
@@ -58,6 +61,7 @@ CHAR["wit_uniform"] = (WIT_UNIFORM_HANDLE,
   "above the right pocket, khaki-brown trousers and a black belt",
   "The 32-year-old man in the khaki uniform")
 VOICE["wit_uniform"] = VOICE["wit"]
+WARDROBE["wit_uniform"] = "@police_uniform"   # wardrobe plate, no person in it
 
 LOC["bedrail"] = ("@bedrail_marks",
   "a close view along the painted steel side rail of an old bed in a dim upstairs room, "
@@ -66,6 +70,11 @@ LOC["bedrail"] = ("@bedrail_marks",
 
 NOT["noledger"] = ("There is no notebook, no ledger, no printed receipt and no paperwork "
   "anywhere in the frame.")
+# The arrest shots (183-186): cuffs are the point now, so they are said as what
+# DOES happen, and everything else as what does not.
+NOT["cuffed"] = ("The younger man's wrists stay together in front of him in metal "
+  "handcuffs for the whole shot. Nobody is hit, pushed, dragged or pinned, and no "
+  "weapon is drawn.")
 NOT["nocuffs"] = ("No handcuffs, no weapon, no violence and no physical contact between "
   "anyone in the frame.")
 
@@ -217,9 +226,39 @@ SHOTS = [
   [("somchai","clear","งั้นผมจดให้ครับ"),
    ("somchai","unhurried","สองร้อยแปดครั้งครับ")], ["noledger"]),
 
- (156, 10, "Medium two-shot, static camera", ["wit","cherd"], "alley", "night",
-  "steps into the light from the far end of the alley and stops a few paces away with his hands visible, the younger man turning to him",
-  [("wit","calm","ผมขอเชิญคุณไปคุยที่สถานีครับ"),
+ # CEO 2026-09-23 on cut v3: the arrest is วิทย์ IN UNIFORM, and เชิด gets an ending —
+ # "ใส่กุญแจมือ เดินขึ้นรถ มีบทพูดว่าเขาทำผิดอะไร ต้องโดนอะไรบ้าง เชิดไม่รับสารภาพ
+ # และพยายามปกป้องตัวเอง" / วิทย์: "งั้นปล่อยให้เป็นหน้าที่ของกฎหมายนะครับ หน้าที่ของ
+ # ผมหมดแล้วครับ แค่ส่งตัวพี่ไปโรงพักก็พอ". Design: docs/scripts/banchi-arrest-ending-DRAFT.md.
+ # 156's lines are unchanged; only the uniform is new.
+ (156, 10, "Medium two-shot, static camera", ["wit_uniform","cherd"], "alley", "night",
+  "steps into the light from the far end of the alley in his khaki duty uniform and stops a few paces away with his hands visible, the younger man turning to him, both faces angled three-quarters toward the camera",
+  [("wit_uniform","calm","ผมขอเชิญคุณไปคุยที่สถานีครับ"),
    ("cherd","the smile gone","ผมแค่เก็บให้เขาครับ"),
-   ("cherd","fast, to anyone","ผมไม่ใช่เจ้าของเงินนะครับ")], ["nocuffs","noledger"]),
+   ("cherd","fast, to anyone","ผมไม่ใช่เจ้าของเงินนะครับ")], ["nocuffs","noledger","nosubs"]),
+
+ (183, 8, "Medium two-shot, static camera", ["wit_uniform","cherd"], "alley", "night",
+  "closes a pair of metal handcuffs around the younger man's wrists in front of him, calmly and without force, both faces angled three-quarters toward the camera",
+  [("wit_uniform","even, formal","คุณถูกจับในข้อหาปล่อยเงินกู้ดอกเบี้ยเกินกฎหมาย และข่มขู่ทวงหนี้ครับ"),
+   ("cherd","quick, indignant","ผมไม่ได้ข่มขู่ใครเลยนะครับ")], ["cuffed","noledger","nosubs"]),
+
+ (184, 10, "Medium two-shot, slow tracking alongside them", ["wit_uniform","cherd"], "alley", "night",
+  "walk side by side down the wet alley toward its mouth, where a plain white pickup with a red-and-blue light bar on its roof and no writing anywhere on it waits with its lights flashing, the younger man's cuffed hands in front of him",
+  [("wit_uniform","plain","เก็บเกินหนี้ไปห้าสิบแปดงวด ขู่คนป่วย ขู่คนทั้งซอย"),
+   ("wit_uniform","steady","ทั้งสองข้อหา โทษมีทั้งจำคุกและปรับครับ"),
+   ("cherd","defensive","ผมทำตามที่เจ้านายสั่งเท่านั้นครับ")], ["cuffed","noledger","nosubs"]),
+
+ (185, 8, "Medium two-shot, static camera", ["cherd","wit_uniform"], "alley", "night",
+  "stop beside the white pickup at the mouth of the alley, red and blue light moving across both faces, the younger man's cuffed hands in front of him, both faces angled three-quarters toward the camera",
+  [("cherd","refusing, chin up","ผมไม่รับหรอกครับ ผมไม่ได้ทำอะไรผิด"),
+   ("wit_uniform","calm, final","งั้นปล่อยให้เป็นหน้าที่ของกฎหมายนะครับ")], ["cuffed","noledger","nosubs"]),
+
+ (186, 8, "Medium two-shot, static camera", ["wit_uniform","cherd"], "alley", "night",
+  "opens the rear door of the white pickup and waits with an open hand toward the seat while the younger man, cuffed hands in front of him, gets in on his own",
+  [("wit_uniform","quiet","หน้าที่ของผมหมดแล้วครับ"),
+   ("wit_uniform","quieter","แค่ส่งตัวพี่ไปโรงพักก็พอ")], ["cuffed","noledger","nosubs"]),
+
+ (187, 6, "Wide shot from behind him, static camera", ["somchai"], "alley", "night",
+  "stands alone at the mouth of the alley watching the white pickup pull away down the wet street, its red-and-blue lights growing small, and lets out one long breath, saying nothing",
+  [], ["noledger","nosubs"]),
 ]

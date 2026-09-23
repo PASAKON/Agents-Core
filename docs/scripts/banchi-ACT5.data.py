@@ -28,6 +28,7 @@ CHAR = dict(_a2.CHAR); LOC = dict(_a2.LOC); VOICE = dict(_a2.VOICE)
 NOT = dict(_a2.NOT); APRON = _a1.APRON
 PROP_FOR_NOT = dict(_a2.PROP_FOR_NOT)
 PROPS_BY_SHOT = dict(_a2.PROPS_BY_SHOT)
+WARDROBE = dict(_a2.WARDROBE)
 
 SHOTS = [
  (107, 6, "Close-up on the two of them over the phone, static camera", ["ton","somchai"], "shop", "night",

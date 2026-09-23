@@ -121,6 +121,18 @@ def build(d, act: str = "?") -> str:
         for handle in d.PROPS_BY_SHOT.get(n, []):
             if handle not in [h for h, _ in chips]:
                 chips.append((handle, ""))
+        # Wardrobe plates, per character (see WARDROBE in banchi-ACT1.data.py).
+        # The face stays on the character's own plate; the clothes ride on a
+        # separate plate with no person in it. A/B 2026-09-23: one full-body
+        # "him in uniform" still gave วิทย์ the father's older face; face plate +
+        # wardrobe plate held his. d.WARDROBE, not getattr: same reason as above.
+        worn_by = {}
+        for c in chars:
+            if c in d.WARDROBE:
+                handle = d.WARDROBE[c]
+                worn_by[handle] = c
+                if handle not in [h for h, _ in chips]:
+                    chips.append((handle, ""))
 
         # The ceiling is Flow's, not ours. The Ultra audit (task-68653632,
         # 2026-09-18) read a reference-chip cap of 10 off the live product; the 3
@@ -140,6 +152,10 @@ def build(d, act: str = "?") -> str:
         out.append("```")
         refs = []
         for i, (h, desc) in enumerate(chips):
+            if h in worn_by:
+                refs.append(f"Use <IMAGE_REF_{i}> as the wardrobe reference: "
+                            f"{d.CHAR[worn_by[h]][2]} wears exactly this outfit.")
+                continue
             kind = "location" if h == lochandle else "character"
             refs.append(f"Use <IMAGE_REF_{i}> as the {kind} reference for {h.lstrip('@')}.")
         out.append(" ".join(refs))
