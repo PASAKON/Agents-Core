@@ -8,38 +8,44 @@ the missing step: tar them, write a manifest, upload both to Google Drive
 never deletes anything itself — tools/workdir.py close() deletes the source
 files, and only after `verified` comes back True.
 
-Transport is reused, not invented, from two places already in this repo:
+Upload transport (rewritten in iteration 1 — CTO reopen 2026-09-23):
+`_default_uploader` speaks the Drive REST v3 *resumable* upload protocol
+itself, streaming the file in fixed-size chunks so a multi-GB tar never sits
+in RAM. Two things it deliberately does NOT do, both rejected in review:
 
-- The copy-into-Drive step is the same one
-  ~/.claude/tools/prune_transcripts.py's --archive uses: writing straight
-  into the locally-synced "My Drive" folder (`claude-home/tools/
-  prune_transcripts.py:54` DRIVE_ROOT; its `archive_session()` at
-  `:279-296` does nothing more than `tarfile.open()` a path under that
-  folder — there is no separate upload call, Google Drive for Desktop syncs
-  the write on its own).
-- Reading the md5 back from Drive reuses the OAuth + Drive REST helpers
-  `scripts/gdrive-bridge/ilag_sync.py` already holds (`_load_oauth`/
-  `access_token`/`api` at `:72-130`, the same `DRIVE_FILES` constant its
-  `upload()` uses at `:182-209`) — the exact mechanism the
-  `Agents-worktrees-<date>.tar` BACKUP-root precedent used
-  (`claude-home/tools/drive-archive-gate.md:44`, "read back size,
-  md5Checksum" — and the matching verified log lines in
-  `~/.claude/logs/drive-archive.log`, e.g. the 2026-09-19T02:46:31 pair for
-  `Agents-worktrees-untracked-2026-09-19.tar` + its manifest).
+- **Never writes into the Google-Drive-for-Desktop mount.** That mount
+  (`claude-home/tools/prune_transcripts.py:54` DRIVE_ROOT) keeps a full LOCAL
+  copy of anything written under it — the disk-hygiene skill's own 2026-09-23
+  field note found this refills the Mac instead of freeing it, which defeats
+  the entire point of this archive step.
+- **Never calls `scripts/gdrive-bridge/ilag_sync.py`'s `upload()`**
+  (`:182-209`) — it does `local_path.read_bytes()`, the whole file in memory,
+  which would swap an 8 GB Mac to death on a multi-GB tar.
 
-`uploader` is the test seam: production callers leave it `None` and get
-`_default_uploader` (the two pieces above); tests inject a fake so nothing
-here ever touches the real Drive.
+The only piece reused from `ilag_sync.py` is its OAuth helper,
+`access_token()` (`:100-117`, itself built on `_load_oauth()` at `:72-98`) —
+imported, never edited, exactly as instructed. Everything else here (the
+resumable session init, the chunked `PUT` loop, 308 handling) is written in
+this module because nothing chunked already existed to reuse.
+
+`uploader` is the test seam on `archive()`: production callers leave it
+`None` and get `_default_uploader`. `_default_uploader` itself takes an
+`opener` seam (the raw HTTP call) so its resumable-chunking logic is testable
+without a socket. Neither is ever exercised against the real Drive by this
+module's tests or by a dry_run archive.
 """
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
+import mimetypes
 import os
 import shutil
 import sys
 import tarfile
 import tempfile
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from typing import Callable
@@ -51,17 +57,20 @@ ROOT = Path(__file__).resolve().parent.parent
 # claude-home/tools/prune_transcripts.py:52 — same log, same append-only shape.
 LOG_PATH = os.path.expanduser("~/.claude/logs/drive-archive.log")
 
-# claude-home/tools/prune_transcripts.py:54 — the Mac-side Drive mount
-# prune_transcripts.py --archive writes into. Reused verbatim as the
-# transport; only the destination sub-folder (BACKUP/ instead of
-# Claude-Transcripts/) differs.
-DRIVE_ROOT = "/Users/gob/Library/CloudStorage/GoogleDrive-pass.gob1@gmail.com/ไดรฟ์ของฉัน"
-
 # gdrive-filing skill: Drive `BACKUP` root, where this precedent's tars land
 # directly (no sub-folder), per task-abc20690's brief.
 BACKUP_FOLDER_ID = "1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq"
 
+DRIVE_UPLOAD = "https://www.googleapis.com/upload/drive/v3/files"
+DRIVE_FILES = "https://www.googleapis.com/drive/v3/files"
+
+# Drive requires chunk sizes to be a multiple of 256 KiB; 8 MiB keeps a
+# multi-GB tar's peak memory at one chunk, never the whole file.
+CHUNK_SIZE = 8 * 1024 * 1024
+
 Uploader = Callable[[Path, str], dict]
+# opener(method, url, *, headers, body) -> (status, response_headers, response_body)
+Opener = Callable[..., tuple[int, dict, bytes]]
 
 
 def _hash_file(path: Path) -> tuple[str, str]:
@@ -73,31 +82,114 @@ def _hash_file(path: Path) -> tuple[str, str]:
     return sha256.hexdigest(), md5.hexdigest()
 
 
-def _default_uploader(local_path: Path, dest_name: str) -> dict:
-    """Copy into the Drive-mounted BACKUP/ folder (prune_transcripts.py's own
-    transport, see module docstring), then read the md5Checksum back via the
-    Drive REST API using scripts/gdrive-bridge/ilag_sync.py's existing OAuth
-    helpers. Never called by this module's tests or by dry_run archives."""
-    dest = Path(DRIVE_ROOT) / "BACKUP" / dest_name
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(local_path, dest)
+def _header(headers: dict, name: str) -> str | None:
+    name = name.lower()
+    for k, v in headers.items():
+        if k.lower() == name:
+            return v
+    return None
 
+
+def _http(method: str, url: str, *, headers: dict | None = None,
+          body: bytes | None = None, timeout: int = 300) -> tuple[int, dict, bytes]:
+    """Bare HTTP/1.1 request via http.client -- no automatic redirect-
+    following, so Drive's 308 Resume Incomplete comes back as an ordinary
+    response instead of being chased or raised as an error. Real (non-test)
+    opener; tests always inject their own."""
+    parsed = urllib.parse.urlsplit(url)
+    conn = http.client.HTTPSConnection(parsed.netloc, timeout=timeout)
+    try:
+        path = parsed.path + (("?" + parsed.query) if parsed.query else "")
+        conn.request(method, path, body=body, headers=headers or {})
+        resp = conn.getresponse()
+        resp_body = resp.read()
+        return resp.status, dict(resp.getheaders()), resp_body
+    finally:
+        conn.close()
+
+
+def _access_token() -> str:
+    """The bridge's OAuth helper, imported and reused as-is -- never its
+    upload() (reads the whole file into RAM) and ilag_sync.py itself is
+    never edited."""
     bridge_dir = str(ROOT / "scripts" / "gdrive-bridge")
     if bridge_dir not in sys.path:
         sys.path.insert(0, bridge_dir)
-    import ilag_sync  # noqa: E402 — existing OAuth/Drive-API helpers, not a new transport
+    import ilag_sync  # noqa: E402 — access_token() only
+    return ilag_sync.access_token()
 
-    resp = ilag_sync.api(
-        ilag_sync.DRIVE_FILES,
-        params={
-            "q": f"name = '{dest_name}' and '{BACKUP_FOLDER_ID}' in parents and trashed = false",
-            "fields": "files(id,name,md5Checksum,size)",
-        },
-    )
-    files = resp.get("files") or []
-    if not files:
-        raise RuntimeError(f"{dest_name} not found under Drive BACKUP/ after copy (sync pending?)")
-    return files[0]
+
+def _init_resumable_session(opener: Opener, token: str, name: str, mime: str, size: int) -> str:
+    url = DRIVE_UPLOAD + "?" + urllib.parse.urlencode({
+        "uploadType": "resumable",
+        "fields": "id,name,size,md5Checksum",
+    })
+    body = json.dumps({"name": name, "parents": [BACKUP_FOLDER_ID]}).encode()
+    headers = {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json; charset=UTF-8",
+        "X-Upload-Content-Type": mime,
+        "X-Upload-Content-Length": str(size),
+    }
+    status, resp_headers, _ = opener("POST", url, headers=headers, body=body)
+    if status not in (200, 201):
+        raise RuntimeError(f"resumable session init failed: status={status}")
+    location = _header(resp_headers, "Location")
+    if not location:
+        raise RuntimeError("resumable session init returned no Location header")
+    return location
+
+
+def _upload_chunks(opener: Opener, session_url: str, local_path: Path, size: int) -> dict:
+    """PUTs `local_path` to `session_url` in <=CHUNK_SIZE reads, seeking to
+    the server-confirmed offset after every 308 -- never the whole file in
+    one call."""
+    sent = 0
+    with local_path.open("rb") as fh:
+        while sent < size:
+            fh.seek(sent)
+            chunk = fh.read(min(CHUNK_SIZE, size - sent))
+            if not chunk:
+                raise RuntimeError(f"short read at offset {sent} of {size}")
+            end = sent + len(chunk) - 1
+            headers = {
+                "Content-Length": str(len(chunk)),
+                "Content-Range": f"bytes {sent}-{end}/{size}",
+            }
+            status, resp_headers, body = opener("PUT", session_url, headers=headers, body=chunk)
+            if status in (200, 201):
+                return json.loads(body)
+            if status == 308:
+                range_header = _header(resp_headers, "Range")
+                sent = int(range_header.rsplit("-", 1)[-1]) + 1 if range_header else end + 1
+                continue
+            raise RuntimeError(f"chunk upload failed: status={status} body={body[:300]!r}")
+    raise RuntimeError("resumable upload read the whole file with no 200/201 response")
+
+
+def _get_file_metadata(opener: Opener, token: str, file_id: str) -> dict:
+    url = f"{DRIVE_FILES}/{file_id}?" + urllib.parse.urlencode(
+        {"fields": "id,name,size,md5Checksum"})
+    status, _, body = opener("GET", url, headers={"Authorization": "Bearer " + token})
+    if status != 200:
+        raise RuntimeError(f"metadata fetch failed: status={status}")
+    return json.loads(body)
+
+
+def _default_uploader(local_path: Path, dest_name: str, *, opener: Opener | None = None) -> dict:
+    """Chunked Drive REST resumable upload -- see module docstring for why
+    this exists instead of the Drive-mount copy or ilag_sync.py's upload().
+    Never called by this module's tests or by a dry_run archive."""
+    opener = opener or _http
+    token = _access_token()
+    size = local_path.stat().st_size
+    mime = mimetypes.guess_type(dest_name)[0] or "application/octet-stream"
+
+    session_url = _init_resumable_session(opener, token, dest_name, mime, size)
+    meta = _upload_chunks(opener, session_url, local_path, size)
+    if not meta.get("md5Checksum"):
+        meta = _get_file_metadata(opener, token, meta["id"])
+    return meta
 
 
 def _log(line: str) -> None:

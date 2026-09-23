@@ -169,3 +169,86 @@ def test_uploader_exception_verifies_false(tmp_path):
 
     assert result["verified"] is False
     assert "network down" in result["error"]
+
+
+# ------------------------------------------- _default_uploader (opener seam)
+#
+# iteration 1 (CTO reopen 2026-09-23): _default_uploader now speaks the Drive
+# REST resumable-upload protocol itself, chunked, via an injected `opener`
+# seam -- never the Drive-for-Desktop mount, never ilag_sync.py's upload()
+# (whole file in RAM). These tests exercise that chunking directly; no
+# socket, no real Drive, no real OAuth (access_token() is monkeypatched out).
+
+import re
+
+
+def _range_end(content_range: str) -> int:
+    # "bytes {start}-{end}/{size}" -> end
+    return int(re.match(r"bytes (\d+)-(\d+)/(\d+)", content_range).group(2))
+
+
+def test_default_uploader_resumable_chunks_and_308(tmp_path, monkeypatch):
+    monkeypatch.setattr(work_archive, "_access_token", lambda: "fake-token")
+
+    size = 20 * 1024 * 1024  # 20 MiB -> 8 + 8 + 4 MiB, three PUTs
+    local = tmp_path / "big.tar"
+    local.write_bytes(b"\0" * size)
+
+    calls: list[tuple] = []
+
+    def fake_opener(method, url, *, headers=None, body=None):
+        calls.append((method, url, dict(headers or {}), body or b""))
+        if method == "POST":
+            assert url.startswith(work_archive.DRIVE_UPLOAD)
+            assert headers["X-Upload-Content-Length"] == str(size)
+            return 200, {"Location": "https://fake.example/session-1"}, b""
+        if method == "PUT":
+            assert url == "https://fake.example/session-1"
+            assert len(body) <= work_archive.CHUNK_SIZE  # never more than one chunk
+            put_so_far = sum(1 for c in calls if c[0] == "PUT")
+            end = _range_end(headers["Content-Range"])
+            if put_so_far < 3:
+                return 308, {"Range": f"bytes=0-{end}"}, b""
+            return 200, {}, json.dumps({
+                "id": "file123", "name": "big.tar", "size": str(size),
+                "md5Checksum": "deadbeefdeadbeefdeadbeefdeadbeef",
+            }).encode()
+        raise AssertionError(f"unexpected method {method}")
+
+    meta = work_archive._default_uploader(local, "big.tar", opener=fake_opener)
+
+    put_calls = [c for c in calls if c[0] == "PUT"]
+    assert len(put_calls) == 3
+    assert [c[2]["Content-Range"] for c in put_calls] == [
+        f"bytes 0-8388607/{size}",
+        f"bytes 8388608-16777215/{size}",
+        f"bytes 16777216-20971519/{size}",
+    ]
+    assert all(len(c[3]) <= work_archive.CHUNK_SIZE for c in put_calls)  # no single read > 8 MiB
+    assert meta["md5Checksum"] == "deadbeefdeadbeefdeadbeefdeadbeef"
+
+
+def test_default_uploader_falls_back_to_get_by_id_for_md5(tmp_path, monkeypatch):
+    monkeypatch.setattr(work_archive, "_access_token", lambda: "fake-token")
+    local = tmp_path / "small.tar"
+    local.write_bytes(b"x" * 100)
+
+    calls: list[tuple] = []
+
+    def fake_opener(method, url, *, headers=None, body=None):
+        calls.append((method, url, dict(headers or {})))
+        if method == "POST":
+            return 200, {"Location": "https://fake.example/session-2"}, b""
+        if method == "PUT":
+            # final chunk in one PUT (100 bytes), response carries no md5Checksum
+            return 200, {}, json.dumps({"id": "file999", "name": "small.tar", "size": "100"}).encode()
+        if method == "GET":
+            assert url.startswith(f"{work_archive.DRIVE_FILES}/file999")
+            assert headers["Authorization"] == "Bearer fake-token"
+            return 200, {}, json.dumps({"id": "file999", "md5Checksum": "cafebabe"}).encode()
+        raise AssertionError(f"unexpected method {method}")
+
+    meta = work_archive._default_uploader(local, "small.tar", opener=fake_opener)
+
+    assert meta["md5Checksum"] == "cafebabe"
+    assert [c[0] for c in calls] == ["POST", "PUT", "GET"]  # GET only fired because md5 was missing
