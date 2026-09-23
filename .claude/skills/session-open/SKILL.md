@@ -49,6 +49,13 @@ has a clear thing to close. Enforces [IRON-RULES §35](../../../../LLMs/IRON-RUL
 Before asking what to work on, pull the candidate list so the CEO picks from
 **real state, not memory**. This is the opening menu.
 
+**Skip the menu when the CEO opened with the problem already stated.** The
+SessionStart hook has already surfaced the due/overdue deadlines; relay those
+in one line and go straight to step 1 with the CEO's own sentence. The full
+`list_todos` pull (80+ rows, >60 KB) is never read in that case and, since
+the HQ step-4b slug symlink, cannot even spill to disk. Promoted from a field
+note on two independent runs (cto-0e8d80b8 2026-09-22, cto-b4ed592c 2026-09-23).
+
 Belt-and-braces memory pull (task-8d37c0f1) — the launcher already pulled
 before this process started; this just covers a `--resume`/`--continue` that
 skipped the launcher: `python3 -m tools.memory_sync pull` (best-effort,
@@ -191,5 +198,6 @@ Then start WORK. From here, anything off-topic is **parked, not pivoted to**
 
 ## Field notes
 
-- 2026-09-22 [MISSING] §0 Pre-flight — when the CEO opens the session with the problem already stated, the A/B/C menu adds nothing: the SessionStart hook has already surfaced the deadlines, and `list_todos` returned 80 rows (60 KB) that were never read; charter from the CEO's sentence and skip to step 1 · evidence: session cto-0e8d80b8 · status: pending
+- 2026-09-22 [MISSING] §0 Pre-flight — when the CEO opens the session with the problem already stated, the A/B/C menu adds nothing: the SessionStart hook has already surfaced the deadlines, and `list_todos` returned 80 rows (60 KB) that were never read; charter from the CEO's sentence and skip to step 1 · evidence: session cto-0e8d80b8; second run cto-b4ed592c agreed, promoted to the §0 rule 2026-09-23 · status: promoted
+- 2026-09-23 [MISSING] §0.1 — `mcp__lungnote__list_todos` has no offset or text filter, and `search_notes` does not search todo text: limit≥80 overflows the inline cap and the spill-to-disk is refused through the symlinked project dir, so a specific parked todo is unfindable through MCP. What worked: PostgREST `lungnote_todos?or=(text.ilike.*login*,…)` using the creds loader in `scripts/session-deadline-check.py` · evidence: session cto-b4ed592c, todo dab5aedb found only this way · status: pending
 - 2026-09-23 [WRONG] §3 — `scripts/session-rename.sh` does not always land: after a `/terminal-restart` its typed `/rename …` arrived in the pane as `//rename …` (an ordinary prompt, not a command) and the session kept its old name; the script had already recorded the name as set, so a re-run could no-op. Verify the name in the app/`/status` after the turn; if it did not change, the CEO types `/rename <name>` once · evidence: session cto-0e8d80b8 03:0x, CEO's manual /rename succeeded · status: pending

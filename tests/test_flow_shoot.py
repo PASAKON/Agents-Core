@@ -12,7 +12,9 @@ as tests/test_multihost.py.)
 """
 from __future__ import annotations
 
+import os
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
@@ -151,6 +153,22 @@ def test_save_ledger_is_atomic_no_tmp_file_left_behind(tmp_path):
     assert not tmp_marker.exists()
 
 
+def test_save_ledger_collapses_tabs_and_newlines_inside_fields(tmp_path):
+    ledger = tmp_path / "safe.tsv"
+    rows = {
+        35: {
+            "shot": 35, "act": 2, "dur_s": 6, "chips": "@a",
+            "prompt_sha": "abc", "status": "refused", "flow_clip_id": "",
+            "file": "", "sha256": "", "got_dur": "", "attempts": "2",
+            "note": "ล้มเหลว\npolicy\tmessage",
+        }
+    }
+    flow_ledger.save_ledger(ledger, rows)
+    assert len(ledger.read_text(encoding="utf-8").splitlines()) == 2
+    assert flow_ledger.load_ledger(ledger)[35]["note"] == (
+        "ล้มเหลว policy message")
+
+
 def test_status_summary_counts_and_next_todo(tmp_path):
     ledger = tmp_path / "ACT2.tsv"
     flow_ledger.init_ledger(FIXTURE_SHEET, ledger)
@@ -228,11 +246,12 @@ def test_effective_duration_no_override_uses_sheet_duration():
     assert flow_shoot.effective_duration(8, None) == 8
 
 
-def test_run_arg_parsing_defaults_resolution_720p_no_force_duration():
+def test_run_arg_parsing_defaults_generation_720p_and_download_1080p():
     ap = flow_shoot.build_parser()
     args = ap.parse_args(["run", "--sheet", "s.md", "--ledger", "l.tsv",
                            "--dest", "d", "--credit-cap", "10"])
     assert args.resolution == "720p"
+    assert args.download_resolution == "1080p"
     assert args.force_duration is None
 
 
@@ -251,6 +270,27 @@ def test_run_arg_parsing_rejects_unknown_resolution():
         ap.parse_args(["run", "--sheet", "s.md", "--ledger", "l.tsv",
                         "--dest", "d", "--credit-cap", "10",
                         "--resolution", "1080p"])
+
+
+def test_download_resolution_allows_only_free_upscale_or_legacy_720p():
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args(["pull", "--sheet", "s.md", "--ledger", "l.tsv",
+                          "--dest", "d", "--download-resolution", "720p"])
+    assert args.download_resolution == "720p"
+    with pytest.raises(SystemExit):
+        ap.parse_args(["pull", "--sheet", "s.md", "--ledger", "l.tsv",
+                       "--dest", "d", "--download-resolution", "4K"])
+
+
+def test_validate_download_option_accepts_free_1080p_and_rejects_paid_4k():
+    flow_shoot.validate_download_option(
+        "1080p\nเพิ่มความละเอียดแล้ว", "1080p")
+    with pytest.raises((ValueError, RuntimeError)):
+        flow_shoot.validate_download_option(
+            "4K\nเพิ่มความละเอียดแล้ว · 50 เครดิต", "4K")
+    with pytest.raises(RuntimeError, match="credit-bearing"):
+        flow_shoot.validate_download_option(
+            "1080p\nเพิ่มความละเอียดแล้ว · 50 เครดิต", "1080p")
 
 
 def test_parse_only_ranges_and_lists():
@@ -524,6 +564,24 @@ def test_verify_clip_fails_on_silence(tmp_path):
     assert reason == "NO AUDIO"
 
 
+def test_verify_clip_checks_requested_upscale_resolution(tmp_path, monkeypatch):
+    clip = tmp_path / "shot-01.mp4"
+    _make_clip(clip, duration=4.0, silent=False)
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions",
+                        lambda _path: (1080, 1920))
+    ok, reason = flow_shoot.verify_clip(
+        clip, expected_dur=4, expected_resolution="1080p")
+    assert ok is True
+    assert "1080x1920" in reason
+
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions",
+                        lambda _path: (720, 1280))
+    ok, reason = flow_shoot.verify_clip(
+        clip, expected_dur=4, expected_resolution="1080p")
+    assert ok is False
+    assert reason == "RESOLUTION got 720x1280 want 1080x1920"
+
+
 def test_verify_clip_missing_file():
     ok, reason = flow_shoot.verify_clip(Path("/does/not/exist.mp4"), expected_dur=6)
     assert ok is False
@@ -562,10 +620,14 @@ def test_sha256_file_is_stable(tmp_path):
 # ── check_replay_script.py gate (the thing that actually blocks merge) ──────
 
 def test_check_replay_script_accepts_flow_shoot():
+    env = os.environ.copy()
+    git_bash_bin = Path(r"C:\Program Files\Git\bin")
+    if git_bash_bin.exists():
+        env["PATH"] = str(git_bash_bin) + os.pathsep + env.get("PATH", "")
     r = subprocess.run(
-        ["python3", "tools/check_replay_script.py", "tools/flow_shoot.py",
+        [sys.executable, "tools/check_replay_script.py", "tools/flow_shoot.py",
          "tools/flow_ledger.py", "scripts/flow/launch-chrome-debug.sh"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, env=env,
     )
     assert r.returncode == 0, r.stdout + r.stderr
 
@@ -600,6 +662,9 @@ class _GateStubBrowser:
         pass
 
     def mute_all_media(self) -> None:
+        pass
+
+    def reset_composer(self) -> None:
         pass
 
     def close(self) -> None:
@@ -707,6 +772,10 @@ class _DryRunAwareStubBrowser:
         self.dry_run = False
         self.submit_called = False
         self._pasted = ""
+
+    def reset_composer(self) -> None:
+        # interface parity with FlowBrowser (branch merge 2026-09-23); no-op in a stub
+        pass
 
     def attach(self) -> None:
         pass
@@ -821,6 +890,10 @@ class _EstimateUnreadableStubBrowser:
         self.submit_called = False
         self.set_settings_calls = 0
         self._pasted = ""
+
+    def reset_composer(self) -> None:
+        # interface parity with FlowBrowser (branch merge 2026-09-23); no-op in a stub
+        pass
 
     def attach(self) -> None:
         pass
@@ -1013,6 +1086,10 @@ class _ZeroChipsStubBrowser:
         self.dry_run = False
         self.submit_called = False
         self._pasted = ""
+
+    def reset_composer(self) -> None:
+        # interface parity with FlowBrowser (branch merge 2026-09-23); no-op in a stub
+        pass
 
     def attach(self) -> None:
         pass
@@ -1244,3 +1321,225 @@ def test_credit_cap_zero_never_calls_decide(tmp_path, monkeypatch):
     rows = flow_ledger.load_ledger(tmp_path / "cap0_no_decide.tsv")
     assert rows[35]["status"] == "todo"
     assert rc == 0
+
+# ── live picker DOM contract (winbox, 20 Sep) ──────────────────────────────
+
+class _PickerDOM:
+    def __init__(self, row_found=True):
+        self.row_found = row_found
+        self.chips = 0
+        self.fills = []
+        self.dialog_selectors = []
+        self.close_clicked = False
+
+
+class _PickerLocator:
+    def __init__(self, dom, kind):
+        self.dom = dom
+        self.kind = kind
+
+    @property
+    def first(self):
+        return self
+
+    @property
+    def last(self):
+        return self
+
+    def locator(self, selector):
+        self.dom.dialog_selectors.append(selector)
+        if selector.startswith('input[aria-label="ค้นหาเนื้อหา"]'):
+            return _PickerLocator(self.dom, "search")
+        if selector == ".asset-item":
+            return _PickerLocator(self.dom, "row")
+        if selector == ".asset-item:visible":
+            return _PickerLocator(self.dom, "rows")
+        if selector == 'button[aria-label="ปิด"]':
+            return _PickerLocator(self.dom, "close")
+        raise AssertionError(f"unexpected dialog selector: {selector}")
+
+    def filter(self, has_text=None):
+        return self
+
+    def click(self, **_kwargs):
+        if self.kind == "row":
+            self.dom.chips = 1
+        elif self.kind == "close":
+            self.dom.close_clicked = True
+
+    def wait_for(self, **_kwargs):
+        if self.kind == "row" and not self.dom.row_found:
+            raise TimeoutError("not rendered")
+
+    def fill(self, value):
+        self.dom.fills.append(value)
+
+    def input_value(self):
+        return self.dom.fills[-1] if self.dom.fills else ""
+
+    def count(self):
+        return 0 if self.kind == "rows" else 1
+
+    def inner_text(self, **_kwargs):
+        return ""
+
+
+class _PickerPage:
+    def __init__(self, dom):
+        self.dom = dom
+
+    def locator(self, selector):
+        if selector == 'button[aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์"]':
+            return _PickerLocator(self.dom, "opener")
+        if selector in ('[role="dialog"]', '[role="dialog"]:visible'):
+            return _PickerLocator(self.dom, "dialog")
+        raise AssertionError(
+            f"picker assets/search must be scoped to the dialog, got: {selector}")
+
+    def get_by_text(self, *_args, **_kwargs):
+        return _PickerLocator(self.dom, "add")
+
+    def wait_for_timeout(self, _ms):
+        pass
+
+
+def _picker_browser(row_found=True):
+    dom = _PickerDOM(row_found=row_found)
+    browser = flow_shoot.FlowBrowser()
+    browser.page = _PickerPage(dom)
+    browser.chip_count = lambda: dom.chips
+    return browser, dom
+
+
+def test_attach_chip_searches_full_picker_dataset_and_verifies_chip_count():
+    browser, dom = _picker_browser(row_found=True)
+
+    assert browser.attach_chip("@nong_daeng") is True
+    assert dom.fills == ["", "@nong_daeng"]
+    assert (
+        'input[aria-label="ค้นหาเนื้อหา"], input[aria-label="ค้นหา"]'
+        in dom.dialog_selectors
+    )
+    assert ".asset-item" in dom.dialog_selectors
+    assert dom.chips == 1
+
+
+def test_attach_chip_closes_picker_when_search_has_no_result():
+    browser, dom = _picker_browser(row_found=False)
+
+    assert browser.attach_chip("@missing_asset") is False
+    assert dom.fills == ["", "@missing_asset", "", "missing_asset"]
+    assert dom.close_clicked is True
+
+
+def test_download_card_never_reuses_a_prior_clip_url(monkeypatch):
+    class Card:
+        def click(self):
+            pass
+
+    class Page:
+        def wait_for_timeout(self, _ms):
+            pass
+
+        def evaluate(self, _script):
+            pass
+
+    browser = flow_shoot.FlowBrowser()
+    browser.download_resolution = "720p"  # exercise the legacy CDN guard
+    browser.page = Page()
+    browser._captured_video_urls = ["https://flow-content.google/video/old"]
+    monkeypatch.setattr(flow_shoot, "COMPLETION_TIMEOUT_S", 0)
+
+    with pytest.raises(RuntimeError, match="refusing to reuse a prior clip URL"):
+        browser.download_card(Card())
+
+
+# ── a log write must never be able to stop a shoot ──────────────────────────
+# 2026-09-22: Act 5 died at shot 128 after 18 good ones. The log file was UTF-8,
+# but stdout on Windows is cp1252 and every line of this film is Thai, so one
+# un-encodable character raised UnicodeEncodeError straight out of print().
+class _Cp1252Stdout:
+    """stdout that behaves like a Windows console: cp1252, and it raises."""
+    encoding = "cp1252"
+
+    def __init__(self):
+        self.written = []
+
+    def write(self, s):
+        s.encode("cp1252")          # raises UnicodeEncodeError on Thai
+        self.written.append(s)
+        return len(s)
+
+    def flush(self):
+        pass
+
+
+def test_log_survives_a_console_that_cannot_encode_thai(tmp_path, monkeypatch):
+    monkeypatch.setattr(flow_shoot, "LOG_PATH", tmp_path / "run.log")
+    fake = _Cp1252Stdout()
+    monkeypatch.setattr(sys, "stdout", fake)
+
+    flow_shoot._log('shot 128: submitted "ผมแค่จะไม่จ่ายอีกแล้ว"')
+
+    # the console got something rather than an exception
+    assert any("shot 128" in w for w in fake.written)
+    # and the file kept the real Thai, undamaged
+    written = (tmp_path / "run.log").read_text(encoding="utf-8")
+    assert "ผมแค่จะไม่จ่ายอีกแล้ว" in written
+
+
+def test_log_leaves_an_ordinary_console_untouched(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(flow_shoot, "LOG_PATH", tmp_path / "run.log")
+    flow_shoot._log("shot 129: verified — 8.0s 1080x1920 ผ่าน")
+    assert "ผ่าน" in capsys.readouterr().out
+
+
+# ── picker row matching: exact asset, never a prefix of another ──
+
+@pytest.mark.parametrize("handle,row_text,expected", [
+    ("@cop_wit", "@cop_wit", True),
+    ("@cop_wit", "cop_wit\nตัวละคร", True),
+    ("@cop_wit", "@cop_wit_uniform_A", False),
+    ("@cop_wit", "cop_wit_uniform_A\nรูปภาพ", False),
+    ("@cop_wit_uniform_A", "cop_wit_uniform_A\nรูปภาพ", True),
+    ("@cop_wit_uniform_A", "@cop_wit_uniform_AB", False),
+    ("@noodle_shop", "@noodle_shop_thriving", False),
+    ("@noodle_shop", "@noodle_shop", True),
+    ("@noodle_shop_thriving", "@noodle_shop_thriving", True),
+    ("@nong_daeng", "@nong_daeng_suit", False),
+])
+def test_picker_row_pattern_matches_the_exact_asset_only(handle, row_text, expected):
+    assert bool(flow_shoot.picker_row_pattern(handle).search(row_text)) is expected
+
+
+# ── card key for a shot with no dialogue ──
+
+def test_card_fragment_prefers_dialogue():
+    p = ('In a shop — five tables. a man <IMAGE_REF_0> — walks in.\n\n'
+         'The man speaks Thai, and says: "สวัสดีครับลุง"')
+    assert flow_shoot.card_fragment(p) == "สวัสดีครับลุง"
+
+
+def test_card_fragment_falls_back_to_the_action_not_the_location():
+    p = ('Use <IMAGE_REF_0> as the character reference for cop_wit.\n\n'
+         'In a narrow Bangkok shophouse ground floor turned noodle shop — five worn '
+         'wooden tables, night. a Thai man of 32 <IMAGE_REF_0> — sits alone at the '
+         'corner table facing the door with a bowl in front of him, saying nothing.\n\n'
+         'Medium close shot on him alone, static camera.')
+    frag = flow_shoot.card_fragment(p)
+    assert frag.startswith("sits alone at the corner table")
+    assert "five worn" not in frag and len(frag) <= 60
+
+
+# ── a submit only counts once a NEW batch is at the top of the feed ──
+
+@pytest.mark.parametrize("before,after,expected", [
+    ((6, "old 176"), (7, "new 179"), True),      # one more batch
+    ((6, "old 176"), (6, "new 179"), True),      # virtualised feed: same count, new head
+    ((6, "old 176"), (6, "old 176"), False),     # nothing happened
+    ((6, "old 176"), (-1, ""), False),           # failed read is not a change
+    ((-1, ""), (7, "new 179"), False),           # unknown baseline is not a change
+    ((0, ""), (0, ""), False),
+])
+def test_feed_changed(before, after, expected):
+    assert flow_shoot.feed_changed(before, after) is expected

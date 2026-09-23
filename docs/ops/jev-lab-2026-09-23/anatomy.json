@@ -1,0 +1,972 @@
+{
+ "verb": "anatomy",
+ "model": "typesafe/jev-1.13",
+ "at": "2026-09-23T08:30:32+0200",
+ "calls": 26,
+ "cost_usd": 0.000771204,
+ "summary": {},
+ "first_raw_response": {
+  "model": "typesafe/jev-1.13-20260917",
+  "answers": {
+   "q": {
+    "type": "choice",
+    "choice": "a",
+    "probabilities": {
+     "a": 0.93,
+     "b": 0.07
+    },
+    "confidence": 0.86
+   }
+  },
+  "usage": {
+   "input_tokens": 307,
+   "output_tokens": 31,
+   "cost": 1.2894e-05
+  },
+  "id": "gen-dec-1790145021-eJrdKLQ8pkcWfqVrjjgf",
+  "provider": "TypeSafe"
+ },
+ "rows": [
+  {
+   "ms": 655.4,
+   "http": 200,
+   "case": "state_chars=0",
+   "usage": {
+    "input_tokens": 307,
+    "output_tokens": 31,
+    "cost": 1.2894e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.93,
+      "b": 0.07
+     },
+     "confidence": 0.86
+    }
+   }
+  },
+  {
+   "ms": 360.1,
+   "http": 200,
+   "case": "state_chars=200",
+   "usage": {
+    "input_tokens": 354,
+    "output_tokens": 31,
+    "cost": 1.4868e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.04,
+      "a": 0.96
+     },
+     "confidence": 0.93
+    }
+   }
+  },
+  {
+   "ms": 353.8,
+   "http": 200,
+   "case": "state_chars=800",
+   "usage": {
+    "input_tokens": 492,
+    "output_tokens": 31,
+    "cost": 2.0664e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.04,
+      "a": 0.96
+     },
+     "confidence": 0.92
+    }
+   }
+  },
+  {
+   "ms": 324.6,
+   "http": 200,
+   "case": "state_chars=3200",
+   "usage": {
+    "input_tokens": 1045,
+    "output_tokens": 31,
+    "cost": 4.389e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.95,
+      "b": 0.05
+     },
+     "confidence": 0.91
+    }
+   }
+  },
+  {
+   "ms": 1553.8,
+   "http": 200,
+   "case": "state_chars=12800",
+   "usage": {
+    "input_tokens": 3261,
+    "output_tokens": 31,
+    "cost": 0.000136962
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.04,
+      "a": 0.96
+     },
+     "confidence": 0.92
+    }
+   }
+  },
+  {
+   "ms": 329.5,
+   "http": 200,
+   "case": "options=2 (short meaning)",
+   "usage": {
+    "input_tokens": 312,
+    "output_tokens": 34,
+    "cost": 1.3104e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "o0",
+     "probabilities": {
+      "o1": 0.42,
+      "o0": 0.58
+     },
+     "confidence": 0.16
+    }
+   }
+  },
+  {
+   "ms": 353.9,
+   "http": 200,
+   "case": "options=8 (short meaning)",
+   "usage": {
+    "input_tokens": 408,
+    "output_tokens": 82,
+    "cost": 1.7136e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "o0",
+     "probabilities": {
+      "o1": 0.19,
+      "o0": 0.67,
+      "o4": 0.03,
+      "o7": 0.01,
+      "o2": 0.04,
+      "o5": 0.02,
+      "o3": 0.03,
+      "o6": 0.01
+     },
+     "confidence": 0.61
+    }
+   }
+  },
+  {
+   "ms": 438.3,
+   "http": 200,
+   "case": "options=32 (short meaning)",
+   "usage": {
+    "input_tokens": 836,
+    "output_tokens": 296,
+    "cost": 3.5112e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "o0",
+     "probabilities": {
+      "o29": 0,
+      "o17": 0,
+      "o7": 0,
+      "o5": 0.01,
+      "o31": 0.01,
+      "o19": 0,
+      "o26": 0,
+      "o22": 0.01,
+      "o28": 0,
+      "o24": 0,
+      "o11": 0,
+      "o16": 0,
+      "o14": 0,
+      "o4": 0.02,
+      "o25": 0.01,
+      "o9": 0.01,
+      "o0": 0.61,
+      "o18": 0.01,
+      "o2": 0.02,
+      "o23": 0.01,
+      "o27": 0.01,
+      "o13": 0,
+      "o8": 0.01,
+      "o10": 0.01,
+      "o15": 0,
+      "o21": 0.01,
+      "o6": 0,
+      "o3": 0.02,
+      "o12": 0.01,
+      "o30": 0,
+      "o1": 0.2,
+      "o20": 0.01
+     },
+     "confidence": 0.58
+    }
+   }
+  },
+  {
+   "ms": 406.9,
+   "http": 200,
+   "case": "options=128 (short meaning)",
+   "usage": {
+    "input_tokens": 2620,
+    "output_tokens": 1188,
+    "cost": 0.00011004
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "o0",
+     "probabilities": {
+      "o39": 0,
+      "o102": 0,
+      "o117": 0,
+      "o75": 0,
+      "o125": 0,
+      "o87": 0,
+      "o32": 0,
+      "o123": 0,
+      "o94": 0.01,
+      "o21": 0,
+      "o124": 0,
+      "o104": 0,
+      "o14": 0,
+      "o69": 0,
+      "o24": 0,
+      "o31": 0,
+      "o54": 0,
+      "o72": 0,
+      "o15": 0,
+      "o10": 0.02,
+      "o93": 0.01,
+      "o92": 0.01,
+      "o100": 0.02,
+      "o74": 0,
+      "o127": 0.02,
+      "o76": 0,
+      "o120": 0,
+      "o59": 0,
+      "o53": 0,
+      "o23": 0,
+      "o105": 0,
+      "o70": 0,
+      "o40": 0,
+      "o91": 0.01,
+      "o41": 0,
+      "o121": 0,
+      "o84": 0,
+      "o51": 0,
+      "o48": 0,
+      "o38": 0,
+      "o7": 0,
+      "o62": 0,
+      "o64": 0,
+      "o45": 0,
+      "o1": 0.19,
+      "o89": 0.01,
+      "o20": 0,
+      "o17": 0,
+      "o3": 0.02,
+      "o43": 0,
+      "o90": 0.01,
+      "o118": 0,
+      "o113": 0,
+      "o83": 0,
+      "o98": 0.01,
+      "o108": 0,
+      "o2": 0.03,
+      "o96": 0.01,
+      "o6": 0,
+      "o42": 0,
+      "o25": 0,
+      "o18": 0,
+      "o50": 0.02,
+      "o107": 0,
+      "o27": 0,
+      "o66": 0,
+      "o65": 0,
+      "o5": 0.02,
+      "o35": 0,
+      "o114": 0,
+      "o46": 0,
+      "o55": 0,
+      "o34": 0,
+      "o16": 0,
+      "o122": 0,
+      "o67": 0,
+      "o60": 0,
+      "o71": 0,
+      "o86": 0,
+      "o99": 0.01,
+      "o85": 0,
+      "o58": 0,
+      "o68": 0,
+      "o8": 0,
+      "o26": 0,
+      "o12": 0,
+      "o49": 0,
+      "o57": 0,
+      "o11": 0,
+      "o112": 0,
+      "o30": 0,
+      "o80": 0,
+      "o36": 0,
+      "o95": 0.01,
+      "o81": 0,
+      "o115": 0,
+      "o37": 0,
+      "o79": 0,
+      "o78": 0,
+      "o111": 0,
+      "o19": 0,
+      "o63": 0,
+      "o28": 0,
+      "o106": 0,
+      "o29": 0,
+      "o61": 0,
+      "o56": 0,
+      "o13": 0,
+      "o47": 0,
+      "o119": 0,
+      "o110": 0,
+      "o109": 0,
+      "o0": 0.51,
+      "o73": 0,
+      "o126": 0,
+      "o101": 0,
+      "o103": 0,
+      "o22": 0,
+      "o33": 0,
+      "o82": 0,
+      "o88": 0,
+      "o116": 0,
+      "o77": 0,
+      "o52": 0,
+      "o44": 0,
+      "o4": 0.02,
+      "o9": 0.01,
+      "o97": 0.01
+     },
+     "confidence": 0.5
+    }
+   }
+  },
+  {
+   "ms": 336.1,
+   "http": 200,
+   "case": "meaning_chars=20 x2 options",
+   "usage": {
+    "input_tokens": 312,
+    "output_tokens": 31,
+    "cost": 1.3104e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.9,
+      "b": 0.1
+     },
+     "confidence": 0.8
+    }
+   }
+  },
+  {
+   "ms": 406.4,
+   "http": 200,
+   "case": "meaning_chars=200 x2 options",
+   "usage": {
+    "input_tokens": 396,
+    "output_tokens": 31,
+    "cost": 1.6632e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.91,
+      "b": 0.09
+     },
+     "confidence": 0.82
+    }
+   }
+  },
+  {
+   "ms": 315.9,
+   "http": 200,
+   "case": "meaning_chars=800 x2 options",
+   "usage": {
+    "input_tokens": 672,
+    "output_tokens": 31,
+    "cost": 2.8224e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.11,
+      "a": 0.89
+     },
+     "confidence": 0.78
+    }
+   }
+  },
+  {
+   "ms": 595.7,
+   "http": 200,
+   "case": "instructions_chars=20",
+   "usage": {
+    "input_tokens": 312,
+    "output_tokens": 31,
+    "cost": 1.3104e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.87,
+      "b": 0.13
+     },
+     "confidence": 0.74
+    }
+   }
+  },
+  {
+   "ms": 365.1,
+   "http": 200,
+   "case": "instructions_chars=400",
+   "usage": {
+    "input_tokens": 398,
+    "output_tokens": 31,
+    "cost": 1.6716e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.96,
+      "b": 0.04
+     },
+     "confidence": 0.91
+    }
+   }
+  },
+  {
+   "ms": 448.6,
+   "http": 200,
+   "case": "questions=1 over one 800-char state",
+   "usage": {
+    "input_tokens": 496,
+    "output_tokens": 32,
+    "cost": 2.0832e-05
+   },
+   "answers": {
+    "q0": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.97,
+      "b": 0.03
+     },
+     "confidence": 0.94
+    }
+   }
+  },
+  {
+   "ms": 384.4,
+   "http": 200,
+   "case": "questions=2 over one 800-char state",
+   "usage": {
+    "input_tokens": 548,
+    "output_tokens": 61,
+    "cost": 2.3016e-05
+   },
+   "answers": {
+    "q0": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.97,
+      "b": 0.03
+     },
+     "confidence": 0.94
+    },
+    "q1": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.97,
+      "b": 0.03
+     },
+     "confidence": 0.94
+    }
+   }
+  },
+  {
+   "ms": 404.1,
+   "http": 200,
+   "case": "questions=4 over one 800-char state",
+   "usage": {
+    "input_tokens": 652,
+    "output_tokens": 119,
+    "cost": 2.7384e-05
+   },
+   "answers": {
+    "q0": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.03,
+      "a": 0.97
+     },
+     "confidence": 0.94
+    },
+    "q1": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.03,
+      "a": 0.97
+     },
+     "confidence": 0.94
+    },
+    "q2": {
+     "type": "choice",
+     "choice": "b",
+     "probabilities": {
+      "b": 0.81,
+      "a": 0.19
+     },
+     "confidence": 0.61
+    },
+    "q3": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.2,
+      "a": 0.8
+     },
+     "confidence": 0.6
+    }
+   }
+  },
+  {
+   "ms": 472.9,
+   "http": 200,
+   "case": "questions=8 over one 800-char state",
+   "usage": {
+    "input_tokens": 860,
+    "output_tokens": 235,
+    "cost": 3.612e-05
+   },
+   "answers": {
+    "q0": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.97,
+      "b": 0.03
+     },
+     "confidence": 0.93
+    },
+    "q1": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.97,
+      "b": 0.03
+     },
+     "confidence": 0.94
+    },
+    "q2": {
+     "type": "choice",
+     "choice": "b",
+     "probabilities": {
+      "a": 0.21,
+      "b": 0.79
+     },
+     "confidence": 0.57
+    },
+    "q3": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.87,
+      "b": 0.13
+     },
+     "confidence": 0.74
+    },
+    "q4": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.86,
+      "b": 0.14
+     },
+     "confidence": 0.72
+    },
+    "q5": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.91,
+      "b": 0.09
+     },
+     "confidence": 0.81
+    },
+    "q6": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.9,
+      "b": 0.1
+     },
+     "confidence": 0.8
+    },
+    "q7": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.91,
+      "b": 0.09
+     },
+     "confidence": 0.81
+    }
+   }
+  },
+  {
+   "ms": 303.1,
+   "http": 200,
+   "case": "questions=16 over one 800-char state",
+   "usage": {
+    "input_tokens": 1282,
+    "output_tokens": 473,
+    "cost": 5.3844e-05
+   },
+   "answers": {
+    "q0": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.97,
+      "b": 0.03
+     },
+     "confidence": 0.94
+    },
+    "q1": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.98,
+      "b": 0.02
+     },
+     "confidence": 0.95
+    },
+    "q2": {
+     "type": "choice",
+     "choice": "b",
+     "probabilities": {
+      "a": 0.2,
+      "b": 0.8
+     },
+     "confidence": 0.59
+    },
+    "q3": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.85,
+      "b": 0.15
+     },
+     "confidence": 0.69
+    },
+    "q4": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.86,
+      "b": 0.14
+     },
+     "confidence": 0.73
+    },
+    "q5": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.89,
+      "b": 0.11
+     },
+     "confidence": 0.79
+    },
+    "q6": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.91,
+      "b": 0.09
+     },
+     "confidence": 0.82
+    },
+    "q7": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.91,
+      "b": 0.09
+     },
+     "confidence": 0.82
+    },
+    "q8": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.91,
+      "b": 0.09
+     },
+     "confidence": 0.83
+    },
+    "q9": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.92,
+      "b": 0.08
+     },
+     "confidence": 0.83
+    },
+    "q10": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.91,
+      "b": 0.09
+     },
+     "confidence": 0.83
+    },
+    "q11": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.93,
+      "b": 0.07
+     },
+     "confidence": 0.86
+    },
+    "q12": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.92,
+      "b": 0.08
+     },
+     "confidence": 0.84
+    },
+    "q13": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.93,
+      "b": 0.07
+     },
+     "confidence": 0.86
+    },
+    "q14": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.92,
+      "b": 0.08
+     },
+     "confidence": 0.84
+    },
+    "q15": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.92,
+      "b": 0.08
+     },
+     "confidence": 0.85
+    }
+   }
+  },
+  {
+   "ms": 328.6,
+   "http": 200,
+   "case": "type=noul",
+   "usage": {
+    "input_tokens": 454,
+    "output_tokens": 20,
+    "cost": 1.9068e-05
+   },
+   "answers": {
+    "q": {
+     "type": "noul",
+     "noul": 0.35
+    }
+   }
+  },
+  {
+   "ms": 335.6,
+   "http": 200,
+   "case": "type=choice 2",
+   "usage": {
+    "input_tokens": 492,
+    "output_tokens": 31,
+    "cost": 2.0664e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "a": 0.96,
+      "b": 0.04
+     },
+     "confidence": 0.93
+    }
+   }
+  },
+  {
+   "ms": 470.5,
+   "http": 200,
+   "case": "type=score 2",
+   "usage": {
+    "input_tokens": 476,
+    "output_tokens": 17,
+    "cost": 1.9992e-05
+   },
+   "answers": {
+    "q": {
+     "type": "score",
+     "score": 0.12,
+     "legend": {
+      "0": "the first situation",
+      "1": "the second situation"
+     },
+     "probabilities": {
+      "0": 0.88,
+      "1": 0.12
+     },
+     "confidence": 0.76
+    }
+   }
+  },
+  {
+   "ms": 410.5,
+   "http": 200,
+   "case": "state English (same meaning)",
+   "usage": {
+    "input_tokens": 328,
+    "output_tokens": 31,
+    "cost": 1.3776e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.21,
+      "a": 0.79
+     },
+     "confidence": 0.58
+    }
+   }
+  },
+  {
+   "ms": 386.8,
+   "http": 200,
+   "case": "state Thai (same meaning)",
+   "usage": {
+    "input_tokens": 378,
+    "output_tokens": 31,
+    "cost": 1.5876e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.19,
+      "a": 0.81
+     },
+     "confidence": 0.63
+    }
+   }
+  },
+  {
+   "ms": 416.0,
+   "http": 200,
+   "case": "state as JSON object",
+   "usage": {
+    "input_tokens": 337,
+    "output_tokens": 31,
+    "cost": 1.4154e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.37,
+      "a": 0.63
+     },
+     "confidence": 0.25
+    }
+   }
+  },
+  {
+   "ms": 355.8,
+   "http": 200,
+   "case": "state as the same JSON, string",
+   "usage": {
+    "input_tokens": 334,
+    "output_tokens": 31,
+    "cost": 1.4028e-05
+   },
+   "answers": {
+    "q": {
+     "type": "choice",
+     "choice": "a",
+     "probabilities": {
+      "b": 0.29,
+      "a": 0.71
+     },
+     "confidence": 0.41
+    }
+   }
+  }
+ ]
+}
