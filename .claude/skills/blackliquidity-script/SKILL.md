@@ -120,6 +120,13 @@ we checked ourselves, the viewer follows the steps with us: "นี่คือ�
 the CEO wrote is the model: "ใครใช้โบรกนี้รีบเข้าเว็บเช็กด่วนเลย ตอนนี้แม่งปิดเว็บ
 เข้าไม่ได้แล้ว นี่คือหลักฐานที่กูพยายามเข้าเว็บ", followed by what was tried.
 
+**Tell the viewer WHAT it is, early, and let the picture carry it** (CEO 2026-09-23, EP57 review:
+"เราสอนเขาก็จริง เราต้องบอกเขาด้วยว่าคืออะไร แต่ถ้าภาพบอกอยู่แล้วอาจจะให้ภาพเป็นตัวเล่าเรื่องได้ เราใช้คำว่า
+มึงดูภาพเอาเอง"). Name the subject within the hook with its name/logo on screen from the first
+line, then one line on what it is (from a source, e.g. WikiFX's company profile). When the
+picture already shows it, say less and point at it ("มึงดูภาพเอาเอง"). Never describe its selling
+points (leverage, spreads, bonuses): that reads as promotion.
+
 ## Writing Thai that a TTS can read
 
 The script is read aloud by `fal-ai/gemini-3.1-flash-tts`, so it is an input to a
@@ -160,3 +167,4 @@ need to be hand-formatted, but a writer who knows the rules writes cleaner input
 - 2026-09-23 [WRONG] §structure — correction to the note above: 16.6 chars/s is SPEECH-ONLY. The full TTS track also carries the breath gaps between the 40 lines, so the whole-track rate is lower. It is ~13.2–14.7 chars/s: EP55 v1 2,470 chars → 167.66 s, v2 1,750 chars → 133.1 s. Forecast track length from the whole-track rate. The CTO used 16.6 and forecast v2 at 105 s against 133 s · evidence: task-77a2e043 RUNLOG.md (tts v2 line) · status: pending
 - 2026-09-23 [MISSING] §Writing Thai for TTS — a transliterated brand was also shown on screen in Thai; the CEO ruled the Thai spelling is for the voice only and the screen shows the real brand spelling · evidence: CEO ruling 2026-09-23 (WikiFX) · status: promoted
 - 2026-09-23 [MISSING] §plain words — the EP57 v1 script used โดเมน / ระบบทะเบียนโดเมนสาธารณะ / เออเรอร์; the CEO ruled plain words only and asked for the attempt to be shown step by step · evidence: CEO ruling 2026-09-23 on EP57 v1 · status: promoted
+\n- 2026-09-23 [MISSING] §name it early — EP57 v2 named the broker once, with no picture and no line on what it is; the CEO asked to reveal it with the picture carrying it · evidence: CEO review 2026-09-23 23:25, bl57-script v2.1 fdb44267 · status: promoted\n
