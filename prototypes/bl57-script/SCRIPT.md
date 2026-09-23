@@ -1,136 +1,208 @@
-# BLACK LIQUIDITY EP57 — เว็บหาย ไม่มีใบอนุญาต (XXLMARKETS)
+# BLACK LIQUIDITY EP57 v2 — เว็บหาย ไม่มีใบอนุญาต (XXLMARKETS)
 
-Topic: XXLMARKETS, assigned by the CEO 2026-09-23 with a WikiFX Thailand
-review card as the seed source
-(`prototypes/bl57-realfootage/third-party/wikifx-xxlmarkets-review.jpg`,
-see `third-party/SOURCES.md`). Card's claim: "XXLMARKETS ยังเปิดให้เทรดอยู่ไหม?
-เว็บเข้าไม่ได้ แถมไร้หน่วยงานคุ้มครอง". Every number on it was re-checked live
-2026-09-23 before entering the script — see the sources table below and the
-full research writeup at `research/xxlmarkets-wikifx-fca-domain-202609.md`.
+Rewrite of v1 (merged 2026-09-23) around the CEO's own hook and his own
+framing: the episode is our real investigation, told step by step, with a
+real screenshot behind each step wherever one exists. v1's WikiFX research
+still holds — see `research/xxlmarkets-wikifx-fca-domain-202609.md` — this
+pass adds two new real captures and reorders/rewrites every line around the
+CEO's verbatim hook and the "show the attempt" instruction in
+`.claude/skills/blackliquidity-script/SKILL.md`.
 
-Angle vs EP55 (BingX): EP55 = a famous name with no license, real user
-complaints on record. EP57 = the broker's OWN website has vanished from the
-internet entirely — not "down", but no longer even registered (confirmed by
-this channel independently, not just claimed by WikiFX). That "the site is
-gone" finding is this episode's own original reporting, not a repeat of the
-card.
+The CEO's words that drove this rewrite (verbatim, from the task brief):
 
-Format: 40 tagged lines per `blackliquidity-script` skill (measured from
-BL50) — one line = one tag = one idea = one breath. Phrases written
-closed-up, spaced only at real breath points; numbers as closed-up Thai
-words in the spoken column.
+> "EP 57 เริ่มต้นแบบนี้ได้ — ใครใช้โบรคนี้รีบเข้าเว็บเชคด่วนเลย ตอนนี้แม่ง(?)ปิดเว็บ
+> ไม่ได้แล้ว นี่คือหลักฐานที่กูพยายามเข้าเว็บ -> ลองอะไรบ้างล่อคนดูไปได้เลย
+> อย่าใช้ศัพท์เทคนิคเยอะ เอาง่ายๆ ให้คนดูเข้าใจ"
+>
+> "แนบหลักฐานแคปหน้าจอ เหมือน AI กำลังเจออะไรบางอย่าง แล้วเอามาเขียนเป็นเรื่อง
+> realistic เข้าไปอีก"
 
----
+## What changed from v1
+
+- **Hook is now the CEO's own words**, cleaned into speakable Thai
+  (HOOK-1..4), not the "เว็บหาย" framing v1 opened with.
+- **The whole first third of the script is now the attempt itself** —
+  PATTERN-1..4 (typed the URL directly, tried `www.`/`https://`, same
+  result both times) and CONTEXT-1..5 (checked who owns the name — no
+  current owner, but a real registration history back to 2022) — instead of
+  leading with WikiFX's verdict the way v1 did. This follows the skill's
+  new "Say it the way the viewer says it" section: show the attempt, not
+  just the result.
+- **Plain words throughout**: "ชื่อเว็บ" not โดเมน, "หน้าเว็บขึ้นว่าเข้าไม่ได้"
+  not เออเรอร์/เซิร์ฟเวอร์ล่ม, "หน่วยงานการเงินของอังกฤษ" named once (MAIN-12)
+  then never repeated as jargon. v1 used โดเมน/เออเรอร์/ระบบทะเบียนโดเมน
+  publicly — the CEO ruled against that on v1 (see skill Field notes).
+- **Four new real captures this pass** (below) replace v1's attributed-only
+  gaps AND the PATTERN section's spoken-only gap with our own direct
+  evidence — including the direct-visit screenshot the CEO's hook itself
+  promises ("นี่คือหลักฐานที่กูพยายามเข้าเว็บ").
+- **Beat balance improved**: v1 was 11 show / 4 cta / 22 verdict / 3 hook.
+  v2 is **20 show / 1 cta / 15 verdict / 4 hook = exactly 50% show**, up
+  from v1's 27.5% (see "Beat balance" below).
+- **Length**: 2,026 spoken chars, shorter than v1's 2,308.
+
+## The four new real captures (this pass)
+
+Two taken live via Claude-in-Chrome (2026-09-23 ~22:38-22:39 +07), two by
+the CTO via headless Chrome after reviewing this script's first draft
+(2026-09-23 ~22:50-22:52 +07). All four added to
+`prototypes/bl57-realfootage/REAL_MANIFEST.json` with `evidence_box` +
+`captured_at`, all well under 1 MiB, none need censoring (no personal
+data, no ads, no other-broker content in frame):
+
+1. **`real/xxlmarkets-direct-visit-error.png`** and
+   **`real/xxlmarkets-www-visit-error.png`** — the direct-visit attempt
+   itself, the evidence the CEO's hook promises. `tools/bl_realfootage.py`
+   (Playwright) and Claude-in-Chrome's own screenshot tool both fail to
+   screenshot Chrome's native connection-error page on NXDOMAIN (see "What
+   could not be captured in the first draft" below for the full trail).
+   The CTO's fix: launch real Chrome itself headless
+   (`--headless=new --lang=th`, a fresh temp profile, `--window-size=540,960
+   --force-device-scale-factor=2` for a clean 1080x1920 still, and
+   `--screenshot=<out>.png <url>`) — Chrome's own screenshot flag captures
+   whatever the page renders, including its own error page, where the
+   extension APIs both refuse. Both stills show Chrome's Thai-UI error page:
+   headline "ไม่สามารถเข้าถึงเว็บไซต์นี้" + "ไม่พบที่อยู่ IP ของเซิร์ฟเวอร์
+   xxlmarkets.com" (or `www.xxlmarkets.com`) + `ERR_NAME_NOT_RESOLVED`. Used
+   for PATTERN-1..4 — "IP"/"DNS" stay in the screenshot's own text and are
+   never spoken, per the skill's plain-words rule.
+2. **`real/whois-domain-history.jpg`** — who.is's own "Domain History
+   Archive" page for xxlmarkets.com (reached via the "History" tab on the
+   WHOIS lookup, not a guessed URL — the first guess at
+   `who.is/domain-history/...` 404'd, the real path is `who.is/history/...`).
+   Shows, in the site's own words: "4 snapshots spanning 2022–2026." A
+   second, independent confirmation of the same fact `whois-no-match.png`
+   already carried, from a different page on the same tool — used for
+   CONTEXT-5.
+3. **`real/fca-register-search-spinner.jpg`** — our own direct visit to the
+   FCA's Financial Services Register (`register.fca.org.uk/s/search?q=XXLMARKETS`).
+   v1's research (`research/xxlmarkets-wikifx-fca-domain-202609.md`) had
+   already tried this and found the query registers (tab title updates to
+   "XXLMARKETS - Search Firms - FCA Register") but the results panel never
+   resolves a firm card. This pass reproduced that exact same result
+   independently. Used for MAIN-12 — turns what was previously only
+   WikiFX's attributed claim ("even the local FCA shows no results") into
+   something the channel can show it tried directly, honestly labelled as
+   inconclusive (we don't know if the spinner means "not listed" or just
+   "the page is broken"), while keeping WikiFX's separate claim as its own
+   attributed line (CURIOSITY-3).
+
+## What could not be captured in the first draft, and how it got solved
+
+The line "กูลองพิมพ์ชื่อเว็บนี้ใส่เบราว์เซอร์ตรงๆเลย → หน้าเว็บขึ้นว่าเข้าไม่ได้"
+(PATTERN-1/2) had no screenshot behind it in the first draft of this
+script, on purpose, not by oversight. xxlmarkets.com returns NXDOMAIN
+(confirmed independently by `dig`, `whois`, `curl`, and a live browser
+visit — see the research doc). Two automation surfaces both refused to
+screenshot the resulting error state:
+
+- `tools/bl_realfootage.py`'s `page.goto()` hard-fails on NXDOMAIN instead
+  of capturing whatever error page Chrome renders (v1's finding).
+- Claude-in-Chrome's own screenshot tool errors with "Frame with ID 0 is
+  showing error page" (v1's finding, reproduced again in this pass's first
+  draft).
+- This pass's first draft also tried the macOS-native fallback the task
+  brief suggested (`screencapture -l <window id>` against the real Chrome
+  window) — AppleScript could not find any window or tab holding the
+  xxlmarkets.com page at all, meaning the automation browser used by
+  those two tools is not an on-screen, natively-screenshotable window.
+
+The CEO's hook explicitly promises this exact evidence ("นี่คือหลักฐานที่กู
+พยายามเข้าเว็บ"), so leaving it spoken-only was a gap, not an acceptable
+outcome — the CTO's review flagged it (`CTO-FEEDBACK.md`) and supplied the
+fix: a *separate* headless real-Chrome process (not Playwright, not the
+Claude-in-Chrome extension) launched with `--headless=new --lang=th` and
+`--screenshot=<out>.png <url>`, which captures whatever Chrome itself
+renders, including its own connection-error page, because it is Chrome
+doing the rendering and the screenshotting in one step rather than a
+second surface trying to read back Chrome's internal error-frame state.
+Both direct-visit stills are now real captures, see above. **Still
+flagging for whoever owns `tools/bl_realfootage.py`**: switching that
+tool's own capture path to the same headless-Chrome-native-screenshot
+method (instead of Playwright's `page.goto()` + `page.screenshot()`) would
+close this gap for every future episode, not just this one.
+
+## Beat balance
+
+| beat | v1 | v2 (first draft) | v2 (final) |
+|---|---|---|---|
+| hook | 3 | 4 | 4 |
+| show | 11 | 16 | **20** |
+| verdict | 22 | 19 | 15 |
+| cta | 4 | 1 | 1 |
+
+**20/40 = exactly 50% show**, meeting the brief's "aim for at least half"
+target, once PATTERN-1..4 flipped from verdict to show with the two new
+direct-visit captures. v2 also folds the SUMMARY checklist (3 lines) into
+`show` per the brief's own carve-out ("The checklist at the end can be
+`show` with a kinetic graphic"), which is why `cta` is 1 (just SUMMARY-8,
+the comment-keyword line — still tagged `cta` since it's the
+direct-to-camera ask, not a graphic). All 11 real captures on file are
+used (9 from before this fix + the 2 direct-visit stills), 7 of them
+reused across 2 lines where the still genuinely proves two distinct claims
+(the score/country crop, the warning banner, the who.is title/history
+crop, the third-party card's headline/subscore crop, and now both
+direct-visit error pages covering their "tried it" line and their
+"here's what happened" line).
 
 ## Sources — every claim, checked live 2026-09-23
 
 | claim | source | checked | result |
 |---|---|---|---|
-| Score 1.99/10, "ยังไม่มีการกำกับดูแล", UK, 2-5 years, "ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์", warning banner text, website-inaccessible note | WikiFX Thailand dealer profile: https://www.wikifx.com/th/dealer/3697715948.html | WebFetch 2026-09-23, cross-checked against the EN page (same URL, `/en/`) | Matches the CEO's card exactly on every field. EN page adds: founded 2021, subscore breakdown (Regulation 2.69, Tech 4.54, Reputation 3.51, Business 6.31, Risk Control 2.79 — visible in full on the CEO's own card's radar chart), contact +44 7441427348 / support@xxlmarkets.com |
-| xxlmarkets.com is inaccessible | this channel's own re-check: `dig`, `dig @8.8.8.8`, `whois -h whois.verisign-grs.com`, `curl -I`, and a live Claude-in-Chrome visit, all 2026-09-23T14:36 UTC | run live this session | **Stronger than the card's claim.** DNS returns NXDOMAIN and the .com registry itself returns "No match for domain XXLMARKETS.COM" — the domain is not merely down, it is not currently registered at all. Chrome's own visit renders a connection-error page with no content. |
-| The domain WAS registered before and has since lapsed (2022-2026 history exists) | who.is public WHOIS lookup: https://who.is/whois/xxlmarkets.com | Claude-in-Chrome live visit 2026-09-23 | "We don't have a current record for xxlmarkets.com, but we hold 4 historical WHOIS/RDAP snapshots of it from 2022 to 2026." Confirms the domain existed and is now gone — used for MAIN-3/MAIN-4/CURIOSITY-2. (First tried ICANN's own Lookup tool; dropped after the contact sheet caught that its `?q=` URL param doesn't auto-run the search — see `shots.yaml` comments.) |
-| "Even the local FCA shows no results about it" | WikiFX's own EN summary text, paraphrased by an automated page-read, not a literal on-page quote we could re-anchor for a screenshot | attempted independently: register.fca.org.uk (3 tries, page never rendered results — client-side issue, not a wrong URL) and fca.org.uk/scamsmart (blocked by a bot-detection challenge we will not bypass, per hard rule) | **Not independently verified today.** Scripted as WikiFX's attributed claim only (CONTEXT-4), with no real-footage shot behind it — see `research/xxlmarkets-wikifx-fca-domain-202609.md` for the full attempt log |
+| Score 1.99/10, "ยังไม่มีการกำกับดูแล", UK, 2-5 years, "ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์", warning banner text, website-inaccessible note | WikiFX Thailand dealer profile: https://www.wikifx.com/th/dealer/3697715948.html | WebFetch 2026-09-23 (v1), re-read at full resolution from the captured stills this pass | Confirmed by eye against the real screenshots used in MAIN-2/5/7/8/9/10/11 |
+| xxlmarkets.com is inaccessible | this channel's own re-check: `dig`, `dig @8.8.8.8`, `whois -h whois.verisign-grs.com`, `curl -I`, and a live Claude-in-Chrome visit, 2026-09-23T14:36 UTC (v1); reproduced again this pass at ~2026-09-23T22:38 +07; direct-visit screenshot obtained by the CTO via headless Chrome, 2026-09-23T22:50-22:52 +07 | run live, three passes | NXDOMAIN + registry "no match" every time, now with a real screenshot of Chrome's own error page for both xxlmarkets.com and www.xxlmarkets.com (PATTERN-1..4) |
+| The domain WAS registered before and has since lapsed (2022-2026 history) | who.is: https://who.is/whois/xxlmarkets.com and https://who.is/history/xxlmarkets.com | Claude-in-Chrome live visit, both v1 and this pass | "We don't have a current record" + "4 historical WHOIS/RDAP snapshots... from 2022 to 2026" on both pages, worded slightly differently each time |
+| "Even the local FCA shows no results about it" | WikiFX's own EN summary text — attributed to WikiFX, not independently confirmed | attempted independently both passes: register.fca.org.uk (spinner never resolves, now captured as a real screenshot — MAIN-12) and fca.org.uk/scamsmart (bot-detection challenge, not bypassed, per hard rule) | Still not independently verified — now shown honestly as "we tried, it didn't render" rather than left as prose in a research doc only |
 
 Full research writeup with every command and its raw output:
 `research/xxlmarkets-wikifx-fca-domain-202609.md`.
 
-## Hook — 3 options for the CEO to pick
-
-**Option A — "เว็บหาย" (used in the TSV below; recommended: leads with our
-own original finding, not just the card's claim)**
-```
-[HOOK-1] เว็บเทรดที่มึงอาจเคยฝากเงินไว้หายไปจากอินเทอร์เน็ตแล้ว
-[HOOK-2] ไม่ใช่แค่เข้าเว็บไม่ได้ กูเช็กเองพบว่าโดเมนทั้งโดเมนไม่มีอยู่จริงด้วยซ้ำ
-[HOOK-3] เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ วิกิเอฟเอ็กซ์บอกไว้แล้วว่าไม่มีใบอนุญาต ไม่มีหน่วยงานคุ้มครอง
-[HOOK-4] เดี๋ยววันนี้กูจะพาไปดูของจริงทีละขั้นให้ฟัง
-```
-
-**Option B — EP55-bar style ("เป็นเรื่องแล้วไงอีกแล้ว")**
-```
-[HOOK-1] เป็นเรื่องแล้วไงอีกแล้ว
-[HOOK-2] คราวนี้ไม่ใช่แค่ไม่มีใบอนุญาต แต่เว็บทั้งเว็บหายไปจากโลกออนไลน์เลย
-[HOOK-3] เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ วิกิเอฟเอ็กซ์เช็กให้แล้วเจอทั้งไร้ใบอนุญาตและเว็บล่ม
-[HOOK-4] กูไปเช็กต่อเองแล้วเจอว่ามันแย่กว่านั้นอีก
-```
-
-**Option C — curiosity/question opener**
-```
-[HOOK-1] ลองพิมพ์ชื่อเว็บนี้ในเบราว์เซอร์ดูสิ
-[HOOK-2] เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ จะเจอแค่หน้าเว็บที่โหลดไม่ขึ้นเลย
-[HOOK-3] วิกิเอฟเอ็กซ์เช็กไว้แล้วว่าไม่มีใบอนุญาต ไม่มีหน่วยงานคุ้มครองด้วย
-[HOOK-4] กูเช็กต่อเองอีกที เจอเรื่องที่แย่กว่าที่วิกิเอฟเอ็กซ์เขียนไว้อีก
-```
-
 ## Length forecast
 
-- Total spoken characters: **2,308** (40 lines)
-- Speech-only @ 16.6 chars/s: **139.0 s**
+- Total spoken characters: **2,026** (40 lines) — shorter than v1's 2,308
+- Speech-only @ 16.6 chars/s: **122.0 s**
 - Whole-track (with breath gaps between lines) @ 13.2-14.7 chars/s:
-  **157.0 s – 174.8 s** (midpoint ≈ 166 s)
-- For comparison, EP55 v1 ran 2,470 chars → 167.66 s. This script is
-  shorter and should land at or under that.
-
-## Structure / beat counts
-
-- `hook`: 3 lines (HOOK-1, HOOK-2, HOOK-4 — HOOK-3 is `show`)
-- `show` (avatar shrinks, real footage carries the line): **11 lines** —
-  HOOK-3, PATTERN-1, PATTERN-2, CONTEXT-1, CONTEXT-2, CONTEXT-3, MAIN-3,
-  MAIN-8, MAIN-9, MAIN-10, CURIOSITY-2
-- `verdict` (avatar full frame, judgement/emotion): 22 lines
-- `cta`: 4 lines (SUMMARY-4, 5, 6 — the checklist — and SUMMARY-8, the
-  comment-keyword line)
+  **137.8 s – 153.5 s**
 
 ## Brands
 
 - เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ → `XXLMARKETS` (row already in `brand-display.yaml`)
 - วิกิเอฟเอ็กซ์ → `WikiFX` (row already in `brand-display.yaml`)
-- No new brand rows needed.
+- No new brand rows needed. FCA (register.fca.org.uk) is spoken only once,
+  as "หน่วยงานการเงินของอังกฤษ" (never spelled out as an acronym on screen or
+  in speech), so it does not need a brand-display row.
 
 ## Compliance checklist
 
-- No broker the channel earns from is named (XXLMARKETS earns the channel
-  nothing — same status check as EP55's BingX).
+- No broker the channel earns from is named.
 - No link, no account CTA, no rebate/income mention, no MoonieX mention.
-- CTA points at knowledge only: SUMMARY-8, "คอมเมนต์คำว่า เช็กเว็บโบรก" — a
-  new keyword for this episode (distinct from EP55's "เช็กก่อนฝาก"), since
-  this episode's checklist is specifically about checking a site/domain is
-  still real, not just a regulator lookup.
-- No em dash anywhere in the spoken column.
-- มึง/กู used (11 กู, 6 มึง — lighter than EP55's 24 total, since more of
-  this script is original reporting in a measured register rather than
-  quoting WikiFX directly).
+- No em dash anywhere in the spoken column (checked programmatically).
+- CTA points at knowledge only: SUMMARY-8, "คอมเมนต์คำว่า เช็กเว็บโบรก"
+  (unchanged from v1 — same keyword, same reply pack).
+- One line each stating the channel is not recommending anyone (MAIN-13,
+  SUMMARY-7) and that no fraud claim is made without evidence (MAIN-13).
+- แม่ง/มึง/กู used per the CEO's explicit instruction in this task's brief
+  ("Keep his words. แม่ง/มึง/กู are the CEO's own register for this
+  channel") — this is the established BLACK LIQUIDITY voice, already
+  reviewed and merged in v1 and prior episodes, not a departure from the
+  role's general no-crude-language rule.
+
+## Capture log summary (this pass)
+
+Full v1 capture log: `prototypes/bl57-script/RUNLOG.md` (unchanged, 6 tool
+captures + 1 third-party still, contact-sheet review, evidence_box pass).
+This pass's additions are logged in the same RUNLOG.md file, appended
+below the v1 entries: the failed screenshot attempts on the first draft,
+the two who.is/FCA captures, then the CTO's review and the two headless-
+Chrome direct-visit captures that closed the gap.
 
 ## What the viewer should be able to check themselves
 
 1. Type `xxlmarkets.com` into a browser right now — it will not load.
-2. Look up the domain at a public WHOIS tool (e.g. who.is) — no current
-   registration, only historical snapshots.
-3. Search "XXLMARKETS" on WikiFX (wikifx.com) — same score, same "no
-   license" finding.
-4. Use the same two tools (WikiFX + a public WHOIS lookup) to check any
-   other broker before depositing — this is exactly the checklist
+2. Look up the site name at a free website-checking tool — no current
+   registration, only historical snapshots back to 2022.
+3. Search "XXLMARKETS" on WikiFX (wikifx.com) — same score, same
+   "no license" finding.
+4. Use the same two tools (WikiFX + a free domain-history tool) to check
+   any other broker before depositing — this is exactly the checklist
    SUMMARY-4/5/6 walks through.
-
-## Real footage note (CTO feedback, 2026-09-23 22:10 — evidence_box)
-
-`REAL_MANIFEST.json` now carries an `evidence_box` array (px, 1080x1920 or
-1080x1350 for the third-party still) on every entry, per the new §6d P1 gate
-that refuses to composite the avatar over evidence with no box declared.
-`tools/bl_realfootage.py` does not write this field yet — every box here was
-measured by eye on the full-resolution still (`evidence_box_source:
-"measured"` on every entry, none had DOM box data available to reuse). The
-tool should be updated to export the DOM box it already computes internally
-for `selector`/`text` crop anchors, so future episodes don't need this by-eye
-pass — flagging for whoever owns `tools/bl_realfootage.py` next.
-
-Two shots were caught and fixed during review, not before capture:
-- `wikifx-profile-country-years` (originally covering PATTERN-2 alone) was
-  dropped after the full-resolution still showed only the country, not the
-  "2-5 ปี" years claim PATTERN-2 also makes — that combination only appears
-  together in the profile header, which `wikifx-profile-score` already
-  captures. PATTERN-2 now points there instead.
-- The ICANN Lookup shot for MAIN-3/CURIOSITY-2 was replaced with a who.is
-  capture after the contact sheet showed ICANN's tool never actually ran the
-  search (its `?q=` URL param doesn't auto-trigger a client-side SPA) — the
-  who.is capture is a direct server-rendered result and is, if anything,
-  stronger evidence (it also surfaces the domain's registration history).
