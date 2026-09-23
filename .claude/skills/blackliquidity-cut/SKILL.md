@@ -497,6 +497,38 @@ plates and toggle `.avatar-comp` at the cut point, don't tween scale/position.
 1920 canvas), never overlapping it — the composite exists precisely to free
 that space.
 
+**HARD — the avatar must never cover the evidence element on a real-footage
+plate.** A score, an amount, a licence line — whatever `real/REAL_MANIFEST.json`
+says that still proves — has to stay fully visible once the avatar is
+composited on top of it. On the first cut of this demo the avatar's head sat
+directly on the "1" of a WikiFX **1.69/10** score, the single most important
+number in the shot; the CTO caught it by reading 6 frames and rejected the cut
+on sight (task-4bce29e5, 2026-09-23 17:40 review). Why hard: the composite's
+whole purpose is to keep evidence AND the avatar both on screen — if it hides
+the evidence instead, the composite is actively worse than just cutting to the
+still full-frame with no avatar. **Fix by moving the plate, not the avatar** —
+the evidence box and the avatar's box are usually each wider than half the
+frame, so sliding the avatar left/right rarely clears a wide box; shifting the
+still vertically (crop/pad it so the evidence sits above y≈800, with margin
+above the avatar's y≈845 top) does. Check it by eye before it ever reaches a
+render — read the still against the avatar's fixed box (bottom-anchored,
+56% of the 1920 height, ≈24-37% of the width from the left edge) — there is no
+automated check for this yet; `bl_tools.py safezone` only knows about kinetic
+text blocks, not arbitrary evidence coordinates inside a still. Verified clear
+in `reference/avatar-composite-evidence-clear.jpg` (v2, 2026-09-23): shifting
+the WikiFX still up 380px moved the score box to y 395-770, well above the
+avatar's y=845 top.
+
+**The fix itself can re-create the same bug one level up.** After shifting the
+still, a kinetic caption placed at top=560 (in the space the shift freed)
+landed squarely on the now-relocated score box — same defect, moved, not
+fixed. There is no scrap of the frame that is simultaneously clear of a wide
+evidence box (usually the top half) AND the avatar (the bottom 56%) AND still
+has room for two lines of caption text; on this still there wasn't one, so the
+right call was to drop the caption on that segment entirely rather than force
+one in. Check any new text block you add against the evidence box too, not
+just against the avatar.
+
 **Plate darkening — measured, not assumed, and it's NOT uniform:**
 
 | plate type | measured mean luminance (0-255) | treatment |
@@ -577,3 +609,5 @@ sound wrong.
 - 2026-09-23 [MISSING] §5a — real footage is usually a LIGHT web page, and the kit's captions were tuned for dark AI plates. On EP55 a standing top/bottom vignette passed `npm run check` contrast, but captions still sat on the page's own text: a tab row, an article paragraph, a heading. Unreadable text-over-text; the same defect the CEO rejected a clip for that day. On a real-page plate put the caption on a solid, near-opaque band, or place the still so the caption lands on empty page space · evidence: task-52c669bb frames t=34.5/52.5/57.5/63 s · status: pending
 - 2026-09-23 [WRONG] §5a/§6d — confirms the pending note above on a second, independent task, and extends it two ways. First: it isn't only kinetic captions that lose contrast over a bright real-footage plate — the STANDING legal label and brand-bug date do too (`.bl-legal` measured 1.1:1, need 3:1). Second, and the real trap: a text-shadow does NOT fix this, not even the kit's own `--outline` 4-way stroke — tried it, `hyperframes check` still failed at the same 1.6-2.1:1 numbers, because the checker reads the text's flat `color` against the background and gives a shadow no credit. Only an actual opaque `background` band (same trick `.bl-card`/`.bl-row` already use) passed — verified 9 errors → 9/9 · evidence: task-4bce29e5, `hyperframes check` on a white-plate fixture, before (9 errors incl. `.bl-legal`/`.bug .dt2` at t=0.833-2.833s) and after (9/9 pass) · status: promoted
 - 2026-09-23 [MISSING] §6d — n=1, flag for confirmation: `bl_tools.py matte` on RVM mobilenetv3+MPS runs at ~1.4s/frame steady state (~8 min for a 14s/25fps lipsync part), so mattes all 3 parts of one episode before render eats 25-40 min. Budget for it; don't start it as the last step before a deadline · evidence: task-4bce29e5, full `lipsync_part_a_0s-14s.mp4` matte run, 481.8s/350 frames · status: pending
+- 2026-09-23 [MISSING] §6d — CTO caught the avatar covering a WikiFX 1.69/10 score on the first cut of the demo by reading 6 frames; the HARD evidence-overlap rule above and `reference/avatar-composite-evidence-clear.jpg` came from fixing it. Fixing it by shifting the still up then re-introduced the exact same bug one level up — a kinetic caption placed in the newly-freed space landed on the relocated score box · evidence: task-4bce29e5, CTO-FEEDBACK.md 17:40 review; fix verified `hyperframes check` 10/10 contrast, DEMO-avatar-composite-v2.mp4 (Drive, EP55 folder) read at 9 timestamps full-res · status: promoted
+- 2026-09-23 [COSTLY, no owner] — `hyperframes render` stalled twice at the identical frame (353/466) with the exact same composition, both times with the Mac down to ~110-150 MB free RAM (`top -l 1`, PhysMem). Not a composition bug — a clean retry on the third attempt, unchanged, completed in 5m29s (vs ~2m30s when memory is free). If a render stalls ("no frame progress for 60000ms"), check system memory before touching the composition · evidence: task-4bce29e5, render_v2.log timestamps 17:47-17:57, renderJobIds be0a6e61/ca6082c3 · status: pending
