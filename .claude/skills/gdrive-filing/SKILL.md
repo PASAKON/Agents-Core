@@ -130,6 +130,14 @@ further down (with Drive IDs) is what you actually resolve against.**
 
 ```
 Google Drive (root) — pass.gob1@gmail.com
+├── winbox-bootstrap.ps1          TWO LOOSE FILES AT THE ROOT ON PURPOSE (CEO 2026-09-24:
+├── winbox-reinstall-README-th.md "เอา Script เก็บไว้ใน Google Drive … เอาไว้ที่ Root ได้เลย"): the
+│                                 first thing the freshly reset winbox downloads (OpenSSH + keys +
+│                                 Tailscale bootstrap, and the Thai reinstall sheet). ids
+│                                 1ddHBrrk1ptF_imJLAaKS0xAEVORzFa-O / 1MCO2BV-goQgEHsVQXpTjgTvtfkBgLBkY.
+│                                 Source of truth: Agents-Core windows/winbox-reinstall/. Copies also
+│                                 sit in BACKUP/Winbox Reinstall 2026-09-24/. Remove from the root
+│                                 only when the CEO says the reinstall is over.
 ├── UNKNOWN/                      fallback, nothing fits / no folder yet
 │   ├── claudeflow-media-archive/ org auto-backup (moved in 2026-08-04)
 │   ├── Media (สื่อ)/              turned out non-empty, moved in 2026-08-04
@@ -961,3 +969,4 @@ is the working copy, and both are correct.
 - 2026-09-23 [MISSING] §BACKUP — no row for a box's own self-backup tarballs; now `Contabo-mooniex-agents-pre-20260807.tar` at the BACKUP root (id 1lj-dbuC5YiNz3Zf2qRRj9M1NVtGS6rui, md5 read back by id) · evidence: CEO 2026-09-23 "ถ้าไม่ชัวร์ สำรองก่อน", gate row in org:playbooks/drive-archive-gate.md · status: promoted
 - 2026-09-24 [WRONG] FB drama branch — the earlier "plates never on Drive" note stayed `pending` and nothing acted on it: at the CEO's Mac clean-out `Element/Character|Location|Prop` of «จุดจบของเจ้าหนี้นอกระบบ» were still EMPTY while the only copy (`~/Desktop/banchi-plates`, 23 files) had already gone to the iCloud Trash — a Desktop delete on this Mac lands in `~/Library/Mobile Documents/.Trash/`, recoverable (copied back 23/23 by md5). The check that caught it: md5 of every local file against the md5 set of the whole Drive branch (not names, not sizes). A film is not "backed up" until Element/ holds its plates; run that md5 check before telling the CEO a Mac folder is safe to delete · evidence: CTO 8c06958c 2026-09-24 02:48, CEO then declined the upload ("โปรเจคเราจบแล้ว") · status: pending
 - 2026-09-24 [MISSING] §Bulk transfer — the reference implementation names only Cookie Run tools; a generic one now exists: `scripts/stream_backup_to_drive.py` (freeze list → tar into `rclone rcat --drive-root-folder-id` → md5+size read back → manifest → delete only files whose size+mtime are unchanged; never follows junctions; refuses to overwrite an existing tar). 8 groups / 15.9 GB of winbox moved with it, 0 skipped files · evidence: session cto-46fb0d60, drive-archive.log 2026-09-23T20:39Z · status: pending
+- 2026-09-24 [MISSING] §Hard rules — the root is not always forbidden: the CEO put two loose files there himself for a reinstall ("เอาไว้ที่ Root ได้เลย"), because a fresh Windows has only Edge and drive.google.com; a folder path is one more thing to get wrong on a bare machine · evidence: winbox-bootstrap.ps1 + winbox-reinstall-README-th.md at the Drive root, Agents-Core windows/winbox-reinstall/ · status: pending
