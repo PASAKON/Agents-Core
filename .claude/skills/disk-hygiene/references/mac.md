@@ -64,3 +64,6 @@ M1 8 GB / 256 GB, battery 77% at 1281 cycles, "Service Recommended". Mac mini M6
 16 GB is 32,900 THB and ships 22 Sep; a used M1 13" sells for 12-18K. An external
 1-2 TB SSD plus Time Machine is the cheaper first move and the machine has no
 backup at all today.
+
+## Git auto-gc spike (2026-09-23)
+Agents-Core's pack is 3.4 GB. An auto `git gc` rewrites it and holds old + new side by side — the Mac dropped to 1.6 GB free for minutes. `gc.bigPackThreshold = 1g` is set in Agents-Core's `.git/config` so auto-gc leaves packs over 1 GB alone. Run a manual `git gc` only with > 10 GB free.
