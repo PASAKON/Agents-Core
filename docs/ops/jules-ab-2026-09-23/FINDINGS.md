@@ -24,3 +24,9 @@ Ledger `state/jules/ab1.jsonl`; briefs + allowlists in `briefs/`. Final table go
 - **Repo naming trap:** the local folder `~/Projects/Agents-Wikis` is a clone of
   `PASAKON/Agents-Rules`; `PASAKON/Agents-Wikis` is `~/MoonieXHQ/Agents/Wikis` (= old
   `~/Projects/LLMs`). Resolve a PR's repo with `git remote get-url`, never by folder name.
+- **…and the restarted session does not end.** 150 s after the close both restarted B
+  sessions were still `IN_PROGRESS` with no new activity (18 activities, updateTime
+  ticking) and had pushed nothing (each repo: branches `main` only, 0 open PRs). The
+  agent *says* it stops; the session state does not follow. Open question: does such a
+  zombie hold a concurrency slot? Recheck at batch review; if still IN_PROGRESS, test
+  `DELETE /sessions/{id}`.
