@@ -112,3 +112,19 @@ Most entries are ~30 s (one generation). 23 have JP/KR/CN titles, 12 start with
 10,000+ followers on a designated platform: 7 credits. Each referred creator who
 passes review: 2 credits, max 20. A posted entry reaching 10,000-49,999 views: 10
 credits, per platform, max 3 works.
+
+## Can our ChatGPT images go into Wan3 as references? Yes (checked 2026-09-24)
+
+- FAQ, verbatim: "Can I use music, images, or other third-party assets? Yes, but you
+  must own the rights or have valid licenses—including for music, images, video,
+  fonts, characters, trademarks, likenesses, and voices."
+- Terms 7: "The entry must be original to the entrant, or the entrant must have
+  obtained all necessary permissions for any music, images, video ... included in the work."
+- The only hard line is the video: "The primary AI video generation for the entry
+  must be completed with the Wan3 model on the Topview platform. Content generated
+  with other models does not count toward this challenge requirement."
+- So: ChatGPT images as Wan3 inputs (Omni Reference, Image to Video) are allowed;
+  a ChatGPT still shown as a shot in the trailer does not count as Wan3 footage and
+  should not be relied on. Keep each image's ChatGPT chat link as the licence
+  record: organisers "may verify the creation process, Topview project, and material
+  licenses of shortlisted entries".
