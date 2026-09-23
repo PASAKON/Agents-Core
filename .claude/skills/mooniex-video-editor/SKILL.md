@@ -35,10 +35,18 @@ duplicate that work — this doc only adds what's specific to MoonieX.
 
 ## Brand rules that apply to every MoonieX reel
 
-- **No crude language** in any on-screen text or caption doc (IRON-RULES
-  §37) — casual/direct is fine, never มึง/กู or profanity, even if the
-  source clip's own script uses it (the "BLACK LIQUIDITY" content series'
-  written briefs sometimes do — clean it up on-screen).
+- **No crude language** in on-screen text or a caption doc (IRON-RULES §37).
+  Casual and direct is fine; มึง/กู and profanity are not.
+  **Exception: BLACK LIQUIDITY.** Its มึง/กู voice is a CEO-confirmed brand
+  carve-out in IRON-RULES §37 (2026-08-03/04). On a BL episode the captions
+  follow the recorded audio word for word, including มึง/กู. Approved EP53 and
+  EP54 carry มึง on screen, and on EP55 the CEO's own hook line is
+  "เดี๋ยววันนี้กูจะมาแฉให้ฟัง". Profanity is still out on BL too.
+  - [SUPERSEDED 2026-09-23] "never มึง/กู … even if the source clip's own script
+    uses it (the BLACK LIQUIDITY content series' written briefs sometimes do —
+    clean it up on-screen)". Beaten by the §37 carve-out, a CEO ruling. Evidence:
+    task-52c669bb stripped them from EP55's captions, including the CEO's hook,
+    so the screen disagreed with the audio.
 - **No em dash** in any caption, hook, CTA, or cover text (IRON-RULES §39) —
   reads as an AI tell.
 - **Style = `clean`** by default for trading/finance content — it reads as
@@ -106,3 +114,6 @@ down to 2-4 sounds tied to distinct UI moments only. Don't regress to the
 - Report back: which CUTAWAYS assets you used and from where (skill assets
   vs Drive vs new sourcing), any brand-rule judgment calls you made, and any
   source-truncation or asset-gap issues you flagged.
+
+## Field notes
+- 2026-09-23 [SUPERSEDED] §Brand rules (No crude language) — the BL มึง/กู line was flipped to follow IRON §37's CEO-confirmed carve-out: BL captions match the audio. The old line made the EP55 editor strip มึง/กู from 9 captions, including the CEO's own hook · evidence: task-52c669bb, IRON-RULES §37 carve-out 2026-08-03/04 · status: superseded
