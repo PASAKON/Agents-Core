@@ -118,10 +118,14 @@ READ_PARAGRAPHS_JS = """
 POLL_JS = """
 () => {
   const stopBtn = document.querySelector('button[data-testid="stop-button"]');
-  const img = document.querySelector('img[src*="oaiusercontent"], img[alt*="Generated" i], img[alt*="สร้าง" i]');
   const composer = document.querySelector('#prompt-textarea, div[contenteditable="true"]');
   const messages = [...document.querySelectorAll('[data-message-author-role="assistant"]')];
-  const lastAssistant = messages.length ? messages[messages.length - 1].innerText : '';
+  const lastMsg = messages.length ? messages[messages.length - 1] : null;
+  const lastAssistant = lastMsg ? lastMsg.innerText : '';
+  // Only the newest assistant turn: an attached reference image sits in the
+  // user turn above it and must never be taken for the result.
+  const imgs = lastMsg ? [...lastMsg.querySelectorAll('img[src*="oaiusercontent"], img[alt*="Generated" i], img[alt*="สร้าง" i]')] : [];
+  const img = imgs.length ? imgs.reduce((a, b) => (b.naturalWidth > a.naturalWidth ? b : a)) : null;
   return {
     stillGenerating: !!stopBtn,
     imgPresent: !!img,
@@ -381,15 +385,24 @@ class ChatGPTBrowser:
 
     def wait_for_result(self, timeout_s: int = COMPLETION_TIMEOUT_S) -> dict:
         start = time.time()
+        last_src, stable = None, 0
         while time.time() - start < timeout_s:
             state = self.page.evaluate(POLL_JS)
             hazard = classify_hazard(state["bodySnippet"], state["composerPresent"])
             if hazard:
                 kind, excerpt = hazard
                 return {"status": "hazard", "hazard_kind": kind, "text": excerpt}
-            if state["imgLoaded"]:
-                return {"status": "done", "src": state["imgSrc"],
-                         "width": state["naturalW"], "height": state["naturalH"]}
+            # ChatGPT paints a blurred preview that sharpens in place, so a
+            # loaded <img> is not a finished one: wait until generation has
+            # stopped and the same src has held for two polls in a row.
+            if state["imgLoaded"] and not state["stillGenerating"]:
+                stable = stable + 1 if state["imgSrc"] == last_src else 1
+                last_src = state["imgSrc"]
+                if stable >= 2:
+                    return {"status": "done", "src": state["imgSrc"],
+                            "width": state["naturalW"], "height": state["naturalH"]}
+            else:
+                last_src, stable = None, 0
             elapsed = time.time() - start
             if (not state["stillGenerating"] and not state["imgPresent"]
                     and elapsed > POST_SEND_GRACE_S):
