@@ -16,8 +16,16 @@ sparse-checkout pattern escaping this needs — a leading `!`, a `[` inside
 the name, and a Thai filename with a space.
 
 Run via:  pytest tests/test_worktree_sparse.py
-(not in pytest.ini's default `testpaths` [scripts, lib] — run explicitly,
-same convention as tests/test_decide.py.)
+(collected by the default `pytest` run — pytest.ini `testpaths` now
+includes `tests` alongside `scripts lib`.)
+
+Note (task-2b1b03e7, ADR 0030 §8 scope map): `create_worktree`'s `sparse`
+param stays a plain bool here — the scope→bool resolution
+(`_scope_applies("sparse_worktree", owner_cto)`, "all" | list | missing)
+lives entirely in tools/delegate.py and is covered there
+(tests/test_delegate_disk_floor.py's `sparse` assertions). Nothing in this
+file changed behaviourally; only the "storage pilot" wording below was
+updated to match the current scope-map terminology.
 """
 from __future__ import annotations
 
@@ -252,9 +260,9 @@ def test_merge_of_sparse_branch_keeps_large_media_intact(wired):
     assert (repo / "NEW_FROM_SPARSE.md").exists()
 
 
-def test_default_is_full_checkout_outside_the_pilot(wired):
-    """sparse defaults to False: a task outside the storage pilot (another
-    session's work, CEO 2026-09-23) gets today's full checkout."""
+def test_default_is_full_checkout_when_sparse_not_requested(wired):
+    """sparse defaults to False: a task outside the `sparse_worktree` scope
+    (another session's work, CEO 2026-09-23) gets today's full checkout."""
     info = worktree_mod.create_worktree("testproj", "developer", "t9")
     wt = Path(info["worktree"])
     assert (wt / "docs" / "reports" / "big_video.mp4").exists()

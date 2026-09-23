@@ -14,19 +14,16 @@ gauge:
   green:  20   # >= 20 GB: normal
   yellow: 10   # < 20: notify the CEO once a day, list COLD candidates
   orange: 5    # < 10: delete REBUILD automatically; no new download/video task spawns
-  red:    0    # < 5:  delegate refuses every spawn in the pilot scope below
+  red:    0    # < 5:  delegate refuses every spawn in the scope[disk_floor] below
 
-# Pilot scope — whose tasks the gauge actions and sparse worktrees apply to.
-# CEO 2026-09-23: "Scope เฉพาะงานตัวเองก่อน เผื่อมีงานอื่นที่คนอื่นกำลังทำ".
-# Measured that hour: 18 other CTO sessions owned 58 in-flight tasks — an
-# org-wide floor would have refused all of them. "all" = every task; widen
-# only on the CEO's word. Missing key = applies to nobody.
-pilot_owner_cto: ["0e8d80b8"]
-
-# Per-feature scope (CEO 2026-09-23, after the pilot): which owner_cto each
-# feature applies to. "all" = every task of every session. Code reads this
-# map (task C7); until C7 merges, `pilot_owner_cto` above is still the key the
-# code reads. The CEO widened all six (A-F) on 2026-09-23.
+# Per-feature scope (CEO 2026-09-23): which owner_cto each feature applies
+# to. "all" = every task of every session, including owner_cto=None; a
+# list = membership only. Missing key or missing feature = applies to
+# nobody (fail closed). Replaced a single org-wide-floor-was-too-blunt
+# starting scope (18 other CTO sessions owned 58 in-flight tasks the hour
+# this policy was written — an org-wide floor would have refused all of
+# them) with this per-feature map, task C7, same day. The CEO widened all
+# six (A-F) to "all" the same day.
 scope:
   disk_floor:      all              # A: no new worker under gauge.orange free
   sparse_worktree: all              # B: worker checkouts without large tracked media (video_editor still full)

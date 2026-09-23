@@ -25,15 +25,19 @@
 #      commit regardless of what it finds (`|| true`) -- CEO decisions 4 and
 #      10 forbid an authoring gate, and a blocking pre-commit hook is a gate
 #      wearing a different hat.
-#   3. media-guard (pilot)   -- ADR 0030 / Work/RULES.md rule 5. Runs
-#      scripts/media_guard.py and BLOCKS the commit on a real finding, but
-#      ONLY when the committer is a pilot-scope worker: env WORKER_CTO_ID
-#      (delegate exports it for every worker) must be in
-#      config/storage-policy.yaml's `pilot_owner_cto` list. Anyone else --
-#      other sessions' workers, C-level sessions, the CEO -- sees no change.
-#      A broken read (missing .venv, missing PyYAML, bad policy file) prints
-#      a warning and never blocks -- this guard must never stop someone
-#      else's commit.
+#   3. media-guard            -- ADR 0030 / Work/RULES.md rule 5. Runs
+#      scripts/media_guard.py and BLOCKS the commit on a real finding.
+#      config/storage-policy.yaml's `scope.media_guard` decides who: "all"
+#      runs it for EVERY commit (env WORKER_CTO_ID need not be set); a list
+#      only blocks a committer whose WORKER_CTO_ID (delegate exports it for
+#      every worker) is a member -- anyone else sees no change. A broken
+#      read (missing .venv, missing PyYAML, bad policy file, no
+#      `scope.media_guard` key) prints a warning and never blocks -- this
+#      guard must never stop someone else's commit. Unlike the other two
+#      stanzas, this one is REPLACED on every re-install (BEGIN/END found ->
+#      removed -> re-appended fresh) rather than skipped when already
+#      present, so a repo whose hook predates a scope-logic change picks up
+#      the new body the next time the installer runs.
 
 set -eu
 
@@ -125,53 +129,70 @@ SKILLLINT_EOF
   echo "installed: skill-lint stanza"
 fi
 
-if ! grep -q 'BEGIN media-guard (pilot)' "$hook" 2>/dev/null; then
-  cat >> "$hook" <<'MEDIAGUARD_EOF'
+# media-guard is REPLACED on every run, not skipped when already present
+# (today's bug: skip-if-marker-exists means a repo whose hook was written
+# before a scope-logic change keeps running the stale body forever). Strip
+# any existing BEGIN..END block first, then always re-append the current one.
+if grep -q 'BEGIN media-guard' "$hook" 2>/dev/null; then
+  tmp="$(mktemp)"
+  awk '
+    /--- BEGIN media-guard /{skip=1}
+    skip { if (/--- END media-guard ---/) skip=0; next }
+    { print }
+  ' "$hook" > "$tmp" && mv "$tmp" "$hook"
+fi
 
-# --- BEGIN media-guard (pilot) (ADR 0030 / Work/RULES.md rule 5; tracked via scripts/install-git-hooks.sh) ---
-# Blocks ONLY commits made by pilot-scope workers: env WORKER_CTO_ID
-# (delegate exports it for every worker) must be in
-# config/storage-policy.yaml's `pilot_owner_cto` list. Every other
-# committer -- other sessions' workers, C-level sessions, the CEO -- sees
-# no change (CEO scope: own work first, 2026-09-23).
-if [ -n "${WORKER_CTO_ID:-}" ]; then
-  worktree_root="$(git rev-parse --show-toplevel)"
-  common_dir="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || git rev-parse --git-common-dir)"
-  case "$common_dir" in
-    /*) : ;;
-    *) common_dir="$(cd "$common_dir" && pwd)" ;;
-  esac
-  main_root="$(dirname "$common_dir")"
-  py="$main_root/.venv/bin/python"
-  policy="$worktree_root/config/storage-policy.yaml"
-  guard_script="$worktree_root/scripts/media_guard.py"
-  pilot_rc=2
-  if [ -x "$py" ] && [ -f "$policy" ]; then
-    "$py" -c '
+cat >> "$hook" <<'MEDIAGUARD_EOF'
+
+# --- BEGIN media-guard (ADR 0030 / Work/RULES.md rule 5; tracked via scripts/install-git-hooks.sh) ---
+# config/storage-policy.yaml's `scope.media_guard` decides who this blocks:
+#   "all"  -- every commit, WORKER_CTO_ID need not be set (CEO 2026-09-23
+#             widened all six ADR 0030 features from the original pilot).
+#   [list] -- only a committer whose env WORKER_CTO_ID (delegate exports it
+#             for every worker) is a member; unset/other WORKER_CTO_ID passes.
+# A broken read (missing .venv, missing PyYAML, bad/unreadable policy file,
+# no `scope.media_guard` key) prints a warning and never blocks -- this
+# guard must never stop someone else's commit. One-off bypass for a real
+# false positive: git commit --no-verify.
+worktree_root="$(git rev-parse --show-toplevel)"
+common_dir="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || git rev-parse --git-common-dir)"
+case "$common_dir" in
+  /*) : ;;
+  *) common_dir="$(cd "$common_dir" && pwd)" ;;
+esac
+main_root="$(dirname "$common_dir")"
+py="$main_root/.venv/bin/python"
+policy="$worktree_root/config/storage-policy.yaml"
+guard_script="$worktree_root/scripts/media_guard.py"
+scope_rc=2
+if [ -x "$py" ] && [ -f "$policy" ]; then
+  "$py" -c '
 import sys
 try:
     import yaml
     with open(sys.argv[1], encoding="utf-8") as f:
         policy = yaml.safe_load(f) or {}
-    pilot = policy.get("pilot_owner_cto") or []
-    sys.exit(0 if sys.argv[2] in pilot else 1)
+    scope = (policy.get("scope") or {}).get("media_guard")
+    if scope == "all":
+        sys.exit(0)
+    if isinstance(scope, list) and sys.argv[2] and sys.argv[2] in scope:
+        sys.exit(0)
+    sys.exit(1)
 except Exception:
     sys.exit(2)
-' "$policy" "$WORKER_CTO_ID"
-    pilot_rc=$?
-  fi
-  if [ "$pilot_rc" = "2" ]; then
-    echo "media_guard: could not read storage policy -- skipping (not blocking)"
-  elif [ "$pilot_rc" = "0" ] && [ -f "$guard_script" ]; then
-    if ! "$py" "$guard_script" --repo "$worktree_root"; then
-      exit 1
-    fi
+' "$policy" "${WORKER_CTO_ID:-}"
+  scope_rc=$?
+fi
+if [ "$scope_rc" = "2" ]; then
+  echo "media_guard: could not read storage policy -- skipping (not blocking)"
+elif [ "$scope_rc" = "0" ] && [ -f "$guard_script" ]; then
+  if ! "$py" "$guard_script" --repo "$worktree_root"; then
+    exit 1
   fi
 fi
-# --- END media-guard (pilot) ---
+# --- END media-guard ---
 MEDIAGUARD_EOF
-  echo "installed: media-guard (pilot) stanza"
-fi
+echo "installed: media-guard stanza"
 
 last_line="$(tail -n 1 "$hook" 2>/dev/null || true)"
 if [ "$last_line" != "exit 0" ]; then

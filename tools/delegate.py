@@ -228,35 +228,54 @@ def _disk_orange_floor_gb() -> float:
         return DEFAULT_DISK_ORANGE_GB
 
 
-def _storage_pilot_owners() -> list[str]:
-    """`pilot_owner_cto` from config/storage-policy.yaml — whose tasks the
-    ADR 0030 disk actions (floor, sparse worktree) apply to. CEO 2026-09-23:
-    "Scope เฉพาะงานตัวเองก่อน เผื่อมีงานอื่นที่คนอื่นกำลังทำ". Missing key or
-    unreadable file → [] (applies to nobody: never widen by accident)."""
+def _scope_owners(feature: str) -> str | list[str] | None:
+    """Raw `scope[<feature>]` value from config/storage-policy.yaml (ADR
+    0030 §8; CEO widened all six features to "all" 2026-09-23). "all" —
+    every task, including owner_cto=None; a list — only those owner_cto
+    ids; missing `scope` key, missing `feature` key, or an unreadable
+    policy file → None (fail closed: a feature nobody scoped applies to
+    nobody, same as before the scope map existed)."""
     try:
         data = yaml.safe_load(STORAGE_POLICY.read_text()) or {}
     except (OSError, yaml.YAMLError):
-        return []
-    owners = data.get("pilot_owner_cto") or []
-    return [str(o) for o in owners] if isinstance(owners, list) else []
+        return None
+    scope = data.get("scope")
+    if not isinstance(scope, dict):
+        return None
+    value = scope.get(feature)
+    if value == "all":
+        return "all"
+    if isinstance(value, list):
+        return [str(o) for o in value]
+    return None
 
 
-def _storage_applies(owner_cto: str | None) -> bool:
-    owners = _storage_pilot_owners()
-    return "all" in owners or (bool(owner_cto) and str(owner_cto) in owners)
+def _scope_applies(feature: str, owner_cto: str | None) -> bool:
+    """True if ADR 0030 feature `feature` (disk_floor, sparse_worktree,
+    reclaim, work_dir, space_check, media_guard) applies to `owner_cto`
+    per config/storage-policy.yaml `scope`. "all" → every task, including
+    owner_cto=None. A list → membership only, owner_cto=None never
+    matches. Missing scope/feature → False."""
+    owners = _scope_owners(feature)
+    if owners == "all":
+        return True
+    if isinstance(owners, list):
+        return bool(owner_cto) and str(owner_cto) in owners
+    return False
 
 
 def _run_storage_reclaim() -> tuple[int, int]:
-    """Run tools/storage_reclaim.py's plan()+apply() for every pilot owner
-    (not just this task's own owner_cto — a pilot CTO can hold several
-    in-flight task worktrees at once). Returns (freed_bytes, item_count).
+    """Run tools/storage_reclaim.py's plan()+apply() for every owner the
+    `reclaim` scope covers (not just this task's own owner_cto — a scoped
+    CTO can hold several in-flight task worktrees at once, and "all"
+    covers every task in tasks.db). Returns (freed_bytes, item_count).
 
     Seam for tests: monkeypatch `delegate._run_storage_reclaim` directly
     (same pattern as `_free_gb`) rather than storage_reclaim's internals —
     a delegate-trigger test cares whether this ran, not how it deletes."""
     from tools import storage_reclaim
     policy = storage_policy.load(str(STORAGE_POLICY))
-    owners = _storage_pilot_owners()
+    owners = _scope_owners("reclaim") or []
     items = storage_reclaim.plan(str(db.DB_PATH), policy, owners)
     deleted = storage_reclaim.apply(items)
     return sum(i.get("bytes", 0) for i in deleted), len(deleted)
@@ -265,11 +284,12 @@ def _run_storage_reclaim() -> tuple[int, int]:
 def _work_dir_for(task_id: str, owner_cto: str | None) -> str | None:
     """Create this task's Work/<task_id>/ folder (Work/RULES.md rule 1-2,
     tools/workdir.py) and return its path, so the spawned worker's env can
-    carry WORK_DIR next to WORKER_CTO_ID — pilot scope only (ADR 0030 §8);
-    a non-pilot owner_cto gets None, unchanged from before this task.
-    Creation failure never blocks a spawn already past the disk-floor gate
-    above — it's logged and the worker starts without WORK_DIR."""
-    if not _storage_applies(owner_cto):
+    carry WORK_DIR next to WORKER_CTO_ID — `work_dir` scope only (ADR 0030
+    §8); an out-of-scope owner_cto gets None, unchanged from before this
+    task. Creation failure never blocks a spawn already past the
+    disk-floor gate above — it's logged and the worker starts without
+    WORK_DIR."""
+    if not _scope_applies("work_dir", owner_cto):
         return None
     try:
         return str(workdir.create(task_id))
@@ -1206,16 +1226,17 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         )
 
     # Storage reclaim (ADR 0030 §2, task-44963fee): below the orange band,
-    # REBUILD-tier directories inside the pilot owner's OWN task worktrees
+    # REBUILD-tier directories inside a scoped owner's OWN task worktrees
     # (node_modules, .venv, __pycache__, ...) are deleted automatically,
     # before the disk-floor check below even takes its own reading — so a
     # spawn that would otherwise be refused by the floor gets a chance to
-    # clear it first. Pilot scope only (ADR 0030 §8): never another
-    # session's worktree, never a project under ~/MoonieXHQ/Projects.
-    # Non-pilot tasks skip this block entirely. A reclaim failure never
-    # blocks the spawn beyond what the floor check below already decides.
-    storage_applies = _storage_applies(task.get("owner_cto"))
-    if storage_applies:
+    # clear it first. `reclaim` scope only (ADR 0030 §8): never another
+    # session's worktree, never a project under ~/MoonieXHQ/Projects, unless
+    # scope[reclaim] is "all". Out-of-scope tasks skip this block entirely.
+    # A reclaim failure never blocks the spawn beyond what the floor check
+    # below already decides.
+    reclaim_applies = _scope_applies("reclaim", task.get("owner_cto"))
+    if reclaim_applies:
         pre_free_gb = _free_gb()
         try:
             policy = storage_policy.load(str(STORAGE_POLICY))
@@ -1241,13 +1262,15 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # does `_slim_task(await do_delegate(...))` and delegate_parallel_tasks
     # gathers results, both of which assume a dict (CTO reopen feedback,
     # task-bfa778ab iter1: a str return broke the MCP tool on a low-disk spawn).
-    # Pilot scope: only tasks whose owner_cto is in `pilot_owner_cto` — other
-    # sessions' work is never refused by this gate until the CEO widens it.
-    # free_gb is re-measured here (not reused from pre_free_gb above) so the
-    # floor check sees the post-reclaim reading when reclaim ran.
+    # `disk_floor` scope: only tasks whose owner_cto scope[disk_floor]
+    # covers — other sessions' work is never refused by this gate until the
+    # CEO widens it. free_gb is re-measured here (not reused from
+    # pre_free_gb above) so the floor check sees the post-reclaim reading
+    # when reclaim ran.
+    disk_floor_applies = _scope_applies("disk_floor", task.get("owner_cto"))
     free_gb = _free_gb()
     orange_gb = _disk_orange_floor_gb()
-    if storage_applies and free_gb < orange_gb:
+    if disk_floor_applies and free_gb < orange_gb:
         msg = (f"disk red: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
                f"— spawn refused (ADR 0030)")
         warn(f"disk floor blocked task={task_id}: {msg}")
@@ -1388,8 +1411,9 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             return db.get_task(task_id)
 
     if not task.get("worktree"):
+        sparse_applies = _scope_applies("sparse_worktree", task.get("owner_cto"))
         wt_info = create_worktree(project_key, role_name, task_id,
-                                  sparse=storage_applies)
+                                  sparse=sparse_applies)
         db.update_status(task_id, "pending",
                          worktree=wt_info["worktree"],
                          branch=wt_info["branch"],

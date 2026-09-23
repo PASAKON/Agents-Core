@@ -14,8 +14,8 @@ only the file-mtime half is exercised here (which is what the brief's test
 list actually asks for).
 
 Run via:  pytest tests/test_storage_reclaim.py
-(not in pytest.ini's default testpaths [scripts, lib] -- run explicitly,
-same convention as tests/test_delegate_disk_floor.py.)
+(collected by the default `pytest` run -- pytest.ini `testpaths` now
+includes `tests` alongside `scripts lib`.)
 """
 from __future__ import annotations
 
@@ -175,6 +175,57 @@ def test_symlinked_node_modules_is_skipped(temp_db, tmp_path):
     assert (real_target / "pkg" / "index.js").exists()
 
 
+# --------------------------------------------------------- plan: scope map
+
+def test_plan_with_all_scope_covers_every_owner_including_none(temp_db, tmp_path):
+    """`owners == "all"` (config/storage-policy.yaml `scope.reclaim: all`)
+    walks every task's worktree regardless of owner_cto, including a task
+    with no owner_cto at all (a C-level's own ownerless task). Fails if
+    `_pilot_tasks`/`plan()` were changed to require a truthy owner_cto
+    even under "all", or to treat "all" as just another list value."""
+    wt_a = tmp_path / "worktrees" / "task-a"
+    _mkfile(wt_a / "node_modules" / "pkg" / "index.js", OLD_MTIME)
+    wt_b = tmp_path / "worktrees" / "task-b"
+    _mkfile(wt_b / "__pycache__" / "a.pyc", OLD_MTIME)
+
+    _mk_task(temp_db, wt_a, "owner-a")
+    _mk_task(temp_db, wt_b, None)  # owner_cto=None
+
+    items = storage_reclaim.plan(str(temp_db.DB_PATH), _policy(), "all")
+
+    paths = {i["path"] for i in items}
+    assert str(wt_a / "node_modules") in paths
+    assert str(wt_b / "__pycache__") in paths
+
+
+def test_plan_with_list_scope_covers_members_only(temp_db, tmp_path):
+    wt_a = tmp_path / "worktrees" / "task-a"
+    _mkfile(wt_a / "node_modules" / "pkg" / "index.js", OLD_MTIME)
+    wt_b = tmp_path / "worktrees" / "task-b"
+    _mkfile(wt_b / "node_modules" / "pkg" / "index.js", OLD_MTIME)
+
+    _mk_task(temp_db, wt_a, "owner-a")
+    _mk_task(temp_db, wt_b, "owner-b")
+
+    items = storage_reclaim.plan(str(temp_db.DB_PATH), _policy(), ["owner-a"])
+
+    paths = {i["path"] for i in items}
+    assert str(wt_a / "node_modules") in paths
+    assert not any(str(wt_b) in p for p in paths)
+
+
+def test_plan_with_missing_scope_returns_nothing(temp_db, tmp_path):
+    """Empty/falsy owners (config's `scope.reclaim` key absent) -> plan
+    walks nothing. Fails if `_pilot_tasks` defaulted a falsy owners value
+    to "select everything"."""
+    wt = tmp_path / "worktrees" / "task-x"
+    _mkfile(wt / "node_modules" / "pkg" / "index.js", OLD_MTIME)
+    _mk_task(temp_db, wt, "owner-a")
+
+    assert storage_reclaim.plan(str(temp_db.DB_PATH), _policy(), []) == []
+    assert storage_reclaim.plan(str(temp_db.DB_PATH), _policy(), None) == []
+
+
 # -------------------------------------------------------------------- apply
 
 def test_apply_writes_ledger_lines(tmp_path):
@@ -227,7 +278,7 @@ def delegate_db(monkeypatch, tmp_path):
     db_path = tmp_path / "tasks.db"
     monkeypatch.setattr(db_mod, "DB_PATH", db_path)
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
-    monkeypatch.setattr(delegate, "_storage_pilot_owners", lambda: ["test-owner"])
+    monkeypatch.setattr(delegate, "_scope_owners", lambda feature: ["test-owner"])
     db_mod.init()
     return db_mod
 
@@ -318,6 +369,80 @@ def test_delegate_reclaim_failure_does_not_block_spawn(delegate_db, monkeypatch)
     result = asyncio.run(delegate.delegate_task(tid))
 
     assert result["worktree"] == f"/tmp/fake-{tid}", "spawn must proceed despite the reclaim exception"
+
+
+# --------------------------------------- _run_storage_reclaim: scope forwarding
+
+def _write_full_policy_yaml(path, scope_reclaim) -> None:
+    """A full config/storage-policy.yaml-shaped file (tools.storage_policy.load
+    validates gauge+tiers strictly) plus a `scope.reclaim` value to forward."""
+    import yaml as _yaml
+    data = _policy()
+    data["scope"] = {"reclaim": scope_reclaim}
+    path.write_text(_yaml.dump(data))
+
+
+def test_run_storage_reclaim_forwards_all_scope(monkeypatch, tmp_path):
+    """`_run_storage_reclaim` must forward the raw `scope.reclaim` value
+    (here "all") straight to `storage_reclaim.plan` -- not a resolved list,
+    not the current task's own owner_cto. Fails if `_run_storage_reclaim`
+    were changed back to read a flat `pilot_owner_cto` list."""
+    policy_path = tmp_path / "storage-policy.yaml"
+    _write_full_policy_yaml(policy_path, "all")
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", policy_path)
+    monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
+
+    captured = {}
+    monkeypatch.setattr(
+        storage_reclaim, "plan",
+        lambda db_path, policy, owners: captured.setdefault("owners", owners) or [],
+    )
+    monkeypatch.setattr(storage_reclaim, "apply", lambda items: [])
+
+    delegate._run_storage_reclaim()
+
+    assert captured["owners"] == "all"
+
+
+def test_run_storage_reclaim_forwards_list_scope(monkeypatch, tmp_path):
+    policy_path = tmp_path / "storage-policy.yaml"
+    _write_full_policy_yaml(policy_path, ["owner-a", "owner-b"])
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", policy_path)
+    monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
+
+    captured = {}
+    monkeypatch.setattr(
+        storage_reclaim, "plan",
+        lambda db_path, policy, owners: captured.setdefault("owners", owners) or [],
+    )
+    monkeypatch.setattr(storage_reclaim, "apply", lambda items: [])
+
+    delegate._run_storage_reclaim()
+
+    assert captured["owners"] == ["owner-a", "owner-b"]
+
+
+def test_run_storage_reclaim_forwards_empty_when_scope_key_missing(monkeypatch, tmp_path):
+    """Missing `scope.reclaim` -> `_scope_owners` returns None ->
+    `_run_storage_reclaim` forwards `[]` (never "all", never a stale
+    default) so `storage_reclaim.plan` walks nothing."""
+    policy_path = tmp_path / "storage-policy.yaml"
+    data = _policy()  # no "scope" key at all
+    import yaml as _yaml
+    policy_path.write_text(_yaml.dump(data))
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", policy_path)
+    monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
+
+    captured = {}
+    monkeypatch.setattr(
+        storage_reclaim, "plan",
+        lambda db_path, policy, owners: captured.setdefault("owners", owners) or [],
+    )
+    monkeypatch.setattr(storage_reclaim, "apply", lambda items: [])
+
+    delegate._run_storage_reclaim()
+
+    assert captured["owners"] == []
 
 
 def test_plan_skips_a_pilot_row_whose_worktree_is_not_under_worktrees(temp_db, tmp_path):
