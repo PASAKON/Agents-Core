@@ -21,9 +21,11 @@ non-verified row, and a verified row is never re-fired.
 --dest is required unless $WORK_DIR is set (task-2b587031, WORK_DIR pilot
 scope, IRON §55 / Work/RULES.md rule 2): with $WORK_DIR set, --dest defaults
 to $WORK_DIR/out and any --dest under ~/Desktop, ~/Downloads or ~/Movies is
-refused. $WORK_DIR unset (the default today) leaves every runner byte-for-
-byte unchanged — --dest stays required, no forbidden-path or free-space
-check runs.
+refused. $WORK_DIR unset (the default today) leaves --dest required and the
+forbidden-path check off, byte-for-byte unchanged. The free-space check
+(task-9586db0c, config space_check) is independent of $WORK_DIR — it runs
+whenever config/storage-policy.yaml's scope.space_check covers this task;
+see check_free_space() below.
 
 All Playwright/CDP calls live behind FlowBrowser below, so every decision the
 runner makes (credit cap, refusal handling, zip vs. bare mp4, duration
@@ -410,12 +412,14 @@ def verify_clip(path: Path, expected_dur: float,
     return True, f"{got:.1f}s"
 
 
-# ── Work/ dest + free-space guards (task-2b587031, WORK_DIR pilot only) ─────
-# WORK_DIR unset: every function below is a no-op (returns/raises nothing new)
+# ── Work/ dest guard + space_check (task-2b587031 dest; task-9586db0c space) ─
+# --dest resolution/forbidden-path check below is WORK_DIR-pilot only: WORK_DIR
+# unset means every function in that half is a no-op, byte-for-byte unchanged
 # — other sessions mid-shoot with --dest ~/Desktop/... must see byte-for-byte
-# today's behaviour. WORK_DIR set: --dest becomes optional (defaults to
-# $WORK_DIR/out), and both the dest and each download are checked against
-# config/storage-policy.yaml (IRON §55 / Work/RULES.md rules 2 and 9).
+# today's behaviour. check_free_space() is separate and NOT WORK_DIR-gated
+# (CEO ruling 2026-09-23, config space_check): it runs whenever
+# scope.space_check covers this task (see _space_check_scope_applies below),
+# "all" meaning always, off meaning a complete no-op.
 
 class DestForbidden(RuntimeError):
     """--dest resolves under a path Work/RULES.md rule 2 forbids a runner
@@ -423,8 +427,9 @@ class DestForbidden(RuntimeError):
 
 
 class InsufficientFreeSpace(RuntimeError):
-    """A download would leave free space under the Work/RULES.md rule 9
-    floor (config work_dir.keep_free_gb)."""
+    """This run's estimated output would leave free space under config
+    space_check.min_free_after_gb (CEO ruling 2026-09-23, Work/RULES.md
+    rule 9 update) — see check_free_space()."""
 
 
 def _work_dir() -> str | None:
@@ -462,35 +467,66 @@ def resolve_dest(raw_dest: str | None) -> Path:
     return dest
 
 
-def check_free_space(expected_bytes: float | None = None,
-                      policy_path: Path = POLICY_PATH, free_bytes_fn=None) -> None:
-    """Work/RULES.md rule 9: before each download, if WORK_DIR is set, refuse
-    when there isn't enough free space. expected_bytes known and its GB size
-    exceeds work_dir.big_download_gb -> refuse when free - expected leaves
-    less than work_dir.keep_free_gb. expected_bytes unknown (both runners'
-    download mechanisms only learn the real size once the fetch completes —
-    see FlowBrowser._fetch_captured_video / scripts/higgsfield/gen_loop.py's
-    download()) -> refuse only when free is already under keep_free_gb, since
-    there is nothing else to check the download against. free_bytes_fn is a
-    seam for tests; defaults to a real shutil.disk_usage("/") read."""
-    wd = _work_dir()
-    if not wd:
-        return
+def _space_check_scope_applies(policy: dict) -> bool:
+    """config scope.space_check (CEO 2026-09-23): "all" -> every task; a
+    list -> only when $WORKER_CTO_ID is a member; missing key or any other
+    value -> nobody, so check_free_space() below is a complete no-op —
+    byte-for-byte today's behaviour for a task outside scope."""
+    scope = (policy.get("scope") or {}).get("space_check")
+    if scope == "all":
+        return True
+    if isinstance(scope, list):
+        owner = os.environ.get("WORKER_CTO_ID")
+        return bool(owner) and owner in scope
+    return False
+
+
+def _resolve_expect_gb(expect_gb: float | None, project: str | None,
+                        space_check: dict) -> float:
+    """Estimate order (task-9586db0c): (a) expect_gb (the caller's
+    --expect-gb), (b) $WORK_EXPECT_GB, (c) space_check.estimates_gb[project]
+    (project from the caller's --project, else $WORK_PROJECT), (d)
+    space_check.default_estimate_gb — (d) logs one line so a missing
+    estimate is never silent."""
+    if expect_gb is not None:
+        return float(expect_gb)
+    env_gb = os.environ.get("WORK_EXPECT_GB")
+    if env_gb:
+        return float(env_gb)
+    proj = project or os.environ.get("WORK_PROJECT")
+    estimates = space_check.get("estimates_gb") or {}
+    if proj and proj in estimates:
+        return float(estimates[proj])
+    default_gb = space_check["default_estimate_gb"]
+    _log(f"no size estimate given — assumed {default_gb} GB "
+         f"(set --expect-gb or space_check.estimates_gb.<project>)")
+    return float(default_gb)
+
+
+def check_free_space(policy_path: Path = POLICY_PATH, free_bytes_fn=None,
+                      expect_gb: float | None = None,
+                      project: str | None = None) -> None:
+    """CEO ruling 2026-09-23 (config space_check, replaces the old
+    work_dir.keep_free_gb fixed floor / Work/RULES.md rule 9): not a fixed
+    floor — refuse only when free space minus THIS RUN's estimated total
+    output (see _resolve_expect_gb) would leave less than
+    space_check.min_free_after_gb. Runs only when config scope.space_check
+    covers this task (see _space_check_scope_applies); off is a complete
+    no-op regardless of $WORK_DIR. free_bytes_fn is a seam for tests;
+    defaults to a real shutil.disk_usage("/") read."""
     policy = storage_policy.load(policy_path)
-    big_gb = policy["work_dir"]["big_download_gb"]
-    keep_free_gb = policy["work_dir"]["keep_free_gb"]
+    if not _space_check_scope_applies(policy):
+        return
+    space_check = policy["space_check"]
+    resolved_gb = _resolve_expect_gb(expect_gb, project, space_check)
     free_bytes = (free_bytes_fn or (lambda: shutil.disk_usage("/").free))()
     free_gb = free_bytes / (1024 ** 3)
-    if expected_bytes is not None:
-        expected_gb = expected_bytes / (1024 ** 3)
-        if expected_gb > big_gb and (free_gb - expected_gb) < keep_free_gb:
-            raise InsufficientFreeSpace(
-                f"expected download {expected_gb:.2f} GB, {free_gb:.2f} GB free — "
-                f"would leave < {keep_free_gb} GB free (Work/RULES.md rule 9)")
-    elif free_gb < keep_free_gb:
+    min_free_after_gb = space_check["min_free_after_gb"]
+    if free_gb - resolved_gb < min_free_after_gb:
         raise InsufficientFreeSpace(
-            f"{free_gb:.2f} GB free < {keep_free_gb} GB floor, download size "
-            f"unknown ahead of the fetch (Work/RULES.md rule 9)")
+            f"expected output {resolved_gb:.2f} GB, {free_gb:.2f} GB free — "
+            f"would leave < {min_free_after_gb} GB free (space_check, "
+            f"CEO ruling 2026-09-23 / Work/RULES.md rule 9)")
 
 
 def _log(msg: str) -> None:
@@ -1309,7 +1345,9 @@ class FlowBrowser:
 # ── the runner ───────────────────────────────────────────────────────────────
 
 def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
-                      cap: int, expected_chip_count: int) -> None:
+                      cap: int, expected_chip_count: int,
+                      expect_gb: float | None = None,
+                      project: str | None = None) -> None:
     """The ONLY call site for browser.submit() in the whole runner. All
     four money/correctness guards are re-checked here, immediately before
     the call — task-04851451: cmd_run already had a cap check and a
@@ -1332,7 +1370,7 @@ def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
         raise RuntimeError("BUG: _submit_or_raise called while dry_run is set")
     if credit_cap_exceeded(spent_this_run, estimate, cap):
         raise CreditCapExceeded(spent_this_run, estimate, cap)
-    check_free_space()
+    check_free_space(expect_gb=expect_gb, project=project)
     browser.submit(expected_chip_count=expected_chip_count)
 
 
@@ -1483,7 +1521,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                     return 0
 
                 _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
-                                  expected_chip_count=len(shot["chips"]))
+                                  expected_chip_count=len(shot["chips"]),
+                                  expect_gb=args.expect_gb, project=args.project)
                 row["attempts"] = str(int(row.get("attempts") or 0) + 1)
                 row["status"] = "submitted"
                 flow_ledger.save_ledger(ledger_path, rows)
@@ -1507,7 +1546,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 elif result["status"] == "refusal" and int(row["attempts"]) == 1:
                     _log(f"shot {n}: refused — re-firing identical prompt once (refunded)")
                     _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
-                                  expected_chip_count=len(shot["chips"]))
+                                  expected_chip_count=len(shot["chips"]),
+                                  expect_gb=args.expect_gb, project=args.project)
                     row["attempts"] = "2"
                     flow_ledger.save_ledger(ledger_path, rows)
                     result = browser.poll_result()
@@ -1662,7 +1702,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
                 _log(f"shot {n}: needs_model — card not found")
                 continue
             try:
-                check_free_space()
+                check_free_space(expect_gb=args.expect_gb, project=args.project)
             except InsufficientFreeSpace as e:
                 row["status"], row["note"] = "failed", f"space: {e!r}"
                 flow_ledger.save_ledger(ledger_path, rows)
@@ -1727,6 +1767,16 @@ def build_parser() -> argparse.ArgumentParser:
                         help="PROOF SHOTS ONLY. Overrides the sheet's per-shot "
                              "duration for both the composer's duration setting "
                              "and verify_clip's tolerance.")
+    p_run.add_argument("--expect-gb", type=float, default=None,
+                        help="Estimated total output size for this run, in GB — "
+                             "highest-priority check_free_space() estimate source "
+                             "(config space_check, CEO ruling 2026-09-23). Falls "
+                             "back to $WORK_EXPECT_GB, then "
+                             "space_check.estimates_gb[--project], then "
+                             "space_check.default_estimate_gb.")
+    p_run.add_argument("--project", default=None,
+                        help="Project key into config space_check.estimates_gb. "
+                             "Falls back to $WORK_PROJECT.")
     p_run.set_defaults(func=cmd_run)
 
     p_pull = sub.add_parser("pull")
@@ -1745,6 +1795,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Search text instead of the shot's dialogue, for ONE shot. A re-shoot "
              "keeps its dialogue, so a dialogue search returns the OLD take's card "
              "(banchi 149/151, 2026-09-23). Pass a phrase only the new prompt has.")
+    p_pull.add_argument("--expect-gb", type=float, default=None,
+                         help="Estimated total output size for this pull, in GB — "
+                              "see --expect-gb under `run` for the full estimate "
+                              "order (config space_check).")
+    p_pull.add_argument("--project", default=None,
+                         help="Project key into config space_check.estimates_gb. "
+                              "Falls back to $WORK_PROJECT.")
     p_pull.set_defaults(func=cmd_pull)
 
     p_status = sub.add_parser("status")

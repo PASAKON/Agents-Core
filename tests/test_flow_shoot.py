@@ -38,6 +38,18 @@ def _redirect_log(tmp_path, monkeypatch):
     monkeypatch.setattr(flow_shoot, "LOG_PATH", tmp_path / "flow_shoot.log")
 
 
+@pytest.fixture(autouse=True)
+def _no_space_check(monkeypatch):
+    # task-9586db0c: the real config/storage-policy.yaml ships
+    # scope.space_check: all, so check_free_space() now runs on every
+    # cmd_run/cmd_pull call regardless of $WORK_DIR. This suite is about
+    # ledger/credit/refusal logic, not disk space, and must not depend on
+    # how much is free on the machine running pytest. The new feature's
+    # own tests (scope, estimate order, threshold) live in
+    # tests/test_runner_workdir_dest.py.
+    monkeypatch.setattr(flow_shoot, "check_free_space", lambda *a, **kw: None)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _real_log_untouched_by_this_suite():
     before = REAL_LOG_PATH.read_bytes() if REAL_LOG_PATH.exists() else None
