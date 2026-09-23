@@ -38,6 +38,11 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
+# Run as a script (`python tools/workdir.py close … --archive`), the repo root
+# is not on sys.path and the lazy `from tools import work_archive` in close()
+# raised ModuleNotFoundError — found on the first live archive, 2026-09-23.
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 STORAGE_POLICY = ROOT / "config" / "storage-policy.yaml"
 DEFAULT_ROOT = "~/MoonieXHQ/Work"
 
