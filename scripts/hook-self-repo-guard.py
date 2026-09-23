@@ -76,12 +76,17 @@ PROTECTED_COMPONENTS = {".venv", "venv", ".git"}
 # Destructive command words whose arguments we inspect. Not exhaustive by
 # design — the test module lists what slips past.
 _ARG_DESTRUCTIVE = {"rm", "mv", "cp", "truncate", "shred", "tee", "sed", "dd",
-                    "install", "unlink", "rmdir"}
+                    "install", "unlink", "rmdir", "touch"}
 # Marker for commands that ignore their arguments and hit the whole tree.
 _WHOLE_TREE = "\x00whole-tree"
 
-_FLAG_WITH_VALUE = {"-s", "--size", "-e", "--expression", "-f", "--file",
-                    "-t", "--target-directory", "-S", "--suffix"}
+_FLAGS_WITH_VALUE = {
+    "truncate": {"-s", "--size"},
+    "sed": {"-e", "--expression", "-f", "--file"},
+    "cp": {"-t", "--target-directory", "-S", "--suffix"},
+    "mv": {"-t", "--target-directory", "-S", "--suffix"},
+    "install": {"-t", "--target-directory", "-S", "--suffix"}
+}
 _SKIP_LEADING = {"sudo", "env", "nohup", "time", "command", "exec", "builtin"}
 _REDIRECT_RE = re.compile(r"\d?>>?\s*([^\s;&|<>()]+)")
 
@@ -301,16 +306,17 @@ def _strip_leading(tokens: list[str]) -> list[str]:
     return tokens[i:]
 
 
-def _positional(tokens: list[str]) -> list[str]:
+def _positional(tokens: list[str], cmd: str) -> list[str]:
     """Non-flag arguments, skipping the value of flags known to take one."""
     out: list[str] = []
     skip_next = False
+    cmd_flags = _FLAGS_WITH_VALUE.get(cmd, set())
     for tok in tokens:
         if skip_next:
             skip_next = False
             continue
         if tok.startswith("-") and tok != "-":
-            if tok in _FLAG_WITH_VALUE:
+            if tok in cmd_flags:
                 skip_next = True
             continue
         out.append(tok)
@@ -337,7 +343,7 @@ def _git_targets(args: list[str]) -> list[str]:
         if sub == "checkout" and any(a in ("-f", "--force") for a in args):
             return [_WHOLE_TREE]
         if sub == "restore":
-            return _positional(rest) or [_WHOLE_TREE]
+            return _positional(rest, "git") or [_WHOLE_TREE]
     return []
 
 
@@ -368,9 +374,9 @@ def bash_targets(command: str) -> list[str]:
             if any(a == "-i" or (a.startswith("-i") and not a.startswith("--"))
                    or a.startswith("--in-place") for a in args):
                 # every non-flag arg; the script expression is harmless noise
-                targets.extend(_positional(args))
+                targets.extend(_positional(args, "sed"))
         elif cmd in _ARG_DESTRUCTIVE:
-            targets.extend(_positional(args))
+            targets.extend(_positional(args, cmd))
     return [t for t in targets if t]
 
 
