@@ -64,6 +64,21 @@ def test_parse_script_tsv_tolerates_missing_optional_columns(tmp_path):
     assert lines[0].shot == "" and lines[0].beat == "" and lines[0].screen == ""
 
 
+def test_parse_script_tsv_handles_no_header_positional_rows(tmp_path):
+    # task-80d18826's real bl57-script/SCRIPT.tsv shape: no header row,
+    # 4 or 5 tab-separated columns straight to data.
+    p = tmp_path / "SCRIPT.tsv"
+    p.write_text(
+        "HOOK-1\tข้อความแรก\t\thook\n"
+        "HOOK-3\tข้อความสอง\twikifx-xxlmarkets-review\tshow\t1.99/10\n",
+        encoding="utf-8",
+    )
+    lines = lib.parse_script_tsv(p)
+    assert len(lines) == 2
+    assert lines[0].tag == "HOOK-1" and lines[0].beat == "hook" and lines[0].screen == ""
+    assert lines[1].shot == "wikifx-xxlmarkets-review" and lines[1].screen == "1.99/10"
+
+
 # ───────────────────────────────────────────────── beat -> mode / entry ────
 
 @pytest.mark.parametrize("beat,expected", [

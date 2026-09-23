@@ -62,25 +62,29 @@ class ScriptLine:
 
 
 def parse_script_tsv(path: Path) -> list[ScriptLine]:
-    """Tab-separated, header row required, column order per TSV_COLUMNS but
-    read by name (order-tolerant). Missing optional columns (shot/beat/screen)
-    default to ''. A row missing `tag` or `spoken` is skipped, not crashed on —
-    a blank trailing line in a hand-edited TSV is common."""
-    lines: list[ScriptLine] = []
+    """Tab-separated, columns in TSV_COLUMNS order (tag, spoken, shot, beat,
+    screen). A header row is optional and auto-detected (its own first two
+    cells literally read 'tag'/'spoken') — task-80d18826's real
+    `bl57-script/SCRIPT.tsv` ships with NO header, straight to data, and
+    rows there commonly carry only 4 of the 5 columns (screen omitted when
+    there's nothing to show). Missing trailing columns default to ''; a row
+    missing `tag` or `spoken` is skipped, not crashed on — a blank trailing
+    line in a hand-edited TSV is common."""
     with Path(path).open(newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f, delimiter="\t")
-        for row in reader:
-            tag = (row.get("tag") or "").strip()
-            spoken = (row.get("spoken") or "").strip()
-            if not tag or not spoken:
-                continue
-            lines.append(ScriptLine(
-                tag=tag,
-                spoken=spoken,
-                shot=(row.get("shot") or "").strip(),
-                beat=(row.get("beat") or "").strip(),
-                screen=(row.get("screen") or "").strip(),
-            ))
+        rows = list(csv.reader(f, delimiter="\t"))
+
+    if rows:
+        first = [c.strip().lower() for c in rows[0]]
+        if first[:2] == ["tag", "spoken"]:
+            rows = rows[1:]
+
+    lines: list[ScriptLine] = []
+    for row in rows:
+        padded = row + [""] * (len(TSV_COLUMNS) - len(row))
+        tag, spoken, shot, beat, screen = (c.strip() for c in padded[:5])
+        if not tag or not spoken:
+            continue
+        lines.append(ScriptLine(tag=tag, spoken=spoken, shot=shot, beat=beat, screen=screen))
     return lines
 
 

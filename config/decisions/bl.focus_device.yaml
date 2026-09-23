@@ -1,0 +1,43 @@
+# Decision site: which focus device (if any) draws the eye to the evidence
+# plate on a "show" line? (task-5cfe20b1). Measured devices:
+# .claude/skills/blackliquidity-cut/SKILL.md §6d "Focus devices on the
+# evidence plate — measured". Only asked by jev_edit.py when bl.beat
+# answered "show" for this line. State is the line's shot/screen fields
+# (computed/structured), optionally the raw spoken text under
+# --state-lang=th.
+site: bl.focus_device
+question: >-
+  For this "show" line, which focus device (if any) should draw the
+  viewer's eye to the one thing on the evidence plate the line is about?
+options:
+  - id: spotlight
+    meaning: >-
+      The page dims to grey except a bright circle around ONE specific
+      value being named. Example: the line calls out a single number —
+      "สเปรดต่ำสุด GOLD 3" — naming exactly one figure on an otherwise busy
+      page.
+  - id: highlight_sweep
+    meaning: >-
+      A left-to-right yellow bar sweeps across a table row or a chip as the
+      line names it. Example: the line reads off a value that is already
+      one row/label among several similar ones — "ดูแถว Exness สิ" naming
+      one row in a comparison table.
+  - id: zoom_only
+    meaning: >-
+      A continuous pan/push on the plate with no dimming and no sweep —
+      used when the line is walking through a page broadly rather than
+      naming one exact value. Example: "ลองเข้าเว็บ XM ดูเองเลย" while the
+      camera pushes into the site's homepage generally.
+  - id: none
+    meaning: >-
+      The plate is shown plain, nothing further needed to draw the eye —
+      the evidence is already obvious at a glance (e.g. a single large
+      score already fills the frame).
+  - id: other
+    meaning: None of the above fits.
+max_state_chars: 1000
+provider_policy: rules-then-llm
+rules: []
+counterfactual:
+  images: 0
+  big_model_tokens_out: 25

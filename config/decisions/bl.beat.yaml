@@ -1,0 +1,53 @@
+# Decision site: what editorial beat is this BLACK LIQUIDITY script line?
+# (task-5cfe20b1, CEO ruling 2026-09-23 — Jev decides per-line editorial
+# calls instead of a human editor.) Drives avatar mode per
+# .claude/skills/blackliquidity-cut/SKILL.md §6d: "show" -> composited
+# avatar (something can be displayed alongside it), "hook"/"verdict"/"cta"
+# -> full-frame avatar. Fed only computed/structured fields (shot, screen,
+# position), never the raw Thai spoken line, unless --state-lang=th is
+# passed to jev_edit.py plan/eval — see jev-ops SKILL.md lever 1
+# ("compute the state upstream") and the task's own instruction to measure
+# a Thai-line state against an English-gloss state on the eval set.
+#
+# The writer's own `beat` column (SCRIPT.tsv, task-80d18826) is NEVER put
+# into this state — jev_edit.py compares Jev's independent answer against
+# it afterward and flags disagreement; it never overrides the writer.
+site: bl.beat
+question: >-
+  What editorial beat is this BLACK LIQUIDITY script line — given its shot
+  description, what's meant to appear on screen, and its position in the
+  episode?
+options:
+  - id: hook
+    meaning: >-
+      The opening line(s) of the episode — sets up the problem or teases the
+      claim, before any evidence is shown. Example: the very first line of
+      an episode, "โบรกเกอร์นี้ไม่มีใบอนุญาตจริงหรือ?" (a teaser question,
+      line_index near 0, no screen/evidence yet).
+  - id: show
+    meaning: >-
+      The line names or refers to something that can be displayed alongside
+      the avatar — a website, a score, a table row, a wallet balance, a
+      licence number, a chart. Example: "ดูสิ คะแนน WikiFX แค่ 1.69 เต็ม 10"
+      naming a specific number a screenshot can prove, screen mentions a
+      site/score/document.
+  - id: verdict
+    meaning: >-
+      A judgment or emotional statement addressed straight to camera, no new
+      evidence named — the presenter's own conclusion. Example:
+      "ผมบอกความจริงที่ไม่มีใครบอกมึง" (a direct verdict line, no screen
+      content, chest-height address to camera).
+  - id: cta
+    meaning: >-
+      A closing call-to-action or summary near the end of the episode asking
+      the viewer to act, reflect, or share — not new evidence, not the
+      opening hook. Example: "ใครฟังมาถึงตรงนี้ ลองเช็กโบรกเกอร์ตัวเองดูนะ"
+      near the end of the episode (line_index close to total_lines).
+  - id: other
+    meaning: None of the above fits this line.
+max_state_chars: 1500
+provider_policy: rules-then-llm
+rules: []
+counterfactual:
+  images: 0
+  big_model_tokens_out: 30
