@@ -1,0 +1,317 @@
+[
+  {
+    "file": "real/wikifx-article-hook.png",
+    "kind": "still",
+    "covers": [
+      "HOOK-3",
+      "PATTERN-1"
+    ],
+    "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
+    "captured_at": "2026-09-23T13:51:48+07:00",
+    "seconds": 0,
+    "censored": []
+  },
+  {
+    "file": "real/wikifx-profile-no-license.png",
+    "kind": "still",
+    "covers": [
+      "CONTEXT-1"
+    ],
+    "source_url": "https://www.wikifx.com/th/dealer/4411879049.html",
+    "captured_at": "2026-09-23T13:51:57+07:00",
+    "seconds": 0,
+    "censored": [
+      {
+        "what": "reviewer avatar + username",
+        "rule": "full"
+      }
+    ]
+  },
+  {
+    "file": "real/wikifx-profile-no-regulation.png",
+    "kind": "still",
+    "covers": [
+      "CONTEXT-2"
+    ],
+    "source_url": "https://www.wikifx.com/th/dealer/4411879049.html",
+    "captured_at": "2026-09-23T13:52:07+07:00",
+    "seconds": 0,
+    "censored": [
+      {
+        "what": "reviewer avatar + username",
+        "rule": "full"
+      }
+    ]
+  },
+  {
+    "file": "real/wikifx-profile-score.png",
+    "kind": "still",
+    "covers": [
+      "CONTEXT-3"
+    ],
+    "source_url": "https://www.wikifx.com/th/dealer/4411879049.html",
+    "captured_at": "2026-09-23T13:52:17+07:00",
+    "seconds": 0,
+    "censored": [
+      {
+        "what": "reviewer avatar + username",
+        "rule": "full"
+      }
+    ]
+  },
+  {
+    "file": "real/wikifx-article-score-reason.png",
+    "kind": "still",
+    "covers": [
+      "CONTEXT-4"
+    ],
+    "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
+    "captured_at": "2026-09-23T13:52:28+07:00",
+    "seconds": 0,
+    "censored": []
+  },
+  {
+    "file": "real/wikifx-profile-complaint-amounts.png",
+    "kind": "still",
+    "covers": [
+      "MAIN-3",
+      "MAIN-4"
+    ],
+    "source_url": "https://www.wikifx.com/th/dealer/4411879049.html",
+    "captured_at": "2026-09-23T13:52:35+07:00",
+    "seconds": 0,
+    "censored": [
+      {
+        "what": "reviewer avatar + username",
+        "rule": "full"
+      }
+    ]
+  },
+  {
+    "file": "real/wikifx-profile-complaint-taiwan.png",
+    "kind": "still",
+    "covers": [
+      "MAIN-5"
+    ],
+    "source_url": "https://www.wikifx.com/th/dealer/4411879049.html",
+    "captured_at": "2026-09-23T13:52:43+07:00",
+    "seconds": 0,
+    "censored": [
+      {
+        "what": "reviewer avatar + username",
+        "rule": "full"
+      }
+    ]
+  },
+  {
+    "file": "real/wikifx-article-founded-hq.png",
+    "kind": "still",
+    "covers": [
+      "PATTERN-2"
+    ],
+    "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
+    "captured_at": "2026-09-23T13:52:49+07:00",
+    "seconds": 0,
+    "censored": []
+  },
+  {
+    "file": "real/wikifx-article-leverage.png",
+    "kind": "still",
+    "covers": [
+      "MAIN-8"
+    ],
+    "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
+    "captured_at": "2026-09-23T13:52:58+07:00",
+    "seconds": 0,
+    "censored": []
+  },
+  {
+    "file": "real/wikifx-article-min-deposit.png",
+    "kind": "still",
+    "covers": [
+      "PATTERN-4",
+      "MAIN-10"
+    ],
+    "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
+    "captured_at": "2026-09-23T13:53:09+07:00",
+    "seconds": 0,
+    "censored": []
+  },
+  {
+    "file": "real/wikifx-article-withdrawal-restriction.png",
+    "kind": "still",
+    "covers": [
+      "MAIN-6",
+      "MAIN-7"
+    ],
+    "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
+    "captured_at": "2026-09-23T13:53:14+07:00",
+    "seconds": 0,
+    "censored": []
+  },
+  {
+    "file": "real/bingx-homepage-scroll.mp4",
+    "kind": "clip",
+    "covers": [
+      "PATTERN-1",
+      "MAIN-11",
+      "MAIN-12"
+    ],
+    "source_url": "https://www.bingx.com/",
+    "captured_at": "2026-09-23T13:54:35+07:00",
+    "seconds": 7.0,
+    "censored": [
+      {
+        "what": "signup/register CTA (สมัคร)",
+        "rule": "full"
+      },
+      {
+        "what": "register CTA (ลงทะเบียน)",
+        "rule": "full"
+      },
+      {
+        "what": "download app CTA",
+        "rule": "full"
+      },
+      {
+        "what": "bonus/prize banner (รางวัล)",
+        "rule": "full"
+      },
+      {
+        "what": "gift/welcome-bonus banner (ของขวัญ)",
+        "rule": "full"
+      },
+      {
+        "what": "dollar bonus amount",
+        "rule": "full"
+      },
+      {
+        "what": "header logo (partial)",
+        "rule": "partial 40% right"
+      }
+    ]
+  },
+  {
+    "file": "real/bingx-logo-still.png",
+    "kind": "still",
+    "covers": [
+      "HOOK-2",
+      "PATTERN-1"
+    ],
+    "source_url": "https://www.bingx.com/",
+    "captured_at": "2026-09-23T13:54:41+07:00",
+    "seconds": 0,
+    "censored": [
+      {
+        "what": "signup/register CTA (สมัคร)",
+        "rule": "full"
+      },
+      {
+        "what": "register CTA (ลงทะเบียน)",
+        "rule": "full"
+      },
+      {
+        "what": "download app CTA",
+        "rule": "full"
+      },
+      {
+        "what": "bonus/prize banner (รางวัล)",
+        "rule": "full"
+      },
+      {
+        "what": "gift/welcome-bonus banner (ของขวัญ)",
+        "rule": "full"
+      },
+      {
+        "what": "dollar bonus amount",
+        "rule": "full"
+      },
+      {
+        "what": "header logo (partial)",
+        "rule": "partial 40% right"
+      }
+    ]
+  },
+  {
+    "file": "real/bingx-logo-pushin.png",
+    "kind": "still",
+    "covers": [
+      "HOOK-2",
+      "PATTERN-1"
+    ],
+    "source_url": "https://www.bingx.com/",
+    "captured_at": "2026-09-23T13:54:49+07:00",
+    "seconds": 0,
+    "censored": [
+      {
+        "what": "signup/register CTA (สมัคร)",
+        "rule": "full"
+      },
+      {
+        "what": "register CTA (ลงทะเบียน)",
+        "rule": "full"
+      },
+      {
+        "what": "download app CTA",
+        "rule": "full"
+      },
+      {
+        "what": "bonus/prize banner (รางวัล)",
+        "rule": "full"
+      },
+      {
+        "what": "gift/welcome-bonus banner (ของขวัญ)",
+        "rule": "full"
+      },
+      {
+        "what": "dollar bonus amount",
+        "rule": "full"
+      },
+      {
+        "what": "header logo (partial)",
+        "rule": "partial 40% right"
+      }
+    ]
+  },
+  {
+    "file": "real/bingx-logo-pushin.mp4",
+    "kind": "clip",
+    "covers": [
+      "HOOK-2",
+      "PATTERN-1"
+    ],
+    "source_url": "https://www.bingx.com/",
+    "captured_at": "2026-09-23T13:54:49+07:00",
+    "seconds": 3.0,
+    "censored": [
+      {
+        "what": "signup/register CTA (สมัคร)",
+        "rule": "full"
+      },
+      {
+        "what": "register CTA (ลงทะเบียน)",
+        "rule": "full"
+      },
+      {
+        "what": "download app CTA",
+        "rule": "full"
+      },
+      {
+        "what": "bonus/prize banner (รางวัล)",
+        "rule": "full"
+      },
+      {
+        "what": "gift/welcome-bonus banner (ของขวัญ)",
+        "rule": "full"
+      },
+      {
+        "what": "dollar bonus amount",
+        "rule": "full"
+      },
+      {
+        "what": "header logo (partial)",
+        "rule": "partial 40% right"
+      }
+    ]
+  }
+]

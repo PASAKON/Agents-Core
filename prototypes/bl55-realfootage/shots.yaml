@@ -1,0 +1,317 @@
+# BLACK LIQUIDITY EP55 -- ชื่อดังไม่ได้แปลว่ามีใบอนุญาต -- real-footage shot list
+# Run with: python tools/bl_realfootage.py run --shots prototypes/bl55-realfootage/shots.yaml --episode bl55
+#
+# Every claim in the episode script must be backed by a shot here, tagged
+# with the script section it proves (HOOK/PATTERN/CONTEXT/MAIN). Sources:
+#   article  = https://www.wikifx.com/th/newsdetail/202609211084971426.html
+#   profile  = https://www.wikifx.com/th/dealer/4411879049.html
+#              (the article's own link to BingX's WikiFX profile, followed
+#              once by hand 2026-09-23 -- see RUNLOG.md)
+#   bingx    = https://www.bingx.com/
+#
+# CEO's censor rules (2026-09-23 04:00, CTO-FEEDBACK.md, "Cap หน้าจอ ใช้ได้แล้ว
+# นะ บันทึกเป็น Skill เลย" -- approved after seeing the draft stills, now the
+# standing rule set the CTO is writing into a skill):
+#   1. personal_data -- names, IDs, avatars, account numbers, contact details: censor.
+#   2. faces -- minors, and anyone not involved (stock photo/promo model/bystander): censor.
+#   3. Partial, by position. Never the whole thing -- pixelate only the part
+#      that identifies or advertises, keep the rest readable. The broker-logo
+#      rule below is the original example this generalises from.
+#   4. ads -- AdSense-style banners and anything unrelated to the story: censor.
+# Plus the CTO's 03:45 findings that fed into rule 4 and its own category:
+#   other_brokers -- any OTHER broker's name/logo/"regulated" badge showing
+#   on screen reads as a recommendation (compliance risk, HIGHEST PRIORITY --
+#   .claude/skills/blackliquidity-script/SKILL.md §Compliance rule 1).
+#
+# These five are kept as NAMED, REUSABLE rules below (censor_profiles: for
+# pixelation, the &wikifx_hygiene hide block for outright removal) so the
+# next episode's shot list reuses them instead of re-deriving them.
+
+censor_profiles:
+  personal_data:
+    # Site-wide, NOT tied to any shot's crop anchor -- finds every reviewer/
+    # complainant avatar+name row on the page by shape (small, square, class
+    # contains "rounded", real alt text) regardless of which specific card a
+    # shot happens to be zoomed on. See findAllAvatarRows() in
+    # tools/bl_realfootage.py for the exact heuristic and why it was needed
+    # (the original per-shot ancestor-walk rule missed the "featured
+    # reviews" carousel that sits above the fold on every profile-page shot).
+    - {label: "reviewer avatar + username", kind: full, avatar_heuristic: true}
+
+  faces:
+    # No automated face detection in this tool -- DOM heuristics can't find a
+    # face inside an image, only structural/text patterns. Verified BY EYE
+    # 2026-09-23: no identifiable human face appears anywhere in EP55's
+    # footage (bingx.com's hero uses a stylized athlete silhouette, not a
+    # real photo, and WikiFX's UI is text/logo/chart based). Left empty
+    # rather than faked. A future episode whose source pages show real
+    # people (staff photos, testimonial headshots, stock models) needs a
+    # manual visual check before publish -- say so in the report, don't
+    # assume this profile caught it.
+    []
+
+  promo:
+    - {label: "signup/register CTA (สมัคร)", kind: full, text: "สมัคร"}
+    - {label: "register CTA (ลงทะเบียน)", kind: full, text: "ลงทะเบียน"}
+    - {label: "download app CTA", kind: full, text: "ดาวน์โหลด"}
+    - {label: "bonus/prize banner (รางวัล)", kind: full, text: "รางวัล"}
+    - {label: "gift/welcome-bonus banner (ของขวัญ)", kind: full, text: "ของขวัญ"}
+    # dollar bonus figures change every scrape ("$5,000,000!", "$5,685 USDT")
+    # so no fixed keyword catches them -- match by shape instead.
+    - {label: "dollar bonus amount", kind: full, regex: "\\$[\\d,]{4,}"}
+
+  broker_logo_partial:
+    # CEO rule 3, worked example: partial by position, never the whole thing
+    # -- pixelate ~40% of the wordmark, keep it recognisable, deliver a
+    # clean reference copy separately (see also_clean: true on the shots
+    # that use this). Kept as its own profile since a logo is neither promo
+    # nor ads content, it's the broker's own identity mark.
+    - label: "header logo (partial)"
+      kind: partial
+      selector: ".nav-logo-link, header img[alt*=logo], a[href='/'] img"
+      fraction: 0.4
+      side: right
+      min_w: 60
+
+x-wikifx-hygiene: &wikifx_hygiene
+  hide_selectors:
+    # other_brokers -- every WikiFX widget found 2026-09-23 that surfaces a
+    # DIFFERENT broker's name/logo/score/"regulated" badge next to our
+    # story. All three were caught live on the real page, not guessed:
+    - ".advertisement-list"   # "other brokers, regulated" badge grid (IUX/WISDOM/ATFX/TMGM/InterStellar/QRS GLOBAL this run; rotates)
+    - ".wiki-direct"          # "ผู้ใช้ที่ดู...ก็เช่นกัน" (users who viewed this also viewed) broker cards with WikiFX scores (TMGM/VT Markets/ATFX/GTCFX/FP Markets this run; rotates)
+    - ".article-r"            # latest-news sidebar -- OTHER brokers' own review articles (RADEX MARKETS, FXPRIMUS, xChief, Forex 3D, ...)
+    - ".head-r"                # profile-page "popularity index" sponsored-broker card next to BingX's own header (a DIFFERENT broker's rating/score/country)
+    - ".dealer-primary-jaf-new"  # profile-page "ผู้ใช้ที่ดู BingX ก็ดูเช่นกัน" broker cards with logos+scores (XM/EC markets/VT Markets/HANTEC... this run; rotates) -- the profile template's own version of .wiki-direct
+    # personal_data -- reader-submitted evidence screenshots embedded in the
+    # article body (trading-platform screenshots, account/trade history).
+    # None of our shots target these images -- every EP55 claim is sourced
+    # from the article's own TEXT -- and one of them (near the withdrawal-
+    # restriction claim) carries what looks like a real account number and
+    # trade history, unrelated to any script tag, that a wide crop could
+    # pull into frame. No stable class/alt on these <img>s (5 found, all
+    # width~617, no distinguishing attribute), so hide every image inside
+    # the article body wholesale.
+    - ".article-c img, .article-info img"
+    # ads -- unrelated promo banners, not part of the WikiFX evidence
+    - ".chrome_ctx_right"     # "Chrome Extension" promo popup
+    - ".new_chrome_down"      # its collapsed side-tab trigger
+    - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"  # generic AdSense-style safety net (none observed on these two pages; kept for future episodes/brokers)
+  hide_texts:
+    # page hygiene -- neither personal_data nor ads/promo, just UI noise
+    # that has no business sitting in a recorded frame. Class names here are
+    # unstable Tailwind build hashes, so found by the popup's own text.
+    - "切换"                  # Chinese language-switch popup ("是否切换至...语言? 切换")
+
+shots:
+  # ── WikiFX article: headline (WikiFX's own words) ──────────────────────
+  - id: wikifx-article-hook
+    url: "https://www.wikifx.com/th/newsdetail/202609211084971426.html"
+    action: capture
+    kind: still
+    covers: [HOOK-3, PATTERN-1]
+    crop:
+      text: "ไม่พบใบอนุญาต แถมมีประเด็นร้องเรียนจากผู้ใช้งาน"
+      pad: 2.2
+    wait_ms: 1500
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+    source_note: "WikiFX's own article headline -- PATTERN-1 says on screen that this is WikiFX's own headline, not the channel's claim"
+
+  # ── WikiFX profile: risk labels ─────────────────────────────────────────
+  - id: wikifx-profile-no-license
+    url: "https://www.wikifx.com/th/dealer/4411879049.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-1]
+    wait_ms: 2000
+    crop:
+      text: "ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์"
+      pad: 2.5
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  - id: wikifx-profile-no-regulation
+    url: "https://www.wikifx.com/th/dealer/4411879049.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-2]
+    wait_ms: 2000
+    crop:
+      text: "ไม่มีการกำกับดูแลฟอเร็กซ์ที่ถูกต้อง"
+      pad: 3.0
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  # CTO review 2026-09-23 13:40 (task-67f82679): re-anchored on the badge
+  # SELECTOR, not text. "อยู่ที่ 1.69" matched the SMALLEST visible element
+  # containing that phrase, which is the Wiki Q&A prose ("...อยู่ที่ 1.69
+  # คะแนน ซึ่งสะท้อนถึง...") -- a real still further down the page, not the
+  # badge -- so the shot showed the news/Q&A/complaint column instead of the
+  # score, and its complaint card leaked FX3090996564 uncensored. Worse: the
+  # badge's own "1.69" is NOT plain flowed text at all -- it's an
+  # odometer-style digit-reel widget (confirmed live 2026-09-23: the DOM
+  # holds every digit 0-9 for each position, CSS-scrolled to reveal the
+  # right one; the one exact "1.69" text node on the page is a detached,
+  # zero-size accessibility duplicate). No text anchor can ever hit this
+  # badge reliably. `.head-l-score` is the badge's own tight container
+  # (measured 200x115, sits directly beside the BingX logo+name, as seen in
+  # wikifx-profile-no-license.png) -- a selector anchor doesn't care what's
+  # inside it, so the odometer's DOM quirks don't matter.
+  - id: wikifx-profile-score
+    url: "https://www.wikifx.com/th/dealer/4411879049.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-3]
+    wait_ms: 2000
+    crop:
+      selector: ".head-l-score"
+      pad: 2.2
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  # moved to the article page 2026-09-23: the profile page's own wording
+  # ("...ลดลงเนื่องจากมีการร้องเรียนมากเกินไป!") only exists in a horizontally
+  # off-canvas tooltip element -- barely overlapping the 1080px viewport by a
+  # few px, so scrollIntoView's target sometimes lands fully off-screen
+  # between one page load and the next (measured: found at x=1056 one load,
+  # x=1144 -- fully off-frame -- the next). The article's own wording of the
+  # same claim sits in ordinary flowed body text and measured stable across
+  # repeated fresh loads.
+  - id: wikifx-article-score-reason
+    url: "https://www.wikifx.com/th/newsdetail/202609211084971426.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-4]
+    wait_ms: 1200
+    crop:
+      text: "คะแนนของโบรกเกอร์นี้ลดลงเนื่องจากมีข้อร้องเรียนจากลูกค้าจำนวนมากที่ยังไม่ได้รับการแก้ไข"
+      pad: 1.6
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  # ── WikiFX profile: complaint evidence (PII censored, numbers sharp) ────
+  - id: wikifx-profile-complaint-amounts
+    url: "https://www.wikifx.com/th/dealer/4411879049.html"
+    action: capture
+    kind: still
+    covers: [MAIN-3, MAIN-4]
+    wait_ms: 2200
+    crop:
+      text: "48,994.87"
+      pad: 1.6
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  - id: wikifx-profile-complaint-taiwan
+    url: "https://www.wikifx.com/th/dealer/4411879049.html"
+    action: capture
+    kind: still
+    covers: [MAIN-5]
+    wait_ms: 2200
+    crop:
+      text: "ตำรวจไต้หวันยอมรับ BingX การโจรกรรม"
+      pad: 1.8
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  # ── WikiFX article: figures the profile page didn't show cleanly ────────
+  # (profile page: founded-date said 2019 not 2018, no "เซเชลส์" text, and
+  # the 1:125/1 USDT figures sat in a hidden comparison-table cell -- task
+  # rule: capture from the article when a number differs / isn't there)
+  - id: wikifx-article-founded-hq
+    url: "https://www.wikifx.com/th/newsdetail/202609211084971426.html"
+    action: capture
+    kind: still
+    covers: [PATTERN-2]
+    wait_ms: 1200
+    crop:
+      text: "ก่อตั้งขึ้นในปี 2018"
+      pad: 2.0
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+    source_note: "profile page's own founded-year text differs (2019, not on the article's 2018) and has no Seychelles text at all -- article used instead, per task instruction to prefer the article when a number differs"
+
+  # split into two tight single-text-node anchors 2026-09-23: the combined
+  # phrase "BingX เสนอเลเวอเรจสูงถึง 1:125 ... 1 USDT" spans multiple DOM
+  # text nodes, so the tight-text matcher couldn't find it as one span and
+  # fell back to the whole containing paragraph (617x81 CSS px) -- which
+  # then exploded through the 9:16 crop math to nearly the full frame and
+  # pulled in an unrelated embedded screenshot with what looked like a real
+  # account number, uncensored (CTO-FEEDBACK.md 04:00/04:25). "1:125" alone
+  # and "1 USDT" alone each measure as a genuinely tight ~40x17px span.
+  - id: wikifx-article-leverage
+    url: "https://www.wikifx.com/th/newsdetail/202609211084971426.html"
+    action: capture
+    kind: still
+    covers: [MAIN-8]
+    wait_ms: 1200
+    crop:
+      text: "1:125"
+      pad: 2.5
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+    source_note: "the profile page's own 1:125 cell was not rendered (display:none) at capture time"
+
+  - id: wikifx-article-min-deposit
+    url: "https://www.wikifx.com/th/newsdetail/202609211084971426.html"
+    action: capture
+    kind: still
+    covers: [PATTERN-4, MAIN-10]
+    wait_ms: 1200
+    crop:
+      text: "1 USDT"
+      pad: 2.5
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  - id: wikifx-article-withdrawal-restriction
+    url: "https://www.wikifx.com/th/newsdetail/202609211084971426.html"
+    action: capture
+    kind: still
+    covers: [MAIN-6, MAIN-7]
+    wait_ms: 1200
+    crop:
+      text: "บัญชีถูกจำกัดการถอนเงินหลังทำกำไรได้"
+      pad: 1.3   # tighter -- this sentence sits right after an embedded trading-platform screenshot in the article; a looser pad pulled that screenshot into frame
+    <<: *wikifx_hygiene
+    censor_profiles: [personal_data]
+
+  # ── bingx.com: homepage scroll (real ads censored, layout stays readable) ─
+  - id: bingx-homepage-scroll
+    url: "https://www.bingx.com/"
+    action: scroll
+    kind: clip
+    duration: 7
+    scroll_to_frac: 0.55
+    covers: [PATTERN-1, MAIN-11, MAIN-12]
+    wait_ms: 1500
+    censor_profiles: [promo, broker_logo_partial]
+
+  # ── bingx.com: logo (still + clean reference + push-in clip) ─────────────
+  - id: bingx-logo-still
+    url: "https://www.bingx.com/"
+    action: capture
+    kind: still
+    covers: [HOOK-2, PATTERN-1]
+    wait_ms: 1200
+    crop:
+      selector: ".nav-logo-link"
+      min_w: 60
+      pad: 2.0
+    also_clean: true
+    censor_profiles: [promo, broker_logo_partial]   # promo = safety net for ads the padded crop pulls in
+
+  - id: bingx-logo-pushin
+    url: "https://www.bingx.com/"
+    action: capture
+    kind: clip
+    duration: 3
+    animate: true
+    covers: [HOOK-2, PATTERN-1]
+    wait_ms: 1200
+    crop:
+      selector: ".nav-logo-link"
+      min_w: 60
+      pad: 2.0
+    censor_profiles: [promo, broker_logo_partial]
