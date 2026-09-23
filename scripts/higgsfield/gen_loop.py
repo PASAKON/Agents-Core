@@ -47,13 +47,16 @@ CATEGORY_FOLDERS = {"trading": "01_trading-finance"}  # add more categories here
 POLICY_PATH = Path(__file__).resolve().parent.parent.parent / "config" / "storage-policy.yaml"
 
 
-# ── Work/ dest + free-space guards (task-2b587031, WORK_DIR pilot only) ─────
+# ── Work/ dest guard + space_check (task-2b587031 dest; task-9586db0c space) ─
 # Mirrors tools/flow_shoot.py's own guards exactly (duplicated rather than
 # imported — same convention as this file's own _decision_is_confident:
 # this task's declared touches do not include tools/flow_shoot.py itself for
 # this shared logic, and the two runners are otherwise independent,
-# zero-model scripts). WORK_DIR unset: every function below is a no-op —
-# gen_loop has no --dest flag today, so LOCAL_ROOT stays exactly as it is.
+# zero-model scripts). --dest resolution below is WORK_DIR-pilot only: WORK_DIR
+# unset means every function in that half is a no-op — gen_loop has no --dest
+# flag today, so LOCAL_ROOT stays exactly as it is. check_free_space() is
+# separate and NOT WORK_DIR-gated (CEO ruling 2026-09-23, config
+# space_check): it runs whenever scope.space_check covers this task.
 
 class DestForbidden(RuntimeError):
     """Output dir resolves under a path Work/RULES.md rule 2 forbids a
@@ -61,8 +64,9 @@ class DestForbidden(RuntimeError):
 
 
 class InsufficientFreeSpace(RuntimeError):
-    """A download would leave free space under the Work/RULES.md rule 9
-    floor (config work_dir.keep_free_gb)."""
+    """This run's estimated output would leave free space under config
+    space_check.min_free_after_gb (CEO ruling 2026-09-23, Work/RULES.md
+    rule 9 update) — see check_free_space()."""
 
 
 def _work_dir() -> str | None:
@@ -94,32 +98,66 @@ def resolve_local_root() -> Path:
     return dest
 
 
-def check_free_space(expected_bytes: float | None = None,
-                      policy_path: Path = POLICY_PATH, free_bytes_fn=None) -> None:
-    """Work/RULES.md rule 9: before each download, if WORK_DIR is set, refuse
-    when there isn't enough free space. expected_bytes is always unknown here
-    — download() (below) only learns the real size after urlopen() finishes
-    reading the body — so this always takes the "unknown size" branch: refuse
-    only when free is already under keep_free_gb. free_bytes_fn is a seam for
-    tests; defaults to a real shutil.disk_usage("/") read."""
-    wd = _work_dir()
-    if not wd:
-        return
+def _space_check_scope_applies(policy: dict) -> bool:
+    """config scope.space_check (CEO 2026-09-23): "all" -> every task; a
+    list -> only when $WORKER_CTO_ID is a member; missing key or any other
+    value -> nobody, so check_free_space() below is a complete no-op —
+    byte-for-byte today's behaviour for a task outside scope."""
+    scope = (policy.get("scope") or {}).get("space_check")
+    if scope == "all":
+        return True
+    if isinstance(scope, list):
+        owner = os.environ.get("WORKER_CTO_ID")
+        return bool(owner) and owner in scope
+    return False
+
+
+def _resolve_expect_gb(expect_gb: float | None, project: str | None,
+                        space_check: dict) -> float:
+    """Estimate order (task-9586db0c): (a) expect_gb (the caller's
+    --expect-gb), (b) $WORK_EXPECT_GB, (c) space_check.estimates_gb[project]
+    (project from the caller's --project, else $WORK_PROJECT), (d)
+    space_check.default_estimate_gb — (d) logs one line so a missing
+    estimate is never silent."""
+    if expect_gb is not None:
+        return float(expect_gb)
+    env_gb = os.environ.get("WORK_EXPECT_GB")
+    if env_gb:
+        return float(env_gb)
+    proj = project or os.environ.get("WORK_PROJECT")
+    estimates = space_check.get("estimates_gb") or {}
+    if proj and proj in estimates:
+        return float(estimates[proj])
+    default_gb = space_check["default_estimate_gb"]
+    print(f"no size estimate given — assumed {default_gb} GB "
+          f"(set --expect-gb or space_check.estimates_gb.<project>)")
+    return float(default_gb)
+
+
+def check_free_space(policy_path: Path = POLICY_PATH, free_bytes_fn=None,
+                      expect_gb: float | None = None,
+                      project: str | None = None) -> None:
+    """CEO ruling 2026-09-23 (config space_check, replaces the old
+    work_dir.keep_free_gb fixed floor / Work/RULES.md rule 9): not a fixed
+    floor — refuse only when free space minus THIS RUN's estimated total
+    output (see _resolve_expect_gb) would leave less than
+    space_check.min_free_after_gb. Runs only when config scope.space_check
+    covers this task (see _space_check_scope_applies); off is a complete
+    no-op regardless of $WORK_DIR. free_bytes_fn is a seam for tests;
+    defaults to a real shutil.disk_usage("/") read."""
     policy = storage_policy.load(policy_path)
-    big_gb = policy["work_dir"]["big_download_gb"]
-    keep_free_gb = policy["work_dir"]["keep_free_gb"]
+    if not _space_check_scope_applies(policy):
+        return
+    space_check = policy["space_check"]
+    resolved_gb = _resolve_expect_gb(expect_gb, project, space_check)
     free_bytes = (free_bytes_fn or (lambda: shutil.disk_usage("/").free))()
     free_gb = free_bytes / (1024 ** 3)
-    if expected_bytes is not None:
-        expected_gb = expected_bytes / (1024 ** 3)
-        if expected_gb > big_gb and (free_gb - expected_gb) < keep_free_gb:
-            raise InsufficientFreeSpace(
-                f"expected download {expected_gb:.2f} GB, {free_gb:.2f} GB free — "
-                f"would leave < {keep_free_gb} GB free (Work/RULES.md rule 9)")
-    elif free_gb < keep_free_gb:
+    min_free_after_gb = space_check["min_free_after_gb"]
+    if free_gb - resolved_gb < min_free_after_gb:
         raise InsufficientFreeSpace(
-            f"{free_gb:.2f} GB free < {keep_free_gb} GB floor, download size "
-            f"unknown ahead of the fetch (Work/RULES.md rule 9)")
+            f"expected output {resolved_gb:.2f} GB, {free_gb:.2f} GB free — "
+            f"would leave < {min_free_after_gb} GB free (space_check, "
+            f"CEO ruling 2026-09-23 / Work/RULES.md rule 9)")
 
 
 # ── env / drive ─────────────────────────────────────────────────────────────
@@ -492,6 +530,16 @@ def main():
     ap.add_argument('--limit', type=int, default=0, help="0 = all")
     ap.add_argument('--delay-min', type=int, default=45)
     ap.add_argument('--delay-max', type=int, default=180)
+    ap.add_argument('--expect-gb', type=float, default=None,
+                     help="Estimated total output size for this run, in GB — "
+                          "highest-priority check_free_space() estimate source "
+                          "(config space_check, CEO ruling 2026-09-23). Falls "
+                          "back to $WORK_EXPECT_GB, then "
+                          "space_check.estimates_gb[--project], then "
+                          "space_check.default_estimate_gb.")
+    ap.add_argument('--project', default=None,
+                     help="Project key into config space_check.estimates_gb. "
+                          "Falls back to $WORK_PROJECT.")
     args = ap.parse_args()
 
     try:
@@ -550,7 +598,7 @@ def main():
                 # flow_shoot.py's _submit_or_raise): it used to sit right before download(),
                 # AFTER this click and the full poll_for_result() wait — a disk-space refusal
                 # there still burned the generation for nothing.
-                check_free_space()
+                check_free_space(expect_gb=args.expect_gb, project=args.project)
                 page.locator('button[type=submit]').first.click()
                 page.wait_for_timeout(8000)
                 if not page.evaluate("()=>/generating|processing|queued|rendering|in progress/i.test(document.body.innerText)"):
