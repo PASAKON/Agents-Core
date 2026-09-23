@@ -19,6 +19,7 @@ from __future__ import annotations
 import pytest
 
 from tools import tmux_session
+from tools import workdir as _workdir
 
 
 @pytest.fixture(autouse=True)
@@ -79,6 +80,32 @@ def _isolate_org_root(tmp_path, monkeypatch):
     resolved root is a real checkout (has a `.git` entry).
     """
     monkeypatch.setenv("ORG_ROOT", str(tmp_path))
+
+
+@pytest.fixture(autouse=True)
+def _isolate_workdir_root(tmp_path, monkeypatch):
+    """ADR 0030 / Work/RULES.md (task-36aaa3c4, iteration 1 fix): a test
+    whose synthetic pilot owner passes `_storage_applies` -- e.g. tests/
+    test_delegate_disk_floor.py's owner_cto="test-owner", added to the
+    pilot list via its own fixture -- makes delegate_task call
+    `_work_dir_for` -> `tools.workdir.create()` against the REAL
+    `~/MoonieXHQ/Work/` root (config/storage-policy.yaml `work_dir.root`,
+    unmocked). Measured: three real `task-<random>/{in,tmp,out}` folders
+    (task-3ac4ba94, task-72526678, task-53ece1ab) appeared there from test
+    runs alone -- none of those ids exist in tasks.db -- cleaned up by the
+    CTO before this fixture existed.
+
+    Pinning `tools.workdir._default_root()` to a per-test tmp_path here
+    means no test anywhere, present or future, can write into the real
+    Work/ tree just by exercising the pilot path -- whether or not it
+    remembers to pass `root=` itself. A test that wants its OWN explicit
+    root (tests/test_workdir.py, tests/test_delegate_workdir.py already
+    pass `root=tmp_path` to every call) is unaffected: this only changes
+    what `_default_root()` returns when nothing else overrides it, and a
+    test-local `monkeypatch.setattr(workdir, "_default_root", ...)` layers
+    on top within the same test's monkeypatch stack (same pattern as
+    `_pin_tmux_bin` above)."""
+    monkeypatch.setattr(_workdir, "_default_root", lambda: tmp_path / "Work")
 
 
 # --- .env seal for EVERY test (moved here from tests/conftest.py 2026-09-22, task-3de56f59 found

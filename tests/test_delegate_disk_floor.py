@@ -95,7 +95,7 @@ def test_low_disk_never_calls_the_spawn_step(temp_db, monkeypatch):
 # here so the test never opens a real iTerm tab).
 # ---------------------------------------------------------------------------
 
-def test_sufficient_disk_proceeds_to_spawn_step(temp_db, monkeypatch):
+def test_sufficient_disk_proceeds_to_spawn_step(temp_db, monkeypatch, tmp_path):
     monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 6.0)
 
     fake_project = {
@@ -123,18 +123,29 @@ def test_sufficient_disk_proceeds_to_spawn_step(temp_db, monkeypatch):
     monkeypatch.setattr(delegate, "create_worktree", fake_create_worktree)
 
     spawn_calls = []
+    spawn_kwargs = []
 
     def fake_spawn_iterm_tab(role, task_id, **kw):
         spawn_calls.append((role, task_id))
+        spawn_kwargs.append(kw)
         return "spawned"
 
     monkeypatch.setattr(delegate, "_spawn_iterm_tab", fake_spawn_iterm_tab)
 
-    tid = _new_task(temp_db)
+    tid = _new_task(temp_db)  # owner_cto="test-owner" -> pilot-scoped (this file's temp_db fixture)
     result = asyncio.run(delegate.delegate_task(tid))
 
     assert "worktree_info" in created, "create_worktree (the spawn step) was never reached"
     assert len(spawn_calls) == 1
+    # ADR 0030 / task-36aaa3c4 iter1: this task's owner is pilot-scoped, so
+    # delegate_task must have created a Work/ folder and passed WORK_DIR
+    # through to the spawn step -- and it must land under this test's own
+    # tmp_path (conftest.py's autouse `_isolate_workdir_root`), never the
+    # real ~/MoonieXHQ/Work/.
+    work_dir = spawn_kwargs[0].get("work_dir")
+    assert work_dir is not None
+    assert Path(work_dir).is_relative_to(tmp_path)
+    assert Path(work_dir).is_dir()
     assert isinstance(result, dict)  # normal path still returns the task row
     assert result["worktree"] == created["worktree_info"]["worktree"]
     assert created["sparse"] is True  # pilot owner → sparse worktree
