@@ -855,7 +855,7 @@ So decide, do not ask:
 | what | where it belongs |
 |---|---|
 | **Individual shot clips** (`shot-NN.mp4`) | **Drive, always.** Every take, good or bad — the branch keeps generation history. They are 2–6 MB each. |
-| **One working folder of the current clips** | **Keep on disk** while the film is in production (`~/Desktop/banchi-ALL/`), because assembling reads them. |
+| **One working folder of the current clips** | **Keep on disk in the task's Work folder** (`~/MoonieXHQ/Work/<task-id>/out/`, IRON §55) while it waits for the CEO's review; after review it goes up to Drive and the Work folder is closed. Never ~/Desktop (CEO 2026-09-23: "ให้เขาเก็บไว้ที่ Work แล้วส่งขึ้น Drive เมื่อตรวจเสร็จแล้ว หรือรอตรวจไว้ที่ Disk ได้"). |
 | **Staging folders** the runner wrote into (`banchi-ACT<n>/`, `banchi-FIX/`, `banchi-TEST/`, comparison folders) | **Delete** once their clips are copied into the working folder AND verified on Drive. They are duplicates by construction. |
 | **The assembled full cut** (~1.3 GB) | **Do NOT back up every version.** Re-assembling from the clips is a two-minute ffmpeg run, so an old cut is a cheap thing to recreate and an expensive thing to store. Upload a cut to `Final Draft/` only when it is one the CEO has signed off, or the last one of the day. |
 | **A superseded cut** (`-v1` when `-v2` exists) | **Delete it as soon as the new one verifies.** Do not keep both. |
@@ -931,3 +931,4 @@ is the working copy, and both are correct.
 ## Field notes
 
 - 2026-09-23 [WRONG] §Film work — the «บัญชี» row says the Element plates live on Drive AND on the Mac ("Drive is the archive, ~/Desktop/banchi-plates/ is the working copy"). The bridge lists Element/Character, /Location, /Prop as EMPTY, so the Mac folder was the only copy; it was deleted in a disk clear-up and tools/build_shotsheet.py then refused every sheet. Fix: after the re-harvest, upload the plates to Element/<kind>/ and verify by name+size before trusting the row again. · evidence: session cto-8c06958c, drive_get.find on 1mQ5Hx…/1DlzY…/1ZgN1F… → 0 files, task-f78ca70e · status: pending
+- 2026-09-23 [SUPERSEDED] §Film work — "one working folder of the current clips … ~/Desktop/banchi-ALL/" · evidence: CEO ruling 2026-09-23 (the CEO had asked for Desktop only to view clips easily): clips stay in the task's Work/<task-id>/out/ until reviewed, then Drive · status: superseded
