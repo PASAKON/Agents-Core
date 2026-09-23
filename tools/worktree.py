@@ -248,6 +248,14 @@ def create_worktree(project_key: str, role: str, task_id: str, *,
         extensions = _media_guard_extensions()
         if extensions:
             large_media = _large_tracked_media(repo, start_point, int(min_bytes), extensions)
+            # `keep_paths` (CTO 3d312dd6 review, 2026-09-23): workers read
+            # reference media outside their touches — skills' templates,
+            # prototypes, knowledge/ design references. Those stay on disk.
+            keep = [str(g) for g in (policy.get("keep_paths") or [])]
+            if keep:
+                import fnmatch
+                large_media = [p for p in large_media
+                               if not any(fnmatch.fnmatch(p, g) for g in keep)]
 
     if not large_media:
         _run(["git", "worktree", "add", "-b", branch, str(wt), start_point], cwd=repo)
