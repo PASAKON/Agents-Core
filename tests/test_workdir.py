@@ -175,6 +175,73 @@ def test_close_missing_folder_raises(tmp_path):
         workdir.close(TASK, root=tmp_path)
 
 
+# ---------------------------------------------------------- close(archive=True)
+
+def _matching_uploader():
+    import tools.work_archive as work_archive
+
+    def _uploader(local_path, dest_name):
+        _, md5 = work_archive._hash_file(local_path)
+        return {"id": "fake-" + dest_name, "name": dest_name, "md5Checksum": md5}
+    return _uploader
+
+
+def test_close_archive_true_verified_deletes_and_fills_ledger(tmp_path, monkeypatch):
+    import tools.work_archive as work_archive
+    monkeypatch.setattr(work_archive, "LOG_PATH", str(tmp_path / "drive-archive.log"))
+    monkeypatch.setattr(work_archive, "_default_uploader", _matching_uploader())
+
+    folder = workdir.create(TASK, root=tmp_path)
+    (folder / "in" / "unfiled.jpg").write_bytes(b"y" * 5)
+    (folder / "out" / "deliverable.mp4").write_bytes(b"z" * 7)
+
+    result = workdir.close(TASK, root=tmp_path, archive=True, by="test-actor")
+
+    assert result["closed"] is True
+    assert not folder.exists()
+
+    ledger = tmp_path / "_ledger.jsonl"
+    entry = json.loads(ledger.read_text(encoding="utf-8").splitlines()[0])
+    assert entry["bytes"] == 12  # 5 + 7, both archived-then-deleted
+    assert entry["dest"].startswith(f"Agents-Work-{TASK}-")
+    assert entry["md5"]  # local md5 of the tar, non-empty
+    assert set(entry) == {"ts", "task", "bytes", "dest", "md5", "by"}
+
+
+def test_close_archive_true_mismatch_keeps_folder_and_files(tmp_path, monkeypatch):
+    import tools.work_archive as work_archive
+    monkeypatch.setattr(work_archive, "LOG_PATH", str(tmp_path / "drive-archive.log"))
+
+    def _bad_uploader(local_path, dest_name):
+        return {"id": "x", "name": dest_name, "md5Checksum": "0" * 32}
+    monkeypatch.setattr(work_archive, "_default_uploader", _bad_uploader)
+
+    folder = workdir.create(TASK, root=tmp_path)
+    (folder / "in" / "unfiled.jpg").write_bytes(b"y" * 5)
+    (folder / "out" / "deliverable.mp4").write_bytes(b"z" * 7)
+
+    result = workdir.close(TASK, root=tmp_path, archive=True)
+
+    assert result["closed"] is False
+    assert "archive_error" in result and "mismatch" in result["archive_error"]
+    assert folder.is_dir()
+    assert (folder / "in" / "unfiled.jpg").exists()
+    assert (folder / "out" / "deliverable.mp4").exists()
+    assert not (tmp_path / "_ledger.jsonl").exists()
+
+
+def test_close_without_archive_flag_leaves_unfiled_as_before(tmp_path):
+    """archive defaults False -- close() behaves exactly as it did pre-task-abc20690."""
+    folder = workdir.create(TASK, root=tmp_path)
+    (folder / "out" / "deliverable.mp4").write_bytes(b"z" * 7)
+
+    result = workdir.close(TASK, root=tmp_path)
+
+    assert result["closed"] is False
+    assert "archive_error" not in result
+    assert (folder / "out" / "deliverable.mp4").exists()
+
+
 def test_close_dry_run_makes_no_filesystem_changes(tmp_path):
     folder = workdir.create(TASK, root=tmp_path)
     (folder / "tmp" / "scratch.bin").write_bytes(b"x")
