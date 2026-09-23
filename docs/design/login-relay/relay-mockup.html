@@ -1,0 +1,410 @@
+<title>Phone Login Relay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#eef1f3; --surface:#ffffff; --sunk:#e4e9ec; --ink:#111a22; --muted:#56646f; --line:#cfd8de;
+  --accent:#0b6e79; --accent-soft:#d6ecee; --amber:#9a5d06; --amber-soft:#f6e7cf;
+  --green:#2c7a4b; --green-soft:#d9eee1; --red:#b3261e;
+  --phone-bg:#0f171d; --phone-screen:#f7f9fa; --phone-ink:#111a22; --phone-card:#ffffff; --phone-line:#dde4e8;
+  --display:"Chakra Petch","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0d1419; --surface:#152029; --sunk:#1b2833; --ink:#e3eaef; --muted:#97a6b2; --line:#2a3a47;
+    --accent:#5cc3cf; --accent-soft:#16343a; --amber:#e3a74d; --amber-soft:#3a2b14;
+    --green:#79c897; --green-soft:#17301f; --red:#f08a80;
+    --phone-bg:#05090c; --phone-screen:#121b22; --phone-ink:#e3eaef; --phone-card:#1a2530; --phone-line:#2a3a47;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0d1419; --surface:#152029; --sunk:#1b2833; --ink:#e3eaef; --muted:#97a6b2; --line:#2a3a47;
+  --accent:#5cc3cf; --accent-soft:#16343a; --amber:#e3a74d; --amber-soft:#3a2b14;
+  --green:#79c897; --green-soft:#17301f; --red:#f08a80;
+  --phone-bg:#05090c; --phone-screen:#121b22; --phone-ink:#e3eaef; --phone-card:#1a2530; --phone-line:#2a3a47;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.65;padding-inline:16px;padding-block:24px 60px;margin:0}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.25;text-wrap:balance}
+h1{font-size:clamp(1.6rem,4vw,2.2rem)}
+h2{font-size:1.25rem}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.lede{max-width:64ch}
+code{font-family:var(--mono);font-size:.86em;background:var(--sunk);padding:1px 6px;border-radius:4px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px;align-items:start}
+@media (max-width:820px){.stage{grid-template-columns:1fr}.phone-col{order:-1}}
+
+/* steps */
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.step{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.step:hover{border-color:var(--accent)}
+.step:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.step[aria-current="step"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.step .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;border:2px solid var(--accent);color:var(--accent);font-size:.9rem}
+.step b{display:block;font-weight:600}
+.step span.d{color:var(--muted);font-size:.9rem}
+.branch{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:480px){.branch{grid-template-columns:1fr}}
+
+/* phone */
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:10px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+.phone{width:340px;max-width:100%;background:var(--phone-bg);border-radius:38px;padding:11px;box-shadow:0 18px 40px rgba(0,0,0,.18)}
+.screen{background:var(--phone-screen);color:var(--phone-ink);border-radius:28px;height:680px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.sbar{display:flex;justify-content:space-between;padding:10px 20px 4px;font-family:var(--mono);font-size:.7rem;opacity:.8}
+.url{margin:0 12px 6px;padding:5px 10px;border-radius:9px;background:var(--phone-card);border:1px solid var(--phone-line);font-family:var(--mono);font-size:.7rem;color:var(--muted);text-align:center}
+.view{flex:1;overflow-y:auto;padding:8px 14px 16px;display:flex;flex-direction:column;gap:10px}
+.view[hidden]{display:none!important}
+.apphead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.apphead .t{font-family:var(--display);font-weight:700;font-size:1.02rem}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--phone-card);border:1px solid var(--phone-line);border-radius:10px;padding:3px;gap:3px}
+.tabs span{text-align:center;font-size:.8rem;padding:5px;border-radius:7px;color:var(--muted)}
+.tabs span.on{background:var(--accent);color:var(--phone-screen);font-weight:600}
+.grp{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.tgt{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--phone-card);border:1px solid var(--phone-line);border-radius:12px;padding:10px 12px;text-align:left;font:inherit;color:inherit;width:100%}
+button.tgt{cursor:pointer}
+button.tgt:hover{border-color:var(--accent)}
+.tgt .nm{font-weight:600;font-size:.9rem;display:block}
+.tgt .sub{font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.tgt.off{opacity:.55}
+.badge{font-family:var(--mono);font-size:.64rem;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.b-amber{background:var(--amber-soft);color:var(--amber)}
+.b-green{background:var(--green-soft);color:var(--green)}
+.b-grey{background:var(--sunk);color:var(--muted)}
+.note{font-size:.74rem;color:var(--muted);line-height:1.5}
+.choice{display:flex;flex-direction:column;gap:3px;background:var(--phone-card);border:1px solid var(--phone-line);border-radius:14px;padding:14px;text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%}
+.choice:hover{border-color:var(--accent)}
+.choice.rec{border:2px solid var(--accent)}
+.choice b{font-size:.95rem}
+.choice span{font-size:.78rem;color:var(--muted)}
+.btn{display:block;width:100%;border:0;border-radius:11px;padding:11px;font:inherit;font-weight:600;font-size:.88rem;cursor:pointer;background:var(--accent);color:var(--phone-screen)}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--phone-line)}
+.linkish{background:none;border:0;padding:0;font:inherit;color:var(--accent);cursor:pointer;font-size:.8rem}
+.qrbox{background:#fff;border-radius:14px;padding:14px;display:grid;place-items:center;border:1px solid var(--phone-line)}
+.qrbox canvas{width:196px;height:196px;image-rendering:pixelated}
+.fresh{display:flex;align-items:center;gap:7px;font-size:.74rem;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
+@media (prefers-reduced-motion:no-preference){.dot{animation:pulse 1.4s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.35}}
+.ways{display:flex;flex-direction:column;gap:6px}
+.way{display:grid;grid-template-columns:22px 1fr;gap:8px;background:var(--phone-card);border:1px solid var(--phone-line);border-radius:10px;padding:8px 10px;font-size:.78rem;line-height:1.45}
+.way i{font-style:normal;font-family:var(--display);font-weight:700;color:var(--accent)}
+.way.dim{opacity:.6}
+.thumb{border:1px solid var(--phone-line);border-radius:10px;overflow:hidden;background:#fff;color:#111;font-size:.62rem}
+.thumb .tb{background:#f1f1f1;padding:3px 8px;font-family:var(--mono);color:#666}
+.thumb .tc{display:flex;gap:10px;align-items:center;padding:8px 10px}
+.thumb .mini{width:38px;height:38px;background:repeating-conic-gradient(#111 0 25%,#fff 0 50%) 0 0/8px 8px;border:3px solid #fff;outline:1px solid #ddd}
+/* live screen (form mode) */
+.live{background:#fff;color:#1f1f1f;border-radius:12px;border:1px solid var(--phone-line);padding:18px 16px;display:flex;flex-direction:column;gap:10px;min-height:250px}
+.live .g{font-family:var(--display);font-size:1.05rem;color:#1f1f1f}
+.live .lbl{font-size:.72rem;color:#5f6368}
+.live .fld{border:2px solid #1a73e8;border-radius:6px;padding:9px 10px;font-size:.85rem;min-height:40px;display:flex;align-items:center}
+.live .fld .caret{width:1.5px;height:16px;background:#1a73e8;margin-left:1px}
+@media (prefers-reduced-motion:no-preference){.live .fld .caret{animation:pulse 1s steps(1) infinite}}
+.live .nx{align-self:flex-end;background:#1a73e8;color:#fff;border-radius:18px;padding:6px 16px;font-size:.78rem}
+.inbar{display:grid;grid-template-columns:1fr auto;gap:6px}
+.inbar input{font:inherit;font-size:.85rem;padding:9px 11px;border-radius:10px;border:1px solid var(--phone-line);background:var(--phone-card);color:var(--phone-ink);min-width:0}
+.inbar button{border:0;border-radius:10px;padding:0 14px;background:var(--accent);color:var(--phone-screen);font:inherit;font-weight:600;font-size:.82rem;cursor:pointer}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.keys span{text-align:center;border:1px solid var(--phone-line);border-radius:8px;padding:6px;font-family:var(--mono);font-size:.72rem;background:var(--phone-card)}
+.timer{font-family:var(--mono);font-size:.68rem;color:var(--muted);text-align:center}
+.done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:0 8px}
+.tick{width:64px;height:64px;border-radius:50%;background:var(--green-soft);color:var(--green);display:grid;place-items:center}
+.cap{font-size:.78rem;color:var(--muted);text-align:center;max-width:340px}
+.auto{font-size:.74rem;color:var(--muted);background:var(--phone-card);border:1px dashed var(--phone-line);border-radius:8px;padding:5px 9px}
+.spin{width:54px;height:54px;border-radius:50%;border:5px solid var(--phone-line);border-top-color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.spin{animation:rot 1s linear infinite}}
+@keyframes rot{to{transform:rotate(360deg)}}
+.tick.bad{background:#f7dcd9;color:#b3261e}
+.eid{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--phone-card);border:1px solid var(--phone-line);border-radius:10px;padding:8px 12px;width:100%}
+.eid-l{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.eid-v{font-family:var(--mono);font-size:1.02rem;font-weight:500;letter-spacing:.02em;user-select:all}
+.btnrow{display:grid;grid-template-columns:1fr auto;gap:8px}
+.demo{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted)}
+.demo button{font:inherit;font-size:.78rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 12px;cursor:pointer}
+.demo button[aria-pressed="true"]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+
+/* panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+.panel ul,.panel ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.ask{border:2px solid var(--accent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.two{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <span class="eyebrow">Mockup · ยังไม่ใช่ของจริง · 23 ก.ย. 2026</span>
+    <h1>Login ผ่านมือถือ — หน้าตาและขั้นตอน</h1>
+    <p class="lede">กดโทรศัพท์ทางขวาได้เลย ลองได้ทั้งสองแบบ คือ <b>สแกน QR</b> (เช่น TikTok) และ <b>กรอกฟอร์ม</b> (เช่น Google) หรือกดที่ขั้นตอนทางซ้ายเพื่อข้ามไปดูหน้านั้นก็ได้ ข้อมูลทั้งหมดในหน้านี้เป็นตัวอย่าง ยกเว้นรายชื่อ Chrome บน Mac ซึ่งเป็นของจริงที่เปิดอยู่ตอนนี้</p>
+  </header>
+
+  <div class="stage">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <h2>ขั้นตอน</h2>
+      <ol class="steps">
+        <li><button class="step" data-go="pick"><span class="n">1</span><span><b>เปิด terminal.mooniex.com → แท็บ “Login”</b><span class="d">เว็บเดิมที่ใช้อยู่ ยืนยันด้วย passkey เดิม ต้องเปิด Tailscale บนมือถือเหมือนทุกวัน</span></span></button></li>
+        <li><button class="step" data-go="pick"><span class="n">2</span><span><b>เลือก Chrome ที่รอ login</b><span class="d">รายการจะแสดงเฉพาะ Chrome ที่เปิดไว้ให้ระบบใช้ (โปรไฟล์ automation) ไม่แสดง Chrome ส่วนตัวของคุณ</span></span></button></li>
+        <li class="branch">
+          <button class="step" data-go="qr"><span class="n">3</span><span><b>Login แบบ QR</b><span class="d">ระบบเจอ QR บนหน้าเว็บ เลยเลือกวิธีนี้ให้เอง คุณแค่สแกน</span></span></button>
+          <button class="step" data-go="form"><span class="n">3</span><span><b>Login แบบฟอร์ม</b><span class="d">ระบบไม่เจอ QR เลยเปิดหน้าจอแบบมือถือให้ คุณพิมพ์แล้วกดส่ง</span></span></button>
+        </li>
+        <li><button class="step" data-go="wait"><span class="n">4</span><span><b>รอผล (อัตโนมัติ)</b><span class="d">พอหน้าเว็บเปลี่ยนไปจากหน้า login ระบบจะไปหน้ารอผลเอง ตรวจสูงสุด 45 วิ แล้วขึ้นผลว่าสำเร็จ หรือ error พร้อมเหตุผลและ Error ID ให้ copy</span></span></button></li>
+      </ol>
+    </div>
+
+    <div class="phone-col">
+      <div class="phone" aria-label="จำลองหน้าจอมือถือ">
+        <div class="screen">
+          <div class="sbar"><span>9:41</span><span>Tailscale ●</span></div>
+          <div class="url">terminal.mooniex.com/relay</div>
+
+          <!-- 1-2 pick -->
+          <div class="view" data-view="pick">
+            <div class="apphead"><span class="t">MoonieX Console</span></div>
+            <div class="tabs"><span>Sessions</span><span class="on">Login</span></div>
+            <div class="grp">Mac</div>
+            <button class="tgt" data-go="qr" id="tgt-bl">
+              <span><span class="nm">BL TikTok</span><span class="sub">tiktok.com · หน้า QR login · port 9224</span></span>
+              <span class="badge b-amber" id="bl-badge">รอ login</span>
+            </button>
+            <div class="tgt">
+              <span><span class="nm">Flow (Google)</span><span class="sub">flow.google.com · port 9223</span></span>
+              <span class="badge b-green">login อยู่</span>
+            </div>
+            <button class="tgt" data-go="form">
+              <span><span class="nm">ตัวอย่าง: Google (ฟอร์ม)</span><span class="sub">accounts.google.com · port 9225</span></span>
+              <span class="badge b-amber">รอ login</span>
+            </button>
+            <div class="grp">winbox</div>
+            <div class="tgt off"><span><span class="nm">ยังไม่รองรับ</span><span class="sub">งานถัดไป</span></span><span class="badge b-grey">เร็วๆ นี้</span></div>
+            <div class="grp">Contabo</div>
+            <div class="tgt off"><span><span class="nm">ยังไม่มี Chrome</span><span class="sub">ต้องติดตั้งก่อน</span></span><span class="badge b-grey">—</span></div>
+            <p class="note">แตะรายการสีเหลืองเพื่อ login รายการสีเขียวคือ login อยู่แล้ว ไม่ต้องทำอะไร</p>
+          </div>
+
+          <!-- 3a qr (auto-chosen) -->
+          <div class="view" data-view="qr" hidden>
+            <div class="apphead"><button class="linkish" data-go="pick">← BL TikTok · Mac</button><button class="linkish" data-go="pick">ปิด ✕</button></div>
+            <div class="auto">ระบบเลือก: <b>QR</b> (เจอ QR บนหน้าเว็บ)</div>
+            <div class="thumb" aria-hidden="true"><div class="tb">หน้าจอจริงของเครื่อง (ย่อ)</div><div class="tc"><div class="mini"></div><div>Log in to TikTok<br>Scan with your phone</div></div></div>
+            <div class="qrbox"><canvas id="qr" width="29" height="29" aria-label="QR ตัวอย่าง"></canvas></div>
+            <div class="fresh"><span class="dot"></span><span>QR เปลี่ยนเองทุก ~1 นาที · อัปเดต <span id="ago">2</span> วิที่แล้ว</span></div>
+            <div class="ways">
+              <div class="way"><i>1</i><span><b>มีอีกเครื่อง</b> (iPad หรือมือถืออีกเครื่อง): เปิดแอป TikTok → สแกน → จ่อที่จอนี้</span></div>
+              <div class="way"><i>2</i><span><b>มีเครื่องเดียว:</b> กดค้างที่ QR → บันทึกรูป → เปิดแอป → สแกน → เลือกรูปจากอัลบั้ม</span></div>
+              <div class="way dim"><i>3</i><span>QR นี้ไม่ใช่ลิงก์ ถ้าเป็นลิงก์จะมีปุ่ม <b>“เปิดบนเครื่องนี้”</b> พร้อมชื่อเว็บตัวใหญ่ให้เห็นชัด</span></div>
+            </div>
+            <p class="note">สแกนเสร็จ ระบบจะไปหน้ารอผลเอง ไม่ต้องกดอะไร</p>
+            <button class="btn ghost" data-go="wait">(จำลอง: สแกนเสร็จแล้ว)</button>
+          </div>
+
+          <!-- 3b form (auto-chosen) -->
+          <div class="view" data-view="form" hidden>
+            <div class="apphead"><button class="linkish" data-go="pick">← Google · Mac</button><button class="linkish" data-go="pick">ปิด ✕</button></div>
+            <div class="auto">ระบบเลือก: <b>ฟอร์ม</b> (ไม่เจอ QR บนหน้าเว็บ)</div>
+            <div class="live" aria-label="หน้าจอจริงของเครื่อง แบบมือถือ">
+              <div class="g">Google</div>
+              <div style="font-size:1.05rem" id="f-title">ลงชื่อเข้าใช้</div>
+              <div class="lbl" id="f-lbl">อีเมลหรือโทรศัพท์</div>
+              <div class="fld"><span id="f-val"></span><span class="caret"></span></div>
+              <div class="nx">ถัดไป</div>
+            </div>
+            <p class="note">ภาพบนเป็นหน้าจอจริงของเครื่องนั้น แตะตรงไหนก็ได้ ระบบจะกดตรงจุดเดียวกันบนเครื่อง</p>
+            <form class="inbar" id="f-form" autocomplete="on">
+              <input id="f-in" name="relay-input" placeholder="พิมพ์ตรงนี้ แล้วกดส่ง" aria-label="ข้อความที่จะส่ง" autocomplete="username">
+              <button type="submit">ส่ง</button>
+            </form>
+            <div class="keys"><span>Enter</span><span>Tab</span><span>ย้อนกลับ</span></div>
+            <div class="timer">ปิดเองถ้าไม่ได้ใช้ · 4:58</div>
+          </div>
+
+          <!-- 4 wait (auto) -->
+          <div class="view" data-view="wait" hidden>
+            <div class="done">
+              <div class="spin" aria-hidden="true"></div>
+              <h3>กำลังตรวจผล…</h3>
+              <p class="note" style="font-size:.84rem"><span id="w-sec">0</span> วิ · ตรวจว่า login ติดจริงบนเครื่อง (สูงสุด 45 วิ)</p>
+              <p class="note">ถ้าเว็บขอยืนยันเพิ่ม (รหัส 2FA หรือ captcha) ระบบจะพากลับไปหน้าจอเดิมให้ทำต่อเอง ไม่นับเป็น error</p>
+            </div>
+          </div>
+
+          <!-- 4 result: success -->
+          <div class="view" data-view="done" hidden>
+            <div class="done">
+              <div class="tick"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+              <h3>login สำเร็จ</h3>
+              <p class="note" style="font-size:.84rem"><b>TikTok · BL TikTok · Mac</b><br>ตรวจแล้ว: บัญชีเข้าอยู่จริง</p>
+              <p class="note">ไม่มีรหัสหรือ cookie ถูกเก็บหรือคัดลอกไปไหน<br>กลับไปหน้ารายการเองใน <span id="d-sec">5</span> วิ</p>
+            </div>
+          </div>
+
+          <!-- 4 result: error -->
+          <div class="view" data-view="fail" hidden>
+            <div class="done">
+              <div class="tick bad"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></div>
+              <h3>login ไม่สำเร็จ</h3>
+              <p class="note" style="font-size:.84rem">ยังอยู่หน้า login หลังรอ 45 วิ<br>หน้าเว็บบอกว่า: <b>“รหัสผ่านไม่ถูกต้อง”</b></p>
+              <div class="eid"><span class="eid-l">Error ID</span><span class="eid-v" id="eid">RLY-20260923-1742-7F3A</span></div>
+              <p class="note">ส่ง ID นี้ให้ CTO ได้เลย ผมเปิดดูรายละเอียดได้จาก ID นี้ทันที (ไม่มีรหัสหรือข้อมูลส่วนตัวอยู่ในนั้น)</p>
+            </div>
+            <div class="btnrow"><button class="btn" id="copy-eid">Copy Error ID</button><button class="btn ghost" data-go="qr">ลองใหม่</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="demo" role="group" aria-label="เลือกผลที่จะจำลอง">ตัวอย่างผล:
+        <button type="button" id="demo-ok" aria-pressed="true">สำเร็จ</button>
+        <button type="button" id="demo-err" aria-pressed="false">error</button>
+      </div>
+      <p class="cap">จำลองเท่านั้น QR ในภาพเป็นลายสุ่ม สแกนไม่ได้</p>
+    </div>
+  </div>
+
+  <div class="two">
+    <section class="panel">
+      <h2>สิ่งที่ระบบนี้จะไม่ทำ</h2>
+      <ul>
+        <li>ไม่เก็บ ไม่ log และไม่ส่งต่อรหัส cookie หรือค่าใน QR (ค่าใน QR ถือเป็นความลับ ถอดรหัสบนมือถือคุณเท่านั้น)</li>
+        <li>ไม่ใช่ remote desktop ใช้ได้กับหน้า login เท่านั้น ใช้ได้ทีละ 1 session และปิดเองเมื่อไม่ได้ใช้ 5 นาที</li>
+        <li>ไม่แตะ Chrome ส่วนตัวของคุณ แสดงเฉพาะ Chrome ที่เปิดไว้ให้ automation</li>
+        <li>AI ไม่พิมพ์รหัสผ่านแทนคุณ</li>
+        <li>เปิดจาก internet สาธารณะไม่ได้ ต้องผ่าน Tailscale และ passkey</li>
+      </ul>
+    </section>
+    <section class="panel">
+      <h2>ลำดับเปิดใช้</h2>
+      <ol>
+        <li><b>Mac ก่อน:</b> ใช้ได้ทันทีที่ merge เพราะ Chrome ที่รออยู่ (TikTok BL, Flow) อยู่บน Mac</li>
+        <li><b>Contabo:</b> ต้องติดตั้ง Chrome แบบไม่มีหน้าจอก่อน</li>
+        <li><b>winbox:</b> ต่อผ่าน Contabo ด้วย ssh และต้องไม่รบกวนจอของบอท Cookie Run</li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="panel ask">
+    <h2>ปรับตามที่คุณสั่ง (23 ก.ย.) และค่าที่ผมเลือกให้</h2>
+    <ul>
+      <li><b>ตัดขั้นเลือกวิธีออก</b> ระบบเลือก QR หรือฟอร์มเอง และเปลี่ยนให้เองถ้าหน้าเว็บเปลี่ยนกลางทาง</li>
+      <li><b>รอผลอัตโนมัติ</b> login เสร็จแล้วระบบไปหน้ารอผลเอง ไม่มีปุ่ม “เสร็จแล้ว”</li>
+      <li><b>ถ้า error มี Error ID ให้ copy</b> ผมใช้ ID นั้นเปิดบันทึกบนเครื่องได้ทันที บันทึกเก็บแค่ว่าพังขั้นไหนและหน้าเว็บขึ้นว่าอะไร ไม่เก็บสิ่งที่พิมพ์ ค่าใน QR หรือ cookie</li>
+      <li><b>ค่าที่ผมเลือกให้ (เปลี่ยนได้):</b> เข้าทางแท็บ Login ใน terminal.mooniex.com · หน้า QR แสดงวิธีสแกนครบทั้ง 3 แบบ · รายการ Chrome อัปเดตเองทุก 5 วิ</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function(){
+  var views = document.querySelectorAll('[data-view]');
+  var steps = document.querySelectorAll('.step');
+  var outcome = 'ok', waitTimer = null, doneTimer = null;
+  function clearTimers(){ clearInterval(waitTimer); clearInterval(doneTimer); waitTimer = doneTimer = null; }
+  function show(name){
+    clearTimers();
+    views.forEach(function(v){ v.hidden = v.getAttribute('data-view') !== name; });
+    steps.forEach(function(s){ s.removeAttribute('aria-current'); });
+    var key = (name === 'done' || name === 'fail') ? 'wait' : name;
+    var hit = key === 'pick' ? steps[1] : document.querySelector('.step[data-go="'+key+'"]');
+    if (hit) hit.setAttribute('aria-current','step');
+    if (name === 'qr') drawQR();
+    if (name === 'form') resetForm();
+    if (name === 'wait') startWait();
+    if (name === 'done') startDone();
+  }
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-go]');
+    if (!t) return;
+    e.preventDefault();
+    show(t.getAttribute('data-go'));
+  });
+
+  function startWait(){
+    var n = 0, el = document.getElementById('w-sec'); el.textContent = '0';
+    waitTimer = setInterval(function(){
+      n++; el.textContent = n;
+      if (n >= 3) show(outcome === 'ok' ? 'done' : 'fail');
+    }, 1000);
+  }
+  function startDone(){
+    var b = document.getElementById('bl-badge');
+    b.textContent = 'login อยู่'; b.className = 'badge b-green';
+    var n = 5, el = document.getElementById('d-sec'); el.textContent = n;
+    doneTimer = setInterval(function(){
+      n--; el.textContent = n;
+      if (n <= 0) show('pick');
+    }, 1000);
+  }
+
+  // mock QR: finder patterns + seeded noise (not scannable by design)
+  var seed = 7;
+  function rnd(){ seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+  function drawQR(){
+    var c = document.getElementById('qr'); if (!c) return;
+    var x = c.getContext('2d'); var n = 29;
+    x.fillStyle = '#fff'; x.fillRect(0,0,n,n); x.fillStyle = '#111';
+    for (var i=0;i<n;i++) for (var j=0;j<n;j++) if (rnd() < .47) x.fillRect(i,j,1,1);
+    function finder(a,b){ x.fillStyle='#fff'; x.fillRect(a-1,b-1,9,9); x.fillStyle='#111'; x.fillRect(a,b,7,7); x.fillStyle='#fff'; x.fillRect(a+1,b+1,5,5); x.fillStyle='#111'; x.fillRect(a+2,b+2,3,3); }
+    finder(0,0); finder(n-7,0); finder(0,n-7);
+  }
+  var ago = 2;
+  setInterval(function(){
+    ago = ago >= 58 ? 1 : ago + 1;
+    if (ago === 1) drawQR();
+    var el = document.getElementById('ago'); if (el) el.textContent = ago;
+  }, 1000);
+
+  // form demo: first send = email, second = password (dots), then the automatic wait
+  var stage = 0;
+  function resetForm(){
+    stage = 0;
+    document.getElementById('f-title').textContent = 'ลงชื่อเข้าใช้';
+    document.getElementById('f-lbl').textContent = 'อีเมลหรือโทรศัพท์';
+    document.getElementById('f-val').textContent = '';
+    var inp = document.getElementById('f-in'); inp.value = ''; inp.type = 'text';
+    inp.placeholder = 'พิมพ์ตรงนี้ แล้วกดส่ง';
+    inp.setAttribute('autocomplete','username');
+  }
+  document.getElementById('f-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var inp = document.getElementById('f-in');
+    var v = inp.value || (stage === 0 ? 'you@example.com' : 'password');
+    if (stage === 0){
+      document.getElementById('f-val').textContent = v;
+      setTimeout(function(){
+        document.getElementById('f-title').textContent = 'ยินดีต้อนรับ';
+        document.getElementById('f-lbl').textContent = 'ป้อนรหัสผ่าน';
+        document.getElementById('f-val').textContent = '';
+        inp.value = ''; inp.type = 'password'; inp.setAttribute('autocomplete','current-password');
+        inp.placeholder = 'พิมพ์รหัส (ไม่ถูกเก็บ) แล้วกดส่ง';
+      }, 500);
+      stage = 1;
+    } else {
+      document.getElementById('f-val').textContent = '•'.repeat(Math.min(v.length, 14));
+      setTimeout(function(){ show('wait'); }, 700);
+    }
+  });
+
+  // demo outcome toggle
+  var ok = document.getElementById('demo-ok'), err = document.getElementById('demo-err');
+  function setOutcome(o){ outcome = o; ok.setAttribute('aria-pressed', o === 'ok'); err.setAttribute('aria-pressed', o !== 'ok'); }
+  ok.addEventListener('click', function(){ setOutcome('ok'); });
+  err.addEventListener('click', function(){ setOutcome('err'); });
+
+  // copy Error ID
+  document.getElementById('copy-eid').addEventListener('click', function(){
+    var btn = this, id = document.getElementById('eid').textContent;
+    function done(){ btn.textContent = 'Copy แล้ว'; setTimeout(function(){ btn.textContent = 'Copy Error ID'; }, 1500); }
+    try {
+      navigator.clipboard.writeText(id).then(done, function(){ selectId(); });
+    } catch (e) { selectId(); }
+    function selectId(){ var r = document.createRange(); r.selectNodeContents(document.getElementById('eid')); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+  });
+
+  show('pick');
+})();
+</script>

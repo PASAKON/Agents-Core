@@ -1,0 +1,427 @@
+<title>Relay Password Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#eef1f3; --surface:#ffffff; --sunk:#e4e9ec; --ink:#111a22; --muted:#56646f; --line:#cfd8de;
+  --accent:#0b6e79; --accent-soft:#d6ecee; --amber:#9a5d06; --amber-soft:#f6e7cf;
+  --green:#2c7a4b; --green-soft:#d9eee1; --red:#b3261e; --red-soft:#f7dcd9;
+  --phone-bg:#0f171d; --phone-screen:#f7f9fa; --phone-ink:#111a22; --phone-card:#ffffff; --phone-line:#dde4e8;
+  --display:"Chakra Petch","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0d1419; --surface:#152029; --sunk:#1b2833; --ink:#e3eaef; --muted:#97a6b2; --line:#2a3a47;
+    --accent:#5cc3cf; --accent-soft:#16343a; --amber:#e3a74d; --amber-soft:#3a2b14;
+    --green:#79c897; --green-soft:#17301f; --red:#f08a80; --red-soft:#3d1c1a;
+    --phone-bg:#05090c; --phone-screen:#121b22; --phone-ink:#e3eaef; --phone-card:#1a2530; --phone-line:#2a3a47;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0d1419; --surface:#152029; --sunk:#1b2833; --ink:#e3eaef; --muted:#97a6b2; --line:#2a3a47;
+  --accent:#5cc3cf; --accent-soft:#16343a; --amber:#e3a74d; --amber-soft:#3a2b14;
+  --green:#79c897; --green-soft:#17301f; --red:#f08a80; --red-soft:#3d1c1a;
+  --phone-bg:#05090c; --phone-screen:#121b22; --phone-ink:#e3eaef; --phone-card:#1a2530; --phone-line:#2a3a47;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.65;padding-inline:16px;padding-block:24px 60px;margin:0}
+.wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.25;text-wrap:balance}
+h1{font-size:clamp(1.6rem,4vw,2.2rem)}
+h2{font-size:1.22rem}
+h3{font-size:1rem}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.lede{max-width:66ch}
+.ic{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}
+.ic.sm{width:15px;height:15px;vertical-align:-2px}
+.ic.lg{width:30px;height:30px}
+.ic.xl{width:56px;height:56px;stroke-width:1.6}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px;align-items:start}
+@media (max-width:840px){.stage{grid-template-columns:1fr}.phone-col{order:-1}}
+
+/* flows */
+.flows{display:flex;flex-direction:column;gap:18px}
+.flow h3{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.step{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.step:hover{border-color:var(--accent)}
+.step:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.step[aria-current="step"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.step .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;border:2px solid var(--accent);color:var(--accent);font-size:.8rem}
+.step b{display:block;font-weight:600;font-size:.94rem}
+.step span.d{color:var(--muted);font-size:.86rem}
+.step.you .n{border-color:var(--amber);color:var(--amber)}
+
+/* phone */
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:10px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+.phone{width:340px;max-width:100%;background:var(--phone-bg);border-radius:38px;padding:11px;box-shadow:0 18px 40px rgba(0,0,0,.18)}
+.screen{background:var(--phone-screen);color:var(--phone-ink);border-radius:28px;height:690px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.sbar{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 4px;font-family:var(--mono);font-size:.7rem;opacity:.8}
+.url{margin:0 12px 6px;padding:5px 10px;border-radius:9px;background:var(--phone-card);border:1px solid var(--phone-line);font-family:var(--mono);font-size:.7rem;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:5px}
+.view{flex:1;overflow-y:auto;padding:8px 14px 16px;display:flex;flex-direction:column;gap:10px;position:relative}
+.view[hidden]{display:none!important}
+.apphead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.apphead .t{font-family:var(--display);font-weight:700;font-size:1rem}
+.iconbtn{background:none;border:0;padding:4px;color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;gap:4px;font:inherit;font-size:.8rem}
+.grp{font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--phone-card);border:1px solid var(--phone-line);border-radius:12px;padding:10px 12px;text-align:left;font:inherit;color:inherit;width:100%}
+button.row{cursor:pointer}
+button.row:hover{border-color:var(--accent)}
+.row .l{display:flex;align-items:center;gap:10px;min-width:0}
+.row .nm{font-weight:600;font-size:.88rem;display:block}
+.row .sub{font-family:var(--mono);font-size:.66rem;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
+.badge{font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.b-amber{background:var(--amber-soft);color:var(--amber)}
+.b-green{background:var(--green-soft);color:var(--green)}
+.note{font-size:.73rem;color:var(--muted);line-height:1.5}
+.auto{font-size:.72rem;color:var(--muted);background:var(--phone-card);border:1px dashed var(--phone-line);border-radius:8px;padding:5px 9px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:600;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 10px;align-self:flex-start}
+.banner{display:flex;gap:8px;align-items:flex-start;font-size:.76rem;background:var(--amber-soft);color:var(--amber);border-radius:10px;padding:8px 10px}
+/* live remote page */
+.live{background:#fff;color:#1f1f1f;border-radius:12px;border:1px solid var(--phone-line);padding:16px 14px;display:flex;flex-direction:column;gap:9px;min-height:210px}
+.live .g{font-family:var(--display);font-size:1rem}
+.live .h{font-size:1rem}
+.live .lbl{font-size:.7rem;color:#5f6368}
+.live .fld{border:2px solid #1a73e8;border-radius:6px;padding:8px 10px;font-size:.82rem;min-height:38px;display:flex;align-items:center;gap:1px}
+.live .caret{width:1.5px;height:15px;background:#1a73e8}
+@media (prefers-reduced-motion:no-preference){.live .caret{animation:blink 1s steps(1) infinite}}
+@keyframes blink{50%{opacity:0}}
+.live .nx{align-self:flex-end;background:#1a73e8;color:#fff;border-radius:18px;padding:5px 14px;font-size:.74rem}
+.dots{display:inline-flex;gap:4px;align-items:center}
+.dots i{width:7px;height:7px;border-radius:50%;background:currentColor;display:block}
+.inbar{display:grid;grid-template-columns:1fr auto;gap:6px}
+.inbar input{font:inherit;font-size:.84rem;padding:9px 11px;border-radius:10px;border:1px solid var(--phone-line);background:var(--phone-card);color:var(--phone-ink);min-width:0}
+.inbar button,.btn{border:0;border-radius:10px;padding:9px 13px;background:var(--accent);color:var(--phone-screen);font:inherit;font-weight:600;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.block{width:100%;padding:11px}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--phone-line)}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.keys span{display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--phone-line);border-radius:8px;padding:6px;font-size:.72rem;background:var(--phone-card)}
+/* bottom sheet */
+.sheet{background:var(--phone-card);border:1px solid var(--phone-line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 -6px 20px rgba(0,0,0,.08)}
+.kv{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:center;font-size:.8rem}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:0 8px}
+.okc{width:62px;height:62px;border-radius:50%;background:var(--green-soft);color:var(--green);display:grid;place-items:center}
+.spin{width:52px;height:52px;border-radius:50%;border:5px solid var(--phone-line);border-top-color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.spin{animation:rot 1s linear infinite}}
+@keyframes rot{to{transform:rotate(360deg)}}
+/* face id overlay */
+.faceid{position:absolute;inset:0;background:rgba(10,16,20,.55);display:grid;place-items:center;z-index:5}
+.faceid[hidden]{display:none}
+.fbox{width:160px;height:160px;border-radius:32px;background:rgba(245,247,248,.96);color:#111a22;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-size:.82rem;font-weight:600}
+.checks{display:flex;flex-direction:column;gap:6px;font-size:.8rem}
+.checks div{display:flex;align-items:center;gap:8px}
+.checks .done{color:var(--green)}
+.checks .todo{color:var(--muted)}
+.cap{font-size:.78rem;color:var(--muted);text-align:center;max-width:340px}
+
+/* doc panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.panel ul,.panel ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:720px){.lanes{grid-template-columns:1fr}}
+.lane{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--ground)}
+.lane h3{display:flex;align-items:center;gap:8px;font-size:.95rem}
+.lane p{font-size:.86rem;color:var(--muted)}
+.lane .has{font-size:.84rem;color:var(--ink)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.9rem}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--sunk)}
+tr:last-child td{border-bottom:none}
+.rec td{background:var(--accent-soft)}
+.ask{border:2px solid var(--accent)}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14 9l2 2"/></symbol>
+  <symbol id="i-face" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></symbol>
+  <symbol id="i-loader" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-enter" viewBox="0 0 24 24"><path d="M9 10 4 15l5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></symbol>
+  <symbol id="i-tab" viewBox="0 0 24 24"><path d="M3 12h14M13 8l4 4-4 4M21 5v14"/></symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L12 20H7z"/><path d="M5 11l8 8M22 21H7"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M17 21h4v-4M14 21h.01"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <span class="eyebrow">Mockup · ออกแบบก่อนสร้าง · 23 ก.ย. 2026</span>
+    <h1>จำรหัสผ่านใน Login Relay — กรอกให้เองหลัง Face ID</h1>
+    <p class="lede">login ครั้งแรกทำเหมือนเดิม พอสำเร็จระบบจะถามว่าจะจำบัญชีนี้ไหม ครั้งต่อไปแค่เลือกบัญชีแล้วยืนยันด้วย Face ID ระบบจะกรอกอีเมลกับรหัสผ่านให้ทีละขั้น ส่วนรหัส 2FA หรือรหัสยืนยันทางอีเมลคุณยังทำเองเหมือนเดิม กดลองได้ทั้งบนโทรศัพท์และที่ขั้นตอนทางซ้าย</p>
+  </header>
+
+  <div class="stage">
+    <div class="flows">
+      <div class="flow">
+        <h3><svg class="ic"><use href="#i-user"/></svg>ครั้งแรก — login ปกติ แล้วระบบถามว่าจะจำไหม</h3>
+        <ol class="steps">
+          <li><button class="step" data-go="list"><span class="n">1</span><span><b>เลือก Chrome ที่รอ login</b><span class="d">เช่น Google บน Mac</span></span></button></li>
+          <li><button class="step you" data-go="email"><span class="n">2</span><span><b>กรอกอีเมล</b><span class="d">ระบบรู้ว่าช่องบนเว็บตอนนี้เป็นช่องอีเมล และบอกคุณ ถ้าพิมพ์ผิดก็แก้ในช่องของคุณก่อนกดส่ง หรือกด “ล้างช่อง”</span></span></button></li>
+          <li><button class="step you" data-go="pass"><span class="n">3</span><span><b>กรอกรหัสผ่าน</b><span class="d">ช่องจะเปลี่ยนเป็นแบบซ่อนตัวอักษรให้เอง</span></span></button></li>
+          <li><button class="step you" data-go="twofa"><span class="n">4</span><span><b>2FA / รหัสยืนยัน — คุณทำเอง</b><span class="d">ระบบไม่แตะขั้นนี้</span></span></button></li>
+          <li><button class="step" data-go="save"><span class="n">5</span><span><b>สำเร็จ แล้วระบบถาม “จำบัญชีนี้ไว้ไหม”</b><span class="d">กดบันทึกแล้วยืนยันด้วย Face ID ครั้งเดียว</span></span></button></li>
+        </ol>
+      </div>
+      <div class="flow">
+        <h3><svg class="ic"><use href="#i-key"/></svg>ครั้งต่อไป — เลือกบัญชี แล้ว Face ID</h3>
+        <ol class="steps">
+          <li><button class="step" data-go="pick"><span class="n">1</span><span><b>เปิด Chrome ที่รอ login</b><span class="d">ถ้ามีบัญชีที่จำไว้สำหรับเว็บนี้ รายชื่อจะขึ้นมาเอง</span></span></button></li>
+          <li><button class="step you" data-go="pick"><span class="n">2</span><span><b>แตะบัญชีที่ต้องการ</b><span class="d">หรือกด “ใช้บัญชีอื่น” เพื่อกรอกเองแล้วให้จำเพิ่ม</span></span></button></li>
+          <li><button class="step you" data-go="fill"><span class="n">3</span><span><b>Face ID แล้วระบบกรอกให้</b><span class="d">กรอกอีเมล กดถัดไป กรอกรหัส กดถัดไป ทีละขั้นให้เห็นบนจอ</span></span></button></li>
+          <li><button class="step you" data-go="twofa"><span class="n">4</span><span><b>2FA คุณทำเอง แล้วรอผล</b><span class="d">สำเร็จหรือ error พร้อม Error ID เหมือนเดิม</span></span></button></li>
+        </ol>
+      </div>
+      <div class="flow">
+        <h3><svg class="ic"><use href="#i-lock"/></svg>จัดการบัญชีที่จำไว้</h3>
+        <ol class="steps">
+          <li><button class="step" data-go="manage"><span class="n">1</span><span><b>ดูและลบบัญชี</b><span class="d">แยกตามเว็บ แสดงอีเมลแบบบังบางส่วน</span></span></button></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="phone" aria-label="จำลองหน้าจอมือถือ">
+        <div class="screen">
+          <div class="sbar"><span>9:41</span><span style="display:flex;align-items:center;gap:4px"><svg class="ic sm"><use href="#i-wifi"/></svg>Tailscale</span></div>
+          <div class="url"><svg class="ic sm"><use href="#i-lock"/></svg>terminal.mooniex.com/relay</div>
+
+          <!-- list -->
+          <div class="view" data-view="list">
+            <div class="apphead"><span class="t">Login</span><button class="iconbtn" data-go="manage"><svg class="ic sm"><use href="#i-key"/></svg>บัญชีที่จำไว้ 3</button></div>
+            <div class="grp">Mac</div>
+            <button class="row" data-go="email" id="row-google"><span class="l"><span class="av"><svg class="ic"><use href="#i-globe"/></svg></span><span><span class="nm">Google</span><span class="sub">accounts.google.com · port 9225</span></span></span><span class="badge b-amber" id="g-badge">รอ login</span></button>
+            <div class="row"><span class="l"><span class="av"><svg class="ic"><use href="#i-qr"/></svg></span><span><span class="nm">TikTok BL</span><span class="sub">tiktok.com · port 9224</span></span></span><span class="badge b-green">login อยู่</span></div>
+            <p class="note">ครั้งแรกกดที่ Google เพื่อดู flow “ครั้งแรก” ส่วน flow “ครั้งต่อไป” ให้กดขั้นตอนทางซ้าย</p>
+          </div>
+
+          <!-- first: email -->
+          <div class="view" data-view="email" hidden>
+            <div class="apphead"><button class="iconbtn" data-go="list"><svg class="ic sm"><use href="#i-back"/></svg>Google · Mac</button><button class="iconbtn" data-go="list" aria-label="ปิด"><svg class="ic"><use href="#i-x"/></svg></button></div>
+            <div class="auto">ระบบเลือก: ฟอร์ม (ไม่เจอ QR บนหน้าเว็บ)</div>
+            <div class="live"><div class="g">Google</div><div class="h">ลงชื่อเข้าใช้</div><div class="lbl">อีเมลหรือโทรศัพท์</div><div class="fld"><span id="e-val"></span><span class="caret"></span></div><div class="nx">ถัดไป</div></div>
+            <span class="chip"><svg class="ic sm"><use href="#i-user"/></svg>ช่องบนเว็บตอนนี้: อีเมล</span>
+            <form class="inbar" data-form="email"><input autocomplete="username" placeholder="พิมพ์อีเมล แล้วกดส่ง" aria-label="อีเมล" id="e-in"><button type="submit">ส่ง</button></form>
+            <div class="keys"><span><svg class="ic sm"><use href="#i-eraser"/></svg>ล้างช่อง</span><span><svg class="ic sm"><use href="#i-tab"/></svg>Tab</span><span><svg class="ic sm"><use href="#i-enter"/></svg>Enter</span></div>
+          </div>
+
+          <!-- first: password -->
+          <div class="view" data-view="pass" hidden>
+            <div class="apphead"><button class="iconbtn" data-go="list"><svg class="ic sm"><use href="#i-back"/></svg>Google · Mac</button><button class="iconbtn" data-go="list" aria-label="ปิด"><svg class="ic"><use href="#i-x"/></svg></button></div>
+            <div class="live"><div class="g">Google</div><div class="h">ยินดีต้อนรับ</div><div class="lbl">ป้อนรหัสผ่าน</div><div class="fld"><span id="p-val" class="dots"></span><span class="caret"></span></div><div class="nx">ถัดไป</div></div>
+            <span class="chip"><svg class="ic sm"><use href="#i-lock"/></svg>ช่องบนเว็บตอนนี้: รหัสผ่าน (ซ่อน)</span>
+            <form class="inbar" data-form="pass"><input type="password" autocomplete="current-password" placeholder="พิมพ์รหัสผ่าน แล้วกดส่ง" aria-label="รหัสผ่าน" id="p-in"><button type="submit">ส่ง</button></form>
+            <div class="keys"><span><svg class="ic sm"><use href="#i-eraser"/></svg>ล้างช่อง</span><span><svg class="ic sm"><use href="#i-tab"/></svg>Tab</span><span><svg class="ic sm"><use href="#i-enter"/></svg>Enter</span></div>
+            <p class="note">รหัสอยู่บนมือถือคุณจนกว่าจะกดส่ง และระบบจะไม่เก็บไว้ จนกว่าคุณจะกด “บันทึก” ตอนท้าย</p>
+          </div>
+
+          <!-- 2fa -->
+          <div class="view" data-view="twofa" hidden>
+            <div class="apphead"><button class="iconbtn" data-go="list"><svg class="ic sm"><use href="#i-back"/></svg>Google · Mac</button><button class="iconbtn" data-go="list" aria-label="ปิด"><svg class="ic"><use href="#i-x"/></svg></button></div>
+            <div class="banner"><svg class="ic sm"><use href="#i-shield"/></svg><span>เว็บขอยืนยันเพิ่ม ทำต่อเองได้เลย ระบบไม่กรอกขั้นนี้</span></div>
+            <div class="live"><div class="g">Google</div><div class="h">การยืนยันแบบ 2 ขั้นตอน</div><div class="lbl">ป้อนรหัส 6 หลักจากแอปยืนยันตัวตน</div><div class="fld"><span id="o-val"></span><span class="caret"></span></div><div class="nx">ถัดไป</div></div>
+            <form class="inbar" data-form="otp"><input inputmode="numeric" autocomplete="one-time-code" placeholder="รหัส 6 หลัก" aria-label="รหัสยืนยัน" id="o-in"><button type="submit">ส่ง</button></form>
+          </div>
+
+          <!-- wait -->
+          <div class="view" data-view="wait" hidden>
+            <div class="center"><div class="spin" aria-hidden="true"></div><h3>กำลังตรวจผล</h3><p class="note">ตรวจว่า login ติดจริงบนเครื่อง</p></div>
+          </div>
+
+          <!-- save offer -->
+          <div class="view" data-view="save" hidden>
+            <div class="center" style="flex:0;padding-top:18px"><div class="okc"><svg class="ic lg"><use href="#i-check"/></svg></div><h3>login สำเร็จ</h3><p class="note">Google · Mac</p></div>
+            <div style="flex:1"></div>
+            <div class="sheet">
+              <h3>จำบัญชีนี้ไว้ใช้ครั้งหน้าไหม</h3>
+              <div class="kv"><svg class="ic sm"><use href="#i-globe"/></svg><span>google.com</span></div>
+              <div class="kv"><svg class="ic sm"><use href="#i-user"/></svg><span id="s-email">pasakon.gob@gmail.com</span></div>
+              <div class="kv"><svg class="ic sm"><use href="#i-lock"/></svg><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+              <button class="btn block" data-face="save"><svg class="ic"><use href="#i-face"/></svg>บันทึก · ยืนยันด้วย Face ID</button>
+              <button class="btn block ghost" data-go="list">ไม่ต้อง</button>
+              <p class="note">ใช้ได้กับทุกเครื่อง (Mac, winbox, Contabo) เมื่อเปิดเว็บ google.com</p>
+            </div>
+          </div>
+
+          <!-- saved -->
+          <div class="view" data-view="saved" hidden>
+            <div class="center"><div class="okc"><svg class="ic lg"><use href="#i-check"/></svg></div><h3>บันทึกแล้ว</h3><p class="note">google.com · pasakon.g***@gmail.com<br>ครั้งหน้าแตะบัญชีนี้แล้วยืนยันด้วย Face ID ระบบจะกรอกให้</p></div>
+            <button class="btn block" data-go="list">กลับหน้ารายการ</button>
+          </div>
+
+          <!-- next time: pick -->
+          <div class="view" data-view="pick" hidden>
+            <div class="apphead"><button class="iconbtn" data-go="list"><svg class="ic sm"><use href="#i-back"/></svg>Google · Mac</button><button class="iconbtn" data-go="list" aria-label="ปิด"><svg class="ic"><use href="#i-x"/></svg></button></div>
+            <div class="live" style="min-height:150px"><div class="g">Google</div><div class="h">ลงชื่อเข้าใช้</div><div class="lbl">อีเมลหรือโทรศัพท์</div><div class="fld"><span class="caret"></span></div></div>
+            <div class="sheet">
+              <h3>บัญชีที่จำไว้สำหรับ google.com</h3>
+              <button class="row" data-face="fill"><span class="l"><span class="av"><svg class="ic"><use href="#i-user"/></svg></span><span><span class="nm">pasakon.g***@gmail.com</span><span class="sub">ใช้ล่าสุด วันนี้ · Mac</span></span></span><svg class="ic"><use href="#i-face"/></svg></button>
+              <button class="row" data-face="fill"><span class="l"><span class="av"><svg class="ic"><use href="#i-user"/></svg></span><span><span class="nm">gob***@mooniex.com</span><span class="sub">ใช้ล่าสุด 3 วันก่อน · winbox</span></span></span><svg class="ic"><use href="#i-face"/></svg></button>
+              <button class="row" data-go="email"><span class="l"><span class="av"><svg class="ic"><use href="#i-plus"/></svg></span><span><span class="nm">ใช้บัญชีอื่น</span><span class="sub">กรอกเอง แล้วเลือกจำเพิ่มได้</span></span></span></button>
+            </div>
+          </div>
+
+          <!-- next time: filling -->
+          <div class="view" data-view="fill" hidden>
+            <div class="apphead"><span class="t">กำลังกรอกให้</span><button class="iconbtn" data-go="list">หยุด</button></div>
+            <div class="live"><div class="g">Google</div><div class="h" id="f-h">ลงชื่อเข้าใช้</div><div class="lbl" id="f-l">อีเมลหรือโทรศัพท์</div><div class="fld"><span id="f-v"></span><span class="caret"></span></div><div class="nx">ถัดไป</div></div>
+            <div class="checks" id="f-checks">
+              <div data-k="0" class="todo"><svg class="ic sm"><use href="#i-loader"/></svg>กรอกอีเมล</div>
+              <div data-k="1" class="todo"><svg class="ic sm"><use href="#i-loader"/></svg>กด ถัดไป</div>
+              <div data-k="2" class="todo"><svg class="ic sm"><use href="#i-loader"/></svg>กรอกรหัสผ่าน</div>
+              <div data-k="3" class="todo"><svg class="ic sm"><use href="#i-loader"/></svg>กด ถัดไป</div>
+            </div>
+            <p class="note">ระบบหยุดเองเมื่อเว็บขอ 2FA หรือหน้าเว็บไม่เป็นอย่างที่คาด แล้วส่งให้คุณทำต่อ</p>
+          </div>
+
+          <!-- manage -->
+          <div class="view" data-view="manage" hidden>
+            <div class="apphead"><button class="iconbtn" data-go="list"><svg class="ic sm"><use href="#i-back"/></svg>กลับ</button><span class="t">บัญชีที่จำไว้</span></div>
+            <div class="grp">google.com · 2</div>
+            <div class="row mg"><span class="l"><span class="av"><svg class="ic"><use href="#i-user"/></svg></span><span><span class="nm">pasakon.g***@gmail.com</span><span class="sub">บันทึก 23 ก.ย. · ใช้ 4 ครั้ง</span></span></span><button class="iconbtn del" aria-label="ลบบัญชีนี้"><svg class="ic"><use href="#i-trash"/></svg></button></div>
+            <div class="row mg"><span class="l"><span class="av"><svg class="ic"><use href="#i-user"/></svg></span><span><span class="nm">gob***@mooniex.com</span><span class="sub">บันทึก 20 ก.ย. · ใช้ 1 ครั้ง</span></span></span><button class="iconbtn del" aria-label="ลบบัญชีนี้"><svg class="ic"><use href="#i-trash"/></svg></button></div>
+            <div class="grp">x.com · 1</div>
+            <div class="row mg"><span class="l"><span class="av"><svg class="ic"><use href="#i-user"/></svg></span><span><span class="nm">PASAKON</span><span class="sub">บันทึก 21 ก.ย.</span></span></span><button class="iconbtn del" aria-label="ลบบัญชีนี้"><svg class="ic"><use href="#i-trash"/></svg></button></div>
+            <p class="note">TikTok login ด้วย QR ไม่ต้องจำรหัส</p>
+            <p class="note">รายการนี้แสดงอีเมลแบบบังบางส่วนเท่านั้น รหัสผ่านถอดได้บนมือถือคุณหลัง Face ID เท่านั้น ลบแล้วหายจาก server ทันที</p>
+          </div>
+
+          <!-- face id overlay -->
+          <div class="faceid" id="faceid" hidden><div class="fbox"><svg class="ic xl"><use href="#i-face"/></svg><span>Face ID</span></div></div>
+        </div>
+      </div>
+      <p class="cap">จำลองเท่านั้น ไม่มีการเก็บอะไร ตัวอย่างอีเมลเป็นข้อมูลสมมติ</p>
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>รหัสเก็บที่ไหน และใครอ่านได้</h2>
+    <div class="lanes">
+      <div class="lane"><h3><svg class="ic"><use href="#i-phone"/></svg>iPhone ของคุณ</h3><p>ถือกุญแจ passkey ที่ใช้ login Console อยู่แล้ว ทุกครั้งที่ Face ID ผ่าน passkey จะสร้างกุญแจลับออกมา แล้วมือถือใช้กุญแจนั้นเข้ารหัสหรือถอดรหัสบัญชี</p><p class="has"><b>อ่านรหัสได้:</b> ใช่ เฉพาะหลัง Face ID</p></div>
+      <div class="lane"><h3><svg class="ic"><use href="#i-server"/></svg>Relay (Contabo)</h3><p>เก็บเฉพาะก้อนข้อมูลที่ล็อกแล้ว ชื่อเว็บ และอีเมลแบบบังบางส่วนไว้โชว์ในรายการ ไม่มีกุญแจ ไม่มีรหัสจริง</p><p class="has"><b>อ่านรหัสได้:</b> ไม่ได้ ทั้งตัว server, AI และใครที่เข้าถึงเครื่อง</p></div>
+      <div class="lane"><h3><svg class="ic"><use href="#i-monitor"/></svg>เครื่องปลายทาง</h3><p>ได้รับรหัสเฉพาะตอนกรอกลงหน้า login ผ่านท่อเดียวกับที่คุณพิมพ์อยู่ตอนนี้ ไม่มีการบันทึก log</p><p class="has"><b>อ่านรหัสได้:</b> แค่ตอนกรอก เหมือนตอนคุณพิมพ์เอง</p></div>
+    </div>
+    <ul>
+      <li>ทำงานแบบเดียวกับตัวจัดการรหัสผ่านที่ใช้ passkey ปลดล็อก (เช่น 1Password หรือ Bitwarden) ต่างกันตรงที่อยู่ใน relay ของเราเอง</li>
+      <li>ใช้ได้กับทุกเครื่อง เพราะบัญชีผูกกับชื่อเว็บ (google.com) ไม่ได้ผูกกับเครื่อง</li>
+      <li>ความเสี่ยงที่เหลือ: คนที่ได้มือถือคุณพร้อมผ่าน Face ID ได้ ซึ่งเท่ากับ Apple Passwords</li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h2>ทางเลือกที่ดูมาแล้ว</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>ทาง</th><th>ได้</th><th>เสีย</th></tr></thead>
+      <tbody>
+        <tr class="rec"><td><b>A. คลังรหัสใน relay + Face ID</b> (แนะนำ)</td><td>ตรงกับที่คุณขอทุกข้อ: เลือกบัญชีต่อเว็บ กรอก 2 ขั้นให้เอง ใช้ได้ทุกเครื่อง server อ่านรหัสไม่ได้</td><td>ต้องสร้างใหม่ (งาน DEV 1–2 ชิ้น) และต้องพิสูจน์ก่อนว่า iPhone รองรับ</td></tr>
+        <tr><td>B. Apple Passwords ใน iPhone</td><td>มีอยู่แล้ววันนี้: ก๊อปรหัสจาก Passwords (Face ID) มาวางในช่องของ relay</td><td>ต้องก๊อปวางเองทีละช่อง และ iPhone มองว่าทุกเว็บเป็น terminal.mooniex.com เลยเสนอให้อัตโนมัติไม่ตรงเว็บ</td></tr>
+        <tr><td>C. ให้ Chrome แต่ละเครื่องจำเอง</td><td>ไม่ต้องสร้างอะไร</td><td>ต้องจำแยกทุกเครื่อง และป๊อปอัป “บันทึกรหัส” ของ Chrome ไม่โผล่ในภาพที่ส่งมามือถือ</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="panel">
+    <h2>ต้องพิสูจน์ก่อนสร้างจริง</h2>
+    <ul>
+      <li><b>iPhone ต้องรองรับการสร้างกุญแจจาก passkey</b> (WebAuthn PRF ซึ่ง iOS 18 ขึ้นไปควรรองรับ) ขั้นแรกจะทำหน้าทดสอบเล็กๆ ให้คุณกดครั้งเดียวบนมือถือจริง ถ้าไม่รองรับ ผมจะกลับมาถามคุณ ไม่แอบเปลี่ยนไปใช้วิธีที่ปลอดภัยน้อยกว่า</li>
+      <li>Google อาจถามยืนยันเพิ่มเมื่อ login จากเครื่องที่ไม่คุ้น ซึ่งเป็นเรื่องปกติ ขั้นนั้นคุณทำเอง</li>
+      <li>งานนี้เริ่มได้หลังงานแก้ relay ที่รันอยู่ (task-2a8a9200) merge เพราะแก้ไฟล์ชุดเดียวกัน</li>
+    </ul>
+  </section>
+
+  <section class="panel ask">
+    <h2>ขอคำตอบ 2 ข้อ</h2>
+    <ol>
+      <li><b>ต้อง Face ID ทุกครั้งที่กรอก</b> (แนะนำ เหมือน Apple Passwords) <b>หรือครั้งเดียวต่อ 5 นาที</b> (สะดวกกว่าถ้าจะ login หลายเครื่องติดกัน)</li>
+      <li><b>บัญชีที่จำไว้ใช้ได้ทุกเครื่องไหม</b> (แนะนำ) หรือแยกเก็บต่อเครื่อง</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+(function(){
+  var views = document.querySelectorAll('[data-view]');
+  var steps = document.querySelectorAll('.step');
+  var timers = [];
+  function clear(){ timers.forEach(clearTimeout); timers = []; }
+  function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
+  function show(name){
+    clear();
+    document.getElementById('faceid').hidden = true;
+    views.forEach(function(v){ v.hidden = v.getAttribute('data-view') !== name; });
+    var first = true;
+    steps.forEach(function(s){
+      if (s.getAttribute('data-go') === name && first){ s.setAttribute('aria-current','step'); first = false; }
+      else s.removeAttribute('aria-current');
+    });
+    if (name === 'email'){ document.getElementById('e-val').textContent = ''; document.getElementById('e-in').value = ''; }
+    if (name === 'pass'){ document.getElementById('p-val').innerHTML = ''; document.getElementById('p-in').value = ''; }
+    if (name === 'twofa'){ document.getElementById('o-val').textContent = ''; document.getElementById('o-in').value = ''; }
+    if (name === 'saved'){ var b = document.getElementById('g-badge'); b.textContent = 'login อยู่'; b.className = 'badge b-green'; }
+    if (name === 'fill') runFill();
+  }
+  function dots(n){ var s=''; for (var i=0;i<n;i++) s += '<i></i>'; return s; }
+  document.addEventListener('click', function(e){
+    var f = e.target.closest('[data-face]');
+    if (f){ e.preventDefault(); face(f.getAttribute('data-face') === 'save' ? 'saved' : 'fill'); return; }
+    var d = e.target.closest('.del');
+    if (d){ e.preventDefault(); var r = d.closest('.mg'); if (r) r.remove(); return; }
+    var t = e.target.closest('[data-go]');
+    if (t){ e.preventDefault(); show(t.getAttribute('data-go')); }
+  });
+  function face(next){
+    var ov = document.getElementById('faceid'); ov.hidden = false;
+    later(function(){ ov.hidden = true; show(next); }, 1100);
+  }
+  document.querySelectorAll('form[data-form]').forEach(function(fm){
+    fm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var k = fm.getAttribute('data-form');
+      if (k === 'email'){
+        var v = document.getElementById('e-in').value || 'pasakon.gob@gmail.com';
+        document.getElementById('e-val').textContent = v;
+        document.getElementById('s-email').textContent = v;
+        later(function(){ show('pass'); }, 600);
+      } else if (k === 'pass'){
+        var n = Math.max(6, Math.min(12, document.getElementById('p-in').value.length || 8));
+        document.getElementById('p-val').innerHTML = dots(n);
+        later(function(){ show('twofa'); }, 600);
+      } else {
+        document.getElementById('o-val').textContent = document.getElementById('o-in').value || '482913';
+        later(function(){ show('wait'); later(function(){ show('save'); }, 1600); }, 500);
+      }
+    });
+  });
+  function runFill(){
+    var rows = document.querySelectorAll('#f-checks [data-k]');
+    rows.forEach(function(r){ r.className = 'todo'; r.querySelector('use').setAttribute('href','#i-loader'); });
+    var v = document.getElementById('f-v'), h = document.getElementById('f-h'), l = document.getElementById('f-l');
+    v.innerHTML = ''; h.textContent = 'ลงชื่อเข้าใช้'; l.textContent = 'อีเมลหรือโทรศัพท์';
+    function done(i){ rows[i].className = 'done'; rows[i].querySelector('use').setAttribute('href','#i-check'); }
+    later(function(){ v.textContent = 'pasakon.gob@gmail.com'; done(0); }, 700);
+    later(function(){ done(1); h.textContent = 'ยินดีต้อนรับ'; l.textContent = 'ป้อนรหัสผ่าน'; v.innerHTML = ''; }, 1400);
+    later(function(){ v.innerHTML = '<span class="dots">' + dots(10) + '</span>'; done(2); }, 2100);
+    later(function(){ done(3); }, 2700);
+    later(function(){ show('twofa'); }, 3400);
+  }
+  show('list');
+})();
+</script>

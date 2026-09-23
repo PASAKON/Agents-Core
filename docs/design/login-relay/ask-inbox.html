@@ -1,0 +1,344 @@
+<title>Ask Inbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#eef1f3; --surface:#ffffff; --sunk:#e4e9ec; --ink:#111a22; --muted:#56646f; --line:#cfd8de;
+  --accent:#0b6e79; --accent-soft:#d6ecee; --amber:#9a5d06; --amber-soft:#f6e7cf;
+  --red:#b3261e; --red-soft:#f7dcd9; --green:#2c7a4b; --green-soft:#d9eee1;
+  --display:"Chakra Petch","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0d1419; --surface:#152029; --sunk:#1b2833; --ink:#e3eaef; --muted:#97a6b2; --line:#2a3a47;
+    --accent:#5cc3cf; --accent-soft:#16343a; --amber:#e3a74d; --amber-soft:#3a2b14;
+    --red:#f08a80; --red-soft:#3d1c1a; --green:#79c897; --green-soft:#17301f;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0d1419; --surface:#152029; --sunk:#1b2833; --ink:#e3eaef; --muted:#97a6b2; --line:#2a3a47;
+  --accent:#5cc3cf; --accent-soft:#16343a; --amber:#e3a74d; --amber-soft:#3a2b14;
+  --red:#f08a80; --red-soft:#3d1c1a; --green:#79c897; --green-soft:#17301f;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.7;padding-inline:16px;padding-block:28px 64px}
+.wrap{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--display);line-height:1.25;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.7rem,4.5vw,2.35rem);font-weight:700}
+h2{font-size:1.4rem;font-weight:600;display:flex;align-items:center;gap:10px}
+h3{font-size:1.08rem;font-weight:600}
+p{margin:0}
+section{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:1.08rem;color:var(--ink);max-width:66ch}
+.muted{color:var(--muted)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+code{background:var(--sunk);padding:1px 6px;border-radius:4px;overflow-wrap:anywhere}
+header{display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line);padding-bottom:26px}
+.status{align-self:flex-start;font-family:var(--mono);font-size:.78rem;background:var(--amber-soft);color:var(--amber);padding:4px 10px;border-radius:999px}
+
+/* answer box */
+.answer{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px 22px 18px;display:flex;flex-direction:column;gap:12px}
+.answer ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+.answer li::marker{font-family:var(--display);font-weight:700;color:var(--accent)}
+
+/* kind badge */
+.kind{font-family:var(--display);font-weight:700;font-size:.95rem;width:30px;height:30px;border-radius:7px;display:inline-grid;place-items:center;flex:none}
+.k-a{background:var(--accent-soft);color:var(--accent)}
+.k-b{background:var(--green-soft);color:var(--green)}
+.k-c{background:var(--amber-soft);color:var(--amber)}
+.kinds{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.kinds > div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.kinds .head{display:flex;align-items:center;gap:10px}
+.kinds .fix{font-size:.92rem;color:var(--muted)}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-size:.74rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--sunk)}
+tr:last-child td{border-bottom:none}
+td.when{white-space:nowrap;font-family:var(--mono);font-size:.84rem;color:var(--muted)}
+.pill{display:inline-block;font-family:var(--mono);font-size:.74rem;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.p-red{background:var(--red-soft);color:var(--red)}
+.p-green{background:var(--green-soft);color:var(--green)}
+.p-amber{background:var(--amber-soft);color:var(--amber)}
+.p-teal{background:var(--accent-soft);color:var(--accent)}
+
+.callout{border-left:3px solid var(--red);background:var(--red-soft);padding:12px 16px;border-radius:0 8px 8px 0}
+.callout.teal{border-color:var(--accent);background:var(--accent-soft)}
+
+/* flow + phone */
+.flowgrid{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
+@media (max-width:720px){.flowgrid{grid-template-columns:1fr}}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.steps li{display:grid;grid-template-columns:34px 1fr;gap:12px;padding-bottom:16px;position:relative}
+.steps li:not(:last-child)::before{content:"";position:absolute;left:16px;top:32px;bottom:2px;width:2px;background:var(--line)}
+.steps .n{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;background:var(--surface);border:2px solid var(--accent);color:var(--accent)}
+.steps li.you .n{border-color:var(--amber);color:var(--amber)}
+.steps b{font-weight:600}
+.who{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+
+.phone{background:var(--ink);border-radius:30px;padding:12px;max-width:300px;width:100%;justify-self:center}
+.screen{background:var(--ground);border-radius:21px;padding:16px 14px 18px;display:flex;flex-direction:column;gap:12px}
+.screen .bar{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;font-size:.88rem;line-height:1.55}
+.card .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card .host{font-family:var(--display);font-weight:700;font-size:1rem}
+.card pre{margin:0;background:var(--sunk);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:.78rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.card .meta{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.btns{display:grid;grid-template-columns:1fr auto;gap:8px}
+.btn{border-radius:8px;padding:9px 12px;text-align:center;font-weight:600;font-size:.88rem}
+.btn.run{background:var(--accent);color:var(--surface)}
+.btn.no{border:1px solid var(--line);color:var(--muted)}
+.cap{font-size:.8rem;color:var(--muted);text-align:center}
+
+ul.plain{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+
+/* phases */
+.phases{display:flex;flex-direction:column;gap:12px}
+.phase{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+.phase .tag{font-family:var(--mono);font-size:.78rem;font-weight:500;color:var(--accent);padding-top:3px;white-space:nowrap}
+.phase .body{display:flex;flex-direction:column;gap:6px}
+.phase .cost{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.phase.now{border-color:var(--amber)}
+.phase.now .tag{color:var(--amber)}
+@media (max-width:520px){.phase{grid-template-columns:1fr}}
+
+.decide{background:var(--surface);border:2px solid var(--accent);border-radius:12px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.decide ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+footer{font-size:.84rem;color:var(--muted);border-top:1px solid var(--line);padding-top:18px}
+a{color:var(--accent)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">Design proposal · CTO · 23 ก.ย. 2026</span>
+  <h1>Ask Inbox — ทุกขั้นที่ต้องใช้มือคุณ ทำได้จากมือถือเครื่องเดียว</h1>
+  <p class="lede">ที่คุณเจออยู่สองเรื่อง คือ login หลุดทีละเครื่อง กับคำสั่ง <code>!</code> ที่ต้องพิมพ์ที่เครื่องนั้นเท่านั้น จริงๆ แล้วเป็นปัญหาเดียวกัน: <b>ขั้นตอนที่ AI ทำเองไม่ได้ ไปผูกอยู่กับหน้าจอของเครื่องนั้น</b> ข้อเสนอนี้แยกขั้นตอนพวกนี้เป็น 3 ชนิด แล้วแก้แต่ละชนิดด้วยวิธีที่ต่างกัน</p>
+  <span class="status">รอ CEO เคาะ 4 ข้อ (ท้ายหน้า)</span>
+</header>
+
+<section class="answer" aria-labelledby="tldr">
+  <h2 id="tldr">คำตอบสั้น</h2>
+  <ol>
+    <li><b>ทำให้ต้อง login น้อยครั้งลง ก่อนจะไปทำให้ login เร็วขึ้น</b> credential ของ CLI/API ส่วนใหญ่มีแบบอายุยาวอยู่แล้ว ออกครั้งเดียวแล้วใช้ได้ทุกเครื่อง ส่วน Tailscale ทั้ง 5 เครื่องจะหมดอายุพร้อมกันช่วง ธ.ค.–ก.พ. ปิด key expiry วันนี้ใช้เวลาแค่นาทีเดียว</li>
+    <li><b>คำสั่ง <code>!</code> ของทุกเครื่องไปรวมที่ “Ask Inbox” ใน MoonieX Console</b> (terminal.mooniex.com ที่ใช้อยู่แล้ว) ขั้นตอนคือ AI ส่งการ์ดคำขอ → มือถือแจ้งเตือน → คุณกด Run → terminal ของเครื่องปลายทางเปิดขึ้นบนมือถือ → ผลลัพธ์ส่งกลับไปให้ AI เอง</li>
+    <li><b>login ที่ต้องทำผ่านเว็บ (Google, Flow, Higgsfield) ใช้วิธีส่งภาพหน้าจอ browser ของเครื่องนั้นมาที่มือถือ</b> ไม่ต้องย้าย session ไปไหน โค้ดส่วนนี้มีคนเขียนไว้แล้ว 1,713 บรรทัด อยู่ใน branch ที่ยังไม่ได้ merge</li>
+    <li><b>Termius ใช้เป็นทางสำรองได้ แต่เอามาเป็นระบบหลักไม่ได้</b> มันพาคุณเข้า shell ได้ก็จริง แต่ไม่รู้ว่า AI ขออะไร ผลลัพธ์ก็ไม่ส่งกลับไปให้ AI และตอนนี้ยังเข้า Mac ไม่ได้ด้วย</li>
+  </ol>
+</section>
+
+<section aria-labelledby="evidence">
+  <h2 id="evidence">หลุดบ่อยแค่ไหน (จากบันทึกจริง ไม่ได้จำเอา)</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>ช่วงเวลา</th><th>เครื่อง</th><th>อะไรหลุด</th><th>ผลที่ตามมา</th></tr></thead>
+      <tbody>
+        <tr><td class="when">16 ส.ค. – 10 ก.ย.</td><td>Contabo</td><td>Claude OAuth ของ SomPong</td><td>สมองบอทดับไป <b>25 วัน</b> โดยไม่มีใครรู้ ต้องรอให้คุณวางโค้ดผ่าน Console</td></tr>
+        <tr><td class="when">21 ส.ค. – ก.ย.</td><td>Contabo</td><td>Claude ของ usage monitor</td><td>widget บน iPhone แสดงเลขเก่าค้าง service พังทุก 4 นาที</td></tr>
+        <tr><td class="when">13 ส.ค.</td><td>Mac</td><td><code>gh</code> device code หมดอายุก่อนจะได้กรอก</td><td>ลบ repo 2 ตัวไม่ได้ ค้างมาถึงวันนี้</td></tr>
+        <tr><td class="when">26–27 ส.ค., 4 ก.ย.</td><td>Mac Chrome</td><td>Higgsfield หลุดทุก tab</td><td>ต้องหยุดงานถ่ายกลางคัน</td></tr>
+        <tr><td class="when">7 ก.ย.</td><td>Mac Chrome</td><td>Google หลุดทั้งโปรไฟล์</td><td>teaser บน Flow ต้องพักไว้ (#137, #138)</td></tr>
+        <tr><td class="when">8–9 ก.ย.</td><td>winbox</td><td>rclone Drive (อายุ 7 วัน)</td><td><span class="pill p-green">แก้แล้ว</span> ใช้ OAuth app ของเราเองแบบ production</td></tr>
+        <tr><td class="when">9 ก.ย.</td><td>Contabo</td><td>GitHub PAT หมดอายุ</td><td><code>git pull</code> ไม่ผ่าน ต้องส่งโค้ดเป็น bundle</td></tr>
+        <tr><td class="when">18 · 20 · 22 · 23 ก.ย.</td><td>ทั้ง 3 เครื่อง</td><td>agy (Antigravity)</td><td>โค้ดหมดอายุก่อนใช้ 7 ใบ คุณต้องไปนั่งหน้าเครื่อง</td></tr>
+        <tr><td class="when">วันนี้</td><td>Mac</td><td>Supabase MCP ตอบ Unauthorized</td><td>เจอระหว่างเขียน doc นี้เอง</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="callout"><b>ระเบิดเวลาถัดไป:</b> Tailscale key ของทุกเครื่องจะหมดอายุ ได้แก่ iPhone 10 ธ.ค., Mac 11 ธ.ค., Contabo 7 ม.ค. และ winbox 8 ก.พ. ถ้า Mac หรือ Contabo หลุด Console บนมือถือจะใช้ไม่ได้ทั้งระบบ แล้วคุณจะต้องไปนั่งหน้าเครื่องเพื่อต่อกลับ</p>
+</section>
+
+<section aria-labelledby="kinds">
+  <h2 id="kinds">แยกเป็น 3 ชนิด แต่ละชนิดแก้คนละวิธี</h2>
+  <div class="kinds">
+    <div>
+      <div class="head"><span class="kind k-a">A</span><h3>Token ของเครื่อง</h3></div>
+      <p>credential ของ CLI และ API ได้แก่ Claude, git, codex, Supabase, Meta, Tailscale</p>
+      <p class="fix">วิธีแก้: ออก token อายุยาวครั้งเดียว เก็บไว้ที่กลาง แล้วแจกให้ทุกเครื่อง จะได้ไม่ต้อง login ทีละเครื่องอีก</p>
+    </div>
+    <div>
+      <div class="head"><span class="kind k-b">B</span><h3>Session ของ browser</h3></div>
+      <p>Google/Flow, Higgsfield, Discord, IBKR, Meta Business</p>
+      <p class="fix">วิธีแก้: login บนเครื่องนั้นผ่านภาพหน้าจอที่ส่งมามือถือ และให้แต่ละบัญชีอยู่ในเครื่องเดียวเท่านั้น</p>
+    </div>
+    <div>
+      <div class="head"><span class="kind k-c">C</span><h3>คำสั่งที่ต้องใช้อำนาจคุณ</h3></div>
+      <p>คำสั่ง <code>!</code> ทั้งหมด เช่น เขียนค่าลง prod, login ที่ต้องวางโค้ด, พิมพ์ key หรือรอเป็นนาที</p>
+      <p class="fix">วิธีแก้: Ask Inbox การ์ดเดียวใช้ได้กับทุกเครื่อง และสั่งจากมือถือได้</p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="ka">
+  <h2 id="ka"><span class="kind k-a">A</span> Token: ออกครั้งเดียว ใช้ได้ทุกเครื่อง</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>ของ</th><th>ตอนนี้</th><th>เปลี่ยนเป็น</th><th>คุณต้องทำ</th></tr></thead>
+      <tbody>
+        <tr><td>Claude Code สำหรับ worker/บอท</td><td>OAuth แยกทีละเครื่อง refresh ราว 30 วัน</td><td><code>claude setup-token</code> อายุ 1 ปี (Contabo ใช้อยู่แล้ว) ขยายไปทุกเครื่อง</td><td>ปีละครั้ง</td></tr>
+        <tr><td>Claude Code สำหรับ C-level (Remote Control)</td><td>OAuth</td><td>ใช้ OAuth ต่อไป <span class="muted">(ยังไม่ได้ทดสอบว่า setup-token ใช้กับ Remote Control ได้หรือเปล่า)</span></td><td>เมื่อหลุด ก็ส่งเป็นการ์ด</td></tr>
+        <tr><td>git ↔ GitHub</td><td>HTTPS PAT ที่หมดอายุ</td><td>SSH deploy key แยกทีละเครื่อง ไม่มีวันหมดอายุ</td><td>ครั้งเดียว</td></tr>
+        <tr><td><code>gh</code> ตอนขอ scope เพิ่ม</td><td>device code ที่หมดอายุก่อนกรอก</td><td>ส่ง device code มาบนการ์ด แล้วกรอกที่ github.com/login/device บนมือถือได้เลย</td><td>เฉพาะตอนขอ scope เพิ่ม</td></tr>
+        <tr><td>Codex</td><td>ต้องนั่งหน้า winbox</td><td><code>codex login --device-auth</code> แล้วกดอนุมัติบนมือถือ <span class="pill p-green">วัดแล้ววันนี้</span></td><td>เมื่อหลุด</td></tr>
+        <tr><td>agy (Antigravity)</td><td>ต้องวางโค้ดภายใน 60 วิ</td><td>การ์ดที่เปิด terminal ให้ ซึ่งนาฬิกาจะเริ่มนับตอนคุณกด Run (แบบเดียวกับ <code>login.sh</code> ที่ใช้ได้แล้ว)</td><td>เมื่อหลุด</td></tr>
+        <tr><td>Supabase MCP</td><td>ตอบ Unauthorized</td><td>ออก PAT ใหม่ แล้วเก็บไว้ที่กลาง</td><td>ครั้งเดียว</td></tr>
+        <tr><td>Meta Ads / CAPI</td><td>user token ที่หมดอายุได้</td><td>System User token ซึ่งตั้งให้ไม่หมดอายุได้</td><td>ครั้งเดียว</td></tr>
+        <tr><td>Tailscale (Mac, Contabo, winbox)</td><td>จะหมด 11 ธ.ค. – 8 ก.พ.</td><td>ปิด key expiry เฉพาะ 3 เครื่องนี้ (มือถือเปิดไว้เหมือนเดิม)</td><td>ครั้งเดียว ใช้ 1 นาที</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">ที่เก็บกลางคือ Infisical ตามที่คุณเคาะไว้เมื่อ 19 ก.ย. ตอนนี้ยังไม่ได้เริ่มทำ และต้องเช็คราคาก่อน ระหว่างนี้ token ใหม่ให้วางเฉพาะเครื่องที่ต้องใช้ แล้วจดไว้ว่าต้อง rotate ตอนย้ายเข้า Infisical <code>setup-token</code> ใช้ได้กับ inference อย่างเดียว งานที่ต้องใช้บัญชีเต็ม เช่น usage monitor ยังต้อง login แบบเต็มอยู่</p>
+</section>
+
+<section aria-labelledby="kb">
+  <h2 id="kb"><span class="kind k-b">B</span> Browser: ย้ายภาพหน้าจอ ไม่ย้าย session</h2>
+  <p>ไอเดียที่ Park ไว้ใน LungNote คือแอป iOS เก็บ cookie แล้วส่งให้ agent ใช้ ซึ่ง CTO ตรวจแล้วว่าไม่เวิร์กด้วย 3 เหตุผล:</p>
+  <ul class="plain">
+    <li>แอป iOS อ่าน session ของ Safari หรือแอปอื่นไม่ได้ เพราะ Apple sandbox กันไว้</li>
+    <li>session cookie ใช้ข้าม 2FA ได้ จึงเป็นความลับระดับเดียวกับรหัสผ่าน ยิ่งก๊อปไปวางหลายที่ยิ่งเสี่ยง</li>
+    <li>Google ผูก session ไว้กับเครื่องและ IP ถ้าย้ายไปเครื่องอื่นก็จะโดนเตะออก</li>
+  </ul>
+  <p><b>ทางที่ดีกว่าคือส่งภาพหน้าจอ (relay)</b> มือถือเปิด Console <code>/relay</code> (ยืนยันด้วย passkey ผ่าน Tailscale) ระบบจะคุม Chrome ของเครื่องปลายทางผ่าน CDP แล้วตั้งให้ Chrome นั้นทำตัวเป็นมือถือขนาด 390×844 Google จึงส่งหน้า login แบบมือถือมาให้ ซึ่งกดด้วยนิ้วได้สบาย ช่องพิมพ์อยู่บนมือถือคุณเอง autofill และ password manager จึงใช้ได้ตามปกติ พอพิมพ์เสร็จระบบส่งข้อความทั้งก้อนไปทีเดียว <b>ไม่มีการเก็บอะไรไว้ และ AI ไม่เคยพิมพ์รหัสผ่านของคุณ</b></p>
+  <ul class="plain">
+    <li><b>โค้ดมีอยู่แล้ว:</b> branch <code>agent/antigravity-login-relay</code> commit <code>a98f78e</code> (20 ก.ย.) มี 14 ไฟล์ รวม test 3 ไฟล์ <span class="pill p-amber">ยังไม่ merge และยังไม่เคยรันกับ login จริง</span></li>
+    <li><b>ลดจำนวนเครื่องที่ต้องถือ session:</b> ให้แต่ละบัญชีอยู่ในโปรไฟล์เดียวบนเครื่องเดียว (“บ้านของ browser”) ส่วน automation จากเครื่องอื่นให้ต่อเข้ามาคุมผ่าน Tailscale แทนการ login ซ้ำที่เครื่องตัวเอง</li>
+    <li><b>login Google ให้เร็ว:</b> ตั้งบัญชีให้ใช้ passkey หรือกด “ใช่ ฉันเอง” บนมือถือ จะได้แทบไม่ต้องพิมพ์รหัสเลย</li>
+    <li><b>เช็คทุกวัน:</b> ระบบเปิดแต่ละโปรไฟล์แล้วดูว่ายัง login อยู่ไหม ถ้าหลุดจะแจ้งคุณก่อนวันถ่าย ไม่ใช่ไปรู้กลางงานถ่าย</li>
+  </ul>
+</section>
+
+<section aria-labelledby="kc">
+  <h2 id="kc"><span class="kind k-c">C</span> Ask Inbox: คำสั่ง <code>!</code> ของทุกเครื่องมารวมที่เดียว</h2>
+  <div class="flowgrid">
+    <ol class="steps">
+      <li><span class="n">1</span><div><span class="who">AI · เครื่องไหนก็ได้</span><br>เมื่อติดขั้นที่ต้องใช้มือคุณ AI จะเรียก <code>ask_human(host, command, why)</code> แทนการพิมพ์ในแชทว่า “รัน ! … ให้หน่อย”</div></li>
+      <li><span class="n">2</span><div><span class="who">Hub · Contabo (ใน Console)</span><br>hub เก็บการ์ดไว้ ประกอบด้วยเครื่องปลายทาง, คำสั่งแบบตรงตัว, เหตุผลภาษาไทย, สีความเสี่ยง และเวลาหมดอายุ</div></li>
+      <li class="you"><span class="n">3</span><div><span class="who">มือถือคุณ</span><br>มือถือแจ้งเตือนพร้อมลิงก์ เปิดการ์ดแล้วยืนยันด้วย passkey อ่านคำสั่ง แล้วกด <b>Run บน winbox</b></div></li>
+      <li class="you"><span class="n">4</span><div><span class="who">terminal จริง · เครื่องปลายทาง</span><br>terminal ของเครื่องนั้นเปิดขึ้นบนมือถือ คุณวางโค้ด พิมพ์ key หรือรอผลได้ตามต้องการ นาฬิกา 60 วิจะเริ่มนับตอนนี้ ไม่ใช่ตอนที่ AI ขอ</div></li>
+      <li><span class="n">5</span><div><span class="who">กลับไปหา AI</span><br>เมื่อคำสั่งจบ exit code และผลลัพธ์ท้ายๆ จะถูกส่งกลับไปให้ AI ตัวที่ขอผ่าน mailbox แล้ว AI ก็ทำงานต่อได้เลย ถ้าเป็นการ์ด <i>private</i> (เช่นคำสั่งที่พิมพ์ token ออกมา) จะส่งกลับแค่ผ่านหรือไม่ผ่าน</div></li>
+    </ol>
+    <div class="phone" role="img" aria-label="ตัวอย่างการ์ดบนมือถือ">
+      <div class="screen">
+        <div class="bar"><span>Ask Inbox</span><span>1 รอคุณ</span></div>
+        <div class="card">
+          <div class="top"><span class="host">winbox</span><span class="pill p-amber">login</span></div>
+          <p>Codex บน winbox หลุด ทำให้ worker ที่รัน refactor ติดอยู่ กดแล้วจะมีลิงก์อนุมัติขึ้นบนมือถือ ไม่ต้องวางโค้ด</p>
+          <pre>codex login --device-auth</pre>
+          <div class="meta">จาก CTO b4ed592c · 14:05 · หมดอายุ 16:05</div>
+          <div class="btns"><span class="btn run">Run บน winbox</span><span class="btn no">ปฏิเสธ</span></div>
+        </div>
+        <p class="cap">ตัวอย่างหน้าตา ยังไม่ใช่ของจริง</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>แต่ละเครื่องรันอย่างไร (ไม่ต้องเปิด port ใหม่)</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>เครื่อง</th><th>รันอย่างไร</th><th>หมายเหตุ</th></tr></thead>
+      <tbody>
+        <tr><td>Contabo</td><td>รันบนเครื่องเองใน tmux เพราะ Console ใช้ node-pty อยู่แล้ว</td><td>ง่ายที่สุด</td></tr>
+        <tr><td>Mac</td><td>Console ฝั่ง Mac (ที่เชื่อมกับ Contabo อยู่แล้ว) เป็นคนรันบนเครื่อง</td><td>sshd ของ Mac ปิดอยู่ <span class="pill p-teal">วัดแล้ววันนี้</span> ซึ่งดี เพราะไม่ต้องเปิด port เพิ่ม</td></tr>
+        <tr><td>winbox</td><td>Contabo ssh เข้า winbox (เส้นนี้ใช้ได้อยู่แล้ว)</td><td>มีบาง login ที่นับเฉพาะ desktop session เช่น agy บน Windows ซึ่ง Phase นี้ยังไม่ครอบคลุม</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>กติกาความปลอดภัย</h3>
+  <ul class="plain">
+    <li><b>AI ส่งการ์ดได้ แต่คนกดรันได้มีแค่คุณ</b> ไม่มีปุ่ม “อนุมัติทั้งหมด” ไม่มีการรันอัตโนมัติ และไม่มีการรันเป็นชุด</li>
+    <li><b>คำสั่งที่เห็นคือคำสั่งที่รันจริง</b> คำสั่งถูกล็อกไว้ตั้งแต่ตอนยื่น ถ้าจะแก้ต้องยื่นการ์ดใหม่</li>
+    <li>เข้าได้ผ่าน Tailscale และ passkey เท่านั้นเหมือน Console ตอนนี้ ไม่มีทางเข้าจาก internet สาธารณะ</li>
+    <li>การ์ดหมดอายุเองใน 2 ชม. การ์ดที่ค้างนานกดรันไม่ได้</li>
+    <li>ความลับพิมพ์ใน terminal เท่านั้น ห้ามพิมพ์ในแชท</li>
+    <li>ทุกครั้งมี log ว่าใคร เมื่อไร เครื่องไหน hash ของคำสั่ง และ exit code</li>
+    <li><b>ใช้เป็นช่องหลบระบบกันพลาดของ AI ไม่ได้</b> การ์ดต้องบอกเป็นภาษาคนว่าคำสั่งจะเปลี่ยนอะไร ส่วนการ์ดสีแดง (ลบของ, force push, restart prod, แตะความลับ) ต้องกดยืนยันอีกชั้น</li>
+  </ul>
+</section>
+
+<section aria-labelledby="termius">
+  <h2 id="termius">Termius ช่วยได้ไหม</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th></th><th>Termius + Tailscale บน iPhone</th><th>Ask Inbox</th></tr></thead>
+      <tbody>
+        <tr><td>เข้าได้ทั้ง 3 เครื่อง</td><td>Contabo และ winbox ได้ Mac ไม่ได้ (sshd ปิด ต้องเปิด Remote Login เพิ่ม)</td><td>ได้ทั้ง 3 เครื่องผ่าน Console</td></tr>
+        <tr><td>รู้ว่า AI ขออะไร</td><td>ไม่รู้ ต้องก๊อปคำสั่งจากแชทมาวางเอง</td><td>รู้ มีการ์ดบอก</td></tr>
+        <tr><td>ผลส่งกลับไปให้ AI</td><td>ไม่ส่ง ต้องมาเล่าให้ AI ฟังเอง</td><td>ส่งกลับเอง</td></tr>
+        <tr><td>login ที่มีนาฬิกา 60 วิ</td><td>ทันถ้าคุณมือไว</td><td>นาฬิกาเริ่มนับตอนกด Run</td></tr>
+        <tr><td>สลับไปแอปอื่นกลางทาง</td><td>iOS อาจตัด ssh ทิ้ง (mosh ช่วยได้บ้าง)</td><td>คำสั่งยังรันต่อใน tmux ที่เครื่องปลายทาง</td></tr>
+        <tr><td>ต้องสร้างอะไรเพิ่ม</td><td>ไม่ต้อง ติดตั้งแล้วใช้ได้เลย</td><td>งาน DEV ประมาณ 2–3 ชิ้น</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><b>สรุป:</b> ติดตั้ง Termius + Tailscale ไว้เป็นทางฉุกเฉินได้ (ใช้เวลาราว 5 นาที เข้า Contabo กับ winbox ได้ทันที) แต่ระบบหลักควรเป็น Ask Inbox เพราะปัญหาจริงไม่ได้อยู่ที่ “เข้า shell จากมือถือไม่ได้” แต่อยู่ที่ “คำสั่งไม่ถูกส่งจาก AI มาถึงมือคุณ แล้วผลก็ไม่ถูกส่งกลับไปหา AI”</p>
+</section>
+
+<section aria-labelledby="plan">
+  <h2 id="plan">แผนทำ เรียงตามลำดับ</h2>
+  <div class="phases">
+    <div class="phase now">
+      <span class="tag">Phase 0 · วันนี้</span>
+      <div class="body">
+        <b>คลิกเองราว 15 นาที ไม่มีค่าใช้จ่าย</b>
+        <ul class="plain">
+          <li>Tailscale admin → Machines → เลือกเครื่อง Mac, <code>mooniex-contabo</code> และ <code>DESKTOP-3NQB2QO</code> → กด “Disable key expiry”</li>
+          <li>Supabase → ออก Access Token ใหม่ให้ MCP</li>
+          <li>(CTO ทำ) ตั้ง SSH deploy key ให้ git บน Contabo แทน PAT ที่หมดอายุไปแล้ว</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="tag">Phase 1 · เตือนก่อนหมดอายุ</span>
+      <div class="body">
+        <span>ทุกวันไล่เช็คทุกเครื่อง ได้แก่ claude, codex, gh, rclone, Supabase, วันหมดอายุของ Tailscale และสถานะ login ใน Chrome ทุกโปรไฟล์ แล้วสรุปเป็นข้อความเดียวว่าอะไรกำลังจะหลุด ถ้ามีระบบนี้ตั้งแต่แรก กรณี SomPong เงียบไป 25 วันจะถูกจับได้ตั้งแต่วันแรก</span>
+        <span class="cost">งาน DEV 1 ชิ้น (ประมาณการ) · $0</span>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="tag">Phase 2 · Ask Inbox</span>
+      <div class="body">
+        <span>ประกอบด้วยคิวและหน้าการ์ดใน Console, tool <code>ask_human</code> สำหรับ C-level และคำสั่งเดียวกันสำหรับ worker, การแจ้งเตือนเข้ามือถือ, การรันบน Contabo/Mac/winbox, การส่งผลกลับผ่าน mailbox และ log</span>
+        <span class="cost">งาน DEV 2–3 ชิ้น (ประมาณการ) · $0 เพราะใช้ Contabo และ Console ที่มีอยู่</span>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="tag">Phase 3 · relay browser</span>
+      <div class="body">
+        <span>review และ merge <code>a98f78e</code> ทดสอบกับ login Google จริงบน Mac ก่อน แล้วค่อยไป winbox (ต้องยืมจอจากบอท Cookie Run) และ Contabo (Google อาจถามยืนยันเพิ่มเพราะเป็น IP ของ data center) จากนั้นต่อเข้า Ask Inbox เป็นการ์ดชนิด “browser login”</span>
+        <span class="cost">งาน DEV 1–2 ชิ้น (ประมาณการ) · $0</span>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="tag">Phase 4 · Infisical</span>
+      <div class="body">
+        <span>ที่เก็บกลางของ token ชนิด A ตามที่คุณเคาะไว้เมื่อ 19 ก.ย. ควรเปิดเป็น session แยกเพราะเป็นงานเปลี่ยนโครงสร้าง และต้องเช็คราคาให้คุณดูก่อนจ่ายเงิน</span>
+        <span class="cost">ยังไม่มีราคา · ต้องให้คุณอนุมัติก่อน</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="decide" aria-labelledby="decide">
+  <h2 id="decide">สิ่งที่ต้องให้คุณเคาะ</h2>
+  <ol>
+    <li><b>ทิศทางนี้โอเคไหม</b> ให้ Ask Inbox ใน Console เป็นระบบหลัก และ Termius เป็นแค่ทางสำรอง</li>
+    <li><b>ให้แจ้งเตือนผ่านช่องทางไหน</b> Telegram @SSomPongBot (มีโค้ดส่งข้อความอยู่แล้ว) หรือ LINE สมพงษ์ (กำลังทำอยู่)</li>
+    <li><b>“บ้านของ browser” ควรเป็นเครื่องไหน</b> ตัวเลือกคือ Mac (ใช้อยู่ตอนนี้ แต่ถ้าเครื่องหลับงานก็หยุด), winbox (เปิดตลอด แต่จอเป็นของบอท Cookie Run) หรือ Mac mini ที่เคยคุยกันว่าจะซื้อมาเป็นเครื่องหลักขององค์กร</li>
+    <li><b>ทำ Phase 0 วันนี้เลยไหม</b> โดยเฉพาะปิด Tailscale key expiry ซึ่งใช้เวลาแค่นาทีเดียว และกันไม่ให้ทั้งระบบดับในเดือนธันวาคม</li>
+  </ol>
+</section>
+
+<footer>
+  ข้อมูลมาจากการวัดจริงวันที่ 23 ก.ย. 2026 ได้แก่ วันหมดอายุ Tailscale จาก <code>tailscale status</code>, <code>codex login --help</code> บน Contabo, sshd ของ Mac, branch <code>a98f78e</code> ใน MoonieX-Console, LungNote to-do <code>dab5aedb</code> / <code>f08bdc95</code> / <code>9c14c290</code> / <code>20f06fb8</code>, memory <code>project_phone_login_relay</code> และ <code>docs/ops/agent-runners.md</code> ส่วนตัวเลขงาน DEV เป็นการประมาณการ ไม่ใช่ตัวเลขที่วัดมา
+</footer>
+
+</div>
