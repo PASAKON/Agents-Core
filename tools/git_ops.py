@@ -9,6 +9,8 @@ from pathlib import Path
 from lib import db
 from lib.config import get_project, is_c_level
 from lib.notify import info, success, error, warn
+from tools import workdir
+from tools.delegate import _storage_applies
 from tools.worker_reap import close_dev
 from tools.worktree import branch_name, provision_worktree, remove_worktree
 
@@ -260,6 +262,32 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
             return {"merged": False, "gate_tests": "failed",
                     "exit_code": rc, "tail": tail[:1000]}
         success(f"gate_tests passed ({test_cmd})")
+
+    # ADR 0030 / Work/RULES.md rule 6 — pilot scope only (task-36aaa3c4).
+    # This is BOTH "the close gate" and "the done path" the task brief
+    # names separately: git_ops.py:453 below is the only call site in the
+    # codebase that ever writes status='done' (grepped "done" across
+    # tools/ lib/ runners/ — merge_task is it), so gating here covers both.
+    # Run before any git mutation (same pre-flight shape as the
+    # touches-violation check above) so a refusal has zero git state to
+    # undo. Non-pilot owner_cto: unchanged, this block never runs.
+    if _storage_applies(task.get("owner_cto")):
+        work_folder = workdir.folder_path(task_id)
+        if work_folder.exists():
+            close_result = workdir.close(task_id, by="cto")
+            if not close_result.get("closed"):
+                unfiled = close_result.get("unfiled", [])
+                msg = (f"Work/{task_id}/ still holds {len(unfiled)} unfiled "
+                       f"file(s) — refusing to merge until they are filed "
+                       f"(Assets via hq-filing, or Drive via gdrive-filing): "
+                       f"{unfiled[:20]}")
+                warn(f"close gate blocked {task_id}: {msg}")
+                db.update_status(
+                    task_id, "review", actor="cto",
+                    review=json.dumps({"work_dir_unfiled": True, "unfiled": unfiled}),
+                )
+                return {"merged": False, "work_dir_unfiled": True, "unfiled": unfiled,
+                        "branch": branch, "base": base, "project": proj["key"]}
 
     info(f"merging {branch} → {base} on {proj['key']}")
     _run(["git", "checkout", base], cwd=repo)

@@ -29,6 +29,7 @@ from lib.config import (
 )
 from lib.notify import info, success, error, warn
 from tools import tmux_session as tmux
+from tools import workdir
 from tools.worktree import branch_name, create_worktree
 
 # Every CLI the org knows how to drive a worker with (task-adbc6f43). Kept
@@ -242,6 +243,22 @@ def _storage_pilot_owners() -> list[str]:
 def _storage_applies(owner_cto: str | None) -> bool:
     owners = _storage_pilot_owners()
     return "all" in owners or (bool(owner_cto) and str(owner_cto) in owners)
+
+
+def _work_dir_for(task_id: str, owner_cto: str | None) -> str | None:
+    """Create this task's Work/<task_id>/ folder (Work/RULES.md rule 1-2,
+    tools/workdir.py) and return its path, so the spawned worker's env can
+    carry WORK_DIR next to WORKER_CTO_ID — pilot scope only (ADR 0030 §8);
+    a non-pilot owner_cto gets None, unchanged from before this task.
+    Creation failure never blocks a spawn already past the disk-floor gate
+    above — it's logged and the worker starts without WORK_DIR."""
+    if not _storage_applies(owner_cto):
+        return None
+    try:
+        return str(workdir.create(task_id))
+    except Exception as e:
+        warn(f"workdir.create failed task={task_id}: {e} (spawning without WORK_DIR)")
+        return None
 
 
 def _free_gb(path: str = "/") -> float:
@@ -517,7 +534,8 @@ end tell
 def _spawn_iterm_tab(role: str, task_id: str, *,
                      tmux_attach: str | None = None,
                      owner_cto: str | None = None,
-                     owner_role: str | None = None) -> str:
+                     owner_role: str | None = None,
+                     work_dir: str | None = None) -> str:
     """Open or reuse an iTerm tab for this DEV task.
 
     Returns `"reused"` when an existing tab matching `(<task_id>)` was
@@ -534,10 +552,15 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
     not just under CTO. With multiple sessions of the same role open
     (e.g. two CTOs), the session id prevents tabs landing in the wrong
     window.
+
+    `work_dir`: this task's Work/<task_id>/ path (pilot scope only, ADR
+    0030) — stamped into env WORK_DIR next to WORKER_CTO_ID. None for a
+    non-pilot task, exactly as before this export existed.
     """
     display = display_for(role)
     tab_title = f"{display} ({task_id})"
     cto_env = f"export WORKER_CTO_ID='{owner_cto}' && " if owner_cto else ""
+    work_env = f"export WORK_DIR='{work_dir}' && " if work_dir else ""
     if tmux_attach:
         # Trailing `; exit $?` (ADDENDUM 2, CTO 2026-09-07 — CEO rule:
         # ending a worker must close its window, never just the process).
@@ -547,7 +570,7 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
         # the non-tmux branch below, which has carried this since GH #27.
         cmd = (
             f"printf '\\\\033]1;{tab_title}\\\\007' && "
-            f"{cto_env}tmux attach -t {tmux_attach}; exit $?"
+            f"{cto_env}{work_env}tmux attach -t {tmux_attach}; exit $?"
         )
     else:
         # Print ANSI title escape from inside the shell so zsh's precmd
@@ -564,7 +587,7 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
         # leaving an untraceable zombie tab.
         cmd = (
             f"printf '\\\\033]1;{tab_title}\\\\007' && "
-            f"{cto_env}{WORKER_LAUNCHER} {role} {task_id}; exit $?"
+            f"{cto_env}{work_env}{WORKER_LAUNCHER} {role} {task_id}; exit $?"
         )
     owner_winid = _owner_window_id(owner_cto, owner_role)
     script = _build_spawn_applescript(cmd, task_id, owner_cto,
@@ -756,7 +779,8 @@ async def _verify_claimed(task_id: str, role_name: str,
         warn(f"stale-tab close failed for {task_id}: {e}")
     try:
         await asyncio.to_thread(_spawn_iterm_tab, role_name, task_id,
-                                owner_cto=owner_cto, owner_role=owner_role)
+                                owner_cto=owner_cto, owner_role=owner_role,
+                                work_dir=_work_dir_for(task_id, owner_cto))
     except Exception as e:
         error(f"respawn failed for {task_id}: {e}")
         db.update_status(task_id, "failed",
@@ -1421,6 +1445,9 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # Pre-migration rows have owner_cto but NULL owner_role → default "cto"
     # (mirrors runners/worker_init.py's WORKER_CTO_ROLE fallback for the same rows).
     owner_role = task.get("owner_role") or "cto"
+    # ADR 0030 / Work/RULES.md rule 1-2: pilot scope only (host is already
+    # guaranteed 'mac' here — the resolved_host != 'mac' branch returned above).
+    work_dir_path = _work_dir_for(task_id, owner_cto)
 
     if backend == "tmux":
         tmux_sess = tmux.session_name_for(task_id)
@@ -1429,7 +1456,8 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         # status write after that point would silently regress the claim.
         db.set_fields(task_id, tmux_session=tmux_sess, actor="cto")
         cto_env = f"export WORKER_CTO_ID='{owner_cto}' && " if owner_cto else ""
-        dev_cmd = f"{cto_env}{WORKER_LAUNCHER} {role_name} {task_id}"
+        work_env = f"export WORK_DIR='{work_dir_path}' && " if work_dir_path else ""
+        dev_cmd = f"{cto_env}{work_env}{WORKER_LAUNCHER} {role_name} {task_id}"
         try:
             tmux.create(tmux_sess, cwd=ROOT, cmd=dev_cmd)
             info(f"tmux session created: {tmux_sess}")
@@ -1460,7 +1488,8 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         spawn_result = _spawn_iterm_tab(role_name, task_id,
                                         tmux_attach=tmux_sess,
                                         owner_cto=owner_cto,
-                                        owner_role=owner_role)
+                                        owner_role=owner_role,
+                                        work_dir=work_dir_path)
     except subprocess.CalledProcessError as e:
         error(f"failed to spawn iTerm tab for {task_id}: {e}")
         db.update_status(task_id, "failed",
