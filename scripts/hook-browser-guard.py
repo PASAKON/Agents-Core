@@ -33,13 +33,20 @@ import os
 import sys
 from pathlib import Path
 
-STATE_DIR = Path(__file__).resolve().parent.parent / "state" / "browser-guard"
+STATE_DIR_ENV = os.environ.get("BROWSER_GUARD_STATE_DIR")
+if STATE_DIR_ENV:
+    STATE_DIR = Path(STATE_DIR_ENV)
+else:
+    STATE_DIR = Path(__file__).resolve().parent.parent / "state" / "browser-guard"
 
 # Chosen from the first real browser_operator run (2026-08-10): verifying a
 # DEV's work took the CTO 3 chrome calls and 1 screenshot. A DEV doing the
 # actual job took 29 calls and 8 screenshots. The caps sit between the two.
 MAX_CALLS = 12
 MAX_SCREENSHOTS = 5
+
+DEV_MAX_CALLS = 60
+DEV_MAX_SCREENSHOTS = 15
 
 _SCREENSHOT_ACTIONS = {"screenshot", "zoom"}
 
@@ -67,9 +74,8 @@ def _message(kind: str, calls: int, shots: int) -> str:
 def main() -> int:
     if os.environ.get("BROWSER_GUARD", "").lower() in {"off", "0", "false"}:
         return 0
-    # DEVs are exactly who this work is supposed to run on.
-    if os.environ.get("WORKER_ROLE"):
-        return 0
+
+    is_dev = bool(os.environ.get("WORKER_ROLE"))
 
     try:
         event = json.load(sys.stdin)
@@ -99,13 +105,22 @@ def main() -> int:
         # A guard that breaks the session is worse than no guard.
         return 0
 
-    if shots > MAX_SCREENSHOTS:
-        print(_message("screenshot", calls, shots), file=sys.stderr)
-        return 2
-    if calls > MAX_CALLS:
-        print(_message("browser-call", calls, shots), file=sys.stderr)
-        return 2
-    return 0
+    if is_dev:
+        if shots > DEV_MAX_SCREENSHOTS:
+            print(f"WARNING: {_message('screenshot', calls, shots)}", file=sys.stderr)
+            return 0
+        if calls > DEV_MAX_CALLS:
+            print(f"WARNING: {_message('browser-call', calls, shots)}", file=sys.stderr)
+            return 0
+        return 0
+    else:
+        if shots > MAX_SCREENSHOTS:
+            print(_message("screenshot", calls, shots), file=sys.stderr)
+            return 2
+        if calls > MAX_CALLS:
+            print(_message("browser-call", calls, shots), file=sys.stderr)
+            return 2
+        return 0
 
 
 if __name__ == "__main__":

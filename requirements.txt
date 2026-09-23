@@ -1,5 +1,6 @@
 claude-agent-sdk>=0.0.20
-anyio>=4.0
+# Security floors on transitive dependencies (ADR 0020 osv_check, 2026-09-22): GHSA-82r6-8w77-94w6, GHSA-5p39-cfhj-2xmp.
+anyio>=4.14.2
 pyyaml>=6.0
 textual>=0.80
 rich>=13.0
@@ -11,6 +12,10 @@ pandas>=3.0.5
 requests>=2.31,<3
 # Test runner — ADR 0021 standardises on pytest (added 2026-08-13).
 pytest>=8,<9
+
+# CI collection broke 2026-09-22 due to mcp 2.0 renaming FastMCP to MCPServer.
+# Pinning to <2 for now; migration to mcp 2.x is tracked separately.
+mcp>=1.27,<2
 
 # Postgres backend for lib/db.py, selected by ORG_DB_URL (task-02ecbdea,
 # docs/design/tasks-db-hub.md §3.1). Binary wheel — no local libpq/build
