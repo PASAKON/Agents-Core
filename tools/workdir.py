@@ -15,8 +15,12 @@ succeed).
 CLI:
     python tools/workdir.py create   task-abc12345
     python tools/workdir.py check    task-abc12345
-    python tools/workdir.py close    task-abc12345 [--dry-run]
+    python tools/workdir.py close    task-abc12345 [--dry-run] [--archive]
     python tools/workdir.py orphans  [--db state/tasks.db]
+
+--archive (task-abc20690, tools/work_archive.py) cold-archives whatever
+close() would otherwise leave as unfiled — to Drive `BACKUP/`, md5-verified —
+instead of keeping the folder around.
 """
 from __future__ import annotations
 
@@ -176,7 +180,8 @@ def _dir_size(path: Path) -> int:
 
 
 def close(task_id: str, *, dry_run: bool = False,
-          root: str | Path | None = None, by: str | None = None) -> dict:
+          root: str | Path | None = None, by: str | None = None,
+          archive: bool = False) -> dict:
     """Close Work/<task_id>/ — rule 6, narrowed to this tool's scope
     (task-36aaa3c4 brief): tmp/ is always deleted, and every in/ file
     covered by in/SOURCES.txt is always deleted (re-downloadable — nothing
@@ -186,8 +191,15 @@ def close(task_id: str, *, dry_run: bool = False,
     tool — close() only removes the folder + appends the ledger line once
     nothing but tmp/(gone) and filed in/ files were ever in it.
 
+    archive=True (task-abc20690) routes whatever's left — unsourced in/
+    files and out/ files — through work_archive.archive(dry_run=False)
+    instead of leaving them as unfiled: only once that comes back
+    `verified: True` are they deleted and the close completed, and the
+    ledger's `dest`/`md5` are filled from it. Without archive=True, close()
+    behaves exactly as it did before this option existed.
+
     dry_run=True previews with zero filesystem changes: nothing deleted,
-    no ledger write.
+    no ledger write, no archive attempt.
 
     Returns `{"closed": True, "ledger": {...}}` on success, or
     `{"closed": False, "unfiled": [...]}` — the folder is left in place
@@ -227,8 +239,24 @@ def close(task_id: str, *, dry_run: bool = False,
         f.unlink()
 
     remaining = [p for p in folder.rglob("*") if p.is_file() and p != sources_path]
+    remaining_bytes = sum(p.stat().st_size for p in remaining)
+
+    archived: dict | None = None
+    if remaining and archive:
+        from tools import work_archive  # lazy: avoids a workdir<->work_archive import cycle
+        rel_paths = [p.relative_to(folder).as_posix() for p in remaining]
+        archived = work_archive.archive(task_id, rel_paths, root=root, dry_run=False)
+        if archived.get("verified"):
+            for p in remaining:
+                p.unlink()
+            reclaimed += remaining_bytes
+            remaining = []
+
     if remaining:
-        return {"closed": False, "unfiled": [str(p) for p in remaining]}
+        result: dict = {"closed": False, "unfiled": [str(p) for p in remaining]}
+        if archived is not None:
+            result["archive_error"] = archived.get("error")
+        return result
 
     if sources_path.exists():
         sources_path.unlink()
@@ -238,12 +266,12 @@ def close(task_id: str, *, dry_run: bool = False,
         "ts": datetime.now().astimezone().isoformat(timespec="seconds"),
         "task": task_id,
         "bytes": reclaimed,
-        # Nothing archived by this close — only tmp/ (discarded) and
-        # re-downloadable in/ files (already covered by SOURCES.txt) were
-        # ever removed here. dest/md5 stay empty; they describe a COLD
-        # archive destination, which is out of this tool's scope (brief).
-        "dest": "",
-        "md5": "",
+        # Populated from a verified work_archive.archive() above; otherwise
+        # nothing archived by this close (only tmp/, discarded, and
+        # re-downloadable in/ files already covered by SOURCES.txt were
+        # removed), so dest/md5 stay empty.
+        "dest": archived["dest"] if archived else "",
+        "md5": archived["md5"] if archived else "",
         "by": by or os.environ.get("WORKER_CTO_ID") or getpass.getuser(),
     }
     root_dir = _resolve_root(root)
@@ -337,6 +365,8 @@ def _cli(argv: list[str]) -> int:
     p_close.add_argument("task_id")
     p_close.add_argument("--dry-run", action="store_true")
     p_close.add_argument("--root", default=None)
+    p_close.add_argument("--archive", action="store_true",
+                         help="cold-archive unfiled in/out files to Drive BACKUP/ instead of leaving them")
 
     p_orphans = sub.add_parser("orphans", help="folders whose task is over (read-only)")
     p_orphans.add_argument("--db", default=None,
@@ -359,7 +389,8 @@ def _cli(argv: list[str]) -> int:
         return 1
 
     if args.cmd == "close":
-        result = close(args.task_id, dry_run=args.dry_run, root=args.root)
+        result = close(args.task_id, dry_run=args.dry_run, root=args.root,
+                       archive=args.archive)
         _print_json(result)
         return 0 if result.get("closed") else 1
 
