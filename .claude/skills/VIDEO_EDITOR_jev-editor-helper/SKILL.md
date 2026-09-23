@@ -121,8 +121,8 @@ fall below the no-Jev baseline.
 
 | | definition |
 |---|---|
-| metric | editor tokens per minute of finished video, MEASURED from the editor task transcripts (input + output + cache, all of it). Everything Jev adds is charged to Jev: plan, freeze, final, up-skill, re-eval |
-| baseline | median of BL52-BL55 (tasks b2d369ed, f52b76c4, 1499ecd7, 52c669bb), cut without Jev. The scoreboard stores it as the `BASELINE` row |
+| metric | **primary: editor NEW-work tokens per minute of finished video** = input + output + cache-write, MEASURED from the editor task transcripts (deduplicated by message id). Secondary, always reported beside it: the total including cache reads. On BL55, cache reads were 98.3 % of the total (54.5 M of 55.5 M), so judging on the total would drown the signal. Everything Jev adds is charged to Jev: plan, freeze, final, up-skill, re-eval |
+| baseline | **BL55 only (task-52c669bb, n=1): 969,238 new-work tokens = 436,823 / video-min** (total incl. cache 24,999,576 / min). It was cut without Jev, with the same method EP57 uses. The BL52-BL54 editor transcripts are no longer on the Mac, so they cannot be measured and are not estimated. The scoreboard stores this as the `BASELINE` row, marked n=1 |
 | units | the first four Jev episodes, EP57-EP60. EP57-58 may sit above the baseline (the editor does two jobs at first) and are not judged alone |
 | **pass** | the mean of EP59-EP60 is ≤ baseline, AND the EP57→EP60 series trends down, AND `jev_wrong_at_gate` totals 0, AND `jev_applied_pct` rises across the four |
 | **fail** | the mean of EP59-EP60 is > baseline, OR `jev_wrong_at_gate` ≥ 2 in total |
@@ -293,3 +293,4 @@ episode are in RUNLOG.md.
 ## Field notes
 - 2026-09-23 [MISSING] §who decides — the CEO ruled Jev decides only at ≥0.95 on a site with a measured gate; everything else goes to the editor, and editor decisions become new labels · evidence: CEO ruling 2026-09-23 after the eval (bl.beat th 42 %, bl.entry 62.5 %) · status: promoted
 - 2026-09-23 [MISSING] §goal — the skill had no goal or kill test; the CEO set it (save measured AI tokens, or the hypothesis failed), pre-registered here and in IRON §57 · evidence: CEO ruling 2026-09-23 23:18-23:20, Agents-Rules 8a9cfc2 · status: promoted
+- 2026-09-23 [WRONG] §goal and test — the first pre-registration judged on total tokens incl. cache reads over a BL52-55 median. Measurement showed cache reads are 98.3 % of the total and only BL55's transcript survives. Changed BEFORE any EP57 result: the primary metric is new-work tokens/min, the baseline is BL55 n=1 (436,823/min) · evidence: task-161643f7 scoreboard, the CTO's own dedup count of task-52c669bb · status: promoted
