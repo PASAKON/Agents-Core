@@ -108,3 +108,55 @@ somewhere a human or a future CTO check-in can read it — this task does not
 wire up a push/alert path (LINE, LungNote, etc.) for a stopped run; that is a
 follow-up decision, not assumed here. Not installed this task, per the brief
 ("Propose, but do NOT install").
+
+## Step 4 — `tools/bl_tiktok_cta.py`: BUILT, unverified against the live DOM (task-8df13432)
+
+The CTA-loop decision engine on top of Step 3's watcher: per the CEO's
+verbatim flow, checks whether a commenter can be DM'd directly and either
+sends the deliverable + confirms on the comment, or invites them to DM us;
+tracks who DM'd us from which episode in `state/bl-tiktok/cta.sqlite`
+(contacts / questions / action_log / planned_actions tables); a general-chat
+fallback for unrecognized DMs is a **stub only** (logged + surfaced in the
+summary — the model/cost for real auto-chat is a later CEO decision).
+
+**Shadow mode is the default and this task never runs `--live`.** Every
+decision is written to `planned_actions` and the run summary
+("would DM @handle: ...", "would invite @handle: ..."); the two outward
+adapters (`send_dm`, `reply_comment`) are only ever called under `--live`,
+capped at `--cap` (default 10) actions/day with a randomized human-pace
+delay. Every outgoing text is checked against the reply pack's `never_say`
+list and "no URL except the ones already in the pack" before it is planned
+or sent — a failed check blocks the action and logs why.
+
+Reply packs are read-only here, written by task-6cc24a28 at
+`prototypes/bl-reply-packs/EP<n>.yaml` (schema: `episode`, `video_id`,
+`cta.keyword`/`variants`/`deliverable`/`dm_message`/`comment_reply_dm_sent`/
+`comment_reply_dm_invite`, `never_say`, `escalate_to_human`).
+
+22 unit tests pass against fake adapters and fixture packs
+(`tests/test_bl_tiktok_cta.py`, `tests/fixtures/bl_tiktok_cta/`): keyword
+matching incl. Thai spelling drift (เช็ค/เช็ก, โบรค/โบรก, extra spaces,
+emoji), every state-machine path (DM-able / not-DM-able / known-contact DM /
+unknown-sender DM / repeat comment → no double delivery), the never_say/URL
+guard, the daily cap, and shadow mode never touching `send_dm`/`reply_comment`.
+
+**What is NOT verified, because no logged-in session was reachable (same
+blocker as Step 3):**
+- `can_dm(handle)` — guessed as "open `https://www.tiktok.com/@<handle>` and
+  look for `button[data-e2e="message-button"]`"; TikTok's Business Messaging
+  rules (`prototypes/bl-reply-bot/RESEARCH.md`) suggest a commenter who never
+  messaged first is usually not DM-able, but the actual button/selector is
+  unconfirmed.
+- `send_dm(handle, text)` — guessed selectors
+  `div[data-e2e="message-input-area"]` / `[data-e2e="message-send-button"]`.
+- `reply_comment(comment_id, text)` — guessed selectors keyed off
+  `[data-comment-id="…"]` with `comment-reply` / `comment-reply-input` /
+  `comment-reply-submit` sub-elements; TikTok Studio's real comment-list DOM
+  has never been opened by this account.
+
+The first live check must be the same human-watched dry pass as Step 3: open
+TikTok Studio's comment list and a commenter's profile with devtools open,
+confirm the real selectors, and correct the three methods on
+`BLTikTokCTABrowser` (`tools/bl_tiktok_cta.py`). Everything above that class —
+matching, safety checks, the state machine, the cap, the summary — does not
+need to change regardless of what that correction finds.

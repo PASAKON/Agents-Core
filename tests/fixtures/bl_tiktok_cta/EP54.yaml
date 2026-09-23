@@ -1,0 +1,23 @@
+episode: EP54
+video_id: "7291000000000000001"
+cta:
+  keyword: เช็ครีเบต
+  variants:
+    - เช็คโบรค
+    - เช็กโบรก
+    - check rebate
+  deliverable:
+    title: "EP54 rebate checklist"
+    text_file: "ep54-rebate-checklist.txt"
+    image: null
+  dm_message: >-
+    สวัสดีครับ นี่คือไฟล์เช็ครีเบตของ EP54 ตามที่คอมเมนต์ไว้ครับ
+    https://drive.google.com/ep54-rebate
+  comment_reply_dm_sent: "ขออนุญาตส่งข้อความให้ทาง Inbox นะครับ"
+  comment_reply_dm_invite: "บัญชีนี้ทักหาเราทาง Inbox ได้เลยนะครับ เดี๋ยวส่งไฟล์ให้ครับ"
+never_say:
+  - รับประกันกำไร
+  - การันตีผลตอบแทน
+escalate_to_human:
+  - ขอคืนเงิน
+  - ฟ้องร้อง
