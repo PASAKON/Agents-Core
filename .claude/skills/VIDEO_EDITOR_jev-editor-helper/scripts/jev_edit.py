@@ -36,7 +36,9 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
@@ -131,7 +133,7 @@ def _row(
     line_id: str, question: str, *, status: str, choice=None, confidence=None,
     needs_review=None, provider=None, cost_usd=0.0, ledger_id=None,
     writer_beat=None, disagreement=False, skip_reason=None, context=None,
-    candidate_map=None,
+    candidate_map=None, state_lang=None,
 ) -> dict:
     return {
         "line_id": line_id, "question": question, "status": status,
@@ -139,6 +141,7 @@ def _row(
         "provider": provider, "cost_usd": cost_usd, "ledger_id": ledger_id,
         "writer_beat": writer_beat, "disagreement": disagreement,
         "skip_reason": skip_reason, "context": context, "candidate_map": candidate_map,
+        "state_lang": state_lang,
     }
 
 
@@ -198,7 +201,7 @@ def plan_episode(
             line.tag, "bl.beat", status="answered", choice=beat_choice, confidence=conf,
             needs_review=lib.needs_review(beat_choice, conf, gate), provider=d.provider,
             cost_usd=d.cost_usd, ledger_id=d.ledger_id, writer_beat=line.beat or None,
-            disagreement=disagreement, context=context,
+            disagreement=disagreement, context=context, state_lang=state_lang,
         ))
         this_mode = lib.mode_for_beat(beat_choice)
 
@@ -226,6 +229,7 @@ def plan_episode(
                     line.tag, "bl.focus_device", status="answered", choice=focus_device_choice,
                     confidence=conf3, needs_review=lib.needs_review(focus_device_choice, conf3, gate),
                     provider=d3.provider, cost_usd=d3.cost_usd, ledger_id=d3.ledger_id, context=context,
+                    state_lang=state_lang,
                 ))
             except BudgetExceeded as e:
                 rows.append(_row(line.tag, "bl.focus_device", status="skipped", skip_reason=str(e), context=context))
@@ -438,6 +442,363 @@ def cmd_storyboard(args: argparse.Namespace) -> int:
     return 0
 
 
+# ─────────────────────────────────────────── Jev up-skill scoreboard (§57) ─
+# freeze / final / score / report / seed-ref1300 / baseline — task-161643f7.
+
+SCOREBOARD_DIR = ROOT / "prototypes" / "bl-jev-scoreboard"
+SCOREBOARD_JSONL = SCOREBOARD_DIR / "scoreboard.jsonl"
+SCOREBOARD_MD = SCOREBOARD_DIR / "SCOREBOARD.md"
+SITE_YAML_DIR = ROOT / "config" / "decisions"
+DEFAULT_PROJECTS_DIR = Path.home() / ".claude" / "projects"
+
+
+def _iso_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _read_jsonl(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    out = []
+    with path.open(encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                out.append(json.loads(line))
+    return out
+
+
+def _write_jsonl(path: Path, rows: list[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
+
+
+def _append_jsonl(path: Path, row: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
+
+
+def _git_output(*args: str) -> str:
+    try:
+        result = subprocess.run(
+            ["git", *args], cwd=ROOT, capture_output=True, text=True, timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    return (result.stdout or "").strip()
+
+
+def _current_site_yaml_sha() -> str:
+    """The committed-state fingerprint `freeze`/`score` compare against —
+    the latest commit touching any `config/decisions/bl.*.yaml` file, plus
+    a `:dirty` suffix if one of them has uncommitted changes right now
+    (catches a criteria edit that was never committed at all)."""
+    paths = sorted(str(p.relative_to(ROOT)) for p in SITE_YAML_DIR.glob("bl.*.yaml"))
+    if not paths:
+        return "no-site-yamls"
+    commit_sha = _git_output("log", "-1", "--format=%H", "--", *paths) or "uncommitted"
+    dirty = _git_output("status", "--porcelain", "--", *paths)
+    return f"{commit_sha}:dirty" if dirty else commit_sha
+
+
+def _all_ledger_rows() -> list[dict]:
+    decisions_dir = ROOT / "state" / "decisions"
+    out: list[dict] = []
+    if not decisions_dir.exists():
+        return out
+    for path in decisions_dir.glob("*.jsonl"):
+        try:
+            for line in path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                out.append(json.loads(line))
+        except (OSError, json.JSONDecodeError):
+            continue
+    return out
+
+
+def cmd_freeze(args: argparse.Namespace) -> int:
+    decisions_path = Path(args.decisions)
+    rows = _read_jsonl(decisions_path)
+    if not rows:
+        print(f"no decision rows in {decisions_path}", file=sys.stderr)
+        return 1
+    stamp = lib.build_frozen_stamp(str(decisions_path), rows, _current_site_yaml_sha(), _iso_now())
+    frozen_path = lib.frozen_path_for(decisions_path)
+    frozen_path.write_text(json.dumps(stamp, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"froze {len(rows)} rows -> {frozen_path} (site_yaml_sha={stamp['site_yaml_sha']})")
+    return 0
+
+
+def _apply_final(rows: list[dict], line_id: str, question: str, choice: str) -> bool:
+    for r in rows:
+        if r.get("line_id") == line_id and r.get("question") == question:
+            rec = lib.final_call_record(question, r.get("state_lang"), r.get("choice"), r.get("confidence"), choice)
+            r["final"] = choice
+            r["applied_by"] = rec["applied_by"]
+            r["jev_wrong_at_gate"] = rec["jev_wrong_at_gate"]
+            return True
+    return False
+
+
+def cmd_final(args: argparse.Namespace) -> int:
+    decisions_path = Path(args.decisions)
+    rows = _read_jsonl(decisions_path)
+    if not rows:
+        print(f"no decision rows in {decisions_path}", file=sys.stderr)
+        return 1
+
+    calls: list[tuple[str, str, str]] = []
+    if args.tsv:
+        calls.extend((r["line_id"], r["question"], r["choice"]) for r in lib.parse_final_tsv(Path(args.tsv)))
+    if args.line_id:
+        if not args.question or args.choice is None:
+            print("final: line_id given without question/choice", file=sys.stderr)
+            return 2
+        calls.append((args.line_id, args.question, args.choice))
+    if not calls:
+        print("final: nothing to record (pass line_id question choice, or --tsv)", file=sys.stderr)
+        return 2
+
+    applied = 0
+    not_found: list[str] = []
+    for line_id, question, choice in calls:
+        if _apply_final(rows, line_id, question, choice):
+            applied += 1
+        else:
+            not_found.append(f"{line_id}/{question}")
+
+    _write_jsonl(decisions_path, rows)
+    print(f"final: {applied}/{len(calls)} recorded -> {decisions_path}")
+    if not_found:
+        print(f"not found in decisions.jsonl: {', '.join(not_found)}", file=sys.stderr)
+    return 0 if not not_found else 1
+
+
+def _find_transcripts_for_task(task_id: str, projects_dir: Path) -> list[Path]:
+    """`~/.claude/projects/*<task_id>*/*.jsonl` — robust to the repo's
+    2026-09-23 path rename (old slugs `-Users-gob-Projects-Agents-...`, new
+    ones `-Users-gob-MoonieXHQ-Agents-Core-...`, both contain the task id)."""
+    if not projects_dir.exists():
+        return []
+    return sorted(projects_dir.glob(f"*{task_id}*/*.jsonl"))
+
+
+def _iter_transcript_usage_records(paths: list[Path]):
+    """Streams `{"message": {"id", "usage"}}` records only — never
+    materializes a full transcript line (tool output/file content can be
+    huge; a 31MB real transcript was seen, task-52c669bb)."""
+    for path in paths:
+        with path.open(encoding="utf-8", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                msg = d.get("message")
+                if not isinstance(msg, dict):
+                    continue
+                usage = msg.get("usage")
+                if not usage:
+                    continue
+                yield {"message": {"id": msg.get("id"), "usage": usage}}
+
+
+def _editor_usage_for_tasks(task_ids: list[str], projects_dir: Path) -> dict:
+    all_paths: list[Path] = []
+    missing_tasks: list[str] = []
+    for tid in task_ids:
+        paths = _find_transcripts_for_task(tid, projects_dir)
+        if not paths:
+            missing_tasks.append(tid)
+        all_paths.extend(paths)
+    usage = lib.sum_transcript_usage(list(_iter_transcript_usage_records(all_paths)))
+    return {"usage": usage, "missing_tasks": missing_tasks, "transcript_count": len(all_paths)}
+
+
+def _scoreboard_paths(args: argparse.Namespace) -> tuple[Path, Path]:
+    d = Path(args.scoreboard_dir) if getattr(args, "scoreboard_dir", None) else SCOREBOARD_DIR
+    return d / "scoreboard.jsonl", d / "SCOREBOARD.md"
+
+
+def cmd_score(args: argparse.Namespace) -> int:
+    scoreboard_jsonl, _ = _scoreboard_paths(args)
+    decisions_path = Path(args.decisions)
+    rows = _read_jsonl(decisions_path)
+    if not rows:
+        print(f"no decision rows in {decisions_path}", file=sys.stderr)
+        return 1
+
+    frozen_path = lib.frozen_path_for(decisions_path)
+    frozen = json.loads(frozen_path.read_text(encoding="utf-8")) if frozen_path.exists() else None
+    try:
+        lib.check_frozen(frozen, rows, _current_site_yaml_sha())
+    except lib.FreezeError as e:
+        print(f"score refused: {e}", file=sys.stderr)
+        return 3
+
+    timings = lib.parse_line_timings(Path(args.timings)) if args.timings else {}
+    frames = lib.jev_beat_frames(rows, timings)
+    summary = lib.applied_summary(rows)
+    raw_acc = lib.raw_accuracy_by_site(rows)
+    wrong = lib.count_jev_wrong_at_gate(rows)
+
+    ledger_by_id = lib.index_ledger_by_id(_all_ledger_rows())
+    spend = lib.jev_spend_and_tokens(rows, ledger_by_id)
+
+    counterfactual_tokens_total = 0.0
+    site_cfg_cache: dict[str, dict] = {}
+    for r in rows:
+        if r.get("applied_by") != "jev":
+            continue
+        led = ledger_by_id.get(r.get("ledger_id"))
+        if not led:
+            continue
+        q = r.get("question")
+        if q not in site_cfg_cache:
+            try:
+                site_cfg_cache[q] = decide_mod.load_site(q)
+            except decide_mod.DecisionError:
+                site_cfg_cache[q] = {}
+        ct = lib.counterfactual_tokens(site_cfg_cache[q], int(led.get("state_chars") or 0))
+        counterfactual_tokens_total += ct["tokens_total"]
+
+    editor_new_tpm = None
+    editor_total_tpm = None
+    editor_usage = None
+    missing_editor_tasks: list[str] = []
+    if args.editor_task:
+        task_ids = [t.strip() for t in args.editor_task.split(",") if t.strip()]
+        result = _editor_usage_for_tasks(task_ids, Path(args.projects_dir))
+        editor_usage = result["usage"]
+        missing_editor_tasks = result["missing_tasks"]
+        video_seconds = lib.video_duration_seconds(timings)
+        editor_new_tpm = lib.tokens_per_video_minute(lib.new_work_tokens(editor_usage), video_seconds)
+        editor_total_tpm = lib.tokens_per_video_minute(editor_usage["total"], video_seconds)
+
+    row = {
+        "episode": args.episode,
+        "kind": "cut",
+        "scored_at": _iso_now(),
+        "decisions_total": summary["decisions_total"],
+        "jev_applied": summary["jev_applied"],
+        "jev_applied_pct": summary["jev_applied_pct"],
+        "jev_seconds": frames["jev_seconds"],
+        "jev_frames": frames["jev_frames"],
+        "jev_raw_accuracy": raw_acc,
+        "jev_wrong_at_gate": wrong,
+        "jev_usd": spend["jev_usd"],
+        "jev_tokens": spend["jev_tokens"],
+        "counterfactual_usd": spend["counterfactual_usd"],
+        "counterfactual_tokens": counterfactual_tokens_total,
+        "net_saved_usd": spend["counterfactual_usd"] - spend["jev_usd"],
+        "editor_new_tokens_per_video_min": editor_new_tpm,
+        "editor_total_tokens_per_video_min": editor_total_tpm,
+        "editor_usage": editor_usage,
+        "editor_task": args.editor_task,
+        "site_yaml_sha": frozen.get("site_yaml_sha") if frozen else None,
+        "missing_beat_timing_tags": frames["missing_tags"],
+        "missing_ledger_ids": spend["missing_ledger_ids"],
+        "missing_editor_tasks": missing_editor_tasks,
+    }
+    _append_jsonl(scoreboard_jsonl, row)
+    print(
+        f"score: {row['episode']} decisions={row['decisions_total']} "
+        f"jev_applied={row['jev_applied']} ({row['jev_applied_pct']:.1f}%) "
+        f"frames={row['jev_frames']} jev_usd=${row['jev_usd']:.6f} "
+        f"net_saved(est)=${row['net_saved_usd']:.6f} "
+        f"wrong_at_gate={row['jev_wrong_at_gate']} -> {scoreboard_jsonl}"
+    )
+    if row["missing_beat_timing_tags"]:
+        print(f"WARNING: no timing for bl.beat lines: {row['missing_beat_timing_tags']}", file=sys.stderr)
+    if missing_editor_tasks:
+        print(f"WARNING: no transcript found for editor tasks: {missing_editor_tasks}", file=sys.stderr)
+    return 0
+
+
+def cmd_seed_ref1300(args: argparse.Namespace) -> int:
+    scoreboard_jsonl, _ = _scoreboard_paths(args)
+    rows = _read_jsonl(scoreboard_jsonl)
+    if any(r.get("episode") == "REF-1300" for r in rows):
+        print("REF-1300 already seeded, skipping (idempotent)")
+        return 0
+    _append_jsonl(scoreboard_jsonl, lib.REF_1300_ROW)
+    print(f"seeded REF-1300 -> {scoreboard_jsonl}")
+    return 0
+
+
+def cmd_baseline(args: argparse.Namespace) -> int:
+    scoreboard_jsonl, _ = _scoreboard_paths(args)
+    episodes_in = lib.parse_baseline_episodes_tsv(Path(args.episodes))
+    if not episodes_in:
+        print(f"no episodes parsed from {args.episodes}", file=sys.stderr)
+        return 1
+
+    resolved = []
+    for ep in episodes_in:
+        paths = _find_transcripts_for_task(ep["task_id"], Path(args.projects_dir))
+        duration = ep.get("duration_seconds")
+        missing = []
+        if not paths:
+            missing.append("transcript")
+        if duration is None:
+            missing.append("duration")
+        new_tpm = total_tpm = None
+        usage = None
+        if not missing:
+            usage = lib.sum_transcript_usage(list(_iter_transcript_usage_records(paths)))
+            new_tpm = lib.tokens_per_video_minute(lib.new_work_tokens(usage), duration)
+            total_tpm = lib.tokens_per_video_minute(usage["total"], duration)
+        resolved.append({
+            "episode": ep["episode"], "task_id": ep["task_id"], "duration_seconds": duration,
+            "editor_new_tokens_per_video_min": new_tpm,
+            "editor_total_tokens_per_video_min": total_tpm,
+            "usage": usage, "missing": ",".join(missing) or None,
+        })
+
+    baseline_row = lib.build_baseline_row(resolved)
+    others = [r for r in _read_jsonl(scoreboard_jsonl) if r.get("kind") != "baseline"]
+    _write_jsonl(scoreboard_jsonl, [baseline_row] + others)
+
+    print(
+        f"baseline: n={baseline_row['n_measured']} (of {baseline_row['n_total']} listed) — "
+        f"new tok/min (primary) = {baseline_row['editor_new_tokens_per_video_min']}, "
+        f"total tok/min (secondary) = {baseline_row['editor_total_tokens_per_video_min']} -> {scoreboard_jsonl}"
+    )
+    for e in resolved:
+        status = (
+            f"MISSING ({e['missing']})" if e["missing"]
+            else f"{e['editor_new_tokens_per_video_min']:.0f} new / {e['editor_total_tokens_per_video_min']:.0f} total tok/min"
+        )
+        print(f"  {e['episode']} ({e['task_id']}): {status}")
+    return 0
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    scoreboard_jsonl, scoreboard_md = _scoreboard_paths(args)
+    rows = _read_jsonl(scoreboard_jsonl)
+    if not rows:
+        print(f"no rows in {scoreboard_jsonl} — run seed-ref1300/score first", file=sys.stderr)
+        return 1
+
+    cut_rows = [r for r in rows if r.get("kind") == "cut"]
+    baseline_rows = [r for r in rows if r.get("kind") == "baseline"]
+    baseline_tpm = baseline_rows[-1].get("editor_new_tokens_per_video_min") if baseline_rows else None
+    verdict = lib.evaluate_hypothesis(cut_rows, baseline_tpm)
+
+    scoreboard_md.parent.mkdir(parents=True, exist_ok=True)
+    scoreboard_md.write_text(lib.render_scoreboard_md(rows, verdict), encoding="utf-8")
+    print(f"report: {len(rows)} rows -> {scoreboard_md} ({lib.hypothesis_line(verdict)})")
+    return 0
+
+
 # ──────────────────────────────────────────────────────────────────── eval
 # Ground truth is prototypes/bl-ref-census/groundtruth.tsv's shape
 # (task-82380776), not a tag/question/expected/state file someone hand-
@@ -613,6 +974,35 @@ def main(argv: list[str]) -> int:
     p_eval.add_argument("--max-calls", type=int, default=EVAL_MAX_CALLS)
     p_eval.add_argument("--max-usd", type=float, default=_remaining_task_budget_usd())
 
+    p_freeze = sub.add_parser("freeze")
+    p_freeze.add_argument("decisions")
+
+    p_final = sub.add_parser("final")
+    p_final.add_argument("decisions")
+    p_final.add_argument("line_id", nargs="?")
+    p_final.add_argument("question", nargs="?")
+    p_final.add_argument("choice", nargs="?")
+    p_final.add_argument("--tsv", default=None, help="bulk form: line_id\\tquestion\\tchoice per row")
+
+    p_score = sub.add_parser("score")
+    p_score.add_argument("decisions")
+    p_score.add_argument("--timings", default=None, help="tag\\tt0\\tt1 TSV, the episode's line timings")
+    p_score.add_argument("--episode", required=True)
+    p_score.add_argument("--editor-task", default=None, help="task-XXXX[,task-YYYY] — editor session(s) to sum real token usage from")
+    p_score.add_argument("--projects-dir", default=str(DEFAULT_PROJECTS_DIR))
+    p_score.add_argument("--scoreboard-dir", default=None, help="override prototypes/bl-jev-scoreboard (testing)")
+
+    p_seed = sub.add_parser("seed-ref1300")
+    p_seed.add_argument("--scoreboard-dir", default=None)
+
+    p_baseline = sub.add_parser("baseline")
+    p_baseline.add_argument("episodes", help="episode\\ttask_id\\tduration_seconds TSV")
+    p_baseline.add_argument("--projects-dir", default=str(DEFAULT_PROJECTS_DIR))
+    p_baseline.add_argument("--scoreboard-dir", default=None)
+
+    p_report = sub.add_parser("report")
+    p_report.add_argument("--scoreboard-dir", default=None)
+
     args = parser.parse_args(argv)
     if args.cmd == "plan":
         return cmd_plan(args)
@@ -620,6 +1010,18 @@ def main(argv: list[str]) -> int:
         return cmd_storyboard(args)
     if args.cmd == "eval":
         return cmd_eval(args)
+    if args.cmd == "freeze":
+        return cmd_freeze(args)
+    if args.cmd == "final":
+        return cmd_final(args)
+    if args.cmd == "score":
+        return cmd_score(args)
+    if args.cmd == "seed-ref1300":
+        return cmd_seed_ref1300(args)
+    if args.cmd == "baseline":
+        return cmd_baseline(args)
+    if args.cmd == "report":
+        return cmd_report(args)
     return 1
 
 

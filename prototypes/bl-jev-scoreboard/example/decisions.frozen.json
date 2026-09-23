@@ -1,0 +1,7 @@
+{
+  "decisions_path": "prototypes/bl-jev-scoreboard/example/decisions.jsonl",
+  "decisions_sha256": "d8cafa8ed755de255fbe5ccfb93c02ebee5f9ae9cf46d8c8333fc91a4a98e182",
+  "frozen_at": "2026-09-23T16:48:52+00:00",
+  "row_count": 7,
+  "site_yaml_sha": "38a3347af2b06438bdc88577efac3795bc95d98f"
+}
