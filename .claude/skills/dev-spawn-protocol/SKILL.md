@@ -133,6 +133,17 @@ looks right", "explore", "and report anything interesting".
 - DEV must echo-ack before doing real work.
 - No silent spawns. Memory: IRON-RULES §29.
 
+### 5b. Check the pane for the folder-trust prompt right after spawn
+Until GH #161 is fixed, a worktree under the moved `~/MoonieXHQ/Agents/Core/worktrees/`
+is not covered by Core's trust entry, so Claude opens on "Accessing workspace …
+❯ No, exit / Yes, I trust this folder" — and the kickoff wake's Enter picks
+**No, exit**. The worker claims the task, then dies with no transcript.
+Within ~10 s of `delegate_task`, `tmux capture-pane -p -t wd-<id> | grep -q "trust this folder"`;
+if it matches, send `Down` then `Enter`. If it already died: reset the row
+(`status='pending', pid=NULL, assigned_agent=NULL`), respawn in tmux with
+`remain-on-exit on`, and do the same. Promoted from a field note on two runs
+(task-77a2e043, task-94755874).
+
 ## During
 
 ### 6. GH issue on every blocker
@@ -258,7 +269,7 @@ re-introducing heartbeats.
 - 2026-09-22 [MISSING] §3c.9 — a line typed into a worker's tmux pane that wraps past one screen line is never submitted: Enter is eaten and the text sits in the input box ("Press up to edit queued messages" when the worker is mid-turn). Keep the pane message under ~100 chars and put the substance in a worktree file · evidence: two workers the same evening (ad534f86, df0541aa), both fixed by C-u + a short line · status: pending
 - 2026-09-22 [MISSING] §2 — a worktree is cut from LOCAL main; if the brief says "X merged <sha>" and the file is missing, `git rev-parse main origin/main HEAD` and `git merge main` — `git status`'s "up to date with origin/main" is about the tracking ref, not about the file · evidence: task-a6129a75 (local main 8 ahead at spawn, tools/decide.py absent in the worktree) · status: pending
 - 2026-09-22 [MISSING] §Failure modes — a remote spawn refused with `GITHUB_SSH_ROUTE=unreachable` is a network reading from **winbox → github.com**, outbound. Re-probe it live before changing anything: `ssh winbox "git ls-remote --exit-code git@github.com:PASAKON/MoonieX-Agents.git HEAD"`. Tailscale SSH (`tailscale set --ssh=false`) governs INBOUND ssh to a tailnet node and cannot cause this. 11 spawns failed this way 11-12 Sep; on 22 Sep ports 22 and 443 both answered and ls-remote returned HEAD in one call, so it was transient, not config · evidence: state/logs/cto-e1e3d3ef.log lines 4-53, task-0ae3acc9 · status: pending
-- 2026-09-23 [MISSING] §6b — a worker that dies seconds after spawn with NO transcript, on a repo that was just moved (HQ migration), is Claude's folder-trust prompt: the default is "No, exit" and the kickoff/wake Enter confirms it. Reproduce by running spawn-worker.sh in a tmux pane with `remain-on-exit on`; recover with Down+Enter in the pane · evidence: task-77a2e043, GH #161 · status: pending
+- 2026-09-23 [MISSING] §6b — a worker that dies seconds after spawn with NO transcript, on a repo that was just moved (HQ migration), is Claude's folder-trust prompt: the default is "No, exit" and the kickoff/wake Enter confirms it. Reproduce by running spawn-worker.sh in a tmux pane with `remain-on-exit on`; recover with Down+Enter in the pane · evidence: task-77a2e043, GH #161; second run task-94755874 agreed 2026-09-23, promoted to §5b · status: promoted
 - 2026-09-23 [MISSING] §6b — resetting a dead task to pending must also clear `assigned_agent`: `db.claim_task` requires it NULL, so every re-delegate dies with "could not claim task" in ~6 s while the MCP `delegate_task` returns the row as if it spawned · evidence: task-77a2e043 · status: pending
 - 2026-09-23 [MISSING] §3c.9 — after a queued message is consumed, the NEXT line typed into an idle worker can sit unsubmitted in the input box: `send-keys Enter` twice did nothing, and `send-keys C-m` submitted it. The line was 78 chars, so this is not the wrap case. Always capture the pane after sending; if the text is still on the `❯` line, send C-m · evidence: task-77a2e043, 8 min idle 03:21–03:29 · status: pending
 - 2026-09-23 [COSTLY] §before delegate — a C-level whose delegate emits "imported delegate.py … still running the OLD code" does not have that day's disk floor or sparse worktrees: three spawns at 14:29 made three full 882 MB checkouts and free space fell 11 → 3.4 GB (red). When that warning appears: restart the session before spawning, or at least run `df -h /` first and spawn nothing under 10 GB free · evidence: tasks abc20690/44963fee/74ad48db, df 14:30 · status: pending
