@@ -1,0 +1,126 @@
+[
+  {
+    "file": "third-party/wikifx-xxlmarkets-review.jpg",
+    "kind": "still",
+    "covers": [
+      "HOOK-3",
+      "MAIN-8"
+    ],
+    "source_url": "https://www.wikifx.com/th/",
+    "captured_at": "2026-09-23T00:00:00+07:00",
+    "seconds": 0,
+    "censored": [],
+    "credit": "ขอบคุณภาพจาก WikiFX",
+    "note": "third-party artwork given by the CEO in chat 2026-09-23, not captured by us -- see third-party/SOURCES.md. Uncensored per blackliquidity-cut SKILL.md §6e (WikiFX's own published card); carries the credit on the image plate, top-left, per the same section.",
+    "evidence_box": [
+      {"x": 100, "y": 260, "w": 870, "h": 140, "proves": "HOOK-3 headline: เว็บเข้าไม่ได้ แถมไร้หน่วยงานคุ้มครอง"},
+      {"x": 35, "y": 605, "w": 700, "h": 290, "proves": "MAIN-8: score 1.99/10 + subscore radar chart (กำกับดูแล 2.69, เทคโนโลยี 4.54, การควบคุมความเสี่ยง 2.79, ชื่อเสียง 3.51, สภาพแวดล้อม 6.31)"}
+    ],
+    "evidence_box_source": "measured (image is a static third-party JPG with no DOM; boxes eyeballed on the full-resolution 1080x1350 file)"
+  },
+  {
+    "file": "real/wikifx-profile-website-inaccessible.png",
+    "kind": "still",
+    "covers": [
+      "PATTERN-1"
+    ],
+    "source_url": "https://www.wikifx.com/th/dealer/3697715948.html",
+    "captured_at": "2026-09-23T21:57:16+07:00",
+    "seconds": 0,
+    "censored": [
+      {
+        "what": "reviewer avatar + username",
+        "rule": "full"
+      }
+    ],
+    "evidence_box": [
+      {"x": 140, "y": 900, "w": 880, "h": 120, "proves": "the Note line: XXLMARKETS' website https://xxlmarkets.com/ ไม่สามารถเข้าถึงได้อย่างปกติในขณะนี้"}
+    ],
+    "evidence_box_source": "measured (crop anchored on this exact text via a DOM text match, but the tool does not export the matched element's box; boxed by eye on the full-resolution still)"
+  },
+  {
+    "file": "real/wikifx-profile-no-license.png",
+    "kind": "still",
+    "covers": [
+      "CONTEXT-1"
+    ],
+    "source_url": "https://www.wikifx.com/th/dealer/3697715948.html",
+    "captured_at": "2026-09-23T21:57:31+07:00",
+    "seconds": 0,
+    "censored": [],
+    "evidence_box": [
+      {"x": 130, "y": 800, "w": 790, "h": 370, "proves": "ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์ โปรดตระหนักถึงความเสี่ยง (icon + text block)"}
+    ],
+    "evidence_box_source": "measured (text-anchor crop, box read by eye on the full-resolution still)"
+  },
+  {
+    "file": "real/wikifx-profile-no-regulation.png",
+    "kind": "still",
+    "covers": [
+      "CONTEXT-2"
+    ],
+    "source_url": "https://www.wikifx.com/th/dealer/3697715948.html",
+    "captured_at": "2026-09-23T21:57:39+07:00",
+    "seconds": 0,
+    "censored": [],
+    "evidence_box": [
+      {"x": 130, "y": 20, "w": 900, "h": 400, "proves": "คำเตือน warning box: โบรกเกอร์นี้ไม่มีการกำกับดูแลฟอเร็กซ์ที่ถูกต้อง"}
+    ],
+    "evidence_box_source": "measured (text-anchor crop, box read by eye on the full-resolution still)"
+  },
+  {
+    "file": "real/wikifx-profile-score.png",
+    "kind": "still",
+    "covers": [
+      "CONTEXT-3",
+      "PATTERN-2"
+    ],
+    "source_url": "https://www.wikifx.com/th/dealer/3697715948.html",
+    "captured_at": "2026-09-23T22:10:09+07:00",
+    "seconds": 0,
+    "censored": [],
+    "evidence_box": [
+      {"x": 0, "y": 780, "w": 660, "h": 270, "proves": "CONTEXT-3: คะแนน 1.99/10 score box"},
+      {"x": 695, "y": 455, "w": 385, "h": 160, "proves": "PATTERN-2: header line สหราชอาณาจักร | 2-5ปี"}
+    ],
+    "evidence_box_source": "measured (selector-anchored crop, .head-l-score; box read by eye on the full-resolution still since the tool does not export the selector's own pixel box)"
+  },
+  {
+    "file": "real/wikifx-profile-warning-banner.png",
+    "kind": "still",
+    "covers": [
+      "MAIN-9",
+      "MAIN-10"
+    ],
+    "source_url": "https://www.wikifx.com/th/dealer/3697715948.html",
+    "captured_at": "2026-09-23T21:57:57+07:00",
+    "seconds": 0,
+    "censored": [],
+    "evidence_box": [
+      {"x": 320, "y": 440, "w": 750, "h": 100, "proves": "ใบอนุญาตในการกำกับดูแลกำลังถูกตั้งข้อสงสัย | กลุ่มธุรกิจที่ต้องสงสัย"}
+    ],
+    "evidence_box_source": "measured (text-anchor crop, box read by eye on the full-resolution still)"
+  },
+  {
+    "file": "real/whois-no-match.png",
+    "kind": "still",
+    "covers": [
+      "MAIN-3",
+      "CURIOSITY-2"
+    ],
+    "source_url": "https://who.is/whois/xxlmarkets.com",
+    "captured_at": "2026-09-23T22:05:44+07:00",
+    "seconds": 0,
+    "censored": [
+      {
+        "what": "unrelated product upsell (BotBuilt)",
+        "rule": "full"
+      }
+    ],
+    "evidence_box": [
+      {"x": 195, "y": 495, "w": 500, "h": 90, "proves": "domain title: xxlmarkets.com"},
+      {"x": 195, "y": 800, "w": 890, "h": 170, "proves": "We don't have a current record for xxlmarkets.com, but we hold 4 historical WHOIS/RDAP snapshots of it from 2022 to 2026"}
+    ],
+    "evidence_box_source": "measured (no DOM anchor used for this shot -- whole-page capture; boxes read by eye on the full-resolution still)"
+  }
+]
