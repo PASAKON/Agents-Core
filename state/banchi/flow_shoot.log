@@ -1,0 +1,471 @@
+2026-09-19T19:22:11  attached + muted, 1 row(s) to attempt
+2026-09-19T19:22:11  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-19T19:22:11  attached + muted, 1 row(s) to attempt
+2026-09-19T19:22:11  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-19T19:22:11  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-19T19:22:11  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-19T21:43:38  cannot attach to Chrome at http://127.0.0.1:9223: ModuleNotFoundError("No module named 'playwright'")
+2026-09-19T21:43:38  is scripts/flow/launch-chrome-debug.sh running, logged in, with the project tab open?
+2026-09-19T21:51:27  attached + muted, 1 row(s) to attempt
+2026-09-19T21:51:30    attach_chip(@nong_daeng): no matching .asset-item row
+2026-09-19T21:51:37  shot 35: needs_model — chip never attached: @nong_daeng
+2026-09-19T22:30:37  attached + muted, 1 row(s) to attempt
+2026-09-19T22:30:44    attach_chip(@nong_daeng): no matching .asset-item row
+2026-09-19T22:30:52  shot 35: needs_model — chip never attached: @nong_daeng
+2026-09-19T23:15:19  attached + muted, 1 row(s) to attempt
+2026-09-19T23:15:28    attach_chip(@nong_daeng) failed: TimeoutError('Locator.wait_for: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator("input[aria-label=\\"ค้นหา\\"]").first to be visible\n')
+2026-09-19T23:15:36  shot 35: needs_model — chip never attached: @nong_daeng
+2026-09-19T23:28:41  attached + muted, 1 row(s) to attempt
+2026-09-19T23:28:52    attach_chip(@nong_daeng): no matching row after picker search
+2026-09-19T23:29:00  shot 35: needs_model — chip never attached: @nong_daeng
+2026-09-22T20:10:56  attached + muted, 5 row(s) to attempt
+2026-09-22T20:11:56  shot 128: EXCEPTION TimeoutError('Locator.wait_for: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ทริกเกอร์การตั้งค่า\\"]").first to be visible\n')
+2026-09-22T20:12:56  shot 129: EXCEPTION TimeoutError('Locator.wait_for: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ทริกเกอร์การตั้งค่า\\"]").first to be visible\n')
+2026-09-22T20:13:57  shot 130: EXCEPTION TimeoutError('Locator.wait_for: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ทริกเกอร์การตั้งค่า\\"]").first to be visible\n')
+2026-09-22T20:14:57  shot 131: EXCEPTION TimeoutError('Locator.wait_for: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ทริกเกอร์การตั้งค่า\\"]").first to be visible\n')
+2026-09-22T20:15:57  shot 132: EXCEPTION TimeoutError('Locator.wait_for: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ทริกเกอร์การตั้งค่า\\"]").first to be visible\n')
+2026-09-22T20:17:33  attached + muted, 5 row(s) to attempt
+2026-09-22T20:17:40  CAP REACHED: spent=0 + estimate=12 > cap=0 — stopping the whole run
+2026-09-22T20:21:32  attached + muted, 5 row(s) to attempt
+2026-09-22T20:21:38  shot 128: submitted (attempt 1, est 12 credits)
+2026-09-22T20:23:30  shot 128: verified — 8.0s 1080x1920
+2026-09-22T20:23:37  shot 129: submitted (attempt 1, est 15 credits)
+2026-09-22T20:25:38  shot 129: verified — 10.0s 1080x1920
+2026-09-22T20:25:46  shot 130: submitted (attempt 1, est 10 credits)
+2026-09-22T20:26:58    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-22T20:28:13  shot 130: verified — 6.0s 1080x1920
+2026-09-22T20:28:20  shot 131: submitted (attempt 1, est 10 credits)
+2026-09-22T20:29:28    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T20:30:32  shot 131: verified — 6.0s 1080x1920
+2026-09-22T20:30:39  shot 132: submitted (attempt 1, est 10 credits)
+2026-09-22T20:32:22  shot 132: verified — 6.0s 1080x1920
+2026-09-22T20:32:44  attached + muted, 1 row(s) to attempt
+2026-09-22T20:32:50  shot 65: submitted (attempt 1, est 12 credits)
+2026-09-22T20:33:55    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-22T20:35:24  shot 65: verified — 8.0s 1080x1920
+2026-09-22T20:45:40  attached + muted, 1 row(s) to attempt
+2026-09-22T20:45:46  shot 65: submitted (attempt 1, est 12 credits)
+2026-09-22T20:46:54    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T20:47:54  shot 65: verified — 8.0s 1080x1920
+2026-09-22T21:49:37    attach_chip(@lung_somchai) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"เพิ่มองค์ประกอบลงในช่องพรอมต์\\"]").first\n')
+2026-09-22T21:49:41    attach_chip(@jae_muay) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"เพิ่มองค์ประกอบลงในช่องพรอมต์\\"]").first\n')
+2026-09-22T21:49:46    attach_chip(@noodle_shop_thriving) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"เพิ่มองค์ประกอบลงในช่องพรอมต์\\"]").first\n')
+2026-09-22T21:49:50    attach_chip(@money_fold) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"เพิ่มองค์ประกอบลงในช่องพรอมต์\\"]").first\n')
+2026-09-22T21:52:34  attached + muted, 1 row(s) to attempt
+2026-09-22T21:52:40  CAP REACHED: spent=0 + estimate=12 > cap=0 — stopping the whole run
+2026-09-22T21:53:06  attached + muted, 1 row(s) to attempt
+2026-09-22T21:53:13  DRY-RUN shot 133: settings={'model_omni': True, 'mode_ingredients': True, 'aspect_9_16': True, 'qty_x1': True, 'resolution': True, 'duration': True} chips=['@jae_muay', '@lung_somchai', '@noodle_shop', '@money_fold'] resolution=720p dur_s=8 prompt_verified=True estimate=12 credits — stopping before Submit
+2026-09-22T21:57:26  *** FORCE-DURATION OVERRIDE ACTIVE: 4s overrides every shot's sheet duration in this run, for BOTH the composer's duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, never use this for a production run ***
+2026-09-22T21:57:28  attached + muted, 1 row(s) to attempt
+2026-09-22T21:57:35  shot 133: submitted (attempt 1, est 4 credits)
+2026-09-22T21:58:15    completed card found but download not ready: RuntimeError('1080p submenu did not appear after hovering Download')
+2026-09-22T21:58:25  shot 133: EXCEPTION RuntimeError('1080p submenu did not appear after hovering Download')
+2026-09-22T21:58:57  shot 133: failed — DURATION got 4.0s want 8s
+2026-09-22T22:20:29  attached + muted, 24 row(s) to attempt
+2026-09-22T22:20:37  CAP REACHED: spent=0 + estimate=12 > cap=0 — stopping the whole run
+2026-09-22T22:20:50  attached + muted, 24 row(s) to attempt
+2026-09-22T22:20:57  shot 133: submitted (attempt 1, est 12 credits)
+2026-09-22T22:22:22    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T22:23:25  shot 133: verified — 8.0s 1080x1920
+2026-09-22T22:23:33  shot 134: submitted (attempt 1, est 12 credits)
+2026-09-22T22:24:44    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T22:25:49  shot 134: verified — 8.0s 1080x1920
+2026-09-22T22:25:57  shot 135: submitted (attempt 1, est 10 credits)
+2026-09-22T22:27:01    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-22T22:28:04  shot 135: verified — 6.0s 1080x1920
+2026-09-22T22:28:11  shot 136: submitted (attempt 1, est 12 credits)
+2026-09-22T22:29:16    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-22T22:30:25  shot 136: verified — 8.0s 1080x1920
+2026-09-22T22:30:36  shot 137: submitted (attempt 1, est 12 credits)
+2026-09-22T22:31:42    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-22T22:32:55  shot 137: verified — 8.0s 1080x1920
+2026-09-22T22:33:10  shot 138: submitted (attempt 1, est 12 credits)
+2026-09-22T22:34:20    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-22T22:35:19  shot 138: verified — 8.0s 1080x1920
+2026-09-22T22:35:26  shot 139: submitted (attempt 1, est 12 credits)
+2026-09-22T22:36:42    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T22:37:46  shot 139: verified — 8.0s 1080x1920
+2026-09-22T22:37:55  shot 140: submitted (attempt 1, est 12 credits)
+2026-09-22T22:39:01    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T22:40:20  shot 140: verified — 8.0s 1080x1920
+2026-09-22T22:40:30  shot 141: submitted (attempt 1, est 15 credits)
+2026-09-22T22:41:33    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T22:43:12  shot 141: verified — 10.0s 1080x1920
+2026-09-22T22:43:20  shot 142: submitted (attempt 1, est 12 credits)
+2026-09-22T22:44:29    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T22:45:40  shot 142: verified — 8.0s 1080x1920
+2026-09-22T22:45:51  shot 143: submitted (attempt 1, est 12 credits)
+2026-09-22T22:47:13    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-22T22:48:25  shot 143: verified — 8.0s 1080x1920
+2026-09-22T22:48:34  shot 144: submitted (attempt 1, est 12 credits)
+2026-09-22T22:50:33  shot 144: verified — 8.0s 1080x1920
+2026-09-22T22:50:42  shot 145: submitted (attempt 1, est 12 credits)
+2026-09-22T22:51:48    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-22T22:53:11  shot 145: verified — 8.0s 1080x1920
+2026-09-22T22:53:27  shot 146: submitted (attempt 1, est 15 credits)
+2026-09-22T22:54:44    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T23:01:50  shot 146: failed — timeout
+2026-09-22T23:02:01  shot 147: submitted (attempt 1, est 12 credits)
+2026-09-22T23:03:10    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T23:04:13  shot 147: verified — 8.0s 1080x1920
+2026-09-22T23:04:31  shot 148: submitted (attempt 1, est 15 credits)
+2026-09-22T23:05:50    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T23:06:53  shot 148: verified — 10.0s 1080x1920
+2026-09-22T23:07:01  shot 149: submitted (attempt 1, est 12 credits)
+2026-09-22T23:08:14    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-22T23:09:16  shot 149: verified — 8.0s 1080x1920
+2026-09-22T23:09:29  shot 150: submitted (attempt 1, est 10 credits)
+2026-09-22T23:10:33    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T23:11:32  shot 150: verified — 6.0s 1080x1920
+2026-09-22T23:11:42  shot 151: submitted (attempt 1, est 12 credits)
+2026-09-22T23:13:27  shot 151: verified — 8.0s 1080x1920
+2026-09-22T23:13:36  shot 152: submitted (attempt 1, est 10 credits)
+2026-09-22T23:14:48    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T23:15:44  shot 152: verified — 6.0s 1080x1920
+2026-09-22T23:15:53  shot 153: submitted (attempt 1, est 12 credits)
+2026-09-22T23:17:44  shot 153: verified — 8.0s 1080x1920
+2026-09-22T23:17:52  shot 154: submitted (attempt 1, est 15 credits)
+2026-09-22T23:19:00    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-22T23:20:22  shot 154: verified — 10.0s 1080x1920
+2026-09-22T23:20:32  shot 155: submitted (attempt 1, est 12 credits)
+2026-09-22T23:22:12  shot 155: verified — 8.0s 1080x1920
+2026-09-22T23:22:20  shot 156: submitted (attempt 1, est 15 credits)
+2026-09-22T23:24:20  shot 156: verified — 10.0s 1080x1920
+2026-09-22T23:24:52  shot 146: needs_model — card not found
+2026-09-22T23:25:09  attached + muted, 1 row(s) to attempt
+2026-09-22T23:25:15  shot 146: submitted (attempt 1, est 15 credits)
+2026-09-22T23:26:23    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T23:27:38  shot 146: verified — 10.0s 1080x1920
+2026-09-22T23:50:27  attached + muted, 1 row(s) to attempt
+2026-09-22T23:50:37  shot 105: submitted (attempt 1, est 12 credits)
+2026-09-22T23:51:56    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-22T23:52:59  shot 105: verified — 8.0s 1080x1920
+2026-09-23T00:03:44  attached + muted, 1 row(s) to attempt
+2026-09-23T00:03:51  shot 43: submitted (attempt 1, est 10 credits)
+2026-09-23T00:04:56    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-23T00:05:55  shot 43: verified — 6.0s 1080x1920
+2026-09-23T00:06:07  attached + muted, 6 row(s) to attempt
+2026-09-23T00:06:16  shot 68: submitted (attempt 1, est 15 credits)
+2026-09-23T00:07:21    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-23T00:08:24  shot 68: verified — 10.0s 1080x1920
+2026-09-23T00:08:57  shot 70: submitted (attempt 1, est 7 credits)
+2026-09-23T00:10:24    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ตัวเลือกเพิ่มเติม\\"]").first\n    - locator resolved to <button maticonbutton="" flow-icon-button="" aria-haspopup="menu" aria-expanded="true" _ngcontent-ng-c4153582018="" mat-ripple-loader-centered="" aria-label="ตัวเลือกเพิ่มเติม" aria-controls="mat-menu-panel-30" mat-ripple-loader-class-name="mat-mdc-button-ripple" class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-mdc-menu-trigger mat-unthemed flow-icon-button-transparent flow-button-small flow-icon-button-no-touch-target cdk-focused cdk-mouse-focused">…</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    10 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n')
+2026-09-23T00:11:34  shot 70: verified — 4.0s 1080x1920
+2026-09-23T00:12:04  shot 73: submitted (attempt 1, est 15 credits)
+2026-09-23T00:13:11    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ตัวเลือกเพิ่มเติม\\"]").first\n    - locator resolved to <button maticonbutton="" flow-icon-button="" aria-haspopup="menu" aria-expanded="true" _ngcontent-ng-c4153582018="" mat-ripple-loader-centered="" aria-label="ตัวเลือกเพิ่มเติม" aria-controls="mat-menu-panel-30" mat-ripple-loader-class-name="mat-mdc-button-ripple" class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-mdc-menu-trigger mat-unthemed flow-icon-button-transparent flow-button-small flow-icon-button-no-touch-target cdk-focused cdk-mouse-focused">…</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    10 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n')
+2026-09-23T00:14:21  shot 73: verified — 10.0s 1080x1920
+2026-09-23T00:14:55  shot 74: submitted (attempt 1, est 10 credits)
+2026-09-23T00:16:02    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ตัวเลือกเพิ่มเติม\\"]").first\n    - locator resolved to <button maticonbutton="" flow-icon-button="" aria-haspopup="menu" aria-expanded="true" _ngcontent-ng-c4153582018="" mat-ripple-loader-centered="" aria-label="ตัวเลือกเพิ่มเติม" aria-controls="mat-menu-panel-30" mat-ripple-loader-class-name="mat-mdc-button-ripple" class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-mdc-menu-trigger mat-unthemed flow-icon-button-transparent flow-button-small flow-icon-button-no-touch-target cdk-focused cdk-mouse-focused">…</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    10 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n')
+2026-09-23T00:17:22  shot 74: verified — 6.0s 1080x1920
+2026-09-23T00:17:52  shot 75: submitted (attempt 1, est 12 credits)
+2026-09-23T00:18:59    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator("button[aria-label=\\"ตัวเลือกเพิ่มเติม\\"]").first\n    - locator resolved to <button maticonbutton="" flow-icon-button="" aria-haspopup="menu" aria-expanded="true" _ngcontent-ng-c4153582018="" mat-ripple-loader-centered="" aria-label="ตัวเลือกเพิ่มเติม" aria-controls="mat-menu-panel-30" mat-ripple-loader-class-name="mat-mdc-button-ripple" class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-mdc-menu-trigger mat-unthemed flow-icon-button-transparent flow-button-small flow-icon-button-no-touch-target cdk-focused cdk-mouse-focused">…</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    10 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div> from <div class="cdk-overlay-container">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n')
+2026-09-23T00:20:07  shot 75: verified — 8.0s 1080x1920
+2026-09-23T00:20:42  shot 76: submitted (attempt 1, est 15 credits)
+2026-09-23T00:21:11  attached + muted, 1 row(s) to attempt
+2026-09-23T00:21:19  shot 1: submitted (attempt 1, est 12 credits)
+2026-09-23T00:22:54  shot 76: failed — DURATION got 0.0s want 10s
+2026-09-23T00:22:54  shot 1: failed — DURATION got 10.0s want 8s
+2026-09-23T00:22:55  attached + muted, 1 row(s) to attempt
+2026-09-23T00:23:01  shot 55: submitted (attempt 1, est 12 credits)
+2026-09-23T00:29:39  attached + muted, 1 row(s) to attempt
+2026-09-23T00:29:47  shot 76: submitted (attempt 1, est 15 credits)
+2026-09-23T00:31:16  shot 55: failed — timeout
+2026-09-23T00:31:17  attached + muted, 2 row(s) to attempt
+2026-09-23T00:31:24  shot 120: submitted (attempt 1, est 15 credits)
+2026-09-23T00:38:01  shot 76: failed — timeout
+2026-09-23T00:38:25  attached + muted, 1 row(s) to attempt
+2026-09-23T00:38:32  shot 76: submitted (attempt 1, est 15 credits)
+2026-09-23T00:39:38  shot 120: failed — timeout
+2026-09-23T00:39:45  shot 124: submitted (attempt 1, est 12 credits)
+2026-09-23T00:46:46  shot 76: failed — timeout
+2026-09-23T00:47:59  shot 124: failed — timeout
+2026-09-23T00:48:01  attached + muted, 1 row(s) to attempt
+2026-09-23T00:48:08  shot 139: submitted (attempt 1, est 12 credits)
+2026-09-23T00:50:23  shot 139: verified — 8.0s 1080x1920
+2026-09-23T00:50:50  nothing to pull
+2026-09-23T01:36:04  attached + muted, 2 row(s) to attempt
+2026-09-23T01:36:12  shot 1: submitted (attempt 2, est 12 credits)
+2026-09-23T01:37:23    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T01:38:22  shot 1: verified — 8.0s 1080x1920
+2026-09-23T01:38:30  CAP REACHED: spent=12 + estimate=12 > cap=20 — stopping the whole run
+2026-09-23T01:38:30  attached + muted, 2 row(s) to attempt
+2026-09-23T01:38:37  shot 41: submitted (attempt 1, est 12 credits)
+2026-09-23T01:39:41    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T01:40:46  shot 41: verified — 8.0s 1080x1920
+2026-09-23T01:40:53  CAP REACHED: spent=12 + estimate=12 > cap=20 — stopping the whole run
+2026-09-23T01:40:58  attached + muted, 1 row(s) to attempt
+2026-09-23T01:41:06  shot 31: EXCEPTION TimeoutError('Locator.wait_for: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("flow-prompt-box-settings") to be detached\n    10 × locator resolved to visible <flow-prompt-box-settings _nghost-ng-c3487702981="" _ngcontent-ng-c3128019642="" class="settings-content-overlay">…</flow-prompt-box-settings>\n')
+2026-09-23T01:41:06  attached + muted, 1 row(s) to attempt
+2026-09-23T01:41:16  shot 55: submitted (attempt 2, est 12 credits)
+2026-09-23T01:42:30    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T01:43:44  shot 55: verified — 8.0s 1080x1920
+2026-09-23T01:43:45  attached + muted, 2 row(s) to attempt
+2026-09-23T01:43:52  shot 71: submitted (attempt 1, est 15 credits)
+2026-09-23T01:45:06    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T01:46:11  shot 71: verified — 10.0s 1080x1920
+2026-09-23T01:46:18  shot 76: submitted (attempt 1, est 15 credits)
+2026-09-23T01:48:03  shot 76: verified — 10.0s 1080x1920
+2026-09-23T01:48:04  attached + muted, 1 row(s) to attempt
+2026-09-23T01:48:11  shot 143: submitted (attempt 1, est 12 credits)
+2026-09-23T01:49:23    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T01:50:17  shot 143: verified — 8.0s 1080x1920
+2026-09-23T01:51:39  attached + muted, 1 row(s) to attempt
+2026-09-23T01:51:50  shot 31: submitted (attempt 1, est 12 credits)
+2026-09-23T01:53:05    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T01:54:10  shot 31: verified — 8.0s 1080x1920
+2026-09-23T02:46:40  cannot attach to Chrome at http://127.0.0.1:9223: ModuleNotFoundError("No module named 'playwright'")
+2026-09-23T02:46:40  is scripts/flow/launch-chrome-debug.sh running, logged in, with the project tab open?
+2026-09-23T02:46:59  attached + muted, 1 row(s) to attempt
+2026-09-23T02:47:06  shot 106: submitted (attempt 2, est 15 credits)
+2026-09-23T02:48:15    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-23T02:49:20  shot 106: verified — 10.0s 1080x1920
+2026-09-23T02:49:21  attached + muted, 1 row(s) to attempt
+2026-09-23T02:49:27  shot 122: submitted (attempt 2, est 7 credits)
+2026-09-23T02:50:33    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T02:51:27  shot 122: verified — 4.0s 1080x1920
+2026-09-23T03:37:37  attached + muted, 1 row(s) to attempt
+2026-09-23T03:37:47  shot 169: submitted (attempt 2, est 15 credits)
+2026-09-23T03:38:54    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T03:39:52  shot 169: verified — 10.0s 1080x1920
+2026-09-23T03:39:53  attached + muted, 1 row(s) to attempt
+2026-09-23T03:40:00  shot 29: submitted (attempt 1, est 12 credits)
+2026-09-23T03:41:10    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T03:42:14  shot 29: verified — 8.0s 1080x1920
+2026-09-23T03:42:14  attached + muted, 1 row(s) to attempt
+2026-09-23T03:42:21  shot 43: submitted (attempt 2, est 10 credits)
+2026-09-23T03:43:48  shot 43: verified — 6.0s 1080x1920
+2026-09-23T03:43:49  attached + muted, 1 row(s) to attempt
+2026-09-23T03:43:55  shot 115: submitted (attempt 2, est 15 credits)
+2026-09-23T03:45:49  shot 115: verified — 10.0s 1080x1920
+2026-09-23T03:45:50  attached + muted, 4 row(s) to attempt
+2026-09-23T03:45:56  shot 174: submitted (attempt 1, est 12 credits)
+2026-09-23T03:47:11    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-23T03:48:11  shot 174: verified — 8.0s 1080x1920
+2026-09-23T03:48:19  shot 175: submitted (attempt 1, est 7 credits)
+2026-09-23T03:56:33  shot 175: failed — timeout
+2026-09-23T03:56:40  shot 176: submitted (attempt 1, est 15 credits)
+2026-09-23T03:57:20    completed card found but download not ready: Error('Locator.click: Element is not visible\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n    - done scrolling\n')
+2026-09-23T03:58:31  shot 176: verified — 10.0s 1080x1920
+2026-09-23T03:58:40  shot 177: submitted (attempt 1, est 15 credits)
+2026-09-23T03:59:14    completed card found but download not ready: Error('Locator.click: Element is not visible\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n    - done scrolling\n')
+2026-09-23T04:00:27  shot 177: verified — 10.0s 1080x1920
+2026-09-23T04:00:27  attached + muted, 8 row(s) to attempt
+2026-09-23T04:00:38  shot 149: submitted (attempt 2, est 12 credits)
+2026-09-23T04:01:52    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-23T04:02:55  shot 149: verified — 8.0s 1080x1920
+2026-09-23T04:03:06  shot 150: submitted (attempt 2, est 10 credits)
+2026-09-23T04:04:36    completed card found but download not ready: Error('Download.save_as: canceled')
+2026-09-23T04:04:52  attached + muted, 1 row(s) to attempt
+2026-09-23T04:35:00  shot 150: verified — 6.0s 1080x1920
+2026-09-23T04:38:00  shot 175: verified — 4.0s 1080x1920
+2026-09-23T04:38:31  attached + muted, 8 row(s) to attempt
+2026-09-23T04:38:42  shot 149: submitted (attempt 3, est 12 credits)
+2026-09-23T04:39:44    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:40:53    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:42:02    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:43:12    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:44:21    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:45:30    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:46:40    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:46:48  shot 149: failed — timeout
+2026-09-23T04:46:56    attach_chip(@cop_wit_uniform_A) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])cop_wit_uniform_A(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-23T04:47:03  shot 150: needs_model — chip never attached: @cop_wit_uniform_A
+2026-09-23T04:47:11    attach_chip(@cop_wit_uniform_A) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])cop_wit_uniform_A(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-23T04:47:19  shot 151: needs_model — chip never attached: @cop_wit_uniform_A
+2026-09-23T04:47:26  shot 178: submitted (attempt 1, est 10 credits)
+2026-09-23T04:49:09  shot 178: verified — 6.0s 1080x1920
+2026-09-23T04:49:20  shot 179: submitted (attempt 1, est 10 credits)
+2026-09-23T04:50:21    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:51:30    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:52:40    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:53:49    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:54:58    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:56:08    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:57:17    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T04:57:25  shot 179: failed — timeout
+2026-09-23T04:57:32  shot 180: submitted (attempt 1, est 12 credits)
+2026-09-23T04:58:39    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-23T04:59:42  shot 180: verified — 8.0s 1080x1920
+2026-09-23T04:59:53  shot 181: submitted (attempt 1, est 15 credits)
+2026-09-23T05:01:36  shot 181: verified — 10.0s 1080x1920
+2026-09-23T05:01:45    attach_chip(@cop_wit_uniform_A) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])cop_wit_uniform_A(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-23T05:01:52  shot 182: needs_model — chip never attached: @cop_wit_uniform_A
+2026-09-23T05:01:53  attached + muted, 1 row(s) to attempt
+2026-09-23T05:02:00  shot 106: submitted (attempt 3, est 15 credits)
+2026-09-23T05:03:11    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T05:04:23  shot 106: verified — 10.0s 1080x1920
+2026-09-23T05:04:53  attached + muted, 1 row(s) to attempt
+2026-09-23T05:05:03  shot 174: submitted (attempt 2, est 12 credits)
+2026-09-23T05:06:05    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T05:07:09  shot 174: verified — 8.0s 1080x1920
+2026-09-23T05:07:10  attached + muted, 2 row(s) to attempt
+2026-09-23T05:07:19  shot 1: submitted (attempt 3, est 15 credits)
+2026-09-23T05:08:22    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T05:09:20  shot 1: verified — 10.0s 1080x1920
+2026-09-23T05:09:27  shot 2: submitted (attempt 1, est 10 credits)
+2026-09-23T05:10:30    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-23T05:11:28  shot 2: verified — 6.0s 1080x1920
+2026-09-23T05:12:04  shot 149: verified — 8.0s 1080x1920
+2026-09-23T05:12:18  shot 179: needs_model — card not found
+2026-09-23T05:12:18  attached + muted, 3 row(s) to attempt
+2026-09-23T05:12:30  shot 150: submitted (attempt 3, est 10 credits)
+2026-09-23T05:14:07  shot 150: verified — 6.0s 1080x1920
+2026-09-23T05:14:18  shot 151: submitted (attempt 2, est 12 credits)
+2026-09-23T05:15:19    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:16:29    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:17:38    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:18:47    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:19:57    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:21:11    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:22:21    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:22:29  shot 151: failed — timeout
+2026-09-23T05:22:42  shot 182: submitted (attempt 1, est 12 credits)
+2026-09-23T05:24:22  shot 182: verified — 8.0s 1080x1920
+2026-09-23T05:24:23  attached + muted, 1 row(s) to attempt
+2026-09-23T05:24:32  shot 176: submitted (attempt 2, est 15 credits)
+2026-09-23T05:25:39    completed card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T05:26:39  shot 176: verified — 10.0s 1080x1920
+2026-09-23T05:27:27  shot 151: verified — 8.0s 1080x1920
+2026-09-23T05:27:40  shot 179: needs_model — card not found
+2026-09-23T05:28:00  attached + muted, 1 row(s) to attempt
+2026-09-23T05:28:11  shot 179: submitted (attempt 2, est 10 credits)
+2026-09-23T05:29:13    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:30:22    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:31:32    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:32:42    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:33:53    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:35:03    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:36:12    completed card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T05:36:20  shot 179: failed — timeout
+2026-09-23T05:36:46  shot 149: needs_model — card not found
+2026-09-23T05:37:00  shot 151: needs_model — card not found
+2026-09-23T13:09:02  *** FORCE-DURATION OVERRIDE ACTIVE: 4s overrides every shot's sheet duration in this run, for BOTH the composer's duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, never use this for a production run ***
+2026-09-23T13:09:02  attached + muted, 3 row(s) to attempt
+2026-09-23T13:09:18  shot 9001: submitted (attempt 1, est 4 credits)
+2026-09-23T13:10:19    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T13:11:28    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T13:12:37    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T13:13:46    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T13:14:55    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T13:16:04    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T13:17:14    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T13:17:22  shot 9001: failed — timeout
+2026-09-23T13:17:32  shot 9002: submitted (attempt 1, est 4 credits)
+2026-09-23T13:18:05    new card found but download not ready: RuntimeError('1080p submenu did not appear after hovering Download')
+2026-09-23T13:18:16  shot 9002: EXCEPTION RuntimeError('1080p submenu did not appear after hovering Download')
+2026-09-23T13:18:31  shot 9003: submitted (attempt 1, est 4 credits)
+2026-09-23T13:19:04    new card found but download not ready: RuntimeError('1080p submenu did not appear after hovering Download')
+2026-09-23T13:19:14  shot 9003: EXCEPTION RuntimeError('1080p submenu did not appear after hovering Download')
+2026-09-23T13:20:54  attached + muted, 3 row(s) to attempt
+2026-09-23T13:21:09  shot 149: submitted (attempt 4, est 12 credits)
+2026-09-23T13:22:44  shot 149: verified — 8.0s 1080x1920
+2026-09-23T13:22:59  shot 151: submitted (attempt 3, est 12 credits)
+2026-09-23T13:24:32  shot 151: verified — 8.0s 1080x1920
+2026-09-23T13:24:46  shot 179: submitted (attempt 3, est 10 credits)
+2026-09-23T13:26:11  shot 179: verified — 6.0s 1080x1920
+2026-09-23T13:26:11  attached + muted, 1 row(s) to attempt
+2026-09-23T13:26:22  shot 43: submitted (attempt 3, est 12 credits)
+2026-09-23T13:27:51  shot 43: verified — 8.0s 1080x1920
+2026-09-23T15:30:37  *** FORCE-DURATION OVERRIDE ACTIVE: 4s overrides every shot's sheet duration in this run, for BOTH the composer's duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, never use this for a production run ***
+2026-09-23T15:30:40  attached + muted, 3 row(s) to attempt
+2026-09-23T15:30:57  shot 9101: submitted (attempt 1, est 4 credits)
+2026-09-23T15:31:38  shot 9101: failed — RESOLUTION got 360x640 want 720x1280
+2026-09-23T15:32:03  shot 9102: submitted (attempt 1, est 4 credits)
+2026-09-23T15:32:43  shot 9102: failed — RESOLUTION got 360x640 want 720x1280
+2026-09-23T15:32:56  shot 9103: submitted (attempt 1, est 4 credits)
+2026-09-23T15:41:43    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-23T15:41:51  shot 9103: failed — timeout
+2026-09-23T15:44:25  attached + muted, 8 row(s) to attempt
+2026-09-23T15:44:34    attach_chip(@police_uniform) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])police_uniform(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-23T15:44:45    attach_chip(@police_uniform) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])police_uniform(?:[^A-Za-z0-9_]|$)")).first\n    - locator resolved to <button type="button" role="option" class="asset-item" aria-selected="false" _ngcontent-ng-c2582114587="">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n  - element was detached from the DOM, retrying\n')
+2026-09-23T15:44:53  shot 149: needs_model — chip never attached: @police_uniform
+2026-09-23T15:45:10  shot 151: submitted (attempt 4, est 12 credits)
+2026-09-23T15:46:14    new card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-23T15:47:13  shot 151: verified — 8.0s 1080x1920
+2026-09-23T15:47:23    attach_chip(@police_uniform) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])police_uniform(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-23T15:47:40  shot 156: submitted (attempt 2, est 15 credits)
+2026-09-23T15:49:10  shot 156: verified — 10.0s 1080x1920
+2026-09-23T15:49:19    attach_chip(@police_uniform) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])police_uniform(?:[^A-Za-z0-9_]|$)")).first\n    - locator resolved to <button type="button" role="option" class="asset-item" aria-selected="false" _ngcontent-ng-c2582114587="">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n  - element was detached from the DOM, retrying\n')
+2026-09-23T15:49:30    attach_chip(@police_uniform) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])police_uniform(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-23T15:49:38  shot 183: needs_model — chip never attached: @police_uniform
+2026-09-23T15:49:53  shot 184: submitted (attempt 1, est 15 credits)
+2026-09-23T15:50:54    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T15:52:03    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T15:53:12    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T15:54:22    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T15:55:31    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T15:56:40    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T15:57:49    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T15:57:57  shot 184: failed — timeout
+2026-09-23T15:58:07    attach_chip(@police_uniform) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])police_uniform(?:[^A-Za-z0-9_]|$)")).first\n')
+2026-09-23T15:58:25  shot 185: submitted (attempt 1, est 12 credits)
+2026-09-23T15:59:57    new card found but download not ready: RuntimeError('Download stayed disabled for 60s; the editor media did not load')
+2026-09-23T16:06:27  shot 185: failed — timeout
+2026-09-23T16:07:12    attach_chip(@police_uniform) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])police_uniform(?:[^A-Za-z0-9_]|$)")).first\n    - locator resolved to <button type="button" role="option" class="asset-item" aria-selected="false" _ngcontent-ng-c2582114587="">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n  - element was detached from the DOM, retrying\n')
+2026-09-23T16:08:13  shot 186: submitted (attempt 1, est 12 credits)
+2026-09-23T16:09:16    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T16:10:30    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T16:11:40    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T16:12:51    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T16:14:02    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T16:15:13    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T16:16:23    new card found but download not ready: TimeoutError('Timeout 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to "re.compile(\'/edit/\')" until \'load\'\n============================================================')
+2026-09-23T16:16:32  shot 186: failed — timeout
+2026-09-23T16:17:42  shot 187: submitted (attempt 1, est 10 credits)
+2026-09-23T16:18:51    new card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"menuitem\\"]").filter(has_text="1080p").first\n    - locator resolved to <button tabindex="0" role="menuitem" mat-menu-item="" aria-expanded="false" _ngcontent-ng-c3772130407="" class="mat-mdc-menu-item mat-focus-indicator mat-mdc-menu-trigger mat-mdc-tooltip-trigger flow-internal-menu-item mat-mdc-tooltip-disabled">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is not stable\n  - retrying click action\n    - waiting for element to be visible, enabled and stable\n  - element was detached from the DOM, retrying\n')
+2026-09-23T16:20:00  shot 187: verified — 6.0s 1080x1920
+2026-09-23T16:20:03  attached + muted, 3 row(s) to attempt
+2026-09-23T16:20:18  shot 188: submitted (attempt 1, est 12 credits)
+2026-09-23T16:21:26    new card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-23T16:22:33  shot 188: verified — 8.0s 1080x1920
+2026-09-23T16:23:01  shot 189: submitted (attempt 1, est 12 credits)
+2026-09-23T16:24:29  shot 189: verified — 8.0s 1080x1920
+2026-09-23T16:24:45  shot 190: submitted (attempt 1, est 15 credits)
+2026-09-23T16:25:51    new card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T16:26:58  shot 190: verified — 10.0s 1080x1920
+2026-09-23T16:28:17  *** FORCE-DURATION OVERRIDE ACTIVE: 4s overrides every shot's sheet duration in this run, for BOTH the composer's duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, never use this for a production run ***
+2026-09-23T16:28:18  attached + muted, 2 row(s) to attempt
+2026-09-23T16:28:36  shot 9202: submitted (attempt 1, est 4 credits)
+2026-09-23T16:37:24    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-23T16:37:32  shot 9202: failed — timeout
+2026-09-23T16:38:16    attach_chip(@police_uniform) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])police_uniform(?:[^A-Za-z0-9_]|$)")).first\n    - locator resolved to <button type="button" role="option" class="asset-item" aria-selected="false" _ngcontent-ng-c2582114587="">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n  - element was detached from the DOM, retrying\n')
+2026-09-23T16:38:29    attach_chip(@police_uniform) failed: TimeoutError('Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator("[role=\\"dialog\\"]").last.locator(".asset-item").filter(has_text=re.compile(r"(?:^|[^A-Za-z0-9_])police_uniform(?:[^A-Za-z0-9_]|$)")).first\n    - locator resolved to <button type="button" role="option" class="asset-item" aria-selected="false" _ngcontent-ng-c2582114587="">…</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n  - element was detached from the DOM, retrying\n')
+2026-09-23T16:38:37  shot 9203: needs_model — chip never attached: @police_uniform
+2026-09-23T16:40:03  *** FORCE-DURATION OVERRIDE ACTIVE: 4s overrides every shot's sheet duration in this run, for BOTH the composer's duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, never use this for a production run ***
+2026-09-23T16:40:04  attached + muted, 2 row(s) to attempt
+2026-09-23T16:40:26  shot 9203: submitted (attempt 1, est 4 credits)
+2026-09-23T16:49:19    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-23T16:49:27  shot 9203: failed — timeout
+2026-09-23T16:50:07  shot 9204: submitted (attempt 1, est 4 credits)
+2026-09-23T16:59:10    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-23T16:59:18  shot 9204: failed — timeout
+2026-09-23T17:03:04  *** FORCE-DURATION OVERRIDE ACTIVE: 4s overrides every shot's sheet duration in this run, for BOTH the composer's duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, never use this for a production run ***
+2026-09-23T17:03:10  attached + muted, 2 row(s) to attempt
+2026-09-23T17:03:37  shot 9205: submitted (attempt 1, est 4 credits)
+2026-09-23T17:12:24    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-23T17:12:32  shot 9205: failed — timeout
+2026-09-23T17:13:18  shot 9206: submitted (attempt 1, est 4 credits)
+2026-09-23T17:22:15    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-23T17:22:23  shot 9206: failed — timeout
+2026-09-23T17:23:44  *** FORCE-DURATION OVERRIDE ACTIVE: 4s overrides every shot's sheet duration in this run, for BOTH the composer's duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, never use this for a production run ***
+2026-09-23T17:23:48  attached + muted, 2 row(s) to attempt
+2026-09-23T17:24:14  shot 9207: submitted (attempt 1, est 4 credits)
+2026-09-23T17:24:56  shot 9207: failed — RESOLUTION got 360x640 want 720x1280
+2026-09-23T17:25:14  shot 9208: submitted (attempt 1, est 4 credits)
+2026-09-23T17:34:03    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-23T17:34:11  shot 9208: failed — timeout
+2026-09-23T17:35:28  *** FORCE-DURATION OVERRIDE ACTIVE: 4s overrides every shot's sheet duration in this run, for BOTH the composer's duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, never use this for a production run ***
+2026-09-23T17:35:37  attached + muted, 1 row(s) to attempt
+2026-09-23T17:36:45  shot 9209: submitted (attempt 1, est 4 credits)
+2026-09-23T17:45:57    new card found but download not ready: RuntimeError('card opened but no new flow-content.google/video/ URL appeared before timeout — refusing to reuse a prior clip URL')
+2026-09-23T17:46:05  shot 9209: failed — timeout
+2026-09-23T20:56:10  cannot attach to Chrome at http://127.0.0.1:9223: RuntimeError('NO_FLOW_TAB — open the project tab in the automation Chrome first')
+2026-09-23T20:56:10  is scripts/flow/launch-chrome-debug.sh running, logged in, with the project tab open?
+2026-09-23T20:57:02  attached + muted, 1 row(s) to attempt
+2026-09-23T20:57:21  shot 149: submitted (attempt 5, est 12 credits)
+2026-09-23T20:58:29    new card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n    - locator resolved to <div class="cdk-overlay-backdrop cdk-overlay-transparent-backdrop cdk-overlay-backdrop-showing"></div>\n  - attempting click action\n    - scrolling into view if needed\n  - element was detached from the DOM, retrying\n')
+2026-09-23T20:59:31  shot 149: verified — 8.0s 1080x1920
+2026-09-23T21:12:04  attached + muted, 1 row(s) to attempt
+2026-09-23T21:12:19  shot 171: submitted (attempt 2, est 15 credits)
+2026-09-23T21:13:32    new card found but download not ready: TimeoutError('Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(".cdk-overlay-backdrop.cdk-overlay-backdrop-showing").first\n')
+2026-09-23T21:14:29  shot 171: verified — 10.0s 1080x1920

@@ -1,0 +1,35 @@
+shot	act	dur_s	chips	prompt_sha	status	flow_clip_id	file	sha256	got_dur	attempts	note
+1	1	8	@lung_somchai,@side_wall	963f4d19f5073966bb01a9ab9e7dd53291a16f0f934a1cb8d8d6564eed0fc25d	verified		/Users/gob/Desktop/banchi-refire-0923/batch3/shot-01.mp4	dd0478c721168608fc3156cddb92f7fcd248fc902971695b169a833f6836da72	10.0s 1080x1920	3	
+2	1	6	@lung_somchai,@side_wall	4a18e2e67233a3b6b94c98a79d62463622c47c440a0f13e3c0ad793414556307	verified		/Users/gob/Desktop/banchi-refire-0923/batch3/shot-02.mp4	32e241dc6025c487107b559fe32e2c205fb072711399da728624e00f5001f7b9	6.0s 1080x1920	1	
+3	1	4	@lung_somchai,@staircase	576642344a1abb3b11d2c90e24397ebb0d0b3205f1ecd248f9eca244d793dca3	verified					0	
+4	1	10	@lung_somchai,@grandma_pranom,@upstairs_bedroom	bdcf78d5283f55225e461e3f4787254b7b8077c331b192f70e9058f71c3df4d6	verified					0	
+5	1	8	@lung_somchai,@grandma_pranom,@upstairs_bedroom	5babb3d7dc26c2c6a0863e2c349dba22cb4f7e50d27ddb60059c013c68dece3c	verified					0	
+6	1	8	@lung_somchai,@upstairs_bedroom	96e30eaa470bcf4601211838c4d50b7b242a4ebe4f825eba72270c6dfaeb44fb	verified					0	
+7	1	6	@lung_somchai,@upstairs_bedroom	4817bc0652973a7784fdd5d40b3524a5c65df47abc10273014eff7bb92f0bb9c	verified					0	
+8	1	6	@lung_somchai,@noodle_shop	0ced238c64696cf3b7bca3f3813a4290d136a68159484e35efbb0851d93aae7b	verified					0	
+9	1	10	@nong_daeng,@lung_somchai,@noodle_shop	040046d9004022a128db9967312d51135f4ae92bda808c93a017bf62aa192d07	verified					0	
+10	1	8	@lung_somchai,@nong_daeng,@noodle_shop	5d1735c45dd0dcf19f6fc2d17e429e7c565581736dcbd1843fa9d4169418ef70	verified					0	
+11	1	8	@lung_somchai,@noodle_shop	79262fac1d244ae1014d39155f2b0846d6d08fd1b953a729a6f3af2f5900c916	verified					0	
+12	1	6	@nong_daeng,@noodle_shop	5f625b8a8e382a46cd303bb8b69a35b7d0a927464e813933283c723b5426903b	verified					0	
+13	1	8	@lung_somchai,@nong_daeng,@noodle_shop	52c10568ffa69850ef42aff3ddde1f4427b87cae20bceae0551b5de2a33a5d61	verified					0	
+14	1	6	@lung_somchai,@noodle_shop	466347de9489464f6a1c5fe5f04bb99c2559ebea019aa028fcbd8816ae5a64c2	verified					0	
+15	1	8	@nong_daeng,@staircase	3e72cf98e631403c4c56d2dcfef1ed84b6053803d7fe659f5f1946b34f29fbf6	verified					0	
+16	1	6	@nong_daeng,@staircase	1563790479bfb281fc52acc784fa54a438712f5358d4c0ccc13535363fcfa76c	verified					0	
+17	1	6	@nong_daeng,@noodle_shop	56a4585e81973601602eaa5064de5f2ea2c968183c465e3baceac182f39f3b12	verified					0	
+18	1	8	@lung_somchai,@nong_daeng,@noodle_shop	c765ce686de371c59d402149b35d349b22a9d25ce17cef056da1416c3ef3f5cd	verified					0	
+19	1	4	@nong_daeng,@staircase	c2ac246343c817390adabf77434e939450988fc9a961f582675fdf5b8c18223a	verified					0	
+20	1	10	@nong_daeng,@grandma_pranom,@upstairs_bedroom	23142e5a0ac682b182eba79169932dbc7f69d82e5a537623e3c5145e2f363d6e	verified					0	
+21	1	8	@nong_daeng,@grandma_pranom,@upstairs_bedroom	c4e99cf20a6f921406fd76d4953b679d8f0522981ce9d0ed17f08982690b61fc	verified					0	
+22	1	8	@grandma_pranom,@nong_daeng,@upstairs_bedroom	8d7d3c6b3d543d145de1ae23694abaa1c0c8dca8e17438cd9430a25eee21d634	verified					0	
+23	1	6	@nong_daeng,@grandma_pranom,@upstairs_bedroom	9b8e3ac4c2b5d089c32f7632e2ff8cb031816066ea7bffa5a8736c426702c6b4	verified					0	
+24	1	10	@lung_somchai,@noodle_shop	282148ea04b5be7839674e6868fc9443b10fca0150a1a80875d6c96e3746d7d3	verified					0	
+25	1	8	@lung_somchai,@noodle_shop	c9ee699845937345012e7ad41fe46d67aac12feae8b3c2fb1ab5960a304b9b63	verified					0	
+26	1	8	@nong_daeng,@lung_somchai,@noodle_shop	2cd30edf7c1626c1dc78a8fb0a6ca642e62c7c283b1f7b1551dcb05aaf86eb40	verified					0	
+27	1	6	@lung_somchai,@noodle_shop	f12387da6597b760c61f63b28968d43b250a81a42aebabf9b5337210402e37bd	verified					0	
+28	1	8	@cop_wit,@noodle_shop	3a7a95bd65fe5af45051d805eb2792fe1a0e19691ab60f87fbb7f6e7a56ba3dc	verified					0	
+29	1	8	@lung_somchai,@cop_wit,@noodle_shop	10b17e6f3131646e832785030dbc9d6e463ef4c7b0b463561edeb97ea7b297c8	verified		/Users/gob/Desktop/banchi-refire-0923/shot-29.mp4	534c8bd6719bf940cb9033d5f03480315cba197fbeefd5a880ce83c4b9953413	8.0s 1080x1920	1	
+30	1	10	@cop_wit,@lung_somchai,@noodle_shop	136ba58bacd64fab8b7885400509c0ea3923f6d82b35e2a193c3ff1286b2f169	verified					0	
+31	1	8	@cop_wit,@lung_somchai,@noodle_shop	67cf18eecca0f10656f0cca65619213dbbfacee3c73139a266be9feac66ffda5	verified		/Users/gob/Desktop/banchi-FIX/shot-31.mp4	0f5820b86305bda0921daf3a50f455b8129dc34e4bba49850fb0411b576f588b	8.0s 1080x1920	1	
+32	1	8	@lung_somchai,@noodle_shop	9e311753b19b48ee40a6165887ff8692662630391d6dcf82bc5e4f4df0ec438d	verified					0	
+33	1	10	@nong_daeng,@lung_somchai,@noodle_shop	76c64aca81725f518d3a9094ba4bd0629f354210bdba0f393b5e633193b0d2c2	verified					0	
+34	1	6	@lung_somchai,@noodle_shop	18d8506e2a59893a54d38c8d1baaf3539c1695e70dcde7b83e879e59c9011b4b	verified					0	
