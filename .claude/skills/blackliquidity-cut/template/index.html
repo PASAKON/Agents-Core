@@ -265,12 +265,17 @@
                   top: 1430px; z-index: 45;
                   font-family: Kanit, sans-serif; font-weight: 400; font-size: 24px;
                   line-height: 1.35; text-align: center; color: #B9C0C6;
-                  /* was a soft drop-shadow only - failed WCAG contrast (1.1:1) the
-                     first time a real-footage plate (rule 5a) filled the full frame
-                     bright white behind it (task-4bce29e5, EP55 demo). The kit's own
-                     --outline stroke fixes it the same way every .blk already relies
-                     on: 4-directional 2px stroke, not just a blur. */
-                  text-shadow: var(--outline); }
+                  text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 2px rgba(0,0,0,1);
+                  /* A text-shadow (even the kit's own --outline 4-way stroke) does
+                     NOT satisfy hyperframes check's WCAG contrast pass against a
+                     bright plate — verified 2026-09-23 (task-4bce29e5): swapping to
+                     --outline alone still failed at 1.6:1. Only an actual opaque
+                     backing works, same trick .bl-card/.bl-row already use. Only
+                     needed once a real-footage plate (rule 5a) can fill the WHOLE
+                     frame bright behind this label; harmless on the kit's normal
+                     dark backgrounds. */
+                  background: rgba(7,8,10,.72); padding: 8px 24px;
+                  border-radius: 10px; width: fit-content; margin: 0 auto; }
       /* Brand bug — the channel's real logo, same place on every clip.
          `left/top` and the logo height are fixed: the audience recognises the
          mark by where it sits, and a bug that drifts between episodes reads as
@@ -289,7 +294,10 @@
       .bug .rl { width: 74px; height: 5px; background: var(--neon); border-radius: 3px;
                  box-shadow: var(--glow-s); }
       .bug .dt2 { font-weight: 600; font-size: 24px; color: #E8EAEC; letter-spacing: .02em;
-                  text-shadow: var(--outline); }
+                  text-shadow: var(--outline);
+                  /* same contrast gap and same fix as .bl-legal above - the
+                     stroke alone does not pass over a bright real-footage plate. */
+                  background: rgba(7,8,10,.72); padding: 3px 10px; border-radius: 6px; }
 
       /* y was 1600: that is inside TikTok's own caption + username block
          (measured y 1550-1700 on a real post, 2026-09-18), so the subtitle was

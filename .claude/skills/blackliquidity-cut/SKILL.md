@@ -555,13 +555,18 @@ Model: `rvm_mobilenetv3.pth`, **14.5 MB**, lives at
   matte output correctly end to end — verified live 2026-09-23 building
   `DEMO-avatar-composite.mp4`.
 - **A full-frame real-footage plate breaks the standing legal label's and
-  brand-bug date's contrast.** Both were tuned for the kit's normal dark/red
-  backgrounds; a bright white real-footage plate under them (new since rule
-  5a) drops `.bl-legal` to 1.1:1 against the WCAG-required 3:1. Fixed in the
-  template by giving `.bl-legal` the kit's existing `--outline` stroke instead
-  of a soft drop-shadow (same fix `.bug .dt2` already had). A kinetic caption
-  over a bright plate still needs its own solid backing band — see the field
-  note below, now confirmed on a second episode.
+  brand-bug date's contrast, and a text-shadow does NOT fix it.** Both were
+  tuned for the kit's normal dark/red backgrounds; a bright white real-footage
+  plate under them (new since rule 5a) drops `.bl-legal` to 1.1:1 against the
+  WCAG-required 3:1. First attempt — give `.bl-legal` the kit's own `--outline`
+  4-way stroke, same as `.bug .dt2` already had — **measured to still fail**,
+  same 1.6-2.1:1 numbers, because `hyperframes check`'s contrast pass reads the
+  text's own `color` against the background and does not credit a shadow.
+  What actually works, verified (`check` went from 9 errors to 9/9 pass): a
+  real opaque backing, `background: rgba(7,8,10,.72)` behind the text — the
+  same technique `.bl-card`/`.bl-row` already use. Both `.bl-legal` and
+  `.bug .dt2` now carry it. A kinetic caption over a bright plate needs the
+  same treatment on its own block — see the field note below.
 
 Sound effects are deliberately out of scope until the channel has a licensed,
 human-annotated library. An AI placing SFX blind is what made earlier attempts
@@ -570,5 +575,5 @@ sound wrong.
 ## Field notes
 - 2026-09-23 [MISSING] §5a — CEO ruling: real footage (broker logo, real site, real WikiFX page with real numbers, partly censored) outranks B-roll; the runner is task-67f82679 (tools/bl_realfootage.py). Written into the rule body directly because it is a CEO ruling, not an n=1 sighting · evidence: CEO message 2026-09-23 "Realfootage สำคัญกว่า B-Roll", commit 6f4a7658 · status: promoted
 - 2026-09-23 [MISSING] §5a — real footage is usually a LIGHT web page, and the kit's captions were tuned for dark AI plates. On EP55 a standing top/bottom vignette passed `npm run check` contrast, but captions still sat on the page's own text: a tab row, an article paragraph, a heading. Unreadable text-over-text; the same defect the CEO rejected a clip for that day. On a real-page plate put the caption on a solid, near-opaque band, or place the still so the caption lands on empty page space · evidence: task-52c669bb frames t=34.5/52.5/57.5/63 s · status: pending
-- 2026-09-23 [WRONG] §5a/§6d — confirms the pending note above on a second, independent task, and extends it: it isn't only kinetic captions that lose contrast over a bright real-footage plate — the STANDING legal label and brand-bug date do too (`.bl-legal` measured 1.1:1, need 3:1). Fixed `.bl-legal`'s text-shadow to reuse the kit's `--outline` stroke (`.bug .dt2` already had it). A caption still needs its own solid band regardless — the outline stroke alone did not satisfy `hyperframes check`'s contrast gate against pure white, only made it more readable by eye · evidence: task-4bce29e5, `hyperframes check` on `DEMO-avatar-composite.mp4`'s composition, contrast errors at t=4.308s/7.755s before the fix · status: promoted
+- 2026-09-23 [WRONG] §5a/§6d — confirms the pending note above on a second, independent task, and extends it two ways. First: it isn't only kinetic captions that lose contrast over a bright real-footage plate — the STANDING legal label and brand-bug date do too (`.bl-legal` measured 1.1:1, need 3:1). Second, and the real trap: a text-shadow does NOT fix this, not even the kit's own `--outline` 4-way stroke — tried it, `hyperframes check` still failed at the same 1.6-2.1:1 numbers, because the checker reads the text's flat `color` against the background and gives a shadow no credit. Only an actual opaque `background` band (same trick `.bl-card`/`.bl-row` already use) passed — verified 9 errors → 9/9 · evidence: task-4bce29e5, `hyperframes check` on a white-plate fixture, before (9 errors incl. `.bl-legal`/`.bug .dt2` at t=0.833-2.833s) and after (9/9 pass) · status: promoted
 - 2026-09-23 [MISSING] §6d — n=1, flag for confirmation: `bl_tools.py matte` on RVM mobilenetv3+MPS runs at ~1.4s/frame steady state (~8 min for a 14s/25fps lipsync part), so mattes all 3 parts of one episode before render eats 25-40 min. Budget for it; don't start it as the last step before a deadline · evidence: task-4bce29e5, full `lipsync_part_a_0s-14s.mp4` matte run, 481.8s/350 frames · status: pending
