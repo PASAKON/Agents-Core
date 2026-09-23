@@ -38,15 +38,17 @@ def temp_db(monkeypatch, tmp_path):
     monkeypatch.setattr(db_mod, "DB_PATH", db_path)
     # owner_cto="test-owner" below is synthetic with no c_level_sessions row.
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
+    # Storage pilot scope (CEO 2026-09-23): only listed owners are gated.
+    monkeypatch.setattr(delegate, "_storage_pilot_owners", lambda: ["test-owner"])
     db_mod.init()
     return db_mod
 
 
-def _new_task(db_mod_) -> str:
+def _new_task(db_mod_, owner: str = "test-owner") -> str:
     return db_mod_.create_task(
         project="mooniex-agents", role="developer",
         title="disk floor test", description="d",
-        owner_cto="test-owner",
+        owner_cto=owner,
     )
 
 
@@ -107,7 +109,8 @@ def test_sufficient_disk_proceeds_to_spawn_step(temp_db, monkeypatch):
 
     created = {}
 
-    def fake_create_worktree(project_key, role, task_id):
+    def fake_create_worktree(project_key, role, task_id, sparse=False):
+        created["sparse"] = sparse
         info = {
             "project": project_key, "task_id": task_id, "role": role,
             "branch": f"agent/{role}-{task_id}",
@@ -134,3 +137,38 @@ def test_sufficient_disk_proceeds_to_spawn_step(temp_db, monkeypatch):
     assert len(spawn_calls) == 1
     assert isinstance(result, dict)  # normal path still returns the task row
     assert result["worktree"] == created["worktree_info"]["worktree"]
+    assert created["sparse"] is True  # pilot owner → sparse worktree
+
+
+def test_low_disk_does_not_refuse_another_sessions_task(temp_db, monkeypatch):
+    """Pilot scope (CEO 2026-09-23: "Scope เฉพาะงานตัวเองก่อน"): a task owned
+    by a CTO session outside `pilot_owner_cto` is never refused by the floor
+    and gets a full (non-sparse) checkout."""
+    monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 1.0)
+    monkeypatch.setattr(delegate, "get_project", lambda key: {
+        "path": "/tmp/does-not-matter", "default_branch": "main",
+        "agents_allowed": ["developer"], "spawn_backend": "iterm", "web_ui": "off"})
+    seen = {}
+
+    def fake_create_worktree(project_key, role, task_id, sparse=False):
+        seen["sparse"] = sparse
+        return {"project": project_key, "task_id": task_id, "role": role,
+                "branch": f"agent/{role}-{task_id}", "worktree": f"/tmp/fake-{task_id}",
+                "base": "main", "repo": "/tmp/does-not-matter", "provisioned": []}
+
+    monkeypatch.setattr(delegate, "create_worktree", fake_create_worktree)
+    monkeypatch.setattr(delegate, "_spawn_iterm_tab", lambda role, task_id, **kw: "spawned")
+
+    tid = _new_task(temp_db, owner="someone-else")
+    result = asyncio.run(delegate.delegate_task(tid))
+
+    assert "disk red" not in (result.get("delegate_log") or "")
+    assert seen.get("sparse") is False
+
+
+def test_missing_pilot_key_applies_to_nobody(monkeypatch, tmp_path):
+    p = tmp_path / "policy.yaml"
+    p.write_text("gauge: {orange: 5}\n")
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", p)
+    assert delegate._storage_pilot_owners() == []
+    assert delegate._storage_applies("0e8d80b8") is False

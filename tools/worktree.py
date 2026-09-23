@@ -178,8 +178,13 @@ def _exclude_in_worktree(wt: Path, names: tuple[str, ...]) -> None:
         pass
 
 
-def create_worktree(project_key: str, role: str, task_id: str) -> dict:
-    """Create isolated worktree on new branch from default branch."""
+def create_worktree(project_key: str, role: str, task_id: str, *,
+                    sparse: bool = False) -> dict:
+    """Create isolated worktree on new branch from default branch.
+
+    `sparse=True` excludes large tracked media (ADR 0030). Off by default:
+    delegate turns it on only for tasks in the storage pilot
+    (`pilot_owner_cto`, CEO 2026-09-23 — own work first)."""
     proj = get_project(project_key)
     repo = Path(proj["path"])
     base = proj["default_branch"]
@@ -239,7 +244,7 @@ def create_worktree(project_key: str, role: str, task_id: str) -> dict:
     full_roles = set(policy.get("full_checkout_roles") or [])
 
     large_media: list[str] = []
-    if role not in full_roles and min_bytes:
+    if sparse and role not in full_roles and min_bytes:
         extensions = _media_guard_extensions()
         if extensions:
             large_media = _large_tracked_media(repo, start_point, int(min_bytes), extensions)

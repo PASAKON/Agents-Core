@@ -226,6 +226,24 @@ def _disk_orange_floor_gb() -> float:
         return DEFAULT_DISK_ORANGE_GB
 
 
+def _storage_pilot_owners() -> list[str]:
+    """`pilot_owner_cto` from config/storage-policy.yaml — whose tasks the
+    ADR 0030 disk actions (floor, sparse worktree) apply to. CEO 2026-09-23:
+    "Scope เฉพาะงานตัวเองก่อน เผื่อมีงานอื่นที่คนอื่นกำลังทำ". Missing key or
+    unreadable file → [] (applies to nobody: never widen by accident)."""
+    try:
+        data = yaml.safe_load(STORAGE_POLICY.read_text()) or {}
+    except (OSError, yaml.YAMLError):
+        return []
+    owners = data.get("pilot_owner_cto") or []
+    return [str(o) for o in owners] if isinstance(owners, list) else []
+
+
+def _storage_applies(owner_cto: str | None) -> bool:
+    owners = _storage_pilot_owners()
+    return "all" in owners or (bool(owner_cto) and str(owner_cto) in owners)
+
+
 def _free_gb(path: str = "/") -> float:
     """Free space on `path` in GB. Module-level seam so tests can inject a
     fake value directly (monkeypatch this function) rather than an env var
@@ -1155,9 +1173,12 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # does `_slim_task(await do_delegate(...))` and delegate_parallel_tasks
     # gathers results, both of which assume a dict (CTO reopen feedback,
     # task-bfa778ab iter1: a str return broke the MCP tool on a low-disk spawn).
+    # Pilot scope: only tasks whose owner_cto is in `pilot_owner_cto` — other
+    # sessions' work is never refused by this gate until the CEO widens it.
+    storage_applies = _storage_applies(task.get("owner_cto"))
     free_gb = _free_gb()
     orange_gb = _disk_orange_floor_gb()
-    if free_gb < orange_gb:
+    if storage_applies and free_gb < orange_gb:
         msg = (f"disk red: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
                f"— spawn refused (ADR 0030)")
         warn(f"disk floor blocked task={task_id}: {msg}")
@@ -1298,7 +1319,8 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             return db.get_task(task_id)
 
     if not task.get("worktree"):
-        wt_info = create_worktree(project_key, role_name, task_id)
+        wt_info = create_worktree(project_key, role_name, task_id,
+                                  sparse=storage_applies)
         db.update_status(task_id, "pending",
                          worktree=wt_info["worktree"],
                          branch=wt_info["branch"],

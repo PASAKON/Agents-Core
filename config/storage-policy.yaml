@@ -14,7 +14,14 @@ gauge:
   green:  20   # >= 20 GB: normal
   yellow: 10   # < 20: notify the CEO once a day, list COLD candidates
   orange: 5    # < 10: delete REBUILD automatically; no new download/video task spawns
-  red:    0    # < 5:  delegate refuses EVERY spawn until space is back above 5
+  red:    0    # < 5:  delegate refuses every spawn in the pilot scope below
+
+# Pilot scope — whose tasks the gauge actions and sparse worktrees apply to.
+# CEO 2026-09-23: "Scope เฉพาะงานตัวเองก่อน เผื่อมีงานอื่นที่คนอื่นกำลังทำ".
+# Measured that hour: 18 other CTO sessions owned 58 in-flight tasks — an
+# org-wide floor would have refused all of them. "all" = every task; widen
+# only on the CEO's word. Missing key = applies to nobody.
+pilot_owner_cto: ["0e8d80b8"]
 
 tiers:
   # In use right now. Stays on the Mac.

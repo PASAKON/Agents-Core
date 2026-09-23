@@ -123,7 +123,7 @@ def wired(tmp_path, policy_file, monkeypatch):
 # ---------------------------------------------------------------------------
 
 def test_sparse_role_excludes_only_large_tracked_media(wired):
-    info = worktree_mod.create_worktree("testproj", "developer", "t1")
+    info = worktree_mod.create_worktree("testproj", "developer", "t1", sparse=True)
     wt = Path(info["worktree"])
 
     assert (wt / "src" / "a.py").exists()
@@ -142,7 +142,7 @@ def test_sparse_role_excludes_only_large_tracked_media(wired):
 
 
 def test_full_checkout_role_includes_everything(wired):
-    info = worktree_mod.create_worktree("testproj", "video_editor", "t2")
+    info = worktree_mod.create_worktree("testproj", "video_editor", "t2", sparse=True)
     wt = Path(info["worktree"])
 
     assert (wt / "src" / "a.py").exists()
@@ -158,7 +158,7 @@ def test_full_checkout_role_includes_everything(wired):
 # ---------------------------------------------------------------------------
 
 def test_new_files_under_docs_reports_are_addable_and_committable(wired):
-    info = worktree_mod.create_worktree("testproj", "developer", "t3")
+    info = worktree_mod.create_worktree("testproj", "developer", "t3", sparse=True)
     wt = Path(info["worktree"])
 
     (wt / "docs" / "reports" / "NEW_REPORT.md").write_text("a new report\n")
@@ -187,7 +187,7 @@ def test_main_checkout_stays_non_sparse(wired):
         capture_output=True, text=True,
     )
 
-    worktree_mod.create_worktree("testproj", "developer", "t4")
+    worktree_mod.create_worktree("testproj", "developer", "t4", sparse=True)
 
     after = subprocess.run(
         ["git", "sparse-checkout", "list"], cwd=str(repo),
@@ -211,7 +211,7 @@ def test_main_checkout_stays_non_sparse(wired):
 # ---------------------------------------------------------------------------
 
 def test_commit_worktree_from_sparse_worktree(wired):
-    info = worktree_mod.create_worktree("testproj", "developer", "t5")
+    info = worktree_mod.create_worktree("testproj", "developer", "t5", sparse=True)
     wt = Path(info["worktree"])
 
     (wt / "src" / "a.py").write_text("print('changed')\n")
@@ -229,7 +229,7 @@ def test_commit_worktree_from_sparse_worktree(wired):
 def test_merge_of_sparse_branch_keeps_large_media_intact(wired):
     repo = wired["repo"]
 
-    info = worktree_mod.create_worktree("testproj", "developer", "t6")
+    info = worktree_mod.create_worktree("testproj", "developer", "t6", sparse=True)
     wt = Path(info["worktree"])
     branch = info["branch"]
 
@@ -250,3 +250,12 @@ def test_merge_of_sparse_branch_keeps_large_media_intact(wired):
     assert (repo / BRACKET_FILE).exists()
     assert (repo / THAI_FILE).exists()
     assert (repo / "NEW_FROM_SPARSE.md").exists()
+
+
+def test_default_is_full_checkout_outside_the_pilot(wired):
+    """sparse defaults to False: a task outside the storage pilot (another
+    session's work, CEO 2026-09-23) gets today's full checkout."""
+    info = worktree_mod.create_worktree("testproj", "developer", "t9")
+    wt = Path(info["worktree"])
+    assert (wt / "docs" / "reports" / "big_video.mp4").exists()
+    assert (wt / THAI_FILE).exists()
