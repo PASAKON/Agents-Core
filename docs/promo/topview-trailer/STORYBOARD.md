@@ -7,7 +7,7 @@ Times are provisional: the final cut follows the music.
 
 | # | Time | Act | Frame and camera | What we see | Colour | Sound | Plates |
 |---|---|---|---|---|---|---|---|
-| 1 | 0:00-0:04 | Home | aerial extreme wide, slow push in | endless turquoise ocean, no land; a cluster of giant floating trees; the ringed planet low on the horizon | colourful | first notes | loc_open_sea, loc_village_above |
+| 1 | 0:00-0:04 | Home | aerial extreme wide, slow push in | endless turquoise ocean, no land; a cluster of giant mangrove-like trees in open water; their blue-white morning sky with the huge close moon | colourful | first notes | loc_open_sea, loc_village_above |
 | 2 | 0:04-0:07 | Home | medium, gentle drift | canopy pod-homes, seed-lamps glowing, village children diving off branches | colourful | laughter, splash | loc_village_above |
 | 3 | 0:07-0:11 | Home | underwater wide, gliding down | the root cathedral into the blue, villagers swimming, sun rays | colourful | muffled melody | loc_village_roots |
 | 4 | 0:11-0:14 | Home | close-up, surfacing | THE YOUNG ONE breaks the surface, gills flare gold, big smile | colourful | breath, splash | char_young |

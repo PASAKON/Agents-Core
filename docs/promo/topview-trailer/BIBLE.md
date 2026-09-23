@@ -12,7 +12,7 @@ for every look (a shot may not describe a character in words that disagree with 
 
 | Act | Time | Look | Palette |
 |---|---|---|---|
-| Home, leaving | 0:00-0:35 | high-key daylight, saturated, soft sun rays underwater | turquoise #2EC4B6, coral #FF6F59, gold #FFC857, lime #B5E61D, ocean blue #1B4965 |
+| Home, leaving | 0:00-0:35 | their daylight: bright blue-white sky like a brilliantly lit night, a huge close moon, stars; neon-green glowing grass on wooden houses; clear water with light rays | sky white-blue #DDF3FF, sky blue #7FB8FF, neon green #39FF14, water turquoise #2EC4B6, moon silver #E8ECF2 |
 | The wrong sea | 0:35-0:55 | the colour drains: bruised violet sky, indigo water, the aliens' gills fading pale | transition |
 | Scale, the question | 0:55-1:25 | near-black sea lit only by bioluminescence: the creature, the heroes' freckles, seed-light | abyss #05070F, indigo #1A1446, cyan #00F0FF, magenta #FF2E88, amber #FFB000 |
 
@@ -22,18 +22,31 @@ the storm.
 
 ## World
 
-A planet with no land at all, only ocean to every horizon. A huge ringed planet
-hangs low in the sky by day. Water is turquoise in the shallows the trees make,
-deep indigo beyond.
+CEO, 2026-09-24, verbatim:
 
-**The trees.** Each is one colossal floating organism, like a mangrove with no
-shore: a buoyant woody float-bulb at the waterline, a trunk rising about 40 m,
-an umbrella canopy of broad coral-pink and gold leaves, and roots hanging
-hundreds of metres down into the blue like a cathedral. Several trees drift
-together, tied by vine bridges: that is the village.
+> หมู่บ้านอยากได้ฟีลแนวๆ ไม้สูง รากลงไปข้างล่าง คล้ายๆ ต้นโกงกาง ไม่มีแผ่นดิน บ้านทำจากไม้
+> ที่มีลักษณะเหมือนมีตะไคร้เรืองแสงสีเขียวนีออนติดอยู่ ประมาณนั้น
+>
+> และตอนเช้าของเขาจะไม่ใช่สีแดงส้มเหมือนบ้านเรา แต่จะเป็นสีฟ้า ขาว อารมณ์เหมือนท้องฟ้า
+> ยามค่ำคืนแต่สว่างมาก และมีดาว ดวงจันทร์ที่ใกล้ดาวมาก มองเห็นได้ชัดเลย
 
-**The resource.** The trees grow glow-seeds, pods of soft golden light. They are
-the village's lamps. The trees are making fewer, the lamps are dimming, and wild
+A planet with no land at all, only ocean to every horizon.
+
+**Their daylight is not ours.** Morning and day are blue and white, never red or
+orange: the mood of a night sky, but brilliantly bright. A huge moon hangs very
+close to the planet, sharp and clearly detailed, with stars still visible in the
+bright sky. (This replaces the ringed planet in draft 1.)
+
+**The trees.** Tall mangrove-like giants standing in open water with no shore:
+long arching stilt roots plunge from high up the trunk down into the sea and keep
+going deep underwater. Several trees stand close together: that is the village.
+
+**The houses.** Built of wood, lashed among the branches and on platforms over the
+roots, and grown over with tufts of something like lemongrass that glows neon
+green. The glowing grass is the village's signature colour, day and night.
+
+**The resource.** The trees grow glow-seeds, pods of soft light that the village
+uses as lamps. The trees are making fewer, the lamps are dimming, and wild
 seed-beds grow only out in the deep. That is why the heroes leave.
 
 ## Cast (CAST, one row per character)
@@ -64,9 +77,9 @@ give; screen them for collisions before any prompt uses them (ai-film-production
 
 | Plate | Where |
 |---|---|
-| `loc_village_above` | the drifting tree-village from the water line, canopy, hanging pod-homes, vine bridges, seed-lamps |
-| `loc_village_roots` | underwater among the root cathedral, sun rays, glow-seeds on the roots |
-| `loc_open_sea` | open ocean at noon, no land anywhere, the ringed planet low on the horizon |
+| `loc_village_above` | the mangrove-giant village standing in open water: tall trunks, arching stilt roots, wooden houses grown over with neon-green glowing grass, blue-white daylight, the huge close moon |
+| `loc_village_roots` | underwater among the stilt roots going down into the deep, light rays from the blue-white sky, glow-seeds on the roots, neon-green glow drifting down |
+| `loc_open_sea` | open ocean in their blue-white day, no land anywhere, the huge moon over the horizon |
 | `loc_storm_sea` | the same sea gone wrong: violet-grey sky, waves taller than the trees, spray tearing sideways |
 | `loc_deep_dark` | the deep at night: near-black water, drifting specks of light |
 
