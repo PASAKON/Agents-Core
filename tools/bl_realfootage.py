@@ -438,11 +438,28 @@ _FIND_HELPERS_JS = r"""
       if (r.width < 14 || r.width > 90) continue;
       const ratio = r.width / r.height;
       if (ratio < 0.75 || ratio > 1.35) continue;  // excludes landscape flag icons
+      // Walk up toward the identity strip (avatar+username+badge+country),
+      // but stop BEFORE swallowing the card's own body text -- a width cap
+      // alone isn't enough: on WikiFX's own comment-carousel template
+      // (.top-comment-item) the identity row is 230px wide and its very
+      // next ancestor is the WHOLE 272px-wide card (avatar+name+full
+      // complaint paragraph), so a width-only check happily keeps climbing
+      // past the identity row into the card. That is exactly how
+      // FX3090996564 shipped uncensored while its 44x44 avatar image
+      // (censored via a separate, tighter box) looked fine on its own
+      // (CTO-FEEDBACK.md 13:40, task-67f82679, EP55). A text-length cap
+      // catches this generically, on any template: the identity row's own
+      // text (name + verified-badge + country) measured ~40 chars; the
+      // instant a candidate parent's text jumps past a short line, it's the
+      // card body, not the identity strip -- stop one hop short of it.
       let row = img;
       for (let i = 0; i < 4 && row.parentElement; i++) {
-        const pr = row.parentElement.getBoundingClientRect();
+        const parent = row.parentElement;
+        const pr = parent.getBoundingClientRect();
         if (pr.width > 400) break;  // stop before the row swallows the whole page width
-        row = row.parentElement;
+        const parentText = parent.innerText || parent.textContent || "";
+        if (parentText.length > 120) break;  // stop before the row swallows the card's own body text
+        row = parent;
       }
       rows.push(row);
     }
@@ -876,11 +893,15 @@ class RealFootageRunner:
             clean_path = shot_dir / f"{shot.id}-clean.png"
             clean_frame.save(clean_path)
             outputs.append(str(clean_path.relative_to(self.out_dir)))
-            manifest_entries.append({
-                "file": f"{self.drive_real_prefix}/{shot.id}-clean.png", "kind": "still",
-                "covers": shot.covers, "source_url": shot.url, "captured_at": captured_at,
-                "seconds": 0, "censored": [], "note": "clean reference copy -- not for on-screen use",
-            })
+            # NEVER a manifest entry, and NEVER under drive_real_prefix -- an
+            # uncensored "clean reference copy" that is pickable via
+            # REAL_MANIFEST.json is exactly the HARD-rule-2 break the CTO
+            # caught on EP55: bingx-logo-still-clean.png (full logo + the
+            # "$5,000,000!" prize, uncensored) shipped to Drive real/ tagged
+            # covers:[HOOK-2,PATTERN-1], pickable by an editor
+            # (CTO-FEEDBACK.md 13:40, task-67f82679). Kept on local disk only
+            # -- a human reference, never something the editor's manifest
+            # lookup or the Drive real/ upload can reach.
 
         if shot.kind == "clip" and shot.duration > 0:
             clip_path = shot_dir / f"{shot.id}.mp4"

@@ -238,3 +238,18 @@
 2026-09-23T05:04:30+07:00 | bingx-homepage-scroll ok -> bingx-homepage-scroll/bingx-homepage-scroll.mp4
 2026-09-23T05:04:37+07:00 | bingx-logo-still ok -> bingx-logo-still/bingx-logo-still.png, bingx-logo-still/bingx-logo-still-clean.png
 2026-09-23T05:04:47+07:00 | bingx-logo-pushin ok -> bingx-logo-pushin/bingx-logo-pushin.png, bingx-logo-pushin/bingx-logo-pushin.mp4
+2026-09-23T13:51:48+07:00 | wikifx-article-hook ok -> wikifx-article-hook/wikifx-article-hook.png
+2026-09-23T13:51:57+07:00 | wikifx-profile-no-license ok -> wikifx-profile-no-license/wikifx-profile-no-license.png
+2026-09-23T13:52:07+07:00 | wikifx-profile-no-regulation ok -> wikifx-profile-no-regulation/wikifx-profile-no-regulation.png
+2026-09-23T13:52:17+07:00 | wikifx-profile-score ok -> wikifx-profile-score/wikifx-profile-score.png
+2026-09-23T13:52:28+07:00 | wikifx-article-score-reason ok -> wikifx-article-score-reason/wikifx-article-score-reason.png
+2026-09-23T13:52:35+07:00 | wikifx-profile-complaint-amounts ok -> wikifx-profile-complaint-amounts/wikifx-profile-complaint-amounts.png
+2026-09-23T13:52:43+07:00 | wikifx-profile-complaint-taiwan ok -> wikifx-profile-complaint-taiwan/wikifx-profile-complaint-taiwan.png
+2026-09-23T13:52:49+07:00 | wikifx-article-founded-hq ok -> wikifx-article-founded-hq/wikifx-article-founded-hq.png
+2026-09-23T13:52:58+07:00 | wikifx-article-leverage ok -> wikifx-article-leverage/wikifx-article-leverage.png
+2026-09-23T13:53:09+07:00 | wikifx-article-min-deposit ok -> wikifx-article-min-deposit/wikifx-article-min-deposit.png
+2026-09-23T13:53:14+07:00 | wikifx-article-withdrawal-restriction ok -> wikifx-article-withdrawal-restriction/wikifx-article-withdrawal-restriction.png
+2026-09-23T13:54:35+07:00 | bingx-homepage-scroll ok -> bingx-homepage-scroll/bingx-homepage-scroll.mp4
+2026-09-23T13:54:41+07:00 | bingx-logo-still ok -> bingx-logo-still/bingx-logo-still.png, bingx-logo-still/bingx-logo-still-clean.png
+2026-09-23T13:54:56+07:00 | bingx-logo-pushin ok -> bingx-logo-pushin/bingx-logo-pushin.png, bingx-logo-pushin/bingx-logo-pushin.mp4
+2026-09-23T13:55:00+07:00 | FIX ROUND (CTO review 13:40): (1) also_clean no longer writes a manifest entry -- bingx-logo-still-clean.png stays local-only, never Drive/manifest. (2) findAllAvatarRows() row-walk now stops on a text-length cap (>120 chars), not width alone -- fixes FX3090996564 shipping uncensored while its avatar was censored. (3) wikifx-profile-score (CONTEXT-3) re-anchored crop from text "อยู่ที่ 1.69" (matched Q&A prose, wrong page area) to selector ".head-l-score" (the actual score badge; "1.69" itself is an odometer-digit-reel widget, no reliable text node). Drive real/: trashed 13 stale/bad files (old wikifx-profile-score.png, bingx-logo-still-clean.png, old REAL_MANIFEST.json, and 10 other WikiFX stills recaptured under the fixed personal_data rule), re-uploaded 11 corrected PNGs + REAL_MANIFEST.json.

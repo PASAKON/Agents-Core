@@ -7,7 +7,7 @@
       "PATTERN-1"
     ],
     "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
-    "captured_at": "2026-09-23T05:02:32+07:00",
+    "captured_at": "2026-09-23T13:51:48+07:00",
     "seconds": 0,
     "censored": []
   },
@@ -18,7 +18,7 @@
       "CONTEXT-1"
     ],
     "source_url": "https://www.wikifx.com/th/dealer/4411879049.html",
-    "captured_at": "2026-09-23T05:02:39+07:00",
+    "captured_at": "2026-09-23T13:51:57+07:00",
     "seconds": 0,
     "censored": [
       {
@@ -34,7 +34,7 @@
       "CONTEXT-2"
     ],
     "source_url": "https://www.wikifx.com/th/dealer/4411879049.html",
-    "captured_at": "2026-09-23T05:02:46+07:00",
+    "captured_at": "2026-09-23T13:52:07+07:00",
     "seconds": 0,
     "censored": [
       {
@@ -50,7 +50,7 @@
       "CONTEXT-3"
     ],
     "source_url": "https://www.wikifx.com/th/dealer/4411879049.html",
-    "captured_at": "2026-09-23T05:02:53+07:00",
+    "captured_at": "2026-09-23T13:52:17+07:00",
     "seconds": 0,
     "censored": [
       {
@@ -66,7 +66,7 @@
       "CONTEXT-4"
     ],
     "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
-    "captured_at": "2026-09-23T05:02:59+07:00",
+    "captured_at": "2026-09-23T13:52:28+07:00",
     "seconds": 0,
     "censored": []
   },
@@ -78,7 +78,7 @@
       "MAIN-4"
     ],
     "source_url": "https://www.wikifx.com/th/dealer/4411879049.html",
-    "captured_at": "2026-09-23T05:03:06+07:00",
+    "captured_at": "2026-09-23T13:52:35+07:00",
     "seconds": 0,
     "censored": [
       {
@@ -94,7 +94,7 @@
       "MAIN-5"
     ],
     "source_url": "https://www.wikifx.com/th/dealer/4411879049.html",
-    "captured_at": "2026-09-23T05:03:17+07:00",
+    "captured_at": "2026-09-23T13:52:43+07:00",
     "seconds": 0,
     "censored": [
       {
@@ -110,7 +110,7 @@
       "PATTERN-2"
     ],
     "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
-    "captured_at": "2026-09-23T05:03:21+07:00",
+    "captured_at": "2026-09-23T13:52:49+07:00",
     "seconds": 0,
     "censored": []
   },
@@ -121,7 +121,7 @@
       "MAIN-8"
     ],
     "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
-    "captured_at": "2026-09-23T05:03:26+07:00",
+    "captured_at": "2026-09-23T13:52:58+07:00",
     "seconds": 0,
     "censored": []
   },
@@ -133,7 +133,7 @@
       "MAIN-10"
     ],
     "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
-    "captured_at": "2026-09-23T05:03:31+07:00",
+    "captured_at": "2026-09-23T13:53:09+07:00",
     "seconds": 0,
     "censored": []
   },
@@ -145,7 +145,7 @@
       "MAIN-7"
     ],
     "source_url": "https://www.wikifx.com/th/newsdetail/202609211084971426.html",
-    "captured_at": "2026-09-23T05:03:36+07:00",
+    "captured_at": "2026-09-23T13:53:14+07:00",
     "seconds": 0,
     "censored": []
   },
@@ -158,7 +158,7 @@
       "MAIN-12"
     ],
     "source_url": "https://www.bingx.com/",
-    "captured_at": "2026-09-23T05:04:30+07:00",
+    "captured_at": "2026-09-23T13:54:35+07:00",
     "seconds": 7.0,
     "censored": [
       {
@@ -199,7 +199,7 @@
       "PATTERN-1"
     ],
     "source_url": "https://www.bingx.com/",
-    "captured_at": "2026-09-23T05:04:37+07:00",
+    "captured_at": "2026-09-23T13:54:41+07:00",
     "seconds": 0,
     "censored": [
       {
@@ -233,19 +233,6 @@
     ]
   },
   {
-    "file": "real/bingx-logo-still-clean.png",
-    "kind": "still",
-    "covers": [
-      "HOOK-2",
-      "PATTERN-1"
-    ],
-    "source_url": "https://www.bingx.com/",
-    "captured_at": "2026-09-23T05:04:37+07:00",
-    "seconds": 0,
-    "censored": [],
-    "note": "clean reference copy -- not for on-screen use"
-  },
-  {
     "file": "real/bingx-logo-pushin.png",
     "kind": "still",
     "covers": [
@@ -253,7 +240,7 @@
       "PATTERN-1"
     ],
     "source_url": "https://www.bingx.com/",
-    "captured_at": "2026-09-23T05:04:43+07:00",
+    "captured_at": "2026-09-23T13:54:49+07:00",
     "seconds": 0,
     "censored": [
       {
@@ -294,7 +281,7 @@
       "PATTERN-1"
     ],
     "source_url": "https://www.bingx.com/",
-    "captured_at": "2026-09-23T05:04:43+07:00",
+    "captured_at": "2026-09-23T13:54:49+07:00",
     "seconds": 3.0,
     "censored": [
       {

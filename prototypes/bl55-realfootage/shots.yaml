@@ -143,6 +143,21 @@ shots:
     <<: *wikifx_hygiene
     censor_profiles: [personal_data]
 
+  # CTO review 2026-09-23 13:40 (task-67f82679): re-anchored on the badge
+  # SELECTOR, not text. "อยู่ที่ 1.69" matched the SMALLEST visible element
+  # containing that phrase, which is the Wiki Q&A prose ("...อยู่ที่ 1.69
+  # คะแนน ซึ่งสะท้อนถึง...") -- a real still further down the page, not the
+  # badge -- so the shot showed the news/Q&A/complaint column instead of the
+  # score, and its complaint card leaked FX3090996564 uncensored. Worse: the
+  # badge's own "1.69" is NOT plain flowed text at all -- it's an
+  # odometer-style digit-reel widget (confirmed live 2026-09-23: the DOM
+  # holds every digit 0-9 for each position, CSS-scrolled to reveal the
+  # right one; the one exact "1.69" text node on the page is a detached,
+  # zero-size accessibility duplicate). No text anchor can ever hit this
+  # badge reliably. `.head-l-score` is the badge's own tight container
+  # (measured 200x115, sits directly beside the BingX logo+name, as seen in
+  # wikifx-profile-no-license.png) -- a selector anchor doesn't care what's
+  # inside it, so the odometer's DOM quirks don't matter.
   - id: wikifx-profile-score
     url: "https://www.wikifx.com/th/dealer/4411879049.html"
     action: capture
@@ -150,7 +165,7 @@ shots:
     covers: [CONTEXT-3]
     wait_ms: 2000
     crop:
-      text: "อยู่ที่ 1.69"
+      selector: ".head-l-score"
       pad: 2.2
     <<: *wikifx_hygiene
     censor_profiles: [personal_data]
