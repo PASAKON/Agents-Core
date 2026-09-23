@@ -24,7 +24,7 @@ HARD RULE: no paid API is touched during development. Prove everything with
   the CTO after the CEO confirms budget (ASK-before-paid).
 
 Usage:
-  PY=/Users/gob/Projects/Agents/.venv/bin/python
+  PY=/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python
   $PY scripts/trader_mindset_batch.py --dry                 # no API, prints plan
   $PY scripts/trader_mindset_batch.py --dry --count 3
   $PY scripts/trader_mindset_batch.py                       # REAL run (CTO only)
@@ -59,9 +59,9 @@ FONT_REGULAR = os.path.join(REPO, "assets", "fonts", "IBMPlexSansThai-Regular.tt
 # Identity reference + transparent lockup come from the proven v9 asset set.
 # Overridable so the script is portable across machines / CI.
 REF_CROP = os.environ.get(
-    "TM_REF_CROP", "/Users/gob/Projects/Agents/output/personal-brand/_ref_crop.png")
+    "TM_REF_CROP", "/Users/gob/MoonieXHQ/Agents/Core/output/personal-brand/_ref_crop.png")
 LOCKUP = os.environ.get(
-    "TM_LOCKUP", "/Users/gob/Projects/Agents/output/personal-brand/lockup-vertical.png")
+    "TM_LOCKUP", "/Users/gob/MoonieXHQ/Agents/Core/output/personal-brand/lockup-vertical.png")
 
 # Secrets live in the claudeflow .env (same file v9 reads), never in this repo.
 ENV_PATH = os.environ.get("TM_ENV_PATH", "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env")

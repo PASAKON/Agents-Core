@@ -25,7 +25,7 @@ Lessons input format (claudeflow scripts/tm-export-lessons.js):
     [ { "slug": "...", "reason": "...", "date": "YYYY-MM-DD" }, ... ]
 
 Usage:
-  PY=/Users/gob/Projects/Agents/.venv/bin/python
+  PY=/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python
   $PY scripts/tm_prompt_evolve.py --lessons lessons.json --dry            # no API
   $PY scripts/tm_prompt_evolve.py --lessons lessons.json --kind caption   # REAL (CTO)
   $PY scripts/tm_prompt_evolve.py --lessons lessons.json --out-dir /tmp/x # test sink

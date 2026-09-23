@@ -19,6 +19,14 @@ Home = $CLAUDE_PROJECT_DIR (hooks get it) -> fallback: the event's `cwd`.
 Simulated end == home -> allow (exit 0, silent). Anywhere else, or UNKNOWN
 -> block (exit 2) with a fix.
 
+Logical vs physical (ADR 0028 step 4b hazard #2): after a repo moves and its
+old path becomes a compat symlink, `home` may be the OLD (symlinked, logical)
+path while a `cd` targets the NEW (physical) one, or vice versa — same
+location, different strings, and a naive `final == home` string compare
+blocks a no-op cd. The exact-string check stays the fast path (no syscalls);
+only on a mismatch do both sides get `os.path.realpath`'d before refusing, so
+a symlink-equivalent cd is never wrongly blocked.
+
 Escape hatch, for genuine repair only: CWD_GUARD=off.
 """
 from __future__ import annotations
@@ -271,6 +279,20 @@ def simulate_final_cwd(command: str, home: str) -> tuple[str, str | None]:
 
 
 # --------------------------------------------------------------------------
+# logical vs physical equivalence (ADR 0028 step 4b hazard #2)
+# --------------------------------------------------------------------------
+
+def _paths_equivalent(a: str, b: str) -> bool:
+    """True if `a` and `b` name the same location once symlinks are resolved
+    on BOTH sides. Only called on a string mismatch — the exact-match path
+    above stays syscall-free."""
+    try:
+        return os.path.realpath(a) == os.path.realpath(b)
+    except OSError:
+        return False
+
+
+# --------------------------------------------------------------------------
 # hook entrypoint
 # --------------------------------------------------------------------------
 
@@ -293,6 +315,8 @@ def main() -> int:
 
     final, unknown_reason = simulate_final_cwd(command, home)
     if final == home:
+        return 0
+    if final != "UNKNOWN" and _paths_equivalent(final, home):
         return 0
 
     where = f"an unresolved location ({unknown_reason})" if final == "UNKNOWN" else final

@@ -65,7 +65,7 @@ The index is hand-maintained; the template set is not. After a refresh
 (`PROVENANCE.md`), check what appeared:
 
 ```bash
-cd /Users/gob/Projects/Agents/knowledge/design-knowledge
+cd /Users/gob/MoonieXHQ/Agents/Core/knowledge/design-knowledge
 ls design-templates | wc -l      # was 115 on 2026-08-03
 ```
 

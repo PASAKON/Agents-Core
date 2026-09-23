@@ -108,6 +108,54 @@ def test_category_for_unknown_path():
           "category_for('/Users/gob/random/file.md') is None")
 
 
+# --- ADR 0028 step 4b hazard #2: logical vs physical ------------------------
+
+def test_agents_config_pattern_is_root_derived_not_hardcoded():
+    """The old code hardcoded '/Users/gob/MoonieXHQ/Agents/Core/config/' as a
+    literal regex; it must now be built from ROOT (this repo's own actual
+    location, wherever that is), so a path under the CURRENT root's config/
+    matches regardless of what ROOT happens to resolve to on this machine."""
+    sample = str(gc.ROOT / "config" / "sample.yaml")
+    _mark(gc.category_for(sample) == "agents_config",
+          f"category_for({sample!r}) == 'agents_config' (ROOT-derived, not hardcoded)")
+
+
+def _rebuild_categories():
+    gc.CATEGORIES[:] = [
+        ("wiki_edit", gc._wiki_edit_pattern()),
+        ("agents_config", gc._agents_subdir_pattern("config")),
+        ("agents_roles", gc._agents_subdir_pattern("roles")),
+        ("memory", gc.CATEGORIES[3][1]),
+        ("claudemd", gc.CATEGORIES[4][1]),
+    ]
+
+
+def test_category_for_agents_config_via_symlink_alias():
+    """A config/ file reached through a compat symlink alias (the OLD
+    logical path kept working after a migration step) must classify the
+    same as the physical path — checked via the file's own realpath."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        td_path = Path(td)
+        physical_root = td_path / "physical-agents"
+        (physical_root / "config").mkdir(parents=True)
+        (physical_root / "config" / "sample.yaml").write_text("k: v\n")
+        logical_alias = td_path / "logical-agents"
+        logical_alias.symlink_to(physical_root)
+
+        old_root = gc.ROOT
+        try:
+            gc.ROOT = physical_root
+            _rebuild_categories()
+            via_logical = str(logical_alias / "config" / "sample.yaml")
+            result = gc.category_for(via_logical)
+        finally:
+            gc.ROOT = old_root
+            _rebuild_categories()
+    _mark(result == "agents_config",
+          "category_for(logical-symlink path) == 'agents_config' (realpath fallback)")
+
+
 # --- Test 6a ---
 def test_session_key_uses_claude_session_id():
     backup = {k: os.environ.pop(k, None)
@@ -226,13 +274,15 @@ def main() -> int:
     test_expired_state_returns_false()
     test_category_for_wiki_path()
     test_category_for_unknown_path()
+    test_agents_config_pattern_is_root_derived_not_hardcoded()
+    test_category_for_agents_config_via_symlink_alias()
     test_session_key_uses_claude_session_id()
     test_session_key_proj_hash_fallback()
     test_pre_hook_allows_when_category_presented()
     test_pre_hook_passthrough_when_category_not_presented()
     test_pre_hook_passthrough_mixed_paths()
 
-    total = 10
+    total = 12
     print(f"\n{'ALL PASS' if _failures == 0 else str(_failures) + ' FAILED'} ({total - _failures}/{total})")
     return 1 if _failures else 0
 

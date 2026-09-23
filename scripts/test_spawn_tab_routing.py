@@ -258,7 +258,7 @@ def _stage_fake_root(tmp: Path) -> Path:
         (scripts_dir / stub).chmod(0o755)
     src = (ROOT / "scripts" / "spawn-cto.sh").read_text()
     patched = src.replace(
-        'ROOT="/Users/gob/Projects/Agents"',
+        'ROOT="/Users/gob/MoonieXHQ/Agents/Core"',
         f'ROOT="{fake_root}"',
     )
     patched_path = scripts_dir / "spawn-cto.patched.sh"

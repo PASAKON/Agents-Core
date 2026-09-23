@@ -41,7 +41,7 @@ own interactive sessions and every Mac-side worker/C-level spawn run).
         "hooks": [
           {
             "type": "command",
-            "command": "ORG_SKILL_LOG=/Users/gob/Projects/Agents/state/skill-usage.log python3 /Users/gob/Projects/Agents/scripts/hook-skill-log.py"
+            "command": "ORG_SKILL_LOG=/Users/gob/MoonieXHQ/Agents/Core/state/skill-usage.log python3 /Users/gob/MoonieXHQ/Agents/Core/scripts/hook-skill-log.py"
           }
         ]
       }
@@ -57,7 +57,7 @@ cp ~/.claude/settings.json ~/.claude/settings.json.bak-$(date -u +%Y%m%dT%H%M%SZ
 
 [ -f ~/.claude/settings.json ] || echo '{}' > ~/.claude/settings.json
 
-jq '.hooks.PostToolUse = ((.hooks.PostToolUse // []) + [{"matcher":"Skill","hooks":[{"type":"command","command":"ORG_SKILL_LOG=/Users/gob/Projects/Agents/state/skill-usage.log python3 /Users/gob/Projects/Agents/scripts/hook-skill-log.py"}]}])' ~/.claude/settings.json > ~/.claude/settings.json.tmp && mv ~/.claude/settings.json.tmp ~/.claude/settings.json
+jq '.hooks.PostToolUse = ((.hooks.PostToolUse // []) + [{"matcher":"Skill","hooks":[{"type":"command","command":"ORG_SKILL_LOG=/Users/gob/MoonieXHQ/Agents/Core/state/skill-usage.log python3 /Users/gob/MoonieXHQ/Agents/Core/scripts/hook-skill-log.py"}]}])' ~/.claude/settings.json > ~/.claude/settings.json.tmp && mv ~/.claude/settings.json.tmp ~/.claude/settings.json
 ```
 
 The `cp` line is a no-op (silently skipped) if `~/.claude/settings.json`
@@ -91,7 +91,7 @@ root `CLAUDE.md`):
 ```
 
 Same `cp` + `jq` steps as above, run on the VPS, with `/opt/mooniex-agents`
-substituted for `/Users/gob/Projects/Agents`.
+substituted for `/Users/gob/MoonieXHQ/Agents/Core`.
 
 ## Which key, replace or add?
 
@@ -109,7 +109,7 @@ override). Both files, both entries, stay active at once after the paste.
 ## Does that mean double logging?
 
 **Yes, but only for a session running directly in the main repo checkout**
-(e.g. a CTO/CEO session at `/Users/gob/Projects/Agents` itself, not a
+(e.g. a CTO/CEO session at `/Users/gob/MoonieXHQ/Agents/Core` itself, not a
 worktree). There, the project-level entry's old default
 (`${CLAUDE_PROJECT_DIR}/scripts/hook-skill-log.py`, no `ORG_SKILL_LOG`) still
 resolves its worktree-relative fallback to the *same* file the new user-level
@@ -141,7 +141,7 @@ once the CEO confirms the paste is working.
 
 ## Recovery (0.2) — already run once, this session
 
-Command (run once, from `/Users/gob/Projects/Agents`, **not** wrapped in a
+Command (run once, from `/Users/gob/MoonieXHQ/Agents/Core`, **not** wrapped in a
 script per the task brief):
 
 ```bash

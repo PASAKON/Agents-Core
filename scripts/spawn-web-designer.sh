@@ -20,7 +20,7 @@
 set -euo pipefail
 
 PROJECT_DIR="/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeSign"
-STATE_DIR="/Users/gob/Projects/Agents/state/web-designer"
+STATE_DIR="/Users/gob/MoonieXHQ/Agents/Core/state/web-designer"
 LOG_DAEMON="$STATE_DIR/daemon.log"
 LOG_WEB="$STATE_DIR/web.log"
 PID_DAEMON="$STATE_DIR/daemon.pid"

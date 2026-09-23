@@ -15,11 +15,11 @@ On "spawn cto", "spawn agent", "เปิด CTO", "เรียก CTO", "open 
 the agents" — run it, do not ask:
 
 ```bash
-bash /Users/gob/Projects/Agents/scripts/spawn-cto.sh   # --new | --last | --resume <id>
+bash /Users/gob/MoonieXHQ/Agents/Core/scripts/spawn-cto.sh   # --new | --last | --resume <id>
 ```
 
 "chat with cto" means inline in the current terminal instead:
-`cd /Users/gob/Projects/Agents && source .venv/bin/activate && python -m runners.cto_chat`
+`cd /Users/gob/MoonieXHQ/Agents/Core && source .venv/bin/activate && python -m runners.cto_chat`
 
 ## Paths
 
@@ -27,7 +27,7 @@ Canonical projects dir is `/Users/gob/Projects/` (capital P). APFS is
 case-insensitive, so lowercase resolves to the same inode — always write the
 cap-P form in code, configs, and docs.
 
-- Org runtime: `/Users/gob/Projects/Agents/` (dashboard: `python dashboard.py`)
+- Org runtime: `/Users/gob/MoonieXHQ/Agents/Core/` (dashboard: `python dashboard.py`)
 - Wikis, C-level write only: `org:` → `Agents-Wikis/`, `mooniex:` → `LLMs/`
 
 ## GateGuard fact protocol (ECC hook)

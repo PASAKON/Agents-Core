@@ -7,7 +7,7 @@
 # Usage: console-preview.sh {start|stop|status|url}
 set -euo pipefail
 
-AGENTS_DIR="/Users/gob/Projects/Agents"
+AGENTS_DIR="/Users/gob/MoonieXHQ/Agents/Core"
 TMUX_SESSION="cto-main"
 TTYD_PORT=7681
 PIDFILE="/tmp/mooniex-console-preview.pid"

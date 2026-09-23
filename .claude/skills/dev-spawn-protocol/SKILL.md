@@ -163,8 +163,8 @@ name, and `OUT` — **the file the task is supposed to be filling.** A flat line
 count next to a live pid is what a stall actually looks like.
 
 ```bash
-DB=/Users/gob/Projects/Agents/state/tasks.db
-W=/Users/gob/Projects/Agents/worktrees/<project>__<role>__task-XXXXXXXX
+DB=/Users/gob/MoonieXHQ/Agents/Core/state/tasks.db
+W=/Users/gob/MoonieXHQ/Agents/Core/worktrees/<project>__<role>__task-XXXXXXXX
 OUT="$W/<the file this task produces>"     # progress, not liveness
 prev=""
 while true; do

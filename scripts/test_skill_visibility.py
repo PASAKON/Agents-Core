@@ -123,7 +123,7 @@ def test_skill_added_to_base_worker_tools():
 
 
 def test_root_is_derived_not_hardcoded(monkeypatch, tmp_path):
-    """Hard constraint: never hardcode /Users/gob/Projects/Agents (Contabo
+    """Hard constraint: never hardcode /Users/gob/MoonieXHQ/Agents/Core (Contabo
     runs the same repo at /opt/mooniex-agents). Proves the profile lookup
     resolves relative to worker_init.ROOT by pointing ROOT at a fake root
     with different content and confirming that content -- not the real

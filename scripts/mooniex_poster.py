@@ -18,9 +18,9 @@ import sys, os, json, base64, argparse, random, urllib.request, urllib.error, re
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mooniex_logo import stamp_corner  # logo workflow node
 
-BASE = "/Users/gob/Projects/Agents/output/personal-brand"
+BASE = "/Users/gob/MoonieXHQ/Agents/Core/output/personal-brand"
 CROP = os.path.join(BASE, "_ref_crop.png")
-OUT = "/Users/gob/Projects/Agents/output/mooniex-posters"
+OUT = "/Users/gob/MoonieXHQ/Agents/Core/output/mooniex-posters"
 ENV = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
 ENDPOINT = "https://fal.run/openai/gpt-image-2/edit"
 COST_PER_IMAGE = 0.19

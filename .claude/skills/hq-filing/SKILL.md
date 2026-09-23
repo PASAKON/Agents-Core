@@ -60,7 +60,7 @@ symlink while 222 hardcoded lines in Agents-Core are retired. A row's `step` say
 
 ## Verbs
 ```bash
-PY=/Users/gob/Projects/Agents/.venv/bin/python
+PY=/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python
 $PY ~/MoonieXHQ/scripts/hq.py map              # hq.yaml → MAP.md
 $PY ~/MoonieXHQ/scripts/hq.py doctor           # disk vs map; exit 1 on any disagreement
 $PY ~/MoonieXHQ/scripts/hq.py show Projects/LungNote/Mcp

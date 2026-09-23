@@ -1,8 +1,8 @@
 # name	target   ($PROJECTS=/Users/gob/Projects, $HOME, $SRC=claude-home/). This is the MAP: no row = no link; a real dir with no row = UNMAPPED drift.
 # rows 1-33 = the symlinks that already existed 2026-09-22; the rest = what scripts/claude_home_migrate.py moves into the repo.
-blackliquidity-cut	$PROJECTS/Agents/.claude/skills/blackliquidity-cut
+blackliquidity-cut	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/blackliquidity-cut
 blue-ocean-strategy	/Users/gob/MoonieXHQ/External/wondelai-skills/blue-ocean-strategy
-browser-operator	$PROJECTS/Agents/.claude/skills/browser-operator
+browser-operator	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/browser-operator
 contagious	/Users/gob/MoonieXHQ/External/wondelai-skills/contagious
 continuous-discovery	/Users/gob/MoonieXHQ/External/wondelai-skills/continuous-discovery
 debug-mantra	/Users/gob/MoonieXHQ/External/9arm-skills/skills/engineering/debug-mantra
@@ -18,7 +18,7 @@ inspired-product	/Users/gob/MoonieXHQ/External/wondelai-skills/inspired-product
 jobs-to-be-done	/Users/gob/MoonieXHQ/External/wondelai-skills/jobs-to-be-done
 mom-test	/Users/gob/MoonieXHQ/External/wondelai-skills/mom-test
 mooniex-content	/Users/gob/MoonieXHQ/Agents/Skills/mooniex-content
-mooniex-finance	$PROJECTS/Agents/.claude/skills/mooniex-finance
+mooniex-finance	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/mooniex-finance
 mooniex-growth	/Users/gob/MoonieXHQ/Agents/Skills/mooniex-growth
 mooniex-kpi	/Users/gob/MoonieXHQ/Agents/Skills/mooniex-kpi
 mooniex-retention	/Users/gob/MoonieXHQ/Agents/Skills/mooniex-retention
@@ -29,20 +29,20 @@ post-mortem	/Users/gob/MoonieXHQ/External/9arm-skills/skills/engineering/post-mo
 remotion-to-hyperframes	$HOME/.agents/skills/remotion-to-hyperframes
 scrutinize	/Users/gob/MoonieXHQ/External/9arm-skills/skills/engineering/scrutinize
 seedance-scene-prompt	/Users/gob/MoonieXHQ/Agents/Skills/seedance-scene-prompt
-thai-moral-drama	$PROJECTS/Agents/.claude/skills/thai-moral-drama
-tig-scene-engine	$PROJECTS/Agents/.claude/skills/tig-scene-engine
+thai-moral-drama	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/thai-moral-drama
+tig-scene-engine	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/tig-scene-engine
 video-use	$HOME/Developer/video-use
 website-to-hyperframes	$HOME/.agents/skills/website-to-hyperframes
-character-reference-sheet	$PROJECTS/Agents/.claude/skills/character-reference-sheet
-content-idea-generator	$PROJECTS/Agents/.claude/skills/content-idea-generator
-cookierun-labeling	$PROJECTS/Agents/.claude/skills/cookierun-labeling
-de-ai-ify	$PROJECTS/Agents/.claude/skills/de-ai-ify
-homepage-audit	$PROJECTS/Agents/.claude/skills/homepage-audit
-marketing-principles	$PROJECTS/Agents/.claude/skills/marketing-principles
-mooniex-video-editor	$PROJECTS/Agents/.claude/skills/mooniex-video-editor
-positioning-basics	$PROJECTS/Agents/.claude/skills/positioning-basics
-reel-editor-th	$PROJECTS/Agents/.claude/skills/reel-editor-th
-social-card-gen	$PROJECTS/Agents/.claude/skills/social-card-gen
-video-ad-analysis	$PROJECTS/Agents/.claude/skills/video-ad-analysis
-voice-extractor	$PROJECTS/Agents/.claude/skills/voice-extractor
+character-reference-sheet	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/character-reference-sheet
+content-idea-generator	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/content-idea-generator
+cookierun-labeling	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/cookierun-labeling
+de-ai-ify	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/de-ai-ify
+homepage-audit	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/homepage-audit
+marketing-principles	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/marketing-principles
+mooniex-video-editor	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/mooniex-video-editor
+positioning-basics	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/positioning-basics
+reel-editor-th	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/reel-editor-th
+social-card-gen	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/social-card-gen
+video-ad-analysis	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/video-ad-analysis
+voice-extractor	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/voice-extractor
 hyperframes-media	$SRC/assets/hyperframes-media

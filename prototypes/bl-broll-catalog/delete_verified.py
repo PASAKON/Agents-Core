@@ -16,7 +16,7 @@ CAT, MAN = ROOT / "broll-catalog.json", ROOT / "drive-manifest.json"
 SRC = Path("/Users/gob/Desktop/archive")
 LOG = Path.home() / ".claude/logs/drive-archive.log"
 DRY = "--dry-run" in sys.argv
-spec = importlib.util.spec_from_file_location("ilag", "/Users/gob/Projects/Agents/scripts/gdrive-bridge/ilag_sync.py")
+spec = importlib.util.spec_from_file_location("ilag", "/Users/gob/MoonieXHQ/Agents/Core/scripts/gdrive-bridge/ilag_sync.py")
 ilag = importlib.util.module_from_spec(spec); spec.loader.exec_module(ilag)
 now = lambda: datetime.now(timezone(timedelta(hours=7))).isoformat(timespec="seconds")
 

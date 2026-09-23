@@ -7,8 +7,8 @@ scripts/gen-brandprompt-scenes.py (medium quality, $0.053/image).
 """
 import json, re, urllib.request, urllib.error, os
 
-OUT = "/Users/gob/Projects/Agents/output/warp-door"
-ENV = "/Users/gob/Projects/Agents/.env"
+OUT = "/Users/gob/MoonieXHQ/Agents/Core/output/warp-door"
+ENV = "/Users/gob/MoonieXHQ/Agents/Core/.env"
 T2I_EP = "https://fal.run/openai/gpt-image-2"
 
 PROMPT = (

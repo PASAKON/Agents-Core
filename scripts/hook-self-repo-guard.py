@@ -135,7 +135,7 @@ def db_path_for(root: Path) -> Path:
     """Canonical tasks.db of the checkout this worktree belongs to.
 
     `<checkout>/worktrees/<name>` -> `<checkout>/state/tasks.db`. On the Mac
-    that resolves to /Users/gob/Projects/Agents/state/tasks.db and on Contabo
+    that resolves to /Users/gob/MoonieXHQ/Agents/Core/state/tasks.db and on Contabo
     to /opt/mooniex-agents/state/tasks.db — never the worktree's own copy,
     which the DEV can edit.
     """

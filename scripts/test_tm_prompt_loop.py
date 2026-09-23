@@ -8,7 +8,7 @@ Covers all four deliverables, no paid API touched:
   D4 (METRICS.md is prose — not unit-tested)
 
 Run:
-  /Users/gob/Projects/Agents/.venv/bin/python scripts/test_tm_prompt_loop.py
+  /Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python scripts/test_tm_prompt_loop.py
 """
 from __future__ import annotations
 

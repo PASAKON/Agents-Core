@@ -27,7 +27,7 @@ CTO autonomous = `delegate_task`. Don't confuse them.
 Run the boot script — don't ask, just run it:
 
 ```bash
-bash /Users/gob/Projects/Agents/scripts/spawn-web-designer.sh
+bash /Users/gob/MoonieXHQ/Agents/Core/scripts/spawn-web-designer.sh
 ```
 
 It (headless by default):

@@ -27,9 +27,9 @@ This is the cross-session view. Contrast:
 ## Run it
 
 ```bash
-python3 /Users/gob/Projects/Agents/scripts/session_list.py           # default: NOT-yet-closed only
-python3 /Users/gob/Projects/Agents/scripts/session_list.py --all      # include 🏁 closed too
-python3 /Users/gob/Projects/Agents/scripts/session_list.py --verify   # + evidence/flag columns
+python3 /Users/gob/MoonieXHQ/Agents/Core/scripts/session_list.py           # default: NOT-yet-closed only
+python3 /Users/gob/MoonieXHQ/Agents/Core/scripts/session_list.py --all      # include 🏁 closed too
+python3 /Users/gob/MoonieXHQ/Agents/Core/scripts/session_list.py --verify   # + evidence/flag columns
 ```
 
 The script prints a ready Markdown table — relay it straight to the CEO (CTO

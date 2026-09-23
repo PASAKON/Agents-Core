@@ -34,14 +34,14 @@ cd /Users/gob/Projects/mooniex-claudesign
 git fetch upstream
 
 # what changed since the copy
-git diff --stat "$(cat /Users/gob/Projects/Agents/knowledge/design-knowledge/.upstream-sha)" \
+git diff --stat "$(cat /Users/gob/MoonieXHQ/Agents/Core/knowledge/design-knowledge/.upstream-sha)" \
   upstream/main -- craft design-templates
 
 # take the new state
 git archive upstream/main craft design-templates \
-  | tar -x -C /Users/gob/Projects/Agents/knowledge/design-knowledge
+  | tar -x -C /Users/gob/MoonieXHQ/Agents/Core/knowledge/design-knowledge
 git rev-parse upstream/main \
-  > /Users/gob/Projects/Agents/knowledge/design-knowledge/.upstream-sha
+  > /Users/gob/MoonieXHQ/Agents/Core/knowledge/design-knowledge/.upstream-sha
 ```
 
 Then update the table above. Upstream moves fast — 425 commits in the 30 days

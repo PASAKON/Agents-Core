@@ -175,5 +175,49 @@ def test_block_message_is_short_and_actionable(monkeypatch: pytest.MonkeyPatch) 
     assert err.count("\n") <= 5
 
 
+# --------------------------------------------------------------------------
+# logical vs physical equivalence (ADR 0028 step 4b hazard #2)
+# --------------------------------------------------------------------------
+
+def test_allow_cd_to_physical_target_when_home_is_logical(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """home = $CLAUDE_PROJECT_DIR, the OLD (logical/symlinked) path a session
+    keeps reporting after its repo moved; the command cd's to the NEW
+    physical path. Same location, different strings — must still allow."""
+    physical = tmp_path / "MoonieXHQ" / "Agents" / "Core"
+    physical.mkdir(parents=True)
+    logical = tmp_path / "Projects" / "Agents"
+    logical.parent.mkdir(parents=True)
+    logical.symlink_to(physical)
+    rc, _ = _run(monkeypatch, f"cd {physical} && pytest", home=str(logical))
+    assert rc == 0
+
+
+def test_allow_cd_to_logical_target_when_home_is_physical(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Mirror case: home is already the NEW physical path (a fresh session
+    launched post-migration), and the command cd's via the OLD compat
+    symlink (an alias/script that still hardcodes it)."""
+    physical = tmp_path / "MoonieXHQ" / "Agents" / "Core"
+    physical.mkdir(parents=True)
+    logical = tmp_path / "Projects" / "Agents"
+    logical.parent.mkdir(parents=True)
+    logical.symlink_to(physical)
+    rc, _ = _run(monkeypatch, f"cd {logical} && pytest", home=str(physical))
+    assert rc == 0
+
+
+def test_still_blocks_a_genuinely_different_location_via_symlink(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """The realpath fallback must not turn into a blanket allow — cd'ing to
+    an unrelated symlinked dir is still refused."""
+    home_dir = tmp_path / "home"
+    home_dir.mkdir()
+    other_real = tmp_path / "other-real"
+    other_real.mkdir()
+    other_link = tmp_path / "other-link"
+    other_link.symlink_to(other_real)
+    rc, err = _run(monkeypatch, f"cd {other_link} && ls", home=str(home_dir))
+    assert rc == 2
+    assert str(other_link) in err
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))

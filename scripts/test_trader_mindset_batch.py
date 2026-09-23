@@ -4,7 +4,7 @@
 No paid API is ever touched: the composite/stamp/prompt paths are pure and the
 dry-run is asserted to make zero network calls. Run:
 
-  /Users/gob/Projects/Agents/.venv/bin/python scripts/test_trader_mindset_batch.py
+  /Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python scripts/test_trader_mindset_batch.py
 
 The Thai-shaping test also writes a visual proof poster to
   output/trader-mindset/_test/sample_composite.png

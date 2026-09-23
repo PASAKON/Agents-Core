@@ -19,7 +19,7 @@ from PIL import Image, ImageFilter
 # brand source assets
 MOON = "/Users/gob/MoonieXHQ/Projects/MoonieX/WebApp/public/brand/logo-mark.png"        # gold crescent+pagoda
 WORDMARK = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/assets/mooniex-footer.png"  # gold MOONIEX wordmark
-LOCKUP_CACHE = "/Users/gob/Projects/Agents/output/personal-brand/lockup-vertical.png"
+LOCKUP_CACHE = "/Users/gob/MoonieXHQ/Agents/Core/output/personal-brand/lockup-vertical.png"
 
 
 def _trim(im):

@@ -19,7 +19,7 @@
 # otherwise duplicate that chat's id into the new tab.
 set -euo pipefail
 
-ROOT="/Users/gob/Projects/Agents"
+ROOT="/Users/gob/MoonieXHQ/Agents/Core"
 
 WITH_LOGS=0
 USE_GLM=0
