@@ -44,6 +44,7 @@ The fix is to stop committing media there, not to rewrite history on a shared re
 - `~/Desktop`, `~/Downloads`, `~/Movies`
 - `~/.claude/projects/*/memory/`
 - `/private/tmp/claude-501/<other session uuid>` — another session's scratch
+- `~/Library/Application Support/Claude/vm_bundles/` — Claude Desktop's VM image (`rootfs.img` 9.2 GB on 2026-09-23). CEO 2026-09-23: "ไฟล์ VM ไม่ชัวร์ห้ามยุ่ง" — not ours to delete, move or resize, whatever the disk says
 
 ## What is left, and who decides
 
