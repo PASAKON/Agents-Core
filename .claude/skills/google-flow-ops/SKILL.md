@@ -1364,6 +1364,33 @@ and count which arms left a card. Known gap: a 360p clip has no 1080p upscale
 menu, so the runner's download step fails on it with "1080p submenu did not
 appear" — that is the test harness, not the arm failing.
 
+## ⛔ What Flow silently deletes in an arrest scene — handcuffs, and a uniform next to police lights (2026-09-23)
+
+Same symptom as the section above: the batch appears, then the card is gone from
+the feed — no clip, no error. The runner reports "new card found but download not
+ready" / "card opened but no new flow-content.google/video/ URL", then `timeout`.
+**Check the feed before assuming a harness bug**: list the newest batches; a
+deleted arm is simply absent. Measured on «บัญชี»'s arrest, 3 shots at 720p plus 8
+arms at 360p/4s (4 credits each), one variable per arm:
+
+| arm | uniform (face plate + wardrobe plate) | handcuffs | police lights | result |
+|---|---|---|---|---|
+| 156 | yes | – | – | **kept** |
+| 187 | – (father alone) | – | pickup + red-blue bar, in frame | **kept** |
+| 9207 V1 | yes, walking him out, charges spoken | – | – | **kept** (real night, 40 s) |
+| 184/185/186 | yes | yes | pickup in frame | deleted |
+| 9202 | yes | – | pickup + light bar in frame | deleted |
+| 9203, 9205, 9206 | yes | yes | – | deleted (dialogue varied: irrelevant) |
+| 9204 | yes | yes | red-blue from off frame | deleted |
+| 9209 V3 | yes | – | red-blue from off frame | deleted |
+| 9208 V2 | – (plainclothes) | yes | – | deleted |
+
+**The rule that fits every arm:** handcuffs are deleted on anyone; a uniformed
+officer is deleted when police lights are in or thrown into the frame. Dialogue
+(charges, prison, threats) changed nothing. So an arrest in Flow is: the uniform,
+the charges in words, him walked out with hands free — and the patrol lights only
+in a shot without the officer (a bystander watching the car leave).
+
 ## ⛔ Chrome itself can block downloads, and it looks exactly like Flow being broken (2026-09-18, task-75926848)
 
 A *different* failure from the CDN trap below, with an identical symptom: you
@@ -1910,3 +1937,4 @@ Neither replaces the other. Both are free.
 - 2026-09-23 [MISSING] §Every shoot ends with a mechanical audit — shot 43 captioned on 3 of 3 takes at 6s (10.5 Thai chars/s, 2nd-fastest line in the film); lengthened to 8s with nothing else changed, take 4 came back clean on the pixel scan. n=1, and shot 16 is as fast and was always clean, so this is a lever to try before a crop, not a rule. · evidence: session cto-8c06958c, ACT2 43 take 4 (e29dc06e) · status: pending
 - 2026-09-23 [MISSING] §Wardrobe — measured, not just argued: the uniformed วิทย์ as ONE full-body still (@cop_wit_uniform_A) came back older and greying in a two-shot with the father (149, 151, and A/B arm A) — the stronger close-up face in the frame leaked in. His FACE plate (@cop_wit) + a wardrobe plate with no person in it (@police_uniform), labelled "wardrobe reference: <who> wears exactly this outfit", held his face and the uniform (arm B). build_shotsheet now has WARDROBE per character. n=1 per arm, 360p. · evidence: session cto-8c06958c, scratchpad/abface, 51a3c4e1 · status: pending
 - 2026-09-23 [COSTLY] §zero-model runner — a 360p/4s A/B run marks every good clip "failed — RESOLUTION got 360x640 want 720x1280" and names it bad-shot-N.mp4, because verify_clip checks the download resolution, not the generation resolution. The clips are fine; read them from bad-shot-*. Fix owed: with --resolution 360p, verify against 360x640. · evidence: scratchpad/abface/abface.tsv · status: pending
+- 2026-09-23 [MISSING] §What Flow silently deletes in an arrest scene — handcuffs deleted on anyone (incl. plainclothes); uniform + police lights (even thrown in from off frame) deleted; uniform + walked out + spoken charges kept. 11 arms, one variable each. Section added. · evidence: session cto-8c06958c, scratchpad/abarrest (9202-9209), ACT6 184-186 · status: pending
