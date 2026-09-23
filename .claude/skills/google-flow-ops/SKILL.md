@@ -1329,6 +1329,41 @@ also matches the neighbouring shots' colour and grade, and a plate generated fro
 a prompt that does not pin the look will drift. Say the look in the plate prompt,
 and compare frame 0 against a neighbouring shot before calling a re-fire good.
 
+## ⛔ A clip that vanishes after Submit — police uniform plate + the word "police" (2026-09-23)
+
+**The symptom.** Submit is accepted, a new batch appears at the top of the feed
+with the prompt on it, and then it is gone: no clip, no error tile, no toast.
+The old runner read this as "completed card found but download not ready" for
+eight minutes and logged `failed — timeout`; a later `pull` by dialogue then
+fetched an OLDER take with the same line. Measured on «บัญชี»: shot 179 twice,
+149 and 151 once each.
+
+**The A/B that found it** (CEO-ordered, 360p/4s, 3 arms, one variable each):
+
+| arm | reference plate | the word "police" in the text | result |
+|---|---|---|---|
+| A — 179 as written | `@cop_wit_uniform_A` (uniform) | yes (character block, action, label) | **card vanished** |
+| B | `@cop_wit` (plainclothes) | yes | clip made |
+| C | `@cop_wit_uniform_A` (uniform) | **none** | clip made — Flow's own auto-title still read "Police officer enters noodle shop" |
+
+**What to do:** when a plate already shows a uniform (police, military, any
+authority), **describe the clothes, never name the institution** — "an everyday
+khaki duty uniform, a metal badge", not "Royal Thai Police uniform, police
+badge". The plate carries the look; the word is what trips the filter.
+
+**Honest scope.** One A/B, n=1 per arm, plus four field failures. It is not
+deterministic: 150, 181 and 182 carried the same plate AND the word and came
+back. Treat the rule as the cheap default, not a proven law; if a clip still
+vanishes without the word, A/B the next variable (framing, the plate alone in
+frame) before paying for 720p again.
+
+**Test it cheap.** `flow_shoot.py run --resolution 360p --force-duration 4` on a
+scratch sheet with one variable per shot number (4 credits an arm). The feed
+listing, not the runner's exit code, is the verdict: read the newest batches
+and count which arms left a card. Known gap: a 360p clip has no 1080p upscale
+menu, so the runner's download step fails on it with "1080p submenu did not
+appear" — that is the test harness, not the arm failing.
+
 ## ⛔ Chrome itself can block downloads, and it looks exactly like Flow being broken (2026-09-18, task-75926848)
 
 A *different* failure from the CDN trap below, with an identical symptom: you
@@ -1871,3 +1906,4 @@ Neither replaces the other. Both are free.
 - 2026-09-23 [WRONG] §Every shoot ends with a mechanical audit — NOT["nosubs"] ("No subtitles, no captions…") + rewriting the line as spoken aloud did NOT stop shot 43 captioning: 3 of 3 takes captioned. It held on 29 and 115 (n=2 clean), so the negative is not a fix for a shot that keeps doing it — crop it (0 cr) after the second captioned take instead of paying for a third. · evidence: session cto-8c06958c, ACT2 43 take 3 04:0x, burned_text_scan score 286 · status: pending
 - 2026-09-23 [WRONG] §zero-model runner — `pull` finds a clip by its dialogue, but a re-shoot keeps its dialogue: 149 and 151 came down as the OLD plainclothes takes and the ledger marked them verified. Caught only by a frame check (uniform vs polo). Every pull of a re-shot scene needs --search <a phrase only the new prompt has> (added on agent/codex-winbox-runner), and every pulled clip gets one frame looked at before it counts. · evidence: session cto-8c06958c, ACT6 149/151 05:12/05:27 · status: pending
 - 2026-09-23 [WRONG] §zero-model runner — "completed card found but download not ready" ×7 then "failed — timeout" meant NO new clip existed: 149 (re-shoot), 151 and 179 ×2 left no card in the feed at all (read-only feed listing 05:45). The completion check takes the FIRST element carrying the shot's dialogue, which for a re-shot scene is the OLD finished card, and for a shot whose submit silently produced nothing is whatever else matches — so a submit that failed reads as done-but-undownloadable. Fix owed in flow_shoot: count batches before Submit and only accept a card in a batch that did not exist before. Until then: a 'timeout' is not evidence of a paid clip; list the newest feed batches before pulling or re-firing. · evidence: session cto-8c06958c, ACT6 149/151/179 04:38–05:36 · status: pending
+- 2026-09-23 [MISSING] §A clip that vanishes after Submit — uniform plate + the word "police" made Flow drop the clip silently (179 x2, 149, 151, A/B arm A); without the word (arm C) or with the plainclothes plate (arm B) it came back. Section added; n=1 per arm, so the rule is a default, not a law. · evidence: session cto-8c06958c, scratchpad/ab179, runner 2df21691 · status: pending

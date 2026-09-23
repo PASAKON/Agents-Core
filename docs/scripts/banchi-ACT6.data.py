@@ -45,12 +45,18 @@ PROPS_BY_SHOT = dict(_a2.PROPS_BY_SHOT)
 # then it names a plate that cannot exist, so check_plates refuses the build
 # instead of guessing.
 WIT_UNIFORM_HANDLE = "@cop_wit_uniform_A"   # picked by eye 2026-09-23: same hair, jaw, brows as @cop_wit; B was a different man
+# NO WORD "police" anywhere in his block (A/B 2026-09-23, 360p/4s): with the
+# uniform plate attached AND "police" in the text, Flow began the clip and then
+# silently removed it — 179 twice, 149 and 151 once, arm A once — no card, no
+# error. Same text with the plainclothes plate (arm B) and the uniform plate
+# with "police" removed (arm C) both came back; Flow's own auto-title still read
+# "Police officer enters noodle shop", so the plate carries the look by itself.
 CHAR["wit_uniform"] = (WIT_UNIFORM_HANDLE,
   "a Thai man of 32, medium athletic build, short neat black hair, clean-shaven, calm steady "
-  "eyes, in a Royal Thai Police everyday duty uniform: a khaki-brown short-sleeved uniform "
-  "shirt with shoulder boards, a police badge above the left pocket and a blank name plate "
+  "eyes, in an everyday khaki duty uniform: a khaki-brown short-sleeved uniform "
+  "shirt with shoulder boards, a metal badge above the left pocket and a blank name plate "
   "above the right pocket, khaki-brown trousers and a black belt",
-  "The 32-year-old man in the khaki police uniform")
+  "The 32-year-old man in the khaki uniform")
 VOICE["wit_uniform"] = VOICE["wit"]
 
 LOC["bedrail"] = ("@bedrail_marks",
@@ -155,7 +161,7 @@ SHOTS = [
    ("wit","certain","ครั้งนี้ลุงจะยอมครับ")], ["nosubs"]),
 
  (179, 6, "Wide shot from behind the counter toward the street, static camera", ["wit_uniform"], "shop", "afternoon",
-  "walks in through the open roll-up shutter wearing a khaki peaked police cap and stops one step inside, the empty shop going still around him",
+  "walks in through the open roll-up shutter wearing a khaki peaked cap and stops one step inside, the empty shop going still around him",
   [("wit_uniform","quiet, formal","สวัสดีครับลุง")], ["nosubs"]),
 
  (180, 8, "Medium two-shot behind the counter, static camera", ["somchai","ton"], "shop", "afternoon",
