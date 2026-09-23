@@ -65,6 +65,17 @@ never_say: [...]               # phrases the bot must never produce in a draft r
 escalate_to_human: [...]       # situations the bot must hand to a human instead of auto-replying: a legal threat from a broker, a victim asking for money back, a request for personalized investment advice, anything not covered by faq
 ```
 
+## Standing rule: no em dash in anything a viewer receives
+
+IRON-RULES §39 bans the em dash (—) in public-facing text. Every field a
+viewer can actually see or read — `summary`, `claims[].text`, everything
+under `cta` (including `dm_message`, `comment_reply_dm_sent`,
+`comment_reply_dm_invite`), `faq[].a`, and the two deliverable files a pack
+points to — must use normal Thai punctuation instead: a line break, a colon,
+or just a space where Thai would pause. `—` must also be in every pack's
+`never_say`, so the bot's own compliance guard blocks a future draft that
+carries one. This file (SCHEMA.md) is internal-only and may keep dashes.
+
 ## Field notes for the bot implementer
 
 - `claims[].status` is the field the bot uses to hedge its own language: a
